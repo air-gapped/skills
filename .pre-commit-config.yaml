@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: large-files
+        name: large-files (1 MB)
+        entry: bash -c 'for f in "$@"; do if [ -f "$f" ] && [ "$(wc -c <"$f")" -gt 1048576 ]; then echo "$f > 1 MB"; exit 1; fi; done' --
+        language: system
+        stages: [pre-commit]
+      - id: gitleaks
+        name: gitleaks protect --staged
+        entry: gitleaks protect --staged --no-banner
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
