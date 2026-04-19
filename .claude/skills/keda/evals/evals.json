@@ -1,0 +1,33 @@
+{
+  "skill_name": "keda",
+  "evals": [
+    {
+      "id": 0,
+      "name": "sqs-worker-with-irsa",
+      "prompt": "I've got a Python worker Deployment called `image-processor` in the `media` namespace on EKS. It consumes messages from an SQS queue at https://sqs.eu-west-1.amazonaws.com/444455556666/image-jobs. Traffic is very bursty — most of the day the queue is empty, but we get thousands of messages in short spikes when a customer uploads a batch. Each message takes roughly 5 seconds to process. The worker pod's service account `image-processor-sa` is already annotated with IRSA role arn:aws:iam::444455556666:role/image-processor. I want to scale from 0 to 40 pods and fall back gracefully if SQS is unreachable. Write me a complete KEDA ScaledObject + TriggerAuthentication, and explain the key parameter choices.",
+      "expected_output": "A complete ScaledObject with aws-sqs-queue trigger, minReplicaCount 0, maxReplicaCount 40, fallback configured, TriggerAuthentication using podIdentity.provider=aws (IRSA), plus reasoning about polling interval / queueLength target / cooldown based on the 5s processing time and bursty workload.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "debug-stuck-hpa-conflict",
+      "prompt": "My ScaledObject `order-api` in the `apps` namespace is not working. `kubectl describe scaledobject order-api` shows Ready=False, and the deployment is still at 3 replicas even though traffic is high. When I check `kubectl get hpa` I see two HPAs on the same deployment — one called `order-api-hpa` that I created last year and one called `keda-hpa-order-api`. The ScaledObject has a Prometheus trigger querying `sum(rate(http_requests_total{service=\"order-api\"}[1m]))` with threshold 200 and `kubectl get --raw \"/apis/external.metrics.k8s.io/...\"` returns 404. Walk me through diagnosing this step by step and give me the exact fix.",
+      "expected_output": "Explanation that the old manual HPA is the root cause (HPA conflict validation). Diagnosis steps including `kubectl describe scaledobject` conditions, looking at operator logs, checking APIService. Fix: delete the old HPA (`kubectl delete hpa -n apps order-api-hpa`), or use the transfer-hpa-ownership annotation to adopt it. Mention the external metrics 404 is a downstream symptom, not the root cause.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "gpu-cron-multi-window",
+      "prompt": "We have a GPU cluster with 14 H100s and two workloads sharing it: `sglang-inference` (4 GPUs/pod) and `batch-processing` (2 GPUs/pod). Inference should scale up during European business hours and weekdays; batch takes over off-hours and weekends. Weekdays 07:00-18:00 Stockholm time we want 3 inference pods (12 GPUs) and 1 batch pod (2 GPUs) = 14 GPUs total. Evenings 18:00-22:00 we want 2 inference + 3 batch = 14. Nights 22:00-07:00 we want 1 inference + 5 batch = 14. Weekends: 1 inference + 5 batch all day. Write me KEDA ScaledObjects for both workloads using the cron scaler. All timestamps in Europe/Stockholm.",
+      "expected_output": "Two ScaledObjects (one per workload) with multiple cron triggers. Because cron triggers combine as max, the pattern is to define one cron window per time slot. Correct schedules with IANA timezone Europe/Stockholm. The desiredReplicas for each window should match the user's table. An explanation that overlapping cron windows take max (not sum), so non-overlapping windows are needed.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "multi-trigger-with-stabilization",
+      "prompt": "Write a production-grade KEDA ScaledObject for a Go HTTP API called `checkout` in namespace `ecommerce`. Scale between 5 and 50 pods based on two signals: (1) Prometheus RPS query `sum(rate(http_requests_total{service=\"checkout\"}[1m]))` with a target of 150 RPS per pod, and (2) CPU utilization target 70%. The pods take about 45 seconds to warm up (JVM-like cold start from Go's init code). We've had issues with flapping during quiet nights. Also explain: when both metrics recommend different replica counts, which one wins and why? And what happens during a Black Friday spike that would push us past 50 pods?",
+      "expected_output": "ScaledObject with two triggers (prometheus and cpu), behavior tuned for slow warmup (scaleDown stabilization at least 900s > 45s warmup), scaleUp moderately aggressive. Correct explanation: the HPA picks MAX of the two, so whichever trigger suggests more pods wins — this is OR-semantics. During a Black Friday spike maxReplicaCount caps at 50; the user should monitor `keda_scaled_object_errors_total` and consider raising the ceiling. Ideally mention fallback for when Prometheus is down.",
+      "files": []
+    }
+  ]
+}
