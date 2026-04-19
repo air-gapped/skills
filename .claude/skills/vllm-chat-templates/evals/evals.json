@@ -1,0 +1,35 @@
+{
+  "skill_name": "vllm-chat-templates",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just redeployed DeepSeek-R1-0528 on our 8xH200 node using vllm 0.14.0 with --reasoning-parser deepseek_r1 --enable-auto-tool-choice. Requests come back with reasoning_content: null and all the chain-of-thought stuck in the content field mixed with the final answer. I tried setting --chat-template examples/tool_chat_template_deepseekr1.jinja but no change. What's going on? Our monitoring is tagging this as a regression vs our old vllm 0.11.1 deployment.",
+      "expected_output": "Should identify: DeepSeek-R1 template hard-prepends <think>\\n into prefill, so opening tag never appears in output; vLLM reasoning parser sees only </think>. Either upgrade vLLM for fixed parser, or post-process prepend <think> on client side. Should cite issue #12999 or HF discussion #144. Should explain the layer split (template vs parser) and that changing --chat-template won't fix this because the problem is the parser's expectation vs the emitted output, NOT the prompt.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Serving Qwen3-Coder-480B-A35B-Instruct on vllm. Tool calls work fine for small queries, but when I pass complex function definitions the tool_calls array is empty and the text response has XML-looking output with <tool_name> tags in it. Currently running with --tool-call-parser hermes --enable-auto-tool-choice. Model card says it supports tool calling. What did I configure wrong?",
+      "expected_output": "Should identify: Qwen3-Coder emits XML, not Hermes JSON. Use --tool-call-parser qwen3_xml AND --chat-template examples/tool_chat_template_qwen3coder.jinja. hermes parser can't detect XML tool calls so it drops them, leaving content with raw XML and tool_calls=[]. Should contrast Qwen3 dense (hermes OK) vs Qwen3-Coder (needs qwen3_xml).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Running Mistral-Small-3.1-24B-Instruct-2503 on vLLM 0.19 with --tokenizer-mode mistral --chat-template /opt/configs/custom_mistral_template.jinja --tool-call-parser mistral. The custom template has some edits we need for our tool-calling format. Server starts fine, no errors. But when I inspect the rendered prompts with --disable-log-requests=False the template edits don't appear — it's using the default format. Is the file path wrong?",
+      "expected_output": "Should identify: --tokenizer-mode mistral silently ignores --chat-template (vLLM #25401). The mistral-common tokenizer has its own canonical template that can't be overridden. Warning only in logs. Two options: (1) switch to --tokenizer-mode hf --config-format hf --load-format hf + --chat-template examples/tool_chat_template_mistral_parallel.jinja, (2) accept the built-in template. Should mention the custom edits need to happen on the HF format side.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I'm deploying gpt-oss-120b on a B200 node and tool calling from Claude Code is completely broken — either vLLM crashes at startup with tool parser errors, or it starts and every tool call comes back with `arguments: \"\"`. I've tried --tool-call-parser hermes, mistral, llama3_json. How are people getting this to work in production?",
+      "expected_output": "Should identify: gpt-oss tool calling on /v1/chat/completions is broken (vLLM #22578). Workaround is to use the /v1/responses (Harmony) endpoint instead. hermes parser crashes at startup; mistral/llama3_json start but produce broken output because gpt-oss emits harmony format, not those other formats. Correct parser is --tool-call-parser openai for harmony. Should mention Claude Code client may need --api-url pointing at /responses endpoint.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Setting extra_body={'chat_template_kwargs': {'enable_thinking': False}} on Qwen3-30B-A3B-Instruct via the OpenAI Python SDK. I'm still getting <think> blocks in the response. I verified by sending a request through openai.OpenAI(base_url=...) client and inspecting the full message content. Our vLLM is 0.11.0-post1. Is enable_thinking just broken?",
+      "expected_output": "Should identify: vLLM PR #25794 restricted chat_template_kwargs to an allowlist that initially dropped kwargs passed via tokenizer **kwargs; fix is PR #27622 which whitelists standard HF params. Requires vLLM >= v0.11.1. Alternative debug step: confirm kwargs reach the template by writing a throwaway debug.jinja that emits the value, or call tokenizer.apply_chat_template locally outside vLLM to verify expected behavior. Should also note that enable_thinking=False means template emits empty <think>\\n\\n</think>\\n\\n, parser then treats all output as content — if template itself isn't working, the problem moved upstream.",
+      "files": []
+    }
+  ]
+}
