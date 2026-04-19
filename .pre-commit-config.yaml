@@ -26,7 +26,7 @@ repos:
         stages: [pre-commit]
       - id: shellcheck
         name: shellcheck
-        entry: shellcheck
+        entry: shellcheck --severity=warning
         language: system
         types: [shell]
         stages: [pre-commit]

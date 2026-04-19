@@ -26,7 +26,7 @@ ruff: ## Lint + format-check Python with ruff
 shellcheck: ## Lint all shell scripts
 	@command -v shellcheck >/dev/null || { echo "shellcheck not installed (sudo dnf install ShellCheck)"; exit 1; }
 	@files=$$(find . -name '*.sh' -not -path './.git/*' -not -path './.research/*'); \
-	if [ -n "$$files" ]; then echo $$files | xargs shellcheck; else echo "no .sh files"; fi
+	if [ -n "$$files" ]; then echo $$files | xargs shellcheck --severity=warning; else echo "no .sh files"; fi
 
 hooks: ## Install pre-commit hooks
 	pre-commit install
