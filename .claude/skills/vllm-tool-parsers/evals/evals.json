@@ -1,0 +1,26 @@
+{
+  "skill_name": "vllm-tool-parsers",
+  "evals": [
+    {
+      "id": 0,
+      "name": "deepseek-v31-fullwidth-pipe",
+      "prompt": "We're serving DeepSeek-V3.1 on 8xH100 with vllm 0.11.2 and tool calls completely fail — model emits what looks like `<|tool_calls_begin|><|tool_call_begin|>get_weather<|tool_sep|>{\"city\":\"Paris\"}<|tool_call_end|><|tool_calls_end|>` but vLLM returns it as raw content and `finish_reason=stop`. We copied the chat template from their HF repo into our own Jinja file. `--enable-auto-tool-choice --tool-call-parser deepseek_v31` is set. What's going on?",
+      "expected_output": "Identify that the sentinels in the output use ASCII `|` (copy-paste artifact) but the parser expects full-width `｜` (U+FF5C). Recommend verifying via hex dump / codepoint check, fixing the template to use the exact Unicode characters from the tokenizer, and confirming with a raw /v1/completions call that the model actually emits full-width. Mention related close-path empty-args gotcha on V3.1.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "qwen3-coder-streaming-args-missing",
+      "prompt": "My Qwen3-Coder-30B deployment on vllm 0.10.2 is returning tool calls non-streaming correctly, but when I stream, the `arguments` field stays empty until the very last delta when it arrives all at once. Using `--tool-call-parser qwen3_coder --enable-auto-tool-choice` with tool_chat_template_qwen3coder.jinja. Clients (LangChain) hang waiting for incremental JSON. Is this a bug?",
+      "expected_output": "Yes — this is GitHub issue vllm-project/vllm#30439. Qwen3-Coder historically did not stream arguments and returned them all at once. Fix was merged; recommend upgrading vLLM. Explain the underlying reason (state machine only emitted after seeing complete `</function>`). As a workaround before upgrading, suggest non-streaming mode. Mention that qwen3_xml (expat-based) streams cleanly if the model variant supports it.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "custom-parser-plugin-new-model",
+      "prompt": "I'm trying to upstream a tool parser for our internal fine-tune of Llama-3.1-70B that emits calls as `<<<TOOL>>>function_name(arg1=\"x\", arg2=42)<<<END>>>` (pythonic but with custom delimiters, supports parallel calls). I want to support streaming too. Where do I start and what's the minimum contract I need to satisfy?",
+      "expected_output": "Direct to writing a `--tool-parser-plugin`. Point at `vllm/tool_parsers/pythonic_tool_parser.py` as the closest starting point (ast.parse + make_valid_python + compute_tool_delta utilities). List the required state fields (prev_tool_call_arr, current_tool_id, current_tool_name_sent, streamed_args_for_tool). Cover the serving-layer contract — prev_tool_call_arr[i]['arguments'] must hold full accumulated args at stream end; streamed_args_for_tool[i] must be appended to every arg flush. Mention the HACK pattern pythonic parsers use. Flag the known pitfalls: O(n^2) re-parse per delta, apostrophe bug in `'`→`\"` substitution. Recommend aligning with in-flight parse_delta refactor (RFC #11522, PRs #39446/#39728/#38755). Mention AGENTS.md duplicate-work check before opening PR.",
+      "files": []
+    }
+  ]
+}
