@@ -1,0 +1,26 @@
+{
+  "skill_name": "vllm-reasoning-parsers",
+  "evals": [
+    {
+      "id": 0,
+      "name": "deepseek-r1-null-reasoning",
+      "prompt": "Running DeepSeek-R1-Distill-Qwen-32B on vLLM with `--reasoning-parser deepseek_r1`. The chat-completion responses have `content` populated with the full model output including `</think>` markers, but `reasoning_content` is always `null`. Why? How do I fix it? Be specific about what the parser is doing and why it's returning null.",
+      "expected_output": "Identifies root cause (chat template injects `<think>` into the prompt so the model never emits it; naive regex matchers see no pair). Explains how `BaseThinkingReasoningParser.extract_reasoning` handles this via `partition`. Points to specific files (qwen3_reasoning_parser.py, deepseek_r1_reasoning_parser.py, basic_parsers.py) or the serving layer.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "custom-parser-plugin",
+      "prompt": "I need to add reasoning-parser support for a custom model that uses `<|think|>` and `<|/think|>` as its single-token reasoning delimiters. I want to do this as a plugin without modifying vLLM source. Walk me through the minimum code to write, where to put it, and the exact `vllm serve` flags to use. Then show me how to verify it's working.",
+      "expected_output": "Shows plugin file with `@ReasoningParserManager.register_module([\"my_model\"])` decorator, inherits `BaseThinkingReasoningParser`, overrides `start_token`/`end_token`. Gives `--reasoning-parser-plugin /path/file.py --reasoning-parser my_model` command. Notes order matters (plugin loaded before lookup). Verification with curl + jq on /v1/chat/completions expecting both `reasoning_content` and `content` populated.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "qwen3-guided-json-broken",
+      "prompt": "Running Qwen3-235B with `--reasoning-parser qwen3 --guided-decoding-backend xgrammar`. Requests with `chat_template_kwargs: {\"enable_thinking\": false}` and `response_format: {\"type\": \"json_object\"}` are producing outputs that start with extra tokens before the JSON, and sometimes the JSON is invalid. With `enable_thinking: true` it works fine (but is slow because of reasoning). What is going wrong, and how do I make structured output work cleanly when thinking is disabled?",
+      "expected_output": "Explains the xgrammar gating mechanism (`is_reasoning_end` on prompt determines when grammar enforcement starts). Explains that with thinking-disabled, the Qwen3 chat template injects `<think>\\n\\n</think>\\n\\n` into the prompt, and that `BaseThinkingReasoningParser.is_reasoning_end` reverse-scans and correctly flips true for this shape so xgrammar should enforce from token 0. Identifies the actual failure mode (custom chat template without the fake think block; parser not checking `enable_thinking`; etc.) and gives remediation.",
+      "files": []
+    }
+  ]
+}
