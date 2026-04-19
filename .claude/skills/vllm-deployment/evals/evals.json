@@ -1,0 +1,23 @@
+{
+  "skill_name": "vllm-deployment",
+  "evals": [
+    {
+      "id": 0,
+      "name": "multinode-segfault",
+      "prompt": "I've got a 4-node H200 cluster (8 GPUs per node) and I want to serve DeepSeek-V3 across 2 nodes because the weights won't fit on one node. I've been trying to build this myself with a headless Service + StatefulSet but when the TP group tries to init NCCL the pods segfault. What K8s primitive / manifest should I actually be using in April 2026? Give me a minimum viable manifest and explain the NCCL segfault fix.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "openshift-root-and-route",
+      "prompt": "We're deploying vLLM on OpenShift 4.18 using the upstream vllm/vllm-openai image. Two problems: (1) the pod crashes on start with what looks like a permission/UID error from the SCC, and (2) once we got it running on a dev cluster with anyuid, our streaming /v1/chat/completions responses cut off at exactly 60 seconds. What do I need to fix? Is there a Red Hat-supported image I should use instead?",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "keda-thrash",
+      "prompt": "I set up KEDA on my vLLM Deployment using vllm:num_requests_waiting as the trigger with threshold 2. Traffic is bursty — spikes of ~50 concurrent requests for 1-2 minutes, then idle. My pods keep spinning up and immediately being scaled back down before they've finished loading. What's wrong with my autoscaler setup? Can you give me a corrected ScaledObject?",
+      "files": []
+    }
+  ]
+}
