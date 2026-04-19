@@ -12,3 +12,21 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]
+      - id: ruff
+        name: ruff check
+        entry: ruff check
+        language: system
+        types_or: [python]
+        stages: [pre-commit]
+      - id: ruff-format
+        name: ruff format --check
+        entry: ruff format --check
+        language: system
+        types_or: [python]
+        stages: [pre-commit]
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]
+        stages: [pre-commit]
