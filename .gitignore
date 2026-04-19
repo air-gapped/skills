@@ -1,2 +1,13 @@
-.claude/settings.local.json
+# Personal / local
+.gitleaks.toml
 .research/
+
+# Claude Code — personal / ephemeral
+.claude/settings.local.json
+.claude/conversations/
+.claude/sessions/
+.claude/skills/.cache/
+.claude/skills/**/*.log
+.claude/worktrees/
+.claude/plugins/cache/
+CLAUDE.local.md
