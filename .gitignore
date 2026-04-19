@@ -10,4 +10,5 @@
 .claude/skills/**/*.log
 .claude/worktrees/
 .claude/plugins/cache/
+.claude/skills/*-workspace/
 CLAUDE.local.md
