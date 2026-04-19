@@ -1,0 +1,26 @@
+{
+  "skill_name": "vllm-quantization",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "gb300-deepseek-multiturn-garbage",
+      "prompt": "ok so we're deploying DeepSeek-V3.2 on a fresh GB300 cluster (8x B300) and we've been getting garbled multi-turn output — first response is fine, second turn the model starts repeating or outputs gibberish. I've been running vllm 0.18.1 with --kv-cache-dtype fp8 because we have a lot of long-context traffic and we need KV capacity. the single-turn evals looked clean on mmlu so we shipped it. what's wrong, what do I change? our checkpoint is the stock deepseek-ai/DeepSeek-V3.2-Exp one, we haven't re-quantized it. also is there a reason to move off 0.18.1, we already had to pin because of some TRTLLM hang we hit on week 1.",
+      "expected_output": "Should identify two load-bearing issues: (1) FP8 KV on MLA multi-turn is broken (issue #38652), recommend removing --kv-cache-dtype fp8 or using a non-MLA target; (2) B300/GB300 (SM103) had TRTLLM-attention hang fixed in v0.19 (PR #38730), so the pin to v0.18.1 is exactly backwards — they need to move FORWARD to v0.19.1 which fixes both the pinned bug and the DeepGemm E8M0 Qwen3.5 accuracy issue. Bonus: note that there's also a v0.18 Qwen3.5 FP8 KV accuracy regression #37618. Should point to references/troubleshooting.md or kv-cache.md.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "eval_name": "nvfp4-checkpoint-production",
+      "prompt": "we have 4x B200 nodes and want to serve Llama-3.1-70B-Instruct as our chat endpoint. throughput is the priority. I've been reading about NVFP4 but also about AWQ and W4A16. I'd like the full production recipe — which format, how do I produce the checkpoint (llm-compressor vs ModelOpt), what flags do we pass to vllm serve, and what should we check before shipping. we also have a smaller fleet of H100s that might need to load the same checkpoint as a fallback — is that possible?",
+      "expected_output": "Should recommend NVFP4 (modelopt_fp4 or compressed-tensors NVFP4) as the Blackwell primary since B200 has native FP4 Tensor Cores. Give exact commands for producing it with either ModelOpt (hf_ptq.py with NVFP4_DEFAULT_CFG, ~3.5 min calibration on 8xH100) or llm-compressor (NVFP4 scheme, 20 samples cal). Note that NVFP4 loads on Hopper via emulation (PR #35733, v0.19), so ONE checkpoint works on both fleets. Mention pitfalls: (1) audit ignore list especially for hybrid-attention, (2) avoid FP8 KV on MLA multi-turn (not applicable here but worth noting), (3) version gate: v0.19+ for production. Point to references/llm-compressor.md or modelopt.md.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "eagle3-on-quantized-target",
+      "prompt": "I already have an NVFP4-quantized Qwen3-8B checkpoint that we're serving on B200. we want to add speculative decoding — EAGLE3 or dflash, I don't care which, whichever gives me more acceptance rate. my colleague is saying we need to re-quantize everything because you can't train speculators on top of a quantized model. is that right? and can llm-compressor train the eagle3 head or do I need something else?",
+      "expected_output": "Confirm colleague is correct: EAGLE3/dflash training requires BF16 target — gradients don't flow through quantized weights. Correct the assumption about tooling: llm-compressor does NOT train speculators (no spec-dec code in repo). Use NVIDIA ModelOpt: examples/speculative_decoding/ with modelopt_recipes/general/speculative_decoding/eagle3.yaml or dflash.yaml. Give the correct workflow: (1) train drafter on BF16 Qwen3-8B with ModelOpt, (2) export via scripts/export_hf_checkpoint.py, (3) separately PTQ the target back to NVFP4, (4) optionally PTQ the drafter too (minimal accuracy cost), (5) serve both: `vllm serve <nvfp4-target> --quantization modelopt_fp4 --speculative-config '{\"method\":\"dflash\",\"model\":\"<drafter-path>\"}'`. For Qwen3-8B on Blackwell, prefer dflash (Blackwell-oriented, 2.8x on H100 bench per ModelOpt). Point to references/modelopt.md.",
+      "files": []
+    }
+  ]
+}
