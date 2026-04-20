@@ -40,7 +40,7 @@ Examples:
 ```
 /skill-improver freshen autoresearch
 /skill-improver score gh-cli
-/skill-improver improve <home>/.claude/skills/helm
+/skill-improver improve ~/.claude/skills/helm
 /skill-improver batch freshen --all
 /skill-improver freshen --group 'vllm-*'
 ```
