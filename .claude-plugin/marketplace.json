@@ -120,6 +120,20 @@
         "quantization",
         "kv-cache"
       ]
+    },
+    {
+      "name": "prometheus-mimir-grafana",
+      "source": "./",
+      "description": "Query Prometheus and Grafana Mimir, write and debug PromQL, and build or fix Grafana dashboards",
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/prometheus-mimir-grafana"
+      ],
+      "strict": false
     }
   ]
 }
