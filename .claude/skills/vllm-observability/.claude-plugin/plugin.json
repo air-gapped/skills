@@ -1,0 +1,8 @@
+{
+  "name": "vllm-observability",
+  "description": "How to observe production vLLM deployments — the `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, the shipping Grafana dashboards in `examples/observability/`, OTLP tracing with `--otlp-traces-endpoint` and `--collect-detailed-traces={model,worker,all}`, and the diagnostic rules that let an on-call engineer triage from /metrics alone — queue-grows + TPOT-stable means capacity, queue-stable + TPOT-grows means context/model, DCGM `SM_OCCUPANCY` is the real GPU-saturation signal not `GPU_UTIL`. Covers V1 metric names (kv_cache_usage_perc), the gpu_→kv_ rename saga (PR #24245 / revert #25392), DCGM-exporter pairing for hardware-side metrics, and the pitfalls that make dashboards silently lie.",
+  "author": {
+    "name": "air-gapped"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "vllm-benchmarking",
+  "description": "How to run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentile metrics, goodput SLO measurement, prefix-cache-aware workloads, and air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror.com, offline cache seeding). Covers the methodology split between \"is my deployment healthy\" SLO checks and \"does change X make it faster\" A/B sweeps, plus the pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod-proxy, `--request-rate inf` alone).",
+  "author": {
+    "name": "air-gapped"
+  },
+  "license": "MIT"
+}
