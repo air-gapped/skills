@@ -2,7 +2,7 @@
   "name": "autoresearch",
   "description": "Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable metric, deep multi-agent research, or research-then-optimize. Three modes: Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

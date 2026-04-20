@@ -2,7 +2,7 @@
   "name": "vllm-speculative-decoding",
   "description": "How to pick, configure, tune, and monitor vLLM speculative decoding in production. Covers the eleven SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, eagle, eagle3, dflash, mtp, extract_hidden_states), the --speculative-config JSON schema, which methods pair with which target model family, the Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, and where spec-dec stops paying off at high batch.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

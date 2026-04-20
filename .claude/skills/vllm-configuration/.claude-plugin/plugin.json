@@ -2,7 +2,7 @@
   "name": "vllm-configuration",
   "description": "How to configure vLLM completely — YAML config file format, CLI arg precedence, the full VLLM_* / HF_* / TRANSFORMERS_* environment-variable catalog, and the end-to-end recipe for running in air-gapped environments that can't reach huggingface.co (internal HF mirrors, hf-mirror.com, ModelScope, HF_HUB_OFFLINE with a pre-seeded cache, gated models offline, trust_remote_code supply-chain implications). Covers the VLLM_HOST_IP vs API-host confusion, the Kubernetes-service-named-`vllm` env-var poisoning, the usage-stats triple opt-out, and the YAML precedence surprises operators hit most often.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

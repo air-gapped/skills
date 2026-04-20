@@ -2,7 +2,7 @@
   "name": "vllm-nvidia-hardware",
   "description": "NVIDIA AI-hardware + vLLM-platform reference covering Hopper (H100/H200), Blackwell (B100/B200/B300) and Blackwell Ultra, Grace-Blackwell superchips and NVL72 racks (GB200, GB300), Vera Rubin (R100/R300) with VR200 NVL144 and Kyber NVL576, Dell PowerEdge XE family (XE8640/9640/9680/9680L/9685L/9780/9780L/9785L/9712/8712/7740/7745), and Dell IR5000/IR7000/IR9048 racks. Per-SKU HBM, FP4/FP8/FP16 TFLOPs, NVLink5, TDP. Rack power/cooling (135 kW GB300, 180–220 kW NVL144, 600 kW Kyber), DLC vs RDHx, 800 VDC HVDC roadmap. Memory-wall roofline reasoning (AI≈1 decode, BW-vs-FLOPs gap, HBM3E→HBM4, HBM supply 2026). vLLM attention-backend × SM matrix, FP4 (NVFP4/MXFP4) and FP8 paths, KV connectors (Nixl, Mooncake, LMCache), Blackwell gotchas (SM103 TRTLLM hang, 270 vs 288 GB B300 bin split).",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

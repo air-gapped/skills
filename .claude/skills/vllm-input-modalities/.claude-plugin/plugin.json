@@ -2,7 +2,7 @@
   "name": "vllm-input-modalities",
   "description": "vLLM operator reference for non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), and document OCR via VLMs. Covers the 2026 `--runner pooling` flag (replacing `--task embed`), v0.20 deprecations (`score`→`classify`, multitask pooling, `encode`→`token_embed`+`token_classify`), Matryoshka / MRL dimensions, ColBERT/ColPali/ColQwen late-interaction MaxSim, Cohere v2 `/v2/embed`, the auto-enabled scoring API, Jina v3/v4/v5 quirks (`-vllm-retrieval` variant, `jina_task`), cross-encoder score templates, Whisper large-v3-turbo production quants, and the DeepSeek-OCR recipe (NGramPerReqLogitsProcessor, no prefix cache, GUNDAM mode).",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

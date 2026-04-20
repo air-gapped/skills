@@ -29,6 +29,7 @@ MARKETPLACE_FILE = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 
 MARKETPLACE_NAME = "air-gapped-skills"
 OWNER_NAME = "air-gapped"
+AUTHOR_NAME = "Jörgen"
 LICENSE = "MIT"
 MARKETPLACE_DESC = (
     "Reference skills for vLLM, Kubernetes, release engineering, and Claude "
@@ -89,8 +90,15 @@ def run_git(*args: str) -> str:
     return r.stdout
 
 
+def _pathspec_args(path: pathlib.Path) -> list[str]:
+    """Pathspec that covers the skill but excludes the generated
+    .claude-plugin/ metadata so version calc is stable across runs."""
+    rel = str(path.relative_to(REPO_ROOT))
+    return [rel, f":(exclude){rel}/.claude-plugin"]
+
+
 def commit_count(path: pathlib.Path) -> int:
-    out = run_git("log", "--oneline", "--", str(path.relative_to(REPO_ROOT)))
+    out = run_git("log", "--oneline", "--", *_pathspec_args(path))
     return sum(1 for line in out.splitlines() if line.strip())
 
 
@@ -101,7 +109,7 @@ def last_commit_date(path: pathlib.Path) -> str | None:
         "--format=%cd",
         "--date=format-local:%Y%m%d",
         "--",
-        str(path.relative_to(REPO_ROOT)),
+        *_pathspec_args(path),
     )
     out = out.strip()
     return out or None
@@ -192,7 +200,7 @@ def write_plugin(entry: dict) -> bool:
     data = {
         "name": entry["name"],
         "description": entry["_full_description"] or entry["description"],
-        "author": {"name": OWNER_NAME},
+        "author": {"name": AUTHOR_NAME},
         "license": LICENSE,
     }
     return write_json_if_changed(plugin_file, data)

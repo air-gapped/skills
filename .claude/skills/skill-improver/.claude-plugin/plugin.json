@@ -2,7 +2,7 @@
   "name": "skill-improver",
   "description": "Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing on a 10-dimension quality rubric, with blind subagent validation for self-scoring bias, plus a `freshen` mode that probes external references (release notes, docs, deprecation signals) and applies verified updates.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

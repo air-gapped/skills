@@ -2,7 +2,7 @@
   "name": "vllm-omni",
   "description": "vLLM-Omni operator reference for output-side multimodal generation — image (FLUX.1/2, Qwen-Image, GLM-Image, BAGEL, SD3.5, Z-Image, HunyuanImage-3.0), video (Wan2.1/2.2 T2V/I2V, LTX-2, HunyuanVideo-1.5, Helios), TTS (Qwen3-TTS, Fun-CosyVoice3, Voxtral-TTS, Stable-Audio-Open), and any-to-any omni (Qwen3-Omni, Qwen2.5-Omni, MiMo-Audio) via `vllm serve --omni`. Covers stage-based disaggregation (OmniConnector + Mooncake + RDMA), `/v1/images/generations`, async+sync `/v1/videos`, `/v1/audio/speech` with voice-upload, the PCM16 WebSocket `/v1/realtime`, Ulysses/Ring SP + CFG-parallel, DiT FP8/INT8/GGUF quant, CUDA/ROCm/NPU/XPU/MUSA matrix, and release-pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager).",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

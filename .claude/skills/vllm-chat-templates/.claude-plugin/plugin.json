@@ -2,7 +2,7 @@
   "name": "vllm-chat-templates",
   "description": "vLLM chat-template (prompt-side Jinja) operator reference. Covers template resolution precedence (`--chat-template` flag → AutoProcessor → tokenizer default → bundled fallback in `vllm/transformers_utils/chat_templates/`), the `chat_template_kwargs` allowlist that silently drops `add_generation_prompt` / `enable_thinking` / custom kwargs (fixed by vLLM PR 27622), the 27 shipped `examples/tool_chat_template_*.jinja` files, and known template-layer bugs for Qwen3, Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral tokenizer-mode), Gemma-3/4, Phi-4, GLM. Scope is prompt side only — output-side parsing is owned by sibling skills `vllm-reasoning-parsers` and `vllm-tool-parsers`.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

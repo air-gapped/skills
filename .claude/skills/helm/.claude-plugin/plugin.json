@@ -2,7 +2,7 @@
   "name": "helm",
   "description": "Author and maintain Helm charts: create chart, write templates, values.yaml patterns, _helpers.tpl, Chart.yaml, values.schema.json, helm-docs, library charts. Helm 4 (SSA, WASM, OCI digest). Chart CI/CD (lint, helm-unittest, chart-testing, kubeconform, OCI push). OpenShift compatibility (SCCs, Routes, UIDs, adaptSecurityContext). Chart security (SecurityContext, RBAC, NetworkPolicy, cosign signing, image digest pinning). CRD management, ServiceMonitor templates, HPA, persistence, resource presets. NOT for installing or consuming third-party charts.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }

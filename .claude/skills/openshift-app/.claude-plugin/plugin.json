@@ -2,7 +2,7 @@
   "name": "openshift-app",
   "description": "Package applications for OpenShift deployment: container images (UBI, arbitrary UID, multi-stage builds), packaging formats (Helm, Kustomize, Operators, OLM v1), CI/CD (Tekton, ArgoCD, Shipwright, Conforma), security (SCC, PSA, supply chain, image signing, secrets), operations (Routes, probes, scaling, monitoring, storage), disconnected/air-gapped patterns, and critical gotchas. Covers OCP 4.14-4.21. NOT for cluster installation or infrastructure management.",
   "author": {
-    "name": "air-gapped"
+    "name": "Jörgen"
   },
   "license": "MIT"
 }
