@@ -5,6 +5,7 @@ Collections of skills.
 <!-- skills-start -->
 | Skill | Description |
 |---|---|
+| [`autoresearch`](.claude/skills/autoresearch/SKILL.md) | Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable metric, deep multi-agent research, or research-then-optimize. Three modes: Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve. |
 | [`baml-expert`](.claude/skills/baml-expert/SKILL.md) | BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers… |
 | [`keda`](.claude/skills/keda/SKILL.md) | Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling) — ScaledObject, ScaledJob, TriggerAuthentication CRDs, 70+ scalers, HPA behavior tuning, scale-to-zero, the KEDA HTTP Add-on, production hardening, multi-trigger semantics,… |
 | [`vllm-benchmarking`](.claude/skills/vllm-benchmarking/SKILL.md) | How to run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentile metrics, goodput SLO measurement, prefix-cache-aware workloads,… |

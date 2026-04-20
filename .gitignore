@@ -11,6 +11,7 @@
 .claude/worktrees/
 .claude/plugins/cache/
 .claude/skills/*-workspace/
+.claude/skills/*/results/
 CLAUDE.local.md
 
 # Python caches

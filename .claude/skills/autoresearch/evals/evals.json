@@ -1,0 +1,45 @@
+{
+  "skill_name": "autoresearch",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a Python script at scripts/fibonacci.py that computes the 40th fibonacci number. It takes about 30 seconds right now. I want to optimize it to be as fast as possible. Can you set up an autoresearch loop to find the fastest implementation? The script just prints the result and the time taken.",
+      "expected_output": "The skill should identify experiment components, create an autoresearch branch, establish baseline, then run the experiment loop with multiple hypotheses, using git for state management and TSV for tracking.",
+      "files": [],
+      "expectations": [
+        "Explicitly identifies the four experiment components: truth layer (or equivalent), mutable surface, verifier command, and metric with direction",
+        "Plans to create an autoresearch git branch before making changes",
+        "Establishes a baseline measurement before attempting any optimizations",
+        "Proposes at least 3 distinct optimization hypotheses (e.g., memoization, iterative, matrix exponentiation)",
+        "Describes a git-based keep/discard mechanism — commit on improvement, reset on regression",
+        "Plans to track results in a structured log (TSV or similar format) with metric values and status"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to understand the current state of WebAssembly for server-side applications. What are the real production use cases, what's hype vs reality, and should we consider it for our microservices? Do deep research on this.",
+      "expected_output": "The skill should decompose the question into multiple perspectives, dispatch parallel research agents, produce a structured report with citations, note disagreements between sources, and identify gaps.",
+      "files": [],
+      "expectations": [
+        "Decomposes the research question into at least 3 distinct angles or perspectives",
+        "Dispatches or plans to dispatch multiple parallel research agents",
+        "Produces a structured report with clearly labeled sections (executive summary, key findings, etc.)",
+        "Cites specific sources (URLs or named references) for key claims",
+        "Identifies at least one area where sources or perspectives disagree",
+        "Includes a section on gaps, uncertainties, or areas needing further investigation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our API endpoint at /api/users/search is slow — takes about 800ms on average. I don't really know where to start optimizing it. Can you research best practices and then try to improve it? The code is in src/routes/users.ts and it queries a PostgreSQL database.",
+      "expected_output": "The skill should use Mode 3 (Improve): research phase first, then propose metric/verifier, then set up experiment loop with research-informed hypotheses.",
+      "files": [],
+      "expectations": [
+        "Selects Mode 3 (Improve / research-then-optimize) or equivalent two-phase approach",
+        "Plans a research phase before jumping into code changes",
+        "Proposes a specific metric (e.g., response time in ms) and verifier command for the optimization loop",
+        "Research findings directly inform the experiment hypotheses — there is a clear link between what was learned and what will be tried"
+      ]
+    }
+  ]
+}
