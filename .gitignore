@@ -12,3 +12,10 @@
 .claude/plugins/cache/
 .claude/skills/*-workspace/
 CLAUDE.local.md
+
+# Python caches
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
