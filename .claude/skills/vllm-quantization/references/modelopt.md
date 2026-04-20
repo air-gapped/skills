@@ -108,7 +108,7 @@ Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) —
 
 `modelopt/torch/speculative/{eagle,dflash,medusa,plugins}/`. Examples: `examples/speculative_decoding/`. Recipes: `modelopt_recipes/general/speculative_decoding/{eagle3,dflash}.yaml`.
 
-**Critical constraint**: training requires **BF16 target model**. Cannot train draft heads on top of already-NVFP4 / FP8 target (gradients don't flow through quantised weights). Order:
+**Critical constraint**: ModelOpt recipes assume **BF16 target model**. Recipes not validated with quantized target — base model is wrapped in `torch.no_grad()` (`modelopt/torch/speculative/plugins/transformers.py:139`), so forward is inference and a quantized target is theoretically workable, but the shipped training path is BF16-only. Order:
 
 ```
 1. Train drafter on BF16 target       (this section)
@@ -120,7 +120,9 @@ Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) —
 
 ### EAGLE-3 training
 
-Simplified one-liner (Llama-3.2-1B):
+**Alternative trainer — SpecForge** (`github.com/sgl-project/SpecForge`, SGLang project): drop-in alternative to ModelOpt for EAGLE-3 drafters. Same BF16-target constraint, different recipe format; outputs HF-format drafter checkpoints vLLM can load. Use when ModelOpt recipe for target family is missing or when SGLang-side tooling is preferred.
+
+Simplified one-liner (Llama-3.2-1B, ModelOpt):
 
 ```bash
 cd examples/speculative_decoding

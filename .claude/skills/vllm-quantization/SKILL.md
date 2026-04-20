@@ -119,8 +119,9 @@ Both tools output a HF directory vLLM serves with `--quantization compressed-ten
 `modelopt/torch/speculative/{eagle,dflash,medusa,plugins}/`, examples in
 `examples/speculative_decoding/`. Recipes: `modelopt_recipes/general/speculative_decoding/{eagle3,dflash}.yaml`.
 
-**Critical constraint:** training requires **BF16 target** — EAGLE-3 / dflash
-cannot be trained on top of an already-NVFP4 target. The order is:
+**Critical constraint:** ModelOpt recipes assume **BF16 target** — not
+validated with an already-NVFP4 target (base wrapped in `torch.no_grad()`,
+so quantized target is theoretically workable but unvalidated). The order is:
 
 ```
 1. Train drafter on BF16 target   (ModelOpt, ~4-12h on 8×H100)
