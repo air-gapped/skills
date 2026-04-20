@@ -10,7 +10,7 @@ This skill points to the right source file, template, or GH issue. The source co
 
 ## Where things live
 
-Assume vLLM repo is checked out somewhere accessible (common path in this project: `<home>/projects/github.com/vllm-project/vllm/`). Every reference below is relative to that repo root.
+Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkout is accessible. Every reference below is relative to that repo root.
 
 | Target | Read |
 |---|---|
