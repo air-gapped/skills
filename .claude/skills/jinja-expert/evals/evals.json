@@ -1,0 +1,61 @@
+{
+  "skill_name": "jinja-expert",
+  "evals": [
+    {
+      "id": 1,
+      "name": "diagnose-loop-scope-escape",
+      "prompt": "I'm writing a chat template and this isn't working. After the loop, has_system is always false, even when there's a system message in the list. What am I doing wrong?\n\n```jinja\n{% set has_system = false %}\n{% for m in messages %}\n  {% if m.role == 'system' %}\n    {% set has_system = true %}\n  {% endif %}\n{% endfor %}\n{% if has_system %}\n  ...system prompt handling...\n{% endif %}\n```",
+      "expected_output": "Diagnoses loop-scope escape, explains that Jinja loops create scopes and {% set %} inside doesn't persist, shows the namespace() fix.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "fix-content-format-bifurcation",
+      "prompt": "Users are reporting that our model is hallucinating tool results. Digging in, I found that when the OpenAI client sends tool-result messages with content as a list of parts (like `[{\"type\": \"text\", \"text\": \"72F sunny\"}]`), our chat template is emitting something like `[{'type': 'text', 'text': '72F sunny'}]` — the Python repr of the list — into the prompt. Here's the relevant branch:\n\n```jinja\n{% elif message.role == 'tool' %}\n  <tool_response>{{ message.content }}</tool_response>\n{% endif %}\n```\n\nHow do I fix this properly? We need to handle both plain strings (old clients) and the multimodal-style list of parts.",
+      "expected_output": "Identifies as content-format bifurcation, shows defensive idiom with is string / is sequence / is not string ordering, explains why isinstance is wrong, mentions the real-world incident pattern (GLM-5.1 class).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "write-tool-calling-template",
+      "prompt": "I need to write a chat_template.jinja for a new model we're training. It's a ChatML-style model (uses <|im_start|>role and <|im_end|>), needs to support: system messages (one at most), user and assistant turns, tool definitions in the preamble, assistant tool_calls with `arguments` that might be a string or a dict, tool-result messages with tool_call_id, and add_generation_prompt. Can you write me a solid defensive template?",
+      "expected_output": "Produces a chat template that uses namespace() correctly, handles the string/dict arguments shape, guards against missing tool_call.id, emits add_generation_prompt conditionally at the tail, uses raise_exception for unknown roles, and applies {%- -%} whitespace control.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "diagnose-ansible-when-delimiters",
+      "prompt": "ansible-lint is complaining about this play and I don't understand why. The task runs correctly when I execute it manually but CI fails. Here's the relevant snippet:\n\n```yaml\n- name: restart app if config changed\n  ansible.builtin.systemd:\n    name: myapp\n    state: restarted\n  when: \"{{ config_changed | default(false) }}\"\n```\n\nThe warning is `no-jinja-when`. What's the actual problem here, and what's the correct way to write it?",
+      "expected_output": "Explains that `when:` evaluates a bare Jinja expression, not a wrapped `{{ ... }}` template; double-wrapping renders the expression to a string then re-evaluates (works for booleans but fails for None, numbers, empty strings). Shows the fix: `when: config_changed | default(false)`. Mentions the same rule applies to `failed_when`, `changed_when`, `until`.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "ansible-unsafe-vs-raw",
+      "prompt": "I'm writing an Ansible playbook that generates a chat_template.jinja for a downstream model. The template itself contains lots of Jinja like `{{ message.content }}` and `{% for msg in messages %}`. Ansible keeps trying to render those and dying with AnsibleUndefinedVariable. I tried `!unsafe` but then my actual Ansible variable substitutions (like `{{ model_name }}` for a header) stopped working. What's the idiomatic fix?",
+      "expected_output": "Explains `!unsafe` is whole-value all-or-nothing and disables all templating including lookups; for mixed templated+literal content use `{% raw %}...{% endraw %}` to protect the inner Jinja. Shows example: variable header outside the raw block, inner chat template wrapped in raw. Mentions `{{ '{{' }}` inline escape as a third option for single braces.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "helm-vs-jinja-disambiguation",
+      "prompt": "We're migrating from manually-managed k8s YAML to a templated approach. The team wants to use Jinja because everyone already knows it from Ansible. I started writing a Helm chart and I can't figure out why `{% for port in .Values.ports %}` isn't working — it just outputs the literal string. Is this a version issue? Should I file a bug?",
+      "expected_output": "Clarifies that Helm charts use Go text/template + Sprig, NOT Jinja. `{% for %}` is Jinja syntax; Helm needs `{{- range .Values.ports }}{{ . }}{{- end }}`. Notes the two families look similar for the first ten seconds and diverge hard. Offers the alternative paths: Ansible + values.yaml.j2, jinja2-cli preprocessor, or raw Jinja manifests via kubernetes.core.k8s. Points out the helm skill as the right tool for chart authoring if they commit to Helm.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "ansible-k8s-templated-manifest",
+      "prompt": "I want to apply a Deployment to multiple environments (dev/staging/prod) with different image tags, replica counts, and resource limits, but I don't want to adopt Helm — it feels like overkill for five apps. I'm already using Ansible for everything else. What's the clean pattern for rendering a Kubernetes manifest from a Jinja template and applying it?",
+      "expected_output": "Recommends `kubernetes.core.k8s` with the `template:` parameter pointing at a .j2 file (or `definition: \"{{ lookup('template', 'file.j2') | from_yaml }}\"`). Shows an example with env-specific vars from group_vars. Mentions `variable_start_string`/`variable_end_string` for templates whose own content uses `{{ }}`. Mentions `from_yaml_all` for multi-doc manifests. Notes the tradeoffs vs Helm (no helm history/rollback, manual CRD ordering) so the user chooses with open eyes.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "values-yaml-jinja-preprocessor",
+      "prompt": "Our deployment pipeline wants to pull a Helm chart from an OCI registry, but we need to render values.yaml differently per environment — including pulling some secrets from Vault and computing a few fields from GitHub Actions outputs. We don't want to bring in Ansible. What's the minimal setup?",
+      "expected_output": "Describes the jinja2-cli preprocessor pattern: write values.yaml.j2, pipe through jinja2-cli (or a small Python renderer) in CI with --strict undefined, then feed the rendered values.yaml to helm upgrade --install. Shows a Makefile or GitHub Actions step. Mentions round-tripping through yaml.safe_load before writing to catch broken YAML early. Recommends --strict because lenient mode hides typos.",
+      "files": []
+    }
+  ]
+}
