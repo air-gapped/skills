@@ -7,8 +7,14 @@ repos:
         language: system
         stages: [pre-commit]
       - id: gitleaks
-        name: gitleaks protect --staged
+        name: gitleaks protect --staged (default rules)
         entry: gitleaks protect --staged --no-banner
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: gitleaks-custom
+        name: gitleaks protect --staged (custom rules, if .gitleaks.toml present)
+        entry: bash -c '[ -f .gitleaks.toml ] && gitleaks protect --staged --no-banner -c .gitleaks.toml || exit 0'
         language: system
         pass_filenames: false
         stages: [pre-commit]
