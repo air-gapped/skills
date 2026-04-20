@@ -28,7 +28,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
 MARKETPLACE_FILE = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 
-MARKETPLACE_NAME = "air-gapped-skills"
+MARKETPLACE_NAME = "air-gapped-marketplace"
 OWNER_NAME = "air-gapped"
 AUTHOR_NAME = "Jörgen"
 LICENSE = "MIT"
