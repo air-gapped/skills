@@ -1,0 +1,26 @@
+{
+  "skill_name": "baml-expert",
+  "evals": [
+    {
+      "id": 0,
+      "name": "add-ticket-classifier-function",
+      "prompt": "I'm working in a BAML project (python/pydantic client, baml_src/ at repo root). I need to add a new LLM function that classifies a customer support ticket into a category and urgency. Category is one of: BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER. Urgency is LOW / MEDIUM / HIGH / CRITICAL. The function should also return a one-sentence rationale and a list of tags (strings). Write the .baml code for the function, its input/output classes and enums, a sensible client block (openai/gpt-4o-mini with retry), and one test block with assertions. Put everything in a new file `baml_src/ticket_classifier.baml`. Also show me the Python snippet to call this from an async FastAPI handler. Use the current directory as the project root — don't actually write files, just return the full contents with file paths.",
+      "expected_output": "A .baml file with: enum Category, enum Urgency, class TicketClassification (category, urgency, rationale string, tags string[]), function ClassifyTicket(ticket_text: string) -> TicketClassification with prompt containing {{ ctx.output_format }}, a client<llm> block with retry_policy, one test with @@assert. Plus Python async FastAPI endpoint using baml_client.async_client.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "fix-broken-baml-file",
+      "prompt": "I'm getting parse failures on this BAML function — every call raises BamlValidationError. Here's the file:\n\n```baml\nclass UserProfile {\n  name: string\n  age: int\n  interests: string[]?\n  metadata: any\n}\n\nfunction ExtractProfile(text: string) -> UserProfile {\n  client \"openai/gpt-4o-mini\"\n  prompt #\"\n    Pull the user profile from this text.\n\n    {{ text }}\n  \"#\n}\n\ntest basic {\n  functions [ExtractProfile]\n  args {\n    text \"Jane is 30, likes hiking and python\"\n  }\n}\n```\n\nWhat's wrong with it? Fix everything you see and explain each fix. The test should actually be able to pass.",
+      "expected_output": "Identify: (1) colons in class fields must be removed, (2) `string[]?` invalid — arrays can't be optional, (3) `any` not a supported BAML type — replace with string/string map/structured class, (4) prompt is missing `{{ ctx.output_format }}` which is the root cause of parse failures, (5) test name must start with uppercase (PascalCase convention) or at least the issue, (6) test has no @@assert. Return corrected file.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "stream-to-fastapi-ndjson",
+      "prompt": "Given a BAML function `function WriteStory(topic: string) -> Story` where Story is a class with `title string`, `chapters Chapter[]`, and `Chapter { heading string, body string }` — I want to stream the output to a browser via NDJSON from a FastAPI endpoint. The browser should see chapters appear one-at-a-time, each chapter complete when it appears (not partially streamed mid-chapter). Tell me: (1) what attributes I need to add to the .baml types to get this streaming shape, (2) the full FastAPI async endpoint, (3) how to cancel the stream if the client disconnects, (4) any gotchas.",
+      "expected_output": "Should mention: (1) `Chapter @stream.done` on the element type in the chapters array, i.e. `chapters (Chapter @stream.done)[]` — so each chapter appears atomically. Optionally `title @stream.done` too. (2) FastAPI endpoint using async_client's `b.stream.WriteStory(topic)` in an async generator yielding NDJSON. (3) AbortController from baml_py wired to request.is_disconnected(). (4) Gotchas: numbers don't stream partially, BamlAbortError handling, NDJSON `\\n` terminator.",
+      "files": []
+    }
+  ]
+}
