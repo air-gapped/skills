@@ -1,8 +1,0 @@
-{
-  "name": "jinja-expert",
-  "description": "Author, read, and debug Jinja2 templates across the three places Jinja lives in 2026 — HuggingFace `chat_template.jinja` (rendered by `apply_chat_template` for vLLM / sglang), Ansible playbooks + `.j2` files, and Jinja-adjacent Kubernetes workflows (`values.yaml.j2`, `kubernetes.core.k8s + template`, Helm post-renderers). Companion to the `helm` skill — Helm charts are Go `text/template` + Sprig, not Jinja, and this skill makes that disambiguation explicit.",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

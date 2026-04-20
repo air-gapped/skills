@@ -1,8 +1,0 @@
-{
-  "name": "vllm-reasoning-parsers",
-  "description": "vLLM reasoning-parser operator + developer reference. Covers `--reasoning-parser` CLI wiring, the `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 21 built-in parsers with per-model quirks, 15 production pitfalls, and how to author a custom parser via `@ReasoningParserManager.register_module` or `--reasoning-parser-plugin`.",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

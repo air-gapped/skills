@@ -1,8 +1,0 @@
-{
-  "name": "vllm-deployment",
-  "description": "Deploy production vLLM on Kubernetes, OpenShift, Docker/Podman lab. Covers pod shape (load-bearing `/dev/shm` emptyDir preventing silent NCCL segfaults, cold-load liveness `initialDelaySeconds: 600`), multi-node LWS + Ray symmetric-run (`multi-node-serving.sh`), control plane (llm-d, production-stack, AIBrix, NVIDIA Dynamo, KServe), Gateway API Inference Extension routing, KEDA autoscaling, disaggregated prefill/decode (Nixl/Mooncake/LMCache/MORI-IO), and RHAIIS on OpenShift (SCC, arbitrary UID, Routes 60s timeout, ModelCar, air-gapped).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

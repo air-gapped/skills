@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
-"""Regenerate Claude Code plugin marketplace manifests.
+"""Regenerate Claude Code plugin marketplace manifest.
 
-Writes:
-- .claude-plugin/marketplace.json (repo root)
-- .claude/skills/<name>/.claude-plugin/plugin.json (per skill)
+Writes only .claude-plugin/marketplace.json at repo root. Each plugin
+entry uses strict: false so the marketplace row is the full plugin
+definition — no per-skill plugin.json files needed or emitted.
 
-Version scheme per skill: 0.YYYYMMDD.N where
-- YYYYMMDD = UTC date of the most recent commit touching the skill dir
-  (bumped to today if the skill has currently-staged changes).
-- N = total count of commits touching the skill dir across history
-  (bumped by 1 if currently-staged changes touch the skill).
+Plugins are either grouped (multiple skills bundled under one plugin
+name via GROUPS) or standalone (one plugin per leftover skill dir
+under .claude/skills/).
 
-Rationale: versions only change when a skill actually changes; date
-stays visible; patch is monotonic. Multiple edits in the same day keep
-incrementing the patch via the commit count.
+Version scheme: 0.YYYYMMDD.N where
+- YYYYMMDD = UTC date of the last commit touching any member skill dir
+- N = unique commit count touching any member skill dir
+.claude-plugin/ subtree is excluded from pathspec so regenerations
+don't self-bump.
 """
 
 import datetime
+import fnmatch
 import json
 import pathlib
 import re
@@ -32,10 +33,74 @@ OWNER_NAME = "air-gapped"
 AUTHOR_NAME = "Jörgen"
 LICENSE = "MIT"
 MARKETPLACE_DESC = (
-    "Reference skills for vLLM, Kubernetes, release engineering, and Claude "
-    "Code authoring. Each plugin ships one SKILL.md plus supporting references."
+    "Reference skills for vLLM, Kubernetes, release engineering, and "
+    "Claude Code authoring. Install individual skills or grouped suites."
 )
 TAGLINE_CAP = 200
+
+# Group definitions. Each group becomes one plugin bundling multiple
+# skills. Future groups go here. Skills matching no group become
+# standalone plugins.
+GROUPS: dict[str, dict] = {
+    "vllm": {
+        "glob": "vllm-*",
+        "description": (
+            "vLLM operator reference suite — deployment, configuration, "
+            "quantization, caching, KV, tool parsers, reasoning parsers, "
+            "chat templates, benchmarking, performance tuning, "
+            "observability, omni, input modalities, speculative decoding, "
+            "and NVIDIA hardware."
+        ),
+        "category": "inference",
+        "tags": [
+            "vllm",
+            "llm",
+            "inference",
+            "kubernetes",
+            "nvidia",
+            "gpu",
+            "quantization",
+            "kv-cache",
+        ],
+    },
+}
+
+# Per-skill category/tags overrides for standalone plugins. Missing
+# entries fall back to empty tags.
+STANDALONE_META: dict[str, dict] = {
+    "autoresearch": {
+        "category": "ai-workflow",
+        "tags": ["autoresearch", "agents", "optimization", "hill-climbing"],
+    },
+    "baml-expert": {
+        "category": "ai-tools",
+        "tags": ["baml", "llm", "typed-prompts", "boundary-ml"],
+    },
+    "helm": {
+        "category": "kubernetes",
+        "tags": ["helm", "kubernetes", "go-templates", "sprig"],
+    },
+    "jinja-expert": {
+        "category": "templating",
+        "tags": ["jinja", "chat-templates", "ansible", "huggingface"],
+    },
+    "keda": {
+        "category": "kubernetes",
+        "tags": ["keda", "autoscaling", "kubernetes", "scaledobject"],
+    },
+    "makefile-best-practices": {
+        "category": "build-tools",
+        "tags": ["makefile", "gnu-make", "build"],
+    },
+    "openshift-app": {
+        "category": "kubernetes",
+        "tags": ["openshift", "kubernetes", "ocp", "ubi"],
+    },
+    "skill-improver": {
+        "category": "claude-code",
+        "tags": ["claude-code", "skills", "autoresearch"],
+    },
+}
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -90,43 +155,43 @@ def run_git(*args: str) -> str:
     return r.stdout
 
 
-def _pathspec_args(path: pathlib.Path) -> list[str]:
-    """Pathspec that covers the skill but excludes the generated
-    .claude-plugin/ metadata so version calc is stable across runs."""
-    rel = str(path.relative_to(REPO_ROOT))
-    return [rel, f":(exclude){rel}/.claude-plugin"]
+def _pathspec(skill_dirs: list[pathlib.Path]) -> list[str]:
+    """Pathspec covering the given skill dirs but excluding each
+    `.claude-plugin/` subtree, so generator runs don't self-bump."""
+    specs: list[str] = []
+    for d in skill_dirs:
+        rel = str(d.relative_to(REPO_ROOT))
+        specs.append(rel)
+        specs.append(f":(exclude){rel}/.claude-plugin")
+    return specs
 
 
-def commit_count(path: pathlib.Path) -> int:
-    out = run_git("log", "--oneline", "--", *_pathspec_args(path))
+def commit_count(skill_dirs: list[pathlib.Path]) -> int:
+    out = run_git("log", "--oneline", "--", *_pathspec(skill_dirs))
     return sum(1 for line in out.splitlines() if line.strip())
 
 
-def last_commit_date(path: pathlib.Path) -> str | None:
+def last_commit_date(skill_dirs: list[pathlib.Path]) -> str | None:
     out = run_git(
         "log",
         "-1",
         "--format=%cd",
         "--date=format-local:%Y%m%d",
         "--",
-        *_pathspec_args(path),
-    )
-    out = out.strip()
+        *_pathspec(skill_dirs),
+    ).strip()
     return out or None
 
 
-def staged_touches(path: pathlib.Path) -> bool:
-    """True if staged diff touches the skill, ignoring generated
-    .claude-plugin/ metadata (which this script itself produces —
-    counting it would make every run bump the version)."""
-    rel = str(path.relative_to(REPO_ROOT))
-    prefix = rel + "/"
-    skip_prefix = rel + "/.claude-plugin/"
+def staged_touches(skill_dirs: list[pathlib.Path]) -> bool:
+    rels = [str(d.relative_to(REPO_ROOT)) for d in skill_dirs]
+    skip_prefixes = [r + "/.claude-plugin/" for r in rels]
+    prefixes = [r + "/" for r in rels]
     out = run_git("diff", "--cached", "--name-only")
     for f in out.splitlines():
-        if f.startswith(skip_prefix):
+        if any(f.startswith(sp) for sp in skip_prefixes):
             continue
-        if f == rel or f.startswith(prefix):
+        if f in rels or any(f.startswith(p) for p in prefixes):
             return True
     return False
 
@@ -135,10 +200,10 @@ def today_utc() -> str:
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
 
 
-def version_for(skill_dir: pathlib.Path) -> str:
-    count = commit_count(skill_dir)
-    date = last_commit_date(skill_dir) or today_utc()
-    if staged_touches(skill_dir):
+def version_for(skill_dirs: list[pathlib.Path]) -> str:
+    count = commit_count(skill_dirs)
+    date = last_commit_date(skill_dirs) or today_utc()
+    if staged_touches(skill_dirs):
         count += 1
         date = today_utc()
     if count == 0:
@@ -146,77 +211,119 @@ def version_for(skill_dir: pathlib.Path) -> str:
     return f"0.{date}.{count}"
 
 
-def build_entries() -> list[dict]:
-    entries: list[dict] = []
-    for skill_md in sorted(SKILLS_DIR.glob("*/SKILL.md")):
-        skill_dir = skill_md.parent
-        fm = parse_frontmatter(skill_md.read_text())
-        name = fm.get("name", skill_dir.name)
-        desc = tagline(fm.get("description", ""))
-        entries.append(
-            {
-                "name": name,
-                "source": "./" + str(skill_dir.relative_to(REPO_ROOT)),
-                "description": desc,
-                "version": version_for(skill_dir),
-                "_skill_dir": skill_dir,
-                "_full_description": re.sub(
-                    r"\s+", " ", fm.get("description", "").strip()
-                ),
-            }
+def gather_skills() -> list[pathlib.Path]:
+    return sorted(p.parent for p in SKILLS_DIR.glob("*/SKILL.md"))
+
+
+def plugin_entry(
+    name: str,
+    description: str,
+    skill_dirs: list[pathlib.Path],
+    category: str | None,
+    tags: list[str],
+) -> dict:
+    entry = {
+        "name": name,
+        "source": "./",
+        "description": description,
+        "version": version_for(skill_dirs),
+        "author": {"name": AUTHOR_NAME},
+        "license": LICENSE,
+        "skills": ["./" + str(d.relative_to(REPO_ROOT)) for d in skill_dirs],
+        "strict": False,
+    }
+    if category:
+        entry["category"] = category
+    if tags:
+        entry["tags"] = list(tags)
+    return entry
+
+
+def build_plugins() -> list[dict]:
+    all_skills = gather_skills()
+
+    group_members: dict[str, list[pathlib.Path]] = {g: [] for g in GROUPS}
+    standalone: list[pathlib.Path] = []
+    for skill_dir in all_skills:
+        for gname, gcfg in GROUPS.items():
+            if fnmatch.fnmatch(skill_dir.name, gcfg["glob"]):
+                group_members[gname].append(skill_dir)
+                break
+        else:
+            standalone.append(skill_dir)
+
+    plugins: list[dict] = []
+
+    for gname in sorted(GROUPS):
+        members = group_members[gname]
+        if not members:
+            continue
+        gcfg = GROUPS[gname]
+        plugins.append(
+            plugin_entry(
+                name=gname,
+                description=gcfg["description"],
+                skill_dirs=members,
+                category=gcfg.get("category"),
+                tags=gcfg.get("tags", []),
+            )
         )
-    return entries
+
+    for skill_dir in standalone:
+        fm = parse_frontmatter((skill_dir / "SKILL.md").read_text())
+        meta = STANDALONE_META.get(skill_dir.name, {})
+        plugins.append(
+            plugin_entry(
+                name=fm.get("name", skill_dir.name),
+                description=tagline(fm.get("description", "")),
+                skill_dirs=[skill_dir],
+                category=meta.get("category"),
+                tags=meta.get("tags", []),
+            )
+        )
+
+    return plugins
 
 
-def write_json_if_changed(path: pathlib.Path, data: dict) -> bool:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    new = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    if path.exists() and path.read_text() == new:
-        return False
-    path.write_text(new)
-    return True
-
-
-def write_marketplace(entries: list[dict]) -> bool:
-    marketplace = {
+def write_marketplace(plugins: list[dict]) -> bool:
+    data = {
         "name": MARKETPLACE_NAME,
         "owner": {"name": OWNER_NAME},
         "metadata": {"description": MARKETPLACE_DESC},
-        "plugins": [
-            {
-                "name": e["name"],
-                "source": e["source"],
-                "description": e["description"],
-                "version": e["version"],
-            }
-            for e in entries
-        ],
+        "plugins": plugins,
     }
-    return write_json_if_changed(MARKETPLACE_FILE, marketplace)
+    MARKETPLACE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    new = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    if MARKETPLACE_FILE.exists() and MARKETPLACE_FILE.read_text() == new:
+        return False
+    MARKETPLACE_FILE.write_text(new)
+    return True
 
 
-def write_plugin(entry: dict) -> bool:
-    plugin_file = entry["_skill_dir"] / ".claude-plugin" / "plugin.json"
-    data = {
-        "name": entry["name"],
-        "description": entry["_full_description"] or entry["description"],
-        "author": {"name": AUTHOR_NAME},
-        "license": LICENSE,
-    }
-    return write_json_if_changed(plugin_file, data)
+def remove_legacy_plugin_jsons() -> int:
+    count = 0
+    for pj in SKILLS_DIR.glob("*/.claude-plugin/plugin.json"):
+        pj.unlink()
+        parent = pj.parent
+        try:
+            parent.rmdir()
+        except OSError:
+            pass
+        count += 1
+    return count
 
 
 def main() -> int:
-    entries = build_entries()
-    if not entries:
-        print("error: no skills with SKILL.md found", file=sys.stderr)
+    plugins = build_plugins()
+    if not plugins:
+        print("error: no plugins", file=sys.stderr)
         return 2
-    changed = write_marketplace(entries)
-    for entry in entries:
-        if write_plugin(entry):
-            changed = True
+    removed = remove_legacy_plugin_jsons()
+    changed = write_marketplace(plugins)
+    if removed:
+        print(f"removed {removed} legacy plugin.json files")
     if changed:
-        print(f"regenerated manifests for {len(entries)} plugins")
+        print(f"regenerated marketplace for {len(plugins)} plugins")
     return 0
 
 

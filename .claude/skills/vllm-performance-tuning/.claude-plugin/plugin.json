@@ -1,8 +1,0 @@
-{
-  "name": "vllm-performance-tuning",
-  "description": "vLLM performance-tuning operator reference — tuning workflow (baseline → bottleneck → knob → re-bench), fused-MoE kernel autotune (`benchmark_moe.py` generates `E=N,N=M,device_name=X.json` configs), DeepEP all-to-all + expert parallelism + EPLB, CUDA graph modes (FULL_AND_PIECEWISE default), torch.compile AOT + compile cache, scheduler knobs (`--max-num-batched-tokens`, `--max-num-seqs`, `--async-scheduling`), TP/EP/DP/PP decision tree, NCCL/DCGM on H100/H200/B200/GB200, PD disaggregation (Nixl/Mooncake/LMCache), known regressions + vendor quirks (v0.14→0.15.1 MiniMax, MI300X FP8<BF16, DeepGEMM M<128 TTFT).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

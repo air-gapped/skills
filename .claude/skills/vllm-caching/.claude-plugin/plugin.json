@@ -1,8 +1,0 @@
-{
-  "name": "vllm-caching",
-  "description": "vLLM tiered KV cache configuration for production H100/H200 clusters. Covers native CPU offload, LMCache (CPU+NVMe+GDS), NixlConnector (disaggregated prefill), MooncakeConnector (RDMA), and MultiConnector composition — with the version gates, sizing math (flag is total across TP, not per-GPU — opposite of SGLang), and KV-vs-weights offload distinction that operators most often get wrong.",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

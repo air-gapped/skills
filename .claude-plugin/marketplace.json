@@ -4,140 +4,212 @@
     "name": "air-gapped"
   },
   "metadata": {
-    "description": "Reference skills for vLLM, Kubernetes, release engineering, and Claude Code authoring. Each plugin ships one SKILL.md plus supporting references."
+    "description": "Reference skills for vLLM, Kubernetes, release engineering, and Claude Code authoring. Install individual skills or grouped suites."
   },
   "plugins": [
     {
+      "name": "vllm",
+      "source": "./",
+      "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
+      "version": "0.20260420.19",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/vllm-benchmarking",
+        "./.claude/skills/vllm-caching",
+        "./.claude/skills/vllm-chat-templates",
+        "./.claude/skills/vllm-configuration",
+        "./.claude/skills/vllm-deployment",
+        "./.claude/skills/vllm-input-modalities",
+        "./.claude/skills/vllm-nvidia-hardware",
+        "./.claude/skills/vllm-observability",
+        "./.claude/skills/vllm-omni",
+        "./.claude/skills/vllm-performance-tuning",
+        "./.claude/skills/vllm-quantization",
+        "./.claude/skills/vllm-reasoning-parsers",
+        "./.claude/skills/vllm-speculative-decoding",
+        "./.claude/skills/vllm-tool-parsers"
+      ],
+      "strict": false,
+      "category": "inference",
+      "tags": [
+        "vllm",
+        "llm",
+        "inference",
+        "kubernetes",
+        "nvidia",
+        "gpu",
+        "quantization",
+        "kv-cache"
+      ]
+    },
+    {
       "name": "autoresearch",
-      "source": "./.claude/skills/autoresearch",
+      "source": "./",
       "description": "Karpathy-pattern autoresearch",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/autoresearch"
+      ],
+      "strict": false,
+      "category": "ai-workflow",
+      "tags": [
+        "autoresearch",
+        "agents",
+        "optimization",
+        "hill-climbing"
+      ]
     },
     {
       "name": "baml-expert",
-      "source": "./.claude/skills/baml-expert",
+      "source": "./",
       "description": "BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/baml-expert"
+      ],
+      "strict": false,
+      "category": "ai-tools",
+      "tags": [
+        "baml",
+        "llm",
+        "typed-prompts",
+        "boundary-ml"
+      ]
     },
     {
       "name": "helm",
-      "source": "./.claude/skills/helm",
+      "source": "./",
       "description": "Author and maintain Helm charts: create chart, write templates, values.yaml patterns, _helpers.tpl, Chart.yaml, values.schema.json, helm-docs, library charts",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/helm"
+      ],
+      "strict": false,
+      "category": "kubernetes",
+      "tags": [
+        "helm",
+        "kubernetes",
+        "go-templates",
+        "sprig"
+      ]
     },
     {
       "name": "jinja-expert",
-      "source": "./.claude/skills/jinja-expert",
+      "source": "./",
       "description": "Author, read, and debug Jinja2 templates across the three places Jinja lives in 2026",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/jinja-expert"
+      ],
+      "strict": false,
+      "category": "templating",
+      "tags": [
+        "jinja",
+        "chat-templates",
+        "ansible",
+        "huggingface"
+      ]
     },
     {
       "name": "keda",
-      "source": "./.claude/skills/keda",
+      "source": "./",
       "description": "Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling)",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/keda"
+      ],
+      "strict": false,
+      "category": "kubernetes",
+      "tags": [
+        "keda",
+        "autoscaling",
+        "kubernetes",
+        "scaledobject"
+      ]
     },
     {
       "name": "makefile-best-practices",
-      "source": "./.claude/skills/makefile-best-practices",
+      "source": "./",
       "description": "Makefile best practices, patterns, and templates for GNU Make 4.x",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/makefile-best-practices"
+      ],
+      "strict": false,
+      "category": "build-tools",
+      "tags": [
+        "makefile",
+        "gnu-make",
+        "build"
+      ]
     },
     {
       "name": "openshift-app",
-      "source": "./.claude/skills/openshift-app",
+      "source": "./",
       "description": "Package applications for OpenShift deployment: container images (UBI, arbitrary UID, multi-stage builds), packaging formats (Helm, Kustomize, Operators, OLM v1), CI/CD (Tekton, ArgoCD, Shipwright,…",
-      "version": "0.20260420.1"
+      "version": "0.20260420.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/openshift-app"
+      ],
+      "strict": false,
+      "category": "kubernetes",
+      "tags": [
+        "openshift",
+        "kubernetes",
+        "ocp",
+        "ubi"
+      ]
     },
     {
       "name": "skill-improver",
-      "source": "./.claude/skills/skill-improver",
+      "source": "./",
       "description": "Autoresearch loop for Claude Code skills",
-      "version": "0.20260420.2"
-    },
-    {
-      "name": "vllm-benchmarking",
-      "source": "./.claude/skills/vllm-benchmarking",
-      "description": "How to run production vLLM benchmarks",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-caching",
-      "source": "./.claude/skills/vllm-caching",
-      "description": "vLLM tiered KV cache configuration for production H100/H200 clusters",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-chat-templates",
-      "source": "./.claude/skills/vllm-chat-templates",
-      "description": "vLLM chat-template (prompt-side Jinja) operator reference",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-configuration",
-      "source": "./.claude/skills/vllm-configuration",
-      "description": "How to configure vLLM completely",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-deployment",
-      "source": "./.claude/skills/vllm-deployment",
-      "description": "Deploy production vLLM on Kubernetes, OpenShift, Docker/Podman lab",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-input-modalities",
-      "source": "./.claude/skills/vllm-input-modalities",
-      "description": "vLLM operator reference for non-chat inference surfaces",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-nvidia-hardware",
-      "source": "./.claude/skills/vllm-nvidia-hardware",
-      "description": "NVIDIA AI-hardware + vLLM-platform reference covering Hopper (H100/H200), Blackwell (B100/B200/B300) and Blackwell Ultra, Grace-Blackwell superchips and NVL72 racks (GB200, GB300), Vera Rubin…",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-observability",
-      "source": "./.claude/skills/vllm-observability",
-      "description": "How to observe production vLLM deployments",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-omni",
-      "source": "./.claude/skills/vllm-omni",
-      "description": "vLLM-Omni operator reference for output-side multimodal generation",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-performance-tuning",
-      "source": "./.claude/skills/vllm-performance-tuning",
-      "description": "vLLM performance-tuning operator reference",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-quantization",
-      "source": "./.claude/skills/vllm-quantization",
-      "description": "vLLM datacenter-GPU quantization operator reference",
-      "version": "0.20260420.5"
-    },
-    {
-      "name": "vllm-reasoning-parsers",
-      "source": "./.claude/skills/vllm-reasoning-parsers",
-      "description": "vLLM reasoning-parser operator + developer reference",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-speculative-decoding",
-      "source": "./.claude/skills/vllm-speculative-decoding",
-      "description": "How to pick, configure, tune, and monitor vLLM speculative decoding in production",
-      "version": "0.20260420.1"
-    },
-    {
-      "name": "vllm-tool-parsers",
-      "source": "./.claude/skills/vllm-tool-parsers",
-      "description": "vLLM tool-calling operator reference",
-      "version": "0.20260420.2"
+      "version": "0.20260420.2",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/skill-improver"
+      ],
+      "strict": false,
+      "category": "claude-code",
+      "tags": [
+        "claude-code",
+        "skills",
+        "autoresearch"
+      ]
     }
   ]
 }

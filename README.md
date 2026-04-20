@@ -6,10 +6,12 @@ Claude Code plugin marketplace — 20+ installable reference skills for vLLM, Ku
 
 ```
 /plugin marketplace add air-gapped/skills
-/plugin install <skill>@air-gapped-skills
+/plugin install <plugin>@air-gapped-skills
 ```
 
-Versioning scheme per skill: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of the most recent content change and `N` is the commit count touching that skill's directory. Run `/plugin update` to pick up new bumps.
+Plugins are either single-skill (e.g. `jinja-expert`, `helm`, `keda`) or grouped suites (e.g. `vllm` — bundles all 14 vLLM reference skills into one plugin). See `.claude-plugin/marketplace.json` for the full list.
+
+Versioning scheme per plugin: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of the most recent content change across member skills and `N` is the unique commit count touching any member skill directory. Run `/plugin update` to pick up new bumps.
 
 <!-- skills-start -->
 | Skill | Description |

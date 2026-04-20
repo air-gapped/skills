@@ -1,8 +1,0 @@
-{
-  "name": "vllm-tool-parsers",
-  "description": "vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, and navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source paraphrase. Covers all 28+ built-in parsers (JSON-sentinel, pythonic, XML, harmony grammars), CLI contract (`--enable-auto-tool-choice`, `--reasoning-parser` pairing, chat-template selection), framework contract (`prev_tool_call_arr` + `streamed_args_for_tool` flush invariants, `ToolParser.adjust_request`, `ToolParserManager.register_module`), and diagnostic playbook (isolate template-vs-parser via raw `/v1/completions` + unicodedata codepoint decode).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

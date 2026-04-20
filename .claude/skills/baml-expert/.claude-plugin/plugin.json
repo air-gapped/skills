@@ -1,8 +1,0 @@
-{
-  "name": "baml-expert",
-  "description": "BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers .baml syntax (function, class, enum, client, test, retry_policy, attributes), Python integration (baml_client sync/async, streaming, ClientRegistry, Collector, TypeBuilder), Schema-Aligned Parsing, ctx.output_format, @@assert / @@check tests, @stream.done / @stream.not_null / @stream.with_state streaming, multimodal (image/audio/pdf), and debugging via BAML_LOG plus Boundary Studio. Trigger even when the user doesn't name BAML — if they ask to \"add an LLM function\", \"fix a failing parse\", \"add a test for the prompt\", \"stream the response\" in a project with baml_src/, this is the skill. Prefer this over raw LLM-SDK guidance in BAML projects.",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

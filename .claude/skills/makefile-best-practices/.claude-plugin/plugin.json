@@ -1,8 +1,0 @@
-{
-  "name": "makefile-best-practices",
-  "description": "Makefile best practices, patterns, and templates for GNU Make 4.x — dependency graphs, task-runner workflows, parallel-safe recipes, self-documenting help targets, and language-specific patterns (Go, Python, Node, Docker, Helm, POSIX).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

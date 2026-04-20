@@ -48,5 +48,5 @@ repos:
         entry: python3 scripts/gen-plugin-manifests.py
         language: system
         pass_filenames: false
-        files: ^(\.claude/skills/.+/SKILL\.md|scripts/gen-plugin-manifests\.py|\.claude-plugin/marketplace\.json|\.claude/skills/.+/\.claude-plugin/plugin\.json)$
+        files: ^(\.claude/skills/.+/SKILL\.md|scripts/gen-plugin-manifests\.py|\.claude-plugin/marketplace\.json)$
         stages: [pre-commit]

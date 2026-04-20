@@ -1,8 +1,0 @@
-{
-  "name": "vllm-quantization",
-  "description": "vLLM datacenter-GPU quantization operator reference — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, and quark on H100, H200, B200, B300, GB200, GB300. Covers the 29 `--quantization` flag values, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`), training EAGLE-3 / dflash drafters on BF16 targets before PTQ, and version-gates per vLLM release (v0.14 → v0.19.1).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}

@@ -1,8 +1,0 @@
-{
-  "name": "keda",
-  "description": "Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling) — ScaledObject, ScaledJob, TriggerAuthentication CRDs, 70+ scalers, HPA behavior tuning, scale-to-zero, the KEDA HTTP Add-on, production hardening, multi-trigger semantics, scalingModifiers formulas, GitOps integration, and troubleshooting stuck scalers. Covers the common traps (cooldownPeriod only applies to N→0, CPU/memory cannot drive scale-to-zero alone, activationThreshold vs threshold, multi-trigger max-of semantics, HPA conflicts).",
-  "author": {
-    "name": "Jörgen"
-  },
-  "license": "MIT"
-}
