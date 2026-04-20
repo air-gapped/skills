@@ -1,6 +1,15 @@
 # skills
 
-Collections of skills.
+Claude Code plugin marketplace — 20+ installable reference skills for vLLM, Kubernetes, release engineering, and skill authoring.
+
+## Install
+
+```
+/plugin marketplace add air-gapped/skills
+/plugin install <skill>@air-gapped-skills
+```
+
+Versioning scheme per skill: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of the most recent content change and `N` is the commit count touching that skill's directory. Run `/plugin update` to pick up new bumps.
 
 <!-- skills-start -->
 | Skill | Description |
