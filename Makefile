@@ -12,7 +12,7 @@ gitleaks: ## Scan working tree + history for secrets (default + custom rules)
 	@command -v gitleaks >/dev/null || { echo "gitleaks not installed"; exit 1; }
 	gitleaks git -v --log-opts="--all" .
 	@# Custom rules must run separately — [extend] useDefault masks them in 8.30
-	@if [ -f .gitleaks.toml ]; then gitleaks git -c .gitleaks.toml -v --log-opts="--all" .; fi
+	@if [ -f .gitleaks-custom.toml ]; then gitleaks git -c .gitleaks-custom.toml -v --log-opts="--all" .; fi
 
 trufflehog: ## Scan filesystem for verified secrets (trufflehog)
 	@command -v trufflehog >/dev/null || { echo "trufflehog not installed"; exit 1; }

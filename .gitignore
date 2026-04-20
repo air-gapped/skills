@@ -1,5 +1,5 @@
 # Personal / local
-.gitleaks.toml
+.gitleaks-custom.toml
 .research/
 
 # Claude Code — personal / ephemeral
