@@ -4,7 +4,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables --no-builtin-rules
 .DEFAULT_GOAL := help
 
-.PHONY: scan gitleaks trufflehog lint ruff shellcheck hooks help
+.PHONY: scan gitleaks trufflehog lint ruff shellcheck readme hooks help
 
 scan: gitleaks trufflehog ## Run all secret scanners
 
@@ -27,6 +27,9 @@ shellcheck: ## Lint all shell scripts
 	@command -v shellcheck >/dev/null || { echo "shellcheck not installed (sudo dnf install ShellCheck)"; exit 1; }
 	@files=$$(find . -name '*.sh' -not -path './.git/*' -not -path './.research/*'); \
 	if [ -n "$$files" ]; then echo $$files | xargs shellcheck --severity=warning; else echo "no .sh files"; fi
+
+readme: ## Regenerate skill table in README.md
+	python3 scripts/gen-skills-table.py
 
 hooks: ## Install pre-commit hooks
 	pre-commit install

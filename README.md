@@ -2,4 +2,24 @@
 
 Collections of skills.
 
+<!-- skills-start -->
+| Skill | Description |
+|---|---|
+| [`keda`](.claude/skills/keda/SKILL.md) | Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling) — ScaledObject, ScaledJob, TriggerAuthentication CRDs, 70+ scalers, HPA behavior tuning, scale-to-zero, the KEDA HTTP Add-on, production hardening, multi-trigger semantics,… |
+| [`vllm-benchmarking`](.claude/skills/vllm-benchmarking/SKILL.md) | How to run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentile metrics, goodput SLO measurement, prefix-cache-aware workloads,… |
+| [`vllm-caching`](.claude/skills/vllm-caching/SKILL.md) | vLLM tiered KV cache configuration for production H100/H200 clusters. Covers native CPU offload, LMCache (CPU+NVMe+GDS), NixlConnector (disaggregated prefill), MooncakeConnector (RDMA), and MultiConnector composition — with the version gates, sizing… |
+| [`vllm-chat-templates`](.claude/skills/vllm-chat-templates/SKILL.md) | vLLM chat-template (prompt-side Jinja) operator reference. Covers template resolution precedence (`--chat-template` flag → AutoProcessor → tokenizer default → bundled fallback in `vllm/transformers_utils/chat_templates/`), the `chat_template_kwargs`… |
+| [`vllm-configuration`](.claude/skills/vllm-configuration/SKILL.md) | How to configure vLLM completely — YAML config file format, CLI arg precedence, the full VLLM_* / HF_* / TRANSFORMERS_* environment-variable catalog, and the end-to-end recipe for running in air-gapped environments that can't reach huggingface.co… |
+| [`vllm-deployment`](.claude/skills/vllm-deployment/SKILL.md) | Deploy production vLLM on Kubernetes, OpenShift, Docker/Podman lab. Covers pod shape (load-bearing `/dev/shm` emptyDir preventing silent NCCL segfaults, cold-load liveness `initialDelaySeconds: 600`), multi-node LWS + Ray symmetric-run… |
+| [`vllm-input-modalities`](.claude/skills/vllm-input-modalities/SKILL.md) | vLLM operator reference for non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), and document OCR via VLMs.… |
+| [`vllm-nvidia-hardware`](.claude/skills/vllm-nvidia-hardware/SKILL.md) | NVIDIA AI-hardware + vLLM-platform reference covering Hopper (H100/H200), Blackwell (B100/B200/B300) and Blackwell Ultra, Grace-Blackwell superchips and NVL72 racks (GB200, GB300), Vera Rubin (R100/R300) with VR200 NVL144 and Kyber NVL576, Dell… |
+| [`vllm-observability`](.claude/skills/vllm-observability/SKILL.md) | How to observe production vLLM deployments — the `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, the shipping Grafana dashboards in `examples/observability/`, OTLP tracing with… |
+| [`vllm-omni`](.claude/skills/vllm-omni/SKILL.md) | vLLM-Omni operator reference for output-side multimodal generation — image (FLUX.1/2, Qwen-Image, GLM-Image, BAGEL, SD3.5, Z-Image, HunyuanImage-3.0), video (Wan2.1/2.2 T2V/I2V, LTX-2, HunyuanVideo-1.5, Helios), TTS (Qwen3-TTS, Fun-CosyVoice3,… |
+| [`vllm-performance-tuning`](.claude/skills/vllm-performance-tuning/SKILL.md) | vLLM performance-tuning operator reference — tuning workflow (baseline → bottleneck → knob → re-bench), fused-MoE kernel autotune (`benchmark_moe.py` generates `E=N,N=M,device_name=X.json` configs), DeepEP all-to-all + expert parallelism + EPLB,… |
+| [`vllm-quantization`](.claude/skills/vllm-quantization/SKILL.md) | vLLM datacenter-GPU quantization operator reference — picking, configuring, troubleshooting NVFP4 / FP8 (E4M3, E5M2) / MXFP4 / MXFP8 / AWQ / GPTQ / INT8 / compressed-tensors / modelopt / quark / torchao / bitsandbytes / gguf on H100, H200, B200,… |
+| [`vllm-reasoning-parsers`](.claude/skills/vllm-reasoning-parsers/SKILL.md) | vLLM reasoning-parser operator + developer reference. Covers `--reasoning-parser` CLI wiring, the `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating,… |
+| [`vllm-speculative-decoding`](.claude/skills/vllm-speculative-decoding/SKILL.md) | How to pick, configure, tune, and monitor vLLM speculative decoding in production. Covers the eleven SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, eagle, eagle3, dflash, mtp, extract_hidden_states), the… |
+| [`vllm-tool-parsers`](.claude/skills/vllm-tool-parsers/SKILL.md) | vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, and navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source… |
+<!-- skills-end -->
+
 MIT licensed.

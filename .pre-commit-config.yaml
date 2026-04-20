@@ -30,3 +30,10 @@ repos:
         language: system
         types: [shell]
         stages: [pre-commit]
+      - id: readme-skills-table
+        name: README skill table in sync
+        entry: python3 scripts/gen-skills-table.py
+        language: system
+        pass_filenames: false
+        files: ^(\.claude/skills/.+/SKILL\.md|scripts/gen-skills-table\.py|README\.md)$
+        stages: [pre-commit]
