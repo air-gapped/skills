@@ -4,9 +4,85 @@
     "name": "air-gapped"
   },
   "metadata": {
-    "description": "Reference skills for vLLM, Kubernetes, release engineering, and Claude Code authoring. Install individual skills or grouped suites."
+    "description": "Reference skills for vLLM, Kubernetes, agent workflows, and developer tooling. Grouped suites."
   },
   "plugins": [
+    {
+      "name": "agent",
+      "source": "./",
+      "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
+      "version": "0.20260420.3",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/autoresearch",
+        "./.claude/skills/skill-improver"
+      ],
+      "strict": false,
+      "category": "ai-workflow",
+      "tags": [
+        "autoresearch",
+        "agents",
+        "claude-code",
+        "skills",
+        "hill-climbing",
+        "optimization"
+      ]
+    },
+    {
+      "name": "dev",
+      "source": "./",
+      "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices.",
+      "version": "0.20260420.3",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/baml-expert",
+        "./.claude/skills/jinja-expert",
+        "./.claude/skills/makefile-best-practices"
+      ],
+      "strict": false,
+      "category": "developer-tools",
+      "tags": [
+        "baml",
+        "jinja",
+        "makefile",
+        "gnu-make",
+        "chat-templates",
+        "huggingface",
+        "ansible",
+        "typed-prompts"
+      ]
+    },
+    {
+      "name": "k8s",
+      "source": "./",
+      "description": "Kubernetes suite — Helm chart authoring, KEDA event-driven autoscaling, OpenShift application packaging.",
+      "version": "0.20260420.3",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/helm",
+        "./.claude/skills/keda",
+        "./.claude/skills/openshift-app"
+      ],
+      "strict": false,
+      "category": "kubernetes",
+      "tags": [
+        "kubernetes",
+        "helm",
+        "keda",
+        "openshift",
+        "autoscaling",
+        "ocp"
+      ]
+    },
     {
       "name": "vllm",
       "source": "./",
@@ -43,172 +119,6 @@
         "gpu",
         "quantization",
         "kv-cache"
-      ]
-    },
-    {
-      "name": "autoresearch",
-      "source": "./",
-      "description": "Karpathy-pattern autoresearch",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/autoresearch"
-      ],
-      "strict": false,
-      "category": "ai-workflow",
-      "tags": [
-        "autoresearch",
-        "agents",
-        "optimization",
-        "hill-climbing"
-      ]
-    },
-    {
-      "name": "baml-expert",
-      "source": "./",
-      "description": "BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/baml-expert"
-      ],
-      "strict": false,
-      "category": "ai-tools",
-      "tags": [
-        "baml",
-        "llm",
-        "typed-prompts",
-        "boundary-ml"
-      ]
-    },
-    {
-      "name": "helm",
-      "source": "./",
-      "description": "Author and maintain Helm charts: create chart, write templates, values.yaml patterns, _helpers.tpl, Chart.yaml, values.schema.json, helm-docs, library charts",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/helm"
-      ],
-      "strict": false,
-      "category": "kubernetes",
-      "tags": [
-        "helm",
-        "kubernetes",
-        "go-templates",
-        "sprig"
-      ]
-    },
-    {
-      "name": "jinja-expert",
-      "source": "./",
-      "description": "Author, read, and debug Jinja2 templates across the three places Jinja lives in 2026",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/jinja-expert"
-      ],
-      "strict": false,
-      "category": "templating",
-      "tags": [
-        "jinja",
-        "chat-templates",
-        "ansible",
-        "huggingface"
-      ]
-    },
-    {
-      "name": "keda",
-      "source": "./",
-      "description": "Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling)",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/keda"
-      ],
-      "strict": false,
-      "category": "kubernetes",
-      "tags": [
-        "keda",
-        "autoscaling",
-        "kubernetes",
-        "scaledobject"
-      ]
-    },
-    {
-      "name": "makefile-best-practices",
-      "source": "./",
-      "description": "Makefile best practices, patterns, and templates for GNU Make 4.x",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/makefile-best-practices"
-      ],
-      "strict": false,
-      "category": "build-tools",
-      "tags": [
-        "makefile",
-        "gnu-make",
-        "build"
-      ]
-    },
-    {
-      "name": "openshift-app",
-      "source": "./",
-      "description": "Package applications for OpenShift deployment: container images (UBI, arbitrary UID, multi-stage builds), packaging formats (Helm, Kustomize, Operators, OLM v1), CI/CD (Tekton, ArgoCD, Shipwright,…",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/openshift-app"
-      ],
-      "strict": false,
-      "category": "kubernetes",
-      "tags": [
-        "openshift",
-        "kubernetes",
-        "ocp",
-        "ubi"
-      ]
-    },
-    {
-      "name": "skill-improver",
-      "source": "./",
-      "description": "Autoresearch loop for Claude Code skills",
-      "version": "0.20260420.2",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/skill-improver"
-      ],
-      "strict": false,
-      "category": "claude-code",
-      "tags": [
-        "claude-code",
-        "skills",
-        "autoresearch"
       ]
     }
   ]

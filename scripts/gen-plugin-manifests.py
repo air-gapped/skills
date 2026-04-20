@@ -33,13 +33,14 @@ OWNER_NAME = "air-gapped"
 AUTHOR_NAME = "Jörgen"
 LICENSE = "MIT"
 MARKETPLACE_DESC = (
-    "Reference skills for vLLM, Kubernetes, release engineering, and "
-    "Claude Code authoring. Install individual skills or grouped suites."
+    "Reference skills for vLLM, Kubernetes, agent workflows, and "
+    "developer tooling. Grouped suites."
 )
 TAGLINE_CAP = 200
 
 # Group definitions. Each group becomes one plugin bundling multiple
-# skills. Future groups go here. Skills matching no group become
+# skills. A group matches skills via `glob` (fnmatch on dir name) or
+# `members` (explicit dir-name list). Skills matching no group become
 # standalone plugins.
 GROUPS: dict[str, dict] = {
     "vllm": {
@@ -63,44 +64,64 @@ GROUPS: dict[str, dict] = {
             "kv-cache",
         ],
     },
+    "k8s": {
+        "members": ["helm", "keda", "openshift-app"],
+        "description": (
+            "Kubernetes suite — Helm chart authoring, KEDA event-driven "
+            "autoscaling, OpenShift application packaging."
+        ),
+        "category": "kubernetes",
+        "tags": [
+            "kubernetes",
+            "helm",
+            "keda",
+            "openshift",
+            "autoscaling",
+            "ocp",
+        ],
+    },
+    "agent": {
+        "members": ["autoresearch", "skill-improver"],
+        "description": (
+            "Agent workflow suite — Karpathy-pattern autoresearch "
+            "(hill-climbing, multi-agent research) and skill-improver "
+            "(Claude Code skill optimization loop)."
+        ),
+        "category": "ai-workflow",
+        "tags": [
+            "autoresearch",
+            "agents",
+            "claude-code",
+            "skills",
+            "hill-climbing",
+            "optimization",
+        ],
+    },
+    "dev": {
+        "members": ["baml-expert", "jinja-expert", "makefile-best-practices"],
+        "description": (
+            "Developer tooling suite — BAML (typed LLM functions), Jinja2 "
+            "templates (HuggingFace chat templates, Ansible), GNU Make "
+            "best practices."
+        ),
+        "category": "developer-tools",
+        "tags": [
+            "baml",
+            "jinja",
+            "makefile",
+            "gnu-make",
+            "chat-templates",
+            "huggingface",
+            "ansible",
+            "typed-prompts",
+        ],
+    },
 }
 
-# Per-skill category/tags overrides for standalone plugins. Missing
-# entries fall back to empty tags.
-STANDALONE_META: dict[str, dict] = {
-    "autoresearch": {
-        "category": "ai-workflow",
-        "tags": ["autoresearch", "agents", "optimization", "hill-climbing"],
-    },
-    "baml-expert": {
-        "category": "ai-tools",
-        "tags": ["baml", "llm", "typed-prompts", "boundary-ml"],
-    },
-    "helm": {
-        "category": "kubernetes",
-        "tags": ["helm", "kubernetes", "go-templates", "sprig"],
-    },
-    "jinja-expert": {
-        "category": "templating",
-        "tags": ["jinja", "chat-templates", "ansible", "huggingface"],
-    },
-    "keda": {
-        "category": "kubernetes",
-        "tags": ["keda", "autoscaling", "kubernetes", "scaledobject"],
-    },
-    "makefile-best-practices": {
-        "category": "build-tools",
-        "tags": ["makefile", "gnu-make", "build"],
-    },
-    "openshift-app": {
-        "category": "kubernetes",
-        "tags": ["openshift", "kubernetes", "ocp", "ubi"],
-    },
-    "skill-improver": {
-        "category": "claude-code",
-        "tags": ["claude-code", "skills", "autoresearch"],
-    },
-}
+# Per-skill category/tags overrides for standalone plugins (skills not
+# matched by any GROUPS entry). Empty by default — add entries here only
+# when a new skill lands that isn't assigned to a suite.
+STANDALONE_META: dict[str, dict] = {}
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -246,7 +267,12 @@ def build_plugins() -> list[dict]:
     standalone: list[pathlib.Path] = []
     for skill_dir in all_skills:
         for gname, gcfg in GROUPS.items():
-            if fnmatch.fnmatch(skill_dir.name, gcfg["glob"]):
+            glob = gcfg.get("glob")
+            members = gcfg.get("members")
+            if glob and fnmatch.fnmatch(skill_dir.name, glob):
+                group_members[gname].append(skill_dir)
+                break
+            if members and skill_dir.name in members:
                 group_members[gname].append(skill_dir)
                 break
         else:
