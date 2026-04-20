@@ -1,0 +1,452 @@
+# =============================================================================
+# HELM & KUBERNETES OPERATIONS MAKEFILE
+# =============================================================================
+# Production-ready patterns for Helm chart deployments and Kubernetes operations.
+# Emphasizes: artifact-first workflow, safety guards, air-gap support, auditability.
+#
+# SECTIONS:
+#   CONFIGURATION               (line 14)  - chart identity, repos, clusters
+#   DERIVED VARIABLES           (line 36)  - versioned artifact names
+#   SAFETY GUARDS               (line 47)  - context check, confirm guards
+#   HELM REPOSITORY MANAGEMENT  (line 85)  - add/update/sync repos
+#   ARTIFACT GENERATION         (line 101) - package, template, manifests
+#   VALIDATION & LINTING        (line 147) - lint, kubeconform, policy
+#   DIFF                        (line 168) - preview before deploy
+#   DEPLOYMENT                  (line 185) - install/upgrade
+#   ROLLBACK                    (line 196) - history, rollback
+#   UNINSTALL                   (line 215) - remove release
+#   STATUS & DEBUGGING          (line 224) - status, logs, events
+#   AIR-GAPPED / OFFLINE        (line 252) - image extraction, bundle
+#   GITOPS MANIFEST GENERATION  (line 314) - rendered-manifest flow
+#   KUBECTL PATTERNS            (line 337) - raw kubectl operations
+#   MULTI-ENVIRONMENT WORKFLOWS (line 360) - dev/stage/prod targets
+#   SECURITY SCANNING           (line 378) - image scanning, SBOM
+#   CLEANUP                     (line 397) - purge generated artifacts
+#   HELP                        (line 410) - self-documenting target
+
+SHELL := bash
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+
+.DEFAULT_GOAL := help
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Chart identity - define once, reference everywhere (no hardcoding)
+CHART_NAME := myapp
+RELEASE_NAME := $(CHART_NAME)
+VERSION ?= 1.0.0
+CONFIG ?= a
+
+# Helm repository
+REPO_NAME := myrepo
+REPO_URL := https://charts.example.com
+
+# Cluster settings
+NAMESPACE ?= default
+TIMEOUT ?= 5m
+
+# Environments (for multi-env workflows)
+ENVIRONMENTS := dev staging prod
+ENV ?= dev
+
+# =============================================================================
+# DERIVED VARIABLES (versioned artifact names for auditability)
+# =============================================================================
+# All artifacts include chart name + version for traceability and parallel versioning
+
+CHART := $(CHART_NAME)-$(VERSION).tgz
+VALUES_FILE := values-$(CHART_NAME)-$(VERSION)-$(CONFIG).yaml
+DEFAULT_VALUES_FILE := default-values-$(CHART_NAME)-$(VERSION).yaml
+TEMPLATE_FILE := template-$(CHART_NAME)-$(VERSION)-$(CONFIG).yaml
+IMAGES_FILE := images-$(CHART_NAME)-$(VERSION).txt
+
+# =============================================================================
+# SAFETY GUARDS
+# =============================================================================
+
+# Allowed contexts - prevents accidental prod deploys from wrong context
+ALLOWED_CONTEXTS ?= dev-cluster staging-cluster
+CURRENT_CONTEXT := $(shell kubectl config current-context 2>/dev/null || echo "none")
+
+.PHONY: verify-context
+verify-context: ## Verify kubectl context is allowed
+	@if [ "$(CURRENT_CONTEXT)" = "none" ]; then \
+		echo "ERROR: No kubectl context configured"; \
+		exit 1; \
+	fi
+	@if ! echo "$(ALLOWED_CONTEXTS)" | grep -qw "$(CURRENT_CONTEXT)"; then \
+		echo "ERROR: Context '$(CURRENT_CONTEXT)' not in allowed list"; \
+		echo "Allowed contexts: $(ALLOWED_CONTEXTS)"; \
+		echo "Current context:  $(CURRENT_CONTEXT)"; \
+		exit 1; \
+	fi
+	@echo "✓ Context verified: $(CURRENT_CONTEXT)"
+
+.PHONY: verify-env
+verify-env: ## Verify ENV is valid
+	@if ! echo "$(ENVIRONMENTS)" | grep -qw "$(ENV)"; then \
+		echo "ERROR: Invalid ENV='$(ENV)'"; \
+		echo "Valid environments: $(ENVIRONMENTS)"; \
+		exit 1; \
+	fi
+
+# Guard for destructive operations (requires CONFIRM=1)
+guard-%:
+	@if [ -z '${${*}}' ]; then \
+		echo "ERROR: Variable $* is not set"; \
+		echo "Usage: make $@ $*=1"; \
+		exit 1; \
+	fi
+
+# =============================================================================
+# HELM REPOSITORY MANAGEMENT
+# =============================================================================
+
+.PHONY: repo-add
+repo-add: ## Add Helm repository
+	helm repo add $(REPO_NAME) $(REPO_URL)
+
+.PHONY: repo-update
+repo-update: ## Update Helm repositories
+	helm repo update $(REPO_NAME)
+
+.PHONY: repo-list
+repo-list: ## List configured repositories
+	helm repo list
+
+# =============================================================================
+# ARTIFACT GENERATION (no cluster required)
+# =============================================================================
+
+.PHONY: pull
+pull: ## Download chart from repository
+	helm pull $(REPO_NAME)/$(CHART_NAME) --version $(VERSION)
+	@echo "Downloaded $(CHART)"
+
+.PHONY: pull-oci
+pull-oci: ## Download chart from OCI registry
+	helm pull oci://$(REPO_URL)/$(CHART_NAME) --version $(VERSION)
+	@echo "Downloaded $(CHART)"
+
+.PHONY: default-values
+default-values: ## Extract default values from chart
+	helm show values $(CHART) > $(DEFAULT_VALUES_FILE)
+	@echo "Extracted default values to $(DEFAULT_VALUES_FILE)"
+
+.PHONY: init-values
+init-values: ## Initialize custom values file (won't overwrite)
+	@if [ -f "$(VALUES_FILE)" ]; then \
+		echo "ERROR: $(VALUES_FILE) already exists"; \
+		exit 1; \
+	fi
+	cp $(DEFAULT_VALUES_FILE) $(VALUES_FILE)
+	@echo "Created $(VALUES_FILE) - customize as needed"
+
+.PHONY: template
+template: ## Render templates locally
+	helm template $(RELEASE_NAME) $(CHART) \
+		--namespace $(NAMESPACE) \
+		--values $(VALUES_FILE) \
+		> $(TEMPLATE_FILE)
+	@echo "Rendered $(TEMPLATE_FILE)"
+
+.PHONY: template-server
+template-server: ## Render templates with server-side validation
+	helm template $(RELEASE_NAME) $(CHART) \
+		--namespace $(NAMESPACE) \
+		--values $(VALUES_FILE) \
+		--dry-run=server \
+		--include-crds \
+		> $(TEMPLATE_FILE)
+	@echo "Rendered $(TEMPLATE_FILE) (server-validated)"
+
+# =============================================================================
+# VALIDATION & LINTING
+# =============================================================================
+
+.PHONY: lint
+lint: ## Lint Helm chart
+	helm lint $(CHART) --values $(VALUES_FILE)
+
+.PHONY: validate
+validate: template ## Validate rendered manifests against cluster
+	kubectl apply --dry-run=server --validate=true -f $(TEMPLATE_FILE)
+	@echo "✓ Manifests validated against cluster API"
+
+.PHONY: kubeconform
+kubeconform: template ## Validate with kubeconform (offline)
+	kubeconform -strict -summary $(TEMPLATE_FILE)
+
+.PHONY: policy-check
+policy-check: template ## Check against OPA/Conftest policies
+	conftest test $(TEMPLATE_FILE) -p policies/
+
+# =============================================================================
+# DIFF (preview changes before deployment)
+# =============================================================================
+
+.PHONY: diff
+diff: template ## Show diff against cluster
+	kubectl diff -n $(NAMESPACE) -f $(TEMPLATE_FILE) || true
+
+.PHONY: helm-diff
+helm-diff: ## Show diff using helm-diff plugin
+	@helm plugin list | grep -q diff || { echo "Installing helm-diff..."; helm plugin install https://github.com/databus23/helm-diff; }
+	helm diff upgrade $(RELEASE_NAME) $(CHART) \
+		--namespace $(NAMESPACE) \
+		--values $(VALUES_FILE) \
+		--allow-unreleased \
+		--three-way-merge
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+
+.PHONY: upgrade
+upgrade: ## Install or upgrade release
+	helm upgrade -i $(RELEASE_NAME) $(CHART) \
+		--namespace $(NAMESPACE) \
+		--create-namespace \
+		--values $(VALUES_FILE)
+
+# =============================================================================
+# ROLLBACK
+# =============================================================================
+
+.PHONY: history
+history: ## Show release history
+	helm history $(RELEASE_NAME) --namespace $(NAMESPACE)
+
+.PHONY: rollback
+rollback: ## Rollback to previous revision
+	helm rollback $(RELEASE_NAME) --namespace $(NAMESPACE)
+
+.PHONY: rollback-to
+rollback-to: ## Rollback to specific revision (REVISION=N)
+ifndef REVISION
+	$(error REVISION required. Usage: make rollback-to REVISION=3)
+endif
+	helm rollback $(RELEASE_NAME) $(REVISION) --namespace $(NAMESPACE)
+
+# =============================================================================
+# UNINSTALL
+# =============================================================================
+
+.PHONY: uninstall
+uninstall: verify-context guard-CONFIRM ## Uninstall release (requires CONFIRM=1)
+	helm uninstall $(RELEASE_NAME) --namespace $(NAMESPACE)
+	@echo "✓ Release $(RELEASE_NAME) uninstalled"
+
+# =============================================================================
+# STATUS & DEBUGGING
+# =============================================================================
+
+.PHONY: status
+status: ## Show release status
+	helm status $(RELEASE_NAME) --namespace $(NAMESPACE)
+
+.PHONY: pods
+pods: ## Show pods for this release
+	kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/instance=$(RELEASE_NAME) -o wide
+
+.PHONY: logs
+logs: ## Tail logs for release pods
+	kubectl logs -n $(NAMESPACE) -l app.kubernetes.io/instance=$(RELEASE_NAME) -f --all-containers
+
+.PHONY: events
+events: ## Show recent events in namespace
+	kubectl get events -n $(NAMESPACE) --sort-by='.lastTimestamp' | tail -20
+
+.PHONY: get-values
+get-values: ## Get deployed values
+	helm get values $(RELEASE_NAME) --namespace $(NAMESPACE)
+
+.PHONY: get-manifest
+get-manifest: ## Get deployed manifests
+	helm get manifest $(RELEASE_NAME) --namespace $(NAMESPACE)
+
+# =============================================================================
+# AIR-GAPPED / OFFLINE SUPPORT
+# =============================================================================
+
+# Enable optional features to capture ALL possible images
+SET_ARGS_ALL_FEATURES ?=
+
+.PHONY: images
+images: ## Extract images for air-gap mirroring
+	@echo "Extracting images for $(CHART_NAME) v$(VERSION)..."
+	@# 1. Default chart images
+	@helm template $(RELEASE_NAME) $(CHART) 2>/dev/null | \
+		grep -oE 'image:\s*"?[^"[:space:]]+' | \
+		sed 's/image:[[:space:]]*//' | tr -d '"' | \
+		sort -u > $(IMAGES_FILE).tmp1
+	@# 2. Custom values images
+	@helm template $(RELEASE_NAME) $(CHART) -f $(VALUES_FILE) 2>/dev/null | \
+		grep -oE 'image:\s*"?[^"[:space:]]+' | \
+		sed 's/image:[[:space:]]*//' | tr -d '"' | \
+		sort -u > $(IMAGES_FILE).tmp2
+	@# 3. All features enabled (if SET_ARGS_ALL_FEATURES defined)
+	@if [ -n "$(SET_ARGS_ALL_FEATURES)" ]; then \
+		helm template $(RELEASE_NAME) $(CHART) $(SET_ARGS_ALL_FEATURES) 2>/dev/null | \
+		grep -oE 'image:\s*"?[^"[:space:]]+' | \
+		sed 's/image:[[:space:]]*//' | tr -d '"' | \
+		sort -u > $(IMAGES_FILE).tmp3; \
+	else \
+		touch $(IMAGES_FILE).tmp3; \
+	fi
+	@# Combine all, dedupe
+	@cat $(IMAGES_FILE).tmp1 $(IMAGES_FILE).tmp2 $(IMAGES_FILE).tmp3 | sort -u > $(IMAGES_FILE)
+	@rm -f $(IMAGES_FILE).tmp1 $(IMAGES_FILE).tmp2 $(IMAGES_FILE).tmp3
+	@echo "Extracted $$(wc -l < $(IMAGES_FILE) | tr -d ' ') images to $(IMAGES_FILE)"
+	@cat $(IMAGES_FILE)
+
+.PHONY: images-running
+images-running: ## List images actually running in cluster
+	@kubectl get pods -n $(NAMESPACE) -l app.kubernetes.io/instance=$(RELEASE_NAME) \
+		-o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{range .spec.initContainers[*]}{.image}{"\n"}{end}{end}' | \
+		sort -u
+
+.PHONY: mirror-images
+mirror-images: images ## Mirror images to internal registry
+ifndef TARGET_REGISTRY
+	$(error TARGET_REGISTRY required. Usage: make mirror-images TARGET_REGISTRY=registry.internal.local)
+endif
+	@while read image; do \
+		target=$(TARGET_REGISTRY)/$$(echo $$image | cut -d/ -f2-); \
+		echo "Mirroring $$image -> $$target"; \
+		skopeo copy --all docker://$$image docker://$$target; \
+	done < $(IMAGES_FILE)
+
+.PHONY: save-images
+save-images: images ## Save images to tarballs for offline transfer
+	@mkdir -p offline/images
+	@while read image; do \
+		filename=$$(echo $$image | tr '/:@' '_'); \
+		echo "Saving $$image -> offline/images/$$filename.tar"; \
+		skopeo copy docker://$$image oci-archive:offline/images/$$filename.tar; \
+	done < $(IMAGES_FILE)
+	@echo "✓ Images saved to offline/images/"
+
+# =============================================================================
+# GITOPS MANIFEST GENERATION
+# =============================================================================
+
+GITOPS_DIR ?= gitops/rendered
+
+.PHONY: gitops-render
+gitops-render: verify-env ## Render manifests for GitOps
+	@mkdir -p $(GITOPS_DIR)/$(ENV)
+	helm template $(RELEASE_NAME) $(CHART) \
+		--namespace $(NAMESPACE) \
+		--values $(VALUES_FILE) \
+		--include-crds \
+		> $(GITOPS_DIR)/$(ENV)/$(CHART_NAME).yaml
+	@echo "Rendered to $(GITOPS_DIR)/$(ENV)/$(CHART_NAME).yaml"
+
+.PHONY: gitops-render-all
+gitops-render-all: ## Render manifests for all environments
+	@for env in $(ENVIRONMENTS); do \
+		$(MAKE) gitops-render ENV=$$env \
+			VALUES_FILE=values-$(CHART_NAME)-$(VERSION)-$$env.yaml; \
+	done
+
+# =============================================================================
+# KUBECTL PATTERNS
+# =============================================================================
+
+MANIFESTS_DIR ?= manifests
+
+.PHONY: k-diff
+k-diff: ## kubectl diff against cluster
+	@$(KUBECTL_DIFF_CMD) -n $(NAMESPACE) -f $(MANIFESTS_DIR)/ 2>/dev/null || \
+		$(KUBECTL_DIFF_FALLBACK) -n $(NAMESPACE) -f $(MANIFESTS_DIR)/ || true
+
+.PHONY: k-apply
+k-apply: verify-context k-diff ## kubectl apply with diff preview
+	kubectl apply -n $(NAMESPACE) -f $(MANIFESTS_DIR)/
+
+.PHONY: k-apply-dry
+k-apply-dry: ## kubectl apply dry-run
+	kubectl apply -n $(NAMESPACE) -f $(MANIFESTS_DIR)/ --dry-run=server
+
+.PHONY: k-delete
+k-delete: verify-context guard-CONFIRM ## kubectl delete (requires CONFIRM=1)
+	kubectl delete -n $(NAMESPACE) -f $(MANIFESTS_DIR)/ --ignore-not-found
+
+# =============================================================================
+# MULTI-ENVIRONMENT WORKFLOWS
+# =============================================================================
+
+.PHONY: deploy-dev
+deploy-dev: ## Deploy to dev
+	$(MAKE) deploy ENV=dev NAMESPACE=dev ALLOWED_CONTEXTS="dev-cluster"
+
+.PHONY: deploy-staging
+deploy-staging: ## Deploy to staging
+	$(MAKE) deploy ENV=staging NAMESPACE=staging ALLOWED_CONTEXTS="staging-cluster"
+
+.PHONY: deploy-prod
+deploy-prod: ## Deploy to prod (requires CONFIRM=1)
+	@echo "⚠️  PRODUCTION DEPLOYMENT"
+	$(MAKE) guard-CONFIRM
+	$(MAKE) deploy ENV=prod NAMESPACE=prod ALLOWED_CONTEXTS="prod-cluster"
+
+# =============================================================================
+# SECURITY SCANNING
+# =============================================================================
+
+.PHONY: scan-images
+scan-images: images ## Scan images with Trivy
+	@while read image; do \
+		echo "Scanning $$image..."; \
+		trivy image --severity HIGH,CRITICAL $$image; \
+	done < $(IMAGES_FILE)
+
+.PHONY: scan-manifests
+scan-manifests: template ## Scan manifests for misconfigurations
+	trivy config $(TEMPLATE_FILE)
+
+.PHONY: security-check
+security-check: scan-manifests scan-images ## Run all security checks
+	@echo "✓ Security checks complete"
+
+# =============================================================================
+# CLEANUP
+# =============================================================================
+
+.PHONY: clean
+clean: ## Remove generated artifacts
+	rm -f $(TEMPLATE_FILE) $(IMAGES_FILE) $(IMAGES_FILE).tmp*
+	rm -rf offline/
+
+.PHONY: clean-all
+clean-all: clean ## Remove all artifacts including charts
+	rm -f *.tgz $(DEFAULT_VALUES_FILE)
+
+# =============================================================================
+# HELP
+# =============================================================================
+
+.PHONY: help
+help: ## Show this help
+	@echo "Helm/K8s Makefile - $(CHART) v$(VERSION)"
+	@echo ""
+	@echo "Current context: $(CURRENT_CONTEXT)"
+	@echo "Namespace:       $(NAMESPACE)"
+	@echo "Environment:     $(ENV)"
+	@echo ""
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Examples:"
+	@echo "  make pull VERSION=1.2.0          # Download specific version"
+	@echo "  make diff                        # Preview changes"
+	@echo "  make deploy ENV=staging          # Deploy to staging"
+	@echo "  make deploy-prod CONFIRM=1       # Deploy to production"
+	@echo "  make images                      # Extract images for air-gap"
+	@echo "  make rollback-to REVISION=3      # Rollback to revision 3"

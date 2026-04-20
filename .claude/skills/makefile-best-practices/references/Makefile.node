@@ -1,0 +1,132 @@
+# =============================================================================
+# Node.js Project Makefile
+# =============================================================================
+# Complement npm scripts with proper dependency tracking.
+# =============================================================================
+
+.DEFAULT_GOAL := help
+.DELETE_ON_ERROR:
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+NPM := npm
+NODE_MODULES := node_modules
+DIST_DIR := dist
+
+# =============================================================================
+# Phony Targets
+# =============================================================================
+
+.PHONY: help install clean dev build test lint format typecheck check \
+        outdated update ci docker-build
+
+# =============================================================================
+# Help
+# =============================================================================
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	  awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+# =============================================================================
+# Dependency Management
+# =============================================================================
+
+# Install deps only when package files change (tracked via node_modules stamp)
+$(NODE_MODULES): package.json package-lock.json
+	$(NPM) ci
+	@touch $@
+
+install: $(NODE_MODULES) ## Install dependencies
+
+clean: ## Remove build artifacts and node_modules
+	rm -rf $(NODE_MODULES) $(DIST_DIR) coverage .eslintcache
+
+# =============================================================================
+# Development
+# =============================================================================
+
+dev: $(NODE_MODULES) ## Start development server
+	$(NPM) run dev
+
+build: $(NODE_MODULES) ## Build for production
+	$(NPM) run build
+
+# =============================================================================
+# Testing & Quality
+# =============================================================================
+
+test: $(NODE_MODULES) ## Run tests
+	$(NPM) test
+
+test-watch: $(NODE_MODULES) ## Run tests in watch mode
+	$(NPM) run test:watch
+
+test-cov: $(NODE_MODULES) ## Run tests with coverage
+	$(NPM) run test:coverage
+
+lint: $(NODE_MODULES) ## Run ESLint
+	$(NPM) run lint
+
+lint-fix: $(NODE_MODULES) ## Fix ESLint issues
+	$(NPM) run lint -- --fix
+
+format: $(NODE_MODULES) ## Format with Prettier
+	$(NPM) run format
+
+format-check: $(NODE_MODULES) ## Check formatting
+	$(NPM) run format:check
+
+typecheck: $(NODE_MODULES) ## Run TypeScript type checking
+	$(NPM) run typecheck
+
+check: lint format-check typecheck test ## Run all checks
+
+# =============================================================================
+# Dependency Maintenance
+# =============================================================================
+
+outdated: $(NODE_MODULES) ## Check for outdated dependencies
+	$(NPM) outdated || true
+
+update: ## Update dependencies (interactive)
+	$(NPM) update
+	$(NPM) audit fix || true
+
+audit: $(NODE_MODULES) ## Run security audit
+	$(NPM) audit
+
+# =============================================================================
+# CI/CD
+# =============================================================================
+
+ci: ## Run CI checks (for pipelines)
+	$(NPM) ci
+	$(NPM) run lint
+	$(NPM) run format:check
+	$(NPM) run typecheck
+	$(NPM) test
+	$(NPM) run build
+
+# =============================================================================
+# Docker
+# =============================================================================
+
+DOCKER_IMAGE := myapp
+VERSION := $(shell node -p "require('./package.json').version")
+
+docker-build: ## Build Docker image
+	docker build -t $(DOCKER_IMAGE):$(VERSION) .
+	docker tag $(DOCKER_IMAGE):$(VERSION) $(DOCKER_IMAGE):latest
+
+docker-run: ## Run Docker container
+	docker run --rm -it -p 3000:3000 $(DOCKER_IMAGE):latest
+
+# =============================================================================
+# Utilities
+# =============================================================================
+
+version: ## Show version
+	@node -p "require('./package.json').version"

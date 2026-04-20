@@ -1,0 +1,128 @@
+# =============================================================================
+# Portable POSIX Makefile Template
+# =============================================================================
+# Works with BSD make, GNU make, and other POSIX-compliant make implementations.
+# Use this when you need maximum portability (e.g., open source projects).
+# =============================================================================
+
+# Note: This Makefile avoids GNU-specific features:
+# - No .RECIPEPREFIX (GNU 4.0+)
+# - No .SHELLFLAGS
+# - No .ONESHELL
+# - No $(eval), $(call), $(foreach)
+# - No pattern-specific variables
+# - Standard suffix rules instead of pattern rules
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+# Standard POSIX shell
+SHELL = /bin/sh
+
+# Allow override from environment
+CC ?= cc
+CFLAGS ?= -O2 -Wall
+LDFLAGS ?=
+PREFIX ?= /usr/local
+
+# Project settings
+PROG = myprogram
+SRCS = main.c util.c parser.c
+OBJS = main.o util.o parser.o
+
+# =============================================================================
+# Standard Targets (per GNU Makefile Conventions)
+# =============================================================================
+
+.PHONY: all clean install uninstall check
+
+# Default target
+all: $(PROG)
+
+# Link program
+$(PROG): $(OBJS)
+	$(CC) $(LDFLAGS) -o $(PROG) $(OBJS)
+
+# Suffix rule for .c -> .o (POSIX compatible)
+.SUFFIXES: .c .o
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+# Clean build artifacts
+clean:
+	rm -f $(PROG) $(OBJS) *.o
+
+# Install to PREFIX
+install: $(PROG)
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp $(PROG) $(DESTDIR)$(PREFIX)/bin/$(PROG)
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/$(PROG)
+
+# Uninstall
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(PROG)
+
+# Run tests
+check: $(PROG)
+	./test.sh
+
+# =============================================================================
+# Dependencies (manual for portability)
+# =============================================================================
+
+main.o: main.c util.h parser.h
+util.o: util.c util.h
+parser.o: parser.c parser.h util.h
+
+# =============================================================================
+# Platform Detection (portable method)
+# =============================================================================
+
+# Detect OS using uname
+UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+
+# Set platform-specific variables
+# Note: Use separate conditionals for BSD make compatibility
+
+# Linux-specific
+LINUX_LDFLAGS = -lpthread
+
+# macOS-specific  
+DARWIN_LDFLAGS = -framework CoreFoundation
+
+# Apply platform settings
+# Conditional directive syntax diverges between GNU (`ifeq`) and BSD (`.if`),
+# so a single-source truly-portable conditional does not exist. Pick one:
+#
+# Option A — GNU-only (matches this file's use of `:=`):
+#   ifeq ($(UNAME_S),Linux)
+#     LDFLAGS += $(LINUX_LDFLAGS)
+#   else ifeq ($(UNAME_S),Darwin)
+#     LDFLAGS += $(DARWIN_LDFLAGS)
+#   endif
+#
+# Option B — portable via shell composition (works in GNU and BSD):
+LDFLAGS += $(shell \
+	case `uname -s` in \
+		Linux)  echo "$(LINUX_LDFLAGS)" ;; \
+		Darwin) echo "$(DARWIN_LDFLAGS)" ;; \
+	esac)
+
+# =============================================================================
+# Help Target (portable implementation)
+# =============================================================================
+
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  all       - Build $(PROG) (default)"
+	@echo "  clean     - Remove build artifacts"
+	@echo "  install   - Install to $(PREFIX)/bin"
+	@echo "  uninstall - Remove from $(PREFIX)/bin"  
+	@echo "  check     - Run tests"
+	@echo ""
+	@echo "Variables:"
+	@echo "  CC=$(CC)"
+	@echo "  CFLAGS=$(CFLAGS)"
+	@echo "  PREFIX=$(PREFIX)"

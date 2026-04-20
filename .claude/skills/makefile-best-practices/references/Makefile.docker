@@ -1,0 +1,204 @@
+# =============================================================================
+# Docker/Container Makefile
+# =============================================================================
+# Patterns for Docker build, compose, and container management.
+# =============================================================================
+
+.DEFAULT_GOAL := help
+.DELETE_ON_ERROR:
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+# Image configuration
+DOCKER_REGISTRY ?= docker.io
+DOCKER_NAMESPACE ?= myorg
+IMAGE_NAME ?= myapp
+DOCKERFILE ?= Dockerfile
+
+# Version from git or override
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "latest")
+GIT_HASH := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+# Full image reference
+IMAGE := $(DOCKER_REGISTRY)/$(DOCKER_NAMESPACE)/$(IMAGE_NAME)
+
+# Docker Compose
+COMPOSE := docker compose
+COMPOSE_FILE := docker-compose.yml
+COMPOSE_DEV := docker-compose.dev.yml
+
+# =============================================================================
+# Phony Targets
+# =============================================================================
+
+.PHONY: help build build-no-cache push pull tag run shell logs \
+        up down restart ps logs-follow clean prune \
+        scan lint
+
+# =============================================================================
+# Help
+# =============================================================================
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	  awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+# =============================================================================
+# Image Building
+# =============================================================================
+
+build: ## Build Docker image
+	docker build \
+	  --tag $(IMAGE):$(VERSION) \
+	  --tag $(IMAGE):latest \
+	  --build-arg VERSION=$(VERSION) \
+	  --build-arg GIT_HASH=$(GIT_HASH) \
+	  --file $(DOCKERFILE) \
+	  .
+	@echo "Built: $(IMAGE):$(VERSION)"
+
+build-no-cache: ## Build without cache
+	docker build --no-cache \
+	  --tag $(IMAGE):$(VERSION) \
+	  --file $(DOCKERFILE) \
+	  .
+
+# Multi-platform build (requires buildx)
+build-multi: ## Build for multiple platforms
+	docker buildx build \
+	  --platform linux/amd64,linux/arm64 \
+	  --tag $(IMAGE):$(VERSION) \
+	  --file $(DOCKERFILE) \
+	  --push \
+	  .
+
+# =============================================================================
+# Registry Operations
+# =============================================================================
+
+push: ## Push image to registry (requires CONFIRM=1)
+ifndef CONFIRM
+	$(error Run with CONFIRM=1 to push to registry)
+endif
+	docker push $(IMAGE):$(VERSION)
+	docker push $(IMAGE):latest
+	@echo "Pushed: $(IMAGE):$(VERSION)"
+
+pull: ## Pull image from registry
+	docker pull $(IMAGE):$(VERSION)
+
+tag: ## Tag image (usage: make tag NEW_TAG=v1.2.3)
+ifndef NEW_TAG
+	$(error NEW_TAG required. Usage: make tag NEW_TAG=v1.2.3)
+endif
+	docker tag $(IMAGE):$(VERSION) $(IMAGE):$(NEW_TAG)
+	@echo "Tagged: $(IMAGE):$(NEW_TAG)"
+
+# =============================================================================
+# Container Operations
+# =============================================================================
+
+run: ## Run container
+	docker run --rm -it \
+	  --name $(IMAGE_NAME) \
+	  -p 8080:8080 \
+	  $(IMAGE):$(VERSION)
+
+run-detached: ## Run container in background
+	docker run -d \
+	  --name $(IMAGE_NAME) \
+	  -p 8080:8080 \
+	  $(IMAGE):$(VERSION)
+	@echo "Container started. View logs: make logs"
+
+shell: ## Shell into running container
+	docker exec -it $(IMAGE_NAME) /bin/sh
+
+stop: ## Stop container
+	docker stop $(IMAGE_NAME) || true
+
+rm: stop ## Stop and remove container
+	docker rm $(IMAGE_NAME) || true
+
+logs: ## View container logs
+	docker logs $(IMAGE_NAME)
+
+logs-follow: ## Follow container logs
+	docker logs -f $(IMAGE_NAME)
+
+# =============================================================================
+# Docker Compose
+# =============================================================================
+
+up: ## Start all services
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d
+
+up-dev: ## Start development environment
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV) up -d
+
+up-build: ## Build and start services
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+
+down: ## Stop all services
+	$(COMPOSE) -f $(COMPOSE_FILE) down
+
+down-volumes: ## Stop services and remove volumes
+	$(COMPOSE) -f $(COMPOSE_FILE) down -v
+
+restart: down up ## Restart all services
+
+ps: ## List running services
+	$(COMPOSE) -f $(COMPOSE_FILE) ps
+
+compose-logs: ## View compose logs
+	$(COMPOSE) -f $(COMPOSE_FILE) logs
+
+compose-logs-follow: ## Follow compose logs
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f
+
+# Shell into specific service: make exec-SERVICE
+exec-%: ## Shell into service (e.g., make exec-web)
+	$(COMPOSE) -f $(COMPOSE_FILE) exec $* /bin/sh
+
+# =============================================================================
+# Security & Linting
+# =============================================================================
+
+scan: build ## Scan image for vulnerabilities
+	docker scout cves $(IMAGE):$(VERSION) || \
+	  trivy image $(IMAGE):$(VERSION) || \
+	  echo "Install docker scout or trivy for vulnerability scanning"
+
+lint: ## Lint Dockerfile
+	docker run --rm -i hadolint/hadolint < $(DOCKERFILE)
+
+# =============================================================================
+# Cleanup
+# =============================================================================
+
+clean: rm ## Remove container and local images
+	docker rmi $(IMAGE):$(VERSION) $(IMAGE):latest 2>/dev/null || true
+
+prune: ## Remove unused Docker resources
+	docker system prune -f
+	docker volume prune -f
+
+prune-all: ## Remove ALL unused resources (requires CONFIRM=1)
+ifndef CONFIRM
+	$(error Run with CONFIRM=1 to prune all)
+endif
+	docker system prune -af
+	docker volume prune -f
+
+# =============================================================================
+# Info
+# =============================================================================
+
+info: ## Show image info
+	@echo "Registry:  $(DOCKER_REGISTRY)"
+	@echo "Namespace: $(DOCKER_NAMESPACE)"
+	@echo "Image:     $(IMAGE_NAME)"
+	@echo "Version:   $(VERSION)"
+	@echo "Full:      $(IMAGE):$(VERSION)"

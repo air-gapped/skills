@@ -1,0 +1,164 @@
+# =============================================================================
+# Python Project Makefile
+# =============================================================================
+# Development workflow automation for Python projects.
+# =============================================================================
+
+.DEFAULT_GOAL := help
+.DELETE_ON_ERROR:
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+PYTHON := python3
+PIP := $(PYTHON) -m pip
+PYTEST := $(PYTHON) -m pytest
+VENV_DIR := .venv
+
+# Package info
+PACKAGE_NAME := mypackage
+SRC_DIR := src
+
+# Activate venv in recipes
+VENV_ACTIVATE := . $(VENV_DIR)/bin/activate &&
+
+# =============================================================================
+# Phony Targets
+# =============================================================================
+
+.PHONY: help venv install install-dev clean test test-cov lint format \
+        typecheck check build publish docs
+
+# =============================================================================
+# Help
+# =============================================================================
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	  awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+# =============================================================================
+# Environment Setup
+# =============================================================================
+
+$(VENV_DIR)/bin/activate: pyproject.toml
+	$(PYTHON) -m venv $(VENV_DIR)
+	$(VENV_ACTIVATE) $(PIP) install --upgrade pip setuptools wheel
+	$(VENV_ACTIVATE) $(PIP) install -e ".[dev]"
+	touch $@
+
+venv: $(VENV_DIR)/bin/activate ## Create virtual environment
+
+install: venv ## Install package
+	$(VENV_ACTIVATE) $(PIP) install -e .
+
+install-dev: venv ## Install package with dev dependencies
+	$(VENV_ACTIVATE) $(PIP) install -e ".[dev,test,docs]"
+
+# =============================================================================
+# Testing
+# =============================================================================
+
+test: venv ## Run tests
+	$(VENV_ACTIVATE) $(PYTEST) tests/ -v
+
+test-cov: venv ## Run tests with coverage
+	$(VENV_ACTIVATE) $(PYTEST) tests/ -v \
+	  --cov=$(SRC_DIR)/$(PACKAGE_NAME) \
+	  --cov-report=term-missing \
+	  --cov-report=html:htmlcov
+	@echo "Coverage report: htmlcov/index.html"
+
+test-watch: venv ## Run tests in watch mode
+	$(VENV_ACTIVATE) $(PYTEST) tests/ -v --watch
+
+# =============================================================================
+# Code Quality
+# =============================================================================
+
+format: venv ## Format code
+	$(VENV_ACTIVATE) black $(SRC_DIR) tests
+	$(VENV_ACTIVATE) isort $(SRC_DIR) tests
+	$(VENV_ACTIVATE) autoflake --remove-all-unused-imports --recursive --in-place $(SRC_DIR)
+
+lint: venv ## Run linters
+	$(VENV_ACTIVATE) ruff check $(SRC_DIR) tests
+	$(VENV_ACTIVATE) black --check $(SRC_DIR) tests
+	$(VENV_ACTIVATE) isort --check-only $(SRC_DIR) tests
+
+typecheck: venv ## Run type checker
+	$(VENV_ACTIVATE) mypy $(SRC_DIR)
+
+security: venv ## Run security checks
+	$(VENV_ACTIVATE) bandit -r $(SRC_DIR)
+	$(VENV_ACTIVATE) safety check
+
+check: lint typecheck test ## Run all checks (lint, typecheck, test)
+
+# =============================================================================
+# Build & Publish
+# =============================================================================
+
+build: venv clean-build ## Build distribution packages
+	$(VENV_ACTIVATE) $(PYTHON) -m build
+	$(VENV_ACTIVATE) twine check dist/*
+
+publish-test: build ## Publish to TestPyPI
+	$(VENV_ACTIVATE) twine upload --repository testpypi dist/*
+
+publish: build ## Publish to PyPI (requires CONFIRM=1)
+ifndef CONFIRM
+	$(error Run with CONFIRM=1 to publish to PyPI)
+endif
+	$(VENV_ACTIVATE) twine upload dist/*
+
+# =============================================================================
+# Documentation
+# =============================================================================
+
+docs: venv ## Build documentation
+	$(VENV_ACTIVATE) sphinx-build -b html docs docs/_build/html
+	@echo "Documentation: docs/_build/html/index.html"
+
+docs-serve: venv ## Serve documentation locally
+	$(VENV_ACTIVATE) sphinx-autobuild docs docs/_build/html
+
+# =============================================================================
+# Cleanup
+# =============================================================================
+
+clean: clean-build clean-pyc clean-test ## Remove all artifacts
+
+clean-build:
+	rm -rf build/ dist/ *.egg-info
+
+clean-pyc:
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyo" -delete
+	find . -type f -name "*~" -delete
+
+clean-test:
+	rm -rf .pytest_cache/ .coverage htmlcov/ .mypy_cache/
+
+clean-venv: ## Remove virtual environment
+	rm -rf $(VENV_DIR)
+
+# =============================================================================
+# Development Utilities
+# =============================================================================
+
+repl: venv ## Start Python REPL with package loaded
+	$(VENV_ACTIVATE) $(PYTHON)
+
+shell: venv ## Start IPython shell
+	$(VENV_ACTIVATE) ipython
+
+update-deps: venv ## Update dependencies
+	$(VENV_ACTIVATE) $(PIP) install --upgrade pip setuptools wheel
+	$(VENV_ACTIVATE) $(PIP) install -e ".[dev,test,docs]" --upgrade
+
+freeze: venv ## Show installed packages
+	$(VENV_ACTIVATE) $(PIP) freeze

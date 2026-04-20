@@ -1,0 +1,177 @@
+# =============================================================================
+# GNU Make Modern Template (4.0+)
+# =============================================================================
+# A production-ready template demonstrating best practices.
+# Copy and adapt for your project.
+#
+# Features:
+# - Self-documenting help system
+# - Verbosity toggle (V=1)
+# - Color output (respects NO_COLOR)
+# - Parallel-safe (-j) design
+# - Modern GNU Make features
+# =============================================================================
+
+# --- Compatibility Check ---
+ifeq ($(origin .RECIPEPREFIX), undefined)
+  $(error GNU Make 4.0+ required. Your version: $(MAKE_VERSION))
+endif
+
+# --- Shell Configuration ---
+SHELL := bash
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+.RECIPEPREFIX = >
+
+# --- Make Configuration ---
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
+# --- Default Goal ---
+.DEFAULT_GOAL := help
+
+# =============================================================================
+# Configuration Variables (override with make VAR=value)
+# =============================================================================
+
+# Build configuration
+BUILD_DIR ?= build
+SRC_DIR ?= src
+PREFIX ?= /usr/local
+
+# Verbosity: set V=1 for verbose output
+V ?= 0
+ifeq ($(V),0)
+  Q := @
+  QUIET := --quiet
+else
+  Q :=
+  QUIET :=
+endif
+
+# --- Colors (respects NO_COLOR standard) ---
+ifdef NO_COLOR
+  CLR_RESET :=
+  CLR_CYAN :=
+  CLR_GREEN :=
+  CLR_YELLOW :=
+  CLR_RED :=
+  CLR_BOLD :=
+else
+  CLR_RESET := \033[0m
+  CLR_CYAN := \033[36m
+  CLR_GREEN := \033[32m
+  CLR_YELLOW := \033[33m
+  CLR_RED := \033[31m
+  CLR_BOLD := \033[1m
+endif
+
+# =============================================================================
+# Project Variables
+# =============================================================================
+
+PROJECT_NAME := myproject
+VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+
+# Find sources (evaluated once with :=)
+SRCS := $(shell find $(SRC_DIR) -name '*.c' 2>/dev/null)
+OBJS := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DEPS := $(OBJS:.o=.d)
+
+TARGET := $(BUILD_DIR)/$(PROJECT_NAME)
+
+# Compiler configuration
+CC ?= gcc
+CFLAGS ?= -Wall -Wextra -std=c11
+CPPFLAGS := -I$(SRC_DIR) -MMD -MP
+LDFLAGS ?=
+LDLIBS ?=
+
+# =============================================================================
+# Phony Targets
+# =============================================================================
+
+.PHONY: help all build test clean install check lint format version
+
+# =============================================================================
+# Help Target (Self-Documenting)
+# =============================================================================
+
+help: ## Show this help message
+> @echo ""
+> @echo "$(CLR_BOLD)$(PROJECT_NAME)$(CLR_RESET) - $(VERSION)"
+> @echo ""
+> @echo "$(CLR_BOLD)Usage:$(CLR_RESET)"
+> @echo "  make [target] [VAR=value...]"
+> @echo ""
+> @echo "$(CLR_BOLD)Targets:$(CLR_RESET)"
+> @grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+>   awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CLR_CYAN)%-15s$(CLR_RESET) %s\n", $$1, $$2}'
+> @echo ""
+> @echo "$(CLR_BOLD)Variables:$(CLR_RESET)"
+> @echo "  $(CLR_CYAN)V$(CLR_RESET)=1            Verbose output"
+> @echo "  $(CLR_CYAN)BUILD_DIR$(CLR_RESET)     Build directory (default: $(BUILD_DIR))"
+> @echo "  $(CLR_CYAN)PREFIX$(CLR_RESET)        Install prefix (default: $(PREFIX))"
+> @echo ""
+
+# =============================================================================
+# Main Targets
+# =============================================================================
+
+all: build test ## Build and run tests
+
+build: $(TARGET) ## Build the project
+> @echo "$(CLR_GREEN)Build complete:$(CLR_RESET) $(TARGET)"
+
+test: build ## Run tests
+> @echo "$(CLR_CYAN)Running tests...$(CLR_RESET)"
+> $(Q)./run-tests.sh $(QUIET) || (echo "$(CLR_RED)Tests failed$(CLR_RESET)" && exit 1)
+> @echo "$(CLR_GREEN)All tests passed$(CLR_RESET)"
+
+check: lint test ## Run all checks (lint + test)
+
+lint: ## Run linters
+> @echo "$(CLR_CYAN)Running linters...$(CLR_RESET)"
+> $(Q)cppcheck --enable=all $(SRC_DIR) $(QUIET) 2>/dev/null || true
+
+format: ## Format source code
+> @echo "$(CLR_CYAN)Formatting code...$(CLR_RESET)"
+> $(Q)clang-format -i $(SRCS)
+
+clean: ## Remove build artifacts
+> @echo "$(CLR_YELLOW)Cleaning...$(CLR_RESET)"
+> $(Q)rm -rf $(BUILD_DIR)
+
+install: build ## Install to PREFIX
+> @echo "$(CLR_CYAN)Installing to $(PREFIX)...$(CLR_RESET)"
+> $(Q)install -d $(DESTDIR)$(PREFIX)/bin
+> $(Q)install -m 755 $(TARGET) $(DESTDIR)$(PREFIX)/bin/
+> @echo "$(CLR_GREEN)Installed:$(CLR_RESET) $(DESTDIR)$(PREFIX)/bin/$(PROJECT_NAME)"
+
+version: ## Show version info
+> @echo "$(PROJECT_NAME) $(VERSION)"
+
+# =============================================================================
+# Build Rules
+# =============================================================================
+
+# Link target
+$(TARGET): $(OBJS) | $(BUILD_DIR)
+> @echo "$(CLR_CYAN)Linking$(CLR_RESET) $@"
+> $(Q)$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+# Compile C sources
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+> @echo "$(CLR_CYAN)Compiling$(CLR_RESET) $<"
+> $(Q)mkdir -p $(@D)
+> $(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+# Create build directory (order-only prerequisite)
+$(BUILD_DIR):
+> $(Q)mkdir -p $@
+
+# =============================================================================
+# Auto-Generated Dependencies
+# =============================================================================
+
+-include $(DEPS)
