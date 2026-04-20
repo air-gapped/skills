@@ -32,7 +32,7 @@ Quantization trades weight precision for memory + compute:
 - **Compute bound** (prefill, large batch, small model) — quantization may
   not help; Blackwell FP4 Tensor Cores are the first architecture where
   W4A4 actually beats FP8 in compute-bound regimes. On Hopper, W4A16 is
-  memory-only — you still do FP16 MMA.
+  memory-only — MMA still runs FP16.
 - **Multi-node EP / disaggregated serving** — NVFP4 reduces all-to-all by 4×
   vs BF16. DeepSeek-R1 / V3.2 on GB200/GB300 gets most of its throughput
   from NVFP4 over the fabric, not from per-GPU compute (see vLLM WideEP blog).
@@ -119,8 +119,8 @@ Both tools output a HF directory vLLM serves with `--quantization compressed-ten
 `modelopt/torch/speculative/{eagle,dflash,medusa,plugins}/`, examples in
 `examples/speculative_decoding/`. Recipes: `modelopt_recipes/general/speculative_decoding/{eagle3,dflash}.yaml`.
 
-**Critical constraint:** training requires **BF16 target** — you cannot train
-EAGLE-3 / dflash on top of an already-NVFP4 target. The order is:
+**Critical constraint:** training requires **BF16 target** — EAGLE-3 / dflash
+cannot be trained on top of an already-NVFP4 target. The order is:
 
 ```
 1. Train drafter on BF16 target   (ModelOpt, ~4-12h on 8×H100)
