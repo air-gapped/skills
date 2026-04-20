@@ -4,7 +4,7 @@
     "name": "air-gapped"
   },
   "metadata": {
-    "description": "Reference skills for vLLM, Kubernetes, agent workflows, and developer tooling. Grouped suites."
+    "description": "Reference skills for vLLM, Kubernetes, observability, agent workflows, and developer tooling. Grouped suites."
   },
   "plugins": [
     {
@@ -84,6 +84,31 @@
       ]
     },
     {
+      "name": "observability",
+      "source": "./",
+      "description": "Observability suite — Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting.",
+      "version": "0.20260421.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/prometheus-mimir-grafana"
+      ],
+      "strict": false,
+      "category": "observability",
+      "tags": [
+        "prometheus",
+        "mimir",
+        "grafana",
+        "promql",
+        "observability",
+        "metrics",
+        "slo",
+        "sre"
+      ]
+    },
+    {
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
@@ -120,20 +145,6 @@
         "quantization",
         "kv-cache"
       ]
-    },
-    {
-      "name": "prometheus-mimir-grafana",
-      "source": "./",
-      "description": "Query Prometheus and Grafana Mimir, write and debug PromQL, and build or fix Grafana dashboards",
-      "version": "0.20260420.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/prometheus-mimir-grafana"
-      ],
-      "strict": false
     }
   ]
 }

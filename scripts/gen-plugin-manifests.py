@@ -33,8 +33,8 @@ OWNER_NAME = "air-gapped"
 AUTHOR_NAME = "Jörgen"
 LICENSE = "MIT"
 MARKETPLACE_DESC = (
-    "Reference skills for vLLM, Kubernetes, agent workflows, and "
-    "developer tooling. Grouped suites."
+    "Reference skills for vLLM, Kubernetes, observability, agent "
+    "workflows, and developer tooling. Grouped suites."
 )
 TAGLINE_CAP = 200
 
@@ -114,6 +114,26 @@ GROUPS: dict[str, dict] = {
             "huggingface",
             "ansible",
             "typed-prompts",
+        ],
+    },
+    "observability": {
+        "members": ["prometheus-mimir-grafana"],
+        "description": (
+            "Observability suite — Prometheus, Grafana Mimir, and Grafana "
+            "reference for agents querying metrics, writing PromQL, "
+            "building and fixing dashboards, and reasoning about SLOs, "
+            "KPIs, and burn-rate alerting."
+        ),
+        "category": "observability",
+        "tags": [
+            "prometheus",
+            "mimir",
+            "grafana",
+            "promql",
+            "observability",
+            "metrics",
+            "slo",
+            "sre",
         ],
     },
 }
