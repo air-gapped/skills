@@ -1,6 +1,6 @@
 # NVIDIA ModelOpt — PTQ + speculative-decoding training
 
-Canonical repo: [NVIDIA/TensorRT-Model-Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer). Local: `<home>/projects/github.com/NVIDIA/Model-Optimizer`.
+Canonical repo: [NVIDIA/TensorRT-Model-Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer).
 
 Produces vLLM-loadable checkpoints via `--quantization modelopt` / `modelopt_fp4` / `modelopt_mxfp8` / `modelopt_mixed`. Also produces TRT-LLM engines (not our concern).
 
@@ -297,5 +297,5 @@ Not this skill. See `vllm-speculative-decoding` skill for AL metrics, method sel
 - Pre-trained HF collection: [huggingface.co/collections/nvidia/speculative-decoding-modules](https://huggingface.co/collections/nvidia/speculative-decoding-modules)
 - SafeAILab canonical EAGLE: [github.com/SafeAILab/EAGLE](https://github.com/SafeAILab/EAGLE) — ModelOpt's EAGLE-3 is adapted from this (utils.py line 1 attribution)
 - Red Hat speculators: `huggingface.co/RedHatAI/*-speculator.eagle3`
-- Example README: `<home>/projects/github.com/NVIDIA/Model-Optimizer/examples/speculative_decoding/README.md`
+- Example README: [`examples/speculative_decoding/README.md`](https://github.com/NVIDIA/TensorRT-Model-Optimizer/blob/main/examples/speculative_decoding/README.md)
 - dflash doc: `examples/speculative_decoding/doc/dflash.md`

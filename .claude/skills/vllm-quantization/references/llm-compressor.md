@@ -1,6 +1,6 @@
 # llm-compressor — producing vLLM-loadable checkpoints
 
-[vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`. Local clone: `<home>/projects/github.com/vllm-project/llm-compressor`.
+[vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`.
 
 Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.10.0** (NVFP4/MXFP4, DDP GPTQ, disk offloading, per-head KV).
 
@@ -281,7 +281,7 @@ Examples: `examples/model_free_ptq/`.
 
 ## External
 
-- README: `<home>/projects/github.com/vllm-project/llm-compressor/README.md`
+- README: [`vllm-project/llm-compressor/README.md`](https://github.com/vllm-project/llm-compressor/blob/main/README.md)
 - Compression schemes doc: `docs/guides/compression_schemes.md`
 - Memory guide: `docs/guides/memory.md`
 - Sequential onloading: `docs/guides/big_models_and_distributed/sequential_onloading.md`
