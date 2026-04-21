@@ -98,11 +98,17 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "dev": {
-        "members": ["baml-expert", "jinja-expert", "makefile-best-practices"],
+        "members": [
+            "baml-expert",
+            "jinja-expert",
+            "makefile-best-practices",
+            "transformers-config-tokenizers-expert",
+        ],
         "description": (
             "Developer tooling suite — BAML (typed LLM functions), Jinja2 "
             "templates (HuggingFace chat templates, Ansible), GNU Make "
-            "best practices."
+            "best practices, and HuggingFace transformers config/tokenizer "
+            "preflight (vLLM/sglang engine bridge)."
         ),
         "category": "developer-tools",
         "tags": [
@@ -114,6 +120,9 @@ GROUPS: dict[str, dict] = {
             "huggingface",
             "ansible",
             "typed-prompts",
+            "transformers",
+            "tokenizers",
+            "preflight",
         ],
     },
     "observability": {

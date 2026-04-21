@@ -34,8 +34,8 @@
     {
       "name": "dev",
       "source": "./",
-      "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices.",
-      "version": "0.20260420.3",
+      "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices, and HuggingFace transformers config/tokenizer preflight (vLLM/sglang engine bridge).",
+      "version": "0.20260421.4",
       "author": {
         "name": "Jörgen"
       },
@@ -43,7 +43,8 @@
       "skills": [
         "./.claude/skills/baml-expert",
         "./.claude/skills/jinja-expert",
-        "./.claude/skills/makefile-best-practices"
+        "./.claude/skills/makefile-best-practices",
+        "./.claude/skills/transformers-config-tokenizers-expert"
       ],
       "strict": false,
       "category": "developer-tools",
@@ -55,7 +56,10 @@
         "chat-templates",
         "huggingface",
         "ansible",
-        "typed-prompts"
+        "typed-prompts",
+        "transformers",
+        "tokenizers",
+        "preflight"
       ]
     },
     {
