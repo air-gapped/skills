@@ -1,7 +1,9 @@
 ---
 name: vllm-tool-parsers
-description: vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, and navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source paraphrase. Covers all 28+ built-in parsers (JSON-sentinel, pythonic, XML, harmony grammars), CLI contract (`--enable-auto-tool-choice`, `--reasoning-parser` pairing, chat-template selection), framework contract (`prev_tool_call_arr` + `streamed_args_for_tool` flush invariants, `ToolParser.adjust_request`, `ToolParserManager.register_module`), and diagnostic playbook (isolate template-vs-parser via raw `/v1/completions` + unicodedata codepoint decode).
-when_to_use: Any tool-calling / function-calling question against a vLLM deployment — `--tool-call-parser` / `--enable-auto-tool-choice` flag issues, "tool call not firing", duplicate argument chunks, missing `}` at stream end, `finish_reason` stuck on `stop`, any `<tool_call>` / `<|tool_calls_begin|>` / `[TOOL_CALLS]` / `<|python_tag|>` / `<|action_start|>` / `<seed:tool_call>` sentinel in raw content, Claude Code / LangChain / OpenAI-SDK tool failures, pythonic-vs-JSON for Llama, Mistral v11 `[TOOL_CALLS]`, DeepSeek full-width `｜` (U+FF5C) vs ASCII pipe, GLM XML, Qwen3 XML vs Qwen3-Coder tags, Hermes `skip_special_tokens=False`, Jamba vocab check, reasoning + tool ordering. Apply even if parser not named — "my Qwen isn't calling tools" is this skill.
+description: |-
+  vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source paraphrase. All 36+ built-in parsers (JSON-sentinel, pythonic, XML, harmony grammars), CLI contract (`--enable-auto-tool-choice`, `--reasoning-parser` pairing, chat-template selection), framework contract (`prev_tool_call_arr` + `streamed_args_for_tool` flush invariants, `ToolParser.adjust_request`, `ToolParserManager.register_module`), diagnostic playbook (isolate template-vs-parser via raw `/v1/completions` + unicodedata codepoint decode).
+when_to_use: |-
+  Trigger on any tool-calling/function-calling question against a vLLM deployment — `--tool-call-parser`/`--enable-auto-tool-choice` flag issues, "tool call not firing", duplicate argument chunks, missing `}` at stream end, `finish_reason` stuck on `stop`, any `<tool_call>`/`<|tool_calls_begin|>`/`[TOOL_CALLS]`/`<|python_tag|>`/`<|action_start|>`/`<seed:tool_call>` sentinel in raw content, Claude Code/LangChain/OpenAI-SDK tool failures, pythonic-vs-JSON for Llama, Mistral v11 `[TOOL_CALLS]`, DeepSeek `｜` (U+FF5C), GLM XML, Qwen3 XML vs Qwen3-Coder, Hermes `skip_special_tokens=False`, reasoning + tool ordering. Applies even without naming the parser — "my Qwen isn't calling tools" is this skill. Also implicit — "function calls broken", "MCP tools not firing", "model won't call tools", "audit tool parser", "deploy-memo tool calling".
 ---
 
 # vLLM Tool Parsers — Navigation Map
@@ -101,7 +103,7 @@ Worth carrying as mental model, because it's spread across multiple files and ea
 - Optional: `adjust_request(request)` — set `skip_special_tokens=False`, inject grammar, etc. `supports_required_and_named: bool = True` — flip False if the output shape breaks guided JSON.
 - Return-value contract for streaming: `None` = "consumed, nothing to emit"; `DeltaMessage(content=...)` = pass-through; `DeltaMessage(tool_calls=[DeltaToolCall(...)])` = tool progress.
 
-For the current in-flight `parse_delta` refactor see RFC #11522; align new parsers with the new shape rather than copying older HACKs.
+For the `parse_delta` refactor see RFC #11522 (closed 2025-09-05) and its follow-on PRs #38755 (merged 2026-04-08), #39728 (merged 2026-04-13), #39446 (merged 2026-04-14). Align new parsers with the `parse_delta` shape rather than copying older HACKs.
 
 ## Reasoning-parser pairing
 
@@ -205,5 +207,10 @@ Compact supplementary maps. Each points back at the source rather than duplicati
 - `references/parser-index.md` — one-line-per-parser index with file path, wrapping tokens at a glance, and the things unique to that parser that aren't obvious from the filename (e.g. "full-width `｜` U+FF5C sentinels", "non-streaming only", "schema-aware type coercion").
 - `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, diagnostic flow. Points at `chat_completion/serving.py` for the flush contract.
 - `references/custom-parser-plugin.md` — plugin scaffolding checklist with file:line anchors into the base class and the canonical examples.
+- `references/sources.md` — verification log of the external GitHub issues/PRs/source files cited by this skill, each with a `Last verified` date. Consult before re-citing a claim; re-probe if the entry is stale (>90 days).
 
 (Older `references/json-family.md`, `pythonic-xml-family.md`, `known-bugs.md` removed — they duplicated source and rotted. Use `Grep`/`gh search` instead.)
+
+---
+
+**Last verified: 2026-04-24.** See `references/sources.md` for per-reference probe details and timestamps.

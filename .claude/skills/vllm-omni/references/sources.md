@@ -4,15 +4,17 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 
 ## First-party
 
-- Repo: <https://github.com/vllm-project/vllm-omni>
-- Docs root: <https://docs.vllm.ai/projects/vllm-omni/en/latest/> (canonical — **not** `vllm-omni.readthedocs.io`, that subdomain 302s / 403s)
-- Supported models: <https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md>
-- Architecture overview: <https://github.com/vllm-project/vllm-omni/blob/main/docs/design/architecture_overview.md>
-- Serving endpoint docs: <https://github.com/vllm-project/vllm-omni/tree/main/docs/serving>
-- Contact / community: <https://github.com/vllm-project/vllm-omni/blob/main/docs/community/contact_us.md>
-- Feature docs (ComfyUI, Sleep mode, verl): <https://github.com/vllm-project/vllm-omni/tree/main/docs/features>
-- PyPI: <https://pypi.org/project/vllm-omni/>
-- Docker Hub: <https://hub.docker.com/r/vllm/vllm-omni/tags>
+| Ref | URL | Last verified |
+|---|---|---|
+| Repo | <https://github.com/vllm-project/vllm-omni> | 2026-04-24 |
+| Docs root (canonical — **not** `vllm-omni.readthedocs.io`, that subdomain 302s / 403s) | <https://docs.vllm.ai/projects/vllm-omni/en/latest/> | 2026-04-18 |
+| Supported models | <https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md> | 2026-04-18 |
+| Architecture overview | <https://github.com/vllm-project/vllm-omni/blob/main/docs/design/architecture_overview.md> | 2026-04-18 |
+| Serving endpoint docs | <https://github.com/vllm-project/vllm-omni/tree/main/docs/serving> | 2026-04-18 |
+| Contact / community | <https://github.com/vllm-project/vllm-omni/blob/main/docs/community/contact_us.md> | 2026-04-18 |
+| Feature docs (ComfyUI, Sleep mode, verl) | <https://github.com/vllm-project/vllm-omni/tree/main/docs/features> | 2026-04-18 |
+| PyPI | <https://pypi.org/project/vllm-omni/> | 2026-04-18 |
+| Docker Hub | <https://hub.docker.com/r/vllm/vllm-omni/tags> | 2026-04-18 |
 
 ## Paper
 
@@ -22,13 +24,17 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 
 ## Releases
 
-- Release index: <https://github.com/vllm-project/vllm-omni/releases>
-- v0.11.0rc1 (2025-12-01): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.11.0rc1>
-- v0.12.0rc1 (2026-01-05): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.12.0rc1>
-- v0.14.0 (2026-01-31, **first stable**): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.14.0>
-- v0.16.0 (2026-02-28, **rebased on vLLM v0.16.0**): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.16.0>
-- v0.18.0 (2026-03-28, **current stable, rebased on vLLM v0.18.0**): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0>
-- v0.19.0rc1 (2026-04-04, **flux regression — avoid**): <https://github.com/vllm-project/vllm-omni/releases/tag/v0.19.0rc1>
+| Release | Date | Notes | URL | Last verified |
+|---|---|---|---|---|
+| Release index | — | — | <https://github.com/vllm-project/vllm-omni/releases> | 2026-04-24 |
+| v0.11.0rc1 | 2025-12-01 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.11.0rc1> | 2026-04-18 |
+| v0.12.0rc1 | 2026-01-05 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.12.0rc1> | 2026-04-18 |
+| v0.14.0 | 2026-01-31 | **First stable** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.14.0> | 2026-04-24 |
+| v0.16.0 | 2026-02-28 | **rebased on vLLM v0.16.0** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.16.0> | 2026-04-24 |
+| v0.17.0rc1 | 2026-03-09 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.17.0rc1> | 2026-04-24 |
+| v0.18.0rc1 | 2026-03-21 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0rc1> | 2026-04-24 |
+| v0.18.0 | 2026-03-28 | **current stable, rebased on vLLM v0.18.0** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0> | 2026-04-24 |
+| v0.19.0rc1 | 2026-04-04 | **FLUX regression present in tag artifacts; fix merged to `main` 2026-04-24 via PR #2760 but not yet re-tagged — avoid until next RC ships** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.19.0rc1> | 2026-04-24 |
 
 ## Community
 
@@ -44,19 +50,22 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 - Community skills plugin: <https://github.com/hsliuustc0106/vllm-omni-skills>
 - AIToolly coverage 2026-03-23: <https://aitoolly.com/ai-news/article/2026-03-23-vllm-omni-a-new-framework-for-efficient-omni-modality-model-inference-released-on-github>
 
-## Key open issues referenced
+## Key issues referenced
 
-- [#2898 NPU 910B install regression](https://github.com/vllm-project/vllm-omni/issues/2898)
-- [#2880 HunyuanVideo-1.5 flash-attn shape on NPU mindiesd](https://github.com/vllm-project/vllm-omni/issues/2880)
-- [#2866 Qwen3-TTS code2wav crash when enforce_eager=false](https://github.com/vllm-project/vllm-omni/issues/2866)
-- [#2804 Diffusion API accepts model mismatch silently](https://github.com/vllm-project/vllm-omni/issues/2804)
-- [#2777 v0.18 Pydantic ChatCompletionResponse validation bug](https://github.com/vllm-project/vllm-omni/issues/2777)
-- [#2768 Orphan procs after Wan2.2 crash](https://github.com/vllm-project/vllm-omni/issues/2768)
-- [#2730 FLUX.1-dev regression on v0.19.0rc1](https://github.com/vllm-project/vllm-omni/issues/2730)
-- [#2683 mimo_audio online_serving bug](https://github.com/vllm-project/vllm-omni/issues/2683)
-- [#2635 BAGEL YAML / docs field name mismatch](https://github.com/vllm-project/vllm-omni/issues/2635)
-- [#2595 Qwen3-TTS max_model_len validation error](https://github.com/vllm-project/vllm-omni/issues/2595)
-- [#2562 Audio gaps on Qwen3-TTS streaming](https://github.com/vllm-project/vllm-omni/issues/2562)
+| # | Title | State | URL | Last verified |
+|---|---|---|---|---|
+| #2898 | NPU 910B install regression | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2898> | 2026-04-18 |
+| #2880 | HunyuanVideo-1.5 flash-attn shape on NPU mindiesd | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2880> | 2026-04-24 |
+| #2866 | Qwen3-TTS code2wav crash when enforce_eager=false | OPEN (active 2026-04-20) | <https://github.com/vllm-project/vllm-omni/issues/2866> | 2026-04-24 |
+| #2804 | Diffusion API accepts model mismatch silently | **CLOSED 2026-04-19** | <https://github.com/vllm-project/vllm-omni/issues/2804> | 2026-04-24 |
+| #2777 | v0.18 Pydantic ChatCompletionResponse validation bug | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2777> | 2026-04-24 |
+| #2768 | Orphan procs after Wan2.2 crash | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2768> | 2026-04-24 |
+| #2760 | [Bugfix] T5 text encoder to render correct text in FLUX.1-dev | **MERGED 2026-04-24** (closes #2730) | <https://github.com/vllm-project/vllm-omni/pull/2760> | 2026-04-24 |
+| #2730 | FLUX.1-dev regression on v0.19.0rc1 | **CLOSED 2026-04-24** via PR #2760 — fix is on `main`, not yet in a tagged release | <https://github.com/vllm-project/vllm-omni/issues/2730> | 2026-04-24 |
+| #2683 | mimo_audio online_serving bug | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2683> | 2026-04-18 |
+| #2635 | BAGEL YAML / docs field name mismatch | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2635> | 2026-04-18 |
+| #2595 | Qwen3-TTS max_model_len validation error | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2595> | 2026-04-18 |
+| #2562 | Audio gaps on Qwen3-TTS streaming | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2562> | 2026-04-18 |
 
 ## Open RFCs (shape of roadmap)
 
@@ -101,4 +110,4 @@ Refresh this skill when:
 - A key issue in the reference list (Qwen3-TTS enforce-eager, FLUX regression, GLM-Image transformers pin) closes — those are the advice that directly affects operators.
 - Paper gets updated / superseded.
 
-Compiled 2026-04-18 against v0.18.0 stable.
+Compiled 2026-04-18 against v0.18.0 stable. Last freshened 2026-04-24.

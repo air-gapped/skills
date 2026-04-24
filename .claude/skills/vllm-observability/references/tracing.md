@@ -1,5 +1,7 @@
 # OpenTelemetry tracing for vLLM
 
+Last verified: 2026-04-24 (see `references/sources.md`)
+
 Load when configuring OTLP export, choosing a tracing backend, or diagnosing why traces don't show spans expected.
 
 ## Enabling tracing

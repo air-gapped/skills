@@ -58,7 +58,7 @@ vllm serve qwen/Qwen2-72B-Instruct --trust-remote-code --tensor-parallel-size 8
 **Caveats:**
 - Most Meta/Mistral/Google models are **not** mirrored on ModelScope. Stick to Qwen / DeepSeek / Yi / GLM families.
 - `trust_remote_code=True` is usually required — ModelScope-native models rely on custom `modeling_*.py`.
-- **LoRA adapters historically still fetched from HuggingFace** even with this flag set (PR #13220 tracked the fix; verify against the installed version with `grep -r VLLM_USE_MODELSCOPE vllm/lora/`).
+- **LoRA adapters still fetch from HuggingFace** even with this flag set. PR #13220 attempted a fix but was closed without merge (2025-06-20); no upstream fix has landed. Workaround: download adapters manually and pass `--lora-modules name=/local/path`. Verify against the installed version with `grep -r VLLM_USE_MODELSCOPE vllm/lora/`.
 
 ## Staging workflow — what files must be in the cache
 

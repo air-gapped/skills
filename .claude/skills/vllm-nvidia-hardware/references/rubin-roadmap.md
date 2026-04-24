@@ -4,11 +4,19 @@ NVIDIA's successor to Blackwell. First HBM4 silicon; first 800 VDC HVDC racks.
 Relevant to any 2026+ purchasing decision: facilities built now should be sized for
 Rubin, not Blackwell, to avoid retrofit.
 
+**Naming note (2026-04-24):** NVIDIA's own Developer Blog has settled on
+"**Vera Rubin NVL72**" as the product name for the first Rubin rack, and states it
+is "in full production, on track to ship in the second half of 2026". This supersedes
+the earlier GTC-2025 internal codename **VR200 NVL144** used elsewhere in this
+reference. When quoting NVIDIA marketing verbatim, use "Vera Rubin NVL72". When
+discussing die-count (144 dies = 72 packages) in engineering context, VR200 NVL144
+is still the accurate description.
+
 ## Per-GPU specs
 
 | Product | HBM | BW | FP4 | FP8 | Rack product | Rack power | Status |
 |---|---:|---:|---:|---:|---|---:|---|
-| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | ~20 TB/s (CES 2026 revision) | 50 PFLOPS | ~16 PFLOPS | **VR200 NVL144** | **180–220 kW** | Partner avail H2 2026; volume 2027 |
+| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | ~20 TB/s (CES 2026 revision) | 50 PFLOPS | ~16 PFLOPS | **Vera Rubin NVL72** (aka VR200 NVL144, 144 dies / 72 packages) | **180–220 kW** | **In full production** (NVIDIA, Apr 2026); shipping H2 2026 |
 | **R300 (Rubin Ultra)** | **1 TB HBM4E** (16 stacks) | TBD | 100 PFLOPS | TBD | **NVL576 Kyber** | **~600 kW** | H2 2027 |
 
 **Rubin BW revision:** initial GTC March 2025 announcement cited 13 TB/s; NVIDIA

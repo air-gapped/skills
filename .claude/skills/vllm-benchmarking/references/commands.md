@@ -18,7 +18,7 @@ HTTP-level online serving benchmark. The one operators use most.
 - `--base-url <url>` — full URL to the vLLM server. Overrides host/port.
 - `--host 127.0.0.1 --port 8000` — fallback when `--base-url` isn't set.
 - `--endpoint /v1/completions` — default. Use `/v1/chat/completions` for chat-tuned flows.
-- `--backend openai` — default. Other values: `openai-chat`, `vllm`, `vllm-chat`, `openai-embeddings`, `vllm-pooling`, `vllm-rerank`, `openai-audio`, `infinity-embeddings`. **`--endpoint-type` is removed as of v0.11.0 — use `--backend` instead.**
+- `--backend openai` — default. Other values (verified 2026-04-24 on docs.vllm.ai/en/latest/cli/bench/serve/): `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-chat`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. **`--endpoint-type` is removed as of v0.11.0 — use `--backend` instead.**
 - `--header KEY=VALUE` — arbitrary HTTP headers. Repeatable.
 - Auth: `OPENAI_API_KEY` env var auto-injects as Bearer token.
 

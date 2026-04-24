@@ -37,7 +37,7 @@ export VLLM_USE_MODELSCOPE=True
 # plus in the vLLM serve args: --trust-remote-code
 ```
 
-**Known gap:** LoRA adapter loading does not work through ModelScope (vLLM issue #32841). For LoRA testing, use Pattern 1 or 3.
+**Historical gap:** LoRA adapter loading through ModelScope was broken (vLLM issue #32841, closed 2026-01-23 without linked fix PR). Re-verify on your current vLLM version; if LoRA-via-ModelScope still fails, fall back to Pattern 1 or 3.
 
 Use this when the China-based mirror is faster than an internal mirror, or when ModelScope has a model that hf-mirror.com doesn't.
 

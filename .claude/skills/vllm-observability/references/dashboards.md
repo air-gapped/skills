@@ -1,5 +1,7 @@
 # vLLM dashboards & GPU-side pairing
 
+Last verified: 2026-04-24 (see `references/sources.md`)
+
 Load when choosing a dashboard to ship, adapting an upstream one, or deciding what GPU-hardware metrics to surface alongside vLLM's own.
 
 ## Shipping dashboards in the vLLM repo

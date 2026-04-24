@@ -146,6 +146,10 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
+Last verified: 2026-04-24. Recipe page URL confirmed live; no new OCR
+model landed in v0.20.0 (PaddleOCR-VL `max_pixels` fix #38629 applies to
+a chat VLM, not the OCR-family here).
+
 ## 8. Source anchors
 
 - `vllm/model_executor/models/deepseek_ocr.py:358-` — `DeepseekOCRForCausalLM`,

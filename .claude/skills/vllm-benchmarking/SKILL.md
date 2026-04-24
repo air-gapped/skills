@@ -1,8 +1,10 @@
 ---
 name: vllm-benchmarking
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
-description: How to run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentile metrics, goodput SLO measurement, prefix-cache-aware workloads, and air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror.com, offline cache seeding). Covers the methodology split between "is my deployment healthy" SLO checks and "does change X make it faster" A/B sweeps, plus the pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod-proxy, `--request-rate inf` alone).
-when_to_use: Trigger on "vllm bench", "vllm benchmark", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "benchmark serving", "benchmark throughput", "benchmark latency", "SLO test", "bench serve", "bench throughput", "sweep request rate", "prefix cache benchmark", "disagg benchmark", "sharegpt dataset", "sonnet dataset", "burstgpt", "vllm perf", "tune request rate", "does this deploy get faster", "compare two vllm configs". Also trigger on air-gapped operator questions about vLLM benchmarking without huggingface access — HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded HF cache, internal HF proxy, offline dataset sourcing. Trigger even when the phrasing doesn't include "bench" — if the operator is trying to produce defensible performance numbers or compare two deployments, this is the right skill.
+description: |-
+  Run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentiles, goodput SLO measurement, prefix-cache workloads, air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror, offline cache). Methodology split — SLO health checks vs A/B change sweeps — plus pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod, `--request-rate inf` alone).
+when_to_use: |-
+  Trigger on "vllm bench", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "bench serve", "bench throughput", "bench latency", "SLO test", "sharegpt dataset", "sonnet dataset", "burstgpt", "vllm perf numbers", "does this deploy get faster", "compare two vllm configs", "tune request rate", "prove SLO", "prefix cache benchmark", "disagg benchmark". Also air-gapped benchmarking (HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded cache). Also implicit contexts — "bench model X", "perf numbers for {model}", "audit benchmark", "can {model} hit TTFT Y", "deploy-memo perf", "spec-study performance" — any time producing defensible numbers or comparing two deployments.
 ---
 
 # vLLM benchmarking
@@ -74,7 +76,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 2. **Wrong tokenizer.** `--tokenizer` defaults to `--model`, but if they differ (e.g., served via a local path while benching with a HF ID), every token count in the output is fiction. Always specify explicitly.
 3. **`--dataset-name random` as a proxy for production traffic.** Random has zero prefix structure, overstates prefill work, understates prefix-cache hit rate, makes chunked prefill look worse than reality. For anything involving caching claims, use `custom` with a real-traffic JSONL, or `prefix_repetition` for synthetic prefix-heavy tests.
 4. **`--request-rate inf` alone.** Measures saturation throughput, not the latency regime users experience. Always include a concurrency sweep for serving comparisons.
-5. **`--endpoint-type` is removed.** Deprecated in v0.11.0, now gone. Use `--backend` (values: `openai`, `openai-chat`, `vllm`, `vllm-chat`, `openai-embeddings`, `vllm-pooling`, `vllm-rerank`, `openai-audio`).
+5. **`--endpoint-type` is removed.** Deprecated in v0.11.0, now gone. Use `--backend`. Current full value set (docs.vllm.ai, verified 2026-04-24): `openai`, `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-chat`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`.
 6. **Conflating tok/s with req/s.** High total-tokens/sec can coexist with terrible TTFT. Always report both plus P99 ITL.
 7. **Noisy neighbor.** Shared GPU, unrelated container load, MIG partition changes mid-run — check `nvidia-smi dmon` for unrelated activity before trusting numbers.
 8. **`latency` subcommand disables prefix caching by default** (to keep numbers clean). If benchmarking prefix-cache behavior, use `serve` with the `prefix_repetition` dataset.
@@ -86,7 +88,7 @@ For the full flag reference for each subcommand, see `references/commands.md`. F
 Operators who can't reach `huggingface.co` have three working patterns:
 
 1. **Reroute to a mirror** — set `HF_ENDPOINT=https://hf-mirror.com` (or an internal reverse-proxy URL). `huggingface_hub` treats it transparently.
-2. **ModelScope** — set `VLLM_USE_MODELSCOPE=True` plus `trust_remote_code=True`. Known gap: LoRA adapter loading is broken through this path (vLLM issue #32841).
+2. **ModelScope** — set `VLLM_USE_MODELSCOPE=True` plus `trust_remote_code=True`. Historical gap: LoRA adapter loading through ModelScope (vLLM issue #32841, closed 2026-01-23). Re-verify on your vLLM version before relying on LoRA-via-ModelScope; issue closure without a linked PR means status is unclear — test first.
 3. **Fully offline with pre-seeded cache** — `HF_HUB_OFFLINE=1` + `TRANSFORMERS_OFFLINE=1`, `HF_HOME` pointing at a pre-populated directory (NFS, PVC, or JuiceFS/S3).
 
 For benchmark datasets specifically: `sonnet` is **in-tree** at `vllm/benchmarks/sonnet.txt` — never downloads. `random` is synthetic — never downloads. `sharegpt` must be pre-staged: `wget` the JSON on a connected host, `rsync` into the enclave, point `--dataset-path` at it.

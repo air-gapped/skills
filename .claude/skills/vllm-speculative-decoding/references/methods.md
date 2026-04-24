@@ -115,9 +115,10 @@ auxiliary hidden states from designated intermediate layers.
   than `draft_model`
 - `parallel_drafting: true` enables P-EAGLE variant (v0.16+, PR #32887); see
   `eagle3.md`
-- **EAGLE-3 target-model allow-list** (config/speculative.py:818-833): llama,
-  qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe, nemotron_h,
-  deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4
+- **EAGLE-3 target-model allow-list** (config/speculative.py:895-909 as of
+  2026-04-24 — grep `aux_hidden_states_supported` on upgrade; line numbers
+  drift): llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
+  nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4
 - EAGLE-3 auxiliary layers picked via `eagle_aux_hidden_state_layer_ids` in
   HF config (`v1/worker/gpu/spec_decode/eagle/eagle3_utils.py:35-46`)
 - Per-target EAGLE-3 head classes exist: `llama_eagle3.py` (first layer is

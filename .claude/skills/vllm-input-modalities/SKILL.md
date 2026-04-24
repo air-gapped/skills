@@ -1,7 +1,9 @@
 ---
 name: vllm-input-modalities
-description: vLLM operator reference for non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), and document OCR via VLMs. Covers the 2026 `--runner pooling` flag (replacing `--task embed`), v0.20 deprecations (`score`→`classify`, multitask pooling, `encode`→`token_embed`+`token_classify`), Matryoshka / MRL dimensions, ColBERT/ColPali/ColQwen late-interaction MaxSim, Cohere v2 `/v2/embed`, the auto-enabled scoring API, Jina v3/v4/v5 quirks (`-vllm-retrieval` variant, `jina_task`), cross-encoder score templates, Whisper large-v3-turbo production quants, and the DeepSeek-OCR recipe (NGramPerReqLogitsProcessor, no prefix cache, GUNDAM mode).
-when_to_use: Trigger on any non-chat vLLM endpoint, or any model not served via `/v1/chat/completions`. Covers `--runner pooling`, `--convert embed|classify`, `--pooler-config`, `--hf-overrides is_matryoshka`, CLS/LAST/MEAN/ALL pooling; BGE-M3, Qwen3-Embedding, Jina v3/v4/v5, Qwen3-Reranker, BGE-reranker, mxbai-rerank, ColBERT, ColPali, ColQwen3/3.5, jina-reranker-v3/m0; Whisper, Voxtral, Qwen3-ASR/Omni, Kimi-Audio, Ultravox, FunASR, GLM-ASR, Cohere ASR; DeepSeek-OCR, dots-OCR, GLM-OCR, Nemotron-Parse. Apply even for narrow phrasings like "is --task embed still supported", "which Whisper quant fits 24 GB", "how to serve ColPali".
+description: |-
+  vLLM non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), document OCR via VLMs. Covers 2026 `--runner pooling` (replacing `--task embed`), v0.20 deprecations (`score`→`classify`, multitask pooling, `encode`→`token_embed`+`token_classify`), Matryoshka/MRL, ColBERT/ColPali/ColQwen late-interaction MaxSim, Cohere v2 `/v2/embed`, Jina v3/v4/v5 quirks, cross-encoder score templates, Whisper large-v3-turbo quants, DeepSeek-OCR recipe (NGramPerReqLogitsProcessor, no prefix cache, GUNDAM mode).
+when_to_use: |-
+  Trigger on any non-chat vLLM endpoint or non-`/v1/chat/completions` model. Covers `--runner pooling`, `--convert embed|classify`, `--pooler-config`, `--hf-overrides is_matryoshka`, CLS/LAST/MEAN/ALL pooling; BGE-M3, Qwen3-Embedding, Jina v3/v4/v5, Qwen3-Reranker, BGE-reranker, mxbai-rerank, ColBERT, ColPali, ColQwen3/3.5, jina-reranker-v3/m0; Whisper, Voxtral, Qwen3-ASR/Omni, Kimi-Audio, Ultravox, FunASR, GLM-ASR; DeepSeek-OCR, dots-OCR, GLM-OCR, Nemotron-Parse. Narrow phrasings — "is --task embed still supported", "which Whisper quant fits 24 GB", "how to serve ColPali". Also implicit — "serve embed model", "deploy Whisper", "embed endpoint for {model}", "rerank endpoint", "OCR pipeline vLLM", "audit embedder", "deploy-memo for embedding", "spec-study embed/rerank/ASR/OCR".
 ---
 
 # vLLM — embeddings, reranking, speech-to-text, OCR
@@ -252,16 +254,33 @@ no dedicated `/ocr` endpoint.
    models feel slow, check `--enable-flash-late-interaction` (default true)
    wasn't disabled by an old config.
 
-## Scheduled deprecations to plan for (v0.20)
+## Landed in v0.20.0 (released 2026-04-23) — verify your deployment
 
-- `--task` flag (already replaced by `--runner` + `--convert`).
-- `score` pooling task (replaced by `classify` + `num_labels==1`).
-- Pooling **multitask** — will require picking a task explicitly via
-  `PoolerConfig(task=...)`.
+The deprecations previously flagged as "scheduled for v0.20" have now shipped.
+Callouts from the v0.20.0 release notes (Breaking Changes + API sections):
+
+- **`logit_bias` / `logit_scale` → `logit_mean` / `logit_sigma`** in
+  `PoolerConfig` — explicit breaking change, PR #39530. Old names still
+  accepted with deprecation warning.
+- **Async scheduling default OFF for pooling models** (PR #39592) — explicit
+  breaking change. Pooling throughput should be marginally lower but
+  stability improves; re-enable case-by-case if you measured a win on v0.19.
+- `--task` flag — still accepted with deprecation warning; `--runner` +
+  `--convert` is canonical.
+- `score` pooling task — replaced by `classify` + `num_labels==1`.
+- Pooling **multitask** — pick a task explicitly via `PoolerConfig(task=...)`
+  or `--pooler-config.task <task>`; automatic multitasking is gone.
 - `encode` task — split into `token_embed` and `token_classify`.
-- `normalize` in `PoolingParams` — already removed; use `use_activation`.
-- `logit_bias` / `logit_scale` in `PoolerConfig` — renamed to `logit_mean`
-  / `logit_sigma` (Platt scaling calibration).
+- `normalize` in `PoolingParams` — removed; use `use_activation`.
+
+Two performance wins also landed in v0.20.0 for pooling:
+
+- **#38559** — mean-pooling optimisation via `index_add` (+5.9% on mean-pool models).
+- **#39113** — redundant-sync removal for pooling (+3.7% throughput).
+
+Also landed: `jina-reranker-v3` (#38800), **Jina Embeddings v5** (#39575),
+`max_tokens_per_doc` in `/rerank` (#38827), **Generative Scoring** (#34539),
+ASR multi-chunk spacing fix (#39116).
 
 ## Paired skills
 
@@ -279,5 +298,9 @@ no dedicated `/ocr` endpoint.
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.20+ release (deprecations landing), a new Jina
-  embeddings major version, or a new native-multimodal reranker shipping.
+- Refresh triggers: any v0.21+ release (further pooling-runner changes), a
+  new Jina embeddings major version, or a new native-multimodal reranker
+  shipping.
+- External-ref audit log: `references/sources.md`.
+
+Last verified: 2026-04-24 (against vLLM v0.20.0 release notes).

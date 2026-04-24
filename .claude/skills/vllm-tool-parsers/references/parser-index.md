@@ -22,6 +22,7 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 | `ernie45` | `ernie45_tool_parser.py` | Buffers until `</tool_call>` — not true per-arg streaming. |
 | `seed_oss` | `seed_oss_tool_parser.py` | Gated on `</seed:think>` having been emitted. XML inner grammar. |
 | `hunyuan_a13b` | `hunyuan_a13b_tool_parser.py` | Regex-only, ONE level of nested JSON (TODO at line ~61). |
+| `hy_v3` | `hy_v3_tool_parser.py` | Hunyuan V3 parser (newer than `hunyuan_a13b`). Read the file — sentinel grammar + state-machine details live there. |
 
 ## Pythonic / XML / custom-grammar family
 
@@ -30,7 +31,7 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 | `pythonic` | `pythonic_tool_parser.py` | AST-based. O(n²) streaming (re-parses on every delta). Apostrophe bug in `compute_tool_delta` `'`→`"` substitution. |
 | `llama4_pythonic` | `llama4_pythonic_tool_parser.py` | Same as pythonic + optional `<\|python_start\|>…<\|python_end\|>` wrapper. |
 | `olmo3` | `olmo3_tool_parser.py` | `<function_calls>\nfn(...)\n</function_calls>` XML-wrapped pythonic. |
-| `qwen3_coder` (`mimo`) | `qwen3coder_tool_parser.py` | `<function=name><parameter=k>` grammar. Hand-rolled state machine. **Historically did not stream args** (issue #30439). |
+| `qwen3_coder` (`mimo`) | `qwen3coder_tool_parser.py` | `<function=name><parameter=k>` grammar. Hand-rolled state machine. Historically did not stream args (issue #30439, closed 2026-04-10 — verify with `git log` whether the fix landed on your version). |
 | `qwen3_xml` (`mimo`) | `qwen3xml_tool_parser.py` | expat-based `StreamingXMLToolCallParser` — cleanest streaming in the tree. |
 | `step3` | `step3_tool_parser.py` | Cursor-based state machine. Full-width `｜` tokens. No object/array coercion. |
 | `step3p5` | `step3p5_tool_parser.py` | Reuses `qwen3_xml` expat engine. |

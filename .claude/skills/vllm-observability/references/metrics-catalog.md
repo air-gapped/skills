@@ -1,5 +1,7 @@
 # vLLM Prometheus metrics — full catalog
 
+Last verified: 2026-04-24 (see `references/sources.md`)
+
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
 Source of truth: `vllm/v1/metrics/loggers.py` (primary), `vllm/v1/metrics/stats.py` (data classes), `vllm/v1/spec_decode/metrics.py` (spec decode), `vllm/v1/metrics/perf.py` (MFU).
@@ -50,7 +52,7 @@ Deprecated on V1: `vllm:num_requests_swapped` (always 0).
 | `vllm:kv_cache_usage_perc` | Gauge | fraction [0,1] | KV cache utilization. **Includes prefix-cached blocks.** Computed by scheduler, updated each iteration |
 | `vllm:cache_config_info` | Gauge (info) | binary | Static cache config; value always 1. Labels expose `num_gpu_blocks`, `num_cpu_blocks`, `block_size`, etc. |
 
-**Rename saga:** PR #24245 renamed `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`; revert #25392 extended the old name's life through transitional tags. **Current main emits only `kv_cache_usage_perc`.** On fleets straddling the cutover, use `or` in PromQL; greenfield deployments can drop the fallback:
+**Rename saga:** The new name `vllm:kv_cache_usage_perc` landed first; PR #24245 (merged 2025-09-16) then hid the deprecated `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. Proposed revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck. **Current main emits only `kv_cache_usage_perc` by default.** On fleets still running pre-#24245 tags, use `or` in PromQL; greenfield deployments can drop the fallback:
 ```promql
 vllm:kv_cache_usage_perc or vllm:gpu_cache_usage_perc
 ```

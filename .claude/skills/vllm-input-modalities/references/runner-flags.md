@@ -36,23 +36,26 @@ Score types (`vllm/tasks.py:18`):
 | `--task encode` | `--runner pooling` (task split into `token_embed` and `token_classify` — pick explicit) | — |
 | `--task transcription` | (default `generate`, the model's `SupportsTranscription` interface handles it) | — |
 
-## 3. Scheduled deprecations (targeting v0.20)
+## 3. Deprecations — landed in v0.20.0 (2026-04-23)
 
-From the pooling-models docs (`docs/models/pooling_models/README.md` and
-related pages):
+From the v0.20.0 release notes and the pooling-models docs
+(`docs/models/pooling_models/README.md`):
 
 1. **`--task` flag** — replaced entirely by `--runner` + `--convert`.
-   Still accepted in current releases with a deprecation warning.
+   Still accepted with a deprecation warning; plan removal path.
 2. **`score` pooling task** — replaced by `classify` + `num_labels==1`.
 3. **Pooling multitask support** — a model that supports multiple pooling
    tasks must now be served with an explicit pick, via
    `PoolerConfig(task=...)` (offline) or `--pooler-config.task <task>`
    (online). Automatic multitasking is gone.
 4. **`encode` task** — split into `token_embed` and `token_classify`.
-5. **`normalize` in `PoolingParams`** — already removed; use
-   `use_activation`.
+5. **`normalize` in `PoolingParams`** — removed; use `use_activation`.
 6. **`logit_bias` / `logit_scale`** in `PoolerConfig` — renamed to
-   `logit_mean` / `logit_sigma`. Old names work with a warning.
+   `logit_mean` / `logit_sigma` in v0.20.0 (PR #39530, explicit breaking
+   change in release notes). Old names work with a warning.
+7. **Async scheduling OFF by default for pooling** (PR #39592, v0.20.0
+   breaking). Stability over throughput; re-enable per-deployment if a
+   previous v0.19 benchmark demonstrated a win.
 
 ## 4. How the runner + convert combination resolves
 
@@ -139,13 +142,20 @@ Symptoms and fixes:
 - `vllm/tasks.py:5-18` — `GenerationTask`, `PoolingTask`, `ScoreType` enums
 - Docs: `docs/models/pooling_models/README.md`
 
-## 10. Recent PRs worth knowing
+## 10. Recent PRs worth knowing (all merged, all shipped in v0.20.0)
 
-- **#39675 (2026-01)** — refactor pooling entrypoints (cleanup).
-- **#39763 (2026-02)** — pre/post-processing offloaded to thread pool
-  (async rendering for pooling).
-- **#39592 (2026-01)** — disable async scheduling by default for pooling.
-- **#39530 (2026-01)** — `logit_bias`/`logit_scale` → `logit_mean`/`logit_sigma`.
-- **#38559 (2025-12)** — mean-pooling optimisation (+5.9%).
-- **#34539 (2025-11)** — Generative Scoring (experimental): scoring via
-  generate path, for models without a classify head.
+- **#34539** (merged 2026-03-31) — Generative Scoring (experimental):
+  scoring via generate path, for models without a classify head.
+- **#38559** — mean-pooling optimisation (+5.9%).
+- **#39113** — redundant-sync removal for pooling (+3.7% throughput, per
+  v0.20.0 release notes).
+- **#39530** (merged 2026-04-13) — `logit_bias`/`logit_scale` →
+  `logit_mean`/`logit_sigma`. **Breaking** (old names accepted with
+  warning).
+- **#39592** (merged 2026-04-12) — disable async scheduling by default
+  for pooling. **Breaking.**
+- **#39675** — refactor pooling entrypoints (cleanup).
+- **#39763** — pre/post-processing offloaded to thread pool (async
+  rendering for pooling).
+
+Last verified: 2026-04-24 against vLLM v0.20.0 release notes.

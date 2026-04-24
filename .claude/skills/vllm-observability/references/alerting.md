@@ -1,5 +1,7 @@
 # Alerting & SLO recipes for vLLM
 
+Last verified: 2026-04-24 (see `references/sources.md`)
+
 Load when building Prometheus alert rules, calibrating SLO thresholds, or triaging from `/metrics` during an incident.
 
 ## Table of contents

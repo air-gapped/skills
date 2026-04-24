@@ -1,8 +1,10 @@
 ---
 name: vllm-configuration
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
-description: How to configure vLLM completely — YAML config file format, CLI arg precedence, the full VLLM_* / HF_* / TRANSFORMERS_* environment-variable catalog, and the end-to-end recipe for running in air-gapped environments that can't reach huggingface.co (internal HF mirrors, hf-mirror.com, ModelScope, HF_HUB_OFFLINE with a pre-seeded cache, gated models offline, trust_remote_code supply-chain implications). Covers the VLLM_HOST_IP vs API-host confusion, the Kubernetes-service-named-`vllm` env-var poisoning, the usage-stats triple opt-out, and the YAML precedence surprises operators hit most often.
-when_to_use: Trigger on "vllm config", "vllm yaml config", "vllm env vars", "VLLM_USE_MODELSCOPE", "VLLM_HOST_IP", "HF_HUB_OFFLINE", "HF_ENDPOINT", "TRANSFORMERS_OFFLINE", "vllm air-gapped", "vllm offline", "hf-mirror", "ModelScope", "pre-seed HF cache", "vllm trust remote code", "stats.vllm.ai", "--config yaml", "gated model offline", "HF_TOKEN offline". Also trigger on operator questions about where settings live (CLI flag vs YAML vs env var), precedence order, pinning model revisions, or running vLLM behind an internal Hugging Face reverse proxy / Artifactory-style mirror. Trigger even when "air-gapped" isn't in the prompt — if the operator is debugging first-boot network errors, setting up a mirror, or asking "why does vLLM still talk to huggingface.co when I gave it a local path," this is the right skill.
+description: |-
+  Configure vLLM completely — YAML config file format, CLI arg precedence, full VLLM_*/HF_*/TRANSFORMERS_* env-var catalog, end-to-end recipe for air-gapped environments (internal HF mirrors, hf-mirror.com, ModelScope, HF_HUB_OFFLINE with pre-seeded cache, gated models offline, trust_remote_code supply-chain implications). VLLM_HOST_IP vs API-host confusion, Kubernetes-service-named-`vllm` env-var poisoning, usage-stats triple opt-out, YAML precedence surprises.
+when_to_use: |-
+  Trigger on "vllm config", "vllm yaml config", "vllm env vars", "env vars for vllm", "env catalog", "VLLM_USE_MODELSCOPE", "VLLM_HOST_IP", "HF_HUB_OFFLINE", "HF_ENDPOINT", "TRANSFORMERS_OFFLINE", "vllm air-gapped", "vllm offline", "hf-mirror", "ModelScope", "pre-seed HF cache", "vllm trust remote code", "stats.vllm.ai", "--config yaml", "gated model offline", "HF_TOKEN offline". Where settings live (CLI flag vs YAML vs env var), precedence, pinning model revisions, internal HF reverse proxy / Artifactory mirror. Also first-boot network errors, mirror setup, "why does vLLM hit huggingface.co when I gave it a local path". Also implicit-vllm contexts — "audit model X", "audit open-weight", "deploy-memo", "serve args", "serve_args", "`vllm serve` args", "required_deploy", "check prior configs", "cross-check flags", "flag drift", "env config for {model}", "spec-study vllm" — authoring/reviewing per-model deploy recipes whose fields map to vLLM flags/env vars.
 ---
 
 # vLLM configuration
@@ -72,10 +74,10 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `HF_HUB_CACHE` — subdir under `HF_HOME`, rarely set directly.
 
 **Air-gap control:**
-- `HF_HUB_OFFLINE=1` — **required** in air-gapped mode. Without it, vLLM hits HF on every startup to check for newer revisions, even with a warm cache (issue #23451).
+- `HF_HUB_OFFLINE=1` — **required** in air-gapped mode. Without it, vLLM hits HF on every startup to check for newer revisions, even with a warm cache. (vLLM CI itself adopted `HF_HUB_OFFLINE=1` to avoid this — issue #23451, closed 2025-11-26.)
 - `TRANSFORMERS_OFFLINE=1` — set both; some transformers-layer code paths honour only this one.
 - `HF_ENDPOINT=https://hf-mirror.com` — redirect all HF traffic to a mirror. **No trailing slash** or it breaks.
-- `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace (PR #13220 was the fix; verify against the installed version).
+- `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace. PR #13220 attempted the fix but was closed unmerged (2025-06-20); no upstream fix has landed. Workaround: download LoRA adapters manually, pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
 **Telemetry (disable in air-gap):**
@@ -155,7 +157,7 @@ Full recipe in `references/air-gapped.md`. The essentials:
 
 8. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
 
-9. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this.
+9. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.2.2` + `libnuma-dev`; no env-var toggle exists in vLLM source).
 
 10. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
 

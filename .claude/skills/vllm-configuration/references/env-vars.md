@@ -113,7 +113,7 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 | `VLLM_USE_AOT_COMPILE` | dynamic | Ahead-of-time compile path (Torch 2.10+) |
 | `VLLM_USE_MEGA_AOT_ARTIFACT` | dynamic | Single-file precompiled bundle (Torch 2.12+) |
 | `VLLM_TARGET_DEVICE` | `cuda` | `cuda` / `cpu` / `tpu` / `xpu` / `rocm` |
-| `VLLM_MAIN_CUDA_VERSION` | `12.9` | CUDA version of precompiled wheels |
+| `VLLM_MAIN_CUDA_VERSION` | `13.0` | CUDA version of precompiled wheels (bumped from 12.9 to 13.0 in 2026 wheels; follows PyTorch, overridable) |
 | `VLLM_USE_DEEP_GEMM` | `1` on Hopper+ | Enable DeepGEMM FP8 kernel path. See `vllm-nvidia-hardware` → `gemm-backends.md` |
 | `VLLM_USE_DEEP_GEMM_E8M0` | `0` | Pack FP8 scales as E8M0 (Hopper FP8 E4M3 only — faster, tiny accuracy cost) |
 | `DG_JIT_CACHE_DIR` | `~/.cache/deep_gemm` | DeepGEMM JIT kernel cache. **Mount as PVC** — avoids per-pod warm-up tax (200-800 ms/shape) |

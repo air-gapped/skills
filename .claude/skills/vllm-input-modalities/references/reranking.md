@@ -192,12 +192,17 @@ token) but scoring is cheap once indexed.
 - `vllm/model_executor/models/jina.py:33-83` — `JinaForRanking`
 - Docs: `docs/models/pooling_models/scoring.md`
 
-## 8. Recent PRs worth knowing
+## 8. Recent PRs worth knowing (all merged; all shipped in v0.20.0, 2026-04-23)
 
-- **#38800 (2025-12)** — jina-reranker-v3 (listwise).
-- **#38827 (2025-12)** — `max_tokens_per_doc` in `/rerank` body.
-- **#34539 (2025-11)** — **Generative Scoring** (experimental) — scoring
-  via generate path for models without a classify head. Early days; keep
-  an eye on release notes if a deployment needs it.
+- **#38800** (merged 2026-04-10) — jina-reranker-v3 (listwise).
+- **#38827** (merged 2026-04-13) — `max_tokens_per_doc` in `/rerank` body.
+- **#34539** (merged 2026-03-31) — **Generative Scoring** (experimental) —
+  scoring via generate path for models without a classify head.
+- **#39530** (merged 2026-04-13, **breaking**) — `logit_bias`/`logit_scale`
+  renamed to `logit_mean`/`logit_sigma` in `PoolerConfig`. Old names still
+  accepted with a deprecation warning. Update any calibration YAML using
+  the old keys.
 - **#36818** — ColPali.
 - **#33686** — ColBERT.
+
+Last verified: 2026-04-24 against vLLM v0.20.0 release notes.

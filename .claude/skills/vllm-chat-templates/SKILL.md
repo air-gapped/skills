@@ -1,9 +1,9 @@
 ---
 name: vllm-chat-templates
-description: |
-  vLLM chat-template (prompt-side Jinja) operator reference. Covers template resolution precedence (`--chat-template` flag → AutoProcessor → tokenizer default → bundled fallback in `vllm/transformers_utils/chat_templates/`), the `chat_template_kwargs` allowlist that silently drops `add_generation_prompt` / `enable_thinking` / custom kwargs (fixed by vLLM PR 27622), the 27 shipped `examples/tool_chat_template_*.jinja` files, and known template-layer bugs for Qwen3, Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral tokenizer-mode), Gemma-3/4, Phi-4, GLM. Scope is prompt side only — output-side parsing is owned by sibling skills `vllm-reasoning-parsers` and `vllm-tool-parsers`.
-when_to_use: |
-  Trigger on "chat template broken", "chat template has no effect", "--chat-template flag ignored", "jinja template error vllm", "apply_chat_template error", "ChatTemplateResolutionError", "tool_chat_template", "which tool_chat_template should I use", "chat_template_kwargs not respected", "add_generation_prompt dropped", "enable_thinking ignored", "continue_final_message", "--chat-template-content-format auto", "tokenizer-mode mistral --chat-template silent", "harmony format gpt-oss template", "template resolution order", "AutoProcessor chat template skipped when tools", "prompt doesn't match model card", "/v1/chat/completions vs /v1/responses template", or any TGI/SGLang/TensorRT-LLM-to-vLLM migration where Jinja behavior differs. Apply even when phrasing omits "template" — prompts that don't match the model card are prompt-side. NOT for output parsing (route to `vllm-reasoning-parsers` / `vllm-tool-parsers`), NOT for KV caching (see `vllm-caching`).
+description: |-
+  vLLM chat-template (prompt-side Jinja) operator reference. Template resolution precedence (`--chat-template` → AutoProcessor → tokenizer default → bundled fallback), `chat_template_kwargs` allowlist silently dropping `add_generation_prompt`/`enable_thinking`/custom kwargs (PR 27622 fix), 27 shipped `tool_chat_template_*.jinja` files, known template-layer bugs for Qwen3/Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral mode), Gemma-3/4, Phi-4, GLM. Prompt side only — output parsing lives in sibling skills.
+when_to_use: |-
+  Trigger on "chat template broken", "chat template no effect", "--chat-template ignored", "jinja template error vllm", "apply_chat_template error", "ChatTemplateResolutionError", "tool_chat_template", "which tool_chat_template", "chat_template_kwargs not respected", "add_generation_prompt dropped", "enable_thinking ignored", "continue_final_message", "--chat-template-content-format auto", "tokenizer-mode mistral silent", "harmony format gpt-oss template", "template resolution order", "AutoProcessor chat template skipped when tools", "prompt doesn't match model card", "/v1/chat/completions vs /v1/responses template". TGI/SGLang/TensorRT-LLM-to-vLLM migration where Jinja differs. Also implicit — "audit chat template for {model}", "deploy-memo prompt format", "why does model emit wrong prompt", "jinja check". NOT for output parsing (→ `vllm-reasoning-parsers` / `vllm-tool-parsers`), NOT for KV caching (→ `vllm-caching`).
 ---
 
 # vLLM chat templates — operator triage
@@ -45,8 +45,8 @@ If none resolves, **`ChatTemplateResolutionError`** raised at `hf.py:477` with: 
 
 - **Passing `--chat-template` does NOT override the tokenizer's template if the path is invalid** — vLLM raises *"The supplied chat template ... appears path-like, but doesn't exist!"* (`chat_utils.py:1105-1109`). Check `ls` first.
 - **Tool-calling disables the AutoProcessor step.** If a multimodal model has a processor template but the request has `tools`, vLLM skips it and falls through to tokenizer. This is *intentional* — tool templates must be explicit.
-- **`--tokenizer-mode mistral` silently ignores `--chat-template`.** Warning only; see Mistral section in `references/model-families.md`. Issue vllm-project/vllm#25401.
-- **Some templates (e.g. gpt-oss) appear hard-coded** — operator-supplied `--chat-template` has no effect (vllm-project/vllm#23015). Reported but not fully fixed as of early 2026.
+- **`--tokenizer-mode mistral` silently ignores `--chat-template`.** Warning only; see Mistral section in `references/model-families.md`. Issue vllm-project/vllm#25401 — closed as COMPLETED 2025-10-09. Behavior is at least louder in current vLLM; verify on your version before assuming silent-drop. Verified 2026-04-24.
+- **Some templates (e.g. gpt-oss) appear hard-coded** — operator-supplied `--chat-template` has no effect (vllm-project/vllm#23015, closed NOT_PLANNED 2026-04-20). Intentional: gpt-oss goes through the Harmony path via `/v1/responses`; `--chat-template` is not the intended escape hatch. Verified 2026-04-24.
 
 ## Triage: symptom → suspect
 
@@ -120,7 +120,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 9. **`tool_choice="auto"` vs `"required"` divergence.** `auto` = free-form generation + regex parse (schema-free, brittle). `required`/named = structured-outputs FSM (schema-valid). Many "tool calling is broken" reports vanish when switching to `required`.
 
-10. **Multi-turn whitespace accumulation.** DeepSeek V3.1 (#28804) — leading whitespace grows each turn. Look for this when assistant replies get progressively indented. Fix: newer vLLM version with fixed parser.
+10. **Multi-turn whitespace accumulation.** DeepSeek V3.1 (#28804, closed NOT_PLANNED 2026-03-23) — leading whitespace grows each turn. Look for this when assistant replies get progressively indented. Upstream not planning a fix; apply client-side mitigation (strip leading whitespace on each turn) or use `deepseek_v31` parser commits post-issue report. Verified 2026-04-24.
 
 11. **`reasoning_effort="none"` silently breaks output.** gpt-oss #37909. Fix: omit or use `"low"`.
 
@@ -195,3 +195,6 @@ When the operator names a model family, load `references/model-families.md` — 
 - `references/model-families.md` — Qwen3, DeepSeek, GPT-OSS, Kimi-K2, Llama-4, Mistral, Gemma, Phi-4, GLM, Hermes/Granite/Hunyuan — with inline issue URLs.
 - `references/debugging.md` — stepwise debugging workflow + full error-message catalog.
 - `references/flags-matrix.md` — quick CLI-flag lookup per model.
+- `references/sources.md` — verification log for external URLs/issues/PRs cited in this skill, with `Last verified` dates.
+
+Last verified: 2026-04-24 (see `references/sources.md` for per-ref status).

@@ -33,6 +33,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### vllm-production-stack (UC Berkeley + UChicago)
 
 - **Repo**: https://github.com/vllm-project/production-stack · docs: https://docs.vllm.ai/projects/production-stack/
+- **Helm chart version (Apr 2026)**: vllm-stack-0.1.10 (Feb 27 2026) — verified via GitHub releases
 - **Helm chart**: https://github.com/vllm-project/production-stack/tree/main/helm · values: https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml
 - **Maintainer / license**: UC Berkeley Sky Lab + UChicago LMCache + vLLM · Apache-2.0
 - **Role**: Reference "stack" — router + N vLLM engines + LMCache tiered KV + observability, packaged as one Helm release.
@@ -48,7 +49,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### llm-d
 
 - **Repo / site**: https://github.com/llm-d/llm-d · https://llm-d.ai/
-- **Version (Apr 2026)**: v0.5.1 (Mar 2026)
+- **Version (Apr 2026)**: v0.6.0 (Apr 3 2026) — verified via GitHub releases
 - **Maintainer / license**: Red Hat + Google Cloud + IBM + NVIDIA + CoreWeave · Apache-2.0
 - **CNCF status**: Sandbox as of Mar 2026 (https://www.cncf.io/blog/2026/03/24/welcome-llm-d-to-the-cncf-evolving-kubernetes-into-sota-ai-infrastructure/)
 - **Role**: K8s-native distributed vLLM orchestrator. Inference scheduler (P/D-aware, KV-aware, SLA-aware, load-aware). "The orchestrator to vLLM's engine."
@@ -68,7 +69,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### AIBrix
 
 - **Repo**: https://github.com/vllm-project/aibrix
-- **Version (Apr 2026)**: v0.4.x (Aug 2025 base)
+- **Version (Apr 2026)**: v0.6.0 (Mar 3 2026) — verified via GitHub releases
 - **Paper**: https://arxiv.org/abs/2504.03648
 - **Maintainer / license**: ByteDance-originated, now under vLLM org · Apache-2.0
 - **Role**: Full cloud-native control plane. High-density LoRA, StormService CRD, distributed KV cache, P/D disagg (v0.4), heterogeneous-GPU scheduling.
@@ -80,7 +81,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### NVIDIA Dynamo
 
 - **Repo**: https://github.com/ai-dynamo/dynamo · NIXL: https://github.com/ai-dynamo/nixl
-- **Version (Apr 2026)**: v1.x (2025–2026)
+- **Version (Apr 2026)**: v1.0.2 (Apr 23 2026) — verified via GitHub releases
 - **Maintainer / license**: NVIDIA · Apache-2.0
 - **Role**: Disagg-native serving framework; backend-agnostic (vLLM, SGLang, TRT-LLM). Dynamo = orchestrator + NIXL data plane; vLLM consumes NIXL via its own `NixlConnector`.
 - **Relation to vLLM's native Nixl/Mooncake**: Dynamo drives Nixl; vLLM exposes the connector. They're complementary layers, not competitors. Mooncake is a parallel alternative (KV-store-first).
@@ -108,7 +109,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://gateway-api-inference-extension.sigs.k8s.io/
 - **Repo**: https://github.com/kubernetes-sigs/gateway-api-inference-extension
-- **Status (Apr 2026)**: v1 CRDs **GA** (Sept 2025); Gateway API 1.4 (Nov 2025) includes IGW integration
+- **Status (Apr 2026)**: v1 CRDs **GA** (Sept 2025); latest release v1.5.0 (Apr 19 2026) — verified via GitHub releases. Gateway API 1.4 (Nov 2025) includes IGW integration
 - **Maintainer / license**: K8s SIG-Network · Apache-2.0
 - **CRDs**: `InferencePool` (platform — pods on shared GPU nodes) + `InferenceModel` (ML owner — public model name → pool). Endpoint Picker (EPP) is the ext_proc gRPC server that picks the endpoint.
 - **Implementers**: llm-d, Envoy AI Gateway, kgateway, Istio 1.28+, NGINX Gateway Fabric
@@ -122,7 +123,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://aigateway.envoyproxy.io/
 - **Repo**: https://github.com/envoyproxy/ai-gateway
-- **Version**: v0.3.x (from 2025)
+- **Version (Apr 2026)**: v0.5.0 (Jan 23 2026) — verified via GitHub releases
 - **Maintainer / license**: Envoy Foundation · Apache-2.0
 - **Role**: GAIE implementation built on Envoy Gateway. Adds provider-abstraction (Bedrock, Vertex, Anthropic) and token-based cost metering on top of `InferencePool`.
 - **Pick when**: Multi-provider BYOK gateway + GAIE in one. Alternative to kgateway/Istio for the GAIE layer.
@@ -131,7 +132,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://vllm-semantic-router.com/
 - **Repo**: https://github.com/vllm-project/semantic-router
-- **Version**: v0.1 "Iris" (Jan 2026)
+- **Version (Apr 2026)**: v0.2.0 "Athena" (Mar 10 2026) — verified via GitHub releases; v0.1 "Iris" (Jan 2026) was launch
 - **Launch**: https://blog.vllm.ai/2026/01/05/vllm-sr-iris.html
 - **Role**: Envoy `ext_proc` that does **semantic** routing (mixture-of-models across different models by query domain/intent). Ships with Milvus integration.
 - **Pick when**: Multi-model fleet routing `general` → small model, `code`/`math` → large model.

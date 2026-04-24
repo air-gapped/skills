@@ -1,6 +1,8 @@
 # `--output-json` schema
 
-Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs. Field names confirmed against `vllm/benchmarks/serve.py` in v0.19.x.
+Last verified: 2026-04-24 (against `vllm/benchmarks/serve.py` on vllm-project/vllm main, post-v0.19.1).
+
+Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs.
 
 ## Top-level fields (always present in `bench serve`)
 
@@ -8,7 +10,6 @@ Load when parsing benchmark output JSON, building dashboards, or diffing A/B run
 |---|---|---|
 | `date` | string | Run timestamp (ISO) |
 | `backend` | string | Value of `--backend` |
-| `endpoint_type` | string | Mirror of `backend` — kept for backward compat (reader code may still look for this) |
 | `label` | string | Value of `--label` if set, else model short name |
 | `model_id` | string | `--model` value |
 | `tokenizer_id` | string | `--tokenizer` value, defaults to `model_id` |
@@ -30,6 +31,13 @@ Custom KV pairs from `--metadata KEY=VALUE` are inlined at the top level.
 | `total_token_throughput` | tok/s | Input tokens + output tokens over wall time |
 
 Pooling/embedding runs (`EmbedBenchmarkMetrics`) emit only `request_throughput` and `total_token_throughput`.
+
+Also present in `bench serve` output (added since v0.19):
+- `request_goodput` — only when `--goodput` is set; otherwise `null`.
+- `max_output_tokens_per_s` — peak instantaneous output-token rate observed.
+- `max_concurrent_requests` — observed concurrency peak across the run.
+- `rtfx` — real-time factor for audio/streaming workloads.
+- `start_times` — per-request start timestamps (appears alongside `ttfts`/`itls`).
 
 ## Percentile fields
 
@@ -92,7 +100,8 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 - `num_prompts`, `request_rate`, `max_concurrency`
 
 **Added or renamed in recent versions:**
-- `endpoint_type` kept as alias after `--endpoint-type` flag removal (v0.11)
+- `endpoint_type` top-level field **removed** in current `serve.py` JSON assembly — the internal variable survives but is no longer emitted as a JSON key. Reader code that looks for `endpoint_type` as an alias will not find it on post-v0.19.1 runs; use `backend` instead.
+- `request_goodput`, `max_output_tokens_per_s`, `max_concurrent_requests`, `rtfx`, `start_times` — present in current assembly (verified 2026-04-24).
 - `rps_change_events` — emitted when ramp-up is used (v0.17+)
 - `spec_decode_*` suite — depends on engine spec-decode config
 
@@ -102,4 +111,4 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 rps = d.get("request_throughput", d.get("requests_per_second", 0))  # old name was requests_per_second pre-v0.10
 ```
 
-Source of truth: `vllm/benchmarks/serve.py:171-215` (dataclass) and `vllm/benchmarks/serve.py:982-1067` (JSON assembly).
+Source of truth: `vllm/benchmarks/serve.py` — `BenchmarkMetrics` dataclass ~L176-215, JSON assembly ~L989-1020 (verified 2026-04-24 against main post-v0.19.1).

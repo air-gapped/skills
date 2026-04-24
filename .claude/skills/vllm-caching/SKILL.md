@@ -1,7 +1,9 @@
 ---
 name: vllm-caching
-description: vLLM tiered KV cache configuration for production H100/H200 clusters. Covers native CPU offload, LMCache (CPU+NVMe+GDS), NixlConnector (disaggregated prefill), MooncakeConnector (RDMA), and MultiConnector composition — with the version gates, sizing math (flag is total across TP, not per-GPU — opposite of SGLang), and KV-vs-weights offload distinction that operators most often get wrong.
-when_to_use: Trigger on "vllm kv cache", "kv offload", "prefix caching", "LMCache", "NixlConnector", "MooncakeConnector", "kv_offloading_size", "kv-offloading-backend", "disaggregated prefill", "tiered kv", "CPU offload kv", "long context concurrency", "TTFT too slow", "prefill bottleneck", "GDS cuFile", "gpu_memory_utilization full", "how many concurrent requests", or any question about extending vLLM KV capacity beyond HBM. Applies even when the phrasing doesn't include "offload" — if the operator is hitting KV limits on long-context workloads, this is the right skill. Also triggers on SGLang-to-vLLM migration questions about CPU KV cache sizing, and on questions about whether to add LMCache to an existing deployment.
+description: |-
+  vLLM tiered KV cache configuration for production H100/H200 clusters. Native CPU offload, LMCache (CPU+NVMe+GDS), NixlConnector (disaggregated prefill), MooncakeConnector (RDMA), MultiConnector composition. Version gates, sizing math (flag total across TP, not per-GPU — opposite of SGLang), KV-vs-weights offload distinction operators most often get wrong.
+when_to_use: |-
+  Trigger on "vllm kv cache", "kv offload", "prefix caching", "LMCache", "NixlConnector", "MooncakeConnector", "kv_offloading_size", "kv-offloading-backend", "disaggregated prefill", "tiered kv", "CPU offload kv", "long context concurrency", "TTFT too slow", "prefill bottleneck", "GDS cuFile", "gpu_memory_utilization full", "how many concurrent requests", "KV won't fit", "long prompts too slow", "extending vLLM KV beyond HBM". SGLang-to-vLLM migration on CPU KV sizing, whether to add LMCache to existing deploy. Also implicit contexts — "audit KV config", "deploy-memo cache", "serve_args kv", "cache strategy for {model}", "long-context serve recipe" — any time authoring/reviewing a KV-cache deploy recipe.
 ---
 
 # vLLM tiered KV caching
@@ -23,7 +25,7 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 | Native CPU KV offload (`vllm/v1/kv_offload/`) | **v0.11.0** (2025-10-02) | Infrastructure + scheduler integration |
 | CLI flags `--kv-offloading-size` / `--kv-offloading-backend` | **v0.11.1** (2025-11-18) | Before this, required editing config objects |
 | LMCache bundled in official x86 `vllm/vllm-openai` image | **v0.14.0** (2026-01-20) | arm64 had it from v0.10.2; x86 was intentionally stripped July 2025–Jan 2026 due to torch version conflict — many ops teams had to pip install LMCache at container start during that window, which is now unnecessary |
-| `--calculate-kv-scales` removed | v0.19 | FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls) |
+| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.19.1) | Flag emits a deprecation warning but still accepted as of v0.19.1. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-04-24 against `vllm/config/cache.py` on main. |
 
 Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed.
 
@@ -72,7 +74,7 @@ Recommending `--cpu-offload-gb` when the user asked about KV tiering is a seriou
 
 ### FP8 KV cache without shipped scales
 
-`--calculate-kv-scales` was deprecated and removed in v0.19. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
+`--calculate-kv-scales` is deprecated (still accepted as of v0.19.1, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
 
 Symptoms: subtle quality degradation, often only past 128k context. "Usually works fine" is the common operator experience because most activations fit, but the risk is real.
 
@@ -123,3 +125,7 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 - `docs/features/disagg_prefill.md` — overview of all 7 connector types in the vLLM repo
 - LMCache config reference: https://docs.lmcache.ai/api_reference/configurations.html
 - NVIDIA GPU Operator GDS: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-rdma.html
+
+See `references/sources.md` for verification dates and probe notes.
+
+Last verified: 2026-04-24

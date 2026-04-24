@@ -88,7 +88,7 @@ Qwen3 template checks `tool_call.arguments is string` before `| tojson` — avoi
 | [HF DeepSeek-R1 #144](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144) | Template hard-prepends `<think>\n` into prefill → opening `<think>` never appears in output → `reasoning_content` returns `null`. | Post-process prepend; or use updated template where parser sees only `</think>`. |
 | [vLLM #12999](https://github.com/vllm-project/vllm/issues/12999) | Same root cause — `reasoning_content` always None. | Same — fixed parser handles this now. |
 | [vLLM discussion #12708](https://github.com/vllm-project/vllm/discussions/12708) | Nested `<think>` / `</think>` confuses parser. | Switch to vLLM ≥0.11. |
-| [vLLM #28804](https://github.com/vllm-project/vllm/issues/28804) | V3.1 tool parser: leading whitespace progressively accumulates across multi-turn tool calls. | Upgrade. |
+| [vLLM #28804](https://github.com/vllm-project/vllm/issues/28804) | V3.1 tool parser: leading whitespace progressively accumulates across multi-turn tool calls. | Closed NOT_PLANNED 2026-03-23 (verified 2026-04-24). Apply client-side mitigation (strip leading whitespace between turns); no upstream fix planned. |
 | [vLLM forum](https://discuss.vllm.ai/t/deepseek-v3-tool-choice-auto-not-working-but-tool-choice-required-is-working/1006/) | `tool_choice="auto"` fails, `"required"` works. | Use `required` or named tool. |
 
 ### API contract gotchas (vLLM vs official DeepSeek API)
@@ -120,8 +120,8 @@ Clients that hard-code one fail on the other.
 
 | Issue | Summary | Workaround |
 |---|---|---|
-| [vLLM #22578](https://github.com/vllm-project/vllm/issues/22578) | `/v1/chat/completions` tool calling broken. `hermes` parser crashes at startup; `mistral`/`llama3_json` start but emit "incorrect number of parameters" or empty `arguments`. | Use `/v1/responses`. |
-| [vLLM #23015](https://github.com/vllm-project/vllm/issues/23015) | User-supplied `--chat-template` appears hard-coded / ignored for gpt-oss. | Use Harmony endpoint instead. |
+| [vLLM #22578](https://github.com/vllm-project/vllm/issues/22578) | `/v1/chat/completions` tool calling broken. `hermes` parser crashes at startup; `mistral`/`llama3_json` start but emit "incorrect number of parameters" or empty `arguments`. | Closed NOT_PLANNED 2026-01-23 (verified 2026-04-24) — **permanent guidance**: use `/v1/responses` for gpt-oss tool calling. |
+| [vLLM #23015](https://github.com/vllm-project/vllm/issues/23015) | User-supplied `--chat-template` appears hard-coded / ignored for gpt-oss. | Closed NOT_PLANNED 2026-04-20 (verified 2026-04-24) — intentional; use the Harmony endpoint. |
 | [HF gpt-oss-20b #218](https://huggingface.co/openai/gpt-oss-20b/discussions/218) | Function-call token ordering mismatch vs Harmony spec. | Pending upstream fix. |
 | [HF gpt-oss-20b #160](https://huggingface.co/openai/gpt-oss-20b/discussions/160) | Chat template doesn't match Harmony spec. | Same. |
 | [HF gpt-oss-120b #69](https://huggingface.co/openai/gpt-oss-120b/discussions/69) | Errors in 120b chat template vs spec. | Same. |
@@ -233,7 +233,7 @@ JSON variant (`llama4_json.jinja`) exists; pythonic is generally better.
 
 | Issue | Summary |
 |---|---|
-| [vLLM #25401](https://github.com/vllm-project/vllm/issues/25401) | **`--chat-template` silently dropped when `--tokenizer-mode mistral`**; warning only. Operators edit template, nothing changes. |
+| [vLLM #25401](https://github.com/vllm-project/vllm/issues/25401) | **`--chat-template` silently dropped when `--tokenizer-mode mistral`**; warning only. Operators edit template, nothing changes. Closed COMPLETED 2025-10-09 (verified 2026-04-24) — behavior at least louder in current vLLM; test on your version before assuming silent drop. |
 | [vLLM #16292](https://github.com/vllm-project/vllm/issues/16292) | `MistralTokenizer` not working with Mistral-Small-3.1 in HF format; missing `pad_token`/`sep_token`. |
 | [vLLM #18090](https://github.com/vllm-project/vllm/issues/18090) | Auto tokenizer mode doesn't detect mistral — operators must set explicitly. |
 | [vLLM #9059](https://github.com/vllm-project/vllm/issues/9059) | `--tokenizer-mode mistral` not compatible with OpenAI-API tool-use tests. |

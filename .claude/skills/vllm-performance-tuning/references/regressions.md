@@ -21,12 +21,13 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 
 Fixed by enabling `--async-scheduling` in newer versions. If on v0.10+ and seeing throughput drop vs v0.9.0.1, verify async scheduling is actually enabled.
 
-### DeepGEMM M<128 removal → H200 TTFT regression ([#28882](https://github.com/vllm-project/vllm/issues/28882))
+### DeepGEMM M<128 removal → H200 TTFT regression ([#28882](https://github.com/vllm-project/vllm/issues/28882)) — **FIXED 2026-04-21**
 
 Between commits `d83f3f7` and `5a84b76`, the DeepGEMM MoE M<128 restriction was removed. Forces Triton fallback in low-concurrency cases:
 
 - **H200 DeepSeek-R1 EP at concurrency ≤8: 1.5× worse TTFT**
-- Workaround: `VLLM_MOE_USE_DEEP_GEMM=0` + FlashInfer FP8
+- **Issue closed 2026-04-21** — upgrade to v0.19.1+ or current main; verify the regression is gone for your workload before removing the workaround.
+- Legacy workaround (pre-v0.19.1): `VLLM_MOE_USE_DEEP_GEMM=0` + FlashInfer FP8
 
 ### v0.19.0rc1 FLUX.1-dev regression ([vllm-omni #2730](https://github.com/vllm-project/vllm-omni/issues/2730))
 
@@ -92,7 +93,8 @@ Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWIS
 PRs to know:
 - [#27614](https://github.com/vllm-project/vllm/issues/27614) — default-on landing
 - [#28250](https://github.com/vllm-project/vllm/issues/28250) — follow-up fixes
-- [#27679](https://github.com/vllm-project/vllm/issues/27679) — PP compatibility tracker (still open)
+- [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling umbrella tracker (PP, struct-out, spec-dec, MM) — **CLOSED 2025-12-29**, all sub-PRs merged. Verified 2026-04-24.
+- [#31679](https://github.com/vllm-project/vllm/issues/31679) — Qwen3-VL + async-sched — **CLOSED 2026-01-07**.
 
 For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/issues/24799) and [#29821](https://github.com/vllm-project/vllm/issues/29821) fixes landed in the running version.
 

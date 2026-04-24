@@ -1,8 +1,10 @@
 ---
 name: vllm-observability
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
-description: How to observe production vLLM deployments — the `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, the shipping Grafana dashboards in `examples/observability/`, OTLP tracing with `--otlp-traces-endpoint` and `--collect-detailed-traces={model,worker,all}`, and the diagnostic rules that let an on-call engineer triage from /metrics alone — queue-grows + TPOT-stable means capacity, queue-stable + TPOT-grows means context/model, DCGM `SM_OCCUPANCY` is the real GPU-saturation signal not `GPU_UTIL`. Covers V1 metric names (kv_cache_usage_perc), the gpu_→kv_ rename saga (PR #24245 / revert #25392), DCGM-exporter pairing for hardware-side metrics, and the pitfalls that make dashboards silently lie.
-when_to_use: Trigger on "vllm metrics", "vllm observability", "vllm prometheus", "vllm grafana", "/metrics vllm", "vllm SLO", "TTFT alert", "ITL alert", "kv_cache_usage_perc", "num_requests_waiting", "request_queue_time_seconds", "prefix_cache_hits", "num_preemptions", "spec_decode metrics", "--otlp-traces-endpoint", "--collect-detailed-traces", "vllm tracing", "DCGM vllm", "SM_OCCUPANCY", "vllm KEDA", "vllm incident triage", "vllm goodput", "PromQL vllm". Also trigger on operator questions about what a specific metric means, building a dashboard, setting SLO burn-rate alerts, pairing vLLM with DCGM, or diagnosing a slow-TTFT / preemption-storm incident from /metrics alone. Trigger even when "observability" isn't explicit — if the question is "why is TTFT high" or "what should I alert on" from data already emitted, this is the skill.
+description: |-
+  Observe production vLLM — `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, shipping Grafana dashboards in `examples/observability/`, OTLP tracing with `--otlp-traces-endpoint` and `--collect-detailed-traces={model,worker,all}`, diagnostic rules to triage from /metrics alone — queue-grows + TPOT-stable means capacity, queue-stable + TPOT-grows means context/model, DCGM `SM_OCCUPANCY` is the real GPU-saturation signal not `GPU_UTIL`. V1 metric names (kv_cache_usage_perc), gpu_→kv_ rename saga (PR #24245 / revert #25392), DCGM-exporter pairing, dashboard-lying pitfalls.
+when_to_use: |-
+  Trigger on "vllm metrics", "vllm observability", "vllm prometheus", "vllm grafana", "/metrics vllm", "vllm SLO", "TTFT alert", "ITL alert", "kv_cache_usage_perc", "num_requests_waiting", "request_queue_time_seconds", "prefix_cache_hits", "num_preemptions", "spec_decode metrics", "--otlp-traces-endpoint", "--collect-detailed-traces", "vllm tracing", "DCGM vllm", "SM_OCCUPANCY", "vllm KEDA", "vllm incident triage", "vllm goodput", "PromQL vllm". Building a dashboard, SLO burn-rate alerts, pairing vLLM with DCGM, diagnosing slow-TTFT / preemption-storm from /metrics alone. Also implicit — "why is TTFT high", "what should I alert on", "why are preemptions", "vllm is slow", "deploy-memo SLO", "audit observability" — question is from data vLLM already emits.
 ---
 
 # vLLM observability
@@ -84,7 +86,7 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 
 2. **Forgetting `sum by (le)` before `histogram_quantile`.** Without it, per-instance quantiles mix with fleet quantiles — the most common Grafana mistake in the Prometheus world.
 
-3. **`gpu_cache_usage_perc` vs `kv_cache_usage_perc`.** PR #24245 renamed it; revert #25392 extended the old name's life through transitional releases. Current main emits only `kv_cache_usage_perc`. Dashboards that still straddle older tags need `or` or version gating; greenfield dashboards should use the new name only.
+3. **`gpu_cache_usage_perc` vs `kv_cache_usage_perc`.** The new name shipped first; PR #24245 (merged 2025-09-16) then hid the old `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. The attempted revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck — current main emits only `kv_cache_usage_perc` by default. Dashboards scraping pre-#24245 tags still see both; greenfield dashboards should use the new name only.
 
 4. **`num_requests_swapped` is deprecated on V1** and always zero. Use `num_preemptions_total` instead. Many copy-pasted dashboards still reference swap.
 
@@ -117,7 +119,7 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 ## Version notes
 
 - V1 engine is default as of late 2025. V0 metrics hidden unless `--show-hidden-metrics-for-version=X.Y`.
-- Metric rename saga: `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc` (PR #24245), partial revert (#25392). Current main: only `kv_cache_usage_perc` ships; the old name was alive through transitional tags only.
+- Metric rename saga: `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`. PR #24245 (merged 2025-09-16) hid the deprecated `gpu_*` names behind `--show-hidden-metrics-for-version`; the proposed revert PR #25392 was **closed without merging** (2025-09-23), so the hiding stuck. Current main emits only `kv_cache_usage_perc` by default.
 - Deprecated on V1: `num_requests_swapped`, `cpu_cache_usage_perc`, `cpu_prefix_cache_hit_rate`, `time_per_output_token_seconds` (replaced by `inter_token_latency_seconds`), the `model_forward_time_milliseconds` / `model_execute_time_milliseconds` pair (now behind `--collect-detailed-traces`).
 - New in V1: `num_requests_waiting_by_reason{reason=capacity|deferred}`, `engine_sleep_state`, `prompt_tokens_by_source{source=local_compute|local_cache_hit|external_kv_transfer}`, per-position spec-decode acceptance counters.
 

@@ -1,7 +1,9 @@
 ---
 name: vllm-omni
-description: vLLM-Omni operator reference for output-side multimodal generation — image (FLUX.1/2, Qwen-Image, GLM-Image, BAGEL, SD3.5, Z-Image, HunyuanImage-3.0), video (Wan2.1/2.2 T2V/I2V, LTX-2, HunyuanVideo-1.5, Helios), TTS (Qwen3-TTS, Fun-CosyVoice3, Voxtral-TTS, Stable-Audio-Open), and any-to-any omni (Qwen3-Omni, Qwen2.5-Omni, MiMo-Audio) via `vllm serve --omni`. Covers stage-based disaggregation (OmniConnector + Mooncake + RDMA), `/v1/images/generations`, async+sync `/v1/videos`, `/v1/audio/speech` with voice-upload, the PCM16 WebSocket `/v1/realtime`, Ulysses/Ring SP + CFG-parallel, DiT FP8/INT8/GGUF quant, CUDA/ROCm/NPU/XPU/MUSA matrix, and release-pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager).
-when_to_use: Trigger on any vLLM deployment producing non-text output (image/video/audio) or any-to-any omni model, or model names ending `-Image`/`-TTS`/`-Omni`/`-Video`. Keywords: `vllm serve --omni`, `vllm-omni`, `/v1/images/generations`, `/v1/videos`, `/v1/audio/speech`, `/v1/audio/voices`, `/v1/realtime`, `async_chunk`, `stage_configs_path`, OmniConnector, MooncakeStore, OmniDiffusionSamplingParams, FlowUniPC, TeaCache, Cache-DiT, Sage/Ring/Ulysses, `--ulysses-degree`, `--ring-degree`, CFG-parallel, Thinker/Talker/Code2Wav, BAGEL, Wan2.2, FLUX.2-klein, DiT FP8/INT8/GGUF, ComfyUI bridge, verl RL. Apply on narrow phrasings ("serve Qwen-Image", "Qwen3-Omni streaming audio", "async video job"). NOT for embeddings/reranking/STT/OCR — see `vllm-input-modalities`.
+description: |-
+  vLLM-Omni output-side multimodal generation — image (FLUX.1/2, Qwen-Image, GLM-Image, BAGEL, SD3.5, HunyuanImage-3.0), video (Wan2.1/2.2, LTX-2, HunyuanVideo-1.5), TTS (Qwen3-TTS, CosyVoice3, Voxtral-TTS), any-to-any omni (Qwen3-Omni, Qwen2.5-Omni, MiMo-Audio) via `vllm serve --omni`. Stage-based disaggregation (OmniConnector + Mooncake + RDMA), `/v1/images/generations`, async+sync `/v1/videos`, `/v1/audio/speech` with voice-upload, PCM16 WebSocket `/v1/realtime`, Ulysses/Ring SP + CFG-parallel, DiT FP8/INT8/GGUF, CUDA/ROCm/NPU/XPU/MUSA matrix, release pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager).
+when_to_use: |-
+  Trigger on any vLLM deployment producing non-text output (image/video/audio) or any-to-any omni model, or model names ending `-Image`/`-TTS`/`-Omni`/`-Video`. Keywords — `vllm serve --omni`, `vllm-omni`, `/v1/images/generations`, `/v1/videos`, `/v1/audio/speech`, `/v1/audio/voices`, `/v1/realtime`, `async_chunk`, `stage_configs_path`, OmniConnector, MooncakeStore, OmniDiffusionSamplingParams, FlowUniPC, TeaCache, Cache-DiT, Sage/Ring/Ulysses, `--ulysses-degree`, `--ring-degree`, CFG-parallel, Thinker/Talker/Code2Wav, BAGEL, Wan2.2, FLUX.2-klein, DiT FP8/INT8/GGUF, ComfyUI bridge, verl RL. Narrow phrasings — "serve Qwen-Image", "Qwen3-Omni streaming audio", "async video job". Also implicit — "deploy image gen", "TTS endpoint", "video gen pipeline", "audit omni", "deploy-memo for {model}-Image/-TTS/-Video". NOT for embeddings/reranking/STT/OCR (→ `vllm-input-modalities`).
 ---
 
 # vLLM-Omni — output-side multimodal serving
@@ -14,7 +16,7 @@ This skill is a **reference**, not a tutorial. SKILL.md holds the mental model, 
 
 vllm-omni is **not a fork** — it sits on top of upstream vLLM via `patch.py` (early-import), registers OmniModelConfig, and adds one CLI flag: `--omni`. Adding `--omni` to `vllm serve` routes the server through `vllm_omni.entrypoints`. The architectural claim is to decompose any-to-any models into a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) connected via `OmniConnector`, so each stage scales independently. The paper (arXiv:2602.02204) claims up to 91.4% JCT reduction vs an unspecified baseline — treat as an architectural argument, not a deployment benchmark.
 
-Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.18.0 (2026-03-28) is the current stable**, rebased on vLLM v0.18.0. First stable was v0.14.0 (2026-01-31). **v0.19.0rc1 has a FLUX.1-dev regression (#2730)** — pin v0.18.0 in production.
+Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.18.0 (2026-03-28) is the current stable**, rebased on vLLM v0.18.0. First stable was v0.14.0 (2026-01-31). **v0.19.0rc1 has a FLUX.1-dev regression (#2730)** — fix merged to `main` 2026-04-24 via PR #2760 but **not yet re-tagged**; pin v0.18.0 in production until the next release ships.
 
 ## Quick-answer router
 
@@ -55,7 +57,7 @@ Version alignment is strict: vllm-omni major.minor must match upstream vLLM majo
 
 2. **Qwen3-TTS with CUDA graphs on**. Issue #2866: code2wav stage crashes when `enforce_eager: false`. Always launch Qwen3-TTS with `--enforce-eager --trust-remote-code` until the upstream fix lands. This is a production-blocker that the docs do not yet warn about.
 
-3. **Pinning v0.19.0rc1 instead of v0.18.0**. Issue #2730 reports FLUX.1-dev generates incorrect images in v0.19.0rc1. rc1 releases are not production targets — stay on v0.18.0 stable for any FLUX deployment.
+3. **Pinning v0.19.0rc1 instead of v0.18.0**. Issue #2730 reports FLUX.1-dev generates incorrect images in v0.19.0rc1 (T5 text encoder bug). **Fix merged to `main` 2026-04-24 via PR #2760** but no re-tagged release yet, so the rc1 tag artifacts are still broken. rc1 releases are not production targets — stay on v0.18.0 stable for any FLUX deployment until the next RC/stable ships.
 
 4. **GLM-Image on v0.18 without `transformers>=5.0`**. Release notes call this out: GLM-Image requires a manual `pip install 'transformers>=5.0'` before serving. The default wheel pins transformers below 5.0 and GLM-Image silently fails to load.
 
@@ -161,4 +163,4 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 ## Source policy
 
-All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list + community channels + third-party plugin catalog in `references/sources.md`. Compiled 2026-04-18 against v0.18.0; refresh when the next upstream-rebase release ships.
+All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list + community channels + third-party plugin catalog in `references/sources.md`. Compiled 2026-04-18 against v0.18.0; last freshened 2026-04-24 (v0.18.0 still stable; refresh again when the next upstream-rebase release ships).

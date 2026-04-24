@@ -2,7 +2,7 @@
 
 All citations backing the skill. Verify any claim via the linked source.
 
-## vLLM source code + benchmarks
+## vLLM source code + benchmarks (Last verified: 2026-04-24 against main @ v0.19.1 stable / v0.20.0 pre-release)
 
 - `benchmarks/kernels/benchmark_moe.py` — [GitHub](https://github.com/vllm-project/vllm/blob/main/benchmarks/kernels/benchmark_moe.py)
 - `vllm/model_executor/layers/fused_moe/configs/` — shipped MoE configs
@@ -94,21 +94,21 @@ All citations backing the skill. Verify any claim via the linked source.
 ## Key issues / PRs referenced
 
 ### Version-specific regressions
-- [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24%
+- [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24% — Last verified: 2026-04-24 — **OPEN**
 - [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2
-- [#28882](https://github.com/vllm-project/vllm/issues/28882) — H200 DeepSeek-R1 EP 1.5× TTFT regression (DeepGEMM M<128)
+- [#28882](https://github.com/vllm-project/vllm/issues/28882) — H200 DeepSeek-R1 EP 1.5× TTFT regression (DeepGEMM M<128) — Last verified: 2026-04-24 — **CLOSED 2026-04-21** (fixed)
 - [#29539](https://github.com/vllm-project/vllm/issues/29539) — FULL_AND_PIECEWISE garbage `!!!` output
 - [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing
 - [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size
 
-### Async-scheduling status
-- [#27679](https://github.com/vllm-project/vllm/issues/27679) — PP compatibility (still open)
+### Async-scheduling status (Last verified: 2026-04-24)
+- [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
 - [#27614](https://github.com/vllm-project/vllm/issues) — default-on landing
 - [#28250](https://github.com/vllm-project/vllm/issues) — follow-up
 - [#26866](https://github.com/vllm-project/vllm/issues) — structured-output fix
 - [#24799](https://github.com/vllm-project/vllm/issues) — spec-dec fix
 - [#29821](https://github.com/vllm-project/vllm/issues) — spec-dec follow-up
-- [#31679](https://github.com/vllm-project/vllm/issues/31679) — multimodal compatibility
+- [#31679](https://github.com/vllm-project/vllm/issues/31679) — multimodal (Qwen3-VL) — **CLOSED 2026-01-07**
 
 ### MoE / DeepEP
 - [#17619](https://github.com/vllm-project/vllm/issues/17619) — default-config warning
@@ -128,8 +128,8 @@ All citations backing the skill. Verify any claim via the linked source.
 - [#16992](https://github.com/vllm-project/vllm/pull/16992) — GB200 NCCL env-var defaults
 
 ### Vendor-specific
-- [#34641](https://github.com/vllm-project/vllm/issues/34641) — MI300X FP4BMM crash
-- [#31475](https://github.com/vllm-project/vllm/issues/31475) — MI300X FP8 slower than BF16
+- [#34641](https://github.com/vllm-project/vllm/issues/34641) — MI300X FP4BMM crash — Last verified: 2026-04-24 — **OPEN**
+- [#31475](https://github.com/vllm-project/vllm/issues/31475) — MI300X FP8 slower than BF16 — Last verified: 2026-04-24 — **OPEN**
 - [#34249](https://github.com/vllm-project/vllm/issues/34249) — Hopper FP8 MoE FlashInfer auto-select
 - [#38971](https://github.com/vllm-project/vllm/issues/38971) — NVFP4 MoE on SM120
 - [#20069](https://github.com/vllm-project/vllm/issues/20069) — MI300X Whisper inaccurate
@@ -157,8 +157,8 @@ All citations backing the skill. Verify any claim via the linked source.
 
 ## Refresh policy
 
-Compiled 2026-04-18 against vLLM v0.19.0. Refresh when:
-- v0.20.x stable lands.
-- Major regression in referenced issue list closes ([#28882](https://github.com/vllm-project/vllm/issues/28882), [#35048](https://github.com/vllm-project/vllm/issues/35048), [#34641](https://github.com/vllm-project/vllm/issues/34641)).
+Compiled 2026-04-18 against vLLM v0.19.0. Last freshened: 2026-04-24 (latest stable v0.19.1 / v0.20.0 pre-release). Refresh when:
+- v0.20.x stable lands (pre-release 2026-04-23; watch for stable promotion).
+- Major regression in referenced issue list closes — **#28882 closed 2026-04-21**; **#27679 closed 2025-12-29**; **#31679 closed 2026-01-07**. Still-open: [#35048](https://github.com/vllm-project/vllm/issues/35048), [#34641](https://github.com/vllm-project/vllm/issues/34641), [#31475](https://github.com/vllm-project/vllm/issues/31475).
 - Wide-EP GB200 Part II ships — currently Part I only.
 - New MLPerf round with vLLM submission.

@@ -11,6 +11,7 @@ One row per registered name. Canonical file is `vllm/reasoning/<file>.py`.
 | `ernie45` | `Ernie45ReasoningParser` | `ernie45_reasoning_parser.py` | `<think>`/`</think>` + `<response>`/`</response>` | Optional — tolerates both | None | Base behavior |
 | `gemma4` | — | `gemma4_reasoning_parser.py` | `<think>`/`</think>` w/ helper `gemma4_utils.py` | — | `chat_template_kwargs` | See file |
 | `hunyuan_a13b` | `HunyuanA13BReasoningParser` | `hunyuan_a13b_reasoning_parser.py` | `<think>\n … \n</think>\n<answer>\n … \n</answer>` | No | None | Regex fallback |
+| `hy_v3` | `HYV3ReasoningParser` | `hy_v3_reasoning_parser.py` | `<think>`/`</think>` (BaseThinking subclass) with `_identity_parser` delegation | Optional | `chat_template_kwargs.reasoning_effort` (or top-level `reasoning_effort`); value `"no_think"` routes to `IdentityReasoningParser`; default is `"no_think"` when unset | Inherits from delegate (identity when off, base when on) |
 | `granite` | `GraniteReasoningParser` | `granite_reasoning_parser.py` | Phrases: "Here is my thought process:" / "Here is my response:" | Phrases in output | None | Falls through as content if phrases absent |
 | `kimi_k2` | `KimiK2ReasoningParser` | `kimi_k2_reasoning_parser.py` | `<think>`/`</think>` + implicit end `<\|tool_calls_section_begin\|>` | Optional | `chat_template_kwargs.thinking` | `(remainder, None)` |
 | `minimax_m2` | `MiniMaxM2ReasoningParser` | `minimax_m2_reasoning_parser.py` | Only `</think>` (no start) | N/A (no start) | None | `(all, None)` before `</think>` |

@@ -1,8 +1,10 @@
 ---
 name: vllm-speculative-decoding
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
-description: How to pick, configure, tune, and monitor vLLM speculative decoding in production. Covers the eleven SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, eagle, eagle3, dflash, mtp, extract_hidden_states), the --speculative-config JSON schema, which methods pair with which target model family, the Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, and where spec-dec stops paying off at high batch.
-when_to_use: Trigger on speculative decoding, draft model, EAGLE / EAGLE-2 / EAGLE-3, MTP / multi-token prediction, deepseek_mtp, glm4_moe_mtp, qwen3_next_mtp, Medusa, MLPSpeculator, DFlash, suffix decoding, ngram speculation, ngram_gpu, acceptance rate / acceptance length / AL, --speculative-config, -sc, --num-speculative-tokens, prompt_lookup_min/max, draft_tensor_parallel_size, parallel_drafting, vllm:spec_decode_num_drafts, vllm:spec_decode_num_accepted_tokens, Arctic Inference, SuffixDecodingCache, SpeculativeMethod, P-EAGLE, PARD, dynamic-K, rejection_sample_method. Also low-acceptance troubleshooting, BS>=32 regressions, method-selection decisions, air-gapped draft-checkpoint sourcing, and spec-dec integration with chunked prefill / disaggregated serving / pipeline parallel / LoRA / FP8 KV / structured outputs.
+description: |-
+  Pick, configure, tune, monitor vLLM speculative decoding in production. Eleven SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, eagle, eagle3, dflash, mtp, extract_hidden_states), `--speculative-config` JSON schema, which methods pair with which target model family, Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, where spec-dec stops paying at high batch.
+when_to_use: |-
+  Trigger on speculative decoding, draft model, EAGLE/EAGLE-2/EAGLE-3, MTP/multi-token prediction, deepseek_mtp, glm4_moe_mtp, qwen3_next_mtp, Medusa, MLPSpeculator, DFlash, suffix decoding, ngram speculation, ngram_gpu, acceptance rate / AL, --speculative-config, -sc, --num-speculative-tokens, prompt_lookup_min/max, draft_tensor_parallel_size, parallel_drafting, vllm:spec_decode_num_drafts, vllm:spec_decode_num_accepted_tokens, Arctic Inference, SuffixDecodingCache, SpeculativeMethod, P-EAGLE, PARD, dynamic-K, rejection_sample_method. Low-acceptance troubleshooting, BS>=32 regressions, method-selection decisions, air-gapped draft-checkpoint sourcing, integration with chunked prefill/disagg serving/PP/LoRA/FP8 KV/structured outputs. Also implicit — "speed up decode", "faster inference", "higher tok/s", "draft model for X", "audit spec dec", "deploy-memo speculative", "can we get more tokens/sec".
 ---
 
 # vLLM speculative decoding — operator skill
@@ -46,9 +48,11 @@ plugin and suffix in `references/arctic-inference.md`.
 | Quick win, no drafter of any kind | `ngram_gpu` (v0.18+) or `ngram` | Prefix-matching only; fine for repetitive prompts, skip for open chat |
 | Locked into vendor checkpoint | `medusa` / `mlp_speculator` | Legacy; still works, do not adopt for new deployments |
 
-**EAGLE-3/DFlash aux-hidden-state list (from `vllm/config/speculative.py:818-833`)**:
-llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe, nemotron_h,
-deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4.
+**EAGLE-3/DFlash aux-hidden-state list (from `vllm/config/speculative.py:895-909`
+as of 2026-04-24; search `aux_hidden_states_supported` on future upgrades —
+line numbers drift)**: llama, qwen, minicpm, gpt_oss, hunyuan_vl,
+hunyuan_v1_dense, afmoe, nemotron_h, deepseek_v2, deepseek_v3, kimi_k2,
+kimi_k25, minimax_m2, gemma4.
 
 ## Canonical `--speculative-config` shapes
 
@@ -235,6 +239,10 @@ See `references/troubleshooting.md` for diagnostic flow on low acceptance,
 silent regressions after upgrade, and metric-interpretation pitfalls.
 
 ## External references
+
+Last verified: 2026-04-24. All vLLM PR / HF-checkpoint / Arctic-Inference URLs
+probed via `gh` + HF API. Provenance table, classifications, and
+re-verification recipe in `references/sources.md`.
 
 - Main docs: <https://docs.vllm.ai/en/latest/features/speculative_decoding/>
 - Per-method docs: `/features/speculative_decoding/{eagle,mtp,draft_model,mlp,n_gram,suffix}/`

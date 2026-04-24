@@ -79,8 +79,9 @@ The metapackage pulls in `libcufile0`, `gds-tools`, and `nvidia-fs`.
   ```bash
   helm install ... nvidia/gpu-operator \
     --set gds.enabled=true \
-    --set driver.useOpenKernelModules=true
+    --set driver.kernelModuleType=open
   ```
+  (NVIDIA renamed the Helm value — older `driver.useOpenKernelModules=true` is no longer current. Verified 2026-04-24 against `docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-rdma.html`.)
 - **Secure Boot DISABLED.** Check with `mokutil --sb-state`. Dell PowerEdge ships with Secure Boot on by default — toggle in BMC/UEFI.
 - **cuFile-compatible filesystem.** Ext4 or xfs, no dm-crypt / LUKS / LVM in the DMA path. Hardware RAID also blocks it — plain block devices or JBOD only.
 - **MLNX_OFED / DOCA-OFED is NOT needed** for local U.2 / E3.S NVMe. Only required for GDS-over-RDMA (remote NVMe).

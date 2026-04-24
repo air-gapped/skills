@@ -5,7 +5,7 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 ## In-tree, no network required
 
 - **`random`** — synthetic uniform tokens. Flags: `--random-input-len`, `--random-output-len`, `--random-num-prompts`. Use for: isolating engine throughput from prefix effects. **Avoid for: caching claims** — zero prefix structure makes cached workloads look flat.
-- **`sonnet`** — synthetic from Claude prompt patterns. Ships at `vllm/benchmarks/sonnet.txt`. Flags: `--sonnet-input-len`, `--sonnet-output-len`. Use for: reproducible general-purpose load with natural-language structure.
+- **`sonnet`** — synthetic from Claude prompt patterns. Ships at `vllm/benchmarks/sonnet.txt`. Flags: `--sonnet-input-len`, `--sonnet-output-len`. **Marked deprecated in docs.vllm.ai/en/latest/benchmarking/cli/ as of 2026-04-24** — still works but will be removed. For new benchmarks prefer `random` (engine isolation), `prefix_repetition` (caching), or `custom` (prod replay). Use `sonnet` only to reproduce older baseline runs.
 - **`prefix_repetition`** — synthetic with shared prefix across prompts. Flags: `--prefix-repetition-prefix-len`, `--prefix-repetition-suffix-len`, `--prefix-repetition-num-prefixes`, `--prefix-repetition-output-len`. **Use this** to benchmark prefix-cache hit rate and DRAM/NVMe offload wins.
 - **`random-mm`** — multimodal synthetic. Flags: `--random-mm-num-images`, `--random-mm-num-video-frames`. For vision/audio model serving.
 - **`random-rerank`** — reranking workload. Flags: `--random-rerank-input-len`, `--random-rerank-output-len`.
