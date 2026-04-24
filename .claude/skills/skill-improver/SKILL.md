@@ -53,11 +53,12 @@ If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode 
 
 1. Identify the target skill. Accept a path, or run `scripts/scan-skills.sh` (or Glob pattern `**/SKILL.md` under `~/.claude/skills/` and `.claude/skills/`) to list candidates. Do NOT search `~/.claude/plugins/` — those are managed externally.
 2. Read the target skill's entire directory: SKILL.md and any references/, examples/, scripts/, assets/ present.
-3. Read `references/quality-rubric.md` from the skill-improver directory for the full scoring rubric.
-4. Establish a baseline score by evaluating the skill against the rubric.
-5. Spawn a blind scoring agent on the baseline (see "Blind Validation" section). First snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-baseline`. Then run the agent in the background while the loop proceeds.
-6. Initialize a results log (in-memory or scratch file) with header: `iteration | score | delta | status | description`.
-7. Log iteration 0 as `baseline`.
+3. **Read `<skill>/references/improvement-backlog.md` if it exists.** This file carries open issues from prior skill-improver runs — ceiling-hit items that require multi-file restructure or author judgment. Do NOT re-propose items already listed there unless new evidence (e.g. the ceiling is now breakable in one iteration due to earlier structural changes). Items resolved mid-loop get moved to the backlog's "Resolved this pass" section in Phase 6.
+4. Read `references/quality-rubric.md` from the skill-improver directory for the full scoring rubric.
+5. Establish a baseline score by evaluating the skill against the rubric.
+6. Spawn a blind scoring agent on the baseline (see "Blind Validation" section). First snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-baseline`. Then run the agent in the background while the loop proceeds.
+7. Initialize a results log (in-memory or scratch file) with header: `iteration | score | delta | status | description`.
+8. Log iteration 0 as `baseline`.
 
 ### Phase 1: Evaluate (Score the Skill)
 
@@ -122,6 +123,39 @@ the same category, force the next hypothesis to be a different category. Print:
 
 **On stop:** Spawn a final blind scoring agent (see "Blind Validation"). Print
 both comparison tables (baseline + final) and the overall results summary.
+
+### Phase 6: Persist the backlog
+
+Before declaring the run done, update `<skill>/references/improvement-backlog.md`
+(create the file if absent). This is non-optional — ceiling findings that exist
+only in chat disappear when the session ends.
+
+Write two sections:
+
+1. **Open** — every issue the loop hypothesised but could NOT apply in a single
+   iteration (multi-file restructure, author-only domain content, flagged-for-
+   review findings from freshen, or rule-ceiling discards). For each entry:
+   - one-line title
+   - dimension number it affects (e.g. "Dim 2" or "Dim 6/8")
+   - specific file:line pointer OR the exact file-set that would need to change
+   - why skill-improver couldn't apply it in one iteration (e.g. "9-file split",
+     "requires author-authored error-handling content", "breaks
+     self-consistency without restructure")
+   - enough context to act on without re-running the baseline scoring
+2. **Resolved this pass** — one-line audit of what was fixed. Move items from
+   "Open" to "Resolved" if a prior backlog listed them and this run closed them.
+
+Format: plain markdown, `## Open` and `## Resolved this pass` as top-level
+sections. See `references/improvement-backlog.md` patterns from prior runs for
+shape — it is intentionally uniform so future skill-improver loops can diff.
+
+If the backlog already exists with items skill-improver chose not to fix this
+run, carry them forward into the new "Open" section with a `(carried YYYY-MM-DD)`
+marker so staleness is visible.
+
+If the run produced zero ceiling findings (converged cleanly at ≥90/100),
+still update the file — strip "Open" to empty and record the final score under
+"Resolved this pass" so the file remains a truthful record.
 
 ---
 
@@ -354,6 +388,7 @@ Decision rule (different from score-based loop — verification-based):
 - **`references/freshen-patterns.md`** — Reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules for Freshen Mode.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Dated per-URL index of official docs, specs, changelogs, and blog posts. Freshen Mode reads and stamps `Last verified:` / `Pinned:` fields here.
+- **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.
 
 ### Scripts
 
