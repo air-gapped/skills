@@ -149,6 +149,20 @@
         "quantization",
         "kv-cache"
       ]
+    },
+    {
+      "name": "nvidia-nixl",
+      "source": "./",
+      "description": "NVIDIA Inference Xfer Library (NIXL) operator + developer reference",
+      "version": "0.20260425.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/nvidia-nixl"
+      ],
+      "strict": false
     }
   ]
 }

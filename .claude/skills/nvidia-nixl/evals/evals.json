@@ -1,0 +1,62 @@
+{
+  "skill_name": "nvidia-nixl",
+  "evals": [
+    {
+      "id": 1,
+      "name": "backend-selection",
+      "prompt": "We're standing up NVIDIA Dynamo for disaggregated prefill on AWS EC2 with EFA NICs (p5.48xlarge instances, 8x H100 each, multi-node). Need to pick a NIXL backend for the prefill→decode KV transfer. Which backend is the right choice for EFA, what NIXL env vars must I set in the pod spec, and what gotchas should I know about (especially anything fixed in recent NIXL releases that I should make sure I'm on)?",
+      "assertions": [
+        {"text": "Recommends libfabric as the primary backend for EFA NICs (validated upstream)"},
+        {"text": "Mentions UCX as a possible alternative or fallback for EFA"},
+        {"text": "Names NIXL_PLUGIN_DIR as a relevant environment variable"},
+        {"text": "Mentions ETCD (NIXL_ETCD_ENDPOINTS) as the metadata mode of choice for multi-node elastic clusters"},
+        {"text": "Calls out NIXL >= v1.0.1 specifically because of libfabric thread-safety / notif-on-repost fixes"},
+        {"text": "Lists hwloc as a libfabric backend dependency"},
+        {"text": "Lists libnuma as a libfabric backend dependency"},
+        {"text": "Pod IP via downward API (status.podIP) for the side-channel host"},
+        {"text": "Mentions headless Service (clusterIP: None) requirement for pod-to-pod NIXL handshake"},
+        {"text": "Mentions NIXL_ERR_REMOTE_DISCONNECT first-request handshake race (expected, retry second)"},
+        {"text": "Provides a concrete K8s YAML env: section snippet"},
+        {"text": "Notes UCX_TLS is not the relevant variable for libfabric (or alternatively if UCX recommended, includes UCX_TLS=cuda_copy,sm,tcp)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "python-example",
+      "prompt": "Write me a minimal complete Python NIXL example showing two processes on the same machine doing a GPU tensor READ between them. I want correct setup of the listener thread, register_memory, metadata exchange, transfer, completion check, and teardown. Use the official Python API from the nixl package (pip install nixl). Single file, self-contained, runnable.",
+      "assertions": [
+        {"text": "Imports nixl_agent and nixl_agent_config from the nixl package (not from internal _api / _bindings)"},
+        {"text": "Uses nixl_agent_config with enable_listen_thread=True at least on the target side"},
+        {"text": "Allocates a torch tensor on a CUDA device (e.g. cuda:0 or cuda:1)"},
+        {"text": "Calls register_memory on the tensor"},
+        {"text": "Calls get_xfer_descs to build descriptor list"},
+        {"text": "Initiator calls fetch_remote_metadata and/or send_local_metadata (with ip, port for socket mode)"},
+        {"text": "Calls initialize_xfer with operation argument 'READ' (or alternatively prep_xfer_dlist + make_prepped_xfer with READ)"},
+        {"text": "Calls transfer() and polls check_xfer_state for DONE / handles ERR"},
+        {"text": "Includes teardown: deregister_memory and remove_remote_agent (and ideally invalidate_local_metadata, release_xfer_handle)"},
+        {"text": "Single self-contained file with mode/role argument or two-side branching"},
+        {"text": "Comment block at top explaining how to launch (target first, then initiator)"},
+        {"text": "Code is runnable as-is — no obvious syntax errors, missing imports, or undefined variables"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "debug-segfault",
+      "prompt": "Our vLLM disagg-prefill prefiller pod keeps segfaulting after the first prefill. Stack trace shows `nixlUcxSharedThread::run()` and there's a UCX warning in the logs: `W ucx_utils.cpp:581: memory is detected as host`. We're running NixlConnector on Kubernetes, the image is vllm/vllm-openai:cu130-nightly with INSTALL_KV_CONNECTORS=true. Our pod env currently has UCX_TLS=tcp and we set VLLM_NIXL_SIDE_CHANNEL_HOST to the Service FQDN. What's wrong and exactly what do I change?",
+      "assertions": [
+        {"text": "Identifies UCX_TLS=tcp alone as the segfault root cause"},
+        {"text": "Recommends UCX_TLS=cuda_copy,sm,tcp (or extended cuda_copy,cuda_ipc,sm,tcp,rc) as the fix"},
+        {"text": "Connects 'memory is detected as host' UCX warning to the missing cuda_copy transport"},
+        {"text": "Identifies VLLM_NIXL_SIDE_CHANNEL_HOST set to Service FQDN as the second bug"},
+        {"text": "Recommends pod IP via downward API (fieldRef: status.podIP) as the fix"},
+        {"text": "Mentions headless Service requirement (clusterIP: None) for cross-pod NIXL"},
+        {"text": "Provides a concrete corrected K8s YAML env: section"},
+        {"text": "Notes NIXL_ERR_REMOTE_DISCONNECT on first request as a separate, expected handshake-race issue"},
+        {"text": "Does not propose unrelated wild-goose fixes (e.g., increasing GPU memory, restarting cluster, changing model)"}
+      ],
+      "files": []
+    }
+  ]
+}
