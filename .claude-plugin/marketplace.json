@@ -116,7 +116,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
-      "version": "0.20260425.21",
+      "version": "0.20260425.22",
       "author": {
         "name": "Jörgen"
       },

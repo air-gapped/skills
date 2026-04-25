@@ -51,6 +51,8 @@ Do not reach for LMCache or NIXL or Mooncake just because they exist. Native off
 
 **For concrete config recipes for any of the above, see `references/connectors.md`.** Load that reference once a backend has been selected — it contains copy-paste-ready invocations with all required env vars, GDS host prerequisites (cuda-keyring, open kernel modules, Secure Boot), and the MultiConnector JSON format.
 
+> **NIXL deep-dive** — NIXL itself (transfer library, 13 backend plugins, agent API, telemetry, ETCD/side-channel metadata, plugin authoring) lives in the dedicated **`nvidia-nixl`** skill. This skill covers vLLM-side wiring of NixlConnector / LMCache-P2P-over-NIXL only. Reach for `nvidia-nixl` when picking transports (`UCX_TLS`, GDS, Mooncake, libfabric…), tuning UCX, debugging `nixl_agent` directly, or writing custom plugins.
+
 ## Sizing math — READ BEFORE RECOMMENDING A NUMBER
 
 **`--kv-offloading-size` is TOTAL across all TP ranks, in GiB.** This is the OPPOSITE of SGLang's equivalent flag (which is per-rank). Teams migrating from SGLang routinely under-allocate by a factor of TP.

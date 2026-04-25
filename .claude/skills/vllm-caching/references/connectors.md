@@ -147,6 +147,8 @@ Verified 2026-04-25 on Qwen3-4B + 12 GB DRAM + 30 GB disk at `/models/lmcache-kv
 
 Use case: two or more vLLM pods serving the same model discover and retrieve KV chunks from each other over the network (NIXL/UCX transport). First hit on any pod → subsequent hits on all pods. Equivalent to a shared-LRU CPU tier spread across nodes.
 
+> NIXL is the transport layer here; for transport choice / UCX tuning / plugin selection see the **`nvidia-nixl`** skill. This section covers LMCache P2P configuration only.
+
 Verified 2026-04-25 on 2× RTX 4060 Ti + cu130-nightly + Qwen3-4B BF16 + LMCache 0.4.4-cu13. Prime pod-a with a 1002-token prefix; pod-b receives same prefix → **pod-a log `Received P2P batched lookup and get msg`**, pod-b log `Retrieved 768 of 768 required tokens, cost 22.87 ms, throughput 4.61 GB/s`, pod-b external hit rate **76.6 %**.
 
 ### Topology
@@ -320,6 +322,8 @@ sudo modprobe nvidia-fs
 
 Separates prefill and decode into distinct vLLM instances; the connector handles async KV transfer. Tunes TTFT (prefill instance parallelism) and ITL (decode instance parallelism) independently. Does NOT improve throughput on its own — it shapes latency.
 
+> NIXL itself (the underlying transfer library) is documented in the **`nvidia-nixl`** skill — agent API, all 13 backend plugins (UCX, GDS, Mooncake, libfabric, etc.), telemetry, build paths, ETCD vs side-channel metadata. This section covers vLLM-side wiring only. For transport selection (`UCX_TLS`, `cuda_ipc`), telemetry interpretation, plugin authoring, and the `nixl_agent` Python API → `nvidia-nixl`.
+
 ```bash
 vllm serve <model> ... \
   --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_buffer_device":"cuda","kv_connector_extra_config":{"backends":["UCX","GDS"]}}'
@@ -409,6 +413,8 @@ Why 1P1D lost on this workload: short prompts mean prefill cost is cheap, so the
 **1P1D pays off when**: input ≫ output (16 k+ prefill, 100-token decode), prefill latency dominates TTFT, you want the decoder to hit low TPOT without prefill-step interference, *and* you have more than one decode consumer per prefiller (1P2D / 1P4D). On short-prompt decode-dominated traffic with single-node same-fabric transport, a single pod with prefix caching wins. Reserve disaggregation for long-context coding-agent / RAG / research-agent loads and multi-node deployments where the prefill pool can be scaled independently from decode.
 
 ### NIXL transfer telemetry caveats + measured numbers
+
+> **For NIXL telemetry internals** (Prometheus + cyclic shared-memory metrics, `NIXL_TELEMETRY_ENABLE`, `nixlbench` benchmarking) → `nvidia-nixl` skill. The notes below are vLLM-side observations only.
 
 **Do not trust `KV Transfer metrics Throughput (MB/s)` at face value.** Two known issues affect the number:
 
