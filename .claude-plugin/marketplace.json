@@ -151,6 +151,20 @@
       ]
     },
     {
+      "name": "aiperf",
+      "source": "./",
+      "description": "NVIDIA AIPerf",
+      "version": "0.20260425.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/aiperf"
+      ],
+      "strict": false
+    },
+    {
       "name": "nvidia-nixl",
       "source": "./",
       "description": "NVIDIA Inference Xfer Library (NIXL) operator + developer reference",

@@ -16,6 +16,7 @@ Versioning scheme per plugin: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of
 <!-- skills-start -->
 | Skill | Description |
 |---|---|
+| [`aiperf`](.claude/skills/aiperf/SKILL.md) | NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 15 endpoint types (chat,… |
 | [`autoresearch`](.claude/skills/autoresearch/SKILL.md) | Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable metric, deep multi-agent research, or research-then-optimize. Three modes: Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve. |
 | [`baml-expert`](.claude/skills/baml-expert/SKILL.md) | BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers… |
 | [`helm`](.claude/skills/helm/SKILL.md) | Author and maintain Helm charts: create chart, write templates, values.yaml patterns, _helpers.tpl, Chart.yaml, values.schema.json, helm-docs, library charts. Helm 4 (SSA, WASM, OCI digest). Chart CI/CD (lint, helm-unittest, chart-testing,… |
