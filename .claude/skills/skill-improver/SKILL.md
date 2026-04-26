@@ -4,16 +4,24 @@ description: >-
   Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing
   on a 10-dimension quality rubric, with blind subagent validation for
   self-scoring bias, plus a `freshen` mode that probes external references
-  (release notes, docs, deprecation signals) and applies verified updates.
+  (release notes, docs, deprecation signals) and applies verified updates,
+  plus a `trigger` mode that measures and tunes the skill's frontmatter
+  description until it reliably fires when it should and stays silent when
+  it shouldn't (60/40 train/test split, 3 runs/query, blinded test scores).
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",
   "score my skill", "audit a skill", "rate my skill", "refine skill
   description", "iterate on a skill", "freshen skill", "freshen skills",
   "update skill references", "check skill staleness", "is my skill out of
-  date", "refresh skill sources", or mentions autonomous skill improvement,
-  skill quality scoring, skill optimization loops, or stale skill content.
-argument-hint: '[improve|score|freshen|batch] [<skill-name>|--all|<glob>]'
+  date", "refresh skill sources", "skill not triggering", "skill didn't
+  fire", "skill won't trigger", "skill not invoked", "tune skill
+  description", "fix skill triggers", "skill under-triggers",
+  "skill over-triggers", "false-positive skill", "make skill trigger",
+  "Claude isn't using my skill", or mentions autonomous skill improvement,
+  skill quality scoring, skill optimization loops, stale skill content,
+  or skill activation problems.
+argument-hint: '[improve|score|freshen|trigger|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver — Autoresearch for SKILL.md
@@ -31,9 +39,9 @@ Argument grammar:
 /skill-improver <mode> <target> [--opts]
 ```
 
-- `<mode>` — `improve` (default) | `score` | `freshen` | `batch`
+- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `batch`
 - `<target>` — skill name (e.g. `gh-cli`), absolute SKILL.md path, `--all`, or glob (e.g. `vllm-*`)
-- `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`)
+- `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`, `--runs-per-query 5`)
 
 Examples:
 
@@ -41,11 +49,13 @@ Examples:
 /skill-improver freshen autoresearch
 /skill-improver score gh-cli
 /skill-improver improve ~/.claude/skills/helm
+/skill-improver trigger vllm-caching
+/skill-improver trigger gh-cli --missed "find issue with label X"
 /skill-improver batch freshen --all
 /skill-improver freshen --group 'vllm-*'
 ```
 
-If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen` or `improve`, default `improve`); the target list comes from `scripts/scan-skills.sh`.
+If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, or `trigger`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
 
 ## The Improvement Loop
 
@@ -379,6 +389,182 @@ Decision rule (different from score-based loop — verification-based):
 
 ---
 
+## Trigger Mode
+
+Measure and tune a skill's frontmatter `description` (and `when_to_use`) so it
+reliably fires when it should and stays silent when it shouldn't. Same
+keep/discard hill-climbing structure as `improve`, but the metric is **trigger
+rate against an eval set** — exactly the methodology Anthropic's own
+`skill-creator` uses for description optimization (60/40 train/test split,
+3 runs/query, blinded test scores, ≤1024-char hard cap).
+
+**Use trigger mode when:** a user reports "the skill didn't fire when I asked
+X", "Claude isn't using my skill", or you suspect a description is too vague,
+too narrow, too keyword-collision-y, or simply written in the wrong vocabulary
+for how users actually phrase requests. Score-mode bumps Dim 1 (Trigger
+Precision) on subjective rubric judgment; trigger-mode measures it empirically.
+
+Reference: `references/trigger-patterns.md` for the full pattern catalogue,
+eval-set construction rules, decision tree, and worked example.
+
+### Phase T0: Setup
+
+1. Read the target skill (SKILL.md frontmatter, body, references/).
+2. Read `<skill>/references/improvement-backlog.md` if present — open
+   "trigger" findings carry forward.
+3. Read `references/trigger-patterns.md` from the skill-improver directory.
+4. Snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-trigger-baseline`.
+5. Initialize a results log: `iter | train | test | desc-chars | status | change`.
+
+### Phase T1: Build (or load) the eval set
+
+Look for `<skill>/references/trigger-evals.json`. If present, use it as the
+starting eval set and append any new user-reported failures from `--missed
+"<phrase>"` flags as new should-trigger entries.
+
+If absent, construct a fresh eval set per `references/trigger-patterns.md`
+§"Eval-set construction":
+
+- 6–8 should-trigger queries: prioritise user-reported failures verbatim;
+  fill the rest with description paraphrases, body-mined examples, and
+  everyday user vocabulary.
+- 5–7 should-NOT-trigger queries: keyword-collision distractors,
+  sibling-skill territory, generic conversation, adjacent-domain decoys.
+
+Save to `<skill>/references/trigger-evals.json`. The file persists so future
+trigger-mode runs build on the same eval baseline.
+
+### Phase T2: Probe baseline
+
+Run the probe with a stratified train/test split:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
+  --skill-path <skill-dir> \
+  --eval-set <skill-dir>/references/trigger-evals.json \
+  --holdout 0.4 --runs-per-query 3 --num-workers 6 --verbose
+```
+
+The probe writes a synthetic slash-command containing the candidate
+description into `.claude/commands/`, runs `claude -p "<query>"` with
+`--output-format stream-json --include-partial-messages`, and parses the
+stream for a `Skill` or `Read` `tool_use` whose target name matches the
+synthetic id. Each query runs N times to measure trigger rate; rate >=
+threshold counts as triggered.
+
+Read the JSON output: `train.summary` and `test.summary` carry pass/fail
+counts; per-query records carry `trigger_rate` for diagnosing the failure
+type.
+
+If the `claude` CLI is missing or unauthenticated, the probe fails fast.
+Fall back to manual A/B testing per `trigger-patterns.md` §"Fallback when
+`claude -p` is not available" — print the candidate description and the eval
+set, ask the user to spot-check from a fresh session. Do NOT use a subagent
+to "guess" trigger behavior; the agent will roleplay, not measure.
+
+### Phase T3: Hypothesize
+
+Categorise the train-set failures and pick ONE mutation type per
+`references/trigger-patterns.md` §"Mutation patterns by failure type":
+
+| Failure profile | Pattern |
+|---|---|
+| All failures are should-trigger misses (under-trigger) | T1 — add explicit phrases, be pushier, front-load |
+| All failures are should-NOT false-positives (over-trigger) | T2 — add negative boundary, tighten scope |
+| Mixed under + over | T3 — fix whichever class has more failures first |
+| 1/3 or 2/3 trigger rates dominate | T4 — strengthen redundancy, bump runs-per-query to 5 |
+| Cap-bound: description hits 1024 chars | T5 — re-balance into description vs when_to_use |
+| Sibling skill steals the trigger | T6 — backlog finding, NOT single-skill mutation |
+
+### Phase T4: Mutate
+
+Apply ONE change to the frontmatter (description and/or when_to_use). Hard
+constraints:
+
+- `description` ≤ 1024 chars (Agent Skills spec hard cap; descriptions over
+  that are rejected by `skills-ref validate`).
+- Combined `description` + `when_to_use` ≤ 1,536 chars (Claude Code listing
+  truncation in v2.1.105+; targets older Claude Code use 250).
+- Third person, imperative voice ("Use this skill for…", not "You can use…").
+- Do NOT touch SKILL.md body — it loads after triggering and cannot influence
+  trigger decisions. Trigger mode is frontmatter-only.
+
+### Phase T5: Re-probe and decide
+
+Re-run the probe with the new description (override via
+`--description "<text>"` so the file isn't written until accepted).
+
+Decision rule on **train** scores:
+
+- **Train improved by ≥1 query** → KEEP. Write the new frontmatter to
+  SKILL.md. New baseline.
+- **Train equal but description shorter/simpler** → KEEP (simplification ties
+  per the Karpathy rule).
+- **Train equal or worse** → DISCARD. Revert the proposal (file unchanged
+  since override was used).
+- **Train improved AND test got worse by 2+ queries** → DISCARD as overfit.
+  The mutation taught Claude the train phrasings without generalising.
+- **Train improved BUT description hit the 1024 hard cap** → DISCARD, plan
+  T5 next iteration.
+
+### Phase T6: Loop
+
+Up to **5 iterations** (default; trigger probes are 5–10x more expensive
+than rubric scoring because each probe shells out to a model). Stop when:
+
+- Train pass-rate ≥ 95% AND test pass-rate ≥ 80% — converged.
+- 3 consecutive discards across at least 2 mutation patterns — ceiling
+  mapped. Surface what was tried.
+- A T6 (cross-skill conflict) finding emerges — single-skill loop can't fix
+  it; surface as backlog.
+- User interrupts.
+
+### Phase T7: Apply and persist
+
+1. Pick the winner by **TEST** score (NOT train — overfit guard, same as
+   Anthropic's loop).
+2. Write the winning frontmatter to `<skill>/SKILL.md`. Do NOT edit body.
+3. Update `<skill>/references/trigger-evals.json` — append a `last_run`
+   metadata block with date, baseline score, final score, iteration count.
+4. Update `<skill>/references/improvement-backlog.md`:
+   - Move resolved trigger items to "Resolved this pass".
+   - Add any T6 cross-skill conflicts as new "Open" items.
+5. Print summary table:
+   ```
+   skill: <name>
+   baseline: train X/N, test Y/M
+   final:    train X'/N, test Y'/M
+   delta:    +A train, +B test
+   iterations: I (K kept, D discarded)
+   eval set: <skill>/references/trigger-evals.json (saved for next run)
+   ```
+
+### Batch Mode
+
+`/skill-improver batch trigger --all` (or `--group <glob>`) iterates skills
+sequentially:
+
+1. Scan via `scripts/scan-skills.sh`.
+2. Probe baseline on each — rank by `(train_pass_rate * 0.6 + test_pass_rate
+   * 0.4)` ascending (worst first).
+3. Run trigger loop per skill, capped at 3 iterations in batch mode (probes
+   are expensive).
+4. Print ranked summary: skill, baseline, final, delta, iterations.
+
+### Anti-Patterns
+
+- Do NOT mutate the SKILL.md body — body cannot influence trigger.
+- Do NOT pick the final by train score — always test, to guard overfit.
+- Do NOT eval against only passing phrasings — include user-reported
+  failures and adversarial negatives.
+- Do NOT skip negatives — pure-recall tuning makes the skill grab everything.
+- Do NOT run on plugin or managed skills (`~/.claude/plugins/`) — trigger
+  mode mutates frontmatter; only personal/project skills are in scope.
+- Do NOT run trigger mode in the user's active project — the probe writes
+  temp slash-commands to `.claude/commands/`. Use a clean cwd.
+
+---
+
 ## Additional Resources
 
 ### Reference Files
@@ -386,10 +572,13 @@ Decision rule (different from score-based loop — verification-based):
 - **`references/quality-rubric.md`** — Full scoring rubric with sub-criteria, examples of each score level, and common failure patterns. Load this before scoring.
 - **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
 - **`references/freshen-patterns.md`** — Reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules for Freshen Mode.
+- **`references/trigger-patterns.md`** — Eval-set construction, mutation patterns by failure type, decision rules, and worked example for Trigger Mode. Load before running `trigger`.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Dated per-URL index of official docs, specs, changelogs, and blog posts. Freshen Mode reads and stamps `Last verified:` / `Pinned:` fields here.
 - **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.
+- **`<skill>/references/trigger-evals.json`** (per-target) — Persistent eval set for Trigger Mode. Built on first `trigger` run; reused and extended on subsequent runs. Schema: `[{"query": str, "should_trigger": bool, "source": str}, ...]`.
 
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

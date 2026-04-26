@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260424.4",
+      "version": "0.20260426.5",
       "author": {
         "name": "Jörgen"
       },
@@ -165,6 +165,20 @@
       "strict": false
     },
     {
+      "name": "lmcache-mp",
+      "source": "./",
+      "description": "LMCache multiprocess (MP) mode",
+      "version": "0.20260426.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/lmcache-mp"
+      ],
+      "strict": false
+    },
+    {
       "name": "nvidia-nixl",
       "source": "./",
       "description": "NVIDIA Inference Xfer Library (NIXL) operator + developer reference",
@@ -175,6 +189,20 @@
       "license": "MIT",
       "skills": [
         "./.claude/skills/nvidia-nixl"
+      ],
+      "strict": false
+    },
+    {
+      "name": "sglang-hicache",
+      "source": "./",
+      "description": "SGLang HiCache (hierarchical KV cache)",
+      "version": "0.20260426.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/sglang-hicache"
       ],
       "strict": false
     }
