@@ -63,6 +63,34 @@
       ]
     },
     {
+      "name": "inference-cache",
+      "source": "./",
+      "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite.",
+      "version": "0.20260426.2",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/lmcache-mp",
+        "./.claude/skills/nvidia-nixl"
+      ],
+      "strict": false,
+      "category": "inference",
+      "tags": [
+        "kv-cache",
+        "lmcache",
+        "nixl",
+        "vllm",
+        "sglang",
+        "dynamo",
+        "offload",
+        "prefix-caching",
+        "disaggregated-prefill",
+        "kubernetes"
+      ]
+    },
+    {
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Helm chart authoring, KEDA event-driven autoscaling, OpenShift application packaging.",
@@ -116,7 +144,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
-      "version": "0.20260426.23",
+      "version": "0.20260426.24",
       "author": {
         "name": "Jörgen"
       },
@@ -161,34 +189,6 @@
       "license": "MIT",
       "skills": [
         "./.claude/skills/aiperf"
-      ],
-      "strict": false
-    },
-    {
-      "name": "lmcache-mp",
-      "source": "./",
-      "description": "LMCache multiprocess (MP) mode",
-      "version": "0.20260426.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/lmcache-mp"
-      ],
-      "strict": false
-    },
-    {
-      "name": "nvidia-nixl",
-      "source": "./",
-      "description": "NVIDIA Inference Xfer Library (NIXL) operator + developer reference",
-      "version": "0.20260425.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/nvidia-nixl"
       ],
       "strict": false
     },

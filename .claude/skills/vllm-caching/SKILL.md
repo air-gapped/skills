@@ -29,11 +29,27 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 
 Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed.
 
-Verify any image's CUDA version + bundled backends without pulling it:
+### Two-step bundling verification (build flag + runtime import)
+
+Build flag = "we tried to install it." Runtime import = "the package actually loads." Different things — the torch-conflict era of mid-2025 had cases where the build flag said yes but `import lmcache` failed at runtime.
+
+**Step 1 — build-flag check (no pull, ~1s):**
 
 ```bash
 ${CLAUDE_SKILL_DIR}/scripts/inspect-vllm-image.sh <tag>
 ```
+
+Prints `LMCache/NIXL/Mooncake: YES (built with INSTALL_KV_CONNECTORS=true)` if the build layer ran the kv_connectors install.
+
+**Step 2 — runtime-import check (pull if needed, ~30s after pull):**
+
+```bash
+~/.claude/skills/lmcache-mp/scripts/verify-bundling.sh <tag>
+```
+
+Starts a sleep-overridden container, exec's a Python probe that confirms `lmcache`, `nixl`, `mooncake` import cleanly; checks the LMCache MP adapter classes and the `ParallelStrategy` version-hazard symbol; lists all registered KV connectors; loads each connector class through the factory's own thunk. Run this against any tag before trusting it in production. Verified `vllm/vllm-openai:v0.19.1` 2026-04-26: vllm 0.19.1, lmcache 0.4.3, nixl 0.9.0, mooncake-transfer-engine 0.3.10.post1, all imports clean, all four KV-offload connectors load.
+
+**lmcache version compatibility:** vLLM main imports `ParallelStrategy` from the lmcache MP adapter. That symbol does NOT exist in lmcache 0.4.3 (verified against the v0.4.3 tag); it was added in 0.4.4. v0.19.1 image ships 0.4.3 — fine for v0.19.x vLLM source which doesn't need the symbol, but if you mix vLLM main with the bundled lmcache, expect `ImportError: cannot import name 'ParallelStrategy'`. Pin the pair or `pip install -U lmcache>=0.4.4` inside the container.
 
 For other diagnostics (LMCache logs, `gdscheck`, Prometheus metrics), see `references/diagnostics.md`.
 
@@ -42,16 +58,19 @@ For other diagnostics (LMCache logs, `gdscheck`, Prometheus metrics), see `refer
 Ask these in order:
 
 1. **Single node, CPU DRAM tier only, no disk?** → `--kv-offloading-backend native`. Zero extra deps, included since v0.11.1. Start here unless there is a concrete reason to add complexity.
-2. **Single node, want NVMe as a third tier?** → LMCache. `--kv-offloading-backend lmcache` + `LMCACHE_LOCAL_DISK` env vars.
-3. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
-4. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
-5. **NIXL between prefill/decode pods AND local CPU overflow on each?** → MultiConnector, composing NixlConnector + OffloadingConnector.
+2. **Single node, want NVMe as a third tier?** → LMCache in-process via `LMCacheConnectorV1` (`--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'` + `LMCACHE_LOCAL_DISK` env vars).
+3. **Multiple vLLM pods on the same node want a SHARED KV cache, OR cache CPU work should not contend with the inference GIL, OR cache memory needs to scale independently of GPU pods?** → **LMCache MP mode** (separate-pod LMCache server, vLLM connects via ZMQ using `LMCacheMPConnector`). Defer to the **`lmcache-mp` skill** for the DaemonSet+Deployment pattern, image pair, ZMQ protocol, L2 adapter cascade.
+4. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
+5. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
+6. **NIXL between prefill/decode pods AND local CPU overflow on each?** → MultiConnector, composing NixlConnector + OffloadingConnector.
 
-Do not reach for LMCache or NIXL or Mooncake just because they exist. Native offload handles the 80% case with zero operational surface area.
+Do not reach for LMCache or NIXL or Mooncake just because they exist. Native offload handles the 80% case with zero operational surface area. LMCache MP adds an extra pod and another image — only justified by the multi-pod-shared-cache or GIL-isolation cases above.
 
 **For concrete config recipes for any of the above, see `references/connectors.md`.** Load that reference once a backend has been selected — it contains copy-paste-ready invocations with all required env vars, GDS host prerequisites (cuda-keyring, open kernel modules, Secure Boot), and the MultiConnector JSON format.
 
 > **NIXL deep-dive** — NIXL itself (transfer library, 13 backend plugins, agent API, telemetry, ETCD/side-channel metadata, plugin authoring) lives in the dedicated **`nvidia-nixl`** skill. This skill covers vLLM-side wiring of NixlConnector / LMCache-P2P-over-NIXL only. Reach for `nvidia-nixl` when picking transports (`UCX_TLS`, GDS, Mooncake, libfabric…), tuning UCX, debugging `nixl_agent` directly, or writing custom plugins.
+
+> **LMCache MP deep-dive** — the standalone-server multiprocess mode (`LMCacheMPConnector`, `lmcache server`, `lmcache/standalone:nightly`, DaemonSet+Deployment, L2 adapters: nixl_store / fs / mooncake_store / s3) is its own operational shape. The dedicated **`lmcache-mp`** skill covers it.
 
 ## Sizing math — READ BEFORE RECOMMENDING A NUMBER
 
@@ -75,6 +94,30 @@ Please set `--disable-hybrid-kv-cache-manager`.
 ```
 
 The Hybrid Memory Allocator (HMA) is the default scheduler in vLLM v0.18+ and is mutually exclusive with `OffloadingConnector`. This is the **single most common silent blocker** for first-time KV-offload deploys — the error message names the fix but it appears on no cookbook page or release note (verified 2026-04-25 against release notes for v0.18.0 → v0.20.0). Verified live on RTX 4060 Ti 16 GB + cu130-nightly + Qwen3-4B; pod boots clean once the flag lands.
+
+The same flag is required by `LMCacheConnectorV1`, `LMCacheMPConnector`, and the new hybrid-aware path being built — see the next section.
+
+### Hybrid models (Qwen3.5, Gemma4, Mamba+attention) are a moving target
+
+vLLM's Hybrid Memory Allocator (HMA) is mutually exclusive with all current KV-offload connectors. Disabling HMA fixes startup, but introduces secondary problems on hybrid-attention models:
+
+- **0% prefix cache hit rate** on Gemma4 + speculative decoding (EAGLE/DFlash/MTP) — reported as [vLLM#40624](https://github.com/vllm-project/vllm/issues/40624) (open as of 2026-04-26, last update 2026-04-23). Caused by a per-manager EAGLE-drop spiral when the hybrid coordinator sees ≥3 attention groups (Gemma4 full + sliding + DFlash draft = 3 specs). Workaround: `--disable-hybrid-kv-cache-manager` + lower `--max-model-len` to fit non-HMA allocation.
+- **LMCache MP doesn't support hybrid models at all** ([LMCache#2845](https://github.com/LMCache/LMCache/issues/2845)). Community patch exists for Qwen3.5-27B, marked NOT production-ready.
+- **Native offload + hybrid is being actively built** in the `[kv_offload+HMA][N/N]` PR series. Parts 0-3, 5-7 shipped in **v0.20.0** (2026-04-23); parts 4, 8, 9, 10, 11 merged to `main` between 2026-04-22 and 2026-04-25 — **not yet in any tagged release**. Final piece (HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment, [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261)) still open.
+
+**Today's recommendation for hybrid-model + offload:**
+
+1. Use stock `vllm/vllm-openai:v0.19.1+` with native `--kv-offloading-size` + `--disable-hybrid-kv-cache-manager` + reduced `--max-model-len`. Accept the prefix-cache hit rate bug on hybrid + spec-decode combos.
+2. Or wait for v0.21.x with the full kv_offload+HMA series merged.
+3. Pure-transformer models (Qwen3-14B, Llama-3, Mistral-7B) are unaffected by this section — the standard offload recipes work today.
+
+When recheckchecking, the canonical probe is:
+
+```bash
+gh pr list --repo vllm-project/vllm --search "kv_offload+HMA in:title is:open"
+gh issue view 40624 --repo vllm-project/vllm --json state,updatedAt
+gh issue view 2845 --repo LMCache/LMCache --json state,updatedAt
+```
 
 ### `--cpu-offload-gb` is NOT the same as `--kv-offloading-size`
 
