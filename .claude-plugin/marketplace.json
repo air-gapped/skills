@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260426.5",
+      "version": "0.20260427.5",
       "author": {
         "name": "Jörgen"
       },
@@ -116,7 +116,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
-      "version": "0.20260425.22",
+      "version": "0.20260426.23",
       "author": {
         "name": "Jörgen"
       },

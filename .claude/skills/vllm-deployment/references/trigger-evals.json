@@ -1,0 +1,20 @@
+[
+  {"query": "as a moe model can this be started with ep2 dp2 or what vllm flags", "should_trigger": true, "source": "user-reported failure 2026-04-25 — MoE EP/DP flag question, specialist phrasing"},
+  {"query": "what are the performance best practices we have for our lab cluster", "should_trigger": true, "source": "user-reported failure 2026-04-25 — lab cluster perf, no 'vllm' word"},
+  {"query": "do we have caches saved with the correct settings", "should_trigger": true, "source": "user-reported failure 2026-04-25 — /root/.cache pod survival check"},
+  {"query": "review the gemma4-31b manifest for cache + HF_TOKEN gaps", "should_trigger": true, "source": "specialist manifest-review request — names model + concrete env vars"},
+  {"query": "why does my pod take 12 min cold boot every restart", "should_trigger": true, "source": "specialist cold-start symptom with concrete timing"},
+  {"query": "what's the right liveness initialDelaySeconds for a 26B AWQ pod on TP=2", "should_trigger": true, "source": "specialist probe-tuning question with quant + TP context"},
+  {"query": "how do I get the parser plugin configmap mounted into the vllm container", "should_trigger": true, "source": "specialist plugin-deployment question"},
+  {"query": "should I scale gemma4-31b down before deploying kimi k2 on the lab", "should_trigger": true, "source": "specialist pod-swap workflow question"},
+  {"query": "the rolling-update isn't working when I push a new image to harbor", "should_trigger": true, "source": "specialist k8s deployment-strategy question"},
+  {"query": "does AIBrix or production-stack handle our 2-GPU-1-pod constraint better", "should_trigger": true, "source": "specialist control-plane comparison"},
+  {"query": "kimi-k2 fp8 needs 8xH200 — what does the LWS manifest look like", "should_trigger": true, "source": "specialist multi-node LWS request"},
+  {"query": "MTP1 working on Qwen3.6 — how do I add the spec-decode flag without restarting", "should_trigger": false, "source": "spec-decode territory; vllm-speculative-decoding owns this"},
+  {"query": "what's the right --kv-cache-dtype for fp8 on B200", "should_trigger": false, "source": "vllm-quantization territory"},
+  {"query": "edit my chat_template.jinja to fix the tool_call dropping", "should_trigger": false, "source": "jinja-expert / chat-template-fixer territory"},
+  {"query": "tune fused-MoE kernel for compressed-tensors on Marlin", "should_trigger": false, "source": "vllm-performance-tuning territory"},
+  {"query": "scout known issues for cyankiwi/Qwen3.6-35B-A3B-AWQ", "should_trigger": false, "source": "scout-known-bugs territory"},
+  {"query": "rent a 4xH200 spot instance on Verda for the kimi audit", "should_trigger": false, "source": "verda territory"},
+  {"query": "preflight reports TOKEN_ID_DIVERGES — is that bypass classifier reliable", "should_trigger": false, "source": "preflight-internal / template-parser-tuning territory"}
+]
