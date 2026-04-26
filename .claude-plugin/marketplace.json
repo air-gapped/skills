@@ -65,15 +65,16 @@
     {
       "name": "inference-cache",
       "source": "./",
-      "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite.",
-      "version": "0.20260426.2",
+      "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters), SGLang HiCache (three-tier hierarchical prefix cache GPU HBM → host DRAM → distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache), and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite.",
+      "version": "0.20260426.3",
       "author": {
         "name": "Jörgen"
       },
       "license": "MIT",
       "skills": [
         "./.claude/skills/lmcache-mp",
-        "./.claude/skills/nvidia-nixl"
+        "./.claude/skills/nvidia-nixl",
+        "./.claude/skills/sglang-hicache"
       ],
       "strict": false,
       "category": "inference",
@@ -144,7 +145,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
-      "version": "0.20260426.24",
+      "version": "0.20260427.24",
       "author": {
         "name": "Jörgen"
       },
@@ -189,20 +190,6 @@
       "license": "MIT",
       "skills": [
         "./.claude/skills/aiperf"
-      ],
-      "strict": false
-    },
-    {
-      "name": "sglang-hicache",
-      "source": "./",
-      "description": "SGLang HiCache (hierarchical KV cache)",
-      "version": "0.20260426.1",
-      "author": {
-        "name": "Jörgen"
-      },
-      "license": "MIT",
-      "skills": [
-        "./.claude/skills/sglang-hicache"
       ],
       "strict": false
     }

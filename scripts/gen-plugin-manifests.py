@@ -45,18 +45,20 @@ TAGLINE_CAP = 200
 GROUPS: dict[str, dict] = {
     "inference-cache": {
         # Engine-agnostic KV-cache + transport siblings: separate-pod
-        # LMCache MP server and NIXL transport used by Dynamo/vLLM/SGLang.
-        # vllm-caching stays in the `vllm` suite (vLLM-side reference).
-        # Add sglang-hicache once it's tracked.
-        "members": ["lmcache-mp", "nvidia-nixl"],
+        # LMCache MP server, SGLang HiCache (hierarchical L1+L2+L3),
+        # and NIXL transport used by Dynamo/vLLM/SGLang. vllm-caching
+        # stays in the `vllm` suite (vLLM-side reference).
+        "members": ["lmcache-mp", "sglang-hicache", "nvidia-nixl"],
         "description": (
             "Inference KV-cache and transport suite — LMCache multiprocess "
             "(MP) standalone-server mode (DaemonSet + Deployment K8s "
             "pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/"
-            "mooncake adapters) and NVIDIA NIXL transfer library "
-            "(UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, "
-            "telemetry) used by Dynamo/vLLM/SGLang. Pairs with the "
-            "vllm-caching skill in the `vllm` suite."
+            "mooncake adapters), SGLang HiCache (three-tier hierarchical "
+            "prefix cache GPU HBM → host DRAM → distributed L3 via "
+            "Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache), and NVIDIA "
+            "NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 "
+            "plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. "
+            "Pairs with the vllm-caching skill in the `vllm` suite."
         ),
         "category": "inference",
         "tags": [

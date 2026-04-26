@@ -1,0 +1,26 @@
+{
+  "skill_name": "sglang-hicache",
+  "evals": [
+    {
+      "id": 0,
+      "name": "vllm-to-sglang-hybrid-migration",
+      "prompt": "we're serving Qwen/Qwen3.5-9B on a 2x H100 box behind vllm v0.19.1 with `--kv-offloading-backend lmcache --kv-offloading-size 200 --enable-prefix-caching` plus LMCacheConnectorV1 and the engine fails at boot with `ValueError: Hybrid KV cache manager is disabled but failed to convert KV cache specs to one unified type`. someone said sglang HiCache handles hybrid models — should we migrate? if yes, give me the equivalent sglang launch command with the right per-rank sizing and any flags that are different from vllm. workload is coding-agent traffic, ~20k token prompts, 8 turns per session.",
+      "expected_output": "(1) Confirms LMCache hybrid bug (#3106). (2) Says sglang HiCache v0.5.10 supports Mamba/SSM hybrid (Qwen3.5) via Mooncake L3 OR L1+L2 only. (3) Provides exact sglang launch command with `--enable-hierarchical-cache`, sizing converted from total → per-rank (200 GB total / TP=2 = `--hicache-size 100`), `--mamba-scheduler-strategy extra_buffer`, `--max-mamba-cache-size N`. (4) Calls out `--page-size 64`, `--hicache-write-policy write_through` (not write_back due to #19212), `--hicache-mem-layout page_first_direct + --hicache-io-backend direct`. (5) Optionally suggests Mooncake L3 with `@toml` extra-config for stronger cache reuse across coding sessions.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "production-storage-backend-selection",
+      "prompt": "we're going to add an L3 storage backend to our sglang deployment. cluster is 16 nodes, each 8× H100 SXM5 with mlx5 ConnectX-7 RoCE and 1TB DRAM, serving Qwen/Qwen3-235B-A22B-Instruct-2507 across TP=8 PP=2. workload is multi-tenant agentic queries with ~50% prefix overlap across tenants. what should we use — mooncake, 3FS, NIXL, or LMCache? give me a concrete recipe with all flags and config files. i care about TTFT p99 not total throughput.",
+      "expected_output": "(1) Recommends mooncake (best-tested 2026, RDMA-native, hybrid support) — but FLAGS the v0.5.6+ TTFT regression (#16797) and recommends pinning mooncake-transfer-engine 0.3.10.post1. (2) FLAGS that PP=2 + HiCache is broken (#22607) — recommends dropping to PP=1 or waiting for v0.5.11. (3) Provides `python -m sglang.launch_server` with `--enable-hierarchical-cache`, `--page-size 64`, `--hicache-size N` per-rank (NOT total — explicitly mentions this is opposite of vLLM convention), `--hicache-mem-layout page_first_direct`, `--hicache-io-backend direct`, `--hicache-write-policy write_through`, `--hicache-storage-backend mooncake`, `--hicache-storage-prefetch-policy timeout` (the only one recommended for prod SLOs). (4) Provides a /etc/sglang/mooncake.toml with master_server_address, metadata_server, global_segment_size, eviction_high_watermark_ratio, prefetch_timeout_*. (5) Mentions per-tier cache-hit Prometheus metrics for verification.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "diagnose-hicache-perf-regression",
+      "prompt": "i enabled HiCache with `--enable-hierarchical-cache --hicache-ratio 1.5 --hicache-storage-backend file --hicache-write-policy write_back --hicache-mem-layout page_first --hicache-io-backend direct` to test it on my dev box and TTFT got WORSE not better. requests sometimes hang for 30+ seconds. what's wrong with this config? what should i change? i'm running v0.5.10 on a single H100, model is Llama-3.1-8B-Instruct, page-size left at default.",
+      "expected_output": "(1) Identifies multiple problems: (a) `--hicache-ratio 1.5` is too low for production (rule >1, recommended ≥2), (b) `file` backend has known slow-prefetch bug (#21880) — should not be used in prod, (c) `write_back` has open crash bug #19212 with `AssertionError: parent does not have child key`, (d) page-size default 1 should be 64 for hicache + L3 storage. (2) Notes that `page_first + direct` triggers auto-rewrite to `page_first_direct` per `_resolve_layout_io_compatibility` — operator should check boot log for the WARNING. (3) Provides corrected config with --hicache-ratio 2, write_through policy, no L3 (or hf3fs/nixl if needed), --page-size 64. (4) Recommends checking sglang_hicache_storage_get_duration_seconds histogram or just `sglang_cache_hit_rate` to confirm fix.",
+      "files": []
+    }
+  ]
+}
