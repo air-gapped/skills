@@ -277,6 +277,18 @@ commit SHA. Summary:
   `[EOS]` (163585). vLLM reads tokenizer_config, sglang reads
   generation_config. Different engines stop on different tokens.
   No `tokenizer.json`; `tiktoken` package required.
+- **Kimi-K2.6 nested-config trap** — `quantization_config` lives at
+  `config["text_config"]["quantization_config"]`, NOT top-level. Top
+  has only `dtype: bfloat16` and an empty/absent quant block. A
+  reader that grabs `config["quantization_config"]` returns `{}` and
+  concludes "BF16, no quantization" — wrong. Reality:
+  `compressed-tensors`, `num_bits: 4`, `group_size: 32`, `format:
+  pack-quantized` (W4A16 routed-MoE INT4 with BF16 carve-outs for
+  `lm_head`, `self_attn.*`, `shared_experts.*`, dense MLP). Total
+  checkpoint 595 GB ≠ ~1 TB BF16. **Always walk nested keys** —
+  `text_config`, `vision_config`, `audio_config`, `language_config`
+  are common multimodal/MoE homes. Same trap on K2.5 (same nesting),
+  Llama-4 vision configs, GLM-4V, Qwen3-VL.
 - **Qwen3-0.6B** — `<|im_end|>` is simultaneously turn terminator AND
   EOS. Qwen3.5-**Base** flips EOS to `<|endoftext|>` — preflight
   hardcoding `<|im_end|>` emits runaway completions on base variants.
@@ -305,6 +317,8 @@ questions:
 | `version_gate_tokenizer_class(cfg)` | Minimum transformers version (`TokenizersBackend` → `>=5.0`; `PreTrainedTokenizerFast` → `>=4.0` alias) |
 | `build_chat_template_env()` | Minimal faithful `ImmutableSandboxedEnvironment` for offline render testing |
 | `verify_commit_reachable(repo_id, sha)` | Guards against GLM-5.1-FP8-style orphan-commit traps via HF `/refs` |
+| `find_nested_quantization_config(config)` | Walks `text_config`, `vision_config`, etc. — catches Kimi-K2.6 W4A16 hidden under `text_config.quantization_config` while top-level looks BF16. Returns `[(dotted_path, value)]`. |
+| `summarize_quant_config(qc)` | One-line render of a `quantization_config` dict — `compressed-tensors num_bits=4 group_size=32 format=pack-quantized ignore_patterns=4 kv_cache_scheme=None`. Surfaces `kv_cache_scheme:null` (no shipped K/V scales → scale=1.0 fallback risk on `--kv-cache-dtype fp8`). |
 
 ---
 

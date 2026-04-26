@@ -529,3 +529,72 @@ def verify_commit_reachable(
     # simple "is it HEAD?" check catches the common case. For
     # deeper verification, use git-clone + git merge-base.
     return False
+
+
+def find_nested_quantization_config(config: dict) -> list[tuple[str, dict]]:
+    """Walk a HF config.json dict and return every (dotted_path, value)
+    where the key is `quantization_config` and the value is non-empty.
+
+    Multimodal/MoE configs commonly nest the real quant spec under
+    `text_config`, `vision_config`, `audio_config`, or `language_config`
+    while leaving the top level empty. Reading only top-level
+    `config["quantization_config"]` returns `{}` and concludes "BF16"
+    when the checkpoint is actually compressed-tensors W4A16 or similar.
+
+    Verified misses if you don't walk:
+    - Kimi-K2.6 / K2.5 — quant config at `text_config.quantization_config`
+      (W4A16, group_size 32, MoE INT4 with BF16 self_attn/lm_head/dense).
+      Top-level dtype:bfloat16 is the *compute* dtype, not storage.
+    - Llama-4 vision configs
+    - GLM-4V, Qwen3-VL — vision_config and text_config split
+
+    Returns a list to surface ALL nested locations (multimodal models
+    can quantize text and vision sub-models independently).
+    """
+    found: list[tuple[str, dict]] = []
+
+    def walk(o, path: str = "") -> None:
+        if isinstance(o, dict):
+            for k, v in o.items():
+                child = f"{path}.{k}" if path else k
+                if k == "quantization_config" and isinstance(v, dict) and v:
+                    found.append((child, v))
+                walk(v, child)
+
+    walk(config)
+    return found
+
+
+def summarize_quant_config(qc: dict) -> str:
+    """Render a one-line summary of a `quantization_config` dict for
+    triage. Handles compressed-tensors, GPTQ, AWQ, FP8, NVFP4, and
+    plain pass-through. Use after find_nested_quantization_config()."""
+    method = qc.get("quant_method", "?")
+
+    if method == "compressed-tensors":
+        groups = qc.get("config_groups", {})
+        bits, gs, fmt = "?", "?", qc.get("format", "?")
+        for g in groups.values():
+            w = (g or {}).get("weights") or {}
+            bits = w.get("num_bits", bits)
+            gs = w.get("group_size", gs)
+            break
+        ignore_count = len(qc.get("ignore", []) or [])
+        kv = qc.get("kv_cache_scheme")
+        return (
+            f"compressed-tensors num_bits={bits} group_size={gs} "
+            f"format={fmt} ignore_patterns={ignore_count} "
+            f"kv_cache_scheme={kv!r}"
+        )
+
+    if method in ("fp8", "modelopt", "modelopt_fp8"):
+        return f"{method} kv_cache_quant_algo={qc.get('kv_cache_quant_algo')!r}"
+
+    if method in ("gptq", "awq", "marlin"):
+        return (
+            f"{method} bits={qc.get('bits', '?')} "
+            f"group_size={qc.get('group_size', '?')} "
+            f"desc_act={qc.get('desc_act', '?')}"
+        )
+
+    return f"{method} (raw keys: {sorted(qc.keys())[:6]})"
