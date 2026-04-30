@@ -193,6 +193,20 @@
         "./.claude/skills/aiperf"
       ],
       "strict": false
+    },
+    {
+      "name": "sglang-model-gateway",
+      "source": "./",
+      "description": "SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`)",
+      "version": "0.20260430.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/sglang-model-gateway"
+      ],
+      "strict": false
     }
   ]
 }

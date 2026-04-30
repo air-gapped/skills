@@ -1,0 +1,227 @@
+# sgl-model-gateway in front of SGLang workers (HTTP service discovery works)
+# Pattern: one Deployment+Service+RBAC per model, keyed by `model_id` label.
+# Replace <MODEL_ID>, <NS>, <SNAPSHOT_PATH>, <IMAGE_TAG>, <REPLICAS> as needed.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: <NS>
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    model_id: <MODEL_ID>
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+rules:
+  # Service discovery watches Pods directly (not Endpoints/Services), but we
+  # add endpoints/services defensively in case the gateway grows to consult them.
+  - apiGroups: [""]
+    resources: ["pods", "endpoints", "services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+subjects:
+  - kind: ServiceAccount
+    name: <MODEL_ID>-gateway
+    namespace: <NS>
+roleRef:
+  kind: Role
+  name: <MODEL_ID>-gateway
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: sglang-gateway
+    app.kubernetes.io/component: router
+    model_id: <MODEL_ID>
+spec:
+  replicas: 1   # Single replica avoids the 10-20% multi-replica cache-hit penalty.
+                # For HA: bump to 2+ and add `sessionAffinity: ClientIP` on the
+                # Service below to keep prefix locality.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sglang-gateway
+        app.kubernetes.io/component: router
+        model_id: <MODEL_ID>
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "29000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: <MODEL_ID>-gateway
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: lmsysorg/sgl-model-gateway:<IMAGE_TAG>   # e.g. v0.3.1
+          imagePullPolicy: IfNotPresent
+          args:
+            # Service discovery — works because SGLang workers expose
+            # /server_info and /model_info. For vLLM workers, use the
+            # vllm-behind-gateway.yaml pattern (--worker-urls instead).
+            - --service-discovery
+            - --selector
+            - model_id=<MODEL_ID>
+            - --service-discovery-namespace
+            - <NS>
+            - --service-discovery-port
+            - "30000"     # MUST match worker container port
+            # Tokenizer — local snapshot path (air-gapped-friendly).
+            # If you have HF access, you can pass `--model-path <REPO_ID>`
+            # but the Rust gateway does not honour HF_ENDPOINT.
+            - --model-path
+            - <SNAPSHOT_PATH>
+            # Routing
+            - --policy
+            - cache_aware
+            - --cache-threshold
+            - "0.3"
+            # Network
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8080"
+            # Capacity
+            - --max-concurrent-requests
+            - "256"
+            - --queue-size
+            - "128"
+            # Reliability
+            - --retry-max-retries
+            - "3"
+            - --cb-failure-threshold
+            - "10"
+            # Metrics
+            - --prometheus-host
+            - 0.0.0.0
+            - --prometheus-port
+            - "29000"
+          ports:
+            - {name: http, containerPort: 8080, protocol: TCP}
+            - {name: metrics, containerPort: 29000, protocol: TCP}
+          env:
+            # Air-gapped-friendly env vars. Gateway doesn't read HF_HUB_OFFLINE
+            # itself, but other crates in the process may.
+            - {name: HF_HOME, value: /models/huggingface}
+            - {name: HF_HUB_CACHE, value: /models/huggingface/hub}
+            - {name: HF_HUB_OFFLINE, value: "1"}
+            - {name: HF_HUB_DISABLE_TELEMETRY, value: "1"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {memory: "768Mi", cpu: "100m"}
+            limits:   {memory: "1Gi",   cpu: "500m"}
+          volumeMounts:
+            - {name: models, mountPath: /models, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+          livenessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+      volumes:
+        - name: models
+          # Use a PVC in production; hostPath only for single-node dev.
+          # persistentVolumeClaim: {claimName: <MODEL_ID>-store}
+          hostPath:
+            path: /models
+            type: Directory
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: sglang-gateway
+    app.kubernetes.io/component: router
+    model_id: <MODEL_ID>
+spec:
+  type: ClusterIP
+  # If you scale gateway to 2+ replicas, uncomment to keep prefix locality:
+  # sessionAffinity: ClientIP
+  # sessionAffinityConfig:
+  #   clientIP:
+  #     timeoutSeconds: 10800   # 3 hours
+  ports:
+    - {name: http, port: 8080, targetPort: http, protocol: TCP}
+    - {name: metrics, port: 29000, targetPort: metrics, protocol: TCP}
+  selector:
+    app.kubernetes.io/name: sglang-gateway
+    model_id: <MODEL_ID>
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+---
+# ServiceMonitor for Prometheus Operator. Relabel kubernetes metadata
+# into series labels so Grafana can group by model_id/pod/node.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    model_id: <MODEL_ID>
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+  endpoints:
+    - port: metrics
+      interval: 15s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_model_id]
+          targetLabel: model_id
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node

@@ -1,0 +1,334 @@
+# sgl-model-gateway in front of vLLM workers — HTTP transparent-proxy mode.
+#
+# Why this differs from the SGLang variant:
+#   * vLLM does NOT expose /server_info or /model_info, so the gateway's HTTP
+#     service-discovery probe gets 404. We bypass discovery and use static
+#     --worker-urls. For dynamic membership, run a sidecar that POSTs to
+#     /workers REST when Endpoints change.
+#   * vLLM uses port 8000 by default (vs SGLang's 30000).
+#   * Set --enable-prompt-tokens-details on vLLM so the gateway gets per-request
+#     cache-hit feedback in OpenAI-standard `usage.prompt_tokens_details.cached_tokens`.
+#
+# Pattern: one vLLM Deployment (N replicas, headless Service) + one gateway
+# Deployment in front. Replace <...> placeholders.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: <NS>
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+---
+##############################################################################
+# vLLM workers — N replicas of the same model, behind a headless Service so
+# the gateway can resolve Pod IPs directly via DNS-SRV. Use external-LB DP mode
+# (--data-parallel-external-lb + --data-parallel-rank=$POD_INDEX) if you want
+# vLLM-side data-parallel coordination. Plain N-replicas Deployment shown here.
+##############################################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <MODEL_ID>-vllm
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: vllm-worker
+    app.kubernetes.io/component: inference
+    model_id: <MODEL_ID>
+spec:
+  replicas: <REPLICAS>   # e.g. 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm-worker
+      model_id: <MODEL_ID>
+  strategy:
+    rollingUpdate: {maxSurge: 0, maxUnavailable: 1}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vllm-worker
+        app.kubernetes.io/component: inference
+        model_id: <MODEL_ID>
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:<VLLM_TAG>   # pin a specific version
+          imagePullPolicy: IfNotPresent
+          args:
+            - --model=<SNAPSHOT_PATH>
+            - --served-model-name=<MODEL_ID>
+            - --tensor-parallel-size=1
+            - --port=8000
+            - --enable-prompt-tokens-details   # Surface cached_tokens to gateway
+            - --disable-log-requests
+            - --gpu-memory-utilization=0.90
+            - --max-model-len=<MAX_MODEL_LEN>
+          env:
+            # Air-gapped — see vllm-configuration skill for full env catalog.
+            - {name: HF_HUB_OFFLINE, value: "1"}
+            - {name: TRANSFORMERS_OFFLINE, value: "1"}
+            - {name: HF_HOME, value: /tmp/hf-cache}            # writable
+            - {name: HF_HUB_CACHE, value: /models/huggingface/hub}
+            - {name: VLLM_NO_USAGE_STATS, value: "1"}
+            - {name: VLLM_DO_NOT_TRACK, value: "1"}
+            - {name: HF_HUB_DISABLE_TELEMETRY, value: "1"}
+            - name: VLLM_HOST_IP
+              valueFrom: {fieldRef: {fieldPath: status.podIP}}
+            # If gated model: optional secret. Cache layer may revalidate even offline.
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef: {name: hf-token, key: token, optional: true}
+          ports:
+            - {name: http, containerPort: 8000, protocol: TCP}
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              memory: "<WORKER_MEM>"
+            requests:
+              nvidia.com/gpu: "1"
+              memory: "<WORKER_MEM>"
+          volumeMounts:
+            - {name: models, mountPath: /models, readOnly: true}
+            - {name: shm,    mountPath: /dev/shm}
+            - {name: tmp,    mountPath: /tmp}
+          # vLLM /health: connection-refused while booting, 200 when ready,
+          # 503 only on EngineDeadError. Single endpoint, no /ready or /live.
+          # Tune failureThreshold * periodSeconds > cold-load time.
+          livenessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 600   # matches VLLM_ENGINE_READY_TIMEOUT_S
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 200    # ~17 min cold-load tolerance
+      volumes:
+        - name: models
+          # PVC recommended for production; hostPath shown for brevity.
+          hostPath: {path: /models, type: Directory}
+        - name: shm
+          emptyDir: {medium: Memory, sizeLimit: 10Gi}
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 60
+---
+# Headless Service so the gateway can resolve Pod IPs directly.
+# The gateway's --worker-urls can use http://<MODEL_ID>-vllm-N.<MODEL_ID>-vllm.<NS>.svc:8000
+# format if you switch to a StatefulSet, OR you list pod IPs/DNS names explicitly.
+apiVersion: v1
+kind: Service
+metadata:
+  name: <MODEL_ID>-vllm
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: vllm-worker
+    model_id: <MODEL_ID>
+spec:
+  type: ClusterIP
+  clusterIP: None    # headless
+  ports:
+    - {name: http, port: 8000, targetPort: http, protocol: TCP}
+  selector:
+    app.kubernetes.io/name: vllm-worker
+    model_id: <MODEL_ID>
+---
+##############################################################################
+# Gateway — fronts the vLLM workers via static --worker-urls (service
+# discovery would 404 on /server_info, so we don't enable it).
+#
+# For dynamic membership (autoscaling vLLM replicas): run a sidecar or operator
+# that watches Endpoints for <MODEL_ID>-vllm and POSTs to gateway /workers.
+##############################################################################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    model_id: <MODEL_ID>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: sglang-gateway
+    app.kubernetes.io/component: router
+    model_id: <MODEL_ID>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sglang-gateway
+        app.kubernetes.io/component: router
+        model_id: <MODEL_ID>
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "29000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: <MODEL_ID>-gateway
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: lmsysorg/sgl-model-gateway:<GATEWAY_TAG>   # e.g. v0.3.1
+          imagePullPolicy: IfNotPresent
+          args:
+            # Static worker list. Use full DNS so DNS round-robins among
+            # the headless Service's Pod IPs at resolve time.
+            # For finer control, list each pod-DNS or rely on a sidecar
+            # to manage workers via /workers REST.
+            - --worker-urls
+            - http://<MODEL_ID>-vllm.<NS>.svc.cluster.local:8000
+            # Tokenizer — required for cache_aware policy
+            - --tokenizer-path
+            - <SNAPSHOT_PATH>
+            - --policy
+            - cache_aware
+            - --cache-threshold
+            - "0.3"
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8080"
+            - --max-concurrent-requests
+            - "256"
+            - --queue-size
+            - "128"
+            - --retry-max-retries
+            - "3"
+            - --cb-failure-threshold
+            - "10"
+            - --prometheus-host
+            - 0.0.0.0
+            - --prometheus-port
+            - "29000"
+          ports:
+            - {name: http, containerPort: 8080, protocol: TCP}
+            - {name: metrics, containerPort: 29000, protocol: TCP}
+          env:
+            - {name: HF_HOME, value: /models/huggingface}
+            - {name: HF_HUB_CACHE, value: /models/huggingface/hub}
+            - {name: HF_HUB_OFFLINE, value: "1"}
+            - {name: HF_HUB_DISABLE_TELEMETRY, value: "1"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {memory: "768Mi", cpu: "100m"}
+            limits:   {memory: "1Gi",   cpu: "500m"}
+          volumeMounts:
+            - {name: models, mountPath: /models, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+          livenessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+      volumes:
+        - name: models
+          hostPath: {path: /models, type: Directory}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+  labels:
+    app.kubernetes.io/name: sglang-gateway
+    model_id: <MODEL_ID>
+spec:
+  type: ClusterIP
+  ports:
+    - {name: http, port: 8080, targetPort: http, protocol: TCP}
+    - {name: metrics, port: 29000, targetPort: metrics, protocol: TCP}
+  selector:
+    app.kubernetes.io/name: sglang-gateway
+    model_id: <MODEL_ID>
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: <MODEL_ID>-gateway
+  namespace: <NS>
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sglang-gateway
+      model_id: <MODEL_ID>
+  endpoints:
+    - port: metrics
+      interval: 15s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_model_id]
+          targetLabel: model_id
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: <MODEL_ID>-vllm
+  namespace: <NS>
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm-worker
+      model_id: <MODEL_ID>
+  endpoints:
+    - port: http
+      interval: 15s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_model_id]
+          targetLabel: model_id
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node

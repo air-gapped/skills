@@ -1,0 +1,52 @@
+{
+  "skill_name": "sglang-model-gateway",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "vllm-multi-replica-k8s",
+      "prompt": "I'm running 4 vLLM replicas of meta-llama/Llama-3.1-8B-Instruct on Kubernetes (one Pod per GPU, 4 RTX 4090s on one node). Right now they sit behind a plain ClusterIP Service with default round-robin and prefix-cache hit rate is terrible — every request seems to hit a different replica. Someone said sgl-router could fix this. How do I put sgl-router in front so prefix-locality is preserved? I'm in the sglang namespace, model store is on a hostPath at /models, and I'm using lmsysorg/sgl-model-gateway:v0.3.1. Give me a working manifest and explain the gotchas. Don't make me wait — write the YAML.",
+      "expected_output": "Manifest + explanation should: (1) note the canonical name is sgl-model-gateway not sgl-router, (2) explain that HTTP service discovery does NOT work for vLLM (probes /server_info which vLLM 404s), (3) recommend --worker-urls instead OR sidecar reconciliation, (4) wire cache_aware policy with --tokenizer-path, (5) set --enable-prompt-tokens-details on vLLM for cache feedback, (6) include RBAC + Service + ServiceMonitor, (7) mention that single gateway replica avoids the 10-20% multi-replica cache penalty",
+      "files": [],
+      "assertions": [
+        {"text": "Mentions that HTTP service discovery does not work with vLLM (because vLLM 404s on /server_info or /model_info)"},
+        {"text": "Recommends --worker-urls (static list) for vLLM workers, not --service-discovery"},
+        {"text": "Sets --policy cache_aware (or explains why)"},
+        {"text": "Provides --tokenizer-path / --model-path so cache-aware policy can hash prompts"},
+        {"text": "Suggests --enable-prompt-tokens-details on vLLM workers"},
+        {"text": "Includes RBAC (ServiceAccount + Role + RoleBinding)"},
+        {"text": "Notes the canonical name is sgl-model-gateway (formerly sgl-router) and uses the lmsysorg/sgl-model-gateway image"},
+        {"text": "Mentions single-replica gateway pattern (or sessionAffinity ClientIP for HA) to avoid the 10-20% multi-replica cache hit penalty"},
+        {"text": "Output includes a complete-looking YAML manifest (Deployment + Service for the gateway)"}
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "air-gapped-local-mirror",
+      "prompt": "Our Kubernetes cluster has zero internet egress — we cannot reach huggingface.co at all. We have an internal HF mirror at https://hf-mirror.internal.example.com but I'm not sure if sgl-model-gateway honors HF_ENDPOINT the same way Python does. The model snapshots are pre-staged on a PVC at /models/huggingface/hub/. I want to run sgl-model-gateway in front of SGLang workers serving Qwen3-Coder-32B-Instruct. The PVC has the snapshot at /models/huggingface/hub/models--Qwen--Qwen3-Coder-32B-Instruct/snapshots/abc123def/. Tell me exactly what to set in args and env vars on the gateway pod so it never tries to reach huggingface.co. What's the failure mode if I get this wrong?",
+      "expected_output": "Should: (1) explain that the Rust gateway does NOT honor HF_ENDPOINT (uses hf-hub crate which differs from Python huggingface_hub), (2) recommend passing the local snapshot directory to --model-path, (3) list env vars: HF_HOME, HF_HUB_CACHE, HF_HUB_OFFLINE=1, HF_HUB_DISABLE_TELEMETRY, (4) describe the failure mode if --model-path is an HF repo ID instead of a local path (DNS errors / connection refused), (5) note that HF_HOME must be writable, (6) ideally also note that workers need their own offline env vars",
+      "files": [],
+      "assertions": [
+        {"text": "Explicitly states that the Rust gateway does NOT honor HF_ENDPOINT (or that the Rust hf-hub crate differs from Python huggingface_hub on this point)"},
+        {"text": "Recommends passing a local snapshot directory path to --model-path or --tokenizer-path"},
+        {"text": "Lists HF_HOME, HF_HUB_CACHE, HF_HUB_OFFLINE env vars"},
+        {"text": "Describes the failure mode (gateway tries to reach huggingface.co / DNS errors / connection refused) when --model-path is an HF repo ID"},
+        {"text": "Mentions that HF_HOME should point to a writable location, not the read-only PVC mount"},
+        {"text": "Includes a working CLI args example pointing at the snapshot path"}
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "cache-hit-claim-explained",
+      "prompt": "I read in the sglang docs that cache hit rate drops 10-20% with multiple gateway replicas. Now I'm scared to run more than 1 replica for HA. We have 6 vLLM workers behind sgl-model-gateway right now serving llama-3-8b. If I run 2 gateway replicas behind a Service, what actually happens? Is there any way to keep prefix locality with 2 gateways? Also is the 10-20% even a real number or marketing?",
+      "expected_output": "Should: (1) clarify that the 10-20% claim is about multi-replica gateways (independent radix trees), not multi-replica workers, (2) explain why: each gateway has its own radix tree so two same-prefix requests landing on different gateways may pick different workers, (3) suggest sessionAffinity: ClientIP on the gateway Service as the mitigation, OR keeping a single replica with PDB, (4) note that the actual penalty is workload-dependent and the number is a rough docs claim, (5) point to issue #17623 or similar for empirical context",
+      "files": [],
+      "assertions": [
+        {"text": "Explains that the 10-20% applies to multiple GATEWAY replicas, not multiple worker replicas"},
+        {"text": "Explains the mechanism: each gateway replica has its own independent radix tree for cache-aware routing"},
+        {"text": "Suggests sessionAffinity: ClientIP on the gateway Service as a mitigation for HA + cache locality"},
+        {"text": "OR suggests running a single gateway replica with PodDisruptionBudget as an alternative"},
+        {"text": "Acknowledges the number is workload-dependent / rough / not empirical for every deployment"}
+      ]
+    }
+  ]
+}
