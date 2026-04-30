@@ -35,7 +35,7 @@
       "name": "dev",
       "source": "./",
       "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices, and HuggingFace transformers config/tokenizer preflight (vLLM/sglang engine bridge).",
-      "version": "0.20260426.5",
+      "version": "0.20260427.5",
       "author": {
         "name": "Jörgen"
       },
@@ -145,7 +145,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
-      "version": "0.20260427.24",
+      "version": "0.20260430.25",
       "author": {
         "name": "Jörgen"
       },
@@ -156,6 +156,7 @@
         "./.claude/skills/vllm-chat-templates",
         "./.claude/skills/vllm-configuration",
         "./.claude/skills/vllm-deployment",
+        "./.claude/skills/vllm-gemma-4-31b",
         "./.claude/skills/vllm-input-modalities",
         "./.claude/skills/vllm-nvidia-hardware",
         "./.claude/skills/vllm-observability",
