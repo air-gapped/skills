@@ -20,6 +20,7 @@ file path (line numbers drift across refactors — re-verify on upgrade).
 | ArcticInference repo (suffix + LSTM speculators) | https://github.com/snowflakedb/ArcticInference | 2026-04-24 | Latest release v0.1.2 (2026-01-24); repo still active (last push 2026-04-23). |
 | yuhuili/EAGLE3-LLaMA3.1-Instruct-8B HF checkpoint | https://huggingface.co/yuhuili/EAGLE3-LLaMA3.1-Instruct-8B | 2026-04-24 | Present, 245k downloads, Apache-2.0, last modified 2025-09-19. |
 | vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-04-24 | **v0.20.0** released 2026-04-23 (one day ago). Skill's version-gate table caps at v0.19; v0.20 spec-dec additions not yet audited. Re-run freshen on next skill-improver cycle. |
+| HF EAGLE-3 + DFlash recipe survey | `hf models list --search {eagle3,dflash} --limit 500` | 2026-04-30 | 369 EAGLE-3 + 97 DFlash repos. Top ~50 + top ~25 inspected for documented training datasets. Five recipe families recur. Tabulated in `references/training-data-recipes.md`. Re-run survey if Speculators / SGLang / SpecForge ship new defaults. |
 
 ## Classifications summary
 
@@ -48,4 +49,12 @@ curl -s "https://huggingface.co/api/models/yuhuili/EAGLE3-LLaMA3.1-Instruct-8B" 
 
 # vLLM latest release (check for new minor)
 gh api repos/vllm-project/vllm/releases --jq '.[0].tag_name'
+
+# Re-survey EAGLE-3 / DFlash training-data recipes (drives training-data-recipes.md)
+hf models list --search eagle3 --limit 500 --format json | python3 -c '
+import json,sys
+data = sorted(json.load(sys.stdin), key=lambda d: d.get("downloads",0), reverse=True)
+for d in data[:50]: print(d["id"])'
+# Then for each repo:
+#   curl -sL "https://huggingface.co/$ID/raw/main/README.md" | grep -iE "magpie|ultrachat|sharegpt|nemotron|perfectblend|eaglechat|specforge"
 ```

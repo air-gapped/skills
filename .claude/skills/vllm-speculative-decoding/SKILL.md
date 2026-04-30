@@ -36,7 +36,10 @@ guess k tokens that a single target-model forward can verify in parallel.
 Pick once by target-model family and workload shape. Full per-method detail in
 `references/methods.md`; MTP in `references/mtp.md`; EAGLE-3 specifics including
 P-EAGLE in `references/eagle3.md`; DFlash in `references/dflash.md`; Arctic
-plugin and suffix in `references/arctic-inference.md`.
+plugin and suffix in `references/arctic-inference.md`. **If training your own
+EAGLE-3 / DFlash drafter (vs. picking a published one), see
+`references/training-data-recipes.md` for the five recipe families surveyed
+across 466 published checkpoints.**
 
 | Situation | Pick | Why |
 |---|---|---|

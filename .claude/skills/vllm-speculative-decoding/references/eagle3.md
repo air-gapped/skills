@@ -49,6 +49,11 @@ Stock checkpoints are chat-tuned. Domain mismatch matters.
   `llama_eagle3.py`, `deepseek_eagle3.py`, and auto-wrapped variants for
   other allowed families
 
+For **training your own** EAGLE-3 head — recipe families (Magpie+UltraChat,
+Open-PerfectBlend, ShareGPT/UC/PB mix, UltraChat-only, Nemotron, EagleChat),
+sample sizes, and target-family guidance — see
+`references/training-data-recipes.md`.
+
 ## Auto-detection mechanics
 
 vLLM sets `method="eagle3"` automatically if:
