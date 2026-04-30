@@ -45,20 +45,19 @@ TAGLINE_CAP = 200
 GROUPS: dict[str, dict] = {
     "inference-cache": {
         # Engine-agnostic KV-cache + transport siblings: separate-pod
-        # LMCache MP server, SGLang HiCache (hierarchical L1+L2+L3),
-        # and NIXL transport used by Dynamo/vLLM/SGLang. vllm-caching
-        # stays in the `vllm` suite (vLLM-side reference).
-        "members": ["lmcache-mp", "sglang-hicache", "nvidia-nixl"],
+        # LMCache MP server and NIXL transport used by Dynamo/vLLM/
+        # SGLang. SGLang-side caching (HiCache) lives in the `sglang`
+        # suite. vllm-caching stays in the `vllm` suite.
+        "members": ["lmcache-mp", "nvidia-nixl"],
         "description": (
             "Inference KV-cache and transport suite — LMCache multiprocess "
             "(MP) standalone-server mode (DaemonSet + Deployment K8s "
             "pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/"
-            "mooncake adapters), SGLang HiCache (three-tier hierarchical "
-            "prefix cache GPU HBM → host DRAM → distributed L3 via "
-            "Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache), and NVIDIA "
-            "NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 "
-            "plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. "
-            "Pairs with the vllm-caching skill in the `vllm` suite."
+            "mooncake adapters) and NVIDIA NIXL transfer library "
+            "(UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, "
+            "telemetry) used by Dynamo/vLLM/SGLang. Pairs with the "
+            "vllm-caching skill in the `vllm` suite and sglang-hicache "
+            "in the `sglang` suite."
         ),
         "category": "inference",
         "tags": [
@@ -72,6 +71,40 @@ GROUPS: dict[str, dict] = {
             "prefix-caching",
             "disaggregated-prefill",
             "kubernetes",
+        ],
+    },
+    "sglang": {
+        # SGLang operator suite — SGLang-side reference for HiCache
+        # (hierarchical KV cache) and the Model Gateway (Rust router
+        # fronting vLLM/SGLang workers on K8s). Mirrors the `vllm`
+        # suite pattern.
+        "members": ["sglang-hicache", "sglang-model-gateway"],
+        "description": (
+            "SGLang operator reference suite — HiCache (three-tier "
+            "hierarchical prefix cache: GPU HBM → host DRAM → "
+            "distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/"
+            "file/LMCache) and the SGLang Model Gateway "
+            "(`sgl-model-gateway`, formerly `sgl-router`) — Rust "
+            "router fronting vLLM/SGLang inference workers on "
+            "Kubernetes with cache-aware/prefix-hash/consistent-hash "
+            "routing, K8s label-selector service discovery, "
+            "PD-disaggregation, and `--enable-mesh` CRDT sync between "
+            "gateway replicas. Pairs with the `vllm` suite for vLLM-"
+            "side reference and `inference-cache` for engine-agnostic "
+            "KV-cache transport."
+        ),
+        "category": "inference",
+        "tags": [
+            "sglang",
+            "llm",
+            "inference",
+            "kubernetes",
+            "router",
+            "model-gateway",
+            "kv-cache",
+            "hicache",
+            "cache-aware",
+            "prefix-caching",
         ],
     },
     "vllm": {
