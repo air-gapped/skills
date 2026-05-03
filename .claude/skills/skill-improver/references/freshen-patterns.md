@@ -197,6 +197,50 @@ After:  SKILL.md L87 — "gh release view <tag> --json <fields>" (tag now requir
 For multi-ref findings (e.g., a deprecation that appears in three
 places), list each location in a bullet list under `Before:` / `After:`.
 
+## 4b. Scaffolding Decay Probes (Boris alignment)
+
+The standard freshen probes test whether *external* references (URLs,
+versions, deprecation claims) have rotted. Scaffolding decay probes
+test whether the skill's *internal* prose has rotted relative to the
+current model's behaviour.
+
+Boris Cherny (creator of Claude Code) on the bitter lesson: scaffolding
+gains "get wiped out by the next model. So it's almost better to just
+wait for the next one." Skills that compensate for old-model behaviour
+are the in-skill equivalent of stale external refs.
+
+### Detection patterns
+
+Run from the skill directory:
+
+```bash
+# 1. Model-version compensation language
+rg -inE 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for|claude (3\.5|3\.7|opus 4\.0|sonnet 3)' SKILL.md references/ 2>/dev/null
+
+# 2. Procedural prescription where plan mode would suffice
+# (numbered lists in the SKILL.md *body*, not reference content)
+rg -nE '^\s*\d+\. ' SKILL.md | wc -l
+
+# 3. Up-front context dumps (sections >30 lines of pure facts, no tool/file pointer)
+awk '/^## /{name=$0; lines=0; next} {lines++} /^## /{print prev_name, prev_lines; prev_name=name; prev_lines=lines}' SKILL.md
+```
+
+### Classification
+
+| Finding | Action |
+|---|---|
+| Version-specific reference to an old Claude release (e.g. "Claude 3.5 tends to over-eagerly call tools") | Flag for author review. Verify against current model behaviour via a quick probe. If fixed → delete the compensation. |
+| Procedural step list of 8+ items in SKILL.md body | Flag — likely Dim 6 cap candidate. Recommend extracting to `references/runbook.md` or deleting if plan mode would cover. |
+| Section >30 lines of context dump with no tool/file pointer | Flag for refactor — replace bulk with a one-line pointer to where the context lives ("see `tokenizer.json` for the full vocabulary"). |
+| All three patterns clean | Skill is Boris-aligned. Note in the freshen summary. |
+
+### Apply via mutations
+
+Scaffolding decay findings get the same accept/revert treatment as URL
+findings (Phase F4-F5 of freshen mode), but the mutation is
+*deletion-favoured*: removing prescriptive content beats rewriting it.
+"Removing something and getting equal results is a great outcome."
+
 ## 5. Rate-Limit Handling
 
 - `gh` returns `HTTP 403` with `X-RateLimit-Remaining: 0` when throttled.

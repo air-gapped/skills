@@ -289,6 +289,42 @@ After Phase T5 (re-score), apply this decision tree on the **train** scores:
 When picking the **final** description at end of loop: best by **TEST** score,
 not train. (Anthropic's loop does the same thing for the same reason.)
 
+## Minimalism test (Boris alignment)
+
+A skill that triggers reliably but produces little value per invocation
+is shaped wrong. Boris Cherny: "underfund things at the start... if you
+have a good idea, you just really want to get it out there." Same logic
+applied to skills — over-tuned triggers on a thin skill outscore a
+3-line CLAUDE.md rule pointing at a tool, but only on the rubric, not
+in actual user value.
+
+### Run after Phase T7
+
+When trigger mode lands a stable description, before persisting, run:
+
+```bash
+# 1. Body content delivered per invocation (post-frontmatter)
+body_lines=$(awk '/^---$/{f++; next} f==2' SKILL.md | wc -l)
+
+# 2. Reference content the body actually invokes
+ref_invocations=$(rg -cE 'references/[\w-]+\.md|scripts/[\w-]+\.(sh|py)' SKILL.md)
+```
+
+| Signal | Action |
+|---|---|
+| `body_lines < 40` AND `ref_invocations < 2` | **Collapse candidate** — flag for review. The skill could plausibly be a `.claude/rules/` entry or CLAUDE.md line pointing at the tool. Recommend running `instructions-triage` to confirm. |
+| `body_lines < 40` AND `ref_invocations ≥ 2` | Skill is correctly minimal — pointer-shaped. Pass. |
+| `body_lines ≥ 40` AND `ref_invocations < 2` | Skill is monolithic — flag for Dim 2 (Progressive Disclosure) work, separate from trigger tuning. |
+
+### Why this matters at trigger-tune time, not score-time
+
+The 10-dim rubric scores intrinsic skill quality. Trigger mode tunes the
+*invocation gate*. A high-trigger-rate / low-value skill quietly inflates
+its 10-dim score (Dim 5 Completeness sees coverage; Dim 7 Resource
+Quality sees existence) while its real per-invocation impact is poor.
+The minimalism test catches this — Boris's "is the model adding more
+value than the scaffolding costs?" applied at trigger-tune time.
+
 ## Anti-patterns
 
 - **Eval set built only from passing cases.** If you only test phrasings that

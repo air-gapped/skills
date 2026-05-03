@@ -297,6 +297,34 @@ resolve staleness without online probes.
 
 ---
 
+## Boris Alignment Check (cross-cutting caps)
+
+Diagnostic patterns drawn from Boris Cherny (creator of Claude Code,
+Anthropic; Lenny's podcast 2026). These do NOT add an 11th dimension —
+they cap existing dims when triggered, the same way the Dim 9 staleness
+cap works. The bitter lesson applied to skills: skills that fight the
+model's grain or compensate for current-model limits decay across
+releases.
+
+| Pattern | Detection | Cap |
+|---|---|---|
+| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | Body contains numbered procedural lists describing the *invocation flow* (not reference content) AND the model could plausibly do the task with a goal + tool pointer. `rg -nE '^\s*\d+\. ' SKILL.md \| wc -l` ≥ 8 in non-reference sections is a strong signal. | **Dim 6 (Simplicity) capped at 6** |
+| **Up-front context dumps** — skill front-loads domain context the model could fetch via Read/Grep/WebFetch | Sections >30 lines describing facts (not procedures) without pointing at a tool/file. Boris: "give it a tool so it can get the context it needs." | **Dim 4 (Actionability) capped at 7** |
+| **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | `rg -inE 'claude (tends to\|sometimes\|often)\|always remind\|model (frequently\|tends)\|compensate for'` finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
+| **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
+
+When a Boris cap triggers, record the justification like:
+> "Dim 6 capped at 6 — skill prescribes 11-step procedural workflow
+> (lines 45-89) the model could discover via plan mode. Boris
+> alignment failure: strict workflow scaffolding."
+
+The improvement loop should prefer hypotheses that lift Boris caps over
+those that lift uncapped dims of the same magnitude — capped dims are
+*structural* problems (rot fast across releases) while uncapped ones
+are usually *cosmetic*.
+
+---
+
 ## Scoring Template
 
 Use this format when reporting scores:
