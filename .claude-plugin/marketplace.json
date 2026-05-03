@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260503.6",
+      "version": "0.20260504.6",
       "author": {
         "name": "Jörgen"
       },
@@ -138,6 +138,31 @@
         "metrics",
         "slo",
         "sre"
+      ]
+    },
+    {
+      "name": "open-webui",
+      "source": "./",
+      "description": "Open WebUI operator suite — wiring HuggingFace embedding and reranker models into Open WebUI's RAG pipeline via LiteLLM in front of HuggingFace Text Embeddings Inference (TEI). Covers exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, and end-to-end production configuration. BGE-M3 and BGE-Reranker-v2-m3 are the worked examples; patterns generalise to any TEI-served encoder.",
+      "version": "0.20260503.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/open-webui-embeddings"
+      ],
+      "strict": false,
+      "category": "ai-workflow",
+      "tags": [
+        "open-webui",
+        "rag",
+        "embeddings",
+        "reranker",
+        "litellm",
+        "tei",
+        "huggingface",
+        "bge-m3"
       ]
     },
     {

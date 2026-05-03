@@ -209,6 +209,30 @@ GROUPS: dict[str, dict] = {
             "sre",
         ],
     },
+    "open-webui": {
+        "members": ["open-webui-embeddings"],
+        "description": (
+            "Open WebUI operator suite — wiring HuggingFace embedding "
+            "and reranker models into Open WebUI's RAG pipeline via "
+            "LiteLLM in front of HuggingFace Text Embeddings Inference "
+            "(TEI). Covers exact wire shapes, LiteLLM ↔ TEI gotchas, "
+            "TEI configuration cliffs, and end-to-end production "
+            "configuration. BGE-M3 and BGE-Reranker-v2-m3 are the "
+            "worked examples; patterns generalise to any TEI-served "
+            "encoder."
+        ),
+        "category": "ai-workflow",
+        "tags": [
+            "open-webui",
+            "rag",
+            "embeddings",
+            "reranker",
+            "litellm",
+            "tei",
+            "huggingface",
+            "bge-m3",
+        ],
+    },
 }
 
 # Per-skill category/tags overrides for standalone plugins (skills not
