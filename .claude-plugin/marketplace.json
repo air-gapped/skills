@@ -91,6 +91,33 @@
       ]
     },
     {
+      "name": "inference-host",
+      "source": "./",
+      "description": "Inference host tuning suite — Linux/GPU bare-metal audit and tuning that sits beneath any inference framework (vLLM, sglang, TensorRT-LLM). Read-only snapshot of CPU power state, C-states, NUMA topology, PCIe link state, GPU settings, kernel boot params, sysctl, ulimits, IRQ affinity, container runtime; optional pinned-host↔GPU memcpy bench (torch + numactl); per-lever cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC, hugepages, intel_iommu, NCCL env, tuned-adm profiles, BIOS guidance for Dell XE / SMC / HPE). Surfaces config gaps that bottleneck LMCache CPU-tier throughput, KV offload, NCCL bandwidth, prefix-cache rebuild.",
+      "version": "0.20260504.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/gpu-host-tuning"
+      ],
+      "strict": false,
+      "category": "inference",
+      "tags": [
+        "gpu",
+        "host-tuning",
+        "nvidia",
+        "numa",
+        "pcie",
+        "bios",
+        "nccl",
+        "tuned-adm",
+        "performance",
+        "bare-metal"
+      ]
+    },
+    {
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Helm chart authoring, KEDA event-driven autoscaling, OpenShift application packaging.",
@@ -144,7 +171,7 @@
       "name": "open-webui",
       "source": "./",
       "description": "Open WebUI operator suite — wiring HuggingFace embedding and reranker models into Open WebUI's RAG pipeline via LiteLLM in front of HuggingFace Text Embeddings Inference (TEI). Covers exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, and end-to-end production configuration. BGE-M3 and BGE-Reranker-v2-m3 are the worked examples; patterns generalise to any TEI-served encoder.",
-      "version": "0.20260503.1",
+      "version": "0.20260504.1",
       "author": {
         "name": "Jörgen"
       },

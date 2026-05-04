@@ -73,6 +73,41 @@ GROUPS: dict[str, dict] = {
             "kubernetes",
         ],
     },
+    "inference-host": {
+        # Host-level (below-the-framework) tuning suite. Sits beneath
+        # any inference engine (vLLM, sglang, TensorRT-LLM) — about the
+        # Linux/GPU host, not the framework. Room for future siblings:
+        # NIC/fabric tuning, NUMA pinning, IRQ affinity, BIOS audit.
+        "members": ["gpu-host-tuning"],
+        "description": (
+            "Inference host tuning suite — Linux/GPU bare-metal audit "
+            "and tuning that sits beneath any inference framework "
+            "(vLLM, sglang, TensorRT-LLM). Read-only snapshot of CPU "
+            "power state, C-states, NUMA topology, PCIe link state, "
+            "GPU settings, kernel boot params, sysctl, ulimits, IRQ "
+            "affinity, container runtime; optional pinned-host↔GPU "
+            "memcpy bench (torch + numactl); per-lever cheat-sheets "
+            "to flip settings (governor, EPP, cpuidle, persistence, "
+            "ECC, hugepages, intel_iommu, NCCL env, tuned-adm "
+            "profiles, BIOS guidance for Dell XE / SMC / HPE). "
+            "Surfaces config gaps that bottleneck LMCache CPU-tier "
+            "throughput, KV offload, NCCL bandwidth, prefix-cache "
+            "rebuild."
+        ),
+        "category": "inference",
+        "tags": [
+            "gpu",
+            "host-tuning",
+            "nvidia",
+            "numa",
+            "pcie",
+            "bios",
+            "nccl",
+            "tuned-adm",
+            "performance",
+            "bare-metal",
+        ],
+    },
     "sglang": {
         # SGLang operator suite — SGLang-side reference for HiCache
         # (hierarchical KV cache) and the Model Gateway (Rust router
