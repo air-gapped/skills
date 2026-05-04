@@ -30,7 +30,7 @@ command for each step.
 
 ```bash
 # Run the collector with snapshot only (read-only, safe):
-sudo /tmp/gpu-host-tuning/scripts/collect.sh
+sudo ./scripts/collect.sh
 ```
 
 Read the snapshot's `INDEX.md` and check the high-impact probes:
@@ -100,7 +100,7 @@ apptainer exec --nv dcgm_3.3.6-1-ubuntu22.04.sif /usr/bin/dcgmi diag --run 3 --f
 
 ```bash
 # Run inside the container or venv that has torch:
-sudo /tmp/gpu-host-tuning/scripts/collect.sh --bench
+sudo ./scripts/collect.sh --bench
 ```
 
 Compare the resulting `bench_pinned_memcpy.csv` with `session-findings.md`:
@@ -272,7 +272,7 @@ Alert on:
 
 ```bash
 # Tier 1: rerun the audit, diff against last week's
-sudo ./collect.sh
+sudo ./scripts/collect.sh
 # diff -ruN gpu-host-tuning-<host>-<prev-UTC>/ gpu-host-tuning-<host>-<new-UTC>/
 
 # Tier 2: dcgmi level-2

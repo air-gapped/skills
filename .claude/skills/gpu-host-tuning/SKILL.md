@@ -1,20 +1,21 @@
 ---
 name: gpu-host-tuning
-description: Audit AND tune Linux/GPU inference hosts — read-only snapshot of CPU
-  power state, C-states, NUMA topology, PCIe link state, GPU settings, kernel
-  boot params, sysctl, ulimits, IRQ affinity, container runtime; optional
-  pinned-host↔GPU memcpy bench (torch + numactl); plus per-lever cheat-sheets
-  to flip settings (governor, EPP, cpuidle, persistence, ECC, hugepages,
-  intel_iommu, NCCL env, tuned-adm profiles, BIOS guidance for Dell XE / SMC /
-  HPE). Sits beneath any inference framework (vLLM, sglang, TensorRT-LLM) —
-  about the host, not the framework. Surfaces configuration gaps that
-  bottleneck LMCache CPU-tier throughput, KV offload, NCCL bandwidth,
-  prefix-cache rebuild. Triggers on "tune the host", "audit this box",
-  "snapshot inference host", "characterize this server", "what's missing on
-  bare-metal", "host comparison", "PCIe ground truth", "pinned memcpy
-  ceiling", "H2D bandwidth bench", "tuned-adm profile", "C-state mask",
-  "governor performance", "BIOS tuning", "is the box tuned", "before/after
-  retuning", "GPU host bring-up", "cluster bring-up", "find missing config".
+description: Audit AND tune Linux/GPU inference hosts — read-only host snapshot
+  (CPU power state, C-states, NUMA topology, PCIe link state, GPU settings,
+  kernel boot params, sysctl, ulimits, IRQ affinity, container runtime),
+  optional pinned-host↔GPU memcpy bench (torch + numactl), and per-lever
+  cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC,
+  hugepages, intel_iommu, NCCL env, tuned-adm profiles, Dell/Supermicro/HPE
+  BIOS guidance). Sits beneath any inference framework (vLLM, sglang,
+  TensorRT-LLM) — about the host, not the framework.
+when_to_use: Triggers on "tune the host", "audit this box", "snapshot
+  inference host", "characterize this server", "what's missing on bare-metal",
+  "host comparison", "PCIe ground truth", "pinned memcpy ceiling", "H2D
+  bandwidth bench", "tuned-adm profile", "C-state mask", "governor
+  performance", "BIOS tuning", "is the box tuned", "before/after retuning",
+  "GPU host bring-up", "cluster bring-up", "find missing config". Use to
+  surface configuration gaps that bottleneck LMCache CPU-tier throughput, KV
+  offload, NCCL bandwidth, prefix-cache rebuild.
 ---
 
 # gpu-host-tuning
@@ -32,7 +33,8 @@ authoritative references in `references/`.
 ## Quick start
 
 ```bash
-cd ~/.claude/skills/gpu-host-tuning
+# From the skill directory — typically ~/.claude/skills/gpu-host-tuning
+# (personal) or .claude/skills/gpu-host-tuning (project install).
 
 # Audit (read-only, ~60s)
 ./scripts/collect.sh
@@ -74,7 +76,7 @@ for the full file-by-file decoder.
 
 ## When to use which reference
 
-| You want to | Read |
+| Goal | Read |
 |---|---|
 | Apply NVIDIA's stock DGX tunings | [`references/tuned-profiles.md`](references/tuned-profiles.md) |
 | Run a proper bring-up flow | [`references/bringup-recipe.md`](references/bringup-recipe.md) |

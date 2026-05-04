@@ -94,7 +94,7 @@
       "name": "inference-host",
       "source": "./",
       "description": "Inference host tuning suite — Linux/GPU bare-metal audit and tuning that sits beneath any inference framework (vLLM, sglang, TensorRT-LLM). Read-only snapshot of CPU power state, C-states, NUMA topology, PCIe link state, GPU settings, kernel boot params, sysctl, ulimits, IRQ affinity, container runtime; optional pinned-host↔GPU memcpy bench (torch + numactl); per-lever cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC, hugepages, intel_iommu, NCCL env, tuned-adm profiles, BIOS guidance for Dell XE / SMC / HPE). Surfaces config gaps that bottleneck LMCache CPU-tier throughput, KV offload, NCCL bandwidth, prefix-cache rebuild.",
-      "version": "0.20260504.1",
+      "version": "0.20260504.2",
       "author": {
         "name": "Jörgen"
       },

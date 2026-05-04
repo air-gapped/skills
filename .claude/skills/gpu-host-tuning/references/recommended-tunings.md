@@ -4,6 +4,22 @@ Every lever the audit might flag, with the **exact command** to apply it, the
 rationale, and the tradeoff. Indexed by audit-file number. Verify each against
 the actual probe output before applying — context matters.
 
+## Sections
+
+- §A — CPU power (governor, EPP, C-states, turbo, HWP, HT)
+- §B — Kernel boot params (cmdline + avoid list)
+- §C — Runtime kernel state (THP, numa_balancing, swap, zone_reclaim, max_map_count, fs.file-max)
+- §D — ulimits / locked memory (memlock, nofile, container ulimits)
+- §E — IRQ affinity (irqbalance, NCCL-aware NIC pinning)
+- §F — NVIDIA driver state (persistence, power limit, clocks, ECC, MIG, compute mode)
+- §G — NCCL environment (single-node + multi-node IB)
+- §H — Storage (NVMe scheduler, mount options, fs choice)
+- §I — Container runtime (CDI, cgroup v2, kubelet config)
+- §J — tuned-adm (DGX profiles + custom non-DGX templates)
+- §K — BIOS levers (Dell/SMC/HPE recommended settings)
+- §L — Mellanox / NVIDIA networking (mlnx_tune, MTU, ring sizes, TCP buffers)
+- *Order of operations* — boot-time → tuned → per-lever → driver → container
+
 **Default policy for inference hosts**: maximize bandwidth + minimize latency
 + minimize jitter, even at the cost of idle power and a few % security
 mitigation overhead. These choices align with NVIDIA's `nvidia-tuned-profiles`,
@@ -108,8 +124,8 @@ echo 1 >/sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost
 
 ### A.6 Hyper-Threading — leave enabled
 
-NVIDIA's MLPerf H200 SUTs run with HT on. Disable HT only if you're explicitly
-profiling for `cores=64` cgroup pinning and you've measured a regression.
+NVIDIA's MLPerf H200 SUTs run with HT on. Disable HT only when explicitly
+profiling `cores=64` cgroup pinning with a measured regression.
 
 ---
 
@@ -291,8 +307,8 @@ nvidia-smi -pl 600    # H100 NVL PCIe / RTX PRO 6000
 ```
 
 **When**: `Power Limit` is below the GPU's TGP. Some chassis ship with
-de-rated power limits for thermal headroom — re-set if your cooling supports
-the full TGP.
+de-rated power limits for thermal headroom — re-set when cooling supports the
+full TGP.
 
 ### F.3 Lock GPU & memory clocks
 
@@ -307,8 +323,8 @@ nvidia-smi -rgc
 nvidia-smi -rmc
 ```
 
-**When**: workload is throughput-stable and you want zero clock-jitter on
-generation latency. **Don't lock clocks for thermally-marginal cooling** — the
+**When**: workload is throughput-stable and zero clock-jitter on generation
+latency is required. **Don't lock clocks for thermally-marginal cooling** — the
 GPU will throttle harder than auto-management would.
 
 ### F.4 ECC — leave Enabled (production)
@@ -395,7 +411,7 @@ UUID=...  /var/lib/vllm-cache  ext4  defaults,noatime  0  0
 For weight stores: prefer ext4 or XFS, NOT btrfs/zfs (CoW + checksum overhead
 hurts large-sequential reads). Use `mkfs.ext4 -E lazy_itable_init=0
 -O ^has_journal` for max throughput on read-heavy stores (no journal — only
-safe for caches you can rebuild).
+safe for rebuildable caches).
 
 ---
 
@@ -415,8 +431,8 @@ Without it, GPUs are opaque resources and topology hints degrade.
 
 ### I.2 cgroup v2 (default on kernel 5.x+ / Ubuntu 22.04+)
 
-`94_cgroup_version.txt` should show `cgroup2fs`. If it shows `tmpfs` you're on
-v1 — switch via `systemd.unified_cgroup_hierarchy=1` in kernel cmdline. K8s
+`94_cgroup_version.txt` should show `cgroup2fs`. If it shows `tmpfs`, the host
+is on v1 — switch via `systemd.unified_cgroup_hierarchy=1` in kernel cmdline. K8s
 1.25+ requires v2 for memory QoS.
 
 ### I.3 Kubelet config (RKE2)
@@ -505,7 +521,7 @@ See `references/tuned-profiles.md` for full templates.
 | C1E | Disabled | Cluster-wide low-power state, adds wakeup jitter |
 | Turbo Boost | Enabled | A.4 |
 | Hyper-Threading | Enabled | NVIDIA MLPerf default |
-| Sub-NUMA Clustering (SNC) | Disabled, or `SNC2` if you want explicit per-CCD topology | SPR `SNC2` exposes 4 NUMA nodes per dual-socket box. Off (Hemisphere mode) keeps 2 nodes — simpler for inference where NCCL spans both sockets |
+| Sub-NUMA Clustering (SNC) | Disabled, or `SNC2` for explicit per-CCD topology | SPR `SNC2` exposes 4 NUMA nodes per dual-socket box. Off (Hemisphere mode) keeps 2 nodes — simpler for inference where NCCL spans both sockets |
 | DDIO | Enabled (Intel default) | Direct cache placement for IB RDMA |
 | Memory Operating Mode | Optimizer / Independent | Max bandwidth, vs Mirror/Sparing/Lockstep |
 | Memory Patrol Scrub | Disabled | Lowers idle DDR5 traffic; tradeoff: less ECC error visibility (still corrected, just not reported until accessed) |

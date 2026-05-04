@@ -93,8 +93,8 @@ On bare metal, expect:
 - Per-state list: `state0 POLL (0µs)`, `state1 C1 (1-2µs)`,
   `state2 C1E or C2 (10-400µs)`, `state3 C6 (>100µs on Intel)`.
 - Disable distribution: `state2  64 0` means "across all 64 CPUs, disable=0
-  (i.e. enabled)". You want all states deeper than C1 to show `64 1` (i.e.
-  disabled) on a latency-tuned host.
+  (i.e. enabled)". On a latency-tuned host, all states deeper than C1 should
+  show `64 1` (i.e. disabled).
 - `pm_qos_resume_latency_us` distinct values: `0` = unconstrained (deep
   C-states allowed), `1`/`2` = limit to C1 only.
 
@@ -112,7 +112,7 @@ On bare metal, look for:
   to base clock under load = thermal throttling or governor mis-set.
 - **`POLL%` / `C1%` / `C2%`** columns: residency in each state. If `C2%` is
   high (>50%) on idle cores, deep states are doing what they should. On a
-  *latency-locked* host, you want everything in C1 or POLL.
+  *latency-locked* host, expect everything in C1 or POLL.
 - **`PkgWatt`**: package power. Compare against TDP — idle of ~30% TDP is
   normal for SPR/Genoa server parts.
 - **`CorWatt` per core**: anomaly if one core is way hotter — possibly a
@@ -131,7 +131,7 @@ or filesystem issue.
 
 ### `2A_thermal.txt`
 Thermal zones. Pkg temp > 80 °C under idle = cooling problem. CPU pkg crit
-threshold typically 95-105 °C; you want >20 °C margin under load.
+threshold typically 95-105 °C; >20 °C margin under load is the target.
 
 ---
 
@@ -224,7 +224,7 @@ PCIe + NUMA + IOMMU + nvidia + nvme dmesg matches. Look for:
 ### `49_irq_affinity.txt`
 Top 30 IRQs by event count + their `smp_affinity_list`. Look for:
 - Network IRQs (mlx5_async, virtio2-req, ena*) — should NOT be on the
-  cores you intend to use for inference workers.
+  cores intended for inference workers.
 - `irqbalance` running (`systemctl is-active irqbalance` line) — usually
   best to disable on inference hosts in favor of manual pinning.
 
