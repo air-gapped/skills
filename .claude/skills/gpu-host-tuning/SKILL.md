@@ -79,6 +79,7 @@ for the full file-by-file decoder.
 | Goal | Read |
 |---|---|
 | Apply NVIDIA's stock DGX tunings | [`references/tuned-profiles.md`](references/tuned-profiles.md) |
+| See exactly what NVIDIA's settings packages flip (per-platform JSON, GRUB drop-ins, sysctl, units) | [`references/nvidia-dgx-config-decoder.md`](references/nvidia-dgx-config-decoder.md) |
 | Run a proper bring-up flow | [`references/bringup-recipe.md`](references/bringup-recipe.md) |
 | Find the lever the audit flagged | [`references/recommended-tunings.md`](references/recommended-tunings.md) |
 | Decode an audit output file | [`references/probe-interpretation.md`](references/probe-interpretation.md) |

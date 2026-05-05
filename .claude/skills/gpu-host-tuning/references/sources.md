@@ -20,6 +20,21 @@ content was confirmed at skill authoring; freshen mode flags these as
 | https://enterprise-support.nvidia.com/s/article/bios-performance-tuning-example | NVIDIA BIOS performance tuning example | 2026-05-04 | — | live; SPA — WebFetch returns CSS error, browser-only |
 | https://enterprise-support.nvidia.com/s/article/understanding-bios-configuration-for-performance-tuning | NVIDIA BIOS configuration guide | 2026-05-04 | — | live; SPA — WebFetch returns CSS error, browser-only |
 
+## NVIDIA BaseOS package repos
+
+Discovered + verified 2026-05-05 while extracting per-package settings.
+Apt/dnf repos are public. Directory listings 404; specific Release /
+Packages.gz / repomd.xml / individual `.deb` / `.rpm` files all
+return 200. Decoded in `nvidia-dgx-config-decoder.md`.
+
+| URL | Topic | Last verified | Pinned | Notes |
+|-----|-------|---------------|--------|-------|
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release | Ubuntu 22.04 BaseOS apt index | 2026-05-05 | jammy 2026-04-03 | 5 components: common (106 pkgs), dgx (35), dcs, egx, preview, c2 |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/common/binary-amd64/Packages.gz | Ubuntu 22.04 `common` package list | 2026-05-05 | — | 106 settings packages (`nv-*`, `nvidia-*`) |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/dgx/binary-amd64/Packages.gz | Ubuntu 22.04 `dgx` package list | 2026-05-05 | — | 35 metapackages (a100/a800/dgx1/dgx2/station only — no h100+ here) |
+| https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/dgx/binary-amd64/Packages.gz | Ubuntu 24.04 `dgx` package list | 2026-05-05 | — | 8 metapackages (thin — Hopper+ metapackages still gated) |
+| https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml | RHEL 10 BaseOS dnf index | 2026-05-05 | EL 10 | 19 RPMs incl. `nv-common-apis-25.10-1.el.noarch.rpm` |
+
 ## Distro / OS docs
 
 | URL | Topic | Last verified | Pinned | Notes |

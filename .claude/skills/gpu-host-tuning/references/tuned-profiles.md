@@ -34,8 +34,19 @@ Each platform profile inherits two base profiles:
 
 ### Activation
 
+> **Gating note (verified 2026-05-05):** the `nvidia-tuned-profiles`
+> package — and the actual `dgx-<platform>-performance/tuned.conf`
+> bundle files — are **not in NVIDIA's public BaseOS apt/dnf repos**.
+> They ship pre-installed in DGX BaseOS install media, or via NVIDIA
+> Enterprise Support / NVAIE-gated channels. On non-DGX hardware the
+> install commands below will report "package not found" and the
+> custom-profile path (next section) is the only viable approach. See
+> `nvidia-dgx-config-decoder.md` for the per-package settings that ARE
+> publicly downloadable and replicate most of what
+> `nvidia-tuned-profiles` would have applied.
+
 ```bash
-# Install + enable:
+# Install + enable (DGX hardware or NVAIE-gated channel only):
 apt install tuned tuned-utils nvidia-tuned-profiles    # Ubuntu
 dnf install tuned tuned-utils nvidia-tuned-profiles    # RHEL/SLES
 systemctl enable --now tuned

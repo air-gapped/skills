@@ -157,6 +157,29 @@ pci=realloc=off                  # NVIDIA — needed for large GPU BAR allocatio
 workers. Pick cores from one NUMA node (the one nearest your GPUs in
 `nvidia-smi topo -m`).
 
+### B.1.1 Per-platform divergences (NVIDIA's own choices)
+
+NVIDIA's `nvidia-platform-configs.json` (shipped in `nv-common-apis`)
+flips these flags per-SKU. Cross-reference before applying the universal
+set above:
+
+| Platform | `pci=realloc` | `iommu=pt` | GPU PCIe RO (`NVreg_EnablePCIERelaxedOrderingMode=1`) | Crashdump |
+|---|---|---|---|---|
+| A100 / A800 / DGX Stations | (default) | yes | **yes** | `1G-:2048M` |
+| H100 / H200 / H800 | **off** | yes | no | `1G-:2048M` |
+| B200 / B300 | **off** | yes | no | `2048M,high` |
+| GB200 / GB300 (Grace-Blackwell) | **on** | **no** | no | `2048M,high` |
+| DGX Spark / GB300ws / L4T (Tegra) / KVM | (default) | **no** | no | varies |
+
+Three counter-recommendations to the universal set:
+- **Don't blanket `pci=realloc=off`** — it's `on` on Grace-Blackwell.
+- **Don't blanket `iommu=pt`** — Grace SoC and Tegra disable it.
+- **Don't blanket GPU Relaxed Ordering** — only A100/A800/Stations want it.
+
+See [`nvidia-dgx-config-decoder.md`](nvidia-dgx-config-decoder.md) for
+the full 22-platform JSON, dmidecode regexes, and per-package config
+file contents.
+
 ### B.2 Avoid (on 2025+ kernels)
 
 - `clocksource=tsc` — kernel auto-selects on modern hardware; only force if dmesg shows tsc instability
