@@ -17,6 +17,7 @@ Versioning scheme per plugin: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of
 | Skill | Description |
 |---|---|
 | [`aiperf`](.claude/skills/aiperf/SKILL.md) | NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 15 endpoint types (chat,… |
+| [`argo-cd-apps`](.claude/skills/argo-cd-apps/SKILL.md) | Author and maintain Argo CD `Application` and `ApplicationSet` manifests as a GitOps consumer (publisher), targeting Argo CD v3.3 / v3.4 (May 2026). Covers source types (Helm, Kustomize, OCI, multi-source, plugin), sync policies + options + waves +… |
 | [`autoresearch`](.claude/skills/autoresearch/SKILL.md) | Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable metric, deep multi-agent research, or research-then-optimize. Three modes: Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve. |
 | [`baml-expert`](.claude/skills/baml-expert/SKILL.md) | BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers… |
 | [`gpu-host-tuning`](.claude/skills/gpu-host-tuning/SKILL.md) | Audit AND tune Linux/GPU inference hosts — read-only host snapshot |

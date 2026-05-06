@@ -1,0 +1,41 @@
+{
+  "skill_name": "argo-cd-apps",
+  "evals": [
+    {
+      "id": 0,
+      "name": "applicationset-helm-oci-per-dir",
+      "prompt": "set up a new ApplicationSet that creates one Argo CD app per directory under apps/staging/ in our config repo at github.com/example/cluster-config (revision main). Each app should deploy a helm chart from oci://my-registry.example.com/charts and override values from a values.yaml in the same directory. We use kubernetes the destination is in-cluster and the namespace should match the directory name. We're on argo cd v3.3.9. give me the manifest plus a short note on the gotchas",
+      "expected_output": "ApplicationSet YAML using Git directories generator, goTemplate: true, goTemplateOptions: [missingkey=error], OCI Helm chart source pinned by digest (or at least tag), correct destination, hard-coded project (not templated), with a note on the goTemplate=false default trap, the v3.0+ annotation-tracking default, ApplicationSet finalizer placement, OCI digest pinning best practice, and ServerSideApply syncOption recommendation. Should NOT recommend `path: dir/**` (doesn't recurse).",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "outofsync-hpa-replicas",
+      "prompt": "my Application is stuck OutOfSync — kubectl shows the Deployment exists and the spec matches what's in git, but argo cd says replicas differ. I have an HPA on it. how do I make argo stop fighting the HPA? we're on 3.3",
+      "expected_output": "Should diagnose: HPA mutates Deployment.spec.replicas; without ignoreDifferences + RespectIgnoreDifferences=true the controller will sync-loop. Provides the exact ignoreDifferences entry (group: apps, kind: Deployment, jsonPointers: [/spec/replicas]) plus RespectIgnoreDifferences=true syncOption. May also suggest removing replicas from the Deployment template entirely (Argo's best_practices.md recommendation) or using ServerSideDiff=true. Should NOT suggest disabling selfHeal as the primary fix (cruder). Should NOT suggest IncludeMutationWebhook=true (that annotation is the CVE-2026-42880 vector and removed/dangerous).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "presync-db-migration-hook",
+      "prompt": "I need a presync hook that runs db migrations before each deploy. The migration is a Job. it must complete before the app rolls forward, and we want old completed jobs cleaned up but kept on failure for debugging. show me the right manifest",
+      "expected_output": "Job with argocd.argoproj.io/hook: PreSync and argocd.argoproj.io/hook-delete-policy: HookSucceeded (succeeded jobs cleaned up, failed jobs kept for debugging). Should use `metadata.generateName` (NOT a fixed name) to avoid the 'PreSync hook re-run' issue. Optionally a Sync wave on the Job. Brief explanation of phase ordering: PreSync runs before Sync; if hook fails, app goes Failed and Sync doesn't proceed. Should NOT use BeforeHookCreation policy with a generateName job (that pairing leaks Jobs across syncs).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "appproject-multitenant-with-impersonation",
+      "prompt": "we're a platform team setting up multi-tenant argo cd. team-payments needs their own AppProject that can only sync to namespaces starting with `payments-`, only from our company gitlab repos under `gitlab.example.com/payments/`, and we want their syncs to use a per-app ServiceAccount so kubernetes RBAC limits the blast radius. write the AppProject. We're on argo cd v3.4 RC.",
+      "expected_output": "AppProject with: namespace argocd, finalizer resources-finalizer.argocd.argoproj.io, sourceRepos: ['https://gitlab.example.com/payments/*'], destinations with namespace: 'payments-*' glob, an explicit clusterResourceWhitelist that's tight (Namespace + minimal cluster resources, NOT '*'), namespaceResourceBlacklist for Secret (or note that ESO/SealedSecrets is recommended), AND destinationServiceAccounts block (sync impersonation, Beta in v3.4). Should mention: impersonation is keyed by `server` not `name` so destinations should standardize on server URL; the SA needs perms for both apply ops AND server ops (logs/exec) in v3.4. Should NOT use spec.project: default. May add signatureKeys for signed-commit enforcement.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "upgrade-3.1-to-3.3-app-author-perspective",
+      "prompt": "upgrading from argo cd 3.1 to 3.3, what app-author-facing changes do I need to know about? what should I update in our manifests?",
+      "expected_output": "Should call out: (1) v3.3 SSA migration regression — skip 3.3.0/3.3.1, upgrade direct to 3.3.2+; ApplicationSet CRD exceeds client-side-apply 256KB annotation limit so use server-side apply; if Argo manages itself, set ServerSideApply=true on the meta-app. (2) `automated.enabled: true|false` field added in 3.1 — use to pause apps cleanly. (3) `Prune=confirm`/`Delete=confirm` per-resource annotations added in 3.3. (4) PreDelete/PostDelete hooks added in 3.3. (5) `SkipDryRunOnMissingResource=true` syncOption added in 3.1. (6) clusterResourceWhitelist now scopable by name (3.3). (7) Maturity: Server-Side Diff stable since 3.2; Progressive Sync formal Beta in 3.3; OCI source Beta since 3.1. (8) CVE-2026-42880 patched in 3.3.8+ — strip IncludeMutationWebhook=true. (9) Hydrator state moved to git-notes in 3.3 (relevant only if using Source Hydrator). Should NOT mention v3.4 features. Should reference upgrade docs path.",
+      "files": []
+    }
+  ],
+  "notes": "Targeting Argo CD v3.3.9 (latest stable May 2026) and v3.4.0-rc7. Test prompts are realistic flavor — informal punctuation, abbreviated context. Skill should produce production-ready YAML with v3.x defaults baked in (annotation tracking, ServerSideApply, RespectIgnoreDifferences=true, no `default` project)."
+}

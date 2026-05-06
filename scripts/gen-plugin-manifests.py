@@ -164,14 +164,20 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "k8s": {
-        "members": ["helm", "keda", "openshift-app"],
+        "members": ["argo-cd-apps", "helm", "keda", "openshift-app"],
         "description": (
-            "Kubernetes suite — Helm chart authoring, KEDA event-driven "
+            "Kubernetes suite — Argo CD application authoring (GitOps "
+            "Application/ApplicationSet manifests, sync policies, "
+            "AppProjects), Helm chart authoring, KEDA event-driven "
             "autoscaling, OpenShift application packaging."
         ),
         "category": "kubernetes",
         "tags": [
             "kubernetes",
+            "argo-cd",
+            "argocd",
+            "gitops",
+            "applicationset",
             "helm",
             "keda",
             "openshift",

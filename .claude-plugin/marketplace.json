@@ -120,13 +120,14 @@
     {
       "name": "k8s",
       "source": "./",
-      "description": "Kubernetes suite — Helm chart authoring, KEDA event-driven autoscaling, OpenShift application packaging.",
-      "version": "0.20260420.3",
+      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, OpenShift application packaging.",
+      "version": "0.20260506.4",
       "author": {
         "name": "Jörgen"
       },
       "license": "MIT",
       "skills": [
+        "./.claude/skills/argo-cd-apps",
         "./.claude/skills/helm",
         "./.claude/skills/keda",
         "./.claude/skills/openshift-app"
@@ -135,6 +136,10 @@
       "category": "kubernetes",
       "tags": [
         "kubernetes",
+        "argo-cd",
+        "argocd",
+        "gitops",
+        "applicationset",
         "helm",
         "keda",
         "openshift",
