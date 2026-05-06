@@ -1,0 +1,26 @@
+{
+  "skill_name": "keycloak-iam",
+  "evals": [
+    {
+      "id": 1,
+      "name": "redirect-loop-debug",
+      "prompt": "I just deployed Keycloak 26.6.1 to our EKS cluster behind an AWS ALB and our SPA login is bouncing in an infinite loop between /auth and /realms/myapp/authenticate?code=... — the page never finishes loading. The Keycloak pod logs show nothing obviously wrong. The ALB is doing TLS termination and the Keycloak pod is on plain HTTP 8080 inside the cluster. What's going wrong and what specific KC_* env vars do I need to set to fix it?",
+      "expected_output": "Identifies hostname/proxy mismatch as the root cause. Recommends KC_HOSTNAME=<full https URL>, KC_HOSTNAME_STRICT=true, KC_PROXY_HEADERS=xforwarded (since ALB sends X-Forwarded-*), and explains why. Bonus: mentions KC_PROXY_TRUSTED_ADDRESSES and that the issuer in /.well-known/openid-configuration should match what the SPA expects.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "operator-cr-production",
+      "prompt": "Write me a production-ready Keycloak custom resource (the Keycloak Operator CR) for 26.6.1 with 3 replicas, Postgres backend, hostname auth.example.com behind an ingress doing TLS termination, Prometheus metrics enabled, and zero-downtime upgrades configured. We don't have a custom image yet so use the stock quay.io image. Include the install commands for the operator first (we don't have it installed yet), and any pre-requisite Secrets we need.",
+      "expected_output": "Provides install commands referencing https://github.com/keycloak/keycloak-k8s-resources at tag 26.6.1 with all three manifest files (CRDs + operator manifest). Provides a valid Keycloak CR with: instances:3, image set to 26.6.1, hostname.hostname (full URL) + strict:true, proxy.headers, db section, bootstrapAdmin, update.strategy: Auto, serviceMonitor: {} or metrics surfaced, and lists the Secrets needed (DB credentials, bootstrap admin, optionally TLS). Notes that since TLS terminates at ingress, http.tlsSecret may be omitted and http-enabled=true via additionalOptions/env.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "wire-spa-to-keycloak",
+      "prompt": "I'm a backend engineer and I need to wire our React SPA to Keycloak as the OIDC IdP for the first time. The SPA lives at https://app.acme-internal.com and our Keycloak is at https://auth.acme-internal.com running 26.6. What's the right OIDC flow to use, what client config goes in Keycloak (include valid redirect URIs etc), and what should I be careful about security-wise? We may want to bind tokens to the browser later so token theft is harder — is there something in Keycloak for that?",
+      "expected_output": "Recommends Authorization Code + PKCE with S256 challenge method as the right flow for SPAs (NOT implicit). Specifies: public client, standardFlowEnabled true, redirectUris exact (https://app.acme-internal.com/* or specific paths, not wildcards on subdomains), webOrigins set, pkce.code.challenge.method=S256 attribute. Mentions DPoP (now GA in 26.6) as the answer for binding tokens to the browser, and that it's enabled per-client via 'Use DPoP-bound tokens' in Advanced. Security cautions: short access-token TTLs, refresh-token rotation enabled, no implicit/ROPC, web origins tight.",
+      "files": []
+    }
+  ]
+}

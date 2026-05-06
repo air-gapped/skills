@@ -1,0 +1,121 @@
+# Production-shaped Keycloak Custom Resource for the Keycloak Operator (26.6.x).
+# Apply after installing the operator from
+# https://github.com/keycloak/keycloak-k8s-resources at the matching version tag.
+#
+# Pre-requisites:
+#   - kubectl create namespace iam
+#   - Secret iam/keycloak-tls (kubernetes.io/tls) with cert + key
+#   - Secret iam/keycloak-db with keys: username, password
+#   - Secret iam/keycloak-bootstrap with keys: username, password (delete after first reconcile)
+#   - Postgres reachable at postgres-rw.iam.svc:5432, database `keycloak` exists
+
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: iam
+spec:
+  instances: 3                          # ≥3 for HA quorum during pod restart
+  image: quay.io/keycloak/keycloak:26.6.1
+  startOptimized: false                  # set true if image is pre-built with `kc.sh build`
+
+  hostname:
+    hostname: https://auth.example.com   # public URL clients hit
+    strict: true                         # never use false in production
+
+  proxy:
+    headers: xforwarded                  # 'forwarded' for RFC 7239, 'xforwarded' for legacy
+
+  http:
+    tlsSecret: keycloak-tls              # remove if doing edge-termination at the ingress
+    # serviceName / serviceHttpsPort are 26.6+ overrides if you need a non-default Service shape
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # example only
+
+  httpManagement:
+    port: 9000                           # health + metrics
+
+  db:
+    vendor: postgres
+    host: postgres-rw.iam.svc
+    port: 5432
+    database: keycloak
+    poolMaxSize: 100                     # per pod; 3 replicas × 100 = 300 conns at the DB
+    usernameSecret:
+      name: keycloak-db
+      key: username
+    passwordSecret:
+      name: keycloak-db
+      key: password
+
+  cache:
+    configMapFile:                       # optional: bring your own cache-ispn.xml
+      name: keycloak-cache
+      key: cache-ispn.xml
+
+  features:
+    enabled:
+      - organizations
+      - admin-fine-grained-authz:v2
+      - dpop
+    disabled: []
+
+  bootstrapAdmin:
+    user:
+      secret: keycloak-bootstrap         # remove after creating a real admin via kcadm.sh
+
+  update:
+    strategy: Auto                       # zero-downtime patch updates (26.6+)
+
+  tracing:
+    enabled: true
+    endpoint: http://otel-collector.observability.svc:4317
+    protocol: grpc
+    samplerType: parentbased_traceidratio
+    samplerRatio: 0.05
+
+  telemetry:
+    serviceName: keycloak
+    resourceAttributes:
+      deployment.environment: production
+      service.namespace: iam
+
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits:   { cpu: "2",  memory: 2Gi }
+
+  scheduling:
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels: { app: keycloak }
+              topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels: { app: keycloak }
+
+  serviceMonitor: {}                     # operator generates a Prometheus-Operator ServiceMonitor
+
+  additionalOptions:
+    - name: log-level
+      value: "info,org.keycloak.events:info"
+    - name: log-console-output
+      value: "json"
+    - name: log-mdc-enabled
+      value: "true"
+    - name: http-access-log-enabled
+      value: "true"
+    - name: http-access-log-pattern
+      value: "combined"
+    - name: http-access-log-exclude
+      value: "/health/.*|/metrics"
+
+  env:
+    - name: JAVA_OPTS_APPEND
+      value: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -XX:+UseG1GC -XX:+UseStringDeduplication"

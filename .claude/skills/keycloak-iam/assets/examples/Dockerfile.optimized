@@ -1,0 +1,40 @@
+# Custom Keycloak image with build-time options baked in for `--optimized` startup.
+#
+# Why bother:
+#   - `kc.sh start` (without --optimized) auto-builds on each pod start, adding ~30-60s
+#     to startup. In a 3-replica StatefulSet that's painful for rolling restarts.
+#   - Custom themes and providers MUST be present at build time to be augmented in.
+#
+# After building this image and pushing to your registry, set:
+#     spec.image: registry.example.com/keycloak:26.6.1-mycorp
+#     spec.startOptimized: true
+# in the Keycloak CR (the operator detects custom images automatically, but explicit is better).
+
+FROM quay.io/keycloak/keycloak:26.6.1 AS builder
+
+# Build-time options. Each one bakes a concrete decision into the runtime jar.
+ENV KC_HEALTH_ENABLED=true \
+    KC_METRICS_ENABLED=true \
+    KC_DB=postgres \
+    KC_FEATURES=organizations,admin-fine-grained-authz:v2,dpop \
+    KC_HTTP_RELATIVE_PATH=/ \
+    KC_TRACING_ENABLED=true \
+    KC_TRACING_JDBC_ENABLED=true \
+    KC_HTTPS_CLIENT_AUTH=request
+
+# Custom themes / providers (drop them in providers/ and they'll be part of the optimized image).
+# COPY --chown=keycloak:keycloak ./build/my-custom-theme.jar /opt/keycloak/providers/
+# COPY --chown=keycloak:keycloak ./build/my-custom-eventlistener.jar /opt/keycloak/providers/
+
+# (Optional) bundled cache config for HA tuning.
+# COPY --chown=keycloak:keycloak ./conf/cache-ispn.xml /opt/keycloak/conf/cache-ispn.xml
+
+RUN /opt/keycloak/bin/kc.sh build
+
+# ---- Final image ----
+FROM quay.io/keycloak/keycloak:26.6.1
+COPY --from=builder /opt/keycloak/ /opt/keycloak/
+
+# Use the optimized boot path. Runtime config (hostname, db host/creds, proxy headers, …)
+# comes from environment variables / Secrets at pod start.
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized"]

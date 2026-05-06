@@ -164,12 +164,20 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "k8s": {
-        "members": ["argo-cd-apps", "helm", "keda", "openshift-app"],
+        "members": [
+            "argo-cd-apps",
+            "helm",
+            "keda",
+            "keycloak-iam",
+            "openshift-app",
+        ],
         "description": (
             "Kubernetes suite — Argo CD application authoring (GitOps "
             "Application/ApplicationSet manifests, sync policies, "
             "AppProjects), Helm chart authoring, KEDA event-driven "
-            "autoscaling, OpenShift application packaging."
+            "autoscaling, Keycloak IAM (Operator + CRDs, realm/client "
+            "configuration, OIDC/SAML integration, security hardening), "
+            "OpenShift application packaging."
         ),
         "category": "kubernetes",
         "tags": [
@@ -180,6 +188,10 @@ GROUPS: dict[str, dict] = {
             "applicationset",
             "helm",
             "keda",
+            "keycloak",
+            "iam",
+            "oidc",
+            "saml",
             "openshift",
             "autoscaling",
             "ocp",

@@ -1,0 +1,132 @@
+# KeycloakRealmImport CR — declarative realm-as-code via the Keycloak Operator.
+# IMPORTANT: import is create-or-replace (NOT merge). The operator will overwrite an
+# existing realm if one matches the same name.
+#
+# For incremental edits to a running realm, use kcadm.sh or terraform-provider-keycloak.
+# This CR is for one-shot bootstrap of a realm or for environments that own realm
+# config end-to-end via GitOps.
+
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: tenants-realm
+  namespace: iam
+spec:
+  keycloakCRName: keycloak             # the Keycloak CR this realm goes into
+  realm:
+    realm: tenants
+    enabled: true
+    displayName: "Tenants"
+    sslRequired: external               # 'external' = require HTTPS for non-private clients
+    registrationAllowed: false
+    registrationEmailAsUsername: true
+    rememberMe: true
+    verifyEmail: true
+    loginWithEmailAllowed: true
+    duplicateEmailsAllowed: false
+
+    # Brute-force defense
+    bruteForceProtected: true
+    permanentLockout: false
+    failureFactor: 30
+    waitIncrementSeconds: 60
+    maxFailureWaitSeconds: 900
+    quickLoginCheckMilliSeconds: 1000
+
+    # Session timeouts
+    ssoSessionIdleTimeout: 1800         # 30 minutes
+    ssoSessionMaxLifespan: 36000        # 10 hours
+    accessTokenLifespan: 300             # 5 minutes
+    accessTokenLifespanForImplicitFlow: 900
+    offlineSessionIdleTimeout: 2592000  # 30 days
+    offlineSessionMaxLifespanEnabled: true
+    offlineSessionMaxLifespan: 5184000  # 60 days
+
+    # Password policy
+    passwordPolicy: "length(12) and digits(1) and lowerCase(1) and upperCase(1) and notUsername and passwordHistory(5) and hashAlgorithm(argon2) and passwordBlacklist(passwords-blacklist.txt)"
+
+    # An OIDC client for a SPA (public, PKCE)
+    clients:
+      - clientId: my-spa
+        publicClient: true
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        implicitFlowEnabled: false
+        protocol: openid-connect
+        rootUrl: https://app.example.com
+        baseUrl: /
+        redirectUris:
+          - "https://app.example.com/callback"
+          - "https://app.example.com/silent-renew"
+        webOrigins:
+          - "https://app.example.com"
+        attributes:
+          "pkce.code.challenge.method": "S256"
+          "post.logout.redirect.uris": "https://app.example.com/logged-out"
+          "use.refresh.tokens": "true"
+          "client_credentials.use_refresh_token": "false"
+
+      # An OIDC client for a backend service (confidential, JWT-based auth, no shared secret)
+      - clientId: my-api
+        publicClient: false
+        clientAuthenticatorType: client-jwt
+        standardFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        attributes:
+          "use.jwks.url": "true"
+          "jwks.url": "https://my-api.example.com/.well-known/jwks.json"
+
+    # Built-in client policy profile to enforce
+    clientPolicies:
+      profiles:
+        profiles: []                    # use the global oauth2-1 / fapi-* built-ins
+      policies:
+        policies:
+          - name: enforce-oauth-2-1
+            enabled: true
+            description: "OAuth 2.1 profile applied to all production clients tagged with role 'oauth2-1'"
+            conditions:
+              - condition: client-roles
+                configuration:
+                  roles: ["oauth2-1"]
+            profiles:
+              - oauth2-1
+
+    # An LDAP user federation provider
+    components:
+      "org.keycloak.storage.UserStorageProvider":
+        - name: corp-ldap
+          providerId: ldap
+          subComponents: {}
+          config:
+            connectionUrl: ["ldaps://ldap.corp.example.com:636"]
+            usersDn: ["ou=People,dc=corp,dc=example,dc=com"]
+            bindDn: ["cn=keycloak,ou=Service,dc=corp,dc=example,dc=com"]
+            bindCredential: ["${vault.corp-ldap-bind-password}"]   # use the Vault SPI
+            authType: ["simple"]
+            useTruststoreSpi: ["always"]
+            usernameLDAPAttribute: ["uid"]
+            rdnLDAPAttribute: ["uid"]
+            userObjectClasses: ["inetOrgPerson, organizationalPerson"]
+            editMode: ["READ_ONLY"]
+            syncRegistrations: ["false"]
+            vendor: ["other"]
+            connectionPooling: ["true"]
+            pagination: ["true"]
+            cachePolicy: ["DEFAULT"]
+
+    # Default realm roles assigned to all users
+    defaultRoles:
+      - "default-roles-tenants"
+
+    # Required actions order — what users may be asked to do post-login
+    requiredActions:
+      - alias: "VERIFY_EMAIL"
+        defaultAction: false
+        priority: 50
+        enabled: true
+      - alias: "CONFIGURE_TOTP"
+        defaultAction: false
+        priority: 10
+        enabled: true
