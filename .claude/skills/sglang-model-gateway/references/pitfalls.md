@@ -201,3 +201,41 @@ For the parser × model matrix, see the `vllm-reasoning-parsers` skill.
 **Diagnosis:** `--ca-cert-path` not set, or set to a CA that doesn't sign the worker certs.
 
 **Fix:** Mount the CA bundle and pass `--ca-cert-path /etc/tls/ca.crt`. For Istio mesh, use SPIRE/cert-manager-issued certs and align the trust roots between gateway and workers.
+
+## 19. Init container pulls tokenizer files from S3 for cache_aware (which never reads them)
+
+**Symptom:** Gateway pod has an init container fetching `tokenizer.json` / `tiktoken.model` / `tokenizer_config.json` from S3 onto an emptyDir, then `--tokenizer-path /shared/tokenizer/` on the main container. Pod boots in 30–60 seconds because the init container runs first; intermittent pod failures whenever S3 latency spikes or IRSA tokens expire.
+
+**Diagnosis:** The deployment uses `--policy cache_aware` (default), no `prefix_hash`, no `/v1/tokenize` clients, no gRPC mode. The cache_aware policy operates on **raw text** in the request body (`src/policies/cache_aware.rs:22` comment: *"the tree stores raw text characters"*). The loaded tokenizer is parked in the registry and never queried by the routing path. The entire init-container → emptyDir → `--tokenizer-path` chain is functionally a no-op.
+
+This pattern usually arrives by analogy from the worker pod, where the snapshot really is required (the worker reads weights, tokenizer, chat template). Operators copy the worker's mount setup into the gateway pod manifest and don't realise it's unnecessary.
+
+**Fix:** Three changes to the gateway Deployment:
+
+1. Remove the init container that pulls from S3.
+2. Remove the volume + volumeMount that backed `/shared/tokenizer/`.
+3. Remove `--tokenizer-path` from the gateway args.
+
+Verify the gateway still routes correctly by checking `smg_router_request_total{policy="cache_aware"}` increments and inspecting `/v1/models` / `/v1/chat/completions` works. Boot log will no longer show *"Successfully loaded tokenizer 'X' (id: Y) with vocab_size: Some(Z)"* — that's expected.
+
+**Keep the pipeline only if any of the following is true:**
+- You run `--policy prefix_hash`.
+- Clients call `/v1/tokenize` or `/v1/detokenize`.
+- You run gRPC mode (and the model has a `tokenizer.json` — tiktoken-only models cannot use gRPC anyway, see pitfall #20).
+- You want `vocab_size` reported in gateway boot logs / `smg_*` metrics for observability.
+
+For the full tokenizer-vs-policy matrix, see `references/tokenizers.md`.
+
+## 20. gRPC mode rejects tiktoken-only models (Kimi K2/K2.6, DeepSeek-V3-style)
+
+**Symptom:** Gateway boots fine, tokenizer loads (via `tiktoken.model`), `/v1/models` lists the model, but `/v1/chat/completions` over the gRPC path fails with *"gRPC router requires HuggingFace tokenizer with chat template support"*. HTTP mode works fine for the same model.
+
+**Diagnosis:** `src/routers/grpc/utils.rs:407` does `tokenizer.as_any().downcast_ref::<HuggingFaceTokenizer>()` and bails when the downcast returns `None`. For tiktoken-loaded models the runtime type is `TiktokenTokenizer`, so the downcast fails and the gRPC request path errors before sending anything to the worker. The check is hard-required because the gRPC path applies the chat template gateway-side, and the chat template logic in v0.3.x only knows how to talk to the HuggingFace `tokenizers` crate.
+
+**Fix:** For tiktoken-only models — Kimi K2 / K2.6, DeepSeek-V3 family that ships `tiktoken.model` and not `tokenizer.json`, GPT-OSS-style models — **use HTTP mode**. The worker still receives properly-formatted requests (worker-side chat template application via vLLM/SGLang), and you give up the gRPC-specific perf advantages (mostly: lower request-side overhead, structured streaming).
+
+If your model ships **both** `tokenizer.json` and `tiktoken.model`, pass `--tokenizer-path` pointing at a directory containing only `tokenizer.json` (the loader picks `tokenizer.json` first when both exist in the same dir, but if you want to be defensive, isolate it). Or split the model dir: one mount with just the HF files, one mount with the full snapshot for the worker.
+
+**Verify which path you're on**: a gateway running `--worker-urls http://...` with vLLM HTTP workers is on HTTP mode. A gateway with `--service-discovery --selector ...` against SGLang workers can negotiate gRPC; pin with `--runtime sglang --connection grpc` to be explicit. For vLLM-gRPC native (PR #13120) the same restriction applies — the gateway-side chat template still requires HF tokenizer.
+
+For full format dispatch and the cl100k_base regex caveat for Chinese-script models, see `references/tokenizers.md`.

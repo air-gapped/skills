@@ -206,7 +206,7 @@
       "name": "sglang",
       "source": "./",
       "description": "SGLang operator reference suite — HiCache (three-tier hierarchical prefix cache: GPU HBM → host DRAM → distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache) and the SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM/SGLang inference workers on Kubernetes with cache-aware/prefix-hash/consistent-hash routing, K8s label-selector service discovery, PD-disaggregation, and `--enable-mesh` CRDT sync between gateway replicas. Pairs with the `vllm` suite for vLLM-side reference and `inference-cache` for engine-agnostic KV-cache transport.",
-      "version": "0.20260505.3",
+      "version": "0.20260507.4",
       "author": {
         "name": "Jörgen"
       },

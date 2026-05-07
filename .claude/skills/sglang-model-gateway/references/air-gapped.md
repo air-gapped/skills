@@ -8,13 +8,13 @@ The Rust gateway **does not honour `HF_ENDPOINT`** the way Python `transformers`
 
 ## When the gateway needs a tokenizer
 
-The gateway needs to load a tokenizer in three situations:
+The gateway only loads a tokenizer in three situations:
 
-1. **gRPC mode (always)** — the gateway tokenizes locally before sending token IDs to the worker. No way around it.
-2. **HTTP mode + cache-aware policy** — the policy hashes prompt text via the radix tree; for the prefix-hash-on-tokens variant the tokenizer is required.
+1. **gRPC mode (always)** — the gateway tokenizes locally before sending token IDs to the worker. **gRPC mode hard-requires a HuggingFace tokenizer** (explicit downcast in `src/routers/grpc/utils.rs:407`); tiktoken-only models like Kimi K2/K2.6 cannot use gRPC mode.
+2. **HTTP mode + `prefix_hash` policy** — hashes the first 256 token IDs against a consistent-hash ring, so a working tokenizer is required.
 3. **`/v1/tokenize`, `/v1/detokenize` endpoints** — gateway-side tokenization for clients.
 
-In HTTP-pass-through mode without cache-aware (e.g. `--policy random`, `--policy round_robin`), the tokenizer is optional and the gateway is a near-transparent proxy.
+**Cache-aware does NOT need a tokenizer.** The radix tree stores raw text (`src/policies/cache_aware.rs:22` comment, `tree.insert(text, …)`), not tokens. In HTTP pass-through mode with `cache_aware`, `random`, `round_robin`, `power_of_two`, `consistent_hashing`, `bucket`, or `manual` policies, the tokenizer is optional — the gateway is a near-transparent proxy. **For the most common deployment shape (HTTP + cache_aware), the gateway pod needs no model files at all** — no PVC mount, no init container, no S3 pull, no `--tokenizer-path` flag. See `references/tokenizers.md` for the full format-vs-policy compatibility matrix.
 
 ## What the snapshot directory needs
 

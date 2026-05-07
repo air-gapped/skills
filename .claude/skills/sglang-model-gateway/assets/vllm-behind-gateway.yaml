@@ -204,9 +204,10 @@ spec:
             # to manage workers via /workers REST.
             - --worker-urls
             - http://<MODEL_ID>-vllm.<NS>.svc.cluster.local:8000
-            # Tokenizer — required for cache_aware policy
-            - --tokenizer-path
-            - <SNAPSHOT_PATH>
+            # No --tokenizer-path: cache_aware operates on raw text
+            # (src/policies/cache_aware.rs:22), no tokenizer needed.
+            # Add --tokenizer-path <SNAPSHOT_PATH> only if you switch to
+            # --policy prefix_hash, expose /v1/tokenize, or use gRPC mode.
             - --policy
             - cache_aware
             - --cache-threshold
@@ -231,9 +232,10 @@ spec:
             - {name: http, containerPort: 8080, protocol: TCP}
             - {name: metrics, containerPort: 29000, protocol: TCP}
           env:
-            - {name: HF_HOME, value: /models/huggingface}
-            - {name: HF_HUB_CACHE, value: /models/huggingface/hub}
-            - {name: HF_HUB_OFFLINE, value: "1"}
+            # No HF_* env vars are needed for cache_aware deployments — the
+            # gateway never reads HF cache or hits HF Hub when no
+            # --tokenizer-path is passed. Add HF_HOME / HF_HUB_OFFLINE only
+            # if you re-introduce --tokenizer-path for prefix_hash etc.
             - {name: HF_HUB_DISABLE_TELEMETRY, value: "1"}
           securityContext:
             allowPrivilegeEscalation: false
@@ -244,7 +246,9 @@ spec:
             requests: {memory: "768Mi", cpu: "100m"}
             limits:   {memory: "1Gi",   cpu: "500m"}
           volumeMounts:
-            - {name: models, mountPath: /models, readOnly: true}
+            # No `models` mount: cache_aware needs no tokenizer files.
+            # Re-add `- {name: models, mountPath: /models, readOnly: true}`
+            # if you switch to a tokenizer-using policy.
             - {name: tmp, mountPath: /tmp}
           livenessProbe:
             httpGet: {path: /health, port: http}
@@ -257,8 +261,10 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
       volumes:
-        - name: models
-          hostPath: {path: /models, type: Directory}
+        # `models` volume removed for cache_aware-only gateway. Re-add if
+        # you switch to a tokenizer-using policy:
+        #   - name: models
+        #     hostPath: {path: /models, type: Directory}
         - name: tmp
           emptyDir: {}
 ---

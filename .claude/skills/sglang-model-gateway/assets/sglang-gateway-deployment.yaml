@@ -95,11 +95,13 @@ spec:
             - <NS>
             - --service-discovery-port
             - "30000"     # MUST match worker container port
-            # Tokenizer — local snapshot path (air-gapped-friendly).
-            # If you have HF access, you can pass `--model-path <REPO_ID>`
-            # but the Rust gateway does not honour HF_ENDPOINT.
-            - --model-path
-            - <SNAPSHOT_PATH>
+            # No --model-path / --tokenizer-path: cache_aware operates on
+            # raw text (src/policies/cache_aware.rs:22), no tokenizer
+            # needed. If you switch to --policy prefix_hash, expose
+            # /v1/tokenize, or use gRPC mode against an HF-tokenized
+            # model, add:
+            #   - --tokenizer-path
+            #   - <SNAPSHOT_PATH>   # local path; gateway ignores HF_ENDPOINT
             # Routing
             - --policy
             - cache_aware
@@ -129,11 +131,11 @@ spec:
             - {name: http, containerPort: 8080, protocol: TCP}
             - {name: metrics, containerPort: 29000, protocol: TCP}
           env:
-            # Air-gapped-friendly env vars. Gateway doesn't read HF_HUB_OFFLINE
-            # itself, but other crates in the process may.
-            - {name: HF_HOME, value: /models/huggingface}
-            - {name: HF_HUB_CACHE, value: /models/huggingface/hub}
-            - {name: HF_HUB_OFFLINE, value: "1"}
+            # No HF_* env vars are needed for cache_aware deployments —
+            # the gateway never reads HF cache or hits HF Hub when no
+            # --tokenizer-path is passed. Add HF_HOME / HF_HUB_OFFLINE
+            # only if you re-introduce --tokenizer-path for prefix_hash
+            # etc.
             - {name: HF_HUB_DISABLE_TELEMETRY, value: "1"}
           securityContext:
             allowPrivilegeEscalation: false
@@ -144,7 +146,9 @@ spec:
             requests: {memory: "768Mi", cpu: "100m"}
             limits:   {memory: "1Gi",   cpu: "500m"}
           volumeMounts:
-            - {name: models, mountPath: /models, readOnly: true}
+            # No `models` mount: cache_aware needs no tokenizer files.
+            # Re-add `- {name: models, mountPath: /models, readOnly: true}`
+            # if you switch to a tokenizer-using policy.
             - {name: tmp, mountPath: /tmp}
           livenessProbe:
             httpGet: {path: /health, port: http}
@@ -157,12 +161,14 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
       volumes:
-        - name: models
-          # Use a PVC in production; hostPath only for single-node dev.
-          # persistentVolumeClaim: {claimName: <MODEL_ID>-store}
-          hostPath:
-            path: /models
-            type: Directory
+        # `models` volume removed for cache_aware-only gateway. Re-add
+        # if you switch to a tokenizer-using policy:
+        #   - name: models
+        #     # Use a PVC in production; hostPath only for single-node dev.
+        #     # persistentVolumeClaim: {claimName: <MODEL_ID>-store}
+        #     hostPath:
+        #       path: /models
+        #       type: Directory
         - name: tmp
           emptyDir: {}
 ---
