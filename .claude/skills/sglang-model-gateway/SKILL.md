@@ -2,7 +2,9 @@
 name: sglang-model-gateway
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM/SGLang inference workers on Kubernetes. Trigger on "sgl-model-gateway", "sgl-router", "sglang router", "smg", "amg", "model gateway", "inference gateway", "load balance vllm replicas", "fan out same model", "kubernetes vllm router", "cache-aware routing", "prefix_hash policy", "PD disaggregation router", "--worker-urls", "--service-discovery", "--enable-mesh", "smg_* metrics", "--tokenizer-path", "tokenizer.json vs tiktoken.model", "Kimi K2", "K2.6", "DeepSeek tiktoken". Covers: first-class vLLM gRPC backend (`RuntimeType::Vllm`) plus HTTP transparent-proxy for vanilla vLLM; eight policies; tokenizer format dispatch (`tokenizer.json` HF-fast vs `tiktoken.model` BPE — when each is required, when neither is required because cache_aware is text-based); air-gapped recipe (gateway ignores `HF_ENDPOINT`, mount tokenizer on PVC only when actually needed); K8s manifests with `model_id` labels + per-model RBAC; three HA mitigations (single+PDB / `sessionAffinity` / `--enable-mesh` CRDT sync); pitfalls (vLLM HTTP discovery registers empty labels, gRPC requires HF tokenizer (no tiktoken), gRPC probes need numeric ports, `sgl_router_*` → `smg_*` rename Dec 2025, over-engineered tokenizer init containers for cache_aware-only deployments).
+  SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM and SGLang inference workers on Kubernetes. Covers first-class vLLM gRPC backend plus HTTP transparent-proxy for vanilla vLLM, eight load-balancing policies, tokenizer-format dispatch (`tokenizer.json` HF-fast vs `tiktoken.model` BPE — including when neither is required because `cache_aware` is text-based), air-gapped recipe (gateway ignores `HF_ENDPOINT`, mount tokenizer files on PVC only when actually needed), K8s manifests with `model_id` labels and per-model RBAC, three HA mitigations (single + PDB, `sessionAffinity: ClientIP`, `--enable-mesh` CRDT sync), and a pitfall catalog covering the Dec 2025 `sgl-router` → `sgl-model-gateway` rename and over-engineered tokenizer init-container traps.
+when_to_use: |-
+  Trigger on "sgl-model-gateway", "sgl-router", "sglang router", "smg", "amg", "model gateway", "inference gateway", "load balance vllm replicas", "fan out same model", "kubernetes vllm router", "cache-aware routing", "prefix_hash policy", "PD disaggregation router", "--worker-urls", "--service-discovery", "--enable-mesh", "smg_* metrics", "--tokenizer-path", "tokenizer.json vs tiktoken.model", "Kimi K2", "K2.6", "DeepSeek tiktoken". Also: vLLM HTTP discovery registers empty labels, gRPC requires HF tokenizer (no tiktoken), gRPC probes need numeric ports, `sgl_router_*` → `smg_*` metric rename Dec 2025, over-engineered tokenizer init containers for cache_aware-only deployments.
 ---
 
 # SGLang Model Gateway — sgl-model-gateway
@@ -11,7 +13,7 @@ Target audience: operators running **vLLM and/or SGLang inference on Kubernetes*
 
 ## Why this matters
 
-A single vLLM or SGLang process serves one Pod. To scale beyond one GPU, you either fan-out replicas (N Pods, one Service) or run engine-internal data-parallelism (`vllm serve --data-parallel-size N`). Plain Kubernetes `Service` round-robins requests, which **fragments per-replica prefix caches** — every replica builds its own copy of the same prefix and hit rate divides by ~N. The Model Gateway is a Rust router that recovers most of that with a **cache-aware policy** (steers same-prefix requests to the same replica), adds health checks / circuit breakers / retries, exposes a unified OpenAI-compatible endpoint regardless of backend, and integrates with Kubernetes service discovery via label selectors. It also handles prefill-decode disaggregation when you split phases across worker pools.
+A single vLLM or SGLang process serves one Pod. To scale beyond one GPU, operators either fan-out replicas (N Pods, one Service) or run engine-internal data-parallelism (`vllm serve --data-parallel-size N`). Plain Kubernetes `Service` round-robins requests, which **fragments per-replica prefix caches** — every replica builds its own copy of the same prefix and hit rate divides by ~N. The Model Gateway is a Rust router that recovers most of that with a **cache-aware policy** (steers same-prefix requests to the same replica), adds health checks / circuit breakers / retries, exposes a unified OpenAI-compatible endpoint regardless of backend, and integrates with Kubernetes service discovery via label selectors. It also handles prefill-decode disaggregation when phases are split across worker pools.
 
 ## Sibling skills — what NOT to duplicate here
 
@@ -22,7 +24,7 @@ This skill stays inside the router's territory. Defer to:
 - **`vllm-observability`** — vLLM-side `vllm:*` metric semantics (the gateway only adds `smg_*`).
 - **`sglang-hicache`** — SGLang's three-tier prefix cache (orthogonal to the gateway).
 - **`keda`** — autoscaling on `smg_router_request_queue_length` or `smg_inference_requests_running`.
-- **`helm`** — chart authoring (no upstream gateway Helm chart exists; you build your own).
+- **`helm`** — chart authoring (no upstream gateway Helm chart exists; build one).
 
 ## Versions and canonical name (this is a footgun)
 
@@ -38,7 +40,7 @@ The project was **renamed in Dec 2025**:
 | Release tag prefix | `router-vX.Y.Z` | `gateway-vX.Y.Z` |
 | Python launcher module | `sglang_router` | `sglang_router` (**not renamed**) |
 
-The Python entry point `python3 -m sglang_router.launch_router` still works. CLI flags are unchanged across the rename. **Dashboards on `sgl_router_*` go silently empty after upgrading** — fix the metric prefix in your Grafana dashboards and Prometheus alerts.
+The Python entry point `python3 -m sglang_router.launch_router` still works. CLI flags are unchanged across the rename. **Dashboards on `sgl_router_*` go silently empty after upgrading** — fix the metric prefix in Grafana dashboards and Prometheus alerts.
 
 PR refs: `sgl-project/sglang#14283` (crate rename), `sgl-project/sglang#14312` (directory rename).
 
@@ -51,11 +53,10 @@ The gateway is a stateless Rust process that accepts OpenAI-compatible HTTP and 
 The single most-asked question is "how do I put N vLLM replicas behind one sgl-model-gateway?" There are **three viable paths**, and choosing the wrong one wastes a day:
 
 ```
-Are you already on a vLLM gRPC fork (CatherineSue/vllm or upstream once it lands)?
-├── Yes → Path A: vLLM-gRPC native (best, but currently requires the fork build)
-└── No → Are you using HTTP-only vanilla vLLM?
-        ├── Yes, and you only need basic load-balancing → Path B: HTTP transparent proxy via --worker-urls
-        └── Yes, but you want vLLM to handle DP internally with one Pod → Path C: vLLM internal DP-LB (no gateway needed for fan-out)
+Worker condition                                                     → Path
+├── On a vLLM gRPC fork (CatherineSue/vllm or upstream once it lands)→ Path A: vLLM-gRPC native (best, currently requires the fork build)
+├── Vanilla vLLM (HTTP), basic load-balancing only                   → Path B: HTTP transparent proxy via --worker-urls
+└── Vanilla vLLM, internal DP within one Pod                         → Path C: vLLM internal DP-LB (no gateway needed for fan-out)
 ```
 
 ### Path A — vLLM-gRPC native (first-class)
@@ -75,9 +76,7 @@ sgl-model-gateway \
   --host 0.0.0.0 --port 8080
 ```
 
-**Note no `--tokenizer-path`.** With `cache_aware`, the gateway does not need a tokenizer — the radix tree stores raw text characters (`src/policies/cache_aware.rs:22`). If you only run cache_aware (or any non-`prefix_hash` policy in HTTP mode), you can skip `--tokenizer-path`, skip the model-files PVC on the gateway pod, and skip any init container that pulls tokenizer files from S3. A tokenizer is only needed for `prefix_hash`, `/v1/tokenize` / `/v1/detokenize`, or gRPC mode — and the last one is HF-tokenizer-only anyway. See `references/tokenizers.md` for the full matrix.
-
-Cache-aware policy is a **text radix tree on the router side**, not a token-based hash. It does not query vLLM's internal cache state — it just steers same-prefix requests to the same replica so vLLM's *own* prefix cache hits. Set `--enable-prompt-tokens-details` on vLLM if you want OpenAI-standard `usage.prompt_tokens_details.cached_tokens` in responses (off by default).
+No `--tokenizer-path` is needed for cache_aware-only deployments — the radix tree is text-based, not token-based (full rationale in the "Tokenizer must live" section below). Cache-aware policy steers same-prefix requests to the same replica so vLLM's *own* prefix cache hits — it does not query vLLM's internal cache state. Set `--enable-prompt-tokens-details` on vLLM for OpenAI-standard `usage.prompt_tokens_details.cached_tokens` in responses (off by default).
 
 For dynamic worker membership without K8s service discovery, use the runtime endpoints:
 
@@ -93,11 +92,11 @@ A K8s sidecar can `kubectl get endpoints -w` and reconcile this list. Crude but 
 
 vLLM has its own DP load-balancer modes (`vllm/entrypoints/cli/serve.py:64-104`):
 
-- **Internal LB** (default): one `vllm serve --data-parallel-size N` process exposes a single `--port` and ZMQ-fans-out to N engines. From the gateway's perspective this is one upstream — DP is invisible. Use this when fitting N engines on one Pod is operationally simpler than N Pods, and you don't need cross-replica routing visibility.
-- **External LB** (`--data-parallel-external-lb` + `--data-parallel-rank` per Pod): each Pod runs one DP rank, exposes its own port, and the *external* LB (= sgl-model-gateway) makes routing decisions per replica. This is what the gateway expects when you want true per-replica visibility. Per `vllm/config/parallel.py:135-146`: *"useful for a 'one-pod-per-rank' wide-EP setup in Kubernetes."*
+- **Internal LB** (default): one `vllm serve --data-parallel-size N` process exposes a single `--port` and ZMQ-fans-out to N engines. From the gateway's perspective this is one upstream — DP is invisible. Use this when fitting N engines on one Pod is operationally simpler than N Pods, and cross-replica routing visibility is not needed.
+- **External LB** (`--data-parallel-external-lb` + `--data-parallel-rank` per Pod): each Pod runs one DP rank, exposes its own port, and the *external* LB (= sgl-model-gateway) makes routing decisions per replica. This is what the gateway expects when true per-replica visibility is required. Per `vllm/config/parallel.py:135-146`: *"useful for a 'one-pod-per-rank' wide-EP setup in Kubernetes."*
 - **Hybrid LB**: per-node API server, internal LB local DP ranks, external LB across nodes.
 
-Rule: **don't put a gateway in front of vLLM internal-DP-LB Pods** — you lose per-replica visibility and double-hop. Either use vLLM internal-LB alone, or external-LB + gateway, never both.
+Rule: **don't put a gateway in front of vLLM internal-DP-LB Pods** — per-replica visibility is lost and requests double-hop. Either use vLLM internal-LB alone, or external-LB + gateway, never both.
 
 ## Decision tree — where the tokenizer must live
 
@@ -107,7 +106,7 @@ The gateway only invokes a tokenizer in three situations:
 2. **HTTP mode + `prefix_hash` policy** — hashes the first 256 token IDs (xxh3) against a consistent-hash ring. Needs a working tokenizer.
 3. **`/v1/tokenize`, `/v1/detokenize`** — gateway-side tokenization exposed to clients.
 
-**`cache_aware` does NOT need a tokenizer.** The radix tree stores raw text characters (`src/policies/cache_aware.rs:22` comment, `tree.insert(text, …)`); routing is pure text-prefix matching. This is why operators successfully run Kimi K2.6 (tiktoken-only) behind cache_aware in production — no tokenizer ever runs on the gateway side. The tokenizer choice only matters when you're explicitly using one of the three paths above.
+**`cache_aware` does NOT need a tokenizer.** The radix tree stores raw text characters (`src/policies/cache_aware.rs:22` comment, `tree.insert(text, …)`); routing is pure text-prefix matching. This is why operators successfully run Kimi K2.6 (tiktoken-only) behind cache_aware in production — no tokenizer ever runs on the gateway side. The tokenizer choice only matters when explicitly using one of the three paths above.
 
 Pass via `--tokenizer-path /local/dir` or `--model-path /local/dir`. Both accept either an HF repo ID or a local directory. **Critical:** the Rust gateway's HF resolver does not honour `HF_ENDPOINT` (verified — zero hits in the source). In an air-gapped cluster with only an internal mirror, passing an HF repo ID will fail even with `HF_ENDPOINT` set — always pass a local path.
 
@@ -129,7 +128,7 @@ For **N worker replicas behind 1 gateway** (the common case), cache_aware routin
 - Per-replica KV memory is **constrained** — abundant memory means vLLM's own prefix cache absorbs the win regardless of routing. See `sgl-project/sglang#17623` for an operator's reproduction where cache_aware ≈ k8s-RR with comfortable KV memory.
 - Workers are CPU-pinned to keep tokenizer / scheduler latency from drowning the routing benefit.
 
-If your workload is single-turn unique prompts, cache_aware ≈ random — that's fine, just don't expect a TTFT win.
+For single-turn unique-prompt workloads, cache_aware ≈ random — that's fine, just don't expect a TTFT win.
 
 ## Air-gapped + local mirror — the recipe that works
 
@@ -140,9 +139,9 @@ If your workload is single-turn unique prompts, cache_aware ≈ random — that'
 - A **writable** `HF_HOME` location for any side-files vLLM/transformers caches at runtime — never point `HF_HOME` at a read-only PVC mount or initialization writes will fail.
 - `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` on the **worker** (the gateway doesn't read these — it just doesn't try the network when given a local path).
 
-**Gateway pods only need the snapshot if they actually use a tokenizer.** That means: if you run `prefix_hash`, expose `/v1/tokenize`, or use gRPC mode against an HF-tokenized model. For the most common case (HTTP + cache_aware), the gateway pod needs **no model files at all** — no PVC mount, no init container, no S3 pull. Cache_aware works on raw text from the request body.
+**Gateway pods only need the snapshot if they actually use a tokenizer** — i.e. running `prefix_hash`, exposing `/v1/tokenize`, or using gRPC mode against an HF-tokenized model. For the most common case (HTTP + cache_aware), the gateway pod needs **no model files at all** — no PVC mount, no init container, no S3 pull.
 
-If you do need a tokenizer on the gateway, gateway args reference the local path (no repo IDs — the Rust gateway does not honor `HF_ENDPOINT`):
+If a tokenizer is needed on the gateway, the gateway args reference a local path (no repo IDs — the Rust gateway does not honor `HF_ENDPOINT`):
 
 ```bash
 --tokenizer-path /models/huggingface/hub/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/<sha>/
@@ -167,29 +166,29 @@ Full manifests in `assets/sglang-gateway-deployment.yaml` (SGLang worker) and `a
 
 ## Critical pitfalls
 
-1. **HTTP service discovery registers vLLM workers with empty metadata, not rich metadata.** Discovery probes `/server_info` + `/model_info`, which vLLM 404s. The gateway falls through gracefully (`discover_metadata.rs:237-298` returns `Ok((empty_labels, None))`) and **the worker is still registered** — routing works, cache_aware works (text-based, no tokenizer needed), but you don't get worker-side label enrichment. If you specifically need `prefix_hash`, `/v1/tokenize`, or gRPC mode, pass `--tokenizer-path` explicitly since the gateway can't fetch it from the worker. For HTTP + cache_aware deployments, no tokenizer is needed at all. Static `--worker-urls` is also fine — pick whichever fits your autoscaling story.
+1. **HTTP service discovery registers vLLM workers with empty metadata, not rich metadata.** Discovery probes `/server_info` + `/model_info`, which vLLM 404s. The gateway falls through gracefully (`discover_metadata.rs:237-298` returns `Ok((empty_labels, None))`) and **the worker is still registered** — routing works, but worker-side label enrichment is missing. For `prefix_hash`, `/v1/tokenize`, or gRPC mode, pass `--tokenizer-path` explicitly since the gateway can't fetch it from the worker. Static `--worker-urls` is also fine — pick whichever fits the autoscaling story.
 
 2. **PD-disaggregation does not support vLLM workers.** Per PR #13120 limitation matrix. Don't mix vLLM into prefill/decode pools.
 
-3. **The Rust gateway ignores `HF_ENDPOINT` entirely.** It uses raw `reqwest` for its few HTTP calls (no `hf-hub` Rust crate), so neither Python `transformers`-style nor Rust `hf-hub`-style endpoint rewriting applies. Verified by grep: zero hits for `HF_ENDPOINT` in the gateway source. Always pass a local directory to `--model-path` / `--tokenizer-path` in air-gapped clusters.
+3. **The Rust gateway ignores `HF_ENDPOINT` entirely.** Service-discovery probes use raw `reqwest`; tokenizer fetches go through `llm-tokenizer`'s `hf-hub` path which is also `HF_ENDPOINT`-unaware. Verified by grep: zero hits for `HF_ENDPOINT` in the gateway source. Always pass a local directory to `--model-path` / `--tokenizer-path` in air-gapped clusters.
 
 4. **gRPC liveness/readiness probes need numeric ports**, not named (Kubernetes API constraint, not gateway-specific). For HTTP gateways probing `/health`, named ports work fine.
 
 5. **Service discovery only watches one port per pod** (`#20184`). For nodes hosting two decode workers on different ports, split into two Pods, one port each.
 
-6. **Multi-replica gateway → 10-20% cache hit reduction.** Each gateway replica owns its radix tree; the trees are not shared. Either accept the penalty for HA, or use a single gateway with PodDisruptionBudget + fast restarts.
+6. **Multi-replica gateway → 10-20% cache hit reduction** unless `--enable-mesh` is on. Mitigations covered above in §"Hosting multiple replicas".
 
 7. **Dynamic worker registration does not inherit the gateway API key.** When POSTing to `/workers`, pass `api_key=...` explicitly.
 
 8. **Metric prefix renamed Dec 2025**: `sgl_router_*` → `smg_*`. Update Grafana dashboards and Prometheus alerts. The `lmsysorg/sgl-model-gateway:v0.3.x` images all use the new prefix.
 
-9. **vLLM's `prompt_tokens_details.cached_tokens` is gated behind `--enable-prompt-tokens-details`.** Off by default. Without it, every response carries `prompt_tokens_details: null` and your gateway loses per-request cache feedback (you'd have to scrape `vllm:prefix_cache_hits` from `/metrics` instead).
+9. **vLLM's `prompt_tokens_details.cached_tokens` is gated behind `--enable-prompt-tokens-details`.** Off by default. Without it, every response carries `prompt_tokens_details: null` and the gateway loses per-request cache feedback — `vllm:prefix_cache_hits` from `/metrics` is the fallback signal.
 
-10. **Don't put a gateway in front of vLLM `--data-parallel-size N` internal-LB Pods.** You lose per-replica visibility and double-hop. Use vLLM external-LB mode (`--data-parallel-external-lb` + per-Pod `--data-parallel-rank`) when you want gateway-level routing intelligence.
+10. **Don't put a gateway in front of vLLM `--data-parallel-size N` internal-LB Pods.** Per-replica visibility is lost and requests double-hop. Use vLLM external-LB mode (`--data-parallel-external-lb` + per-Pod `--data-parallel-rank`) for gateway-level routing intelligence.
 
 11. **Workers behind cache_aware need similar GPU memory budgets.** The policy assumes uniform replicas; mixing a 24 GB and an 80 GB GPU in the same pool produces uneven evictions and the cache score becomes meaningless.
 
-12. **Over-engineered tokenizer init pipeline for cache_aware-only deployments.** Common shape: an init container pulls tokenizer files from S3 onto an emptyDir, the gateway mounts it, `--tokenizer-path` points at it. This is dead weight for HTTP + cache_aware — the radix tree never reads the loaded tokenizer. The pipeline adds boot latency, S3-credential plumbing, IRSA, and another failure mode. Drop the init container, drop the mount, drop the flag. Keep only if you actually call `/v1/tokenize`, run `prefix_hash`, or run gRPC mode. See pitfall #19 in `references/pitfalls.md`.
+12. **Over-engineered tokenizer init pipeline for cache_aware-only deployments.** Common shape: an init container pulls tokenizer files from S3 onto an emptyDir, the gateway mounts it, `--tokenizer-path` points at it. Dead weight for HTTP + cache_aware. Drop the init container, the mount, and the flag. Keep only when the deployment actually calls `/v1/tokenize`, runs `prefix_hash`, or runs gRPC mode. Reproduction and fix in pitfall #19 in `references/pitfalls.md`.
 
 13. **gRPC mode silently rejects tiktoken-only models** — Kimi K2/K2.6, DeepSeek-V3-style, GPT-OSS-style. `src/routers/grpc/utils.rs:407` does `downcast_ref::<HuggingFaceTokenizer>()`; for tiktoken the downcast returns None and the request fails with *"gRPC router requires HuggingFace tokenizer with chat template support"*. Use HTTP mode for these models. Cache_aware works fine over HTTP regardless of tokenizer format.
 
@@ -204,7 +203,7 @@ For the extended troubleshooting list, see `references/pitfalls.md`. For tokeniz
 - **Full CLI flag reference** (all 80+ flags grouped by category, defaults, env-var equivalents) → `references/cli-flags.md`
 - **`smg_*` Prometheus surface** (40+ metrics, alert recipes, PromQL for cache hit rate / queue depth / circuit breaker state) → `references/metrics.md`
 - **Extended pitfalls** (the long list with reproductions and fixes) → `references/pitfalls.md`
-- **Chat history backends** (`/v1/responses` and `/v1/conversations` — what they're for, when you actually need a non-`memory` backend, the privacy/proxy angle) → `references/history.md`
+- **Chat history backends** (`/v1/responses` and `/v1/conversations` — what they're for, when a non-`memory` backend is genuinely needed, the privacy/proxy angle) → `references/history.md`
 - **Reference manifests** (drop-in YAML for SGLang and vLLM workers behind a gateway) → `assets/sglang-gateway-deployment.yaml`, `assets/vllm-behind-gateway.yaml`
 
 ## Source of truth
