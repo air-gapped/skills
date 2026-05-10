@@ -263,16 +263,19 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "open-webui": {
-        "members": ["open-webui-embeddings"],
+        "members": ["open-webui-embeddings", "open-webui-valkey-websocket"],
         "description": (
-            "Open WebUI operator suite — wiring HuggingFace embedding "
-            "and reranker models into Open WebUI's RAG pipeline via "
-            "LiteLLM in front of HuggingFace Text Embeddings Inference "
-            "(TEI). Covers exact wire shapes, LiteLLM ↔ TEI gotchas, "
-            "TEI configuration cliffs, and end-to-end production "
-            "configuration. BGE-M3 and BGE-Reranker-v2-m3 are the "
-            "worked examples; patterns generalise to any TEI-served "
-            "encoder."
+            "Open WebUI operator suite — RAG pipeline wiring "
+            "(HuggingFace embedding + reranker via LiteLLM in front of "
+            "HuggingFace Text Embeddings Inference; exact wire shapes, "
+            "LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end "
+            "production config; BGE-M3 + BGE-Reranker-v2-m3 worked "
+            "examples) and multi-pod deployment with WebSockets + Valkey "
+            "Sentinel at 1000+ user scale (the structural Socket.IO + "
+            "Redis frame-amplification bug #23733 and the "
+            "CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all "
+            "multi-pod env vars, custom-model-icon perf history, helm "
+            "chart gaps, full known-issues catalog with fix status)."
         ),
         "category": "ai-workflow",
         "tags": [
@@ -284,6 +287,14 @@ GROUPS: dict[str, dict] = {
             "tei",
             "huggingface",
             "bge-m3",
+            "websocket",
+            "valkey",
+            "redis",
+            "sentinel",
+            "multi-pod",
+            "kubernetes",
+            "socket-io",
+            "scaling",
         ],
     },
 }
