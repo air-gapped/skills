@@ -214,6 +214,42 @@ GROUPS: dict[str, dict] = {
             "optimization",
         ],
     },
+    "dell": {
+        # Dell hardware operator suite — iDRAC BMC automation and
+        # PowerEdge server tooling. Room for siblings: iDRAC RACADM,
+        # PowerEdge BIOS attribute reference, OpenManage Enterprise,
+        # Dell DUP catalog tooling, Dell Repository Manager, etc.
+        "members": ["ansible-idrac-9-10"],
+        "description": (
+            "Dell hardware suite — Ansible automation against Dell "
+            "PowerEdge iDRAC 9 (14G–16G) and iDRAC 10 (17G) BMCs via "
+            "the `dellemc.openmanage` collection. Covers the iDRAC 10 "
+            "/ iDRAC 9 ≥ 7.30.10.50 `BasicAuthState: Unadvertised` "
+            "default that silently 401s `ansible.builtin.uri`, the "
+            "canonical `idrac_session` + `x_auth_token` lifecycle, "
+            "iDRAC 10 attribute registry deltas (renamed groups, "
+            "deprecated `vFlashSD*`/`Telemetry*`/`GroupManager`, the "
+            "BIOS→`System.ServerPwr.*` move), iDRAC 9-only modules to "
+            "avoid on 17G, WS-MAN removal on 17G, and the upstream "
+            "bug catalog. Room for sibling skills covering RACADM, "
+            "OpenManage Enterprise, DUP catalogs, and PowerEdge BIOS "
+            "tuning."
+        ),
+        "category": "infrastructure",
+        "tags": [
+            "dell",
+            "poweredge",
+            "idrac",
+            "idrac9",
+            "idrac10",
+            "17g",
+            "bmc",
+            "redfish",
+            "racadm",
+            "ansible",
+            "dellemc-openmanage",
+        ],
+    },
     "dev": {
         "members": [
             "baml-expert",
