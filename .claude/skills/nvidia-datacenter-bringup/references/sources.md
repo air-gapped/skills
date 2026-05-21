@@ -74,17 +74,23 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 | https://wiki.debian.org/SecureBoot | lockdown=integrity behaviours, `modinfo` verification | 2026-05-21 | — |
 | https://packages.ubuntu.com/noble/shim-signed | shim-signed 1.58+15.8-0ubuntu1 metadata | 2026-05-21 | 24.04 noble |
 
-## Dell — HGX B300 chassis
+## Dell — chassis (B300 + Hopper)
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
 | https://dl.dell.com/FOLDER14346751M/3/Release-notes.txt | HGX B300 SXM6 air-cooled firmware v1.4.30 release notes | 2026-05-21 | v1.4.30 (2026-03-25) |
-| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=xrg43 | Dell driver-details page for air-cooled B300 firmware | 2026-05-21 | — |
-| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=662gc | Same for partner-cooled variant | 2026-05-21 | — |
+| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=xrg43 | XE9780/XE9785 — Dell driver page for air-cooled B300 firmware | 2026-05-21 | — |
+| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=662gc | Same for partner-cooled B300 variant | 2026-05-21 | — |
+| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=mh92v | XE9680 — HGX H200 141G 8-GPU baseboard firmware | 2026-05-21 | — |
+| https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=p9gg2 | XE9680 — PCIe Switch firmware (H100/A100 U.2 NVMe config) | 2026-05-21 | — |
 | https://www.dell.com/support/kbdoc/en-us/000355295/ | Virtual power cycle activation failure + `DellOemChassis.ExtendedReset` curl commands | 2026-05-21 | — |
 | https://www.dell.com/support/kbdoc/en-us/000377140/ | DUP firmware update failure on B200/B300, `mlxfwmanager` workaround | 2026-05-21 | — |
+| https://www.dell.com/support/kbdoc/en-us/000308105/ | XE9680/XE9640/XE8640 — iDRAC Direct USB Port BIOS gotcha | 2026-05-21 | — |
 | https://github.com/dell/iDRAC-Redfish-Scripting/blob/master/Redfish%20Python/GetFirmwareInventoryREDFISH.py | Reference for FirmwareInventory Redfish query | 2026-05-21 | — |
 | https://docs.nvidia.com/dgx/dgxb300-fw-update-guide/ | NVIDIA-side firmware procedure baseline (DGX equivalent) | 2026-05-21 | — |
+| https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe8640-technical-guide.pdf | XE8640 Technical Guide (4× HGX H100 SXM5 confirmation, no NVSwitch) | 2026-05-21 | — |
+| https://docs.nvidia.com/datacenter/tesla/tesla-release-notes-580-65-06/index.html | R580 release notes — Hopper subrev 3 VBIOS 96.00.68.00.xx init-failure gate | 2026-05-21 | 580.65.06 |
+| https://docs.nvidia.com/datacenter/tesla/hgx-software-guide/index.html | NVIDIA HGX A100 Software User Guide — establishes "HGX 4-GPU has no NVSwitch, FM not required" rule (applies to H100 4-GPU too) | 2026-05-21 | — |
 
 ## Ubuntu archive — package presence checks
 

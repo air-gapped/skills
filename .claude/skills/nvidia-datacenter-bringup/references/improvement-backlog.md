@@ -62,3 +62,16 @@ First version of skill. Backlog seeded from the autoresearch synthesis and the l
 - Dim 5 (Completeness): added decision-tree rows for H100/A100/L40S/L4 (non-Blackwell coverage).
 - Dim 7 (Resource Quality): added `scripts/health-check.sh` (multi-platform smart, smoke-tested).
 - Dim 6 (Simplicity): removed defensive boilerplate ("Cross-doc stitching is the value-add" paragraph).
+
+### Hopper expansion pass (2026-05-21)
+
+User feedback that the skill was too B300-focused for a fleet running H100 (XE8640 + XE9680) and H200 (XE9680). Five-iteration pass adding Hopper as a first-class citizen:
+
+- **New [[hopper-recipe]]** — dedicated companion to [[recipe]] (which stays B300-centric). Topology→install matrix covers XE8640 (4-GPU HGX H100, **no NVSwitch, no FM**), XE9680 (8-GPU Hopper), GH200 (open mandatory), H200 NVL (PCIe), L40S/L4. XE8640 minimal install is 3 apt packages.
+- **Decision tree split**: previous single "HGX H100/H200/H800" row was wrong because it conflated 4-GPU (no NVSwitch) and 8-GPU (3rd-gen NVSwitch). Now: separate rows for "HGX 4-GPU SXM (XE8640)" and "HGX 8-GPU SXM (XE9680)". Added Grace Hopper row (open mandatory).
+- **Corrected min-driver versions**: H200 needs 535+ (not 525 as previously stated — H200 announced late 2023 after R525 line).
+- **Hopper VBIOS gate** added to [[troubleshooting]]: R580 fails to init on Hopper subrev 3 silicon with VBIOS older than 96.00.68.00.xx (per NVIDIA 580.65.06 release notes).
+- **XE9680/XE9640/XE8640 iDRAC Direct USB Port gotcha** documented in [[dell-firmware]] (Dell KB 000308105): GPU baseboard firmware updates fail silently if iDRAC Direct USB is disabled in BIOS.
+- **Dell firmware bundle pointers**: added table mapping chassis SKU → Dell driver-page ID. XE9680 H200 = `driverid=mh92v`, XE9680 PCIe switch H100/A100 = `driverid=p9gg2`. Previously only B300 bundles (`xrg43`, `662gc`) were documented.
+- **`nvidia-imex` scope correction** in [[packages]]: it's not Blackwell-specific. Branches 550-595 all ship `nvidia-imex-XXX` packages — useful on any NVLink-fabric chassis including XE9680 Hopper and XE8640 direct-mesh.
+- [[sources]] updated with H200 baseboard firmware URL, XE9680 PCIe switch URL, KB 000308105, R580 release notes, NVIDIA HGX A100 Software Guide (which establishes the "4-GPU has no NVSwitch" rule).

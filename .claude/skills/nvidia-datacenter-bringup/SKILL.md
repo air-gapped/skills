@@ -13,11 +13,14 @@ Opinionated greenfield recipe for **NVIDIA datacenter GPUs on Ubuntu 24.04 LTS**
 | Question | Answer | Read |
 |---|---|---|
 | Has Blackwell silicon (B300/B200/B100)? | Yes | Open kernel modules **mandatory** — proprietary is unsupported [[open-modules-transition]] |
-| HGX H100/H200/H800 (3rd-gen NVSwitch)? | Yes | Open recommended (not mandatory). Use `cuda-drivers-fabricmanager-<branch>` meta; **skip** `nvlink5-<branch>` and NVLSM (NVLSM is B200/B300-only). DOCA-OFED also skipped — no CX bridge on H100. Min driver 525.xx |
-| HGX/DGX A100 (2nd-gen NVSwitch)? | Yes | Same as H100 path. Min driver 450.xx. ALI not available — FM trains NVLinks at boot |
-| L40S, L40, or L4 (no NVSwitch)? | Yes | Driver + container-toolkit only. **Skip** DOCA-OFED, fabricmanager, NVLSM entirely. Validation reduces to `nvidia-smi` clean — no fabric registration to check |
+| Grace Hopper (GH200)? | Yes | Open kernel modules **mandatory** (same as Blackwell). Otherwise 8-GPU SXM path [[hopper-recipe]] |
+| HGX 8-GPU SXM with 3rd-gen NVSwitch (H100/H200/H800 in XE9680 or similar)? | Yes | Open recommended (not mandatory). Use `cuda-drivers-fabricmanager-<branch>` meta; **skip** `nvlink5-<branch>`, NVLSM, DOCA-OFED entirely. Min driver 525+ for H100, 535+ for H200 [[hopper-recipe]] |
+| HGX 4-GPU SXM (H100 in XE8640, A100 4-GPU)? | Yes | **No NVSwitch on this baseboard** — direct NVLink mesh between 4 GPUs. **Skip fabricmanager entirely** + DOCA + NVLSM. Three-package install: driver + container-toolkit [[hopper-recipe]] |
+| HGX A100 8-GPU (2nd-gen NVSwitch)? | Yes | Same as 8-GPU SXM H100 path. Min driver 450.xx. ALI not available — FM trains NVLinks at boot |
+| L40S, L40, L4, H200 NVL, or other PCIe-only? | Yes | Driver + container-toolkit only. **Skip** DOCA-OFED, fabricmanager, NVLSM entirely. Validation reduces to `nvidia-smi` clean — no fabric registration to check |
 | 4th-gen NVSwitch (B200/B300/B100)? | Yes | Must install `nvlink5-<branch>` meta (or `nvlsm + libnvsdm + libibumad3 + infiniband-diags` separately). FM talks to switches via CX7 bridge — DOCA-OFED is non-optional [[fabric-manager-guide]] §"Additional Steps for B200/B300" |
 | Dell XE9780 or XE9785 chassis? | Yes | **Step 0 is firmware ≥ v1.4.30**. Use Redfish `DellOemChassis.ExtendedReset`, NOT BIOS Full Power Cycle [[dell-firmware]] |
+| Dell XE9680 / XE9640 / XE8640? | Yes | Enable **iDRAC Direct USB Port in BIOS** before GPU baseboard FW updates (KB 000308105). Same `DellOemChassis.ExtendedReset` activation pattern [[dell-firmware]] |
 | Secure Boot enabled? | Yes | Enroll one DKMS MOK — signs both NVIDIA and DOCA-OFED modules [[secure-boot]] |
 | Air-gapped? | Yes | Mirror three repos. Total budget ~3 GB. Three-tier GPG keys for DOCA [[airgap-mirror]] |
 | gpu-operator on top? | Yes | Pre-installed driver mode: `driver.enabled=false`, `toolkit.enabled=false`. Know about B300 issue #2231 [[gpu-operator]] |
@@ -127,4 +130,5 @@ On a fresh 8-GPU B300, FM takes ~30–90 s to finish fabric registration on firs
 | DOCA Host Installation Guide — Ubuntu 24.04 | [[doca-install-ubuntu]] |
 | NVIDIA blog: open kernel modules transition | [[open-modules-transition]] |
 | Dell HGX B300 SXM6 firmware release notes (v1.4.30) | [[b300-firmware-release-notes]] |
+| Hopper recipe — H100 / H200 / GH200 simplified install paths | [[hopper-recipe]] |
 | One-shot host health check (`bash`) | `scripts/health-check.sh` |

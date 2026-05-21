@@ -106,9 +106,9 @@ Depends: libnvidia-nscq (>= 580),
 ```
 
 Components installed by `nvlink5-580`:
-- **Fabric**: `nvidia-fabricmanager`, `nvlsm` (NVLink Subnet Manager), `libnvsdm` (telemetry), `libnvidia-nscq` (NSCQ query lib)
-- **IMEX**: `nvidia-imex` (Internode Memory Exchange — required on multi-NVL fabrics)
-- **Firmware tooling**: `collectx-bringup` (Mellanox firmware bring-up), `mft` + `mft-oem` + `mft-autocomplete` (Mellanox Firmware Tools)
+- **Fabric**: `nvidia-fabricmanager`, `nvlsm` (NVLink Subnet Manager — B200/B300 only), `libnvsdm` (telemetry from QM-class switches — B200/B300 only), `libnvidia-nscq` (NSCQ query lib — any NVSwitch generation)
+- **IMEX**: `nvidia-imex` (Internode Memory Exchange — facilitates NVLink GPU-to-GPU memory mapping via import/export). **Not Blackwell-specific** — `nvidia-imex-XXX` exists for branches 550, 560, 565, 570, 575, 580, 590, 595 (verified apt-cache 2026-05-21). Useful on any NVLink-fabric chassis including XE9680 (Hopper 8-GPU) and XE8640 (Hopper 4-GPU direct mesh).
+- **Firmware tooling**: `collectx-bringup` (Mellanox firmware bring-up — Blackwell CX bridge), `mft` + `mft-oem` + `mft-autocomplete` (Mellanox Firmware Tools — Blackwell ConnectX management)
 - **Driver compute side**: `nvidia-dkms-580-open` (kernel modules), `libnvidia-compute-580` (CUDA runtime libs)
 - **Transitive**: `libibumad3`, `infiniband-diags` (pulled in by `nvlsm`)
 

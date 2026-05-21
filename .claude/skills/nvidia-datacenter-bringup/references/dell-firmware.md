@@ -179,6 +179,45 @@ sudo mlxfwmanager -u -D /tmp/dup-payload -y
 
 This is also documented in KB 000377140: https://www.dell.com/support/kbdoc/en-us/000377140/
 
+## XE9680 / XE9640 / XE8640 iDRAC Direct USB Port gotcha (KB 000308105)
+
+Applies to the Hopper-class chassis (XE9680 = 8× H100/H200 SXM5, XE9640 = 4-GPU variant, XE8640 = 4× H100 SXM5). Does NOT apply to XE9780/XE9785 B300 chassis.
+
+> *"NVIDIA HGX GPU FW Update Fails With Disabled iDRAC Direct USB"*
+>
+> The NVIDIA GPU accelerator and baseboard firmware use an internal iDRAC Direct USB connection for updates which fails if iDRAC Direct is disabled.
+
+**Cure**: enable **iDRAC Direct USB Port in BIOS** before running any GPU baseboard firmware update via iDRAC. Default is usually "enabled" but some hardening profiles disable it.
+
+How to verify in iDRAC web UI:
+- Configuration → BIOS Settings → Integrated Devices → iDRAC Direct USB Port → **Enabled**
+
+Or via Redfish:
+```bash
+curl -k -u "$user:$pwd" \
+  "https://$IDRAC/redfish/v1/Systems/System.Embedded.1/Bios" \
+  | jq '.Attributes.InternalUsb'
+```
+
+Without this, the firmware update job appears to succeed at the iDRAC layer but the GPU baseboard never receives the new firmware blobs.
+
+Reference: https://www.dell.com/support/kbdoc/en-us/000308105/
+
+## Firmware bundle locations by chassis
+
+Dell ships GPU baseboard firmware as separate driver bundles per chassis SKU. Find the right one for the deployment:
+
+| Chassis | GPU baseboard | Dell driver ID / FOLDER |
+|---|---|---|
+| **XE9780 air-cooled** | HGX B300 SXM6 270G 8-GPU | `driverid=xrg43` / FOLDER14346751M |
+| **XE9785 partner-cooled** | HGX B300 SXM6 270G 8-GPU | `driverid=662gc` |
+| **XE9680 H100** | HGX H100 80G 8-GPU | search dell.com by service tag (HGX H100 8-GPU baseboard) |
+| **XE9680 H200** | HGX H200 141G 8-GPU | `driverid=mh92v` |
+| **XE9680 PCIe switch (H100/A100)** | PCIe switch firmware | `driverid=p9gg2` |
+| **XE8640** | HGX H100 80G 4-GPU | search dell.com by service tag (HGX H100 4-GPU baseboard) |
+
+Path on Dell support: dell.com/support → enter service tag → System Update / Drivers & Downloads → filter "Firmware" → category "NVIDIA HGX". Each bundle has its own release notes link with version manifest + known issues.
+
 ## Non-Dell vendor pointers
 
 This skill is Dell-primary. For other chassis vendors:
@@ -191,11 +230,14 @@ All three need an AC-class power cycle after GPU baseboard flash; none of them u
 
 ## References
 
-- Release notes: https://dl.dell.com/FOLDER14346751M/3/Release-notes.txt (verbatim in [[b300-firmware-release-notes]])
-- Air-cooled driver details: https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=xrg43
-- Partner-cooled driver details: https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=662gc
+- B300 release notes: https://dl.dell.com/FOLDER14346751M/3/Release-notes.txt (verbatim in [[b300-firmware-release-notes]])
+- B300 air-cooled driver details: https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=xrg43
+- B300 partner-cooled driver details: https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=662gc
+- H200 8-GPU baseboard driver details: https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=mh92v
+- XE9680 PCIe switch (H100/A100): https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=p9gg2
 - KB on AC-cycle reliability: https://www.dell.com/support/kbdoc/en-us/000355295/
 - KB on DUP misidentification: https://www.dell.com/support/kbdoc/en-us/000377140/
+- KB 000308105 — iDRAC Direct USB Port: https://www.dell.com/support/kbdoc/en-us/000308105/
 - Physical AC drain procedure: https://www.dell.com/support/kbdoc/en-us/000175625/
 - Dell Redfish scripting examples: https://github.com/dell/iDRAC-Redfish-Scripting
 - NVIDIA DGX B300 FW guide (component class baseline): https://docs.nvidia.com/dgx/dgxb300-fw-update-guide/

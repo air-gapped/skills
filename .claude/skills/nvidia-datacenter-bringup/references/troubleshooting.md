@@ -21,6 +21,22 @@ lsmod | grep ^nvidia                                   # modules loaded into ker
 sudo dmesg | grep -iE 'nvidia|nvrm|signature' | tail -50
 ```
 
+## R580 driver fails to init on a Hopper (H100/H200) host
+
+If `nvidia-smi` errors with "driver/library version mismatch" or "driver failed to initialize" specifically after upgrading to a R580 patch level, the **VBIOS may be too old**. Per NVIDIA's R580 release notes:
+
+> *"This version of the GPU driver will fail to initialize on systems with Hopper GPUs subrevision = 3 and VBIOS versions older than 96.00.68.00.xx."*
+
+Check the GPU VBIOS:
+
+```bash
+nvidia-smi -q -i 0 | grep -i 'VBIOS\|Subdevice ID'
+```
+
+If the VBIOS string is below `96.00.68.00.xx` and you have Hopper subrev 3 silicon, update the chassis baseboard firmware via iDRAC ([[dell-firmware]]) — VBIOS ships as part of the baseboard firmware bundle. After flash + AC-cycle, re-test.
+
+This is Hopper-only — Blackwell B300 and H100/H200 subrev <3 aren't affected.
+
 ## `nvidia-fabricmanager.service` fails to start
 
 ```bash
