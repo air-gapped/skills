@@ -74,15 +74,27 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "inference-host": {
-        # Host-level (below-the-framework) tuning suite. Sits beneath
-        # any inference engine (vLLM, sglang, TensorRT-LLM) — about the
-        # Linux/GPU host, not the framework. Room for future siblings:
-        # NIC/fabric tuning, NUMA pinning, IRQ affinity, BIOS audit.
-        "members": ["gpu-host-tuning"],
+        # Host-level (below-the-framework) bring-up + tuning suite.
+        # Sits beneath any inference engine (vLLM, sglang, TensorRT-
+        # LLM) — about the Linux/GPU host, not the framework. Two
+        # phases: nvidia-datacenter-bringup gets the host from a
+        # clean OS install to a usable driver state; gpu-host-tuning
+        # tunes the working host. Room for future siblings: NIC/
+        # fabric tuning, NUMA pinning, IRQ affinity, BIOS audit.
+        "members": ["nvidia-datacenter-bringup", "gpu-host-tuning"],
         "description": (
-            "Inference host tuning suite — Linux/GPU bare-metal audit "
-            "and tuning that sits beneath any inference framework "
-            "(vLLM, sglang, TensorRT-LLM). Read-only snapshot of CPU "
+            "Inference host bring-up + tuning suite — Linux/GPU "
+            "bare-metal host work that sits beneath any inference "
+            "framework (vLLM, sglang, TensorRT-LLM). Two phases. "
+            "Bring-up (nvidia-datacenter-bringup): Ubuntu 24.04 LTS "
+            "from clean OS to gpu-operator cuda-validator passing — "
+            "B300/B200/H100/A100/L40S/L4 driver + fabricmanager + "
+            "NVLSM + DOCA-OFED install order, NVIDIA CUDA repo + DOCA "
+            "repo + air-gap mirror, MOK + DKMS sign-on-build under "
+            "Secure Boot, Dell PowerEdge XE9780/XE9785 baseboard "
+            "firmware via iDRAC Redfish DellOemChassis.ExtendedReset, "
+            "gpu-operator pre-installed-driver-mode integration. "
+            "Tuning (gpu-host-tuning): read-only snapshot of CPU "
             "power state, C-states, NUMA topology, PCIe link state, "
             "GPU settings, kernel boot params, sysctl, ulimits, IRQ "
             "affinity, container runtime; optional pinned-host↔GPU "
@@ -99,6 +111,20 @@ GROUPS: dict[str, dict] = {
             "gpu",
             "host-tuning",
             "nvidia",
+            "hgx",
+            "dgx",
+            "b300",
+            "blackwell",
+            "fabricmanager",
+            "nvlsm",
+            "doca-ofed",
+            "secure-boot",
+            "mok",
+            "dkms",
+            "ubuntu-24.04",
+            "air-gap",
+            "dell-poweredge",
+            "idrac",
             "numa",
             "pcie",
             "bios",
