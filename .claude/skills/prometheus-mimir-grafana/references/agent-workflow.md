@@ -28,14 +28,7 @@ Never start by running `rate(http_requests_total[5m])` on faith. The metric may 
 
 **Step 5 — Aggregate and filter.** Raw counters are noise. Apply `rate(metric[5m])`, `increase(metric[1h])`, `sum by (…)`, `histogram_quantile(0.95, sum by (le) (rate(..._bucket[5m])))`. Aggregate *up* to the dimension you care about; drop `instance`/`pod` unless debugging a specific replica.
 
-**Step 6 — Join / correlate.** Attach metadata or compare metrics:
-```promql
-sum by (version) (
-  rate(http_requests_total[5m])
-  * on (job, instance) group_left(version) app_build_info
-)
-```
-The `* on(...) group_left(label) meta_info` idiom is the canonical join.
+**Step 6 — Join / correlate.** Attach metadata or compare metrics with the `* on(...) group_left(label) meta_info` idiom — the canonical join (full form in [promql.md](promql.md) §8). Match on the labels the `_info` metric actually carries (often `on(job, instance)`, not `instance` alone).
 
 **Step 7 — Threshold / baseline.** Compare live value to a reference: static, historical (`offset 1w`), or existing alert rule (`GET /api/v1/rules`).
 

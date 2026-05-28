@@ -4,18 +4,18 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 
 | # | Title | URL | Last verified | Pinned |
 |---|---|---|---|---|
-| 1 | Prometheus — Querying basics | https://prometheus.io/docs/prometheus/latest/querying/basics/ | 2026-04-21 | latest |
-| 2 | Prometheus — Querying operators | https://prometheus.io/docs/prometheus/latest/querying/operators/ | 2026-04-21 | latest |
-| 3 | Prometheus — Querying functions | https://prometheus.io/docs/prometheus/latest/querying/functions/ | 2026-04-21 | latest |
-| 4 | Prometheus — Querying examples | https://prometheus.io/docs/prometheus/latest/querying/examples/ | 2026-04-21 | latest |
-| 5 | Prometheus — HTTP API | https://prometheus.io/docs/prometheus/latest/querying/api/ | 2026-04-21 | latest |
-| 6 | Grafana Mimir — HTTP API | https://grafana.com/docs/mimir/latest/references/http-api/ | 2026-04-21 | latest |
-| 7 | Grafana Mimir — Authentication & authorization | https://grafana.com/docs/mimir/latest/manage/secure/authentication-and-authorization/ | 2026-04-21 | latest |
-| 8 | Grafana Mimir — Configuration parameters | https://grafana.com/docs/mimir/latest/references/configuration-parameters/ | 2026-04-21 | latest |
-| 9 | Grafana — Dashboard JSON model | https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-04-21 | latest |
+| 1 | Prometheus — Querying basics | https://prometheus.io/docs/prometheus/latest/querying/basics/ | 2026-05-28 | latest |
+| 2 | Prometheus — Querying operators | https://prometheus.io/docs/prometheus/latest/querying/operators/ | 2026-05-28 | latest |
+| 3 | Prometheus — Querying functions | https://prometheus.io/docs/prometheus/latest/querying/functions/ | 2026-05-28 | latest |
+| 4 | Prometheus — Querying examples | https://prometheus.io/docs/prometheus/latest/querying/examples/ | 2026-05-28 | latest |
+| 5 | Prometheus — HTTP API | https://prometheus.io/docs/prometheus/latest/querying/api/ | 2026-05-28 | latest |
+| 6 | Grafana Mimir — HTTP API | https://grafana.com/docs/mimir/latest/references/http-api/ | 2026-05-28 | latest |
+| 7 | Grafana Mimir — Authentication & authorization | https://grafana.com/docs/mimir/latest/manage/secure/authentication-and-authorization/ | 2026-05-28 | latest |
+| 8 | Grafana Mimir — Configuration parameters | https://grafana.com/docs/mimir/latest/references/configuration-parameters/ | 2026-05-28 | latest |
+| 9 | Grafana — Dashboard JSON model | https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-05-28 | latest |
 | 10 | Grafana — Template variables | https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/ | 2026-04-21 | latest |
 | 11 | Grafana — Transformations | https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/ | 2026-04-21 | latest |
-| 12 | Grafana — Dashboard HTTP API | https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/dashboard/ | 2026-04-21 | latest |
+| 12 | Grafana — Dashboard HTTP API | https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/dashboard/ | 2026-05-28 | latest |
 | 13 | Grafana Labs — RED Method | https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/ | 2026-04-21 | — |
 | 14 | Brendan Gregg — USE Method | https://www.brendangregg.com/usemethod.html | 2026-04-21 | — |
 | 15 | Google SRE Book — Monitoring Distributed Systems (Ch. 6) | https://sre.google/sre-book/monitoring-distributed-systems/ | 2026-04-21 | — |
@@ -34,3 +34,5 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 28 | pab1it0/prometheus-mcp-server — community MCP server | https://github.com/pab1it0/prometheus-mcp-server | 2026-04-21 | — |
 | 29 | cortex-tenant — label → X-Scope-OrgID proxy | https://github.com/blind-oracle/cortex-tenant | 2026-04-21 | — |
 | 30 | Grafana Alloy — `mimir.rules.kubernetes` component | https://grafana.com/docs/alloy/latest/reference/components/mimir/mimir.rules.kubernetes/ | 2026-04-21 | latest |
+| 31 | Grafana — What's new in v13.0 (`/api` → `/apis` deprecation) | https://grafana.com/docs/grafana/latest/whatsnew/whats-new-in-v13-0/ | 2026-05-28 | v13 |
+| 32 | Prometheus — Remote-Write 2.0 spec (EXPERIMENTAL) | https://prometheus.io/docs/specs/prw/remote_write_spec_2_0/ | 2026-05-28 | 2.0-experimental |

@@ -86,16 +86,8 @@ http_requests_total > bool 50
 ### Vector matching
 - `on(...)` — match on listed labels only
 - `ignoring(...)` — match on everything except listed labels
-- `group_left(...)` / `group_right(...)` — many-to-one / one-to-many
+- `group_left(...)` / `group_right(...)` — many-to-one / one-to-many. `metric * on(instance) group_left(version) app_build_info` pulls `version` onto each series — the canonical info-metric join (full pattern in §8).
 - `fill(v)` / `fill_left(v)` / `fill_right(v)` — experimental, fill gaps
-
-Example (join info metric):
-```promql
-sum by (version) (
-  rate(http_requests_total[5m])
-  * on(instance) group_left(version) app_build_info
-)
-```
 
 ### Precedence (highest → lowest)
 `^` → `* / % atan2` → `+ -` → `== != <= < >= >` → `and unless` → `or`. `^` right-associative.

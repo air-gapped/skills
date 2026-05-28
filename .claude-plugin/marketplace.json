@@ -212,7 +212,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting.",
-      "version": "0.20260421.1",
+      "version": "0.20260528.2",
       "author": {
         "name": "Jörgen"
       },

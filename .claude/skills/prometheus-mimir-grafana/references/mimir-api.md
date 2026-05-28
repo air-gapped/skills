@@ -78,6 +78,8 @@ POST /api/v1/push/influx/write            # InfluxDB line protocol
 ```
 Single-tenant: `X-Scope-OrgID: anonymous` if multitenancy disabled. Multi-tenant: tenant header required; per-tenant `ingestion_rate` / `ingestion_burst_size` enforced → 429 on overflow.
 
+Mimir receives both Remote-Write **1.0** and **2.0**. PRW 2.0 is still [EXPERIMENTAL] upstream (prometheus.io/docs/specs/prw/remote_write_spec_2_0/) — do not assume a sender or a given tenant negotiates 2.0; 1.0 (proto+snappy) is the safe default.
+
 ## 5. Ruler — recording & alerting rules
 
 Prometheus-compat read:
