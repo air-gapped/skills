@@ -193,6 +193,7 @@ GROUPS: dict[str, dict] = {
         "members": [
             "argo-cd-apps",
             "helm",
+            "k8s-components-checker",
             "keda",
             "keycloak-iam",
             "openshift-app",
@@ -203,7 +204,15 @@ GROUPS: dict[str, dict] = {
             "AppProjects), Helm chart authoring, KEDA event-driven "
             "autoscaling, Keycloak IAM (Operator + CRDs, realm/client "
             "configuration, OIDC/SAML integration, security hardening), "
-            "OpenShift application packaging."
+            "OpenShift application packaging, and k8s-components-checker "
+            "(cross-component compatibility registry for RKE2 community "
+            "stacks — kubectl/helm/pluto cluster survey, structured "
+            "verdict + pre-upgrade report wrapper, skill-improver freshen "
+            "and operator floor-override flows; covers 18 components: "
+            "RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, "
+            "KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, "
+            "ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU "
+            "Operator)."
         ),
         "category": "kubernetes",
         "tags": [
@@ -221,6 +230,18 @@ GROUPS: dict[str, dict] = {
             "openshift",
             "autoscaling",
             "ocp",
+            "rke2",
+            "rancher",
+            "harvester",
+            "rook",
+            "ceph",
+            "cilium",
+            "cert-manager",
+            "compatibility",
+            "upgrade-planning",
+            "version-skew",
+            "drift-review",
+            "pluto",
         ],
     },
     "agent": {

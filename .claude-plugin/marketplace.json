@@ -163,8 +163,8 @@
     {
       "name": "k8s",
       "source": "./",
-      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging.",
-      "version": "0.20260506.5",
+      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 18 components: RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator).",
+      "version": "0.20260528.6",
       "author": {
         "name": "Jörgen"
       },
@@ -172,6 +172,7 @@
       "skills": [
         "./.claude/skills/argo-cd-apps",
         "./.claude/skills/helm",
+        "./.claude/skills/k8s-components-checker",
         "./.claude/skills/keda",
         "./.claude/skills/keycloak-iam",
         "./.claude/skills/openshift-app"
@@ -192,7 +193,19 @@
         "saml",
         "openshift",
         "autoscaling",
-        "ocp"
+        "ocp",
+        "rke2",
+        "rancher",
+        "harvester",
+        "rook",
+        "ceph",
+        "cilium",
+        "cert-manager",
+        "compatibility",
+        "upgrade-planning",
+        "version-skew",
+        "drift-review",
+        "pluto"
       ]
     },
     {
