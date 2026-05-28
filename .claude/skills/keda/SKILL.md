@@ -332,6 +332,8 @@ decision tree mapping symptoms to root causes.
   interplay, production hardening** → `references/patterns.md`.
 - **Detailed troubleshooting trees, scripted debugging, known CVEs** →
   `references/troubleshooting.md`.
+- **External sources behind the content (repos, release, CVE, docs) with last-verified dates** →
+  `references/sources.md`.
 
 ## Authoring checklist
 

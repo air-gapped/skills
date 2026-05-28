@@ -126,9 +126,9 @@ spec:
 
 ### Multi-trigger semantics (ScaledObject)
 
-Each trigger emits a desired replica count to the HPA as a separate external
-metric. The HPA takes **max** across them. To combine differently (sum,
-weighted average, conditional), use `advanced.scalingModifiers.formula`.
+Each trigger emits a desired replica count as a separate external metric; the
+HPA takes **max** across them. For weighted/conditional combining via
+`advanced.scalingModifiers.formula`, see `references/patterns.md`.
 
 ---
 

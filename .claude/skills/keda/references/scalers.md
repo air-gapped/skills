@@ -189,11 +189,8 @@ Gotchas:
 - `lagThreshold` is per-partition; high values give less aggressive scaling.
 - `allowIdleConsumers` and `limitToPartitionsWithLag` are mutually exclusive.
 - MSK IAM needs `sasl: aws_msk_iam` plus AWS credentials via TriggerAuthentication.
-
-### kafka (legacy native scaler)
-
-Use `apache-kafka` for new deployments; `kafka` is the older scaler retained for
-compatibility.
+- Use `apache-kafka` for new deployments; the older `kafka` scaler is retained
+  only for compatibility.
 
 ### solace-event-queue, pulsar, nats-jetstream, nats-streaming, beanstalkd, activemq, artemis, ibmmq
 
@@ -203,8 +200,6 @@ Similar shape — connection URL plus `queueName`/`stream`/`tube` plus a
 ---
 
 ## Streaming
-
-Kafka is covered above. Azure Event Hub is covered under cloud queues.
 
 ### redis-streams
 

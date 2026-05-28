@@ -20,6 +20,30 @@ banner() {
   echo "=============================================================="
 }
 
+# Print the .resources[].name list from the external-metrics discovery JSON on
+# stdin, one per line. Prefers jq (near-universal on kubectl hosts); falls back
+# to python3; degrades gracefully if neither is installed.
+metric_names() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.resources[].name' 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; d=json.load(sys.stdin); [print(r["name"]) for r in d.get("resources",[])]' 2>/dev/null
+  else
+    echo "(need jq or python3 to parse metric names)" >&2
+  fi
+}
+
+# Count spec.triggers from a ScaledObject JSON on stdin.
+trigger_count() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.spec.triggers | length' 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("spec",{}).get("triggers",[])))' 2>/dev/null
+  else
+    echo 0
+  fi
+}
+
 run() {
   echo "\$ $*"
   "$@" 2>&1 || echo "  (command exited $?)"
@@ -40,20 +64,19 @@ run kubectl get apiservice v1beta1.external.metrics.k8s.io
 
 banner "5. Metrics exposed by keda-operator-metrics-apiserver"
 kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1" 2>/dev/null \
-  | python3 -c 'import json,sys; d=json.load(sys.stdin); names=[r["name"] for r in d.get("resources",[])]; print("\n".join(sorted(names)))' \
+  | metric_names | sort \
   | grep -i "$NAME" || echo "(no metric names matching $NAME)"
 echo
 
 banner "6. Raw metric values (per trigger s0, s1, ...)"
 # Read trigger types from the ScaledObject; metric names are s<index>-<type>-<hash>
 TRIGGER_COUNT=$(kubectl get scaledobject -n "$NS" "$NAME" -o json 2>/dev/null \
-  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("spec",{}).get("triggers",[])))' \
-  2>/dev/null || echo 0)
+  | trigger_count || echo 0)
 
 if [[ "$TRIGGER_COUNT" -gt 0 ]]; then
   # Fetch all metric names and match each s<i>-* prefix
   ALL_METRICS=$(kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1" 2>/dev/null \
-    | python3 -c 'import json,sys; d=json.load(sys.stdin); [print(r["name"]) for r in d.get("resources",[])]' 2>/dev/null)
+    | metric_names)
   for ((i=0; i<TRIGGER_COUNT; i++)); do
     METRIC=$(echo "$ALL_METRICS" | grep -E "^s${i}-" | head -1 || true)
     if [[ -n "$METRIC" ]]; then

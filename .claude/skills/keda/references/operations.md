@@ -80,16 +80,20 @@ additionalEnvVars:
 
 ### YAML manifest install
 
+Pin `KEDA_VERSION` to the release being installed and reuse it in both URLs so
+the version never drifts between the full and core manifests:
+
 ```bash
+KEDA_VERSION=2.19.0   # latest release; check github.com/kedacore/keda/releases
 kubectl apply --server-side -f \
-  https://github.com/kedacore/keda/releases/download/v2.20.0/keda-2.20.0.yaml
+  "https://github.com/kedacore/keda/releases/download/v${KEDA_VERSION}/keda-${KEDA_VERSION}.yaml"
 ```
 
 For environments that don't want the admission webhook:
 
 ```bash
 kubectl apply --server-side -f \
-  https://github.com/kedacore/keda/releases/download/v2.20.0/keda-2.20.0-core.yaml
+  "https://github.com/kedacore/keda/releases/download/v${KEDA_VERSION}/keda-${KEDA_VERSION}-core.yaml"
 ```
 
 ### Upgrades
