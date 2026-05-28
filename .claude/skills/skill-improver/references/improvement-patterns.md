@@ -414,7 +414,7 @@ Use `--verbose` for detailed output.
 - Background knowledge skill missing `user-invocable: false`
 - Script-heavy skill missing `allowed-tools: Bash(python *)`
 - Computationally light skill that could use `effort: low`
-- Complex reasoning skill on Opus 4.6 that could use `effort: max`
+- Complex reasoning skill on Opus 4.8 that could use `effort: xhigh` or `effort: max`
 - Skill that would benefit from isolation missing `context: fork` (pair with `agent: Explore` or `agent: Plan` for specialized subagent behavior)
 - Windows-targeted skill using `` !`command` `` blocks but missing `shell: powershell`
 

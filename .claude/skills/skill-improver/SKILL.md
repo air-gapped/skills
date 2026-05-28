@@ -64,7 +64,7 @@ If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode 
 1. Identify the target skill. Accept a path, or run `scripts/scan-skills.sh` (or Glob pattern `**/SKILL.md` under `~/.claude/skills/` and `.claude/skills/`) to list candidates. Do NOT search `~/.claude/plugins/` — those are managed externally.
 2. Read the target skill's entire directory: SKILL.md and any references/, examples/, scripts/, assets/ present.
 3. **Read `<skill>/references/improvement-backlog.md` if it exists.** This file carries open issues from prior skill-improver runs — ceiling-hit items that require multi-file restructure or author judgment. Do NOT re-propose items already listed there unless new evidence (e.g. the ceiling is now breakable in one iteration due to earlier structural changes). Items resolved mid-loop get moved to the backlog's "Resolved this pass" section in Phase 6.
-4. Read **both** `references/quality-rubric.md` (scoring criteria) **and** `references/improvement-patterns.md` (concrete before/after patterns by dimension) from the skill-improver directory. Both are non-optional — skipping the patterns file means later iterations propose changes that miss documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). If you find yourself unsure what to try next at any phase, that is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") on the baseline — three diagnostic patterns (strict workflow scaffolding, up-front context dumps, model-version compensation) cap Dims 6, 4, and 9 respectively. Caps surface as cross-cutting structural issues that should be lifted ahead of cosmetic dim improvements of the same magnitude.
+4. Read **both** `references/quality-rubric.md` (scoring criteria) **and** `references/improvement-patterns.md` (concrete before/after patterns by dimension) from the skill-improver directory. Both are non-optional — skipping the patterns file means later iterations propose changes that miss documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). Feeling unsure what to try next at any phase is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") on the baseline — three diagnostic patterns (strict workflow scaffolding, up-front context dumps, model-version compensation) cap Dims 6, 4, and 9 respectively. Caps surface as cross-cutting structural issues that should be lifted ahead of cosmetic dim improvements of the same magnitude.
 5. Establish a baseline score by evaluating the skill against the rubric.
 6. Spawn a blind scoring agent on the baseline (see "Blind Validation" section). First snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-baseline`. Then run the agent in the background while the loop proceeds. **This is non-optional.** The baseline blind agent is the only check on Phase 1's self-score — without it the entire run rests on whatever bias the loop's self-scoring carries. If the runtime cannot spawn agents, run the same prompt manually in a fresh session and paste back the result before entering Phase 2. Do NOT proceed to Phase 6 without both a baseline AND a final blind score on record.
 7. Initialize a results log (in-memory or scratch file) with header: `iteration | score | delta | status | description`.
@@ -74,7 +74,7 @@ If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode 
 
 Score the skill on 10 dimensions (each 0–10, summed to 0–100) using the detailed criteria and scoring template in `references/quality-rubric.md` (loaded in Phase 0).
 
-**Cold-score discipline.** When scoring at any phase, read the current file fresh and assign each dimension against the rubric criteria with no reference to prior iteration scores. Do NOT compute the new score by adding deltas to the old. Delta math hides regressions in dimensions you weren't watching.
+**Cold-score discipline.** When scoring at any phase, read the current file fresh and assign each dimension against the rubric criteria with no reference to prior iteration scores. Do NOT compute the new score by adding deltas to the old. Delta math hides regressions in dimensions not being watched.
 
 ### Phase 2: Hypothesize (Pick One Improvement)
 
@@ -135,8 +135,8 @@ the same category, force the next hypothesis to be a different category. Print:
 - **Structural ceiling claim requires evidence.** "Structural ceiling" stops
   require at least 2 logged discards naming the patterns that were attempted
   and why each failed. A run with zero discards has not mapped any ceiling —
-  it has stopped early. If you find yourself reasoning "the next iteration
-  would just be a discard" without actually trying it, that reasoning is the
+  it has stopped early. Reasoning "the next iteration would just be a
+  discard" without actually trying it is the
   cheat. Try it.
 - User interrupts.
 - 10 iterations completed (default cap; user can override).
@@ -175,7 +175,7 @@ Write two sections:
    8 chars from cap, might overflow someday"; "this trigger keyword could
    become ambiguous if X happens") do NOT belong in Open. The bar is: the loop
    proposed this iteration, attempted or planned the mutation, and the
-   mutation could not be applied. If you never tried it, leave it out. If
+   mutation could not be applied. If it was never tried, leave it out. If
    tomorrow's edits would naturally surface it, leave it out. Open is a
    work-not-done log, not a worry list.
 
@@ -189,8 +189,8 @@ Write two sections:
    Resolved. Hand-waving that "the structure now exists" is theater.
 
 Format: plain markdown, `## Open` and `## Resolved this pass` as top-level
-sections. See `references/improvement-backlog.md` patterns from prior runs for
-shape — it is intentionally uniform so future skill-improver loops can diff.
+sections, in the target skill's own `references/improvement-backlog.md` (not
+skill-improver's). Keep the shape uniform across runs so future loops can diff.
 
 If the backlog already exists with items skill-improver chose not to fix this
 run, carry them forward into the new "Open" section with a `(carried YYYY-MM-DD)`
@@ -223,7 +223,7 @@ In practice, removing redundant content produces the largest per-iteration score
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
 
-**The split test for atomicity.** "Atomic" is not a word — it is a constraint. State the change in 10 words, present-tense, single verb. "Move gotchas section to references/gotchas.md." If the honest sentence needs an "and" — "move content to references/ AND fix second-person AND tighten terminology" — it is three iterations, not one. Pure relocation is allowed; relocation that quietly rewrites prose is not. If during a structural move you find yourself editing a sentence's wording, stop, finish the move with the prose unchanged, score, then propose the prose edit as the next iteration. The reason: bundled iterations attribute the score lift to the wrong cause, which means future loops will pick the wrong category to pivot to.
+**The split test for atomicity.** "Atomic" is not a word — it is a constraint. State the change in 10 words, present-tense, single verb. "Move gotchas section to references/gotchas.md." If the honest sentence needs an "and" — "move content to references/ AND fix second-person AND tighten terminology" — it is three iterations, not one. Pure relocation is allowed; relocation that quietly rewrites prose is not. If a structural move starts editing a sentence's wording, stop, finish the move with the prose unchanged, score, then propose the prose edit as the next iteration. The reason: bundled iterations attribute the score lift to the wrong cause, which means future loops will pick the wrong category to pivot to.
 
 ### Preserve the Author's Intent
 
@@ -277,7 +277,7 @@ available, run the same prompt manually in a fresh session and feed back the
 result.
 
 **Model selection:** pin the validation subagent to the most capable
-model available (Opus 4.6+ as of 2026-05). Boris Cherny's
+model available (Opus 4.8, `claude-opus-4-8`, as of 2026-05-28). Boris Cherny's
 counterintuitive observation: cheaper-per-token models often use *more*
 total tokens on hard tasks because of correction loops, so the
 "expensive" model is paradoxically the cheapest path to a reliable
@@ -290,6 +290,14 @@ parent's default.
 
 For the baseline agent, copy the original skill to a temp directory first so
 the agent scores the unmodified version even if the loop has already started.
+
+**Parallel scoring (dynamic workflows, Opus 4.8 / Claude Code v2.1.154+).**
+When the runtime exposes the `Workflow` tool AND the user has opted into it,
+run blind validation as a workflow: fan out 3 independent scorers in one phase
+and take the **median per dimension** — more robust against a single scorer's
+bias than one agent. Otherwise spawn one background `Agent` as above. Do NOT
+spin up a workflow without the user's explicit opt-in (the keyword "workflow",
+ultracode, or a direct request) — a single `Agent` is the default.
 
 ### Comparison Table
 
@@ -328,6 +336,13 @@ To improve multiple skills:
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
+**Dynamic workflows (Opus 4.8 / Claude Code v2.1.154+).** Batch mode is multi-agent
+orchestration — when the user has opted into the `Workflow` tool, steps 1–2 (baseline
+scoring across all skills) parallelize cleanly as a `pipeline()`/`parallel()` fan-out
+instead of sequential `Agent` calls, with a synthesis stage for the ranked table. Per-skill
+loops still keep one change per iteration so cause stays attributable. Without opt-in,
+run skills sequentially as above.
+
 ---
 
 ## Standalone Evaluation (No Loop)
@@ -344,271 +359,35 @@ When the user only wants a quality score without iterating:
 
 ## Freshen Mode
 
-Probe a skill's external references for staleness and apply verified updates
-in place. Shares the keep/discard loop with the improvement mode but sources
-hypotheses from online evidence (release notes, doc commits, deprecation
-signals) rather than rubric scores.
+Probe a skill's external references for staleness and apply verified updates in
+place — same keep/discard loop as `improve`, but hypotheses come from online
+evidence (release notes, doc commits, deprecation signals), not rubric scores.
 
-### Invocation
+**Invocation:** `freshen <skill-path>` · `--all` · `--group <glob>`. Defaults to
+**apply**; for a read-only readout use Standalone Evaluation (Dim 9 tracks `sources.md`).
 
-- `freshen <skill-path>` — single skill
-- `freshen --all` — every skill returned by `scripts/scan-skills.sh`
-- `freshen --group <glob>` — subset, e.g., `vllm-*`
-
-Freshen defaults to **apply** — the loop commits verified updates. For a
-read-only staleness readout, use Standalone Evaluation (Dim 9 reflects
-`references/sources.md` freshness automatically).
-
-### Phase F0: Setup
-
-1. Read the target skill directory (SKILL.md + `references/`).
-2. Read `references/freshen-patterns.md` from the skill-improver directory for ref-extraction heuristics and probe templates.
-3. Snapshot: `cp -a <skill-dir> /tmp/<skill-name>-freshen-baseline`.
-4. Open a findings log: `id | ref | skill-says | current | classification | action`.
-
-### Phase F1: Extract References
-
-Precedence (extractors defined in `freshen-patterns.md` §1):
-
-1. `references/sources.md` rows — authoritative refs with prior `Last verified` / `Pinned` markers.
-2. SKILL.md + other reference-file scan — URLs, `owner/repo` patterns, CLI names with versions, semver strings, API paths, dated claims.
-3. Deduplicate (normalize URLs, collapse owner/repo variants).
-
-If the target skill has no `sources.md`, create one in Phase F6 from the extracted set so future freshens have a baseline.
-
-Mark rows with `<!-- ignore-freshen -->` to exclude refs the author deliberately keeps as-is (e.g., historical references).
-
-### Phase F2: Probe
-
-For each ref, run the cheapest applicable probe first (templates in `freshen-patterns.md` §2). Stop probing a ref as soon as it produces a finding.
-
-Default probe budget: **20 per skill, 100 per batch run**. On budget exhaustion, stop probing and summarize; flag the skill `partial-freshen` in the log.
-
-### Phase F3: Classify
-
-| Class | Action |
-|-------|--------|
-| `fresh` | Stamp `Last verified: <today>` on the sources.md row; no content change |
-| `version-drift` | Hypothesis: bump pinned version + version-specific guidance |
-| `deprecation` | Hypothesis: replace deprecated API / flag with current equivalent |
-| `new-feature` | Hypothesis: add a ≤3-line note IFF feature maps to an existing trigger phrase in the skill's `description` / `when_to_use` |
-| `broken` | Hypothesis: update or remove the ref |
-| `unverifiable` | Leave unchanged; note the ambiguity in the log |
-
-Only drift, deprecation, new-feature, and broken produce mutation hypotheses.
-
-### Phase F4: Mutate (One Finding at a Time)
-
-Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Always cite the verifying source URL.
-
-### Phase F5: Accept / Revert
-
-Decision rule (different from score-based loop — verification-based):
-
-- **Verified source + ≤ equal complexity** → KEEP. Update sources.md with new `Last verified:` (and `Pinned:` if relevant). Commit per `freshen-patterns.md` §4.
-- **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
-- **>20 added lines for one finding** → DISCARD and flag for human review in the summary.
-- **Breaks self-consistency** (orphans a section, contradicts another part) → REVERT.
-
-### Phase F6: Stamp and Summarize
-
-1. Any ref that probed successfully — fresh or updated — gets `Last verified: <today>` in sources.md.
-2. If sources.md was absent at Phase F1, create it now from the successfully-probed refs.
-3. Print summary: total findings, kept, discarded, unverifiable, flagged-for-review.
-4. Stop. Do not re-probe the same skill in the same session.
-
-### Batch Mode
-
-`freshen --all` iterates skills sequentially:
-
-1. Scan scope via `scripts/scan-skills.sh`.
-2. Rank by sources.md staleness (oldest `Last verified:` first; missing dates sort last).
-3. Cap findings-per-skill at 5 in batch mode.
-4. Share the 100-probe global budget across the batch; stop early on exhaustion.
-5. Print ranked summary: skill, findings, kept, new stamp date.
-
-### Anti-Patterns
-
-- Do NOT replace concrete guidance with "see release notes" — extract the specific change.
-- Do NOT bump a pinned version without checking the breaking-change section — pins often exist for reasons a diff can't see.
-- Do NOT trust a single social-media post — require an authoritative source (official docs, release notes, merged PR, maintainer issue response).
-- Do NOT rewrite content unrelated to a finding — each mutation is scoped to its finding.
+Full phase workflow (F0→F6), batch mode, and anti-patterns live in
+**`references/freshen-patterns.md` §"Freshen Mode Workflow"** with the extraction
+heuristics, probe templates, and classification rules. Read it when running `freshen`.
 
 ---
 
 ## Trigger Mode
 
 Measure and tune a skill's frontmatter `description` (and `when_to_use`) so it
-reliably fires when it should and stays silent when it shouldn't. Same
-keep/discard hill-climbing structure as `improve`, but the metric is **trigger
-rate against an eval set** — exactly the methodology Anthropic's own
-`skill-creator` uses for description optimization (60/40 train/test split,
-3 runs/query, blinded test scores, ≤1024-char hard cap).
+fires when it should and stays silent when it shouldn't. Same keep/discard
+hill-climbing as `improve`, but the metric is **trigger rate against an eval
+set** — the methodology Anthropic's `skill-creator` uses (60/40 train/test,
+3 runs/query, blinded test scores, ≤1024-char cap).
 
-**Use trigger mode when:** a user reports "the skill didn't fire when I asked
-X", "Claude isn't using my skill", or you suspect a description is too vague,
-too narrow, too keyword-collision-y, or simply written in the wrong vocabulary
-for how users actually phrase requests. Score-mode bumps Dim 1 (Trigger
-Precision) on subjective rubric judgment; trigger-mode measures it empirically.
+**Use trigger mode when:** a user reports "the skill didn't fire" / "Claude isn't
+using my skill", or a description is too vague, narrow, or keyword-collision-y.
+Trigger-mode measures Dim 1 empirically via `claude -p` (`scripts/probe-trigger.py`).
 
-Reference: `references/trigger-patterns.md` for the full pattern catalogue,
-eval-set construction rules, decision tree, and worked example.
-
-### Phase T0: Setup
-
-1. Read the target skill (SKILL.md frontmatter, body, references/).
-2. Read `<skill>/references/improvement-backlog.md` if present — open
-   "trigger" findings carry forward.
-3. Read `references/trigger-patterns.md` from the skill-improver directory.
-4. Snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-trigger-baseline`.
-5. Initialize a results log: `iter | train | test | desc-chars | status | change`.
-
-### Phase T1: Build (or load) the eval set
-
-Look for `<skill>/references/trigger-evals.json`. If present, use it as the
-starting eval set and append any new user-reported failures from `--missed
-"<phrase>"` flags as new should-trigger entries.
-
-If absent, construct a fresh eval set per `references/trigger-patterns.md`
-§"Eval-set construction":
-
-- 6–8 should-trigger queries: prioritise user-reported failures verbatim;
-  fill the rest with description paraphrases, body-mined examples, and
-  everyday user vocabulary.
-- 5–7 should-NOT-trigger queries: keyword-collision distractors,
-  sibling-skill territory, generic conversation, adjacent-domain decoys.
-
-Save to `<skill>/references/trigger-evals.json`. The file persists so future
-trigger-mode runs build on the same eval baseline.
-
-### Phase T2: Probe baseline
-
-Run the probe with a stratified train/test split:
-
-```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
-  --skill-path <skill-dir> \
-  --eval-set <skill-dir>/references/trigger-evals.json \
-  --holdout 0.4 --runs-per-query 3 --num-workers 6 --verbose
-```
-
-The probe writes a synthetic slash-command containing the candidate
-description into `.claude/commands/`, runs `claude -p "<query>"` with
-`--output-format stream-json --include-partial-messages`, and parses the
-stream for a `Skill` or `Read` `tool_use` whose target name matches the
-synthetic id. Each query runs N times to measure trigger rate; rate >=
-threshold counts as triggered.
-
-Read the JSON output: `train.summary` and `test.summary` carry pass/fail
-counts; per-query records carry `trigger_rate` for diagnosing the failure
-type.
-
-If the `claude` CLI is missing or unauthenticated, the probe fails fast.
-Fall back to manual A/B testing per `trigger-patterns.md` §"Fallback when
-`claude -p` is not available" — print the candidate description and the eval
-set, ask the user to spot-check from a fresh session. Do NOT use a subagent
-to "guess" trigger behavior; the agent will roleplay, not measure.
-
-### Phase T3: Hypothesize
-
-Categorise the train-set failures and pick ONE mutation type per
-`references/trigger-patterns.md` §"Mutation patterns by failure type":
-
-| Failure profile | Pattern |
-|---|---|
-| All failures are should-trigger misses (under-trigger) | T1 — add explicit phrases, be pushier, front-load |
-| All failures are should-NOT false-positives (over-trigger) | T2 — add negative boundary, tighten scope |
-| Mixed under + over | T3 — fix whichever class has more failures first |
-| 1/3 or 2/3 trigger rates dominate | T4 — strengthen redundancy, bump runs-per-query to 5 |
-| Cap-bound: description hits 1024 chars | T5 — re-balance into description vs when_to_use |
-| Sibling skill steals the trigger | T6 — backlog finding, NOT single-skill mutation |
-
-### Phase T4: Mutate
-
-Apply ONE change to the frontmatter (description and/or when_to_use). Hard
-constraints:
-
-- `description` ≤ 1024 chars (Agent Skills spec hard cap; descriptions over
-  that are rejected by `skills-ref validate`).
-- Combined `description` + `when_to_use` ≤ 1,536 chars (Claude Code listing
-  truncation in v2.1.105+; targets older Claude Code use 250).
-- Third person, imperative voice ("Use this skill for…", not "You can use…").
-- Do NOT touch SKILL.md body — it loads after triggering and cannot influence
-  trigger decisions. Trigger mode is frontmatter-only.
-
-### Phase T5: Re-probe and decide
-
-Re-run the probe with the new description (override via
-`--description "<text>"` so the file isn't written until accepted).
-
-Decision rule on **train** scores:
-
-- **Train improved by ≥1 query** → KEEP. Write the new frontmatter to
-  SKILL.md. New baseline.
-- **Train equal but description shorter/simpler** → KEEP (simplification ties
-  per the Karpathy rule).
-- **Train equal or worse** → DISCARD. Revert the proposal (file unchanged
-  since override was used).
-- **Train improved AND test got worse by 2+ queries** → DISCARD as overfit.
-  The mutation taught Claude the train phrasings without generalising.
-- **Train improved BUT description hit the 1024 hard cap** → DISCARD, plan
-  T5 next iteration.
-
-### Phase T6: Loop
-
-Up to **5 iterations** (default; trigger probes are 5–10x more expensive
-than rubric scoring because each probe shells out to a model). Stop when:
-
-- Train pass-rate ≥ 95% AND test pass-rate ≥ 80% — converged.
-- 3 consecutive discards across at least 2 mutation patterns — ceiling
-  mapped. Surface what was tried.
-- A T6 (cross-skill conflict) finding emerges — single-skill loop can't fix
-  it; surface as backlog.
-- User interrupts.
-
-### Phase T7: Apply and persist
-
-1. Pick the winner by **TEST** score (NOT train — overfit guard, same as
-   Anthropic's loop).
-2. Write the winning frontmatter to `<skill>/SKILL.md`. Do NOT edit body.
-3. Update `<skill>/references/trigger-evals.json` — append a `last_run`
-   metadata block with date, baseline score, final score, iteration count.
-4. Update `<skill>/references/improvement-backlog.md`:
-   - Move resolved trigger items to "Resolved this pass".
-   - Add any T6 cross-skill conflicts as new "Open" items.
-5. Print summary table:
-   ```
-   skill: <name>
-   baseline: train X/N, test Y/M
-   final:    train X'/N, test Y'/M
-   delta:    +A train, +B test
-   iterations: I (K kept, D discarded)
-   eval set: <skill>/references/trigger-evals.json (saved for next run)
-   ```
-
-### Batch Mode
-
-`/skill-improver batch trigger --all` (or `--group <glob>`) iterates skills
-sequentially:
-
-1. Scan via `scripts/scan-skills.sh`.
-2. Probe baseline on each — rank by `(train_pass_rate * 0.6 + test_pass_rate
-   * 0.4)` ascending (worst first).
-3. Run trigger loop per skill, capped at 3 iterations in batch mode (probes
-   are expensive).
-4. Print ranked summary: skill, baseline, final, delta, iterations.
-
-### Anti-Patterns
-
-- Do NOT mutate the SKILL.md body — body cannot influence trigger.
-- Do NOT pick the final by train score — always test, to guard overfit.
-- Do NOT eval against only passing phrasings — include user-reported
-  failures and adversarial negatives.
-- Do NOT skip negatives — pure-recall tuning makes the skill grab everything.
-- Do NOT run on plugin or managed skills (`~/.claude/plugins/`) — trigger
-  mode mutates frontmatter; only personal/project skills are in scope.
-- Do NOT run trigger mode in the user's active project — the probe writes
-  temp slash-commands to `.claude/commands/`. Use a clean cwd.
+Full phase workflow (T0 Setup → T7 Apply/persist), batch mode, and anti-patterns
+live in **`references/trigger-patterns.md` §"Trigger Mode Workflow"** with the
+eval-set construction rules, probe mechanism, and mutation patterns. Read it when
+running `trigger`.
 
 ---
 
@@ -688,10 +467,9 @@ re-scoring runs.
 
 ### Anti-patterns
 
-- Running `philosophy` mode immediately before a major Claude release
-  drop. The bitter-lesson signal is most useful 1-2 weeks AFTER a new
-  release lands — that's when scaffolding-decay flags are confirmed
-  by current behaviour, not predicted from old behaviour.
+- Running `philosophy` mode right before a major Claude release. The
+  bitter-lesson signal is most useful 1-2 weeks AFTER a release lands —
+  when scaffolding-decay flags are confirmed by behaviour, not predicted.
 - Treating Boris score 3 as a permanent green light. Philosophy is a
   point-in-time check; re-run at least quarterly or after each Claude
   major release.
@@ -708,8 +486,8 @@ re-scoring runs.
 
 - **`references/quality-rubric.md`** — Full scoring rubric with sub-criteria, examples of each score level, and common failure patterns. Load this before scoring.
 - **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
-- **`references/freshen-patterns.md`** — Reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules for Freshen Mode.
-- **`references/trigger-patterns.md`** — Eval-set construction, mutation patterns by failure type, decision rules, and worked example for Trigger Mode. Load before running `trigger`.
+- **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
+- **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Dated per-URL index of official docs, specs, changelogs, and blog posts. Freshen Mode reads and stamps `Last verified:` / `Pinned:` fields here.
 - **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.

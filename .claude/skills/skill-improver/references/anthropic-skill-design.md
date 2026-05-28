@@ -54,7 +54,7 @@ skill and it will read them at appropriate times.
 
 | Field | Description |
 |-------|-------------|
-| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Available levels depend on the model (`xhigh` is Opus 4.7+, added v2.1.111; `max` originally Opus 4.6). Inherits from session if omitted. |
+| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Available levels depend on the model (`xhigh` is Opus 4.7+, added v2.1.111; `max` originally Opus 4.6). **Opus 4.8 defaults to `high`** — use `xhigh` for hard tasks, `max` for the hardest. Inherits from session if omitted. |
 | `paths` | Glob patterns (comma-separated string or YAML list) limiting when skill activates based on files being worked on. |
 | `context` | Set to `fork` to run in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
 | `agent` | Subagent type when `context: fork` is set. Built-in: `Explore`, `Plan`, `general-purpose`. Or custom from `.claude/agents/`. Defaults to `general-purpose` if omitted. |
@@ -64,6 +64,7 @@ skill and it will read them at appropriate times.
 | `argument-hint` | Hint shown during autocomplete, e.g. `[issue-number]`. |
 | `disable-model-invocation` | `true` = only user can invoke via `/name`. Removes description from Claude's context entirely. |
 | `user-invocable` | `false` = hidden from `/` menu. Only Claude can invoke. Description stays in Claude's context. |
+| `disallowed-tools` | Space-delimited or YAML list of tools to remove from the model while the skill is active (v2.1.152). Inverse of `allowed-tools` — use to scope a skill away from tools it must not touch. |
 
 ### String Substitutions
 
@@ -292,6 +293,8 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.111 | 2026-04-16 | Added `xhigh` effort level for Opus 4.7 (between `high` and `max`). New bundled skills `/less-permission-prompts` and `/ultrareview`. Windows PowerShell tool rolling out (`CLAUDE_CODE_USE_POWERSHELL_TOOL`). `/skills` menu supports sorting by estimated token count (press `t`). Read-only bash commands with glob patterns (e.g. `ls *.ts`) no longer trigger permission prompts. |
 | v2.1.113 | 2026-04-17 | Security: Bash deny rules now match commands wrapped in `env`/`sudo`/`watch`/`ionice`/`setsid`. `Bash(find:*)` allow rules no longer auto-approve `find -exec`/`-delete`. macOS `/private/{etc,var,tmp,home}` now treated as dangerous `Bash(rm:*)` targets. Fixed `Bash dangerouslyDisableSandbox` bypassing permission prompts. |
 | v2.1.114 | 2026-04-18 | Fixed crash in the permission dialog when an agent teams teammate requested tool permission. |
+| v2.1.152 | 2026-05 | Skills and slash commands can set `disallowed-tools` in frontmatter to remove tools while active. New `/reload-skills` command + `SessionStart` hook `reloadSkills: true` re-scan skill dirs without restart (skills installed by a hook become available in-session). New `MessageDisplay` hook event. |
+| v2.1.154 | 2026-05-28 | **Opus 4.8 (`claude-opus-4-8`) ships; defaults to `high` effort, `/effort xhigh` for hardest tasks.** **Dynamic workflows** research preview: ask Claude to create a workflow and it orchestrates tens-to-hundreds of subagents in the background (`/workflows` to view; Enterprise/Team/Max). Lean system prompt now default for all models except Haiku/Sonnet/Opus ≤4.7. Claude reserves multiple-choice prompts for decisions it genuinely can't make itself. Fast mode on 4.8 at 2× standard rate for 2.5× speed. |
 
 ### Key Settings
 

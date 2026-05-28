@@ -5,12 +5,105 @@ from skill content, probe templates per reference type, classification
 rules, commit format, and rate-limit handling.
 
 ## Table of Contents
+- [Freshen Mode Workflow](#freshen-mode-workflow)
 - [1. Reference Extraction](#1-reference-extraction)
 - [2. Probe Templates](#2-probe-templates)
 - [3. Classification Rules](#3-classification-rules)
 - [4. Commit Message Format](#4-commit-message-format)
 - [5. Rate-Limit Handling](#5-rate-limit-handling)
 - [6. Worked Examples](#6-worked-examples)
+
+## Freshen Mode Workflow
+
+Probe a skill's external references for staleness and apply verified updates
+in place. Shares the keep/discard loop with the improvement mode but sources
+hypotheses from online evidence (release notes, doc commits, deprecation
+signals) rather than rubric scores.
+
+### Invocation
+
+- `freshen <skill-path>` — single skill
+- `freshen --all` — every skill returned by `scripts/scan-skills.sh`
+- `freshen --group <glob>` — subset, e.g., `vllm-*`
+
+Freshen defaults to **apply** — the loop commits verified updates. For a
+read-only staleness readout, use Standalone Evaluation (Dim 9 reflects
+`references/sources.md` freshness automatically).
+
+### Phase F0: Setup
+
+1. Read the target skill directory (SKILL.md + `references/`).
+2. Review the ref-extraction heuristics (§1) and probe templates (§2) below.
+3. Snapshot: `cp -a <skill-dir> /tmp/<skill-name>-freshen-baseline`.
+4. Open a findings log: `id | ref | skill-says | current | classification | action`.
+
+### Phase F1: Extract References
+
+Precedence (extractors in §1 below):
+
+1. `references/sources.md` rows — authoritative refs with prior `Last verified` / `Pinned` markers.
+2. SKILL.md + other reference-file scan — URLs, `owner/repo` patterns, CLI names with versions, semver strings, API paths, dated claims.
+3. Deduplicate (normalize URLs, collapse owner/repo variants).
+
+If the target skill has no `sources.md`, create one in Phase F6 from the extracted set so future freshens have a baseline.
+
+Mark rows with `<!-- ignore-freshen -->` to exclude refs the author deliberately keeps as-is (e.g., historical references).
+
+### Phase F2: Probe
+
+For each ref, run the cheapest applicable probe first (templates in §2 below). Stop probing a ref as soon as it produces a finding.
+
+Default probe budget: **20 per skill, 100 per batch run**. On budget exhaustion, stop probing and summarize; flag the skill `partial-freshen` in the log.
+
+### Phase F3: Classify
+
+| Class | Action |
+|-------|--------|
+| `fresh` | Stamp `Last verified: <today>` on the sources.md row; no content change |
+| `version-drift` | Hypothesis: bump pinned version + version-specific guidance |
+| `deprecation` | Hypothesis: replace deprecated API / flag with current equivalent |
+| `new-feature` | Hypothesis: add a ≤3-line note IFF feature maps to an existing trigger phrase in the skill's `description` / `when_to_use` |
+| `broken` | Hypothesis: update or remove the ref |
+| `unverifiable` | Leave unchanged; note the ambiguity in the log |
+
+Only drift, deprecation, new-feature, and broken produce mutation hypotheses.
+
+### Phase F4: Mutate (One Finding at a Time)
+
+Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Always cite the verifying source URL.
+
+### Phase F5: Accept / Revert
+
+Decision rule (different from score-based loop — verification-based):
+
+- **Verified source + ≤ equal complexity** → KEEP. Update sources.md with new `Last verified:` (and `Pinned:` if relevant). Commit per §4 below.
+- **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
+- **>20 added lines for one finding** → DISCARD and flag for human review in the summary.
+- **Breaks self-consistency** (orphans a section, contradicts another part) → REVERT.
+
+### Phase F6: Stamp and Summarize
+
+1. Any ref that probed successfully — fresh or updated — gets `Last verified: <today>` in sources.md.
+2. If sources.md was absent at Phase F1, create it now from the successfully-probed refs.
+3. Print summary: total findings, kept, discarded, unverifiable, flagged-for-review.
+4. Stop. Do not re-probe the same skill in the same session.
+
+### Batch Mode
+
+`freshen --all` iterates skills sequentially:
+
+1. Scan scope via `scripts/scan-skills.sh`.
+2. Rank by sources.md staleness (oldest `Last verified:` first; missing dates sort last).
+3. Cap findings-per-skill at 5 in batch mode.
+4. Share the 100-probe global budget across the batch; stop early on exhaustion.
+5. Print ranked summary: skill, findings, kept, new stamp date.
+
+### Anti-Patterns
+
+- Do NOT replace concrete guidance with "see release notes" — extract the specific change.
+- Do NOT bump a pinned version without checking the breaking-change section — pins often exist for reasons a diff can't see.
+- Do NOT trust a single social-media post — require an authoritative source (official docs, release notes, merged PR, maintainer issue response).
+- Do NOT rewrite content unrelated to a finding — each mutation is scoped to its finding.
 
 ## 1. Reference Extraction
 
