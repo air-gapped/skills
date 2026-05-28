@@ -336,12 +336,7 @@ To improve multiple skills:
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
-**Dynamic workflows (Opus 4.8 / Claude Code v2.1.154+).** Batch mode is multi-agent
-orchestration — when the user has opted into the `Workflow` tool, steps 1–2 (baseline
-scoring across all skills) parallelize cleanly as a `pipeline()`/`parallel()` fan-out
-instead of sequential `Agent` calls, with a synthesis stage for the ranked table. Per-skill
-loops still keep one change per iteration so cause stays attributable. Without opt-in,
-run skills sequentially as above.
+**Dynamic workflows (Opus 4.8 / Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit Opus and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
 
 ---
 
@@ -496,4 +491,5 @@ re-scoring runs.
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.
