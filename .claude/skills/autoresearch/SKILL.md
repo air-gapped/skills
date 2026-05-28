@@ -295,19 +295,14 @@ Don't get stuck — if an experiment fails, extract signal and move on:
 Skip for objective metrics (latency, bytes, pass rate) — the number is the number.
 
 For subjective metrics (LLM-as-judge, rubric scores, design ratings), the agent
-that proposed a change is biased toward keeping it. Counter with blind agents:
+that proposed a change is biased toward keeping it. Counter by spawning a blind
+evaluator subagent — once on a baseline snapshot (background), once on the final
+version — and comparing Self / Agent / Gap per component. A gap ≥2 flags that
+component for the next hypothesis; the blind score surfaces bias, it never
+overrides the self-score.
 
-1. **Baseline:** snapshot the mutable surface (`cp -a <surface> /tmp/<tag>-baseline`)
-   and spawn a blind evaluator subagent on the snapshot. Run it in the background
-   so the loop continues in parallel.
-2. **Final:** spawn another blind evaluator on the final version after the loop
-   stops. Print baseline and final comparison tables side by side.
-3. **Compare:** for each metric component, print Self / Agent / Gap. Flag any
-   gap ≥2 — that component becomes a candidate for the next iteration's
-   hypothesis. The blind score does NOT override the self-score; it surfaces bias.
-
-See `references/experiment-loop.md` (Blind Validation Protocol) for the agent
-prompt template and comparison-table format.
+See `references/experiment-loop.md` (Blind Validation Protocol) for when to spawn,
+the agent prompt template, and the comparison-table format.
 
 ---
 

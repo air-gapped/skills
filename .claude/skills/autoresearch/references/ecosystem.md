@@ -10,6 +10,13 @@ for the full research report with methodology, findings, and source assessments.
   train.py agent-editable, program.md human-editable). val_bpb metric, 5-min budget.
 - [karpathy/autoresearch program.md](https://github.com/karpathy/autoresearch/blob/master/program.md) —
   The agent instruction file. Our SKILL.md is heavily influenced by this.
+- [Karpathy, "notes from claude coding" (X, 2026-01-26)](https://x.com/karpathy/status/2015883857489522876) —
+  Primary source for the skill's thesis. The *Leverage* note: give success criteria
+  and loop, write the naive-correct version first then optimize while preserving
+  correctness, shift imperative → declarative. Same post the 160K-star
+  [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)
+  CLAUDE.md derives from (its Simplicity-First / Goal-Driven principles mirror this
+  skill's Simplicity Criterion and optimize loop).
 
 ## Beyond Hill-Climbing
 
