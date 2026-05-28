@@ -35,7 +35,7 @@
       "name": "dell",
       "source": "./",
       "description": "Dell hardware suite — Ansible automation against Dell PowerEdge iDRAC 9 (14G–16G) and iDRAC 10 (17G) BMCs via the `dellemc.openmanage` collection. Covers the iDRAC 10 / iDRAC 9 ≥ 7.30.10.50 `BasicAuthState: Unadvertised` default that silently 401s `ansible.builtin.uri`, the canonical `idrac_session` + `x_auth_token` lifecycle, iDRAC 10 attribute registry deltas (renamed groups, deprecated `vFlashSD*`/`Telemetry*`/`GroupManager`, the BIOS→`System.ServerPwr.*` move), iDRAC 9-only modules to avoid on 17G, WS-MAN removal on 17G, and the upstream bug catalog. Room for sibling skills covering RACADM, OpenManage Enterprise, DUP catalogs, and PowerEdge BIOS tuning.",
-      "version": "0.20260518.1",
+      "version": "0.20260528.2",
       "author": {
         "name": "Jörgen"
       },

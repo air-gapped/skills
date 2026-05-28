@@ -7,6 +7,18 @@ CHANGELOG, and the support matrix in `docs/README.md` of
 reference — the rename tables in particular are what `idrac_attributes`
 playbooks need to migrate.
 
+## Contents
+
+1. Module support matrix — what works on which generation
+2. Auth / endpoint deltas at the Redfish layer (Jobs URI, WS-MAN, OSM→iDRAC10)
+3. Attribute registry — Deprecated groups & attributes (Table 1)
+4. Attribute registry — Reorganized under new groups (Table 2: network, ACME/SCEP→ACE, BIOS power)
+5. Attribute registry — Changed values, enums, defaults (Table 3)
+6. Net-new attributes in iDRAC 10 firmware 1.30.10.50
+7. Per-module iDRAC 10 quirks (from CHANGELOG known-issues)
+8. PowerEdge 17G platform map (iDRAC 10 hardware)
+9. Catalog and firmware updates
+
 ## 1. Module support matrix — what works on which generation
 
 (From `docs/README.md` lines 13-73 of dellemc.openmanage 10.0.2.)

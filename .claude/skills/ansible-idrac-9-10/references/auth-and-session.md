@@ -84,45 +84,12 @@ Fix the playbooks once; don't fight the firmware.
 
 ## Canonical session lifecycle
 
-```yaml
-- block:
-    - name: Open iDRAC session
-      dellemc.openmanage.idrac_session:
-        hostname:       "{{ idrac_ip }}"
-        username:       "{{ idrac_user }}"
-        password:       "{{ idrac_password }}"
-        validate_certs: false
-        state:          present
-      register: idrac_auth
-      no_log: true
-
-    # all subsequent dellemc.openmanage.idrac_* tasks use x_auth_token
-    # and DO NOT pass username/password. The collection's arg-spec marks
-    # them mutually exclusive — sending both is a hard error.
-
-    - name: Set iDRAC attributes
-      dellemc.openmanage.idrac_attributes:
-        idrac_ip:       "{{ idrac_ip }}"
-        x_auth_token:   "{{ idrac_auth.x_auth_token }}"
-        validate_certs: false
-        idrac_attributes:
-          SNMP.1.AgentCommunity: public
-          SNMP.1.AgentEnable:    Enabled
-
-  always:
-    - name: Close iDRAC session
-      dellemc.openmanage.idrac_session:
-        hostname:       "{{ idrac_ip }}"
-        validate_certs: false
-        state:          absent
-        x_auth_token:   "{{ idrac_auth.x_auth_token }}"
-        session_id:     "{{ idrac_auth.session_data.Id }}"
-      when: idrac_auth.x_auth_token is defined
-      no_log: true
-```
-
-The `when:` guard exists so the always-block doesn't itself crash if the
-session-open task was the thing that failed.
+The full `block:`/`always:` session play lives in SKILL.md under "Canonical
+session pattern" — lift it from there. The shape: `idrac_session state:
+present` (registers `idrac_auth`) → middle tasks pass `x_auth_token:` and
+NOT username/password (the arg-spec marks them mutually exclusive) →
+`always:` closes with `state: absent` guarded by `when: idrac_auth.x_auth_token
+is defined` so the cleanup doesn't itself crash when the open task failed.
 
 ### Return shape of `idrac_session`
 

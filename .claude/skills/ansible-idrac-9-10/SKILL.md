@@ -17,15 +17,15 @@ description: >-
   `/Oem/Dell/Jobs/`, WS-MAN removed on 17G, and version pins
   (collection ≥9.12.3 broad / ≥10.0.2 full; 9.12.1 for iDRAC 8).
 when_to_use: >-
-  Trigger on iDRAC, iDRAC9, iDRAC10, idrac10, 17G, PowerEdge 17G, Dell
-  BMC, `dellemc.openmanage`, `idrac_session`, `idrac_attributes`,
+  Trigger on iDRAC, iDRAC9, iDRAC10, 17G, PowerEdge 17G, Dell BMC,
+  `dellemc.openmanage`, `idrac_session`, `idrac_attributes`,
   `idrac_bios`, `idrac_firmware`, `idrac_user`, `idrac_network`,
   `racadm`, `BasicAuthState`, `X-Auth-Token`, `force_basic_auth`, SCP,
   LC. Also symptoms: 401 with no `WWW-Authenticate`,
   "TLS/SSL handshake" on writes only, sensor 404 after firmware bump,
   attributes silently no-op'ing, "Dell ansible playbook stopped after
-  firmware upgrade". Also XE9780/R770/R670 BMC and mixed iDRAC 9+10
-  inventories needing per-gen branching.
+  firmware upgrade". Also mixed iDRAC 9+10 inventories needing per-gen
+  branching.
 ---
 
 # Ansible against iDRAC 9 and iDRAC 10
@@ -65,7 +65,7 @@ references/
 │                            matrix iDRAC 9 vs iDRAC 10; iDRAC 10 Redfish
 │                            Jobs URI; WS-MAN removal; iDRAC 8 dropped in
 │                            10.0.0
-├── troubleshooting.md     → 10-pattern bug catalog from upstream GitHub
+├── troubleshooting.md     → 16-pattern bug catalog from upstream GitHub
 │                            issues — sensor URI rename, misleading
 │                            "TLS/credentials" error on writes, idrac_user
 │                            privilege regression, custom_privilege

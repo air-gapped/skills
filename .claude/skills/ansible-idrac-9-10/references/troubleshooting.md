@@ -5,6 +5,25 @@ issues and merged PRs through May 2026. Each pattern names the symptom,
 the cause, and the workaround the maintainers (or community contributors
 that maintainers accepted) recommend.
 
+## Contents
+
+1. TLS/SSL-handshake error on writes (`idrac_network` iDRAC 9-only)
+2. `idrac_system_info` 404s on sensors after firmware bump
+3. `idrac_user` password change demotes user to ReadOnly
+4. `custom_privilege:` bitmap collapses to Operator
+5. `idrac_server_config_profile` (SCP) not qualified on iDRAC 10
+6. `idrac_os_deployment` rejects `/` inside `iso_image:`
+7. iDRAC 8 dropped in collection 10.0.0
+8. `idrac_system_info` no longer returns VirtualDisk on iDRAC 10
+9. NIC details duplicated across all interfaces (≤ 10.0.1)
+10. Ansible-core 2.18+/2.19 + old collection → `TypeError`
+11. Generation detection (mixed iDRAC 9 + iDRAC 10 inventory)
+12. BIOS workload-profile change-set ordering
+13. WS-MAN calls fail wholesale on 17G
+14. Session-pool exhaustion on rapid CI
+15. `validate_certs: true` requires a CA push first
+16. The `gen17` term — don't grep for it
+
 ## 1. "Unable to communicate with iDRAC … TLS/SSL handshake" on writes
 
 **Symptom.** Read-only modules with the same credentials succeed (e.g.
@@ -91,11 +110,12 @@ iDRAC 10 silently produces a user with role `Operator`, not the custom
 bitmap.
 
 **Cause.** The Redfish custom-privilege mapping is broken in collection
-≤ 10.0.1. Fixed in PR #1069, lands post-10.0.1.
+≤ 10.0.1. Fixed in PR #1069 (merged 2025-12-19), shipped in collection
+**10.0.2**.
 
-**Fix.** Until running a build that includes #1069, use the named
-`privilege:` enum (`Administrator`, `Operator`, `ReadOnly`,
-`NoAccess`). After the fix, `custom_privilege:` is reliable again.
+**Fix.** On 10.0.2+ `custom_privilege:` is reliable. On ≤ 10.0.1 use the
+named `privilege:` enum (`Administrator`, `Operator`, `ReadOnly`,
+`NoAccess`).
 
 **Refs:** #1059, PR #1069.
 
