@@ -11,7 +11,7 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Downstream-cluster provisioning (KDM bundling, downstream RKE2/K3s version dropdowns) is **out of scope** — the operator manages downstream clusters by hand. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
 
-## 2.14 (latest community: v2.14.1, 2026-04-30)
+## 2.14 (latest community: v2.14.2, 2026-05-28)
 
 - **k8s floor:** 1.33 – 1.35 (adds 1.35; removes 1.32 — issues #52957, #53764).
 - **Breaking:**

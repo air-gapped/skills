@@ -4,41 +4,63 @@ Ceiling findings from skill-improver runs.
 
 ## Open
 
-### Dim 1 trigger truncation risk past 1536 chars (Dim 1) (carried 2026-05-28)
-
-- `SKILL.md:3-26`: combined `description` + `when_to_use` measures somewhere
-  between 1486 and 1732 chars across blind runs. Even at the lower bound, the
-  Claude Code listing dynamic-budget can shrink further when many skills are
-  installed, putting late-listed triggers ("Mimir Chart kubeVersion", "ECK
-  against k8s 1.NN", apiserver deprecated-API metric) at risk of truncation.
-- Improve-mode tried trim-then-add-content patterns; trigger-mode is the
-  correct tool.
-- Action: run `/skill-improver trigger k8s-components-checker` with the
-  listed late phrases as `--missed` flags so they appear as should-trigger
-  eval entries. Re-balance `description` vs `when_to_use`, prioritise
-  front-loading rare-but-load-bearing phrases.
-
-### Ceph patch-level drift in compat/ceph.md (low-risk, in-minor)
+### Ceph patch-level drift in compat/ceph.md (Dim 9) (low-risk, in-minor) (carried 2026-05-28)
 
 - Compat file references Tentacle 20.2.1, Squid 19.2.3, Reef 18.2.8 as the
   illustrative latest patches at sift time. Freshen probe (2026-05-28) found:
   - Tentacle: latest stable is **20.3.0** (compat says 20.2.1)
   - Squid: latest stable is **19.3.0** (compat says 19.2.3)
   - Reef: latest stable is **18.2.8** ✓
+- Re-confirmed 2026-05-28 via `gh api repos/ceph/ceph/tags`: v20.3.0 and
+  v19.3.0 tags exist (Tentacle / Squid). Tag existence carries **no**
+  regression signal, so the bump still cannot be applied this pass.
 - Drift is in-minor (Tentacle stays Tentacle, Squid stays Squid). The compat
   file's load-bearing structure — Tentacle/Squid/Reef series characteristics,
   4 known-bad point releases (18.2.5, 18.2.6, 19.2.0, 19.2.1), EOL dates,
   intra-cluster upgrade ordering — remains accurate.
-- Not auto-bumped because freshen-patterns §3.2 requires checking the
-  breaking-change section of each new patch before bumping. Two new patches
-  to verify (20.2.2..20.3.0, 19.2.4..19.3.0). Each needs a release-notes
-  read.
-- Action: read https://docs.ceph.com/en/tentacle/releases/ and
+- Could NOT be applied in one iteration: freshen-patterns §3.2 requires
+  reading the docs.ceph.com prose release notes for the intervening patches
+  (20.2.2..20.3.0, 19.2.4..19.3.0) to extract any NEW known-bad point release
+  before bumping the headers. That is a multi-WebFetch sift against a non-`gh`
+  doc source, not a single atomic header edit — and stamping the bump on tag
+  existence alone would violate "do not apply a bump you cannot stand behind".
+- Action: WebFetch https://docs.ceph.com/en/tentacle/releases/ and
   https://docs.ceph.com/en/squid/releases/ for the new patches; add any new
-  known-bad to the compat file's "patches to avoid" list; bump the
-  illustrative patch numbers in the version headers.
+  known-bad to the "Versions skipped" list (Sift notes); bump the
+  illustrative patch numbers in the version headers (20.2.1 → 20.3.0,
+  19.2.3 → 19.3.0).
 
 ## Resolved this pass
+
+### Improve + freshen run — 2026-05-28 (cap-lift + patch-drift pass)
+
+- **Dim 1 trigger-truncation Open item RESOLVED (Pattern 1.4/6.1).** Trimmed
+  the air-gap/freshen maintenance prose from `description` (no trigger phrase
+  lost): combined `description` + `when_to_use` 1562 → 1486 chars, now under
+  the 1536 listing cap with margin. The late-listed load-bearing triggers
+  ("Mimir Chart kubeVersion", "ECK against k8s 1.NN", apiserver
+  deprecated-API metric) are no longer at truncation risk. Dim 1 7 → 8.
+  Supersedes the prior plan to route this to `trigger` mode — a pure deletion
+  fit in one improve iteration.
+- **Dim 6 survey-step de-duplication (Pattern 6.1, Boris cap-lift).** Collapsed
+  the 5-step Survey workflow's procedural steps 2–5 (which duplicated
+  `cluster-survey.md` Phases 2–5 verbatim) into a single goal + tool-pointer
+  line, keeping the unique change-set taxonomy (step 1) intact. Fixed the
+  dangling `Survey workflow § 1` cross-reference in the Verdict format to
+  `§ Survey workflow`. SKILL.md 193 → 181 lines. Dim 6 8 → 9.
+- **Four in-minor patch-drift findings bumped (Dim 9 freshen).** Verified each
+  new patch's release notes carry no new breaking section before stamping:
+  - `compat/argo-cd.md`: 3.4 latest v3.4.2 → **v3.4.3** (2026-05-28); 3.3
+    latest v3.3.10 → **v3.3.11** (2026-05-28). Both pure bug-fix + dep bump
+    (UI CVE-2026-41240).
+  - `compat/rancher.md`: 2.14 latest community v2.14.1 → **v2.14.2**
+    (2026-05-28). No new breaking item (2.14.2 restates the 2.14.0/2.14.1
+    CAAPF-disable + embedded-CAPI-removed signals; floor 1.33–1.35 unchanged).
+  - `compat/kyverno.md`: 1.18.0 header now notes **latest patch 1.18.1**
+    (2026-05-18). No breaking/migration heading in 1.18.1.
+  - `compat/traefik.md`: 3.7.0 header now notes **latest patch 3.7.1**
+    (2026-05-11, **CVE-2026-44774** fix). Additive `CrossProviderNamespaces`
+    option; Gateway API stays v1.5.1; no removed feature.
 
 ### Freshen run — 2026-05-28 (floor-override pass, operator-driven)
 
@@ -99,6 +121,20 @@ them rather than abstaining):
   Pattern 6.1 violations.
 
 ## Run log
+
+### improve + freshen — 2026-05-28 (cap-lift + patch-drift pass)
+
+- Baseline self: 87/100. Lowest dims: Trigger Precision (7), Simplicity (8).
+- 3 keeps, 0 discards. Dim 1 7 → 8 (trim under 1536 cap), Dim 6 8 → 9
+  (survey-step de-dup), Dim 9 held at 9 (four patch bumps applied; Ceph
+  illustrative-patch drift remains the sole carried drift).
+- Freshen: 14 refs probed by recon, 11 current, 4 in-minor patch-drift all
+  re-confirmed online this pass via `gh release list` + `gh release view`
+  (argo-cd v3.4.3/v3.3.11, rancher v2.14.2, kyverno v1.18.1, traefik v3.7.1)
+  and applied as header-marker bumps after verifying no new breaking section.
+- Ceph 20.3.0 / 19.3.0 re-confirmed present via tags but NOT bumped — needs a
+  docs.ceph.com regression-audit WebFetch (multi-step, non-`gh`); stays Open.
+- Final self: 90/100.
 
 ### freshen — 2026-05-28 (floor-override pass, operator-driven)
 

@@ -6,11 +6,10 @@ description: >-
   and version-skew questions. Components: RKE2, Rancher, Harvester, Cilium,
   cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS,
   GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator.
-  Works air-gapped — all per-component compatibility data lives in
-  `references/compat/` and is maintained out-of-band by
-  `skill-improver freshen`. Surveys run via `kubectl` + `helm` + `pluto` + the
-  apiserver `apiserver_requested_deprecated_apis` metric from the operator's
-  workstation. Community editions only — Prime/EE-gated content is ignored.
+  Works air-gapped — compatibility data lives in `references/compat/`. Surveys
+  run via `kubectl` + `helm` + `pluto` + the apiserver
+  `apiserver_requested_deprecated_apis` metric from the operator's workstation.
+  Community editions only — Prime/EE-gated content is ignored.
   NOT for installing components, NOT for executing upgrades, NOT for tracking
   per-cluster running state (the registry is methodology, not inventory).
 allowed-tools: Bash(kubectl *) Bash(helm *) Bash(pluto *) Bash(jq *) Read Grep Glob
@@ -52,43 +51,32 @@ must not — record what's actually running where.
 
 The operator runs the skill against a kubeconfig pointing at one cluster at a
 time. Network access to the target cluster is assumed (direct or via
-VPN/bastion). No internet calls. Five steps:
+VPN/bastion). No internet calls.
 
-1. **Identify the change set.** Pin down what's being upgraded and from what
-   to what. Five shapes the skill answers:
-   - **anchor bump** — `k8s <current> → <target>` (e.g. RKE2 1.32 → 1.34)
-   - **single leaf** — `<component> <current> → <target>` (e.g. Cilium 1.18 → 1.19)
-   - **combined** — multiple bumps in one upgrade window
-     (e.g. `k8s 1.32 → 1.34 + Argo CD 3.0 → 3.2`)
-   - **drift review** — no specific target; report what's stale / EOL'd / unpatched
-   - **feasibility** — find the highest tolerable bump on one axis given the
-     others are pinned (e.g. "highest Argo CD that supports our k8s 1.32")
+First **identify the change set** — what's being upgraded and from what to
+what. Five shapes the skill answers:
 
-   Current k8s from `kubectl version --output=json`; current component
-   versions from the survey commands in `references/cluster-survey.md`.
-2. **Detect installed components** — run the canonical survey commands in
-   `references/cluster-survey.md`. Output: a list of `(component, version)`
-   tuples covering the 18 registry entries that are actually present.
-3. **Cross-reference against the registry** — for each detected component,
-   read its row in `references/components.md` and (when version-specific signal
-   matters) its `references/compat/<comp>.md`. Determine compatibility
-   against the current k8s minor and, if relevant, the target k8s minor.
-4. **Check deprecated-API liability** — read
-   `apiserver_requested_deprecated_apis{}` from `/metrics` (canonical, never
-   stale — the cluster reports what it has actually served), then run `pluto`
-   against manifests/Helm releases for pre-apply static catch. See
-   `references/tooling.md`.
-5. **Emit a verdict** — structured per § Verdict format. The action plan
-   respects upgrade-ordering rules from the relevant compat files.
+- **anchor bump** — `k8s <current> → <target>` (e.g. RKE2 1.32 → 1.34)
+- **single leaf** — `<component> <current> → <target>` (e.g. Cilium 1.18 → 1.19)
+- **combined** — multiple bumps in one upgrade window
+  (e.g. `k8s 1.32 → 1.34 + Argo CD 3.0 → 3.2`)
+- **drift review** — no specific target; report what's stale / EOL'd / unpatched
+- **feasibility** — find the highest tolerable bump on one axis given the
+  others are pinned (e.g. "highest Argo CD that supports our k8s 1.32")
 
-If the operator asks for a *drift review* rather than an upgrade question,
-steps 1–4 still run; step 5 reports against current k8s minor only (no target),
-flagging components whose installed version is approaching or past upstream
-EOL.
+Then run the survey and verdict per `references/cluster-survey.md` (Phases 1–5:
+cluster identity → component detection → deprecated-API liability via the
+apiserver metric + pluto → cross-reference against `references/components.md`
+and `references/compat/<comp>.md` → assemble the verdict per § Verdict format,
+ordering the action plan by the compat files' upgrade-ordering rules).
+
+For a *drift review* (no target), the survey still runs; the verdict reports
+against the current k8s minor only, flagging components whose installed version
+is approaching or past upstream EOL.
 
 ## Verdict format
 
-The header carries the **change set** (see Survey workflow § 1) — anchor bump,
+The header carries the **change set** (see § Survey workflow) — anchor bump,
 single leaf, combined, drift review, or feasibility. The per-row reason at the
 end of each `✓ ready` / `⚠ needs bump` line is composed from the compat data
 and is change-set-specific (`supports k8s 1.32..1.34` for an anchor bump,

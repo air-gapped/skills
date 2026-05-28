@@ -11,7 +11,7 @@ Docs publish only the **current minor's** support window — historical floors r
 
 Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL. As of 2026-05-28: **1.18 supported**, 1.17 / 1.16 are EOL upstream.
 
-## 1.18.0 (2026-04-29)
+## 1.18.0 (2026-04-29, latest patch 1.18.1 2026-05-18)
 
 - **k8s floor:** 1.33 – 1.35
 - **Breaking:** none flagged. Metric `kyverno_policy_results` had an accidental breaking change in main during the cycle that was reverted before GA (#14471) — no operator action.
