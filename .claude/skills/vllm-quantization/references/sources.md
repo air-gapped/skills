@@ -1,8 +1,13 @@
-# External sources — last verified 2026-04-24
+# External sources — last verified 2026-04-24 (vLLM release row re-stamped 2026-05-28)
 
 Freshness audit for externally-referenced material in SKILL.md. Probes were
 issued via the `gh` CLI and GitHub API. Re-run the freshen loop when the
 rolling delta exceeds two minor vLLM releases.
+
+Next freshen should re-probe (left unverified 2026-05-28): issue #38652 OPEN
+state (load-bearing "avoid FP8 KV on MLA multi-turn"), and the two vLLM source
+line-range citations (`quantization/__init__.py:107-184`, `config/cache.py:18-34`)
+which may have drifted across v0.20/v0.21.
 
 ## Probe results
 
@@ -15,13 +20,13 @@ rolling delta exceeds two minor vLLM releases.
 | vLLM source — `vllm/model_executor/layers/quantization/__init__.py` | https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/__init__.py | 2026-04-24 | fresh | 194 lines on main @ sha df052fdc. Cited range `107-184` remains in-bounds. |
 | llm-compressor releases | https://github.com/vllm-project/llm-compressor/releases | 2026-04-24 | fresh | Latest tag `v0.10.0.1` (2026-03-13). SKILL references `v0.10+` for NVFP4 schemes — accurate. |
 | NVIDIA ModelOpt releases | https://github.com/NVIDIA/TensorRT-Model-Optimizer/releases | 2026-04-24 | fresh | Latest stable `0.43.0` (2026-04-16); `0.44.0rc1` pre-release (2026-04-20). SKILL does not pin a version — no drift. |
-| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-04-24 | version-drift (minor) | **v0.20.0 pre-release** cut 2026-04-23; v0.19.1 remains latest stable (2026-04-18). SKILL's "v0.14 → v0.19.1" window is still the production-pinned range. Added a v0.20 pre-release note under Version-gate highlights. |
+| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-05-28 | re-stamped (window bumped) | **v0.21.0 stable 2026-05-15** is current; v0.20.0 went stable 2026-04-27 (NOT a pre-release as the 2026-04-24 probe assumed), then v0.20.1 (2026-05-04), v0.20.2 (2026-05-10). SKILL window updated v0.14 → v0.21; the "pin v0.19.1 for production" line was corrected to "run v0.21.0+". |
 
 ## Classification summary
 
 - fresh: 6
 - fixed (closed): 1 — #40252 (content softened in place)
-- version-drift: 1 — v0.20 pre-release noted
+- re-stamped (window bumped): 1 — vLLM releases, v0.14 → v0.21 (2026-05-28)
 - deprecation / broken / unverifiable: 0
 
 ## Re-probe cadence

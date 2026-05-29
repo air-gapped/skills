@@ -1,10 +1,21 @@
-# Version gates — v0.14 → v0.19.1
+# Version gates — v0.14 → v0.21
 
 Quantization churns fast enough that cached operator knowledge goes stale
 within a release cycle. This table is the ground-truth for "what does vLLM
 version N support".
 
 Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/vllm/releases](https://github.com/vllm-project/vllm/releases).
+
+## v0.21.0 — 2026-05-15 (current stable)
+
+Current production target. PR-level quantization deltas not yet itemised here —
+re-run the freshen loop to populate. Treat any v0.19-specific claim below as
+"verify on upgrade".
+
+## v0.20.x — 2026-04-27 → 2026-05-10
+
+v0.20.0 went **stable** 2026-04-27 (not a pre-release), followed by v0.20.1
+(2026-05-04) and v0.20.2 (2026-05-10). Run v0.21.0+ rather than pinning v0.19.1.
 
 ## v0.19.1 — 2026-04-18 (patch)
 
@@ -182,7 +193,7 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## Deprecation watch
 
-Watch for removal in v0.20+:
+Watch for removal in v0.20+ (v0.20 and v0.21 have now shipped — re-verify which of these actually landed):
 
 - `experts_int8` — use `int8_per_channel_weight_only`.
 - `fbgemm_fp8` — use `fp8`.

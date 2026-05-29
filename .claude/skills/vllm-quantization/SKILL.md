@@ -2,7 +2,7 @@
 name: vllm-quantization
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300. 29 `--quantization` flag values, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.19.1).
+  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300. 29 `--quantization` flag values, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.21).
 when_to_use: |-
   Trigger on `--quantization`, `--kv-cache-dtype`, NVFP4, MXFP4, MXFP8, FP8, W4A16, W8A8, W4A4, AWQ, GPTQ, SmoothQuant, modelopt, compressed-tensors, quark, torchao, bitsandbytes, gguf, TurboQuant, CUTLASS, Marlin, FlashInfer, TRTLLM, DeepGEMM, Qutlass, Machete, `hf_quant_config.json`, `kv_cache_scheme`, `NVFP4_DEFAULT_CFG`, `FP8_DEFAULT_CFG`, llm-compressor, ModelOpt. Symptoms — "garbage after FP8", "NVFP4 NaN", "FP8 KV multi-turn corruption", "MoE kernel not dispatched on SM120", "illegal memory access awq_marlin", "online FP8 drops bias", "modelopt checkpoint won't load". Decisions — NVFP4 vs FP8 on H200 vs B200, quantizing EAGLE-3/dflash drafters, generating a checkpoint vLLM can load. Also implicit — "quantize {model}", "pick quant for {model}", "audit quantization", "deploy-memo quant", "which quant fits {GPU}", "spec-study quantization".
 ---
@@ -175,20 +175,14 @@ Internalize these before debugging accuracy / throughput regressions:
 4. **Online FP8 drops bias weights** ([#39663](https://github.com/vllm-project/vllm/issues/39663)). Any bias-ed target → use pre-quantized checkpoint.
 5. **Dynamic FP8 + LoRA-merged model on B200 → non-deterministic degenerate output** ([#39662](https://github.com/vllm-project/vllm/issues/39662)). Pin static FP8.
 6. **SM120 (RTX 5090, 6000 Pro) is not a datacenter NVFP4 MoE target** ([#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085)) — full kernel set is SM100 / SM103 only. Desktop Blackwell is production only for `fp8`.
-7. **B300 / GB300 (SM103) TRTLLM-attention hang** before v0.19 (fixed by [PR #38730](https://github.com/vllm-project/vllm/pull/38730)). Run v0.19.1+ on GB300.
-8. **ModelOpt NVFP4 exports drift from compressed-tensors** (missing `_double_scale`, fused-QKV scale corruption) — [#38980](https://github.com/vllm-project/vllm/issues/38980), [#39764](https://github.com/vllm-project/vllm/issues/39764). Prefer split-QKV checkpoints; validate `ignore` list.
-9. **MXFP4 linear not implemented** — MXFP4 is MoE-only in vLLM right now ([`vllm/model_executor/layers/quantization/mxfp4.py:83-88`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/mxfp4.py)). Linear layers fall back to BF16.
-10. **TurboQuant attention crashes on A100 when BF16 models use FP8 KV** ([#39992](https://github.com/vllm-project/vllm/issues/39992)). A100 is not a production TurboQuant target.
-11. **Qwen3.5 FP8 on B200 degraded-accuracy KV-cache** in v0.18 ([#37618](https://github.com/vllm-project/vllm/issues/37618)). Upgrade to v0.19+.
-12. **MXFP8 + DeepGEMM crash** before v0.19 ([PR #37358](https://github.com/vllm-project/vllm/pull/37358)).
 
-Full triage playbook with symptoms → PR → workaround: `references/troubleshooting.md`.
+The hardware-/version-gated traps (B300 TRTLLM hang, ModelOpt-vs-compressed-tensors export drift, MXFP4-linear-falls-back-to-BF16, A100 TurboQuant crash, Qwen3.5 v0.18 KV regression, MXFP8+DeepGEMM pre-v0.19 crash) live in the full triage playbook with symptoms → PR → workaround: `references/troubleshooting.md`.
 
 ## Version-gate highlights
 
 Full matrix in `references/version-gates.md`. Load-bearing ones:
 
-- **v0.20** — pre-release [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) cut 2026-04-23; pin `v0.19.1` for production until stable ships. Quantization-layer churn continues — re-verify any v0.19-specific claim on upgrade.
+- **v0.21** — current stable [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) (2026-05-15); v0.20.0 stable shipped 2026-04-27, followed by v0.20.1 / v0.20.2. Run v0.21.0+ for production. Quantization-layer churn continues — re-verify any v0.19-specific claim on upgrade.
 - **v0.19** — online MXFP8, `CompressedTensorsW8A8Mxfp8`, ROCm AWQ Marlin, TurboQuant KV, DeepGemm E8M0 fix for Qwen3.5 FP8 on Blackwell, `--calculate-kv-scales` deprecation, Gemma 4 quantized MoE, B300 / GB300 fixes.
 - **v0.18** — FP8 KV in Triton MLA decode, FlashInfer Sparse MLA FP8, ModelOpt MXFP8 MoE, AMD Quark W4A8 MXFP4/FP8, MLA crash with AWQ/GPTQ fix.
 - **v0.17** — per-head KV scales, SM100 MXFP8 kernels, compressed-tensors as ground-truth, ModelOpt mixed precision, Llama-4 attention quant.
@@ -204,7 +198,7 @@ Full matrix in `references/version-gates.md`. Load-bearing ones:
 - `references/kernels.md` — kernel × format × SM dispatch map (Marlin / CUTLASS / DeepGEMM / FlashInfer / TRTLLM / Qutlass / Machete / Triton / Exllamav2).
 - `references/kv-cache.md` — KV-cache quantization: dtypes, per-token-head scales, attention-backend compatibility, calibration.
 - `references/troubleshooting.md` — symptom → known-issue → fix playbook.
-- `references/version-gates.md` — release-by-release quantization changes, v0.14 → v0.19.1.
+- `references/version-gates.md` — release-by-release quantization changes, v0.14 → v0.21.
 
 ## External references
 
