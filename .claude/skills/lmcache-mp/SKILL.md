@@ -2,9 +2,9 @@
 name: lmcache-mp
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  LMCache multiprocess (MP) mode — standalone LMCache server in its own pod/process that vLLM connects to over ZMQ. Provides process isolation, no GIL contention on the inference path, one cache shared by multiple vLLM pods on the same node, and CPU-memory scaling independent of GPU memory. Covers the `LMCacheMPConnector` path (the new direction; `LMCacheConnectorV1` in-process path still works but is being upstaged), DaemonSet+Deployment K8s pattern, L1 (CPU DRAM) + L2 (NIXL POSIX / GDS / HF3FS, plain fs, mooncake_store, s3) cascade, the `lmcache/standalone:nightly` + `lmcache/vllm-openai:latest-nightly` image pair vs stock `vllm/vllm-openai`, and the production gotchas (--no-enable-prefix-caching on vLLM side, --disable-hybrid-kv-cache-manager required, vLLM/lmcache version compatibility, hybrid-model NOT supported yet, cache_salt fallback adapter bug).
+  LMCache multiprocess (MP) mode — standalone LMCache server in its own pod/process that vLLM connects to over ZMQ. Gives process isolation, no GIL contention on the inference path, one cache shared by multiple vLLM pods per node, and CPU-memory scaling independent of GPU memory. Covers the `LMCacheMPConnector` path (vs the in-process `LMCacheConnectorV1`), the DaemonSet+Deployment K8s pattern and LMCache Operator, the L1 (CPU DRAM) + L2 (NIXL, fs, mooncake_store, s3, Redis) cascade, the `lmcache/standalone` + `lmcache/vllm-openai` image pair, and the production gotchas (`--no-enable-prefix-caching`, `--disable-hybrid-kv-cache-manager`, vLLM/lmcache version pins, hybrid models unsupported, cache_salt fallback bug).
 when_to_use: |-
-  Trigger on "LMCache MP", "LMCacheMPConnector", "LMCache standalone", "lmcache server", "lmcache daemon", "lmcache pod", "lmcache daemonset", "ZMQ kv connector", "lmcache shared across pods", "separate cache process", "lmcache nixl_store", "lmcache mooncake adapter", "L1+L2 cache", "lmcache GIL contention", or whenever the user mentions running LMCache as its own pod/process rather than in-process. Also trigger on "LMCacheConnectorV1 vs LMCacheMPConnector", "lmcache:standalone image", "vllm-openai:latest-nightly", or any troubleshooting of LMCacheMP deployments. For native vLLM CPU offload without a separate pod (`--kv-offloading-size` / OffloadingConnector), defer to `vllm-caching`. For NIXL transport-layer details under the `nixl_store` L2 backend, defer to `nvidia-nixl`. For SGLang's equivalent (HiCache), see `sglang-hicache`.
+  Trigger on "LMCache MP", "LMCacheMPConnector", "LMCache standalone", "lmcache server", "lmcache daemon", "lmcache pod", "lmcache daemonset", "ZMQ kv connector", "lmcache shared across pods", "separate cache process", "lmcache nixl_store", "lmcache mooncake adapter", "L1+L2 cache", "lmcache GIL contention", "LMCacheConnectorV1 vs LMCacheMPConnector", "lmcache:standalone image", or any troubleshooting of LMCacheMP deployments — whenever LMCache runs as its own pod/process rather than in-process. For native vLLM CPU offload without a separate pod (`--kv-offloading-size` / OffloadingConnector), defer to `vllm-caching`. For NIXL transport-layer details under the `nixl_store` backend, defer to `nvidia-nixl`. For SGLang's equivalent (HiCache), see `sglang-hicache`.
 ---
 
 # LMCache multiprocess (MP) mode
@@ -42,13 +42,15 @@ Don't reach for MP mode just because it's newest — it adds operational surface
 
 ## Version gates — check these FIRST
 
+Current stable pair (2026-05): **vLLM v0.21.0** + **LMCache v0.4.5**. v0.19.1 remains the verified-floor bundling example below.
+
 | Component | What you need | Notes |
 |---|---|---|
-| vLLM | **v0.19.0 or newer** for `LMCacheMPConnector` registered in `factory.py` | Pre-0.19 had only `LMCacheConnectorV1`. Both connectors coexist in 0.19+. |
-| vLLM | **v0.20.0 or main** for `cache_salt` propagation through MP | PR #39837 added per-user/per-tenant cache isolation. Repo-local fallback adapter has a known bug — see Pitfalls below. |
+| vLLM | **v0.19.0 or newer** for `LMCacheMPConnector` registered in `factory.py` | Pre-0.19 had only `LMCacheConnectorV1`. Both connectors coexist in 0.19+. Connector source path stable through v0.21.0. |
+| vLLM | **v0.20.0+** for `cache_salt` propagation through MP | PR #39837 added per-user/per-tenant cache isolation. Repo-local fallback adapter has a known bug — see Pitfalls below. Released in the v0.20.x line (v0.20.0 2026-04-27, v0.21.0 2026-05-15). |
 | LMCache | **0.4.0+** for the MP adapter file (`lmcache.integration.vllm.vllm_multi_process_adapter`) | Moved into LMCache repo on 2026-01-07 (PR #2360). Earlier versions had it in vLLM. |
-| LMCache | **0.4.4+** if running vLLM main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified 2026-04-26 against tags v0.4.3 (no class) vs v0.4.4 (has class). |
-| LMCache | **dev branch** for actively-evolving MP features (HTTP API, runtime plugins, L2 throughput metrics) | The MP-mode docs at `docs/source/mp/` explicitly say "latest dev branch recommended." |
+| LMCache | **0.4.4+** for vLLM v0.20+/main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified 2026-04-26 against tags v0.4.3 (no class) vs v0.4.4 (has class). |
+| LMCache | **0.4.5 recommended** as current stable | v0.4.5 (2026-05-15) changed the default CUDA wheel to cu13, added DeepSeek V4 MP support, the `raw_block` MP L2 adapter, reconnect-after-LMCache-restart, and IsolatedLRU per-`cache_salt` quotas. |
 
 ### Image bundling (what's actually in the container)
 
@@ -105,6 +107,8 @@ Flags on the **vLLM side** that operators forget:
 
 The canonical pattern is **DaemonSet (LMCache) + Deployment (vLLM)**: one LMCache server per node serves multiple vLLM pods on that node.
 
+As of `operator-v0.1.1` (2026-05), an LMCache Kubernetes Operator reconciles an `LMCacheEngine` custom resource into the DaemonSet + Service + ConfigMap (image `lmcache/lmcache-operator:v0.1.1`, install via the `install.yaml` from that release). Prefer it over hand-rolled manifests for new clusters; the hand-written YAML in `references/deployment.md` remains the manual alternative and shows what the operator generates.
+
 Example manifests live in the LMCache repo at `examples/multi_process/`:
 - `lmcache-daemonset.yaml` — LMCache server, one per node
 - `vllm-deployment.yaml` — vLLM pods that connect to the node-local LMCache via `status.hostIP`
@@ -125,7 +129,7 @@ For the L1+L2 storage architecture (NIXL adapters, fs, mooncake_store, s3, evict
 
 **LMCache MP does NOT yet support hybrid models** (sliding-window + full attention, or attention + Mamba). Tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845).
 
-Open community work: [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment) and [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (garbled output fix). Both still open as of 2026-04-26. A community-contributed patch in #2845 works for Qwen3.5-27B specifically and is explicitly NOT production-ready.
+Open community work: [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment) remains open as of 2026-05-28. [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (garbled output fix) was **closed without merging** (2026-05-21) — that fix did not land via that PR. Hybrid models (Qwen3.5/3.6, Mamba) are still unsupported in MP mode; #2845 comments last reconfirmed this on 2026-05-22. A community-contributed patch in #2845 works for Qwen3.5-27B specifically and is explicitly NOT production-ready.
 
 **Don't recommend MP for hybrid-model production today.** Either:
 
@@ -157,8 +161,8 @@ vLLM `main` (post-2026-03) imports `ParallelStrategy` from `lmcache.integration.
 | vLLM version | Required lmcache |
 |---|---|
 | v0.19.0, v0.19.1 | 0.4.0+ (works with bundled 0.4.3) |
-| v0.20.0 | 0.4.x (verify on the released image) |
-| main / nightly | **0.4.4+** required |
+| v0.20.0 – v0.21.0 (current stable) | **0.4.4+** (0.4.5 recommended) — verify on the released image |
+| main / nightly | **0.4.4+** required (0.4.5 recommended) |
 
 If you mix vLLM main with the v0.19.1 image's bundled 0.4.3, expect:
 
@@ -227,9 +231,10 @@ Ranked by likelihood:
 - LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `quickstart.rst`, `deployment.rst`, `l2_storage.rst`, `architecture.rst`, `http_api.rst`, `observability.rst`, `tracing_and_debugging.rst`)
 - vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py` (clone at `~/projects/github.com/vllm-project/vllm`)
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
-- Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261)
-- cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040)
+- LMCache K8s Operator: [operator-v0.1.1 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1) (CRD-based DaemonSet+Service+ConfigMap reconciler)
+- Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (open), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
+- cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (open)
 
 See `references/sources.md` for verification dates and the inspection ritual.
 
-Last verified: 2026-04-26.
+Last verified: 2026-05-28 (freshen pass — versions + GitHub issue/PR state re-probed; bundling table for v0.21.0/0.4.5 not yet re-captured).

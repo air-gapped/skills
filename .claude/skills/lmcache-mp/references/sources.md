@@ -4,7 +4,22 @@ This skill was authored against live source code, image inspection, and live Git
 
 ## Last verified
 
-**2026-04-26** (skill creation).
+**2026-05-28** (freshen pass). Original authoring: 2026-04-26.
+
+### Per-source verification table
+
+| Source | URL | Last verified | Notes |
+|---|---|---|---|
+| vLLM latest release | https://github.com/vllm-project/vllm/releases/latest | 2026-05-28 | v0.21.0 (2026-05-15); v0.20.0 (2026-04-27); v0.20.1/0.20.2 (2026-05-10). Current stable. |
+| LMCache tags | https://github.com/LMCache/LMCache/tags | 2026-05-28 | v0.4.5 + v0.4.5-cu129 (2026-05-15); default wheel → cu13; DeepSeek V4 MP (#3171), raw_block L2 (#3119), reconnect-after-restart (#3208), IsolatedLRU (#3137). |
+| LMCache K8s Operator | https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1 | 2026-05-28 | operator-v0.1.1 (2026-05-18); reconciles `LMCacheEngine` CR → DaemonSet+Service+ConfigMap; image `lmcache/lmcache-operator:v0.1.1` (PR #2701). RESP/Redis-Valkey L2 (#2967), AMD `gpuVendor` (#3211). |
+| vLLM #40040 (cache_salt fallback bug) | https://github.com/vllm-project/vllm/issues/40040 | 2026-05-28 | Still OPEN (updated 2026-04-17). Originating PR #39837 merged 2026-04-15. Skill guidance holds. |
+| LMCache #2845 (hybrid tracker) | https://github.com/LMCache/LMCache/issues/2845 | 2026-05-28 | OPEN (updated 2026-05-22); Qwen3.5/3.6 hybrids still unsupported, no merged fix. |
+| LMCache #2879 (hybrid garbled-output PR) | https://github.com/LMCache/LMCache/pull/2879 | 2026-05-28 | CLOSED without merging (2026-05-21). Fix did not land via this PR. |
+| vLLM #38261 (HybridOffloadPlanner PR) | https://github.com/vllm-project/vllm/pull/38261 | 2026-05-28 | Still OPEN (updated 2026-05-07). |
+| LMCache #2942 (LocalCPUBackend deadlock) | https://github.com/LMCache/LMCache/issues/2942 | 2026-05-28 | OPEN (updated 2026-04-30). Active bug. |
+| vLLM connector source path | vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py | 2026-05-28 | Present at ref=v0.21.0 and v0.19.1; lmcache_integration/ fallback dir also present in both. Path stable. |
+| LMCache ParallelStrategy | lmcache/integration/vllm/vllm_multi_process_adapter.py | 2026-05-28 | Class defined; consumed by lmcache_mp_connector.py. 0.4.3-no-class vs 0.4.4-has-class boundary still accurate. |
 
 ## Probes used
 
@@ -18,6 +33,8 @@ Run `scripts/verify-bundling.sh <tag>` against any vllm-openai or lmcache image 
 
 Verified tags as of skill creation:
 - `vllm/vllm-openai:v0.19.1` — vllm 0.19.1, lmcache 0.4.3, nixl 0.9.0, mooncake-transfer-engine 0.3.10.post1. All connectors load. `ParallelStrategy` not present (correct for v0.19.x).
+
+Not yet re-run on the current stable pair: the bundling table for a `vllm/vllm-openai:v0.21.0` (lmcache 0.4.5) image has NOT been produced by this freshen pass. Run `scripts/verify-bundling.sh v0.21.0` to capture the v0.21/0.4.5 version table before relying on it for a pinned deploy.
 
 ### LMCache repo probes
 

@@ -1,5 +1,12 @@
 # LMCache MP — deployment recipes
 
+## Contents
+
+- [Docker](#docker) — server only, vLLM client, remote LMCache server
+- [Kubernetes — DaemonSet + Deployment pattern](#kubernetes--daemonset--deployment-pattern) — DaemonSet, Deployment, why each piece matters, HTTP health check, monitoring
+- [Production tuning checklist](#production-tuning-checklist)
+- [Cleanup](#cleanup)
+
 ## Docker
 
 ### Server only

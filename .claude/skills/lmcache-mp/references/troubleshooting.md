@@ -7,7 +7,7 @@
 | `RuntimeError: LMCacheMPConnector only works without hybrid kv cache manager` at startup | Missing `--disable-hybrid-kv-cache-manager` on vLLM |
 | `ImportError: cannot import name 'ParallelStrategy'` from lmcache adapter | vLLM main paired with bundled lmcache 0.4.3 — upgrade to 0.4.4+ |
 | `TypeError: ... got an unexpected keyword argument 'cache_salt'` | Falling through to repo-local fallback adapter (vLLM #40040). Make sure `import lmcache.integration.vllm.vllm_multi_process_adapter` succeeds. |
-| `LMCache INFO: Registering kv caches!` never logs on vLLM side | vLLM can't reach the LMCache server — wrong host/port, or hostNetwork misconfig, or DaemonSet not on this node |
+| `LMCache INFO: Registering kv caches!` never logs on vLLM side | vLLM can't reach the LMCache server — wrong host/port, or hostNetwork misconfig, or DaemonSet not on this node. (As of LMCache 0.4.5 / #3208, vLLM reconnects automatically after an LMCache restart — an LMCache pod restart no longer orphans connected vLLM pods.) |
 | `CPU_to_GPU_total_bytes=0` consistently in vLLM logs | LMCache is reachable but never serving hits — wrong prefix-cache settings, low hit rate workload, or L1 too small |
 | Eviction stutter every few seconds in LMCache logs | L1 sized too small relative to working set — increase `--l1-size-gb`, lower `--eviction-trigger-watermark`, or raise `--eviction-ratio` |
 | Cryptic CUDA errors at startup | `/dev/shm` not host-mounted on both pods, or `--ipc host` missing in Docker |
@@ -28,11 +28,11 @@
 
 **State**: open, "WIP". **Affects**: any model with sliding window + full attention (Gemma4) or attention + Mamba (Qwen3.5).
 
-Open PRs trying to fix:
-- vLLM #38261 — HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment
-- LMCache #2879 — garbled output fix on hybrid models
+Community work toward a fix:
+- vLLM #38261 — HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment. Still **open** as of 2026-05-28.
+- LMCache #2879 — garbled output fix on hybrid models. **Closed without merging** (2026-05-21) — the fix did not land via this PR.
 
-Both still open as of 2026-04-26. A community patch in #2845 works for Qwen3.5-27B specifically and is not production-ready.
+Hybrid models (Qwen3.5/3.6, Mamba) remain unsupported in MP mode; #2845 comments last reconfirmed this on 2026-05-22. A community patch in #2845 works for Qwen3.5-27B specifically and is not production-ready.
 
 **Avoidance**: For hybrid-model production today, use vLLM's native CPU offload (`vllm-caching` skill) — also broken on hybrid models, but with the same known workaround (`--disable-hybrid-kv-cache-manager` + lower `--max-model-len`). Or wait for the vLLM `[kv_offload+HMA][N/N]` series to complete.
 
@@ -52,14 +52,14 @@ Both still open as of 2026-04-26. A community patch in #2845 works for Qwen3.5-2
 
 ## Version compatibility matrix
 
-Verified 2026-04-26 against tags v0.4.3 / v0.4.4 of LMCache and v0.19.1 / v0.20.0 / main of vLLM.
+Verified 2026-04-26 against tags v0.4.3 / v0.4.4 of LMCache and v0.19.1 / v0.20.0 / main of vLLM. Current stable pair (2026-05): vLLM v0.21.0 + LMCache v0.4.5.
 
 | vLLM version | Required lmcache | Notes |
 |---|---|---|
 | v0.19.0 | 0.4.0+ | Bundled image ships compatible version |
 | v0.19.1 | 0.4.0+ | Image ships 0.4.3, all imports clean |
-| v0.20.0 | Verify on the released image | `cache_salt` propagation added |
-| main / nightly | **0.4.4+** | `ParallelStrategy` import requirement |
+| v0.20.0 – v0.21.0 (current stable) | **0.4.4+** (0.4.5 recommended) | `cache_salt` propagation added; verify on the released image |
+| main / nightly | **0.4.4+** (0.4.5 recommended) | `ParallelStrategy` import requirement |
 
 To verify a specific image, use `scripts/verify-bundling.sh <tag>`.
 

@@ -1,5 +1,14 @@
 # LMCache MP — L2 storage adapters
 
+## Contents
+
+- [Adapter types](#adapter-types) — `nixl_store`, `nixl_store_dynamic`, `fs`, `mooncake_store`, `s3`, newer 0.4.5+ (`raw_block`, RESP/Redis), `mock`
+- [Cascade: multiple L2 adapters](#cascade-multiple-l2-adapters)
+- [Store and prefetch policies](#store-and-prefetch-policies)
+- [Buffer-only mode](#buffer-only-mode-l1-is-just-a-write-buffer)
+- [Eviction](#eviction) — L1 CLI flags, per-adapter L2 eviction support matrix
+- [Verifying L2 is active](#verifying-l2-is-active)
+
 L1 (CPU DRAM) is the always-on tier. L2 is **optional persistence** — adapters configured via `--l2-adapter` JSON. Keys flow L1 → L2 via `StoreController` (async) and L2 → L1 via `PrefetchController` on miss.
 
 You can stack multiple `--l2-adapter` flags for a cascade (e.g. fast SSD + larger NVMe). Adapters are queried in declaration order.
@@ -134,6 +143,13 @@ Stores KV objects as S3 objects via AWS Common Runtime (CRT). Works with AWS S3,
 ```
 
 Eviction supported via `max_capacity_gb` (default 0 = aggregate eviction disabled).
+
+### Newer adapters (LMCache 0.4.5+)
+
+- **`raw_block`** — MP L2 adapter that stores raw KV blocks without NIXL (LMCache#3119). Useful where NIXL is unavailable but a structured block store is wanted.
+- **RESP / Redis-Valkey** — L2 over the RESP protocol against Redis or Valkey (LMCache#2967). Backs a networked KV tier without a filesystem mount.
+
+Both shipped in v0.4.5; consult the LMCache `docs/source/mp/l2_storage.rst` for the exact config keys before use.
 
 ### `mock` — for testing
 
