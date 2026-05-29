@@ -58,7 +58,7 @@ Use this table first. Load `references/model-families.md` for the specific model
 | `tool_calls` empty array `[]` but model emitted text | `--tool-call-parser` wrong for model family | `tool_choice="auto"` (try `"required"` or a named tool) |
 | Tool calls have malformed JSON / `arguments` empty | Wrong tool-call parser (Hermes vs pythonic vs XML vs model-specific) | Template doesn't inject `tools` correctly |
 | `enable_thinking=False` has no effect | Kwarg dropped by vLLM allowlist (need PR #27622 or ≥v0.11.1) | Downstream harness not forwarding `chat_template_kwargs` |
-| Tool calling works on `/v1/completions` but not `/v1/chat/completions` | Chat template doesn't render tool result (e.g. GLM-5.1 #39611) | Endpoint-specific parser path |
+| Tool calling works on `/v1/completions` but not `/v1/chat/completions` | Chat template doesn't render tool result (GLM-5.1 #39611, fixed 2026-04-12) | Endpoint-specific parser path |
 | Prompt in server log doesn't match model card | Wrong template resolving — check precedence order above | `--chat-template` pointing at file that doesn't exist (silent for some tokenizer modes) |
 | `<think>` content leaks into final output | `--reasoning-parser` missing | `skip_special_tokens=true` stripping control tokens before parser (#38855) |
 | Garbled prompt with repeated `<image>` placeholders | Template has placeholder AND multimodal parser adds one | `interleave_strings` mismatch — see `chat_utils.py:1186-1241` |
@@ -67,11 +67,7 @@ Use this table first. Load `references/model-families.md` for the specific model
 | "this model is reasoning but reasoning_effort=none" | gpt-oss #37909 — `"none"` not honored | Wrong reasoning parser |
 | Works on SGLang / TGI, broken on vLLM | vLLM applies template differently (HF precedence + kwarg allowlist) | Check `--tokenizer-mode` differences |
 
-Three orthogonal layers — diagnose one at a time, don't change multiple at once:
-
-- **Template layer**: Jinja file that turns messages → prompt string.
-- **Parser layer** (output): `--tool-call-parser`, `--reasoning-parser` — extract structured fields from model output.
-- **Kwarg layer**: `chat_template_kwargs` forwarded to `apply_chat_template`.
+Template, parser (output), and kwarg (`chat_template_kwargs`) are orthogonal layers — diagnose one at a time, don't change multiple at once.
 
 ## The flag matrix (common case)
 
@@ -126,9 +122,9 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 12. **Concurrent requests → `<pad>` tokens.** Gemma-4 #39392. Not reproducible sequentially. Fix: version bump; interim workaround `--max-num-seqs 1`.
 
-13. **`--chat-template-content-format auto` misroutes tool results.** GLM-5.1 #39614: tool result as `{"type":"text","text":"..."}` hits an "else" branch in a template checking `.name` → renders `<tools></tools>` instead of result.
+13. **`--chat-template-content-format auto` misroutes tool results.** GLM-5.1 #39614 (CLOSED/COMPLETED 2026-04-25): tool result as `{"type":"text","text":"..."}` hits an "else" branch in a template checking `.name` → renders `<tools></tools>` instead of result. Fixed upstream; the `--chat-template-content-format openai`/`string` workaround is only needed on vLLM before the fix.
 
-14. **`/v1/chat/completions` vs `/v1/responses` divergence.** gpt-oss tool calling works only on `/v1/responses` (#22578). GLM-4.7 (#39611) tool results ignored on chat-completions but work on completions.
+14. **`/v1/chat/completions` vs `/v1/responses` divergence.** gpt-oss tool calling works only on `/v1/responses` (#22578). GLM-5.1 (#39611, CLOSED/COMPLETED 2026-04-12) — tool results were ignored on chat-completions but work on completions; fixed upstream, so on patched vLLM tool results now render on `/v1/chat/completions`.
 
 15. **API field name mismatch.** `reasoning` (vLLM older) vs `reasoning_content` (DeepSeek/OpenAI-style). Clients that hard-code one break on version bump. vLLM settled on `reasoning_content` (#28472).
 
@@ -197,4 +193,4 @@ When the operator names a model family, load `references/model-families.md` — 
 - `references/flags-matrix.md` — quick CLI-flag lookup per model.
 - `references/sources.md` — verification log for external URLs/issues/PRs cited in this skill, with `Last verified` dates.
 
-Last verified: 2026-04-24 (see `references/sources.md` for per-ref status).
+Last verified: 2026-05-28 (see `references/sources.md` for per-ref status).

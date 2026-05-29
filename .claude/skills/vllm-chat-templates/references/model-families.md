@@ -307,14 +307,14 @@ Do **not** use `deepseek_r1` reasoning parser — causes a repeating-phrase loop
 
 ## GLM
 
-GLM-4.7, GLM-5.1-FP8. Uses Jinja templates shipped in `examples/tool_chat_template_glm4.jinja`.
+GLM-4.7, GLM-5.1-FP8. Uses Jinja templates shipped in `examples/tool_chat_template_glm4.jinja`. The two bugs below were both reported against GLM-5.1-FP8.
 
 ### Known bugs
 
 | Issue | Summary |
 |---|---|
-| [vLLM #39614](https://github.com/vllm-project/vllm/issues/39614) | GLM-5.1-FP8 + `--chat-template-content-format auto`: tool result `{"type":"text","text":"..."}` hits else branch checking `.name` → renders `<tools>\n</tools>` instead of result. |
-| [vLLM #39611](https://github.com/vllm-project/vllm/issues/39611) | Tool results ignored on `/v1/chat/completions` but work on `/v1/completions`. |
+| [vLLM #39614](https://github.com/vllm-project/vllm/issues/39614) | GLM-5.1-FP8 + `--chat-template-content-format auto`: tool result `{"type":"text","text":"..."}` hits else branch checking `.name` → renders `<tools>\n</tools>` instead of result. **CLOSED/COMPLETED 2026-04-25** (verified 2026-05-28) — fixed upstream; `--chat-template-content-format openai`/`string` workaround only needed before the fix. |
+| [vLLM #39611](https://github.com/vllm-project/vllm/issues/39611) | GLM-5.1-FP8 tool results ignored on `/v1/chat/completions` but work on `/v1/completions`. **CLOSED/COMPLETED 2026-04-12** (verified 2026-05-28) — fixed upstream; tool results now render on `/v1/chat/completions` in patched vLLM. |
 
 ---
 
