@@ -5,8 +5,10 @@ description: >-
   UID, multi-stage builds), packaging formats (Helm, Kustomize, Operators, OLM v1),
   CI/CD (Tekton, ArgoCD, Shipwright, Conforma), security (SCC, PSA, supply chain,
   image signing, secrets), operations (Routes, probes, scaling, monitoring, storage),
-  disconnected/air-gapped patterns, and critical gotchas. Covers OCP 4.14-4.21.
-  NOT for cluster installation or infrastructure management.
+  disconnected/air-gapped patterns, and critical gotchas. Also when an app
+  "works on Kubernetes but fails on OpenShift" (SCC denied, random/arbitrary UID,
+  permission errors). Covers OCP 4.14-4.21. NOT for cluster installation or
+  infrastructure management.
 ---
 
 # OpenShift Application Packaging
@@ -21,13 +23,13 @@ hardening, operational patterns, and disconnected environments.
 |------|-------|
 | Build a container image for OpenShift | [Container Images](#container-image-essentials) below |
 | Choose Helm vs Kustomize vs Operator | [Packaging Decision Matrix](#packaging-decision-matrix) below |
-| Fix SCC / permission errors | `references/security.md` S Restricted-v2 |
+| Fix SCC / permission errors | `references/security.md` (Restricted-v2 section) |
 | Set up CI/CD pipeline | `references/cicd-gitops.md` |
-| Harden supply chain (sign, attest, scan) | `references/security.md` S Supply Chain |
+| Harden supply chain (sign, attest, scan) | `references/security.md` (Supply Chain section) |
 | Configure Routes, probes, scaling | `references/operations.md` |
 | Deploy in air-gapped / disconnected env | `references/disconnected.md` |
-| Migrate from DeploymentConfig | `references/gotchas.md` S DeploymentConfig |
-| Understand OCP version breaking changes | `references/gotchas.md` S Version Timeline |
+| Migrate from DeploymentConfig | `references/gotchas.md` (DeploymentConfig section) |
+| Understand OCP version breaking changes | `references/gotchas.md` (Version Timeline section) |
 
 ## Critical Gotchas (Read First)
 
