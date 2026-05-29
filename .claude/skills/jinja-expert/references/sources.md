@@ -7,21 +7,22 @@ that should be pinned to an archival version.
 
 | Source | Purpose | Last verified | Notes |
 |---|---|---|---|
-| https://jinja.palletsprojects.com/ | Pallets Jinja2 upstream — authoritative language reference | 2026-04-20 | |
+| https://jinja.palletsprojects.com/ | Pallets Jinja2 upstream — authoritative language reference | 2026-05-28 | Jinja2 latest stable 3.1.6 (PyPI, 2026-05-28); chat-template env requires >=3.1.0 |
 | https://jinja.palletsprojects.com/en/stable/templates/ | Core Jinja template syntax reference | 2026-04-20 | |
 | https://jinja.palletsprojects.com/en/stable/sandbox/ | `SandboxedEnvironment` / `ImmutableSandboxedEnvironment` behavior | 2026-04-20 | |
-| https://github.com/huggingface/transformers/blob/main/src/transformers/utils/chat_template_utils.py | HF `apply_chat_template` compilation code — function is `_cached_compile_jinja_template` (verified 2026-04-20) | 2026-04-20 | Pinned path on `main`; file has been renamed historically, verify on drift |
-| https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_templating.html | Ansible templating overview | 2026-04-20 | Via earlier WebSearch — page CDN-blocks generic bot fetches |
+| https://github.com/huggingface/transformers/blob/main/src/transformers/utils/chat_template_utils.py | HF `apply_chat_template` compilation code — function is `_cached_compile_jinja_template` | 2026-05-28 | Pinned path on `main`; renamed historically, verify on drift. transformers latest 5.9.0 (2026-05-28); env contract (ImmutableSandboxedEnvironment, loopcontrols, tojson ensure_ascii=False) unchanged |
+| https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_templating.html | Ansible templating overview | 2026-05-28 | Via WebSearch — page CDN-blocks generic bot fetches. ansible-core latest 2.21.0 (PyPI, 2026-05-28); native-types history (2.7 stabilized, 2.10 off-by-default) and bare-expression `when:` semantics unchanged |
 | https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_filters.html | Ansible built-in + collection filters | 2026-04-20 | |
 | https://docs.ansible.com/projects/ansible/latest/plugins/lookup.html | Ansible lookups | 2026-04-20 | |
 | https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/k8s_module.html | `kubernetes.core.k8s` module reference | 2026-04-20 | |
 | https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/helm_module.html | `kubernetes.core.helm` module reference | 2026-04-20 | |
 | https://docs.ansible.com/projects/lint/ | ansible-lint documentation | 2026-04-20 | |
-| https://pypi.org/project/j2lint/ | j2lint PyPI page | 2026-04-20 | Version 1.2.0 released 2025-04-04 (per upstream research) |
+| https://pypi.org/project/j2lint/ | j2lint PyPI page | 2026-04-20 | Use latest stable; do not pin inline (see freshness rules) |
 | https://github.com/ansible-actions/j2lint-action | j2lint GitHub Action for CI | 2026-04-20 | |
+| https://pypi.org/project/jinja2-cli/ | jinja2-cli preprocessor (`pip install jinja2-cli[yaml]`, `--strict`) | 2026-05-28 | Latest stable 1.0.1 (PyPI, 2026-05-28); `[yaml]` extra + `--strict` flag valid |
 | https://gist.github.com/mkrizek/dbcf415b485fc3f2d4b3676ce0013397 | Ansible + Jinja2 native-types discussion | 2026-04-20 | Informational gist, not official docs |
 | https://helm.sh/docs/chart_template_guide/ | Helm Go `text/template` + Sprig chart guide | 2026-04-20 | |
-| https://github.com/helm/helm/issues/6184 | Helm RFC "Pluggable templating engines" | 2026-04-20 | CLOSED 2020-09-05 — never accepted; Helm stays Go-only through 2026 |
+| https://github.com/helm/helm/issues/6184 | Helm RFC "Pluggable templating engines" | 2026-05-28 | CLOSED 2020-09-05 — never accepted; Helm stays Go-only through 2026 (re-confirmed closed 2026-05-28) |
 | https://kluctl.io | kluctl — Jinja-native Kubernetes deployment tool | 2026-04-20 | Confirmed Jinja2 integration on homepage |
 | https://www.home-assistant.io/docs/configuration/templating/ | Home Assistant Jinja templating (mentioned as "out of scope" pointer) | 2026-04-20 | |
 | https://github.com/unslothai/unsloth | Unsloth — community chat-template patches | 2026-04-20 | Mentioned in exemplars |

@@ -11,7 +11,8 @@ description: >-
 when_to_use: >-
   Triggers on the phrases "chat template", "chat_template.jinja",
   "j2 file", ".j2", "jinja filter", "jinja2 filter", "ansible template",
-  "ansible jinja", "ansible playbook", "values.yaml jinja", "jinja helm",
+  "ansible jinja", "ansible playbook template", "ansible .j2",
+  "values.yaml jinja", "jinja helm",
   "jinja2-cli", "helm-jinja", "kubernetes jinja", or any request to
   write / read / fix a Jinja template. Also triggers on symptoms —
   `TemplateError`, `SecurityError`, `AnsibleUndefinedVariable`,
