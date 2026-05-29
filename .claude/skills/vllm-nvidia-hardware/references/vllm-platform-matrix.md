@@ -16,7 +16,7 @@ Backends gate on `DeviceCapability` in `vllm/v1/attention/backends/`:
 | `FLASHINFER_MLA_SPARSE` (DeepSeek V3.2) | ❌ | ✅ | Blackwell-only; default for FP8 KV cache v0.19 (#37252) |
 | `FLASHMLA` (dense & sparse) | ✅ | ✅ | `capability.major in [9, 10]`; disabled on Blackwell in v0.10.2 (#24521), restored |
 | `CUTLASS_MLA` | ❌ | ✅ | `sm100_cutlass_mla_decode`; FP8 MLA (#23289, v0.10.2) |
-| `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (closes #2939), shipped in 0.6.7.postN. If stuck on plain 0.6.7, disable TRTLLM on SM103 or upgrade. |
+| `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (a *revert* of the Blackwell-Ultra optimization that caused the deadlock; closes #2939), shipped in 0.6.7.postN. If stuck on plain 0.6.7, disable TRTLLM on SM103 or upgrade. |
 | `TRITON_ATTN` / `FLEX_ATTENTION` / `TREE_ATTN` | ✅ | ✅ | Generic |
 | `xformers` | removed v0.11 | removed | V0 deprecation |
 
@@ -71,7 +71,8 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 - **For B300/GB300: CUDA 13 recommended**, `torch_cuda_arch_list='9.0 10.0+PTX'`
   (`docs/getting_started/installation/gpu.cuda.inc.md:372-388`).
 - **SM100 (B200)** broadly supported; **SM103 (GB300)** was recognized with known hang
-  in TRTLLM/FlashInfer 0.6.7 — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956
+  in TRTLLM/FlashInfer 0.6.7 — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956,
+  which *reverts* the Blackwell-Ultra optimization that introduced the deadlock
   (closes #2939), shipped in 0.6.7.postN. If pinned to plain 0.6.7 without the post
   fix, disable TRTLLM on SM103 (`--attention-config.use_trtllm_attention=0`); 0.6.6
   works, and the FlashInfer default backend on SM103 actually benchmarks faster than

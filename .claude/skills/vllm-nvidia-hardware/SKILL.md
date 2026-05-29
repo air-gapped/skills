@@ -90,4 +90,4 @@ If this skill helps with *why* a hardware choice matters for KV-cache sizing, th
 
 All claims in the references are sourced inline — **prefer NVIDIA first-party datasheets, SemiAnalysis, Dell/Lenovo/Supermicro OEM datasheets**, then reputable news. When numbers disagree across sources, the references report the range with each citation. The full consolidated source list is in `references/sources.md`.
 
-This skill was compiled from `MEMORY_WALL_DEEP.md` (late-2025/early-2026 research pass); refresh when new NVIDIA products launch or when HBM / rack-power / vLLM backend landscape shifts materially.
+Refresh when new NVIDIA products launch or when the HBM / rack-power / vLLM backend landscape shifts materially.

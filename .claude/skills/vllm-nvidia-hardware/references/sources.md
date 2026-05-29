@@ -3,10 +3,12 @@
 Grouped by topic. `foundational` tags mean the source pre-dates 2025 but is still the
 canonical reference on its claim.
 
-**Last freshen pass:** 2026-04-24. Rows annotated with `[LV: 2026-04-24]` were probed
-in that pass; `[LV: 2026-04-24, drift]` means the probe surfaced a material change that
-was applied to the relevant reference file(s). Unannotated rows are inherited from
-prior passes (pre-2026-04-24) and have not been re-verified in this pass.
+**Last freshen pass:** 2026-05-28 (vLLM release rows only); prior full pass 2026-04-24.
+Rows annotated `[LV: <date>]` were probed on that date; `[LV: <date>, drift]` means the
+probe surfaced a material change that was applied to the relevant reference file(s).
+Unannotated rows are inherited from passes before 2026-04-24 and have not been
+re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
+`gh release list -R vllm-project/vllm` only.
 
 ## Fundamentals / HBM / supply / energy
 
@@ -87,8 +89,11 @@ prior passes (pre-2026-04-24) and have not been re-verified in this pass.
 - [v0.11.1](https://github.com/vllm-project/vllm/releases/tag/v0.11.1)
 - [v0.12.0](https://github.com/vllm-project/vllm/releases/tag/v0.12.0)
 - [v0.19.0](https://github.com/vllm-project/vllm/releases/tag/v0.19.0) **[LV: 2026-04-24]** — published 2026-04-03. First-class B300/GB300 (SM 10.3); cu130 wheels; FlashInfer sparse MLA default for FP8 KV cache.
-- [v0.19.1](https://github.com/vllm-project/vllm/releases/tag/v0.19.1) **[LV: 2026-04-24, new-feature]** — published 2026-04-18. Current **latest stable**. Ships `transformers>=5` compat.
-- [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) **[LV: 2026-04-24, new-feature]** — pre-release 2026-04-23. **CUDA 13.0 default** (breaking env change), PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV), TurboQuant 2-bit KV cache (4× capacity), MXFP4 W4A4 CUTLASS MoE SM100, TRTLLM GEN NVFP4 MoE non-512-aligned hidden dims, tuned fused_moe config for RTX PRO 6000 Blackwell. Mentioned for planning; platform-matrix recommends pinning v0.19.1 until v0.20.0 leaves pre-release.
+- [v0.19.1](https://github.com/vllm-project/vllm/releases/tag/v0.19.1) **[LV: 2026-05-28]** — published 2026-04-18. Ships `transformers>=5` compat. (Was "latest stable" as of the 2026-04-24 pass; superseded — see v0.21.0.)
+- [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) **[LV: 2026-05-28]** — **GA 2026-04-27** (left pre-release). **CUDA 13.0 default** (breaking env change), PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV), TurboQuant 2-bit KV cache (4× capacity), MXFP4 W4A4 CUTLASS MoE SM100, TRTLLM GEN NVFP4 MoE non-512-aligned hidden dims, tuned fused_moe config for RTX PRO 6000 Blackwell.
+- [v0.20.1](https://github.com/vllm-project/vllm/releases/tag/v0.20.1) **[LV: 2026-05-28]** — published 2026-05-04. Patch release on the v0.20 line.
+- [v0.20.2](https://github.com/vllm-project/vllm/releases/tag/v0.20.2) **[LV: 2026-05-28]** — published 2026-05-10. Patch release on the v0.20 line.
+- [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) **[LV: 2026-05-28]** — published 2026-05-15. **Current latest stable** (`isLatest=true` per `gh release list`).
 - [NVIDIA vLLM release notes 25.09](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-25-09.html)
 
 ## Public deployments / benchmarks
@@ -101,4 +106,4 @@ prior passes (pre-2026-04-24) and have not been re-verified in this pass.
 
 ## Upstream bug trackers
 
-- [flashinfer-ai/flashinfer#2939 — TRTLLM attention hang on GB300 (SM103) with FlashInfer 0.6.7](https://github.com/flashinfer-ai/flashinfer/issues/2939) **[LV: 2026-04-24, drift]** — **Closed 2026-04-07** as fixed via PR #2956 (@PerkzZheng). Fix shipped in a 0.6.7.postN (verify the exact tag before pinning). vllm-platform-matrix reference patched from "open, pin older FlashInfer" to "fixed — upgrade".
+- [flashinfer-ai/flashinfer#2939 — TRTLLM attention hang on GB300 (SM103) with FlashInfer 0.6.7](https://github.com/flashinfer-ai/flashinfer/issues/2939) **[LV: 2026-05-28]** — **Closed 2026-04-07** (state=closed re-confirmed via `gh api` 2026-05-28). Fixed via PR #2956, which is a *revert* of the Blackwell-Ultra optimization that caused the deadlock (titled "[Fmha] revert blackwell ultra optimization that causes deadlocks", merged 2026-04-03), shipped in a 0.6.7.postN (verify the exact tag before pinning). vllm-platform-matrix reference patched from "open, pin older FlashInfer" to "fixed (by revert) — upgrade".
