@@ -48,7 +48,7 @@ kv-transfer-config: '{"kv_connector":"NixlConnector","kv_role":"kv_producer"}'
 
 ### Older vLLM versions
 
-- Key-order bug (#8947) on v0.10–v0.11: if `served-model-name` is last in YAML, parsing fails. Move it up or upgrade.
+- Key-order bug (#8947) on pre-v0.10.1: if `served-model-name` is last in YAML, parsing fails. Move it up or upgrade to v0.10.1+.
 - Pre-v0.10: boolean handling inconsistent; upgrade.
 
 ## Startup failures

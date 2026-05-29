@@ -1,6 +1,6 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects v0.18–v0.20).
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects v0.18–v0.21).
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
 
@@ -130,4 +130,4 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 
 - To dump the full current list from a running deployment: `python -c "import vllm.envs; print('\n'.join(v for v in dir(vllm.envs) if v.startswith('VLLM_')))"`
 - To check the current *resolved* value: `python -c "import vllm.envs as e; print(e.VLLM_CACHE_ROOT)"`
-- vLLM's env var introspection module: `vllm/envs.py` (~260 lines as of v0.19; direct grep is fastest)
+- vLLM's env var introspection module: `vllm/envs.py` (direct grep is fastest; the file grows release-over-release)

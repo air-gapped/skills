@@ -59,7 +59,7 @@ vllm serve --config prod.yaml
 **Gotchas:**
 - `list` args become YAML sequences (`allowed-origins: ["http://a", "http://b"]`).
 - Dict args (`--kv-transfer-config`, `--speculative-config`, `--compilation-config`) can be written as YAML dicts; the parser serializes to JSON before handing to the CLI layer.
-- Older versions had a key-order bug (issue #8947) where `served-model-name` placed last could break parsing. Fixed on current main, but still seen on v0.10–v0.11 images.
+- Older versions had a key-order bug (issue #8947) where `served-model-name` placed last could break parsing. Fixed in v0.10.1; only pre-v0.10.1 images are affected.
 - `trust_remote_code` in YAML: `trust-remote-code: true` (explicit boolean).
 
 For the full per-section catalog (ModelConfig, CacheConfig, ParallelConfig, SchedulerConfig, LoadConfig, LoRAConfig, SpeculativeConfig, ObservabilityConfig, FrontendArgs), see `references/config-file.md`.
@@ -143,23 +143,21 @@ Full recipe in `references/air-gapped.md`. The essentials:
 
 1. **Kubernetes Service named `vllm` poisons env vars.** Kubernetes injects `<SERVICE>_SERVICE_HOST` / `<SERVICE>_SERVICE_PORT` into every pod in the namespace. A Service named `vllm` collides with vLLM's `VLLM_` namespace and in some versions interferes. The vLLM docs explicitly warn against naming the service `vllm`. Name it `vllm-api` or `inference` instead.
 
-2. **`VLLM_HOST_IP` is not the API host.** It's the internal distributed bind address. Aliasing `--host $VLLM_HOST_IP` on the CLI breaks inter-worker init. API server host goes on `--host`; internal goes on the env var.
+2. **`HF_HUB_OFFLINE=1` needs the cache fully populated or first-request fails.** Include `config.json`, `tokenizer*`, `special_tokens_map.json`, `generation_config.json`, and any `modeling_*.py` referenced by `auto_map` — not just weights.
 
-3. **`HF_HUB_OFFLINE=1` needs the cache fully populated or first-request fails.** Include `config.json`, `tokenizer*`, `special_tokens_map.json`, `generation_config.json`, and any `modeling_*.py` referenced by `auto_map` — not just weights.
+3. **Gated models offline still need `HF_TOKEN`.** The token is consulted during hub-config validation before weight load. Putting it only on the staging host isn't enough; bake it into the runtime env.
 
-4. **Gated models offline still need `HF_TOKEN`.** The token is consulted during hub-config validation before weight load. Putting it only on the staging host isn't enough; bake it into the runtime env.
+4. **`trust_remote_code` executes arbitrary Python from the model repo.** Any model not in vLLM's hard-coded architecture registry falls through to `AutoConfig` + `auto_map`, which only runs with the flag. In air-gap this runs pre-staged code — treat model directory provenance as equivalent to running arbitrary binaries. Verify checksums.
 
-5. **`trust_remote_code` executes arbitrary Python from the model repo.** Any model not in vLLM's hard-coded architecture registry falls through to `AutoConfig` + `auto_map`, which only runs with the flag. In air-gap this runs pre-staged code — treat model directory provenance as equivalent to running arbitrary binaries. Verify checksums.
+5. **`TRANSFORMERS_CACHE` is deprecated.** Rename legacy scripts to use `HF_HOME` (and let `HF_HUB_CACHE` default). Setting the old var still works but emits `FutureWarning`.
 
-6. **`TRANSFORMERS_CACHE` is deprecated.** Rename legacy scripts to use `HF_HOME` (and let `HF_HUB_CACHE` default). Setting the old var still works but emits `FutureWarning`.
+6. **YAML CLI positional beats config `model:`.** `vllm serve /local/path --config prod.yaml` uses `/local/path` regardless of what `prod.yaml` says. Intentional but surprising.
 
-7. **YAML CLI positional beats config `model:`.** `vllm serve /local/path --config prod.yaml` uses `/local/path` regardless of what `prod.yaml` says. Intentional but surprising.
+7. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
 
-8. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
+8. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.2.2` + `libnuma-dev`; no env-var toggle exists in vLLM source).
 
-9. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.2.2` + `libnuma-dev`; no env-var toggle exists in vLLM source).
-
-10. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
+9. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
 
 For more failure modes and the fuller troubleshooting flow (first-boot hang, revision-check failure detection, tokenizer mismatch diagnosis), see `references/troubleshooting.md`.
 
