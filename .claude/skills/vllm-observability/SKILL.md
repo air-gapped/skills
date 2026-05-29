@@ -2,7 +2,7 @@
 name: vllm-observability
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  Observe production vLLM — `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, shipping Grafana dashboards in `examples/observability/`, OTLP tracing with `--otlp-traces-endpoint` and `--collect-detailed-traces={model,worker,all}`, diagnostic rules to triage from /metrics alone — queue-grows + TPOT-stable means capacity, queue-stable + TPOT-grows means context/model, DCGM `SM_OCCUPANCY` is the real GPU-saturation signal not `GPU_UTIL`. V1 metric names (kv_cache_usage_perc), gpu_→kv_ rename saga (PR #24245 / revert #25392), DCGM-exporter pairing, dashboard-lying pitfalls.
+  Observe production vLLM — `/metrics` Prometheus surface (V1 engine), SLO-driven alerting on TTFT/ITL/queue/KV/preemption/aborts/corrupted-logits, shipping Grafana dashboards in `examples/observability/`, OTLP tracing with `--otlp-traces-endpoint` and `--collect-detailed-traces={model,worker,all}`, diagnostic rules to triage from /metrics alone — queue-grows + TPOT-stable means capacity, queue-stable + TPOT-grows means context/model, DCGM `SM_OCCUPANCY` is the real GPU-saturation signal not `GPU_UTIL`. V1 metric names (kv_cache_usage_perc), gpu_→kv_ rename saga, DCGM-exporter pairing, dashboard-lying pitfalls.
 when_to_use: |-
   Trigger on "vllm metrics", "vllm observability", "vllm prometheus", "vllm grafana", "/metrics vllm", "vllm SLO", "TTFT alert", "ITL alert", "kv_cache_usage_perc", "num_requests_waiting", "request_queue_time_seconds", "prefix_cache_hits", "num_preemptions", "spec_decode metrics", "--otlp-traces-endpoint", "--collect-detailed-traces", "vllm tracing", "DCGM vllm", "SM_OCCUPANCY", "vllm KEDA", "vllm incident triage", "vllm goodput", "PromQL vllm". Building a dashboard, SLO burn-rate alerts, pairing vLLM with DCGM, diagnosing slow-TTFT / preemption-storm from /metrics alone. Also implicit — "why is TTFT high", "what should I alert on", "why are preemptions", "vllm is slow", "deploy-memo SLO", "audit observability" — question is from data vLLM already emits.
 ---
@@ -30,8 +30,6 @@ When something feels slow, read the ratio, not the absolute:
 | Stable | Rising | **Context / model-side** — long-context request, CUDA graph recompile, prefix-cache miss |
 | Rising | Rising | **Compounding** — usually preemption storm; check `num_preemptions` rate |
 | Stable | Stable, but TTFT high | **Scheduler stall** — connector (LMCache/NIXL), head-of-line blocking, or engine-core descheduling (ebpf territory) |
-
-This table is the skill's single most valuable line. Everything else is how to read the underlying metrics.
 
 ## The metric surface in one paragraph
 

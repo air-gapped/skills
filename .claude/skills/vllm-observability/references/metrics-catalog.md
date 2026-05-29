@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Last verified: 2026-04-24 (see `references/sources.md`)
+Last verified: 2026-05-28 (see `references/sources.md`) — re-probe confirmed all listed names emitted by `loggers.py` on main; `gpu_cache_usage_perc` absent by default.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
