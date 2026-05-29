@@ -338,7 +338,7 @@
       "name": "aiperf",
       "source": "./",
       "description": "NVIDIA AIPerf",
-      "version": "0.20260425.1",
+      "version": "0.20260529.2",
       "author": {
         "name": "Jörgen"
       },

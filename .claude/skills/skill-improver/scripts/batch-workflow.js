@@ -5,7 +5,7 @@ export const meta = {
     { title: 'Recon', detail: 'cold self-score + ranked hypotheses + online freshen probe, one agent per skill' },
     { title: 'Baseline blind', detail: 'independent blind score on the unmodified skill' },
     { title: 'Apply', detail: 'improve loop (<=5 iter) + verified freshen updates + backlog, edits real files' },
-    { title: 'Final blind', detail: '3 independent scorers per skill, median per dimension' },
+    { title: 'Final blind', detail: 'one independent blind score per skill (symmetric with baseline)' },
   ],
 }
 
@@ -31,11 +31,18 @@ const REF = '~/.claude/skills/skill-improver/references'
 const DEFAULT_BASE = '~/projects/skills/.claude/skills'
 const HOME_NOTE = 'NOTE: paths below starting with ~ are under your home directory — expand ~ to an absolute path (run `echo $HOME` if unsure) before reading or editing.'
 
-const RAW = Array.isArray(args) ? args : (args && Array.isArray(args.skills) ? args.skills : null)
+// The Workflow tool sometimes delivers `args` as a JSON-encoded string instead
+// of a real array/object. Normalize that here so callers can pass either form.
+let ARGS = args
+if (typeof ARGS === 'string') {
+  try { ARGS = JSON.parse(ARGS) }
+  catch (e) { ARGS = ARGS.split(/[\s,]+/).filter(Boolean) }
+}
+const RAW = Array.isArray(ARGS) ? ARGS : (ARGS && Array.isArray(ARGS.skills) ? ARGS.skills : null)
 if (!RAW || !RAW.length) {
   throw new Error('skill-improver-batch: pass args as a non-empty array of skill names, dirs, or {dir,hints} objects — e.g. args: ["keda","helm"]')
 }
-const BASE = (args && !Array.isArray(args) && args.baseDir) || DEFAULT_BASE
+const BASE = (ARGS && !Array.isArray(ARGS) && ARGS.baseDir) || DEFAULT_BASE
 const resolveDir = (d) => (d.includes('/') ? d : BASE + '/' + d)
 const baseName = (d) => d.split('/').filter(Boolean).pop()
 const norm = (it) => {
@@ -175,19 +182,6 @@ function applyPrompt(s, recon) {
   ].join('\n')
 }
 
-function median(xs) {
-  const a = [...xs].sort((x, y) => x - y)
-  const m = Math.floor(a.length / 2)
-  return a.length % 2 ? a[m] : Math.round((a[m - 1] + a[m]) / 2)
-}
-function medianScore(arr) {
-  if (!arr.length) return null
-  const byDim = {}, names = {}
-  for (const s of arr) for (const d of (s.dims || [])) { (byDim[d.n] ||= []).push(d.score); names[d.n] = d.name }
-  const dims = Object.keys(byDim).map(n => ({ n: Number(n), name: names[n], score: median(byDim[n]) })).sort((a, b) => a.n - b.n)
-  return { dims, total: dims.reduce((a, d) => a + d.score, 0), topIssues: arr.flatMap(s => s.topIssues || []).slice(0, 6), scorers: arr.length }
-}
-
 const results = await pipeline(
   SKILLS,
   async (skill) => {
@@ -206,10 +200,11 @@ const results = await pipeline(
     return { ...prev, apply }
   },
   async (prev, skill) => {
-    const scorers = (await parallel([1, 2, 3].map(k => () =>
-      agent(blindPrompt(skill), { label: `final-blind:${skill.name}:${k}`, phase: 'Final blind', schema: BLIND_SCHEMA })))).filter(Boolean)
-    const finalBlind = medianScore(scorers)
-    log(`final-blind ${skill.name}: median=${finalBlind?.total ?? '?'} (n=${scorers.length} scorers)`)
+    // ONE blind scorer — symmetric with the single baseline scorer so the
+    // baseline->final delta is apples-to-apples (a median-of-N final vs a
+    // single-sample baseline would credit variance-reduction as "improvement").
+    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA })
+    log(`final-blind ${skill.name}: ${finalBlind?.total ?? '?'}`)
     return { ...prev, finalBlind }
   }
 )
@@ -219,7 +214,7 @@ return results.filter(Boolean).map(r => ({
   baselineSelf: r.recon?.self?.total ?? null,
   baselineBlind: r.baselineBlind?.total ?? null,
   finalSelf: r.apply?.finalSelfTotal ?? null,
-  finalBlindMedian: r.finalBlind?.total ?? null,
+  finalBlind: r.finalBlind?.total ?? null,
   blindDelta: (r.finalBlind?.total != null && r.baselineBlind?.total != null) ? (r.finalBlind.total - r.baselineBlind.total) : null,
   keptChanges: (r.apply?.iterations || []).filter(i => /keep/i.test(i.status || '')).length,
   discardedChanges: (r.apply?.iterations || []).filter(i => /discard/i.test(i.status || '')).length,
