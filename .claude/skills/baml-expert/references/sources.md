@@ -1,6 +1,6 @@
 # Sources
 
-Authoritative references this skill is derived from. Freshen mode probes these rows for drift; keep `Last verified:` dates current.
+Authoritative references this skill is derived from. Freshen mode probes these rows for drift; keep `Last verified:` dates current. Latest BAML release verified 2026-05-28: **0.222.0** (PyPI + npm + GitHub, published 2026-04-27).
 
 | Ref | Scope | Last verified | Pinned |
 |---|---|---|---|
@@ -16,10 +16,11 @@ Authoritative references this skill is derived from. Freshen mode probes these r
 | https://docs.boundaryml.com/ref/baml-cli | baml-cli commands (init/generate/test/serve/dev/fmt) | 2026-04-19 | — |
 | https://www.boundaryml.com/blog/schema-aligned-parsing | SAP motivation and behavior | 2026-04-19 | — |
 | https://www.boundaryml.com/blog/type-definition-prompting-baml | why ctx.output_format uses type-def syntax over JSON Schema | 2026-04-19 | — |
-| https://github.com/boundaryml/baml | source of truth — compiler, clients, changelog | 2026-04-19 | canary @ 0.221.0 |
+| https://github.com/boundaryml/baml | source of truth — compiler, clients, changelog | 2026-05-28 | latest release 0.222.0 (2026-04-27) |
 | https://github.com/boundaryml/baml/pull/1251 | optional lists + maps (`string[]?`, `map<..>?`) — contradicts public types.mdx | 2026-04-19 | merged |
 | https://github.com/boundaryml/baml/blob/canary/fern/pages/changelog.mdx | canonical changelog for release-gated features | 2026-04-19 | — |
-| https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | 2026-04-19 | — |
+| https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | 2026-05-28 | latest 0.222.0 |
+| https://www.npmjs.com/package/@boundaryml/baml | npm package + `baml-cli`/`baml` binaries (TS/JS) | 2026-05-28 | latest 0.222.0 |
 | https://studio.boundaryml.com | Boundary Studio v2 (v1 at app.boundaryml.com deprecates end-of-March 2026) | 2026-04-19 | deprecation: 2026-03-31 |
 | https://marketplace.visualstudio.com/items?itemName=Boundary.baml-extension | VSCode/Cursor playground extension | 2026-04-19 | — |
 | https://promptfiddle.com | web playground, embeddable | 2026-04-19 | — |
@@ -27,9 +28,9 @@ Authoritative references this skill is derived from. Freshen mode probes these r
 
 ## Version-sensitive claims tracked here
 
-- `baml_options={"client": "..."}` shorthand — **requires 0.216+** (SKILL.md line 229).
+- `baml_options={"client": "..."}` shorthand — **0.216.0+** (0.216.0 released 2025-12-31; verified against repo changelog).
 - `baml-cli test` auto-loads `.env` — **0.214.0+** (SKILL.md gotchas).
 - `Collector` API — **0.79.0+**.
-- Canary features (lambdas, `?.`/`??`, `ns_*`, `baml run`) — **0.221+** (`references/canary-features.md`).
+- Canary/recent-release features (lambdas, `?.`/`??`, `ns_*`, `baml run`) — shipped in **0.221.0** (2026-04-14); see `references/canary-features.md`.
 - Literal types `"a" | "b"` — **0.61.0+**.
 - Type aliases `type X = ...` — **0.71.0+**.
