@@ -27,6 +27,7 @@ biases them hard toward transcription of document images.
 | `rednote-hilab/dots.ocr` (family) | `DotsOCRForCausalLM` | `dots_ocr.py` | dense layout + table handling |
 | `nvidia/Nemotron-Parse-*` | VLM path | `nemotron_*` | layout parsing + structure |
 | `Lighton/Ocr-*` | `LightOnOCR*` | `lightonocr.py` | lightweight |
+| Qianfan-OCR | VLM path | — | added v0.21.0 (#40136) |
 
 Plus: any general VLM (Qwen2.5-VL, InternVL, GLM-4.1V, MiniCPM-V) handles
 OCR reasonably well via chat completion — just not as efficiently or
@@ -146,9 +147,9 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-Last verified: 2026-04-24. Recipe page URL confirmed live; no new OCR
-model landed in v0.20.0 (PaddleOCR-VL `max_pixels` fix #38629 applies to
-a chat VLM, not the OCR-family here).
+Last verified: 2026-05-28 (against vLLM v0.21.0). Recipe page URL confirmed
+live; Qianfan-OCR (#40136) added to the roster in v0.21.0. The DeepSeek-OCR
+recipe flow is unchanged across v0.20.x → v0.21.0.
 
 ## 8. Source anchors
 

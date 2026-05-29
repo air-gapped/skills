@@ -121,7 +121,7 @@ Server-side:
 
 Recent fix: **#39116** (merged 2026-04-09) fixed a spacing bug between
 chunks in multi-chunk transcription. Shipped in v0.19.1 (2026-04-18) and
-v0.20.0 (2026-04-23). Pin ≥v0.19.1 for long-form audio.
+v0.20.0 (2026-04-27). Pin ≥v0.19.1 for long-form audio.
 
 ## 7. Beam search + streaming
 
@@ -189,4 +189,4 @@ the request client with your own timing instrumentation.
   `SupportsTranscription`
 - Red Hat STT blog: <https://developers.redhat.com/articles/2025/06/10/speech-text-whisper-and-red-hat-ai-inference-server>
 
-Last verified: 2026-04-24 against vLLM v0.20.0 release notes (PR #39116 confirmed merged 2026-04-09, shipped v0.19.1 + v0.20.0).
+Last verified: 2026-05-28 against vLLM v0.21.0 (PR #39116 merged 2026-04-09, shipped v0.19.1 + v0.20.0; STT surface unchanged through v0.21.0).

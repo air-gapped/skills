@@ -115,7 +115,7 @@ r = requests.post("http://localhost:8000/rerank", json={
         "vLLM supports continuous batching"
     ],
     "top_n": 3,
-    "max_tokens_per_doc": 512,  # added late-2025, truncates long docs
+    "max_tokens_per_doc": 512,  # added v0.20.0 (PR #38827), truncates long docs
 })
 ```
 
@@ -141,8 +141,8 @@ affine calibration into `PoolerConfig`:
 --pooler-config '{"logit_mean": -0.5, "logit_sigma": 1.2}'
 ```
 
-Renamed from the old `logit_bias` / `logit_scale` fields (late 2025). The
-deprecated names still work with a warning.
+Renamed from the old `logit_bias` / `logit_scale` fields in v0.20.0
+(PR #39530). The deprecated names still work with a warning.
 
 Use this when clients compare scores across reranker models and need
 comparable ranges.
@@ -192,7 +192,7 @@ token) but scoring is cheap once indexed.
 - `vllm/model_executor/models/jina.py:33-83` — `JinaForRanking`
 - Docs: `docs/models/pooling_models/scoring.md`
 
-## 8. Recent PRs worth knowing (all merged; all shipped in v0.20.0, 2026-04-23)
+## 8. Recent PRs worth knowing (all merged; all shipped in v0.20.0, 2026-04-27)
 
 - **#38800** (merged 2026-04-10) — jina-reranker-v3 (listwise).
 - **#38827** (merged 2026-04-13) — `max_tokens_per_doc` in `/rerank` body.
@@ -205,4 +205,4 @@ token) but scoring is cheap once indexed.
 - **#36818** — ColPali.
 - **#33686** — ColBERT.
 
-Last verified: 2026-04-24 against vLLM v0.20.0 release notes.
+Last verified: 2026-05-28 against vLLM v0.21.0 (reranking/scoring surface unchanged since v0.20.0; #41163 AllPool +51% is a perf-only win for late-interaction).

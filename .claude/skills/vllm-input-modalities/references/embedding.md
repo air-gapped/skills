@@ -101,7 +101,7 @@ bug to chase.
   ```
   Output is multi-vector per token — client-side normalization required.
 - **v5** (`JinaEmbeddingsV5Model`) is first-class — PR #39575 landed in
-  v0.20.0 (2026-04-23). Select adapter at serve time:
+  v0.20.0 (2026-04-27). Select adapter at serve time:
   ```bash
   --hf-overrides '{"jina_task":"retrieval"}'     # or text-matching,
                                                  # classification, clustering
@@ -187,5 +187,6 @@ r = requests.post("http://localhost:8000/v2/embed", json={
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
 
-Last verified: 2026-04-24 against vLLM v0.20.0 release notes (Jina v5
-PR #39575 confirmed landed).
+Last verified: 2026-05-28 against vLLM v0.21.0 (Jina v5 PR #39575 landed
+v0.20.0; embedding surface unchanged through v0.21.0 — only pooling perf
+wins #41163/#41433 since).

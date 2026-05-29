@@ -36,7 +36,7 @@ Score types (`vllm/tasks.py:18`):
 | `--task encode` | `--runner pooling` (task split into `token_embed` and `token_classify` — pick explicit) | — |
 | `--task transcription` | (default `generate`, the model's `SupportsTranscription` interface handles it) | — |
 
-## 3. Deprecations — landed in v0.20.0 (2026-04-23)
+## 3. Deprecations — landed in v0.20.0 (2026-04-27)
 
 From the v0.20.0 release notes and the pooling-models docs
 (`docs/models/pooling_models/README.md`):
@@ -81,8 +81,8 @@ Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:95-99`):
 - **CUDA graphs**: PIECEWISE mode (not full graphs). Pooling outputs have
   variable shape; full-graph mode wouldn't capture them cleanly.
 - **Async scheduling**: disabled by default for pooling (PR #39592,
-  2026-01). Sync scheduling is more stable; async was too racy for pooling
-  workloads.
+  merged 2026-04-12). Sync scheduling is more stable; async was too racy
+  for pooling workloads.
 - **Sequence scheduling**: no decode phase; the "request" is a single
   forward. Continuous batching still applies.
 - **Prefix caching**: works (cross-request prefix reuse helps large-doc
@@ -158,4 +158,4 @@ Symptoms and fixes:
 - **#39763** — pre/post-processing offloaded to thread pool (async
   rendering for pooling).
 
-Last verified: 2026-04-24 against vLLM v0.20.0 release notes.
+Last verified: 2026-05-28 against vLLM v0.21.0 (runner/convert/pooler-config surface unchanged since v0.20.0; no new breaking flag change in v0.20.1/v0.20.2/v0.21.0).

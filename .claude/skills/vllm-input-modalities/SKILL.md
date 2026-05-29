@@ -133,7 +133,7 @@ resp = requests.post("http://localhost:8000/rerank", json={
     "query": "what is vLLM",
     "documents": ["text 1", "text 2"],
     "top_n": 3,
-    "max_tokens_per_doc": 512,  # added in late 2025
+    "max_tokens_per_doc": 512,  # added v0.20.0 (PR #38827)
 })
 
 # /score (bi-encoder cosine, or cross-encoder logit)
@@ -237,10 +237,9 @@ no dedicated `/ocr` endpoint.
    genuinely doesn't support MRL.
 
 5. **Qwen3-Reranker needs a score template AND hf-overrides.** It's an
-   instruction-tuned causal LM masquerading as a cross-encoder — vLLM needs
-   `classifier_from_token=["no","yes"]` + `is_original_qwen3_reranker=true`
-   + `--chat-template qwen3_reranker.jinja`. Skipping any of the three gives
-   random-looking scores.
+   instruction-tuned causal LM masquerading as a cross-encoder — skipping
+   any of the three extras (see the reranking cheat-sheet command above)
+   gives random-looking scores, not errors. Full recipe: `references/reranking.md` §2.
 
 6. **DeepSeek-OCR with prefix caching on.** It doesn't crash — it just
    wastes time and memory. Same for `--mm-processor-cache-gb > 0` for pure
@@ -254,7 +253,7 @@ no dedicated `/ocr` endpoint.
    models feel slow, check `--enable-flash-late-interaction` (default true)
    wasn't disabled by an old config.
 
-## Landed in v0.20.0 (released 2026-04-23) — verify your deployment
+## Landed in v0.20.0 (released 2026-04-27) — verify your deployment
 
 The deprecations previously flagged as "scheduled for v0.20" have now shipped.
 Callouts from the v0.20.0 release notes (Breaking Changes + API sections):
@@ -282,6 +281,20 @@ Also landed: `jina-reranker-v3` (#38800), **Jina Embeddings v5** (#39575),
 `max_tokens_per_doc` in `/rerank` (#38827), **Generative Scoring** (#34539),
 ASR multi-chunk spacing fix (#39116).
 
+### Since v0.20.0 (current baseline v0.21.0, released 2026-05-15)
+
+v0.20.1 (2026-05-04) and v0.20.2 (2026-05-10) were patch releases; **v0.21.0
+(2026-05-15) is current**. No runner / `--convert` / `PoolerConfig` breaking
+change since v0.20.0 — the v0.20.0 migration above is still the canonical
+surface. v0.21.0 pooling deltas are performance-only:
+
+- **#41163** — `AllPool.forward` +51% (token-wise / `ALL` pooling, ColBERT
+  and Jina-v4-style multi-vector outputs).
+- **#41433** — GPU↔CPU pooling sync elimination (further throughput win).
+
+New OCR architecture in v0.21.0: **Qianfan-OCR** (#40136) — see
+`references/ocr.md` §2.
+
 ## Paired skills
 
 - `vllm-configuration` → environment variables, cache paths, telemetry opt-out.
@@ -298,9 +311,10 @@ ASR multi-chunk spacing fix (#39116).
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.21+ release (further pooling-runner changes), a
+- Refresh triggers: any v0.22+ release (further pooling-runner changes), a
   new Jina embeddings major version, or a new native-multimodal reranker
   shipping.
 - External-ref audit log: `references/sources.md`.
 
-Last verified: 2026-04-24 (against vLLM v0.20.0 release notes).
+Last verified: 2026-05-28 (against vLLM v0.21.0 release notes; v0.20.x
+migration surface unchanged).
