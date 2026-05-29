@@ -22,7 +22,7 @@ pip install nixl
 
 The `nixl` meta-wheel installs both `nixl-cu12` and `nixl-cu13` (since 1.0.1). At runtime, the right one is selected based on the CUDA reported by PyTorch. UCX is bundled inside the wheel.
 
-To pin: `pip install nixl-cu12==1.0.1` or `pip install nixl-cu13==1.0.1`.
+To pin: `pip install nixl-cu12==1.1.0` or `pip install nixl-cu13==1.1.0`.
 
 `pip show nixl-cu12` confirms install path; the wheel includes `_bindings.so`, `libnixl.so`, and the bundled plugin `.so`s under the package directory. **`NIXL_PLUGIN_DIR` is auto-set by the wheel's `__init__`** — only override if installing additional out-of-tree plugins.
 

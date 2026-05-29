@@ -1,14 +1,14 @@
 ---
 name: nvidia-nixl
 description: |-
-  NVIDIA Inference Xfer Library (NIXL) operator + developer reference. Point-to-point KV-cache and tensor transport for distributed inference (Dynamo, vLLM, SGLang). Covers the C++/Python/Rust agent API, all 13 backend plugins (UCX, GDS, GDS_MT, libfabric, mooncake, posix, hf3fs, obj/S3, azure_blob, gusli, uccl, gpunetio/DOCA, telemetry), build paths (pip nixl-cu12/cu13, meson+ninja from source), ETCD vs side-channel metadata, telemetry (Prometheus + cyclic shared-memory), NIXL-EP elastic MoE device kernels, and Dynamo / vLLM NixlConnector / SGLang integration patterns.
+  NVIDIA Inference Xfer Library (NIXL) operator + developer reference. Point-to-point KV-cache and tensor transport for distributed inference (Dynamo, vLLM, SGLang). Covers the agent API (full Python reference; C++/Rust via upstream pointers), all 13 backend plugins (UCX, GDS, GDS_MT, libfabric, mooncake, posix, hf3fs, obj/S3, azure_blob, gusli, uccl, gpunetio/DOCA, telemetry), build paths (pip nixl-cu12/cu13, meson+ninja from source), ETCD vs side-channel metadata, telemetry (Prometheus + cyclic shared-memory), NIXL-EP elastic MoE device kernels, and Dynamo / vLLM NixlConnector / SGLang integration patterns.
 when_to_use: |-
   Trigger on "NIXL", "ai-dynamo/nixl", "NVIDIA Inference Xfer Library", "nixl_agent", "nixl-cu12", "nixl-cu13", "nixlbench", "kvbench", "NIXL_PLUGIN_DIR", "NIXL_ETCD_ENDPOINTS", "NIXL_TELEMETRY_ENABLE", "VLLM_NIXL_SIDE_CHANNEL_HOST", "NIXL UCX/GDS/Mooncake/libfabric/HF3FS/S3/GUSLI/DOCA GPUNetIO/UCCL/Azure Blob backend", "NIXL telemetry", "NIXL ETCD", "side-channel metadata", "NIXL-EP", "elastic MoE", "nixlBackendH", "registerMem", "prepXfer", "createXferReq", "getNotifs", "loadRemoteMD", "fetchRemoteMD", "sendLocalMD", "South Bound API", "GPUDirect Storage cuFile", "RDMA write KV cache", "disaggregated prefill transport", "KV cache transfer engine", "NixlConnector", "Dynamo backend transfer", "nixlUcxSharedThread", "NIXL_ERR_REMOTE_DISCONNECT", "AWS EFA NIXL", "writing a NIXL plugin". For vLLM connector wiring (`--kv-transfer-config`, K8s pod shape, UCX_TLS) consult `vllm-caching` first.
 ---
 
 # NVIDIA Inference Xfer Library (NIXL)
 
-Target audience: operators wiring NIXL into Dynamo/vLLM/SGLang clusters, plugin authors writing new backends, developers using the agent API directly from Python/C++/Rust. Assumes datacenter-class GPUs (H100/H200/B200/B300) with NVIDIA driver, CUDA 12.8+, RDMA NIC (Mellanox/EFA) for cross-node, and Linux (Ubuntu 22.04/24.04 or Fedora). macOS and Windows are not supported.
+Target audience: operators wiring NIXL into Dynamo/vLLM/SGLang clusters, plugin authors writing new backends, developers using the agent API directly from Python (`references/python-api.md`). C++/Rust developers: consult `src/api/cpp/` headers and `examples/{cpp,rust}/` upstream directly — this skill does not carry a C++/Rust API reference. Assumes datacenter-class GPUs (H100/H200/B200/B300) with NVIDIA driver, CUDA 12.8+, RDMA NIC (Mellanox/EFA) for cross-node, and Linux (Ubuntu 22.04/24.04 or Fedora). macOS and Windows are not supported.
 
 ## What NIXL is — one paragraph
 
@@ -18,9 +18,9 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 
 | Item | Value | Source |
 |---|---|---|
-| Latest release | **v1.0.1** (2026-04-14) — maintenance: NIXL-EP destruction/elastic-scale fixes, libfabric thread-safety + notif-on-repost, build/packaging | `gh release list --repo ai-dynamo/nixl` |
-| Previous milestone | **v1.0.0** (2026-03-13) — first stable | release notes |
-| HEAD pyproject version | **1.1.0** | `pyproject.toml` |
+| Latest release | **v1.1.0** (2026-05-12) | `gh release list --repo ai-dynamo/nixl` |
+| Previous releases | **v1.0.1** (2026-04-14) — maintenance: NIXL-EP destruction/elastic-scale fixes, libfabric thread-safety + notif-on-repost; **v1.0.0** (2026-03-13) — first stable | release notes |
+| HEAD pyproject version | **1.2.0** | `pyproject.toml` |
 | PyPI wheels | `nixl-cu12`, `nixl-cu13` (auto-selects at runtime via PyTorch CUDA version since 1.0.1) | `pip install nixl` |
 | Torch dep pin | `torch==2.11.*` | `pyproject.toml` (1.0.1+) |
 | UCX version | `1.20.x` tested | repo `README.md` |

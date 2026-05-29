@@ -19,7 +19,7 @@ NIXL is a transport library, not a serving framework. The frameworks below consu
 - KV cache produced by prefill workers is transferred to decode workers via a NIXL agent on each side.
 - For MoE models, NIXL-EP handles the expert-parallel all-to-all dispatch.
 
-**Backends Dynamo's TRT-LLM connector supports** (from `docs.nvidia.com/dynamo/.../kv-cache-transfer.html`):
+**Backends Dynamo's TRT-LLM connector supports** (from `ai-dynamo/dynamo` `docs/backends/trtllm/trtllm-kv-cache-transfer.md`; see [TensorRT-LLM](#tensorrt-llm-trt-llm)):
 - UCX (default) — RDMA/IB/RoCE.
 - Libfabric — AWS EFA.
 - Mooncake — multi-protocol KVCache-centric.
@@ -81,8 +81,8 @@ env:
 
 **Open issue to track:** vllm-project/vllm#27055 — "Prefill disaggregation failed kv transfer with NiXL connector using LIBFABRIC backend with vllm 0.11 and nixl 0.6.1." Likely fixed by libfabric thread-safety work in NIXL v1.0.1, but verify against current vLLM nightly.
 
-**vLLM image bundled NIXL versions** (from `requirements/kv_connectors.txt` on main as of 2026-04-24):
-- `nixl-cu12 / cu13 >= 0.7.1, <= 0.10.1`. **vLLM does NOT yet pin NIXL ≥ 1.0.0** as of 2026-04-24 — there's a window where NIXL is shipping fixes (NIXL-EP, libfabric) faster than vLLM is bumping its pin. If the user is debugging against `nixl 0.10.1` that's expected for current vLLM.
+**vLLM image bundled NIXL versions** (from `requirements/kv_connectors.txt` on main as of 2026-05-28):
+- `nixl >= 1.1.0` (`# Required for disaggregated prefill`). vLLM now tracks the NIXL 1.x line, so the libfabric thread-safety + notif-on-repost fixes from v1.0.1 and the v1.1.0 changes are in scope for current vLLM nightly. (Older vLLM pinned `nixl-cu12 / cu13 >= 0.7.1, <= 0.10.1`; if debugging an old vLLM image against `nixl 0.10.1`, that legacy window explains it.)
 
 ## SGLang
 
@@ -92,7 +92,7 @@ NIXL plugin selection is implicit (UCX-default); per-deploy tuning via `UCX_TLS`
 
 ## TensorRT-LLM (TRT-LLM)
 
-The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. Documented at `https://docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html` (verify URL — pages occasionally move).
+The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. The doc was renamed: the old `docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html` returns 404 (re-probed 2026-05-28); the current source lives at `https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/trtllm/trtllm-kv-cache-transfer.md` (rendered under the Dynamo docs root `https://docs.nvidia.com/dynamo/`).
 
 Config patterns are framed inside Dynamo's deploy spec (Helm values for TRT-LLM workers), not directly inside TRT-LLM. NIXL agent comes up with the worker container, ETCD endpoints come from the Dynamo control plane.
 

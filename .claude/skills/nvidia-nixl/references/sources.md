@@ -4,17 +4,17 @@ Load-bearing external references cited in this skill, with verification dates. P
 
 | Ref | URL | Last verified | Notes |
 |---|---|---|---|
-| NIXL repo (canonical) | https://github.com/ai-dynamo/nixl | 2026-04-25 | Active. Default branch `main`. Latest tag v1.0.1 (2026-04-14). HEAD includes 143 commits past 0.10.0; pyproject reports 1.1.0. |
-| NIXL release list | https://github.com/ai-dynamo/nixl/releases | 2026-04-25 | Confirmed v1.0.1 (2026-04-14), v1.0.0 (2026-03-13), 0.10.1 (2026-03-03), 0.10.0 (2026-02-18), 0.9.0 (2026-01-21). Maintenance release notes documented. |
-| NIXL v1.0.1 release notes | https://github.com/ai-dynamo/nixl/releases/tag/v1.0.1 | 2026-04-25 | Verified. NIXL-EP destruction fixes, libfabric thread-safety, build/packaging incl. `Pin Torch to 2.11`. |
-| NIXL local clone (operator's working copy) | local path (gitignored) | 2026-04-25 | Up to date with `origin/main`, commit `6cbbfc6` "PLUGINS/UCX: Remove indirection. (#1573)" — Fri Apr 24 2026. |
+| NIXL repo (canonical) | https://github.com/ai-dynamo/nixl | 2026-05-28 | Active. Default branch `main`. Latest tag v1.1.0 (2026-05-12). HEAD commit `3009db5d` (#1630, 2026-05-26); pyproject reports 1.2.0. |
+| NIXL release list | https://github.com/ai-dynamo/nixl/releases | 2026-05-28 | Confirmed v1.1.0 (2026-05-12, isLatest), v1.0.1 (2026-04-14), v1.0.0 (2026-03-13), 0.10.1 (2026-03-03), 0.10.0 (2026-02-18), 0.9.0 (2026-01-21). |
+| NIXL v1.1.0 release notes | https://github.com/ai-dynamo/nixl/releases/tag/v1.1.0 | 2026-05-28 | Latest release (2026-05-12). v1.0.1 (2026-04-14) notes: NIXL-EP destruction fixes, libfabric thread-safety, `Pin Torch to 2.11`. |
+| NIXL local clone (operator's working copy) | local path (gitignored) | 2026-05-28 | Tracks `origin/main`, HEAD commit `3009db5d` "test(obj): Add cuobjclient dependent unit tests for Dell ObjectScale accelerated engine (#1630)" — 2026-05-26. |
 | `docs/nixl.md` (architecture) | https://github.com/ai-dynamo/nixl/blob/main/docs/nixl.md | 2026-04-25 | Fresh — covers Memory Section, Transfer Backend Interface, Metadata Handler, agent lifecycle, side-channel + central metadata flows. |
 | `docs/BackendGuide.md` (SB API) | https://github.com/ai-dynamo/nixl/blob/main/docs/BackendGuide.md | 2026-04-25 | Fresh — canonical SB API spec, plugin manager API, descriptor list abstraction, capability flags. Headers in `src/api/cpp/backend`. |
 | `docs/python_api.md` | https://github.com/ai-dynamo/nixl/blob/main/docs/python_api.md | 2026-04-25 | Fresh — points at `src/api/python/_api.py` (1099 lines) for full surface; covers QueryMem, GDS, basic_two_peers, partial_md examples. |
 | `docs/telemetry.md` | https://github.com/ai-dynamo/nixl/blob/main/docs/telemetry.md | 2026-04-25 | Fresh — env-var matrix, event categories, cyclic buffer + Prometheus exporter modes. |
 | `src/api/python/_api.py` | https://github.com/ai-dynamo/nixl/blob/main/src/api/python/_api.py | 2026-04-25 | 1099 lines. `nixl_agent`, `nixl_agent_config`, `nixl_xfer_handle`, `nixl_prepped_dlist_handle`, all transfer/metadata methods. |
-| `pyproject.toml` (NIXL Python pkg) | https://github.com/ai-dynamo/nixl/blob/main/pyproject.toml | 2026-04-25 | Package name `nixl-cu12` / `nixl-cu13`, version 1.1.0, torch==2.11.* pin (1.0.1+), Python ≥ 3.10. |
-| `src/plugins/` directory | https://github.com/ai-dynamo/nixl/tree/main/src/plugins | 2026-04-25 | 13 plugins present: azure_blob, cuda_gds, gds_mt, gpunetio, gusli, hf3fs, libfabric, mooncake, obj, posix, telemetry, uccl, ucx. |
+| `pyproject.toml` (NIXL Python pkg) | https://github.com/ai-dynamo/nixl/blob/main/pyproject.toml | 2026-05-28 | Package name `nixl-cu12` / `nixl-cu13`, version 1.2.0 (HEAD), torch==2.11.* pin (1.0.1+), Python ≥ 3.10. |
+| `src/plugins/` directory | https://github.com/ai-dynamo/nixl/tree/main/src/plugins | 2026-05-28 | 13 plugins present: azure_blob, cuda_gds, gds_mt, gpunetio, gusli, hf3fs, libfabric, mooncake, obj, posix, telemetry, uccl, ucx. No add/remove since HEAD `6cbbfc6`→`3009db5d`. |
 | UCX plugin source | https://github.com/ai-dynamo/nixl/tree/main/src/plugins/ucx | 2026-04-25 | Source-of-truth for UCX backend behavior. v1.0.1 PRs #1565 (progress+notif), #1573 (remove indirection), #1527 (EFA-only config). |
 | libfabric plugin README | https://github.com/ai-dynamo/nixl/blob/main/src/plugins/libfabric/README.md | 2026-04-25 | Multi-rail RDMA, GPU Direct, hwloc topology mapping, AWS EFA validated. v1.21.0+ libfabric, hwloc 2.10+, libnuma. |
 | Mooncake plugin README | https://github.com/ai-dynamo/nixl/blob/main/src/plugins/mooncake/README.md | 2026-04-25 | Preview status. Own metadata path. `kMaxRequestCount=1024`. No progress-thread support. |
@@ -34,14 +34,14 @@ Load-bearing external references cited in this skill, with verification dates. P
 | `examples/device/ep/csrc/` (NIXL-EP) | https://github.com/ai-dynamo/nixl/tree/main/examples/device/ep/csrc | 2026-04-25 | NIXL-EP device kernels: `nixl_ep_ll.cu` (low-latency), `nixl_ep_ht.cu` (high-throughput). v1.0.1 #1538 mode guards. |
 | NIXLBench README | https://github.com/ai-dynamo/nixl/blob/main/benchmark/nixlbench/README.md | 2026-04-25 | Fresh. ETCD coordination, multi-backend, communication patterns (pairwise/many-to-one/one-to-many/tp), NVSHMEM worker option. v1.0.1 #1502 ETCD-less mode. |
 | KVBench dir | https://github.com/ai-dynamo/nixl/tree/main/benchmark/kvbench | 2026-04-25 | Python-based KV-cache-shaped workload generator. Has `commands/`, `models/`, `runtime/`, `docs/`, `examples/`. |
-| nixl-cu13 PyPI page | https://pypi.org/project/nixl-cu13/ | 2026-04-25 | Verified to exist. `pip install nixl-cu13`. |
+| nixl-cu13 PyPI page | https://pypi.org/project/nixl-cu13/ | 2026-05-28 | `nixl-cu12`, `nixl-cu13`, and meta `nixl` all at 1.1.0 (releases incl. 1.0.0, 1.0.1, 1.1.0). `pip install nixl` resolves the meta-package. |
 | NVIDIA Dynamo repo | https://github.com/ai-dynamo/dynamo | 2026-04-25 | Active. ai-dynamo org. NIXL is one of the data-plane libraries used by Dynamo. |
 | NVIDIA Dynamo blog (intro) | https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/ | 2026-04-25 | Verified. Dynamo announce, NIXL referenced as its inference transfer library. |
-| Dynamo TRT-LLM kv-cache-transfer doc | https://docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html | 2026-04-25 | Page returned 404 on WebFetch — URL may have moved. Confirm via Dynamo repo docs/ tree before citing operationally. |
+| Dynamo TRT-LLM kv-cache-transfer doc | https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/trtllm/trtllm-kv-cache-transfer.md | 2026-05-28 | RELOCATED: old `docs.nvidia.com/.../kv-cache-transfer.html` is 404 (re-probed); doc renamed to `docs/backends/trtllm/trtllm-kv-cache-transfer.md` in `ai-dynamo/dynamo` (confirmed via repo tree listing). |
 | vLLM NixlConnector usage guide | https://docs.vllm.ai/en/stable/features/nixl_connector_usage/ | 2026-04-25 | Verified. `--kv-transfer-config` syntax, `kv_role`, `kv_buffer_device`, `kv_connector_extra_config.backends`. |
 | vLLM disagg prefill (experimental) | https://docs.vllm.ai/en/latest/features/disagg_prefill/ | 2026-04-25 | Verified. Cross-references NixlConnector, Mooncake, LMCache. |
 | vLLM nixl module API doc | https://docs.vllm.ai/en/latest/api/vllm/distributed/kv_transfer/kv_connector/v1/nixl_connector/ | 2026-04-25 | Verified. Source-doc'd module docs. |
-| vLLM `requirements/kv_connectors.txt` | https://github.com/vllm-project/vllm/blob/main/requirements/kv_connectors.txt | 2026-04-24 | Pin: `nixl-cu12 / cu13 >= 0.7.1, <= 0.10.1`. **vLLM has NOT bumped to NIXL ≥1.0.0 as of this date.** Cross-referenced from `vllm-caching` skill. |
+| vLLM `requirements/kv_connectors.txt` | https://github.com/vllm-project/vllm/blob/main/requirements/kv_connectors.txt | 2026-05-28 | Pin: `nixl >= 1.1.0` (`# Required for disaggregated prefill`). vLLM now tracks the NIXL 1.x line; the prior `<= 0.10.1` window is obsolete. Cross-referenced from `vllm-caching` skill. |
 | vLLM issue #27055 (LIBFABRIC + NIXL 0.6.1) | https://github.com/vllm-project/vllm/issues/27055 | 2026-04-25 | Open issue. Likely fixed by NIXL v1.0.1 libfabric thread-safety + notif-on-repost work; verify by re-running with bumped NIXL. |
 | vLLM PR #18293 (CPU buffer in NixlConnector) | https://github.com/vllm-project/vllm/pull/18293 | 2026-04-25 | By juncgu. Adds CPU-side `kv_buffer_device` support. |
 | Spheron NIXL deep-dive blog | https://www.spheron.network/blog/nvidia-nixl-disaggregated-inference-guide/ | 2026-04-25 | External blog. Useful as one-page intro for new users. |
@@ -52,12 +52,10 @@ Load-bearing external references cited in this skill, with verification dates. P
 
 ## Notes on probe budget
 
-Probes used: 6 `gh release list/view`, 7 `find`/`ls`/`cat` against local checkout (covers all 13 plugins), 4 `WebSearch` (Dynamo, vLLM NixlConnector, NIXLBench, integrations), 1 `WebFetch` (Dynamo TRT-LLM doc — returned 404, flagged in row above). Local repo HEAD timestamp: 2026-04-24. NIXL v1.0.1 release date: 2026-04-14.
+Probes used (2026-05-28 freshen): `gh release list` + `gh api releases/latest` (v1.1.0), `gh api contents/pyproject.toml` on main (1.2.0), `gh api commits/main` (HEAD `3009db5d`, #1630), `gh api vllm-project/vllm contents/requirements/kv_connectors.txt` (`nixl >= 1.1.0`), PyPI `/pypi/<pkg>/json` for nixl-cu12/cu13/meta (all 1.1.0), `curl -L` Dynamo TRT-LLM doc (still 404). Prior pass (2026-04-25): NIXL v1.0.1, HEAD `6cbbfc6`.
 
 ## Drift watch list
 
-- Dynamo TRT-LLM kv-cache-transfer doc URL returned 404 on 2026-04-25 — need to re-find via `https://docs.nvidia.com/dynamo/` site map next freshen pass.
-- vLLM `kv_connectors.txt` pins NIXL ≤ 0.10.1; when vLLM bumps to ≥ 1.0.0, several gotchas in `gotchas.md` (libfabric thread-safety, notif-on-repost) may stop being relevant for users on current vLLM nightly.
 - Mooncake transfer engine refactor in progress — Mooncake plugin README explicitly notes this. Re-probe per minor NIXL release.
 - NIXL-EP elastic mode is new (v1.0.0–v1.0.1); expect API churn through 1.x.
 - Prometheus telemetry exporter is beta — expect interface changes; pin exact NIXL version when wiring into ops dashboards.
