@@ -4,10 +4,10 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 
 | Source | URL | Last verified | Pinned |
 |---|---|---|---|
-| AIPerf repo | https://github.com/ai-dynamo/aiperf | 2026-04-25 | |
-| AIPerf releases | https://github.com/ai-dynamo/aiperf/releases | 2026-04-25 | latest stable v0.7.0 (2026-04-07) |
-| AIPerf v0.7.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.7.0 | 2026-04-25 | v0.7.0 |
-| AIPerf on PyPI | https://pypi.org/project/aiperf/ | 2026-04-25 | latest 0.7.0 |
+| AIPerf repo | https://github.com/ai-dynamo/aiperf | 2026-05-28 | |
+| AIPerf releases | https://github.com/ai-dynamo/aiperf/releases | 2026-05-28 | latest stable v0.8.0 (2026-05-16) |
+| AIPerf v0.8.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.8.0 | 2026-05-28 | v0.8.0 |
+| AIPerf on PyPI | https://pypi.org/project/aiperf/ | 2026-05-28 | latest 0.8.0 (requires-python >=3.10) |
 | AIPerf docs index (Fern) | https://github.com/ai-dynamo/aiperf/blob/main/docs/index.md | 2026-04-25 | |
 | CLI options doc | https://github.com/ai-dynamo/aiperf/blob/main/docs/cli-options.md | 2026-04-25 | |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-04-25 | |

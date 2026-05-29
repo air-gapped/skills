@@ -12,17 +12,27 @@ Prior skill-improver runs and ceiling findings.
 
 ### Quick-recipe / timing-modes overlap (intentional design)
 - **Dim:** 6
-- **Where:** `SKILL.md:144-209` "Quick recipes" overlaps with `references/timing-modes.md:122-169` "Worked examples".
+- **Where:** `SKILL.md` "Quick recipes" overlaps with `references/timing-modes.md` "Worked examples".
 - **Why not fixed:** different audiences. SKILL.md recipes are entry-points (smoke test, ShareGPT, Mooncake+goodput, NIM, multi-turn KV-cache, multi-run CI, accuracy) — pattern-by-task. timing-modes.md examples are scheduling-mode-by-scheduling-mode, intentionally illustrating compatibility-matrix rules. Removing either degrades the corresponding navigation path. Carrying as a known-non-issue rather than open work.
 
-## Resolved this pass (2026-04-25)
+### Audit v0.8.0 release notes for new flags / endpoints / dataset types (carried 2026-05-28)
+- **Dim:** 9
+- **Where:** `SKILL.md` Decision-tree + scheduling-mode tables; `references/{cli,endpoints,datasets,metrics}.md`.
+- **Why not fixed this pass:** the version pin was bumped v0.7.0 → v0.8.0 (verified), but the v0.8.0 release-notes body was not diffed flag-by-flag against the skill within this pass's budget. Pull https://github.com/ai-dynamo/aiperf/releases/tag/v0.8.0 and reconcile any new/renamed flags, endpoint types, or dataset formats. The per-feature PR attributions already in endpoints.md/datasets.md ("v0.7.0 added X via PR #Y") are historical and correct — do not bump those.
 
-- **Trigger Precision (Dim 1) char-cap fix.** Combined `description` + `when_to_use` reduced from 2188 chars (truncated at 1536) to 1455 chars (81-char margin). Tail-truncated triggers no longer lost. (iter 1, iter 4)
-- **Writing Style (Dim 3).** Six second-person slips removed: 2 in SKILL.md (lines 40, 79), 4 in references (migration:62, endpoints:43, plugins:3, plugins:155). Zero "you/your" remaining in the skill. (iter 2, iter 4)
-- **Stale instruction in cli.md.** `--isl-block-size` description previously said "Match server's block size" — contradicted SKILL.md pitfall 5 (Mooncake encodes at 512 by design). Rewritten to point at SKILL.md pitfall 5 with the correct divisibility rule. (iter 2)
-- **Pitfall redundancy (Dim 6).** Pitfall 12 (server-side reasoning-parser config) folded into pitfall 2 (TTFT/TTFO/OSL semantics) since the former is a prerequisite of the latter. Net -2 SKILL.md lines, no content lost. (iter 3)
+## Resolved this pass (2026-05-28)
 
-### Score trajectory
+- **Version freshen v0.7.0 → v0.8.0 (Dim 9).** Verified against PyPI (`pypi.org/pypi/aiperf/json` → info.version 0.8.0, uploaded 2026-05-16, requires-python >=3.10) and GitHub releases (`gh release view v0.8.0` → published 2026-05-16). Updated SKILL.md "Versions": stable PyPI v0.7.0 (2026-04-07) → v0.8.0 (2026-05-16); repo `main` 0.8.0-dev → 0.9.0-dev. Re-stamped 4 sources.md rows (repo, releases, release-notes, PyPI) to Last verified 2026-05-28 and pointed the release-notes row at the v0.8.0 tag.
+- **Recon/disk mismatch identified (process note).** The recon findings fed to this APPLY stage targeted a stale v0.6.x checkout (claimed v0.6.4 latest with a single `profile` subcommand, 6 endpoint types, a 6-row "Subcommands" table, and workflows.md/telemetry-and-plugins.md reference files). None of that matches the on-disk skill (v0.7.0 rewrite, "Decision tree — which subcommand" table, cli.md/timing-modes.md/metrics.md references). The recon's "v0.6.4 is latest" claim was also self-contradictory — v0.8.0 is the true latest (2026-05-16). The recon's downgrade hypotheses were therefore NOT applied; doing so would have corrupted a coherent, more-current skill.
+
+## Prior run — Resolved 2026-04-25
+
+- **Trigger Precision (Dim 1) char-cap fix.** Combined `description` + `when_to_use` reduced from 2188 chars (truncated at 1536) to 1455 chars (81-char margin). Tail-truncated triggers no longer lost.
+- **Writing Style (Dim 3).** Six second-person slips removed (2 in SKILL.md, 4 in references). Zero "you/your" remaining.
+- **Stale instruction in cli.md.** `--isl-block-size` "Match server's block size" rewritten to the correct divisibility rule (points at SKILL.md pitfall 5).
+- **Pitfall redundancy (Dim 6).** Pitfall 12 (server-side reasoning-parser config) folded into pitfall 2.
+
+### Score trajectory (2026-04-25 run)
 
 | iter | self | blind | delta | status | description |
 |------|------|-------|-------|--------|-------------|

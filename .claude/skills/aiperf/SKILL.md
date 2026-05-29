@@ -25,8 +25,8 @@ If the target is exclusively vLLM and the operator wants the in-tree `vllm bench
 
 ## Versions
 
-- **Stable on PyPI:** v0.7.0 (2026-04-07). `pip install aiperf`.
-- **Repo `main`** at https://github.com/ai-dynamo/aiperf: 0.8.0-dev (post-v0.7.0).
+- **Stable on PyPI:** v0.8.0 (2026-05-16). `pip install aiperf`.
+- **Repo `main`** at https://github.com/ai-dynamo/aiperf: 0.9.0-dev (post-v0.8.0).
 - **Python:** ≥3.10. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows.
 - **Source of truth for flags:** `aiperf profile --help`. CLI options doc is auto-generated via `make generate-cli-docs`. If the doc disagrees with `--help` on a flag spelling, trust `--help`.
 
