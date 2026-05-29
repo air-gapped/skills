@@ -4,11 +4,11 @@ Open ceiling findings and follow-ups that need either author input, on-cluster v
 
 ## Open
 
-### Dell baseboard firmware activation: ExtendedReset vs FullPowerCycle drift
+### Dell baseboard firmware v1.4.30 floor + ExtendedReset vs FullPowerCycle drift (carried 2026-05-28)
 
 - **Affects:** [[dell-firmware]]
-- **Question:** Dell KB 000355295 says `DellOemChassis.ExtendedReset` is required because standard `Chassis.Reset FullPowerCycle` doesn't propagate to the GPU baseboard. Unknown whether newer iDRAC 10.x firmware closes this gap on XE9780/XE9785, or whether the OEM path remains required indefinitely.
-- **Why not in one iteration:** Needs Dell to confirm or new KB to land. Re-verify in 6 months.
+- **Question:** Dell KB 000355295 says `DellOemChassis.ExtendedReset` is required because standard `Chassis.Reset FullPowerCycle` doesn't propagate to the GPU baseboard. Unknown whether newer iDRAC 10.x firmware closes this gap on XE9780/XE9785, or whether the OEM path remains required indefinitely. Also: whether v1.4.30 is still the newest GA baseboard firmware floor.
+- **Why not in one iteration:** Both the firmware floor and the OEM Redfish action sit behind the Dell support-portal login; skill-improver freshen 2026-05-28 verdict was UNVERIFIABLE — no public release-notes page is web-indexed for these SKUs. Needs Dell to confirm or new KB to land. Re-verify periodically.
 
 ### Per-host vs site-wide MOK threat model
 
@@ -22,11 +22,11 @@ Open ceiling findings and follow-ups that need either author input, on-cluster v
 - **Question:** If an operator works around the install-order trap with `echo ib_umad > /etc/modules-load.d/ib_umad.conf`, does a subsequent DOCA package upgrade overwrite that file?
 - **Why not in one iteration:** Needs to test against a DOCA upgrade in a sandbox.
 
-### gpu-operator issue #2231 status
+### gpu-operator issue #2231 status (carried 2026-05-28)
 
 - **Affects:** [[gpu-operator]]
-- **Question:** B300 PCI ID 0x3182 missing from validator name table — last activity 2026-05-18, label `more-information-needed`. NVIDIA waiting on must-gather logs from reporter. Track when this gets fixed (likely 25.10.2 or 26.x bump).
-- **Why not in one iteration:** Upstream-blocked. Re-check during freshen pass.
+- **Question:** B300 PCI ID 0x3182 missing from validator name table — still open with no merged fix as of 2026-05-28 (re-confirmed this freshen pass). NVIDIA waiting on must-gather logs from reporter. Track when this gets fixed (likely 25.10.2 or 26.x bump).
+- **Why not in one iteration:** Upstream-blocked. Re-check during next freshen pass.
 
 ### Multi-node NVLink Switch (NVL72) bring-up
 
@@ -75,3 +75,9 @@ User feedback that the skill was too B300-focused for a fleet running H100 (XE86
 - **Dell firmware bundle pointers**: added table mapping chassis SKU → Dell driver-page ID. XE9680 H200 = `driverid=mh92v`, XE9680 PCIe switch H100/A100 = `driverid=p9gg2`. Previously only B300 bundles (`xrg43`, `662gc`) were documented.
 - **`nvidia-imex` scope correction** in [[packages]]: it's not Blackwell-specific. Branches 550-595 all ship `nvidia-imex-XXX` packages — useful on any NVLink-fabric chassis including XE9680 Hopper and XE8640 direct-mesh.
 - [[sources]] updated with H200 baseboard firmware URL, XE9680 PCIe switch URL, KB 000308105, R580 release notes, NVIDIA HGX A100 Software Guide (which establishes the "4-GPU has no NVSwitch" rule).
+
+### Skill-improver freshen pass (2026-05-28)
+
+- Re-confirmed CURRENT online and re-stamped `Last verified: 2026-05-28` on three [[sources]] rows: NVIDIA open-kernel-modules-mandatory blog, gpu-operator issue #2231 (still open, no merged fix), and the CUDA repo row (580 remains the current production branch; no 590/600 GA supersedes it).
+- Two Dell-specific claims left UNCHANGED — baseboard firmware floor v1.4.30 and the `DellOemChassis.ExtendedReset` Redfish OEM action — both verdict UNVERIFIABLE (Dell release notes / Redfish OEM docs sit behind the support-portal login, not web-indexed). Carried forward in Open per freshen rules (do not guess).
+- No SKILL.md improve mutation applied: the highest-leverage recon hypothesis (split the oversized `description` into `description` + `when_to_use`) was already present on disk (description 931 chars, under the 1024 cap; `when_to_use` already a separate field). The decision-tree "skip fabricmanager/DOCA/NVLSM" dedup hypothesis was rejected because each row's skip-set is genuinely distinct (8-GPU keeps FM via meta but skips nvlink5/NVLSM/DOCA; 4-GPU and PCIe-only skip FM too) — collapsing them would lose hardware-class precision.
