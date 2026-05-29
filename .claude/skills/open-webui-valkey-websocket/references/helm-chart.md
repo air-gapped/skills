@@ -1,6 +1,6 @@
 # Helm chart reference (`open-webui/helm-charts`)
 
-Chart v14.4.0 → appVersion 0.9.4. Last commit 2026-05-09. Repo URL: `https://helm.openwebui.com/`. Maintainer (`westbrook-ai`) explicitly volunteer-maintained: *"this repo is maintained by volunteers and is admittedly not always perfect."*
+Chart v14.6.0 → appVersion 0.9.5. Released 2026-05-20. Repo URL: `https://helm.openwebui.com/`. Maintainer (`westbrook-ai`) explicitly volunteer-maintained: *"this repo is maintained by volunteers and is admittedly not always perfect."*
 
 This is the supported Kubernetes deployment path (per the maintainer's own confirmation on issue #338, 2026-02-01) but it ships sparse defaults. The list below is what to override and what the chart doesn't cover.
 
@@ -200,7 +200,9 @@ startupProbe:
 
 | Version | Change |
 |---|---|
-| v14.4.0 | appVersion 0.9.4. |
+| v14.6.0 | appVersion 0.9.5. Current as of 2026-05-20. |
+| v14.5.0 | appVersion 0.9.5. 2026-05-11. |
+| v14.4.0 | appVersion 0.9.4. 2026-05-09. |
 | v13.3.1 | Fixed `ENABLE_WEBSOCKET_SUPPORT=False` not being explicitly set when websocket disabled. |
 | v13.2.0 | Added `websocket.existingSecret` so `REDIS_URL`/`WEBSOCKET_REDIS_URL` can come from K8s Secrets (#341 fix). |
 | (earlier) | Added `workload.kind` override so operators can force Deployment regardless of persistence settings (#326). |

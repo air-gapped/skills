@@ -2,7 +2,7 @@
 
 Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers with dates, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode.
 
-Versions referenced span 0.5.x (Dec 2024) through 0.9.4 (current stable, May 2026). Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched.
+Versions referenced span 0.5.x (Dec 2024) through 0.9.5 (current stable, May 2026). Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched.
 
 ## Verification log
 
@@ -10,11 +10,12 @@ Per-source-group last-verified dates. `freshen` mode probes each row and stamps 
 
 | Source group | Last verified | Notes |
 |---|---|---|
-| open-webui/open-webui at v0.9.4 (local clone HEAD) | 2026-05-10 | All file paths and line numbers below verified against HEAD `f51d2b026`. |
+| open-webui/open-webui latest stable v0.9.5 (released 2026-05-10) | 2026-05-28 | Latest release confirmed via `gh api /repos/open-webui/open-webui/releases/latest` → tag v0.9.5. File paths/line numbers below verified against the v0.9.4 clone HEAD `f51d2b026` (2026-05-10); v0.9.5 release body empty, no redis/websocket/sentinel signal. |
 | docs.openwebui.com (scaling, redis tutorial, multi-replica troubleshooting, env-config, hardening) | 2026-05-10 | Pulled raw from `open-webui/docs` repo on this date. |
-| open-webui/helm-charts at v14.4.0 | 2026-05-10 | appVersion v0.9.4. |
-| GitHub issues #23733, #15162, #19840, #23939, #23650 (open) | 2026-05-10 | Status confirmed open as of this date. |
-| GitHub issue #23987 (Sentinel coroutine regression) | 2026-05-10 | Closed 2026-05-08 by tjbck; fix shipped in 0.9.4 (released 2026-05-09). |
+| open-webui/helm-charts at v14.6.0 | 2026-05-28 | Latest `open-webui-14.6.0` (2026-05-20), appVersion 0.9.5; also 14.5.0 (2026-05-11, appVersion 0.9.5). Confirmed via `gh release list --repo open-webui/helm-charts`. |
+| GitHub issues #23733, #15162, #19840, #23939, #23650 (open) | 2026-05-28 | #23733 confirmed OPEN, updated 2026-05-27 via `gh issue view`. Others confirmed open 2026-05-10. |
+| GitHub issue #23987 (Sentinel coroutine regression) | 2026-05-28 | Confirmed CLOSED 2026-05-08 by tjbck via `gh issue view`; fix shipped in 0.9.4 (released 2026-05-09). |
+| GitHub PRs #23735, #23736, #24124, #24126, #24171 (Yjs/streaming attempts) | 2026-05-28 | All confirmed CLOSED, not merged, via `gh pr view`: #23735 delta emission, #23736 resumable replay, #24124/#24126/#24171 Ydoc streaming. |
 | GitHub PRs in April–May 2026 batch (#22507, #22980, #22734, #23571–3, #23642, #23649, #23709, #23829, #23896, #24015, #24412, #24420) | 2026-05-10 | Verified merged. |
 | GitHub PRs in Nov–Dec 2025 batch (#18996, #19097, #19395, #19488, #19519, #19871, #19959, #20076, #20145) | 2026-05-10 | Verified merged. |
 | Earlier closed issues (#11934, #12325, #14340, #16074, #16157, #16693, #16979, #17223, #18073, #18223, #18366, #18950, #19401, #20142, #21410, #22734) | 2026-05-10 | Verified closed; resolutions referenced in `known-issues.md`. |

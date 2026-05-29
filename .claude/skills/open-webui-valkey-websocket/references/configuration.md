@@ -1,6 +1,6 @@
 # Configuration reference — multi-pod env vars and Valkey config
 
-Defaults and source locations are based on `backend/open_webui/env.py` and `backend/open_webui/config.py` at v0.9.4 (2026-05-09). Versions noted are when each variable was added or its semantics last changed.
+Defaults and source locations are based on `backend/open_webui/env.py` and `backend/open_webui/config.py` at v0.9.5 (2026-05-10). Versions noted are when each variable was added or its semantics last changed.
 
 ## Streaming (#23733 mitigation)
 

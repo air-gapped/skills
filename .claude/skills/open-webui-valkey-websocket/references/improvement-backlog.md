@@ -6,34 +6,49 @@ items are an audit trail of what was fixed.
 
 ## Open
 
-(none — converged at blind 93/100, self 89/100 with all dims ≥8 and no
-Boris/staleness caps active)
-
-The blind agent's top 3 issues are minor enhancements rather than structural
-findings:
-
-1. SKILL.md: "validate Sentinel failover trips the readiness probe" could
-   carry an exact one-liner (`valkey-cli SENTINEL FAILOVER ...` plus a
-   `kubectl get endpoints` or HTTP probe). Lifts Dim 4 from 9 → 10.
-   **Reason for not applying this run:** the exact command depends on the
-   user's Sentinel setup (DNS vs static IPs, master name) and naming the
-   probe target requires knowing whether the deployment exposes `/ready`
-   over an internal Service or only via Ingress. Adding a generic
-   placeholder reads worse than the current handwave; adding a parametric
-   one would be a 5-line snippet that the operator must edit anyway.
-2. configuration.md:81 — the `maxclients` Valkey/Redis-version cliff is
+1. configuration.md `maxclients` Valkey/Redis-version cliff (Dim 9) —
    stated as "newer Valkey versions / older Redis versions" without exact
-   version numbers. Pinning would lift Dim 9 from 9 → 10. **Reason for
-   not applying:** requires a separate Valkey/Redis-version probe pass to
-   confirm the actual cliff version (Redis 5? 6? Valkey 7? 8?). Out of
-   scope for a single skill-improver iteration.
-3. SKILL.md:113 — "verify on the deployment's target version" lacks a
-   concrete `curl` recipe for the lagging admin endpoints. Lifts Dim 4
-   from 9 → 10 if added. **Reason for not applying:** the auth-token
-   handling is environment-specific (cookie vs Bearer vs OAuth proxy);
-   one-size-fits-all snippet would be misleading.
+   version numbers. Pinning would lift Dim 9. **Why not applied this run:**
+   requires a separate Valkey/Redis-version probe (Redis 5/6? Valkey 7/8?)
+   to confirm the actual default-`maxclients` cliff; out of scope for a
+   single atomic iteration. (carried 2026-05-28)
+2. SKILL.md "verify on the deployment's target version" handwave for the
+   lagging admin endpoints (Dim 4) — lacks a concrete `curl` recipe.
+   **Why not applied:** auth-token handling is environment-specific
+   (cookie vs Bearer vs OAuth proxy); a one-size-fits-all snippet would
+   mislead. (carried 2026-05-28)
 
-## Resolved this pass (skill-improver run 2026-05-10)
+## Resolved this pass (skill-improver run 2026-05-28)
+
+- **Dim 8 PR-list conflation** — SKILL.md L23 Yjs/streaming PR list
+  rewritten to match issue-23733.md grouping (delta #23735, replay #23736,
+  Yjs #24124/#24126/#24171); previously omitted #24124 and mislabeled the
+  delta/replay vs Yjs sets. Iter 1.
+- **Dim 9 version freshen 0.9.4 → 0.9.5** (gh-verified latest stable
+  v0.9.5, 2026-05-10) — bumped the `≥0.9.5` non-negotiable and current-
+  stable annotations in SKILL.md, configuration.md L3 verified-against +
+  Sentinel pin, and the helm reference. Iter 2.
+- **Dim 9 helm-chart freshen 14.4.0 → 14.6.0** (gh-verified
+  open-webui-14.6.0, appVersion 0.9.5, 2026-05-20) — helm-chart.md L3 +
+  Recent chart history table gained 14.5.0/14.6.0 rows; sources.md helm row
+  re-stamped 2026-05-28. Iter 2.
+- **Dim 4 Sentinel-failover validation** — replaced the closing handwave
+  with a concrete two-command check (`valkey-cli SENTINEL FAILOVER` →
+  `kubectl get endpoints`). Iter 3.
+- **issue-23733.md status re-stamp** — 2026-05-10 → 2026-05-28 (OPEN,
+  upstream-updated 2026-05-27 per gh); four-vs-five PR count reconciled to
+  five. Iter 4.
+- **Dim 6 §23733 restatement trim** — known-issues.md §23733 body collapsed
+  to a one-line pointer at issue-23733.md (removed the third restatement of
+  the bug story). Iter 5.
+- **Dim 7 single-stream caveat** — check-amplification.sh interpretation
+  block now states the chunk-size brackets are per single stream and must
+  be divided by concurrent-stream count. Iter 5.
+- **Freshen re-stamp** — sources.md verification log + status sentence
+  (#23733 OPEN, #23987 CLOSED, all five Yjs/delta PRs CLOSED-unmerged) and
+  known-issues.md header re-stamped to 2026-05-28 with gh evidence noted.
+
+## Resolved (skill-improver run 2026-05-10)
 
 - **Dim 9 hard-fail (description > 1024)** — split frontmatter into
   `description` (592 chars) + `when_to_use` (853 chars), trimmed

@@ -20,7 +20,7 @@ The single most important thing to internalize before going multi-pod: **issue #
 
 **Why it falls apart with `WEBSOCKET_MANAGER=redis` + multi-pod:** Each emit goes through `socketio.AsyncRedisManager`, which serializes the frame and broadcasts it to every pod via Valkey pub/sub. So a 4000-token response generates **4000 frames, each carrying the full accumulated message**. Total bandwidth is O(N²). With a 6-Valkey-node × 4-worker × 100-concurrent-stream setup, the issue author measured **~10,000× infrastructure-traffic amplification**. Reasoning models and tool-calling make it worse because the messages get longer and more structured.
 
-**Status (May 2026):** Open. Maintainer wants a Yjs-based redesign; multiple PRs (#23735, #23736, #24126, #24171) closed without merge. **No merge ETA.**
+**Status (May 2026):** Open. Maintainer wants a Yjs-based redesign; the delta PR #23735, the replay PR #23736, and the Yjs PRs #24124, #24126, #24171 all closed without merge. **No merge ETA.**
 
 **Mitigation — set this env var:**
 
@@ -110,13 +110,13 @@ Per-variable defaults, semantics, and version-added details live in `references/
 
 For deployments that ran multi-pod + WS in early 2026 and disabled it after performance died, custom model thumbnails are a strong suspect alongside #23733. Pre-0.6.37 (Nov 2025) the entire base64 image lived in `model.meta.profile_image_url` and was returned in `/api/models` for every model on every page load and every WS reconnect. With ~350 models and HD icons, the response payload exceeded 4 MB (issue #18950). On reconnect storms during rollouts: N pods × M users × 4 MB simultaneously, on top of the WS amplification.
 
-The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4.** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
+The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.9.5).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
 
 ## Reference index
 
 - **`references/issue-23733.md`** — The Socket.IO frame amplification bug. Architecture explanation, full maintainer quote with rationale, the four PRs that didn't merge, the mitigation knob, and what the eventual fix likely looks like (Yjs document streaming).
 - **`references/configuration.md`** — Every multi-pod-relevant env var with default, source-file location, and version added. Valkey/Redis configuration (`maxclients`, `timeout`, `maxmemory-policy`). Why `WEBUI_SECRET_KEY` must be shared.
-- **`references/helm-chart.md`** — `open-webui/helm-charts` v14.4.0 specifics. The bundled Redis is unsuitable for production — disable it. What the chart doesn't ship (HPA, PDB, probes, sticky sessions). The values.yaml override block. Open chart issues (#383 gateway-API).
+- **`references/helm-chart.md`** — `open-webui/helm-charts` v14.6.0 specifics. The bundled Redis is unsuitable for production — disable it. What the chart doesn't ship (HPA, PDB, probes, sticky sessions). The values.yaml override block. Open chart issues (#383 gateway-API).
 - **`references/icons-thumbnails.md`** — Why custom model icons crashed multi-pod pre-0.6.37. The full chronology of fixes. Endpoints to spot-check on the upgrade target. SSO avatar mitigation.
 - **`references/known-issues.md`** — #23733, #15162 direct-connection multi-worker routing, #19840 RedisCluster publish broken, #22734 RedisDict race, #23987 Sentinel 0.9.1 regression, #16074 inflated user count, plus the April-2026 batch of merged fixes (#23571 keepalive, #23709 ASGI middleware, #23642 stale Socket.IO sessions, #23896 cross-worker cache invalidation).
 - **`references/sources.md`** — Authoritative source files in the open-webui codebase, GitHub issue/PR numbers with dates, and docs.openwebui.com URLs underlying every claim. Load to verify a specific fact or run `freshen` mode.
@@ -129,10 +129,10 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥0.9.4.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup).
+- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4; 0.9.5 (2026-05-10) is current stable.
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.
 - **No bundled chart Redis in production.** It is a no-PVC single-pod Deployment. Set `websocket.redis.enabled: false` and point at external Valkey Sentinel. See `references/helm-chart.md`.
 
-Validate on staging before production: load-test 100+ concurrent reasoning-model streams to exercise #23733; roll once and watch for session drops; verify Sentinel failover trips the readiness probe; spot-check the admin endpoints in `references/icons-thumbnails.md`.
+Validate on staging before production: load-test 100+ concurrent reasoning-model streams to exercise #23733; roll once and watch for session drops; force a Sentinel failover (`valkey-cli -p 26379 SENTINEL FAILOVER <master-name>`, then watch `kubectl get endpoints <owui-svc>` for a brief NotReady on readiness-probe trip and recovery); spot-check the admin endpoints in `references/icons-thumbnails.md`.

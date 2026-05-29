@@ -86,6 +86,10 @@ echo "Ops per second (mean):    $PER_SEC"
 echo
 
 # Heuristic estimate. Assumes 1 active stream during the sample.
+# IMPORTANT: these brackets are per single active stream. With N concurrent
+# streams, divide TOTAL (and the bracket thresholds) by N before interpreting —
+# e.g. 10 concurrent streams at chunk-size 10 produce roughly the same total
+# PUBLISH count as 1 stream at chunk-size 1. Sample with a known stream count.
 # These thresholds match the empirical table in references/issue-23733.md.
 if [[ "$TOTAL" -lt 60 ]]; then
     echo "Estimate: CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE looks tuned (~10 or higher)."

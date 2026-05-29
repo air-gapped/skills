@@ -1,12 +1,12 @@
 # Known issues, fixes shipped, and what to watch
 
-Status as of 2026-05-10. Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Status as of 2026-05-28 (current stable 0.9.5). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
 ### #23733 — Socket.IO frame amplification (THE BIG ONE)
 
-Opened 2026-04-14, status open. The structural bug. Full deep-dive in `references/issue-23733.md`. Mitigation: `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.
+Opened 2026-04-14, OPEN (updated 2026-05-27). The structural bug — see `references/issue-23733.md` for the full story, mitigation, and PR history. Mitigation: `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.
 
 ### #15162 — direct-connection chat with `workers > 1`
 
