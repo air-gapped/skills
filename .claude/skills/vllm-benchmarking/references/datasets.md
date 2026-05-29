@@ -7,6 +7,8 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 - **`random`** — synthetic uniform tokens. Flags: `--random-input-len`, `--random-output-len`, `--random-num-prompts`. Use for: isolating engine throughput from prefix effects. **Avoid for: caching claims** — zero prefix structure makes cached workloads look flat.
 - **`sonnet`** — synthetic from Claude prompt patterns. Ships at `vllm/benchmarks/sonnet.txt`. Flags: `--sonnet-input-len`, `--sonnet-output-len`. **Marked deprecated in docs.vllm.ai/en/latest/benchmarking/cli/ as of 2026-04-24** — still works but will be removed. For new benchmarks prefer `random` (engine isolation), `prefix_repetition` (caching), or `custom` (prod replay). Use `sonnet` only to reproduce older baseline runs.
 - **`prefix_repetition`** — synthetic with shared prefix across prompts. Flags: `--prefix-repetition-prefix-len`, `--prefix-repetition-suffix-len`, `--prefix-repetition-num-prefixes`, `--prefix-repetition-output-len`. **Use this** to benchmark prefix-cache hit rate and DRAM/NVMe offload wins.
+- **`spec_bench`** — Spec-Bench, the dataset for **speculative-decoding** benchmarking (in docs dataset table, verified 2026-05-28). Use when measuring EAGLE / Medusa / MTP draft-acceptance behavior; pair with the `spec_decode_*` output fields in `output-schema.md`. Sourced from `raw.githubusercontent.com/hemingkx/Spec-Bench/.../question.jsonl` — stage the JSONL for air-gapped.
+- **`speed_bench`** — SPEED-Bench, a unified speculative-decoding workload from NeMo-Skills (in docs dataset table, verified 2026-05-28). Same use case as `spec_bench`; prepared via the NeMo-Skills `speed-bench/prepare.py` script — stage the output for air-gapped.
 - **`random-mm`** — multimodal synthetic. Flags: `--random-mm-num-images`, `--random-mm-num-video-frames`. For vision/audio model serving.
 - **`random-rerank`** — reranking workload. Flags: `--random-rerank-input-len`, `--random-rerank-output-len`.
 
@@ -15,6 +17,7 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 - **`sharegpt`** — real conversational data (ShareGPT dump). Use for: "realistic average prompt" when prod replay isn't available. Requires `--dataset-path` pointing at a JSON file. **Air-gapped:** pre-download `ShareGPT_V3_unfiltered_cleaned_split.json` on a connected host, rsync into the enclave.
 - **`burstgpt`** — variable-length distributions mimicking real burst patterns. Flags: `--burstgpt-input-len`, `--burstgpt-output-len`.
 - **`custom`** — arbitrary JSONL file. One prompt per line with `{"prompt": "..."}` schema, optional `"output_tokens"` field. **Best for production A/B** — capture real prod prompts, replay them. If `--output-len` is unset or `-1`, the `output_tokens` field per row is mandatory.
+- **`custom_audio`** / **`custom_image`** — multimodal variants of `custom` (in docs dataset table, verified 2026-05-28). Local JSONL referencing audio/image inputs (`audio_data.jsonl` / `image_data.jsonl`). Use to replay real multimodal prod traffic against ASR / VLM endpoints; always local, no network.
 
 ## HuggingFace datasets (`hf`)
 

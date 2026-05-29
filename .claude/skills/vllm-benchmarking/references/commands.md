@@ -29,6 +29,7 @@ HTTP-level online serving benchmark. The one operators use most.
 - `--burstiness <float>` — gamma-distribution shape for inter-arrival times. Default 1.0 = Poisson. <1 = bursty spikes, >1 = smoother-than-Poisson.
 - `--ramp-up-strategy linear|exponential` + `--ramp-up-start-rps <a>` + `--ramp-up-end-rps <b>` — gradually scale load over the run, useful for finding the breaking point.
 - `--num-warmups <N>` — pre-flight requests before measurement. Default 0. Honors `--max-concurrency` during warmup.
+- **Timed trace replay** (v0.21+, vLLM PR #39795 adding Moonshot/Alibaba trace support, merged 2026-05-28): replay a recorded production workload trace with its original inter-arrival timing instead of a synthetic Poisson rate. Highest-fidelity load shape when a real trace is available — preferable to `--request-rate` for reproducing observed traffic.
 
 **Metrics & output:**
 - `--percentile-metrics ttft,tpot,itl,e2el` — which metrics to compute percentiles over. Default `ttft,tpot,itl` for generative; `e2el` only for pooling/embedding.

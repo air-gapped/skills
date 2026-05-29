@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
   Run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentiles, goodput SLO measurement, prefix-cache workloads, air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror, offline cache). Methodology split — SLO health checks vs A/B change sweeps — plus pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod, `--request-rate inf` alone).
 when_to_use: |-
-  Trigger on "vllm bench", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "bench serve", "bench throughput", "bench latency", "SLO test", "sharegpt dataset", "sonnet dataset", "burstgpt", "vllm perf numbers", "does this deploy get faster", "compare two vllm configs", "tune request rate", "prove SLO", "prefix cache benchmark", "disagg benchmark". Also air-gapped benchmarking (HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded cache). Also implicit contexts — "bench model X", "perf numbers for {model}", "audit benchmark", "can {model} hit TTFT Y", "deploy-memo perf", "spec-study performance" — any time producing defensible numbers or comparing two deployments.
+  Trigger on "vllm bench", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "bench serve", "bench throughput", "bench latency", "SLO test", "sharegpt dataset", "burstgpt", "vllm perf numbers", "compare two vllm configs", "tune request rate", "prove SLO", "prefix cache benchmark", "disagg benchmark". Also air-gapped benchmarking (HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded cache). Also implicit contexts — "bench model X", "perf numbers for {model}", "audit benchmark", "deploy-memo perf", "spec-study performance" — any time producing defensible numbers or comparing two deployments.
 ---
 
 # vLLM benchmarking
@@ -72,7 +72,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 
 ## Critical pitfalls
 
-1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (as of v0.19) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
+1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (as of v0.21) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
 2. **Wrong tokenizer.** `--tokenizer` defaults to `--model`, but if they differ (e.g., served via a local path while benching with a HF ID), every token count in the output is fiction. Always specify explicitly.
 3. **`--dataset-name random` as a proxy for production traffic.** Random has zero prefix structure, overstates prefill work, understates prefix-cache hit rate, makes chunked prefill look worse than reality. For anything involving caching claims, use `custom` with a real-traffic JSONL, or `prefix_repetition` for synthetic prefix-heavy tests.
 4. **`--request-rate inf` alone.** Measures saturation throughput, not the latency regime users experience. Always include a concurrency sweep for serving comparisons.
