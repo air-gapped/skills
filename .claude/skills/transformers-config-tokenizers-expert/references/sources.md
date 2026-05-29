@@ -23,6 +23,8 @@ refs).
 | https://github.com/huggingface/transformers/blob/main/src/transformers/models/auto/tokenization_auto.py | AutoTokenizer dispatcher | 2026-04-21 |
 | https://github.com/huggingface/transformers/blob/main/MIGRATION_GUIDE_V5.md | v4→v5 consolidation notes | 2026-04-21 |
 | https://github.com/huggingface/transformers/releases/tag/v5.0.0 | v5.0.0 GA notes | 2026-04-21 |
+| https://github.com/huggingface/transformers/releases | Release cadence + latest version (v5.9.0, 2026-05-20; weekly minors 5.6–5.9; no breaking tokenizer/chat-template API change through 5.9) | 2026-05-28 |
+| https://github.com/huggingface/tokenizers/tags | `tokenizers` (Rust) latest tag — backs the fast tokenizer / `tokenizer.json` (v0.23.1) | 2026-05-28 |
 | https://huggingface.co/blog/tokenizers | Transformers v5 tokenizer blog | 2026-04-21 |
 
 ## Transformers issues + PRs
@@ -58,6 +60,7 @@ refs).
 | https://github.com/vllm-project/vllm/pull/27622 | chat_template_kwargs allowlist fix (v0.11.1) | 2026-04-21 |
 | https://github.com/vllm-project/vllm/issues/25401 | tokenizer-mode mistral silently ignores --chat-template | 2026-04-21 |
 | https://github.com/vllm-project/vllm/releases/tag/v0.11.1 | Shipped PR #27622 | 2026-04-21 |
+| https://github.com/vllm-project/vllm/releases | vLLM release cadence + latest version (v0.21.0, 2026-05-15) | 2026-05-28 |
 
 ## sglang
 
