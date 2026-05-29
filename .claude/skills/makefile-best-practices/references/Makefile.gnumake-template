@@ -35,7 +35,9 @@ MAKEFLAGS += --no-builtin-rules
 # =============================================================================
 
 # Build configuration
-BUILD_DIR ?= build
+# NOTE: BUILD_DIR must NOT equal the phony `build` target name, or the
+# order-only directory rule collides with it ("overriding recipe" warning).
+BUILD_DIR ?= out
 SRC_DIR ?= src
 PREFIX ?= /usr/local
 

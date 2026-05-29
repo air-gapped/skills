@@ -1,7 +1,7 @@
 ---
 name: makefile-best-practices
 description: Makefile best practices, patterns, and templates for GNU Make 4.x — dependency graphs, task-runner workflows, parallel-safe recipes, self-documenting help targets, and language-specific patterns (Go, Python, Node, Docker, Helm, POSIX).
-when_to_use: Triggers on "write a Makefile", "review Makefile", "make target", "Makefile for Go/Python/Node/Docker/Helm", "fix Makefile", "parallel make", "make -j", "GNU Make", "self-documenting help target", a "missing separator" error, or improving any Makefile.
+when_to_use: Triggers on "write a Makefile", "review Makefile", "make target", "Makefile for Go/Python/Node/Docker/Helm", "fix Makefile", "parallel make", "make -j", "GNU Make", "self-documenting help target", "recursive make", a "missing separator" or "tab vs space" error, or improving any Makefile.
 ---
 
 # Makefile Best Practices
@@ -13,11 +13,8 @@ compilation) and a task runner (developer workflow automation).
 
 ### 0. Simplicity First
 
-When creating Makefiles:
-- Start with the minimum viable solution
-- Each target should do ONE thing well
-- If creating more than 10 targets or 100 lines, confirm scope with user first
-- BUT: if user explicitly requests more targets, add them without pushback
+- Start with the minimum viable solution; each target does ONE thing well.
+- Default to <=10 focused targets; expand only on explicit request.
 
 ### 1. Make is a Dependency Graph, Not a Script
 
