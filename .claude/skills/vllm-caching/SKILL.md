@@ -25,9 +25,12 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 | Native CPU KV offload (`vllm/v1/kv_offload/`) | **v0.11.0** (2025-10-02) | Infrastructure + scheduler integration |
 | CLI flags `--kv-offloading-size` / `--kv-offloading-backend` | **v0.11.1** (2025-11-18) | Before this, required editing config objects |
 | LMCache bundled in official x86 `vllm/vllm-openai` image | **v0.14.0** (2026-01-20) | arm64 had it from v0.10.2; x86 was intentionally stripped July 2025–Jan 2026 due to torch version conflict — many ops teams had to pip install LMCache at container start during that window, which is now unnecessary |
-| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.19.1) | Flag emits a deprecation warning but still accepted as of v0.19.1. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-04-24 against `vllm/config/cache.py` on main. |
+| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.21.0) | Flag emits a deprecation warning but still accepted. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-04-24 against `vllm/config/cache.py` on main. |
+| KV Offload + Hybrid Memory Allocator (HMA) | **v0.21.0** (2026-05-15) | Native offload now integrates with HMA — full enablement (#41445) + sliding-window groups (#41228) + multi-connector HMA (#39571), plus Qwen3.5/Mamba hybrid support (#35520). Re-test hybrid models on v0.21.0 before assuming `--disable-hybrid-kv-cache-manager` is still required (see Hybrid-models section). |
 
-Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed.
+Latest stable as of 2026-05-28: **v0.21.0** (2026-05-15). v0.20.0 GA'd 2026-04-27, followed by v0.20.1 (05-04), v0.20.2 (05-10).
+
+Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x`, `v0.21.0`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed. Confirm bundling on a specific tag with the two-step check below before trusting it.
 
 ### Two-step bundling verification (build flag + runtime import)
 
@@ -102,21 +105,21 @@ The same flag is required by `LMCacheConnectorV1`, `LMCacheMPConnector`, and the
 vLLM's Hybrid Memory Allocator (HMA) is mutually exclusive with all current KV-offload connectors. Disabling HMA fixes startup, but introduces secondary problems on hybrid-attention models:
 
 - **0% prefix cache hit rate** on Gemma4 + speculative decoding (EAGLE/DFlash/MTP) — reported as [vLLM#40624](https://github.com/vllm-project/vllm/issues/40624) (open as of 2026-04-26, last update 2026-04-23). Caused by a per-manager EAGLE-drop spiral when the hybrid coordinator sees ≥3 attention groups (Gemma4 full + sliding + DFlash draft = 3 specs). Workaround: `--disable-hybrid-kv-cache-manager` + lower `--max-model-len` to fit non-HMA allocation.
-- **LMCache MP doesn't support hybrid models at all** ([LMCache#2845](https://github.com/LMCache/LMCache/issues/2845)). Community patch exists for Qwen3.5-27B, marked NOT production-ready.
-- **Native offload + hybrid is being actively built** in the `[kv_offload+HMA][N/N]` PR series. Parts 0-3, 5-7 shipped in **v0.20.0** (2026-04-23); parts 4, 8, 9, 10, 11 merged to `main` between 2026-04-22 and 2026-04-25 — **not yet in any tagged release**. Final piece (HybridOffloadPlanner + MultiConnector hybrid awareness + mamba alignment, [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261)) still open.
+- **LMCacheConnectorV1 still doesn't support hybrid models** ([LMCache#3106](https://github.com/LMCache/LMCache/issues/3106), open, last update 2026-05-27, and [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845)). The LMCache storage path materializes a single-shape `MemoryObj.tensor` and fails on mixed attention groups (Gemma-4 sliding + full, Qwen3.5 delta-net + attention). This is independent of the vLLM-native path below — the v0.21.0 HMA work fixed vLLM's own offload, NOT the LMCacheConnectorV1 path.
+- **Native offload + hybrid shipped in v0.21.0** (2026-05-15). The `[kv_offload+HMA][N/N]` PR series fully merged: #41445 [13/N] full HMA enablement + #41228 sliding-window groups + #39571 multi-connector HMA, with Qwen3.5/Mamba hybrid model support via #35520. The native `OffloadingConnector` now integrates with the Hybrid Memory Allocator.
 
 **Today's recommendation for hybrid-model + offload:**
 
-1. Use stock `vllm/vllm-openai:v0.19.1+` with native `--kv-offloading-size` + `--disable-hybrid-kv-cache-manager` + reduced `--max-model-len`. Accept the prefix-cache hit rate bug on hybrid + spec-decode combos.
-2. Or wait for v0.21.x with the full kv_offload+HMA series merged.
-3. Pure-transformer models (Qwen3-14B, Llama-3, Mistral-7B) are unaffected by this section — the standard offload recipes work today.
+1. **On v0.21.0+ with native offload, re-test before disabling HMA.** The v0.21.0 HMA enablement means `--kv-offloading-backend native` may now coexist with the hybrid allocator on Qwen3.5/Mamba-class models — boot with native offload and only fall back to `--disable-hybrid-kv-cache-manager` + reduced `--max-model-len` if startup still errors. Confirm the exact still-gated paths against the v0.21.0 release notes for the specific model.
+2. **LMCacheConnectorV1 on hybrid models remains blocked** (#3106). If a DRAM/NVMe tier on a hybrid model is required, prefer the native v0.21.0 path over LMCache, or use NixlConnector 1P1D (different topology).
+3. Pure-transformer models (Qwen3-14B, Llama-3, Mistral-7B) are unaffected by this section — the standard offload recipes work on any v0.14.0+ tag.
 
-When recheckchecking, the canonical probe is:
+When rechecking, the canonical probe is:
 
 ```bash
-gh pr list --repo vllm-project/vllm --search "kv_offload+HMA in:title is:open"
-gh issue view 40624 --repo vllm-project/vllm --json state,updatedAt
-gh issue view 2845 --repo LMCache/LMCache --json state,updatedAt
+gh issue view 3106 --repo LMCache/LMCache --json state,updatedAt   # LMCacheConnectorV1 hybrid block — still open 2026-05-27
+gh issue view 40624 --repo vllm-project/vllm --json state,updatedAt # Gemma4 + spec-decode prefix-cache hit rate
+gh release view v0.21.0 --repo vllm-project/vllm | grep -i "HMA\|hybrid"  # confirm shipped HMA scope per model
 ```
 
 ### `--cpu-offload-gb` is NOT the same as `--kv-offloading-size`
@@ -130,7 +133,7 @@ Recommending `--cpu-offload-gb` when the user asked about KV tiering is a seriou
 
 ### FP8 KV cache without shipped scales
 
-`--calculate-kv-scales` is deprecated (still accepted as of v0.19.1, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
+`--calculate-kv-scales` is deprecated (still accepted as of v0.21.0, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
 
 Symptoms: subtle quality degradation, often only past 128k context. "Usually works fine" is the common operator experience because most activations fit, but the risk is real.
 
@@ -158,17 +161,18 @@ Most common root causes, in order:
 
 ## Open bugs to know before recommending offload
 
-Active issues at the time of last verification (2026-04-25). All checked when authoring a new offload deploy.
+Issue states verified 2026-05-28. All checked when authoring a new offload deploy.
 
 | Issue | Repo | State | Affects | Avoidance |
 |---|---|---|---|---|
-| [#36463](https://github.com/vllm-project/vllm/issues/36463) | vllm-project/vllm | open | **Qwen3.5 family** fail-to-start with `--kv-offloading-backend native` while Qwen3 (non-hybrid) works fine | Try a non-hybrid model first to isolate; if Qwen3.5/3.6 must run with offload, monitor the issue for fix |
-| [#39702](https://github.com/vllm-project/vllm/issues/39702) | vllm-project/vllm | open | `SimpleCPUOffloadScheduler` AssertionError TOCTOU race once CPU LRU starts evicting (10–30 min after warm-start). Repro on 2× RTX 4090 + Gemma4-31B AWQ-4bit + TP=2 + v0.19.1rc1 | Run short benches first to prove plumbing; long-soak only after fix lands. PR proposed in issue body, not yet merged |
-| [#40259](https://github.com/vllm-project/vllm/issues/40259) | vllm-project/vllm | open | KV offload + EAGLE3 + Expert Parallel cuMemcpyDtoHAsync segfault on 8× H20-3e | Don't combine offload with EP+EAGLE3 until fix lands |
-| [#2942](https://github.com/LMCache/LMCache/issues/2942) | LMCache/LMCache | open | `LocalCPUBackend.allocate()` deadlocks when `use_hot=False` and staging buffer fills. Repro confirmed 2026-04-23 even with `use_hot=True` on Llama-3.2-1B + ShareGPT | Always set `LMCACHE_LOCAL_CPU=True` (default) — never `use_hot=False`. Skip `LMCACHE_LOCAL_DISK` until fix lands. PR proposed by `ianliuy`, not yet in v0.4.4 |
-| [#2502](https://github.com/LMCache/LMCache/issues/2502) | LMCache/LMCache | open | LocalDiskBackend benchmark crashes vLLM | Skip the disk tier on production paths; DRAM-only is the safer default |
+| [#40259](https://github.com/vllm-project/vllm/issues/40259) | vllm-project/vllm | **open** | KV offload + EAGLE3 + Expert Parallel cuMemcpyDtoHAsync segfault on 8× H20-3e | Don't combine offload with EP+EAGLE3 until fix lands |
+| [#2942](https://github.com/LMCache/LMCache/issues/2942) | LMCache/LMCache | **open** | `LocalCPUBackend.allocate()` deadlocks when `use_hot=False` and staging buffer fills. Repro confirmed 2026-04-23 even with `use_hot=True` on Llama-3.2-1B + ShareGPT | Always set `LMCACHE_LOCAL_CPU=True` (default) — never `use_hot=False`. Re-verify against LMCache v0.4.5 before relaxing |
+| [#3106](https://github.com/LMCache/LMCache/issues/3106) | LMCache/LMCache | **open** | LMCacheConnectorV1 unusable on any hybrid-attention model (Gemma-4, Qwen3.5/3.6). `MemoryObj.tensor` materializes single-shape view, fails on multi-group buffer. Last update 2026-05-27 | Use the vLLM-native v0.21.0 offload path or NixlConnector 1P1D instead of LMCache for hybrid models |
+| [#36463](https://github.com/vllm-project/vllm/issues/36463) | vllm-project/vllm | closed 2026-05-18 (duplicate) | Qwen3.5 family fail-to-start with `--kv-offloading-backend native` | Folded into the v0.21.0 HMA enablement; re-test on v0.21.0 |
+| [#39702](https://github.com/vllm-project/vllm/issues/39702) | vllm-project/vllm | closed 2026-05-19 (completed) | `SimpleCPUOffloadScheduler` AssertionError TOCTOU race during CPU LRU eviction | Fixed — no longer an avoidance concern on current releases |
+| [#2502](https://github.com/LMCache/LMCache/issues/2502) | LMCache/LMCache | closed 2026-05-04 (not planned) | LocalDiskBackend benchmark crashes vLLM | Disk tier still carries some caution under burst alloc-pressure, but the crash is not being tracked as a fix — DRAM-only remains the simpler default |
 
-When auditing a new offload deploy, recheck these — `gh issue view <N>` confirms current state cheaply.
+When auditing a new offload deploy, recheck the still-open rows — `gh issue view <N>` confirms current state cheaply.
 
 ## Other long-context knobs worth tuning alongside offload
 
@@ -202,15 +206,7 @@ vllm bench serve \
 
 Size `prefix_len × num_prefixes` so aggregate exceeds **2×** `num_gpu_blocks × block_size`. That guarantees evictions during the run. If `num_gpu_blocks=1458` and `block_size=32` (46.6 K KV slots), `8000 × 16 = 128 K` overshoots by ~2.7× — CPU hits start landing within seconds.
 
-But do NOT overshoot the CPU tier — aggregate > CPU capacity thrashes LRU and the **hit rate collapses**. Verified on RTX 4060 Ti: 8 prefixes × 6 K (48 K aggregate, fits in 6 GB CPU tier) → 9.4 % CPU hit rate; 16 prefixes × 10 K (160 K aggregate, 4× CPU capacity) → 2.1 % CPU hit rate even though absolute bytes transferred 2.5× higher. The right-sizing rule:
-
-```
-unique_prefix_budget_tokens ≈ offload_gib × 1024 × 1024 / kv_bytes_per_token
-kv_bytes_per_token          = layers × kv_heads × head_dim × 2 (K+V) × dtype_bytes
-                            (e.g. Qwen3-4B BF16: 36 × 8 × 128 × 2 × 2 ≈ 144 KiB/token)
-```
-
-For Qwen3-4B + 6 GB CPU offload that caps the CPU tier at ~41 K unique prefix tokens. Benchmark around that, not above.
+But do NOT overshoot the CPU tier — aggregate > CPU capacity thrashes LRU and the **hit rate collapses** (verified on RTX 4060 Ti: 48 K aggregate fitting a 6 GB tier hit 9.4 %, while 160 K aggregate at 4× capacity dropped to 2.1 % despite moving 2.5× the bytes). Size the bench to the CPU tier's unique-prefix-token budget — the `kv_bytes_per_token` formula and the worked Qwen3-4B cap (~41 K tokens for 6 GB) are in `references/hardware-sizing.md`.
 
 After the run, diff metrics:
 
@@ -244,4 +240,4 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 
 See `references/sources.md` for verification dates and probe notes.
 
-Last verified: 2026-04-25
+Last verified: 2026-05-28

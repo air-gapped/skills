@@ -14,6 +14,18 @@ bytes_per_token = 2 × num_layers × num_kv_heads × head_dim × dtype_bytes
 
 For a large MoE with GQA at long context, expect roughly 1.5–2.5 MB/token BF16 or 0.75–1.25 MB/token FP8. Verify empirically on a specific model — the `vllm:cache_config_info` metric and engine startup logs report actual bytes.
 
+### CPU-tier right-sizing (don't overshoot)
+
+When benchmarking the CPU offload tier, size the unique prefix footprint to the tier's token budget — overshooting thrashes LRU and collapses the hit rate (verified on RTX 4060 Ti: 48 K aggregate in a 6 GB tier → 9.4 % CPU hit rate; 160 K aggregate at 4× capacity → 2.1 %, despite moving 2.5× the bytes).
+
+```
+unique_prefix_budget_tokens ≈ offload_gib × 1024 × 1024 / kv_bytes_per_token
+kv_bytes_per_token          = layers × kv_heads × head_dim × 2 (K+V) × dtype_bytes
+                            (e.g. Qwen3-4B BF16: 36 × 8 × 128 × 2 × 2 ≈ 144 KiB/token)
+```
+
+For Qwen3-4B + 6 GB CPU offload that caps the CPU tier at ~41 K unique prefix tokens. Benchmark around that, not above. The `vllm bench serve --dataset-name prefix_repetition` validation workload is in SKILL.md "Validating that offload is actually helping."
+
 ### Slot math worked example (H200 8× TP=8, 141 GB HBM each = 1128 GB aggregate)
 
 ```

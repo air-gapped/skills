@@ -51,7 +51,7 @@ vllm serve Qwen/Qwen3-4B \
 
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when an NVMe tier is needed in addition to DRAM. Assumes v0.14.0+ image with LMCache bundled, or `pip install lmcache>=0.3.9` at container start.
+Use when an NVMe tier is needed in addition to DRAM. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.4.5, 2026-05-15; the bundled `kv_connectors.txt` floor is `>=0.3.9`).
 
 ```bash
 docker run ... \
@@ -82,7 +82,7 @@ Key env vars:
 
 Keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots.
 
-Avoid `LMCACHE_LOCAL_CPU=False` (a.k.a. `use_hot=False`) until LMCache #2942 lands — `LocalCPUBackend.allocate()` deadlocks when the staging buffer fills with no eviction path. The default is `True`; do not flip it. Skip the disk tier altogether (#2502) on production paths until the fix is released; DRAM-only is the safer default.
+Avoid `LMCACHE_LOCAL_CPU=False` (a.k.a. `use_hot=False`) — LMCache #2942 (open as of 2026-05-28) deadlocks `LocalCPUBackend.allocate()` when the staging buffer fills with no eviction path. The default is `True`; do not flip it. Re-verify #2942 against LMCache v0.4.5 before relaxing. The disk tier crash #2502 was closed NOT_PLANNED on 2026-05-04 (not being fixed) — DRAM-only remains the simpler default, but the disk tier is usable with the alloc-pressure caveats below.
 
 ### Pool sizing — don't under-allocate
 
@@ -131,7 +131,7 @@ env:
   - {name: LMCACHE_LOG_LEVEL, value: "ERROR"}  # silences allocator-pressure warnings; see below
 ```
 
-Keep `LMCACHE_ENABLE_ASYNC_LOADING` unset / `False` until LMCache #2502 is closed. Both backends log `Created backend: LocalCPUBackend (LocalCPUBackend)` and `Created backend: LocalDiskBackend (LocalDiskBackend)` at init; verify in the pod log.
+Keep `LMCACHE_ENABLE_ASYNC_LOADING` unset / `False` for the disk tier — LMCache #2502 (closed NOT_PLANNED 2026-05-04, so not being fixed) showed async loading could crash the LocalDiskBackend benchmark; the sync default avoids the trigger. Both backends log `Created backend: LocalCPUBackend (LocalCPUBackend)` and `Created backend: LocalDiskBackend (LocalDiskBackend)` at init; verify in the pod log.
 
 **Steady-state noise — benign.** Once the DRAM pool fills, every eviction cycle emits:
 
