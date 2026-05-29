@@ -39,8 +39,12 @@ constraints that shape the answer.
    injection in non-thinking mode, fixed the `format_parameters` macro
    filter, and added multimodal-system-message support. Always pull
    `huggingface.co/google/gemma-4-31B-it/raw/main/chat_template.jinja`
-   directly and pass via `--chat-template`. SHA256 of the 2026-04-30
-   pull: `94899c0f917d93f6fe81c95744d1e8ddab2d21d39228d2e4aec1fb2a25bff413`.
+   directly and pass via `--chat-template`. The template on `main` is a
+   moving target — Google re-patches it: the 2026-04-30 pull hashed
+   `94899c0f…25bff413`, the 2026-05-28 re-pull hashed
+   `36e3a42e5cf14cd0020e72d92e1fdd9970f59b82170e421f0cbe1bb42bead3f0`
+   (17466 bytes, still opening with the `format_parameters` macro). Re-pull
+   and re-pin per deploy rather than trusting any historical SHA.
 
 ## Decision guide — which TP for which workload
 
@@ -126,7 +130,9 @@ Headline numbers (TP=2 PUSH):
 An existing prod running gemma-3-27B-fp8 may favour TP=2 over TP=1 or
 TP=4 on H100/H200 — that experience is correct for that model. Gemma 4
 31B AWQ-4bit shows a different curve (TP=1 wins on short-ctx per-H100
-efficiency). Likely reasons:
+efficiency). The four reasons below are plausible mechanisms, not
+measured attributions — confirming each needs a one-variable-at-a-time
+bench (see "What was NOT measured" below).
 
 1. **AWQ-4bit weights are smaller than fp8** (4 bits vs 8 bits, ~16 GB vs
    ~27 GB). Less benefit from TP weight-splitting since weights already
