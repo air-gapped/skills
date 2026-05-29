@@ -90,7 +90,9 @@ Generic `text-embeddings-inference:cuda-1.9.x` is `text-embeddings-router-80` �
 | Ampere consumer (A10, RTX 30xx) | 8.6 | `86-1.9.x` |
 | Ada Lovelace (RTX 40xx) | 8.9 | `89-1.9.x` |
 | Hopper (H100/H200) | 9.0 | `hopper-1.9.x` |
-| Blackwell (B100/B200/RTX 50xx) | 10.0+ | check current TEI release tags |
+| Blackwell datacenter (B200, GB200) | 10.0 | `100-1.9.x` (experimental) |
+| Blackwell consumer (RTX 50xx, RTX PRO 6000) | 12.0 | `120-1.9.x` (experimental) |
+| Blackwell GB10 (DGX Spark) | 12.1 | `121-1.9.x` (experimental, multi-arch) |
 
 If the image tag does not match the GPU, expect either silent hang at warmup OR much slower throughput from FlashAttention disabled. FlashBert requires compute capability ≥ 7.5 — Pascal cannot use it at all and falls back to slower kernels.
 
