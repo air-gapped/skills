@@ -2,31 +2,33 @@
 
 Records verification of ecosystem refs and versions. Verified via `gh api repos/<owner>/<repo>/releases/latest` and direct content probes.
 
-Last freshen pass: 2026-04-24
+Last freshen pass: 2026-05-29 (prior: 2026-04-24)
 
 ## Last verified table
 
 | Ref | URL | Last verified | Notes |
 |---|---|---|---|
-| LWS (LeaderWorkerSet) release | https://github.com/kubernetes-sigs/lws/releases | 2026-04-24 | v0.8.0 (published 2026-01-26) — matches skill. Pre-GA, still no v1.0 cut. |
-| llm-d release | https://github.com/llm-d/llm-d/releases | 2026-04-24 | v0.6.0 (published 2026-04-03) — was v0.5.1 in skill; updated to v0.6.0. |
-| AIBrix release | https://github.com/vllm-project/aibrix/releases | 2026-04-24 | v0.6.0 (published 2026-03-03) — was "v0.4.x (Aug 2025 base)" in skill; updated. |
-| GAIE release | https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases | 2026-04-24 | v1.5.0 (published 2026-04-19) — v1 GA claim confirmed; added explicit current release. |
-| NVIDIA Dynamo release | https://github.com/ai-dynamo/dynamo/releases | 2026-04-24 | v1.0.2 (published 2026-04-23) — confirms v1 stable; updated from "v1.x (2025–2026)". |
+| LWS (LeaderWorkerSet) release | https://github.com/kubernetes-sigs/lws/releases | 2026-05-29 | v0.8.0 (published 2026-01-26) — still latest, matches skill. Pre-GA, still no v1.0 cut. |
+| llm-d release | https://github.com/llm-d/llm-d/releases | 2026-05-29 | v0.7.0 (published 2026-05-12) — bumped from v0.6.0. Latest, non-draft. |
+| AIBrix release | https://github.com/vllm-project/aibrix/releases | 2026-05-29 | v0.6.0 (published 2026-03-03) — still latest, matches skill. |
+| GAIE release | https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases | 2026-05-29 | v1.5.0 (published 2026-04-19) — still latest, v1 GA claim confirmed. |
+| NVIDIA Dynamo release | https://github.com/ai-dynamo/dynamo/releases | 2026-05-29 | v1.1.1 (published 2026-05-09) — bumped from v1.0.2. Latest stable. |
 | vllm-production-stack Helm release | https://github.com/vllm-project/production-stack/releases | 2026-04-24 | vllm-stack-0.1.10 (published 2026-02-27) — added explicit chart version. |
-| Envoy AI Gateway release | https://github.com/envoyproxy/ai-gateway/releases | 2026-04-24 | v0.5.0 (published 2026-01-23) — was v0.3.x in skill; updated. |
-| vllm-semantic-router release | https://github.com/vllm-project/semantic-router/releases | 2026-04-24 | v0.2.0 "Athena" (published 2026-03-10) — was v0.1 "Iris" in skill; updated (kept Iris launch link). |
-| vLLM upstream release | https://github.com/vllm-project/vllm/releases | 2026-04-24 | v0.19.1 (published 2026-04-18) — RHAIIS mapping table references v0.13.0; upstream has moved past. Mapping is RHAIIS-specific, unverifiable without registry.redhat.io access — flagged. |
+| Envoy AI Gateway release | https://github.com/envoyproxy/ai-gateway/releases | 2026-05-29 | v0.6.0 (published 2026-05-05) — bumped from v0.5.0. Latest. |
+| vllm-semantic-router release | https://github.com/vllm-project/semantic-router/releases | 2026-05-29 | v0.2.0 "Athena" (published 2026-03-10) — still latest, matches skill. |
+| vLLM upstream release | https://github.com/vllm-project/vllm/releases | 2026-05-29 | v0.21.0 (published 2026-05-15) — upstream advanced two minors (v0.19.1 → v0.20.x → v0.21.0). RHAIIS 3.3.0 → v0.13.0 mapping remains RHAIIS-specific and unverifiable without registry.redhat.io access — still flagged; openshift.md now notes the gap explicitly. |
 | vLLM `multi-node-serving.sh` path | https://github.com/vllm-project/vllm/blob/main/examples/online_serving/multi-node-serving.sh | 2026-04-24 | SHA d2823bb, 3763 bytes — path confirmed present. |
 
 ## Classifications
 
+Classifications below are from the 2026-05-29 pass (prior-pass detail retained in the table Notes column).
+
 | Classification | Refs |
 |---|---|
-| fresh | LWS v0.8.0, multi-node-serving.sh, GAIE v1 GA claim |
-| version-drift | llm-d v0.5.1 → v0.6.0, AIBrix v0.4.x → v0.6.0, Envoy AI Gateway v0.3.x → v0.5.0, vllm-semantic-router v0.1 Iris → v0.2 Athena, NVIDIA Dynamo v1.x → v1.0.2 |
-| version-added | vllm-production-stack (no prior pin, now vllm-stack-0.1.10), GAIE (v1.5.0 added alongside GA claim) |
-| unverifiable | RHAIIS 3.3.0 → vLLM v0.13.0 mapping (requires registry.redhat.io probe; upstream vLLM is now v0.19.1 as of 2026-04-18, so the RHAIIS doc may be stale but the skill explicitly notes "Pin the exact RHAIIS tag; roll forward with release notes" which is still correct guidance) |
+| fresh | LWS v0.8.0, AIBrix v0.6.0, GAIE v1.5.0, vllm-semantic-router v0.2.0 Athena, vllm-production-stack vllm-stack-0.1.10, multi-node-serving.sh |
+| version-drift | llm-d v0.6.0 → v0.7.0 (2026-05-12), NVIDIA Dynamo v1.0.2 → v1.1.1 (2026-05-09), Envoy AI Gateway v0.5.0 → v0.6.0 (2026-05-05), vLLM upstream v0.19.1 → v0.21.0 (2026-05-15) |
+| version-added | none this pass |
+| unverifiable | RHAIIS 3.3.0 → vLLM v0.13.0 mapping (requires registry.redhat.io probe; upstream vLLM is now v0.21.0 as of 2026-05-15, so the RHAIIS doc trails upstream by ~8 minors — openshift.md now states this explicitly; "Pin the exact RHAIIS tag; roll forward with release notes" remains correct guidance) |
 | broken | none |
 | deprecation | none detected in this pass |
 

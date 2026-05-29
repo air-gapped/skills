@@ -28,7 +28,7 @@ For OpenShift-only teams: also read `references/pod-shape.md`, `references/multi
 | 3.3.0 | v0.13.0 |
 | 3.2.3 | v0.12.x (see release notes) |
 
-Pin the exact RHAIIS tag; roll forward with release notes.
+Pin the exact RHAIIS tag; roll forward with release notes. Upstream vLLM is far ahead of the RHAIIS-pinned tag (v0.21.0 as of 2026-05-15) — RHAIIS deliberately trails upstream for build/lifecycle/support. Do not assume the RHAIIS tag tracks the latest upstream; read the RHAIIS release notes for the exact upstream commit each tag is built from.
 
 ## RHOAI — Red Hat OpenShift AI model serving
 

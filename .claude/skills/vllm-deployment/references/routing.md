@@ -84,14 +84,7 @@ See https://docs.openshift.com/container-platform/latest/networking/routes/route
 
 ## Gateway API on OpenShift (version gate)
 
-| OCP version | Gateway API status |
-|---|---|
-| 4.17 | Dev-preview |
-| 4.19+ | **GA** via Ingress Operator |
-
-Before 4.19, stick with Route. From 4.19, Gateway API and GAIE are viable — but OSSM (OpenShift Service Mesh) v2 and Gateway API conflict; pick one.
-
-Enhancement proposal: https://github.com/openshift/enhancements/blob/master/enhancements/ingress/gateway-api-with-cluster-ingress-operator.md
+The OCP-version GA table (4.17 dev-preview, 4.19+ GA) and the OSSM-vs-Gateway-API conflict live in `references/openshift.md` §Routes, Gateway API, and service mesh. Before 4.19, stick with Route; from 4.19, Gateway API + GAIE are viable.
 
 ## Istio sidecar caveat for streaming
 

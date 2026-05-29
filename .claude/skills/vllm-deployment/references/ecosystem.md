@@ -49,7 +49,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### llm-d
 
 - **Repo / site**: https://github.com/llm-d/llm-d · https://llm-d.ai/
-- **Version (Apr 2026)**: v0.6.0 (Apr 3 2026) — verified via GitHub releases
+- **Version (May 2026)**: v0.7.0 (May 12 2026) — verified via GitHub releases
 - **Maintainer / license**: Red Hat + Google Cloud + IBM + NVIDIA + CoreWeave · Apache-2.0
 - **CNCF status**: Sandbox as of Mar 2026 (https://www.cncf.io/blog/2026/03/24/welcome-llm-d-to-the-cncf-evolving-kubernetes-into-sota-ai-infrastructure/)
 - **Role**: K8s-native distributed vLLM orchestrator. Inference scheduler (P/D-aware, KV-aware, SLA-aware, load-aware). "The orchestrator to vLLM's engine."
@@ -81,7 +81,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### NVIDIA Dynamo
 
 - **Repo**: https://github.com/ai-dynamo/dynamo · NIXL: https://github.com/ai-dynamo/nixl
-- **Version (Apr 2026)**: v1.0.2 (Apr 23 2026) — verified via GitHub releases
+- **Version (May 2026)**: v1.1.1 (May 9 2026) — verified via GitHub releases
 - **Maintainer / license**: NVIDIA · Apache-2.0
 - **Role**: Disagg-native serving framework; backend-agnostic (vLLM, SGLang, TRT-LLM). Dynamo = orchestrator + NIXL data plane; vLLM consumes NIXL via its own `NixlConnector`.
 - **Relation to vLLM's native Nixl/Mooncake**: Dynamo drives Nixl; vLLM exposes the connector. They're complementary layers, not competitors. Mooncake is a parallel alternative (KV-store-first).
@@ -123,7 +123,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://aigateway.envoyproxy.io/
 - **Repo**: https://github.com/envoyproxy/ai-gateway
-- **Version (Apr 2026)**: v0.5.0 (Jan 23 2026) — verified via GitHub releases
+- **Version (May 2026)**: v0.6.0 (May 5 2026) — verified via GitHub releases
 - **Maintainer / license**: Envoy Foundation · Apache-2.0
 - **Role**: GAIE implementation built on Envoy Gateway. Adds provider-abstraction (Bedrock, Vertex, Anthropic) and token-based cost metering on top of `InferencePool`.
 - **Pick when**: Multi-provider BYOK gateway + GAIE in one. Alternative to kgateway/Istio for the GAIE layer.
