@@ -1,6 +1,6 @@
 # vllm-omni supported models
 
-Load when operator asks "what's supported" / "is model X supported" / "which platform for model Y". Source: [`docs/models/supported_models.md`](https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md), code in `vllm_omni/model_executor/`. Current as of v0.18.0 (2026-03-28).
+Load when operator asks "what's supported" / "is model X supported" / "which platform for model Y". Source: [`docs/models/supported_models.md`](https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md), code in `vllm_omni/model_executor/`. Current as of v0.20.0 (2026-05-07).
 
 ## Any-to-any omni models
 
@@ -23,11 +23,11 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `QwenImageEditPipeline` | `Qwen/Qwen-Image-Edit` | Y | Y | Y | Y | Image-to-image edit. |
 | `QwenImageEditPlusPipeline` | `Qwen/Qwen-Image-Edit-2509`, `-2511` | Y | Y | Y | Y | |
 | `QwenImageLayeredPipeline` | `Qwen/Qwen-Image-Layered` | Y | Y | Y | Y | `layers` param 3-10. |
-| `FluxPipeline` | `black-forest-labs/FLUX.1-dev`, `FLUX.1-schnell` | Y | Y | | Y | **v0.19.0rc1 FLUX.1-dev regression (#2730) — pin v0.18.0.** |
+| `FluxPipeline` | `black-forest-labs/FLUX.1-dev`, `FLUX.1-schnell` | Y | Y | | Y | v0.19.0rc1 FLUX.1-dev T5 regression (#2730) **fixed in v0.20.0** (PR #2760, merged 2026-04-24); avoid the v0.19.0rc1 tag. |
 | `FluxKontextPipeline` | `black-forest-labs/FLUX.1-Kontext-dev` | Y | Y | | | |
 | `Flux2Pipeline` | `black-forest-labs/FLUX.2-dev` | Y | Y | | | FP8 path v0.16 (#1640). |
 | `Flux2KleinPipeline` | `black-forest-labs/FLUX.2-klein-{4B,9B}` | Y | Y | Y | Y | v0.14. |
-| `GlmImagePipeline` | `zai-org/GLM-Image` | Y | Y | | | **Requires `transformers>=5.0` manual upgrade on v0.18.** |
+| `GlmImagePipeline` | `zai-org/GLM-Image` | Y | Y | | | Required `transformers>=5.0` manual upgrade on v0.18; v0.20.0 ships Transformers 5.x compat fixes — verify if still needed. |
 | `ZImagePipeline` | `Tongyi-MAI/Z-Image-Turbo` | Y | Y | Y | Y | Quickstart default. Smallest footprint. INT8 supported. |
 | `HunyuanImage3ForCausalMM` | `tencent/HunyuanImage-3.0`, `-Instruct` | Y | Y | Y | Y | v0.18. |
 | `LongcatImagePipeline` | `meituan-longcat/LongCat-Image` | Y | Y | Y | Y | |
@@ -60,7 +60,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `Qwen3TTSForConditionalGeneration` | `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice` | Y | Y | Y | Y | `--task-type CustomVoice`. Preset voices. |
 | `Qwen3TTSForConditionalGeneration` | `Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign` | Y | Y | Y | Y | `--task-type VoiceDesign`. Instruction-guided voice. |
 | `Qwen3TTSForConditionalGeneration` | `Qwen/Qwen3-TTS-12Hz-0.6B-Base` | Y | Y | Y | Y | `--task-type Base`. Voice cloning with `ref_audio`. |
-| | | | | | | **All Qwen3-TTS: `--enforce-eager --trust-remote-code`** (issue #2866). RTF 0.22-0.45 per v0.16 notes. Output 24 kHz. |
+| | | | | | | **All Qwen3-TTS: `--trust-remote-code`.** `--enforce-eager` was mandatory on v0.18 (issue #2866, CLOSED 2026-04-29); v0.20.0 adds TTS CUDA-graph capture (release notes #2690/#2758/#2803) so it is no longer forced. RTF 0.22-0.45 per v0.16 notes. Output 24 kHz. |
 | `CosyVoice3Model` | `FunAudioLLM/Fun-CosyVoice3-0.5B-2512` | Y | Y | | | v0.18. |
 | `VoxtralTTSForConditionalGeneration` | `mistralai/Voxtral-4B-TTS-2603` | Y | Y | | | Forum thread [#2549](https://discuss.vllm.ai/t/issues-with-voxtral-models-and-omni/2549). |
 | `StableAudioPipeline` | `stabilityai/stable-audio-open-1.0` | Y | Y | | Y | T2A. v0.14 (#331). |

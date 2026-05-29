@@ -71,9 +71,9 @@ CLI args:
 
 ### Hard constraints
 
-1. **`--enforce-eager`** is mandatory (issue #2866): code2wav stage crashes with CUDA graphs enabled.
-2. **`--trust-remote-code`** required — custom model code lives in the HF repo.
-3. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
+1. **`--trust-remote-code`** required — custom model code lives in the HF repo.
+2. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
+3. **`--enforce-eager`** was mandatory on v0.18 (issue #2866: code2wav crashed with CUDA graphs enabled). **#2866 is CLOSED (2026-04-29)** and v0.20.0 adds TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803) — drop `--enforce-eager` on v0.20.0+ to regain throughput.
 
 ### Three task types
 
@@ -85,20 +85,22 @@ CLI args:
 
 ### Serve commands per task type
 
+On v0.18 add `--enforce-eager` to each command (issue #2866); on v0.20.0+ it is no longer required (TTS CUDA-graph capture, release notes #2690/#2758/#2803).
+
 ```bash
 # CustomVoice (preset voices):
 vllm serve Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice --omni \
-  --enforce-eager --trust-remote-code --task-type CustomVoice \
+  --trust-remote-code --task-type CustomVoice \
   --port 8091
 
 # VoiceDesign (instruction-guided):
 vllm serve Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign --omni \
-  --enforce-eager --trust-remote-code --task-type VoiceDesign \
+  --trust-remote-code --task-type VoiceDesign \
   --port 8091
 
 # Base (voice cloning):
 vllm serve Qwen/Qwen3-TTS-12Hz-0.6B-Base --omni \
-  --enforce-eager --trust-remote-code --task-type Base \
+  --trust-remote-code --task-type Base \
   --port 8091
 ```
 

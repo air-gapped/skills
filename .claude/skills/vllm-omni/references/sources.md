@@ -6,14 +6,14 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 
 | Ref | URL | Last verified |
 |---|---|---|
-| Repo | <https://github.com/vllm-project/vllm-omni> | 2026-04-24 |
+| Repo | <https://github.com/vllm-project/vllm-omni> | 2026-05-28 |
 | Docs root (canonical — **not** `vllm-omni.readthedocs.io`, that subdomain 302s / 403s) | <https://docs.vllm.ai/projects/vllm-omni/en/latest/> | 2026-04-18 |
 | Supported models | <https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md> | 2026-04-18 |
 | Architecture overview | <https://github.com/vllm-project/vllm-omni/blob/main/docs/design/architecture_overview.md> | 2026-04-18 |
 | Serving endpoint docs | <https://github.com/vllm-project/vllm-omni/tree/main/docs/serving> | 2026-04-18 |
 | Contact / community | <https://github.com/vllm-project/vllm-omni/blob/main/docs/community/contact_us.md> | 2026-04-18 |
 | Feature docs (ComfyUI, Sleep mode, verl) | <https://github.com/vllm-project/vllm-omni/tree/main/docs/features> | 2026-04-18 |
-| PyPI | <https://pypi.org/project/vllm-omni/> | 2026-04-18 |
+| PyPI (info.version = 0.20.0 @ 2026-05-28) | <https://pypi.org/project/vllm-omni/> | 2026-05-28 |
 | Docker Hub | <https://hub.docker.com/r/vllm/vllm-omni/tags> | 2026-04-18 |
 
 ## Paper
@@ -26,15 +26,18 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 
 | Release | Date | Notes | URL | Last verified |
 |---|---|---|---|---|
-| Release index | — | — | <https://github.com/vllm-project/vllm-omni/releases> | 2026-04-24 |
+| Release index | — | — | <https://github.com/vllm-project/vllm-omni/releases> | 2026-05-28 |
 | v0.11.0rc1 | 2025-12-01 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.11.0rc1> | 2026-04-18 |
 | v0.12.0rc1 | 2026-01-05 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.12.0rc1> | 2026-04-18 |
 | v0.14.0 | 2026-01-31 | **First stable** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.14.0> | 2026-04-24 |
 | v0.16.0 | 2026-02-28 | **rebased on vLLM v0.16.0** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.16.0> | 2026-04-24 |
 | v0.17.0rc1 | 2026-03-09 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.17.0rc1> | 2026-04-24 |
 | v0.18.0rc1 | 2026-03-21 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0rc1> | 2026-04-24 |
-| v0.18.0 | 2026-03-28 | **current stable, rebased on vLLM v0.18.0** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0> | 2026-04-24 |
-| v0.19.0rc1 | 2026-04-04 | **FLUX regression present in tag artifacts; fix merged to `main` 2026-04-24 via PR #2760 but not yet re-tagged — avoid until next RC ships** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.19.0rc1> | 2026-04-24 |
+| v0.18.0 | 2026-03-28 | rebased on vLLM v0.18.0 (former stable) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0> | 2026-05-28 |
+| v0.19.0rc1 | 2026-04-04 | **FLUX.1-dev regression present in tag artifacts (#2730); fix shipped in v0.20.0 (PR #2760) — avoid this specific tag** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.19.0rc1> | 2026-05-28 |
+| v0.20.0rc1 | 2026-05-01 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.20.0rc1> | 2026-05-28 |
+| v0.20.0 | 2026-05-07 | **current stable, rebased on upstream vLLM v0.20.0 (CUDA 13.0 / PyTorch 2.11); release notes: removal of old vLLM entrypoint hijack + 0.20.0 integration path (#3232/#3082/#3352/#3393/#2306), Transformers 5.x compat, TTS CUDA-graph capture (#2690/#2758/#2803), FLUX T5 fix (#2760)** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.20.0> | 2026-05-28 |
+| v0.21.0rc1 | 2026-05-25 | latest pre-release | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.21.0rc1> | 2026-05-28 |
 
 ## Community
 
@@ -56,12 +59,14 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 |---|---|---|---|---|
 | #2898 | NPU 910B install regression | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2898> | 2026-04-18 |
 | #2880 | HunyuanVideo-1.5 flash-attn shape on NPU mindiesd | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2880> | 2026-04-24 |
-| #2866 | Qwen3-TTS code2wav crash when enforce_eager=false | OPEN (active 2026-04-20) | <https://github.com/vllm-project/vllm-omni/issues/2866> | 2026-04-24 |
+| #2866 | Qwen3-TTS code2wav crash when enforce_eager=false | **CLOSED 2026-04-29** (CUDA-graph capture shipped via PR #2690 in v0.20.0) | <https://github.com/vllm-project/vllm-omni/issues/2866> | 2026-05-28 |
 | #2804 | Diffusion API accepts model mismatch silently | **CLOSED 2026-04-19** | <https://github.com/vllm-project/vllm-omni/issues/2804> | 2026-04-24 |
 | #2777 | v0.18 Pydantic ChatCompletionResponse validation bug | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2777> | 2026-04-24 |
 | #2768 | Orphan procs after Wan2.2 crash | OPEN | <https://github.com/vllm-project/vllm-omni/issues/2768> | 2026-04-24 |
-| #2760 | [Bugfix] T5 text encoder to render correct text in FLUX.1-dev | **MERGED 2026-04-24** (closes #2730) | <https://github.com/vllm-project/vllm-omni/pull/2760> | 2026-04-24 |
-| #2730 | FLUX.1-dev regression on v0.19.0rc1 | **CLOSED 2026-04-24** via PR #2760 — fix is on `main`, not yet in a tagged release | <https://github.com/vllm-project/vllm-omni/issues/2730> | 2026-04-24 |
+| #2760 | [Bugfix] T5 text encoder to render correct text in FLUX.1-dev | **MERGED 2026-04-24** (closes #2730); shipped in v0.20.0 | <https://github.com/vllm-project/vllm-omni/pull/2760> | 2026-05-28 |
+| #2730 | FLUX.1-dev regression on v0.19.0rc1 | **CLOSED 2026-04-24** via PR #2760 — **fixed in v0.20.0 stable** | <https://github.com/vllm-project/vllm-omni/issues/2730> | 2026-05-28 |
+| #2690 | [Perf] Speedup VoxCPM2 TTS + PagedAttention (part of v0.20.0 TTS CUDA-graph capture, cited in notes alongside #2758/#2803) | **MERGED 2026-04-13**; shipped in v0.20.0 (helps lift the Qwen3-TTS enforce-eager requirement) | <https://github.com/vllm-project/vllm-omni/pull/2690> | 2026-05-28 |
+| #3232 | [Rebase] Rebase to vllm 0.20.0 (core of the 0.20.0 integration path that removes the entrypoint hijack) | **MERGED 2026-04-29**; shipped in v0.20.0 | <https://github.com/vllm-project/vllm-omni/pull/3232> | 2026-05-28 |
 | #2683 | mimo_audio online_serving bug | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2683> | 2026-04-18 |
 | #2635 | BAGEL YAML / docs field name mismatch | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2635> | 2026-04-18 |
 | #2595 | Qwen3-TTS max_model_len validation error | OPEN (not re-probed) | <https://github.com/vllm-project/vllm-omni/issues/2595> | 2026-04-18 |
@@ -94,7 +99,7 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 - `vllm_omni/quantization/factory.py:138-178` — unified quantization factory
 - `vllm_omni/platforms/__init__.py:21-130` — platform auto-detect
 - `vllm_omni/profiler/omni_torch_profiler.py` — profiler wrapper
-- `vllm_omni/patch.py` — early-import patch registering OmniModelConfig
+- `vllm_omni/patch.py` — early-import patch registering OmniModelConfig (**removed in v0.20.0**; the old entrypoint hijack was dropped for the 0.20.0 integration path per release notes, rebase PR #3232)
 - `vllm_omni/version.py` — version resolution + vLLM alignment check
 - `vllm_omni/model_executor/stage_configs/*.yaml` — reference stage configs
 - `examples/online_serving/qwen3_omni/openai_realtime_client.py` — realtime client template
@@ -110,4 +115,4 @@ Refresh this skill when:
 - A key issue in the reference list (Qwen3-TTS enforce-eager, FLUX regression, GLM-Image transformers pin) closes — those are the advice that directly affects operators.
 - Paper gets updated / superseded.
 
-Compiled 2026-04-18 against v0.18.0 stable. Last freshened 2026-04-24.
+Compiled 2026-04-18 against v0.18.0 stable. Last freshened 2026-05-28 (rebased to v0.20.0 stable: version pins, entrypoint-hijack removal, FLUX #2760, Qwen3-TTS #2690/#2866, GLM-Image Transformers 5.x, release + issue rows).

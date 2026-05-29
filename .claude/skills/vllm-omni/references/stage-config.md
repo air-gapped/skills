@@ -2,6 +2,8 @@
 
 Load when an operator is writing or debugging a stage-config YAML, hitting "orchestrator failed to initialize", needing to understand disaggregated execution, or picking an OmniConnector. Source: `vllm_omni/config/stage_config.py`, `vllm_omni/config/model.py`, `vllm_omni/engine/*.py`, `vllm_omni/distributed/omni_connectors/`.
 
+**Contents:** Mental model · Stage-config YAML grammar · Key fields · Pipeline topology validation · OmniConnector types · Disaggregated multi-node setup · Common stage-config mistakes · KV-transfer plumbing for DiT · Example stage configs.
+
 ## Mental model
 
 A vllm-omni deployment is a **graph of stages**. Each stage:

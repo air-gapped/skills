@@ -2,7 +2,9 @@
 
 Load when operator asks about a specific API endpoint's shape, streaming, auth, or payload fields. Source: `vllm_omni/entrypoints/openai/api_server.py`, `vllm_omni/entrypoints/openai/protocol/*.py`, `docs/serving/*.md`, and the reference clients in `examples/online_serving/`.
 
-## Endpoint map (v0.18.0)
+**Contents:** Endpoint map · `/v1/images/generations` · `/v1/images/edits` · `/v1/audio/speech` · `/v1/audio/voices` · `/v1/audio/speech/stream` · `/v1/videos` (async vs sync) · `/v1/realtime` · `/v1/chat/completions` with diffusion.
+
+## Endpoint map (v0.20.0)
 
 | Path | Method | Purpose |
 |---|---|---|

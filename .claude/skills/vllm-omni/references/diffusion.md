@@ -2,6 +2,8 @@
 
 Load when the operator is tuning a diffusion model — CFG weights, schedulers, Ulysses/Ring parallelism, TeaCache/Cache-DiT, quantization, LoRA, ComfyUI integration, or debugging why a DiT deployment is slow. Source: `vllm_omni/diffusion/`, `vllm_omni/inputs/data.py` (OmniDiffusionSamplingParams), `vllm_omni/quantization/factory.py`.
 
+**Contents:** Diffusion request shape · Schedulers · Caching (TeaCache/Cache-DiT) · CFG plumbing · Sequence parallelism · Attention backends · Quantization · LoRA + offload · Frame interpolation · verl RL · ComfyUI bridge · Performance sanity check.
+
 ## The shape of a diffusion request
 
 Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:174-300`:
