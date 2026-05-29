@@ -2,7 +2,7 @@
 name: sglang-model-gateway
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM and SGLang inference workers on Kubernetes. Covers first-class vLLM gRPC backend plus HTTP transparent-proxy for vanilla vLLM, eight load-balancing policies, tokenizer-format dispatch (`tokenizer.json` HF-fast vs `tiktoken.model` BPE — including when neither is required because `cache_aware` is text-based), air-gapped recipe (gateway ignores `HF_ENDPOINT`, mount tokenizer files on PVC only when actually needed), K8s manifests with `model_id` labels and per-model RBAC, three HA mitigations (single + PDB, `sessionAffinity: ClientIP`, `--enable-mesh` CRDT sync), and a pitfall catalog covering the Dec 2025 `sgl-router` → `sgl-model-gateway` rename and over-engineered tokenizer init-container traps.
+  SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM and SGLang inference workers on Kubernetes. Covers first-class vLLM gRPC backend plus HTTP transparent-proxy for vanilla vLLM, the policy set (six `--policy` values, `cache_aware` default), tokenizer-format dispatch (`tokenizer.json` HF-fast vs `tiktoken.model` BPE — including when neither is required because `cache_aware` is text-based), air-gapped recipe (gateway ignores `HF_ENDPOINT`, mount tokenizer files on PVC only when actually needed), K8s manifests with `model_id` labels and per-model RBAC, three HA mitigations (single + PDB, `sessionAffinity: ClientIP`, `--enable-mesh` CRDT sync), and a pitfall catalog covering the Dec 2025 `sgl-router` → `sgl-model-gateway` rename and over-engineered tokenizer init-container traps.
 when_to_use: |-
   Trigger on "sgl-model-gateway", "sgl-router", "sglang router", "smg", "amg", "model gateway", "inference gateway", "load balance vllm replicas", "fan out same model", "kubernetes vllm router", "cache-aware routing", "prefix_hash policy", "PD disaggregation router", "--worker-urls", "--service-discovery", "--enable-mesh", "smg_* metrics", "--tokenizer-path", "tokenizer.json vs tiktoken.model", "Kimi K2", "K2.6", "DeepSeek tiktoken". Also: vLLM HTTP discovery registers empty labels, gRPC requires HF tokenizer (no tiktoken), gRPC probes need numeric ports, `sgl_router_*` → `smg_*` metric rename Dec 2025, over-engineered tokenizer init containers for cache_aware-only deployments.
 ---
@@ -35,7 +35,7 @@ The project was **renamed in Dec 2025**:
 | Source directory | `sgl-router/` | `sgl-model-gateway/` |
 | Rust crate | `sglang-router` | `sgl-model-gateway` |
 | Binary names | `sglang-router` | `sgl-model-gateway`, `smg`, `amg` (3 aliases) |
-| Docker image | `lmsysorg/sglang-router:*` | `lmsysorg/sgl-model-gateway:*` (current `:v0.3.x`) |
+| Docker image | `lmsysorg/sglang-router:*` | `lmsysorg/sgl-model-gateway:*` (current `:v0.3.2`) |
 | Prometheus metric prefix | `sgl_router_*` | `smg_*` |
 | Release tag prefix | `router-vX.Y.Z` | `gateway-vX.Y.Z` |
 | Python launcher module | `sglang_router` | `sglang_router` (**not renamed**) |
@@ -46,7 +46,7 @@ PR refs: `sgl-project/sglang#14283` (crate rename), `sgl-project/sglang#14312` (
 
 ## Architecture in one paragraph
 
-The gateway is a stateless Rust process that accepts OpenAI-compatible HTTP and native gRPC traffic on a front port, maintains a registry of healthy backend workers, and forwards each request to one worker chosen by a **policy**. The full set: `cache_aware` (default — radix-tree prefix matching on **raw text**, no tokenizer needed), `random`, `round_robin`, `power_of_two`, `prefix_hash` (xxh3 over the first 256 token IDs against a consistent-hash ring — needs a working tokenizer), `consistent_hashing` (deterministic hash-ring), `bucket`, and `manual`. Workers are added either statically (`--worker-urls`), dynamically (`POST /workers`), or via Kubernetes service discovery (`--service-discovery --selector key=value --service-discovery-namespace ns`). The internal `WorkerType` enum has three variants — `Regular`, `Prefill`, `Decode` (PD-disagg) — and the `RuntimeType` enum has three — `Sglang`, `Vllm`, `External` (OpenAI-compatible non-local). Connection mode is `Http` or `Grpc`. The gRPC path hard-requires a HuggingFace tokenizer (so tiktoken-only models like Kimi K2/K2.6 must use HTTP). A separate Prometheus exporter on `--prometheus-port` (default 29000) emits 40+ `smg_*` metrics. Source: `sgl-model-gateway/src/core/worker.rs`, `src/core/steps/worker/local/discover_metadata.rs`, `src/policies/`, `src/server.rs`, `src/service_discovery.rs`.
+The gateway is a stateless Rust process that accepts OpenAI-compatible HTTP and native gRPC traffic on a front port, maintains a registry of healthy backend workers, and forwards each request to one worker chosen by a **policy**. Six policies are selectable via `--policy`: `cache_aware` (default — radix-tree prefix matching on **raw text**, no tokenizer needed), `random`, `round_robin`, `power_of_two`, `prefix_hash` (xxh3 over the first 256 token IDs against a consistent-hash ring — needs a working tokenizer), and `manual`. Two more — `consistent_hashing` (deterministic hash-ring) and `bucket` — exist in the policy factory but are **not** in the `--policy` value_parser, so they are constructed at runtime rather than chosen by the CLI flag (`src/policies/factory.rs:77-91`). Workers are added either statically (`--worker-urls`), dynamically (`POST /workers`), or via Kubernetes service discovery (`--service-discovery --selector key=value --service-discovery-namespace ns`). The internal `WorkerType` enum has three variants — `Regular`, `Prefill`, `Decode` (PD-disagg) — and the `RuntimeType` enum has three — `Sglang`, `Vllm`, `External` (OpenAI-compatible non-local). Connection mode is `Http` or `Grpc`. The gRPC path hard-requires a HuggingFace tokenizer (so tiktoken-only models like Kimi K2/K2.6 must use HTTP). A separate Prometheus exporter on `--prometheus-port` (default 29000) emits 40+ `smg_*` metrics. Source: `sgl-model-gateway/src/core/worker.rs`, `src/core/steps/worker/local/discover_metadata.rs`, `src/policies/`, `src/server.rs`, `src/service_discovery.rs`.
 
 ## Decision tree — vLLM behind the gateway
 
@@ -157,7 +157,7 @@ The pattern in production (matches the user's `k8s-homelab/` reference) is **one
 
 - Worker Deployment: `model_id=<name>`, port 30000 (SGLang) or 8000 (vLLM), `httpGet /health` probes, hostPath/PVC for `/models`.
 - Worker Service: `clusterIP: ClusterIP` (or headless), selects on `model_id`.
-- Gateway Deployment: 1 replica (or N for HA, accepting the 10-20% cache-hit penalty), `lmsysorg/sgl-model-gateway:v0.3.x`, args include `--service-discovery --selector model_id=<name> --service-discovery-namespace <ns> --service-discovery-port 30000` for SGLang workers (HTTP discovery works) **OR** `--worker-urls http://worker-svc:30000` for vLLM HTTP workers (discovery does not work).
+- Gateway Deployment: 1 replica (or N for HA, accepting the 10-20% cache-hit penalty), `lmsysorg/sgl-model-gateway:v0.3.2`, args include `--service-discovery --selector model_id=<name> --service-discovery-namespace <ns> --service-discovery-port 30000` for SGLang workers (HTTP discovery works) **OR** `--worker-urls http://worker-svc:30000` for vLLM HTTP workers (discovery does not work).
 - Gateway ServiceAccount + Role + RoleBinding: `pods, endpoints, services` with verbs `get, list, watch`.
 - Gateway Service: routes 8080 (HTTP) and 29000 (Prometheus).
 - ServiceMonitor with relabelings to surface `model_id`, `pod`, `node` labels.
@@ -212,4 +212,4 @@ For the extended troubleshooting list, see `references/pitfalls.md`. For tokeniz
 - Source: https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway
 - Local clone: `~/projects/github.com/sgl-project/sglang/sgl-model-gateway/`
 - Reference homelab manifests (untracked, repo-local): `~/projects/github.com/sgl-project/sglang/k8s-homelab/`
-- Verify a flag with `--help`: `docker run --rm lmsysorg/sgl-model-gateway:v0.3.1 --help`. If this skill disagrees with `--help`, trust `--help` and freshen the skill.
+- Verify a flag with `--help`: `docker run --rm lmsysorg/sgl-model-gateway:v0.3.2 --help`. If this skill disagrees with `--help`, trust `--help` and freshen the skill.

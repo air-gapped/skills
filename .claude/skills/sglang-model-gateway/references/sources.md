@@ -6,12 +6,12 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone at `~/projects/github.com/sgl-project/sglang/`. | 2026-05-09 | branch: main commit `9cffa5ed6` |
-| https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway | Gateway crate root. | 2026-05-09 | |
-| https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md | Upstream operator docs. | 2026-05-09 | |
-| https://github.com/sgl-project/sglang/pull/14283 | Crate rename `sglang-router` → `sgl-model-gateway`. | 2026-05-09 | merged |
-| https://github.com/sgl-project/sglang/pull/14312 | Source dir rename `sgl-router/` → `sgl-model-gateway/`. | 2026-05-09 | merged |
-| https://github.com/sgl-project/sglang/pull/13120 | First-class vLLM gRPC backend (`RuntimeType::Vllm`). PD with vLLM not supported per limitation matrix. | 2026-05-09 | merged |
+| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone at `~/projects/github.com/sgl-project/sglang/`. | 2026-05-28 | branch: main; release tag `gateway-v0.3.1`, crate v0.3.2 |
+| https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway | Gateway crate root. | 2026-05-28 | |
+| https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md | Upstream operator docs. "Load Balancing Policies" table documents `random`, `round_robin`, `power_of_two`, `cache_aware` (default), `bucket` as `--policy` values; the skill's six `--policy`-selectable + two factory-only split is sourced from `src/policies/factory.rs:77-91` (see cli-flags.md). | 2026-05-28 | |
+| https://github.com/sgl-project/sglang/pull/14283 | Crate rename `sglang-router` → `sgl-model-gateway`. | 2026-05-28 | merged 2025-12-02 |
+| https://github.com/sgl-project/sglang/pull/14312 | Source dir rename `sgl-router/` → `sgl-model-gateway/`. | 2026-05-28 | merged 2025-12-05 |
+| https://github.com/sgl-project/sglang/pull/13120 | First-class vLLM gRPC backend (`RuntimeType::Vllm`). PD with vLLM not supported per limitation matrix. | 2026-05-28 | merged 2025-11-12 |
 | https://github.com/sgl-project/sglang/issues/20184 | Service discovery only watches one port per pod. | 2026-05-09 | |
 | https://github.com/sgl-project/sglang/issues/17623 | Operator repro: cache_aware ≈ k8s round-robin with abundant KV memory. | 2026-05-09 | |
 
@@ -19,7 +19,7 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| https://crates.io/crates/llm-tokenizer | `llm-tokenizer = "=1.3.2"` in gateway Cargo.toml; repository = `lightseekorg/smg`. | 2026-05-09 | version 1.3.2 |
+| https://crates.io/crates/llm-tokenizer | `llm-tokenizer = "=1.3.2"` in gateway Cargo.toml; repository = `lightseekorg/smg`. crates.io newest_version = 1.3.2. | 2026-05-28 | version 1.3.2 |
 | https://github.com/lightseekorg/smg | Source repo for `llm-tokenizer` crate (and the broader sgl-model-gateway alternate distribution). | 2026-05-09 | pushed_at 2026-05-07 |
 | `lightseekorg/smg::crates/tokenizer/src/factory.rs` | `create_tokenizer_async_with_chat_template` dispatch matrix: directory scan picks `tokenizer.json` first, falls back to `tiktoken.model`/`*.tiktoken`; SentencePiece `.model` returns "not yet supported"; GGUF returns "not yet supported"; `is_likely_openai_model` triggers built-in tiktoken; otherwise HF Hub download. | 2026-05-09 | |
 | `lightseekorg/smg::crates/tokenizer/src/tiktoken.rs` | `CL100K_BASE_PATTERN` hardcoded for ALL tiktoken-loaded models incl. Kimi K2 / DeepSeek; comment acknowledges Kimi K2's native `\p{Han}` regex differs but BPE roundtrip-safe. `find_tiktoken_file` / `has_tiktoken_file` / `is_tiktoken_file` semantics. | 2026-05-09 | |
@@ -37,7 +37,7 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 | `sgl-model-gateway/src/server.rs:753-759` | Rate-limit window counters synced via mesh CRDT. | 2026-05-09 | |
 | `sgl-model-gateway/src/main.rs:903` | Default mesh peer-discovery annotation `sglang.ai/ha-port` (NOT `sglang.ai/mesh-port`). | 2026-05-09 | |
 | `sgl-model-gateway/src/main.rs:1099-1102` | `--mesh-peer-urls` parsed as `IP:port` SocketAddr; only `first()` used as bootstrap peer. | 2026-05-09 | |
-| `sgl-model-gateway/Cargo.toml` | `crdts = "7.3"` for CRDT mesh sync; `llm-tokenizer = "=1.3.2"`. Crate version v0.3.2. | 2026-05-09 | |
+| `sgl-model-gateway/Cargo.toml` | `crdts = "7.3"` for CRDT mesh sync; `llm-tokenizer = "=1.3.2"`. Crate version v0.3.2. | 2026-05-28 | version 0.3.2 |
 
 ## vLLM cross-references
 
@@ -50,7 +50,7 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| `lmsysorg/sgl-model-gateway:v0.3.x` (Docker Hub) | Current operator image; old `lmsysorg/sglang-router:*` deprecated post Dec 2025 rename. | 2026-05-09 | tag family v0.3.x |
+| `lmsysorg/sgl-model-gateway:v0.3.2` (Docker Hub) | Current operator image; old `lmsysorg/sglang-router:*` deprecated post Dec 2025 rename. `v0.3.2` + `latest` both last_updated 2026-05-27 (then `v0.3.1` 2026-01-11, `v0.3.0` 2026-01-05). Note: the git release tag is `gateway-v0.3.1` — the image/crate `v0.3.2` legitimately trails the release-tag scheme, do not churn this. | 2026-05-28 | image v0.3.2 / release tag gateway-v0.3.1 |
 
 ## HuggingFace model references
 
@@ -63,7 +63,7 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| Dec 2025 rename | `sgl_router_*` → `smg_*` Prometheus prefix; binary names `sgl-model-gateway` / `smg` / `amg`; release tags `gateway-vX.Y.Z`. Python launcher module `sglang_router` *not* renamed. | 2026-05-09 | event date Dec 2025 |
+| Dec 2025 rename | `sgl_router_*` → `smg_*` Prometheus prefix (upstream docs metric table uses `smg_http_*`, `smg_router_*`, `smg_worker_*`, `smg_db_*`, `smg_discovery_*`, `smg_mcp_*`); binary names `sgl-model-gateway` / `smg` / `amg`; release tags `gateway-vX.Y.Z`. Python launcher module `sglang_router` *not* renamed. | 2026-05-28 | event date Dec 2025 |
 
 ## How to refresh
 
