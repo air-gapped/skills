@@ -6,10 +6,14 @@ One row per registered name. Canonical file is `vllm/reasoning/<file>.py`.
 |---|---|---|---|---|---|---|
 | `deepseek_r1` | `DeepSeekR1ReasoningParser` | `deepseek_r1_reasoning_parser.py` | `<think>`/`</think>` (vocab single-token) | Yes (modern templates) | None (always on) | `(all, None)` = all reasoning |
 | `deepseek_v3` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | Delegates → R1 or Identity | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default: **off**) | Inherits from delegate |
-| `glm45` / `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | same file | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
-| `qwen3` / `mimo` | `Qwen3ReasoningParser` | `qwen3_reasoning_parser.py` | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |
+| `deepseek_v4` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | **Alias of `deepseek_v3`** — same file + class, registered under a second name | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default **off**) | Inherits from delegate |
+| `poolside_v1` | `PoolsideV1ReasoningParser` | `poolside_v1_reasoning_parser.py` | Subclass of `DeepSeekV3ReasoningParser` (`<think>`/`</think>`); scopes the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't false-positive `prompt_is_reasoning_end` | — | Same as `deepseek_v3` | Inherits from delegate |
+| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Cohere Command family (file shared with `cohere_command4`) | — | — | See file |
+| `cohere_command4` | `CohereCommand4ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Cohere Command family (file shared with `cohere_command3`) | — | — | See file |
+| `glm45` / `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
+| `qwen3` / `mimo` | `Qwen3ReasoningParser` | `qwen3_reasoning_parser.py` (`mimo` aliases the same class/file) | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |
 | `ernie45` | `Ernie45ReasoningParser` | `ernie45_reasoning_parser.py` | `<think>`/`</think>` + `<response>`/`</response>` | Optional — tolerates both | None | Base behavior |
-| `gemma4` | — | `gemma4_reasoning_parser.py` | `<think>`/`</think>` w/ helper `gemma4_utils.py` | — | `chat_template_kwargs` | See file |
+| `gemma4` | `Gemma4ReasoningParser` | `gemma4_reasoning_parser.py` | `<think>`/`</think>` w/ helper `gemma4_utils.py` | — | `chat_template_kwargs` | See file |
 | `hunyuan_a13b` | `HunyuanA13BReasoningParser` | `hunyuan_a13b_reasoning_parser.py` | `<think>\n … \n</think>\n<answer>\n … \n</answer>` | No | None | Regex fallback |
 | `hy_v3` | `HYV3ReasoningParser` | `hy_v3_reasoning_parser.py` | `<think>`/`</think>` (BaseThinking subclass) with `_identity_parser` delegation | Optional | `chat_template_kwargs.reasoning_effort` (or top-level `reasoning_effort`); value `"no_think"` routes to `IdentityReasoningParser`; default is `"no_think"` when unset | Inherits from delegate (identity when off, base when on) |
 | `granite` | `GraniteReasoningParser` | `granite_reasoning_parser.py` | Phrases: "Here is my thought process:" / "Here is my response:" | Phrases in output | None | Falls through as content if phrases absent |
@@ -18,7 +22,7 @@ One row per registered name. Canonical file is `vllm/reasoning/<file>.py`.
 | `minimax_m2_append_think` | `MiniMaxM2AppendThinkReasoningParser` | same file | Prepends `<think>` to content; never separates | — | — | Always content |
 | `mistral` | `MistralReasoningParser` | `mistral_reasoning_parser.py` | `[THINK]`/`[/THINK]` via `SpecialTokens.begin_think/end_think` | Depends on template | None | Complex: handles all 4 BOT/EOT combinations |
 | `nemotron_v3` | `NemotronV3ReasoningParser` | `nemotron_v3_reasoning_parser.py` | R1 base + field swap | — | `chat_template_kwargs.enable_thinking=False` OR `force_nonempty_content=True` swaps reasoning↔content | Inherits R1 |
-| `olmo3` | — | `olmo3_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
+| `olmo3` | `Olmo3ReasoningParser` | `olmo3_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
 | `openai_gptoss` | `GptOssReasoningParser` | `gptoss_reasoning_parser.py` | Harmony `<\|channel\|>analysis<\|message\|>` … `<\|end\|>`; reasoning ends at `<\|channel\|>final<\|message\|>` | Yes (system msg) | — | `extract_reasoning` raises NotImplementedError — harmony branch only |
 | `seed_oss` | `SeedOSSReasoningParser` | `seedoss_reasoning_parser.py` | `<seed:think>`/`</seed:think>` | — | — | — |
 | `step3` / `step3p5` | `Step3ReasoningParser` / `Step3p5ReasoningParser` | `step3_reasoning_parser.py` / `step3p5_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |

@@ -1,9 +1,9 @@
 ---
 name: vllm-reasoning-parsers
 description: |-
-  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 22 built-in parsers with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
+  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 25 built-in parsers with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
 when_to_use: |-
-  Trigger on `--reasoning-parser`, `reasoning_content`, `reasoning_parser_plugin`, `<think>`/`</think>` handling, `extract_reasoning`, `extract_reasoning_streaming`, `is_reasoning_end`, `ReasoningParser`, `ReasoningParserManager`, harmony channels (`<|channel|>analysis`/`final`), Qwen3 prompt-side `<think>`, DeepSeek-R1 missing start tag, Kimi K2 tool-section implicit end, Hunyuan state machine, Granite phrase markers, `enable_thinking=False`, `chat_template_kwargs={enable_thinking,thinking}`, reasoning-vs-content split, reasoning leaked into content, content empty while reasoning filled, structured output breaking with thinking disabled, tool calls not parsed when reasoning is on, adding support for a new reasoning model. Symptoms — "why is `reasoning_content` null on DeepSeek-R1", "Qwen3 JSON gibberish with `enable_thinking=False`". Applies even without "parser" in prompt. Also implicit — "audit reasoning config", "deploy-memo reasoning", "thinking split wrong". NOT for prompt-side Jinja (→ `vllm-chat-templates`) or tool-call JSON extraction (→ `vllm-tool-parsers`).
+  Trigger on `--reasoning-parser`, `reasoning_content`, `reasoning_parser_plugin`, `<think>`/`</think>` handling, `extract_reasoning`, `extract_reasoning_streaming`, `is_reasoning_end`, `ReasoningParser`, `ReasoningParserManager`, harmony channels (`<|channel|>analysis`/`final`), Qwen3 prompt-side `<think>`, DeepSeek-R1 missing start tag, Kimi K2 tool-section implicit end, Hunyuan state machine, Granite phrase markers, `enable_thinking=False`, `chat_template_kwargs={enable_thinking,thinking}`, reasoning-vs-content split, reasoning leaked into content, content empty while reasoning filled, structured output breaking with thinking disabled, tool calls not parsed when reasoning is on, adding a new reasoning model. Symptoms — "why is `reasoning_content` null on DeepSeek-R1", "Qwen3 JSON gibberish with `enable_thinking=False`". Applies without "parser" in prompt. Also implicit — "audit reasoning config", "deploy-memo reasoning", "thinking split wrong". NOT prompt-side Jinja (→ `vllm-chat-templates`) or tool-call JSON extraction (→ `vllm-tool-parsers`).
 ---
 
 # vLLM reasoning parsers
@@ -20,7 +20,7 @@ When a reasoning-trained model emits a single token stream like
 
 vLLM splits this into two fields on the chat-completion response: `reasoning` (the CoT) and `content` (the final answer). `--reasoning-parser NAME` selects the class that does the split. Without it, the whole stream lands in `content`.
 
-> **Field-name note.** On current `main` the field is `reasoning` (see `ChatCompletionResponseMessage.reasoning` / `DeltaMessage.reasoning` in `vllm/entrypoints/openai/chat_completion/protocol.py`). Pre-v0.19 code and many third-party docs / clients call it `reasoning_content`. If a client is reading `reasoning_content` against a current-main server it will see `null` every time even when the parser ran correctly.
+> **Field-name note.** On current `main` the field is `reasoning` (see `ChatMessage.reasoning` / `DeltaMessage.reasoning` in `vllm/entrypoints/openai/chat_completion/protocol.py`). Pre-v0.19 code and many third-party docs / clients call it `reasoning_content`. If a client is reading `reasoning_content` against a current-main server it will see `null` every time even when the parser ran correctly.
 
 The parser is also the gating authority for **xgrammar / structured output**: by default, grammar enforcement is held off until `is_reasoning_end(input_ids)` flips true, so the model thinks freely before being constrained to JSON. Flip that default with `--structured-outputs-config.enable_in_reasoning=true` — then the grammar applies from token 0 regardless of reasoning state (useful for structured CoT).
 
@@ -91,19 +91,9 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 ## The per-model matrix
 
-`references/parser-matrix.md` — one row per registered name (`deepseek_r1`, `deepseek_v3`, `ernie45`, `gemma4`, `glm45`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `kimi_k2`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
+`references/parser-matrix.md` — one row per registered name (25 on `main`: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `kimi_k2`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
-Router:
-- `deepseek_r1`, `qwen3`, `mimo`, `ernie45`, `minimax_m2`, `olmo3`, `seed_oss`, `step3`, `step3p5`, `gemma4` → `<think>`/`</think>` family, inherit `BaseThinkingReasoningParser`.
-- `deepseek_v3`, `glm45`, `holo2` → delegating wrapper; picks R1 or Identity by `chat_template_kwargs`.
-- `kimi_k2` → `<think>`/`</think>` + implicit end at tool-section.
-- `hunyuan_a13b` → `<think>\n` … `\n</think>\n<answer>\n` … `\n</answer>`, token-ID state machine.
-- `hy_v3` → `<think>`/`</think>` (BaseThinking) + `_identity_parser` delegate when `chat_template_kwargs.reasoning_effort == "no_think"` (the default when unset). Hunyuan V3; distinct from `hunyuan_a13b`.
-- `granite` → "Here is my thought process:" / "Here is my response:" regex on text.
-- `openai_gptoss` → harmony channels; `extract_reasoning` is a `raise NotImplementedError`.
-- `mistral` → `[THINK]`/`[/THINK]` via `SpecialTokens`, requires `MistralTokenizer`.
-- `nemotron_v3` → R1 base + swap fields on `enable_thinking=False` or `force_nonempty_content=True`.
-- `minimax_m2_append_think` → identity-ish; always prepends `<think>` to content, never treats anything as reasoning.
+Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. The non-obvious cases worth knowing before reading it: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` requires `MistralTokenizer`, `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
 ## Writing a custom parser
 

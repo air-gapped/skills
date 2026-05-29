@@ -163,7 +163,7 @@ All built-in parsers do this.
 
 **Repro.** Current-main vLLM. Client reads `response.choices[0].message.reasoning_content`, always null. `content` looks correct, `</think>` is already stripped from it.
 
-**Root cause.** The response field was renamed from `reasoning_content` to `reasoning` in a refactor (`vllm/entrypoints/openai/chat_completion/protocol.py:64` — `ChatCompletionResponseMessage.reasoning: str | None = None`). Same for `DeltaMessage.reasoning` in `vllm/entrypoints/openai/engine/protocol.py:261`. The string `reasoning_content` does not appear in the chat-completion response path anywhere on current main. Clients (including many OpenAI-SDK-compatible libraries, many tutorials, and older vLLM docs) still read `reasoning_content`, so they see null.
+**Root cause.** The response field was renamed from `reasoning_content` to `reasoning` (RFC [vllm#27755](https://github.com/vllm-project/vllm/issues/27755)) — `vllm/entrypoints/openai/chat_completion/protocol.py` now declares `ChatMessage.reasoning: str | None = None`, same for `DeltaMessage.reasoning`. The rename is **response-only**: `reasoning_content` is still accepted on the *request* side via backward-compat normalization (the request validator maps a deprecated `reasoning_content` key to `reasoning`), so only clients *reading* the response field see null. Clients (including many OpenAI-SDK-compatible libraries, many tutorials, and older vLLM docs) still read `reasoning_content` off the response, so they see null.
 
 **Fix.**
 - Update client to read `.reasoning`. `curl ... | jq '.choices[0].message.reasoning'`.
