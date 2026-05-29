@@ -68,7 +68,7 @@ python -m sglang.launch_server \
 
 ## Recipe 3 — Qwen3.5 (hybrid SSM) on Mooncake — vLLM-broken case
 
-The case vLLM v0.19.1 + LMCache 0.4.4 crashes on. SGLang HiCache v0.5.10 with Mooncake handles it.
+The case vLLM v0.19.1 + LMCache 0.4.4 crashes on. SGLang HiCache handles it — Mooncake SSM support since v0.5.10.
 
 ```bash
 python -m sglang.launch_server \
@@ -206,7 +206,7 @@ curl -X DELETE http://localhost:30000/hicache/storage-backend \
   -H "Authorization: Bearer $ADMIN_KEY"
 ```
 
-Returns HTTP 400 if any request is in-flight (`is_fully_idle()` check). Multi-node Mooncake attach is broken on v0.5.10 — issue [#23457](https://github.com/sgl-project/sglang/issues/23457).
+Returns HTTP 400 if any request is in-flight (`is_fully_idle()` check). Multi-node Mooncake attach is still broken (issue [#23457](https://github.com/sgl-project/sglang/issues/23457), OPEN as of 2026-05-29) — inject `MOONCAKE_LOCAL_HOSTNAME` per node, or use the static startup flag instead of runtime attach.
 
 ## Recipe 9 — Validating that hicache is actually helping
 

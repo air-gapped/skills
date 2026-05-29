@@ -14,8 +14,8 @@ The 2026 dense-LLM lineup ships with hybrid attention — alternating sliding-wi
 if is_hybrid_ssm:                               # Mamba / SSM family
     cache = HiMambaRadixCache(...)              # if --enable-hierarchical-cache
 elif is_hybrid_swa:                             # SWA family (Llama4, GptOss, Gemma4, MiMoV2, Step3p5)
-    cache = HiRadixCache(...)                   # FALLS THROUGH (until v0.5.11 SWA support)
-    # SWARadixCache branch is unreachable when hicache enabled
+    cache = HiRadixCache(...)                   # SWA-aware as of v0.5.11 (PR #23391)
+    # pre-v0.5.11 this branch fell through to MHA-only HiRadixCache and raised ValueError
 else:                                           # MHA / MLA / DSA via NSA
     cache = HiRadixCache(...) or HiMambaRadixCache(...)  # depending on indexer pool
 ```
@@ -33,11 +33,11 @@ Hybrid-SSM detection (`scheduler.py:765-769`): models inheriting `Qwen3NextConfi
 | **NSA / DSA** | DeepSeek-V3.2 | ✓ v0.5.9+ | ✓ v0.5.9+ | ✓ v0.5.11 | ✓ v0.5.9+ | partial |
 | **Hybrid SSM** (Mamba/GDN) | Qwen3-Next, **Qwen3.5**, Qwen3.6 *(if SSM)*, MiniMax-M2 | partial — needs `--mamba-scheduler-strategy extra_buffer` + `--max-mamba-cache-size N` | ✓ **v0.5.10** (PR #21259) | ✓ **v0.5.11** (PR #23241) | partial | not documented |
 | **Hybrid SWA — guarded** | MiMoV2 (#11215), Step3p5, Gemma2, Gemma3, Gemma3n | ✓ (auto `disable_hybrid_swa_memory`) | ✓ | ✓ | ✓ | ✓ |
-| **Hybrid SWA — unguarded** | **Llama-4**, **gpt-oss**, **Gemma-4** | ⚠ silent fallthrough — SWA layers treated as full attention | same | same | same | same |
-| **Hybrid SWA — proper** | Mistral-class SWA-only | ✗ pre-v0.5.11 | ✗ | ✗ | ✗ | ✗ |
+| **Hybrid SWA — unguarded** | **Llama-4**, **gpt-oss**, **Gemma-4** | ⚠ silent fallthrough — SWA layers treated as full attention (no server-side guard; orthogonal to v0.5.11 SWA HiCache) | same | same | same | same |
+| **Hybrid SWA — proper** | Mistral-class SWA-only | ✓ **v0.5.11+** (PR #23391) | ✓ | ✓ | ✓ | ✓ |
 | **DeepSeek V4 UnifiedRadix** | DeepSeek-V4 | open feature | open feature | open feature | open feature | open feature |
 
-Pre-v0.5.11 SWA error message: `ValueError: HiRadixCache only supports MHA, MLA, and NSA (DSA) models` (issue [#23659](https://github.com/sgl-project/sglang/issues/23659)). PR [#23391](https://github.com/sgl-project/sglang/pull/23391) (still **OPEN** as of 2026-04-25) will close #23659 once it merges.
+Pre-v0.5.11 SWA error message: `ValueError: HiRadixCache only supports MHA, MLA, and NSA (DSA) models` (issue [#23659](https://github.com/sgl-project/sglang/issues/23659), closed 2026-05-08). PR [#23391](https://github.com/sgl-project/sglang/pull/23391) merged 2026-05-06 (day-0 Gemma 4), shipping proper SWA support in HiRadixCache as of v0.5.11. Upgrade to ≥ v0.5.11 to clear the error.
 
 ## What "unguarded SWA fallthrough" means in practice
 
@@ -53,7 +53,7 @@ For `Llama4ForConditionalGeneration`, `GptOssForCausalLM`, `Gemma4ForCausalLM` w
 
 1. **Don't enable hicache on those archs** — easiest, lossless option for now.
 2. **Pass `--disable-hybrid-swa-memory` explicitly** AND **verify quality** with a held-out eval (e.g. MMLU, GSM8K) before going live. See `test/manual/4-gpu-models/test_qwen35_hicache.py:32` for the verification pattern.
-3. **Wait for v0.5.11** — PR #23391 adds proper SWA support to HiRadixCache.
+3. **Upgrade to ≥ v0.5.11** — PR #23391 (merged 2026-05-06) added proper SWA support to HiRadixCache, so on v0.5.11+ the guarded/unguarded distinction collapses for SWA-proper models; the unguarded-fallthrough footgun above remains only for Llama-4/gpt-oss/Gemma-4 archs lacking the server-side guard.
 
 ## Tested combinations (CI / benchmark evidence)
 
@@ -72,8 +72,8 @@ If the operator hit the vLLM hybrid wall (LMCache fails to start on Qwen3.5/3.6/
 
 | Coming from | SGLang equivalent | Caveat |
 |---|---|---|
-| vLLM native CPU offload (`--kv-offloading-size`) on hybrid | `--enable-hierarchical-cache --hicache-ratio 2` (no L3) | Works on hybrid SSM in v0.5.10, hybrid SWA in v0.5.11 |
-| LMCache + DRAM tier | Same — L1+L2 only | Hybrid works (Mamba v0.5.10, SWA v0.5.11). Sizing is per-rank not total |
+| vLLM native CPU offload (`--kv-offloading-size`) on hybrid | `--enable-hierarchical-cache --hicache-ratio 2` (no L3) | Hybrid SSM since v0.5.10, hybrid SWA since v0.5.11 |
+| LMCache + DRAM tier | Same — L1+L2 only | Hybrid works (Mamba v0.5.10, SWA v0.5.11+). Sizing is per-rank not total |
 | LMCache + NVMe tier | `--hicache-storage-backend nixl` with NIXL POSIX plugin | NIXL hybrid support depends on plugin |
 | NixlConnector 1P1D (P/D disagg) | SGLang PD-disagg + `--hicache-storage-backend mooncake/nixl --disaggregation-decode-enable-offload-kvcache` | PD itself works on hybrid; runtime attach/detach tied to Mooncake bug #23457 |
 | MooncakeConnector | `--hicache-storage-backend mooncake` | Native; richer policy controls |
@@ -103,7 +103,7 @@ Verify against `test_qwen35_hicache.py` first — that's the only CI-covered pat
 
 ## Roadmap
 
-- v0.5.11 (target): SWA support in HiRadixCache (PR #23391 still OPEN as of 2026-04-25), 3FS Mamba/DSA (PR #23241 merged 2026-04-24), hybrid CP (#22996).
+- **v0.5.11 (shipped 2026-05-05):** SWA support in HiRadixCache (PR #23391 merged 2026-05-06), 3FS Mamba/DSA (PR #23241), hybrid CP (#22996).
 - 2026 Q1 SGLang roadmap (issue [#12780](https://github.com/sgl-project/sglang/issues/12780)) explicitly lists "production-level reliability across HiCache" as an open goal — i.e. upstream itself does not yet treat HiCache as production-stable across all parallelism modes.
 - DeepSeek V4 UnifiedRadix HiCache (issue [#23639](https://github.com/sgl-project/sglang/issues/23639)) — covers c4/c4_indexer/c128 compressed KV offload; SWA still device-only. Open feature.
 - NVIDIA Dynamo + HiCache integration on GB200/GB300 with KVBM — issue [#17130](https://github.com/sgl-project/sglang/issues/17130).

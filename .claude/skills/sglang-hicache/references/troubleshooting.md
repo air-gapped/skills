@@ -7,7 +7,7 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 ### `ValueError: HiRadixCache only supports MHA, MLA, and NSA (DSA) models`
 
 - **Cause**: SWA-class model (Gemma 3-4, Mistral, Llama-4 SWA layers) on v0.5.10 or earlier.
-- **Fix**: Disable hicache on this arch. Upgrade path is v0.5.11 once PR [#23391](https://github.com/sgl-project/sglang/pull/23391) merges (still OPEN as of 2026-04-25).
+- **Fix**: Upgrade to ≥ v0.5.11 — PR [#23391](https://github.com/sgl-project/sglang/pull/23391) (merged 2026-05-06, closing #23659) ships SWA HiCache with day-0 Gemma 4. On builds you cannot upgrade, disable hicache on this arch.
 
 ### `AssertionError: enable_hierarchical_cache and disable_radix_cache are mutually exclusive`
 
@@ -51,15 +51,15 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 
 ### TTFT regressed after enabling hicache
 
-- **Cause**: Mooncake 0.5.6+ regression vs 0.5.5 — issue [#16797](https://github.com/sgl-project/sglang/issues/16797). Or `wait_complete` prefetch policy (blocks request until L3 lands).
-- **Fix**: Try `--hicache-storage-prefetch-policy best_effort` to bypass L3 wait. If regression persists, it's the Mooncake bug — pin `mooncake-transfer-engine 0.3.10.post1` and consider downgrading to v0.5.5 until fix lands.
+- **Cause**: On pre-v0.5.11 builds, Mooncake 0.5.6+ regression vs 0.5.5 — issue [#16797](https://github.com/sgl-project/sglang/issues/16797) (**closed 2026-05-12**, fixed in v0.5.11/v0.5.12). Or `wait_complete` prefetch policy (blocks request until L3 lands).
+- **Fix**: First upgrade to ≥ v0.5.11. Try `--hicache-storage-prefetch-policy best_effort` to bypass L3 wait. On older builds, pin `mooncake-transfer-engine 0.3.10.post1`.
 
 ## Crashes / IMA at runtime
 
 ### `AssertionError: parent does not have child key` in `evict_host`
 
 - **Cause**: Issue [#19212](https://github.com/sgl-project/sglang/issues/19212). Radix tree mutated during heap iteration in `write_back` policy.
-- **Fix**: `--hicache-write-policy write_through` (the default). `write_back` is open-bug as of 2026-04-25.
+- **Fix**: `--hicache-write-policy write_through` (the default). `write_back` is open-bug as of 2026-05-29 (#19212).
 
 ### `RuntimeError: Expected all tensors to be on the same device` in `mamba_pool_host.free`
 
@@ -69,7 +69,7 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 ### Shape-mismatch crash under PP>1 within minutes/hours
 
 - **Cause**: Issue [#22607](https://github.com/sgl-project/sglang/issues/22607). Async prefetch + per-rank LRU diverge.
-- **Fix**: `--pp-size 1` until fixes (#22759, #22878) land in v0.5.11.
+- **Fix**: `--pp-size 1` — fix (#22607 meta, #22878) still OPEN as of 2026-05-29; did not make the v0.5.11/v0.5.12 cut.
 
 ### Same crash with `Indexer with GLM5 pp2`
 

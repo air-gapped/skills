@@ -4,10 +4,10 @@ Pick exactly one (omit `--hicache-storage-backend` for L1+L2 only). Backend fact
 
 ## Selection summary
 
-| Backend | Production-ready | Hybrid-model support (2026-04-25) | Layout requirement | Key dep |
+| Backend | Production-ready | Hybrid-model support (2026-05-29) | Layout requirement | Key dep |
 |---|---|---|---|---|
-| `mooncake` | ✓ best-tested 2026 | Mamba/SSM ✓ (v0.5.10), DSA ✓ (v0.5.10), SWA pending v0.5.11 | `page_first` or `page_first_direct` | RDMA NICs + master daemon |
-| `hf3fs` | ✓ on DeepSeek operator clusters | Mamba/SSM + DSA pending v0.5.11 (PR #23241) | any | DeepSeek 3FS deployment |
+| `mooncake` | ✓ best-tested 2026 | Mamba/SSM ✓ (v0.5.10), DSA ✓ (v0.5.10), SWA ✓ (v0.5.11) | `page_first` or `page_first_direct` | RDMA NICs + master daemon |
+| `hf3fs` | ✓ on DeepSeek operator clusters | Mamba/SSM + DSA ✓ (v0.5.11, PR #23241) | any | DeepSeek 3FS deployment |
 | `nixl` | ✓ for NVIDIA Dynamo / GB200 | depends on NIXL plugin | `page_first` or `page_first_direct` for zero-copy | `nixl-cu12` or `nixl-cu13` |
 | `aibrix` | partial (PrisKV not OSS) | not documented | configurable | `aibrix-kvcache` Python lib |
 | `eic` | volcengine cloud only | not documented | `page_first` | proprietary |
@@ -55,14 +55,14 @@ Equivalent env-var fallbacks (used when no extra-config provided): `MOONCAKE_TE_
 
 - KV tensors are NOT persistent — process exit drops them. For persistence, use 3FS or NIXL+S3.
 - Memory fragmentation can fail allocations before reaching 100% usage. Tune `global_segment_size`.
-- 0.5.6+ TTFT regression vs 0.5.5 — issue [#16797](https://github.com/sgl-project/sglang/issues/16797), still open across 0.5.6 → 0.5.10. Try `best_effort` prefetch to bypass and isolate.
+- 0.5.6+ TTFT regression vs 0.5.5 — issue [#16797](https://github.com/sgl-project/sglang/issues/16797), **closed 2026-05-12** (fixed in v0.5.11/v0.5.12). On older builds, try `best_effort` prefetch to bypass and isolate.
 - Multi-node runtime-attach uses the head node's hostname for all ranks — issue [#23457](https://github.com/sgl-project/sglang/issues/23457). Inject `MOONCAKE_LOCAL_HOSTNAME` per node before launch.
 - Layer-first layout is auto-rewritten to `page_first*` (server_args.py:3148-3167). Check boot log.
 - DeepSeek-V3.2 PD tool-call empty output — issue [#21176](https://github.com/sgl-project/sglang/issues/21176) (v0.5.9). Pin v0.5.10+.
 
 ## `hf3fs`
 
-DeepSeek 3FS distributed filesystem. The LMSYS blog's flagship reference (8× H20-3e + DeepSeek-R1 + 65,536-token context). Hybrid model support landing in v0.5.11 (PR #23241 merged 2026-04-24).
+DeepSeek 3FS distributed filesystem. The LMSYS blog's flagship reference (8× H20-3e + DeepSeek-R1 + 65,536-token context). Hybrid Mamba/DSA support shipped in v0.5.11 (PR #23241).
 
 ### Install
 
@@ -86,7 +86,7 @@ mount /mnt/3fs   # via the cluster's mount setup
 
 ### Gotchas
 
-- Hybrid Mamba/DSA support landing in v0.5.11 only. Pre-v0.5.11 fails with `ValueError: HiRadixCache only supports MHA and MLA yet` on Qwen3-Next / Qwen3.5 / DeepSeek-V3.2.
+- Hybrid Mamba/DSA support shipped in v0.5.11 (PR #23241). Pre-v0.5.11 fails with `ValueError: HiRadixCache only supports MHA and MLA yet` on Qwen3-Next / Qwen3.5 / DeepSeek-V3.2 — upgrade to ≥ v0.5.11.
 - `/flush_cache` times out under TP=2 — issue [#20499](https://github.com/sgl-project/sglang/issues/20499).
 
 ## `nixl`

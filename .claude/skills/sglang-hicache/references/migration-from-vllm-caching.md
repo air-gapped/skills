@@ -135,7 +135,7 @@ Where the TOML has `master_server_address`, `metadata_server`, `global_segment_s
 1. **Page size default differs**. vLLM: 16. SGLang: 1 on CUDA, 64 on MUSA. Set `--page-size 64` explicitly to match production hicache recipe.
 2. **Reasoning-parser flag must match.** vLLM `--reasoning-parser deepseek_r1` ↔ SGLang `--reasoning-parser deepseek-r1` (note hyphen). aiperf TTFT/TTFO splits depend on this.
 3. **Sizing in wrong units** is the #1 OOM source. See "Sizing math" above.
-4. **PP > 1 doesn't work** with SGLang HiCache (issue #22607). vLLM works with PP. If migrating from vLLM `pipeline-parallel-size > 1`, drop to `--pp-size 1` until v0.5.11.
+4. **PP > 1 doesn't work** with SGLang HiCache (issue #22607, still open as of 2026-05-29 — did not make the v0.5.11/v0.5.12 cut). vLLM works with PP. If migrating from vLLM `pipeline-parallel-size > 1`, drop to `--pp-size 1`.
 5. **`write_back` policy is bugged** — stay on `write_through` even if vLLM's LMCache was using lazy.
 
 ## Decision tree for the migrating operator
@@ -147,8 +147,8 @@ Is the model hybrid-attention (Gemma-4, Qwen3.5/3.6, gpt-oss, Llama-4)?
     ├── Hybrid SSM (Qwen3-Next/3.5/3.6, MiniMax-M2)?
     │   └── SGLang v0.5.10 + Mooncake L3 ✓
     ├── Hybrid SWA (Gemma-4, gpt-oss, Llama-4)?
-    │   └── Wait for SGLang v0.5.11 (PR #23391) OR
-    │       run with explicit --disable-hybrid-swa-memory + verify quality
+    │   └── SGLang ≥ v0.5.11 — SWA HiCache shipped (PR #23391). For the unguarded
+    │       Llama-4/gpt-oss/Gemma-4 archs still pass --disable-hybrid-swa-memory + verify quality
     └── DSA (DeepSeek-V3.2)?
-        └── SGLang v0.5.10 + Mooncake L3 ✓ (3FS in v0.5.11)
+        └── SGLang v0.5.10 + Mooncake L3 ✓ (3FS since v0.5.11)
 ```
