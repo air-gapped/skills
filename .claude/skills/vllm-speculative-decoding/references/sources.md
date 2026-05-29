@@ -19,14 +19,15 @@ file path (line numbers drift across refactors — re-verify on upgrade).
 | PR #29184 — ngram_gpu + async scheduler | https://github.com/vllm-project/vllm/pull/29184 | 2026-04-24 | MERGED 2026-03-07. v0.18 gate still correct. |
 | ArcticInference repo (suffix + LSTM speculators) | https://github.com/snowflakedb/ArcticInference | 2026-04-24 | Latest release v0.1.2 (2026-01-24); repo still active (last push 2026-04-23). |
 | yuhuili/EAGLE3-LLaMA3.1-Instruct-8B HF checkpoint | https://huggingface.co/yuhuili/EAGLE3-LLaMA3.1-Instruct-8B | 2026-04-24 | Present, 245k downloads, Apache-2.0, last modified 2025-09-19. |
-| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-04-24 | **v0.20.0** released 2026-04-23 (one day ago). Skill's version-gate table caps at v0.19; v0.20 spec-dec additions not yet audited. Re-run freshen on next skill-improver cycle. |
+| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-05-29 | Latest stable **v0.21.0** (2026-05-15); **v0.22.0rc** in flight as of 2026-05-29 (v0.20.0 2026-04-27, then v0.20.1/.2, v0.21.0). Version-gate table caps at v0.19 — audit v0.20/v0.21/v0.22 release notes for new spec-dec gates. Re-run freshen on next skill-improver cycle. |
+| EAGLE 3.1 announcement (vLLM blog) | https://vllm.ai/blog/2026-05-26-eagle-3-1 | 2026-05-29 | Config-driven extension of eagle3 (same `method` enum). FC-normalisation curbs attention drift at deeper k; up to 2× longer acceptance in long-context. Reference checkpoint `lightseekorg/kimi-k2.6-eagle3.1-mla`. Captured in `references/eagle3.md`. |
 | HF EAGLE-3 + DFlash recipe survey | `hf models list --search {eagle3,dflash} --limit 500` | 2026-04-30 | 369 EAGLE-3 + 97 DFlash repos. Top ~50 + top ~25 inspected for documented training datasets. Five recipe families recur. Tabulated in `references/training-data-recipes.md`. Re-run survey if Speculators / SGLang / SpecForge ship new defaults. |
 
 ## Classifications summary
 
 - **Fresh (no action):** all four vLLM PRs, ArcticInference, yuhuili HF checkpoint, aux_hidden_states allowlist content.
-- **Version-drift (minor):** line numbers in `vllm/config/speculative.py` drifted (818-833 → 895-909). Fixed in SKILL.md and methods.md.
-- **New-feature (noted only):** `MTPModelTypes` now includes 6 new model-specific aliases. Skill already documents that all `*_mtp` aliases route to unified `method="mtp"` so the eleven-method count remains correct; noted in this file for future audits. v0.20.0 exists but is un-audited — pins not bumped.
+- **Version-drift (minor):** line numbers in `vllm/config/speculative.py` drifted (818-833 → 895-909). Fixed in SKILL.md, methods.md, eagle3.md, and dflash.md.
+- **New-feature (noted only):** `MTPModelTypes` now includes 6 new model-specific aliases. Skill already documents that all `*_mtp` aliases route to unified `method="mtp"` so the eleven-method count remains correct; noted in this file for future audits. EAGLE 3.1 (2026-05-26) is a config-driven `eagle3` extension — captured in `eagle3.md`, no new method enum. v0.20/v0.21/v0.22 release notes not yet audited for new spec-dec gates — pins not bumped.
 
 ## Re-verification recipe
 

@@ -38,7 +38,8 @@ vLLM plumbing: `vllm/v1/spec_decode/dflash.py:20-250+`. Model definition:
 3. **Target-model allow-list**: same as EAGLE-3 (llama, qwen, minicpm,
    gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe, nemotron_h, deepseek_v2,
    deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4). See
-   `config/speculative.py:818-833`.
+   `config/speculative.py:895-909` (as of 2026-04-24; line numbers drift —
+   grep `aux_hidden_states_supported` on upgrade).
 4. **Multimodal is untested.** `_raise_if_multimodal` override at line 71
    raises if the target emits MM inputs.
 5. Checkpoint must be a DFlash-trained adapter — not a standard EAGLE-3

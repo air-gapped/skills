@@ -24,8 +24,9 @@ wrong. Upgrade before benchmarking.
 
 ## Target-model allow-list
 
-Hard-coded in `vllm/config/speculative.py:818-833`. Only these target
-`model_type`s accept EAGLE-3 (and DFlash):
+Hard-coded in `vllm/config/speculative.py:895-909` (as of 2026-04-24; line
+numbers drift — grep `aux_hidden_states_supported` on upgrade). Only these
+target `model_type`s accept EAGLE-3 (and DFlash):
 
 ```
 llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
@@ -112,6 +113,17 @@ Amazon's published numbers on 1× B200, GPT-OSS-20B BF16 target, FP8 KV:
 **K peaks at 7 for P-EAGLE** (vs 3 for vanilla EAGLE-3). The parallel forward
 amortises the drafter cost over more tokens so a larger k remains net
 positive.
+
+## EAGLE 3.1
+
+vLLM blog 2026-05-26 (EAGLE team + vLLM + TorchSpec): a config-driven extension
+of eagle3, backward compatible — the `method` field stays `"eagle3"`, no new enum
+value. Adds FC-normalisation after each target hidden state to curb the attention
+drift that degrades acceptance at deeper speculation depths (larger k). Reported
+up to 2× longer acceptance length in long-context and more robustness to
+chat-template / system-prompt variation. Reference checkpoint
+`lightseekorg/kimi-k2.6-eagle3.1-mla` (2.03× per-user throughput at concurrency
+1). Source: <https://vllm.ai/blog/2026-05-26-eagle-3-1>.
 
 ## Canonical invocation
 
