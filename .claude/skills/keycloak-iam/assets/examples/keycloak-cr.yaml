@@ -16,7 +16,7 @@ metadata:
   namespace: iam
 spec:
   instances: 3                          # ≥3 for HA quorum during pod restart
-  image: quay.io/keycloak/keycloak:26.6.1
+  image: quay.io/keycloak/keycloak:26.6.2
   startOptimized: false                  # set true if image is pre-built with `kc.sh build`
 
   hostname:

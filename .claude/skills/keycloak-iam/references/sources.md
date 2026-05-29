@@ -29,7 +29,7 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://www.keycloak.org/operator/realm | `KeycloakRealmImport` CR | 2026-05-06 | — |
 | https://www.keycloak.org/operator/rolling-updates | Zero-downtime patch update strategy (26.6+) | 2026-05-06 | — |
 | https://www.keycloak.org/high-availability/ | HA topology guide (single + multi-cluster) | 2026-05-06 | — |
-| https://github.com/keycloak/keycloak-k8s-resources | Per-version-tag operator install manifests (CRDs + RBAC + Deployment) | 2026-05-06 | — |
+| https://github.com/keycloak/keycloak-k8s-resources | Per-version-tag operator install manifests (CRDs + RBAC + Deployment); tags 26.6.1 and 26.6.2 both carry the 3 expected files | 2026-05-28 | — |
 
 ## Securing applications (developer surface)
 
@@ -45,10 +45,11 @@ Authoritative external references the skill points at. `freshen` mode probes the
 
 | URL | Purpose | Last verified | Pinned |
 |-----|---------|---------------|--------|
-| https://github.com/keycloak/keycloak | Upstream source — option mappers, operator code, themes | 2026-05-06 | — |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.1 | Latest stable release notes (April 2026) | 2026-05-06 | 26.6.1 |
+| https://github.com/keycloak/keycloak | Upstream source — option mappers, operator code, themes | 2026-05-28 | — |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.2 | Latest stable release notes (2026-05-19) — security-fix batch | 2026-05-28 | 26.6.2 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.1 | 26.6.1 release notes (2026-04-15) | 2026-05-28 | 26.6.1 |
 | https://github.com/keycloak/keycloak/releases/tag/26.6.0 | 26.6.0 release notes (highlights: Workflows, JWT-Authz-Grant, zero-downtime updates) | 2026-05-06 | 26.6.0 |
-| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list | 2026-05-06 | — |
+| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list (probe before quoting any CVE ID) | 2026-05-28 | — |
 | https://github.com/keycloak/keycloak-benchmark | Gatling-based load harness | 2026-05-06 | — |
 
 ## Specs referenced

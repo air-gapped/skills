@@ -20,12 +20,12 @@ Targets Keycloak 26.6.x on K8s 1.27+. The Keycloak Operator is the recommended p
 
 ## <a id="image"></a>1. Container image
 
-Official: `quay.io/keycloak/keycloak:26.6.1`. UBI 9 base, OpenJDK 21 (the 21 is intentional; the FIPS-certified Bouncy Castle path is on 21, not 25, so the image stays on 21 even though Keycloak supports running on JDK 25). Multi-arch (amd64, arm64).
+Official: `quay.io/keycloak/keycloak:26.6.2`. UBI 9 base, OpenJDK 21 (the 21 is intentional; the FIPS-certified Bouncy Castle path is on 21, not 25, so the image stays on 21 even though Keycloak supports running on JDK 25). Multi-arch (amd64, arm64).
 
 Custom image pattern (for `--optimized` + theme/provider bundling):
 
 ```dockerfile
-FROM quay.io/keycloak/keycloak:26.6.1 AS builder
+FROM quay.io/keycloak/keycloak:26.6.2 AS builder
 ENV KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true \
     KC_DB=postgres \
@@ -34,7 +34,7 @@ COPY my-custom-theme.jar /opt/keycloak/providers/
 COPY my-custom-spi.jar /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM quay.io/keycloak/keycloak:26.6.1
+FROM quay.io/keycloak/keycloak:26.6.2
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized"]
 ```
@@ -43,7 +43,7 @@ Then in the Keycloak CR:
 
 ```yaml
 spec:
-  image: registry.example.com/keycloak:26.6.1-mycorp
+  image: registry.example.com/keycloak:26.6.2-mycorp
   startOptimized: true       # tells the operator NOT to override your --optimized
 ```
 
@@ -60,7 +60,7 @@ If `startOptimized` is unset, the operator decides based on whether `image` is t
 The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — three files per version tag, under `kubernetes/`. Apply to install:
 
 ```bash
-KC_VERSION=26.6.1
+KC_VERSION=26.6.2
 BASE=https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/$KC_VERSION/kubernetes
 
 # CRDs first (cluster-scoped)
@@ -80,13 +80,13 @@ The `kubernetes.yml` deploys the operator with namespace-scoped RBAC. To watch m
 
 ### Pin operator and Keycloak versions together
 
-The operator at tag `26.6.1` is built and tested against Keycloak `26.6.1`. When you upgrade, upgrade both — the CRD schema can change between minor versions. Mismatched pairs fail in confusing ways (CRD validation rejects `spec.update.strategy=Auto` if you forgot to upgrade the CRD).
+The operator at tag `26.6.2` is built and tested against Keycloak `26.6.2`. When you upgrade, upgrade both — the CRD schema can change between minor versions. Mismatched pairs fail in confusing ways (CRD validation rejects `spec.update.strategy=Auto` if you forgot to upgrade the CRD).
 
 ---
 
 ## <a id="cr-shape"></a>3. The full Keycloak CR shape
 
-Authoritative source: the `keycloaks.k8s.keycloak.org-v1.yml` CRD at the version tag you're targeting. Use `python3 -c "import yaml; print(...)"` against the file, or browse the OpenAPIV3 schema. Top-level `spec` fields in 26.6.1:
+Authoritative source: the `keycloaks.k8s.keycloak.org-v1.yml` CRD at the version tag you're targeting. Use `python3 -c "import yaml; print(...)"` against the file, or browse the OpenAPIV3 schema. Top-level `spec` fields in 26.6.x:
 
 | Field                            | Type     | What it does                                                                              |
 |----------------------------------|----------|-------------------------------------------------------------------------------------------|
@@ -243,7 +243,7 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.6.1
+          image: quay.io/keycloak/keycloak:26.6.2
           args: ["start", "--optimized"]
           env:
             - name: KC_HOSTNAME

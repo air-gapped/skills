@@ -14,7 +14,7 @@ For Keycloak 26.6.x. Source-of-truth for behavior: `docs/documentation/server_ad
 9. [Redirect URI / SSRF / open-redirect surface](#ssrf)
 10. [CSP, X-Frame-Options, Security Defenses](#csp)
 11. [TLS hardening and FIPS](#tls)
-12. [Recent CVEs (26.4 → 26.6.1)](#cves)
+12. [Recent CVEs — pull the live list](#cves)
 
 ---
 
@@ -80,7 +80,7 @@ The lockout response is intentionally generic ("Invalid username or password") t
 
 Short access-token TTLs are the easy lever. Refresh-token rotation (per-client setting) limits replay damage if a refresh token is stolen.
 
-26.6.1 fixed a subtle bug (`#47776`) where the session-type of an offline_access refresh token was incorrectly tracked when scope was requested without offline_access — this affected offline session lifecycle. Make sure to upgrade.
+Offline-session lifecycle has had subtle bugs around how the session-type of an offline_access refresh token is tracked when scope is requested without offline_access. Stay on a current 26.6.x patch and confirm fixed-version claims against the release-notes body (`gh release view <tag> --repo keycloak/keycloak --json body`).
 
 ---
 
@@ -91,7 +91,7 @@ Short access-token TTLs are the easy lever. Refresh-token rotation (per-client s
 Things to know:
 
 - **Conditional sub-flows** are how step-up (LoA / ACR) works. Mark a sub-flow `Conditional`, add a `Condition - Level Of Authentication` execution to gate it.
-- **Identity-first login** (separate username and password screens) is now the default. CVE-2026-4633 fixed user enumeration via small response-time differences on this flow — upgrade to 26.6.1.
+- **Identity-first login** (separate username and password screens) is now the default. This flow has historically been the surface for user-enumeration-via-timing findings; stay current and check the advisory feed (§CVE table) before asserting a given version is unaffected.
 - **Required actions** (Configure OTP, Verify Email, Update Profile, …) are independent of flows — they fire on next login regardless of which flow handled auth.
 - **Step-up authentication for SAML** is preview in 26.6 (`step-up-authentication-saml` feature). For OIDC it's been GA for several releases.
 
@@ -182,13 +182,7 @@ The most-exploited surface in any IdP. Rules:
 3. **Web Origins** controls CORS; tighter than redirect URIs.
 4. The **Secure Client URIs** executor (in client policies) rejects `http://` (non-loopback), wildcards, IP-literal hosts. Apply it to all production clients.
 
-### CVE-2026-4366 (fixed in 26.6.1)
-
-SSRF via HTTP redirect handling — Keycloak's HTTP client followed redirects without re-validating against the configured allowlist. Affected the parts of the server that fetch external URLs (IdP discovery, JWKS, user-info, theme remote resources). Fix re-applies allowlist on every redirect hop. **No user-side action beyond upgrading**, but if you've customized any IdP discovery / JWKS URL resolution, retest.
-
-### CVE-2026-4633 (fixed in 26.6.1)
-
-User enumeration via identity-first login — small timing differences in the response let an attacker probe whether a username exists. Fix introduces constant-time path handling. **Action**: upgrade; review your login flow if you cloned the built-in identity-first flow before 26.6.1.
+Redirect-URI validation bypass and SSRF-via-redirect classes recur across Keycloak releases (the HTTP client used for IdP discovery, JWKS, user-info, and theme remote resources is the usual surface). When advising on a specific version, pull the current advisory set with `gh api repos/keycloak/keycloak/security-advisories` rather than recalling CVE IDs — see the §CVE table below for how. Customised IdP-discovery / JWKS URL resolution should be retested after any redirect-handling fix.
 
 ---
 
@@ -230,23 +224,25 @@ Read `docs/guides/server/fips.adoc` for the full list before flipping the switch
 
 ---
 
-## <a id="cves"></a>12. Recent CVEs (26.4 → 26.6.1)
+## <a id="cves"></a>12. Recent CVEs — pull the live list, don't recall IDs
 
-Always check `gh api repos/keycloak/keycloak/security-advisories` for the canonical list. The table below is a snapshot as of May 2026. **High-severity items in bold.**
+CVE identifiers and fixed-in versions are exactly the kind of detail that must never be quoted from memory: they get invented, mis-dated, or attributed to the wrong release. **The canonical source is the GitHub Security Advisory feed.** Run these before answering any "is version X vulnerable" / "what did 26.6.2 fix" question:
 
-| CVE              | Severity | Affected     | Fixed in   | One-liner                                                                                |
-|------------------|----------|--------------|------------|------------------------------------------------------------------------------------------|
-| **CVE-2026-4366** | High    | <26.6.1     | 26.6.1     | Blind SSRF via HTTP redirect handling (in core HTTP client used for IdP discovery/JWKS). |
-| CVE-2026-4633     | Medium  | <26.6.1     | 26.6.1     | User enumeration via identity-first login (timing).                                       |
-| **CVE-2026-3429** | High    | <26.5.4     | 26.5.4     | LoA validation skipped on credential delete when client overrides flow.                   |
-| CVE-2026-0707     | High    | <26.5.4 (subset) | 26.5.4 | Authorization Bearer token validation gap.                                                 |
-| CVE-2025-66021    | Medium  | <26.5.0     | 26.5.0     | OWASP HTML Sanitizer XXE.                                                                  |
-| CVE-2024-47072    | Medium  | <26.5.0     | 26.5.0     | XStream DoS (stack overflow on crafted input).                                             |
-| CVE-2024-11734    | Medium  | <26.4.x     | 26.4.x     | DoS via unbounded string concat in security headers.                                       |
-| CVE-2024-10270    | Medium  | <26.4.x     | 26.4.x     | DoS via unbounded recursion in token processing.                                           |
-| CVE-2023-3597     | High    | older        | 26.4.x+    | Secondary-factor bypass when LoA not enforced.                                             |
-| CVE-2023-6291     | Medium  | older        | 26.4.x+    | Redirect URI bypass.                                                                       |
+```bash
+# Full advisory feed (CVE id, severity, summary, fixed versions) — newest first
+gh api repos/keycloak/keycloak/security-advisories \
+  --jq '.[] | {cve: .cve_id, ghsa: .ghsa_id, sev: .severity, published: .published_at, summary: .summary}'
+
+# What a specific release closed (the release body lists its Security fixes section)
+gh release view 26.6.2 --repo keycloak/keycloak --json body --jq '.body'
+
+# Confirm whether a given CVE applies and its patched range
+gh api repos/keycloak/keycloak/security-advisories \
+  --jq '.[] | select(.cve_id=="CVE-XXXX-YYYYY") | {sev: .severity, vulns: .vulnerabilities}'
+```
+
+Cross-check the `vulnerabilities[].patched_versions` field against the deployed version to decide if an upgrade is required. Map each advisory to the relevant hardening section above (redirect-URI / SSRF findings → §9; flow/timing findings → §4; token/session findings → §3 and §6) when advising on remediation.
+
+**As of 2026-05, latest stable is 26.6.2 (2026-05-19), a security-fix batch.** Quote its specific CVE set from the `gh release view 26.6.2` body, not from memory.
 
 For deployments stuck on 26.4.x/26.5.x for compatibility reasons, Red Hat backports security fixes to the RHBK LTS line (26.0 has long-term support). Upgrade, but if you can't, RHBK is the bridge.
-
-When asked "is version X vulnerable to Y," **always cross-check** with `gh api repos/keycloak/keycloak/security-advisories` and the `gh release view <tag>` body — this table is a starting point, not the source of truth.
