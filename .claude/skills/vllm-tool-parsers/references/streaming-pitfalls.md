@@ -55,17 +55,7 @@ grep -l "is_reasoning_end\|</think>\|</seed:think>" vllm/tool_parsers/
 
 ## Diagnostic flow
 
-When an operator reports a broken tool call:
-
-1. Flags set? `grep tool_call_parser` in their serve command.
-2. Right parser? `grep <model-family> vllm/tool_parsers/__init__.py` to confirm registration.
-3. Right chat template? Byte-diff their Jinja against `examples/tool_chat_template_<name>.jinja`.
-4. Reasoning parser paired? Match per table in `SKILL.md`.
-5. Streaming supported? Grep the parser file for `NotImplementedError` or unconditional `return None`.
-6. `finish_reason` wrong? Check `prev_tool_call_arr` population at stream end.
-7. **Isolate template vs parser**: call `/v1/completions` without `--tool-call-parser` and inspect raw bytes of output. If the model isn't emitting sentinels, it's a template/training problem, not a parser bug.
-8. Check known bugs: `gh search issues --repo vllm-project/vllm "<parser-name>" --state open`.
-9. Check vLLM version vs fix PRs: `gh search prs --repo vllm-project/vllm "<parser-name>" --state merged --json title,url,mergedAt`.
+The canonical step-by-step playbook lives in `SKILL.md` ("Diagnostic playbook"). Don't duplicate it here — the streaming-specific footguns above feed steps 5–9 of that playbook (streaming support, `finish_reason`/`prev_tool_call_arr`, template-vs-parser isolation, version-vs-fix-PR checks).
 
 ## When to recommend vs not
 

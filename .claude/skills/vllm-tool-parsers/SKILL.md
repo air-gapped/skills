@@ -1,9 +1,9 @@
 ---
 name: vllm-tool-parsers
 description: |-
-  vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source paraphrase. All 36+ built-in parsers (JSON-sentinel, pythonic, XML, harmony grammars), CLI contract (`--enable-auto-tool-choice`, `--reasoning-parser` pairing, chat-template selection), framework contract (`prev_tool_call_arr` + `streamed_args_for_tool` flush invariants, `ToolParser.adjust_request`, `ToolParserManager.register_module`), diagnostic playbook (isolate template-vs-parser via raw `/v1/completions` + unicodedata codepoint decode).
+  vLLM tool-calling operator reference — picking `--tool-call-parser` per model family, writing custom parsers via `--tool-parser-plugin`, navigating vLLM source + GitHub tracker to debug any specific tool-call question. Pointer map, not source paraphrase. All 40+ built-in parsers (JSON-sentinel, pythonic, XML, harmony grammars), CLI contract, `prev_tool_call_arr`/`streamed_args_for_tool` flush invariants, diagnostic playbook (isolate template-vs-parser via raw `/v1/completions` + unicodedata codepoint decode).
 when_to_use: |-
-  Trigger on any tool-calling/function-calling question against a vLLM deployment — `--tool-call-parser`/`--enable-auto-tool-choice` flag issues, "tool call not firing", duplicate argument chunks, missing `}` at stream end, `finish_reason` stuck on `stop`, any `<tool_call>`/`<|tool_calls_begin|>`/`[TOOL_CALLS]`/`<|python_tag|>`/`<|action_start|>`/`<seed:tool_call>` sentinel in raw content, Claude Code/LangChain/OpenAI-SDK tool failures, pythonic-vs-JSON for Llama, Mistral v11 `[TOOL_CALLS]`, DeepSeek `｜` (U+FF5C), GLM XML, Qwen3 XML vs Qwen3-Coder, Hermes `skip_special_tokens=False`, reasoning + tool ordering. Applies even without naming the parser — "my Qwen isn't calling tools" is this skill. Also implicit — "function calls broken", "MCP tools not firing", "model won't call tools", "audit tool parser", "deploy-memo tool calling".
+  Trigger on any tool-calling/function-calling question against a vLLM deployment — `--tool-call-parser`/`--enable-auto-tool-choice` flag issues, "tool call not firing", missing `}` at stream end, `finish_reason` stuck on `stop`, any `<tool_call>`/`<|tool_calls_begin|>`/`[TOOL_CALLS]`/`<|python_tag|>` sentinel in raw content, Claude Code/LangChain/OpenAI-SDK tool failures, pythonic-vs-JSON for Llama, Mistral v11, DeepSeek `｜` (U+FF5C), GLM XML, Qwen3 XML vs Qwen3-Coder, Hermes `skip_special_tokens=False`. Applies even without naming the parser — "my Qwen isn't calling tools" is this skill. Also implicit — "MCP tools not firing", "audit tool parser", "deploy-memo tool calling".
 ---
 
 # vLLM Tool Parsers — Navigation Map
@@ -61,7 +61,13 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
 | `qwen3_coder` (alias `mimo`) | Qwen3-Coder-480B/30B | `tool_chat_template_qwen3coder.jinja` |
 | `qwen3_xml` (alias `mimo`) | Qwen3-XML family | (same grammar as qwen3_coder) |
-| `deepseek_v3` / `deepseek_v31` / `deepseek_v32` | DeepSeek-V3/R1, V3.1, V3.2 | `tool_chat_template_deepseek_v3.jinja`, `_deepseekv31.jinja` |
+| `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseek_v3.jinja`, `_deepseekv31.jinja` |
+| `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
+| `apertus` | Apertus | (HF default) |
+| `lfm2` | LFM2 | (HF default) |
+| `minicpm5` | MiniCPM-5 | `tool_chat_template_minicpm5.jinja` |
+| `poolside_v1` | Poolside (GLM-4-style grammar) | (HF default) |
+| `hy_v3` | Hunyuan V3 (newer than `hunyuan_a13b`) | (HF default) |
 | `glm45` / `glm47` | GLM-4.5/4.6, GLM-4.7 | `tool_chat_template_glm4.jinja` |
 | `granite` / `granite-20b-fc` / `granite4` | Granite-3.0/3.1, Granite-20B-FC, Granite-4.0 | `tool_chat_template_granite.jinja`, `_granite_20b_fc.jinja` |
 | `phi4_mini_json` | Phi-4-mini | `tool_chat_template_phi4_mini.jinja` |
@@ -213,4 +219,4 @@ Compact supplementary maps. Each points back at the source rather than duplicati
 
 ---
 
-**Last verified: 2026-04-24.** See `references/sources.md` for per-reference probe details and timestamps.
+**Last verified: 2026-05-28.** See `references/sources.md` for per-reference probe details and timestamps.

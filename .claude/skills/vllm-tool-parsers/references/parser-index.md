@@ -23,6 +23,13 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 | `seed_oss` | `seed_oss_tool_parser.py` | Gated on `</seed:think>` having been emitted. XML inner grammar. |
 | `hunyuan_a13b` | `hunyuan_a13b_tool_parser.py` | Regex-only, ONE level of nested JSON (TODO at line ~61). |
 | `hy_v3` | `hy_v3_tool_parser.py` | Hunyuan V3 parser (newer than `hunyuan_a13b`). Read the file — sentinel grammar + state-machine details live there. |
+| `deepseek_v4` | `deepseek_v4_tool_parser.py` | DeepSeek-V4 successor to v3/v31/v32. Same full-width sentinels: `<｜tool▁calls▁begin｜>` (U+FF5C `｜` + U+2581 `▁`), NOT ASCII. |
+| `cohere_command3` | `cohere_command3_tool_parser.py` | Command-A / Command-R7B. JSON array between `<\|START_ACTION\|>` / `<\|END_ACTION\|>`; keys are `tool_name` + `parameters` (not `name`/`arguments`). |
+| `cohere_command4` | `cohere_command4_tool_parser.py` | Command-A-Reasoning / Command-A-Vision. Same `<\|START_ACTION\|>` grammar as `cohere_command3`. |
+| `apertus` | `apertus_tool_parser.py` | JSON array `[{"name","arguments"}]` wrapped in `<tool_calls>` / `</tool_calls>`. Has streaming. |
+| `lfm2` | `lfm2_tool_parser.py` | Liquid LFM2. Pythonic `[func(arg=val)]` inside `<\|tool_call_start\|>` / `<\|tool_call_end\|>`. **Streaming not supported** — full responses only. |
+| `minicpm5` | `minicpm5xml_tool_parser.py` | XML `<function>` / `<parameter>` tags inside `<\|tool_call_start\|>` / `<\|tool_call_end\|>`. Pairs with `tool_chat_template_minicpm5.jinja`. |
+| `poolside_v1` | `poolside_v1_tool_parser.py` | GLM-4-style grammar (docstring says "GLM-4"): `<tool_call>` with `<arg_key>`/`<arg_value>` tags, NOT JSON-in-tags. Streams string values incrementally (fix for #32829). |
 
 ## Pythonic / XML / custom-grammar family
 
