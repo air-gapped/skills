@@ -1,13 +1,16 @@
 ---
 name: helm
 description: >-
-  Author and maintain Helm charts: create chart, write templates, values.yaml patterns,
-  _helpers.tpl, Chart.yaml, values.schema.json, helm-docs, library charts. Helm 4 (SSA,
-  WASM, OCI digest). Chart CI/CD (lint, helm-unittest, chart-testing, kubeconform, OCI
-  push). OpenShift compatibility (SCCs, Routes, UIDs, adaptSecurityContext). Chart
-  security (SecurityContext, RBAC, NetworkPolicy, cosign signing, image digest pinning).
-  CRD management, ServiceMonitor templates, HPA, persistence, resource presets.
-  NOT for installing or consuming third-party charts.
+  This skill should be used when authoring or maintaining Helm charts — creating
+  charts, writing templates and _helpers.tpl, values.yaml patterns, Chart.yaml,
+  values.schema.json, helm-docs, and library charts. Covers Helm 4 (SSA, WASM, OCI
+  digest), chart CI/CD, OpenShift compatibility, chart security, CRD management, and
+  production templates. NOT for installing or consuming third-party charts.
+when_to_use: >-
+  Triggers on Helm charts, _helpers.tpl, values.schema.json, helm-docs, library
+  charts, helm-unittest, chart-testing, kubeconform, OCI push, SCCs, Routes,
+  adaptSecurityContext, cosign signing, image digest pinning, SecurityContext, RBAC,
+  NetworkPolicy, ServiceMonitor templates, HPA, persistence, or resource presets.
 ---
 
 # Helm Charts
@@ -36,7 +39,8 @@ Cilium, cert-manager, and ArgoCD.
 
 ### 1. Helm 4 Is Current (Released November 2025)
 
-Helm 4.0.0 released at KubeCon November 2025. Current: v4.1.3. Key changes:
+Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.0 (latest patch line
+v4.1.4 on the 4.1 series). Key changes:
 
 - **Server-Side Apply** is default for new installations (existing Helm 3 releases
   keep client-side apply on upgrade unless `--server-side` is passed)

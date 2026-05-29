@@ -36,7 +36,7 @@ Five layers from fastest (no cluster) to slowest (real cluster):
 
 ## helm-unittest
 
-BDD-style unit testing. No cluster needed. v1.0.3 (October 2025).
+BDD-style unit testing. No cluster needed. v1.1.0.
 
 ### Installation
 
@@ -355,7 +355,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.7.0
+      - uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
 
       - name: List changed charts
         id: list-changed
@@ -591,7 +591,7 @@ based on conventional commits scoped to the chart path.
 
 ## Helmfile
 
-Declarative multi-release management. v1.3.1 (February 2026). Supports Helm 3+4.
+Declarative multi-release management. v1.5.2. Supports Helm 3+4.
 
 ### helmfile.yaml
 
@@ -705,7 +705,7 @@ repos:
         args: [--chart-search-root=charts]
 
   - repo: https://github.com/dadav/helm-schema
-    rev: v0.23.0
+    rev: v0.23.3
     hooks:
       - id: helm-schema
 ```

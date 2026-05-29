@@ -536,7 +536,7 @@ Must be named `values.schema.json` alongside `values.yaml`. Validated during
 
 ### Generation Tools
 
-- **`dadav/helm-schema`** (v0.23.0) — Generates from `@schema` annotations in
+- **`dadav/helm-schema`** (v0.23.3) — Generates from `@schema` annotations in
   values.yaml. Supports JSON Schema Draft 7. Has pre-commit hook. GPG-signed
   releases for Helm 4 plugin verification.
 - **`losisin/helm-values-schema-json`** — Helm plugin. Supports multiple drafts
