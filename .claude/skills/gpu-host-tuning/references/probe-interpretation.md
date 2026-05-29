@@ -84,8 +84,10 @@ On bare metal, expect:
   is correct for SPR/EMR/Granite.
 - `intel_pstate.no_turbo = 0` ✓
 - `hwp_dynamic_boost = 1` (when supported)
-- `amd_pstate.status = active` or `guided` (kernel 6.3+); `passive` is the old
-  behavior, equivalent to acpi-cpufreq
+- `amd_pstate.status = active` or `guided`; `active` (EPP) landed in kernel
+  6.1 and became default in 6.3, `guided` arrived in 6.3 — the base
+  `amd_pstate` driver itself shipped in 5.17. `passive` is the old behavior,
+  equivalent to acpi-cpufreq
 - Old hardware: `acpi-cpufreq boost = 1`
 
 ### `24_cstates.txt`

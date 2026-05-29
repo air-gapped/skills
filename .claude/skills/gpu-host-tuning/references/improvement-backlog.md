@@ -63,6 +63,39 @@ made and the metric registered.
 
 ## Resolved this pass
 
+Run: 2026-05-28 — 1 keep (currency precision), 1 freshen stamp. Self 85 → 86/100.
+
+- **Iter 1 (KEEP, Dim 5/9):** `probe-interpretation.md:87` — refined the
+  `amd_pstate.status = active or guided (kernel 6.3+)` parenthetical. The old
+  wording attached `6.3+` to `active`, implying active/EPP needs 6.3, which is
+  wrong: the base `amd_pstate` driver shipped in 5.17, `active` (EPP) landed in
+  6.1, `guided` and default-on arrived in 6.3. New text states each milestone
+  precisely. (`recommended-tunings.md:71` says "guided EPP mode (kernel 6.3+)"
+  which is correct — left unchanged.)
+- **Freshen (sources.md:17):** re-confirmed `github.com/NVIDIA/nvbandwidth` is
+  the NVIDIA-recommended bandwidth tool today; stamped Last verified 2026-05-28
+  and added the cuda-samples `bandwidthTest` removal (v13.0) context to Notes.
+
+### Recon/layout mismatch note (2026-05-28)
+
+The RECON for this pass was generated against an imagined reference-file layout
+(`verification-and-benchmarks.md`, `cpu-governor-and-pstate.md`,
+`nccl-and-fabric.md`) that does NOT exist in this skill. Its headline
+hypotheses were already satisfied by the real files and required no action:
+- "swap bandwidthTest → nvbandwidth": already done — the skill uses
+  `nvbandwidth` everywhere (`bringup-recipe.md:116-128`, `collect.sh:461-468`,
+  `sources.md:17`); no `bandwidthTest`/`cuda-samples`/`demo_suite` reference
+  exists anywhere in the skill.
+- "fix amd_pstate=active >=5.17 gate": the skill never claimed `>=5.17`; it said
+  `(kernel 6.3+)`. Addressed precisely in Iter 1 above.
+- "add nvbandwidth source row" / "add 8xH100 busbw citation": both already
+  present (`sources.md:17`; `bringup-recipe.md:143` cites Cisco/NVIDIA MLPerf
+  for ~480 GB/s on H200 8×, `:130` cites Together.ai for H100 ~389 GB/s).
+Future passes: ground hypotheses against the actual `references/` listing, not
+the recon's assumed filenames.
+
+---
+
 Run: 2026-05-04 — 9 keeps, 1 discard, score 74 → 85/100 (self), 80 → 96/100 (blind).
 
 - **Iter 1:** Split `description` (1079 chars, **violated 1024-char Agent

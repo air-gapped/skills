@@ -14,7 +14,7 @@ content was confirmed at skill authoring; freshen mode flags these as
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://github.com/NVIDIA/nvbandwidth | host↔device + multinode bandwidth bench | 2026-05-04 | v0.9 | release tag v0.9 (2026-04-08) |
+| https://github.com/NVIDIA/nvbandwidth | host↔device + multinode bandwidth bench | 2026-05-28 | v0.9 | release tag v0.9 (2026-04-08); NVIDIA-recommended replacement for the removed cuda-samples `bandwidthTest` (dropped in cuda-samples v13.0) |
 | https://github.com/NVIDIA/nccl-tests | NCCL all-reduce / all-gather perf tests | 2026-05-04 | NCCL_TESTS_VERSION 2.18.3 | latest commit 2026-04-13 |
 | https://docs.nvidia.com/dgx/dgx-el10-user-guide/modifying-tuned.html | DGX TuneD profile catalog (a100/h100/h200/h800/b200/b300, base + crashdump) | 2026-05-04 | DGX EL 10 | page last updated 2026-04-13 |
 | https://enterprise-support.nvidia.com/s/article/bios-performance-tuning-example | NVIDIA BIOS performance tuning example | 2026-05-04 | — | live; SPA — WebFetch returns CSS error, browser-only |
