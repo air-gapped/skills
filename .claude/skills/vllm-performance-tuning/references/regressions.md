@@ -1,6 +1,6 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Current as of v0.19.0 (April 2026).
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Current as of v0.21.0 (verified 2026-05-28).
 
 ## Version regressions
 
@@ -47,7 +47,7 @@ Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWIS
 
 | Issue | Details |
 |---|---|
-| `VLLM_ROCM_USE_AITER_FP4BMM=True` default crash | MI300X gfx942 has no FP4 hardware. Regression from Jan 15 2026 commit `8c11001`. [#34641](https://github.com/vllm-project/vllm/issues/34641). Set `VLLM_ROCM_USE_AITER_FP4BMM=False` |
+| `VLLM_ROCM_USE_AITER_FP4BMM=True` default crash | MI300X gfx942 has no FP4 hardware. Regression from Jan 15 2026 commit `8c11001`. [#34641](https://github.com/vllm-project/vllm/issues/34641) — **closed 2026-05-28**. Legacy workaround for pre-fix builds: `VLLM_ROCM_USE_AITER_FP4BMM=False`; upgrade clears it |
 | FP8 **slower** than BF16 in steady-state decode | Large MoE (GLM-4.7, MiniMax-M2.1). Counter-intuitive but reproducible. [#31475](https://github.com/vllm-project/vllm/issues/31475) |
 | Whisper response inaccurate | [#20069](https://github.com/vllm-project/vllm/issues/20069) |
 
@@ -61,7 +61,7 @@ Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWIS
 |---|---|
 | Fresh install regression on NPU 910B | [vllm-omni #2898](https://github.com/vllm-project/vllm-omni/issues/2898) |
 | 8× 910B serving Qwen3.5-122B-A10B hangs at 8% | running_reqs peaks at ~60 (below configured concurrency), KV drops to 0. [forum](https://discuss.vllm.ai/t/on-8-card-ascend-910b-with-vllm-serving-qwen3-5-122b-a10b-the-client-freezes-at-8-progress-when-running-accuracy-test-as-the-server-stops-receiving-new-requests-after-running-reqs-and-kv-cache-fall-to-0/2538) |
-| Async scheduling precision bug on v0.11.0rc2 | [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649). Disable async-sched on Ascend until fixed |
+| Async scheduling precision bug on v0.11.0rc2 | [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — **fixed, closed 2026-03-13**. Upgrade vllm-ascend rather than disabling async-sched |
 | HunyuanVideo 1.5 `mindiesd` flash-attn shape | [vllm-omni #2880](https://github.com/vllm-project/vllm-omni/issues/2880) |
 
 ### Intel XPU

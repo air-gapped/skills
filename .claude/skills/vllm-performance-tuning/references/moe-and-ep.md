@@ -140,7 +140,7 @@ Recommended **32 redundant experts at scale** — hot experts get replicated acr
 | H200 + CX-7 IB (Coreweave) | DeepSeek-R1 | 2.2k tok/s/GPU (vs ~1.5k baseline) | [vllm.ai/blog/large-scale-serving](https://vllm.ai/blog/large-scale-serving) |
 | 8× GB200 decode + 4×(2× GB200) prefill | DeepSeek-R1 | 26.2K TPGS prefill, 10.1K TPGS decode (3-5× H200) | [vllm.ai/blog/dsr1-gb200-part1](https://vllm.ai/blog/dsr1-gb200-part1) |
 
-GB200 numbers used NVFP4 dispatch (4× less comm volume vs FP16), weight-offload v2 over NVLink-C2C, new chunk knobs `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, `VLLM_FUSED_MOE_CHUNK_SIZE`.
+GB200 numbers used NVFP4 dispatch (4× less comm volume vs FP16), weight-offload v2 over NVLink-C2C, and the then-current chunk knobs `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, `VLLM_FUSED_MOE_CHUNK_SIZE`. **MoE DP chunking was removed in the v0.20.0 MoE refactor ([PR #39107](https://github.com/vllm-project/vllm/pull/39107)) — these env vars are historical to the GB200 Part-I numbers; on v0.20.0+ they no longer apply.**
 
 ## Parallelism decision matrix
 

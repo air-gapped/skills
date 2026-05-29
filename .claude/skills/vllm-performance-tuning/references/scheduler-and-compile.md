@@ -24,11 +24,11 @@ Load when: tuning TTFT vs TPOT tradeoffs, diagnosing "scheduler stalls", debuggi
 Incompatible-or-fragile paths:
 - Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/issues/26866)
 - Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/issues/24799), [#29821](https://github.com/vllm-project/vllm/issues/29821)
-- Pipeline parallelism — **still broken** ([#27679](https://github.com/vllm-project/vllm/issues/27679))
-- Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679)
-- vllm-ascend v0.11.0rc2 — **precision regression** ([ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649))
+- Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged; verify on the running version
+- Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679) closed 2026-01-07
+- vllm-ascend v0.11.0rc2 — precision regression **fixed**, [ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) closed 2026-03-13; upgrade rather than disabling
 
-Disable per-deployment when any above applies.
+Disable per-deployment only when reproduced on the running version.
 
 ### Preemption + swap-space tuning
 
