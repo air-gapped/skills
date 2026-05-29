@@ -2,8 +2,9 @@
 
 ## Currency note (May 2026)
 
-- **Latest stable:** v3.3.9 (2026-04-30).
-- **Latest RC:** v3.4.0-rc7 (2026-04-30); GA expected May/June 2026.
+- **Latest stable:** v3.4.3 (2026-05-28). v3.4 reached GA in early May 2026
+  (v3.4.0 on 2026-05-06).
+- **Maintenance line:** v3.3.x (latest v3.3.11, 2026-05-28).
 - **The repo's `CHANGELOG.md` is stale** — last entry is v2.4.8 (July 2022).
   Canonical changelog is the GitHub release-note set. Use
   `gh release view <tag> --repo argoproj/argo-cd` and the per-version
@@ -346,7 +347,7 @@ migration is non-trivial.
 
 ---
 
-## v3.4 (rc7 — 2026-04-30) — defaults sharpening + impersonation extension
+## v3.4 (GA — v3.4.0 2026-05-06, latest v3.4.3 2026-05-28) — defaults sharpening + impersonation extension
 
 Read `docs/operator-manual/upgrading/3.3-3.4.md` and `3.4-3.5.md`.
 
@@ -461,10 +462,21 @@ No feature was demoted in 3.0 → 3.4.
 
 ## CVE callouts (app-author-relevant)
 
-- **CVE-2026-42880** (critical, May 2026). `ServerSideDiff` combined
-  with `IncludeMutationWebhook=true` leaks Secrets in the rendered diff.
-  **Patched in v3.3.8 / v3.2.10 / v3.1.15.** Upgrade before enabling SSD
-  with mutation-webhook inclusion.
+- **CVE-2026-42880** (critical, advisory published 2026-05-01). `ServerSideDiff`
+  combined with `IncludeMutationWebhook=true` leaks Secrets in the rendered diff.
+  **Patched in v3.3.9 / v3.2.11** (GHSA-3v3m-wc6v-x4x3). Upgrade before enabling
+  SSD with mutation-webhook inclusion.
+- **CVE-2026-45737** (medium, advisory published 2026-05-13,
+  GHSA-rg3g-4rw9-gqrp). Further `ServerSideDiff` Kubernetes-Secret extraction
+  via sensitive annotations — same exposure class as CVE-2026-42880. Confirm
+  the running build post-dates the 2026-05-13 batch before relying on SSD
+  near Secret-bearing resources.
+- **CVE-2026-45738** (high, advisory published 2026-05-13,
+  GHSA-h98r-wv3h-fr38). Stored XSS via application link annotations
+  (the `info[].value` / link annotations rendered in the UI) enables a
+  developer who can edit Application annotations to escalate to admin.
+  Treat user-settable Application annotations as an untrusted UI-injection
+  surface; upgrade past the 2026-05-13 batch.
 - **CVE-2025-55190** (critical, Sept 2025). Project API tokens leak
   repo credentials. Sanitised project API response is the fix
   ([GHSA-786q-9hcg-v9ff](https://github.com/argoproj/argo-cd/security/advisories/GHSA-786q-9hcg-v9ff)).

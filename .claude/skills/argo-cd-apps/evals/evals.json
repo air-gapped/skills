@@ -37,5 +37,5 @@
       "files": []
     }
   ],
-  "notes": "Targeting Argo CD v3.3.9 (latest stable May 2026) and v3.4.0-rc7. Test prompts are realistic flavor — informal punctuation, abbreviated context. Skill should produce production-ready YAML with v3.x defaults baked in (annotation tracking, ServerSideApply, RespectIgnoreDifferences=true, no `default` project)."
+  "notes": "Targeting Argo CD v3.4.x (GA; latest stable v3.4.3, May 2026) and the v3.3.x maintenance line. Test prompts are realistic flavor — informal punctuation, abbreviated context. Skill should produce production-ready YAML with v3.x defaults baked in (annotation tracking, ServerSideApply, RespectIgnoreDifferences=true, no `default` project)."
 }

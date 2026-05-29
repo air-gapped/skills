@@ -7,6 +7,21 @@ prune gotchas, and the per-resource annotation surface.
 Source: `argoproj/argo-cd` repo. All cited paths are relative to repo root
 unless noted.
 
+## Contents
+
+1. [`syncPolicy.automated`](#1-syncpolicyautomated)
+2. [`syncPolicy.retry`](#2-syncpolicyretry)
+3. [`syncOptions` — full table](#3-syncoptions--full-table)
+4. [Sync waves and phases](#4-sync-waves-and-phases)
+5. [Resource hooks](#5-resource-hooks)
+6. [Health assessment](#6-health-assessment)
+7. [Diffing strategies](#7-diffing-strategies)
+8. [Selective sync](#8-selective-sync)
+9. [Sync windows](#9-sync-windows)
+10. [Pruning gotchas](#10-pruning-gotchas)
+11. [Annotation cheat sheet](#11-annotation-cheat-sheet)
+12. [File-path index](#12-file-path-index)
+
 ---
 
 ## 1. `syncPolicy.automated`

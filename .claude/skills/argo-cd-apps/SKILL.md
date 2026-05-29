@@ -24,8 +24,9 @@ when_to_use: >-
 # Argo CD application authoring
 
 For developers and platform teams who **publish** Argo CD `Application` and
-`ApplicationSet` manifests in git. Targets Argo CD v3.3.9 (latest stable) and
-v3.4 (RC). Cited file paths in references/ are relative to a local clone
+`ApplicationSet` manifests in git. Targets Argo CD v3.4.x (latest stable
+v3.4.3, 2026-05-28) and the v3.3.x maintenance line (latest v3.3.11); v3.4
+reached GA in early May 2026. Cited file paths in references/ are relative to a local clone
 of `argoproj/argo-cd` (e.g. `docs/user-guide/best_practices.md`). Without
 a local clone, fetch the same content via `gh api repos/argoproj/argo-cd/contents/<path>`
 or read https://github.com/argoproj/argo-cd at the matching path.
@@ -52,7 +53,8 @@ or read https://github.com/argoproj/argo-cd at the matching path.
 
 ### 1. CVE-2026-42880 — `IncludeMutationWebhook=true` leaks Secrets
 
-Patched **v3.3.8 / v3.2.10 / v3.1.15** (2026-04-21 batch). `ServerSideDiff` +
+Patched **v3.3.9 / v3.2.11** (per GHSA-3v3m-wc6v-x4x3, advisory published
+2026-05-01). `ServerSideDiff` +
 `argocd.argoproj.io/compare-options: IncludeMutationWebhook=true` exfiltrates
 plaintext Secret data to anyone with `applications, get`. Clusters that handle
 Secrets at all MUST be on a patched build.

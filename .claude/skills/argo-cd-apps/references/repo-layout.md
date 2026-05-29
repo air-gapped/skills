@@ -3,6 +3,22 @@
 GitOps-repo design choices for an Argo CD v3.3 / v3.4 consumer. Citations
 are paths relative to the `argoproj/argo-cd` repo root.
 
+## Contents
+
+1. [Separate the config repo from the source-code repo](#1-separate-the-config-repo-from-the-source-code-repo)
+2. [`targetRevision` immutability — pin to tag or SHA](#2-targetrevision-immutability--pin-to-tag-or-sha)
+3. [Directory-per-env beats branch-per-env](#3-directory-per-env-beats-branch-per-env)
+4. [Mono-repo for app manifests — when and how](#4-mono-repo-for-app-manifests--when-and-how)
+5. [App-of-apps vs ApplicationSet — pick the right primitive](#5-app-of-apps-vs-applicationset--pick-the-right-primitive)
+6. [ApplicationSet with Git generator — env-directory layout](#6-applicationset-with-git-generator--env-directory-layout)
+7. [Tool choice — Helm vs Kustomize vs raw vs CMP](#7-tool-choice--helm-vs-kustomize-vs-raw-vs-cmp)
+8. [Source Hydrator — rendered manifests in git](#8-source-hydrator--rendered-manifests-in-git)
+9. [OCI artefacts as source](#9-oci-artefacts-as-source)
+10. [Private repositories](#10-private-repositories)
+11. [CI/CD for application manifests](#11-cicd-for-application-manifests)
+12. [Resource tracking — annotation vs label vs annotation+label](#12-resource-tracking--annotation-vs-label-vs-annotationlabel)
+- [Citation index](#citation-index)
+
 ## 1. Separate the config repo from the source-code repo
 
 Rule. App source and Kubernetes manifests live in **different** Git repos.

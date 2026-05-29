@@ -3,6 +3,16 @@
 Argo CD v3.3 / v3.4 (May 2026). Citations under
 `docs/operator-manual/applicationset/` of the `argoproj/argo-cd` repo.
 
+## Contents
+
+- [Generator picker](#generator-picker)
+- [Top-level structure](#top-level-structure)
+- [Template body](#template-body)
+- [Generators](#generators)
+- [Progressive Sync (`spec.strategy.rollingSync`)](#progressive-sync-specstrategyrollingsync)
+- [Common pitfalls](#common-pitfalls)
+- [See also](#see-also)
+
 ## Generator picker
 
 | Intent                                            | Generator                  | One-line use                                                  |

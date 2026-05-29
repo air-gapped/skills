@@ -400,9 +400,11 @@ Source: `docs/operator-manual/secret-management.md`.
 
 **Strong rule.** Don't commit raw `Secret`. Don't render secrets via a manifest-generation plugin. Use a **destination-cluster** secret operator.
 
-**Why.** The repo-server caches generated manifests in **Redis in plaintext**. Anything Argo CD's manifest-generation step sees, Redis sees. Two recent criticals exploit exactly this surface:
+**Why.** The repo-server caches generated manifests in **Redis in plaintext**. Anything Argo CD's manifest-generation step sees, Redis sees. Recent advisories exploit exactly this surface:
 
-- **CVE-2026-42880** (May 2026, critical). `ServerSideDiff` + `IncludeMutationWebhook=true` annotation leaks unmasked Secret data via the project API to any auth user with `applications, get` (which everyone has by default). Patched **v3.3.8 / v3.2.10 / v3.1.15** — upgrade past those if you handle secrets.
+- **CVE-2026-42880** (critical, advisory published 2026-05-01). `ServerSideDiff` + `IncludeMutationWebhook=true` annotation leaks unmasked Secret data via the project API to any auth user with `applications, get` (which everyone has by default). Patched **v3.3.9 / v3.2.11** (GHSA-3v3m-wc6v-x4x3) — upgrade to those if you handle secrets.
+- **CVE-2026-45737** (medium, advisory published 2026-05-13, GHSA-rg3g-4rw9-gqrp). Further `ServerSideDiff` Kubernetes-Secret extraction via sensitive annotations — same exposure class as CVE-2026-42880. Confirm the build post-dates the 2026-05-13 batch before relying on SSD near Secrets.
+- **CVE-2026-45738** (high, advisory published 2026-05-13, GHSA-h98r-wv3h-fr38). Stored XSS via Application link annotations enables a developer who can edit Application annotations to escalate to admin. Treat user-settable Application annotations as an untrusted UI-injection surface.
 - **CVE-2025-55190** (Sept 2025, critical). Project API token with basic project RBAC could pull repository credentials from `/api/v1/projects/{p}/detailed`. Patched late-Sep 2025.
 
 UX bonus: secret rotation decouples from app-sync, so you can't accidentally rotate via an unrelated release.

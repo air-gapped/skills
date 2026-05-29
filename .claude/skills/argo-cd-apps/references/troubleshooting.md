@@ -4,6 +4,22 @@ Field-medic guide for app authors. Symptom → cause → fix. Argo CD v3.3 / v3.
 (May 2026). Operator-side ops (HA, sharding) out of scope. Cited paths are
 relative to `argoproj/argo-cd` repo root, mostly under `docs/`.
 
+## Contents
+
+1. [`argocd app diff` and `argocd app manifests`](#1-argocd-app-diff-and-argocd-app-manifests)
+2. [Refresh, hard-refresh, `manifest-generate-paths`](#2-refresh-hard-refresh-manifest-generate-paths)
+3. [Top OutOfSync drivers](#3-top-outofsync-drivers)
+4. [`SyncFailed` / hook failures](#4-syncfailed--hook-failures)
+5. [`ComparisonError` — six sub-causes](#5-comparisonerror--six-sub-causes)
+6. [App stuck deleting](#6-app-stuck-deleting)
+7. [ApplicationSet not generating expected children](#7-applicationset-not-generating-expected-children)
+8. [Sync waves not advancing](#8-sync-waves-not-advancing)
+9. [Auto-sync looping](#9-auto-sync-looping)
+10. [Performance — author-side knobs](#10-performance--author-side-knobs)
+11. ["I deleted it from git, why is it still in the cluster"](#11-i-deleted-it-from-git-why-is-it-still-in-the-cluster)
+12. [CLI cheat sheet — 15 commands](#12-cli-cheat-sheet--15-commands)
+- [Appendix — Symptom → annotation/syncOption](#appendix--symptom--annotationsyncoption)
+
 ---
 
 ## 1. `argocd app diff` and `argocd app manifests`

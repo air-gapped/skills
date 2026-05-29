@@ -11,11 +11,19 @@ Each row has `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version, git ref, or commit SHA — optional). Rows the author wants
 freshen to skip get `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-05-06
+## Most recent freshen pass: 2026-05-29
 
 The skill was authored on 2026-05-06 against a fresh local clone of
-`argoproj/argo-cd` at commit `4d02fc2f5` (2026-05-05). All sources were
-verified at authoring time; no entries are stale.
+`argoproj/argo-cd` at commit `4d02fc2f5` (2026-05-05). Freshen pass on
+2026-05-29 re-probed releases and security advisories via `gh`: v3.4 has
+GA'd (latest stable **v3.4.3**, 2026-05-28; v3.3 maintenance latest
+**v3.3.11**), CVE-2026-42880 patched in **v3.3.9 / v3.2.11**
+(GHSA-3v3m-wc6v-x4x3, advisory 2026-05-01, NOT the previously recorded
+v3.3.8), and two new advisories landed 2026-05-13 (CVE-2026-45737 medium /
+GHSA-rg3g-4rw9-gqrp, CVE-2026-45738 high / GHSA-h98r-wv3h-fr38). Rows
+re-confirmed online this pass carry `Last verified: 2026-05-29`; rows not
+re-probed (readthedocs doc pages, adjacent skills) keep their 2026-05-06
+stamp.
 
 ## Local clone (primary source of truth)
 
@@ -44,15 +52,15 @@ verified at authoring time; no entries are stale.
 | Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace.md | Tenant-namespace Applications | 2026-05-06 | v3.3.9 |
 | Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity.md | Alpha / Beta / Stable status per feature | 2026-05-06 | v3.3.9 |
 | Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-05-06 | v3.3.9 |
-| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (RC) | 2026-05-06 | v3.3.9 |
+| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA) | 2026-05-06 | v3.4.x |
 
 ## GitHub
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-05-06 | main @ 4d02fc2f5 |
-| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022) | 2026-05-06 | v3.3.9 |
-| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 (`IncludeMutationWebhook=true` Secret leak), CVE-2025-55190, CVE-2024-31990 | 2026-05-06 | — |
+| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-05-29 | main @ 4d02fc2f5 |
+| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). v3.4 GA — latest stable v3.4.3 (2026-05-28); v3.3 maintenance latest v3.3.11 | 2026-05-29 | v3.4.3 |
+| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990 | 2026-05-29 | — |
 | gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-05-06 | — |
 
 ## Blog & community
