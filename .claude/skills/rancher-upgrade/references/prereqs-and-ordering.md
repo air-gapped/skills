@@ -4,6 +4,29 @@
 at use time (House Rule #8). The mgmt-cluster k8s window per Rancher minor is **not** restated here
 — cite `k8s-components-checker/references/compat/rancher.md`.
 
+## Pre-flight: is your kubeconfig Rancher-proxied? (resolve BEFORE any step — field-validated 2026-05-30)
+
+The single most dangerous omission. An operator's day-to-day kubeconfig often reaches the management
+cluster **through Rancher's own proxy** — `server` URL like `https://<rancher-host>/k8s/clusters/local`,
+auth = a short-lived **Rancher/OIDC-minted token**. Running `helm upgrade` of the `rancher` release
+**restarts the very pods serving that proxy**, severing the API connection mid-apply. Worse: if the
+token has expired, re-minting it can depend on the OIDC path that a Step-1 regression (#53995) may
+break → lockout (break-glass = the local-admin password).
+
+```bash
+kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+# server contains "/k8s/clusters/"  → Rancher-PROXIED. Do NOT upgrade through it.
+```
+
+**Mitigation — run the entire upgrade through a Rancher-INDEPENDENT kubeconfig** that talks straight
+to the apiserver:
+- RKE2: `/etc/rancher/rke2/rke2.yaml` off a control-plane node (RKE1/K3s have equivalents).
+- Rewrite its `server:` to a control-plane **LB hostname that is a cert SAN** — a bare node mgmt IP
+  usually is *not* a SAN and TLS fails. The embedded admin **client cert** has a multi-year TTL and
+  does not depend on Rancher/OIDC, so it survives a broken auth path.
+- Guard it: refuse any upgrade/uninstall against a context whose name or `server` contains
+  `rancher` / `/k8s/clusters/`.
+
 ## Upgrade path rule
 
 Supported path between minors: **latest patch of the current minor → latest patch of the next
@@ -50,6 +73,12 @@ manageability afterward. The full interleave:
 ## Backup & rollback — backup-restore-operator (BRO) + etcd snapshot
 
 Two layers, both taken **before every step**:
+
+> **BRO may not be installed** (field-validated 2026-05-30) — many community installs never deployed
+> `rancher-backup` (no `rancher-backup` release, no `resources.cattle.io` CRDs, no storage location).
+> **Do not block the upgrade on it.** The RKE2 etcd snapshot below is the real rollback floor; if BRO
+> is absent, substitute targeted `kubectl get -o yaml` exports of the state that matters — the
+> Rancher/Fleet app objects and the **OIDC/auth AuthConfig + its secrets** — and proceed.
 
 - **BRO** (`rancher/backup-restore-operator`) backs up Rancher *application* state (CRDs, settings,
   cluster objects). Pair the BRO chart to the Rancher minor by the chart's

@@ -70,7 +70,11 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
   cluster — the CAPI/Turtles migration is then a near-non-event). `kubectl get
   clusters.provisioning.cattle.io -A` — any row whose name ≠ `local` is a downstream cluster.
 - **Air-gap?** If the registry is internal-mirror-only, the air-gap procedure (what to mirror)
-  applies — `references/air-gap-procedure.md`.
+  applies — `references/air-gap-procedure.md`. (Direct-pull clusters skip mirroring entirely.)
+- **Kubeconfig path:** if your kubeconfig is Rancher-proxied (`server` contains `/k8s/clusters/`),
+  switch to a Rancher-independent admin kubeconfig BEFORE upgrading — `helm upgrade` of the rancher
+  release restarts the proxy pods and severs the API mid-apply. `references/prereqs-and-ordering.md`
+  § Pre-flight.
 
 ### 2. Compute the upgrade path (no minor skipping)
 
@@ -137,9 +141,11 @@ target versions follow look-ahead (House Rule #4).
    House Rule #9.)
 5. **Management Rancher upgrades BEFORE downstream k8s minor bumps**, always. And **no minor
    skipping** on the Rancher axis. Violating either is the classic fleet-stranding / rebuild path.
-6. **Back up before every step.** A backup-restore-operator backup *and* an RKE2 etcd snapshot of
-   the management cluster — rollback across the 2.14 CAPI-v1beta2 boundary is one-way without them.
-   See `references/prereqs-and-ordering.md` § Backup & rollback.
+6. **Back up before every step.** An RKE2 etcd snapshot of the management cluster is the real
+   rollback floor — the 2.14 CAPI-v1beta2 boundary is one-way without it. Add a backup-restore-operator
+   backup *if BRO is installed*; many community installs have none, so don't block on it (substitute
+   targeted resource exports — Rancher/Fleet objects + the auth AuthConfig & secrets). See
+   `references/prereqs-and-ordering.md` § Backup & rollback.
 
 ## Decision guide
 
@@ -153,4 +159,5 @@ target versions follow look-ahead (House Rule #4).
 | Per-minor (2.11→2.14) breaking changes + ordered pre/upgrade/post runbook | `references/per-minor-runbook.md` |
 
 All version specifics in the references were grounded via `gh` on the date stamped in each file.
-Re-ground at use time per House Rule #8 — releases move.
+Re-ground per House Rule #8 **only if that stamp is stale** (≳1–2 weeks) — same-day re-grounding is
+wasted churn the operator will (rightly) push back on; don't present it as an unconditional step.

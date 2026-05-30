@@ -41,6 +41,10 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
 - k8s 1.31 removed (#51253).
 - **Air-gapped CAPI `capi-controller-manager` may fail to go Active**, blocking provisioning post-
   upgrade (#52816) — pre-stage CAPI controller images in the mirror; watch the pod after upgrade.
+- *2.12.3→2.13.3 field-validated 2026-05-30 (standalone mgmt cluster):* Turtles auto-swap (#52254)
+  ran exactly as described — CAPI relocated to the new Turtles namespaces, the old provisioning-capi
+  namespace emptied; Fleet 0.13→0.14 rode the chart; OIDC survived (the #53995 backup was correct
+  insurance, not needed). All post-upgrade errors were startup-transient.
 
 ### 2.14 (GA 2026-03-26; current community line, latest 2.14.2)
 - **Embedded Cluster API removed** (#53291); **CAPI → v1beta2** (#52034/#53334) — one-way rollback
@@ -59,7 +63,19 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
 
 The supported path is one minor at a time on latest patches; run this whole block per step.
 
+**Execution model (field-validated 2026-05-30).** Treat each step as `MANDATORY`, `CONDITIONAL`
+(predicate stated — verify, then skip silently if it doesn't apply), or `MAY-NOT-APPLY`. Evaluate
+each against the live cluster and drop the inapplicable ones in one line — don't re-litigate them as
+open questions (image mirroring is air-gap-only; re-grounding is stale-date-only; BRO is if-installed).
+The prep → port-values → template → diff → upgrade → verify chain is **reversible up to the
+`helm upgrade`** — execute it continuously, no per-step sign-off. The one genuinely irreversible fork
+is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm there, nowhere else.
+
 **PRE-FLIGHT**
+0. **Kubeconfig not Rancher-proxied** (`server` ∌ `/k8s/clusters/`) — else switch to the RKE2/RKE
+   admin kubeconfig FIRST; upgrading through the proxy severs the API mid-apply
+   (`prereqs-and-ordering.md` § Pre-flight). Also silence any pre-existing reconcile-error loop now
+   (e.g. an orphaned cloud credential whose token was deleted), so post-upgrade logs are clean signal.
 1. Confirm you're on the **latest community patch of the current minor** (ground via `gh`).
 2. **Back up:** BRO backup **and** an RKE2 etcd snapshot of the mgmt cluster (`prereqs-and-ordering.md`).
 3. **k8s floor:** get the mgmt cluster (and hand-managed downstreams) onto the target minor's k8s
@@ -83,6 +99,12 @@ The supported path is one minor at a time on latest patches; run this whole bloc
 9. Let CAPI/Turtles + CRD migrations reconcile before touching downstream.
 
 **POST-FLIGHT**
+
+> **Fleet's version bump and the Turtles swap are Rancher-driven ASYNC reconciliations** — they land
+> seconds-to-minutes *after* `helm upgrade` returns, not in its output. **Poll** for them; an inline
+> helm success does not mean they're done. (field-validated 2026-05-30. The values re-port between
+> minors is usually trivial — a straight copy of the site's customizations if no keys moved.)
+
 10. Rancher pods healthy (watch CrashLoop @2.14, DiskPressure @2.12).
 11. Auth intact — OIDC (@2.13), Google OAuth (@2.14).
 12. CRD migrations landed — `compliance.cattle.io` replacing `cis.cattle.io` (@2.12); CAPI CRDs at
