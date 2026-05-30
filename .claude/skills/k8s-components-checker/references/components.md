@@ -1,6 +1,6 @@
 # components.md — the registry
 
-18 components. Community editions only. Lookup table the survey reads.
+19 components. Community editions only. Lookup table the survey reads.
 
 Each entry carries:
 
@@ -119,6 +119,23 @@ downstream-provisioning axis is not in scope here.
 - **Source:** https://github.com/grafana/mimir → `operations/helm/charts/mimir-distributed/Chart.yaml` at chart-release tags.
 - **compat file:** `compat/mimir.md`
 - **min_tracked_version:** 5.7
+
+### Tetragon (Cilium runtime security) — `axis_type: multi`, `truth_source_type: release_notes`
+
+- **Axis 1 (k8s):** loose — Tetragon publishes no k8s support matrix and the
+  `tetragon` chart sets no `kubeVersion:`. Runs on any currently supported minor.
+- **Axis 2 (node kernel) — the load-bearing one:** eBPF/BTF kernel floor.
+  Minimum Linux **4.19** (CI: 4.19/5.4/5.10/5.15/bpf-next); **arm64 needs ≥ 5.10**;
+  **BTF required**; enforcement needs `CONFIG_BPF_KPROBE_OVERRIDE`, the LSM sensor
+  needs `CONFIG_BPF_LSM` (≥ 5.7). The k8s minor rarely blocks Tetragon; the node
+  OS/kernel does.
+- **Sibling-not-Cilium:** separate component from Cilium core — own release train
+  (`cilium/tetragon`), own chart, runs standalone (no Cilium CNI required). Shares
+  the `cilium.io` CRD api-group, so detect via the `tracingpolicies.cilium.io` CRD
+  + `tetragon` DaemonSet, not the api-group alone.
+- **Source:** https://github.com/cilium/tetragon/releases + https://tetragon.io/docs/installation/faq/ (kernel floor).
+- **compat file:** `compat/tetragon.md`
+- **min_tracked_version:** 1.5
 
 ---
 

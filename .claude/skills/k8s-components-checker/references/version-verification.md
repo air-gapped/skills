@@ -100,6 +100,7 @@ repos:
 | RKE2 | `rancher/rke2` |
 | Rancher | `rancher/rancher` |
 | Cilium | `cilium/cilium` |
+| Tetragon | `cilium/tetragon` (chart == app version; no `kubeVersion:`; kernel floor from `tetragon.io/docs/installation/faq/`, not `gh`) |
 | cert-manager | `cert-manager/cert-manager` |
 | Kyverno | `kyverno/kyverno` |
 | KEDA | `kedacore/keda` |

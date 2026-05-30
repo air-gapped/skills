@@ -71,6 +71,39 @@ Ceiling findings from skill-improver runs.
 
 ## Resolved this pass
 
+### improve — 2026-05-30 (Tetragon component added; registry 18 → 19)
+
+- **Operator-directed content gap closed:** the registry was missing **Tetragon**
+  (`cilium/tetragon`, Cilium's eBPF runtime-security/observability sibling). Added
+  end-to-end per the `components.md` "Adding a component" procedure + cross-file
+  wiring:
+  - NEW `references/compat/tetragon.md` — multi-axis, `release_notes`. The
+    load-bearing **kernel axis** (min 4.19; arm64 ≥ 5.10; BTF required;
+    `CONFIG_BPF_KPROBE_OVERRIDE` for enforcement; `CONFIG_BPF_LSM` ≥ 5.7 for the
+    LSM sensor; ring-buffer default ≥ 5.11; cgroup v1 ≥ 6.11 extra configs) +
+    loose k8s axis (no published matrix, chart sets no `kubeVersion:`, chart ==
+    app version). Per-minor breaking signal sifted for 1.7 / 1.6 / 1.5.
+  - `components.md` — count 18 → 19; new multi-axis stanza under "No published
+    matrix"; Cilium-sibling-not-Cilium note.
+  - `cluster-survey.md` — detection wired: shares the `cilium.io` CRD group with
+    Cilium, so keyed on the `tracingpolicies.cilium.io` CRD + `tetragon` chart /
+    DaemonSet; merge note routes Tetragon's kernel axis to the Phase 1
+    `KERNEL-VERSION` column; "18 → 19 registry entries".
+  - `sources.md` — Tetragon row (FAQ kernel-floor source + chart source + probe).
+  - `version-verification.md` — `cilium/tetragon` added to the repo map (kernel
+    floor not `gh`-groundable — from `tetragon.io/docs/installation/faq/`).
+  - `SKILL.md` — description count + component list (+"Tetragon"); combined
+    description+when_to_use = 1496 chars (under the 1536 Dim 1 cap, 40 margin);
+    "19-entry registry". `report-format.md` — three "of 18" → "of 19".
+- **All versions release-grounded (House Rule #8):** anchored on
+  `gh api repos/cilium/tetragon/releases/latest` → `v1.7.0`; minors enumerated +
+  `sort -V` (1.7.0 / 1.6.1 / 1.5.0, none newer than `latest`); Chart.yaml read at
+  the `v1.7.0`/`v1.6.0`/`v1.5.0` tags (chart == app, no `kubeVersion:`); CRD
+  apiVersion (`cilium.io/v1alpha1`, TracingPolicy/TracingPolicyNamespaced/PodInfo)
+  confirmed against `pkg/k8s/apis/cilium.io/client/crds/v1alpha1/`. No CVE-patch
+  / "fixed-in" claims authored (the body endpoint is contaminated), so nothing
+  added to Open.
+
 ### freshen — 2026-05-30 (release-grounding pass, House Rule #8)
 
 - **argo-cd fabrication removed** (this session): struck invented `v3.2.10` /
@@ -179,6 +212,23 @@ them rather than abstaining):
   Pattern 6.1 violations.
 
 ## Run log
+
+### improve — 2026-05-30 (Tetragon addition)
+
+- Research: anchored `cilium/tetragon` on `releases/latest` (`v1.7.0`), enumerated
+  non-prerelease tags (clean — no candidate version named in any query), read the
+  in-repo FAQ at the `v1.7.0` tag for the kernel floor (ground truth, not memory),
+  Chart.yaml at 3 tags, CRD manifests for the apiVersion. `gh release view` 401'd
+  on v1.6.0/v1.5.0 (transient); bodies read via the tags endpoint instead (content
+  sift of already-enumerated tags, not an existence check).
+- Mutations: 1 new compat file + 6 wired files (components, cluster-survey,
+  sources, version-verification, SKILL, report-format). One logical change (a new
+  component), so not split into rubric iterations — the user gave an explicit
+  content directive and the registry's own "Adding a component" procedure spans
+  these files. Self-consistency check: every "18"-count surface updated to 19;
+  historical run-log "18" entries left intact (they correctly record past passes).
+- No blind score (content addition against a real gap, not a rubric hill-climb).
+  Skill remains at its prior ~90/100 self-score; Dim 1 margin preserved (1496/1536).
 
 ### freshen — 2026-05-30 (release-grounding pass)
 

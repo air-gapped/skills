@@ -47,7 +47,8 @@ kubectl get crd --no-headers \
 
 | CRD api-group | Registry component |
 |---|---|
-| `cilium.io` | Cilium |
+| `cilium.io` | Cilium — **and/or** Tetragon (shared group; disambiguate by kind below) |
+| `cilium.io` kind `tracingpolicies` / `tracingpoliciesnamespaced` | Tetragon (these CRDs are Tetragon-specific; Cilium core does not install them) |
 | `cert-manager.io` | cert-manager |
 | `kyverno.io` | Kyverno |
 | `keda.sh` | KEDA |
@@ -88,6 +89,7 @@ Map chart-name → registry component:
 | Chart name | Registry component |
 |---|---|
 | `cilium` | Cilium |
+| `tetragon` | Tetragon (image `quay.io/cilium/tetragon`; DaemonSet `tetragon` + `tetragon-operator` Deployment) |
 | `cert-manager` | cert-manager |
 | `kyverno` (and `kyverno-policies`) | Kyverno |
 | `keda` | KEDA |
@@ -122,13 +124,17 @@ because tags can lie; cross-reference with a `kubectl exec ... -- <binary>
 ### Component-version merge
 
 After 2a + 2b + 2c, produce a deduplicated list of `(component, version)`
-tuples covering the 18 registry entries that are present. Prefer Helm chart
+tuples covering the 19 registry entries that are present. Prefer Helm chart
 version when available (most authoritative for what the operator deployed);
 fall back to CRD-bearing pod's image tag; last fall back to label inspection.
 
-For multi-axis components (Harvester, ECK, Rancher), capture all axis values
-the survey can see (e.g. Rancher chart version + downstream cluster k8s
+For multi-axis components (Harvester, ECK, Rancher, Tetragon), capture all axis
+values the survey can see (e.g. Rancher chart version + downstream cluster k8s
 versions if managed clusters are visible via `kubectl get clusters.cluster.x-k8s.io`).
+For **Tetragon**, the load-bearing second axis is the **node kernel** — read the
+`KERNEL-VERSION` column from the Phase 1 `kubectl get nodes -o wide` output (and
+node OS/arch) and cross-reference it against `compat/tetragon.md` § Kernel axis;
+the k8s minor alone almost never verdicts Tetragon.
 
 ## Phase 3: deprecated-API liability
 

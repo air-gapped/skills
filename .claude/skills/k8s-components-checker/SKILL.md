@@ -2,10 +2,10 @@
 name: k8s-components-checker
 description: >-
   Survey an RKE2 community cluster against an embedded compatibility registry of
-  18 stack components and produce a verdict for upgrade-readiness, drift-review,
+  19 stack components and produce a verdict for upgrade-readiness, drift-review,
   and version-skew questions. Components: RKE2, Rancher, Harvester, Cilium,
-  cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS,
-  GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator.
+  Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph,
+  OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator.
   Works air-gapped — compatibility data lives in `references/compat/`. Surveys
   run via `kubectl` + `helm` + `pluto` + the apiserver
   `apiserver_requested_deprecated_apis` metric from the operator's workstation.
@@ -192,7 +192,7 @@ and at use time (the verdict cites a different kind of evidence per row).
 
 ## References
 
-- `references/components.md` — the 18-entry registry (table for single-axis, stanzas for multi-axis). Carries `axis_type`, `truth_source_type`, source URL, `min_tracked_version`. The lookup table the survey reads.
+- `references/components.md` — the 19-entry registry (table for single-axis, stanzas for multi-axis). Carries `axis_type`, `truth_source_type`, source URL, `min_tracked_version`. The lookup table the survey reads.
 - `references/cluster-survey.md` — the canonical command set: kubectl/helm/pluto/apiserver-metric. Detection patterns for mapping running workloads onto registry entries.
 - `references/tooling.md` — apiserver `apiserver_requested_deprecated_apis` metric (primary), pluto (static manifest scan), kubent dead.
 - `references/compat/README.md` — file-format spec for per-component compat files.

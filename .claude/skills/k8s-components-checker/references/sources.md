@@ -62,6 +62,15 @@ This was a release-grounding overlay, **not** a full docs-matrix re-sift; per-ro
 - Probe: WebFetch docs page for the matrix; `gh release list --repo cilium/cilium` for per-version notes.
 - Last verified: 2026-05-28
 
+## Tetragon
+
+- URL: https://github.com/cilium/tetragon/releases
+- Kernel-floor source: https://tetragon.io/docs/installation/faq/ (also in-repo at `docs/content/en/docs/installation/faq.md`)
+- Chart source: `install/kubernetes/tetragon/Chart.yaml` at release tags (chart == app version; no `kubeVersion:`)
+- Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes".
+- Note: separate component from Cilium core. The k8s axis is loose; the **kernel** axis is load-bearing.
+- Last verified: 2026-05-30  (release-grounded: `releases/latest` = `v1.7.0`; minors 1.7/1.6/1.5 enumerated)
+
 ## cert-manager
 
 - URL: https://cert-manager.io/docs/releases/

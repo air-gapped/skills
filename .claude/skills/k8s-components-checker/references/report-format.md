@@ -33,7 +33,7 @@ each section per the current data.
 
 - **k8s server:** <version + RKE2 build, one line>
 - **Nodes:** <count + OS + container runtime, one line>
-- **Tracked components present:** <N of 18, one line>
+- **Tracked components present:** <N of 19, one line>
 - **Out-of-registry workloads detected:** <count + one-line note>
 - **Deprecated-API liability:** <one-line conclusion from pluto + apiserver metric>
 
@@ -69,7 +69,7 @@ short enough to land in a JIRA sub-task or a runbook PR commit.>
 
 ## Methodology
 
-- Sourced from `k8s-components-checker` skill (registry of 18 components).
+- Sourced from `k8s-components-checker` skill (registry of 19 components).
 - Source citations follow `references/compat/<comp>.md § <version>` format.
 - Survey commands: `kubectl version`, `kubectl get crd`, `helm list -A -o
   json`, `pluto detect-helm` + `detect-api-resources`, apiserver
@@ -122,7 +122,7 @@ Skeleton filled for the lab cluster's 1.32 → 1.34 verdict:
 
 - k8s server: v1.32.12+rke2r1
 - Nodes: 4 (Ubuntu 24.04, containerd 2.1.5-k3s1)
-- Tracked components present: 14 of 18 (Kyverno, ECK, Mimir, Harvester not deployed)
+- Tracked components present: 14 of 19 (Kyverno, ECK, Mimir, Harvester, Tetragon not deployed)
 - Out-of-registry workloads detected: 20+ (Rancher add-ons, RKE2 built-ins, inference stack)
 - Deprecated-API liability: pluto scan at target k8s 1.34 returns zero hits;
   apiserver counter zero (per-process, recently restarted — cross-checked clean)
