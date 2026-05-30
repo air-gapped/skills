@@ -7,6 +7,27 @@
 - **min_tracked_version:** 1.17
 - **Last sifted:** 2026-05-28
 
+## Node drain / reboot during a k8s/RKE2 upgrade (cross-version)
+
+Not version-specific, but the dominant Rook-Ceph hazard during a rolling k8s/RKE2
+upgrade — feed it into the verdict's action-plan ordering whenever Rook-Ceph is
+detected. OSD / mon / mgr daemons commonly co-locate on **control-plane *and*
+worker** nodes, so **every** node drain in a rolling upgrade touches Ceph.
+
+- **Gate each drain on cluster health:** `CephCluster status.ceph.health ==
+  HEALTH_OK` before draining; after draining, wait for the node's `csi.ceph` mounts
+  in `/proc/mounts` to clear before rebooting.
+- **Rebooting an OSD node opens a degraded/backfill window** — the *post*-reboot
+  HEALTH_OK gate must wait for recovery to complete (minutes), not merely for the
+  OSD pod to return to Running.
+- **Trap — do NOT gate on Rook PodDisruptionBudgets by name.** Rook creates and
+  deletes PDBs **dynamically** during drains (notably per-failure-domain
+  `rook-ceph-osd` PDBs), so a fixed-name check (e.g. `k8s_info … failed_when
+  resources == 0`) breaks intermittently. Gate on **CephCluster health + CSI
+  unmount** instead.
+- Field-validated 2026-05-30 (community RKE2 1.32 → 1.33, OSDs on shared
+  master/worker nodes).
+
 ## 1.19 (latest: 1.19.6, 2026-05-27)
 
 - **k8s floor:** 1.30 – 1.35

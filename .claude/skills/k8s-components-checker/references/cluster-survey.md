@@ -28,6 +28,14 @@ kubectl get nodes -o wide
 - If `kubectl version` emits the "version difference exceeds the supported
   minor version skew" warning, that's about the operator's local kubectl, not
   about the cluster's component skew. Do not surface it in the verdict.
+- **Partially-upgraded control plane — trust per-node versions, not the server
+  string.** `kubectl version`'s "Server Version" reflects whichever apiserver the
+  LB / Rancher-proxy happened to connect to, so mid-upgrade it can keep reporting
+  the old minor (e.g. `1.32`) until the *last* master is upgraded. This is a
+  display artifact, not a rollover delay. For an accurate picture of a mixed-version
+  control plane, read the per-node versions from `kubectl get nodes` (the
+  `VERSION` column) — those are independent and correct. (Field-validated
+  2026-05-30, community RKE2 1.32 → 1.33.)
 
 ## Phase 2: component detection
 

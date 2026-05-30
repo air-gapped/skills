@@ -71,6 +71,39 @@ Ceiling findings from skill-improver runs.
 
 ## Resolved this pass
 
+### improve — 2026-05-30 (field upgrade lessons merged: RKE2 1.32 → 1.33)
+
+Merged a field-validated 1.32 → 1.33 upgrade-gotchas briefing into the compat
+data — extracting only durable **compat-registry / survey-verdict** signal (the
+skill is methodology, "NOT for executing upgrades"), dropping the per-node runbook
+and host/hardware-specific firmware noise. Each lesson landed where the skill
+consumes it; provenance tagged inline (`field-validated 2026-05-30`):
+
+- **`compat/rke2.md` § 1.33 — etcd 3.5 → 3.6, the headline 1.32→1.33 risk.**
+  Grounded vs RKE2 release notes that the 3.6 bump first ships at **v1.33.11**
+  (1.33.10 = etcd `v3.5.26-k3s1`, 1.33.11 = `v3.6.7-k3s1`), not at 1.33.0. Added
+  the hard **≥ 3.5.26** all-members prereq (zombie-member fix; 1.33.10 already
+  satisfies it), mixed-window discipline + storage-version auto-promote, leader-last
+  reboot, post-convergence rollback narrowing. Added the benign rke2-server
+  restart-storm / transient-NotReady note (rke2#5614, etcd#16287/#19635) with the
+  real readiness signal: **OOM on low-RAM swap-off masters**. Refined the § 1.32 /
+  § 1.31 cross-minor etcd lines to the grounded 1.33.11.
+- **`compat/nvidia-gpu-operator.md` — host-driver/loaded-`.ko` mismatch** after an
+  OS package upgrade (rc 18 / `NVML_ERROR_LIB_RM_VERSION_MISMATCH`), device-plugin
+  crashloop until reboot, not flagged by `reboot-required`; rc 18 vs rc 9/12
+  distinction; assert on `nvidia-smi == 0`; skip non-NVIDIA hosts.
+- **`compat/cilium.md` + `compat/tetragon.md`** — kernel **6.17** BPF verifier
+  `WARN_ONCE` (`verifier.c:2752`, `cilium-agent`, tc/`cls_bpf`): cosmetic, dataplane
+  fine. Cross-ref pair: **not Tetragon** (kprobe/fentry, no `cls_bpf`); a Tetragon
+  trigger of the same path is masked because Cilium loads first — validates the
+  Tetragon kernel-axis model.
+- **`compat/rook.md` — node drain/reboot during a rolling upgrade** (cross-version):
+  OSD/mon/mgr on shared master+worker nodes; gate on CephCluster HEALTH_OK + CSI
+  unmount; degraded/backfill recovery window; **trap — never gate on Rook PDBs by
+  name** (created/deleted dynamically; per-failure-domain `rook-ceph-osd` PDBs).
+- **`cluster-survey.md` Phase 1 — server-version display lag** in a partially-upgraded
+  control plane: trust per-node `kubectl get nodes` VERSION, not `kubectl version`.
+
 ### improve — 2026-05-30 (Tetragon component added; registry 18 → 19)
 
 - **Operator-directed content gap closed:** the registry was missing **Tetragon**
@@ -212,6 +245,23 @@ them rather than abstaining):
   Pattern 6.1 violations.
 
 ## Run log
+
+### improve — 2026-05-30 (field upgrade lessons merge)
+
+- Input: `/tmp/rke2-1.32-to-1.33-upgrade-gotchas.md` (first-hand validated 1.32→1.33
+  briefing). Scanned for hostnames/IPs/secrets — none present; kept merged content
+  generic and stripped cluster-/hardware-specific framing (node counts, HP ProLiant /
+  Matrox firmware-quirk noise list, the per-node runbook).
+- Triage: 5 of ~13 gotchas were durable compat/survey signal → merged into rke2 /
+  nvidia / cilium / tetragon / rook / cluster-survey. The rest (stage-without-restart
+  tactic, crictl-preload retries, apt-timing, worker-reboot ease, per-node procedure,
+  host firmware noise) are execution-runbook / host-specific → intentionally NOT
+  merged (skill is "NOT for executing upgrades").
+- Grounded the one load-bearing patch claim (House Rule #8): enumerated rke2 1.33
+  tags, read packaged-etcd in the 1.33.10/.11 bodies → 3.6 transition confirmed at
+  1.33.11. No fabricated versions; provenance tagged `field-validated 2026-05-30`.
+- 6 files edited, no new files. No blind score (field-content merge, not a rubric
+  hill-climb).
 
 ### improve — 2026-05-30 (Tetragon addition)
 

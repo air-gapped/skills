@@ -54,6 +54,14 @@ notes (tagged inline below).
 - **cgroup v1 on kernel ≥ 6.11** additionally requires `CONFIG_MEMCG_V1=y` and
   `CONFIG_CPUSETS_V1=y` for process/pod tracking. `CGROUP_FAVOR_DYNMODS=y`
   (optional, ≥ 6.0) reduces pod/container association issues on churny nodes.
+- **Benign-noise (kernel 6.17), and why it isn't Tetragon's:** a once-per-boot
+  BPF verifier `WARN` (`reg_bounds_sanity_check … verifier.c:2752`) on kernel 6.17
+  is attributed to `Comm=cilium-agent` and comes from the tc/`cls_bpf` datapath —
+  **Tetragon uses kprobe/fentry, not `cls_bpf`, so it is not the trigger.** Because
+  it's a `WARN_ONCE` and Cilium loads first, a Tetragon attachment that hit the same
+  verifier path would be **masked** — the observable trigger surfaces as Cilium.
+  Cosmetic; does not reject the program. Full detail: `compat/cilium.md` (intro,
+  benign kernel-noise).
 - **Self-check, no guessing:** `tetra probe config` (kernel `CONFIG_*`) and
   `sudo tetra probe` (runtime feature probe) report exactly what the running
   kernel supports. Run on a representative node before any upgrade that changes

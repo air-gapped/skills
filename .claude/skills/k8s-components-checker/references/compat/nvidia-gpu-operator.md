@@ -28,6 +28,27 @@ GPU architecture floor (cross-version, set by silicon, not by operator minor):
 
 Cross-version known issue: drivers 570.124.06, 570.133.20, 570.148.08, 570.158.01 can't schedule mixed MIG-sliced + full-GPU on the same node — workaround is upgrade to ≥ 580.65.06 (or 570.172.08 for the 570 branch). Bites any operator minor whose default lands on those drivers.
 
+**Upgrade hazard — host-driver / loaded-module mismatch after an OS package upgrade**
+(cross-version; applies whenever a node-OS bump rides along with a k8s upgrade and
+the driver is **host-managed**, e.g. Ubuntu `unattended-upgrades`, not the operator's
+own driver DaemonSet). The package upgrade replaces the userspace libs **and** the
+on-disk `.ko`, but the **old kernel module stays loaded** until reboot →
+`nvidia-smi` exits **18** (`NVML_ERROR_LIB_RM_VERSION_MISMATCH`) → the GPU
+device-plugin / operand pods `RunContainerError`-crashloop indefinitely (observed for
+weeks). **Not** flagged by `/var/run/reboot-required` (it's a DKMS change, not a
+kernel/libc bump), so a reboot-required gate misses it. A reboot loads the new module
+and clears it (rc 18 → 0).
+- **Detect:** `nvidia-smi; echo $?` → `18`; or loaded vs on-disk version differ —
+  `sed -n 's/.*Kernel Module *\([0-9.]*\).*/\1/p' /proc/driver/nvidia/version` (loaded)
+  vs `modinfo -F version nvidia` (on-disk).
+- **Don't conflate with a broken install:** rc **9** (driver not loaded) / **12**
+  (lib missing) is a broken/absent driver — a reboot won't fix it and may strand the
+  node driverless. The mismatch trigger is specifically rc 18 (or loaded ≠ on-disk).
+- **Health assert is `nvidia-smi` rc == 0**, never an enumerated failure-code list —
+  the man-page return-code table is incomplete (omits 18). Skip nodes with no
+  `nvidia-smi` binary (`command -v nvidia-smi`) so non-NVIDIA hosts don't false-fail.
+- Field-validated 2026-05-30 (community RKE2 1.32 → 1.33 on Ubuntu GPU nodes).
+
 ## 26.3.1
 
 - **k8s floor:** 1.32 – 1.35

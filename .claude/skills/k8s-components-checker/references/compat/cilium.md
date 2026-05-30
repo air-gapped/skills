@@ -11,6 +11,17 @@ In-scope set: current stable 1.19 + prior 2 (1.18, 1.17). 1.16 ships patches thr
 
 CRD schema versions per minor (from stable matrix page): 1.17.x → 1.30.8, 1.18.x → 1.31.11, 1.19.x → 1.32.6. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
 
+**Benign kernel-noise (kernel 6.17, cross-Cilium-version) — do not escalate.** On
+Linux **6.17** (e.g. after an RKE2/OS bump pulls 6.17.0-35-generic) the agent emits
+a once-per-boot kernel `WARN`: `verifier bug: REG INVARIANTS VIOLATION …
+reg_bounds_sanity_check+0x.. at kernel/bpf/verifier.c:2752`, `Comm=cilium-agent`.
+**Cosmetic** — it's a `WARN_ONCE` that does **not** reject the BPF program;
+`cilium status` is healthy, all pods stay managed, the dataplane is fine. Triggered
+by Cilium's tc/`cls_bpf` datapath (observed with 1.19.4). Track it for a future
+kernel bump; ignore operationally. (Cross-ref: this is **not** Tetragon — see
+`compat/tetragon.md` § Kernel axis for why a Tetragon trigger of the same verifier
+path is masked.) Field-observed 2026-05-30.
+
 ## 1.19.0
 
 - **k8s floor:** 1.32 – 1.35 (e2e-tested, per `docs.cilium.io/en/v1.19/network/kubernetes/compatibility/`). Discrepancy: 1.19.0 release notes claim "Cilium dependencies were updated to Kubernetes v1.35" — the lower bound shifted to 1.32 vs 1.18's 1.30, so a cluster on k8s 1.30/1.31 falls outside the tested set on a 1.18 → 1.19 bump.
