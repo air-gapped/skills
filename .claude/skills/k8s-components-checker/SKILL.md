@@ -97,8 +97,12 @@ and is change-set-specific (`supports k8s 1.32..1.34` for an anchor bump,
    - <component> <version>                    <change-set-specific reason>
 
 ⚠ needs bump
-   - <component> <version> → ≥ <minimum>      <reason — what blocks the change set>
+   - <component> <version> → ≥ <target>       <reason — what blocks the change set>
      source: references/compat/<comp>.md § <version>
+     # <target> is the furthest-coverage version (House Rule #9) — covers this hop
+     # AND the operator's next known hop, not the bare immediate-hop minimum.
+     # A row that satisfies the current target but sits at its own support ceiling
+     # belongs HERE (with the forward-covering target named), not under ✓ ready.
 
 ⚠ ordering
    - <component A> must reach <version> BEFORE <component B> reaches <version>
@@ -174,6 +178,24 @@ These are non-negotiable; encode them into every verdict.
    queries get rubber-stamped — plausible fakes return 200, and the list is
    contaminated by versions you name in the command). Full protocol +
    component→repo map: `references/version-verification.md`.
+9. **Target furthest coverage, not the immediate-hop minimum.** When a row needs
+   a bump, recommend the *lowest version whose support window also covers every
+   known or queued next hop* — never the bare minimum that only clears the current
+   change set. If a newer minor already exists, is stable, and covers both the
+   current target and the next planned minor, recommend **it** directly. A version
+   that satisfies the current target but lands on its **own support ceiling** is a
+   `⚠`, not a `✓` — say so and name the forward-covering target, because shipping
+   it forces an avoidable second bump one hop later. Step minor-by-minor ONLY when
+   (a) mandatory sequential stops exist (GitLab app stops, Rancher CAPI conversion)
+   or (b) skipping stacks breaking changes too aggressively — and even then, name
+   the **end-state** target version, not just the next step. Always ask "what is
+   the operator's *next* hop after this one, and does my recommended version
+   already cover it?" before emitting a `→ ≥ <target>`. *(Encoded after a real
+   miss: a k8s 1.32 → 1.33 handoff recommended KEDA 2.18.3 — CVE-patched and
+   1.33-valid but at the 2.18 ceiling, even though the handoff itself noted "1.34
+   would need ≥ 2.19 later" — while KEDA 2.19.0 (k8s 1.32–1.34, same CVE fix)
+   already existed and would have covered the very next 1.33 → 1.34 hop in one
+   bump. The look-ahead was known and not acted on.)*
 
 ## Truth-source-type — branch the lookup
 
