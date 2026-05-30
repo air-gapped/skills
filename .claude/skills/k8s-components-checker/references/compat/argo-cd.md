@@ -6,6 +6,7 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 3.0
 - **Last sifted:** 2026-05-28
+- **2026-05-30 operator correction (verified on cluster `local`):** the **3.2 line ended at v3.2.6** and **never received the CVE-2026-42880 backport** — the prior `v3.2.10` / `v3.2.12` entries below were wrong (those releases do not exist). Safe patched target is **3.4.3 (chart 9.5.17)**. `freshen` should reconcile the § 3.2 numbers against upstream.
 
 Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.0 / v3.1 rows pulled from `release-3.0` / `release-3.1` historical docs. **Both v3.0 and v3.1 are EOL upstream** (v3.0 EOL 2026-02-02 at v3.0.23; v3.1 EOL 2026-05-06 at v3.1.16) — encountering either is an automatic ✗ blocker, but the rows are kept for migration-path planning. See companion skill `argo-cd-apps` for application-authoring detail; this file is k8s-compat only.
 
@@ -23,7 +24,7 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - Source Hydrator still **Alpha** — schema may break in v3.5; do not build long-lived automation on `spec.sourceHydrator`.
   - CMP (Config Management Plugin) sidecar protocol unchanged from v3.3.
   - ApplicationSet generators stable; no new generators in v3.4 (incremental fixes to DuckType, PullRequest, Git only).
-  - **CVE-2026-42880 patched** in v3.4.x line as of v3.4.0 GA (fixed in v3.3.8 / v3.2.10 / v3.1.15 for older lines; v3.4 was patched pre-GA). Confirms `IncludeMutationWebhook=true` no longer leaks Secret plaintext.
+  - **CVE-2026-42880 patched** in v3.4.x line as of v3.4.0 GA (also fixed in v3.3.8 and v3.1.15; **the 3.2 line never received the backport — it ended at v3.2.6, unpatched**; v3.4 was patched pre-GA). Confirms `IncludeMutationWebhook=true` no longer leaks Secret plaintext.
 
 ## 3.3 (latest: v3.3.11, 2026-05-28)
 
@@ -41,11 +42,11 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - HPA v2 (`autoscaling/v2`) support added (low signal — `autoscaling/v1` already worked).
   - Server-Side Diff (Stable since v3.2) still **not default** — `IncludeMutationWebhook` opt-in flag is the CVE vector; strip it from every Application.
 
-## 3.2 (latest: v3.2.12, 2026-05-13)
+## 3.2 (latest: v3.2.6 — line ENDED here, CVE-2026-42880-UNPATCHED)
 
 - **k8s floor:** 1.31 – 1.34
 - **Breaking:**
-  - **CVE-2026-42880 patched** in **v3.2.10** (2026-04-21). Surveyed cluster on 3.2.x must be ≥ 3.2.10 if it handles Secrets.
+  - **CVE-2026-42880 is NOT patched on the 3.2 line.** The 3.2 series ended at **v3.2.6** and the fix was never backported — the earlier "v3.2.10" claim was wrong (that release does not exist). A 3.2.x cluster handling Secrets is permanently exposed; the only patched path is **bump to 3.4.x (≥ 3.4.0; latest 3.4.3 / chart 9.5.17)**, NOT a 3.2 patch. (operator-verified 2026-05-30 on cluster `local`)
   - `syncPolicy.automated.enabled=false` semantics fixed in 3.2.x (`#24254`) — pre-fix builds treated the field as no-op and continued auto-syncing. Pre-3.2 manifests relying on this to disable auto-sync silently break on 3.2 if they used a different toggle.
 - **CRD migrations:** none.
 - **Upgrade ordering:** none against other registry components.
@@ -53,13 +54,13 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - `extensions/v1beta1` shim removed for built-in health checks (`#381`). Apps still referencing those API versions in `ignoreDifferences` or health Lua scripts will misbehave.
 - **Notable:**
   - **Server-Side Diff promoted to Stable.** Not default — apps opt in per-Application via `compare-options: ServerSideDiff=true` annotation or globally via `argocd-cmd-params-cm`.
-  - **Server-Side Apply migration** logic landed (`#727`) — auto-migrates `kubectl-client-side-apply` fields when ServerSideApply is enabled. This is the same code that regressed in 3.3.0 — 3.2 line is the safe LTS choice if 3.3.x/3.4.x adoption isn't required.
+  - **Server-Side Apply migration** logic landed (`#727`) — auto-migrates `kubectl-client-side-apply` fields when ServerSideApply is enabled. This is the same code that regressed in 3.3.0. **Do NOT treat 3.2 as the "safe LTS" landing zone** — it ended at v3.2.6 and is CVE-2026-42880-unpatched. The safe patched target is **3.4.x (3.4.3)**; 3.3.0 / 3.3.1 are broken (only use ≥ 3.3.2 if you must stay on the 3.3 line).
   - ApplicationSet PR generator returns 0 results on repo-not-found rather than failing (`#23447`) — silent behavior change; AppSets relying on hard failure to gate sync need a different signal.
 
 ## 3.1 (latest: v3.1.16, 2026-05-05 — **EOL 2026-05-06**)
 
 - **k8s floor:** 1.31 – 1.34
-- **EOL.** v3.1.16 release notes carry the upstream EOL banner. No more security or bug patches. Verdict ✗ blocker — must bump to ≥ 3.2.
+- **EOL.** v3.1.16 release notes carry the upstream EOL banner. No more security or bug patches. Verdict ✗ blocker — must bump to **≥ 3.4** (skip 3.2: it ended at v3.2.6 and is CVE-2026-42880-unpatched — see § 3.2).
 - **Breaking:**
   - **k8s floor jumped from 1.29 (v3.0) to 1.31.** RKE2 / Rancher clusters that ran v3.0 on k8s 1.29 / 1.30 must bump the kube control plane before installing 3.1.
   - **SSA field-manager migration options added** (`#23337`) — opt-in here; defaults flipped in 3.3.0 and immediately regressed. Pre-stage `ClientSideApplyMigration=false` syncOption on apps that already opted in, so the 3.3 upgrade path is reversible.
@@ -103,6 +104,6 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
 ## Cross-version notes
 
 - **Upstream support window.** Argo CD upstream tests three minors (current + 2 prior). At 2026-05-28: 3.4 (latest), 3.3, 3.2. 3.1 / 3.0 are EOL upstream — verdict ✗ blocker if found.
-- **k8s floor stability.** Floor history: 3.0 → 1.29; 3.1 → 1.31 (jumped two); 3.2 → 1.31 (held); 3.3 / 3.4 → 1.32. RKE2 clusters on 1.31 cannot run 3.3+ per the tested matrix; bump RKE2 first or stay on Argo CD 3.2.x. RKE2 on 1.29 / 1.30 is now stuck on EOL Argo CD (v3.0 only) — k8s bump is mandatory before any supported Argo CD.
+- **k8s floor stability.** Floor history: 3.0 → 1.29; 3.1 → 1.31 (jumped two); 3.2 → 1.31 (held); 3.3 / 3.4 → 1.32. RKE2 clusters on 1.31 cannot run 3.3+ per the tested matrix — but Argo CD 3.2 is CVE-2026-42880-unpatched (capped at v3.2.6), so the right move is **bump RKE2 to ≥ 1.32 then go to 3.4.x**, not park on 3.2.x. RKE2 on 1.29 / 1.30 is stuck on EOL Argo CD (v3.0 only) — k8s bump is mandatory before any supported Argo CD.
 - **The seven v3.0 default flips** (annotation tracking, `.status` ignored, default `resource.exclusions`, logs-RBAC enforced, no update/delete RBAC inheritance, `preserveUnknownFields: false` causes drift, in-cluster destination off by default) are still in effect across 3.2/3.3/3.4. Any v2.x → v3.x jump in scope must address all seven — defer to `argo-cd-apps` skill `references/version-changes.md` § v3.0.
 - **No `ServerSideDiff=true` + `IncludeMutationWebhook=true` combo on unpatched builds.** This is the CVE-2026-42880 trigger. Verdict ✗ blocker if the cluster runs ServerSideDiff and any patched build is not in place.

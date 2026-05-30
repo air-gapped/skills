@@ -30,7 +30,65 @@ Ceiling findings from skill-improver runs.
   illustrative patch numbers in the version headers (20.2.1 → 20.3.0,
   19.2.3 → 19.3.0).
 
+### Ceph drift evidence is itself unverified — re-flag (House Rule #8) (2026-05-30)
+
+- The carried Ceph item above cites `v20.3.0` / `v19.3.0` from `gh api .../tags`,
+  now known to be **confirmatory/contaminated** (rubber-stamps plausible-but-fake
+  tags), and `ceph/ceph` has **no `releases/latest`** scalar to anchor on. So the
+  drift is **UNVERIFIED, not merely un-applied** — do NOT bump on the tags
+  evidence. Ground via docs.ceph.com release pages first.
+
+### Per-version "fixed-in vX.Y.Z" / CVE-patch claims not release-grounded (Dim 9) (new 2026-05-30)
+
+- Every `compat/*.md` carrying "fixed in" / "patched in" lines (keda
+  CVE-2025-68476→2.18.3, cert-manager CVE-2025-617xx, argo CVE-2026-42880, ceph
+  data-loss point releases). The release-grounding pass confirmed version
+  *existence* via `releases/latest`, but the gh release-**body** endpoint is
+  confirmatory/contaminated here, so a patch's *changelog contents* can't be
+  trusted from it. Action: author verifies the "fixed-in" patches against real
+  changelogs on a trusted network, then stamp `Last release-verified:`.
+
+### GitLab not gh-groundable (new 2026-05-30)
+
+- `compat/gitlab.md`. Chart at `gitlab.com/gitlab-org/charts/gitlab`; `gh` does
+  not apply. Ground via the GitLab API / `glab` / `helm search`, else mark
+  versions `UNVERIFIED`.
+
+### Grafana Mimir chart-vs-app axis (new 2026-05-30)
+
+- `compat/mimir.md`. `releases/latest` returns the **app** tag (`mimir-3.0.6`);
+  the load-bearing axis is the `mimir-distributed` **chart** `Chart.yaml`
+  `kubeVersion:`. Ground via
+  `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml`
+  at chart-release tags, not `releases/latest`.
+
+### NVIDIA GPU Operator v26.3.2 content not sifted (new 2026-05-30)
+
+- `compat/nvidia-gpu-operator.md` (banner added 2026-05-30). Existence grounded
+  via `gh`; the 26.3.2 release-note content (breaking changes, driver defaults,
+  k8s-floor confirmation) still needs a sift on a trusted network — document
+  `§ 26.3.2` then.
+
 ## Resolved this pass
+
+### freshen — 2026-05-30 (release-grounding pass, House Rule #8)
+
+- **argo-cd fabrication removed** (this session): struck invented `v3.2.10` /
+  `v3.2.12` + "CVE fixed in 3.2.10"; the 3.2 line ended at `v3.2.6` (unpatched);
+  grounded latest `v3.4.3`. The 2026-05-28 `gh release view`-based pass did NOT
+  catch this (it bumped only the 3.4 / 3.3 headers).
+- **harbor fabrication flagged**: `§ 2.15` is not a published release
+  (`releases/latest` = `v2.14.4`); banner + UNVERIFIED marker added; line is 2.14.x.
+- **nvidia version-drift applied**: real latest `v26.3.2` over documented
+  `§ 26.3.1` (existence grounded; content sift in Open).
+- **15 gh-backed components release-grounded** via `releases/latest`; 12
+  confirmed fresh + nvidia existence. See `sources.md` § 2026-05-30.
+- **Methodology hardened (recurrence fix):** House Rule #8 + new
+  `references/version-verification.md` (anchor on `releases/latest`,
+  enumerate-and-derive, never ask "does vX exist?"); wired into SKILL.md,
+  cluster-survey.md (Phase 4b), tooling.md, compat/README.md. Root cause: prior
+  runs verified via `gh release list` / `gh release view` / `gh api tags` — the
+  confirmatory endpoints that let the fabrications through.
 
 ### Improve + freshen run — 2026-05-28 (cap-lift + patch-drift pass)
 
@@ -121,6 +179,22 @@ them rather than abstaining):
   Pattern 6.1 violations.
 
 ## Run log
+
+### freshen — 2026-05-30 (release-grounding pass)
+
+- Probe: `releases/latest` scalar for 17 gh repos (clean — no candidate version
+  named). 15 returned a version; ceph 404 (no `/latest`); gitlab N/A (not
+  GitHub); mimir returned the app tag, not the chart `kubeVersion`.
+- Findings: 12 fresh · 2 fabrications (argo-cd, harbor) · 1 drift applied
+  (nvidia `v26.3.2`) · 3 not-gh-groundable (ceph / gitlab / mimir → Open) · 1
+  claim class (per-version "fixed-in" CVE patches) not body-groundable → Open.
+- Key methodology finding: gh release-**body**, **list**, and **tags** endpoints
+  are confirmatory/contaminated in this environment (rubber-stamp plausible
+  fakes; echo in-context version strings). Only `releases/latest` is
+  trustworthy. The prior 2026-05-28 freshen relied on the contaminated
+  endpoints — root cause of the surviving fabrications. Fixed via House Rule #8
+  + `references/version-verification.md`.
+- No blind score (freshen is verification-based, not score-based).
 
 ### improve + freshen — 2026-05-28 (cap-lift + patch-drift pass)
 

@@ -8,6 +8,12 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
 - **Last sifted:** 2026-05-28
+- **2026-05-30 release-verified (gh):** `NVIDIA/gpu-operator releases/latest` =
+  **v26.3.2** — one patch ahead of the newest section below (§ 26.3.1). 26.3.2 is
+  a patch on the 26.3 line (k8s floor 1.32–1.35 per § 26.3.0/26.3.1, presumed
+  unchanged); its release-note content is **not yet sifted**. Existence grounded
+  via `gh`; content sift deferred to next freshen on a trusted network. (House
+  Rule #8 · `references/version-verification.md`)
 
 Lifecycle (per upstream): 26.3.x **current**; 25.10.x **deprecated** (critical fixes only); 25.3.x and lower **end of support**. Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.3 in one step.
 

@@ -6,6 +6,13 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 2.13
 - **Last sifted:** 2026-05-28
+- **2026-05-30 release-verified (gh):** `goharbor/harbor releases/latest` =
+  **v2.14.4** — the current line is **2.14.x**. **Harbor 2.15 is NOT released**;
+  the `## 2.15` section below is premature/UNVERIFIED (its patch numbers and
+  tested-k8s matrix were sifted, not release-grounded — a list query "confirming"
+  2.15.0/2.15.1 was contamination, contradicted by `releases/latest`). Treat
+  2.14.x as the newest line; `freshen` should re-ground or remove § 2.15. See
+  `references/version-verification.md` (House Rule #8).
 
 Harbor is plain Deployments — no CRDs, no operator. The compat surface is
 (a) which k8s minors the chart was tested on, (b) DB schema migrations that
@@ -22,7 +29,7 @@ k8s window is the integration-test matrix baked into
 PR #2241). Helm will not block install on an out-of-matrix cluster — the
 operator owns that decision.
 
-## 2.15 — chart 1.19.x (1.19.0 → 1.19.1)
+## 2.15 — chart 1.19.x  ⚠️ UNVERIFIED / NOT YET RELEASED (gh `releases/latest` = v2.14.4 on 2026-05-30; numbers below are ungrounded — see banner)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
   `v1.32.8, v1.33.4, v1.34.0`). README still claims "Kubernetes v1.20+"

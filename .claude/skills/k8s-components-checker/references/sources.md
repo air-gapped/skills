@@ -12,6 +12,29 @@ First freshen run: 2026-05-28. Re-run `/skill-improver freshen
 k8s-components-checker` at quarterly cadence or before any upgrade plan that
 relies on a row older than 90 days.
 
+## 2026-05-30 — release-grounding pass (House Rule #8)
+
+Ran `freshen` focused on **version grounding**: confirmed each gh-backed
+component's newest version against the **`gh api .../releases/latest`** scalar —
+the only signal that survives the tool's confirmation bias (existence/list/per-tag
+queries rubber-stamp plausible fakes; see `references/version-verification.md`).
+This was a release-grounding overlay, **not** a full docs-matrix re-sift; per-row
+`Last verified:` dates below remain the 2026-05-28 sift date.
+
+- **Confirmed fresh (latest scalar matches compat newest):** RKE2
+  v1.36.1+rke2r1 · Rancher v2.14.2 · Harvester v1.8.0 · Cilium v1.19.4 ·
+  cert-manager v1.20.2 · Kyverno v1.18.1 · KEDA v2.19.0 · Traefik v3.7.1 ·
+  Rook v1.19.6 · OpenEBS v4.4.0 · Zalando v1.15.1 · ECK v3.4.0.
+- **Fixed fabrications:** Argo CD — removed invented `v3.2.10`/`v3.2.12` + "CVE
+  fixed in 3.2.10" (real latest `v3.4.3`); Harbor — flagged invented `§ 2.15`
+  (real latest `v2.14.4`; line is 2.14.x).
+- **Version-drift applied:** NVIDIA GPU Operator — latest `v26.3.2`, one patch
+  ahead of documented `§ 26.3.1` (existence grounded; content sift deferred).
+- **NOT gh-groundable (see `references/improvement-backlog.md`):** Ceph (no
+  `releases/latest`), GitLab (not on GitHub), Grafana Mimir (`releases/latest`
+  returns the app tag, not the chart `kubeVersion`). Ground via docs / GitLab
+  API / `Chart.yaml`.
+
 ## RKE2 (anchor)
 
 - URL: https://github.com/rancher/rke2/releases
