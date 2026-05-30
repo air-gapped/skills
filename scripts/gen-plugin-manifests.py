@@ -202,6 +202,7 @@ GROUPS: dict[str, dict] = {
             "keda",
             "keycloak-iam",
             "openshift-app",
+            "rancher-upgrade",
         ],
         "description": (
             "Kubernetes suite — Argo CD application authoring (GitOps "
@@ -217,7 +218,10 @@ GROUPS: dict[str, dict] = {
             "RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, "
             "KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, "
             "ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU "
-            "Operator)."
+            "Operator), plus rancher-upgrade — community Rancher fleet "
+            "upgrade methodology (KDM downstream support matrix, "
+            "CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, "
+            "per-minor 2.11→2.14 runbook), companion to k8s-components-checker."
         ),
         "category": "kubernetes",
         "tags": [

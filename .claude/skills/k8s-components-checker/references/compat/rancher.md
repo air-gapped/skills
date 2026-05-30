@@ -34,7 +34,7 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
 - **Notable:**
   - **Fleet bumped to v0.15.0, migrated Helm v3 → Helm v4** (fleet#4351). Known issue: drift correction may misbehave with Helm v4 (#4878) — partial fix in 2.14.1, full fix tracked in v0.15.x.
   - Gateway API supported as an install-time network exposure for the Rancher chart itself (#52796) — alternative to Ingress.
-  - **Google OAuth login broken in 2.14.0**; fix targeted for 2.14.1 (#54387). If using Google OAuth, skip 2.14.0 GA, install 2.14.1+ directly.
+  - **Google OAuth login broken in 2.14.0**; fixed in 2.14.1 (main issue #54387; v2.14 backport tracked as #54416 — both CLOSED, gh-verified 2026-05-30). If using Google OAuth, skip 2.14.0 GA, install 2.14.1+ directly.
   - `cert-manager` version-check code removed from the Rancher chart — the chart now only supports cert-manager versions compatible with Rancher's own k8s support window. No more compat fallback path.
 
 ## 2.13 (latest community: v2.13.2, 2026-01 — patches 2.13.3+ are Prime cadence)
@@ -44,6 +44,7 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   - **Rancher Provisioning chart auto-replaced by Rancher Turtles** on upgrade (#52254). `rancher-provisioning-capi` is uninstalled, Rancher Turtles is installed. Pre-upgrade backups of any `clusters.provisioning.cattle.io` resources are advisable — they survive the migration but the controller path changes.
   - **OIDC Auth Provider settings may be lost on 2.12.x → 2.13.x upgrade** (#53995). Cleanup of unused OIDC secrets can partially overwrite the AuthConfig and drop endpoints / client IDs. Fix is in **2.14**; on 2.13 itself, back up the OIDC AuthConfig before upgrading.
   - **Rollback 2.13.0 → 2.12.3 via BRO is broken** (backup-restore-operator#844). Workaround: scale Rancher to 0 and uninstall the Webhook chart before restore.
+  - **Air-gapped: `capi-controller-manager` may fail to reach Active after the 2.13 upgrade, blocking cluster provisioning** (#52816). Pre-stage the CAPI controller images in the private mirror and watch the pod post-upgrade. (gh-verified 2026-05-30.)
 - **CRD migrations:**
   - New `tokens.ext.cattle.io` resource introduced (begins the phase-out of `tokens.management.cattle.io`). Both served in parallel.
   - GitHub App auth provider adds a new AuthConfig variant (#50517) — additive, no migration required for existing GitHub auth.
