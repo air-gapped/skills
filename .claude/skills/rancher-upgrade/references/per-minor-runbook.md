@@ -58,6 +58,16 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
 - **CAAPF disabled by default at 2.14.1** (turtles#2176).
 - Ingress proxy-timeout annotations dropped by default (#53272) — set explicitly if a custom proxy
   relied on them. 2.13.2→2.14 CrashLoop (#53854, CLOSED — fixed at 2.14.0 GA).
+- *2.13.3→2.14.2 field-validated 2026-05-30 (standalone mgmt cluster) — completes the 2.12→2.14 path
+  end-to-end:* CAPI v1beta1→v1beta2 **did** cross (served + stored), just lagging the helm return —
+  the fresh pre-step etcd snapshot was correct discipline. Fleet 0.14→0.15 + Helm v3→v4 migrated clean
+  (#4878 did not bite). cert-manager shim removal (#52922) a non-event with cert-manager already
+  in-window. Embedded-CAPI removal (#53291) had no separate effect (Turtles owned CAPI from 2.13).
+- **2.14 values gotchas:** `includeDefaultExtraAnnotations` default flips **`true→false`**
+  (ingress-nginx retiring) — keep `false` for non-nginx ingress (Traefik); it drops nginx-only default
+  annotations from the rendered Ingress. A new `gateway.gatewayClass.tls` block also carries a
+  `source:` key, so when porting an ingress `tls.source` customization, disambiguate by indent (the
+  ingress `source` is shallower) or the edit lands in the wrong block.
 
 ## The runbook — iterate ONCE PER MINOR STEP (2.11→2.12→2.13→2.14)
 
@@ -100,10 +110,16 @@ is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm t
 
 **POST-FLIGHT**
 
-> **Fleet's version bump and the Turtles swap are Rancher-driven ASYNC reconciliations** — they land
-> seconds-to-minutes *after* `helm upgrade` returns, not in its output. **Poll** for them; an inline
-> helm success does not mean they're done. (field-validated 2026-05-30. The values re-port between
-> minors is usually trivial — a straight copy of the site's customizations if no keys moved.)
+> **Verify on the SETTLED state — never "correct" the plan from an unsettled snapshot.** After
+> `helm upgrade` returns, the Fleet version bump, the Fleet **Helm v3→v4** migration, and the CAPI
+> CRD version change are Rancher-driven ASYNC reconciliations that settle **~5–15 min later**, not in
+> the helm output. Read them from durable truth — the **`fleet-version` setting**, CRD
+> **`storedVersions`**, and **Job/helm-operation completion** — NOT the transient mid-reconcile pod
+> image. Snapshotting too early reports **false negatives** ("Fleet didn't bump", "CAPI stayed
+> v1beta1"); if such an observation contradicts this runbook, **re-check after settling — do not write
+> the contradiction back into the plan.** (field-validated 2026-05-30: both transitions lagged the
+> helm return, then completed exactly as predicted.) The values re-port between minors is usually
+> trivial — a straight copy of the site's customizations if no keys moved.
 
 10. Rancher pods healthy (watch CrashLoop @2.14, DiskPressure @2.12).
 11. Auth intact — OIDC (@2.13), Google OAuth (@2.14).
