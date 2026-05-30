@@ -5,9 +5,12 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.12
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-05-30
+- **Last release-verified (gh):** 2026-05-30 — per-minor community patch ceilings re-derived **by edition** (see § Community vs Prime); the prior values (2.12→v2.12.6, 2.13→v2.13.2) were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
 
 Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.12 (Jul 2025) supported through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027.
+
+**Community vs Prime — how the per-minor ceilings below are derived (do NOT trust `sort -V | tail -1`).** `rancher/rancher` GitHub releases carry **both** editions and the `prerelease` flag does not separate them. Discriminator = release-notes first line: a patch is **Prime-only iff its body redirects to "Please refer to our Prime Documentation …"**; community patches either say "This is a Community version release" or carry inline notes (`# Release vX.Y.Z`) — so test for the Prime marker and treat its **absence** as community (a positive "community version release" grep misses the older inline-notes format). **Pattern:** once a newer community minor ships, the older minor's later patches flip to Prime-only, so an older minor's *top* tag is a Prime patch, not its latest community patch. Full derivation protocol: `references/version-verification.md` § Edition discrimination.
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Downstream-cluster provisioning (KDM bundling, downstream RKE2/K3s version dropdowns) is **out of scope** — the operator manages downstream clusters by hand. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
 
@@ -37,7 +40,7 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   - **Google OAuth login broken in 2.14.0**; fixed in 2.14.1 (main issue #54387; v2.14 backport tracked as #54416 — both CLOSED, gh-verified 2026-05-30). If using Google OAuth, skip 2.14.0 GA, install 2.14.1+ directly.
   - `cert-manager` version-check code removed from the Rancher chart — the chart now only supports cert-manager versions compatible with Rancher's own k8s support window. No more compat fallback path.
 
-## 2.13 (latest community: v2.13.2, 2026-01 — patches 2.13.3+ are Prime cadence)
+## 2.13 (latest community: v2.13.3, 2026-02-25 — patches 2.13.4+ are Prime-only)
 
 - **k8s floor:** 1.32 – 1.34 (adds 1.34; removes 1.31 — issues #51252, #51253).
 - **Breaking:**
@@ -59,7 +62,7 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   - Mgmt cluster still requires **k8s API Aggregation Layer enabled** (#50400). RKE2/K3s have it on by default — non-RKE2 mgmt clusters must verify.
   - Helm client ≥ 3.18 required (carried from 2.12).
 
-## 2.12 (latest community: v2.12.6, 2026-01 — patches 2.12.7+ are Prime cadence)
+## 2.12 (latest community: v2.12.4, 2025-11-24 — patches 2.12.5+ are Prime-only)
 
 - **k8s floor:** 1.31 – 1.33 (adds 1.33; removes 1.30 — issues #48796, #49679).
 - **Breaking:**

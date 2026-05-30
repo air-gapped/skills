@@ -82,6 +82,45 @@ contaminated by version strings present elsewhere in the same command*. Only
    gh api https://endoflife.date/api/v1/products/<product>/ 2>/dev/null   # or curl
    ```
 
+### Edition discrimination (community vs Prime/EE) — what anti-confirmation does NOT catch
+
+Anti-confirmation proves a release **exists** and is **not newer than `latest`**. It does
+**not** prove the release is the **edition the registry tracks** (House Rule #1: community
+only). A real, older, **Prime/enterprise** patch passes every existence check — it exists, it
+is below `latest` — and gets rubber-stamped as community. This is a **separate axis** from
+fabrication and needs its own grounding step. *(Real miss: `compat/rancher.md` carried "2.12
+latest community: v2.12.6" through a freshen on 2026-05-30. v2.12.6 is **Prime-only**. The
+freshen anchored on `releases/latest` = v2.14.2, found 2.12.6 real and below latest, and left
+it. Nothing checked edition.)*
+
+Applies to any vendor with an OSS-vs-paid split that publishes **both** editions to one feed:
+
+| Vendor | Both editions on one feed? | Discriminator |
+|---|---|---|
+| **Rancher** (community vs SUSE **Prime**) | yes — `rancher/rancher` GitHub releases carry both; `prerelease` flag does NOT separate them | **release-notes first line**. Prime-only ⟺ body redirects to `"Please refer to our Prime Documentation …"`. Community = `"… This is a Community version release …"` **or** inline notes (`# Release vX.Y.Z`). **Test for the Prime marker; treat its absence as community** (a positive "community version release" grep misses the older inline-notes format). |
+| **GitLab** (CE vs EE) | tags shared | operator runs the EE binary as CE — treat as CE per House Rule #1; edition is not version-distinguished, so no per-tag check needed. |
+
+**The pattern anti-confirmation misses (Rancher):** once a newer community minor ships, the
+older minor's later patches flip to **Prime-only**. So `releases/latest` (the current minor's
+top patch) is community and grounds fine — but the "latest community patch" of an **older**
+minor is **not** its top tag, and `sort -V | tail -1` returns a **Prime** patch.
+
+Derive "latest community patch of minor X" by filtering on the discriminator, newest-first,
+stopping at the first non-Prime release — never by version order alone:
+
+```bash
+# latest COMMUNITY patch of a Rancher minor (e.g. 2.12): stop at first tag NOT redirecting to Prime docs
+for t in $(gh api 'repos/rancher/rancher/releases?per_page=100' \
+            --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v2\.12\.' | sort -rV); do
+  gh api repos/rancher/rancher/releases/tags/$t --jq '.body' | head -1 \
+    | grep -qi 'prime documentation' || { echo "latest community 2.12: $t"; break; }
+done
+```
+
+Verified 2026-05-30: 2.12 → **v2.12.4** (v2.12.5+ Prime), 2.13 → **v2.13.3** (v2.13.4+ Prime),
+2.14 → **v2.14.2** (current minor). `sort -V | tail -1` on 2.12 returns **v2.12.10 — a Prime
+patch**; that is the exact rubber-stamp this step prevents.
+
 ### Chart vs app version
 
 For Helm-installed components the operator picks the **chart** version, but the
@@ -98,7 +137,7 @@ repos:
 | Component | Release source |
 |---|---|
 | RKE2 | `rancher/rke2` |
-| Rancher | `rancher/rancher` |
+| Rancher | `rancher/rancher` — **community/Prime share one feed; apply § Edition discrimination, do NOT `sort -V | tail -1`** |
 | Cilium | `cilium/cilium` |
 | Tetragon | `cilium/tetragon` (chart == app version; no `kubeVersion:`; kernel floor from `tetragon.io/docs/installation/faq/`, not `gh`) |
 | cert-manager | `cert-manager/cert-manager` |

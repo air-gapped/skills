@@ -176,8 +176,13 @@ These are non-negotiable; encode them into every verdict.
    *anti-confirmation* method — anchor on `releases/latest`, enumerate-and-derive
    the real latest patch, and **never ask "does vX exist?"** (existence/list/per-tag
    queries get rubber-stamped — plausible fakes return 200, and the list is
-   contaminated by versions you name in the command). Full protocol +
-   component→repo map: `references/version-verification.md`.
+   contaminated by versions you name in the command). **Existence is not edition:**
+   for a vendor with a community/Prime (or OSS/EE) split that ships both to one feed
+   (Rancher), a *real, older* patch can be **Prime-only** and will rubber-stamp as
+   community — `sort -V | tail -1` returns a Prime patch for any non-current minor.
+   Apply the release-notes edition discriminator, don't trust version order. Full
+   protocol + component→repo map + edition discrimination:
+   `references/version-verification.md`.
 9. **Target furthest coverage, not the immediate-hop minimum.** When a row needs
    a bump, recommend the *lowest version whose support window also covers every
    known or queued next hop* — never the bare minimum that only clears the current
