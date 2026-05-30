@@ -9,6 +9,7 @@ that trip strict YAML parsers.
 
 import pathlib
 import re
+import subprocess
 import sys
 
 README = pathlib.Path("README.md")
@@ -80,6 +81,9 @@ def main() -> int:
     )
     if new != text:
         README.write_text(new)
+        # Stage the regenerated table so it rides along in this commit
+        # (one-pass) instead of forcing an add-then-recommit dance.
+        subprocess.run(["git", "add", "--", str(README)], check=False)
     return 0
 
 

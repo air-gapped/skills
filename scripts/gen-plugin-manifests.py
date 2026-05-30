@@ -11,9 +11,14 @@ under .claude/skills/).
 
 Version scheme: 0.YYYYMMDD.N where
 - YYYYMMDD = UTC date of the last commit touching any member skill dir
-- N = unique commit count touching any member skill dir
-.claude-plugin/ subtree is excluded from pathspec so regenerations
-don't self-bump.
+  (today while the dir has pending uncommitted changes — the version this
+  commit will carry)
+- N = unique commit count touching any member skill dir, plus 1 while the
+  dir has pending changes (staged OR unstaged), so the predicted bump is
+  stable across the stage/commit dance and the pre-commit hook converges.
+.claude-plugin/ subtree is excluded from pathspec so regenerations don't
+self-bump. On regeneration the hook git-adds the manifest so the bump lands
+in the same commit (one-pass) instead of forcing an add-then-recommit dance.
 """
 
 import datetime
@@ -468,15 +473,23 @@ def last_commit_date(skill_dirs: list[pathlib.Path]) -> str | None:
     return out or None
 
 
-def staged_touches(skill_dirs: list[pathlib.Path]) -> bool:
+def dir_has_pending_changes(skill_dirs: list[pathlib.Path]) -> bool:
+    """True if any member skill dir has uncommitted changes — staged OR
+    unstaged OR untracked. Index-independent on purpose: the predicted
+    version must be identical whether the skill files are staged yet or
+    not, so the regenerate-and-fail / re-add / re-commit loop converges to
+    a fixed point instead of flipping the version each pass."""
     rels = [str(d.relative_to(REPO_ROOT)) for d in skill_dirs]
     skip_prefixes = [r + "/.claude-plugin/" for r in rels]
     prefixes = [r + "/" for r in rels]
-    out = run_git("diff", "--cached", "--name-only")
-    for f in out.splitlines():
-        if any(f.startswith(sp) for sp in skip_prefixes):
+    out = run_git("status", "--porcelain", "--untracked-files=all")
+    for line in out.splitlines():
+        path = line[3:] if len(line) > 3 else ""
+        if " -> " in path:  # rename: take the destination path
+            path = path.split(" -> ", 1)[1]
+        if any(path.startswith(sp) for sp in skip_prefixes):
             continue
-        if f in rels or any(f.startswith(p) for p in prefixes):
+        if path in rels or any(path.startswith(p) for p in prefixes):
             return True
     return False
 
@@ -488,7 +501,7 @@ def today_utc() -> str:
 def version_for(skill_dirs: list[pathlib.Path]) -> str:
     count = commit_count(skill_dirs)
     date = last_commit_date(skill_dirs) or today_utc()
-    if staged_touches(skill_dirs):
+    if dir_has_pending_changes(skill_dirs):
         count += 1
         date = today_utc()
     if count == 0:
@@ -610,6 +623,11 @@ def main() -> int:
         return 2
     removed = remove_legacy_plugin_jsons()
     changed = write_marketplace(plugins)
+    if changed:
+        # Stage the regenerated manifest so the version bump rides along in
+        # this commit (one-pass) rather than landing as an unstaged change
+        # that fails the hook and forces a re-add / re-commit.
+        run_git("add", "--", str(MARKETPLACE_FILE.relative_to(REPO_ROOT)))
     if removed:
         print(f"removed {removed} legacy plugin.json files")
     if changed:
