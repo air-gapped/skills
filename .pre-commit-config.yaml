@@ -48,5 +48,9 @@ repos:
         entry: python3 scripts/gen-plugin-manifests.py
         language: system
         pass_filenames: false
-        files: ^(\.claude/skills/.+/SKILL\.md|scripts/gen-plugin-manifests\.py|\.claude-plugin/marketplace\.json)$
+        # Any file under a skill dir (not just SKILL.md): the version is
+        # 0.DATE.N where N counts commits touching the dir, so a content-only
+        # change must also trip the hook and bump the version — else agents
+        # loading the marketplace can't tell the skill was updated.
+        files: ^(\.claude/skills/.+|scripts/gen-plugin-manifests\.py|\.claude-plugin/marketplace\.json)$
         stages: [pre-commit]
