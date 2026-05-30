@@ -7,13 +7,12 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
-- **Last sifted:** 2026-05-28
-- **2026-05-30 release-verified (gh):** `NVIDIA/gpu-operator releases/latest` =
-  **v26.3.2** — one patch ahead of the newest section below (§ 26.3.1). 26.3.2 is
-  a patch on the 26.3 line (k8s floor 1.32–1.35 per § 26.3.0/26.3.1, presumed
-  unchanged); its release-note content is **not yet sifted**. Existence grounded
-  via `gh`; content sift deferred to next freshen on a trusted network. (House
-  Rule #8 · `references/version-verification.md`)
+- **Last sifted:** 2026-05-31
+- **2026-05-31 matrix-grounded (platform-support page):** the 26.3 k8s window is **1.32 – 1.36** —
+  **26.3.2 added k8s 1.36** (earlier entries said 1.32–1.35; the prior "presumed unchanged" caveat is
+  now lifted and § 26.3.2 is sifted below). The floor is **1.32** across the whole 26.3 line — **not
+  1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.2**
+  (gh, 2026-05-30). (House Rule #8 · `references/version-verification.md`)
 
 Lifecycle (per upstream): 26.3.x **current**; 25.10.x **deprecated** (critical fixes only); 25.3.x and lower **end of support**. Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.3 in one step.
 
@@ -49,16 +48,22 @@ and clears it (rc 18 → 0).
   `nvidia-smi` binary (`command -v nvidia-smi`) so non-NVIDIA hosts don't false-fail.
 - Field-validated 2026-05-30 (community RKE2 1.32 → 1.33 on Ubuntu GPU nodes).
 
+## 26.3.2
+
+- **k8s floor:** 1.32 – **1.36** (1.36 added on the 26.3 line; NVIDIA platform-support matrix grounded 2026-05-31).
+- **Driver branches:** 26.3 line (default 580.126.20) — see § 26.3.0.
+- **Notable:** DCGM Exporter adds `enablePodLabels` / `enablePodUID` / `podLabelAllowlistRegex` (additive). On RKE2/K3s, prefer the **NRI Plugin** (see § 26.3.0) — set `cdi.nriPluginEnabled: true` rather than the toolkit `CONTAINERD_SOCKET` env; needs containerd ≥ 1.7.30 / 2.1.x / 2.2.x, not supported with CRI-O. NRI host prereq field-verified on RKE2 (containerd 2.2.x, NRI live) 2026-05-31.
+
 ## 26.3.1
 
-- **k8s floor:** 1.32 – 1.35
+- **k8s floor:** 1.32 – 1.36
 - **Driver branches:** default 580.126.20, recommended 580.159.03; also 595.71.05, 595.58.03, 590.48.01, 570.211.01, 535.309.01, 535.288.01
 - **Breaking:** pods with `spec.hostUsers: false` (k8s user namespaces) **not supported** — container creation fails with "No such process". Audit any policy that enables user namespaces before bumping.
 - **Notable:** all operands gain `hostNetwork` toggle; precompiled drivers now mount `/lib/modules` from host (required for SLES 15 SP7 / SLES 16); OLM bundle KubeVirt GPU Device Plugin multi-arch fix.
 
 ## 26.3.0
 
-- **k8s floor:** 1.32 – 1.35
+- **k8s floor:** 1.32 – 1.36
 - **Container runtime:** containerd 1.7 – 2.2, CRI-O. NRI Plugin requires containerd ≥ 1.7.30 / 2.1.x / 2.2.x.
 - **Driver branches:** default 580.126.20; same set as 26.3.1.
 - **Breaking:**
