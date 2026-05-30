@@ -29,8 +29,11 @@ when_to_use: >-
 
 Survey an RKE2 community cluster, cross-reference against the embedded
 compatibility registry, produce a verdict. Community editions only. Air-gapped
-at use time — `references/` carries everything needed; no internet calls during
-a survey.
+at use time — `references/` carries everything needed and the survey runs fully
+offline. Air-gap-complete is a **floor, not a ceiling**: when the workstation has
+internet + `gh`, grounding every specific version the verdict cites is mandatory
+(House Rule #8 · `references/version-verification.md`) — the registry's sifted
+patch numbers are methodology, not trusted release facts.
 
 The registry is **methodology**, not inventory. It encodes which versions of
 which components are compatible with which Kubernetes minors. It does not — and
@@ -45,13 +48,17 @@ must not — record what's actually running where.
 | Read what changed for compat in a specific component minor | `references/compat/<comp>.md` |
 | Which kubectl/helm/pluto commands to run, and how to parse output | `references/cluster-survey.md` |
 | Which deprecated-API tools to trust and how | `references/tooling.md` |
+| Verify a version exists / find the real latest patch (online) | `references/version-verification.md` |
 | Source URLs + last-verified timestamps (read-only — `freshen` writes here) | `references/sources.md` |
 
 ## Survey workflow
 
 The operator runs the skill against a kubeconfig pointing at one cluster at a
 time. Network access to the target cluster is assumed (direct or via
-VPN/bastion). No internet calls.
+VPN/bastion). The cluster survey itself makes no internet calls; the one
+sanctioned outbound path is **version grounding** — when internet + `gh` are
+available the verdict's specific version numbers MUST be confirmed against real
+releases (House Rule #8 · `references/version-verification.md`).
 
 First **identify the change set** — what's being upgraded and from what to
 what. Five shapes the skill answers:
@@ -154,6 +161,19 @@ These are non-negotiable; encode them into every verdict.
    enough signal to verdict a row, abstain on that component and recommend
    running `skill-improver freshen <skill>` from an internet-accessible
    client.
+8. **Never invent versions; ground or abstain.** k8s support *windows* are
+   registry methodology (cite the compat file). Specific version *numbers* —
+   latest patch, newest minor, "CVE fixed in vX.Y.Z", a recommended target patch
+   — are volatile and the #1 fabrication risk (a past verdict cited an Argo CD
+   `v3.2.10` that never existed; the 3.2 line ended at `v3.2.6`). State a
+   specific release only if it is (a) cluster-reported, (b) grounded against a
+   freshly fetched release listing, or (c) explicitly marked `UNVERIFIED`. When
+   internet + `gh` are available, grounding is **mandatory** and uses the
+   *anti-confirmation* method — anchor on `releases/latest`, enumerate-and-derive
+   the real latest patch, and **never ask "does vX exist?"** (existence/list/per-tag
+   queries get rubber-stamped — plausible fakes return 200, and the list is
+   contaminated by versions you name in the command). Full protocol +
+   component→repo map: `references/version-verification.md`.
 
 ## Truth-source-type — branch the lookup
 
@@ -177,5 +197,6 @@ and at use time (the verdict cites a different kind of evidence per row).
 - `references/tooling.md` — apiserver `apiserver_requested_deprecated_apis` metric (primary), pluto (static manifest scan), kubent dead.
 - `references/compat/README.md` — file-format spec for per-component compat files.
 - `references/compat/<comp>.md` — one per component. The load-bearing per-version compatibility signal. Air-gap-complete.
+- `references/version-verification.md` — anti-fabrication protocol (House Rule #8): how to ground every cited version against real releases via `gh` (the anti-confirmation method + component→repo map). Read whenever the workstation is online.
 - `references/sources.md` — URL index with `Last verified:` timestamps. Maintained by `skill-improver freshen`; read at use time only to surface staleness in the verdict if a row is past 90 days.
 - `references/report-format.md` — pre-upgrade report layout: fixed section skeleton (header table, exec summary, survey, verdict, diff vs prior, action plan, methodology) with dynamic content. Used when the operator asks for a *report* rather than a verdict.

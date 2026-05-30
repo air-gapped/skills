@@ -30,6 +30,7 @@ freshen time** by `skill-improver freshen`.
 - **Axis type:** `single` | `multi`
 - **min_tracked_version:** <semver>     # default = current + prior 2 minors; operator override sticks
 - **Last sifted:** YYYY-MM-DD            # stamped by `skill-improver freshen`
+- **Last release-verified:** YYYY-MM-DD  # when version numbers were grounded vs `gh` releases (House Rule #8); omit while numbers are UNVERIFIED
 
 ## <version 1.X.0>
 
@@ -59,6 +60,29 @@ Include only what affects a compat verdict. Exclude:
 If a section has no signal for a version, omit it. An empty `## <version>`
 block is acceptable — the version is tracked, nothing relevant changed. Do not
 fabricate signal to fill sections.
+
+## Version grounding — no invented releases
+
+Specific version numbers are the #1 fabrication risk in these files. Sifting
+release notes into prose invites plausible-but-nonexistent patches — this skill
+once wrote Argo CD `v3.2.10` / `v3.2.12` and "CVE fixed in 3.2.10" (the 3.2 line
+ended at `v3.2.6`), and Harbor `## 2.15` while `releases/latest` was `v2.14.4`.
+
+Rules (full protocol: `references/version-verification.md`, House Rule #8):
+
+- Distinguish **support windows** (k8s minor floors — durable, the registry's
+  job) from **version specifics** (latest patch, newest minor, "CVE fixed in
+  vX.Y.Z" — volatile, must be release-grounded).
+- Only write a version number that appears in a **freshly fetched, uncontaminated**
+  release listing. Derive "latest patch of minor X" by enumeration
+  (`… | sort -V | tail -1`), never by extrapolation.
+- **Never name a candidate version in a verification query** — existence / list /
+  per-tag queries get rubber-stamped (plausible fakes return 200; the list echoes
+  back versions named in the command). Anchor on `releases/latest`; reject newer.
+- Ground every "fixed-in vX.Y.Z" against that release's own notes
+  (`gh release view <tag>`). If you cannot ground it, **omit the claim**.
+- Stamp `Last release-verified:` when numbers were checked against `gh`; leave it
+  off (and mark the numbers `UNVERIFIED`) when they were not.
 
 ## Multi-source reconciliation
 
@@ -91,7 +115,9 @@ Files are touched by:
 
 - `skill-improver freshen <skill>` — probes all sources, updates `Last sifted`,
   adds new versions, trims rows below `min_tracked_version`. Respects per-row
-  operator overrides.
+  operator overrides. **Must ground every version number against real releases
+  (`references/version-verification.md`): enumerate-and-derive, never extrapolate
+  a patch line, and never write a release it hasn't confirmed.**
 - The operator, by hand, when adding a `min_tracked_version` override or when
   documenting a finding that freshen missed.
 

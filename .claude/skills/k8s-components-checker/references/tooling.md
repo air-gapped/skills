@@ -49,6 +49,38 @@ Verify version periodically; pluto's deprecation database lags upstream
 Kubernetes by several months — fine for catching legacy APIs but not for
 brand-new deprecations announced in the latest minor.
 
+## gh / GitHub releases — version grounding (use-time AND freshen)
+
+`gh` is the truth source for **whether a specific release exists** and **what the
+real latest patch of a minor is**. The registry's compat files carry *sifted*
+version numbers that can be fabricated (a verdict once cited Argo CD `v3.2.10` /
+`v3.2.12` — the line ended at `v3.2.6`, unpatched); `gh` grounds them. Use it at
+**survey time when the workstation is online** (House Rule #8 / cluster-survey
+Phase 4b) and at **freshen time** when writing the files. Full protocol +
+component→repo map: `references/version-verification.md`.
+
+**The gotcha that matters — queries get rubber-stamped.** Existence, list, and
+even per-tag lookups will confirm plausible-but-fake versions (observed:
+`releases/tags/v3.2.10` returned 200; harbor `v2.15.0` "confirmed" while
+`releases/latest` was `v2.14.4`; the releases *list* echoes back any version
+named in the same command). Only absurd fakes (`v9.9.9`, `v2.99.0`) reliably
+404. So **never ask "does vX exist?"** — instead:
+
+- Anchor on the authoritative scalar, with no candidate version in the command:
+  ```bash
+  gh api repos/<org>/<repo>/releases/latest --jq '.tag_name'   # the real ceiling
+  ```
+  Reject anything cited that is newer than this.
+- Enumerate, then take the max yourself:
+  ```bash
+  gh api 'repos/<org>/<repo>/releases?per_page=100' \
+    --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v?<minor>\.' | sort -V | tail -1
+  ```
+
+`gh` is authenticated and returns structured JSON — prefer it over WebFetch of
+release pages. **GitLab is the exception** — its chart is not on GitHub; use the
+GitLab API / `glab` / `helm search`, else mark the version `UNVERIFIED`.
+
 ## endoflife.date — supplementary
 
 EOL data + JSON API. Useful for cross-referencing whether a component minor
@@ -69,8 +101,10 @@ Products relevant to this skill's registry: `kubernetes`, `rancher`, `rke2`,
 - Some products track Prime/EE editions and community editions in the same
   feed. For Rancher specifically, ignore Prime-flavored end-of-line dates;
   the community minor's support window is what the verdict cares about.
-- Network call — use only at maintenance time (`skill-improver freshen`),
-  not at survey time.
+- Network call. Use at **freshen** time, and at **survey** time too when the
+  workstation is online (EOL confirmation as part of version grounding, House
+  Rule #8). A genuinely air-gapped survey skips it and marks EOL claims
+  `UNVERIFIED`.
 
 ## DEAD — do not use: kube-no-trouble (kubent)
 

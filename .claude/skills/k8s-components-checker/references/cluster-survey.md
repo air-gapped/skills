@@ -216,6 +216,32 @@ commit early 2025; deprecation rulesets stop at k8s 1.32. Will under-report on
 any current cluster. If a runbook somewhere mentions kubent, replace with the
 3a / 3b pair above. See `references/tooling.md`.
 
+## Phase 4b: ground version specifics (online only)
+
+Before assembling the verdict, if the workstation has internet + `gh`: **ground
+every specific version the verdict will cite** — the recommended target patch,
+any "CVE fixed in vX.Y.Z", any "latest"/"newest minor" claim — per
+`references/version-verification.md` (House Rule #8). The k8s support *windows*
+come from the registry; the version *numbers* must be confirmed against real
+releases.
+
+Method (anti-confirmation — existence/list queries get rubber-stamped, so never
+name a candidate version in the query):
+
+```bash
+# anchor: the real ceiling (no candidate version in the command)
+gh api repos/<org>/<repo>/releases/latest --jq '.tag_name'
+# derive the real latest patch of a minor — enumerate, then take the max yourself
+gh api 'repos/<org>/<repo>/releases?per_page=100' \
+  --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v?1\.20\.' | sort -V | tail -1
+```
+
+Reject any cited version newer than `releases/latest`. If a "fixed-in" / "latest"
+claim from the compat file contradicts what `gh` returns, **the compat file is
+wrong** — verdict on the grounded value and flag the registry for a `freshen`.
+If **offline**, mark those specifics `UNVERIFIED` and verdict on the minor-level
+window. Component→repo map is in `references/version-verification.md`.
+
 ## Phase 5: assemble the verdict
 
 Inputs:
@@ -246,7 +272,13 @@ RKE2 bumps when relevant). Emit the verdict per the format in SKILL.md.
 
 ## Air-gap discipline
 
-Every command above runs against the cluster's own apiserver — no internet
-calls. Pluto runs locally with a bundled rule set. The skill's own
+Every command in Phases 1–5 runs against the cluster's own apiserver — no
+internet calls. Pluto runs locally with a bundled rule set. The skill's own
 `references/` is read locally. Confirm zero outbound by running the survey
 under a network policy that blocks egress; results should be identical.
+
+**One sanctioned exception:** Phase 4b version grounding deliberately calls
+`gh` / endoflife.date when the workstation is online. That traffic targets
+*release metadata*, never the cluster, and is required by House Rule #8 — it
+does not weaken the cluster survey's zero-outbound property. A genuinely
+air-gapped run skips Phase 4b and marks version specifics `UNVERIFIED`.
