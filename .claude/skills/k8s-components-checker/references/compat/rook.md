@@ -34,6 +34,67 @@ worker** nodes, so **every** node drain in a rolling upgrade touches Ceph.
 - Field-validated 2026-05-30 (community RKE2 1.32 → 1.33, OSDs on shared
   master/worker nodes).
 
+## Operator upgrade (cross-version) — reconcile signal, timing, benign noise
+
+Bumping the **Rook operator** (the helm release) is distinct from a k8s/node
+upgrade: the operator pod rolls, then Rook reconciles the running Ceph daemons
+**in place** — mons → mgr → OSDs → RGW/MDS, one failure domain at a time. **No node
+drain, no reboot.** During an OSD's restart the operator creates a temporary
+blocking PDB (`maxUnavailable=0`) and sets `noout` per host — **correct
+orchestration, not an error** (it greps as "Failure Domain" / "Draining"). OSD
+restarts cause brief PG peering/`degraded` blips that self-heal as each OSD returns
+— not backfill. A single-minor operator hop reconciles in **~5 min** (field:
+1.18 → 1.19, 3 mon / 2 mgr / 4 OSD / 2 RGW).
+
+**Reconcile signal — the `rook-version` label is on the daemon DEPLOYMENTS, not the
+pods.** Watch convergence with:
+```bash
+kubectl -n rook-ceph get deploy -l 'app in (rook-ceph-mon,rook-ceph-mgr,rook-ceph-osd,rook-ceph-rgw,rook-ceph-mds)' -L rook-version
+```
+Done = every daemon deployment shows the new version **and** `ceph -s` is
+`HEALTH_OK` with no pending pods.
+
+**Verify on settled state — the CephCluster CR status LAGS.** `ceph -s` (toolbox) is
+ground truth and settles first; the CephCluster CR `.status.ceph.health` is
+refreshed on the mgr's periodic poll and can show a stale `HEALTH_WARN` for ~30–60 s
+after `ceph -s` is already OK. Poll the CR field until it agrees before declaring
+done — don't correct from the unsettled snapshot.
+
+**`kubectl diff` vs Rook's CRDs can hit `metadata.annotations: Too long`.** Rook
+ships CRDs as chart templates; the rendered manifest is ~3 MB, which can exceed
+kubectl's client-side last-applied-annotation limit on the big CRDs. Fallbacks: a
+text diff of the prev-vs-current rendered templates (never touches the API), or
+`kubectl diff --server-side`. `helm upgrade` itself is unaffected — Helm keeps
+release state in a Secret, not in annotations.
+
+**Air-gap image list = UNION of two sources.** `helm template` renders only 2 images
+(the operator + ceph-csi-operator). The CSI **sidecars** (provisioner, attacher,
+resizer, snapshotter, registrar, csiaddons, cephcsi) appear ONLY as
+`repository:`/`tag:` pairs under `csi:` in the values — the operator injects them
+into the CSI driver pods at runtime, so they never appear in the rendered template.
+Mirror the union of both. (Direct-pull clusters skip this.)
+
+**Benign post-upgrade noise — do NOT chase these.** A full event + per-pod log sweep
+after a clean operator hop typically surfaces only:
+- *Transient (upgrade window, self-heals):* operator `disruption: failed to get OSD
+  status … exit status 1` (OSD mid-restart); ceph-csi-controller `the object has been
+  modified; please apply your changes to the latest version` (operator + CSI operator
+  both write the CSI driver Deployment/DaemonSet — optimistic-concurrency requeue,
+  converges in seconds); rgw `handle_error … err (110) Connection timed out` (rados
+  watches drop while OSDs bounce, then re-watch); OSD `Startup probe failed: ceph
+  daemon health check failed`; `HEALTH_WARN: N chassis/rack/zone down` = CRUSH
+  reporting the single down OSD across every bucket type; `Degraded data redundancy …
+  pgs degraded` (recovers per OSD).
+- *Pre-existing cosmetic (present pre-upgrade too):* mgr scipy/NumPy sub-interpreter
+  `UserWarning`, `[restful WARNING] server not running: no certificate configured`,
+  `unable to list storage classes: 'storageClassDeviceSets'` (orchestrator querying
+  for PVC-backed OSDs on a host-based cluster); osd `bdev … ioctl(F_SET_FILE_RW_HINT)
+  … failed: (22)` (benign BlueStore write-hint) + RocksDB option dumps (`Options.*`
+  key names, not errors).
+
+Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
+no CephFS).
+
 ## 1.19 (latest: 1.19.6, 2026-05-27)
 
 - **k8s floor:** 1.30 – 1.35
