@@ -12,6 +12,43 @@ Each `## <version>` block below covers the **latest patch of one k8s minor**
 in scope (current + prior 2). Patch-level signal collapses into the minor's
 block; do not enumerate every `+rke2rN` rebuild.
 
+## Upgrade mechanism (cross-version) — service-restart cutover vs reboot
+
+A k8s minor upgrade in RKE2 **never requires a node reboot.** The cutover is always: swap the
+`/usr/local/bin/rke2` binary (`install.sh`), then restart the `rke2-server` / `rke2-agent` systemd
+unit. That restarts the static control-plane pods and the etcd member **in place** — the process is
+gone for *seconds*, the data dir is intact, the member rejoins immediately, and already-running
+workload pods survive (containerd re-attaches to the running shims). Net effect: a few seconds of
+per-node glitches, masked by HA.
+
+**Reboot ONLY when the node independently needs one — never "to be safe":** NVIDIA driver loaded ≠
+on-disk after an unattended bump (`nvidia-smi` rc 18 — see `nvidia-gpu-operator.md`); a pending kernel
+update; or a libc/systemd ABI change flagged by `needrestart` (KSTA 2|3). If a node needs a reboot
+anyway, let that reboot **double as the cutover** — one disruption, not two.
+
+**Why not reboot otherwise:** a reboot removes the etcd member for *minutes* (POST + boot), not
+seconds. On a 3-member control plane that long absence at bare 2/3 quorum is exactly what trips the
+restart-storm → transient `NotReady` cascade (§ 1.33 "Benign restart-storm"); a service-restart
+cutover's absence is too short to trip it. **Observed:** 1.32→1.33 rebooted every node (driver reload +
+pending kernel) → storm seen per master; 1.33→1.34 needed no reboot → service-restart cutover → no
+storm, no NotReady (field-validated 2026-05-31). When a hop also crosses a **containerd** version,
+already-running pods keep their old `containerd-shim` until recreated (only new pods get the new shim) —
+a no-reboot cutover leaves old shims until natural churn; don't stretch mixed-shim state across >2 minors.
+
+**Per-node procedure (serial):** one node at a time, order **followers → etcd leader LAST → workers**
+(restarting the leader forces one re-election — do it last). Take an `rke2 etcd-snapshot save` on each
+master first (rollback point). Between nodes verify: node `Ready` on the new version,
+`etcdctl endpoint status --cluster` aligned (same etcd version, no learners, `alarm list` empty, ≤1
+expected re-election), and `CephCluster … HEALTH_OK` — before touching the next.
+
+**Benign post-upgrade Warning events (cross-version — do NOT escalate)**, all transient artifacts of a
+node's control plane briefly restarting, self-clearing in seconds: `FailedMount "failed to fetch token …
+connection reset/refused"` (pod hit the local apiserver mid-restart); `"… no relationship found between
+node and this object"` (NodeRestriction node→pod graph not yet repopulated after a kubelet restart);
+`kube-apiserver livez/readyz [-]etcd failed` (peer apiservers during a leader re-election); `RBAC:
+clusterrole … not found` (bootstrap roles re-applied on apiserver startup); `InvalidDiskCapacity:
+invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populates imagefs).
+
 ## 1.36 (latest patch v1.36.1+rke2r1, 2026-05-18)
 
 - **k8s floor:** 1.36 (binds the cluster's k8s minor to 1.36).
@@ -49,6 +86,7 @@ block; do not enumerate every `+rke2rN` rebuild.
 - **Upgrade ordering:** servers before agents.
 - **Deprecations:** none new at the RKE2 layer in 1.34 (see 1.36 for ingress-nginx).
 - **Notable:**
+  - **Benign helm-install CrashLoopBackOff during a MIXED control plane.** The 1.34.8 bundled charts `rke2-runtimeclasses` and `rke2-snapshot-controller-crd` pin `kubeVersion: >= v1.34.8` in `Chart.yaml`. While some masters are still 1.33, the helm-install Job hits the apiserver LB (`kubernetes.default`) and may land on a not-yet-upgraded 1.33 apiserver → `helm upgrade` fails the kubeVersion check (`chart requires kubeVersion: >= v1.34.8 which is incompatible with v1.33.x`) and the Job pod CrashLoopBackOffs. **Benign + self-healing:** the charts are already `deployed`, only the upgrade *retry* fails (zero functional impact — runtimeclasses + snapshot CRDs keep working); the next retry Completes once the **last** master reaches 1.34.8. A signal to finish the rollout, not to stop. (Field-validated 2026-05-31.)
   - Packaged at 1.34.1: etcd v3.6.4-k3s3, containerd v2.1.4-k3s2, runc v1.3.1, CoreDNS v1.12.3, helm-controller v0.16.13. By 1.34.8 these advance to etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16.
   - CNI floor at 1.34.1: Cilium 1.18.1, Calico 3.30.3. Latest 1.34.8 ships Cilium 1.19.3, Calico 3.32.0 (same as 1.35/1.36).
 

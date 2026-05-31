@@ -25,6 +25,12 @@ worker** nodes, so **every** node drain in a rolling upgrade touches Ceph.
   `rook-ceph-osd` PDBs), so a fixed-name check (e.g. `k8s_info … failed_when
   resources == 0`) breaks intermittently. Gate on **CephCluster health + CSI
   unmount** instead.
+- **In-place RKE2 cutover (service-restart, no drain) is far gentler than a drain/reboot.** A version
+  cutover that only restarts `rke2-server`/`-agent` (no cordon, no drain, no reboot) briefly bounces
+  just the OSD/mon/mgr daemons **co-located on that node** — no eviction, no backfill window. Still
+  confirm `HEALTH_OK` + all OSDs up/in + pgs `active+clean` before the next node, but the drain-gating
+  above applies only when you actually drain/reboot (i.e. for an OS-level reason). Field-validated
+  2026-05-31 (RKE2 1.33 → 1.34, service-restart cutover, no drain).
 - Field-validated 2026-05-30 (community RKE2 1.32 → 1.33, OSDs on shared
   master/worker nodes).
 
