@@ -59,23 +59,24 @@ version numbers that can be fabricated (a verdict once cited Argo CD `v3.2.10` /
 Phase 4b) and at **freshen time** when writing the files. Full protocol +
 component→repo map: `references/version-verification.md`.
 
-**The gotcha that matters — queries get rubber-stamped.** Existence, list, and
-even per-tag lookups will confirm plausible-but-fake versions (observed:
-`releases/tags/v3.2.10` returned 200; harbor `v2.15.0` "confirmed" while
-`releases/latest` was `v2.14.4`; the releases *list* echoes back any version
-named in the same command). Only absurd fakes (`v9.9.9`, `v2.99.0`) reliably
-404. So **never ask "does vX exist?"** — instead:
+**The gotcha that matters — two different traps.** (1) *Fabrication:* never name a
+candidate version in a query (`releases/tags/v3.2.10`, `| grep vX.Y.Z`) — a named
+guess biases you toward confirming it. Ask the listing what exists. (2)
+*`releases/latest` is recency, not rank:* it's the most-recently-published (or
+maintainer-pinned) release, **not** the highest version — a back-ported patch to an
+old line (Harbor `v2.14.4`) can outrank a newer minor (`v2.15.1`) *by date*.
+**Never reject a higher enumerated minor because it exceeds `releases/latest`**
+(that misfire struck the real Harbor 2.15). So:
 
-- Anchor on the authoritative scalar, with no candidate version in the command:
-  ```bash
-  gh api repos/<org>/<repo>/releases/latest --jq '.tag_name'   # the real ceiling
-  ```
-  Reject anything cited that is newer than this.
-- Enumerate, then take the max yourself:
+- Enumerate the real tag list (no version named) and reason **per minor line** —
+  this is the authority for what exists; the highest minor is the newest line:
   ```bash
   gh api 'repos/<org>/<repo>/releases?per_page=100' \
     --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v?<minor>\.' | sort -V | tail -1
   ```
+- `releases/latest` tells you only which line is actively patched; confirm a
+  surprising tag with `gh release view <tag>` (metadata vs 404), not against
+  `releases/latest`.
 
 `gh` is authenticated and returns structured JSON — prefer it over WebFetch of
 release pages. **GitLab is the exception** — its chart is not on GitHub; use the

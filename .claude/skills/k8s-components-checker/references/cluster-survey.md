@@ -243,16 +243,19 @@ Method (anti-confirmation — existence/list queries get rubber-stamped, so neve
 name a candidate version in the query):
 
 ```bash
-# anchor: the real ceiling (no candidate version in the command)
+# which line is most-recently/actively patched — recency, NOT a version ceiling
 gh api repos/<org>/<repo>/releases/latest --jq '.tag_name'
-# derive the real latest patch of a minor — enumerate, then take the max yourself
+# authority for what exists — enumerate (no candidate named), reason per minor line
 gh api 'repos/<org>/<repo>/releases?per_page=100' \
   --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v?1\.20\.' | sort -V | tail -1
 ```
 
-Reject any cited version newer than `releases/latest`. If a "fixed-in" / "latest"
-claim from the compat file contradicts what `gh` returns, **the compat file is
-wrong** — verdict on the grounded value and flag the registry for a `freshen`.
+`releases/latest` is recency, not rank — **never reject a higher enumerated minor
+because it exceeds it** (a back-ported patch to an old line can outrank a newer
+minor by date; that misfire struck the real Harbor 2.15). The enumerated per-minor
+list is the authority; confirm a surprising tag with `gh release view <tag>`. If a
+"fixed-in" / "latest" claim from the compat file contradicts a grounded value,
+**the compat file is wrong** — verdict on the grounded value and flag a `freshen`.
 If **offline**, mark those specifics `UNVERIFIED` and verdict on the minor-level
 window. Component→repo map is in `references/version-verification.md`.
 

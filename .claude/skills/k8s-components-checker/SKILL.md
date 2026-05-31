@@ -173,10 +173,14 @@ These are non-negotiable; encode them into every verdict.
    specific release only if it is (a) cluster-reported, (b) grounded against a
    freshly fetched release listing, or (c) explicitly marked `UNVERIFIED`. When
    internet + `gh` are available, grounding is **mandatory** and uses the
-   *anti-confirmation* method — anchor on `releases/latest`, enumerate-and-derive
-   the real latest patch, and **never ask "does vX exist?"** (existence/list/per-tag
-   queries get rubber-stamped — plausible fakes return 200, and the list is
-   contaminated by versions you name in the command). **Existence is not edition:**
+   *anti-confirmation* method — enumerate the real tag list (naming no candidate)
+   and derive the latest patch **per minor line**, and **never ask "does vX
+   exist?"** (a named guess biases you toward confirming it). **`releases/latest`
+   is recency, not rank** — it's the most-recently-published / maintainer-pinned
+   release, NOT the highest version, so **never reject a higher enumerated minor
+   because it exceeds `releases/latest`** (that misfire struck the real Harbor
+   `2.15.x` while `releases/latest` was `2.14.4` — a back-ported patch to an old
+   line outranks a newer minor by date). **Existence is not edition:**
    for a vendor with a community/Prime (or OSS/EE) split that ships both to one feed
    (Rancher), a *real, older* patch can be **Prime-only** and will rubber-stamp as
    community — `sort -V | tail -1` returns a Prime patch for any non-current minor.

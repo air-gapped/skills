@@ -6,13 +6,16 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 2.13
 - **Last sifted:** 2026-05-28
-- **2026-05-30 release-verified (gh):** `goharbor/harbor releases/latest` =
-  **v2.14.4** — the current line is **2.14.x**. **Harbor 2.15 is NOT released**;
-  the `## 2.15` section below is premature/UNVERIFIED (its patch numbers and
-  tested-k8s matrix were sifted, not release-grounded — a list query "confirming"
-  2.15.0/2.15.1 was contamination, contradicted by `releases/latest`). Treat
-  2.14.x as the newest line; `freshen` should re-ground or remove § 2.15. See
-  `references/version-verification.md` (House Rule #8).
+- **2026-05-31 release-verified (gh):** enumerating `goharbor/harbor`
+  non-prerelease tags (no version named) returns **`v2.15.1` / `v2.15.0` as real,
+  higher releases** alongside the maintained **2.14 line (`v2.14.4`)**.
+  `releases/latest` = **v2.14.4** is *recency, not rank* — Harbor keeps the
+  "Latest" flag on the 2.14 maintenance line while 2.15 is the newer feature line
+  (a 2.14 patch published after 2.15.x). **The prior banner here ("2.15 NOT
+  released — the list query was contamination") was WRONG** and is corrected:
+  2.15.x is real. Both 2.14 and 2.15 are tested only to **k8s 1.34** (§§ below) —
+  so neither adds 1.35. See `references/version-verification.md` § Three
+  orthogonal failure modes (#2 `releases/latest` ≠ highest version).
 
 Harbor is plain Deployments — no CRDs, no operator. The compat surface is
 (a) which k8s minors the chart was tested on, (b) DB schema migrations that
@@ -29,7 +32,7 @@ k8s window is the integration-test matrix baked into
 PR #2241). Helm will not block install on an out-of-matrix cluster — the
 operator owns that decision.
 
-## 2.15 — chart 1.19.x  ⚠️ UNVERIFIED / NOT YET RELEASED (gh `releases/latest` = v2.14.4 on 2026-05-30; numbers below are ungrounded — see banner)
+## 2.15 — chart 1.19.x  (RELEASED; latest patch v2.15.1 — gh-enumerated 2026-05-31. `releases/latest` stays v2.14.4 = recency, not rank. Tested k8s 1.32–1.34 — does NOT add 1.35.)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
   `v1.32.8, v1.33.4, v1.34.0`). README still claims "Kubernetes v1.20+"

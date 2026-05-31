@@ -66,7 +66,9 @@ fabricate signal to fill sections.
 Specific version numbers are the #1 fabrication risk in these files. Sifting
 release notes into prose invites plausible-but-nonexistent patches — this skill
 once wrote Argo CD `v3.2.10` / `v3.2.12` and "CVE fixed in 3.2.10" (the 3.2 line
-ended at `v3.2.6`), and Harbor `## 2.15` while `releases/latest` was `v2.14.4`.
+ended at `v3.2.6`). The opposite also happened: Harbor `## 2.15` was wrongly
+struck as "not released" because `releases/latest` was `v2.14.4` — but 2.15.x is
+a real, *higher* line (`releases/latest` is recency, not rank).
 
 Rules (full protocol: `references/version-verification.md`, House Rule #8):
 
@@ -76,9 +78,11 @@ Rules (full protocol: `references/version-verification.md`, House Rule #8):
 - Only write a version number that appears in a **freshly fetched, uncontaminated**
   release listing. Derive "latest patch of minor X" by enumeration
   (`… | sort -V | tail -1`), never by extrapolation.
-- **Never name a candidate version in a verification query** — existence / list /
-  per-tag queries get rubber-stamped (plausible fakes return 200; the list echoes
-  back versions named in the command). Anchor on `releases/latest`; reject newer.
+- **Never name a candidate version in a verification query** — a named guess
+  biases you toward confirming it. **`releases/latest` is recency, not rank** (the
+  most-recently-published / maintainer-pinned release, NOT the highest version):
+  never reject a higher enumerated minor against it; enumerate per minor line and
+  confirm a surprising tag with `gh release view <tag>`.
 - Ground every "fixed-in vX.Y.Z" against that release's own notes
   (`gh release view <tag>`). If you cannot ground it, **omit the claim**.
 - Stamp `Last release-verified:` when numbers were checked against `gh`; leave it

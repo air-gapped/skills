@@ -6,8 +6,12 @@ methodology and are the registry's job to carry. **Specific version numbers** �
 #1 source of fabrication: sifting release notes into prose invites
 plausible-but-nonexistent patch numbers. A real example this skill produced: a
 verdict cited **Argo CD `v3.2.10` / `v3.2.12`** and "CVE-2026-42880 fixed in
-3.2.10" — the 3.2 line actually ended at **v3.2.6**, unpatched. Harbor `## 2.15`
-was written as the newest line while `releases/latest` was `v2.14.4`.
+3.2.10" — the 3.2 line actually ended at **v3.2.6**, unpatched (pure
+fabrication). The **opposite** error happened too: Harbor `## 2.15` was *struck*
+as "not released" because `releases/latest` was `v2.14.4` — but `v2.15.0` /
+`v2.15.1` are real, *higher* releases; `releases/latest` is **recency, not
+rank**. Two different failure modes, two different defenses — see § Three
+orthogonal failure modes.
 
 This file is the protocol that stops both the survey and `freshen` from asserting
 a release they have not grounded.
@@ -40,47 +44,83 @@ ground every specific version the verdict will cite (the recommended target, any
 "fixed-in" patch, any "latest" claim). This is not optional when the tools are
 present — the air-gap design is a floor, not a ceiling.
 
-### Anti-confirmation discipline (this is the part that actually matters)
+### Three orthogonal failure modes — ground against all three
 
-Existence/list queries get **rubber-stamped**. Observed in practice: list and
-membership endpoints, and even per-tag lookups, will echo a plausible-but-fake
-version back as real (`v3.2.10`, `v2.15.0` returned 200), and the *list output is
-contaminated by version strings present elsewhere in the same command*. Only
-*absurd* fakes (`v9.9.9`, `v2.99.0`) reliably 404. So:
+Version grounding fails in three independent ways. Defending against one does
+**not** cover the others; a version is grounded only when all three are clear.
 
-1. **Never name a candidate version in the query.** Do NOT run
-   `gh ... releases/tags/v3.2.10` or `... | grep v3.2.10`. A leading query is a
-   confirmed query.
-2. **Anchor on the authoritative scalar.** Fetch latest with the version absent
-   from the command:
-   ```bash
-   gh api repos/<org>/<repo>/releases/latest --jq '.tag_name'
-   ```
-   This is the real ceiling. **Reject any cited version greater than it** (a
-   published release cannot be newer than `latest`). Harbor `2.15.0 > 2.14.4` →
-   reject the 2.15 claim.
-3. **Enumerate, then derive the max yourself** — don't ask whether a patch
-   exists, list the minor and pick the top:
-   ```bash
-   gh api 'repos/<org>/<repo>/releases?per_page=100' \
-     --jq '[.[] | select(.prerelease|not) | .tag_name] | .[]' \
-     | grep -E '^v?1\.20\.' | sort -V | tail -1     # the REAL latest 1.20 patch
-   ```
-   Cite that derived value, not one from memory. **The enumeration can be
-   contaminated too** — the list endpoint echoes version strings present anywhere
-   in your command *or session context* (observed: harbor's list returned
-   `v2.15.0`/`v2.15.1` right after they'd been discussed, while `releases/latest`
-   stayed `v2.14.4`). So re-apply step 2 to the enumeration output: **discard any
-   enumerated tag newer than `releases/latest`.** If the enumerated max exceeds
-   `releases/latest`, the list is contaminated — trust the scalar. `releases/latest`
-   is the only signal that holds consistent.
-4. **Cross-check consistency.** A "fixed-in vX.Y.Z" or "latest vA.B.C" that
-   exceeds `releases/latest`, or names a patch the enumeration doesn't produce as
-   the max-or-below of its minor, is fabricated → strike it.
-5. **EOL** via endoflife.date (also a network call; online only):
-   ```bash
-   gh api https://endoflife.date/api/v1/products/<product>/ 2>/dev/null   # or curl
-   ```
+| # | Failure mode | Looks like | Defense |
+|---|---|---|---|
+| 1 | **Fabrication** | a version that does not exist (`v3.2.10`, `v9.9.9`) asserted as real | derive from a no-candidate enumeration; a fake 404s on `gh release view <tag>` |
+| 2 | **`releases/latest` ≠ highest version** | `releases/latest` points at an *older* minor's patch while a higher minor exists | never treat it as a ceiling; enumerate + reason per minor line |
+| 3 | **Edition** | a real, older **Prime/EE** patch passes as community | release-notes edition discriminator (next subsection) |
+
+#### 1 — Don't let a named candidate bias you (fabrication)
+
+A query that names your guess confirms your guess. Ask the listing *what exists*,
+never *whether your candidate exists*.
+
+- **Never put a candidate version in the command** (`releases/tags/v3.2.10`,
+  `| grep v3.2.10`). Only absurd fakes (`v9.9.9`) reliably 404; a plausible one you
+  name biases your reading of the output.
+- Fetch the full non-prerelease tag list with **no version named** — GitHub
+  returns the repo's real tags (it does not invent releases), so **this
+  enumeration is the authority for what exists:**
+  ```bash
+  gh api 'repos/<org>/<repo>/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]'
+  ```
+- A tag absent from that list — or one that 404s on `gh release view <tag> --repo
+  <org>/<repo>` — is fabricated → strike it. A real release returns a body +
+  `published_at` + assets.
+
+#### 2 — `releases/latest` is recency, not rank (the one this skill got wrong)
+
+`gh api .../releases/latest` returns the **most-recently-published**
+non-prerelease/non-draft release — **or whatever the maintainer manually flagged
+"Latest."** It is **NOT the highest semantic version.** Any project that keeps
+more than one line alive at once (an LTS/maintenance minor *plus* the current
+minor, or several stable branches patched together) publishes **out of order**: a
+back-ported fix lands on an *older* minor *after* a newer minor shipped — or a fix
+**isn't needed in the higher line, so that line gets no matching patch.** Either
+way `releases/latest` can point at the old line's fresh patch while a
+genuinely-higher minor sits "below" it by date.
+
+- **The real instance (the bug this section fixes):** Harbor `releases/latest =
+  v2.14.4`, yet `v2.15.0` / `v2.15.1` are real, released minors — `v2.14.4` is just
+  a later patch on the still-maintained 2.14 line; **2.15 is the newer feature
+  line.** A prior grounding "rejected 2.15 as contamination because it exceeded
+  `releases/latest`" — that rejection rule **was the error.** (RKE2 is the same
+  shape: `1.32.x … 1.36.x` all take `+rke2rN` patches on one day; a late 1.34 CVE
+  patch would make `releases/latest` a 1.34 tag with 1.36 long out.)
+- **The rule:** **never use `releases/latest` as a version ceiling, and never
+  reject a higher enumerated minor on its strength.** It tells you only *which line
+  is most-recently / actively patched* (useful — that's the maintained line). To
+  find what is newest, **enumerate and reason per minor line:**
+  ```bash
+  # every minor LINE that exists (highest = newest feature line, regardless of dates):
+  gh api 'repos/<org>/<repo>/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' \
+    | sed -E 's/^v?([0-9]+\.[0-9]+).*/\1/' | sort -uV
+  # ceiling patch of one line (e.g. 2.15):
+  gh api 'repos/<org>/<repo>/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' \
+    | grep -E '^v?2\.15\.' | sort -V | tail -1
+  ```
+- The **highest minor in the enumeration is the newest line**, whether or not
+  `releases/latest` agrees. If a surprising tag's reality is in doubt, confirm it
+  **directly** (`gh release view <tag>` → metadata vs 404) — do **not** adjudicate
+  it against `releases/latest`. Publish-date order tells you *which lines are
+  maintained*, never *which version is higher*.
+
+#### 3 — Consistency cross-check, then EOL
+
+A "fixed-in vX.Y.Z" or "latest vA.B.C" that the no-candidate enumeration does not
+produce (as a real tag at or below its line's ceiling) is fabricated → strike it.
+**Do not** strike a version merely for exceeding `releases/latest` — that is
+failure mode 2, not fabrication.
+
+EOL via endoflife.date (also a network call; online only):
+```bash
+gh api https://endoflife.date/api/v1/products/<product>/ 2>/dev/null   # or curl
+```
 
 ### Edition discrimination (community vs Prime/EE) — what anti-confirmation does NOT catch
 
@@ -101,9 +141,11 @@ Applies to any vendor with an OSS-vs-paid split that publishes **both** editions
 | **GitLab** (CE vs EE) | tags shared | operator runs the EE binary as CE — treat as CE per House Rule #1; edition is not version-distinguished, so no per-tag check needed. |
 
 **The pattern anti-confirmation misses (Rancher):** once a newer community minor ships, the
-older minor's later patches flip to **Prime-only**. So `releases/latest` (the current minor's
-top patch) is community and grounds fine — but the "latest community patch" of an **older**
-minor is **not** its top tag, and `sort -V | tail -1` returns a **Prime** patch.
+older minor's later patches flip to **Prime-only**. So `releases/latest` (here v2.14.2, a
+current-minor patch) is community and grounds fine — but the "latest community patch" of an
+**older** minor is **not** its top tag, and `sort -V | tail -1` returns a **Prime** patch.
+(Note this is failure mode 2's cousin: the *highest* tag of an older line is not the answer —
+there because of edition, in §2 because of recency. Enumerate and reason per line either way.)
 
 Derive "latest community patch of minor X" by filtering on the discriminator, newest-first,
 stopping at the first non-Prime release — never by version order alone:

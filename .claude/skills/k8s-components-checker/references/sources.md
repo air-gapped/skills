@@ -26,14 +26,37 @@ This was a release-grounding overlay, **not** a full docs-matrix re-sift; per-ro
   cert-manager v1.20.2 · Kyverno v1.18.1 · KEDA v2.19.0 · Traefik v3.7.1 ·
   Rook v1.19.6 · OpenEBS v4.4.0 · Zalando v1.15.1 · ECK v3.4.0.
 - **Fixed fabrications:** Argo CD — removed invented `v3.2.10`/`v3.2.12` + "CVE
-  fixed in 3.2.10" (real latest `v3.4.3`); Harbor — flagged invented `§ 2.15`
-  (real latest `v2.14.4`; line is 2.14.x).
+  fixed in 3.2.10" (real latest `v3.4.3`); Harbor — flagged `§ 2.15`
+  **[CORRECTED 2026-05-31 — this was wrong: 2.15.x is real; see correction below]**.
 - **Version-drift applied:** NVIDIA GPU Operator — latest `v26.3.2`, one patch
   ahead of documented `§ 26.3.1` (existence grounded; content sift deferred).
 - **NOT gh-groundable (see `references/improvement-backlog.md`):** Ceph (no
   `releases/latest`), GitLab (not on GitHub), Grafana Mimir (`releases/latest`
   returns the app tag, not the chart `kubeVersion`). Ground via docs / GitLab
   API / `Chart.yaml`.
+
+## 2026-05-31 — correction: `releases/latest` is recency, not rank
+
+The 2026-05-30 pass above anchored "newest version" on `gh api .../releases/latest`
+and called it "the only signal that survives confirmation bias." **That method was
+wrong.** `releases/latest` is the most-recently-*published* (or maintainer-pinned)
+release — **not** the highest semantic version. Projects maintaining multiple lines
+in parallel publish out of order (a back-ported patch to an old line, or a fix not
+needed in the higher line), so `releases/latest` can sit *below* a real higher minor.
+
+- **Harbor:** `§ 2.15` is **real** (gh-enumerated `v2.15.1` / `v2.15.0`, no version
+  named in the query). `releases/latest` = `v2.14.4` is the maintained 2.14 line, not
+  the ceiling. The 2026-05-30 "invented `§ 2.15`" finding is **reversed**;
+  `compat/harbor.md` banner + `§ 2.15` header corrected. (2.15 is still tested only
+  to k8s 1.34 — no 1.35.)
+- **Method fix applied to** `version-verification.md` (§ Three orthogonal failure
+  modes), `tooling.md`, `cluster-survey.md`, `compat/README.md`, `SKILL.md` #8:
+  enumerate the real tag list (no candidate named) and reason **per minor line**;
+  never reject a higher enumerated minor because it exceeds `releases/latest`;
+  confirm a surprising tag with `gh release view <tag>`, not against the scalar.
+- **Re-ground recommended:** any other compat row whose "newest line" was decided by
+  the 2026-05-30 `releases/latest`-anchored pass should be re-checked per-minor-line
+  on the next `freshen`.
 
 ## RKE2 (anchor)
 
