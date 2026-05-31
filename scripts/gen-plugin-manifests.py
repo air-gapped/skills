@@ -389,6 +389,49 @@ GROUPS: dict[str, dict] = {
             "scaling",
         ],
     },
+    "defending-code": {
+        # Security find-and-fix loop — the static/interactive half of
+        # anthropics/defending-code-reference-harness (Apache-2.0), genericised
+        # to all vuln classes and decoupled from that repo's C/C++ ASAN
+        # pipeline. threat-model -> vuln-scan -> triage -> patch, all
+        # read/write-only (no target-code execution). The autonomous
+        # execution harness itself is NOT bundled; vuln-scan/HARNESS.md points
+        # at it. checkpoint.py is vendored per-skill (threat-model, triage,
+        # patch).
+        "members": ["threat-model", "vuln-scan", "triage", "patch"],
+        "description": (
+            "Security find-and-fix loop — adapted (Apache-2.0) from "
+            "anthropics/defending-code-reference-harness and generalised to "
+            "all vulnerability classes. Four read/write-only skills (no "
+            "target-code execution): threat-model (bootstrap from "
+            "code+CVEs+git-history, or interview an owner via Shostack's four "
+            "questions, or both -> THREAT_MODEL.md), vuln-scan (static "
+            "source review, parallel per-focus-area subagents -> "
+            "VULN-FINDINGS.json), triage (adversarial N-vote verification, "
+            "16 false-positive exclusion rules, root-cause dedup, "
+            "precondition-derived severity, owner routing, checkpoint/resume "
+            "-> TRIAGE.json), and patch (root-cause candidate diffs + "
+            "independent reviewer, never auto-applied -> PATCHES/). The "
+            "autonomous C/C++ + AddressSanitizer execution pipeline this was "
+            "extracted from is referenced, not bundled (vuln-scan/HARNESS.md)."
+        ),
+        "category": "security",
+        "tags": [
+            "security",
+            "vulnerability",
+            "threat-model",
+            "vuln-scan",
+            "triage",
+            "patch",
+            "sast",
+            "static-analysis",
+            "exploitability",
+            "false-positive-reduction",
+            "secure-code",
+            "defending-code",
+            "anthropic",
+        ],
+    },
 }
 
 # Per-skill category/tags overrides for standalone plugins (skills not
