@@ -164,7 +164,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 18 components: RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker.",
-      "version": "0.20260531.25",
+      "version": "0.20260531.26",
       "author": {
         "name": "Jörgen"
       },
