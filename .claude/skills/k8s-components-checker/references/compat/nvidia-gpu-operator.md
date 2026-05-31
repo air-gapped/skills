@@ -48,11 +48,19 @@ and clears it (rc 18 → 0).
   `nvidia-smi` binary (`command -v nvidia-smi`) so non-NVIDIA hosts don't false-fail.
 - Field-validated 2026-05-30 (community RKE2 1.32 → 1.33 on Ubuntu GPU nodes).
 
+**Operand-roll behavior (cross-version, field-observed 2026-05-31).** A device-plugin DaemonSet bounce
+during an operator upgrade does **not** revoke an already-allocated GPU from a running container —
+only *new* allocations + health reporting pause briefly; a live inference pod rides straight through
+(don't drain healthy GPU pods purely for the operator bump). Separately, high device-plugin restart
+*counts* are usually historical, not a live storm: the toolkit SIGHUPs containerd on its own restart →
+a runc-init mount race (`open /run/nvidia-persistenced/socket: no such file`, `exit 128`) fans out many
+device-plugin restarts per toolkit cycle, accrued over pod age. Triage the restart *rate*, not the count.
+
 ## 26.3.2
 
 - **k8s floor:** 1.32 – **1.36** (1.36 added on the 26.3 line; NVIDIA platform-support matrix grounded 2026-05-31).
 - **Driver branches:** 26.3 line (default 580.126.20) — see § 26.3.0.
-- **Notable:** DCGM Exporter adds `enablePodLabels` / `enablePodUID` / `podLabelAllowlistRegex` (additive). On RKE2/K3s, prefer the **NRI Plugin** (see § 26.3.0) — set `cdi.nriPluginEnabled: true` rather than the toolkit `CONTAINERD_SOCKET` env; needs containerd ≥ 1.7.30 / 2.1.x / 2.2.x, not supported with CRI-O. NRI host prereq field-verified on RKE2 (containerd 2.2.x, NRI live) 2026-05-31.
+- **Notable:** DCGM Exporter adds `enablePodLabels` / `enablePodUID` / `podLabelAllowlistRegex` (additive). On RKE2/K3s, prefer the **NRI Plugin** (see § 26.3.0) — set `cdi.nriPluginEnabled: true` rather than the toolkit `CONTAINERD_SOCKET` env; needs containerd ≥ 1.7.30 / 2.1.x / 2.2.x, not supported with CRI-O. NRI host prereq field-verified on RKE2 (containerd 2.2.x, NRI live) 2026-05-31. **25.10.1 → 26.3.2 upgrade field-validated 2026-05-31** (RKE2, NRI path, host-managed driver): ClusterPolicy reached `ready`; the `RuntimeClass "nvidia" not found` + `toolkit-validation` BackOff warnings during the roll were transient (~90 s) operand choreography, validators green — **but** any workload pinning `runtimeClassName: nvidia` then failed to recreate (see § 26.3.0 Breaking).
 
 ## 26.3.1
 
@@ -67,17 +75,19 @@ and clears it (rc 18 → 0).
 - **Container runtime:** containerd 1.7 – 2.2, CRI-O. NRI Plugin requires containerd ≥ 1.7.30 / 2.1.x / 2.2.x.
 - **Driver branches:** default 580.126.20; same set as 26.3.1.
 - **Breaking:**
-  - NRI Plugin (when enabled) creates no `nvidia` runtime class and makes no container-runtime config changes — **incompatible with CRI-O**.
+  - **NRI Plugin (`cdi.nriPluginEnabled: true`, the recommended RKE2/K3s path) creates NO `nvidia` RuntimeClass and makes no containerd `config.toml` change** — devices inject from the `nvidia.com/gpu` request alone. **This BREAKS any workload that pins `runtimeClassName: nvidia`:** already-running pods keep running (admission already passed), but the next pod (re)creation / scale-up / rollout fails admission with `RuntimeClass "nvidia" not found` — a **latent trap** that surfaces only on restart, not at upgrade time. Recreating the RuntimeClass does not help (no `nvidia` handler exists under NRI). Fix = **remove `runtimeClassName: nvidia` from GPU workloads** (CDI+NRI needs none). Treat the operator flip + a fleet-wide `grep -r 'runtimeClassName: nvidia'` sweep of manifests, generators, and docs as **ONE migration window, not two**. The key is flat `cdi.nriPluginEnabled` under top-level `cdi:` — NOT a nested `cdi.nriPlugin.enabled` block — and the chart fails the render if NRI is on while `cdi.enabled` is false. **NRI is incompatible with CRI-O.** (Field-validated 2026-05-31, RKE2 containerd 2.2.x.)
   - `defaultRuntime` field in ClusterPolicy now optional (was required).
 - **CRD migrations:**
   - **New `NVIDIADriver` CRD** — manages multiple driver types/versions across nodes. **Greenfield only**: not supported as an upgrade path from earlier minors. Existing ClusterPolicy installs stay on the ClusterPolicy driver spec.
   - Dynamic MIG config now uses per-node ConfigMaps (replaces single static ConfigMap). MIG Manager v0.14.0+ auto-generates them.
 - **Upgrade ordering:** driver pods reuse kernel modules across container restarts instead of recompiling — restart recovery drops from minutes to seconds. No NFD ordering change.
+  - **Preview with a rendered-manifest text diff, NOT `kubectl diff`.** Adding ClusterPolicy fields (e.g. `cdi.nriPluginEnabled`) makes `kubectl diff` warn `unknown field …` and silently strip them — the *live* CRD is still the old schema during the server dry-run. The chart updates the CRD first (`upgradeCRD: true` hook) so the real upgrade applies cleanly; `helm upgrade` needs `--disable-openapi-validation` for the same reason.
 - **Deprecations:**
   - NVIDIA Kata Manager deprecated → use `kata-deploy`.
   - `useOpenKernelModules` deprecated → `kernelModuleType` (`auto`/`open`/`proprietary`); `auto` requires driver ≥ 570.86.15 or 570.124.06+.
 - **Notable:**
-  - NRI Plugin added (alternative to runtime-class injection).
+  - NRI Plugin added (alternative to runtime-class injection) — see **Breaking** for the `runtimeClassName: nvidia` consequence.
+  - **`ccManager` default flipped `enabled: false→true` / `defaultMode: off→on`** in chart defaults. Inert unless a node carries `nvidia.com/cc.capable=true` (Hopper in a TDX/SEV-SNP confidential VM), but a sparse values overlay silently inherits the flip — diff prev-vs-new *chart defaults* (not just your values delta) to catch flips like this.
   - Driver validation now waits for GDS / GDRCopy additional drivers before proceeding.
   - DCGM + DCGM Exporter gain liveness/readiness probes.
   - PodSecurityContext support on DaemonSets.
