@@ -7,16 +7,32 @@
 - **min_tracked_version:** 1.5.0
 - **Last sifted:** 2026-05-28
 
-## Community-vs-Prime rule (load-bearing)
+## Community editions and lifecycle (load-bearing — corrected 2026-06-02)
 
-From Harvester 1.5+, `x.y.0` = **community**, `x.y.[1..z]` = **Prime** (paid). Community support for minor `x.y` ends when the **first Prime patch of the next minor** (`x.(y+1).1`) ships — typically a ~4-month tail after the next community minor lands. Community minor cadence: **Apr / Aug / Dec**. This file ignores Prime-only patches and Prime-only backports.
+**Patches are community.** Harvester's published lifecycle is a **4-month minor cadence (Apr/Aug/Dec)** plus a
+**~2-month patch cadence (best-effort)**, and **every release — minors AND patches (1.5.1, 1.5.2, 1.6.1, 1.7.1, …)
+— is a normal community release with a publicly downloadable ISO** (`releases.rancher.com/harvester/<tag>/…`,
+HTTP 200, verified). **Prime ("SUSE Virtualization") is a paid SUSE *support subscription* on the same bits** —
+NOT a separate artifact set, and NOT a `x.y.0`-community / `x.y.[1..z]`-Prime split. So a community operator can
+and should run the **latest patch of each minor**; the community upgrade path is `1.5.x → 1.6.1 → 1.7.1 → …`,
+**not `.0`-only**.
 
-| Harvester community minor | Released | Community EOL trigger | Community EOL date (est.) |
+> **Correction:** earlier versions of this file claimed `x.y.0`=community / `x.y.[1..z]`=Prime(paid) and that a
+> minor's community support ended when "the first Prime patch of the next minor ships." That *mechanism* was
+> wrong — verified against the public patch ISOs (HTTP 200), the official lifecycle doc (2-month patch cadence),
+> and the patch release notes (no Prime-gating language). The rough staleness dates below survive; the mechanism
+> does not.
+
+**Staleness / EOL signal (verdict warns):** a minor is effectively unmaintained once it sits ~2 minors behind
+latest (no further community patches). Confirm the exact window against the SUSE support-matrix site at use time;
+dates below are approximate and grounded per House Rule #8.
+
+| Harvester minor | Released | Latest community patch | Maintained? (verdict) |
 |---|---|---|---|
-| 1.8.0 | 2026-04-24 | `1.9.1` ships | ~2027-04 (next minor Dec 2026 + ~4 mo) |
-| 1.7.0 | 2025-12-23 | `1.8.1` ships | ~2026-08 (next Prime patch of 1.8 line; not yet shipped — dev builds only) |
-| 1.6.0 | 2025-08-27 | `1.7.1` shipped 2026-02-10 | **EOL 2026-02-10** (tracked for in-flight clusters; verdict warns) |
-| 1.5.0 | 2025-04-25 | `1.6.1` shipped 2025-10-16 | **EOL 2025-10-16** (community well past EOL; verdict warns hard — also past SUSE Prime EOM 2025-12-30) |
+| 1.8.0 | 2026-04-24 | 1.8.0 (no patch yet) | current — maintained |
+| 1.7.0 | 2025-12-23 | 1.7.1 (2026-02-10) | maintained (latest − 1) |
+| 1.6.0 | 2025-08-27 | 1.6.1 (2025-10-16) | **stale** — superseded by 1.7/1.8; verdict warns |
+| 1.5.0 | 2025-04-25 | 1.5.2 (2025-09-18) | **EOL** — 2 minors behind; verdict warns hard (upgrade 1.5→1.6→1.7, no minor skip; see the `harvester-upgrade` skill) |
 
 ## Bundled-stack ↔ Rancher pairing (axis-1 × axis-2 quick lookup)
 
@@ -52,8 +68,8 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 
 ## 1.7.0
 
-- **Released:** 2025-12-23 (1.7.1 Prime patch 2026-02-10)
-- **Community EOL:** when `1.8.1` ships (no shipped Prime patch of 1.8 yet — dev builds `v1.8.1-dev-*` only; community 1.7 tail remains open as of 2026-05-28).
+- **Released:** 2025-12-23 (community patch 1.7.1 2026-02-10)
+- **Maintained:** latest − 1; 1.8 has no patch yet (only `v1.8.1-dev-*`). Latest community patch on this line: 1.7.1.
 - **k8s floor (embedded RKE2):** `v1.34.2+rke2r1`. Guest-cluster RKE2 Node Driver: `v1.31`, `v1.32`, `v1.33`, `v1.34`.
 - **Bundled stack:** RKE2 `v1.34.2+rke2r1` · KubeVirt `v1.6.3` · Longhorn `v1.10.1` · CDI `v1.62.0` · Kube-OVN `v1.14.10` · SL Micro `6.1` · embedded Rancher `v2.13.0`.
 - **Management plane:** Rancher community **v2.13.x**.
@@ -74,7 +90,7 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 ## 1.6.0
 
 - **Released:** 2025-08-27
-- **Community EOL:** **2026-02-10** (when 1.7.1 Prime patch shipped). Verdict must warn: community minor is past EOL; only Prime patches address bugs from this point.
+- **Staleness:** superseded by 1.7/1.8; latest community patch on this line is 1.6.1 (2025-10-16). Verdict warns; upgrade to 1.7.x (see the `harvester-upgrade` skill).
 - **k8s floor (embedded RKE2):** `v1.33.3+rke2r1`. Guest-cluster RKE2 Node Driver: `v1.30`, `v1.31`, `v1.32`, `v1.33`.
 - **Bundled stack:** RKE2 `v1.33.3+rke2r1` · KubeVirt `v1.5.2` · Longhorn `v1.9.1` · CDI `v1.62.0` · SLE Micro `5.5` · embedded Rancher `v2.12.0`.
 - **Management plane:** Rancher community **v2.12.x**.
@@ -93,8 +109,8 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 
 ## 1.5.0
 
-- **Released:** 2025-04-25 (1.5.1 Prime 2025-07-01, 1.5.2 Prime 2025-09-18)
-- **Community EOL:** **2025-10-16** (when 1.6.1 Prime patch shipped). Also past SUSE Prime EOM (2025-12-30) — verdict must warn hard: clusters here are double-EOL'd, only path forward is upgrade to 1.6.x then 1.7.x (skip-minor not supported upstream).
+- **Released:** 2025-04-25 (community patches 1.5.1 2025-07-01, 1.5.2 2025-09-18 — both publicly downloadable)
+- **EOL:** 2 minors behind (1.7/1.8 shipped); latest community patch on this line is 1.5.2. Verdict warns hard — the only path forward is upgrade 1.5→1.6→1.7 (no minor skip upstream). Use the `harvester-upgrade` skill for the controlled, external-Rancher-gated procedure.
 - **k8s floor (embedded RKE2):** `v1.32.3+rke2r1`. Guest-cluster RKE2 Node Driver: `v1.30`, `v1.31`, `v1.32` (per wiki matrix).
 - **Bundled stack:** RKE2 `v1.32.3+rke2r1` · KubeVirt `v1.4.0` (SUSE rebuild `1.4.0-150600.5.15.1`) · Longhorn `v1.8.1` · CDI `v1.61.0` (SUSE rebuild `1.61.0-150600.3.12.1`) · SLE Micro `5.5` · embedded Rancher `v2.11.0`. Kube-OVN not yet packaged as add-on (1.6.0 introduced `kubeovn-operator`).
 - **Management plane:** Rancher community **v2.11.x**. Upgrade Rancher to v2.11.x **before** upgrading Harvester to 1.5.x (docs: "you must upgrade Rancher _before_ upgrading Harvester"). `harvester-ui-extension` `v1.5.0`.

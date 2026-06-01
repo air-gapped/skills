@@ -221,7 +221,8 @@ GROUPS: dict[str, dict] = {
             "Operator), plus rancher-upgrade — community Rancher fleet "
             "upgrade methodology (KDM downstream support matrix, "
             "CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, "
-            "per-minor 2.11→2.14 runbook), companion to k8s-components-checker."
+            "per-minor 2.11→2.14 runbook), companion to k8s-components-checker. "
+            "Harvester HCI upgrades live in the separate `harvester` suite."
         ),
         "category": "kubernetes",
         "tags": [
@@ -251,6 +252,46 @@ GROUPS: dict[str, dict] = {
             "version-skew",
             "drift-review",
             "pluto",
+        ],
+    },
+    "harvester": {
+        # Harvester HCI operator suite. Room for siblings: networking
+        # (cluster-network / VLAN / storage-network), storage (Longhorn /
+        # 3rd-party CSI), VM + template management, backup/DR, GPU
+        # passthrough / vGPU, guest-cluster (CCM/CSI) integration.
+        "members": ["harvester-upgrade"],
+        "description": (
+            "Harvester HCI operator suite — controlled, community-edition "
+            "Harvester upgrades off an EOL line up to latest stable: the "
+            "no-skip minor ladder (1.5→1.6→1.7→1.8 carrying embedded RKE2 / "
+            "KubeVirt / Longhorn / SLE-Micro together), external-Rancher + "
+            "Harvester UI-extension pairing and ordering, air-gapped version "
+            "detection, controlling the node-by-node upgrade flow (serial "
+            "interlock, the v1.7+ pause-map, and the PodDisruptionBudget + "
+            "VMI-readinessProbe native gate for 1.5/1.6), keeping VM-hosted "
+            "self-managed RKE2 control planes quorate via anti-affinity spread "
+            "and live-migration-vs-clean-shutdown tradeoffs (busy-etcd "
+            "non-convergence, auto-converge, dedicated migration network), "
+            "per-hop breaking changes (wicked→NetworkManager, Intel NIC "
+            "rename, DHCP churn), the enforced pre-flight health gates, and "
+            "the no-downgrade backup/rollback reality. Companion to the k8s "
+            "suite's k8s-components-checker (Harvester↔Rancher↔RKE2 pairing "
+            "registry) and rancher-upgrade (the external Rancher's own chain)."
+        ),
+        "category": "virtualization",
+        "tags": [
+            "harvester",
+            "hci",
+            "kubevirt",
+            "rke2",
+            "rancher",
+            "longhorn",
+            "live-migration",
+            "etcd",
+            "upgrade-planning",
+            "air-gap",
+            "kubernetes",
+            "virtualization",
         ],
     },
     "agent": {
