@@ -381,6 +381,20 @@
         "./.claude/skills/aiperf"
       ],
       "strict": false
+    },
+    {
+      "name": "secure-boot-cert-rotation",
+      "source": "./",
+      "description": "Triage and remediate the Microsoft Secure Boot 2011→2023 UEFI certificate rotation (CAs expiring June/October 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI…",
+      "version": "0.20260601.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/secure-boot-cert-rotation"
+      ],
+      "strict": false
     }
   ]
 }
