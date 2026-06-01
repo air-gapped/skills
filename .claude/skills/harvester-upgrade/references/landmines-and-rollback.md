@@ -56,7 +56,7 @@ Issue numbers are point-in-time — re-check status via `gh` before trusting a "
 ## Sequencing risk from an EOL line
 
 - **No specific 1.5 patch floor** — any 1.5.x goes to 1.6.x; v1.5.2 only needed if hit by a listed 1.5.2 bug.
-- **RKE1 leftovers strand you** — RKE1 support is removed in 1.6.0 (and gates Rancher 2.12). Inventory and
+- **RKE1 leftovers strand the upgrade** — RKE1 support is removed in 1.6.0 (and gates Rancher 2.12). Inventory and
   retire any RKE1 guest clusters before leaving 1.5 (no in-place RKE1→RKE2 path; replatform).
 - **Config-schema traps when leaving an old line:** old `/oem/harvester.config` v1.0 schema and the
   `99_custom.yaml` filename must be migrated before 1.7 (pre-check flags both); confirm **UEFI** boot before 1.8.

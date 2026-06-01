@@ -3,7 +3,7 @@
 The recurring operator worry: "we can't let the automagic upgrade pick whatever host it wants and reboot it
 while our VM-hosted control planes are unstable — and how does it even know the guest control planes are
 healthy before continuing?" Short answer: **it doesn't know, and on 1.5/1.6 there is no supported pause.** This
-file is the full, source-verified picture and the levers you actually have.
+file is the full, source-verified picture and the levers actually available.
 
 ## Contents
 1. Node order is not operator-choosable (serial interlock)
@@ -31,20 +31,20 @@ upgrade + reboot) → Succeeded`, then the interlock releases the next host. The
   so it won't proceed while the VM disks' replicas are still rebuilding; this protects **data**).
 
 It **never** checks the guest cluster. A grep of the entire upgrade flow for guest/etcd/quorum returns **zero**
-hits — Harvester has no awareness of the etcd running inside your VMs. "Are the guest control planes ready?" is
+hits — Harvester has no awareness of the etcd running inside the VMs. "Are the guest control planes ready?" is
 a question it does not ask, on any version.
 
 > **Consequence (the reassuring half):** etcd VM disks live on Longhorn and persist across stop/restart, and the
 > next host won't start until Longhorn is healthy. So a member that goes down comes back **with its data** and
 > rejoins; quorum **self-heals**. The realistic worst case is a transient guest-API blip (availability), **not
-> etcd data loss** — unless you lose Longhorn replicas or force-reset etcd.
+> etcd data loss** — unless Longhorn replicas are lost or etcd is force-reset.
 
 ## 3. The 3-host physics: one member down per host is unavoidable
 On 3 hosts with one etcd member per host, a host reboot has **nowhere to move that member** (pinned, and even
 unpinned there is no free anti-affinity target). So **one member down per host is physical and unavoidable.**
 That is fine for quorum (2/3 keeps serving — no outage from one member down). Therefore "no outage" reduces to
 exactly one requirement: **the down-windows must never overlap** — member-N must be back to quorum *before*
-host-N+1 takes member-N+1 down. "No outage" ≡ "no overlap" ≡ **you need a gate between hosts.**
+host-N+1 takes member-N+1 down. "No outage" ≡ "no overlap" ≡ **a gate between hosts is required.**
 
 ## 4. Per-version control table (incl. the `restoreVM` truth)
 
@@ -56,9 +56,9 @@ host-N+1 takes member-N+1 down. "No outage" ≡ "no overlap" ≡ **you need a ga
 
 **`restoreVM` is NOT a gate — and `false` is a footgun for etcd.** Verified: the pre-drain detector *always*
 stops non-migratable VMs (`virtctl stop`); `restoreVM` only governs a post-host `restore-vm` job
-(`sendRestoreVMJob` → `IsRestoreVM`). `true` = each stopped VM auto-restarts **after its own host** (what you
-want). `false` = stopped VMs are **left down** → as the upgrade marches, member1 down, then member2 down → 1/3
-→ the exact outage you're avoiding. The upgrade-side `restoreVM` setting **does not exist on 1.5.x** (1.6+ only).
+(`sendRestoreVMJob` → `IsRestoreVM`). `true` = each stopped VM auto-restarts **after its own host** (the wanted
+behavior). `false` = stopped VMs are **left down** → as the upgrade marches, member1 down, then member2 down →
+1/3 → the exact outage being avoided. The upgrade-side `restoreVM` setting **does not exist on 1.5.x** (1.6+ only).
 **Set `restoreVM: true`.**
 
 ## 5. The guaranteed no-outage procedure (1.7.0+ pause-map)
@@ -73,7 +73,7 @@ nodeUpgradeOption:
 ```
 Then per host: edit the live `Upgrade` CR annotation **`harvesterhci.io/node-upgrade-pause-map`** →
 `{"hostA":"unpause"}` to release exactly one host. Harvester stops member-A, upgrades+reboots host-A, restarts
-member-A. **You then verify the guest etcd is back to 3/3** (`etcdctl endpoint health` — all healthy, one
+member-A. **Then verify the guest etcd is back to 3/3** (`etcdctl endpoint health` — all healthy, one
 leader) → only then unpause the next host. That guarantees no overlap → **zero guest-API outage, operator-gated.**
 Field caveat: harvester#10099 (air-gapped pause/unpause once stuck at "Upgrading Node 0%", closed stale) — keep
 job logs handy.
@@ -111,7 +111,7 @@ next host's drain until the rebooted member has **rejoined quorum**. Native, ver
 - On 3 hosts an anti-affinity VM has no migration target, so its eviction ends in KubeVirt **force-shutting** it
   (the member still goes down for *its own* host — expected; the PDB's job is blocking the *next* one).
 - Harvester evacuates via a `kubevirt.io/drain` taint + KubeVirt's node-drain controller, which makes its *own*
-  evacuation PDBs. Whether your **custom** PDB is consulted on this exact taint-driven, no-target path is the one
+  evacuation PDBs. Whether a **custom** PDB is consulted on this exact taint-driven, no-target path is the one
   thing not provable from source — test it: run a real upgrade on a 3-host scratch cluster and confirm host-N+1
   **waits** (at "waiting for VM live-migration/shutdown") until member-N's VMI goes Ready. The gate may present
   as the upgrade "stalling" at a host (that's it *working*), not a clean pause.

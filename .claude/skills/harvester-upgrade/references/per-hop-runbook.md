@@ -27,7 +27,7 @@ minor jump. Ground exact patch numbers / fix versions via `gh` at run time (Hous
 
 - **Rancher first → 2.13, UI-ext → 1.7.x.** **OS base bump SLE Micro 5.5 → 6.1.**
 - **wicked → NetworkManager migration (the big one).** No 1:1 mapping; NM profiles are regenerated from
-  `/oem/harvester.config`. **If you ever hand-edited the mgmt interface (`90_custom.yaml`/ifcfg) or installed
+  `/oem/harvester.config`. **If the mgmt interface was ever hand-edited (`90_custom.yaml`/ifcfg) or the cluster installed
   ≤1.1**, that config is **silently ignored** post-upgrade → broken mgmt networking. Pre-upgrade: edit
   `/oem/harvester.config` to the current schema; if origin ≤1.1, rename `/oem/99_custom.yaml` →
   `/oem/90_custom.yaml`. The pre-check detects both. Recovery: console `nmcli`, or

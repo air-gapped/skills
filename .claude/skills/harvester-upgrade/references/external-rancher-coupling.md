@@ -29,7 +29,7 @@ only the **order** is mandatory.
 | 1.8.x | 2.14.0 | 1.8.x | 4.23.0 |
 
 - The **UI extension is the join of both axes** — its minor must match the Harvester minor *and* be supported
-  by the Rancher minor. For an external Rancher you must **install/upgrade it yourself** (the embedded path
+  by the Rancher minor. An external Rancher requires **installing/upgrading it manually** (the embedded path
   ships it inside the ISO; external does not).
 - **Mismatch failure mode:** "VM tab missing" / cluster shown but unmanageable / Harvester features absent
   (`virtualization-management.md`; `compat/harvester.md`). Using a Rancher a minor behind/ahead of the pair is

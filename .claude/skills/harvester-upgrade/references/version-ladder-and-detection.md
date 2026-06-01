@@ -11,8 +11,8 @@ version-skew note). The only supported paths are one minor at a time:
 
 - No `1.5→1.7` or `1.6→1.8` row exists. Each Harvester minor bumps embedded RKE2 exactly one k8s minor, and
   skipping a k8s minor is unsupported upstream (version-skew policy).
-- You **may** skip intermediate **patches** within a jump: `1.5.2 → 1.6.1` directly is supported and is the
-  recommended way (land on each minor's latest patch). Any `1.5.x` goes to `1.6.x` — you do not need to install
+- Intermediate **patches** within a jump **may** be skipped: `1.5.2 → 1.6.1` directly is supported and is the
+  recommended way (land on each minor's latest patch). Any `1.5.x` goes to `1.6.x` — no need to install
   1.5.1/1.5.2 first.
 - **Never hand-edit embedded RKE2** — it is locked to the Harvester version and rides with the bundle.
   Hand-editing bricks the node (`compat/harvester.md` ordering rule).
@@ -40,7 +40,7 @@ same bits** — not a separate, paywalled artifact set. Evidence (verify the rea
 - All are real GA releases (`gh release ... --json isPrerelease` → `prerelease=false`).
 - Zero Prime-gating language in patch release notes. The only edition-ish line is v1.5.2's advisory: *"Only
   SUSE Virtualization customers affected by issues listed in the Bug Fixes section must install this patch"* —
-  i.e. patches are *optional unless you hit a listed bug*, not paywalled.
+  i.e. patches are *optional unless a listed bug is hit*, not paywalled.
 - The official lifecycle doc (`automatic.md`): *"Four-month minor cadence (Apr/Aug/Dec); two-month patch
   cadence (best effort)"*, and the upgrade-path table literally uses **"from v1.5.2 to v1.6.1"** as the
   canonical community hop.

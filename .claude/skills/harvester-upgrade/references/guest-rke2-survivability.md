@@ -4,6 +4,14 @@ For clusters where the RKE2 **control-plane/etcd nodes run as Harvester VMs** (w
 Harvester) and are **self-managed** (not Rancher-provisioned). Ordered by impact for surviving the rolling host
 upgrade.
 
+## Contents
+1. Anti-affinity spread of the CP/etcd VMs — the #1 lever
+2. Live-migration prerequisites for the CP VMs
+3. qemu-guest-agent (install in every VM)
+4. Harvester Cloud Provider (CCM) + CSI driver
+5. Live-migrating busy etcd / control-plane VMs — the realistic picture (A: make it converge · B: don't migrate)
+6. Other safety levers
+
 ## 1. Anti-affinity spread of the CP/etcd VMs — the #1 lever
 
 Spread the 3 etcd VMs across **3 distinct Harvester hosts** so a one-host-at-a-time upgrade only ever touches
@@ -88,7 +96,7 @@ loses the race.
   `completionTimeoutPerGiB: 150`, `progressTimeout: 150` (confirmed vs a real support bundle, harvester#9144 —
   the docs' "800s/GiB / 64Mi" are stale).
 - **`bandwidthPerMigration: 0` is a self-throttle trap, not "unlimited."** With 0, KubeVirt never calls
-  libvirt's set-max-speed, so QEMU uses a *conservative internal* rate and does NOT saturate your 25 GbE
+  libvirt's set-max-speed, so QEMU uses a *conservative internal* rate and does NOT saturate a 25 GbE link
   (harvester#10482) → a busy etcd out-dirties the copy.
 - **auto-converge off** → nothing throttles the guest to let pre-copy win.
 - **The `mgmt` bond defaults to active-backup** → only **one** 25 GbE link is usable (not 50), and migration
@@ -98,7 +106,7 @@ loses the race.
   symptom, harvester#5756/#8731). The evacuation loop still has no retry limit on 1.8 (harvester#10698,
   maintainer-confirmed 2026-06-01).
 
-### A) Make migration converge (if you insist on live-migrating etcd)
+### A) Make migration converge (if live-migrating etcd anyway)
 - **auto-converge** (`allowAutoConverge: true`) — the most effective pre-copy knob; progressively throttles
   guest vCPU to drop the dirty rate. **Tradeoff for etcd:** throttling slows its fsync/apply loop → can miss
   Raft heartbeats → brief leader election on *that* member (tolerable only because quorum covers one member).
@@ -121,7 +129,7 @@ The protection for etcd is **Raft quorum + anti-affinity**, not live migration. 
 member down, so drop **one** control-plane VM cleanly per host and let quorum cover it. **Two different
 contexts, two different mechanisms** (don't conflate them):
 
-- **Manual host maintenance** (you click *Enable Maintenance Mode* on a host): label the etcd VMs
+- **Manual host maintenance** (operator enables *Maintenance Mode* on a host): label the etcd VMs
   `harvesterhci.io/maintain-mode-strategy: Shutdown` (or `ShutdownAndRestartAfterDisable`) → Maintenance Mode
   **powers the member off** instead of live-migrating it. Confirm distinct hosts (§1), drain the *guest* node,
   do the host work, power back on, **verify quorum rejoin** (`etcdctl endpoint health` — all healthy, one
@@ -134,8 +142,8 @@ contexts, two different mechanisms** (don't conflate them):
 
 ### Bottom line (busy prod etcd, 2×25 G)
 "Just live-migrate, defaults are fine" is wrong here. Rank: (1) clean one-member-at-a-time shutdown via quorum
-(path B); (2) dedicate the migration network + make the bond LACP not active-backup (helps *all* VMs); (3) if you
-must migrate etcd, a `MigrationPolicy` with auto-converge + explicit bandwidth (accept brief Raft churn);
+(path B); (2) dedicate the migration network + make the bond LACP not active-backup (helps *all* VMs); (3) if
+migrating etcd is unavoidable, a `MigrationPolicy` with auto-converge + explicit bandwidth (accept brief Raft churn);
 (4) scale etcd to 5 + low-write windows; (5) **never** post-copy for etcd. Migrate one member at a time
 regardless (concurrent live migration is still open, harvester#10425).
 

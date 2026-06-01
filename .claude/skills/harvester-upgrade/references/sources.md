@@ -16,7 +16,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 | Harvester docs `rancher/{virtualization-management,harvester-ui-extension}.md` + `airgap.md` | 2026-06-01 | 3-step order, UI-ext support matrix, ui-plugin-catalog image map |
 | Harvester docs `rancher/{cloud-provider,csi-driver}.md` + `vm/{live-migration,create-vm,backup-restore}.md` | 2026-06-01 | CCM/CSI standalone install, migratability, backup primitives |
 | Harvester source `pkg/controller/master/upgrade/*` | 2026-06-01 | node order delegated, serial interlock, restoreVM, pause-map |
-| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-06-01 | edition reality (patches are community), latest GA, prerelease flags |
+| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-06-02 | edition reality (patches are community), latest GA (v1.8.0, no 1.9.0 GA — freshen-confirmed), prerelease flags |
 | harvester/upgrade-helpers `pre-check/v1.x/check.sh` | 2026-06-01 | the enforced pre-flight gate thresholds |
 | KubeVirt live-migration (user-guide + `types.go`/`virt-config.go` v1.4.0) + harvester#9144/#10482/#10698/#4375 | 2026-06-01 | busy-etcd non-convergence; real v1.4 migration defaults; bandwidth-0 self-throttle; no-circuit-breaker |
 | Harvester upgrade drain + gating (`upgrade_controller.go`, `job_controller.go`, `virtualmachineinstance.go`, `upgrade_node.sh` @ v1.5.0/1.6.0/1.7.0) | 2026-06-02 | drain is eviction-based + honors PDBs; detector force-stops NodeSelector-pinned VMs pre-eviction; `restoreVM` is 1.6+ (auto-restart job, not a gate); pause-map is 1.7.0+; no guest-etcd gate; PDB+VMI-readinessProbe native gate |

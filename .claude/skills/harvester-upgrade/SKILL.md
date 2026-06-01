@@ -47,14 +47,14 @@ explicitly defers Harvester host→guest coordination here). Respect the boundar
 
 1. **No minor skipping, ever.** The only supported path is one minor at a time: `1.5.x → 1.6.x → 1.7.x →
    1.8.x` (each Harvester minor bumps embedded RKE2 exactly one k8s minor; skipping a k8s minor is unsupported
-   upstream). You *may* skip intermediate **patches** within a jump (`1.5.2 → 1.6.1` directly) — land on each
+   upstream). Intermediate **patches** within a jump *may* be skipped (`1.5.2 → 1.6.1` directly) — land on each
    minor's latest patch. **Never hand-edit embedded RKE2** — it is locked to the Harvester version.
 2. **External Rancher leads every hop.** When Harvester is imported into an external Rancher, each hop is a
    three-step sequence in order: **upgrade Rancher → upgrade the Harvester UI extension → upgrade Harvester.**
    The pairing is required (1.6↔Rancher 2.12, 1.7↔2.13, 1.8↔2.14); a mismatch yields "VM tab missing" /
    unmanageable cluster. The external Rancher's own multi-minor walk is its own gated project — defer to
    `rancher-upgrade`. `references/external-rancher-coupling.md`.
-3. **You cannot tell Harvester which node to upgrade first.** Order is delegated to RKE2/Rancher and forced
+3. **The node-upgrade order is not operator-choosable.** Order is delegated to RKE2/Rancher and forced
    strictly serial (concurrency=1, one-host-at-a-time interlock). The only "pause between nodes" knob
    (`nodeUpgradeOption: manual`) **exists only from v1.7.0+** — unavailable for the 1.5→1.6 and 1.6→1.7 hops.
    So protect VM-hosted control planes **structurally**, not with a button. `references/controlled-flow-and-node-order.md`.
@@ -115,17 +115,15 @@ Full gate table with thresholds + sources: `references/landmines-and-rollback.md
    specific latest-patch numbers, GA dates, and "fixed in vX" claims are volatile — state them only if
    cluster-reported, freshly `gh`-grounded (anti-confirmation: enumerate tags, derive per-minor latest, never
    ask "does vX exist"), or marked UNVERIFIED. Run `gh` with valid auth (enumeration exhausts anonymous).
-3. **External Rancher leads, in order, no skips.** Rancher → UI-extension → Harvester at every hop; the
-   external Rancher walks its own minors with no skipping. Getting the order wrong makes the cluster
-   unmanageable. Cite `rancher-upgrade` for the Rancher side; don't re-derive it.
-4. **Structural safety over the pause button.** The pause knob is v1.7.0+ and field-flaky; the durable
-   protection for VM-hosted control planes is anti-affinity spread + N+1 capacity + serial interlock +
-   MAC-pinned IPs. Design these in before touching the first host.
+3. **Rancher leads, no minor skips** (both axes; fact 2). Cite `rancher-upgrade` for the Rancher chain — don't
+   re-derive it.
+4. **Structural safety over the pause button** (facts 3–4): the pause knob is v1.7.0+ and field-flaky, so design
+   in anti-affinity spread + serial interlock + MAC-pinned IPs (and N+1 where possible) before the first host.
 5. **Look-ahead version targeting.** Recommend the target that also covers the *next* planned hop, not the bare
    immediate minimum — and don't land on a fresh `.0`/a minor at its support ceiling. (Same rule as
    k8s-components-checker House Rule #9 / rancher-upgrade House Rule #4.)
-6. **No downgrade — back up before every hop.** VM Backup to NFS/S3 (filesystem-consistent with
-   qemu-guest-agent) + a guest-cluster etcd snapshot. In-cluster VM snapshots are NOT a DR mechanism.
+6. **No downgrade — back up before every hop** (fact 5): VM Backup to NFS/S3 (filesystem-consistent via
+   qemu-guest-agent) + a guest etcd snapshot; in-cluster VM snapshots are NOT DR.
 7. **Cite the real source per claim.** Pairing/Node-Driver numbers → `compat/harvester.md`; Rancher-side →
    `rancher-upgrade`; everything else → the reference file that carries the doc/issue evidence.
 
