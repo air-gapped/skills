@@ -1,6 +1,6 @@
 # skills
 
-Claude Code plugin marketplace — 20+ installable reference skills for vLLM, Kubernetes, release engineering, and skill authoring.
+Claude Code plugin marketplace — 40+ installable reference skills for vLLM, Kubernetes, release engineering, and skill authoring.
 
 ## Install
 
