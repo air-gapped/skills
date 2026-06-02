@@ -225,7 +225,7 @@
     {
       "name": "k8s",
       "source": "./",
-      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 18 components: RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite.",
+      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite.",
       "version": "0.20260603.29",
       "author": {
         "name": "Jörgen"
@@ -361,7 +361,7 @@
     {
       "name": "vllm",
       "source": "./",
-      "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, and NVIDIA hardware.",
+      "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
       "version": "0.20260529.41",
       "author": {
         "name": "Jörgen"
@@ -400,7 +400,7 @@
     {
       "name": "aiperf",
       "source": "./",
-      "description": "NVIDIA AIPerf",
+      "description": "NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (the genai-perf successor): `aiperf profile` with concurrency / request-rate / fixed-schedule trace-replay / user-centric / multi-run-confidence load, 15 endpoint types and 6 custom dataset formats, goodput SLOs, GPU + Prometheus telemetry, and the reasoning-token TTFT/TTFO split — benchmarks vLLM / SGLang / TensorRT-LLM / Dynamo / NIM / Triton / Ollama.",
       "version": "0.20260529.2",
       "author": {
         "name": "Jörgen"
@@ -409,12 +409,27 @@
       "skills": [
         "./.claude/skills/aiperf"
       ],
-      "strict": false
+      "strict": false,
+      "category": "inference",
+      "tags": [
+        "aiperf",
+        "benchmarking",
+        "genai-perf",
+        "nvidia",
+        "vllm",
+        "sglang",
+        "tensorrt-llm",
+        "dynamo",
+        "nim",
+        "triton",
+        "goodput",
+        "telemetry"
+      ]
     },
     {
       "name": "secure-boot-cert-rotation",
       "source": "./",
-      "description": "Triage and remediate the Microsoft Secure Boot 2011→2023 UEFI certificate rotation (CAs expiring June/October 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI…",
+      "description": "Secure Boot certificate-rotation suite — triage and remediate the Microsoft Secure Boot 2011→2023 UEFI CA rotation (CAs expiring 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs: the PK→KEK→db trust chain, per-platform fixes (iDRAC BIOS-staged keys applied on reboot, self-authenticating manual `db` append via the existing 2011 KEK, the Harvester OVMF v1.6.0 floor with ephemeral-vs-persistent NVRAM triage), and audit via mokutil / efi-readvar / racadm bioscert / Redfish.",
       "version": "0.20260601.1",
       "author": {
         "name": "Jörgen"
@@ -423,7 +438,21 @@
       "skills": [
         "./.claude/skills/secure-boot-cert-rotation"
       ],
-      "strict": false
+      "strict": false,
+      "category": "infrastructure",
+      "tags": [
+        "secure-boot",
+        "uefi",
+        "certificate-rotation",
+        "microsoft-uefi-ca",
+        "dell-poweredge",
+        "idrac",
+        "harvester",
+        "ovmf",
+        "mokutil",
+        "dbx",
+        "2026"
+      ]
     }
   ]
 }

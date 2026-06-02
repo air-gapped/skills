@@ -1,6 +1,6 @@
 # skills
 
-Claude Code plugin marketplace — 40+ installable reference skills for vLLM, Kubernetes, release engineering, and skill authoring.
+Claude Code plugin marketplace — 40+ installable reference skills across vLLM/SGLang inference, Kubernetes & Harvester, GPU host bring-up, observability, security, and agent workflows.
 
 ## Install
 

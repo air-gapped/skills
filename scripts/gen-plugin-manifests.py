@@ -180,7 +180,7 @@ GROUPS: dict[str, dict] = {
             "quantization, caching, KV, tool parsers, reasoning parsers, "
             "chat templates, benchmarking, performance tuning, "
             "observability, omni, input modalities, speculative decoding, "
-            "and NVIDIA hardware."
+            "NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe."
         ),
         "category": "inference",
         "tags": [
@@ -214,8 +214,8 @@ GROUPS: dict[str, dict] = {
             "(cross-component compatibility registry for RKE2 community "
             "stacks — kubectl/helm/pluto cluster survey, structured "
             "verdict + pre-upgrade report wrapper, skill-improver freshen "
-            "and operator floor-override flows; covers 18 components: "
-            "RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, "
+            "and operator floor-override flows; covers 19 components: "
+            "RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, "
             "KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, "
             "ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU "
             "Operator), plus rancher-upgrade — community Rancher fleet "
@@ -475,10 +475,65 @@ GROUPS: dict[str, dict] = {
     },
 }
 
-# Per-skill category/tags overrides for standalone plugins (skills not
-# matched by any GROUPS entry). Empty by default — add entries here only
-# when a new skill lands that isn't assigned to a suite.
-STANDALONE_META: dict[str, dict] = {}
+# Per-skill overrides for standalone plugins (skills not matched by any
+# GROUPS entry). Optional keys: `description` (used verbatim instead of the
+# tagline() of the SKILL.md description — set this when the auto-tagline
+# truncates badly, e.g. cuts at the first " — "), `category`, `tags`.
+STANDALONE_META: dict[str, dict] = {
+    "aiperf": {
+        "description": (
+            "NVIDIA AIPerf — vendor-neutral generative-AI inference "
+            "benchmarking (the genai-perf successor): `aiperf profile` with "
+            "concurrency / request-rate / fixed-schedule trace-replay / "
+            "user-centric / multi-run-confidence load, 15 endpoint types and "
+            "6 custom dataset formats, goodput SLOs, GPU + Prometheus "
+            "telemetry, and the reasoning-token TTFT/TTFO split — benchmarks "
+            "vLLM / SGLang / TensorRT-LLM / Dynamo / NIM / Triton / Ollama."
+        ),
+        "category": "inference",
+        "tags": [
+            "aiperf",
+            "benchmarking",
+            "genai-perf",
+            "nvidia",
+            "vllm",
+            "sglang",
+            "tensorrt-llm",
+            "dynamo",
+            "nim",
+            "triton",
+            "goodput",
+            "telemetry",
+        ],
+    },
+    "secure-boot-cert-rotation": {
+        "description": (
+            "Secure Boot certificate-rotation suite — triage and remediate "
+            "the Microsoft Secure Boot 2011→2023 UEFI CA rotation (CAs "
+            "expiring 2026) across Dell PowerEdge / iDRAC9 bare metal, "
+            "Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs: "
+            "the PK→KEK→db trust chain, per-platform fixes (iDRAC "
+            "BIOS-staged keys applied on reboot, self-authenticating manual "
+            "`db` append via the existing 2011 KEK, the Harvester OVMF "
+            "v1.6.0 floor with ephemeral-vs-persistent NVRAM triage), and "
+            "audit via mokutil / efi-readvar / racadm bioscert / Redfish."
+        ),
+        "category": "infrastructure",
+        "tags": [
+            "secure-boot",
+            "uefi",
+            "certificate-rotation",
+            "microsoft-uefi-ca",
+            "dell-poweredge",
+            "idrac",
+            "harvester",
+            "ovmf",
+            "mokutil",
+            "dbx",
+            "2026",
+        ],
+    },
+}
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -666,7 +721,8 @@ def build_plugins() -> list[dict]:
         plugins.append(
             plugin_entry(
                 name=fm.get("name", skill_dir.name),
-                description=tagline(fm.get("description", "")),
+                description=meta.get("description")
+                or tagline(fm.get("description", "")),
                 skill_dirs=[skill_dir],
                 category=meta.get("category"),
                 tags=meta.get("tags", []),
