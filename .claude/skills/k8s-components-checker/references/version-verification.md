@@ -137,7 +137,7 @@ Applies to any vendor with an OSS-vs-paid split that publishes **both** editions
 
 | Vendor | Both editions on one feed? | Discriminator |
 |---|---|---|
-| **Rancher** (community vs SUSE **Prime**) | yes — `rancher/rancher` GitHub releases carry both; `prerelease` flag does NOT separate them | **release-notes first line**. Prime-only ⟺ body redirects to `"Please refer to our Prime Documentation …"`. Community = `"… This is a Community version release …"` **or** inline notes (`# Release vX.Y.Z`). **Test for the Prime marker; treat its absence as community** (a positive "community version release" grep misses the older inline-notes format). |
+| **Rancher** (community vs SUSE **Prime**) | yes — `rancher/rancher` GitHub releases carry both; `prerelease` flag does NOT separate them | **the body's `"This is a … version release"` self-declaration line** — NOT the first line alone. Three observed Prime/community formats (see § Three Rancher release-note formats below): (1) Prime-docs redirect on the first line; (2) inline `# Release vX.Y.Z` first line **but** self-declares `"This is a Prime version release"` in the body; (3) `"This is a Community …"` / `"This is a Community and Prime …"` / oldest inline-only. **A patch is Prime-only iff its body redirects to Prime docs OR self-declares `"… Prime version release"` without `"Community"`; everything else is community.** The cheap first-line redirect test alone **under-detects** format (2). |
 | **GitLab** (CE vs EE) | tags shared | operator runs the EE binary as CE — treat as CE per House Rule #1; edition is not version-distinguished, so no per-tag check needed. |
 
 **The pattern anti-confirmation misses (Rancher):** once a newer community minor ships, the
@@ -147,21 +147,43 @@ current-minor patch) is community and grounds fine — but the "latest community
 (Note this is failure mode 2's cousin: the *highest* tag of an older line is not the answer —
 there because of edition, in §2 because of recency. Enumerate and reason per line either way.)
 
-Derive "latest community patch of minor X" by filtering on the discriminator, newest-first,
-stopping at the first non-Prime release — never by version order alone:
+#### Three Rancher release-note formats — why the first-line test is not enough
+
+Rancher patches advertise edition in **three** distinct shapes. The cheap
+`head -1 | grep 'prime documentation'` test only catches the first:
+
+| Format | First line | Edition signal | Edition |
+|---|---|---|---|
+| 1 — redirect | `Please refer to our [Prime Documentation](…)` | the redirect itself | **Prime** |
+| 2 — inline-but-Prime | `# Release vX.Y.Z` | body paragraph: `"This is a Prime version release"` | **Prime** *(first-line test MISSES this — looks community)* |
+| 3 — community / dual / legacy | `# Release vX.Y.Z` | `"This is a Community version release"`, `"This is a Community and Prime version release"`, or no self-declaration line at all (oldest) | **community** |
+
+So the robust rule greps the whole body for the self-declaration line and only
+falls back to community when neither Prime marker is present:
 
 ```bash
-# latest COMMUNITY patch of a Rancher minor (e.g. 2.12): stop at first tag NOT redirecting to Prime docs
-for t in $(gh api 'repos/rancher/rancher/releases?per_page=100' \
-            --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v2\.12\.' | sort -rV); do
-  gh api repos/rancher/rancher/releases/tags/$t --jq '.body' | head -1 \
-    | grep -qi 'prime documentation' || { echo "latest community 2.12: $t"; break; }
-done
+# latest COMMUNITY patch of a Rancher minor (e.g. 2.11): newest-first, stop at first non-Prime tag.
+# Prime iff body redirects to Prime docs OR self-declares "… Prime version release" without "Community".
+for t in $(gh api 'repos/rancher/rancher/releases?per_page=100' --paginate \
+            --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | grep -E '^v2\.11\.' | sort -rV); do
+  body=$(gh api repos/rancher/rancher/releases/tags/$t --jq '.body')
+  echo "$body" | grep -qi 'prime documentation' && continue                         # format 1 → Prime
+  decl=$(echo "$body" | grep -oiE 'This is a (Community and Prime|Community|Prime) version release' | head -1)
+  case "$decl" in
+    *Prime*) [ -z "${decl##*Community*}" ] && { echo "latest community 2.11: $t"; break; } ;;  # "Community and Prime" → community
+    *)       echo "latest community 2.11: $t"; break ;;                              # Community / legacy inline → community
+  esac
+done   # a bare "… Prime version release" (no "Community") falls through `continue`-less → skipped as Prime
 ```
 
 Verified 2026-05-30: 2.12 → **v2.12.4** (v2.12.5+ Prime), 2.13 → **v2.13.3** (v2.13.4+ Prime),
-2.14 → **v2.14.2** (current minor). `sort -V | tail -1` on 2.12 returns **v2.12.10 — a Prime
-patch**; that is the exact rubber-stamp this step prevents.
+2.14 → **v2.14.2** (current minor).
+Verified 2026-06-02 (2.11 line — the case that exposed format 2): **v2.11.3** is the community
+ceiling (`"Community and Prime"`). v2.11.0 `"Community"`; v2.11.1/.2 legacy inline; **v2.11.4–.8
+self-declare `"Prime version release"` with an inline `# Release` first line** (the first-line
+test wrongly passes them); v2.11.9–.14 redirect to Prime docs. `sort -V | tail -1` returns
+**v2.11.14 (Prime)** and the first-line-only test returns **v2.11.8 (Prime)** — both overshoot;
+only the self-declaration grep lands on v2.11.3.
 
 ### Chart vs app version
 
@@ -190,7 +212,7 @@ repos:
 | Traefik | `traefik/traefik` |
 | Rook | `rook/rook` |
 | Ceph | `ceph/ceph` (k8s axis is transitive via Rook — see `compat/ceph.md`) |
-| OpenEBS | `openebs/openebs` (+ engines: `openebs/mayastor`, `openebs/lvm-localpv`, `openebs/zfs-localpv`, `openebs/dynamic-localpv-provisioner`) |
+| OpenEBS (LocalPV-LVM only) | `openebs/lvm-localpv` (engine — primary); `openebs/openebs` for the umbrella→LVM pin map only. Other engines (mayastor/zfs/hostpath/cstor/jiva) are out of registry scope. |
 | NVIDIA GPU Operator | `NVIDIA/gpu-operator` |
 | ECK | `elastic/cloud-on-k8s` |
 | Zalando postgres-operator | `zalando/postgres-operator` |

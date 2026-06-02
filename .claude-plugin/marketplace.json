@@ -127,7 +127,7 @@
       "name": "harvester",
       "source": "./",
       "description": "Harvester HCI operator suite — controlled, community-edition Harvester upgrades off an EOL line up to latest stable: the no-skip minor ladder (1.5→1.6→1.7→1.8 carrying embedded RKE2 / KubeVirt / Longhorn / SLE-Micro together), external-Rancher + Harvester UI-extension pairing and ordering, air-gapped version detection, controlling the node-by-node upgrade flow (serial interlock, the v1.7+ pause-map, and the PodDisruptionBudget + VMI-readinessProbe native gate for 1.5/1.6), keeping VM-hosted self-managed RKE2 control planes quorate via anti-affinity spread and live-migration-vs-clean-shutdown tradeoffs (busy-etcd non-convergence, auto-converge, dedicated migration network), per-hop breaking changes (wicked→NetworkManager, Intel NIC rename, DHCP churn), the enforced pre-flight health gates, and the no-downgrade backup/rollback reality. Companion to the k8s suite's k8s-components-checker (Harvester↔Rancher↔RKE2 pairing registry) and rancher-upgrade (the external Rancher's own chain).",
-      "version": "0.20260601.3",
+      "version": "0.20260602.2",
       "author": {
         "name": "Jörgen"
       },
@@ -226,7 +226,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 18 components: RKE2, Rancher, Harvester, Cilium, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite.",
-      "version": "0.20260602.28",
+      "version": "0.20260602.29",
       "author": {
         "name": "Jörgen"
       },

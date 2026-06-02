@@ -27,11 +27,11 @@ breaking-change / CRD / ordering signal per minor.
 | Kyverno | published_matrix | 1.16 | https://kyverno.io/docs/installation/ | `compat/kyverno.md` |
 | KEDA | published_matrix | 2.17 | https://keda.sh/docs/latest/operate/cluster/ | `compat/keda.md` |
 | Argo CD | published_matrix | 3.0 | https://argo-cd.readthedocs.io/en/stable/operator-manual/tested-kubernetes-versions/ | `compat/argo-cd.md` |
-| Harbor | release_notes | 2.13 | https://goharbor.io/docs/ (per-release k8s + Helm minimums) | `compat/harbor.md` |
-| Traefik | release_notes | 3.5.0 | https://github.com/traefik/traefik/releases | `compat/traefik.md` |
+| Harbor | release_notes | 2.11 | https://goharbor.io/docs/ (per-release k8s + Helm minimums) | `compat/harbor.md` |
+| Traefik | release_notes | 2.11 | https://github.com/traefik/traefik/releases | `compat/traefik.md` |
 | Rook (operator) | release_notes | 1.17 | https://github.com/rook/rook/releases | `compat/rook.md` |
 | Ceph (storage) | release_notes | 18.2 | Rook release notes (authoritative Rook↔Ceph matrix) + https://docs.ceph.com/en/latest/releases/ | `compat/ceph.md` |
-| OpenEBS | release_notes | 4.2 | https://openebs.io/docs/releases (engine-specific) | `compat/openebs.md` |
+| OpenEBS (LocalPV-LVM only) | release_notes | 1.5 | https://github.com/openebs/lvm-localpv (LVM engine; other engines out of scope) | `compat/openebs.md` |
 | GitLab | published_matrix | 8.11 | https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat) | `compat/gitlab.md` |
 | NVIDIA GPU Operator | published_matrix | 25.3 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html | `compat/nvidia-gpu-operator.md` |
 
@@ -76,7 +76,7 @@ so the survey knows where the truth actually lives.
   Community misses end-of-line Prime patches. 18-month community support from 2.9 onward.
 - **Source:** https://github.com/rancher/rancher/releases
 - **compat file:** `compat/rancher.md`
-- **min_tracked_version:** 2.12
+- **min_tracked_version:** 2.11  _(operator override — 2.11 is a common migration source; see `compat/rancher.md` § Community vs Prime for the 2.11-line edition-discriminator caveat)_
 
 Operator manages downstream-cluster k8s versions outside Rancher; the
 downstream-provisioning axis is not in scope here.
@@ -97,7 +97,7 @@ downstream-provisioning axis is not in scope here.
 - **Axis 2:** Supported Elastic Stack (Elasticsearch / Kibana / Beats / APM) versions managed by the operator.
 - **Source:** ECK docs "supported versions" page + https://www.elastic.co/support/matrix
 - **compat file:** `compat/eck.md`
-- **min_tracked_version:** 3.2.0
+- **min_tracked_version:** 2.16  _(operator override — covers the 2.x→3.x operator-major migration; `compat/eck.md` § "Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17?" answers the Stack-version question)_
 
 ---
 

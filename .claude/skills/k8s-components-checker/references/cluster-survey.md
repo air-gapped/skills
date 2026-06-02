@@ -65,7 +65,8 @@ kubectl get crd --no-headers \
 | `traefik.io` (+ legacy `containo.us`) | Traefik |
 | `ceph.rook.io`, `objectbucket.io` | Rook (operator) |
 | `ceph.rook.io/v1` `CephCluster` etc. | Ceph (storage; version lives inside the CR) |
-| `openebs.io` | OpenEBS |
+| `local.openebs.io` (`lvmvolumes`/`lvmnodes`/`lvmsnapshots`) | OpenEBS **LocalPV-LVM** (the only tracked OpenEBS engine) |
+| other `openebs.io` CRs (Mayastor `DiskPool`, `zfsvolumes`, cStor `cstorpoolclusters`, Jiva) | OpenEBS — **untracked engine** (registry covers LVM only → abstain, do not verdict) |
 | `cattle.io`, `management.cattle.io` | Rancher |
 | `harvesterhci.io` | Harvester |
 | `kubevirt.io` (when running on Harvester) | Harvester (bundled KubeVirt) |
@@ -105,7 +106,8 @@ Map chart-name → registry component:
 | `harbor` | Harbor |
 | `traefik` | Traefik |
 | `rook-ceph`, `rook-ceph-cluster` | Rook (operator chart) / Ceph (cluster chart) |
-| `openebs`, `mayastor`, `cstor-operator`, `localpv-provisioner` | OpenEBS (engine-specific) |
+| `lvm-localpv` (standalone) or `openebs` umbrella carrying the LVM sub-chart | OpenEBS **LocalPV-LVM** (tracked) — record the `lvm-localpv` chart/app version, **not** the umbrella version |
+| `mayastor`, `cstor-operator`, `localpv-provisioner`, `zfs-localpv` | OpenEBS — **untracked engine** (registry covers LVM only → abstain) |
 | `rancher` | Rancher |
 | `harvester` | Harvester |
 | `eck-operator`, `eck-stack`, `elasticsearch`, `kibana` | ECK |

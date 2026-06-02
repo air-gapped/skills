@@ -12,6 +12,48 @@ First freshen run: 2026-05-28. Re-run `/skill-improver freshen
 k8s-components-checker` at quarterly cadence or before any upgrade plan that
 relies on a row older than 90 days.
 
+## 2026-06-02 — floor-override pass (operator-directed, migration sources)
+
+Operator-requested floor overrides — the operator runs (or migrates clusters off)
+versions below the rolling-default floor, so the registry was extended **downward**
+to cover them rather than abstaining. All version numbers grounded via no-candidate
+enumeration (`gh api .../releases?per_page=100`, per-minor-line `sort -V`); House
+Rule #8. Five compat files backfilled + their `components.md` floor cells + headers:
+
+- **Harbor floor 2.13 → 2.11.** `compat/harbor.md` §2.12 (chart 1.16.x, app v2.12.4,
+  k8s 1.29–1.31) + §2.11 (chart 1.15.x, app v2.11.2, k8s 1.23–1.25; bundled
+  **PostgreSQL 14→15** one-way DB bump is the load-bearing 2.11 hazard). k8s floors
+  read from harbor-helm `.github/workflows/integration.yaml` at chart tags v1.16.4 /
+  v1.15.2 (authoritative — README only states generic "1.20+").
+- **Rancher floor 2.12 → 2.11.** `compat/rancher.md` §2.11 (k8s 1.30–1.32; community
+  ceiling **v2.11.3**, the operator's migration source — confirmed community).
+  **Methodology finding:** the documented first-line Prime-docs-redirect discriminator
+  **under-detects** the 2.11 line — v2.11.4–.8 self-declare `"Prime version release"`
+  in the body while keeping an inline `# Release` first line. Fix propagated to
+  `version-verification.md` § Edition discrimination (third release-note format +
+  self-declaration-grep discriminator).
+- **ECK floor 3.2.0 → 2.16.** `compat/eck.md` §3.1.0 (k8s 1.29–1.33), §3.0.0 (k8s
+  1.28–1.32; **2.x→3.0 operator-major hop**, adds Stack 9.0, removes 6.x), §2.16.1
+  (k8s 1.27–1.32, last line that manages Stack 6.x). Added the **ES 8.8 / 8.14 / 8.17**
+  cross-cutting table answering the operator's Stack-version question: all three are
+  8.x → every tracked ECK minor (2.16.1→3.4) manages them; the constraint is ES-side
+  EOL (all three EOL; 8.17 EOL 2025-08-05 verified, 8.8/8.14 EOL-by-policy UNVERIFIED).
+- **OpenEBS — refocused to LocalPV-LVM only** (operator-directed, same session). The
+  floor-override first backfilled the umbrella down to 4.0; the file was then **re-scoped
+  to the LVM engine alone** and re-keyed by LocalPV-LVM version (1.8.0 → 1.5.1), dropping
+  Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva entirely.
+  Floor = **LVM 1.5** (the engine umbrella 4.0.1 pins). LVM versions + dates grounded
+  from `openebs/lvm-localpv` (no-candidate enumeration); umbrella→LVM pin map from
+  umbrella `charts/Chart.yaml` `dependencies:`. Survey detection (`cluster-survey.md`)
+  narrowed: `local.openebs.io` CRDs + `lvm-localpv` chart → tracked; any other OpenEBS
+  engine → untracked/abstain.
+- **Traefik floor 3.5.0 → 2.11.** `compat/traefik.md` §3.4–§3.0 ladder + §2.11.
+  §3.0.0 is the **v2→v3 migration landing point** (`traefik.containo.us` →
+  `traefik.io` CRD-group flip, `defaultRuleSyntax` v3 default); §2.11 (v2.11.46, fully
+  EOL) is the migration SOURCE → `✗ blocker`. Gateway API version grounded per minor
+  (3.0→v1.0.0, 3.1→v1.1.0, 3.2→v1.2.0, 3.3→v1.2.x, 3.4→v1.2.1) from each tag's `go.mod`.
+  Support-window table extended continuous 3.7→2.11.
+
 ## 2026-05-30 — release-grounding pass (House Rule #8)
 
 Ran `freshen` focused on **version grounding**: confirmed each gh-backed
@@ -68,8 +110,8 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 
 - URL: https://github.com/rancher/rancher/releases
 - Probe: `gh release list --repo rancher/rancher --limit 30`
-- Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes.
-- Last verified: 2026-05-28
+- Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
+- Last verified: 2026-06-02 (floor → 2.11; community ceiling v2.11.3)
 
 ## Harvester
 
@@ -128,15 +170,15 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - URL: https://goharbor.io/docs/
 - Secondary URL: https://github.com/goharbor/harbor/releases
 - Probe: WebFetch docs index for release notes pages; `gh release list --repo goharbor/harbor`.
-- Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm.
-- Last verified: 2026-05-28
+- Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm. Authoritative k8s floor = chart `.github/workflows/integration.yaml` at the chart tag (README only states generic "1.20+").
+- Last verified: 2026-06-02 (floor → 2.11)
 
 ## Traefik
 
 - URL: https://github.com/traefik/traefik/releases
-- Probe: `gh release list --repo traefik/traefik --limit 30`
-- Note: extract k8s API minimums from "Kubernetes" section of release notes; Traefik does not publish a separate matrix.
-- Last verified: 2026-05-28
+- Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
+- Note: extract k8s API minimums from "Kubernetes" section of release notes; Traefik does not publish a separate matrix. v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
+- Last verified: 2026-06-02 (floor → 2.11; v2→v3 landing documented at §3.0)
 
 ## Rook (operator)
 
@@ -153,12 +195,13 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Note: Ceph's k8s axis collapses through Rook — the cluster doesn't see Ceph version against k8s directly; it sees Rook version against k8s, and Rook bounds Ceph.
 - Last verified: 2026-05-28
 
-## OpenEBS
+## OpenEBS (LocalPV-LVM only)
 
-- URL: https://openebs.io/docs/releases
-- Secondary URL: https://github.com/openebs/openebs/releases
-- Probe: WebFetch releases page (engine-specific — Mayastor, cStor, LocalPV); `gh release list --repo openebs/openebs`.
-- Last verified: 2026-05-28
+- URL: https://github.com/openebs/lvm-localpv/releases
+- Secondary URL: https://github.com/openebs/openebs (umbrella → LVM pin map only — `charts/Chart.yaml` `dependencies:` at the umbrella tag)
+- Probe: `gh api --paginate 'repos/openebs/lvm-localpv/releases?per_page=100'` (two tag schemes — `vX.Y.Z` app tags + `lvm-localpv-X.Y.Z` chart tags; enumerate both, no candidate named). Cross-check the umbrella pin via `gh api repos/openebs/openebs/contents/charts/Chart.yaml?ref=<umbrella-tag>`.
+- Scope: **LocalPV-LVM only** (operator runs no other OpenEBS engine). Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva are out of registry scope — do NOT probe or sift them.
+- Last verified: 2026-06-02 (refocused to LVM; floor → LVM 1.5, the engine umbrella 4.0.1 pins)
 
 ## GitLab
 
@@ -172,8 +215,9 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 
 - URL: https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-supported.html
 - Stack-matrix URL: https://www.elastic.co/support/matrix
-- Probe: WebFetch supported-versions page; cross-reference stack matrix.
-- Last verified: 2026-05-28
+- Versioned supported-versions pages: https://www.elastic.co/guide/en/cloud-on-k8s/<minor>/k8s-supported.html (older minors 404 → infer floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
+- Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
+- Last verified: 2026-06-02 (floor → 2.16; ES 8.8/8.14/8.17 Stack-support table added)
 
 ## Zalando postgres-operator
 

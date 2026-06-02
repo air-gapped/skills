@@ -4,8 +4,9 @@
 - **Secondary sources:** https://github.com/goharbor/harbor-helm (chart → app pinning, k8s test matrix), https://goharbor.io/docs/
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
-- **min_tracked_version:** 2.13
-- **Last sifted:** 2026-05-28
+- **min_tracked_version:** 2.11
+- **Last sifted:** 2026-06-02
+- **Last release-verified:** 2026-06-02
 - **2026-05-31 release-verified (gh):** enumerating `goharbor/harbor`
   non-prerelease tags (no version named) returns **`v2.15.1` / `v2.15.0` as real,
   higher releases** alongside the maintained **2.14 line (`v2.14.4`)**.
@@ -145,3 +146,78 @@ operator owns that decision.
     fires.
   - CNAI integration GA — same caveat as 2.14: only matters if used as an
     AI model registry.
+
+## 2.12 — chart 1.16.x (1.16.0 → 1.16.4; chart→app +3 offset: 1.16.x → 2.12.x)
+
+- **k8s floor:** **tested on 1.29 – 1.31** (chart 1.16.4 integration matrix:
+  `v1.29.8, v1.30.4, v1.31.1`). README at chart tag v1.16.4 still has only the
+  generic "Kubernetes cluster 1.20+" line (the per-version matrix table from
+  harbor-helm PR #2241 landed in the 1.17+ era) — trust the integration matrix,
+  not the README.
+- **Breaking:** none that bites on the minor crossing. The 2.13 forward
+  hazards (robotV1 removal, CSRF-key regeneration, `with_signature` removal)
+  are NOT yet present in 2.12 — they land at 2.13. An operator migrating
+  2.12 → 2.13+ must clear all three then (see § 2.13).
+- **CRD migrations:** none (Harbor has no CRDs).
+- **Upgrade ordering:** DB-schema migration runs in the standard chart
+  `helm upgrade` (prepare/migration script for 2.12.0 in PR #21022). The robot
+  account expansion changes the robot creator DB schema (PR #20918). **Snapshot
+  the registry DB PVC before upgrading** — a failed 2.12 migration leaks schema
+  state that needs manual SQL to roll back.
+- **Deprecations:** none formally announced in the 2.12 release notes. The
+  replication-adapter **allowlist** that removes `gitlab`/`gcr` does NOT exist
+  yet at 2.12 — it is introduced at 2.14 (see § 2.14); operators on those
+  endpoint types are still fine on 2.12 but must migrate before crossing to
+  2.14+.
+- **Notable:**
+  - Enhanced robot accounts (full-access + creator + audit-logging, PR #20754 /
+    #20843 / #20846 / #20918) — robot token shape stays robotV2; no auth break
+    at 2.12, but this is the robotV2 baseline that 2.13's robotV1 removal
+    assumes.
+  - Proxy-cache adapters extended: ACR / ACR EE (PR #19658) and Alibaba ACR
+    proxy-cache (PR #19692). Net-new adapters only; no existing adapter removed.
+  - 2.12 line ceiling is v2.12.4. As of the current 2.15/2.14 maintenance
+    window, the 2.12 line no longer receives patches — treat as a
+    migration-source EOL line, not an upgrade target.
+
+## 2.11 — chart 1.15.x (1.15.0 → 1.15.2; chart→app +3 offset: 1.15.x → 2.11.x)
+
+- **k8s floor:** **tested on 1.23 – 1.25** (chart 1.15.2 integration matrix:
+  `v1.23.13, v1.24.7, v1.25.3`). README at chart tag v1.15.2 only carries the
+  generic "Kubernetes cluster 1.20+" line — trust the integration matrix. Note
+  the large jump from this 1.23–1.25 window to 1.29–1.31 at the very next chart
+  minor (1.16 / app 2.12): a cluster left on a 2.11-era k8s minor is far below
+  the 2.12 test floor and must move k8s minors in step with the Harbor bump.
+- **Breaking:**
+  - **PostgreSQL bumped 14 → 15** (PR #19789). The chart bundles its own
+    Postgres; the 2.11 upgrade migrates the bundled DB engine from PG14 to
+    PG15. This is a one-way data-directory upgrade — an external/managed
+    Postgres must be on 15 (or the operator must run the PG14→15 dump/restore)
+    before/with the Harbor 2.11 upgrade. **Snapshot the DB PVC first**; a
+    half-completed PG major upgrade is not cleanly reversible.
+- **CRD migrations:** none.
+- **Upgrade ordering:** DB-schema migration runs in the standard chart upgrade
+  (prepare/migration script for 2.11.0 in PR #20315). SBOM support adds a new
+  `sbom_report` table (PR #20473 / #20482) and separates the SBOM execution
+  vendor type from `image_scan` (PR #20504); the SBOM accessory mediatype was
+  renamed `harbor.sbom` → `sbom.harbor` (PR #20359). Combined with the PG14→15
+  bump above, snapshot the registry DB PVC before upgrading.
+- **Deprecations:** none formally announced beyond the dependency bumps. The
+  replication-adapter allowlist (gitlab/gcr removal) is still 2.14; robotV1 /
+  `with_signature` / CSRF-key changes are still 2.13 — none apply at 2.11.
+- **Notable:**
+  - OCI Distribution Spec **v1.1.0** fully supported, and Cosign adopted with
+    OCI-spec 1.1 (PR #20245). **Known issue #20412:** an artifact replicated to
+    a destination Harbor carries only one signature when signed by legacy
+    cosign — sign with oci-1.1 mode (cosign v2.2.1+) to replicate multiple
+    signatures. Matters for any cross-Harbor replication of signed images.
+  - **Known issue #20691 (LDAP):** LDAP servers offering only old
+    `TLS_RSA_*` cipher suites fail the handshake on 2.11 (Go 1.22 dropped RSA
+    key exchange by default). Workaround: set `GODEBUG="tlsrsakex=1"` on the
+    core env and restart. Verdict-relevant for LDAP-auth deployments.
+  - **Known issue #20565:** SBOM generation returns HTTP 404 behind an
+    external reverse proxy in 2.11.0 — verify SBOM-on-push works through your
+    ingress before relying on it.
+  - 2.11 line ceiling is v2.11.2 (the line ended at v2.11.2). Well below the
+    current 2.15/2.14 maintenance window — treat as a migration-source EOL
+    line, not an upgrade target.

@@ -69,7 +69,75 @@ Ceiling findings from skill-improver runs.
   k8s-floor confirmation) still needs a sift on a trusted network — document
   `§ 26.3.2` then.
 
+### ES 8.8 / 8.14 exact end-of-maintenance dates UNVERIFIED (new 2026-06-02)
+
+- `compat/eck.md` § "Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17?".
+  ES **8.17 EOL = 2025-08-05** is verified (endoflife.date). **8.8.x and 8.14.x**
+  have rolled off endoflife.date's per-minor table (long superseded), so their
+  exact end-of-maintenance day is derived from Elastic's "two-newest-8.x-minors"
+  policy + successor-minor GA dates, not a fetched per-minor EOL. Only "EOL well
+  before 2026" is certain. Both are flagged UNVERIFIED in the table.
+- Action: if an exact 8.8/8.14 EOL date is ever needed for a verdict, fetch
+  Elastic's archived support-matrix snapshot (web.archive.org of
+  elastic.co/support/eol at the relevant date) — not groundable via `gh`.
+
 ## Resolved this pass
+
+### freshen — 2026-06-02 (floor-override pass, operator-directed migration sources)
+
+Operator-requested floor overrides applied (operator runs / migrates clusters off
+versions below the rolling-default floor; registry extended **downward** rather than
+abstaining). All version numbers grounded via no-candidate enumeration + per-minor
+`sort -V` (House Rule #8). Five compat files backfilled, `components.md` floor cells +
+headers + `sources.md` rows updated atomically:
+
+- **Harbor floor 2.13 → 2.11.** §2.12 (chart 1.16.x, app v2.12.4, k8s **1.29–1.31**
+  — matrix verified exact at chart tag v1.16.4) + §2.11 (chart 1.15.x, app v2.11.2,
+  k8s **1.23–1.25** — verified exact at v1.15.2; bundled **PostgreSQL 14→15** one-way
+  DB bump is the load-bearing 2.11 hazard). k8s floors read from harbor-helm
+  `.github/workflows/integration.yaml` (README only states generic "1.20+").
+- **Rancher floor 2.12 → 2.11.** §2.11 (k8s **1.30–1.32**; community ceiling **v2.11.3**
+  = the operator's stated migration source, confirmed community). Forward-migration
+  framing: what a 2.11 operator must clear before the 2.12 hop (re-import pre-2.11
+  direct-`provisioning.cattle.io` clusters, RKE1 sweep, k8s ≥1.31, OIDC AuthConfig
+  backup, aggregation-layer requirement origin).
+- **ECK floor 3.2.0 → 2.16.** §3.1.0 (k8s 1.29–1.33), §3.0.0 (k8s 1.28–1.32; the
+  **2.x→3.0 operator-major hop** — adds Stack 9.0, removes 6.x, 9.0 staged through
+  8.18), §2.16.1 (k8s 1.27–1.32, last line managing Stack 6.x). Added the **ES 8.8 /
+  8.14 / 8.17** cross-cutting table: all 8.x → every tracked ECK minor (2.16.1→3.4)
+  manages them; constraint is ES-side EOL (all three EOL).
+- **OpenEBS → refocused to LocalPV-LVM only** (operator-directed, same session).
+  Backfilled the umbrella to 4.0, then **re-scoped the file to the LVM engine alone**,
+  re-keyed by LocalPV-LVM version (§1.8.0 → §1.5.1) and dropped Mayastor / LocalPV-ZFS /
+  LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva entirely. Floor = **LVM 1.5** (engine
+  umbrella 4.0.1 pins). LVM versions/dates grounded from `openebs/lvm-localpv`; umbrella→LVM
+  pin map from umbrella `Chart.yaml` `dependencies:`. `components.md` row → "OpenEBS
+  (LocalPV-LVM only) | 1.5"; `cluster-survey.md` detection narrowed (`local.openebs.io`
+  CRDs + `lvm-localpv` chart = tracked; other engines → untracked/abstain); `sources.md`
+  row → lvm-localpv. Registry count unchanged (19 — OpenEBS is one component, scoped to LVM).
+- **Traefik floor 3.5.0 → 2.11.** §3.4–§3.0 ladder + §2.11. §3.0.0 = the **v2→v3
+  migration landing** (`traefik.containo.us`→`traefik.io` CRD-group flip, v3 rule
+  syntax); §2.11 (v2.11.46, fully EOL) = migration SOURCE → `✗ blocker`. Gateway API
+  version grounded per minor (3.0→v1.0.0 … 3.4→v1.2.1) from each tag's `go.mod`.
+  Support-window table extended continuous 3.7→2.11.
+
+### freshen methodology hardening — 2026-06-02 (Rancher edition discriminator, third format)
+
+- **Recurrence fix.** The documented edition discriminator (`version-verification.md`
+  § Edition discrimination) tested only the release-notes **first line** for the
+  Prime-docs redirect and treated its absence as community. Grounding the 2.11 line
+  exposed a **third format the first-line test under-detects**: v2.11.4–v2.11.8
+  self-declare `"This is a Prime version release"` in the body while keeping an inline
+  `# Release vX.Y.Z` first line — so the first-line test wrongly passes them as
+  community (it would have returned v2.11.8; `sort -V | tail -1` returns v2.11.14).
+  The robust discriminator greps the body for the `"This is a … version release"`
+  **self-declaration line**. Fixed in `version-verification.md` (new "Three Rancher
+  release-note formats" table + self-declaration-grep bash + verified 2.11 evidence),
+  `compat/rancher.md` (§ Community vs Prime 2.11-line caveat + §2.11 edition note),
+  and the `sources.md` Rancher row note. Verified-true via independent body enumeration
+  of all 15 v2.11.x tags (2026-06-02).
+
+
 
 ### improve — 2026-05-30 (field upgrade lessons merged: RKE2 1.32 → 1.33)
 
@@ -245,6 +313,43 @@ them rather than abstaining):
   Pattern 6.1 violations.
 
 ## Run log
+
+### freshen — 2026-06-02 (floor-override pass, operator-directed)
+
+- Input: operator named five migration-source floors to cover — harbor 2.11.1+,
+  rancher 2.11.3, eck 2.16.1+, openebs 4.0.1, traefik 2.11.2+ — plus a research ask:
+  "which ECK minors support Elasticsearch 8.8 / 8.14 / 8.17?".
+- Grounding (House Rule #8): enumerated all five repos' non-prerelease tags with
+  **no candidate named**; derived per-minor-line ceilings via `sort -V`. Traefik
+  required `--paginate` (2.11 still gets frequent security patches → older 3.0.x
+  patches fell past the first 100 results; 3.0 returned empty until paginated).
+  Confirmed ceilings: Harbor app v2.12.4 / v2.11.2 (chart v1.16.4 / v1.15.2),
+  ECK v3.1.0 / v3.0.0 / v2.16.1, OpenEBS umbrella v4.1.3 / v4.0.1, Traefik
+  v3.4.5 / v3.3.7 / v3.2.5 / v3.1.7 / v3.0.4 / v2.11.46. Rancher 2.11 community
+  ceiling **v2.11.3** derived by edition discriminator (independently re-verified).
+- Sift: 5 parallel research subagents (opus), one per compat file (distinct files,
+  no parallel-edit conflict), each handed the pre-grounded version numbers so they
+  sifted **prose only** — no version-fabrication surface. Each grounded content
+  against authoritative non-`gh-body` sources (harbor-helm integration matrices +
+  Chart.yaml at tags; openebs umbrella Chart.yaml dependencies; ECK versioned
+  supported-versions pages + supported_versions.go + client-go inference; Traefik
+  migrate/v3.md + deprecation/releases.md + per-tag go.mod; Rancher rendered release
+  pages + body edition-discriminator). 13 new sections total.
+- Driver verification: independently re-ran the Rancher 2.11 edition enumeration
+  (exposed the third release-note format); confirmed the two Harbor k8s matrices
+  exact at the chart tags; confirmed ECK 3.1.0 date. Header floors cross-checked
+  against components.md (all match). No stale floor references elsewhere.
+- Methodology recurrence-fix applied (edition discriminator third format) — see
+  Resolved. No blind score (freshen is verification-based, not score-based).
+- One new Open item: ES 8.8/8.14 exact EOL dates UNVERIFIED (rolled off
+  endoflife.date; 8.17 EOL 2025-08-05 verified).
+- **Follow-on operator directive (same session): OpenEBS refocused to LocalPV-LVM
+  only.** After the umbrella backfill, the operator scoped OpenEBS to the LVM engine.
+  `compat/openebs.md` re-keyed by LocalPV-LVM version (§1.8.0 → §1.5.1, floor LVM 1.5),
+  all other engines dropped; LVM versions/dates re-grounded from `openebs/lvm-localpv`
+  (two tag schemes — `vX.Y.Z` + `lvm-localpv-X.Y.Z`); umbrella→LVM pin map kept as
+  context. Wiring updated: components.md row, cluster-survey.md detection (2 rows),
+  sources.md row, version-verification.md repo map. See Resolved this pass.
 
 ### improve — 2026-05-30 (field upgrade lessons merge)
 

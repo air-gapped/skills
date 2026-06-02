@@ -4,13 +4,15 @@
 - **Secondary sources:** (none — release notes only; SUSE Prime support-matrix pages are Prime-flavored and out of scope)
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
-- **min_tracked_version:** 2.12
-- **Last sifted:** 2026-05-30
-- **Last release-verified (gh):** 2026-05-30 — per-minor community patch ceilings re-derived **by edition** (see § Community vs Prime); the prior values (2.12→v2.12.6, 2.13→v2.13.2) were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
+- **min_tracked_version:** 2.11
+- **Last sifted:** 2026-06-02
+- **Last release-verified (gh):** 2026-06-02 — 2.11 community patch ceiling derived by edition discriminator (see § Community vs Prime). Prior verify (2026-05-30) re-derived 2.12/2.13/2.14 by edition; the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
 
-Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.12 (Jul 2025) supported through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027.
+Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.11 (Mar 2025) supported through ~Sep 2026, 2.12 (Jul 2025) through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027. 2.11 is a common **migration source** minor; its community line ends at v2.11.3 (see §2.11).
 
 **Community vs Prime — how the per-minor ceilings below are derived (do NOT trust `sort -V | tail -1`).** `rancher/rancher` GitHub releases carry **both** editions and the `prerelease` flag does not separate them. Discriminator = release-notes first line: a patch is **Prime-only iff its body redirects to "Please refer to our Prime Documentation …"**; community patches either say "This is a Community version release" or carry inline notes (`# Release vX.Y.Z`) — so test for the Prime marker and treat its **absence** as community (a positive "community version release" grep misses the older inline-notes format). **Pattern:** once a newer community minor ships, the older minor's later patches flip to Prime-only, so an older minor's *top* tag is a Prime patch, not its latest community patch. Full derivation protocol: `references/version-verification.md` § Edition discrimination.
+
+> **2.11-line caveat (the first-line test under-detects — confirm against the self-declaration line).** The 2.11 line uses **two** Prime markers, and the cheap first-line check (`head -1 | grep -i 'prime documentation'`) only catches one. v2.11.9+ use the *redirect* format ("Please refer to our Prime Documentation …") and are caught. But **v2.11.4 – v2.11.8 ship inline `# Release vX.Y.Z` notes** (so their first line looks community) **yet self-declare "This is a Prime version release"** in the description paragraph — the first-line test wrongly passes them as community. Defense: also grep the body for the self-declaration line (`grep -oiE 'This is a (Community|Prime) version release'`) and treat **"Prime version release"** as Prime-only. Observed 2.11 mapping (2026-06-02): v2.11.0 "Community", v2.11.1/v2.11.2 inline-only (community-era, pre-self-declaration format), **v2.11.3 "Community and Prime"** (last community patch), v2.11.4–v2.11.8 "Prime version release", v2.11.9–v2.11.14 Prime-docs redirect. **Community ceiling = v2.11.3** — `sort -V | tail -1` (v2.11.14) and even the first-line discriminator alone (v2.11.8) both overshoot.
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Downstream-cluster provisioning (KDM bundling, downstream RKE2/K3s version dropdowns) is **out of scope** — the operator manages downstream clusters by hand. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
 
@@ -88,3 +90,36 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   - Image-artifact digest filename layout flattens — `rancher-images-digests-linux-{amd64,arm64}.txt` collapse into `rancher-images-digests-linux.txt`. Air-gapped mirror scripts that grep on the old names break.
   - mgmt cluster requires **k8s API Aggregation Layer** enabled (#50400).
   - ARM64 mgmt cluster officially supported; mixed-architecture clusters still experimental.
+
+## 2.11 (latest community: v2.11.3, 2025-06-25 — patches above are Prime-only)
+
+> Edition note: v2.11.3 self-declares **"This is a Community and Prime version release"** (last community 2.11 patch). v2.11.4 – v2.11.8 self-declare **"Prime version release"** despite carrying inline `# Release` notes (the first-line discriminator misreads them as community — see § Community vs Prime, 2.11-line caveat); v2.11.9+ use the Prime-docs redirect. The operator's stated migration source **2.11.3 is community** — confirmed groundable and the highest community 2.11 patch.
+
+- **k8s floor:** 1.30 – 1.32 (adds 1.32 — #47934; removes 1.28/1.29, so the mgmt-cluster floor lifts to 1.30 — #48628). One minor below 2.12's 1.31–1.33, consistent with the file's pattern.
+- **Breaking:**
+  - **Kubernetes 1.28 / 1.29 dropped** (#48628). Before upgrading *to* 2.11.0 the mgmt (and downstream, out of scope) clusters must already be on **k8s ≥ 1.30**. An operator sitting on 2.11 is therefore on 1.30–1.32; the forward hop to 2.12 then requires reaching **≥ 1.31** (2.12 removes 1.30).
+  - **`imperative-api-extension` enabled by default** (#47010) — adds Rancher APIs via the k8s **aggregation layer**. The mgmt cluster MUST have the API Aggregation Layer enabled (RKE2/K3s have it on by default; a non-RKE2 mgmt cluster must verify). This is the 2.11-era origin of the standing "aggregation layer required" constraint carried forward through 2.13/2.14.
+  - **Restricted Admin role removed** (#47875). Existing users holding it have those privileges **revoked on upgrade** to 2.11 — re-grant via GlobalRoles before relying on them post-upgrade.
+  - **Legacy features removed:** multi-cluster app (and its CLI subcommands), `globaldns` CLI subcommand, legacy Rancher telemetry / data-collection opt-out (#48252, #39525, #12639). UI `v-tooltip` replaced by `v-clean-tooltip` (XSS fix, CVE-2024-52281).
+- **CRD migrations:**
+  - **Generic imported clusters now use the v3 `cluster.management.cattle.io` object** (#13151). This is the migration that makes the 2.11→2.12 hazard concrete: clusters imported the **pre-2.11 way** by directly instantiating `cluster.provisioning.cattle.io` fail to reconnect after 2.12.0 (#51066, documented in §2.12). On 2.11, re-import any such cluster through the UI / v3 path **before** hopping to 2.12.
+  - etcd-snapshot tracking moves to listing `etcdsnapshotfile.k3s.cattle.io` resources instead of CLI/configmap scraping (#44452) — additive, no manual conversion.
+  - `GlobalRoleBinding` / `ClusterRoleTemplateBinding` gain status fields + `userPrincipalId` support (#44668, #44663, #47359) — additive.
+  - No `tokens.ext.cattle.io` yet — that resource is introduced in **2.13**; 2.11 carries only `tokens.management.cattle.io`.
+- **Upgrade ordering (what a 2.11 operator must do):**
+  - **Reach k8s ≥ 1.30 before installing 2.11.0**; then reach **≥ 1.31 before hopping to 2.12** (2.12 drops 1.30).
+  - **Re-import pre-2.11-style direct-`provisioning.cattle.io` clusters via the v3 path before 2.12** (#51066) — the forward gate.
+  - **Sweep RKE1 / RKE-the-binary resources before 2.12** — RKE1 EOL'd 2025-07-31 and 2.12 ships a gating pre-upgrade check that fails the helm upgrade if any RKE1 resource lingers (#48252 announces the EOL in 2.11; the gate lands in 2.12, §2.12). 2.11 still manages RKE1.
+  - **Back up the OIDC AuthConfig before the 2.12→2.13 hop** — the generic OIDC provider (enhanced with `GroupSearchEnabled` in 2.11, #48145) can lose settings on 2.12.x→2.13.x (#53995, §2.13). An operator standing up OIDC on 2.11 should record the AuthConfig now.
+  - **Helm client floor:** 2.11.0 ships Rancher CLI v2.11.0 / RKE v1.8.1; the Helm-client-≥-3.18 requirement is a **2.12-and-later** gate (for k8s 1.33), not enforced at 2.11. Bumping the Helm client before the 2.12 hop is still advisable.
+- **Deprecations:**
+  - **RKE1 / RKE-the-binary** — EOL announced for 2.12+ here (#48252); 2.11 is the last minor that manages it.
+  - Weave CNI plugin for RKE ≥ 1.27 deprecated (#11322, dashboard).
+  - Azure AD Graph API path (Microsoft-deprecated) — migrate to Microsoft Graph before relying on Azure AD auth (#29306).
+- **Notable:**
+  - **Provisioning is still the classic CAPI stack** — `rancher-provisioning-capi` chart + `embedded-cluster-api` feature flag. The auto-replacement by **Rancher Turtles** does not happen until **2.13** (#52254, §2.13), and embedded CAPI is not removed until **2.14** (#53291). So a 2.11 operator is on the pre-Turtles provisioning controller path; the Turtles migration is a forward concern, not a 2.11 one.
+  - **No `ui-sql-cache` / server-side pagination by default** in 2.11 — that ships **enabled-by-default in 2.12** (#48691, §2.12) and brings the ephemeral-disk / DiskPressure sizing concern. Not a 2.11 hazard, but the node-disk audit belongs to the 2.11→2.12 hop.
+  - **`AUDIT_LEVEL=0` still means "audit disabled"** on 2.11 — the semantics change (0 = capture metadata) lands in **2.12** (#48941, §2.12). Audit pipelines re-tune on the forward hop, not here.
+  - **Rancher CIS Benchmarks (`cis.cattle.io/v1`) still present** on 2.11 — the rename to Rancher Compliance App (`compliance.cattle.io/v1`) and removal of the CIS Operator happen in **2.12** (#50795/#50797, §2.12). Scan history does not migrate across that hop.
+  - OCI Helm chart registry for Apps & Marketplace is **experimental** in 2.11 (#29105, #45062).
+  - Monitoring chart on `kube-prometheus-stack-66.7.1` (#48992).
