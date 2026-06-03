@@ -7,6 +7,8 @@
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
 - **Last sifted:** 2026-06-02
 - **Last release-verified:** 2026-06-02
+- **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
+  LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).
 
 **Scope: LocalPV-LVM only.** The operator runs OpenEBS *only* via the **LocalPV-LVM**
 engine, so this file tracks LocalPV-LVM (`openebs/lvm-localpv`) and nothing else.
@@ -38,14 +40,32 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
   docs' nominal "Kubernetes 1.23+" is the only stated floor and is not CI-validated
   against newer minors. Verify the target minor manually.
 - **Breaking:** none.
-- **CRD migrations:** none (`lvmvolumes` / `lvmnodes` / `lvmsnapshots.local.openebs.io`
-  unchanged).
+- **CRD migrations:** none required — the three `local.openebs.io` CRDs gain
+  **additive, backward-compatible** fields only (existing CRs stay valid, no conversion;
+  `generation` bumps 1→2 on `helm upgrade`): `lvmvolumes.spec.source` (snapshot/clone
+  data-source — this field **IS** the restore mechanism), `lvmnodes` thinPool stats
+  (`…volumeGroups[].thinPools[]`), `lvmsnapshots` `.spec.thinProvision` + `.status.lvSize`.
+  `controller-gen` annotation goes v0.4.0→v0.13.0 but only on `lvmnodes` — `lvmvolumes` /
+  `lvmsnapshots` keep the v0.4.0 annotation despite the field additions (upstream quirk,
+  not a failed apply). (Earlier "unchanged" was imprecise; corrected from the live diff.)
 - **Notable:**
   - **Snapshot *restore* lands** — before 1.8.0 LocalPV-LVM was snapshot-only with **no
     restore** (the loudest LVM limitation). Relevant when migrating off a pre-1.8 line:
-    restore-from-snapshot is unavailable until the engine reaches 1.8.0.
+    restore-from-snapshot is unavailable until the engine reaches 1.8.0. (Mechanism =
+    the new `lvmvolumes.spec.source` CRD field, confirmed present post-upgrade.)
   - ThinPool space reclamation on last-thin-volume delete; scheduler now considers
     thinpool free space (`SpaceWeighted`); records thinpool stats in the `lvmnode` CR.
+  - **Field-verified (live 4.3.3→4.4.0 / LVM 1.7.0→1.8.0, 2026-06-03, 4-node cluster):**
+    pure **in-place** `helm upgrade`, no resource recreation/deletion. Only behavioral
+    change = engine image `openebs/lvm-driver:1.7.0` → `docker.io/openebs/lvm-driver:1.8.0`
+    (now docker.io-qualified) on the controller Deployment + node DaemonSet. **CSI sidecars
+    UNCHANGED from 1.7.0** (csi-provisioner v5.2.0, csi-resizer v1.11.2, csi-snapshotter
+    v7.0.0, snapshot-controller v7.0.0, csi-node-driver-registrar v2.13.0) → an air-gap
+    mirror needs **only the `lvm-driver:1.8.0` re-mirror** for 4.3→4.4. RBAC/SA/Service:
+    label-only bumps. Single-node controller trap did **not** bite on multi-node (controller
+    rescheduled cleanly). The umbrella's `preUpgradeHook` is gated `IsUpgrade &&
+    hostpath_is_v3` → **no-op on a v4→v4 hop** (only fires migrating off a v3 hostpath
+    install). Existing CRs + bound PVCs survived; fresh provision/mount on the LVM SC passed.
 - **Patches / forward (standalone — NOT yet umbrella-pinned):** **1.8.1** (2026-02-04,
   bug-fix); **1.9.0** (2026-05-21) adds **VolumeAttributesClass support** + a QoS/IOPS
   profile update — **requires k8s ≥ 1.31** and the `VolumeAttributesClass` feature gate.
@@ -98,3 +118,5 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
   `VolumeAttributesClass` feature gate. Not pinned by any umbrella — standalone bump only.
 - **Single-node controller scheduling.** Controller-as-Deployment affinity can block
   the controller Pod on single-node clusters after an upgrade — delete the old Pod.
+  (Confirmed **moot on multi-node**: the 2026-06-03 4.3→4.4 hop rescheduled the
+  controller cleanly with ≥2 schedulable nodes.)
