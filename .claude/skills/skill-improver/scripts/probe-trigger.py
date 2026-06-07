@@ -137,6 +137,14 @@ def run_single_query(
             "stream-json",
             "--verbose",
             "--include-partial-messages",
+            # Restrict skill discovery to THIS temp project. Without it, claude
+            # loads the user's ~/.claude/skills/ too — so the synthetic competes
+            # with the real skills (often symlinks of the very skill under test),
+            # the model picks the real twin, and the probe sees our synthetic id
+            # missing -> false 0.0. `--setting-sources project` loads only the
+            # temp project's skills, which is the isolation the probe assumes.
+            "--setting-sources",
+            "project",
         ]
         if model:
             cmd.extend(["--model", model])

@@ -281,10 +281,17 @@ How it works (per query, repeated `runs_per_query` times):
 1. Generate a unique synthetic skill name `<skill>-probe-<uuid>` and install it
    as a **skill** at `<tmp>/.claude/skills/<id>/SKILL.md` in a fresh, isolated
    per-query temp project (so concurrent workers never see each other's
-   identically-described synthetics, and real project skills don't compete).
+   identically-described synthetics).
 2. Shell out from that temp dir: `claude -p "<query>" --output-format
-   stream-json --verbose --include-partial-messages --disallowedTools Bash Edit
-   Write NotebookEdit Task WebFetch WebSearch`. The probe only measures *whether*
+   stream-json --verbose --include-partial-messages --setting-sources project
+   --disallowedTools Bash Edit Write NotebookEdit Task WebFetch WebSearch`. The
+   `--setting-sources project` flag is load-bearing: without it, `claude` ALSO
+   loads the user's `~/.claude/skills/` (often symlinks of the very skills under
+   test), so the synthetic competes with its real twin + every sibling, the
+   model invokes the real one, and the probe sees its synthetic id missing →
+   false 0.0 on a skill that triggers perfectly. `--setting-sources project`
+   loads ONLY the temp project's lone synthetic, which is the isolation the
+   probe assumes. The probe only measures *whether*
    the model would invoke the Skill — the `--disallowedTools` deny-list makes the
    spawned agent hermetic so it can NEVER execute the task itself. Without it, a
    query like "deploy my app to openshift" makes the nested agent try to provision
