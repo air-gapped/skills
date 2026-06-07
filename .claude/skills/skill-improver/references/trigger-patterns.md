@@ -340,13 +340,40 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
 Output is JSON with `train.summary` and `test.summary`, each carrying
 `{total, passed, failed}` plus per-query `pass`/`trigger_rate`/`triggers`/`runs`.
 
+### Which model to probe with (`--model`)
+
+Trigger behavior is model-dependent, and the difference is large enough to
+change conclusions — so choose deliberately:
+
+- **Haiku is the cheap broad-screen model.** It is ~20–40× faster and ~5× cheaper
+  than Opus, and Anthropic builds it for routing/classification — exactly a
+  trigger decision. A skill that fires on Haiku will fire on the stronger models
+  too, so **Haiku-CLEAN results are trustworthy** (use it to clear the bulk of a
+  `--all` audit fast).
+- **But Haiku OVER-reports under-triggering.** It tends to answer an actionable
+  query directly instead of invoking the skill, so it produces false 0.0s even on
+  near-verbatim description matches. Measured on this repo (2026-06): of 6 skills
+  Haiku flagged as under-triggering, **5 fired 1.00 on Opus** (the 6th was correct
+  deferral to a sibling). **Never change a description off a Haiku under-trigger
+  flag alone — confirm the missed positives on the user's real model (Opus)
+  first.** The workflow is: screen on Haiku → re-probe only the flagged misses on
+  Opus → fix only what Opus also misses.
+- **Probe with the model the user actually runs** when measuring "does it trigger
+  for *them*". Default (no `--model`) inherits the session model.
+- High variance on a borderline query (e.g. 0/3 then 3/3 across runs) is real —
+  re-probe a lone Opus 0.00 before trusting it; one run that times out also reads
+  as 0.0 (the `timeouts` field tells them apart).
+
 ### Cost & time budget
 
-Each query × run = one `claude -p` invocation, ~4–10s typical.
-Default 13-query × 3-run × 5-iteration loop ≈ 195 invocations.
-With 6 workers and 7s avg, that's ~4 minutes wall-clock per skill. Budget
-accordingly — trigger mode is meaningfully more expensive than improve mode
-because it actually shells out to a model on every probe.
+Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
+**Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 3-run × 5-iteration
+loop ≈ 195 invocations — minutes on Haiku, far longer on Opus. Keep total
+concurrent `claude -p` modest (≈6 for Opus; Haiku tolerates more): the global
+cap is `(parallel probes × --num-workers)`, and oversubscribing it triggers
+rate-limit storms that read as mass timeouts/false-0.0. Trigger mode is
+meaningfully more expensive than improve mode because it shells out to a model on
+every probe.
 
 ### Fallback when `claude -p` is not available
 
