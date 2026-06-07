@@ -12,6 +12,13 @@ _None._ All three passes (trigger, improve, freshen) ran on 2026-06-07 with **ze
 
 ## Resolved this pass
 
+### 2026-06-07 — Known upstream bugs section added (from live MCP write test + tracker/codegraph sweep)
+
+- **Trigger:** a live end-to-end write test through the MCP hit *"Operation value must be an Atlassian Document"* on `jira_transition_issue` with an inline comment. Root-caused via codegraph on the local clone (`jira/transitions.py` → `_add_comment_to_transition_data` calls `_markdown_to_jira` = **wiki markup**, but Cloud v3 transitions need **ADF**; standalone `jira_add_comment` converts ADF correctly) and matched to **open** tracker issue #1262. A sweep of the ~200 open issues surfaced three more agent-affecting bugs + the FastMCP CVE scope.
+- **Added to `troubleshooting.md`** — new "Known upstream bugs & version notes (verified 2026-06-07)" section: **#1262** (transition+comment ADF, with code root cause + "DC v2 unaffected"), **#1274** (`jira_create_issue_link` inward/outward swapped), **#1279** (DC-behind-WAF 403 despite a valid PAT — `curl`/`urllib` `/myself` succeed where the MCP 403s, so a curl test doesn't prove the MCP works through the proxy), the **lossy markdown→wiki/ADF cluster** (#1340/41/43, #1311), and the **FastMCP `<3.2.0` CVEs reframed as deployment-mode-dependent** — verified against GitHub advisories that all are in OpenAPI-provider / OAuth-proxy+client / Windows-installer paths, **none reached by local stdio + PAT**; relevant only if exposed over HTTP (#1234).
+- **sources.md:** +3 rows — the issue tracker (#1262/74/79/1340-cluster), the GitHub `fastmcp` advisories, and the `transitions.py` root cause (local clone @ v0.21.1 via codegraph). All `Verified 2026-06-07`.
+- Frontmatter/triggers untouched (body-only edits can't affect triggering); content addition, no re-probe needed.
+
 ### 2026-06-07 — Client-setup gotchas added (from a live enablement failure)
 
 - **Trigger:** demoing `confluence-best-practices` against a real Cloud instance surfaced that the connected `mcp-atlassian` had **only `jira_*` tools** — the Confluence client never started because only `JIRA_*` env was set. The skill documented the facts (separate vars in `auth-config.md:14`, `/wiki` in the env catalog) but the **always-loaded body was Jira-first**, the **same-Cloud-token-for-both** fact was absent, and the **exact failure symptom** ("no `confluence_*` tools") wasn't in `troubleshooting.md`. Classic "build the gotchas section from a real failure point."
