@@ -1,0 +1,22 @@
+[
+  {"query": "should i make a new confluence space for our new payments revamp project or just a page under the existing team space? we're on data center", "should_trigger": true, "source": "everyday"},
+  {"query": "our wiki has become a total dumping ground — thousands of pages, half of it is out of date, and nobody can find anything. how do we get it back under control?", "should_trigger": true, "source": "everyday"},
+  {"query": "a colleague can't open a confluence page i linked her, she gets 'page not available', but it loads fine for me. self-hosted instance. how do i figure out and fix this?", "should_trigger": true, "source": "everyday"},
+  {"query": "i've got an agent with API access to our self-hosted confluence and i want it to automatically flag stale and unowned pages. what's the right approach, and what can it do versus what needs an admin?", "should_trigger": true, "source": "body-mined"},
+  {"query": "can you restructure this giant confluence runbook into something an on-call engineer can actually follow at 3am? it's a wall of text right now", "should_trigger": true, "source": "everyday"},
+  {"query": "what's the best way to organize confluence for a 200-person company — spaces by team, by project, or by function?", "should_trigger": true, "source": "description-mined"},
+  {"query": "how do we set page ownership and review dates so our confluence stops rotting and going stale?", "should_trigger": true, "source": "body-mined"},
+  {"query": "we have the same onboarding instructions copied across about five confluence pages and they've all drifted out of sync. how do we fix the duplication properly?", "should_trigger": true, "source": "everyday"},
+  {"query": "we need a label strategy for our confluence cloud knowledge base so that search actually finds the right articles", "should_trigger": true, "source": "description-mined"},
+  {"query": "in confluence data center is it better to archive or delete old pages, and how do i even archive a single page?", "should_trigger": true, "source": "body-mined"},
+  {"query": "how do i install and configure the mcp-atlassian server to connect to our self-hosted confluence with a personal access token?", "should_trigger": false, "source": "sibling (jira-confluence-mcp)"},
+  {"query": "is this piece of work an epic or a story in jira, or should it be a sub-task?", "should_trigger": false, "source": "sibling (jira-best-practices)"},
+  {"query": "write me a JQL query to find all jira issues assigned to me that are overdue and in the current sprint", "should_trigger": false, "source": "sibling (jira)"},
+  {"query": "our jira automation rules are out of control and pinging people 11 times for one change — how do we rein them in?", "should_trigger": false, "source": "sibling (jira-best-practices)"},
+  {"query": "set up a Confluence whiteboard for our sprint brainstorm and add a Confluence database to track the action items", "should_trigger": false, "source": "cloud-only-feature decoy"},
+  {"query": "help me write a good README.md for our github repo so new contributors can get started", "should_trigger": false, "source": "adjacent-domain decoy"},
+  {"query": "configure Rovo AI in Confluence to auto-summarize our long meeting-notes pages", "should_trigger": false, "source": "cloud-only-feature decoy"},
+  {"query": "what's the difference between a Notion database and a Notion page, and which should I use for our team wiki?", "should_trigger": false, "source": "adjacent-domain decoy"},
+  {"query": "how do i set up SAML SSO and LDAP user sync for our Confluence Data Center installation?", "should_trigger": false, "source": "adjacent (admin/infra, not usage)"},
+  {"query": "convert this markdown design doc into a nicely formatted PDF with a cover page", "should_trigger": false, "source": "generic"}
+]

@@ -456,6 +456,20 @@
       ]
     },
     {
+      "name": "confluence-best-practices",
+      "source": "./",
+      "description": "Advise on USING Confluence well, not operating it: make the structural call",
+      "version": "0.20260607.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/confluence-best-practices"
+      ],
+      "strict": false
+    },
+    {
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
@@ -466,6 +480,20 @@
       "license": "MIT",
       "skills": [
         "./.claude/skills/jira-best-practices"
+      ],
+      "strict": false
+    },
+    {
+      "name": "jira-confluence-mcp",
+      "source": "./",
+      "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
+      "version": "0.20260607.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/jira-confluence-mcp"
       ],
       "strict": false
     },

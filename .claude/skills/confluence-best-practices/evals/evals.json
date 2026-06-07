@@ -1,0 +1,62 @@
+{
+  "skill_name": "confluence-best-practices",
+  "evals": [
+    {
+      "id": 0,
+      "name": "space-vs-page-decision",
+      "prompt": "We're kicking off a new internal project called \"Project Atlas\" and I'm not sure how to set it up in Confluence. Should I create a whole new space for it, or just make a page somewhere in our existing team space? It'll have a handful of design docs, recurring meeting notes, and one runbook. We're on self-hosted Confluence Data Center. A couple of the design docs will eventually be confidential to just the leads.",
+      "expected_output": "A role-based space-vs-page decision: a project this small is usually a page (or child-page area) in the existing space, not a new space; a new space is justified by a distinct owner/audience + its own permission scheme. The 'confidential to leads' need is met with page restrictions, not a separate space. Lean default = page, not space; describe by role, adapt to the org.",
+      "files": [],
+      "assertions": [
+        "Recommends a page/child-page tree in the EXISTING space rather than a brand-new space (lean default)",
+        "Treats the lead-only confidential docs as solvable by PAGE RESTRICTIONS, not as a reason to create a separate space",
+        "Reasons by ROLE (owner/audience/permission boundary), not by named-project or content-type count",
+        "Stays DC-correct (no Cloud-only feature recommended as available on DC)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "permissions-cant-see-page",
+      "prompt": "A teammate says she can't find or open a Confluence page I sent her the link to \u2014 she gets a 'page not available' message, but the page works fine for me. Search doesn't surface it for her either. We're on self-hosted Confluence (Data Center). It's not a brand-new page. How do I figure out what's wrong and fix it?",
+      "expected_output": "Correctly diagnoses the #1 cause: an inherited VIEW restriction on an ANCESTOR page silently hides the page (and its children) from search and the tree, with no clear error. Fix = verify she has space View permission, then walk UP the page tree checking each ancestor's restrictions (not just the page itself). Should mention space-permission vs page-restriction layers and that restrictions narrow, never grant.",
+      "files": [],
+      "assertions": [
+        "Identifies an inherited VIEW restriction on an ANCESTOR page as the most likely cause",
+        "Advises walking UP the page tree checking each ancestor's restrictions",
+        "Includes verifying the teammate has space View permission",
+        "Explains why the page also disappears from her search (permission-trimmed search)",
+        "States page restrictions NARROW / never grant (can't grant View to a user lacking space-View)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "lean-agent-governance",
+      "prompt": "Our Confluence has become a graveyard \u2014 thousands of pages, tons of it stale, nobody knows what's current or who owns what, and people can't find anything. We run Confluence Data Center 9.x and we have an automated agent with API access to the instance. I want to set up an automated, ongoing way to surface stale and unowned pages and make ownership visible. How should we approach this, and what can the agent actually do versus what needs an admin?",
+      "expected_output": "Recommends the Page Properties (Owner/Review-Date/Status) + label-keyed Page Properties Report dashboard as the highest-leverage agent-buildable, no-admin pattern; CQL rot sweeps (lastModified < startOfYear(), no-label); Excerpt/Include for duplication. Correctly notes DC has NO native page archiving (move-to-archive-space workaround), retention rules + space archiving are admin, and draws the act-on-content vs advise-the-human line. Should not hallucinate Cloud-only features (per-page archive, automation rule-builder) as available on DC.",
+      "files": [],
+      "assertions": [
+        "Recommends the Page Properties + label-keyed Page Properties REPORT ownership/staleness dashboard",
+        "Gives a CQL stale-page query (lastModified-based) the agent runs on a schedule",
+        "States DC has NO native page-level archiving and gives the move-to-archive-space workaround",
+        "Draws an explicit agent-actionable vs advise-the-admin boundary",
+        "Includes programmatic WRITE-SAFETY (storage-format-not-ADF and/or version-increment/409)",
+        "Does not present Cloud-only features (native page archive, Confluence automation) as available on DC"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "authoring-runbook-readability",
+      "prompt": "Turn these rough notes into a clean, readable Confluence runbook page for our payments failover procedure. Notes: 'payments db primary goes down -> alert fires in pagerduty. first check replication lag on the standby (psql, select from pg_stat_replication). if lag under 5s promote standby with patronictl switchover. update the haproxy backend to point at new primary. tell #payments-oncall. if promotion fails escalate to db oncall (see contacts). after, write an incident note.' We're on Confluence Data Center. Make it something people can actually follow under pressure.",
+      "expected_output": "Produces a readable, scannable runbook: descriptive title, a short summary/BLUF at top, H2/H3 heading structure (body starts at H2 since title is H1), numbered procedure steps, an escalation/contacts section, info/warning panels for the critical decision points, and labels. Optimizes for under-pressure scanning. Bonus: emits Confluence storage format (not ADF, not raw markdown) and notes how an agent would write it (version-safe). Should be one-page-one-purpose (a how-to guide).",
+      "files": [],
+      "assertions": [
+        "Body uses H2/H3 heading structure (title is the H1; body does not start at H1)",
+        "Front-loads a BLUF / summary (info panel) before the procedure",
+        "Numbered/sequential procedure steps plus a dedicated escalation/contacts section",
+        "Uses info/note/warning panel(s) to flag the dangerous decision points",
+        "Produces Confluence STORAGE FORMAT (not ADF, not raw markdown)",
+        "Adds labels to the page"
+      ]
+    }
+  ]
+}
