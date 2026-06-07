@@ -1,0 +1,26 @@
+{
+  "skill_name": "jira-cli",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "ci-bulk-automation-non-interactive",
+      "prompt": "I'm writing a GitHub Actions step that, on every merge to main, should: (1) find all issues in our Jira project DEVOPS that are assigned to the bot user and still in a 'to do'-ish state, (2) move each one to 'In Progress', and (3) leave a comment that we picked it up. The runner has the `jira` CLI installed and `JIRA_API_TOKEN` available as a secret. My first attempt just used `jira issue list -s\"To Do\"` piped to a while-loop calling `jira issue move`, but in CI it sometimes just hangs and the job times out, and other times the list step outputs a bunch of garbage escape codes instead of issue keys. Give me a robust script and explain why my version hung.",
+      "expected_output": "Diagnoses the two bugs: (a) `jira issue move`/comment without `--no-input`-style fully-specified non-interactive invocation, and more importantly the missing output-format flag on `list` — bare `list` opens the interactive pager/TUI, which both emits escape codes and blocks in a non-TTY (the hang). Fixes: read side uses `--plain --no-headers --columns key` (or `--raw | jq -r '.[].key'`); recommends `statusCategory` / a JQL like `assignee = ... AND statusCategory = \"To Do\"` rather than hardcoding the status name (more portable, case-sensitive). Provides a correct loop: `for k in $(jira issue list -q'...' --plain --no-headers --columns key); do jira issue move \"$k\" \"In Progress\" --comment \"...\"; done`. Mentions exporting JIRA_API_TOKEN, avoiding `--web` in CI, and `set -euo pipefail`. Should NOT invent a `--no-input` flag for `move` (move has none — key+state is already non-interactive) — comment add does take `--no-input`.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "eval_name": "onprem-pat-auth-and-discovery",
+      "prompt": "We just stood up jira-cli on a jump host that talks to our self-hosted Jira Data Center at https://jira.corp.internal. I authenticate to Jira with a Personal Access Token, not a password. I ran `jira init`, picked Cloud by mistake, and now `jira me` gives me a 401. Also, before I start scripting ticket creation, I want to know the exact issue types, statuses and priorities our 'INFRA' project actually uses — I don't want to guess and have creates fail. Walk me through fixing auth and discovering those values.",
+      "expected_output": "Auth fix: this is on-premise Data Center, so installation type should be Local, not Cloud; PAT auth needs `JIRA_AUTH_TYPE=bearer` AND `JIRA_API_TOKEN=<the PAT>` exported in the environment (token is NOT stored in the config file). Re-run `jira init` choosing Local + bearer (or correct the generated ~/.config/.jira/.config.yml), then verify with `jira me` / `jira serverinfo`. Discovery: it must teach reading values off the live instance rather than guessing — e.g. `jira issue list -p INFRA --plain --no-truncate --paginate 10` and/or `jira issue view INFRA-123 --raw | jq '.fields | {type:.issuetype.name, status:.status.name, priority:.priority.name}'`, and note that transition target states are workflow-dependent (run `jira issue move KEY` interactively once to see them). Should emphasize values are instance-defined and case-sensitive. Bonus: 401 troubleshooting via `--debug`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "create-with-markdown-and-edit-semantics",
+      "prompt": "Two things in our PLAT project. First, create a bug from the command line with a real formatted description — a short summary paragraph, a bulleted 'Steps to reproduce', and a fenced code block showing the stack trace — set priority high and label it 'regression'. I keep getting the newlines mangled or the code block showing weird backslashes. Second, on an existing ticket PLAT-204 I need to drop the stale label 'p3' and add 'p1', and swap the component from 'API' to 'Gateway' — but when I tried `jira issue edit PLAT-204 --label p1` it kept the old p3 label too. What am I doing wrong?",
+      "expected_output": "Part 1: a correct `jira issue create -tBug -s\"...\" -yHigh -lregression -b$'...' --no-input` (or a `--template file.md` / stdin approach), explaining the newline problem is shell quoting — use `$'...'` for inline newlines or a template file — and that the 'weird backslashes' come from Jira `{code}` blocks; GFM ```` ``` ```` fences convert to ADF cleanly and should be used instead. May note priority/type values are instance-defined/case-sensitive. Part 2: explains the edit asymmetry — `--label` APPENDS (so p3 stayed), while `--component` REPLACES. Correct command removes with a minus prefix: `jira issue edit PLAT-204 --label -p3 --label p1 --component Gateway --no-input` (component can be replaced directly or `--component -API --component Gateway`). Must get the minus-prefix removal idiom right.",
+      "files": []
+    }
+  ]
+}

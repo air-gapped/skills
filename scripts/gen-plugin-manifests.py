@@ -375,6 +375,44 @@ GROUPS: dict[str, dict] = {
             "preflight",
         ],
     },
+    "jira": {
+        # Atlassian Jira CLI suite — terminal-driven Jira via
+        # ankitpokhrel/jira-cli. Instance-agnostic (Cloud + on-prem/DC),
+        # no account-specific content. Room for siblings: a Confluence
+        # CLI, Jira REST/automation helpers, JSM-specific workflows.
+        "members": ["jira-cli"],
+        "description": (
+            "Jira suite — drive Atlassian Jira from the terminal with "
+            "`jira` (ankitpokhrel/jira-cli, v1.7.0) against ANY Jira (Cloud "
+            "or on-premise/Data Center). Covers the full command surface "
+            "(issue / epic / sprint / board / project / release), the "
+            "non-interactive automation contract (`--no-input` + "
+            "`--plain`/`--raw`/`--csv` for agent-safe, parseable runs), JQL "
+            "filtering and the date/negation idioms, GitHub- and "
+            "Jira-flavored markdown → Atlassian Document Format (ADF) "
+            "conversion and its lossy edges, authentication for every "
+            "backend (Cloud API token, on-prem basic, PAT/bearer, mTLS), "
+            "and live-discovery of instance-specific values (project keys, "
+            "issue types, statuses, priorities, resolutions, link types, "
+            "custom field IDs) instead of hardcoding them. Instance-agnostic "
+            "— no account-specific content."
+        ),
+        "category": "developer-tools",
+        "tags": [
+            "jira",
+            "atlassian",
+            "jira-cli",
+            "cli",
+            "issue-tracking",
+            "jql",
+            "adf",
+            "agile",
+            "sprint",
+            "automation",
+            "cloud",
+            "data-center",
+        ],
+    },
     "observability": {
         "members": ["prometheus-mimir-grafana"],
         "description": (
