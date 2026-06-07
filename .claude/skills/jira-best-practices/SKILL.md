@@ -91,6 +91,19 @@ So **always reason in role terms first** — "the container level", "the deliver
 
 For the full hierarchy treatment (non-software reinterpretation, the DC Epic Link/Parent Link workaround, Advanced Roadmaps level setup), read **`references/hierarchy.md`**.
 
+## Decompose large work — one initiative into an ordered issue set
+
+The hierarchy call above is *vertical* (what level is one item). A large, multi-week effort needs the *horizontal* call too: **how many** issues, at **what grain**, in **what order**. The model is domain-neutral — one shape fits a software feature, an infra migration, a data cutover, or a business campaign.
+
+- **The children can't be enumerated up front.** Open the epic with a **planning/assessment issue + the main work**, then **generate the rest from that issue's output** (rolling-wave planning). Fully detail Phase 0 + gating prerequisites + the first wave; stub later waves.
+- **The grain ladder — issue → sub-task → checklist → *nothing*.** Default to the lightest. A piece earns its **own issue** only if it will be estimated/logged against, has its own owner, runs days, or needs independent reporting. It's **nothing at all** when there's no decision, handoff, audit need, or lasting state change — routine pre-authorised ops (ITIL Standard Change) and same-state toil (SRE) are tracked in aggregate, never ticketed per occurrence.
+- **Three axes, combined.** Decompose by **value-slice** (software), by **phase** (prep→execute→verify — prep and verify are *mandatory* children), and by **wave/batch** for N repeated targets (group by risk/failure-domain, **never one-ticket-per-unit**; per-unit steps are a checklist; promote only the unit that fails). Real multi-week work = phase at the top, slices or waves inside execute.
+- **Ordering is a dependency-link overlay, not nesting.** `blocks` / `is blocked by` encodes sequence; parent/child does not. A prerequisite whose omission is expensive **must** be a link, not a buried checklist line; a dependency shared by *all* units → **one gating task**, not N links.
+- **Assessment → issue-set.** A verdict (audit / compatibility / capacity) maps mechanically: initiative→epic, assessment→Phase-0 task, needs-work→tasks, hard blocker→gating task, ordering→`blocks` links, **already-fine→nothing**. Severity decides 1:1 vs grouped.
+- **The agent scaffolds it from the plan.** `jira_batch_create_issues` **can't set epic/parent links inline** (silently dropped) → scaffold multi-pass (create epic → batch children → `jira_link_to_epic` each → `jira_create_issue_link` per `blocks` edge). No upsert: tag every issue with a deterministic label and **search-before-create** to stay idempotent; run read-only by default.
+
+Full treatment — the WBS spine, the grain tests, the three axes, the per-domain table, DC progress-visibility, and the agent scaffolding sequence — is in **`references/work-modeling.md`**.
+
 ## Discover before advising (and stay language-safe)
 
 A recommendation that hardcodes "Bug", "Done", or "High" is wrong on the next instance — and doubly wrong on a non-English one, where the configured value might be "Fehler", "Erledigt", "Hoch". **Discover the org's real values, and anchor logic on language-independent keys.** (Fetch these via `jira-cli` or the `mcp-atlassian` discovery tools — `jira_get_transitions`, `jira_search_fields`, `jira_get_link_types`, `jira_get_project_components`, `jira_get_all_projects`; the full endpoint↔tool mapping is in `references/multilingual-and-discovery.md`. This skill says *what* to look at and *which key to anchor on*.)
@@ -156,6 +169,7 @@ Match the symptom, name the cause, apply the smallest fix:
 | "Our workflow is a maze" | Status zoo / per-project workflow drift | Cut to 6–9 statuses; shared workflow scheme; consider Simplified Workflow |
 | "Standups are status theater / reports are stale" | Hand-maintained status outside Jira | "Update the board, not a doc"; live dashboards off shared filters |
 | "Is this an epic or a story?" (recurring) | Hierarchy defined by name, not role; no shared standard | Teach role-based levels; map to the org's configured names; write it down once |
+| "A weeks-long effort is impossible to track / I don't know how to register it" | No decomposition method — one mega-ticket, or per-unit sprawl, with no prep/verify phase or ordering | Epic → Phase-0 assessment → waves/slices; `blocks` links for order; grain rule (issue/sub-task/checklist/nothing); `work-modeling.md` |
 | "Different teams use epic/story differently" | No deliberate standard, or a legitimately different framework | Don't force uniformity; document each unit's role-mapping; align only where cross-team reporting needs it |
 | "We're drowning in tickets / stale backlog" | No WIP discipline; tickets that generate no value | WIP limits; delete value-less tickets; backlog hygiene; fewer/larger tickets |
 | "Automation keeps doing weird things / spamming" | Rule sprawl, chain-firing, broad triggers | Inventory & prune rules; scope + filter early; kill generic-trigger chains |
@@ -174,12 +188,14 @@ Match the symptom, name the cause, apply the smallest fix:
 8. **Automation sprawl** — more rules ≠ more mature; boring, owned, scoped rules win.
 9. **Forcing one process org-wide** — makes the team serve Jira. Let teams own their process; standardise only where cross-team reporting demands it.
 10. **Auto-translating or "correcting" non-English content** — never. It's normal; preserve it; discover real values.
+11. **No decomposition method for big work** — a never-closing mega-ticket, or one-ticket-per-unit sprawl (30 tickets for 30 servers), with no prep/verify phase and ordering buried in checklists. Break it into epic → Phase-0 assessment → waves/slices, with `blocks` links for order and a checklist for repeated units (`work-modeling.md`).
 
 ## What to read next
 
 | File | Read when… |
 |---|---|
 | `references/hierarchy.md` | Deciding epic/story/task/sub-task; setting/adapting an org standard; Initiative levels; the DC Epic Link/Parent Link gotcha; non-software hierarchy |
+| `references/work-modeling.md` | Breaking a large multi-week effort into a legible, ordered issue set — the grain rule (issue/sub-task/checklist/nothing), the three decomposition axes, dependency-link ordering, assessment→issue-set, per-domain generality, agent scaffolding |
 | `references/lean-config.md` | De-bloating — custom-field guardrail & audit, minimum-viable Create screen (screen schemes + field configs), status-vs-resolution mechanics, issue-type minimalism |
 | `references/workflows-automation.md` | Simplifying workflows, Automation-for-Jira recipes + sprawl governance, board WIP/swimlanes/quick filters, "update the board not a doc" |
 | `references/non-software.md` | Setting up Jira for ops / engineering / business teams — Kanban over Scrum, no story points, recurring work, lean rollout |

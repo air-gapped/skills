@@ -1,16 +1,102 @@
 [
-  {"query": "is this work an epic or a story?", "should_trigger": true, "source": "everyday"},
-  {"query": "what's the difference between an epic, a story, and a sub-task in jira", "should_trigger": true, "source": "description-mined"},
-  {"query": "our jira has become a total dread, how do we make it leaner", "should_trigger": true, "source": "everyday"},
-  {"query": "there are too many required fields just to create a ticket", "should_trigger": true, "source": "description-mined"},
-  {"query": "how do we simplify our jira workflow, we have way too many statuses", "should_trigger": true, "source": "everyday"},
-  {"query": "how should we set up jira for a non-software operations team without sprints or story points", "should_trigger": true, "source": "body-mined"},
-  {"query": "different teams here define epics and stories differently, should we standardize it", "should_trigger": true, "source": "description-mined"},
-  {"query": "our jira automation rules are out of control", "should_trigger": true, "source": "everyday"},
-  {"query": "create a jira ticket from the command line non-interactively", "should_trigger": false, "source": "sibling (jira-cli)"},
-  {"query": "my jira cli command hangs and prompts forever", "should_trigger": false, "source": "sibling (jira-cli)"},
-  {"query": "JIRA_API_TOKEN keeps giving me a 401", "should_trigger": false, "source": "sibling (jira-cli)"},
-  {"query": "set up Rovo AI agents in Jira Cloud", "should_trigger": false, "source": "cloud-decoy (excluded)"},
-  {"query": "hello there", "should_trigger": false, "source": "generic"},
-  {"query": "explain how async await works in javascript", "should_trigger": false, "source": "generic"}
+ {
+  "query": "is this work an epic or a story?",
+  "should_trigger": true,
+  "source": "everyday"
+ },
+ {
+  "query": "what's the difference between an epic, a story, and a sub-task in jira",
+  "should_trigger": true,
+  "source": "description-mined"
+ },
+ {
+  "query": "our jira has become a total dread, how do we make it leaner",
+  "should_trigger": true,
+  "source": "everyday"
+ },
+ {
+  "query": "there are too many required fields just to create a ticket",
+  "should_trigger": true,
+  "source": "description-mined"
+ },
+ {
+  "query": "how do we simplify our jira workflow, we have way too many statuses",
+  "should_trigger": true,
+  "source": "everyday"
+ },
+ {
+  "query": "how should we set up jira for a non-software operations team without sprints or story points",
+  "should_trigger": true,
+  "source": "body-mined"
+ },
+ {
+  "query": "different teams here define epics and stories differently, should we standardize it",
+  "should_trigger": true,
+  "source": "description-mined"
+ },
+ {
+  "query": "our jira automation rules are out of control",
+  "should_trigger": true,
+  "source": "everyday"
+ },
+ {
+  "query": "create a jira ticket from the command line non-interactively",
+  "should_trigger": false,
+  "source": "sibling (jira-cli)"
+ },
+ {
+  "query": "my jira cli command hangs and prompts forever",
+  "should_trigger": false,
+  "source": "sibling (jira-cli)"
+ },
+ {
+  "query": "JIRA_API_TOKEN keeps giving me a 401",
+  "should_trigger": false,
+  "source": "sibling (jira-cli)"
+ },
+ {
+  "query": "set up Rovo AI agents in Jira Cloud",
+  "should_trigger": false,
+  "source": "cloud-decoy (excluded)"
+ },
+ {
+  "query": "hello there",
+  "should_trigger": false,
+  "source": "generic"
+ },
+ {
+  "query": "explain how async await works in javascript",
+  "should_trigger": false,
+  "source": "generic"
+ },
+ {
+  "query": "how do I break down a big cluster upgrade into jira issues so I can track progress",
+  "should_trigger": true,
+  "source": "decomposition (user-reported)"
+ },
+ {
+  "query": "how should I register a multi-week server migration in jira",
+  "should_trigger": true,
+  "source": "decomposition (everyday)"
+ },
+ {
+  "query": "should a 30-server rollout be one epic or many issues",
+  "should_trigger": true,
+  "source": "decomposition (everyday)"
+ },
+ {
+  "query": "how do I structure an epic with prep steps and follow-ups",
+  "should_trigger": true,
+  "source": "decomposition (description-mined)"
+ },
+ {
+  "query": "how many jira issues should this big migration be split into",
+  "should_trigger": true,
+  "source": "decomposition (everyday)"
+ },
+ {
+  "query": "batch create a bunch of jira issues from the command line",
+  "should_trigger": false,
+  "source": "sibling (jira-cli) decomposition decoy"
+ }
 ]

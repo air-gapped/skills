@@ -4,13 +4,37 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 
 ## Open
 
-_None._ The skill has been through trigger, improve, and freshen modes and converged cleanly (self 90 / blind 89, no dimension below 8, no Boris caps, no staleness cap). No ceiling hits, no multi-file restructures pending, no cross-skill (T6) conflicts.
+_None requiring multi-file work._ Both skill-improver passes ran this session (trigger: no mutation needed; improve: converged in the 87–88 blind band, no dimension below 8).
 
-Cosmetic-only notes (deliberately NOT Open per the backlog rules — these are future-risk / wishlist, not attempted-and-blocked work):
-- `description` sits at 1,532 / 1,536 combined chars — effectively zero headroom; any *future* trigger-phrase addition would truncate. Not a current defect (trigger mode converged 14/14 at this length); if more triggers are ever needed, shorten the `description` half first.
-- Some body prose is bold/em-dash dense (e.g. prime-directive, lean-levers). A future cosmetic pass could trim styling for a marginal Dim 6 gain; content is correct.
+Cosmetic-only notes (NOT attempted-and-blocked — future-cosmetic, content is correct):
+- Bold/em-dash density in the prime-directive and lean-levers sections (SKILL.md) — a marginal Dim 6 styling trim; flagged by both this session's blind scorers as the only stylistic fat.
+- `hierarchy.md` (exactly 100 lines, at the rubric's >100-line TOC threshold) has no in-file TOC; `work-modeling.md` gained one this pass. Add a `hierarchy.md` TOC if it grows past 100 lines.
 
 ## Resolved this pass
+
+### 2026-06-07 — Improve pass (`/skill-improver improve`) — Dim 3 fix + Dim 2 TOC
+
+- **Baseline blind (Opus): 88/100** (9/9/8/9/9/8/9/9/9/9). Confirmed `work-modeling.md` cleanly **extends** `hierarchy.md` (zero shared 8-grams; defers to it 7×), **no Boris caps** (the 23 numbered lines are reference enumerations — principles/levers/anti-patterns — not invocation flow), **no staleness cap** (all sources `Verified 2026-06-07`).
+- **Iter 1 (Dim 3 Writing Style 8→9):** the new content reintroduced **9 second-person slips** ("you'll estimate", "getting your own job done", "you promote", "You can't enumerate", …) against the skill's imperative standard (the prior pass had purged body second-person). Converted all to imperative/objective across `work-modeling.md` + the SKILL.md "Decompose large work" section; grep now **0** (only the deliberately-preserved Excel-aphorism quote remains). KEEP.
+- **Final blind (Opus): 87/100** — Dim 3 confirmed **8→9** ("effectively flawless"). The 88↔87 total is **inter-scorer variance** on untouched subjective dims (Dim 4/7/10 each wobbled ±1 between the two independent Opus runs), not a regression. Top finding: the two >100-line references lack an in-file TOC.
+- **Iter 2 (Dim 2):** added a one-line **Contents** TOC to `work-modeling.md` (219 lines) — the final blind's #1 recommendation, rubric-prescribed for >100-line references. KEEP. (Not re-blinded: a pure rubric-prescribed TOC-add against ±1 inter-scorer noise.)
+- **Converged** in the 87–88 band (excellent; no dimension below 8). Remaining levers are cosmetic (bold/em-dash density) → Open.
+
+### 2026-06-07 — Trigger pass (`/skill-improver trigger`) — no mutation needed
+
+- **Extended the eval set** `references/trigger-evals.json` 14 → **20 queries**: +5 decomposition positives ("break down a big cluster upgrade into issues", "register a multi-week migration", "30-server rollout: one epic or many", "epic with prep + follow-ups", "how many issues to split a big migration into") + 1 jira-cli decoy negative ("batch create issues from the CLI"). Persisted for future runs (kept a pure array — run history lives here, not in the JSON).
+- **Baseline Haiku (holdout 0.4): train 12/13, test 6/7.** 4/5 decomposition positives already fired 1.00 (overlap with the existing "epic" / "where should this work go" triggers); the 2 "misses" were the **known Haiku artifact** ("is this an epic" — Opus 1.00) and one borderline ("how many issues split into" 0.33).
+- **Candidate** (decomposition triggers added, drafted at 1530/1536): **Haiku train 12/13, test 6/7 — NO lift.** Per the simplicity criterion (equal score, not simpler) → candidate **discarded**; frontmatter left at the validated **1531/1536** (untouched all session).
+- **Decisive Opus probe** (focused 8-query decomposition set, `--model opus`): **baseline 8/8.** All 5 decomposition positives **and** "is this an epic or a story?" fire **1.00 on Opus** with the *unchanged* frontmatter; both jira-cli decoys decline 0.00 (no over-trigger). **Finding: the existing frontmatter already reaches decomposition queries on the user's real model** (the epic/story/where-does-work-go triggers overlap the decomposition phrasings) — explicit decomposition triggers are unnecessary. The drafted explicit-trigger version is recorded here as a fallback only if real-session under-triggering is ever observed.
+
+### 2026-06-07 — Added work-modeling.md (the decomposition layer) from deep research
+
+- **Gap:** the skill answered the *vertical* level question (`hierarchy.md` — "what level is THIS one item") but had no *horizontal* decomposition method — how to break one large multi-week initiative into a legible, ordered issue set. Surfaced by a real user need (registering a weeks-long, prerequisite-heavy ops upgrade so progress is trackable).
+- **Research:** `/autoresearch research` (STORM, 8 agents, depth 2) → `autoresearch/results/jira-work-decomposition-research-2026-06-07.md`. High confidence; primary-source on DC mechanics + agent scaffolding (read directly from the connected `mcp-atlassian` + `jira-cli` source).
+- **Added `references/work-modeling.md`:** WBS spine (100% rule, work package, **rolling-wave / planning package**, milestone=fixVersion, scope-vs-sequence as two views); the **grain rule** (issue→sub-task→checklist→**nothing**, with the ITIL-Standard-Change + SRE-toil floor for "nothing"); the **three axes** (value-slice / phase / wave) + combine; **ordering as a dependency-link overlay** (shared-by-all dep → one gating task); the **assessment→issue-set** table (already-fine→nothing; severity decides 1:1-vs-grouped); a **per-domain generality table** (software / infra / data-eng / business); **DC progress visibility** (epic bar = direct children only; AR has no native critical path; Timeline is Cloud-only); **agent scaffolding** (the `jira_batch_create_issues` can't-link-inline silent gap → multi-pass; deterministic-label idempotency; READ_ONLY_MODE); 8 anti-patterns.
+- **SKILL.md wiring:** new "Decompose large work — one initiative into an ordered issue set" body section (after the hierarchy section); read-next table row; dread-playbook row ("a weeks-long effort is impossible to track"); anti-pattern #11.
+- **sources.md:** new "Work modeling / decomposition" section (~27 anchors, all `Verified 2026-06-07`).
+- **Deliberately NOT done:** frontmatter/triggers (1531/1536 cap) — deferred to the trigger pass logged under Open. Body edits can't affect triggering.
 
 ### 2026-06-07 — Improve + Freshen (`/skill-improver improve and freshen`)
 

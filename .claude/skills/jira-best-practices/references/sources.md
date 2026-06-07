@@ -26,6 +26,40 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 | seibert.group/.../jira-story-vs-task-vs-epic | B | Misconceptions; Story=value/Task=operational; sub-task constraints; non-software examples | 2026-06-07 |
 | tempo.io/blog/which-safe-hierarchy-should-you-choose | B | Two valid SAFe mappings; "depends on your situation" | 2026-06-07 |
 
+## Work modeling / decomposition
+
+Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-work-decomposition-research-2026-06-07.md` (8 agents, STORM, depth 2).
+
+| Source | Tier | Supports | Verified |
+|---|---|---|---|
+| en.wikipedia.org/wiki/Work_breakdown_structure (quoting PMI Practice Standard for WBS, MIL-STD-881F) | A/B | 100% rule; work package = estimable leaf; 8/80 heuristic; deliverable/verb test; WBS-scope-vs-network-sequencing split | 2026-06-07 |
+| pmi.org WBS basic-principles (4883) + WBS→CPM (6212/6978) | A | work-package/critical-path defs; 80h-or-one-reporting-period; noun/verb boundary | 2026-06-07 |
+| pmclounge.com/what-is-rolling-wave-planning + projstream/tensix planning-packages | B | rolling-wave / progressive elaboration; **planning package** = "black-box placeholder" → convert to work packages; 3–6mo detail horizon | 2026-06-07 |
+| mountaingoatsoftware.com (SPIDR + split-epics examples) | A | SPIDR 5 split techniques (spike-last); worked vertical-slice seams | 2026-06-07 |
+| humanizingwork.com (story-splitting guide + flowchart) | A | 9-pattern split catalog; hamburger meta-pattern; two split-evaluation tests | 2026-06-07 |
+| crisp.se Elephant Carpaccio; en.wikipedia User_story (walking skeleton); jpattonassociates story-mapping | A/B | thinnest end-to-end slice first; breakdown-vs-release-overlay (ordering is separate) | 2026-06-07 |
+| herocoders.com (status/subtask/checklist; when-not-to-checklist) + community "Stop Using Subtasks as a To-Do List" | B/C | grain ladder; earns-its-own-issue tests; sub-task = different owner/timeline | 2026-06-07 |
+| sre.google/sre-book + /workbook (eliminating toil) | A | toil = "same state after → don't ticket each instance"; track the class in aggregate | 2026-06-07 |
+| wiki.en.it-processmaps.com + manageengine ITIL change types; servicenow Dynamic CI Group | B/C | **Standard vs Normal vs Emergency** change; Change Model pre-authorises recurring work (not individually ticketed); one change record over a CI fleet | 2026-06-07 |
+| rubick.com (task treadmill); age-of-product (jira anti-patterns); techcrunch jira-antipattern | B | over-decomposition costs; completion bias; "thousand little waterfalls" | 2026-06-07 |
+| ascendle.com / agilepainrelief.com (story sizing) | B | upper-bound sizing (story < sprint); per-ticket ceremony tax; no numeric floor | 2026-06-07 |
+| confluence.atlassian.com adminjiraserver configuring-issue-linking (DC) | A | **4 default link types** (relates/duplicates/blocks/clones); **no default `causes`**; blocks = canonical for order; don't delete Clones | 2026-06-07 |
+| confluence.atlassian.com Advanced Roadmaps DC (Dependencies report / scheduling-dependencies / configuring-issue-dependencies / view-plan) | A | AR dependency viz (red=warning); Blocks=default dependency; sequential/concurrent auto-schedule; **no native critical path**; AR bundled since 8.15 | 2026-06-07 |
+| support.atlassian.com enable-and-disable-the-timeline (Cloud) | A | **native Timeline/Roadmap is Cloud-only**; DC uses AR | 2026-06-07 |
+| developer.atlassian.com + KB — issueLink REST | A | `POST /rest/api/2/issueLink` shape; **one link per call**; `issueLinkType` enum | 2026-06-07 |
+| confluence.atlassian.com managing-versions; atlassian.com/agile/tutorials/versions | A | `fixVersion` = per-project milestone (Releases page, JQL, AR timeline circles) | 2026-06-07 |
+| tempo.io / bigpicture.one / marketplace (Structure, BigPicture) | B | true Gantt + critical-path on DC via Marketplace apps only | 2026-06-07 |
+| community + KB — epic progress bar / children vs sub-tasks | A/C | epic bar = **direct children only** (sub-tasks excluded); no native deep roll-up | 2026-06-07 |
+| aws.amazon.com large-migration portfolio playbook (wave-planning) | A | server→move-group→wave; move-group rules = links; order least-risk-first; rolling-wave mandate; shared-by-all dep → one gating task | 2026-06-07 |
+| aws.amazon.com Iceberg in-place migration guide + iceberglakehouse masterclass-15 | A | per-table control plane (status/error per s3_path) = issue-per-table+status; federate→build/backfill→validate→swap; backfill in date-window waves | 2026-06-07 |
+| docs.getdbt.com how-we-structure; Airflow TaskGroups | A/B | per-domain pipeline decomposition (staging-by-source / marts-by-domain) | 2026-06-07 |
+| hubspot WBS; smartinsights/rock.so (campaign); event + onboarding WBS templates | B/C | business-domain four-phase WBS; parallel streams; measure phase; operational Tasks | 2026-06-07 |
+| hyperproof/accountablehq (audit remediation); tldrsec/jit/atlassian Security tab/wiz | A/B | finding→owner+deadline+verification; **triage filter (already-fine→nothing)**; severity decides 1:1-vs-grouped | 2026-06-07 |
+| **mcp-atlassian source** (servers/jira.py; jira/{issues,epics,links,fields}.py; utils/decorators.py) | A | `jira_batch_create_issues` **can't set epic/parent inline (silent drop)**; single-create can; `READ_ONLY_MODE`/`validate_only`; no upsert → search-before-create | 2026-06-07 |
+| **jira-cli source** (cmdcommon/create.go; pkg/jira/{create,epic,issue}.go; cmd/epic, cmd/issue/link) | A | `--parent`→Epic Link on DC; `epic add` = only batched epic-link (≤50); `issue link A B Blocks`; no bulk-create | 2026-06-07 |
+| developer.atlassian.com issue-bulk + community 54083 + adminjiraserver rate-limiting | A/B | bulk 50-cap (Cloud); DC bounded by rate-limiting → chunk ~50 | 2026-06-07 |
+| github.com/fourplusone(+anubhavmishra)/terraform-provider-jira | B | declarative desired-state; `terraform plan` = approve-not-author idempotency (derive every issue from the plan) | 2026-06-07 |
+
 ## Lean configuration
 
 | Source | Tier | Supports | Verified |
