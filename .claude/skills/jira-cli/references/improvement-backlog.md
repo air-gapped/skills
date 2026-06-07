@@ -31,6 +31,23 @@ Carries ceiling findings across skill-improver runs. Read in Phase 0; updated in
   - `init`: not run — would overwrite the live config. Verify against a scratch config
     via `JIRA_CONFIG_FILE=/tmp/...` so the real `~/.config/.jira/.config.yml` is untouched.
 
+- **Trigger-mode could not run — skill-improver `probe-trigger.py` is broken vs Claude
+  Code 2.1.168 (2026-06-07).** Built a 15-query eval set (`references/trigger-evals.json`,
+  8 should-trigger / 7 should-not) but the empirical probe returned all-0.0 (zero
+  discriminating signal — a slam-dunk positive scored the same as "hi"). Root cause, two
+  compounding bugs in the probe: (1) it installs the synthetic as a **slash-command**
+  (`.claude/commands/<id>.md`), which current Claude does **not** auto-invoke — only
+  **skills** (`.claude/skills/<id>/SKILL.md`) auto-trigger (proven by a raw `claude -p`
+  test); (2) even patched to write a skill, its stream parser does `return False` on the
+  **first non-Skill/Read `tool_use`**, but 2.1.168 routinely calls other tools (planning
+  etc.) before the Skill, so it under-detects. Also `claude -p` is ~60–150s/call here,
+  making a full loop impractical. **Action:** fix `probe-trigger.py` in the skill-improver
+  skill (write a skill not a command; scan the whole stream for a `Skill` tool_use with
+  the synthetic name rather than bailing on the first other tool), then re-run
+  `trigger jira-cli` against the saved eval set. Frontmatter was **not** mutated (no
+  working metric, and the description is already well-formed: split description/when_to_use,
+  trigger phrases front-loaded, exclusions present, combined 1435 ≤ 1536 chars).
+
 ## Resolved this pass
 
 (2026-06-07, improve + freshen run — baseline self 83 / blind 86 → final self 90 / blind 91)

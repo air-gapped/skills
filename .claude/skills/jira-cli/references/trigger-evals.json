@@ -1,0 +1,17 @@
+[
+  {"query": "create a jira ticket from the command line for a login bug", "should_trigger": true, "source": "everyday"},
+  {"query": "list my open jira issues in the terminal", "should_trigger": true, "source": "everyday"},
+  {"query": "move PROJ-123 to In Progress with a comment from the cli", "should_trigger": true, "source": "body-mined"},
+  {"query": "I need to bulk-update a bunch of jira tickets in a shell script", "should_trigger": true, "source": "everyday"},
+  {"query": "the jira command just hangs in my CI pipeline when creating issues", "should_trigger": true, "source": "symptom"},
+  {"query": "export every jira issue in project PROJ to a csv file", "should_trigger": true, "source": "body-mined"},
+  {"query": "set up jira auth with a personal access token for our on-prem data center server", "should_trigger": true, "source": "config-mined"},
+  {"query": "run a jql query from my shell to find jira tickets assigned to me", "should_trigger": true, "source": "description-mined"},
+  {"query": "create a confluence page for the release notes", "should_trigger": false, "source": "adjacent-atlassian (excluded)"},
+  {"query": "how do I call the jira REST API directly from a python script", "should_trigger": false, "source": "keyword-collision (REST API excluded)"},
+  {"query": "add a comment to this github pull request", "should_trigger": false, "source": "sibling (gh-cli)"},
+  {"query": "create a new issue in our beads tracker", "should_trigger": false, "source": "sibling (beads)"},
+  {"query": "what does this async function do", "should_trigger": false, "source": "generic"},
+  {"query": "deploy this app to the cluster with kubectl apply", "should_trigger": false, "source": "adjacent-domain decoy"},
+  {"query": "hi, can you help me with something", "should_trigger": false, "source": "generic"}
+]
