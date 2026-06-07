@@ -74,10 +74,11 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
   --holdout 0.4 --runs-per-query 3 --num-workers 6 --verbose
 ```
 
-The probe writes a synthetic slash-command containing the candidate
-description into `.claude/commands/`, runs `claude -p "<query>"` with
-`--output-format stream-json --include-partial-messages`, and parses the
-stream for a `Skill` or `Read` `tool_use` whose target name matches the
+The probe installs the candidate description as a real **skill** in a fresh
+isolated temp project (`<tmp>/.claude/skills/<id>/SKILL.md` — Claude auto-invokes
+skills, NOT `.claude/commands/` entries), runs `claude -p "<query>"` with
+`--output-format stream-json --verbose --include-partial-messages`, and scans
+the whole turn for a `Skill`/`Read` `tool_use` whose input references the
 synthetic id. Each query runs N times to measure trigger rate; rate >=
 threshold counts as triggered.
 
@@ -189,8 +190,9 @@ sequentially:
 - Do NOT skip negatives — pure-recall tuning makes the skill grab everything.
 - Do NOT run on plugin or managed skills (`~/.claude/plugins/`) — trigger
   mode mutates frontmatter; only personal/project skills are in scope.
-- Do NOT run trigger mode in the user's active project — the probe writes
-  temp slash-commands to `.claude/commands/`. Use a clean cwd.
+- The probe self-isolates: each query installs its synthetic skill in its own
+  fresh temp project (auto-removed), so it does NOT write into the cwd or the
+  user's active project. Running it from any directory is safe.
 
 ## Why skills under-trigger
 
@@ -276,14 +278,16 @@ adaptation of `anthropics/skills/skill-creator/scripts/run_eval.py`.
 
 How it works (per query, repeated `runs_per_query` times):
 
-1. Generate a unique synthetic skill name `<skill>-probe-<uuid>` and write a
-   slash-command file at `<project-root>/.claude/commands/<id>.md` containing
-   the candidate description.
-2. Shell out: `claude -p "<query>" --output-format stream-json --verbose
-   --include-partial-messages`.
-3. Parse the stream for a `tool_use` content-block whose tool is `Skill` or
-   `Read` and whose target name matches the synthetic id. Hit = triggered.
-4. Delete the command file.
+1. Generate a unique synthetic skill name `<skill>-probe-<uuid>` and install it
+   as a **skill** at `<tmp>/.claude/skills/<id>/SKILL.md` in a fresh, isolated
+   per-query temp project (so concurrent workers never see each other's
+   identically-described synthetics, and real project skills don't compete).
+2. Shell out from that temp dir: `claude -p "<query>" --output-format
+   stream-json --verbose --include-partial-messages`.
+3. Scan the whole turn for a `Skill`/`Read` `tool_use` referencing the synthetic
+   id — do NOT bail on the first other tool (Claude often plans first) or stop at
+   `message_stop` (a tool-using turn spans messages). Hit = triggered.
+4. Remove the temp project dir.
 5. `trigger_rate = triggers / runs`. Pass = `rate ≥ trigger_threshold` for
    should-trigger items, `rate < trigger_threshold` for should-not items.
    Threshold defaults to 0.5; runs default to 3.
@@ -295,7 +299,7 @@ Defaults:
 | `--runs-per-query` | 3 | Bump to 5 if variance is killing signal (1/3 vs 2/3 keep flipping). |
 | `--trigger-threshold` | 0.5 | Lower to 0.34 if you want any trigger to count (more lenient); raise to 0.67 if you want strong consistency. |
 | `--num-workers` | 6 | Lower if hitting rate limits; higher if you have headroom. Each worker spawns a `claude -p` subprocess. |
-| `--timeout` | 30 (s) | Bump if queries are complex enough that Claude spends >30s before deciding to use a tool. |
+| `--timeout` | 30 (s) | **Bump to 120+ when `claude -p` is slow** (cold start / Opus / heavy tasks can take 60–150s before the model reaches a tool). A timeout that fires before the Skill is invoked reads as a miss — the classic cause of an all-0.0 result. |
 | `--holdout` | 0.0 | Set 0.4 to enable train/test split. The loop sets this; standalone probes can leave at 0. |
 
 ### Calling the probe
@@ -514,9 +518,11 @@ value than the scaffolding costs?" applied at trigger-tune time.
   frontmatter (`description`, `when_to_use`, `paths`) affects triggering.
 - **Picking the final by train score.** Train score → overfit. Always pick by
   test.
-- **Probing in production.** The probe writes temp files to
-  `<project-root>/.claude/commands/`. Run from a clean workspace, not the
-  user's active project. Files self-clean on success but linger on crash.
+- **Assuming an all-0.0 result means the skill under-triggers.** If *every*
+  query (positives included) reads 0.0, the probe isn't measuring — check
+  `claude -p` works and bump `--timeout` (a call killed before the model reaches
+  the Skill reads as a miss). A real result discriminates: clear positives fire,
+  clear negatives don't.
 - **Running on managed/plugin skills.** Plugins (`~/.claude/plugins/`) and
   managed skills are owned by their authors. Don't mutate them — the
   skill-improver only operates on personal/project skills.

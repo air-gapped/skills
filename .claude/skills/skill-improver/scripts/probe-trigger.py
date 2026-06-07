@@ -5,12 +5,18 @@ Adapted from anthropics/skills skill-creator/scripts/run_eval.py — keeps the
 core trigger-detection loop, drops the improvement / report machinery (the
 parent skill-improver loop is the brain).
 
-Mechanism: write the candidate description to a fresh `.claude/commands/<id>.md`
-slash-command file (so it appears in claude's available_skills list for the
-session), shell out to `claude -p <query> --output-format stream-json
---include-partial-messages`, parse the stream for a tool_use of `Skill` or
-`Read` whose target name matches our synthetic id. Each query runs N times to
-measure trigger rate; rate >= threshold counts as triggered.
+Mechanism: per query, create an isolated temp project dir and install the
+candidate description as a real SKILL at `<tmp>/.claude/skills/<id>/SKILL.md`
+(Claude Code auto-invokes skills; it does NOT auto-invoke `.claude/commands/`
+entries, so a command synthetic never triggers). Each query gets its own temp
+dir so concurrent workers don't see each other's identically-described
+synthetics. Shell out to `claude -p <query> --output-format stream-json
+--verbose --include-partial-messages`, and scan the whole turn for a `Skill`
+or `Read` tool_use whose input references our synthetic id (do not bail on the
+first other tool, and do not stop at message_stop — a tool-using turn spans
+several messages). Each query runs N times; rate >= threshold counts as
+triggered. NOTE: bump `--timeout` (default 30s) when `claude -p` is slow in the
+environment — a call killed before the model reaches the Skill reads as a miss.
 
 Output: JSON — per-query pass/fail plus aggregate train/test scores when a
 holdout is requested. The parent loop reads this and decides what to mutate.
@@ -33,7 +39,9 @@ import os
 import random
 import re
 import select
+import shutil
 import subprocess
+import tempfile
 import sys
 import time
 import uuid
@@ -78,33 +86,37 @@ def _yaml_scalar(frontmatter: str, field: str) -> str | None:
     return body.strip().strip("'\"")
 
 
-def _project_root() -> Path:
-    """Walk up looking for `.claude/`. Mirrors how Claude Code finds its root."""
-    for parent in [Path.cwd(), *Path.cwd().parents]:
-        if (parent / ".claude").is_dir():
-            return parent
-    return Path.cwd()
-
-
 def run_single_query(
     query: str,
     skill_name: str,
     skill_description: str,
     timeout: int,
-    project_root: str,
     model: str | None,
 ) -> bool:
     """Run one query against a synthetic skill installation. Return True if
     the skill name appeared in a Skill or Read tool_use stream event."""
     unique_id = uuid.uuid4().hex[:8]
-    clean_name = f"{skill_name}-probe-{unique_id}"
-    cmd_dir = Path(project_root) / ".claude" / "commands"
-    cmd_file = cmd_dir / f"{clean_name}.md"
+    safe = re.sub(r"[^a-z0-9-]+", "-", skill_name.lower()).strip("-") or "skill"
+    clean_name = re.sub(r"-{2,}", "-", f"{safe}-probe-{unique_id}")
+    if len(clean_name) > 64:
+        clean_name = clean_name[:64].rstrip("-")
+    # Install as a real SKILL (model auto-invokes skills) — NOT a slash-command.
+    # Claude Code does not auto-invoke `.claude/commands/` entries, so a command
+    # synthetic never triggers regardless of description quality.
+    #
+    # Each query gets its OWN isolated temp project dir. If concurrent workers
+    # shared one project root, every `claude -p` would see all the identically
+    # described synthetics at once and invoke an arbitrary one — query A (seeking
+    # its uuid) misses when the model picks worker B's skill. Isolation also keeps
+    # the probe from inheriting real project skills that compete with the synthetic.
+    work_root = Path(tempfile.mkdtemp(prefix="sktrig-"))
+    skill_dir = work_root / ".claude" / "skills" / clean_name
+    cmd_file = skill_dir / "SKILL.md"
     try:
-        cmd_dir.mkdir(parents=True, exist_ok=True)
+        skill_dir.mkdir(parents=True, exist_ok=True)
         indented = "\n  ".join(skill_description.split("\n"))
         cmd_file.write_text(
-            f"---\ndescription: |\n  {indented}\n---\n\n"
+            f"---\nname: {clean_name}\ndescription: |\n  {indented}\n---\n\n"
             f"# {skill_name}\n\nThis skill handles: {skill_description}\n"
         )
 
@@ -125,13 +137,13 @@ def run_single_query(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
-            cwd=project_root,
+            cwd=str(work_root),
             env=env,
         )
 
         start = time.time()
         buf = ""
-        pending_tool = None
+        in_target = False
         accum_json = ""
         try:
             while time.time() - start < timeout:
@@ -156,40 +168,42 @@ def run_single_query(
                         event = json.loads(line)
                     except json.JSONDecodeError:
                         continue
+                    # Scan the whole turn for a Skill/Read tool_use referencing our
+                    # synthetic skill. Do NOT bail on the first other tool_use (current
+                    # Claude often calls TodoWrite/etc. before the Skill), and do NOT
+                    # stop at message_stop (a tool-using turn spans several messages).
+                    # Only a `result` event (or EOF/timeout) ends the turn.
                     if event.get("type") == "stream_event":
                         se = event.get("event", {})
                         se_type = se.get("type", "")
                         if se_type == "content_block_start":
                             cb = se.get("content_block", {})
-                            if cb.get("type") == "tool_use":
-                                tool = cb.get("name", "")
-                                if tool in ("Skill", "Read"):
-                                    pending_tool = tool
-                                    accum_json = ""
-                                else:
-                                    return False
-                        elif se_type == "content_block_delta" and pending_tool:
+                            in_target = cb.get("type") == "tool_use" and cb.get(
+                                "name"
+                            ) in ("Skill", "Read")
+                            accum_json = ""
+                            if in_target and clean_name in json.dumps(
+                                cb.get("input", "")
+                            ):
+                                return True
+                        elif se_type == "content_block_delta" and in_target:
                             d = se.get("delta", {})
                             if d.get("type") == "input_json_delta":
                                 accum_json += d.get("partial_json", "")
                                 if clean_name in accum_json:
                                     return True
-                        elif se_type in ("content_block_stop", "message_stop"):
-                            if pending_tool:
-                                return clean_name in accum_json
-                            if se_type == "message_stop":
-                                return False
+                        elif se_type == "content_block_stop":
+                            in_target = False
+                            accum_json = ""
                     elif event.get("type") == "assistant":
                         for c in event.get("message", {}).get("content", []):
                             if c.get("type") != "tool_use":
                                 continue
-                            t = c.get("name", "")
-                            inp = c.get("input", {})
-                            if t == "Skill" and clean_name in inp.get("skill", ""):
+                            if c.get("name", "") in (
+                                "Skill",
+                                "Read",
+                            ) and clean_name in json.dumps(c.get("input", {})):
                                 return True
-                            if t == "Read" and clean_name in inp.get("file_path", ""):
-                                return True
-                        return False
                     elif event.get("type") == "result":
                         return False
         finally:
@@ -198,8 +212,7 @@ def run_single_query(
                 proc.wait()
         return False
     finally:
-        if cmd_file.exists():
-            cmd_file.unlink()
+        shutil.rmtree(work_root, ignore_errors=True)
 
 
 def stratified_split(
@@ -226,7 +239,6 @@ def score_set(
     trigger_threshold: float,
     timeout: int,
     num_workers: int,
-    project_root: Path,
     model: str | None,
 ) -> dict:
     triggers: dict[str, list[bool]] = {}
@@ -241,7 +253,6 @@ def score_set(
                     skill_name,
                     description,
                     timeout,
-                    str(project_root),
                     model,
                 )
                 futs[fut] = item
@@ -315,7 +326,6 @@ def main():
     items = json.loads(Path(args.eval_set).read_text())
     name, fm_desc = parse_skill_md(skill_dir)
     description = args.description if args.description is not None else fm_desc
-    project_root = _project_root()
 
     if args.holdout > 0:
         train, test = stratified_split(items, args.holdout, args.seed)
@@ -336,7 +346,6 @@ def main():
         args.trigger_threshold,
         args.timeout,
         args.num_workers,
-        project_root,
         args.model,
     )
     test_out = (
@@ -348,7 +357,6 @@ def main():
             args.trigger_threshold,
             args.timeout,
             args.num_workers,
-            project_root,
             args.model,
         )
         if test
