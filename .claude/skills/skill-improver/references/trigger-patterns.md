@@ -283,7 +283,14 @@ How it works (per query, repeated `runs_per_query` times):
    per-query temp project (so concurrent workers never see each other's
    identically-described synthetics, and real project skills don't compete).
 2. Shell out from that temp dir: `claude -p "<query>" --output-format
-   stream-json --verbose --include-partial-messages`.
+   stream-json --verbose --include-partial-messages --disallowedTools Bash Edit
+   Write NotebookEdit Task WebFetch WebSearch`. The probe only measures *whether*
+   the model would invoke the Skill — the `--disallowedTools` deny-list makes the
+   spawned agent hermetic so it can NEVER execute the task itself. Without it, a
+   query like "deploy my app to openshift" makes the nested agent try to provision
+   a real local environment (e.g. `crc`/libvirt → host sudo/pkexec password
+   prompts) or run arbitrary Bash. Deny rules override any allow-list in the host
+   settings; `Skill`/`Read` (what we detect) stay enabled.
 3. Scan the whole turn for a `Skill`/`Read` `tool_use` referencing the synthetic
    id — do NOT bail on the first other tool (Claude often plans first) or stop at
    `message_stop` (a tool-using turn spans messages). Hit = triggered.
@@ -299,7 +306,7 @@ Defaults:
 | `--runs-per-query` | 3 | Bump to 5 if variance is killing signal (1/3 vs 2/3 keep flipping). |
 | `--trigger-threshold` | 0.5 | Lower to 0.34 if you want any trigger to count (more lenient); raise to 0.67 if you want strong consistency. |
 | `--num-workers` | 6 | Lower if hitting rate limits; higher if you have headroom. Each worker spawns a `claude -p` subprocess. |
-| `--timeout` | 30 (s) | **Bump to 120+ when `claude -p` is slow** (cold start / Opus / heavy tasks can take 60–150s before the model reaches a tool). A timeout that fires before the Skill is invoked reads as a miss — the classic cause of an all-0.0 result. |
+| `--timeout` | 180 (s) | Sized for `claude -p` latency here (60–150s/call incl. cold start / Opus). It only caps a *hung* call — a fast call returns as soon as it emits its `result` event — so a high value has no downside. Timed-out runs are now tracked per query and surfaced as a `warn:` line, and an all-positives-0.0 result emits an explicit "probe isn't measuring" warning instead of looking like genuine under-triggering. Lower only if calls are reliably fast. |
 | `--holdout` | 0.0 | Set 0.4 to enable train/test split. The loop sets this; standalone probes can leave at 0. |
 
 ### Calling the probe

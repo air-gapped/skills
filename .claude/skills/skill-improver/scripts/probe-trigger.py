@@ -15,15 +15,17 @@ synthetics. Shell out to `claude -p <query> --output-format stream-json
 or `Read` tool_use whose input references our synthetic id (do not bail on the
 first other tool, and do not stop at message_stop — a tool-using turn spans
 several messages). Each query runs N times; rate >= threshold counts as
-triggered. NOTE: bump `--timeout` (default 30s) when `claude -p` is slow in the
-environment — a call killed before the model reaches the Skill reads as a miss.
+triggered. The default `--timeout` is 180s because `claude -p` routinely takes
+60-150s/call; a call killed before the model reaches the Skill reads as a miss,
+so timed-out runs are tracked separately and surfaced as a warning — an all-0.0
+result from premature kills must never be mistaken for genuine under-triggering.
 
 Output: JSON — per-query pass/fail plus aggregate train/test scores when a
 holdout is requested. The parent loop reads this and decides what to mutate.
 
 Usage:
   probe-trigger.py --skill-path <dir> --eval-set <eval.json> [--description <override>]
-                   [--runs-per-query 3] [--trigger-threshold 0.5] [--timeout 30]
+                   [--runs-per-query 3] [--trigger-threshold 0.5] [--timeout 180]
                    [--num-workers 6] [--holdout 0.4] [--seed 42] [--model <id>]
 
 Eval-set JSON shape:
@@ -92,9 +94,16 @@ def run_single_query(
     skill_description: str,
     timeout: int,
     model: str | None,
-) -> bool:
-    """Run one query against a synthetic skill installation. Return True if
-    the skill name appeared in a Skill or Read tool_use stream event."""
+) -> tuple[bool, bool]:
+    """Run one query against a synthetic skill installation.
+
+    Returns (triggered, timed_out):
+      triggered — the skill name appeared in a Skill/Read tool_use event.
+      timed_out — the `claude -p` subprocess was still running when `timeout`
+                  elapsed and was killed. A timed-out run is NOT a genuine
+                  non-trigger (the model may simply not have reached its tool
+                  call yet); the caller surfaces timeouts so an all-0.0 result
+                  from premature kills is never read as under-triggering."""
     unique_id = uuid.uuid4().hex[:8]
     safe = re.sub(r"[^a-z0-9-]+", "-", skill_name.lower()).strip("-") or "skill"
     clean_name = re.sub(r"-{2,}", "-", f"{safe}-probe-{unique_id}")
@@ -131,6 +140,27 @@ def run_single_query(
         ]
         if model:
             cmd.extend(["--model", model])
+        # Hermetic probe: we only observe WHETHER the model would invoke the
+        # Skill — the spawned agent must never carry out the task. A query like
+        # "deploy my app to openshift" otherwise makes the nested agent try to
+        # provision a real local OpenShift (crc/libvirt → host sudo/pkexec
+        # password prompts) or run arbitrary Bash. Deny the whole side-effecting
+        # surface; Skill + Read (what we detect) stay enabled. Deny rules take
+        # precedence over any allow-list in the user's settings, so this holds
+        # regardless of the host configuration. Kept LAST: --disallowedTools is
+        # variadic, so trailing it prevents it swallowing other flags' values.
+        cmd.extend(
+            [
+                "--disallowedTools",
+                "Bash",
+                "Edit",
+                "Write",
+                "NotebookEdit",
+                "Task",
+                "WebFetch",
+                "WebSearch",
+            ]
+        )
 
         env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         proc = subprocess.Popen(
@@ -140,11 +170,13 @@ def run_single_query(
             cwd=str(work_root),
             env=env,
         )
+        assert proc.stdout is not None  # stdout=PIPE guarantees a pipe object
 
         start = time.time()
         buf = ""
         in_target = False
         accum_json = ""
+        timed_out = False
         try:
             while time.time() - start < timeout:
                 if proc.poll() is not None:
@@ -185,13 +217,13 @@ def run_single_query(
                             if in_target and clean_name in json.dumps(
                                 cb.get("input", "")
                             ):
-                                return True
+                                return (True, False)
                         elif se_type == "content_block_delta" and in_target:
                             d = se.get("delta", {})
                             if d.get("type") == "input_json_delta":
                                 accum_json += d.get("partial_json", "")
                                 if clean_name in accum_json:
-                                    return True
+                                    return (True, False)
                         elif se_type == "content_block_stop":
                             in_target = False
                             accum_json = ""
@@ -203,14 +235,19 @@ def run_single_query(
                                 "Skill",
                                 "Read",
                             ) and clean_name in json.dumps(c.get("input", {})):
-                                return True
+                                return (True, False)
                     elif event.get("type") == "result":
-                        return False
+                        return (False, False)
+            else:
+                # The while condition went false without break/return: the
+                # subprocess was still running when `timeout` elapsed and is
+                # about to be killed below. This is NOT a genuine non-trigger.
+                timed_out = True
         finally:
             if proc.poll() is None:
                 proc.kill()
                 proc.wait()
-        return False
+        return (False, timed_out)
     finally:
         shutil.rmtree(work_root, ignore_errors=True)
 
@@ -241,7 +278,8 @@ def score_set(
     num_workers: int,
     model: str | None,
 ) -> dict:
-    triggers: dict[str, list[bool]] = {}
+    # Per query: list of (triggered, timed_out) tuples, one per run.
+    runs_by_query: dict[str, list[tuple[bool, bool]]] = {}
     by_query: dict[str, dict] = {}
     with ProcessPoolExecutor(max_workers=num_workers) as ex:
         futs = {}
@@ -260,16 +298,23 @@ def score_set(
             item = futs[fut]
             q = item["query"]
             by_query[q] = item
-            triggers.setdefault(q, [])
+            runs_by_query.setdefault(q, [])
             try:
-                triggers[q].append(fut.result())
+                runs_by_query[q].append(fut.result())
             except Exception as e:
+                # A crashed worker measured nothing — flag it as unreliable
+                # (timed_out=True) rather than a confident non-trigger.
                 print(f"warn: query failed: {e}", file=sys.stderr)
-                triggers[q].append(False)
+                runs_by_query[q].append((False, True))
 
     results = []
-    for q, runs in triggers.items():
-        rate = sum(runs) / len(runs)
+    total_timeouts = 0
+    for q, runs in runs_by_query.items():
+        n = len(runs)
+        n_trig = sum(1 for triggered, _ in runs if triggered)
+        n_to = sum(1 for _, to in runs if to)
+        total_timeouts += n_to
+        rate = n_trig / n
         item = by_query[q]
         passed = (
             (rate >= trigger_threshold)
@@ -281,8 +326,9 @@ def score_set(
                 "query": q,
                 "should_trigger": item["should_trigger"],
                 "trigger_rate": rate,
-                "triggers": sum(runs),
-                "runs": len(runs),
+                "triggers": n_trig,
+                "timeouts": n_to,
+                "runs": n,
                 "pass": passed,
             }
         )
@@ -290,12 +336,13 @@ def score_set(
         "total": len(results),
         "passed": sum(1 for r in results if r["pass"]),
         "failed": sum(1 for r in results if not r["pass"]),
+        "timeouts": total_timeouts,
     }
     return {"description": description, "results": results, "summary": summary}
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__.split("\n\n", 1)[0])
+    p = argparse.ArgumentParser(description=(__doc__ or "").split("\n\n", 1)[0])
     p.add_argument("--skill-path", required=True)
     p.add_argument("--eval-set", required=True)
     p.add_argument(
@@ -305,7 +352,14 @@ def main():
     )
     p.add_argument("--runs-per-query", type=int, default=3)
     p.add_argument("--trigger-threshold", type=float, default=0.5)
-    p.add_argument("--timeout", type=int, default=30)
+    p.add_argument(
+        "--timeout",
+        type=int,
+        default=180,
+        help="Per-run upper bound (s). Default 180 because `claude -p` here runs "
+        "60-150s/call; this only caps a hung call (a fast call returns early), "
+        "so raising it has no downside but prevents premature-kill false misses.",
+    )
     p.add_argument("--num-workers", type=int, default=6)
     p.add_argument(
         "--holdout",
@@ -370,6 +424,29 @@ def main():
         "test": test_out,
     }
     print(json.dumps(output, indent=2))
+
+    # Guard the classic false-negative: a too-low --timeout (or a missing/broken
+    # `claude -p`) kills the call before the model reaches its tool, so every
+    # query reads 0.0 and the skill looks like it under-triggers when the probe
+    # never actually measured. Make that failure mode loud, never silent.
+    all_out = [o for o in (train_out, test_out) if o]
+    total_timeouts = sum(o["summary"].get("timeouts", 0) for o in all_out)
+    pos_results = [r for o in all_out for r in o["results"] if r["should_trigger"]]
+    if total_timeouts:
+        print(
+            f"warn: {total_timeouts} run(s) hit the {args.timeout}s timeout and were "
+            "killed before completing. These count as non-triggers but are NOT "
+            "reliable — raise --timeout and re-run before trusting the scores.",
+            file=sys.stderr,
+        )
+    if pos_results and not any(r["triggers"] > 0 for r in pos_results):
+        print(
+            "warn: NO should-trigger query fired even once. This almost always "
+            "means the probe isn't measuring (timeout too low, or `claude -p` "
+            "missing/unauthenticated) — NOT that the skill under-triggers. Verify "
+            "`claude -p` works and raise --timeout before trusting these scores.",
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":
