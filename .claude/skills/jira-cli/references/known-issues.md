@@ -5,10 +5,10 @@ Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around.
 | Ref | Status | Affects / symptom | Skill location |
 |---|---|---|---|
 | #898 | open | Cloud v1.7.0: new JQL search API dropped `startAt` → `--paginate` `<from>:` offset ignored; can't page past the first 100 issues | SKILL.md (Cloud-vs-Server, automation), jql-and-filters.md, troubleshooting.md |
-| #621 | open | `epic create --no-input` fragile on Cloud / fails non-interactively on next-gen (prompts `Epic Key`) | SKILL.md pitfall 5, commands.md, troubleshooting.md |
-| #948 | open | `issue create --no-input` hangs reading stdin in non-TTY (subprocess) — use `</dev/null` | SKILL.md pitfall 1, troubleshooting.md |
+| #621 | fixed on v1.7.0 | older (≤v1.3.0): `epic create --no-input -b` dropped the description. On v1.7.0 the body lands (verified live). No action; kept for history. | troubleshooting.md |
+| #948 | open | `create`/`edit`/`comment add`/`epic create` block on non-TTY stdin even with `--no-input` — `StdinHasData()` == "stdin not a TTY", so `io.ReadAll` waits for EOF. Use `</dev/null`. | SKILL.md pitfall 1, troubleshooting.md |
 | #984 | open | same hang via Unix-socket stdin | SKILL.md pitfall 1, troubleshooting.md |
-| #935 | open | Server/DC: GFM **not** converted to Jira wiki markup (passed through literally) | markdown-adf.md, troubleshooting.md |
+| #935 | open | Server/DC: `issue edit` sends body **verbatim** (only converts when existing field is ADF/Cloud) — `create`/`comment` do convert GFM→wiki | markdown-adf.md, troubleshooting.md |
 | #477 | open | on-prem behind SSO: `jira init` 401 — basic/email can't drive SSO; use a PAT | config-auth.md, troubleshooting.md |
 | #822 | closed | SSO/proxy init: `invalid character '<'` (HTML login page); `.netrc machine` must be bare host | config-auth.md, troubleshooting.md |
 | #342 | open | Cloud GDPR strict mode: assign/reporter resolves by `accountId`, not email | troubleshooting.md |

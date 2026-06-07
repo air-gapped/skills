@@ -53,12 +53,21 @@ Carries ceiling findings across skill-improver runs. Read in Phase 0; updated in
   `init` (destructive). Two errors `--help` review and both blind scorers missed:
   (1) `project list`/`board list`/`release list` take **no output flags** (`--plain`/
   `--raw`/`--columns` error) — fixed 5 usages in `SKILL.md`/`config-auth.md` + the
-  `commands.md` claim; (2) `epic create --no-input` **prompts `Epic Key` and fails
-  non-interactively on next-gen projects** — corrected pitfall #5, `commands.md`, and
-  added a `troubleshooting.md` entry recommending `issue create -tEpic` + `-P/--parent`.
+  `commands.md` claim; (2) **[later retracted — see below]** a claim that `epic create
+  --no-input` prompts/fails on next-gen.
   Everything else (assign/comment/worklog/watch/link/unlink/clone/move/delete, the
   `--label` append-vs-minus-remove asymmetry, all `--raw` jq paths) verified correct
   as written.
+- **Source review (2026-06-07) — retraction + refinements.** Reading the local clone
+  caught a self-inflicted error: the earlier "`epic create` prompts `Epic Key` / fails
+  on next-gen" claim was wrong. `epic create -n -s [-b] --no-input` works on next-gen
+  (verified live, CPG-20/21); the `? Epic Key` EOF in the original run came from a
+  downstream `epic add` with an empty key (the real `epic create` issue was just that it
+  has no `--raw` flag). Corrected SKILL.md pitfall 5, commands.md, troubleshooting.md,
+  known-issues.md, sources.md. Also from source: #935 is an `edit`-only asymmetry
+  (`create`/`comment` convert); `--custom` requires fields configured under
+  `issue.fields.custom`; #621 (body drop) is fixed on v1.7.0; #948/#984 stems from
+  `StdinHasData()` meaning "stdin not a TTY".
 - **Upstream issue sweep — known bugs folded in (2026-06-07).** Searched the repo's
   issues/discussions (earlier runs only checked the release tag). Added verified,
   in-scope gotchas with citations: pagination `startAt` removal on Cloud v1.7.0 (#898,

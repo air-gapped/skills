@@ -36,7 +36,7 @@ The CLI talks to two different Jira APIs and the behavior diverges in ways that 
 | Aspect | Jira **Cloud** | Jira **Server / Data Center** |
 |---|---|---|
 | REST API | v3 | v2 |
-| Description/comment format | GFM/Jira markdown → **ADF** (auto-converted) | **Jira wiki markup, written directly** — GFM is *not* reliably converted (#935); prefer `h2.`, `*bold*`, `{code}` |
+| Description/comment format | GFM/Jira markdown → **ADF** (auto-converted) | **Jira wiki markup** — `create`/`comment` convert GFM→wiki, but `edit` sends it **verbatim** (#935); prefer `h2.`, `*bold*`, `{code}` |
 | Auth | email + **API token** | **password** (basic), or **PAT** (`JIRA_AUTH_TYPE=bearer`), or **mTLS** |
 | User identity for `-a`/`-r` | **accountId** (GDPR strict mode, #342) — email/display name may not resolve | **username** (or display name) |
 | `--paginate <from>:` offset | **ignored** — can't page past the first 100 (#898) | **works** — old search API still honors `startAt` |
@@ -120,7 +120,7 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 
 ## Critical pitfalls
 
-1. **Forgetting `--no-input` on a write hangs the process.** In a non-interactive context (CI, agent, `&&` chain) this looks like the command "froze". Every `create`/`edit`/`assign`/`move`/`comment add`/`worklog add` in a script needs `--no-input` plus all required positional/flag values. **Known bug:** even with `--no-input`, `issue create` can still block when stdin is a socket/subprocess pipe (#948/#984) — append `</dev/null` when shelling out from an agent.
+1. **Forgetting `--no-input` on a write hangs the process.** In a non-interactive context (CI, agent, `&&` chain) this looks like the command "froze". Every `create`/`edit`/`assign`/`move`/`comment add`/`worklog add` in a script needs `--no-input` plus all required positional/flag values. **Known bug:** even with `--no-input`, the body-reading writes (`create`, `edit`, `comment add`, `epic create`) can still block on stdin when it's a socket/subprocess pipe — jira-cli treats "stdin is not a TTY" as "read the body from stdin" and waits for EOF (#948/#984). Append `</dev/null` when shelling out from an agent.
 
 2. **Guessing field values.** `-tBug`, `-sDone`, `-yHigh`, `link ... Blocks` all reference *instance-defined, case-sensitive* strings. Run Step-0 discovery first. A failed write with "specify a valid issue type" / "field cannot be set" almost always means the value doesn't exist on that project.
 
@@ -128,7 +128,7 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 
 4. **`-b/--body` and the positional comment body beat `--template`.** If both are passed, the flag/positional wins and the template is silently ignored. Use one or the other.
 
-5. **Epic creation is backend-dependent.** On classic (company-managed) projects, `jira epic create -n"Epic name" -s"Summary" --no-input` works (`-n/--name` is distinct from `-s/--summary`). On **team-managed (next-gen) projects `epic create` can still prompt (`? Epic Key`) and fail under non-interactive stdin even with `--no-input`** — there, create the epic as a normal issue (`jira issue create -tEpic -s"…" --no-input`) and attach children at *issue* creation with `-P/--parent EPIC-KEY` (the flag is "parent" because next-gen reuses the parent relationship). `epic create --no-input` is fragile (#621); `issue create` doesn't depend on the `epic.name` config mapping. See `references/troubleshooting.md`.
+5. **Epic creation quirks.** `jira epic create -n"Epic name" -s"Summary" [-b"body"] --no-input` works non-interactively on **both** classic and next-gen. Two gotchas: **`-n/--name` is required even on next-gen** (where its value is then ignored — the mandatory check still demands it), and `epic create` has **no `--raw`** flag (it prints `Epic created\n<url>`). To capture the new key as JSON, use `jira issue create -tEpic -s"…" --no-input --raw` instead (Epic is an issue type), then attach children with `-P/--parent EPIC-KEY` (the flag is "parent" because next-gen reuses the parent relationship). The `? Epic Key` prompt comes from `epic add` when its `EPIC-KEY` arg is missing — not from create.
 
 6. **Sub-tasks require `-P/--parent`,** and the parent must be a type that allows sub-tasks. "Given parent work item does not belong to appropriate hierarchy" means `-P` points at something (e.g. an epic, or another sub-task) that can't hold sub-tasks.
 

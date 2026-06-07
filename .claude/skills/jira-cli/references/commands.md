@@ -108,7 +108,7 @@ Output: `--raw` prints the created issue as JSON (use `jq -r '.key'`).
 | `--fix-version <V>` | fixVersions; repeatable. |
 | `--affects-version <V>` | affectsVersions; repeatable. |
 | `-e, --original-estimate <T>` | Original time estimate. |
-| `--custom <k=v>` | Custom field(s); repeatable. Key = the field name lowercased with spaces as hyphens (`Story Points` → `story-points`), e.g. `--custom story-points=3`. Discover names from the `customfield_*` keys in `issue view KEY --raw`. (#346) |
+| `--custom <k=v>` | Custom field(s); repeatable. The field must first be **configured under `issue.fields.custom`** in `.config.yml` (via `jira init` or by hand). Key = that field's `name` lowercased with spaces→hyphens (`Story Points` → `story-points`), e.g. `--custom story-points=3`. An **unconfigured key is warned about and silently dropped** (slated to become a hard error). (#346) |
 | `-T, --template <file>` | Read body from file (`-` = stdin). |
 | `--web` | Open in browser after creation. |
 | `--no-input` | **Disable prompting.** Required for unattended runs. |
@@ -215,7 +215,7 @@ Multi-line: `jira issue comment add KEY $'Line 1\n\nLine 2'`, or pipe: `echo "..
 `jira epic` (alias `epics`). Explorer view by default; `--table` for table.
 
 - **`epic list [EPIC-KEY]`** — no KEY lists epics; with KEY lists issues *in* that epic. Accepts every `issue list` filter flag **except** `-t/--type`, plus `--table`.
-- **`epic create -n"Name" -s"Summary" [...] --no-input`** — same flags as `issue create` **plus required `-n/--name`** (the epic name, distinct from summary). No `-t` (type is fixed to Epic). **Caveat (#621):** on **team-managed/next-gen** projects this can still prompt `? Epic Key` and fail with `Error: EOF` under non-interactive stdin even with `--no-input`. There, create the epic as a normal issue — `jira issue create -tEpic -s"…" --no-input` — and link children with `-P/--parent EPIC-KEY`.
+- **`epic create -n"Name" -s"Summary" [...] --no-input`** — same flags as `issue create` **plus required `-n/--name`** (the epic name, distinct from summary). No `-t` (type is fixed to Epic). **Notes:** `-n/--name` is **required even on next-gen** (value ignored there, but the non-interactive mandatory check still demands it); works non-interactively on both project types and the `-b` body lands. **No `--raw` flag** — to capture the new key as JSON use `jira issue create -tEpic … --no-input --raw` instead. The `? Epic Key` prompt is from `epic add` (missing `EPIC-KEY` arg), not create.
 - **`epic add EPIC-KEY ISSUE-1 [...ISSUE-N]`** (alias `assign`) — add up to 50 issues to an epic.
 - **`epic remove ISSUE-1 [...ISSUE-N]`** — remove up to 50 issues from their epic.
 

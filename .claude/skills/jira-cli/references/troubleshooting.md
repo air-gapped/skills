@@ -6,7 +6,7 @@ Add `--debug` to any failing command first — it prints the HTTP request/respon
 A write hit an interactive prompt. The process is waiting for keyboard input that won't come (CI, agent, backgrounded shell).
 - **Fix:** add `--no-input` and supply every required field as a flag/positional.
 - A read without a format flag drops into the pager/TUI — looks like a hang in a non-TTY. Add `--plain`/`--raw`/`--csv`.
-- **Known bug — `--no-input` is not always enough.** When stdin is a Unix socket or a subprocess pipe (common when an agent shells out), `jira issue create` can still block reading stdin even with `--no-input` (#948/#984). Redirect stdin to close it: append `</dev/null` to the command (`jira issue create … --no-input </dev/null`).
+- **Known bug — `--no-input` is not always enough.** jira-cli decides to read the body from stdin via `StdinHasData()`, which is really just "stdin is **not a TTY**" — not an actual data check. So when stdin is a Unix socket or subprocess pipe (common when an agent shells out), the body-reading writes (`create`, `edit`, `comment add`, `epic create`) call `io.ReadAll(os.Stdin)` and block until the pipe closes — even with `--no-input` (#948/#984). Redirect stdin to give immediate EOF: append `</dev/null` (`jira issue create … --no-input </dev/null`).
 
 ## `401 Unauthorized`
 - `JIRA_API_TOKEN` unset, wrong, or expired. `echo ${JIRA_API_TOKEN:+set}` to confirm it's exported in *this* shell.
@@ -30,13 +30,17 @@ The field isn't on that issue type's create/edit screen for the project. Epics f
 ## `Given parent work item does not belong to appropriate hierarchy`
 `-P/--parent` points at something that can't hold the child — e.g. creating a sub-task under another sub-task, or under an issue type that doesn't allow sub-tasks. Point `-P` at a valid parent (a Story/Task for a Sub-task; an Epic for `-P` epic-attach on next-gen).
 
-## `epic create` prompts `Epic Key` / `Error: EOF` (non-interactive)
-`jira epic create` is the fragile command — `--no-input` is unreliable for epic creation on Jira Cloud (#621), and on team-managed (next-gen) projects it can prompt for the epic name/key and die on EOF in a script or agent shell. Root cause: the epic-name field mapping. `jira init` writes `epic.name`/`epic.link` into the config from the project's "Epic Name" field; next-gen projects (and non-English Jira) don't expose that field the classic way, so the CLI prompts.
+## `? Epic Key` prompt / `Error: EOF` on epic commands
+The `Epic Key` prompt belongs to **`jira epic add`**, shown when its `EPIC-KEY` positional is missing or empty; in a non-interactive shell it then dies with `Error: EOF`. Provide the key: `jira epic add EPIC-1 ISSUE-1 ISSUE-2`.
 
-Fixes, best first:
-- **Create the epic as a normal issue** — `jira issue create -tEpic -s"…" --no-input` — then attach children with `-P/--parent EPIC-KEY`. Robust on next-gen. (`issue create` doesn't depend on the `epic.name` mapping.)
-- Pipe the body via stdin (works on classic projects): `echo "desc" | jira epic create -n"Name" -s"Summary" --no-input`.
-- Verify/repair `epic.name` and `epic.link` in `~/.config/.jira/.config.yml` (re-run `jira init` or edit by hand).
+`epic create` itself works non-interactively on both classic and next-gen projects. Two real gotchas (not bugs):
+- **`-n` and `-s` are both required** even on next-gen (where `-n`'s value is ignored — the mandatory check still demands it). Omitting `-n` fails with "Params `--summary` and `--name` is mandatory".
+- **No `--raw` flag** — `jira epic create … --raw` errors `unknown flag: --raw`. To capture the created key as JSON, create the epic as an issue: `jira issue create -tEpic -s"…" --no-input --raw | jq -r '.key'`.
+
+(`jira init` writes `epic.name`/`epic.link` to the config from the project's "Epic Name" field; on non-English or unusual instances those may need hand-fixing for epic features to work — but a standard `-n -s --no-input` create succeeds, body and all.)
+
+## `--custom` field ignored / "custom fields are not configured"
+`--custom` only works for fields declared under `issue.fields.custom` in `~/.config/.jira/.config.yml`. A key that isn't configured triggers the warning *"Some custom fields are not configured and will be ignored"* and is **dropped from the request** (currently a warning; slated to become a hard error). Fix: add the field to the config — re-run `jira init`, or add an entry with its `name` (and `key`/`schema`) under `issue.fields.custom` — then reference it as that `name` lowercased with spaces→hyphens. Seeing the `customfield_*` in `issue view KEY --raw` confirms it exists, but it still must be in the config to be settable.
 
 ## Transition fails / "state not found"
 The STATE string isn't a valid transition from the issue's *current* status in the workflow. Valid targets are status- and workflow-dependent.
@@ -57,7 +61,7 @@ Field semantics are asymmetric: `--label` and `--fix-version` **append**, `--com
 
 ## Markdown looks wrong in Jira
 - **Cloud:** ADF conversion is lossy. Use GFM ```` ``` ```` fences (not `{code}`), expect `~~x~~`→`-x-`, `@user` needs `[~accountid]`, emoji/HTML dropped.
-- **Server/Data Center:** there is **no ADF** — the field stores Jira wiki markup and GFM is *not* converted (#935), so `## H2` shows literally. Write **wiki markup** (`h2.`, `*bold*`, `{code}…{code}`), or convert GFM→wiki before sending. See `markdown-adf.md` → "Jira wiki markup (Server/DC)".
+- **Server/Data Center:** there is **no ADF** — the field stores Jira wiki markup. `create`/`comment add` convert your Markdown to wiki markup, but **`edit` sends the body verbatim** (it only converts when the existing description is ADF/Cloud), so an *edited* description shows raw `## H2` (#935). Write **wiki markup** directly (`h2.`, `*bold*`, `{code}…{code}`), especially when editing. See `markdown-adf.md` → "Jira wiki markup (Server/DC)".
 
 Test on one issue before bulk either way.
 
