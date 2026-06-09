@@ -55,7 +55,7 @@ Examples:
 /skill-improver freshen --group 'vllm-*'
 ```
 
-If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, or `trigger`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
+If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, `trigger`, or `philosophy`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
 
 ## The Improvement Loop
 
@@ -239,7 +239,7 @@ the skill to score it objectively. Run it twice: at baseline and after the loop.
 
 ### When to Run
 
-1. **Baseline** — after the self-score in Phase 0 step 4, spawn a blind scoring
+1. **Baseline** — after the self-score in Phase 0 step 5, spawn a blind scoring
    agent in the background. It runs in parallel with the improvement loop.
 2. **Final** — after the loop stops, spawn another blind scoring agent on the
    final version.
@@ -277,27 +277,29 @@ available, run the same prompt manually in a fresh session and feed back the
 result.
 
 **Model selection:** pin the validation subagent to the most capable
-model available (Opus 4.8, `claude-opus-4-8`, as of 2026-05-28). Boris Cherny's
+model available (Fable 5, `claude-fable-5`, as of 2026-06-09 — the
+Mythos-class tier above Opus, shipped in Claude Code v2.1.170). Boris Cherny's
 counterintuitive observation: cheaper-per-token models often use *more*
 total tokens on hard tasks because of correction loops, so the
 "expensive" model is paradoxically the cheapest path to a reliable
 answer. Validation is the loop's hard task — the dim-by-dim
 justifications are what make subsequent iterations targetable, and
 shallow Sonnet justifications cost more re-runs than they save in
-per-token spend. In the `Agent` call: pass `model: "opus"` (or the
+per-token spend. In the `Agent` call: pass `model: "fable"` (or the
 current most-capable identifier) explicitly rather than inheriting the
 parent's default.
 
 For the baseline agent, copy the original skill to a temp directory first so
 the agent scores the unmodified version even if the loop has already started.
 
-**Parallel scoring (dynamic workflows, Opus 4.8 / Claude Code v2.1.154+).**
+**Parallel scoring (dynamic workflows, Fable 5 / Opus 4.8, Claude Code v2.1.154+).**
 When the runtime exposes the `Workflow` tool AND the user has opted into it,
 run blind validation as a workflow: fan out 3 independent scorers in one phase
 and take the **median per dimension** — more robust against a single scorer's
 bias than one agent. Otherwise spawn one background `Agent` as above. Do NOT
-spin up a workflow without the user's explicit opt-in (the keyword "workflow",
-ultracode, or a direct request) — a single `Agent` is the default.
+spin up a workflow without the user's explicit opt-in (the keyword "ultracode"
+— it replaced "workflow" as the trigger keyword in v2.1.160 — or a direct
+request in the user's own words) — a single `Agent` is the default.
 
 ### Comparison Table
 
@@ -336,7 +338,7 @@ To improve multiple skills:
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
-**Dynamic workflows (Opus 4.8 / Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit Opus and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
+**Dynamic workflows (Fable 5 / Opus 4.8, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit the session model and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
 
 ---
 
@@ -395,83 +397,12 @@ of Claude Code, Anthropic; Lenny's podcast 2026). Output is a Boris
 score (0-3 anti-patterns flagged) plus the existing dim caps that fire
 as a side-effect.
 
-### Invocation
+**Invocation:** `philosophy <skill-name>` · `batch philosophy --all`.
+Surfaces findings only — never auto-applies mutations; the operator decides.
 
-```
-/skill-improver philosophy <skill-name>
-/skill-improver batch philosophy --all
-```
-
-### Phase P0: Setup
-
-1. Resolve the skill (same as Phase 0 of `improve` mode).
-2. Read `references/quality-rubric.md` §"Boris Alignment Check",
-   `references/freshen-patterns.md` §"4b. Scaffolding Decay Probes",
-   and `references/trigger-patterns.md` §"Minimalism test (Boris
-   alignment)".
-
-### Phase P1: Run the three checks
-
-| Check | Source | What it flags |
-|---|---|---|
-| Boris Alignment | quality-rubric §"Boris Alignment Check" | Strict workflow, context dump, model-version compensation |
-| Scaffolding Decay | freshen-patterns §4b | Old Claude-version language, prescriptive procedural lists, monolithic context sections |
-| Minimalism | trigger-patterns §"Minimalism test" | High-trigger-rate / low-body-content collapse candidates |
-
-Run all three. Each check returns 0 or more findings.
-
-### Phase P2: Score
-
-```
-philosophy_score = 3 - count(distinct anti-patterns flagged)
-```
-
-Boris score interpretation:
-
-| Score | Meaning |
-|---|---|
-| 3 | Skill is Boris-aligned. No structural debt. |
-| 2 | One anti-pattern. Note in justification, defer if minor. |
-| 1 | Two anti-patterns. Flag as ceiling — recommend `improve` mode pass with the flagged dims as targets. |
-| 0 | All three anti-patterns. Skill is fighting the model's grain — high probability of decay across the next 1-2 model releases. Recommend a structural rewrite, not iterative improvement. |
-
-### Phase P3: Apply (optional)
-
-Philosophy mode does NOT auto-apply mutations. It surfaces the
-findings; the operator decides whether to:
-
-1. Run `improve` mode with the flagged dims as the optimization target,
-2. Run `freshen` mode (which now includes scaffolding-decay probes), or
-3. Manually rewrite — Boris-score-0 skills typically need that, not
-   loop-driven hill climbing.
-
-### Phase P4: Persist
-
-Append a Philosophy entry to `references/improvement-backlog.md` (create
-the file if absent) with the score, flagged patterns, and a one-line
-recommendation per finding. Same format as the existing backlog
-pattern (e.g. `instructions-triage`'s backlog).
-
-### Batch Mode
-
-`/skill-improver batch philosophy --all` runs P1-P4 across every skill
-under `~/.claude/skills/`. Output is a leaderboard of Boris scores so
-the operator can target the worst offenders first. ~10 seconds per
-skill — fast because no probes hit external services and no rubric
-re-scoring runs.
-
-### Anti-patterns
-
-- Running `philosophy` mode right before a major Claude release. The
-  bitter-lesson signal is most useful 1-2 weeks AFTER a release lands —
-  when scaffolding-decay flags are confirmed by behaviour, not predicted.
-- Treating Boris score 3 as a permanent green light. Philosophy is a
-  point-in-time check; re-run at least quarterly or after each Claude
-  major release.
-- Auto-applying philosophy findings. The "right" response to model-
-  version compensation is usually deletion, but the deletion needs
-  author judgment — the loop should not delete operator-curated rules
-  unilaterally.
+Full phase workflow (P0 Setup → P4 Persist), Boris score interpretation,
+batch leaderboard, and anti-patterns live in
+**`references/philosophy-patterns.md`**. Read it when running `philosophy`.
 
 ---
 
@@ -483,6 +414,7 @@ re-scoring runs.
 - **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
 - **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
+- **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Dated per-URL index of official docs, specs, changelogs, and blog posts. Freshen Mode reads and stamps `Last verified:` / `Pinned:` fields here.
 - **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.

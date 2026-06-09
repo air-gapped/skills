@@ -43,7 +43,9 @@ When scoring, consider:
 **Platform constraint:** Claude Code truncates combined `description` + `when_to_use` at **1,536 characters** in the skill listing (raised from 250 in v2.1.105, 2026-04-13). The Agent Skills spec hard-caps `description` at 1024 chars. Descriptions shorten further when many skills are installed, via a dynamic budget (1% of context window, 8,000-char fallback; override with `SLASH_COMMAND_TOOL_CHAR_BUDGET`). Key trigger phrases MUST appear within the first 1,536 chars. For skills targeting older Claude Code (< v2.1.105), treat 250 as the cap.
 
 **Common failures:**
-- Second person: "Use this skill when..." instead of "This skill should be used when..."
+- Second person: "You can use this when..." instead of "This skill should be used
+  when..." (imperative "Use this skill when..." is acceptable — it is the form
+  Anthropic's own skill-creator description optimizer emits; see trigger-patterns.md)
 - Vague: "Provides guidance for X" with no trigger phrases
 - Over-broad: Triggers on common words that would cause false positives
 - Under-specified: Misses the most common ways users phrase the request
@@ -308,9 +310,9 @@ releases.
 
 | Pattern | Detection | Cap |
 |---|---|---|
-| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | Body contains numbered procedural lists describing the *invocation flow* (not reference content) AND the model could plausibly do the task with a goal + tool pointer. `rg -nE '^\s*\d+\. ' SKILL.md \| wc -l` ≥ 8 in non-reference sections is a strong signal. | **Dim 6 (Simplicity) capped at 6** |
+| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | Body contains numbered procedural lists describing the *invocation flow* (not reference content) AND the model could plausibly do the task with a goal + tool pointer. `rg -c '^\s*\d+\. ' SKILL.md` ≥ 8 in non-reference sections is a strong signal. | **Dim 6 (Simplicity) capped at 6** |
 | **Up-front context dumps** — skill front-loads domain context the model could fetch via Read/Grep/WebFetch | Sections >30 lines describing facts (not procedures) without pointing at a tool/file. Boris: "give it a tool so it can get the context it needs." | **Dim 4 (Actionability) capped at 7** |
-| **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | `rg -inE 'claude (tends to\|sometimes\|often)\|always remind\|model (frequently\|tends)\|compensate for'` finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
+| **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | `rg -in 'claude (tends to\|sometimes\|often)\|always remind\|model (frequently\|tends)\|compensate for'` finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
 | **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
 
 When a Boris cap triggers, record the justification like:

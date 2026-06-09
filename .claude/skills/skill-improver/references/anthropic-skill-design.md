@@ -54,7 +54,7 @@ skill and it will read them at appropriate times.
 
 | Field | Description |
 |-------|-------------|
-| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Available levels depend on the model (`xhigh` is Opus 4.7+, added v2.1.111; `max` originally Opus 4.6). **Opus 4.8 defaults to `high`** — use `xhigh` for hard tasks, `max` for the hardest. Inherits from session if omitted. |
+| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Available levels depend on the model (`xhigh` is Fable 5 and Opus 4.8/4.7, added v2.1.111; `max` originally Opus 4.6). **Opus 4.8 defaults to `high`** — use `xhigh` for hard tasks, `max` for the hardest. Inherits from session if omitted. |
 | `paths` | Glob patterns (comma-separated string or YAML list) limiting when skill activates based on files being worked on. |
 | `context` | Set to `fork` to run in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
 | `agent` | Subagent type when `context: fork` is set. Built-in: `Explore`, `Plan`, `general-purpose`. Or custom from `.claude/agents/`. Defaults to `general-purpose` if omitted. |
@@ -295,12 +295,19 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.114 | 2026-04-18 | Fixed crash in the permission dialog when an agent teams teammate requested tool permission. |
 | v2.1.152 | 2026-05 | Skills and slash commands can set `disallowed-tools` in frontmatter to remove tools while active. New `/reload-skills` command + `SessionStart` hook `reloadSkills: true` re-scan skill dirs without restart (skills installed by a hook become available in-session). New `MessageDisplay` hook event. |
 | v2.1.154 | 2026-05-28 | **Opus 4.8 (`claude-opus-4-8`) ships; defaults to `high` effort, `/effort xhigh` for hardest tasks.** **Dynamic workflows** research preview: ask Claude to create a workflow and it orchestrates tens-to-hundreds of subagents in the background (`/workflows` to view; Enterprise/Team/Max). Lean system prompt now default for all models except Haiku/Sonnet/Opus ≤4.7. Claude reserves multiple-choice prompts for decisions it genuinely can't make itself. Fast mode on 4.8 at 2× standard rate for 2.5× speed. |
+| v2.1.157 | 2026-06 | Plugins in `.claude/skills` directories load automatically, no marketplace required; `claude plugin init <name>` scaffolds a plugin there. |
+| v2.1.160 | 2026-06 | Dynamic-workflow trigger keyword renamed `workflow` → `ultracode` — the word "workflow" alone no longer triggers a run; asking for one in your own words still works. |
+| v2.1.163 | 2026-06 | Skills: `\$` escape syntax to include a literal `$` before a digit in command bodies (prevents unwanted `$1` argument substitution). |
+| v2.1.169 | 2026-06 | `--safe-mode` flag / `CLAUDE_CODE_SAFE_MODE` env var starts Claude Code with all customizations disabled (CLAUDE.md, plugins, skills, hooks, MCP) for troubleshooting. `disableBundledSkills` setting / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` hides bundled skills, workflows, and built-in slash commands from the model. |
+| v2.1.170 | 2026-06-09 | **Claude Fable 5 (`claude-fable-5`) ships — Mythos-class tier above Opus.** Supports `xhigh` effort and dynamic workflows. API $10/$50 per Mtok; included on Pro/Max/Team/seat-Enterprise Jun 9–22 2026, usage credits afterward. |
 
 ### Key Settings
 
 | Setting | Where | Purpose |
 |---------|-------|---------|
 | `disableSkillShellExecution` | `settings.json` | When `true`, blocks `` !`cmd` `` and ```!``` fenced blocks in non-bundled skills. Replacement text: `[shell command execution disabled by policy]`. Bundled and managed skills unaffected. Most useful in managed settings. |
+| `disableBundledSkills` | `settings.json` / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` | Hide bundled skills, workflows, and built-in slash commands from the model (v2.1.169). |
+| `CLAUDE_CODE_SAFE_MODE` | env var / `--safe-mode` flag | Start with ALL customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers — to isolate whether a problem comes from a skill (v2.1.169). |
 | `SLASH_COMMAND_TOOL_CHAR_BUDGET` | env var | Override the total budget for skill-description context (default: 1% of context window, 8,000-char fallback). |
 | `CLAUDE_CODE_USE_POWERSHELL_TOOL` | env var | Required to be `1` for skills that set `shell: powershell`. |
 | `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | env var | Set to `1` to load `CLAUDE.md` from `--add-dir` directories. Skills from `--add-dir` load regardless. |

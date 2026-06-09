@@ -29,7 +29,7 @@ rate against an eval set** — exactly the methodology Anthropic's own
 3 runs/query, blinded test scores, ≤1024-char hard cap).
 
 **Use trigger mode when:** a user reports "the skill didn't fire when I asked
-X", "Claude isn't using my skill", or you suspect a description is too vague,
+X", "Claude isn't using my skill", or a description looks too vague,
 too narrow, too keyword-collision-y, or simply written in the wrong vocabulary
 for how users actually phrase requests. Score-mode bumps Dim 1 (Trigger
 Precision) on subjective rubric judgment; trigger-mode measures it empirically.
@@ -311,8 +311,8 @@ Defaults:
 | Knob | Default | When to change |
 |---|---|---|
 | `--runs-per-query` | 3 | Bump to 5 if variance is killing signal (1/3 vs 2/3 keep flipping). |
-| `--trigger-threshold` | 0.5 | Lower to 0.34 if you want any trigger to count (more lenient); raise to 0.67 if you want strong consistency. |
-| `--num-workers` | 6 | Lower if hitting rate limits; higher if you have headroom. Each worker spawns a `claude -p` subprocess. |
+| `--trigger-threshold` | 0.5 | Lower to 0.34 to count any single trigger (more lenient); raise to 0.67 to require strong consistency. |
+| `--num-workers` | 6 | Lower if hitting rate limits; higher when rate-limit headroom allows. Each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Sized for `claude -p` latency here (60–150s/call incl. cold start / Opus). It only caps a *hung* call — a fast call returns as soon as it emits its `result` event — so a high value has no downside. Timed-out runs are now tracked per query and surfaced as a `warn:` line, and an all-positives-0.0 result emits an explicit "probe isn't measuring" warning instead of looking like genuine under-triggering. Lower only if calls are reliably fast. |
 | `--holdout` | 0.0 | Set 0.4 to enable train/test split. The loop sets this; standalone probes can leave at 0. |
 
@@ -546,10 +546,10 @@ value than the scaffolding costs?" applied at trigger-tune time.
 
 ## Anti-patterns
 
-- **Eval set built only from passing cases.** If you only test phrasings that
-  already work, you measure nothing. Always include user-reported failures.
+- **Eval set built only from passing cases.** Testing only phrasings that
+  already work measures nothing. Always include user-reported failures.
 - **Eval set built only from the description.** Then the description trivially
-  passes — you've measured itself. At least 1/3 of should-trigger queries must
+  passes — the eval has measured the description against itself. At least 1/3 of should-trigger queries must
   be everyday phrasings the skill author *didn't* write down.
 - **No should-not queries.** Without negatives, the loop optimizes pure recall
   → description becomes a 1024-char trigger-word soup → over-triggers everywhere

@@ -308,14 +308,14 @@ Run from the skill directory:
 
 ```bash
 # 1. Model-version compensation language
-rg -inE 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for|claude (3\.5|3\.7|opus 4\.0|sonnet 3)' SKILL.md references/ 2>/dev/null
+rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for|claude (3\.5|3\.7|opus 4\.0|sonnet 3)' SKILL.md references/ 2>/dev/null
 
 # 2. Procedural prescription where plan mode would suffice
 # (numbered lists in the SKILL.md *body*, not reference content)
-rg -nE '^\s*\d+\. ' SKILL.md | wc -l
+rg -c '^\s*\d+\. ' SKILL.md
 
 # 3. Up-front context dumps (sections >30 lines of pure facts, no tool/file pointer)
-awk '/^## /{name=$0; lines=0; next} {lines++} /^## /{print prev_name, prev_lines; prev_name=name; prev_lines=lines}' SKILL.md
+awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{if (sect) print lines, sect}' SKILL.md | sort -rn | head
 ```
 
 ### Classification

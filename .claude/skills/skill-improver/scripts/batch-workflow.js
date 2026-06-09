@@ -21,8 +21,8 @@ export const meta = {
 //   [{ dir: "keda", hints: "check kedacore/keda releases" }, ...]   per-skill freshen focus
 //   { skills: [...], baseDir: "/some/skills/root" }    override the default skills root
 //
-// Each agent inherits the main-loop model (Opus) — satisfies the "most capable
-// model for validation" rule. No git ops happen inside agents; commit after review.
+// Each agent inherits the main-loop model (e.g. Fable 5 / Opus) — satisfies the
+// "most capable model for validation" rule. No git ops happen inside agents; commit after review.
 // ---------------------------------------------------------------------------
 
 // Paths use ~ (home dir) so the committed script never hard-codes a username.
