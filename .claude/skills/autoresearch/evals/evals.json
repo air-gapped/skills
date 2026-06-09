@@ -11,7 +11,7 @@
         "Plans to create an autoresearch git branch before making changes",
         "Establishes a baseline measurement before attempting any optimizations",
         "Proposes at least 3 distinct optimization hypotheses (e.g., memoization, iterative, matrix exponentiation)",
-        "Describes a git-based keep/discard mechanism — commit on improvement, reset on regression",
+        "Describes a git-based keep/discard mechanism — commit on improvement, revert (or reset) on regression",
         "Plans to track results in a structured log (TSV or similar format) with metric values and status"
       ]
     },

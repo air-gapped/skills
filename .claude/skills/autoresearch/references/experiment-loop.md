@@ -76,9 +76,9 @@ The loop naturally exploits (small tweaks to what's working). To encourage explo
 - After 3 consecutive small improvements (<1% gain each), try a bigger structural change
 - Read the results.tsv history to identify patterns: what types of changes tend to work?
 - If stuck in a plateau, try changes from a completely different category:
-  - If you've been tuning numbers → try architectural changes
-  - If you've been changing algorithms → try configuration/parameter changes
-  - If you've been optimizing hot paths → try reducing unnecessary work
+  - Recent experiments all tuned numbers → try architectural changes
+  - Recent experiments all changed algorithms → try configuration/parameter changes
+  - Recent experiments all optimized hot paths → try reducing unnecessary work
 
 ### Baseline Re-establishment
 
@@ -90,10 +90,10 @@ last measurement, note it in the log.
 ### Context Exhaustion in Long Loops
 
 After ~10 iterations, in-context memory of previous experiments degrades as the
-conversation grows and earlier turns are compacted. Do not rely on remembering what
-you tried — **re-read `results.tsv` explicitly** before forming each hypothesis.
-The file is the authoritative record of all experiments, not your memory. This is
-especially important after autocompaction events.
+conversation grows and earlier turns are compacted. Do not rely on in-context
+memory of what was tried — **re-read `results.tsv` explicitly** before forming each
+hypothesis. The file is the authoritative record of all experiments, not the
+conversation. This is especially important after autocompaction events.
 
 ### Parallel Experiments (Advanced)
 
@@ -104,9 +104,9 @@ When the user has multiple cores/GPUs or the experiments are fast (<30s):
 3. Collect results from all, keep only the best improvement
 4. Merge the winning worktree back to the main branch
 
-This is useful for expensive-to-evaluate experiments where you want to maximize
-throughput. The tradeoff is that each agent doesn't see the others' results, so
-you may waste effort on redundant experiments.
+This is useful for expensive-to-evaluate experiments where throughput matters
+most. The tradeoff is that each agent doesn't see the others' results, so effort
+may be wasted on redundant experiments.
 
 ---
 
@@ -135,7 +135,7 @@ artifact. Watch for:
 - **Metric manipulation:** Changing output format to make parsing extract a "better" number
 
 Mitigation: the truth layer is read-only. The agent cannot modify the verifier or
-the eval data. If you suspect reward hacking, add a second metric as a sanity check.
+the eval data. If reward hacking is suspected, add a second metric as a sanity check.
 
 ### Local Maxima
 Hill climbing can get stuck. Signs:
@@ -150,12 +150,12 @@ Escape strategies:
 - Ask the user for new ideas to explore
 
 ### Nondeterminism
-GPU kernels, thread scheduling, and compilation caches can introduce noise. If your
+GPU kernels, thread scheduling, and compilation caches can introduce noise. If
 metric variance is >2% between identical runs:
 - Run the verifier 3 times and take the median
 - Use `torch.use_deterministic_algorithms(True)` for PyTorch
 - Set random seeds explicitly
-- Note the variance in your results log
+- Note the variance in the results log
 
 ---
 

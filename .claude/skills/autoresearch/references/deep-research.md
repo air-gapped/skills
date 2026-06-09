@@ -69,7 +69,7 @@ Perspectives:
 
 ### The Funnel Pattern (Progressive Narrowing)
 
-For topics where you need to go from broad to specific:
+For topics where the research needs to go from broad to specific:
 
 ```
 Round 1 (Broad): "What approaches exist for X?"
@@ -79,7 +79,7 @@ Round 3 (Specific): "How do I implement approach A with our stack?"
 
 ### The Adversarial Pattern (Challenge Assumptions)
 
-For decisions where you want to avoid confirmation bias:
+For decisions where confirmation bias is a risk:
 
 ```
 Agent 1: Find evidence FOR approach X
@@ -108,7 +108,7 @@ Specific technical artifacts:
 - Performance characteristics under specific conditions
 
 ### Gaps
-Things you looked for but couldn't find:
+Things searched for but not found:
 - "No benchmarks found comparing approach A vs B at our scale"
 - "Couldn't find production experience reports for library X"
 
@@ -162,7 +162,7 @@ which applies to a related but different context. This is a gap that may require
 - The follow-up questions are tangential to the core question
 - New searches are returning the same sources already consulted
 - Confidence across all angles is "high"
-- You've reached the configured depth limit
+- The configured depth limit is reached
 - The marginal value of more research is low (diminishing returns)
 
 ### Breadth Halving
@@ -175,7 +175,7 @@ Depth 1: 3 parallel agents (top follow-ups)
 Depth 2: 1-2 agents (final deep dives)
 ```
 
-This focuses effort as you go deeper, preventing exponential blowup.
+This focuses effort at the deeper levels, preventing exponential blowup.
 
 ## Report Templates
 

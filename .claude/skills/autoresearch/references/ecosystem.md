@@ -1,12 +1,12 @@
 # Autoresearch Ecosystem & Prior Art
 
-*Last updated: 2026-04-06. See `results/autoresearch-evolution-research-2026-04-06.md`
+*Last updated: 2026-06-09. See `results/autoresearch-evolution-research-2026-04-06.md`
 for the full research report with methodology, findings, and source assessments.*
 
 ## Canonical
 
 - [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — The original
-  630-line implementation. 67K stars. Three-file architecture (prepare.py read-only,
+  630-line implementation. Three-file architecture (prepare.py read-only,
   train.py agent-editable, program.md human-editable). val_bpb metric, 5-min budget.
 - [karpathy/autoresearch program.md](https://github.com/karpathy/autoresearch/blob/master/program.md) —
   The agent instruction file. Our SKILL.md is heavily influenced by this.
@@ -32,7 +32,7 @@ for the full research report with methodology, findings, and source assessments.
 ## Meta / Self-Improving Agents
 
 - [facebookresearch/HyperAgents](https://github.com/facebookresearch/HyperAgents) —
-  Recursive self-improvement. Meta-agent modifies task agents AND itself. 2.2K stars.
+  Recursive self-improvement. Meta-agent modifies task agents AND itself.
 - [metauto-ai/HGM](https://github.com/metauto-ai/HGM) — Huxley-Godel Machine. Tree
   search over agent codebases. ICLR 2026 Oral. Human-level on SWE-bench Verified.
 - [SakanaAI/AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist-v2) — Full
@@ -43,7 +43,7 @@ for the full research report with methodology, findings, and source assessments.
 ## Swarm / Distributed
 
 - [HKUDS/ClawTeam](https://github.com/HKUDS/ClawTeam) — Leader + specialized workers.
-  Multi-GPU parallel. 4.5K stars.
+  Multi-GPU parallel.
 - [autoresearch@home](https://github.com/mutable-state-inc/autoresearch-at-home) —
   Distributed SETI@home-style with experiment claiming and hypothesis exchange.
 
@@ -61,7 +61,7 @@ for the full research report with methodology, findings, and source assessments.
 - [stanford-oval/storm](https://github.com/stanford-oval/storm) — STORM/Co-STORM v1.1.0.
   Multi-perspective research. Our Mode 2 is based on this pattern.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
-  depth+breadth implementation in <500 lines. 18.6K stars.
+  depth+breadth implementation in <500 lines.
 - [Deep Researcher Reflect Evolve](https://arxiv.org/abs/2601.20843) — Sequential
   refinement with Global Research Context. Beat Claude Researcher, Perplexity, and Grok.
   Key finding: sequential > parallel in 95.6% of configurations.

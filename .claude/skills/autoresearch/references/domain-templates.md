@@ -13,7 +13,7 @@ starting points — adapt to the specific project.
 - [Test Coverage](#test-coverage)
 - [Rust / C++ Compilation Speed](#rust--c-compilation-speed)
 - [Docker Image Size](#docker-image-size)
-- [Creating Your Own Template](#creating-your-own-template)
+- [Creating a Custom Template](#creating-a-custom-template)
 
 ---
 
@@ -109,7 +109,7 @@ typical_experiments:
   - Negative examples ("do NOT do X")
 notes: |
   Prompt optimization is especially susceptible to overfitting to a small eval set.
-  Keep a held-out test set that you check only at the end, not after every iteration.
+  Keep a held-out test set that is checked only at the end, not after every iteration.
   Run each eval 3 times to account for LLM sampling variance.
 ```
 
@@ -163,9 +163,9 @@ typical_experiments:
 
 ---
 
-## Creating Your Own Template
+## Creating a Custom Template
 
-If your domain isn't listed above, define the four components:
+If the domain isn't listed above, define the four components:
 
 ```yaml
 truth_layer: [files that define correctness — never modified]
@@ -179,6 +179,6 @@ notes: |
 ```
 
 The key requirement is a **verifier that produces a comparable numeric metric**.
-If you can't measure it, you can't optimize it with the experiment loop — use
+What can't be measured can't be optimized with the experiment loop — use
 Mode 3 (Improve) instead, which can handle qualitative improvement through
 research-informed changes.

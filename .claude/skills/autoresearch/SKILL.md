@@ -85,6 +85,9 @@ Don't gate on this; just note it so the user can choose.
 
 Run this loop autonomously without pausing for confirmation. The user may be asleep,
 at lunch, or doing other work — they will interrupt when they want it to stop.
+Note that Bash is pre-approved only for `git *` commands — the Step 2 baseline run
+doubles as the permission warm-up for the verifier command, so it gets approved
+while the user is still present, not mid-loop while they are away.
 
 ```
 LOOP:
@@ -129,8 +132,11 @@ LOOP:
 
 ### Stopping Conditions
 
+At 5 consecutive discards (plateau — likely a local maximum), do NOT stop yet:
+apply the escape strategies in `references/experiment-loop.md` §"Local Maxima"
+and pivot to a different hypothesis category.
+
 Stop the loop when ANY of these are true:
-- **Plateau:** 5 consecutive discards (likely a local maximum)
 - **Ceiling mapped:** 8+ consecutive discards spanning at least 3 different hypothesis
   categories. This is not a failure — it means the optimization space has been explored
   and the system is near its ceiling. Report it as a positive finding:
@@ -211,29 +217,26 @@ apply them.
 
 ### Phase 1: Research
 
-1. Identify what the user wants to improve (code, config, prompt, workflow)
-2. Run Mode 2 (Research) targeting:
-   - Best practices for this type of artifact
-   - Common performance pitfalls
-   - What the state of the art looks like
-   - Specific techniques that have worked for others
-3. Present findings to the user as a brief summary (not the full report)
-4. Propose a metric and verifier based on the research findings
-5. **If the metric is subjective** (quality scores, "is it better?", LLM-as-judge),
-   recommend converting to 3-5 binary pass/fail assertions instead. Binary evals
-   (e.g., "Does the output contain X?", "Is the response under N tokens?", "Does it
-   compile?") resist drift and enable truly autonomous operation. Fuzzy 1-5 rubrics
-   cause the agent to score itself leniently over time. A test either passes or doesn't.
+Identify what the user wants to improve (code, config, prompt, workflow), then run
+Mode 2 targeting: best practices for this type of artifact, common performance
+pitfalls, what the state of the art looks like, and specific techniques that have
+worked for others. Present the findings to the user as a brief summary (not the
+full report) and propose a metric + verifier grounded in them.
+
+**If the metric is subjective** (quality scores, "is it better?", LLM-as-judge),
+recommend converting to 3-5 binary pass/fail assertions instead. Binary evals
+(e.g., "Does the output contain X?", "Is the response under N tokens?", "Does it
+compile?") resist drift and enable truly autonomous operation. Fuzzy 1-5 rubrics
+cause the agent to score itself leniently over time. A test either passes or doesn't.
 
 ### Phase 2: Optimize
 
-1. Present the proposed experiment configuration to the user:
-   - Truth layer, mutable surface, verifier command, metric + direction
-   - Top 5 hypotheses ranked by expected impact (from research findings)
-2. Let the user confirm or override, then enter the Mode 1 loop
-3. Order hypotheses research-informed first, speculative later
-4. When keeping changes informed by the research phase, include provenance
-   comments that reference the research file (e.g., `See results/<topic>-research-<date>.md`)
+Present the proposed experiment configuration to the user — truth layer, mutable
+surface, verifier command, metric + direction, and the top 5 hypotheses ranked by
+expected impact from the research — then let them confirm or override and enter
+the Mode 1 loop. Order hypotheses research-informed first, speculative later. When
+keeping changes informed by the research phase, include provenance comments that
+reference the research file (e.g., `See results/<topic>-research-<date>.md`).
 
 The research phase turns blind exploration into targeted experimentation.
 
@@ -318,6 +321,10 @@ the agent prompt template, and the comparison-table format.
   perf, ML training, prompt optimization, test coverage, bundle size, API latency
 - `references/ecosystem.md` — Prior art: canonical repos, tree search / evolutionary
   / meta-agent alternatives, Claude Code implementations, reward hacking case studies
+- `references/sources.md` — Dated per-URL index backing ecosystem.md; freshen passes
+  stamp `Last verified:` fields here
+- `references/improvement-backlog.md` — Ceiling findings carried across skill-improver
+  passes; not needed at invocation time
 
 ### Example Reports
 - `results/autoresearch-evolution-research-2026-04-06.md` — Mode 2 output: how the
