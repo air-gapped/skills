@@ -202,6 +202,13 @@ If the backlog already exists with items skill-improver chose not to fix this
 run, carry them forward into the new "Open" section with a `(carried YYYY-MM-DD)`
 marker so staleness is visible.
 
+**The backlog is append-only history, not a status page.** When rewriting it,
+never drop prior passes' "Resolved" sections or discard rationales — keep them
+as dated `## Resolved — YYYY-MM-DD` sections below the current pass. Discard
+rationales are anti-re-proposal guards: a future loop that can't see "tried X,
+judged net-negative" will re-propose X. Git keeps the bytes, but loops read the
+live file, not git history.
+
 If the run produced zero ceiling findings (converged cleanly at ≥90/100),
 still update the file — strip "Open" to empty and record the final score under
 "Resolved this pass" so the file remains a truthful record.

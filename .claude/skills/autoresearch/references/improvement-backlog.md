@@ -76,6 +76,17 @@ Baseline self **84** / blind **80** (Fable 5 scorer) → final self **86** / bli
 - **evals.json alignment (Dim 8):** eval 1 expectation now accepts revert (the
   skill's actual mechanism) alongside reset.
 
+## Resolved — 2026-05-28
+
+- **Freshen — date stamps:** Probed and stamped `Last verified: 2026-05-28` on karpathy/autoresearch (×2), stanford-oval/storm (v1.1.0 pin confirmed), WecoAI/aideml, gepa-ai/gepa, SakanaAI/ShinkaEvolve, metauto-ai/HGM, dzhng/deep-research, alvinreal/awesome-autoresearch. All alive, unarchived, no drift/deprecations/broken links. Three-file architecture of karpathy/autoresearch verified in the live tree.
+- **Freshen — new primary source (Dim 9/10):** Added Karpathy's "notes from claude coding" X post (x.com/karpathy/status/2015883857489522876, 2026-01-26) to `sources.md` Canonical and `ecosystem.md`. Verified live via the Chrome browser agent. Its *Leverage* paragraph is the author's own articulation of the skill's thesis; same post the 160K-star `andrej-karpathy-skills` repo derives from.
+- **Improve — Dim 6 (kept, +1 self):** Trimmed `SKILL.md` Blind Validation section from a duplicated 3-step protocol to a summary + pointer, matching the skill's own progressive-disclosure pattern (the full protocol already lives in `experiment-loop.md`). 329→324 lines, no decision rule lost.
+- **Improve — crash/timeout consolidation (attempted, discarded):** Tried replacing the inline crash/timeout bullets in LOOP Step 4 with a pointer to the Crash Handling section. Discarded — the loop is the skill's core executable artifact and must read top-to-bottom; the inline thresholds are the loop-critical subset, intentionally placed. Net actionability cost for ~0 simplicity gain.
+
+*(2026-05-28 record restored 2026-06-09 — dropped in that day's backlog rewrite;
+prior-pass history stays in the live file so future loops inherit it without
+digging through git.)*
+
 ## Score record
 
 | Pass date | Self | Blind | Notes |

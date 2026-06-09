@@ -29,6 +29,11 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Discards / judged no-ops this pass (analyzed, not applied)
 
+- **(carried 2026-05-28) Dim 2: collapse the freshen/trigger mode-summary stubs
+  into one table** (a final blind agent's suggestion). DISCARD — the prose stubs
+  carry the trigger context the model uses to know the modes exist; a table
+  would compress that signal for ~3 lines. Net-negative. Applies equally to the
+  philosophy stub added 2026-06-09.
 - **Dim 6: trim ~20–30 lines of deliberate reinforcement** ("Operating Rules"
   restating phase rules; "What a stop is NOT"; "Open is NOT a wishlist"). Blind
   agents scored Dim 6 at 6–7 citing this density both passes. The 2026-05-28 run
@@ -109,3 +114,36 @@ https://www.anthropic.com/news/claude-fable-5-mythos-5):
   only, contradicting the mode's own batch section). Dim 8 (final-blind finding).
 - Converted 5 second-person slips in trigger-patterns.md to imperative (Boris
   quote and intentional examples untouched). Dim 3.
+
+## Resolved — 2026-05-28 (improve + freshen, Opus 4.8 learnings)
+
+Baseline self **81** / blind **84** → final self **89** / blind **90**. 12 kept changes.
+
+**Freshen to Opus 4.8 / Claude Code v2.1.154** (verified via `gh` changelog +
+anthropic.com news; Dim 9 6/7 → 10):
+- SKILL.md Blind Validation model selection: "Opus 4.6+" → "Opus 4.8
+  (`claude-opus-4-8`)".
+- `anthropic-skill-design.md`: `effort` field notes Opus 4.8 defaults to `high`
+  (`xhigh`/`max` for harder); added `disallowed-tools` frontmatter field
+  (v2.1.152); added version-table rows v2.1.152 + v2.1.154.
+- `improvement-patterns.md` §9.3: Opus 4.6 → Opus 4.8 effort example.
+- `sources.md`: new "Most recent freshen pass: 2026-05-28" section; changelog row
+  stamped 2026-05-28 / pinned v2.1.154; new Opus 4.8 news-page row; added a TOC.
+- **Dynamic workflows** (the headline Opus 4.8 learning, maps to this skill's
+  multi-agent core): notes in Blind Validation (§"Parallel scoring" — fan out N
+  scorers, take the median, opt-in guarded) and Batch Mode (parallel baseline
+  scoring via the `Workflow` tool).
+
+**Improve** (rubric hill-climb):
+- Extracted the Freshen Mode (F0–F6) and Trigger Mode (T0–T7) workflows from
+  SKILL.md into `freshen-patterns.md` / `trigger-patterns.md` (one level deep,
+  TOC + internal §-refs rewritten). SKILL.md **736 → 499 lines** (under the 500
+  ceiling); Boris numbered-line count **70 → 40** (remaining lines are core
+  methodology, rubric-exempt — confirmed by blind agent, no Dim 6 cap). Dim 2
+  5→8, Dim 6 6→8.
+- Converted 5 second-person slips to imperative (Dim 3 9 → 10).
+- Reworded the backlog-reference self-contradiction at SKILL.md Phase 6 (Dim 8).
+
+*(2026-05-28 record restored 2026-06-09 — dropped in that day's backlog rewrite;
+prior-pass history stays in the live file so future loops inherit it without
+digging through git.)*
