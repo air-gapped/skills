@@ -89,6 +89,12 @@ Formulate one specific change:
 
 Consult `references/improvement-patterns.md` for concrete before/after patterns organized by dimension.
 
+**Factual-claim hypotheses require a probe.** If the change would alter a
+version, date, model name, API, flag, or any other external-world claim, run an
+online verification BEFORE mutating (see Operating Rules §"The Skill Outranks
+Training Data") — the claim is likely newer than the model's knowledge cutoff,
+and "fixing" it from memory regresses the skill.
+
 **The simplicity criterion (from autoresearch):** A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome. A +1 score that adds 20 lines of noise? Skip. A +1 from deleting redundant content? Keep.
 
 ### Phase 3: Mutate (Make the Change)
@@ -229,6 +235,26 @@ Each iteration targets one file. If the improvement requires touching multiple f
 
 The skill reflects the author's domain expertise. Improve structure, clarity, and adherence to best practices. Do NOT rewrite the author's domain knowledge or change what the skill teaches — only how it teaches it.
 
+### The Skill Outranks Training Data
+
+Target skills are freshened continuously — their factual claims (versions,
+release dates, model names, APIs, flags, pinned SHAs) are often NEWER than the
+model's knowledge cutoff. Treat the skill's existing text as more current than
+the model's prior, never the reverse. This rule applies in EVERY mode, not just
+`freshen`:
+
+- Never mutate an external-world claim from memory. If a hypothesis requires
+  changing one, verify online first (gh / WebFetch / WebSearch, freshen-style
+  probe) and cite the source in the iteration log — or drop the hypothesis.
+  "I know this is wrong" is not evidence; the probe is.
+- **Downgrade alarm:** wanting to lower a version, move a date backward, or
+  revert a claim to an older state is the signature of training-data staleness
+  — the skill was probably freshened past the cutoff. Mandatory online check
+  before touching it; expect to find the skill is right.
+- This binds blind scorers too — the validation prompt instructs them to check
+  `sources.md` stamps instead of scoring Dim 9 down from memory, and the loop
+  must not act on a blind agent's "wrong version" finding without its own probe.
+
 ---
 
 ## Blind Validation
@@ -262,7 +288,12 @@ For Dimension 1: check what falls within the first 1,536 chars of combined
 `description` + `when_to_use`, and penalize if key trigger phrases are past the
 cutoff. Note whether the skill splits the two fields or stuffs everything into
 `description`.
-For Dimension 9: check if appropriate frontmatter fields are used.
+For Dimension 9: check if appropriate frontmatter fields are used. Do NOT mark
+a version, date, or other external-world claim wrong from internal knowledge —
+the skill is freshened continuously and its claims may postdate the knowledge
+cutoff. A claim covered by a recent `Last verified:` stamp in sources.md
+outranks the prior. If a claim looks wrong, say "verify online" — never
+recommend reverting it to an older value from memory.
 
 Score each dimension (0-10) with one-sentence justification. Return the
 scoring table, the total, and a "Top 3 issues" list (one line each, with

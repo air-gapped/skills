@@ -38,6 +38,31 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   blind agent shows the redundancy causing *behavioral* errors, not just
   rubric-cosmetic cost.
 
+## Resolved — 2026-06-09 (hotfix: training-data regression guard)
+
+**User-reported incident:** an `improve` run on `rust-expert` mutated factual
+claims from training-data memory, regressing content the skill had been
+freshened to AFTER the model's knowledge cutoff. Root cause: only `freshen`
+mode was required to go online — `improve` hypotheses and blind-scorer
+findings could alter external-world claims (versions, dates, model names,
+flags, SHAs) from the model's stale prior, and nothing treated a
+version-downgrade as the alarm signal it is.
+
+**Fix (4 files, every point where a mutation or score can originate):**
+- SKILL.md: new Operating Rule §"The Skill Outranks Training Data" (never
+  mutate external-world claims from memory; downgrade = mandatory online
+  probe; binds blind scorers); Phase 2 "Factual-claim hypotheses require a
+  probe"; blind-agent prompt Dim 9 guard.
+- quality-rubric.md Dim 9 check method: verification = online probes / local
+  execution / sources.md stamps, never scorer memory; recent stamp outranks
+  the prior.
+- improvement-patterns.md: Dim 9 guard banner; Patterns 9.1/9.2 now require
+  cited online probes and forbid memory-based "corrections".
+- scripts/batch-workflow.js: recon STEP 3 (no memory-based Dim 9 docking),
+  STEP 4 (factual-claim hypotheses only from STEP 5 probes), apply
+  WORKSTREAM A rule (freshen evidence required, downgrades presumed stale),
+  blindPrompt Dim 9 guard.
+
 ## Resolved this pass — 2026-06-09 (improve + freshen, Fable 5 release day)
 
 Baseline self **84** / blind **82** → final self **88** / blind re-run after

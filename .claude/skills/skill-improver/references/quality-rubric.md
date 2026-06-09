@@ -213,7 +213,15 @@ contents at the top.
 | 9–10 | Authoritative — could serve as reference documentation |
 
 **Check method:** Verify key claims against actual tool behavior, API docs, or current
-best practices. Also check: does the skill use appropriate frontmatter fields? A skill
+best practices. **Verification means online probes, local execution, or `sources.md`
+stamps — never the scorer's training-data memory.** Skills here are freshened
+continuously, so factual claims (versions, dates, model names, flags) often postdate
+the model's knowledge cutoff; a claim covered by a recent `Last verified:` stamp
+outranks the prior. Never score a claim down — and never recommend reverting it to
+an older value — from memory alone; flag it for an online probe (freshen mode)
+instead. A version that "looks too new" is usually correct; the urge to lower it is
+the canonical training-data-staleness failure.
+Also check: does the skill use appropriate frontmatter fields? A skill
 scoped to specific file types should use `paths:`. A task skill with side effects
 should use `disable-model-invocation: true`. Scripts referencing the skill directory
 should use `${CLAUDE_SKILL_DIR}`. See `references/anthropic-skill-design.md` for the

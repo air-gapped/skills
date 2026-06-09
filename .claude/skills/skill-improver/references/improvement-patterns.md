@@ -391,17 +391,27 @@ Use `--verbose` for detailed output.
 
 ## Dimension 9: Domain Accuracy
 
+> **Guard:** every Dim 9 mutation needs an online or local-execution source —
+> training-data memory is NOT a source. The skill's claims may postdate the
+> model's knowledge cutoff: a version that "looks too new" is usually correct,
+> and lowering it from memory is the canonical staleness failure. See SKILL.md
+> §"The Skill Outranks Training Data".
+
 ### Pattern 9.1: Update Deprecated APIs
 
 **Problem:** Instructions reference outdated tool versions or deprecated flags.
 
-**Fix:** Verify commands against current documentation. Update to current syntax.
+**Fix:** Verify commands against current documentation — via an online probe
+(`gh`, WebFetch, WebSearch), never from memory — and cite the source. If the
+"current syntax" remembered from training is OLDER than what the skill says,
+the skill is right; do not touch it.
 
 ### Pattern 9.2: Fix Incorrect Defaults
 
 **Problem:** Stated default values don't match actual tool behavior.
 
-**Fix:** Test or verify defaults and correct them.
+**Fix:** Test locally or verify online, then correct them. Never "correct" a
+value from memory.
 
 ### Pattern 9.3: Add Missing Frontmatter Fields
 
