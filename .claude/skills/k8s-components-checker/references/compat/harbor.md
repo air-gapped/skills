@@ -17,6 +17,11 @@
   2.15.x is real. Both 2.14 and 2.15 are tested only to **k8s 1.34** (§§ below) —
   so neither adds 1.35. See `references/version-verification.md` § Three
   orthogonal failure modes (#2 `releases/latest` ≠ highest version).
+- **2026-06-11 lab-verified (helm-managed):** 2.14.0 → 2.15.1 (chart
+  1.18.0 → 1.19.1) upgraded clean on k8s 1.34.8/RKE2; the SAME install earlier
+  jumped **2.11.1 → 2.14.0 DIRECT** (three minors, 2025-12-09) and ran 6 months
+  without issue. See § Multi-minor upgrade path below, plus the lab-verified
+  annotations under § 2.15 (incl. a PDB-claim CORRECTION).
 
 Harbor is plain Deployments — no CRDs, no operator. The compat surface is
 (a) which k8s minors the chart was tested on, (b) DB schema migrations that
@@ -33,6 +38,53 @@ k8s window is the integration-test matrix baked into
 PR #2241). Helm will not block install on an out-of-matrix cluster — the
 operator owns that decision.
 
+## Multi-minor upgrade path 2.11 → 2.15 (lab-verified 2026-06-11)
+
+For operators still on 2.11.x planning the jump to the 2.15 line.
+
+- **Official span:** the upgrade guide for the current version covers
+  "migration from v2.11.0 and later to the current version"
+  (goharbor/website `docs/administration/upgrade/_index.md`) — 2.11.x → 2.15.x
+  is inside the documented window, no forced intermediate stop.
+- **No rollback:** the Helm upgrade doc (`helm-upgrade.md`) states the DB
+  schema "cannot be downgraded automatically, so the `helm rollback` is not
+  supported", and migration downtime "cannot be avoid[ed]". Recovery from a
+  failed hop is DB-restore only — the pre-upgrade DB snapshot is the whole
+  rollback plan.
+- **Lab data point A — 2.11.1 → 2.14.0 DIRECT (chart 1.15.1 → 1.18.0,
+  2025-12-09, RKE2, external Zalando/Spilo PG, external Redis sentinel, S3/Ceph
+  RGW registry storage):** three-minor hop in ONE `helm upgrade`. The schema
+  migrations are sequential golang-migrate steps that the core pod replays on
+  startup, so skipped minors' migrations all run in the single hop. Ran clean;
+  stable for 6 months after. CAVEAT: every one-way item from 2.12/2.13/2.14
+  lands AT ONCE in such a hop — pre-clear the § 2.13 set (robotV1 rotation,
+  `with_signature` consumers, CSRF re-login window) and the § 2.14 set
+  (replication-adapter allowlist, gitlab/gcr adapter removal) BEFORE it.
+- **Adapter-allowlist nuance (verified on 2.14):** endpoints that point at
+  gcr.io / registry.gitlab.com using the GENERIC "Docker Registry" provider
+  survive the 2.14 allowlist and stay Healthy — only the dedicated `gcr` /
+  `gitlab` ADAPTER types were removed. Audit `/api/v2.0/replication/adapters`
+  + the provider column under Registries, not just endpoint URLs.
+- **Lab data point B — 2.14.0 → 2.15.1 (chart 1.18.0 → 1.19.1, 2026-06-11,
+  k8s 1.34.8):** schema migration `171/u 2.14.1_schema` + `180/u 2.15.0_schema`
+  ran inside core startup, sub-second each on a small DB (~50 GiB registry, 24
+  repos); with `replicas: 2` both cores race the migration and the loser
+  no-ops. Full rollout settled in ~2 min. Proxy-cache project → Docker Hub
+  verified working on 2.15.1 (manifest pull through `<harbor>/docker.io/...`),
+  including decryption of the stored upstream credential.
+- **Chart-side secret churn (any version, helm-managed installs):** the chart
+  REGENERATES `CSRF_KEY`, `JOBSERVICE_SECRET`, `REGISTRY_HTTP_SECRET`, the
+  registry htpasswd salt, core `secret`, and the token-service CA on EVERY
+  `helm upgrade` (no `lookup`), unless pinned via the `existingSecret*` values.
+  Consequence: every chart upgrade logs out active UI sessions — so 2.13's
+  one-time CSRF-key regeneration is a non-event for chart-managed installs
+  (they re-login every upgrade anyway).
+- **Benign startup noise after the bump (don't chase these):** jobservice
+  `[ERROR] no task found for execution: SYSTEM_ARTIFACT_CLEANUP:<id>` =
+  boot-time scheduler sync against a stale execution row, stops after startup;
+  core `find: '/etc/harbor/ssl': No such file or directory` + `init global
+  config instance failed ... app.conf` = normal when `internalTLS` is disabled.
+
 ## 2.15 — chart 1.19.x  (RELEASED; latest patch v2.15.1 — gh-enumerated 2026-05-31. `releases/latest` stays v2.14.4 = recency, not rank. Tested k8s 1.32–1.34 — does NOT add 1.35.)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
@@ -44,6 +96,82 @@ operator owns that decision.
     a custom Trivy/Trivy-adapter image override, re-verify it builds against
     the new adapter API. Known issue at GA: proxy-cache projects to Docker
     Hub broken — fixed in 2.15.1 + chart 1.19.1.
+  - **Trivy supply-chain incident fallout (2026-03-01, verified 2026-06-11)
+    — matters to ALL Harbor lines, especially air-gapped mirrors:** all
+    `aquasecurity/trivy` GitHub Releases v0.27.0–v0.69.1 were PERMANENTLY
+    DELETED in the attack (Harbor PR #22896/#22911); v0.69.2 was the
+    emergency re-release. Consequences: (a) any mirror/build pipeline that
+    fetches trivy RELEASE TARBALLS by version URL 404s for every pre-incident
+    version — including the engines Harbor ≤2.14 pins (e.g. 2.11.1 pins
+    v0.54.1 via `releases/download/...` in its Makefile) — so EOL-line
+    adapter images can no longer be rebuilt from upstream artifacts;
+    (b) trivy-db OCI publishing had outages ~2026-03-23 (trivy-db #651) and
+    2026-04-16→20 (trivy-db #658/#660, disabled build workflow) but RESUMED —
+    both `ghcr.io/aquasecurity/trivy-db:2` and `mirror.gcr.io/aquasec/trivy-db:2`
+    verified freshly published 2026-06-11; (c) DB schema is STILL v2 — old
+    engines (v0.54.x in Harbor 2.11) consume the current DB fine, so a stale
+    scanner DB on an old Harbor means the operator's MIRROR PIPELINE broke
+    (likely during the March/April outages or by fetching deleted release
+    assets), not an upstream compat break. Re-verify checksums of anything
+    mirrored around the incident window. Newer trivy also prefers
+    `mirror.gcr.io/aquasec/trivy-db:2` as first DB source; and from trivy
+    v0.72.0 release packaging changes again (no arch-specific image tags,
+    APT `generic` dist only — discussions #10824/#10819) — re-check mirror
+    automation that scrapes those.
+  - **Air-gap Trivy-DB mirroring pattern (verified against chart 1.15.1 +
+    adapter v0.31.4 source, 2026-06-11):** Harbor itself stores the trivy-db
+    OCI artifact fine (`skopeo copy docker://ghcr.io/aquasecurity/trivy-db:2
+    docker://<harbor>/mirror/trivy-db:2` into a PUBLIC project; tag is
+    mutable — exempt it from immutability rules, and let untagged-artifact
+    GC reclaim superseded builds). Tag inventory (verified live): trivy-db
+    has ONLY `1` (dead v1 schema), `2` (live, ~100 MiB layer, re-pushed
+    every build) and `latest` (parallel push of the same build — do NOT
+    mirror it; it would jump schema on a future v3). trivy-java-db has only
+    `1` (its live schema, ~880 MiB layer — needed for JAR/WAR scanning;
+    skipping it via `skipJavaDBUpdate: true` makes Java-image scans
+    degrade/fail, so mirror it too rather than turning it off). For
+    `skopeo sync` automation use EXPLICIT tags — semver rules coerce bare
+    `1`/`2` to `1.0.0`/`2.0.0` (dry-run-verified), so a `>= 1.0.0`
+    constraint silently mirrors the dead v1 schema forever and would
+    auto-pull an incompatible future v3:
+
+    ```yaml
+    ghcr.io:
+      images:
+        aquasecurity/trivy-db: ["2"]
+        aquasecurity/trivy-java-db: ["1"]
+    ```
+
+    Pointing the scanner at it: chart ≥1.18 has first-class `trivy.dbRepository` /
+    `trivy.javaDBRepository` values; on OLDER charts (1.15.x) use
+    `trivy.extraEnvVars` with `TRIVY_DB_REPOSITORY` /
+    `TRIVY_JAVA_DB_REPOSITORY` — the adapter passes its full env to the
+    trivy subprocess (`cmd.Env = ambassador.Environ()` in wrapper.go), and
+    trivy reads flags from `TRIVY_*` envs. Keep `skipUpdate: false` AND
+    `skipJavaDBUpdate: false` (trivy now self-refreshes BOTH DBs from the
+    internal repos — re-enable the java one if it was disabled as a
+    workaround for failing downloads) + `offlineScan: true`. Tag
+    semantics (verified in trivy SOURCE at tag v0.54.1,
+    `pkg/flag/db_flags.go` ToOptions): the value is parsed as a full OCI
+    reference — an EXPLICIT tag is respected as-is; if NO tag is given the
+    schema version (`:2`) is appended "for backward compatibility". So both
+    `<harbor>/<proj>/trivy-db` and `<harbor>/<proj>/trivy-db:2` work on
+    v0.54.1+. Multi-segment repo paths (e.g. a per-upstream-registry project
+    layout `<harbor>/ghcr.io/aquasecurity/trivy-db:2`) are fine — parsing is
+    go-containerregistry `name.ParseReference`, and Harbor allows nested
+    repository paths within a project. The adapter (verified v0.31.4
+    `prepareScanCmd`) passes NO `--db-repository` CLI flag, so the env var is
+    never overridden. INTERNAL-CA mirrors: set top-level
+    `caBundleSecretName` (present since ≤1.15.x; secret key `ca.crt`) — the
+    chart mounts it at `/harbor_cust_cert/` into core/jobservice/registry/
+    trivy and every photon image's entrypoint appends it to the system
+    trust bundle (`install_cert.sh`), so trivy's DB pull verifies against
+    the internal CA (also how CORE trusts internal replication/proxy-cache
+    endpoints — the alternative is per-endpoint "Verify Remote Cert" off).
+    `trivy.insecure: true` exists but disables TLS verify for EVERYTHING
+    trivy pulls — prefer the CA bundle. This supersedes hand-rolled
+    curl-the-blob-into-the-container DB injection (which is usually a
+    workaround for exactly this missing CA trust).
   - Pull-through cache **replaced by proxy cache** (PR #22766). Any
     operator-side automation that distinguished "pull-through" vs
     "proxy-cache" surface needs to collapse onto proxy-cache only.
@@ -63,9 +191,24 @@ operator owns that decision.
   upstream (PR #22298, #22309). Operators still on those endpoint types
   must migrate before bumping.
 - **Notable:**
-  - PDBs now installed automatically when `replica > 1` (chart 1.19, PR
-    #1509). Existing manually-managed PDBs will collide — delete them or
-    set `podDisruptionBudget.enabled: false`.
+  - PDB support added per component (chart 1.19, PR #1509). **CORRECTION
+    (2026-06-11, verified against the chart 1.19.1 default render): PDBs are
+    OPT-IN — every `podDisruptionBudget` block defaults to `enabled: false`,
+    nothing is auto-installed at `replica > 1`.** The prior claim here
+    ("installed automatically … will collide") was wrong: no collision risk
+    unless you enable them. Enabled with `minAvailable: 1` on replicas=2
+    components they render and apply clean (lab-verified).
+  - Chart 1.19 default image refs gained an explicit `docker.io/` prefix
+    (`goharbor/harbor-core` → `docker.io/goharbor/harbor-core`). Air-gap
+    mirror lists and containerd/registry rewrite rules that match the bare
+    `goharbor/...` form must be updated for the new canonical refs.
+  - New chart knobs: per-component liveness/readiness probe tuning exposed,
+    and `jobservice.registryHttpClientTimeout` (default 30, rendered as
+    `REGISTRY_HTTP_CLIENT_TIMEOUT` minutes).
+  - 2.15 core now logs an explicit WARNING at startup: "Admin password from
+    config (HARBOR_ADMIN_PASSWORD) ignored: password already exists in
+    database." — confirms `harborAdminPassword` is a first-install seed only;
+    on upgrades it is dead config.
   - HTTPRoute (Gateway API) support landed in chart 1.18 and stabilised in
     1.19 — `parentRefs` value-shape fix in 1.19.0 (PR #2256). Switching
     from Ingress to HTTPRoute is a one-way change to the values file; not
