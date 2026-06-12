@@ -79,6 +79,24 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   Consequence: every chart upgrade logs out active UI sessions — so 2.13's
   one-time CSRF-key regeneration is a non-event for chart-managed installs
   (they re-login every upgrade anyway).
+- **Rotating `secretKey` (lab-verified the hard way, 2026-06-11):** the 16-char
+  `secretKey` AES-encrypts values at rest in the DB. Rotating it invalidates
+  ALL of them at once: registry/replication endpoint credentials, the **OIDC
+  provider client secret** (browser SSO breaks at token exchange — recover by
+  logging in as the LOCAL `admin`, whose password is hashed not encrypted, and
+  re-entering it under Administration→Configuration), **every user's OIDC CLI
+  secret** ("failed to verify the secret: secret mismatch" in core logs;
+  users reset in profile + re-do `docker login`), and the LDAP search password
+  where applicable. Check `/api/v2.0/systeminfo` `auth_mode` BEFORE rotating
+  and enumerate the re-entry list up front. The chart consumes a rotated key
+  cleanly via `existingSecretSecretKey` (secret key name `secretKey`).
+  Also verified-safe `existingSecret` paths at chart 1.19.x: S3
+  (`REGISTRY_STORAGE_S3_*` envFrom), external DB (`key: password` secretKeyRef
+  — an external Zalando-operator credential secret can be referenced directly;
+  core AND exporter consume it). NOT safe: `redis.external.existingSecret` —
+  render-time `lookup` embeds the password into 5 configmap URLs (open issues
+  #2291/#2207; maintainer: "not supported with helm template") — keep the
+  redis password inline in values until upstream reworks it.
 - **Benign startup noise after the bump (don't chase these):** jobservice
   `[ERROR] no task found for execution: SYSTEM_ARTIFACT_CLEANUP:<id>` =
   boot-time scheduler sync against a stale execution row, stops after startup;
