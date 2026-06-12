@@ -498,6 +498,20 @@
       "strict": false
     },
     {
+      "name": "netbox-best-practices",
+      "source": "./",
+      "description": "NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm…",
+      "version": "0.20260612.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/netbox-best-practices"
+      ],
+      "strict": false
+    },
+    {
       "name": "secure-boot-cert-rotation",
       "source": "./",
       "description": "Secure Boot certificate-rotation suite — triage and remediate the Microsoft Secure Boot 2011→2023 UEFI CA rotation (CAs expiring 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs: the PK→KEK→db trust chain, per-platform fixes (iDRAC BIOS-staged keys applied on reboot, self-authenticating manual `db` append via the existing 2011 KEK, the Harvester OVMF v1.6.0 floor with ephemeral-vs-persistent NVRAM triage), and audit via mokutil / efi-readvar / racadm bioscert / Redfish.",
