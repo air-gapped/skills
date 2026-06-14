@@ -1,0 +1,16 @@
+[
+  {"query": "set up users and packages on first boot of my ubuntu VM", "should_trigger": true, "source": "everyday"},
+  {"query": "write a #cloud-config to add ssh keys and a deploy user", "should_trigger": true, "source": "description-mined"},
+  {"query": "seed a VM with cloud-init using a NoCloud cidata ISO", "should_trigger": true, "source": "description-mined"},
+  {"query": "configure cloud-init to use our local apt mirror and trust our internal CA", "should_trigger": true, "source": "air-gapped"},
+  {"query": "my air-gapped server boot hangs in cloud-init waiting for a metadata service", "should_trigger": true, "source": "troubleshooting"},
+  {"query": "validate my cloud-config user-data before I seed it", "should_trigger": true, "source": "validation"},
+  {"query": "make a server run a setup script on first boot", "should_trigger": true, "source": "everyday"},
+
+  {"query": "write a netplan config for a static IP on my ubuntu server", "should_trigger": false, "source": "sibling-ubuntu-netplan"},
+  {"query": "write an autoinstall.yaml to install ubuntu server unattended", "should_trigger": false, "source": "sibling-ubuntu-autoinstall"},
+  {"query": "how do I apt upgrade and reboot my running ubuntu server", "should_trigger": false, "source": "adjacent-day2-ops"},
+  {"query": "what's new in ubuntu 26.04 compared to 24.04", "should_trigger": false, "source": "generic"},
+  {"query": "install docker on my ubuntu server", "should_trigger": false, "source": "keyword-collision-install"},
+  {"query": "explain how systemd units work", "should_trigger": false, "source": "generic-decoy"}
+]

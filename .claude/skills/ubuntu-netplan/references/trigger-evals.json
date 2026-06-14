@@ -1,0 +1,16 @@
+[
+  {"query": "set a static IP, gateway and DNS on my ubuntu server", "should_trigger": true, "source": "everyday"},
+  {"query": "write netplan config to bond two NICs with LACP", "should_trigger": true, "source": "description-mined"},
+  {"query": "configure a bridge on my ubuntu KVM host so the VMs can attach", "should_trigger": true, "source": "everyday"},
+  {"query": "my server has no network after netplan apply, how do I debug it", "should_trigger": true, "source": "troubleshooting"},
+  {"query": "set up VLAN 40 on enp1s0 in /etc/netplan", "should_trigger": true, "source": "body-mined"},
+  {"query": "pin a predictable interface name by MAC address and set the MTU to 9000", "should_trigger": true, "source": "description-mined"},
+  {"query": "fix my ubuntu networking, the default gateway isn't working", "should_trigger": true, "source": "everyday"},
+
+  {"query": "write an autoinstall.yaml to install ubuntu server unattended", "should_trigger": false, "source": "sibling-ubuntu-autoinstall"},
+  {"query": "use cloud-init to add users and ssh keys on first boot of my VM", "should_trigger": false, "source": "sibling-ubuntu-cloud-init"},
+  {"query": "set up an nginx reverse proxy on my ubuntu server", "should_trigger": false, "source": "adjacent-app"},
+  {"query": "how do I configure ufw firewall rules on ubuntu", "should_trigger": false, "source": "adjacent-networking"},
+  {"query": "diagnose why my bind9 DNS server won't start", "should_trigger": false, "source": "keyword-collision-dns"},
+  {"query": "hello", "should_trigger": false, "source": "generic"}
+]

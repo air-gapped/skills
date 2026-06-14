@@ -1,0 +1,16 @@
+[
+  {"query": "write an autoinstall.yaml for an unattended ubuntu server install", "should_trigger": true, "source": "description-mined"},
+  {"query": "automate an ubuntu server installation so it runs with no operator at the console", "should_trigger": true, "source": "everyday"},
+  {"query": "I want a zero-touch ubuntu 24.04 server install, preseed-style", "should_trigger": true, "source": "everyday-migration"},
+  {"query": "set up a PXE netboot unattended ubuntu server install", "should_trigger": true, "source": "body-mined-pxe"},
+  {"query": "my subiquity install keeps dropping into the interactive installer, how do I make it fully automatic", "should_trigger": true, "source": "everyday-troubleshooting"},
+  {"query": "configure the disk layout and the initial admin user for an unattended ubuntu server install behind our local apt mirror", "should_trigger": true, "source": "description-mined-storage-identity"},
+  {"query": "validate my autoinstall user-data before I build the install ISO", "should_trigger": true, "source": "description-mined-validation"},
+
+  {"query": "write a netplan config for a static IP on my running ubuntu server", "should_trigger": false, "source": "sibling-ubuntu-netplan"},
+  {"query": "use cloud-init to add users and ssh keys on first boot of my VM", "should_trigger": false, "source": "sibling-ubuntu-cloud-init"},
+  {"query": "how do I apt upgrade and reboot my ubuntu server safely", "should_trigger": false, "source": "adjacent-day2-ops"},
+  {"query": "what's new in ubuntu 26.04 compared to 24.04", "should_trigger": false, "source": "generic"},
+  {"query": "explain how systemd-networkd works", "should_trigger": false, "source": "generic-decoy"},
+  {"query": "install docker on my ubuntu server", "should_trigger": false, "source": "keyword-collision-install"}
+]
