@@ -9,7 +9,9 @@ Ordered as a pre-flight checklist for a fresh install.
 Contents: §1 External PostgreSQL (naming collision, operator secrets,
 one-way migrations) · §2 External Redis/Valkey sentinel wiring ·
 §3 Chart-generated secrets + offline-render trap · §4 API token bootstrap ·
-§5 Plugins need a custom image · §6 Operational defaults (housekeeping,
+§5 Enabling plugins (UI catalog ≠ installer, two-part install, image lineage,
+derived-image workflow, version-pin + migrations, no init-container) ·
+§6 Operational defaults (housekeeping,
 metrics, first boot, distroless preflight) · §7 Upgrade workflow.
 
 ## 1. External PostgreSQL
@@ -101,21 +103,98 @@ kubectl -n <ns> create secret generic netbox-api-token --from-literal=token="$CR
 - Read-only tokens for MCP/automation: authenticated
   `POST /api/users/tokens/` with `"write_enabled": false`.
 
-## 5. Plugins require a custom image
+## 5. Enabling plugins (custom image)
 
-`plugins:` and `pluginsConfig:` only render configuration
-[source: templates/configmap.yaml → `PLUGINS: {{ toJson .Values.plugins }}`].
-The official image contains no plugin code; enabling a plugin without the
-package present crashloops the pod. Build and pin:
+### 5.0 The UI catalog is discovery, not an installer
+
+NetBox's **Plugins** page (`/plugins/`) lists hundreds of community plugins
+pulled from the public netboxlabs registry. It is a *catalog* — there is **no
+enable toggle**, and seeing a plugin there does NOT mean it is installed or
+installable from the UI. A stock install shows the full catalog with zero
+installed; that is the expected state, not a misconfiguration. Plugins are never
+enabled from the web UI. [docs: netbox plugins catalog]
+
+### 5.1 Every plugin needs TWO things — missing either is the usual failure
+
+1. **The Python package present in the running venv** — pip-installed into the
+   image NetBox actually runs.
+2. **The plugin's name listed in `PLUGINS`** (helm `plugins:`). Per-plugin
+   settings go in `PLUGINS_CONFIG` (helm `pluginsConfig:`).
+
+Failure modes:
+- In `PLUGINS` but package NOT installed → pod **crashloops** at startup
+  (`ModuleNotFoundError`). This is the most common "I enabled it and NetBox
+  died" report.
+- Package installed but NOT in `PLUGINS` → silently **inert**, no error.
+
+The chart values only ever render *configuration*, never code
+[source: templates/configmap.yaml → `PLUGINS: {{ toJson .Values.plugins }}`,
+`PLUGINS_CONFIG: {{ toJson .Values.pluginsConfig }}`]. The stock image carries
+zero plugin code, so `plugins:` alone can never turn anything on.
+
+### 5.2 Image lineage — why the netbox-docker wiki only half-applies
+
+The chart pulls `ghcr.io/netbox-community/netbox`
+[source: values.yaml `image.registry/repository`], and **that image is built by
+the `netbox-community/netbox-docker` repo** (same artifact published to
+ghcr.io and docker.io/netboxcommunity/netbox). So plugin READMEs that link the
+[netbox-docker "Using NetBox Plugins" wiki](https://github.com/netbox-community/netbox-docker/wiki/Using-Netbox-Plugins)
+*are* describing your base image — but that wiki's `plugin_requirements.txt` +
+`docker-compose build` / `Dockerfile-Plugins` flow is for running netbox-docker's
+**compose stack**, which a helm deployment does NOT use. The chart has no build
+step; it pulls a finished image. Apply the wiki's *principle* (extend the image),
+not its compose mechanics.
+
+### 5.3 The chart-native workflow: derived image → registry → values
+
+Build a thin image FROM the exact base tag, pinned per plugin:
 
 ```dockerfile
 FROM ghcr.io/netbox-community/netbox:v4.6.2
-RUN /opt/netbox/venv/bin/pip install netbox-topology-views==<ver>
+RUN /opt/netbox/venv/bin/pip install \
+      netbox-topology-views==<ver> \
+      <other-plugin>==<ver>
 ```
 
-Push to a private registry, set `image.repository`/`tag`, then list the plugin.
-Init-container pip-installs exist but need internet at every pod start — wrong
-for air-gapped or deterministic deployments.
+Push to your **private registry** (air-gap: Harbor is ideal — pull the base
+through your proxy/cache, build, push the derived tag), then point the chart at
+it AND list the plugins:
+
+```yaml
+image:
+  registry: harbor.example.com
+  repository: netbox/netbox-plugins
+  tag: v4.6.2-plugins-1          # rev the suffix on every plugin/base change
+plugins:
+  - netbox_topology_views        # the PYTHON module name, not the PyPI dist name
+pluginsConfig:
+  netbox_topology_views: {}      # plugin-specific settings
+```
+
+Then `make diff` → `make upgrade`. Note `plugins:` wants the importable **module
+name** (underscores, e.g. `netbox_topology_views`), which often differs from the
+PyPI distribution name you `pip install` (hyphens, e.g. `netbox-topology-views`);
+each plugin's README states its `PLUGINS` entry — use that verbatim.
+
+### 5.4 Version pinning and migrations
+
+- **Pin every plugin to the NetBox version.** Each plugin declares a compatible
+  NetBox range in its metadata; a mismatch crashloops on boot. You must rebuild
+  the derived image on every NetBox minor bump — treat the plugin set as part of
+  the upgrade, not a one-time step. [docs]
+- **Plugins with models run Django migrations at pod startup**, exactly like a
+  NetBox upgrade, inside the `helm upgrade` rollout. `helm rollback` cannot undo
+  them → **`make db-backup` first** (same one-way rule as §1). Adding a plugin
+  to a running instance is therefore a DB-mutating change, not just a config
+  edit.
+
+### 5.5 Don't use the init-container pip path in prod
+
+The chart can pip-install at pod start via an init container, but that needs
+internet (or a reachable PyPI mirror) on **every** pod start and makes the
+running code non-deterministic — wrong for air-gapped or reproducible
+deployments. Bake plugins into the image (§5.3) so the artifact is immutable and
+pull-once.
 
 ## 6. Operational defaults worth flipping
 

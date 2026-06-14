@@ -533,7 +533,7 @@
       "name": "netbox-best-practices",
       "source": "./",
       "description": "NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm…",
-      "version": "0.20260612.1",
+      "version": "0.20260614.2",
       "author": {
         "name": "Jörgen"
       },

@@ -1,6 +1,6 @@
 ---
 name: netbox-best-practices
-description: NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning between NetBox 4.2 and 4.6, module type profiles, and front/rear port (patch panel) API changes. Trigger on "netbox helm", "netbox chart", "netbox kubernetes", "netbox upgrade", "netbox plugin install", "netbox api token bootstrap", "netbox 4.x breaking changes", or seeding/automation that must survive a NetBox version bump. For general NetBox data modeling, IPAM design, Diode, or validation questions, prefer the official netboxlabs/skills marketplace skills - this skill only covers the gaps.
+description: NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning between NetBox 4.2 and 4.6, module type profiles, and front/rear port (patch panel) API changes. Trigger on "netbox helm", "netbox chart", "netbox kubernetes", "netbox upgrade", "netbox plugin install", "netbox api token bootstrap", "netbox 4.x breaking changes", "netbox oidc/sso group mapping" or "netbox sso hardening", or seeding/automation that must survive a NetBox version bump. For general NetBox data modeling, IPAM design, Diode, or validation questions - and for turning on an auth backend in the first place - prefer the official netboxlabs/skills marketplace skills (netbox-administration); this skill only covers the gaps.
 ---
 
 # NetBox Best Practices (helm + version deltas)
@@ -14,6 +14,7 @@ they do not (as of 2026-06):
 1. **netbox-chart (helm) deployment gotchas** → `references/helm-chart-gotchas.md`
 2. **NetBox 4.2→4.6 version-delta cheat sheet** → `references/version-deltas.md`
 3. **Modeling gaps**: module type profiles (4.3+), port-mapping rework (4.5) → `references/modeling-gaps.md`
+4. **SSO/OIDC group→role mapping + hardening** → `references/sso-hardening.md`
 
 Evidence labels used throughout: `[source]` = verified against chart/NetBox
 source code (file:line cited); `[live]` = verified on a production install of
@@ -62,3 +63,13 @@ takes several minutes before the pod goes Ready; that is normal. [live]
 Read `references/version-deltas.md` — it lists what changed in each minor
 release 4.2→4.6 with dates and PR numbers, plus two "anti-facts" (plausible
 claims that are FALSE) to avoid repeating common misinformation.
+
+## When wiring SSO/OIDC (after the official skill gets it turned on)
+
+Read `references/sso-hardening.md`. The official `netbox-administration` skill
+covers enabling each backend; this file covers the gap it leaves: that the
+`REMOTE_AUTH_SUPERUSER_GROUPS`/`_STAFF`/group-sync settings work ONLY with the
+header/proxy backend — native OIDC/SAML ignores them and needs a custom
+`SOCIAL_AUTH_PIPELINE` function to map IdP groups to NetBox roles — plus the
+break-glass / header-spoofing / SSO≠API-token hardening rules. [source-verified
+against netbox 4.6 authentication code]
