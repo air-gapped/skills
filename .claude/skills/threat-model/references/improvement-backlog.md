@@ -17,6 +17,17 @@ updated in Phase 6.
   in the target version, then rename consistently across all 4 skills in one
   pass.
 
+## Resolved — 2026-06-15 (freshen)
+
+- **sources.md re-stamped; harness delta reviewed.** All four refs re-probed
+  live (Shostack PDF, OWASP threat-modeling cheat sheet, GitHub
+  security-advisories API docs — HTTP 200; harness repo active); `Last verified`
+  advanced 2026-05-31 → 2026-06-15. Harness pushed 2026-05-30 → 2026-06-15 —
+  reviewed delta = `untrusted_data` prompt-isolation (PR #13, find/grade/judge/
+  patch/report prompts) + sandbox cgroup-probe fix (PR #2). Neither overlaps
+  this skill's adapted bootstrap/interview content; no mutation beyond the
+  re-stamp. No new Open item.
+
 ## Resolved this pass (2026-05-31)
 
 - **Dim 9 staleness cap lifted.** Created `references/sources.md` (Shostack

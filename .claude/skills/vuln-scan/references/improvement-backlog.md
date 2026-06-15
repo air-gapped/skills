@@ -18,6 +18,17 @@ updated in Phase 6.
   the other three defending-code skills — see threat-model backlog for the
   rationale and the one-pass plan. Deferred (regression risk + multi-location).
 
+## Resolved — 2026-06-15 (freshen)
+
+- **sources.md re-stamped; harness delta reviewed.** All three refs re-probed
+  live (harness + claude-code-security-review repos active; "Using LLMs to
+  secure source code" write-up HTTP 200); `Last verified` advanced 2026-05-31 →
+  2026-06-15. Harness pushed 2026-05-30 → 2026-06-15 — reviewed delta =
+  `untrusted_data` prompt-isolation (PR #13) + sandbox cgroup-probe fix
+  (PR #2). PR #13's `find_prompt.py` change only wrapped the dup-bugs list; the
+  recon pattern + memory-safety tiers this skill lifts, and `recon_prompt.py`,
+  are unchanged, so no mutation beyond the re-stamp. No new Open item.
+
 ## Resolved this pass (2026-05-31)
 
 - **Dim 9 staleness cap lifted.** Created `references/sources.md`

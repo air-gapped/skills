@@ -14,7 +14,7 @@ security-review tooling changes.
 - Note: the skill is adapted (Apache-2.0) from this repo's `vuln-scan` skill and
   its autonomous `find`/`recon` pipeline prompts. `HARNESS.md` points operators
   here for execution-verified scanning.
-- Last verified: 2026-05-31  (active; not archived; last push 2026-05-30)
+- Last verified: 2026-06-15  (active; not archived; last push 2026-06-15; reviewed delta since 2026-05-31 = untrusted_data prompt-isolation, PR #13, + sandbox cgroup-probe fix, PR #2 — `find_prompt.py` only wrapped its dup-list; the recon pattern + memory-safety tiers this skill lifts, and `recon_prompt.py`, are unchanged)
 
 ## claude-code-security-review (category menu + exclusion rules)
 
@@ -23,13 +23,13 @@ security-review tooling changes.
 - Note: the review-brief category menu, DO-NOT-REPORT exclusions, per-finding
   confidence pass, and `exploit_scenario`/`recommendation` fields originate in
   this action's `/security-review` command.
-- Last verified: 2026-05-31  (active; not archived)
+- Last verified: 2026-06-15  (active; not archived; last push 2026-02-11)
 
 ## "Using LLMs to secure source code" (methodology write-up)
 
 - URL: https://claude.com/blog/using-llms-to-secure-source-code
 - Probe: `WebFetch` — expect HTTP 200; the find-and-fix loop framing comes from here.
-- Last verified: 2026-05-31  (HTTP 200)
+- Last verified: 2026-06-15  (HTTP 200)
 
 ---
 

@@ -14,7 +14,7 @@ patch ladder changes.
   self-contained; execution-verified mode delegates to the harness's
   `vuln-pipeline patch` build→reproduce→regress→re-attack ladder. See
   `../vuln-scan/HARNESS.md` for setup/run.
-- Last verified: 2026-05-31  (active; not archived; last push 2026-05-30)
+- Last verified: 2026-06-15  (active; not archived; last push 2026-06-15; reviewed delta since 2026-05-31 = untrusted_data prompt-isolation, PR #13 — its `patch_prompt.py`/style-judge moved a bare `<diff>` tag to a nonce-delimited `<untrusted_data id>` block — + sandbox cgroup-probe fix, PR #2. The patch ladder itself is unchanged; the isolation pattern is logged in improvement-backlog.md for an author-judged improve pass)
 
 ---
 

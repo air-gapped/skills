@@ -10,13 +10,13 @@ frameworks or upstream harness change.
 
 - URL: https://shostack.org/files/papers/The_Four_Question_Framework.pdf
 - Probe: `WebFetch` — expect HTTP 200. Interview mode walks the four questions.
-- Last verified: 2026-05-31  (HTTP 200)
+- Last verified: 2026-06-15  (HTTP 200)
 
 ## OWASP Threat Modeling Cheat Sheet
 
 - URL: https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html
 - Probe: `WebFetch` — expect HTTP 200. Cross-reference for STRIDE gap-fill.
-- Last verified: 2026-05-31  (HTTP 200)
+- Last verified: 2026-06-15  (HTTP 200)
 
 ## GitHub Security Advisories API (bootstrap advisory fetcher)
 
@@ -24,14 +24,14 @@ frameworks or upstream harness change.
 - Probe: `gh api /repos/{owner}/{repo}/security-advisories` (used by the Stage-1 swarm).
 - Note: the bootstrap mode's Advisory fetcher relies on this endpoint when the
   target has a GitHub remote and `gh` is on PATH.
-- Last verified: 2026-05-31
+- Last verified: 2026-06-15
 
 ## defending-code reference harness (provenance)
 
 - URL: https://github.com/anthropics/defending-code-reference-harness
 - Probe: `gh repo view anthropics/defending-code-reference-harness --json pushedAt,isArchived`
 - Note: this skill is adapted (Apache-2.0) from that repo's `threat-model` skill.
-- Last verified: 2026-05-31  (active; not archived; last push 2026-05-30)
+- Last verified: 2026-06-15  (active; not archived; last push 2026-06-15; reviewed delta since 2026-05-31 = untrusted_data prompt-isolation, PR #13, + sandbox cgroup-probe fix, PR #2 — neither overlaps this skill's adapted bootstrap/interview content)
 
 ---
 
