@@ -242,8 +242,9 @@ The full patch-author prompt lives in **`references/prompts.md` § Patch subagen
 
 For each finding in `findings[]`, build a Task call with the prompt above
 (substituting `{REPO_PATH}`, `{id}`, `{file}`, `{line}`, `{category}`,
-`{severity}`, `{title}`, `{description}`, `{recommendation}`).
-`description: "patch {id}"`.
+`{severity}`, `{title}`, `{description}`, `{recommendation}`, and a fresh
+`{nonce}` per spawn — see the `references/prompts.md` preamble; it isolates the
+attacker-influenced finding text). `description: "patch {id}"`.
 
 If `len(findings) > ~40`, shard into sequential batches of ~40 (each batch
 one message). Per-finding shard checkpoint after each result is parsed.
@@ -291,7 +292,7 @@ embedded in finding prose from reaching both the author and the gate.
 
 #### Reviewer prompt (assemble once, reuse per diff)
 
-The full reviewer prompt lives in **`references/prompts.md` § Reviewer prompt (Phase 3)**. Read it at the start of Phase 3 and use it verbatim, substituting `{REPO_PATH}`, `{file}`, `{line}`, `{category}`, and the diff. Pass it ONLY those fields — never the finding prose or author rationale.
+The full reviewer prompt lives in **`references/prompts.md` § Reviewer prompt (Phase 3)**. Read it at the start of Phase 3 and use it verbatim, substituting `{REPO_PATH}`, `{file}`, `{line}`, `{category}`, the diff, and a fresh `{nonce}` per spawn (it wraps the diff as untrusted data). Pass it ONLY those fields — never the finding prose or author rationale.
 
 #### Spawn and parse
 
