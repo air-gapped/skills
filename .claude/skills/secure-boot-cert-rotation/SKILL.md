@@ -128,7 +128,9 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
 - `references/dell-poweredge.md` — iDRAC9 path: per-generation BIOS minimums, staged-until-reboot mechanism,
   `ResetAllKeysToDefault` via Redfish/racadm, `bioscert` audit, the `dellemc.openmanage` Ansible module.
 - `references/linux-bare-metal.md` — audit commands, the fwupd-free manual `db` append (Microsoft signed-payload
-  filenames + URLs), the fwupd-snap fallback + Ubuntu pocket reality, the patch-vs-reinstall decision.
+  filenames + URLs), firmware-menu (Key Management) enrollment from raw `PreSignedObjects/*.der` + the ESP
+  staging trick (`/boot/efi`, no USB/virtual-media), the fwupd-snap fallback + Ubuntu pocket reality, the
+  patch-vs-reinstall decision.
 - `references/harvester-vms.md` — the two layers (Dell host vs guest OVMF), guest OVMF ships in `virt-launcher`
   (floor **v1.6.0**, per-line table, the artifact-proof method), host Secure Boot + bug #7343, the
   ephemeral-vs-persistent NVRAM triage with exact `kubectl` commands, `virt-fw-vars` injection.

@@ -45,6 +45,39 @@ the **Windows UEFI CA 2023** (the file-year is the servicing year, not the cert 
 db cert alone still lets you *boot* 2023-signed bootloaders; you just won't get *future* 2023-KEK-signed db/dbx
 pushes. On Dell, take the KEK via the BIOS path instead.
 
+## Firmware-menu enrollment (AMI/whitebox Key Management) — and the ESP staging trick
+
+The OS-side append above does **db** only. To also enroll the **2023 KEK** (no generic in-band KEK payload
+exists) or when you'd rather use the firmware UI, enroll from **UEFI Setup → Key Management**. Field-proven on
+whitebox AMI (ASRock Rack, etc.) — enrolls db+KEK in one console pass.
+
+**Files = raw `.der` from `PreSignedObjects/`** — NOT the `.bin` in `PostSignedObjects/` (those are the *signed*
+payloads for the in-band `efi-updatevar`/`dbxtool` path above). In `microsoft/secureboot_objects`:
+- db: `PreSignedObjects/DB/Certificates/microsoft uefi ca 2023.der` (+ `windows uefi ca 2023.der` only if
+  dual-booting Windows; `microsoft option rom uefi ca 2023.der` only for MS-signed option ROMs)
+- KEK: `PreSignedObjects/KEK/Certificates/microsoft corporation kek 2k ca 2023.der`
+- Do **not** enroll `PreSignedObjects/PK/Certificate/WindowsOEMDevicesPK.der` (that's MS's PK for *their* devices).
+- Slim 8.3 names for the picker (AMI filters by extension — `.cer`/`.der`/`.crt` all work; FAT volume):
+  `MSUEFI23.CER` (db, Microsoft UEFI CA 2023 — *required for Linux*), `MSKEK23.CER` (KEK 2K CA 2023),
+  `MSWIN23.CER` (db, Windows UEFI CA 2023 — only if the host boots Windows), `MSOROM23.CER` (db, Option ROM
+  UEFI CA 2023 — only for MS-signed add-in-card option ROMs). Enroll the full set for factory-parity; only
+  `MSUEFI23.CER` is load-bearing on a Linux host.
+
+**Staging medium — the firmware file browser reads any FAT volume it enumerates at Setup time:**
+1. **FAT32 USB** — `mkfs.vfat -F32 -n SBKEYS2023 /dev/sdXN`; the picker shows the volume by label.
+2. **ESP trick (no USB, no iKVM virtual-media):** `sudo cp *.cer /boot/efi/` — Key Management browses the live
+   FAT32 **ESP** exactly like fwupd reads it. Pair with **iKVM console-only** for a fully-remote enroll, dodging
+   the flaky virtual-media layer entirely. Delete the files afterward if you want tidy.
+
+**AMI flow:** Secure Boot Mode → **Custom** → **Key Management** → select **Authorized Signatures** (db) or
+**Key Exchange Keys** (KEK) → **Append** (*Set New*/*Update* **replace** — don't use them) → pick the file →
+**Public Key Certificate** (raw cert; not "Authenticated Variable") → accept the default owner GUID. **Never touch
+PK.** Menu enrollment self-authorizes by physical presence (no KEK signature needed), unlike the in-band append.
+
+**Confirm it took (no reboot required):** the variable's `Keys#` increments and `Key Source` flips
+**`Default` → `Mixed`** on the Key Management screen. Verify in-OS after reboot with the §Audit `mokutil` greps.
+Append keeps the 2011 certs alongside — that's correct.
+
 ## fwupd — only if it's a supported laptop/desktop on LVFS, and only ≥ 2.0.8
 
 The `uefi-db`/`uefi-kek` plugins that perform this rotation exist only in **fwupd ≥ 2.0.8**. Stock Ubuntu is
