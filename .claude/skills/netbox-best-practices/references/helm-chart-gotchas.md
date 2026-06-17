@@ -12,7 +12,8 @@ one-way migrations) · §2 External Redis/Valkey sentinel wiring ·
 §5 Enabling plugins (UI catalog ≠ installer, two-part install, image lineage,
 derived-image workflow, version-pin + migrations, no init-container) ·
 §6 Operational defaults (housekeeping,
-metrics, first boot, distroless preflight) · §7 Upgrade workflow.
+metrics, first boot, distroless preflight) · §7 Upgrade workflow ·
+§8 Media storage: RWO-PVC-with-a-worker trap → migrate to S3 (zero-loss recipe).
 
 ## 1. External PostgreSQL
 
@@ -218,3 +219,55 @@ pull-once.
 - Remember §3: secret churn in offline template diffs is expected; the same
   keys are stable across REAL upgrades.
 - DB snapshot before `helm upgrade` (see §1 — migrations are one-way).
+
+## 8. Media storage: the RWO-PVC-with-a-worker trap → use S3
+
+By default the chart stores uploaded media (image attachments, device-type
+images) on a **single ReadWriteOnce** PVC (`persistence.enabled: true`,
+`accessMode: ReadWriteOnce`) that is mounted by **both** the web Deployment AND
+the worker Deployment. This works only while both pods are co-scheduled on one
+node. A node reboot/drain that reschedules them onto **different** nodes
+deadlocks — RWO can't multi-attach, so the pod on the node without the volume
+hangs in `Init:0/1` forever (volumes mount before init containers, so even a
+trivial `mkdir` init never starts). "Pods should just recover" does NOT hold
+here; there is no co-scheduling rule by default. The chart's own values comment
+admits it: *"ReadWriteMany PVC(s) are required if replicaCount > 1."* [live]
+
+What's actually on that PVC: **only uploaded files** (`image-attachments/`,
+`devicetype-images/`, regenerable `cache/`) — a few MB. ALL real data
+(devices, IPAM, cables) is in **Postgres**, which has no such problem (each
+replica owns its own RWO volume). So the whole headache is over a photo folder.
+
+**Fix — move media to object storage; do NOT reach for CephFS/RWX.** NetBox
+supports S3 natively (the official image already ships `django-storages` +
+`boto3`). Point it at any S3 (Ceph RGW / MinIO / AWS); web+worker become
+stateless and reschedule anywhere. Chart wiring:
+```yaml
+storages:                       # merged as DEFAULT_STORAGES | STORAGES, so only override default
+  default:
+    BACKEND: storages.backends.s3.S3Storage
+    OPTIONS:
+      bucket_name: netbox-media
+      endpoint_url: https://s3.example.com   # PUBLIC/browser-reachable host — NetBox mints presigned image URLs the browser must load
+      region_name: <rgw-zonegroup-api_name>  # Ceph RGW: `radosgw-admin zonegroup get | .api_name`
+      addressing_style: path                 # REQUIRED for custom endpoints — virtual-host style becomes bucket.host, which a SAN-scoped cert won't cover
+extraEnvVarsSecret: "netbox-media"  # AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY → boto3 reads from env; keep keys out of values
+worker:      { extraEnvVarsSecret: "netbox-media" }
+housekeeping:{ extraEnvVarsSecret: "netbox-media" }
+persistence: { enabled: false }     # drops the shared RWO PVC; media volume falls back to per-pod emptyDir
+```
+Gotchas learned the hard way [live]:
+- **Don't bother with an ObjectBucketClaim if the RGW cert is Let's Encrypt.**
+  The rook operator provisions OBC buckets via the RGW admin API over the
+  internal `*.svc` name; an LE cert only covers public names and can't carry an
+  internal SAN, so the admin call fails TLS verification and the OBC stays
+  `Pending`. Provision the bucket+user with `radosgw-admin` instead.
+- **Migrate with zero loss:** tar the media dir off-cluster FIRST, `mc mirror`
+  it into the bucket preserving relative paths (DB stores those paths), set the
+  PV `reclaimPolicy: Retain` before disabling persistence, THEN upgrade and
+  verify an image returns HTTP 200 from S3 before trusting it.
+- The media `STORAGES` config rides in the **netbox-config Secret**, so `make
+  diff`/`kubectl diff` masks it (`***`); verify the change in the rendered
+  `template-*.yaml` (unmasked) instead — and remember the secret_key/peppers
+  churn in that diff is the §3 offline-render false positive, preserved on the
+  real upgrade.
