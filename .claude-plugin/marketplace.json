@@ -502,6 +502,20 @@
       "strict": false
     },
     {
+      "name": "hermes-tweet",
+      "source": "./",
+      "description": "Use Hermes Tweet when a Hermes Agent workflow needs X/Twitter search, trend checks, account reads, monitors, media, draws, extraction, or approval-gated publishing through the native Hermes Tweet…",
+      "version": "0.20260622.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/hermes-tweet"
+      ],
+      "strict": false
+    },
+    {
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
