@@ -16,7 +16,7 @@ allowed-tools:
   - Write
   - Task
   - AskUserQuestion
-  - Bash(git log:*)
+  - Bash(git:*)
   - Bash(jq:*)
   - Bash(find:*)
   - Bash(ls:*)
@@ -608,9 +608,10 @@ inferable. For each finding in `confirmed[]`, stop at the first hit:
    `file` against its patterns (last match wins). Hint:
    `"CODEOWNERS: <pattern> -> <owner(s)>"`.
 2. **git log.** If `--repo` is a git checkout, run
-   `git -C {REPO} log --format='%an' -n 50 -- "{file}" | sort | uniq -c | sort -rn | head -3`.
-   Hint: `"top committer: <name> (<n>/<total> recent commits); no
-   CODEOWNERS entry"`.
+   `git -C {REPO} log --format='%an' -n 50 -- "{file}"` and tally the
+   author lines yourself — no shell pipeline (`sort`/`uniq`/`head` are not
+   whitelisted). Hint: `"top committer: <name> (<n>/<total> recent
+   commits); no CODEOWNERS entry"`.
 3. **Module fallback.** Hint: `"component: <top-level dir of file>/; no
    CODEOWNERS or git history"`.
 
