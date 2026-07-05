@@ -457,7 +457,8 @@ lang outside unsafe/FFI; 5 SSRF path-only; 6 LLM prompt input;
 7 object-storage traversal; 8 trusted operator env/CLI inputs;
 9 client code, server vuln class; 10 outdated deps; 11 weak random
 non-security; 12 low-impact nuisance (log spoof, open redirect, regex
-inject); 13 missing-hardening-only, no concrete exploit; 14 XSS in
+inject); 13 missing-hardening-only, no exploit path (reachability only —
+reachable-but-gains-nothing is still TRUE; impact is ranked later); 14 XSS in
 auto-escape framework w/o raw-HTML escape hatch; 15 unguessable
 UUID/token flagged predictable; 16 theoretical-only race/TOCTOU.
 {+ org rules from --fp-rules if any}

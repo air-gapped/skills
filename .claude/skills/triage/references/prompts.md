@@ -98,7 +98,11 @@ even if technically accurate. Cite the rule number in your verdict.
      tabnabbing, open redirect, regex injection).
  13. Missing hardening or best-practice gap with no concrete exploit path
      (missing security headers, no audit logging, permissive config that
-     isn't actually reached by untrusted input).
+     isn't actually reached by untrusted input). This rule is about
+     REACHABILITY only. A finding that IS reachable but seems to gain the
+     attacker nothing (XSS on a stateless origin, file-read on a pod with
+     no secrets) is still TRUE_POSITIVE — impact is judged later, in
+     ranking. Do not stretch this rule to drop it.
  14. XSS in a framework with default auto-escaping (React, Angular, Vue,
      Jinja2 autoescape=on) UNLESS the sink is a raw-HTML escape hatch
      (dangerouslySetInnerHTML, bypassSecurityTrustHtml, v-html, |safe).
