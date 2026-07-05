@@ -17,6 +17,30 @@ updated in Phase 6.
   in the target version, then rename consistently across all 4 skills in one
   pass.
 
+## Resolved — 2026-07-05 (improve, operator feedback)
+
+Applied FEEDBACK-impact-on-asset.md §3 in 4 kept iterations (self 84→87,
+one metric-neutral keep; blind baseline 82, final 84 — the final's Dim 10
+now cites severity-gating open questions as differentiating value).
+
+- **Impact binding to the named asset (Dim 9 8→9).** schema.md scoring
+  guide: every section-4 impact must be justifiable in one clause against
+  its asset cell + environment; absent-asset threats cap at `low` and move
+  to section 5 with "asset not present".
+- **Asset finder answers "what does this actually gate?" (Dim 5 8→9).**
+  Bootstrap swarm brief requires stating what is behind each candidate
+  asset; empty gates get sensitivity `low` with the emptiness stated.
+- **Severity-gating questions first-class (Dim 8 8→9).** schema section 6
+  + bootstrap Stage 5: gating questions name threat id(s) + direction
+  (`— gates T4: low→high if a secret is mounted`); declared as the input
+  `/triage` Phase 0d ingests. Both ends of the wire match.
+- **Impact companion to the untrusted-input default.** Stage 3c: the
+  externally-reachable-is-untrusted default is a reachability rule, not an
+  impact rule; stateless/anonymous/secret-less/single-tenant caps
+  origin-XSS / auth-bypass / disclosure threats at `low`.
+
+The Open item below is carried (2026-07-05).
+
 ## Resolved — 2026-06-15 (freshen)
 
 - **sources.md re-stamped; harness delta reviewed.** All four refs re-probed

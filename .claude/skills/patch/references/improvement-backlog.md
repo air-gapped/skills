@@ -5,7 +5,10 @@ updated in Phase 6.
 
 ## Open
 
-- **SKILL.md 529 lines (29 over the 500 soft cap) — Dim 2.** A prior pass
+- **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried
+  2026-07-05; grew 529 → 549 with the fix_priority + asset/condition
+  additions — blind final scored Dim 2 at 5 and repeats the fold-Design-
+  notes-into-Guard-rails trim as the cleanest path under the cap.) A prior pass
   extracted the patch-author and reviewer prompts to `references/prompts.md`
   (653 → 528). The cleanest remaining trim is folding the "Design notes"
   section into "Guard rails" — both restate the reviewer-isolation property
@@ -23,6 +26,25 @@ updated in Phase 6.
 - **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** Shared across all
   four defending-code skills — see `threat-model/references/improvement-backlog.md`.
   Deferred (regression risk + multi-location).
+
+## Resolved — 2026-07-05 (improve, operator feedback)
+
+Applied FEEDBACK-impact-on-asset.md §4 in 2 kept iterations (self 80→82;
+blind baseline 78, final 80). Depends on the same-day `/triage` change
+that emits `asset` / `deployment_condition` / `reachable_no_impact`.
+
+- **asset + deployment_condition carried through (Dim 5 8→9).** Ingest
+  preserves `asset`/`impact`/`deployment_condition`/`verify_verdict` from
+  TRIAGE.json; patch_result.json and the PATCHES.md template surface them
+  ("severity moves if:" line) so the reviewer sees why a fix matters.
+- **fix_priority decoupled from severity (Dim 9 8→9).** A reachable
+  dangerous primitive (arbitrary file r/w, SSRF, exec, deserialization)
+  whose severity is gated only by the current deployment is `high`
+  fix_priority; it leads the `--top N` sort and PATCHES.md ordering with a
+  FIX-FIRST marker, so a severity label can't bury the most-worth-fixing
+  finding.
+
+Other Open items are carried (2026-07-05).
 
 ## Resolved — 2026-06-15 (improve)
 
