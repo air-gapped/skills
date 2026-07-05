@@ -556,14 +556,16 @@ Spawn one Task per confirmed finding (`subagent_type: "general-purpose"`, all in
 ### 4b. Merge
 
 For each confirmed finding, parse the block and attach `preconditions`
-(replacing any scanner-supplied list), `access_level`, `severity`
-(recomputed), `severity_label`, `threat_match`, `severity_alignment`,
-`verify_verdict`, and append RANK_RATIONALE to `rationale` (separated by a
-blank line from the Phase-3 rationale).
+(replacing any scanner-supplied list), `access_level`, `asset`, `impact`,
+`exploitability`, `severity` (recomputed), `severity_label`,
+`deployment_condition` (null if "none"), `threat_match`,
+`severity_alignment`, `verify_verdict`, and append RANK_RATIONALE to
+`rationale` (separated by a blank line from the Phase-3 rationale).
 
 For findings that did NOT reach Phase 4 (`false_positive`, `duplicate`,
 unlocatable): set `severity: null`, `verify_verdict: null`,
-`severity_alignment: null`, `preconditions: []`.
+`severity_alignment: null`, `preconditions: []`, `asset: null`,
+`impact: null`, `exploitability: null`, `deployment_condition: null`.
 
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
 
@@ -657,6 +659,10 @@ Order all findings by:
       "severity_alignment": 0,
       "preconditions": ["..."],
       "access_level": "...",
+      "asset": "...|null",
+      "impact": "HIGH|MEDIUM|NONE_LOW|null",
+      "exploitability": "HIGH|MEDIUM|LOW|null",
+      "deployment_condition": "...|null",
       "threat_match": "...|null",
       "rationale": "file:line-cited prose: reachability, protections, why each held or didn't; then ranking rationale",
       "vote_breakdown": {"true_positive": 0, "false_positive": 0, "cannot_verify": 0},
@@ -703,6 +709,8 @@ Context: {mode}; environment = {environment}; scoring = {scoring}; {votes}-vote 
 `{file}:{line}` | {category} | claimed {claimed_severity} (alignment {severity_alignment:+d}) | confidence {confidence}/10
 **Owner:** {owner_hint}
 **Verdict:** {verify_verdict}, votes {vote_breakdown}
+**Asset:** {asset} — impact {impact} x exploitability {exploitability}
+**Moves if:** {deployment_condition or "nothing — severity is unconditional"}
 **Preconditions ({n}):** {bulleted}
 **Threat-model match:** {threat_match or "none"}
 **Why:** {rationale}
