@@ -243,8 +243,14 @@ For each cluster, assign:
 - `actor`: from the entry point (file parsing → whoever supplies the file;
   network endpoint → `remote_unauth` or `remote_auth` depending on whether
   auth precedes it).
-- `impact`: from the asset and the bug class (memory corruption on a network
-  service → `critical`; info leak of non-sensitive data → `low`).
+- `impact`: from what the named asset is worth in the described system,
+  then the bug class (memory corruption on a network service → `critical`;
+  info leak of non-sensitive data → `low`). "Treat any externally-reachable
+  entry point as untrusted" is the right default for *reachability*; it is
+  not an impact rule. A stateless / anonymous / secret-less / single-tenant
+  system caps origin-XSS, "auth bypass", and cache/log-disclosure threats
+  at `low` — do not import stateful-web-app assumptions (schema.md
+  scoring guide binds this).
 - `likelihood`: start from the evidence. ≥1 confirmed past vuln in this exact
   surface → at least `likely`. Public exploit or active exploitation →
   `almost_certain`. No evidence, but siblings found and technique is well
