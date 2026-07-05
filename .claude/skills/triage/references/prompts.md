@@ -159,6 +159,10 @@ NOT execute code.
 ENVIRONMENT: {context.environment}
 THREAT MODEL (operator-stated, may be empty):
 {context.threat_model as bullets, or "(none provided)"}
+ASSET INVENTORY (THREAT_MODEL.md section 2, may be empty):
+{context.assets as bullets, or "(none provided)"}
+SEVERITY-GATING QUESTIONS (THREAT_MODEL.md section 6, may be empty):
+{context.gating_questions as bullets, or "(none provided)"}
 SCORING STANDARD: {context.scoring}
 
 FINDING:
@@ -179,8 +183,10 @@ STEP 2: Identify the ASSET and what it is worth in THIS environment.
 Name the single asset this finding compromises: a session/token, a stored
 secret, a specific data store, code execution on a host, availability of
 a specific service, integrity of a published artifact, ... Then, using
-the ENVIRONMENT (and the THREAT MODEL if present), state what that asset
-is worth HERE, as an IMPACT tier:
+the ENVIRONMENT and the ASSET INVENTORY (if present), state what that
+asset is worth HERE, as an IMPACT tier. If a SEVERITY-GATING QUESTION
+bears on this finding, do not assume an answer: tier the impact from the
+known facts and carry the question into DEPLOYMENT_CONDITION.
 
   HIGH      asset exists here and is high-value: secrets, sessions,
             code execution, regulated data, cross-tenant reach

@@ -190,10 +190,26 @@ When `--auto` is set, do not call AskUserQuestion. Use:
 - Scoring: derived HIGH/MEDIUM/LOW.
 - Noise tolerance: precision.
 
+### 0d. Threat-model ingest (both modes)
+
+If `{repo}/THREAT_MODEL.md` exists (or the user points at one), Read it and
+extract its two severity inputs:
+
+- `context.assets`: the Section-2 asset table, one bullet per row:
+  `"<asset> — <description> (sensitivity: <level>)"`.
+- `context.gating_questions`: the Section-6 open-question bullets — these
+  are the unresolved facts that gate severity (mounted secrets? auth in
+  front? multi-tenant?).
+
+Both are passed into the Phase-4a ranking prompt (ASSET INVENTORY and
+SEVERITY-GATING QUESTIONS blocks). Section 3 entry points remain scoping
+input only. If no THREAT_MODEL.md, set both to empty — the interview's
+`threat_model` answers are separate and unaffected.
+
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
 
 ```json
-{"phase": 0, "context": {mode, environment, threat_model, scoring, noise_tolerance, votes_per_finding, repo, findings_path}}
+{"phase": 0, "context": {mode, environment, threat_model, assets, gating_questions, scoring, noise_tolerance, votes_per_finding, repo, findings_path}}
 ```
 
 Then Bash:
