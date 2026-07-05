@@ -254,11 +254,15 @@ fixtures or dev-only config? Score in -5..+5:
   -4..-5  badly inflated (LOW dressed as HIGH)
 
 STEP 7: verify_verdict. Exactly one of:
-  exploitable        preconditions are realistically satisfiable
-  mitigated          real, but a deployed control reduces it below the
-                     derived severity (name the control)
-  needs_manual_test  severity hinges on something only a runtime test can
-                     settle; recommend a human build a PoC
+  exploitable          preconditions are realistically satisfiable
+  mitigated            real, but a deployed control reduces it below the
+                       derived severity (name the control)
+  needs_manual_test    severity hinges on something only a runtime test
+                       can settle; recommend a human build a PoC
+  reachable_no_impact  real and reachable, but the compromised asset does
+                       not exist or gates nothing in this deployment
+                       (impact NONE_LOW). Kept, not dropped — it is
+                       neither a false positive nor a real risk today.
 
 STEP 8: If SCORING STANDARD is a CVSS or OWASP variant, emit a
 `severity_label` in that format (vector string + base score for CVSS;
@@ -280,6 +284,6 @@ Respond with ONLY this block:
     severity (e.g. "HIGH iff a secret is mounted into the pod"), or none>
   THREAT_MATCH: <matched threat-model entry, or none>
   SEVERITY_ALIGNMENT: <-5..+5>
-  VERIFY_VERDICT: <exploitable|mitigated|needs_manual_test>
+  VERIFY_VERDICT: <exploitable|mitigated|needs_manual_test|reachable_no_impact>
   RANK_RATIONALE: <2-4 sentences>
 ```

@@ -669,7 +669,7 @@ Order all findings by:
       "category": "...",
       "claimed_severity": "HIGH",
       "verdict": "true_positive|false_positive|duplicate",
-      "verify_verdict": "exploitable|mitigated|needs_manual_test|null",
+      "verify_verdict": "exploitable|mitigated|needs_manual_test|reachable_no_impact|null",
       "confidence": 0.0,
       "severity": "HIGH|MEDIUM|LOW|null",
       "severity_label": "...",
