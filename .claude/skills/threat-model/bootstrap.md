@@ -368,6 +368,10 @@ Populate `## 6. Open questions` with everything the code couldn't tell you:
   upstream of this?")
 - Risk appetite ("Is DoS acceptable for this use case?")
 
+For each question that gates a threat's severity, append the threat id(s)
+and direction per the schema: `— gates T4: low→high if a secret is
+mounted`. These are what `/triage` ingests as severity-gating questions.
+
 These seed a later `/threat-model interview --seed THREAT_MODEL.md`
 pass.
 

@@ -113,6 +113,13 @@ Bullet list. Things the mode could not determine. For `bootstrap` these are
 questions for a human owner; for `interview` these are claims the owner made
 that were not verifiable in code.
 
+Questions that **gate severity** are first-class: each one names the
+threat id(s) whose severity it moves and the direction, e.g.
+`- Is a secret ever mounted into the pod? — gates T4: low→high if yes.`
+Downstream consumers (`/vuln-scan`, `/triage`) ingest these as severity
+inputs: an unresolved gate becomes a stated deployment condition on the
+finding, never an assumed answer.
+
 ### 7. Provenance
 
 ```markdown
