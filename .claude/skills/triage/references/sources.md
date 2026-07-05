@@ -18,7 +18,7 @@ or upstream harness change.
 
 - URL: https://www.first.org/cvss/   (v3.1 and v4.0 specifications)
 - Probe: `WebFetch` — expect HTTP 200. The Phase-0 interview offers CVSS v3.1 / v4.0
-  `severity_label` output; the precondition-derived HIGH/MEDIUM/LOW is always computed.
+  `severity_label` output; the impact x exploitability HIGH/MEDIUM/LOW is always computed.
 - Last verified: 2026-06-15
 
 ## OWASP Risk Rating Methodology (Phase 0 scoring-standard option)

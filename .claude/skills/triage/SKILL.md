@@ -829,8 +829,8 @@ defensible).
   actually existing — so a stated threat can't re-inflate a LOW back to
   HIGH and defeat the impact x exploitability rule.
 - **`severity_label` is separate from `severity`.** Sorting always uses the
-  precondition-derived HIGH/MEDIUM/LOW; the label is presentation-layer for
-  whatever standard the reviewer's tooling expects.
+  impact x exploitability HIGH/MEDIUM/LOW; the label is presentation-layer
+  for whatever standard the reviewer's tooling expects.
 - **Pipeline `report.json` ingest is best-effort.** Those reports describe
   ASAN crashes with prose exploitability analysis rather than the
   file/line/category shape static verifiers expect. Expect more
@@ -846,7 +846,7 @@ defensible).
 
 Adapted (Apache-2.0) from the `triage` skill in
 [`anthropics/defending-code-reference-harness`](https://github.com/anthropics/defending-code-reference-harness).
-Class-agnostic: the verifier exclusion rules and precondition-derived severity
-apply to web, cloud, crypto, and memory-safety findings alike. See
+Class-agnostic: the verifier exclusion rules and impact x exploitability
+severity apply to web, cloud, crypto, and memory-safety findings alike. See
 `../vuln-scan/HARNESS.md` for the autonomous pipeline whose output this skill
 can ingest.
