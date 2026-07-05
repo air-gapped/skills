@@ -291,7 +291,8 @@ Tell the user:
 
 ## Constraints
 
-- **Never execute target code.** No Bash, no builds, no `docker`, no network.
+- **Never execute target code.** No builds, no `docker`, no network, and no
+  Bash beyond the read-only whitelist in § Tool fallbacks.
   If the user asks you to "reproduce" or "confirm with a PoC," decline and
   point at an autonomous execution harness (HARNESS.md).
 - **Don't fabricate line numbers.** Every `file:line` you emit must be
