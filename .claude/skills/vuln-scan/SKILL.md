@@ -156,9 +156,17 @@ OUTPUT — one block per finding, nothing else:
 <recommendation>{specific fix: parameterize the query, bounds-check before memcpy, etc.}</recommendation>
 </finding>
 
-SEVERITY: HIGH = directly exploitable → RCE, data breach, auth bypass.
-MEDIUM = significant impact under specific conditions. LOW = defense-in-
-depth.
+SEVERITY: severity is impact-on-asset, not vuln class. Name the asset the
+finding compromises and what it is worth in THIS deployment. HIGH requires
+a high-value asset actually present here (secrets, sessions, code
+execution, regulated data) — never inferred from the category: XSS
+severity depends on what the origin protects (sessions? cookies? actions?);
+file-read severity on what the process filesystem actually holds; SSRF
+severity on what is reachable and whether the allowlist/DNS is
+attacker-influenceable. MEDIUM = real impact under a stated condition
+(state it in the description). LOW = reachable but the asset is absent or
+low-value here. Severity is not a reporting filter — report reachable
+findings at the severity the asset supports.
 
 If you find nothing reportable in your area after a thorough read, emit a
 single <finding> with category=none and a one-line note of what you covered.
