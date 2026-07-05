@@ -169,6 +169,11 @@ flat `findings[]` of dicts. Pull what's present; never guess what's absent.
 Attach `id` (`f001`, `f002`, ... in ingest order; preserve existing ids from
 TRIAGE.json) and `source` (relative path of the file it came from).
 
+From TRIAGE.json, also carry `asset`, `impact`, `deployment_condition`,
+and `verify_verdict` verbatim when present — they tell the human reviewer
+*why* the fix matters and under what deployment its severity moves, not
+just a severity label. Null when the input lacks them.
+
 ### 1c. Filter and order
 
 - If `--id fNNN`: keep only that finding.
@@ -325,6 +330,8 @@ For each finding (both modes), Write
   "line": 0,
   "category": "...",
   "severity": "HIGH",
+  "asset": "...|null",
+  "deployment_condition": "...|null",
   "owner_hint": "...",
   "mode": "exec" | "static",
   "verified": "ladder_passed" | "ladder_failed" | "static_review_only",
@@ -393,6 +400,7 @@ severity). Write `./.patch-state/_chunk.tmp`:
 ## bug_{NN}: [{severity}] {title}  ({id})
 
 `{file}:{line}` · {category} · owner: {owner_hint or "?"}
+**Asset:** {asset or "?"} · **severity moves if:** {deployment_condition or "n/a"}
 **Status:** {verified} · review {review or "n/a"} · style {style_score or "n/a"}/10
 **Diff:** `PATCHES/bug_{NN}/patch.diff` ({hunk count} hunks, {line count} lines)
 
