@@ -62,10 +62,18 @@ shell interpreter.
    with an error.
 2. Look for `<target-dir>/THREAT_MODEL.md`. If present, parse its section 3 "Entry
    points & trust boundaries" table and section 4 "Threats" table for focus areas
-   and threat classes. This is the preferred scoping input.
+   and threat classes. This is the preferred scoping input. Also parse its
+   section 2 "Assets" table and section 1 system context into two bullet
+   lists — `assets` and `deployment_facts` — for the review brief: severity
+   calibration needs what the system protects, not just where input enters.
 3. If no THREAT_MODEL.md and no `--focus`: do a **quick recon** — list the
    source tree, read entry points and dispatch code, and propose 3-10 focus
    areas using the pattern `<subsystem> (<function/file>) — <key operations>`.
+   During recon, also read any deploy manifests in the target (Helm chart,
+   k8s YAML, compose file, Dockerfile env) and note as `deployment_facts`
+   what is actually there: mounted secrets, auth in front, sessions/cookies,
+   persistent state, tenancy. "Stateless, no auth, chart mounts no secret"
+   changes every severity downstream.
 4. If `--focus` was given, use exactly those.
 
 Tell the user the focus areas you'll scan and the source-file count before
@@ -87,6 +95,12 @@ is wasted effort.
 
 TARGET: {target_dir}
 TRUST BOUNDARY: {from THREAT_MODEL.md section 3, or "untrusted input → process memory"}
+ASSETS (what is worth protecting here):
+{assets bullets from THREAT_MODEL.md section 2, or "(unknown — name the
+ asset you assume for each finding)"}
+DEPLOYMENT FACTS (what is actually deployed/mounted):
+{deployment_facts bullets, or "(unknown — check deploy manifests in the
+ target before assuming secrets, auth, or sessions exist)"}
 
 TASK: read the source in your focus area and identify candidate
 vulnerabilities. This is static review — do NOT build, run, or probe
