@@ -2,8 +2,8 @@
 name: triage
 description: >-
   Triage a batch of raw security findings. Verify each is real,
-  collapse duplicates, re-rank by derived exploitability, and tag with an
-  owner. Takes a directory or file of scanner output and writes TRIAGE.json
+  collapse duplicates, re-rank by impact-on-asset x exploitability, and tag
+  with an owner. Takes a directory or file of scanner output and writes TRIAGE.json
   + TRIAGE.md sorted by what actually needs engineering attention. Use when
   asked to "triage findings", "validate scanner output", "prioritize vulns",
   or "review the backlog". Runs interactively by default; pass --auto to
@@ -28,9 +28,10 @@ allowed-tools:
 
 Adversarial triage of raw security-scanner output. Does four jobs:
 **verify** each finding is real, **deduplicate** across runs and scanners,
-**rank** survivors by derived exploitability rather than the scanner's
-claimed severity, and **route** each to a component owner. Output is a
-short, ranked, owned list instead of a raw dump.
+**rank** survivors by what the attacker actually gains against a named
+asset times how easily they reach it — not by the scanner's claimed
+severity — and **route** each to a component owner. Output is a short,
+ranked, owned list instead of a raw dump.
 
 Invoke with `/triage <findings-path> [--auto] [--votes N] [--repo PATH] [--fp-rules FILE]`.
 
@@ -559,12 +560,14 @@ from `phase2.json` that are NOT in `shards_done`. Once every candidate is in
 
 ---
 
-## Phase 4: Rank by exploitability (confirmed findings only)
+## Phase 4: Rank by impact x exploitability (confirmed findings only)
 
-Recompute severity from preconditions and reachability rather than category
-name, and judge the scanner's claimed severity separately. Verification and
-severity are independent judgments; "this is real" must not inflate into
-"this is critical."
+Recompute severity as impact-on-a-named-asset times exploitability —
+what the attacker gains in this deployment, times how easily they reach
+it — rather than from the category name, and judge the scanner's claimed
+severity separately. Verification and severity are independent judgments;
+"this is real" must not inflate into "this is critical," and easy reach
+must not inflate an empty asset into a HIGH.
 
 ### 4a. Ranking prompt
 
@@ -822,8 +825,9 @@ defensible).
 - **`CANNOT_VERIFY`** exists so verifiers aren't forced into a false
   binary. It maps to `needs_manual_test` under recall policy and to a drop
   under precision policy.
-- **Threat-model boost is capped at one step** so a stated threat can't
-  re-inflate a LOW back to HIGH and defeat the precondition rule.
+- **Threat-model boost is capped at one step** — and gated on the asset
+  actually existing — so a stated threat can't re-inflate a LOW back to
+  HIGH and defeat the impact x exploitability rule.
 - **`severity_label` is separate from `severity`.** Sorting always uses the
   precondition-derived HIGH/MEDIUM/LOW; the label is presentation-layer for
   whatever standard the reviewer's tooling expects.
