@@ -176,9 +176,19 @@ just a severity label. Null when the input lacks them.
 
 ### 1c. Filter and order
 
+- Compute `fix_priority` per finding — decoupled from `severity`:
+  `high` when the category is a dangerous primitive (arbitrary file
+  read/write, SSRF, command/code execution, unsafe deserialization) AND
+  its severity is gated only by the current deployment
+  (`deployment_condition` set, or `verify_verdict ==
+  "reachable_no_impact"`). Such a primitive is worth fixing first even at
+  MEDIUM/LOW severity: it becomes exploitable the moment the deployment
+  changes. Everything else: `normal`.
 - If `--id fNNN`: keep only that finding.
-- If `--top N` (static mode): sort by `severity` HIGH > MEDIUM > LOW then
-  `confidence` desc, keep the first N.
+- If `--top N` (static mode): sort by `fix_priority` (high first), then
+  `severity` HIGH > MEDIUM > LOW, then `confidence` desc, keep the first
+  N — so a deployment-conditional dangerous primitive is not buried under
+  higher-severity but lower-value fixes.
 - Drop findings with no `file` (cannot patch what cannot be located). Record
   them as `skipped` with reason `"no source location"`.
 
@@ -330,6 +340,7 @@ For each finding (both modes), Write
   "line": 0,
   "category": "...",
   "severity": "HIGH",
+  "fix_priority": "high" | "normal",
   "asset": "...|null",
   "deployment_condition": "...|null",
   "owner_hint": "...",
@@ -393,11 +404,12 @@ In exec mode, also Read the pipeline's
 ---
 ````
 
-**Step 2 — per finding** (sorted: ACCEPT/ladder_passed first, then by
-severity). Write `./.patch-state/_chunk.tmp`:
+**Step 2 — per finding** (sorted: ACCEPT/ladder_passed first, then
+`fix_priority` high first, then by severity). Write
+`./.patch-state/_chunk.tmp`:
 
 ````markdown
-## bug_{NN}: [{severity}] {title}  ({id})
+## bug_{NN}: [{severity}{if fix_priority == "high"}, FIX-FIRST{/if}] {title}  ({id})
 
 `{file}:{line}` · {category} · owner: {owner_hint or "?"}
 **Asset:** {asset or "?"} · **severity moves if:** {deployment_condition or "n/a"}
