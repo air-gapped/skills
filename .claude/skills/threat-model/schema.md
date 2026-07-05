@@ -156,6 +156,16 @@ entire threat cluster regardless of which instance is found next.
 | `critical` | Full compromise of a primary asset (RCE, auth bypass, data exfil at scale). |
 | `existential` | Compromise threatens the organization's continued operation. |
 
+`impact` is **binding to the named asset**: every section 4 row's impact
+must be justifiable in one clause against its `asset` cell (a section 2
+row) and the system context — "critical: RCE on the ingest host", never
+"critical: it's memory corruption". A threat whose impact rests on an
+asset the system does not have (auth where there is none, sessions or
+cookies on a stateless origin, secrets on a filesystem that mounts none,
+tenant isolation in a single-tenant tool) is capped at `low` and belongs
+in section 5 Deprioritized with "asset not present" as the reason. Do not
+import stateful-web-app assumptions into a system that lacks the state.
+
 ### Likelihood
 
 | value | means |
