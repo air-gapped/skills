@@ -35,7 +35,7 @@
       "name": "defending-code",
       "source": "./",
       "description": "Security find-and-fix loop — adapted (Apache-2.0) from anthropics/defending-code-reference-harness and generalised to all vulnerability classes. Four read/write-only skills (no target-code execution): threat-model (bootstrap from code+CVEs+git-history, or interview an owner via Shostack's four questions, or both -> THREAT_MODEL.md), vuln-scan (static source review, parallel per-focus-area subagents -> VULN-FINDINGS.json), triage (adversarial N-vote verification, 16 false-positive exclusion rules, root-cause dedup, precondition-derived severity, owner routing, checkpoint/resume -> TRIAGE.json), and patch (root-cause candidate diffs + independent reviewer, never auto-applied -> PATCHES/). The autonomous C/C++ + AddressSanitizer execution pipeline this was extracted from is referenced, not bundled (vuln-scan/HARNESS.md).",
-      "version": "0.20260709.22",
+      "version": "0.20260709.23",
       "author": {
         "name": "Jörgen"
       },

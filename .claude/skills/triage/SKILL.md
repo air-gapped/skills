@@ -198,8 +198,9 @@ extract its three severity inputs:
 
 - `context.purpose`: 1-2 sentences from Section 1 — what the system is
   FOR and who uses it. Purpose governs severity: an outcome that is the
-  system's job (a raw-doc proxy serving untrusted documents under its own
-  origin) is not an impact.
+  system's job is not an impact — "open redirect" on a URL shortener,
+  "executes user-supplied code" on a CI runner, "serves stranger-uploaded
+  files" on a file-sharing host.
 - `context.assets`: the Section-2 asset table, one bullet per row:
   `"<asset> — <description> (sensitivity: <level>)"`.
 - `context.gating_questions`: the Section-6 open-question bullets — these

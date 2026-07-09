@@ -210,8 +210,13 @@ holds no secret. Verify the asset against what is actually deployed —
 Read the Helm chart / k8s manifests / compose file under {REPO_PATH} for
 mounted secrets, cookies, and state. Do NOT assume the asset exists
 because the vuln class usually implies one. And check the outcome against
-SYSTEM PURPOSE: an outcome that is the system's job (untrusted HTML under
-the origin of a raw-doc proxy) is the product working, not an impact.
+SYSTEM PURPOSE: an outcome that is the system's job is the product
+working, not an impact. "Open redirect" on a URL shortener, "arbitrary
+code execution" on a CI runner built to run user-submitted jobs, "serves
+stranger-uploaded files" on a file-sharing host — each sounds like a
+finding and is the feature. What remains rateable is the part the purpose
+does NOT cover: the shortener redirecting to its own admin origin, the
+runner escaping its sandbox, the host serving files across tenants.
 
 STEP 3: Derive EXPLOITABILITY from the precondition count and access
 level:
