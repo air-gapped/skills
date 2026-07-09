@@ -194,8 +194,12 @@ When `--auto` is set, do not call AskUserQuestion. Use:
 ### 0d. Threat-model ingest (both modes)
 
 If `{repo}/THREAT_MODEL.md` exists (or the user points at one), Read it and
-extract its two severity inputs:
+extract its three severity inputs:
 
+- `context.purpose`: 1-2 sentences from Section 1 — what the system is
+  FOR and who uses it. Purpose governs severity: an outcome that is the
+  system's job (a raw-doc proxy serving untrusted documents under its own
+  origin) is not an impact.
 - `context.assets`: the Section-2 asset table, one bullet per row:
   `"<asset> — <description> (sensitivity: <level>)"`.
 - `context.gating_questions`: the Section-6 open-question bullets — these
@@ -210,7 +214,7 @@ input only. If no THREAT_MODEL.md, set both to empty — the interview's
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
 
 ```json
-{"phase": 0, "context": {mode, environment, threat_model, assets, gating_questions, scoring, noise_tolerance, votes_per_finding, repo, findings_path}}
+{"phase": 0, "context": {mode, environment, purpose, threat_model, assets, gating_questions, scoring, noise_tolerance, votes_per_finding, repo, findings_path}}
 ```
 
 Then Bash:

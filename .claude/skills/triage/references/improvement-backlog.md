@@ -68,6 +68,13 @@ blind to impact-on-asset.
 - **Phase 0d threat-model ingest.** Section-2 assets + Section-6
   severity-gating questions now feed the ranking prompt; unresolved gates
   become deployment conditions, not assumptions.
+- **(addendum 2026-07-09) Section-1 purpose ingested too.** `context.purpose`
+  joins 0d and the ranking prompt (SYSTEM PURPOSE block); STEP 2 states
+  that an outcome that is the system's job (raw-doc proxy serving
+  untrusted HTML under its origin) is the product working, not an impact.
+  Closes the feedback's "operator had to say *read what the app is for*
+  three times" complaint at the triage stage; vuln-scan already ingests
+  section 1 via deployment_facts.
 - **Rule 13 scoped to reachability; `reachable_no_impact` verify_verdict
   added** so impact-empty reals neither drop as FPs nor masquerade as
   exploitable.

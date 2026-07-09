@@ -161,6 +161,9 @@ deployment facts (Helm charts, k8s manifests, compose files, config). Do
 NOT execute code.
 
 ENVIRONMENT: {context.environment}
+SYSTEM PURPOSE (THREAT_MODEL.md section 1, may be empty):
+{context.purpose, or "(unknown — if severity hinges on what the system
+ is for, say so in DEPLOYMENT_CONDITION rather than assuming)"}
 THREAT MODEL (operator-stated, may be empty):
 {context.threat_model as bullets, or "(none provided)"}
 ASSET INVENTORY (THREAT_MODEL.md section 2, may be empty):
@@ -206,7 +209,9 @@ there is no auth; "read arbitrary file" where the process filesystem
 holds no secret. Verify the asset against what is actually deployed —
 Read the Helm chart / k8s manifests / compose file under {REPO_PATH} for
 mounted secrets, cookies, and state. Do NOT assume the asset exists
-because the vuln class usually implies one.
+because the vuln class usually implies one. And check the outcome against
+SYSTEM PURPOSE: an outcome that is the system's job (untrusted HTML under
+the origin of a raw-doc proxy) is the product working, not an impact.
 
 STEP 3: Derive EXPLOITABILITY from the precondition count and access
 level:
