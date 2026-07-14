@@ -34,16 +34,16 @@ def load_groups() -> dict:
     return mod.GROUPS
 
 
-def suite_of(dir_name: str, groups: dict) -> str:
+def group_plugin_of(dir_name: str, groups: dict) -> str | None:
     """Mirror build_plugins() matching: first group whose glob or member
-    list hits wins; everything else is a standalone plugin."""
+    list hits wins. None means the skill is its own standalone plugin."""
     for gname, gcfg in groups.items():
         glob = gcfg.get("glob")
         if glob and fnmatch.fnmatch(dir_name, glob):
             return gname
         if dir_name in gcfg.get("members", []):
             return gname
-    return "—"
+    return None
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -90,15 +90,18 @@ def build_table() -> str:
     for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
         fm = parse_frontmatter(skill_md.read_text())
         name = fm.get("name", skill_md.parent.name)
-        suite = suite_of(skill_md.parent.name, groups)
+        group = group_plugin_of(skill_md.parent.name, groups)
+        # The plugin name IS the install unit: the group name for suite
+        # members, the skill's own name for standalone plugins.
+        plugin = group or name
         desc = summarise(fm.get("description", ""))
-        entries.append((suite, name, skill_md, desc))
-    # Suites alphabetically, skills alphabetically within a suite;
-    # standalone ("—") skills together at the end.
-    entries.sort(key=lambda e: (e[0] == "—", e[0], e[1]))
-    rows = ["| Skill | Suite | Description |", "|---|---|---|"]
-    for suite, name, skill_md, desc in entries:
-        rows.append(f"| [`{name}`]({skill_md}) | {suite} | {desc} |")
+        entries.append((group is None, plugin, name, skill_md, desc))
+    # Multi-skill suites first (alphabetically, members contiguous),
+    # then the single-skill plugins alphabetically.
+    entries.sort()
+    rows = ["| Plugin | Skill | Description |", "|---|---|---|"]
+    for _, plugin, name, skill_md, desc in entries:
+        rows.append(f"| `{plugin}` | [`{name}`]({skill_md}) | {desc} |")
     return "\n".join(rows)
 
 
