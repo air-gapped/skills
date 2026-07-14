@@ -488,6 +488,20 @@
       ]
     },
     {
+      "name": "airgap-vetting",
+      "source": "./",
+      "description": "Vet an open-source product for air-gap readiness BEFORE adoption",
+      "version": "0.20260714.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/airgap-vetting"
+      ],
+      "strict": false
+    },
+    {
       "name": "confluence-best-practices",
       "source": "./",
       "description": "Advise on USING Confluence well, not operating it: make the structural call",
