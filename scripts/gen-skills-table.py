@@ -7,6 +7,8 @@ often contain colons inside backticks (e.g. `initialDelaySeconds: 600`)
 that trip strict YAML parsers.
 """
 
+import fnmatch
+import importlib.util
 import pathlib
 import re
 import subprocess
@@ -17,6 +19,31 @@ SKILLS = pathlib.Path(".claude/skills")
 MARK_A = "<!-- skills-start -->"
 MARK_B = "<!-- skills-end -->"
 MAX_LEN = 250
+
+
+def load_groups() -> dict:
+    """GROUPS from gen-plugin-manifests.py — the plugin/suite definitions
+    are the single source of truth for skill grouping."""
+    path = pathlib.Path(__file__).with_name("gen-plugin-manifests.py")
+    spec = importlib.util.spec_from_file_location("gen_plugin_manifests", path)
+    if spec is None or spec.loader is None:
+        print(f"error: cannot load {path}", file=sys.stderr)
+        raise SystemExit(2)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.GROUPS
+
+
+def suite_of(dir_name: str, groups: dict) -> str:
+    """Mirror build_plugins() matching: first group whose glob or member
+    list hits wins; everything else is a standalone plugin."""
+    for gname, gcfg in groups.items():
+        glob = gcfg.get("glob")
+        if glob and fnmatch.fnmatch(dir_name, glob):
+            return gname
+        if dir_name in gcfg.get("members", []):
+            return gname
+    return "—"
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -58,12 +85,14 @@ def summarise(s: str) -> str:
 
 
 def build_table() -> str:
-    rows = ["| Skill | Description |", "|---|---|"]
+    groups = load_groups()
+    rows = ["| Skill | Suite | Description |", "|---|---|---|"]
     for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
         fm = parse_frontmatter(skill_md.read_text())
         name = fm.get("name", skill_md.parent.name)
+        suite = suite_of(skill_md.parent.name, groups)
         desc = summarise(fm.get("description", ""))
-        rows.append(f"| [`{name}`]({skill_md}) | {desc} |")
+        rows.append(f"| [`{name}`]({skill_md}) | {suite} | {desc} |")
     return "\n".join(rows)
 
 
