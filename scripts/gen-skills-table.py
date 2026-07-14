@@ -86,12 +86,18 @@ def summarise(s: str) -> str:
 
 def build_table() -> str:
     groups = load_groups()
-    rows = ["| Skill | Suite | Description |", "|---|---|---|"]
+    entries = []
     for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
         fm = parse_frontmatter(skill_md.read_text())
         name = fm.get("name", skill_md.parent.name)
         suite = suite_of(skill_md.parent.name, groups)
         desc = summarise(fm.get("description", ""))
+        entries.append((suite, name, skill_md, desc))
+    # Suites alphabetically, skills alphabetically within a suite;
+    # standalone ("—") skills together at the end.
+    entries.sort(key=lambda e: (e[0] == "—", e[0], e[1]))
+    rows = ["| Skill | Suite | Description |", "|---|---|---|"]
+    for suite, name, skill_md, desc in entries:
         rows.append(f"| [`{name}`]({skill_md}) | {suite} | {desc} |")
     return "\n".join(rows)
 
