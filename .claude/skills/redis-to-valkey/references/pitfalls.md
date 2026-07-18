@@ -53,7 +53,7 @@ gates verified 2026-07-18.
     26379 in HA mode — non-Sentinel-aware clients that pointed at the old
     Bitnami service's 6379 lose connectivity entirely (see app-cutover
     Class B).
-11. **Master-group name mismatch**: `valkeyha` (groundhog2k default) vs
+11. **Master-set name mismatch**: `valkeyha` (groundhog2k default) vs
     `mymaster` (Bitnami/most clients' default) — Sentinel discovery returns
     nothing; either align the chart value or update every client.
 12. **HEXPIRE gap**: hash-field TTL is Redis 7.4+ but **Valkey 9.0+** only

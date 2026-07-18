@@ -19,7 +19,7 @@ discovers the master itself. Typical shapes:
 - Env style: `REDIS_URL` host = master-set name + `SENTINEL_HOSTS`/`_PORT`
 
 Repoint checklist: new sentinel service DNS names (port 26379), master-set
-name (keep the old one via the chart's master-group value to avoid touching
+name (keep the old one via the chart's master-set value to avoid touching
 clients at all), data-node password, and — separately — whether the
 **sentinel processes themselves** require auth. Many clients carry a
 distinct sentinel password knob (`sentinel_kwargs` in redis-py,

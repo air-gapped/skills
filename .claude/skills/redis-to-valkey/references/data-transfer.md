@@ -3,6 +3,14 @@
 Facts verified 2026-07-18. Version-gate everything here against the actual
 source/target versions before running.
 
+## Table of Contents
+- [Decision tree](#decision-tree) — pick method by source version + data class
+- [Physical: REPLICAOF live cutover](#physical-replicaof-live-cutover-source--72x-only) (≤ 7.2.x only)
+- [Physical: RDB file copy](#physical-rdb-file-copy-source--72x-only) (≤ 7.2.x only)
+- [Logical: RedisShake](#logical-redisshake-any-redis-version--any-valkey) — any version, incl. air-gap delivery
+- [Logical: rdb-cli](#logical-rdb-cli-offline-any-rdb-version) — offline, any RDB version
+- [Verification checklist](#verification-checklist-any-method)
+
 ## Decision tree
 
 ```
@@ -100,8 +108,8 @@ Operational caveats (from the maintainers):
   (`redis-shake-vX.Y.Z-linux-amd64.tar.gz`, also arm64) — a single Go
   binary + example configs. One file to carry across the gap; no runtime
   deps. (Verified present on v4.6.1, 2026-04-24.)
-- **Container image**: `ghcr.io/tair-opensource/redisshake` — mirror it if
-  you'd rather run the transfer as a Job/Pod inside the cluster (often the
+- **Container image**: `ghcr.io/tair-opensource/redisshake` — mirror it to
+  run the transfer as a Job/Pod inside the cluster (often the
   only place with network reach to both Redis and Valkey services).
 - Typical in-cluster pattern: a one-off Pod/Job mounting `shake.toml` from
   a ConfigMap, running in the same namespace as source or target.

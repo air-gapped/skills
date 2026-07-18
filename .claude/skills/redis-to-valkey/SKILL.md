@@ -12,22 +12,19 @@ description: >-
   Bitnami-redis→valkey values translation, consumer-app reconnection
   (Sentinel discovery, master-set names, frozen redis_version 7.2.4),
   Prometheus exporter continuity, air-gap tool/image mirroring, and Argo CD
-  source rewiring away from charts.bitnami.com. First skill of the
-  bitnami-exit suite.
+  source rewiring away from charts.bitnami.com. Part of the bitnami-exit
+  suite.
 when_to_use: >-
   Use whenever the task involves replacing Redis with Valkey or retiring
   Bitnami Redis: "migrate redis to valkey", "replace bitnami redis",
-  "valkey sentinel chart", "bitnami exit", "bitnami alternative for redis",
-  "REPLICAOF valkey", "redis-shake / RedisShake", "copy redis data to
-  valkey", "can valkey read my dump.rdb". Also on symptoms: image pulls
-  failing for docker.io/bitnami/redis tags, "Can't handle RDB format
-  version 12", a Valkey replica coming up empty after pointing it at Redis,
-  charts pinned to charts.bitnami.com / bitnamilegacy, apps that misreport
-  the server version as 7.2.4 after a swap, or Sentinel failover
-  misbehaving after enabling dual-channel replication. Covers connected AND
-  air-gapped clusters, plain Helm and Argo CD. NOT for Redis-Cluster-mode
-  topologies (sharded cluster protocol) or for tuning an existing healthy
-  Valkey.
+  "valkey sentinel chart", "bitnami exit", "bitnami alternative",
+  "REPLICAOF valkey", "RedisShake", "copy redis data to valkey", "can
+  valkey read my dump.rdb". Symptoms: failing docker.io/bitnami/redis
+  image pulls, "Can't handle RDB format version 12", a Valkey replica
+  coming up empty after pointing at Redis, charts pinned to
+  charts.bitnami.com/bitnamilegacy, server version misreported as 7.2.4,
+  dual-channel Sentinel failover bugs. Covers Helm and Argo CD. NOT for
+  Redis Cluster (sharded) topologies or tuning a healthy Valkey.
 argument-hint: "[chart|data|cutover|apps|airgap] (optional focus area)"
 ---
 
@@ -43,16 +40,14 @@ a later year.
 ## Why this migration exists
 
 Broadcom locked down the free Bitnami catalog (effective 2025-09-29):
-versioned images moved to `docker.io/bitnamilegacy` (frozen forever, no
-updates), free `docker.io/bitnami/*` repos keep only `latest` tags, and most
-charts froze at Aug 2025. `charts.bitnami.com` still serves (it redirects to
-`repo.broadcom.com`) — so pinned charts *sync* fine and the failure arrives
-later, at **image-pull time**: the first pod reschedule onto a node without
-the image cached fails, because the pinned tag no longer exists outside
-`bitnamilegacy`. Migrate deliberately, but don't assume the status quo is
-stable. Valkey (Linux Foundation fork of Redis 7.2.4, BSD-licensed) is the
-sanctioned successor for the Redis role — major consumers (Harbor, GitLab)
-have adopted or officially support it.
+versioned images moved to frozen `docker.io/bitnamilegacy` and most charts
+froze. `charts.bitnami.com` still serves, so pinned charts *sync* fine and
+the failure arrives later, at **image-pull time** — the first pod reschedule
+onto a node without the tag cached fails. Migrate deliberately, but don't
+assume the status quo is stable (full risk model:
+`references/airgap-gitops.md`). Valkey (Linux Foundation fork of Redis
+7.2.4, BSD-licensed) is the sanctioned successor — major consumers (Harbor,
+GitLab) have adopted or officially support it.
 
 ## The one fact that shapes every plan: the RDB-version wall
 
@@ -79,7 +74,7 @@ Consequences:
    discovers the incoming RDB is unreadable** (valkey-io/valkey#2588). Never
    point a Valkey holding data at a source "to see if replication works".
 3. **Valkey 9 is a one-way door.** Its v80 snapshots load on nothing else —
-   not Redis, not Valkey 8. The final pre-cutover Redis RDB is your only
+   not Redis, not Valkey 8. The final pre-cutover Redis RDB is the only
    rollback artifact; archive it before decommissioning.
 4. The wall is about **persistence formats, not the wire protocol**. Any
    client speaking RESP to Redis 7.2 works against Valkey — which is exactly
@@ -95,14 +90,14 @@ Two layers exist; pick by source version and data class:
   `REPLICAOF NO ONE`.
 - Offline: `BGSAVE` → poll `LASTSAVE` → stop Redis → place `dump.rdb` in
   Valkey's data dir → start Valkey **with AOF disabled for the first boot**
-  (an enabled AOF silently wins over the RDB and you boot empty), re-enable
+  (an enabled AOF silently wins over the RDB and the server boots empty), re-enable
   after.
 
 **Version-agnostic (logical replay) — any Redis version → any Valkey:**
 Tools that decode the data themselves and re-issue plain commands; the
 target only ever sees ordinary RESP traffic.
 - **RedisShake** (tair-opensource, v4.6+): live PSync sync (keeps target in
-  sync while you repoint apps one at a time), RDB-file reader, SCAN reader.
+  sync while apps are repointed one at a time), RDB-file reader, SCAN reader.
   Supports Redis 2.8–8.4.x → Valkey 8–9, standalone/Sentinel/cluster.
   Caveats: no resume (restart = full recopy); panics on topology change —
   quiesce failovers during the run.
@@ -127,9 +122,9 @@ Never upgrade in place — resource naming, UIDs, and formats differ across
 charts. Deploy Valkey next to Redis, move data, repoint, decommission:
 
 1. **Deploy the Valkey release** side-by-side (new release name). Decide the
-   Sentinel master-group name up front — keeping the old name (commonly
+   Sentinel master-set name up front — keeping the old name (commonly
    `mymaster`) means zero client-side master-set changes.
-2. **Pre-verify** the empty Valkey: sentinel quorum forms,
+2. **Pre-verify** the empty Valkey: `SENTINEL ckquorum <group>` returns OK,
    `SENTINEL get-master-addr-by-name <group>` answers, auth works.
 3. **Quiesce writers**: scale client Deployments to 0 or enable the app's
    maintenance mode. (For live RedisShake sync, start the sync *before*
@@ -160,7 +155,7 @@ production-ready.
 Bitnami-redis values do NOT translate 1:1. The traps that break clients or
 lose data are: auth as config-file fragments instead of a bare
 password secret, an HA service exposing only 26379, a different default
-master-group name, persistence defaulting to emptyDir, ServiceMonitor
+master-set name, persistence defaulting to emptyDir, ServiceMonitor
 defaulting ON, and UID 999 vs Bitnami's 1001. Full mapping table, behavioral
 diffs, and exporter wiring: `references/chart-migration.md`.
 
@@ -186,19 +181,19 @@ RedisShake static binary (single-file Go binary from GitHub releases; also
 `ghcr.io/tair-opensource/redisshake` as an image). For Argo CD: keep the
 multi-source `$values` pattern and swap only the chart source; vendoring the
 chart into git is the only bootstrap-safe option when the migrated Redis
-backs your own registry (a registry cannot host the chart for its own
+backs the cluster's own registry (a registry cannot host the chart for its own
 dependency's replacement). Details, OCI syntax (no `oci://` prefix in Argo
 `repoURL`), Bitnami-endpoint risk model, and Renovate notes:
 `references/airgap-gitops.md`.
 
 ## Pitfalls quick index
 
-Before executing any plan, scan `references/pitfalls.md`. Highest-severity:
-replica flush-before-reject (#2588); dual-channel replication + Sentinel
-phantom replicas on Kubernetes (#2338 — fix shipped in Valkey 9.1.0 ONLY;
-keep `dual-channel-replication-enabled no` below that); AOF masking RDB
-import on first boot; HEXPIRE absent until Valkey 9; io-threads default-on
-in Valkey 8+ raising per-pod CPU vs single-threaded Redis sizing.
+Before executing any plan, scan `references/pitfalls.md` (19 entries by
+severity). Beyond the traps already covered above: dual-channel replication
++ Sentinel phantom replicas on Kubernetes (#2338 — fix shipped in Valkey
+9.1.0 ONLY; keep `dual-channel-replication-enabled no` below that); HEXPIRE
+absent until Valkey 9; io-threads default-on in Valkey 8+ raising per-pod
+CPU vs single-threaded Redis sizing.
 
 ## Reference files
 

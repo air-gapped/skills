@@ -24,7 +24,7 @@ helm repo add <name> <chart-repo-url> && helm pull <name>/valkey --version <X.Y.
 ```
 
 Why vendoring beats a mirrored chart registry for the bootstrap path: if
-the migrated Redis/Valkey backs your **own container registry** (common:
+the migrated Redis/Valkey backs the cluster's **own container registry** (common:
 registry session/cache stores), then that registry cannot be the source of
 the chart or images needed to rebuild its own dependency — a circular
 dependency that only shows up during disaster recovery. Git is the
@@ -77,4 +77,4 @@ configmaps) derive from it, and client configs reference those DNS names.
   accept a manual quarterly bump ritual.
 - Silence is a signal: frozen upstreams (Bitnami pins) produce no update
   PRs at all — absence of PRs is indistinguishable from "up to date"
-  unless you alert on artifact age.
+  without an alert on artifact age.
