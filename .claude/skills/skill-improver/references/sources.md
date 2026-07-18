@@ -7,7 +7,7 @@ Dim 9 (see `references/quality-rubric.md` §Dim 9).
 
 ## Table of Contents
 - [Convention](#convention)
-- [Most recent freshen pass](#most-recent-freshen-pass-2026-06-09) (and prior passes)
+- [Most recent freshen pass](#most-recent-freshen-pass-2026-07-18) (and prior passes)
 - [Official Documentation](#official-documentation)
 - [GitHub Repositories](#github-repositories)
 - [Blog Posts & Articles](#blog-posts--articles)
@@ -20,7 +20,17 @@ Each row below has these columns: `Source`, `URL`, `What it contains`,
 Mark rows you want Freshen Mode to skip with `<!-- ignore-freshen -->`
 at the end of the row.
 
-## Most recent freshen pass: 2026-06-09
+## Most recent freshen pass: 2026-07-18
+
+### Notable changes since the previous pass (2026-06-09 → 2026-07-18)
+
+- **Loops became the platform story.** The features are older than the discourse: `/loop` shipped in **v2.1.71** (recurring interval, bundled prompt-based skill), `/goal` in **v2.1.139** (evaluator-checked completion condition, live turns/tokens overlay), `/schedule` is in research preview (cloud-run proactive loops). What changed recently: Anthropic's official **"Loop engineering: Getting started with loops"** blog post (2026-06-30, Delba de Oliveira & Michael Segner) canonized the taxonomy — turn-based / goal-based / time-based / proactive loops, each defined by trigger + stop condition — and **Boris Cherny's "Steps of AI Adoption"** (2026-07-16, X + LinkedIn, 251K+ views; "I don't prompt Claude anymore … my job is to write loops", @Scale talk) made loop engineering the adoption narrative. Blog best practices map 1:1 onto this skill's existing design: deterministic success criteria (the scalar rubric metric), explicit turn caps (10-iteration cap), skills encoding verification (blind validation), match interval to change frequency (freshen cadence). SKILL.md §Batch Mode gained a native-loops note; version table backfilled v2.1.71/139.
+- **Claude Code v2.1.170 → v2.1.214** (changelog fetched raw via `gh api`). Skill-relevant: **v2.1.205** `/doctor` becomes a bundled skill, custom commands fully merged into skills, nested `.claude/skills/` directory-qualified names; **v2.1.212** session loop-guards — 200-subagent and 200-WebSearch caps (batch/blind fan-outs count against them), `/fork` background sessions; **v2.1.214** EndConversation tool, permission hardening. No frontmatter/Skill-tool behavior drift affecting this skill's guidance.
+- **Docs all healthy, re-stamped 2026-07-18**: skills docs (new: bundled-skills section listing `/loop`; `/run`+`/verify`+`/run-skill-generator` v2.1.145), best-practices (all enforced practices confirmed — third-person, 500-line cap, one-level refs, 100-line TOC; "build evaluations first" section validates trigger mode's empirical approach), agentskills.io spec (optional `license`/`compatibility`/`metadata`/`allowed-tools` fields — already in `anthropic-skill-design.md`), hooks, subagents, engineering blog (adds note: standard open-sourced 2025-12-18).
+- **Repos**: anthropics/skills @ fa0fa64b (2026-07-17, docx/pptx/xlsx update) — **skill-creator unchanged since 2026-04-20**, Trigger Mode mirroring stays accurate; agentskills/agentskills @ 38a2ff82 (2026-07-10, pulumi-neo example — no spec drift).
+- **X/Twitter rows unfetchable (HTTP 402)** — historical post rows marked `<!-- ignore-freshen -->` (content already quoted in the skill; corroborated via syndication where needed). Rubric §Dim 9 staleness cap now explicitly excludes ignore-freshen rows.
+
+### Previous freshen pass: 2026-06-09
 
 ### Notable changes since the previous pass (2026-05-28 → 2026-06-09)
 
@@ -105,35 +115,38 @@ at the end of the row.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| Claude Code skills docs | https://code.claude.com/docs/en/skills | Complete skill authoring guide, frontmatter reference, advanced patterns, troubleshooting | 2026-05-01 | — |
-| Skill authoring best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | Official best practices: conciseness, freedom levels, progressive disclosure, testing, anti-patterns | 2026-05-01 | — |
-| Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields, validation rules, directory structure | 2026-05-01 | — |
-| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-06-09 | v2.1.170 |
-| Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-05-01 | — |
-| Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork details | 2026-05-01 | — |
+| Claude Code skills docs | https://code.claude.com/docs/en/skills | Complete skill authoring guide, frontmatter reference, bundled skills (incl. `/loop`), advanced patterns | 2026-07-18 | — |
+| Skill authoring best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | Official best practices: conciseness, freedom levels, progressive disclosure, evaluation-first testing, anti-patterns | 2026-07-18 | — |
+| Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields (incl. license/compatibility/metadata/allowed-tools), validation rules | 2026-07-18 | — |
+| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-18 | v2.1.214 |
+| Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-07-18 | — |
+| Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents | 2026-07-18 | — |
+| Loop engineering blog post | https://claude.com/blog/getting-started-with-loops | Official loops guide (2026-06-30): /loop, /goal, /schedule taxonomy by trigger + stop condition; best practices (deterministic criteria, turn caps, verify via skills) | 2026-07-18 | — |
 
 ## GitHub Repositories
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-06-09 | main @ c30d329f (2026-06-07) |
-| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained) | 2026-06-09 | main |
-| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for "be a little pushy", overfitting guard, ≤200 word target. Trigger Mode mirrors this approach. | 2026-06-09 | main (unchanged since 2026-04-20) |
-| skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-06-09 | main (unchanged since 2026-04-20) |
-| skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-06-09 | main (unchanged since 2026-04-20) |
-| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-06-09 | main @ 5d4c1fda (2026-05-20) |
-| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-06-09 | v2.1.170 |
+| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-18 | main @ fa0fa64b (2026-07-17) |
+| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained) | 2026-07-18 | main |
+| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for "be a little pushy", overfitting guard, ≤200 word target. Trigger Mode mirrors this approach. | 2026-07-18 | main (unchanged since 2026-04-20) |
+| skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-07-18 | main (unchanged since 2026-04-20) |
+| skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-07-18 | main (unchanged since 2026-04-20) |
+| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-18 | main @ 38a2ff82 (2026-07-10) |
+| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-18 | v2.1.214 |
 
 ## Blog Posts & Articles
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| Anthropic engineering blog | https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills | Agent Skills announcement (2025-10-16), architecture, security considerations | 2026-05-01 | — |
-| Anthropic news — Opus 4.8 | https://www.anthropic.com/news/claude-opus-4-8 | Opus 4.8 launch (2026-05-28): `claude-opus-4-8`, effort tiers, dynamic workflows, fast mode pricing | 2026-05-28 | — |
-| Anthropic news — Fable 5 | https://www.anthropic.com/news/claude-fable-5-mythos-5 | Fable 5 launch (2026-06-09): `claude-fable-5`, Mythos-class tier above Opus, pricing ($10/$50 per Mtok), availability windows | 2026-06-09 | — |
-| Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | Lessons from building Claude Code: How We Use Skills (March 17, 2026) | 2026-05-01 | — |
-| Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | Agent design philosophy | 2026-05-01 | — |
-| Boris Cherny on Lenny's podcast | https://x.com/Mnilax/status/2050321700802408552 | Creator of Claude Code interviewed 2026; "don't box the model in", bitter lesson applied to skills, "give it a tool, not context up front", build for the model 6 months out, plan-mode default. Source for Boris Alignment Check (rubric §), Scaffolding Decay Probes (freshen §4b), Minimalism Test (trigger §), and Philosophy Mode (SKILL.md §). | 2026-05-03 | — |
+| Anthropic engineering blog | https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills | Agent Skills announcement (2025-10-16), architecture, security considerations; standard open-sourced 2025-12-18 | 2026-07-18 | — |
+| Anthropic news — Opus 4.8 | https://www.anthropic.com/news/claude-opus-4-8 | Opus 4.8 launch (2026-05-28): `claude-opus-4-8`, effort tiers, dynamic workflows, fast mode pricing | 2026-05-28 | — | <!-- ignore-freshen (historical launch page) -->
+| Anthropic news — Fable 5 | https://www.anthropic.com/news/claude-fable-5-mythos-5 | Fable 5 launch (2026-06-09): `claude-fable-5`, Mythos-class tier above Opus, pricing ($10/$50 per Mtok), availability windows | 2026-06-09 | — | <!-- ignore-freshen (historical launch page) -->
+| Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | Lessons from building Claude Code: How We Use Skills (March 17, 2026) | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
+| Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | Agent design philosophy | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
+| Boris Cherny on Lenny's podcast | https://x.com/Mnilax/status/2050321700802408552 | Creator of Claude Code interviewed 2026; "don't box the model in", bitter lesson applied to skills, "give it a tool, not context up front", build for the model 6 months out, plan-mode default. Source for Boris Alignment Check (rubric §), Scaffolding Decay Probes (freshen §4b), Minimalism Test (trigger §), and Philosophy Mode (SKILL.md §). | 2026-05-03 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
+| Boris Cherny — Steps of AI Adoption | https://x.com/bcherny/status/2077929379661844559 | Loop-era adoption ladder (2026-07-16): Gated (0) → Assisted (~1) → Parallel (~10) → Supervised autonomy (~100) → AI-native (1,000+ agents); "I don't prompt Claude anymore … my job is to write loops"; Anthropic self-reports step 3. Verified 2026-07-18 via LinkedIn mirror + press syndication (X direct fetch 402). | 2026-07-18 | — | <!-- ignore-freshen (X unfetchable, verified via syndication) -->
+| Armin Ronacher — The Coming Loop | https://lucumr.pocoo.org/2026/6/23/the-coming-loop/ | Independent practitioner take (2026-06-23) on the loop shift — third-party corroboration of the loop-engineering discourse | 2026-07-18 | — |
 
 ## Search Queries for Future Research
 
@@ -146,4 +159,6 @@ agentskills.io specification updates
 Thariq Shihipar claude code skills
 site:code.claude.com/docs skills
 site:platform.claude.com agent-skills
+claude code /loop /goal loop engineering
+Boris Cherny loops adoption
 ```

@@ -285,6 +285,9 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | Version | Date | Change |
 |---------|------|--------|
 | v2.1.63 | 2026-03 | Task tool renamed to `Agent`. `Task(...)` kept as alias, but new `allowed-tools` rules should use `Agent(...)`. |
+| v2.1.71 | 2026-03 | `/loop` command: run a prompt or slash command on a recurring interval (e.g. `/loop 5m <task>`). Ships as a bundled prompt-based skill. (Backfilled 2026-07-18 — became loop-engineering-relevant.) |
+| v2.1.139 | 2026-05 | `/goal` command: set a completion condition and Claude keeps working across turns until an evaluator model judges it met; live elapsed/turns/tokens overlay. Agent view (`claude agents`) research preview. (Backfilled 2026-07-18.) |
+| v2.1.145 | 2026-05 | Bundled skills `/run`, `/verify`, `/run-skill-generator` — launch and verify the real app instead of tests-only; the generator records a per-project run recipe skill. |
 | v2.1.91 | 2026-04-02 | Plugin `bin/` auto-added to Bash `PATH` while plugin is enabled — Claude invokes executables there as bare commands. Also introduced `disableSkillShellExecution` setting. |
 | v2.1.94 | 2026-04-?? | Plugin skills can declare `"skills": ["./"]` and are invoked by the skill's frontmatter `name` (stable across install methods). |
 | v2.1.105 | 2026-04-13 | Description listing cap raised 250→**1,536 chars** for combined `description` + `when_to_use`. Startup warning when descriptions are truncated. `PreCompact` hooks can block compaction with exit code 2 or `{"decision":"block"}`. Plugin `monitors` manifest key auto-arms background monitors. |
@@ -300,6 +303,9 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.163 | 2026-06 | Skills: `\$` escape syntax to include a literal `$` before a digit in command bodies (prevents unwanted `$1` argument substitution). |
 | v2.1.169 | 2026-06 | `--safe-mode` flag / `CLAUDE_CODE_SAFE_MODE` env var starts Claude Code with all customizations disabled (CLAUDE.md, plugins, skills, hooks, MCP) for troubleshooting. `disableBundledSkills` setting / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` hides bundled skills, workflows, and built-in slash commands from the model. |
 | v2.1.170 | 2026-06-09 | **Claude Fable 5 (`claude-fable-5`) ships — Mythos-class tier above Opus.** Supports `xhigh` effort and dynamic workflows. API $10/$50 per Mtok; included on Pro/Max/Team/seat-Enterprise Jun 9–22 2026, usage credits afterward. |
+| v2.1.205 | 2026-07 | `/doctor` becomes a bundled skill and stays typable even with `disableBundledSkills` on (hide via `DISABLE_DOCTOR_COMMAND` or a `skillOverrides` entry). Custom commands fully merged into skills — `.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`; nested `.claude/skills/` dirs give directory-qualified names (`apps/web:deploy`). |
+| v2.1.212 | 2026-07 | Session-wide loop guards: WebSearch capped at 200 calls (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), subagent spawns capped at 200 (`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`, `/clear` resets) — batch/blind fan-outs count against these. `/fork` copies the conversation to a background session; the old in-session fork is `/subtask`. |
+| v2.1.214 | 2026-07-17 | Current release as of 2026-07-18 freshen. `EndConversation` tool; permission-check hardening (fail-closed Bash redirects, >10k-char commands always prompt). No skill-frontmatter or Skill-tool behavior changes v2.1.171→214 beyond rows above. |
 
 ### Key Settings
 

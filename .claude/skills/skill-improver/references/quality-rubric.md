@@ -276,12 +276,16 @@ Dim 9 based on the **oldest** `Last verified:` date:
 | `references/sources.md` absent | 6 |
 
 Tolerance: if ≥ 80% of rows have `Last verified:` dates, use the oldest dated
-row; if < 80% have dates, treat the file as lacking markers.
+row; if < 80% have dates, treat the file as lacking markers. Rows marked
+`<!-- ignore-freshen -->` (historical/pinned sources the author keeps as-is,
+e.g. unfetchable social posts already quoted in the skill) are excluded from
+the cap computation entirely.
 
 Quick check:
 
 ```bash
-rg '^\|.*\| (\d{4}-\d{2}-\d{2}) \|' references/sources.md -o -r '$1' | sort | head -1
+rg -v 'ignore-freshen' references/sources.md \
+  | rg '^\|.*\| (\d{4}-\d{2}-\d{2}) \|' -o -r '$1' | sort | head -1
 ```
 
 When the cap triggers, record a justification like "Dim 9 capped at 7 —

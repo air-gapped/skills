@@ -394,6 +394,8 @@ To improve multiple skills:
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
 **Dynamic workflows (Fable 5 / Opus 4.8, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit the session model and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
+
+**Native loops (Claude Code `/loop` v2.1.71+, `/goal` v2.1.139+).** For recurring or goal-driven runs, drive this skill with the harness's loop primitives: `/loop <interval> /skill-improver batch freshen --all` for scheduled passes, or `/goal` with a checkable stop ("every skill scores ≥85, stop after N tries") — `/goal`'s evaluator-checked stop condition maps directly onto this skill's scalar metric. Mind the v2.1.212 session caps (200 subagents / 200 web searches) when sizing batch fan-outs. Official guidance: https://claude.com/blog/getting-started-with-loops (2026-06-30).
 ---
 
 ## Standalone Evaluation (No Loop)
