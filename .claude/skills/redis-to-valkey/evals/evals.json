@@ -1,0 +1,23 @@
+{
+  "skill_name": "redis-to-valkey",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "our app uses a bitnami redis helm release in sentinel mode (redis 8.0.2, 3 nodes) for its background job queues. I want to get off bitnami and onto valkey 9. my plan: deploy a valkey statefulset, run REPLICAOF pointing at the current redis master, wait for sync, then repoint the app and kill the old release. cluster is air-gapped (internal registry mirror, no internet from nodes). does this plan work? if not what should I do instead? write your answer to answer.md",
+      "expected_output": "Must reject REPLICAOF (Redis 8.x writes RDB v12 which Valkey cannot parse; also the replica flushes itself before rejecting). Must recommend logical replay (RedisShake sync/rdb reader or rdb-cli), stress queue data must be transferred not flushed, cover air-gap delivery (static binary tarball or ghcr image to mirror), and note the Valkey 9 one-way door / keep final RDB as rollback.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "translate these bitnami redis chart values to the groundhog2k valkey chart for me and flag anything that behaves differently:\n\narchitecture: replication\nauth:\n  enabled: true\n  sentinel: true\n  existingSecret: my-redis-secret\nsentinel:\n  enabled: true\n  masterSet: mymaster\n  quorum: 2\n  downAfterMilliseconds: 60000\nreplica:\n  replicaCount: 3\nmaster:\n  persistence:\n    enabled: true\n    size: 8Gi\nmetrics:\n  enabled: true\n\nwrite the translated values.yaml plus a list of behavioral differences to answer.md",
+      "expected_output": "Translated values using haMode block (enabled, replicas 3, quorum 2, downAfterMilliseconds 60000 with failoverWait raised >60s, masterGroupName: mymaster), auth expressed as config-file fragments via extraSecretValkeyConfigs/sentinelConfig (NOT a bare password secret), storage.requestedSize: 8Gi, metrics.enabled true with ServiceMonitor-default-true caveat. Differences list must include: HA service exposes only 26379, port name changes, UID 999 vs 1001 / no PVC reuse, emptyDir default if storage unset.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "we manage everything with argo cd (multi-source apps, values files in a git repo). one app is a bitnami redis sentinel install (chart 21.x from charts.bitnami.com) that backs our container registry (sessions + job queues, several redis DB indexes). cluster is air-gapped. give me a migration plan to valkey: which chart, what to mirror, how to rewire the argo application, and how to move the data. write the plan to answer.md",
+      "expected_output": "Plan should: pick a Sentinel-capable chart (groundhog2k or CloudPirates, with reasoning; note official valkey-io chart lacks Sentinel), give the short mirror list (valkey/valkey image, oliver006/redis_exporter incl ghcr/quay, chart vendored, optionally redisshake binary/image), rewire Argo keeping the multi-source $values pattern (OCI repoURL without oci:// prefix, or vendored chart in git as bootstrap-safe), flag the circular dependency (registry's own dependency cannot be hosted by that registry), transfer data logically per DB index (RedisShake, verify per-DB), sequence sessions vs queue classes, and keep the final RDB as rollback.",
+      "files": []
+    }
+  ]
+}

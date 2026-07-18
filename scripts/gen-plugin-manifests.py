@@ -48,6 +48,32 @@ TAGLINE_CAP = 200
 # `members` (explicit dir-name list). Skills matching no group become
 # standalone plugins.
 GROUPS: dict[str, dict] = {
+    "bitnami-exit": {
+        # Migrations off dead-ended Bitnami charts/images after the
+        # Broadcom lockdown. One skill per replacement target; more
+        # siblings planned (postgresql, keycloak, minio, ...).
+        "members": ["redis-to-valkey"],
+        "description": (
+            "Bitnami-exit suite — migrate off dead-ended Bitnami "
+            "charts/images. First member: redis-to-valkey (Sentinel HA "
+            "migration to Valkey: the RDB-version wall, RedisShake/"
+            "rdb-cli logical replay, chart selection and values "
+            "translation, consumer-app reconnection, air-gap mirroring, "
+            "Argo CD source rewiring away from charts.bitnami.com)."
+        ),
+        "category": "kubernetes",
+        "tags": [
+            "bitnami",
+            "valkey",
+            "redis",
+            "helm",
+            "migration",
+            "sentinel",
+            "air-gap",
+            "argocd",
+            "kubernetes",
+        ],
+    },
     "inference-cache": {
         # Engine-agnostic KV-cache + transport siblings: separate-pod
         # LMCache MP server and NIXL transport used by Dynamo/vLLM/
