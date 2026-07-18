@@ -117,14 +117,9 @@ and "fixing" it from memory regresses the skill.
 2. Compare to previous best score.
 
 **Decision rule:**
-- **Score improved** → KEEP. Log as `keep`. This is the new baseline.
-  **Noise floor (+1):** a bare +1 total is inside self-scoring noise — cold
-  rescores routinely move a total by ±1–2, so a +1 may be the scorer, not the
-  change. If the change also simplifies (net lines removed), keep it as
-  `keep (simplification)` — the simplification justifies it even at Δ0.
-  Otherwise cold-score the affected dimension(s) fresh; keep only if the +1
-  reproduces, else revert and log as `discard (noise)`. Noise discards count
-  toward the ceiling-mapped stop condition like any other discard.
+- **Score improved by +2 or more** → KEEP. Log as `keep`. This is the new
+  baseline. On every keep: commit (per §Git as State Machine), or — when
+  commits are not permitted — snapshot the kept file to the scratch directory.
   **Anomaly gate (+5 or more):** A single change that lifts the total by +5
   or more is presumed inflated until proven otherwise. Do NOT rationalize the
   deltas. Instead: open the rubric fresh, read the current file as if it were
@@ -132,8 +127,15 @@ and "fixing" it from memory regresses the skill.
   delta-math total by 2 or more in either direction, the cold score wins.
   Most +5 jumps shrink to +3 under cold rescore — that is the finding, not a
   failure of the change. Log both totals in the iteration row.
+- **Score improved by exactly +1 (noise zone)** → a bare +1 is inside
+  self-scoring noise — cold rescores routinely move a total by ±1–2, so the +1
+  may be the scorer, not the change. If the change also simplifies (net lines
+  removed), KEEP as `keep (simplification)`. Otherwise cold-score the affected
+  dimension(s) fresh; KEEP only if the +1 reproduces, else revert and log as
+  `discard (noise)`. Noise discards count toward the ceiling-mapped stop
+  condition like any other discard.
 - **Score equal, but simpler** → KEEP. Log as `keep (simplification)`.
-- **Score equal or worse** → DISCARD. Revert via `git checkout -- <file>` (or undo the edit if not git-tracked). Log as `discard`. The discard row must name WHAT was tried (change shape + target section) and WHY it failed — discard rows are the rejected-edit buffer Phase 2 consults, and a bare `discard` with no rationale invites the same edit back two iterations later.
+- **Score equal or worse** → DISCARD. Revert via `git checkout -- <file>` ONLY if every prior keep is committed; with uncommitted keeps, restore the last kept snapshot instead — a whole-file checkout reverts to git HEAD and silently destroys them. (Not git-tracked: undo the edit.) Log as `discard`. The discard row must name WHAT was tried (change shape + target section) and WHY it failed — discard rows are the rejected-edit buffer Phase 2 consults.
 - **Change broke something** → REVERT. Log as `crash`. Fix and continue.
 
 ### Phase 5: Log and Loop
@@ -392,7 +394,6 @@ To improve multiple skills:
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
 **Dynamic workflows (Fable 5 / Opus 4.8, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit the session model and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
-
 ---
 
 ## Standalone Evaluation (No Loop)
@@ -455,7 +456,10 @@ Surfaces findings only — never auto-applies mutations; the operator decides.
 
 Full phase workflow (P0 Setup → P4 Persist), Boris score interpretation,
 batch leaderboard, and anti-patterns live in
-**`references/philosophy-patterns.md`**. Read it when running `philosophy`.
+**`references/philosophy-patterns.md`**. Read it when running `philosophy`,
+along with the three check sections P0 uses: `quality-rubric.md` §"Boris
+Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
+`trigger-patterns.md` §"Minimalism test (Boris alignment)".
 
 ---
 

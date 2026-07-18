@@ -5,6 +5,34 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Open
 
+- **(new 2026-07-18) Dim 8: blind-scorer prompt drift between SKILL.md and
+  batch-workflow.js.** Final-blind finding (self 10 vs blind 8 — flag accepted):
+  `scripts/batch-workflow.js` blindPrompt instructs Boris caps, the Dim 9
+  staleness cap, and spec hard-fail checks; SKILL.md §"Blind Validation" prompt
+  omits all three, so solo-run and batch-run blind scores are non-comparable.
+  Not attempted this run (iteration cap reached at the flag). Two-file
+  unification; author should decide the canonical prompt (likely: port the
+  three cap instructions into the SKILL.md prompt).
+
+- **(new 2026-07-18) Dim 7: quality-rubric.md:323 Boris detection `rg` breaks
+  on copy-paste.** Final-blind finding: the markdown-table cell escapes `\|`
+  read as literal-pipe regex escapes from raw source; the working form exists
+  at freshen-patterns.md:311. Single-iteration fix for the next run: align the
+  rubric command with the freshen-patterns form (verify by executing both).
+
+- **(new 2026-07-18) Rule-ceiling discard: cold-score-from-disk clause
+  (iter 6).** Adding "read from disk — never from the context-injected copy;
+  `${CLAUDE_SKILL_DIR}` appears pre-expanded there and reads as a false
+  inconsistency" to Phase 1 §Cold-score discipline moved no dim (all affected
+  dims band-internal) yet has demonstrated value: this exact trap caused a
+  wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
+  judgment: accept as rubric-invisible operational hardening.
+
+- **(new 2026-07-18) Dim 9 staleness horizon: sources.md rows stamped
+  2026-05-01 cross the 90-day cap ~2026-07-30.** Both blind agents flagged it.
+  Action: run `freshen skill-improver` before the end of July; score-loop
+  mutations cannot resolve this.
+
 - **(carried 2026-06-09) Dim 2 → 8/9: extract the improve-loop phases (Phase 0–6)
   to a reference.** SKILL.md is now 427 lines after the Philosophy Mode extraction;
   the improve loop (~144 lines, SKILL.md §"The Improvement Loop") is the only
@@ -27,7 +55,52 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   improve existing skills" territory; the trigger run should include
   sibling-territory negatives for it.
 
-## Discards / judged no-ops this pass (analyzed, not applied)
+## Resolved this pass — 2026-07-18 (improve, self-run: mechanics shakedown)
+
+Baseline self **83** / blind **85** → final self **85** (Dim 8 flag accepted →
+effective ~83–84) / blind **83**. 4 kept, 6 discarded, cap reached at 10.
+First live exercise of the rejected-edit buffer and +1 noise floor (added
+2026-07-18, commit 98bf0af); every decision-rule path fired at least once.
+
+- **iter 1 (keep, +1 noise-confirmed):** decision rule partitioned by delta
+  (+2+/+1/Δ0/worse/crash) — removed the header-contradicts-body nesting the
+  98bf0af noise floor shipped with.
+- **iter 2 (keep, simplification):** trimmed the rhetorical tail from the
+  Phase 4 discard bullet.
+- **iter 5 (keep, +1 noise-confirmed):** flattened the philosophy-patterns P0
+  A→B chain by naming the three check-section anchors in the SKILL.md
+  Philosophy stub (anchors verified on disk). Baseline-blind Dim 8 nit closed.
+- **iter 7 (keep, +1 noise-confirmed):** snapshot-aware keep/discard state
+  handling — commit each keep, or snapshot when commits are not permitted;
+  discard-revert restores the last kept snapshot instead of `git checkout`
+  (which reverts to HEAD and silently destroys uncommitted keeps — this
+  exact data loss occurred at iter 4 of this run and was recovered from
+  scratchpad snapshots).
+
+Discards this pass (anti-re-proposal guards):
+- **iter 3:** `discard (noise)`-status example row in rubric §Results Log
+  Format — Dim 8 pinned by the then-open P0 chain; pure addition.
+- **iter 4:** `discard (noise)` — P0-chain flatten +1 failed cold rescore
+  against a *false* blocker (see incident below); re-proposed and kept as
+  iter 5 under the buffer's new-evidence exemption.
+- **iter 6:** rule-ceiling — cold-score-from-disk clause (moved to Open).
+- **iter 8:** "run log"→"results log" rename — single co-referential
+  occurrence, below rubric granularity; Δ0, no line reduction.
+- **iter 9:** mode-name tags on section headings (`score`, `improve`) —
+  band-internal on all affected dims; Δ0.
+- **iter 10:** Phase 0 baseline-snapshot location `/tmp` → scratch dir —
+  cosmetic seam, not behavioral; replaced a concrete path with a placeholder.
+
+Process incidents (self-run lessons, both recoverable):
+- **Context-vs-disk trap:** when the target skill is the currently-invoked
+  one, the context-injected SKILL.md has `${CLAUDE_SKILL_DIR}` pre-expanded;
+  scoring against it produced a phantom "hardcoded path" inconsistency and a
+  wrong discard (iter 4). Always score against the on-disk file.
+- **Revert footgun:** `git checkout -- <file>` on discard (iter 4) wiped
+  uncommitted keeps 1–2; recovered from per-keep scratchpad snapshots and
+  fixed structurally in iter 7.
+
+## Discards / judged no-ops — prior passes (2026-05-28 / 2026-06-09)
 
 - **(carried 2026-05-28) Dim 2: collapse the freshen/trigger mode-summary stubs
   into one table** (a final blind agent's suggestion). DISCARD — the prose stubs
