@@ -52,9 +52,7 @@ spec:
         - {name: HF_HOME, value: /models/.cache}      # pre-warmed PVC or ModelCar
         - {name: VLLM_NO_USAGE_STATS, value: "1"}     # disable telemetry
         - {name: VLLM_DO_NOT_TRACK, value: "1"}
-        # For multi-NIC nodes (SR-IOV, RDMA, multiple eth):
-        # - {name: NCCL_SOCKET_IFNAME, value: "eth0"}
-        # - {name: NCCL_IB_HCA,         value: "mlx5_*"}
+        # Multi-NIC (SR-IOV/RDMA): pin NCCL_SOCKET_IFNAME/NCCL_IB_HCA — see references/pod-shape.md
         ports: [{containerPort: 8000, name: http}]
         readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 5,  failureThreshold: 3}
         livenessProbe:  {httpGet: {path: /health, port: http}, periodSeconds: 10, failureThreshold: 3, initialDelaySeconds: 600}
@@ -73,7 +71,7 @@ spec:
 
 The `initialDelaySeconds: 600` on the liveness probe is not excessive — cold model loads on a 405B FP8 take 8–12 min. A 30 s default makes the pod liveness-kill before it ever becomes ready. See `VLLM_ENGINE_READY_TIMEOUT_S` (default 600 s) in ``vllm` repo: vllm/envs.py`.
 
-Full annotated manifest (all env vars, all probes, PVC vs ModelCar choice, nodeSelector per SM, RuntimeClass for `nvidia`) in `references/pod-shape.md`.
+Full annotated manifest (all env vars, all probes, PVC vs ModelCar choice, nodeSelector per SM, RuntimeClass for `nvidia`), plus serve-args review (`--enforce-eager` trade-off, MoE `--enable-expert-parallel`/"ep2 dp2" layout checks) and compile-cache survival (`VLLM_CACHE_ROOT`), in `references/pod-shape.md`.
 
 ## Sibling skill boundaries
 
@@ -88,7 +86,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 
 ## Structure of this skill
 
-- **`references/pod-shape.md`** — complete annotated Deployment manifest; env vars catalogue; probes; nodeSelector per SM generation; PVC vs ModelCar trade-off; image tag discipline; `vllm-openai` entrypoint contract.
+- **`references/pod-shape.md`** — complete annotated Deployment manifest; env vars catalogue; probes; compile-cache survival; serve-args review; parser-plugin ConfigMap mount; nodeSelector per SM generation; PVC vs ModelCar trade-off; image tag discipline; `vllm-openai` entrypoint contract.
 - **`references/multi-node.md`** — LWS vs KubeRay; `ray symmetric-run`; NCCL on k8s (shm, SR-IOV, RoCE, InfiniBand, `NCCL_SOCKET_IFNAME`/`NCCL_IB_HCA`); the in-repo `multi-node-serving.sh`/`run_cluster.sh`; known issue list.
 - **`references/ecosystem.md`** — llm-d, vllm-production-stack, AIBrix, NVIDIA Dynamo, KServe vLLM runtime, vllm-semantic-router, Envoy AI Gateway — what each one is, current version, when to pick.
 - **`references/routing.md`** — Gateway API Inference Extension (`InferencePool`, `InferenceModel`, EPP), production-stack router, semantic-router, kgateway/Istio/NGF, OCP Route SSE timeout gotcha.
@@ -128,25 +126,12 @@ One-shot smoke test covering all critical checks:
 ${CLAUDE_SKILL_DIR}/scripts/deployment-smoke.sh <pod-name> [namespace]
 ```
 
-The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/metrics` surface, NCCL env on multi-GPU pods, usage-stats opt-out, and image-tag discipline. Output is color-coded pass/warn/fail; exits non-zero on critical failure.
-
-Or run ad-hoc:
-
-```bash
-kubectl exec -it <pod> -- curl -fsS http://localhost:8000/health
-kubectl exec -it <pod> -- curl -fsS http://localhost:8000/v1/models
-kubectl exec -it <pod> -- df -h /dev/shm                          # sizeLimit, not 64M default
-kubectl exec -it <leader-pod> -- ray status                        # LWS leader
-kubectl exec -it <pod> -- env | grep -E '^(NCCL_|GLOO_|VLLM_HOST_IP)'
-kubectl exec -it <pod> -- curl -s http://localhost:8000/metrics | grep -c '^vllm:'
-```
-
-If any check fails, the corresponding reference file has a diagnostic flow.
+The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/metrics` surface, NCCL env on multi-GPU pods, usage-stats opt-out, and image-tag discipline. Output is color-coded pass/warn/fail; exits non-zero on critical failure. If any check fails, the corresponding reference file has a diagnostic flow.
 
 ## Critical pitfalls (the short list — full treatment in references)
 
 1. **No `/dev/shm` emptyDir.** Silent NCCL segfault on first all-reduce. See `references/pod-shape.md`.
-2. **Default liveness probe.** `initialDelaySeconds: 30` vs 8–12 min cold load → pod liveness-kill loop. Fixed at 600 s; tighten only after warm.
+2. **Default liveness probe.** `initialDelaySeconds: 30` vs 8–12 min cold load → pod liveness-kill loop. Fix: `initialDelaySeconds: 600`, or cleaner, a `startupProbe` with a 15-min budget — both in `references/pod-shape.md`.
 3. **`:latest` image tag.** Breaks on every vLLM release. Pin to a version tag and roll forward deliberately.
 4. **Root-UID image on OpenShift.** Use RHAIIS images or rebuild. See `references/openshift.md`.
 5. **KEDA threshold 1–2 on `num_requests_waiting`.** Thrashing. Use 5–10 per replica and `cooldownPeriod: 360`. See `references/autoscaling.md`.

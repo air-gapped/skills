@@ -144,6 +144,19 @@ GPU pods bind the GPU exclusively. A `RollingUpdate` tries to stand up the new r
 
 By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:35-37`.
 
+### Compile-cache survival across restarts (`/root/.cache` mount)
+
+"Do we have caches saved?" — the `cache` emptyDir at `/root/.cache` is what makes
+restarts skip the 1–3 min JIT recompile. Mechanism: vLLM sets
+`TORCHINDUCTOR_CACHE_DIR` and `TRITON_CACHE_DIR` itself, redirecting both under
+`VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:477-480`,
+`vllm/envs.py:34`). On the root-UID upstream image that resolves to `/root/.cache/vllm`,
+so mounting `/root/.cache` captures everything; do NOT set the two inner vars manually —
+vLLM overrides them per-model-hash and a manual pin breaks cache separation. On
+arbitrary-UID images (`$HOME` ≠ `/root`, e.g. RHAIIS/OpenShift) set `VLLM_CACHE_ROOT`
+explicitly to a mounted path instead. An emptyDir only survives container restarts —
+use a PVC when cold-boot reduction must survive pod rescheduling.
+
 ## The env-var surface worth tuning
 
 | Var | Default | When to change |
@@ -156,12 +169,48 @@ By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first 
 | `VLLM_RPC_TIMEOUT` | 10000 ms | Raise on very slow first-token with heavy structured-output setup |
 | `VLLM_NCCL_SO_PATH` | auto | Only for custom NCCL builds |
 | `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` | `auto` | `nccl` on IB clusters, `shm` on single-node multi-GPU |
+| `VLLM_CACHE_ROOT` | `~/.cache/vllm` | Arbitrary-UID images only — point at a mounted path (see §Compile-cache survival) |
 | `HF_HOME` | `~/.cache/huggingface` | Point at PVC mount for pre-warmed cache |
 | `HF_HUB_OFFLINE` | unset | Set `1` in air-gapped; see `vllm-configuration` skill |
 | `HF_ENDPOINT` | HuggingFace | Internal mirror URL in air-gapped |
 | `NCCL_SOCKET_IFNAME` | auto | Multi-NIC pods; see `references/multi-node.md` |
 
 Full env-var surface: ``vllm` repo: vllm/envs.py`. Ensure `vllm-configuration` skill is consulted for anything deeper than runtime wiring.
+
+## Serve-args review (deploy layer)
+
+The flags an operator most often asks about when cross-checking a manifest's `args:` against a deploy-memo:
+
+- **`--enforce-eager`** — disables CUDA-graph capture. Cold boot drops by the 30–120 s
+  graph-warmup and memory headroom frees up, but decode throughput suffers on every
+  request thereafter. Correct during bring-up/debug and OOM triage; remove it for
+  production serving. Deep capture-mode tuning (`FULL_AND_PIECEWISE` etc.) →
+  `vllm-performance-tuning`.
+- **MoE models (`--enable-expert-parallel`)** — expert layers shard across GPUs (EP)
+  instead of pure TP. Shorthand like "ep2 dp2" describes the EP×DP layout; the product
+  of the parallel sizes must equal the pod's GPU count — a mismatched `nvidia.com/gpu`
+  limit is the deploy-layer bug to catch in review. Choosing between TP/EP/DP and
+  sizing them → `vllm-performance-tuning`; this file owns whether the manifest's flags,
+  GPU limits, and nodeSelector agree.
+
+## Custom tool/reasoning parser via ConfigMap
+
+Custom parser plugins ship as a single `.py` the server loads at boot — the pod-layer
+wiring is a ConfigMap mount plus one flag (`vllm/entrypoints/openai/cli_args.py:115`,
+`docs/features/tool_calling.md`):
+
+```yaml
+args: [..., "--tool-call-parser", "my_parser", "--tool-parser-plugin", "/parsers/my_parser.py"]
+volumeMounts:
+- {name: parsers, mountPath: /parsers, readOnly: true}
+volumes:
+- name: parsers
+  configMap: {name: vllm-parser-plugins}
+```
+
+`kubectl create configmap vllm-parser-plugins --from-file=my_parser.py`. The plugin
+registers the name that `--tool-call-parser` selects. Writing the parser itself →
+`vllm-tool-parsers` / `vllm-reasoning-parsers` skills.
 
 ## nodeSelector matrix (per GPU SKU)
 

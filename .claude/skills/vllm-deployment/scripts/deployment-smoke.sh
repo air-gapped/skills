@@ -61,7 +61,10 @@ else
 fi
 
 # 6. NCCL / multi-node env present on multi-GPU pods
-tp=$($KUBECTL exec "$POD" -- printenv 2>/dev/null | grep -oP 'tensor-parallel-size[= ]+\K[0-9]+' | head -1)
+# TP is a CLI arg, not env — read it from the pod spec; fall back to the GPU limit
+# (single-node TP conventionally equals it).
+tp=$($KUBECTL get pod "$POD" -o jsonpath='{.spec.containers[*].args}' 2>/dev/null | grep -oP -- '--tensor-parallel-size[="[:space:],]+\K[0-9]+' | head -1)
+[[ -z "$tp" ]] && tp=$($KUBECTL get pod "$POD" -o jsonpath='{.spec.containers[0].resources.limits.nvidia\.com/gpu}' 2>/dev/null)
 nccl_iface=$($KUBECTL exec "$POD" -- printenv NCCL_SOCKET_IFNAME 2>/dev/null || true)
 vllm_ip=$($KUBECTL exec "$POD" -- printenv VLLM_HOST_IP 2>/dev/null || true)
 if [[ -n "$tp" && "$tp" -gt 1 ]]; then

@@ -34,7 +34,7 @@ Classifications below are from the 2026-05-29 pass (prior-pass detail retained i
 
 ## Ecosystem-project state notes
 
-- **llm-d** still CNCF Sandbox (Mar 2026) — `references/ecosystem.md` already reflects this accurately. v0.6.0 is the latest release (was v0.5.1).
+- **llm-d** still CNCF Sandbox (Mar 2026) — `references/ecosystem.md` already reflects this accurately. v0.7.0 is the latest release (2026-05-29 probe, table row above; was v0.6.0).
 - **AIBrix** moved from v0.4.x to v0.6.0 over Q1 2026 — this is a significant cadence; watch release notes for StormService / KVCache breaking changes.
 - **NVIDIA Dynamo** cut v1.0 during Q1 2026 and is now at v1.0.2 — major-version stability achieved since the skill was authored.
 - **Envoy AI Gateway** progressed v0.3 → v0.5 over ~6 months — indicates active development pace.
