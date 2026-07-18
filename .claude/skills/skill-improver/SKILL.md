@@ -89,6 +89,14 @@ Formulate one specific change:
 
 Consult `references/improvement-patterns.md` for concrete before/after patterns organized by dimension.
 
+**Check the rejected-edit buffer first.** The run log's discard rows (Phase 5
+requires them to carry shape + reason) are this run's rejected-edit buffer.
+Do NOT re-propose an edit of the same shape against the same section that a
+prior iteration discarded — change the dimension, the section, or the
+mechanism. The only exemption: a change kept since the discard has plausibly
+removed the reason it failed; if claiming that, name the kept iteration and
+the removed reason in the hypothesis.
+
 **Factual-claim hypotheses require a probe.** If the change would alter a
 version, date, model name, API, flag, or any other external-world claim, run an
 online verification BEFORE mutating (see Operating Rules §"The Skill Outranks
@@ -110,6 +118,13 @@ and "fixing" it from memory regresses the skill.
 
 **Decision rule:**
 - **Score improved** → KEEP. Log as `keep`. This is the new baseline.
+  **Noise floor (+1):** a bare +1 total is inside self-scoring noise — cold
+  rescores routinely move a total by ±1–2, so a +1 may be the scorer, not the
+  change. If the change also simplifies (net lines removed), keep it as
+  `keep (simplification)` — the simplification justifies it even at Δ0.
+  Otherwise cold-score the affected dimension(s) fresh; keep only if the +1
+  reproduces, else revert and log as `discard (noise)`. Noise discards count
+  toward the ceiling-mapped stop condition like any other discard.
   **Anomaly gate (+5 or more):** A single change that lifts the total by +5
   or more is presumed inflated until proven otherwise. Do NOT rationalize the
   deltas. Instead: open the rubric fresh, read the current file as if it were
@@ -118,7 +133,7 @@ and "fixing" it from memory regresses the skill.
   Most +5 jumps shrink to +3 under cold rescore — that is the finding, not a
   failure of the change. Log both totals in the iteration row.
 - **Score equal, but simpler** → KEEP. Log as `keep (simplification)`.
-- **Score equal or worse** → DISCARD. Revert via `git checkout -- <file>` (or undo the edit if not git-tracked). Log as `discard`.
+- **Score equal or worse** → DISCARD. Revert via `git checkout -- <file>` (or undo the edit if not git-tracked). Log as `discard`. The discard row must name WHAT was tried (change shape + target section) and WHY it failed — discard rows are the rejected-edit buffer Phase 2 consults, and a bare `discard` with no rationale invites the same edit back two iterations later.
 - **Change broke something** → REVERT. Log as `crash`. Fix and continue.
 
 ### Phase 5: Log and Loop
