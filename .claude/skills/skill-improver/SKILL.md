@@ -105,6 +105,8 @@ and "fixing" it from memory regresses the skill.
 
 **The simplicity criterion (from autoresearch):** A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome. A +1 score that adds 20 lines of noise? Skip. A +1 from deleting redundant content? Keep.
 
+**Format-only hypotheses are low expected value.** SkillLens (arXiv:2605.23899) measured skill format (ordered list vs prose vs checklist vs unordered) as statistically non-significant on every tested target, while changing what the skill *says* was significant on 5/6 — prefer content hypotheses (mechanism + remedy, blacklists, coverage) over reformatting, renaming, or restructuring-for-looks. (The 2026-07-18 self-run confirmed this empirically: all three format/naming iterations discarded at Δ0.)
+
 ### Phase 3: Mutate (Make the Change)
 
 1. Apply exactly one change to the skill.
@@ -318,6 +320,11 @@ the skill is freshened continuously and its claims may postdate the knowledge
 cutoff. A claim covered by a recent `Last verified:` stamp in sources.md
 outranks the prior. If a claim looks wrong, say "verify online" — never
 recommend reverting it to an older value from memory.
+Apply the Boris Alignment Check caps and the SkillLens Utility Check caps
+where they fire (rubric §§). Do not reward fluency: text that reads well
+does not predict utility (SkillLens inversion) — check for failure
+mechanisms with executable remedies, actionable specificity, and high-risk
+blacklists, and never justify a score delta on format alone.
 
 Score each dimension (0-10) with one-sentence justification. Return the
 scoring table, the total, and a "Top 3 issues" list (one line each, with

@@ -477,6 +477,30 @@ directly into the prompt. Claude receives the result, not the command.
 
 **Fix:** Add company-specific workflows, tested configurations, non-obvious patterns, or hard-won knowledge that can't be derived from public documentation alone.
 
+### Pattern 10.1b: Convert Generic Advice into Mechanism + Remedy
+
+**Problem:** Guidance states a goal without the failure mechanism or an
+executable fix. SkillLens (arXiv:2605.23899) found this is the single
+strongest text-level predictor of skill utility — generic-advice skills
+*read* well but underperform (see rubric §SkillLens Utility Check).
+
+**Before:**
+```markdown
+Resolve the contract before coding. Make sure formulas are handled correctly.
+```
+
+**After:**
+```markdown
+Host engines do not evaluate formula strings written into cells — the value
+reads back as literal text. Precompute static values in code and write the
+result; only write `=FORMULA(...)` strings when the target app will reopen
+the file.
+```
+
+Each converted claim should name: the failure mechanism (what breaks and
+why), the remedy (what to do instead, executable as written), and — where
+the operation is risky — the blacklisted action ("do NOT ...").
+
 ### Pattern 10.2: Add Decision Trees
 
 **Problem:** Skill lists options but doesn't help choose between them.

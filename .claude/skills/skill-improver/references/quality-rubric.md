@@ -339,6 +339,37 @@ are usually *cosmetic*.
 
 ---
 
+## SkillLens Utility Check (cross-cutting, evidence-based)
+
+From Microsoft's SkillLens study (arXiv:2605.23899, 2026-05): an LLM judge
+scoring skill *text* picked the higher-utility skill only 46.4% of the time
+(random), and on the largest-gap pairs only 15.8% — **the skill that reads
+better is often the one that performs worse**. Plausibility dimensions
+(clarity, conciseness, structure, formatting, tone) carried no predictive
+signal; skill *format* (list vs prose vs checklist) was statistically
+non-significant on every tested target. Only three text properties predicted
+downstream utility (better-rates 64–66%):
+
+1. **Failure Mechanism Encoding** — names concrete failure mechanisms with
+   executable remedies, not generic advice.
+2. **Actionable Specificity** — commands, values, decision points (≈ Dim 4).
+3. **High-Risk Action Blacklist** — names what NOT to do and when.
+
+Scoring consequences (same mechanism as the Boris caps):
+
+| Pattern | Detection | Effect |
+|---|---|---|
+| **Generic-advice body** — guidance is mostly "do X well" platitudes with no mechanism/remedy pairs | Read the skill's core teaching sections: can each major claim be traced to a concrete failure mode, command, threshold, or counter-example? | **Dim 10 capped at 6** |
+| **No high-risk blacklist where risk exists** — skill covers an operation with known destructive/irreversible failure modes but never says what NOT to do | Check whether "do NOT", "never", or an anti-patterns section exists for the risky operations in scope | **Dim 5 capped at 8** |
+| **Mechanism + remedy density** (pro-pattern) | Failure modes named with executable fixes throughout | Reward signal — note in justification |
+
+Guard for scorers: do not reward fluency. A skill scoring high on Dims 3/6/8
+with a generic-advice body is the SkillLens inversion case — the caps above
+exist to catch it. Format-only differences (list vs prose) are noise;
+never justify a score delta on format alone.
+
+---
+
 ## Scoring Template
 
 Use this format when reporting scores:

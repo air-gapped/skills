@@ -13,6 +13,11 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   Not attempted this run (iteration cap reached at the flag). Two-file
   unification; author should decide the canonical prompt (likely: port the
   three cap instructions into the SKILL.md prompt).
+  **Update 2026-07-18 (later same day):** substantially resolved during the
+  SkillLens adoption pass — both prompts now carry identical cap
+  instructions (Boris + SkillLens) and the anti-fluency guard; SKILL.md's
+  Dim 9 note and batch's remain worded differently but equivalent. Verify
+  full equivalence next run before closing.
 
 - **(new 2026-07-18) Dim 7: quality-rubric.md:323 Boris detection `rg` breaks
   on copy-paste.** Final-blind finding: the markdown-table cell escapes `\|`

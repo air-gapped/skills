@@ -137,7 +137,7 @@ function blindPrompt(s) {
     '',
     'For Dimension 1: check what falls within the first 1,536 chars of combined description + when_to_use, and penalize if key trigger phrases are past the cutoff. Note whether the skill splits the two fields or stuffs everything into description.',
     'For Dimension 9: check sources.md Last verified: dates (staleness cap), spec validity of name/description (hard-fail cap at 3), and whether appropriate frontmatter fields are used. Do NOT mark a version/date/factual claim wrong from internal knowledge — the skill may postdate your knowledge cutoff; a recent Last verified: stamp outranks your prior. If a claim looks wrong, say "verify online"; never recommend reverting to an older value from memory.',
-    'Apply the Boris Alignment Check caps where they fire.',
+    'Apply the Boris Alignment Check caps and the SkillLens Utility Check caps where they fire (rubric sections). Do not reward fluency: text that reads well does not predict utility (SkillLens inversion) — check for failure mechanisms with executable remedies, actionable specificity, and high-risk blacklists, and never justify a score delta on format alone.',
     '',
     'Score each dimension (0-10) with a one-sentence justification (fields: n, name, score, justification). Return the dims array, the total, and a topIssues list (<=3 lines, with file:line where applicable).',
   ].join('\n')
