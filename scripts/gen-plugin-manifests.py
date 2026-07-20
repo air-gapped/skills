@@ -74,6 +74,39 @@ GROUPS: dict[str, dict] = {
             "kubernetes",
         ],
     },
+    "inference-apis": {
+        # The three open LLM serving protocols documented as third-party
+        # compatibility surfaces: OpenAI Chat Completions (+ legacy
+        # completions), OpenAI Responses, Anthropic Messages. The skills
+        # cross-reference each other, so they ship as one suite.
+        "members": ["chat-completions-api", "responses-api", "messages-api"],
+        "description": (
+            "Inference-API compatibility suite — the three open LLM "
+            "serving protocols as third-party surfaces: OpenAI Chat "
+            "Completions + legacy /v1/completions (7 local servers, "
+            "gateways, 10 cloud compat endpoints, reasoning-field schism, "
+            "client wire behavior), OpenAI Responses (spec, streaming "
+            "events, store/previous_response_id semantics, translation), "
+            "and Anthropic Messages (7 native server implementations, "
+            "thinking-signature seam, stop_reason divergences, Claude "
+            "Code/opencode integration). Source-examined at pinned "
+            "commits with live-verification logs."
+        ),
+        "category": "inference",
+        "tags": [
+            "chat-completions",
+            "responses-api",
+            "anthropic-messages",
+            "openai-compatible",
+            "vllm",
+            "sglang",
+            "llama-cpp",
+            "ollama",
+            "litellm",
+            "claude-code",
+            "opencode",
+        ],
+    },
     "inference-cache": {
         # Engine-agnostic KV-cache + transport siblings: separate-pod
         # LMCache MP server and NIXL transport used by Dynamo/vLLM/
