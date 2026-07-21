@@ -1,6 +1,6 @@
 # The architecture decision — classic vs ingest storage
 
-The decision that dominates the whole ladder. It lands at chart **6.0**, it is made in your values file, and
+The decision that dominates the whole ladder. It lands at chart **6.0**, it is made in the values file, and
 getting it wrong produces an ingestion outage that pod status does not reveal.
 
 ## Contents
@@ -9,7 +9,7 @@ getting it wrong produces an ingestion outage that pod status does not reveal.
 3. [The two-switch trap](#3-the-two-switch-trap)
 4. [The shipped preset, annotated](#4-the-shipped-preset-annotated)
 5. [Migrating to ingest storage is a separate project](#5-migrating-to-ingest-storage-is-a-separate-project)
-6. [If you adopt Kafka anyway](#6-if-you-adopt-kafka-anyway)
+6. [If Kafka is adopted anyway](#6-if-kafka-is-adopted-anyway)
 7. [Direction of travel](#7-direction-of-travel)
 
 ## 1. What changed
@@ -52,16 +52,16 @@ There are two switches and they are easy to confuse, because the docs use one of
 | `kafka.enabled` | Only gates whether the chart **deploys** a Kafka StatefulSet/Service/PDB and injects its address. [RFC] |
 | `mimir.structuredConfig.ingest_storage.enabled` | **The architecture switch.** [RFC] |
 
-`kafka.enabled: false` **alone** gives you Mimir configured for ingest storage, with the classic push path
+`kafka.enabled: false` **alone** yields Mimir configured for ingest storage, with the classic push path
 disabled (`push_grpc_method_enabled: false`), pointing at no broker. That is a **total ingestion outage**.
 
 The overload is upstream's, not yours: the production doc uses `kafka.enabled: false` to mean *"I bring my own
 external Kafka"*, and the migration guide uses it inside the classic snippet to mean *"no Kafka at all"*. Same
-key, opposite architectures. Say which one you mean in every plan.
+key, opposite architectures. Say which one is meant in every plan.
 
 ## 4. The shipped preset, annotated
 
-Prefer `-f classic-architecture.yaml` from the chart over pasting keys — you re-read it on every hop and pick up
+Prefer `-f classic-architecture.yaml` from the chart over pasting keys — it is re-read on every hop, picking up
 any upstream change for free. Extract it with
 `tar xzf mimir-distributed-<ver>.tgz -O mimir-distributed/classic-architecture.yaml`.
 
@@ -95,12 +95,12 @@ unlikely.
 `push_grpc_method_enabled: true` (functionally identical to `null`, and arguably more legible) but **omits**
 `distributor.remote_timeout: null` and the three `ingest_storage.kafka.*` nulls. Following the doc literally
 leaves the distributor on the chart's Kafka-tuned **5s** instead of the **2s** that 5.7.0/5.8.0 effectively ran —
-a silent write-path timeout change on an architecture you believe is unchanged.
+a silent write-path timeout change on an architecture believed to be unchanged.
 
 **Pre-flight assertion for every hop:**
 
 ```bash
-helm template <rel> <chart.tgz> -f classic-architecture.yaml -f your-values.yaml \
+helm template <rel> <chart.tgz> -f classic-architecture.yaml -f <your-values>.yaml \
   | yq '.data."mimir.yaml"' \
   | grep -E 'ingest_storage:|enabled:|push_grpc_method_enabled:'
 # must show ingest_storage.enabled: false AND push_grpc_method_enabled: null|true
@@ -136,25 +136,25 @@ ignore-ingest-storage-errors; ingest-storage-max-wait-time), present and **not m
 **no doc, changelog, or issue describes their sequence or the ingester-side cutover.** [RFC] Unsupported
 territory; do not build a plan on them.
 
-## 6. If you adopt Kafka anyway
+## 6. If Kafka is adopted anyway
 
-What the bundled Kafka actually gives you — worse than "demo only" implies: [RFC]
+What the bundled Kafka actually provides — worse than "demo only" implies: [RFC]
 
 - **RF=1.** Auto-created topics use the broker's `default.replication.factor`, which the chart never sets → 1 on
   a single broker. A single-replica, single-PVC choke point on the entire write path.
 - **`message.max.bytes` never set.** Mimir's producer max record is 15,983,616 B (~15.2 MB); `apache/kafka-native`
-  defaults to ~1 MB. Docs tell you to raise the broker to `16000000`; the chart's own Kafka doesn't.
+  defaults to ~1 MB. Docs prescribe raising the broker to `16000000`; the chart's own Kafka doesn't.
 - **5 Gi PVC, 24 h retention, 1 CPU / 1 Gi with no limits, PLAINTEXT only.**
 - `kafka.replicas` and `kafka.clusterId` exist in the template but appear in **neither `values.yaml` nor the
   README** — multi-broker is reachable but untested surface.
 
-Requirements if you run a real broker: [UG]
+Requirements for a real broker: [UG]
 
 - **Partitions ≥ ingesters in one zone.** Partition assignment derives from the instance-ID regex `-([0-9]+)$`
   (`ingester-zone-a-13` → partition 13); a non-matching ID **fails ingester startup**. Mimir will not expand an
   existing topic, so scaling ingesters past the partition count silently under-delivers capacity. [RFC]
 - Pre-create the topic with explicit RF and set `auto_create_topic_enabled: false`, so a misconfigured broker
-  can't hand you RF=1.
+  cannot silently yield RF=1.
 - **Sizing: no upstream guidance exists** (issues #12012, #14008 open). The only real datapoint is ~50k
   samples/s filling 50 GB in ~12 h ⇒ roughly **2 GB/day per 1k samples/s** at 24 h retention. A maintainer notes
   seconds of retention are theoretically sufficient and 24 h is "very high" — cutting to 2–4 h cuts disk 6–12×.
@@ -178,5 +178,5 @@ deprecated-features list, and by the chart's own policy (removal in the third ma
 that clock has not started. [UG]
 
 Reasonable posture for an air-gapped community fleet: walk the chart ladder on classic now, and treat ingest
-storage as a separately-scoped project with its own Kafka platform decision — one you may reasonably never take.
+storage as a separately-scoped project with its own Kafka platform decision — one a small fleet may reasonably never take.
 Re-check the deprecation status on each `skill-improver freshen` pass.

@@ -3,10 +3,10 @@
 "Pods are Running" proves nothing. Everything below is passive except §5, which is the only active gate.
 
 Verify from a **separate meta-monitoring Prometheus** where possible — verifying Mimir with Mimir means a
-read-path failure blinds you to itself.
+read-path failure blinds the check to itself.
 
 ## Contents
-1. [Phase 0 — baselines before you touch anything](#1-phase-0--baselines-before-you-touch-anything)
+1. [Phase 0 — baselines before any change](#1-phase-0--baselines-before-any-change)
 2. [Phase 1 — immediately after the upgrade](#2-phase-1--immediately-after-the-upgrade)
 3. [Phase 2 — read path](#3-phase-2--read-path)
 4. [Phase 3 — write path and sample loss](#4-phase-3--write-path-and-sample-loss)
@@ -15,7 +15,7 @@ read-path failure blinds you to itself.
 7. [MQE differencing](#7-mqe-differencing)
 8. [Ingest storage only](#8-ingest-storage-only)
 
-## 1. Phase 0 — baselines before you touch anything
+## 1. Phase 0 — baselines before any change
 
 ```promql
 # record the value at T-0; §4 compares against it
@@ -131,7 +131,7 @@ runs on install/upgrade). It writes, queries back, and compares results through 
 failure. [RFC] It uses the regular Mimir image with `-target=continuous-test`, so there is nothing extra to
 stage.
 
-**Better: enable `continuous_test` *before* the hop** and leave it running across, so you get a time series
+**Better: enable `continuous_test` *before* the hop** and leave it running across, yielding a time series
 rather than a point sample:
 
 ```yaml
@@ -158,7 +158,7 @@ live write requests). [UG]
 
 Note: `grafana/mimir-continuous-test` is **no longer a separate image** — it has been a module of the main image
 since at least 5.7.0, so a mirrored copy is probably unused. Confirm nobody overrode `continuous_test.image`
-before dropping it from your mirror. [RFC]
+before dropping it from the mirror. [RFC]
 
 ## 6. Phase 5 — alert-name reconciliation
 
@@ -171,7 +171,7 @@ comm -13 alerts-before.txt alerts-after.txt   # new: unrouted, pages nobody
 ```
 
 **Chart 6.1.0 renames ~22 alerts.** Every Alertmanager route, silence, inhibition, and runbook anchor keyed on
-an old name goes dead. Only relevant if you vendor the mixin (Step 0 fact #4). [RFC]
+an old name goes dead. Only relevant when the mixin is vendored (Step 0 fact #4). [RFC]
 
 | Old (≤6.0.6) | New (6.1.0) |
 |---|---|
@@ -206,15 +206,15 @@ maintenance window rather than treating it as a gate. [RFC]
 ## 7. MQE differencing
 
 **No in-process differencing exists.** There is no `-querier.compare-*` flag, no query-mirroring mode, and — the
-part that bites — **no counter for engine fallback**, so you cannot alert on "MQE silently deferred to the
+part that bites — **no counter for engine fallback**, so there is no way to alert on "MQE silently deferred to the
 Prometheus engine". [RFC] Both tiers carry `-enable-query-engine-fallback` defaulting to `true`.
 
 The supported method is **`query-tee`**, which the chart does **not** ship. Rig it yourself: [RFC]
 
 1. Mirror `grafana/query-tee`, tag pinned to the Mimir app version of the hop.
 2. Stand up **two query paths against the same backing storage** — a second query-frontend + querier pair with
-   `-querier.query-engine=prometheus` and `-querier.enable-query-engine-fallback=false` (fallback off, or your
-   control path silently becomes MQE for exactly the queries you most want to compare).
+   `-querier.query-engine=prometheus` and `-querier.enable-query-engine-fallback=false` (fallback off, or the
+   control path silently becomes MQE for exactly the queries most worth comparing).
 3. Run query-tee in front with `-proxy.compare-responses=true` and
    `-proxy.value-comparison-tolerance=0.000001`. Leave `-proxy.compare-exact-error-matching` **off** — MQE's
    documented annotation and duplicate-series divergences would otherwise be pure noise. The tolerance is
@@ -226,8 +226,7 @@ The supported method is **`query-tee`**, which the chart does **not** ship. Rig 
 non-deterministic here); missing metric-validation annotations; absent "found duplicate series for the match
 group" errors in some edge cases; early abort of binary-op evaluation when MQE can prove no series result.
 
-**Timing:** since MQE is querier-default from **2.17 (chart 5.8.0)**, this exercise belongs at hop 1. If you want
-a true Prometheus-engine control, either build the rig before 5.8.0 or pin `-querier.query-engine=prometheus`
+**Timing:** since MQE is querier-default from **2.17 (chart 5.8.0)**, this exercise belongs at hop 1. For a true Prometheus-engine control, either build the rig before 5.8.0 or pin `-querier.query-engine=prometheus`
 through the hop and flip it as a separate change.
 
 ## 8. Ingest storage only
@@ -251,10 +250,10 @@ Skip this section entirely on classic.
   The ingester logs the gap as `there is a gap in consumed offsets`.
 - `MimirIngesterKafkaProcessingStuck` carries a backwards-compat `or` between
   `cortex_ingest_storage_reader_records_total` (old) and `..._requests_total` (new). **Mid-upgrade both names may
-  exist in your TSDB** — any hand-written lag query must handle both or it silently returns no data on one side
+  exist in the TSDB** — any hand-written lag query must handle both or it silently returns no data on one side
   of the rollout. [RFC]
 - Best single end-to-end gauge, though no shipped alert uses it:
   `cortex_ingest_storage_reader_receive_and_consume_delay_seconds` (distributor receipt → ingester ingestion).
   [UG]
-- **Kafka-side consumer lag is not covered by any Mimir metric.** With a real broker you need broker-side lag
+- **Kafka-side consumer lag is not covered by any Mimir metric.** With a real broker, broker-side lag is needed
   exported separately — and that exporter is its own air-gap item. [RFC]

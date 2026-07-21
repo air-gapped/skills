@@ -26,8 +26,7 @@ Details that matter in practice: [UG][RFC]
   operator refuses to act at all and logs *"StatefulSets have some not-Ready pods, skipping reconcile"*. That is
   the safety net, not a bug.
 - **In-zone parallelism is `rollout-max-unavailable`, which the chart sets to 50** for both components — i.e.
-  effectively "roll the whole zone at once", matching Mimir's own guidance that with zone-aware replication you
-  may roll a whole zone together.
+  effectively "roll the whole zone at once", matching Mimir's own guidance that with zone-aware replication a whole zone may roll together.
 - **The operator deletes pods via the Pods API, not the Eviction API** — so PodDisruptionBudgets do not constrain
   it. The chart's PDB is also zone-blind (one PDB covering all zones), so it governs node drains only.
 - **`min-time-between-zones-downscale` is about scaling, not rolling.** It is consumed by the prepare-downscale
@@ -37,8 +36,9 @@ Details that matter in practice: [UG][RFC]
 ## 2. The `kubectl rollout restart` story, corrected
 
 The widespread warning — *"never `kubectl rollout restart` an ingester StatefulSet, it causes hash-ring
-split-brain"* — does not survive checking, and this skill previously repeated it. Correcting it matters because
-a rule nobody can source is a rule people quietly break, taking the real constraints with it.
+split-brain"* — does not survive checking. It is worth stating the correction plainly rather than silently
+omitting the rule, because a prohibition nobody can source is one people eventually break, taking the real
+constraints with it.
 
 - **No upstream document prohibits it.** Not in `docs/sources/mimir/**`, not in the runbooks, not in the
   rollout-operator README. [UG]
@@ -55,7 +55,7 @@ a rule nobody can source is a rule people quietly break, taking the real constra
 **So what is actually true:**
 
 - The real cost of `rollout restart` on a zone-aware STS is **manifest drift** from the Helm-rendered state, and
-  that it rolls only the zone you named. Both are reasons to prefer driving rolls through Helm, but neither is
+  that it rolls only the named zone. Both are reasons to prefer driving rolls through Helm, but neither is
   data loss.
 - **The genuinely dangerous configuration is single-zone**: the chart emits `RollingUpdate`, the operator refuses
   the group, `podManagementPolicy: Parallel` (the ingester default) removes ordering, and PDBs don't gate
@@ -122,7 +122,7 @@ slower, heavier, and it reintroduces exactly the resharding the chart is configu
 
 ## 5. Abort levers
 
-Know which one you have **before** starting the hop — the set changes with the operator version.
+Identify which one is available **before** starting the hop — the set changes with the operator version.
 
 | Lever | Verdict |
 |---|---|
@@ -155,5 +155,5 @@ rollback (image + config), not a data rollback.
 
 **What is *not* a barrier in this window:** TSDB block format. Both 2.16.0 and 3.1.2 write index `FormatV2` and
 `meta.json` `TSDBVersion1`, and the sparse index-header proto is field-identical across 2.16.0/2.17.0/3.0.4/3.1.2.
-[UG] The sharp edge is the Kafka record version, and only if you adopted ingest storage — which is one more
-reason the classic path keeps your options open.
+[UG] The sharp edge is the Kafka record version, and only under ingest storage — which is one more
+reason the classic path keeps the options open.

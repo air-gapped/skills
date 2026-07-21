@@ -14,16 +14,20 @@ version numbers do not — get those from `k8s-components-checker` → `referenc
 
 ## 1. The silent-vs-loud asymmetry
 
-Audit your values file **twice, expecting different symptoms**: [RFC]
+Audit the values file **twice, expecting different symptoms**: [RFC]
 
 - **Chart keys fail silently.** No `values.schema.json` ships in 5.7.0, 5.8.0, 6.0.6, or 6.1.0. Unknown and
   stale keys are never rejected. The only fail-fast is `templates/validate.yaml`, whose guards cover **none** of
-  the 6.0 removals. A removed chart key is a no-op — your setting simply stops applying.
+  the 6.0 removals. A removed chart key is a no-op — the setting simply stops applying.
 - **App config fails loudly.** Mimir rejects removed config keys at startup, so a stale
   `mimir.structuredConfig` key is a **crashloop**, not a silent regression.
 
 Practical consequence: a clean `helm upgrade` plus Running pods proves nothing about the chart half of the
 audit. Diff the *rendered* manifest, not the command's exit code.
+
+`${CLAUDE_SKILL_DIR}/scripts/audit-values.sh <values.yaml> <target-chart-version>` mechanises the grep-able half of both lists
+below, splitting its output into SILENT and LOUD findings. It is deliberately advisory — grep cannot parse YAML
+structure, so treat every hit as "inspect this", not "this is broken".
 
 ## 2. Hop 1 — 5.7.0 → 5.8.0
 
@@ -39,11 +43,11 @@ App 2.16.0 → 2.17.0. Structurally the smallest hop; it carries the read-path r
    `OTEL_BSP_MAX_QUEUE_SIZE` via `<component>.env`. [UG]
 3. Grep for `kedaAutoscaling.toPromQLLabelSelector` — **type change**, object → list of PromQL matcher strings.
    A carried map renders a malformed/empty selector. Verify by rendering the ScaledObject. [UG]
-4. Budget `memcachedExporter.resources` (new 50m/50Mi requests on **every** memcached pod) × your cache replica
+4. Budget `memcachedExporter.resources` (new 50m/50Mi requests on **every** memcached pod) × the cache replica
    counts against namespace quota. [RFC]
 5. New `store_gateway.grpcMaxQueryResponseSizeBytes: 209715200` — align querier/query-frontend gRPC limits if
-   you tuned them lower. [RFC]
-6. If you pin a **full custom `mimir.config` string** rather than `structuredConfig`, re-merge from the 5.8.0
+   they were tuned lower. [RFC]
+6. With a **full custom `mimir.config` string** pinned rather than `structuredConfig`, re-merge from the 5.8.0
    chart to pick up `dnssrvnoa+` memcached addressing and `ruler_storage.cache.memcached.timeout: 500ms`. [UG]
 7. Purge 2.17 app removals from `structuredConfig`: `ooo_native_histograms_ingestion_enabled`,
    `-ruler-storage.cache.rule-group-enabled`, `max_cost_attribution_cardinality_per_user`, the
@@ -69,7 +73,7 @@ backend pointing at the old name breaks simultaneously.
 
 **Procedure**
 
-1. Confirm which proxy you run: `kubectl get deploy -n <ns> | grep -E 'nginx|gateway'`, and record the exact
+1. Confirm which proxy is running: `kubectl get deploy -n <ns> | grep -E 'nginx|gateway'`, and record the exact
    Service and Ingress names.
 2. On 5.8.0, set `gateway.enabledNonEnterprise: true` and `gateway.replicas` to match nginx. Upgrade. Both
    proxies now run; verify gateway pods pass readiness.
@@ -109,12 +113,12 @@ App 2.17.0 → 3.0.4. The big one. Three separate concerns: architecture, admiss
    and `zoneawarepoddisruptionbudgets.rollout-operator.grafana.com`. Helm **never** installs `crds/` on upgrade,
    5.8's operator shipped none, and 6.0's webhooks register anyway with `failurePolicy: Fail`. Skipping this
    wedges pod evictions and StatefulSet downscales in the namespace. Take the YAML from **inside the tarball**,
-   not the doc's `raw.githubusercontent.com` URLs. [UG] If you don't use the operator, set
+   not the doc's `raw.githubusercontent.com` URLs. [UG] If the operator is not in use, set
    `rollout_operator.enabled: false` — note the alias uses an **underscore**; the migration guide's hyphenated
    `rollout-operator:` is a silent no-op that leaves it enabled. [UG]
-3. Confirm your CD identity has **cluster-scoped** create rights for CRDs, Validating/MutatingWebhookConfiguration,
+3. Confirm the CD identity has **cluster-scoped** create rights for CRDs, Validating/MutatingWebhookConfiguration,
    ClusterRole, ClusterRoleBinding. [RFC]
-4. Stage the break-glass commands (see `references/rollout-and-rollback.md`) *before* you start.
+4. Stage the break-glass commands (see `references/rollout-and-rollback.md`) *before* starting.
 
 **Pre-flight — values**
 
@@ -157,8 +161,8 @@ App 3.0.4 → 3.1.2. Mostly a defaults-and-resources hop, with one hard gate.
 3. **Raise `ruler.resources.limits.memory` by ≥1 GiB *first*.** The ruler Deployment hardcodes
    `-mem-ballast-size-bytes=1073741824` with **no values escape hatch**; a limit near the old working set
    OOMKills. [RFC]
-4. `kafka.extraEnv` → `kafka.env` (name-keyed merge). Silent no-op otherwise — and it will bite the day you
-   enable Kafka even if you're classic today. [UG]
+4. `kafka.extraEnv` → `kafka.env` (name-keyed merge). Silent no-op otherwise — and it bites the day Kafka is
+   enabled, even from a classic deployment. [UG]
 5. **Pin `image.tag` explicitly.** It's gone from chart defaults and now falls back to `Chart.AppVersion`, so a
    chart patch bump silently changes the image tag. [UG] See `references/air-gap.md`.
 6. `image.repository` default gains a `docker.io/` prefix — check any containerd registry-mirror rule that
@@ -181,7 +185,7 @@ App 3.0.4 → 3.1.2. Mostly a defaults-and-resources hop, with one hard gate.
     `-blocks-storage.bucket-store.index-header.eager-loading-startup-enabled`,
     `-query-frontend.shard-active-series-queries`, `-query-frontend.use-active-series-decoder`,
     `-querier.response-streaming-enabled`, `-target=flusher` (use `/ingester/flush`). [UG]
-12. If you use remote rule evaluation, `ruler-query-frontend` splits into ClusterIP + headless and the ruler
+12. With remote rule evaluation in use, `ruler-query-frontend` splits into ClusterIP + headless and the ruler
     dials the headless one — check any NetworkPolicy. [UG]
 
 ## 6. Removed-key quick table
@@ -211,5 +215,5 @@ Verified against the tarballs; trust the artifact over the changelog. [RFC]
 | rollout-operator "0.38.x" at 6.1.0 | dependency is chart **0.50.0** (appVersion v0.38.0); the CHANGELOG cites four versions for one release |
 
 Corollary: use **one Helm binary version across all hops**. Helm 3 and 4 render PDB apiVersions,
-`internalTrafficPolicy`, and PSP objects differently, so mixing them fills your `helm template` diffs with
+`internalTrafficPolicy`, and PSP objects differently, so mixing them fills `helm template` diffs with
 phantom changes. [RFC]

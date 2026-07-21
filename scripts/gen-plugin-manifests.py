@@ -521,12 +521,19 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "observability": {
-        "members": ["prometheus-mimir-grafana"],
+        # The two halves of running Grafana Mimir: querying it, and
+        # upgrading it. Each skill routes to the other explicitly.
+        "members": ["prometheus-mimir-grafana", "mimir-upgrade"],
         "description": (
             "Observability suite — Prometheus, Grafana Mimir, and Grafana "
             "reference for agents querying metrics, writing PromQL, "
             "building and fixing dashboards, and reasoning about SLOs, "
-            "KPIs, and burn-rate alerting."
+            "KPIs, and burn-rate alerting; plus the community, air-gapped "
+            "mimir-distributed Helm upgrade methodology (chart↔app co-pinned "
+            "ladder, the classic-vs-ingest-storage/Kafka decision, the "
+            "nginx→gateway rename that silently moves the proxy's DNS name, "
+            "rollout-operator sequencing and abort levers, per-hop "
+            "verification, and air-gap image/CRD/egress staging)."
         ),
         "category": "observability",
         "tags": [
@@ -538,6 +545,9 @@ GROUPS: dict[str, dict] = {
             "metrics",
             "slo",
             "sre",
+            "upgrade",
+            "helm",
+            "air-gap",
         ],
     },
     "open-webui": {

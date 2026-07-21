@@ -4,11 +4,13 @@ Work-not-done log across skill-improver runs. Append-only history; not a wishlis
 
 ## Open
 
-### Nothing in this skill has been field-validated (Dim 9 / integrity)
+### No claim has been behaviourally observed on a cluster (Dim 9 / integrity)
 
-- **What:** every procedure is either upstream-grounded from docs/source or reasoned from chart templates. No
-  lab cluster existed at authoring time (prod is air-gapped; the lab Mimir install was decommissioned as too
-  large to run continuously).
+- **What:** the claims are documentation- and source-grounded, not behaviourally observed. No lab cluster
+  existed at authoring time (prod is air-gapped; the lab Mimir install was decommissioned as too large to run
+  continuously). This is a narrow gap, not an absence of rigour — see SKILL.md §"Evidence tags" for what the
+  research did cover, including two claims settled by experiment (a golden-CI-fixture render diff and a Go
+  probe against Mimir's YAML library).
 - **Why it could not be closed:** requires a cluster. Not fixable by reading.
 - **Highest-value validations, in order,** if a lab is ever available:
   1. That `classic-architecture.yaml` produces a *working* 6.x cluster, not merely a clean render — specifically
@@ -54,6 +56,37 @@ Work-not-done log across skill-improver runs. Append-only history; not a wishlis
 - **Why not closed:** correct at authoring time; this is a freshen concern, not a defect.
 - **Next pass:** re-derive the terminal hop from `k8s-components-checker` → `compat/mimir.md` rather than
   updating numbers here. This skill deliberately holds no version matrix.
+
+## Resolved — 2026-07-21 (skill-improver improve, 5 iterations)
+
+Baseline blind 81 → final blind 82. Self-score peaked at 87, so **the self-scoring ran ~5 points
+optimistic** — the blind agent is the reason this run has a truthful number.
+
+- **Iter 1 (81→82):** corrected the "nothing is field-validated" framing. It read as "unresearched" to a
+  domain expert, when the intended meaning was "not behaviourally observed on a cluster". SKILL.md now
+  states what the research *did* cover, including the two experimental results.
+- **Iter 2 (82→85):** 74 second-person constructions → imperative/impersonal. The 3 remaining are verbatim
+  upstream quotes and a `<your-values>` placeholder.
+- **Iter 3 (85→86):** added `improvement-backlog.md` to the References table; removed a "this skill
+  previously repeated it" line that described a revision history the file's own record contradicts.
+- **Iter 4 (86→87):** sharpened house rule #1. The rule said "no version numbers here" while the ladder and
+  image tags plainly appear. Restated as **no floor, support window, or legality verdict is decided here** —
+  which is what the skill actually does — plus what to do when example and registry disagree.
+- **Iter 5 — REGRESSED, then repaired.** Adding `scripts/audit-values.sh` dropped blind Dim 7 from 8 to 6:
+  the final blind agent *executed it against planted keys* and found the LOUD half caught **1 of 6**
+  crashloop keys, because the list used hyphenated CLI-flag spellings that cannot occur in a
+  `structuredConfig` block (underscored). Plus two more: a dead-code branch (piping `grep -n` output, which
+  begins with digits, into a `^\s*key:` anchor) and an `image.tag` check that any `tag:` at any indent —
+  e.g. `kafka.image.tag` — silently satisfied. All three fixed; `scan_key()` now matches either spelling,
+  and the re-test catches 7/7 planted keys. **A script that gives false assurance on the crashloop half is
+  worse than no script**, which is precisely why the loop's own +score for "bundled a script" was wrong
+  until an adversary ran it.
+- **Cross-skill correction:** the blind agent found this skill and `k8s-components-checker/compat/mimir.md`
+  contradicting each other on `kubeVersion` enforcement. Settled by experiment, not memory: `helm template`
+  of `mimir-distributed-6.1.0` (`^1.32.0-0`) **passes** under helm 3.17.3 with no flag and **fails** with
+  `--kube-version 1.31.0`. So the constraint is checked against `.Capabilities.KubeVersion` — the API server
+  for install/upgrade, helm's compiled-in default for `template`. **kubectl is not involved.** The registry's
+  "checks the kubectl client version" claim (predating this session) was wrong and has been corrected there.
 
 ## Resolved — 2026-07-21 (initial authoring)
 

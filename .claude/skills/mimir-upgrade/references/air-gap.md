@@ -7,7 +7,7 @@ faults.
 1. [Egress audit](#1-egress-audit)
 2. [Image plumbing](#2-image-plumbing)
 3. [Per-hop image sets](#3-per-hop-image-sets)
-4. [CRDs — Helm will not do this for you](#4-crds--helm-will-not-do-this-for-you)
+4. [CRDs — Helm will not do this automatically](#4-crds--helm-will-not-do-this-automatically)
 5. [The RKE2 DNS gotcha](#5-the-rke2-dns-gotcha)
 6. [What else to stage](#6-what-else-to-stage)
 
@@ -17,7 +17,7 @@ faults.
 `https://stats.grafana.org/mimir-usage-report` every 4 h (5 s client timeout). The chart sets only
 `usage_stats: {installation_mode: helm}` and never sets `enabled`, so the Go default stands in every version in
 scope. [RFC] The reporter runs on targets that touch blocks storage — ingester, querier, store-gateway,
-compactor — and also writes a cluster-seed object into **your own** bucket (`__mimir_cluster/mimir_cluster_seed.json`,
+compactor — and also writes a cluster-seed object into **the cluster's own** bucket (`__mimir_cluster/mimir_cluster_seed.json`,
 internal and harmless).
 
 Air-gapped symptom if left on: a per-4h connection timeout in four components' logs plus a rising
@@ -56,7 +56,7 @@ grafana-agent-operator, whose `imagePullSecrets` are lists of **maps**. `kafka.i
 the template yet **absent from `values.yaml`**. [RFC]
 
 **Pin `image.tag` explicitly from 6.1.0.** [UG] The chart stopped shipping a default and now falls back to
-`Chart.AppVersion`, so a chart patch bump silently changes the image tag to a value written nowhere in your
+`Chart.AppVersion`, so a chart patch bump silently changes the image tag to a value written nowhere in the
 values file — the opposite of what an air-gapped staging process needs.
 
 **There is no `image.digest` key.** [RFC] The only digest form the chart can express is the composite tag:
@@ -70,7 +70,7 @@ image:
 The alternative (`repository: …@sha256:…` with an empty tag) does **not** work — `default` treats `""` as empty
 and appends AppVersion, producing `…@sha256:…:3.1.2`.
 
-**Your mirror must serve quay.io as well as docker.io** — minio and `mc` come from quay.io. [RFC]
+**The mirror must serve quay.io as well as docker.io** — minio and `mc` come from quay.io. [RFC]
 
 ## 3. Per-hop image sets
 
@@ -89,7 +89,7 @@ Not needed, explicitly: no `grafana/mimir-continuous-test` (a module of the main
 **Regenerate the list per hop** with the chart's own preset extracted from the tarball — sizing presets drift
 between minors, so carrying an older `large.yaml` forward silently keeps stale resource shapes.
 
-## 4. CRDs — Helm will not do this for you
+## 4. CRDs — Helm will not do this automatically
 
 **Helm never installs or upgrades `crds/` content on `helm upgrade`** — only on `helm install`. [UG] That makes
 CRDs a manual, hop-blocking step twice on this ladder:
@@ -104,11 +104,11 @@ Air-gap note: the upstream migration guide installs them via `kubectl apply` fro
 Take them from the tarball instead — the URLs are unreachable, and they track `main` rather than the pinned
 subchart version.
 
-If you do not use the operator, set `rollout_operator.enabled: false` — **underscore**. The migration guide's
+If the operator is not in use, set `rollout_operator.enabled: false` — **underscore**. The migration guide's
 hyphenated `rollout-operator:` is a silent no-op that leaves it enabled. [UG]
 
 Also: `charts/grafana-agent-operator/crds/` ships Prometheus-Operator CRDs (`servicemonitors`, `podmonitors`,
-`probes`). If you already run prometheus-operator, installing with
+`probes`). If prometheus-operator is already installed, deploying with
 `metaMonitoring.grafanaAgent.installOperator: true` risks CRD ownership conflict. It is off by default and the
 Grafana Agent path is deprecated as of 6.0 — leave it off. [RFC]
 
@@ -135,11 +135,11 @@ Confirm the actual Service name per cluster (Step 0 fact #5): `kubectl get svc -
   `grafana.github.io/helm-charts`.) [RFC]
 - **One Helm binary version, used for every hop.** Helm 3 is sufficient — the CHANGELOG's "Upgrade to Helm v4"
   is a CI-only change and `Chart.yaml` is still `apiVersion: v2`. But Helm 3 and 4 render PDB apiVersions,
-  `internalTrafficPolicy`, and PSP objects differently, so mixing versions across hops fills your diffs with
+  `internalTrafficPolicy`, and PSP objects differently, so mixing versions across hops fills the diffs with
   phantom changes. [UG]
-- **`mimirtool`** matching each app version, if you manage ruler rules or Alertmanager configs with it — there
+- **`mimirtool`** matching each app version, if ruler rules or Alertmanager configs are managed with it — there
   is no in-cluster path to fetch it.
 - **The v5.8.x unified-proxy migration guide**, archived to disk. It is the only surviving copy of the
   nginx→gateway mapping table and it will disappear. [UG]
-- **If adopting ingest storage:** your chosen Kafka platform's images and operator, which are *not* in the chart
+- **If adopting ingest storage:** the chosen Kafka platform's images and operator, which are *not* in the chart
   and are a separate lifecycle. Vet the candidate with the `airgap-vetting` skill.
