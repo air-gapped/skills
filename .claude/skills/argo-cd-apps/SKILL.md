@@ -25,8 +25,11 @@ when_to_use: >-
 
 For developers and platform teams who **publish** Argo CD `Application` and
 `ApplicationSet` manifests in git. Targets Argo CD v3.4.x (latest stable
-v3.4.3, 2026-05-28) and the v3.3.x maintenance line (latest v3.3.11); v3.4
-reached GA in early May 2026. Cited file paths in references/ are relative to a local clone
+**v3.4.5**, 2026-07-09) and the v3.3.x maintenance line (latest **v3.3.12**,
+2026-06-18); v3.4 reached GA in early May 2026. **v3.5 is in RC**
+(v3.5.0-rc2, 2026-07-01) and carries a **Helm v4 breaking change for
+plain-HTTP OCI registries** — if you use one, read
+`references/version-changes.md` § v3.5 *before* planning the hop, not after. Cited file paths in references/ are relative to a local clone
 of `argoproj/argo-cd` (e.g. `docs/user-guide/best_practices.md`). Without
 a local clone, fetch the same content via `gh api repos/argoproj/argo-cd/contents/<path>`
 or read https://github.com/argoproj/argo-cd at the matching path.

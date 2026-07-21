@@ -11,7 +11,39 @@ Each row has `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version, git ref, or commit SHA — optional). Rows the author wants
 freshen to skip get `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-05-29
+## Most recent freshen pass: 2026-07-21
+
+Re-probed releases, security advisories, and the shipped upgrade docs via `gh`.
+
+- **Releases moved:** latest stable **v3.4.5** (2026-07-09, was v3.4.3);
+  maintenance **v3.3.12** (2026-06-18, was v3.3.11); v3.2.12 and v3.1.16 also
+  active. **v3.5 entered RC** — v3.5.0-rc1 (2026-06-16), v3.5.0-rc2
+  (2026-07-01), not GA.
+- **Security: no change.** `gh api repos/argoproj/argo-cd/security-advisories`
+  returns nothing newer than the two 2026-05-13 entries already recorded
+  (CVE-2026-45737 / GHSA-rg3g-4rw9-gqrp medium, CVE-2026-45738 /
+  GHSA-h98r-wv3h-fr38 high). The advisory rows are current as written.
+- **v3.5 breaking changes captured** from
+  `docs/operator-manual/upgrading/3.4-3.5.md` read at tag **v3.5.0-rc2** — a
+  release artifact rather than `main`, which is what the 2026-05-06 authoring
+  pass had. Headline: **Helm upgraded to 4.2.0**, so plain-HTTP OCI registries
+  now need `--insecure-oci-force-http`, OCI *dependency* repos must be
+  registered explicitly (transparent under Helm v3), and setting both
+  `--insecure-skip-server-verification` and `--insecure-oci-force-http` makes
+  Helm v4 silently drop `--plain-http` with **no workaround**. Also React 19 for
+  UI extensions, an `EventList` gRPC type change, impersonation extended to all
+  server operations, and SSH `known_hosts` now read from
+  `argocd-ssh-known-hosts-cm` for credential-less repos.
+- **Resolved a recorded ambiguity.** The "Note on conflicting sources" entry
+  said to treat impersonation-on-server-operations as 3.4 "unless GA notes say
+  otherwise". Checked both shipped docs: `3.3-3.4.md` at v3.4.5 does not mention
+  impersonation at all; `3.4-3.5.md` at v3.5.0-rc2 documents it with an RBAC
+  table. **It is a 3.5 change.**
+- **Method note:** enumerate `gh release list`, don't read `releases/latest` —
+  GitHub marks latest by recency, so a patch on an older line can outrank a
+  newer minor.
+
+## Prior freshen pass: 2026-05-29
 
 The skill was authored on 2026-05-06 against a fresh local clone of
 `argoproj/argo-cd` at commit `4d02fc2f5` (2026-05-05). Freshen pass on
@@ -52,15 +84,16 @@ stamp.
 | Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace.md | Tenant-namespace Applications | 2026-05-06 | v3.3.9 |
 | Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity.md | Alpha / Beta / Stable status per feature | 2026-05-06 | v3.3.9 |
 | Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-05-06 | v3.3.9 |
-| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA) | 2026-05-06 | v3.4.x |
+| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-07-21 | v3.4.5 |
+| Upgrading 3.4 → 3.5 | https://github.com/argoproj/argo-cd/blob/v3.5.0-rc2/docs/operator-manual/upgrading/3.4-3.5.md | Breaking changes in v3.5 (RC). Helm 4.2.0 + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap | 2026-07-21 | v3.5.0-rc2 |
 
 ## GitHub
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
 | argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-05-29 | main @ 4d02fc2f5 |
-| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). v3.4 GA — latest stable v3.4.3 (2026-05-28); v3.3 maintenance latest v3.3.11 | 2026-05-29 | v3.4.3 |
-| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990 | 2026-05-29 | — |
+| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Latest stable **v3.4.5** (2026-07-09); v3.3 maintenance **v3.3.12** (2026-06-18); v3.2.12, v3.1.16 active. **v3.5.0-rc2** (2026-07-01) in RC, not GA | 2026-07-21 | v3.4.5 |
+| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **Re-probed 2026-07-21: no new advisories since 2026-05-13** | 2026-07-21 | — |
 | gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-05-06 | — |
 
 ## Blog & community

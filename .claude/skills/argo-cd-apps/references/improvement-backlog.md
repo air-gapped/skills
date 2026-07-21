@@ -4,6 +4,47 @@ Carries open ceiling findings across skill-improver runs. Each entry: title,
 affected dim, file:line pointer (or file-set), why it couldn't be applied in
 one iteration this run, enough context for a future loop to act on.
 
+## Resolved — 2026-07-21 (freshen)
+
+- **Rebased the version picture.** Latest stable v3.4.3 → **v3.4.5**
+  (2026-07-09); maintenance v3.3.11 → **v3.3.12** (2026-06-18); v3.2.12 and
+  v3.1.16 also active.
+- **Documented v3.5 while it is still in RC** (rc1 2026-06-16, rc2 2026-07-01),
+  read from `docs/operator-manual/upgrading/3.4-3.5.md` **at tag v3.5.0-rc2** —
+  a release artifact, whereas the 2026-05-06 authoring pass only had the
+  in-development version on `main`. Documented ahead of GA deliberately: the
+  headline is a **Helm 4.2.0 upgrade that breaks plain-HTTP OCI registries**,
+  which is a planning problem, not an upgrade-day problem. Specifically:
+  dependency repos on plain-HTTP OCI now need explicit registration where Helm
+  v3 handled them transparently, and combining
+  `--insecure-skip-server-verification` with `--insecure-oci-force-http` makes
+  Helm v4 silently drop `--plain-http` with **no workaround upstream**. Also
+  captured React 19 for UI extensions, the `EventList` gRPC type change (CLI
+  unaffected, REST unaffected, generated gRPC/OpenAPI clients affected),
+  impersonation extending to all server operations with a required-verbs table,
+  and SSH `known_hosts` moving to `argocd-ssh-known-hosts-cm` for
+  credential-less repos.
+- **Closed a recorded ambiguity in "Note on conflicting sources".** It said to
+  treat impersonation-on-server-operations as a 3.4 change "unless GA notes say
+  otherwise", reasoning from PR merge dates. Resolved by reading the *shipped
+  docs* instead: `3.3-3.4.md` at tag **v3.4.5** does not mention impersonation
+  at all, while `3.4-3.5.md` at **v3.5.0-rc2** documents it with a full RBAC
+  table. It is a **3.5** change. Also corrected the arithmetic in that note —
+  PR #26898 (2026-04-02) landed *after* v3.4.0-rc1 (2026-03-16), not four weeks
+  before it. Reasoning from merge dates was the error; the release artifact is
+  the authority.
+- **Security advisories re-probed: genuinely no change.** Nothing newer than the
+  two 2026-05-13 entries. Recorded as a verified non-event rather than left
+  ambiguous.
+- **Added a method note** to the currency section: enumerate
+  `gh release list -R argoproj/argo-cd --limit 25` and reason per minor line;
+  do not read `releases/latest`, which GitHub marks by recency, so a patch on an
+  older line can outrank a newer minor.
+
+**Not attempted:** both structural Open items below (SKILL.md YAML relocation,
+second-person leakage) — unchanged reasoning, and this pass's budget went to the
+v3.5 material.
+
 ## Open
 
 ### 1. Inline canonical YAML in SKILL.md — relocate to references (carried 2026-05-29)

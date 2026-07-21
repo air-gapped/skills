@@ -1,10 +1,17 @@
 # Argo CD v3.0 → v3.4: Version-change reference for App authors
 
-## Currency note (May 2026)
+## Currency note (verified 2026-07-21)
 
-- **Latest stable:** v3.4.3 (2026-05-28). v3.4 reached GA in early May 2026
-  (v3.4.0 on 2026-05-06).
-- **Maintenance line:** v3.3.x (latest v3.3.11, 2026-05-28).
+- **Latest stable:** **v3.4.5** (2026-07-09). v3.4 reached GA in early May 2026
+  (v3.4.0 on 2026-05-06); v3.4.4 landed 2026-06-18.
+- **Maintenance lines:** v3.3.x (latest **v3.3.12**, 2026-06-18), v3.2.x
+  (v3.2.12, 2026-05-13), v3.1.x (v3.1.16, 2026-05-05).
+- **v3.5 is in release-candidate:** **v3.5.0-rc1** (2026-06-16),
+  **v3.5.0-rc2** (2026-07-01). Not GA. See the v3.5 section below — it carries
+  a Helm v4 breaking change that needs planning before the hop, not after.
+- **Enumerate the release list; don't read `releases/latest`.** GitHub marks
+  latest by recency, so a patch on an older line can outrank a newer minor.
+  Use `gh release list -R argoproj/argo-cd --limit 25` and reason per line.
 - **The repo's `CHANGELOG.md` is stale** — last entry is v2.4.8 (July 2022).
   Canonical changelog is the GitHub release-note set. Use
   `gh release view <tag> --repo argoproj/argo-cd` and the per-version
@@ -434,6 +441,92 @@ Read `docs/operator-manual/upgrading/3.3-3.4.md` and `3.4-3.5.md`.
 
 ---
 
+## v3.5 (RC as of 2026-07-21 — rc1 2026-06-16, rc2 2026-07-01) — Helm v4, React 19
+
+**Not GA.** Sourced from `docs/operator-manual/upgrading/3.4-3.5.md` read at tag
+**v3.5.0-rc2** — a real release artifact, not `main`. Content can still change
+before GA; re-read the doc at the GA tag.
+
+### Breaking: Helm upgraded to 4.2.0 — plain-HTTP OCI registries need explicit flags
+
+The single change most likely to break an existing install, and it bites
+on-prem / air-gapped setups hardest because those are where plain-HTTP OCI
+registries live. Helm v4's OCI implementation requires `--plain-http` explicitly
+when the registry doesn't speak TLS.
+
+1. **Existing plain-HTTP OCI repos** need the flag:
+   `argocd repo add ... --insecure-oci-force-http --upsert` (CLI 3.5), or in the
+   Secret:
+   ```yaml
+   stringData:
+     insecureOCIForceHttp: "true"
+   ```
+2. **OCI *dependency* repos must now be registered explicitly.** If a chart has
+   `dependencies:` with `repository: oci://...` on a plain-HTTP registry, that
+   dependency repo must be added to Argo CD with the same flag. **Under Helm v3
+   this worked transparently with no registration at all** — so a chart that has
+   been building for years can start failing with nothing in the app changed.
+3. **Known limitation with no workaround.** Setting *both*
+   `--insecure-skip-server-verification` (→ Helm `--insecure-skip-tls-verify`)
+   and `--insecure-oci-force-http` (→ Helm `--plain-http`) makes Helm v4
+   **silently drop `--plain-http`** — TLS-skip takes internal precedence. The
+   failure is `http: server gave HTTP response to HTTPS client`. Affects
+   `type=helm` repos with `--enable-oci`, and `type=oci` + `type=helm`
+   dependency chains. Upstream states there is no workaround when both are
+   legitimately needed in the same chain.
+4. **`spec.source.helm.version: v3` is now ignored** — Argo CD renders with
+   Helm v4 only. The field can be left in place; it just does nothing.
+
+See the `helm` skill for Helm 4 chart-authoring implications.
+
+### Breaking: UI extensions must externalize `react/jsx-runtime`
+
+The UI moved React 16 → 19. Extensions built against an older Argo CD UI fail
+to load with `Extension <name>.js failed to load: TypeError: Cannot read
+properties of undefined (reading '<prop>')`. Remediation guide:
+`docs/operator-manual/upgrading/ui-extensions-react-19-upgrading.md`. No action
+if you install no UI extensions.
+
+### Breaking: event-listing gRPC methods return an Argo CD `EventList`
+
+`ListResourceEvents` (Application, ApplicationSet) and `ProjectService/ListEvents`
+change response type from `k8s.io.api.core.v1.EventList` to an Argo CD-defined
+type. **gRPC clients must be regenerated alongside the 3.5 server** — grpc-web
+is *not* a compatibility shim. The **argocd CLI is not affected** (it doesn't
+use these APIs), and **REST paths and JSON bodies are unchanged**, so the UI and
+REST integrations are fine. Generated OpenAPI clients see a schema-level break
+(`eventsEventList` replaces `io.k8s.api.core.v1.EventList`).
+
+### Behavioural: impersonation extends to all server operations
+
+Previously sync-only. Now every API-server operation uses the impersonated
+service account from `destinationServiceAccounts` — so those accounts need
+broader RBAC than before:
+
+| Operation | Required verbs |
+|---|---|
+| Get resource | `get` |
+| Patch resource | `get`, `patch` |
+| Delete resource | `delete` |
+| List resource events | `list` on `events` (core/v1) |
+| View pod logs | `get` on `pods` and `pods/log` |
+| Run resource action | `get`, `create`, `patch` |
+
+Custom resource actions may need more. No action if impersonation is off.
+
+### Behavioural: SSH `known_hosts` now sourced from the ConfigMap for credential-less repos
+
+`go-git` moved to v5.19.x, which tightens host-key verification. Argo CD now
+builds SSH auth itself for repos **without** configured credentials and wires
+the host-key callback to `argocd-ssh-known-hosts-cm` — previously go-git's
+default builder read `~/.ssh/known_hosts` inside the repo-server container.
+**If a custom repo-server image baked in or mounted a `~/.ssh/known_hosts`, move
+those keys into `argocd-ssh-known-hosts-cm`** or expect
+`knownhosts: key mismatch`. No action for HTTPS repos or SSH repos that do have
+credentials configured.
+
+---
+
 ## Cross-cutting maturity table (May 2026, post-3.3 / pre-3.4-GA)
 
 Authoritative source: `docs/operator-manual/feature-maturity.md` plus
@@ -579,11 +672,15 @@ For pasting into team docs:
 
 ## Note on conflicting sources
 
-- The **`3.4-3.5.md` upgrade doc** says impersonation extends to server
-  operations *between* 3.4 and 3.5. The actual PR
-  [#26898](https://github.com/argoproj/argo-cd/pull/26898) landed
-  2026-04-02 — four weeks before 3.4-rc1. Treat as 3.4 unless GA notes
-  say otherwise.
+- ~~The **`3.4-3.5.md` upgrade doc** says impersonation extends to server
+  operations *between* 3.4 and 3.5 … Treat as 3.4 unless GA notes say
+  otherwise.~~ **RESOLVED 2026-07-21 — it is a 3.5 change.** Checked both
+  shipped docs rather than inferring from PR dates: `3.3-3.4.md` at tag
+  **v3.4.5** does not mention impersonation *at all*, while `3.4-3.5.md` at
+  **v3.5.0-rc2** documents it with a full RBAC-verb table. The GA notes did
+  "say otherwise" by staying silent. Note also the prior arithmetic was off —
+  PR #26898 landed 2026-04-02, which is *after* v3.4.0-rc1 (2026-03-16), not
+  four weeks before it.
 - **`feature-maturity.md` lists Source Hydrator as Alpha.** Despite
   heavy 3.2/3.3/3.4 feature work, no Beta promotion. Plan as Alpha.
 - **`CHANGELOG.md` in the repo root is stale** (last entry v2.4.8, July
