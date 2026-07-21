@@ -84,7 +84,7 @@ Pin `KEDA_VERSION` to the release being installed and reuse it in both URLs so
 the version never drifts between the full and core manifests:
 
 ```bash
-KEDA_VERSION=2.19.0   # latest release; check github.com/kedacore/keda/releases
+KEDA_VERSION=2.20.1   # latest release; check github.com/kedacore/keda/releases
 kubectl apply --server-side -f \
   "https://github.com/kedacore/keda/releases/download/v${KEDA_VERSION}/keda-${KEDA_VERSION}.yaml"
 ```
@@ -101,13 +101,20 @@ kubectl apply --server-side -f \
 - **Minor (2.x → 2.y)**: Helm upgrade or `kubectl apply` the new manifest. CRDs
   are part of the chart; `--server-side` avoids CRD conflicts.
 - **CRD changes**: check the release notes for new fields. No CRD-breaking
-  changes in 2.x so far.
+  changes in 2.x so far, but 2.20 added CRD-level validation markers (Minimum,
+  MinLength, MinItems, Enum) and rejects ScaledObject names over 63 chars — a
+  previously-accepted object can fail admission after the upgrade.
 - **CVE patches**: stay within 2 minor versions of latest. CVE-2025-68476 was
   fixed in 2.17.3 / 2.18.3 / 2.19.0+.
+- **→ 2.20 events RBAC**: 2.20 records Kubernetes events via `events.k8s.io`
+  instead of the core `events` resource. Custom/restricted RBAC must grant the
+  operator `create`/`patch` on `events.k8s.io/events` *before* upgrading, or
+  event recording breaks. Bundled manifests and the Helm chart already have it.
 
 ### Kubernetes version support
 
-KEDA follows an N-2 support window (e.g., 2.19 supports k8s 1.32–1.34). Check
+KEDA follows an N-2 support window (2.20 supports k8s 1.33–1.35; 2.19 supports
+k8s 1.32–1.34). Check
 `keda-docs/content/docs/<version>/deploy.md` for the exact matrix.
 
 ---
@@ -316,8 +323,9 @@ Example alert rules:
 ### OpenTelemetry
 
 KEDA 2.12+ emits OTel traces/metrics. Enable with Helm
-`operator.otelScraping.enabled=true` (check chart version). Useful for tying
-KEDA decisions to downstream scaling latency.
+`opentelemetry.operator.enabled=true` and point
+`opentelemetry.collector.uri=<collector-endpoint>` at the collector. Useful for
+tying KEDA decisions to downstream scaling latency.
 
 ### Probing the external metrics API
 

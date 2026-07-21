@@ -261,9 +261,14 @@ their respective field variants (e.g., `database` for MSSQL).
     queryValue: "50"
 ```
 
-### elasticsearch, cassandra, couchdb, arangodb, etcd, influxdb
+### elasticsearch, opensearch, cassandra, couchdb, arangodb, etcd, influxdb
 
 All query-shaped: connection + query + target. Exact field names vary.
+`opensearch` and `elastic-forecast` (scales on an Elasticsearch/Kibana ML
+forecast rather than a point query) are new in KEDA 2.20.
+
+InfluxDB 2.20 removal: `authToken` in `triggerMetadata` is gone — pass it via
+`resolvedEnv` or `authParams`.
 
 ---
 
@@ -470,6 +475,7 @@ Signal source?
 │   ├─ Postgres/MySQL/MSSQL query     → postgresql / mysql / mssql
 │   ├─ MongoDB count                  → mongodb
 │   ├─ Elasticsearch count            → elasticsearch
+│   ├─ OpenSearch query (2.20+)       → opensearch
 │   └─ InfluxDB series                → influxdb
 ├─ Metric store
 │   ├─ Prometheus (most flexible)     → prometheus

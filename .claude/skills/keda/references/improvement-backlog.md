@@ -12,14 +12,33 @@
   consolidation could not be applied without a multi-step rewrite that re-flows
   the patterns.md scalingModifiers lead-in.
 
-- **OTel Helm value name unverified** — Dim 9 — `references/operations.md` L322
-  (`operator.otelScraping.enabled=true`). Recon classified this `unverifiable`
-  within the probe budget; the skill already hedges with "check chart version".
-  Not applied: confirming the exact current Helm value name requires a chart
-  values probe that was out of scope this pass. Re-check against the live
-  `kedacore/keda` chart `values.yaml` on the next freshen.
+## Resolved — 2026-07-21 (freshen)
 
-## Resolved this pass
+- **KEDA release moved 2.19.0 → 2.20.1** — `operations.md` install pin bumped;
+  k8s N-2 window updated to 2.20 → v1.33–v1.35; sources.md rows restamped.
+  Source: https://github.com/kedacore/keda/releases/tag/v2.20.1
+- **2.20 `events.k8s.io` upgrade trap** added to `operations.md` Upgrades —
+  restricted RBAC needs `create`/`patch` on `events.k8s.io/events` before the
+  upgrade or event recording breaks (PR #7781).
+- **2.20 CRD validation markers** noted in the CRD-changes bullet — previously
+  accepted ScaledObjects (e.g. names > 63 chars) can now fail admission.
+- **`scalingModifiers` fallback** — the "does not fire correctly" caveat in
+  `patterns.md` now names 2.20's `fallback.behavior: scalingModifiers` plus the
+  `??` metric-chaining formula. Source: kedacore/keda PR #7790 (merged 2026-05-29).
+- **HTTP Add-on v0.14.0 → v0.15.0** — HTTP/2 + gRPC (`appProtocol:
+  kubernetes.io/h2c`, `KEDA_HTTP_FORCE_HTTP2` removed) and
+  `coldStart.placeholder` documented in `patterns.md`; the stale "README says
+  not recommended for production" claim corrected in both `patterns.md` and
+  SKILL.md — README now says beta-but-stable with a v1.0 planned.
+- **OTel Helm value name** (carried from the prior pass) — closed. Probed the
+  live chart `values.yaml`: correct keys are `opentelemetry.operator.enabled`
+  and `opentelemetry.collector.uri`; the skill's `operator.otelScraping.enabled`
+  did not exist.
+- **New 2.20 scalers** `opensearch` + `elastic-forecast` added to the
+  `scalers.md` catalog and decision tree; InfluxDB `authToken`-in-metadata
+  removal noted.
+
+## Resolved — prior pass
 
 - Replaced nonexistent `v2.20.0` install-manifest URLs with a pinned
   `KEDA_VERSION=2.19.0` variable reused in both URLs (`operations.md`) — fixes a

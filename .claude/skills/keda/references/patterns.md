@@ -142,8 +142,11 @@ Rules:
   ternary `a > b ? a : b`, functions `min`, `max`, `ceil`, `floor`, `abs`.
 - The formula replaces all individual trigger metrics — HPA sees one
   composite external metric.
-- Fallback does not fire correctly while `scalingModifiers` is active in
-  older KEDA versions (tracked issue). Validate against the KEDA version in use.
+- Fallback did not fire correctly while `scalingModifiers` was active before
+  KEDA 2.20. From 2.20, set `fallback.behavior: scalingModifiers` and chain
+  metrics in the formula with `??`
+  (`best ?? slower ?? backup ?? 8`); `fallback.replicas` is the ultimate
+  fallback when every metric errors. Validate against the KEDA version in use.
 - For an **OR** of triggers (e.g., scale if queue > 50 OR CPU > 80%), the
   default max-of semantics does exactly that. Use `scalingModifiers` only for
   non-max combinations.
@@ -252,8 +255,10 @@ or `sum` to choose how multiple triggers' queue lengths combine.
 ## KEDA HTTP Add-on
 
 Separate project, separate CRD (`HTTPScaledObject`, `http.keda.sh/v1alpha1`).
-As of 2026 it is **beta** — project README explicitly says not recommended
-for critical production.
+As of v0.15.0 (2026-06) it is still **beta**, but the README now calls it
+"stable" and actively maintained with a v1.0 planned — the caveat is that
+breaking changes (deprecated resources, manifest/config adjustments) may still
+land before v1.0, not that production use is discouraged.
 
 ```yaml
 apiVersion: http.keda.sh/v1alpha1
@@ -290,6 +295,12 @@ Components:
   from zero.
 - `scaler` — external metrics provider KEDA queries.
 - `operator` — watches `HTTPScaledObject`.
+
+v0.15.0 additions: interceptor speaks HTTP/2 (h2c and h2-over-TLS), so gRPC
+workloads autoscale — cleartext backends need `appProtocol: kubernetes.io/h2c`
+on the Service port, TLS backends negotiate via ALPN (`KEDA_HTTP_FORCE_HTTP2`
+was removed). `coldStart.placeholder` returns a static response while scaling
+from zero instead of holding the request.
 
 **Install:**
 
