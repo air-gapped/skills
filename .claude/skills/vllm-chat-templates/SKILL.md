@@ -100,7 +100,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 1. **Chat template silently ignored.** Mistral in `--tokenizer-mode mistral` (#25401), reportedly gpt-oss (#23015). Warning-only. Symptom: edit template, nothing changes. Fix: switch to HF tokenizer mode, or accept that the built-in Mistral template is canonical.
 
-2. **`skip_special_tokens=true` strips control tokens before reasoning parser.** Gemma-4 (#38855), Qwen3 reasoning, gpt-oss harmony. Fix: `extra_body={"skip_special_tokens": false}` per request.
+2. **`skip_special_tokens=true` strips control tokens before reasoning parser.** Qwen3 reasoning, gpt-oss harmony — and formerly Gemma-4 (#38855, **fixed; closed 2026-06-15**). Fix: `extra_body={"skip_special_tokens": false}` per request. For Gemma-4 the real fix is two-sided — see the §Gemma-4 note in `model-families.md` before assuming a vLLM upgrade is enough.
 
 3. **`<think>` opening tag prepended to prompt → never appears in output → `reasoning_content=null`.** DeepSeek-R1 (HF #144, vLLM #12999). Template forces thinking by inserting `<think>\n` in the prefill; parser sees only `</think>`. Fix: post-process prepend `<think>`, or use patched template.
 
@@ -120,7 +120,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 11. **`reasoning_effort="none"` silently breaks output.** gpt-oss #37909. Fix: omit or use `"low"`.
 
-12. **Concurrent requests → `<pad>` tokens.** Gemma-4 #39392. Not reproducible sequentially. Fix: version bump; interim workaround `--max-num-seqs 1`.
+12. **Parallel *tool-call* requests → `<pad>` tokens.** Gemma-4 #39392, **still open and reproducing on `vllm/vllm-openai:v0.25.1` as of 2026-07-20** — so "fix: version bump" is no longer available advice. The reporter narrows the trigger: Gemma-4 is stable under load until *parallel tool-call* requests arrive; serialising those avoids it (Ampere, RTX 3090/A6000). Workaround `--max-num-seqs 1`, or serialise only the tool-calling path rather than throttling the whole server.
 
 13. **`--chat-template-content-format auto` misroutes tool results.** GLM-5.1 #39614 (CLOSED/COMPLETED 2026-04-25): tool result as `{"type":"text","text":"..."}` hits an "else" branch in a template checking `.name` → renders `<tools></tools>` instead of result. Fixed upstream; the `--chat-template-content-format openai`/`string` workaround is only needed on vLLM before the fix.
 

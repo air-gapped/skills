@@ -275,8 +275,8 @@ No native JSON tool calling in tokenizer template — use community pythonic.
 
 | Issue | Summary | Workaround |
 |---|---|---|
-| [vLLM #39392](https://github.com/vllm-project/vllm/issues/39392) | `<pad>` tokens under concurrent load; sequential requests succeed. | `--max-num-seqs 1` (performance hit); or wait for fix. |
-| [vLLM #38855](https://github.com/vllm-project/vllm/issues/38855) | Reasoning parser fails — `<|channel>` tokens stripped before parser sees them. | `extra_body={"skip_special_tokens": false}`. |
+| [vLLM #39392](https://github.com/vllm-project/vllm/issues/39392) | `<pad>` tokens under **parallel tool-call** load; sequential requests succeed. **Still open, confirmed on `vllm/vllm-openai:v0.25.1` 2026-07-20** (Ampere: RTX 3090, A6000). Reporter notes Gemma-4 is otherwise stable under load — it is the parallelism *of tool calls* that triggers it. | `--max-num-seqs 1` (performance hit), or serialise only the tool-calling path. No upstream fix yet. |
+| [vLLM #38855](https://github.com/vllm-project/vllm/issues/38855) | Reasoning parser fails — `<|channel>` tokens stripped before parser sees them. **FIXED — closed 2026-06-15.** | **The fix is two-sided and that is the trap:** it needed *both* a new vLLM gemma4 container image *and* an updated `chat_template` published on the HuggingFace model repo (~2026-04-10). Upgrading vLLM alone does **not** fix it if the local model snapshot predates that date — which is the normal state of affairs for mirrored or air-gapped weights. **Re-pull the model**, then drop the workaround. Until both halves are current, keep `extra_body={"skip_special_tokens": false}`. |
 | [vLLM #39043](https://github.com/vllm-project/vllm/issues/39043) | Tool calling broken with Claude Code client. | — |
 | [HF gemma-4-31B #28](https://huggingface.co/google/gemma-4-31B-it/discussions/28) | Missing `reasoning` field in response. | Upstream. |
 
