@@ -226,7 +226,7 @@ Read `docs/guides/server/fips.adoc` for the full list before flipping the switch
 
 ## <a id="cves"></a>12. Recent CVEs — pull the live list, don't recall IDs
 
-CVE identifiers and fixed-in versions are exactly the kind of detail that must never be quoted from memory: they get invented, mis-dated, or attributed to the wrong release. **The canonical source is the GitHub Security Advisory feed.** Run these before answering any "is version X vulnerable" / "what did 26.6.2 fix" question:
+CVE identifiers and fixed-in versions are exactly the kind of detail that must never be quoted from memory: they get invented, mis-dated, or attributed to the wrong release. **The canonical source is the GitHub Security Advisory feed.** Run these before answering any "is version X vulnerable" / "what did version X fix" question:
 
 ```bash
 # Full advisory feed (CVE id, severity, summary, fixed versions) — newest first
@@ -234,7 +234,7 @@ gh api repos/keycloak/keycloak/security-advisories \
   --jq '.[] | {cve: .cve_id, ghsa: .ghsa_id, sev: .severity, published: .published_at, summary: .summary}'
 
 # What a specific release closed (the release body lists its Security fixes section)
-gh release view 26.6.2 --repo keycloak/keycloak --json body --jq '.body'
+gh release view 26.7.0 --repo keycloak/keycloak --json body --jq '.body'
 
 # Confirm whether a given CVE applies and its patched range
 gh api repos/keycloak/keycloak/security-advisories \
@@ -243,6 +243,15 @@ gh api repos/keycloak/keycloak/security-advisories \
 
 Cross-check the `vulnerabilities[].patched_versions` field against the deployed version to decide if an upgrade is required. Map each advisory to the relevant hardening section above (redirect-URI / SSRF findings → §9; flow/timing findings → §4; token/session findings → §3 and §6) when advising on remediation.
 
-**As of 2026-05, latest stable is 26.6.2 (2026-05-19), a security-fix batch.** Quote its specific CVE set from the `gh release view 26.6.2` body, not from memory.
+**As of 2026-07-21, latest stable is 26.7.0 (2026-07-09).** The 26.6 line ran on
+to 26.6.4 (2026-06-26); 26.6.2, 26.6.3 and 26.6.4 are all security batches.
+Quote each version's CVE set from its own `gh release view <version>` body, not
+from memory.
+
+**The advisory feed will not tell you the fix version.** Every advisory probed
+on 2026-07-21 had an empty `first_patched_version`, and eight advisories share a
+`published_at` of 2026-06-26 while only one of them (CVE-2026-9099) appears in
+that day's 26.6.4 notes. Disclosure date is not fix version — read the release
+bodies of each candidate version to map a CVE to the release that closes it.
 
 For deployments stuck on 26.4.x/26.5.x for compatibility reasons, Red Hat backports security fixes to the RHBK LTS line (26.0 has long-term support). Upgrade, but if you can't, RHBK is the bridge.

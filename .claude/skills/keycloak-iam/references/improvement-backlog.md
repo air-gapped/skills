@@ -4,6 +4,44 @@ Skill-improver carries open ceiling findings forward across runs. Items here eit
 
 ## Open
 
+- **26.7.0 feature surface is unresearched** — Dim 5 — `SKILL.md:56-62` (version
+  table), `references/k8s-deployment.md`, `references/integration.md`. 26.7.0
+  (2026-07-09) introduces SCIM user provisioning (preview), **multi-cluster HA
+  without external caches** (preview), the OpenID Shared Signals Framework
+  (experimental), Identity Brokering API V2 (V1 deprecated but still default-on),
+  SAML step-up auth, and HAProxy/Traefik proxy blueprints. The freshen pass
+  recorded these as headline items and flagged the body as 26.6-era, but writing
+  them at reference depth — especially the cacheless multi-cluster topology,
+  which *supersedes* the external-Infinispan HA design this skill documents — is
+  a research pass, not a freshen mutation. (opened 2026-07-21)
+
+## Resolved — 2026-07-21 (freshen)
+
+- **Keycloak 26.6.2 → 26.7.0** (2026-07-09) as latest stable, and the 26.6 line
+  carried on to **26.6.4** (2026-06-26). The skill claimed 26.6.2 was current in
+  13 places; every "latest stable" assertion, the version-feature table, the
+  frontmatter range (24.x–26.6.x → 24.x–26.7.x) and the pinned example tags
+  (`quay.io/keycloak/keycloak:`, `keycloak-k8s-resources/<tag>`, `KC_VERSION`)
+  now read 26.7.0.
+- **Two additional security batches recorded.** 26.6.3 (2026-06-04, 3 CVEs) and
+  26.6.4 (2026-06-26, CVE-2026-9099 group-admin → realm-admin escalation, HIGH).
+  The skill previously said only "26.6.2 is a security-fix batch", which read as
+  though 26.6.2 were the safe floor. It is not.
+- **The advisory feed cannot be used to determine fix versions — documented.**
+  Every advisory probed had an **empty `first_patched_version`**, and eight
+  advisories share `published_at: 2026-06-26` while only one appears in that
+  day's 26.6.4 notes. Disclosure date is not fix version. `security-hardening.md`
+  §CVE and `SKILL.md` §Version now both say to cross-read candidate release
+  bodies rather than trusting the feed's metadata — which matters because the
+  2026-05-28 pass deliberately replaced a fabricated CVE table with a
+  "point at the live feed" procedure, and that procedure was under-specified.
+- **No CVE table re-introduced.** The 2026-05-28 pass removed invented CVE IDs
+  and chose a live-feed procedure over a static list; this pass names CVE-2026-9099
+  only because it is quoted verbatim from the 26.6.4 release body, and adds no
+  table.
+- `keycloak-k8s-resources` tags confirmed to track server releases 1:1 through
+  26.7.0.
+
 | # | Title | Dim | Files | Why deferred |
 |---|-------|-----|-------|--------------|
 | 1 | Reference-file second-person sweep (carried 2026-05-28) | Dim 3 (9→10) | `references/security-hardening.md` (~15 remaining hits), `k8s-deployment.md` (17), `upgrade-and-backup.md` (14), `integration.md` (11), `observability.md` (~9), `server-config.md` (~8) | Volume (~70 remaining occurrences across 6 files) makes single-iteration completion impractical under the one-atomic-change-per-iteration rule. Each occurrence is a minor reader-addressing slip ("if you have", "your hostname", "you can", "if you must") — convertible mechanically to imperative/third-person. Not advanced on 2026-05-28: the iteration budget was spent on the higher-value Dim 9 fabricated-CVE removal and the Dim 8 version propagation, which are correctness fixes that outrank a cosmetic Dim-3 polish. Best tackled one file per iteration in a future `improve` pass. Estimated +1 to Dim 3 if completed. |
