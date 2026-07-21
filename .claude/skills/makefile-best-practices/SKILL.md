@@ -328,16 +328,27 @@ $(error FATAL: Missing required variable)
 
 ### GNU Make vs BSD Make
 
-| Feature | GNU Make | BSD Make |
-|---------|----------|----------|
-| `:=` assignment | Yes | Yes |
-| `?=` assignment | Yes | Yes |
-| `.PHONY` | Yes | Yes |
-| `$(shell ...)` | Yes | `!=` syntax |
-| `$(wildcard ...)` | Yes | No |
-| `.DELETE_ON_ERROR` | Yes | No |
-| Pattern rules `%` | Yes | Limited |
-| Grouped targets `&:` | 4.3+ | No |
+| Feature | GNU Make | BSD Make | POSIX 2024 (Issue 8) |
+|---------|----------|----------|----------------------|
+| `:=` assignment | Yes | Yes | **No** — use `::=` |
+| `::=` / `:::=` assignment | 4.4+ | Yes | Yes |
+| `?=` / `+=` assignment | Yes | Yes | Yes |
+| `.PHONY` | Yes | Yes | Yes |
+| `.WAIT` / `.NOTPARALLEL` | `.NOTPARALLEL` only | Yes | Yes |
+| `$(shell ...)` | Yes | `!=` syntax | `!=` assignment only |
+| `$(wildcard ...)` | Yes | No | No |
+| `.DELETE_ON_ERROR` | Yes | No | No |
+| Pattern rules `%` | Yes | Limited | No — reserved, not specified |
+| Grouped targets `&:` | 4.3+ | No | No |
+
+**POSIX caught up in 2024.** Issue 8 (IEEE Std 1003.1-2024) standardized
+`.PHONY`, `.WAIT`, `.NOTPARALLEL`, and the `::=` / `:::=` / `?=` / `+=` / `!=`
+assignment operators — all previously "common extension, not standard". The one
+trap: **plain `:=` is still not standard.** Issue 8 spells immediate expansion
+`::=`, and the rationale asks implementations to keep `:=` as a compatibility
+extension while telling portable makefiles not to rely on it under `.POSIX:`.
+Pattern rules stay unspecified — `%` is reserved for possible future use, and
+metarules were considered and rejected.
 
 ### Shell Portability
 
