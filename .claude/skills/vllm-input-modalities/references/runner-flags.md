@@ -158,4 +158,4 @@ Symptoms and fixes:
 - **#39763** — pre/post-processing offloaded to thread pool (async
   rendering for pooling).
 
-Last verified: 2026-05-28 against vLLM v0.21.0 (runner/convert/pooler-config surface unchanged since v0.20.0; no new breaking flag change in v0.20.1/v0.20.2/v0.21.0).
+Last verified: 2026-07-21 against vLLM v0.25.1. The `--runner` / `--convert` / `--pooler-config` surface is **still unchanged since v0.20.0** - five minors with no breaking flag change. Note that v0.24.0 tightened *request* validation instead (#46313 matryoshka bounds, #46119 rerank `top_n`); flag stability is not surface stability.

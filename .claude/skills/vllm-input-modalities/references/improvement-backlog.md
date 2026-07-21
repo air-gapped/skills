@@ -15,6 +15,57 @@ pass actually changed.
   evidence log — deleting from any one harms a different dimension, so this
   is a deliberate-tension item, not a one-edit win. (carried 2026-05-28)
 
+## Resolved — 2026-07-21 (freshen, rebaseline v0.21.0 → v0.25.1)
+
+- **Two silent-success → hard-error changes found and documented** (the pass's
+  main value). Both landed in v0.24.0 and both turn requests that used to
+  return 200 into errors:
+  - **#46313** — matryoshka `dimensions` above `hidden_size`. For an MRL model
+    with no explicit `matryoshka_dimensions` list, validation checked only
+    `dimensions >= 1` and then sliced `[..., :d]`, so an oversized request
+    *silently returned a `hidden_size`-length vector*. Applied to SKILL.md
+    matryoshka block + `embedding.md` §3, including the operational
+    consequence: any index built pre-v0.24 with an oversized value holds
+    `hidden_size`-width vectors, so a post-upgrade 400 is pointing at bad data
+    upstream, not at a new bug.
+  - **#46119** — rerank `top_n=-1` was silently treated as `0` (return all), so
+    a client sentinel of `-1` "worked" by accident. Applied to `reranking.md`.
+- **Refuted an inviting misreading.** The v0.22.0 release note "truncation side
+  for OpenAI endpoints" (#43260) reads as though `/v1/embeddings` gained
+  `truncation_side`. The PR body scopes it to `/v1/completions` and
+  `/v1/chat/completions` only. SKILL.md now records this as explicitly **not**
+  applicable — a negative result worth carrying, since the release-note wording
+  will keep inviting the same inference.
+- **New capability documented:** #45173 — `/v1/embeddings` now accepts
+  message-shaped input and honours `chat_template_kwargs` (v0.24.0). Previously
+  rejected at validation; only the top-level messages extension worked. This is
+  the supported path for instruction-style embedders (`embedding.md` §1).
+- **Roster additions:** Unlimited OCR (#46564 + Triton R-SWA #47102, v0.25.0)
+  to `ocr.md` §2; MOSS-Transcribe-Diarize (#47729, v0.25.0) to `stt.md` —
+  flagged as the only diarizing entry, which changes the answer to "how do I
+  get speaker labels" from "bolt on a separate stage" to "use this model".
+- **Confirmed non-events** (recorded so a future pass doesn't re-probe them):
+  #42370/#42274 STT entrypoint + test consolidation is an internal refactor
+  with no endpoint change; #47071/#47437 pooled-Whisper sliding-window fix is
+  KV-memory sizing only; #46762 realtime embeddings is MRv2-internal.
+- **Ecosystem removals noted:** PagedAttention deleted in v0.25.0 (#47361),
+  Transformers v4 deprecated (#45161), ~11 model families removed across
+  v0.24.0/v0.25.0. None on this skill's surface, but recorded because an
+  operator bumping the image for an unrelated reason can still be stranded.
+- **Refresh-trigger heuristic sharpened.** Two consecutive passes have now found
+  the *runner* surface frozen while request validation tightened underneath it.
+  The trigger note now says to grep release bodies for
+  `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags —
+  the old trigger wording would have missed both #46313 and #46119.
+
+**Carried forward:** the single Open item below (v0.20.0 PR-list redundancy
+across three files) is untouched — it is a deliberate-tension item, not a
+pending task.
+
+**Not probed this pass:** HuggingFace model cards, the Red Hat Whisper/RHAIIS
+blog, and the `docs.vllm.ai` pooling doc tree — all still listed as
+"Non-probed references" in `sources.md`.
+
 ## Resolved this pass (2026-05-28)
 
 - Qwen3-Reranker three-extras recipe de-duplicated — `SKILL.md` pitfall #5

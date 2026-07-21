@@ -14,6 +14,16 @@ model, Matryoshka / dimension reduction, pool-type overrides, or the
 Both endpoints are live whenever the loaded model's supported tasks include
 `embed`. No flag to toggle. Code: `vllm/entrypoints/pooling/embed/api_router.py:23-61`.
 
+**Instruction-style embedding prompts — v0.24.0 and later.** `/v1/embeddings`
+now accepts chat-message-shaped input and honours `chat_template_kwargs`
+(PR #45173, merged 2026-06-15). Before that release, message-shaped input to
+`/v1/embeddings` was rejected during request validation and
+`chat_template_kwargs` never reached the renderer — only the separate
+top-level messages extension worked. If a model's embeddings depend on being
+rendered through its chat template (instruction-prefixed embedders), this is
+the supported path; on an older engine the request fails validation outright
+rather than silently embedding the raw text.
+
 ## 2. Pooling types
 
 `SequencePoolingType` enum: `CLS`, `LAST`, `MEAN`, `ALL` (token-wise), `STEP`
@@ -62,6 +72,20 @@ client.embeddings.create(model="...", input=[...], dimensions=512)
 Non-MRL models return 400 for `dimensions` — deliberate. BGE-M3 is a common
 example of a well-loved model that simply doesn't support MRL; that's not a
 bug to chase.
+
+**Upper bound enforced since v0.24.0.** `PoolingParams._set_default_parameters`
+used to validate only `dimensions >= 1` when the model had `is_matryoshka:
+true` but no explicit `matryoshka_dimensions` list. A value above the model's
+`hidden_size` then sliced `[..., :d]` and returned a `hidden_size`-length
+vector — the request succeeded with the *wrong width*, silently. PR #46313
+(merged 2026-06-22) adds the upper-bound check and raises instead, mirroring
+sglang's `_validate_for_matryoshka_dim`.
+
+Practical consequence: an index built on a pre-v0.24 engine with an oversized
+`dimensions` value contains `hidden_size`-width vectors, not the width the
+client asked for. If the same client now 400s after an upgrade, the *old*
+vectors are the thing to check — the request was never honoured as written.
+Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
 
 ## 4. The four+ embedding families an operator encounters
 
@@ -187,6 +211,10 @@ r = requests.post("http://localhost:8000/v2/embed", json={
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
 
-Last verified: 2026-05-28 against vLLM v0.21.0 (Jina v5 PR #39575 landed
-v0.20.0; embedding surface unchanged through v0.21.0 — only pooling perf
-wins #41163/#41433 since).
+Last verified: 2026-07-21 against vLLM v0.25.1. Two changes since v0.21.0,
+both v0.24.0: **#46313** now rejects matryoshka `dimensions` above
+`hidden_size` (previously a silent wrong-width result — see §3), and
+**#45173** makes `/v1/embeddings` accept message-shaped input plus
+`chat_template_kwargs` (see §1). Jina v5 PR #39575 landed v0.20.0; pooling
+perf wins #41163/#41433 landed v0.21.0. HuggingFace model cards for the
+families in §4 were not re-fetched this pass.

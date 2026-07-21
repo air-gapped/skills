@@ -51,6 +51,7 @@ Task types (from `vllm/tasks.py:5-6`):
 | FireRedASR2 | `FireRedASR2-*` | family | Chinese-first ASR, v2 |
 | MiniCPM-O | `openbmb/MiniCPM-o-2_6` | `MiniCPMWhisperEncoder` | on-device scale |
 | Cohere ASR | `cohere/*` | `CohereASRForCausalLM` | newer addition |
+| MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | — | added v0.25.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper |
 | Gemma 3n | `Gemma3nForConditionalGeneration` | family | multimodal, audio optional |
 
 Model files live under `vllm/model_executor/models/` — grep for
@@ -189,4 +190,4 @@ the request client with your own timing instrumentation.
   `SupportsTranscription`
 - Red Hat STT blog: <https://developers.redhat.com/articles/2025/06/10/speech-text-whisper-and-red-hat-ai-inference-server>
 
-Last verified: 2026-05-28 against vLLM v0.21.0 (PR #39116 merged 2026-04-09, shipped v0.19.1 + v0.20.0; STT surface unchanged through v0.21.0).
+Last verified: 2026-07-21 against vLLM v0.25.1. The `/v1/audio/transcriptions` + `/v1/audio/translations` request surface is unchanged through v0.25.1 - #42370/#42274 (v0.22.0) consolidated the STT entrypoints and tests internally with no endpoint change, and #47071/#47437 (v0.25.0) fixed pooled-Whisper sliding-window KV *sizing* only. Roster gained MOSS-Transcribe-Diarize (#47729, v0.25.0). PR #39116 merged 2026-04-09, shipped v0.19.1 + v0.20.0.

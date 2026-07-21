@@ -119,6 +119,12 @@ r = requests.post("http://localhost:8000/rerank", json={
 })
 ```
 
+`top_n` semantics: `0` means "return all results"; values larger than the
+document count are accepted and clamped. **Negative values are rejected as of
+v0.24.0** (PR #46119, merged 2026-06-22) — `top_n=-1` used to be silently
+treated as `0`, i.e. it also returned everything, so a client sentinel of `-1`
+"worked" by accident and now 400s.
+
 ### `/score`
 
 ```python
@@ -205,4 +211,4 @@ token) but scoring is cheap once indexed.
 - **#36818** — ColPali.
 - **#33686** — ColBERT.
 
-Last verified: 2026-05-28 against vLLM v0.21.0 (reranking/scoring surface unchanged since v0.20.0; #41163 AllPool +51% is a perf-only win for late-interaction).
+Last verified: 2026-07-21 against vLLM v0.25.1. One behaviour change since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, which was previously silently treated as `top_n=0` (= return all). Everything else in the reranking/scoring surface is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.

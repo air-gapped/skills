@@ -98,6 +98,14 @@ Request-side: `client.embeddings.create(model=..., input=..., dimensions=512)`.
 Passing `dimensions` to a non-MRL model (BGE-M3, older BGE) returns a 400 by
 design — not a bug.
 
+**`dimensions` above the model's `hidden_size` is rejected as of v0.24.0**
+(#46313). Before that, an MRL model with no explicit `matryoshka_dimensions`
+list validated only `dimensions >= 1` and then sliced `[..., :d]` — so an
+oversized value **silently returned a `hidden_size`-length vector** instead
+of erroring. If a client has been over-asking, it was never getting the
+width it requested; upgrading turns that into a visible `ValueError`. Pin
+the list explicitly via `--hf-overrides` to make the valid set unambiguous.
+
 **`/v2/embed` (Cohere v2 compat)** adds `input_type` prompt prefixing,
 `output_dimension` (server-side MRL), `truncate=END|START|NONE`, and
 `embedding_types=["float","binary","ubinary","base64"]`. Use it when a client
@@ -281,19 +289,67 @@ Also landed: `jina-reranker-v3` (#38800), **Jina Embeddings v5** (#39575),
 `max_tokens_per_doc` in `/rerank` (#38827), **Generative Scoring** (#34539),
 ASR multi-chunk spacing fix (#39116).
 
-### Since v0.20.0 (current baseline v0.21.0, released 2026-05-15)
+### Since v0.20.0 (current baseline v0.25.1, released 2026-07-14)
 
-v0.20.1 (2026-05-04) and v0.20.2 (2026-05-10) were patch releases; **v0.21.0
-(2026-05-15) is current**. No runner / `--convert` / `PoolerConfig` breaking
-change since v0.20.0 — the v0.20.0 migration above is still the canonical
-surface. v0.21.0 pooling deltas are performance-only:
+**The v0.20.0 migration above is still the canonical runner surface** —
+nothing in v0.21–v0.25 changed `--runner` / `--convert` / `PoolerConfig`.
+But two request-validation changes in v0.24.0 will turn requests that used
+to succeed into 400s, so they are the ones to check before upgrading.
 
-- **#41163** — `AllPool.forward` +51% (token-wise / `ALL` pooling, ColBERT
-  and Jina-v4-style multi-vector outputs).
-- **#41433** — GPU↔CPU pooling sync elimination (further throughput win).
+**Two silent-success → hard-error changes (v0.24.0):**
 
-New OCR architecture in v0.21.0: **Qianfan-OCR** (#40136) — see
-`references/ocr.md` §2.
+- **#46313 — matryoshka `dimensions` above `hidden_size` is now rejected.**
+  For an MRL model with no explicit `matryoshka_dimensions` list, the old
+  code only checked `dimensions >= 1` and then sliced `[..., :d]`, so an
+  oversized request *silently returned a `hidden_size`-length vector*. It
+  now raises. A client that has been asking for e.g. `dimensions=2048`
+  against a 1024-hidden model was already getting 1024 floats back and will
+  now get an error instead — the error is the fix, but it surfaces at
+  upgrade time.
+- **#46119 — rerank `top_n` must be non-negative.** `top_n=-1` was silently
+  treated as `top_n=0`. `top_n=0` still means "return all results", and
+  values larger than the document count are still accepted.
+
+**New capability worth adopting (v0.24.0):**
+
+- **#45173 — `/v1/embeddings` accepts message-shaped input and
+  `chat_template_kwargs`.** Previously message-shaped input to
+  `/v1/embeddings` was rejected at validation and `chat_template_kwargs`
+  never reached the renderer; only the top-level messages extension worked.
+  This is the supported path for instruction-style embedding prompts.
+- **#45640** Cohere `/v2/embed` input-exclusivity validation;
+  **#44999 / #45210** ColBERT `AutoWeightsLoader` plus a query/document
+  embedding io-processor.
+
+**Not applicable despite the release-note wording:** v0.22.0 #43260 "add
+truncation side to OpenAI endpoints" covers `/v1/completions` and
+`/v1/chat/completions` only — it does **not** add `truncation_side` to
+`/v1/embeddings`.
+
+**Perf / internals, no action required:** #41163 `AllPool.forward` +51% and
+#41433 GPU↔CPU pooling sync elimination (v0.21.0); #42267 pooling offline
+API split into `PoolingOfflineMixin`, #42370/#42274 Speech-to-Text
+entrypoint + test consolidation (refactor, no endpoint change) (v0.22.0);
+#44593 proper pooling exceptions, #44410 LoRA-adapter-name pooling fix
+(v0.23.0); #44612 ASR CPU preprocessing 2.5× faster (v0.24.0); #46762
+realtime embeddings under Model Runner V2 and #47071/#47437 pooled-Whisper
+sliding-window KV sizing — the latter had been over-reserving encoder KV
+blocks by roughly `block_pool_size`× (v0.25.0).
+
+**New architectures since v0.21.0:** Qianfan-OCR (#40136, v0.21.0),
+Unlimited OCR (#46564 + Triton R-SWA backend #47102, v0.25.0),
+MOSS-Transcribe-Diarize (#47729, v0.25.0 — long-form transcription with
+timestamped *speaker labels*, Whisper-style encoder into a Qwen3 decoder),
+LLaVA-OneVision-2 (#44785). See `references/ocr.md` §2 and
+`references/stt.md`.
+
+**Ecosystem removals that can strand a deployment:** v0.25.0 deleted
+PagedAttention entirely (#47361); v0.24.0 deprecated Transformers v4
+support (#45161) and removed several model families outright (ERNIE,
+Xverse, Dots1, Bamba, Mono-InternVL); v0.25.0 removed Baichuan, Aquila,
+Grok, Tarsier/Tarsier2, AyaVision/MusicFlamingo, Mantis. None are pooling
+or STT models, but check before pinning a newer image for an unrelated
+reason.
 
 ## Paired skills
 
@@ -311,10 +367,15 @@ New OCR architecture in v0.21.0: **Qianfan-OCR** (#40136) — see
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.22+ release (further pooling-runner changes), a
+- Refresh triggers: any v0.26+ release (further pooling-runner changes), a
   new Jina embeddings major version, or a new native-multimodal reranker
-  shipping.
+  shipping. Note that the last two passes both found the *runner* surface
+  frozen while **request validation** tightened underneath it — grep release
+  bodies for `pooling|rerank|embedding|matryoshka|top_n`, not just for
+  runner flags.
 - External-ref audit log: `references/sources.md`.
 
-Last verified: 2026-05-28 (against vLLM v0.21.0 release notes; v0.20.x
-migration surface unchanged).
+Last verified: 2026-07-21 (against vLLM v0.22.0–v0.25.1 release notes plus
+the PRs behind each pooling/rerank/STT/OCR hit; v0.20.0 runner-migration
+surface still unchanged, but two v0.24.0 request-validation tightenings now
+reject calls that previously succeeded silently).

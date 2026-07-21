@@ -28,6 +28,7 @@ biases them hard toward transcription of document images.
 | `nvidia/Nemotron-Parse-*` | VLM path | `nemotron_*` | layout parsing + structure |
 | `Lighton/Ocr-*` | `LightOnOCR*` | `lightonocr.py` | lightweight |
 | Qianfan-OCR | VLM path | — | added v0.21.0 (#40136) |
+| `baidu/Unlimited-OCR` | VLM path | — | added v0.25.0 (#46564); Triton R-SWA backend #47102. Benchmarked on OmniDocBench |
 
 Plus: any general VLM (Qwen2.5-VL, InternVL, GLM-4.1V, MiniCPM-V) handles
 OCR reasonably well via chat completion — just not as efficiently or
@@ -147,9 +148,11 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-Last verified: 2026-05-28 (against vLLM v0.21.0). Recipe page URL confirmed
-live; Qianfan-OCR (#40136) added to the roster in v0.21.0. The DeepSeek-OCR
-recipe flow is unchanged across v0.20.x → v0.21.0.
+Last verified: 2026-07-21 against vLLM v0.25.1. Roster gained
+`baidu/Unlimited-OCR` (#46564, v0.25.0) on top of Qianfan-OCR (#40136,
+v0.21.0). The DeepSeek-OCR recipe flow — all three flags and GUNDAM mode —
+is unchanged across v0.20.x → v0.25.1. The recipes page URL was confirmed
+live on 2026-05-28 and was **not** re-fetched this pass.
 
 ## 8. Source anchors
 
