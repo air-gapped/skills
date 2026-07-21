@@ -60,12 +60,17 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 ### Running vLLM on Blackwell (B200/B300)
 - Switch to FP4 (NVFP4 via ModelOpt checkpoints) — 1.8–2× decode throughput on the same HBM budget.
 - NVL72 collapses disagg cost — keep prefill/decode inside one NVLink5 domain; use `NixlConnector`.
-- Pin vLLM **≥ v0.19** for first-class B300/GB300 (SM 10.3) support.
+- Pin vLLM **≥ v0.19** for first-class B300/GB300 (SM 10.3) support, and
+  **≥ v0.25.1 if serving NVFP4**: v0.25.0 and earlier can emit garbage
+  (repeated `!!!!!`) from the fused allreduce+RMSNorm+quant path on NVFP4
+  models with Gemma/Qwen-style RMSNorm. Silent wrong output, no crash — see
+  `references/vllm-platform-matrix.md` §6.
 - 270 GB (HGX bin) or 288 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
 
 ### Buying NVIDIA hardware in 2026
 - **GB300 NVL72 is safe for 2026 capacity:** size the row for 135–155 kW, DLC @ 25 °C, 3φ 480 V. Vendors: NVIDIA DGX B300, Dell IR7000 + XE9780L / XE8712 sleds, Supermicro SRS-GB300-NVL72, Lenovo 7DJVCTO2WW, HPE.
 - **Greenfield rows should be spec'd for Rubin NVL144:** 180–220 kW, 45 °C W45 warm water, 800 VDC HVDC, new MGX rack. Retrofitting later is expensive.
+- **Rubin timing, as of 2026-07-21:** validated racks exist (CoreWeave qualified a Dell-supplied Vera Rubin NVL72 on 2026-05-31), and Jensen Huang said on 2026-07-15 that it is "already in production" — but NVIDIA has given **no customer-delivery date**, only "partner products in 2H 2026". Treat "in production" as a fab statement, not a delivery statement; the signal to plan against is an OEM quoting firm order dates. Note also that **vLLM has no Rubin support at v0.25.1**. Detail in `references/rubin-roadmap.md`.
 - **Expect HBM allocation and PSU rectifier shelf lead times to dominate schedule risk.** SK hynix / Micron / Samsung HBM sold out through CY26.
 
 ### Key numbers to memorize
@@ -91,3 +96,20 @@ If this skill helps with *why* a hardware choice matters for KV-cache sizing, th
 All claims in the references are sourced inline — **prefer NVIDIA first-party datasheets, SemiAnalysis, Dell/Lenovo/Supermicro OEM datasheets**, then reputable news. When numbers disagree across sources, the references report the range with each citation. The full consolidated source list is in `references/sources.md`.
 
 Refresh when new NVIDIA products launch or when the HBM / rack-power / vLLM backend landscape shifts materially.
+
+**Separate vendor "in production" claims from delivery evidence.** The 2026-07-21
+pass found NVIDIA saying Vera Rubin was "already in production" while giving no
+customer-delivery date — the two are routinely conflated in coverage. Anchor
+timing claims to dated, checkable artifacts (a named customer completing
+qualification, an OEM quoting firm order dates), not to executive statements.
+
+**Check the current vLLM patch release for correctness fixes, not just features.**
+The same pass found v0.25.0 silently corrupting NVFP4 output, fixed one release
+later. A release-note sweep that only reads the feature sections will miss this
+class entirely.
+
+Last verified: 2026-07-21 — vLLM release line rebaselined v0.21.0 → v0.25.1 and
+the Rubin shipping-status claim probed live (closing a backlog item carried since
+2026-05-28). The hardware spec tables (per-GPU HBM/TFLOPs, rack power, Dell SKUs)
+were **not** re-probed this pass and keep their earlier `[LV:]` dates in
+`references/sources.md`.

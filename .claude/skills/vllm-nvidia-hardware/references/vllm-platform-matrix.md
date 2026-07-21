@@ -73,7 +73,10 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 - **SM100 (B200)** broadly supported; **SM103 (GB300)** was recognized with known hang
   in TRTLLM/FlashInfer 0.6.7 — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956,
   which *reverts* the Blackwell-Ultra optimization that introduced the deadlock
-  (closes #2939), shipped in 0.6.7.postN. If pinned to plain 0.6.7 without the post
+  (closes #2939), shipped in 0.6.7.postN. **This is now history for anyone on a
+  current vLLM**: v0.22.0 ships FlashInfer 0.6.11.post2, v0.23.0 ships 0.6.12,
+  v0.25.0 ships 0.6.13 — all far past the fix. It only bites a deployment that
+  pins FlashInfer independently of vLLM. If pinned to plain 0.6.7 without the post
   fix, disable TRTLLM on SM103 (`--attention-config.use_trtllm_attention=0`); 0.6.6
   works, and the FlashInfer default backend on SM103 actually benchmarks faster than
   the old 0.6.6 TRTLLM path (~56 vs ~35 req/s in the upstream repro).
@@ -100,6 +103,77 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   blockwise FP8 GEMM; FlashInfer sparse MLA default for FP8 KV cache; Gemma 4;
   zero-bubble async + spec decode; general CPU KV offloading for V1 (#37160, #37874,
   #34805).
+- **v0.20.0** (Apr 2026, GA 04-27) — **CUDA 13.0 default** (breaking env change),
+  PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV),
+  TurboQuant 2-bit KV cache, MXFP4 W4A4 CUTLASS MoE on SM100.
+- **v0.22.0** (May 2026) — FlashInfer b12x MoE + FP4 GEMM for **SM120/121**
+  (#40082), per-tensor FP8 CUTLASS on SM12.1 (#41215), GDN prefill kernel for
+  SM100 (#43273), `head_dim=512` for FlashInfer TRTLLM attention (#38822).
+  FlashInfer bumped to **0.6.11.post2** (#41711).
+- **v0.23.0** (Jun 2026) — **Triton MoE backend becomes the default on Hopper**
+  (#44220) — a default change that silently alters the H100/H200 MoE path, so
+  benchmark before and after this version. Also: CUTLASS FP8 scaled-mm padding
+  bypass (+20%, #43706), tuned `selective_state_update` for **H200/RTX PRO**
+  (#44251), **NUMA auto-binding on DGX B300** (#43270), Marlin MoE on SM 12.x
+  (#40923), and **fail-fast on an unsupported NVFP4 KV-cache-dtype arch**
+  (#43669) instead of failing obscurely later. FlashInfer **0.6.12** (#44036).
+- **v0.24.0** (Jun 2026) — SM90 CUTLASS FP8 mm odd-M via `swap_ab`
+  (**180–290% kernel speedup**, #44572), tuned `fused_moe` FP8 for
+  Qwen3-Next-80B on H100 (+25%, #44830), native DSA indexer decode on SM100
+  (#45322), FP8 MoE re-enabled on **NVIDIA Thor** (#46339). **vLLM stopped
+  setting `CUDA_VISIBLE_DEVICES` internally** — use the new `device_ids`
+  argument (#45026); ROCm began a deprecation window for the old behaviour
+  (#46636).
+- **v0.25.0** (Jul 2026) — **PagedAttention removed entirely** (#47361);
+  Model Runner V2 default for all dense models (#44443). Blackwell:
+  FlashInfer fused all-reduce tuned for **world_size=16 on GB300** (#46392),
+  restored NVFP4 swizzled-scale zero-init to recover Blackwell decode
+  throughput (#45739), skip cooperative top-K on SM120 (#47164).
+  FlashInfer **0.6.13** (#46683).
+- **v0.25.1** (2026-07-14) — see the NVFP4 corruption fix below. Patch release,
+  and the reason not to sit on v0.25.0.
+
+### ⚠ v0.25.0 corrupts output on some NVFP4 models — fixed in v0.25.1
+
+**PR #48330 (merged 2026-07-12), fixing issue #48324.** The fused FlashInfer
+**allreduce + RMSNorm + static-quantization** patterns could match graphs where
+the activation and the RMSNorm weight have *different dtypes*. Gemma/Qwen-style
+RMSNorm computes `weight.float() + 1.0`, so the effective weight is FP32 while
+the residual stream is BF16. Selecting the fused quantized op for that graph
+**corrupts the hidden state** and emits repeated tokens — the reported symptom
+is a stream of `!!!!!!!!!!!!`.
+
+- **Reproducer named upstream:** `nvidia/Qwen3.6-27B-NVFP4`.
+- **Exposure:** NVFP4 model + Gemma/Qwen-style RMSNorm + allreduce fusion
+  (which has been *default* since v0.19.0) — i.e. a Blackwell multi-GPU serve.
+- **Nature:** silent wrong output, not a crash. No error, no metric moves;
+  only the generated text is garbage. Nothing in the logs points at the fusion.
+- **Fix:** the `_norm_input_weight_dtype_match` compatibility check is now
+  applied to `AllReduceFusedAddRMSNormStaticQuantFP8Pattern` and
+  `...NVFP4Pattern`; incompatible graphs fall back to fused allreduce + Gemma
+  RMSNorm with `weight_bias=1.0` plus separate quantization. Same-dtype models
+  keep the full fusion, so there is no throughput cost for the unaffected case.
+- **Action:** on Blackwell + NVFP4, run **≥ v0.25.1**. If pinned to v0.25.0,
+  disabling allreduce fusion is the workaround.
+
+### Rubin (R100 / Vera Rubin NVL72) has no vLLM support yet
+
+As of **v0.25.1** there is **no Rubin code path in vLLM**: the issue tracker
+returns zero results for "Rubin", and the build scripts target only
+`sm_90 / sm_100 / sm_103 / sm_110 / sm_120 / sm_121`. Hardware availability
+and engine support are on different clocks — see `references/rubin-roadmap.md`
+before assuming a Rubin rack can serve on day one.
+
+**`sm_110` is Thor, not Rubin.** vLLM's own build comments place `sm_110`
+in the Blackwell/Thor family alongside `sm_100`/`sm_103`
+(`.buildkite/image_build/image_build_arm64.sh`,
+`csrc/libtorch_stable/launch_bounds_utils.h`). Don't read a Rubin target into it.
+
+**Thor + CUDA 13 + Triton gotcha.** `ptxas fatal: Value 'sm_110a' is not
+defined for option 'gpu-name'` means the ptxas bundled with Triton predates
+the device. It surfaces as `EngineDeadError`, which looks like an engine bug
+rather than a toolchain mismatch. Fix: point `TRITON_PTXAS_PATH` at the CUDA
+toolkit's own ptxas. Documented in `docs/usage/troubleshooting.md`.
 
 ## 7. NVL72 handling in vLLM
 

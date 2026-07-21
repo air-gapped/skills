@@ -3,7 +3,10 @@
 Grouped by topic. `foundational` tags mean the source pre-dates 2025 but is still the
 canonical reference on its claim.
 
-**Last freshen pass:** 2026-05-28 (vLLM release rows only); prior full pass 2026-04-24.
+**Last freshen pass:** 2026-07-21 (vLLM release line v0.22.0-v0.25.1 + the Rubin
+shipping-status claim, which had been carried as an explicit backlog item since
+2026-05-28 because the apply environment had no network egress); prior passes
+2026-05-28 (vLLM release rows only) and 2026-04-24 (full).
 Rows annotated `[LV: <date>]` were probed on that date; `[LV: <date>, drift]` means the
 probe surfaced a material change that was applied to the relevant reference file(s).
 Unannotated rows are inherited from passes before 2026-04-24 and have not been
@@ -93,7 +96,12 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) **[LV: 2026-05-28]** — **GA 2026-04-27** (left pre-release). **CUDA 13.0 default** (breaking env change), PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV), TurboQuant 2-bit KV cache (4× capacity), MXFP4 W4A4 CUTLASS MoE SM100, TRTLLM GEN NVFP4 MoE non-512-aligned hidden dims, tuned fused_moe config for RTX PRO 6000 Blackwell.
 - [v0.20.1](https://github.com/vllm-project/vllm/releases/tag/v0.20.1) **[LV: 2026-05-28]** — published 2026-05-04. Patch release on the v0.20 line.
 - [v0.20.2](https://github.com/vllm-project/vllm/releases/tag/v0.20.2) **[LV: 2026-05-28]** — published 2026-05-10. Patch release on the v0.20 line.
-- [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) **[LV: 2026-05-28]** — published 2026-05-15. **Current latest stable** (`isLatest=true` per `gh release list`).
+- [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) **[LV: 2026-07-21]** — published 2026-05-15. (Was "current latest" at the 2026-05-28 pass; superseded four times over.)
+- [v0.22.0](https://github.com/vllm-project/vllm/releases/tag/v0.22.0) **[LV: 2026-07-21]** — published 2026-05-29. FlashInfer b12x MoE + FP4 GEMM for SM120/121 (#40082); per-tensor FP8 CUTLASS on SM12.1 (#41215); GDN prefill for SM100 (#43273). FlashInfer -> 0.6.11.post2 (#41711).
+- [v0.23.0](https://github.com/vllm-project/vllm/releases/tag/v0.23.0) **[LV: 2026-07-21, drift]** — published 2026-06-15. **Triton MoE backend becomes default on Hopper (#44220)** — a silent default change on the H100/H200 MoE path. Also NUMA auto-binding on DGX B300 (#43270), tuned `selective_state_update` for H200/RTX PRO (#44251), fail-fast on unsupported NVFP4 KV-cache-dtype arch (#43669). FlashInfer -> 0.6.12 (#44036).
+- [v0.24.0](https://github.com/vllm-project/vllm/releases/tag/v0.24.0) **[LV: 2026-07-21, drift]** — published 2026-06-29. **vLLM no longer sets `CUDA_VISIBLE_DEVICES` internally; new `device_ids` argument (#45026)** — an environment-contract change for anyone scripting device selection. SM90 CUTLASS FP8 mm odd-M via `swap_ab` (180-290% kernel speedup, #44572); FP8 MoE re-enabled on Thor (#46339).
+- [v0.25.0](https://github.com/vllm-project/vllm/releases/tag/v0.25.0) **[LV: 2026-07-21, drift]** — published 2026-07-11. **PagedAttention removed entirely (#47361)**; MRv2 default for all dense models (#44443); GB300 all-reduce tuned for world_size=16 (#46392); NVFP4 swizzled-scale zero-init restored to recover Blackwell decode throughput (#45739). FlashInfer -> 0.6.13 (#46683).
+- [v0.25.1](https://github.com/vllm-project/vllm/releases/tag/v0.25.1) **[LV: 2026-07-21, drift]** — published 2026-07-14. **Current latest stable.** Ships PR #48330 (merged 2026-07-12, fixes #48324): the fused FlashInfer allreduce + RMSNorm + static-quant patterns matched mixed-dtype graphs (BF16 residual vs FP32 Gemma/Qwen-style RMSNorm weight from `weight.float() + 1.0`), **corrupting the hidden state and emitting repeated `!!!!!` tokens** on NVFP4 models. Reproducer `nvidia/Qwen3.6-27B-NVFP4`. Silent wrong output, not a crash. **Serve NVFP4 on >= v0.25.1.**
 - [NVIDIA vLLM release notes 25.09](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-25-09.html)
 
 ## Public deployments / benchmarks
@@ -107,3 +115,21 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 ## Upstream bug trackers
 
 - [flashinfer-ai/flashinfer#2939 — TRTLLM attention hang on GB300 (SM103) with FlashInfer 0.6.7](https://github.com/flashinfer-ai/flashinfer/issues/2939) **[LV: 2026-05-28]** — **Closed 2026-04-07** (state=closed re-confirmed via `gh api` 2026-05-28). Fixed via PR #2956, which is a *revert* of the Blackwell-Ultra optimization that caused the deadlock (titled "[Fmha] revert blackwell ultra optimization that causes deadlocks", merged 2026-04-03), shipped in a 0.6.7.postN (verify the exact tag before pinning). vllm-platform-matrix reference patched from "open, pin older FlashInfer" to "fixed (by revert) — upgrade".
+
+## Rubin shipping status — probed 2026-07-21
+
+The 2026-05-28 pass logged this as an unresolvable backlog item ("network egress
+is blocked in the apply environment"). Probed this pass. The finding is a
+distinction, not a number: **"in production" is a fab statement and does not
+imply a delivery date.**
+
+- [CoreWeave validates Vera Rubin NVL72 for production use](https://cryptobriefing.com/coreweave-nvidia-vera-rubin-nvl72-validation/) **[LV: 2026-07-21]** — rack supplied by **Dell**, arrived **2026-05-31**, passed NVIDIA **L11 diagnostics** + a **147-hour** test suite. First publicly claimed production validation. NVIDIA "plans to begin broader shipments in the second half of 2026".
+- [Nvidia CEO says Vera Rubin is in production, denies delay](https://winbuzzer.com/2026/07/18/nvidia-ceo-says-vera-rubin-is-in-production-denies-delay-xcxwbn/) **[LV: 2026-07-21]** — Jensen Huang at a Tokyo developer event, **2026-07-15**: *"Vera Rubin is already in production. Giant amounts of production incoming."* Responding to press reports of manufacturing delay. **No public transcript**; no fiscal-quarter, revenue-timing, or shipping date given. A KeyBanc analyst separately flagged an unconfirmed **SK hynix heat-lid qualification** risk.
+- [NVIDIA squashes Vera Rubin rumors (wccftech)](https://wccftech.com/nvidia-squashes-vera-rubin-rumors-first-shipments-rolling-out-in-july-to-ai-customers/) **[LV: 2026-07-21, unverifiable]** — surfaced in search with first-cohort clouds AWS, Azure, Google Cloud, Oracle, CoreWeave, Lambda, Nebius, Nscale, and OEM channel (Dell, HPE, Lenovo, Supermicro) targeted 2H 2026. **The page itself returns HTTP 403 to WebFetch** — the customer list is from search-result summaries and is NOT first-party confirmed. Do not quote it as NVIDIA guidance.
+
+**vLLM Rubin support: none at v0.25.1** (probed 2026-07-21). `gh search issues
+--repo vllm-project/vllm "Rubin"` returns an empty array; build scripts target
+`sm_90 / sm_100 / sm_103 / sm_110 / sm_120 / sm_121` only. **`sm_110` is Thor**,
+grouped with Blackwell in vLLM's own build comments
+(`.buildkite/image_build/image_build_arm64.sh`,
+`csrc/libtorch_stable/launch_bounds_utils.h`) — not a Rubin target.

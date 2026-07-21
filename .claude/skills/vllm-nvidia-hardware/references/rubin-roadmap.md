@@ -12,6 +12,33 @@ reference. When quoting NVIDIA marketing verbatim, use "Vera Rubin NVL72". When
 discussing die-count (144 dies = 72 packages) in engineering context, VR200 NVL144
 is still the accurate description.
 
+## Shipping status — checked 2026-07-21, inside the claimed window
+
+The "ships H2 2026" line is now testable rather than forward-looking, and the
+honest answer is **silicon exists in a customer rack; general delivery has no
+date**. Keep those two facts apart — "in production" is a fab statement, not a
+delivery statement.
+
+| Evidence | Date | What it actually establishes |
+|---|---|---|
+| CoreWeave validated a Vera Rubin NVL72 for production use — rack supplied by **Dell**, passed NVIDIA **L11 diagnostics** and a **147-hour** test suite | arrived **2026-05-31** | Real racks exist and pass qualification. First such validation publicly claimed. |
+| Jensen Huang, Tokyo developer event: *"Vera Rubin is already in production. Giant amounts of production incoming."* | **2026-07-15** | NVIDIA denying press reports of a manufacturing delay. No public transcript; no fiscal-quarter or revenue-timing statement accompanied it. |
+| NVIDIA guidance | — | Still only "partner products in the second half of 2026". **No customer-delivery date has been given.** |
+| First-cohort clouds named in coverage | H2 2026 | AWS, Azure, Google Cloud, Oracle, CoreWeave, Lambda, Nebius, Nscale. OEM channel (Dell, HPE, Lenovo, Supermicro) targeted 2H 2026; broad availability reported as 2027. |
+| Reported risk | 2026-07 | A KeyBanc analyst flagged a possible **heat-lid qualification issue with SK hynix memory**. Unconfirmed; treat as rumour, not schedule. |
+
+**Reading it for a buy-or-wait call:** "in production" does not mean partners
+have finished rack assembly, cooling, and deployment validation. The signal
+worth waiting for is an OEM listing NVL72 systems with **firm order dates** —
+that is the first evidence that maps to a delivery you could plan around.
+
+**And the engine is behind the hardware.** As of vLLM **v0.25.1** (2026-07-14)
+there is **no Rubin support**: zero "Rubin" hits in the issue tracker, and the
+build scripts target only `sm_90 / sm_100 / sm_103 / sm_110 / sm_120 / sm_121`.
+`sm_110` is **Thor**, not Rubin — vLLM's own build comments group it with
+Blackwell. Anyone sizing a Rubin purchase on vLLM should treat day-one serving
+support as unevidenced, not assumed. See `references/vllm-platform-matrix.md`.
+
 ## Per-GPU specs
 
 | Product | HBM | BW | FP4 | FP8 | Rack product | Rack power | Status |
