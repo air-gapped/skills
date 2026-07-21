@@ -600,6 +600,20 @@
       "strict": false
     },
     {
+      "name": "mimir-upgrade",
+      "source": "./",
+      "description": "Plan and run a controlled, COMMUNITY-edition Grafana Mimir upgrade on the `mimir-distributed` Helm chart, air-gap first",
+      "version": "0.20260721.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/mimir-upgrade"
+      ],
+      "strict": false
+    },
+    {
       "name": "netbox-best-practices",
       "source": "./",
       "description": "NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm…",
