@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.31
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
 Versions tagged `vX.Y.Z+rke2rN`. Compat verdict is k8s-minor-driven (`X.Y`).
 Each `## <version>` block below covers the **latest patch of one k8s minor**
@@ -49,7 +49,7 @@ node and this object"` (NodeRestriction node→pod graph not yet repopulated aft
 clusterrole … not found` (bootstrap roles re-applied on apiserver startup); `InvalidDiskCapacity:
 invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populates imagefs).
 
-## 1.36 (latest patch v1.36.1+rke2r1, 2026-05-18)
+## 1.36 (latest patch v1.36.2+rke2r1, 2026-06-25)
 
 - **k8s floor:** 1.36 (binds the cluster's k8s minor to 1.36).
 - **Breaking:**
@@ -64,7 +64,7 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
   - Packaged: etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16, helm-controller v0.17.1.
   - CNI floor: Cilium 1.19.3, Calico 3.32.0, Flannel 0.28.4, Multus 4.2.4.
 
-## 1.35 (latest patch v1.35.5+rke2r1, 2026-05-18)
+## 1.35 (latest patch v1.35.6+rke2r1, 2026-06-25)
 
 - **k8s floor:** 1.35.
 - **Breaking:** none at the RKE2 layer beyond upstream k8s 1.35 API churn.
@@ -77,7 +77,7 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
   - Packaged: etcd v3.6.7-k3s1, containerd v2.1.5-k3s1 → v2.2.3-k3s1 across patches, CoreDNS v1.13.1 → v1.14.3, Traefik v3.6.4 → v3.6.16, helm-controller v0.16.17 → v0.17.1.
   - CNI floor at 1.35.0: Cilium 1.18.4, Calico 3.31.2. Latest 1.35.5 ships Cilium 1.19.3, Calico 3.32.0.
 
-## 1.34 (latest patch v1.34.8+rke2r1, 2026-05-18)
+## 1.34 (latest patch v1.34.9+rke2r1, 2026-06-25)
 
 - **k8s floor:** 1.34.
 - **Breaking:**
@@ -90,7 +90,7 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
   - Packaged at 1.34.1: etcd v3.6.4-k3s3, containerd v2.1.4-k3s2, runc v1.3.1, CoreDNS v1.12.3, helm-controller v0.16.13. By 1.34.8 these advance to etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16.
   - CNI floor at 1.34.1: Cilium 1.18.1, Calico 3.30.3. Latest 1.34.8 ships Cilium 1.19.3, Calico 3.32.0 (same as 1.35/1.36).
 
-## 1.33 (latest patch v1.33.12+rke2r1, 2026-05-18)
+## 1.33 (latest patch v1.33.13+rke2r1, 2026-06-25)
 
 - **k8s floor:** 1.33.
 - **Breaking:**

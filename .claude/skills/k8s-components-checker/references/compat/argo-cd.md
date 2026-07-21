@@ -5,12 +5,12 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 3.0
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 - **2026-05-30 operator correction (verified on cluster `local`):** the **3.2 line ended at v3.2.6** and **never received the CVE-2026-42880 backport** — the prior `v3.2.10` / `v3.2.12` entries below were wrong (those releases do not exist). Safe patched target is **3.4.3 (chart 9.5.17)**. `freshen` should reconcile the § 3.2 numbers against upstream.
 
 Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.0 / v3.1 rows pulled from `release-3.0` / `release-3.1` historical docs. **Both v3.0 and v3.1 are EOL upstream** (v3.0 EOL 2026-02-02 at v3.0.23; v3.1 EOL 2026-05-06 at v3.1.16) — encountering either is an automatic ✗ blocker, but the rows are kept for migration-path planning. See companion skill `argo-cd-apps` for application-authoring detail; this file is k8s-compat only.
 
-## 3.4 (latest: v3.4.3, 2026-05-28)
+## 3.4 (latest: v3.4.5, 2026-07-09)
 
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**
@@ -26,7 +26,7 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - ApplicationSet generators stable; no new generators in v3.4 (incremental fixes to DuckType, PullRequest, Git only).
   - **CVE-2026-42880 patched** in v3.4.x line as of v3.4.0 GA (also fixed in v3.3.8 and v3.1.15; **the 3.2 line never received the backport — it ended at v3.2.6, unpatched**; v3.4 was patched pre-GA). Confirms `IncludeMutationWebhook=true` no longer leaks Secret plaintext.
 
-## 3.3 (latest: v3.3.11, 2026-05-28)
+## 3.3 (latest: v3.3.12, 2026-06-18)
 
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**

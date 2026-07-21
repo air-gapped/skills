@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
-- **Last sifted:** 2026-06-02
-- **Last release-verified:** 2026-06-02
+- **Last sifted:** 2026-07-21
+- **Last release-verified:** 2026-07-21
 - **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
   LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).
 
@@ -26,13 +26,32 @@ engine version from the `lvm-localpv` chart version, the
 
 | OpenEBS umbrella | pins LocalPV-LVM |
 |---|---|
+| 4.5.1 | 1.9.1 |
+| 4.5.0 | 1.9.0 |
 | 4.4.x | 1.8.0 |
 | 4.3.x | 1.7.0 |
 | 4.2.x / 4.1.3 | 1.6.2 |
 | 4.0.x / 4.1.0 | 1.5.1 |
 
-(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.4.0;
+(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.5.1;
 LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
+
+## 1.9.0 — 2026-05-21  (pinned by umbrella 4.5.0; **1.9.1** 2026-06-10 pinned by umbrella 4.5.1)
+
+- **New:** `VolumeAttributesClass` support (#444) — QoS policies and IOPS
+  profiles become updatable on an existing volume instead of requiring a new
+  StorageClass. This is the headline reason to move off 1.8.x.
+- **Fixes worth having:** `Controller/GetCapacity` now uses **thin-pool free
+  space** when thin provisioning is enabled (#459), with a fallback to VG
+  capacity if the thin pool is missing (#470) — 1.8.x could over-report
+  schedulable capacity on thin pools and let the scheduler overcommit a node.
+  `NodeUnpublishVolume` now propagates unmount errors instead of swallowing
+  them (#469).
+- **Breaking:** none identified in the release notes.
+- **Not field-verified.** The operator's live-upgrade validation stops at
+  1.8.0 (§ below) — 1.9.x is release-note-grounded only. Verify `GetCapacity`
+  behaviour on thin pools before rolling it fleet-wide, since that changes
+  scheduling maths.
 
 ## 1.8.0 — 2025-11-18  (pinned by umbrella 4.4)
 

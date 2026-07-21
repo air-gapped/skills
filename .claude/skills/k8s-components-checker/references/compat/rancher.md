@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-06-02
-- **Last release-verified (gh):** 2026-06-02 — 2.11 community patch ceiling derived by edition discriminator (see § Community vs Prime). Prior verify (2026-05-30) re-derived 2.12/2.13/2.14 by edition; the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
+- **Last sifted:** 2026-07-21
+- **Last release-verified (gh):** 2026-07-21 — edition discriminator re-run on the four newest stable tags: **v2.14.3 (2026-06-29) self-declares "This is a Community version release"** → new 2.14 community ceiling. **v2.13.7 / v2.12.11 / v2.11.15 are all Prime-docs redirects** → the 2.13 / 2.12 / 2.11 community ceilings are UNCHANGED at v2.13.3 / v2.12.4 / v2.11.3, exactly as the "older minor's top tag is Prime" pattern predicts. Prior verify 2026-06-02 — 2.11 community patch ceiling derived by edition discriminator (see § Community vs Prime). Prior verify (2026-05-30) re-derived 2.12/2.13/2.14 by edition; the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
 
 Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.11 (Mar 2025) supported through ~Sep 2026, 2.12 (Jul 2025) through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027. 2.11 is a common **migration source** minor; its community line ends at v2.11.3 (see §2.11).
 
@@ -16,7 +16,7 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Downstream-cluster provisioning (KDM bundling, downstream RKE2/K3s version dropdowns) is **out of scope** — the operator manages downstream clusters by hand. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
 
-## 2.14 (latest community: v2.14.2, 2026-05-28)
+## 2.14 (latest community: v2.14.3, 2026-06-29)
 
 - **k8s floor:** 1.33 – 1.35 (adds 1.35; removes 1.32 — issues #52957, #53764).
 - **Breaking:**

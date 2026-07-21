@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 18.2
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21 (k8s axis re-derived via `compat/rook.md`; Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
 
 **k8s axis collapses through Rook.** Ceph itself has no k8s version dependency
 — it is daemon software. The operator-axis is `Rook minor → Ceph minor` and

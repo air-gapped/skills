@@ -5,9 +5,9 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
-In-scope set: current stable 1.19 + prior 2 (1.18, 1.17). 1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest patches as of sift: 1.19.4, 1.18.10, 1.17.16 (all 2026-05-13).
+In-scope set: current stable 1.19 + prior 2 (1.18, 1.17). 1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest patches as of sift: **1.19.6, 1.18.12, 1.17.18** (all 2026-07-16). 1.20 is still pre-release only (`v1.20.0-pre.4`, 2026-07-03) — do not treat it as available.
 
 CRD schema versions per minor (from stable matrix page): 1.17.x → 1.30.8, 1.18.x → 1.31.11, 1.19.x → 1.32.6. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
 

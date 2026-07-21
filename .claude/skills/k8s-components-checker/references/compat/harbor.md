@@ -5,10 +5,10 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-06-02
-- **Last release-verified:** 2026-06-02
+- **Last sifted:** 2026-07-21
+- **Last release-verified:** 2026-07-21 — 2.15.2 (2026-07-02) carries a security fix (blob-mount source-project validation, reject tokens missing `iat`), swaps the cache backend Redis → **Valkey**, and moves the portal to Angular 21 / Clarity 18 / Node 22.
 - **2026-05-31 release-verified (gh):** enumerating `goharbor/harbor`
-  non-prerelease tags (no version named) returns **`v2.15.1` / `v2.15.0` as real,
+  non-prerelease tags (no version named) returns **`v2.15.2` / `v2.15.1` / `v2.15.0` as real,
   higher releases** alongside the maintained **2.14 line (`v2.14.4`)**.
   `releases/latest` = **v2.14.4** is *recency, not rank* — Harbor keeps the
   "Latest" flag on the 2.14 maintenance line while 2.15 is the newer feature line
@@ -103,7 +103,7 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   core `find: '/etc/harbor/ssl': No such file or directory` + `init global
   config instance failed ... app.conf` = normal when `internalTLS` is disabled.
 
-## 2.15 — chart 1.19.x  (RELEASED; latest patch v2.15.1 — gh-enumerated 2026-05-31. `releases/latest` stays v2.14.4 = recency, not rank. Tested k8s 1.32–1.34 — does NOT add 1.35.)
+## 2.15 — chart 1.19.x  (RELEASED; latest patch **v2.15.2** 2026-07-02 — gh-enumerated 2026-07-21. `releases/latest` stays v2.14.4 = recency, not rank. Tested k8s 1.32–1.34 — does NOT add 1.35.)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
   `v1.32.8, v1.33.4, v1.34.0`). README still claims "Kubernetes v1.20+"

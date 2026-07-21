@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
 ## Node drain / reboot during a k8s/RKE2 upgrade (cross-version)
 
@@ -95,7 +95,37 @@ after a clean operator hop typically surfaces only:
 Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
 no CephFS).
 
-## 1.19 (latest: 1.19.6, 2026-05-27)
+## 1.20 (latest: 1.20.2, 2026-07-07)
+
+- **k8s floor:** **1.31 – 1.36** (stated in the 1.20.0 release notes).
+- **Breaking:**
+  - **The Ceph CSI operator is now REQUIRED.** CSI settings are removed from the
+    `rook-ceph-operator-config` ConfigMap and from the `rook-ceph` Helm chart.
+    Existing clusters keep working with the settings Rook already applied, but
+    **further CSI changes must go through the Ceph-CSI `OperatorConfig` and
+    `Driver` CRs** — editing the old ConfigMap keys silently does nothing.
+    New installs must configure those CRs up front; Helm users get them via the
+    separate `ceph-csi-drivers` chart (custom CSI *images* stay in `rook-ceph`
+    chart values). This completes the deprecation started in 1.19.
+  - Unused CRUSH rules are now **deleted by default** after the Ceph mgr starts.
+    Set `ROOK_DELETE_UNUSED_CRUSH_RULES=false` in the operator config to keep
+    hand-made rules that are not currently referenced by a pool.
+- **CRD migrations:** none. New CRD `CephObjectStoreAccount` (experimental) plus
+  an `accountRef` field on `CephObjectStoreUser`.
+- **Upgrade ordering:** unchanged — Rook operator before CephCluster; Helm
+  `rook-ceph` chart before `rook-ceph-cluster`. Follow the per-tag upgrade guide.
+- **Notable:**
+  - `ROOK_RECONCILE_CONCURRENT_CLUSTERS` (concurrent CephCluster reconciles) is
+    now **stable**, was experimental in 1.19.
+  - OSD resize now auto-expands encrypted host-based OSDs (`encryptedDevice: true`).
+  - Pod containers reconciled by name rather than declaration order — defensive
+    against mutating webhooks reordering them.
+  - Experimental: two-node clusters with a "floating" mon that migrates when one
+    node is down; SSE-S3 via Vault Agent auth.
+- **Not yet field-validated** — the 1.19 entry below carries the operator's live
+  upgrade notes; 1.20 is release-note-grounded only.
+
+## 1.19 (latest: 1.19.7, 2026-06-16)
 
 - **k8s floor:** 1.30 – 1.35
 - **Breaking:**
@@ -116,7 +146,7 @@ no CephFS).
   - Experimental: NVMe-oF for RBD volumes (NVMe/TCP exposure inside + outside cluster).
   - Experimental: concurrent CephCluster reconciles via `ROOK_RECONCILE_CONCURRENT_CLUSTERS > 1`.
 
-## 1.18 (latest: 1.18.11, 2026-05-27)
+## 1.18 (latest: 1.18.11, 2026-05-27 — out of the current + prior 2 window as of 1.20; retained for in-flight 1.18 → 1.19 upgrades)
 
 - **k8s floor:** 1.29 – 1.34
 - **Breaking:**

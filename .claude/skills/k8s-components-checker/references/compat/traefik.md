@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-06-02
-- **Last release-verified:** 2026-06-02
+- **Last sifted:** 2026-07-21
+- **Last release-verified:** 2026-07-21
 
 Traefik does not publish a Kubernetes support matrix. The k8s floor is implicit
 in the `client-go` version vendored at release time and is rarely a hard
@@ -54,7 +54,7 @@ sighting as `✗ blocker` and route operators to v2-to-v3 migration. v3 is
 backward-compatible with v2 router syntax (`core.defaultRuleSyntax: v2`), so the
 upgrade is mostly install-config + CRD-group flip.
 
-## 3.7.0  (2026-05-05, latest patch 3.7.1 2026-05-11 — CVE-2026-44774 fix)
+## 3.7.0  (2026-05-05, latest patch **3.7.8** 2026-07-15; 3.7.1 carried the CVE-2026-44774 fix)
 
 - **k8s floor:** no hard floor stated; tested against currently-supported k8s minors (~1.30+ as of release date). `client-go` upstream supports current-3.
 - **Breaking:** none for routing config. Ingress NGINX provider RBAC now needs `configmaps: [list, watch]` for the `nginx.ingress.kubernetes.io/custom-headers` annotation — pods will start but the feature silently fails without it. ForwardAuth `trustForwardHeader` deprecation (introduced 3.6.14) escalates — explicit `true`/`false` required to avoid warning logs.

@@ -5,8 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
-- **Last sifted:** 2026-06-02
-- **Last release-verified:** 2026-06-02
+- **Last sifted:** 2026-07-21
+- **Last release-verified:** 2026-07-21
 
 Notes on sources:
 
@@ -15,7 +15,7 @@ Notes on sources:
 - The Helm `Chart.yaml` `kubeVersion` is permissive (`>=1.21.0-0`) across all 3.x minors — **do not trust it**, it admits k8s minors the docs page excludes. Use the docs page.
 - `support/matrix` is Stack-only and does not surface ECK at all — confirmed 2026-05-28.
 
-## 3.4.0 — 2026-05-05
+## 3.4.0 — 2026-05-05  (latest patch **3.4.1**, 2026-06-22 — version-verified 2026-07-21, patch contents not sifted)
 
 - **k8s floor:** 1.31 – 1.35
 - **OpenShift floor:** 4.16 – 4.20

@@ -5,13 +5,53 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
 Support policy: each release is supported until two subsequent minors ship, so
 exactly two minors are "current" at any time. Minors cadence ~4 months. Current
-matrix at sift time: 1.20 (current), 1.19 (current), 1.21 (upcoming, Jun 2026),
-1.18 (EOL since 2026-03-10 when 1.20 shipped — kept in scope per the
-registry's "current + prior 2 minors" floor).
+matrix at sift time: **1.21 (current, GA 2026-07-08)**, **1.20 (current)**,
+**1.19 EOL as of 2026-07-08** when 1.21 shipped (kept in scope per the
+registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
+
+| Minor | Released | k8s range | Status |
+|---|---|---|---|
+| 1.21 | 2026-07-08 | **1.33 – 1.36** | current |
+| 1.20 | 2026-03-10 | 1.32 – 1.35 | current |
+| 1.19 | 2025-10-07 | 1.31 – 1.35 | EOL 2026-07-08 |
+
+**k8s floor moved to 1.33 in 1.21** — a cluster on 1.32 can run 1.20 but not 1.21.
+
+## 1.21.0 (2026-07-08)
+
+- **k8s floor:** 1.33 – 1.36.
+- **⚠️ Known issue — controller crash-loop (#9031):** setting
+  `spec.renewal.policy: Disabled` on any Certificate causes a nil-pointer panic
+  in the trigger controller, crash-looping the controller process for the whole
+  cluster. Do not set that policy until fixed; remove it from any existing
+  Certificate and restart the controller if already looping.
+- **Known issue — Issuer stuck at `InvalidSolver` (#9036):** eager validation of
+  ACME solver Secrets means an Issuer referencing a not-yet-created Secret goes
+  `Ready: False` and does **not** self-correct when the Secret appears — it
+  recovers only on the 10-hour resync, a spec change, or a controller restart.
+- **Breaking (Helm chart):**
+  - Default `tokenrequest` RBAC removed — the chart no longer grants the
+    controller `serviceaccounts/token: create` on its own ServiceAccount. If
+    `serviceAccountRef.name` points at the controller SA, create the
+    Role/RoleBinding yourself or move to a dedicated SA.
+  - `prometheus.servicemonitor.targetPort`, `prometheus.servicemonitor.path`,
+    and `prometheus.podmonitor.path` **removed**; metrics port renamed
+    `tcp-prometheus-servicemonitor` → `http-metrics`. The values schema is
+    `additionalProperties: false`, so a leftover key fails the upgrade with a
+    schema validation error — strip them from overrides *before* upgrading.
+  - `cert-manager-edit` aggregate ClusterRole no longer grants `create` on
+    Challenges or `create`/`patch`/`update` on Orders
+    (GHSA-8rvj-mm4h-c258). Already shipped in 1.20.3 / 1.19.6, so it is not a
+    new break if coming from those patches.
+- **Deprecations:** `enableGatewayAPI` / `enableGatewayAPIListenerSet` →
+  `gatewayAPI.enabled` / `gatewayAPI.enableListenerSet` (old fields still work).
+- **Notable:** ACME Renewal Information (ARI, RFC 9773) behind the `ACMEUseARI`
+  feature gate; AWS IAM auth (IRSA / EKS Pod Identity) for the Vault issuer;
+  `Modern2026` FIPS 140-3 PKCS#12 profile.
 
 ## 1.20.0 (2026-03-10)
 

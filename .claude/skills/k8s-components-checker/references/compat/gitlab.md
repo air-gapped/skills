@@ -12,7 +12,7 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 8.11      # chart minors: current (10.x) + prior 2 (9.x, 8.x)
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21 (re-probed: latest app tag **v19.2.0**, still within the chart-10.x / GitLab-19.x row — no chart-minor shift)
 
 ## Reading the file
 

@@ -7,11 +7,11 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
-- **Last sifted:** 2026-05-31
+- **Last sifted:** 2026-07-21
 - **2026-05-31 matrix-grounded (platform-support page):** the 26.3 k8s window is **1.32 – 1.36** —
   **26.3.2 added k8s 1.36** (earlier entries said 1.32–1.35; the prior "presumed unchanged" caveat is
   now lifted and § 26.3.2 is sifted below). The floor is **1.32** across the whole 26.3 line — **not
-  1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.2**
+  1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.3** (2026-06-25; 26.3.2 was the prior)
   (gh, 2026-05-30). (House Rule #8 · `references/version-verification.md`)
 
 Lifecycle (per upstream): 26.3.x **current**; 25.10.x **deprecated** (critical fixes only); 25.3.x and lower **end of support**. Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.3 in one step.

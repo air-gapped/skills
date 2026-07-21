@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi` — axis 1 = bundled stack (embedded RKE2, KubeVirt, Longhorn, SLE Micro all move together with the Harvester version); axis 2 = management plane (which Rancher community minor manages this Harvester + the pinned `harvester-ui-extension`)
 - **min_tracked_version:** 1.5.0
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
 ## Community editions and lifecycle (load-bearing — corrected 2026-06-02)
 
@@ -47,7 +47,7 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 
 ## 1.8.0
 
-- **Released:** 2026-04-24
+- **Released:** 2026-04-24 — **community patch `v1.8.1` shipped 2026-06-29** (ISO published at `releases.rancher.com/harvester/v1.8.1/`, confirming the every-release-is-community rule above). `v1.9.0-rc2` exists (2026-07-15) but 1.9 is **not** released — do not plan against it.
 - **Community EOL:** when `1.9.1` ships (est. early 2027)
 - **k8s floor (embedded RKE2):** `v1.35.2+rke2r1`. Harvester-CSI/Cloud-Provider supports RKE2 Node Driver `v1.33 – v1.35` for guest clusters (min `≥v1.33.11+rke2r1`, `≥v1.34.7+rke2r1`, `≥v1.35.4+rke2r1`).
 - **Bundled stack:** RKE2 `v1.35.2+rke2r1` · KubeVirt `v1.7.0` · Longhorn `v1.11.1` · CDI `v1.62.0` · Kube-OVN `v1.15.4` · SLE Micro `6.2` · embedded Rancher `v2.14.0`.
@@ -68,8 +68,8 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 
 ## 1.7.0
 
-- **Released:** 2025-12-23 (community patch 1.7.1 2026-02-10)
-- **Maintained:** latest − 1; 1.8 has no patch yet (only `v1.8.1-dev-*`). Latest community patch on this line: 1.7.1.
+- **Released:** 2025-12-23 (community patches 1.7.1 2026-02-10, **1.7.2 2026-07-07**)
+- **Maintained:** latest − 1. Latest community patch on this line: **1.7.2**. Note 1.7.2 (2026-07-07) post-dates 1.8.1 (2026-06-29) — the 1.7 line is still receiving patches, so a `sort -V` over all tags does **not** give the newest release.
 - **k8s floor (embedded RKE2):** `v1.34.2+rke2r1`. Guest-cluster RKE2 Node Driver: `v1.31`, `v1.32`, `v1.33`, `v1.34`.
 - **Bundled stack:** RKE2 `v1.34.2+rke2r1` · KubeVirt `v1.6.3` · Longhorn `v1.10.1` · CDI `v1.62.0` · Kube-OVN `v1.14.10` · SL Micro `6.1` · embedded Rancher `v2.13.0`.
 - **Management plane:** Rancher community **v2.13.x**.

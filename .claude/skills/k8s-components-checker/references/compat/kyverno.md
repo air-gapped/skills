@@ -5,13 +5,13 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.16
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
 Docs publish only the **current minor's** support window — historical floors recovered from git history of the install page (pre-Astro path `content/en/docs/installation/_index.md`, commit `bcd1f63`). The chart's `kubeVersion: ">=1.25.0-0"` is permissive and **not authoritative**; the docs matrix below is the contract. Helm `kyverno-policies` chart (Pod Security Standards) is versioned separately and not on the matrix — pin to the same minor as the main chart.
 
-Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL. As of 2026-05-28: **1.18 supported**, 1.17 / 1.16 are EOL upstream.
+Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL. As of 2026-07-21: **1.18 supported** (no 1.19 yet), 1.17 / 1.16 are EOL upstream.
 
-## 1.18.0 (2026-04-29, latest patch 1.18.1 2026-05-18)
+## 1.18.0 (2026-04-29, latest patch **1.18.2** 2026-07-10)
 
 - **k8s floor:** 1.33 – 1.35
 - **Breaking:** none flagged. Metric `kyverno_policy_results` had an accidental breaking change in main during the cycle that was reverted before GA (#14471) — no operator action.

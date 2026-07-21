@@ -81,7 +81,57 @@ Ceiling findings from skill-improver runs.
   Elastic's archived support-matrix snapshot (web.archive.org of
   elastic.co/support/eol at the relevant date) — not groundable via `gh`.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen, operator-requested; driver = a live Mimir 5.7.0/2.16.0 air-gapped fleet)
+
+All 19 compat files re-probed and restamped. Findings applied:
+
+- **mimir** — added **chart 6.1.0 / app 3.1.2** (2026-07-16). k8s floor jumps
+  again, `^1.29` → **`^1.32`** — second floor move in two minors, so a fleet
+  below k8s 1.32 can reach 6.0.x but not 6.1.0. `kafka.extraEnv` removed →
+  `kafka.env`. **Default registry is now `docker.io` and the image tag defaults
+  to `Chart.AppVersion`** — air-gap image lists must be regenerated, not diffed.
+  Added the 5.7 → 5.8 → 6.0 → 6.1 ladder, the one-minor-at-a-time app policy,
+  and a warning about the chart-vs-app version-number collision (Grafana's
+  "chart 2.x → 3.0" migration guide is from 2022 and unrelated to app 3.0).
+  5.7.0 explicitly retained below the tracked window as a live fleet version.
+- **cert-manager** — **1.21.0 GA'd 2026-07-08**, so 1.19 is now EOL and the
+  k8s floor moves to **1.33**. Recorded three chart-breaking changes (default
+  `tokenrequest` RBAC removed; metrics `servicemonitor`/`podmonitor` values
+  removed against an `additionalProperties: false` schema, so leftovers fail
+  the upgrade; `cert-manager-edit` RBAC narrowed per GHSA-8rvj-mm4h-c258) plus
+  two known issues, including a **controller crash-loop** on
+  `renewal.policy: Disabled` (#9031).
+- **keda** — registry was two minors behind. Added **2.20.0 / 2.20.1** with the
+  `events.k8s.io` RBAC action required *before* upgrading, the four scaler
+  metadata removals that 2.19 only warned about, and the new CRD validation
+  markers that can reject previously-accepted ScaledObjects.
+- **rook** — added **1.20** (new minor, 2026-06-02; latest 1.20.2). Ceph CSI
+  operator is now mandatory and CSI settings are gone from the operator
+  ConfigMap and `rook-ceph` chart; unused CRUSH rules are deleted by default.
+  1.18 marked as fallen out of the current+prior-2 window.
+- **openebs** — added **LocalPV-LVM 1.9.0/1.9.1** (umbrella 4.5.0/4.5.1) with
+  the thin-pool `GetCapacity` fix that changes scheduling maths.
+- **rancher** — edition discriminator re-run: **v2.14.3 is Community** (new
+  2.14 ceiling); v2.13.7 / v2.12.11 / v2.11.15 are all Prime-docs redirects, so
+  those three ceilings are unchanged. The "older minor's top tag is Prime"
+  pattern held exactly.
+- **harvester** — community patches **1.8.1** (2026-06-29) and **1.7.2**
+  (2026-07-07) recorded; noted that 1.7.2 post-dates 1.8.1, so `sort -V` across
+  tags does not yield the newest release. 1.9.0-rc2 flagged as not-released.
+- **Patch-level restamps:** cilium 1.19.6/1.18.12/1.17.18; rke2
+  1.36.2/1.35.6/1.34.9/1.33.13; argo-cd 3.4.5/3.3.12; kyverno 1.18.2; traefik
+  3.7.8; harbor 2.15.2 (security fix + Redis→Valkey cache backend); eck 3.4.1;
+  gpu-operator 26.3.3.
+- **Re-probed, no change (recorded as such rather than silently restamped):**
+  tetragon 1.7.0 still latest; zalando postgres-operator v1.15.1 unchanged for
+  7 months; gitlab still chart 10.x / app 19.x; ceph k8s axis unchanged by Rook
+  1.20; cilium 1.20 is still pre-release only.
+
+**Not applied (stays Open):** the Ceph patch-level drift above — same reason as
+2026-05-28, it needs a multi-fetch prose sift of docs.ceph.com release notes to
+extract new known-bad point releases, which is not an atomic header edit.
+
+## Resolved — 2026-05-28 (first pass)
 
 ### freshen — 2026-06-02 (floor-override pass, operator-directed migration sources)
 

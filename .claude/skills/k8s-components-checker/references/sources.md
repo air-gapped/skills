@@ -104,28 +104,28 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Rancher
 
 - URL: https://github.com/rancher/rancher/releases
 - Probe: `gh release list --repo rancher/rancher --limit 30`
 - Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
-- Last verified: 2026-06-02 (floor → 2.11; community ceiling v2.11.3)
+- Last verified: 2026-07-21 (floor → 2.11; community ceiling v2.11.3)
 
 ## Harvester
 
 - URL: https://github.com/harvester/harvester/wiki
 - Secondary URL: https://github.com/harvester/harvester/releases
 - Probe: WebFetch the per-version compatibility wiki page; filter to community columns.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Cilium
 
 - URL: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
 - Secondary URL: https://github.com/cilium/cilium/releases
 - Probe: WebFetch docs page for the matrix; `gh release list --repo cilium/cilium` for per-version notes.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Tetragon
 
@@ -134,21 +134,21 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Chart source: `install/kubernetes/tetragon/Chart.yaml` at release tags (chart == app version; no `kubeVersion:`)
 - Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes".
 - Note: separate component from Cilium core. The k8s axis is loose; the **kernel** axis is load-bearing.
-- Last verified: 2026-05-30  (release-grounded: `releases/latest` = `v1.7.0`; minors 1.7/1.6/1.5 enumerated)
+- Last verified: 2026-07-21  (release-grounded: `releases/latest` = `v1.7.0`; minors 1.7/1.6/1.5 enumerated)
 
 ## cert-manager
 
 - URL: https://cert-manager.io/docs/releases/
 - Secondary URL: https://github.com/cert-manager/cert-manager/releases
 - Probe: WebFetch releases page; `gh release list --repo cert-manager/cert-manager`.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Kyverno
 
 - URL: https://kyverno.io/docs/installation/
 - Secondary URL: https://github.com/kyverno/kyverno/releases
 - Probe: WebFetch installation page for compatibility table; `gh release list --repo kyverno/kyverno`.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## KEDA
 
@@ -156,14 +156,14 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Governance / support window: https://github.com/kedacore/governance/blob/main/SUPPORT.md
 - Secondary URL: https://github.com/kedacore/keda/releases
 - Probe: WebFetch docs + governance; `gh release list --repo kedacore/keda`.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Argo CD
 
 - URL: https://argo-cd.readthedocs.io/en/stable/operator-manual/tested-kubernetes-versions/
 - Secondary URL: https://github.com/argoproj/argo-cd/releases
 - Probe: WebFetch tested-versions page; `gh release list --repo argoproj/argo-cd`.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Harbor
 
@@ -171,21 +171,21 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/goharbor/harbor/releases
 - Probe: WebFetch docs index for release notes pages; `gh release list --repo goharbor/harbor`.
 - Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm. Authoritative k8s floor = chart `.github/workflows/integration.yaml` at the chart tag (README only states generic "1.20+").
-- Last verified: 2026-06-02 (floor → 2.11)
+- Last verified: 2026-07-21 (floor → 2.11)
 
 ## Traefik
 
 - URL: https://github.com/traefik/traefik/releases
 - Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
 - Note: extract k8s API minimums from "Kubernetes" section of release notes; Traefik does not publish a separate matrix. v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
-- Last verified: 2026-06-02 (floor → 2.11; v2→v3 landing documented at §3.0)
+- Last verified: 2026-07-21 (floor → 2.11; v2→v3 landing documented at §3.0)
 
 ## Rook (operator)
 
 - Primary URL: https://github.com/rook/rook/releases
 - Secondary URL: https://rook.io/docs/rook/latest-release/
 - Probe: `gh release list --repo rook/rook --limit 30`; for each in-scope release, `gh release view <tag>` and sift k8s floor + supported Ceph versions; WebFetch docs landing page as cross-reference.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Ceph (storage)
 
@@ -193,7 +193,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://docs.ceph.com/en/latest/releases/ (upstream Ceph EOL line + standalone breaking changes — Reef / Squid / Tentacle).
 - Probe: Read `compat/rook.md` for Rook↔Ceph pairings; WebFetch ceph.io releases page for upstream EOL signal + OSD encoding / cluster-wide breaking changes.
 - Note: Ceph's k8s axis collapses through Rook — the cluster doesn't see Ceph version against k8s directly; it sees Rook version against k8s, and Rook bounds Ceph.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## OpenEBS (LocalPV-LVM only)
 
@@ -201,7 +201,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/openebs/openebs (umbrella → LVM pin map only — `charts/Chart.yaml` `dependencies:` at the umbrella tag)
 - Probe: `gh api --paginate 'repos/openebs/lvm-localpv/releases?per_page=100'` (two tag schemes — `vX.Y.Z` app tags + `lvm-localpv-X.Y.Z` chart tags; enumerate both, no candidate named). Cross-check the umbrella pin via `gh api repos/openebs/openebs/contents/charts/Chart.yaml?ref=<umbrella-tag>`.
 - Scope: **LocalPV-LVM only** (operator runs no other OpenEBS engine). Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva are out of registry scope — do NOT probe or sift them.
-- Last verified: 2026-06-02 (refocused to LVM; floor → LVM 1.5, the engine umbrella 4.0.1 pins)
+- Last verified: 2026-07-21 (refocused to LVM; floor → LVM 1.5, the engine umbrella 4.0.1 pins)
 
 ## GitLab
 
@@ -209,7 +209,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat)
 - Probe: WebFetch docs sections covering k8s compat and Helm chart minimums.
 - Note: operator runs the EE binary as CE; ignore EE-only features in the sift.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## ECK
 
@@ -217,19 +217,19 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Stack-matrix URL: https://www.elastic.co/support/matrix
 - Versioned supported-versions pages: https://www.elastic.co/guide/en/cloud-on-k8s/<minor>/k8s-supported.html (older minors 404 → infer floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
 - Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
-- Last verified: 2026-06-02 (floor → 2.16; ES 8.8/8.14/8.17 Stack-support table added)
+- Last verified: 2026-07-21 (floor → 2.16; ES 8.8/8.14/8.17 Stack-support table added)
 
 ## Zalando postgres-operator
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## Grafana Mimir (chart_metadata)
 
 - URL: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/Chart.yaml
 - Probe: `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml` at each chart-release tag; extract `kubeVersion:` constraint and `appVersion:`.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ## NVIDIA GPU Operator
 
@@ -237,7 +237,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/NVIDIA/gpu-operator/releases
 - Probe: WebFetch platform-support page; `gh release list --repo NVIDIA/gpu-operator`.
 - Note: driver-version-per-release is captured in the compat file, not here.
-- Last verified: 2026-05-28
+- Last verified: 2026-07-21
 
 ---
 

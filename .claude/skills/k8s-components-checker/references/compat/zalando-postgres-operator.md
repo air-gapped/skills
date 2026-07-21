@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi`        # (operator version → bundled Spilo image → bundled PostgreSQL majors)
 - **min_tracked_version:** 1.13.0
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21 (re-probed: **v1.15.1 (2025-12-18) still latest** — no release in 7 months, entry unchanged)
 
 The axis tuple `(operator, Spilo image, PG majors)` is the verdict-load-bearing
 unit. The operator has a loose k8s floor (works on any currently-supported

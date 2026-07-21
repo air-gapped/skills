@@ -5,21 +5,41 @@
 - **Truth source type:** `chart_metadata`
 - **Axis type:** `single`
 - **min_tracked_version:** 5.7
-- **Last sifted:** 2026-05-28
+- **Last sifted:** 2026-07-21
 
-In-scope set: current stable chart minor 6.0 + prior 2 (5.8, 5.7). Latest patches as of sift: `mimir-distributed-6.0.6` (2026-03-19), `5.8.0` (2025-08-20), `5.7.0` (2025-04-10). The chart minor 5.8 and 5.7 carry no patch releases beyond `.0`.
+In-scope set: current stable chart minor **6.1** + prior 2 (6.0, 5.8). Latest patches as of sift: `mimir-distributed-6.1.0` (2026-07-16, appVersion 3.1.2), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
 **Chart → Mimir-app mapping (load-bearing):**
 
 | Chart | `kubeVersion:` | `appVersion:` (Mimir) |
 |---|---|---|
+| 6.1.0 | `^1.32.0-0` | 3.1.2 |
 | 6.0.6 | `^1.29.0-0` | 3.0.4 |
 | 5.8.0 | `^1.20.0-0` | 2.17.0 |
 | 5.7.0 | `^1.20.0-0` | 2.16.0 |
 
-The k8s floor moves only at chart-minor boundaries. Mimir-app major bump (2.x → 3.x) lands in chart 6.0.0; Mimir 2.x stays available via chart 5.x.
+The k8s floor moves only at chart-minor boundaries, and it has moved **twice in two minors** — `^1.20` → `^1.29` (6.0.0) → `^1.32` (6.1.0). A fleet on k8s < 1.32 can reach 6.0.x but not 6.1.0. Mimir-app major bump (2.x → 3.x) lands in chart 6.0.0; Mimir 2.x stays available via chart 5.x.
+
+**Upgrade ladder (app policy: one minor at a time — deprecated features survive two minors).** Chart minors track app minors, so the two ladders are one walk: `5.7 (2.16) → 5.8 (2.17) → 6.0.x (3.0.4) → 6.1.0 (3.1.2)`. The 5.8 hop is cheap and is the last stop on the Mimir 2.x line; **6.0 is the architecture event**, not a `helm upgrade`.
+
+**Naming trap.** Grafana's doc "Migrate the Mimir Helm chart from version 2.x to 3.0" is about **chart** 2.x → 3.0 (2022) and has nothing to do with **app** Mimir 2.x → 3.0. Chart and app version numbers collide across this whole component — always say which one.
 
 **`kubeVersionOverride` gotcha — applies to every minor.** Helm checks the chart's `kubeVersion:` constraint against the **kubectl client** version, not the server. Set `kubeVersionOverride: <server-version>` (e.g. `1.30.0`) in values when the kubectl on the operator's workstation is older than the cluster — otherwise install/upgrade fails with `chart requires kubeVersion: ^1.29.0-0` even on a 1.30 cluster. Restricted PSA via namespace labels (used by the chart's templates) needs **k8s 1.23+** regardless of the constraint.
+
+## 6.1.0
+
+- **k8s floor:** **1.32+** (literal `kubeVersion: ^1.32.0-0`). Second floor jump in two minors; chart CHANGELOG states it plainly — "Update minimum supported Kubernetes version to 1.32. This reflects the fact that Grafana does not test with older versions."
+- **Mimir app version:** 3.1.2.
+- **Breaking (chart-level, from `6.1.0`):**
+  - **`kafka.extraEnv` removed** — use `kafka.env`, which merges by name against the chart's defaults (same pattern as `ingester.env`). A values file still setting `extraEnv` silently loses those vars.
+  - **Default registry for the mimir image is now `docker.io`**, and **the image tag now defaults to `Chart.AppVersion`** instead of being carried in values. Both change what an image-list generator emits — **regenerate air-gap image lists from scratch, do not diff them.**
+  - rollout-operator subchart moved to **0.38.x** (chart notes "required actions for upgrading the rollout-operator chart" — read the subchart README before rolling).
+  - Chart tooling moved to **Helm v4**.
+- **Default-value shifts to expect (not breaks, but they resize pods):** querier `max_concurrent` lowered to 8; query-frontend results-cache limit → 25 MB and memory limit → 4 GiB; ruler memory ballast → 1 GiB; memcached StatefulSets get `minReadySeconds` to slow rollouts.
+- **Ingest storage:** still the chart default in 6.1 — the config template ships `ingest_storage.enabled: true`. Kafka remains a required dependency of the default topology.
+- **CRD migrations:** N/A.
+- **Upgrade ordering:** unchanged — rollout-operator drives ingester/store-gateway restarts; never `kubectl rollout restart` those StatefulSets directly.
+- **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server.
 
 ## 6.0.6
 
