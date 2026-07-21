@@ -84,6 +84,11 @@ first 100 issues** on Cloud; `--paginate` only sets the limit (maxResults). To g
 specific slice, **narrow with JQL/filters** (status, date, assignee, `--order-by`)
 rather than paging. Server/Data Center (older API) still honors `<from>:<limit>`.
 
+**Treat this as permanent, not pending.** Re-checked 2026-07-21: #898 is still
+open, v1.7.0 is still the latest release (2025-08-31), and the repo has had **no
+commits in 90 days**. Build the JQL-narrowing approach into scripts rather than
+waiting for a fix. See `known-issues.md` § Upstream cadence.
+
 ## Worked examples
 
 ```bash

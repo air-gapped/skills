@@ -1,6 +1,6 @@
 # Known upstream issues — jira-cli
 
-Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around. The **essence** (behavior + workaround) lives inline in the skill body; this table is the **reference** so the bug is trackable and `freshen` can re-check status. Status as of **2026-06-07** (v1.7.0). URLs: `https://github.com/ankitpokhrel/jira-cli/issues/<N>` (discussions under `/discussions/<N>`).
+Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around. The **essence** (behavior + workaround) lives inline in the skill body; this table is the **reference** so the bug is trackable and `freshen` can re-check status. Status re-checked **2026-07-21** (still v1.7.0) — **every `open` row below is still open; nothing closed, nothing shipped**. See the upstream-cadence note at the bottom for why that is unlikely to change soon. URLs: `https://github.com/ankitpokhrel/jira-cli/issues/<N>` (discussions under `/discussions/<N>`).
 
 | Ref | Status | Affects / symptom | Skill location |
 |---|---|---|---|
@@ -23,4 +23,37 @@ How-to references (stable behavior, not bugs — essence inlined, kept here for 
 | #356 (discussion) | `.netrc` / OS-keychain token storage | config-auth.md |
 | #569 (discussion) | pager configuration (`PAGER` env var) | troubleshooting.md |
 
-**Freshen note:** re-check the `open` rows against the tracker on each `freshen` run — when one closes / ships a fix in a new release, update the inline workaround and flip the status here.
+## Upstream cadence — measured 2026-07-21
+
+The workarounds in this skill should be treated as **the permanent answer, not
+a stopgap**. Measured, not inferred:
+
+| Signal | Value |
+|---|---|
+| Latest release | **v1.7.0, 2025-08-31** — ~11 months old, still `isLatest` |
+| Last push to the repo | **2026-01-20** — ~6 months ago |
+| Commits on `main` in the trailing 90 days | **0** |
+| Open issues | 172 |
+| Archived? | **No** — 5.8k stars, repo is live, just quiet |
+
+Every tracked bug row above (#898 pagination, #948/#984 stdin hangs, #935 edit
+asymmetry, #941/#974 ADF rendering, #477 SSO, #342 GDPR accountId) is unchanged
+since the 2026-06-07 pass. With no commits in a quarter and no release in
+eleven months, **do not write guidance that defers to a future fix** — e.g.
+"page past 100 once #898 lands". Build the workaround in.
+
+This is a *cadence* observation, not an abandonment claim: the repo is not
+archived and maintainers can return at any time. Re-measure rather than assume
+in either direction.
+
+**Note on #621 — an open issue is not a live bug.** #621 is still `OPEN`
+upstream, but the behaviour it describes (`epic create --no-input -b` dropping
+the description) **does not reproduce on v1.7.0** — verified live on
+2026-06-07. The table records it as fixed-in-practice for exactly this reason.
+Issue state is a poor proxy for behaviour in both directions; the live check is
+what settles it.
+
+**Freshen note:** re-check the `open` rows against the tracker on each `freshen`
+run — when one closes / ships a fix in a new release, update the inline
+workaround and flip the status here. Also re-measure the cadence table: a new
+release is the signal that the "permanent workaround" framing needs revisiting.

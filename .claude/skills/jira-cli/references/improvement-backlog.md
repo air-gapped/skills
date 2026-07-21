@@ -2,6 +2,38 @@
 
 Carries ceiling findings across skill-improver runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+**A verified non-event, plus one new signal.**
+
+- **Nothing upstream moved.** v1.7.0 (2025-08-31) is still latest; the installed
+  binary is still 1.7.0 (GitCommit 79067e2); and **all ten tracked issue rows
+  are in exactly the state recorded on 2026-06-07** — nine still OPEN, #822
+  still CLOSED. No live command re-verification was warranted, since both the
+  binary and `main` are unmoved. Recorded as a *verified* non-event rather than
+  a re-stamp.
+- **New: upstream cadence measured, and it reframes the workarounds.**
+  Last release ~11 months ago; repo last pushed **2026-01-20**; **0 commits on
+  `main` in the trailing 90 days**; 172 open issues; not archived. Added a
+  cadence table to `known-issues.md` with the operational consequence — **do
+  not write guidance that defers to a future fix**. The documented workarounds
+  (`</dev/null` for the stdin hang, JQL-narrowing instead of paging past 100 on
+  Cloud, the `edit` GFM→wiki asymmetry) are the answer, not a bridge. Also
+  added a pointer at the #898 pagination section, which is the place most
+  likely to tempt a "until this is fixed" framing.
+  Deliberately scoped as a cadence measurement, **not** an abandonment claim —
+  the repo is live and quiet, and a new release is the trigger to revisit.
+- **#621 re-affirmed as the inverse case.** It is still `OPEN` upstream while
+  the behaviour it describes does not reproduce on v1.7.0 (verified live
+  2026-06-07). The existing "fixed on v1.7.0 … kept for history" framing is
+  correct and was left alone — noted here because issue state misleads in
+  *both* directions, and this skill already handles it well.
+
+**Nothing to correct this pass.** The pagination section already builds the
+workaround in rather than deferring to a fix, which is what the cadence finding
+would otherwise have required changing.
+
+
 ## Open
 
 - **Pitfalls ↔ troubleshooting.md overlap (Dim 6).** The 12-item "Critical pitfalls"

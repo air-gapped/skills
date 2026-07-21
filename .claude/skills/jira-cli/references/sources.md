@@ -4,9 +4,9 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 
 | Source | URL | Last verified | Pinned |
 |---|---|---|---|
-| jira-cli repo | https://github.com/ankitpokhrel/jira-cli | 2026-06-07 | |
-| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | 2026-06-07 | matches v1.7.0 binary |
-| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | 2026-06-07 | latest v1.7.0 (2025-08-31) |
+| jira-cli repo | https://github.com/ankitpokhrel/jira-cli | 2026-07-21 | |
+| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | 2026-07-21 | matches v1.7.0 binary; `main` has not moved since 2026-01-20 so the README↔binary sync still holds |
+| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | 2026-07-21 | **Still v1.7.0 (2025-08-31)** — no new release in ~11 months. Repo last pushed 2026-01-20; **0 commits on `main` in the trailing 90 days**; 172 open issues; not archived. See `known-issues.md` § Upstream cadence. |
 | jira-cli v1.7.0 tag | https://github.com/ankitpokhrel/jira-cli/releases/tag/v1.7.0 | 2026-06-07 | v1.7.0 |
 | Installation guide (wiki) | https://github.com/ankitpokhrel/jira-cli/wiki/Installation | 2026-06-07 | |
 | Token storage (.netrc/keychain) discussion #356 | https://github.com/ankitpokhrel/jira-cli/discussions/356 | 2026-06-07 | |
@@ -26,3 +26,28 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 - **Upstream issue sweep (2026-06-07)** — searched `ankitpokhrel/jira-cli` issues for known bugs/gotchas and folded in the verified, in-scope ones: **#898** (Cloud v1.7.0 dropped `startAt`, so `--paginate` offset is dead / no paging past 100 — also confirmed live), **#621** (older: `epic create --no-input -b` dropped the description; **fixed on v1.7.0** — body lands, verified live), **#948/#984** (`create`/`edit`/`comment`/`epic create` can block on socket/subprocess stdin even with `--no-input`; use `</dev/null`), **#941** (`___` mis-parsed as emphasis) and **#974** (URL-with-params in code blocks) ADF rendering bugs. Open feature requests / non-reproducible reports were not folded in.
 - **Source-confirmed (2026-06-07)** against a local clone (v1.7.0+6, HEAD 396933d): **pagination** — `pkg/jira/search.go`: Cloud `Search(jql, limit)` takes no offset and the v3 `/search/jql` endpoint returns `nextPageToken` (jira-cli doesn't follow it); `SearchV2(jql, from, limit)` keeps `startAt` for Server/DC — so the offset works on DC, not Cloud. **Markdown** — `md.ToJiraMD` (the `blackfriday-confluence` renderer, i.e. Confluence/Jira-Server wiki markup) is applied by `create` (`create.go:140`) and `comment add` (`issue.go:314,349`) but by `edit` only when the existing field is ADF/Cloud (`edit.go:142`), confirming the #935 edit asymmetry. **Epic** — `epic/create` reads `epic.name` from config and skips `cr.Name` on next-gen (so `-n` is ignored there but still required by `isMandatoryParamsMissing`); `getQuestions` returns before any prompt under `--no-input`; there is **no `--raw`** flag. This corrects an earlier mis-attributed "epic create prompts on next-gen" note — the `? Epic Key` EOF came from a downstream `epic add` with an empty key. **Custom fields** — `--custom` keys are validated against `issue.fields.custom` in the config (`cmdcommon/create.go:244`); the key is the field `name` lowercased with spaces→hyphens, and an unconfigured key is warned and dropped.
 - **Behavior live-verified against a real Jira Cloud (team-managed) instance on 2026-06-07** — full read + write round-trip on throwaway issues, all artifacts deleted afterward. Confirmed working as documented: `me`, `serverinfo`, `project list`, `board list`, `release list`, `issue list` (`--plain`/`--raw`/`--columns`/`--paginate`), `issue view --raw` field paths (`.fields.issuetype.name`/`.status.name`/`.priority.name`/`.resolution.name`, `customfield_*`), `issue create --no-input --raw`, `issue edit` `--label` append + `--label -x` removal, `assign` (self / `x` / `default`), `comment add` (+ `--internal`), `worklog add`, `watch`, `link`/`unlink` (`Blocks`), `clone -H`, `move`, `delete`, `open --no-browser`, `man`, `completion`. Two authoring errors the live run **corrected**: (1) `project list`, `board list`, and `release list` take **no output flags** — `--plain`/`--raw`/`--csv`/`--columns` error with `unknown flag`; they print a tab-separated table directly; (2) `epic create` takes **no `--raw`** flag (unlike `issue create`). **[Note: a claim here that `epic create` "prompts `Epic Key` and fails on next-gen" was retracted on 2026-06-07 after source review — `epic create` works non-interactively on next-gen; the `? Epic Key` EOF in the original run came from a downstream `epic add` with an empty key, not from create.]** Not exercised on this instance: `sprint add`/`close` (board has no sprint and the CLI can't create one) and `init` (would overwrite the config).
+
+
+## 2026-07-21 freshen — a verified non-event, plus one new signal
+
+**Nothing upstream changed.** v1.7.0 (2025-08-31) is still the latest release;
+the locally installed binary is still `1.7.0` (GitCommit 79067e2); and **all ten
+tracked issue rows in `known-issues.md` are in exactly the state recorded on
+2026-06-07** — #898, #948, #984, #935, #477, #342, #941, #974, #621 still OPEN,
+#822 still CLOSED. No re-verification of the live command surface was needed,
+since the binary and `main` are both unmoved.
+
+**The new signal is cadence, and it changes how the workarounds should be
+framed.** Measured via the GitHub API rather than inferred:
+
+- last release **2025-08-31** (~11 months);
+- repo last pushed **2026-01-20** (~6 months);
+- **0 commits on `main` in the trailing 90 days**;
+- 172 open issues; **not archived**; 5.8k stars.
+
+Recorded in `known-issues.md` § Upstream cadence with the operational
+consequence: **do not write guidance that defers to a future fix.** The
+documented workarounds (`</dev/null` for the stdin hang, no paging past 100 on
+Cloud, GFM→wiki asymmetry on `edit`) are the answer, not a bridge. Framed as a
+cadence measurement, not an abandonment claim — the repo is live and quiet, and
+a new release is the signal to revisit.
