@@ -14,9 +14,36 @@ This skill is a **reference**, not a tutorial. SKILL.md holds the mental model, 
 
 ## The one thing to know before anything else
 
-vllm-omni is **not a fork** — it layers on top of upstream vLLM, registers OmniModelConfig, and adds one CLI flag: `--omni`. Adding `--omni` to `vllm serve` routes the server through `vllm_omni.entrypoints`. As of v0.20.0 the old vLLM entrypoint-hijack / `patch.py` early-import mechanism was **removed** — the v0.20.0 release notes state "removal of the old vLLM entrypoint hijack, and runtime changes needed for the 0.20.0 integration path (#3232, #3082, #3352, #3393, #2306)". The omni runtime is now rebased onto upstream vLLM v0.20.0 (rebase PR #3232) rather than monkey-patching it. The architectural claim is to decompose any-to-any models into a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) connected via `OmniConnector`, so each stage scales independently. The paper (arXiv:2602.02204) claims up to 91.4% JCT reduction vs an unspecified baseline — treat as an architectural argument, not a deployment benchmark.
+vllm-omni is **not a fork** — it layers on top of upstream vLLM, registers OmniModelConfig, and adds one CLI flag: `--omni`. Adding `--omni` to `vllm serve` routes the server through `vllm_omni.entrypoints`. As of v0.20.0 the old vLLM entrypoint-hijack / `patch.py` early-import mechanism was **removed** — the v0.20.0 release notes state "removal of the old vLLM entrypoint hijack, and runtime changes needed for the 0.20.0 integration path (#3232, #3082, #3352, #3393, #2306)". The omni runtime is rebased onto upstream vLLM rather than monkey-patching it — v0.20.0 via PR #3232, then forward through the v0.21/v0.22 rebases (#3530, #3891) and the v0.23.0/v0.24.0 rebases (#4286, #4709). The architectural claim is to decompose any-to-any models into a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) connected via `OmniConnector`, so each stage scales independently. The paper (arXiv:2602.02204) claims up to 91.4% JCT reduction vs an unspecified baseline — treat as an architectural argument, not a deployment benchmark.
 
-Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.20.0 (2026-05-07) is the current stable**, rebased on upstream vLLM v0.20.0 (CUDA 13.0 / PyTorch 2.11). First stable was v0.14.0 (2026-01-31). Latest pre-release is v0.21.0rc1 (2026-05-25). The v0.19.0rc1 FLUX.1-dev regression (#2730) is **fixed in v0.20.0 stable** (PR #2760) — no version pin needed anymore.
+Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.24.1 (2026-07-10) is the current GitHub release**; first stable was v0.14.0 (2026-01-31). Latest pre-release is v0.25.0rc1 (2026-07-12). The v0.19.0rc1 FLUX.1-dev regression (#2730) is **fixed in v0.20.0 stable** (PR #2760) — no version pin needed anymore.
+
+**Not every minor gets a stable.** v0.21.0 and v0.23.0 exist only as `rc1` — the
+line went v0.20.0 → v0.22.0 → v0.24.0 for stables. Don't infer a missing release
+is a withdrawn one.
+
+### ⚠ v0.24.1 exists only on GitHub — PyPI and Docker Hub stop at v0.24.0
+
+Verified 2026-07-21. The three distribution channels **do not agree**, and the
+GitHub "Latest" badge is the odd one out:
+
+| Channel | Newest available | Checked |
+|---|---|---|
+| GitHub releases | **v0.24.1** (2026-07-10) | `gh release list` |
+| PyPI | **0.24.0** (2026-07-07) — `0.24.1` is absent from the release index entirely | `pypi.org/pypi/vllm-omni/json` |
+| Docker Hub | **v0.24.0** (2026-07-07); `latest` also points at v0.24.0 | Docker Hub v2 tags API |
+
+v0.24.1 is a one-PR patch (#5017) that **restores `vllm_c` IR op priority and
+`torch.nn.RMSNorm` for Qwen-Image**, fixing the performance regression tracked
+in #4964. So `pip install vllm-omni` and `vllm/vllm-omni:latest` both still
+carry that regression. To get the fix, install from the git tag:
+
+```bash
+uv pip install 'vllm-omni @ git+https://github.com/vllm-project/vllm-omni@v0.24.1'
+```
+
+Check all three channels before quoting a version for this project — a tag is
+not a wheel, and "Latest" on GitHub does not mean installable.
 
 ## Quick-answer router
 
@@ -69,7 +96,11 @@ Version alignment is strict: vllm-omni major.minor must match upstream vLLM majo
 
 - **`/v1/videos/sync` for long jobs**. The sync endpoint has a hardcoded `VIDEO_SYNC_TIMEOUT_S` (default ~1200s) and returns 504 past that. Long Wan2.2 / HunyuanVideo-1.5 jobs should use `POST /v1/videos` (async), then poll `GET /v1/videos/{id}` and fetch `/content`.
 
-- **Orphan processes after a Wan2.2 crash**. Issue #2768: killing one Wan2.2 worker leaves sibling stage processes alive. Wrap launches in a process group + `pkill -9` sweep on failure, or use `systemd`'s `KillMode=control-group`.
+- **Orphan processes after a Wan2.2 crash**. Issue #2768: killing one Wan2.2 worker leaves sibling stage processes alive. Wrap launches in a process group + `pkill -9` sweep on failure, or use `systemd`'s `KillMode=control-group`. **#2768 now reads CLOSED/COMPLETED (2026-05-16) but keep the mitigation** — the last comment on the thread (2026-05-12, four days before closure) is a *fresh reproduction* by a different reporter, with no fix PR referenced. Treat the closure as bookkeeping, not as a fix.
+
+- **Qwen-Image performance regression on the installable v0.24.0**. Issue #4964: a nightly-CI regression traced to `vllm_c` IR op priority and `torch.nn.RMSNorm` handling. Fixed by PR #5017 in **v0.24.1 — which exists only as a GitHub tag** (not on PyPI, not on Docker Hub). `pip install vllm-omni==0.24.0` and `vllm/vllm-omni:latest` both still carry it. Install from the git tag if serving Qwen-Image.
+
+- **Qwen3-TTS `max_model_len` validation error**. Issue #2595 (closed 2026-04-28): serving fails when `max_model_len` exceeds the derived maximum. The recorded workaround is `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` (see PR #2508). The thread closed on that workaround rather than on a root-cause fix, so expect it to still be needed.
 
 - **Assuming vllm-omni serves text-only models**. If the model has no multimodal output, use stock vLLM — vllm-omni adds overhead for features a text-only model won't exercise, and the community skill explicitly recommends against it. The decision rule: output modality is non-text OR the model name ends `-Omni`/`-Image`/`-TTS`/`-Video` → vllm-omni; otherwise stock vLLM.
 
@@ -82,18 +113,24 @@ uv venv --python 3.12 --seed
 source .venv/bin/activate
 
 # CUDA — pin upstream vLLM to the matching minor:
-uv pip install vllm==0.20.0 --torch-backend=auto
+uv pip install vllm==0.24.0 --torch-backend=auto
 
 # ROCm:
-uv pip install vllm==0.20.0+rocm700 \
-  --extra-index-url https://wheels.vllm.ai/rocm/0.20.0/rocm700
+uv pip install vllm==0.24.0+rocm700 \
+  --extra-index-url https://wheels.vllm.ai/rocm/0.24.0/rocm700
 
 # Then the omni package (prebuilt wheel OR editable clone):
-uv pip install vllm-omni==0.20.0
+uv pip install vllm-omni==0.24.0
+# OR, to include the v0.24.1 Qwen-Image fix that never reached PyPI:
+uv pip install 'vllm-omni @ git+https://github.com/vllm-project/vllm-omni@v0.24.1'
 # OR: git clone https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 ```
 
-Python **3.12 is required** (3.11 is not supported). Docker image: `vllm/vllm-omni:0.20.0`.
+Python **3.12 is required** (3.11 is not supported). Docker image:
+`vllm/vllm-omni:v0.24.0` (also `latest`; `-x86_64` / `-aarch64` variants
+published per tag). **There is no v0.24.1 image** — see the channel-mismatch
+box above. A `cosmos3` tag was pushed 2026-07-20, newer than any versioned
+tag; treat it as a model-specific build, not a release.
 
 ### Serving canonical forms
 
@@ -142,8 +179,10 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 | Metric | Value |
 |---|---|
-| Current stable | v0.20.0 (2026-05-07, rebased on vLLM v0.20.0, CUDA 13.0 / PyTorch 2.11) |
-| Latest pre-release | v0.21.0rc1 (2026-05-25) |
+| Newest GitHub release | v0.24.1 (2026-07-10) — **GitHub only, not on PyPI or Docker Hub** |
+| Newest installable wheel / image | 0.24.0 (2026-07-06/07, rebased on vLLM v0.24.0) |
+| Latest pre-release | v0.25.0rc1 (2026-07-12) |
+| Stables in the line | v0.14.0, v0.16.0, v0.18.0, v0.20.0, v0.22.0, v0.24.0, v0.24.1 (v0.21/v0.23 are rc1-only) |
 | First stable | v0.14.0 (2026-01-31) |
 | Minimum Python | 3.12 |
 | `/v1/realtime` input | PCM16 mono @ 16 kHz |
@@ -164,4 +203,6 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 ## Source policy
 
-All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list + community channels + third-party plugin catalog in `references/sources.md`. Compiled 2026-04-18 against v0.18.0; last freshened 2026-05-28 (rebased to v0.20.0 stable; refresh again when the next upstream-rebase release ships).
+All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list + community channels + third-party plugin catalog in `references/sources.md`. Compiled 2026-04-18 against v0.18.0; freshened 2026-05-28 (v0.20.0). **Last freshened 2026-07-21** — rebased across four minors to v0.24.0/v0.24.1, documented the GitHub/PyPI/Docker channel mismatch, and re-classified six issue closures (only one closed against an actual fix).
+
+**Known gap:** the model roster in `references/models.md` has not been re-synced against `docs/models/supported_models.md` since 2026-04-18, and v0.22.0/v0.24.0 added a large number of families (Cosmos3, DreamZero, Higgs Audio V3, IndexTTS2, Step-Audio2, SDXL, GR00T-N1.7, MiniCPM-o 4.5, and more). Treat that file as a floor, not a complete list.
