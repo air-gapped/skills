@@ -4,7 +4,7 @@ Pick exactly one (omit `--hicache-storage-backend` for L1+L2 only). Backend fact
 
 ## Selection summary
 
-| Backend | Production-ready | Hybrid-model support (2026-05-29) | Layout requirement | Key dep |
+| Backend | Production-ready | Hybrid-model support (2026-05-29; v0.5.13 #27759 made HiCache default-on for hybrids via UnifiedTree — re-verify per backend) | Layout requirement | Key dep |
 |---|---|---|---|---|
 | `mooncake` | ✓ best-tested 2026 | Mamba/SSM ✓ (v0.5.10), DSA ✓ (v0.5.10), SWA ✓ (v0.5.11) | `page_first` or `page_first_direct` | RDMA NICs + master daemon |
 | `hf3fs` | ✓ on DeepSeek operator clusters | Mamba/SSM + DSA ✓ (v0.5.11, PR #23241) | any | DeepSeek 3FS deployment |

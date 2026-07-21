@@ -35,7 +35,6 @@ docker run --runtime nvidia --gpus all \
     lmcache/vllm-openai:latest-nightly \
     Qwen/Qwen3-14B \
     --no-enable-prefix-caching \
-    --disable-hybrid-kv-cache-manager \
     --kv-transfer-config '{"kv_connector":"LMCacheMPConnector",
                            "kv_role":"kv_both",
                            "kv_connector_extra_config":{"lmcache.mp.port":6555}}'
@@ -151,7 +150,6 @@ spec:
               vllm serve Qwen/Qwen3-14B \
                 --host 0.0.0.0 --port 8000 \
                 --no-enable-prefix-caching \
-                --disable-hybrid-kv-cache-manager \
                 --max-model-len 32768 \
                 --gpu-memory-utilization 0.85 \
                 --tensor-parallel-size 4 \

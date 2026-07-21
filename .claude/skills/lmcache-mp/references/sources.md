@@ -4,22 +4,24 @@ This skill was authored against live source code, image inspection, and live Git
 
 ## Last verified
 
-**2026-05-28** (freshen pass). Original authoring: 2026-04-26.
+**2026-07-21** (freshen pass). Prior passes: 2026-05-28, 2026-04-26 (original authoring).
 
 ### Per-source verification table
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| vLLM latest release | https://github.com/vllm-project/vllm/releases/latest | 2026-05-28 | v0.21.0 (2026-05-15); v0.20.0 (2026-04-27); v0.20.1/0.20.2 (2026-05-10). Current stable. |
-| LMCache tags | https://github.com/LMCache/LMCache/tags | 2026-05-28 | v0.4.5 + v0.4.5-cu129 (2026-05-15); default wheel → cu13; DeepSeek V4 MP (#3171), raw_block L2 (#3119), reconnect-after-restart (#3208), IsolatedLRU (#3137). |
-| LMCache K8s Operator | https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1 | 2026-05-28 | operator-v0.1.1 (2026-05-18); reconciles `LMCacheEngine` CR → DaemonSet+Service+ConfigMap; image `lmcache/lmcache-operator:v0.1.1` (PR #2701). RESP/Redis-Valkey L2 (#2967), AMD `gpuVendor` (#3211). |
-| vLLM #40040 (cache_salt fallback bug) | https://github.com/vllm-project/vllm/issues/40040 | 2026-05-28 | Still OPEN (updated 2026-04-17). Originating PR #39837 merged 2026-04-15. Skill guidance holds. |
-| LMCache #2845 (hybrid tracker) | https://github.com/LMCache/LMCache/issues/2845 | 2026-05-28 | OPEN (updated 2026-05-22); Qwen3.5/3.6 hybrids still unsupported, no merged fix. |
-| LMCache #2879 (hybrid garbled-output PR) | https://github.com/LMCache/LMCache/pull/2879 | 2026-05-28 | CLOSED without merging (2026-05-21). Fix did not land via this PR. |
-| vLLM #38261 (HybridOffloadPlanner PR) | https://github.com/vllm-project/vllm/pull/38261 | 2026-05-28 | Still OPEN (updated 2026-05-07). |
-| LMCache #2942 (LocalCPUBackend deadlock) | https://github.com/LMCache/LMCache/issues/2942 | 2026-05-28 | OPEN (updated 2026-04-30). Active bug. |
-| vLLM connector source path | vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py | 2026-05-28 | Present at ref=v0.21.0 and v0.19.1; lmcache_integration/ fallback dir also present in both. Path stable. |
-| LMCache ParallelStrategy | lmcache/integration/vllm/vllm_multi_process_adapter.py | 2026-05-28 | Class defined; consumed by lmcache_mp_connector.py. 0.4.3-no-class vs 0.4.4-has-class boundary still accurate. |
+| vLLM latest release | https://github.com/vllm-project/vllm/releases/latest | 2026-07-21 | **v0.25.1 (2026-07-14)** current stable. Line since last pass: v0.22.0 (05-29), v0.22.1 (06-05), v0.23.0 (06-15), v0.24.0 (06-29), v0.25.0 (07-11). |
+| LMCache releases | https://github.com/LMCache/LMCache/releases | 2026-07-21 | **v0.5.1 (2026-07-06)** current stable; v0.5.0 (P2P for MP mode, #3740/#3762); v0.5.2rc1 + nightly (2026-07-20). 0.5.0 renames: `MPCacheEngine`→`MPCacheServer`, `GPUKVFormat`→`EngineKVFormat`, `GPUTransferModule`→`LMCacheDrivenTransferModule`. |
+| **LMCache hybrid-model support** | https://docs.lmcache.ai/mp/hybrid_models.html (repo `docs/source/mp/hybrid_models.rst`) | 2026-07-21 | **Inverts the skill's core "hybrids unsupported" claim.** `LMCacheMPConnector` declares `SupportsHMA` at `lmcache/integration/vllm/lmcache_mp_connector.py:512` (tag v0.5.1), so vLLM keeps HMA enabled and no flag is needed. Recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6, DeepSeek-V4-Flash, GLM 5.1/5.2, MiniMax-M3. Mamba/GDN hybrids need the model's unified block size `N` read from vLLM's own startup log. |
+| `--separate-object-groups` | `lmcache/v1/multiprocess/config.py:48`, `lmcache/v1/kv_layer_groups.py:307` (tag v0.5.1) | 2026-07-21 | Default `True`: one object group per distinct cross-chunk attention window. `--no-separate-object-groups` collapses to a single full-attention group (pre-0.5.1 behavior). Documented as transparent to correctness. |
+| LMCache K8s Operator | https://github.com/LMCache/LMCache/releases | 2026-07-21 | **operator-v0.5.0 (2026-06-25)** is current stable — the numbering jumped from operator-v0.1.1 (2026-05-18). operator-v0.5.1rc1 (2026-07-20) is an RC. 0.5-line features: webhook auto-injecting the `LMCacheEngine` connection into vLLM pods (#3822), `hostNetwork` CRD field (#3849), optional privileged DaemonSet (#3943). |
+| vLLM #40040 (cache_salt fallback bug) | https://github.com/vllm-project/vllm/issues/40040 | 2026-07-21 | Still OPEN, updated 2026-07-17. Skill guidance holds. |
+| LMCache #2845 (hybrid tracker) | https://github.com/LMCache/LMCache/issues/2845 | 2026-07-21 | Still OPEN (updated 2026-07-10) but **superseded by the docs above** — a 2026-07-10 comment asks whether it should be closed given the published support. Bookkeeping lag, not a blocker. |
+| LMCache #3106 (multi-group MemoryObj) | https://github.com/LMCache/LMCache/issues/3106 | 2026-07-21 | OPEN, active 2026-07-17. Blocks the **in-process** `LMCacheConnectorV1` on hybrids. A community comment reports `--no-separate-object-groups` as a DeepSeek-V4-Pro workaround (unverified here). |
+| vLLM #38261 (HybridOffloadPlanner PR) | https://github.com/vllm-project/vllm/pull/38261 | 2026-07-21 | Still OPEN. No longer on the critical path for MP hybrids. |
+| LMCache #2942 (LocalCPUBackend deadlock) | https://github.com/LMCache/LMCache/issues/2942 | 2026-07-21 | OPEN; auto-marked **stale** 2026-06-29 with no fix. Stale ≠ fixed. |
+| vLLM connector source path | vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py | 2026-07-21 | Present at v0.25.1; still registered in `factory.py` alongside `LMCacheConnectorV1`. The repo-local class is `LMCacheMPConnectorUpstream` and retains the old HMA guard (line 80) — it is the fallback, not the connector you want. |
+| LMCache ParallelStrategy | lmcache/integration/vllm/vllm_multi_process_adapter.py | 2026-07-21 | Class still present at tag v0.5.1 alongside `HeartbeatThread`, `LoadStoreOp`, `LMCacheMPSchedulerAdapter`, `LMCacheMPWorkerAdapter`. 0.4.3-no-class vs 0.4.4-has-class boundary still accurate. |
 
 ## Probes used
 
@@ -34,7 +36,7 @@ Run `scripts/verify-bundling.sh <tag>` against any vllm-openai or lmcache image 
 Verified tags as of skill creation:
 - `vllm/vllm-openai:v0.19.1` — vllm 0.19.1, lmcache 0.4.3, nixl 0.9.0, mooncake-transfer-engine 0.3.10.post1. All connectors load. `ParallelStrategy` not present (correct for v0.19.x).
 
-Not yet re-run on the current stable pair: the bundling table for a `vllm/vllm-openai:v0.21.0` (lmcache 0.4.5) image has NOT been produced by this freshen pass. Run `scripts/verify-bundling.sh v0.21.0` to capture the v0.21/0.4.5 version table before relying on it for a pinned deploy.
+Not yet re-run on the current stable pair: no bundling table exists for `vllm/vllm-openai:v0.25.1` (lmcache 0.5.x) — the v0.19.1 row above is five vLLM minors old and is the only runtime-verified evidence in this skill. Run `scripts/verify-bundling.sh v0.25.1` before relying on bundled versions for a pinned deploy; expect nixl 1.3.0 (vLLM's exact pin) and lmcache ≥ 0.5.x.
 
 ### LMCache repo probes
 
@@ -50,7 +52,7 @@ Local clone at `~/projects/github.com/LMCache/LMCache`, dev branch.
 Local clone at `~/projects/github.com/vllm-project/vllm`, main branch.
 
 - `vllm/distributed/kv_transfer/kv_connector/factory.py` — registers `LMCacheConnectorV1` (line 168) and `LMCacheMPConnector` (line 174) side-by-side.
-- `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:78` — `RuntimeError("LMCacheMPConnector only works without hybrid kv cache manager. Please pass --disable-hybrid-kv-cache-manager when starting vllm")`.
+- `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:80` (was :78 at v0.19.1) — `RuntimeError("LMCacheMPConnector only works without hybrid kv cache manager. Please pass --disable-hybrid-kv-cache-manager when starting vllm")`. Still present at v0.25.1, but only on the repo-local **fallback** class `LMCacheMPConnectorUpstream`; the external lmcache 0.5.x connector declares `SupportsHMA` and never raises it.
 - v0.19.1 source vs main: v0.19.1 imports only `LMCacheMPSchedulerAdapter, LMCacheMPWorkerAdapter, LoadStoreOp`; main also imports `ParallelStrategy`. This drives the version-compat matrix.
 
 ### GitHub issue / PR probes

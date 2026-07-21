@@ -18,7 +18,75 @@ Prior skill-improver runs and ceiling findings.
 - **Why ceiling-bound:** these backends are listed in `references/storage-backends.md` but have no worked recipe — niche but documented. Adding sample configs requires probing the AIBrix / Volcengine / Scitix doc sites for proprietary env-var sets that may not be public. Defer until an operator request surfaces.
 - **Score impact if resolved:** Dim 5 9→10 (~+1 total).
 
-## Resolved this pass (2026-05-29)
+### Re-verify the "unguarded SWA fallthrough" footgun against v0.5.13+ (new 2026-07-21)
+
+- **Dim:** 9 + 5
+- **Where:** `SKILL.md` pitfall #4 (last bullet) and `references/hybrid-models.md`
+  ("Hybrid SWA — unguarded" matrix row + the "What unguarded SWA fallthrough means in
+  practice" section, incl. the `server_args.py:1948-2030` / `model_config.py:1503-1515`
+  line citations).
+- **Why ceiling-bound:** the finding — that `Llama4ForConditionalGeneration`,
+  `GptOssForCausalLM` and `Gemma4ForCausalLM` have no server-side guard, so HiCache
+  silently treats SWA layers as full attention — was established pre-v0.5.13. PR #27759
+  (merged 2026-06-11, shipped v0.5.13) then made `HybridModel` launch HiCache through
+  **UnifiedTree by default**, which changes the routing this analysis depends on. The
+  freshen pass added a re-verify warning in both places but could not resolve it:
+  confirming or retiring the footgun means re-reading the current scheduler routing
+  and the guard list at v0.5.15.post1, and the `server_args.py` refactor to annotated
+  dataclasses invalidated the cited line ranges. Ideally paired with a quality eval on
+  Gemma-4 or gpt-oss with hicache on.
+- **Score impact if resolved:** Dim 9 correctness on the skill's most-cited footgun.
+
+### Two stale-bot closures recorded as live risks (new 2026-07-21)
+
+- **Dim:** 9
+- **Where:** `SKILL.md` "Open bugs" (the stale-bot sub-table) and the corresponding
+  `sources.md` rows for #21880 (`file` backend slow in containers) and #22757
+  (GLM5/DSA L3 segfault on H20).
+- **Why ceiling-bound:** both were closed by the inactivity bot (2026-06-18 and
+  2026-06-14) with no linked fix — #22757 has an unconfirmed candidate PR (#22120),
+  #21880's last substantive comment reproduced the problem. Closed-state alone is not
+  evidence of a fix, so the skill now records them as live risks. Actually resolving
+  them needs a measurement, not a probe: v0.5.15's CP-aware LRU eviction on the file
+  backend (#26670) may have changed #21880's picture, and #22757 needs H20 hardware.
+- **Score impact if resolved:** removes two hedged entries from the bug table.
+
+## Resolved this pass (2026-07-21)
+
+Freshen pass — evidence via `gh release view`, `gh issue view`, `gh pr view`, issue
+timelines/comments, and the v0.5.15.post1 `server_args.py`:
+
+- **Version drift (Dim 9).** v0.5.12.post1 → **v0.5.15.post1** (2026-07-14); three
+  minors behind. Updated Versions, image tag, and sources.md.
+- **The headline change: v0.5.13 #27759** — `HybridModel` (SWA/Mamba) launches HiCache
+  via **UnifiedTree by default**. Added to Versions and to pitfall #4 as the leading
+  bullet, with an explicit "re-benchmark after upgrade" warning since a config tuned
+  on v0.5.11/v0.5.12 may take a different code path.
+- **Flag surface (Dim 9).** `server_args.py` refactored to annotated dataclasses (old
+  line-range citations dead). New choices documented: `write_through_selective`;
+  io-backend default now `kernel`, plus `kernel_ascend`; mem-layout `page_first_kv_split`
+  and `page_head`; storage-backend `mori`. Noted the adjacent `--enable-hisparse`
+  subsystem so it isn't conflated with hicache.
+- **Bug-state flips.** #19212 (`write_back` crash) closed **with a fix** 2026-05-24 via
+  PRs #22592 + #23696 — pitfall #5 rewritten from "avoid" to "defensible experiment";
+  #23429, #23457, #19737, #20529 also closed with fixes. #21880 and #22757 closed by
+  the **stale bot** — split into their own table and kept as live risks. #22607 still
+  open with its fix PR #22878 closed unmerged; **new #30760** (2026-07-10) reports the
+  same prefetch `all_reduce` deadlock at TP=4 with no PP, which weakens the
+  "`--pp-size 1` is sufficient" advice.
+- **v0.5.14/v0.5.15 HiCache features** catalogued (int8 linear-attention checkpoint
+  pool, hybrid-pool staged H2D kernel, asymmetric pool direct backend, MiMo-V2 HiCache,
+  file-backend CP-aware LRU eviction, NIXL bucketed multi-dir layout + FILE cache
+  cleaner, Mooncake group semantics, AMD UMBP tiered DRAM+SSD L3).
+- **Cross-skill correction.** The skill's raison-d'être paragraph claimed vLLM
+  tier-extension caching is "broken for the entire 2026 hybrid-attention lineup". That
+  is no longer true (vLLM v0.21.0 native offload + HMA, v0.23.0 HMA-by-default,
+  LMCache MP 0.5.x) and only the in-process `LMCacheConnectorV1` remains blocked.
+  Corrected in SKILL.md, `hybrid-models.md`, and `migration-from-vllm-caching.md`,
+  where the migration premise now carries a "upgrading vLLM is usually cheaper than
+  migrating engines" caveat.
+
+## Resolved earlier (2026-05-29)
 
 Freshen (evidence: `gh release list` + `gh issue/pr view`, all probed 2026-05-29):
 

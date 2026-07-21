@@ -1,6 +1,6 @@
 # NIXL Plugins — Per-Backend Reference
 
-13 plugins ship in v1.0.1. This file provides the cross-cutting matrix + per-plugin entry. Always cross-check the plugin's own `src/plugins/<name>/README.md` for the latest deps and params; this file paraphrases.
+15 plugins ship in v1.3.1 — the 13 documented below plus **`infinia`** (DDN Infinia object storage, added v1.3.0 #1569, bundled in manylinux wheels from v1.3.1 #1832) and **`tracing`**. This file provides the cross-cutting matrix + per-plugin entry. Always cross-check the plugin's own `src/plugins/<name>/README.md` for the latest deps and params; this file paraphrases.
 
 ## Table of Contents
 - [Plugin matrix](#plugin-matrix)

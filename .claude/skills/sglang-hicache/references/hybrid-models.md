@@ -4,7 +4,9 @@ The most consequential thing operators evaluating SGLang HiCache vs vLLM caching
 
 ## Why this matters
 
-The 2026 dense-LLM lineup ships with hybrid attention — alternating sliding-window + full-attention layers (Gemma-4, gpt-oss, Llama-4) OR gated delta-net + attention (Qwen3-Next, Qwen3.5, Qwen3.6, MiniMax-M2). On vLLM, this breaks every tier-extension connector that doesn't subclass `SupportsHMA` (Hybrid Memory Allocator) — see [LMCache #3106](https://github.com/LMCache/LMCache/issues/3106), `vllm-caching` skill backlog. SGLang HiCache started addressing the same problem earlier and is shipping arch-specific support iteratively; the result is a partial matrix that operators must consult before claiming "hicache works".
+The 2026 dense-LLM lineup ships with hybrid attention — alternating sliding-window + full-attention layers (Gemma-4, gpt-oss, Llama-4) OR gated delta-net + attention (Qwen3-Next, Qwen3.5, Qwen3.6, MiniMax-M2). On vLLM this breaks any tier-extension connector that doesn't subclass `SupportsHMA` (Hybrid Memory Allocator).
+
+**Status as of 2026-07-21 — the vLLM side largely caught up.** Native offload (`OffloadingConnector`) gained HMA support in vLLM v0.21.0 and HMA became the default for capable connectors in v0.23.0 (#41847); NixlConnector, MooncakeConnector, MultiConnector and LMCache **MP** (lmcache 0.5.x) all declare `SupportsHMA` too. What is still genuinely blocked is the **in-process `LMCacheConnectorV1`** ([LMCache #3106](https://github.com/LMCache/LMCache/issues/3106), open and active 2026-07-17). Treat "vLLM can't do hybrids" as a claim about one connector, not the stack. SGLang HiCache got there first and shipped arch-specific support iteratively — the matrix below is still worth consulting before claiming "hicache works" on a given arch × backend pair.
 
 ## Arch detection (where the routing happens)
 
@@ -68,7 +70,7 @@ For `Llama4ForConditionalGeneration`, `GptOssForCausalLM`, `Gemma4ForCausalLM` w
 
 ## Migration story from vLLM/LMCache
 
-If the operator hit the vLLM hybrid wall (LMCache fails to start on Qwen3.5/3.6/Gemma-4, NixlConnector kv_both no auto-discovery, SimpleCPUOffloadConnector TOCTOU race per vLLM #39702), the SGLang options are:
+If the operator hit the vLLM hybrid wall on an older pair (LMCache fails to start on Qwen3.5/3.6/Gemma-4, NixlConnector kv_both no auto-discovery, SimpleCPUOffloadConnector TOCTOU race per vLLM #39702 — since fixed, closed 2026-05-19), the SGLang options are below. Check first whether a vLLM upgrade to v0.23.0+ resolves it more cheaply.
 
 | Coming from | SGLang equivalent | Caveat |
 |---|---|---|

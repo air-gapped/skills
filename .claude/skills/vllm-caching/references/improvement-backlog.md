@@ -5,34 +5,28 @@
 
 ## Open — pending publish
 
-### Hybrid-attention KV caching matrix — needs reconciliation against v0.21.0 (carried 2026-05-28)
+### Hybrid-attention live-lab matrix — re-run needed on v0.25.1 (carried 2026-05-28, re-scoped 2026-07-21)
 
-Dim 5 / Dim 9. File-set: improvement-backlog.md (this section) → SKILL.md backlog section + Open-bugs rows + sources.md.
+Dim 5 / Dim 9. File-set: improvement-backlog.md (this section) → SKILL.md + sources.md.
 
-**Could not be applied in one iteration** because the verified `SupportsHMA` connector matrix below was authored against **v0.19.1**, and the 2026-05-28 freshen pass established that the vLLM-native offload+HMA path shipped in **v0.21.0** (#41445 full HMA enablement). Promoting this matrix into SKILL.md now would contradict the freshened Hybrid-models section unless the per-connector "✗ / fail-to-start" verdicts are first re-run on v0.21.0. The LMCacheConnectorV1 row stays accurate (LMCache #3106 still open, updated 2026-05-27) but the OffloadingConnector / native / SimpleCPUOffloadConnector rows are now likely stale. Re-test on a v0.21.0 image, update the matrix verdicts, THEN promote. This is author-only live-lab work (needs a 2× H100 run), not a one-edit relocation.
+**Partially closed by the 2026-07-21 freshen pass.** The *static* half of this item is done: a `SupportsHMA` connector matrix verified against vLLM tag **v0.25.1** source now lives in SKILL.md "Critical pitfalls", and the decision-tree/Hybrid-models sections were rewritten around it. What remains is **author-only live-lab work**: the v0.19.1-era runtime verdicts below (fail-to-start, TOCTOU `AssertionError`, symmetric-mode no-discovery) have not been re-run on a modern image. Static `SupportsHMA` declarations tell you what vLLM *intends*; only a run tells you what happens. Needs a 2× H100 session on `vllm/vllm-openai:v0.25.1` with a hybrid model (Qwen3.6-27B-FP8 or Gemma-4).
 
-**Goal**: add Step 0 gate to backend decision tree + new "Backlog: hybrid-attention KV caching" section to SKILL.md + Verda evidence row in sources.md — all reconciled against v0.21.0.
+Specifically worth re-measuring: native offload on a hybrid model with HMA left **on** (the new recommendation — never yet validated in this lab); `TieringOffloadingSpec` with an `fs` secondary tier, including the `PYTHONHASHSEED` cross-instance sharing requirement; and whether LMCache **MP** 0.5.x really serves a hybrid model end-to-end (upstream claims it does; `lmcache-mp` skill now says so on the strength of upstream docs + a source-level `SupportsHMA` check, with no local run behind it).
 
-#### Proposed `SKILL.md` — Decision-tree Step 0 gate (insert before existing "Ask these in order:")
+#### v0.19.1-era connector matrix (historical — runtime verdicts superseded, kept for the perf numbers)
 
-```markdown
-**Step 0 — gate on attention shape.** If the model is hybrid (Gemma-4, Qwen3.5/3.6, gpt-oss, Llama-4 — has `layer_types: [sliding_attention, full_attention, ...]` OR `mtp.*`/`gdn.*` weights in `config.json`'s `text_config`): on vLLM **< v0.21.0** no connector reliably extends HBM with a DRAM/NVMe tier; on **v0.21.0+** the native offload path integrates with HMA (re-test it) but **LMCacheConnectorV1 is still blocked** (LMCache #3106). For non-hybrid models, ask in order:
-```
+Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 80GB serving `Qwen/Qwen3.6-27B-FP8`. **Do not quote the `SupportsHMA` column** — see SKILL.md for the v0.25.1-verified one; several rows (OffloadingConnector, native, SimpleCPUOffloadConnector) are known-flipped.
 
-#### v0.19.1-era connector `SupportsHMA` matrix (NEEDS v0.21.0 RE-VERIFICATION before promotion)
-
-Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 80GB serving `Qwen/Qwen3.6-27B-FP8`:
-
-| Connector | `SupportsHMA`? (v0.19.1) | Outcome on hybrid model (v0.19.1) | Re-check on v0.21.0? |
-|---|---|---|---|
-| **LMCacheConnectorV1** | ✗ | startup `ValueError: ... failed to convert KV cache specs to one unified type` (LMCache #3106) | #3106 still open 2026-05-27 — likely still ✗ |
-| **LMCacheMPConnector** | ✗ | same `ValueError` | re-check |
-| **OffloadingConnector** | ✗ | requires `--disable-hybrid-kv-cache-manager` | **likely fixed by v0.21.0 HMA enablement — re-test** |
-| **MooncakeConnector / MoRIIOConnector / FlexKVConnector / P2pNcclConnector** | ✗ | hybrid-disable issue | re-check |
-| **SimpleCPUOffloadConnector** | ✓ | starts; runtime `AssertionError`/#39702 TOCTOU | #39702 CLOSED 2026-05-19 — **re-test, likely fixed** |
-| **NixlConnector** (`kv_role=kv_both`) | ✓ | starts; no auto peer discovery in symmetric mode | designed for proxy 1P1D |
-| **NixlConnector** 1P1D (+ toy_proxy) | ✓ | works cross-pod | proven on non-hybrid Qwen3-4B |
-| **Native** `--kv-offloading-size` | implicit ✗ (v0.19.1, #36463) | fail-to-start on Qwen3.5 | #36463 CLOSED 2026-05-18 as dup of v0.21.0 HMA — **re-test, likely fixed** |
+| Connector | `SupportsHMA`? (v0.19.1) | Outcome on hybrid model (v0.19.1) |
+|---|---|---|
+| **LMCacheConnectorV1** | ✗ | startup `ValueError: ... failed to convert KV cache specs to one unified type` (LMCache #3106 — still open) |
+| **LMCacheMPConnector** | ✗ | same `ValueError` — **flipped**: lmcache 0.5.x declares `SupportsHMA` |
+| **OffloadingConnector** | ✗ | required `--disable-hybrid-kv-cache-manager` — **flipped** in v0.21.0/v0.23.0 |
+| **MooncakeConnector / MoRIIOConnector / FlexKVConnector / P2pNcclConnector** | ✗ | hybrid-disable issue — Mooncake **flipped**; `P2pNcclConnector` **removed** in v0.24.0 (#44854) |
+| **SimpleCPUOffloadConnector** | ✓ | runtime `AssertionError` / #39702 TOCTOU — #39702 closed 2026-05-19 |
+| **NixlConnector** (`kv_role=kv_both`) | ✓ | starts; no auto peer discovery in symmetric mode. Note `kv_both` entered a deprecation cycle in v0.23.0 (#43874) |
+| **NixlConnector** 1P1D (+ toy_proxy) | ✓ | works cross-pod |
+| **Native** `--kv-offloading-size` | implicit ✗ (v0.19.1, #36463) | fail-to-start on Qwen3.5 — **flipped**, #36463 closed as dup of the v0.21.0 HMA work |
 
 **v0.19.1 baseline measurements (still valid as raw perf numbers):**
 - `Qwen/Qwen3.6-27B-FP8` TP=1 H100 SXM5 80GB: GPU KV 174,048 tokens; 2.6× concurrency at 262K; CUDA graphs c=10 ISL=4k OSL=200 → ITL 17.9 ms p50 / 22.5 ms p99, 393 tok/s aggregate, 56 tok/s/user.
@@ -42,6 +36,23 @@ Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 
 
 - **vLLM image-tag freshness rule**: always run `gh release list --repo vllm-project/vllm` AND `skopeo list-tags docker://vllm/vllm-openai` before picking a tag; don't default to a memorized known-good tag.
 - **Docker `-v /root/cache:/root/.cache` default**: cold restart H100 + Qwen3.6-27B-FP8 TP=2 ≈ 5 min (DeepGEMM SM_90A FP8 JIT + torch.compile inductor + CUDA graph capture); with persistent whole-`/root/.cache` mount ≈ 50 s. Mount the WHOLE cache, not just `/root/.cache/huggingface`.
+
+### Runtime bundling table never captured past v0.19.1 (new 2026-07-21)
+
+Dim 9. File-set: SKILL.md "Two-step bundling verification" + `lmcache-mp/references/sources.md`.
+
+The only image whose runtime imports have actually been verified is `vllm/vllm-openai:v0.19.1` (vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1), captured 2026-04-26 — five vLLM minors ago. Not applied because it needs a pull + container run, not an edit: run `lmcache-mp/scripts/verify-bundling.sh v0.25.1` and replace the table. Expect nixl 1.3.0 (the exact pin) and lmcache ≥ 0.5.x.
+
+## Resolved this pass (2026-07-21)
+
+Freshen pass, evidence via `gh release view` / `gh issue view` / `git show <tag>:<path>` on a local vLLM clone:
+
+- **Version drift**: v0.21.0 → **v0.25.1** (2026-07-14) across SKILL.md version-gates, latest-stable line, known-good tags, and sources.md. Added gate rows for multi-tier offloading (v0.22.0), HMA-by-default (v0.23.0), and `P2pNcclConnector` removal (v0.24.0).
+- **Deprecation / inverted guidance (the big one)**: the "always pass `--disable-hybrid-kv-cache-manager`" pitfall — previously billed as "the single most common silent blocker" — was retired. v0.23.0 #41847 made the flag tri-state (auto). Replaced with a per-connector `SupportsHMA` table verified against v0.25.1 source, and stripped the flag from every recipe in connectors.md, the diagnostics preflight, and the decision tree.
+- **New feature in scope**: documented the native multi-tier framework (`TieringOffloadingSpec`, `fs`/`obj`/`p2p` secondary tiers) in the decision tree plus a full recipe section in connectors.md — `cpu_bytes_to_use` units, `offload_prompt_only`, on-disk layout, the `PYTHONHASHSEED` cross-instance requirement, `max_offload_tokens`. Source: `docs/features/kv_offloading_usage.md`.
+- **Bug-state flips**: vLLM #40624 (Gemma4 + spec-decode) closed COMPLETED 2026-05-26 — old workaround removed. #40259 still open; LMCache #2942 open but stale-flagged (noted as "stale ≠ fixed"); #3106 open and active.
+- **Pin drift**: `kv_connectors.txt` now pins `nixl == 1.3.0` exactly; added the v0.22.1 dual-CUDA-wheel `ImportError` note.
+- **Cross-skill**: hybrid guidance now routes to LMCache MP (supported) vs in-process LMCacheConnectorV1 (blocked), consistent with the same-day `lmcache-mp` freshen.
 
 ## Resolved this pass (2026-05-28)
 

@@ -4,7 +4,9 @@ For operators with a vLLM/LMCache deploy hitting the 2026 hybrid-attention wall.
 
 ## When to consider migrating
 
-The trigger is a hybrid-attention model — Gemma-4, Qwen3.5/3.6, gpt-oss, Llama-4 — where vLLM v0.19.1 + LMCache 0.4.4 fails to offload KV beyond HBM. Symptoms (verified 2026-04-25 on Verda 2× H100 SXM5 80GB serving Qwen/Qwen3.6-27B-FP8):
+> **Re-read this section before acting on it — the premise weakened in mid-2026.** vLLM's native offload has supported hybrid models since v0.21.0, HMA is on by default for capable connectors since v0.23.0 (#41847), a native multi-tier framework (fs / obj / p2p secondary tiers) landed in v0.22.0, and LMCache MP 0.5.x supports hybrids. Three of the four symptoms below are now fixed upstream (#39702 closed 2026-05-19, #36463 folded into the v0.21.0 HMA work). **Upgrading vLLM is usually cheaper than migrating engines.** Migrate for SGLang's L3 backend ecosystem or an existing SGLang footprint, not because vLLM "can't do hybrids".
+
+The original trigger was a hybrid-attention model — Gemma-4, Qwen3.5/3.6, gpt-oss, Llama-4 — where vLLM v0.19.1 + LMCache 0.4.4 fails to offload KV beyond HBM. Symptoms (verified 2026-04-25 on Verda 2× H100 SXM5 80GB serving Qwen/Qwen3.6-27B-FP8, all against that old pair):
 
 - LMCacheConnectorV1 startup `ValueError: Hybrid KV cache manager is disabled but failed to convert KV cache specs to one unified type` — [LMCache #3106](https://github.com/LMCache/LMCache/issues/3106).
 - SimpleCPUOffloadConnector boots but `AssertionError: External KV connector is not verified yet` on first long-context request — [vLLM #39702](https://github.com/vllm-project/vllm/issues/39702).
@@ -39,14 +41,13 @@ This is one of two places SGLang's convention is different from vLLM (the other 
 
 ## Side-by-side: vLLM CPU offload → SGLang L1+L2
 
-**vLLM (broken on hybrid):**
+**vLLM (this exact config was broken on hybrid at v0.19.1; on v0.23.0+ drop the HMA flag and it works):**
 
 ```bash
 vllm serve Qwen/Qwen3.5-9B \
   --tensor-parallel-size 2 \
   --kv-offloading-backend native \
   --kv-offloading-size 200 \
-  --disable-hybrid-kv-cache-manager \
   --enable-prefix-caching
 ```
 
@@ -105,7 +106,7 @@ Where the TOML has `master_server_address`, `metadata_server`, `global_segment_s
 | `LMCACHE_USE_HOT=true` (default) | `--hicache-write-policy write_through` (default) | Always backup |
 | `LMCACHE_USE_HOT=false` | n/a — skip | LMCache `use_hot=False` is bugged ([LMCache #2942](https://github.com/LMCache/LMCache/issues/2942)) |
 | `LMCACHE_LAZY_BACKUP=true` | `--hicache-write-policy write_through_selective` | Subset of pages |
-| n/a | `--hicache-write-policy write_back` | **Avoid** — issue [#19212](https://github.com/sgl-project/sglang/issues/19212) |
+| n/a | `--hicache-write-policy write_back` | Was "avoid" — issue [#19212](https://github.com/sgl-project/sglang/issues/19212) closed fixed 2026-05-24 (PRs #22592, #23696). `write_through` is still the default and the safe default |
 
 ## Prometheus metric mapping
 
@@ -120,13 +121,14 @@ Where the TOML has `master_server_address`, `metadata_server`, `global_segment_s
 
 1. **Per-tier prefetch policy** — `best_effort` / `wait_complete` / `timeout`. vLLM has no equivalent — its connectors are all best-effort.
 2. **Runtime attach/detach of L3 backend without restart** — HTTP admin endpoints. vLLM requires engine restart.
-3. **Mamba/SSM state offload** — `HiMambaRadixCache` ships, vLLM `LMCache` is broken on hybrid SSM (#3106).
-4. **Per-rank L2 sizing without HMA conflicts** — no `--disable-hybrid-kv-cache-manager` equivalent needed; HiCache is the scheduler.
+3. **Mamba/SSM state offload** — `HiMambaRadixCache` ships. On vLLM the in-process `LMCacheConnectorV1` is still broken on hybrid SSM (#3106), but native offload and LMCache MP are not, so this is no longer a decisive advantage.
+4. **Per-rank L2 sizing without HMA conflicts** — HiCache is the scheduler, so there is no HMA-vs-connector negotiation at all. (vLLM narrowed this gap in v0.23.0: HMA is now on by default and only auto-disables for connectors lacking `SupportsHMA`.)
 5. **NIXL config-file path** — `@config.toml` for complex deployments. vLLM's `--kv-transfer-config` is JSON-on-CLI only.
 
 ## Things vLLM does that SGLang HiCache doesn't
 
 1. **MultiConnector composition** — vLLM can mix NixlConnector + OffloadingConnector. SGLang assumes one L3.
+1b. **Native multi-tier offload** — since vLLM v0.22.0, `TieringOffloadingSpec` stacks a CPU primary tier with ordered `fs` / `obj` / `p2p` secondary tiers in one connector, including cross-instance sharing over a shared filesystem. SGLang's L1→L2→L3 is a fixed three-tier shape by comparison.
 2. **`--cpu-offload-gb` for model weights** — vLLM weight-offload is separate from KV-offload. SGLang has no direct equivalent (use TP/PP scaling).
 3. **NVIDIA Dynamo native control plane** — vLLM is the reference deploy for Dynamo today; SGLang+Dynamo is on the 2026 roadmap (issue [#17130](https://github.com/sgl-project/sglang/issues/17130)).
 
@@ -135,7 +137,7 @@ Where the TOML has `master_server_address`, `metadata_server`, `global_segment_s
 1. **Page size default differs**. vLLM: 16. SGLang: 1 on CUDA, 64 on MUSA. Set `--page-size 64` explicitly to match production hicache recipe.
 2. **Reasoning-parser flag must match.** vLLM `--reasoning-parser deepseek_r1` ↔ SGLang `--reasoning-parser deepseek-r1` (note hyphen). aiperf TTFT/TTFO splits depend on this.
 3. **Sizing in wrong units** is the #1 OOM source. See "Sizing math" above.
-4. **PP > 1 doesn't work** with SGLang HiCache (issue #22607, still open as of 2026-05-29 — did not make the v0.5.11/v0.5.12 cut). vLLM works with PP. If migrating from vLLM `pipeline-parallel-size > 1`, drop to `--pp-size 1`.
+4. **PP > 1 doesn't work** with SGLang HiCache (issue #22607, still open 2026-07-21; the writing-ack-sync PR #22878 was closed unmerged). vLLM works with PP. If migrating from vLLM `pipeline-parallel-size > 1`, drop to `--pp-size 1` — and note #30760 (2026-07-10) reports a related prefetch `all_reduce` deadlock at TP=4 with **no** PP.
 5. **`write_back` policy is bugged** — stay on `write_through` even if vLLM's LMCache was using lazy.
 
 ## Decision tree for the migrating operator

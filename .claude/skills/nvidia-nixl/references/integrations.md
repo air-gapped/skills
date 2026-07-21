@@ -82,7 +82,10 @@ env:
 **Open issue to track:** vllm-project/vllm#27055 — "Prefill disaggregation failed kv transfer with NiXL connector using LIBFABRIC backend with vllm 0.11 and nixl 0.6.1." Likely fixed by libfabric thread-safety work in NIXL v1.0.1, but verify against current vLLM nightly.
 
 **vLLM image bundled NIXL versions** (from `requirements/kv_connectors.txt` on main as of 2026-05-28):
-- `nixl >= 1.1.0` (`# Required for disaggregated prefill`). vLLM now tracks the NIXL 1.x line, so the libfabric thread-safety + notif-on-repost fixes from v1.0.1 and the v1.1.0 changes are in scope for current vLLM nightly. (Older vLLM pinned `nixl-cu12 / cu13 >= 0.7.1, <= 0.10.1`; if debugging an old vLLM image against `nixl 0.10.1`, that legacy window explains it.)
+- **`nixl == 1.3.0`** at vLLM v0.25.1 — an *exact* pin, not a floor. Installing a different NIXL wheel into a vLLM image is now a deliberate deviation, not a version bump. (History: `>= 1.1.0` earlier in the 1.x line; `nixl-cu12 / cu13 >= 0.7.1, <= 0.10.1` before that — if debugging an old vLLM image against `nixl 0.10.1`, that legacy window explains it.)
+- vLLM v0.22.1 (#44266) normalized the KV-connector wheel install so only the wheel matching the image's CUDA major survives. If you see `ImportError: libcudart.so.12` when importing `nixl_ep` on a CUDA 13 image, that's the bug — upgrade past v0.22.1 rather than hand-patching the wheel set.
+- vLLM v0.23.0 began a **deprecation cycle for the NixlConnector `kv_both` role** (#43874). Symmetric-role configs will need revisiting; prefer explicit `kv_producer` / `kv_consumer` for new disaggregated deploys.
+- vLLM v0.24.0 added **KV push from prefill to decode over NIXL** (#35264) — a push topology alongside the existing pull — plus NIXL Mamba1 support (#45019) and, in v0.23.0, a Nixl Mamba prefix-caching mode (#42554).
 
 ## SGLang
 

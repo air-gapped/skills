@@ -5,9 +5,59 @@ restructure or author judgment. Updated by skill-improver Phase 6.
 
 ## Open
 
-(none — all prior Open items resolved this pass.)
+### Per-plugin READMEs predate the 1.2/1.3 line (new 2026-07-21)
 
-## Resolved this pass
+Dim 9. File-set: `references/plugins.md` (all 13 documented plugin entries) + the
+`sources.md` plugin-README rows, which still carry `Last verified: 2026-04-25`.
+
+The 2026-07-21 freshen pass updated the plugin **count** (13 → 15, `infinia` and
+`tracing` added) and the release-level facts, but did not re-read the 13 individual
+`src/plugins/<name>/README.md` files. Three releases have landed since those stamps
+and at least two touch plugin internals: libfabric gained `FI_MORE` doorbell batching
+(v1.2.0 #1626), and POSIX / HF3FS / CUDA_GDS / GDS_MT all gained path-based file
+registration plus the v1.3.1 unique-`devId` constraint. Not a one-edit fix — it is
+13 fetches plus a rewrite of each entry's deps/params/gotchas. `infinia` has no
+entry at all yet.
+
+### AMD ROCm/HIP path is undocumented in this skill (new 2026-07-21)
+
+Dim 5. File-set: `SKILL.md` audience/prereqs line + `references/deployment.md`
+(build + install sections).
+
+v1.3.0 added AMD Instinct support (gfx942 MI300X/MI325X, gfx950 MI350X/MI355X)
+including `nixlbench`, but the skill's target-audience line still says
+"datacenter-class GPUs (H100/H200/B200/B300) with NVIDIA driver, CUDA 12.8+" and
+every build path assumes CUDA wheels. Documenting the ROCm path properly needs the
+upstream build instructions read end-to-end and ideally one real build — author work,
+not a stamp update.
+
+## Resolved this pass (2026-07-21)
+
+Freshen pass — evidence via `gh release list`, `gh release view` on v1.2.0/v1.3.0/v1.3.1,
+`gh api contents/...` for `pyproject.toml` and `src/plugins`, and `git show v0.25.1:...`
+in a local vLLM clone:
+
+- **Version drift (Dim 9)**: latest release v1.1.0 → **v1.3.1** (2026-07-08); HEAD
+  pyproject 1.2.0 → **1.4.0**. Added v1.2.0 and v1.3.0 rows to the version snapshot
+  and to `sources.md`.
+- **Plugin count**: 13 → **15** (`infinia` DDN object storage added in v1.3.0 #1569,
+  plus `tracing`). Updated the snapshot table, the frontmatter `description`, the
+  backend decision tree, and the `plugins.md` header; noted that manylinux wheels
+  bundle `libplugin_INFINIA.so` from v1.3.1 while the proprietary DDN runtime is not
+  vendored.
+- **New API/build constraints surfaced as gotchas**: telemetry `category` field
+  removed (#1649); path-mode `FILE_SEG` unique-`devId` enforcement (#1790); C++20
+  required for source builds (#1571) with the `nixl_cuda_arch_list` escape hatch;
+  OS-assigned listener port via `listen_port=0` (#1439); NIXL-EP rank/expert
+  semantics refactor with the legacy mask-clean API removed (#1693).
+- **vLLM pin**: `nixl >= 1.1.0` → **`nixl == 1.3.0`** (exact) at vLLM v0.25.1.
+  Added the v0.22.1 dual-CUDA-wheel `ImportError: libcudart.so.12` note, the
+  `kv_both` deprecation cycle (#43874), and the v0.24.0 NIXL KV-push topology.
+- **Drift-watch list extended** with the "NIXL minors can be source-breaking"
+  observation and the AMD/HIP churn warning; marked the local-clone and PyPI rows as
+  not re-probed this pass rather than silently re-stamping them.
+
+## Resolved earlier (2026-05-28)
 
 - 2026-05-28: SKILL.md version snapshot stale — bumped Latest release v1.0.1→**v1.1.0**
   (2026-05-12), demoted v1.0.1 to a "Previous releases" row, and HEAD pyproject

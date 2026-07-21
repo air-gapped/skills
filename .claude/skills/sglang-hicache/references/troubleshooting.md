@@ -59,7 +59,7 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 ### `AssertionError: parent does not have child key` in `evict_host`
 
 - **Cause**: Issue [#19212](https://github.com/sgl-project/sglang/issues/19212). Radix tree mutated during heap iteration in `write_back` policy.
-- **Fix**: `--hicache-write-policy write_through` (the default). `write_back` is open-bug as of 2026-05-29 (#19212).
+- **Fix**: `--hicache-write-policy write_through` (the default). The `write_back` crash (#19212) was fixed and closed 2026-05-24 (PRs #22592, #23696), but write_through remains the safe default.
 
 ### `RuntimeError: Expected all tensors to be on the same device` in `mamba_pool_host.free`
 
@@ -69,7 +69,7 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 ### Shape-mismatch crash under PP>1 within minutes/hours
 
 - **Cause**: Issue [#22607](https://github.com/sgl-project/sglang/issues/22607). Async prefetch + per-rank LRU diverge.
-- **Fix**: `--pp-size 1` — fix (#22607 meta, #22878) still OPEN as of 2026-05-29; did not make the v0.5.11/v0.5.12 cut.
+- **Fix**: `--pp-size 1` — #22607 still OPEN as of 2026-07-21 and its fix PR #22878 was closed without merging. Also see #30760 (opened 2026-07-10): the same prefetch `all_reduce` mismatch reported at TP=4 with no PP, so `--pp-size 1` may not be sufficient.
 
 ### Same crash with `Indexer with GLM5 pp2`
 

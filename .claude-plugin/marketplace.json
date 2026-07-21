@@ -212,7 +212,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260529.4",
+      "version": "0.20260721.5",
       "author": {
         "name": "Jörgen"
       },
@@ -419,7 +419,7 @@
       "name": "sglang",
       "source": "./",
       "description": "SGLang operator reference suite — HiCache (three-tier hierarchical prefix cache: GPU HBM → host DRAM → distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache) and the SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM/SGLang inference workers on Kubernetes with cache-aware/prefix-hash/consistent-hash routing, K8s label-selector service discovery, PD-disaggregation, and `--enable-mesh` CRDT sync between gateway replicas. Pairs with the `vllm` suite for vLLM-side reference and `inference-cache` for engine-agnostic KV-cache transport.",
-      "version": "0.20260529.7",
+      "version": "0.20260721.8",
       "author": {
         "name": "Jörgen"
       },
@@ -479,7 +479,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260718.43",
+      "version": "0.20260721.44",
       "author": {
         "name": "Jörgen"
       },

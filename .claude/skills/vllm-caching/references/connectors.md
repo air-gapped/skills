@@ -4,6 +4,7 @@ Detailed recipes for each vLLM KV caching backend. Load when selecting or config
 
 ## Table of contents
 - [Native CPU offload](#native-cpu-offload-single-node-simplest)
+- [Native multi-tier offload (v0.22.0+)](#native-multi-tier-offload-v0220)
 - [LMCache with DRAM + NVMe tiers](#lmcache-with-dram--nvme-tiers-single-node-production)
 - [LMCache P2P — KV sharing across instances](#lmcache-p2p--kv-sharing-across-instances)
 - [GDS (GPUDirect Storage) for NVMe direct-DMA](#gds-gpudirect-storage-for-nvme-direct-dma)
@@ -21,12 +22,11 @@ vllm serve <model> \
   --gpu-memory-utilization 0.90 \
   --kv-offloading-size 1600 \
   --kv-offloading-backend native \
-  --disable-hybrid-kv-cache-manager \
   --max-model-len 200000 \
   --enable-prefix-caching
 ```
 
-`--disable-hybrid-kv-cache-manager` is **mandatory** with `OffloadingConnector` — without it the engine fails at startup with `ValueError: Connector OffloadingConnector does not support HMA but HMA is enabled.` See SKILL.md "Critical pitfalls" for the why.
+**Do not add `--disable-hybrid-kv-cache-manager` on v0.23.0+.** `OffloadingConnector` subclasses `SupportsHMA` (verified at v0.25.1), and since #41847 vLLM auto-disables HMA only for connectors that don't — passing the flag anyway forfeits hybrid-model support and sliding-window performance for nothing. On v0.22.x and earlier the flag *is* mandatory here, and the startup `ValueError: Connector OffloadingConnector does not support HMA but HMA is enabled.` names it. See SKILL.md "Critical pitfalls" for the per-connector table.
 
 Under the hood: pinned host memory (`cudaHostRegister`-backed mmap), LRU eviction policy by default, ARC also available. Code paths live in `vllm/v1/kv_offload/` with `vllm/v1/kv_offload/cpu/policies/` for eviction strategies.
 
@@ -40,7 +40,6 @@ vllm serve Qwen/Qwen3-4B \
   --gpu-memory-utilization 0.92 \
   --max-model-len auto \
   --enable-prefix-caching \
-  --disable-hybrid-kv-cache-manager \
   --kv-offloading-size 6 \
   --kv-offloading-backend native \
   --block-size 32 \
@@ -49,9 +48,48 @@ vllm serve Qwen/Qwen3-4B \
   --load-format fastsafetensors
 ```
 
+## Native multi-tier offload (v0.22.0+)
+
+Since v0.22.0 the native path is no longer CPU-DRAM-only. `OffloadingConnector` selects a spec through `kv_connector_extra_config.spec_name`: `CPUOffloadingSpec` (default, single CPU tier) or `TieringOffloadingSpec` (CPU primary tier + an ordered `secondary_tiers` list). Only the CPU primary tier touches GPU memory; every GPU↔secondary transfer stages through it.
+
+Registered secondary tier types (`vllm/v1/kv_offload/tiering/factory.py`, verified at v0.25.1): `fs`, `obj`, `p2p`, `example`.
+
+```bash
+vllm serve <model> \
+  --tensor-parallel-size 8 \
+  --enable-prefix-caching \
+  --kv-transfer-config '{
+    "kv_connector": "OffloadingConnector",
+    "kv_role": "kv_both",
+    "kv_connector_extra_config": {
+      "spec_name": "TieringOffloadingSpec",
+      "cpu_bytes_to_use": 1717986918400,
+      "block_size": 64,
+      "eviction_policy": "lru",
+      "secondary_tiers": [
+        {"type": "fs", "root_dir": "/mnt/nvme0/kv", "n_read_threads": 32, "n_write_threads": 16}
+      ]
+    }
+  }'
+```
+
+Config keys that bite:
+
+- **`cpu_bytes_to_use` is in bytes and is the total across all workers**, not per-worker — same total-not-per-rank convention as `--kv-offloading-size`, different unit (bytes vs GiB). This is the multi-tier equivalent of the sizing flag; `--kv-offloading-size` drives the CLI shorthand path instead.
+- `block_size` is the offloaded block size in tokens and must be a multiple of the GPU block size.
+- `offload_prompt_only` defaults to `true` — decode-phase blocks are skipped. Flip it only with a measured reason.
+- `store_threshold` and `self_describing_kv_events` are single-tier only; `TieringOffloadingSpec` rejects them.
+- Per-request cap: a request may set `kv_transfer_params.max_offload_tokens` to bound how much of it is eligible for offload (`0` disables offload for that request). Marked experimental upstream.
+
+**fs tier layout and cross-instance sharing.** Blocks land under `<root_dir>/<model>_<digest>_r<rank>/<hhh>/<hh>_g<group>/<hash>.bin`, with `<digest>` derived from model + block size + parallelism + dtype, so differently-configured runs coexist under one `root_dir` without colliding. To share one `root_dir` across vLLM instances (e.g. a shared PVC), **every instance must set `PYTHONHASHSEED` to the same fixed value** — otherwise each process seeds its block-hash chain randomly and identical token content produces different filenames, so the cache never hits across pods.
+
+**p2p tier** shares blocks between vLLM instances over NIXL (`host`, `port` default 7777, `backends` default `["UCX"]`, `num_threads` default 4 for UCX-only). It replaces the `P2pNcclConnector` removed in v0.24.0 (#44854).
+
+Upstream reference: `docs/features/kv_offloading_usage.md`.
+
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when an NVMe tier is needed in addition to DRAM. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.4.5, 2026-05-15; the bundled `kv_connectors.txt` floor is `>=0.3.9`).
+Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.1, 2026-07-06; the bundled `kv_connectors.txt` floor is `>=0.3.9`).
 
 ```bash
 docker run ... \
@@ -68,12 +106,11 @@ docker run ... \
     --gpu-memory-utilization 0.90 \
     --kv-offloading-size 1600 \
     --kv-offloading-backend lmcache \
-    --disable-hybrid-kv-cache-manager \
     --max-model-len 200000 \
     --enable-prefix-caching
 ```
 
-`--disable-hybrid-kv-cache-manager` is mandatory with the LMCache backend too — same `OffloadingConnector` requirement as native.
+The in-process `LMCacheConnectorV1` does **not** declare `SupportsHMA` at v0.25.1, so on v0.23.0+ vLLM auto-disables HMA for it and logs a warning — you don't pass the flag yourself, but you do inherit the consequence: hybrid-attention models stay unsupported on this path (LMCache #3106, still open 2026-07-17).
 
 Key env vars:
 - `LMCACHE_MAX_LOCAL_CPU_SIZE` and `LMCACHE_MAX_LOCAL_DISK_SIZE` are **GiB as floats** (e.g. `5.0`, `1600`)
@@ -82,7 +119,7 @@ Key env vars:
 
 Keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots.
 
-Avoid `LMCACHE_LOCAL_CPU=False` (a.k.a. `use_hot=False`) — LMCache #2942 (open as of 2026-05-28) deadlocks `LocalCPUBackend.allocate()` when the staging buffer fills with no eviction path. The default is `True`; do not flip it. Re-verify #2942 against LMCache v0.4.5 before relaxing. The disk tier crash #2502 was closed NOT_PLANNED on 2026-05-04 (not being fixed) — DRAM-only remains the simpler default, but the disk tier is usable with the alloc-pressure caveats below.
+Avoid `LMCACHE_LOCAL_CPU=False` (a.k.a. `use_hot=False`) — LMCache #2942 (still open 2026-07-21, auto-marked stale 2026-06-29 with no fix) deadlocks `LocalCPUBackend.allocate()` when the staging buffer fills with no eviction path. The default is `True`; do not flip it. Stale-bot silence is not a fix; re-verify against LMCache 0.5.x before relaxing. The disk tier crash #2502 was closed NOT_PLANNED on 2026-05-04 (not being fixed) — DRAM-only remains the simpler default, but the disk tier is usable with the alloc-pressure caveats below.
 
 ### Pool sizing — don't under-allocate
 

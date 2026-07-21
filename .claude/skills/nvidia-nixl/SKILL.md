@@ -1,7 +1,7 @@
 ---
 name: nvidia-nixl
 description: |-
-  NVIDIA Inference Xfer Library (NIXL) operator + developer reference. Point-to-point KV-cache and tensor transport for distributed inference (Dynamo, vLLM, SGLang). Covers the agent API (full Python reference; C++/Rust via upstream pointers), all 13 backend plugins (UCX, GDS, GDS_MT, libfabric, mooncake, posix, hf3fs, obj/S3, azure_blob, gusli, uccl, gpunetio/DOCA, telemetry), build paths (pip nixl-cu12/cu13, meson+ninja from source), ETCD vs side-channel metadata, telemetry (Prometheus + cyclic shared-memory), NIXL-EP elastic MoE device kernels, and Dynamo / vLLM NixlConnector / SGLang integration patterns.
+  NVIDIA Inference Xfer Library (NIXL) operator + developer reference. Point-to-point KV-cache and tensor transport for distributed inference (Dynamo, vLLM, SGLang). Covers the agent API (full Python reference; C++/Rust via upstream pointers), all 15 backend plugins (UCX, GDS, GDS_MT, libfabric, mooncake, posix, hf3fs, obj/S3, azure_blob, infinia/DDN, gusli, uccl, gpunetio/DOCA, telemetry, tracing), AMD ROCm/HIP support, build paths (pip nixl-cu12/cu13, meson+ninja from source), ETCD vs side-channel metadata, telemetry (Prometheus + cyclic shared-memory), NIXL-EP elastic MoE device kernels, and Dynamo / vLLM NixlConnector / SGLang integration patterns.
 when_to_use: |-
   Trigger on "NIXL", "ai-dynamo/nixl", "NVIDIA Inference Xfer Library", "nixl_agent", "nixl-cu12", "nixl-cu13", "nixlbench", "kvbench", "NIXL_PLUGIN_DIR", "NIXL_ETCD_ENDPOINTS", "NIXL_TELEMETRY_ENABLE", "VLLM_NIXL_SIDE_CHANNEL_HOST", "NIXL UCX/GDS/Mooncake/libfabric/HF3FS/S3/GUSLI/DOCA GPUNetIO/UCCL/Azure Blob backend", "NIXL telemetry", "NIXL ETCD", "side-channel metadata", "NIXL-EP", "elastic MoE", "nixlBackendH", "registerMem", "prepXfer", "createXferReq", "getNotifs", "loadRemoteMD", "fetchRemoteMD", "sendLocalMD", "South Bound API", "GPUDirect Storage cuFile", "RDMA write KV cache", "disaggregated prefill transport", "KV cache transfer engine", "NixlConnector", "Dynamo backend transfer", "nixlUcxSharedThread", "NIXL_ERR_REMOTE_DISCONNECT", "AWS EFA NIXL", "writing a NIXL plugin". For vLLM connector wiring (`--kv-transfer-config`, K8s pod shape, UCX_TLS) consult `vllm-caching` first.
 ---
@@ -18,13 +18,16 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 
 | Item | Value | Source |
 |---|---|---|
-| Latest release | **v1.1.0** (2026-05-12) | `gh release list --repo ai-dynamo/nixl` |
-| Previous releases | **v1.0.1** (2026-04-14) — maintenance: NIXL-EP destruction/elastic-scale fixes, libfabric thread-safety + notif-on-repost; **v1.0.0** (2026-03-13) — first stable | release notes |
-| HEAD pyproject version | **1.2.0** | `pyproject.toml` |
+| Latest release | **v1.3.1** (2026-07-08) | `gh release list --repo ai-dynamo/nixl` |
+| Previous releases | **v1.3.0** (2026-06-15) — AMD ROCm/HIP, C++20, DDN Infinia backend, path-based file registration; **v1.2.0** (2026-05-30) — OS-assigned listener port, libfabric `FI_MORE` batching; **v1.1.0** (2026-05-12); **v1.0.1** (2026-04-14); **v1.0.0** (2026-03-13) — first stable | release notes |
+| HEAD pyproject version | **1.4.0** | `pyproject.toml` |
+| What vLLM pins | **`nixl == 1.3.0`** (exact) at vLLM v0.25.1 | `requirements/kv_connectors.txt` |
 | PyPI wheels | `nixl-cu12`, `nixl-cu13` (auto-selects at runtime via PyTorch CUDA version since 1.0.1) | `pip install nixl` |
-| Torch dep pin | `torch==2.11.*` | `pyproject.toml` (1.0.1+) |
-| UCX version | `1.20.x` tested | repo `README.md` |
-| Plugins | 13: ucx, libfabric, mooncake, uccl, gpunetio, cuda_gds, gds_mt, posix, hf3fs, obj (S3), azure_blob, gusli, telemetry | `src/plugins/` |
+| Torch dep pin | `torch==2.11.*`; `nixl_ep` wheels build against 2.11/2.12/2.13 and select by installed Torch at import (1.3.1, #1775) | `pyproject.toml`, `contrib/Dockerfile` |
+| C++ standard | **C++20** since v1.3.0 (#1571) — building NIXL or a plugin from source now needs a C++20 toolchain | release notes |
+| UCX version | `1.20.x` tested; `UCX_MAX_HCA_PER_GPU=auto` set automatically on UCX ≥ 1.21 (1.2.0, #1637) | repo `README.md`, `src/plugins/ucx/ucx_utils.cpp` |
+| GPU vendors | NVIDIA; **AMD Instinct (MI300X/MI325X gfx942, MI350X/MI355X gfx950) via ROCm/HIP since v1.3.0** (#1642, #1647), `nixlbench` included | release notes |
+| Plugins | **15**: ucx, libfabric, mooncake, uccl, gpunetio, cuda_gds, gds_mt, posix, hf3fs, obj (S3), azure_blob, gusli, telemetry, **infinia** (DDN, new in 1.3.0), **tracing** | `src/plugins/` at tag v1.3.1 |
 | Memory types | `DRAM`, `VRAM`, `FILE`, `BLOCK`, `OBJ` | `src/api/python/_api.py` |
 | Operations | `READ`, `WRITE` | (no SEND/RECV — one-sided) |
 
@@ -46,8 +49,11 @@ Is the transfer across nodes?
     ├─ DeepSeek 3FS distributed FS?                      → hf3fs
     ├─ Block storage via GUSLI shared-mem client?        → gusli
     ├─ S3 (or S3-compatible) object store?               → obj (with optional cuobjclient accelerated engine)
+    ├─ DDN Infinia storage?                              → infinia (v1.3.0+)
     └─ Azure Blob?                                       → azure_blob
 ```
+
+The published manylinux wheels bundle `libplugin_INFINIA.so` by default as of v1.3.1 (#1832); the proprietary DDN `libred_*` runtime libraries are deliberately not vendored and are loaded from the customer's DDN install at `/opt/ddn/red`.
 
 A single agent can instantiate multiple backends; per-transfer the agent chooses one based on the memory types involved and what the remote side advertises. Pass `backends=["UCX","GDS"]` to `nixl_agent_config` (Python) or `createBackend` calls (C++) to constrain candidates.
 
@@ -85,6 +91,8 @@ End-to-end working programs in `examples/python/basic_two_peers.py`, `expanded_t
 
 **Side-channel (default).** Each agent runs a TCP listener (`enable_listen_thread=True`, `listen_port=N`). One agent calls `fetch_remote_metadata(remote_name, ip, port)` to pull, or `send_local_metadata(ip, port)` to push. Good for fixed-pair setups, lab environments. Defaults to port 5555.
 
+Since v1.2.0 (#1439) you can pass **`listen_port=0` to let the OS assign a free port**; the bound port is recovered via `getsockname()` and logged at `NIXL_INFO`. Use this when several agents share a host and would otherwise collide on a hard-coded port — the peer then needs the port out-of-band. The same release widened the port fields (`listenPort` / `listen_port`) from `int` to `uint16_t` in `nixl_params.h` / `nixl_types.h`, and the Rust bindings gained a `DEFAULT_COMM_PORT` constant.
+
 **ETCD.** Set `NIXL_ETCD_ENDPOINTS=http://etcd:2379` (comma-separated for HA). Each agent calls `sendLocalMD()` / `fetchRemoteMD(remote_name)` (no IP/port args). Required for elastic / dynamic-scaling clusters where peers are not known upfront. ETCD is also how `nixlbench` discovers workers.
 
 Both modes support `send_partial_agent_metadata(descs, inc_conn_info, backends, label=...)` — only register-then-send the metadata for specific descriptor lists, useful when memory regions are dynamic or to avoid advertising everything. Example: `examples/python/partial_md_example.py`.
@@ -102,6 +110,8 @@ export NIXL_PLUGIN_DIR=/path/to/nixl/lib/x86_64-linux-gnu/plugins
 ## NIXL-EP — elastic Expert Parallel device kernels
 
 `examples/device/ep/csrc/` ships device-side CUDA kernels for MoE all-to-all dispatch — `nixl_ep_ll.cu` (low-latency) and `nixl_ep_ht.cu` (high-throughput). Two API surfaces, one mode per agent: mixing LL and HT calls on the same agent is a hard error (mode guards added in v1.0.1, #1538). NIXL-EP also supports elastic scale-up (new nodes joining a running deploy), with signaling-buffer fixes in v1.0.1 (#1453). GPU timeouts are configurable (#1520). NIXL-EP is the layer Dynamo's MoE plane will land on; for plain disaggregated prefill (single tensor transfer), use the regular agent API.
+
+**Breaking change in v1.3.0 (#1693):** rank/expert semantics were refactored for elastic rank handling — dispatch/combine now take an active-rank bound plus experts-per-rank parameterization, buffers/layouts moved to an active-range model, mask updates became public with host-side active-rank tracking, and **the legacy mask-clean API was removed**. Code written against 1.2.x NIXL-EP needs porting. vLLM has been consuming this: NIXL EP + DBO (#45275), elastic-EP communicator (#45013), and NVFP4 post-receive quantization skip (#45606) all landed in vLLM v0.24.0.
 
 ## Telemetry — two exporters, environment-driven
 
@@ -126,7 +136,9 @@ Cyclic buffer = static plugin, shared-memory ring; readers in `examples/python/t
 7. **HF3FS needs page-aligned, page-size-multiple memory** for the zero-copy `mmap()` shared-memory path; otherwise it copies. Pass `mem_config=dram_zc` to fail loud if alignment is wrong.
 8. **gpunetio (DOCA) is single-NIC + single-GPU per backend**. To use 2 NICs, instantiate 2 backends with different `network_devices`. `nvshmem`-aware bench mode supports VRAM-only transfers.
 9. **EFA-only configs in UCX** were gated to not poison non-EFA setups in v1.0.1 (#1527). Below that, UCX with EFA-tuned defaults could degrade other systems.
-10. **Telemetry timestamps were removed** from events in v1.0.0 (#1522) — readers must derive ordering from ring-insertion order, not event timestamp fields.
+10. **Telemetry timestamps were removed** from events in v1.0.0 (#1522) — readers must derive ordering from ring-insertion order, not event timestamp fields. The **`category` field was also removed in v1.3.0** (#1649); consumers parsing telemetry events must drop it.
+11. **Path-mode `FILE_SEG` registrations need a unique `devId` each** (v1.3.1, #1790). v1.3.0 added path-based file registration — declare a file by path in `nixlBlobDesc::metaInfo` as `<modes>:<path>` (`ro`/`rw` plus `direct`/`sync`/`noatime`/`create`), and POSIX / HF3FS / CUDA_GDS / GDS_MT open it in `registerMem` and close it in `deregisterMem`. Reusing an in-use `devId` across distinct path-mode files caused a double-free on deregister and is now rejected with `NIXL_ERR_INVALID_PARAM`. The older fd-in-`devId` mode is unchanged — one fd may still back multiple descriptors at different offsets.
+12. **Building from source requires a C++20 toolchain** since v1.3.0 (#1571). Full-sweep CUDA builds are slow; pass `-Dnixl_cuda_arch_list=90,100` (or your SM list) instead of the default `sm_80,86,89,90,100,103,120`.
 
 Full debugging cookbook in `references/gotchas.md`.
 
@@ -153,7 +165,7 @@ Full debugging cookbook in `references/gotchas.md`.
 ## References
 
 - `references/architecture.md` — Agent + Memory Section + South Bound API (SB API) + Plugin Manager + descriptor lists + NIXL-EP device kernels + telemetry event catalog.
-- `references/plugins.md` — All 13 plugins with deps, parameters, capabilities, when-to-pick.
+- `references/plugins.md` — All plugins with deps, parameters, capabilities, when-to-pick (13 documented in depth; `infinia` and `tracing` added in the 1.3 line — read their `src/plugins/<name>/README.md` directly).
 - `references/python-api.md` — `nixl_agent` Python surface with worked examples for every common operation.
 - `references/deployment.md` — pip install, source build (meson+ninja), Docker, K8s, ETCD setup, env vars, `nixlbench`, `kvbench`.
 - `references/integrations.md` — Dynamo, vLLM `NixlConnector`, SGLang, observability stack pointers.

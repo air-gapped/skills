@@ -206,7 +206,7 @@ curl -X DELETE http://localhost:30000/hicache/storage-backend \
   -H "Authorization: Bearer $ADMIN_KEY"
 ```
 
-Returns HTTP 400 if any request is in-flight (`is_fully_idle()` check). Multi-node Mooncake attach is still broken (issue [#23457](https://github.com/sgl-project/sglang/issues/23457), OPEN as of 2026-05-29) — inject `MOONCAKE_LOCAL_HOSTNAME` per node, or use the static startup flag instead of runtime attach.
+Returns HTTP 400 if any request is in-flight (`is_fully_idle()` check). Multi-node Mooncake attach used the wrong hostname (issue [#23457](https://github.com/sgl-project/sglang/issues/23457)) — **closed COMPLETED 2026-06-15**. On older builds, inject `MOONCAKE_LOCAL_HOSTNAME` per node or use the static startup flag instead of runtime attach.
 
 ## Recipe 9 — Validating that hicache is actually helping
 

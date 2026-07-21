@@ -142,8 +142,8 @@ The engine startup logs report the actual allocation. Cross-check against `vllm:
 
 Before recommending a config, confirm in this order:
 
-1. `--disable-hybrid-kv-cache-manager` is in the args. If missing, the engine will crash at `KVConnectorFactory.create_connector` with the explicit "does not support HMA" ValueError. Read the previous-container log (`kubectl logs --previous`) on any first-boot crash before changing anything else.
+1. `--disable-hybrid-kv-cache-manager` is **absent** on v0.23.0+ (it is required only on v0.22.x and earlier, where the engine otherwise crashes at `KVConnectorFactory.create_connector` with the "does not support HMA" ValueError). Since #41847 the flag defaults to auto and vLLM disables HMA by itself for non-`SupportsHMA` connectors, logging a warning that names the connector — read that warning, and the previous-container log (`kubectl logs --previous`), on any first-boot crash before changing anything else.
 2. `--enable-prefix-caching` is in the args. Without it, prefix reuse is off and offload has nothing to populate.
 3. `--max-model-len` is set sensibly (or `auto`). `auto` means vLLM picks the max that fits available KV — useful starting point on small / consumer GPUs. Grep `Auto-fit max_model_len` in startup logs to learn the chosen value.
-4. The model architecture is non-hybrid OR is on the verified-with-offload list. Hybrid native offload (Qwen3.5/Mamba) shipped in vLLM v0.21.0 (#36463 closed as a duplicate of that HMA enablement); on v0.21.0+ native offload may coexist with HMA, so test the hybrid model directly before assuming `--disable-hybrid-kv-cache-manager` is needed. Note the LMCacheConnectorV1 path on hybrid models is still blocked (LMCache #3106).
+4. If the model is hybrid-attention (Qwen3.5/Mamba, Gemma-4, DeepSeek-V4), the chosen connector supports HMA. Native offload does (v0.21.0+, #36463 folded into that enablement) and so does LMCache **MP**; the in-process `LMCacheConnectorV1` does not (LMCache #3106, open).
 5. `cache_config_info` reports the expected `kv_offloading_backend` and `kv_offloading_size`. If both are missing, the flags didn't take.

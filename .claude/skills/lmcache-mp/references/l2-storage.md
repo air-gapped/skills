@@ -147,9 +147,19 @@ Eviction supported via `max_capacity_gb` (default 0 = aggregate eviction disable
 ### Newer adapters (LMCache 0.4.5+)
 
 - **`raw_block`** — MP L2 adapter that stores raw KV blocks without NIXL (LMCache#3119). Useful where NIXL is unavailable but a structured block store is wanted.
-- **RESP / Redis-Valkey** — L2 over the RESP protocol against Redis or Valkey (LMCache#2967). Backs a networked KV tier without a filesystem mount.
+- **RESP / Redis-Valkey** — L2 over the RESP protocol against Redis or Valkey (LMCache#2967). Backs a networked KV tier without a filesystem mount. 0.5.1 added per-key TTL and partial-chunk validation for the Valkey glide connector (#3836).
+- **Aerospike** — optional native L2 backend, compiled in via `BUILD_AEROSPIKE` (0.5.0, #3458). Not in the default wheel.
 
-Both shipped in v0.4.5; consult the LMCache `docs/source/mp/l2_storage.rst` for the exact config keys before use.
+Consult the LMCache `docs/source/mp/l2_storage.rst` for the exact config keys before use.
+
+### Adapter-adjacent changes in the 0.5 line
+
+- **Runtime registration / deregistration of L2 adapters** (0.5.0, #3743) — the adapter set is no longer fixed at server start.
+- **L2→L1 warm-prefetch** driven by the MP coordinator (0.5.1, #3827).
+- **TurboQuant serde for L2 adapters** (0.5.1, #3193) and asymmetric serde (e.g. FP16 key / FP8 value, 0.5.0, #3277) — the on-tier representation no longer has to match the engine's KV dtype.
+- **Configurable `disk_io_threads`** for local-disk and GDS backends (0.5.1, #3941).
+- **Device-DAX as hybrid L1 overflow** (0.5.0, #3584), split cleanly from the CPU L1 manager in 0.5.1 (#3947) — a tier between DRAM and the L2 adapters.
+- **AMD `hipFile` backend for the GDS L1 tier** (0.5.1, #3843).
 
 ### `mock` — for testing
 
