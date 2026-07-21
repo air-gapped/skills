@@ -3,6 +3,46 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Resolved — 2026-07-21 (freshen)
+
+**Five undocumented upstream breaking changes found — the pass's real output.**
+
+The skill cited exactly two entries from `doc/rtd/reference/breaking_changes.rst`
+(24.3 service rename, 24.1 `datasource_list` None). Reading the file end-to-end
+showed it carries **nine** version entries; five were missing here: 26.1, 25.3,
+**25.1.4**, 25.1, 24.4. Summarised in a new SKILL.md § *Upstream breaking
+changes*.
+
+The one that matters operationally is **25.1.4 — strict datasource identity
+before network**. `ds-identify` now demands identification from DMI, the kernel
+command line, or an explicit `datasource_list:`; the previous late-discovery
+mode (bring networking up, probe well-known link-local IPs) was removed
+specifically to stop a bad actor on the local network answering provisioning
+requests. Two things make it worth prominent placement:
+
+- it hits **Ec2 / OpenStack / AltCloud on non-x86**, where the kernel may not
+  expose DMI; and
+- the failure is quiet — with no datasource identified, **cloud-init stays
+  disabled and configures nothing at boot**, so the symptom is "the machine came
+  up unconfigured", not an error.
+
+It also strengthens an existing recommendation: the air-gapped checklist already
+says to pin `datasource_list: [NoCloud]`, previously justified only by probe
+timeouts. It is now also the supported mitigation for this change.
+
+**Verified unchanged:** netplan render target (`netplan.py` **L23**), NoCloud
+optional seed list (`DataSourceNoCloud.py` **L102**), 26.1 ntp→ntpsec. Line
+anchors added.
+
+**Method note recorded in `sources.md`:** citing individual rows from a
+changelog-style document gives no signal when new rows appear *above* them.
+Diff the version headings
+(`grep -nE '^[0-9]+\.[0-9]+' breaking_changes.rst`) instead of re-checking the
+two already quoted. Same trap as the sibling pass's release-vs-`main` gap:
+`main` here is active (pushed 2026-07-17) while the newest release is ~5 months
+old, so a release-tag check would have reported nothing to do.
+
+
 ## Open
 
 - **Dim 7 (Resource Quality) — no bundled scripts (by design).** cloud-init is a

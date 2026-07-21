@@ -209,6 +209,40 @@ stages, and re-run/golden-image notes in `references/cli-and-debugging.md`.
 - Use `vendor-data` for site-wide defaults (mirror, CA, NTP, base users); per-host
   `user-data` overrides it.
 
+## Upstream breaking changes worth knowing (`doc/rtd/reference/breaking_changes.rst`)
+
+Verified against `main` on 2026-07-21. Ubuntu vendors patch some of these out —
+the doc says so itself — so confirm against the image before assuming.
+
+**25.1.4 — strict datasource identity before network. The one most likely to
+bite an on-prem/ARM fleet.** `ds-identify` now requires strict identification
+from **DMI platform data, the kernel command line, or an explicit
+`datasource_list:`** in `/etc/cloud/cloud.cfg.d`. Previously, a platform without
+clear identifying data fell into a *late discovery mode* that brought networking
+up and reached out to well-known link-local IPs to fetch config — the hardening
+exists to stop a bad actor on the local network answering those requests.
+
+- **Most affected: Ec2, OpenStack and AltCloud on non-x86**, where the kernel
+  may not expose DMI data.
+- **Failure mode is silent-ish:** if no datasource is identified, cloud-init
+  **stays disabled and performs no configuration at all during boot** — the
+  machine simply comes up unconfigured.
+- **Mitigations:** launch with `openstack server create … --config-drive true`,
+  or pin `datasource_list:` explicitly. This is a second, stronger reason for
+  the `datasource_list: [NoCloud]` pin already recommended in the air-gapped
+  checklist — it is no longer only about avoiding probe timeouts.
+
+Also recorded, lower operational impact for this skill's use cases:
+
+| Version | Change |
+|---|---|
+| **26.1** | OpenStack bond names are no longer hard-coded to `bond0`/`bond1`… — they now take whatever `network_data.json` provides |
+| **25.3** | Systemd **socket protocol changed** for compatibility with `openbsd-netcat` alternatives (e.g. `nmap`'s `ncat -U`) — **downstreams shipping a custom `ExecStart=` must update**. Build backend moved **setuptools/distutils → meson** (PEP-0632); packagers should diff the generated package |
+| **25.1** | `/usr` merge — packaging installs nothing to `/lib` any more, everything to `/usr/lib`. Affects non-systemd / older / non-Linux distros |
+| **24.4** | `cloud-final.service` ordering standardized — changed the systemd boot order on some distributions |
+| **24.3** | `cloud-init.service` → `cloud-init-network.service` (already covered above) |
+| **24.1** | `ds-identify` no longer auto-appends `None` to a single-entry `datasource_list` (already covered above) |
+
 ## Boundaries (sibling skills)
 
 - **`network:`** → **ubuntu-netplan** skill (v2 is netplan format).
