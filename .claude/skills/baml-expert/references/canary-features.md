@@ -1,8 +1,10 @@
-# Canary / bleeding-edge features
+# Recently-shipped features the public docs lag on
 
-Only load this if the user is working inside the BAML repo itself, or on a project that pins `baml-py` to a canary build (0.221.0+). These features may not be reflected in the public docs yet. Source of truth: `fern/pages/changelog.mdx` + `beps/docs/` (BAML Enhancement Proposals) in the BAML repo.
+**Reframed 2026-07-21: these have SHIPPED.** Everything in the 0.221.0 list below is reachable from a stock `pip install baml-py>=0.221` — 0.221.0 released 2026-04-14, and the SDK is on 0.223.0 as of 2026-06-23. The file's earlier "canary-only, only relevant inside the BAML repo" framing was written before those releases cut and over-restricted the guidance.
 
-## 0.221.0 (2026-04-14) and in-flight canary
+What is still true is the *documentation* gap: `docs.boundaryml.com` does not describe most of this. So the load rule is **the feature, not the audience** — read this whenever a project pins `baml-py>=0.221` and the task touches lambdas, `?.`/`??`, `ns_*` namespaces, void returns, `baml grep`/`describe`, or the `baml run` VM. Source of truth remains `fern/pages/changelog.mdx` + `beps/docs/` (BAML Enhancement Proposals) in the repo, since the public docs won't confirm them.
+
+## Shipped in 0.221.0 (2026-04-14)
 
 - **Lambda expressions** in BAML compiler (#3302). First-class function values — syntax under evolution; check `beps/docs/` for the current spec.
 - **Optional chaining `?.` and null coalescing `??`** (BEP-020, #3267). Finally — e.g. `resume.profile?.email ?? "unknown"` inside expressions/Jinja-adjacent contexts.
@@ -33,6 +35,8 @@ Use cases:
 
 Status: early. Pin an exact version; expect breaking changes.
 
+That crate is now cut as its own release line — `baml-language-0.NN.N` tags, at 0.15.0 on 2026-07-14, on a much faster cadence than the SDK (plus per-commit nightlies). Read those tags as the compiler/VM toolchain version, never as the SDK version; see `sources.md` §"Two version lines".
+
 ## BEPs — BAML Enhancement Proposals
 
 Design-doc collection at `beps/docs/` in the repo. When a canary feature has semantics you don't understand, read the corresponding BEP — it's usually more accurate than the public docs for the first few releases of a feature.
@@ -55,10 +59,10 @@ result SomeField?.value ?? "fallback"
 
 Update the generator's `version "0.221.0"` to match and document the minimum in a `BAML_VERSION` or README section.
 
-## When canary matters
+## When this file matters
 
-- User is **working on the BAML project itself** (a local checkout of [boundryml/baml](https://github.com/boundryml/baml)) → read BEPs before making syntax assumptions.
-- User **pinned a canary SDK** intentionally → new syntax is fair game.
-- User **pinned stable** → stick to the main SKILL.md reference; avoid canary-only features.
+- Project pins **`baml-py>=0.221`** → everything above is fair game; the absence of a docs page is not evidence the feature is missing.
+- Project pins **below 0.221** → stick to the main SKILL.md reference and gate as shown above.
+- User is **working on the BAML repo itself** ([boundaryml/baml](https://github.com/boundaryml/baml)) → read the BEPs before making syntax assumptions; semantics for young features move faster than the changelog.
 
 Fallback rule: if unsure, check `baml_client`'s embedded version (printed at top of generated files) or `pip show baml-py`.

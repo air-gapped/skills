@@ -159,6 +159,7 @@ template_string PrintMessages(messages: Message[]) #"
 - `{{ expr }}` output, `{% stmt %}` control flow, `{# comment #}`.
 - **Always include `{{ ctx.output_format }}`** for structured output. It renders the return type as a compact schema tuned to survive in prompts better than JSON Schema.
 - Tunable: `{{ ctx.output_format(prefix="Answer in JSON:", always_hoist_enums=true, or_splitter=" or ", hoist_classes="auto") }}`.
+- `render_null_as` (**0.223.0+**, PR #3822) replaces the `null` marker on nullable members: `{{ ctx.output_format(render_null_as="omit") }}` renders `string or omit`, which reads as an instruction to drop the key rather than emit `null`. Reach for it when a model keeps returning literal `null` strings.
 - `{{ ctx.client }}` → `{provider, model, name}` for provider-conditional prompting.
 - `{{ _.role("user") }}` / `{{ _.role("system") }}` — split the prompt into messages. Default is a single `system` message (or `user` when images present).
 - Role with metadata (Anthropic prompt caching): `{{ _.role("user", cache_control={"type": "ephemeral"}) }}` — requires `options { allowed_role_metadata ["cache_control"] }` on the client.
@@ -316,5 +317,5 @@ Load these references only when the task involves them:
 - `references/testing.md` — multimodal test inputs, TypeBuilder in tests, template string args, glob/exclude, CI integration, `--require-human-eval`.
 - `references/python-integration.md` — ClientRegistry, TypeBuilder, Collector, error class hierarchy, LLM-fixup pattern, cancellation.
 - `references/cli.md` — `baml-cli init/generate/test/serve/dev/fmt/grep/describe/optimize/run` with all flags.
-- `references/canary-features.md` — features new on canary / 0.221+ (lambdas, `?.`/`??`, `ns_*` namespaces, void returns, `baml run` VM, BEPs). Only relevant if working directly on the BAML repo itself.
+- `references/canary-features.md` — shipped-in-0.221.0 features the public docs still omit (lambdas, `?.`/`??`, `ns_*` namespaces, void returns, `baml grep`/`describe`, `baml run` VM, BEPs). Load when the project pins `baml-py>=0.221`.
 - `references/sources.md` — dated index of official docs, spec URLs, PR references (for freshen audits).
