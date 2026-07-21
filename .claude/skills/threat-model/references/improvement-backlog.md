@@ -3,6 +3,32 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+All four sources re-probed; **nothing in this skill needed correcting.**
+
+- **Shostack four-question framework PDF, OWASP Threat Modeling Cheat Sheet,
+  GitHub Security Advisories API docs — all HTTP 200.** The advisory endpoint
+  shape the Stage-1 bootstrap swarm depends on is unchanged.
+- **The adapted surface is unchanged upstream.** Of 17 harness commits since the
+  last stamp, only two touched threat-model paths —
+  `.claude/skills/threat-model/README.md` and `docs/threat-model.md` — and
+  notably **not** the upstream `SKILL.md`. Both came from the 2026-07-16
+  detection-&-response-track commit (cross-references to the new track) and the
+  same-day docs pass folding `Status` sections into prose. The
+  bootstrap/interview methodology is untouched.
+- **Two harness-wide facts recorded here as well**, since they apply to every
+  skill that delegates to or derives from this upstream: the new declared usage
+  marker on outbound agent API requests (first-party only), and the new
+  detection & response track. Full detail lives once in
+  `../patch/references/sources.md` rather than being duplicated four times.
+
+**Method note:** for a family of skills sharing one upstream, probe the repo
+once and then ask a *per-skill* question — "which paths under my adapted surface
+moved?" That distinguishes "the harness changed" from "my skill is stale", which
+a repo-level `pushed_at` check cannot.
+
+
 ## Open
 
 - **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** SKILL.md:26
