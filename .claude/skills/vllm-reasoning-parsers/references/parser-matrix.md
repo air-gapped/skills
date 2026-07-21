@@ -1,19 +1,47 @@
 # Per-parser matrix
 
-One row per registered name. Canonical file is `vllm/reasoning/<file>.py`.
+One row per registered name. **27 registered names** at v0.25.1.
+
+**Two implementation paths now — check which one a name is on before reading its
+source.** A refactor has moved several parsers into a new top-level
+**`vllm/parser/`** package, where one class per model (e.g. `Qwen3Parser`) is
+split by `make_adapters()` into *both* a reasoning adapter and a tool adapter:
+
+```python
+# vllm/parser/engine/registered_adapters.py
+(Qwen3ParserReasoningAdapter, Qwen3ParserToolAdapter) = make_adapters(Qwen3Parser)
+```
+
+The `vllm/reasoning/*_engine_reasoning_parser.py` files are now **three-line
+re-export shims** — the logic is in `vllm/parser/<model>.py`. This is the
+unified reasoning+tool parser design from RFC
+[#32713](https://github.com/vllm-project/vllm/issues/32713), which is still
+formally OPEN (and stale-bot-marked) even though the code has landed.
+
+| Path | Names | Where the logic lives |
+|---|---|---|
+| **Adapter** (new) | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `mimo`, `nemotron_v3`, `qwen3`, `seed_oss` | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
+| **Legacy** (standalone) | the other 19 | `vllm/reasoning/<file>.py` as before |
+
+Note `vllm/parser/` also contains `kimi_k2.py`, `minimax_m2.py`, `mistral.py`
+and `deepseek_v32.py` whose *reasoning* registry entries still point at the
+legacy files — the migration is partial, so the presence of a `vllm/parser/`
+module does not by itself tell you which implementation the reasoning path uses.
+Read `_REASONING_PARSERS_TO_REGISTER`.
 
 | Name | Class | File | Family | Start in prompt? | Thinking-disable switch | Truncation policy |
 |---|---|---|---|---|---|---|
 | `deepseek_r1` | `DeepSeekR1ReasoningParser` | `deepseek_r1_reasoning_parser.py` | `<think>`/`</think>` (vocab single-token) | Yes (modern templates) | None (always on) | `(all, None)` = all reasoning |
 | `deepseek_v3` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | Delegates → R1 or Identity | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default: **off**) | Inherits from delegate |
-| `deepseek_v4` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | **Alias of `deepseek_v3`** — same file + class, registered under a second name | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default **off**) | Inherits from delegate |
+| `deepseek_v4` | `DeepSeekV4ParserReasoningAdapter` | `deepseek_v4_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v4.py` | **No longer an alias of `deepseek_v3`** — as of v0.25.1 it has its own `DeepSeekV4Parser` on the adapter path | — | See `vllm/parser/deepseek_v4.py` | See file |
 | `poolside_v1` | `PoolsideV1ReasoningParser` | `poolside_v1_reasoning_parser.py` | Subclass of `DeepSeekV3ReasoningParser` (`<think>`/`</think>`); scopes the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't false-positive `prompt_is_reasoning_end` | — | Same as `deepseek_v3` | Inherits from delegate |
-| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Cohere Command family (file shared with `cohere_command4`) | — | — | See file |
-| `cohere_command4` | `CohereCommand4ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Cohere Command family (file shared with `cohere_command3`) | — | — | See file |
-| `glm45` / `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
-| `qwen3` / `mimo` | `Qwen3ReasoningParser` | `qwen3_reasoning_parser.py` (`mimo` aliases the same class/file) | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |
+| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared, 571 lines) | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`); both classes derive from `BaseCohereCommandReasoningParser` | — | None — the subclass only selects a filter profile, `PyFilterOptions().cmd3()` streaming / `.cmd3().no_tools()` unary | Base class behaviour |
+| `cohere_command4` | `CohereCommand4ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Same delimiters and base class as `cohere_command3` | — | None — differs from `cohere_command3` **only** by `PyFilterOptions().cmd4()` / `.cmd4().no_tools()` | Base class behaviour |
+| `glm45` / `glm47` | `Glm47MoeParserReasoningAdapter` | `glm47_moe_reasoning_parser.py` (shim) → `vllm/parser/glm47_moe.py` | **`glm45` moved off the DeepSeek-V3 class onto the adapter path and now shares with the new `glm47` name** — it no longer behaves identically to `holo2` | — | See `vllm/parser/glm47_moe.py` | See file |
+| `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
+| `qwen3` / `mimo` | `Qwen3ParserReasoningAdapter` | `qwen3_engine_reasoning_parser.py` (shim) → `vllm/parser/qwen3.py` (`mimo` aliases the same class/file) | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |
 | `ernie45` | `Ernie45ReasoningParser` | `ernie45_reasoning_parser.py` | `<think>`/`</think>` + `<response>`/`</response>` | Optional — tolerates both | None | Base behavior |
-| `gemma4` | `Gemma4ReasoningParser` | `gemma4_reasoning_parser.py` | `<think>`/`</think>` w/ helper `gemma4_utils.py` | — | `chat_template_kwargs` | See file |
+| `gemma4` | `Gemma4ParserReasoningAdapter` | `gemma4_engine_reasoning_parser.py` (shim) → `vllm/parser/gemma4.py` | `<think>`/`</think>` | — | `chat_template_kwargs` | See file |
 | `hunyuan_a13b` | `HunyuanA13BReasoningParser` | `hunyuan_a13b_reasoning_parser.py` | `<think>\n … \n</think>\n<answer>\n … \n</answer>` | No | None | Regex fallback |
 | `hy_v3` | `HYV3ReasoningParser` | `hy_v3_reasoning_parser.py` | `<think>`/`</think>` (BaseThinking subclass) with `_identity_parser` delegation | Optional | `chat_template_kwargs.reasoning_effort` (or top-level `reasoning_effort`); value `"no_think"` routes to `IdentityReasoningParser`; default is `"no_think"` when unset | Inherits from delegate (identity when off, base when on) |
 | `granite` | `GraniteReasoningParser` | `granite_reasoning_parser.py` | Phrases: "Here is my thought process:" / "Here is my response:" | Phrases in output | None | Falls through as content if phrases absent |
@@ -21,10 +49,11 @@ One row per registered name. Canonical file is `vllm/reasoning/<file>.py`.
 | `minimax_m2` | `MiniMaxM2ReasoningParser` | `minimax_m2_reasoning_parser.py` | Only `</think>` (no start) | N/A (no start) | None | `(all, None)` before `</think>` |
 | `minimax_m2_append_think` | `MiniMaxM2AppendThinkReasoningParser` | same file | Prepends `<think>` to content; never separates | — | — | Always content |
 | `mistral` | `MistralReasoningParser` | `mistral_reasoning_parser.py` | `[THINK]`/`[/THINK]` via `SpecialTokens.begin_think/end_think` | Depends on template | None | Complex: handles all 4 BOT/EOT combinations |
-| `nemotron_v3` | `NemotronV3ReasoningParser` | `nemotron_v3_reasoning_parser.py` | R1 base + field swap | — | `chat_template_kwargs.enable_thinking=False` OR `force_nonempty_content=True` swaps reasoning↔content | Inherits R1 |
+| `nemotron_v3` | `NemotronV3ParserReasoningAdapter` | `nemotron_v3_engine_reasoning_parser.py` (shim) → `vllm/parser/nemotron_v3.py` | R1 base + field swap | — | `chat_template_kwargs.enable_thinking=False` OR `force_nonempty_content=True` swaps reasoning↔content | Inherits R1 |
 | `olmo3` | `Olmo3ReasoningParser` | `olmo3_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
 | `openai_gptoss` | `GptOssReasoningParser` | `gptoss_reasoning_parser.py` | Harmony `<\|channel\|>analysis<\|message\|>` … `<\|end\|>`; reasoning ends at `<\|channel\|>final<\|message\|>` | Yes (system msg) | — | `extract_reasoning` raises NotImplementedError — harmony branch only |
-| `seed_oss` | `SeedOSSReasoningParser` | `seedoss_reasoning_parser.py` | `<seed:think>`/`</seed:think>` | — | — | — |
+| `seed_oss` | `SeedOssParserReasoningAdapter` | `seed_oss_engine_reasoning_parser.py` (shim) → `vllm/parser/seed_oss.py` | `<seed:think>`/`</seed:think>` | — | — | — |
+| `minimax_m3` | `MiniMaxM3ReasoningParser` | `minimax_m3_reasoning_parser.py` | MiniMax M3 — own file/class, **new since the 2026-05-28 sweep** (separate from the two `minimax_m2*` names) | — | See file | See file |
 | `step3` / `step3p5` | `Step3ReasoningParser` / `Step3p5ReasoningParser` | `step3_reasoning_parser.py` / `step3p5_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
 
 ## Families
