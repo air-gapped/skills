@@ -22,14 +22,14 @@ The published image is **self-contained**: its Dockerfile bakes the full `.venv`
 
 ```bash
 # 1. Resolve a real digest for the release you want (don't pin :latest)
-skopeo inspect docker://ghcr.io/sooperset/mcp-atlassian:v0.21.1 | jq -r '.Digest'
+skopeo inspect docker://ghcr.io/sooperset/mcp-atlassian:v0.23.0 | jq -r '.Digest'
 
 # 2. Copy into your registry. --all preserves the multi-arch manifest;
 #    drop it / use --override-arch to copy a single platform if the gap is one arch.
 skopeo copy --all \
   docker://ghcr.io/sooperset/mcp-atlassian@sha256:<digest> \
   docker://harbor.internal/mirror/mcp-atlassian@sha256:<digest>
-# (also tag it for humans: skopeo copy ...:v0.21.1 ...:v0.21.1)
+# (also tag it for humans: skopeo copy ...:v0.23.0 ...:v0.23.0)
 
 # 3. Connect to Claude Code. stdio MCP server → `docker run -i` is mandatory.
 claude mcp add mcp-atlassian \

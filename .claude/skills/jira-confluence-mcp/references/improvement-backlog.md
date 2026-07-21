@@ -2,7 +2,54 @@
 
 Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (trigger) / F0 (freshen); update on completion.
 
+## Resolved — 2026-07-21 (freshen)
+
+The 2026-06-07 pass warned the project "moves fast" and flagged the v0.22
+default change as a *forecast*. Three releases landed since — **v0.22.0
+(2026-07-10), v0.22.1 (07-11), v0.23.0 (07-18)** — after a ~3-month gap.
+
+- **The v0.22 toolset-default flip has shipped.** Rewritten from forecast to
+  fact in `hardening.md` and SKILL.md: on any build ≥ v0.22.0, `TOOLSETS=all`
+  is required to keep the old all-tools behaviour, not merely advisable.
+- **v0.22.0 closed a critical transport hole — the pass's most important
+  finding.** Pre-0.22, an unauthenticated `streamable-http` request **fell back
+  to the operator's global credentials**, so anyone who could reach the
+  transport acted as the operator. Now 401, with the old behaviour opt-in via
+  `ALLOW_GLOBAL_CRED_FALLBACK` (default off). Documented with the two things an
+  operator actually needs: **stdio deployments (the `claude mcp add` default)
+  were never exposed**, and **do not set that variable to silence a
+  post-upgrade 401** — that restores the vulnerability.
+- **v0.22.0 also confines attachment paths** to the server's working directory
+  (`validate_safe_path`), closing arbitrary-read/exfiltration and an intra-CWD
+  overwrite RCE variant. **Absolute paths now fail** — a breaking change for
+  existing attachment workflows. Recorded the intended replacement:
+  `content_base64` on `upload_attachment` (#1366), not a path workaround.
+- **Three tracked issues fixed:** #1262 (transition+comment ADF), #1343
+  (markdown pipe tables), #1234 (FastMCP CVEs — v0.23.0 bumps FastMCP and
+  Starlette, so the "not reached by local stdio+PAT" deferral is moot on
+  current builds). **Five still open:** #1274, #1279, #1311, #1340, #1341.
+- **Image pins bumped** v0.21.1 → v0.23.0 in the skopeo mirror examples
+  (SKILL.md + `air-gapped.md`).
+- **Tool count softened, not guessed.** "72 tools" was measured at v0.21.1;
+  two feature releases have added more. Reframed as a floor with the live list
+  as authority, rather than substituting an invented number.
+
+**Verified without an API call:** this session's own MCP tool surface includes
+`jira_get_request_types`, `jira_create_customer_request`,
+`jira_get_project_epic_hierarchy` and `jira_get_cross_project_dependencies` —
+all v0.23.0-only. Direct evidence the connected server is already ≥ v0.23.0,
+read off the advertised tool list rather than by invoking live Atlassian.
+
 ## Open
+
+- **Docs-site rows not re-probed (Dim 9)** — `references/sources.md` rows for
+  installation / authentication / configuration / compatibility /
+  tools-reference / troubleshooting still carry 2026-06-07 stamps. After
+  v0.22.0 + v0.23.0 the **tool count, the 15+6 toolset tables, and the env-var
+  catalog are very likely stale** (v0.23.0 alone added JSM, epic-hierarchy,
+  PAC/WPAD and mTLS surfaces). Re-probing them is a multi-page docs read rather
+  than a `gh` call, which is why this pass spent its budget on the release +
+  issue drift instead. Lead the next pass with it.
 
 _None._ All three passes (trigger, improve, freshen) ran on 2026-06-07 with **zero mutations required** — the skill was authored with prior skill-improver lessons (split frontmatter under caps, per-row source dates, imperative voice, pointer-shaped body) already applied.
 

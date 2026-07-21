@@ -11,7 +11,7 @@ when_to_use: |-
 
 Scope: getting **[sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)** — the MCP server that gives an agent Jira/Confluence tools — *connected, hardened, and debugged*, including **air-gapped**. This is the **setup/ops layer**: the knowledge that is invisible at tool-call time.
 
-**Hard boundary — what this skill does NOT do.** Once the server is connected, it **self-documents its 72 tools at runtime** (names, params, schemas) over the MCP protocol — so *using* the tools (`jira_search`, `jira_create_issue`, `jira_transition_issue`, …) needs no skill; just call them. For exhaustive tool/JQL/CQL docs, the project publishes an LLM-readable **`https://mcp-atlassian.soomiles.com/llms-full.txt`** — fetch it on demand instead of duplicating it here. Sibling skills: **`jira-cli`** (the `jira` CLI as an alternative execution path) and **`jira-best-practices`** (how to use Jira *well* — hierarchy, lean config). This skill is only the install/auth/hardening/air-gap/troubleshooting that those don't cover and the live MCP can't surface.
+**Hard boundary — what this skill does NOT do.** Once the server is connected, it **self-documents its full tool set at runtime** (72 at v0.21.1; v0.22.0/v0.23.0 added more — the live list is the count) (names, params, schemas) over the MCP protocol — so *using* the tools (`jira_search`, `jira_create_issue`, `jira_transition_issue`, …) needs no skill; just call them. For exhaustive tool/JQL/CQL docs, the project publishes an LLM-readable **`https://mcp-atlassian.soomiles.com/llms-full.txt`** — fetch it on demand instead of duplicating it here. Sibling skills: **`jira-cli`** (the `jira` CLI as an alternative execution path) and **`jira-best-practices`** (how to use Jira *well* — hierarchy, lean config). This skill is only the install/auth/hardening/air-gap/troubleshooting that those don't cover and the live MCP can't surface.
 
 **Self-hosted Data Center is the default here.** Where Cloud differs, it's flagged.
 
@@ -79,8 +79,8 @@ The container-CA step is the **most common air-gap surprise** — a self-contain
 ```bash
 # 1. resolve + mirror the prebuilt image, pinned by digest (supply-chain hygiene)
 skopeo copy --all \
-  docker://ghcr.io/sooperset/mcp-atlassian:v0.21.1 \
-  docker://harbor.internal/mirror/mcp-atlassian:v0.21.1
+  docker://ghcr.io/sooperset/mcp-atlassian:v0.23.0 \
+  docker://harbor.internal/mirror/mcp-atlassian:v0.23.0
 # 2. connect (stdio needs -i); mount the internal CA so TLS verifies
 claude mcp add mcp-atlassian \
   -e JIRA_URL=https://jira.internal.company.com \
@@ -99,7 +99,8 @@ The server exposes **72 write-capable tools**; scope it deliberately.
 - **`READ_ONLY_MODE=true`** — disables *all* write tools regardless of other settings. Use for read/report-only agents.
 - **`TOOLSETS`** — group-level control (15 Jira + 6 Confluence toolsets). `TOOLSETS=default` ≈ 23 core tools; add extras like `default,jira_agile`. **`ENABLED_TOOLS`** allow-lists individual tools; the two **intersect**.
 - **`JIRA_PROJECTS_FILTER` / `CONFLUENCE_SPACES_FILTER`** — limit blast radius to named projects/spaces.
-- **Version gotcha:** in **v0.22.0 the default flips from all-72-tools → 6 core toolsets only**. To keep current behavior set `TOOLSETS=all` explicitly; unknown toolset names are silently ignored (all-unknown = fail-closed, zero tools).
+- **Version gotcha — now shipped:** **v0.22.0 (2026-07-10) flipped the default from all-tools → 6 core toolsets only.** On any build ≥ v0.22.0 you must set `TOOLSETS=all` explicitly to keep the old behaviour; unknown toolset names are silently ignored (all-unknown = fail-closed, zero tools).
+- **⚠ v0.22.0 also closed a critical transport hole.** Before it, an unauthenticated `streamable-http` request **fell back to the operator's global credentials**; now such requests get **401**, with the old behaviour opt-in via `ALLOW_GLOBAL_CRED_FALLBACK` (default off). stdio deployments were never exposed. Do **not** set that variable to silence a post-upgrade 401 — it restores the vulnerability. v0.22.0 also confines attachment/`content_file` paths to the server's working directory (use the new `content_base64` input instead of absolute paths). See `references/hardening.md`.
 
 Toolset tables + the read-only/filter mechanics: **`references/hardening.md`**.
 

@@ -1,6 +1,6 @@
 # Hardening — scope the tools deliberately
 
-The server exposes **72 tools, most write-capable** (create/update/delete/transition issues, edit pages, etc.). Default-on for everything is rarely what you want for an agent. Three layered controls, plus the v0.22 default change.
+The server exposes **70+ tools, most write-capable** (72 as measured at v0.21.1; v0.22.0 and v0.23.0 each added a batch — treat 72 as a floor and read the live list, which is authoritative) (create/update/delete/transition issues, edit pages, etc.). Default-on for everything is rarely what you want for an agent. Three layered controls, plus the v0.22 default change.
 
 ## 1. Read-only mode (the blunt, safe default)
 
@@ -50,9 +50,13 @@ When **both** `TOOLSETS` and `ENABLED_TOOLS` are set they **intersect** — a to
 
 `JIRA_PROJECTS_FILTER=PROJ,DEV` and `CONFLUENCE_SPACES_FILTER=DEV,DOC` restrict which projects/spaces the tools touch — orthogonal to tool filtering, and worth setting so an agent can't wander the whole instance.
 
-## The v0.22.0 default change (version gotcha)
+## The v0.22.0 default change — **SHIPPED 2026-07-10**
 
-Today (≤ v0.21.x), an **unset `TOOLSETS` enables all 72 tools**. **In v0.22.0 the default flips to the 6 core toolsets only.** Consequences:
+**This is no longer a forecast.** v0.22.0 released 2026-07-10 (v0.22.1 the next
+day, v0.23.0 on 2026-07-18). If the server has been upgraded past v0.21.x, the
+flip has already happened.
+
+Previously (≤ v0.21.x), an **unset `TOOLSETS` enabled all tools**. **From v0.22.0 the default is the 6 core toolsets only.** Consequences:
 - An agent relying on `jira_agile`/`jira_links`/etc. without setting `TOOLSETS` will **lose those tools** on upgrade to 0.22.
 - To preserve current behavior across the upgrade, set **`TOOLSETS=all` explicitly**.
 - **Unknown toolset names are silently ignored**; if *every* name is unknown, **zero tools** are enabled (fail-closed) — a typo in `TOOLSETS` can silently disable the server.
@@ -61,7 +65,36 @@ Today (≤ v0.21.x), an **unset `TOOLSETS` enables all 72 tools**. **In v0.22.0 
 
 - **Read/report agent:** `READ_ONLY_MODE=true` (+ project filter).
 - **Scoped write agent (typical):** `TOOLSETS=default` (+ `jira_agile`/`jira_links` if needed) + `JIRA_PROJECTS_FILTER` + `ENABLED_TOOLS` if you want a tight allow-list.
-- **Full access (power use):** `TOOLSETS=all` — pin it now so the 0.22 default flip doesn't surprise you.
+- **Full access (power use):** `TOOLSETS=all` — required from v0.22.0 onward, not merely advisable.
+
+## ⚠ v0.22.0 security hardening — two changes that alter behaviour
+
+v0.22.0 resolved a **37-advisory security audit**. Two items matter operationally
+even if you never read a CVE:
+
+**1. Unauthenticated HTTP transport no longer borrows the operator's credentials
+(critical).** Before v0.22.0, an unauthenticated `streamable-http` request **fell
+back to the server's own global credentials** — i.e. anyone who could reach the
+transport acted as the operator. From v0.22.0 such requests are **rejected with
+401**, and the old behaviour is opt-in via **`ALLOW_GLOBAL_CRED_FALLBACK`
+(default off)**.
+
+- If you run **stdio only** (the default for `claude mcp add`), you were never
+  exposed — there is no listening transport.
+- If you run **streamable-http**, treat any pre-0.22 deployment that was
+  network-reachable as having had an **unauthenticated credential-proxy hole**,
+  and do not re-enable `ALLOW_GLOBAL_CRED_FALLBACK` to "fix" a 401 after
+  upgrading — that restores the vulnerability.
+
+**2. Attachment/content paths are now confined to the working directory.**
+`upload_attachment` / `download_attachment` (Jira and Confluence) and the new
+`content_file` page input validate every caller-supplied path via
+`validate_safe_path`. **Paths must now resolve inside the server's working
+directory** — this closes arbitrary-file-read/exfiltration and an intra-CWD
+overwrite RCE variant, and it **breaks workflows that passed absolute paths**.
+v0.22.0 also adds **`content_base64`** for `upload_attachment` precisely for the
+case where the server cannot read host file paths (#1366) — that is the intended
+replacement, not a path workaround.
 
 ## Sources
 See `references/sources.md`. Anchors: Tools Reference (toolset tables), Configuration (tool filtering + the v0.22 warning).
