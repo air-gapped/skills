@@ -81,6 +81,19 @@ fresh `.0`. Avoid a first-of-minor release for a controlled upgrade off EOL hard
 often also avoids the newest Rancher minor's churn. Ground the actual latest patch of each minor via `gh`
 (House Rule #2) and apply look-ahead (House Rule #5). `references/version-ladder-and-detection.md`.
 
+**Do not use `releases/latest` to find the newest version here.** Harvester
+patches several minors in parallel, so GitHub's date-ranked "latest" regularly
+points at a *lower* minor. Verified 2026-07-21: `releases/latest` resolved to
+**v1.7.2** (2026-07-07) while **v1.8.1** (2026-06-29) was the highest GA.
+Enumerate the tag list, drop prereleases, and derive the top patch **per minor
+line**:
+
+```bash
+gh release list -R harvester/harvester --limit 40 \
+  --json tagName,publishedAt,isPrerelease \
+  --jq '.[] | select(.isPrerelease==false) | "\(.tagName)\t\(.publishedAt[0:10])"'
+```
+
 ### 3. For each hop: external Rancher → UI-extension → pre-flight → Harvester → verify guests
 Each hop is self-contained: upgrade the external Rancher + UI extension to the pair, run the **enforced
 pre-flight gates**, then the Harvester upgrade, then verify the guest control planes before the next hop.

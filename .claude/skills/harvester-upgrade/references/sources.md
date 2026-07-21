@@ -1,6 +1,6 @@
 # Sources (primary / high-credibility)
 
-Grounded 2026-06-01. The ladder/pairing/ordering *mechanics* are durable methodology; the volatile leaf
+Grounded 2026-06-01; release/edition rows re-grounded **2026-07-21**. The ladder/pairing/ordering *mechanics* are durable methodology; the volatile leaf
 numbers — latest patch per minor, GA dates, "fixed in vX" claims, Node-Driver ranges — must be re-grounded via
 `gh` at use time (House Rule #2). Distilled from the deep-research report (see Provenance).
 
@@ -16,7 +16,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 | Harvester docs `rancher/{virtualization-management,harvester-ui-extension}.md` + `airgap.md` | 2026-06-01 | 3-step order, UI-ext support matrix, ui-plugin-catalog image map |
 | Harvester docs `rancher/{cloud-provider,csi-driver}.md` + `vm/{live-migration,create-vm,backup-restore}.md` | 2026-06-01 | CCM/CSI standalone install, migratability, backup primitives |
 | Harvester source `pkg/controller/master/upgrade/*` | 2026-06-01 | node order delegated, serial interlock, restoreVM, pause-map |
-| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-06-02 | edition reality (patches are community), latest GA (v1.8.0, no 1.9.0 GA — freshen-confirmed), prerelease flags |
+| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-07-21 | Edition reality re-confirmed (v1.8.1 and v1.7.2 ISOs both HTTP 200 → patches remain community). Latest GA per line: **v1.8.1** (2026-06-29), **v1.7.2** (2026-07-07). **Still no 1.9.0 GA** — v1.9.0-rc1/rc2 only (2026-07-08 / 07-15). ⚠ **`releases/latest` currently resolves to v1.7.2, a *lower* minor than v1.8.1**, because Harvester patches several minors in parallel and GitHub ranks by date. |
 | harvester/upgrade-helpers `pre-check/v1.x/check.sh` | 2026-06-01 | the enforced pre-flight gate thresholds |
 | KubeVirt live-migration (user-guide + `types.go`/`virt-config.go` v1.4.0) + harvester#9144/#10482/#10698/#4375 | 2026-06-01 | busy-etcd non-convergence; real v1.4 migration defaults; bandwidth-0 self-throttle; no-circuit-breaker |
 | Harvester upgrade drain + gating (`upgrade_controller.go`, `job_controller.go`, `virtualmachineinstance.go`, `upgrade_node.sh` @ v1.5.0/1.6.0/1.7.0) | 2026-06-02 | drain is eviction-based + honors PDBs; detector force-stops NodeSelector-pinned VMs pre-eviction; `restoreVM` is 1.6+ (auto-restart job, not a gate); pause-map is 1.7.0+; no guest-etcd gate; PDB+VMI-readinessProbe native gate |

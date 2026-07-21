@@ -2,6 +2,30 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+- **Release state re-grounded.** Latest GA per line is now **v1.8.1**
+  (2026-06-29) and **v1.7.2** (2026-07-07); the skill previously recorded
+  v1.8.0. **Still no 1.9.0 GA** — the prior pass's claim holds — but v1.9.0 has
+  entered **RC** (rc1 2026-07-08, rc2 2026-07-15) alongside a stream of
+  `v1.9.0-dev-<date>` tags. The ladder still tops out at 1.8.
+- **Found the recency-vs-rank trap live in this repo.** `releases/latest` for
+  `harvester/harvester` currently resolves to **v1.7.2** — a *lower* minor than
+  v1.8.1 — because Harvester patches several minors in parallel and GitHub
+  ranks "latest" by publish date. Anyone anchoring on `releases/latest` here
+  gets told 1.7 is newest. Added the enumerate-per-minor-line command to
+  SKILL.md § 2 (target selection) and a warning block to
+  `version-ladder-and-detection.md`. This is the same failure mode as the
+  Harbor 2.15 incident and the `rancher/turtles` prerelease-flag trap found in
+  the same freshen run — different mechanism, same wrong answer.
+- **Edition correction re-verified against real artifacts, not inference.**
+  `curl -I` on the *current* patch ISOs returns HTTP 200 for **v1.8.1** and
+  **v1.7.2**, so patches remain community-downloadable and the "Prime = paid
+  support on the same bits" correction still stands. Re-checked deliberately
+  rather than carried: this claim contradicts `compat/harvester.md`, so it
+  needs live evidence each pass.
+
+
 ## Open
 
 - **Dim 7 (Resource Quality, ~7 — neutral ceiling) — no bundled scripts, by design.** The skill points at the
