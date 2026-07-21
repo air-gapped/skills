@@ -50,7 +50,33 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| `lmsysorg/sgl-model-gateway:v0.3.2` (Docker Hub) | Current operator image; old `lmsysorg/sglang-router:*` deprecated post Dec 2025 rename. `v0.3.2` + `latest` both last_updated 2026-05-27 (then `v0.3.1` 2026-01-11, `v0.3.0` 2026-01-05). Note: the git release tag is `gateway-v0.3.1` — the image/crate `v0.3.2` legitimately trails the release-tag scheme, do not churn this. | 2026-05-28 | image v0.3.2 / release tag gateway-v0.3.1 |
+| `lmsysorg/sgl-model-gateway:v0.3.2` (Docker Hub) | Current operator image; old `lmsysorg/sglang-router:*` deprecated post Dec 2025 rename. Docker Hub carries **exactly 4 tags**: `latest` + `v0.3.2` (both last_updated 2026-05-27), `v0.3.1` (2026-01-11), `v0.3.0` (2026-01-05). | 2026-07-21 | image v0.3.2 / newest git tag gateway-v0.3.1 |
+
+### Why the image version exceeds the newest git tag — corrected 2026-07-21
+
+The previous note here said the image "legitimately **trails** the release-tag
+scheme". That is backwards: `v0.3.2` **leads** `gateway-v0.3.1`. The actual
+explanation, traced through commit history:
+
+- `[model-gateway] release 0.3.1 (#16254)` merged 2026-01-09 → git tag
+  `gateway-v0.3.1` cut.
+- `[smg] release 0.3.2 (#17168)` merged **2026-01-15** → `Cargo.toml` bumped to
+  0.3.2, crate and image published as `v0.3.2`… **but no `gateway-v0.3.2` git
+  tag was ever created.**
+
+So this is not a version-scheme skew at all — it is a **missing release tag**.
+0.3.2 is a real, shipped release that simply has no GitHub tag, which is why
+`gh release list` makes it look like 0.3.1 is current while Docker Hub and
+`Cargo.toml` both say 0.3.2. Trust the image and `Cargo.toml`; treat the
+`gateway-*` tag list as incomplete, not as authoritative.
+
+**Operationally more important:** the image was last built **2026-05-27**, but
+`sgl-model-gateway/` has kept moving on `main` — commits through **2026-07-03**
+including PD-router cancel-paired-decode (#2xxxx), DP-aware PD router dispatch
+(#26245), a PD cache-aware routing fix (#2xxxx), and a cargo-workspace
+restructure (2026-06-12). **None of that is in any published image.** Anyone who
+needs those fixes must build from source; anyone running `:v0.3.2` is on a
+2026-05-27 snapshot regardless of what `main` says.
 
 ## HuggingFace model references
 

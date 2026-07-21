@@ -61,10 +61,22 @@ version numbers.
   supported" list (SentencePiece, GGUF) is scoped to 1.3.2; those formats may
   have landed in 1.4/1.5, but the *gateway* still cannot use them. Both files
   now say which version the claims describe.
-- **No new gateway release in 6+ months.** `gateway-v0.3.1` (2026-01-09) is still
-  the newest `gateway-*` tag and the crate is still v0.3.2 — the image/tag skew
-  the previous pass warned not to churn is still exactly as described. `crdts =
-  "7.3"` unchanged.
+- **The "image/tag skew" was never a skew — it is a missing git tag, and the
+  skill described it backwards.** The old note said the image "legitimately
+  *trails* the release-tag scheme"; `v0.3.2` in fact **leads** `gateway-v0.3.1`.
+  Commit history resolves it: `[smg] release 0.3.2 (#17168)` merged 2026-01-15,
+  bumping `Cargo.toml` and shipping crate + image as 0.3.2 — but **no
+  `gateway-v0.3.2` tag was ever cut**. So `gh release list` under-reports the
+  real release state, and `Cargo.toml` + Docker Hub are the authority. Prompted
+  by the operator noticing the image was on 0.3.2 and calling it strange; it was,
+  and the previous explanation had rationalised it away.
+- **Published images are ~5 weeks behind `main`, and that is operationally
+  live.** Docker Hub carries only 4 tags, with `v0.3.2`/`latest` last built
+  **2026-05-27**. Meanwhile `sgl-model-gateway/` has commits through
+  **2026-07-03** — PD-router cancel-paired-decode, DP-aware PD dispatch (#26245),
+  a PD cache-aware routing fix, and a cargo-workspace restructure (2026-06-12).
+  None of it is in a published image. Recorded in `sources.md` so nobody assumes
+  `:v0.3.2` contains recent PD fixes. `crdts = "7.3"` unchanged.
 - **A stale-state carry, noted for honesty:** #17623 closed 2026-04-14 but was
   stamped "Last verified 2026-05-09" as a live citation. It is cited as an
   *operator measurement* rather than as an open bug, so the citation survives
