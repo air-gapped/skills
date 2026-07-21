@@ -6,6 +6,8 @@ this pass" instead.
 
 ## Open
 
+_All four items below carried forward unchanged at the 2026-07-21 freshen._
+
 ### 1. Narrow trigger surface (Dim 1 — locked by author mandate, carried 2026-05-28)
 
 **Pointer:** `SKILL.md:6-7` (`when_to_use`)
@@ -90,6 +92,49 @@ gate behind a `<details>` block.
 
 **Trigger to revisit:** if the skill ever ships to a public skills index or
 gets shared with collaborators, drop the section then.
+
+## Resolved — 2026-07-21 (freshen)
+
+- **chat_template staleness: converted from inference to measurement (highest
+  value).** Prior passes asserted the community quant "is stale until they
+  re-pull." This pass diffed the two files. `cyankiwi/gemma-4-31B-it-AWQ-4bit`
+  ships a `chat_template.jinja` hashing `94899c0f…25bff413` — byte-identical to
+  the 2026-04-30 canonical — while canonical is now `ae53464b…8de4c6d4`
+  (18683 B), **114 lines apart**. Rewrote SKILL.md fact #3 to name the five
+  concrete behaviours the frozen copy gives up (`preserve_thinking`,
+  `continues_into_next` turn closure, `<|channel>thought` re-open after
+  `tool_response`, null tool-argument → `null`, empty-`messages` guards) and to
+  quote the template's own new header: *"Published: 2026-07-09 — Fixed
+  tool-calling loops, turn closures, and thinking content-ordering."*
+- **Corrected an over-broad claim.** Fact #3 previously implicated
+  "cyankiwi/RedHatAI quants." `RedHatAI/gemma-4-31B-it-speculator.eagle3` ships
+  **no `chat_template.jinja` at all** (4 files: README, config.json, config.py,
+  model.safetensors) and is untouched since 2026-04-14. Scoped the claim to
+  cyankiwi.
+- **Closed the 2026-05-28 honest gap: r05/r06 re-pinned at v0.25.1.** Both
+  source claims survived five minors. `get_batch_defaults` moved 2207-2288 →
+  2397-2478 with GPU-branch logic unchanged (H100/H200 still share a path); the
+  P-EAGLE requirement moved 341 → 352-366 and **reversed check order**
+  (`dflash_config.mask_token_id` now first). Replaced the line-number pins in
+  SKILL.md and `hbm-saturation.md` with symbol pins — these numbers have now
+  been rewritten twice for zero semantic change.
+- **Qualified "the only hardware-aware default."** v0.25.1 added a
+  `current_platform.is_tpu()` sub-branch (V6E/V5E) *inside*
+  `get_batch_defaults`. The claim now reads as "only function," not "only
+  branch." The H100-vs-H200 conclusion is unaffected.
+- **§3.0 catch on r08.** Issue #22780 was recorded as "closed," implying the
+  BnB-4bit concurrency regression was addressed. It was closed `NOT_PLANNED` on
+  2025-12-14 by the inactivity bot. Re-annotated as unaddressed — which
+  *strengthens* the skill's AWQ-over-BnB recommendation. Also flagged #6801 as
+  stale-bot-marked and likely to close for the same non-reason.
+- **r04 re-stamped:** vLLM v0.21.0 → **v0.25.1** (2026-07-14). The "0.20+"
+  floor stays valid; recorded that the v0.20.0 audit baseline behind
+  `bench-numbers.md` is now five minors old.
+
+**Not done (needs GPU time, not a probe):** re-running the benchmark set against
+0.25, and re-checking the EAGLE3 / TRITON_ATTN / spec-config CLI surface across
+0.21–0.25. Open items #1–#4 above all carry forward unchanged — each is blocked
+on an author decision or an environment guard, none on evidence.
 
 ## Resolved this pass (2026-05-28)
 

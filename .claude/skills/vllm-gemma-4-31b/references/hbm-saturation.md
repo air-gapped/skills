@@ -16,10 +16,11 @@ HBM bandwidth = different saturation point.
 
 ## Evidence from vLLM source
 
-The only hardware-aware default-batch logic is in
-`vllm/engine/arg_utils.py:2207-2288` (`get_batch_defaults`). It
-branches on `device_memory >= 70 GiB AND device_name != "a100"` —
-H100 80GB **and** H200 141GB take the *same* code path:
+The only hardware-aware default-batch logic is `get_batch_defaults()` in
+`vllm/engine/arg_utils.py` (v0.25.1: lines 2397-2478; v0.20.0: 2207-2288 —
+**cite the symbol, not the line range**, it has moved ~190 lines in five
+minors). Its GPU branch tests `device_memory >= 70 GiB AND "a100" not in
+device_name` — H100 80GB **and** H200 141GB take the *same* code path:
 - `default_max_num_batched_tokens[OPENAI_API_SERVER] = 8192`
 - `default_max_num_seqs[OPENAI_API_SERVER] = 1024`
 
@@ -108,9 +109,14 @@ actions:
 
 ## Source paths cited
 
-- `vllm/engine/arg_utils.py:2207-2288` (the only hardware-aware default in vLLM)
+Line numbers below were true at the v0.20.0 audit and are **stale by
+construction** — vLLM renumbers these files every minor. Grep the symbol.
+
+- `vllm/engine/arg_utils.py` → `get_batch_defaults()` (the only hardware-aware
+  batch default in vLLM; v0.20.0: 2207-2288, v0.25.1: 2397-2478 — re-verified
+  2026-07-21, GPU branch logic unchanged)
 - `vllm/config/scheduler.py:42-44` (flat batch defaults)
 - `vllm/config/compilation.py:666-680` (cudagraph capture pattern)
-- `vllm/v1/spec_decode/llm_base_proposer.py:116`
+- `vllm/v1/spec_decode/llm_base_proposer.py:116` (v0.20.0)
 - `docs/configuration/optimization.md:54-58`
 - `docs/benchmarking/sweeps.md`

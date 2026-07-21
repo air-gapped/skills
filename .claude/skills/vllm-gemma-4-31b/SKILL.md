@@ -29,22 +29,48 @@ constraints that shape the answer.
    SXM5 has ~3.35 TB/s HBM3, H200 has ~4.8 TB/s HBM3e (~43% more). The
    bandwidth ratio approximately matches the batch ratio. See
    `references/hbm-saturation.md` for the source-code investigation
-   (vllm/engine/arg_utils.py:2207-2288 is the only hardware-aware default
-   in the engine; H100 and H200 take the *same* code path). **Don't set
+   (`get_batch_defaults()` in vllm/engine/arg_utils.py is the only
+   hardware-aware batch default in the engine; H100 and H200 take the
+   *same* code path — re-verified at v0.25.1). **Don't set
    `max_num_seqs` above the bandwidth knee** — it just inflates TPOT and
    TTFT without moving throughput.
-3. **The stock chat_template shipped with cyankiwi/RedHatAI quants is
-   stale** until they re-pull from `google/gemma-4-31B-it`. The 2026-04-28
-   Google upstream patch removed the `<|channel>thought\n<channel|>`
-   injection in non-thinking mode, fixed the `format_parameters` macro
-   filter, and added multimodal-system-message support. Always pull
+3. **The chat_template shipped with the cyankiwi quant is frozen, and the
+   gap is now measured — not assumed.** (The RedHatAI speculator ships no
+   `chat_template.jinja` at all, so it inherits whatever the base model
+   supplies.) On 2026-07-21
+   `cyankiwi/gemma-4-31B-it-AWQ-4bit/chat_template.jinja` hashed
+   `94899c0f…25bff413` — **byte-identical to the canonical template as it
+   stood on 2026-04-30**. The repo has not re-pulled it since (its only
+   later commit, 2026-07-03, edits the README model size). Canonical has
+   moved twice in that window:
+
+   | Pulled | sha256 | Bytes |
+   |---|---|---|
+   | 2026-04-30 | `94899c0f…25bff413` | 16934 |
+   | 2026-05-28 | `36e3a42e…bead3f0` | 17466 |
+   | 2026-07-21 | `ae53464b…8de4c6d4` | 18683 |
+
+   The current file opens with a Google-authored header: *"Published:
+   2026-07-09 — Fixed tool-calling loops, turn closures, and thinking
+   content-ordering."* 114 lines differ from the frozen copy. Serving the
+   quant's bundled template therefore silently gives up:
+
+   - `preserve_thinking` — new kwarg gating whether thinking content
+     survives past the last user turn on tool-call messages (absent
+     entirely in the frozen copy)
+   - the `continues_into_next` turn-closure fix — the frozen copy emits
+     duplicate `<|turn>model` markers on model→assistant continuations
+   - `<|channel>thought` re-opened after a `tool_response` when thinking
+     is on
+   - `argument is none` → renders `null`; the frozen copy falls straight
+     into the string branch
+   - `messages and messages[0]` guards against an empty message list
+
+   Always pull
    `huggingface.co/google/gemma-4-31B-it/raw/main/chat_template.jinja`
-   directly and pass via `--chat-template`. The template on `main` is a
-   moving target — Google re-patches it: the 2026-04-30 pull hashed
-   `94899c0f…25bff413`, the 2026-05-28 re-pull hashed
-   `36e3a42e5cf14cd0020e72d92e1fdd9970f59b82170e421f0cbe1bb42bead3f0`
-   (17466 bytes, still opening with the `format_parameters` macro). Re-pull
-   and re-pin per deploy rather than trusting any historical SHA.
+   directly and pass via `--chat-template`. Re-pull and re-hash per deploy
+   — the template on `main` is a moving target by design, so no historical
+   SHA in this file is a valid pin, including the three above.
 
 ## Decision guide — which TP for which workload
 
@@ -171,10 +197,12 @@ exactly this scenario.
 ### `parallel_drafting:true` (P-EAGLE) needs a **prepared** checkpoint
 
 `RedHatAI/gemma-4-31B-it-speculator.eagle3` is *vanilla* EAGLE3, no
-P-EAGLE prep tokens. `vllm/v1/spec_decode/llm_base_proposer.py:341`
-requires `pard_token` / `ptd_token_id` / `dflash_config.mask_token_id`
-in the draft `config.json`. Don't pass `parallel_drafting:true` with
-the vanilla checkpoint — engine init will fail.
+P-EAGLE prep tokens. `vllm/v1/spec_decode/llm_base_proposer.py` requires
+one of `dflash_config.mask_token_id` / `pard_token` / `ptd_token_id` in
+the draft `config.json` (checked in that order at v0.25.1, re-verified
+2026-07-21; grep `parallel_drafting_token_id` rather than a line number).
+Don't pass `parallel_drafting:true` with the vanilla checkpoint — engine
+init will fail with exactly that three-name `ValueError`.
 
 ### DFlash speculator unsupported on sm_89 (RTX 4060 Ti / Ada)
 
