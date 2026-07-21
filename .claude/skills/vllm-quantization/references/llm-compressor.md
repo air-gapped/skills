@@ -2,7 +2,24 @@
 
 [vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`.
 
-Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.10.0** (NVFP4/MXFP4, DDP GPTQ, disk offloading, per-head KV).
+Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.12.0** (2026-06-15).
+
+**Read the release list by rank, not by date — this project runs parallel
+maintenance lines.** As of 2026-07-21 the newest release *by publish date* is
+**0.7.1.3 (2026-06-26)**, a backport on the long-lived 0.7.1 branch, while the
+newest *by version* is **0.12.0 (2026-06-15)** — and 0.12.0 is what GitHub flags
+`isLatest`. Active lines seen in the last six months: 0.7.1.x, 0.9.0.x,
+0.10.0.x, 0.11.0, 0.12.0. Sorting by date picks the wrong one.
+
+| Version | Date | What landed |
+|---|---|---|
+| **0.12.0** | 2026-06-15 | **Transformers v5** upgrade with refactored MoE linearization; simplified dataset-split API (legacy multi-stage logic removed); multi-GPU distribution for model-free PTQ |
+| 0.11.0 | 2026-06-02 | **DDP for AWQ and SmoothQuant, up to 3.2× speedup**; Compressed-Tensors API refactor; observer/lifecycle refactor; Qwen 3.5/3.6 and Gemma 4 support |
+| 0.10.0 | 2026-03-02 | NVFP4/MXFP4, DDP GPTQ, disk offloading, per-head KV (the previous baseline of this file) |
+
+The **0.12.0 dataset-split API change removes legacy multi-stage logic**, so
+recipes written against ≤0.11 may need updating — check a recipe against the
+current docs before assuming it still parses.
 
 ## Modifier classes (what you compose into recipes)
 
@@ -255,6 +272,9 @@ Examples: `examples/model_free_ptq/`.
 | KV cache FP8 | 0.8.0 | Stable |
 | Model-free PTQ | 0.9.0 | Stable |
 | DDP GPTQ | 0.10.0 | Stable |
+| DDP AWQ + SmoothQuant (up to 3.2x) | 0.11.0 | Stable |
+| Transformers v5 + refactored MoE linearization | 0.12.0 | Stable |
+| Multi-GPU model-free PTQ | 0.12.0 | Stable |
 | NVFP4 (W4A4, W4A16) | 0.10.0 | Stable |
 | MXFP4 | 0.10.0 | Stable |
 | Per-head KV | 0.10.0 | Experimental |

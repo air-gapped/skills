@@ -2,7 +2,7 @@
 name: vllm-quantization
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300. 29 `--quantization` flag values, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.21).
+  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300. 29 `--quantization` flag values, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.25).
 when_to_use: |-
   Trigger on `--quantization`, `--kv-cache-dtype`, NVFP4, MXFP4, MXFP8, FP8, W4A16, W8A8, W4A4, AWQ, GPTQ, SmoothQuant, modelopt, compressed-tensors, quark, torchao, bitsandbytes, gguf, TurboQuant, CUTLASS, Marlin, FlashInfer, TRTLLM, DeepGEMM, Qutlass, Machete, `hf_quant_config.json`, `kv_cache_scheme`, `NVFP4_DEFAULT_CFG`, `FP8_DEFAULT_CFG`, llm-compressor, ModelOpt. Symptoms — "garbage after FP8", "NVFP4 NaN", "FP8 KV multi-turn corruption", "MoE kernel not dispatched on SM120", "illegal memory access awq_marlin", "online FP8 drops bias", "modelopt checkpoint won't load". Decisions — NVFP4 vs FP8 on H200 vs B200, quantizing EAGLE-3/dflash drafters, generating a checkpoint vLLM can load. Also implicit — "quantize {model}", "pick quant for {model}", "audit quantization", "deploy-memo quant", "which quant fits {GPU}", "spec-study quantization".
 ---
@@ -111,9 +111,9 @@ Two production paths exist:
 
 - **FP8 Hopper, no calibration wanted** → llm-compressor `FP8_DYNAMIC` (data-free, ~15 min for a 70B on H100).
 - **W4A16 INT4 (AWQ or GPTQ) with best accuracy** → llm-compressor, `AWQModifier` or `GPTQModifier` with 256–512 ultrachat samples.
-- **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+).
+- **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.12.0**, and note the project ships parallel maintenance lines — see `references/llm-compressor.md`).
 - **MXFP4 MoE for GPT-OSS-style models** → use the vendor checkpoint as-is, or ModelOpt MXFP4.
-- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is experimental — see [#38652](https://github.com/vllm-project/vllm/issues/38652) before enabling on MLA multi-turn).
+- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). The MLA multi-turn corruption once flagged here — [#38652](https://github.com/vllm-project/vllm/issues/38652) — was **fixed by PR #37054** and is no longer a reason to avoid FP8 KV on MLA.
 
 Both tools output a HF directory vLLM serves with `--quantization compressed-tensors` (llm-compressor) or `--quantization modelopt` / `--quantization modelopt_fp4` (ModelOpt).
 
@@ -169,7 +169,7 @@ vllm serve meta-llama/Llama-3.1-70B \
 
 Internalize these before debugging accuracy / throughput regressions:
 
-1. **`--kv-cache-dtype fp8` on MLA models → garbage on multi-turn** ([#38652](https://github.com/vllm-project/vllm/issues/38652)). Unresolved. Avoid on DeepSeek, GLM-4.5/4.6/4.7, Kimi K2 until FP8-KV MLA follow-ups land.
+1. **`--kv-cache-dtype fp8` on MLA models → garbage on multi-turn** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **FIXED, guidance reversed 2026-07-21.** Closed 2026-05-15 with *"Fixed by #37054"*, a PR that merged **2026-03-18** and was already recorded elsewhere in this skill as the v0.19 MLA KV-scale fix. The issue tracker lagged the fix by ~2 months, and this skill carried the blanket avoid-on-DeepSeek/GLM/Kimi warning for longer still. On a current release FP8 KV on MLA is usable — measure it instead of excluding it. See `references/kv-cache.md` items 1 and 5.
 2. **Gemma 4 FP8-block → logit saturation / repetitive garbage** ([#39407](https://github.com/vllm-project/vllm/issues/39407), [#39049](https://github.com/vllm-project/vllm/issues/39049)). Use non-block FP8 or FP16.
 3. **NVFP4 on Qwen3-Next / hybrid-attention models** silently corrupted output when `quantization_config.ignore` missed `linear_attn` layers ([#40252](https://github.com/vllm-project/vllm/issues/40252), fixed + closed 2026-04-20). The underlying pattern still applies to any new hybrid-attention model: always audit the `ignore` list when quantizing non-standard architectures.
 4. **Online FP8 drops bias weights** ([#39663](https://github.com/vllm-project/vllm/issues/39663)). Any bias-ed target → use pre-quantized checkpoint.
@@ -182,7 +182,9 @@ The hardware-/version-gated traps (B300 TRTLLM hang, ModelOpt-vs-compressed-tens
 
 Full matrix in `references/version-gates.md`. Load-bearing ones:
 
-- **v0.21** — current stable [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) (2026-05-15); v0.20.0 stable shipped 2026-04-27, followed by v0.20.1 / v0.20.2. Run v0.21.0+ for production. Quantization-layer churn continues — re-verify any v0.19-specific claim on upgrade.
+- **v0.25** — current stable [v0.25.1](https://github.com/vllm-project/vllm/releases/tag/v0.25.1) (2026-07-14). **Run v0.25.1+, not v0.25.0**, if serving NVFP4 on multi-GPU: v0.25.0 and earlier corrupt output via the fused allreduce+RMSNorm+quant path on models with Gemma/Qwen-style RMSNorm (PR #48330 — see `vllm-performance-tuning` § garbage `!!!` output). v0.25.0 also removed PagedAttention entirely and made Model Runner V2 the default for all dense models.
+- **v0.22–v0.24** — NVFP4 fused MoE for DeepSeek-V4 (#42209), NVFP4 Cutlass linear on the batch-invariant path (#39912), padded NVFP4 quant kernel (#42774), ModelOpt W4A16 NVFP4 fused MoE with mixed-precision dispatch (#42566), FlashInfer cutedsl NVFP4 GEMM (#42235) and cute-dsl MXFP8 linear (#46393), FP8 weight layout canonicalized to `(K, N)` (#44735), `fp8_e5m2` KV cache allowed for non-fp8 checkpoints (#45040), W8A8 int-quant scheme-selection regression fixed (#46860), and an actionable error on group-size/TP mismatch (#46230) in place of an obscure failure.
+- **v0.21** — [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) (2026-05-15); v0.20.0 stable shipped 2026-04-27, followed by v0.20.1 / v0.20.2. Quantization-layer churn continues — re-verify any v0.19-specific claim on upgrade.
 - **v0.19** — online MXFP8, `CompressedTensorsW8A8Mxfp8`, ROCm AWQ Marlin, TurboQuant KV, DeepGemm E8M0 fix for Qwen3.5 FP8 on Blackwell, `--calculate-kv-scales` deprecation, Gemma 4 quantized MoE, B300 / GB300 fixes.
 - **v0.18** — FP8 KV in Triton MLA decode, FlashInfer Sparse MLA FP8, ModelOpt MXFP8 MoE, AMD Quark W4A8 MXFP4/FP8, MLA crash with AWQ/GPTQ fix.
 - **v0.17** — per-head KV scales, SM100 MXFP8 kernels, compressed-tensors as ground-truth, ModelOpt mixed precision, Llama-4 attention quant.

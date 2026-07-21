@@ -2,7 +2,7 @@
 
 Separate CLI axis from weight quant. `--kv-cache-dtype` + optional pre-calibrated
 scales in the model checkpoint. Source of truth:
-[`vllm/config/cache.py:18-34`](https://github.com/vllm-project/vllm/blob/main/vllm/config/cache.py) (dtype enum) and
+[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.25.1/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (it was `18-34` at v0.20/v0.21 and has since grown) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
 ## Dtype options
@@ -16,13 +16,14 @@ scales in the model checkpoint. Source of truth:
 | `fp8_e5m2` | IEEE 754 E5M2 (ROCm-oriented) | SM89+ | Loaded |
 | `fp8_inc` | Intel path | HPU | — |
 | `fp8_ds_mla` | DeepSeek MLA-specific | SM89+ | — |
+| `int4_per_token_head` | Dynamic INT4 per (token, head) | FlashInfer / XPU | Computed in-kernel. Present in the enum at v0.25.1; verify kernel support for your backend before relying on it |
 | `int8_per_token_head` | Dynamic INT8 per (token, head) | FlashInfer / XPU | Computed in-kernel — no checkpoint scales needed |
 | `fp8_per_token_head` | Dynamic FP8 per (token, head) | FlashInfer / TRTLLM | Computed in-kernel |
 | `turboquant_k8v4` | FP8 K + 4-bit V | SM89+ | Hadamard rotation, no checkpoint scales |
 | `turboquant_4bit_nc` | 4-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_k3v4_nc` | 3-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_3bit_nc` | 3-bit K + 3-bit V + NC | SM89+ | Hadamard |
-| `nvfp4` | Roadmap | SM100 | Issue [#32220](https://github.com/vllm-project/vllm/issues/32220) |
+| `nvfp4` | **Shipped — no longer roadmap** | SM100 | Feature request [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). Accepted value in `CacheDType` at v0.25.1; v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
 
 ## Base method
 
@@ -95,11 +96,11 @@ MI300/MI355X CDNA3/4 required. Handled automatically when platform is detected.
 
 ## Known landmines
 
-1. **FP8 KV on MLA multi-turn → garbage** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — unresolved. DeepSeek V3/V3.2, GLM-4.5/4.6/4.7, Kimi K2 affected. Avoid.
+1. **FP8 KV on MLA multi-turn → garbage** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **RESOLVED.** Closed 2026-05-15 with *"Fixed by #37054"* — the same PR already credited in item 5 below. This entry and item 5 were two descriptions of one bug; the blanket "avoid FP8 KV on DeepSeek / GLM-4.5-4.7 / Kimi K2" advice was over-cautious from v0.19 onward. On a current release, FP8 KV on MLA is usable — benchmark it rather than ruling it out. Item 5 has the mechanism.
 2. **FP8 KV compile failure SM90 FlashInfer** ([#31843](https://github.com/vllm-project/vllm/issues/31843)) — upgrade FlashInfer to 0.6.6+ (bundled in v0.18+).
 3. **`_init_kv_cache_quant` overly broad** ([#39137](https://github.com/vllm-project/vllm/issues/39137)) — fp8_e5m2 gate fires on any quantized checkpoint, blocks legit INT4/NVFP4 loads. Patch in discussion.
 4. **Qwen3-MoE k_scale/v_scale load** — fixed in v0.17 ([PR #35656](https://github.com/vllm-project/vllm/pull/35656)).
-5. **MLA KV scale inconsistency FP8 → gibberish** — fixed v0.19 ([PR #37054](https://github.com/vllm-project/vllm/pull/37054)).
+5. **MLA KV scale inconsistency FP8 → gibberish** — fixed v0.19 ([PR #37054](https://github.com/vllm-project/vllm/pull/37054), merged 2026-03-18). Title: *"Fix KV scales inconsistency in fp8 MLA & FlashInfer kv_cache_dtype 'auto' leading to gibberish."* Two causes in one PR: (a) FlashInfer applied `layer._[qkv]_scale` **unconditionally**, even when QKV values were unscaled BF16 — this hit both normal and MLA attention paths under `kv_cache_dtype=auto`; (b) MLA forces K and V to share one quantization scale (the KV latents are joint), so only one of `_k_scale` / `_v_scale` was being handled correctly. **This is also the fix for #38652** (item 1) — upstream confirmed the link on 2026-05-15, roughly two months after the PR merged.
 6. **Skip SWA layers with FP8 KV** — added v0.19 ([PR #33695](https://github.com/vllm-project/vllm/pull/33695)).
 7. **FlashInfer crash with `kv_cache_dtype_skip_layers`** — fixed [PR #39002](https://github.com/vllm-project/vllm/pull/39002).
 8. **TurboQuant crash on A100 with BF16 + FP8 KV** ([#39992](https://github.com/vllm-project/vllm/issues/39992)) — A100 not a production TurboQuant target.

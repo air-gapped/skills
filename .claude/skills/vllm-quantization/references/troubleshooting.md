@@ -9,11 +9,11 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | Repetitive garbage after FP8-block load | Gemma 4 31B | [#39407](https://github.com/vllm-project/vllm/issues/39407) | Use non-block FP8 or static per-tensor |
 | FP8 dynamic → gibberish | Gemma 4 (any size) | [#39049](https://github.com/vllm-project/vllm/issues/39049) | Avoid FP8 on Gemma 4, use FP16/BF16 |
 | NVFP4 Qwen3-Next → garbage | Any hybrid-attention model | [#40252](https://github.com/vllm-project/vllm/issues/40252) | Audit `quantization_config.ignore` — add all `linear_attn`, `fla`, `mamba` entries |
-| FP8 KV MLA multi-turn corruption | DeepSeek V3/V3.2, GLM-4.5/4.6/4.7, Kimi K2 | [#38652](https://github.com/vllm-project/vllm/issues/38652) | **Avoid FP8 KV on MLA multi-turn** — open |
+| FP8 KV MLA multi-turn corruption | DeepSeek V3/V3.2, GLM-4.5/4.6/4.7, Kimi K2 | [#38652](https://github.com/vllm-project/vllm/issues/38652) | **FIXED** — closed 2026-05-15, *"Fixed by #37054"*, the same PR as the row below. Upgrade rather than avoid |
 | NVFP4 Marlin NaN/Inf with fp16 | — | Fixed [PR #33972](https://github.com/vllm-project/vllm/pull/33972) | v0.19+ |
 | NVFP4 NaN on desktop Blackwell (SM12x) | RTX 5090, RTX 6000 Pro | Fixed [PR #37725](https://github.com/vllm-project/vllm/pull/37725) | v0.19+ |
 | BF16 NVFP4 Marlin garbled on non-FP4 GPU | H100, older | [#34694](https://github.com/vllm-project/vllm/issues/34694) | Partial fix [PR #34577](https://github.com/vllm-project/vllm/pull/34577) v0.17; latent cases remain |
-| FP8 MLA KV gibberish from scale inconsistency | — | Fixed [PR #37054](https://github.com/vllm-project/vllm/pull/37054) | v0.19 |
+| FP8 MLA KV gibberish from scale inconsistency | DeepSeek V3/V3.2, GLM-4.5/4.6/4.7, Kimi K2 | Fixed [PR #37054](https://github.com/vllm-project/vllm/pull/37054) (merged 2026-03-18) | v0.19 — **this is the same defect as the #38652 row above** |
 | Empty output FP8 + TP=2 Qwen3-8B | Qwen3-8B | [#36583](https://github.com/vllm-project/vllm/issues/36583) | Open |
 | GPTQ exclamation-point-only output | Qwen3.5 397B on ROCM | [#37996](https://github.com/vllm-project/vllm/issues/37996) | Open |
 | Marlin wrong first Harmony token | GPT-OSS-120B SM121 | [#37030](https://github.com/vllm-project/vllm/issues/37030) | Open; SM121 not production |
@@ -105,7 +105,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 1. **First** — check vLLM version. Most production bugs fix within 2-3 minor releases. If < v0.19, upgrade.
 2. **Second** — is the checkpoint from ModelOpt or llm-compressor? If ModelOpt NVFP4, cross-check `quantization_config.ignore` covers all non-linear layers and `_double_scale` keys are present.
-3. **Third** — is it MLA + FP8 KV? If yes, avoid until [#38652](https://github.com/vllm-project/vllm/issues/38652) resolved.
+3. **Third** — is it MLA + FP8 KV? [#38652](https://github.com/vllm-project/vllm/issues/38652) is **resolved** (PR #37054, v0.19), so on a current release this is no longer the likely cause. If you see it on ≥v0.19, treat it as a new bug and check the attention backend and checkpoint scales rather than assuming the known issue.
 4. **Fourth** — is it Gemma 4? If yes, avoid FP8 entirely.
 5. **Fifth** — is the GPU SM120/SM121? If yes, expect kernel gaps; try `fp8` only.
 6. **Sixth** — if on B300/GB300 and v0.18 or older, upgrade to v0.19+ immediately.
