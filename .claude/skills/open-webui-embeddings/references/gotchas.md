@@ -22,7 +22,7 @@ LiteLLM's openai driver serialises `encoding_format=None` as JSON `null` wheneve
     encoding_format: float       # ← stops LiteLLM from sending null
 ```
 
-**History:** LiteLLM PR #25395 fixed this on 2026-04-12 by omitting null `encoding_format` from upstream requests; PR #25698 reverted it 2 days later — forcing `"float"` for everyone broke other providers. Issue #25388 reads "closed" but the bug behaves identically in the latest LiteLLM. The per-model pin is durable, version-independent.
+**History:** LiteLLM PR #25395 fixed this on 2026-04-12 by omitting null `encoding_format` from upstream requests; PR #25698 reverted it 2 days later — forcing `"float"` for everyone broke other providers. Issue #25388 reads "closed" but the bug behaves identically in the latest LiteLLM. The per-model pin is durable, version-independent. **Still true as of 2026-07-21:** the revert stands, nothing has re-landed, and the general fix attempt — PR #24277, `fix(openai): filter None values from embedding optional_params` — is still open. Track #24277 to know when the pin can be dropped.
 
 **Also affects:** GiteeAI, SiliconFlow, any provider with strict JSON validation on OpenAI fields.
 

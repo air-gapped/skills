@@ -389,7 +389,7 @@
       "name": "open-webui",
       "source": "./",
       "description": "Open WebUI operator suite — RAG pipeline wiring (HuggingFace embedding + reranker via LiteLLM in front of HuggingFace Text Embeddings Inference; exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end production config; BGE-M3 + BGE-Reranker-v2-m3 worked examples) and multi-pod deployment with WebSockets + Valkey Sentinel at 1000+ user scale (the structural Socket.IO + Redis frame-amplification bug #23733 and the CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all multi-pod env vars, custom-model-icon perf history, helm chart gaps, full known-issues catalog with fix status).",
-      "version": "0.20260529.4",
+      "version": "0.20260721.5",
       "author": {
         "name": "Jörgen"
       },

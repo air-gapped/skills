@@ -14,7 +14,41 @@ Carries open quality findings across `/skill-improver` runs. Items here are ceil
   step, not a text edit. The function-name anchors in the rows already
   mitigate the drift for readers, so this is low-priority polish.
 
-## Resolved this pass (2026-05-28)
+## Resolved — 2026-07-21 (freshen)
+
+Nine refs re-probed. One upstream minor jump, one confirmed-still-broken
+upstream bug, and one file that quietly got restructured.
+
+- **open-webui v0.9.5 → v0.10.2** (2026-07-01, via v0.9.6/v0.10.0/v0.10.1). All
+  cited line numbers **re-resolved against the v0.10.2 tag** rather than carried
+  forward with a warning: `generate_openai_batch_embeddings` 677→845,
+  `get_embedding_function` 905→1073, `asyncio.gather` fan-out 963→1138,
+  `ExternalReranker` 14→13, `predict` 27→26, `requests.post` 50→49.
+- **`config.py` was restructured, not appended to.** Every RAG key moved *down*
+  by roughly two thousand lines (RAG_EMBEDDING_BATCH_SIZE 2948→994,
+  CONCURRENT_REQUESTS 2960→1000, RERANKING_ENGINE 2972→1008,
+  EXTERNAL_RERANKER_URL 3001→1023) in a file that is still 3136 lines long. A
+  line number that moves *backwards* by that much is the signature of a
+  reorganisation, and it is why the version note now says to resolve by symbol
+  name and never by remembered line.
+- **Defaults re-read and unchanged**: `RAG_EMBEDDING_CONCURRENT_REQUESTS` still
+  defaults to `0`, and both reranker keys still default to empty strings — so
+  the skill's "you must set these explicitly" framing holds.
+- **`external.py` still uses synchronous `requests.post`**, not httpx, at 69
+  lines. The blocking-reranker characterisation the skill builds on survives the
+  0.10 jump intact.
+- **The `encoding_format: None` gotcha is still live.** PR 25395 (fix) and 25698
+  (revert two days later) are unchanged, issue 25388 is still closed-but-broken,
+  and the general fix — **PR #24277, still OPEN** — has not merged. So the
+  per-model `encoding_format` pin remains *necessary*, not merely defensive.
+  Recorded #24277 in both `sources.md` and `gotchas.md` as the single tell for
+  when the workaround can be retired.
+- **TEI is unchanged at v1.9.3** (2026-03-23, no release in ~4 months), and its
+  two CLI defaults re-resolved to lines **60 and 82 exactly** as claimed. The
+  Blackwell image-tag row was not re-probed and is left stamped 2026-05-28
+  rather than given a date it did not earn.
+
+## Resolved — 2026-05-28
 
 - **Spec hard-fail fixed: `description` 1036 → 1010 chars** (Dim 9 cap at 3
   lifted). The frontmatter `description` exceeded the 1024-char spec cap;
