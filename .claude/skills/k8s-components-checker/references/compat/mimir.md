@@ -46,7 +46,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - **NOT in 6.1.0:** querier `max_concurrent` stays **16** (verified byte-identical in the 6.0.6 and 6.1.0 embedded config). The lowering to 8 is in the chart CHANGELOG's `main / unreleased` section — do not budget for it on this ladder.
 - **Ingest storage:** still the chart default in 6.1 — the config template ships `ingest_storage.enabled: true`. Kafka remains a required dependency of the default topology.
 - **CRD migrations:** N/A.
-- **Upgrade ordering:** unchanged — rollout-operator drives ingester/store-gateway restarts; never `kubectl rollout restart` those StatefulSets directly.
+- **Upgrade ordering:** rollout-operator drives ingester/store-gateway restarts. See § Rollout mechanics.
 - **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server.
 
 ## 6.0.6
@@ -80,7 +80,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - MQE default straddles hops — see § 5.8.0.
 - **CRD migrations:** N/A — Mimir uses stock k8s resources (StatefulSets, Deployments, ConfigMaps). The chart's rollout-operator subchart manages rolling-restart ordering; no Mimir-owned CRDs to convert.
 - **Upgrade ordering:**
-  - Ingesters and store-gateways: **rolling restart via rollout-operator is mandatory** (chart enforces). Do not bypass with `kubectl rollout restart` on the StatefulSet directly — split-brain on the hash ring.
+  - Ingesters and store-gateways roll via the rollout-operator, one zone at a time. See § Rollout mechanics for the corrected `kubectl rollout restart` story.
   - rollout-operator subchart bumped to **0.37.1**. If upgrading from 6.0.0 or 6.0.1, delete the `certificate` secret created by the rollout-operator pod and recreate the pod (TLS DNS-name fix in 6.0.2).
   - PSA: restricted-policy namespaces work fine; chart sets `runAsNonRoot`/`seccompProfile` on all components. Verify the namespace's `pod-security.kubernetes.io/enforce: restricted` label is set **before** the install or admission rejects on first apply.
 - **Deprecations:** none new at chart level in 6.0.x. App-side: see Mimir 3.0 CHANGELOG for in-app flag deprecations.
@@ -124,3 +124,30 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
 - **Notable:**
   - `kubeVersionOverride` gotcha applies but rarely matters at this constraint.
   - `5.7.0` is the floor of the tracked window — below this, abstain on Mimir compat verdicts and recommend `skill-improver freshen k8s-components-checker`.
+
+
+## Rollout mechanics (cross-version) — corrected 2026-07-21
+
+**The `kubectl rollout restart` prohibition is folklore, and the usual justification is wrong.** Researched against rollout-operator source, kubectl source, and the Mimir docs; **no upstream document prohibits it** anywhere in `docs/sources/mimir/**`, the runbooks, or the rollout-operator README.
+
+- On zone-aware StatefulSets (the chart default) `updateStrategy` is `OnDelete`. `kubectl rollout restart` does **not** error and does **not** delete a pod — kubectl's `objectrestarter.go` only stamps `kubectl.kubernetes.io/restartedAt` on the pod template. The operator then rolls that zone through its normal gated path. Real cost: **manifest drift** from the Helm-rendered state, and only the named zone rolls.
+- The hash-ring resharding mechanism is real but **defused by the chart**: it pins `unregister_on_shutdown: false` + `tokens_file_path: /data/tokens` for ingester *and* store-gateway in all four versions. Upstream says why: *"Rolling restarts of ingesters are now less likely to cause spikes in resource usage."* If anyone overrides `unregister_on_shutdown: true`, the folklore becomes true.
+- **The genuinely dangerous config is single-zone** (`zoneAwareReplication.enabled: false`): the chart emits `RollingUpdate`, the operator refuses the group, `podManagementPolicy: Parallel` removes ordering, and PDBs don't gate controller-driven deletion.
+- The real simultaneity limit is capacity: with RF=3, roll **one ingester at a time**, or **one whole zone at a time** if zone-aware replication is on (upstream `perform-a-rolling-update.md`).
+
+**Do NOT POST `/ingester/prepare-shutdown` before a version bump.** It is wired as an STS annotation consumed by the `prepare-downscale` webhook, which fires only on a **replica decrease**. A version bump leaves replicas unchanged, so pods keep their PVC, tokens file, and ring entry and replay the WAL. Forcing `prepare-shutdown` triggers unregister + full flush — the expensive scale-down path, not the restart path.
+
+**Abort levers, in order of safety:**
+
+| Lever | Verdict |
+|---|---|
+| `grafana.com/rollout-paused: "true"` on the STS | The correct pause. **But it needs rollout-operator ≥ v0.36.0** — bundled appVersions are 5.7.0→v0.24.0, 5.8.0→v0.28.0, 6.0.6→v0.32.0, 6.1.0→**v0.38.0**. So it is only available on the final hop. |
+| Scale the rollout-operator to 0 | **Deadlocks the namespace on 6.x.** The `prepare-downscale` MutatingWebhookConfiguration matches UPDATE on `statefulsets` + `statefulsets/scale` with `failurePolicy: Fail`. No ready endpoint ⇒ the apiserver rejects every matching request — including `helm upgrade`, `helm rollback`, and `kubectl scale`. Correct only on 5.7.0/5.8.0, which ship no webhooks. |
+| `helm rollback` | Works at the workload layer; the operator explicitly handles reverted revisions. Not a data rollback. |
+
+**`helm upgrade --wait` is not a gate here.** Helm's `statefulSetReady()` short-circuits for any non-`RollingUpdate` StatefulSet, so Helm reports success the moment the STS object is patched — before a single ingester pod is replaced. Also: `--dry-run` auto-allows the prepare-downscale webhook, so a replica reduction that will be denied on real apply looks clean in `helm diff`.
+
+**Downgrade is an unmade upstream claim.** `CHANGELOG.md` and the chart CHANGELOG contain zero occurrences of "downgrade"/"rollback". `about-versioning.md` guarantees only that *future* versions read old data; grafana/mimir#2807 asking for the converse has been open and unanswered since 2022. Treat every hop as forward-only at the **data** layer.
+- TSDB blocks are *not* the barrier in this window — 2.16.0 and 3.1.2 both write index `FormatV2`, `meta.json` `TSDBVersion1`.
+- The sharp edge is the **Kafka record version** (ingest storage only): 3.1 defaults `-ingest-storage.kafka.producer-record-version=2`. 3.0.4 can read V2; **2.16 cannot** (`pkg/storage/ingest/version.go` does not exist at that tag).
+- Config-shape asymmetry makes a binary downgrade fail loudly anyway: 3.0 removed **159** flags that 2.17 knew, and 3.1.2 has **225** flags 2.17 does not.
