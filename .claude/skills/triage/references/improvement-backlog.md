@@ -3,6 +3,29 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+All three sources re-probed; **nothing needed correcting.**
+
+- **CVSS (first.org) and the OWASP Risk Rating Methodology both HTTP 200**;
+  CVSS v3.1 and v4.0 both still published, so the Phase-0 scoring-standard
+  options are intact.
+- **The ingest contract is unchanged** — the thing most likely to break this
+  skill silently. `docs/triage.md` still documents
+  `results/<target>/<timestamp>/` as the pipeline input and `TRIAGE.md` +
+  `TRIAGE.json` as outputs, matching Phase 1 (`SKILL.md:41`) and the writers at
+  `SKILL.md:117` / `SKILL.md:649`.
+- **Upstream `SKILL.md` *did* move here** — unlike the `threat-model` sibling,
+  where only the README changed — so it was checked rather than assumed. Both
+  touching commits are the 2026-07-16 detection-&-response-track addition and
+  the same-day docs pass folding `Status` sections into prose. Neither changes
+  the triage methodology or the output schema.
+
+That distinction is the payoff of the per-skill path question rather than a
+repo-level `pushed_at` check: two sibling skills on the same upstream had
+*different* files move, and only one warranted opening the diff.
+
+
 ## Open
 
 - **Run the impact-on-asset acceptance test (whole chain) — from
