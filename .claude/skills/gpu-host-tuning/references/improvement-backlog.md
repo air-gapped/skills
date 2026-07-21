@@ -61,7 +61,43 @@ made and the metric registered.
 - **Recommendation:** one targeted pass per file (5 minor iterations),
   preserving shell-comment "your" usage.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen)
+
+Probed 16 refs. Three drifted, five re-verified fresh, one produced a
+correction to a claim about the *world* rather than about a version.
+
+- **`nccl-tests` 2.18.3 → 2.19.6** (HEAD 2026-07-09). The repo publishes no
+  tags or releases at all — the version is a `#define` in `src/common.h`,
+  bumped four times between 2026-07-02 and 2026-07-09. Row now says so, so a
+  future pass stops looking for a tag to pin.
+- **`gpu-burn` HEAD 2025-11-04 → 2026-05-31** (a Windows build tidy-up; the
+  CUDA 13+ support the row cared about still dates to 2025-11-04, and the row
+  now separates the two facts).
+- **DGX TuneD row scope text corrected.** The page (last updated 2026-07-15)
+  lists `dgx-a800-*` and six `nvidia-*` common profiles that the row omitted —
+  `tuned-profiles.md` had them all along, so this was a sources.md-only
+  understatement, not a skill error. No Rubin/Vera profiles yet.
+- **SLES 16.0 is GA and has no tuning guide.** `documentation.suse.com/sles/`
+  now 301s to `/sles/16.0/`, which would tempt a future freshen to "upgrade"
+  the 15-SP7 TuneD citation. It cannot: `16.0/.../cha-tuning-tuned.html` and
+  `book-tuning.html` are both 404, and 15-SP8 does not exist. Recorded in the
+  row and in `tuned-profiles.md` §Sources, with the `man tuned-adm` fallback
+  for operators actually on 16.0.
+- **`nvbandwidth` v0.9 still latest** (2026-04-08) — fresh, re-stamped.
+- **All five NVIDIA BaseOS repo rows fresh**, counts unchanged: jammy
+  `Release` still dated 2026-04-03, noble still 8 `dgx` metapackages
+  (Hopper+ *still* gated, 2.5 months on), EL 10 repomd revision untouched
+  since 2025-11-12.
+- **Counting trap documented.** `Packages.gz` holds one stanza per version,
+  so `grep -c '^Package:'` reads 33 where noble has 8 packages (`dgx-repo`
+  appears 11 times). The section header now mandates `sort -u` — without it
+  the next pass "discovers" a 4× package-count increase that never happened.
+
+Not probed this pass: the eight Dell/Intel/NVIDIA-SPA rows behind anti-bot
+walls (403 / SPA-only), unchanged since authoring and still marked
+`unverifiable` per the file's stated methodology.
+
+## Resolved — 2026-05-28
 
 Run: 2026-05-28 — 1 keep (currency precision), 1 freshen stamp. Self 85 → 86/100.
 

@@ -256,3 +256,6 @@ expected vs current. Common causes:
 - Red Hat — TuneD documentation: `man tuned-adm`, `man tuned.conf`
 - SUSE — Adaptive and dynamic tuning using TuneD (SLES 15 SP7):
   https://documentation.suse.com/sles/15-SP7/html/SLES-all/cha-tuning-tuned.html
+  SP7 is the newest SLES with this chapter. SLES 16.0 is GA but ships no
+  System Analysis and Tuning Guide, so on 16.0 fall back to `man tuned-adm`
+  and `man tuned.conf` — the TuneD mechanics are unchanged. (verified 2026-07-21)
