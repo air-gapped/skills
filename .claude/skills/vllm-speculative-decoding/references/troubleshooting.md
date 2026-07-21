@@ -16,7 +16,10 @@ Four regimes:
 
 The drafter is guessing badly. Causes, in order of likelihood:
 
-1. **Tokenizer mismatch.** Verify drafter and target share a tokenizer. For
+1. **Tokenizer mismatch.** Verify drafter and target share a tokenizer — *or*
+   that you are deliberately on **TLI** (v0.25.0+, PR #38174), which supports
+   different-but-overlapping vocabularies by design. If TLI is not in use, a
+   mismatch is a bug. For
    EAGLE-3, the checkpoint is tied to a specific target tokenizer — swapping
    target (e.g., an instruction-tuned variant with added chat tokens) without
    swapping checkpoint breaks it.

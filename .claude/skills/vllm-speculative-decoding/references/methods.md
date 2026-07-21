@@ -102,6 +102,28 @@ expensive.
 - Expected AL for a well-aligned tiny model: 2.5–3.5. Alignment means same
   tokenizer, same training distribution, ideally a distilled pair.
 
+### Heterogeneous vocabularies are supported from v0.25.0 — TLI
+
+**"The drafter must share the target's tokenizer" is no longer unconditional.**
+PR [#38174](https://github.com/vllm-project/vllm/pull/38174) (merged
+2026-07-02, ships in **v0.25.0**) implements **Token-Level Intersection (TLI)**
+speculative decoding: target and draft may have **different but overlapping**
+vocabularies. It is based on an ICML 2025 method and closes the long-standing
+request #38173.
+
+This widens drafter selection considerably — a small model from a different
+family is now a candidate where previously only same-tokenizer pairs were. Two
+caveats before relying on it:
+
+- The vocabularies must *overlap*; TLI operates on the intersection. A drafter
+  with a disjoint vocabulary still gains nothing.
+- Acceptance-rate behaviour on mismatched pairs is not characterised in this
+  skill. Measure it (see `references/metrics.md`) rather than assuming the
+  same acceptance you would get from a distilled same-tokenizer pair.
+
+On **pre-v0.25.0** engines the original rule stands: same tokenizer, or
+expect silent quality loss.
+
 ## 6. `eagle` / `eagle3`
 
 EAGLE heads run on target's hidden states; EAGLE-3 additionally consumes
@@ -115,7 +137,7 @@ auxiliary hidden states from designated intermediate layers.
   than `draft_model`
 - `parallel_drafting: true` enables P-EAGLE variant (v0.16+, PR #32887); see
   `eagle3.md`
-- **EAGLE-3 target-model allow-list** (config/speculative.py:895-909 as of
+- **EAGLE-3 target-model allow-list** — **superseded at v0.25.1 by the `SupportsEagle3` interface; see SKILL.md.** (Was config/speculative.py:895-909 as of
   2026-04-24 — grep `aux_hidden_states_supported` on upgrade; line numbers
   drift): llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
   nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4

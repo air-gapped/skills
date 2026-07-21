@@ -2,7 +2,7 @@
 name: vllm-speculative-decoding
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  Pick, configure, tune, monitor vLLM speculative decoding in production. Eleven SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, eagle, eagle3, dflash, mtp, extract_hidden_states), `--speculative-config` JSON schema, which methods pair with which target model family, Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, where spec-dec stops paying at high batch.
+  Pick, configure, tune, monitor vLLM speculative decoding in production. Thirteen SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, custom_class, eagle, eagle3, dflash, dspark, mtp, extract_hidden_states), `--speculative-config` JSON schema, which methods pair with which target model family, Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, where spec-dec stops paying at high batch.
 when_to_use: |-
   Trigger on speculative decoding, draft model, EAGLE/EAGLE-2/EAGLE-3, MTP/multi-token prediction, deepseek_mtp, glm4_moe_mtp, qwen3_next_mtp, Medusa, MLPSpeculator, DFlash, suffix decoding, ngram speculation, ngram_gpu, acceptance rate / AL, --speculative-config, -sc, --num-speculative-tokens, prompt_lookup_min/max, draft_tensor_parallel_size, parallel_drafting, vllm:spec_decode_num_drafts, vllm:spec_decode_num_accepted_tokens, Arctic Inference, SuffixDecodingCache, SpeculativeMethod, P-EAGLE, PARD, dynamic-K, rejection_sample_method. Low-acceptance troubleshooting, BS>=32 regressions, method-selection decisions, air-gapped draft-checkpoint sourcing, integration with chunked prefill/disagg serving/PP/LoRA/FP8 KV/structured outputs. Also implicit — "speed up decode", "draft model for X", "audit spec dec", "deploy-memo speculative", "can we get more tokens/sec".
 ---
@@ -51,11 +51,23 @@ across 466 published checkpoints.**
 | Quick win, no drafter of any kind | `ngram_gpu` (v0.18+) or `ngram` | Prefix-matching only; fine for repetitive prompts, skip for open chat |
 | Locked into vendor checkpoint | `medusa` / `mlp_speculator` | Legacy; still works, do not adopt for new deployments |
 
-**EAGLE-3/DFlash aux-hidden-state list (from `vllm/config/speculative.py:895-909`
-as of 2026-04-24; search `aux_hidden_states_supported` on future upgrades —
-line numbers drift)**: llama, qwen, minicpm, gpt_oss, hunyuan_vl,
-hunyuan_v1_dense, afmoe, nemotron_h, deepseek_v2, deepseek_v3, kimi_k2,
-kimi_k25, minimax_m2, gemma4.
+**EAGLE-3/DFlash aux-hidden-state support — no longer a hardcoded list.**
+
+Through ~v0.21 this was a 14-name allowlist in `vllm/config/speculative.py`
+(llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
+nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4).
+**At v0.25.1 that list is gone from the file.** Support is now a *capability
+interface*: `SupportsEagle3` in `vllm/model_executor/models/interfaces.py`,
+checked by `supports_eagle3(model)` in
+`vllm/v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`, which raises
+`RuntimeError("Model does not support EAGLE3 interface")` when absent. Models
+declare their own layers via `get_eagle3_aux_hidden_state_layers()` /
+`set_aux_hidden_state_layers()`.
+
+So the question "is my model supported?" changed shape: **grep the model class
+for the `SupportsEagle3` interface**, don't look for a name in a config list.
+`speculative.py` now only records which *methods* consume aux hidden states —
+`eagle3`, `extract_hidden_states`, `dflash`, **`dspark`**.
 
 ## Canonical `--speculative-config` shapes
 
@@ -160,6 +172,17 @@ perf. If operating off a build older than these, upgrade before benchmarking.
 | `--speculative-config` / `-sc` alias (PR #38380) | **v0.19.0** | Short form; flag names stabilised |
 | Per-draft-model MoE backend (PR #37880) | **v0.19.0** | `moe_backend` field inside `--speculative-config` |
 | Configurable acceptance rate for synthetic rejection (PR #38045) | **v0.19.0** | Testing only; not for prod |
+| Spec-dec respects reasoning/**thinking budgets** (PR #34668) | **v0.21.0** | Correct spec-dec on reasoning models — before this, budgets were not honoured |
+| Independent **drafter attention-backend** selection (PR #39930) | **v0.21.0** | Draft and target no longer forced onto one backend |
+| **`custom_class`** method — callable proposer backend (PR #39487) | **v0.22.0** | New base method; bring your own proposer |
+| **peagle** speculators (#41826) and **post-norm EAGLE-3** speculators (#42764) | **v0.22.0** | Wider checkpoint compatibility |
+| **Dynamic SD** (PR #32374) | **v0.24.0** | Adapts speculation depth at runtime; made full-CUDA-graph compatible in v0.25.0 (#45953) |
+| ⚠ **DoS fix: invalid recovered-token reinjection in spec-dec** (PR #44744) | **v0.24.0** | **Remote denial of service.** Listed under Security in the v0.24.0 notes. Anyone running spec-dec on an internet-reachable endpoint should be ≥ v0.24.0 |
+| **TLI — universal spec-dec for heterogeneous vocabularies** (PR #38174) | **v0.25.0** | Target and drafter may have different but *overlapping* vocabularies. Removes the same-tokenizer constraint |
+| **`dspark`** drafter (#46995, #47093) | **v0.25.0** | New base method + speculators checkpoint support |
+| **Block verification** for rejection sampling (#46781) | **v0.25.0** | `RejectionSampleMethod` gains `"block"` alongside `standard` / `synthetic` |
+| DFlash: **CPU support** (#44029), backend selection (#46770), FlashInfer (#43081), per-layer RMSNorm fusion (#46761) | **v0.24–v0.25** | DFlash matured well past its v0.19 debut |
+| EAGLE-3 for Qwen3 (#43132); reduced TP comms for large-vocab drafts (#39419) | **v0.24.0** | |
 
 ## Critical pitfalls
 
@@ -189,7 +212,9 @@ traps not captured by those.
    guarantee holds "up to hardware numerics."
 7. **Tokenizer mismatch between draft and target destroys acceptance.** The
    `draft_model` validator does a vocab-size check, but not token-id
-   alignment. Verify with a shared-tokenizer family.
+   alignment. Verify with a shared-tokenizer family — **unless you are on
+   v0.25.0+ and using TLI**, which is designed for exactly the mismatched case
+   (see below).
 8. **Quantization mismatch**: drafter in FP16 + target in FP8 is fine;
    drafter in INT4 + target in FP8 causes AL collapse. Align where possible,
    or measure before adopting.

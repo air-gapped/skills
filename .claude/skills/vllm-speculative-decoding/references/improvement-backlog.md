@@ -4,6 +4,42 @@ Work-not-done log from skill-improver passes. `## Open` = issues attempted as a
 hypothesis but not applicable in one atomic iteration. `## Resolved this pass` =
 changes a metric actually registered.
 
+## Resolved — 2026-07-21 (freshen, v0.21.0 -> v0.25.1)
+
+Closed the audit the 2026-05-29 pass deferred ("Version-gate table caps at
+v0.19 — audit v0.20/v0.21/v0.22 release notes for new spec-dec gates"). Six
+minors, not three.
+
+- **A cited construct moved out of its file — not another line-number drift.**
+  The aux-hidden-states allowlist had been re-pinned twice (818-833 →
+  895-909). At v0.25.1 there is **no list in `config/speculative.py` at all**:
+  support is now the `SupportsEagle3` capability interface, checked by
+  `supports_eagle3(model)` in `eagle3_utils.py`, with models declaring layers
+  via `get_eagle3_aux_hidden_state_layers()`. The user-facing question changed
+  shape — "is my model in the list" became "does the model class implement the
+  interface". **When a line range drifts twice, check whether the construct
+  still lives there rather than re-pinning a third time.**
+- **The same-tokenizer rule is no longer unconditional.** TLI (#38174, merged
+  2026-07-02, v0.25.0) implements Token-Level Intersection spec-dec for
+  target/draft pairs with different but *overlapping* vocabularies. Scoped the
+  rule in all three places it was stated flatly, with two caveats attached:
+  vocabularies must actually overlap, and acceptance behaviour on mismatched
+  pairs is uncharacterised here — measure it.
+- **Enum 11 -> 13 methods:** `custom_class` (callable proposer, #39487,
+  v0.22.0) and `dspark` (#46995, v0.25.0). `RejectionSampleMethod` also gained
+  `block` (#46781). `MTPModelTypes` now 20 aliases. Frontmatter count updated.
+- **Security item, a first for this skill:** #44744 (v0.24.0) fixes a **remote
+  DoS via invalid recovered-token reinjection in speculative decoding**.
+  Added to the version-gate table with an explicit "upgrade if reachable" note.
+- **Version-gate table extended v0.19 -> v0.25.0** with twelve rows, including
+  thinking-budget support (#34668), independent drafter attention backend
+  (#39930), Dynamic SD (#32374, CUDA-graph-compatible via #45953), and DFlash's
+  maturation well past its v0.19 debut (CPU #44029, backend selection #46770,
+  FlashInfer #43081).
+
+**Not re-probed:** the four original PRs (long-merged, gates unchanged),
+ArcticInference, the yuhuili checkpoint, and the training-data recipe survey.
+
 ## Open
 
 - **Deduplicate the BS>=32 / domain-mismatch caveat** — Dim 6 (Simplicity).
