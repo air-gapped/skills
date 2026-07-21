@@ -14,7 +14,28 @@ patch ladder changes.
   self-contained; execution-verified mode delegates to the harness's
   `vuln-pipeline patch` build→reproduce→regress→re-attack ladder. See
   `../vuln-scan/HARNESS.md` for setup/run.
-- Last verified: 2026-06-15  (active; not archived; last push 2026-06-15; reviewed delta since 2026-05-31 = untrusted_data prompt-isolation, PR #13 — its `patch_prompt.py`/style-judge moved a bare `<diff>` tag to a nonce-delimited `<untrusted_data id>` block — + sandbox cgroup-probe fix, PR #2. The patch ladder itself is unchanged; the isolation pattern is logged in improvement-backlog.md for an author-judged improve pass)
+- Last verified: 2026-07-21  (active; not archived; **last push 2026-07-16**; 17 commits since the 2026-06-15 stamp). **The patch ladder itself is unchanged** — `docs/patching.md` still describes the build→reproduce→regress→re-attack tiers, with the regress tier (T2) skipped on targets lacking a `test_command` (only `canary` sets one among the four bundled targets). Four patch-relevant paths moved in the window — `.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`, `harness/prompts/patch_prompt.py` — but as docs/prompt refinement, not a change to the verification tiers this skill delegates to.
+
+### Delta worth knowing (2026-06-15 → 2026-07-21)
+
+- **Outbound agent API requests now carry a declared usage marker** (PR #22,
+  2026-07-11; header renamed the same day). `harness/auth.py` stamps
+  `anthropic-cyber-runbook: pipeline` plus
+  `User-Agent: cyber-runbook/<version> (claude-cli/<CLAUDE_CODE_VERSION>)` onto
+  the agent env via `_with_usage_marker()`. **First-party callers only** — the
+  code notes Bedrock/Vertex rewrite the `User-Agent`, so the marker does not
+  apply there. Operationally: running the harness against the 1P API now tags
+  that traffic identifiably. Documented in the harness's `docs/security.md` and
+  `docs/pipeline.md#usage-marker`.
+- **New detection & response track** (2026-07-16): `dnr-pipeline`, a `dnrcanary`
+  target, and accompanying skills. Out of scope for this skill's patch ladder,
+  but it means the harness is no longer only a scan→triage→patch pipeline —
+  worth knowing before pointing someone at it.
+- **Bedrock guardrail** (2026-07-06): auth now warns on bare Bedrock model IDs
+  missing an inference-profile prefix.
+- Docs pass (2026-07-16) folded per-skill `Status` sections into prose and
+  corrected the model-pin note; the pipeline reference gained a full CLI flag
+  tree and batch-sizing guidance.
 
 ---
 

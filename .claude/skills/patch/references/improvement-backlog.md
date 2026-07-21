@@ -3,6 +3,40 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+Harness re-probed: active, not archived, **last push 2026-07-16**, **17 commits**
+since the 2026-06-15 stamp.
+
+- **The patch ladder this skill delegates to is unchanged.** `docs/patching.md`
+  still describes the build→reproduce→regress→re-attack tiers, with T2 (regress)
+  skipped on targets that set no `test_command` — only `canary` does, among the
+  four bundled targets. Four patch-relevant paths did move
+  (`.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`,
+  `harness/prompts/patch_prompt.py`) but as docs/prompt refinement, not a change
+  to the verification tiers. Checked the files rather than inferring from the
+  commit subjects.
+- **New, and operationally relevant to anyone running the harness: outbound
+  agent API requests now carry a declared usage marker.** `harness/auth.py`
+  stamps `anthropic-cyber-runbook: pipeline` and
+  `User-Agent: cyber-runbook/<version> (claude-cli/<CLAUDE_CODE_VERSION>)` via
+  `_with_usage_marker()`. **First-party callers only** — the code notes
+  Bedrock/Vertex rewrite the `User-Agent`, so the marker doesn't apply there.
+  Worth stating plainly because it changes the traffic profile of running the
+  harness, which is not something a patch-ladder reader would go looking for.
+- **The harness gained a detection & response track** (2026-07-16):
+  `dnr-pipeline`, a `dnrcanary` target, and skills. Out of scope here, but it
+  means the harness is no longer only scan→triage→patch — relevant when
+  pointing someone at it.
+- Also noted: a Bedrock guardrail warning on bare model IDs missing an
+  inference-profile prefix (2026-07-06), and a docs pass that folded per-skill
+  `Status` sections into prose and corrected the model-pin note.
+
+**Note for the sibling passes** (`threat-model`, `triage`, `vuln-scan`): they
+share this single upstream. The usage-marker and D&R-track findings apply to all
+four; each skill's own delegated surface still needs its own check.
+
+
 ## Open
 
 - **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried
