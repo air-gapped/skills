@@ -219,7 +219,7 @@ that Gemma-4 has a dedicated processor is wrong.
 compat, but new models (Gemma-4, Llama-3.x recent) ship only the
 sidecar file.
 
-**Issue #45205** (open, transformers 5.5.0, 2026): Gemma-4 E2B/E4B
+**Issue #45205** (transformers 5.5.0, 2026; GitHub shows it closed 2026-06-10 but that was the **stale bot**, not a fix — still unresolved as of 2026-07-21): Gemma-4 E2B/E4B
 ship only the sidecar file; `AutoTokenizer` fails to wire it into
 `tokenizer.chat_template`. Symptom: *"Cannot use chat template
 functions because tokenizer.chat_template is not set and no template

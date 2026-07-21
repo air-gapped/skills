@@ -230,7 +230,7 @@ argument was passed!")`.
 
 ## `chat_template.jinja` loading bugs
 
-### Issue #45205 (open, transformers 5.5.0) {#gemma-4-issue-45205}
+### Issue #45205 (unresolved; stale-closed 2026-06-10, transformers 5.5.0) {#gemma-4-issue-45205}
 
 Affects `google/gemma-4-E2B-it`, `google/gemma-4-E4B-it`, Python 3.14.
 

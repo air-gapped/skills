@@ -29,7 +29,35 @@ in a single atomic iteration, plus what each pass actually changed.
   (Kimi-K2.6, GLM-5.1, Gemma-4, DeepSeek-V3) since lab configs churn fastest.
   File: references/sources.md.
 
-## Resolved this pass (2026-05-28)
+## Resolved — 2026-07-21 (freshen)
+
+- **transformers v5.9.0 → v5.14.1** (2026-07-16; five minors since the last
+  stamp). The load-bearing claim — *no breaking tokenizer/chat-template API
+  change* — now extends **through 5.14.1**, and not by assumption: the
+  `Breaking changes` sections of 5.13.0 and 5.14.0 are entirely `kernels`
+  integration plus generation/SDPA work, and 5.10–5.12 carry none touching this
+  surface. Independently corroborated the same day by the `jinja-expert` freshen,
+  which re-read `chat_template_utils.py` on `main` and found the Jinja env
+  contract byte-identical to the 5.9-era description.
+- **#45205 shows CLOSED but is not fixed.** GitHub reports closed 2026-06-10 with
+  `stateReason: COMPLETED`; the closing comment is HuggingFace's inactivity bot.
+  A freshen trusting `state`/`stateReason` would have deleted the Gemma-4
+  chat-template gotcha from `SKILL.md`, `config-files.md`,
+  `chat-template-contract.md` and `hall-of-shame.md`. Re-labelled as
+  *stale-closed, unresolved* in each, and a warning added to `sources.md`.
+  **The identical pattern was found in `sgl-project/sglang` the same day**, so
+  it is recorded as the default assumption rather than a repo quirk.
+- **vLLM v0.21.0 → v0.25.1** (2026-07-14) — four minors in two months. The vLLM
+  rows are `blob/main` links so the URLs do not rot, but their *claims* were
+  verified against a v0.21-era tree and were **not** re-read this pass.
+  `engine-knobs.md` now says so explicitly instead of implying currency. This is
+  the largest un-re-verified surface in the skill and the obvious next pass.
+- **`tokenizers` (Rust) still v0.23.1** — no v0.24 tag; only rc's beneath it.
+- **PR #43104 still OPEN**, unmerged since 2026-01; #45359 confirmed MERGED
+  2026-04-13. The five older cited issues were already closed before the previous
+  stamp and are cited as history, so their state is not load-bearing.
+
+## Resolved — 2026-05-28
 
 - Freshened `references/tokenizer-classes.md` version timeline: "Current stable"
   moved from v5.5.4 (2026-04-13) / 5.6.0.dev0 to v5.9.0 (2026-05-20), noting the

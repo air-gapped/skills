@@ -23,8 +23,8 @@ refs).
 | https://github.com/huggingface/transformers/blob/main/src/transformers/models/auto/tokenization_auto.py | AutoTokenizer dispatcher | 2026-04-21 |
 | https://github.com/huggingface/transformers/blob/main/MIGRATION_GUIDE_V5.md | v4→v5 consolidation notes | 2026-04-21 |
 | https://github.com/huggingface/transformers/releases/tag/v5.0.0 | v5.0.0 GA notes | 2026-04-21 |
-| https://github.com/huggingface/transformers/releases | Release cadence + latest version (v5.9.0, 2026-05-20; weekly minors 5.6–5.9; no breaking tokenizer/chat-template API change through 5.9) | 2026-05-28 |
-| https://github.com/huggingface/tokenizers/tags | `tokenizers` (Rust) latest tag — backs the fast tokenizer / `tokenizer.json` (v0.23.1) | 2026-05-28 |
+| https://github.com/huggingface/transformers/releases | Release cadence + latest version (**v5.14.1, 2026-07-16**; minors 5.10–5.14 landed 2026-06-10 → 07-16). **No breaking tokenizer/chat-template API change through 5.14.1** — the `Breaking changes` sections of 5.13.0 and 5.14.0 are entirely `kernels`-integration and generation/SDPA items; 5.10/5.11/5.12 have none touching this surface. Independently corroborated the same day by re-reading `chat_template_utils.py` on `main`: the Jinja env contract is byte-identical to the 5.9-era description. | 2026-07-21 |
+| https://github.com/huggingface/tokenizers/tags | `tokenizers` (Rust) latest tag — backs the fast tokenizer / `tokenizer.json` (**still v0.23.1**; newest tags are v0.23.1 and rc's, no v0.24) | 2026-07-21 |
 | https://huggingface.co/blog/tokenizers | Transformers v5 tokenizer blog | 2026-04-21 |
 
 ## Transformers issues + PRs
@@ -35,10 +35,10 @@ refs).
 | https://github.com/huggingface/transformers/issues/41870 | GemmaTokenizerFast SP inconsistency | 2026-04-21 |
 | https://github.com/huggingface/transformers/issues/42914 | chat_template.jinja not cached offline | 2026-04-21 |
 | https://github.com/huggingface/transformers/issues/43066 | DeepSeek-R1-Distill decoder shape regression | 2026-04-21 |
-| https://github.com/huggingface/transformers/pull/43104 | v5 decoder doc clarification | 2026-04-21 |
-| https://github.com/huggingface/transformers/issues/45205 | Gemma-4 chat_template not auto-loaded | 2026-04-21 |
+| https://github.com/huggingface/transformers/pull/43104 | v5 decoder doc clarification | 2026-07-21 | **still OPEN**, unmerged since 2026-01 |
+| https://github.com/huggingface/transformers/issues/45205 | Gemma-4 chat_template not auto-loaded | 2026-07-21 | **Shows CLOSED 2026-06-10 with `stateReason: COMPLETED` — but the closing comment is the stale bot** ("automatically marked as stale because it has not had recent activity"). **No fix landed; the gotcha stands.** See the stale-bot warning below. |
 | https://github.com/huggingface/transformers/issues/45356 | Kimi-K2.5 `</think>` decode regression 5.3→5.4 | 2026-04-21 |
-| https://github.com/huggingface/transformers/pull/45359 | Fix for #45356 | 2026-04-21 |
+| https://github.com/huggingface/transformers/pull/45359 | Fix for #45356 | 2026-07-21 | MERGED 2026-04-13 |
 
 ## vLLM
 
@@ -60,7 +60,7 @@ refs).
 | https://github.com/vllm-project/vllm/pull/27622 | chat_template_kwargs allowlist fix (v0.11.1) | 2026-04-21 |
 | https://github.com/vllm-project/vllm/issues/25401 | tokenizer-mode mistral silently ignores --chat-template | 2026-04-21 |
 | https://github.com/vllm-project/vllm/releases/tag/v0.11.1 | Shipped PR #27622 | 2026-04-21 |
-| https://github.com/vllm-project/vllm/releases | vLLM release cadence + latest version (v0.21.0, 2026-05-15) | 2026-05-28 |
+| https://github.com/vllm-project/vllm/releases | vLLM release cadence + latest version (**v0.25.1, 2026-07-14**; v0.22.1 → v0.23.0 → v0.24.0 → v0.25.0 → v0.25.1 since the last stamp — four minors in two months). The vLLM source rows above are `blob/main` links, so they do not rot, but their *claims* were verified against a v0.21-era tree and were **not** re-read this pass. | 2026-07-21 |
 
 ## sglang
 
@@ -109,4 +109,25 @@ refs).
 |---|---|---|
 | https://github.com/QwenLM/Qwen3/issues/927 | config.json vs tokenizer_config EOS drift | 2026-04-21 |
 | https://kaitchup.substack.com/p/qwen3-when-im_end-suddenly-becomes | Qwen3 base-vs-instruct EOS flip | 2026-04-21 |
+
+---
+
+## Freshen trap: `CLOSED` + `COMPLETED` can mean *stale bot*
+
+`huggingface/transformers` runs an inactivity bot that closes issues **and the
+GitHub API reports `stateReason: COMPLETED`** for them. #45205 (Gemma-4
+`chat_template` not auto-loaded) is closed by exactly this route with no fix
+merged — a freshen that trusted `state` + `stateReason` would delete a live
+gotcha from four files.
+
+The same behaviour was observed in `sgl-project/sglang` on the same day, so treat
+it as the default assumption, not a quirk. Always read the closing comment:
+
+```bash
+gh issue view <N> -R <owner>/<repo> \
+  --json state,closedAt,stateReason,comments \
+  --jq '"\(.state) \(.stateReason)\n\(.comments[-1].body[0:200])"'
+```
+
+A real fix names a PR or a release. A stale close says "no recent activity".
 

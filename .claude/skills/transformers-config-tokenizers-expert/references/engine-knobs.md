@@ -6,7 +6,7 @@ chat-template layer (covered by `chat-template-contract.md`) — the
 runtime knobs.
 
 Primary sources:
-- vLLM `main` (~v0.21.0, latest release 2026-05-15)
+- vLLM `main` (claims verified against a ~v0.21.0 tree; latest release is now **v0.25.1**, 2026-07-14 — four minors on, not re-verified)
 - sglang `main` (snapshot 2026-04-21)
 
 File:line citations are against `main`; line numbers drift
