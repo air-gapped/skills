@@ -518,7 +518,7 @@
       "name": "aiperf",
       "source": "./",
       "description": "NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (the genai-perf successor): `aiperf profile` with concurrency / request-rate / fixed-schedule trace-replay / user-centric / multi-run-confidence load, 15 endpoint types and 6 custom dataset formats, goodput SLOs, GPU + Prometheus telemetry, and the reasoning-token TTFT/TTFO split — benchmarks vLLM / SGLang / TensorRT-LLM / Dynamo / NIM / Triton / Ollama.",
-      "version": "0.20260529.2",
+      "version": "0.20260721.3",
       "author": {
         "name": "Jörgen"
       },

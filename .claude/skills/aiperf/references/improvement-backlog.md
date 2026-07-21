@@ -4,6 +4,47 @@ Prior skill-improver runs and ceiling findings.
 
 ## Open
 
+*(the carried v0.8.0 audit item below is now closed — see the 2026-07-21 section)*
+
+## Resolved — 2026-07-21 (freshen)
+
+Three minors of drift closed (v0.8.0 → **v0.11.0**, 2026-07-08). Also closes the
+carried "audit v0.8.0 release notes flag-by-flag" item, superseded by auditing
+v0.9/v0.10/v0.11 against the `v0.11.0` CLI reference rather than release prose.
+
+- **`--endpoint-type` enum corrected against `docs/cli-options.md` @ `v0.11.0`:**
+  17 values, not 15. Added `image_edit` (v0.9.0, PR #906, FLUX.2 image-to-image)
+  and `raw`. **`nim_image_retrieval` was wrong — the enum value is
+  `image_retrieval`.** A user copying the old name would have hit a CLI
+  validation error.
+- **SPEED-Bench was in the wrong category.** `datasets.md` listed the
+  `speed_bench_*` names under `--public-dataset`; at v0.11.0 they are
+  `--custom-dataset-type` values. `--public-dataset speed_bench_math` is
+  rejected. Corrected, and the public-dataset table gained the missing
+  `spec_al_*` (speculative-decoding acceptance length) and speech/ASR
+  (`librispeech`, `voxpopuli`, `gigaspeech`, `ami`, `spgispeech`) groups.
+- **Custom dataset formats: 6 → 10 core** — added `dag_jsonl` (v0.9.0, PR #891,
+  conversation DAGs with FORK/SPAWN), `raw_payload`, `inputs_json`,
+  `sagemaker_data_capture`, plus the SPEED-Bench family documented as
+  custom-dataset-type values.
+- **Frontmatter counts corrected** (15→17 endpoints, 6→10 formats, "40+ public
+  datasets"→"20+" since the 40+ figure was counting SPEED-Bench variants that
+  are not public datasets). Trigger phrases left intact.
+- **New capability section in SKILL.md** for v0.9–v0.11: adaptive sweep
+  orchestrator + YAML-native v2 config (BO + search recipes), multi-tier SLO
+  search, the seven-benchmark accuracy suite, OTel/MLflow and W&B exporters,
+  AMD ROCm telemetry via `amdsmi`, `network_adjusted_*` latency metrics, power
+  metrics, and the v0.11.0 warmup fix that invalidates prefix-cache-skewed
+  baselines from ≤v0.10.x.
+- **Python bound is now `>=3.10,<3.14`** (was recorded as `>=3.10`); Windows is
+  a first-class port with blocking CI since v0.11.0; `aiperf-nightly` wheel
+  published since v0.10.0.
+
+**Marked as inferred, not documented:** the `image_edit` and `raw` default
+paths are absent from the CLI reference — both rows now say so explicitly and
+tell the reader to confirm with `--help`, rather than asserting OpenAI's
+conventional path as fact.
+
 ### Bundle helper scripts to lift Dim 7 (Resource Quality)
 - **Dim:** 7
 - **Where:** new `scripts/` directory; would also require pointer table additions in `SKILL.md` "What to read next" and `references/output-artifacts.md`.

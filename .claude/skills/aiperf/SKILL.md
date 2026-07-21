@@ -2,7 +2,7 @@
 name: aiperf
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 15 endpoint types (chat, completions, embeddings, rankings, responses, image-gen, video-gen, NIM, HF-TGI, template, etc.), 6 custom dataset formats (single_turn, multi_turn, mooncake_trace, bailian_trace, burst_gpt_trace, random_pool), 40+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze-trace/synthesize/service subcommands, plugin extensibility, and reasoning-token TTFT/TTFO split.
+  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 17 endpoint types (chat, completions, embeddings, rankings, responses, image-gen, image-edit, video-gen, NIM, HF-TGI, raw, template, etc.), 10 custom dataset formats (single_turn, multi_turn, mooncake_trace, bailian_trace, burst_gpt_trace, random_pool, dag_jsonl, raw_payload, inputs_json, sagemaker_data_capture) plus the SPEED-Bench family, 20+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze-trace/synthesize/service subcommands, plugin extensibility, and reasoning-token TTFT/TTFO split.
 when_to_use: |-
   Trigger on "aiperf", "ai-dynamo/aiperf", "genai-perf migration", or "benchmark vllm / sglang / trt-llm / dynamo / nim / triton / ollama" — vendor-neutral, prefer over `vllm bench` when target is non-vLLM or trace-driven. Also `aiperf profile / plot / plugins / analyze-trace / synthesize / service`, "mooncake / bailian / burstgpt trace", "sharegpt", "speed-bench", "MMLU / AIME accuracy benchmark", "TTFO / time-to-first-output-token", "reasoning-token TTFT split", "goodput SLO", "DistServe goodput", "fixed-schedule replay", "user-centric rate", "prefill concurrency", "multi-run confidence", "DCGM / pynvml telemetry", "profile_export.jsonl", "NIM embeddings/rankings", "HF TEI rerank", "image / video generation benchmark", "register custom endpoint / dataset plugin". Defer to `vllm-benchmarking` for `vllm bench` workflows.
 ---
@@ -23,11 +23,24 @@ Target audience: operators producing defensible latency/throughput/goodput numbe
 
 If the target is exclusively vLLM and the operator wants the in-tree `vllm bench` toolchain (sweep, latency-only, startup, mm-processor), defer to the `vllm-benchmarking` skill. AIPerf is the right answer when (a) the target is non-vLLM or (b) the workload is trace-driven, multi-modal, multi-server, or needs goodput.
 
+## What landed in v0.9.0 – v0.11.0
+
+Three minors shipped between 2026-05-30 and 2026-07-08. The ones that change how you drive AIPerf:
+
+- **Adaptive sweep orchestrator + YAML-native v2 config** (v0.10.0, PR #912) — Bayesian Optimization and reusable search recipes, instead of hand-rolled concurrency sweeps.
+- **Multi-tier SLO search** (v0.11.0, PR #1035) — resolve N tier boundaries in a single job rather than one job per tier.
+- **Accuracy suite went from a curiosity to a platform** — AIME (v0.9.0), then HellaSwag, BigBench-Hard, AIME 2024/2025 (v0.10.0, DeepEval/lighteval-backed), then MATH-500, GPQA-Diamond, LCB CodeGen (with a `code_execution` grader) and GSM8K (v0.11.0).
+- **Exporters:** live OpenTelemetry streaming + MLflow (v0.9.0, PR #900); Weights & Biases (v0.11.0, PR #1049).
+- **Telemetry beyond NVIDIA:** AMD ROCm collector via `amdsmi` (v0.9.0, PR #908).
+- **`network_adjusted_*` latency metrics** (v0.11.0, PR #1066) — subtract network RTT so numbers reflect the server, not the path to it.
+- **Power metrics** — initial implementation (v0.10.0, PR #803).
+- **Warmup fix** (v0.11.0) preventing prefix-cache reuse from skewing results — if you have baselines from ≤v0.10.x with warmup enabled, they may not be comparable.
+
 ## Versions
 
-- **Stable on PyPI:** v0.8.0 (2026-05-16). `pip install aiperf`.
-- **Repo `main`** at https://github.com/ai-dynamo/aiperf: 0.9.0-dev (post-v0.8.0).
-- **Python:** ≥3.10. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows.
+- **Stable on PyPI:** v0.11.0 (2026-07-08), `requires-python >=3.10,<3.14`. `pip install aiperf`. A nightly wheel is published alongside as `aiperf-nightly` (v0.10.0+).
+- **Repo `main`** at https://github.com/ai-dynamo/aiperf: post-v0.11.0.
+- **Python:** ≥3.10, <3.14. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows — Windows is a first-class port with blocking CI since v0.11.0 (PR #1007).
 - **Source of truth for flags:** `aiperf profile --help`. CLI options doc is auto-generated via `make generate-cli-docs`. If the doc disagrees with `--help` on a flag spelling, trust `--help`.
 
 ## Decision tree — which subcommand

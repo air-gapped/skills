@@ -1,6 +1,6 @@
 # AIPerf CLI Reference
 
-Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aiperf v0.7.0 (stable) / v0.8.0-dev. Trust `aiperf <subcommand> --help` if anything here disagrees.
+Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aiperf v0.11.0 (stable). Trust `aiperf <subcommand> --help` if anything here disagrees.
 
 ## Table of Contents
 
