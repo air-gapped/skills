@@ -3,6 +3,31 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Resolved — 2026-07-21 (freshen)
+
+**Verified unchanged — mechanically, not by re-stamping.**
+
+The signal worth noting: subiquity's `main` was **pushed 2026-07-20** while
+**`26.04` (2026-04-23) is still the latest release** — three months of active
+development with no cut. Since this skill documents the schema on `main`, the
+release tag is not a proxy for whether the schema moved, so the artifact was
+diffed directly.
+
+- **32 top-level keys on `main`; all 32 already documented in `schema.md`** —
+  programmatic diff of the live `autoinstall-schema.json` against the backticked
+  identifiers in the reference. Zero undocumented keys, none removed.
+- Schema `version` still constrained to exactly 1
+  (`{minimum: 1, maximum: 1}`); `kernel-crash-dumps` / `zdevs` gating holds.
+- `apt.fallback` enum unchanged: `abort`, `continue-anyway`, `offline-install`.
+- All three code-behaviour claims re-read at source and unchanged — now carrying
+  line anchors so the next pass can jump straight to them:
+  `flavor_to_pkgname()` (kernel.py L19-29), the on-media fatal string
+  (server.py L741), the `ubuntu-pro`/`ubuntu-advantage` alias pair
+  (ubuntu_pro.py L75-76).
+- Recorded the reusable diff recipe in `sources.md` so the check is a
+  two-command job next time rather than a manual read.
+
+
 ## Open
 
 - **Dim 2 (Progressive Disclosure) capped at 8 by SKILL.md length.** SKILL.md is

@@ -451,7 +451,7 @@
       "name": "ubuntu",
       "source": "./",
       "description": "Ubuntu Server provisioning suite — the three configuration layers of an unattended on-premise / air-gapped Ubuntu Server LTS 24.04 / 26.04 bring-up: ubuntu-autoinstall (the Subiquity `autoinstall:` v1 schema — identity, storage LVM/ZFS/RAID/encryption, apt mirror + proxy + offline fallback, early/late-commands, NoCloud zero-touch delivery), ubuntu-cloud-init (NoCloud-datasource `#cloud-config` user-data — users, ssh, write_files, runcmd, local apt mirrors, internal-CA ca_certs, seed ISO / SMBIOS serial / `ds=nocloud` cmdline, boot stages, `datasource_list` pinning), and ubuntu-netplan (the `/etc/netplan/*.yaml` v2 network substrate both share — static addressing, bonds, bridges, VLANs, VRFs, policy routing, predictable interface naming, systemd-networkd renderer). The installer's `network:` block is netplan and its `user-data:` block is cloud-config, so the three are designed to be used together.",
-      "version": "0.20260614.1",
+      "version": "0.20260721.2",
       "author": {
         "name": "Jörgen"
       },
