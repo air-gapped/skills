@@ -122,7 +122,7 @@
       "name": "dev",
       "source": "./",
       "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices, and HuggingFace transformers config/tokenizer preflight (vLLM/sglang engine bridge).",
-      "version": "0.20260721.10",
+      "version": "0.20260721.11",
       "author": {
         "name": "Jörgen"
       },

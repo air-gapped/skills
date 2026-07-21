@@ -53,6 +53,14 @@ Requires `jinja2 >= 3.1.0`. Any env that matches these four things
 `keep_trailing_newline=False`) plus the three customizations below will
 render identically.
 
+**Which function builds this — the names lie.** `_cached_compile_jinja_template`
+is the *uncached* builder shown above; the `@lru_cache` sits on its thin wrapper
+`_compile_jinja_template`, which is what `render_jinja_template` actually calls.
+So an edited template that keeps rendering its old output is cached on the
+function *without* `cached` in the name — clear
+`_compile_jinja_template.cache_clear()`, not the other one. (Verified against
+transformers 5.14.1, 2026-07-21.)
+
 ---
 
 ## 2. What's loaded (and what's deliberately not)
