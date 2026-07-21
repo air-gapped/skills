@@ -12,7 +12,42 @@ a single atomic iteration, plus what each pass actually resolved.
   Dim 6 (Simplicity); recon ranked it last, below the cap-lifting and freshen fixes.
   Apply as a small table only, after a fresh read.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen)
+
+Probed 20 refs: 10 tool repos, 8 CI action pins, plus the Helm 4.1/3.21 release
+lines. The headline finding is not a version — it is that **two SHA pins pointed
+at commits that do not exist.**
+
+- **`sigstore/cosign-installer@3454372b…` (labelled v3.8.2) — no such commit.**
+  `gh api .../commits/<sha>` returns 422. Replaced with v4.1.2
+  (`6f9f17788090df1f26f669e9d70d6ae9567deba6`, verified).
+- **`helm/chart-releaser-action@cae68fefc6b5f367a13b05b6d575c93921f3b899`
+  (v1.7.0) — no such commit.** The real v1.7.0 SHA shares only its first 17
+  hex chars: `cae68fefc6b5f367a0275617c9f83181ba54714f`. The 2026-05-28 pass
+  recorded chart-releaser-action as "Confirmed CURRENT" — it checked the
+  *version*, which was and is right, and never resolved the SHA. That is the
+  hole this pass closes, and why `sources.md` now states the SHA-resolution
+  step as a standing requirement rather than a one-off.
+- **All six remaining pins resolved**, but every one was 1–3 majors stale:
+  checkout v4.2.2→v7.0.1, setup-python v5.6.0→v7.0.0, setup-helm v4.3.0→v5.0.1,
+  login-action v3.4.0→v4.4.0, kind-action v1.12.0→v1.14.0. chart-testing-action
+  v2.8.0 unchanged and correct.
+- **Breaking-change check on the two risky bumps.** setup-helm v5.0.0 is a
+  node20→node24 runtime bump, nothing else. cosign-installer v4 is required for
+  cosign v3+, and cosign v3 makes `--bundle` mandatory on `sign-blob` — but this
+  skill only signs OCI digests with `cosign sign`/`verify` and never calls
+  `sign-blob`, so the bump is safe as written. Recorded in `sources.md` with the
+  condition that would change the answer.
+- **Tool drift:** helm-unittest v1.1.0→v1.1.1, helmfile v1.5.2→**v1.7.1** (two
+  minors), dadav/helm-schema v0.23.3→0.23.4. helm-docs still v1.14.2 — no
+  release in two years, so the pin is correct, not stale.
+- **Helm itself:** v4.2.0→v4.2.3 (2026-07-09). Added the fact that **Helm 3 is
+  still maintained in parallel** — v3.21.3 shipped the same day — so the skill
+  no longer reads as though Helm 3 users are on an abandoned line.
+- **Rows given versions they lacked:** kubeconform v0.8.0, cosign v3.1.2 (v2
+  line still patched at v2.6.4), release-please v17.10.3.
+
+## Resolved — 2026-05-28
 
 - Created `references/sources.md` with a dated per-URL table (16 rows, all stamped
   Last verified 2026-05-28) — lifts the Dim 9 absent-sources.md hard cap (ceiling

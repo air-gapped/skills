@@ -39,8 +39,10 @@ Cilium, cert-manager, and ArgoCD.
 
 ### 1. Helm 4 Is Current (Released November 2025)
 
-Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.0 (latest patch line
-v4.1.4 on the 4.1 series). Key changes:
+Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.3 (2026-07-09); the
+4.1 series stops at v4.1.4. Helm 3 has *not* been retired — v3.21.3 shipped the
+same day as v4.2.3, so "still on Helm 3" is a supported position, not a lapsed
+one. Key changes:
 
 - **Server-Side Apply** is default for new installations (existing Helm 3 releases
   keep client-side apply on upgrade unless `--server-side` is passed)
