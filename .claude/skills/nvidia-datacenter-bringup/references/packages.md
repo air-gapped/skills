@@ -23,6 +23,33 @@ sudo apt install nvidia-container-toolkit
 
 Total: four `apt install` invocations. DOCA-Host install happens BEFORE this — see [[recipe]] for the full sequence including DOCA, kernel headers, MOK.
 
+## The branch-suffix cliff (observed 2026-07-21)
+
+**NVIDIA stopped minting branch-suffixed packages partway up the stack.** In the
+Ubuntu 24.04 CUDA repo's `Packages` index today:
+
+| Family | Highest `-<branch>` suffixed | Newer branches reachable how |
+|---|---|---|
+| `nvidia-driver-<b>`, `nvidia-driver-<b>-open`, `nvidia-open-<b>`, `cuda-drivers-<b>`, `nvlink5-<b>` | **580** | unsuffixed `nvidia-driver` / `nvidia-driver-open` / `nvidia-open` / `nvlink5` |
+| `nvidia-fabricmanager-<b>`, `cuda-drivers-fabricmanager-<b>`, `libnvidia-nscq-<b>`, `libnvsdm-<b>`, `nvidia-imex-<b>` | **575** | unsuffixed `nvidia-fabricmanager`, `libnvidia-nscq`, … |
+
+Branches **590, 595 and 610** are published — `nvidia-driver`, `nvidia-open`,
+`nvlink5` and `nvidia-fabricmanager` all reach `610.43.02-1ubuntu1` — but only
+through the **unsuffixed** package names, with the branch encoded in the
+*version*. There is no `nvidia-open-610`.
+
+**So `apt install nvidia-open-<branch>` is not a general recipe above 580.**
+Pinning above 580 goes through `nvidia-driver-pinning-<branch>` (590/595/610 all
+present) or `nvidia-driver-pinning-<version>`, then installing the *unsuffixed*
+meta. The 580-based recipes in [[recipe]] and [[hopper-recipe]] remain valid
+because 580 is the last branch on the suffixed scheme — that is luck, not design,
+and the next branch bump will break them.
+
+Caveat worth carrying: the 2026-05-21 live apt-cache capture recorded suffixed FM
+packages up to 595. Today's index has none above 575. Whether those were removed
+or never existed is not resolvable from the index alone — what is certain is what
+`Packages` says today.
+
 ## Package universe summary
 
 | Package | Type | Variants | What it is |
@@ -36,15 +63,15 @@ Total: four `apt install` invocations. DOCA-Host install happens BEFORE this —
 | `cuda-drivers-<branch>` | meta (proprietary, branch) | various | UNSUITABLE for Blackwell |
 | `nvlink5` | meta (latest) | bare | Pulls fabric stack — verify on a real B300 |
 | `nvlink5-<branch>` | meta (branch-pinned) | 570, 575, 580 (no 590/595 yet) | Pulls FM + NVLSM + libnvsdm + libibumad3 + infiniband-diags coherent to branch |
-| `nvlsm` | binary | floating (calver `2025.10.12-1`) | NVLink Subnet Manager. `Depends: build-essential, libgcc1, libc6, libstdc++6, libibumad3` |
+| `nvlsm` | binary | floating (calver `2025.10.14-1`) | NVLink Subnet Manager. `Depends: build-essential, libgcc1, libc6, libstdc++6, libibumad3` |
 | `libnvsdm` | shared lib | bare + 560/565/570/575 | NVSDM library for telemetry from QM switches |
 | `libnvsdm-dev` | dev headers | one | API header + lib |
-| `nvidia-fabricmanager-<branch>` | binary | 535–595 | FM service. `Depends: nvidia-kernel-common-<branch>-server` |
-| `cuda-drivers-fabricmanager-<branch>` | meta | 535–595 | Just `Depends: nvidia-fabricmanager-<branch>` — convenience |
-| `libnvidia-nscq-<branch>` | shared lib | 535/550/555/560/565/570/575/580/590/595 + bare | NVSwitch Configuration and Query library |
+| `nvidia-fabricmanager-<branch>` | binary | 550–**575 only** | FM service. `Depends: nvidia-kernel-common-<branch>-server`. **No 580/590/595 suffixed build exists** — see the branch-suffix cliff below |
+| `cuda-drivers-fabricmanager-<branch>` | meta | 550–**575 only** | Just `Depends: nvidia-fabricmanager-<branch>` — convenience. Same cliff |
+| `libnvidia-nscq-<branch>` | shared lib | 550–**575** + bare | NVSwitch Configuration and Query library. Same cliff |
 | `nvidia-modprobe` | binary | floating, branch-encoded in version | All driver minors back to 580.82.07 present |
 | `nvidia-persistenced` | binary | floating | Persistence daemon |
-| `nvidia-container-toolkit` | binary | floating | Container runtime, latest 1.19.0-1 |
+| `nvidia-container-toolkit` | binary | floating | Container runtime, latest 1.19.1-1 |
 | `nvidia-container-toolkit-base` | binary | floating | Base subset (no runtime hooks) |
 | `datacenter-gpu-manager-4-{core,cuda11,cuda12,cuda13,cuda-all}` | DCGM v4 | per CUDA major | Pick `cuda13` for current |
 | `datacenter-gpu-manager-4-{multinode,proprietary,proprietary-cuda12,proprietary-cuda13}` | DCGM v4 ext | per use case | Multi-node diagnostics and proprietary binaries |

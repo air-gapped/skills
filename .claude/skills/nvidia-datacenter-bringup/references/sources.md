@@ -39,7 +39,7 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/ | Ubuntu 24.04 amd64 CUDA repo (driver, FM, nvlsm, libnvsdm, nvlink5, container-toolkit) — path note: `ubuntu2404` no dot | 2026-05-28 | 580 remains current production branch; no 590/600 GA supersedes it |
+| https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/ | Ubuntu 24.04 amd64 CUDA repo (driver, FM, nvlsm, libnvsdm, nvlink5, container-toolkit) — path note: `ubuntu2404` no dot | 2026-07-21 | **Corrected: 590, 595 and 610 ARE published** (newest `610.43.02-1ubuntu1`), superseding the previous "no 590/600 GA" note. They ship only via *unsuffixed* package names — branch-suffixed builds stop at 580 (driver side) and 575 (fabric side). See [[packages]] §branch-suffix cliff. Read `Packages.gz`, **not** the HTML directory listing: the listing does not surface unsuffixed packages' branch versions and reads as though nothing past 580 exists. Which of 590/595/610 is the *designated* Production branch was NOT verified — needs the driver-lifecycle page |
 | https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb | Repo keyring + source-list deb | 2026-05-21 | 1.1-1 |
 | https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/ | CUDA repo key rotation history (last rotation April 2022) | 2026-05-21 | — |
 
@@ -53,13 +53,13 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes (26.3.0, 26.3.1) | 2026-05-21 | 26.3.1 latest |
+| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes | 2026-07-21 | **v26.3.3 latest** (2026-06-25); 26.3.2 (2026-05-29) in between |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html | Driver branch + GPU compat matrix | 2026-05-21 | — |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/install-gpu-operator.html | Pre-installed driver mode helm flags | 2026-05-21 | — |
 | https://github.com/NVIDIA/gpu-operator | Upstream source: validator code, helm values.yaml | 2026-05-21 | — |
-| https://github.com/NVIDIA/gpu-operator/issues/2231 | OPEN: B300 PCI 0x3182 validator name table | 2026-05-28 | still open, no merged fix as of 2026-05-28 |
+| https://github.com/NVIDIA/gpu-operator/issues/2231 | OPEN: B300 PCI 0x3182 validator name table | 2026-07-21 | **still open**, no merged fix as of 2026-07-21 — two months on |
 | https://github.com/NVIDIA/gpu-operator/issues/1595 | CLOSED 2025-11-17: FM broken in 570.158.01 | 2026-05-21 | fixed in 570.172.08 |
-| https://github.com/NVIDIA/gpu-operator/issues/2463 | OPEN 2026-05-14: CONFIG_MEMORY_HOTPLUG hostPath mount | 2026-05-21 | open |
+| https://github.com/NVIDIA/gpu-operator/issues/2463 | CONFIG_MEMORY_HOTPLUG hostPath mount | 2026-07-21 | **now CLOSED 2026-07-07** (was open at last pass) — recheck any workaround the skill still recommends for it |
 | https://github.com/NVIDIA/gpu-operator/issues/286 | CLOSED: original cudaErrorSystemNotReady → FM diagnosis | 2026-05-21 | — |
 | https://github.com/NVIDIA/gpu-operator/issues/1043 | CLOSED: cuda-validator stuck → install FM | 2026-05-21 | — |
 | https://forums.developer.nvidia.com/t/nvidia-fabricmanager-fail-with-ib-umad-module/353369 | Canonical reference for install-order pitfall | 2026-05-21 | — |
@@ -102,4 +102,4 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 ## Live apt-cache reality
 
-Captured 2026-05-21 from a clean `ubuntu:24.04` docker container with the NVIDIA CUDA repo added via `cuda-keyring_1.1-1_all.deb`. The apt-cache output backing the [[packages]] reference is the authoritative source for package names — if NVIDIA's user-guide text drifts from the apt index, trust the apt index. Re-run the inspect script during freshen passes.
+Re-probed 2026-07-21 against the repo's `Packages.gz` index (see the branch-suffix correction above). Originally captured 2026-05-21 from a clean `ubuntu:24.04` docker container with the NVIDIA CUDA repo added via `cuda-keyring_1.1-1_all.deb`. The apt-cache output backing the [[packages]] reference is the authoritative source for package names — if NVIDIA's user-guide text drifts from the apt index, trust the apt index. Re-run the inspect script during freshen passes.

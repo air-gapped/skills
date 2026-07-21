@@ -6,7 +6,9 @@ The skill's scope ends at the host being healthy. This file documents what gpu-o
 
 - **v25.10.1** (Dec 2025) — first version with HGX B300 + GB300 NVL72 support. Default driver 580.95.05. (User's currently-deployed version.)
 - **v26.3.0** (Mar 2026) — adds NRI plugin, dynamic MIG configmaps, NVIDIADriver CRD. Default driver 580.126.20.
-- **v26.3.1** (Apr 2026) — latest. Adds `hostNetwork` for ClusterPolicy/NVIDIADriver operands. Same default driver.
+- **v26.3.1** (Apr 2026) — adds `hostNetwork` for ClusterPolicy/NVIDIADriver operands. Same default driver.
+- **v26.3.2** (2026-05-29) — Kubernetes 1.36 support, NRI plugin on CRI-O v1.34+, DCGM-exporter pod metadata (`enablePodLabels`, `enablePodUID`) + custom DaemonSet annotations, driver-upgrade label staleness fix. Same default driver.
+- **v26.3.3** (2026-06-25) — **latest.** Device Plugin + GFD to v0.19.3, and a fix for a **v26.3.2 regression** that unconditionally enabled `MOFED_ENABLED` / `GDS_ENABLED`, injecting unintended network interfaces and disrupting RDMA workloads. On an RDMA chassis, skip 26.3.2 and go straight to 26.3.3. Default driver still 580.126.20.
 
 ## Pre-installed driver mode
 
@@ -18,7 +20,7 @@ Helm install command:
 helm install --wait gpu-operator \
   -n gpu-operator --create-namespace \
   nvidia/gpu-operator \
-  --version=v26.3.1 \
+  --version=v26.3.3 \
   --set driver.enabled=false \
   --set toolkit.enabled=false
 ```
@@ -179,10 +181,10 @@ Affects only operator-managed driver mode. Pre-installing the driver and putting
 
 ## Air-gap operator install
 
-Mirror these images for v26.3.1 pre-installed mode:
+Mirror these images for v26.3.3 pre-installed mode:
 
 ```
-nvcr.io/nvidia/gpu-operator:v26.3.1
+nvcr.io/nvidia/gpu-operator:v26.3.3
 nvcr.io/nvidia/k8s-device-plugin:v0.19.0
 nvcr.io/nvidia/cloud-native/k8s-driver-manager:v0.10.0    # only needed for operator-managed driver mode
 nvcr.io/nvidia/cloud-native/gpu-feature-discovery:v0.19.0
@@ -226,4 +228,4 @@ validator:
 - Upstream source: https://github.com/NVIDIA/gpu-operator
 - Issue #2231 (B300 PCI 0x3182): https://github.com/NVIDIA/gpu-operator/issues/2231
 - Issue #1595 (FM 570.158.01): https://github.com/NVIDIA/gpu-operator/issues/1595
-- Issue #2463 (CONFIG_MEMORY_HOTPLUG hostPath): https://github.com/NVIDIA/gpu-operator/issues/2463
+- Issue #2463 (CONFIG_MEMORY_HOTPLUG hostPath): https://github.com/NVIDIA/gpu-operator/issues/2463 — CLOSED 2026-07-07

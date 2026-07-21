@@ -46,7 +46,54 @@ Open ceiling findings and follow-ups that need either author input, on-cluster v
 - **Question:** apt-cache shows `nvlsm` as a single floating package (calver `2025.10.12-1`), not branch-versioned. The skill claims FM↔driver version match is enforced but NVLSM↔driver coherence is not. Confirm what happens when driver 580.126.20 is paired with `nvlsm 2025.10.12-1` (which is newer): does FM fail to start, warn, or work fine?
 - **Why not in one iteration:** Requires either documentation from NVIDIA (none found) or empirical test on the user's box.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen)
+
+The headline is a **packaging-scheme change** that the previous pass's own
+conclusion got backwards.
+
+- **"580 remains current production branch; no 590/600 GA supersedes it" is
+  wrong.** Branches **590, 595 and 610** are all published in the Ubuntu 24.04
+  CUDA repo, newest `610.43.02-1ubuntu1`. The 2026-05-28 pass re-confirmed the
+  no-590/600 claim and re-stamped it; this pass overturns it.
+- **Why it was missed — and why I nearly repeated it.** The HTML directory
+  listing shows branch-*suffixed* filenames, and those stop at 580. Reading the
+  listing, the honest conclusion is "nothing past 580 exists" — which is what I
+  concluded on my first probe this pass too. The `Packages.gz` index tells a
+  different story: 590/595/610 ship through **unsuffixed** package names with
+  the branch encoded in the *version*. `sources.md` now says to read
+  `Packages.gz`, not the listing.
+- **The branch-suffix cliff, documented in [[packages]].** Suffixed builds stop
+  at **580** for `nvidia-driver-<b>` / `-open` / `nvidia-open-<b>` /
+  `cuda-drivers-<b>` / `nvlink5-<b>`, and at **575** for
+  `nvidia-fabricmanager-<b>` / `cuda-drivers-fabricmanager-<b>` /
+  `libnvidia-nscq-<b>` / `libnvsdm-<b>` / `nvidia-imex-<b>`. So
+  `apt install nvidia-open-<branch>` is not a general recipe above 580; pinning
+  above it goes via `nvidia-driver-pinning-<branch>` (590/595/610 present) plus
+  the unsuffixed meta. The 580 recipes in [[recipe]] / [[hopper-recipe]] still
+  work **because 580 is the last suffixed branch — luck, not design.**
+- **Three table ranges in [[packages]] corrected**: `nvidia-fabricmanager-<b>`
+  and `cuda-drivers-fabricmanager-<b>` were "535–595", actually 550–575;
+  `libnvidia-nscq-<b>` claimed 580/590/595 entries that do not exist. Also
+  `nvidia-container-toolkit` 1.19.0-1 → 1.19.1-1 and `nvlsm` 2025.10.12-1 →
+  2025.10.14-1. Corollary: the 2026-05-28 note below claiming "branches 550-595
+  all ship `nvidia-imex-XXX`" is wrong — suffixed imex stops at 575.
+- **gpu-operator v26.3.1 → v26.3.3** (2026-06-25), via v26.3.2 (2026-05-29).
+  **v26.3.2 shipped a regression** that unconditionally enabled `MOFED_ENABLED`
+  / `GDS_ENABLED`, injecting unintended network interfaces and breaking RDMA
+  workloads; v26.3.3 fixes it. On an RDMA chassis that is a skip-26.3.2
+  instruction, so it is called out in [[gpu-operator]] rather than left as a
+  version number. Helm `--version` flags and the air-gap mirror image list
+  updated to v26.3.3.
+- **Issue #2463 (CONFIG_MEMORY_HOTPLUG) closed 2026-07-07**; annotated. Issue
+  **#2231 (B300 PCI 0x3182 validator) still open** two months on — the B300
+  validator workaround the skill documents is still load-bearing.
+
+**Not verified:** which of 590/595/610 carries NVIDIA's *Production Branch*
+designation (vs New Feature / LTS). The driver-lifecycle page did not yield it
+in this pass, so the skill states repo contents only and makes no
+branch-designation claim.
+
+## Resolved — 2026-05-28
 
 ### Initial authoring (2026-05-21)
 

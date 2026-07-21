@@ -232,7 +232,7 @@ Quick install (pre-installed driver mode, gpu-operator 26.3.x):
 helm install --wait gpu-operator \
   -n gpu-operator --create-namespace \
   nvidia/gpu-operator \
-  --version=v26.3.1 \
+  --version=v26.3.3 \
   --set driver.enabled=false \
   --set toolkit.enabled=false
 ```
