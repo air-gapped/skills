@@ -23,6 +23,7 @@ that maintainers accepted) recommend.
 14. Session-pool exhaustion on rapid CI
 15. `validate_certs: true` requires a CA push first
 16. The `gen17` term — don't grep for it
+17. `redfish_powerstate` `oem_reset_type` refuses to run on iDRAC 10
 
 ## 1. "Unable to communicate with iDRAC … TLS/SSL handshake" on writes
 
@@ -63,9 +64,10 @@ and `system_board_metrics.py`. Worse, `invoke_request` in
 on 404 rather than returning, bypassing the status-code guards.
 
 **Fix.**
-- Upgrade collection to ≥ 10.0.2 + post-10.0.1 fix (PR #1061, PR #1034
-  enumerate the SensorCollection first, only fetch sensors present in
-  the collection).
+- Upgrade collection to ≥ 10.0.2 — it already contains the fix. PR #1061
+  (merged 2025-11-12) and PR #1034 (merged 2025-09-23) both predate v10.0.2
+  (published 2026-04-01); they enumerate the SensorCollection first and
+  only fetch sensors present in the collection.
 - Pin both collection version AND iDRAC firmware in CI so this
   combination is testable in advance of any rolling bump.
 - If a 404 still appears: it's a sensor that simply doesn't exist on
@@ -348,3 +350,38 @@ The string `gen17` appears exactly **once** in the entire upstream
 collection codebase (CHANGELOG entry for v10.0.1 fixing #1017). It's
 not a tag, a fact, or a switch. Use `HWModel == 'iDRAC 10'` or
 `ServerGen == 6` for any conditional, not `gen17`.
+
+## 17. `redfish_powerstate` `oem_reset_type` refuses to run on iDRAC 10
+
+**Symptom.** A virtual AC power-cycle task is *skipped* — not failed — with
+`Unable to perform the Virtual AC power-cycle operation because the firmware
+version is not supported. The minimum supported firmware version is '7.00.60'.`
+The target is a 17G box (R6715/R6725) running current firmware.
+
+**Cause.** The module gates `oem_reset_type` on an iDRAC 9 firmware string
+(`7.00.60`). iDRAC 10 numbers its firmware `1.xx.xx.xx`, so the comparison
+always fails and no 17G system can pass the gate. Open upstream:
+[#1103](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1103)
+(filed 2026-06-09, no maintainer response as of 2026-07-21).
+
+**Workaround.** Drive the Redfish reset directly with `ansible.builtin.uri`
+and a session token — the same pattern used elsewhere in this skill:
+
+```yaml
+- name: Power off (Redfish direct)
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip }}/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+    method: POST
+    body_format: json
+    body:
+      ResetType: ForceOff
+    status_code: 204
+    headers:
+      X-Auth-Token: "{{ idrac_auth.x_auth_token }}"
+    validate_certs: false
+```
+
+Because the module *skips* rather than errors, a playbook that assumes the
+power-cycle happened will march on against a still-running host. Assert the
+post-state (`redfish_powerstate` read or a Redfish GET) rather than trusting
+the task result.
