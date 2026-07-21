@@ -25,6 +25,20 @@ agent isolation (egress locked to the model API). Seven stages: build → recon
 → find → verify → dedupe → report → patch. It is a *reference, not a product* —
 it will not run on every codebase out of the box.
 
+**Two things worth knowing before you run it** (both verified 2026-07-21):
+
+- **It tags its own API traffic.** `harness/auth.py` stamps a declared usage
+  marker on outbound agent requests — `anthropic-cyber-runbook: pipeline` plus
+  `User-Agent: cyber-runbook/<version> (claude-cli/<version>)`. **First-party
+  callers only**; the code notes Bedrock/Vertex rewrite the `User-Agent`, so the
+  marker doesn't apply there. If you are running this in an environment where
+  outbound request attribution matters, know it before, not after.
+- **It is no longer only find-and-fix.** A **detection & response track** landed
+  2026-07-16 — `dnr-pipeline`, a `dnrcanary` target, and `dnr-hunt` /
+  `dnr-respond` skills — alongside the scan→triage→patch pipeline this group was
+  extracted from. Not part of the seven stages above; mentioned so the repo's
+  scope doesn't surprise you.
+
 ## When you'd reach for it
 
 - You want **execution-verified crashes** (a reproducing PoC), not static
