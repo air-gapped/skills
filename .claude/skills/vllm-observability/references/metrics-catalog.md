@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Last verified: 2026-05-28 (see `references/sources.md`) — re-probe confirmed all listed names emitted by `loggers.py` on main; `gpu_cache_usage_perc` absent by default.
+Last verified: 2026-07-21 against vLLM **v0.25.1** (see `references/sources.md`). Every metric name in this file was diffed against the `name="vllm:..."` declarations in `vllm/v1/metrics/loggers.py` at that tag — no name in the catalog has been removed or renamed, and `gpu_cache_usage_perc` remains absent by default. Four additions from v0.24.0/v0.25.0 are folded in: `vllm:tool_call_parser_invocations_total`, the group-aware `cache_config_info` labels, `MLAAttentionMetrics`, and the per-request response-body `metrics` field.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
@@ -18,6 +18,8 @@ Source of truth: `vllm/v1/metrics/loggers.py` (primary), `vllm/v1/metrics/stats.
 - [Iteration batch histogram](#iteration-batch-histogram)
 - [KV block lifetime (sampled)](#kv-block-lifetime-sampled)
 - [LoRA](#lora)
+- [Tool-call parsing](#tool-call-parsing)
+- [Per-request timing in the response body (not Prometheus)](#per-request-timing-in-the-response-body-not-prometheus)
 - [Speculative decoding](#speculative-decoding)
 - [MFU / performance](#mfu--performance)
 - [KV connector / offload](#kv-connector--offload)
@@ -50,7 +52,24 @@ Deprecated on V1: `vllm:num_requests_swapped` (always 0).
 | Metric | Type | Unit | Meaning |
 |---|---|---|---|
 | `vllm:kv_cache_usage_perc` | Gauge | fraction [0,1] | KV cache utilization. **Includes prefix-cached blocks.** Computed by scheduler, updated each iteration |
-| `vllm:cache_config_info` | Gauge (info) | binary | Static cache config; value always 1. Labels expose `num_gpu_blocks`, `num_cpu_blocks`, `block_size`, etc. |
+| `vllm:cache_config_info` | Gauge (info) | binary | Static cache config; value always 1. Labels expose `num_gpu_blocks`, `num_cpu_blocks`, `block_size`, and — since v0.24.0 — `kv_cache_size_tokens` and `kv_cache_max_concurrency` |
+
+**Don't compute KV capacity as `num_gpu_blocks * block_size` — it is wrong on
+hybrid models.** vLLM's startup log has always reported the correct
+*group-aware* capacity, but Prometheus did not expose a matching figure, so
+dashboards derived it from the block labels and silently disagreed with the
+log (issue #42024). PR #42206 (merged 2026-06-12, **v0.24.0**) closes the gap
+by adding two labels computed the same way the startup log computes them:
+
+| Label | Meaning |
+|---|---|
+| `kv_cache_size_tokens` | Per-DP-engine KV cache capacity in tokens, group-aware |
+| `kv_cache_max_concurrency` | Per-DP-engine max concurrency at `max_model_len` tokens |
+
+On a hybrid model a request can occupy blocks in **multiple KV cache groups**,
+so the naive product overstates capacity. Prefer the labels; keep the product
+only as a fallback for pre-v0.24.0 engines, and expect the two to disagree
+there rather than assuming one is a bug.
 
 **Rename saga:** The new name `vllm:kv_cache_usage_perc` landed first; PR #24245 (merged 2025-09-16) then hid the deprecated `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. Proposed revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck. **Current main emits only `kv_cache_usage_perc` by default.** On fleets still running pre-#24245 tags, use `or` in PromQL; greenfield deployments can drop the fallback:
 ```promql
@@ -157,6 +176,45 @@ Enable with `--enable-lora`.
 
 **Caveat:** DP + LoRA produces misleading metrics due to multiprocess aggregation.
 
+## Tool-call parsing
+
+| Metric | Type | Extra labels | Meaning |
+|---|---|---|---|
+| `vllm:tool_call_parser_invocations_total` | Counter | `mode={streaming,non-streaming}`, `outcome={tool call, no tool call}`, request type (`ChatCompletionRequest` \| `ResponsesRequest`) | How often the tool parser ran and whether it produced a tool call |
+
+Added by PR #44448 (merged 2026-06-10, **v0.24.0**), recorded in
+`DelegatingParser`. The point of it is rollout safety: a model or template
+change that quietly stops emitting parseable tool calls shows up here as the
+`outcome` ratio collapsing, while request-level metrics stay flat and healthy.
+
+```promql
+# fraction of parser invocations that produced no tool call
+sum(rate(vllm:tool_call_parser_invocations_total{outcome!="tool call"}[5m]))
+  / sum(rate(vllm:tool_call_parser_invocations_total[5m]))
+```
+
+**Coverage limit stated upstream:** the **non-harmony path only** — harmony
+does not go through `DelegatingParser`, so a harmony deployment sees no
+increments and the ratio above is not a valid health signal there.
+
+## Per-request timing in the response body (not Prometheus)
+
+PR #46768 (merged 2026-07-07, **v0.25.0**) adds a top-level `metrics` field to
+Chat/Completions responses, streaming and non-streaming:
+`time_to_first_token_ms`, `generation_time_ms`, `queue_time_ms`, `mean_itl_ms`,
+`tokens_per_second`. Motivating use cases in the RFE (#40076) are billing,
+SLAs, experimentation, and debugging — cases where per-request attribution
+matters and a Prometheus histogram cannot help.
+
+**Double-gated**, so it is off unless deliberately turned on at both levels:
+
+1. server flag `--enable-per-request-metrics`
+2. request body parameter `include_metrics`
+
+**Suppressed when attribution to a single generation stream isn't meaningful**
+— e.g. `n > 1` or multi-prompt requests. Absent fields there are by design;
+don't treat a missing `metrics` block as a bug before checking request shape.
+
 ## Speculative decoding
 
 Enable with `--speculative-config '{"model":...,"num_speculative_tokens":N}'`.
@@ -183,6 +241,16 @@ Enable with `--enable-mfu-metrics`.
 
 **MFU:** `rate(vllm:estimated_flops_per_gpu_total[1m]) / (peak_tflops_for_gpu_and_dtype * 1e12)`.
 For H200 bf16 peak ≈ 989 TFLOPs, fp8 ≈ 1979 TFLOPs — consult hardware spec, not firmware claims.
+
+**MFU on MLA models was wrong before v0.24.0.** The estimator's
+`AttentionMetrics` assumed MHA/GQA — separate K/V projections and a KV cache
+sized `2 * num_kv_heads * head_dim` per token per layer. MLA (DeepSeek-V2/V3/R1)
+stores a single compressed `(kv_lora_rank + qk_rope_head_dim)` vector instead:
+for DeepSeek-V3 that is **576 bytes per token per layer versus 32,768** under
+the GQA assumption — a ~57× overestimate of KV bandwidth. PR #39457 (merged
+2026-06-12, **v0.24.0**) adds `MLAAttentionMetrics` to model it correctly.
+Treat any MFU or bandwidth figure collected from a DeepSeek deployment on
+**< v0.24.0** as unusable, not merely imprecise.
 
 ## KV connector / offload
 
