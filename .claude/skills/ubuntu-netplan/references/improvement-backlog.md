@@ -3,6 +3,30 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Resolved — 2026-07-21 (freshen)
+
+**Version bump with no schema impact, plus a completeness check the previous
+passes hadn't run.**
+
+- **netplan 1.2.1 → 1.2.2** (2026-07-20, released the day before this pass).
+  Read the notes: **bug fixes only** — SR-IOV udev ordering before the apply
+  service (#569), terminal `BlockingIOError` handling (#572), CI/doc chores. No
+  new YAML surface, no breaking change. "26.04 tracks 1.2.x" unchanged.
+- **Swept every `since` marker in `doc/netplan-yaml.md` (2199 lines)** rather
+  than re-checking only the two features previously cited — the method lesson
+  from the sibling `ubuntu-cloud-init` pass, where citing individual rows had
+  hidden five newer entries. Here the sweep came back clean: markers top out at
+  **`since 1.1`**, with exactly three occurrences — `ra-overrides` (L406, L709)
+  and `advertised-mss` (L845), precisely what the skill documents. **No
+  `since 1.2` or later exists anywhere in the file**, so 1.2/1.2.1/1.2.2 added
+  no YAML surface and the 24.04-vs-26.04 gating is complete as written. The
+  one-liner is recorded in `sources.md` for reuse.
+- **Verified unchanged, now with line anchors:** version constants
+  (`parse.c` L38-39, reject at L3155 — only `network.version: 2` accepted) and
+  the `netplan try` timeout (`try_command.py` L36, also the `--timeout`
+  default at L75).
+
+
 ## Open
 
 - **Dim 7 (Resource Quality) — no bundled scripts (by design).** netplan is a system

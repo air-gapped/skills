@@ -101,7 +101,7 @@ Frequent root causes:
   `port-mac-learning` (since 1.0), `netplan status --diff`, veth/dummy (0.107),
   vrf/vxlan (0.105). **Does NOT have** `ra-overrides` or route `advertised-mss`
   (both since 1.1).
-- **26.04 LTS** tracks the **1.2.x** line (latest 1.2.1, 2026-01). Adds `ra-overrides`
+- **26.04 LTS** tracks the **1.2.x** line (latest **1.2.2**, 2026-07-20 — bug fixes only, no new YAML). Adds `ra-overrides`
   and `advertised-mss` (1.1) plus later fixes.
 - **Authoring rule of thumb:** for 24.04 targets avoid `ra-overrides` and
   `routes[].advertised-mss`; both are safe on 26.04. Everything else in
