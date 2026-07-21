@@ -2,7 +2,7 @@
 
 All citations backing the skill. Verify any claim via the linked source.
 
-## vLLM source code + benchmarks (Last verified: 2026-05-28 against v0.21.0 stable / v0.20.x stable)
+## vLLM source code + benchmarks (Last verified: 2026-07-21 against v0.25.1)
 
 - `benchmarks/kernels/benchmark_moe.py` — [GitHub](https://github.com/vllm-project/vllm/blob/main/benchmarks/kernels/benchmark_moe.py)
 - `vllm/model_executor/layers/fused_moe/configs/` — shipped MoE configs
@@ -93,13 +93,17 @@ All citations backing the skill. Verify any claim via the linked source.
 
 ## Key issues / PRs referenced
 
-### Version-specific regressions
-- [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24% — Last verified: 2026-05-28 — **OPEN**
-- [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2
-- [#28882](https://github.com/vllm-project/vllm/issues/28882) — H200 DeepSeek-R1 EP 1.5× TTFT regression (DeepGEMM M<128) — Last verified: 2026-05-28 — **CLOSED 2026-04-21** (fixed)
-- [#29539](https://github.com/vllm-project/vllm/issues/29539) — FULL_AND_PIECEWISE garbage `!!!` output
-- [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing
-- [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size
+### Version-specific regressions (all re-probed 2026-07-21)
+
+**Closure-reason column matters more than state** — see the §3.0 note at the end of this section.
+
+- [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24% — **still OPEN, but stale-bot-marked** ("no activity within 90 days… will be automatically closed"). A future CLOSED here means abandonment, not a fix.
+- [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2 — not re-probed this pass
+- [#28882](https://github.com/vllm-project/vllm/issues/28882) — H200 DeepSeek-R1 EP 1.5× TTFT regression (DeepGEMM M<128) — **CLOSED 2026-04-21, genuinely fixed**
+- [#29539](https://github.com/vllm-project/vllm/issues/29539) — CUDA-graph NaN → `!!!` output — **CLOSED 2026-01-07, genuinely fixed** (*"NaN issue fixed, closing now"*). **But the `!!!` symptom recurred from an unrelated cause** — see [#48324](https://github.com/vllm-project/vllm/issues/48324) / [PR #48330](https://github.com/vllm-project/vllm/pull/48330), the mixed-dtype allreduce+RMSNorm+quant fusion on NVFP4, fixed only in **v0.25.1**. Two root causes, one symptom.
+- [#48324](https://github.com/vllm-project/vllm/issues/48324) — NVFP4 garbage `!!!!!` via fused allreduce+RMSNorm+static-quant on mixed-dtype graphs — **fixed v0.25.1** (PR #48330, merged 2026-07-12). Reproducer `nvidia/Qwen3.6-27B-NVFP4`.
+- [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing — **CLOSED `NOT_PLANNED` 2026-02-26 by the inactivity bot.** Not fixed; mitigations still apply.
+- [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size — not re-probed this pass
 
 ### Async-scheduling status (Last verified: 2026-05-28)
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
@@ -111,7 +115,7 @@ All citations backing the skill. Verify any claim via the linked source.
 - [#31679](https://github.com/vllm-project/vllm/issues/31679) — multimodal (Qwen3-VL) — **CLOSED 2026-01-07**
 
 ### MoE / DeepEP
-- [#39107](https://github.com/vllm-project/vllm/pull/39107) — MoE DP chunking removed in v0.20.0 refactor (deprecates `VLLM_ENABLE_MOE_DP_CHUNK` / `VLLM_MOE_DP_CHUNK_SIZE`) — per v0.20.0 release notes
+- [#39107](https://github.com/vllm-project/vllm/pull/39107) — "[MoE Refactor] Remove MoE DP chunking" — **MERGED 2026-04-14, verified directly 2026-07-21** (no longer inferred from release notes; this closes a carried backlog item). Stated purpose: *"Remove DP chunking MoE runner. Use `max_num_batched_tokens` as default for `max_num_tokens` in `FusedMoEConfig`."* Grepping `vllm/envs.py` at v0.25.1 returns **zero** hits for `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, **and** `VLLM_FUSED_MOE_CHUNK_SIZE` — all three gone, one more than previously recorded. `max_num_batched_tokens` is the replacement knob.
 - [#17619](https://github.com/vllm-project/vllm/issues/17619) — default-config warning
 - [#24112](https://github.com/vllm-project/vllm/issues/24112) — RFC improve MoE tuning
 - [#28456](https://github.com/vllm-project/vllm/issues/28456) — config discovery improvements
@@ -129,10 +133,11 @@ All citations backing the skill. Verify any claim via the linked source.
 - [#16992](https://github.com/vllm-project/vllm/pull/16992) — GB200 NCCL env-var defaults
 
 ### Vendor-specific
-- [#34641](https://github.com/vllm-project/vllm/issues/34641) — MI300X FP4BMM crash — Last verified: 2026-05-28 — **CLOSED 2026-05-28**
-- [#31475](https://github.com/vllm-project/vllm/issues/31475) — MI300X FP8 slower than BF16 — Last verified: 2026-05-28 — **OPEN**
-- [#34249](https://github.com/vllm-project/vllm/issues/34249) — Hopper FP8 MoE FlashInfer auto-select
-- [#38971](https://github.com/vllm-project/vllm/issues/38971) — NVFP4 MoE on SM120
+- [#34641](https://github.com/vllm-project/vllm/issues/34641) — MI300X FP4BMM crash — **CLOSED 2026-05-28**
+- [#31475](https://github.com/vllm-project/vllm/issues/31475) — MI300X FP8 slower than BF16 — Last verified: 2026-07-21 — **CLOSED `NOT_PLANNED` 2026-06-09 by the inactivity bot, NOT fixed.** Was listed as "still-open" in the prior pass's refresh policy; the state changed but the hazard did not. Keep benchmarking FP8 vs BF16 on MI300X.
+- [#34249](https://github.com/vllm-project/vllm/issues/34249) — Hopper FP8 MoE FlashInfer auto-select — Last verified: 2026-07-21 — **CLOSED `COMPLETED` 2026-02-20** against a real PR (closed in favour of an equivalent change)
+- [#38971](https://github.com/vllm-project/vllm/issues/38971) — NVFP4 MoE on SM120 backend override — Last verified: 2026-07-21 — **CLOSED `COMPLETED` 2026-04-05 with an answer, not a patch**: *"`--moe-backend` is what you looking for"*. That flag is the resolution.
+- [#30758](https://github.com/vllm-project/vllm/issues/30758) — gpt-oss B200/GB200 perf tracker — Last verified: 2026-07-21 — **CLOSED 2026-05-28**, but as a tracker wind-down: *"remaining low-priority follow-up has been deferred indefinitely"*. Not "all work done".
 - [#20069](https://github.com/vllm-project/vllm/issues/20069) — MI300X Whisper inaccurate
 - [#28362](https://github.com/vllm-project/vllm/issues/28362) — Intel 125H Arc fail
 - [#30758](https://github.com/vllm-project/vllm/issues/30758) — gpt-oss B200/GB200 tracker
@@ -158,8 +163,12 @@ All citations backing the skill. Verify any claim via the linked source.
 
 ## Refresh policy
 
-Compiled 2026-04-18 against vLLM v0.19.0. Last freshened: 2026-05-28 (latest stable v0.21.0 2026-05-15; v0.20.x stable since 2026-04-27). Refresh when:
-- v0.22.x stable lands (watch for next minor promotion).
-- Major regression in referenced issue list closes — **#28882 closed 2026-04-21**; **#27679 closed 2025-12-29**; **#31679 closed 2026-01-07**; **#34641 closed 2026-05-28**; **vllm-ascend #4649 closed 2026-03-13**. Still-open: [#35048](https://github.com/vllm-project/vllm/issues/35048), [#31475](https://github.com/vllm-project/vllm/issues/31475).
+Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0). **Last freshened 2026-07-21 against v0.25.1.**
+
+**Do not treat "issue closed" as "regression fixed".** Of the issues re-probed on 2026-07-21, more closed for inactivity than for a fix. Read the closing comment every time — the previous pass's refresh policy listed #31475 as "still-open" and it is now `CLOSED`, which would read as resolved and is not.
+
+Refresh when:
+- v0.26.x stable lands (v0.25.1 current, 2026-07-14).
+- A referenced issue closes **against a named fix PR** — genuinely fixed so far: #28882 (2026-04-21), #29539 (2026-01-07), #34249 (2026-02-20), #27679 (2025-12-29), #31679 (2026-01-07), #34641 (2026-05-28), vllm-ascend #4649 (2026-03-13). Closed *without* a fix: #31475, #25538. Still open: [#35048](https://github.com/vllm-project/vllm/issues/35048) (stale-marked).
 - Wide-EP GB200 Part II ships — currently Part I only.
 - New MLPerf round with vLLM submission.

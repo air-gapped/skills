@@ -1,6 +1,6 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Current as of v0.21.0 (verified 2026-05-28).
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Current as of **v0.25.1** (verified 2026-07-21).
 
 ## Version regressions
 
@@ -11,6 +11,7 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 - Throughput 41.7 → 33.6 tok/s per user
 - System-wide throughput unchanged — V1 compensates with more concurrent requests at the expense of per-user latency
 - **Workaround:** stay on v0.14.0
+- **Status 2026-07-21: still OPEN, but stale-bot-marked** ("no activity within 90 days… will be automatically closed"). If a later pass finds it CLOSED, that will mean abandonment, not a fix — the regression is unaddressed.
 
 ### v0.13.0 → v0.14.0rc2 GLM-4.7-GPTQ-Int4 MTP regression ([#32547](https://github.com/vllm-project/vllm/issues/32547))
 
@@ -37,9 +38,27 @@ Not vLLM core but documented here for operators running vllm-omni diffusion: FLU
 
 Insufficient token budget at resume triggers immediate re-preemption. Cycles worsen under load. Mitigations: raise `--max-num-batched-tokens`, raise `--swap-space`, or reduce `--max-num-seqs` to reduce competition.
 
-### FULL_AND_PIECEWISE garbage `!!!` output ([#29539](https://github.com/vllm-project/vllm/issues/29539))
+**#25538 now shows `CLOSED` / `NOT_PLANNED` (2026-02-26) — closed by the
+inactivity bot, not by a fix.** The mitigations above are still the answer.
 
-Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWISE` via `--compilation-config '{"cudagraph_mode":"PIECEWISE"}'` or `-O1`.
+### Garbage `!!!` output — **two different root causes, don't stop at the first**
+
+`!!!!!!` in generated text means NaNs reached the sampler. It is a *symptom*,
+not a bug ID, and it has been produced by at least two unrelated defects. A
+deployment hitting it in 2026-07 is far more likely to be the second one, so
+matching on the symptom and concluding "fixed in January" is the trap.
+
+| # | Root cause | Trigger | Status |
+|---|---|---|---|
+| [#29539](https://github.com/vllm-project/vllm/issues/29539) | CUDA-graph NaN under `FULL_AND_PIECEWISE` | certain compilation-config combinations | **CLOSED 2026-01-07 — genuinely fixed** ("NaN issue fixed, closing now") |
+| [#48324](https://github.com/vllm-project/vllm/issues/48324) → [PR #48330](https://github.com/vllm-project/vllm/pull/48330) | Fused FlashInfer **allreduce + RMSNorm + static-quant** matching a *mixed-dtype* graph: BF16 residual stream against the FP32 weight that Gemma/Qwen-style `weight.float() + 1.0` produces | **NVFP4 model, multi-GPU** (allreduce fusion is default since v0.19.0). Reproducer: `nvidia/Qwen3.6-27B-NVFP4` | fixed in **v0.25.1** (2026-07-14); **v0.25.0 and earlier are exposed** |
+
+Triage order: if the deployment is NVFP4 + multi-GPU, upgrade to ≥ v0.25.1
+first — that is the live one. The `PIECEWISE` downgrade
+(`--compilation-config '{"cudagraph_mode":"PIECEWISE"}'` or `-O1`) is the
+workaround for the #29539 class and remains a useful bisection step, but it
+will not fix the fusion bug. See `vllm-nvidia-hardware` §6 for the full
+allreduce-fusion detail.
 
 ## Vendor quirks
 
@@ -48,7 +67,7 @@ Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWIS
 | Issue | Details |
 |---|---|
 | `VLLM_ROCM_USE_AITER_FP4BMM=True` default crash | MI300X gfx942 has no FP4 hardware. Regression from Jan 15 2026 commit `8c11001`. [#34641](https://github.com/vllm-project/vllm/issues/34641) — **closed 2026-05-28**. Legacy workaround for pre-fix builds: `VLLM_ROCM_USE_AITER_FP4BMM=False`; upgrade clears it |
-| FP8 **slower** than BF16 in steady-state decode | Large MoE (GLM-4.7, MiniMax-M2.1). Counter-intuitive but reproducible. [#31475](https://github.com/vllm-project/vllm/issues/31475) |
+| FP8 **slower** than BF16 in steady-state decode | Large MoE (GLM-4.7, MiniMax-M2.1). Counter-intuitive but reproducible. [#31475](https://github.com/vllm-project/vllm/issues/31475) — **now `CLOSED` / `NOT_PLANNED` (2026-06-09), closed by the inactivity bot with no fix.** Still benchmark FP8 against BF16 on MI300X rather than assuming FP8 wins |
 | Whisper response inaccurate | [#20069](https://github.com/vllm-project/vllm/issues/20069) |
 
 ### AMD MI325X
@@ -72,7 +91,7 @@ Certain config combinations produce nonsense. Workaround: downgrade to `PIECEWIS
 ### FlashInfer backend auto-select bugs
 
 - Hopper FP8 MoE: auto-picks FLASHINFER_CUTLASS when DEEPGEMM would win. [#34249](https://github.com/vllm-project/vllm/issues/34249). Override with `VLLM_USE_DEEP_GEMM=1`.
-- NVFP4 MoE on SM120 (RTX PRO 6000 Blackwell): no env-var override for backend choice. [#38971](https://github.com/vllm-project/vllm/issues/38971).
+- NVFP4 MoE on SM120 (RTX PRO 6000 Blackwell): the request for a backend-selection override was **answered, not just closed** — [#38971](https://github.com/vllm-project/vllm/issues/38971) closed 2026-04-05 with *"`--moe-backend` is what you looking for"*. Use that flag rather than hunting for an env var. (v0.25.0 also added `skip cooperative top-K on SM120`, #47164.)
 - FlashInfer TRTLLM on SM103 (GB300) hangs on ≥0.6.7. See `vllm-nvidia-hardware` skill. Pin older FlashInfer or use non-TRTLLM backend.
 
 ## Published benchmark discrepancies

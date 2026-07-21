@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Current through v0.21.0 stable (2026-05-15); v0.20.x stable since 2026-04-27. Last freshened 2026-05-28.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Current through **v0.25.1** (2026-07-14). Last freshened 2026-07-21.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
@@ -134,6 +134,39 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 | **`-O2`** | **default** — full compile + `FULL_AND_PIECEWISE` + fusions (AllReduce+RMSNorm +15%, SP+Async-TP +10%, Attention+Quant FP8 +7%) |
 | `-O3` | reserved (currently = `-O2`) |
 
+### What changed under you, v0.22.0 → v0.25.1
+
+Four minors of execution-path change. These move the baseline a re-tune is
+measured against — re-benchmark across any of these boundaries rather than
+comparing to numbers taken before them.
+
+- **Model Runner V2 became the default execution path, in three steps.**
+  Qwen3 (v0.22.0) → **+ Llama and Mistral dense models** (#43458, v0.23.0) →
+  **all dense models** (#44443, v0.25.0). MRv2 also gained a FlashInfer sampler
+  (#42472), breakable CUDA graphs (#44050), pipeline-parallel bubble
+  elimination (#42187), and full-CUDA-graph-compatible dynamic speculative
+  decoding (#45953). A throughput figure measured on a pre-MRv2 build is not
+  comparable to one taken after the switch for the same model.
+- **DeepEP v2 replaced v1** (#41183, v0.24.0), with follow-on token-bound and
+  topk-index fixes (#46404, #46432).
+- **Async EPLB is on by default** (#43219, v0.23.0). v0.24.0 then made
+  NCCL-based EPLB **rejected** in combination with async EPLB (#44978) — a
+  config that used to start will now fail fast.
+- **Sequence parallelism no longer requires DP** (#47070, v0.25.0),
+  +1.9–5.0% E2E throughput — a lever that was previously unavailable in
+  non-DP deployments.
+- **`CUDA_VISIBLE_DEVICES` is no longer set internally**; use the new
+  `device_ids` argument (#45026, v0.24.0). Device-pinning wrappers need review.
+- **PagedAttention was removed entirely** (#47361, v0.25.0).
+- **The Transformers modeling backend is now as fast as native vLLM**
+  (#47187, v0.25.0) — the historical "always convert to a native
+  implementation for speed" reflex is worth re-testing.
+- Notable kernel wins if hunting single-digit percentages: batch-invariant
+  Cutlass FP8 **+28.9% E2E** (#40408, v0.22.0), CutlassFP8 padding
+  pre-processing **+13.5% TTFT** (#42651), SM90 CUTLASS FP8 odd-M `swap_ab`
+  **180–290% kernel** (#44572, v0.24.0), reduce-scatter MoE all-reduce
+  +3.1–3.2% E2E (#46635, v0.25.0).
+
 ### Key numbers to memorize
 
 | Metric | Value |
@@ -149,4 +182,8 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 
 ## Source policy
 
-All claims cite file:line, release-note PR refs, or issue IDs. Full anchor list + vendor-specific sources in `references/sources.md`. Compiled 2026-04-18 against v0.19.0; freshened 2026-05-28 against v0.21.0 stable (#28882 closed 2026-04-21, #27679 closed 2025-12-29, #31679 closed 2026-01-07, #34641 closed 2026-05-28, ascend #4649 closed 2026-03-13). Next refresh when v0.22.x stable ships or when remaining key regressions (#35048, #31475) close.
+All claims cite file:line, release-note PR refs, or issue IDs. Full anchor list + vendor-specific sources in `references/sources.md`. Compiled 2026-04-18 against v0.19.0; freshened 2026-05-28 against v0.21.0. **Last freshened 2026-07-21 against v0.25.1**, covering the v0.22-v0.25 execution-path changes and a re-probe of every tracked issue.
+
+**Treat a `CLOSED` issue as unfixed until you read why it closed.** This pass found #31475 (MI300X FP8 slower than BF16) and #25538 (preempt/resume thrashing) both closed `NOT_PLANNED` by the inactivity bot, and #35048 stale-marked and heading the same way — none of them fixed. Only #29539 and #34249 closed against real fixes, and #38971 closed with a usable *answer* (`--moe-backend`).
+
+Next refresh when v0.26.x ships, or when the Wide-EP GB200 Part II blog lands (still Part I only as of 2026-07-21, not re-probed this pass).

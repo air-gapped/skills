@@ -140,7 +140,11 @@ Recommended **32 redundant experts at scale** — hot experts get replicated acr
 | H200 + CX-7 IB (Coreweave) | DeepSeek-R1 | 2.2k tok/s/GPU (vs ~1.5k baseline) | [vllm.ai/blog/large-scale-serving](https://vllm.ai/blog/large-scale-serving) |
 | 8× GB200 decode + 4×(2× GB200) prefill | DeepSeek-R1 | 26.2K TPGS prefill, 10.1K TPGS decode (3-5× H200) | [vllm.ai/blog/dsr1-gb200-part1](https://vllm.ai/blog/dsr1-gb200-part1) |
 
-GB200 numbers used NVFP4 dispatch (4× less comm volume vs FP16), weight-offload v2 over NVLink-C2C, and the then-current chunk knobs `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, `VLLM_FUSED_MOE_CHUNK_SIZE`. **MoE DP chunking was removed in the v0.20.0 MoE refactor ([PR #39107](https://github.com/vllm-project/vllm/pull/39107)) — these env vars are historical to the GB200 Part-I numbers; on v0.20.0+ they no longer apply.**
+GB200 numbers used NVFP4 dispatch (4× less comm volume vs FP16), weight-offload v2 over NVLink-C2C, and the then-current chunk knobs `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, `VLLM_FUSED_MOE_CHUNK_SIZE`. **MoE DP chunking was removed in the v0.20.0 MoE refactor — verified directly on 2026-07-21, no longer inferred from release notes.** [PR #39107](https://github.com/vllm-project/vllm/pull/39107) "[MoE Refactor] Remove MoE DP chunking" is **MERGED 2026-04-14**. Its stated purpose: *"Remove DP chunking MoE runner. Use `max_num_batched_tokens` as default for `max_num_tokens` in `FusedMoEConfig`."*
+
+Grepping `vllm/envs.py` at tag **v0.25.1** returns **zero** occurrences of `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, **and** `VLLM_FUSED_MOE_CHUNK_SIZE` — all three are gone, not just the first two. Setting any of them today is a silent no-op.
+
+**The replacement knob is `max_num_batched_tokens`**, which now feeds `max_num_tokens` in `FusedMoEConfig`. Tune that instead of reaching for the retired chunk-size vars. These env vars remain historically accurate for the GB200 Part-I numbers above and should be read as period detail.
 
 ## Parallelism decision matrix
 
