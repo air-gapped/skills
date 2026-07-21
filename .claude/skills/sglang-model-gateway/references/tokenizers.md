@@ -1,6 +1,6 @@
 # Tokenizers — `tokenizer.json` (HuggingFace) vs `tiktoken.model` (BPE) vs unsupported
 
-The gateway loads a tokenizer via the **`llm-tokenizer` Rust crate (v1.3.2)** — a separate package whose source lives at `github.com/lightseekorg/smg/crates/tokenizer/`, not in the SGLang repo. The gateway re-exports it as `crate::tokenizer` (`src/lib.rs:13: pub use llm_tokenizer as tokenizer;`).
+The gateway loads a tokenizer via the **`llm-tokenizer` Rust crate, pinned `=1.3.2`** (crates.io is on 1.5.0 as of 2026-07-18 — everything below describes 1.3.2, which is what the gateway actually ships) — a separate package whose source lives at `github.com/lightseekorg/smg/crates/tokenizer/`, not in the SGLang repo. The gateway re-exports it as `crate::tokenizer` (`src/lib.rs:13: pub use llm_tokenizer as tokenizer;`).
 
 This doc answers two questions operators repeatedly hit:
 

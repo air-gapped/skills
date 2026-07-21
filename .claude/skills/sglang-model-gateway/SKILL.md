@@ -174,7 +174,7 @@ Full manifests in `assets/sglang-gateway-deployment.yaml` (SGLang worker) and `a
 
 4. **gRPC liveness/readiness probes need numeric ports**, not named (Kubernetes API constraint, not gateway-specific). For HTTP gateways probing `/health`, named ports work fine.
 
-5. **Service discovery only watches one port per pod** (`#20184`). For nodes hosting two decode workers on different ports, split into two Pods, one port each.
+5. **Service discovery only watches one port per pod** (`#20184`). For nodes hosting two decode workers on different ports, split into two Pods, one port each. *Still true 2026-07-21: #20184 shows as closed, but the sglang stale bot closed it for inactivity — no fix landed.*
 
 6. **Multi-replica gateway → 10-20% cache hit reduction** unless `--enable-mesh` is on. Mitigations covered above in §"Hosting multiple replicas".
 

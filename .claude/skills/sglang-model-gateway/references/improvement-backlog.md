@@ -40,7 +40,37 @@ Carries open issues across `skill-improver` runs that the loop attempted but cou
 - **What:** Both assets were confirmed this pass to parse cleanly as multi-doc YAML streams (7 docs: ServiceAccount/Role/RoleBinding/Deployment/Service/ServiceMonitor/PDB; 9 docs incl. a deliberate leading null comment-header doc). Full Kubernetes-schema validation (kubeconform/kubeval) and an image-tag cross-check against the SKILL.md `:v0.3.2` bump were NOT completed: no kubeconform/kubeval/yamllint is installed in this environment (python3 only), and the final asset Read calls returned empty due to a transient harness output fault.
 - **Why not in one iteration:** Schema validation needs a linter not present in the environment; the image-tag cross-check inside the assets could not be Read reliably at edit time, and a blind `old_string` edit would violate the truthfulness rule. Re-run once kubeconform is available (or once tool I/O is stable) to confirm/align the in-asset gateway image tag with `:v0.3.2`.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen)
+
+Upstream is quiet; the findings are about **how to read upstream**, not about
+version numbers.
+
+- **`CLOSED` + `stateReason: COMPLETED` does not mean fixed in this repo.** Both
+  tracked issues — #20184 (service discovery watches one port per pod) and
+  #17623 (cache_aware ≈ round-robin with abundant KV) — are now closed, and the
+  GitHub API reports **COMPLETED** for both. Reading only those fields, the
+  correct-looking move is to delete the one-port limitation from `SKILL.md` §5
+  and `kubernetes.md`. That would be wrong: the closing comment on each is
+  *"This issue has been automatically closed due to inactivity."* No fix landed.
+  The limitation is re-affirmed inline, and `sources.md` now carries the
+  `gh issue view … --jq` incantation that surfaces the closing comment.
+- **The gateway is four releases behind its own tokenizer crate.**
+  `llm-tokenizer` is at **1.5.0** on crates.io (2026-07-18, via 1.4.0/1.4.1/1.4.2)
+  while `sgl-model-gateway/Cargo.toml` still pins `="1.3.2"` — re-read on `main`
+  this pass, unchanged. This matters because `tokenizers.md`'s "not yet
+  supported" list (SentencePiece, GGUF) is scoped to 1.3.2; those formats may
+  have landed in 1.4/1.5, but the *gateway* still cannot use them. Both files
+  now say which version the claims describe.
+- **No new gateway release in 6+ months.** `gateway-v0.3.1` (2026-01-09) is still
+  the newest `gateway-*` tag and the crate is still v0.3.2 — the image/tag skew
+  the previous pass warned not to churn is still exactly as described. `crdts =
+  "7.3"` unchanged.
+- **A stale-state carry, noted for honesty:** #17623 closed 2026-04-14 but was
+  stamped "Last verified 2026-05-09" as a live citation. It is cited as an
+  *operator measurement* rather than as an open bug, so the citation survives
+  intact — but the date was stamped without re-reading the issue state.
+
+## Resolved — 2026-05-28
 
 - Freshen: container image tag `:v0.3.x` / `:v0.3.1` → `:v0.3.2` in SKILL.md (rename table L38, K8s Gateway Deployment L160, `--help` verify line L215) — matches Docker Hub `lmsysorg/sgl-model-gateway:v0.3.2` (last_updated 2026-05-27) and live Cargo.toml `version = "0.3.2"`. Lifted Dim 8 8→9. 2026-05-28
 - Dim 9 policy-count over-claim: description said "eight load-balancing policies" implying eight equal `--policy` peers; corrected to "the load-balancing policy set (six `--policy`-selectable, `cache_aware` default)" and reworded the architecture paragraph to mark `consistent_hashing` + `bucket` as policy-factory-only (not in the `--policy` value_parser, `src/policies/factory.rs:77-91`), removing the unflagged over-claim. Lifted Dim 9 8→9. 2026-05-28
