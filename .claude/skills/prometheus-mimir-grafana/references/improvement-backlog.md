@@ -30,7 +30,33 @@ changes the metric registered this pass. Append-only audit; not a wishlist.
   three sites in two files; deferred rather than risk introducing a false
   determinism in one atomic step.
 
-## Resolved this pass
+## Resolved — 2026-07-21 (freshen)
+
+- **Mimir 3.0 removed read-write-backend deployment mode** — `mimir-api.md` §1
+  claimed all three modes still exist. Verified against the Mimir CHANGELOG
+  ("[CHANGE] Remove support for the experimental read-write deployment mode",
+  #11974/#11975/#12584) and the 3.0.0 release notes. Now states monolithic or
+  microservices only, and that a read-write cluster cannot upgrade in place.
+- **MQE is the default query engine from Mimir 3.0** — added to `mimir-api.md`
+  §1 with the `-querier.query-engine=prometheus` opt-out as the way to tell an
+  engine bug from a query bug after an upgrade. Ingest-storage (Kafka)
+  architecture noted as available-but-not-assumed (classic still supported).
+- **`promql-duration-expr`** (arithmetic in range/offset) added to
+  `promql.md` §2 with an assume-it-is-OFF instruction — experimental on both
+  Prometheus and Mimir 3.x.
+- **`/api/v1/status/self_metrics`** (Prometheus 3.12+) added to the
+  `promql.md` §7 status-endpoint list.
+- Grafana version framing updated to name 13.1 (2026-07-01) alongside 13.0 GA;
+  the `/api` → `/apis` deprecation status is unchanged (13.1 what's-new says
+  nothing about the dashboard HTTP API).
+- Re-verified, no change: native histograms are NOT behind a feature flag
+  (checked the live feature-flags page — the skill's "Prometheus 3.x default"
+  claim holds); `info()` IS still experimental behind
+  `promql-experimental-functions`; PRW 2.0 still EXPERIMENTAL on Mimir 3.x.
+- sources.md: all 32 rows restamped 2026-07-21, rows 33 (Mimir 3.0 release
+  notes) and 34 (Prometheus feature flags) added.
+
+## Resolved — 2026-05-28
 
 - Grafana version framing freshened: Grafana 13 (GA 2026-04-17) named as
   current stable with the official `/api`→`/apis` deprecation (notice

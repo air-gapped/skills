@@ -43,7 +43,7 @@ Match by `__name__`:
 ```
 Forbidden metric names: `bool`, `on`, `ignoring`, `group_left`, `group_right`. Quote via `__name__`.
 
-Range vector: `metric[5m]` — left-open, right-closed.
+Range vector: `metric[5m]` — left-open, right-closed. Durations are literals unless `--enable-feature=promql-duration-expr` is on, which allows arithmetic in range/offset (`metric[2m*3]`). Experimental on both Prometheus and Mimir 3.x — assume it is OFF and write literal durations.
 
 ## 3. Modifiers
 
@@ -232,6 +232,7 @@ Rule groups with active alerts; array of active alerts.
 - `tsdb` — top label/metric cardinality (paginate via `limit`)
 - `tsdb/blocks` — block list (experimental)
 - `walreplay` — replay progress
+- `self_metrics` — the server's own metrics as JSON (Prometheus 3.12+); handy when the scrape of Prometheus itself is the thing that is broken
 
 ### Admin (`--web.enable-admin-api`)
 `snapshot`, `delete_series`, `clean_tombstones`.

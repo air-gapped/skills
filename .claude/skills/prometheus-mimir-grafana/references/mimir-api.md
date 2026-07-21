@@ -19,7 +19,12 @@ Sources: grafana.com/docs/mimir/latest/references/http-api/, /manage/secure/auth
 
 ## 1. What it is
 
-Horizontally-scalable, multi-tenant, long-term storage for Prometheus metrics with object-storage backend. Wire-compatible with Prometheus remote_write (1.0 + 2.0 proto+snappy), OTLP, and Prometheus HTTP query API. Born from Cortex. Services: distributor, ingester, querier, query-frontend, query-scheduler, compactor, store-gateway, ruler, alertmanager, overrides-exporter. Runs monolithic / microservices / read-write-backend modes.
+Horizontally-scalable, multi-tenant, long-term storage for Prometheus metrics with object-storage backend. Wire-compatible with Prometheus remote_write (1.0 + 2.0 proto+snappy), OTLP, and Prometheus HTTP query API. Born from Cortex. Services: distributor, ingester, querier, query-frontend, query-scheduler, compactor, store-gateway, ruler, alertmanager, overrides-exporter. Runs monolithic or microservices mode — the experimental **read-write-backend mode was removed in Mimir 3.0**, so a cluster still running it cannot upgrade in place.
+
+Mimir 3.0 (current line: 3.1.x) also changed two defaults an agent will feel:
+
+- **Mimir Query Engine (MQE) is the default engine** for queriers and query-frontends. It is PromQL-compatible and streams results (much lower peak memory), but it is a different implementation — if a query behaves differently after a 3.0 upgrade, re-run it against the old engine with `-querier.query-engine=prometheus` to tell an MQE bug from a query bug.
+- **Ingest storage architecture** (Kafka between write and read paths) is available and separates read/write scaling. Classic architecture is still supported in 3.x, so don't assume a 3.x cluster is on it.
 
 ## 2. Multi-tenancy
 

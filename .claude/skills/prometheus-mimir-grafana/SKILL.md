@@ -109,7 +109,7 @@ Grafana enforces datasource RBAC. `/api/datasources` lists available datasources
 2. Mutate the `panels[].targets[].expr`, `fieldConfig.defaults.unit`, `legendFormat`, `templating.list[]`, etc.
 3. Push back: `POST /api/dashboards/db` with the whole `dashboard` object (keep `version` from `meta.version`), `folderUid`, `overwrite: false`, `message` describing the agent's change.
 
-The legacy `/api/dashboards/db` endpoint is still the default in 2026 tooling (Helm charts, grafana-operator, most MCP servers). Grafana 12 added — and Grafana 13 (current stable, GA 2026-04-17) formally deprecated the legacy `/api` path in favor of — a Kubernetes-style `/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>` API with `resourceVersion` concurrency. Legacy `/api/dashboards/db` remains fully functional; removal is deferred to a future major — keep using it unless the environment is already on the new API.
+The legacy `/api/dashboards/db` endpoint is still the default in 2026 tooling (Helm charts, grafana-operator, most MCP servers). Grafana 12 added — and Grafana 13 (current stable; 13.0 GA 2026-04-17, 13.1 2026-07-01) formally deprecated the legacy `/api` path in favor of — a Kubernetes-style `/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>` API with `resourceVersion` concurrency. Legacy `/api/dashboards/db` remains fully functional; removal is deferred to a future major — keep using it unless the environment is already on the new API.
 
 Full JSON schema, panel anatomy, transformation catalog, variable interpolation specifiers, and the full bug-fix list in [references/grafana-dashboards.md](references/grafana-dashboards.md).
 
