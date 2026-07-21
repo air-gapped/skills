@@ -1,7 +1,9 @@
 # netbox-chart (helm) deployment gotchas
 
 Verified against netbox-chart 8.3.x source (`charts/netbox/templates/`) and a
-production install of chart 8.3.14 / NetBox v4.6.2. Chart repo:
+production install of chart 8.3.14 / NetBox v4.6.2. **Upstream has since moved to
+chart 8.3.37 / v4.6.5 (verified 2026-07-21) — still 8.x, so no chart-major
+break; the observations below have not been re-run against it.** Chart repo:
 `netbox-community/netbox-chart`; chart museum: `charts.netbox.oss.netboxlabs.com`.
 
 Ordered as a pre-flight checklist for a fresh install.
