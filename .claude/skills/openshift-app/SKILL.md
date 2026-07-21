@@ -7,14 +7,14 @@ description: >-
   image signing, secrets), operations (Routes, probes, scaling, monitoring, storage),
   disconnected/air-gapped patterns, and critical gotchas. Also when an app
   "works on Kubernetes but fails on OpenShift" (SCC denied, random/arbitrary UID,
-  permission errors). Covers OCP 4.14-4.21. NOT for cluster installation or
+  permission errors). Covers OCP 4.14-4.22. NOT for cluster installation or
   infrastructure management.
 ---
 
 # OpenShift Application Packaging
 
 Package, build, secure, and deploy applications on OpenShift Container Platform
-4.14-4.21. Covers container images, deployment manifests, CI/CD pipelines, security
+4.14-4.22. Covers container images, deployment manifests, CI/CD pipelines, security
 hardening, operational patterns, and disconnected environments.
 
 ## Quick Decision Guide
@@ -92,9 +92,9 @@ namespaces with PSA levels matching the most privileged SCC available.
 ### 3. Helm 4 Is NOT Usable with ArgoCD on OpenShift (2026)
 
 - Helm 4.0.0 released November 2025 with Server-Side Apply as default
-- **OpenShift 4.19-4.21 still ships Helm 3** (web terminal bundles v3.17.1)
+- **OpenShift 4.19-4.21 still ships Helm 3** (web terminal bundles v3.17.1); 4.22's bundled version was not verified this pass
 - **ArgoCD (through v3.3 / GitOps 1.20) only supports Helm 3**
-- Helm 3 EOL: bug fixes July 2026, security fixes November 2026
+- Helm 3 EOL: **no published date could be confirmed** (2026-07-21). Helm's version-skew and release-policy pages state only that the most recent minor gets fixes, with no Helm 3 sunset date — and Helm 3 is still shipping patches (**v3.21.3 on 2026-07-09**, alongside v4.2.3 the same day). Treat "Helm 3 is dead" as unsupported; plan on ArgoCD support, not on a calendar
 - **Recommendation**: use Helm 3 now, plan Helm 4 migration after ArgoCD adds support
 
 ### 4. DeploymentConfig Is Deprecated (OCP 4.14)
@@ -186,7 +186,7 @@ See `references/container-images.md` for full details.
 | **Helm** | Distribute to other teams/customers; values-driven config; OperatorHub Helm operators | Helm 3 only on OCP today; chart-verifier for certification |
 | **Kustomize** | Same-team env overlays (dev/staging/prod); GitOps prerequisite | No templating logic; `oc apply -k` does NOT support `--enable-helm` |
 | **Helm + Kustomize** | Dominant hybrid: Helm for packaging, Kustomize for env patches | Requires `--enable-helm` flag (only works in `kustomize build` or ArgoCD) |
-| **Operator (Go)** | Stateful apps needing Day-2 ops (backup/restore/scaling); L3-L5 maturity | Complex to develop; Operator SDK CLI deprecated in OCP 4.16 (upstream continues) |
+| **Operator (Go)** | Stateful apps needing Day-2 ops (backup/restore/scaling); L3-L5 maturity | Complex to develop; Operator SDK CLI deprecation announced at OCP 4.16, **4.18 was the last OpenShift to ship it** — on 4.19+ install it yourself from upstream, which continues |
 | **Operator (Helm)** | Simple operators for OperatorHub distribution | Limited to L1-L2 capability maturity |
 | **OLM v1 ClusterExtension** | Install operators on OCP 4.18+ | Requires user-provided ServiceAccount + RBAC; AllNamespaces only |
 | **OpenShift Templates** | Legacy only (NOT recommended for new work) | Not portable to vanilla K8s; Template Service Broker removed in 4.4 |
@@ -231,5 +231,5 @@ certified chart requirements.
 | `references/security.md` | SCC/PSA, supply chain (Sigstore/RHTAS/Conforma), secrets (ESO/Vault), FIPS, compliance, NetworkPolicy |
 | `references/cicd-gitops.md` | Tekton Pipelines, Chains, Pipelines-as-Code, ArgoCD Agent, Shipwright, image promotion |
 | `references/operations.md` | Routes/TLS, probes, HPA/KEDA/VPA, monitoring, logging, storage, sidecars, serverless, multi-arch |
-| `references/gotchas.md` | Version timeline (4.14-4.21), DeploymentConfig migration, SDN removal, networking changes |
+| `references/gotchas.md` | Version timeline (4.14-4.22), DeploymentConfig migration, SDN removal, networking changes |
 | `references/disconnected.md` | oc-mirror v2, registry mirroring, OCI GitOps, Tekton bundles, OSUS upgrades, air-gap patterns |

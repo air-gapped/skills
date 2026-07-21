@@ -17,9 +17,9 @@
 ### Version Status (2026)
 
 - **Helm 4.0.0** released November 12, 2025 (Server-Side Apply default)
-- **OpenShift 4.19-4.21 ships Helm 3** (web terminal bundles v3.17.1)
+- **OpenShift 4.19-4.21 ships Helm 3** (web terminal bundles v3.17.1); 4.22 not verified
 - **ArgoCD through v3.3 only supports Helm 3**
-- Helm 3 EOL: bug fixes July 8, 2026; security fixes November 11, 2026
+- Helm 3 EOL: **unverifiable — the previously-stated "bug fixes July 8 2026 / security fixes November 11 2026" is not published anywhere in Helm's docs.** Checked `helm.sh/docs/topics/version_skew` and `helm.sh/docs/community/release_policy` on 2026-07-21: both describe only "the most recent minor release" getting cherry-picked fixes, with no Helm 3 sunset date. Observed behaviour contradicts an already-passed bug-fix cutoff — **v3.21.3 shipped 2026-07-09**, twelve days ago and one day after the claimed date. Do not gate a migration on those dates
 - **Use Helm 3 for all OpenShift work today**
 
 ### OpenShift Detection

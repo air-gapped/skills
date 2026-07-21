@@ -16,10 +16,10 @@ External references underpinning this skill's OpenShift-specific claims. Re-veri
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| OpenShift Container Platform release notes | https://docs.redhat.com/en/documentation/openshift_container_platform | 2026-05-28 | OCP 4.20 GA 2025-11-12; 4.21 client tags exist (openshift-clients-4.21.0-202601121715, Jan 2026). Span "4.14-4.21" current. |
-| openshift/oc release tags | https://github.com/openshift/oc/tags | 2026-05-28 | Confirms 4.21 client builds via `gh api repos/openshift/oc/tags`. |
-| Red Hat OpenShift lifecycle policy | https://access.redhat.com/support/policy/updates/openshift | 2026-05-28 | OVN-Kubernetes mandatory / OpenShift SDN removed in 4.17; cgroup v1 removed in 4.19; restricted-v2 default since 4.11. |
-| OKD release page | https://github.com/okd-project/okd/releases | 2026-05-28 | OKD latest 4.22.0-okd-scos.1; confirms 4.21 is the current released OCP line. |
+| OpenShift Container Platform release notes | https://docs.redhat.com/en/documentation/openshift_container_platform | 2026-07-21 | **OCP 4.22 GA 2026-07-14** (RHEA-2026:0449, Kubernetes 1.35, CRI-O 1.35); 4.21 GA ~Feb 2026; 4.20 GA 2025-11-12. Span updated to "4.14-4.22". Direct fetch of the 4.22 release-notes page returns **403** — reachable via search summaries only, so the 4.22 timeline row is explicitly incomplete. |
+| openshift/oc release tags | https://github.com/openshift/oc/tags | 2026-07-21 | `openshift-clients-4.22.0-202605222050` present. Useful as an early GA tell: the client tag appeared ~2 months before 4.22 GA, so a client tag alone proves builds exist, **not** that the minor has shipped. |
+| Red Hat OpenShift lifecycle policy | https://access.redhat.com/support/policy/updates/openshift | 2026-07-21 | OVN-Kubernetes mandatory / OpenShift SDN removed in 4.17; cgroup v1 removed in 4.19; restricted-v2 default since 4.11. Policy re-read: **≥4 minor versions supported at any time**; Full Support = 6 months or 90 days past the next minor's GA, whichever is longer; Maintenance = 18 months from GA; **EUS = even-numbered minors** (so 4.20 and 4.22 are EUS, 4.21 is not). The page carries no per-version date table — that lives on the Product Life Cycles page. |
+| OKD release page | https://github.com/okd-project/okd/releases | 2026-07-21 | OKD at `4.22.0-okd-scos.7` (2026-07-13), and a **`5.0.0-okd-scos.ec.5`** early-candidate line now exists alongside it. OKD leads OCP, so an OKD tag is a leading indicator, never proof that the matching OCP minor has shipped — the previous pass inferred "4.21 is current" from `4.22.0-okd-scos.1`, which was right by luck. |
 
 ## Deployments & workloads
 
@@ -46,10 +46,10 @@ External references underpinning this skill's OpenShift-specific claims. Re-veri
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| Helm releases | https://github.com/helm/helm/releases | 2026-05-28 | Helm 4.0.0 released November 2025 (SSA default). OCP 4.19-4.21 still ships Helm 3 — VERIFY OCP-bundled Helm version + ArgoCD/GitOps Helm 3-only support during freshen (live docs were blocked in recon). |
-| Helm version support / skew | https://helm.sh/docs/topics/version_skew | 2026-05-28 | Helm 3 EOL window (bug fixes ~July 2026, security fixes ~Nov 2026) — VERIFY exact dates during freshen. |
-| Operator Lifecycle Manager v1 (ClusterExtension) | https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/extensions/index | 2026-05-28 | OLM v1 / ClusterExtension RBAC requirements; ClusterExtension GA in the 4.18 timeframe — VERIFY exact version gate during freshen. |
-| Operator SDK | https://sdk.operatorframework.io/ | 2026-05-28 | Operator SDK CLI deprecated in OCP ~4.16 (upstream continues) — VERIFY exact version gate during freshen. |
+| Helm releases | https://github.com/helm/helm/releases | 2026-07-21 | Helm 4.0.0 released November 2025 (SSA default); **both lines are live — v4.2.3 and v3.21.3 shipped the same day, 2026-07-09.** OCP-bundled Helm version for 4.22 still NOT verified (docs 403). |
+| Helm version support / skew | https://helm.sh/docs/topics/version_skew | 2026-07-21 | **VERIFY resolved: the Helm 3 EOL dates are not published.** This page and `helm.sh/docs/community/release_policy` both say only that the most recent minor gets cherry-picked fixes; neither names a Helm 3 sunset. The skill's "bug fixes July 8 2026 / security fixes November 11 2026" had no citable source and is contradicted by v3.21.3 shipping 2026-07-09. Claim removed rather than re-dated. |
+| Operator Lifecycle Manager v1 (ClusterExtension) | https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/extensions/index | 2026-07-21 | **VERIFY resolved: OLM v1 is GA as of OCP 4.18**, with OLM (Classic) as the retronym. Initial GA scope: `registry+v1` bundles, AllNamespaces install mode, no webhooks. The skill's "4.18 timeframe" guess was correct. |
+| Operator SDK | https://sdk.operatorframework.io/ | 2026-07-21 | **VERIFY resolved, and it is two gates not one:** the deprecation *notice* landed at OCP 4.16, but **4.18 was the last OpenShift planned to ship the SDK CLI**. On 4.19+ it is not bundled — install from upstream, which continues independently. The skill previously implied 4.16 was the whole story. |
 
 ## CI/CD & GitOps
 

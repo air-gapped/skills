@@ -1,7 +1,7 @@
 # Gotchas and Migration Reference
 
 ## Table of Contents
-- [Version Timeline (OCP 4.14-4.21)](#version-timeline-ocp-414-421)
+- [Version Timeline (OCP 4.14-4.22)](#version-timeline-ocp-414-422)
 - [DeploymentConfig Migration](#deploymentconfig-migration)
 - [OpenShift SDN to OVN-Kubernetes](#openshift-sdn-to-ovn-kubernetes)
 - [restricted to restricted-v2 SCC](#restricted-to-restricted-v2-scc)
@@ -11,18 +11,19 @@
 
 ---
 
-## Version Timeline (OCP 4.14-4.21)
+## Version Timeline (OCP 4.14-4.22)
 
 | Version | K8s | Key Breaking Changes / Features |
 |---------|-----|--------------------------------|
 | **4.14** | 1.27 | cgroup v2 default on fresh installs. OpenShift SDN deprecated. DeploymentConfig deprecated. |
 | **4.15** | 1.28 | OVN-Kubernetes required for new installs (SDN still works on upgrades). Builds for OpenShift 1.0 GA. |
-| **4.16** | 1.29 | cgroup v1 deprecated. IPTables API deprecated (warning events). SHA-1 certs disabled in ingress. FlowSchema v1beta2 removed. Operator SDK CLI deprecated. OLM v1 Tech Preview. Cluster Samples Operator deprecated. |
+| **4.16** | 1.29 | cgroup v1 deprecated. IPTables API deprecated (warning events). SHA-1 certs disabled in ingress. FlowSchema v1beta2 removed. **Operator SDK CLI deprecation notice.** OLM v1 Tech Preview. Cluster Samples Operator deprecated. |
 | **4.17** | 1.30 | **OpenShift SDN fully removed.** No K8s API removals. |
-| **4.18** | 1.31 | **OLM v1 GA.** oc-mirror v2 GA. Builds 1.6 (Buildpacks GA). UDN GA. ESO GA (4.20 operator). |
+| **4.18** | 1.31 | **OLM v1 GA** (ClusterExtension; registry+v1 bundles, AllNamespaces install mode, no webhooks). **Last OpenShift planned to ship the Operator SDK CLI** — 4.19+ does not. oc-mirror v2 GA. Builds 1.6 (Buildpacks GA). UDN GA. ESO GA (4.20 operator). |
 | **4.19** | 1.32 | **cgroup v1 removed.** RHCOS built as layered image. Image mode for OpenShift GA. Gateway API CRDs ship by default. |
 | **4.20** | 1.33 | Pipelines 1.20. GitOps 1.18. In-place VPA beta (k8s 1.33). |
-| **4.21** | 1.34 | **ClusterImagePolicy GA** (sigstore verification enforced by default for OCP releases). Pipelines 1.21. GitOps 1.20 (ArgoCD 3.3). RHTAS 1.3. RHADS-SSC 1.8. |
+| **4.21** | 1.34 | **ClusterImagePolicy GA** (sigstore verification enforced by default for OCP releases). Pipelines 1.21. GitOps 1.20 (ArgoCD 3.3). RHTAS 1.3. RHADS-SSC 1.8. GA ~Feb 2026. |
+| **4.22** | 1.35 | GA 2026-07-14 (RHEA-2026:0449), CRI-O 1.35. JobSet controller GA for multi-Job orchestration. **Lazy image pulling** via a plug-in CRI-O architecture — containers start before the image is fully pulled, aimed at large AI/ML images. Dev Spaces 3.26–3.28. Only headline items captured this pass; the release notes were 403 to direct fetch, so treat this row as incomplete. |
 
 ---
 
