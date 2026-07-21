@@ -244,6 +244,40 @@ curl -sS https://registry.npmjs.org/<package>/latest | jq '.version'
 | URL returns `4xx`, project archived, or domain dead | `broken` |
 | Probes contradict, single unofficial source, or uncertain signal | `unverifiable` |
 
+### 3.0 A closed issue is not a fixed issue
+
+**`state: CLOSED` — even with `stateReason: COMPLETED` — does not mean the bug
+was fixed.** Inactivity bots close issues and GitHub records the result as
+COMPLETED. Observed 2026-07-21 in two unrelated repos on the same day:
+
+- `sgl-project/sglang` #20184 and #17623 — both CLOSED/COMPLETED, both closed by
+  *"This issue has been automatically closed due to inactivity."*
+- `huggingface/transformers` #45205 — CLOSED/COMPLETED 2026-06-10, closed by
+  *"automatically marked as stale because it has not had recent activity."*
+
+In all three cases a freshen that trusted the two status fields would have
+**deleted a live limitation from the skill** — the highest-damage error this mode
+can make, because it removes a true warning and looks like diligent cleanup.
+
+Always read the closing comment before acting on a state change:
+
+```bash
+gh issue view <N> -R <owner>/<repo> \
+  --json state,closedAt,stateReason,comments \
+  --jq '"\(.state) \(.stateReason)\n\(.comments[-1].body[0:200])"'
+```
+
+Classify on the *evidence of a fix*, not the state field:
+
+| Closing evidence | Class |
+|---|---|
+| Names a merged PR, a release, or a maintainer confirming the fix | `deprecation` / drift — safe to update the skill |
+| "automatically closed due to inactivity" / "marked as stale" | **treat as still open** — re-affirm the claim, note it is stale-closed |
+| Closed as `NOT_PLANNED`, duplicate, or by the reporter with no fix | treat as still open unless the linked duplicate resolved it |
+
+When a claim survives this check, say *why* in the skill ("shows closed, but
+stale-bot closed — no fix landed"), so the next pass does not re-litigate it.
+
 ### 3.1 Scope filter for `new-feature`
 
 Only produce a hypothesis when the feature maps to an existing trigger
