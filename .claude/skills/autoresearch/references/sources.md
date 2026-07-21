@@ -10,7 +10,39 @@ Columns: `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version or git ref, optional). Mark rows to skip with
 `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-06-09
+## Most recent freshen pass: 2026-07-21
+
+Probed all 16 ecosystem repos via `gh api` (pushed_at / archived / stars), the
+tracked Shopify Liquid PR, and every non-GitHub URL by HTTP status.
+
+### Notable findings (freshen pass 2026-07-21)
+
+- **No drift, deprecations, or broken links — again.** All **16** repos alive
+  and unarchived; all **9** non-GitHub URLs return **200** (including
+  pjhoberman.com, which rate-limited a curl on the prior pass). Shopify Liquid
+  **PR #2056 still OPEN** (last updated 2026-04-13 — three months quiet);
+  claims unchanged. Third consecutive clean pass.
+- **Two dormancy signals worth recording — the ecosystem is not uniformly
+  active:**
+  - **stanford-oval/storm** — v1.1.0 is from **2025-01-23 (~18 months)** and the
+    repo last pushed **2025-09-30 (~10 months)**. The v1.1.0 pin has been
+    "stable" across three passes, but that is quietness, not maintenance.
+    Annotated in `ecosystem.md`: Mode 2 borrows the *pattern*, which doesn't
+    rot — treat the codebase as reference, not a tracked dependency.
+  - **SakanaAI/AI-Scientist-v2** — last push **2025-12-19 (~7 months)**.
+- **karpathy/autoresearch: dormant repo, still-climbing adoption.** No pushes
+  since **2026-03-26** (~4 months), yet stars went **85,764 → 91,664** in the
+  six weeks since the last pass. Worth separating explicitly, since this
+  skill's whole methodology derives from that repo: the *source* is static
+  while the *practice* is spreading. Dormancy here is not a deprecation signal.
+  (Consistent with backlog B2 — star counts stay out of the body; recorded here
+  as a trend observation only.)
+- **Most active:** `gepa-ai/gepa` (pushed **2026-07-21**, i.e. the probe date),
+  `frankbria/ralph-claude-code` (2026-07-18, now 9.5k stars),
+  `SakanaAI/ShinkaEvolve` (07-17), `alvinreal/awesome-autoresearch` (07-16),
+  `WecoAI/aideml` (07-15).
+
+### Prior pass: 2026-06-09
 
 Probed via `gh api` (repo liveness, archived flag, pushed_at) and batch HTTP
 status checks on all non-GitHub rows older than 30 days.

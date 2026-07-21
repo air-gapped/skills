@@ -59,7 +59,12 @@ for the full research report with methodology, findings, and source assessments.
 ## Research Patterns
 
 - [stanford-oval/storm](https://github.com/stanford-oval/storm) — STORM/Co-STORM v1.1.0.
-  Multi-perspective research. Our Mode 2 is based on this pattern.
+  Multi-perspective research. Our Mode 2 is based on this pattern. **Note the
+  pin is stable because the project is quiet, not because it is actively
+  maintained at that version**: v1.1.0 dates from 2025-01-23 (~18 months) and
+  the repo's last push was 2025-09-30 (~10 months) as of 2026-07-21. The
+  *pattern* is what Mode 2 borrows and that doesn't rot; treat the codebase as
+  reference rather than a dependency to track.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
   depth+breadth implementation in <500 lines.
 - [Deep Researcher Reflect Evolve](https://arxiv.org/abs/2601.20843) — Sequential

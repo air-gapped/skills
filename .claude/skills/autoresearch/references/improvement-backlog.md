@@ -2,6 +2,37 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-07-21 (freshen)
+
+**Third consecutive clean pass.** All 16 ecosystem repos alive and unarchived;
+all 9 non-GitHub URLs return 200; Shopify Liquid PR #2056 still OPEN with
+unchanged claims. Nothing to correct.
+
+The value this pass was **separating "stable" from "dormant"** — three passes of
+"no drift" can quietly mean "nothing is being maintained":
+
+- **stanford-oval/storm** — the v1.1.0 pin has held across three passes, but
+  v1.1.0 is from **2025-01-23 (~18 months)** and the repo last pushed
+  **2025-09-30 (~10 months)**. Annotated in `ecosystem.md` so a reader doesn't
+  infer active maintenance from a stable pin: Mode 2 borrows the *pattern*,
+  which doesn't rot — treat the codebase as reference, not a tracked dependency.
+- **SakanaAI/AI-Scientist-v2** — last push 2025-12-19 (~7 months).
+- **karpathy/autoresearch** — dormant since 2026-03-26 (~4 months) while stars
+  climbed **85,764 → 91,664** in six weeks. Recorded as a trend note in
+  `sources.md` only (B2 keeps counts out of the body). The distinction matters
+  for a skill whose methodology derives from that repo: the source is static,
+  the practice is spreading. Dormancy is not deprecation here.
+
+Most active, for contrast: `gepa-ai/gepa` pushed on the probe date itself,
+`ralph-claude-code` (9.5k stars), `ShinkaEvolve`, `awesome-autoresearch`,
+`aideml` — all within the last week.
+
+**Method note for future passes:** a clean liveness sweep is necessary but not
+sufficient. `archived=false` + `HTTP 200` says a link works, not that the
+project moved. Record `pushed_at` age alongside liveness so dormancy shows up
+as a signal rather than as an absence of findings.
+
+
 ## Open
 
 ### B1 — Boris simplicity cap on Mode 2 procedural scaffolding (Dim 6) *(carried 2026-06-09, evidence updated)*
