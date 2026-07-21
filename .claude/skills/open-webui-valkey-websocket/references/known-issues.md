@@ -1,6 +1,6 @@
 # Known issues, fixes shipped, and what to watch
 
-Status as of 2026-05-28 (current stable 0.9.5). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Status as of 2026-07-21 (current stable 0.10.2; issue states re-probed, but the 0.9.6/0.10.x changelogs were NOT audited for new scaling issues). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
@@ -28,7 +28,12 @@ Multiple proposed fixes (`spublish`, `execute_command`, PR #20803) but none merg
 
 Opened 2026-04-22, **closed 2026-05-08** by tjbck. `SentinelRedisProxy.__getattr__` regression introduced via the `/ready` endpoint PR (#22507) caused readiness probe and login to fail with `'coroutine' object is not callable`. Fix shipped in 0.9.4 (released 2026-05-09). On any 0.9.0–0.9.3 deployment with Sentinel: upgrade to 0.9.4 immediately, or pin to 0.9.0 if upgrade is blocked. **Validate the readiness probe + login flow on a staging cluster after upgrade.**
 
-### #23939 — Loading and login issues on 0.9.0/0.9.1
+### #23939 — Loading and login issues on 0.9.0/0.9.1 (CLOSED 2026-04-22)
+
+**Closed 2026-04-22** — re-probed 2026-07-21. This skill listed it among the
+*open* issues through two verification passes, including one dated 2026-05-10,
+by which point it had been closed for over two weeks. The technical content below
+still stands as history for anyone on 0.9.0/0.9.1.
 
 Opened 2026-04. 39 comments. Includes a `KeyError` in socketio's `enter_room` (bidict) on connect — Socket.IO state corruption on connect path. `Classic298`'s diagnosis pivoted the thread to NFS-backed SQLite I/O ("MUST use Postgres for multi-replica"), but the underlying Socket.IO breakage on 0.9.0/0.9.1 is real and a separate concern.
 

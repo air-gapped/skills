@@ -18,7 +18,43 @@ items are an audit trail of what was fixed.
    (cookie vs Bearer vs OAuth proxy); a one-size-fits-all snippet would
    mislead. (carried 2026-05-28)
 
-## Resolved this pass (skill-improver run 2026-05-28)
+## Resolved — 2026-07-21 (freshen)
+
+Issue/PR states and chart versions re-probed. Two upstream jumps and one
+**verification error inherited from earlier passes**.
+
+- **#23939 was carried as OPEN for two passes while it had been CLOSED since
+  2026-04-22.** The 2026-05-10 pass recorded "others confirmed open 2026-05-10",
+  by which point #23939 had been closed for over two weeks, and 2026-05-28
+  re-stamped the group row without re-checking the members. Corrected in both
+  `sources.md` and `known-issues.md`, with the section retitled rather than
+  deleted — the 0.9.0/0.9.1 content is still useful history. **Lesson recorded:
+  a grouped verification row hides per-member drift; probe members, not groups.**
+- **open-webui 0.9.5 → 0.10.2** (2026-07-01, via 0.9.6/0.10.0/0.10.1). The
+  version floor in `SKILL.md` deliberately **stays at ≥0.9.5**: 0.9.6 and the
+  0.10.x line were not audited for scaling regressions this pass, so 0.10.x is
+  labelled un-vetted rather than silently recommended.
+- **Line-number map explicitly marked as suspect.** It is still resolved against
+  the 0.9.4 clone and was not re-resolved. The sibling `open-webui-embeddings`
+  freshen the same day found `config.py` restructured by ~2000 lines between
+  0.9.x and 0.10.2, so this map has almost certainly drifted — `sources.md` now
+  says to re-resolve by symbol name instead of trusting it.
+- **Helm chart 14.6.0 → 15.2.0** (2026-07-01), appVersion 0.10.2 — a **major**
+  bump, with 15.0.0 and 15.1.0 both cut 2026-06-29. Breaking changes NOT
+  reviewed; recorded as such. What *was* checked is that the structures this
+  skill depends on survived: `websocket:` is still a top-level values block
+  (line 66) and `replicaCount: 1` is still there (line 183).
+- **Chart-repo probing gotcha recorded:** `gh release list -R
+  open-webui/helm-charts` is dominated by `15.2.1-dev.N.1` prereleases — six of
+  the top six on the day of this pass. Filter `dev` tags or the newest stable is
+  invisible.
+- **#23733 still OPEN and still unresolved.** Last activity 2026-06-17, but the
+  recent thread is off-topic memory-usage discussion, not movement on frame
+  amplification — so the skill's centrepiece mitigation remains necessary.
+  #15162, #19840, #23650 all still open. Helm chart **#383 now CLOSED
+  2026-06-28**.
+
+## Resolved — 2026-05-28
 
 - **Dim 8 PR-list conflation** — SKILL.md L23 Yjs/streaming PR list
   rewritten to match issue-23733.md grouping (delta #23735, replay #23736,
@@ -48,7 +84,7 @@ items are an audit trail of what was fixed.
   (#23733 OPEN, #23987 CLOSED, all five Yjs/delta PRs CLOSED-unmerged) and
   known-issues.md header re-stamped to 2026-05-28 with gh evidence noted.
 
-## Resolved (skill-improver run 2026-05-10)
+## Resolved — 2026-05-10
 
 - **Dim 9 hard-fail (description > 1024)** — split frontmatter into
   `description` (592 chars) + `when_to_use` (853 chars), trimmed

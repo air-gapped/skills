@@ -110,7 +110,7 @@ Per-variable defaults, semantics, and version-added details live in `references/
 
 For deployments that ran multi-pod + WS in early 2026 and disabled it after performance died, custom model thumbnails are a strong suspect alongside #23733. Pre-0.6.37 (Nov 2025) the entire base64 image lived in `model.meta.profile_image_url` and was returned in `/api/models` for every model on every page load and every WS reconnect. With ~350 models and HD icons, the response payload exceeded 4 MB (issue #18950). On reconnect storms during rollouts: N pods × M users × 4 MB simultaneously, on top of the WS amplification.
 
-The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.9.5).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
+The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.10.2).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
 
 ## Reference index
 
@@ -129,7 +129,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4; 0.9.5 (2026-05-10) is current stable.
+- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **0.10.2** (2026-07-01); the floor stays at 0.9.5 because 0.9.6/0.10.x were not audited for scaling regressions this pass — treat 0.10.x as un-vetted here, not as recommended.
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.

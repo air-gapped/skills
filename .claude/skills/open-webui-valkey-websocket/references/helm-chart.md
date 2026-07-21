@@ -1,6 +1,6 @@
 # Helm chart reference (`open-webui/helm-charts`)
 
-Chart v14.6.0 → appVersion 0.9.5. Released 2026-05-20. Repo URL: `https://helm.openwebui.com/`. Maintainer (`westbrook-ai`) explicitly volunteer-maintained: *"this repo is maintained by volunteers and is admittedly not always perfect."*
+Chart **v15.2.0 → appVersion 0.10.2**, released 2026-07-01 (was v14.6.0/0.9.5). The 14→15 major bump was **not** audited for breaking changes this pass; what was checked is that the structures this file depends on survived — `websocket:` is still a top-level block (line 66) and `replicaCount: 1` still present (line 183). Released 2026-05-20 for the prior pin. Repo URL: `https://helm.openwebui.com/`. Maintainer (`westbrook-ai`) explicitly volunteer-maintained: *"this repo is maintained by volunteers and is admittedly not always perfect."*
 
 This is the supported Kubernetes deployment path (per the maintainer's own confirmation on issue #338, 2026-02-01) but it ships sparse defaults. The list below is what to override and what the chart doesn't cover.
 
@@ -200,7 +200,9 @@ startupProbe:
 
 | Version | Change |
 |---|---|
-| v14.6.0 | appVersion 0.9.5. Current as of 2026-05-20. |
+| v15.2.0 | appVersion 0.10.2. **Current as of 2026-07-01.** Majors 15.0.0/15.1.0 both landed 2026-06-29 — breaking changes unreviewed. |
+| v14.11.0 | appVersion 0.10.x line. 2026-06-28. Last 14.x. |
+| v14.6.0 | appVersion 0.9.5. 2026-05-20. |
 | v14.5.0 | appVersion 0.9.5. 2026-05-11. |
 | v14.4.0 | appVersion 0.9.4. 2026-05-09. |
 | v13.3.1 | Fixed `ENABLE_WEBSOCKET_SUPPORT=False` not being explicitly set when websocket disabled. |

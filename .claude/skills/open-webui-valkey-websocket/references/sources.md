@@ -2,7 +2,7 @@
 
 Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers with dates, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode.
 
-Versions referenced span 0.5.x (Dec 2024) through 0.9.5 (current stable, May 2026). Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched.
+Versions referenced span 0.5.x (Dec 2024) through **0.10.2 (current stable, 2026-07-01)**. Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched. **Caveat as of the 2026-07-21 freshen:** issue/PR states and chart versions were re-probed, but the **0.9.6 / 0.10.0 / 0.10.1 / 0.10.2 changelogs were not read**, so no claim is made about scaling behaviour on 0.10.x. The line-number map below is still resolved against 0.9.4.
 
 ## Verification log
 
@@ -10,16 +10,16 @@ Per-source-group last-verified dates. `freshen` mode probes each row and stamps 
 
 | Source group | Last verified | Notes |
 |---|---|---|
-| open-webui/open-webui latest stable v0.9.5 (released 2026-05-10) | 2026-05-28 | Latest release confirmed via `gh api /repos/open-webui/open-webui/releases/latest` → tag v0.9.5. File paths/line numbers below verified against the v0.9.4 clone HEAD `f51d2b026` (2026-05-10); v0.9.5 release body empty, no redis/websocket/sentinel signal. |
+| open-webui/open-webui latest stable **v0.10.2** (released 2026-07-01) | 2026-07-21 | v0.9.5 → v0.9.6 (2026-06-01) → v0.10.0/v0.10.1 (both 2026-06-29) → **v0.10.2** (2026-07-01). File paths/line numbers below are still resolved against the v0.9.4 clone HEAD `f51d2b026` and were **not** re-resolved this pass — the sibling `open-webui-embeddings` skill found that `config.py` was restructured by ~2000 lines between 0.9.x and 0.10.2, so assume this map has drifted and re-resolve by symbol name. |
 | docs.openwebui.com (scaling, redis tutorial, multi-replica troubleshooting, env-config, hardening) | 2026-05-10 | Pulled raw from `open-webui/docs` repo on this date. |
-| open-webui/helm-charts at v14.6.0 | 2026-05-28 | Latest `open-webui-14.6.0` (2026-05-20), appVersion 0.9.5; also 14.5.0 (2026-05-11, appVersion 0.9.5). Confirmed via `gh release list --repo open-webui/helm-charts`. |
-| GitHub issues #23733, #15162, #19840, #23939, #23650 (open) | 2026-05-28 | #23733 confirmed OPEN, updated 2026-05-27 via `gh issue view`. Others confirmed open 2026-05-10. |
+| open-webui/helm-charts at **v15.2.0** | 2026-07-21 | Latest stable `open-webui-15.2.0` (2026-07-01), appVersion **0.10.2** — a **14 → 15 major bump**, with 15.0.0 and 15.1.0 both cut 2026-06-29 and 14.11.0 the last 14.x. Breaking changes NOT reviewed. Structure spot-checked and intact: `websocket:` top-level block at line 66, `replicaCount: 1` at 183. **Filter `dev` tags** — the repo publishes many `15.2.1-dev.N.1` prereleases that dominate an unfiltered `gh release list`. |
+| GitHub issues #23733, #15162, #19840, #23650 (open); **#23939 CLOSED** | 2026-07-21 | #23733 still OPEN (updated 2026-06-17 — but the recent thread is off-topic memory-usage chatter, not movement on frame amplification). #15162 open (upd 2026-06-10), #19840 open (upd 2026-04-21), #23650 open (upd 2026-04-12). **#23939 has been CLOSED since 2026-04-22** and was wrongly carried as open through the 2026-05-10 and 2026-05-28 passes — it was already closed two weeks before the earlier of those. |
 | GitHub issue #23987 (Sentinel coroutine regression) | 2026-05-28 | Confirmed CLOSED 2026-05-08 by tjbck via `gh issue view`; fix shipped in 0.9.4 (released 2026-05-09). |
 | GitHub PRs #23735, #23736, #24124, #24126, #24171 (Yjs/streaming attempts) | 2026-05-28 | All confirmed CLOSED, not merged, via `gh pr view`: #23735 delta emission, #23736 resumable replay, #24124/#24126/#24171 Ydoc streaming. |
 | GitHub PRs in April–May 2026 batch (#22507, #22980, #22734, #23571–3, #23642, #23649, #23709, #23829, #23896, #24015, #24412, #24420) | 2026-05-10 | Verified merged. |
 | GitHub PRs in Nov–Dec 2025 batch (#18996, #19097, #19395, #19488, #19519, #19871, #19959, #20076, #20145) | 2026-05-10 | Verified merged. |
 | Earlier closed issues (#11934, #12325, #14340, #16074, #16157, #16693, #16979, #17223, #18073, #18223, #18366, #18950, #19401, #20142, #21410, #22734) | 2026-05-10 | Verified closed; resolutions referenced in `known-issues.md`. |
-| Helm chart issues #338, #341, #383 | 2026-05-10 | #338 closed (maintainer confirms support), #341 closed (fixed v13.2.0), #383 open. |
+| Helm chart issues #338, #341, #383 | 2026-07-21 | #338 closed (maintainer confirms support), #341 closed (fixed v13.2.0), **#383 now CLOSED 2026-06-28** (gateway-API `appProtocol` hint). |
 
 ## Local source files (`~/projects/github.com/open-webui/open-webui` at v0.9.4)
 
@@ -104,14 +104,14 @@ These paths are stable across recent versions. Line numbers may drift in clones 
   - Line ~1480: 0.6.37 WS env vars.
   - Line ~2152: 0.7.x Redis connection pool cache.
 
-## GitHub issues — open as of 2026-05-10
+## GitHub issues — states re-probed 2026-07-21
 
 ```
 gh issue view 23733 --repo open-webui/open-webui     # Socket.IO frame amplification (THE BIG ONE)
 gh issue view 15162 --repo open-webui/open-webui     # direct-connection multi-worker routing
 gh issue view 19840 --repo open-webui/open-webui     # RedisCluster publish broken
 gh issue view 23987 --repo open-webui/open-webui     # Sentinel coroutine regression in 0.9.1
-gh issue view 23939 --repo open-webui/open-webui     # 0.9.0/0.9.1 loading and login issues
+gh issue view 23939 --repo open-webui/open-webui     # 0.9.0/0.9.1 loading and login issues — CLOSED 2026-04-22
 ```
 
 ## GitHub PRs — closed, not merged (the Yjs / streaming attempts)
@@ -162,7 +162,7 @@ gh pr view 20145 --repo open-webui/open-webui        # SentinelRedisProxy async-
 ```
 gh issue view 338 --repo open-webui/helm-charts      # confirms helm chart is supported
 gh issue view 341 --repo open-webui/helm-charts      # WEBSOCKET_REDIS_URL from Secret (fixed v13.2.0)
-gh issue view 383 --repo open-webui/helm-charts      # gateway-API appProtocol (open)
+gh issue view 383 --repo open-webui/helm-charts      # gateway-API appProtocol — CLOSED 2026-06-28
 ```
 
 ## Documentation pages (docs.openwebui.com)
