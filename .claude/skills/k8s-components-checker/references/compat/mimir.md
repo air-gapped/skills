@@ -47,7 +47,9 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
 - **Mimir app version:** 3.0.4.
 - **Breaking (chart-level, all from `6.0.0`):**
   - Minimum compatible k8s bumped to **1.29**.
-  - **Ingest storage architecture is now the default deployment mode.** Read and write paths decoupled via Kafka. Chart deploys a single-node Kafka for demo only; production must point at an external Kafka-compatible cluster via `kafka.enabled=false` + credentials. 5.x → 6.0 upgrades on classic architecture require an explicit migration; do not roll without reading the upstream migration guide.
+  - **Ingest storage architecture is now the default deployment mode** (Kafka between write and read paths). **But staying on classic is a first-class supported option and is the low-risk path for an existing 5.x fleet** — the chart ships `classic-architecture.yaml` at its root (6.0.6 and 6.1.0, byte-identical), the 5.x→6.0 migration guide has a "Continue using classic architecture" section, and upstream CI regression-tests it with golden manifests. Mimir's own binary default is `ingest_storage.enabled: false`; only the chart flips it on.
+  - **`kafka.enabled: false` is NOT the architecture switch** — it only stops the chart *deploying* Kafka. Alone it yields ingest-storage-configured Mimir with the classic push path disabled and no broker = ingestion outage. The switch is `mimir.structuredConfig.ingest_storage.enabled: false` **plus** `ingester.push_grpc_method_enabled: true` (the chart hardcodes it to `false`). Prefer the shipped preset file over the migration guide's snippet — the snippet omits `distributor.remote_timeout: null`, silently leaving the Kafka-tuned 5s instead of reverting to 2s.
+  - **Migrating classic → ingest storage is a two-cluster blue/green project, not an upgrade step:** second cluster on the same bucket, dual-write, 12–13 h overlap, read cutover, compactor handover inside ~15 min. Upstream states it "temporarily doubles your ingestion and storage costs". In-place migration is an open feature request (grafana/mimir#13351), not a feature. Decouple the chart ladder from the architecture change.
   - `nginx` top-level values section **removed** (deprecated in 4.0.0; was scheduled for 7.0.0, pulled forward to 6.0.0). Migrate to the unified `gateway` section before upgrade.
   - **GEM gateway Service port 8080 removed** (deprecated in 3.1.0). Replace with port 80 in dashboards, remote-write configs, rule automation.
   - **`metaMonitoring.grafanaAgent` deprecated** — Grafana Agent reached End-of-Support end-2025. Switch to external collector (Grafana k8s-monitoring / Alloy).
@@ -57,6 +59,8 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - Provisioner job default kubectl image replaced with `alpine/kubectl`.
 - **Breaking (app-level, Mimir 2.17 → 3.0):**
   - Mimir 3.0 is the cutover to ingest-storage-by-default; chart and app are co-pinned. Treat the chart-minor bump and the Mimir-major bump as one event, not two.
+  - **CRDs must be pre-installed.** 6.0.0's rollout-operator needs the `replica-templates` and `zone-aware-pod-disruption-budget` CRDs applied *before* the upgrade, or set `rollout_operator.enabled: false`. Skipping this wedges the upgrade (the migration guide has a webhook-recovery troubleshooting block for exactly this). Air-gapped: the docs install them by `kubectl apply` from `raw.githubusercontent.com` — mirror them.
+  - MQE default straddles hops — see § 5.8.0.
 - **CRD migrations:** N/A — Mimir uses stock k8s resources (StatefulSets, Deployments, ConfigMaps). The chart's rollout-operator subchart manages rolling-restart ordering; no Mimir-owned CRDs to convert.
 - **Upgrade ordering:**
   - Ingesters and store-gateways: **rolling restart via rollout-operator is mandatory** (chart enforces). Do not bypass with `kubectl rollout restart` on the StatefulSet directly — split-brain on the hash ring.
@@ -78,7 +82,9 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - `JAEGER_REPORTER_MAX_QUEUE_SIZE` env var no longer set by the chart. Components fall back to OTel default 2048. If a previous values override was tuning this, switch to `OTEL_BSP_MAX_QUEUE_SIZE`.
   - Memberlist: `memberlist.abort-if-fast-join-fails` enabled for ingesters — ingester join failures now fail-fast instead of degrading silently.
   - `store_gateway.grpcMaxQueryResponseSizeBytes` defaulted to 200 MB. Operators with custom limits should re-check.
-- **Breaking (app-level, Mimir 2.16 → 2.17):** see upstream Mimir 2.17 CHANGELOG; nothing chart-visible beyond image tag.
+- **Breaking (app-level, Mimir 2.16 → 2.17):**
+  - **MQE becomes the default query engine in queriers** (`[CHANGE] Querier: Use Mimir Query Engine (MQE) by default`, #11501). This is the read-path risk hop for a fleet coming from 2.16 — *not* the 6.0 hop, where 3.0 merely extends the default to query-frontends (#12361). Opt out per tier: `-querier.query-engine=prometheus` / `-query-frontend.query-engine=prometheus`. Both tiers carry `-enable-query-engine-fallback` (default `true`) and there is **no fallback counter**, so silent engine divergence is not alertable. To keep a chart upgrade bisectable from an engine swap, pin `prometheus` through the 5.8.0 hop and flip the engine as a separate change.
+  - Memberlist KV defaults tightened (`packet-dial-timeout` 500ms, `packet-write-timeout` 500ms, `max-concurrent-writes` 5, `acquire-writer-timeout` 1s) — upstream warns this "might cause long-running packets to be dropped in high-latency networks". Watch ring-health alerts on this hop.
 - **CRD migrations:** N/A.
 - **Upgrade ordering:** rolling-restart via rollout-operator (subchart 0.35.x in 5.8 line). Ingester/store-gateway ordering enforced. No coupling with the k8s-minor axis at this chart minor.
 - **Deprecations:** Grafana Agent metamonitoring continues to function in 5.8 but the deprecation lands in 6.0.
