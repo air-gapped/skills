@@ -32,7 +32,7 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 ## The three load-bearing facts
 
 1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:209,289`.
-2. **Multi-node vLLM on k8s is Ray-on-LWS, not headless Service.** The `parallel-config` + pure headless-Service path exists but is not the vLLM-endorsed recipe. Use LeaderWorkerSet (`kubernetes-sigs/lws`) as the gang-scheduling primitive and `examples/online_serving/multi-node-serving.sh` (which bootstraps Ray head/worker) as the entrypoint. Since Nov 2025 the `ray symmetric-run` pattern replaces the old head/worker split — see `https://blog.vllm.ai/2025/11/22/ray-symmetric-run.html`.
+2. **Multi-node vLLM on k8s is Ray-on-LWS, not headless Service.** The `parallel-config` + pure headless-Service path exists but is not the vLLM-endorsed recipe. Use LeaderWorkerSet (`kubernetes-sigs/lws`) as the gang-scheduling primitive and `examples/ray_serving/multi-node-serving.sh` (which bootstraps Ray head/worker) as the entrypoint. Since Nov 2025 the `ray symmetric-run` pattern replaces the old head/worker split — see `https://blog.vllm.ai/2025/11/22/ray-symmetric-run.html`.
 3. **The upstream `vllm/vllm-openai` image runs as root.** On OpenShift (and any k8s cluster with `restricted-v2` PSA), that is a deploy-time failure. Either rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`, or use the Red Hat RHAIIS images (`registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0`), which are UID-agnostic by construction.
 
 ## Minimum viable pod shape
@@ -107,7 +107,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 | `docs/deployment/frameworks/kserve.md` | KServe runtime |
 | `docs/deployment/integrations/{llm-d,production-stack,aibrix,dynamo,kubeRay,kthena,kubeai,kaito,llama-stack,llmaz}.md` | Ecosystem landing pages |
 | `examples/online_serving/chart-helm/` | In-tree Helm chart (v0.0.1, experimental) |
-| `examples/online_serving/multi-node-serving.sh` | Ray leader/worker bootstrap |
+| `examples/ray_serving/multi-node-serving.sh` | Ray leader/worker bootstrap |
 | `examples/online_serving/run_cluster.sh` | Docker-based Ray cluster (`--shm-size 10.24g --ipc=host --gpus all`) |
 | `examples/online_serving/disaggregated_serving/` | PD-split proxy demos (XpYd, KV events, Mooncake) |
 | `examples/online_serving/disaggregated_prefill.sh` | PD launcher |

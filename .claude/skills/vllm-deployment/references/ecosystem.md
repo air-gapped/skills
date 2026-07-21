@@ -23,17 +23,17 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### LeaderWorkerSet (LWS)
 
 - **Repo / site**: https://github.com/kubernetes-sigs/lws · https://lws.sigs.k8s.io/docs/
-- **Version (Apr 2026)**: v0.8.0 (pre-GA; no v1.0 cut yet)
+- **Version (2026-07-21)**: **v0.9.0** (2026-06-17) — **still pre-GA, no v1.0 cut.** v0.9.0 is a maintenance release (Kubernetes deps to v0.35.0, migration to generic webhook APIs, dependabot bumps), not an API-stability milestone
 - **Maintainer / license**: Kubernetes SIG-Apps · Apache-2.0
 - **Role**: K8s primitive for "group of pods as a unit of replication". The gang-scheduling piece of every multi-node vLLM deploy.
-- **vLLM integration**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples/vllm — wraps `examples/online_serving/multi-node-serving.sh`
+- **vLLM integration**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples/vllm — wraps `examples/ray_serving/multi-node-serving.sh`
 - **Pick when**: The minimum primitive is wanted without an opinionated control plane, or to understand what the fancier projects do under the hood.
 - **Known limitation**: No native gang-scheduling ([issue #167](https://github.com/kubernetes-sigs/lws/issues/167)) — pair with Kueue or Volcano if strict gang-scheduling matters.
 
 ### vllm-production-stack (UC Berkeley + UChicago)
 
 - **Repo**: https://github.com/vllm-project/production-stack · docs: https://docs.vllm.ai/projects/production-stack/
-- **Helm chart version (Apr 2026)**: vllm-stack-0.1.10 (Feb 27 2026) — verified via GitHub releases
+- **Helm chart version (2026-07-21)**: **vllm-stack-0.1.11** (2026-05-07) — verified via GitHub releases. Note this shipped *before* the 2026-05-29 pass but was missed there, because that pass carried the row forward at its 2026-04-24 stamp instead of re-probing
 - **Helm chart**: https://github.com/vllm-project/production-stack/tree/main/helm · values: https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml
 - **Maintainer / license**: UC Berkeley Sky Lab + UChicago LMCache + vLLM · Apache-2.0
 - **Role**: Reference "stack" — router + N vLLM engines + LMCache tiered KV + observability, packaged as one Helm release.
@@ -49,7 +49,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### llm-d
 
 - **Repo / site**: https://github.com/llm-d/llm-d · https://llm-d.ai/
-- **Version (May 2026)**: v0.7.0 (May 12 2026) — verified via GitHub releases
+- **Version (2026-07-21)**: **v0.8.1** (2026-06-26; v0.8.0 was 2026-06-24) — verified via GitHub releases. v0.8.0 themes: solidified CI coverage and project operations, expanded accelerator coverage, **multimodal / batch / flow-control graduated to production**, initial RL support. Release notes carry a per-component version table — read it rather than assuming the umbrella tag applies to every sub-component
 - **Maintainer / license**: Red Hat + Google Cloud + IBM + NVIDIA + CoreWeave · Apache-2.0
 - **CNCF status**: Sandbox as of Mar 2026 (https://www.cncf.io/blog/2026/03/24/welcome-llm-d-to-the-cncf-evolving-kubernetes-into-sota-ai-infrastructure/)
 - **Role**: K8s-native distributed vLLM orchestrator. Inference scheduler (P/D-aware, KV-aware, SLA-aware, load-aware). "The orchestrator to vLLM's engine."
@@ -69,7 +69,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### AIBrix
 
 - **Repo**: https://github.com/vllm-project/aibrix
-- **Version (Apr 2026)**: v0.6.0 (Mar 3 2026) — verified via GitHub releases
+- **Version (2026-07-21)**: **v0.7.0** (2026-06-18) — verified via GitHub releases
 - **Paper**: https://arxiv.org/abs/2504.03648
 - **Maintainer / license**: ByteDance-originated, now under vLLM org · Apache-2.0
 - **Role**: Full cloud-native control plane. High-density LoRA, StormService CRD, distributed KV cache, P/D disagg (v0.4), heterogeneous-GPU scheduling.
@@ -81,7 +81,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### NVIDIA Dynamo
 
 - **Repo**: https://github.com/ai-dynamo/dynamo · NIXL: https://github.com/ai-dynamo/nixl
-- **Version (May 2026)**: v1.1.1 (May 9 2026) — verified via GitHub releases
+- **Version (2026-07-21)**: **v1.2.1** (2026-06-13) — the newest *stable* release. **Do not sort this repo's tags by date**: it publishes a stream of model-specific dev prereleases (`v1.3.0-glm-5.2-dev.1` 2026-07-21, `v1.4.0-inkling-dev.1` 2026-07-17, `v1.3.0-minimax-m3-dev.1`, `v1.3.0-deepseek-v4-dev.1`, …) that are newer by date and higher by version than v1.2.1 while being flagged `prerelease`. Filter on `isPrerelease=false`
 - **Maintainer / license**: NVIDIA · Apache-2.0
 - **Role**: Disagg-native serving framework; backend-agnostic (vLLM, SGLang, TRT-LLM). Dynamo = orchestrator + NIXL data plane; vLLM consumes NIXL via its own `NixlConnector`.
 - **Relation to vLLM's native Nixl/Mooncake**: Dynamo drives Nixl; vLLM exposes the connector. They're complementary layers, not competitors. Mooncake is a parallel alternative (KV-store-first).
@@ -109,7 +109,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://gateway-api-inference-extension.sigs.k8s.io/
 - **Repo**: https://github.com/kubernetes-sigs/gateway-api-inference-extension
-- **Status (Apr 2026)**: v1 CRDs **GA** (Sept 2025); latest release v1.5.0 (Apr 19 2026) — verified via GitHub releases. Gateway API 1.4 (Nov 2025) includes IGW integration
+- **Status (2026-07-21)**: v1 CRDs **GA** (Sept 2025); latest release **still v1.5.0** (2026-04-19) — re-verified, no new release in three months. Gateway API 1.4 (Nov 2025) includes IGW integration
 - **Maintainer / license**: K8s SIG-Network · Apache-2.0
 - **CRDs**: `InferencePool` (platform — pods on shared GPU nodes) + `InferenceModel` (ML owner — public model name → pool). Endpoint Picker (EPP) is the ext_proc gRPC server that picks the endpoint.
 - **Implementers**: llm-d, Envoy AI Gateway, kgateway, Istio 1.28+, NGINX Gateway Fabric
@@ -123,7 +123,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://aigateway.envoyproxy.io/
 - **Repo**: https://github.com/envoyproxy/ai-gateway
-- **Version (May 2026)**: v0.6.0 (May 5 2026) — verified via GitHub releases
+- **Version (2026-07-21)**: **v1.0.0 — General Availability** (2026-06-23), up from v0.6.0 via v0.7.0 (2026-06-06). The core control-plane API (`AIGatewayRoute`, `AIServiceBackend`, `BackendSecurityPolicy`, `GatewayConfig`, `MCPRoute`) is declared **stable**: no breaking changes within 1.x barring a critical security fix, and any such change ships with a documented migration path. **Upgrading from v0.7 requires no resource changes.** Note the API is still served at **`v1beta1`** — GA of the project did *not* bump the group version, so manifests keep `v1beta1`. Claims a single OpenAI-compatible API across 16 providers with cross-provider translation
 - **Maintainer / license**: Envoy Foundation · Apache-2.0
 - **Role**: GAIE implementation built on Envoy Gateway. Adds provider-abstraction (Bedrock, Vertex, Anthropic) and token-based cost metering on top of `InferencePool`.
 - **Pick when**: Multi-provider BYOK gateway + GAIE in one. Alternative to kgateway/Istio for the GAIE layer.
@@ -132,7 +132,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://vllm-semantic-router.com/
 - **Repo**: https://github.com/vllm-project/semantic-router
-- **Version (Apr 2026)**: v0.2.0 "Athena" (Mar 10 2026) — verified via GitHub releases; v0.1 "Iris" (Jan 2026) was launch
+- **Version (2026-07-21)**: **v0.3.0** (2026-06-05) — verified via GitHub releases; v0.2.0 "Athena" (2026-03-10), v0.1 "Iris" (2026-01-05) was launch
 - **Launch**: https://blog.vllm.ai/2026/01/05/vllm-sr-iris.html
 - **Role**: Envoy `ext_proc` that does **semantic** routing (mixture-of-models across different models by query domain/intent). Ships with Milvus integration.
 - **Pick when**: Multi-model fleet routing `general` → small model, `code`/`math` → large model.
@@ -160,7 +160,7 @@ Not strictly a K8s project, but Ray Serve on KubeRay is a sibling deployment pat
 ## Consolidation / breaking-change notes
 
 1. **llm-d**: `llm-d-model-service` operator **deprecated**; functionality moved to `llm-d-incubation/llm-d-modelservice` Helm chart (mid-2025).
-2. **LWS**: still pre-1.0 (v0.8.0) despite broad adoption — no API-stability promise yet; watch for v1.0.
+2. **LWS**: still pre-1.0 (**v0.9.0**, 2026-06-17) despite broad adoption — no API-stability promise yet; watch for v1.0. Two releases in six months, both maintenance-flavoured, so don't read v0.9.0 as approaching GA.
 3. **Dynamo**: `vllm-runtime` container is versioned independently of vLLM upstream; pin carefully.
 4. **GAIE**: v1 CRD spec is GA; pre-v1 (`v1alpha1`, `v1alpha2`) manifests will break.
 5. **AIBrix**: v0.4 (Aug 2025) introduced KVCache v1 connector + KV event sync — older v0.2 deploys need migration.

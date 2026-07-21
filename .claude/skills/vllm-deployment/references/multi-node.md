@@ -11,10 +11,15 @@ The "pure headless Service + `parallel-config` + manual rank enumeration" path e
 - **LWS project**: https://github.com/kubernetes-sigs/lws — https://lws.sigs.k8s.io/docs/
 - **LWS vLLM example (upstream LWS)**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples/vllm
 - **vLLM doc**: https://docs.vllm.ai/en/latest/deployment/frameworks/lws/
-- **In-repo bootstrap script**: ``vllm` repo: examples/online_serving/multi-node-serving.sh`
+- **In-repo bootstrap script**: ``vllm` repo: examples/ray_serving/multi-node-serving.sh`
+  — **moved from `examples/online_serving/` at some point before v0.25.1.** The
+  old path 404s. Because this path is embedded in the container `command:` of
+  LWS manifests, a stale copy does not fail at apply time — it fails when the
+  pod starts, as a missing-file error from `bash`. Upstream's own
+  `docs/deployment/frameworks/lws.md` uses the new path; match it.
 - **Docker-based Ray cluster helper**: ``vllm` repo: examples/online_serving/run_cluster.sh` (reference for what `--shm-size 10.24g --ipc=host --gpus all` should look like)
 
-LWS status as of April 2026: **v0.8.0**, still **pre-GA**. Used in production by llm-d, vllm-production-stack, AIBrix. No v1.0 cut yet — watch [releases](https://github.com/kubernetes-sigs/lws/releases). Pre-1.0 API, but the core `LeaderWorkerSet` CRD has been stable since v0.3.
+LWS status as of 2026-07-21: **v0.9.0** (2026-06-17), still **pre-GA**. Used in production by llm-d, vllm-production-stack, AIBrix. No v1.0 cut yet — watch [releases](https://github.com/kubernetes-sigs/lws/releases). Pre-1.0 API, but the core `LeaderWorkerSet` CRD has been stable since v0.3.
 
 ## Ray symmetric-run (November 2025 change)
 
@@ -43,7 +48,7 @@ spec:
         containers:
         - name: vllm
           image: vllm/vllm-openai:<pinned-tag>
-          command: ["bash", "/vllm-workspace/examples/online_serving/multi-node-serving.sh"]
+          command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
           args: ["leader"]
           env:
             - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']}}}
@@ -60,7 +65,7 @@ spec:
         containers:
         - name: vllm
           image: vllm/vllm-openai:<pinned-tag>
-          command: ["bash", "/vllm-workspace/examples/online_serving/multi-node-serving.sh"]
+          command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
           args: ["worker"]
           env:
             - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']}}}

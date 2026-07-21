@@ -4,14 +4,49 @@ Work-not-done log for the skill-improver loop. `## Open` lists issues attempted 
 hypotheses that could not be applied (or safely verified) in a single iteration.
 `## Resolved this pass` lists changes the metric actually registered.
 
-## Open
+## Resolved — 2026-07-21 (freshen)
 
-- **(new 2026-07-18) URGENT: freshen by 2026-07-24** (Dim 9) — the two
-  2026-04-24 rows in `references/sources.md` (production-stack,
-  multi-node-serving.sh) cross the 91-day staleness band on 2026-07-24,
-  capping Dim 9 at 7. Both blind agents flagged it. vLLM upstream has also
-  moved past the stamped v0.21.0 (local clone at 2026-07-12). Run
-  `freshen vllm-deployment`; verify online, downgrade nothing from memory.
+Ran three days ahead of the "URGENT: freshen by 2026-07-24" deadline the
+2026-07-18 pass filed. That item is closed — and it was right to be urgent, for
+a reason it didn't anticipate.
+
+- **A cited path is broken, not merely stale.**
+  `examples/online_serving/multi-node-serving.sh` **404s at v0.25.1 and on
+  `main`**. The script moved to **`examples/ray_serving/multi-node-serving.sh`**
+  (sha 644bc82, 3798 bytes), confirmed against upstream's own
+  `docs/deployment/frameworks/lws.md` and `docs/deployment/integrations/kthena.md`.
+  Fixed in six places across `SKILL.md`, `multi-node.md` and `ecosystem.md` —
+  **two of them inside the container `command:` of LWS manifests**, which is the
+  damaging case: a stale path does not fail at `kubectl apply`, it fails when
+  the pod starts, as a bare missing-file error from `bash`.
+- **Seven of nine ecosystem refs moved in under two months.**
+  - **Envoy AI Gateway v0.6.0 → v1.0.0 GA** (2026-06-23) — first project in this
+    set with an explicit 1.x API-stability promise; upgrading from v0.7 needs no
+    resource changes. Recorded the non-obvious part: the API is **still served
+    at `v1beta1`**, so project GA did not bump the group version and manifests
+    must not be rewritten to `v1`.
+  - LWS v0.8.0 → **v0.9.0**, still pre-GA; both recent releases are maintenance
+    in character, so nothing signals an imminent v1.0.
+  - llm-d v0.7.0 → **v0.8.1**; v0.8.0 graduated multimodal / batch /
+    flow-control **to production**.
+  - AIBrix v0.6.0 → **v0.7.0**; semantic-router v0.2.0 → **v0.3.0**;
+    production-stack 0.1.10 → **0.1.11**; vLLM upstream v0.21.0 → **v0.25.1**.
+  - GAIE unchanged at v1.5.0 — recorded as a verified non-event.
+- **Dynamo tag-sorting trap documented.** Stable is **v1.2.1** (2026-06-13), but
+  the repo continuously publishes model-specific dev prereleases
+  (`v1.3.0-glm-5.2-dev.1` dated *today*, `v1.4.0-inkling-dev.1`, …) that are
+  newer by date **and** higher by semver while flagged `isPrerelease=true`. Any
+  "latest Dynamo" answer that sorts by either date or version without filtering
+  is wrong.
+- **Process finding: a carried stamp is not a verification.**
+  `vllm-production-stack` sat at 0.1.10 with a 2026-04-24 stamp and was carried
+  unchanged through the 2026-05-29 pass — but **0.1.11 shipped 2026-05-07**,
+  three weeks before that pass ran. The row was accurate when written and simply
+  wasn't re-probed, which preserved the staleness invisibly. Added a note to
+  `sources.md`: when a pass declares a probe budget, spend it on the rows most
+  likely to have moved rather than re-confirming recently-stamped ones.
+
+## Open
 
 - **(new 2026-07-18) ToCs for >100-line references** (Dim 2/7) —
   pod-shape.md (292 lines), docker-lab.md (248), and the other five
