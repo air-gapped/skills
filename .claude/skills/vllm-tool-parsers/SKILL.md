@@ -20,6 +20,8 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | Parser base class + `ToolParserManager` | `vllm/tool_parsers/abstract_tool_parser.py` |
 | Shared helpers (`partial_json_loads`, `find_common_prefix`, `make_valid_python`, `partial_tag_overlap`, `compute_tool_delta`, `handle_single_tool`) | `vllm/tool_parsers/utils.py` |
 | Built-in parser registry | `vllm/tool_parsers/__init__.py` — `_TOOL_PARSERS_TO_REGISTER` maps CLI name → module → class |
+| **Unified parser engine (new)** | `vllm/parser/` — one class per model (`qwen3.py`, `gemma4.py`, `deepseek_v4.py`, `deepseek_v32.py`, `seed_oss.py`, …), `abstract_parser.py`, and `engine/` (`parser_engine.py`, `streaming_parser_engine.py`, `incremental_lexer.py`, `token_id_scanner.py`) |
+| **Adapter construction** | `vllm/parser/engine/registered_adapters.py` — `make_adapters(XParser)` returns `(XParserReasoningAdapter, XParserToolAdapter)`; the tool side is then subclassed in `vllm/tool_parsers/*_engine_tool_parser.py` to attach `structural_tag_model` |
 | CLI flag definitions | `vllm/entrypoints/openai/cli_args.py` — grep `tool_call_parser`, `enable_auto_tool_choice`, `tool_parser_plugin` |
 | Non-streaming serving invocation | `vllm/entrypoints/openai/chat_completion/serving.py` — grep `extract_tool_calls` |
 | Streaming serving loop + tail flush | same file — grep `extract_tool_calls_streaming`, `prev_tool_call_arr` |
@@ -30,6 +32,24 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | User-facing docs | `docs/features/tool_calling.md` |
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
+
+**Except for the 7 names on the unified-parser path**, where that file is a
+stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
+
+| CLI name(s) | Registry class | Real implementation |
+|---|---|---|
+| `qwen3_coder`, `qwen3_xml`, `mimo` | `Qwen3EngineToolParser` | `vllm/parser/qwen3.py` |
+| `gemma4` | `Gemma4EngineToolParser` | `vllm/parser/gemma4.py` |
+| `deepseek_v4` | `DeepSeekV4EngineToolParser` | `vllm/parser/deepseek_v4.py` |
+| `deepseek_v32` | `DeepSeekV32EngineToolParser` | `vllm/parser/deepseek_v32.py` |
+| `seed_oss` | `SeedOssEngineToolParser` | `vllm/parser/seed_oss.py` |
+
+This is the same refactor described in `vllm-reasoning-parsers` — a single
+per-model parser now backs **both** the tool and reasoning adapters (RFC
+[#32713](https://github.com/vllm-project/vllm/issues/32713), still formally OPEN
+and stale-bot-marked while the code ships). Practical consequence: a grammar
+change to `vllm/parser/qwen3.py` moves tool *and* reasoning behaviour at once —
+they are no longer independent surfaces for those models.
 
 ## The CLI contract
 
@@ -59,8 +79,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
-| `qwen3_coder` (alias `mimo`) | Qwen3-Coder-480B/30B | `tool_chat_template_qwen3coder.jinja` |
-| `qwen3_xml` (alias `mimo`) | Qwen3-XML family | (same grammar as qwen3_coder) |
+| `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** at v0.25.1 (`Qwen3EngineToolParser`); the separate coder/xml files were deleted |
 | `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseek_v3.jinja`, `_deepseekv31.jinja` |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
 | `apertus` | Apertus | (HF default) |
@@ -74,7 +93,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `jamba` | Jamba-1.5 | (HF default, sentinel must be in vocab) |
 | `internlm` | InternLM-2.5 | `tool_chat_template_internlm2_tool.jinja` |
 | `kimi_k2` | Kimi-K2 Instruct / Thinking | (HF default) |
-| `minimax` / `minimax_m2` | MiniMax-M1 / M2 | `tool_chat_template_minimax_m1.jinja` (M1) |
+| `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash | (HF default) |
 | `seed_oss` | Seed-OSS | (HF default) |
 | `hunyuan_a13b` | Hunyuan-A13B | (HF default) |
@@ -121,7 +140,7 @@ Several tool parsers gate on a reasoning-end sentinel. Mismatched pair = tool pa
 | `deepseek_v3` (R1) | `deepseek_r1` | Gates on `</think>` |
 | `seed_oss` | `seed_oss` | Gates on `</seed:think>` |
 | `hunyuan_a13b` | `hunyuan_a13b` | Excludes `<think>…</think>` region |
-| `minimax`, `minimax_m2` | same name | Interleaved thinking / exclusion zone |
+| `minimax_m2`, `minimax_m3` | same name | Interleaved thinking / exclusion zone |
 | `kimi_k2` | `kimi_k2` | Implicit end via `<\|tool_calls_section_begin\|>` |
 | `ernie45` | `ernie45` | Expects `</think>\n\n\n<tool_call>` |
 | `mistral` (reasoning variants) | `mistral` | Tokenized reasoning section |

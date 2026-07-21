@@ -38,13 +38,13 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 | `pythonic` | `pythonic_tool_parser.py` | AST-based. O(n²) streaming (re-parses on every delta). Apostrophe bug in `compute_tool_delta` `'`→`"` substitution. |
 | `llama4_pythonic` | `llama4_pythonic_tool_parser.py` | Same as pythonic + optional `<\|python_start\|>…<\|python_end\|>` wrapper. |
 | `olmo3` | `olmo3_tool_parser.py` | `<function_calls>\nfn(...)\n</function_calls>` XML-wrapped pythonic. |
-| `qwen3_coder` (`mimo`) | `qwen3coder_tool_parser.py` | `<function=name><parameter=k>` grammar. Hand-rolled state machine. Historically did not stream args (issue #30439, closed 2026-04-10 — verify with `git log` whether the fix landed on your version). |
-| `qwen3_xml` (`mimo`) | `qwen3xml_tool_parser.py` | expat-based `StreamingXMLToolCallParser` — cleanest streaming in the tree. |
+| `qwen3_coder` / `qwen3_xml` / `mimo` | `qwen3_engine_tool_parser.py` → `vllm/parser/qwen3.py` | **All three names now resolve to one class**, `Qwen3EngineToolParser` (a thin subclass of `Qwen3ParserToolAdapter` adding `structural_tag_model = "qwen_3_coder"`). The separate `qwen3coder_tool_parser.py` and `qwen3xml_tool_parser.py` files are **deleted** at v0.25.1. Consequence: the old "prefer `qwen3_xml`, its expat streaming is cleaner than `qwen3_coder`'s hand-rolled state machine" advice **no longer has a basis** — same code either way. The #30439 arg-streaming bug (closed 2026-04-10) is likewise moot on the unified implementation. |
 | `step3` | `step3_tool_parser.py` | Cursor-based state machine. Full-width `｜` tokens. No object/array coercion. |
-| `step3p5` | `step3p5_tool_parser.py` | Reuses `qwen3_xml` expat engine. |
+| `step3p5` | `step3p5_tool_parser.py` | Uses Python's `xml.parsers.expat.ParserCreate` **directly**. (Previously described here as "reuses the `qwen3_xml` expat engine" — that file no longer exists, and this parser has its own expat usage.) |
 | `kimi_k2` | `kimi_k2_tool_parser.py` | Tool-call id in stream as `functions.name:0`. Section overflow guard (1024/8192). |
-| `minimax` | `minimax_tool_parser.py` | Newline-separated JSON objects inside `<tool_calls>` — **NOT array**. |
+| ~~`minimax`~~ | *(removed)* | **The bare `minimax` name and `minimax_tool_parser.py` are gone at v0.25.1.** `--tool-call-parser minimax` will fail to resolve. It served MiniMax-M1 with newline-separated JSON objects inside `<tool_calls>` (not an array). Migrate to the model-specific name. |
 | `minimax_m2` | `minimax_m2_tool_parser.py` | `<minimax:tool_call><invoke>` XML. Interleaved thinking. Schema-priority coercion. |
+| `minimax_m3` | `minimax_m3_tool_parser.py` | MiniMax-M3 — **new at v0.25.1**, own file/class. |
 | `xlam` | `xlam_tool_parser.py` | Multi-format accepted (array / `[TOOL_CALLS]` / `<tool_call>` / post-`</think>`). JSON-in-JSON double-wrap footgun. |
 | `gemma4` | `gemma4_tool_parser.py` | Bare keys + `<\|"\|>` string delim — NOT JSON. Accumulate-then-reparse-then-diff. |
 | `functiongemma` | `functiongemma_tool_parser.py` | Per-value `json.loads` fallback. Multi-token special absorbed via `buffered_delta_text`. |
