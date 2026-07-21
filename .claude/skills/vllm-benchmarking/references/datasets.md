@@ -2,6 +2,17 @@
 
 Load when picking `--dataset-name` for a specific test. What each tests, when to reach for it, and whether it hits the network.
 
+**Module moved (2026-07-21).** The dataset registry is no longer
+`vllm/benchmarks/datasets.py` — it is now a package,
+`vllm/benchmarks/datasets/datasets.py` (~4,800 lines), alongside `utils.py` and
+`create_txt_slices_dataset.py`. Any tooling or citation pointing at the old flat
+path will 404.
+
+**Names newly observed in the v0.25.1 tree** and not previously catalogued here:
+`bfcl` (tool-calling, PR #42457), `random-mm`, `random-rerank`, `timed_trace`.
+This is what was seen in-tree, not a claim of completeness — the rendered docs
+table remains the authority for the supported set.
+
 ## In-tree, no network required
 
 - **`random`** — synthetic uniform tokens. Flags: `--random-input-len`, `--random-output-len`, `--random-num-prompts`. Use for: isolating engine throughput from prefix effects. **Avoid for: caching claims** — zero prefix structure makes cached workloads look flat.

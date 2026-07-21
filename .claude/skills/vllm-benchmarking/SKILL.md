@@ -72,7 +72,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 
 ## Critical pitfalls
 
-1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (as of v0.21) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
+1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (v0.11–v0.25; `--num-warmups` default re-read as `0` on 2026-07-21) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
 2. **Wrong tokenizer.** `--tokenizer` defaults to `--model`, but if they differ (e.g., served via a local path while benching with a HF ID), every token count in the output is fiction. Always specify explicitly.
 3. **`--dataset-name random` as a proxy for production traffic.** Random has zero prefix structure, overstates prefill work, understates prefix-cache hit rate, makes chunked prefill look worse than reality. For anything involving caching claims, use `custom` with a real-traffic JSONL, or `prefix_repetition` for synthetic prefix-heavy tests.
 4. **`--request-rate inf` alone.** Measures saturation throughput, not the latency regime users experience. Always include a concurrency sweep for serving comparisons.

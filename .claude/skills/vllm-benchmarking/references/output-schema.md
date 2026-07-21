@@ -1,6 +1,6 @@
 # `--output-json` schema
 
-Last verified: 2026-05-28 (against `vllm/benchmarks/serve.py` on vllm-project/vllm main, post-v0.21.0).
+Last verified: 2026-07-21 (against `vllm/benchmarks/serve.py` on vllm-project/vllm main, post-v0.25.1).
 
 Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs.
 
@@ -94,13 +94,13 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 
 ## Stable vs version-sensitive fields
 
-**Stable across v0.11 → v0.21:**
+**Stable across v0.11 → v0.25:**
 - `request_throughput`, `output_throughput`, `total_token_throughput`
 - `mean_<metric>_ms`, `median_<metric>_ms`, `std_<metric>_ms`, `p<N>_<metric>_ms`
 - `num_prompts`, `request_rate`, `max_concurrency`
 
 **Added or renamed in recent versions:**
-- `endpoint_type` top-level field **removed** in current `serve.py` JSON assembly — the internal variable survives but is no longer emitted as a JSON key. Reader code that looks for `endpoint_type` as an alias will not find it on post-v0.21.0 runs; use `backend` instead.
+- `endpoint_type` top-level field **removed** in current `serve.py` JSON assembly — the internal variable survives but is no longer emitted as a JSON key. Reader code that looks for `endpoint_type` as an alias will not find it on post-v0.21.0 runs; use `backend` instead. (Re-confirmed absent 2026-07-21 at v0.25.1.)
 - `request_goodput`, `max_output_tokens_per_s`, `max_concurrent_requests`, `rtfx`, `start_times` — present in current assembly (verified 2026-04-24).
 - `rps_change_events` — emitted when ramp-up is used (v0.17+)
 - `spec_decode_*` suite — depends on engine spec-decode config
@@ -111,4 +111,4 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 rps = d.get("request_throughput", d.get("requests_per_second", 0))  # old name was requests_per_second pre-v0.10
 ```
 
-Source of truth: `vllm/benchmarks/serve.py` — `BenchmarkMetrics` dataclass ~L176-215, JSON assembly ~L989-1020 (verified 2026-05-28 against main post-v0.21.0).
+Source of truth: `vllm/benchmarks/serve.py` — `BenchmarkMetrics` dataclass **~L321**, JSON assembly **~L1198-1219** (re-resolved 2026-07-21 against main, post-v0.25.1; file is now 2284 lines). The previously-cited ~L176-215 / ~L989-1020 have drifted — resolve by symbol, not by line.

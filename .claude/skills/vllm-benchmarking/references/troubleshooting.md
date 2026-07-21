@@ -25,7 +25,7 @@ If the server loaded a local path but the benchmark used the HF id (or vice vers
 
 ### Results look suspiciously fast
 
-**Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.21). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.
+**Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.25; `--num-warmups` default still `0`). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.
 
 Fix: either set `--num-warmups 50` or bump `--num-prompts` to ≥500 and visually check the first 10 ms of saved per-request latencies (via `--save-detailed`) aren't abnormally low.
 
