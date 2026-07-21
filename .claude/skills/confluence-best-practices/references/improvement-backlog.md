@@ -2,6 +2,37 @@
 
 Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (trigger) / F0 (freshen); update on completion.
 
+## Resolved — 2026-07-21 (freshen)
+
+- **Two cited bugs were already fixed when the research was done.**
+  CONFSERVER-60057 (Closed/**Fixed** 2023-11-14) and CONFSERVER-59747
+  (Closed/**Fixed** 2024-10-08) were cited as evidence that large/macro-heavy
+  pages "break Synchrony". Both predate the 2026-06-07 research pass, which
+  picked up the symptom description without checking resolution.
+  `lean-content-and-lifecycle.md` now separates the two things that were
+  conflated: the **12-concurrent-editor cap** is a documented product limit and
+  stands; "split large pages" is **authoring guidance** (readability, review
+  effort, transclusion reuse), not a defect workaround. Added the operational
+  consequence — a Synchrony timeout on a current version is a *new* bug, so
+  don't hand someone a known-issue link closed years ago.
+- **CONFSERVER-31010 re-confirmed** — still `Gathering Interest`, unresolved,
+  100 votes, and updated **2026-07-21** itself. "No native page-level archiving
+  on DC" holds, 13 years on.
+- **DC lifecycle re-checked; all dates unchanged**, but the *consequence* was
+  missing: **9.2 LTS has under five months of support left** (EOL 2026-12-10),
+  and the 10.2 hop carries a **Java 17 → 21** requirement, so the JVM move is
+  part of that upgrade rather than a later task.
+- **Latest patch deliberately left unresolved.** The skill recorded 10.2.13
+  (2026-06-02) and Atlassian's docs indicate a further 10.2.x around
+  2026-07-09, but the release-summary page enumerates only minor lines and the
+  exact patch didn't surface. Marked "re-derive from the instance or the 10.2
+  release-notes page" in both files instead of substituting a plausible-looking
+  number — an invented patch version is worse than an explicit gap.
+
+**Not re-probed:** the Atlassian doc-page URLs and tier-B/C practitioner
+sources — they back durable principles rather than dated facts.
+
+
 ## Open
 
 _None._ The skill has been through trigger, improve, and freshen modes and converged cleanly (final blind **90/100**, self/blind aligned, no dimension below 8, no Boris caps). The 24 enumerated lines in the SKILL.md body are reference content (5 prime-directive principles, 6 lean levers, 11 anti-patterns) — not invocation-flow scaffolding — so no Dim 6 Boris cap; `name`/`description` pass spec validation; `sources.md` is fully per-row dated (no Dim 9 staleness cap).

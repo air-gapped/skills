@@ -6,6 +6,15 @@ This skill is **self-hosted Data Center first, Cloud-compatible.** Get the diale
 
 - **Latest release: 10.2.13 (2026-06-02).** The 10.2 LTS line ships monthly patches.
 - **Active LTS lines:** **10.2** (first released 2025-12-02 → EOL **2027-12-02**; **Java 21 only**, drops Java 17) and **9.2** (2024-12-09 → EOL **2026-12-10**). **8.5** LTS is already **EOL (2025-12-15)**.
+- ⚠ **As of 2026-07-21, 9.2 has under five months of support left.** An instance
+  still on 9.2 should be planning the 10.2 hop now — and note 10.2 is **Java 21
+  only**, so the JVM upgrade is part of that hop, not a separate later task.
+- **Latest patch: re-derive, don't quote this file.** The 2026-06-07 research
+  recorded 10.2.13 (2026-06-02). A further 10.2.x shipped around 2026-07-09 per
+  Atlassian's docs, but the release-summary page enumerates only minor lines, so
+  the exact patch was not resolvable on 2026-07-21. Read it from the instance
+  footer or the 10.2 release-notes page. (Deliberately not guessed here — a
+  plausible-looking wrong patch number is worse than an explicit gap.)
 - **Confluence Server is dead** — support ended **2024-02-15**; **8.5.x was the last Server-capable line; 8.6+ is Data-Center-only.** (Cite 8.5 / Feb-2024 as "last Server," not the older 7.19.)
 - Policy: ~one LTS per year, ~2 years of bug+security fixes each; non-LTS feature releases get ~6 months of critical-security fixes only.
 

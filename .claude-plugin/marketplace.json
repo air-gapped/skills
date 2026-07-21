@@ -565,7 +565,7 @@
       "name": "confluence-best-practices",
       "source": "./",
       "description": "Advise on USING Confluence well, not operating it: make the structural call",
-      "version": "0.20260607.1",
+      "version": "0.20260721.2",
       "author": {
         "name": "Jörgen"
       },

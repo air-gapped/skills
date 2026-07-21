@@ -1,6 +1,6 @@
 # Sources
 
-External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date). Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits, open-bug status) — these move.
+External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date); volatile rows re-probed **2026-07-21** — see the freshen note at the end. Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits, open-bug status) — these move.
 
 Tiers: **A** = official Atlassian docs / issue tracker (jira.atlassian.com) / primary spec & peer-reviewed · **B** = experienced practitioners / solution partners / surveys · **C** = vendor-advocacy / competitor marketing / community opinion (down-weighted, used for *principles* not facts).
 
@@ -25,10 +25,11 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 |---|---|---|---|
 | confluence.atlassian.com/clean/clean-up-your-confluence-instance-1026047969.html | A | Cleanup levers: space-archive (excluded from search, index unchanged), retention 7.16+, trash purge, view-count sort, macro-usage report | 2026-06-07 |
 | confluence.atlassian.com/doc/archive-a-space-284368719.html; .../Delete+and+archive+spaces | A | Space archive vs delete; archive excludes from search but stays indexed; can't move into archived space | 2026-06-07 |
-| jira.atlassian.com/browse/CONFSERVER-31010 | A | **No native page-level archiving** on DC (Gathering Interest, open since 2013) | 2026-06-07 |
+| jira.atlassian.com/browse/CONFSERVER-31010 | A | **No native page-level archiving** on DC — re-probed 2026-07-21: still **Gathering Interest**, unresolved, 100 votes, and the ticket was **updated 2026-07-21** (still live discussion, 13 years on). Claim holds | 2026-07-21 |
 | confluence.atlassian.com/enterprise/managing-the-number-of-spaces-in-confluence-data-center-1607598774.html | A | **<8,000 / 8–10k / >10k spaces** guardrail; cause = permission checks | 2026-06-07 |
 | confluence.atlassian.com/doc/server-hardware-requirements-guide-30736403.html | A | Pages not a perf axis (80k <512MB); 2 GB attachment max; no documented pages/space cap | 2026-06-07 |
-| confluence.atlassian.com/doc/troubleshooting-collaborative-editing-858772087.html; jira CONFSERVER-60057/59747 | A | Large/macro-heavy pages break Synchrony; 12-editor cap | 2026-06-07 |
+| confluence.atlassian.com/doc/troubleshooting-collaborative-editing-858772087.html | A | 12-concurrent-editor cap (documented product limit — still stands) | 2026-06-07 |
+| jira CONFSERVER-60057 / CONFSERVER-59747 | A | **Both now Closed/Fixed** (60057 resolved 2023-11-14, 59747 resolved 2024-10-08) — re-probed 2026-07-21 via the public jira.atlassian.com REST API. They no longer evidence a live "large pages break Synchrony" constraint; `lean-content-and-lifecycle.md` reframed to authoring guidance | 2026-07-21 |
 | confluence.atlassian.com/doc/set-retention-rules-...-1108681072.html | A | Retention (versions/revisions/trash), global+exemption, latest-never-deleted (7.16+) | 2026-06-07 |
 | confluence.atlassian.com/doc/back-up-a-space-...-1236929929.html | A | XML space export, 72h TTL | 2026-06-07 |
 | confluence.atlassian.com/doc/page-properties-report-macro-186089616.html; page-properties-macro-184550024.html | A | Owner/Review-Date dashboard; label-key; 3000-page/60-label caps; AND/OR/NOT | 2026-06-07 |
@@ -104,3 +105,45 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | newsletter.pragmaticengineer.com/.../2025-survey; atlassian.com/blog/developer/developer-experience-report-2025 | B/C | Jira most-disliked (Confluence rides along); "finding information" = #1 time-waster (vendor self-report) | 2026-06-07 |
 | ResearchGate "Design principles of wiki" (Cunningham); PMC8896816 + link-rot studies | A | Gardening/organic principles ("easier for authors, harder for readers"); reference half-lives 1.6–15 yrs | 2026-06-07 |
 | Notion/Slite/GitBook/Coda comparisons; midori-global; gocapable; technicalwriterhq | C | Competitor design principles (templates-by-default, "what happens after content is created"); review-cadence playbooks | 2026-06-07 |
+
+
+## 2026-07-21 freshen
+
+Re-probed the rows the header flags as volatile (open-bug status, DC versions/EOL).
+
+**Bug-status re-probe via the public `jira.atlassian.com` REST API** — this is
+the class the header warns about, and two of three had moved:
+
+| Issue | Was cited as | State 2026-07-21 |
+|---|---|---|
+| CONFSERVER-31010 | No native page-level archiving on DC (Gathering Interest since 2013) | **Unchanged** — still `Gathering Interest`, unresolved, 100 votes, and *updated 2026-07-21*. Claim holds. |
+| CONFSERVER-60057 | Large pages break Synchrony / ~30s timeout | **Closed / Fixed 2023-11-14** |
+| CONFSERVER-59747 | Large-table publish slowness | **Closed / Fixed 2024-10-08** |
+
+The last two were cited as evidence for a live constraint. Both were already
+fixed *before* the 2026-06-07 research pass — the research picked up the
+symptom description without checking resolution. `lean-content-and-lifecycle.md`
+now keeps the split-large-pages advice as **authoring guidance** (readability,
+review effort, reuse) and the 12-editor cap as the one documented product
+limit, while explicitly noting that a Synchrony timeout on a current version is
+a *new* bug rather than these. Handing someone a years-closed known-issue link
+is worse than saying "unknown".
+
+**DC version / EOL:**
+
+- LTS lines and sunset dates re-checked and **unchanged**: 10.2 → 2027-12-02
+  (Java 21 only), 9.2 → 2026-12-10, 8.5 already EOL, Server EOL 2024-02-15,
+  sunset 2026-03-30 / 2028-03-30 / 2029-03-28.
+- Added the consequence: **9.2 has under five months of support left**, and the
+  10.2 hop carries a **Java 17 → 21** requirement with it.
+- **Latest patch not resolved.** The skill recorded 10.2.13 (2026-06-02);
+  Atlassian's docs indicate a further 10.2.x around 2026-07-09, but
+  `confluence-release-summary` enumerates only minor lines and the exact patch
+  did not surface. Marked "re-derive from the instance or the 10.2 release-notes
+  page" in both `SKILL.md` and `cloud-vs-dc.md` rather than substituting a
+  guess.
+
+**Not re-probed this pass:** the Atlassian doc-page URLs (IA, findability,
+permissions, authoring sections) and the tier-B/C practitioner sources. They
+support durable *principles* rather than dated facts, which is what the header's
+re-verify instruction targets.

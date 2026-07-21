@@ -66,7 +66,19 @@ Review cadences to recommend: policies/HR/security every 6–12 months; project 
 - **< 8,000 spaces = optimal · 8,000–10,000 = approaching · > 10,000 = exceeding.** Root cause is **permission checks**; symptoms are slower dashboards and macro rendering. This is the Confluence analogue of Jira's "<800 custom fields" — the one hard numeric guardrail. Consolidate sprawling/duplicate spaces to stay under it.
 - **Pages are NOT a primary perf axis** — 80,000 pages can run in <512 MB; Atlassian publishes **no max pages-per-space for DC** (the ~50,000 figure is *Cloud*, don't cite it for DC).
 - **Attachments:** 2 GB max per file; they live on the filesystem, so volume drives disk, not heap.
-- **The real per-page ceiling is the editor.** Large, **macro/table-heavy pages** overload the DOM and break **Synchrony** collaborative editing (12-concurrent-editor cap; ~30s timeout). There is **no documented hard limit** for page byte-size, macros/page, or attachments/page — the first failure mode is the editor. **Split very long or macro-heavy pages.**
+- **The real per-page ceiling is the editor.** There is **no documented hard limit** for page byte-size, macros/page, or attachments/page — the first failure mode is the editor. The **12-concurrent-editor cap** on Synchrony is a documented product limit and still stands. **Split very long or macro-heavy pages.**
+
+  **Caveat added 2026-07-21 — the two bugs formerly cited here are FIXED.** The
+  "large pages break Synchrony / ~30s timeout" evidence rested on
+  [CONFSERVER-60057](https://jira.atlassian.com/browse/CONFSERVER-60057)
+  ("Editing a large page causes Synchrony timeouts") and
+  [CONFSERVER-59747](https://jira.atlassian.com/browse/CONFSERVER-59747)
+  ("Publishing a page with a large table might be slow"). Both are now
+  **Closed / Fixed** — 60057 on 2023-11-14, 59747 on 2024-10-08. Treat the
+  split-large-pages advice as **authoring guidance** (readability, review
+  effort, transclusion reuse), not as a workaround for live defects. If someone
+  reports a Synchrony timeout on a current version, that is a *new* bug, not
+  these — don't hand them a known-issue link that was closed years ago.
 
 ## Templates & blueprints (anti blank-page chaos)
 
