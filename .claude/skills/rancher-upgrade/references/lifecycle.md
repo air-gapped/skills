@@ -1,7 +1,7 @@
 # lifecycle.md — community release model, EOL, and version grounding
 
 **Grounded via `gh` + endoflife.date + suse.com/lifecycle: 2026-05-30.** Ceiling at sift:
-Rancher community `v2.14.2`. Re-ground at use time (House Rule #8) — releases move.
+Rancher community `v2.14.3` (2026-06-29, verified 2026-07-21). Re-ground at use time (House Rule #8) — releases move.
 
 ## Community vs Prime — the only reliable discriminator
 
@@ -45,8 +45,18 @@ To classify a patch: `gh api repos/rancher/rancher/releases/tags/<tag> --jq '.bo
 | 2.13 | 2025-11-25 | **2027-06-17** |
 | 2.14 | 2026-03-26 | **2027-10-10** |
 
-Latest patch per minor at sift (grounded): 2.11.14, 2.12.10, 2.13.6 (Prime-stub), **2.14.2**
-(community). Always re-derive — see Grounding.
+EOL table re-verified 2026-07-21 against endoflife.date — all four dates unchanged.
+
+Latest patch per minor, grounded 2026-07-21: **2.11.15, 2.12.11, 2.13.7, 2.14.3** — all four
+lines were patched on the same day, **2026-06-29**. Always re-derive — see Grounding.
+
+⚠ **2.11 goes EOL 2026-10-24 — roughly three months out.** 2.11 is this skill's
+upgrade *floor*, so an operator arriving on 2.11 has a short runway: they are
+starting a one-minor-at-a-time ladder (2.11→2.12→2.13→2.14) from a version
+that leaves support before that ladder is likely to finish. Factor that into
+look-ahead targeting (House Rule: pick the version covering the *next* hop) —
+and note **2.10 is already EOL (2026-06-19)**, so anyone below the floor is
+unsupported today.
 
 ## Grounding (House Rule #8) — repo map + anti-confirmation method
 
@@ -58,6 +68,28 @@ account and `gh api rate_limit --jq '.resources.core'` shows a 5000 limit BEFORE
 Anti-confirmation: **anchor on `releases/latest`, enumerate-and-derive, never name a candidate
 version in the query** (existence/list/per-tag queries get rubber-stamped — plausible fakes return
 200).
+
+**`isPrerelease` is not trustworthy across the Rancher org — check the tag string too.**
+Verified 2026-07-21: `rancher/turtles` publishes release-candidate tags with
+`isPrerelease=false` — `v0.25.6-rc.1` and `v0.26.4-rc.2` both pass an
+`isPrerelease==false` filter. A sweep that trusts the flag will report an RC as
+the stable version. Filter on **both**:
+
+```bash
+gh release list -R rancher/turtles --limit 40 \
+  --json tagName,publishedAt,isPrerelease \
+  --jq '.[] | select(.isPrerelease==false) | select(.tagName|test("-(rc|alpha|beta)")|not)
+        | "\(.tagName)\t\(.publishedAt[0:10])"'
+```
+
+**And do not read component versions off the component repo at all.** As of
+2026-07-21 the top of the release list for `rancher/fleet`,
+`rancher/backup-restore-operator` and `rancher/turtles` is *entirely* RC tags
+(Fleet `v0.16.0-rc.5`, `v0.15.5-rc.2`, …; BRO `v11.0.0-rc.6`, `v10.0.8-rc.4`, …).
+There is no stable tag in the recent window to find. The authoritative binding
+of component → Rancher minor is the **`rancher/charts` `release-v2.X` branch**,
+which is what § chart-version lookup already tells you to use. The component
+repo answers "what exists", not "what ships with 2.14".
 
 ```bash
 # the ceiling (no candidate version in the command)

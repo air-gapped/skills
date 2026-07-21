@@ -5,6 +5,37 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-07-21 (freshen)
+
+- **Version state re-grounded per House Rule #8** (enumerate-and-derive, no
+  candidate named in any query). Four active minor lines, all patched
+  **2026-06-29**: 2.11.15 / 2.12.11 / 2.13.7 / **2.14.3**. `releases/latest`
+  reports v2.14.3, which is genuinely also the highest stable minor — checked
+  rather than assumed. v2.15 is in **alpha** (v2.15.0-alpha21), not RC.
+- **EOL table re-verified** against endoflife.date: all four dates unchanged.
+  Added the consequence the table alone doesn't surface — **2.11 goes EOL
+  2026-10-24**, ~3 months out, and 2.11 is this skill's *floor*. An operator
+  starting the one-minor-at-a-time ladder from 2.11 is starting from a version
+  that leaves support before the ladder plausibly finishes. **2.10 is already
+  EOL** (2026-06-19).
+- **Two new grounding traps written into `lifecycle.md` § Grounding**, both
+  observed this pass:
+  1. **`isPrerelease` is not trustworthy in the Rancher org.**
+     `rancher/turtles` publishes `v0.25.6-rc.1` and `v0.26.4-rc.2` with
+     `isPrerelease=false` — an `isPrerelease==false` filter reports an RC as
+     stable. Added a jq filter that matches the tag string as well.
+  2. **Component repos currently have no recent stable tag at all.** The top of
+     the release list for `rancher/fleet`, `rancher/backup-restore-operator`
+     and `rancher/turtles` is entirely RCs. This reinforces the existing
+     guidance to read component→minor binding from the `rancher/charts`
+     `release-v2.X` branch: the component repo answers "what exists", not
+     "what ships with 2.14".
+- **Deliberately not added:** a snapshot of per-minor chart/component versions.
+  The skill's own House Rule #8 names those as the #1 fabrication risk and
+  requires grounding at use time; pinning them here would manufacture the stale
+  authority the rule exists to prevent. The *method* is what got pinned.
+
+
 ## Open
 
 - **Dim 6 (Simplicity) ceiling — the cross-cluster ordering rule is stated at three altitudes.**
