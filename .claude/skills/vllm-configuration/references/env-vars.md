@@ -1,6 +1,10 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects v0.18–v0.21).
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.25**, re-checked var-by-var against `envs.py` on 2026-07-21).
+
+**Do not assume vLLM minors leave operator env vars alone.** A prior pass
+concluded they only touch torch/C++/pooling; the v0.22–v0.25 window disproved
+that by deleting `VLLM_RPC_TIMEOUT`. Re-check by name, not by release-note skim.
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
 
@@ -31,13 +35,42 @@ The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is liter
 |---|---|---|---|
 | `VLLM_HOST_IP` | `""` | **Internal** distributed bind IP (worker-to-worker TP/PP/DP) | Multi-node deployments where auto-detect picks the wrong interface |
 | `VLLM_PORT` | unset (auto) | **Internal** base port; each worker takes an incremented port | Port conflicts / firewall rules |
-| `VLLM_RPC_TIMEOUT` | `10000` (ms) | RPC call timeout between engine & workers | Slow networks / large TP groups |
 | `VLLM_ENGINE_ITERATION_TIMEOUT_S` | `60` | Per-iteration timeout; over this, worker is deemed stuck | Very large batches; long prefill |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | `600` | Max time to wait for engine startup | Large models (70B+) on slow storage |
 | `VLLM_HTTP_TIMEOUT_KEEP_ALIVE` | `5` (s) | API server keep-alive | Tuning |
 | `VLLM_WORKER_MULTIPROC_METHOD` | `fork` | `fork` or `spawn` | Windows/macOS, Ray-controlled containers |
 
 **Critical:** `VLLM_HOST_IP` / `VLLM_PORT` are **not** the API server host/port. Use `--host` / `--port` on the CLI for the OpenAI-compat server.
+
+**`VLLM_RPC_TIMEOUT` removed 2026-07-21 — it never worked.** This table used to
+carry it as "RPC call timeout between engine & workers, default `10000` ms, set
+on slow networks / large TP groups". vLLM PR
+[#44128](https://github.com/vllm-project/vllm/pull/44128) (merged 2026-06-03)
+deleted it, and the PR states the reason bluntly: it *"has no consumers anywhere
+in the tree — it is a V0 leftover."* In V1 the engine-core client waits on
+utility RPCs with **no timeout argument at all** (`SyncMPClient.call_utility` →
+`future.result()`; `AsyncMPClient._call_utility_async` → `await future`), so
+there was no client-side RPC timeout for the variable to control.
+
+Two consequences worth internalising:
+
+- **Setting it did nothing, silently.** Anyone who "fixed" a slow-network or
+  large-TP hang by raising it was reading noise, and the real cause went
+  undiagnosed.
+- **Presence in `envs.py` is not evidence that anything reads it.** vLLM's
+  published env-var docs page is *generated from* `envs.py`, so the docs
+  faithfully advertised a dead knob for as long as it existed. Grep for
+  consumers, not just for the definition.
+
+If the actual need is a timeout on engine/worker plumbing, these exist and are
+live (defaults re-read from `envs.py` 2026-07-21):
+
+| Variable | Default | Controls |
+|---|---|---|
+| `VLLM_ENGINE_READY_TIMEOUT_S` | `600` | wait for engine startup |
+| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | `60` | per-iteration stuck-worker detection |
+| `VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS` | `300` | model-execution call |
+| `VLLM_WORKER_SHUTDOWN_TIMEOUT_SECONDS` | `5` | worker shutdown grace |
 
 ## Distributed (DP-specific)
 

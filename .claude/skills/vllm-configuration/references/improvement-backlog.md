@@ -13,3 +13,31 @@ Work-not-done log from skill-improver passes. Open = attempted but not applicabl
 - Version-gate freshen: env-vars.md L3 "this table reflects v0.18–v0.20" → "v0.18–v0.21"; removed the stale "~260 lines as of v0.19" envs.py size claim — Dim 9. Gated on a v0.19/v0.20/v0.21 release-notes scan confirming their breaking changes touch torch/C++/pooling, not the operator env vars this table lists.
 - #8947 fix-point reconciliation across three files — Dim 8. SKILL.md (config-file gotcha L62) and troubleshooting.md (L51) said "v0.10–v0.11"; config-file.md said "fixed in v0.10.1". Confirmed v0.10.1 tag (published 2025-08-18) and aligned all three to "fixed in v0.10.1 / pre-v0.10.1 affected". sources.md #8947 row re-stamped 2026-05-28 with the v0.10.1 fix detail.
 - Removed the duplicate `VLLM_HOST_IP`-is-not-the-API-host pitfall (was Critical-pitfalls #2, a verbatim restatement of "Why this matters" point 3 and the Networking env-var entry) and renumbered the catalog 10→9 entries — Dim 6 simplification, no information lost.
+
+## Resolved — 2026-07-21 (freshen)
+
+- **`VLLM_RPC_TIMEOUT` deleted from `env-vars.md` — it never worked.** vLLM PR
+  #44128 (merged 2026-06-03) removed it, stating it *"has no consumers anywhere
+  in the tree — it is a V0 leftover"*; in V1 the engine-core client awaits
+  utility RPCs with no timeout argument at all. The skill had been advising
+  operators to raise it "on slow networks / large TP groups" — advice that did
+  nothing, silently, and would have masked the real cause of a hang. Replaced
+  with the four timeout vars that are actually live, defaults re-read from
+  `envs.py`: `VLLM_ENGINE_READY_TIMEOUT_S` (600),
+  `VLLM_ENGINE_ITERATION_TIMEOUT_S` (60),
+  `VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS` (300),
+  `VLLM_WORKER_SHUTDOWN_TIMEOUT_SECONDS` (5).
+- **Probe lesson recorded in `sources.md`:** presence in `envs.py` is not
+  evidence that anything reads the variable, and the published docs page is
+  *generated from* `envs.py` — so both advertised a dead knob for as long as it
+  existed. Verifying an env var means searching for **consumers**, not for the
+  definition.
+- **A prior pass's conclusion is retired.** The 2026-05-28 entry above gated its
+  version bump on "their breaking changes touch torch/C++/pooling, not the
+  operator env vars this table lists". The v0.22–v0.25 window falsified that.
+  Version gate extended v0.18–v0.21 → **v0.18–v0.25**, but by re-checking every
+  var by name rather than by skimming release notes.
+- **vLLM v0.21.0 → v0.25.1**; `envs.py` 87787 → 103853 bytes;
+  `VLLM_MAIN_CUDA_VERSION` re-read and still `13.0`. All other listed vars
+  present (the `HF_*` / `TRANSFORMERS_*` entries are `huggingface_hub` vars and
+  are correctly absent from `envs.py`).
