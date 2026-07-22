@@ -1,0 +1,29 @@
+{
+  "skill_name": "traefik-hardening",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We run a shared internal LLM chat behind Traefik on RKE2. A couple of users figured out they can copy their session token out of the browser and hammer the chat API from scripts, and it's eating all the GPU so nobody else can use it. Traffic's all from our office VPN so IP blocking won't help. How do I stop one user from starving everyone at the Traefik layer? What can Traefik actually do here and what can't it?",
+      "expected_output": "Leads with cap-per-identity-not-classify. Recommends InFlightReq (concurrency) scoped to the expensive completion path via a separate Ingress, keyed on Authorization or a decoded user claim; RateLimit with explicit period. Notes IP allowlist is blunt (users inside trusted CIDRs). Explicitly states what must live in the app/backend/IdP (revocation, per-user cross-pod concurrency, session validation). Does NOT propose UA/JA3 detection as the primary control.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need to run the CrowdSec bouncer and a JWT-to-header plugin on our Traefik 3.7, but the cluster is fully air-gapped — no internet, no plugins.traefik.io. How do I actually load Traefik plugins without the catalog, and are there gotchas?",
+      "expected_output": "Explains experimental.localPlugins (not experimental.plugins/catalog), the ./plugins-local/src/<module>/ layout, that .traefik.yml is still required, git-clone-or-carry-the-zip to obtain source, Yaegi stdlib-subset/vendoring gotchas vs WASM (3.x only), and that catalog mode makes a startup network call (issue #13005) so localPlugins is mandatory air-gapped.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "set up a traefik middleware to rate limit our /api/search endpoint to 30 requests a minute per user. we're on kubernetes with ingressroute crds. it's traefik v3",
+      "expected_output": "Provides a RateLimit Middleware CRD (traefik.io/v1alpha1) with average:30 AND period:1m explicitly (flags the 1s default trap), burst, sourceCriterion. Notes that keying per-USER (not per-token) needs a JWT-claim->header decode since sourceCriterion reads a header not a cookie, and that per-pod counters need single-leader topology or Redis. Scopes it to the search path.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Can I use JA3 fingerprinting in Traefik to tell real browsers from python scripts hitting our API? Trying to block the scripts.",
+      "expected_output": "States clearly that Traefik CANNOT see JA3/JA4 (plugin API doesn't receive the ClientHello; issues #8627/#12421), no JA3 plugin exists, and it would need a TLS-terminating layer in front. Notes JA3 is spoofable (curl-impersonate) anyway, and reframes toward per-identity capping + Sec-Fetch header speed-bump rather than fingerprint classification.",
+      "files": []
+    }
+  ]
+}

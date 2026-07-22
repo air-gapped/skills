@@ -310,8 +310,8 @@
     {
       "name": "k8s",
       "source": "./",
-      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite.",
-      "version": "0.20260721.43",
+      "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients.",
+      "version": "0.20260722.44",
       "author": {
         "name": "Jörgen"
       },
@@ -323,7 +323,8 @@
         "./.claude/skills/keda",
         "./.claude/skills/keycloak-iam",
         "./.claude/skills/openshift-app",
-        "./.claude/skills/rancher-upgrade"
+        "./.claude/skills/rancher-upgrade",
+        "./.claude/skills/traefik-hardening"
       ],
       "strict": false,
       "category": "kubernetes",
@@ -353,7 +354,13 @@
         "upgrade-planning",
         "version-skew",
         "drift-review",
-        "pluto"
+        "pluto",
+        "traefik",
+        "ingress",
+        "hardening",
+        "rate-limiting",
+        "middleware",
+        "abuse-mitigation"
       ]
     },
     {
@@ -388,13 +395,14 @@
     {
       "name": "open-webui",
       "source": "./",
-      "description": "Open WebUI operator suite — RAG pipeline wiring (HuggingFace embedding + reranker via LiteLLM in front of HuggingFace Text Embeddings Inference; exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end production config; BGE-M3 + BGE-Reranker-v2-m3 worked examples) and multi-pod deployment with WebSockets + Valkey Sentinel at 1000+ user scale (the structural Socket.IO + Redis frame-amplification bug #23733 and the CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all multi-pod env vars, custom-model-icon perf history, helm chart gaps, full known-issues catalog with fix status).",
-      "version": "0.20260721.6",
+      "description": "Open WebUI operator suite — REST API administration (v0.10.x: user/group lifecycle, model catalog GitOps via models/sync, config-as-code, SCIM, event webhooks, the 0.10.0 access_control→access_grants break, auth traps), RAG pipeline wiring (HuggingFace embedding + reranker via LiteLLM in front of HuggingFace Text Embeddings Inference; exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end production config; BGE-M3 + BGE-Reranker-v2-m3 worked examples) and multi-pod deployment with WebSockets + Valkey Sentinel at 1000+ user scale (the structural Socket.IO + Redis frame-amplification bug #23733 and the CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all multi-pod env vars, custom-model-icon perf history, helm chart gaps, full known-issues catalog with fix status).",
+      "version": "0.20260722.7",
       "author": {
         "name": "Jörgen"
       },
       "license": "MIT",
       "skills": [
+        "./.claude/skills/open-webui-api",
         "./.claude/skills/open-webui-embeddings",
         "./.claude/skills/open-webui-valkey-websocket"
       ],
@@ -402,6 +410,10 @@
       "category": "ai-workflow",
       "tags": [
         "open-webui",
+        "rest-api",
+        "administration",
+        "scim",
+        "gitops",
         "rag",
         "embeddings",
         "reranker",

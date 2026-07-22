@@ -262,6 +262,7 @@ GROUPS: dict[str, dict] = {
             "keycloak-iam",
             "openshift-app",
             "rancher-upgrade",
+            "traefik-hardening",
         ],
         "description": (
             "Kubernetes suite — Argo CD application authoring (GitOps "
@@ -281,7 +282,12 @@ GROUPS: dict[str, dict] = {
             "upgrade methodology (KDM downstream support matrix, "
             "CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, "
             "per-minor 2.11→2.14 runbook), companion to k8s-components-checker. "
-            "Harvester HCI upgrades live in the separate `harvester` suite."
+            "Harvester HCI upgrades live in the separate `harvester` suite. "
+            "Also traefik-hardening — cap abusive/unwanted traffic at a Traefik "
+            "2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, "
+            "buffering, middleware chaining, JWT-claim/header keying, air-gapped "
+            "plugin loading, detection/response) on the principle of capping "
+            "per-identity resource use rather than trying to classify good vs bad clients."
         ),
         "category": "kubernetes",
         "tags": [
@@ -311,6 +317,12 @@ GROUPS: dict[str, dict] = {
             "version-skew",
             "drift-review",
             "pluto",
+            "traefik",
+            "ingress",
+            "hardening",
+            "rate-limiting",
+            "middleware",
+            "abuse-mitigation",
         ],
     },
     "harvester": {
@@ -551,9 +563,17 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "open-webui": {
-        "members": ["open-webui-embeddings", "open-webui-valkey-websocket"],
+        "members": [
+            "open-webui-api",
+            "open-webui-embeddings",
+            "open-webui-valkey-websocket",
+        ],
         "description": (
-            "Open WebUI operator suite — RAG pipeline wiring "
+            "Open WebUI operator suite — REST API administration "
+            "(v0.10.x: user/group lifecycle, model catalog GitOps via "
+            "models/sync, config-as-code, SCIM, event webhooks, the "
+            "0.10.0 access_control→access_grants break, auth traps), "
+            "RAG pipeline wiring "
             "(HuggingFace embedding + reranker via LiteLLM in front of "
             "HuggingFace Text Embeddings Inference; exact wire shapes, "
             "LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end "
@@ -568,6 +588,10 @@ GROUPS: dict[str, dict] = {
         "category": "ai-workflow",
         "tags": [
             "open-webui",
+            "rest-api",
+            "administration",
+            "scim",
+            "gitops",
             "rag",
             "embeddings",
             "reranker",

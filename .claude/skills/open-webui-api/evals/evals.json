@@ -1,0 +1,44 @@
+{
+ "skill_name": "open-webui-api",
+ "evals": [
+  {
+   "id": 0,
+   "name": "provision-team",
+   "prompt": "Write a bash script that provisions a new team on our Open WebUI 0.10.2 instance purely via the REST API: create a group called 'ml-team' with description 'ML engineering', create three users (alice@lab.example, bob@lab.example, carol@lab.example) with role 'user' and random passwords, add all three to the group, and make the existing workspace model 'litellm.gemma4-31b' visible to that group only (not public). Use $OWUI_URL and $OWUI_TOKEN env vars for the instance and admin token. Save the script as provision.sh. Do not run it \u2014 we don't have the instance reachable from here.",
+   "expected_output": "provision.sh using POST /api/v1/auths/add, POST /api/v1/groups/create then /users/add (incremental membership), and model visibility via 0.10.x access_grants list with a group read grant \u2014 NOT the dead access_control dict.",
+   "files": [],
+   "assertions": [
+    "Creates users via POST /api/v1/auths/add (admin create endpoint), not signup or a nonexistent /users/create",
+    "Adds group members incrementally via POST /api/v1/groups/id/{id}/users/add \u2014 not user_ids in group create/update",
+    "Sets model visibility using the 0.10.x access_grants list with a group-read grant (principal_type/principal_id/permission)",
+    "Does not use the dead pre-0.10 access_control dict shape anywhere"
+   ]
+  },
+  {
+   "id": 1,
+   "name": "upgrade-breakage-triage",
+   "prompt": "We upgraded our Open WebUI from 0.6.40 to 0.10.2 last week and two things broke in our automation. First, the script that sets sharing/permissions on models and knowledge bases now returns HTTP 200 on every call but the permissions never actually change. Second, and this actually started months before the upgrade, our monitoring service account's API key just stopped authenticating one day (401s) even though ENABLE_API_KEY=true is still set in the deployment env. Explain what happened in both cases and exactly how to fix them. Write the explanation and the corrected request examples to triage.md.",
+   "expected_output": "triage.md identifying (1) the 0.10.0 access_control\u2192access_grants breaking change with silent-ignore of old payloads, giving the new grant-list shape, and (2) the 0.6.37 ENABLE_API_KEY\u2192ENABLE_API_KEYS rename with default flip and no fallback for the old name, plus the permission gate.",
+   "files": [],
+   "assertions": [
+    "Identifies the 0.10.0 access_control-to-access_grants breaking change and explains the silent-ignore (200 but no-op) behavior",
+    "Shows the correct new grant shape, including that public now requires an explicit user:* read grant (defaults inverted)",
+    "Identifies the ENABLE_API_KEY to ENABLE_API_KEYS rename with default flipped to off and no fallback for the old name (0.6.37)",
+    "Mentions the additional API-key permission gate (admin role or features.api_keys permission)"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "config-as-code",
+   "prompt": "I want to manage our Open WebUI 0.10.2 instance's settings as code: pull the current config into a git repo, and have CI apply changes back. Also, separately: I changed the RAG_TEMPLATE env var in our Helm values two weeks ago and redeployed, but the running instance still uses the old template \u2014 why? Write a short runbook (runbook.md) with the exact curl commands for export/apply and the explanation of the env var mystery.",
+   "expected_output": "runbook.md using GET /api/v1/configs/export (flat dot-keyed) and POST /api/v1/configs/import (partial upsert), explaining PersistentConfig: env vars only seed the DB on first boot, DB wins thereafter, so post-boot env changes are ignored \u2014 change it via the API instead.",
+   "files": [],
+   "assertions": [
+    "Exports config via GET /api/v1/configs/export",
+    "Applies config via POST /api/v1/configs/import with {\"config\": {...}} and notes partial-upsert semantics",
+    "Explains PersistentConfig correctly: env vars seed the DB on first boot only, DB wins thereafter, so the RAG_TEMPLATE env change was ignored",
+    "Recommends changing the value via the API (configs/import or retrieval config endpoint) rather than env, or disabling persistence knowingly"
+   ]
+  }
+ ]
+}
