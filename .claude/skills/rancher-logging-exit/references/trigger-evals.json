@@ -1,0 +1,16 @@
+[
+  {"query": "we're on Rancher 2.12 air-gapped and the bundled Logging app is stuck on an ancient operator, plan a migration to the upstream logging-operator keeping our flows", "should_trigger": true, "source": "user-vocabulary"},
+  {"query": "is our rancher-logging install in cattle-logging-system exposed to CVE-2026-54680", "should_trigger": true, "source": "description-mined"},
+  {"query": "how do i safely uninstall rancher-logging without losing all my Flows and Outputs", "should_trigger": true, "source": "everyday"},
+  {"query": "found leftover logging.banzaicloud.io CRDs and a rancher-logging-crd helm release from a removed install, how do i clean up before a fresh operator install", "should_trigger": true, "source": "body-mined"},
+  {"query": "our rancher-logging chart is 108.0.2+up4.10.0-rancher.18, why is it frozen on operator 4.10.0 and what do we do", "should_trigger": true, "source": "description-mined"},
+  {"query": "security team wants to know if the logging stack on our rancher clusters is vulnerable, project owners manage their own log flows", "should_trigger": true, "source": "everyday"},
+  {"query": "migrate off rancher/mirrored-kube-logging images to upstream ghcr.io, air-gapped through harbor", "should_trigger": true, "source": "body-mined"},
+  {"query": "my logging-operator Flow shows ACTIVE=false and nothing reaches Loki, how do i debug it", "should_trigger": false, "source": "sibling-logging-operator"},
+  {"query": "write a ClusterOutput to ship pod json logs to elasticsearch with the kube-logging operator", "should_trigger": false, "source": "sibling-logging-operator"},
+  {"query": "which fluentd output buffer settings should i use for my healthy logging-operator pipeline", "should_trigger": false, "source": "sibling-logging-operator"},
+  {"query": "plan our Rancher upgrade from 2.12 to 2.13, what breaks", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "how do i migrate off bitnami redis to valkey on our rancher cluster", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "upgrade rancher-monitoring to the latest chart on 2.14", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "explain what cattle-system namespace is for in rancher", "should_trigger": false, "source": "generic"}
+]

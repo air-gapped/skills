@@ -311,7 +311,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients.",
-      "version": "0.20260722.45",
+      "version": "0.20260722.46",
       "author": {
         "name": "Jörgen"
       },
@@ -366,15 +366,17 @@
     {
       "name": "observability",
       "source": "./",
-      "description": "Observability suite — Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting; plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging).",
-      "version": "0.20260721.6",
+      "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility).",
+      "version": "0.20260722.7",
       "author": {
         "name": "Jörgen"
       },
       "license": "MIT",
       "skills": [
+        "./.claude/skills/logging-operator",
         "./.claude/skills/mimir-upgrade",
-        "./.claude/skills/prometheus-mimir-grafana"
+        "./.claude/skills/prometheus-mimir-grafana",
+        "./.claude/skills/rancher-logging-exit"
       ],
       "strict": false,
       "category": "observability",
@@ -385,6 +387,11 @@
         "promql",
         "observability",
         "metrics",
+        "logging",
+        "logging-operator",
+        "fluentd",
+        "fluent-bit",
+        "rancher",
         "slo",
         "sre",
         "upgrade",

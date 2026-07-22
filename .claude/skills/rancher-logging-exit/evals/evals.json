@@ -1,0 +1,23 @@
+{
+  "skill_name": "rancher-logging-exit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We run Rancher 2.12 on an air-gapped RKE2 cluster with the bundled Logging app (rancher-logging 107.0.2+up4.10.0-rancher.15) in cattle-logging-system. We're tired of it being stuck on an ancient operator. Plan a migration to the upstream logging-operator that keeps our existing Flows/ClusterOutputs and the fluentd disk buffers, with minimal logging downtime. We mirror images through Harbor.",
+      "expected_output": "Leads with the release-secret strategy: scale down operator, delete sh.helm.release.v1.rancher-logging{,-crd} secrets (NOT helm uninstall rancher-logging-crd, which cascade-deletes all CRs + data plane - no resource-policy keep). Air-gap prep FIRST (6.7.0 image list into Harbor, OCI chart mirror). CRDs via kubectl apply --server-side --force-conflicts (client-side fails, huge CRDs). Preserve buffer PVCs by keeping Logging name rancher-logging-root + controlNamespace. Pruning pre-flight for removed fields (sumologic/enhanceK8s/enabledNamespaces/nodeAgents - silent, not errors). Target 6.7.0 (CVE + 6.6.0 regression) and surfaces the CVE-2026-54680 urgency as a migration motivation. Mentions journald aggregator DaemonSet delta and rollback via backed-up release secrets (stuck-finalizer handling on CR deletion is a bonus).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Security team is asking whether our Rancher 2.13 clusters are exposed through the logging stack. We have rancher-logging 108.0.2+up4.10.0-rancher.18 deployed, project owners manage their own log Flows. What's the actual exposure and what do we tell them?",
+      "expected_output": "Names CVE-2026-54680 (GHSA-mjqf-28ph-426h, CVSS 9.9): operator 4.10.0 is in the affected range (<=6.5.2), config injection via newline in Flow/Output/secret values -> RCE in aggregator. Trigger tier: project-owners CAN trigger (logging-admin ClusterRole aggregated to admin, verbs * on flows/outputs) - directly relevant since they author Flows. No SUSE fix exists; fix requires upstream 6.6.0+/6.7.0 (migration). Blast radius: output credentials + SA cloud roles. fluent-bit 3.1.8 CVEs framed precisely as version-in-range but not exploitable in default pipeline. Offers interim mitigations (RBAC audit, alert on CR mutations) while recommending the exit.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Found an old RKE2 cluster where someone removed the Rancher logging app years ago but there are still logging.banzaicloud.io CRDs from 2022, a rancher-logging-crd helm release, and a handful of ClusterOutputs sitting there inactive. We now want a fresh upstream logging-operator install on it. Anything to watch out for before I just helm install?",
+      "expected_output": "Identifies the stale-debris state and THE trap: naive helm install silently skips the existing old CRDs (crds/ dir semantics) -> mixed old/new CRD generations with no error (3.17-era ships only 7 of 16 CRDs). Path: salvage/back up the orphaned ClusterOutputs first (still-valid destination config), then either helm uninstall rancher-logging-crd (safe here - nothing running, cascade harmless) for a clean slate, or server-side-apply 6.7.0 CRDs over + delete the orphaned helm release secret. Also checks/cleans legacy clusterloggings/projectloggings.management.cattle.io CRDs. Recommends re-authoring salvaged config as 6.7-era CRs rather than verbatim re-apply.",
+      "files": []
+    }
+  ]
+}

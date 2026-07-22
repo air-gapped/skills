@@ -1,0 +1,17 @@
+[
+  {"query": "we run the kube-logging logging-operator on RKE2 and our json app logs land in elasticsearch as one big unparsed string field, how do i get real fields", "should_trigger": true, "source": "user-vocabulary"},
+  {"query": "my Flow shows ACTIVE=false and nothing reaches Loki, other flows are fine, how do i debug this logging-operator pipeline", "should_trigger": true, "source": "description-mined"},
+  {"query": "write me a ClusterOutput and Flow to ship pod logs from the payments namespace to our S3 bucket", "should_trigger": true, "source": "everyday"},
+  {"query": "how do i pick up container stdout as json and send it to splunk hec with the logging operator", "should_trigger": true, "source": "everyday"},
+  {"query": "should i use fluentd or syslog-ng mode in kube-logging, we push a huge log volume", "should_trigger": true, "source": "description-mined"},
+  {"query": "our fluentd aggregator buffer keeps growing and the pod goes NotReady, banzaicloud logging operator", "should_trigger": true, "source": "body-mined"},
+  {"query": "set up multi-tenant log routing so each team only sees their own namespaces with LoggingRoute", "should_trigger": true, "source": "body-mined"},
+  {"query": "which version of logging-operator should we install and how do i configure a FluentbitAgent", "should_trigger": true, "source": "everyday"},
+  {"query": "we're on Rancher 2.13 with the bundled rancher-logging chart stuck on the old operator, plan our migration to upstream", "should_trigger": false, "source": "sibling-rancher-logging-exit"},
+  {"query": "is our cattle-logging-system rancher-logging install exposed to CVE-2026-54680", "should_trigger": false, "source": "sibling-rancher-logging-exit"},
+  {"query": "help me write a fluent-operator ClusterFluentBitConfig, we use fluent.io not kube-logging", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "tune my raw fluentd.conf buffer settings on a standalone VM, no kubernetes", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "set up a Grafana Alloy pipeline to scrape logs into Loki", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "how do i deploy a Vector daemonset to ship logs to kafka", "should_trigger": false, "source": "adjacent-domain-decoy"},
+  {"query": "explain how kubernetes container log rotation works", "should_trigger": false, "source": "generic"}
+]

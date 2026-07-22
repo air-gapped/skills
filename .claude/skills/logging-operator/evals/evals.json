@@ -1,0 +1,23 @@
+{
+  "skill_name": "logging-operator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're on RKE2 (containerd) with the kube-logging logging-operator installed. Our apps write JSON to stdout, but in Elasticsearch every document just has one big string field with the raw JSON inside it instead of proper fields. Write the CRs I need so the JSON gets parsed into real fields and shipped to our Elasticsearch at https://es.observability.svc:9200 (user elastic, password in secret es-creds key password, namespace apps). Explain why it wasn't parsing.",
+      "expected_output": "Identifies the CRI/containerd trap (Merge_Log reads `log`, CRI parser emits `message`) and fixes it via enableDockerParserCompatibilityForCRI: true on the Logging (or documents the pre-4.9 cri parser workaround). Provides a complete chain (Logging/FluentbitAgent if needed + Flow + Output in namespace apps) with parser filter carrying BOTH remove_key_name_field: true AND reserve_data: true, acknowledges BOTH parse points exist (fluent-bit Merge_Log vs Flow parser) and warns about double-parsing if both are active, and an elasticsearch Output with scheme https + secretKeyRef password + buffer with timekey. Does not invent field names.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "logging-operator pipeline: my new Flow in namespace shop shows ACTIVE=false and nothing arrives in Loki. Other flows work. How do I debug this systematically? We have multiple Logging resources in the cluster.",
+      "expected_output": "Systematic sequence: check Flow status.problems + `kubectl get logging-all -n shop`; with multiple Loggings, flags the missing/mismatched loggingRef as a prime suspect; check dangling outputRefs (localOutputRefs same-ns, ClusterOutput protected flag); check configcheck pod (failed check silently blocks rollouts); decode the rendered <logging>-fluentd-app secret and look for the Flow's label_router route; mention timekey+timekey_wait latency and stdout:{} debug filter tap. Not just generic 'check operator logs'.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We need to install the kube-logging logging-operator on a fully air-gapped RKE2 cluster (internal Harbor registry). Which version should we pick right now, what exactly do we mirror (chart + images), and any install gotchas with the CRDs?",
+      "expected_output": "Recommends 6.7.0 explicitly (CVE-2026-54680 fixed 6.6.0 but newline-password regression means 6.7.0; never ≤6.5.2). OCI-only chart (helm pull oci://ghcr.io/kube-logging/helm-charts/logging-operator, push to Harbor). Mirror list includes operator, fluentd:<v>-full, config-reloader, fluentd-drain-watch, node-exporter, fluent-bit, pause, busybox (+ optional syslog-ng/eventrouter images). CRD gotchas: crds/ dir installed only on first install and silently skipped if CRDs exist; upgrades need logging-operator-crds.install=true --skip-crds or server-side kubectl apply (huge CRDs break client-side apply). Notes there is no global registry rewrite value - explicit image overrides per component.",
+      "files": []
+    }
+  ]
+}

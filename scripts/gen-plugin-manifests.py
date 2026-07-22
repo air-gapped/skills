@@ -533,19 +533,30 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "observability": {
-        # The two halves of running Grafana Mimir: querying it, and
-        # upgrading it. Each skill routes to the other explicitly.
-        "members": ["prometheus-mimir-grafana", "mimir-upgrade"],
+        # The metrics half (querying + upgrading Grafana Mimir) and the
+        # logs half (configuring the kube-logging logging-operator + exiting
+        # the frozen Rancher-bundled chart). Paired skills route to each other.
+        "members": [
+            "prometheus-mimir-grafana",
+            "mimir-upgrade",
+            "logging-operator",
+            "rancher-logging-exit",
+        ],
         "description": (
-            "Observability suite — Prometheus, Grafana Mimir, and Grafana "
-            "reference for agents querying metrics, writing PromQL, "
+            "Observability suite — metrics: Prometheus, Grafana Mimir, and "
+            "Grafana reference for agents querying metrics, writing PromQL, "
             "building and fixing dashboards, and reasoning about SLOs, "
-            "KPIs, and burn-rate alerting; plus the community, air-gapped "
+            "KPIs, and burn-rate alerting, plus the community, air-gapped "
             "mimir-distributed Helm upgrade methodology (chart↔app co-pinned "
             "ladder, the classic-vs-ingest-storage/Kafka decision, the "
             "nginx→gateway rename that silently moves the proxy's DNS name, "
             "rollout-operator sequencing and abort levers, per-hop "
-            "verification, and air-gap image/CRD/egress staging)."
+            "verification, and air-gap image/CRD/egress staging); and logs: "
+            "the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/"
+            "syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade "
+            "floor 6.7.0) plus rancher-logging-exit — the air-gap-first "
+            "migration off Rancher's frozen bundled rancher-logging chart "
+            "(CVE-2026-54680, release-secret cutover, CR compatibility)."
         ),
         "category": "observability",
         "tags": [
@@ -555,6 +566,11 @@ GROUPS: dict[str, dict] = {
             "promql",
             "observability",
             "metrics",
+            "logging",
+            "logging-operator",
+            "fluentd",
+            "fluent-bit",
+            "rancher",
             "slo",
             "sre",
             "upgrade",
