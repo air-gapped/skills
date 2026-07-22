@@ -53,6 +53,17 @@ general_settings:
   user_header_name: "X-OpenWebUI-User-Email"   # header value becomes end_user in spend logs + Customers
 ```
 
+**`user_header_name` is deprecated** (marked so in `litellm/proxy/_types.py` as of 2026-07, still functional). The replacement is `user_header_mappings`, which also supports multiple headers:
+
+```yaml
+general_settings:
+  user_header_mappings:
+    - header_name: "X-OpenWebUI-User-Email"
+      litellm_user_role: customer   # customer = same end_user field as user_header_name; first present header wins
+```
+
+Both paths converge on the same `end_user_id` (`auth_utils.py:get_end_user_id_from_request_body` checks customer mappings first, then falls back to `user_header_name`), so spend logs / Customers look identical after switching. Use `litellm_user_role: customer`, NOT `internal_user` — the latter writes `user_api_key_dict.user_id` (the internal-user column) instead of `end_user`. Historical caveat: LiteLLM #12893/#14667 reported the mappings path broken with OWUI on older versions (source-verified working on post-v1.92.1 main; see the traefik-hardening skill's ledger) — if `end_user` stays empty on an older running version, fall back to `user_header_name`.
+
 Spend tracking and per-end-user budgets are then a property of the **gateway** (LiteLLM), not OWUI — OWUI's only job is emitting the header.
 
 ## Per-model request params (`custom_params`)

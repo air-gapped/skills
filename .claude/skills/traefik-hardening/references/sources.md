@@ -18,3 +18,4 @@ Dated index of the primary sources behind this skill's claims. `freshen` mode re
 | Native Coraza WAF is Traefik Hub (commercial), not OSS | https://doc.traefik.io/traefik/ (Hub WAF pages) | 2026-07-22 |
 | known-products: Open WebUI JWT-replay mechanism, forwarded-identity headers, audit schema | open-webui/open-webui source: `routers/openai.py`, `env.py`, `utils/logger.py`; OWUI issues #21152, #20842 | 2026-07-22 |
 | known-products: LiteLLM `user_header_name`→`end_user` works on v1.92.1 (corrects prior #12893/#14667 report) | live verify on LiteLLM v1.92.1 + BerriAI/litellm `litellm/proxy/` source | 2026-07-22 |
+| known-products: `user_header_name` deprecated; `user_header_mappings` (role `customer`) feeds same `end_user_id` path, checked before the deprecated fallback | BerriAI/litellm main source: `proxy/_types.py`, `proxy/auth/auth_utils.py:get_end_user_id_from_request_body`, `proxy/litellm_pre_call_utils.py` | 2026-07-22 |
