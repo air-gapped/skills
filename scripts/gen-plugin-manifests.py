@@ -533,12 +533,14 @@ GROUPS: dict[str, dict] = {
         ],
     },
     "observability": {
-        # The metrics half (querying + upgrading Grafana Mimir) and the
-        # logs half (configuring the kube-logging logging-operator + exiting
-        # the frozen Rancher-bundled chart). Paired skills route to each other.
+        # The metrics half (querying + upgrading Grafana Mimir, plus SNMP
+        # hardware collection via snmp_exporter) and the logs half
+        # (configuring the kube-logging logging-operator + exiting the
+        # frozen Rancher-bundled chart). Paired skills route to each other.
         "members": [
             "prometheus-mimir-grafana",
             "mimir-upgrade",
+            "snmp-exporter",
             "logging-operator",
             "rancher-logging-exit",
         ],
@@ -556,7 +558,13 @@ GROUPS: dict[str, dict] = {
             "syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade "
             "floor 6.7.0) plus rancher-logging-exit — the air-gap-first "
             "migration off Rancher's frozen bundled rancher-logging chart "
-            "(CVE-2026-54680, release-secret cutover, CR compatibility)."
+            "(CVE-2026-54680, release-secret cutover, CR compatibility); "
+            "and hardware metrics: snmp-exporter — Prometheus snmp_exporter "
+            "v0.30.x best practices (generator.yml module curation, the "
+            "never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, "
+            "timeout math, Kubernetes Probe/ScrapeConfig deployment, local "
+            "docker testing, worked device references for Dell iDRAC 9/10, "
+            "Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi)."
         ),
         "category": "observability",
         "tags": [
@@ -571,6 +579,9 @@ GROUPS: dict[str, dict] = {
             "fluentd",
             "fluent-bit",
             "rancher",
+            "snmp",
+            "snmp-exporter",
+            "network-monitoring",
             "slo",
             "sre",
             "upgrade",

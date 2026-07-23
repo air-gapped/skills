@@ -1,0 +1,239 @@
+---
+# Combined production config: Dell iDRAC 9/10 + Cisco CBS + Mellanox Onyx.
+# This is the file to generate for the running exporter; the per-family
+# generator-{idrac,cisco,mellanox}.yml files are for iterating on one vendor.
+# Keep module definitions in sync with the per-family files.
+#
+# autoresearch 2026-07-23: curated walks replace full vendor-tree walks; see
+# ../references/research-report.md and the
+# per-family files for rationale and device quirks.
+#
+# Auth policy (decided 2026-07-23): SNMPv3 everywhere —
+# confirmed supported by iDRAC 9/10, CBS250/350 (Cisco CLI guide: SHA256 +
+# AES-128 users), and Onyx (v3.10.4606 manual: sha/sha224-512 + aes-128/192/256).
+# Secrets never land in git: credentials use ${ENV} placeholders — run the
+# exporter with --config.expand-environment-variables and provide the six
+# *_SNMP_* vars from a Kubernetes Secret.
+# SHA256/AES chosen as the common pair; if a CBS runs old firmware that only
+# offers MD5/SHA, create the device user with SHA and mirror it here.
+# Onyx gotcha: units shipped pre-3.6.6102 share one SNMPv3 engine ID — check
+# `show snmp engineID` and reset before enrolling multiple switches.
+# Do NOT name auths public_v2 here: that would collide with the stock snmp.yml
+# when both are loaded (--config.file is repeatable).
+#
+# Generate: go run . -m mibs -g generator-custom.yml -o snmp-custom.yml
+# Run:      snmp_exporter --config.file=/etc/snmp_exporter/snmp.yml \
+#                         --config.file=snmp-custom.yml \
+#                         --config.expand-environment-variables
+# Scrape (include the stock `system` module everywhere: sysUpTime moved there
+# in v0.28 and is the reboot-detection signal):
+#           iDRAC 9:  ?module=system,idrac&auth=idrac9_v3
+#           iDRAC 10: ?module=system,idrac&auth=idrac10_v3
+#           CBS:      ?module=system,if_mib,cisco_cbs,lldp&auth=switch_v3
+#           Onyx:     ?module=system,if_mib,hrDevice,hrStorage,mellanox,lldp&auth=switch_v3
+#
+# iDRAC v3 crypto differs by generation (iDRAC10 Attribute Registry 1.10.05.00,
+# verified 2026-07-23): iDRAC 9 = MD5/SHA + DES/AES-128; iDRAC 10 = SHA-384 or
+# SHA-512 + AES-256 ONLY (defaults SHA-384/AES-256; no MD5/SHA-1/AES-128).
+# If AES256 fails to decrypt on iDRAC 10, try AES256C (the other key-expansion
+# variant). iDRAC 10 also ships with the SNMP agent DISABLED
+# (iDRAC.SNMP.AgentEnable default 0) — enable it and per-user
+# iDRAC.Users.ProtocolEnable before scraping.
+
+auths:
+  switch_v3:
+    version: 3
+    security_level: authPriv
+    username: ${SWITCH_SNMP_USER}
+    password: ${SWITCH_SNMP_AUTH_PASSWORD}
+    auth_protocol: SHA256
+    priv_protocol: AES
+    priv_password: ${SWITCH_SNMP_PRIV_PASSWORD}
+  idrac9_v3:
+    version: 3
+    security_level: authPriv
+    username: ${IDRAC9_SNMP_USER}
+    password: ${IDRAC9_SNMP_AUTH_PASSWORD}
+    auth_protocol: SHA
+    priv_protocol: AES
+    priv_password: ${IDRAC9_SNMP_PRIV_PASSWORD}
+  idrac10_v3:
+    version: 3
+    security_level: authPriv
+    username: ${IDRAC10_SNMP_USER}
+    password: ${IDRAC10_SNMP_AUTH_PASSWORD}
+    auth_protocol: SHA384
+    priv_protocol: AES256
+    priv_password: ${IDRAC10_SNMP_PRIV_PASSWORD}
+
+modules:
+  # Dell iDRAC 9/10 — see generator-idrac.yml for rationale
+  idrac:
+    walk:
+      - 1.3.6.1.4.1.674.10892.5.1.1
+      - 1.3.6.1.4.1.674.10892.5.1.3
+      - 1.3.6.1.4.1.674.10892.5.2
+      - IDRAC-MIB-SMIv2::systemStateTable
+      - IDRAC-MIB-SMIv2::systemBIOSTable
+      - IDRAC-MIB-SMIv2::firmwareTable
+      - IDRAC-MIB-SMIv2::intrusionTable
+      - IDRAC-MIB-SMIv2::powerSupplyTable
+      - IDRAC-MIB-SMIv2::powerUnitTable
+      - IDRAC-MIB-SMIv2::amperageProbeTable
+      - IDRAC-MIB-SMIv2::voltageProbeTable
+      - IDRAC-MIB-SMIv2::powerUsageTable
+      - IDRAC-MIB-SMIv2::fruTable
+      - IDRAC-MIB-SMIv2::systemBatteryTable
+      - IDRAC-MIB-SMIv2::coolingDeviceTable
+      - IDRAC-MIB-SMIv2::coolingUnitTable
+      - IDRAC-MIB-SMIv2::temperatureProbeTable
+      - IDRAC-MIB-SMIv2::processorDeviceTable
+      - IDRAC-MIB-SMIv2::processorDeviceStatusTable
+      - IDRAC-MIB-SMIv2::memoryDeviceTable
+      - IDRAC-MIB-SMIv2::networkDeviceTable
+      - IDRAC-MIB-SMIv2::controllerTable
+      - IDRAC-MIB-SMIv2::batteryTable
+      - IDRAC-MIB-SMIv2::physicalDiskTable
+      - IDRAC-MIB-SMIv2::virtualDiskTable
+      - IDRAC-MIB-SMIv2::enclosureTable
+      - IDRAC-MIB-SMIv2::enclosureFanTable
+      - IDRAC-MIB-SMIv2::enclosureManagementModuleTable
+      - IDRAC-MIB-SMIv2::enclosurePowerSupplyTable
+      - IDRAC-MIB-SMIv2::enclosureTemperatureProbeTable
+    lookups:
+      - source_indexes: [temperatureProbechassisIndex, temperatureProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::temperatureProbeLocationName
+      - source_indexes: [coolingDevicechassisIndex, coolingDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::coolingDeviceLocationName
+      - source_indexes: [powerSupplychassisIndex, powerSupplyIndex]
+        lookup: IDRAC-MIB-SMIv2::powerSupplyLocationName
+      - source_indexes: [powerUnitchassisIndex, powerUnitIndex]
+        lookup: IDRAC-MIB-SMIv2::powerUnitName
+      - source_indexes: [amperageProbechassisIndex, amperageProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::amperageProbeLocationName
+      - source_indexes: [voltageProbechassisIndex, voltageProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::voltageProbeLocationName
+      - source_indexes: [fruChassisIndex, fruIndex]
+        lookup: IDRAC-MIB-SMIv2::fruFQDD
+      - source_indexes: [memoryDevicechassisIndex, memoryDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::memoryDeviceLocationName
+      - source_indexes: [coolingUnitchassisIndex, coolingUnitIndex]
+        lookup: IDRAC-MIB-SMIv2::coolingUnitName
+      - source_indexes: [networkDeviceChassisIndex, networkDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::networkDeviceFQDD
+      - source_indexes: [batteryNumber]
+        lookup: IDRAC-MIB-SMIv2::batteryDisplayName
+      - source_indexes: [controllerNumber]
+        lookup: IDRAC-MIB-SMIv2::controllerName
+      - source_indexes: [physicalDiskNumber]
+        lookup: IDRAC-MIB-SMIv2::physicalDiskName
+      - source_indexes: [virtualDiskNumber]
+        lookup: IDRAC-MIB-SMIv2::virtualDiskDisplayName
+    overrides:
+      temperatureProbeLocationName: {ignore: true}
+      coolingDeviceLocationName: {ignore: true}
+      powerSupplyLocationName: {ignore: true}
+      powerUnitName: {ignore: true}
+      amperageProbeLocationName: {ignore: true}
+      voltageProbeLocationName: {ignore: true}
+      fruFQDD: {ignore: true}
+      coolingUnitName: {ignore: true}
+      networkDeviceFQDD: {ignore: true}
+      batteryDisplayName: {ignore: true}
+      memoryDeviceLocationName: {ignore: true}
+      controllerName: {ignore: true}
+      physicalDiskName: {ignore: true}
+      virtualDiskDisplayName: {ignore: true}
+    timeout: 5s
+    retries: 2
+
+  # Cisco CBS250/350 + Catalyst 1200/1300 — see generator-cisco.yml
+  cisco_cbs:
+    walk:
+      - CISCOSB-rndMng::rlCpuUtilDuringLastSecond
+      - CISCOSB-rndMng::rlCpuUtilDuringLastMinute
+      - CISCOSB-rndMng::rlCpuUtilDuringLast5Minutes
+      - CISCOSB-HWENVIROMENT::rlEnvMonFanStatusTable
+      - CISCOSB-HWENVIROMENT::rlEnvMonSupplyStatusTable
+      - CISCOSB-HWENVIROMENT::rlEnvFanDataTable
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitEnvParamTable
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamSoftwareVersion
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamFirmwareVersion
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamHardwareVersion
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamSerialNum
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamServiceTag
+      - CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamModelName
+      - CISCOSB-STACK-MIB::rlStackActiveUnitIdTable
+      - CISCOSB-STACK-MIB::rlStackUnitMode
+      - CISCOSB-STACK-MIB::rlStackTopology
+      - CISCOSB-STACK-MIB::rlStackMode
+      - CISCOSB-POE-MIB::rlPethPsePortOutputPower
+      - POWER-ETHERNET-MIB::pethMainPseTable
+      - POWER-ETHERNET-MIB::pethPsePortDetectionStatus
+      - POWER-ETHERNET-MIB::pethPsePortPowerClassifications
+      - RMON-MIB::etherStatsCRCAlignErrors
+      - RMON-MIB::etherStatsFragments
+      - RMON-MIB::etherStatsJabbers
+      - RMON-MIB::etherStatsCollisions
+      - RMON-MIB::etherStatsUndersizePkts
+      - RMON-MIB::etherStatsOversizePkts
+    lookups:
+      - source_indexes: [rlEnvMonFanStatusIndex]
+        lookup: CISCOSB-HWENVIROMENT::rlEnvMonFanStatusDescr
+      - source_indexes: [rlEnvMonSupplyStatusIndex]
+        lookup: CISCOSB-HWENVIROMENT::rlEnvMonSupplyStatusDescr
+    overrides:
+      rlEnvMonFanStatusDescr: {ignore: true}
+      rlEnvMonSupplyStatusDescr: {ignore: true}
+
+  # Vendor-neutral LLDP neighbor watchdog (CBS + Onyx both serve LLDP-MIB).
+  # Detects mis-cabling: the wrong system on a port shows up as a NEW
+  # (port, remote sysname) series; an expected neighbor unplugged/replaced by
+  # a non-LLDP device shows as the old series going stale. Compose per scrape:
+  #   module=if_mib,cisco_cbs,lldp  or  module=if_mib,...,mellanox,lldp
+  # Alert idiom: lldpRemSysName unless (lldpRemSysName offset 1h)  -> fires on
+  # any new neighbor combo. Note lldpRemTimeMark (TimeFilter) is part of the
+  # index: re-learned neighbors get a fresh time-mark label, which is what
+  # makes changes visible as new series.
+  lldp:
+    walk:
+      - LLDP-MIB::lldpRemSysName
+      - LLDP-MIB::lldpRemChassisId
+      - LLDP-MIB::lldpRemPortId
+      - LLDP-MIB::lldpRemPortDesc
+    lookups:
+      - source_indexes: [lldpRemLocalPortNum]
+        lookup: LLDP-MIB::lldpLocPortDesc
+    overrides:
+      lldpLocPortDesc: {ignore: true}
+
+  # NVIDIA/Mellanox Onyx (SN2010) — see generator-mellanox.yml
+  mellanox:
+    walk:
+      - ENTITY-SENSOR-MIB::entPhySensorTable
+      - ENTITY-STATE-MIB::entStateTable
+      - ENTITY-MIB::entPhysicalClass
+      - ENTITY-MIB::entPhysicalSerialNum
+      - ENTITY-MIB::entPhysicalMfgName
+      - ENTITY-MIB::entPhysicalModelName
+      - ENTITY-MIB::entPhysicalSoftwareRev
+      - ENTITY-MIB::entPhysicalFirmwareRev
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWTable
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWActivePartition
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWNextBootPartition
+      - EtherLike-MIB::dot3StatsFCSErrors
+      - EtherLike-MIB::dot3StatsAlignmentErrors
+      - EtherLike-MIB::dot3StatsSymbolErrors
+      - EtherLike-MIB::dot3InPauseFrames
+      - EtherLike-MIB::dot3OutPauseFrames
+    lookups:
+      - source_indexes: [entPhysicalIndex]
+        lookup: ENTITY-MIB::entPhysicalName
+      - source_indexes: [mellanoxSWPartitionIndex]
+        lookup: MELLANOX-SW-UPDATE-MIB::mellanoxSWPartitionName
+      - source_indexes: [dot3StatsIndex]
+        lookup: IF-MIB::ifName
+    overrides:
+      entPhysicalName: {ignore: true}
+      mellanoxSWPartitionName: {ignore: true}
+      ifName: {ignore: true}

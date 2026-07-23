@@ -1,0 +1,58 @@
+---
+# NVIDIA/Mellanox Onyx switches (Spectrum family, e.g. SN2010) — health module.
+#
+# autoresearch 2026-07-23: replaced full 1.3.6.1.4.1.33049 walk (359 metrics,
+# dominated by legacy BridgeX/InfiniBand-VPI noise) with the STANDARD MIBs that
+# actually carry Onyx health — the same OIDs the official Zabbix "Mellanox by
+# SNMP" template polls. The 33049 private tree is mostly traps (asicOverTemp,
+# insufficientFans/Power, procCrash...) plus product identity; not worth walking.
+# All Onyx management runs through one mgmtd daemon that can be overloaded —
+# keep walks narrow. Onyx is LTS until April 2029; this MIB surface is frozen.
+# See ../references/research-report.md
+#
+# Sensors: entPhySensorValue must be interpreted with entPhySensorScale/
+# entPhySensorPrecision (e.g. celsius with precision 1 => value/10 degC).
+# CPU/memory come from the stock HOST-RESOURCES modules, traffic from if_mib:
+#   module=if_mib,hrDevice,hrStorage,mellanox
+#
+# Generate: go run . -m mibs -g generator-mellanox.yml -o snmp-mellanox.yml
+
+auths:
+  public_v2:
+    version: 2
+
+modules:
+  mellanox:
+    walk:
+      - ENTITY-SENSOR-MIB::entPhySensorTable     # temperatures (type 8) + fans rpm (type 10)
+      - ENTITY-STATE-MIB::entStateTable          # PSU/module oper state (RFC 4268)
+      - ENTITY-MIB::entPhysicalClass             # find PSUs: class 6 = powerSupply
+      - ENTITY-MIB::entPhysicalSerialNum         # chassis/module serials (info metric)
+      - ENTITY-MIB::entPhysicalMfgName           # component make (PSU vendor etc.)
+      - ENTITY-MIB::entPhysicalModelName
+      - ENTITY-MIB::entPhysicalSoftwareRev       # chassis row = Onyx version
+      - ENTITY-MIB::entPhysicalFirmwareRev       # component firmware where populated
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWTable  # installed image per partition
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWActivePartition
+      - MELLANOX-SW-UPDATE-MIB::mellanoxSWNextBootPartition
+      # EtherLike link-quality + flow control. FCS/symbol errors = degrading
+      # DAC/optic; pause frames = congestion/flow-control storms (the classic
+      # RoCE signal). Unverified on Onyx — harmless (one empty PDU) if absent;
+      # if it stays empty on real hardware, mellanoxIfVPITable FCS counters
+      # are the fallback.
+      - EtherLike-MIB::dot3StatsFCSErrors
+      - EtherLike-MIB::dot3StatsAlignmentErrors
+      - EtherLike-MIB::dot3StatsSymbolErrors
+      - EtherLike-MIB::dot3InPauseFrames
+      - EtherLike-MIB::dot3OutPauseFrames
+    lookups:
+      - source_indexes: [entPhysicalIndex]
+        lookup: ENTITY-MIB::entPhysicalName
+      - source_indexes: [mellanoxSWPartitionIndex]
+        lookup: MELLANOX-SW-UPDATE-MIB::mellanoxSWPartitionName
+      - source_indexes: [dot3StatsIndex]
+        lookup: IF-MIB::ifName
+    overrides:
+      entPhysicalName: {ignore: true}
+      mellanoxSWPartitionName: {ignore: true}
+      ifName: {ignore: true}

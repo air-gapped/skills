@@ -1,0 +1,236 @@
+# Opinionated alert pack for the modules in this skill (2026-07-23).
+# Metric names match the generated configs in examples/. Enum values are cited
+# inline from the source MIBs — re-verify them if Dell/Cisco ship MIB updates.
+# Wrap in a PrometheusRule CR for prometheus-operator, or load as a rule_files
+# entry. Adjust `job` matchers to your scrape-job naming.
+
+groups:
+  - name: snmp-pipeline
+    rules:
+      - alert: SnmpTargetDown
+        expr: up{job=~".*snmp.*"} == 0
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "SNMP target {{ $labels.instance }} down (device or SNMP path)"
+          description: >-
+            Pair with blackbox ICMP to discriminate: if BlackboxIcmpUp is
+            firing too the device is down; if ping works, the SNMP agent is
+            wedged (documented CBS failure mode - bounce SNMP or reboot).
+      - alert: SnmpAgentWedged
+        # Requires a blackbox_exporter ICMP job probing the same targets with
+        # matching instance labels (see references/companions.md).
+        expr: probe_success{job="blackbox-icmp"} == 1 and on(instance) up{job=~".*snmp.*"} == 0
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.instance }} pings but SNMP is dead - agent wedged"
+      - alert: SnmpWalkNearTimeout
+        # Set the threshold to ~80% of your Prometheus scrapeTimeout.
+        expr: snmp_scrape_walk_duration_seconds > 40
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "SNMP walk on {{ $labels.instance }} close to scrape timeout - trim module or raise timeout"
+      - alert: SnmpPacketLoss
+        expr: >-
+          rate(snmp_scrape_packets_retried[5m])
+          / rate(snmp_scrape_packets_sent[5m]) > 0.02
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "SNMP retry ratio >2% to {{ $labels.instance }} - packet loss or struggling agent"
+      - alert: DeviceRebooted
+        # sysUpTime is in TimeTicks (hundredths of a second); 60000 = 10 min.
+        expr: sysUpTime < 60000
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.instance }} rebooted less than 10 minutes ago"
+
+  - name: idrac
+    # Dell status enums: 1=other 2=unknown 3=ok 4=nonCritical 5=critical
+    # 6=nonRecoverable. Redundancy: 3=full 4=degraded 5=lost.
+    rules:
+      - alert: IdracGlobalStatusWarning
+        expr: globalSystemStatus == 4
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "iDRAC {{ $labels.instance }} global status nonCritical"
+      - alert: IdracGlobalStatusCritical
+        expr: globalSystemStatus >= 5
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "iDRAC {{ $labels.instance }} global status critical/nonRecoverable"
+      - alert: IdracStorageDegraded
+        # iDRAC 10 quirk: may report 1 (other) instead of 3 (ok) - hence >= 4,
+        # not != 3.
+        expr: globalStorageStatus >= 4
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "iDRAC {{ $labels.instance }} storage subsystem degraded"
+      - alert: IdracPsuFailed
+        expr: powerSupplyStatus >= 4
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "PSU {{ $labels.powerSupplyLocationName }} on {{ $labels.instance }} unhealthy"
+      - alert: IdracPsuRedundancyLost
+        expr: powerUnitRedundancyStatus >= 4
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "PSU redundancy {{ if eq $value 4.0 }}degraded{{ else }}lost{{ end }} on {{ $labels.instance }}"
+      - alert: IdracFanRedundancyLost
+        expr: coolingUnitRedundancyStatus >= 4
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Fan redundancy degraded/lost on {{ $labels.instance }}"
+      - alert: IdracTempProbeUnhealthy
+        expr: temperatureProbeStatus >= 4
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Temperature probe {{ $labels.temperatureProbeLocationName }} on {{ $labels.instance }} unhealthy"
+      - alert: IdracMemoryDeviceUnhealthy
+        expr: memoryDeviceStatus >= 4
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "DIMM {{ $labels.memoryDeviceLocationName }} on {{ $labels.instance }} unhealthy"
+      - alert: IdracPhysicalDiskUnhealthy
+        # physicalDiskState: 1=unknown 2=ready 3=online 4=foreign 5=offline
+        # 6=blocked 7=failed 8=nonraid 9=removed
+        expr: physicalDiskState > 4 and physicalDiskState != 8
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "Disk {{ $labels.physicalDiskName }} on {{ $labels.instance }} offline/blocked/failed/removed"
+      - alert: IdracVirtualDiskDegraded
+        # virtualDiskState: 1=unknown 2=online 3=failed 4=degraded
+        expr: virtualDiskState == 4
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Virtual disk {{ $labels.virtualDiskDisplayName }} on {{ $labels.instance }} degraded"
+      - alert: IdracVirtualDiskFailed
+        expr: virtualDiskState == 3
+        labels: {severity: critical}
+        annotations:
+          summary: "Virtual disk {{ $labels.virtualDiskDisplayName }} on {{ $labels.instance }} FAILED"
+      - alert: IdracRaidBatteryUnhealthy
+        # batteryState: 1=unknown 2=ready 3=failed 4=degraded 5=missing
+        # 6=charging 7=belowThreshold
+        expr: batteryState == 3 or batteryState == 5
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "RAID controller battery {{ $labels.batteryDisplayName }} on {{ $labels.instance }} failed/missing"
+      - alert: IdracChassisIntrusion
+        # intrusionReading: 1=notBreached 2=breached 3=breachedPrior 4=sensorFail
+        expr: intrusionReading > 1
+        labels: {severity: warning}
+        annotations:
+          summary: "Chassis intrusion on {{ $labels.instance }} ({{ $labels.intrusionLocationName }})"
+
+  - name: cisco-cbs
+    # rlEnvMon state enum: 1=normal 2=warning 3=critical 4=shutdown
+    # 5=notPresent 6=notFunctioning
+    rules:
+      - alert: CbsCpuHigh
+        # 101 means "not measured" - exclude it.
+        expr: rlCpuUtilDuringLast5Minutes > 80 and rlCpuUtilDuringLast5Minutes != 101
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "CBS {{ $labels.instance }} CPU {{ $value }}% over 5m window"
+      - alert: CbsFanUnhealthy
+        expr: rlEnvMonFanState != 1 and rlEnvMonFanState != 5
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Fan {{ $labels.rlEnvMonFanStatusDescr }} on {{ $labels.instance }} unhealthy"
+      - alert: CbsPsuUnhealthy
+        expr: rlEnvMonSupplyState != 1 and rlEnvMonSupplyState != 5
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "PSU {{ $labels.rlEnvMonSupplyStatusDescr }} on {{ $labels.instance }} unhealthy"
+      - alert: CbsPoeBudgetHigh
+        expr: pethMainPseConsumptionPower / pethMainPsePower > 0.8
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "PoE budget on {{ $labels.instance }} above 80%"
+
+  - name: link-quality
+    # CRC/FCS on any port = suspect cable/DAC/optic; pairs with the LLDP
+    # watchdog (wrong cable) and entity serials (swapped cable).
+    rules:
+      - alert: PortCrcErrors
+        expr: rate(etherStatsCRCAlignErrors[15m]) > 0.1
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "CRC/alignment errors on {{ $labels.instance }} port {{ $labels.etherStatsIndex }} - check cable"
+      - alert: PortFcsErrors
+        expr: rate(dot3StatsFCSErrors[15m]) > 0.1
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "FCS errors on {{ $labels.instance }} {{ $labels.ifName }} - degrading DAC/optic"
+      - alert: PauseFrameStorm
+        expr: rate(dot3InPauseFrames[5m]) > 1000
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Flow-control storm on {{ $labels.instance }} {{ $labels.ifName }} (RoCE congestion signal)"
+
+  - name: mellanox-onyx
+    rules:
+      - alert: OnyxSensorNonOperational
+        # entPhySensorOperStatus: 1=ok 2=unavailable 3=nonoperational
+        expr: entPhySensorOperStatus == 3
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Sensor {{ $labels.entPhysicalName }} on {{ $labels.instance }} non-operational"
+      - alert: OnyxHighTemperature
+        # Assumes precision=1 (value in tenths of a degree C) - verified
+        # typical for Onyx; adjust if entPhySensorPrecision differs.
+        expr: >-
+          (entPhySensorValue and on(instance, entPhysicalIndex)
+          (entPhySensorType == 8)) / 10 > 75
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.entPhysicalName }} on {{ $labels.instance }} at {{ $value }} degC"
+      - alert: OnyxPsuNotEnabled
+        # entStateOper (RFC 4268): 1=unknown 2=disabled 3=enabled 4=testing;
+        # entPhysicalClass 6 = powerSupply
+        expr: >-
+          entStateOper == 2 and on(instance, entPhysicalIndex)
+          (entPhysicalClass == 6)
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "PSU {{ $labels.entPhysicalName }} on {{ $labels.instance }} disabled/pulled"
+
+  - name: lldp-watchdog
+    rules:
+      - alert: LldpNewNeighbor
+        # A (port, remote-system) combo that did not exist 1h ago - possible
+        # mis-cabling. Info severity: route to a review channel, not paging.
+        expr: lldpRemSysName unless (lldpRemSysName offset 1h)
+        labels: {severity: info}
+        annotations:
+          summary: "New LLDP neighbor {{ $labels.lldpRemSysName }} on {{ $labels.instance }} port {{ $labels.lldpLocPortDesc }}"
+      - alert: LldpNeighborLost
+        expr: (lldpRemSysName offset 1h) unless lldpRemSysName
+        for: 30m
+        labels: {severity: info}
+        annotations:
+          summary: "LLDP neighbor gone from {{ $labels.instance }} port {{ $labels.lldpLocPortDesc }} (unplugged or replaced by non-LLDP device)"

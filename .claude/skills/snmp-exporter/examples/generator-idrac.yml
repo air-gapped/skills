@@ -1,0 +1,103 @@
+---
+# Dell iDRAC 9/10 (PowerEdge 14G-17G) — curated health module.
+#
+# autoresearch 2026-07-23: replaced full 1.3.6.1.4.1.674.10892.5 walk (554 metrics
+# when generated here; upstream's narrower `dell` module is 512,
+# known to take 2-5 min on real iDRACs — prometheus-community/helm-charts#3572)
+# with the specific status/thermal/power/storage tables below.
+# SEL eventLogTable (.4.300.40), slots (.4.1200) and pCIDeviceTable (.4.1100.80)
+# are deliberately skipped: bulky inventory, no alerting value. fruTable IS
+# walked (2026-07-23): PSU/DIMM make, part number, serial.
+# See ../references/research-report.md
+#
+# Generate: go run . -m mibs -g generator-idrac.yml -o snmp-idrac.yml
+# Production auth is idrac_v3 (SNMPv3) — see generator-custom.yml; public_v2 here
+# is for lab testing only. iDRAC10 note: CMOS battery metrics were removed by Dell,
+# and early iDRAC10 firmware has GETBULK/GETNEXT walk bugs — keep firmware current.
+
+auths:
+  public_v2:
+    version: 2
+
+modules:
+  idrac:
+    walk:
+      - 1.3.6.1.4.1.674.10892.5.1.1              # racInfo: name, firmware version, URL
+      - 1.3.6.1.4.1.674.10892.5.1.3              # systemInfo: service tag, model, OS
+      - 1.3.6.1.4.1.674.10892.5.2                # statusGroup: global system/storage status, power state
+      - IDRAC-MIB-SMIv2::systemStateTable        # per-subsystem rollups (incl. SD/IDSDM on iDRAC9)
+      - IDRAC-MIB-SMIv2::systemBIOSTable
+      - IDRAC-MIB-SMIv2::firmwareTable
+      - IDRAC-MIB-SMIv2::intrusionTable
+      - IDRAC-MIB-SMIv2::powerSupplyTable
+      - IDRAC-MIB-SMIv2::powerUnitTable          # PSU redundancy full/degraded/lost
+      - IDRAC-MIB-SMIv2::amperageProbeTable      # per-PSU amps/watts
+      - IDRAC-MIB-SMIv2::voltageProbeTable       # per-PSU voltage probes
+      - IDRAC-MIB-SMIv2::powerUsageTable
+      - IDRAC-MIB-SMIv2::fruTable                # PSU/DIMM make, part no, serial, revision
+      - IDRAC-MIB-SMIv2::systemBatteryTable      # CMOS battery (absent on iDRAC10)
+      - IDRAC-MIB-SMIv2::coolingDeviceTable      # fans
+      - IDRAC-MIB-SMIv2::coolingUnitTable        # fan redundancy full/degraded/lost
+      - IDRAC-MIB-SMIv2::temperatureProbeTable
+      - IDRAC-MIB-SMIv2::processorDeviceTable    # CPU inventory + current/max speed
+      - IDRAC-MIB-SMIv2::processorDeviceStatusTable
+      - IDRAC-MIB-SMIv2::memoryDeviceTable
+      - IDRAC-MIB-SMIv2::networkDeviceTable      # NIC status, MAC, product, FQDD
+      - IDRAC-MIB-SMIv2::controllerTable
+      - IDRAC-MIB-SMIv2::batteryTable            # RAID controller battery (BBU)
+      - IDRAC-MIB-SMIv2::physicalDiskTable
+      - IDRAC-MIB-SMIv2::virtualDiskTable
+      # External SAS enclosures — empty (harmless) on servers without JBODs
+      - IDRAC-MIB-SMIv2::enclosureTable
+      - IDRAC-MIB-SMIv2::enclosureFanTable
+      - IDRAC-MIB-SMIv2::enclosureManagementModuleTable
+      - IDRAC-MIB-SMIv2::enclosurePowerSupplyTable
+      - IDRAC-MIB-SMIv2::enclosureTemperatureProbeTable
+    lookups:
+      - source_indexes: [temperatureProbechassisIndex, temperatureProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::temperatureProbeLocationName
+      - source_indexes: [coolingDevicechassisIndex, coolingDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::coolingDeviceLocationName
+      - source_indexes: [powerSupplychassisIndex, powerSupplyIndex]
+        lookup: IDRAC-MIB-SMIv2::powerSupplyLocationName
+      - source_indexes: [powerUnitchassisIndex, powerUnitIndex]
+        lookup: IDRAC-MIB-SMIv2::powerUnitName
+      - source_indexes: [amperageProbechassisIndex, amperageProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::amperageProbeLocationName
+      - source_indexes: [voltageProbechassisIndex, voltageProbeIndex]
+        lookup: IDRAC-MIB-SMIv2::voltageProbeLocationName
+      - source_indexes: [fruChassisIndex, fruIndex]
+        lookup: IDRAC-MIB-SMIv2::fruFQDD
+      - source_indexes: [memoryDevicechassisIndex, memoryDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::memoryDeviceLocationName
+      - source_indexes: [coolingUnitchassisIndex, coolingUnitIndex]
+        lookup: IDRAC-MIB-SMIv2::coolingUnitName
+      - source_indexes: [networkDeviceChassisIndex, networkDeviceIndex]
+        lookup: IDRAC-MIB-SMIv2::networkDeviceFQDD
+      - source_indexes: [batteryNumber]
+        lookup: IDRAC-MIB-SMIv2::batteryDisplayName
+      - source_indexes: [controllerNumber]
+        lookup: IDRAC-MIB-SMIv2::controllerName
+      - source_indexes: [physicalDiskNumber]
+        lookup: IDRAC-MIB-SMIv2::physicalDiskName
+      - source_indexes: [virtualDiskNumber]
+        lookup: IDRAC-MIB-SMIv2::virtualDiskDisplayName
+    overrides:
+      temperatureProbeLocationName: {ignore: true}
+      coolingDeviceLocationName: {ignore: true}
+      powerSupplyLocationName: {ignore: true}
+      powerUnitName: {ignore: true}
+      amperageProbeLocationName: {ignore: true}
+      voltageProbeLocationName: {ignore: true}
+      fruFQDD: {ignore: true}
+      coolingUnitName: {ignore: true}
+      networkDeviceFQDD: {ignore: true}
+      batteryDisplayName: {ignore: true}
+      memoryDeviceLocationName: {ignore: true}
+      controllerName: {ignore: true}
+      physicalDiskName: {ignore: true}
+      virtualDiskDisplayName: {ignore: true}
+    # BMCs are slow: keep per-PDU timeout modest but cap total retry cost.
+    # Worst case = timeout*(retries+1) = 15s; set Prometheus scrape_timeout >= 30s.
+    timeout: 5s
+    retries: 2
