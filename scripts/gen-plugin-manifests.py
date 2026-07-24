@@ -261,6 +261,7 @@ GROUPS: dict[str, dict] = {
             "keda",
             "keycloak-iam",
             "openshift-app",
+            "postgres-operator-cloudnative-pg-migration",
             "rancher-upgrade",
             "traefik-hardening",
         ],
@@ -287,7 +288,13 @@ GROUPS: dict[str, dict] = {
             "2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, "
             "buffering, middleware chaining, JWT-claim/header keying, air-gapped "
             "plugin loading, detection/response) on the principle of capping "
-            "per-identity resource use rather than trying to classify good vs bad clients."
+            "per-identity resource use rather than trying to classify good vs bad clients. "
+            "Also postgres-operator-cloudnative-pg-migration — migrate PostgreSQL "
+            "clusters off the Zalando postgres-operator (Spilo/Patroni) onto "
+            "CloudNativePG: the glibc/collation and WAL-G↔Barman walls, three "
+            "migration paths (logical replication default), full acid.zalan.do→"
+            "Cluster manifest field map, barman-cloud plugin backup re-plumbing, "
+            "consumer cutover, air-gap mirroring."
         ),
         "category": "kubernetes",
         "tags": [
@@ -302,6 +309,9 @@ GROUPS: dict[str, dict] = {
             "iam",
             "oidc",
             "saml",
+            "postgresql",
+            "cloudnative-pg",
+            "postgres-operator",
             "openshift",
             "autoscaling",
             "ocp",

@@ -1,0 +1,47 @@
+{
+  "skill_name": "postgres-operator-cloudnative-pg-migration",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "we run the zalando postgres-operator on an air-gapped RKE2 cluster (internal registry, no internet from nodes). one cluster is `acid-billing` — postgres 16, spilo image with USE_OLD_LOCALES=true (it's been upgraded in place since ~2019), en_US.UTF-8, ~400GB, WAL-G backups to internal S3. my plan to move it to cloudnative-pg: create a CNPG Cluster with bootstrap.pg_basebackup pointing at the spilo primary, let it catch up as a replica, promote it during a short window, and point CNPG's externalClusters at our existing WAL-G bucket so we keep our backup history and PITR. does this plan work? if not, what should I do instead? write your answer to answer.md",
+      "expected_output": "Must reject pg_basebackup for this cluster (USE_OLD_LOCALES=true means glibc 2.27-era collations; copying onto Debian-based CNPG images silently corrupts text indexes; REFRESH COLLATION VERSION only silences the warning) and must reject pointing CNPG at the WAL-G bucket (barman-cloud cannot read WAL-G layout — no interop exists). Should recommend the logical-replication path (wal_level=logical on the spilo manifest, initdb.import schemaOnly + externalClusters, kubectl cnpg publication/subscription create, sync-sequences at cutover), a fresh CNPG base backup at cutover (plus pg_switch_wal on idle DBs), freezing the WAL-G bucket read-only with the spilo stack kept resurrectable until retention expires, and the air-gap image list (operator, operand -standard- flavor, pgbouncer if pooling, plugin-barman-cloud + sidecar images, kubectl-cnpg binary).",
+      "assertions": [
+        "Rejects the pg_basebackup/physical path for THIS cluster specifically because USE_OLD_LOCALES=true implies old-glibc collations and copying onto Debian-based CNPG images risks silent index corruption",
+        "Rejects pointing CNPG externalClusters/recovery at the WAL-G bucket: barman-cloud cannot read WAL-G layout",
+        "Recommends logical replication with concrete mechanics: wal_level=logical, schema copy, publication/subscription, sequence sync at cutover",
+        "Backup continuity: fresh CNPG base backup at cutover AND WAL-G bucket frozen with a restorable Spilo stack until retention passes",
+        "Air-gap image list includes the barman-cloud plugin AND its separate sidecar image (or the kubectl-cnpg binary)"
+      ],
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "translate this zalando postgres-operator manifest to cloudnative-pg for me and flag anything that has no equivalent or behaves differently:\n\napiVersion: acid.zalan.do/v1\nkind: postgresql\nmetadata:\n  name: acid-orders\nspec:\n  teamId: acid\n  numberOfInstances: 3\n  postgresql:\n    version: \"16\"\n    parameters:\n      shared_buffers: 2GB\n      max_connections: \"400\"\n      archive_timeout: 300s\n      ssl_min_protocol_version: TLSv1.2\n  users:\n    orders_owner: [createdb]\n    reporting: [login]\n    admin_ops: [superuser]\n  databases:\n    orders: orders_owner\n  preparedDatabases:\n    analytics:\n      defaultUsers: true\n      schemas:\n        data: {}\n  patroni:\n    synchronous_mode: true\n    synchronous_mode_strict: true\n  enableConnectionPooler: true\n  connectionPooler:\n    numberOfInstances: 2\n    mode: transaction\n    maxDBConnections: 60\n  enableLogicalBackup: true\n  logicalBackupSchedule: \"30 00 * * *\"\n  maintenanceWindows:\n    - Sat:01:00-Sat:05:00\n  volume:\n    size: 200Gi\n    storageClass: fast-ssd\n  resources:\n    requests: {cpu: \"2\", memory: 8Gi}\n    limits: {cpu: \"4\", memory: 8Gi}\n\nwrite the translated CNPG manifests plus the list of gaps/behavior changes to answer.md",
+      "expected_output": "Translation must produce: Cluster with instances 3, imageName/imageCatalogRef for PG16, storage 200Gi/fast-ssd, resources carried (ideally noting requests=limits Guaranteed QoS guidance), postgresql.parameters keeping shared_buffers/max_connections but STRIPPING archive_timeout and ssl_* (operator-owned), synchronous stanza (method any/first + number + dataDurability: required for strict mode) not minSyncReplicas-only, managed.roles for the three users with login-defaults-false handled and the password-secret gap called out (no auto-generation; pre-create basic-auth secrets, #3788), Database CR for orders owned by orders_owner, a Pooler CRD (type rw, instances 2, poolMode transaction) with the maxDBConnections-per-instance-multiplication warning, and explicit gap flags for: teamId (drop), preparedDatabases (reconstruct via roles+inRoles+postInitApplicationSQLRefs, no direct equivalent), enableLogicalBackup (no pg_dump cron in CNPG — hand-build), maintenanceWindows (no equivalent; nodeMaintenanceWindow is a false friend; use primaryUpdateStrategy supervised), superuser role stripped-by-import/enableSuperuserAccess-default-false noted.",
+      "assertions": [
+        "Strips or flags archive_timeout and ssl_min_protocol_version (CNPG operator-owned params) instead of passing them through",
+        "Maps strict sync mode to postgresql.synchronous with dataDurability: required (not merely minSyncReplicas)",
+        "Calls out that CNPG does not auto-generate passwords for extra managed roles (pre-created basic-auth Secrets needed)",
+        "Flags preparedDatabases as no-direct-equivalent with a reconstruction sketch",
+        "Flags enableLogicalBackup as no-equivalent (pg_dump CronJob must be hand-built)",
+        "Flags maintenanceWindows as no-equivalent and does not misuse nodeMaintenanceWindow",
+        "Produces a Pooler CRD (rw, 2 instances, transaction mode) and warns pgbouncer parameters are per-instance verbatim in CNPG"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "we've decided to migrate our fleet from zalando postgres-operator to cnpg over the next two quarters. before the first production cutover I need two things: (1) the backup story — we use WAL-G to an internal minio now; how do backups work during and after the migration, what do we install on the cnpg side (cluster is air-gapped, we have cert-manager), and what happens to our old backups and PITR ability; (2) what breaks for the apps and our monitoring at cutover — we use the zalando credential secrets mounted into deployments and a postgres_exporter sidecar with grafana dashboards alerting on pg_* metrics. write a runbook covering both to runbook.md",
+      "expected_output": "Backup section must: state WAL-G archives cannot be read by CNPG (freeze bucket read-only, keep spilo stack resurrectable until retention passes, PITR seam at cutover documented), prescribe plugin-first barman-cloud (in-tree deprecated, removal ~1.31) with BOTH images (plugin + sidecar, sidecar hidden base64 in release manifest), same-namespace-as-operator + barman-cloud service name constraints, cert-manager path fine since they have it, ObjectStore CRD + spec.plugins wiring + ScheduledBackup method plugin, first backup immediately at cutover + pg_switch_wal for idle DBs, retention policy at ObjectStore top level. App/monitoring section must: map service renames (<cluster> → <cluster>-rw, -repl → -ro), secret rename (<user>.<cluster>.credentials.postgresql.acid.zalan.do → <cluster>-app with richer keys incl uri), enableSuperuserAccess default false, md5-hash risk on carried-over users, exporter change (sidecar pg_* → built-in cnpg_* on 9187, no shim, dashboards+alerts rewritten; barman_cloud_* metrics for backup freshness with alert-on-absence guidance).",
+      "assertions": [
+        "States WAL-G archives are unreadable by CNPG; freeze bucket + keep Spilo restorable through retention; PITR seam called out",
+        "Prescribes the barman-cloud plugin (in-tree deprecated) listing BOTH the plugin image and the separate sidecar image",
+        "Covers plugin install constraints and wiring (operator namespace / barman-cloud service name; ObjectStore CRD + spec.plugins isWALArchiver; method: plugin backups)",
+        "First base backup immediately at cutover + idle-cluster pg_switch_wal trap",
+        "Maps service renames to -rw/-ro and secret rename to <cluster>-app, plus at least one auth gotcha (superuser secret default-off or md5→scram)",
+        "States pg_* → cnpg_* metric change with no shim (dashboards/alerts rewritten) and covers barman_cloud_* backup metrics"
+      ],
+      "files": []
+    }
+  ]
+}
