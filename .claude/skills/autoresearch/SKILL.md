@@ -2,16 +2,21 @@
 name: autoresearch
 argument-hint: "[optimize|research|improve] [topic or target]"
 description: >-
-  Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable
-  metric, deep multi-agent research, or research-then-optimize. Three modes:
-  Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve.
+  Autonomous experiment loops that hill-climb a measurable metric — apply one
+  change, measure, keep it only if the number improved, revert if not, repeat
+  unattended. Also deep multi-perspective research producing a saved report, and
+  research-then-optimize when no metric exists yet.
 when_to_use: >-
-  This skill should be used when the user asks for "autoresearch", "experiment
-  loop", "optimize autonomously", "deep research", "hill climbing", "Karpathy
-  loop", "iterative optimization", or "keep trying until it improves". Also
-  triggers when hitting a numeric target (latency, bundle size, compile time,
-  throughput, loss, pass rate) autonomously, running multi-source competitive
-  analysis, or improving prompt quality without a defined starting point.
+  Use whenever work should run as a measured loop rather than a one-shot edit:
+  "autoresearch", "experiment loop", "optimize autonomously", "hill climbing",
+  "hill-climb", "Karpathy loop", "iterative optimization", "keep trying until it
+  improves", "keep trying different approaches", "keep whatever improves", or
+  running overnight/unattended while the user is away. Also when any numeric
+  target (latency, p99, bundle size, compile time, throughput, loss, pass rate,
+  coverage) should be pursued through repeated measure-change-verify cycles
+  rather than a single fix; when the request is to research best practices and
+  THEN actually improve the thing; or for recursive multi-perspective research
+  that saves a report to optimize against later.
 allowed-tools:
   - Read
   - Edit

@@ -106,6 +106,50 @@ discards. Per skill-improver's own rule, a run with zero discards has not
 demonstrated a ceiling; it hit the iteration cap with work still available. The
 items under Open below are real remaining work, not a ceiling.
 
+## Resolved — 2026-07-24 (trigger mode)
+
+**B4 RESOLVED — and its premise was backwards.** Carried since 2026-06-09 and
+flagged by all four blind scorers as an over-trigger risk: `when_to_use` claimed
+the bare phrase "deep research", colliding with the bundled `deep-research`
+skill. Measured with `probe-trigger.py` against a new 14-query eval set
+(`references/trigger-evals.json`, 7 should-trigger / 7 should-NOT):
+
+**Zero false positives, ever.** All 7 should-NOT queries returned 0.00 at
+baseline, including both bare research asks ("Do deep research on EU AI Act
+compliance deadlines", the Postgres/MySQL comparison) and the supposedly
+over-broad numeric clause ("Make this function faster"). The collision three
+passes of blind scorers worried about does not exist. Rubric scoring had the
+sign wrong because reading a description cannot tell you what it competes with.
+
+**The real defect was the opposite — under-triggering on its own advertised
+phrases.** Baseline fired on only 4/7 should-trigger queries; Mode 3 ("research
+best practices and then improve it") fired **1/7** — an entire mode effectively
+invisible. Adopted description lifts mean trigger rate **0.531 → 0.694**
+(26/49 → 34/49 fires at N=7), with Mode 3 at **1/7 → 6/7** (Fisher exact
+p≈0.03) and **0/35 false fires** on the should-NOT set. Evidence strength:
+the Mode 3 cell is individually significant; the aggregate (z≈1.66, p≈0.10) is
+suggestive, not conclusive. Adopted on the combination of a clean boundary and
+one unambiguous fix.
+
+**Two discards worth not re-proposing:**
+- *Full plain-language rewrite with `autoresearch` moved out of the lead*
+  (cand1 as first probed): at N=3 this read as breaking the canonical
+  "set up an autoresearch loop" query 0.67 → 0.00, which prompted an entire
+  wasted iteration to "restore the proper noun to position 0". At N=7 the same
+  pair was **6/7 vs 5/7 — noise**. There is no proper-noun-placement mechanism.
+  Do not re-derive one.
+- *Minimal targeted edit — baseline plus a broadened Mode 3 clause only*
+  (+86 chars vs +339): scored **worse** than the full rewrite (Mode 3 3/7 vs
+  6/7, mean 0.592 vs 0.694). The extra prose in the adopted version is doing
+  real work; trimming it back to "just the proven clause" loses half the gain.
+  This one is counterintuitive and will look like an obvious simplification to
+  a future pass — it was measured and rejected.
+
+**Method note:** the eval set is now persistent. Re-probe at
+`--runs-per-query 7`; N=3 is reconnaissance only (see the noise-floor rule added
+to skill-improver `trigger-patterns.md` §T5 the same day, which this run
+produced).
+
 ## Resolved — 2026-07-21 (freshen)
 
 **Third consecutive clean pass.** All 16 ecosystem repos alive and unarchived;
@@ -146,18 +190,6 @@ as a signal rather than as an absence of findings.
   loop with a browser MCP" as a leverage technique; the skill's verifiers are all
   CLI-based. Both 2026-06-09 scorers independently named this the main completeness gap.
 - **Why not applied:** Feature addition + frontmatter tool-scope change; author should decide if browser-loop verifiers are in scope.
-
-### B4 — "deep research" trigger overlaps the built-in deep-research skill (Dim 1) *(carried 2026-06-09, evidence updated)*
-- **Dimension:** Dim 1 (Trigger Precision).
-- **Where:** `SKILL.md` `when_to_use` L11 — "deep research".
-- **Why open:** All four recent blind scorers flag the collision with the installed
-  built-in `deep-research` skill. The 2026-06-09 final scorer suggests disambiguating
-  (e.g., "deep research with recursion/synthesis into a saved report"). The
-  2026-06-09 baseline scorer also noted `evals/evals.json` has zero should-NOT-trigger
-  cases, so the collision is currently unmeasurable.
-- **Action:** Run `/skill-improver trigger autoresearch` with should-NOT evals that
-  belong to the built-in `deep-research` (generic one-shot research asks) vs this
-  skill's Research mode (recursive, saved-report, optimize-handoff asks). Empirical, not a blind description edit.
 
 ## Resolved this pass — 2026-06-09 (improve + freshen)
 

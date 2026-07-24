@@ -16,7 +16,7 @@ Versioning scheme per plugin: `0.YYYYMMDD.N` where `YYYYMMDD` is the UTC date of
 <!-- skills-start -->
 | Plugin | Skill | Description |
 |---|---|---|
-| `agent` | [`autoresearch`](.claude/skills/autoresearch/SKILL.md) | Karpathy-pattern autoresearch — autonomous hill-climbing over a measurable metric, deep multi-agent research, or research-then-optimize. Three modes: Optimize (keep/discard ratchet), Research (STORM multi-perspective), Improve. |
+| `agent` | [`autoresearch`](.claude/skills/autoresearch/SKILL.md) | Autonomous experiment loops that hill-climb a measurable metric — apply one change, measure, keep it only if the number improved, revert if not, repeat unattended. Also deep multi-perspective research producing a saved report, and… |
 | `agent` | [`skill-improver`](.claude/skills/skill-improver/SKILL.md) | Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing on a 10-dimension quality rubric, with blind subagent validation for self-scoring bias, plus a `freshen` mode that probes external references (release notes, docs,… |
 | `bitnami-exit` | [`redis-to-valkey`](.claude/skills/redis-to-valkey/SKILL.md) | Migrate Redis deployments (especially Bitnami Redis Helm charts in Sentinel HA mode) to Valkey on Kubernetes, including fully air-gapped clusters. Core knowledge: the RDB-version wall (Valkey replicates/loads only from Redis ≤ 7.2.x; Redis 7.4+… |
 | `defending-code` | [`patch`](.claude/skills/patch/SKILL.md) | Generate candidate fixes for verified security findings. Consumes TRIAGE.json (preferred), VULN-FINDINGS.json, or an execution-harness results directory. Static-analysis input gets a per-finding patch subagent + an independent reviewer and is… |

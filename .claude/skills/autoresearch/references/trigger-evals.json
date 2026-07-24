@@ -1,0 +1,72 @@
+[
+  {
+    "query": "Set up an autoresearch loop to make this function as fast as possible.",
+    "should_trigger": true,
+    "source": "canonical — names the skill directly"
+  },
+  {
+    "query": "Keep trying different approaches until the p99 latency on this endpoint drops below 200ms.",
+    "should_trigger": true,
+    "source": "when_to_use — numeric target pursued autonomously"
+  },
+  {
+    "query": "I want you to hill-climb on our bundle size until it stops improving, then tell me where the ceiling is.",
+    "should_trigger": true,
+    "source": "when_to_use — 'hill climbing' + ceiling mapping"
+  },
+  {
+    "query": "Run an experiment loop on my training script overnight and keep whatever improves val loss.",
+    "should_trigger": true,
+    "source": "when_to_use — 'experiment loop' + unattended keep/discard"
+  },
+  {
+    "query": "Optimize this system prompt autonomously — I'll be away, keep the wins and revert everything else.",
+    "should_trigger": true,
+    "source": "body Mode 1 — keep/discard ratchet, unattended"
+  },
+  {
+    "query": "Research best practices for our slow search endpoint and then actually try to improve it.",
+    "should_trigger": true,
+    "source": "body Mode 3 — research-then-optimize"
+  },
+  {
+    "query": "Do multi-perspective research on vector database options, save the report, and use it to seed an optimization run.",
+    "should_trigger": true,
+    "source": "body Mode 2 — recursive research WITH saved report and optimize handoff (the half that is NOT bundled deep-research)"
+  },
+  {
+    "query": "Do deep research on the current state of EU AI Act compliance deadlines.",
+    "should_trigger": false,
+    "source": "B4 collision — bare 'deep research', one-shot, no metric or handoff; belongs to the bundled deep-research skill"
+  },
+  {
+    "query": "Research the tradeoffs between Postgres and MySQL for our workload and summarize them.",
+    "should_trigger": false,
+    "source": "B4 collision — one-shot comparative research, no optimize phase"
+  },
+  {
+    "query": "Make this function faster.",
+    "should_trigger": false,
+    "source": "over-broad numeric clause — plain optimization ask with no loop, autonomy, or metric"
+  },
+  {
+    "query": "What's the p99 latency of our API right now?",
+    "should_trigger": false,
+    "source": "measurement question, not an optimization request — tests the latency keyword"
+  },
+  {
+    "query": "Write a benchmark for this sorting function.",
+    "should_trigger": false,
+    "source": "adjacent domain — creates a verifier but requests no loop"
+  },
+  {
+    "query": "Improve the wording of the error messages in this file.",
+    "should_trigger": false,
+    "source": "'improve' keyword collision with no measurable metric"
+  },
+  {
+    "query": "Summarize this paper for me.",
+    "should_trigger": false,
+    "source": "generic conversation decoy"
+  }
+]
