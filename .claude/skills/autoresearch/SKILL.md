@@ -70,6 +70,14 @@ doesn't specify these explicitly.
 may converge faster. Autoresearch's edge is mutating arbitrary code and algorithms.
 Don't gate on this; just note it so the user can choose.
 
+**Budget the run before entering it.** Multiply the baseline verifier duration by
+the iteration cap: a 5-minute verifier over 20 iterations is ~1.7 hours of compute
+plus the agent's own token spend, and the loop is designed to run unattended. State
+that product when presenting the configuration. If it exceeds what the user has
+agreed to, lower `--max` or make the verifier cheaper (smaller input, fewer trials)
+*before* starting — mid-loop budget changes invalidate the baseline that every
+recorded delta is measured against.
+
 ### Step 2: Establish Baseline
 
 1. Create a git branch: `autoresearch/<descriptive-tag>` from current HEAD
@@ -85,9 +93,15 @@ Don't gate on this; just note it so the user can choose.
 
 Run this loop autonomously without pausing for confirmation. The user may be asleep,
 at lunch, or doing other work — they will interrupt when they want it to stop.
-Note that Bash is pre-approved only for `git *` commands — the Step 2 baseline run
-doubles as the permission warm-up for the verifier command, so it gets approved
-while the user is still present, not mid-loop while they are away.
+`allowed-tools` blocks nothing — it only lists what runs *without asking*.
+WebSearch, WebFetch, and Agent are pre-approved because Mode 2 fans out research
+agents and would otherwise prompt on every one. Bash is pre-approved for `git *`
+only, so the verifier still runs but asks the first time; the Step 2 baseline run
+is where that approval lands, while the user is still present rather than mid-loop
+while they are away. Pre-approving a *specific* verifier (`Bash(pytest *)`,
+`Bash(npm run bench)`) is a reasonable thing to add for a repeat target. Blanket
+`Bash` is not — it would let every later iteration run anything unattended, and
+the loop's whole premise is that it mutates code while nobody is watching.
 
 ```
 LOOP:
@@ -103,9 +117,16 @@ LOOP:
   3. COMMIT: `git add <mutable files> && git commit -m "experiment: <description>"`
 
   4. RUN: Execute the verifier. Capture ALL output; retain ~200 lines for the
-     next HYPOTHESIZE (warnings, profiling, timing are signal).
+     next HYPOTHESIZE (warnings, profiling, timing are signal). Never get stuck
+     on a failure — extract the signal and move on:
      - Trivial bug (typo, import): fix and retry once, else log "crash".
-     - Duration >2x baseline: kill, log "timeout".
+     - Runtime crash: apply the obvious fix, else log "crash" and move on.
+     - Duration over the timeout budget: kill, log "timeout". Budget is 2x
+       baseline for 30s-5min runs; shorter runs get 3x, longer runs 1.5x/1.3x
+       (`references/experiment-loop.md` §Timeout Policies).
+     - Variance >2% between identical runs: run the verifier 3 times and take
+       the MEDIAN, not the mean — one outlier run otherwise moves the metric
+       more than the change under test. Note the variance in the log.
 
   5. MEASURE: Extract the metric from the output.
 
@@ -162,10 +183,8 @@ read as a clean sequence of wins, not a pile of hacks.
 Recursive depth+breadth research with parallel agents. Produces a comprehensive,
 source-grounded report.
 
-### Step 1: Decompose the Question
-
-Break the user's question into 3-6 independent research angles. Use the STORM
-multi-perspective pattern — don't just split by subtopic, split by viewpoint:
+Break the question into 3-6 independent research angles using the STORM
+multi-perspective pattern — split by viewpoint, not by subtopic:
 
 - What would a practitioner want to know?
 - What would a skeptic question?
@@ -173,15 +192,9 @@ multi-perspective pattern — don't just split by subtopic, split by viewpoint:
 - What are the competing approaches?
 - What are the failure modes and edge cases?
 
-### Step 2: Dispatch Parallel Research Agents
-
-For each angle, spawn a subagent using the Research Agent Prompt Template in
-`references/deep-research.md`. Each agent returns structured LEARNINGS,
-CONTRADICTIONS, FOLLOW_UPS, SOURCES, and a CONFIDENCE rating.
-
-### Step 3: Synthesize and Recurse
-
-After all agents return:
+Spawn one subagent per angle using the Research Agent Prompt Template in
+`references/deep-research.md`. Each returns structured LEARNINGS, CONTRADICTIONS,
+FOLLOW_UPS, SOURCES, and a CONFIDENCE rating. Once all agents return:
 
 1. **Merge learnings** — deduplicate, resolve contradictions, note confidence levels
 2. **Identify gaps** — what follow-up questions are most important?
@@ -192,9 +205,10 @@ After all agents return:
    (by theme, not by source), Competing Perspectives, Gaps/Uncertainties, and Sources.
    Read `references/deep-research.md` for report templates, agent prompt templates,
    and synthesis patterns.
-5. **Save** — write the final report to `results/<topic>-research-<date>.md`. This
-   file serves as the provenance record. Code changes informed by this research
-   should reference it in comments (see "Provenance Comments" in Mode 1).
+5. **Save** — write the final report to this skill's own
+   `results/<topic>-research-<date>.md`, not the target project's tree. Reports
+   accumulate there as a durable cross-project research archive, and the report
+   is the provenance record that "Provenance Comments" below points back to.
 
 ### Depth Control
 
@@ -206,6 +220,15 @@ After all agents return:
 | Exhaustive | 12+ | 4 | Due diligence, literature reviews |
 
 The user can specify: `/autoresearch research --depth deep "topic"`
+
+**Budget the fan-out before dispatching it.** Sum the agents across levels, not
+just the first round — Standard is ~6+3+2 ≈ 11 agents, Exhaustive reaches ~23.
+Each agent runs several searches, so web searches, not agents, is the binding
+constraint: a session allows 200 subagents and 200 web searches total, with 20
+subagents in flight at once. An Exhaustive run at 5 searches per agent consumes
+over half the session's search budget, and a run that exhausts it fails
+mid-synthesis with partial findings and no report. State the agent count when
+proposing a depth above Standard.
 
 ---
 
@@ -234,9 +257,8 @@ cause the agent to score itself leniently over time. A test either passes or doe
 Present the proposed experiment configuration to the user — truth layer, mutable
 surface, verifier command, metric + direction, and the top 5 hypotheses ranked by
 expected impact from the research — then let them confirm or override and enter
-the Mode 1 loop. Order hypotheses research-informed first, speculative later. When
-keeping changes informed by the research phase, include provenance comments that
-reference the research file (e.g., `See results/<topic>-research-<date>.md`).
+the Mode 1 loop. Order hypotheses research-informed first, speculative later, and
+cite the research report in the provenance comment of every change it informed.
 
 The research phase turns blind exploration into targeted experimentation.
 
@@ -285,13 +307,16 @@ file: session branch/date, metric baseline→final, iteration count (kept/discar
 key changes that moved the needle, and a pointer to results.tsv. Append below any
 previous session comments — don't replace them.
 
-### Crash Handling
+### Resuming an Interrupted Session
 
-Don't get stuck — if an experiment fails, extract signal and move on:
-- **Trivial bug** (typo, import): fix and retry once, then discard
-- **Runtime crash**: apply obvious fix or log as "crash" and move on
-- **Timeout** (>2x baseline): kill, discard, log as "timeout"
-- **Flaky results**: run verifier twice and average; note variance >5%
+Before the first hypothesis of a resumed run, read the prior session comments and
+the **full** results.tsv, not just its tail — the files are the durable record and
+in-context memory of earlier experiments is not. Then re-run the verifier once on
+the branch tip: a metric recorded days ago may not reproduce on today's machine
+state, and mutating against a stale baseline silently corrupts every subsequent
+delta (see "Baseline Re-establishment" in `references/experiment-loop.md`).
+Carrying summaries across sessions this way is measured to unlock further gains,
+not just to document them — see PERFOPT-Bench in `references/ecosystem.md`.
 
 ### Blind Validation (Subjective Metrics)
 

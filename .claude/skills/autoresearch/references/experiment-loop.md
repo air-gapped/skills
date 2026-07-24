@@ -150,12 +150,13 @@ Escape strategies:
 - Ask the user for new ideas to explore
 
 ### Nondeterminism
-GPU kernels, thread scheduling, and compilation caches can introduce noise. If
-metric variance is >2% between identical runs:
-- Run the verifier 3 times and take the median
+GPU kernels, thread scheduling, and compilation caches can introduce noise. The
+loop's own response to variance >2% (run 3x, take the median, log the variance)
+lives in LOOP step 4 of `SKILL.md`. Reduce the noise at its source first:
 - Use `torch.use_deterministic_algorithms(True)` for PyTorch
 - Set random seeds explicitly
-- Note the variance in the results log
+- Pin or clear compilation caches between runs so a warm cache doesn't read as
+  a speedup — this is the one that most often fakes an improvement
 
 ---
 

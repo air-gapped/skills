@@ -2,6 +2,110 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved this pass — 2026-07-24 (improve + freshen)
+
+Baseline self **79** (recalibrated from 82 after the blind scorer verified two
+Dim 8 defects) / blind **74** (Opus 5) → final self **85** / blind **80**.
+10 kept iterations, 0 discards (10-iteration cap reached; **no ceiling claim** —
+see the honesty note at the end of this section).
+
+- **B1 RESOLVED — Boris simplicity cap lifted.** Mode 2's Step 1/2/3 wrappers
+  converted to prose, all content preserved (STORM perspectives, agent dispatch,
+  the 5-item synthesis list, depth table). The final blind scorer now explicitly
+  exempts the skill: "Boris scaffolding cap does **not** fire — the 19 numbered
+  lines are dominated by the Mode 1 LOOP, which is the skill's genuine algorithm
+  rather than derivable invocation flow." Carried since 2026-06-09, capped by 3
+  of the previous 4 scorers.
+- **Two live cross-file contradictions fixed (Dim 8, found by the baseline
+  blind, not by self-scoring).** SKILL.md hardcoded `>2x baseline` timeout in two
+  places against the tiered 3x/2x/1.5x/1.3x table in `experiment-loop.md:115-120`
+  (short experiments were being wrongly killed), and specified flaky handling as
+  *twice, average, >5%* against the reference's *3 runs, median, >2%* — a
+  different threshold **and** a different aggregator. Both reconciled.
+- **Duplication class eliminated, not just its symptom.** The standalone "Crash
+  Handling" section was deleted and its two non-loop rules (runtime crash, flaky
+  results) folded into LOOP step 4, leaving one authority inside SKILL.md. Note
+  this is the *inverse* of the 2026-05-28 discard, which thinned the loop in
+  favour of a pointer and was rejected because the loop must read top-to-bottom;
+  this change completes the loop and removes the redundant section, so the
+  contradiction cannot re-form.
+- **Freshen — first real drift in four passes, invisible to liveness probes.**
+  `alvinreal/awesome-autoresearch` → **`webfuse-com/awesome-autoresearch`**.
+  GitHub redirects the old URL, so `archived=false` + HTTP 200 both pass while
+  the canonical owner is wrong. Fixed in `ecosystem.md` + `sources.md`, with the
+  method fix recorded inline: **probe `full_name` in the API response, not the
+  HTTP status.** This is precisely what the 2026-07-21 method note predicted.
+- **Freshen — new "Benchmarks for the Loop Itself" section.** PERFOPT-Bench
+  (arXiv:2607.07744, 2026-07-08), OPT-BENCH (2605.08904), SEAGym (2606.17546).
+  PERFOPT-Bench is the load-bearing one: the harness changes per-task speedup
+  independently of the model, large gains are frequently shortcut exploitation
+  (independent support for the anomaly check), and cross-session summary
+  externalization measurably unlocks further gains.
+- **Freshen — new "Mechanisms Worth Borrowing" section.** `goal-md` (construct
+  the fitness function before optimizing — independent arrival at Mode 3's
+  premise), `autoautoresearch` (novelty injection to escape stalls),
+  `autoresearch-engram` (cross-session memory), `EvoSkill` (evolve skills from
+  failed trajectories). Grouped by mechanism rather than scattered into the port
+  lists, so the section stays useful as it grows.
+- **Freshen — STORM's dormancy now has live competition** recorded under Research
+  Patterns: `deer-flow` (pushed on the probe date), `gpt-researcher`,
+  `open_deep_research`. The pattern Mode 2 borrows still holds; the codebase is
+  what has been overtaken.
+- **Resume procedure added (Dim 5)** — PERFOPT-Bench's cross-session finding and
+  the baseline blind's "no resume-after-interrupt procedure" gap converged on the
+  same hole: the skill wrote session summaries but never said to read one back.
+- **Budget guardrail added to Mode 1 Step 1 (Dim 5)** — verifier duration ×
+  iteration cap, stated when presenting the configuration, changed before the
+  loop rather than during it.
+- **Mode 2 save path disambiguated (Dim 8)** — reports go to the skill's own
+  `results/`, not the target project tree. Documents the existing convention
+  rather than changing it.
+- **sources.md grew 21 → 39 rows**, oldest `Last verified:` 2026-05-28 (57 days,
+  no Dim 9 cap).
+
+### Post-blind pass — B5/B6/B7 closed the same day
+
+The three items the final blind scorer raised were applied after it returned, so
+the recorded blind **80** predates them. Scored cold afterwards: still **85**
+self. The fixes were real but the metric did not move, and that is the finding —
+dedup returned ~5 lines while the two new guardrails cost ~15, so Dims 2/6 held
+at 7. Trading the guardrail content back for line count would be optimizing the
+score against the artifact, which is the reward hacking this skill exists to
+warn about. Left as-is deliberately.
+
+- **B5 CLOSED — but not by the blanket rule the scorer proposed.** Its three
+  "duplications" were three different problems. (a) *median-of-3*: the SKILL.md
+  copy is inside the LOOP, which the 2026-05-28 discard established must read
+  top-to-bottom — so the **reference** side was trimmed instead, and
+  `experiment-loop.md` §Nondeterminism now carries only source-level noise
+  remedies (seeds, deterministic algorithms, cache pinning) plus a pointer.
+  (b) *local-maxima escape*: *not duplication* — `SKILL.md:150-152` was already
+  a bare pointer with no restatement. Scorer error; no change. (c) *provenance
+  comments*: the genuine case — Mode 2 and Mode 3 each re-explained the
+  mechanism the dedicated section owns; both reduced to bare pointers.
+- **B6 CLOSED** — Mode 2 now budgets its fan-out (~11 agents Standard, ~23
+  Exhaustive) and names web searches, not agents, as the binding constraint
+  against the session's 200-search cap, with the failure mode stated: exhausting
+  it fails mid-synthesis with partial findings and no report.
+- **B7 CLOSED — and the scorer's premise was wrong.** The blind scorer framed
+  `allowed-tools: Bash(git *)` as the loop being unable to run its own verifier.
+  It is not: `allowed-tools` is a **pre-approval** list, not a restriction list
+  (the restriction field is `disallowed-tools`, v2.1.152, which this skill does
+  not use — see `anthropic-skill-design.md` frontmatter table). Nothing is
+  blocked; WebSearch / WebFetch / Agent are pre-approved so Mode 2's fan-out does
+  not prompt per agent, and Bash runs the verifier fine, it just asks once. The
+  first wording of this fix inherited the scorer's error and implied a capability
+  limit; corrected to state what the field actually does, and to allow the
+  sensible middle option — pre-approving a *specific* verifier (`Bash(pytest *)`)
+  is fine, blanket `Bash` is not.
+  **Method note:** a blind scorer asserting a platform-semantics claim is not
+  evidence. Check the frontmatter reference before acting on one.
+
+**Honesty note — this run mapped no ceiling.** Ten iterations, ten keeps, zero
+discards. Per skill-improver's own rule, a run with zero discards has not
+demonstrated a ceiling; it hit the iteration cap with work still available. The
+items under Open below are real remaining work, not a ceiling.
+
 ## Resolved — 2026-07-21 (freshen)
 
 **Third consecutive clean pass.** All 16 ecosystem repos alive and unarchived;
@@ -34,25 +138,6 @@ as a signal rather than as an absence of findings.
 
 
 ## Open
-
-### B1 — Boris simplicity cap on Mode 2 procedural scaffolding (Dim 6) *(carried 2026-06-09, evidence updated)*
-- **Dimension:** Dim 6 (Simplicity), cross-cutting Boris "strict workflow scaffolding" cap.
-- **Where:** `SKILL.md` Mode 2 (Step 1/2/3, ~L164–197). Mode 3's Phase wrappers were
-  converted to prose on 2026-06-09 (partial resolution); Mode 1's LOOP and Step 2
-  baseline list are genuine algorithm — leave them.
-- **Evidence:** The cap now fires for **3 of the 4 most recent blind scorers**
-  (2026-05-28 final, 2026-06-09 baseline, 2026-06-09 final; only the 2026-05-28
-  baseline scorer exempted). The 2026-06-09 final scorer adds two sharper claims:
-  (a) collapsing Mode 2's Step wrappers would lift Dim 6 AND likely drop SKILL.md
-  (331 lines) under the 300-line lean band, fixing Dim 2 as well; (b) Mode 2
-  "partially duplicates the built-in `deep-research` skill", which dilutes Dim 10.
-- **Why not applied:** Mode 2's steps carry the STORM decomposition and synthesis
-  pedagogy — converting is a multi-section prose rewrite (fails the atomicity
-  split-test) AND there is a scope question only the author can settle: keep Mode 2
-  as a differentiated in-skill workflow, or slim it toward a pointer now that a
-  built-in `deep-research` skill exists.
-- **Action:** Author decides Mode 2's fate (full prose conversion vs scope cut).
-  If converting, do it as one focused pass and re-score Dims 6/2/4/10 cold.
 
 ### B3 — Browser-MCP-in-the-loop verifier (Dim 5/10, optional) *(carried 2026-06-09)*
 - **Dimension:** Dim 5 (Completeness) / Dim 10 (Differentiation).
@@ -126,3 +211,5 @@ digging through git.)*
 | 2026-05-28 final | 89 | 89 (Opus) | Dim 6 contested (Boris cap: scorer A=8, scorer B=6); freshen + 1 keep, 1 discard |
 | 2026-06-09 baseline | 84 | 80 (Fable 5) | Dim 8 flag (+2): dead stopping rule; Dim 6 Boris cap fired |
 | 2026-06-09 final | 86 | 84 (Fable 5) | no 2+ gaps; Dim 6 cap persists on Mode 2 (B1) — 3 of last 4 scorers cap it |
+| 2026-07-24 baseline | 79 | 74 (Opus 5) | self recalibrated 82→79 after blind verified 2 real Dim 8 contradictions; Dim 8 gap +3, Dim 2 gap +2 |
+| 2026-07-24 final | 85 | 80 (Opus 5) | no 2+ gaps; **B1 closed** — blind explicitly exempts Mode 1 LOOP from the Boris cap |

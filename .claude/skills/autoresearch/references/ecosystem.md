@@ -1,6 +1,6 @@
 # Autoresearch Ecosystem & Prior Art
 
-*Last updated: 2026-06-09. See `results/autoresearch-evolution-research-2026-04-06.md`
+*Last updated: 2026-07-24. See `results/autoresearch-evolution-research-2026-04-06.md`
 for the full research report with methodology, findings, and source assessments.*
 
 ## Canonical
@@ -40,6 +40,27 @@ for the full research report with methodology, findings, and source assessments.
 - [Meta-Harness](https://yoonholee.com/meta-harness/) — Agentic outer-loop. Reads
   10M+ tokens of execution traces. 10x fewer evaluations than program-search baselines.
 
+## Mechanisms Worth Borrowing
+
+Descendants whose contribution is a specific loop mechanism rather than a port.
+
+- [jmilinovich/goal-md](https://github.com/jmilinovich/goal-md) — generalizes the
+  pattern to repos where the agent must *first construct a measurable fitness
+  function* before it can optimize. Independent arrival at Mode 3's premise:
+  the hard part is manufacturing the metric, not climbing it.
+- [ArmanJR-Lab/autoautoresearch](https://github.com/ArmanJR-Lab/autoautoresearch) —
+  adds a "director" that injects novelty (arXiv papers, a reasoning model) into a
+  stalled loop, and reports baseline-vs-director comparisons with stall analysis.
+  A concrete implementation of the Local Maxima escape strategies.
+- [tonitangpotato/autoresearch-engram](https://github.com/tonitangpotato/autoresearch-engram) —
+  persistent cross-session memory with frequency-weighted retrieval, so
+  experiment history survives beyond one run. Same direction PERFOPT-Bench
+  measured a gain from.
+- [sentient-agi/EvoSkill](https://github.com/sentient-agi/EvoSkill) — evolves
+  reusable skills and prompts *from failed trajectories* against benchmarks;
+  supports Claude Code, Codex CLI, OpenCode, OpenHands, Goose. Turns the discard
+  pile into an artifact instead of discarding it.
+
 ## Swarm / Distributed
 
 - [HKUDS/ClawTeam](https://github.com/HKUDS/ClawTeam) — Leader + specialized workers.
@@ -67,6 +88,14 @@ for the full research report with methodology, findings, and source assessments.
   reference rather than a dependency to track.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
   depth+breadth implementation in <500 lines.
+- **Actively-maintained alternatives to a dormant STORM**, if the codebase rather
+  than the pattern is what's wanted: [bytedance/deer-flow](https://github.com/bytedance/deer-flow)
+  (now a long-horizon harness with sandboxes, memory, subagents — pushed
+  2026-07-24), [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
+  (parallelized plan-and-solve: static planner decomposes, concurrent retrieval
+  agents execute), and [langchain-ai/open_deep_research](https://github.com/langchain-ai/open_deep_research).
+  All three are outline-or-plan-driven like STORM; none replaces the
+  multi-perspective decomposition Mode 2 borrows.
 - [Deep Researcher Reflect Evolve](https://arxiv.org/abs/2601.20843) — Sequential
   refinement with Global Research Context. Beat Claude Researcher, Perplexity, and Grok.
   Key finding: sequential > parallel in 95.6% of configurations.
@@ -87,10 +116,37 @@ for the full research report with methodology, findings, and source assessments.
 - [DSPy MIPROv2](https://dspy.ai/) — Bayesian surrogate model (TPE) for prompt optimization.
   State of the art for systematic prompt tuning.
 
+## Benchmarks for the Loop Itself
+
+Benchmarks that measure agents doing *exactly what Mode 1 does*. Useful as
+evidence about the loop's design, not as dependencies.
+
+- [PERFOPT-Bench](https://arxiv.org/abs/2607.07744) (2026-07-08) — evaluates
+  coding agents on the full performance-engineering workflow: profile, locate
+  the bottleneck, optimize, preserve correctness, reproduce the speedup. Two
+  findings bear on this skill directly. First, *"no single stack dominates, and
+  changing the agent framework can materially change the same LLM's per-task
+  speedup profile"* — the harness is a variable, not a constant, so a loop's
+  design decisions matter as much as its model. Second, *"some large gains arise
+  from benchmark-specific shortcut exploitation"* — independent confirmation of
+  the anomaly check in Mode 1 Step 6. The paper also reports that externalizing
+  optimization summaries between sessions unlocks further gains, which is the
+  measured case for the results ledger and end-of-session summary.
+- [OPT-BENCH](https://arxiv.org/abs/2605.08904) (2026-05-09) — iterative
+  self-optimization across 20 ML tasks and 10 NP-hard problems, 19 LLMs from 3B
+  to 235B. Stronger models extract more from environmental feedback, and base
+  model capacity — not loop design — sets the ceiling on adaptability. Read as a
+  caution against attributing a plateau to the loop when it belongs to the model.
+- [SEAGym](https://arxiv.org/abs/2606.17546) (2026-06-16) — evaluation
+  environment for self-evolving agents on Terminal-Bench 2.0 and HLE, with a
+  shared epoch/batch protocol for comparing outer-loop designs.
+
 ## Curated Lists
 
-- [alvinreal/awesome-autoresearch](https://github.com/alvinreal/awesome-autoresearch) —
-  60+ projects organized by category
+- [webfuse-com/awesome-autoresearch](https://github.com/webfuse-com/awesome-autoresearch) —
+  100+ projects organized by category. Transferred from `alvinreal/` (old URL
+  still redirects, so liveness probes do not catch the move — check `full_name`
+  in the API response, not the HTTP status).
 - [WecoAI/awesome-autoresearch](https://github.com/WecoAI/awesome-autoresearch) —
   Includes optimization traces showing what agents actually tried
 
