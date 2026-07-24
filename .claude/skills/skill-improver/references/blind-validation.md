@@ -41,8 +41,11 @@ the skill is freshened continuously and its claims may postdate the knowledge
 cutoff. A claim covered by a recent `Last verified:` stamp in sources.md
 outranks the prior. If a claim looks wrong, say "verify online" — never
 recommend reverting it to an older value from memory.
-Apply the Boris Alignment Check caps and the SkillLens Utility Check caps
-where they fire (rubric §§). Do not reward fluency: text that reads well
+Apply the Boris Alignment Check caps, the SkillLens Utility Check caps, and
+the Negative-Transfer Gate where they fire (rubric §§). For the
+Negative-Transfer Gate: unless a `benchmark.json` with a positive
+`delta_pass_rate` is present in the skill directory, Dim 10 is capped at 8 —
+"essential" is a claim about measured outcomes, not about how the text reads. Do not reward fluency: text that reads well
 does not predict utility (SkillLens inversion) — check for failure
 mechanisms with executable remedies, actionable specificity, and high-risk
 blacklists, and never justify a score delta on format alone.

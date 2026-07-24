@@ -5,7 +5,9 @@ construction, the probe mechanism, mutation patterns for fixing under-trigger
 and over-trigger, and the keep/discard rules specific to trigger-rate scoring.
 
 Methodology mirrors Anthropic's official `skill-creator` description-optimization
-loop (60/40 train/test, 3 runs/query, blinded test scores, ≤1024-char hard cap)
+loop (60/40 train/test, blinded test scores, ≤1024-char hard cap), except on
+runs-per-query: skill-creator uses 3, this skill decides at 7 — see the noise
+floor in §"Phase T5"
 documented at `references/sources.md` (Skill authoring best practices,
 anthropics/skills `improve_description.py`, `run_eval.py`, `run_loop.py`).
 
@@ -26,7 +28,8 @@ reliably fires when it should and stays silent when it shouldn't. Same
 keep/discard hill-climbing structure as `improve`, but the metric is **trigger
 rate against an eval set** — exactly the methodology Anthropic's own
 `skill-creator` uses for description optimization (60/40 train/test split,
-3 runs/query, blinded test scores, ≤1024-char hard cap).
+blinded test scores, ≤1024-char hard cap) — but at 7 runs/query, not
+skill-creator's 3, for the reason in Phase T5.
 
 **Use trigger mode when:** a user reports "the skill didn't fire when I asked
 X", "Claude isn't using my skill", or a description looks too vague,
@@ -71,7 +74,7 @@ Run the probe with a stratified train/test split:
 python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
   --skill-path <skill-dir> \
   --eval-set <skill-dir>/references/trigger-evals.json \
-  --holdout 0.4 --runs-per-query 3 --num-workers 6 --verbose
+  --holdout 0.4 --runs-per-query 7 --num-workers 7 --verbose
 ```
 
 The probe installs the candidate description as a real **skill** in a fresh
@@ -102,7 +105,7 @@ Categorise the train-set failures and pick ONE mutation type per
 | All failures are should-trigger misses (under-trigger) | T1 — add explicit phrases, be pushier, front-load |
 | All failures are should-NOT false-positives (over-trigger) | T2 — add negative boundary, tighten scope |
 | Mixed under + over | T3 — fix whichever class has more failures first |
-| 1/3 or 2/3 trigger rates dominate | T4 — strengthen redundancy, bump runs-per-query to 5 |
+| Fractional trigger rates dominate (not 0.00/1.00) | T4 — the measurement is underpowered before it is a mutation problem: re-measure the disputed queries at N=7+ (§T5 noise floor) before proposing any edit |
 | Cap-bound: description hits 1024 chars | T5 — re-balance into description vs when_to_use |
 | Sibling skill steals the trigger | T6 — backlog finding, NOT single-skill mutation |
 
@@ -124,10 +127,36 @@ constraints:
 Re-run the probe with the new description (override via
 `--description "<text>"` so the file isn't written until accepted).
 
+**Noise floor first — a thresholded pass count at low N is not a measurement.**
+With `--runs-per-query 3` a query can only score 0, 0.33, 0.67 or 1.0, so any
+query whose true rate is near the 0.5 threshold is a coin flip, and train
+moves ±1–2 queries on resampling alone. Before treating any train delta as
+real:
+
+- Use **`--runs-per-query 7`** for decisions. Reserve 3 for a first
+  reconnaissance probe that tells you *where* the disputed queries are, never
+  for keep/discard.
+- Compare on **mean trigger rate across queries**, not the thresholded pass
+  count. Thresholding discards most of what the probe paid for: a candidate can
+  tie 4/7 on pass count while differing by 8 fires out of 49.
+- Re-measure only the disputed queries at high N rather than the whole set.
+  Queries sitting at 0.00 or 1.00 across every run so far are settled and need
+  no further compute.
+- A single query moving 1/7 → 6/7 (Fisher exact p≈0.03) is a result. A query
+  moving 6/7 → 5/7 is not, no matter how canonical the query looks.
+
+Observed 2026-07-24 on `autoresearch`: at N=3 the canonical "set up an
+autoresearch loop" query read 0.67 → 0.00 and drove a whole iteration built on
+a fabricated mechanism about proper-noun placement; at N=7 the same pair was
+6/7 vs 5/7 — nothing. The same low-N artifact simultaneously *hid* a real
+Mode-3 fix behind a tied pass count.
+
 Decision rule on **train** scores:
 
-- **Train improved by ≥1 query** → KEEP. Write the new frontmatter to
+- **Train improved by ≥1 query at N≥7** → KEEP. Write the new frontmatter to
   SKILL.md. New baseline.
+- **Pass count tied but mean trigger rate up ≥0.10 with no should-NOT
+  regression** → KEEP. The binary metric is the lossy one.
 - **Train equal but description shorter/simpler** → KEEP (simplification ties
   per the Karpathy rule).
 - **Train equal or worse** → DISCARD. Revert the proposal (file unchanged
@@ -324,7 +353,7 @@ Baseline + train/test split:
 python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
   --skill-path /path/to/target-skill \
   --eval-set /path/to/target-skill/references/trigger-evals.json \
-  --holdout 0.4 --runs-per-query 3 --num-workers 6 --verbose
+  --holdout 0.4 --runs-per-query 7 --num-workers 7 --verbose
 ```
 
 Test a candidate description without writing it to SKILL.md yet:
@@ -334,7 +363,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/probe-trigger.py \
   --skill-path /path/to/target-skill \
   --eval-set /path/to/target-skill/references/trigger-evals.json \
   --description "Use this skill when..." \
-  --holdout 0.4 --runs-per-query 3
+  --holdout 0.4 --runs-per-query 7
 ```
 
 Output is JSON with `train.summary` and `test.summary`, each carrying

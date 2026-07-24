@@ -378,6 +378,52 @@ never justify a score delta on format alone.
 
 ---
 
+## Negative-Transfer Gate (Dim 10 cap, evidence-based)
+
+SkillLens (arXiv:2605.23899) measured skills against a no-skill baseline and
+found they help in only **75% of extractor-target pairs — 25% are net-harmful**,
+with the worst domain at **47% negative** ("ALFWorld is the most fragile").
+A skill is not neutral-to-positive by default. Roughly one in four makes the
+agent *worse* at the task it was written for.
+
+Dim 10's own test — "if this skill were deleted, would Claude produce noticeably
+worse results?" — is precisely this measurement. Scorers currently answer it from
+intuition, which is the judgment SkillLens clocked at 46.4% (worse than chance).
+So Dim 10 is capped by what has actually been measured:
+
+| Evidence | Max Dim 10 |
+|---|---|
+| `delta_pass_rate < 0` — skill loses to no-skill | **2**, and surface it as the headline finding |
+| `delta_pass_rate ≈ 0` (inside run-to-run variance) — non-discriminating | 5 |
+| `delta_pass_rate > 0`, measured | no cap — score on the evidence |
+| Never measured | **8** — "essential" (9–10) is a claim about outcomes, not text |
+
+The unmeasured cap is the one that binds most often, and it is deliberate: a
+9–10 on Dim 10 asserts the skill "fundamentally changes Claude's capability",
+which no amount of reading the text can establish.
+
+**How to measure it.** Do NOT build a harness — the official `skill-creator`
+plugin already runs each eval case with and without the skill and computes the
+delta:
+
+```bash
+# after skill-creator has produced with_skill/ and without_skill/ runs
+cd ~/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator
+python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
+# -> benchmark.json carries delta_pass_rate, delta_time, delta_tokens
+```
+
+Requires the target to have `evals/evals.json`. A skill with no eval set cannot
+clear the unmeasured cap — that is a finding, not an obstacle: log it as an Open
+backlog item with action "build an eval set, then measure delta_pass_rate".
+
+**A negative delta is not automatically a delete.** Check the analyst pass first
+— a skill can lose on `pass_rate` while winning on tokens or time, and a single
+flaky eval can invert a small delta. Confirm the sign is stable across runs
+before acting on it. But do not round a negative delta up to "roughly neutral":
+the whole point of the gate is that this failure mode is common and invisible to
+text scoring.
+
 ## Scoring Template
 
 Use this format when reporting scores:

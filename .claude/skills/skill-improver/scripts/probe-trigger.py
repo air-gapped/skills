@@ -25,7 +25,7 @@ holdout is requested. The parent loop reads this and decides what to mutate.
 
 Usage:
   probe-trigger.py --skill-path <dir> --eval-set <eval.json> [--description <override>]
-                   [--runs-per-query 3] [--trigger-threshold 0.5] [--timeout 180]
+                   [--runs-per-query 7] [--trigger-threshold 0.5] [--timeout 180]
                    [--num-workers 6] [--holdout 0.4] [--seed 42] [--model <id>]
 
 Eval-set JSON shape:
@@ -359,7 +359,7 @@ def main():
         default=None,
         help="Override description (defaults to SKILL.md frontmatter)",
     )
-    p.add_argument("--runs-per-query", type=int, default=3)
+    p.add_argument("--runs-per-query", type=int, default=7)
     p.add_argument("--trigger-threshold", type=float, default=0.5)
     p.add_argument(
         "--timeout",

@@ -7,7 +7,7 @@ description: >-
   (release notes, docs, deprecation signals) and applies verified updates,
   plus a `trigger` mode that measures and tunes the skill's frontmatter
   description until it reliably fires when it should and stays silent when
-  it shouldn't (60/40 train/test split, 3 runs/query, blinded test scores).
+  it shouldn't (60/40 train/test split, 7 runs/query, blinded test scores).
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",
@@ -290,6 +290,13 @@ When the user only wants a quality score without iterating:
 4. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
 5. Stop. Do not enter the improvement loop unless asked.
 
+**Dim 10 is capped until net value is measured.** A skill is not
+neutral-to-positive by default — SkillLens measured **25% of skills as
+net-harmful** against a no-skill baseline (47% in the worst domain). The rubric's
+§"Negative-Transfer Gate" caps Dim 10 at 8 while unmeasured and at 2 when the
+skill loses to no-skill. Measuring means `delta_pass_rate` from skill-creator's
+`aggregate_benchmark`, not a judgement about the text.
+
 **Scope boundary — every metric here scores the skill's *text*, never its
 outputs.** SkillLens measured text-only judging at 46.4% accuracy against real
 utility, so a rising rubric score is not evidence the skill's results improved.
@@ -322,7 +329,7 @@ Measure and tune a skill's frontmatter `description` (and `when_to_use`) so it
 fires when it should and stays silent when it shouldn't. Same keep/discard
 hill-climbing as `improve`, but the metric is **trigger rate against an eval
 set** — the methodology Anthropic's `skill-creator` uses (60/40 train/test,
-3 runs/query, blinded test scores, ≤1024-char cap).
+7 runs/query for decisions, blinded test scores, ≤1024-char cap).
 
 **Use trigger mode when:** a user reports "the skill didn't fire" / "Claude isn't
 using my skill", or a description is too vague, narrow, or keyword-collision-y.

@@ -89,6 +89,43 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
 
+## Resolved — 2026-07-24 (evidence gaps found while running `autoresearch`)
+
+Two defects in this skill surfaced by *using* it, not by scoring it. Both are
+cases where the improver could not detect its own errors.
+
+**1. Negative-Transfer Gate added (rubric §, new).** SkillLens's headline number
+— skills help in 75% of extractor-target pairs, so **25% are net-harmful**, 47%
+in the worst domain — had been sitting in a `sources.md` row since 2026-07-18 and
+never reached the rubric or the loop. Nothing here ever asked *is this skill
+worse than no skill*. Dim 10's own stated test ("if this skill were deleted,
+would Claude produce noticeably worse results?") **is** that question, answered
+by intuition — the judgement SkillLens clocked at 46.4%, worse than chance.
+Dim 10 is now capped by measured `delta_pass_rate`: 2 if negative, 5 if ≈0,
+uncapped if positive, and **8 while unmeasured** (a 9–10 asserts an outcome, not
+a reading). Measurement reuses skill-creator's existing
+`scripts/aggregate_benchmark.py`, which already computes with_skill vs
+without_skill — deliberately not rebuilt here. Also wired into the blind-scorer
+prompt so blind runs apply the same cap.
+
+**2. Trigger mode's decision rule was unsound at its own default.** At
+`--runs-per-query 3` a query can only score 0/0.33/0.67/1.0, so any query near
+the 0.5 threshold is a coin flip and train moves ±1–2 on resampling alone. The
+`autoresearch` run demonstrated both failure directions in one session: N=3
+manufactured a 0.67 → 0.00 "regression" on the canonical query (6/7 vs 5/7 at
+N=7 — pure noise) which cost a full wasted iteration built on a fabricated
+proper-noun-placement mechanism, *and* hid a real 1/7 → 6/7 fix behind a tied
+pass count. Fixed: probe default 3 → **7**; decision now allows a keep on mean
+trigger rate (+≥0.10, no should-NOT regression) when the binary count ties;
+guidance to re-measure only disputed queries at high N; T4 row rewritten to say
+fractional rates mean *underpowered measurement*, not a mutation problem. The
+"mirrors skill-creator" claim was corrected — the methodologies now differ on
+this axis and the doc says so.
+
+*Note the shape of both:* this skill warns targets about reward hacking and
+noise, and was itself thresholding single-sample noise and scoring utility by
+vibes. Running it against a real target found what scoring it never did.
+
 ## Resolved this pass — 2026-07-24 (freshen + improve, Opus 5 release day)
 
 Baseline self **83** (post-freshen) / blind **83** → final self **88** / blind
