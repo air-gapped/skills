@@ -106,6 +106,35 @@ discards. Per skill-improver's own rule, a run with zero discards has not
 demonstrated a ceiling; it hit the iteration cap with work still available. The
 items under Open below are real remaining work, not a ceiling.
 
+## Resolved — 2026-07-24 (B3, browser verifiers)
+
+**B3 CLOSED — scoped down, not built out.** Carried since 2026-06-09; both that
+day's scorers called the absence of a browser-driven verifier the main Dim 5 gap,
+citing Karpathy's "put it in the loop with a browser MCP".
+
+Checking first narrowed it: `domain-templates.md` already ships a Lighthouse
+verifier measuring a real rendered page, so page-load metrics were never actually
+missing. What a driven browser adds is only what a headless one-shot cannot see —
+interactive flows, UI state, multi-step journeys.
+
+Resolved as guidance rather than a feature, and deliberately so: raw interactive
+timings swing 10%+ run-to-run, which is larger than most single experiments move
+the metric, so they are the worst possible input to a keep/discard ratchet. The
+new "Browser Flows" template says to convert the observation to binary assertions
+first (the same subjective→binary conversion Mode 3 already prescribes), or take
+a median of N if a continuous metric is genuinely needed — and to declare the
+target un-optimizable when neither yields variance smaller than the improvement
+being chased.
+
+No frontmatter change: driving a browser takes the same one-time verifier
+approval as any other non-git command, which the least-privilege design in
+Mode 1 Step 3 already covers (see B7).
+
+*Context for the timing:* this closed the same day the trigger run showed an
+underpowered measurement manufacturing two false conclusions. Adding the noisiest
+verifier class as a headline capability would have pointed the loop at exactly
+the failure mode it handles worst.
+
 ## Resolved — 2026-07-24 (trigger mode)
 
 **B4 RESOLVED — and its premise was backwards.** Carried since 2026-06-09 and
@@ -183,13 +212,18 @@ as a signal rather than as an absence of findings.
 
 ## Open
 
-### B3 — Browser-MCP-in-the-loop verifier (Dim 5/10, optional) *(carried 2026-06-09)*
-- **Dimension:** Dim 5 (Completeness) / Dim 10 (Differentiation).
-- **Where:** `references/domain-templates.md` and/or Mode 1 verifier guidance; `allowed-tools` in `SKILL.md` frontmatter.
-- **Why open:** Karpathy's Jan 2026 primary source explicitly lists "put it in the
-  loop with a browser MCP" as a leverage technique; the skill's verifiers are all
-  CLI-based. Both 2026-06-09 scorers independently named this the main completeness gap.
-- **Why not applied:** Feature addition + frontmatter tool-scope change; author should decide if browser-loop verifiers are in scope.
+*Empty as of 2026-07-24 — B1/B4/B5/B6/B7 resolved, B3 scoped down and closed.*
+
+**This is not a ceiling claim.** Every item that had been attempted and parked is
+now closed; that means the backlog is current, not that the skill is finished.
+The 2026-07-24 improve run hit its 10-iteration cap with zero discards, which by
+this skill's own rule demonstrates no ceiling at all. Known live constraints for
+the next pass: Dim 2/6 sit at 7 because SKILL.md is 353 lines (the guardrail
+content added on 2026-07-24 was judged worth the length — do not trade it back
+for line count), and **Dim 10 is now capped at 8 for this skill until
+`delta_pass_rate` is measured** under skill-improver's Negative-Transfer Gate.
+`evals/evals.json` exists with 3 cases, so that measurement is available to run
+and has not been run.
 
 ## Resolved this pass — 2026-06-09 (improve + freshen)
 

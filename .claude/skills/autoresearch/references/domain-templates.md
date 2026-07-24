@@ -6,6 +6,7 @@ starting points — adapt to the specific project.
 ## Table of Contents
 - [Web Performance (Bundle Size)](#web-performance-bundle-size)
 - [Web Performance (Lighthouse / Core Web Vitals)](#web-performance-lighthouse--core-web-vitals)
+- [Browser Flows (interactive)](#browser-flows-interactive-via-a-browser-mcp-or-playwright)
 - [API Latency](#api-latency)
 - [Database Query Optimization](#database-query-optimization)
 - [ML Training (Karpathy Original)](#ml-training-karpathy-original)
@@ -46,6 +47,39 @@ typical_experiments:
   - Render-blocking resource elimination
   - Component-level code splitting
 ```
+
+## Browser Flows (interactive, via a browser MCP or Playwright)
+
+Use when the thing being optimized only exists in a live browser — a checkout
+flow completing, a UI reaching a state, a multi-step interaction. Lighthouse
+above already covers page-load metrics via CLI; reach for a driven browser only
+for what a headless one-shot cannot observe.
+
+**Convert the observation to a stable number before putting it in the loop.**
+Raw interactive timings are the noisiest verifier class in this file — 10%+
+run-to-run swing is normal, which is larger than most single experiments move
+the metric. Feeding them straight to the ratchet produces keeps and discards
+that are measuring the browser, not the change. Two ways to make it usable:
+
+```yaml
+# Preferred: binary assertions (immune to timing noise)
+verifier: "npx playwright test flows/checkout.spec.ts --reporter=json | jq '.stats.expected'"
+metric: "assertions passed (higher is better)"
+
+# If a continuous metric is genuinely needed: median of N, never a single run
+verifier: "for i in 1 2 3 4 5; do ./measure-flow.sh; done | sort -n | sed -n 3p"
+metric: "median flow duration ms (lower is better)"
+```
+
+The binary form is the same conversion Mode 3 already recommends for subjective
+metrics: "did the flow complete", "is the cart total correct", "did the modal
+open" — a flow either works or it doesn't, and that survives noise a duration
+never will. If neither form yields a metric whose run-to-run variance is smaller
+than the improvement being chased, the loop cannot optimize it; say so rather
+than producing a ledger of noise.
+
+Driving a browser needs tools beyond the pre-approved `Bash(git *)` — the same
+one-time approval as any other verifier (see Mode 1 Step 3).
 
 ## API Latency
 
