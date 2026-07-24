@@ -54,15 +54,17 @@ skill and it will read them at appropriate times.
 
 | Field | Description |
 |-------|-------------|
-| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Available levels depend on the model (`xhigh` is Fable 5 and Opus 4.8/4.7, added v2.1.111; `max` originally Opus 4.6). **Opus 4.8 defaults to `high`** — use `xhigh` for hard tasks, `max` for the hardest. Inherits from session if omitted. |
+| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Availability per model (platform effort docs, 2026-07-24): `xhigh` on Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Opus 4.6/4.5. **Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
 | `paths` | Glob patterns (comma-separated string or YAML list) limiting when skill activates based on files being worked on. |
 | `context` | Set to `fork` to run in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
 | `agent` | Subagent type when `context: fork` is set. Built-in: `Explore`, `Plan`, `general-purpose`. Or custom from `.claude/agents/`. Defaults to `general-purpose` if omitted. |
+| `background` | Only with `context: fork`. Default `true` since v2.1.218 — the fork runs in the background and its result arrives later, under the **narrower background-subagent tool set**. Set `false` to block the invoking turn and keep the full tool set. |
+| `arguments` | Named positional arguments for `$name` substitution in skill content. Space-separated string or YAML list; names map to argument positions in order. |
 | `model` | Override model: `opus`, `sonnet`, `haiku`, or full model ID. |
 | `hooks` | Hooks scoped to skill lifecycle. See hooks docs for format. |
 | `shell` | `bash` (default) or `powershell` for `` !`command` `` and ```!``` blocks. `powershell` requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`. |
 | `argument-hint` | Hint shown during autocomplete, e.g. `[issue-number]`. |
-| `disable-model-invocation` | `true` = only user can invoke via `/name`. Removes description from Claude's context entirely. |
+| `disable-model-invocation` | `true` = only user can invoke via `/name`. Removes description from Claude's context entirely. Also blocks preloading into subagents and (v2.1.196+) blocks the skill from running when a scheduled task fires with it as the prompt. |
 | `user-invocable` | `false` = hidden from `/` menu. Only Claude can invoke. Description stays in Claude's context. |
 | `disallowed-tools` | Space-delimited or YAML list of tools to remove from the model while the skill is active (v2.1.152). Inverse of `allowed-tools` — use to scope a skill away from tools it must not touch. |
 
@@ -305,7 +307,11 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.170 | 2026-06-09 | **Claude Fable 5 (`claude-fable-5`) ships — Mythos-class tier above Opus.** Supports `xhigh` effort and dynamic workflows. API $10/$50 per Mtok; included on Pro/Max/Team/seat-Enterprise Jun 9–22 2026, usage credits afterward. |
 | v2.1.205 | 2026-07 | `/doctor` becomes a bundled skill and stays typable even with `disableBundledSkills` on (hide via `DISABLE_DOCTOR_COMMAND` or a `skillOverrides` entry). Custom commands fully merged into skills — `.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`; nested `.claude/skills/` dirs give directory-qualified names (`apps/web:deploy`). |
 | v2.1.212 | 2026-07 | Session-wide loop guards: WebSearch capped at 200 calls (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), subagent spawns capped at 200 (`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`, `/clear` resets) — batch/blind fan-outs count against these. `/fork` copies the conversation to a background session; the old in-session fork is `/subtask`. |
-| v2.1.214 | 2026-07-17 | Current release as of 2026-07-18 freshen. `EndConversation` tool; permission-check hardening (fail-closed Bash redirects, >10k-char commands always prompt). No skill-frontmatter or Skill-tool behavior changes v2.1.171→214 beyond rows above. |
+| v2.1.214 | 2026-07-17 | `EndConversation` tool; permission-check hardening (fail-closed Bash redirects, >10k-char commands always prompt). No skill-frontmatter or Skill-tool behavior changes v2.1.171→214 beyond rows above. |
+| v2.1.215 | 2026-07-19 | Claude no longer self-invokes the `/verify` and `/code-review` skills — user invocation only. |
+| v2.1.217 | 2026-07-21 | Concurrent-subagent cap: default **20** in flight (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); nested subagent spawning off by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`); `--max-budget-usd` now halts running background subagents. `paths` frontmatter brace expansion budget-bounded (many brace groups previously OOM-killed startup). |
+| v2.1.218 | 2026-07-22 | **New skill frontmatter field `background`** — `context: fork` skills run in the background by default; `background: false` blocks the turn and restores the full tool set. Frontmatter booleans also accept `yes`/`no`/`on`/`off`/`1`/`0`. `/deep-research` and `/code-review` no longer self-launch. |
+| v2.1.219 | 2026-07-24 | **Claude Opus 5 (`claude-opus-5`) ships** — default Opus model, 1M context, $5/$25 per Mtok, knowledge cutoff May 2026. Platform docs still label Fable 5 "most capable widely released model", but the launch benchmarks put Opus 5 ahead of Fable 5 on knowledge work, agentic search, tool-using reasoning, and agentic terminal coding, with Fable 5 ahead only on sub-1-point coding/tool-free-reasoning margins and legal — **blind-validation pin moved to Opus 5** (see `blind-validation.md` §Model selection). Dynamic workflows default to a **medium size guideline (<15 agents)**, settable via `workflowSizeGuideline`; nested subagent depth raised to 3. |
 
 ### Key Settings
 

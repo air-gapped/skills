@@ -182,55 +182,12 @@ Before declaring the run done, update `<skill>/references/improvement-backlog.md
 (create the file if absent). This is non-optional — ceiling findings that exist
 only in chat disappear when the session ends.
 
-Write two sections:
-
-1. **Open** — every issue the loop **actually attempted** as a hypothesis and
-   could NOT apply in a single iteration (multi-file restructure, author-only
-   domain content, flagged-for-review findings from freshen, or rule-ceiling
-   discards). For each entry:
-   - one-line title
-   - dimension number it affects (e.g. "Dim 2" or "Dim 6/8")
-   - specific file:line pointer OR the exact file-set that would need to change
-   - why skill-improver couldn't apply it in one iteration (e.g. "9-file split",
-     "requires author-authored error-handling content", "breaks
-     self-consistency without restructure")
-   - enough context to act on without re-running the baseline scoring
-
-   **Open is NOT a wishlist.** Hypothetical-future-risk items ("description is
-   8 chars from cap, might overflow someday"; "this trigger keyword could
-   become ambiguous if X happens") do NOT belong in Open. The bar is: the loop
-   proposed this iteration, attempted or planned the mutation, and the
-   mutation could not be applied. If it was never tried, leave it out. If
-   tomorrow's edits would naturally surface it, leave it out. Open is a
-   work-not-done log, not a worry list.
-
-2. **Resolved this pass** — one-line audit of what was fixed. Move items from
-   "Open" to "Resolved" if a prior backlog listed them and this run closed them.
-
-   **What "Resolved" means:** the iteration applied a real mutation that the
-   metric registered. Creating a placeholder file (e.g., empty `sources.md`
-   with no `Last verified:` dates) does NOT resolve a Dim 9 staleness cap —
-   the cap stays. Log such cases as Open with action "run freshen mode", not
-   Resolved. Hand-waving that "the structure now exists" is theater.
-
-Format: plain markdown, `## Open` and `## Resolved this pass` as top-level
-sections, in the target skill's own `references/improvement-backlog.md` (not
-skill-improver's). Keep the shape uniform across runs so future loops can diff.
-
-If the backlog already exists with items skill-improver chose not to fix this
-run, carry them forward into the new "Open" section with a `(carried YYYY-MM-DD)`
-marker so staleness is visible.
-
-**The backlog is append-only history, not a status page.** When rewriting it,
-never drop prior passes' "Resolved" sections or discard rationales — keep them
-as dated `## Resolved — YYYY-MM-DD` sections below the current pass. Discard
-rationales are anti-re-proposal guards: a future loop that can't see "tried X,
-judged net-negative" will re-propose X. Git keeps the bytes, but loops read the
-live file, not git history.
-
-If the run produced zero ceiling findings (converged cleanly at ≥90/100),
-still update the file — strip "Open" to empty and record the final score under
-"Resolved this pass" so the file remains a truthful record.
+The two sections and their admission rules — what qualifies as **Open**
+(attempted, could not be applied in one iteration; not a wishlist), what
+counts as **Resolved this pass** (a mutation the metric registered; not a
+placeholder file), the carry-forward marker, and the append-only rule that
+preserves prior passes' discard rationales — live in
+**`references/backlog-format.md`**. Read it before writing the file.
 
 ---
 
@@ -296,97 +253,15 @@ the skill to score it objectively. Run it twice: at baseline and after the loop.
 2. **Final** — after the loop stops, spawn another blind scoring agent on the
    final version.
 
-### Agent Prompt
+### Agent Prompt, Model Pin, and Comparison Table
 
-Spawn a subagent with this task (substitute paths):
-
-```
-Score this Claude Code skill for quality. Be honest and critical — most decent
-skills score 50-70, 80+ is excellent.
-
-1. Read the rubric: <skill-improver-dir>/references/quality-rubric.md
-2. Read the design guide: <skill-improver-dir>/references/anthropic-skill-design.md
-3. Read the skill: <target-skill-dir>/SKILL.md
-4. Read all files in: <target-skill-dir>/references/
-5. Read all scripts in: <target-skill-dir>/scripts/ (if the directory exists)
-
-For Dimension 1: check what falls within the first 1,536 chars of combined
-`description` + `when_to_use`, and penalize if key trigger phrases are past the
-cutoff. Note whether the skill splits the two fields or stuffs everything into
-`description`.
-For Dimension 9: check if appropriate frontmatter fields are used. Do NOT mark
-a version, date, or other external-world claim wrong from internal knowledge —
-the skill is freshened continuously and its claims may postdate the knowledge
-cutoff. A claim covered by a recent `Last verified:` stamp in sources.md
-outranks the prior. If a claim looks wrong, say "verify online" — never
-recommend reverting it to an older value from memory.
-Apply the Boris Alignment Check caps and the SkillLens Utility Check caps
-where they fire (rubric §§). Do not reward fluency: text that reads well
-does not predict utility (SkillLens inversion) — check for failure
-mechanisms with executable remedies, actionable specificity, and high-risk
-blacklists, and never justify a score delta on format alone.
-
-Score each dimension (0-10) with one-sentence justification. Return the
-scoring table, the total, and a "Top 3 issues" list (one line each, with
-file:line if applicable).
-```
-
-Spawn via whatever subagent mechanism the runtime exposes — in Claude Code,
-the `Agent` tool with `subagent_type: general-purpose` and
-`run_in_background: true` for the baseline (parallel with the loop), foreground
-for the final (comparison table needs the result). If no subagent mechanism is
-available, run the same prompt manually in a fresh session and feed back the
-result.
-
-**Model selection:** pin the validation subagent to the most capable
-model available (Fable 5, `claude-fable-5`, as of 2026-06-09 — the
-Mythos-class tier above Opus, shipped in Claude Code v2.1.170). Boris Cherny's
-counterintuitive observation: cheaper-per-token models often use *more*
-total tokens on hard tasks because of correction loops, so the
-"expensive" model is paradoxically the cheapest path to a reliable
-answer. Validation is the loop's hard task — the dim-by-dim
-justifications are what make subsequent iterations targetable, and
-shallow Sonnet justifications cost more re-runs than they save in
-per-token spend. In the `Agent` call: pass `model: "fable"` (or the
-current most-capable identifier) explicitly rather than inheriting the
-parent's default.
-
-For the baseline agent, copy the original skill to a temp directory first so
-the agent scores the unmodified version even if the loop has already started.
-
-**Parallel scoring (dynamic workflows, Fable 5 / Opus 4.8, Claude Code v2.1.154+).**
-When the runtime exposes the `Workflow` tool AND the user has opted into it,
-run blind validation as a workflow: fan out 3 independent scorers in one phase
-and take the **median per dimension** — more robust against a single scorer's
-bias than one agent. Otherwise spawn one background `Agent` as above. Do NOT
-spin up a workflow without the user's explicit opt-in (the keyword "ultracode"
-— it replaced "workflow" as the trigger keyword in v2.1.160 — or a direct
-request in the user's own words) — a single `Agent` is the default.
-
-### Comparison Table
-
-After each blind agent returns, print a side-by-side comparison:
-
-```
-## Bias Check: [baseline|final]
-
-| # | Dimension        | Self | Agent | Gap |
-|---|-----------------|------|-------|-----|
-| 1 | Trigger Prec.   |  6   |   7   |     |
-| 4 | Actionability   |  9   |   7   | +2  |
-|   | **Total**       | 81   |  78   |     |
-
-[FLAG] Dimension 4: self-score 2+ higher than blind agent.
-Agent says: "Steps 3-4 lack specific commands."
-→ Re-evaluate this dimension with the agent's justification in mind.
-```
-
-Only flag dimensions where the gap is 2 or more. If no flags, print
-"No dimensions with 2+ gap. Scores aligned."
-
-The blind score does not override the self-score. It surfaces potential bias
-for the improvement loop to address — a flagged dimension becomes a candidate
-for the next iteration.
+The scorer prompt (verbatim, substitute paths), the model pin, the
+opt-in-guarded parallel-scoring variant, and the bias-check table format live
+in **`references/blind-validation.md`**. Read it when spawning either agent.
+Two rules that bind without reading it: pin the agent explicitly (currently
+`model: "opus"` — Opus 5 at `xhigh`; never inherit the session default), and
+print the bias-check table after each agent returns, flagging every dimension
+where self and blind differ by 2 or more.
 
 ---
 
@@ -400,9 +275,9 @@ To improve multiple skills:
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
 
-**Dynamic workflows (Fable 5 / Opus 4.8, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; agents inherit the session model and do no git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
+**Dynamic workflows (Fable 5 / Opus 5, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; recon and apply agents inherit the session model while the blind scorers carry the same explicit pin as a solo run, and no agent does git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
 
-**Native loops (Claude Code `/loop` v2.1.71+, `/goal` v2.1.139+).** For recurring or goal-driven runs, drive this skill with the harness's loop primitives: `/loop <interval> /skill-improver batch freshen --all` for scheduled passes, or `/goal` with a checkable stop ("every skill scores ≥85, stop after N tries") — `/goal`'s evaluator-checked stop condition maps directly onto this skill's scalar metric. Mind the v2.1.212 session caps (200 subagents / 200 web searches) when sizing batch fan-outs. Official guidance: https://claude.com/blog/getting-started-with-loops (2026-06-30).
+**Native loops (Claude Code `/loop` v2.1.71+, `/goal` v2.1.139+).** For recurring or goal-driven runs, drive this skill with the harness's loop primitives: `/loop <interval> /skill-improver batch freshen --all` for scheduled passes, or `/goal` with a checkable stop ("every skill scores ≥85, stop after N tries") — `/goal`'s evaluator-checked stop condition maps directly onto this skill's scalar metric. Size batch fan-outs against three live caps: **20 concurrent subagents** (v2.1.217 default, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`), **200 subagents + 200 web searches per session** (v2.1.212), and the **medium workflow size guideline of <15 agents** (v2.1.219 default, `workflowSizeGuideline`) — a batch wider than these queues silently or trips a guideline warning mid-run. Official guidance: https://claude.com/blog/getting-started-with-loops (2026-06-30).
 ---
 
 ## Standalone Evaluation (No Loop)
@@ -414,6 +289,15 @@ When the user only wants a quality score without iterating:
 3. Print the results table. Highlight the lowest dimension and recommend the single highest-impact improvement.
 4. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
 5. Stop. Do not enter the improvement loop unless asked.
+
+**Scope boundary — every metric here scores the skill's *text*, never its
+outputs.** SkillLens measured text-only judging at 46.4% accuracy against real
+utility, so a rising rubric score is not evidence the skill's results improved.
+To measure that, run the official skill-creator plugin's eval loop (`/plugin
+install skill-creator@claude-plugins-official`): assertions in `evals/evals.json`,
+one clean-context subagent per case, with-skill vs without-skill `benchmark.json`,
+blind A/B between versions. Methodology:
+https://agentskills.io/skill-creation/evaluating-skills
 
 ---
 
@@ -481,6 +365,8 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
 - **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
 - **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
+- **`references/blind-validation.md`** — The blind-scorer prompt, model pin, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent.
+- **`references/backlog-format.md`** — The `Open` / `Resolved this pass` section shapes, admission rules, and append-only history rule. Load when writing a target skill's `improvement-backlog.md` in Phase 6.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Dated per-URL index of official docs, specs, changelogs, and blog posts. Freshen Mode reads and stamps `Last verified:` / `Pinned:` fields here.
 - **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.

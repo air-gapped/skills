@@ -7,7 +7,7 @@ Dim 9 (see `references/quality-rubric.md` §Dim 9).
 
 ## Table of Contents
 - [Convention](#convention)
-- [Most recent freshen pass](#most-recent-freshen-pass-2026-07-18) (and prior passes)
+- [Most recent freshen pass](#most-recent-freshen-pass-2026-07-24) (and prior passes)
 - [Official Documentation](#official-documentation)
 - [GitHub Repositories](#github-repositories)
 - [Blog Posts & Articles](#blog-posts--articles)
@@ -20,7 +20,21 @@ Each row below has these columns: `Source`, `URL`, `What it contains`,
 Mark rows you want Freshen Mode to skip with `<!-- ignore-freshen -->`
 at the end of the row.
 
-## Most recent freshen pass: 2026-07-18
+## Most recent freshen pass: 2026-07-24
+
+### Notable changes since the previous pass (2026-07-18 → 2026-07-24)
+
+- **Claude Opus 5 shipped 2026-07-24** (Claude Code v2.1.219), `claude-opus-5` — new *default* Opus, 1M context, $5/$25 per Mtok, knowledge cutoff May 2026. **Blind-validation pin moved Fable 5 → Opus 5** after the two available signals were compared directly:
+  - *Vendor label:* platform models-overview still reads "Claude Fable 5 is Anthropic's most capable widely released model… for the highest available capability, use Claude Fable 5", and the launch page's prose ("comes close to the frontier intelligence of Claude Fable 5 at half the price") reads as second place.
+  - *Measurements:* the launch benchmark table has Opus 5 ahead of Fable 5 on GDPval-AA knowledge work (1861 vs 1747), BrowseComp agentic search (90.8 vs 87.4), HLE-with-tools (64.7 vs 63.9), Frontier-Bench agentic terminal coding (43.3 vs 33.7), OSWorld (70.6 vs 66.1) and AutomationBench (26.0 vs 17.4); Fable 5 leads only tool-free HLE (56.5 vs 56.3), DeepSWE (69.7 vs 68.8), FrontierCode (53.5 vs 53.4) and legal, with Mythos 5 taking health.
+  - *Tiebreaker for this skill's use:* Opus 5's May-2026 cutoff (vs Fable 5's Jan 2026) is worth real accuracy on Dim 9, where a scorer with a stale prior flags freshened claims as wrong.
+  - **Lesson recorded in `blind-validation.md`:** pick the pin from benchmark rows matching the scoring task; a "most capable" label, a release date, or default-model status is not evidence. The first pass of this freshen got it wrong by trusting the label.
+- **Claude Code v2.1.214 → v2.1.219** (v2.1.219 published today). Skill-relevant: **v2.1.218** adds the frontmatter field **`background`** (`context: fork` skills now background by default, `background: false` to block the turn and keep the full tool set) and accepts `yes/no/on/off/1/0` for frontmatter booleans; **v2.1.217** caps concurrent subagents at 20 (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) and bounds `paths` brace expansion; **v2.1.219** sets a default dynamic-workflow size guideline of <15 agents (`workflowSizeGuideline`) and raises nested-subagent depth to 3; **v2.1.215/218** stop Claude self-invoking `/verify`, `/code-review`, `/deep-research`. All folded into `anthropic-skill-design.md` (frontmatter table + version rows); the three fan-out caps are now stated in SKILL.md §Batch Mode.
+- **Official skills doc gained an "Evaluate and iterate on a skill" section**, and **skill-creator is installed as a plugin** (`/plugin install skill-creator@claude-plugins-official`, source `anthropics/claude-plugins-official/plugins/skill-creator`) rather than copied from `anthropics/skills`. Its documented loop — `evals/evals.json` assertions, per-case subagent isolation, `grading.json` / `benchmark.json`, blind A/B version comparison, description tuning — measures **output quality**, the axis this skill's rubric and trigger metrics do not cover. New sources.md rows for both the agentskills.io methodology page and the plugin repo; SKILL.md §Standalone Evaluation now points there for output-quality work.
+- **Repos**: anthropics/skills @ 1f630fdf (2026-07-22, claude-api Managed Agents update) — **skill-creator path unchanged since 2026-04-20** (verified by commit history on `skills/skill-creator`), so Trigger Mode mirroring of `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate; the plugin copy last synced 2026-04-23. agentskills/agentskills @ 38a2ff82 (2026-07-10) — no spec drift.
+- **Not re-probed this pass** (2026-07-18 stamps, 6 days old, far inside the 90-day cap): hooks and subagents docs, engineering blog, loops blog, SkillOpt/SkillLens papers, X/Twitter rows.
+
+### Previous freshen pass: 2026-07-18
 
 ### Notable changes since the previous pass (2026-06-09 → 2026-07-18)
 
@@ -115,10 +129,13 @@ at the end of the row.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| Claude Code skills docs | https://code.claude.com/docs/en/skills | Complete skill authoring guide, frontmatter reference, bundled skills (incl. `/loop`), advanced patterns | 2026-07-18 | — |
+| Claude Code skills docs | https://code.claude.com/docs/en/skills | Complete skill authoring guide, frontmatter reference (incl. `background`, `arguments`), bundled skills, "Evaluate and iterate on a skill" section | 2026-07-24 | — |
+| Evaluating skill output quality | https://agentskills.io/skill-creation/evaluating-skills | Output-quality eval methodology: `evals/evals.json` schema, assertions, clean-context runs, `grading.json` / `benchmark.json`, blind A/B comparison, iterate-until-flat loop | 2026-07-24 | — |
 | Skill authoring best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | Official best practices: conciseness, freedom levels, progressive disclosure, evaluation-first testing, anti-patterns | 2026-07-18 | — |
 | Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields (incl. license/compatibility/metadata/allowed-tools), validation rules | 2026-07-18 | — |
-| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-18 | v2.1.214 |
+| Claude models overview | https://platform.claude.com/docs/en/about-claude/models/overview | Per-model IDs, pricing, context windows, knowledge cutoffs, and the vendor capability positioning — the label side of the blind-validation model pin | 2026-07-24 | — |
+| Effort levels | https://platform.claude.com/docs/en/build-with-claude/effort | Which models support `xhigh`/`max`, per-model defaults and recommended levels; ultracode = `xhigh` + standing multiagent-workflow permission | 2026-07-24 | — |
+| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-24 | v2.1.219 |
 | Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-07-18 | — |
 | Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents | 2026-07-18 | — |
 | Loop engineering blog post | https://claude.com/blog/getting-started-with-loops | Official loops guide (2026-06-30): /loop, /goal, /schedule taxonomy by trigger + stop condition; best practices (deterministic criteria, turn caps, verify via skills) | 2026-07-18 | — |
@@ -127,13 +144,14 @@ at the end of the row.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-18 | main @ fa0fa64b (2026-07-17) |
-| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained) | 2026-07-18 | main |
-| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for "be a little pushy", overfitting guard, ≤200 word target. Trigger Mode mirrors this approach. | 2026-07-18 | main (unchanged since 2026-04-20) |
-| skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-07-18 | main (unchanged since 2026-04-20) |
-| skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-07-18 | main (unchanged since 2026-04-20) |
-| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-18 | main @ 38a2ff82 (2026-07-10) |
-| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-18 | v2.1.214 |
+| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-24 | main @ 1f630fdf (2026-07-22) |
+| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained) | 2026-07-24 | main |
+| skill-creator plugin (install path) | https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator | The copy the official docs tell users to install (`/plugin install skill-creator@claude-plugins-official`); last synced from anthropics/skills 2026-04-23 | 2026-07-24 | main @ 2a40fd2e |
+| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for "be a little pushy", overfitting guard, ≤200 word target. Trigger Mode mirrors this approach. | 2026-07-24 | main (unchanged since 2026-04-20) |
+| skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-07-24 | main (unchanged since 2026-04-20) |
+| skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-07-24 | main (unchanged since 2026-04-20) |
+| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-24 | main @ 38a2ff82 (2026-07-10) |
+| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-24 | v2.1.219 |
 
 ## Blog Posts & Articles
 
@@ -141,6 +159,7 @@ at the end of the row.
 |--------|-----|------------------|---------------|--------|
 | Anthropic engineering blog | https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills | Agent Skills announcement (2025-10-16), architecture, security considerations; standard open-sourced 2025-12-18 | 2026-07-18 | — |
 | Anthropic news — Opus 4.8 | https://www.anthropic.com/news/claude-opus-4-8 | Opus 4.8 launch (2026-05-28): `claude-opus-4-8`, effort tiers, dynamic workflows, fast mode pricing | 2026-05-28 | — | <!-- ignore-freshen (historical launch page) -->
+| Anthropic news — Opus 5 | https://www.anthropic.com/news/claude-opus-5 | Opus 5 launch (2026-07-24): `claude-opus-5`, $5/$25 per Mtok, near-frontier at half Fable 5's price but below it; new default Opus | 2026-07-24 | — | <!-- ignore-freshen (historical launch page) -->
 | Anthropic news — Fable 5 | https://www.anthropic.com/news/claude-fable-5-mythos-5 | Fable 5 launch (2026-06-09): `claude-fable-5`, Mythos-class tier above Opus, pricing ($10/$50 per Mtok), availability windows | 2026-06-09 | — | <!-- ignore-freshen (historical launch page) -->
 | Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | Lessons from building Claude Code: How We Use Skills (March 17, 2026) | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
 | Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | Agent design philosophy | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->

@@ -3,62 +3,174 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Table of Contents
+- [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved this pass — 2026-07-24](#resolved-this-pass--2026-07-24-freshen--improve-opus-5-release-day)
+- [Resolved this pass — 2026-07-18](#resolved-this-pass--2026-07-18-improve-self-run-mechanics-shakedown)
+- [Discards / judged no-ops — 2026-05-28 / 2026-06-09](#discards--judged-no-ops--prior-passes-2026-05-28--2026-06-09)
+- [Resolved — 2026-06-09 hotfix](#resolved--2026-06-09-hotfix-training-data-regression-guard)
+- [Resolved this pass — 2026-06-09](#resolved-this-pass--2026-06-09-improve--freshen-fable-5-release-day)
+- [Resolved — 2026-05-28](#resolved--2026-05-28-improve--freshen-opus-48-learnings)
+
 ## Open
 
-- **(new 2026-07-18) Dim 8: blind-scorer prompt drift between SKILL.md and
-  batch-workflow.js.** Final-blind finding (self 10 vs blind 8 — flag accepted):
-  `scripts/batch-workflow.js` blindPrompt instructs Boris caps, the Dim 9
-  staleness cap, and spec hard-fail checks; SKILL.md §"Blind Validation" prompt
-  omits all three, so solo-run and batch-run blind scores are non-comparable.
-  Not attempted this run (iteration cap reached at the flag). Two-file
-  unification; author should decide the canonical prompt (likely: port the
-  three cap instructions into the SKILL.md prompt).
-  **Update 2026-07-18 (later same day):** substantially resolved during the
-  SkillLens adoption pass — both prompts now carry identical cap
-  instructions (Boris + SkillLens) and the anti-fluency guard; SKILL.md's
-  Dim 9 note and batch's remain worded differently but equivalent. Verify
-  full equivalence next run before closing.
+- **(new 2026-07-24) Rule-ceiling discards: three rubric-invisible hardenings.**
+  All three were applied, cold-scored Δ0 (every affected dim band-internal),
+  and reverted per the Phase 4 rule — logged here because each has demonstrated
+  operational value and only the author can accept rubric-invisible content:
+  - **Line-ceiling gate** (Phase 4, ~7 lines): run `wc -l SKILL.md` before the
+    decision rule; >500 is a Dim 2 regression regardless of total. Motivated by
+    this run: the freshen additions took SKILL.md 493 → 506 (over the spec
+    ceiling) and no rule caught it — only a manual count did.
+  - **Freshen recency filter** (`freshen-patterns.md` §F2, ~8 lines): when a
+    `Last verified:` stamp is under 7 days old, re-probe only changelogs,
+    release tags, pinned commits, and launch pages; leave doc/spec/paper rows
+    unprobed AND unrestamped (restamping an unprobed row silently disarms the
+    Dim 9 staleness cap). This run followed the rule ad hoc with no text to cite.
+  - **Reciprocal drift comment** (`scripts/batch-workflow.js`, 3 lines): a
+    header on `blindPrompt()` naming `references/blind-validation.md` as
+    canonical. The reference side of that guard was kept (iter 4); the script
+    side scored Δ0, so the guard is currently one-directional.
 
-- **(new 2026-07-18) Dim 7: quality-rubric.md:323 Boris detection `rg` breaks
-  on copy-paste.** Final-blind finding: the markdown-table cell escapes `\|`
-  read as literal-pipe regex escapes from raw source; the working form exists
-  at freshen-patterns.md:311. Single-iteration fix for the next run: align the
-  rubric command with the freshen-patterns form (verify by executing both).
+- **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
+  §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
+  guidance already carried by the Trigger Mode stub ("Use trigger mode when…")
+  and Standalone Evaluation step 4, so the Dim 4 gain was cancelled by Dim 6
+  redundancy. Do not re-propose as an addition — if mode dispatch is wanted at
+  the entry point, it has to *replace* those two passages, which is a
+  multi-section rewrite, not one iteration.
 
-- **(new 2026-07-18) Rule-ceiling discard: cold-score-from-disk clause
-  (iter 6).** Adding "read from disk — never from the context-injected copy;
+- **(new 2026-07-24, Opus 5 final-blind, author decision) Dim 9: skill omits
+  two fields from its own Pattern 9.3 checklist.** `effort: xhigh` is the
+  defensible one — this is a reasoning-heavy skill whose scoring quality the
+  loop depends on, and the platform effort docs recommend `xhigh` as the
+  starting point for agentic work — but it raises token spend on every
+  invocation, including cheap `score` runs, so it is the operator's call.
+  `disable-model-invocation: true` is **not** appropriate despite the checklist:
+  proactive model invocation is the point (the whole `trigger` mode exists to
+  make it fire), and setting it would remove the description from Claude's
+  context entirely. Record the decision here either way so the next blind
+  scorer's Dim 9 note can be dismissed with a reason.
+
+- **(new 2026-07-24, final-blind, not attempted — cap reached) Dim 7:
+  `scripts/batch-workflow.js` `DEFAULT_BASE` hard-codes the author's repo
+  layout.** Overridable, so not a bug; portability nit only. Decide whether the
+  script should derive the base from `${CLAUDE_SKILL_DIR}` instead.
+
+- **(carried 2026-06-09, still Open) Dim 2 → 8/9: extract the improve-loop
+  phases (Phase 0–5) to a reference.** Re-flagged by the 2026-07-24 final blind
+  as the top Dim 2/6 ceiling. SKILL.md is now **379 lines** (was 493 at the
+  start of this pass) after extracting Blind Validation and the Phase 6 backlog
+  format; the ~150-line improve loop (SKILL.md §"The Improvement Loop") is the
+  only workflow still inline and is what holds the file above the 300-line lean
+  band. It remains the PRIMARY default mode and must stay visible — burying it
+  trades Dim 2 +1 for usability/Dim 4 on every default invocation.
+  **Author judgment:** decide whether a thin-dispatcher SKILL.md (loop detail in
+  `references/improve-loop.md`) is acceptable. Not a single-iteration mutation.
+
+- **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
+  Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy
+  mode", "boris alignment check", "scaffolding decay", "is my skill fighting the
+  model's grain" have no trigger phrases (only `argument-hint` + body). Combined
+  `description` + `when_to_use` is 1,305/1,536 chars — ~230 chars of headroom.
+  Adding triggers blindly is a guess; do it empirically:
+  `/skill-improver trigger skill-improver --missed "run a boris check on my skill"
+  --missed "check my skill for scaffolding decay"`. Trigger-mode, not score-loop.
+  Both 2026-06-09 blind agents and the 2026-07-24 baseline blind also flagged a
+  T6-class cross-skill collision — the installed skill-creator plugin claims
+  "modify and improve existing skills" territory; the trigger run should include
+  sibling-territory negatives for it.
+
+- **(carried 2026-07-18, still Open) Rule-ceiling discard: cold-score-from-disk
+  clause.** Adding "read from disk — never from the context-injected copy;
   `${CLAUDE_SKILL_DIR}` appears pre-expanded there and reads as a false
   inconsistency" to Phase 1 §Cold-score discipline moved no dim (all affected
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
 
-- **(new 2026-07-18) Dim 9 staleness horizon: sources.md rows stamped
-  2026-05-01 cross the 90-day cap ~2026-07-30.** Both blind agents flagged it.
-  Action: run `freshen skill-improver` before the end of July; score-loop
-  mutations cannot resolve this.
+## Resolved this pass — 2026-07-24 (freshen + improve, Opus 5 release day)
 
-- **(carried 2026-06-09) Dim 2 → 8/9: extract the improve-loop phases (Phase 0–6)
-  to a reference.** SKILL.md is now 427 lines after the Philosophy Mode extraction;
-  the improve loop (~144 lines, SKILL.md §"The Improvement Loop") is the only
-  workflow still inline. Both 2026-06-09 blind agents re-flagged it as the top
-  Dim 2 issue. It remains the PRIMARY default mode and must stay visible —
-  burying it trades Dim 2 +1 for usability/Dim 4 on every default invocation.
-  **Author judgment:** decide whether a thin-dispatcher SKILL.md (loop detail in
-  `references/improve-loop.md`) is acceptable. Not a single-iteration mutation.
+Baseline self **83** (post-freshen) / blind **83** → final self **88** / blind
+**84**. 5 freshen findings applied, 5 improve keeps, 5 improve discards,
+iteration cap reached at 10. No dimension had a 2+ self-vs-blind gap in either
+direction at the final check.
 
-- **(carried 2026-06-09) Dim 1 → 9: `philosophy` mode + Boris/scaffolding-decay
-  vocabulary absent from `when_to_use`.** "philosophy mode", "boris alignment
-  check", "scaffolding decay", "is my skill fighting the model's grain" have no
-  trigger phrases (only `argument-hint` + body). Combined `description` +
-  `when_to_use` is 1,304/1,536 chars — ~230 chars of headroom. Adding triggers
-  blindly is a guess; do it empirically:
-  `/skill-improver trigger skill-improver --missed "run a boris check on my skill"
-  --missed "check my skill for scaffolding decay"`. Trigger-mode, not score-loop.
-  **New evidence 2026-06-09:** both blind agents also flagged a T6-class
-  cross-skill collision — the installed skill-creator plugin claims "modify and
-  improve existing skills" territory; the trigger run should include
-  sibling-territory negatives for it.
+**Freshen — Claude Code v2.1.214 → v2.1.219, Opus 5 launch day** (verified via
+`gh api` changelog/commits, the Opus 5 launch page, and the live skills doc):
+- **Blind-validation model pin moved Fable 5 → Opus 5** (`model: "opus"`,
+  `xhigh`). Corrected mid-session after the operator produced the launch
+  benchmark table: Opus 5 leads Fable 5 on GDPval knowledge work, BrowseComp
+  agentic search, HLE-with-tools, and agentic terminal coding, and carries a
+  May-2026 cutoff (vs Jan 2026) that directly reduces false Dim 9 flags on
+  freshened claims; Fable 5's wins are sub-1-point coding margins plus legal.
+  **Process failure worth remembering:** the first pass of this freshen kept
+  the pin on the strength of the docs' "most capable widely released model"
+  label and a fetched-page summary, without reading the benchmark rows — a
+  vendor tier label is positioning, not measurement. `blind-validation.md`
+  §Model selection now states both signals, why the measurements win for this
+  task, and that re-pinning requires benchmark rows matching the scoring task.
+- `anthropic-skill-design.md`: new frontmatter rows `background` (v2.1.218 —
+  `context: fork` skills background by default, `background: false` restores the
+  blocking turn and the full tool set) and `arguments`; `disable-model-invocation`
+  now notes subagent-preload and scheduled-task blocking (v2.1.196); version rows
+  v2.1.215/217/218/219.
+- SKILL.md §Batch Mode: fan-out sizing now names all three live caps — 20
+  concurrent subagents (v2.1.217), 200 subagents + 200 web searches per session
+  (v2.1.212), and the <15-agent medium workflow size guideline (v2.1.219).
+- SKILL.md §Standalone Evaluation: new scope boundary — every metric here scores
+  the skill's *text*, never its outputs; output-quality evals live in the
+  skill-creator plugin loop (`evals/evals.json`, per-case clean-context runs,
+  `benchmark.json`, blind A/B), methodology at agentskills.io.
+- `sources.md`: new 2026-07-24 pass section; changelog + releases pinned
+  v2.1.219; anthropics/skills pinned 1f630fdf (2026-07-22, skill-creator path
+  unchanged since 2026-04-20 → Trigger Mode mirroring still accurate); new rows
+  for the Opus 5 launch page, the agentskills.io output-quality methodology
+  page, and the skill-creator **plugin** install path
+  (`anthropics/claude-plugins-official`, the copy the official docs now point at).
+
+**Improve** (rubric hill-climb; self-score column):
+- **iter 1 (keep, +2 → 85):** extracted the blind-scorer prompt, model pin,
+  parallel-scoring variant, and bias-check table to
+  `references/blind-validation.md`, leaving a stub that keeps the two binding
+  rules inline. SKILL.md 506 → 421, back under the 500-line spec ceiling.
+- **iter 2 (keep, +1 noise-confirmed → 86):** fixed the Boris compensation-language
+  probe in `quality-rubric.md` — the `\|` table-cell escapes made the pasted
+  command a valid regex that silently matched nothing (verified: escaped form
+  exit 1 / 0 matches, corrected form 6 matches). Probe moved below the table
+  with the reason stated so it cannot be re-escaped. Closes a carried item.
+- **iter 4 (keep, +1 noise-confirmed → 87):** unified the canonical blind prompt
+  with `batch-workflow.js` `blindPrompt()` — Dim 9 staleness + spec hard-fail
+  caps, `evals/` read step, blind framing — and marked the reference block
+  canonical. Closes the two-pass "blind prompts non-comparable" item.
+- **iter 6 (keep, simplification → 87):** extracted the Phase 6 backlog format
+  (Open/Resolved admission rules, carry-forward, append-only rule) to
+  `references/backlog-format.md`. SKILL.md 421 → 379.
+- **iter 8 (keep, +1 confirmed → 88):** `scan-skills.sh` now discovers nested
+  `.claude/skills/` directories (directory-qualified skills, v2.1.205) that
+  `batch --all` silently skipped; tested against a synthetic monorepo and the
+  live repo (93 rows, no duplicates). Also removed shipped `__pycache__` /
+  `.ruff_cache` cruft.
+- **post-cap fixes (Opus 5 re-score of the final artifact):** batch blind
+  scorers now carry the same explicit pin as a solo run
+  (`model: 'opus'`, `effort: 'xhigh'` in `batch-workflow.js`) — they previously
+  inherited the session model, contradicting the binding pin rule and making
+  batch and solo blind scores non-comparable; the Batch Mode dynamic-workflow
+  label "Fable 5 / Opus 4.8" corrected to "Fable 5 / Opus 5"; TOC added to this
+  file (310 lines, a non-optional Phase 0 read, and the only >100-line
+  reference without one).
+- **post-cap fix (final-blind finding):** `probe-trigger.py` denied `Task` but
+  not `Agent` — the canonical name since v2.1.63 — so a probed agent could still
+  spawn subagents, breaking the hermetic-probe guarantee the file's own comments
+  promise. Both names are now denied.
+
+Discards this pass (anti-re-proposal guards):
+- **iter 3:** `discard (noise)` — porting only the Dim 9 cap sentence into the
+  blind prompt left the rest of the drift in place; Dim 8 stayed band-internal.
+  Re-proposed at full scope as iter 4 → kept.
+- **iter 5, 7, 10:** rule-ceiling — line-ceiling gate, freshen recency filter,
+  reciprocal drift comment (all moved to Open above).
+- **iter 9:** net-negative — symptom → mode dispatch table (moved to Open above).
 
 ## Resolved this pass — 2026-07-18 (improve, self-run: mechanics shakedown)
 

@@ -324,8 +324,16 @@ releases.
 |---|---|---|
 | **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | Body contains numbered procedural lists describing the *invocation flow* (not reference content) AND the model could plausibly do the task with a goal + tool pointer. `rg -c '^\s*\d+\. ' SKILL.md` ≥ 8 in non-reference sections is a strong signal. | **Dim 6 (Simplicity) capped at 6** |
 | **Up-front context dumps** — skill front-loads domain context the model could fetch via Read/Grep/WebFetch | Sections >30 lines describing facts (not procedures) without pointing at a tool/file. Boris: "give it a tool so it can get the context it needs." | **Dim 4 (Actionability) capped at 7** |
-| **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | `rg -in 'claude (tends to\|sometimes\|often)\|always remind\|model (frequently\|tends)\|compensate for'` finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
+| **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | Compensation-language probe below finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
 | **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
+
+Compensation-language probe (kept outside the table — `|` inside a table cell
+must be written `\|`, and that escaped form is a valid regex that silently
+matches nothing, so a pasted-from-table command reports a clean skill):
+
+```bash
+rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
+```
 
 When a Boris cap triggers, record the justification like:
 > "Dim 6 capped at 6 — skill prescribes 11-step procedural workflow

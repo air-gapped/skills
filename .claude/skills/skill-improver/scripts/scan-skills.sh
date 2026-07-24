@@ -6,6 +6,8 @@
 # Default search roots:
 #   ~/.claude/skills/       (profile skills)
 #   .claude/skills/         (project-local skills)
+#   ./**/.claude/skills/    (nested project skills — directory-qualified since
+#                            Claude Code v2.1.205, e.g. apps/web:deploy)
 
 set -euo pipefail
 
@@ -16,6 +18,11 @@ if [[ $# -gt 0 ]]; then
 else
     [[ -d "$HOME/.claude/skills" ]] && search_roots+=("$HOME/.claude/skills")
     [[ -d ".claude/skills" ]] && search_roots+=(".claude/skills")
+    # Nested project skills (monorepo packages carrying their own .claude/skills).
+    while IFS= read -r nested; do
+        search_roots+=("$nested")
+    done < <(find . -mindepth 3 -type d -path '*/.claude/skills' \
+                  -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null)
 fi
 
 if [[ ${#search_roots[@]} -eq 0 ]]; then

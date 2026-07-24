@@ -164,6 +164,7 @@ def run_single_query(
                 "Edit",
                 "Write",
                 "NotebookEdit",
+                "Agent",
                 "Task",
                 "WebFetch",
                 "WebSearch",
