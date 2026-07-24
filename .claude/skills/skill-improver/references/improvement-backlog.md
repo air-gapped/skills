@@ -5,6 +5,7 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved — 2026-07-24 (scaffolding discriminator)](#resolved--2026-07-24-scaffolding-discriminator-claude-code-team-blog-pair)
 - [Resolved this pass — 2026-07-24](#resolved-this-pass--2026-07-24-freshen--improve-opus-5-release-day)
 - [Resolved this pass — 2026-07-18](#resolved-this-pass--2026-07-18-improve-self-run-mechanics-shakedown)
 - [Discards / judged no-ops — 2026-05-28 / 2026-06-09](#discards--judged-no-ops--prior-passes-2026-05-28--2026-06-09)
@@ -67,6 +68,19 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   trades Dim 2 +1 for usability/Dim 4 on every default invocation.
   **Author judgment:** decide whether a thin-dispatcher SKILL.md (loop detail in
   `references/improve-loop.md`) is acceptable. Not a single-iteration mutation.
+  **(2026-07-24 evidence)** `scripts/scaffold-probe.py SKILL.md` now quantifies
+  this: 28 numbered items → **20 scaffold / 8 criteria / 0 branch**, tripping the
+  Boris strict-workflow-scaffolding cap (Dim 6 → 6) on the discriminating
+  detector, not just the naive count. The scaffold items are concentrated in
+  exactly the sections this item proposes extracting — Phase 0 (L65–71), Phase 3–5
+  (L112–119, L146–147), Batch Mode (L272–276), Standalone Evaluation (L287–290).
+  Three are outright redundant: L112 "apply exactly one change" and L113 "keep the
+  diff minimal" restate L114, which is the only one of the three carrying the
+  reason ("so cause is attributable"). **Applied 2026-07-24** — Phase 3's three
+  items collapsed to one sentence carrying the reason; 28 → 25 items, 20 → 18
+  scaffold. `keep (simplification)`. The cap still stands: the remaining 18 are
+  in Phase 0, Phase 4–5, Batch Mode and Standalone Evaluation, and clearing them
+  requires the extraction this item proposes, not more local deletions.
 
 - **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
   Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy
@@ -88,6 +102,56 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+## Resolved — 2026-07-24 (scaffolding discriminator; Claude Code team blog pair)
+
+Triggered by two Anthropic posts published two days apart: Thariq Shihipar's
+*"The new rules of context engineering for Claude 5 generation models"*
+(2026-07-24) and Delba de Oliveira's *"Building verification loops in Claude Code
+with skills"* (2026-07-22). Read as a pair they resolve on one axis — **delete
+procedure the model can rediscover; keep acceptance criteria it cannot infer** —
+and that exposed a defect in the Boris check's detector.
+
+**The defect.** `rg -c '^\s*\d+\. ' SKILL.md >= 8` counts every numbered item, so
+a skill that correctly encodes invariants got the same Dim 6 cap as one spelling
+out discoverable steps. Delba's post argues the exact opposite: *"Reject any
+migration that drops a column without a backfill step" is a deterministic rule no
+generic linter will catch but a project-specific one will.* The naive detector
+penalized precisely the content both posts say to keep — and it is the same
+property SkillLens already measured as predictive (Failure Mechanism Encoding,
+High-Risk Action Blacklist, Actionable Specificity), so the rubric was internally
+contradicting itself.
+
+**The fix.** New `scripts/scaffold-probe.py` classifies each numbered item:
+
+| Species | Counts toward cap |
+|---|---|
+| **Scaffold** — unconditional imperative, no encoded judgment | Yes |
+| **Criterion** — prohibition, named failure, or explicit threshold | No |
+| **Branch** — decision table / differential diagnosis, condition → action | No |
+
+Rubric §"The scaffolding discriminator" and freshen §4b probe #2 both now call
+the script instead of the raw count.
+
+**Measured effect (92 installed skills).** Naive detector caps **56 (61%)**;
+scaffold-only caps **29 (31%)**. A detector firing on three of every four skills
+is a constant, not a diagnostic.
+
+**Two classifier bugs found by testing, not by reading:**
+1. The threshold marker's bare `[<>]` class matched every `<skill-name>`
+   placeholder, and `(+2)` inside an example status line read as a real
+   threshold. Fixed by requiring a digit adjacent to comparison operators and
+   stripping inline code spans before matching.
+2. The scaffold/criterion binary was itself wrong. `vllm-caching` scored 0
+   criteria / 13 scaffold — but its numbered lists are a decision table
+   (SKILL.md L68–73) and a differential-diagnosis list (L169–175), neither of
+   which is procedural and neither of which carries a failure marker. That
+   required the third class; with it `vllm-caching` is clean at 6 scaffold.
+
+**Not resolved by this pass:** skill-improver still caps itself at 20 scaffold.
+The branch class did not rescue it — its phase lists genuinely are sequential
+imperatives. See the carried Dim 2 extraction item under Open, which now carries
+the per-section scaffold breakdown.
 
 ## Resolved — 2026-07-24 (evidence gaps found while running `autoresearch`)
 

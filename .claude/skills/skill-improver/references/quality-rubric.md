@@ -313,16 +313,22 @@ resolve staleness without online probes.
 
 ## Boris Alignment Check (cross-cutting caps)
 
-Diagnostic patterns drawn from Boris Cherny (creator of Claude Code,
-Anthropic; Lenny's podcast 2026). These do NOT add an 11th dimension —
-they cap existing dims when triggered, the same way the Dim 9 staleness
-cap works. The bitter lesson applied to skills: skills that fight the
-model's grain or compensate for current-model limits decay across
-releases.
+Diagnostic patterns originally drawn from Boris Cherny (creator of Claude Code,
+Anthropic; Lenny's podcast 2026) and since confirmed in first-party writing by
+Thariq Shihipar, *"The new rules of context engineering for Claude 5 generation
+models"* (2026-07-24) — which reports **over 80% of Claude Code's system prompt
+removed for Opus 5 / Fable 5 with no measurable loss on coding evals**, and names
+all three patterns below as superseded practice. Cite the blog, not the podcast:
+the X row in `sources.md` is unfetchable and cannot be re-probed.
+
+These do NOT add an 11th dimension — they cap existing dims when triggered, the
+same way the Dim 9 staleness cap works. The bitter lesson applied to skills:
+skills that fight the model's grain or compensate for current-model limits decay
+across releases.
 
 | Pattern | Detection | Cap |
 |---|---|---|
-| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | Body contains numbered procedural lists describing the *invocation flow* (not reference content) AND the model could plausibly do the task with a goal + tool pointer. `rg -c '^\s*\d+\. ' SKILL.md` ≥ 8 in non-reference sections is a strong signal. | **Dim 6 (Simplicity) capped at 6** |
+| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | `scripts/scaffold-probe.py <SKILL.md>` reports ≥ 8 **scaffold** items. Scaffold ≠ every numbered item — see the discriminator below. | **Dim 6 (Simplicity) capped at 6** |
 | **Up-front context dumps** — skill front-loads domain context the model could fetch via Read/Grep/WebFetch | Sections >30 lines describing facts (not procedures) without pointing at a tool/file. Boris: "give it a tool so it can get the context it needs." | **Dim 4 (Actionability) capped at 7** |
 | **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | Compensation-language probe below finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
 | **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
@@ -334,6 +340,35 @@ matches nothing, so a pasted-from-table command reports a clean skill):
 ```bash
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
 ```
+
+### The scaffolding discriminator
+
+Counting every numbered item conflates three species of list, and only one of
+them is scaffolding:
+
+| Species | Example | Counts? |
+|---|---|---|
+| **Scaffold** — unconditional imperative the model would land on anyway | "Read the target skill's entire directory." | **Yes** |
+| **Criterion** — invariant with a prohibition, named failure, or threshold | "Do NOT bundle multiple improvements — one change per iteration so cause is attributable." | No |
+| **Branch** — decision table or differential diagnosis, condition → action | "Hit rate is low? → no prefix reuse, offload gains nothing." | No |
+
+Criteria and branches encode judgment the model cannot infer. Delba de
+Oliveira's verification-loops post makes the case directly: *"Reject any
+migration that drops a column without a backfill step" is a deterministic rule
+no generic linter will catch but a project-specific one will.* Capping a skill
+for writing those down inverts the intent — and it is the same property
+SkillLens found predictive (Failure Mechanism Encoding, High-Risk Action
+Blacklist, Actionable Specificity; see the next section).
+
+The discrimination is load-bearing, not cosmetic. Measured across 92 installed
+skills: the raw numbered-item count caps **61%**, scaffold-only caps **31%**. A
+detector that fires on three of every four skills is a constant, not a
+diagnostic.
+
+`scripts/scaffold-probe.py` does the classification (`--verbose` prints the
+per-item verdict, `--refs` extends to `references/`). Read its scaffold list
+before accepting the cap — the probe is a signal, and an item it calls scaffold
+may still be load-bearing for a reason the markers do not capture.
 
 When a Boris cap triggers, record the justification like:
 > "Dim 6 capped at 6 — skill prescribes 11-step procedural workflow

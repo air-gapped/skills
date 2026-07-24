@@ -109,9 +109,9 @@ and "fixing" it from memory regresses the skill.
 
 ### Phase 3: Mutate (Make the Change)
 
-1. Apply exactly one change to the skill.
-2. Keep the diff minimal and focused.
-3. Do NOT bundle multiple improvements — one change per iteration so cause is attributable.
+Apply exactly one change per iteration, diff minimal. Do NOT bundle multiple
+improvements — bundling attributes the score lift to the wrong cause, so the
+next loop pivots to the wrong category.
 
 ### Phase 4: Re-evaluate (Score Again)
 
@@ -290,6 +290,14 @@ When the user only wants a quality score without iterating:
 4. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
 5. Stop. Do not enter the improvement loop unless asked.
 
+**`/doctor` is the first-party sibling, not a substitute.** Anthropic ships
+`claude doctor` / `/doctor` to "rightsize your skills, and CLAUDE.md files"
+([context-engineering blog](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models),
+2026-07-24; bundled skill since v2.1.205). It is a one-shot simplification pass
+with no metric, no keep/discard, and no blind check — run it first for free
+hypotheses, then use this skill when the question is *did the change measurably
+help*. Do NOT report `/doctor` output as a score.
+
 **Dim 10 is capped until net value is measured.** A skill is not
 neutral-to-positive by default — SkillLens measured **25% of skills as
 net-harmful** against a no-skill baseline (47% in the worst domain). The rubric's
@@ -383,4 +391,5 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
 - **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
+- **`scripts/scaffold-probe.py`** — Boris strict-workflow-scaffolding detector. Classifies each numbered item as scaffold, criterion, or branch, and caps on the scaffold count alone. Used by the Boris Alignment Check (quality-rubric §"The scaffolding discriminator") and freshen §4b.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

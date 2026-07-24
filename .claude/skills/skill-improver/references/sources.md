@@ -34,6 +34,49 @@ at the end of the row.
 - **Repos**: anthropics/skills @ 1f630fdf (2026-07-22, claude-api Managed Agents update) — **skill-creator path unchanged since 2026-04-20** (verified by commit history on `skills/skill-creator`), so Trigger Mode mirroring of `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate; the plugin copy last synced 2026-04-23. agentskills/agentskills @ 38a2ff82 (2026-07-10) — no spec drift.
 - **Not re-probed this pass** (2026-07-18 stamps, 6 days old, far inside the 90-day cap): hooks and subagents docs, engineering blog, loops blog, SkillOpt/SkillLens papers, X/Twitter rows.
 
+### Second pass, same day — Claude Code team blog pair
+
+Triggered by two posts, not by a staleness stamp. Recency filter applied: only
+the changelog was re-probed; doc/spec/paper rows left unprobed **and**
+unrestamped.
+
+- **Boris Alignment Check now has a first-party written source.** Thariq
+  Shihipar, *"The new rules of context engineering for Claude 5 generation
+  models"* (2026-07-24) — 80% of Claude Code's system prompt removed for Opus 5 /
+  Fable 5 with no eval loss; names all three capped patterns as superseded
+  practice. The check was previously sourced only to an X post about a podcast,
+  marked `ignore-freshen` because X is unfetchable. Rubric §Boris Alignment Check
+  re-attributed; the X row stays as origin but is no longer the citation.
+- **Delba de Oliveira, *"Building verification loops in Claude Code with
+  skills"*** (2026-07-22) — supplied the criterion side of the new scaffolding
+  discriminator. Its invocation-mode taxonomy (standalone / embedded / chained /
+  on-every-PR) is **not yet reflected anywhere in this skill** — Dim 1 and all of
+  Trigger Mode assume every skill is standalone and model-invoked. Not filed
+  under Open (no mutation was attempted, so it fails the backlog admission bar);
+  recorded here as the strongest candidate for the next `improve` pass.
+- **`/doctor` positioned as first-party skill rightsizing.** Bundled skill since
+  v2.1.205 (already in the version table) but never referenced in SKILL.md.
+  §Standalone Evaluation now names it as a pre-pass and states the boundary: no
+  metric, no keep/discard, no blind check.
+- **`/verify` chaining — resolved, no conflict existed.** Changelog v2.1.215
+  (2026-07-19): *"Claude no longer runs the `/verify` and `/code-review` skills
+  **on its own**."* Confirmed mechanically by the **sibling test**: `/verify`
+  shipped in v2.1.145 with `/run` and `/run-skill-generator`; in a live v2.1.219
+  session `run` and `simplify` are in the Skill-tool listing and `verify` is not.
+  The apparent conflict with the verification-loops post was a misread on my
+  part — its chaining code example uses `/simplify` → a *custom*
+  `/verify-no-public-api-changes`, never the bundled pair; the "/code-review,
+  /simplify, /verify" passage describes a **human** habit, which is the post's
+  setup for "habit becomes contract". Rule recorded in the v2.1.215 row: chain to
+  custom verification skills, never to `/verify` or `/code-review`.
+  **Method note:** this was first classified `unverifiable` after reading two
+  documents and finding them in tension, with no probe run. That is *unverified*,
+  and the two are not the same — F3's `unverifiable` class requires probes that
+  came back ambiguous. The sibling test cost one command.
+- **Watch:** `quality-rubric.md` crossed 500 lines (501) with the discriminator
+  section. Reference files have no hard cap — only SKILL.md does — but this is
+  the largest reference after `trigger-patterns.md` and `improvement-patterns.md`.
+
 ### Previous freshen pass: 2026-07-18
 
 ### Notable changes since the previous pass (2026-06-09 → 2026-07-18)
@@ -139,6 +182,8 @@ at the end of the row.
 | Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-07-18 | — |
 | Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents | 2026-07-18 | — |
 | Loop engineering blog post | https://claude.com/blog/getting-started-with-loops | Official loops guide (2026-06-30): /loop, /goal, /schedule taxonomy by trigger + stop condition; best practices (deterministic criteria, turn caps, verify via skills) | 2026-07-18 | — |
+| Context engineering for Claude 5 models | https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models | Thariq Shihipar, 2026-07-24. **First-party written source for the Boris Alignment Check** — 80% of Claude Code's system prompt removed with no eval loss; six then/now shifts (rules→judgment, examples→interface design, upfront→progressive disclosure, repetition→simple tool descriptions, CLAUDE.md memory→auto-memory, simple specs→rich references); `/doctor` rightsizes skills + CLAUDE.md; rubrics-as-references + verifier agents | 2026-07-24 | — |
+| Building verification loops with skills | https://claude.com/blog/building-verification-loops-in-claude-code-with-skills | Delba de Oliveira, 2026-07-22. Invocation-mode taxonomy (standalone / embedded / chained / on-every-PR) with outgrow signals and skip conditions; encode manual checks as skills; "a deterministic rule no generic linter will catch but a project-specific one will" — the criterion side of the scaffolding discriminator; plugin-managed skills off-limits for embedding (overwritten on update) | 2026-07-24 | — |
 
 ## GitHub Repositories
 

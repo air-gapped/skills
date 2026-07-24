@@ -64,9 +64,26 @@ Default probe budget: **20 per skill, 100 per batch run**. On budget exhaustion,
 | `deprecation` | Hypothesis: replace deprecated API / flag with current equivalent |
 | `new-feature` | Hypothesis: add a ≤3-line note IFF feature maps to an existing trigger phrase in the skill's `description` / `when_to_use` |
 | `broken` | Hypothesis: update or remove the ref |
-| `unverifiable` | Leave unchanged; note the ambiguity in the log |
+| `unverifiable` | Leave unchanged; note the ambiguity in the log. **Gated — see below.** |
 
 Only drift, deprecation, new-feature, and broken produce mutation hypotheses.
+
+**Gate on `unverifiable`: name the probe that failed.** The class means *probes
+were run and came back ambiguous* — not *two documents look like they disagree*.
+Reading sources and finding tension is the trigger for probing, not a substitute
+for it. Before logging `unverifiable`, state in the findings log which probe was
+run and what it returned. If that sentence cannot be written, the finding is
+**unverified** and the pass is not done.
+
+Two probes are nearly always available and cheap:
+- **Sibling test** — if a claim concerns one item in a set that shipped together,
+  check the siblings. A behaviour change that hit `/verify` but not `/run`
+  localizes the change mechanically. (2026-07-24: settled a `/verify` chaining
+  question in one command after it had been logged `unverifiable`.)
+- **Re-read the primary for scope** — apparent contradictions between an official
+  doc and an official blog are usually a scope mismatch, where one passage
+  describes human workflow and another describes agent behaviour. Check whether
+  the two are even talking about the same actor before declaring a conflict.
 
 ### Phase F4: Mutate (One Finding at a Time)
 
@@ -344,9 +361,11 @@ Run from the skill directory:
 # 1. Model-version compensation language
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for|claude (3\.5|3\.7|opus 4\.0|sonnet 3)' SKILL.md references/ 2>/dev/null
 
-# 2. Procedural prescription where plan mode would suffice
-# (numbered lists in the SKILL.md *body*, not reference content)
-rg -c '^\s*\d+\. ' SKILL.md
+# 2. Procedural prescription where plan mode would suffice.
+# Counts scaffold items only — numbered items that carry a prohibition, named
+# failure, threshold, or branch condition are encoded judgment, not scaffolding.
+# See quality-rubric.md §"The scaffolding discriminator".
+python3 "$SKILL_IMPROVER/scripts/scaffold-probe.py" SKILL.md --verbose
 
 # 3. Up-front context dumps (sections >30 lines of pure facts, no tool/file pointer)
 awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{if (sect) print lines, sect}' SKILL.md | sort -rn | head
@@ -357,7 +376,7 @@ awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{i
 | Finding | Action |
 |---|---|
 | Version-specific reference to an old Claude release (e.g. "Claude 3.5 tends to over-eagerly call tools") | Flag for author review. Verify against current model behaviour via a quick probe. If fixed → delete the compensation. |
-| Procedural step list of 8+ items in SKILL.md body | Flag — likely Dim 6 cap candidate. Recommend extracting to `references/runbook.md` or deleting if plan mode would cover. |
+| 8+ **scaffold** items in SKILL.md body (probe's scaffold count, not its item count) | Flag — likely Dim 6 cap candidate. Recommend extracting to `references/runbook.md` or deleting if plan mode would cover. Read the probe's per-item list first; criteria and branches are keepers. |
 | Section >30 lines of context dump with no tool/file pointer | Flag for refactor — replace bulk with a one-line pointer to where the context lives ("see `tokenizer.json` for the full vocabulary"). |
 | All three patterns clean | Skill is Boris-aligned. Note in the freshen summary. |
 
