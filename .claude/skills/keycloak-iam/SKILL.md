@@ -10,6 +10,14 @@ This skill covers running, configuring, deploying, and integrating with **Keyclo
 
 The Red Hat build of Keycloak (RHBK) is downstream of upstream Keycloak with longer support windows and the same surface area; advice here applies to both unless explicitly noted.
 
+**Siblings in the `k8s` plugin.** Keycloak is almost always deployed behind
+something and packaged by something, and both are common failure sources rather
+than Keycloak bugs: reverse-proxy headers, TLS termination and rate limiting in
+front of it are **`traefik-hardening`** (a Keycloak that emits wrong issuer URLs
+or loops on redirect is usually a proxy-header problem, not an IAM one);
+authoring or fixing the chart that deploys it is **`helm`**; running it under
+OpenShift's SCC and arbitrary-UID constraints is **`openshift-app`**.
+
 ## How to use this skill
 
 Keycloak is a large product. Don't try to load everything — route to one or two reference files based on what the user is asking, then go deep.

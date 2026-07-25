@@ -23,6 +23,11 @@ many devices; Prometheus tells it what to scrape per request via URL params
 v0.30.x. The generator and exporter versions **must match** — a config generated
 by a different version can fail to load. Pin both in CI.
 
+This skill ends where the metrics land in Prometheus. Querying them, writing
+the PromQL, and building the dashboards or alerts on top belong to the
+**`prometheus-mimir-grafana`** skill (same `observability` plugin); shipping
+them to long-term storage is **`mimir-upgrade`** territory.
+
 ## Golden rules
 
 1. **Never walk a whole vendor enterprise subtree.** Full-tree walks are the #1

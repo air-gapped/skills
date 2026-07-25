@@ -11,6 +11,14 @@ when_to_use: |-
 
 Target audience: operators producing defensible latency/throughput numbers against production or pre-production vLLM deployments, on datacenter GPUs, often in containerized or air-gapped environments.
 
+**This skill measures; it does not tune.** Once a number is trusted and the
+verdict is "too slow", the knobs live elsewhere in the `vllm` plugin:
+**`vllm-performance-tuning`** (scheduler, MoE kernels, CUDA graphs, parallelism),
+**`vllm-caching`** (KV tiering when the bottleneck is prefill or cache capacity),
+**`vllm-nvidia-hardware`** (the SKU's own ceiling). Measure → change one thing →
+re-measure with the same methodology; a tuning change compared against a
+differently-shaped benchmark run is not evidence.
+
 ## Why this matters
 
 Bad benchmarks are worse than no benchmarks — they drive the wrong decisions with false confidence. The three common failure modes:

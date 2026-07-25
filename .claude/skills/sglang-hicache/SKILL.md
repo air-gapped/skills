@@ -19,6 +19,8 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 
 > **NIXL deep-dive** — the NIXL transfer library (UCX / GDS / Mooncake / S3-OBJ plugins, agent API, telemetry) lives in the dedicated **`nvidia-nixl`** skill. This skill covers SGLang-side wiring of `--hicache-storage-backend nixl` only.
 
+> **Routing across workers** — this skill is per-worker: the cache tiers inside one SGLang process. Deciding *which* worker a request reaches, so it lands where its prefix is already cached, is the router's job — see the **`sglang-model-gateway`** skill (same `sglang` plugin) for cache-aware policy. A correctly tiered HiCache still thrashes if the router sprays requests round-robin.
+
 ## Versions
 
 - **Stable**: v0.5.15.post1 (2026-07-14, latest), v0.5.15 (2026-07-10), v0.5.14 (2026-06-26), v0.5.13 (2026-06-13). Earlier: v0.5.12.post1 (2026-05-26), v0.5.11 (2026-05-05).

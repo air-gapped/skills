@@ -29,6 +29,14 @@ when_to_use: >-
 
 # Jinja Expert
 
+**Boundary with `transformers-config-tokenizers-expert`** (same `dev` plugin).
+Both skills touch `chat_template.jinja`, from opposite sides. This one owns the
+template *as Jinja* — syntax, scoping, filters, whitespace, why the render is
+wrong. That one owns *which file wins* and what the loader does with it:
+`tokenizer_config.json` vs `chat_template.jinja` precedence, structural tokens,
+which class actually instantiates. "My template renders the wrong text" is
+here; "my template isn't the one being used" is there.
+
 Jinja2 shows up in three mostly-disjoint ecosystems in 2026. Each has its
 own dialect — different sandbox, different extensions, different filters,
 different failure modes. Using chat-template idioms in an Ansible playbook

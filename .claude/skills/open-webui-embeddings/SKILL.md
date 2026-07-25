@@ -10,6 +10,12 @@ when_to_use: |-
 
 Target: operators wiring Open WebUI's RAG pipeline to HuggingFace Text Embeddings Inference (TEI) via LiteLLM. Three hops, each with its own wire-shape quirks. Most failure modes silently degrade to "answer quality dropped" rather than visible errors — this skill is a triage for catching them at config-time.
 
+**Siblings in the `open-webui` plugin.** Setting these values *through the REST
+API* rather than the settings UI — and the knowledge/RAG endpoints that ingest
+documents — is the **`open-webui-api`** skill. Running more than one Open WebUI
+replica, where RAG requests and their WebSocket streams must survive hitting a
+different pod, is **`open-webui-valkey-websocket`**.
+
 ## The architecture in 30 seconds
 
 ```

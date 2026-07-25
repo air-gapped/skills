@@ -19,6 +19,13 @@ Create, test, secure, and publish Helm charts. Covers Helm 4 (November 2025),
 OCI distribution, OpenShift compatibility, and production patterns from Bitnami,
 Cilium, cert-manager, and ArgoCD.
 
+**Authoring only.** This skill is for charts you write. Consuming someone
+else's chart routes elsewhere in the `k8s` plugin: delivering it through GitOps
+is **`argo-cd-apps`**, making it survive OpenShift's SCCs and arbitrary UIDs is
+**`openshift-app`**, and checking a chart's version against the rest of the
+stack before an upgrade is **`k8s-components-checker`**. "How do I set this
+value in chart X" is usually not a chart-authoring question.
+
 ## Quick Decision Guide
 
 | Task | Go to |

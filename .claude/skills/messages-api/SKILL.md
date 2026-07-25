@@ -7,6 +7,11 @@ argument-hint: "[topic: backends, gateways, translation, clients]"
 
 # Messages API Compatibility Reference
 
+Sibling protocols in the `inference-apis` plugin: **`chat-completions-api`** is
+the baseline surface every server implements and the target this one is most
+often translated to or from; **`responses-api`** is the third, with the
+thinnest backend coverage of the three.
+
 The Anthropic Messages API (`POST /v1/messages`) is now the second open
 compatibility surface after Chat Completions: **every major local inference
 server serves it natively** (verified by source examination 2026-07-19 —

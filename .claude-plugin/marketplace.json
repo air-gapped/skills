@@ -122,7 +122,7 @@
       "name": "dev",
       "source": "./",
       "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices, and HuggingFace transformers config/tokenizer preflight (vLLM/sglang engine bridge).",
-      "version": "0.20260721.13",
+      "version": "0.20260725.14",
       "author": {
         "name": "Jörgen"
       },
@@ -182,7 +182,7 @@
       "name": "inference-apis",
       "source": "./",
       "description": "Inference-API compatibility suite — the three open LLM serving protocols as third-party surfaces: OpenAI Chat Completions + legacy /v1/completions (7 local servers, gateways, 10 cloud compat endpoints, reasoning-field schism, client wire behavior), OpenAI Responses (spec, streaming events, store/previous_response_id semantics, translation), and Anthropic Messages (7 native server implementations, thinking-signature seam, stop_reason divergences, Claude Code/opencode integration). Source-examined at pinned commits with live-verification logs.",
-      "version": "0.20260720.1",
+      "version": "0.20260725.2",
       "author": {
         "name": "Jörgen"
       },
@@ -212,7 +212,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260721.5",
+      "version": "0.20260725.6",
       "author": {
         "name": "Jörgen"
       },
@@ -311,7 +311,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients. Also postgres-operator-cloudnative-pg-migration — migrate PostgreSQL clusters off the Zalando postgres-operator (Spilo/Patroni) onto CloudNativePG: the glibc/collation and WAL-G↔Barman walls, three migration paths (logical replication default), full acid.zalan.do→Cluster manifest field map, barman-cloud plugin backup re-plumbing, consumer cutover, air-gap mirroring.",
-      "version": "0.20260725.50",
+      "version": "0.20260725.51",
       "author": {
         "name": "Jörgen"
       },
@@ -371,7 +371,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
-      "version": "0.20260724.8",
+      "version": "0.20260725.9",
       "author": {
         "name": "Jörgen"
       },
@@ -411,7 +411,7 @@
       "name": "open-webui",
       "source": "./",
       "description": "Open WebUI operator suite — REST API administration (v0.10.x: user/group lifecycle, model catalog GitOps via models/sync, config-as-code, SCIM, event webhooks, the 0.10.0 access_control→access_grants break, auth traps), RAG pipeline wiring (HuggingFace embedding + reranker via LiteLLM in front of HuggingFace Text Embeddings Inference; exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end production config; BGE-M3 + BGE-Reranker-v2-m3 worked examples) and multi-pod deployment with WebSockets + Valkey Sentinel at 1000+ user scale (the structural Socket.IO + Redis frame-amplification bug #23733 and the CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all multi-pod env vars, custom-model-icon perf history, helm chart gaps, full known-issues catalog with fix status).",
-      "version": "0.20260722.8",
+      "version": "0.20260725.9",
       "author": {
         "name": "Jörgen"
       },
@@ -450,7 +450,7 @@
       "name": "sglang",
       "source": "./",
       "description": "SGLang operator reference suite — HiCache (three-tier hierarchical prefix cache: GPU HBM → host DRAM → distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache) and the SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM/SGLang inference workers on Kubernetes with cache-aware/prefix-hash/consistent-hash routing, K8s label-selector service discovery, PD-disaggregation, and `--enable-mesh` CRDT sync between gateway replicas. Pairs with the `vllm` suite for vLLM-side reference and `inference-cache` for engine-agnostic KV-cache transport.",
-      "version": "0.20260721.11",
+      "version": "0.20260725.12",
       "author": {
         "name": "Jörgen"
       },
@@ -510,7 +510,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260721.58",
+      "version": "0.20260725.59",
       "author": {
         "name": "Jörgen"
       },

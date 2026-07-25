@@ -12,6 +12,12 @@ Target audience: operators wiring NIXL into Dynamo/vLLM/SGLang clusters, plugin 
 
 ## What NIXL is — one paragraph
 
+NIXL is the *transport*, not a cache. If the goal is a KV cache that outlives a
+single vLLM process, the thing being configured is **`lmcache-mp`** (same
+`inference-cache` plugin) — a standalone LMCache server that can use NIXL as one
+of its backends. Come here for the agent API, plugins, and wire-level
+behaviour; go there for the cache server's deployment, sizing, and ZMQ wiring.
+
 NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` registers memory regions (DRAM, VRAM, FILE, BLOCK, OBJ), exchanges metadata with peer agents via either ETCD or socket side-channel, then issues asynchronous one-sided `READ`/`WRITE` transfers between local and remote registered memory. The agent picks the best backend (UCX for network, GDS for storage, etc.) based on memory types and what both sides have loaded. Same-process loopback, intra-node GPU-to-GPU, and cross-node RDMA are all the same API. Two operations only — read and write — and both are non-blocking with optional notifications.
 
 ## Version snapshot — verify before recommending

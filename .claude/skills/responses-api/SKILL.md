@@ -11,6 +11,13 @@ The OpenAI Responses API (`POST /v1/responses`) is the recommended API for
 agentic workloads. Launched March 2025. Chat Completions is NOT deprecated,
 but superseded for new projects.
 
+**Sibling protocols in the `inference-apis` plugin.** Backend support for
+Responses is far thinner than for **`chat-completions-api`**, which remains the
+lingua franca every server implements — check that skill before assuming a
+target speaks Responses, and for the translation seam when it doesn't. The
+Anthropic-protocol equivalent is **`messages-api`**. Three protocols, one
+question: which surface does this backend actually serve?
+
 Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Continue.dev, Cline, Zed, Roo-Code, Vercel AI SDK 5+) now default to Responses. 10 backends serve `/v1/responses` — **Llama Stack is the only non-OpenAI backend with `/v1/responses/compact`**. Full adoption timeline and per-client status in `references/adoption.md`.
 
 **Last refreshed**: 2026-07-19.

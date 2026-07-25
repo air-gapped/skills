@@ -146,3 +146,9 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 Canonical entry: https://docs.vllm.ai/en/stable/deployment/ — topic URLs live in the reference files (`references/ecosystem.md`, `references/multi-node.md`, `references/openshift.md`).
 
 Sibling skills: `vllm-observability`, `vllm-caching`, `vllm-performance-tuning`, `vllm-benchmarking`, `vllm-configuration`, `vllm-nvidia-hardware`, `helm`, `openshift-app`.
+
+Also in the `vllm` plugin: `vllm-quantization` decides the weight format the
+manifest's image tag and memory budget have to match (pick it before sizing
+`gpu_memory_utilization`, not after), and `vllm-gemma-4-31b` is a worked
+operating point for one model — useful as a filled-in example of the flags this
+skill leaves generic.

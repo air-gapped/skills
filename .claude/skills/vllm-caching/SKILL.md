@@ -10,6 +10,13 @@ when_to_use: |-
 
 Target audience: operators running vLLM on H100/H200-class datacenter GPUs in production. Assumes CUDA 12/13, Kubernetes or bare container deployment, multi-GPU tensor parallel.
 
+**Where this sits.** Cache flags are one slice of a serving config: the manifest
+that carries them (cache mounts, probes, image tags) is **`vllm-deployment`**,
+the non-cache throughput knobs are **`vllm-performance-tuning`**, and the numbers
+that justify either are **`vllm-benchmarking`** — all in the `vllm` plugin. For
+the same problem on other stacks, see **`sglang-hicache`** (SGLang's tiering) and
+**`lmcache-mp`** (LMCache as a standalone server rather than in-process).
+
 ## Why this matters
 
 Long-context workloads (coding agents, RAG, research agents averaging 50k–200k tokens) are almost always **KV-cache bound**, not compute bound. The GPU sits idle waiting for free KV slots. Tiered caching — HBM → CPU DRAM → local NVMe → remote — extends effective capacity without adding GPUs and converts repeated sessions from "re-prefill every turn" to "reload in milliseconds."

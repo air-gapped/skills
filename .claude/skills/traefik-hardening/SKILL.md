@@ -59,6 +59,7 @@ So the durable controls are the ones that apply **per identity, regardless of cl
 |---|---|
 | Exact middleware config (file + Kubernetes CRD), 2.x↔3.x field deltas, per-middleware gotchas | `references/middleware-primitives.md` |
 | Per-user vs per-token keying, JWT-claim→header plugins, forwarded-identity headers | `references/identity-keying.md` |
+| Where the JWT and its claims come from, if the issuer is Keycloak | the **`keycloak-iam`** skill (`k8s` plugin) |
 | Browser-vs-script signals (Sec-Fetch/UA/JA3/HTTP2), CrowdSec fit, log triangulation & response runbook | `references/detection-and-response.md` |
 | Loading plugins with no internet (localPlugins Yaegi vs WASM), plugin-catalog maturity, CRD-vs-annotation chaining, single-leader counting, scoped-Ingress pattern | `references/air-gapped-plugins.md`, `references/deployment.md` |
 | A full worked example on a real product | `references/known-products/open-webui-api-abuse.md` (dated) |

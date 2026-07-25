@@ -9,6 +9,14 @@ when_to_use: Triggers on "write a Makefile", "review Makefile", "make target", "
 **Target:** GNU Make 4.x. Covers Make as both a build system (dependency-driven
 compilation) and a task runner (developer workflow automation).
 
+**On the `dev` plugin.** Its members are grouped by "general development
+tooling", not by a shared workflow — this skill has no dependency on
+**`baml-expert`**, **`jinja-expert`**, or
+**`transformers-config-tokenizers-expert`**, and none of them on it. Don't hunt
+for a pipeline that isn't there. The one overlap worth knowing: a Makefile that
+shells out to render templates is still a Makefile question here, but the
+template body itself is `jinja-expert`.
+
 ## Golden Rules
 
 ### 0. Simplicity First

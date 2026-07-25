@@ -35,6 +35,20 @@ internet + `gh`, grounding every specific version the verdict cites is mandatory
 (House Rule #8 · `references/version-verification.md`) — the registry's sifted
 patch numbers are methodology, not trusted release facts.
 
+**Surveys, never upgrades.** This skill produces a verdict; it does not move a
+cluster. When the verdict says a component must move, hand off to the skill that
+owns that ladder: **`rancher-upgrade`** (Rancher + the downstream RKE2/K3s
+fleet, same `k8s` plugin), **`harvester-upgrade`** (Harvester HCI, `harvester`
+plugin), **`mimir-upgrade`** (Grafana Mimir, `observability` plugin). Those
+skills read this one's compatibility registry as input and treat it as the
+matrix authority — that split is deliberate, so keep upgrade procedure out of
+here and compatibility claims out of them.
+
+Two registry components have no upgrade ladder because the answer is migration,
+not a version bump: a Zalando postgres-operator verdict hands off to
+**`postgres-operator-cloudnative-pg-migration`** (`k8s` plugin), and a
+`rancher-logging` verdict to **`rancher-logging-exit`** (`observability`).
+
 The registry is **methodology**, not inventory. It encodes which versions of
 which components are compatible with which Kubernetes minors. It does not — and
 must not — record what's actually running where.

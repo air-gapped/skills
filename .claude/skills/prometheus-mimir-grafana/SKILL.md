@@ -9,6 +9,14 @@ when_to_use: Triggers on "prometheus", "mimir", "grafana", "promql", "metrics", 
 
 Target audience: an AI agent (or a human working through one) that has to *do things with metrics* — query, triage, alert, build and fix dashboards, and pick the right KPIs — against a stack that runs Prometheus, Grafana Mimir, and/or Grafana. Works whether the agent is given curl access to a Mimir gateway, an MCP server wrapper, or just a Grafana URL and a service-account token.
 
+**This skill uses the stack; it does not change it.** Siblings in the
+`observability` plugin own the lifecycle: version-laddering a Mimir install is
+**`mimir-upgrade`**, getting SNMP devices to produce metrics in the first place
+is **`snmp-exporter`**, and logs — a different pipeline entirely — are
+**`logging-operator`** (with **`rancher-logging-exit`** for migrating off the
+Rancher-bundled chart). If a query returns nothing, check here first; if the
+component itself is broken or stale, you are in the wrong skill.
+
 ## Why this matters
 
 Metrics lie in three directions: (1) the agent queries the wrong metric or wrong label, (2) the query is syntactically fine but semantically broken (`rate` after aggregation, `histogram_quantile` of the mean, default histogram buckets sized for the wrong service), (3) the dashboard *looks* correct but the datasource variable is empty or the unit is off by 1000×. Each failure mode has an easy check. This skill is those checks, organized so the agent reaches for them before issuing the first query.

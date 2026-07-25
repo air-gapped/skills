@@ -9,6 +9,14 @@ when_to_use: |-
 
 # Gemma 4 31B on vLLM — operating-point reference
 
+**One model, measured.** This is a worked operating point, not the general
+method. The reusable machinery lives in the `vllm` plugin: flag and env
+semantics in **`vllm-configuration`**, the K8s/container manifest in
+**`vllm-deployment`**, reproducing or re-measuring these numbers in
+**`vllm-benchmarking`**, and the prompt-side template in
+**`vllm-chat-templates`**. Deploying a *different* model? Use those, not this.
+
+
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
 `RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20+. Pulls together measurements

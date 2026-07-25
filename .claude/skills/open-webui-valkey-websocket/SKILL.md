@@ -10,6 +10,8 @@ when_to_use: |-
 
 Target: deploying Open WebUI on Kubernetes with 3+ replicas, WebSocket support enabled, Valkey Sentinel for shared state and Socket.IO pub/sub, at 1000+ user scale. Sentinel is the topology — not a recommendation, just the operating reality.
 
+Siblings in the `open-webui` plugin: driving configuration, users, and the model catalog through the REST API instead of the UI is **`open-webui-api`**; the RAG/embedding pipeline that multi-pod state has to keep consistent is **`open-webui-embeddings`**.
+
 The single most important thing to internalize before going multi-pod: **issue #23733 (Socket.IO frame amplification) is open and structural**. It is the most likely cause of "we had to turn off multi-pod and websockets" in production. The mitigation is one env var. Read `references/issue-23733.md` first.
 
 ## The big bug, in 60 seconds (#23733)
