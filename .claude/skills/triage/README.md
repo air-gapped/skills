@@ -5,6 +5,19 @@ verifies each is real, collapses duplicates, re-ranks by derived
 exploitability, and tags each survivor with a component owner. Turns a raw
 dump into a short, ranked, owned list.
 
+## Where this sits
+
+Step 3 of the `defending-code` loop:
+
+```
+/threat-model  ->  /vuln-scan  ->  /triage  ->  /patch
+THREAT_MODEL.md   VULN-FINDINGS.json  TRIAGE.json   PATCHES/
+```
+
+Each step reads the previous step's artifact. Steps 1 and 2 are skippable:
+`/triage` accepts any scanner output, not just `/vuln-scan`'s. Next step after
+this one is `/patch ./TRIAGE.json --repo <target-dir>`.
+
 ## Status
 
 Ingests `vuln-scan` output, an execution harness's crash reports (the

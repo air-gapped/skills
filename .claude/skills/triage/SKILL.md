@@ -1,14 +1,17 @@
 ---
 name: triage
 description: >-
-  Triage a batch of raw security findings. Verify each is real,
+  [3/4 defending-code] Triage a batch of raw security findings. Third step of
+  the find-and-fix loop (/threat-model -> /vuln-scan -> /triage -> /patch);
+  consumes /vuln-scan's VULN-FINDINGS.json, but accepts any scanner output, so
+  it also stands alone on a third-party backlog. Verify each is real,
   collapse duplicates, re-rank by impact-on-asset x exploitability, and tag
   with an owner. Takes a directory or file of scanner output and writes TRIAGE.json
   + TRIAGE.md sorted by what actually needs engineering attention. Use when
   asked to "triage findings", "validate scanner output", "prioritize vulns",
   or "review the backlog". Runs interactively by default; pass --auto to
   skip the interview.
-argument-hint: "<findings-path> [--auto] [--votes N] [--repo PATH] [--fp-rules FILE] [--fresh]"
+argument-hint: "<VULN-FINDINGS.json|scanner-dir> [--auto] [--votes N] [--repo PATH] [--fp-rules FILE] [--fresh]"
 allowed-tools:
   - Read
   - Glob
@@ -25,6 +28,11 @@ allowed-tools:
 ---
 
 # triage
+
+Third leg of the defending-code loop (`/threat-model` → `/vuln-scan` →
+**`/triage`** → `/patch`). Consumes `/vuln-scan`'s `VULN-FINDINGS.json`, but
+any scanner output works, so this is also a valid standalone entry point for an
+existing backlog.
 
 Adversarial triage of raw security-scanner output. Does four jobs:
 **verify** each finding is real, **deduplicate** across runs and scanners,
@@ -782,7 +790,13 @@ Triage complete: {N} findings -> {T} confirmed, {F} false positives, {D} duplica
   Top refute reasons: {top 3 refute_reasons with counts}
 
 Wrote ./TRIAGE.md and ./TRIAGE.json
+
+Next step: > /patch ./TRIAGE.json --repo {repo}
 ```
+
+Emit the `Next step` line only when at least one finding survived as a true
+positive; with zero confirmed findings there is nothing to patch, so say that
+instead. `/patch` writes inert diffs to `./PATCHES/` — it never applies them.
 
 ---
 

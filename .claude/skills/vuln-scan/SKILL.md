@@ -1,7 +1,10 @@
 ---
 name: vuln-scan
 description: >-
-  Static source-code vulnerability scan. Reads a target directory (and
+  [2/4 defending-code] Static source-code vulnerability scan. Second step of
+  the find-and-fix loop (/threat-model -> /vuln-scan -> /triage -> /patch),
+  and the usual entry point when no threat model exists. Reads a target
+  directory (and
   THREAT_MODEL.md if present), spawns parallel review subagents per focus
   area, and writes VULN-FINDINGS.json + .md for /triage to consume. Read-only
   — no building, running, or network. For execution-verified crashes (build +
@@ -25,8 +28,11 @@ allowed-tools:
 
 # /vuln-scan
 
-Static vulnerability review of a source tree. Produces `VULN-FINDINGS.json`
-(+ a human-readable `.md`) that `/triage` ingests directly.
+Second leg of the defending-code loop (`/threat-model` → **`/vuln-scan`** →
+`/triage` → `/patch`). Static vulnerability review of a source tree. Produces
+`VULN-FINDINGS.json` (+ a human-readable `.md`) that `/triage` ingests
+directly. Reads `THREAT_MODEL.md` if step 1 ran, and falls back to its own
+recon if not — so this is a valid place to start the loop.
 
 **This skill does not execute code.** It reads source and reasons about it.
 For execution-verified findings (sanitizer crashes, reproducing PoCs), point

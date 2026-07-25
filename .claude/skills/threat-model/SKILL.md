@@ -1,7 +1,10 @@
 ---
 name: threat-model
 description: >-
-  Build a threat model for a target codebase. Three modes: "interview" walks an
+  [1/4 defending-code] Build a threat model for a target codebase. Optional
+  first step of the find-and-fix loop (/threat-model -> /vuln-scan -> /triage
+  -> /patch); its THREAT_MODEL.md scopes and severity-calibrates every later
+  step, but /vuln-scan runs without it. Three modes: "interview" walks an
   application owner through the four-question framework and produces a threat
   model from their answers; "bootstrap" derives a threat model from the code
   plus past vulnerabilities (CVEs, git history, pentest reports) when no owner
@@ -27,6 +30,11 @@ allowed-tools:
 ---
 
 # threat-model
+
+First leg of the defending-code loop (**`/threat-model`** → `/vuln-scan` →
+`/triage` → `/patch`), and an optional one — the loop can start at
+`/vuln-scan`. Running this first is what makes later steps scope to real
+attack surface and rank by impact on a named asset.
 
 A threat model answers **"what could go wrong with this system, who would do
 it, and what should we do about it?"** independently of whether any specific
@@ -147,6 +155,16 @@ After writing the file, print to the user:
    later `interview` pass).
 4. For `interview`: any owner statements that could not be verified in code
    (these seed follow-up code review).
+5. The next step in the loop, as a runnable line:
+
+   ```
+   Next step: > /vuln-scan <target-dir>
+   ```
+
+   `/vuln-scan` picks up `THREAT_MODEL.md` from `<target-dir>` automatically
+   and uses its entry points, assets, and threat classes to scope the scan and
+   calibrate severity. Full loop: `/threat-model` → `/vuln-scan` → `/triage`
+   → `/patch`.
 
 ---
 

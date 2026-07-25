@@ -14,6 +14,20 @@ The skill is read-only (it does not build, run, or probe the target) and is
 safe to point at any local checkout. The output is a starting point for human
 review, not a substitute for it.
 
+## Where this sits
+
+Step 1 of the `defending-code` loop, and the optional one:
+
+```
+/threat-model  ->  /vuln-scan  ->  /triage  ->  /patch
+THREAT_MODEL.md   VULN-FINDINGS.json  TRIAGE.json   PATCHES/
+```
+
+Each step reads the previous step's artifact. `/vuln-scan` runs without a
+threat model (it falls back to its own recon), so the loop can start at step 2
+— running this first is what buys scoped focus areas and asset-aware severity.
+Next step after this one is `/vuln-scan <target-dir>`.
+
 ## Why a threat model
 
 Vulnerability scanners find instances; a threat model is the map of where

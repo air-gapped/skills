@@ -1,7 +1,10 @@
 ---
 name: patch
 description: >-
-  Generate candidate fixes for verified security findings. Consumes
+  [4/4 defending-code] Generate candidate fixes for verified security
+  findings. Last step of the find-and-fix loop (/threat-model -> /vuln-scan ->
+  /triage -> /patch); run /triage first so fixes aren't written for false
+  positives. Consumes
   TRIAGE.json (preferred), VULN-FINDINGS.json, or an execution-harness results
   directory. Static-analysis input gets a per-finding patch subagent + an
   independent reviewer and is written as inert diffs for human review;
@@ -11,7 +14,7 @@ description: >-
   PATCHES/bug_NN/{patch.diff,patch_result.json}, PATCHES.md, and PATCHES.json.
   Use when asked to "fix the findings", "patch these vulns", "generate fixes",
   or "close the loop on triage".
-argument-hint: "<findings-path> [--repo PATH] [--top N] [--id fNNN] [--model M] [--fresh]"
+argument-hint: "<TRIAGE.json|VULN-FINDINGS.json|results-dir> [--repo PATH] [--top N] [--id fNNN] [--model M] [--fresh]"
 allowed-tools:
   - Read
   - Glob
@@ -31,8 +34,10 @@ allowed-tools:
 
 # patch
 
-Third leg of the static pipeline (`/vuln-scan` → `/triage` → `/patch`).
-Turns a ranked list of verified findings into candidate diffs.
+Last leg of the defending-code loop (`/threat-model` → `/vuln-scan` →
+`/triage` → **`/patch`**). Turns a ranked list of verified findings into
+candidate diffs. Nothing consumes this skill's output automatically — a human
+reviews and applies the diffs.
 
 The skill **never applies a diff** to the target repo. Output is inert text
 in `./PATCHES/` for a human to review and apply out-of-band — see § "Reviewing
@@ -449,6 +454,8 @@ Patches generated ({mode} mode): {N} findings → {M} diffs.
 
 Wrote ./PATCHES/bug_NN/, ./PATCHES.md, ./PATCHES.json
 {if static:} These are drafts. Review before applying — see § "Reviewing generated patches".
+
+End of the defending-code loop. No skill applies these; a human does.
 ```
 
 ---
