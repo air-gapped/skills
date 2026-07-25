@@ -94,6 +94,27 @@ changes that actually landed.
   grounded via `gh` on the date stamped in each file") false. Rewritten to send the reader to each
   file's header first, and to state that a claim under a "not re-derived" disclaimer must be
   re-grounded regardless of the file's headline date.
+- **Dim 8/9 — CRITICAL: the ladder targeted Prime-only patches.** Found by an agent *using* the
+  skill, not by the loop or either blind scorer. `lifecycle.md` stated "Latest patch per minor:
+  2.11.15, 2.12.11, 2.13.7, 2.14.3" as the ladder rungs while, 47 lines earlier, listing those same
+  three versions as Prime-only stubs "community gets nothing here" — and § Grounding handed out
+  `sort -V | tail -1`, the exact command `k8s-components-checker` says do NOT use. A community
+  operator was being told to land on patches that do not exist for them. **Real ceilings: 2.11.3 /
+  2.12.3 / 2.13.3 / 2.14.3** — every non-current line stops at `.3`. Confirmed twice over (edition
+  markers *and* the community Helm chart index, the decisive source since it is what `helm upgrade`
+  pulls), and corroborated by the skill's own field reports (2.12.3→2.13.3, 2.13.3→2.14.2). Fixed in
+  SKILL.md §2, `lifecycle.md` (new § Latest patch per minor + § Grounding), `prereqs-and-ordering.md`
+  § Upgrade path rule, `per-minor-runbook.md` PRE-FLIGHT 1; protocol cited to
+  `k8s-components-checker` § Edition discrimination rather than duplicated.
+  **Three lessons for future passes:**
+  1. **The freshen pass had the evidence and did not join it up.** It probed those Prime stubs and
+     used them as *format examples* without checking them against the ladder targets on the same
+     page. When a probe returns a version, ask what else in the skill asserts that version.
+  2. **Two rules that are individually correct can be jointly wrong.** House Rule #1 (community
+     only) and House Rule #3 (enumerate-and-derive) were both stated and both followed; the defect
+     lived in their *interaction*, which no single-dimension rubric check looks at.
+  3. **Field reports outrank the grounding section.** The validated hops were on the community
+     rungs all along — internal evidence contradicting internal instructions is a defect signal.
 - **Dim 5/8 — the install-type scope boundary was never stated.** The skill assumes the
   Helm-on-Kubernetes install on every page but never said so, while its triggers ("upgrade Rancher")
   match a **single-node Docker install** just as well — which upgrades by swapping the container

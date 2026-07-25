@@ -36,10 +36,15 @@ to the apiserver:
 
 ## Upgrade path rule
 
-Supported path between minors: **latest patch of the current minor → latest patch of the next
-minor, one minor at a time.** No minor skipping (2.11→2.12→2.13→2.14, never 2.11→2.14). Intra-minor
-patch jumps to the latest patch are fine and expected (land on the latest patch *before* stepping).
-Derive each "latest patch" via `gh` — see `lifecycle.md` § Grounding.
+Supported path between minors: **latest COMMUNITY patch of the current minor → latest COMMUNITY patch
+of the next minor, one minor at a time.** No minor skipping (2.11→2.12→2.13→2.14, never 2.11→2.14).
+Intra-minor patch jumps are fine and expected (land on the community ceiling *before* stepping).
+
+⛔ **"Latest patch" ≠ newest tag.** For every minor except the current one, the newest tag is a
+**Prime-only** patch the community cannot install — grounded 2026-07-25, the community ceilings are
+**2.11.3 / 2.12.3 / 2.13.3 / 2.14.3**, while the newest tags are 2.11.15 / 2.12.11 / 2.13.7 / 2.14.3.
+Deriving a rung with `sort -V | tail -1` produces an uninstallable target. Derive each ceiling
+edition-aware — see `lifecycle.md` § Latest patch per minor and § Grounding.
 
 ## Per-step prerequisites (gate every minor step on these)
 

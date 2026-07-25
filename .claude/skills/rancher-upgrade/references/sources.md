@@ -19,7 +19,7 @@ the primary for a community claim.
 | Fleet releases (per-minor app version, Helm v4 at 0.15) | https://github.com/rancher/fleet/releases | 2026-07-25 | community |
 | backup-restore-operator releases + restore-quirk issues (#844 open, #916 closed-with-workaround) | https://github.com/rancher/backup-restore-operator | 2026-07-25 | community |
 | CAPRKE2 `v1alpha1` deprecation (#797) | https://github.com/rancher/cluster-api-provider-rke2 | 2026-07-25 | community |
-| Community Helm chart index (current stable minor) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-07-21 | community |
+| Community Helm chart index — **decisive test for the per-minor community ceiling** (`latest` + `stable`) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-07-25 | community |
 | Rancher Manager docs — upgrades, air-gapped-upgrades, publish-images, helm-chart-options, tls-settings, rollbacks, update-k8s-without-upgrading-rancher | https://ranchermanager.docs.rancher.com | 2026-07-25 *(rollbacks page only)* | community |
 | RKE2 docs — air-gap, etcd backup/restore, automated SUC upgrades | https://docs.rke2.io | 2026-07-21 | community |
 | Rancher EOL dates (cross-check) | https://endoflife.date/rancher | 2026-07-25 | community |
@@ -45,8 +45,29 @@ Grounded per the § Grounding protocol (enumerate-and-derive, no candidate named
 - **The community-vs-Prime `head -1` classifier was broken** (matched 0 of 4 probed releases) and has
   been replaced — `lifecycle.md` § Community vs Prime.
 - **BRO #916 closed with a workaround, not a fix** — `prereqs-and-ordering.md` § Backup & rollback.
-- **Not re-probed** (still stamped 2026-07-21): community Helm chart index, docs.rke2.io, SUSE
-  lifecycle, companion `compat/rancher.md`, per-minor breaking-change lists.
+- **Not re-probed** (still stamped 2026-07-21): docs.rke2.io, SUSE lifecycle, companion
+  `compat/rancher.md`, per-minor breaking-change lists.
+
+**Correction applied later the same day — community ceilings, not top tags.** An agent using the
+skill hit the trap the edition rule exists to prevent: `sort -V | tail -1` returns a **Prime-only**
+patch for every non-current minor, so the ladder targets recorded above as "latest patch per minor"
+(2.11.15 / 2.12.11 / 2.13.7) were not installable by this skill's own audience. Real community
+ceilings, confirmed by **two independent sources** — the release-notes edition markers (Prime uses
+*two* forms: a self-declaration line and a docs-redirect stub) and the community Helm chart index at
+`releases.rancher.com/server-charts/{latest,stable}/index.yaml`, which is decisive because it is what
+`helm upgrade` pulls:
+
+| Minor | Newest tag | Community ceiling | Released |
+|---|---|---|---|
+| 2.11 | v2.11.15 | **v2.11.3** | 2025-06-25 |
+| 2.12 | v2.12.11 | **v2.12.3** | 2025-10-22 |
+| 2.13 | v2.13.7 | **v2.13.3** | 2026-02-25 |
+| 2.14 | v2.14.3 | **v2.14.3** | 2026-06-29 |
+
+Corroborated by the skill's own field reports (validated hops 2.12.3→2.13.3 and 2.13.3→2.14.2).
+`k8s-components-checker` § Edition discrimination owns the protocol and is now cited from
+`lifecycle.md` § Grounding. **2.15 re-checked at the same time: still RC, `releases/latest` still
+v2.14.3.**
 
 ### 2026-07-21
 

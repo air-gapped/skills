@@ -87,10 +87,14 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
 
 ### 2. Compute the upgrade path (no minor skipping)
 
-The only supported path between minors is **latest-patch-of-current-minor → latest-patch-of-next-
-minor, one minor at a time** (2.11→2.12→2.13→2.14; never 2.11→2.14). Intra-minor patch jumps are
-fine. Ground the actual latest patch of each minor via `gh` (House Rule #3 below) — don't assert a
-patch from memory.
+The only supported path between minors is **latest-COMMUNITY-patch-of-current-minor → latest-
+COMMUNITY-patch-of-next-minor, one minor at a time** (2.11→2.12→2.13→2.14; never 2.11→2.14).
+Intra-minor patch jumps are fine.
+
+⛔ **The rung is the community ceiling, not the newest tag.** Rancher ships both editions to one
+GitHub feed, so for every minor except the current one the newest tag is **Prime-only** and
+uninstallable here — `sort -V | tail -1` silently yields a target the operator cannot use. Derive
+each rung edition-aware (House Rule #1 + #3): `references/lifecycle.md` § Latest patch per minor.
 
 ### 3. For each minor step, run the pre-flight → upgrade → post-flight runbook
 

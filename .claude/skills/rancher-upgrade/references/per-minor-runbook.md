@@ -93,7 +93,8 @@ is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm t
    admin kubeconfig FIRST; upgrading through the proxy severs the API mid-apply
    (`prereqs-and-ordering.md` § Pre-flight). Also silence any pre-existing reconcile-error loop now
    (e.g. an orphaned cloud credential whose token was deleted), so post-upgrade logs are clean signal.
-1. Confirm the cluster is on the **latest community patch of the current minor** (ground via `gh`).
+1. Confirm the cluster is on the **community ceiling of the current minor** — NOT the newest tag,
+   which is Prime-only for every non-current minor (`lifecycle.md` § Latest patch per minor).
 2. **Back up:** BRO backup **and** an RKE2 etcd snapshot of the mgmt cluster (`prereqs-and-ordering.md`).
 3. **k8s floor:** get the mgmt cluster (and hand-managed downstreams) onto the target minor's k8s
    floor (cite `compat/rancher.md`).
