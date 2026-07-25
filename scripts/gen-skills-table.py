@@ -21,9 +21,10 @@ MARK_B = "<!-- skills-end -->"
 MAX_LEN = 250
 
 
-def load_groups() -> dict:
-    """GROUPS from gen-plugin-manifests.py — the plugin/suite definitions
-    are the single source of truth for skill grouping."""
+def load_manifest_mod():
+    """gen-plugin-manifests.py — the plugin/suite definitions are the single
+    source of truth for both skill grouping (GROUPS) and within-suite
+    ordering (member_rank), so this table can't drift from marketplace.json."""
     path = pathlib.Path(__file__).with_name("gen-plugin-manifests.py")
     spec = importlib.util.spec_from_file_location("gen_plugin_manifests", path)
     if spec is None or spec.loader is None:
@@ -31,7 +32,7 @@ def load_groups() -> dict:
         raise SystemExit(2)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.GROUPS
+    return mod
 
 
 def group_plugin_of(dir_name: str, groups: dict) -> str | None:
@@ -85,22 +86,28 @@ def summarise(s: str) -> str:
 
 
 def build_table() -> str:
-    groups = load_groups()
+    mod = load_manifest_mod()
+    groups = mod.GROUPS
     entries = []
     for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
         fm = parse_frontmatter(skill_md.read_text())
         name = fm.get("name", skill_md.parent.name)
-        group = group_plugin_of(skill_md.parent.name, groups)
+        dir_name = skill_md.parent.name
+        group = group_plugin_of(dir_name, groups)
         # The plugin name IS the install unit: the group name for suite
         # members, the skill's own name for standalone plugins.
         plugin = group or name
+        # Within a suite, follow the group's declared `members` order — for
+        # pipeline suites (defending-code) that order is the run order.
+        # Glob suites and standalone plugins fall back to alphabetical.
+        rank = mod.member_rank(group, dir_name) if group else 0
         desc = summarise(fm.get("description", ""))
-        entries.append((group is None, plugin, name, skill_md, desc))
-    # Multi-skill suites first (alphabetically, members contiguous),
-    # then the single-skill plugins alphabetically.
+        entries.append((group is None, plugin, rank, name, skill_md, desc))
+    # Multi-skill suites first (alphabetically, members contiguous and in
+    # declared order), then the single-skill plugins alphabetically.
     entries.sort()
     rows = ["| Plugin | Skill | Description |", "|---|---|---|"]
-    for _, plugin, name, skill_md, desc in entries:
+    for _, plugin, _, name, skill_md, desc in entries:
         rows.append(f"| `{plugin}` | [`{name}`]({skill_md}) | {desc} |")
     return "\n".join(rows)
 

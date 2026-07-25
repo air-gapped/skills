@@ -47,6 +47,13 @@ TAGLINE_CAP = 200
 # skills. A group matches skills via `glob` (fnmatch on dir name) or
 # `members` (explicit dir-name list). Skills matching no group become
 # standalone plugins.
+#
+# `members` ORDER IS SIGNIFICANT: it is the order the skills appear in
+# marketplace.json and in the README table (see member_rank). Suites that
+# model a workflow rely on it — defending-code reads threat-model ->
+# vuln-scan -> triage -> patch, inference-host is bring-up-then-tune. Add a
+# new member at its right position, not at the end. `glob` groups have no
+# authored order and stay alphabetical.
 GROUPS: dict[str, dict] = {
     "bitnami-exit": {
         # Migrations off dead-ended Bitnami charts/images after the
@@ -899,6 +906,23 @@ def plugin_entry(
     return entry
 
 
+def member_rank(gname: str, dir_name: str) -> int:
+    """Position of a skill within its group's declared `members` list.
+
+    An explicit `members` list is authored order, and for suites that model a
+    pipeline that order carries meaning: `defending-code` is
+    threat-model -> vuln-scan -> triage -> patch, and listing `patch` first
+    because "p" sorts before "t" hides the one fact a reader most needs.
+    Glob-matched groups have no authored order, so they fall through to the
+    sentinel and stay alphabetical.
+    """
+    members = GROUPS.get(gname, {}).get("members") or []
+    try:
+        return members.index(dir_name)
+    except ValueError:
+        return len(members) + 1_000_000
+
+
 def build_plugins() -> list[dict]:
     all_skills = gather_skills()
 
@@ -923,6 +947,7 @@ def build_plugins() -> list[dict]:
         members = group_members[gname]
         if not members:
             continue
+        members.sort(key=lambda d, g=gname: (member_rank(g, d.name), d.name))
         gcfg = GROUPS[gname]
         plugins.append(
             plugin_entry(

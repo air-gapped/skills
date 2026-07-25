@@ -67,10 +67,10 @@
       },
       "license": "MIT",
       "skills": [
-        "./.claude/skills/patch",
         "./.claude/skills/threat-model",
+        "./.claude/skills/vuln-scan",
         "./.claude/skills/triage",
-        "./.claude/skills/vuln-scan"
+        "./.claude/skills/patch"
       ],
       "strict": false,
       "category": "security",
@@ -189,8 +189,8 @@
       "license": "MIT",
       "skills": [
         "./.claude/skills/chat-completions-api",
-        "./.claude/skills/messages-api",
-        "./.claude/skills/responses-api"
+        "./.claude/skills/responses-api",
+        "./.claude/skills/messages-api"
       ],
       "strict": false,
       "category": "inference",
@@ -246,8 +246,8 @@
       },
       "license": "MIT",
       "skills": [
-        "./.claude/skills/gpu-host-tuning",
-        "./.claude/skills/nvidia-datacenter-bringup"
+        "./.claude/skills/nvidia-datacenter-bringup",
+        "./.claude/skills/gpu-host-tuning"
       ],
       "strict": false,
       "category": "inference",
@@ -377,11 +377,11 @@
       },
       "license": "MIT",
       "skills": [
-        "./.claude/skills/logging-operator",
-        "./.claude/skills/mimir-upgrade",
         "./.claude/skills/prometheus-mimir-grafana",
-        "./.claude/skills/rancher-logging-exit",
-        "./.claude/skills/snmp-exporter"
+        "./.claude/skills/mimir-upgrade",
+        "./.claude/skills/snmp-exporter",
+        "./.claude/skills/logging-operator",
+        "./.claude/skills/rancher-logging-exit"
       ],
       "strict": false,
       "category": "observability",
