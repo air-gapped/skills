@@ -3,12 +3,12 @@ name: rancher-upgrade
 description: >-
   Plan and sequence COMMUNITY-edition Rancher upgrades across air-gapped multi-cluster fleets — a
   management/"hosting" Rancher cluster plus the downstream RKE2/K3s clusters it provisions. Covers the community
-  release model (2.11→2.14, community-vs-Prime cadence, EOL), the Kontainer Driver Metadata (KDM) downstream-
-  Kubernetes support matrix that decides which downstream k8s minors each Rancher version can manage (and the
-  stranding risk when a host-Rancher bump outruns its sub-clusters), cross-cluster upgrade ordering, the
+  release model (2.11→2.14, community-vs-Prime cadence, EOL), the Kontainer Driver Metadata (KDM) matrix
+  deciding which downstream k8s minors each Rancher version can manage (and the stranding risk when a
+  host-Rancher bump outruns its sub-clusters), cross-cluster upgrade ordering, the
   embedded-CAPI→Rancher-Turtles migration, Fleet coupling, cert-manager/Helm/backup prerequisites, backup-
   restore-operator + etcd rollback, and the air-gapped upgrade procedure (which images/charts/KDM to mirror).
-  Community editions only; Prime-gated content is flagged and excluded. Companion to k8s-components-checker,
+  Assumes the Helm-on-Kubernetes install. Community editions only; Prime content excluded. Companion to k8s-components-checker,
   which owns the management-cluster k8s compatibility verdict; this skill owns the upgrade methodology and
   downstream coordination.
 when_to_use: >-
@@ -16,7 +16,8 @@ when_to_use: >-
   can my Rancher manage", "downstream cluster stranded", "Rancher Turtles migration", "embedded cluster-api
   removed", "Fleet Helm v4", "Rancher air-gap upgrade", or "rancher-backup / cert-manager prerequisite" — or
   plans an upgrade of a Rancher management cluster and the downstream clusters under it, even without naming KDM
-  or Turtles. NOT for Harvester or the single-cluster component-compat verdict (use k8s-components-checker).
+  or Turtles. NOT for Harvester, single-node Docker installs, or the single-cluster component-compat verdict
+  (use k8s-components-checker).
 ---
 
 # rancher-upgrade
@@ -63,6 +64,14 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
 
 ### 1. Establish the change set and the fleet shape
 
+- **Install type first — this skill assumes the Helm-on-Kubernetes install.** The same command that
+  gets the version answers this: an empty result means there is no Helm-managed `rancher` release,
+  and the likeliest reason is a **single-node Docker install** (`docker run rancher/rancher`, still
+  a documented method). That upgrades by stopping the container, backing up its data volume, and
+  starting a new container from the newer image against the same volume — **no `helm upgrade`, no
+  cert-manager chart, no BRO, no etcd snapshot, no KDM coordination.** Effectively nothing below
+  applies. **Say so and stop** rather than emitting a Helm plan; point at the Rancher docs'
+  single-node-with-Docker upgrade page.
 - **Versions:** current Rancher minor+patch, target Rancher minor. Get this from the cluster
   (`helm list -A -n cattle-system | grep rancher`), not from memory.
 - **Fleet shape:** does this Rancher actually provision downstream clusters?

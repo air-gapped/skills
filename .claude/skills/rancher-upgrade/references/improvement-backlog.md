@@ -94,6 +94,14 @@ changes that actually landed.
   grounded via `gh` on the date stamped in each file") false. Rewritten to send the reader to each
   file's header first, and to state that a claim under a "not re-derived" disclaimer must be
   re-grounded regardless of the file's headline date.
+- **Dim 5/8 — the install-type scope boundary was never stated.** The skill assumes the
+  Helm-on-Kubernetes install on every page but never said so, while its triggers ("upgrade Rancher")
+  match a **single-node Docker install** just as well — which upgrades by swapping the container
+  against its data volume and shares nothing with this runbook. The failure mode was not a missing
+  chapter but a *silently wrong confident answer*. Fixed with a scope line in `description`, the
+  `NOT for` clause, and a stop-gate in workflow §1 (empty `helm list` = likely Docker install → say
+  so and stop). Docker single-node confirmed still a live documented method 2026-07-25. Budget:
+  `description`+`when_to_use` re-trimmed to **1529/1536** — every trigger keyword retained.
 - **Dim 6 — `sources.md` cut 120 → 57 lines.** It had grown into a second copy of this backlog plus
   ~46 lines of superseded 2026-07-21 state, in an operator-facing reference. It is now a provenance
   index (the dated per-source table) plus a short digest; the narrative lives here, and the prior
