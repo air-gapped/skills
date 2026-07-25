@@ -21,7 +21,16 @@ when_to_use: Triggers on "tune the host", "audit this box", "snapshot
 # gpu-host-tuning
 
 Host-side tuning + audit for Linux GPU inference servers. Sits *beneath* any
-inference framework (vLLM, sglang, TensorRT-LLM, llama.cpp). Three modes:
+inference framework (vLLM, sglang, TensorRT-LLM, llama.cpp).
+
+**Assumes a working host.** Driver, `nvidia-fabricmanager`, and NVLink/NVSwitch
+must already be healthy — if `nvidia-smi` doesn't list every GPU, or
+fabricmanager isn't `active (running)`, that is a bring-up problem, not a
+tuning one: use `nvidia-datacenter-bringup` (same `inference-host` plugin)
+first. Tuning a half-initialised host produces numbers that describe the fault,
+not the hardware.
+
+Three modes:
 
 1. **Audit** — read-only snapshot
 2. **Bench** — ground-truth pinned-host↔GPU memcpy ceiling

@@ -8,6 +8,11 @@ when_to_use: Use for bringing up an NVIDIA datacenter GPU host (HGX, DGX, or inf
 
 Opinionated greenfield recipe for **NVIDIA datacenter GPUs on Ubuntu 24.04 LTS** — get from a clean OS install to a healthy host where `nvidia-smi` reports all GPUs, `nvidia-fabricmanager` is `active (running)`, and the gpu-operator `cuda-validator` pod passes. Air-gap is the primary case; connected sites use the same packages from the same upstream URLs.
 
+**Scope boundary.** This skill ends at a *healthy* host, not a *fast* one. Once
+`cuda-validator` passes, performance work — IOMMU/hugepages/NUMA pinning, PCIe
+ACS, persistence mode, the pinned-host↔GPU memcpy ceiling — belongs to the
+`gpu-host-tuning` skill (same `inference-host` plugin). Do not tune here.
+
 ## Decision tree
 
 | Question | Answer | Read |
