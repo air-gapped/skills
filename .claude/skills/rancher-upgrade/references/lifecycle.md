@@ -1,20 +1,31 @@
 # lifecycle.md — community release model, EOL, and version grounding
 
 **Grounded via `gh` + endoflife.date + suse.com/lifecycle: 2026-05-30.** Ceiling at sift:
-Rancher community `v2.14.3` (2026-06-29, verified 2026-07-21). Re-ground at use time (House Rule #8) — releases move.
+Rancher community `v2.14.3` (2026-06-29, re-verified 2026-07-25). Re-ground at use time (House Rule #3) — releases move.
+
+**Contents:** [Community vs Prime](#community-vs-prime--the-only-reliable-discriminator) ·
+[Cadence & lifecycle / EOL](#cadence--lifecycle) · [Grounding — repo map + anti-confirmation
+method](#grounding-house-rule-3--repo-map--anti-confirmation-method)
 
 ## Community vs Prime — the only reliable discriminator
 
 Rancher's GitHub releases carry **both** community and Prime builds, so "is there a GitHub
-release?" does NOT tell you whether a patch is community-supported. The reliable signal is the
-**first line of the GitHub release-notes body**:
+release?" does NOT establish whether a patch is community-supported. The reliable signal is a
+**classifier sentence in the GitHub release-notes body**:
 
-| First line | Meaning |
+| Body contains | Meaning |
 |------------|---------|
 | `"This is a Community version release"` | Community cadence — supported for community users. (Currently only the **2.14.x** line.) |
 | `"This is a Community and Prime version release"` | Patch on the then-newest minor; serves both. |
 | `"This is a Prime version release"` | Prime-cadence patch on an older minor; full notes still on GitHub but **not** community-supported. |
-| `"Please refer to our Prime Documentation…"` (stub, no notes) | Prime-only; community gets nothing here. (Currently **2.11.14 / 2.12.10 / 2.13.6**.) |
+| `"Please refer to our Prime Documentation…"` (stub, no notes) | Prime-only; community gets nothing here. (Currently **2.11.15 / 2.12.11 / 2.13.7**.) |
+
+⚠ **Do NOT read this off `head -1`.** Verified 2026-07-25: the classifier sentence is *not*
+the first line on a community release. Community bodies open with a `# Release vX.Y.Z`
+markdown heading and carry the sentence at **body line 3** (patch) or **line 12** (a `.0`
+minor); only the Prime *stub* form is genuinely line 1. A `head -1` classifier therefore
+matches **none** of the first three rows and silently mis-classifies every community patch.
+Grep the whole body instead.
 
 **Cutover trigger:** when a new minor GAs, the previously-newest minor's *subsequent* patches flip
 from Community → Prime labeling. So at any moment, **only the current stable minor is on community
@@ -23,7 +34,14 @@ minor air-gapped must verify the specific patch actually ships a community-consu
 (the `rancher-latest` server-charts repo tracks the current stable minor; older minors live in
 `rancher-stable` / per-version) — `UNVERIFIED` in general, check per version.
 
-To classify a patch: `gh api repos/rancher/rancher/releases/tags/<tag> --jq '.body' | head -1`.
+To classify a patch:
+
+```bash
+gh api repos/rancher/rancher/releases/tags/<tag> --jq '.body' \
+  | grep -iEm1 'this is a (community and prime|community|prime) version release|refer to our \[?Prime Documentation'
+```
+
+No match at all = an unrecognized notes format; read the body before assuming community.
 
 ## Cadence & lifecycle
 
@@ -47,8 +65,22 @@ To classify a patch: `gh api repos/rancher/rancher/releases/tags/<tag> --jq '.bo
 
 EOL table re-verified 2026-07-21 against endoflife.date — all four dates unchanged.
 
-Latest patch per minor, grounded 2026-07-21: **2.11.15, 2.12.11, 2.13.7, 2.14.3** — all four
-lines were patched on the same day, **2026-06-29**. Always re-derive — see Grounding.
+Latest patch per minor, re-grounded 2026-07-25 (unchanged): **2.11.15, 2.12.11, 2.13.7, 2.14.3** —
+all four lines were patched on the same day, **2026-06-29**. Always re-derive — see Grounding.
+
+⚠ **v2.15 is at RC and its release plumbing is already live (grounded 2026-07-25).** The prior pass
+(2026-07-21) recorded 2.15 as *alpha*; it moved that same day. Observed now: `v2.15.0-rc1`
+(2026-07-21) through `v2.15.0-rc3` (2026-07-24), plus **`release-v2.15` branches in both
+`rancher/kontainer-driver-metadata` and `rancher/charts`**, and a live
+`releases.rancher.com/kontainer-driver-metadata/release-v2.15/data.json` serving 200. On the
+Mar/Jul/Nov cadence, 2.15 GA is **due now** — but it is still a prerelease, so:
+
+- **Do NOT plan a hop onto 2.15**; `releases/latest` remains v2.14.3 and no community classifier
+  sentence exists for an RC. 2.14 is the correct target today.
+- **Do factor it into look-ahead (House Rule #4).** A fleet landing on 2.14 should expect a 2.15 hop
+  shortly after GA — say so in the plan rather than presenting 2.14 as a terminal state.
+- **Re-run the ceiling probe before writing any plan.** This line is the fastest-moving fact in the
+  skill; between GA and this stamp the correct target changes.
 
 ⚠ **2.11 goes EOL 2026-10-24 — roughly three months out.** 2.11 is this skill's
 upgrade *floor*, so an operator arriving on 2.11 has a short runway: they are
@@ -58,7 +90,7 @@ look-ahead targeting (House Rule: pick the version covering the *next* hop) —
 and note **2.10 is already EOL (2026-06-19)**, so anyone below the floor is
 unsupported today.
 
-## Grounding (House Rule #8) — repo map + anti-confirmation method
+## Grounding (House Rule #3) — repo map + anti-confirmation method
 
 `gh` must run with **valid auth** from the operator's workstation. Anonymous = 60 req/hr and
 exhausts almost instantly on an enumeration sweep — confirm `gh auth status` shows a logged-in
@@ -82,19 +114,44 @@ gh release list -R rancher/turtles --limit 40 \
         | "\(.tagName)\t\(.publishedAt[0:10])"'
 ```
 
-**And do not read component versions off the component repo at all.** As of
-2026-07-21 the top of the release list for `rancher/fleet`,
-`rancher/backup-restore-operator` and `rancher/turtles` is *entirely* RC tags
-(Fleet `v0.16.0-rc.5`, `v0.15.5-rc.2`, …; BRO `v11.0.0-rc.6`, `v10.0.8-rc.4`, …).
-There is no stable tag in the recent window to find. The authoritative binding
-of component → Rancher minor is the **`rancher/charts` `release-v2.X` branch**,
-which is what § chart-version lookup already tells you to use. The component
-repo answers "what exists", not "what ships with 2.14".
+**And do not read component versions off the component repo at all** — not because stable tags are
+missing, but because the component repo answers *"what exists"*, not *"what ships with 2.14"*. The
+authoritative binding of component → Rancher minor is the **`rancher/charts` `release-v2.X`
+branch**, which is what § chart-version lookup already prescribes.
+
+> **Why the wording changed — a caution about snapshot claims.** The 2026-07-21 pass recorded that
+> the top of the release list for `rancher/fleet`, `rancher/backup-restore-operator` and
+> `rancher/turtles` was *entirely* RC tags with "no stable tag in the recent window to find".
+> Re-probed 2026-07-25, **that had already reversed in four days**: Fleet cut stable
+> `v0.12.18 / v0.13.14 / v0.14.9 / v0.15.5` on 2026-07-22 (all four lines at once, mapping cleanly
+> onto 2.11/2.12/2.13/2.14) and Turtles cut `v0.26.4` / `v0.25.6` / `v0.27.0` on 2026-07-21–22. Only
+> BRO still tops out on RCs (`v11.0.0-rc.6`; newest stable `v10.0.7`). Treat "repo X currently has no
+> stable release" as a *reading of one moment*, never as a durable property — the release-plumbing
+> state around a pending minor flips within days.
+
+**Fastest exact answer to "which component version is in *this patch*": the release's own
+`rancher-mirror-to-rancher-org.sh` asset.** It is a flat `docker pull` list of the precise image
+tags that patch ships — one fetch, no branch archaeology, and it is the release artifact itself
+rather than an inference from a chart branch:
+
+```bash
+# no candidate version named; <tag> comes from the ceiling/enumeration probes above
+curl -sL https://github.com/rancher/rancher/releases/download/<tag>/rancher-mirror-to-rancher-org.sh \
+  | grep -E 'rancher/(fleet|backup-restore-operator|cluster-api-controller|turtles):' | sort -u
+```
+
+Grounded 2026-07-25 on **v2.14.3** → `fleet:v0.15.4`, `backup-restore-operator:v10.0.5`,
+`turtles:v0.26.3`, `cluster-api-controller:v1.12.7`. Note **every one of those sits *below* the
+newest stable tag in its own repo** (Fleet `v0.15.5`, BRO `v10.0.7`, Turtles `v0.26.4`) — a concrete
+demonstration of why the component repo cannot answer this question. Use the `rancher/charts`
+`release-v2.X` branch for the
+**chart**-level binding and its `rancher-version` annotation; use this asset for the **image** tags
+actually deployed.
 
 ```bash
 # the ceiling (no candidate version in the command)
 gh api repos/rancher/rancher/releases/latest --jq '.tag_name'
-# real latest patch of a minor — enumerate, then take the max yourself (paginate for older minors)
+# real latest patch of a minor — enumerate, then derive the max locally (paginate for older minors)
 gh api 'repos/rancher/rancher/releases?per_page=100' \
   --jq '.[]|select(.prerelease|not)|.tag_name' | grep -E '^v2\.13\.' | sort -V | tail -1
 ```

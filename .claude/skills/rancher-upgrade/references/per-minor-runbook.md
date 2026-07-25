@@ -1,7 +1,14 @@
 # per-minor-runbook.md — breaking changes 2.11→2.14 + the ordered runbook
 
-**Grounded via `gh` release notes/issues + ranchermanager docs: 2026-05-30.** Community-relevant
-items only; Prime-gated content excluded. Cross-check the issue numbers at use time. The
+**Grounded via `gh` release notes/issues + ranchermanager docs: 2026-05-30; spot-re-verified
+2026-07-25 — Fleet #4878 CLOSED, turtles #2176 MERGED, BRO #844 still OPEN, latest 2.14 patch
+v2.14.3.** Community-relevant items only; Prime-gated content excluded. **The per-minor
+breaking-change lists were not re-derived from release notes this pass** — cross-check the issue
+numbers at use time.
+
+**Contents:** [Per-minor breaking changes](#per-minor-breaking-changes--known-issues) (2.11 · 2.11→2.12
+· 2.12 · 2.13 · 2.14) · [The runbook — once per minor step](#the-runbook--iterate-once-per-minor-step-211212213214)
+(PRE-FLIGHT · UPGRADE · POST-FLIGHT) The
 mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
 
 ## Per-minor breaking changes & known issues
@@ -46,7 +53,7 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   namespace emptied; Fleet 0.13→0.14 rode the chart; OIDC survived (the #53995 backup was correct
   insurance, not needed). All post-upgrade errors were startup-transient.
 
-### 2.14 (GA 2026-03-26; current community line, latest 2.14.2)
+### 2.14 (GA 2026-03-26; current community line, latest **v2.14.3** — grounded 2026-07-25)
 - **Embedded Cluster API removed** (#53291); **CAPI → v1beta2** (#52034/#53334) — one-way rollback
   boundary. See `capi-turtles-fleet.md`.
 - **cert-manager compat shims removed** (#52922) — out-of-window cert-manager fails admission; bump
@@ -86,7 +93,7 @@ is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm t
    admin kubeconfig FIRST; upgrading through the proxy severs the API mid-apply
    (`prereqs-and-ordering.md` § Pre-flight). Also silence any pre-existing reconcile-error loop now
    (e.g. an orphaned cloud credential whose token was deleted), so post-upgrade logs are clean signal.
-1. Confirm you're on the **latest community patch of the current minor** (ground via `gh`).
+1. Confirm the cluster is on the **latest community patch of the current minor** (ground via `gh`).
 2. **Back up:** BRO backup **and** an RKE2 etcd snapshot of the mgmt cluster (`prereqs-and-ordering.md`).
 3. **k8s floor:** get the mgmt cluster (and hand-managed downstreams) onto the target minor's k8s
    floor (cite `compat/rancher.md`).
@@ -100,7 +107,7 @@ is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm t
    - → 2.13: back up the OIDC AuthConfig (#53995); air-gap — pre-stage CAPI controller images (#52816).
    - → 2.14: re-enable Turtles if it was disabled (else v2prov breaks); target **2.14.1+** if Google
      OAuth or Fleet drift correction is in use; set Ingress timeout annotations explicitly (#53272);
-     set `features.use-caapf.enabled: true` first if you used CAAPF.
+     set `features.use-caapf.enabled: true` first if CAAPF was in use.
 
 **UPGRADE**
 8. Upgrade the **management Rancher chart FIRST** (air-gap variant + `--set` flags from

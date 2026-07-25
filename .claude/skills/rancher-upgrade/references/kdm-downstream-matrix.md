@@ -1,6 +1,8 @@
 # kdm-downstream-matrix.md — which downstream k8s a Rancher minor can manage
 
-**Grounded via `gh` + live `data.json` + SUSE 2.14.1 matrix: 2026-05-30.** This is the load-bearing
+**Grounded via `gh` + live `data.json` + SUSE 2.14.1 matrix: 2026-05-30; matrix re-derived from live
+`data.json` (branches `release-v2.14` **and** `release-v2.15`): 2026-07-25 — all 2.14 rows confirmed
+unchanged.** This is the load-bearing
 gap that the per-cluster compat tooling does not cover: it prevents a host-Rancher bump from
 stranding its sub-clusters.
 
@@ -37,9 +39,17 @@ k8s window**:
 | 2.12 | **1.31, 1.32, 1.33** |
 | 2.13 | **1.32, 1.33, 1.34** |
 | 2.14 | **1.33, 1.34, 1.35** |
+| 2.15 *(pre-GA — RC as of 2026-07-25, do not plan onto it)* | **1.34, 1.35, 1.36** |
 
 Live channel windows confirming the new edge (release-v2.14 `data.json`): k8s 1.33 = `[v2.12.0,
 v2.14.99]`, 1.34 = `[v2.13.0, v2.14.99]`, 1.35 = `[v2.14.0, v2.14.99]`.
+
+**The `release-v2.15` branch is already serving** (re-derived 2026-07-25) and shows the rolling
+window advanced by exactly one: 1.34 = `[v2.13.0, v2.15.99]`, 1.35 = `[v2.14.0, v2.15.99]`, 1.36 =
+`[v2.15.0, v2.15.99]`. Note 1.34's max moved **`v2.14.99` → `v2.15.99` between branches for the same
+k8s minor** — that is the "windows extend per KDM branch" rule below, observed live rather than
+asserted. It also means k8s **1.33 drops out** at 2.15: a downstream still on 1.33 must be lifted to
+≥1.34 *before* a future host hop to 2.15.
 
 **Windows extend per KDM branch.** The max for a fixed k8s minor moves up across `release-v2.X`
 branches as newer Rancher qualifies it. So the answer to "can Rancher 2.X run downstream k8s 1.Y"
@@ -73,8 +83,8 @@ Two supported postures:
    Rancher container image**. Then a new Rancher *image* alone carries the new `release-v2.X`
    branch — no separate KDM mirror step — but bundled mode cannot refresh/sync between image bumps.
 
-Either way, on a Rancher upgrade you must also mirror the **per-k8s-version system images** the new
-KDM entries reference into your private registry (via `system-default-registry` /
+Either way, a Rancher upgrade also requires mirroring the **per-k8s-version system images** the new
+KDM entries reference into the private registry (via `system-default-registry` /
 `CATTLE_BASE_REGISTRY`) and, for downstream RKE2, the matching rke2 tarballs/images — see
 `air-gap-procedure.md`. **Pinning the mirror to an old `release-v2.X` branch silently caps the
 fleet** at the old window even after the Rancher upgrade.

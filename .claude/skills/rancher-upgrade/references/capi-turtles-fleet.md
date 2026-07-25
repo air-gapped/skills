@@ -3,6 +3,12 @@
 **Grounded via per-`release-v2.X`-branch `gh` inspection of `rancher/charts` + release notes:
 2026-05-30.** Re-ground specific chart/app versions at use time.
 
+**2026-07-25 re-verification:** the Fleet per-minor mapping below is confirmed twice over — four live
+stable lines (one per Rancher minor) plus v2.14.3's own image list pinning `fleet:v0.15.4`. Issue
+states re-checked unchanged (#2176 MERGED, caprke2 #797 CLOSED). **The CAPI-contract and
+chart-presence rows were NOT re-derived from the chart branches this pass** — re-ground those at use
+time (`lifecycle.md` § Grounding).
+
 ## Embedded CAPI → Rancher Turtles timeline (definitive — from live chart branches)
 
 | Rancher | embedded CAPI (`rancher-provisioning-capi` chart) | Rancher Turtles | CAPI contract |
@@ -14,14 +20,16 @@
 
 So: embedded CAPI through **2.12**; **2.13** runs both (Turtles v0.25 introduced alongside);
 **2.14** removes embedded CAPI entirely and runs Turtles **v0.26** with CAPI **v1beta2**. (Turtles
-v0.26.0 ≈ 2.14.0 GA; latest v0.26.2.) The `rancher-provisioning-capi` chart being **404 on the
+v0.26.0 ≈ 2.14.0 GA; latest in the 0.26 line **v0.26.4**, 2026-07-21 — and **v0.27.0** now exists
+(2026-07-22), tracking the unreleased 2.15; do not pull it onto 2.14.) The
+`rancher-provisioning-capi` chart being **404 on the
 release-v2.14 branch** is the hard confirmation embedded CAPI is gone at 2.14.
 
 ## What this means at the 2.14 upgrade — and the real-vs-non-event test
 
 - **Auto-migration:** the 2.13→2.14 upgrade migrates provisioning to Turtles automatically. A
   **startup warning fires if Turtles was previously disabled** → re-enable it first or v2prov
-  (downstream provisioning) breaks. Pre-2.13 you no longer need to manually disable
+  (downstream provisioning) breaks. Pre-2.13 there is no longer any need to manually disable
   `embedded-cluster-api` / pre-clean webhooks (the docs dropped that step).
 - **Is the migration a real event or a near-non-event?** Depends entirely on whether this Rancher
   actually provisions downstream clusters:
@@ -38,7 +46,7 @@ release-v2.14 branch** is the hard confirmation embedded CAPI is gone at 2.14.
   reliable rollback (see `prereqs-and-ordering.md`).
 - **CAPRKE2 `v1alpha1` deprecated** (cluster-api-provider-rke2#797, CLOSED — "lack of usage in last
   2 years"); removal minor not yet committed. **CAAPF (Cluster API Addon Provider Fleet) disabled by
-  default at 2.14.1** (turtles#2176) — if you provisioned CAPI clusters via CAAPF, set
+  default at 2.14.1** (turtles#2176) — where CAPI clusters were provisioned via CAAPF, set
   `features.use-caapf.enabled: true` before upgrading; standard (non-CAAPF) Fleet is unaffected.
 
 ## Fleet per Rancher minor (grounded live from `release-v2.X` branches)

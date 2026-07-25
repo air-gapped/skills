@@ -1,10 +1,17 @@
 # prereqs-and-ordering.md — prerequisites, cross-cluster ordering, backup & rollback
 
-**Grounded via `gh` + ranchermanager docs + docs.rke2.io: 2026-05-30.** Version specifics re-ground
-at use time (House Rule #8). The mgmt-cluster k8s window per Rancher minor is **not** restated here
+**Grounded via `gh` + ranchermanager docs + docs.rke2.io: 2026-05-30; BRO versions + restore-quirk
+issue states re-verified 2026-07-25 (#844 still OPEN, last activity 2026-06-22; #916 CLOSED with a
+maintainer-confirmed remedy, not a stale-bot close).** The cert-manager windows and Helm floor were
+**not** re-derived this pass — re-ground them at use time (House Rule #3). The mgmt-cluster k8s window per Rancher minor is **not** restated here
 — cite `k8s-components-checker/references/compat/rancher.md`.
 
-## Pre-flight: is your kubeconfig Rancher-proxied? (resolve BEFORE any step — field-validated 2026-05-30)
+**Contents:** [Pre-flight: Rancher-proxied kubeconfig](#pre-flight-is-the-kubeconfig-rancher-proxied-resolve-before-any-step--field-validated-2026-05-30)
+· [Upgrade path rule](#upgrade-path-rule) · [Per-step prerequisites](#per-step-prerequisites-gate-every-minor-step-on-these)
+(cert-manager · Helm floor · agg layer · RKE1 sweep) · [Cross-cluster ordering](#cross-cluster-ordering-the-load-bearing-rule)
+· [Backup & rollback](#backup--rollback--backup-restore-operator-bro--etcd-snapshot)
+
+## Pre-flight: is the kubeconfig Rancher-proxied? (resolve BEFORE any step — field-validated 2026-05-30)
 
 The single most dangerous omission. An operator's day-to-day kubeconfig often reaches the management
 cluster **through Rancher's own proxy** — `server` URL like `https://<rancher-host>/k8s/clusters/local`,
@@ -84,7 +91,7 @@ Two layers, both taken **before every step**:
   cluster objects). Pair the BRO chart to the Rancher minor by the chart's
   `catalog.cattle.io/rancher-version` annotation — **not** the chart-version prefix. Grounded
   pairing (2026-05-30): 2.11→chart `106.x+up7.0.x`, 2.12→`107.x+up8.1.x`, 2.13→`108.x+up9.0.x`,
-  2.14→`109.x+up10.0.x` (latest BRO app **v10.0.4**). Re-ground via
+  2.14→`109.x+up10.0.x` (latest BRO app **v10.0.7**, 2026-06-23 — grounded 2026-07-25). Re-ground via
   `gh api 'repos/rancher/backup-restore-operator/releases?per_page=50'`. The operator auto-scales
   the Rancher deployment to 0 during a restore (no manual scale-down needed).
 - **RKE2 etcd snapshot of the management cluster** is the *real* rollback floor — it recovers from a
@@ -106,6 +113,14 @@ Two layers, both taken **before every step**:
   rancher.cattle.io` (Rancher recreates them on startup).
 - **2.14 → 2.13 is a one-way boundary** because of the CAPI `v1beta1→v1beta2` bump (see
   `capi-turtles-fleet.md`): restoring a 2.13 backup after 2.14 fails because v1beta2 CRs block
-  dropping the v1beta2 CRD version. The dedicated BRO issue (#916) is now **CLOSED/fixed**, but the
-  underlying one-way hazard stands — the RKE2 etcd snapshot is the reliable rollback across this
-  boundary. Always snapshot before the 2.13→2.14 step.
+  dropping the v1beta2 CRD version. The dedicated BRO issue (#916) is CLOSED — but **closed with a
+  workaround, not a fix** (verified 2026-07-25 by reading the closing comment, per the
+  closed-≠-fixed rule). The maintainer's verbatim resolution: *"a simple rollback may fail, so the
+  best way forward is to use the `cleanup.sh` script… For the restore to work, all resources created
+  by Rancher must be removed beforehand… the restore will behave like a cluster migration instead of
+  an in-place rollback."* Script + procedure: ranchermanager docs § *Rollbacks → Alternative steps
+  for special scenarios*
+  (https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/rollbacks).
+  **Plan accordingly: a post-2.14 BRO rollback is a rebuild-and-restore, not an undo.** The RKE2 etcd
+  snapshot remains the only true in-place rollback across this boundary — always snapshot before the
+  2.13→2.14 step.

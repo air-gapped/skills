@@ -42,7 +42,7 @@ drift:
 | "Is component Y (Cilium, Rook, …) OK on k8s 1.NN on one cluster?" | **k8s-components-checker** (per-cluster verdict) |
 | "How do I plan/sequence a Rancher version upgrade, and what happens to my **downstream** clusters?" | **this skill** |
 | "Which downstream RKE2/K3s k8s minors can Rancher 2.X manage?" (KDM) | **this skill** |
-| Harvester host→guest upgrade coordination | **neither yet** — a separate `harvester-upgrade` skill (planned). Cross-reference only. |
+| Harvester host→guest upgrade coordination | **`harvester-upgrade`** (same repo) — it owns the Harvester ladder. Load it *alongside* this skill when Harvester sits under the fleet: each Harvester hop is gated on upgrading the **external Rancher first**, so a Rancher plan here is the leading half of that pairing. Get the Harvester↔Rancher pairing from `harvester-upgrade`; never restate it here. |
 
 ## The mental model — two coupled axes
 
@@ -71,7 +71,7 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
   clusters.provisioning.cattle.io -A` — any row whose name ≠ `local` is a downstream cluster.
 - **Air-gap?** If the registry is internal-mirror-only, the air-gap procedure (what to mirror)
   applies — `references/air-gap-procedure.md`. (Direct-pull clusters skip mirroring entirely.)
-- **Kubeconfig path:** if your kubeconfig is Rancher-proxied (`server` contains `/k8s/clusters/`),
+- **Kubeconfig path:** if the operator's kubeconfig is Rancher-proxied (`server` contains `/k8s/clusters/`),
   switch to a Rancher-independent admin kubeconfig BEFORE upgrading — `helm upgrade` of the rancher
   release restarts the proxy pods and severs the API mid-apply. `references/prereqs-and-ordering.md`
   § Pre-flight.
@@ -80,7 +80,7 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
 
 The only supported path between minors is **latest-patch-of-current-minor → latest-patch-of-next-
 minor, one minor at a time** (2.11→2.12→2.13→2.14; never 2.11→2.14). Intra-minor patch jumps are
-fine. Ground the actual latest patch of each minor via `gh` (House Rule #8 below) — don't assert a
+fine. Ground the actual latest patch of each minor via `gh` (House Rule #3 below) — don't assert a
 patch from memory.
 
 ### 3. For each minor step, run the pre-flight → upgrade → post-flight runbook
@@ -125,7 +125,7 @@ target versions follow look-ahead (House Rule #4).
 2. **Cite, don't restate, the mgmt-cluster k8s window.** That lives in
    `k8s-components-checker/references/compat/rancher.md`. Pointing at it keeps the two skills from
    drifting.
-3. **Never invent versions; ground or abstain (House Rule #8 lineage).** k8s *windows* and KDM
+3. **Never invent versions; ground or abstain (House Rule #8 in k8s-components-checker).** k8s *windows* and KDM
    *mechanics* are methodology the skill states. Specific release/patch *numbers* — "latest 2.13
    patch", "Turtles version on 2.14", "BRO chart for 2.12" — are volatile and the #1 fabrication
    risk. State a specific version only if it is cluster-reported, freshly grounded via `gh`, or
@@ -158,6 +158,9 @@ target versions follow look-ahead (House Rule #4).
 | Air-gapped upgrade: what to mirror, `helm upgrade` flags, downstream RKE2 SUC | `references/air-gap-procedure.md` |
 | Per-minor (2.11→2.14) breaking changes + ordered pre/upgrade/post runbook | `references/per-minor-runbook.md` |
 
-All version specifics in the references were grounded via `gh` on the date stamped in each file.
-Re-ground per House Rule #8 **only if that stamp is stale** (≳1–2 weeks) — same-day re-grounding is
-wasted churn the operator will (rightly) push back on; don't present it as an unconditional step.
+Each reference carries a header stating **what was grounded and when — and what was NOT re-derived
+on the latest pass**. Read that header before citing anything from the file: a claim under a
+"not re-derived" disclaimer must be re-grounded at use time regardless of the file's headline date.
+Otherwise re-ground per House Rule #3 **only if the stamp is stale** (≳1–2 weeks) — same-day
+re-grounding is wasted churn the operator will (rightly) push back on; don't present it as an
+unconditional step.
