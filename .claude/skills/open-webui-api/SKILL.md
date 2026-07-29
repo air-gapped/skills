@@ -1,14 +1,14 @@
 ---
 name: open-webui-api
 description: |-
-  Administer Open WebUI entirely via its REST API (v0.10.x): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Grounded in the v0.10.2 source — covers the 458-path surface the official docs leave ~96% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
+  Administer Open WebUI entirely via its REST API (v0.11.x): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Grounded in the v0.11.0 source — covers the 476-path surface the official docs leave ~96% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
 when_to_use: |-
   Trigger on "open-webui api", "openwebui rest", "open-webui automation", "provision open-webui users", "open-webui api key", "access_grants", "access_control open-webui", "models/sync", "open-webui config export", "configs/import", "PersistentConfig", "open-webui scim", "custom_params", "chat_template_kwargs open-webui", "open-webui webhook events", "/api/v1/", "api_type responses", or any task scripting/automating an Open WebUI instance (create users, manage groups, sync model catalog, upload knowledge, read analytics) rather than clicking the UI. Also trigger on symptoms: "API returns HTML", "403 with valid API key", "env var change ignored", "custom parameter shows [object Object]", "reasoning missing from API response". NOT for Open WebUI RAG/embedding wiring (open-webui-embeddings), multi-pod scaling (open-webui-valkey-websocket), or generic OpenAI-API client questions.
 ---
 
 # Open WebUI REST API administration — operator reference
 
-Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.10.2 source (2026-07-01); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
+Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
 ## The API in 30 seconds
 
@@ -16,7 +16,7 @@ Four surfaces, one Bearer header (`Authorization: Bearer <jwt-or-api-key>`):
 
 | Surface | What lives there | Examples |
 |---|---|---|
-| `/api/v1/*` | Resource CRUD — 26 routers (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
+| `/api/v1/*` | Resource CRUD — 27 routers (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
 | `/api/*` | Runtime endpoints in main.py | `chat/completions`, `models`, `config`, `version`, `events` (webhooks), `tasks`, `usage` |
 | `/ollama/*`, `/openai/*` | Authenticated proxies to backends | inference = user-level; model lifecycle + config = admin |
 | `/ws` | socket.io | invisible to openapi.json |

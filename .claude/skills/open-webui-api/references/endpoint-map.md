@@ -1,8 +1,8 @@
-# Endpoint map with auth levels — v0.10.2
+# Endpoint map with auth levels — v0.11.0
 
 Roles: **[admin]** = `get_admin_user`, **[user]** = `get_verified_user` (role user/admin; resource ACLs apply on top), **[current]** = any authenticated identity incl. `pending`, **[public]** = no auth. API keys pass wherever JWTs do (key inherits owner's role); SCIM uses its own bearer token.
 
-Derived from `backend/open_webui/main.py:728–775` (mounts) and per-router `Depends()` audit. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
+Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Depends()` audit. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
 
 ## Mount table (main.py)
 
