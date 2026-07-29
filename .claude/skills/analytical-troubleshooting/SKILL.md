@@ -44,9 +44,9 @@ precisely because it resists the expert's urge to assume.
 ## Hard rules (they exist because models measurably break them)
 
 1. **Never invent evidence.** Every fact in the analysis carries a provenance
-   tag: `[observed]` (you or the user directly saw it this session),
-   `[reported]` (someone said so), or `[assumed]`. If you didn't get it from
-   the world, you may not write it as observed. When a test hasn't run yet,
+   tag: `[observed]` (directly seen this session by agent or user),
+   `[reported]` (someone said so), or `[assumed]`. Evidence not obtained from
+   the world must not be recorded as observed. When a test hasn't run yet,
    its result is unknown — not "probably fine".
 2. **No fix before a surviving cause.** Do not propose remediation until at
    least one candidate cause has survived the paper test (Stage 4). Quick
@@ -56,7 +56,7 @@ precisely because it resists the expert's urge to assume.
    containment, not diagnosis.)
 3. **Every planned test names its targets.** Before running or requesting any
    test, state which candidate causes it could *refute*. A test that can only
-   confirm your favorite hypothesis is close to worthless; forcing the
+   confirm the favorite hypothesis is close to worthless; forcing the
    refutation question measurably improves diagnosis.
 4. **The spec table is the analysis.** Maintain it continuously and re-emit
    the current table whenever it changes materially or the conversation grows
@@ -64,11 +64,11 @@ precisely because it resists the expert's urge to assume.
    table is the antidote. For multi-session work, persist it to a file.
 5. **If nothing survives, tighten the spec — not the story.** When every
    candidate fails testing, the specification is missing data. Go get more
-   facts. Do not relax your standards until a pet theory passes.
+   facts. Do not relax the standard until a pet theory passes.
 
 ## Stage 0 — Triage
 
-Before analyzing anything, make sure you have *one* analyzable problem.
+Before analyzing anything, make sure there is *one* analyzable problem.
 
 - **Separate.** "The cluster is broken" is usually several deviations.
   Different symptoms, different objects, different timelines → separate
@@ -77,7 +77,7 @@ Before analyzing anything, make sure you have *one* analyzable problem.
 - **Prioritize** multiple deviations by current impact, urgency, and growth
   potential. Fix the bleeding first, analyze the important.
 - **Entry gate.** Full analysis is warranted only if all three hold:
-  1. There is a real deviation (a SHOULD vs ACTUAL gap you can state).
+  1. There is a real deviation (a stateable SHOULD vs ACTUAL gap).
   2. The cause is unknown.
   3. Knowing the cause matters for acting well (if a rebuild is cheap and
      acceptable, do that — say so honestly).
@@ -100,7 +100,7 @@ but under discipline, with a strict exit.
   splits the possibility space (a half-split beats ten one-at-a-time checks
   in a chain of components; see `references/test-toolkit.md`).
 - **One change per test.** Vary one thing, observe, record. Shotgun changes
-  destroy the evidence you'll need in Stage 2.
+  destroy the evidence Stage 2 will need.
 - **Exit condition (count honestly):** after **~3 failed hypotheses**, or when
   the candidate space is clearly large/opaque, or when any single test is
   expensive, slow, risky, or the fault won't reproduce on demand — stop
@@ -116,8 +116,8 @@ Build the comparative specification. This is the heart of the method.
 
 **Problem statement first:** one object + one deviation, stated factually
 ("`backup job nightly-pg` exits 137 on 3 of 12 VMs since 07-19" — not "backups
-are broken"). Test it: if you can already explain the statement, back up to
-the thing you *can't* explain. A brief why-chain on the symptom helps strip
+are broken"). Test it: if the statement is already explainable, back up to
+the thing that *isn't*. A brief why-chain on the symptom helps strip
 explainable layers before specifying.
 
 **The table.** Four dimensions × IS / IS-NOT, plus what distinguishes them:
@@ -136,8 +136,8 @@ Rules that make the table work:
   window when it *didn't* happen. The closer the comparison, the sharper the
   boundary around the cause.
 - **Ask every cell.** An honestly-empty cell ("N/A" or "unknown — need to
-  check") is fine; a skipped cell is a hole your favorite theory will hide in.
-  Unknown cells are your data-collection shopping list.
+  check") is fine; a skipped cell is a hole the favorite theory will hide in.
+  Unknown cells are the data-collection shopping list.
 - **Tag provenance** per hard rule 1.
 - **Then mine it:** for each IS/IS-NOT pair ask *what is distinctive about
   the IS side?* — and for each distinction, *what changed in, on, or around
@@ -161,8 +161,8 @@ overhead, so large packets silently fragment and the session stalls". A
 mechanism can be tested; a pointed finger cannot.
 
 Sources, in order:
-1. **Knowledge and experience** — cast a wide net from what you and the user
-   know of systems like this. Fastest when it works.
+1. **Knowledge and experience** — cast a wide net from the agent's and the user's
+   knowledge of systems like this. Fastest when it works.
 2. **Distinctions and changes** — derive causes mechanically from the table
    when brainstorming yields nothing plausible, too much, or only candidates
    that fail Stage 4.
@@ -191,8 +191,8 @@ explain each IS — **and** each IS-NOT?"*
   Paper never proves; it only prunes.
 
 If *every* candidate dies: hard rule 5 — the spec is missing a distinction or
-a change. Collect more facts; consider whether you're holding two bundled
-problems (back to Stage 0).
+a change. Collect more facts; consider whether two problems are bundled
+under one name (back to Stage 0).
 
 ## Stage 5 — Verify in the world
 
@@ -212,8 +212,8 @@ real-world check available:
   the candidate depends on instead.
 
 Physical/production actions belong to the human partner when one is present;
-you specify exactly what to do and what result each outcome would imply,
-they execute and report. "If you didn't verify it, it isn't fixed" — a fix
+the agent specifies exactly what to do and what result each outcome would
+imply; the human executes and reports. "If you didn't verify it, it isn't fixed" — a fix
 that happens to coincide with recovery, unverified, is how the same incident
 returns next month.
 
@@ -227,7 +227,7 @@ to a proper retrospective — don't do it here.
 - **Escalate to the human** after 3 failed *verification* attempts (not paper
   kills — those are progress), or when the surviving cause implies a design
   problem rather than a fault.
-- Red flags that mean *return to the method*, spoken by you or the partner:
+- Red flags that mean *return to the method*, spoken by either partner:
   "it's probably just X", "let's try reinstalling everything", "must be a
   <vendor> bug" (without a mechanism), proposing a second fix while the first
   is unverified, an IS-NOT cell contradicting a hypothesis everyone still
