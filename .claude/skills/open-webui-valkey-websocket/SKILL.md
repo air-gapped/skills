@@ -22,7 +22,7 @@ The single most important thing to internalize before going multi-pod: **issue #
 
 **Why it falls apart with `WEBSOCKET_MANAGER=redis` + multi-pod:** Each emit goes through `socketio.AsyncRedisManager`, which serializes the frame and broadcasts it to every pod via Valkey pub/sub. So a 4000-token response generates **4000 frames, each carrying the full accumulated message**. Total bandwidth is O(N²). With a 6-Valkey-node × 4-worker × 100-concurrent-stream setup, the issue author measured **~10,000× infrastructure-traffic amplification**. Reasoning models and tool-calling make it worse because the messages get longer and more structured.
 
-**Status (May 2026):** Open. Maintainer wants a Yjs-based redesign; the delta PR #23735, the replay PR #23736, and the Yjs PRs #24124, #24126, #24171 all closed without merge. **No merge ETA.**
+**Status (re-verified 2026-07-29, against 0.11.0):** Still **open**. Maintainer wants a Yjs-based redesign; the delta PR #23735, the replay PR #23736, and the Yjs PRs #24124, #24126, #24171 remain closed without merge. **No merge ETA.** 0.11.0 rewrote large parts of `socket/main.py` (+238 lines) and `utils/middleware.py` (+1074) but did **not** change the frame model — each emit still carries the full accumulated message, so the amplification is unchanged.
 
 **Mitigation — set this env var:**
 
@@ -49,7 +49,10 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 | Admin pages take 30s to load after SSO migration | SSO avatar sync stuffs base64 into user records (#12325) | `references/icons-thumbnails.md` §SSO |
 | WS stable for hours, then mass disconnect after firewall idle | No TCP keepalive on Redis pool — set `REDIS_SOCKET_KEEPALIVE=True`, `REDIS_HEALTH_CHECK_INTERVAL=60` (added 0.9.0+) | `references/configuration.md` §Robustness |
 | Migration races on rolling restart | Multiple pods running migrations simultaneously — set `ENABLE_DB_MIGRATIONS=false` on all but one | `references/configuration.md` §Migrations |
+| Pods crash/500 mid-rollout on a version upgrade | **Rolling updates across a schema change are unsupported** — old and new pods cannot share a schema. Take the deployment down and replace all pods at once | this file, §Version upgrades |
 | Helm chart bundled Redis loses state on restart | Bundled Redis is a no-PVC Deployment; unsuitable for production | `references/helm-chart.md` §Bundled-redis |
+| Pods fail to start on 0.11.0 with a non-root securityContext | #27651 — `runAsNonRoot: true` breaks on 0.11.0 (open) | this file, §Version upgrades |
+| Idle cluster shows constant DB load after upgrading to 0.11.0 | #27622 — chat-timer polling scans the chat table every second while idle (open); scales with chat-table size, so it bites large multi-pod instances hardest | this file, §Version upgrades |
 
 ## Production env block (read before deploying)
 
@@ -108,17 +111,42 @@ OAUTH_CLIENT_INFO_ENCRYPTION_KEY=<same>        # falls back to WEBUI_SECRET_KEY
 
 Per-variable defaults, semantics, and version-added details live in `references/configuration.md`. Helm chart override block in `references/helm-chart.md`.
 
+Every variable in that block still exists and is still read in 0.11.0 (verified against `env.py`/`config.py` on 2026-07-29). 0.11.0 adds one worth knowing: **`REDIS_SOCKET_TIMEOUT`** (`env.py:398-402`), a read/write timeout that complements the existing `REDIS_SOCKET_CONNECT_TIMEOUT` — a hung Valkey read previously had no ceiling.
+
+### Raising the #23733 mitigation per model, not just globally
+
+`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` is not the only lever. The same knob exists as a **model/request param**, `stream_delta_chunk_size` (`utils/payload.py:93`), and the effective value is `max(env, per_request or 1)` (`utils/middleware.py:4181-4183`). The env var is therefore a **floor**, and a per-model param can raise it further but never lower it.
+
+Practical use: keep the global at `10`, and set `stream_delta_chunk_size: 20` (or higher) in `params` on the reasoning and long-output models specifically — those are the ones whose O(N²) constant hurts most — without coarsening streaming for short chat models. This predates 0.11.0 (present in 0.10.2) but is absent from most deployment guides.
+
+## Version upgrades — rolling updates are NOT supported
+
+**0.11.0 (2026-07-27) changes the database schema, and the release states plainly that rolling updates will fail:**
+
+> "If you are running a multi-worker, multi-server, or load-balanced deployment, all instances must be updated simultaneously, rolling updates are not supported and will cause application failures due to schema incompatibility."
+
+This is the opposite of the usual k8s instinct and it invalidates a `RollingUpdate` strategy across any schema-changing release. Old pods hitting the new schema (or vice versa) fail at the query layer, so the symptom is 500s and crashlooping *during* the rollout rather than a clean failure.
+
+For a schema-changing upgrade on Kubernetes:
+
+- Set the Deployment/StatefulSet strategy to `Recreate` for the upgrade (or scale to 0, upgrade, scale back up). A `maxUnavailable`-tuned rolling update does not help — the problem is version skew, not availability.
+- Run migrations once — a dedicated Job, or the single designated pod with `ENABLE_DB_MIGRATIONS=true` while all others have it `false`. Concurrent migrations remain a separate hazard.
+- **Back up the database first.** The 0.11.0 migration set includes a case-insensitive unique index on user email (`uq_user_email_lower`) whose migration **raises `RuntimeError` and aborts startup** if two accounts differ only by case — a real possibility on OAuth-provisioned instances. Dedupe before upgrading.
+- Accept a hard maintenance window. There is no zero-downtime path across a schema change.
+
+Not every release changes the schema; check the release notes' "Database Migrations" warning before assuming a rolling update is safe.
+
 ## Custom model icons / thumbnails — was this our problem?
 
 For deployments that ran multi-pod + WS in early 2026 and disabled it after performance died, custom model thumbnails are a strong suspect alongside #23733. Pre-0.6.37 (Nov 2025) the entire base64 image lived in `model.meta.profile_image_url` and was returned in `/api/models` for every model on every page load and every WS reconnect. With ~350 models and HD icons, the response payload exceeded 4 MB (issue #18950). On reconnect storms during rollouts: N pods × M users × 4 MB simultaneously, on top of the WS amplification.
 
-The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.10.2).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
+The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.11.0).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
 
 ## Reference index
 
 - **`references/issue-23733.md`** — The Socket.IO frame amplification bug. Architecture explanation, full maintainer quote with rationale, the four PRs that didn't merge, the mitigation knob, and what the eventual fix likely looks like (Yjs document streaming).
 - **`references/configuration.md`** — Every multi-pod-relevant env var with default, source-file location, and version added. Valkey/Redis configuration (`maxclients`, `timeout`, `maxmemory-policy`). Why `WEBUI_SECRET_KEY` must be shared.
-- **`references/helm-chart.md`** — `open-webui/helm-charts` v14.6.0 specifics. The bundled Redis is unsuitable for production — disable it. What the chart doesn't ship (HPA, PDB, probes, sticky sessions). The values.yaml override block. Open chart issues (#383 gateway-API).
+- **`references/helm-chart.md`** — `open-webui/helm-charts` v15.2.0 specifics. The bundled Redis is unsuitable for production — disable it. What the chart doesn't ship (HPA, PDB, probes, sticky sessions). The values.yaml override block. Open chart issues (#383 gateway-API). **The released chart does not yet ship 0.11.0**: `main` is still v15.2.0/appVersion 0.10.2 (2026-07-01), and v15.2.1/appVersion 0.11.0 sits unmerged on `automation/open-webui-0.11.0` (2026-07-27) — running 0.11.0 via the chart means overriding `image.tag` yourself.
 - **`references/icons-thumbnails.md`** — Why custom model icons crashed multi-pod pre-0.6.37. The full chronology of fixes. Endpoints to spot-check on the upgrade target. SSO avatar mitigation.
 - **`references/known-issues.md`** — #23733, #15162 direct-connection multi-worker routing, #19840 RedisCluster publish broken, #22734 RedisDict race, #23987 Sentinel 0.9.1 regression, #16074 inflated user count, plus the April-2026 batch of merged fixes (#23571 keepalive, #23709 ASGI middleware, #23642 stale Socket.IO sessions, #23896 cross-worker cache invalidation).
 - **`references/sources.md`** — Authoritative source files in the open-webui codebase, GitHub issue/PR numbers with dates, and docs.openwebui.com URLs underlying every claim. Load to verify a specific fact or run `freshen` mode.
@@ -131,7 +159,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **0.10.2** (2026-07-01); the floor stays at 0.9.5 because 0.9.6/0.10.x were not audited for scaling regressions this pass — treat 0.10.x as un-vetted here, not as recommended.
+- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **0.11.0** (2026-07-27); the floor stays at 0.9.5 because 0.9.6→0.11.0 have not been load-tested for scaling regressions — treat them as un-vetted here, not as recommended. If you do move to 0.11.0, read §Version upgrades first: the rollout procedure changes, and two open k8s-relevant regressions ride along (#27622 idle timer polling, #27651 `runAsNonRoot`).
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.

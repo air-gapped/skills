@@ -1,6 +1,6 @@
 # Known issues, fixes shipped, and what to watch
 
-Status as of 2026-07-21 (current stable 0.10.2; issue states re-probed, but the 0.9.6/0.10.x changelogs were NOT audited for new scaling issues). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Status as of 2026-07-29 (current stable 0.11.0; issue states re-probed — #23733, #19840, #15162 all still open. The 0.9.6→0.11.0 changelogs were NOT load-tested for scaling regressions, but the 0.11.0 release notes were read: see SKILL.md §Version upgrades, plus open #27622 idle timer polling and #27651 runAsNonRoot). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
