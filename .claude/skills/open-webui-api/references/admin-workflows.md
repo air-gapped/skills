@@ -1,8 +1,34 @@
-# Admin workflows — verified call sequences (v0.10.2)
+# Admin workflows — verified call sequences (v0.11.0)
 
-Contents: [User lifecycle](#user-lifecycle) · [Groups + permissions](#groups--permissions) · [Model catalog GitOps](#model-catalog-gitops-) · [Knowledge pipeline](#knowledge-pipeline-upload--process--attach--shape-verified) · [Backup / migration surface](#backup--migration-surface) · [Reasoning/thinking passthrough](#reasoningthinking-passthrough-)
+Contents: [Bootstrapping a token on an SSO-only instance](#bootstrapping-a-token-on-an-sso-only-instance-) · [User lifecycle](#user-lifecycle) · [Groups + permissions](#groups--permissions) · [Model catalog GitOps](#model-catalog-gitops-) · [Knowledge pipeline](#knowledge-pipeline-upload--process--attach--shape-verified) · [Backup / migration surface](#backup--migration-surface) · [Reasoning/thinking passthrough](#reasoningthinking-passthrough-)
 
-All payload shapes read from v0.10.2 source; sequences marked ⚡ were additionally executed live against a v0.10.2 instance (2026-07-21). `$B` = base URL, `$T` = admin token (JWT or `sk-` key).
+Payload shapes read from source; sequences marked ⚡ were additionally executed live (v0.10.2 on 2026-07-21, re-verified plus new ones on v0.11.0 on 2026-07-29). `$B` = base URL, `$T` = admin token (JWT or `sk-` key).
+
+## Bootstrapping a token on an SSO-only instance ⚡
+
+The common hardened deployment — `ENABLE_LOGIN_FORM=False` + OIDC signup, with `ENABLE_API_KEYS` left at its default `false` — has **no API-reachable way to obtain a token**: `/auths/signin` is unusable without a password, and `/auths/api_key` is gated off. Automation has to mint a JWT out-of-band using the instance's own signing key.
+
+`WEBUI_SECRET_KEY` is generated on first boot into `${BACKEND_DIR}/.webui_secret_key` (`start.sh:32-50`) and exported only into the *app* process — a fresh `kubectl exec`/`docker exec` does **not** inherit it, so read the file explicitly or the import aborts with "WEBUI_SECRET_KEY is not set".
+
+```bash
+# k8s; for docker swap the exec prefix. Mint a short-lived admin JWT.
+kubectl -n <ns> exec <pod> -c open-webui -- sh -c \
+  'export WEBUI_SECRET_KEY=$(cat /app/backend/.webui_secret_key) && python -c "
+from datetime import timedelta
+from open_webui.utils.auth import create_token
+print(create_token({\"id\": \"<admin-user-id>\"}, timedelta(hours=8)))
+"'
+```
+
+Find `<admin-user-id>` the same way (`Users.get_users()` is async — wrap in `asyncio.run`). `create_token` (`utils/auth.py:222-233`) needs only `{"id": ...}`; it adds `jti`/`iat` itself, and an `expires_delta` sets `exp`. Prefer a short expiry over the `4w` default for a token you are pasting into a shell.
+
+Verify before use — a wrong-role or expired token fails as HTML, not 401:
+
+```bash
+curl -s -H "Authorization: Bearer $T" $B/api/v1/auths/ | jq -e .role   # expect "admin"
+```
+
+Cleaner long-term alternative: set `ENABLE_API_KEYS=true` and grant the `features.api_keys` permission to a dedicated non-admin service account, then scope it with `API_KEYS_ALLOWED_ENDPOINTS`. The minted-JWT route is for bootstrap and break-glass, not steady-state automation.
 
 ## User lifecycle
 
