@@ -1,5 +1,11 @@
 # The Comparative Specification
 
+Contents: [Question set per dimension](#question-set-per-dimension) ·
+[IS-NOT discipline](#is-not-discipline) ·
+[Mining distinctions and changes](#mining-distinctions-and-changes) ·
+[Worked example](#worked-example-compact) ·
+[Table maintenance](#table-maintenance)
+
 The specification is a boundary drawn around the problem. Everything inside
 (IS) must be explained by the true cause; everything just outside (IS-NOT)
 must be *spared* by it. Causes are tested against this boundary, which is why
