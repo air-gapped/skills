@@ -37,22 +37,24 @@ restorable at every phase, and no dependency left on maintenance-mode
 artifacts. Facts below were verified 2026-07-24 against primary sources
 (both operator repos at HEAD, release manifests, maintainer statements);
 re-verify anything version-gated before relying on it in a later year.
-Version anchor at authoring time: Zalando 1.15.1 (Spilo-17 4.0-p3, PG
-13–17), CNPG 1.30.0 / 1.29.2 (PG 14–18), plugin-barman-cloud v0.13.0.
+Version anchor (updated 2026-07-29): Zalando v2.0.1 (Spilo-17 4.1-p2,
+PG 14–18), CNPG 1.30.0 / 1.29.2 (PG 14–18), plugin-barman-cloud v0.13.0.
 
 ## Why this migration exists
 
-Zalando's operator is in maintainer-confirmed maintenance mode ("a little
-idle state… not encouraged by management", issue #2921, June 2025): ~1
-release/year, one sustained maintainer, no release in 2026 despite a
-commit rebound. CNPG runs ~7× the human commit volume, releases
-quarterly across three maintained lines, entered CNCF Sandbox (Jan 2025,
-incubation pending), and has a documented migration wave (IBM Instana
-ships official Zalando→CNPG docs). **This is strategic, not an
-emergency**: Zalando is safe to run through ~2027 (v1.15.x covers PG13–17
-and the K8s-1.33 Endpoints deprecation), Patroni itself is thriving, and
-CNPG brings its own churn costs (quarterly operator upgrades that
-rolling-restart every cluster; a backup-plugin transition in flight).
+Zalando's operator runs on one sustained maintainer in confirmed low
+gear ("a little idle state… not encouraged by management", issue #2921,
+June 2025) — but it is not dead: v2.0.0/v2.0.1 (2026-07-27/29) shipped
+PG18 support, dropped PG13, flipped `kubernetes_use_configmaps` on by
+default (the K8s Endpoints deprecation), and defaulted scram-sha-256.
+CNPG still runs ~7× the human commit volume, releases quarterly across
+three maintained lines, entered CNCF Sandbox (Jan 2025, incubation
+pending), and has a documented migration wave (IBM Instana ships
+official Zalando→CNPG docs). **This is strategic, not an emergency** —
+v2 extends the safe-to-stay horizon well past the old ~2027 estimate,
+Patroni itself is thriving, and CNPG brings its own churn costs
+(quarterly operator upgrades that rolling-restart every cluster; a
+backup-plugin transition in flight).
 Full evidence, the skeptic's case, and alternatives:
 `references/decision.md`. Migrate deliberately, cluster by cluster.
 

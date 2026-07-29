@@ -1,8 +1,10 @@
 # Stay vs migrate: the evidence
 
 Dated snapshot, verified 2026-07-24 from both repos at HEAD plus primary
-statements. Use this to ground a recommendation; re-verify the volatile
-rows (release dates, CNCF status) before quoting in a later year.
+statements; release-state rows re-verified 2026-07-29 (Zalando v2.0.0/
+v2.0.1 landed 2026-07-27/29). Use this to ground a recommendation;
+re-verify the volatile rows (release dates, CNCF status) before quoting
+in a later year.
 
 ## Momentum (last 12 months, human/non-bot commits)
 
@@ -11,14 +13,16 @@ rows (release dates, CNCF status) before quoting in a later year.
 | Human commits | 89 | 626 |
 | Unique authors | 29 | 81 |
 | Sustained (full-time-pace) contributors | 1 (Felix Kunde, 35% of commits) | 7 (all EDB) |
-| Releases 2025 / 2026 YTD | 2 / **0** | ~monthly patch trains, 3 concurrent minors |
-| Latest release | v1.15.1 (2025-12-18) | 1.30.0 + 1.29.2 + 1.28.4 (2026-06-29) |
+| Releases 2025 / 2026 YTD | 2 / 2 (v2.0.0 + v2.0.1, both 2026-07) | ~monthly patch trains, 3 concurrent minors |
+| Latest release | v2.0.1 (2026-07-29) | 1.30.0 + 1.29.2 + 1.28.4 (2026-06-29) |
 | New issues opened 2026 YTD | 21 | 516 |
 | Go LOC / test LOC | 40k / 15k | 205k / 97k |
 
-Zalando human commits by year: 174 (2020) → 37 (2025) → 66 (2026 YTD —
-a real rebound: PG18 prep, IRSA, informer refactor, but still no 2026
-release; the "Q1 2026" PG18/Spilo-18 release is ~2 quarters late).
+Zalando human commits by year: 174 (2020) → 37 (2025) → 66+ (2026 YTD —
+a real rebound that delivered **v2.0.0 (2026-07-27)**: PG18 support,
+PG13 dropped, `kubernetes_use_configmaps` default-on, scram-sha-256
+default, IRSA, informer refactor. The "Q1 2026" PG18 release landed ~2
+quarters late, as a major).
 CNPG has held ~550–650 human commits/yr for five straight years. Note
 CNPG's raw GitHub graphs are ~32–36% renovate-bot — the human-only gap
 is still ~7×.
@@ -37,7 +41,9 @@ is still ~7×.
   2026-02).
 - Trust event: v1.15.0 (2025-10-21) shipped missing UI + logical-backup
   images; the fix (1.15.1) took ~2 months. At least one documented
-  migration cites this as the trigger.
+  migration cites this as the trigger. Sequel: v2.0.0 (2026-07-27)
+  shipped an OperatorConfiguration CRD type mismatch that broke GitOps
+  pipelines — but the fix (v2.0.1) took 2 days, a much faster turnaround.
 
 ## CNPG standing
 
@@ -54,10 +60,16 @@ is still ~7×.
 
 ## The skeptic's case (why NOT to rush)
 
-1. **Zalando is maintenance-mode, not dead.** Internal production use
-   guarantees a maintenance floor; PG18 support is landing; the
-   K8s-1.33 Endpoints deprecation is already addressed
-   (`kubernetes_use_configmaps`). Staying is viable through ~2027.
+1. **Zalando is maintenance-mode, not dead — and v2 proves the floor
+   holds.** Internal production use guarantees maintenance; v2.0.0
+   (2026-07-27) delivered PG18 support (PG14–18 bundled) and flipped
+   `kubernetes_use_configmaps` on by default, closing the K8s-1.33
+   Endpoints deprecation without operator action. Staying is viable
+   well past the previously-estimated ~2027 horizon. Note v2 breaking
+   changes for stayers: PG13 dropped, scram-sha-256 default (forces a
+   rolling update), kubectl-pg plugin dropped, deprecated manifest
+   fields removed (`useLoadBalancer`, `replicaLoadBalancer`,
+   `init_containers`).
 2. **CNPG churn tax.** Each minor is supported only ~3 months past N+1
    (≈6-month life) → 2–4 operator upgrades/yr forever, and each operator
    upgrade by default **rolling-restarts every managed cluster**
@@ -85,7 +97,7 @@ is still ~7×.
 | StackGres | Active, feature-rich, AGPL, ~1.4k stars — viable but small community. |
 | Percona PG Operator | v3.0 (May 2026), fully-open images, optional paid support — cleanest commercial-backed alternative, smaller ecosystem than CNPG. |
 | EDB Postgres for Kubernetes | Commercial CNPG with longer support windows — escape hatch if the 6-month community window is the only blocker. |
-| Stay on Zalando + wait | Legitimate through ~2027. The gap widens; revisit at each k8s-components-checker survey. |
+| Stay on Zalando + wait | Legitimate — v2 (2026-07) reset the release clock and covers PG14–18. The momentum gap still widens; revisit at each k8s-components-checker survey. |
 
 ## Recommendation shape
 
