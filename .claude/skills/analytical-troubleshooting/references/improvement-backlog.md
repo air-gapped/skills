@@ -5,14 +5,15 @@ Carries findings across skill-improver runs. See skill-improver's
 
 ## Open
 
-- **Re-run the eval benchmark at n≥3 per cell** (Dim 10; `evals/benchmark.json`).
-  Final blind scorer 2026-07-29 flagged the +0.15 delta_pass_rate as thin: 1 run
-  per cell, 1 of 3 evals non-discriminating (day-one-twin passes 6/6 both arms),
-  baseline already at 84.7%. Not applicable in one iteration — requires 18+
-  subagent runs via skill-creator plus hardening the weak eval (messier evidence,
-  assertions on spec-table/EXTENT-question/ground-rules behaviors per the
-  iteration-1 analyst notes in the workspace benchmark). Until then treat the
-  delta as directional.
+- **Harden the eval assertions for a future iteration-3** (eval quality, not
+  skill quality). From the n=3 graders: eval-0's no-remediation assertion should
+  read "no untested changes beyond instrumentation" (cheap shotgun fixes sit in
+  a gray zone); eval-2 assertion 1 should require an explicit
+  change-hunting-is-inapplicable statement (baselines pass by being
+  diff-oriented without the reframe — day-one eval still weakly discriminating:
+  baseline 6/6, 6/6, 5/6); eval-1 could add an intermittency-signature
+  assertion (~1-in-3 = per-flow hashing). Requires editing evals.json +
+  re-running the benchmark; do together, not per-assertion.
 - **Remaining restatements** (Dim 6; hard rule 5 vs `SKILL.md` Stage 4 loop
   rule; "Proportionality, restated" vs Stage 1). Deliberate-redundancy judgment
   call: hard rules act as standing summary (SKILL.md loads alone; references
@@ -31,6 +32,17 @@ Carries findings across skill-improver runs. See skill-improver's
   scenarios — shipping the eval answer key inside the skill corrupts future
   benchmark iterations. Do not re-propose command menus sourced from eval
   content; a future Dim 4 lift must use probes independent of `evals/`.
+
+## Resolved this pass — 2026-07-29 (benchmark n=3)
+
+- **Benchmark re-run at n=3 per cell** (was Open): 18 runs (3 evals × 2 arms ×
+  3). The iteration-1 delta REPRODUCES and widens: delta_pass_rate **+0.21**
+  (with_skill 1.00 ± 0.00 — 19/19 assertions in all 9 runs; baseline 0.79 ±
+  0.13). Baseline failures consistent per eval: no spec table (eval-0, 3/3
+  runs), ungated remediation (eval-0, 2/3), confirming-branch-only test plans
+  (eval-1, 3/3). Cost: +34% tokens, ~2.2× wall time (wall inflated by API
+  congestion; two 500s + three 529s respawned during the run). Shipped in
+  `evals/benchmark.json`; full runs in the workspace `iteration-2/`.
 
 ## Resolved this pass — 2026-07-29 (trigger mode)
 
