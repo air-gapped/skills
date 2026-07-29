@@ -223,7 +223,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-07-21
+- Last verified: 2026-07-29 (v2.0.0 2026-07-27 + v2.0.1 2026-07-29 sifted into the compat file; latest is now v2.0.1 — PG 14–18, configmaps default-on)
 
 ## Grafana Mimir (chart_metadata)
 
