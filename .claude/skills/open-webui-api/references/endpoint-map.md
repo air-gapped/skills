@@ -54,7 +54,7 @@ Derived from `backend/open_webui/main.py:728–775` (mounts) and per-router `Dep
 
 ### models (workspace presets)
 - `GET /models/list` [user] (NOT bare `/models` — OpenAI-compat alias)
-- `POST /models/create`, `GET /model?id=`, `POST /model/update` (can 500 on 0.10.2 — fall back to delete+create), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
+- `POST /models/create`, `GET /model?id=`, `POST /model/update` (**must include `access_grants`** — omitting it 500s; see SKILL.md gotchas), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
 - `POST /models/model/access/update` `{id, access_grants:[...]}` [user+perm]
 - GitOps: `GET /models/export` → `POST /models/import` (additive) → `POST /models/sync` [admin] — **declarative, deletes models absent from payload**
 - app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `POST /api/models/unload` [admin]
