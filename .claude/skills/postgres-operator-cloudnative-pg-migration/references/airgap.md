@@ -13,14 +13,14 @@ Images (pin by digest after cosign verification at the mirror boundary):
 | `ghcr.io/cloudnative-pg/cloudnative-pg:<ver>` | operator | Helm `image.repository` |
 | `ghcr.io/cloudnative-pg/postgresql:<maj.min>-standard-<distro>` | operand | prefer `standard` over `minimal`: adds PGAudit, pgvector, pg_failover_slots, **all locales** (keeps en_US.UTF-8 available — Wall 1), JIT. `system` images deprecated. Distro = bookworm (glibc 2.36) or trixie (2.41) — **pick one and stay on it**: pg_upgrade refuses to cross image OS generations |
 | `ghcr.io/cloudnative-pg/pgbouncer:<ver>` | Pooler CR | ≥1.19 required (auth_dbname) |
-| `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.13.0` | backup plugin Deployment | |
-| `ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.13.0` | backup sidecar in every PG pod | reference hidden base64-encoded in the release manifest Secret — easy to miss |
+| `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.14.0` | backup plugin Deployment | |
+| `ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.14.0` | backup sidecar in every PG pod | reference hidden base64-encoded in the release manifest Secret — easy to miss |
 | `ghcr.io/cloudnative-pg/postgis:<ver>` (optional) | PostGIS operand | official |
 | custom operand image (optional) | TimescaleDB / other Spilo-bundled extensions | no official timescaledb image; `timescale/timescaledb-ha` incompatible (wrong PGDATA, custom entrypoint); build on the CNPG base |
 
 Helm charts (vendor tarballs or mirror the OCI/classic repo):
 `cloudnative-pg/charts` → `cloudnative-pg` (operator) and
-`plugin-barman-cloud` (chart 0.7.0 / appVersion v0.13.0).
+`plugin-barman-cloud` (chart 0.7.1 / appVersion v0.14.0).
 
 Tools: `kubectl-cnpg` plugin binary (single Go binary from
 cloudnative-pg releases; version-match the operator minor) — needed for
