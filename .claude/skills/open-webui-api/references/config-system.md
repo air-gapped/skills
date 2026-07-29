@@ -23,6 +23,17 @@ A ≤0.9.x export (nested blob) cannot be imported into 0.10.x — no translatio
 
 Operational rule: manage runtime config via API (`configs/import` in CI), reserve env for bootstrap + the env-only list.
 
+## Two plugin kill switches that are not interchangeable
+
+Both are env-only. Confusing them costs real state.
+
+- **`SAFE_MODE=true` is a destructive DB mutation, not a runtime flag.** At every startup it runs `Functions.deactivate_all_functions()` (`main.py:354-355`), an unconditional `UPDATE function SET is_active = false` across **every row** (`models/functions.py:417-429`). It gates no router and no endpoint — the whole `/api/v1/functions/*` surface stays callable, and you can even re-activate a function while it is on; the next restart wipes that again. **Turning `SAFE_MODE` back off does not restore anything** — every function stays deactivated and must be re-enabled one by one via `POST /api/v1/functions/id/{id}/toggle`. Pipe models disappear from `/api/models` and filter/action hooks stop firing purely as a data consequence.
+- **`ENABLE_PLUGINS=false` (new in 0.11.0, default true) is the non-destructive equivalent** (`env.py:1112`). It gates tools *and* functions at request time without touching the DB. Its failure mode is the opposite one: list endpoints return **`200 []` instead of an error** (`functions.py:49,57,74`, `tools.py:75,205`), so an inventory script reads "everything was deleted" rather than "plugins are off". Surfaced as `features.enable_plugins` in `GET /api/config`.
+
+If the intent is "no plugin code executes", `ENABLE_PLUGINS=false` is the correct mechanism in 0.11.0; `SAFE_MODE` additionally destroys activation state.
+
+**`AUDIT_EXCLUDED_PATHS=""` flipped meaning in 0.11.0.** Empty entries are now filtered out (`env.py:1167-1180`). In 0.10.2 an empty value compiled to `^/api(?:/v1)?/()\b`, which matched *every* `/api/...` path — auditing was silently off. In 0.11.0 it compiles to `None` and nothing is excluded, so the same config audits everything. Expect a step change in audit-log volume on upgrade; use a sentinel like `__NONE__` if the intent is "exclude nothing" and you want it to read explicitly.
+
 ## Provider connections
 
 ```bash
