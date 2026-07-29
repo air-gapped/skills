@@ -1,8 +1,9 @@
 # Evidence Base
 
-Why each mechanism in this skill is here. Full research report with sources:
-`.claude/skills/autoresearch/results/analytical-troubleshooting-skill-research-2026-07-29.md`
-(this repo). Summary of the load-bearing findings:
+Why each mechanism in this skill is here. Per-URL index with verification
+dates: `references/sources.md`. (The full research report lives outside the
+skill, in the authoring repo's autoresearch results — not needed to use or
+maintain the skill.) Summary of the load-bearing findings:
 
 ## Provenance of the method
 
