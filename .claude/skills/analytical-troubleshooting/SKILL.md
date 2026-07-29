@@ -155,7 +155,8 @@ the table; they fetch the facts.
 
 ## Stage 3 — Hypothesize
 
-Generate **3–5 candidate causes in parallel**, each stated as a **mechanism**,
+Generate **3–5 candidate causes in parallel** — "candidate", "hypothesis",
+and H1..Hn all name the same thing here — each stated as a **mechanism**,
 not a component: not "the switch", but "switch port MTU dropped below tunnel
 overhead, so large packets silently fragment and the session stalls". A
 mechanism can be tested; a pointed finger cannot.
