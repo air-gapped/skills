@@ -1,0 +1,370 @@
+{
+  "metadata": {
+    "skill_name": "analytical-troubleshooting",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-29T19:02:22Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 0.0,
+        "tokens": 6553,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Builds a comparative specification covering all four dimensions (what / where / when / extent) with explicit IS and IS-NOT (or 'unknown \u2014 to check') entries",
+          "passed": true,
+          "evidence": "'What we know so far' table has rows WHAT / WHERE / WHEN / EXTENT with columns 'IS' and 'Could be, but IS NOT', e.g. WHAT: 'Full system hang... [reported]' vs 'Not a reboot/panic...; not a GUI-only crash (audio loop = interrupts dead)'; WHERE IS-NOT cell explicitly marks 'Unknown whether kernel is truly dead (SysRq/SSH untested)' and WHEN marks 'Unknown: idle vs. under load?'."
+        },
+        {
+          "text": "Requests missing facts as a focused batch (roughly 8 questions or fewer) with a stated reason for what each answer would discriminate \u2014 not an exhaustive question dump",
+          "passed": true,
+          "evidence": "Final 'Send me:' batch lists exactly 4 items (journal tails, dnf history window, MCE grep, per-freeze activity list). Each carries a discrimination rationale, e.g. journal tail: 'Finding nothing is also a finding \u2014 a log that just stops mid-sentence points at a sudden hardware halt (power/CPU) rather than a driver spiraling'; load question: 'This one answer splits the space in half: always under GPU load points one way (power/thermal), sometimes just sitting there points another (idle power states, driver).'"
+        },
+        {
+          "text": "Records the RAM reseat and its failure to help as elimination evidence (referenced in the analysis, not ignored)",
+          "passed": true,
+          "evidence": "Paragraph 2: 'your RAM reseat wasn't wasted: it froze twice since, so seating/contact is ruled out \u2014 though not the RAM itself, its timings, or the memory controller. That's real evidence; we bank it.' Also carried into H3: 'reseating wouldn't touch this'."
+        },
+        {
+          "text": "Proposes at least two cheap discriminating next steps (e.g. persistent journal after a freeze, temperature/workload correlation, memtest) and names what each result would rule in or out",
+          "passed": true,
+          "evidence": "Step 1 journal mining (Xid/mce/soft-lockup vs. log stopping mid-sentence, with meaning of each) and Step 2 SysRq+SSH instrumentation with explicit outcome mapping: 'SSH works or SysRq reboots it -> kernel alive... strongly NVIDIA-driver territory' vs 'Caps Lock LED dead, nothing responds -> full platform hang -> power delivery / CPU / board / memory territory'. Plus load-pattern correlation and dnf-history dating \u2014 all cheap and diagnostic."
+        },
+        {
+          "text": "Proposes no remediation (OS reinstall, PSU/GPU replacement, part purchases) before any cause has been tested \u2014 diagnostic actions only",
+          "passed": true,
+          "evidence": "Dedicated section: 'No PSU swap, no BIOS reflash, no OS reinstall, no \"undervolt and hope\"... We spend money only once a candidate survives against the evidence.' All proposed actions (journal reads, sysctl for SysRq, sshd, observation at next freeze) are diagnostic; the only file change is enabling SysRq, an instrumentation step."
+        },
+        {
+          "text": "Enumerates 3 or more candidate causes stated as mechanisms (how the cause produces exactly this freeze pattern), not a single committed favorite",
+          "passed": true,
+          "evidence": "Five hypotheses H1-H5, each with a mechanism and prediction, e.g. H2: 'a 3-year-old RM850 with degraded capacitance can't ride out the 3080's transient spikes; voltage droop locks the platform. Predicts: freezes only under GPU load... Refuted if: it freezes at idle.' Explicitly kept open: 'all staying alive until evidence kills them'."
+        },
+        {
+          "text": "States no fabricated facts \u2014 no invented log contents, temperatures, or test results presented as observed",
+          "passed": true,
+          "evidence": "All user-derived facts in the table are tagged '[reported]'; unknowns are labeled unknown. No log excerpts, temperatures, or test outputs are presented as observed \u2014 only predicted signatures ('We're looking for: NVIDIA Xid errors...'). Background claims (Fedora keeps persistent journals) are accurate general knowledge, not invented observations."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 85.3,
+        "tokens": 6455,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends against rolling back RKE2 tonight, or makes rollback strictly contingent on a discriminating test first",
+          "passed": true,
+          "evidence": "Opens with '**Short answer: don't roll back RKE2 tonight.**' and closes with 'keep the RKE2 rollback in your back pocket for a night when the evidence actually points at it.' Also lists concrete costs of a rollback: '(a) almost certainly not fix it, (b) burn a maintenance window, and (c) muddy the evidence'."
+        },
+        {
+          "text": "Explicitly refutes the upgrade hypothesis using the given evidence: all six nodes were upgraded but only three are affected, and/or onset (~18h after the upgrade) aligns with the switch-B install instead",
+          "passed": true,
+          "evidence": "Both refutation lines are present: 'All six nodes got the same RKE2 1.32.5 upgrade on July 21 evening. If the upgrade broke containerd's pulling, w1-w3 should fail too \u2014 and they never do.' and 'upgrade finished July 21 evening, failures started July 22 ~14:00 \u2014 *after* the switch-B installation on July 22 morning. The onset lines up with the switch, not the upgrade.' H3 is explicitly marked 'Refuted on paper... Dead unless new evidence revives it.'"
+        },
+        {
+          "text": "Identifies a rack-B / switch-B network path cause of the MTU-mismatch / large-frame-loss class as most probable, consistent with the size signature (big layers fail, small pulls and plain pings succeed)",
+          "passed": true,
+          "evidence": "H1 is 'MTU mismatch through switch-B' and H2 is 'Bad link or LAG member on switch-B's uplink' \u2014 'Survivors: **H2 (top), H1** \u2014 both live in switch-B or its uplink.' Size signature is explicitly tied to the mechanism: 'Full-size packets (which only bulk transfers generate) get dropped... Explains: big-layer failures, small-image success, ping (small packets) fine, both registries affected, only rack B.'"
+        },
+        {
+          "text": "Proposes a cheap discriminating verification before any action: large-packet ping with DF bit / packet-size sweep, iperf across switch-B, or checking the new switch's MTU/port config",
+          "passed": true,
+          "evidence": "All three suggested test types appear under 'Three tests to run tonight (minutes, no rollback, no downtime)': (1) 'ping -M do -s 1472 <registry-ip>' (DF-bit large-packet ping), (2) switch-B counter/MTU check ('check the uplink port(s)... compare MTU config against switch-A'), (3) 'curl -o /dev/null a large blob... (or iperf3 w4 -> any rack-A host)'."
+        },
+        {
+          "text": "Organizes the evidence as an explicit affected-vs-unaffected comparison (nodes, image sizes, timing, registry source) that a reader can verify at a glance",
+          "passed": true,
+          "evidence": "'The problem, specified' section is a four-row IS / 'COULD BE, but IS NOT' table over WHAT/WHERE/WHEN/EXTENT: WHERE contrasts 'w4, w5, w6 \u2014 all of rack B, all on switch-B' against 'w1-w3 \u2014 same cluster, same RKE2 version, rack A'; WHAT contrasts big-layer failures against '<10MB... almost always succeed'; WHEN contrasts onset July 22 ~14:00 against the clean night of July 21-22; the WHAT row covers 'internal registry AND Docker Hub via proxy'."
+        },
+        {
+          "text": "For at least one proposed test, states what each possible outcome would imply for the competing hypotheses (which candidate dies on which result)",
+          "passed": true,
+          "evidence": "Test 1 states both branches explicitly: 'Works from w1 but dies from w4 at large sizes \u2192 H1 confirmed. Works from both at all sizes \u2192 H1 dead, H2 promoted.' Test 3's half-split also branches: 'Clean intra-rack-B but dirty cross-rack \u2192 the fault is the uplink specifically.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 120.6,
+        "tokens": 7346,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recognizes this as a never-worked-right (Day One) deviation and explicitly redirects the investigation from 'what changed' to 'what differs between srv-b and srv-a'",
+          "passed": true,
+          "evidence": "Names the mode explicitly and makes the redirect verbatim: 'This is a **Day One deviation**: srv-b was *never* fast. That matters, because it means asking \"what changed?\" is wasted effort \u2014 nothing changed; it was born this way. The entire search lives in **distinctions**: srv-b differs from srv-a somewhere' and 'you have the ideal setup for it: a healthy sibling to diff against, line by line.'"
+        },
+        {
+          "text": "Treats 'bad CPU, RMA it' as a weak hypothesis with a stated reason (no mechanism offered; a uniform ~35% deficit is atypical of defective silicon) and does not endorse filing the RMA yet",
+          "passed": true,
+          "evidence": "Opens 'Hold the RMA... it's currently the weakest hypothesis on the table and the most expensive test you could run... doesn't yet have a mechanism behind it.' H5 gives the atypicality reason: 'defective CPUs overwhelmingly *fault* \u2014 MCEs in logs, crashes, corrected-error storms \u2014 rather than running uniformly 35% slow while perfectly stable... It stays alive but ranks last.' RMA is only reopened conditionally after Round 1 evidence."
+        },
+        {
+          "text": "Proposes side-by-side comparison of physical memory configuration \u2014 DIMM population / active channels (dmidecode or equivalent) \u2014 as a candidate class",
+          "passed": true,
+          "evidence": "H1 ('\"Same 512GB\" can hide different DIMM counts, ranks, vendors, or slots... a channel left empty, a DIMM that trained down') plus Test B: 'sudo dmidecode -t memory | grep -E Size|Speed|Configured|Locator|Rank|Part Number' and 'numactl -H', with explicit instruction to 'Diff between hosts.'"
+        },
+        {
+          "text": "Proposes at least three concrete cheap comparisons before RMA (e.g. memory bandwidth benchmark, BIOS settings beyond version parity such as NUMA/power profile/cTDP, CPU frequency under load, PCIe link width), each tied to what it would rule in or out",
+          "passed": true,
+          "evidence": "Four tests, each with explicit rule-in/rule-out mapping: Test A sysbench cpu/memory ('Memory-bandwidth gap but CPU parity \u2192 strong for H1/H3, kills H2. Single-core parity but all-core gap \u2192 strong for H2/H4'); Test B dmidecode/numactl memory diff ('= H1/H3 confirmed'); Test C turbostat clocks under load ('High-then-sagging = H4 (thermal); capped from the start = H2'); Test D full BIOS settings export via Redfish plus BMC power-cap status ('diff the whole settings dump, not just the version string'), with dmesg/BMC MCE check as 'the one cheap signal that would *promote* H5.'"
+        },
+        {
+          "text": "Uses the already-performed eliminations (playbook rerun, BIOS version match, NVMe swap) as search-narrowing evidence and does not re-propose them as next steps",
+          "passed": true,
+          "evidence": "Dedicated section 'What your three attempts already proved': 'Each failed fix acquits a suspect' \u2014 playbooks \u2192 'the deviation lives *below* the layer Ansible manages'; NVMe swap \u2192 'the drive is exonerated'; BIOS update \u2192 'firmware *version* is exonerated' with the added trap 'same BIOS version \u2260 same BIOS settings.' None of the three is re-proposed: next steps are synthetics, memory diff, clocks, and BIOS *settings* dump (a distinct, not-yet-performed comparison)."
+        },
+        {
+          "text": "States candidate causes as testable mechanisms linking the difference to a ~35% uniform slowdown (e.g. fewer active memory channels \u2192 bandwidth-bound analytics queries run slower), not bare component names",
+          "passed": true,
+          "evidence": "Section is titled 'Candidate causes (mechanisms, not fingers)'. H1: empty channel/trained-down DIMM 'gives you exactly this: a stable, born-this-way 20\u201340% analytics penalty with zero errors'; H2: 'lower sustained all-core clocks \u2192 uniform slowdown'; H3: 'interleaving and locality differ \u2192 remote-memory penalty on large scans'; H4: throttling 'clocks that *start* high and sag'. Each names a causal chain, not a bare component."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 0.0,
+        "tokens": 5030,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Builds a comparative specification covering all four dimensions (what / where / when / extent) with explicit IS and IS-NOT (or 'unknown \u2014 to check') entries",
+          "passed": false,
+          "evidence": "No comparative specification exists. The response opens with narrative symptom interpretation ('That's not a desktop/GUI hang \u2014 the audio DMA buffer looping means the kernel itself stopped scheduling') which is implicit IS-NOT reasoning on the WHAT dimension only. There is no structured treatment of where/when/extent, no explicit IS vs IS-NOT entries, and no marking of unknowns to check (e.g. load-state-at-freeze is asked for in Step 2 but never framed as a specification gap)."
+        },
+        {
+          "text": "Requests missing facts as a focused batch (roughly 8 questions or fewer) with a stated reason for what each answer would discriminate \u2014 not an exhaustive question dump",
+          "passed": true,
+          "evidence": "Closing batch requests 4 items: 'the output of journalctl --list-boots, the last ~50 lines of a crash boot, the grep for Xid/MCE, and dnf history list', with the discrimination stated: 'the log signature (Xid vs MCE vs silent stop) usually points at the culprit pretty directly'. The 'What to look for' section maps each signal to a suspect family (Xid -> GPU/driver/PSU-transient; MCE -> CPU/memory/motherboard; silent stop -> instant hardware lockup), and the load-state question in Step 2 states what each answer implies."
+        },
+        {
+          "text": "Records the RAM reseat and its failure to help as elimination evidence (referenced in the analysis, not ignored)",
+          "passed": true,
+          "evidence": "Step 3 item 2: 'reseating tests the connector, not the silicon. Two freezes since reseating means RAM is *not* cleared.' The reseat and its failure are referenced and correctly scoped as eliminating only the contact hypothesis while keeping RAM silicon in play."
+        },
+        {
+          "text": "Proposes at least two cheap discriminating next steps (e.g. persistent journal after a freeze, temperature/workload correlation, memtest) and names what each result would rule in or out",
+          "passed": true,
+          "evidence": "Multiple: SSH-during-freeze ('If SSH works while the screen is dead, it's the GPU/display stack, not a full system hang'); Magic SysRq ('If the machine reboots from that, the kernel was partially alive (driver hang). If it's completely inert, the CPU is locked hard (hardware/power)'); load-state correlation (under GPU load -> GPU/PSU/thermals, idle -> Zen 3 C-state/undervolt profile); journal mining with per-signature meaning; passive temperature logging; Memtest86+ overnight."
+        },
+        {
+          "text": "Proposes no remediation (OS reinstall, PSU/GPU replacement, part purchases) before any cause has been tested \u2014 diagnostic actions only",
+          "passed": false,
+          "evidence": "Step 3 item 3 proposes blind remediation before any cause is tested: 'Also update the BIOS \u2014 later AGESA versions fixed several Zen 3 stability errata' \u2014 a fix applied on spec, not a diagnostic experiment, and one that confounds the other tests. The tonight-list item 5 similarly prescribes 'Dust it out while you're in there' unconditionally before any evidence is in. (Booting the previous kernel, JEDEC speeds, and stock CO/PBO qualify as controlled experiments; the BIOS update and dust-out do not.)"
+        },
+        {
+          "text": "Enumerates 3 or more candidate causes stated as mechanisms (how the cause produces exactly this freeze pattern), not a single committed favorite",
+          "passed": true,
+          "evidence": "Step 3 lists five ranked candidates each with a mechanism: kernel/NVIDIA regression; RAM marginal at XMP ('3-year-old DIMMs and a 3-year-old memory controller can stop being stable at a profile that used to work'); CPU degradation under Curve Optimizer undervolt ('random hard locks, often at idle'); PSU transient droop ('a 3080's transient spikes plus a 5950X... capacitor aging after 3 years lowers the margin'); thermals/dust. No single committed favorite \u2014 evidence-dependent branching is preserved."
+        },
+        {
+          "text": "States no fabricated facts \u2014 no invented log contents, temperatures, or test results presented as observed",
+          "passed": true,
+          "evidence": "No log excerpts, temperatures, or results are presented as observed; all signatures are framed as things to look for ('What to look for: Xid errors...'). Background claims ('Persistent journaling is on by default in Fedora', 'Fedora keeps the last 3 kernels', 'it's late July' \u2014 consistent with the 2026-07-29 date) are accurate general knowledge, not invented observations."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.83,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 81.2,
+        "tokens": 5457,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends against rolling back RKE2 tonight, or makes rollback strictly contingent on a discriminating test first",
+          "passed": true,
+          "evidence": "Title: 'Don't roll back RKE2 tonight \u2014 the evidence points at switch-B, not containerd'; 'On the rollback itself' section says 'Hold off' and lists costs: 'Not fix anything... Muddy the evidence... Add its own risk'. The checks section is headed '15 minutes of checks that settle it (do this before any rollback)'."
+        },
+        {
+          "text": "Explicitly refutes the upgrade hypothesis using the given evidence: all six nodes were upgraded but only three are affected, and/or onset (~18h after the upgrade) aligns with the switch-B install instead",
+          "passed": true,
+          "evidence": "'If the upgrade had broken containerd, w1\u2013w3 would fail too \u2014 they run the identical binary, config, and version. They never fail. A cause that is present on all six nodes cannot explain a symptom confined to three.' Timing is refuted in the table: 'Failures started ~18 hours *after* the upgrade' vs '~4 hours after the switch went in \u2713'."
+        },
+        {
+          "text": "Identifies a rack-B / switch-B network path cause of the MTU-mismatch / large-frame-loss class as most probable, consistent with the size signature (big layers fail, small pulls and plain pings succeed)",
+          "passed": true,
+          "evidence": "'Most likely root causes (in order)': '1. Bad link member in switch-B's uplink LAG... 2. MTU mismatch \u2014 old switch had jumbo frames (9000) enabled, new switch-B came up at default 1500'. Size signature tied to mechanism: 'small images almost always succeed, large layers time out. Software bugs in containerd don't care how many bytes a layer has; lossy or misconfigured network paths do', and '\"Ping works but bulk transfer dies\" is the classic signature of an MTU mismatch or a lossy link.'"
+        },
+        {
+          "text": "Proposes a cheap discriminating verification before any action: large-packet ping with DF bit / packet-size sweep, iperf across switch-B, or checking the new switch's MTU/port config",
+          "passed": true,
+          "evidence": "Check 2 is 'ping -M do -s 1472 <registry-ip>' plus '-s 8972... if you run jumbo frames'; check 3 is 'iperf3 -c <registry-vm> from w4 vs w1'; check 4 includes 'Compare switch-B's MTU and flow-control config against switch-A's port configs'. All framed as '15 minutes of checks... do this before any rollback'."
+        },
+        {
+          "text": "Organizes the evidence as an explicit affected-vs-unaffected comparison (nodes, image sizes, timing, registry source) that a reader can verify at a glance",
+          "passed": true,
+          "evidence": "The opening table lines up the two candidate causes against the facts and covers all four dimensions at a glance: nodes ('Applied to: All six' vs 'Failures on: Only w4\u2013w6'), timing ('~18 hours after the upgrade' vs '~4 hours after the switch went in'), image sizes ('Transfer size (big layers fail, <10MB fine)'), and registry source ('Internal registry and Docker Hub proxy both fail / Both paths leave rack B'). The comparison axis is change-vs-change rather than strictly affected-vs-unaffected nodes, but the affected/unaffected contrast is explicit within the rows and adjoining prose."
+        },
+        {
+          "text": "For at least one proposed test, states what each possible outcome would imply for the competing hypotheses (which candidate dies on which result)",
+          "passed": false,
+          "evidence": "Every check states only the positive branch: check 1 'If w4 stalls/fails and w1 doesn't, containerd (and therefore RKE2) is exonerated'; check 2 'If large DF pings die from w4\u2013w6 but not w1\u2013w3, it's MTU on switch-B'; check 5 'If the failures follow the switch... it's definitively the switch'. No test states what the opposite result would imply (e.g. what survives or dies if the DF pings all succeed, or if curl is clean on w4). The assertion requires the implication of each possible outcome for the competing hypotheses, and no test covers both branches."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 99.3,
+        "tokens": 6641,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recognizes this as a never-worked-right (Day One) deviation and explicitly redirects the investigation from 'what changed' to 'what differs between srv-b and srv-a'",
+          "passed": true,
+          "evidence": "Recognizes the mode: 'A \"twin\" server that was **slow from day one** (never degraded, never fast) almost always means the two machines are not actually configured identically at a layer below the one you've been comparing' and 'Day-one, constant offset \u2192 static misconfiguration or assembly difference, not degradation.' The redirect is explicit: 'Let's find the layer where the twins diverge', and every subsequent step is framed as diffing srv-a vs srv-b outputs."
+        },
+        {
+          "text": "Treats 'bad CPU, RMA it' as a weak hypothesis with a stated reason (no mechanism offered; a uniform ~35% deficit is atypical of defective silicon) and does not endorse filing the RMA yet",
+          "passed": true,
+          "evidence": "Opens 'Hold the RMA. A CPU that passes POST, runs stable, and is uniformly ~35% slower is one of the *rarest* hardware failure modes there is.' Dedicated section 'Why I'd bet against the CPU': 'the part would have to be defective in a way that slows everything ~35% uniformly while passing POST, memory training, and weeks of stable operation. That failure mode essentially doesn't exist.' RMA is never endorsed; the response even notes what evidence an RMA desk would require."
+        },
+        {
+          "text": "Proposes side-by-side comparison of physical memory configuration \u2014 DIMM population / active channels (dmidecode or equivalent) \u2014 as a candidate class",
+          "passed": true,
+          "evidence": "Step 2 'Memory configuration \u2014 the #1 suspect for EPYC twins': '\"Same amount of RAM (512GB)\" is not the same as \"same memory configuration\"', lists 8x64GB vs 16x32GB channel population, wrong slot order, downtrained DIMM, failed training; commands 'sudo dmidecode -t memory | grep -E Locator|Size|Speed|Configured' and 'numactl --hardware' with instruction to 'diff the outputs between srv-a and srv-b'."
+        },
+        {
+          "text": "Proposes at least three concrete cheap comparisons before RMA (e.g. memory bandwidth benchmark, BIOS settings beyond version parity such as NUMA/power profile/cTDP, CPU frequency under load, PCIe link width), each tied to what it would rule in or out",
+          "passed": true,
+          "evidence": "Step 1 gives memory bandwidth (MLC/STREAM), sysbench CPU single+all-core with turbostat, and fio, each mapped in an interpretation block ('Memory bandwidth gap \u2248 35% \u2192 DIMM population/speed issue (Step 2)... All-core CPU gap but single-thread OK \u2192 power/thermal cap (Step 3)... All microbenchmarks identical, only Postgres slow \u2192 not hardware (Step 5)'). Step 2 dmidecode/numactl diff; Step 3 BMC power cap (ipmitool dcmi power get_limit), BIOS settings beyond version (determinism slider, cTDP/PPT, NPS, C-states), turbostat clocks under load; Step 4 cmdline/THP/lscpu diffs. Well over three, each tied to a ruling."
+        },
+        {
+          "text": "Uses the already-performed eliminations (playbook rerun, BIOS version match, NVMe swap) as search-narrowing evidence and does not re-propose them as next steps",
+          "passed": true,
+          "evidence": "Narrowing use is explicit: 'Your Ansible diff proves the OS layer matches \u2014 it says nothing about firmware settings, memory population, or BMC policy' and 'What you've eliminated: OS config (Ansible), BIOS *version* (not BIOS *settings* \u2014 critical distinction), NVMe device, Postgres config.' None of the three eliminations is re-proposed: no playbook rerun, no BIOS version step, no drive swap. The fio test is a different action ('Disk (you mostly ruled this out with the NVMe swap, but 5 min to confirm)') that exercises the host-side storage path the drive swap did not eliminate, and is explicitly framed against the prior elimination rather than ignoring it."
+        },
+        {
+          "text": "States candidate causes as testable mechanisms linking the difference to a ~35% uniform slowdown (e.g. fewer active memory channels \u2192 bandwidth-bound analytics queries run slower), not bare component names",
+          "passed": true,
+          "evidence": "Mechanisms throughout: 'Postgres analytics (seq scans, hash joins, aggregation) is dominated by **memory bandwidth** and sustained **all-core clocks**. A 35% gap is exactly the size you get from a memory-channel or power-management misconfiguration'; 'a single marginal DIMM can make the memory controller clock *all* channels down (e.g. 4800 \u2192 3600 MT/s)'; 'a power cap set in iDRAC/BMC... caps all-core clocks hard and is invisible to the OS'; 'a silent fallback to 4K pages on one box is a known quiet performance loss.' Each candidate is a causal chain with a proposed test."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 68.6333,
+        "stddev": 62.0034,
+        "min": 0.0,
+        "max": 120.6
+      },
+      "tokens": {
+        "mean": 6784.6667,
+        "stddev": 488.5922,
+        "min": 6455,
+        "max": 7346
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8467,
+        "stddev": 0.1457,
+        "min": 0.71,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 60.1667,
+        "stddev": 52.8859,
+        "min": 0.0,
+        "max": 99.3
+      },
+      "tokens": {
+        "mean": 5709.3333,
+        "stddev": 834.6163,
+        "min": 5030,
+        "max": 6641
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.15",
+      "time_seconds": "+8.5",
+      "tokens": "+1075"
+    }
+  },
+  "notes": [
+    "Skill sweeps 19/19 assertions; baseline fails 3 (84.7%). Every baseline failure is a mechanism the skill explicitly enforces: four-dimension IS/IS-NOT specification (eval-0), no remediation before a tested cause \u2014 baseline prescribed BIOS update + dust-out untested (eval-0), and mapping EVERY test outcome to which hypothesis dies, not just the confirming branch (eval-1).",
+    "eval-2 (day-one-twin-server) does not discriminate: 6/6 both arms. The baseline model already troubleshoots Day-One twins well. Skill-specific behaviors that DID differ went unmeasured: IS/IS-NOT spec table, discriminating EXTENT questions to the user, evidence ground rules (one variable, raw outputs, negative results count). Candidate iteration-2 assertions.",
+    "Non-discriminating assertions to tighten or keep as guardrails only: 'no fabricated facts' (eval-0 #7, passes trivially in response-only evals), eval-1 #1-#4 (scenario evidence trail too legible \u2014 the red herring is rejectable by any competent reader; bury the switch fact or add noise for a harder variant), eval-2 #4 ('3+ cheap comparisons' \u2014 any competent answer passes).",
+    "Grader-suggested missing assertion: intermittent-fault verification discipline (quiet window >= 2-3x longest observed gap before declaring fixed) \u2014 present in with_skill eval-0, absent from baseline, currently unchecked.",
+    "Cost of the method: with_skill averages ~62.8k tokens / 107s vs baseline ~50.4k / 86s (+25% tokens, +25% time). Reasonable price for the structural gains; watch that it doesn't grow in later iterations.",
+    "Both arms produced high-quality troubleshooting on every eval \u2014 the skill's marginal value is discipline (spec tables, refutation targets, remediation gating), not raw diagnostic ability. Iteration-2 evals should be designed to stress discipline under messier evidence."
+  ]
+}
