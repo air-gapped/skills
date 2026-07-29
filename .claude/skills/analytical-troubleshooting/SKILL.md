@@ -6,16 +6,18 @@ description: >-
   likelihood-weighted tests first, escalating to a comparative IS/IS-NOT
   specification with distinctions-and-changes analysis when quick tests fail or
   the search space is large. Influenced by the problem-analysis tradition of
-  Kepner & Tregoe. Use whenever the user wants to troubleshoot, diagnose, or
-  narrow down an unexplained fault — "why does X crash / freeze / fail",
-  "works on A but not B", "started failing after...", "never worked right",
-  "intermittent", "flaky", "heisenbug", "we've tried everything", "help me find
-  the cause" — in hardware, servers, networks, Kubernetes, storage, or
-  software, whether the user runs the tests (you direct, they execute) or you
-  can test directly. Also use mid-conversation when unstructured guess-and-fix
-  has stalled after a few failed attempts. NOT for post-incident reviews or
-  postmortems of already-resolved incidents (use understanding-human-error),
-  statistical process variation, or choosing between design options.
+  Kepner & Tregoe. Works whether the user runs the tests (agent directs, user
+  executes) or the agent can test directly.
+when_to_use: >-
+  Use whenever the user wants to troubleshoot, diagnose, or narrow down an
+  unexplained fault — "why does X crash / freeze / fail", "works on A but not
+  B", "started failing after...", "never worked right", "intermittent",
+  "flaky", "heisenbug", "we've tried everything", "help me find the cause" —
+  in hardware, servers, networks, Kubernetes, storage, or software. Also use
+  mid-conversation when unstructured guess-and-fix has stalled after a few
+  failed attempts. NOT for post-incident reviews or postmortems of
+  already-resolved incidents (use understanding-human-error), statistical
+  process variation, or choosing between design options.
 ---
 
 # Analytical Troubleshooting
