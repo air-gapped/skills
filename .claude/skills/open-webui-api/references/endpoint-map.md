@@ -62,7 +62,7 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - `POST /models/create`, `GET /model?id=`, `POST /model/update` (**must include `access_grants`** — omitting it 500s; see SKILL.md gotchas), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
 - `POST /models/model/access/update` `{id, access_grants:[...]}` [user+perm]
 - GitOps: `GET /models/export` → `POST /models/import` (additive) → `POST /models/sync` — **only `/sync` is [admin]** (`models.py:488`); export/import are [user] plus an in-body `workspace.models_export` / `models_import` permission check (`models.py:315,347`), so a non-admin service account holding those permissions can dump and load the catalog. `/sync` is **declarative — it deletes models absent from the payload**.
-- app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `POST /api/models/unload` [admin]
+- app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `GET /models/base/tags` [admin] — sorted distinct tags; the `tag` filter on `/models/base` is unusable without it, `POST /api/models/unload` [admin]
 
 ### knowledge + files + retrieval (RAG)
 - `POST /knowledge/create` `{name, description, access_grants?}`; `GET /knowledge/{id}` (with files); `/update`, `/delete`, `/reset` [user+ACL]
@@ -70,7 +70,16 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - `POST /knowledge/{id}/file/add|update|remove` `{file_id}`; batch `/files/batch/add`; diff `/sync/diff`; `GET /{id}/export` [admin]
 - `POST /knowledge/reindex` [user-perm], `/metadata/reindex` [admin]
 - `GET|POST /retrieval/config(/update)` [admin] — hybrid search, rerankers, extraction engines; `GET|POST /retrieval/embedding(/update)` [admin] — embedding engine switch (unloads old model)
+- `POST /retrieval/delete` [admin] `{collection_name, file_id}` — the **only surgical vector-DB delete**; removes one file's entries instead of nuking the collection. Refuses a null-hash filter to avoid over-deleting (`retrieval.py:2895`).
 - Danger [admin]: `POST /retrieval/reset/db`, `/reset/uploads`, `DELETE /files/all`
+
+### audio + images (config — both hold provider secrets)
+
+Neither router appears elsewhere in this map; a config-backup or secret-audit script that follows only the sections above silently skips both.
+
+- `GET|POST /audio/config(/update)` [admin] (`audio.py:279,287`) — all TTS+STT settings **including engine API keys**; the update path reloads the faster-whisper model in-process (synchronous load on the pod).
+- `GET|POST /images/config(/update)` [admin] (`images.py:271,276`) — image-generation config **including `AUTOMATIC1111_API_AUTH` and ComfyUI base URLs/keys**; validates size/steps (400 on bad `IMAGE_SIZE`), calls `set_image_model()`, emits `EVENTS.CONFIG_UPDATED`.
+- `GET /images/config/url/verify` [admin] (`images.py:332`) — reachability preflight before saving a broken image backend.
 
 ### functions / tools / pipelines
 - functions [all admin — arbitrary server-side Python]: `/functions/create` `{id,name,content,meta}`, `/id/{id}/toggle`, `/toggle/global`, `/sync`, valves
@@ -81,14 +90,14 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - analytics [admin]: `/analytics/{summary,daily,tokens,users,messages,models}`, `/analytics/models/{id}/chats|overview`
 - events (app-level, [admin]): `GET /api/events` (catalog), `GET|POST /api/events/webhooks`, `PUT|DELETE /api/events/webhooks/{id}` — outbound event webhooks
 - `GET /api/usage` [user]; `GET /api/tasks` [admin], `POST /api/tasks/stop/{id}` [admin]
-- `GET /utils/db/download` [admin, `ENABLE_ADMIN_EXPORT`, SQLite only — 400 on Postgres]; `POST /utils/code/execute` [user]
+- `GET /utils/db/download` [admin, `ENABLE_ADMIN_EXPORT`, SQLite only — 400 on Postgres]; `POST /utils/code/format` [admin] (black); `POST /utils/code/execute` [**user**] — note the asymmetry: formatting code is admin-gated, *executing* it is not (`utils.py:32,44`).
 - chats admin: `GET /chats/list/user/{id}?page=` (needs `ENABLE_ADMIN_CHAT_ACCESS`), `GET /chats/all/db` (needs `ENABLE_ADMIN_EXPORT`); own export `GET /chats/all` (NDJSON stream)
-- evaluations [admin]: `/evaluations/config`, `/feedbacks/list`, `/feedbacks/all/export`, `DELETE /feedbacks/all`
+- evaluations [admin]: `/evaluations/config`, `/feedbacks/list`, `/feedbacks/all/export`, `DELETE /feedbacks/all`; plus `GET /evaluations/leaderboard?query=` (Elo over all feedback, `evaluations.py:216`), `GET /evaluations/leaderboard/{model_id}/history?days=` (default 30d), `GET /evaluations/feedbacks/models` (distinct model ids — cheap discovery before paging), `GET /evaluations/feedbacks/all/ids` (ids only, for diffing backups without pulling bodies)
 
 ### Inference surfaces (for completeness)
 - `POST /api/chat/completions` (alias `/api/v1/chat/completions`) [user] — OpenAI shape + extras: `files:[{type:'file'|'collection',id}]` (RAG), `tool_ids:["server:mcp:<id>"]`, `params:{...}` per-request
 - `POST /api/embeddings` (alias `/api/v1/embeddings`) [user]; `POST /api/message` / `/api/v1/messages` — Anthropic Messages-compatible [user]
-- `/ollama/*`: inference [user], model lifecycle `api/pull|create|copy|delete|push|unload|ps` [admin], `GET /ollama/` + `api/version` [public]
+- `/ollama/*`: inference [user], model lifecycle `api/pull|create|copy|delete|push|unload|ps` [admin], `GET /ollama/` [public], `api/version` [**user** since 0.11.0]. Also [admin]: `POST /ollama/verify` (probe a URL+key before saving — the ollama twin of `/openai/verify`), `GET /ollama/config` (reads the connection back, keys included, same trick as `GET /openai/config`), and `POST /ollama/models/download|upload` (+`/{url_idx}`) — **unbounded disk writes to `UPLOAD_DIR`**; download streams a GGUF from an allowlist of exactly HuggingFace and GitHub (`ollama.py:1588,1616`).
 - `/openai/*`: `config(/update)`, `verify` [admin]; models/chat/completions/responses/audio [user]; `/{path}` catch-all passthrough gated by `ENABLE_OPENAI_API_PASSTHROUGH`
 
 ## New in 0.11.0 (delta from 0.10.2: +21 routes, −1)
