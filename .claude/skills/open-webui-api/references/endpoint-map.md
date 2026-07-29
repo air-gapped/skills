@@ -19,8 +19,8 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 ## Auth character per domain
 
 - **Admin-only routers** (every endpoint): pipelines, analytics.
-- **Admin-heavy**: configs (21 admin / 2 user), functions (all admin except user-valves — arbitrary server-side Python), auths admin-config block, groups (CRUD admin, listing user), evaluations config/feedback-admin, ollama model lifecycle, retrieval config/reset.
-- **User-level routers** (0 admin endpoints): channels, calendars, memories, folders, notes, skills, prompts, automations.
+- **Admin-heavy**: configs (23 admin / 2 user), functions (13 admin / 4 user — arbitrary server-side Python; note `GET /functions/` itself is [user]), auths admin-config block, groups (CRUD admin, listing user), evaluations config/feedback-admin/leaderboard, ollama model lifecycle, retrieval config/reset.
+- **User-level routers** (0 admin endpoints): channels, calendars, memories, folders, notes, skills, prompts, automations, notifications, terminals.
 - **User with admin escape hatches**: chats (admin: `/list/user/{id}`, `/all/db`, config), files (admin: `DELETE /all`), tools (admin: `/load/url`), models (admin: `/base`, `/sync`, `DELETE /delete/all`), knowledge (admin: `/external/*`, `/metadata/reindex`, `/{id}/export`), tasks (admin: `/config/update`).
 
 ## Key admin groups (prefix /api/v1 unless noted)
@@ -29,7 +29,10 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - `GET /users/?query=&order_by=&direction=&page=` [admin] — 30/page fixed, returns `{users:[...incl group_ids], total}`
 - `GET /users/all` [admin]; `GET /users/search` [user]
 - `GET|POST /users/default/permissions` [admin] — global permission template (see config-system.md for shape)
-- `GET /users/{id}`, `/{id}/info`, `/{id}/groups`, `/{id}/oauth/sessions`, `/{id}/active` [admin]
+- `GET /users/{id}`, `/{id}/groups`, `/{id}/oauth/sessions` [admin]
+- ⚠️ `GET /users/{id}/info` and `/{id}/active` are **[user], not [admin]** (`routers/users.py:765,852`) — any verified user can read any other account's name, email, role, group memberships and online status by id. Treat as an info-disclosure surface when reviewing a deployment.
+- `GET /users/{id}/preview` [admin] — enumerates every resource that user can reach across all their groups; the per-user twin of `/groups/id/{id}/preview` and the best "what can this account actually see?" audit call.
+- `GET /users/default/permissions/defaults` [admin] — the shipped `DEFAULT_USER_PERMISSIONS` baseline (not live config); diff live against it to see what was customised.
 - `POST /users/{id}/update` [admin] — partial: `{role?, name?, email?, password?, profile_image_url?}`; role change disconnects user's websockets. No separate role endpoint.
 - `DELETE /users/{id}` [admin]. Primary admin (first user) is immutable to other admins.
 - Deactivation = role `pending` (no active flag).
@@ -50,14 +53,15 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 ### configs
 - `GET /configs/export` [admin] — flat dot-keyed dump of ALL config; `POST /configs/import` `{config:{...}}` — partial upsert
 - `GET /configs/namespace/{ns}` [admin]
-- `GET|POST /configs/connections`, `/configs/tool_servers` (+`/verify`), `/configs/terminal_servers`, `/configs/code_execution`, `/configs/models`, `/configs/banners`; `POST /configs/suggestions` [all admin]
+- `GET|POST /configs/connections`, `/configs/tool_servers` (+`/verify`), `/configs/terminal_servers` (+`/verify`), `/configs/code_execution`, `/configs/models`; `POST /configs/suggestions` [admin]. `/configs/banners`: **POST is [admin], GET is [user]** (`configs.py:840,859`).
+- `POST /configs/terminal_servers/{policy,lifecycle,refresh}` [admin] — server-side proxies that call an operator-supplied `{url}` with an operator-supplied bearer from inside the cluster (SSRF-shaped outbound surface). `refresh` with `reset: true` destroys running terminal sessions for a user or a whole policy.
 - `POST /configs/oauth/clients/register` [admin] — RFC 7591 client registration toward OAuth-protected tool servers
 
 ### models (workspace presets)
 - `GET /models/list` [user] (NOT bare `/models` — OpenAI-compat alias)
 - `POST /models/create`, `GET /model?id=`, `POST /model/update` (**must include `access_grants`** — omitting it 500s; see SKILL.md gotchas), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
 - `POST /models/model/access/update` `{id, access_grants:[...]}` [user+perm]
-- GitOps: `GET /models/export` → `POST /models/import` (additive) → `POST /models/sync` [admin] — **declarative, deletes models absent from payload**
+- GitOps: `GET /models/export` → `POST /models/import` (additive) → `POST /models/sync` — **only `/sync` is [admin]** (`models.py:488`); export/import are [user] plus an in-body `workspace.models_export` / `models_import` permission check (`models.py:315,347`), so a non-admin service account holding those permissions can dump and load the catalog. `/sync` is **declarative — it deletes models absent from the payload**.
 - app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `POST /api/models/unload` [admin]
 
 ### knowledge + files + retrieval (RAG)
@@ -101,5 +105,13 @@ Only one addition is admin-gated; the rest are user-level. Route set diffed AST-
 - `POST /ollama/v1/embeddings[/{url_idx}]` [user] — OpenAI-shaped embeddings proxy.
 - **Removed**: `POST /api/v1/tasks/active/chats` (present in 0.10.2, gone in 0.11.0).
 
-### Public (no auth) — complete list
-`/auths/signin|signup|signout|ldap`, oauth login/callback/backchannel-logout, SCIM discovery trio (ServiceProviderConfig/ResourceTypes/Schemas), `/ollama/` + `/ollama/api/version`, channels inbound webhook `POST /api/v1/channels/webhooks/{webhook_id}/{token}`, `/health`, `/ready`, `/api/config`, `/api/version`.
+### Public (no auth) — complete list, v0.11.0 (24 routes)
+
+`/auths/signin|signup|signout|ldap`, `POST /auths/oauth/{provider}/token/exchange`, oauth login/callback/backchannel-logout, SCIM discovery trio (ServiceProviderConfig/ResourceTypes/Schemas), `GET|HEAD /ollama/`, channels inbound webhook `POST /api/v1/channels/webhooks/{webhook_id}/{token}`, `/health`, `/health/db`, `/ready`, `/api/config`, `/api/version`, `/api/changelog`, `/manifest.json`, `/opensearch.xml`.
+
+Two that need calling out:
+
+- **`GET /ollama/api/version` is NO LONGER public** — it gained `get_verified_user` in 0.11.0 (`routers/ollama.py:538`) and 401s anonymously (verified live). Unauthenticated liveness probes pointed at it break on upgrade. `GET /ollama/` itself is still public — use that instead.
+- **`GET /chats/share/{share_id}` is now anonymously readable** when the share is "open" — 0.11.0 swapped `get_verified_user` for `get_optional_verified_user` (`routers/chats.py:1188-1193`). In 0.10.2 a share link still required a logged-in account. Security-posture change; audit existing share links after upgrading.
+
+**`ENV=dev` adds an unauthenticated 25th route.** `GET /api/v1/retrieval/ef/{text}` is registered only under `if ENV == 'dev'` (`routers/retrieval.py:2987-2990`) and carries **no auth dependency at all** — anyone who can reach the instance can drive the embedding model with arbitrary text. Since the only supported way to expose `/openapi.json` and `/docs` is `ENV=dev`, that convenience is not free on an internet-reachable deployment.

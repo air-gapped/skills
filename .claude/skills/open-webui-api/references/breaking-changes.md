@@ -23,6 +23,7 @@ The API is officially "experimental" (docs, verbatim: "this is an experimental s
 | 0.9.5 | 2026-05-09 | unauthenticated `GET /api/v1/retrieval/` removed |
 | 0.9.6 | 2026-06-01 | key allowlist matched against routed path (another tightening) |
 | 0.10.0 | 2026-06-29 | **`access_control` → `access_grants` (inverted defaults); config storage → flat dot-keys; filter `outlet()` runs on direct API calls by default (#25650)** — API response bodies change; new 403s from permission enforcement on api-key view/delete, speech, image-edit; `ENABLE_RAG_LOCAL_WEB_FETCH`→`ENABLE_LOCAL_WEB_FETCH` (alias kept) |
+| 0.11.0 | 2026-07-27 | **two new permission keys (`sharing.open_chats`, `access_grants.allow_groups`) that a hard-coded permissions POST silently revokes** (below); `X-Process-Time` header format changed; LDAP server-config gained 3 fields that an old-shaped PUT resets; `notifications` router added; `POST /api/v1/tasks/active/chats` removed; new `ENABLE_PLUGINS` kill switch makes function/tool lists return `200 []` |
 
 ## Translating a ≤0.9.x script to 0.10.x
 
@@ -42,6 +43,18 @@ Mapping: `null` → `[{user, *, read}]`; `{}` → `[]`; each `read.group_ids[i]`
 **Group membership.** Old habit: update group with replacement `user_ids`. New: `GroupUpdateForm` has no `user_ids`; use incremental `POST /groups/id/{id}/users/add` / `/users/remove`.
 
 **Community content warning.** Blogs/scripts (and LLM prior knowledge) overwhelmingly teach the ≤0.6.x shapes, and some community accounts are outright backwards (e.g. claims that `/api/v1/chat/completions` was renamed to `/api/chat/completions` — in reality `/api/chat/completions` is primary and the `/api/v1` form is a later alias). When in doubt, the router source for the running version is the only authority.
+
+## Translating a 0.10.x script to 0.11.0
+
+**Permissions — read-modify-write, never POST a literal.** 0.11.0 adds `sharing.open_chats` (default false) and `access_grants.allow_groups` (default true) to the default-permissions dict (`config.py:1950,1955`). `has_permission` **denies on any missing path segment** (`utils/access_control/__init__.py:87-89`), so a script that POSTs a hard-coded 0.10-shaped body to `/api/v1/users/default/permissions` silently revokes group-based access grants for every non-admin. Always `GET`, mutate the returned dict, then `POST` it back.
+
+**`sharing.open_chats` cannot survive an API save (upstream bug, verified live on 0.11.0).** `config.py:1950` defines the key and `routers/chats.py:2041` enforces it, but the server-side `SharingPermissions` model has no `open_chats` field (`routers/users.py:191-205`). Every `POST /api/v1/users/default/permissions` — including saves from the admin UI — drops the key, after which open chat sharing reads as denied. A live `GET` returns a `sharing` block with no `open_chats` at all. There is no API-side workaround; the value has to be restored in config storage directly.
+
+**`X-Process-Time` is now fractional seconds** — was `str(int(elapsed))` (nearly always `"0"`), now `f'{elapsed:.6f}'` (`utils/asgi_middleware.py:174-177`). `int(resp.headers['X-Process-Time'])` raises `ValueError`.
+
+**LDAP server config gained fields.** `LdapServerConfig` added `enable_group_management`, `enable_group_creation`, `attribute_for_groups` (`routers/auths.py:1256-1261`) and the handler upserts the full `model_dump()`. A 0.10-shaped PUT silently resets group management/creation to false. Same read-modify-write rule. Likewise `POST /auths/admin/config` gained `CHANNEL_MODEL_RESPONSE_MODE` (defaults back to `thread` when omitted).
+
+**Sockets/terminals accept JWTs only.** The new `get_verified_user_by_token` (`utils/auth.py:503-513`) calls `decode_token`, so `sk-` API keys do **not** authenticate socket.io or terminal handshakes — only JWTs do.
 
 ## Recurring upgrade-failure themes (GitHub, for triage matching)
 
