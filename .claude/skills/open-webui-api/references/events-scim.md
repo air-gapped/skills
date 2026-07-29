@@ -60,6 +60,7 @@ Base URL `/api/v1/scim/v2`, auth `Authorization: Bearer $SCIM_TOKEN` — **outsi
 Semantics that surprise IdP admins:
 - `active: true` ⇄ role `user`; `active: false` ⇄ role `pending`. SCIM **never demotes an existing admin** (guard in scim.py) — admin role changes stay manual.
 - Since 0.6.37, API-key endpoint restrictions also cover SCIM paths (#19168) — irrelevant for the SCIM token itself, but a restricted `sk-` key cannot probe SCIM endpoints.
-- Deprovisioning gap tracked in #24501 (open as of 2026-07-21).
+- Deprovisioning gap tracked in #24501 (open as of 2026-07-29).
+- ⚠️ **SCIM does not scope itself to SCIM-provisioned users (#27662, open as of 2026-07-29).** `GET /Users` enumerates *every* account, including ones created locally or via OAuth, so an IdP that reconciles "users present in Open WebUI but not in the directory" will deactivate them. At least one reporter had their **primary admin account pruned by their IdP** this way. Before pointing an IdP at a populated instance, confirm the sync is additive-only, or ensure every existing account exists in the directory first.
 
 Alternative without SCIM: trusted-header auth (`WEBUI_AUTH_TRUSTED_EMAIL_HEADER`, `..._GROUPS_HEADER` for group sync) auto-provisions at signin — pick one mechanism, not both.

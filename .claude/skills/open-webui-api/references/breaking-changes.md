@@ -83,3 +83,13 @@ This is the dangerous shape for GitOps: a read-only service account exports, get
 - Postgres-specific: #21467 (groups 500 on GROUP BY); `utils/db/download` 400s by design
 - SCIM: #17964/#18039 (filter case-sensitivity), #21280 (externalId, fixed 0.8.1), #24501 (deprovisioning, open)
 - Streaming behind buffering proxies (IIS/ARR): #24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
+
+## Open issues on 0.11.0 (checked 2026-07-29 — re-probe on freshen)
+
+- **#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. See `events-scim.md`.
+- **#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT` at `main.py:1839`). *Did not reproduce* on a 0.11.0 instance probed 2026-07-29 — the request reached the upstream and failed on upstream connectivity instead, so treat this as conditional, not universal.
+- **#27607 — "Open Sharing" cannot be enabled from the admin panel** — the `sharing.open_chats` model gap documented above; independently confirmed live.
+- **#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation). DB surgery only. Sanitise ids on create.
+- **#27618 — writing to an older message makes it the branch tip and truncates visible history** — tied to the new `current_message_id` column; affects `POST /chats/{id}/messages/{message_id}`.
+- **#27641** agentic knowledge search fails when user-info header forwarding is on · **#27622** timer polling scans the chat table every second while idle · **#27602** Tavily `fetch_url` missing `api_base_url` · **#27610** torch imported even with all-remote engines (~340 MB RSS) · **#27651** `runAsNonRoot: true` breaks on 0.11.0 (k8s).
+- Closed but useful for triage: **#27645** docker restart loop on 10.2→11.0 was an empty `WEBUI_SECRET_KEY=` in the shipped compose file, **not** the migrations; **#27581** connections with no access grants locked admins out when `BYPASS_ADMIN_ACCESS_CONTROL=false`.
