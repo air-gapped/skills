@@ -64,6 +64,24 @@ one at a time.
   innocent, so update; don't keep swapping unfailing components "to be sure"
   (part-shotgunning is the classic unbounded fast path).
 
+## Agent-executed tests
+
+When shell/log/API access allows testing directly, the same discipline binds —
+speed is not a license to shotgun:
+
+- Still name the refutation target before each probe; a fast loop of
+  confirmation-only tests is just faster anchoring.
+- Prefer read-only probes (logs, counters, configs, dry-runs) before
+  state-changing experiments; a state change mid-hunt contaminates the very
+  evidence being gathered, so it needs the one-variable + revert discipline.
+- Transcribe raw command output into the table as `[observed]` — quote the
+  actual line, not a paraphrase of it. Summarized evidence is where
+  fabrication creeps in.
+- Cheap tests shift the economics (dozens of probes per human round-trip),
+  not the bookkeeping: batch reads freely, but update the table and
+  hypothesis statuses before choosing the next batch, or the loop degrades
+  into undirected scanning.
+
 ## Human-executed tests
 
 When the human runs the tests (hardware in their hands, prod behind their
