@@ -2,16 +2,29 @@
 
 Authoritative references underlying this skill. Read these when this skill is wrong.
 
-> **Version note (re-probed 2026-07-21).** Upstream open-webui has moved
-> **v0.9.5 → v0.10.2** (2026-07-01; v0.9.6, v0.10.0, v0.10.1 in between), and the
-> line numbers below have been **re-resolved against the v0.10.2 tag** rather than
-> carried forward. They drifted a long way — `generate_openai_batch_embeddings`
-> 677→845, `get_embedding_function` 905→1073, and every `config.py` key moved by
-> roughly *two thousand* lines (2948→994 etc.), which means `config.py` was
-> restructured, not merely appended to. Re-resolve by symbol name, never by
-> remembered line number. LiteLLM PRs 25395/25698 and issue 25388 re-confirmed in
-> the same states; TEI is unchanged at v1.9.3 with its two CLI defaults still on
-> lines 60 and 82.
+> **Version note (re-probed 2026-07-29).** Upstream open-webui is now at
+> **v0.11.0** (2026-07-27). Line numbers below are re-resolved against the
+> v0.11.0 tag: `generate_openai_batch_embeddings` 677→845 (0.10.2)→**862**,
+> `get_embedding_function` 905→1073 (0.10.2)→**1090**, `ExternalReranker` class
+> at **13** with `predict` at **26** (the previously-cited 14/27 were off by one
+> and pointed at `__init__`). Re-resolve by symbol name, never by remembered
+> line number — `config.py` was restructured wholesale (not appended to) between
+> 0.9.x and 0.10.2, moving keys by ~2000 lines.
+>
+> **Behaviour re-verified unchanged on 0.11.0:** embed URL auto-append
+> (`f'{url}/embeddings'`), payload `{input, model}`, parse
+> `data['data'][i]['embedding']`; rerank exact-URL (no append), Cohere body
+> `{model, query, documents, top_n}` where `top_n` is always `len(documents)`,
+> parse `data['results']` → `relevance_score`, and the silent `return None`
+> fallback on both non-2xx and missing-`results`. Env defaults unchanged:
+> `RAG_EMBEDDING_BATCH_SIZE` 1 (legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE`
+> still honoured, `config.py:1001-1002`), `RAG_EMBEDDING_CONCURRENT_REQUESTS` 0.
+> 0.11.0's retrieval churn (+462/−248) is almost entirely in `retrieval/web/`.
+> One adjacent change matters: `Knowledges.get_file_metadatas_by_id` became a
+> column-only SELECT excluding `File.data` (`models/knowledge.py:684-694`).
+>
+> **NOT re-probed this pass:** LiteLLM PRs 25395/25698, issue 25388, and the TEI
+> v1.9.3 CLI-default line numbers all still carry their 2026-07-21 states.
 
 | Topic | Reference | Last verified | Pinned |
 |---|---|---|---|

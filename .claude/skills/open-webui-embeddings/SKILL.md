@@ -10,6 +10,8 @@ when_to_use: |-
 
 Target: operators wiring Open WebUI's RAG pipeline to HuggingFace Text Embeddings Inference (TEI) via LiteLLM. Three hops, each with its own wire-shape quirks. Most failure modes silently degrade to "answer quality dropped" rather than visible errors — this skill is a triage for catching them at config-time.
 
+Verified against **v0.11.0** source (2026-07-29). The embed and rerank code paths are unchanged from 0.10.2 — 0.11.0's retrieval churn landed almost entirely in `retrieval/web/` (web search), not the embedding core — so every wire shape and env default below still holds. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
+
 **Siblings in the `open-webui` plugin.** Setting these values *through the REST
 API* rather than the settings UI — and the knowledge/RAG endpoints that ingest
 documents — is the **`open-webui-api`** skill. Running more than one Open WebUI
@@ -35,7 +37,7 @@ Skipping LiteLLM is therefore feasible only for embed; rerank requires either Li
 
 ### Embed — Open WebUI code path
 
-`backend/open_webui/retrieval/utils.py:677` (`generate_openai_batch_embeddings`):
+`backend/open_webui/retrieval/utils.py:862` (`generate_openai_batch_embeddings`, v0.11.0):
 
 ```http
 POST {RAG_OPENAI_API_BASE_URL}/embeddings        ← URL is auto-appended
@@ -47,11 +49,11 @@ Content-Type: application/json
 
 Response parsed as `data["data"][i]["embedding"]` (OpenAI shape).
 
-Async fan-out (`utils.py:905`, `get_embedding_function` → `asyncio.gather` at `utils.py:963`): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather` with optional semaphore from `RAG_EMBEDDING_CONCURRENT_REQUESTS` (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**.
+Async fan-out (`get_embedding_function` at `utils.py:1090`, batching + `asyncio.gather` at `utils.py:1139-1156`, v0.11.0): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather`, wrapped in an `asyncio.Semaphore` only when `RAG_EMBEDDING_CONCURRENT_REQUESTS` is non-zero (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**.
 
 ### Rerank — Open WebUI code path
 
-`backend/open_webui/retrieval/models/external.py:14` (`ExternalReranker`, `predict` at line 27):
+`backend/open_webui/retrieval/models/external.py:13` (`ExternalReranker`, `predict` at line 26; v0.11.0, unchanged since 0.10.2):
 
 ```http
 POST {RAG_EXTERNAL_RERANKER_URL}                 ← URL is exact, NOT appended
@@ -59,7 +61,7 @@ Authorization: Bearer {RAG_EXTERNAL_RERANKER_API_KEY}
 Content-Type: application/json
 
 {"model": "{RAG_RERANKING_MODEL}", "query": "...",
- "documents": ["doc1", "doc2", ...], "top_n": N}
+ "documents": ["doc1", "doc2", ...], "top_n": <len(documents)>}
 ```
 
 Response parsed: `data["results"]` sorted by `index`, extracts `relevance_score`. Cohere shape, strict.
@@ -74,7 +76,7 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_OPENAI_API_BASE_URL` | embed | Open WebUI appends `/embeddings`. Set to `http://litellm:4000/v1` (proxy) or `http://tei:8080/v1` (direct). |
 | `RAG_OPENAI_API_KEY` | embed | Bearer token. TEI ignores; LiteLLM enforces virtual key. |
 | `RAG_EMBEDDING_MODEL` | embed | Sent in payload as `model`. Must match LiteLLM's `model_name` exactly (case-sensitive, full HF path). |
-| `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1`. Bumping to `32` reduces per-request overhead during indexing. |
+| `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1`. Bumping to `32` reduces per-request overhead during indexing. Legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE` still honoured as a fallback (`config.py:1001-1002`). |
 | `RAG_EMBEDDING_CONCURRENT_REQUESTS` | embed | Concurrency cap. Default `0` = unlimited (`asyncio.gather` without semaphore). Set to a bounded number (4-8) to avoid bursting TEI. |
 | `RAG_EMBEDDING_PREFIX_FIELD_NAME` | embed | Extra field name for prefix-needing models (e.g. `prompt` for EmbeddingGemma). Leave unset for BGE-M3 — its query/passage symmetry is built into the model. |
 | `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | Prefix strings (paired with the field name above). Unused for BGE-M3. |
@@ -97,6 +99,14 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | TEI returns 429 during knowledge-base upload | Open WebUI concurrency too high; cap `RAG_EMBEDDING_CONCURRENT_REQUESTS` | `references/gotchas.md` §6 |
 | Reranker quality degraded since recent config change | `--max-batch-tokens` past trained ceiling lets long inputs through | `references/gotchas.md` §4 |
 | `vector_db` directory growing fast | ChromaDB is fine to ~1 GB; past that switch to pgvector halfvec | `references/gotchas.md` §8 |
+
+## Verifying ingestion (changed in 0.11.0)
+
+The obvious way to confirm a knowledge base actually extracted text — list its files and look at the content — **stopped working in 0.11.0**. `Knowledges.get_file_metadatas_by_id` became a column-only `SELECT File.id, File.hash, File.meta, File.created_at, File.updated_at` (`models/knowledge.py:684-694`), deliberately excluding `File.data`, which is where the extracted text lives. Its own docstring says so.
+
+Consequence: `GET /api/v1/knowledge/{id}` and the KB detail view now return file entries with **no extracted content**, so an empty-looking listing no longer distinguishes "extraction failed" from "extraction succeeded, field not selected". To verify extraction actually produced text, fetch the individual file (`GET /api/v1/files/{id}`) rather than reading the collection listing. Knowledge list items gained a `file_count` in exchange.
+
+This is a pure API-shape change — embedding and retrieval quality are unaffected. It matters only for ingestion-verification scripts and health checks.
 
 ## Reference index
 
