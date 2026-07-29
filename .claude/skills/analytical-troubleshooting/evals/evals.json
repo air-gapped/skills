@@ -1,0 +1,51 @@
+{
+  "skill_name": "analytical-troubleshooting",
+  "evals": [
+    {
+      "id": 0,
+      "name": "sparse-hardware-kickoff",
+      "prompt": "my workstation has started freezing hard a few times a week \u2014 screen locks up, no mouse, audio loops, have to hold the power button. started maybe two weeks ago? i've already reseated the ram and it still happened twice since. help me figure out what it is. it's a ryzen 5950x box, fedora 42, nvidia 3080, corsair rm850 psu, about 3 years old. i use it for gaming and some llm stuff",
+      "expected_output": "A structured diagnostic kickoff: separates/states the deviation, starts a comparative specification (what/where/when/extent, IS vs IS-NOT), asks a focused batch of questions (not a 20-question dump), records the RAM reseat as evidence, proposes cheap discriminating tests (journal after freeze, temps, workload correlation) with what each would rule out, and does NOT propose fixes (reinstall/replace PSU) before any cause survives testing.",
+      "files": [],
+      "assertions": [
+        "Builds a comparative specification covering all four dimensions (what / where / when / extent) with explicit IS and IS-NOT (or 'unknown \u2014 to check') entries",
+        "Requests missing facts as a focused batch (roughly 8 questions or fewer) with a stated reason for what each answer would discriminate \u2014 not an exhaustive question dump",
+        "Records the RAM reseat and its failure to help as elimination evidence (referenced in the analysis, not ignored)",
+        "Proposes at least two cheap discriminating next steps (e.g. persistent journal after a freeze, temperature/workload correlation, memtest) and names what each result would rule in or out",
+        "Proposes no remediation (OS reinstall, PSU/GPU replacement, part purchases) before any cause has been tested \u2014 diagnostic actions only",
+        "Enumerates 3 or more candidate causes stated as mechanisms (how the cause produces exactly this freeze pattern), not a single committed favorite",
+        "States no fabricated facts \u2014 no invented log contents, temperatures, or test results presented as observed"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "red-herring-cluster",
+      "prompt": "Our RKE2 cluster has 6 workers (w1-w6). Since July 22 around 14:00, pods scheduled on w4, w5 and w6 intermittently fail to pull images from our internal registry \u2014 timeouts mid-layer, 'context deadline exceeded', maybe 1 in 3 pulls fails. w1-w3 never fail. All six nodes were upgraded to RKE2 1.32.5 on July 21 evening \u2014 my colleague is sure the upgrade broke containerd and wants to roll back tonight. More facts: small images (<10MB) almost always pull fine even on w4-w6, big layers fail most often. w4-w6 sit in rack B on switch-B (new switch installed July 22 morning during a network refresh), w1-w3 in rack A on switch-A. The registry VM is in rack A. Pulls from Docker Hub through our proxy also fail on w4-w6, again mostly big layers. Plain ping from every node to the registry is fine. What's going on \u2014 should we roll back RKE2 tonight?",
+      "expected_output": "Rejects the rollback: the upgrade hypothesis fails against the IS-NOT evidence (all 6 nodes upgraded but only 3 affected; onset ~18h after upgrade but same-day as switch-B install; failure follows rack/switch topology and packet size, not container runtime). Identifies a switch-B-class network cause (MTU mismatch / large-frame loss consistent with big-layers-fail-small-succeed-ping-fine) as most probable, and proposes cheap discriminating verification (e.g. large-packet ping with DF bit / iperf through switch-B / check switch MTU config) before any rollback.",
+      "files": [],
+      "assertions": [
+        "Recommends against rolling back RKE2 tonight, or makes rollback strictly contingent on a discriminating test first",
+        "Explicitly refutes the upgrade hypothesis using the given evidence: all six nodes were upgraded but only three are affected, and/or onset (~18h after the upgrade) aligns with the switch-B install instead",
+        "Identifies a rack-B / switch-B network path cause of the MTU-mismatch / large-frame-loss class as most probable, consistent with the size signature (big layers fail, small pulls and plain pings succeed)",
+        "Proposes a cheap discriminating verification before any action: large-packet ping with DF bit / packet-size sweep, iperf across switch-B, or checking the new switch's MTU/port config",
+        "Organizes the evidence as an explicit affected-vs-unaffected comparison (nodes, image sizes, timing, registry source) that a reader can verify at a glance",
+        "For at least one proposed test, states what each possible outcome would imply for the competing hypotheses (which candidate dies on which result)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "day-one-twin-server",
+      "prompt": "we commissioned a second 'identical' epyc server (srv-b) three weeks ago as a twin to srv-a for our postgres analytics load. srv-b has been ~35% slower on the same queries since day one \u2014 it was never fast. same chassis model, same cpu sku, same amount of ram (512GB), same nvme model, same ubuntu 24.04 image via the same ansible playbooks, same postgres version and config. we've already: re-run the playbooks (no config drift found), updated bios to the same version as srv-a, swapped the nvme with a spare (no change). team's current theory is 'bad cpu, RMA it'. before we file the RMA \u2014 can you help us troubleshoot this properly?",
+      "expected_output": "Recognizes a never-worked-right (Day One) deviation: stops hunting for 'what changed' and drives a systematic distinctions hunt against the working twin instead. Treats 'bad cpu' as a weak candidate (no mechanism; uniform 35% deficit atypical for silicon defects). Records the failed swap/playbook/BIOS attempts as elimination evidence. Proposes cheap side-by-side comparisons before RMA: DIMM population/channel config (dmidecode), memory bandwidth (STREAM/mlc), BIOS settings beyond version (NUMA, power/perf profile, cTDP), CPU frequency behavior under load, PCIe link width \u2014 each tied to what it would rule in/out.",
+      "files": [],
+      "assertions": [
+        "Recognizes this as a never-worked-right (Day One) deviation and explicitly redirects the investigation from 'what changed' to 'what differs between srv-b and srv-a'",
+        "Treats 'bad CPU, RMA it' as a weak hypothesis with a stated reason (no mechanism offered; a uniform ~35% deficit is atypical of defective silicon) and does not endorse filing the RMA yet",
+        "Proposes side-by-side comparison of physical memory configuration \u2014 DIMM population / active channels (dmidecode or equivalent) \u2014 as a candidate class",
+        "Proposes at least three concrete cheap comparisons before RMA (e.g. memory bandwidth benchmark, BIOS settings beyond version parity such as NUMA/power profile/cTDP, CPU frequency under load, PCIe link width), each tied to what it would rule in or out",
+        "Uses the already-performed eliminations (playbook rerun, BIOS version match, NVMe swap) as search-narrowing evidence and does not re-propose them as next steps",
+        "States candidate causes as testable mechanisms linking the difference to a ~35% uniform slowdown (e.g. fewer active memory channels \u2192 bandwidth-bound analytics queries run slower), not bare component names"
+      ]
+    }
+  ]
+}
