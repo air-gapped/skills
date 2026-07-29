@@ -2,9 +2,18 @@
 
 Carries open quality findings across `/skill-improver` runs. Items here are ceiling-hit issues that require multi-file restructure, mode switching, online re-probing, or author judgment — not single-iteration `improve` mutations.
 
+## Resolved — 2026-07-29 (freshen mode, → v0.11.0)
+
+- **Line-number re-resolution DONE** (closes the long-standing Open item below, which had been carried since it was written against v0.9.5). Re-resolved against v0.11.0: `generate_openai_batch_embeddings` 677→**862**, `get_embedding_function` 905→**1090**, `ExternalReranker` 14→**13**, `predict` 27→**26**. The last two were off by one and pointed at `__init__`, not the class/method claimed.
+- **Found and fixed an internal inconsistency the previous pass created:** the 2026-07-21 run recorded the corrected 0.10.2 line numbers in `sources.md` but never updated `SKILL.md`, so the body kept citing the stale 677/905 while its own sources file contradicted it. Both now agree.
+- All wire shapes and env defaults re-verified **unchanged** on 0.11.0 — 0.11.0's retrieval churn (+462/−248) landed almost entirely in `retrieval/web/`, not the embedding core. Recorded as verified rather than rewritten.
+- Added: `top_n` is always `len(documents)` (not a caller-chosen N); `RAG_EMBEDDING_OPENAI_BATCH_SIZE` legacy alias; §Verifying ingestion for 0.11.0's column-only knowledge file listing (`models/knowledge.py:684-694`) which no longer returns extracted text, so an empty listing no longer distinguishes extraction failure from a field that simply is not selected.
+
+Not re-probed this pass (still carrying 2026-07-21 states): LiteLLM PRs 25395/25698, issue 25388, TEI v1.9.3 CLI-default line numbers.
+
 ## Open
 
-- **Re-resolve open-webui line numbers against v0.9.5** — Dim 8/9 —
+- ~~**Re-resolve open-webui line numbers against v0.9.5**~~ — **RESOLVED 2026-07-29**, re-resolved against v0.11.0; see the Resolved section above. Original text retained for history: Dim 8/9 —
   references/sources.md rows 1-3 (utils.py:677 / external.py:14 / config.py
   line numbers). The pins are valid for v0.9.2 (commit `8dae237a0bfd`,
   confirmed real via `gh` on 2026-05-28) but upstream latest is now v0.9.5

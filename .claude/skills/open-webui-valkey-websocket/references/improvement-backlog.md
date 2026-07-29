@@ -4,7 +4,27 @@ Carried across `skill-improver` runs. Each Open item is a finding that the
 loop attempted but couldn't apply atomically in a single iteration. Resolved
 items are an audit trail of what was fixed.
 
+## Resolved — 2026-07-29 (freshen mode, v0.10.2 → v0.11.0)
+
+Verification-based pass; every claim checked against v0.11.0 source or `gh`.
+
+- **Rolling updates are unsupported across the 0.11.0 schema change** — the release states it explicitly. The skill previously implied rolling restarts were routine (triage row, "roll once and watch for session drops", and a `open-webui rolling update` trigger phrase). Added §Version upgrades: `Recreate` strategy, single migrator, mandatory backup, and the `uq_user_email_lower` migration that aborts startup on case-duplicate emails.
+- **#23733 re-verified still OPEN**, all five PRs (#23735, #23736, #24124, #24126, #24171) still closed-unmerged. Confirmed 0.11.0's large `socket/main.py` (+238) and `utils/middleware.py` (+1074) rewrite did **not** change the full-message-per-frame model — the centrepiece claim survives intact, only the date moved.
+- **Per-model `stream_delta_chunk_size` documented** — effective value is `max(env, per_request or 1)` (`utils/middleware.py:4181-4183`), so the env var is a floor a per-model param can raise. Predates 0.11.0; it was simply missing. Lets reasoning models get a coarser chunk without coarsening short chat models.
+- Production env block re-verified: every variable still exists and is read in 0.11.0. New `REDIS_SOCKET_TIMEOUT` added.
+- Helm chart claim corrected 14.6.0 → 15.2.0 in SKILL.md (references were already right — SKILL.md had drifted out of sync with them), plus the finding that **the released chart does not yet support 0.11.0**: v15.2.1/appVersion 0.11.0 is unmerged on `automation/open-webui-0.11.0`.
+- Two new open k8s regressions added to triage: #27622 (idle chat-timer polling scans the chat table every second) and #27651 (`runAsNonRoot: true` breaks).
+
+Still open after this pass: the version floor stays at 0.9.5 because **0.9.6→0.11.0 have still not been load-tested** for scaling regressions — reading release notes is not the same as exercising 100+ concurrent streams, and this pass only did the former.
+
 ## Open
+
+0. **0.9.6→0.11.0 never load-tested for scaling regressions** (carried, now
+   more urgent). The 2026-07-29 freshen read the 0.11.0 release notes and
+   verified config/source, but did not run the 100+ concurrent-stream test
+   the skill itself prescribes. Until that happens the ≥0.9.5 floor is a
+   statement about what was *tested*, not about what is broken. Needs a
+   staging cluster, so it cannot be closed from source alone.
 
 1. configuration.md `maxclients` Valkey/Redis-version cliff (Dim 9) —
    stated as "newer Valkey versions / older Redis versions" without exact
