@@ -78,7 +78,7 @@ curl -X POST $B/api/v1/models/sync -H "Authorization: Bearer $T" -H "Content-Typ
 ModelForm essentials: `{id, base_model_id?, name, meta:{description?, capabilities?, knowledge:[<kb objects>]}, params:{...}, access_grants:[...], is_active}`.
 - Customize an upstream/base model: create a row whose `id` equals the upstream id (e.g. `litellm.gemma4-31b`); create a *preset* by using a new id + `base_model_id`.
 - Params merge at completion time: `models.default_params` config < per-model params < request params — presets don't lock anything.
-- ⚡ `model/update` returned 500 on a live 0.10.2; delete+create is the reliable path.
+- ⚡ `model/update` 500s **only when `access_grants` is omitted** — always include it (`[]` keeps the model private). Verified both ways live on 0.11.0; the old delete+create workaround is no longer needed. Root cause in SKILL.md gotchas.
 - Per-model backend extras go in `params.custom_params` with **JSON-string values** (see config-system.md).
 
 Access example — make a model group-visible:

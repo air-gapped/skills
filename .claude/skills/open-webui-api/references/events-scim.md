@@ -1,4 +1,4 @@
-# Event webhooks + SCIM provisioning (v0.10.2)
+# Event webhooks + SCIM provisioning (v0.11.0)
 
 ## Outbound event webhooks (new in 0.10.x)
 

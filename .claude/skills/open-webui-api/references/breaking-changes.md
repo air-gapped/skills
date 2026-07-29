@@ -2,7 +2,7 @@
 
 The API is officially "experimental" (docs, verbatim: "this is an experimental setup and may undergo future updates for enhancement"). `/api/v1` is a namespace, not a stability contract — endpoints under it have been renamed and removed without notice. Historical rate: ~2 API-affecting breaks per quarter. **Triage step one on any instance: `GET /api/version`.**
 
-## Ledger (verified against CHANGELOG.md + git history, v0.10.2 clone)
+## Ledger (verified against CHANGELOG.md + git history, v0.11.0 clone)
 
 | Version | Date | API-affecting change |
 |---|---|---|

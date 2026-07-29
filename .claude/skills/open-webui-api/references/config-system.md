@@ -1,4 +1,4 @@
-# Config system — dot-keys, PersistentConfig, connections, params (v0.10.2)
+# Config system — dot-keys, PersistentConfig, connections, params (v0.11.0)
 
 ## Storage model
 

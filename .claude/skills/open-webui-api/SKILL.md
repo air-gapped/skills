@@ -51,7 +51,7 @@ Everything the community (and LLM training data) teaches about two core shapes d
 | Resource ACLs | `access_control: {read:{group_ids,user_ids},...}`, `null`=public, `{}`=private | `access_grants: [{principal_type:"user"\|"group", principal_id:"<id>"\|"*", permission:"read"\|"write"}]` — **absent = private; public needs explicit `user:*` read grant** |
 | Config export | one nested JSON blob | flat dot-keyed dict (`{"ui.default_models": ...}`); import = partial upsert |
 
-Full ledger 0.6.19→0.10.2 with dates and issue numbers: `references/breaking-changes.md`.
+0.11.0 adds a second break class — responses that **silently redact fields by access level** (`models/list` drops `params`, `tools` drops `content`), which can round-trip an emptied model catalog back through `import`/`sync`. Full ledger 0.6.19→0.11.0 with dates, issue numbers and both translation guides: `references/breaking-changes.md`.
 
 ## Task → reference routing
 
@@ -64,7 +64,7 @@ Full ledger 0.6.19→0.10.2 with dates and issue numbers: `references/breaking-c
 | IdP provisioning (SCIM), audit/event webhooks | `references/events-scim.md` |
 | Verify a claim / freshen | `references/sources.md` |
 
-## Gotchas that cost hours (all verified in v0.10.2 source or live)
+## Gotchas that cost hours (all verified in v0.11.0 source or live)
 
 - **HTML-200 trap**: the SPA catch-all serves `index.html` with HTTP 200 for any unknown path. A typo'd endpoint "succeeds" with HTML. Always check `Content-Type: application/json`.
 - **`/docs` and `/openapi.json` need `ENV=dev`** — the Docker image ships `ENV=prod`, so production instances return the SPA for both. Flipping to `dev` also skips the prod-only default `OLLAMA_BASE_URL` Docker rewrite — safe on external-connection setups, breaking on default-Ollama containers.
