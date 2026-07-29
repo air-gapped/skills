@@ -17,7 +17,9 @@ when_to_use: >-
   mid-conversation when unstructured guess-and-fix has stalled after a few
   failed attempts. NOT for post-incident reviews or postmortems of
   already-resolved incidents (use understanding-human-error), statistical
-  process variation, or choosing between design options.
+  process variation, choosing between design options, or ordinary code
+  debugging where the failure reproduces cheaply on demand (a failing unit
+  test after a commit — bisect and debug directly).
 ---
 
 # Analytical Troubleshooting

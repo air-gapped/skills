@@ -13,14 +13,6 @@ Carries findings across skill-improver runs. See skill-improver's
   assertions on spec-table/EXTENT-question/ground-rules behaviors per the
   iteration-1 analyst notes in the workspace benchmark). Until then treat the
   delta as directional.
-- **Trigger text lacks the skill's own cheap-repro exclusion** (Dim 1;
-  `SKILL.md:11-20` vs `edge-cases.md` boundary map "code bug with cheap perfect
-  reproduction → just bisect/debug"). "software"/"flaky" in when_to_use can
-  false-fire on ordinary test-failure debugging. Belongs to trigger mode (eval
-  set + measured mutation, `probe-trigger.py`), not a blind text edit — a NOT
-  clause worded wrong could suppress legitimate fires. Action: run
-  `/skill-improver trigger analytical-troubleshooting`, including a collision
-  check against `understanding-human-error` ("root cause analysis" phrasing).
 - **Remaining restatements** (Dim 6; hard rule 5 vs `SKILL.md` Stage 4 loop
   rule; "Proportionality, restated" vs Stage 1). Deliberate-redundancy judgment
   call: hard rules act as standing summary (SKILL.md loads alone; references
@@ -40,7 +32,23 @@ Carries findings across skill-improver runs. See skill-improver's
   benchmark iterations. Do not re-propose command menus sourced from eval
   content; a future Dim 4 lift must use probes independent of `evals/`.
 
-## Resolved this pass — 2026-07-29
+## Resolved this pass — 2026-07-29 (trigger mode)
+
+- **Cheap-repro exclusion added and measured** (was Open). Fable-5 N=7 probe
+  confirmed the predicted over-fire: "my unit test fails after my last commit,
+  help me debug this python function" fired 5/7 against the pre-mutation
+  frontmatter (the Haiku N=3 screen had masked it — Haiku's bias is false
+  unders, so negatives must be confirmed on the real model). NOT-clause for
+  cheaply-reproducible code bugs added to `when_to_use`: negative → 0/7,
+  software-flavored positives held 7/7. Combined frontmatter 1266/1536 chars.
+- **`understanding-human-error` collision check resolved: no collision.** The
+  postmortem query ("outage is resolved — write a blameless postmortem") reads
+  0/7 on Fable 5 at N=7; the existing NOT-clause routes correctly.
+- Eval set persisted: `references/trigger-evals.json` (13 queries, must stay a
+  bare JSON array — probe-trigger.py iterates `item["query"]`); run record in
+  `trigger-evals.meta.json`.
+
+## Resolved — 2026-07-29 (improve + freshen pass)
 
 - Split `description`/`when_to_use` — cleared the 1024-char spec hard-fail
   (Dim 9 cap 3→uncapped). Self 72→75.

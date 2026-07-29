@@ -1,0 +1,11 @@
+{
+  "last_run": {
+    "date": "2026-07-29",
+    "method": "haiku N=3 full screen -> claude-fable-5 N=7 confirm on all negatives + borderline positives -> mutate -> fable N=7 re-probe of disputed set",
+    "baseline": "haiku train 9/9, test 4/4; fable confirm found 1 real failure: cheap-repro unit-test negative fired 5/7 (haiku screen had masked it)",
+    "final": "all 13 pass at strongest measurement; mutated negative 0/7 on fable, software positives held 7/7",
+    "iterations": "1 (1 kept, 0 discarded)",
+    "kept_change": "when_to_use NOT-clause: ordinary code debugging with cheap on-demand reproduction (failing unit test after a commit)",
+    "note": "trigger-evals.json must stay a bare JSON array (probe-trigger.py iterates item['query']); run metadata lives here"
+  }
+}

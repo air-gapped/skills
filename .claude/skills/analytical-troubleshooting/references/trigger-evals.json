@@ -1,0 +1,15 @@
+[
+  {"query": "use kepner tregoe analytical troubleshooting to help me find a hardware fault in my workstation", "should_trigger": true, "source": "user-reported"},
+  {"query": "my api service worked fine last week and now it doesn't and nobody changed anything (they say) — help me narrow down the cause", "should_trigger": true, "source": "description-mined"},
+  {"query": "nfs mounts keep failing on 2 of our 8 nodes but the other 6 are fine, same config everywhere. why?", "should_trigger": true, "source": "description-mined"},
+  {"query": "this new server has been slow since day one, it never worked right, we already swapped the nvme and reran the playbooks", "should_trigger": true, "source": "body-mined"},
+  {"query": "my desktop freezes randomly a few times a week, can't reproduce it on demand, i've tried everything", "should_trigger": true, "source": "everyday"},
+  {"query": "we keep guessing and swapping parts and nothing fixes it. i need a structured way to find what's actually broken", "should_trigger": true, "source": "everyday"},
+  {"query": "walk me through a proper is/is-not analysis of this intermittent packet loss", "should_trigger": true, "source": "body-mined"},
+  {"query": "the outage is resolved — write a blameless postmortem about yesterday's incident for the team", "should_trigger": false, "source": "sibling (understanding-human-error)"},
+  {"query": "my unit test fails after my last commit, help me debug this python function", "should_trigger": false, "source": "boundary (cheap-repro code bug)"},
+  {"query": "should we pick valkey or a managed redis for the new cluster? help me decide", "should_trigger": false, "source": "boundary (decision, not deviation)"},
+  {"query": "our production yield fluctuates 2-4% week to week, how do we reduce the variation", "should_trigger": false, "source": "boundary (statistical variation)"},
+  {"query": "explain how tcp slow start works", "should_trigger": false, "source": "generic"},
+  {"query": "give me a health check overview of my cluster — nothing is wrong, just want a status report", "should_trigger": false, "source": "keyword-collision (diagnose/check, no deviation)"}
+]
