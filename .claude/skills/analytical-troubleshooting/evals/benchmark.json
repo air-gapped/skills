@@ -1,16 +1,16 @@
 {
   "metadata": {
     "skill_name": "analytical-troubleshooting",
-    "skill_path": "<path/to/skill>",
-    "executor_model": "<model-name>",
-    "analyzer_model": "<model-name>",
+    "skill_path": ".claude/skills/analytical-troubleshooting",
+    "executor_model": "claude-fable-5",
+    "analyzer_model": "claude-fable-5",
     "timestamp": "2026-07-29T19:02:22Z",
     "evals_run": [
       0,
       1,
       2
     ],
-    "runs_per_configuration": 3
+    "runs_per_configuration": 1
   },
   "runs": [
     {
@@ -316,47 +316,35 @@
     "with_skill": {
       "pass_rate": {
         "mean": 1.0,
-        "stddev": 0.0,
-        "min": 1.0,
-        "max": 1.0
+        "stddev": 0.0
       },
       "time_seconds": {
-        "mean": 68.6333,
-        "stddev": 62.0034,
-        "min": 0.0,
-        "max": 120.6
+        "mean": 107.4,
+        "stddev": 15.6
       },
       "tokens": {
-        "mean": 6784.6667,
-        "stddev": 488.5922,
-        "min": 6455,
-        "max": 7346
+        "mean": 62796,
+        "stddev": 832
       }
     },
     "without_skill": {
       "pass_rate": {
         "mean": 0.8467,
-        "stddev": 0.1457,
-        "min": 0.71,
-        "max": 1.0
+        "stddev": 0.1097
       },
       "time_seconds": {
-        "mean": 60.1667,
-        "stddev": 52.8859,
-        "min": 0.0,
-        "max": 99.3
+        "mean": 85.7,
+        "stddev": 9.8
       },
       "tokens": {
-        "mean": 5709.3333,
-        "stddev": 834.6163,
-        "min": 5030,
-        "max": 6641
+        "mean": 50358,
+        "stddev": 590
       }
     },
     "delta": {
       "pass_rate": "+0.15",
-      "time_seconds": "+8.5",
-      "tokens": "+1075"
+      "time_seconds": "+21.7",
+      "tokens": "+12438"
     }
   },
   "notes": [
@@ -365,6 +353,7 @@
     "Non-discriminating assertions to tighten or keep as guardrails only: 'no fabricated facts' (eval-0 #7, passes trivially in response-only evals), eval-1 #1-#4 (scenario evidence trail too legible \u2014 the red herring is rejectable by any competent reader; bury the switch fact or add noise for a harder variant), eval-2 #4 ('3+ cheap comparisons' \u2014 any competent answer passes).",
     "Grader-suggested missing assertion: intermittent-fault verification discipline (quiet window >= 2-3x longest observed gap before declaring fixed) \u2014 present in with_skill eval-0, absent from baseline, currently unchecked.",
     "Cost of the method: with_skill averages ~62.8k tokens / 107s vs baseline ~50.4k / 86s (+25% tokens, +25% time). Reasonable price for the structural gains; watch that it doesn't grow in later iterations.",
-    "Both arms produced high-quality troubleshooting on every eval \u2014 the skill's marginal value is discipline (spec tables, refutation targets, remediation gating), not raw diagnostic ability. Iteration-2 evals should be designed to stress discipline under messier evidence."
+    "Both arms produced high-quality troubleshooting on every eval \u2014 the skill's marginal value is discipline (spec tables, refutation targets, remediation gating), not raw diagnostic ability. Iteration-2 evals should be designed to stress discipline under messier evidence.",
+    "Metadata corrected 2026-07-29: n=1 run per cell (3 evals x 2 arms); token/time means taken from executor timing.json (grader-side chars had been aggregated by mistake). Treat delta as directional until re-run at n>=3."
   ]
 }
