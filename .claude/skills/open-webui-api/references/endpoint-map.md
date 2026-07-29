@@ -9,6 +9,7 @@ Derived from `backend/open_webui/main.py:728–775` (mounts) and per-router `Dep
 | Prefix | Router | Notes |
 |---|---|---|
 | `/api/v1/{pipelines,tasks,images,audio,retrieval,configs,auths,users,channels,chats,notes,models,knowledge,prompts,tools,skills,memories,folders,groups,files,functions,evaluations,utils,terminals,automations,calendars}` | routers/*.py | calendar mounts at plural `/calendars` |
+| `/api/v1/notifications` | notifications.py | new in 0.11.0; unconditional mount (`main.py:808`) |
 | `/api/v1/analytics` | analytics.py | only if `ENABLE_ADMIN_ANALYTICS` (default true) |
 | `/api/v1/scim/v2` | scim.py | only if `ENABLE_SCIM` (default false); toggle needs restart |
 | `/ollama`, `/openai` | proxies | not under /api/v1 |
@@ -85,6 +86,20 @@ Derived from `backend/open_webui/main.py:728–775` (mounts) and per-router `Dep
 - `POST /api/embeddings` (alias `/api/v1/embeddings`) [user]; `POST /api/message` / `/api/v1/messages` — Anthropic Messages-compatible [user]
 - `/ollama/*`: inference [user], model lifecycle `api/pull|create|copy|delete|push|unload|ps` [admin], `GET /ollama/` + `api/version` [public]
 - `/openai/*`: `config(/update)`, `verify` [admin]; models/chat/completions/responses/audio [user]; `/{path}` catch-all passthrough gated by `ENABLE_OPENAI_API_PASSTHROUGH`
+
+## New in 0.11.0 (delta from 0.10.2: +21 routes, −1)
+
+Only one addition is admin-gated; the rest are user-level. Route set diffed AST-wise across `v0.10.2..v0.11.0`, auth levels read from each handler's `Depends()`.
+
+- **`GET|POST /configs/subagents` [admin]** — the only new admin surface. `SubagentsConfigForm`: `ENABLE_SUBAGENTS`, `SUBAGENTS_BACKGROUND_ENABLED`, `SUBAGENTS_MAX_CONCURRENT|MAX_ASYNC|MAX_ITERATIONS|MAX_OUTPUT`, `SUBAGENTS_SYSTEM_PROMPT`. POST emits `EVENTS.CONFIG_UPDATED` (`routers/configs.py:778,786`).
+- **`/notifications/*` [user]** — per-user outbound webhook targets, stored in `user.settings['notifications']`, not a table. `GET /events` (catalog), `GET|POST /targets`, `PUT|DELETE /targets/{id}`, `PUT /targets/{id}/default`, `POST /targets/{id}/test`. Double-gated: **404** if config `ui.enable_user_webhooks` (env `ENABLE_USER_WEBHOOKS`) is falsy, **403** for non-admins lacking the `features.webhooks` permission. Subscribable events: `chat.finished`, `chat.failed`, `channel.message`, `calendar.alert`. Responses mask the URL (`config.url_masked`) — secrets never round-trip, so a GET cannot be used to back up a target's URL.
+- `GET /users/usage` [user] — own token/message stats; query `days` (7–732) or `start_date`/`end_date` epoch-seconds.
+- `GET /users/user/variables`, `POST /users/user/variables/update` [user] — chat variables; update **replaces** the whole dict and validates key regex / value length (400 on violation).
+- `POST /chats/read`, `POST /chats/{id}/unread`, `POST /folders/{id}/read` [user] — unread tracking; responses carry `folder_unread_counts`.
+- `POST /chats/{id}/fork` [user] — needs the `chat.import` permission; 409 if the chat has active tasks or an unfinished assistant message.
+- `GET|POST /notes/{id}/chat`, `GET /notes/{id}/chats` [user] — hidden note-attached chats (`internal_meta.type='note'`).
+- `POST /ollama/v1/embeddings[/{url_idx}]` [user] — OpenAI-shaped embeddings proxy.
+- **Removed**: `POST /api/v1/tasks/active/chats` (present in 0.10.2, gone in 0.11.0).
 
 ### Public (no auth) — complete list
 `/auths/signin|signup|signout|ldap`, oauth login/callback/backchannel-logout, SCIM discovery trio (ServiceProviderConfig/ResourceTypes/Schemas), `/ollama/` + `/ollama/api/version`, channels inbound webhook `POST /api/v1/channels/webhooks/{webhook_id}/{token}`, `/health`, `/ready`, `/api/config`, `/api/version`.
