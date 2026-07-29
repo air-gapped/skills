@@ -54,6 +54,26 @@ Mapping: `null` → `[{user, *, read}]`; `{}` → `[]`; each `read.group_ids[i]`
 
 **LDAP server config gained fields.** `LdapServerConfig` added `enable_group_management`, `enable_group_creation`, `attribute_for_groups` (`routers/auths.py:1256-1261`) and the handler upserts the full `model_dump()`. A 0.10-shaped PUT silently resets group management/creation to false. Same read-modify-write rule. Likewise `POST /auths/admin/config` gained `CHANNEL_MODEL_RESPONSE_MODE` (defaults back to `thread` when omitted).
 
+**Read endpoints now redact by access level — back up with an admin token or lose data.** Three responses silently drop fields for callers without *write* access:
+
+| Endpoint | Dropped | Condition |
+|---|---|---|
+| `GET /models/list` | `params` → `{}` (incl. the system prompt) | `not write_access`, i.e. not owner, no `write` grant, and not (admin ∧ `BYPASS_ADMIN_ACCESS_CONTROL`) — `models.py:197-200` |
+| `GET /tools/id/{id}` | `content` (the tool source) | no write access — `tools.py:463` |
+| `/api/models`, `/models/list`, `/models/id/{id}` | `meta.knowledge[].data.content` | always; a `field_validator` strips it **and `Models.get_*` rewrites `model.meta` in the DB** — not reversible by downgrading (#27287) |
+
+This is the dangerous shape for GitOps: a read-only service account exports, gets `params: {}`, and a later `import`/`sync` writes the emptied catalog back. Export with an admin token, and diff before syncing. `GET /models/export` is *not* stripped (`models.py:333`) — prefer it over `/models/list` for backups.
+
+**Token accounting inverted.** `usage.prompt_tokens` / `completion_tokens` were cumulative across all model calls in a turn; they now report the **last call only**, while `input_tokens`/`output_tokens`/`total_tokens` stay cumulative (`utils/response.py`, #27031). A 6-round tool loop bills as round 6 — silent undercount for any metering script.
+
+**`updated_at` no longer moves on background writes.** `Chats.update_chat_by_id` gained `touch: bool = True`, and ~14 call sites pass `touch=False` (title generation, tags, sources, status, compaction, variables, note-chats). A chat can change materially without its timestamp moving — breaks `updated_at`-based incremental sync.
+
+**Chat queries hide "internal" chats.** ~25 query sites add `WHERE meta->>'internal' IS NOT TRUE`; note-chats and sub-agent chats are stored as chats with `meta.internal=true`. List/search/export/count endpoints won't show them, so API counts will disagree with `SELECT count(*)` against the DB.
+
+**Admins lost access to other users' automations.** The `user.role != 'admin'` exemption was removed — non-owners now get **404, not 403** (`routers/automations.py`), so fleet-wide automation management via an admin token reads as "deleted" rather than "forbidden".
+
+**Upgrade-blocking, not API:** 0.11.0 adds a case-insensitive unique index on user email (`uq_user_email_lower`); the migration **raises `RuntimeError` and aborts startup** if `A@x.com` and `a@x.com` both exist — dedupe before upgrading, and stop provisioning scripts from creating case-variant duplicates. The release also declares **rolling upgrades unsupported** (schema changes; all instances must move at once), which breaks blue/green and rolling k8s deploys.
+
 **Sockets/terminals accept JWTs only.** The new `get_verified_user_by_token` (`utils/auth.py:503-513`) calls `decode_token`, so `sk-` API keys do **not** authenticate socket.io or terminal handshakes — only JWTs do.
 
 ## Recurring upgrade-failure themes (GitHub, for triage matching)
