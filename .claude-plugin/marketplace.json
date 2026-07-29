@@ -592,7 +592,7 @@
       "name": "analytical-troubleshooting",
       "source": "./",
       "description": "Structured live troubleshooting for deviation problems: something worked (or should work) and now doesn't, and the cause is unknown",
-      "version": "0.20260729.2",
+      "version": "0.20260729.3",
       "author": {
         "name": "Jörgen"
       },

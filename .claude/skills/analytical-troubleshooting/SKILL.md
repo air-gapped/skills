@@ -249,3 +249,5 @@ to a proper retrospective — don't do it here.
   debugging, best-vs-worst comparison. Read when choosing what to test next.
 - `references/evidence.md` — why each mechanism is in the skill, with the
   research behind it. Read when curious or when adapting the method.
+- `references/sources.md` — dated per-URL index behind evidence.md; freshen
+  passes stamp `Last verified:` there. No need to read during troubleshooting.
