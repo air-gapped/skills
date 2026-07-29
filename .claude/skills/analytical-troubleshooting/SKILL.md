@@ -107,9 +107,6 @@ but under discipline, with a strict exit.
   guessing and escalate to Stage 2. Log the failed attempts; they become
   IS-NOT data ("we swapped the PSU and nothing changed" is evidence).
 
-The fast path is a privilege, not a default loop. Unbounded guess-and-swap is
-exactly the behavior the exit condition exists to interrupt.
-
 ## Stage 2 — Specify
 
 Build the comparative specification. This is the heart of the method.
