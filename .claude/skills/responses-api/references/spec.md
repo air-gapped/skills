@@ -315,6 +315,14 @@ a single opaque `compaction` output item when context exceeds
 `context_management.compact_threshold`. Works with `store: false` — ZDR-friendly.
 Drop items preceding the most recent compaction item when chaining stateless.
 
+Why compaction beats client-side rolling truncation (OpenAI ARC-AGI-3
+publication, 2026-07-29): truncation loses the oldest observations/actions
+outright, and keeps the model operating near a full context window — which
+OpenAI states "can slightly impair performance" — while compaction preserves
+learned state in the summary and cuts output tokens because the model stops
+re-deriving context each turn. Measured effect (with retained reasoning):
+~3× ARC-AGI-3 score at 6× fewer output tokens vs a truncating harness.
+
 ## Conversations API
 
 Added 2026. Parallel to `previous_response_id` — both billing-equivalent.
