@@ -78,7 +78,9 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 
 **Open critical bugs:**
 - **#36435**: Non-Harmony models still emit tool XML as `output_text.delta`
-  when parser flags unset.
+  when parser flags unset. Was reopened after an earlier close — still open
+  as of 2026-07-31; do not delete this warning on a state=CLOSED sighting
+  without a confirmed fix.
 - **#38132**: `truncation: "auto"` returns 400 instead of truncating — issue
   still open, but **no longer reproduces on v0.25.1** (live test 2026-07-19
   returned HTTP 200 with `truncation: "auto"` echoed).

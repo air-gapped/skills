@@ -213,7 +213,7 @@ OpenAI, Ollama, vLLM, **Llama Stack** (joined 2026-02-28), **Databricks**
    - `compaction` output items — opaque; preserve byte-for-byte.
    - `conversation` field as alternative to `previous_response_id`.
 
-5. **Upstream bugs still in the wild** (as of 2026-07-19): LiteLLM #20975
+5. **Upstream bugs still in the wild** (as of 2026-07-31): LiteLLM #20975
    (Azure passthrough strips setup events — still open). vLLM #39584
    (parallel tool call crash) was fixed by the June 2026 Responses refactor;
    LiteLLM #22102 (gpt-5.3-codex skipping `output_item.added`) was
