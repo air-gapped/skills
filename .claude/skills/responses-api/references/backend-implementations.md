@@ -5,7 +5,7 @@ pattern internally: convert Responses API input to Chat Completions, run
 inference, convert output back. vLLM and Llama Stack have the deepest
 native handling.
 
-**Last refreshed**: 2026-07-19 (provenance: `references/sources.md`).
+**Last refreshed**: 2026-07-31 (provenance: `references/sources.md`).
 
 ## Contents
 - [Support Matrix](#support-matrix) — feature × backend table
@@ -17,7 +17,7 @@ native handling.
 
 | Feature | vLLM | llama.cpp | mistral.rs | Ollama | LiteLLM | SGLang | Llama Stack | TensorRT-LLM | Bifrost | Lemonade |
 |---------|------|-----------|------------|--------|---------|--------|-------------|--------------|---------|----------|
-| Latest version | v0.25.1 | b10068 | v0.9.0 | v0.32.1 | v1.92.0 | v0.5.15.post1 | v1.2.1 | (active) | v2.0.0-pre | v11.0.0 |
+| Latest version | v0.26.0 | b10199 | v0.9.0 | v0.32.5 | v1.94.0 | v0.5.16 | v1.2.2 | (active) | transports/v1.6.7 | v11.5.1 |
 | Streaming | Full | Full | Full | Partial | Full | Partial/buggy | Full | Yes | Full | Yes |
 | Tool calls (non-stream) | Yes | Yes | Yes | Yes | Yes | Built-in only | Yes | Yes | Yes | Yes |
 | Tool calls (stream) | Yes (parallel buggy) | Yes + `--tools` | Yes | ? | Yes | Broken | Yes | Yes | Yes | Yes |
@@ -34,7 +34,9 @@ native handling.
 ## vLLM (most mature)
 
 **Source**: `vllm/entrypoints/openai/responses/serving.py` (~1700 lines)
-**Latest**: v0.25.1 (2026-07-14)
+**Latest**: v0.26.0 (2026-07-27) — release notes carry no Responses-store or
+Responses-API changes; live-verified claims below are from v0.25.1 and the
+store gating env var is code-confirmed still present at v0.26.0 (2026-07-31)
 
 - Full SSE streaming with proper event lifecycle
 - **Streaming tool calls landed for non-Harmony models** (Qwen3/3.5, Gemma 4,
@@ -89,7 +91,7 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 
 **Source**: `tools/server/server-common.cpp` (`convert_responses_to_chatcmpl`,
 ~283 lines) + new `tools/server/server-tools.cpp` (~800 lines)
-**Latest**: b10068 (2026-07-18, daily builds)
+**Latest**: b10199 (2026-07-30, daily builds)
 
 - Thin wrapper: converts request to Chat Completions, runs inference, converts back
 - Explicitly built for Codex CLI compatibility
@@ -140,11 +142,11 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 
 ## Ollama (minimal, stateless)
 
-**Latest**: v0.32.1 (2026-07-16)
+**Latest**: v0.32.5 (2026-07-27)
 
 - `/v1/responses` since v0.13.3
-- **Stateless only** as of v0.32.1 — no `previous_response_id`
-- **PR #15404 (still OPEN as of 2026-07-19)**: implements `previous_response_id`
+- **Stateless only** as of v0.32.5 — no `previous_response_id`
+- **PR #15404 (still OPEN as of 2026-07-31)**: implements `previous_response_id`
   with in-memory store (30-min TTL, 1024 entries, LRU, 13 tests). Flip the
   matrix cell when merged.
 - **PR #15406 (MERGED 2026-04-07)**: fixes fn call output arrays — unmarshal
@@ -156,7 +158,7 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 ## LiteLLM (translation layer, ~100+ providers)
 
 **Source**: `litellm/responses/` (multiple files)
-**Latest**: v1.92.0 (2026-07-12)
+**Latest**: v1.94.0 (2026-07-28)
 
 - Two modes: (1) passthrough for OpenAI/Azure, (2) Chat Completions translation
   for all other providers
@@ -212,7 +214,7 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 
 ## SGLang (moving again since June 2026)
 
-**Latest**: v0.5.15.post1 (2026-07-14)
+**Latest**: v0.5.16 (2026-07-25)
 
 - Has `/v1/responses` endpoint
 - **PR #25881 "Fix Responses API request handling" merged 2026-06-12**:
@@ -223,13 +225,14 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 - The long-open competing function-tool PRs **#16806 and #20771 were closed
   unmerged the same day** (2026-06-12), superseded by #25881. Custom
   function-tool support on `/v1/responses` — historically broken — needs
-  re-verification on ≥ v0.5.15.
+  re-verification on ≥ v0.5.15 (still unverified at v0.5.16; recent Responses
+  PRs are model fixes only: #31401 passthrough, #32757 Kimi K3 reasoning leak).
 - Fixed `default_max_tokens` compute when MTP opened (PR #18932)
 - Streaming session race fix (PR #21875)
 
 ## Llama Stack (new reference-tier impl)
 
-**Latest**: v1.2.1 (2026-07-14) — crossed 1.0 between Apr and Jul 2026.
+**Latest**: v1.2.2 (2026-07-27) — crossed 1.0 between Apr and Jul 2026.
 **Rebranded "OGX"** (blog 2026-04-28; code moved to `src/ogx*`, repo name
 unchanged). Source-examined 2026-07-19 (commit f05b98f): `/v1/responses` now
 also served over **WebSocket** (ogx_api/responses/fastapi_routes.py:378-460),
@@ -265,8 +268,10 @@ Harmony parser fixes (#12045, #12467).
 
 ## Bifrost (expanded)
 
-**Latest repo release**: ent-v2.0.0-prerelease2-base (2026-07-16) — v2.0 line
-in prerelease; HTTP v1.5.0-prerelease3 was current as of 2026-04-15
+**Latest**: the repo tags per component — the HTTP-transport line is
+`transports/vX`: **transports/v1.6.7** (2026-07-30); the `ent-v2.0.0-pre*`
+tags are the separate enterprise line (this resolves the earlier
+version-line ambiguity)
 
 - Native Responses API support with WebSocket transport (PR #1748)
 - Anthropic Responses streaming via `NewSSEScanner` (PR #1904)
@@ -282,7 +287,7 @@ in prerelease; HTTP v1.5.0-prerelease3 was current as of 2026-04-15
 
 ## Lemonade (AMD, new)
 
-**Latest**: v11.0.0 (2026-07-15) — versioning scheme jumped from 0.x to
+**Latest**: v11.5.1 (2026-07-29) — versioning scheme jumped from 0.x to
 date-independent major versions between Apr and Jul 2026
 
 - PR #945 (2026-01-29) enables `/responses` endpoint for llamacpp recipes

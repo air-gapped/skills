@@ -21,7 +21,7 @@ question: which surface does this backend actually serve?
 
 Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Continue.dev, Cline, Zed, Roo-Code, Vercel AI SDK 5+) now default to Responses. 10 backends serve `/v1/responses` — **Llama Stack is the only non-OpenAI inference backend with native `/v1/responses/compact`**; the LiteLLM gateway has also served the route since v1.92 (PR #18697, live since 2026-01-06), with a compaction polyfill for non-Anthropic providers (#28868). Full adoption timeline and per-client status in `references/adoption.md`.
 
-**Last refreshed**: 2026-07-19.
+**Last refreshed**: 2026-07-31.
 
 ## Key Differences from Chat Completions
 
@@ -55,8 +55,8 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
 - **MCP `{never: {tool_names: []}}` silently disables ALL approvals**. With an empty exempt list, use string `"always"` instead (community 1368778, llama-stack #3443).
 - **Compaction output items are opaque encrypted** — preserve byte-for-byte when chaining; drop items preceding the most recent `compaction` when chaining stateless.
 - **WebSocket needs session-sticky routing**. `previous_response_id` state is connection-local; without stickiness, multi-turn tool chains break on reconnect (CLIProxyAPI #2596).
-- **vLLM silently ignores `store: true`** unless launched with `VLLM_ENABLE_RESPONSES_API_STORE=1` (env var, no CLI flag) — retrieval and `previous_response_id` chaining then 404 with nothing in the server log (live-verified v0.25.1).
-- **The vLLM store is per-replica in-memory** (plain dict, no shared/external backend as of v0.25.1) — behind a load balancer, `previous_response_id` chaining 404s (`"Response with id ... not found"`) whenever the next turn lands on a different replica. For fleets: keep clients stateless (full-history replay) or let the gateway own sessions (LiteLLM spend-log reconstruction); never enable per-replica stores without affinity.
+- **vLLM silently ignores `store: true`** unless launched with `VLLM_ENABLE_RESPONSES_API_STORE=1` (env var, no CLI flag) — retrieval and `previous_response_id` chaining then 404 with nothing in the server log (live-verified v0.25.1; env var code-confirmed still gating at v0.26.0).
+- **The vLLM store is per-replica in-memory** (plain dict, no shared/external backend as of v0.25.1, unchanged in v0.26.0 release notes) — behind a load balancer, `previous_response_id` chaining 404s (`"Response with id ... not found"`) whenever the next turn lands on a different replica. For fleets: keep clients stateless (full-history replay) or let the gateway own sessions (LiteLLM spend-log reconstruction); never enable per-replica stores without affinity.
 
 ## Quick Reference
 
@@ -79,7 +79,7 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
 
 ### Adding Responses API support to a provider
 1. Check the backend support matrix in `references/backend-implementations.md`
-   — the matrix covers 10 backends as of 2026-07-19.
+   — the matrix covers 10 backends as of 2026-07-31.
 2. If the backend serves `/v1/responses` natively, a proxy can pass it
    through opaquely.
 3. If the backend only serves Chat Completions, translation is needed — see

@@ -1,6 +1,6 @@
 # Responses API Adoption
 
-**Last refreshed**: 2026-07-19 (provenance: `references/sources.md`).
+**Last refreshed**: 2026-07-31 (provenance: `references/sources.md`).
 
 ## Contents
 - [Timeline](#timeline) — March 2025 launch through July 2026
@@ -85,7 +85,7 @@ OpenAI's own publications describe it as "our legacy Chat Completions API".
 ### Responses API ONLY
 
 - **Codex CLI** — `wire_api` flag dropped from client-side in PR #10498
-  (2026-02-03); Responses is hard-coded. Latest: rust-v0.144.6 (2026-07-18).
+  (2026-02-03); Responses is hard-coded. Latest: rust-v0.146.0 (2026-07-29).
   Now sends `client_metadata: {installation_id, session_source}` on every
   request; `x-client-request-id` header populated from `conversation_id`;
   `is_azure_responses_provider` flag for Azure routing.
@@ -96,8 +96,8 @@ OpenAI's own publications describe it as "our legacy Chat Completions API".
 ### Responses API preferred (default), Chat Completions fallback
 
 - **OpenCode** — OpenAI provider uses `sdk.responses()`; `openai-compatible`
-  provider still Chat Completions. Issues #7793 still open. Latest v1.18.3
-  (2026-07-16).
+  provider still Chat Completions. Issues #7793 still open. Latest v1.18.10
+  (2026-07-30).
   **Pitfall (live-verified v1.18.3, 2026-07-19):** the built-in `openai`
   provider with a custom `baseURL` **hangs at init — no request is ever
   sent** — when the model ID is not in opencode's models.dev catalog
@@ -148,7 +148,7 @@ OpenAI's own publications describe it as "our legacy Chat Completions API".
 
 ### Responses API supported via provider switch
 
-- **Pydantic AI** — v2.13.0 (2026-07-18; crossed 2.0 between Apr and Jul 2026).
+- **Pydantic AI** — v2.21.0 (2026-07-30; crossed 2.0 between Apr and Jul 2026).
   `OpenAIResponsesModel` coexists with Chat Completions model. **Added 2026**: server-side compaction via
   `OpenAICompaction` + `AnthropicCompaction` (PR #4943, 2026-04-10), stateful
   compaction mode (#5108), `openai_previous_response_id='auto'` fix (#5086).
