@@ -90,7 +90,8 @@ Implicit-type messages now fail. Also: `InputAudio` removed from
 **`phase` field** (added 2026-02-24, REQUIRED on gpt-5.3-codex+): on assistant
 messages only, values `"commentary"` or `"final_answer"`. API rejects `phase`
 on user messages. Dropping `phase` when replaying silently re-emits preambles
-as final answers.
+as final answers. Codex CLI's protocol models it as optional and
+provider/model-varying — consumers treat absent as phase-unknown.
 
 Content types for user messages: `input_text`, `input_image` (image_url +
 detail), `input_file` (filename, file_data/file_url). Input files now accept

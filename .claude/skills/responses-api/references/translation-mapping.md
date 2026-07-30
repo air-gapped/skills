@@ -148,10 +148,13 @@ This is the complex part. LiteLLM's `streaming_iterator.py` tracks state to emit
 8. **Strict mode defaults differ** — Responses API defaults `strict: true`, Chat Completions defaults `false`. Must explicitly set when converting.
 
 9. **`phase` field on assistant messages must be preserved verbatim when
-   replaying for gpt-5.3-codex and gpt-5.4 models.** Dropping it silently
-   re-emits preambles as final answers (opencode #15528). When translating to
-   Chat Completions, `phase` has no equivalent — round-tripping a conversation
-   via Chat Completions loses this signal.
+   replaying for gpt-5.3-codex and later models (gpt-5.4/5.5/5.6).** Dropping
+   it silently re-emits preambles as final answers (opencode #15528). When
+   translating to Chat Completions, `phase` has no equivalent — round-tripping
+   a conversation via Chat Completions loses this signal. Codex CLI's protocol
+   (`codex-rs/protocol/src/models.rs`) models it as optional and
+   provider/model-varying: preserve when present, treat absent as
+   phase-unknown rather than defaulting to `final_answer`.
 
 10. **Breaking (2026-03-25): `ResponseInputMessageItem.type` is REQUIRED.**
     Translators must emit `type` on every message item or requests fail. Also:
