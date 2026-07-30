@@ -96,6 +96,15 @@ SOCIAL_AUTH_PIPELINE = (
 ```
 
 Notes:
+- **On the helm chart, `configuration.map_groups` does NOT work as written** —
+  `configuration.py` there is the chart-managed YAML loader you don't edit, and
+  `extraConfig` is YAML-only (it can set the `SOCIAL_AUTH_PIPELINE` string list
+  but can never carry the function). Mount the function as its own module via
+  `extraVolumes`/`extraVolumeMounts` to `/opt/netbox/netbox/netbox/<name>.py`
+  and reference `netbox.<name>.<func>`. Full wiring + worked example:
+  `helm-chart-gotchas.md` §9.3 and the chart repo's `charts/netbox/docs/auth.md`.
+  The snippet above as-is applies to installs that own `configuration.py`
+  (VM / netbox-docker).
 - NetBox **object permissions** are attached to the local `Group` objects, not
   carried in the token. SSO decides *which groups* a user is in; you still
   define what those groups *can do* in NetBox. Pre-create the groups + perms.
@@ -105,6 +114,26 @@ Notes:
 - Re-deriving flags every login means an IdP demotion takes effect next login —
   but an already-issued NetBox **API token keeps working**; SSO never expires
   tokens (see below).
+
+## OIDC backend gotchas (social-core `OpenIdConnectAuth`, NetBox 4.6 pins social-auth-core 4.8.7)
+
+- **Redirect URI must match exactly**: `https://<host>/oauth/complete/oidc/` —
+  social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:23],
+  the last segment is the backend's `name` attribute (`oidc`; `keycloak` for
+  KeycloakOAuth2), trailing slash required. Wrong scheme (http behind a TLS
+  proxy — see rule 3) and missing slash are the two common IdP rejections.
+- **Username** comes from the `preferred_username` claim by default
+  (`SOCIAL_AUTH_OIDC_USERNAME_KEY`) [source: open_id_connect.py@4.8.7:71] —
+  the right default for Keycloak; override for IdPs that only send `sub`.
+- **RS256 only by default**: `JWT_ALGORITHMS = ["RS256"]`
+  [source: open_id_connect.py@4.8.7:72]. An IdP signing id_tokens with
+  ES256/EdDSA fails token validation until
+  `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS = ['RS256', 'ES256']`.
+- **Anti-fact — PKCE**: community writeups claim the OIDC backend lacks PKCE.
+  FALSE at NetBox's pin: social-auth-core 4.8.7 has
+  `OpenIdConnectAuth(BaseOAuth2PKCE)` with `DEFAULT_USE_PKCE = True`
+  [source: open_id_connect.py@4.8.7:48] — PKCE-required client policies
+  (e.g. Keycloak) work out of the box.
 
 ## If you use the header / proxy backend instead
 
@@ -157,6 +186,14 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
 6. **Least privilege default.** Point `REMOTE_AUTH_DEFAULT_GROUPS` at a
    read-only group; elevate only via explicit IdP-group membership in your
    mapping function. Never default new SSO users to a writable/admin group.
+
+7. **Don't add `associate_by_email` to the pipeline** — the chart repo's
+   `docs/auth.md` Keycloak/GitLab examples include it, but it links an incoming
+   SSO identity to any existing local account with a matching email. With an
+   IdP that doesn't verify email addresses this is account pre-hijack of local
+   users — including the break-glass superuser if its email is guessable. Keep
+   the default pipeline's create/associate steps; for one-time linking of
+   existing local users, use `/admin/social_django/usersocialauth/` instead.
 
 ## Quick verification after wiring SSO
 

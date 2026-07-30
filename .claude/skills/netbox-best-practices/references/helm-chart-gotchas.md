@@ -15,7 +15,8 @@ one-way migrations) · §2 External Redis/Valkey sentinel wiring ·
 derived-image workflow, version-pin + migrations, no init-container) ·
 §6 Operational defaults (housekeeping,
 metrics, first boot, distroless preflight) · §7 Upgrade workflow ·
-§8 Media storage: RWO-PVC-with-a-worker trap → migrate to S3 (zero-loss recipe).
+§8 Media storage: RWO-PVC-with-a-worker trap → migrate to S3 (zero-loss recipe) ·
+§9 SSO/OIDC wiring (extraConfig delivery, backend choice, pipeline mount, type traps).
 
 ## 1. External PostgreSQL
 
@@ -273,3 +274,124 @@ Gotchas learned the hard way [live]:
   `template-*.yaml` (unmasked) instead — and remember the secret_key/peppers
   churn in that diff is the §3 offline-render false positive, preserved on the
   real upgrade.
+
+## 9. SSO / OIDC wiring via the chart
+
+The chart ships its own SSO docs — `charts/netbox/docs/auth.md` (worked
+Keycloak + GitLab examples incl. the pipeline-mount pattern) and
+`charts/netbox/docs/extra.md` (extraConfig mechanics). Read those first; this
+section is the corrections and deltas. Group→role mapping and hardening live in
+`sso-hardening.md`.
+
+### 9.1 There is no dedicated OIDC value — extraConfig IS the supported path
+
+Maintainers explicitly declined adding `remoteAuth.oidc.*` preset values
+("to keep the chart as simple as possible… as soon as one is implemented,
+others must as well") [source: netbox-chart issue #987, closed 2026-01]. The
+wiring is:
+
+- `remoteAuth.enabled` + `remoteAuth.backends` render
+  `REMOTE_AUTH_ENABLED`/`REMOTE_AUTH_BACKEND` [source: templates/configmap.yaml:107-108].
+- ALL `SOCIAL_AUTH_*` settings ride in `extraConfig`. The chart's
+  `files/configuration.py` deep-merges `/run/config/netbox/netbox.yaml` plus
+  every extraConfig mount's `*.yaml` files into the config module's globals
+  [source: files/configuration.py `_load_yaml`], and NetBox imports every
+  `SOCIAL_AUTH_*` name from the configuration module
+  [source: netbox/netbox/settings.py:748-751].
+- Secrets/ConfigMaps referenced by `extraConfig` must expose their data under
+  keys ending in `.yaml` (the loader globs `*/*.yaml`); the filename itself is
+  arbitrary.
+
+Minimal Keycloak values with the generic OIDC backend (see 9.2 for why this
+backend and not the chart docs' `KeycloakOAuth2`):
+
+```yaml
+remoteAuth:
+  enabled: true
+  backends:
+    - social_core.backends.open_id_connect.OpenIdConnectAuth
+  autoCreateUser: true
+
+extraConfig:
+  - values:
+      SOCIAL_AUTH_OIDC_OIDC_ENDPOINT: https://keycloak.example.com/realms/<realm>
+      SOCIAL_AUTH_OIDC_KEY: netbox          # client ID
+      SOCIAL_AUTH_OIDC_SCOPE: ["groups"]    # if you map groups (sso-hardening.md)
+  - secret:
+      secretName: netbox-oidc
+```
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: netbox-oidc
+stringData:
+  oidc.yaml: |
+    SOCIAL_AUTH_OIDC_SECRET: "<client secret>"
+```
+
+Redirect URI registered at the IdP: `https://<host>/oauth/complete/oidc/` —
+social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:23],
+the last path segment is the backend's `name` (`oidc` for OpenIdConnectAuth,
+`keycloak` for KeycloakOAuth2), and the trailing slash is required.
+
+### 9.2 Prefer OpenIdConnectAuth over the chart docs' KeycloakOAuth2 example
+
+The `docs/auth.md` Keycloak example (unchanged since chart-docs restructure
+PR #661) is dated in four ways:
+
+- It uses `social_core.backends.keycloak.KeycloakOAuth2`, which requires the
+  realm's RS256 public key pasted into config
+  (`SOCIAL_AUTH_KEYCLOAK_PUBLIC_KEY`) plus hand-written authorization/token
+  URLs — a realm key rotation silently breaks login. The generic
+  `OpenIdConnectAuth` backend discovers everything from
+  `SOCIAL_AUTH_OIDC_OIDC_ENDPOINT` (`<server>/realms/<realm>`, reads
+  `/.well-known/openid-configuration`) and survives rotation.
+- Its example URLs carry the legacy `/auth/realms/...` prefix — Keycloak ≥17
+  (Quarkus) serves `/realms/...` with no `/auth` unless started in legacy
+  compatibility mode.
+- It sets `SOCIAL_AUTH_JSONFIELD_ENABLED: true` — redundant; NetBox always
+  sets it [source: netbox/netbox/settings.py:754].
+- Its pipeline inserts `social_core.pipeline.social_auth.associate_by_email` —
+  an account-linking risk; see sso-hardening.md hardening rule 7.
+
+Anti-fact (do not repeat): "the social-core OIDC backend has no PKCE support"
+circulates in community writeups but is FALSE for NetBox 4.6+ —
+social-auth-core 4.8.7 (NetBox's pin [source: requirements.txt:39])
+has `OpenIdConnectAuth(BaseOAuth2PKCE)` with `DEFAULT_USE_PKCE = True`
+[source: social_core/backends/open_id_connect.py@4.8.7:48]. A PKCE-required
+Keycloak client policy works fine. What IS true at 4.8.7:
+`JWT_ALGORITHMS = ["RS256"]` — an IdP signing tokens with ES256/EdDSA fails
+until you set `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`
+[source: open_id_connect.py@4.8.7:72].
+
+### 9.3 Custom pipeline code cannot ride in extraConfig
+
+extraConfig delivers YAML → settings; it can set `SOCIAL_AUTH_PIPELINE` (a
+list of dotted strings) but can never carry the function itself. Ship the
+module via `extraVolumes`/`extraVolumeMounts` (ConfigMap + subPath) to
+`/opt/netbox/netbox/netbox/<name>.py` and reference it as
+`netbox.<name>.<func>` — this is the pattern `docs/auth.md` shows
+(`sso_pipeline_roles.py` → `netbox.sso_pipeline_roles.set_role`). Note
+`sso-hardening.md`'s `configuration.map_groups` snippet applies to installs
+that own `configuration.py` (VM / netbox-docker); on the chart,
+`configuration.py` is the chart-managed loader — use the mount pattern.
+Only the web Deployment needs the mount (the pipeline imports lazily at login),
+but adding it to `worker` too is harmless and avoids surprises.
+
+### 9.4 extraConfig type trap: YAML in, Python literals never
+
+Values pass YAML → helm render → YAML → Python. Pasting a Python literal as a
+string does not evaluate — `SOCIAL_AUTH_BACKEND_ATTRS: '{"keycloak": ("Name",
+"login")}'` arrives as a *string* where a dict is expected and crashes the pod
+[source: netbox-chart issue #945, closed 2026-01]. Express it as plain YAML; a
+two-element list unpacks the same as the tuple NetBox expects
+[source: netbox/authentication/__init__.py:56,65]:
+
+```yaml
+extraConfig:
+  - values:
+      SOCIAL_AUTH_BACKEND_ATTRS:
+        oidc: ["Our SSO", "login"]   # [display name, MDI icon or URL]
+```

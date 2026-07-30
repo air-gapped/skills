@@ -44,6 +44,14 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.37 / app v4.6.5** (2026-07-15), up from 8.3.14 / v4.6.2 — 23 chart patches, still 8.x (no major) | 2026-07-21 |
 | github.com/netbox-community/netbox releases | **NetBox v4.6.5** (2026-07-14) is latest; the line is still **4.6.x — no 4.7, no 5.0**. The refresh trigger ("new NetBox minor") has **not** fired, so `version-deltas.md` and the v1-token-removal-at-v5.0 claim stand | 2026-07-21 |
 | Production install (chart 8.3.14 / v4.6.2) | all `[live]` labels: token provision flow, PG name collision, sentinel wiring, first-boot timing, template-API legacy shape, module-type slug absence, enum case validation | 2026-06-12 |
+| netbox-chart `charts/netbox/docs/auth.md` + `docs/extra.md` | §9 chart SSO docs exist (Keycloak/GitLab examples, pipeline-mount pattern, extraConfig `*.yaml`-key mechanics); dated-example findings (legacy /auth URLs, KeycloakOAuth2 pasted key, associate_by_email) | 2026-07-30 (clone @ HEAD, post-8.3.37) |
+| netbox-chart `files/configuration.py` + `templates/configmap.yaml` | §9.1 extraConfig deep-merge loader (`/run/config/extra/*/*.yaml` → module globals), remoteAuth → REMOTE_AUTH_* rendering (configmap.yaml:107-108) | 2026-07-30 (clone @ HEAD) |
+| netbox-chart issue #987 (closed 2026-01) | §9.1 maintainers declined dedicated OIDC values — extraConfig is the supported path | 2026-07-30 (gh) |
+| netbox-chart issue #945 (closed 2026-01) | §9.4 Python-literal-in-extraConfig pod crash; SOCIAL_AUTH_BACKEND_ATTRS YAML shape | 2026-07-30 (gh) |
+| github.com/netbox-community/netbox `netbox/netbox/urls.py:23`, `settings.py:754`, `requirements.txt:39` | §9 /oauth/ mount → redirect URI shape; JSONFIELD_ENABLED already set; social-auth-core pin 4.8.7 | 2026-07-30 (clone @ HEAD) |
+| github.com/python-social-auth/social-core `social_core/backends/open_id_connect.py` @ tag 4.8.7 | sso-hardening OIDC gotchas: `name = "oidc"`, `USERNAME_KEY = preferred_username`, `JWT_ALGORITHMS = ["RS256"]`, `BaseOAuth2PKCE` + `DEFAULT_USE_PKCE = True` (kills the "no PKCE" anti-fact) | 2026-07-30 (gh api @ tag) |
+| python-social-auth.readthedocs.io/en/latest/backends/oidc.html | SOCIAL_AUTH_OIDC_* setting names (ENDPOINT/KEY/SECRET/SCOPE/USERNAME_KEY/JWT_ALGORITHMS) | 2026-07-30 |
+| netbox discussion #19584 + younsl.github.io/blog/netbox-keycloak-oidc | corroboration: group-mapping-needs-custom-pipeline on k8s, pipeline ConfigMap-mount pattern in the wild | 2026-07-30 |
 
 Refresh cadence: run `/skill-improver freshen netbox-best-practices` when a new
 NetBox minor (4.7/5.0) or netbox-chart major lands — the v1-token removal
