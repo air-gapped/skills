@@ -18,7 +18,7 @@ target speaks Responses, and for the translation seam when it doesn't. The
 Anthropic-protocol equivalent is **`messages-api`**. Three protocols, one
 question: which surface does this backend actually serve?
 
-Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Continue.dev, Cline, Zed, Roo-Code, Vercel AI SDK 5+) now default to Responses. 10 backends serve `/v1/responses` — **Llama Stack is the only non-OpenAI backend with `/v1/responses/compact`**. Full adoption timeline and per-client status in `references/adoption.md`.
+Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Continue.dev, Cline, Zed, Roo-Code, Vercel AI SDK 5+) now default to Responses. 10 backends serve `/v1/responses` — **Llama Stack is the only non-OpenAI inference backend with native `/v1/responses/compact`**; the LiteLLM gateway has also served the route since v1.92 (PR #18697, live since 2026-01-06), with a compaction polyfill for non-Anthropic providers (#28868). Full adoption timeline and per-client status in `references/adoption.md`.
 
 **Last refreshed**: 2026-07-19.
 
