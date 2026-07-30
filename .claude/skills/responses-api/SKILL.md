@@ -9,7 +9,8 @@ argument-hint: "[topic: spec, streaming, translation, backends, adoption]"
 
 The OpenAI Responses API (`POST /v1/responses`) is the recommended API for
 agentic workloads. Launched March 2025. Chat Completions is NOT deprecated,
-but superseded for new projects.
+but superseded for new projects — and since 2026-07-29 OpenAI's own
+publications call it "our legacy Chat Completions API".
 
 **Sibling protocols in the `inference-apis` plugin.** Backend support for
 Responses is far thinner than for **`chat-completions-api`**, which remains the
