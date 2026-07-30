@@ -53,6 +53,7 @@
 - **2026-06-09**: Web search returns image results in Responses requests
 - **2026-07-09**: GPT-5.6 family launches — Programmatic Tool Calling, explicit prompt-caching controls, persisted reasoning, multi-agent orchestration (beta) in Responses API
 - **2026-07-29**: OpenAI's ARC-AGI-3 publication calls Chat Completions "our **legacy** Chat Completions API" — the strongest first-party positioning to date (recommendation verbatim: "Use our Responses API, not our legacy Chat Completions API"). Still not a deprecation.
+- **2026-07-30**: GPT-5.6 pricing cuts (Luna −80%, Terra −20%) + Fast mode (up to 2.5× faster at 2× price; supersedes priority-tagged requests with backward compatibility)
 
 ## Chat Completions
 

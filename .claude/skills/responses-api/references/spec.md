@@ -1,6 +1,6 @@
 # Responses API Specification
 
-Source: OpenAI OpenAPI spec, OpenResponses spec (release 2026-04-24), Azure Foundry docs, OpenAI changelog through 2026-07-19.
+Source: OpenAI OpenAPI spec, OpenResponses spec (release 2026-04-24), Azure Foundry docs, OpenAI changelog through 2026-07-31.
 
 ## Contents
 - [Endpoint](#endpoint) — POST /v1/responses and related endpoints
@@ -56,7 +56,7 @@ WebSocket transport (launched 2026-02-23): `wss://api.openai.com/v1/responses`.
 | `tool_choice` | `string \| object` | "auto" | "none"/"auto"/"required"/specific |
 | `parallel_tool_calls` | `boolean?` | true | Allow concurrent tools |
 | `text` | `object?` | null | `{format: {type: "text"/"json_object"/"json_schema"}}` |
-| `reasoning` | `object?` | null | `{effort: "none"/"low"/"medium"/"high"/"xhigh", generate_summary: "concise"/"detailed"/"auto"}`. `"none"` is default on gpt-5.2+ |
+| `reasoning` | `object?` | null | `{effort: "none"/"low"/"medium"/"high"/"xhigh"/"max", generate_summary: "concise"/"detailed"/"auto"}`. `"none"` is default on gpt-5.2+; `"max"` added with GPT-5.6 (2026-07-09, alongside Pro mode) |
 | `truncation` | `string?` | "disabled" | "auto" or "disabled" |
 | `include` | `string[]?` | null | Extra data: `["reasoning.encrypted_content", "file_search_call.results", "web_search_call.results"]` |
 | `metadata` | `object?` | {} | Up to 16 key-value pairs |
@@ -69,6 +69,7 @@ WebSocket transport (launched 2026-02-23): `wss://api.openai.com/v1/responses`.
 | `prompt_cache_retention` | `string?` | "24h" (non-ZDR) | `"in_memory"` (5-60 min) or `"24h"`. **Default flipped to `"24h"` for non-ZDR orgs 2026-05-29** (was `"in_memory"`); ZDR orgs stay `"in_memory"`. 24h is pricing-neutral but ZDR-ineligible |
 | `client_metadata` | `object?` | null | Free-form metadata; Codex CLI populates `installation_id`, `session_source` here |
 | `moderation` | `object?` | null | Input/output moderation assessment (added 2026-06-04, also on Chat Completions) |
+| `prompt_cache_breakpoint` | `object?` | null | Explicit prompt-caching control: `{mode: "explicit"}` (GPT-5.6, 2026-07-09) |
 
 ## Input Item Types (discriminated by `type`)
 
@@ -94,7 +95,8 @@ as final answers.
 Content types for user messages: `input_text`, `input_image` (image_url +
 detail), `input_file` (filename, file_data/file_url). Input files now accept
 docs, presentations, spreadsheets, code, and plain text — not only PDFs
-(2026-02-24).
+(2026-02-24). `input_image.detail` accepts `"low"/"high"/"auto"/"original"` —
+`"original"` (GPT-5.6, 2026-07-09) submits images at native dimensions.
 
 ## Response Object
 
@@ -264,6 +266,16 @@ Skills are NOT a top-level tool type — attach inside `shell.environment.skills
 `execution: "server"` or `"client"`. Combine with `defer_loading: true` on
 large function sets to keep context small.
 
+### programmatic_tool_calling (GPT-5.6, added 2026-07-09)
+```json
+{"type": "programmatic_tool_calling"}
+```
+
+The model writes code that invokes registered function tools
+programmatically instead of emitting one `function_call` item per
+invocation. API reference documents only the type discriminator so far;
+multi-agent orchestration shipped in beta the same day.
+
 ### mcp (remote or OpenAI-hosted connector)
 ```json
 {"type": "mcp",
@@ -359,6 +371,8 @@ Fields:
 - `prompt_cache_retention: "in_memory" | "24h"` — default `"24h"` for non-ZDR
   orgs since 2026-05-29 (previously `"in_memory"`). Pricing-neutral but 24h is
   ZDR-ineligible.
+- `prompt_cache_breakpoint: {mode: "explicit"}` — explicit cache-boundary
+  control (GPT-5.6, 2026-07-09).
 
 Reporting:
 - `usage.input_tokens_details.cached_tokens` — hit count.

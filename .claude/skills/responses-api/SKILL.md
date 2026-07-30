@@ -36,7 +36,7 @@ Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Co
 | Streaming | Single delta event, data-only SSE | 53 typed events (HTTP SSE or WebSocket since 2026-02-23) |
 | Built-in tools | None | web_search, file_search, code_interpreter, computer (GA 2026-03-05), MCP, image_gen, **shell** (2026-02-10), **tool_search** (2026-03-05) |
 | Skills | N/A | Attach via `tools[].environment.skills[]` inside hosted Shell |
-| Reasoning | `reasoning_effort` top-level | `reasoning: {effort: "none".."xhigh", generate_summary}` |
+| Reasoning | `reasoning_effort` top-level | `reasoning: {effort: "none".."xhigh" ("max" on GPT-5.6+), generate_summary}` |
 | Context mgmt | None | `context_management.compact_threshold` + `compaction` output item, or `POST /v1/responses/compact` |
 | Reasoning persistence | Discarded between turns | Kept server-side; pass via `previous_response_id` or `include: ["reasoning.encrypted_content"]` |
 | Finish | `finish_reason` string | `response.status` + per-item `status` |
@@ -128,7 +128,10 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
    `prompt_cache_retention`, `client_metadata`, `phase` field on assistant
    messages, `shell` / `tool_search` / GA-renamed `computer` tool types,
    output items `compaction` / `shell_call(+_output)` / `tool_search_call(+_output)`
-   / `output_video` / `mcp_approval_request(+_response)`.
+   / `output_video` / `mcp_approval_request(+_response)`. GPT-5.6 (2026-07-09)
+   added `programmatic_tool_calling` tool type, `prompt_cache_breakpoint`,
+   `reasoning.effort: "max"`, image `detail: "original"`, and multi-agent
+   orchestration (beta).
 
 ### Handling WebSocket transport
 1. `wss://api.openai.com/v1/responses` (launched 2026-02-23). Same event model
