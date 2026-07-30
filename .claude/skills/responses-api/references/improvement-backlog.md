@@ -5,40 +5,68 @@ applicable in a single iteration. Do not re-propose without new evidence.
 
 ## Open
 
-- **GPT-5.6 Responses surface undetailed** (Dim 5) — spec.md has only a
-  timeline line for the 2026-07-09 GPT-5.6 launch (Programmatic Tool Calling,
-  explicit prompt-caching controls, persisted reasoning, multi-agent
-  orchestration beta). Hypothesis deferred 2026-07-19 on probe-budget
-  exhaustion (~26 probes used). Action: next `freshen`, probe OpenAI docs for
-  the concrete new tool types / request params / stream events and expand
-  `references/spec.md` + the SKILL.md "2026 additions" list.
-- **SGLang custom function tools: current behavior unverified** (Dim 9) —
-  competing PRs #16806/#20771 closed unmerged 2026-06-12; #25881 merged same
-  day but its description doesn't confirm custom function-tool support.
-  Both `backend-implementations.md` and `streaming-events.md` carry a
-  "re-verify on ≥ v0.5.15" marker. Needs a live-backend test or a targeted
-  issue probe; not resolvable from PR metadata alone.
-- **vLLM #36435 (tool-XML leakage) unverified on stock parsers** (Dim 9) —
-  the 2026-07-19 live run showed no leakage but used a custom Rust
-  tool parser; stock-parser behavior on ≥ v0.25 remains
-  unverified. Everything else from the post-refactor re-verification item was
-  resolved live 2026-07-19 (see Resolved).
-- **Bifrost version line ambiguous** (Dim 9) — repo's latest release tag is
-  `ent-v2.0.0-prerelease2-base` (enterprise line); the HTTP-transport line
-  version could not be verified 2026-07-19. Probe the repo's release/tag
-  scheme or docs next freshen.
-- **"Llama Stack is the only non-OpenAI backend with /v1/responses/compact"**
-  (SKILL.md line 14, Dim 9) — not re-probed this pass; at Llama Stack v1.2.1
-  and 3 months of ecosystem movement the uniqueness claim may have decayed.
-  Verify next freshen.
-- **Dim 6 near ceiling** — two simplification iterations (iters 8-9,
-  2026-07-19) removed duplicate stats with no score gain; remaining
-  duplication (Critical Gotchas summary layer, per-file stat repetition) is
-  deliberate progressive-disclosure layering — further cuts judged
-  net-negative for standalone file utility. Do not re-attempt without a
-  restructure plan spanning SKILL.md + spec.md + translation-mapping.md.
+- **SGLang custom function tools: current behavior unverified** (Dim 9,
+  carried 2026-07-19) — competing PRs #16806/#20771 closed unmerged
+  2026-06-12; #25881 merged same day but its description doesn't confirm
+  custom function-tool support. Re-probed 2026-07-31 at v0.5.16: only
+  model-specific Responses fixes landed since (#31401 passthrough, #32757
+  Kimi K3 reasoning leak) — no function-tool evidence either way. Both
+  `backend-implementations.md` and `streaming-events.md` carry a "re-verify"
+  marker. Needs a live-backend test; not resolvable from PR metadata alone.
+- **vLLM #36435 (tool-XML leakage) unverified on stock parsers** (Dim 9,
+  carried 2026-07-19) — the 2026-07-19 live run showed no leakage but used a
+  custom Rust tool parser; stock-parser behavior on ≥ v0.25 remains
+  unverified. Issue re-probed 2026-07-31: OPEN with state=reopened — the
+  warning stands. Needs a live vLLM run with stock parsers.
+- **vLLM PR #48098 release inclusion unverified** (Dim 9, new 2026-07-31) —
+  `parallel_tool_calls=null` crash fix in Responses `from_request()` merged
+  on the responses path in July; whether it shipped in v0.26.0 or waits for
+  the next release was not determinable from the release notes. Verify on
+  the next freshen (or live test) before citing a fixed version.
+- **GPT-5.6 Programmatic Tool Calling / multi-agent orchestration depth**
+  (Dim 5, narrowed 2026-07-31) — the tool type (`programmatic_tool_calling`)
+  and beta status are now in spec.md, but the API reference documents only
+  the type discriminator; invocation semantics, output item shapes, and the
+  orchestration beta's params are still undocumented upstream. Re-probe the
+  API reference next freshen; expand only from official schema, not blogs.
+- **Dim 6 near ceiling** (carried 2026-07-19) — two simplification
+  iterations (iters 8-9, 2026-07-19) removed duplicate stats with no score
+  gain; remaining duplication (Critical Gotchas summary layer, per-file stat
+  repetition) is deliberate progressive-disclosure layering — further cuts
+  judged net-negative for standalone file utility. Do not re-attempt without
+  a restructure plan spanning SKILL.md + spec.md + translation-mapping.md.
 
-## Resolved this pass — 2026-07-19
+## Resolved this pass — 2026-07-31 (freshen)
+
+- **"Llama Stack is the only non-OpenAI backend with /v1/responses/compact"
+  claim corrected** (was Open) — LiteLLM gateway has served the route since
+  PR #18697 (merged 2026-01-06, code-verified at v1.92.0 and v1.94.0), with
+  a `compact_20260112` polyfill for non-Anthropic providers (#28868).
+  SKILL.md, backend matrix, Llama Stack + LiteLLM sections updated.
+- **Bifrost version line ambiguity resolved** (was Open) — repo tags per
+  component; HTTP-transport line is `transports/vX` (transports/v1.6.7,
+  2026-07-30); `ent-v2.0.0-pre*` is the enterprise line. Pin updated.
+- **GPT-5.6 Responses surface expanded** (was Open) — changelog + API
+  reference probed: `reasoning.effort: "max"` (+ Pro mode),
+  `programmatic_tool_calling` tool type, `prompt_cache_breakpoint
+  {mode: "explicit"}`, image `detail: "original"`, multi-agent orchestration
+  beta, 2026-07-30 Fast mode/pricing. spec.md + SKILL.md + adoption.md
+  updated. Residual depth item re-opened (narrowed) above.
+- ARC-AGI-3 evidence folded in (OpenAI publication 2026-07-29): retained
+  reasoning + compaction = ~3× score / 6× fewer output tokens vs
+  discard-and-truncate harness (13.3%→38.3% RHAE) — added to the
+  reasoning-persistence gotcha (SKILL.md, translation-mapping.md gotcha 2,
+  adoption.md) and as compaction-vs-rolling-truncation rationale in spec.md.
+- OpenAI's first-party "legacy Chat Completions" positioning (2026-07-29)
+  recorded in SKILL.md intro + adoption.md timeline/section.
+- `phase` gotcha wording updated to gpt-5.3-codex and later (5.4/5.5/5.6)
+  with Codex-protocol treat-absent-as-unknown semantics (models.rs probed).
+- Version-pin refresh across 11 backends/clients; all tracked issues
+  re-probed (no flips; #36435 reopened); sources.md fully restamped
+  2026-07-31 with probe-access notes (openai.com 403s non-browser fetchers;
+  developers.openai.com is WebFetch-reachable).
+
+## Resolved — 2026-07-19
 
 - Live verification against vLLM v0.25.1 (local deployment, custom Rust
   parsers): sequence_number fixed, `[DONE]` still
