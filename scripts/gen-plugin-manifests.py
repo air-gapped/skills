@@ -606,6 +606,47 @@ GROUPS: dict[str, dict] = {
             "air-gap",
         ],
     },
+    "litellm": {
+        # LiteLLM proxy operator suite. Sibling of open-webui (which
+        # fronts LiteLLM in our stacks) and inference-apis (the wire
+        # protocols LiteLLM serves). Both skills are grounded in a
+        # pinned source clone + issue-tracker sweep, not the docs —
+        # LiteLLM's docs/OpenAPI lag the code badly in both areas.
+        "members": ["litellm-valkey", "litellm-api"],
+        "description": (
+            "LiteLLM proxy operator suite — multi-pod Redis/Valkey "
+            "coordination (the silent per-pod-fallback failure mode, the "
+            "4-way coordination-Redis resolution order incl. the "
+            "undocumented general_settings.coordination_redis block since "
+            "v1.93.0, Sentinel/Cluster support matrix with fix versions, "
+            "per-pod-vs-shared truth table with real staleness bounds, "
+            "no-op documented knobs, open-issue catalog) and the "
+            "management REST API (447-path control plane, ~63% "
+            "undocumented; the four 'empty means unlimited' footguns, "
+            "budget semantics traps, presence-sensitive updates that "
+            "trigger spurious enterprise 403s, config-vs-DB precedence, "
+            "recon-first protocol via GET /routes)."
+        ),
+        "category": "inference",
+        "tags": [
+            "litellm",
+            "proxy",
+            "valkey",
+            "redis",
+            "sentinel",
+            "redis-cluster",
+            "multi-pod",
+            "kubernetes",
+            "helm",
+            "rate-limiting",
+            "budgets",
+            "spend-tracking",
+            "rest-api",
+            "key-management",
+            "administration",
+            "gitops",
+        ],
+    },
     "open-webui": {
         "members": [
             "open-webui-api",

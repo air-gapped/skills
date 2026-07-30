@@ -368,6 +368,40 @@
       ]
     },
     {
+      "name": "litellm",
+      "source": "./",
+      "description": "LiteLLM proxy operator suite — multi-pod Redis/Valkey coordination (the silent per-pod-fallback failure mode, the 4-way coordination-Redis resolution order incl. the undocumented general_settings.coordination_redis block since v1.93.0, Sentinel/Cluster support matrix with fix versions, per-pod-vs-shared truth table with real staleness bounds, no-op documented knobs, open-issue catalog) and the management REST API (447-path control plane, ~63% undocumented; the four 'empty means unlimited' footguns, budget semantics traps, presence-sensitive updates that trigger spurious enterprise 403s, config-vs-DB precedence, recon-first protocol via GET /routes).",
+      "version": "0.20260730.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/litellm-valkey",
+        "./.claude/skills/litellm-api"
+      ],
+      "strict": false,
+      "category": "inference",
+      "tags": [
+        "litellm",
+        "proxy",
+        "valkey",
+        "redis",
+        "sentinel",
+        "redis-cluster",
+        "multi-pod",
+        "kubernetes",
+        "helm",
+        "rate-limiting",
+        "budgets",
+        "spend-tracking",
+        "rest-api",
+        "key-management",
+        "administration",
+        "gitops"
+      ]
+    },
+    {
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
