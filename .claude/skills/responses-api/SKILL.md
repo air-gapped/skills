@@ -47,7 +47,7 @@ Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Co
 Non-obvious traps with silent failure modes. Full list: `references/translation-mapping.md` (17 gotchas).
 
 - **`phase` field must be preserved verbatim** on assistant messages for gpt-5.3-codex+ and gpt-5.4. Dropping it silently re-emits preambles as final answers (opencode #15528).
-- **`reasoning.encrypted_content` required with `store: false`**. Set `include: ["reasoning.encrypted_content"]` every turn or GPT-5 loses ~3% SWE-bench.
+- **`reasoning.encrypted_content` required with `store: false`**. Set `include: ["reasoning.encrypted_content"]` every turn or GPT-5 loses ~3% SWE-bench — and far more on long-horizon agentic tasks: OpenAI's ARC-AGI-3 re-run (2026-07-29) showed retained reasoning + compaction vs a discard-and-truncate harness is ~3× the score at 6× fewer output tokens (13.3%→38.3% RHAE, GPT-5.6 Sol).
 - **`ResponseInputMessageItem.type` is REQUIRED** (breaking 2026-03-25). Implicit-type messages fail.
 - **Tool defs are flat, not nested**: `{"type":"function","name":"...","parameters":{...}}` — NOT `{"type":"function","function":{"name":...}}` (Chat Completions form).
 - **`strict` default flipped**: Responses API = `true`, Chat Completions = `false`. Set explicitly when converting.

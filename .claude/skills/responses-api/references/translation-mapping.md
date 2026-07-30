@@ -126,7 +126,12 @@ This is the complex part. LiteLLM's `streaming_iterator.py` tracks state to emit
    from responses with function calls must be passed back via
    `previous_response_id`, `conversation`, or explicitly in the input array.
    With `store: false`, must set `include: ["reasoning.encrypted_content"]` on
-   every request or raw reasoning is discarded.
+   every request or raw reasoning is discarded. The penalty compounds on
+   long-horizon agentic loops: OpenAI's ARC-AGI-3 re-run (2026-07-29) measured
+   a harness that discarded reasoning per turn at 13.3% RHAE vs 38.3% with
+   retained reasoning + compaction — ~3× the score at 6× fewer output tokens
+   (GPT-5.6 Sol; a translation layer that drops reasoning items inflicts the
+   same amnesia).
 
 3. **`role: "developer"` maps to `role: "system"`** for Chat Completions backends.
 

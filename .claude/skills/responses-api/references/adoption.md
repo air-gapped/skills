@@ -71,7 +71,10 @@ and most major clients now default to Responses API for OpenAI.
 - **WebSocket transport** (Feb 23 2026): 30-40% faster on 20+ tool-call loops
 - **Better reasoning performance**: 3% better SWE-bench with Responses API vs
   Chat Completions (same model); 40-80% better cache utilization (details in
-  `spec.md` §Prompt Caching)
+  `spec.md` §Prompt Caching). On long-horizon agentic tasks the gap is far
+  larger: OpenAI's ARC-AGI-3 re-run (2026-07-29) scored ~3× higher with 6×
+  fewer output tokens once retained reasoning + compaction replaced a
+  discard-and-truncate harness (13.3%→38.3% RHAE, GPT-5.6 Sol)
 - **Typed output items** instead of plain messages
 
 ## Client Adoption
