@@ -10,6 +10,7 @@ FluentbitAgent + Flow + Output) is in SKILL.md; this file covers the variations.
 - [Multiline / stack traces](#multiline)
 - [Selecting sources](#selecting-sources)
 - [Kubernetes events + host/systemd logs](#events-and-host-logs)
+- [External syslog ingestion (receiver pod)](#external-syslog-ingestion)
 - [Testing and per-destination pointers](#destinations)
 
 ## JSON pod logs
@@ -167,6 +168,72 @@ spec:
 
 Collect via Flow selecting `labels: {app.kubernetes.io/name: <name>-host-tailer}`,
 split multiple tailers with `container_names: [<tailer-name>]`.
+
+## External syslog ingestion
+
+The operator has no CRD for **receiving** network syslog (the `syslog` output
+ships OUT only). Same idiom as EventTailer: run a receiver pod that prints each
+message to stdout, collect it like any pod — real `kubernetes.*` metadata, normal
+Flow routing, no custom wiring. Verified live 2026-07-31 (RKE2 1.34/containerd,
+axosyslog 4.26.0, non-root):
+
+```
+@version: current
+options { keep_hostname(yes); };   # default (no) rewrites $HOST to the peer IP —
+                                   # behind an SNAT'd Service every sender looks identical
+source s_net {
+  network(transport("udp") port(5514));                          # RFC3164
+  network(transport("tcp") port(5601) flags(syslog-protocol));   # RFC5424
+};
+destination d_stdout {
+  file("/dev/stdout" template("$(format-json --scope rfc5424 --key ISODATE --key SOURCEIP)\n"));
+};
+log { source(s_net); destination(d_stdout); };
+```
+
+Deployment: `ghcr.io/axoflow/axosyslog:<ver>`, command
+`/usr/sbin/syslog-ng -F --no-caps -f <conf>`, runs cleanly as non-root with all
+caps dropped provided:
+
+- container listens ≥1024; the Service maps 514/UDP + 601/TCP → 5514/5601
+  (no NET_BIND_SERVICE needed);
+- **emptyDir mounted at `/var/lib/syslog-ng`** — the image dir is root-owned;
+  without it syslog-ng CrashLoops with
+  `Error creating persistent state file ... Permission denied (13)`.
+
+Each message becomes one stdout JSON line:
+
+```json
+{"SOURCEIP":"172.26.1.180","PROGRAM":"charon","PRIORITY":"info","HOST":"fw-edge-01",
+ "MESSAGE":"...","ISODATE":"2026-07-31T20:15:00+00:00","FACILITY":"local0",...}
+```
+
+- **Fan-in, not one-receiver-per-sender**: senders are disambiguated per message —
+  `HOST`/`PROGRAM` from the syslog header, `SOURCEIP` the actual peer. Replicas >1
+  behind one Service is fine (stateless; identity travels in the message).
+- Route with a normal Flow selecting the receiver pod + parse-point-B `parser`
+  (`type: json`, both flags) — `HOST`/`PROGRAM` land as top-level fields for
+  per-sender `grep`-filter Flows (fluentd mode) or native content matching
+  (syslog-ng mode), or as destination labels.
+- For external senders use LoadBalancer/NodePort; `externalTrafficPolicy: Local`
+  if `SOURCEIP` must be the true device IP (SNAT otherwise masks it).
+- Internal-only exposure (isolated mgmt/backside network) works with Cilium
+  LB-IPAM: a `CiliumLoadBalancerIPPool` carved from the internal CIDR with a
+  label `serviceSelector`, plus a matching `CiliumL2AnnouncementPolicy` (pool
+  alone assigns the IP but never answers ARP — the classic half-config). Pin the
+  VIP with `lbipam.cilium.io/ips` since LB-IPAM doesn't check for in-use
+  addresses on the subnet. Source-IP behavior (verified live, external
+  non-cluster sender through the L2 leader): L2 announcements are
+  documented-incompatible with `externalTrafficPolicy: Local`, so what survives
+  depends on the LB mode — with `bpf-lb-mode: hybrid`, **TCP keeps the real
+  sender IP (DSR); UDP arrives SNAT'd to the leader node's IP**. Prefer TCP
+  senders for source fidelity; UDP-only devices are identified by the header
+  hostname, which `keep_hostname(yes)` preserves.
+- Kubelet-hop limits apply (16KB line split, rotation loss at extreme volume).
+  High-EPS alternative: receiver speaks fluentd forward straight to
+  `<logging>-fluentd.<controlNamespace>.svc:24240` — but those records have no
+  `kubernetes.*` metadata so namespaced Flows never match (ClusterFlow + tag
+  handling required), and collector↔aggregator TLS client certs are on you.
 
 ## Destinations
 

@@ -132,7 +132,7 @@ or the parser sees nothing useful. Delivery latency ≈ `timekey + timekey_wait`
 
 | Task | Read |
 |---|---|
-| JSON/CRI parsing, multiline, source selection, k8s events, host logs, per-destination recipes | `references/recipes.md` |
+| JSON/CRI parsing, multiline, source selection, k8s events, host logs, external syslog ingestion, per-destination recipes | `references/recipes.md` |
 | Full CRD inventory, scopes, match semantics, Logging spec keys, decoupled pattern, LoggingRoute multi-tenancy | `references/cr-model.md` |
 | All 31 fluentd outputs + buffer tuning + image variants | `references/outputs-fluentd.md` |
 | All 18 syslog-ng outputs + SyslogNGFlow matching + worked chains | `references/outputs-syslogng.md` |
@@ -149,8 +149,9 @@ version matrix authority is `k8s-components-checker`
 ## What the operator does NOT do
 
 - No CRD for **receiving** network syslog (it ships logs OUT via the syslog output;
-  it does not ingest external syslog sources). Use a standalone receiver
-  (e.g. an axosyslog StatefulSet) feeding the pipeline.
+  it does not ingest external syslog sources). Use a standalone receiver pod
+  (axosyslog → stdout, collected like any pod) — worked, live-verified recipe in
+  `references/recipes.md` § External syslog ingestion.
 - No fluentbit-only mode (above). No log storage — it ships, something else stores.
 - TLS between collector and aggregator is **opt-in** (`tls.enabled` + cert secret;
   no cert-manager automation), despite docs prose implying otherwise.
