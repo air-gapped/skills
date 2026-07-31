@@ -10,8 +10,10 @@ argument-hint: "[topic: spec, backends, gateways, cloud, clients]"
 Chat Completions is the lingua franca of LLM serving — and because everyone
 has implemented and extended it longest, it carries the MOST undocumented
 divergence of the three open protocols. OpenAI keeps it fully supported but
-second-choice ("we recommend trying Responses"); xAI, Groq, and Azure
-likewise declare it legacy. Legacy `/v1/completions` loses its last
+second-choice ("we recommend trying Responses") — and since 2026-07-29
+OpenAI's own publications call it "our **legacy** Chat Completions API"
+(ARC-AGI-3 post; still no deprecation or sunset date); xAI, Groq, and Azure
+declare it legacy too. Legacy `/v1/completions` loses its last
 first-party OpenAI models 2026-09-28 and survives as a local/third-party
 surface.
 

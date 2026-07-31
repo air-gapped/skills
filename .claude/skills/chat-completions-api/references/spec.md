@@ -7,7 +7,10 @@ stub `.md` twins, use the HTML). URL-per-section index in `sources.md`.
 
 Status: **fully supported, not deprecated, but second-choice** — the create
 page banners "Starting a new project? We recommend trying Responses". No
-sunset date exists.
+sunset date exists. Positioning hardened 2026-07-29: OpenAI's ARC-AGI-3
+publication recommends verbatim "Use our Responses API, not our legacy
+Chat Completions API" — the first first-party "legacy" label for
+`/v1/chat/completions` itself (previously only `/v1/completions` carried it).
 
 ## Contents
 - [Request schema highlights](#request-schema-highlights)

@@ -6,6 +6,7 @@ the listed commit on 2026-07-19.
 
 | Ref | URL | Last verified | Pinned | Commit examined |
 |-----|-----|---------------|--------|-----------------|
+| OpenAI ARC-AGI-3 publication ("legacy Chat Completions" wording) | https://openai.com/index/how-two-settings-tripled-our-arc-agi-3-scores/ | 2026-07-30 | published 2026-07-29 | — (openai.com 403s non-browser fetchers; use a real browser) |
 | CC create (request/response) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create | 2026-07-19 | — | — |
 | CC streaming events (full chunk schema; .md twin) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events | 2026-07-19 | — | — |
 | Stored completions (list/retrieve/update/delete/messages) | https://developers.openai.com/api/reference/chat-completions/overview | 2026-07-19 | — | — |
