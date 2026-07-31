@@ -25,7 +25,7 @@ native handling.
 | `previous_response_id` | Yes (needs `VLLM_ENABLE_RESPONSES_API_STORE=1`) | No (errors) | Yes (in-memory) | No (PR #15404 open) | Yes (spend logs) | Partial (#25881 replay) | Yes (+ compact) | Yes | Yes | ? |
 | `background` | Yes | No | Yes (stream-broken) | No | No | No | Yes | PR open | Yes | No |
 | `store`/retrieve | Opt-in: `VLLM_ENABLE_RESPONSES_API_STORE=1` env | No | Yes (in-memory, stream-broken) | No | Yes (stream cache) | No | Yes | Yes | Yes | No |
-| Compaction (`/compact`) | No | No | No | No | **Yes** (gateway) | No | **Yes** | No | No | No |
+| Compaction (`/compact`) | No | No | No | No | Passthrough | No | **Yes** | No | No | No |
 | Built-in tools | MCP, web_search, code_interpreter, shell | via `--tools all` | No | No | web_search (param), file_search | Broken | Extensive | Limited | Multi | No |
 | `[DONE]` marker | Omitted | Omitted | Sent | ? | Passthrough | ? | Sent | ? | Sent | ? |
 | `sequence_number` | -1 placeholder | Omitted | Proper | ? | Monkey-patched | ? | Proper | ? | Proper | ? |
@@ -173,12 +173,14 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
   terminator vLLM omits**. Quirk: emits **data-only SSE** (no `event:` field
   lines) — fine for parsers reading JSON `type`, breaks parsers keyed on the
   SSE `event:` field.
-- **Serves `POST /v1/responses/compact`** (routes `/v1/responses/compact`,
-  `/responses/compact`, `/openai/v1/responses/compact`; `acompact_responses`
-  route type) since PR #18697 (merged 2026-01-06, present in v1.92.0) —
-  forwards to providers that support compaction; PR #28868 (2026-07-11) added
-  a `compact_20260112` polyfill for non-Anthropic providers. Code-verified at
-  v1.94.0 (`litellm/proxy/response_api_endpoints/endpoints.py`).
+- **Exposes `POST /v1/responses/compact` as pure passthrough** (routes
+  `/v1/responses/compact`, `/responses/compact`,
+  `/openai/v1/responses/compact`; `acompact_responses` route type) since PR
+  #18697 (merged 2026-01-06, present in v1.92.0). Like most LiteLLM
+  API-compatible surfaces it forwards to the upstream provider — no
+  server-side compaction of its own, so it only works against providers
+  that support compaction (OpenAI, Llama Stack). Code-verified at v1.94.0
+  (`litellm/proxy/response_api_endpoints/endpoints.py`).
 - Bridges ~100+ providers to Responses API format
 - Session support via spend-log history reconstruction
 - Converts streaming Chat Completions chunks to proper Responses API events
@@ -248,8 +250,8 @@ Responses implementation after vLLM.
 - Reasoning output (PR #5206)
 - **`POST /v1/responses/compact`** with `context_management` param (PR #5327) —
   Codex-aware server-side compaction, zstd body decompression. The only
-  non-OpenAI *inference backend* with native compact (the LiteLLM *gateway*
-  also serves the route — see LiteLLM section).
+  non-OpenAI backend that *implements* compact (LiteLLM merely passes the
+  route through — see LiteLLM section).
 - Cancel endpoint for background responses (PR #5268)
 - Compacted responses stored for `previous_response_id` chaining (PR #5507)
 - Full OpenResponses conformance claim (PR #4999)

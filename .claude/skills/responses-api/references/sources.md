@@ -42,7 +42,7 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 | vLLM #39624 (DELETE endpoint) | open; absence openapi-confirmed on v0.25.1 |
 | vLLM #36435 (tool XML leakage) | OPEN (state: reopened, re-probed 2026-07-31); not reproduced 2026-07-19 but only tested with a custom rust tool parser, not stock |
 | vLLM store gating | `VLLM_ENABLE_RESPONSES_API_STORE=1` env var, default off, silent ignore — read from `responses/serving.py` @ v0.25.1; env var code-confirmed still present at v0.26.0 (2026-07-31) |
-| LiteLLM `/v1/responses/compact` | serves the route since PR #18697 (merged 2026-01-06); `compact_20260112` polyfill for non-Anthropic providers PR #28868 (2026-07-11); code-verified at v1.94.0 |
+| LiteLLM `/v1/responses/compact` | pure passthrough route since PR #18697 (merged 2026-01-06) — no server-side compaction of its own; code-verified at v1.94.0. (PR #28868's `compact_20260112` polyfill is `context_management`-side; relation to this route unverified) |
 | Ollama PR #15404 (previous_response_id) | open (re-probed 2026-07-31) |
 | LiteLLM #20975 (Azure passthrough strips setup events) | open (re-probed 2026-07-31) |
 | LiteLLM #22102 (codex skips output_item.added) | stale-closed 2026-06-27, unverified |

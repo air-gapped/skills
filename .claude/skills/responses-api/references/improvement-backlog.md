@@ -39,10 +39,12 @@ applicable in a single iteration. Do not re-propose without new evidence.
 ## Resolved this pass — 2026-07-31 (freshen)
 
 - **"Llama Stack is the only non-OpenAI backend with /v1/responses/compact"
-  claim corrected** (was Open) — LiteLLM gateway has served the route since
-  PR #18697 (merged 2026-01-06, code-verified at v1.92.0 and v1.94.0), with
-  a `compact_20260112` polyfill for non-Anthropic providers (#28868).
-  SKILL.md, backend matrix, Llama Stack + LiteLLM sections updated.
+  claim refined** (was Open) — LiteLLM gateway has exposed the route since
+  PR #18697 (merged 2026-01-06, code-verified at v1.92.0 and v1.94.0), but
+  as pure passthrough (operator-confirmed): works only when the upstream
+  provider supports compaction. Llama Stack remains the only non-OpenAI
+  *implementation*. SKILL.md, backend matrix, Llama Stack + LiteLLM
+  sections updated.
 - **Bifrost version line ambiguity resolved** (was Open) — repo tags per
   component; HTTP-transport line is `transports/vX` (transports/v1.6.7,
   2026-07-30); `ent-v2.0.0-pre*` is the enterprise line. Pin updated.
