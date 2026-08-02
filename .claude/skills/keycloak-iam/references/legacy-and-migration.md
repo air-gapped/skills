@@ -70,7 +70,14 @@ There is no automated config migration WildFly→Quarkus: re-express
 `standalone.xml` intent as `keycloak.conf`/CLI options, move providers to
 `providers/`, and replace the old operator's CRs with a fresh `Keycloak` CR +
 `KeycloakRealmImport`. The old and new operators can coexist during cutover
-(use fully-qualified CRD names).
+(use fully-qualified CRD names) — but the docs' "even in the same namespace"
+only holds at the CRD level: **both operators name their workload objects
+`keycloak-operator` (Deployment, ServiceAccount), so installing the new one
+into the legacy operator's namespace collides** (server-side apply surfaces it
+as a field-manager conflict on the Deployment image; client-side apply would
+silently clobber the legacy operator). Run them in different namespaces.
+Likewise the *server* CR can't reuse the legacy CR's name in a shared
+namespace — StatefulSet/Service child names derive from it.
 
 ---
 
@@ -185,6 +192,7 @@ Gotchas that produce silently-wrong exports:
 - The export options are **query parameters**, not body fields — `-s exportClients=true` is silently ignored and you get a realm with no clients. Put them in the URL.
 - On 23+ `partial-export` needs `manage-realm` permission (plus `view-clients` / `query-groups` for the respective sections); a view-only service account gets a realm-only export or 403.
 - `kc.sh export --realm <r>` (Quarkus) / `standalone.sh -Dkeycloak.migration.action=export` (WildFly) are the offline alternatives; they additionally include components/keys and users.
+- Restoring a spilo/Zalando `pg_dumpall` into vanilla Postgres for a rehearsal clone: expect harmless errors for spilo-only extensions (`cron` schema, `zmon_utils`, `plpython3u`, `pg_auth_mon`) — and expect **`password authentication failed` from Keycloak afterwards**: spilo stores md5 password hashes, vanilla Postgres 16 defaults to scram-sha-256 in `pg_hba`. Fix: `ALTER ROLE <db-user> PASSWORD '<same value>'` on the clone to re-hash as scram.
 - WildFly export trap: `standalone.sh` performs the export **during boot and then keeps running as a server — it never exits**. Watch the log for `Export finished`, then kill the process. When running it inside the live pod, add `-Djboss.socket.binding.port-offset=100` (and offset http/https/management ports) so the temporary instance doesn't collide with the real one. Compare like with like — same export method on both sides.
 - Realm exports omit user passwords/secrets by design either way; this recipe compares *configuration*, not credentials.
 - If the migration itself goes via export/import: on 26.5+ the import **fails validation** when any client's session idle/max exceeds the realm SSO settings — values that were legal when exported. Fix them in the source realm (or the export) first.
@@ -229,6 +237,16 @@ that appear in realm exports:
 | →26.5       | new authz-enabled clients lack Default Resource/Policy/Permission; IdP boolean config values may be null/absent |
 | →26.6.x     | `Organization` sub-flow in built-in browser flow (and wrongly in custom flows if upgraded through 26.6.0) |
 | →26.7       | `is.dynamic.scope`→`is.parameterized.scope` (+`parameterized.scope.type`); realm `displayName` truncated at 255; *Configure OTP*/*Update password* priorities reordered; LDAP binary mappers pinned `base64`; WebAuthn `ResidentKey` attribute renames |
+
+Additional diffs observed in a live 19→26.7 migration (not called out in the
+upstream changes files): every client gains a `realm_client: "false"`
+attribute; the built-in `admin-cli` and `security-admin-console` clients flip
+`fullScopeAllowed` false→true (migration re-baselines built-ins to
+new-version defaults — custom clients keep their setting); a new
+`AuthnContextClassRef` client scope appears (26.7 SAML step-up); protocol
+mappers gain `introspection.token.claim` config; the misspelled
+`autheticatorFlow` field disappears from flow exports; `userProfileEnabled`
+realm attribute disappears (→24).
 
 Anything NOT in the allowlist for the hops crossed = investigate: it is either
 drift that predates the migration (also valuable to find) or a setting the

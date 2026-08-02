@@ -95,10 +95,12 @@ When the user asks about something specific, prefer these sources over generic r
   - asciidoc guides operators rarely think to read: `docs/guides/server/*.adoc`, `docs/guides/operator/*.adoc`, `docs/guides/high-availability/*.adoc`
 
 - **Operator install manifests** (`keycloak/keycloak-k8s-resources`)
-  - Each Keycloak version has a git tag (e.g. `26.7.0`) with three files under `kubernetes/`:
+  - Each Keycloak version has a git tag (e.g. `26.7.0`) with the manifests under `kubernetes/`. Through 26.6 that was three files; **26.7+ has more, and the operator crash-loops (`Couldn't start informer for keycloaksamlclients...`) if the extra CRDs aren't applied** — vendor the whole directory listing, not a remembered file list:
     - `keycloaks.k8s.keycloak.org-v1.yml` — the `Keycloak` CRD
     - `keycloakrealmimports.k8s.keycloak.org-v1.yml` — the `KeycloakRealmImport` CRD
-    - `kubernetes.yml` — Operator Deployment + RBAC + ServiceAccount
+    - `keycloakoidcclients…`/`keycloaksamlclients….yml` (26.7+) — client CRDs, required by the operator even if unused
+    - `kubernetes.yml` — Operator Deployment + RBAC + ServiceAccount (assumes install namespace `keycloak`; one hardcoded ClusterRoleBinding subject — use the docs' kustomize-overlay approach for other namespaces)
+    - `kustomization.yml`, `cluster-wide/` (26.7+)
   - The repo's `main` branch has only the README + LICENSE; the actual manifests live in tags. Use `git checkout <tag>` against a clone, or `gh api repos/keycloak/keycloak-k8s-resources/contents/kubernetes?ref=<tag>` to fetch raw. (Do NOT assume the repo is stale just because `main` looks empty.)
 
 - **Online docs**: `https://www.keycloak.org/`

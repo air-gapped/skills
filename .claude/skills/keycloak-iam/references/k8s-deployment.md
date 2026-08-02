@@ -57,7 +57,7 @@ If `startOptimized` is unset, the operator decides based on whether `image` is t
 
 ### Install (without OLM)
 
-The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — three files per version tag, under `kubernetes/`. Apply to install:
+The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — per version tag, under `kubernetes/` (three files through 26.6; 26.7+ adds two client CRDs the operator refuses to start without, plus a kustomization). Apply to install:
 
 ```bash
 KC_VERSION=26.7.0
