@@ -1,12 +1,12 @@
 ---
 name: keycloak-iam
-description: Operate, configure, deploy, secure, and integrate with Keycloak (open-source IAM) — the modern Quarkus distribution (24.x–26.7.x), the Keycloak Operator with `Keycloak` and `KeycloakRealmImport` CRDs, and realm/client/identity-provider configuration.
-when_to_use: Use whenever the user mentions Keycloak, Red Hat build of Keycloak (RHBK), `kc.sh`, `kcadm.sh`, `keycloak.conf`, `KC_*` / `KCRAW_*` env vars, the Keycloak Operator, a `Keycloak` or `KeycloakRealmImport` custom resource, or asks about server tuning (hostname / proxy / db / cache flags, `--optimized` builds), Kubernetes deployment (HA topology, probes, zero-downtime upgrades), security hardening (FGAP v2, client policies, FAPI, DPoP, JWT-Authz-Grant, federated client auth, redirect URI safety, CVEs), OIDC/SAML/IdP brokering with Keycloak as the IdP, LDAP/AD federation, themes / custom SPIs, or operations (Prometheus metrics, OTLP tracing, realm export/import, backup, upgrade matrix). In a thread already established as Keycloak-focused, keep triggering on follow-up realm/client/IdP/SSO questions even when "Keycloak" isn't repeated in every message. Do NOT trigger on generic IAM/SSO/OIDC questions with no Keycloak context (e.g. Auth0, Okta, Entra ID, Cognito, or a from-scratch OAuth server).
+description: Operate, configure, deploy, secure, and integrate with Keycloak (open-source IAM) — the modern Quarkus distribution (24.x–26.7.x), the Keycloak Operator with `Keycloak` and `KeycloakRealmImport` CRDs, realm/client/identity-provider configuration, plus legacy 16.x–23.x instances (incl. WildFly "-legacy" builds) and verifying realm/client config survived a version migration.
+when_to_use: Use whenever the user mentions Keycloak, Red Hat build of Keycloak (RHBK), `kc.sh`, `kcadm.sh`, `keycloak.conf`, `KC_*` / `KCRAW_*` env vars, the Keycloak Operator, a `Keycloak` or `KeycloakRealmImport` custom resource, or asks about server tuning (hostname / proxy / db / cache flags, `--optimized` builds), Kubernetes deployment (HA topology, probes, zero-downtime upgrades), security hardening (FGAP v2, client policies, FAPI, DPoP, JWT-Authz-Grant, federated client auth, redirect URI safety, CVEs), OIDC/SAML/IdP brokering with Keycloak as the IdP, LDAP/AD federation, themes / custom SPIs, or operations (Prometheus metrics, OTLP tracing, realm export/import, backup, upgrade matrix). Also trigger on old/unknown Keycloak versions ("we run 17/18/19-legacy", `/auth` URL paths, `/opt/jboss/keycloak`, old AngularJS admin console), upgrade-ladder questions ("what breaks going 1x→26"), and migration verification ("compare realm before/after upgrade", "did the migration keep our client settings"). In a thread already established as Keycloak-focused, keep triggering on follow-up realm/client/IdP/SSO questions even when "Keycloak" isn't repeated in every message. Do NOT trigger on generic IAM/SSO/OIDC questions with no Keycloak context (e.g. Auth0, Okta, Entra ID, Cognito, or a from-scratch OAuth server).
 ---
 
 # Keycloak IAM — operator's reference skill
 
-This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.7.x as of July 2026; the legacy WildFly distribution was removed years ago). Information is current as of **Keycloak 26.7.0** (released 2026-07-09); the body below is still written against the 26.6 feature set, so treat 26.7-only features as unresearched here and read the release notes directly.
+This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.7.x as of July 2026); for instances still in the field on 16.x–23.x — including the WildFly **"-legacy"** builds that ended at 19.0.3 — and for verifying realm migrations off them, route to `legacy-and-migration.md`. Information is current as of **Keycloak 26.7.0** (released 2026-07-09); the body below is still written against the 26.6 feature set, so treat 26.7-only features as unresearched here and read the release notes directly.
 
 The Red Hat build of Keycloak (RHBK) is downstream of upstream Keycloak with longer support windows and the same surface area; advice here applies to both unless explicitly noted.
 
@@ -34,8 +34,13 @@ references/
 │                              themes, SPIs, admin clients (Java/JS/kcadm/Terraform)
 ├── observability.md         → Metrics, OTLP tracing, structured logging, health
 │                              probes, troubleshooting recipes
-└── upgrade-and-backup.md    → Upgrade matrix, zero-downtime patches, realm
-                               export/import, DB backup, disaster recovery
+├── upgrade-and-backup.md    → Upgrade matrix, zero-downtime patches, realm
+│                              export/import, DB backup, disaster recovery
+└── legacy-and-migration.md  → Identifying/operating old versions (16.x–23.x,
+                               WildFly "-legacy" builds), per-version breaking-
+                               change ladder 16→current, and verifying a migrated
+                               realm/clients against the pre-migration export
+                               (normalize+diff recipe + expected-diffs allowlist)
 ```
 
 **Routing cheatsheet:**
@@ -54,6 +59,9 @@ references/
 | "Custom theme / authenticator / event listener / mapper"                   | `integration.md` §SPIs / §Themes      |
 | "What metrics / Grafana dashboard / Prometheus / OTLP"                     | `observability.md`                    |
 | "Realm export gotchas" / "How do I back up?" / "Liquibase migration stuck" | `upgrade-and-backup.md`               |
+| "What version is this old instance?" / anything on WildFly / `-legacy` / `/auth` paths / 16.x–23.x | `legacy-and-migration.md` §1–2 |
+| "We're on 1x.x — what breaks if we upgrade?"                               | `legacy-and-migration.md` §3          |
+| "Did the migration keep all realm/client settings?" / compare realm before vs after | `legacy-and-migration.md` §4 + `assets/compare/` |
 
 **When in doubt about a CLI flag**, the source of truth is `https://www.keycloak.org/server/all-config` (full option index). When in doubt about a CR field, the source of truth is the CRD YAML in `keycloak-k8s-resources` at the version tag (see §"Authoritative sources" below).
 
