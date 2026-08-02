@@ -60,6 +60,7 @@ don't lecture.
 | Initial admin      | `KEYCLOAK_USER`/`KEYCLOAK_PASSWORD` (container) or `add-user-keycloak.sh` | 17–25: `KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD`; 26+: `KC_BOOTSTRAP_ADMIN_USERNAME`/`KC_BOOTSTRAP_ADMIN_PASSWORD` |
 | Health/metrics     | `/auth/realms/master` + WildFly management :9990 | 17–18: `/q/health`; 19+: `/health`, `/metrics`; 25+: management port 9000 |
 | K8s operator       | `keycloak.org/v1alpha1` (separate Client/User/Realm CRDs, Deployment) | `k8s.keycloak.org/v2alpha1` (StatefulSet, `KeycloakRealmImport`) |
+| Operator ingress   | `externalAccess` generates an **ingress-nginx/OpenShift-only** Ingress (nginx annotations, no `spec.tls`) — dead on Traefik/other controllers; disable it and hand-roll the route. Note the legacy main Service is TLS-8443-only; the plaintext 8080 lives on the `-discovery` service | `spec.ingress` (or `enabled: false` + own route against the first-class HTTP service) |
 | Proxy config       | `PROXY_ADDRESS_FORWARDING=true`                  | `--proxy` (≤23) → `--proxy-headers` (24+)      |
 
 Current upstream docs retro-apply modern env-var names to old guides — when

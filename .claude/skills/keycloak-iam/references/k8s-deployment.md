@@ -57,7 +57,7 @@ If `startOptimized` is unset, the operator decides based on whether `image` is t
 
 ### Install (without OLM)
 
-The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — per version tag, under `kubernetes/` (three files through 26.6; 26.7+ adds two client CRDs the operator refuses to start without, plus a kustomization). Apply to install:
+The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — per version tag, under `kubernetes/` (three files through 26.6; 26.7+ adds two client CRDs the operator refuses to start without, plus a kustomization). The `Keycloak`/`KeycloakRealmImport` CRDs are ~0.5 MB each — **client-side `kubectl apply` fails on them** (last-applied annotation exceeds the 262 KB limit); use `kubectl apply --server-side`. When installing into a namespace other than upstream's assumed `keycloak`, use a kustomize overlay per the docs — and note the namespace transformer fills *unset* RoleBinding subject namespaces but leaves the ClusterRoleBinding's explicitly-set subject alone; patch that one or the operator silently lacks its cluster permissions. Apply to install:
 
 ```bash
 KC_VERSION=26.7.0
