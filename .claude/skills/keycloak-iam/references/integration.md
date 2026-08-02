@@ -211,6 +211,17 @@ kcadm.sh config credentials --server https://auth.example.com \
 
 For the Java SDK, `KeycloakBuilder.builder().grantType("client_credentials")` is the same shape.
 
+**Hardening a service-account client with `fullScopeAllowed=false` — order matters.**
+With full scope off, tokens only carry roles present in the client's *scope
+mappings*; the service account's assigned roles alone no longer reach the
+token. Add the scope mappings FIRST (`kcadm.sh create clients/{id}/scope-mappings/clients/{realm-mgmt-id} -f roles.json`),
+confirm the list is non-empty, then flip `fullScopeAllowed` — the reverse
+order locks the client out of its own permissions the moment its cached
+token expires. Two kcadm traps compound this: client roles are listed via
+`get clients/{id}/roles` (the `--cclientid` flag belongs to `add-roles`,
+not `get`), and `create ... -f` with an empty/invalid file "succeeds"
+by creating zero mappings rather than erroring usefully.
+
 ---
 
 ## <a id="workflows"></a>8. Workflows
