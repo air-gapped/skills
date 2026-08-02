@@ -182,6 +182,8 @@ See `assets/examples/` for fuller examples (with HA tuning, `KeycloakRealmImport
 
 ## Common operator pitfalls
 
+- **"What's the admin URL for realm X?"** — not discoverable in the UI. Pattern: `/admin/{login-realm}/console/#/{managed-realm}` — the first segment picks which realm *authenticates* you (its `security-admin-console` client), the fragment picks the realm being *edited*. Realm-local admins: `/admin/<their-realm>/console/` (no realm dropdown, their realm only). Master admins: `/admin/master/console/#/<realm>`. End-user self-service: `/realms/<realm>/account/`. Prefix all with the server's relative path (`/auth` on legacy-layout installs).
+
 - **`hostname-strict=false` "fixes" my login** → No, it papers over a proxy/headers misconfig. Set `--proxy-headers` correctly instead.
 - **"Why is my custom theme not appearing?"** → The theme must be baked into a custom image and `kc.sh build` re-run; dropping a theme jar into a stock image at runtime no longer works. Themes are packaged into the optimized server jar.
 - **"Operator pod logs are flooded with warnings"** → On 26.6.0 exactly, that's `#47872`, fixed in 26.6.1. Upgrade to the latest 26.6.x.
