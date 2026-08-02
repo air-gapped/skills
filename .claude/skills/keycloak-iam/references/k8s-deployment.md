@@ -114,7 +114,7 @@ Authoritative source: the `keycloaks.k8s.keycloak.org-v1.yml` CRD at the version
 | `livenessProbe` / `readinessProbe` / `startupProbe` | object | Override probe timing (defaults are usually fine)                          |
 | `scheduling`                     | object   | `{affinity, tolerations, topologySpreadConstraints, priorityClassName}`                    |
 | `networkPolicy`                  | object   | `{enabled, http: [...], https: [...], management: [...]}` — operator-generated NetworkPolicy |
-| `ingress`                        | object   | `{enabled, className, tlsSecret, annotations, labels}` — operator-managed Ingress (basic) |
+| `ingress`                        | object   | `{enabled, className, annotations, labels}` — operator-managed Ingress (basic). Through 26.7 the generated Ingress has **no `spec.tls` section**, and cert-manager's ingress-shim keys off `spec.tls` — operator-managed ingress + per-host ingress-shim certs don't compose yet; hand-author the Ingress (`enabled: false`) for that pattern until `spec.ingress.tlsSecret` ships (in development on main) |
 | `serviceMonitor`                 | object   | Generate a Prometheus-Operator `ServiceMonitor`                                            |
 | `imagePullSecrets`               | array    | Standard K8s                                                                               |
 | `automountServiceAccountToken`   | bool     | `false` to opt out of K8s default token automount                                          |
