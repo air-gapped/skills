@@ -19,9 +19,20 @@ semantics in **`vllm-configuration`**, the K8s/container manifest in
 
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
-`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20+. Pulls together measurements
+`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20–0.25.1. Pulls together measurements
 from a Verda 2× H100 SXM5 80GB audit on 2026-04-30 and the upstream
 constraints that shape the answer.
+
+> **Version ceiling (as of 2026-08-02): hold at vLLM 0.25.1, do not take
+> 0.26.0.** Three gemma-4-relevant regressions are open against 0.26.0:
+> [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
+> `<turn|>` leaked into output — spec-decode EOT stripping; community
+> bisect reproduces it on 0.25.1+MTP as well, clean on 0.24.0),
+> [#50477](https://github.com/vllm-project/vllm/issues/50477) (gemma4
+> parser silently ignores named forced `tool_choice`),
+> [#50159](https://github.com/vllm-project/vllm/issues/50159) (Model
+> Runner V2 over-reports available KV → CUDA OOM under saturating load;
+> crashes earlier with EAGLE). Nothing in 0.26.0 is needed for gemma-4.
 
 ## Three load-bearing facts
 
@@ -45,12 +56,19 @@ constraints that shape the answer.
 3. **The chat_template shipped with the cyankiwi quant is frozen, and the
    gap is now measured — not assumed.** (The RedHatAI speculator ships no
    `chat_template.jinja` at all, so it inherits whatever the base model
-   supplies.) On 2026-07-21
-   `cyankiwi/gemma-4-31B-it-AWQ-4bit/chat_template.jinja` hashed
+   supplies.) On 2026-08-02
+   `cyankiwi/gemma-4-31B-it-AWQ-4bit/chat_template.jinja` still hashed
    `94899c0f…25bff413` — **byte-identical to the canonical template as it
-   stood on 2026-04-30**. The repo has not re-pulled it since (its only
-   later commit, 2026-07-03, edits the README model size). Canonical has
-   moved twice in that window:
+   stood on 2026-04-30**. Canonical has moved twice in that window:
+
+   > **Revision-pin hazard (2026-07-21):** both cyankiwi repos
+   > (`gemma-4-31B-it-AWQ-4bit`, `gemma-4-31B-it-qat-AWQ-INT4`)
+   > **squashed their git history** — every pre-squash revision SHA now
+   > returns 404, so any `--revision` pin from before that date
+   > crash-loops on a cold boot with an empty HF cache. Current HEADs:
+   > `6f1b616c` (AWQ-4bit), `e0814036` (qat-AWQ-INT4). All config,
+   > tokenizer, and template files were verified byte-identical across
+   > the squash, so re-pinning needs no re-audit.
 
    | Pulled | sha256 | Bytes |
    |---|---|---|
@@ -74,11 +92,24 @@ constraints that shape the answer.
      into the string branch
    - `messages and messages[0]` guards against an empty message list
 
-   Always pull
-   `huggingface.co/google/gemma-4-31B-it/raw/main/chat_template.jinja`
-   directly and pass via `--chat-template`. Re-pull and re-hash per deploy
-   — the template on `main` is a moving target by design, so no historical
-   SHA in this file is a valid pin, including the three above.
+   Serve the canonical template via `--chat-template`, but **pin the
+   vetted revision rather than blind-pulling `main` per deploy** —
+   currently google revision `68abe480` (2026-07-15, sha256
+   `ae53464b…8de4c6d4`, unchanged on `main` through at least 2026-08-02;
+   the one later commit `842da379` only added `response_template`
+   metadata to tokenizer_config.json). Template updates change
+   parser-facing behavior (see the thinking + tools pitfall below), so
+   re-hash `main` periodically and treat a hash change as a re-vet
+   trigger, not an auto-adopt. Unmerged upstream template PRs worth
+   watching before the next adoption:
+   [#137](https://huggingface.co/google/gemma-4-31B-it/discussions/137)
+   (keep tool-call reasoning across later user turns — prefix-cache win
+   on agent loops) and
+   [#140](https://huggingface.co/google/gemma-4-31B-it/discussions/140)
+   (multimodal placeholders emitted outside the tool_response block).
+   Do NOT strip the `\n` before `<channel|>` in local candidates —
+   Google measured 7%+ tool-calling regressions without it
+   ([#135](https://huggingface.co/google/gemma-4-31B-it/discussions/135)).
 
 ## Decision guide — which TP for which workload
 
@@ -184,6 +215,57 @@ bench (see "What was NOT measured" below).
 
 ## Pitfalls — things that have already burned a deploy once
 
+### Thinking + tool use with stock parsers leaks CoT into content (template ≥ 68abe480)
+
+The 2026-07-15 canonical template adds a generation-prompt branch that
+ends the prompt with an **open** `<|channel>thought\n` when the last
+message is a `tool` response and `enable_thinking=true`. The model
+correctly continues in-thought without re-emitting the opener; the stock
+`gemma4` reasoning parser starts in `idle` and classifies the entire
+thought as user-visible `content` (`reasoning_content` comes back
+empty). Live-verified 2026-07-17. No stock-parser fix exists as of
+0.26.0. **Mitigation: run tool-calling deployments thinking-off** (the
+default — `enable_thinking` defaults to `false`); only enable thinking
+for tool use if you have verified your parser handles the
+open-thought-after-tool-response prefill. Note this failure is invisible
+to benchmark suites whose multi-turn fixtures always end on a *user*
+message — test the tool-terminated shape explicitly.
+
+### Named / `required` tool_choice is silently unenforced on stock vLLM
+
+vLLM's xgrammar backend builds its stop-token set from the tokenizer
+`<eos>` only — generation_config's extra eos ids 106 (`<turn|>`) and 50
+(`<|tool_response>`) are ordinary tokens to the grammar, so their texts
+are matchable through any region admitting `<` and the constraint can
+terminate without a conforming tool call. Root-caused 2026-07-18
+(request-level bisect); the same failure class is reported upstream as
+[#50477](https://github.com/vllm-project/vllm/issues/50477). Treat
+forced `tool_choice` output as unvalidated on stock — check the tool
+call actually materialized before acting on it. Auto tool choice is
+unaffected.
+
+### EAGLE3 + TP=2: verify acceptance rate after every engine upgrade
+
+[#50158](https://github.com/vllm-project/vllm/issues/50158) (open,
+2026-08): the EAGLE drafter's embed_tokens-sharing decision is made
+per-rank without cross-rank agreement, so TP ranks can build *different*
+drafters and acceptance collapses to ~0.45/draft — spec-decode still
+"works" but silently loses most of its win. Both recipes below are
+TP-capable EAGLE3 shapes. Check the engine's acceptance metric against
+the baseline (~43% on random, 50–72% on MT-Bench); a collapsed number
+means you're hit.
+
+### Spec-decode can leak a trailing `<turn|>` into output
+
+[#49955](https://github.com/vllm-project/vllm/issues/49955): with MTP
+spec-decode enabled, responses end with a literal `<turn|>` (EOT
+stripping misses the token when it lands in a verified draft bundle) —
+reproduced on 0.25.1 and 0.26.0, clean on 0.24.0, not reproducible
+without spec-decode. Confirmed for MTP; the mechanism is
+speculative-path-generic, so tail-check EAGLE3 output too (strict
+clients like Copilot hard-fail on the leaked token). Cheap test: temp-0
+chat completions, grep the tail for `<turn|>`.
+
 ### `--max-model-len 262144` will refuse to boot if KV doesn't fit
 
 vLLM enforces `KV_cache_size ≥ max_model_len ÷ engine_concurrency_factor`
@@ -211,6 +293,23 @@ the draft `config.json` (checked in that order at v0.25.1, re-verified
 2026-07-21; grep `parallel_drafting_token_id` rather than a line number).
 Don't pass `parallel_drafting:true` with the vanilla checkpoint — engine
 init will fail with exactly that three-name `ValueError`.
+
+### MTP (`gemma-4-31B-it-assistant`) — 0% acceptance on quantized targets
+
+Google's MTP drafters ("up to 3× speedup") are real, but every published
+number is **BF16-target**: the drafter reads the *target model's
+activations* and shares its KV cache, so pairing the BF16 assistant with
+an AWQ-4bit target measured **0% acceptance at every position**
+(2026-05-06 head-to-head, ~37k drafted tokens all rejected) — throughput
+0.26–0.39× of EAGLE3, worse than no spec-decode at all. Also: gemma-4
+MTP support is still nightly-only (not in any stable vLLM release
+through 0.26.0), and MTP is the confirmed trigger for the trailing
+`<turn|>` leak above. The community DSpark speculator
+(`RedHatAI/gemma-4-31B-it-speculator.dspark`) currently fails to load at
+all ([#49475](https://github.com/vllm-project/vllm/issues/49475)).
+**On quantized targets use EAGLE3; revisit MTP on BF16 hardware or if
+Google ships a quant-matched assistant.** Full memo:
+`findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/mtp-vs-eagle3/deploy-memo.2026-05-06.md`.
 
 ### DFlash speculator unsupported on sm_89 (RTX 4060 Ti / Ada)
 
@@ -254,9 +353,14 @@ H100. Result:
 - **TPOT P99**: preflight ~8-11% lower in 3 of 3 runs (Rust avoids
   Python GIL/GC pauses) — small but consistent.
 
-For a fresh deploy with the new chat_template, stock parsers are fine.
-Preflight's value narrows to P99 tail latency + insurance against
-future stock regressions. Full memo:
+**Supersession note (2026-08-02):** the 04-30 "stock passes everything"
+conclusion held for the template as it stood then, auto tool choice,
+thinking-off. Two later findings narrow it: (a) with template
+≥ `68abe480` + `enable_thinking` + tools, stock parsers leak CoT into
+content (see Pitfalls); (b) named/`required` tool_choice is silently
+unenforced via xgrammar on stock (see Pitfalls). **Stock parsers remain
+the right call for thinking-off deployments with auto tool choice** —
+the recipes above are exactly that shape. Full memo:
 `findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/verda-stock-vs-preflight/comparison-memo.2026-04-30.md`.
 
 ## What was NOT measured
