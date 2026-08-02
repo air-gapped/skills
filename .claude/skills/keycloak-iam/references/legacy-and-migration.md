@@ -184,7 +184,8 @@ kcadm.sh create "realms/<realm>/partial-export?exportClients=true&exportGroupsAn
 Gotchas that produce silently-wrong exports:
 - The export options are **query parameters**, not body fields — `-s exportClients=true` is silently ignored and you get a realm with no clients. Put them in the URL.
 - On 23+ `partial-export` needs `manage-realm` permission (plus `view-clients` / `query-groups` for the respective sections); a view-only service account gets a realm-only export or 403.
-- `kc.sh export --realm <r>` (Quarkus) / `standalone.sh -Dkeycloak.migration.action=export` (WildFly) are the offline alternatives; they additionally include components/keys. Compare like with like — same export method on both sides.
+- `kc.sh export --realm <r>` (Quarkus) / `standalone.sh -Dkeycloak.migration.action=export` (WildFly) are the offline alternatives; they additionally include components/keys and users.
+- WildFly export trap: `standalone.sh` performs the export **during boot and then keeps running as a server — it never exits**. Watch the log for `Export finished`, then kill the process. When running it inside the live pod, add `-Djboss.socket.binding.port-offset=100` (and offset http/https/management ports) so the temporary instance doesn't collide with the real one. Compare like with like — same export method on both sides.
 - Realm exports omit user passwords/secrets by design either way; this recipe compares *configuration*, not credentials.
 - If the migration itself goes via export/import: on 26.5+ the import **fails validation** when any client's session idle/max exceeds the realm SSO settings — values that were legal when exported. Fix them in the source realm (or the export) first.
 
