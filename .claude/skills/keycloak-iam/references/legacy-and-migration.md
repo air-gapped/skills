@@ -252,6 +252,12 @@ migration dropped.
 - Match kcadm version to server version by running it from the server's own
   pod/image; there is no published compatibility matrix and the Admin REST API
   is unversioned.
+- kcadm without a Keycloak install: `kcadm.sh` is only a launcher — the real
+  program is the self-contained shaded jar at `bin/client/keycloak-admin-cli-<version>.jar`
+  (all distributions, legacy included). Copy that one jar out of the server
+  pod/image and run `java -cp <jar> org.keycloak.client.admin.cli.KcAdmMain ...`
+  with any reasonably modern local JVM — verified: a 19-era jar runs on Java 25.
+  This also guarantees the version match for free.
 - kcadm option parsing changed over the years (exit code 2 for usage errors,
   no shell-eval since 23) — don't assume a script tested on 19 parses
   identically on 26.
