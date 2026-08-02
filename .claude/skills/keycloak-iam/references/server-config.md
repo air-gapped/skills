@@ -340,10 +340,13 @@ kcadm.sh config credentials --server https://auth.example.com \
   --realm master --client admin-cli \
   --user alice --password '<...>'
 
-# Or with a service account (better for CI)
+# Or with a service account (better for CI). The flag is --secret, NOT
+# --client-secret (an unknown option derails kcadm's parser into a
+# misleading "Unknown command" error). Alternatively export
+# KC_CLI_CLIENT_SECRET to keep the secret off the command line entirely.
 kcadm.sh config credentials --server https://auth.example.com \
   --realm master --client my-cicd-client \
-  --client-secret '<...>'
+  --secret '<...>'
 
 # Inspect
 kcadm.sh get realms/myrealm
@@ -359,4 +362,4 @@ kcadm.sh get clients -r myrealm -q clientId=my-app --fields clientId,enabled,red
 
 For CI/GitOps, prefer **terraform-provider-keycloak** (the keycloak/keycloak fork on registry.terraform.io is now the upstream-blessed one) or the operator's `KeycloakRealmImport` CR over kcadm.sh scripts — both are idempotent and diffable.
 
-`kcadm.sh` uses `admin-cli` as the client by default; that's a built-in public client in the master realm. For non-master realms, create a dedicated confidential service-account client with appropriate `realm-management` roles assigned and use its `--client-secret`.
+`kcadm.sh` uses `admin-cli` as the client by default; that's a built-in public client in the master realm. For non-master realms, create a dedicated confidential service-account client with appropriate `realm-management` roles assigned and log in with `--client <id> --secret <...>` (or env var `KC_CLI_CLIENT_SECRET`), authenticating against that realm (`--realm <the-realm>`), not master.

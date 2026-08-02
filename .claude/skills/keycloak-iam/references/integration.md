@@ -204,7 +204,9 @@ For machine access, **don't reuse the `admin-cli` client** — it's a built-in p
 ```bash
 # Service account auth pattern
 kcadm.sh config credentials --server https://auth.example.com \
-  --realm master --client my-cicd-client --client-secret '<...>'
+  --realm master --client my-cicd-client --secret '<...>'
+# NB: the flag is --secret, not --client-secret; KC_CLI_CLIENT_SECRET env
+# var works too and keeps the secret out of shell history / process lists.
 ```
 
 For the Java SDK, `KeycloakBuilder.builder().grantType("client_credentials")` is the same shape.
