@@ -215,21 +215,30 @@ bench (see "What was NOT measured" below).
 
 ## Pitfalls — things that have already burned a deploy once
 
-### Thinking + tool use with stock parsers leaks CoT into content (template ≥ 68abe480)
+### Thinking + tool use on template ≥ 68abe480: no leak on vLLM ≥ 0.24.0, but CoT is silently dropped
 
 The 2026-07-15 canonical template adds a generation-prompt branch that
 ends the prompt with an **open** `<|channel>thought\n` when the last
-message is a `tool` response and `enable_thinking=true`. The model
-correctly continues in-thought without re-emitting the opener; the stock
-`gemma4` reasoning parser starts in `idle` and classifies the entire
-thought as user-visible `content` (`reasoning_content` comes back
-empty). Live-verified 2026-07-17. No stock-parser fix exists as of
-0.26.0. **Mitigation: run tool-calling deployments thinking-off** (the
-default — `enable_thinking` defaults to `false`); only enable thinking
-for tool use if you have verified your parser handles the
-open-thought-after-tool-response prefill. Note this failure is invisible
-to benchmark suites whose multi-turn fixtures always end on a *user*
-message — test the tool-terminated shape explicitly.
+message is a `tool` response and `enable_thinking=true`; the model then
+continues in-thought without re-emitting the opener. Stock vLLM handles
+this since [#45852](https://github.com/vllm-project/vllm/pull/45852)
+(fixing #45834, in v0.24.0+): `adjust_initial_state_from_prompt()`
+reverse-scans the prompt token ids and pre-initialises the reasoning
+parser when the prompt ends inside an open `<|channel>` block
+(`vllm/parser/gemma4.py:482` at v0.25.1). Live-verified 2026-08-02 on
+v0.25.1 (temp 0, stream + non-stream, with and without tool schemas in
+the request): **no CoT leaks into `content`**.
+
+The remaining defect is the opposite one: the generated CoT is
+**silently dropped** — a raw-completions bypass of the same prompt shows
+real thought text before `<channel|>`, while the chat path returns
+`reasoning_content: ""`. Tokens are generated and billed but never
+surfaced. Harmless for most tool workloads; a problem if your client
+needs CoT visibility. On vLLM ≤ 0.23 the original leak applies —
+mitigate there by running tool deployments thinking-off. Either way this
+shape is invisible to benchmark suites whose multi-turn fixtures always
+end on a *user* message — test the tool-terminated shape explicitly
+(render-probe the prompt tail, then diff bypass vs chat output).
 
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
@@ -242,7 +251,10 @@ terminate without a conforming tool call. Root-caused 2026-07-18
 [#50477](https://github.com/vllm-project/vllm/issues/50477). Treat
 forced `tool_choice` output as unvalidated on stock — check the tool
 call actually materialized before acting on it. Auto tool choice is
-unaffected.
+unaffected. (2026-08-02 live probes on v0.25.1: named + `required` both
+produced correct calls on a happy-path prompt — but that shape doesn't
+stress the failure mode, which needs the model *preferring* to end its
+turn; keep validating.)
 
 ### EAGLE3 + TP=2: verify acceptance rate after every engine upgrade
 
@@ -353,14 +365,19 @@ H100. Result:
 - **TPOT P99**: preflight ~8-11% lower in 3 of 3 runs (Rust avoids
   Python GIL/GC pauses) — small but consistent.
 
-**Supersession note (2026-08-02):** the 04-30 "stock passes everything"
-conclusion held for the template as it stood then, auto tool choice,
-thinking-off. Two later findings narrow it: (a) with template
-≥ `68abe480` + `enable_thinking` + tools, stock parsers leak CoT into
-content (see Pitfalls); (b) named/`required` tool_choice is silently
-unenforced via xgrammar on stock (see Pitfalls). **Stock parsers remain
-the right call for thinking-off deployments with auto tool choice** —
-the recipes above are exactly that shape. Full memo:
+**Supersession note (2026-08-02, updated same day after live A/B):**
+the 04-30 "stock passes everything" conclusion extends further than
+first thought. Verified on v0.25.1: stock handles the template-≥
+`68abe480` thinking+tools prefill with no CoT leak (see Pitfalls; the
+caveat is silent CoT drop, not leakage), and happy-path forced
+tool_choice (named + `required`) produced correct calls. Remaining
+stock caveats: the xgrammar stop-token-set gap means forced tool_choice
+can still terminate through stop-token *text* when the model prefers
+ending its turn (see Pitfalls — happy-path probes don't stress this),
+and `reasoning_content` is empty on tool-turn continuations. **Stock
+parsers are the right call for tool-calling deployments on ≥ 0.24.0
+unless you need CoT visibility or hard forced-tool_choice guarantees.**
+Full memo:
 `findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/verda-stock-vs-preflight/comparison-memo.2026-04-30.md`.
 
 ## What was NOT measured
