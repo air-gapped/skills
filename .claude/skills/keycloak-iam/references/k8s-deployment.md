@@ -132,6 +132,17 @@ New in 26.6 (now supported). Strategies:
 
 `Auto` runs a small probe to detect whether the new image's protocol/serialization formats are wire-compatible with the running ones. Across patch versions (26.6.0 → 26.6.1) this is always true. Across minor versions (26.5.x → 26.6.x) it's usually true. Across major (25.x → 26.x) it's often not.
 
+The probe is a Job named `keycloak-<cr-name>-update-job` that boots the new
+config and runs a compatibility check. **Exit code 3 / Job status `Failed` is
+the by-design verdict "rolling update not available → recreate", not an
+error** — the job's last log lines name the exact incompatible keys (e.g.
+`'database.db-url-host' is incompatible: old → new`). Expect a Failed
+update-job before any legitimately restart-requiring change; only treat it as
+a problem if the subsequent recreate doesn't happen. While the operator works
+through the recreate path, the StatefulSet template can briefly be updated
+while old pods still run the previous config — verify pod env, not just
+template, when checking what's live.
+
 For multi-cluster / cross-DC zero-downtime, the documented pattern lives at `https://www.keycloak.org/operator/rolling-updates`.
 
 ### Adding an option not in the spec

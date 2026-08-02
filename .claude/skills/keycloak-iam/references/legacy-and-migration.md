@@ -54,7 +54,7 @@ don't lecture.
 | Concern            | WildFly (≤19 `-legacy`)                          | Quarkus (17+)                                  |
 |--------------------|--------------------------------------------------|------------------------------------------------|
 | Install root       | `/opt/jboss/keycloak/`                           | `/opt/keycloak/`                               |
-| Context path       | `/auth` always                                   | none (restore: `--http-relative-path=/auth`)   |
+| Context path       | `/auth` always                                   | none (restore: `--http-relative-path=/auth` — AND put `/auth` in the `hostname` URL too: hostname-v2 takes it verbatim and does NOT auto-append the relative path; with only the relative-path option set, endpoints serve under `/auth` but the advertised issuer lacks it, and issuer-validating clients break) |
 | Config             | `standalone.xml`, `standalone-ha.xml`, jboss-cli | `conf/keycloak.conf`, CLI args, `KC_*` env vars |
 | Custom providers   | `standalone/deployments/` (hot deploy, EAR/WAR)  | `providers/` jar + `kc.sh build` (no hot deploy) |
 | Initial admin      | `KEYCLOAK_USER`/`KEYCLOAK_PASSWORD` (container) or `add-user-keycloak.sh` | 17–25: `KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD`; 26+: `KC_BOOTSTRAP_ADMIN_USERNAME`/`KC_BOOTSTRAP_ADMIN_PASSWORD` |
