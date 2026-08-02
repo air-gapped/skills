@@ -263,3 +263,34 @@ migration dropped.
   identically on 26.
 - Watch the permission escalations when reusing scoped service accounts across
   versions (e.g. `partial-export` view→manage in 23, §4).
+
+### Managing multiple server versions from one workstation
+
+One shaded jar + one wrapper + one session file **per site**:
+
+```bash
+# jars pulled from each site's own pod/image (bin/client/, §above)
+~/.local/lib/keycloak/keycloak-admin-cli-19.0.3.jar
+~/.local/lib/keycloak/keycloak-admin-cli-26.7.0.jar
+
+# wrapper per site, session file baked in
+cat > ~/.local/bin/kcadm-old <<'EOF'
+#!/bin/sh
+exec java -cp "$HOME/.local/lib/keycloak/keycloak-admin-cli-19.0.3.jar" \
+  org.keycloak.client.admin.cli.KcAdmMain "$@" --config "$HOME/.keycloak/old-site.config"
+EOF
+```
+
+Rules that make this work:
+
+- **Never share the default `~/.keycloak/kcadm.config`** across sites — it
+  holds a single session context; logging into site B silently clobbers
+  site A's session. `--config` per site, baked into the wrapper.
+- Pair each wrapper with a per-site credentials env file
+  (`~/.config/keycloak/<client>-<site>.env`).
+- Remember the per-version seams when scripting across both: `/auth` base
+  path on legacy vs none on Quarkus; stricter arg parsing on 23+ (no
+  shell-eval, usage-error exit code 2 on 25+); role requirements differ
+  (§4, §ladder).
+- This side-by-side setup is exactly the migration-verification topology:
+  export via each site's wrapper, normalize, diff (§4).
