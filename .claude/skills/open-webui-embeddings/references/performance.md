@@ -24,3 +24,17 @@ Rough numbers from a single Ada-class consumer GPU at fp16 — for sizing hardwa
 | BGE-Reranker-v2-m3 at burst (c=64, query+10 docs) | ~24 req/s |
 
 Both models combined fit easily in 16 GB VRAM at fp16 (~3 GB total). On datacenter GPUs (H100/H200), expect 5–10× higher throughput; ratios remain similar.
+
+## This baseline is the calibration point
+
+These are the only *measured* numbers in the skill, so they anchor the estimates
+elsewhere. BGE-M3 at ~150k chars/s ≈ 45k tok/s, with ~312M compute-relevant
+params (568M total − 256M vocab embedding table) on ~165 TFLOPS bf16, works out
+to **~17% MFU**. `references/model-selection.md` §throughput extrapolates that
+figure to other model sizes on an H200.
+
+If you re-measure on your own hardware, update the MFU there too — and treat
+every number in that table as an estimate until you do. Embedding is pure
+prefill, so FLOPs ≈ 2 × compute-params × tokens holds well; the uncertainty is
+entirely in MFU, which drops for small models (overhead-bound) and rises for
+large ones.

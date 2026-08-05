@@ -2,6 +2,15 @@
 
 Load this file when bootstrapping a new Open WebUI + LiteLLM + TEI deployment. The config is the worked example for BGE-M3 (embed) + BGE-Reranker-v2-m3 (rerank) and generalises to any TEI-served encoder.
 
+> **Model choice here is historical — the wiring is not.** As a *TEI + LiteLLM
+> wiring* reference this file is current and correct. As a *model recommendation*
+> it is superseded: BGE-M3 now sits well down the MTEB retrieval table, and
+> `bge-reranker-v2-m3` scores **below the no-reranker baseline** on MTEB-R and
+> MMTEB-R. Read `references/model-selection.md` before adopting either. Both are
+> kept as the worked example because they are the canonical TEI-served pair and
+> exercise every quirk in `gotchas.md` — and because BGE-M3 is the only
+> prefix-free model, which keeps this config minimal.
+
 ## LiteLLM (`config.yaml`)
 
 ```yaml

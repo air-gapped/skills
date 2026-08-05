@@ -280,7 +280,7 @@ This is the same cross-engine numerical-identity idiom as
 
 ## Reranking is unaffected
 
-Cross-encoder rerankers (`BAAI/bge-reranker-v2-m3`, `Qwen3-Reranker-*`) take the
+Cross-encoder rerankers (`Qwen3-Reranker-*`, `bge-reranker-v2-m3`) take the
 (query, document) pair directly and apply no prefixes. None of this file applies to
 `RAG_RERANKING_*`.
 
