@@ -41,6 +41,13 @@ Authoritative references underlying this skill. Read these when this skill is wr
 | TEI Blackwell image tags (`100-1.9`, `120-1.9`, `121-1.9`) | https://github.com/huggingface/text-embeddings-inference#docker-images — README image-tag table | 2026-05-28 | TEI README @ main — not re-probed 2026-07-21 |
 | BGE-Reranker-v2-m3 trained max_length=1024 | https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/9 — maintainer Shitao: "max length of this model is 8192, ... we fine-tune this model with a max length of 1024, so we recommend to set max_length=1024" | 2026-05-01 | discussion 9 (HF, not re-probed this pass) |
 
+**Prefix-model sources live in `references/prefix-models.md`** (its own Sources
+table, verified 2026-08-05): the `config_sentence_transformers.json` prompt strings
+for EmbeddingGemma / Qwen3-Embedding, the e5 and BGE-M3 model-card FAQs, and the
+open-webui call sites for mode-A/mode-B prefix dispatch. Re-probe those there, not
+here — they are model-card facts, not open-webui or LiteLLM facts, and move on a
+different clock.
+
 **The `encoding_format: None` gotcha is still live (checked 2026-07-21).** The
 revert (25698) has not been re-reverted and no general fix has merged. PR
 **#24277** — `fix(openai): filter None values from embedding optional_params` —

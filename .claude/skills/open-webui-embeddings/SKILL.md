@@ -3,12 +3,14 @@ name: open-webui-embeddings
 description: |-
   Wire HuggingFace embedding + reranker models (BGE-M3, BGE-Reranker-v2-m3, etc.) into Open WebUI's RAG pipeline via LiteLLM proxying HuggingFace Text Embeddings Inference (TEI). Covers the exact wire shapes Open WebUI sends (URL auto-append on embed but NOT rerank; payload + response shapes for both modes), the LiteLLM-TEI gotchas (encoding_format=null trap, HF-driver task_type misdetection, openai vs huggingface driver tradeoffs), TEI config cliffs (max-client-batch-size 422 under hybrid search, max-batch-tokens AS the auto-truncate boundary, arch-specific Docker images), and the end-to-end production config. BGE-M3 + BGE-Reranker-v2-m3 are worked examples; patterns generalise to any TEI encoder.
 when_to_use: |-
-  Trigger on "open-webui rag", "RAG_OPENAI_API_BASE_URL", "RAG_EXTERNAL_RERANKER_URL", "ExternalReranker", "litellm tei rerank", "encoding_format null", "TEI 422 batch size", "BGE-M3 deployment", "open-webui rerank 404", "Cohere rerank shape", "/v1/rerank vs /rerank", "max-batch-tokens trained ceiling", "tei docker image hangs", "RAG_EMBEDDING_CONCURRENT_REQUESTS". NOT for Open WebUI chat-completion routing, multimodal, or UI/auth; or non-TEI embedding backends (sentence-transformers in-process, Ollama, vLLM, Infinity).
+  Trigger on "open-webui rag", "RAG_OPENAI_API_BASE_URL", "RAG_EXTERNAL_RERANKER_URL", "ExternalReranker", "litellm tei rerank", "encoding_format null", "TEI 422 batch size", "BGE-M3 deployment", "open-webui rerank 404", "Cohere rerank shape", "/v1/rerank vs /rerank", "max-batch-tokens trained ceiling", "tei docker image hangs", "RAG_EMBEDDING_CONCURRENT_REQUESTS", and on embedding-model choice or prefix wiring: "RAG_EMBEDDING_QUERY_PREFIX", "RAG_EMBEDDING_PREFIX_FIELD_NAME", "embeddinggemma", "qwen3-embedding", "multilingual-e5", "query: passage: prefix", "which embedding model for open-webui", "rag quality dropped after model swap". NOT for Open WebUI chat-completion routing, multimodal, or UI/auth; or in-process sentence-transformers embedding.
 ---
 
 # Open WebUI embeddings + reranking — operator reference
 
 Target: operators wiring Open WebUI's RAG pipeline to HuggingFace Text Embeddings Inference (TEI) via LiteLLM. Three hops, each with its own wire-shape quirks. Most failure modes silently degrade to "answer quality dropped" rather than visible errors — this skill is a triage for catching them at config-time.
+
+**Scope split.** Everything on the Open WebUI side — the env vars, the `/v1/embeddings` payload, prefix handling, concurrency — is **backend-agnostic** and applies equally to vLLM, Infinity, or OpenAI itself behind `RAG_EMBEDDING_ENGINE=openai`. Only the cliffs in `references/gotchas.md` §2-§6 and §9 are genuinely tied to TEI.
 
 Verified against **v0.11.0** source (2026-07-29). The embed and rerank code paths are unchanged from 0.10.2 — 0.11.0's retrieval churn landed almost entirely in `retrieval/web/` (web search), not the embedding core — so every wire shape and env default below still holds. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
 
@@ -78,8 +80,8 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_EMBEDDING_MODEL` | embed | Sent in payload as `model`. Must match LiteLLM's `model_name` exactly (case-sensitive, full HF path). |
 | `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1`. Bumping to `32` reduces per-request overhead during indexing. Legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE` still honoured as a fallback (`config.py:1001-1002`). |
 | `RAG_EMBEDDING_CONCURRENT_REQUESTS` | embed | Concurrency cap. Default `0` = unlimited (`asyncio.gather` without semaphore). Set to a bounded number (4-8) to avoid bursting TEI. |
-| `RAG_EMBEDDING_PREFIX_FIELD_NAME` | embed | Extra field name for prefix-needing models (e.g. `prompt` for EmbeddingGemma). Leave unset for BGE-M3 — its query/passage symmetry is built into the model. |
-| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | Prefix strings (paired with the field name above). Unused for BGE-M3. |
+| `RAG_EMBEDDING_PREFIX_FIELD_NAME` | embed | **A mode switch, not a value — leave UNSET for `RAG_EMBEDDING_ENGINE=openai`.** Unset = prefix is string-prepended to the text (what vLLM/LiteLLM/TEI need); set = prefix is sent as a separate JSON field, which only Ollama's native API understands. Setting it empty (`""`, or a k8s `name:` with no `value:`) silently disables prefixes. See `references/prefix-models.md`. |
+| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | The query and document label strings. Unused for BGE-M3 (symmetric); **required** for every other mainstream embedder — e5, EmbeddingGemma, Qwen3-Embedding are all asymmetric. Exact per-model strings in `references/prefix-models.md`. Plain `os.getenv` (`config.py:1009-1013`), not PersistentConfig: env-only, invisible in the admin UI, restart to apply. |
 | `RAG_RERANKING_ENGINE` | rerank | Set to `external` for Cohere-shape endpoints. |
 | `RAG_EXTERNAL_RERANKER_URL` | rerank | **Full URL including path** (no auto-append). E.g. `http://litellm:4000/v1/rerank`. |
 | `RAG_EXTERNAL_RERANKER_API_KEY` | rerank | Bearer token. |
@@ -95,6 +97,7 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | Rerank returns 422 with `batch size N > maximum allowed batch size M` | Bump TEI `--max-client-batch-size` | `references/gotchas.md` §3 |
 | Rerank returns 404 on `POST /v1` | Open WebUI rerank URL needs full path including `/v1/rerank` | `references/gotchas.md` §7 |
 | Open WebUI "Retrieved 1 source" but answer quality dropped | Rerank is silently 4xx — check TEI/LiteLLM logs | `references/gotchas.md` §3 |
+| Retrieval quality dropped after an embedding-model swap, no errors anywhere | Asymmetric model needs query/document prefixes, or `PREFIX_FIELD_NAME` is set and eating them | `references/prefix-models.md` |
 | TEI pod hangs at "Starting FlashBert model" | Wrong arch image — match GPU compute capability | `references/gotchas.md` §5 |
 | TEI returns 429 during knowledge-base upload | Open WebUI concurrency too high; cap `RAG_EMBEDDING_CONCURRENT_REQUESTS` | `references/gotchas.md` §6 |
 | Reranker quality degraded since recent config change | `--max-batch-tokens` past trained ceiling lets long inputs through | `references/gotchas.md` §4 |
@@ -112,5 +115,6 @@ This is a pure API-shape change — embedding and retrieval quality are unaffect
 
 - **`references/gotchas.md`** — nine gotchas with HTTP error strings, root causes, and fixes. Load when triage table points here.
 - **`references/end-to-end-config.md`** — full working LiteLLM + Open WebUI + TEI config (BGE-M3 + BGE-Reranker-v2-m3 worked example). Load when bootstrapping a new deployment.
+- **`references/prefix-models.md`** — symmetric vs asymmetric embedders, the exact query/document prefix strings for e5, EmbeddingGemma and Qwen3-Embedding, the `PREFIX_FIELD_NAME` mode switch, and a numerical check that the prefix is really being applied. Load whenever the embedding model is **not** BGE-M3.
 - **`references/performance.md`** — quality verification (cross-engine numerical-identity check) + throughput baseline. Load for sizing or post-deployment health checks.
 - **`references/sources.md`** — authoritative source files and PR/issue URLs underlying every claim. Load to verify a specific claim or run `freshen` mode.
