@@ -426,7 +426,12 @@ mutation. One change per iteration (keep the autoresearch attribution rule).
 **Fix priority:**
 1. **Add explicit trigger phrases for the missed phrasings.** Take the failed
    queries verbatim, extract their key noun + verb, add to `when_to_use` as
-   `Triggers on "X", "Y", "Z"`.
+   `Triggers on "X", "Y", "Z"`. Generalise to the failure *class* while
+   extracting: the phrase that covers "why does my python look wrong" is
+   stronger eval-bait than the literal query, and the weakest phrasing that
+   captures the class is what survives the held-out test split (the weakness
+   criterion, SKILL.md Phase 2) — pasting whole queries verbatim overfits
+   train and buys nothing on test.
 2. **Be pushier.** Anthropic's own guidance: convert "How to do X" into "Use
    this skill whenever the user mentions X, Y, Z, or asks about W — even if
    they don't explicitly say 'X.'"

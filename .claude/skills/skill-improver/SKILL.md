@@ -105,6 +105,16 @@ and "fixing" it from memory regresses the skill.
 
 **The simplicity criterion (from autoresearch):** A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome. A +1 score that adds 20 lines of noise? Skip. A +1 from deleting redundant content? Keep.
 
+**The weakness criterion (Bennett's razor):** When an edit responds to an
+observed failure — a blind-agent flag, a missed trigger, an eval miss — write
+it no more specifically than the failure *class* forces. Encoding the literal
+failing case (the exact query phrase, the one flag name the eval used) is the
+strongest possible hypothesis and the least likely to cover the next unseen
+case; held-out test splits exist to punish exactly that. Prefer the weakest
+rule that still excludes the observed failure. Weak ≠ short: generalisation
+probability scales with what a rule permits, not its brevity
+(arXiv:2301.12987), so this is a separate axis from the simplicity criterion.
+
 **Format-only hypotheses are low expected value.** SkillLens (arXiv:2605.23899) measured skill format (ordered list vs prose vs checklist vs unordered) as statistically non-significant on every tested target, while changing what the skill *says* was significant on 5/6 — prefer content hypotheses (mechanism + remedy, blacklists, coverage) over reformatting, renaming, or restructuring-for-looks. (The 2026-07-18 self-run confirmed this empirically: all three format/naming iterations discarded at Δ0.)
 
 ### Phase 3: Mutate (Make the Change)

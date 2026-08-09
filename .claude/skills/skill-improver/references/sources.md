@@ -213,6 +213,7 @@ unrestamped.
 | Armin Ronacher — The Coming Loop | https://lucumr.pocoo.org/2026/6/23/the-coming-loop/ | Independent practitioner take (2026-06-23) on the loop shift — third-party corroboration of the loop-engineering discourse | 2026-07-18 | — |
 | SkillOpt paper | https://arxiv.org/abs/2605.23904 | Microsoft text-space optimizer for agent skills (v2, 2026-05-25): bounded add/delete/replace edits, held-out validation gate, textual learning rate, rejected-edit buffer, slow/meta update. Source of this skill's rejected-edit buffer + noise floor (adopted 2026-07-18). Read from local PDF. | 2026-07-18 | v2 |
 | SkillLens paper | https://arxiv.org/abs/2605.23899 | Companion lifecycle study (2026-05-22): 25% negative transfer; LLM plausibility judging = 46.4% accuracy, inverts to 15.8% on high-gap pairs; format non-significant; validated 3-dim rubric (failure mechanism encoding, actionable specificity, high-risk blacklist) lifts judging to 73.8%. Source of rubric §SkillLens Utility Check + Pattern 10.1b. Read from local PDF. | 2026-07-18 | v1 |
+| Bennett — Weakest Not Shortest | https://arxiv.org/abs/2301.12987 | v4 2024: weakest (largest-extension) hypothesis maximises P(generalisation) under uniform task prior; MDL neither necessary nor sufficient; weak ≠ short. Source of the weakness criterion (SKILL.md Phase 2) and the failure-class rule in trigger Pattern T1. Read from local PDF. | 2026-08-09 | v4 |
 
 ## Search Queries for Future Research
 
