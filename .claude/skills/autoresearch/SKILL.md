@@ -141,8 +141,9 @@ LOOP:
        follows 3+ consecutive discards, flag: `⚠ ANOMALY: delta=X is Nx rolling
        avg after plateau — inspect for reward hacking.` Pause one iteration to
        reflect. Do NOT auto-discard — could be a breakthrough — but be suspicious.
-     - EQUAL: Keep ONLY if simpler (fewer lines, simpler logic). Log
-       "kept-simpler" or "discarded-no-gain".
+     - EQUAL: Keep ONLY if simpler (fewer lines, simpler logic) or strictly
+       more general (drops an assumption about inputs the verifier doesn't
+       exercise). Log "kept-simpler" or "discarded-no-gain".
      - REGRESSED: `git revert HEAD --no-edit` (preserves history). Log "discarded".
 
   7. LOG: Append to results.tsv (commit, metric, delta, status, duration_s, description).
@@ -180,6 +181,19 @@ When stopping, print a summary table of all experiments and the cumulative impro
 Prefer deletions. A change that removes code for equal-or-better metric is always
 worth keeping; a small gain that adds ugly complexity is not. The git history should
 read as a clean sequence of wins, not a pile of hacks.
+
+### The Generality Criterion (weakness)
+
+Simplicity and generality are different axes: hard-coding the benchmark's input
+size is one line, and also a maximally specific bet. Among candidates that
+measure the same, prefer the one that assumes less about inputs the verifier
+doesn't exercise — the probability a change holds beyond the measurement scales
+with how little it commits to, not how short it is (Bennett, arXiv:2301.12987:
+the weakest hypothesis consistent with the data generalises best; the shortest
+is neither necessary nor sufficient). A change keyed to eval-data specifics
+(exact sizes, seeds, strings, fixture quirks) is overfitting even when the
+number improves — and it is the shape reward hacking usually takes, so this
+criterion and the anomaly check reinforce each other.
 
 ---
 
