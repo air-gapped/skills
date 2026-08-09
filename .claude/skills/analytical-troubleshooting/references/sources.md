@@ -25,3 +25,4 @@ expect `fresh` on re-probe; content drift is unlikely short of retraction.
 | https://firetrucksandequipment.tpub.com/TM-9-254/css/TM-9-254_231.htm | US Army TM 9-254: half-split doctrine (public domain) | 2026-07-29 |
 | https://surfingcomplexity.blog/2020/05/13/making-peace-with-root-cause-during-anomaly-response/ | Two-regime split: live diagnosis vs post-incident learning | 2026-07-29 |
 | https://trademarks.justia.com/owners/kepner-tregoe-inc-2560359 | KT trademark registrations (naming/IP boundary for this skill) | 2026-07-29 |
+| https://arxiv.org/abs/2301.12987 | Bennett v4 2024: weakest (largest-extension) hypothesis maximises P(generalisation); grounds weakest-survivor ranking | 2026-08-09 |

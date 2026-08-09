@@ -69,3 +69,16 @@ per-candidate opposing evidence (clinical diagnosis practice).
   success; evidence interpretation and strategy-switching do — hence the
   strategy toolkit and the opportunistic staging rather than one rigid
   ladder.
+- **Weakest-survivor ranking (Stage 3 formulation, Stage 4 ranking):** among
+  hypotheses that fit all current evidence, the one committing to the least
+  beyond what the evidence forces is the most probable — formally, the
+  probability a hypothesis stays consistent with not-yet-collected facts
+  scales with its extension (the set of possibilities it permits), so every
+  unforced detail strictly lowers it (Bennett 2023/24, "The Optimal Choice
+  of Hypothesis Is the Weakest, Not the Shortest": weakness maximisation is
+  necessary and sufficient under a uniform task prior; length/simplicity is
+  neither). The same asymmetry appears in humans as the conjunction fallacy:
+  detailed causal stories feel more explanatory while being strictly less
+  probable. The spec table supplies the counter-force — IS-NOT cells refute
+  under-specified causes — so the skill states it as floor-and-ceiling:
+  exactly as specific as the table plus refutability force, no more.

@@ -171,6 +171,15 @@ Parallel matters: a single cherished hypothesis is the documented anchor-trap.
 Keep a live numbered list (H1..Hn) with status (alive / refuted / verified)
 and tag every piece of evidence with the hypotheses it bears on.
 
+**State each mechanism at the weakest level the table forces.** The spec sets
+a floor on specificity (the candidate must explain every IS and spare every
+IS-NOT) and testability keeps it refutable — but do not exceed that floor.
+Every detail not purchased by a table cell is an unforced commitment that
+makes the hypothesis strictly less probable while making the story *feel*
+more explanatory (the conjunction fallacy). "Something in the upgraded DB
+version raises peak memory" beats "the v16 parallel-dump default doubles
+work_mem" until a cell forces the narrower claim.
+
 **Edge cases change the move** (see `references/edge-cases.md`): if the thing
 *never* worked ("Day One" deviation), there is no change to find — hunt
 distinctions against a working sibling only. If the decline was gradual,
@@ -185,8 +194,12 @@ explain each IS — **and** each IS-NOT?"*
 - A candidate that requires the IS-NOT side to be false is refuted by
   evidence already in hand. Kill it. This is free — no lab time spent.
 - A candidate that fits only with extra assumptions survives *provisionally*;
-  write the assumptions down. Rank survivors by assumption load: fewest,
-  simplest, most reasonable assumptions first.
+  write the assumptions down. Rank survivors **weakest first**: the candidate
+  that commits to the least beyond what the table forces. Assumptions and
+  unforced detail are the same currency — specificity must be purchased by an
+  IS or IS-NOT cell, and every unpurchased commitment is another way to be
+  wrong when the next cell fills in. The weakest survivor is the one most
+  likely to still fit the evidence you haven't collected yet.
 - The top survivor is the **most probable cause** — a rank, not a verdict.
   Paper never proves; it only prunes.
 
@@ -231,7 +244,9 @@ to a proper retrospective — don't do it here.
   "it's probably just X", "let's try reinstalling everything", "must be a
   <vendor> bug" (without a mechanism), proposing a second fix while the first
   is unverified, an IS-NOT cell contradicting a hypothesis everyone still
-  likes, three swaps in a row with no new table entries.
+  likes, three swaps in a row with no new table entries, a hypothesis more
+  specific than any cell forces (the vivid detailed story is the anchor-trap
+  wearing its best clothes).
 - **Proportionality, restated:** severity does not dictate ceremony. A severe
   problem with an obvious verified cause needs no table; a "minor" recurring
   annoyance that has eaten four debugging sessions deserves the full method.
