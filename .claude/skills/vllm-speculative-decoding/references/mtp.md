@@ -21,21 +21,28 @@ inherits the target's domain coverage.
 
 ## Models in vLLM main today
 
-Per `config/speculative.py:34-50` and `model_executor/models/`:
+Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
+(line numbers drift). **22 aliases at v0.27.0**:
 
 | Family | Model types | vLLM model file |
 |---|---|---|
-| DeepSeek V3 / R1 / V3.2 | `deepseek_mtp` | `deepseek_mtp.py` |
-| GLM-4.5 / 4.6 MoE | `glm4_moe_mtp`, `glm4_moe_lite_mtp`, `glm_ocr_mtp` | `glm4_moe_mtp.py` + variants |
+| DeepSeek V3 / R1 / V3.2 / V4 | `deepseek_mtp` | `deepseek_mtp.py`, `models/deepseek_v32/*/mtp.py`, `models/deepseek_v4/*/mtp.py` |
+| GLM-4.5 / 4.6 MoE, GLM-OCR | `glm4_moe_mtp`, `glm4_moe_lite_mtp`, `glm_ocr_mtp` | `glm4_moe_mtp.py` + variants |
 | Qwen3-Next-80B-A3B | `qwen3_next_mtp` | `qwen3_next_mtp.py` |
 | Qwen3.5 / Qwen3.5-MoE | `qwen3_5_mtp` | `qwen3_5_mtp.py` |
-| MiMo-7B | `mimo_mtp` | `mimo_mtp.py` |
+| MiMo-7B, MiMo v2 | `mimo_mtp`, `mimo_v2_mtp` | `mimo_mtp.py`, `mimo_v2_mtp.py` |
 | ERNIE 4.5 | `ernie_mtp` | `ernie_mtp.py` |
 | Nemotron-H | `nemotron_h_mtp` | `nemotron_h_mtp.py` |
 | EXAONE-MoE, EXAONE 4.5 | `exaone_moe_mtp`, `exaone4_5_mtp` | `exaone_*_mtp.py` |
 | LongCat-Flash | `longcat_flash_mtp` | (single layer only) |
 | Pangu-Ultra-MoE | `pangu_ultra_moe_mtp` | `openpangu_mtp.py` |
 | Step-3.5 | `step3p5_mtp` | `step3p5_mtp.py` |
+| Gemma 4 | `gemma4_mtp` | `gemma4_mtp.py` |
+| Hunyuan v3 | `hy_v3_mtp` | `hy_v3_mtp.py` |
+| Bailing hybrid | `bailing_hybrid_mtp` | `bailing_moe_mtp.py` |
+| MiniMax-M3 | `minimax_m3_mtp` | `models/minimax_m3/*/mtp.py` |
+| **Kimi K3** (new, v0.26–v0.27) | `kimi_k3_mtp` | `models/kimi_k3/*/mtp.py` |
+| **Inkling** (new, v0.26–v0.27) | `inkling_mtp` | `models/inkling/*/mtp.py` |
 
 **All of these are deprecated aliases.** Users should set `method: "mtp"`;
 vLLM detects the target type and dispatches (PR #25232, v0.11.1).

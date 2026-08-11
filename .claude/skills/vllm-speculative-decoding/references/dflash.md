@@ -44,6 +44,16 @@ vLLM plumbing: `vllm/v1/spec_decode/dflash.py:20-250+`. Model definition:
    raises if the target emits MM inputs.
 5. Checkpoint must be a DFlash-trained adapter — not a standard EAGLE-3
    checkpoint. Not many of these exist yet; Qwen3-8B is the reference target.
+6. **`sample_from_anchor` comes from the checkpoint, not the CLI, and defaults
+   to `False`.** With it unset, the anchor position is a bonus token and only
+   the mask tokens predict, so a `block_size = N` drafter yields **N - 1**
+   speculative tokens, not N. vLLM reads the flag out of the speculators-format
+   config from v0.27.0 ([PR #48639](https://github.com/vllm-project/vllm/pull/48639)) —
+   on older builds it is always `False` regardless of what the checkpoint says.
+   Same field, same semantics, for **DSpark**
+   (`vllm/transformers_utils/configs/speculators/algos.py`). If measured
+   drafts-per-step is one below what the checkpoint card advertises, this is
+   why — it is not a bug.
 
 ## Published numbers
 

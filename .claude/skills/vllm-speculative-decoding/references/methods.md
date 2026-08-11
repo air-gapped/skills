@@ -111,9 +111,32 @@ speculative decoding: target and draft may have **different but overlapping**
 vocabularies. It is based on an ICML 2025 method and closes the long-standing
 request #38173.
 
+**TLI is opt-in and does not apply itself.** Set `use_heterogeneous_vocab: true`
+inside `--speculative-config`. Leave it unset and vLLM still runs
+`verify_equal_vocab_size_if_draft_model()` and rejects the pair — the
+mismatched-vocab error you were trying to escape.
+
+```bash
+vllm serve <target> --speculative-config \
+  '{"method":"draft_model","model":"<other-family-tiny-model>",
+    "num_speculative_tokens":4,"use_heterogeneous_vocab":true}'
+```
+
+Two **hard** constraints, both raised as `ValueError` at config validation
+(`vllm/config/speculative.py`, v0.27.0):
+
+- **`method` must be `draft_model`.** *"use_heterogeneous_vocab only works with
+  method='draft_model'"*. TLI is not available for `eagle3`, `mtp`, `dflash`,
+  `dspark` or any head-based method — those share the target's embedding space
+  by construction.
+- **`draft_sample_method` must be `greedy`** (the default). *"use_heterogeneous_vocab
+  currently only supports greedy draft sampling."* If you had set
+  `draft_sample_method: "probabilistic"` to keep the drafter's full logits for
+  the ratio test, TLI and that setting are mutually exclusive today.
+
 This widens drafter selection considerably — a small model from a different
 family is now a candidate where previously only same-tokenizer pairs were. Two
-caveats before relying on it:
+soft caveats:
 
 - The vocabularies must *overlap*; TLI operates on the intersection. A drafter
   with a disjoint vocabulary still gains nothing.
@@ -137,7 +160,7 @@ auxiliary hidden states from designated intermediate layers.
   than `draft_model`
 - `parallel_drafting: true` enables P-EAGLE variant (v0.16+, PR #32887); see
   `eagle3.md`
-- **EAGLE-3 target-model allow-list** — **superseded at v0.25.1 by the `SupportsEagle3` interface; see SKILL.md.** (Was config/speculative.py:895-909 as of
+- **EAGLE-3 target-model allow-list** — **superseded at v0.25.1 by the `SupportsEagle3` interface, still absent at v0.27.0; see SKILL.md.** (Was config/speculative.py:895-909 as of
   2026-04-24 — grep `aux_hidden_states_supported` on upgrade; line numbers
   drift): llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
   nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4

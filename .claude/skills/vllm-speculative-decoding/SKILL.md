@@ -43,7 +43,7 @@ across 466 published checkpoints.**
 
 | Situation | Pick | Why |
 |---|---|---|
-| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL |
+| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5, **Kimi K3**, **Inkling**, MiniMax-M3, Bailing-hybrid, Gemma 4) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL. Authoritative list: `MTPModelTypes` in `vllm/config/speculative.py` — 22 aliases at v0.27.0 |
 | Qwen3 / Llama / DeepSeek / gpt-oss / Kimi K2 / Minimax M2 / Gemma 4 / Nemotron-H target on B200 class | `dflash` | Block-diffusion parallel drafter, 2.5–4.6× at BS=1, v0.19+ |
 | Same list above, want mature / pre-trained head | `eagle3` | Current SOTA model-based method for listed families (v0.11.1+) |
 | Agentic / code-editing / RL-rollout workload with repetition | `suffix` | Model-free suffix trees, 1.8–4.5× on SWE-Bench. Requires `pip install arctic-inference` |
@@ -56,7 +56,7 @@ across 466 published checkpoints.**
 Through ~v0.21 this was a 14-name allowlist in `vllm/config/speculative.py`
 (llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
 nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4).
-**At v0.25.1 that list is gone from the file.** Support is now a *capability
+**At v0.27.0 that list is still gone from the file** (re-verified 2026-08-11). Support is now a *capability
 interface*: `SupportsEagle3` in `vllm/model_executor/models/interfaces.py`,
 checked by `supports_eagle3(model)` in
 `vllm/v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`, which raises
@@ -178,7 +178,11 @@ perf. If operating off a build older than these, upgrade before benchmarking.
 | **peagle** speculators (#41826) and **post-norm EAGLE-3** speculators (#42764) | **v0.22.0** | Wider checkpoint compatibility |
 | **Dynamic SD** (PR #32374) | **v0.24.0** | Adapts speculation depth at runtime; made full-CUDA-graph compatible in v0.25.0 (#45953) |
 | ⚠ **DoS fix: invalid recovered-token reinjection in spec-dec** (PR #44744) | **v0.24.0** | **Remote denial of service.** Listed under Security in the v0.24.0 notes. Anyone running spec-dec on an internet-reachable endpoint should be ≥ v0.24.0 |
-| **TLI — universal spec-dec for heterogeneous vocabularies** (PR #38174) | **v0.25.0** | Target and drafter may have different but *overlapping* vocabularies. Removes the same-tokenizer constraint |
+| **TLI — universal spec-dec for heterogeneous vocabularies** (PR #38174) | **v0.25.0** | Target and drafter may have different but *overlapping* vocabularies. **Opt-in:** `"use_heterogeneous_vocab": true`, `method: "draft_model"` only, `draft_sample_method: "greedy"` only |
+| **`kv_cache_dtype` inside `--speculative-config`** (PR #48787) | **v0.26.0** | Drafter KV dtype set independently of the target's `--kv-cache-dtype`. Unset = inherit. Lets a small drafter keep BF16 KV while the target runs FP8 |
+| **Multi-layer MTP speculator on Model Runner V2** (PR #48892) | **v0.27.0** | MTP heads with more than one layer now run under MRV2 |
+| **Quantized DSpark Markov heads** (PR #50424) | **v0.27.1** | `DSparkMarkovHead.markov_w2` accepts `quant_config`; W4A16 (incl. `weight_scale_2`) now loads through normal quantization dispatch. Before this, the Markov head stayed unquantized whatever the checkpoint declared |
+| Native-MTP target list gains **Kimi K3** (`kimi_k3_mtp`) and **Inkling** (`inkling_mtp`) | **v0.26–v0.27** | `MTPModelTypes` 20 → 22 entries |
 | **`dspark`** drafter (#46995, #47093) | **v0.25.0** | New base method + speculators checkpoint support |
 | **Block verification** for rejection sampling (#46781) | **v0.25.0** | `RejectionSampleMethod` gains `"block"` alongside `standard` / `synthetic` |
 | DFlash: **CPU support** (#44029), backend selection (#46770), FlashInfer (#43081), per-layer RMSNorm fusion (#46761) | **v0.24–v0.25** | DFlash matured well past its v0.19 debut |
@@ -213,11 +217,18 @@ traps not captured by those.
 7. **Tokenizer mismatch between draft and target destroys acceptance.** The
    `draft_model` validator does a vocab-size check, but not token-id
    alignment. Verify with a shared-tokenizer family — **unless you are on
-   v0.25.0+ and using TLI**, which is designed for exactly the mismatched case
-   (see below).
+   v0.25.0+ and opt in to TLI**. TLI is *not* automatic: set
+   `"use_heterogeneous_vocab": true` in `--speculative-config`, or the
+   equal-vocab check still rejects the pair. It requires
+   `method: "draft_model"` and `draft_sample_method: "greedy"` (the default);
+   both are hard `ValueError`s. See `references/methods.md`.
 8. **Quantization mismatch**: drafter in FP16 + target in FP8 is fine;
    drafter in INT4 + target in FP8 causes AL collapse. Align where possible,
-   or measure before adopting.
+   or measure before adopting. **DSpark exception (v0.27.1+):** the Markov head
+   is a separate quantizable surface — `DSparkMarkovHead.markov_w2` only honours
+   the checkpoint's quantization from [#50424](https://github.com/vllm-project/vllm/pull/50424)
+   onward. On ≤ v0.27.0 it silently loads unquantized, so a W4A16 DSpark
+   checkpoint uses more drafter VRAM than its card implies.
 
 ## Composability (current, verified)
 
@@ -230,7 +241,9 @@ Nemotron-H MTP LoRA in v0.16.0 (#32265).
 `Pipeline parallel + spec-dec` → MRV2 only, v0.17.0+ (#33960). **Not V1 on
 current engine runner**; if pinning PP on non-MRV2, spec-dec is off.
 `FP8 KV + spec-dec` → supported. Sparse MLA + MTP full CUDA graphs v0.17.0
-(#34457). FP8 MLA KV specific fix #37054.
+(#34457). FP8 MLA KV specific fix #37054. From **v0.26.0** the drafter can carry
+its own `kv_cache_dtype` inside `--speculative-config` (#48787); unset means it
+inherits the target's `--kv-cache-dtype`.
 `Structured outputs + spec-dec` → v0.16.0+ (#33374). Prior: incompatible.
 `Disaggregated serving + spec-dec` → v0.17.0+ (#34529). KV-transfer fix #35158
 in v0.18.0.
@@ -268,9 +281,13 @@ silent regressions after upgrade, and metric-interpretation pitfalls.
 
 ## External references
 
-Last verified: 2026-04-24. All vLLM PR / HF-checkpoint / Arctic-Inference URLs
-probed via `gh` + HF API. Provenance table, classifications, and
-re-verification recipe in `references/sources.md`.
+Last verified: **2026-08-11**. Source claims are probed against **v0.27.0**
+(2026-08-10) except the DSpark Markov head, probed against **v0.27.1**
+(2026-08-11, current stable). vLLM source and PRs probed via `gh`;
+HF-checkpoint and Arctic-Inference rows carry older stamps — see
+`references/sources.md` for the per-row provenance table, classifications, and
+re-verification recipe. The **v0.27.1 container images** were pushed 2026-08-11 10:24-10:42Z, before the GitHub release at 10:47Z;
+pull `vllm/vllm-openai:v0.27.1` rather than waiting on a PyPI wheel.
 
 - Main docs: <https://docs.vllm.ai/en/latest/features/speculative_decoding/>
 - Per-method docs: `/features/speculative_decoding/{eagle,mtp,draft_model,mlp,n_gram,suffix}/`

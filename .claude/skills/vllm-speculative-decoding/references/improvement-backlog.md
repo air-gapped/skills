@@ -40,6 +40,54 @@ minors, not three.
 **Not re-probed:** the four original PRs (long-merged, gates unchanged),
 ArcticInference, the yuhuili checkpoint, and the training-data recipe survey.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.1)
+
+- **TLI was documented as a capability but never as a configuration.** The
+  2026-07-21 pass correctly retired the unconditional same-tokenizer rule, but
+  never named the flag. TLI is **opt-in**: `use_heterogeneous_vocab: true`
+  inside `--speculative-config`. Without it,
+  `verify_equal_vocab_size_if_draft_model()` still runs and rejects exactly the
+  pair the feature exists to allow. It also carries two hard `ValueError`s —
+  `method` must be `draft_model`, and `draft_sample_method` must be `greedy`.
+  **All three facts were already true at v0.25.1.** *Lesson: a release note
+  tells you a capability exists; only the config dataclass tells you how to
+  spell it. Read the dataclass.* Fixed in SKILL.md pitfall 7, the version-gate
+  row, and `methods.md`.
+- **`kv_cache_dtype` inside `--speculative-config`** (#48787, v0.26.0) — the
+  drafter can now hold a KV dtype independent of the target's; unset inherits.
+  Found by diffing the whole `SpeculativeConfig` field set v0.25.1 -> v0.27.0,
+  which showed it was the *only* field added. That diff is now in the
+  re-verification recipe.
+- **`sample_from_anchor`** (#48639, v0.27.0) — a **checkpoint** field, not a CLI
+  flag, for DFlash and DSpark. Default `False` means a `block_size = N` drafter
+  yields **N-1** speculative tokens. Explains a measured drafts-per-step one
+  below the checkpoint card without it being a bug.
+- **Quantized DSpark Markov heads** (#50424, **v0.27.1**, the release's sole
+  change) — `DSparkMarkovHead.markov_w2` now forwards `quant_config`, so W4A16
+  incl. `weight_scale_2` loads normally. The skill made **no** claim that the
+  head must be unquantized, so nothing was retracted; the operator-facing
+  consequence (on <= v0.27.0 the head loads unquantized whatever the checkpoint
+  says, costing drafter VRAM) went into pitfall 8.
+- `MTPModelTypes` 20 -> **22**: **Kimi K3** and **Inkling** now ship native MTP
+  heads. Method-selection row 1 and `mtp.md`'s table updated — the latter had
+  also been missing `mimo_v2_mtp`, `minimax_m3_mtp`, `bailing_hybrid_mtp`,
+  `gemma4_mtp`, `hy_v3_mtp` from earlier releases.
+- **Re-verified without change:** the `SupportsEagle3` capability interface is
+  still the mechanism at v0.27.0 (no allowlist returned to
+  `config/speculative.py`); base method count still **13**, so the frontmatter
+  count stands.
+
+**Process hazard hit this run:** a concurrent git operation in the parent
+session reverted the working tree mid-pass and discarded applied edits. They
+were re-applied via a script with per-edit exact-match assertions. Verify edits
+are on disk before reporting when a freshen pass shares a session with anything
+that commits.
+
+**Not re-probed, declared rather than assumed:** ArcticInference (now three
+passes stale — the `suffix` method depends on it being installable, so it is
+first up next pass), the yuhuili checkpoint, the EAGLE 3.1 blog, the
+training-data recipe survey, and the four long-merged original PRs.
+
 ## Open
 
 - **Deduplicate the BS>=32 / domain-mismatch caveat** — Dim 6 (Simplicity).
