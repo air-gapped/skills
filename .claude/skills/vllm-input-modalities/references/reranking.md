@@ -57,6 +57,24 @@ vllm serve Qwen/Qwen3-Reranker-0.6B \
 
 Skipping any of the three produces random-looking scores, not errors.
 
+**The other cause of "random-looking scores" — engine version, not config.**
+PR #48901 (merged 2026-07-17, shipped **v0.26.0**) fixed a bug in which any
+LAST-pooling model returned wrong scores when a query+document pair was long
+enough for chunked prefill to split it, *and* `torch.compile` was on (the
+default). The PR's own repro: a matching pair scores ~0.83 when it fits in one
+chunk and collapses to ~0.01–0.36, varying run-to-run, when chunked. Neither
+condition alone reproduces it — `--enforce-eager` was always correct, and the
+offline batch path happened not to chunk. Root cause was a buffer-lifetime
+race in the compiled forward, so the wrong value is plausible, not garbage:
+no NaN, no zeros, cosine similarity ~0.47 against the eager hidden state.
+
+Operational consequence: on **< v0.26.0**, ranking quality silently degraded
+as documents got longer, and the degradation is not reproducible run to run.
+Re-score anything ranked by an older engine on long inputs — an upgrade alone
+does not repair the index. Diagnostic on an old engine: re-run the same pair
+with `--enforce-eager`; if the score jumps, this is the bug and not the
+`--hf-overrides`.
+
 Score templates (Jinja) apply only to cross-encoder models. Access query
 via:
 ```jinja
@@ -211,4 +229,4 @@ token) but scoring is cheap once indexed.
 - **#36818** — ColPali.
 - **#33686** — ColBERT.
 
-Last verified: 2026-07-21 against vLLM v0.25.1. One behaviour change since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, which was previously silently treated as `top_n=0` (= return all). Everything else in the reranking/scoring surface is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.
+Last verified: 2026-08-11 against vLLM v0.27.0. Two behaviour changes since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, previously silently treated as `top_n=0` (= return all); and **#48901 (v0.26.0) fixed wrong scores from LAST-pooling models under chunked prefill + `torch.compile`** — see §2, the one item on this page that invalidates *past* results rather than changing future ones. The endpoint surface (`/rerank`, `/score` and their aliases) is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.

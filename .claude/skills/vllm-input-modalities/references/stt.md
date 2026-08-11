@@ -23,10 +23,20 @@ No `--runner transcription` flag. The dispatch is by model type, not flag.
 | `/v1/audio/transcriptions` | OpenAI-compatible | `multipart/form-data` with `file`, `model`, optional `language`, `prompt`, `response_format`, `temperature` |
 | `/v1/audio/translations` | OpenAI-compatible (translate to English) | same |
 
-Code:
-- `vllm/entrypoints/openai/speech_to_text/api_router.py:52-100`
-- `vllm/entrypoints/openai/speech_to_text/serving.py:33-120`
-- `vllm/entrypoints/openai/speech_to_text/speech_to_text.py:83` — base
+**Code moved.** The STT entrypoints no longer live under
+`vllm/entrypoints/openai/` — that path 404s at v0.27.0. Current layout:
+
+- `vllm/entrypoints/speech_to_text/base/` — `protocol.py`, `serving.py`, `utils.py`
+- `vllm/entrypoints/speech_to_text/transcription/` — `api_router.py`, `protocol.py`, `serving.py`
+- `vllm/entrypoints/speech_to_text/translation/`, `.../realtime/` — siblings
+- `vllm/entrypoints/speech_to_text/factories.py`
+
+**`response_format` gained `diarized_json`** (#48543, v0.27.0), transcriptions
+only — translations are unchanged, matching the OpenAI contract. It returns
+OpenAI-shaped speaker-attributed segments, preserving the model's own labels
+(`S01`, `S02`). The parser is model-gated and only runs for this format, so
+`json` / `text` / `verbose_json` behave exactly as before.
+`OpenMOSS-Team/MOSS-Transcribe-Diarize` is the first supported model.
 
 Task types (from `vllm/tasks.py:5-6`):
 `GenerationTask = Literal["generate", "transcription", "realtime"]`.
@@ -51,7 +61,7 @@ Task types (from `vllm/tasks.py:5-6`):
 | FireRedASR2 | `FireRedASR2-*` | family | Chinese-first ASR, v2 |
 | MiniCPM-O | `openbmb/MiniCPM-o-2_6` | `MiniCPMWhisperEncoder` | on-device scale |
 | Cohere ASR | `cohere/*` | `CohereASRForCausalLM` | newer addition |
-| MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | — | added v0.25.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper |
+| MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | — | added v0.25.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper. Ask for it via `response_format=diarized_json` (#48543, v0.27.0). Max audio duration is **90 minutes** as of #49403 (v0.27.0) — before that it inherited Whisper's 30 s assumption, sized the encoder cache from `max_num_batched_tokens`, and **rejected long audio at request time** |
 | Gemma 3n | `Gemma3nForConditionalGeneration` | family | multimodal, audio optional |
 
 Model files live under `vllm/model_executor/models/` — grep for
@@ -93,6 +103,12 @@ curl -X POST http://localhost:8000/v1/audio/translations \
   -F "model=openai/whisper-large-v3-turbo"
 ```
 
+The translation endpoint accepts `top_p`, `top_k`, `min_p`,
+`frequency_penalty`, `repetition_penalty`, `presence_penalty` and
+`vllm_xargs` from **v0.27.0** (#45839); defaults are neutral, so nothing
+changes unless you send them. Before that only `temperature` was plumbed
+through, and the transcription endpoint had the richer parameter set.
+
 ```python
 from openai import OpenAI
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="unused")
@@ -123,6 +139,15 @@ Server-side:
 Recent fix: **#39116** (merged 2026-04-09) fixed a spacing bug between
 chunks in multi-chunk transcription. Shipped in v0.19.1 (2026-04-18) and
 v0.20.0 (2026-04-27). Pin ≥v0.19.1 for long-form audio.
+
+**Long-form timestamps were wrong until v0.27.0** (#41131, fixes issue
+#32588). Chunk start times were computed as if `split_audio` cut exactly at
+30 s, but the splitter searches a 1-second window before that point and can
+land at 29.2 s. The error *accumulated*: ~1 s per chunk, so a 10-chunk file
+drifted ~5 s by the end. The fix carries the previous chunk's actual end
+forward instead. Transcript text was always correct — only the timestamps
+lied, which is exactly the failure a caption pipeline notices late.
+`TranscriptionSegment.seek` also became an `int`.
 
 ## 7. Beam search + streaming
 
@@ -180,9 +205,12 @@ the request client with your own timing instrumentation.
 
 ## 11. Source anchors
 
-- `vllm/entrypoints/openai/speech_to_text/api_router.py:52-100` — routes
-- `vllm/entrypoints/openai/speech_to_text/serving.py:33-120` — dispatch
-- `vllm/entrypoints/openai/speech_to_text/speech_to_text.py:83+` — base
+- `vllm/entrypoints/speech_to_text/transcription/api_router.py` — routes
+- `vllm/entrypoints/speech_to_text/base/serving.py` — dispatch + chunking
+- `vllm/entrypoints/speech_to_text/base/protocol.py` — `response_format`
+  values incl. `diarized_json`
+- `vllm/entrypoints/speech_to_text/factories.py` — per-model wiring
+- `vllm/model_executor/models/interfaces.py` — which models may diarize
 - `vllm/config/speech_to_text.py` — `SpeechToTextConfig` (sample rate,
   chunking params)
 - `vllm/tasks.py:5-6` — `GenerationTask`
@@ -190,4 +218,14 @@ the request client with your own timing instrumentation.
   `SupportsTranscription`
 - Red Hat STT blog: <https://developers.redhat.com/articles/2025/06/10/speech-text-whisper-and-red-hat-ai-inference-server>
 
-Last verified: 2026-07-21 against vLLM v0.25.1. The `/v1/audio/transcriptions` + `/v1/audio/translations` request surface is unchanged through v0.25.1 - #42370/#42274 (v0.22.0) consolidated the STT entrypoints and tests internally with no endpoint change, and #47071/#47437 (v0.25.0) fixed pooled-Whisper sliding-window KV *sizing* only. Roster gained MOSS-Transcribe-Diarize (#47729, v0.25.0). PR #39116 merged 2026-04-09, shipped v0.19.1 + v0.20.0.
+Last verified: 2026-08-11 against vLLM v0.27.0. The request surface **did move
+this time**, after being frozen through v0.25.1: `diarized_json` on
+transcriptions (#48543), cumulative long-form chunk timestamps (#41131),
+`top_p` / `top_k` / `min_p` / frequency, repetition and presence penalties and
+`vllm_xargs` on the **translation** endpoint (#45839), and MOSS-TD's max audio
+duration raised to 90 minutes (#49403) — all v0.27.0. The entrypoint package
+also moved out of `vllm/entrypoints/openai/` (§2, §11); the old paths 404 at
+v0.27.0. Earlier: #42370/#42274 (v0.22.0) were internal consolidation,
+#47071/#47437 (v0.25.0) fixed pooled-Whisper KV *sizing* only, and
+MOSS-Transcribe-Diarize joined the roster in v0.25.0 (#47729). PR #39116
+merged 2026-04-09, shipped v0.19.1 + v0.20.0.

@@ -25,9 +25,10 @@ vLLM decides what a model *does* from the combination of three flags:
 ```
 
 The pair `(runner, convert)` has replaced the old `--task {generate|embed|
-score|classify|reward|...}` flag. The old `--task` is **deprecated** and
-still works in current releases, but emits a deprecation warning and is
-scheduled for full removal. Canonical today:
+score|classify|reward|...}` flag. `--task` is **gone**, not deprecated —
+there is no `task` field in `ModelConfig` and no `--task` in
+`vllm/engine/arg_utils.py` at v0.27.0, so passing it is an
+unrecognized-argument error. Canonical today:
 
 | Workload | Command | Runner | Notes |
 |---|---|---|---|
@@ -223,10 +224,12 @@ no dedicated `/ocr` endpoint.
 
 ## Top pitfalls
 
-1. **`--task embed` is deprecated, not dead.** It still works in current
-   vLLM, with a warning. New deployments should use `--runner pooling`. The
-   `score` task is also deprecated; use `--convert classify` on a
-   `num_labels==1` model to light up `/score` + `/rerank`.
+1. **`--task embed` is dead, not deprecated.** The flag no longer exists —
+   passing it fails argument parsing. Use `--runner pooling`. The `score`
+   and `encode` *pooling task names* are removed too and raise
+   `VLLMValidationError` (`vllm/tasks.py`): use `--convert classify` on a
+   `num_labels==1` model to light up `/score` + `/rerank`, and
+   `token_embed` / `token_classify` in place of `encode`.
 
 2. **Pooling runs on PIECEWISE CUDA graphs, not full graphs.** That's
    deliberate (pooling models have variable-shape outputs). Don't force
@@ -248,6 +251,10 @@ no dedicated `/ocr` endpoint.
    instruction-tuned causal LM masquerading as a cross-encoder — skipping
    any of the three extras (see the reranking cheat-sheet command above)
    gives random-looking scores, not errors. Full recipe: `references/reranking.md` §2.
+   **Second cause of the same symptom, below v0.26.0:** #48901 — any
+   LAST-pooling model returns wrong scores once a query+doc pair is long
+   enough to be chunk-prefilled, under `torch.compile` (the default). Rule
+   out the version before re-checking the overrides.
 
 6. **DeepSeek-OCR with prefix caching on.** It doesn't crash — it just
    wastes time and memory. Same for `--mm-processor-cache-gb > 0` for pure
@@ -289,7 +296,7 @@ Also landed: `jina-reranker-v3` (#38800), **Jina Embeddings v5** (#39575),
 `max_tokens_per_doc` in `/rerank` (#38827), **Generative Scoring** (#34539),
 ASR multi-chunk spacing fix (#39116).
 
-### Since v0.20.0 (current baseline v0.25.1, released 2026-07-14)
+### v0.21.0 → v0.25.1
 
 **The v0.20.0 migration above is still the canonical runner surface** —
 nothing in v0.21–v0.25 changed `--runner` / `--convert` / `PoolerConfig`.
@@ -351,6 +358,47 @@ Grok, Tarsier/Tarsier2, AyaVision/MusicFlamingo, Mantis. None are pooling
 or STT models, but check before pinning a newer image for an unrelated
 reason.
 
+### v0.26.0 + v0.27.0 (baseline v0.27.0, released 2026-08-10)
+
+*Latest release is v0.27.1 (2026-08-11), a one-change patch — "quantized
+DSpark Markov heads" (#50424) — with nothing on this skill's surface. The
+claims below were verified against the `v0.27.0` tag.*
+
+**A pooling correctness bug, fixed in v0.26.0 — the highest-value item on
+this page.** #48901: LAST-pooling models (the PR names
+`Qwen/Qwen3-Reranker-0.6B`) returned **wrong relevance scores** whenever a
+query+document pair was long enough for its prefill to be split into chunks,
+but only under `torch.compile` (the default). A pair scoring ~0.83 unchunked
+collapsed to ~0.01–0.36 and varied run to run. `--enforce-eager` was always
+correct and the offline batch path happened not to chunk, which is why it hid
+so easily. **Any ranking a pre-v0.26.0 engine produced on long documents is
+suspect** — this is a re-score, not just an upgrade. `references/reranking.md` §2.
+
+**Model Runner V2 reached pooling — but pooling still defaults to V1.**
+v0.26.0/v0.27.0 landed encoder-only attention (#49331), sequence
+`embed`/`classify` pooling (#48791), `token_classify` (#50293), `token_embed`
+(#50574) and BGE-M3's `embed&token_classify` (#50661) on MRV2. The
+default-enable PR (#48290) is **still open**, so nothing changes unless
+`VLLM_USE_V2_MODEL_RUNNER=1` is set. Details and the escape hatch:
+`references/runner-flags.md` §11.
+
+**STT request surface moved forward (v0.27.0):** `diarized_json` response
+format (#48543), cumulative long-form chunk timestamps (#41131), extra
+sampling params on the *translation* API (#45839), MOSS-TD max audio duration
+raised to 90 minutes (#49403). The STT entrypoint package also moved on disk —
+`references/stt.md` §2.
+
+**New pooling architectures:** `jina-embeddings-v5-text-nano` (#50688,
+v0.27.0 — EuroBERT *encoder* backbone under the existing
+`JinaEmbeddingsV5Model`); `BertForMaskedLM` (#48463),
+`RobertaForTokenClassification` / `XLMRobertaForTokenClassification` (#47991),
+LongCat-Flash-Lite n-gram embedding (#47857), all v0.26.0.
+
+**More removals, none on this surface:** TeleChat (#47989), Persimmon and Fuyu
+(#48096) in v0.26.0; Plamo2 (#49729) and Ouro (#49786) in v0.27.0. Unrelated
+but image-bump relevant: `max_num_partial_prefills` and
+`max_long_partial_prefills` were removed in v0.27.0 (#49244).
+
 ## Paired skills
 
 - `vllm-configuration` → environment variables, cache paths, telemetry opt-out.
@@ -367,15 +415,16 @@ reason.
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.26+ release (further pooling-runner changes), a
-  new Jina embeddings major version, or a new native-multimodal reranker
-  shipping. Note that the last two passes both found the *runner* surface
-  frozen while **request validation** tightened underneath it — grep release
-  bodies for `pooling|rerank|embedding|matryoshka|top_n`, not just for
-  runner flags.
+- Refresh triggers: any v0.28+ release, MRV2 becoming the pooling default
+  (#48290), a new Jina embeddings major version, or a new native-multimodal
+  reranker shipping. Note that three passes running have found the *runner*
+  surface quiet while **request validation and pooling correctness** moved
+  underneath it — grep release bodies for
+  `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags.
 - External-ref audit log: `references/sources.md`.
 
-Last verified: 2026-07-21 (against vLLM v0.22.0–v0.25.1 release notes plus
-the PRs behind each pooling/rerank/STT/OCR hit; v0.20.0 runner-migration
-surface still unchanged, but two v0.24.0 request-validation tightenings now
-reject calls that previously succeeded silently).
+Last verified: 2026-08-11 (against vLLM v0.26.0 + v0.27.0 release notes, the
+PRs behind each pooling/rerank/STT/OCR hit, and the v0.27.0 source tree for
+the runner flags, task enums and MRV2 pooling gate). Headline: #48901 made
+pre-v0.26.0 LAST-pooling scores untrustworthy on chunk-prefilled pairs, and
+`--task` is now absent from the CLI entirely rather than deprecated.

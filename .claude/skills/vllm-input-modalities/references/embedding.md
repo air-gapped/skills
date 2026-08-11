@@ -125,7 +125,14 @@ Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
   ```
   Output is multi-vector per token — client-side normalization required.
 - **v5** (`JinaEmbeddingsV5Model`) is first-class — PR #39575 landed in
-  v0.20.0 (2026-04-27). Select adapter at serve time:
+  v0.20.0 (2026-04-27). One architecture, **two backbones**, dispatched on
+  the checkpoint's `is_decoder` (#50688, v0.27.0): `-text-small` keeps the
+  Qwen3 *decoder* path, `-text-nano` uses a bidirectional **EuroBERT
+  encoder** with `EncoderOnlyAttention`. Both reuse the same task-adapter and
+  pooling logic, so the serve command is identical — but the nano variant is
+  encoder-only, which is what makes it eligible for the MRV2 token-wise
+  pooling path (see `references/runner-flags.md` §11).
+  Select adapter at serve time:
   ```bash
   --hf-overrides '{"jina_task":"retrieval"}'     # or text-matching,
                                                  # classification, clustering
@@ -182,7 +189,10 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 - v0.16+ shipped mean-pooling optimisation via `index_add` — ~5.9% throughput
   win on mean-pool models.
 - Chunked prefill + prefix caching: both work on embedding models; leave
-  defaults on.
+  defaults on — **but only from v0.26.0**. Below that, chunked prefill plus
+  `torch.compile` (the default pair) silently produced *wrong* vectors and
+  scores on LAST-pooling models; PR #48901 is the fix. See
+  `references/reranking.md` §2 for the repro and the re-score consequence.
 - Tensor parallel is supported: `--tensor-parallel-size 2`. Hidden-dim
   divisibility applies.
 
@@ -211,10 +221,15 @@ r = requests.post("http://localhost:8000/v2/embed", json={
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
 
-Last verified: 2026-07-21 against vLLM v0.25.1. Two changes since v0.21.0,
-both v0.24.0: **#46313** now rejects matryoshka `dimensions` above
-`hidden_size` (previously a silent wrong-width result — see §3), and
-**#45173** makes `/v1/embeddings` accept message-shaped input plus
-`chat_template_kwargs` (see §1). Jina v5 PR #39575 landed v0.20.0; pooling
-perf wins #41163/#41433 landed v0.21.0. HuggingFace model cards for the
-families in §4 were not re-fetched this pass.
+Last verified: 2026-08-11 against vLLM v0.27.0. Changes since v0.21.0:
+**#46313** (v0.24.0) rejects matryoshka `dimensions` above `hidden_size`
+(previously a silent wrong-width result — see §3); **#45173** (v0.24.0) makes
+`/v1/embeddings` accept message-shaped input plus `chat_template_kwargs`
+(see §1); **#48901** (v0.26.0) fixes wrong vectors/scores from LAST-pooling
+models under chunked prefill + `torch.compile` (see §7). Roster gained
+`jina-embeddings-v5-text-nano` (#50688, v0.27.0), `BertForMaskedLM` (#48463),
+`RobertaForTokenClassification` / `XLMRobertaForTokenClassification` (#47991)
+and LongCat-Flash-Lite n-gram embedding (#47857) — all four confirmed present
+in `vllm/model_executor/models/registry.py` at v0.27.0. Jina v5 PR #39575
+landed v0.20.0; pooling perf wins #41163/#41433 landed v0.21.0. HuggingFace
+model cards for the families in §4 were not re-fetched this pass.

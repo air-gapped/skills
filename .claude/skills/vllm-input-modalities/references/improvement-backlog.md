@@ -15,6 +15,60 @@ pass actually changed.
   evidence log — deleting from any one harms a different dimension, so this
   is a deliberate-tension item, not a one-edit win. (carried 2026-05-28)
 
+## Resolved — 2026-08-11 (freshen, rebaseline v0.25.1 → v0.27.0)
+
+- **A pooling *correctness* bug, the pass's headline** — #48901 (v0.26.0).
+  LAST-pooling models returned wrong scores whenever chunked prefill split a
+  query+doc pair, under `torch.compile` only. The previous two passes both
+  found request *validation* tightening; this is the first finding that
+  invalidates **results already produced**, so the guidance says re-score,
+  not just upgrade. Applied to SKILL.md pitfall 5, `reranking.md` §2 (with
+  the `--enforce-eager` A/B diagnostic) and `embedding.md` §7, where the
+  skill previously said chunked prefill "works, leave defaults on" without
+  a version floor.
+- **Caught a claim that was stale before the last pass, not because of it.**
+  The skill said `--task` was "deprecated, not dead — still works with a
+  warning". Source probes at v0.22.0, v0.25.1 and v0.27.0 all show no `task`
+  field in `ModelConfig` and no `--task` in `arg_utils.py`. Release-note
+  diffing could never have caught this, because the removal predates the
+  skill's own previous baseline. **Method note for future passes:** re-probe
+  the load-bearing *negative* claims ("X still works") against source, not
+  just the delta between two release bodies. Same class: `score` / `encode`
+  pooling task names now raise `VLLMValidationError`.
+- **MRV2 pooling documented with the default correctly stated.** The v0.27.0
+  release note headline reads as though pooling moved to Model Runner V2. It
+  did not: #48290 is still open and
+  `_is_default_v2_model_runner_model` returns False for non-`generate`
+  runners. Recorded as opt-in, with the token-task/encoder-only restriction
+  and the `VLLM_USE_V2_MODEL_RUNNER=0` escape hatch (`runner-flags.md` §11).
+  A pass that trusted the headline would have told operators their pooling
+  deployments had changed under them.
+- **Fixed dead source anchors.** The whole STT entrypoint package moved out
+  of `vllm/entrypoints/openai/`; every path in `stt.md` §2/§11 404s at
+  v0.27.0. Anchors rot silently — worth a cheap existence check each pass.
+- **STT request surface additions** (all v0.27.0): `diarized_json` (#48543),
+  cumulative chunk timestamps (#41131 — long-form drift of ~1 s per chunk),
+  translation-API sampling params (#45839), MOSS-TD 90-minute audio ceiling
+  (#49403, which had been rejecting long audio at request time).
+- **Roster additions:** `jina-embeddings-v5-text-nano` (#50688 — same arch,
+  EuroBERT *encoder* backbone, which is what makes it MRV2-eligible),
+  `BertForMaskedLM`, `Roberta`/`XLMRobertaForTokenClassification`,
+  LongCat-Flash-Lite n-gram embedding. All confirmed in `registry.py`.
+- **Corrected an overstatement found while re-verifying for the restamp:**
+  `NGramPerReqLogitsProcessor` does not "enforce" the whitelist / ngram /
+  window values — it reads them from per-request `extra_args`. The recipe
+  supplies them, so a client that bypasses the recipe's request shape loads
+  the processor unconfigured (`ocr.md` §3).
+
+**Carried forward:** the Open item below (v0.20.0 PR-list redundancy across
+three files) is untouched. Note this pass added a second version section to
+SKILL.md, which pushes mildly in the same direction — if a future pass wants
+to collapse anything, the v0.20.0/v0.21–v0.25 history is the older and
+therefore cheaper half to compress.
+
+**Not probed this pass:** HuggingFace model cards, the Red Hat Whisper/RHAIIS
+blog, the `docs.vllm.ai` pooling doc tree, and the DeepSeek-OCR recipes page.
+
 ## Resolved — 2026-07-21 (freshen, rebaseline v0.21.0 → v0.25.1)
 
 - **Two silent-success → hard-error changes found and documented** (the pass's

@@ -12,6 +12,44 @@ records when the reference was last verified and its classification:
   or "unverifiable" note.
 - **unverifiable** — reachable but couldn't confirm the claim.
 
+## 2026-08-11 freshen (rebaseline v0.25.1 → v0.27.0)
+
+Two minors of drift (v0.26.0 published 2026-07-27, v0.27.0 published
+2026-08-10). Unlike the last two passes, this one found a **correctness**
+regression rather than a validation tightening — and one long-stale claim the
+release notes could never have surfaced, because the change predates the
+skill's own previous baseline.
+
+| Ref | URL | Last verified | Classification | Notes |
+|---|---|---|---|---|
+| vLLM v0.27.0 | <https://github.com/vllm-project/vllm/releases/tag/v0.27.0> | 2026-08-11 | new-feature | Published 2026-08-10. **All source probes in this pass were made against the `v0.27.0` tag.** |
+| vLLM v0.27.1 (latest) | <https://github.com/vllm-project/vllm/releases/tag/v0.27.1> | 2026-08-11 | fresh | Published 2026-08-11 10:47Z, mid-pass. Patch release with exactly one change — "Support quantized DSpark Markov heads" (#50424) — which touches no pooling, rerank, STT or OCR surface, so the v0.27.0 probes above stand. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, gates this stack. Not restamped onto individual claims, because it was not probed. |
+| vLLM v0.26.0 | <https://github.com/vllm-project/vllm/releases/tag/v0.26.0> | 2026-08-11 | new-feature | Published 2026-07-27. |
+| PR #48901 — wrong pooling scores under chunked prefill + `torch.compile` | <https://github.com/vllm-project/vllm/pull/48901> | 2026-08-11 | **broken / correctness** | Merged 2026-07-17, v0.26.0. Fixes #48831. LAST-pooling models (PR names `Qwen/Qwen3-Reranker-0.6B`) returned wrong scores when a query+doc pair was chunk-prefilled, *only* under `torch.compile`. Repro: ~0.83 unchunked → ~0.01–0.36 chunked, varying run-to-run. `--enforce-eager` always correct; offline batch path happened not to chunk. Buffer-lifetime race in the compiled forward — cosine ~0.47 vs eager, no NaN/zeros, so the wrong value is *plausible*. **Invalidates past results, not just future ones.** Applied to SKILL.md pitfall 5 + new baseline section, reranking.md §2, embedding.md §7. |
+| `--task` flag absent from the CLI | v0.27.0 `vllm/engine/arg_utils.py`, `vllm/config/model.py`, `docs/models/pooling_models/README.md` | 2026-08-11 | **deprecation → removed** | Source probe, not a release note. No `task` field in `ModelConfig` and no `--task` in `arg_utils.py` at v0.22.0, v0.25.1 **or** v0.27.0; the pooling doc documents only `--runner`/`--convert`. The skill had claimed since v0.20.0 that `--task` "still works with a warning" — that was already stale at its own previous baseline. Applied to SKILL.md mental model + pitfall 1, runner-flags.md §1/§3/§7. |
+| `score` / `encode` pooling task names | v0.27.0 `vllm/tasks.py` | 2026-08-11 | **deprecation → removed** | `check_removed_pooling_task` raises `VLLMValidationError` naming the replacement (`classify`; `token_embed`/`token_classify`). Previously described as "deprecated". Applied to runner-flags.md §3/§7. |
+| MRV2 pooling series — #49331, #48791, #50293, #50574, #50661 | <https://github.com/vllm-project/vllm/pull/50661> | 2026-08-11 | new-feature | v0.26.0–v0.27.0. #50661 completes encoder-only pooling for every in-tree task. Before it, BGE-M3 **failed to start** on V2 (`get_pooling_task()` ranks `embed&token_classify` first, then the runner rejected it). Applied to runner-flags.md §11. |
+| PR #48290 — enable MRV2 for pooling by default | <https://github.com/vllm-project/vllm/pull/48290> | 2026-08-11 | **fresh (still OPEN)** | Not merged. Confirms pooling is *not* on MRV2 by default; corroborated by `VllmConfig._is_default_v2_model_runner_model` returning False for `runner_type != "generate"` in v0.27.0 `vllm/config/vllm.py:637-658`, and `VLLM_USE_V2_MODEL_RUNNER` defaulting to `None` in `vllm/envs.py:279`. The release-note headline "MRV2 expands to non-generative workloads" would otherwise read as a default change. |
+| MRV2 token-task restriction | v0.27.0 `vllm/v1/worker/gpu/pool/pooling_runner.py:65-78` | 2026-08-11 | new-feature | `_get_enabled_tasks` subtracts `token_embed`/`token_classify` unless `attn_type == "encoder_only"`. Startup error names the escape hatch `VLLM_USE_V2_MODEL_RUNNER=0`. |
+| STT entrypoint package moved | v0.27.0 `vllm/entrypoints/speech_to_text/` | 2026-08-11 | **broken (source anchors)** | `vllm/entrypoints/openai/speech_to_text/` returns 404 at v0.27.0. New layout: `base/`, `transcription/`, `translation/`, `realtime/`, `factories.py`. Every anchor in stt.md §2/§11 pointed at the dead path. Applied. |
+| PR #48543 — `diarized_json` | <https://github.com/vllm-project/vllm/pull/48543> | 2026-08-11 | new-feature | Merged 2026-07-29, v0.27.0, closes #48443. Transcriptions only (translations unchanged, matching the OpenAI contract). Model-gated, fail-closed parser; `json`/`text`/`verbose_json` paths untouched. Applied to stt.md §2 + roster row. |
+| PR #41131 — cumulative STT chunk timestamps | <https://github.com/vllm-project/vllm/pull/41131> | 2026-08-11 | **broken (fixed)** | Merged 2026-07-27, v0.27.0, fixes #32588. `split_audio` searches a 1 s window before the nominal 30 s cut, but offsets assumed an exact 30 s; error accumulated ~1 s/chunk (~5 s over 10 chunks). Text was always right — only timestamps drifted. `TranscriptionSegment.seek` is now `int`. Applied to stt.md §6. |
+| PR #45839 — translation-API sampling params | <https://github.com/vllm-project/vllm/pull/45839> | 2026-08-11 | new-feature | Merged 2026-07-21, v0.27.0. Adds `top_p`, `top_k`, `min_p`, frequency/repetition/presence penalties and `vllm_xargs` to `/v1/audio/translations`; defaults neutral. Applied to stt.md §5. |
+| PR #49403 — MOSS-TD max audio duration | <https://github.com/vllm-project/vllm/pull/49403> | 2026-08-11 | **broken (fixed)** | Merged 2026-07-25, v0.27.0. MOSS-TD treated Whisper's 30 s chunk as the whole-item maximum, reporting ~375 `max_tokens_per_mm_item`, so encoder cache fell back to `max_num_batched_tokens` and longer audio was **rejected at request time**. Now sized from MOSS-TD's real 90-minute ceiling (67,500 audio embedding tokens). Applied to stt.md roster row. |
+| PR #50688 — jina-embeddings-v5-text-nano | <https://github.com/vllm-project/vllm/pull/50688> | 2026-08-11 | new-feature | Merged 2026-08-03, v0.27.0. Same `JinaEmbeddingsV5Model` architecture, dispatched on `is_decoder`: `-small` = Qwen3 decoder, `-nano` = bidirectional EuroBERT encoder with `EncoderOnlyAttention`. Applied to embedding.md §4. |
+| New pooling architectures in v0.26.0 | v0.27.0 `vllm/model_executor/models/registry.py` | 2026-08-11 | new-feature | Confirmed registered: `BertForMaskedLM` (#48463), `RobertaForTokenClassification` / `XLMRobertaForTokenClassification` (#47991); LongCat-Flash-Lite n-gram embedding (#47857) from the release notes. Recorded in embedding.md footer. |
+| DeepSeek-OCR recipe constants | v0.27.0 `vllm/model_executor/models/deepseek_ocr.py` | 2026-08-11 | version-drift | `NGramPerReqLogitsProcessor` still present, and `mm_processor_cache_gb` still in `vllm/config/model.py` — all three recipe flags valid. But the class reads `whitelist_token_ids`/`ngram_size`/`window_size` from per-request `extra_args` (lines 140-195); it does not hard-code them, so "enforces" overstated it. GUNDAM sizes are imported constants (`BASE_SIZE`/`IMAGE_SIZE`/`CROP_MODE`) and were not re-read upstream. Applied to ocr.md §3. |
+
+**Ecosystem removals, none on this skill's surface:** TeleChat (#47989),
+Persimmon and Fuyu (#48096) in v0.26.0; Plamo2 (#49729) and Ouro (#49786) in
+v0.27.0. Also `max_num_partial_prefills` / `max_long_partial_prefills` removed
+in v0.27.0 (#49244) — belongs to the scheduler surface, recorded here only
+because an image bump surfaces it.
+
+**Still not probed:** HuggingFace model cards, the Red Hat Whisper/RHAIIS blog,
+the `docs.vllm.ai` pooling doc tree, and the DeepSeek-OCR recipes page — all
+listed under "Non-probed references" below and unchanged in status.
+
 ## 2026-07-21 freshen (rebaseline v0.21.0 → v0.25.1)
 
 Four minors of drift. Probed every release body v0.22.0 → v0.25.1 for the

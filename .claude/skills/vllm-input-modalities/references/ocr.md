@@ -21,7 +21,7 @@ biases them hard toward transcription of document images.
 | Model | vLLM class | File | Notes |
 |---|---|---|---|
 | `deepseek-ai/DeepSeek-OCR` | `DeepseekOCRForCausalLM` | `vllm/model_executor/models/deepseek_ocr.py:358` | 3B, the reference OCR model since Oct 2025 |
-| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py:240` | v2, wider layout support |
+| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py:240` | v2, wider layout support. TTFT optimisation in v0.27.0 (#49531) |
 | `THUDM/glm-ocr-*` | `GlmOcrForCausalLM` | `glm_ocr.py` | `model_type=glm_ocr` inside glm4_1v family |
 | `glm-ocr-mtp-*` | `GlmOcrForCausalLM` (MTP head) | `glm_ocr_mtp.py` | multi-token prediction variant |
 | `rednote-hilab/dots.ocr` (family) | `DotsOCRForCausalLM` | `dots_ocr.py` | dense layout + table handling |
@@ -47,9 +47,14 @@ vllm serve deepseek-ai/DeepSeek-OCR \
 
 Three non-obvious flags, none optional:
 
-1. **`--logits-processors ...NGramPerReqLogitsProcessor`** — enforces
+1. **`--logits-processors ...NGramPerReqLogitsProcessor`** — applies the
    table-token whitelist (`{128821, 128822}`) with `ngram_size=30`,
-   `window_size=90`. Without it, dense tables regress badly.
+   `window_size=90`. Without it, dense tables regress badly. Note the class
+   does not hard-code those numbers: it reads `whitelist_token_ids`,
+   `ngram_size` and `window_size` from each request's `extra_args`
+   (`deepseek_ocr.py:140-195`), and the recipe above is what supplies them.
+   A client that bypasses the recipe's request shape gets the processor
+   loaded but unconfigured.
 2. **`--no-enable-prefix-caching`** — OCR requests don't share prefixes;
    the cache is pure bookkeeping overhead.
 3. **`--mm-processor-cache-gb 0`** — multimodal processor caching targets
@@ -148,11 +153,16 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-Last verified: 2026-07-21 against vLLM v0.25.1. Roster gained
+Last verified: 2026-08-11 against vLLM v0.27.0 **source** (not the recipes
+page). Confirmed still present: `NGramPerReqLogitsProcessor` in
+`vllm/model_executor/models/deepseek_ocr.py`, and `mm_processor_cache_gb` in
+`vllm/config/model.py` — so all three recipe flags remain valid. Roster gained
 `baidu/Unlimited-OCR` (#46564, v0.25.0) on top of Qianfan-OCR (#40136,
-v0.21.0). The DeepSeek-OCR recipe flow — all three flags and GUNDAM mode —
-is unchanged across v0.20.x → v0.25.1. The recipes page URL was confirmed
-live on 2026-05-28 and was **not** re-fetched this pass.
+v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531). The
+recipes page URL was confirmed live on 2026-05-28 and was **not** re-fetched
+in this pass or the previous one; the GUNDAM-mode resolution numbers are
+imported constants (`BASE_SIZE` / `IMAGE_SIZE` / `CROP_MODE`) and were not
+re-read against upstream this pass.
 
 ## 8. Source anchors
 
