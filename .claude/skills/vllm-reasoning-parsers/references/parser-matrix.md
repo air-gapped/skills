@@ -1,6 +1,6 @@
 # Per-parser matrix
 
-One row per registered name. **27 registered names** at v0.25.1.
+One row per registered name. **29 registered names** at v0.27.0.
 
 **Two implementation paths now — check which one a name is on before reading its
 source.** A refactor has moved several parsers into a new top-level
@@ -20,14 +20,28 @@ formally OPEN (and stale-bot-marked) even though the code has landed.
 
 | Path | Names | Where the logic lives |
 |---|---|---|
-| **Adapter** (new) | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `mimo`, `nemotron_v3`, `qwen3`, `seed_oss` | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
-| **Legacy** (standalone) | the other 19 | `vllm/reasoning/<file>.py` as before |
+| **Adapter** | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`, `seed_oss` (12) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
+| **Legacy** (standalone) | the other 17 | `vllm/reasoning/<file>.py` as before |
 
-Note `vllm/parser/` also contains `kimi_k2.py`, `minimax_m2.py`, `mistral.py`
-and `deepseek_v32.py` whose *reasoning* registry entries still point at the
-legacy files — the migration is partial, so the presence of a `vllm/parser/`
-module does not by itself tell you which implementation the reasoning path uses.
-Read `_REASONING_PARSERS_TO_REGISTER`.
+**Membership is decided by the import, not the filename.** Only some shims are
+named `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
+`minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
+`mistral_reasoning_parser.py` are ordinary names that are nonetheless a few
+lines subclassing an adapter. The authoritative test:
+
+```bash
+grep -l "registered_adapters import" vllm/reasoning/*.py
+```
+
+An earlier revision of this file claimed `kimi_k2` and `minimax_m2` still had
+legacy *reasoning* implementations. **That was wrong** — both were already on
+the adapter path at v0.25.1; only the filenames misled. `mistral` joined at
+v0.27.0 ([#48947](https://github.com/vllm-project/vllm/pull/48947)).
+`minimax_m2_append_think` is the one genuinely-legacy class in a shim file:
+`minimax_m2_reasoning_parser.py` holds `MiniMaxM2ReasoningParser` (adapter
+subclass) *and* `MiniMaxM2AppendThinkReasoningParser` (plain `ReasoningParser`).
+`vllm/parser/deepseek_v32.py` exists but has no *reasoning* registry entry at
+all. Read `_REASONING_PARSERS_TO_REGISTER`.
 
 | Name | Class | File | Family | Start in prompt? | Thinking-disable switch | Truncation policy |
 |---|---|---|---|---|---|---|
@@ -45,13 +59,15 @@ Read `_REASONING_PARSERS_TO_REGISTER`.
 | `hunyuan_a13b` | `HunyuanA13BReasoningParser` | `hunyuan_a13b_reasoning_parser.py` | `<think>\n … \n</think>\n<answer>\n … \n</answer>` | No | None | Regex fallback |
 | `hy_v3` | `HYV3ReasoningParser` | `hy_v3_reasoning_parser.py` | `<think>`/`</think>` (BaseThinking subclass) with `_identity_parser` delegation | Optional | `chat_template_kwargs.reasoning_effort` (or top-level `reasoning_effort`); value `"no_think"` routes to `IdentityReasoningParser`; default is `"no_think"` when unset | Inherits from delegate (identity when off, base when on) |
 | `granite` | `GraniteReasoningParser` | `granite_reasoning_parser.py` | Phrases: "Here is my thought process:" / "Here is my response:" | Phrases in output | None | Falls through as content if phrases absent |
-| `kimi_k2` | `KimiK2ReasoningParser` | `kimi_k2_reasoning_parser.py` | `<think>`/`</think>` + implicit end `<\|tool_calls_section_begin\|>` | Optional | `chat_template_kwargs.thinking` | `(remainder, None)` |
-| `minimax_m2` | `MiniMaxM2ReasoningParser` | `minimax_m2_reasoning_parser.py` | Only `</think>` (no start) | N/A (no start) | None | `(all, None)` before `</think>` |
+| `kimi_k2` | `KimiK2ReasoningParser` = `KimiK2ParserReasoningAdapter` | `kimi_k2_reasoning_parser.py` (8-line shim) → `vllm/parser/kimi_k2.py` | `<think>`/`</think>` + implicit end `<\|tool_calls_section_begin\|>`. **Adapter path** despite the ordinary filename | Optional | `chat_template_kwargs.thinking` | `(remainder, None)` |
+| `kimi_k3` | `KimiK3ReasoningParser` | `kimi_k3_reasoning_parser.py` | **New at v0.27.0**, legacy shape. XTML `<\|open\|>think<\|sep\|>` … `<\|close\|>think<\|sep\|>` — each marker is a **3-token sequence**, so the token-id helpers do subsequence search, not single-id lookup (contrast Kimi-K2's single `<think>` token) | In thinking mode the serving layer may feed `<\|open\|>think<\|sep\|>` as the generation prefix, so output can begin *inside* the think channel — a missing open marker is treated as "reasoning starts at offset 0" | `chat_template_kwargs.thinking=False` or `enable_thinking=False` (instruct mode) → every delta returned as content | See file |
+| `inkling` | `InklingParserReasoningAdapter` | `inkling_reasoning_parser.py` (3-line shim) → `vllm/parser/inkling.py` | **New at v0.27.0.** Not a delimiter pair — typed blocks: `<\|message_model\|>` + `<\|content_thinking\|>` … `<\|end_message\|>`, repeatable in any order, sharing `<\|end_message\|>` with text and tool blocks. The engine keys `is_reasoning_end` / `count_reasoning_tokens` on `THINK_START`/`THINK_END` *labels*; the transition table carries the semantics, not the label | — | See file | See file |
+| `minimax_m2` | `MiniMaxM2ReasoningParser` (subclass of `MinimaxM2ParserReasoningAdapter`) | `minimax_m2_reasoning_parser.py` → `vllm/parser/minimax_m2.py` | Only `</think>` (no start). **Adapter path** despite the ordinary filename | N/A (no start) | None | `(all, None)` before `</think>` |
 | `minimax_m2_append_think` | `MiniMaxM2AppendThinkReasoningParser` | same file | Prepends `<think>` to content; never separates | — | — | Always content |
-| `mistral` | `MistralReasoningParser` | `mistral_reasoning_parser.py` | `[THINK]`/`[/THINK]` via `SpecialTokens.begin_think/end_think` | Depends on template | None | Complex: handles all 4 BOT/EOT combinations |
+| `mistral` | `MistralParserReasoningAdapter` | `mistral_reasoning_parser.py` (3-line shim) → `vllm/parser/mistral.py` | **Moved onto the adapter path at v0.27.0** ([#48947](https://github.com/vllm-project/vllm/pull/48947)) — one `MistralParser` now serves reasoning *and* tool calls. `[THINK]`/`[/THINK]` via `SpecialTokens.begin_think/end_think`; also handles text-based reasoning. The old `ValueError: The tokenizer must be an instance of MistralTokenizer.` is gone — `is_mistral_tokenizer()` selects a code path and a non-Mistral tokenizer falls back to the generic `adjust_request` | Depends on template | None | Handles all 4 BOT/EOT combinations |
 | `nemotron_v3` | `NemotronV3ParserReasoningAdapter` | `nemotron_v3_engine_reasoning_parser.py` (shim) → `vllm/parser/nemotron_v3.py` | R1 base + field swap | — | `chat_template_kwargs.enable_thinking=False` OR `force_nonempty_content=True` swaps reasoning↔content | Inherits R1 |
 | `olmo3` | `Olmo3ReasoningParser` | `olmo3_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
-| `openai_gptoss` | `GptOssReasoningParser` | `gptoss_reasoning_parser.py` | Harmony `<\|channel\|>analysis<\|message\|>` … `<\|end\|>`; reasoning ends at `<\|channel\|>final<\|message\|>` | Yes (system msg) | — | `extract_reasoning` raises NotImplementedError — harmony branch only |
+| `openai_gptoss` | `GptOssReasoningParser` | `gptoss_reasoning_parser.py` | Harmony. **Reduced to a stub at v0.27.0** ([#45560](https://github.com/vllm-project/vllm/pull/45560)): `is_reasoning_end` and `is_reasoning_end_streaming` `return True` unconditionally; the backward-scan fields are gone. All real work is in `HarmonyParser` (`vllm/parser/harmony.py`) | Yes (system msg) | — | `extract_reasoning`, `extract_reasoning_streaming`, `extract_content_ids` all raise `NotImplementedError` with "Use HarmonyParser for output parsing" |
 | `seed_oss` | `SeedOssParserReasoningAdapter` | `seed_oss_engine_reasoning_parser.py` (shim) → `vllm/parser/seed_oss.py` | `<seed:think>`/`</seed:think>` | — | — | — |
 | `minimax_m3` | `MiniMaxM3ReasoningParser` | `minimax_m3_reasoning_parser.py` | MiniMax M3 — own file/class, **new since the 2026-05-28 sweep** (separate from the two `minimax_m2*` names) | — | See file | See file |
 | `step3` / `step3p5` | `Step3ReasoningParser` / `Step3p5ReasoningParser` | `step3_reasoning_parser.py` / `step3p5_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
@@ -68,7 +84,7 @@ Read `_REASONING_PARSERS_TO_REGISTER`.
 - `extract_reasoning` via `.partition`.
 - `count_reasoning_tokens` via depth counter.
 
-Subclasses: DeepSeek-R1, Qwen3, Ernie45, MiniMaxM2, OLMo3, SeedOSS, Step3, Step3p5, Mistral (via manual init), probably more.
+Subclasses: DeepSeek-R1, Ernie45, OLMo3, Step3, Step3p5, and others — verify per file. **Not** Mistral, Qwen3, MiniMaxM2 or SeedOSS any more: those names now resolve through the adapter path (see the Path table above), so the `BaseThinkingReasoningParser` freebies below do not describe their behaviour.
 
 ### Delegating wrappers
 
@@ -88,7 +104,7 @@ Subclasses: DeepSeek-R1, Qwen3, Ernie45, MiniMaxM2, OLMo3, SeedOSS, Step3, Step3
 
 ### Harmony
 
-`GptOssReasoningParser` — all other parsers look for string delimiters; this one looks for token-ID prefix-sequences (`self.model_tokenizer.encode("<|channel|>final")`) because the harmony channel markers are multi-token. `reasoning_max_num_between_tokens = 20` — allows up to 20 special tokens to appear between `<|channel|>final` and `<|message|>` (the model may emit `<|constrain|>json` etc. in between). `eom_token_id = <|end|>` — stop looking backward if we hit previous-message boundary (multi-turn safety).
+`GptOssReasoningParser` **is no longer a parser** as of v0.27.0 ([#45560](https://github.com/vllm-project/vllm/pull/45560)) — it is 60 lines of stub whose `is_reasoning_end`/`is_reasoning_end_streaming` return `True` and whose three extraction methods raise `NotImplementedError`. The token-ID prefix-sequence machinery it used to carry (`reasoning_end_token_ids_prefix` from `encode("<|channel|>final")`, `reasoning_max_num_between_tokens = 20` for interposed specials like `<|constrain|>json`, `eom_token_id = <|end|>` for multi-turn backward-scan safety) was **deleted** — `git grep reasoning_end_token_ids_prefix v0.27.0` returns nothing. Read `vllm/parser/harmony.py` instead. For a live multi-token-marker example, read `kimi_k3_reasoning_parser.py`.
 
 ## Non-obvious fields the serving layer reads
 
@@ -98,6 +114,6 @@ From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`):
 
 - `reasoning_end_arr[i]` — per-delta latch: once set True, never calls `extract_reasoning_streaming` again for this choice. Set True either by `prompt_is_reasoning_end` or by `is_reasoning_end(previous_token_ids)` returning True.
 
-- `request.include_reasoning` — post-hoc nulls `reasoning` in the final response. Parser still runs; just the emitted field is dropped. Irrelevant for parser logic.
+- `request.include_reasoning` (default `True`) — suppresses `reasoning` from the response without changing inference. **No longer serving-layer-only**: [#44301](https://github.com/vllm-project/vllm/pull/44301) (v0.26.0) extended it to the Responses API and to the unified `Parser` interface, so at v0.27.0 the drop also happens inside `vllm/parser/abstract_parser.py`, `vllm/parser/engine/parser_engine.py` and `vllm/parser/harmony.py` (`if delta_message and not request.include_reasoning`). If you write an engine-path parser, `parse_delta` sees the flag; a legacy `ReasoningParser` still does not.
 
 - `reasoning_parser_cls(tokenizer, chat_template_kwargs=chat_template_kwargs)` — the *only* kwarg guaranteed to be passed on instantiation, besides `tokenizer`. Anything else your parser reads from `kwargs` (e.g. `model_config`) may be `None`.

@@ -1,7 +1,7 @@
 ---
 name: vllm-reasoning-parsers
 description: |-
-  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 27 built-in parsers with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
+  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 29 built-in parsers with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
 when_to_use: |-
   Trigger on `--reasoning-parser`, `reasoning_content`, `reasoning_parser_plugin`, `<think>`/`</think>` handling, `extract_reasoning`, `extract_reasoning_streaming`, `is_reasoning_end`, `ReasoningParser`, `ReasoningParserManager`, harmony channels (`<|channel|>analysis`/`final`), Qwen3 prompt-side `<think>`, DeepSeek-R1 missing start tag, Kimi K2 tool-section implicit end, Hunyuan state machine, Granite phrase markers, `enable_thinking=False`, `chat_template_kwargs={enable_thinking,thinking}`, reasoning-vs-content split, reasoning leaked into content, content empty while reasoning filled, structured output breaking with thinking disabled, tool calls not parsed when reasoning is on, adding a new reasoning model. Symptoms — "why is `reasoning_content` null on DeepSeek-R1", "Qwen3 JSON gibberish with `enable_thinking=False`". Applies without "parser" in prompt. Also implicit — "audit reasoning config", "deploy-memo reasoning", "thinking split wrong". NOT prompt-side Jinja (→ `vllm-chat-templates`) or tool-call JSON extraction (→ `vllm-tool-parsers`).
 ---
@@ -73,13 +73,13 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 7. **Stateful parser reused across requests** — Hunyuan A13B's `extract_reasoning_streaming` is a token-ID state machine with `self.current_state` / `self.token_buffer`. Second concurrent request on the same instance = interleaved garbage. vLLM already instantiates per-request, but custom plugins must not hoist state to class-level.
 
-8. **Multi-token delimiter** — `<think>` may encode as a single token (DeepSeek-R1 vocab) or as multiple (`<think`, `>` in some tokenizers). Single-token path: `vocab.get("<think>")`. Multi-token: `tokenizer.encode("<think>")` and do sequence match (see GPT-OSS `reasoning_end_token_ids_prefix`). `BaseThinkingReasoningParser` raises at init if `vocab.get` returns None — don't inherit from it unless the delimiter is a single vocab entry.
+8. **Multi-token delimiter** — `<think>` may encode as a single token (DeepSeek-R1 vocab) or as multiple (`<think`, `>` in some tokenizers). Single-token path: `vocab.get("<think>")`. Multi-token: `tokenizer.encode("<think>")` and do sequence match — the current in-tree worked example is `kimi_k3_reasoning_parser.py`, whose `<|open|>think<|sep|>` marker is a 3-token sequence, so its token-id helpers search for the *subsequence* rather than one id. (The old example, GPT-OSS `reasoning_end_token_ids_prefix`, was deleted at v0.27.0 — see pitfall 10.) `BaseThinkingReasoningParser` raises at init if `vocab.get` returns None — don't inherit from it unless the delimiter is a single vocab entry.
 
 9. **Single-token delta spam** — if delta is exactly one token that *is* `<think>` or `</think>`, return `None` from streaming so the client doesn't see an empty delta. Almost every parser has this skip.
 
-10. **Harmony / GPT-OSS is different** — no `<think>` tag. Reasoning ends at `<|channel|>final<|message|>` (optionally with up to 20 special tokens between prefix and suffix). `extract_reasoning` raises `NotImplementedError` — non-streaming goes through a separate harmony branch. Don't copy DeepSeek-R1 for a harmony model.
+10. **Harmony / GPT-OSS is different** — no `<think>` tag; the channel markers are multi-token. **At v0.27.0 (PR #45560) `GptOssReasoningParser` was gutted**: `is_reasoning_end` / `is_reasoning_end_streaming` now `return True` unconditionally, and `extract_reasoning`, `extract_reasoning_streaming` and `extract_content_ids` all raise `NotImplementedError` pointing at `HarmonyParser`. The old backward-scan machinery (`reasoning_end_token_ids_prefix`, `reasoning_max_num_between_tokens = 20`, `eom_token_id`) is **deleted** — don't look for it, and don't cite it as the multi-token-delimiter example. Boundary detection plus all parsing now live in `HarmonyParser` (`vllm/parser/harmony.py`). Don't copy DeepSeek-R1 for a harmony model.
 
-11. **Mistral's tokenizer requirement** — `MistralReasoningParser` raises unless `isinstance(tokenizer, MistralTokenizer)`. Uses `SpecialTokens.begin_think` / `end_think` (from `mistral_common`), not the string `<think>`.
+11. **Mistral moved onto the unified engine at v0.27.0** (PR #48947). `--reasoning-parser mistral` is unchanged, but the registry class is now `MistralParserReasoningAdapter` and `vllm/reasoning/mistral_reasoning_parser.py` is a three-line re-export — the logic is in `vllm/parser/mistral.py`, shared with `--tool-call-parser mistral`. **The hard `ValueError: The tokenizer must be an instance of MistralTokenizer.` is gone** (it existed at v0.25.1; `git grep` finds it nowhere at v0.27.0): `is_mistral_tokenizer()` now *selects a path*, falling back to the generic `adjust_request` when the tokenizer isn't Mistral or can't do grammar. Still prefer `--tokenizer-mode mistral` — grammar-enforced `tool_choice` needs the mistral-common path.
 
 12. **Granite is regex-on-text** — "Here is my thought process:" / "Here is my response:" are phrases, not special tokens. Streaming parser has to buffer partial matches across deltas (`Here is my thou…`) which makes it the most complex parser in the tree. Read `granite_reasoning_parser.py:140+` before modifying.
 
@@ -91,7 +91,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 ## The per-model matrix
 
-`references/parser-matrix.md` — one row per registered name (**27** at v0.25.1: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `glm47`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `kimi_k2`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
+`references/parser-matrix.md` — one row per registered name (**29** at v0.27.0: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `glm47`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `inkling`, `kimi_k2`, `kimi_k3`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
 Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. The non-obvious cases worth knowing before reading it: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` requires `MistralTokenizer`, `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
@@ -99,7 +99,7 @@ Routing (which family each name belongs to — `<think>` two-token, delegating w
 
 `references/writing-custom-parser.md` for the step-by-step. **This
 `ReasoningParser` subclass shape remains the supported path for out-of-tree
-parsers** — it is what `--reasoning-parser-plugin` loads, and 19 of the 27
+parsers** — it is what `--reasoning-parser-plugin` loads, and 17 of the 29
 in-tree names still use it.
 
 Be aware there is now a **second, in-tree-only shape**: `vllm/parser/<model>.py`
@@ -107,11 +107,20 @@ defines one parser class per model, and
 `make_adapters(XParser)` in `vllm/parser/engine/registered_adapters.py` derives
 *both* `XParserReasoningAdapter` and `XParserToolAdapter` from it — the unified
 reasoning+tool design of RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713). If you are reading
-`gemma4`, `qwen3`, `deepseek_v4`, `glm45`/`glm47`, `mimo`, `nemotron_v3` or
-`seed_oss` as a worked example, note the `vllm/reasoning/*_engine_reasoning_parser.py`
-file is a three-line re-export and the logic is elsewhere. Copy a **legacy-path**
-parser instead when writing your own. Shape:
+[#32713](https://github.com/vllm-project/vllm/issues/32713). **12 of the 29
+names are on it at v0.27.0**: `deepseek_v4`, `gemma4`, `glm45`, `glm47`,
+`inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`,
+`seed_oss`. If you open one of those as a worked example you will find a
+three-line re-export and the logic elsewhere.
+
+**Do not infer membership from the filename.** Only some are named
+`*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
+`minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
+`mistral_reasoning_parser.py` are ordinary names that are nonetheless shims. The
+test is the import:
+`grep -l "registered_adapters import" vllm/reasoning/*.py`.
+
+Copy a **legacy-path** parser when writing your own. Shape:
 
 ```python
 from vllm.reasoning import ReasoningParser, ReasoningParserManager

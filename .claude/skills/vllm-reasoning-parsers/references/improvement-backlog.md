@@ -2,8 +2,46 @@
 
 ## Open
 
-_Both items carried from 2026-05-28 were closed by the 2026-07-21 freshen. No
-open items at present._
+_No open items._
+
+## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
+
+- **The prior pass's method was the bug.** 2026-07-21 detected unified-engine
+  membership by matching `*_engine_reasoning_parser.py` filenames and concluded
+  "8 of 27", explicitly noting that `kimi_k2`/`minimax_m2`/`mistral` reasoning
+  entries "still point at the legacy files". Diffing by *import* shows
+  `kimi_k2` and `minimax_m2` were already adapter shims **at v0.25.1** — the
+  claim was wrong when written, and the matrix sent readers to 8-line files for
+  behavioural detail. Replaced with an import test
+  (`grep -l "registered_adapters import" vllm/reasoning/*.py`) stated in both
+  the matrix and SKILL.md, so the next pass cannot repeat the filename
+  inference. Real v0.27.0 additions to the path: `mistral` (#48947),
+  `inkling`. Now **12 of 29**.
+- **`openai_gptoss` gutted by #45560** (merged 2026-08-01). `is_reasoning_end`
+  returns `True` unconditionally; `extract_reasoning`,
+  `extract_reasoning_streaming`, `extract_content_ids` raise
+  `NotImplementedError` → `HarmonyParser`. `reasoning_end_token_ids_prefix`,
+  `reasoning_max_num_between_tokens = 20` and `eom_token_id` are deleted
+  (`git grep` empty at v0.27.0, 4 hits at v0.25.1). Rewrote the matrix Harmony
+  section, the `openai_gptoss` row and pitfalls.md §10, and repointed pitfall
+  8's multi-token worked example at `kimi_k3_reasoning_parser.py`.
+- **`mistral` unified with the tool parser** (#48947, merged 2026-07-30). CLI
+  name unchanged. Pitfall 11 documented a hard
+  `ValueError: The tokenizer must be an instance of MistralTokenizer.` — that
+  raise no longer exists at v0.27.0. Rewritten rather than deleted: the
+  `--tokenizer-mode mistral` recommendation stands, because the mistral-common
+  grammar path is what enforces `tool_choice`; the failure mode changed from
+  loud to silent-degradation.
+- **`include_reasoning` reached the parser layer** (#44301, v0.26.0) — matrix
+  line "Irrelevant for parser logic" corrected; engine-path `parse_delta` sees
+  the flag, legacy `ReasoningParser` still does not.
+- **29 names** (27 → 29): `kimi_k3` (legacy shape, 3-token XTML markers) and
+  `inkling` (adapter path, typed content blocks) added to the matrix, the
+  SKILL.md inline list and the description.
+- **Not changed, deliberately:** the response field is still `reasoning` (not
+  `reasoning_content`) — re-verified at `chat_completion/protocol.py:71` on
+  v0.27.0. The sibling `vllm-chat-templates` skill claimed the reverse; fixed
+  there, not here.
 
 ## Resolved — 2026-07-21 (freshen, v0.25.1)
 

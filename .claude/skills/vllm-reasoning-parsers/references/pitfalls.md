@@ -125,15 +125,17 @@ All built-in parsers do this.
 **Fix.** `--reasoning-parser openai_gptoss`. Note its quirks:
 - `extract_reasoning` (non-streaming) raises `NotImplementedError` — the harmony branch in `api_server` / `parser/harmony_utils.py` handles non-streaming via `parse_chat_output`.
 - `prepare_structured_tag` returns JSON for a `structural_tag` xgrammar directive that isolates the analysis channel for structured generation.
-- `is_reasoning_end` searches for the `<|channel|>final<|message|>` sequence with up to `reasoning_max_num_between_tokens = 20` tokens between prefix and suffix (allows `<|constrain|>json` et al).
+- **At v0.27.0 (#45560) `is_reasoning_end` and `is_reasoning_end_streaming` simply `return True`**, and `extract_content_ids` also raises. The old backward scan for `<|channel|>final<|message|>` with up to `reasoning_max_num_between_tokens = 20` interposed special tokens is deleted. Boundary detection moved into `HarmonyParser` (`vllm/parser/harmony.py`).
 
-## 11. Mistral parser rejects HF tokenizer
+## 11. Mistral parser and the HF tokenizer
 
 **Repro.** `--reasoning-parser mistral` on a Magistral model served with `--tokenizer-mode auto` (HF tokenizer, not Mistral tokenizer).
 
-**Symptom.** `ValueError: The tokenizer must be an instance of MistralTokenizer.`
+**Symptom (through v0.25.1).** `ValueError: The tokenizer must be an instance of MistralTokenizer.` raised at parser init (`vllm/reasoning/mistral_reasoning_parser.py:32`).
 
-**Fix.** Add `--tokenizer-mode mistral`. The Mistral parser uses `tokenizer.tokenizer.get_special_token(SpecialTokens.begin_think)` which is only defined on `MistralTokenizer` (mistral-common). HF tokenizer doesn't have this API.
+**Changed at v0.27.0 (#48947).** That raise is **gone** — `git grep "instance of MistralTokenizer"` finds nothing at v0.27.0. The unified `MistralParser` (`vllm/parser/mistral.py`) calls `is_mistral_tokenizer()` to *select a path*: with a non-Mistral tokenizer, or one whose `supports_grammar` is False, it falls back to the base `adjust_request` and detects pre-v11 format by probing the vocab for the `[ARGS]` token instead of reading `tokenizer.version`.
+
+**Fix, still.** Use `--tokenizer-mode mistral`. The failure is now quieter, not absent: the mistral-common grammar path is what enforces `tool_choice` (auto/none/required/named) for Mistral, and without a Mistral tokenizer you lose it and fall back to generic structured outputs.
 
 ## 12. Granite streaming swallows the first part of reasoning
 
