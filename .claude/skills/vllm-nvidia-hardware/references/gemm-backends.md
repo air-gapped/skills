@@ -75,6 +75,10 @@ Deployment implications:
   pays the warm-up tax.
 - **Warm up explicitly**: send a few representative-shape requests before
   flipping traffic to the new replica. See `vllm serve --warmup-requests`.
+  From **v0.27.0** the engine does more of this itself — generic JIT warmup
+  infrastructure (#47451) plus runner-owned Triton kernel warmup before the
+  first request (#49903) — so the residual cold-start tax is smaller, but
+  DeepGEMM still compiles per unseen `(shape, dtype)` and the PVC still pays.
 - **Disk space**: typical cache is 50-200 MB per model. Free-tier PVCs
   (≤1 Gi) work; watch disk pressure in multi-model deployments.
 
@@ -155,8 +159,10 @@ Kernel picture differs from Hopper:
 
 - **SM100 (B200)**: full DeepGEMM coverage; NVFP4 via CUTLASS; MXFP4 fused
   MoE via CUTLASS (default from v0.10.2).
-- **SM103 (GB300)**: DeepGEMM partial; TRTLLM backend hangs on FlashInfer
-  ≥0.6.7 (see `dell-xe.md` for the known-issue list).
+- **SM103 (GB300)**: DeepGEMM partial. The TRTLLM hang was specific to plain
+  FlashInfer **0.6.7** and was fixed by revert on 2026-04-07; vLLM has shipped
+  0.6.11.post2 → 0.6.16.post3 since, so this only bites a deployment that pins
+  FlashInfer independently. See `vllm-platform-matrix.md` §5.
 - **SM120 (RTX PRO 6000 desktop)**: CUTLASS blockwise FP8 GEMM (v0.19 PR
   #37970); NVFP4 NaN fix v0.19 (#37725).
 - **FP4 KV cache** pairing: FP4-quantised KV cache (early-production) uses

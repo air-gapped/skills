@@ -8,6 +8,69 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 - **Convert sources.md `[LV: <date>]` markers to a machine-readable `Last verified:` table** (Dim 9; `references/sources.md`, all rows). The rubric staleness regex anchors on a `YYYY-MM-DD` date in a pipe-table row (`^\|.*\| (\d{4}-\d{2}-\d{2}) \|`), not inline `[LV:]` bullet markers. Converting the entire bulleted source list to a dated table is a multi-row restructure that rewrites prose across the whole file — violates the one-atomic-change / "relocation must not rewrite prose" constraint, and the staleness cap is not currently firing (freshen pass < 90 days), so it scores +0 while adding restructure risk. Defer to a dedicated structural pass.
 - **Re-verify the two cookie-gated / binary-only NVIDIA + Dell datasheet rows** (Dim 9; `references/sources.md` — Blackwell Ultra datasheet and Dell PowerEdge XE spec sheet, both `[LV: 2026-04-24, unverifiable]`). WebFetch could not extract text (cookie gate / PDF binary) in the prior pass and network is unavailable here. Needs a browser session to re-confirm per-SKU sizing numbers before any purchase-grade call.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
+
+- **Reversed the pass's own headline negative: vLLM now has Rubin support.**
+  The 2026-07-21 pass established "no Rubin code path at v0.25.1" and recorded it
+  as a durable negative. It survived **three weeks**. v0.27.0 (2026-08-10) ships
+  `sm_107` as a native build target (#49387, merged 2026-07-24) and wires SM107
+  into the custom / symmetric-memory / FlashInfer NVLink all-reduce paths (#49647,
+  merged 2026-07-29) reusing SM10.3's validated thresholds. Corrected in
+  `SKILL.md`, `vllm-platform-matrix.md` §6, `rubin-roadmap.md`, `sources.md`.
+  The operator answer did **not** flip to "ready", because three caveats survive
+  the probe: `10.7` is gated behind `CMAKE_CUDA_COMPILER_VERSION >= 13.4`
+  (`CMakeLists.txt:117-121`), the published image builds at `CUDA_VERSION=13.0.3`
+  with no SM107 cubins (`docker/Dockerfile:25,288`), and tracking issue **#49735
+  is still OPEN** with the CUDA 13.4 build and the FlashInfer sm_107 bump
+  unchecked. *Lesson recorded in `SKILL.md`: negatives about a moving upstream
+  decay faster than positives — re-probe, don't inherit.*
+- **Found a silent-breakage class in the build, not the runtime (#49904).**
+  On SM121 (GB10 / DGX Spark) every pre-v0.27.0 source build via the documented
+  path produced a `.so` containing only `sm_75` cubins **and reported success** —
+  torch's Fermi-era `string(REPLACE "2.1" "2.1(2.0)" ...)` rewrote `12.1` into
+  `arch=compute_20`, so vLLM matched no supported arch and skipped every
+  arch-gated kernel. Surfaces much later as `No compiled cutlass_scaled_mm ...
+  capability: 121`. Fixed in v0.27.0 by reading `code=sm_*` and hard-erroring on
+  no-arch-match. Added to `vllm-platform-matrix.md` §5. Same shape as the
+  v0.25.0 NVFP4 finding: **success-reporting failure**, which a feature-only
+  release-note sweep never surfaces.
+- **Rebaselined the release line v0.25.1 → v0.27.0**, adding v0.26.0 and v0.27.0
+  rows to `vllm-platform-matrix.md` §6 and `sources.md`, keeping only rows that
+  change an operator decision: arm64 Blackwell SM10x/SM110 image builds (#48041,
+  removing the local-aarch64-build requirement for GB200/GB300/Thor), `torch==2.13.0`
+  + `torchvision==0.28.0` as a **breaking environment change**
+  (#48155), NCCL 2.30.7 unlocking DeepEPv2 in the image (#45321), FlashInfer
+  0.6.16.post3 with DSv4 sparse-MLA q-head padding removed at >= 0.6.14 (#48047),
+  and FlashAttention 4 on SM100 gaining FP8 KV cache (#42569) + headdim-256
+  (#42669) with engine-side JIT/Triton warmup (#47451, #49903).
+- **Re-verified every `repo/path:line` pointer against the v0.27.0 tree.** Four
+  had drifted (`flashattn_mla.py`, `flashinfer_mla.py`, and two `platforms/cuda.py`
+  regions) and two anchored claims were wrong: the Mooncake connector moved to
+  `v1/mooncake/mooncake_connector.py` and its **"no pipeline parallelism" limit
+  was lifted in v0.24.0** (#44528, merged 2026-06-16 — stale for two releases
+  before this pass caught it); and the flat EAGLE-3/DFlash target allow-list no
+  longer exists, replaced by `Literal` unions near the top of `speculative.py`.
+  Also repaired a dangling cross-reference in `gemm-backends.md` (pointed at
+  `dell-xe.md` for a FlashInfer known-issue list that file never contained) and
+  the contradiction it carried — "TRTLLM hangs on FlashInfer >= 0.6.7", which
+  `vllm-platform-matrix.md` had already correctly scoped to plain 0.6.7 only.
+
+- **Caught a runtime-vs-CI pin confusion mid-pass.** The release note's Dependencies
+  section lists `Transformers 5.14.1 (#49223)` beside genuine runtime bumps, but
+  #49223 touches **only `requirements/test/*`**. The actual runtime floor in
+  `requirements/common.txt` is `transformers >= 5.5.3` and did **not** move between
+  v0.26.0 and v0.27.0. Triton 3.7.1 is the same shape — named in #48155's title but
+  pinned in no runtime requirements file; it rides in with `torch==2.13.0`. Both
+  were corrected before landing. Rule now recorded in `SKILL.md`: read the pin out
+  of the requirements file, never out of the release note prose.
+
+**Honest gaps this pass:** hardware spec tables (per-GPU HBM/TFLOPs, rack power,
+Dell SKUs) were not re-probed and keep their `[LV: 2026-04-24]` dates. The Rubin
+*shipping-status* evidence (CoreWeave validation, the Huang quote, the first-cohort
+cloud list) was not re-probed either — only the **vLLM-side** Rubin claim was. The
+two Open items below (cookie-gated Blackwell Ultra datasheet, binary-only Dell XE
+spec sheet) still need a browser session and were not attempted.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **Closed the carried Rubin backlog item.** It had been Open since 2026-05-28

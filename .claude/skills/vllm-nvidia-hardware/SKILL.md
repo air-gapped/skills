@@ -66,11 +66,12 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
   models with Gemma/Qwen-style RMSNorm. Silent wrong output, no crash — see
   `references/vllm-platform-matrix.md` §6.
 - 270 GB (HGX bin) or 288 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
+- **Upgrading to v0.27.0 is an environment change, not a version bump:** `requirements/cuda.txt` pins `torch==2.13.0` / `torchvision==0.28.0` (#48155, flagged breaking upstream; Triton 3.7.1 rides along with torch rather than being pinned separately), and the image build sets `NCCL_VERSION=2.30.7` — the NCCL floor is what unlocks DeepEPv2 for Wide-EP (#45321). Rebuild the container; don't pip-upgrade in place.
 
 ### Buying NVIDIA hardware in 2026
 - **GB300 NVL72 is safe for 2026 capacity:** size the row for 135–155 kW, DLC @ 25 °C, 3φ 480 V. Vendors: NVIDIA DGX B300, Dell IR7000 + XE9780L / XE8712 sleds, Supermicro SRS-GB300-NVL72, Lenovo 7DJVCTO2WW, HPE.
 - **Greenfield rows should be spec'd for Rubin NVL144:** 180–220 kW, 45 °C W45 warm water, 800 VDC HVDC, new MGX rack. Retrofitting later is expensive.
-- **Rubin timing, as of 2026-07-21:** validated racks exist (CoreWeave qualified a Dell-supplied Vera Rubin NVL72 on 2026-05-31), and Jensen Huang said on 2026-07-15 that it is "already in production" — but NVIDIA has given **no customer-delivery date**, only "partner products in 2H 2026". Treat "in production" as a fab statement, not a delivery statement; the signal to plan against is an OEM quoting firm order dates. Note also that **vLLM has no Rubin support at v0.25.1**. Detail in `references/rubin-roadmap.md`.
+- **Rubin timing, as of 2026-07-21:** validated racks exist (CoreWeave qualified a Dell-supplied Vera Rubin NVL72 on 2026-05-31), and Jensen Huang said on 2026-07-15 that it is "already in production" — but NVIDIA has given **no customer-delivery date**, only "partner products in 2H 2026". Treat "in production" as a fab statement, not a delivery statement; the signal to plan against is an OEM quoting firm order dates. **vLLM began Rubin enablement in v0.27.0** — `sm_107` is a real build target (#49387) with SM107 NVLink all-reduce (#49647) — but it requires **CUDA ≥ 13.4**, the shipped `vllm/vllm-openai` image is CUDA 13.0.3 with no SM107 cubins, and tracking issue #49735 is still open. Started, not finished. Detail in `references/rubin-roadmap.md`.
 - **Expect HBM allocation and PSU rectifier shelf lead times to dominate schedule risk.** SK hynix / Micron / Samsung HBM sold out through CY26.
 
 ### Key numbers to memorize
@@ -108,8 +109,24 @@ The same pass found v0.25.0 silently corrupting NVFP4 output, fixed one release
 later. A release-note sweep that only reads the feature sections will miss this
 class entirely.
 
-Last verified: 2026-07-21 — vLLM release line rebaselined v0.21.0 → v0.25.1 and
-the Rubin shipping-status claim probed live (closing a backlog item carried since
-2026-05-28). The hardware spec tables (per-GPU HBM/TFLOPs, rack power, Dell SKUs)
-were **not** re-probed this pass and keep their earlier `[LV:]` dates in
+**A vLLM release note's "Dependencies" section mixes runtime pins with CI pins —
+read the requirements file, not the prose.** The v0.27.0 notes list
+"Transformers 5.14.1 (#49223)" among genuine bumps, but that PR touches only
+`requirements/test/*`; the runtime floor is `transformers >= 5.5.3` in
+`requirements/common.txt` and did not move. Triton 3.7.1 is the same shape — named
+in #48155's title, pinned in no runtime requirements file, arriving with torch.
+Before writing any dependency into a matrix operators will follow, read it out of
+`requirements/{cuda,common,rocm}.txt` at the release tag.
+
+**A "no support yet" finding has a shelf life — re-probe it, don't inherit it.**
+The 2026-07-21 pass correctly established that vLLM had no Rubin code path. Three
+weeks later `sm_107` was a build target. Negatives about a moving upstream decay
+faster than positives; re-run the probe rather than carrying the conclusion.
+
+Last verified: 2026-08-11 — vLLM release line rebaselined v0.25.1 → **v0.27.0**
+(2026-08-10) against the v0.27.0 source tree: Rubin `sm_107` enablement, the SM121
+kernel-less-build fix, FA4 SM100 capabilities, dependency pins, and every cited
+`repo/path:line` pointer in `references/vllm-platform-matrix.md`. The hardware spec
+tables (per-GPU HBM/TFLOPs, rack power, Dell SKUs) and the Rubin *shipping-status*
+evidence were **not** re-probed this pass and keep their earlier `[LV:]` dates in
 `references/sources.md`.

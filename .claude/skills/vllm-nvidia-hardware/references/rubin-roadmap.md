@@ -32,12 +32,20 @@ have finished rack assembly, cooling, and deployment validation. The signal
 worth waiting for is an OEM listing NVL72 systems with **firm order dates** —
 that is the first evidence that maps to a delivery you could plan around.
 
-**And the engine is behind the hardware.** As of vLLM **v0.25.1** (2026-07-14)
-there is **no Rubin support**: zero "Rubin" hits in the issue tracker, and the
-build scripts target only `sm_90 / sm_100 / sm_103 / sm_110 / sm_120 / sm_121`.
-`sm_110` is **Thor**, not Rubin — vLLM's own build comments group it with
-Blackwell. Anyone sizing a Rubin purchase on vLLM should treat day-one serving
-support as unevidenced, not assumed. See `references/vllm-platform-matrix.md`.
+**The engine started catching up in v0.27.0 — but it is not there yet.** At
+v0.25.1 (2026-07-14) vLLM had no Rubin code path at all. **v0.27.0** (2026-08-10)
+added `sm_107` as a native build target (#49387) and wired SM107 into the custom,
+symmetric-memory and FlashInfer NVLink all-reduce paths (#49647). What that does
+*not* yet buy you: `sm_107` compiles only under **CUDA ≥ 13.4**, the shipped
+`vllm/vllm-openai` image is built at **CUDA 13.0.3** (so a Rubin would run on
+SM100-family `10.0f` code, not native SM107 cubins), and tracking issue **#49735
+is still open** with the CUDA 13.4 dev-preview build and the FlashInfer sm_107
+bump unchecked. Still treat day-one serving as unevidenced — but the correct
+statement is now "in progress", not "absent". Re-probe #49735 before any Rubin
+purchase decision; this moved within three weeks last time.
+
+**`sm_110` is Thor, not Rubin** — vLLM's own build comments group it with
+Blackwell. See `references/vllm-platform-matrix.md`.
 
 ## Per-GPU specs
 
