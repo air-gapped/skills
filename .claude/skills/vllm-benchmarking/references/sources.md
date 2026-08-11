@@ -4,15 +4,17 @@ Tracks external references cited in this skill. `Last verified` indicates the mo
 
 | Ref | URL | Last verified | Notes |
 |---|---|---|---|
-| vLLM bench CLI docs | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 2026-04-24 | 200 OK. `sonnet` dataset now flagged **deprecated** in overview table. Page is "latest developer preview" — no stable version pin. |
-| `vllm bench serve` reference | https://docs.vllm.ai/en/latest/cli/bench/serve/ | 2026-04-24 | 200 OK. `--endpoint-type` gone. `--num-warmups` default 0. Backend value set expanded: `openai`, `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-chat`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. |
-| vLLM env vars (`VLLM_USE_MODELSCOPE` etc.) | https://docs.vllm.ai/en/latest/configuration/env_vars/ | 2026-04-24 | 200 OK. `VLLM_USE_MODELSCOPE` still documented. `HF_ENDPOINT` not explicitly listed on this page (upstream huggingface_hub env var, honored transparently). |
-| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-07-21 | **v0.25.1 is current stable** (2026-07-14, `isLatest`). Four minors since the last stamp: v0.22.1 (2026-06-05), v0.23.0 (2026-06-15), v0.24.0 (2026-06-29), v0.25.0 (2026-07-11), v0.25.1. Skill text now uses "post-v0.25.1" for source-line claims. |
-| `vllm-project/vllm#32841` (ModelScope LoRA) | https://github.com/vllm-project/vllm/issues/32841 | 2026-07-21 | **CLOSED / COMPLETED** 2026-01-23, unchanged. Run through the stale-close check (`skill-improver` freshen-patterns §3.0): the issue has **zero comments**, so it was *not* bot-closed — but there is also no linked fix PR and no closing rationale. Neither "fixed" nor "stale" is supported, so the skill's existing hedge ("historical gap; re-verify on your vLLM version") is the correct call and is **kept deliberately**, not through inattention. |
-| `vllm/benchmarks/serve.py` | https://github.com/vllm-project/vllm/blob/main/vllm/benchmarks/serve.py | 2026-07-21 | On main, now **2284 lines**. Line refs **re-resolved**: `BenchmarkMetrics` ~L176-215 → **~L321**; JSON assembly ~L989-1020 → **~L1198-1219**. `endpoint_type` still absent from the emitted JSON. All five previously-noted fields still present. **Three in-scope additions since the last cycle:** `--chat-template-kwargs` for client-rendered reasoning benchmarks (#44244, 2026-06-03), client/server tokenizer-mismatch auto-correction for `random` (#44708, 2026-06-08), and the BFCL tool-calling dataset (#42457, 2026-06-10). `--num-warmups` default re-read: still **0**. |
-| `vllm bench` dataset table (rendered docs) | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 2026-05-28 | Rendered dataset table lists (in addition to the prior catalog): `spec_bench` (Spec-Bench, speculative decoding), `speed_bench` (SPEED-Bench, NeMo-Skills), `custom_audio`, `custom_image`. `sonnet` still flagged deprecated. All four newly-surfaced names confirmed via WebFetch this cycle and added to `datasets.md`. |
-| `vllm/benchmarks/sonnet.txt` | https://github.com/vllm-project/vllm/blob/main/benchmarks/sonnet.txt | 2026-04-24 | 22,706 bytes. Still in tree. Dataset itself marked deprecated in docs; file remains. |
-| In-tree benchmarks dir | https://github.com/vllm-project/vllm/tree/main/benchmarks | 2026-04-24 | Tree exists (verified via sonnet.txt contents API). |
+| vLLM bench CLI docs | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 2026-08-11 | 200 OK. `sonnet` still the **only** dataset flagged deprecated. Page makes no mention of `VLLM_USE_RUST_BENCH` or the Rust bench client — docs lag the v0.27.0 tree here; `commands.md` is source-verified instead. |
+| `vllm bench serve` reference | https://docs.vllm.ai/en/latest/cli/bench/serve/ | 2026-08-11 | 200 OK. `--endpoint-type` still absent. `--num-warmups` default still **0**. `--probe-request-rate` now documented. Backend value set = 12 entries, and **`vllm-chat` is not among them** (the skill previously listed it in error; it is a `bench throughput` backend). |
+| vLLM env vars (`VLLM_USE_MODELSCOPE` etc.) | https://docs.vllm.ai/en/latest/configuration/env_vars/ | 2026-08-11 | 200 OK. `VLLM_USE_MODELSCOPE` still documented. **New and in scope:** `VLLM_USE_RUST_BENCH` ("If set, use the packaged Rust client for `vllm bench serve`"), `VLLM_USE_RUST_FRONTEND`, `VLLM_RUST_FRONTEND_PATH` (defaults `auto`). `HF_ENDPOINT` still not listed here (upstream huggingface_hub var, honored transparently). |
+| vLLM releases | https://github.com/vllm-project/vllm/releases | 2026-08-11 | **v0.27.0 is current stable** (2026-08-10, `isLatest`). Two minors since the last stamp: v0.26.0 (2026-07-27), v0.27.0. Skill text now baselined at v0.27.0. |
+| `vllm-project/vllm#32841` (ModelScope LoRA) | https://github.com/vllm-project/vllm/issues/32841 | 2026-08-11 | **CLOSED / COMPLETED** 2026-01-23, still **zero comments** — unchanged from the 2026-07-21 probe. Stale-close check re-run: not bot-closed (no comments at all), but still no linked fix PR and no closing rationale. Neither "fixed" nor "stale" is supported, so the skill's hedge ("historical gap; re-verify on your vLLM version") is **kept deliberately** for the third cycle running. Do not delete it on the strength of `stateReason: COMPLETED`. |
+| `vllm/benchmarks/serve.py` | https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/benchmarks/serve.py | 2026-08-11 | Read at tag **v0.27.0**: **2363 lines** (was 2284 at v0.25.1). `BenchmarkMetrics` **L321**, `EmbedBenchmarkMetrics` L356, JSON assembly **~L2206-2217**. **Full argparse flag diff v0.25.1 → v0.27.0: exactly one addition (`--probe-request-rate`), zero removals** — so every flag this skill documents still exists. `--num-warmups` default re-read: still **0**. **Correction:** `endpoint_type` **is** emitted (`result_json["endpoint_type"] = args.backend  # for backward compatibility`) — confirmed present at v0.21.0, v0.24.0, v0.25.1, v0.26.0 and v0.27.0. The prior "removed" claim was wrong at the time it was written. |
+| `vllm/entrypoints/cli/benchmark/` + `vllm/envs.py` | https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/entrypoints/cli/benchmark/main.py | 2026-08-11 | Six subcommands unchanged (serve, throughput, latency, sweep, startup, mm-processor). `maybe_exec_rust_bench()` fires only when `sys.argv[1:3] == ["bench","serve"]` **and** `VLLM_USE_RUST_BENCH` is truthy, then `os.execv`s `VLLM_RUST_FRONTEND_PATH`. `envs.py` L156-158 declares `VLLM_USE_RUST_FRONTEND`/`VLLM_USE_RUST_BENCH` (both default `False`) and `VLLM_RUST_FRONTEND_PATH` (default `"auto"`). Python is the default path. |
+| `requirements/common.txt` (runtime dep floors) | https://github.com/vllm-project/vllm/blob/v0.27.0/requirements/common.txt | 2026-08-11 | Runtime floor is **`transformers >= 5.5.3`** at v0.27.0. Note: the "Transformers 5.14.1" figure in the v0.27.0 release notes (#49223) touches only `requirements/test/*` — it is a **CI pin, not the runtime floor**. Air-gap staging lists must satisfy 5.5.3, not 4.45. |
+| `vllm bench` dataset table (rendered docs) | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 2026-08-11 | Dataset set unchanged since 2026-05-28. Cross-checked against argparse `choices` in the v0.27.0 tree — 14 values, identical between docs and source. `bfcl` is **not** a `--dataset-name` value (selected via `--dataset-path`/`--hf-name` + `--backend openai-chat`); `datasets.md` corrected. |
+| `vllm/benchmarks/sonnet.txt` | https://github.com/vllm-project/vllm/blob/v0.27.0/benchmarks/sonnet.txt | 2026-08-11 | 22,706 bytes at v0.27.0 — unchanged, still in tree. Dataset still marked deprecated in docs; file remains, so the air-gapped "never downloads" claim holds. |
+| In-tree benchmarks dir | https://github.com/vllm-project/vllm/tree/v0.27.0/vllm/benchmarks | 2026-08-11 | Contents at v0.27.0: `datasets/`, `lib/`, `sweep/`, `latency.py`, `mm_processor.py`, `plot.py`, `serve.py`, `startup.py`, `throughput.py`. `sweep/` still carries all five documented sub-modes (serve, serve_workload, startup, plot, plot_pareto). |
 | Air-gapped discussion thread | https://discuss.vllm.ai/t/setting-up-vllm-in-an-airgapped-environment/916 | not probed | Low priority — forum thread, supplementary. Probe next cycle if cited. |
 | vLLM performance dashboard | https://docs.vllm.ai/en/latest/benchmarking/dashboard/ | not probed | Low priority this cycle; subdomain of already-verified docs.vllm.ai. |
 | Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05) | https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html | not probed | Blog post, dated; excluded per freshen rule "drop blogs/social posts." |
@@ -74,4 +76,42 @@ Probes (7): `gh issue view 32841` (stale-close check — zero comments), `gh rel
   in-tree names logged as observations, not as a completeness claim.
 - **NOT re-probed this cycle:** the three `docs.vllm.ai` rendered-docs rows (2026-04-24)
   and the two blog rows. They keep their old stamps rather than borrowing today's date.
+
+## Content updates applied 2026-08-11 (freshen, v0.25.1 → v0.27.0)
+
+Probes (12): `gh release list` (v0.27.0 latest, 2026-08-10) · `gh api contents/vllm/entrypoints/cli/benchmark?ref=v0.27.0` (subcommand list) · `.../benchmark/main.py` (Rust delegation gate) · `.../benchmark/serve.py` (entrypoint unchanged) · `.../vllm/envs.py` (`VLLM_USE_RUST_BENCH`) · `.../vllm/benchmarks/serve.py` at v0.27.0 **and** v0.25.1 (full argparse flag diff) · same file at v0.21.0/v0.24.0/v0.26.0 (`endpoint_type` history) · `.../lib/endpoint_request_func.py` at v0.25.1/v0.26.0/v0.27.0 (backend keys) · `.../requirements/common.txt` (dep floors) · `gh pr view 50081 / 49611 / 49223` · `gh issue view 32841` · WebFetch of the three `docs.vllm.ai` rows.
+
+- **v0.25.1 → v0.27.0** across `SKILL.md`, `output-schema.md`, `troubleshooting.md`,
+  `datasets.md`, `sources.md`. Every bumped claim was individually re-read at the
+  v0.27.0 tag; nothing was extrapolated from the release notes.
+- **`vllm bench serve` now has two implementations.** A Rust client shipped in
+  `vllm-rs` (#48107, #48930), but #50081 made it **opt-in** — `VLLM_USE_RUST_BENCH=1`,
+  resolved via `VLLM_RUST_FRONTEND_PATH`. Python stays the default because the two
+  diverge on accepted arguments (underscore aliases, defaults, help text). Recorded
+  in `commands.md` as a re-baseline trigger. The rendered docs do not mention it yet.
+- **`--probe-request-rate`** (#49611) added to `commands.md` + the five `probe_*`
+  JSON fields to `output-schema.md`. First native way to measure how a heavy
+  workload stalls *unrelated* requests — it deliberately bypasses `--max-concurrency`.
+- **BROKEN CLAIM CORRECTED — `endpoint_type` was never removed from the output JSON.**
+  The 2026-04-24 pass wrote it out of `output-schema.md` and the 2026-07-21 pass
+  "re-confirmed absent". Both were wrong: the line is unconditional at every tag from
+  v0.21.0 to v0.27.0. Only the `--endpoint-type` **flag** is gone. The correction is
+  left in the file as a visible note so a future pass does not re-delete the field.
+- **Air-gap dep floor fixed:** `transformers>=4.45` → **`transformers >= 5.5.3`**, read
+  from `requirements/common.txt`. The release notes' "Transformers 5.14.1" (#49223)
+  is a `requirements/test/*` CI pin and was **not** applied as the runtime floor.
+  Also `huggingface-cli download` → `hf download` (the old name now resolves to
+  `huggingface_hub.cli.deprecated_cli:main`).
+- **Two wrong value-set entries deleted:** `vllm-chat` removed from the `bench serve`
+  `--backend` list (it is a `bench throughput` backend, and was absent from
+  `ASYNC_REQUEST_FUNCS` at v0.25.1 too — so this was never version drift, just an
+  error), and `bfcl` removed from the `--dataset-name` list in `datasets.md`
+  (selected via `--dataset-path` + `--backend openai-chat` instead).
+- **Reassuring negative result:** the complete argparse flag diff between v0.25.1 and
+  v0.27.0 is **one addition, zero removals**. Every other flag this skill documents
+  still exists at v0.27.0. `--num-warmups` default re-read as `0`, so "does not
+  auto-warm" holds through v0.27.
+- **#32841 hedge kept for the third cycle** — see the row above for the reasoning.
+- **Still not probed:** the two blog rows and the performance-dashboard row. They keep
+  their existing stamps rather than borrowing today's date.
 

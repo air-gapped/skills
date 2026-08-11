@@ -48,8 +48,10 @@ Use this when the China-based mirror is faster than an internal mirror, or when 
 ```bash
 # On a connected staging host:
 export HF_HOME=/staging/hf-cache
-huggingface-cli download <model-id>
-huggingface-cli download --repo-type dataset <dataset-id>
+hf download <model-id>
+hf download --repo-type dataset <dataset-id>
+# (`huggingface-cli` still runs but is the deprecated shim —
+#  huggingface_hub maps it to `cli.deprecated_cli:main`; `hf` is the current entrypoint.)
 
 # rsync /staging/hf-cache into the enclave at /data/hf-cache
 
@@ -65,7 +67,7 @@ vllm bench serve ...
 **Failure modes:**
 - `config.json` references a remote processor class not in the cache — fix by pre-downloading the full model directory, not just weights.
 - Code path calls `snapshot_download` without a specific revision — sometimes triggered by `trust_remote_code=True` loading custom model code. Prefer pinning a revision at launch.
-- Tokenizer library attempts to download its config — usually resolved by `transformers>=4.45` with proper offline semantics.
+- Tokenizer library attempts to download its config — resolved by a `transformers` new enough to have proper offline semantics. Do not stage a 4.x wheel: vLLM **v0.27.0 requires `transformers >= 5.5.3`** (`requirements/common.txt`, verified 2026-08-11), so the enclave's pinned-wheel set must carry transformers 5.x or vLLM will not install at all.
 
 ## Dataset sourcing air-gapped
 
@@ -95,7 +97,7 @@ For enterprise air-gapped setups:
 - **Option B:** MinIO/S3 as the underlying storage, with `hf_transfer` enabled. Requires custom HF Hub patches or the `hf-transfer` library pointing at S3-compatible endpoints.
 - **Option C:** JuiceFS + S3 on a shared PVC — models live on the JuiceFS mount, `HF_HOME` points at `/mnt/juicefs/hf-cache`. K8s-native, works well with vLLM deployments that already use PVC-mounted model caches.
 
-**For ongoing operation:** a connected DMZ host runs a nightly `huggingface-cli download` of the models the fleet uses, writes to the shared storage, air-gapped cluster consumes read-only. This is the pattern most enterprise vLLM deployments end up with.
+**For ongoing operation:** a connected DMZ host runs a nightly `hf download` of the models the fleet uses, writes to the shared storage, air-gapped cluster consumes read-only. This is the pattern most enterprise vLLM deployments end up with.
 
 ## Quick sanity check
 

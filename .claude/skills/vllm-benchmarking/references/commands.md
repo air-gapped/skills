@@ -14,11 +14,13 @@ Load when configuring or debugging a specific bench subcommand. Covers flags, de
 
 HTTP-level online serving benchmark. The one operators use most.
 
+**Which implementation runs (v0.27.0).** A native Rust port of the benchmark client shipped in the `vllm-rs` binary (#48107, #48930), but **the Python implementation is still the default** — #50081 made Rust delegation opt-in after the two diverged on accepted arguments, underscore aliases, defaults, and help output (Python accepts `--result_filename`; Rust only `--result-filename`). Set `VLLM_USE_RUST_BENCH=1` to opt in; `vllm bench serve` then `execv`s the `vllm-rs` binary resolved from `VLLM_RUST_FRONTEND_PATH` (default `auto` = the binary packaged with vllm). Only `bench serve` delegates — the other five subcommands are Python either way. Treat the switch as a **re-baseline trigger**: do not compare Rust-client numbers against Python-client numbers in the same series.
+
 **Connection:**
 - `--base-url <url>` — full URL to the vLLM server. Overrides host/port.
 - `--host 127.0.0.1 --port 8000` — fallback when `--base-url` isn't set.
 - `--endpoint /v1/completions` — default. Use `/v1/chat/completions` for chat-tuned flows.
-- `--backend openai` — default. Other values (verified 2026-04-24 on docs.vllm.ai/en/latest/cli/bench/serve/): `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-chat`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. **`--endpoint-type` is removed as of v0.11.0 — use `--backend` instead.**
+- `--backend openai` — default. Other values (read off `ASYNC_REQUEST_FUNCS` at v0.27.0, matches docs.vllm.ai/en/latest/cli/bench/serve/, verified 2026-08-11): `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. `vllm-chat` is **not** among them — that value belongs to `bench throughput`. **`--endpoint-type` is removed as of v0.11.0 and still absent at v0.27.0 — use `--backend` instead.**
 - `--header KEY=VALUE` — arbitrary HTTP headers. Repeatable.
 - Auth: `OPENAI_API_KEY` env var auto-injects as Bearer token.
 
@@ -29,6 +31,7 @@ HTTP-level online serving benchmark. The one operators use most.
 - `--burstiness <float>` — gamma-distribution shape for inter-arrival times. Default 1.0 = Poisson. <1 = bursty spikes, >1 = smoother-than-Poisson.
 - `--ramp-up-strategy linear|exponential` + `--ramp-up-start-rps <a>` + `--ramp-up-end-rps <b>` — gradually scale load over the run, useful for finding the breaking point.
 - `--num-warmups <N>` — pre-flight requests before measurement. Default 0. Honors `--max-concurrency` during warmup.
+- `--probe-request-rate <rps>` (v0.27.0, PR #49611, merged 2026-08-01). Default `0.0` = off. Sends single-token text-only probes at this rate **alongside** the main workload, **bypassing `--max-concurrency`**, and reports their latency separately. This is the measurement for "how badly does my heavy workload stall an unrelated small request" — e.g. large-image VLM batches inflating a text request's median. Adds `probe_completed`, `probe_failed`, `probe_median_e2el_ms`, `probe_p99_e2el_ms`, `probe_max_e2el_ms` to the output JSON.
 - **Reasoning/thinking benchmarking** (v0.23+, PR #44244, merged 2026-06-03): `--chat-template-kwargs '{"thinking": true}'` forwards kwargs to the tokenizer's `apply_chat_template` **for datasets that render prompts client-side** (`custom`, `speed_bench`). **Do not confuse it with `--extra-body '{"chat_template_kwargs":{"enable_thinking":false}}'`**, which ships the kwargs to the *server* in the request body. Two near-identically-named knobs on opposite sides of the wire: the first only bites when the client renders the prompt, the second only when the server does. Picking the wrong one silently benchmarks the wrong mode.
 - **Client/server tokenizer-mismatch auto-correction** (v0.23+, PR #44708, merged 2026-06-08): for the `random` dataset, `vllm bench serve` now detects a client-vs-server tokenizer mismatch and corrects for it. Previously this was a silent input-length skew — generated token counts did not match what the server actually saw. Re-baseline before comparing `random`-dataset numbers taken across this boundary.
 - **BFCL dataset** (PR #42457, merged 2026-06-10): tool-calling workloads for `vllm bench serve`.

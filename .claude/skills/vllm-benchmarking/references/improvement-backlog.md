@@ -6,6 +6,43 @@ Work-not-done log from skill-improver passes. "Open" = issues attempted or ident
 
 - **Trim triple-stated warmup/tokenizer/random content** — Dim 6 (Simplicity). `SKILL.md` "Why this matters" (L14-22) restates the warmup / tokenizer / random-as-prod pitfalls that "Critical pitfalls" (L73-82) also enumerates. Not applied this pass: the keep/discard budget went to higher-magnitude wins (release framing, version-boundary unification, listing-cap trim, dataset/trace-replay coverage). Deletion-favoured candidate for next pass — collapse "Why this matters" to the three failure-mode *consequences* and let "Critical pitfalls" own the flag-level detail.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
+
+12 probes. The headline is a **self-inflicted bug**, not upstream drift: a claim two
+previous passes had "verified" turned out to be false at every tag it ever covered.
+
+- **`endpoint_type` was never removed from the `bench serve` output JSON.**
+  `output-schema.md` said it was dropped and that reader code keying off it "will not
+  find it on post-v0.21.0 runs". Reading `serve.py` at v0.21.0, v0.24.0, v0.25.1,
+  v0.26.0 and v0.27.0 shows the same unconditional
+  `result_json["endpoint_type"] = args.backend  # for backward compatibility` in all
+  five. The 2026-07-21 pass recorded "re-confirmed absent" — it wasn't. Lesson for
+  future passes: a *field-absence* claim needs a positive grep of the assembly block,
+  not an eyeball of a diff. The correction is written into the file as a visible note
+  so the field doesn't get deleted a third time.
+- **`vllm bench serve` gained a second implementation** — Rust client in `vllm-rs`
+  (#48107, #48930), made **opt-in** by #50081 via `VLLM_USE_RUST_BENCH=1` +
+  `VLLM_RUST_FRONTEND_PATH`. Python remains the default precisely because the two
+  disagree on argument spelling (`--result_filename` vs `--result-filename`). Recorded
+  as a re-baseline trigger. Notably the rendered docs still don't mention it, so this
+  is source-only knowledge.
+- **`--probe-request-rate`** (#49611) — measures how a heavy workload stalls unrelated
+  requests by firing single-token probes that bypass `--max-concurrency`. Fills a real
+  gap: nothing else in the skill measured cross-request interference.
+- **Air-gap dep floor was 4 majors stale** — `transformers>=4.45` → `>= 5.5.3`. Resisted
+  the release-note number (5.14.1, #49223): that PR touches only `requirements/test/*`,
+  so it is a CI pin, not the runtime floor. Also swapped the deprecated
+  `huggingface-cli` for `hf`.
+- **Two value-set errors deleted, neither of them version drift:** `vllm-chat` was never
+  a `bench serve` `--backend` (it belongs to `throughput`), and `bfcl` was never a
+  `--dataset-name` (it is path-selected and requires `--backend openai-chat`). Both had
+  been carried forward as "verified".
+- **Negative result worth keeping:** full argparse diff v0.25.1 → v0.27.0 is one
+  addition and zero removals. Two minors passed and nothing this skill documents broke.
+  `--num-warmups` default still `0`, so the warmup boundary extends to v0.27 on evidence.
+- **#32841 hedge kept, third cycle running.** Zero comments, no fix PR, `COMPLETED`
+  state reason. Still not enough to delete the warning.
+
 ## Resolved this pass (2026-05-28)
 
 - Release framing bumped v0.19.1 → v0.21.0 (current stable, `gh release list` isLatest) — `sources.md`, `output-schema.md`. Dim 9 8→9.

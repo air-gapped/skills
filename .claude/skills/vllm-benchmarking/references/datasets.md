@@ -8,10 +8,17 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 `create_txt_slices_dataset.py`. Any tooling or citation pointing at the old flat
 path will 404.
 
-**Names newly observed in the v0.25.1 tree** and not previously catalogued here:
-`bfcl` (tool-calling, PR #42457), `random-mm`, `random-rerank`, `timed_trace`.
-This is what was seen in-tree, not a claim of completeness — the rendered docs
-table remains the authority for the supported set.
+**The complete `--dataset-name` value set at v0.27.0** (argparse `choices` in
+`vllm/benchmarks/serve.py`, matches the rendered docs table, verified
+2026-08-11): `sharegpt`, `burstgpt`, `sonnet`, `random`, `random-mm`,
+`random-rerank`, `hf`, `custom`, `custom_audio`, `custom_image`,
+`prefix_repetition`, `spec_bench`, `speed_bench`, `timed_trace`.
+
+**`bfcl` is not one of them** — a previous revision listed it as a dataset name.
+The BFCL tool-calling dataset is selected instead by pointing `--dataset-path`
+(or `--hf-name`) at a path in `BFCLDataset.SUPPORTED_DATASET_PATHS`, and it
+**requires `--backend openai-chat`** (vLLM raises otherwise). Category selection
+is via `--bfcl-categories`.
 
 ## In-tree, no network required
 
