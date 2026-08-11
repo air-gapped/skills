@@ -119,7 +119,7 @@ Definition (DistServe paper, [haoailab.com/blogs/distserve](https://haoailab.com
 |---|---|
 | P95 TTFT ≤ 200ms | `num_requests_waiting` = 0 at peak rate; raise `max_num_batched_tokens` to absorb prefill bursts; enable prefix caching; consider PD disagg |
 | P95 TPOT ≤ 50ms | raise `max_num_seqs` only until TPOT hits ceiling; `--async-scheduling` on; shrink `max_num_batched_tokens` (2048 sweet spot) |
-| P95 ITL ≤ 30ms | tune `--cuda-graph-sizes` to cover running batch sizes; no eager fallback at peak batch |
+| P95 ITL ≤ 30ms | tune `--cudagraph-capture-sizes` to cover running batch sizes; no eager fallback at peak batch |
 | Per-GPU tok/s at SLO | **goodput** — the headline number |
 
 vLLM ships first-class goodput in `vllm bench serve --goodput ttft:200 tpot:50`. Full methodology in `vllm-benchmarking`.

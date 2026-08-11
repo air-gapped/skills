@@ -5,6 +5,70 @@
 - **PD-disagg connector wiring is thin** (Dim 5) — `references/distributed.md` + SKILL.md router. Nixl/Mooncake/LMCache are named but the actual connector-config recipe (KVTransferConfig fields, proxy wiring) is shallow. Adding it is author-domain content + a multi-section write, not a one-iteration atomic edit; also overlaps `vllm-caching`, so the split needs a deliberate boundary decision.
 - **No bundled scripts** (Dim 7, ceiling) — skill points at vLLM's `benchmark_moe.py` / `auto_tune.sh` rather than shipping a wrapper. Scoring this past 7 would require authoring and testing a real bundled script (e.g. a tuned-config-presence checker); cannot be fabricated in one iteration without a tested artifact.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
+
+**The pass's central finding is about method, not content: three prior freshens
+verified the issue tracker and never verified the flag surface.** Probing
+`vllm/config/*.py` + `vllm/engine/arg_utils.py` at the tag — which no earlier pass
+had done — turned up four dead flags and one rename, two of them removed **eleven
+and five months** before this pass and therefore invisible to any release-note
+scan of the current window. A removed flag is a hard startup failure, strictly
+worse than a stale issue state.
+
+- **`--max-num-partial-prefills` / `--max-long-partial-prefills` removed in
+  v0.27.0** (PR #49244). The PR's own framing is the useful part: these were V0
+  fields "explicitly rejected by the V1 enablement oracle… dead config that can
+  only ever raise `UnsupportedFeatureError`". Same documented-but-dead shape as
+  `VLLM_RPC_TIMEOUT` in the sibling `vllm-configuration` skill.
+- **`--preemption-mode` (PR #25334, 2025-09-21) and `--swap-space` (PR #36216,
+  2026-03-07) removed — and the skill's preemption section was built on them.**
+  "Raise `--swap-space` to absorb bursts" was mitigation #1 for KV thrashing in
+  `scheduler-and-compile.md`, was repeated in SKILL.md's triage tree, in the Red
+  Hat triage step 3, and in `regressions.md` under #25538. It was a no-op even
+  before removal: V1 hardcodes `num_cpu_blocks = 0`. Rewrote the section around
+  the knobs that actually exist — `--watermark` (KV headroom at admission) and
+  `--scheduler-reserve-full-isl` (admit only if the whole ISL fits, on by
+  default), which is precisely the over-admission that produced the thrash
+  reports.
+- **`--cuda-graph-sizes` renamed `--cudagraph-capture-sizes`.** Absent from the
+  tree at v0.25.1 *and* v0.27.0, and a repo-wide code search for the old symbol
+  returns nothing — so the skill had been shipping an unparseable flag for at
+  least two minors. Fixed in the frontmatter (old spelling kept as a trigger),
+  SKILL.md, `distributed.md`, and three places in `scheduler-and-compile.md`.
+- **The two batching defaults are device-gated, and the skill stated a
+  constant.** `vllm serve` on a ≥70 GiB non-A100 GPU defaults to
+  `max_num_batched_tokens=8192, max_num_seqs=1024`; the familiar 2048/256 from
+  PR #10544 is the small-GPU branch. On the H100/H200/B200 hardware this skill
+  targets, every tuning plan anchored to 2048/256 started 4× below reality.
+- **New levers added:** `--performance-mode {balanced,interactivity,throughput}`
+  — a single flag for the posture the "scheduler first-pass by workload" table
+  was hand-assembling — plus the note that `throughput` doubles only *defaulted*
+  batching values, and per-request `stream_interval` (#49754).
+- **Compile section corrected in a way that changes behaviour, not just wording:**
+  both AOT vars have *computed* defaults that resolve **on** under the v0.27.0
+  torch 2.13.0 pin (#48155), so they are opt-out. The consequence worth naming is
+  the coupling — `VLLM_DISABLE_COMPILE_CACHE=1`, the documented Llama-4
+  workaround sitting one row above, also disables AOT compile and with it the
+  mega-artifact. Also: first-request JIT stalls are gone (#47451, #49903), so a
+  pre-v0.27.0 TTFT baseline that swallowed one is not comparable.
+- **Added step 0 to the defensive upgrade checklist:** diff the flag surface
+  between tags before upgrading. That is the check whose absence caused this
+  pass's findings.
+
+**Deliberately kept:** `--cuda-graph-sizes` remains in the frontmatter beside the
+new spelling — same policy as `VLLM_ENABLE_MOE_DP_CHUNK`; it is a *trigger*, so an
+operator searching the dead name should land here and be told the new one.
+
+**Not attempted:** the issue tracker was not re-probed this pass (budget went to
+the flag surface). #35048, #32547, #19579, #31475 and #25538 all carry 2026-07-21
+states, and `regressions.md` now says so at the top rather than implying currency.
+`FusedMoE` → `FusedMoEFactory` (#44941) verified but not applied — the skill's
+only mention is generic prose, and no operator-facing flag changed.
+
+**Tag discipline:** v0.27.1 shipped mid-pass (2026-08-11) with one change
+(#50424, quantized DSpark Markov heads). Claims stay stamped **v0.27.0** because
+that is the tag actually read; only the "latest stable" line names v0.27.1.
+
 ## Resolved — 2026-07-21 (freshen, v0.21.0 -> v0.25.1)
 
 - **Closed the twice-blocked #39107 backlog item.** The confirmatory `gh` call

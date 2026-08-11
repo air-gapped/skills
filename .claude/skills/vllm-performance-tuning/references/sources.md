@@ -2,7 +2,27 @@
 
 All citations backing the skill. Verify any claim via the linked source.
 
-## vLLM source code + benchmarks (Last verified: 2026-07-21 against v0.25.1)
+## vLLM source code + benchmarks (Last verified: 2026-08-11 against v0.27.0)
+
+Read at tag via `gh api "repos/vllm-project/vllm/contents/<path>?ref=v0.27.0" --header 'Accept: application/vnd.github.raw'`.
+This is the probe that answers "does this flag still exist", and it is what the
+2026-08-11 pass used. `requirements/cuda.txt` is the authority on runtime pins —
+the release note's Dependencies section mixes runtime and CI pins.
+
+### Flag-surface deltas found 2026-08-11
+
+| Flag the skill named | Status at v0.27.0 | Source |
+|---|---|---|
+| `--max-num-partial-prefills`, `--max-long-partial-prefills` | **removed** | [PR #49244](https://github.com/vllm-project/vllm/pull/49244), merged 2026-07-21. Body: V0 fields "explicitly rejected by the V1 enablement oracle… can only ever raise `UnsupportedFeatureError`" |
+| `--preemption-mode`, `--scheduler-delay-factor` | **removed** | [PR #25334](https://github.com/vllm-project/vllm/pull/25334), merged 2025-09-21 |
+| `--swap-space` | **removed** | [PR #36216](https://github.com/vllm-project/vllm/pull/36216), merged 2026-03-07 — V1 hardcodes `num_cpu_blocks = 0`, so it never allocated anything |
+| `--num-scheduler-steps` | **removed** | absent from `arg_utils.py` at v0.25.1 and v0.27.0 |
+| `--cuda-graph-sizes` | **renamed** → `--cudagraph-capture-sizes` / `--max-cudagraph-capture-size` | absent from `compilation.py` + `arg_utils.py` at both tags; repo-wide code search for the old symbol returns nothing |
+| `--watermark`, `--scheduler-reserve-full-isl`, `--prefill-schedule-interval`, `--max-num-scheduled-tokens`, `--performance-mode` | **new since the skill was written** | `vllm/config/scheduler.py` + `vllm/config/vllm.py` at v0.27.0 |
+| `-O0`–`-O3`, `FULL_AND_PIECEWISE` default, `min(max_num_seqs*2, 512)` graph cap, `--enable-expert-parallel` / `--enable-eplb` / `--enable-dbo` | **fresh, unchanged** | re-read at v0.27.0; `-O` still aliases `--optimization-level`, `-O2` still default, `-O3` still equals `-O2` |
+| `max_num_batched_tokens` / `max_num_seqs` defaults | **device-gated, not constant** | `arg_utils.py@v0.27.0` L2544-2563: ≥70 GiB non-A100 → 8192/1024 for `OPENAI_API_SERVER`; else 2048/256 |
+| runtime dependency pins | torch 2.13.0, torchvision 0.28.0, flashinfer 0.6.16.post3 | `requirements/cuda.txt@v0.27.0`. **No direct `triton` pin** — 3.7.1 arrives transitively via torch |
+
 
 - `benchmarks/kernels/benchmark_moe.py` — [GitHub](https://github.com/vllm-project/vllm/blob/main/benchmarks/kernels/benchmark_moe.py)
 - `vllm/model_executor/layers/fused_moe/configs/` — shipped MoE configs
@@ -125,9 +145,16 @@ All citations backing the skill. Verify any claim via the linked source.
 - [#18343](https://github.com/vllm-project/vllm/pull/18343) — EPLB
 
 ### Scheduler
-- [#10544](https://github.com/vllm-project/vllm/pull/10544) — `max_num_batched_tokens` 512→2048 default
+- [#10544](https://github.com/vllm-project/vllm/pull/10544) — `max_num_batched_tokens` 512→2048 default. **Read as the small-GPU branch only** — the ≥70 GiB non-A100 serve default is 8192.
 - [#27869](https://github.com/vllm-project/vllm/pull/27869) — `--stream-interval`
+- [#49754](https://github.com/vllm-project/vllm/pull/49754) — `stream_interval` as a per-request sampling param — **MERGED 2026-07-27**
 - [#25951](https://github.com/vllm-project/vllm/pull/25951) — CI CUDA-graph size
+
+### Startup / warmup (v0.27.0)
+- [#47451](https://github.com/vllm-project/vllm/pull/47451) — FA4 JIT warmup infrastructure — **MERGED 2026-07-20**
+- [#49903](https://github.com/vllm-project/vllm/pull/49903) — runner-owned Triton kernel warmup before first request — **MERGED 2026-07-28**
+- [#48155](https://github.com/vllm-project/vllm/pull/48155) — torch 2.13.0 / torchvision 0.28.0 — **MERGED 2026-07-23**; makes both AOT-compile gates default-satisfied
+- [#44941](https://github.com/vllm-project/vllm/pull/44941) — `FusedMoE` → `FusedMoEFactory` — **MERGED 2026-07-31**; import-level only, no flag changed
 
 ### Cloud / infra
 - [#16992](https://github.com/vllm-project/vllm/pull/16992) — GB200 NCCL env-var defaults
@@ -163,12 +190,21 @@ All citations backing the skill. Verify any claim via the linked source.
 
 ## Refresh policy
 
-Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0). **Last freshened 2026-07-21 against v0.25.1.**
+Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0), 2026-07-21 (v0.25.1). **Last freshened 2026-08-11 against v0.27.0 — flag surface only; the issue tracker was not re-probed, so every issue state in `regressions.md` is as of 2026-07-21.**
 
 **Do not treat "issue closed" as "regression fixed".** Of the issues re-probed on 2026-07-21, more closed for inactivity than for a fix. Read the closing comment every time — the previous pass's refresh policy listed #31475 as "still-open" and it is now `CLOSED`, which would read as resolved and is not.
 
+**Verify the flag surface, not only the issue tracker.** Three consecutive passes
+probed issues carefully and never checked whether the flags this skill tells
+operators to type still exist. Two of them (`--preemption-mode`, `--swap-space`)
+had been gone for eleven and five months, and `--cuda-graph-sizes` had been
+renamed. A removed flag is a hard startup failure — strictly worse than a stale
+issue state. Every pass should diff `vllm/config/*.py` + `vllm/engine/arg_utils.py`
+between the old and new tags and grep this skill's flags against it.
+
 Refresh when:
-- v0.26.x stable lands (v0.25.1 current, 2026-07-14).
+- v0.28.x stable lands. Latest stable is **v0.27.1** (2026-08-11), a single-change patch on v0.27.0 ("Support quantized DSpark Markov heads", #50424) that touches no config or scheduler surface. **Everything in this file was probed at tag `v0.27.0`** and is stamped that way deliberately — do not restamp to a tag nobody read. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, is what gates this stack.
+- The issue tracker re-probe deferred by the 2026-08-11 pass: #35048, #32547, #19579, #31475, #25538 all carry 2026-07-21 states.
 - A referenced issue closes **against a named fix PR** — genuinely fixed so far: #28882 (2026-04-21), #29539 (2026-01-07), #34249 (2026-02-20), #27679 (2025-12-29), #31679 (2026-01-07), #34641 (2026-05-28), vllm-ascend #4649 (2026-03-13). Closed *without* a fix: #31475, #25538. Still open: [#35048](https://github.com/vllm-project/vllm/issues/35048) (stale-marked).
 - Wide-EP GB200 Part II ships — currently Part I only.
 - New MLPerf round with vLLM submission.

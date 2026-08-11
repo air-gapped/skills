@@ -3,12 +3,12 @@ name: vllm-performance-tuning
 description: |-
   vLLM performance-tuning operator reference — tuning workflow (baseline → bottleneck → knob → re-bench), fused-MoE kernel autotune (`benchmark_moe.py` generates `E=N,N=M,device_name=X.json` configs), DeepEP all-to-all + expert parallelism + EPLB, CUDA graph modes (FULL_AND_PIECEWISE default), torch.compile AOT + compile cache, scheduler knobs (`--max-num-batched-tokens`, `--max-num-seqs`, `--async-scheduling`), TP/EP/DP/PP decision tree, NCCL/DCGM on H100/H200/B200/GB200, PD disaggregation (Nixl/Mooncake/LMCache), known regressions + vendor quirks (v0.14→0.15.1 MiniMax, MI300X FP8<BF16, DeepGEMM M<128 TTFT).
 when_to_use: |-
-  Trigger on vLLM perf tuning, throughput/latency/goodput optimization, MoE deployment on new hardware, bringing up new GPU SKU (B200/B300/GB200/MI325X/Jetson Thor/RTX Pro Blackwell). Keywords — `benchmark_moe.py`, `VLLM_TUNED_CONFIG_FOLDER`, `VLLM_ALL2ALL_BACKEND`, `VLLM_USE_DEEP_GEMM`, `VLLM_USE_AOT_COMPILE`, `VLLM_ENABLE_MOE_DP_CHUNK`, DeepEP, DeepGEMM, EPLB, `--enable-expert-parallel`, `--enable-eplb`, `--enable-dbo`, `--max-num-batched-tokens`, `--max-num-seqs`, `--async-scheduling`, `--cuda-graph-sizes`, Wide-EP, MLA, PD disagg, FULL_AND_PIECEWISE. Narrow — "tune MoE for B200", "TP vs EP for MoE", "MoE slow", "async scheduling broke latency". Also implicit — "vllm is slow", "why low TPS", "throughput too low", "TTFT too high", "tune model X", "perf regression after upgrade", "audit perf", "deploy-memo perf targets". NOT for measuring (→ `vllm-benchmarking`). NOT for KV cache (→ `vllm-caching`).
+  Trigger on vLLM perf tuning, throughput/latency/goodput optimization, MoE deployment on new hardware, bringing up new GPU SKU (B200/B300/GB200/MI325X/Jetson Thor/RTX Pro Blackwell). Keywords — `benchmark_moe.py`, `VLLM_TUNED_CONFIG_FOLDER`, `VLLM_ALL2ALL_BACKEND`, `VLLM_USE_DEEP_GEMM`, `VLLM_USE_AOT_COMPILE`, `VLLM_ENABLE_MOE_DP_CHUNK`, DeepEP, DeepGEMM, EPLB, `--enable-expert-parallel`, `--enable-eplb`, `--enable-dbo`, `--max-num-batched-tokens`, `--max-num-seqs`, `--async-scheduling`, `--cudagraph-capture-sizes` (formerly `--cuda-graph-sizes`), `--performance-mode`, `--watermark`, Wide-EP, MLA, PD disagg, FULL_AND_PIECEWISE. Narrow — "tune MoE for B200", "TP vs EP for MoE", "MoE slow", "async scheduling broke latency". Also implicit — "vllm is slow", "why low TPS", "throughput too low", "TTFT too high", "tune model X", "perf regression after upgrade", "audit perf", "deploy-memo perf targets". NOT for measuring (→ `vllm-benchmarking`). NOT for KV cache (→ `vllm-caching`).
 ---
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Current through **v0.25.1** (2026-07-14). Last freshened 2026-07-21.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.27.0** (2026-08-10); latest stable is **v0.27.1** (2026-08-11), a one-change patch that touches no perf surface. Last freshened 2026-08-11.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
@@ -24,10 +24,11 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 **Throughput / batching:**
 - **`auto_tune.sh`** (`benchmarks/auto_tune/`) sweeps `max_num_seqs × max_num_batched_tokens`.
 - **`--gpu-memory-utilization`** — raise from 0.90 toward 0.95 until steady OOM margin, then back off. MoE: cap at 0.85 (all-to-all buffers not in accounting).
-- **Chunked prefill (always on in V1)** — raise `--max-num-batched-tokens` (default 2048 since PR #10544) if TTFT > SLO; lower if ITL > SLO.
+- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. **Know your starting point: the default is device-gated, not 2048** — `vllm serve` on a ≥70 GiB non-A100 GPU starts at **8192 / `max_num_seqs`=1024**; only below 70 GiB (or on A100) is it 2048 / 256.
+- **`--performance-mode {balanced,interactivity,throughput}`** — one flag for the whole posture; try it before hand-tuning the batching pair.
 
 **Latency / graph + compile:**
-- **CUDA graphs** — keep `FULL_AND_PIECEWISE` (default); align `--cuda-graph-sizes` with `max_num_seqs*2`.
+- **CUDA graphs** — keep `FULL_AND_PIECEWISE` (default); the flag is now `--cudagraph-capture-sizes` / `--max-cudagraph-capture-size`, and the generated cap already tracks `min(max_num_seqs*2, 512)`.
 - **`--async-scheduling`** — default-on in recent releases unless using spec-dec / PP / unsupported MM path.
 - **Compile cache** — pre-bake `$VLLM_CACHE_ROOT/torch_compile_cache` on a representative pod; mount as PVC / bake into OCI layer.
 
@@ -45,7 +46,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 | TTFT high, queue growing | capacity | raise replicas, raise `max_num_seqs`, check preemption rate |
 | TPOT high, TTFT fine | decode-bound | MoE kernel not tuned, wrong attention backend, async sched off |
 | ITL spikes | CUDA-graph miss | batch sizes fall outside captured buckets |
-| Preemptions climbing | KV thrashing | raise `--swap-space`, lower `--max-num-seqs`, or add replicas |
+| Preemptions climbing | KV thrashing | raise `--watermark`, lower `--max-num-seqs`, or add replicas (`--swap-space` is gone — V1 always recomputes) |
 | `num_running` < configured concurrency | scheduler stall | check async-sched blockers, multimodal path, structured output |
 
 **DCGM signals** (not `GPU_UTIL`): `DCGM_FI_PROF_SM_OCCUPANCY`, `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE`. Low tensor-core active on a GEMM-bound workload = memory-bound.
@@ -134,11 +135,36 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 | **`-O2`** | **default** — full compile + `FULL_AND_PIECEWISE` + fusions (AllReduce+RMSNorm +15%, SP+Async-TP +10%, Attention+Quant FP8 +7%) |
 | `-O3` | reserved (currently = `-O2`) |
 
-### What changed under you, v0.22.0 → v0.25.1
+### What changed under you, v0.22.0 → v0.27.0
 
-Four minors of execution-path change. These move the baseline a re-tune is
+Six minors of execution-path change. These move the baseline a re-tune is
 measured against — re-benchmark across any of these boundaries rather than
 comparing to numbers taken before them.
+
+**v0.26.0 → v0.27.0 (the flag-surface window — these break configs, not just numbers):**
+
+- **`--max-num-partial-prefills` / `--max-long-partial-prefills` removed**
+  (#49244, v0.27.0). A recipe carrying them no longer starts. They were V0
+  fields the V1 oracle already rejected, so nothing was lost.
+- **First-request compilation stalls are gone.** FA4 JIT warmup infrastructure
+  (#47451) plus runner-owned Triton kernel warmup before the first request
+  (#49903). A pre-v0.27.0 TTFT baseline that swallowed a cold JIT is not
+  comparable to one taken after.
+- **torch 2.13.0 / torchvision 0.28.0** (#48155, upstream-flagged as a breaking
+  environment change). Both AOT-compile gates are now satisfied by default, so
+  AOT and the mega-artifact are on unless explicitly disabled.
+- **Startup validation got stricter** and now fails fast instead of dying later:
+  `/dev/shm` too small for the shm ring buffer (#48879), cgroup memory limits
+  respected on all platforms (#49966), incompatible nested runtime overrides
+  rejected (#49247), DCP topology validation (#49777), better data-parallel
+  launch validation (#49124). Configs that "worked" by accident will now refuse
+  to boot — that is the fix, not a regression.
+- **`stream_interval` is a per-request sampling param** (#49754), so one
+  interactive client no longer forces `N=1` server-wide.
+- **`FusedMoE` renamed `FusedMoEFactory`** (#44941) — matters only if you import
+  it; no operator-facing flag changed.
+
+**v0.22.0 → v0.25.1:**
 
 - **Model Runner V2 became the default execution path, in three steps.**
   Qwen3 (v0.22.0) → **+ Llama and Mistral dense models** (#43458, v0.23.0) →
@@ -171,9 +197,9 @@ comparing to numbers taken before them.
 
 | Metric | Value |
 |---|---|
-| Default `max_num_batched_tokens` (since PR #10544) | 2048 (was 512) |
-| Default `max_num_seqs` | 256 |
-| Default CUDA-graph sizes | `[1,2,4] + range(8,256,8) + range(256,max,16)`, cap `min(max_num_seqs*2, 512)` |
+| Default `max_num_batched_tokens` / `max_num_seqs`, `vllm serve` on ≥70 GiB non-A100 GPU | **8192 / 1024** |
+| Same, on <70 GiB or any A100 | 2048 / 256 (the PR #10544 figure — small-GPU branch only) |
+| Default CUDA-graph sizes (`--cudagraph-capture-sizes`) | `[1,2,4] + range(8,256,8) + range(256,max,16)`, cap `min(max_num_seqs*2, 512)` |
 | H200 Wide-EP DeepSeek-R1 throughput | 2.2k tok/s/GPU vs ~1.5k baseline ([vllm.ai/blog/large-scale-serving](https://vllm.ai/blog/large-scale-serving)) |
 | GB200 Wide-EP DeepSeek-R1 | 26.2K TPGS prefill, 10.1K TPGS decode, 3-5× H200 ([vllm.ai/blog/dsr1-gb200-part1](https://vllm.ai/blog/dsr1-gb200-part1)) |
 | MLPerf v5.1 Blackwell Ultra | 5,842 tok/s/GPU offline, 2,907 server ([NVIDIA blog](https://developer.nvidia.com/blog/nvidia-blackwell-ultra-sets-new-inference-records-in-mlperf-debut/)) |
@@ -182,7 +208,16 @@ comparing to numbers taken before them.
 
 ## Source policy
 
-All claims cite file:line, release-note PR refs, or issue IDs. Full anchor list + vendor-specific sources in `references/sources.md`. Compiled 2026-04-18 against v0.19.0; freshened 2026-05-28 against v0.21.0. **Last freshened 2026-07-21 against v0.25.1**, covering the v0.22-v0.25 execution-path changes and a re-probe of every tracked issue.
+All claims cite file:line, release-note PR refs, or issue IDs. Full anchor list + vendor-specific sources in `references/sources.md`. Compiled 2026-04-18 against v0.19.0; freshened 2026-05-28 (v0.21.0) and 2026-07-21 (v0.25.1). **Last freshened 2026-08-11 against v0.27.0**, by reading the config dataclasses and `arg_utils.py` at the tag rather than skimming release notes.
+
+**Flags rot silently between minors, and release notes will not tell you.** This
+pass found four documented knobs that no longer exist — `--max-num-partial-prefills`
+and `--max-long-partial-prefills` (v0.27.0), `--preemption-mode` and `--swap-space`
+(removed **eleven and five months** before this pass, and missed by two prior
+freshens) — plus `--cuda-graph-sizes` renamed to `--cudagraph-capture-sizes`.
+Three prior passes verified *issues* diligently and never verified the *flag
+surface*. When freshening, read `vllm/config/*.py` + `vllm/engine/arg_utils.py`
+at the target tag and check each flag this skill names, by name.
 
 **Treat a `CLOSED` issue as unfixed until you read why it closed.** This pass found #31475 (MI300X FP8 slower than BF16) and #25538 (preempt/resume thrashing) both closed `NOT_PLANNED` by the inactivity bot, and #35048 stale-marked and heading the same way — none of them fixed. Only #29539 and #34249 closed against real fixes, and #38971 closed with a usable *answer* (`--moe-backend`).
 

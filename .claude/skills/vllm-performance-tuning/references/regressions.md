@@ -1,6 +1,6 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Current as of **v0.25.1** (verified 2026-07-21).
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Version stamps below carry **2026-07-21 / v0.25.1** — the 2026-08-11 pass freshened the flag surface, not the issue tracker, so every issue state here is as of 2026-07-21 and is due a re-probe.
 
 ## Version regressions
 
@@ -36,7 +36,7 @@ Not vLLM core but documented here for operators running vllm-omni diffusion: FLU
 
 ### Preempt/resume thrashing ([#25538](https://github.com/vllm-project/vllm/issues/25538))
 
-Insufficient token budget at resume triggers immediate re-preemption. Cycles worsen under load. Mitigations: raise `--max-num-batched-tokens`, raise `--swap-space`, or reduce `--max-num-seqs` to reduce competition.
+Insufficient token budget at resume triggers immediate re-preemption. Cycles worsen under load. Mitigations: raise `--max-num-batched-tokens`, raise `--watermark` to hold KV headroom at admission, or reduce `--max-num-seqs` to reduce competition. (`--swap-space` was the recorded mitigation here and no longer exists — see `scheduler-and-compile.md`.)
 
 **#25538 now shows `CLOSED` / `NOT_PLANNED` (2026-02-26) — closed by the
 inactivity bot, not by a fix.** The mitigations above are still the answer.
@@ -121,6 +121,11 @@ For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verif
 
 Before bumping vLLM version:
 
+0. **Diff the flag surface, not just the release notes.** Removed flags are a
+   hard startup failure, and the notes rarely mention a knob that died three
+   minors ago. `git diff v<current>..v<target> -- vllm/config/ vllm/engine/arg_utils.py`
+   and grep your own serve args against it. v0.27.0 alone removed
+   `--max-num-partial-prefills` / `--max-long-partial-prefills`.
 1. `git log v<current>..v<target> -- benchmarks/` in the vLLM repo — any new benchmark_moe.py changes?
 2. Check release notes for the deployed model family — DeepSeek-V3.2 / Qwen3-MoE / Kimi-K2 / Llama-4 all have fresh-release recipes that may change.
 3. Clear `$VLLM_CACHE_ROOT/torch_compile_cache` — stale cache is the single most common upgrade-break.
