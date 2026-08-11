@@ -1,6 +1,6 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.25**, re-checked var-by-var against `envs.py` on 2026-07-21).
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.27**, re-checked var-by-var against `envs.py` at tag `v0.27.0` on 2026-08-11).
 
 **Do not assume vLLM minors leave operator env vars alone.** A prior pass
 concluded they only touch torch/C++/pooling; the v0.22–v0.25 window disproved
@@ -90,6 +90,19 @@ live (defaults re-read from `envs.py` 2026-07-21):
 | `VLLM_API_KEY` | unset | Bearer token the server requires; equivalent to CLI `--api-key` |
 | `VLLM_SERVER_DEV_MODE` | `0` | Enables dev-only endpoints (`/reset_prefix_cache`, etc.). **Never set in production.** |
 | `VLLM_ALLOW_RUNTIME_LORA_UPDATING` | `0` | Allows runtime `load_lora_adapter` via admin endpoint |
+| `VLLM_USE_RUST_FRONTEND` | `0` | Serve the OpenAI-compat API from the `vllm-rs` binary instead of the Python API-server process(es) |
+| `VLLM_USE_RUST_BENCH` | `0` | Opt in to the Rust `vllm bench serve` client; Python remains the default |
+| `VLLM_RUST_FRONTEND_PATH` | `auto` | Path to the `vllm-rs` binary. `auto` looks for it next to the installed `vllm` package |
+
+**The Rust frontend is opt-in and fails loudly, in two different directions.**
+Setting `VLLM_RUST_FRONTEND_PATH` *without* also setting `VLLM_USE_RUST_FRONTEND=1`
+or `VLLM_USE_RUST_BENCH=1` logs a warning and is otherwise ignored — the path
+alone does not switch anything on. Conversely, enabling either flag while leaving
+the path at `auto` raises `FileNotFoundError` at startup if the binary is not
+present next to the package ("Build with setuptools-rust or set the path
+explicitly"). Images that do not ship `vllm-rs` therefore fail at boot, not at
+first request — worth knowing before flipping this on in an air-gapped image you
+did not build yourself.
 
 ## Hugging Face integration (inherited)
 
@@ -143,13 +156,26 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 | Variable | Default | Purpose |
 |---|---|---|
 | `VLLM_DISABLE_COMPILE_CACHE` | `False` | Force rebuild of torch.compile artifacts |
-| `VLLM_USE_AOT_COMPILE` | dynamic | Ahead-of-time compile path (Torch 2.10+) |
-| `VLLM_USE_MEGA_AOT_ARTIFACT` | dynamic | Single-file precompiled bundle (Torch 2.12+) |
+| `VLLM_USE_AOT_COMPILE` | **on** (see below) | Ahead-of-time compile path |
+| `VLLM_USE_MEGA_AOT_ARTIFACT` | **on** (see below) | Single-file precompiled bundle |
+| `VLLM_TRITON_USE_TD` | unset (auto) | Tri-state override for the Triton tensor-descriptor path — unset lets the backend auto-select (currently XPU only), `1` forces on, `0` off. Renamed from `VLLM_TRITON_ATTN_USE_TD`, which is now warn-and-ignore ([PR #42436](https://github.com/vllm-project/vllm/pull/42436)) |
 | `VLLM_TARGET_DEVICE` | `cuda` | `cuda` / `cpu` / `tpu` / `xpu` / `rocm` |
 | `VLLM_MAIN_CUDA_VERSION` | `13.0` | CUDA version of precompiled wheels (bumped from 12.9 to 13.0 in 2026 wheels; follows PyTorch, overridable) |
 | `VLLM_USE_DEEP_GEMM` | `1` on Hopper+ | Enable DeepGEMM FP8 kernel path. See `vllm-nvidia-hardware` → `gemm-backends.md` |
 | `VLLM_USE_DEEP_GEMM_E8M0` | `0` | Pack FP8 scales as E8M0 (Hopper FP8 E4M3 only — faster, tiny accuracy cost) |
 | `DG_JIT_CACHE_DIR` | `~/.cache/deep_gemm` | DeepGEMM JIT kernel cache. **Mount as PVC** — avoids per-pod warm-up tax (200-800 ms/shape) |
+
+**The two AOT vars are opt-*out*, not opt-in, on any current image.** Their
+defaults are computed, not constant: `VLLM_USE_AOT_COMPILE` resolves to on when
+torch ≥ 2.10 **and** the compile cache is enabled, and `VLLM_USE_MEGA_AOT_ARTIFACT`
+resolves to on when torch ≥ 2.12 **and** AOT compile is on. `requirements/cuda.txt`
+at v0.27.0 pins **`torch==2.13.0`** and **`torchvision==0.28.0`**
+([PR #48155](https://github.com/vllm-project/vllm/pull/48155), which raised Triton
+to 3.7.1 as a transitive torch dependency — there is no direct `triton` pin to
+grep for — and was flagged upstream as a breaking environment change), so both
+conditions hold out of the box and the practical action is setting them to `0` to
+*disable*. Note the coupling: `VLLM_DISABLE_COMPILE_CACHE=1` also turns AOT
+compile off, and that turns the mega-artifact off with it.
 
 ## Experimental / safety overrides (footguns)
 

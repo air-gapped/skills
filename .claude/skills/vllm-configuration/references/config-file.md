@@ -52,13 +52,12 @@ model-loader-extra-config: null     # backend-specific dict (runai-streamer tuni
 
 ### CacheConfig
 ```yaml
-block-size: 16                      # KV block size in tokens
-gpu-memory-utilization: 0.9         # fraction of free HBM per rank
-swap-space: 4                       # GiB per rank for CPU swap (legacy)
-cpu-offload-gb: 0                   # GiB for weights CPU offload (NOT KV)
+block-size: null                    # auto-resolved per platform/backend; only set to pin it
+gpu-memory-utilization: 0.92        # fraction of free HBM per rank
+cpu-offload-gb: 0                   # GiB for weights CPU offload (NOT KV); lives on UVAOffloadConfig
 kv-cache-dtype: auto                # auto | fp8 | fp8_e4m3 | fp8_e5m2
-enable-prefix-caching: false
-prefix-caching-hash-algo: builtin   # builtin | sha256
+enable-prefix-caching: true         # default ON
+prefix-caching-hash-algo: sha256    # builtin | sha256
 num-gpu-blocks-override: null       # force exact block count
 ```
 
@@ -68,21 +67,28 @@ tensor-parallel-size: 1
 pipeline-parallel-size: 1
 data-parallel-size: 1
 distributed-executor-backend: null  # mp | ray | external_launcher
-worker-use-ray: false
 ray-workers-use-nsight: false
 ```
 
 ### SchedulerConfig
 ```yaml
-max-num-batched-tokens: null        # auto-sized from max-model-len if unset
-max-num-seqs: 256
-max-num-partial-prefills: 1
-max-long-partial-prefills: 1
-long-prefill-token-threshold: 0
-scheduler-delay-factor: 0.0
-enable-chunked-prefill: null        # auto-enabled for long contexts
-preemption-mode: null               # recompute | swap
+max-num-batched-tokens: null        # unset → usage-context default (see note)
+max-num-seqs: null                  # unset → usage-context default (see note)
+max-num-scheduled-tokens: null      # ≤ max-num-batched-tokens; spec-dec appends beyond it
+long-prefill-token-threshold: 0     # 0 disables the long-prompt cap
+enable-chunked-prefill: null        # auto-enabled where the model supports it
+scheduler-reserve-full-isl: true    # admit only if the full ISL fits in KV — anti-thrash
+watermark: 0.0                      # fraction of KV blocks kept free on admission
+prefill-schedule-interval: 1        # DP: admit prefills every N steps, aligned across ranks
+stream-interval: 1                  # SSE token batching; also a per-request sampling param
+scheduling-policy: fcfs             # fcfs | priority
 ```
+
+**Unset does not mean a fixed number.** `max-num-batched-tokens` / `max-num-seqs`
+are filled in by `EngineArgs` from the *usage context* and the device: on a GPU
+with ≥70 GiB that is not an A100, `vllm serve` defaults to **8192 / 1024**;
+below that threshold, **2048 / 256**. The `SchedulerConfig` class defaults
+(2048 / 128) are test conveniences and are not what a server runs with.
 
 ### LoRAConfig
 ```yaml
@@ -90,7 +96,6 @@ enable-lora: false
 max-loras: 1
 max-lora-rank: 16
 max-cpu-loras: null
-lora-extra-vocab-size: 256
 lora-dtype: auto
 fully-sharded-loras: false
 lora-modules:
@@ -114,9 +119,11 @@ speculative-config:
 ```yaml
 otlp-traces-endpoint: null          # OTLP/HTTP endpoint for traces
 collect-detailed-traces: null       # model | worker | all
-disable-log-requests: false
 disable-log-stats: false
 ```
+
+Request logging is opt-**in** now: use `enable-log-requests: true` on the
+frontend. The old `disable-log-requests` key no longer exists.
 
 ### FrontendArgs (server-only, `vllm serve` layer)
 ```yaml
@@ -135,7 +142,7 @@ ssl-cert-reqs: 0
 root-path: null                     # for reverse-proxy URL prefix
 middleware: []
 uvicorn-log-level: info
-disable-frontend-multiprocessing: false
+enable-log-requests: false          # opt-in per-request logging
 enable-auto-tool-choice: false
 tool-call-parser: null              # hermes | mistral | llama3_json | pythonic | ...
 reasoning-parser: null              # deepseek_r1 | qwen3 | granite | ...
@@ -210,8 +217,26 @@ tool-call-parser: llama3_json
 - **Kustomize / Helm charts** often generate the YAML into a ConfigMap, mount it read-only, and pass `--config /etc/vllm/config.yaml`.
 - **Precedence escape:** to override one YAML value at runtime, pass the corresponding CLI flag after `--config`: `vllm serve --config prod.yaml --max-num-seqs 1024`.
 
+## Keys that no longer exist (verified against the v0.27.0 tree)
+
+A YAML key that vLLM no longer recognises is not ignored — argparse rejects it
+and the server refuses to start. Every row below was confirmed absent from
+`vllm/config/*.py` + `vllm/engine/arg_utils.py` at tag `v0.27.0`.
+
+| Removed key | Removed in | Do this instead |
+|---|---|---|
+| `max-num-partial-prefills`, `max-long-partial-prefills` | v0.27.0, [PR #49244](https://github.com/vllm-project/vllm/pull/49244) | Nothing — these were V0 fields the V1 oracle already rejected, so they could *only* raise `UnsupportedFeatureError`. Use `long-prefill-token-threshold` alone. |
+| `preemption-mode`, `scheduler-delay-factor` | [PR #25334](https://github.com/vllm-project/vllm/pull/25334) (merged 2025-09-21) | V1 always recomputes. For KV pressure use `watermark` / `scheduler-reserve-full-isl`. |
+| `swap-space` | [PR #36216](https://github.com/vllm-project/vllm/pull/36216) (merged 2026-03-07); warning cleaned up by [#48549](https://github.com/vllm-project/vllm/pull/48549) | Never allocated in V1 (`num_cpu_blocks` is hardcoded 0) — it only ever backed `best_of`. For real CPU KV tiering see `vllm-caching`. |
+| `num-scheduler-steps` | V0 removal | V1 has no multi-step scheduling; use `--async-scheduling`. |
+| `worker-use-ray` | V0 removal | `distributed-executor-backend: ray` |
+| `lora-extra-vocab-size` | V0 removal | Nothing — LoRA vocab extension is gone. |
+| `disable-log-requests` | inverted | `enable-log-requests: true` |
+| `disable-frontend-multiprocessing` | V0 removal | Nothing — V1 always runs the frontend out-of-process. |
+
 ## Version notes
 
+- Section catalog above re-read key-by-key against tag `v0.27.0` on 2026-08-11
 - YAML config support: stable since v0.5.0
 - Nested dict-to-JSON conversion: enhanced in v0.11 to handle `compilation-config`, `speculative-config`, `kv-transfer-config` reliably
 - Boolean handling: pre-v0.10 was inconsistent; current parser requires explicit `true`/`false`

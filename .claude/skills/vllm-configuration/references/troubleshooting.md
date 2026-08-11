@@ -99,7 +99,7 @@ If the issue is torch.compile, persist `VLLM_CACHE_ROOT` to amortize across rest
 Verify three things:
 1. `enable-prefix-caching: true` is set (it is **not** on by default pre-v0.19; is default on v1 engine)
 2. Requests actually share prefixes — check with `curl -s http://localhost:8000/metrics | grep prefix_cache`
-3. `block-size` is consistent across runs (default 16; changing it invalidates cache)
+3. `block-size` is consistent across runs (auto-resolved per platform/backend when unset; changing it invalidates cache)
 
 ### Tokenizer mismatch silently returning wrong token counts
 
@@ -153,7 +153,19 @@ Make sure the PVC has enough space — per-model-shape compile artifacts can add
 
 ### `/dev/shm` too small
 
-NCCL for TP communication uses `/dev/shm`. Default container `/dev/shm` is 64MB, which causes cryptic NCCL errors on large TP.
+Not NCCL — vLLM's own `MessageQueue` allocates a POSIX shared-memory ring buffer
+in `/dev/shm` whenever TP ≥ 2 (default ≈ 240 MiB: 24 MiB × 10 chunks). tmpfs
+allocation is **lazy**, so `SharedMemory(create=True, ...)` succeeds on a 64 MB
+`/dev/shm` and the pages only fault in later, under load — at which point the
+worker takes an uncatchable `SIGBUS` and the operator sees an opaque
+`EngineDeadError: EngineCore encountered an issue`. The classic shape is a
+server that starts fine and serves text, then dies once multimodal requests
+start broadcasting image payloads to the TP workers.
+
+**From v0.27.0 this fails fast** with a clear `RuntimeError` at buffer-creation
+time instead of a later `SIGBUS` ([PR #48879](https://github.com/vllm-project/vllm/pull/48879),
+merged 2026-07-27). On older images the `EngineDeadError` is the only symptom, so
+size `/dev/shm` before believing the error message.
 
 Docker: `--ipc=host` or `--shm-size=10g`
 Kubernetes:

@@ -14,6 +14,55 @@ Work-not-done log from skill-improver passes. Open = attempted but not applicabl
 - #8947 fix-point reconciliation across three files — Dim 8. SKILL.md (config-file gotcha L62) and troubleshooting.md (L51) said "v0.10–v0.11"; config-file.md said "fixed in v0.10.1". Confirmed v0.10.1 tag (published 2025-08-18) and aligned all three to "fixed in v0.10.1 / pre-v0.10.1 affected". sources.md #8947 row re-stamped 2026-05-28 with the v0.10.1 fix detail.
 - Removed the duplicate `VLLM_HOST_IP`-is-not-the-API-host pitfall (was Critical-pitfalls #2, a verbatim restatement of "Why this matters" point 3 and the Networking env-var entry) and renumbered the catalog 10→9 entries — Dim 6 simplification, no information lost.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
+
+- **`config-file.md` documented eight YAML keys that no longer exist**, and a
+  rejected key is not ignored — argparse refuses to start the server. Removed:
+  `max-num-partial-prefills` + `max-long-partial-prefills` (PR #49244, v0.27.0),
+  `preemption-mode` + `scheduler-delay-factor` (PR #25334, 2025-09-21),
+  `swap-space` (PR #36216, 2026-03-07), `num-scheduler-steps`,
+  `worker-use-ray`, `lora-extra-vocab-size`, `disable-log-requests` (inverted to
+  `enable-log-requests`), `disable-frontend-multiprocessing`. Replaced with a
+  "Keys that no longer exist" table naming the successor knob for each.
+- **The removed partial-prefill args were already inert.** PR #49244's body:
+  they "were introduced for the V0 scheduler and explicitly rejected by the V1
+  enablement oracle… dead config that can only ever raise
+  `UnsupportedFeatureError`". Same shape as the `VLLM_RPC_TIMEOUT` finding one
+  pass earlier — documented-but-dead, not merely removed. Ditto `swap-space`,
+  which per PR #36216 only ever backed `best_of` and was never allocated in V1.
+- **Four CacheConfig defaults had drifted**: `gpu_memory_utilization`
+  0.90→**0.92**, `enable_prefix_caching` False→**True**,
+  `prefix_caching_hash_algo` builtin→**sha256**, `block_size` 16→**None
+  (auto-resolved)**. The last one also corrected in `troubleshooting.md`.
+- **"Unset" scheduler defaults are device-gated, and the skill implied a
+  constant.** `EngineArgs` fills `max-num-batched-tokens` / `max-num-seqs` from
+  the usage context *and* device: **8192 / 1024** for `vllm serve` on a ≥70 GiB
+  non-A100 GPU, **2048 / 256** below that. The `SchedulerConfig` class defaults
+  (2048 / 128) are test conveniences no server ever runs with.
+- **`/dev/shm` was attributed to the wrong subsystem.** The consumer at TP≥2 is
+  vLLM's own `MessageQueue` shm ring buffer (≈240 MiB default), not NCCL; lazy
+  tmpfs allocation means it fails later as an uncatchable `SIGBUS` surfacing as
+  `EngineDeadError`, typically once multimodal payloads start broadcasting.
+  v0.27.0 pre-flight-checks and raises a clear `RuntimeError` (PR #48879).
+- **Env catalog:** `VLLM_TRITON_USE_TD` added (PR #42436, tri-state, XPU
+  auto-select today; old `VLLM_TRITON_ATTN_USE_TD` is warn-and-ignore), plus the
+  three Rust-frontend vars (`VLLM_USE_RUST_FRONTEND`, `VLLM_USE_RUST_BENCH`,
+  `VLLM_RUST_FRONTEND_PATH`) routed in from the `vllm-benchmarking` pass and
+  re-verified here by direct read. Both AOT vars re-documented as **opt-out**,
+  not opt-in — their defaults are computed, and the v0.27.0 torch pin of
+  **2.13.0** (PR #48155) satisfies both gates. Version gate extended
+  v0.18–v0.25 → **v0.18–v0.27**.
+
+**Method note for the next pass:** the 2026-07-21 pass re-checked every env var
+by name and caught a dead knob; it checked no *config key* by name and missed
+seven removals, one of them eleven months old. Probe both catalogs at the target
+tag. Release notes will not surface a removal that happened three minors ago.
+
+**Dependency pins come from `requirements/*.txt`, not the release note.** The
+release note's Dependencies section mixes runtime and CI pins — the transformers
+figure quoted there (5.14.1) is a CI pin, while the runtime floor is
+`>= 5.5.3`. There is also no direct `triton` pin; 3.7.1 arrives via torch.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **`VLLM_RPC_TIMEOUT` deleted from `env-vars.md` — it never worked.** vLLM PR
