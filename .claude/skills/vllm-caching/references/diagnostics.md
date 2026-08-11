@@ -65,6 +65,22 @@ vllm:external_prefix_cache_queries_total       # offload tier (CPU DRAM via Offl
 vllm:external_prefix_cache_hits_total
 ```
 
+### `vllm:kv_offload_*` — the offload tier's own gauges (v0.26.0+)
+
+The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Verified at tag v0.27.0 in `vllm/v1/kv_offload/cpu/common.py` and `tiering/base.py`:
+
+```
+vllm:kv_offload_stores_skipped                     # v0.25.x and earlier too
+vllm:kv_offload_cpu_cache_usage_perc               # v0.25.x and earlier too
+vllm:kv_offload_cpu_allocation_size                # new in v0.26.0 (#45958/#47666)
+vllm:kv_offload_cpu_cache_write_usage_perc         # new in v0.26.0 (#47666)
+vllm:kv_offload_cpu_cache_read_usage_perc          # new in v0.26.0 (#47666)
+vllm:kv_offload_tiering_lookup_sync_delay_seconds  # histogram, new in v0.26.0 (#47679)
+vllm:kv_offload_tiering_lookup_async_delay_seconds # histogram, new in v0.26.0 (#47679)
+```
+
+`cpu_cache_usage_perc` pinned near 1.0 with a rising `stores_skipped` is the DRAM tier being too small — the same condition the bench section calls thrashing. The two `tiering_lookup_*_delay` histograms only appear under `TieringOffloadingSpec` and are the cost of consulting a secondary tier; a fat sync-delay tail means secondary lookups are blocking scheduling.
+
 Monitor `prefix_cache_hits_total / prefix_cache_queries_total` — the GPU-level hit rate. The `external_prefix_cache_*` pair is the **offload-tier** counterpart: queries count tokens looked up in the CPU tier; hits count tokens recovered from there. Note that on `cache_config_info`, `num_cpu_blocks="None"` is normal for the native backend even when CPU offload is allocated and active — the label is populated by older offload paths only. Trust the engine startup log + `external_prefix_cache_queries_total` to confirm allocation.
 
 In vLLM 0.20+ the metric prefix dropped the legacy `gpu_` segment — `vllm:gpu_prefix_cache_hits_total` does NOT exist on a fresh install; it's `vllm:prefix_cache_hits_total`. Older grep regexes targeting `^vllm:gpu_prefix_cache` silently return zero; update them when reading post-v0.20 metrics.

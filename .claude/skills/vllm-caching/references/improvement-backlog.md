@@ -41,7 +41,18 @@ Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 
 
 Dim 9. File-set: SKILL.md "Two-step bundling verification" + `lmcache-mp/references/sources.md`.
 
-The only image whose runtime imports have actually been verified is `vllm/vllm-openai:v0.19.1` (vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1), captured 2026-04-26 — five vLLM minors ago. Not applied because it needs a pull + container run, not an edit: run `lmcache-mp/scripts/verify-bundling.sh v0.25.1` and replace the table. Expect nixl 1.3.0 (the exact pin) and lmcache ≥ 0.5.x.
+The only image whose runtime imports have actually been verified is `vllm/vllm-openai:v0.19.1` (vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1), captured 2026-04-26 — seven vLLM minors ago. Not applied because it needs a pull + container run, not an edit: run `lmcache-mp/scripts/verify-bundling.sh v0.27.0` and replace the table. Expect nixl 1.3.1 (the exact pin) and lmcache ≥ 0.5.x. Step 1 (build flag) *was* re-run 2026-08-11 on `v0.27.0` — `INSTALL_KV_CONNECTORS=true`, CUDA 13.0.2 — so only the runtime-import half is outstanding.
+
+## Resolved this pass (2026-08-11)
+
+Freshen pass over v0.25.1 → v0.27.0 (two minors). Evidence via `git show <tag>:<path>` on the local vLLM clone, `gh api` for issue/PR state, and the skill's own `inspect-vllm-image.sh`.
+
+- **Version drift**: v0.25.1 → **v0.27.0** (2026-08-10) across version gates, latest-stable line, known-good tags, `SupportsHMA` header + recheck probe, and `--calculate-kv-scales`. `nixl` pin `== 1.3.0` → `== 1.3.1` (#47559). LMCache v0.5.1 → v0.5.3.
+- **Broken claim**: `self_describing_kv_events` is no longer rejected by `TieringOffloadingSpec` (#48679, v0.26.0) — `store_threshold` still is. connectors.md had them bundled as one rule.
+- **Config drift**: `p2p` secondary tier's `port` default `7777` is gone → `VLLM_P2P_SIDE_CHANNEL_PORT` (5710) / `VLLM_P2P_SIDE_CHANNEL_HOST` (localhost) (#47636), bound port offset by DP index, `PYTHONHASHSEED` now a startup hard-fail.
+- **Bug-state flips**: vLLM #40259 closed COMPLETED by the reporter (fix #41549 in v0.21.0; real trigger was DCP+offload, not EAGLE3) — avoidance dropped. LMCache #2942 closed by the **stale bot** with fix PR #3006 unmerged — warning kept and re-worded to say so explicitly.
+- **New feature in scope**: `vllm:kv_offload_*` Prometheus family (7 metrics, 5 new in v0.26.0) documented in diagnostics.md.
+- **Re-verified unchanged** (no edit beyond the stamp): `SupportsHMA` connector set, connector-directory file list, secondary-tier registry, `eviction_policy` key, `--calculate-kv-scales` deprecation.
 
 ## Resolved this pass (2026-07-21)
 

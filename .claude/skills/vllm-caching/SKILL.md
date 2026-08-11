@@ -32,17 +32,18 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 | Native CPU KV offload (`vllm/v1/kv_offload/`) | **v0.11.0** (2025-10-02) | Infrastructure + scheduler integration |
 | CLI flags `--kv-offloading-size` / `--kv-offloading-backend` | **v0.11.1** (2025-11-18) | Before this, required editing config objects |
 | LMCache bundled in official x86 `vllm/vllm-openai` image | **v0.14.0** (2026-01-20) | arm64 had it from v0.10.2; x86 was intentionally stripped July 2025–Jan 2026 due to torch version conflict — many ops teams had to pip install LMCache at container start during that window, which is now unnecessary |
-| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.25.1) | Flag emits a deprecation warning but still accepted. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-07-21 against `vllm/config/cache.py` at tag v0.25.1. |
+| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.27.0) | Flag emits a deprecation warning but still accepted. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-08-11 against `vllm/config/cache.py:273` at tag v0.27.0. |
 | KV Offload + Hybrid Memory Allocator (HMA) | **v0.21.0** (2026-05-15) | Native offload integrates with HMA — full enablement (#41445) + sliding-window groups (#41228) + multi-connector HMA (#39571), plus Qwen3.5/Mamba hybrid support (#35520). |
 | **Native multi-tier offloading** (`TieringOffloadingSpec`, fs / obj / p2p secondary tiers) | **v0.22.0** (2026-05-29) | Framework #40020 + Python filesystem tier #41735; object-store tier #41968 and per-request policy hooks landed in v0.23.0. Native offload is no longer CPU-DRAM-only — an NVMe or S3 tier no longer requires LMCache. See the decision tree. |
 | **HMA on by default for capable connectors** | **v0.23.0** (2026-06-15) | #41847. `disable_hybrid_kv_cache_manager` became tri-state (`None` = auto): vLLM disables HMA only for connectors that don't subclass `SupportsHMA`. This retires the manual-flag pitfall for native offload — see "Critical pitfalls". |
 | `P2pNcclConnector` removed | **v0.24.0** (2026-06-29) | #44854. Migrate to NixlConnector or the `p2p` secondary tier. |
+| `p2p` secondary tier gets env-var defaults + hard `PYTHONHASHSEED` check | **v0.26.0** (2026-07-27) | #47636. `host`/`port` now default to `VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) / `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`), not the old literal `7777`, and the tier raises at startup if `PYTHONHASHSEED` is unset. See `references/connectors.md`. |
 
-Latest stable as of 2026-07-21: **v0.25.1** (2026-07-14, a two-fix patch on v0.25.0). Recent line: v0.22.0 (05-29), v0.22.1 (06-05), v0.23.0 (06-15), v0.24.0 (06-29), v0.25.0 (07-11).
+Latest stable as of 2026-08-11: **v0.27.0** (2026-08-10). Recent line: v0.23.0 (06-15), v0.24.0 (06-29), v0.25.0 (07-11), v0.25.1 (07-14), v0.26.0 (07-27). v0.26.0 and v0.27.0 both moved KV offloading substantially — recheck a config written against v0.25.x.
 
-Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x` through `v0.25.x`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed. Confirm bundling on a specific tag with the two-step check below before trusting it.
+Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x` through `v0.27.x`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed. Confirmed on `v0.27.0` (amd64, CUDA 13.0.2) 2026-08-11 via the build-flag script below. Confirm bundling on a specific tag with the two-step check below before trusting it.
 
-Backend pins in `requirements/kv_connectors.txt` at v0.25.1 (verified 2026-07-21): `lmcache >= 0.3.9`, **`nixl == 1.3.0` (an exact pin, not the old `>=0.7.1,<=0.10.1` window)**, `mooncake-transfer-engine >= 0.3.8`, plus `cupy-cuda13x < 14.1.0`. If a deploy installs its own NIXL wheel, match 1.3.0 exactly — v0.22.1 (#44266) also fixed image builds keeping both CUDA-major NIXL wheels, which surfaced as `ImportError: libcudart.so.12` when importing `nixl_ep` on CUDA 13 images.
+Backend pins in `requirements/kv_connectors.txt` at v0.27.0 (verified 2026-08-11): `lmcache >= 0.3.9`, **`nixl == 1.3.1` (an exact pin, bumped from 1.3.0 in v0.26.0 by #47559)**, `mooncake-transfer-engine >= 0.3.8`, plus `cupy-cuda13x < 14.1.0`. If a deploy installs its own NIXL wheel, match 1.3.1 exactly — v0.22.1 (#44266) also fixed image builds keeping both CUDA-major NIXL wheels, which surfaced as `ImportError: libcudart.so.12` when importing `nixl_ep` on CUDA 13 images.
 
 ### Two-step bundling verification (build flag + runtime import)
 
@@ -103,7 +104,7 @@ When using LMCache as the backend, keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-o
 
 **This changed in v0.23.0 (#41847) and the old advice is now actively harmful.** `disable_hybrid_kv_cache_manager` is tri-state, defaulting to `None` (auto): vLLM turns HMA off by itself, with a warning, only when the selected connector does not subclass `SupportsHMA`. Passing the flag by reflex on a modern build costs you hybrid-model support and sliding-window performance for nothing.
 
-Which connectors declare `SupportsHMA` at v0.25.1 (verified 2026-07-21 against `kv_connector/v1/base.py` and the connector classes):
+Which connectors declare `SupportsHMA` at v0.27.0 (re-verified 2026-08-11 against `kv_connector/v1/base.py` and the connector classes — the set is unchanged since v0.25.1):
 
 | Connector | `SupportsHMA`? | Consequence |
 |---|---|---|
@@ -141,7 +142,7 @@ When rechecking, the canonical probe is:
 ```bash
 gh issue view 3106 --repo LMCache/LMCache --json state,updatedAt   # LMCacheConnectorV1 hybrid block — open 2026-07-17
 # which connectors declare HMA support at a given tag:
-git -C <vllm-clone> grep -n "SupportsHMA)" v0.25.1 -- vllm/distributed/kv_transfer/kv_connector/v1/
+git -C <vllm-clone> grep -n "SupportsHMA)" v0.27.0 -- vllm/distributed/kv_transfer/kv_connector/v1/
 ```
 
 ### `--cpu-offload-gb` is NOT the same as `--kv-offloading-size`
@@ -155,7 +156,7 @@ Recommending `--cpu-offload-gb` when the user asked about KV tiering is a seriou
 
 ### FP8 KV cache without shipped scales
 
-`--calculate-kv-scales` is deprecated (still accepted as of v0.21.0, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
+`--calculate-kv-scales` is deprecated (still accepted as of v0.27.0, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
 
 Symptoms: subtle quality degradation, often only past 128k context. "Usually works fine" is the common operator experience because most activations fit, but the risk is real.
 
@@ -183,12 +184,12 @@ Most common root causes, in order:
 
 ## Open bugs to know before recommending offload
 
-Issue states verified 2026-07-21. All checked when authoring a new offload deploy.
+Issue states verified 2026-08-11. All checked when authoring a new offload deploy.
 
 | Issue | Repo | State | Affects | Avoidance |
 |---|---|---|---|---|
-| [#40259](https://github.com/vllm-project/vllm/issues/40259) | vllm-project/vllm | **open** (no activity since 2026-05-15) | KV offload + EAGLE3 + Expert Parallel cuMemcpyDtoHAsync segfault on 8× H20-3e | Don't combine offload with EP+EAGLE3 until fix lands |
-| [#2942](https://github.com/LMCache/LMCache/issues/2942) | LMCache/LMCache | **open**, marked stale 2026-06-29 | `LocalCPUBackend.allocate()` deadlocks when `use_hot=False` and staging buffer fills. Repro confirmed 2026-04-23 even with `use_hot=True` on Llama-3.2-1B + ShareGPT | Always set `LMCACHE_LOCAL_CPU=True` (default) — never `use_hot=False`. Stale-bot silence is not a fix; re-verify against LMCache 0.5.x before relaxing |
+| [#40259](https://github.com/vllm-project/vllm/issues/40259) | vllm-project/vllm | closed 2026-07-30 (completed) | Filed as KV offload + EAGLE3 + Expert Parallel cuMemcpyDtoHAsync segfault on 8× H20-3e; the thread isolated the real trigger as **`--decode-context-parallel-size` combined with offload** | Fixed by #41549, shipped in v0.21.0. The reporter re-ran 120/120 requests clean on v0.21.0 and closed it himself — a genuine fix, not a bot closure. Drop the "avoid EP+EAGLE3" rule |
+| [#2942](https://github.com/LMCache/LMCache/issues/2942) | LMCache/LMCache | **closed 2026-07-30 by the stale bot (not_planned) — NOT fixed** | `LocalCPUBackend.allocate()` deadlocks when `use_hot=False` and staging buffer fills. Repro confirmed 2026-04-23 even with `use_hot=True` on Llama-3.2-1B + ShareGPT | Always set `LMCACHE_LOCAL_CPU=True` (default) — never `use_hot=False`. The one candidate fix, LMCache PR #3006, was **closed unmerged**, so the deadlock is still live in 0.5.x. Treat the closure as bot noise, not a green light |
 | [#3106](https://github.com/LMCache/LMCache/issues/3106) | LMCache/LMCache | **open**, active 2026-07-17 | LMCacheConnectorV1 unusable on any hybrid-attention model (Gemma-4, Qwen3.5/3.6, DeepSeek-V4). `MemoryObj.tensor` materializes single-shape view, fails on multi-group buffer | Use native offload (v0.21.0+) or LMCache **MP** mode — both support HMA. Not the in-process connector |
 | [#40624](https://github.com/vllm-project/vllm/issues/40624) | vllm-project/vllm | closed 2026-05-26 (completed) | Gemma4 + spec-decode 0% prefix-cache hit rate under disabled HMA | Fixed. Drop the old "disable HMA + shrink max-model-len" workaround |
 | [#36463](https://github.com/vllm-project/vllm/issues/36463) | vllm-project/vllm | closed 2026-05-18 (duplicate) | Qwen3.5 family fail-to-start with `--kv-offloading-backend native` | Folded into the v0.21.0 HMA enablement |
@@ -263,4 +264,4 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 
 See `references/sources.md` for verification dates and probe notes.
 
-Last verified: 2026-07-21
+Last verified: 2026-08-11
