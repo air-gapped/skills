@@ -116,6 +116,13 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 
 ## Version notes
 
+Core metric surface re-verified against **v0.27.0** (2026-08-11): the emitted
+`vllm:*` set in `vllm/v1/metrics/loggers.py` is unchanged from v0.25.1 — nothing
+removed, nothing renamed. The churn since then is all in the **KV offload**
+namespace, where the legacy `vllm:kv_offload_total_*` series are deprecated in
+favour of a direction-split load/store set; see `references/metrics-catalog.md`
+§ KV connector / offload for the verified names.
+
 - V1 engine is default as of late 2025. V0 metrics hidden unless `--show-hidden-metrics-for-version=X.Y`.
 - Metric rename saga: `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`. PR #24245 (merged 2025-09-16) hid the deprecated `gpu_*` names behind `--show-hidden-metrics-for-version`; the proposed revert PR #25392 was **closed without merging** (2025-09-23), so the hiding stuck. Current main emits only `kv_cache_usage_perc` by default.
 - Deprecated on V1: `num_requests_swapped`, `cpu_cache_usage_perc`, `cpu_prefix_cache_hit_rate`, `time_per_output_token_seconds` (replaced by `inter_token_latency_seconds`), the `model_forward_time_milliseconds` / `model_execute_time_milliseconds` pair (now behind `--collect-detailed-traces`).

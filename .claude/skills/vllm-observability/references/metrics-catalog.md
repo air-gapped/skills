@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Last verified: 2026-07-21 against vLLM **v0.25.1** (see `references/sources.md`). Every metric name in this file was diffed against the `name="vllm:..."` declarations in `vllm/v1/metrics/loggers.py` at that tag — no name in the catalog has been removed or renamed, and `gpu_cache_usage_perc` remains absent by default. Four additions from v0.24.0/v0.25.0 are folded in: `vllm:tool_call_parser_invocations_total`, the group-aware `cache_config_info` labels, `MLAAttentionMetrics`, and the per-request response-body `metrics` field.
+Last verified: 2026-08-11 against vLLM **v0.27.0** (see `references/sources.md`). Every metric name in this file was diffed against the `name="vllm:..."` declarations in `vllm/v1/metrics/loggers.py` at that tag — **the emitted set is identical to v0.25.1**: no name removed, none renamed, `gpu_cache_usage_perc` still absent by default (0 occurrences). Additions from v0.24.0/v0.25.0 remain folded in: `vllm:tool_call_parser_invocations_total`, the group-aware `cache_config_info` labels, `MLAAttentionMetrics`, and the per-request response-body `metrics` field. **The § KV connector / offload names were corrected on 2026-08-11** — they had been approximations, and two of the three were misspelled; they are now read from the v0.27.0 source.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
@@ -254,16 +254,68 @@ Treat any MFU or bandwidth figure collected from a DeepSeek deployment on
 
 ## KV connector / offload
 
-Per-backend (native, LMCache, NIXL, Mooncake). Names stabilizing:
+**These names were guessed in earlier revisions of this catalog and two of the
+three were wrong.** The set below is read verbatim from the v0.27.0 tree —
+`vllm/distributed/kv_transfer/kv_connector/v1/offloading/metrics.py`,
+`vllm/v1/kv_offload/cpu/common.py`, `vllm/v1/kv_offload/tiering/base.py`.
 
-| Metric (approx) | Meaning |
+Transfer metrics are **split by direction**, not aggregated (declared names; the
+Prometheus client appends `_total` to counters on the wire, as elsewhere in this
+catalog):
+
+| Metric | Type | Meaning |
+|---|---|---|
+| `vllm:kv_offload_load_bytes` | Counter | Bytes loaded back from the offload tier (CPU→GPU) |
+| `vllm:kv_offload_store_bytes` | Counter | Bytes stored to the offload tier (GPU→CPU) |
+| `vllm:kv_offload_load_time` | Counter | Cumulative time in load operations |
+| `vllm:kv_offload_store_time` | Counter | Cumulative time in store operations |
+| `vllm:kv_offload_load_size` | Histogram | Load operation size, in bytes |
+| `vllm:kv_offload_store_size` | Histogram | Store operation size, in bytes |
+| `vllm:kv_offload_lookup_sync_delay_seconds` | Histogram | Time inside a single offload lookup call |
+| `vllm:kv_offload_lookup_async_delay_seconds` | Histogram | Time from a request's lookup first deferring until it resolves |
+| `vllm:kv_offload_allocation_failure` | Counter | Store allocation attempts that failed |
+
+CPU-tier gauges (`CPUOffloadingMetrics`) — the read/write split arrived in
+**v0.26.0 (#47666)** and is the one worth alerting on, because it separates
+back-pressure on the write path from stall on the read path:
+
+| Metric | Type | Meaning |
+|---|---|---|
+| `vllm:kv_offload_cpu_cache_usage_perc` | Gauge | CPU cache space pinned by any in-flight transfer. **Equals write + read** |
+| `vllm:kv_offload_cpu_cache_write_usage_perc` | Gauge | Fraction pinned by in-flight stores (GPU→CPU) not yet complete |
+| `vllm:kv_offload_cpu_cache_read_usage_perc` | Gauge | Fraction pinned by in-flight loads (CPU→GPU) not yet complete |
+| `vllm:kv_offload_cpu_allocation_size` | — | CPU-tier allocation size |
+| `vllm:kv_offload_stores_skipped` | Counter | Stores skipped |
+
+Tiering metrics (`TieringOffloadingMetrics`), added by **v0.26.0 (#47679)** —
+note these are a *different* pair from the connector-level lookup delays above:
+
+| Metric | Meaning |
 |---|---|
-| `vllm:kv_offload_total_bytes` | Cumulative bytes offloaded (CPU or NVMe) |
-| `vllm:kv_offload_total_time_seconds` | Histogram of offload operation time |
-| `vllm:kv_offload_size_bytes` | Current offload buffer size |
-| `vllm:nixl_*` / `vllm:hf3fs_*` | Transfer-backend-specific |
+| `vllm:kv_offload_tiering_lookup_sync_delay_seconds` | Cost of a single secondary-tier lookup call |
+| `vllm:kv_offload_tiering_lookup_async_delay_seconds` | Total time a request's lookup stays deferred across a tier promotion — first RETRY until resolved (or the request finishes unresolved) |
 
-Exact names vary by connector version; grep `/metrics` on a running deployment using the connector to see what the installed version emits.
+**Three legacy names are deprecated, and the two this catalog previously
+published were misspelled.** Actual deprecated names are
+`vllm:kv_offload_total_bytes`, **`vllm:kv_offload_total_time`** (not
+`…_total_time_seconds`) and **`vllm:kv_offload_size`** (not `…_size_bytes`).
+They carry a `transfer_type` label instead of splitting into separate series,
+and they are **only observed when the offloading spec is a `CPUOffloadingSpec`**
+(`_observe_deprecated_metrics = issubclass(spec_cls, CPUOffloadingSpec)`) — on
+any other spec they are registered but never incremented, so a dashboard built
+on them goes flat rather than erroring. Migrate to the load/store split.
+
+**NIXL connector series are documented upstream** and no longer need guessing
+(https://docs.vllm.ai/en/stable/usage/metrics/, probed 2026-08-11):
+`vllm:nixl_bytes_transferred`, `vllm:nixl_xfer_time_seconds`,
+`vllm:nixl_post_time_seconds`, `vllm:nixl_num_descriptors`,
+`vllm:nixl_num_failed_transfers`, `vllm:nixl_num_failed_notifications`,
+`vllm:nixl_num_kv_expired_reqs`. The two failure counters and the expired-request
+counter are the alertable ones on a disaggregated deployment.
+
+Other backends (`vllm:hf3fs_*`, LMCache, Mooncake) remain
+connector-version-dependent — grep `/metrics` on a running deployment to see what
+the installed connector actually emits.
 
 ## Bucket boundaries
 

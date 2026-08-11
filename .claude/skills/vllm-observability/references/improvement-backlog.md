@@ -4,7 +4,41 @@ Work-not-done log from skill-improver passes. Open = attempted-but-not-applied o
 
 ## Open
 
-- **Re-probe non-GitHub sources online** (Dim 9) — `references/sources.md` rows for the production metrics doc (docs.vllm.ai), ebpfchirp incident article, DCGM dashboard 15117, and the canonical design doc were NOT re-probed this pass (probe budget spent on the accuracy-gating GitHub refs: PRs #24245/#25392, loggers.py, examples/observability tree). They remain stamped 2026-04-24 (34 days old, within the 90-day no-cap window). Verify each URL resolves and content matches on the next freshen pass.
+- **(new 2026-08-11) Undocumented observability flags** (Dim 5) — `vllm/config/observability.py` at v0.27.0 carries several operator-visible switches the catalog never mentions: `cudagraph_metrics` (padded/unpadded token counts and runtime cudagraph dispatch modes — **log-only, emitted via `CUDAGraphLogging`, not Prometheus**), `enable_layerwise_nvtx_tracing` (per-layer NVTX ranges, incompatible with CUDA graphs), `enable_logging_iteration_details`, and `jit_monitor_mode` / `jit_monitor_verbose` (post-warmup JIT compilation events). Verified present at v0.25.1 as well, so this is a **pre-existing catalog gap, not drift** — out of scope for `freshen`, and left for an `improve` pass. The log-vs-Prometheus distinction is the load-bearing part: `cudagraph_metrics` will not appear on `/metrics`.
+
+- ~~**Re-probe non-GitHub sources online**~~ (Dim 9) — **CLOSED 2026-08-11.** All four rows (docs.vllm.ai metrics page, ebpfchirp article, DCGM dashboard 15117, canonical design doc) probed; all HTTP 200. Carried unprobed since 2026-04-24 through two passes — and the deferral was hiding content, not just staleness: the docs.vllm.ai page documents the concrete NIXL series that replaced a `vllm:nixl_*` wildcard in the catalog.
+
+## Resolved — 2026-08-11 (freshen)
+
+The 2026-07-21 trigger fired twice over — **v0.26.0** and **v0.27.0** both
+shipped. The prescribed `loggers.py` name diff ran first and came back **clean**:
+37 names at v0.27.0, identical to v0.25.1, `gpu_cache_usage_perc` still absent.
+
+- **The pass's real finding was in this skill's own catalog, not upstream.** The
+  § KV connector / offload table had been published with names marked "(approx)",
+  and **two of the three were misspelled**: `vllm:kv_offload_total_time_seconds`
+  and `vllm:kv_offload_size_bytes` do not exist — the real names are
+  `vllm:kv_offload_total_time` and `vllm:kv_offload_size`. For a metrics catalog
+  this is the worst failure mode available: a PromQL query on a non-existent
+  series returns no data silently, so the dashboard looks fine and stays empty.
+  Replaced the whole section with names read verbatim from the v0.27.0 tree.
+- **The offload surface also moved substantially across v0.26.0/v0.27.0** and the
+  `loggers.py` diff could not see any of it, because these metrics are declared
+  in `vllm/v1/kv_offload/` and
+  `vllm/distributed/kv_transfer/kv_connector/v1/offloading/`. Current shape:
+  direction-split `kv_offload_{load,store}_{bytes,time,size}` replacing the
+  aggregated legacy trio; CPU read/write usage gauges split (#47666, v0.26.0);
+  tiering lookup delay split into sync/async histograms (#47679, v0.26.0). The
+  three legacy names are deprecated **and** only observed under a
+  `CPUOffloadingSpec` — on any other spec they register but never increment.
+- **NIXL wildcard replaced with real names.** The long-deferred docs.vllm.ai
+  probe turned out to document seven concrete `vllm:nixl_*` series; the two
+  failure counters and `nixl_num_kv_expired_reqs` are the alertable ones.
+- **Closed the two-pass-old Open item.** All four non-GitHub rows probed, all
+  HTTP 200. The design doc was fetched raw at v0.27.0 and independently
+  corroborates the rename saga (`gpu_cache_usage_perc`: 0 occurrences).
+- **Sharpened the next trigger** to run the loggers.py diff **and** a kv_offload
+  constant sweep — naming the gap that let this drift through.
 
 ## Resolved — 2026-07-21 (freshen)
 
