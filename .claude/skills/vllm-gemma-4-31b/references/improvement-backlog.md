@@ -93,6 +93,58 @@ gate behind a `<details>` block.
 **Trigger to revisit:** if the skill ever ships to a public skills index or
 gets shared with collaborators, drop the section then.
 
+## Resolved — 2026-08-11 (freshen)
+
+Two vLLM minors landed since the last pass (v0.26.0, v0.27.0) plus a v0.27.1
+patch on the morning of this one. The headline result is a **non-event that
+required work to establish**: the version ceiling holds unchanged.
+
+- **The ceiling extends, it does not lift.** All five cited gemma-4 issues
+  (#49955, #50477, #50159, #50158, #49475) are still **OPEN**, and all three
+  fix PRs (#50964, #51524, #50263) are **unmerged**. Not one is stale-bot
+  noise — each has substantive 2026-07/08 activity. Ceiling text now reads
+  "do not take 0.26.0, 0.27.0 or 0.27.1" with per-issue fix-PR status, so the
+  next reader can see *why* it holds rather than re-deriving it.
+- **Corrected a claim this skill got wrong** (the pass's real finding). SKILL.md
+  said the trailing `<turn|>` leak was "not reproducible without spec-decode."
+  The same reporter's 2026-07-31 matrix reproduces it on 0.26.0 with **MTP
+  completely disabled**, and identifies `stream=true` as the actual
+  discriminator. Rewrote the pitfall (including its heading, which asserted
+  "Spec-decode can leak…"), added the community root-cause — an
+  `enable_thinking` default mismatch, **verified verbatim at v0.27.0** in
+  `examples/tool_chat_template_gemma4.jinja:180` (`default(false)`) versus
+  `vllm/parser/gemma4.py:403` (`.get("enable_thinking", True)`) — the resulting
+  mitigation (send `enable_thinking` explicitly), and a corrected cheap test
+  that specifies streaming. The old test was non-streaming and would have
+  cleared an affected deployment.
+- **#50159 localised.** Two independent A/B runs (Qwen2.5-0.5B; Gemma-4 31B on
+  2× RTX 3090) show the "extra available KV" is **CUDA-graph capture headroom
+  accounting**, not KV capacity — MRv1 reserves ~0.65 GiB vs MRv2 ~0.12 GiB,
+  and the gap vanishes under `--enforce-eager`. Severity scales with model size
+  and inversely with card size.
+- **#50477 widened.** A second reporter extends it from *named* forced
+  `tool_choice` to `tool_choice: "required"`, which returns HTTP 200 with
+  `finish_reason: "tool_calls"`, prose in `content`, and `tool_calls: null`.
+- **One genuine 0.27.0 gain recorded, without recommending the upgrade:** the
+  ViT CUDA graph for Gemma-4 (#46837). Named explicitly so the ceiling reads as
+  a trade-off rather than a blanket "nothing there."
+- **Benchmark numbers labelled, not restamped.** `bench-numbers.md` already
+  stated "Engine: vLLM 0.20.0"; SKILL.md's intro did not. Added the
+  measured-on version there. **No number was changed** — re-measuring needs GPU
+  time, not a probe.
+- **chat_template drift paused.** r01 re-pulled: `ae53464b…`, 18683 B —
+  **identical to 2026-07-21**, the first pass in four with no drift. cyankiwi
+  still frozen at `94899c0f…`, re-diffed at exactly 114 lines behind. Recorded
+  as one stable interval, not as the chain having stopped.
+- **v0.27.1 checked for Gemma relevance and cleared.** Its single change
+  (#50424) touches one file, `vllm/model_executor/models/qwen3_dspark.py`, and
+  is scoped to `Qwen3DSparkModel` — no Gemma surface. Recorded so the next pass
+  doesn't re-open it on the strength of the word "DSpark".
+
+**Not done (needs GPU time, not a probe):** re-running the benchmark set on any
+engine past 0.20.0. Open items #1–#4 all carry forward unchanged — each is
+blocked on an author decision or an environment guard, none on evidence.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **chat_template staleness: converted from inference to measurement (highest

@@ -20,19 +20,44 @@ semantics in **`vllm-configuration`**, the K8s/container manifest in
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
 `RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20–0.25.1. Pulls together measurements
-from a Verda 2× H100 SXM5 80GB audit on 2026-04-30 and the upstream
-constraints that shape the answer.
+from a Verda 2× H100 SXM5 80GB audit on 2026-04-30 — **taken on vLLM 0.20.0
+and not re-run since** (see `references/bench-numbers.md`; the shape of the
+curves has held, but treat the absolute figures as 0.20.0 observations) — and
+the upstream constraints that shape the answer.
 
-> **Version ceiling (as of 2026-08-02): hold at vLLM 0.25.1, do not take
-> 0.26.0.** Three gemma-4-relevant regressions are open against 0.26.0:
+> **Version ceiling (re-verified 2026-08-11): hold at vLLM 0.25.1. Do not
+> take 0.26.0, 0.27.0 or 0.27.1.** All three gemma-4-relevant regressions are
+> still **OPEN**, and every fix PR for them is still **unmerged**, so neither
+> 0.27.0 (2026-08-10) nor the 0.27.1 patch (2026-08-11 — a single change,
+> #50424, scoped to `Qwen3DSparkModel`, nothing Gemma) clears any of them:
 > [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
-> `<turn|>` leaked into output — spec-decode EOT stripping; community
-> bisect reproduces it on 0.25.1+MTP as well, clean on 0.24.0),
+> `<turn|>` leaked into output — **not spec-decode-specific after all**, see
+> the pitfall below; fix PR
+> [#50964](https://github.com/vllm-project/vllm/pull/50964) open, and
+> [#50263](https://github.com/vllm-project/vllm/pull/50263) was tested by the
+> reporter and did *not* fix it),
 > [#50477](https://github.com/vllm-project/vllm/issues/50477) (gemma4
-> parser silently ignores named forced `tool_choice`),
+> parser silently ignores named forced `tool_choice`; a second reporter
+> extends it to `tool_choice: "required"`, which returns
+> `finish_reason: "tool_calls"` with prose in `content` and `tool_calls:
+> null` — fix PR [#51524](https://github.com/vllm-project/vllm/pull/51524)
+> open),
 > [#50159](https://github.com/vllm-project/vllm/issues/50159) (Model
 > Runner V2 over-reports available KV → CUDA OOM under saturating load;
-> crashes earlier with EAGLE). Nothing in 0.26.0 is needed for gemma-4.
+> crashes earlier with EAGLE — no fix PR at all). Two independent A/B runs
+> on #50159 now localise it: the gap is **CUDA-graph capture headroom**, not
+> KV capacity. MRv1 reserves ~0.65 GiB for capture where MRv2 reserves
+> ~0.12 GiB, and the whole discrepancy disappears under `--enforce-eager`.
+> Severity scales with model size and inversely with card size.
+>
+> The one thing 0.27.0 does add for this model is the **ViT CUDA graph**
+> ([#46837](https://github.com/vllm-project/vllm/pull/46837), merged
+> 2026-07-25, listed in the v0.27.0 release notes): full
+> `SupportsEncoderCudaGraph` for `Gemma4ForConditionalGeneration`, making the
+> vision encoder 100% statically compiled by replacing the pooler's
+> data-dependent slicing with a fixed-shape gather. Relevant only to
+> multimodal traffic, and not worth taking the three regressions for —
+> re-evaluate when #49955 and #50159 close.
 
 ## Three load-bearing facts
 
@@ -56,7 +81,7 @@ constraints that shape the answer.
 3. **The chat_template shipped with the cyankiwi quant is frozen, and the
    gap is now measured — not assumed.** (The RedHatAI speculator ships no
    `chat_template.jinja` at all, so it inherits whatever the base model
-   supplies.) On 2026-08-02
+   supplies.) On 2026-08-11
    `cyankiwi/gemma-4-31B-it-AWQ-4bit/chat_template.jinja` still hashed
    `94899c0f…25bff413` — **byte-identical to the canonical template as it
    stood on 2026-04-30**. Canonical has moved twice in that window:
@@ -75,6 +100,7 @@ constraints that shape the answer.
    | 2026-04-30 | `94899c0f…25bff413` | 16934 |
    | 2026-05-28 | `36e3a42e…bead3f0` | 17466 |
    | 2026-07-21 | `ae53464b…8de4c6d4` | 18683 |
+   | 2026-08-11 | `ae53464b…8de4c6d4` | 18683 (**held** — first pass with no drift) |
 
    The current file opens with a Google-authored header: *"Published:
    2026-07-09 — Fixed tool-calling loops, turn closures, and thinking
@@ -95,7 +121,7 @@ constraints that shape the answer.
    Serve the canonical template via `--chat-template`, but **pin the
    vetted revision rather than blind-pulling `main` per deploy** —
    currently google revision `68abe480` (2026-07-15, sha256
-   `ae53464b…8de4c6d4`, unchanged on `main` through at least 2026-08-02;
+   `ae53464b…8de4c6d4`, unchanged on `main` through at least 2026-08-11;
    the one later commit `842da379` only added `response_template`
    metadata to tokenizer_config.json). Template updates change
    parser-facing behavior (see the thinking + tools pitfall below), so
@@ -267,16 +293,41 @@ TP-capable EAGLE3 shapes. Check the engine's acceptance metric against
 the baseline (~43% on random, 50–72% on MT-Bench); a collapsed number
 means you're hit.
 
-### Spec-decode can leak a trailing `<turn|>` into output
+### A trailing `<turn|>` can leak into streamed output — not only under spec-decode
 
-[#49955](https://github.com/vllm-project/vllm/issues/49955): with MTP
-spec-decode enabled, responses end with a literal `<turn|>` (EOT
-stripping misses the token when it lands in a verified draft bundle) —
-reproduced on 0.25.1 and 0.26.0, clean on 0.24.0, not reproducible
-without spec-decode. Confirmed for MTP; the mechanism is
-speculative-path-generic, so tail-check EAGLE3 output too (strict
-clients like Copilot hard-fail on the leaked token). Cheap test: temp-0
-chat completions, grep the tail for `<turn|>`.
+[#49955](https://github.com/vllm-project/vllm/issues/49955), still open.
+The original report was MTP-only, and this skill previously recorded
+"not reproducible without spec-decode." **That is now contradicted by the
+same reporter's own matrix** (2026-07-31): reproduces on 0.25.1 and
+0.26.0, clean on 0.24.0 — and reproduces on 0.26.0 with **MTP completely
+disabled**. The discriminating variable in that environment is
+**streaming**: `stream=true` leaks, `stream=false` does not. A vLLM
+contributor separately could not reproduce it at all on 0.26.0 without
+spec-decode, so the trigger is evidently config-sensitive; treat
+spec-decode as an amplifier, not the cause.
+
+Instrumented root cause (community, unconfirmed by maintainers): an
+`enable_thinking` default mismatch. `examples/tool_chat_template_gemma4.jinja`
+renders `enable_thinking | default(false)` while `Gemma4Parser` reads
+`chat_kwargs.get("enable_thinking", True)` — **both verified verbatim in
+the v0.27.0 tree** (template line 180, `vllm/parser/gemma4.py` line 403).
+With no explicit value the template renders thinking *off* while the
+parser behaves as if it were *on*; the outer parser enters the reasoning
+phase, the inner engine stays in `CONTENT`, the tool parser is never
+dispatched, and token 106 — correctly mapped to `__DROP__` but preserved
+under `skip_tool_parsing=True` — falls through as ordinary content. Model
+output that happens to emit a real channel block masks the bug by
+correcting the state mid-stream.
+
+**Mitigation on an affected engine: send `enable_thinking` explicitly on
+every request** rather than relying on either default. Fix PR
+[#50964](https://github.com/vllm-project/vllm/pull/50964) is open and
+unmerged; [#50263](https://github.com/vllm-project/vllm/pull/50263) was
+tested by the reporter and did not fix it.
+
+Cheap test: temp-0 chat completions **with `stream=true`**, grep the tail
+for `<turn|>`. Non-streaming probes miss it. Strict clients like Copilot
+hard-fail on the leaked token.
 
 ### `--max-model-len 262144` will refuse to boot if KV doesn't fit
 
@@ -314,11 +365,16 @@ activations* and shares its KV cache, so pairing the BF16 assistant with
 an AWQ-4bit target measured **0% acceptance at every position**
 (2026-05-06 head-to-head, ~37k drafted tokens all rejected) — throughput
 0.26–0.39× of EAGLE3, worse than no spec-decode at all. Also: gemma-4
-MTP support is still nightly-only (not in any stable vLLM release
-through 0.26.0), and MTP is the confirmed trigger for the trailing
-`<turn|>` leak above. The community DSpark speculator
-(`RedHatAI/gemma-4-31B-it-speculator.dspark`) currently fails to load at
-all ([#49475](https://github.com/vllm-project/vllm/issues/49475)).
+MTP support is still nightly-only — **no stable release through 0.27.0
+carries it** (neither the v0.26.0 nor the v0.27.0 release notes list a
+Gemma-4 MTP entry), and MTP is an amplifier of the trailing `<turn|>`
+leak above. The community DSpark speculator
+(`RedHatAI/gemma-4-31B-it-speculator.dspark`) still fails to load at all
+([#49475](https://github.com/vllm-project/vllm/issues/49475), re-checked
+2026-08-11 — still OPEN). Note what *did* ship: v0.26.0 added a
+**Gemma4-12B** DSpark draft model (#47216, for
+`deepseek-ai/dspark_gemma4_12b_block7`) — a different model size and a
+different checkpoint, so it does not unblock the 31B path.
 **On quantized targets use EAGLE3; revisit MTP on BF16 hardware or if
 Google ships a quant-matched assistant.** Full memo:
 `findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/mtp-vs-eagle3/deploy-memo.2026-05-06.md`.
