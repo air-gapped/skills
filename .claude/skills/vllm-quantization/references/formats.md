@@ -6,9 +6,11 @@ kernels dispatched to, status, key caveats. Source of truth is
 
 ## Dispatcher
 
-[`vllm/model_executor/layers/quantization/__init__.py:107-184`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/__init__.py) — `get_quantization_config()`. Detection flow in [`vllm/config/model.py:930-1010`](https://github.com/vllm-project/vllm/blob/main/vllm/config/model.py).
+[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (192-line file at v0.27.0; line ranges drift every minor). Detection flow in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/model.py), `override_quantization_method()`.
 
-Full 29-flag catalog: `awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, gguf, gptq_marlin, awq_marlin, gptq, compressed-tensors, bitsandbytes, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, mxfp8, cpu_awq, online, fp8_per_tensor, fp8_per_block, int8_per_channel_weight_only`.
+Full 31-flag catalog **verified against v0.27.0**: `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, bitsandbytes, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
+
+`DEPRECATED_QUANTIZATION_METHODS` (same file) is exactly `["fbgemm_fp8", "fp_quant"]`. **`gguf` and `cpu_awq` are no longer in the list** — see their sections below.
 
 ## FP8 — `--quantization fp8`
 
@@ -214,39 +216,54 @@ Fields: `linear_quant_method`, `weight_bits`, `group_size`, `has_zp`, `lm_head_q
 - Formats: NF4, FP4, FP8
 - ROCm support: [PR #34688](https://github.com/vllm-project/vllm/pull/34688), v0.17.
 
-## gguf — `--quantization gguf`
+## gguf — moved out-of-tree (plugin)
 
-- **File**: `vllm/model_executor/layers/quantization/gguf.py`
-- **Config class**: `GGUFConfig` (line 24)
-- **Min SM**: 60
-- GGML-ecosystem quantized weights. Not a production datacenter path.
+`vllm/model_executor/layers/quantization/gguf.py` **no longer exists** at v0.27.0
+and `gguf` is not in `QuantizationMethods`. GGUF support migrated to the
+out-of-tree [`vllm-gguf-plugin`](https://github.com/vllm-project/vllm-gguf-plugin)
+(`docs/features/quantization/gguf.md`, v0.27.0).
 
-## cpu_awq — `--quantization cpu_awq`
+```bash
+uv pip install vllm-gguf-plugin
+vllm serve unsloth/Qwen3-0.6B-GGUF:Q4_K_M --tokenizer Qwen/Qwen3-0.6B
+```
 
-- **File**: `vllm/model_executor/layers/quantization/cpu_wna16.py`
-- **Config class**: `CPUAWQConfig` (line 25)
-- **Capability**: -1 (CPU only)
+Load by `repo_id:quant_type` or a local `.gguf` path. Upstream still labels it
+"highly experimental and under-optimized"; always pass the **base model's**
+tokenizer — GGUF tokenizer conversion is slow and unstable on large vocabs. Not
+a production datacenter path.
+
+## cpu_awq — removed, folded into `awq_marlin`
+
+[PR #43841](https://github.com/vllm-project/vllm/pull/43841) (merged 2026-05-28)
+migrated `cpu_awq` into `awq_marlin`. The flag value and
+`quantization/cpu_wna16.py` are gone at v0.27.0 — use `--quantization awq_marlin`
+on CPU.
 
 ## online — `--quantization online` (and shortcuts)
 
 - **File**: `vllm/model_executor/layers/quantization/online/base.py`
 - **Config class**: `OnlineQuantizationConfig` (line 44)
 - **Min SM**: 75
-- **Shortcuts**: `fp8_per_tensor`, `fp8_per_block`, `int8_per_channel_weight_only`
-- **Config args**: `OnlineQuantizationConfigArgs` with `global_scheme`, `linear_scheme_override`, `moe_scheme_override`, `ignore`
-- `OnlineQuantScheme` enum: `FP8_PER_TENSOR`, `FP8_PER_BLOCK`, `INT8_PER_CHANNEL_WEIGHT_ONLY`
+- **Shortcuts** (`_ONLINE_SHORTHANDS`, `vllm/config/quantization.py`): `fp8_per_tensor`, `fp8_per_block`, `fp8_per_channel`, `int8_per_channel_weight_only`, `nvfp4_per_token`, `mxfp8`
+- **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), and `ignore`. Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `int8_per_channel_static`).
+- Passed via **`--quantization-config`** (JSON or dotted keys). There is no `--quantization-config-file` flag, no `global_scheme` / `linear_scheme_override` / `moe_scheme_override` keys, and no `OnlineQuantScheme` enum — that was the pre-v0.25 shape.
+- XPU: non-block FP8 scaled-mm linear defaults to W8A16; `--linear-backend xpu` forces W8A8, `--linear-backend xpu_woq` pins weight-only.
 
-RFC: [PR #37776](https://github.com/vllm-project/vllm/pull/37776).
+RFC: [PR #37776](https://github.com/vllm-project/vllm/pull/37776). Schema doc: `docs/features/quantization/online.md`.
 
-YAML example:
+Advanced-config example:
 
 ```yaml
-global_scheme: fp8_per_tensor
-ignore:
-  - lm_head
-  - embed_tokens
-linear_scheme_override: ~
-moe_scheme_override: ~
+quantization_config:
+  linear:
+    weight: fp8_per_tensor_static
+    activation: fp8_per_token
+  moe:
+    weight: fp8_per_block_static
+  ignore:
+    - lm_head
+    - embed_tokens
 ```
 
 ## TurboQuant (KV-only)

@@ -40,6 +40,28 @@ vLLM versions.
 | MXFP8 | FlashInfer mm_mxfp8 | 100 | [PR #35053](https://github.com/vllm-project/vllm/pull/35053) |
 | MXFP8 | `MxFp8LinearKernel` (refactored) | — | [PR #39205](https://github.com/vllm-project/vllm/pull/39205) |
 
+## Overriding the dispatch — `--linear-backend` / `--moe-backend`
+
+Both are first-class CLI flags; the authoritative value lists are the
+`LinearBackend` and `MoEBackend` `Literal`s in
+[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/kernel.py).
+
+- `--linear-backend`: `auto` (default), `cutlass`, `flashinfer_cutlass`,
+  `flashinfer_cutedsl`, `flashinfer_trtllm`, `flashinfer_cudnn`, `flashinfer_b12x`,
+  `marlin`, `humming`, `triton`, `deep_gemm`, `torch`, `aiter`, `machete`,
+  `fbgemm`, `conch`, `exllama`, `emulation`, `xpu`, `xpu_woq`.
+- `--moe-backend`: `auto`, `triton`, `batched_triton`, `deep_gemm`,
+  `deep_gemm_mega_moe`, `cutlass`, `flashinfer_trtllm`, `flashinfer_cutlass`,
+  `flashinfer_cutedsl`, `flashinfer_b12x`, `marlin`, `humming`, `triton_unfused`,
+  `aiter`, `flydsl`, `hpc`, `emulation`.
+
+**Gotcha:** `ModelOptNvFp4W4A16LinearMethod` **hardcoded Marlin and silently
+ignored `--linear-backend`** until [PR #50273](https://github.com/vllm-project/vllm/pull/50273)
+(merged 2026-07-30, v0.27.0). On v0.26.0 and earlier, setting a backend for a
+ModelOpt W4A16 checkpoint is a no-op — verify the kernel actually changed rather
+than trusting the flag. `auto` still resolves to Marlin post-fix; the PR only
+added the plumbing.
+
 ## MoE backend oracles
 
 Each format has a selector function in `fused_moe/oracle/`:

@@ -1,4 +1,4 @@
-# Version gates — v0.14 → v0.21
+# Version gates — v0.14 → v0.27
 
 Quantization churns fast enough that cached operator knowledge goes stale
 within a release cycle. This table is the ground-truth for "what does vLLM
@@ -6,11 +6,66 @@ version N support".
 
 Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/vllm/releases](https://github.com/vllm-project/vllm/releases).
 
-## v0.21.0 — 2026-05-15 (current stable)
+## v0.27.1 — 2026-08-11 (current stable)
 
-Current production target. PR-level quantization deltas not yet itemised here —
-re-run the freshen loop to populate. Treat any v0.19-specific claim below as
-"verify on upgrade".
+Single-change patch on v0.27.0:
+
+- [PR #50424](https://github.com/vllm-project/vllm/pull/50424) (merged 2026-08-03) — **quantized DSpark Markov heads.** `DSparkMarkovHead` forwards `quant_config` to its `ParallelLMHead`-based `markov_w2` projection, and `Qwen3DSparkModel` passes the model quantization config when constructing the head (`vllm/model_executor/models/qwen3_dspark.py`). W4A16 `markov_w2` weights, including `weight_scale_2`, now load through normal quantization dispatch; unquantized behaviour unchanged.
+
+**Availability:** The **container images** shipped first: `vllm/vllm-openai:v0.27.1` (plus `-x86_64`/`-aarch64`/`-cu129`/`-ubuntu2404` variants) were pushed 2026-08-11 10:24-10:42Z, *before* the GitHub release at 10:47Z — so "no release yet" never implies "no image yet". (PyPI still served 0.27.0, which does not gate this stack —
+the image is the delivery vehicle.) Stage the image
+artifact or stay on 0.27.0 until the wheel publishes.
+
+## v0.27.0 — 2026-08-10
+
+**Breaking environment change** ([PR #48155](https://github.com/vllm-project/vllm/pull/48155)):
+PyTorch **2.13.0**, torchvision **0.28.0**, Triton **3.7.1**. Transformers **5.14.1**
+([#49223](https://github.com/vllm-project/vllm/pull/49223)), FlashInfer **0.6.16.post3**
+([#50892](https://github.com/vllm-project/vllm/pull/50892)), AITER **0.1.19**
+([#49361](https://github.com/vllm-project/vllm/pull/49361)). Rebuild custom kernels
+and quantization plugins before upgrading.
+
+Quantization:
+- [PR #50273](https://github.com/vllm-project/vllm/pull/50273) — **`--linear-backend` honored for ModelOpt W4A16.** Previously `ModelOptNvFp4W4A16LinearMethod` hardcoded Marlin and silently ignored the flag. `auto` still resolves to Marlin.
+- [PR #43229](https://github.com/vllm-project/vllm/pull/43229) — FP4 Qutlass integration for compressed-tensors.
+- [PR #49580](https://github.com/vllm-project/vllm/pull/49580) — CuTeDSL MoE for ReLU2 NVFP4.
+- [PR #50019](https://github.com/vllm-project/vllm/pull/50019) — ModelOpt FP8 **emulation on SM80** (A100 can now load ModelOpt FP8 checkpoints).
+- [PR #50533](https://github.com/vllm-project/vllm/pull/50533) — KV quant mode for TurboQuant.
+- [PR #47514](https://github.com/vllm-project/vllm/pull/47514) — MXFP8 linear support in INC.
+- [PR #47124](https://github.com/vllm-project/vllm/pull/47124) — AutoRound W4A16 MoE + MXFP4 linear/MoE on XPU.
+- [PR #41276](https://github.com/vllm-project/vllm/pull/41276) / [#50500](https://github.com/vllm-project/vllm/pull/50500) — compressed-tensors checkpoints for DeepSeek-V4 and Kimi-K3.
+- [PR #49483](https://github.com/vllm-project/vllm/pull/49483) — `find_matched_target` prioritizes fused-name matches (affects `ignore` / target resolution on fused QKV and MoE layers).
+
+MoE refactor (source-navigation impact, not behaviour):
+- [PR #44941](https://github.com/vllm-project/vllm/pull/44941) — **`FusedMoE` renamed to `FusedMoEFactory`.** Any grep or doc pointing at `FusedMoE` needs updating.
+- [PR #44120](https://github.com/vllm-project/vllm/pull/44120) — MoeWNA16 migrated to the MK oracle scheme.
+- [PR #44570](https://github.com/vllm-project/vllm/pull/44570) — compressed-tensors WNA16 Marlin/MoE methods merged.
+- [PR #46765](https://github.com/vllm-project/vllm/pull/46765), [#49348](https://github.com/vllm-project/vllm/pull/49348), [#48949](https://github.com/vllm-project/vllm/pull/48949) — Quark w8a8-int8 and MXFP4 `aiter`/`emulation` backends moved onto kernel abstractions.
+
+## v0.26.0 — 2026-07-27
+
+- [PR #48538](https://github.com/vllm-project/vllm/pull/48538) — **`nvfp4_per_token` online MoE quantization** (new `--quantization` shorthand).
+- [PR #46390](https://github.com/vllm-project/vllm/pull/46390) — Humming w[2-7]a[4,8] weight-only for compressed-tensors.
+- [PR #48451](https://github.com/vllm-project/vllm/pull/48451) — int4 for the emulation MoE backend.
+- [PR #48417](https://github.com/vllm-project/vllm/pull/48417) — CuTe-DSL FlashInfer MXFP4 quantization.
+- [PR #47521](https://github.com/vllm-project/vllm/pull/47521) — INT2 XPU weight-only quant linear.
+- [PR #47309](https://github.com/vllm-project/vllm/pull/47309) — MLA `kv_cache_dtype_skip_layers`.
+- [PR #40977](https://github.com/vllm-project/vllm/pull/40977) — ROCm HybridW4A16 linear kernel.
+
+## v0.22–v0.25 — 2026-05-28 → 2026-07-14
+
+Removals that affect the flag catalog:
+- [PR #43841](https://github.com/vllm-project/vllm/pull/43841) (merged 2026-05-28) — **`cpu_awq` folded into `awq_marlin`**; the flag value is gone.
+- **`gguf` migrated out-of-tree** to [`vllm-gguf-plugin`](https://github.com/vllm-project/vllm-gguf-plugin); `quantization/gguf.py` no longer exists. See `formats.md`.
+
+NVFP4 multi-GPU: **run v0.25.1+, not v0.25.0** — v0.25.0 and earlier corrupt
+output via the fused allreduce+RMSNorm+quant path on Gemma/Qwen-style RMSNorm
+([PR #48330](https://github.com/vllm-project/vllm/pull/48330)).
+
+## v0.21.0 — 2026-05-15
+
+PR-level quantization deltas not itemised. Treat any v0.19-specific claim below
+as "verify on upgrade".
 
 ## v0.20.x — 2026-04-27 → 2026-05-10
 
@@ -193,11 +248,17 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## Deprecation watch
 
-Watch for removal in v0.20+ (v0.20 and v0.21 have now shipped — re-verify which of these actually landed):
+Re-verified against v0.27.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
+(`layers/quantization/__init__.py`) contains exactly two entries:
 
-- `experts_int8` — use `int8_per_channel_weight_only`.
 - `fbgemm_fp8` — use `fp8`.
-- `fp_quant` — deprecated in `__init__.py:50`.
-- `awq` (unfused) — use `awq_marlin`.
-- `gptq` (unfused) — use `gptq_marlin`.
-- `--calculate-kv-scales` — gone in v0.19.
+- `fp_quant` — no replacement; avoid.
+
+**Already removed** (do not offer): `gguf` (out-of-tree plugin), `cpu_awq`
+(folded into `awq_marlin`, #43841), `--calculate-kv-scales` (#37201, v0.19),
+per-tensor-per-channel FP8 (#32700), Sparse24 (#36799), BitBlas (#32683),
+Marlin 24 (#32688), DeepSpeedFp8 (#32679), RTN (#32697).
+
+**Still present but discouraged** (not upstream-deprecated — an editorial call):
+`experts_int8` (use `int8_per_channel_weight_only`), `awq` and `gptq` unfused
+(use the `_marlin` variants), `moe_wna16`, `bitsandbytes`, `torchao`.

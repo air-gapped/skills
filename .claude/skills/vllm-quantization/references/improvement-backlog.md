@@ -3,6 +3,59 @@
 Tracks improvement attempts that could not be applied in a single atomic
 iteration, plus changes the metric registered this pass.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.1)
+
+Two minors of drift. **The three highest-value findings were not release-note
+items at all — they were wrong config keys that had been wrong for longer than
+this window.** Prior passes audited issue states and release notes; none diffed
+the config dataclasses.
+
+- **The online-quantization schema in this skill never existed upstream.**
+  SKILL.md taught `--quantization-config-file online.yaml` and `formats.md`
+  taught `global_scheme` / `linear_scheme_override` / `moe_scheme_override` /
+  an `OnlineQuantScheme` enum. The real surface is **`--quantization-config`**
+  carrying `{linear: {weight, activation}, moe: {...}, ignore: [...]}` with
+  names from `QUANT_KEY_NAMES` (`vllm/config/quantization.py`). Verified
+  identical at v0.25.1 and v0.27.0 plus `docs/features/quantization/online.md`
+  — so this was never right for the documented window. A user copying it got a
+  flag error.
+- **Two `--quantization` values had been removed and were still advertised.**
+  `gguf` migrated out-of-tree to `vllm-gguf-plugin`; `cpu_awq` was folded into
+  `awq_marlin` (#43841, 2026-05-28). Both had full sections in `formats.md`.
+  Catalog corrected 29 -> **31 verified values**, and
+  `DEPRECATED_QUANTIZATION_METHODS` recorded as exactly
+  `["fbgemm_fp8", "fp_quant"]` rather than the skill's editorial list.
+- **A half-finished reversal from the previous pass.** The 2026-07-21 pass
+  established `nvfp4` KV had shipped and updated `kv-cache.md` — but SKILL.md
+  still said "roadmap" in **two** places, and `kv-cache.md` still listed it
+  under "Roadmap items". *A partial reversal is worse than none: the stale
+  copies license each other.* Grep the whole skill for the old wording after
+  any reversal.
+- SKILL.md's KV-dtype section claimed "all 11", listed 13, and omitted
+  `float16`, `bfloat16`, `int4_per_token_head`. Actual: **16 at v0.27.0**.
+- Added the missing operator lever: **`--linear-backend` / `--moe-backend`**
+  with authoritative value lists from `vllm/config/kernel.py`, plus the trap
+  that ModelOpt W4A16 **silently ignored `--linear-backend`** until #50273
+  (v0.27.0). The skill mapped kernel dispatch but never the override flag.
+- Version window v0.14 -> v0.27; `version-gates.md` gained v0.26.0, v0.27.0
+  and v0.27.1 sections. **v0.27.1 (2026-08-11)** ships one change — quantized
+  DSpark Markov heads (#50424), a new W4A16 surface on a spec-dec drafter.
+  Recorded that the **v0.27.1 container images shipped before the GitHub release**; PyPI lag does not
+  install yet.
+- **Warnings deliberately kept:** #39407 (Gemma 4 FP8-block) still OPEN,
+  #39663 (online FP8 drops bias) still OPEN and survived its stale-bot window.
+  #34129 (online FP8 + MoE/EP) closed **`NOT_PLANNED`** — won't-fix, which
+  makes the prefer-a-pre-quantized-checkpoint rule *more* load-bearing.
+
+**Process hazard hit this run:** a concurrent git operation in the parent
+session reverted the working tree mid-pass and silently discarded ~30 applied
+edits. They were re-applied from a script with per-edit exact-match assertions
+(fails loudly rather than double-applying). If a freshen pass runs alongside
+anything that commits, verify edits are on disk before reporting.
+
+**Not re-probed, declared rather than assumed:** llm-compressor releases and
+NVIDIA ModelOpt releases. Budget went to the config-key defects.
+
 ## Open
 
 - **Add a 1-line TOC to each reference file over 100 lines** (Dim 2) —

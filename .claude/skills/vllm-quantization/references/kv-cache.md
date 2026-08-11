@@ -2,7 +2,7 @@
 
 Separate CLI axis from weight quant. `--kv-cache-dtype` + optional pre-calibrated
 scales in the model checkpoint. Source of truth:
-[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.25.1/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (it was `18-34` at v0.20/v0.21 and has since grown) — and
+[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (it was `18-34` at v0.20/v0.21 and holds 16 entries at v0.27.0) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
 ## Dtype options
@@ -16,14 +16,14 @@ scales in the model checkpoint. Source of truth:
 | `fp8_e5m2` | IEEE 754 E5M2 (ROCm-oriented) | SM89+ | Loaded |
 | `fp8_inc` | Intel path | HPU | — |
 | `fp8_ds_mla` | DeepSeek MLA-specific | SM89+ | — |
-| `int4_per_token_head` | Dynamic INT4 per (token, head) | FlashInfer / XPU | Computed in-kernel. Present in the enum at v0.25.1; verify kernel support for your backend before relying on it |
+| `int4_per_token_head` | Dynamic INT4 per (token, head) | FlashInfer / XPU | Computed in-kernel. Present in the enum at v0.27.0; verify kernel support for your backend before relying on it |
 | `int8_per_token_head` | Dynamic INT8 per (token, head) | FlashInfer / XPU | Computed in-kernel — no checkpoint scales needed |
 | `fp8_per_token_head` | Dynamic FP8 per (token, head) | FlashInfer / TRTLLM | Computed in-kernel |
 | `turboquant_k8v4` | FP8 K + 4-bit V | SM89+ | Hadamard rotation, no checkpoint scales |
 | `turboquant_4bit_nc` | 4-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_k3v4_nc` | 3-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_3bit_nc` | 3-bit K + 3-bit V + NC | SM89+ | Hadamard |
-| `nvfp4` | **Shipped — no longer roadmap** | SM100 | Feature request [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). Accepted value in `CacheDType` at v0.25.1; v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
+| `nvfp4` | **Shipped — no longer roadmap** | SM100 | Feature request [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). Accepted value in `CacheDType` at v0.27.0; v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
 
 ## Base method
 
@@ -109,7 +109,6 @@ MI300/MI355X CDNA3/4 required. Handled automatically when platform is detected.
 
 ## Roadmap items (feature requests)
 
-- `nvfp4` KV dtype — [#32220](https://github.com/vllm-project/vllm/issues/32220).
 - INT8 KV — [#33480](https://github.com/vllm-project/vllm/issues/33480).
 - DCP with FP8 KV — [#32010](https://github.com/vllm-project/vllm/issues/32010).
 - Per-head/per-channel FP8 KV generalized — [#32227](https://github.com/vllm-project/vllm/issues/32227).
