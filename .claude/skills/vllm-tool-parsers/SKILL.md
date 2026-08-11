@@ -33,7 +33,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
 
-**Except for the 7 names on the unified-parser path**, where that file is a
+**Except for the 13 names on the unified-parser path**, where that file is a
 stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 
 | CLI name(s) | Registry class | Real implementation |
@@ -43,6 +43,16 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `deepseek_v4` | `DeepSeekV4EngineToolParser` | `vllm/parser/deepseek_v4.py` |
 | `deepseek_v32` | `DeepSeekV32EngineToolParser` | `vllm/parser/deepseek_v32.py` |
 | `seed_oss` | `SeedOssEngineToolParser` | `vllm/parser/seed_oss.py` |
+| `glm45`, `glm47` | `Glm47MoeModelToolParser` | `vllm/parser/glm47_moe.py` |
+| `kimi_k2` | `KimiK2ToolParser` | `vllm/parser/kimi_k2.py` |
+| `minimax_m2` | `MinimaxM2ToolParser` | `vllm/parser/minimax_m2.py` |
+| `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
+| `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
+
+**`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
+`kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
+have ordinary names and are still stubs. The test is whether the file imports
+the adapter: `grep -l "registered_adapters import" vllm/tool_parsers/*.py`.
 
 This is the same refactor described in `vllm-reasoning-parsers` — a single
 per-model parser now backs **both** the tool and reasoning adapters (RFC
@@ -74,17 +84,17 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 |---|---|---|
 | `hermes` | Hermes-2/3, Qwen2.5-Instruct, Qwen3-Instruct (text), QwQ | `tool_chat_template_hermes.jinja` |
 | `longcat` | LongCat-Flash-Chat | (inherits hermes) |
-| `mistral` | Mistral-Instruct (all), Mistral-Large-2506+ (v≥11 format auto-detected) | `tool_chat_template_mistral.jinja` |
+| `mistral` | Mistral-Instruct (all), Mistral-Large-2506+ (v≥11 format auto-detected) | `tool_chat_template_mistral.jinja` (also `_mistral3.jinja`, `_mistral_parallel.jinja`) |
 | `llama3_json` / `llama4_json` | Llama 3.1/3.2/3.3/4 (JSON flavor) | `tool_chat_template_llama3.1_json.jinja`, `_llama3.2_json.jinja`, `_llama4_json.jinja` |
 | `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
 | `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** at v0.25.1 (`Qwen3EngineToolParser`); the separate coder/xml files were deleted |
-| `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseek_v3.jinja`, `_deepseekv31.jinja` |
+| `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseekv3.jinja`, `_deepseekv31.jinja`, `_deepseekr1.jinja` |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
 | `apertus` | Apertus | (HF default) |
 | `lfm2` | LFM2 | (HF default) |
-| `minicpm5` | MiniCPM-5 | `tool_chat_template_minicpm5.jinja` |
+| `minicpm5` | MiniCPM-5 | (HF default — no `tool_chat_template_minicpm5.jinja` ships) |
 | `poolside_v1` | Poolside (GLM-4-style grammar) | (HF default) |
 | `hy_v3` | Hunyuan V3 (newer than `hunyuan_a13b`) | (HF default) |
 | `glm45` / `glm47` | GLM-4.5/4.6, GLM-4.7 | `tool_chat_template_glm4.jinja` |
@@ -93,6 +103,8 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `jamba` | Jamba-1.5 | (HF default, sentinel must be in vocab) |
 | `internlm` | InternLM-2.5 | `tool_chat_template_internlm2_tool.jinja` |
 | `kimi_k2` | Kimi-K2 Instruct / Thinking | (HF default) |
+| `kimi_k3` | Kimi-K3 (XTML `<\|open\|>tools<\|sep\|>` channels) — **new at v0.27.0** | (HF default) |
+| `inkling` | Inkling — **new at v0.27.0**; typed `<\|content_text\|>`/`<\|content_thinking\|>`/`<\|content_invoke_tool_json\|>` blocks | (HF default) |
 | `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash | (HF default) |
 | `seed_oss` | Seed-OSS | (HF default) |
@@ -102,6 +114,13 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `gigachat3` | GigaChat-3 | (HF default) |
 | `xlam` | Salesforce xLAM Llama & Qwen | `tool_chat_template_xlam_llama.jinja`, `_xlam_qwen.jinja` |
 | `openai` | gpt-oss-20b/120b (Harmony channels) | (no Jinja — built-in renderer) |
+
+**gpt-oss/Harmony changed at v0.27.0 (PR #45560).** `json_object`/`json_schema`
+`response_format` is now rewritten into a Harmony-aware `structural_tag` in
+`HarmonyParser.adjust_request`, so constrained decoding governs the *whole*
+generation instead of only the post-`<|channel|>final<|message|>` region. Without
+builtin tools the grammar validates tool name + arguments; with builtin tools it
+falls back to "some tool is called" only.
 
 Don't trust this table to be complete — verify with:
 
@@ -203,7 +222,7 @@ grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the classic "force finish_reason=tool_calls" workaround. Mistral and all pythonic-family parsers carry it. When writing a new parser, prefer the `parse_delta` shape (RFC #11522).
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the classic "force finish_reason=tool_calls" workaround. At v0.27.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) When writing a new parser, prefer the `parse_delta` shape (RFC #11522).
 
 ## Writing a custom parser
 
@@ -219,7 +238,7 @@ For the skeleton + detailed checklist see `references/custom-parser-plugin.md`. 
 
 - Register with `@ToolParserManager.register_module(["name"])` (decorator path is lazy — plugin loader imports the file).
 - Launch: `--tool-parser-plugin /abs/path/file.py --tool-call-parser name`.
-- Closest starting point for most models: `vllm/tool_parsers/pythonic_tool_parser.py` (kwargs Python syntax), `hermes_tool_parser.py` (JSON-in-tags), or `qwen3xml_tool_parser.py` (expat streaming XML).
+- Closest starting point for most models: `vllm/tool_parsers/pythonic_tool_parser.py` (kwargs Python syntax), `hermes_tool_parser.py` (JSON-in-tags), or `step3p5_tool_parser.py` (expat streaming XML — `qwen3xml_tool_parser.py` was deleted in the unified-engine refactor).
 - Must honor the four state fields above. Read `vllm/tool_parsers/abstract_tool_parser.py` for exact signatures.
 - Read `tests/tool_parsers/common_tests.py` — reviewers expect this harness.
 
@@ -238,4 +257,4 @@ Compact supplementary maps. Each points back at the source rather than duplicati
 
 ---
 
-**Last verified: 2026-05-28.** See `references/sources.md` for per-reference probe details and timestamps.
+**Last verified: 2026-08-11** against vLLM **v0.27.0**. See `references/sources.md` for per-reference probe details and timestamps.

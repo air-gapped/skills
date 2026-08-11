@@ -7,6 +7,38 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 
 - **Relocate framework-contract + reasoning-pairing tables out of SKILL.md** (Dim 2 Progressive Disclosure) — `SKILL.md` "Framework contract (mental model)" (~lines 89-106) and "Reasoning-parser pairing" (~lines 108-123). Both are reference content already cross-linked from the diagnostic playbook. Moving them to a reference file would trim the 222-line body toward the <150 lean band, but the diagnostic playbook's steps reference the four state fields and the reasoning pairing inline, so a pure relocation risks dangling those pointers — needs a coordinated multi-file edit (extract + repoint + add reference bullet) that exceeds one atomic iteration. Deferred: Dim 2 already at 9 and SKILL.md is comfortably under the 500-line limit, so this is low-ROI relative to its breakage risk.
 
+## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
+
+- **The method bug, not the version bug: engine-path membership was being
+  detected by filename.** The 2026-07-21 pass reported "7 names / 5 shim files"
+  on the unified path by matching `*_engine_tool_parser.py`. Diffing by *import*
+  (`grep -l "registered_adapters import"`) finds **13 names / 10 files at
+  v0.27.0 — and 11 of those names were already on the path at v0.25.1**.
+  `glm47_moe_tool_parser.py`, `kimi_k2_tool_parser.py` and
+  `minimax_m2_tool_parser.py` are 8-20-line adapter subclasses with ordinary
+  names, and the index told readers to go read them for detail. Fixed the rows
+  and, more importantly, wrote the *test* into both SKILL.md and the index so
+  the next pass doesn't re-derive the wrong set from filenames.
+- **`mistral` moved onto the unified engine at v0.27.0** (#48947, merged
+  2026-07-30). CLI names unchanged — the operator-facing command line is safe.
+  One `MistralParser` now backs both `--tool-call-parser mistral` and
+  `--reasoning-parser mistral`; `supports_required_and_named = False`, and
+  `adjust_request` enforces tool choice via the mistral-common grammar `mode`
+  instead of the generic structured-outputs conversion.
+- **45 CLI names** (43 -> 45): `kimi_k3` (legacy shape, XTML channels) and
+  `inkling` (engine path) added to the family table and the index.
+- **Two long-standing factual errors caught while re-probing, neither of them
+  drift:** the `prev_tool_call_arr = [{"arguments": {}}]` plant was attributed
+  to Mistral (it has never carried it — actual carriers are `pythonic`,
+  `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml`), and eight cited source
+  files / templates did not exist at any probed tag, including
+  `tool_chat_template_minicpm5.jinja` (`git log --all` on the path is empty).
+- **GPT-OSS Harmony constrained decoding rewritten** (#45560, merged
+  2026-08-01): three lines added under the `openai` row.
+
+**Carried forward:** the Open item above (relocating the framework-contract and
+reasoning-pairing tables) was again not attempted — unchanged reasoning.
+
 ## Resolved — 2026-07-21 (freshen, v0.21.0 -> v0.25.1)
 
 - **Registry count unchanged at 43, composition changed — the case for diffing
