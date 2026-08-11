@@ -6,7 +6,11 @@ issue/PR/URL to the skill, probe it and add a row here.
 
 Probe pattern: `gh pr view <N> --repo vllm-project/vllm --json state,mergedAt,title,closedAt,stateReason`
 
-## Last sweep: 2026-07-21 (Gemma-4 #39392/#38855 re-probed with closing-comment evidence; prior sweeps 2026-05-28, 2026-04-24)
+## Last sweep: 2026-08-11 against vLLM **v0.27.0** (prior sweeps 2026-07-21, 2026-05-28, 2026-04-24)
+
+Latest vLLM release at sweep time was v0.27.1 (2026-08-11), a one-change patch
+on v0.27.0 touching no chat-template code; every claim below was probed at
+**v0.27.0** and is stamped there.
 
 | Ref | URL | Last verified | Status | Notes |
 |---|---|---|---|---|
@@ -19,6 +23,19 @@ Probe pattern: `gh pr view <N> --repo vllm-project/vllm --json state,mergedAt,ti
 | vLLM issue #38855 | https://github.com/vllm-project/vllm/issues/38855 | 2026-07-21 | **CLOSED/COMPLETED 2026-06-15 — a real fix, not a stale close** | Passed the freshen-patterns §3.0 check: the closing comments name the remedy ("we published a new vLLM gemma4 container image and the model's chat template was updated on HuggingFace"), so this is a genuine resolution. **But the fix is two-sided**, and that is the operationally important part: it requires *both* the newer vLLM image *and* a re-pulled model whose `chat_template` postdates ~2026-04-10. A vLLM upgrade alone leaves a stale mirrored/air-gapped model snapshot broken. Keep the `skip_special_tokens: false` workaround until both halves are current. |
 | vLLM issue #39614 | https://github.com/vllm-project/vllm/issues/39614 | 2026-05-28 | CLOSED/COMPLETED 2026-04-25 | GLM-5.1-FP8 `--chat-template-content-format auto` misroutes tool result — **fixed upstream**. `--chat-template-content-format openai`/`string` workaround only needed on vLLM before the fix. |
 | vLLM issue #39611 | https://github.com/vllm-project/vllm/issues/39611 | 2026-05-28 | CLOSED/COMPLETED 2026-04-12 | GLM-5.1-FP8 tool results ignored on `/v1/chat/completions` but work on `/v1/completions` — **fixed upstream**. Tool results now render on `/v1/chat/completions` in patched vLLM. (Previously only listed under not-re-probed; issue is GLM-5.1-FP8, not GLM-4.7.) |
+
+## 2026-08-11 sweep — findings
+
+| Claim | Was | Is (v0.27.0) | Probe |
+|---|---|---|---|
+| Response field for reasoning | SKILL.md pattern 15: "vLLM settled on `reasoning_content` (#28472)" | **Backwards.** Response field is `reasoning` — `ChatMessage.reasoning` at `chat_completion/protocol.py:71`, `DeltaMessage.reasoning` at `engine/protocol.py:397`. Request side still accepts `reasoning_content` and normalizes it (RFC #27755); the normalizer's own comment calls `reasoning_content` deprecated. This contradicted the sibling `vllm-reasoning-parsers` skill, which was right. | `git show v0.27.0:vllm/entrypoints/openai/chat_completion/protocol.py \| grep -n reasoning` |
+| `--reasoning-parser gpt_oss` (flags-matrix.md GPT-OSS recipe) | copy-paste serve command | **Not a registered name.** `grep -c '"gpt_oss"'` on `vllm/reasoning/__init__.py` returns 0 at v0.25.1, v0.26.0 *and* v0.27.0; the registered name is `openai_gptoss`. The command as written fails at startup. | `git show v0.27.0:vllm/reasoning/__init__.py \| grep -c '"gpt_oss"'` |
+| `vllm/entrypoints/openai/serving_chat.py:91-182` | cited in Code locations | **File does not exist.** Parser instantiation lives in `vllm/entrypoints/openai/chat_completion/serving.py`. | `git ls-tree v0.27.0 -- vllm/entrypoints/openai/serving_chat.py` (empty) |
+| `hf.py` line anchors | `96-145`, `407-435`, `460-505`, error at `477` | `resolve_chat_template()` **257**; `resolve_chat_template_content_format()` **558**; `resolve_chat_template_kwargs()` **633**; `safe_apply_chat_template()` overloads **665-699**, impl to ~728, `ChatTemplateResolutionError` raise at **718**. Line 477 is now unrelated system-message consolidation code. | `git show v0.27.0:vllm/renderers/hf.py` |
+| `examples/tool_chat_template_*.jinja` count | "27 files" | **26**, at v0.25.1 *and* v0.27.0 — unchanged, so the 27 was never right. | `git ls-tree --name-only v0.27.0 examples/ \| grep -c tool_chat_template` |
+| Bundled fallback families | "~10 … blip-2, chameleon, clip, colpali, deepseek_ocr/ocr2/vl_v2, **fuyu**, minicpmv, paligemma, **qwen**, siglip/siglip2" | **13 model types / 7 jinja files.** `fuyu` **removed** (Fuyu + Persimmon dropped in v0.26.0, #48096) along with `template_fuyu.jinja`; `unlimited-ocr` and `minicpmv4_6` present; **no `qwen` entry at either tag**. | `git show {v0.25.1,v0.27.0}:vllm/transformers_utils/chat_templates/registry.py` |
+| "As of transformers v4.44…" error string | quoted in SKILL.md + debugging.md | **Correct and current — deliberately NOT changed.** vLLM still raises this verbatim at v0.27.0 (`hf.py:718`). It names the *transformers release that removed default templates*, not a version requirement. The runtime floor is separately `transformers >= 5.5.3`, `tokenizers >= 0.21.1` (`requirements/common.txt`) — **unchanged from v0.25.1**. A guard note was added so a future pass doesn't "modernize" the quote. | `git grep -n "v4.44" v0.27.0 -- vllm/renderers/hf.py`; `git show v0.27.0:requirements/common.txt` |
+| PR #47844 — `continue_final_message` renderer sentinel | not covered | **MERGED 2026-07-08** (v0.26.0). Rust frontend only: previously the value was passed to the chat template and "almost no Hugging Face chat template actually observes this value, so it was a no-op". Now the Rust renderer appends a sentinel to the last message and strips it from the rendered result, porting Transformers-v5 semantics without template awareness. The Rust Harmony renderer explicitly errors: "Harmony renderer does not support continue_final_message". The Python path still just forwards the kwarg. Mutual exclusion with `add_generation_prompt` enforced at `chat_completion/protocol.py:964`. | `gh pr view 47844 -R vllm-project/vllm`; `git grep -n continue_final_message v0.27.0 -- rust/ vllm/renderers/` |
 
 ## Not re-probed this sweep (budget exhausted, prior-state assumed)
 
@@ -48,7 +65,7 @@ Do **not** re-probe unless a user reports "that line has unrelated code".
 - `vllm/renderers/hf.py` — `resolve_chat_template()`, kwarg allowlist
 - `vllm/renderers/params.py` — `ChatParams` dataclass
 - `vllm/entrypoints/chat_utils.py` — multimodal placeholder injection, ChatTemplateResolutionError
-- `vllm/entrypoints/openai/serving_chat.py` — parser instantiation
-- `vllm/reasoning/__init__.py` — registered reasoning parsers
+- `vllm/entrypoints/openai/chat_completion/serving.py` — parser instantiation (the old `serving_chat.py` path is gone)
+- `vllm/reasoning/__init__.py` — registered reasoning parsers (29 names at v0.27.0)
 - `vllm/transformers_utils/chat_templates/registry.py` — bundled fallback lookup
-- `examples/tool_chat_template_*.jinja` (27 files)
+- `examples/tool_chat_template_*.jinja` (26 files)

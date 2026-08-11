@@ -69,7 +69,7 @@ vllm serve deepseek-ai/DeepSeek-V3.2 \
 # Prefer /v1/responses endpoint — /v1/chat/completions tool calling is broken (#22578)
 vllm serve openai/gpt-oss-120b \
   --tool-call-parser openai \
-  --reasoning-parser gpt_oss
+  --reasoning-parser openai_gptoss   # NOT "gpt_oss" — that name is not registered
 
 # Offline harmony vocab:
 export TIKTOKEN_ENCODINGS_BASE=/path/to/tiktoken-cache

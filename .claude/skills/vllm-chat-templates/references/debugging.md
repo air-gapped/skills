@@ -77,6 +77,8 @@ python -c "import vllm; from vllm.model_executor.models import registry as r; pr
 # HF model revision — from .cache/huggingface/hub/... or huggingface-cli scan-cache
 ```
 
+vLLM v0.27.0 requires **`transformers >= 5.5.3`** and `tokenizers >= 0.21.1` (`requirements/common.txt`; same floor as v0.25.1). Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim.
+
 Many template bugs track a specific `tokenizer_config.json` commit. Mention revision SHA in issues.
 
 ### Step 5: Check known bugs

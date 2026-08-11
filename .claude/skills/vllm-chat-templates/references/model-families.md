@@ -96,7 +96,7 @@ Qwen3 template checks `tool_call.arguments is string` before `| tojson` — avoi
 | Concern | vLLM | DeepSeek official API |
 |---|---|---|
 | Thinking toggle | `extra_body={"chat_template_kwargs": {"thinking": true}}` | `extra_body={"thinking": {"type": "enabled"}}` |
-| Reasoning field | `reasoning_content` (post #28472) | `reasoning_content` |
+| Reasoning field (response) | **`reasoning`** — verified `ChatMessage.reasoning` at v0.27.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
 | Empty tool calls | `tool_calls: []` | `null` |
 
 Clients that hard-code one fail on the other.
