@@ -14,16 +14,28 @@ Version scheme: 0.YYYYMMDD.N where
   (today while the dir has pending uncommitted changes — the version this
   commit will carry)
 - N = unique commit count touching any member skill dir, plus 1 while the
-  dir has pending changes (staged OR unstaged), so the predicted bump is
-  stable across the stage/commit dance and the pre-commit hook converges.
+  dir has changes STAGED, so the predicted bump is stable across the
+  stage/commit dance and the pre-commit hook converges.
 .claude-plugin/ subtree is excluded from pathspec so regenerations don't
-self-bump. On regeneration the hook git-adds the manifest so the bump lands
-in the same commit (one-pass) instead of forcing an add-then-recommit dance.
+self-bump.
+
+Two modes:
+- Default (manual / CI): writes the manifest and git-adds it.
+- Check-only (`--check`, or automatically when PRE_COMMIT=1): compares and
+  exits 1 with the command to run. Never writes, never stages.
+
+Check-only under pre-commit is not a style choice, it prevents data loss.
+pre-commit stashes unstaged changes before running hooks; if a hook then
+modifies a tracked file, restoring that stash can conflict, and pre-commit
+resolves the conflict by discarding the whole stash ("Rolling back fixes").
+The blast radius is every unstaged file in the repo, not just this manifest.
+A hook that writes nothing can never trigger that path.
 """
 
 import datetime
 import fnmatch
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -884,24 +896,21 @@ def last_commit_date(skill_dirs: list[pathlib.Path]) -> str | None:
 
 
 def dir_has_pending_changes(skill_dirs: list[pathlib.Path]) -> bool:
-    """True if any member skill dir has uncommitted changes — staged OR
-    unstaged OR untracked. Index-independent on purpose: the predicted
-    version must be identical whether the skill files are staged yet or
-    not, so the regenerate-and-fail / re-add / re-commit loop converges to
-    a fixed point instead of flipping the version each pass."""
-    rels = [str(d.relative_to(REPO_ROOT)) for d in skill_dirs]
-    skip_prefixes = [r + "/.claude-plugin/" for r in rels]
-    prefixes = [r + "/" for r in rels]
-    out = run_git("status", "--porcelain", "--untracked-files=all")
-    for line in out.splitlines():
-        path = line[3:] if len(line) > 3 else ""
-        if " -> " in path:  # rename: take the destination path
-            path = path.split(" -> ", 1)[1]
-        if any(path.startswith(sp) for sp in skip_prefixes):
-            continue
-        if path in rels or any(path.startswith(p) for p in prefixes):
-            return True
-    return False
+    """True if any member skill dir has changes STAGED for commit.
+
+    Index-based on purpose, and this is the opposite of what it used to be.
+    Reading the working tree (`git status`) looks more thorough but is
+    actively wrong here: pre-commit stashes unstaged changes before running
+    hooks, so a working-tree read returns a different answer inside the hook
+    than outside it. The version then flipped mid-commit, the manifest was
+    rewritten, and the commit failed on "files were modified by this hook".
+
+    The index is never touched by the stash and is exactly what the commit
+    will contain, so it is both the stable input and the semantically
+    correct one — the version this commit will carry.
+    """
+    out = run_git("diff", "--cached", "--name-only", "--", *_pathspec(skill_dirs))
+    return any(line.strip() for line in out.splitlines())
 
 
 def today_utc() -> str:
@@ -1017,17 +1026,23 @@ def build_plugins() -> list[dict]:
     return plugins
 
 
-def write_marketplace(plugins: list[dict]) -> bool:
+def write_marketplace(plugins: list[dict], check_only: bool = False) -> bool:
+    """Return True if the manifest on disk differs from what it should be.
+
+    With check_only, report the difference without touching the file.
+    """
     data = {
         "name": MARKETPLACE_NAME,
         "owner": {"name": OWNER_NAME},
         "metadata": {"description": MARKETPLACE_DESC},
         "plugins": plugins,
     }
-    MARKETPLACE_FILE.parent.mkdir(parents=True, exist_ok=True)
     new = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     if MARKETPLACE_FILE.exists() and MARKETPLACE_FILE.read_text() == new:
         return False
+    if check_only:
+        return True
+    MARKETPLACE_FILE.parent.mkdir(parents=True, exist_ok=True)
     MARKETPLACE_FILE.write_text(new)
     return True
 
@@ -1046,16 +1061,36 @@ def remove_legacy_plugin_jsons() -> int:
 
 
 def main() -> int:
+    # Never mutate the tree from inside a pre-commit hook: pre-commit has
+    # stashed the unstaged changes, and a hook that modifies a tracked file
+    # can make restoring that stash conflict, at which point pre-commit
+    # discards it. See the module docstring.
+    check_only = "--check" in sys.argv or os.environ.get("PRE_COMMIT") == "1"
+
     plugins = build_plugins()
     if not plugins:
         print("error: no plugins", file=sys.stderr)
         return 2
+
+    legacy = sorted(SKILLS_DIR.glob("*/.claude-plugin/plugin.json"))
+    changed = write_marketplace(plugins, check_only=check_only)
+
+    if check_only:
+        if not changed and not legacy:
+            return 0
+        if changed:
+            print("marketplace.json is out of date.")
+        if legacy:
+            print(f"{len(legacy)} legacy plugin.json file(s) need removing.")
+        print(
+            "\nRun this, then commit again:\n"
+            "    python3 scripts/gen-plugin-manifests.py "
+            "&& git add .claude-plugin/marketplace.json\n"
+        )
+        return 1
+
     removed = remove_legacy_plugin_jsons()
-    changed = write_marketplace(plugins)
     if changed:
-        # Stage the regenerated manifest so the version bump rides along in
-        # this commit (one-pass) rather than landing as an unstaged change
-        # that fails the hook and forces a re-add / re-commit.
         run_git("add", "--", str(MARKETPLACE_FILE.relative_to(REPO_ROOT)))
     if removed:
         print(f"removed {removed} legacy plugin.json files")

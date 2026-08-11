@@ -54,5 +54,11 @@ repos:
         # 0.DATE.N where N counts commits touching the dir, so a content-only
         # change must also trip the hook and bump the version — else agents
         # loading the marketplace can't tell the skill was updated.
+        #
+        # The script detects PRE_COMMIT=1 and runs check-only here: it reports
+        # drift and prints the command, but never writes or stages. A hook that
+        # modifies a tracked file can make pre-commit's stash restore conflict,
+        # and pre-commit then DISCARDS the stash — losing every unstaged change
+        # in the repo, not just this manifest. Do not make this a fixer again.
         files: ^(\.claude/skills/.+|scripts/gen-plugin-manifests\.py|\.claude-plugin/marketplace\.json)$
         stages: [pre-commit]
