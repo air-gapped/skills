@@ -4,6 +4,51 @@ Work-not-done log for the skill-improver loop. `## Open` lists issues attempted 
 hypotheses that could not be applied (or safely verified) in a single iteration.
 `## Resolved this pass` lists changes the metric actually registered.
 
+## Resolved — 2026-08-11 (freshen)
+
+vLLM shipped **two** minors since the last pass (v0.26.0 2026-07-27, v0.27.0
+2026-08-10), so the drift spanned both. The ecosystem, by contrast, barely moved:
+only two of nine release feeds changed, the inverse of the previous pass.
+
+- **`/dev/shm` fact #1 was right but incomplete — and the missing half is the
+  expensive one.** The skill taught "segfault on the first all-reduce," which is
+  the *absent*-volume case. The *undersized*-volume case (the 64 MiB Docker/k8s
+  default) behaves completely differently: tmpfs allocation is lazy, so the pod
+  boots, passes probes, serves text-only traffic, and then dies under multimodal
+  load with an uncatchable `SIGBUS` surfacing as an opaque `EngineDeadError`.
+  Added the mechanism, the sizing math (`MessageQueue` = 24 MiB × 10 ≈ 240 MiB at
+  TP ≥ 2, already 3.75× the default), and the v0.27.0 fail-fast (#48879,
+  `check_shm_free_space()`, error string read verbatim from the v0.27.0 blob).
+- **DeepEPv2 is image-only.** v0.27.0 (#45321) raised the `vllm/vllm-openai`
+  image's NCCL to 2.30.7; verified in `docker/Dockerfile` at the tag
+  (`ARG NCCL_VERSION=2.30.7`, comment "DeepEPv2 requires NCCL >= 2.30.4 (GIN
+  backend)"). The load-bearing half is the negative: the PyPI wheel is unchanged
+  because DeepEP is not shipped in it, so a pip-installed vLLM in a custom image
+  gains nothing from the version bump alone.
+- **`resources.limits.memory` was silently ignored before v0.27.0** (#49966) —
+  vLLM read host RAM inside a Pod, so its own memory heuristics sized against the
+  node, not the container. New `pod-shape.md` subsection.
+- **DP+EP external-LB fault tolerance** (#44428) — one dead DP rank blocks the EP
+  all-to-all on every survivor and hangs the cluster; v0.27.0 adds detection,
+  in-flight abort, and `POST /fault_tolerance/apply`. External-LB topology only.
+- **Two ecosystem bumps:** production-stack 0.1.11 → **0.1.12** (2026-07-24),
+  Dynamo stable v1.2.1 → **v1.3.1** (2026-08-06). LWS, llm-d, AIBrix, GAIE, Envoy
+  AI Gateway and semantic-router all re-probed and unchanged — recorded as
+  verified non-events rather than left unstamped.
+- **Closed the carried Dim 8 item.** `ecosystem.md` had mixed verification-date
+  labels; all nine are now stamped 2026-08-11 because all nine were actually
+  re-probed this pass.
+- **Four hard removals checked, none applicable.** `max_num_partial_prefills` /
+  `max_long_partial_prefills` (#49244) and the Plamo2 / Ouro / TeleChat /
+  Persimmon / Fuyu model removals all grep to zero hits in this skill. Likewise
+  the PyTorch 2.13.0 / Triton 3.7.1 "breaking environment change" (#48155) — this
+  skill pins image tags, not Python dependencies. Recorded in `sources.md` so the
+  next pass doesn't re-litigate them.
+- **One near-miss recorded deliberately:** #48992 adds `grpc.health.v1.Health` to
+  the **Rust frontend's gRPC listener**, not to the HTTP `/health` endpoint the
+  k8s probes hit. Probe guidance unchanged. Written down because it reads like a
+  probe-contract change and isn't.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Ran three days ahead of the "URGENT: freshen by 2026-07-24" deadline the
@@ -60,9 +105,10 @@ a reason it didn't anticipate.
   Final-blind finding. Candidate: keep the pitfall one-liner + one canonical
   treatment, pointer from the other. Not attempted (stop condition reached).
 
-- **(new 2026-07-18) ecosystem.md verification-label drift** (Dim 8) —
-  mixed "Apr 2026"/"May 2026" verified-as-of labels within one file.
-  Final-blind finding; fold into the next freshen pass's re-stamp.
+- ~~**(new 2026-07-18) ecosystem.md verification-label drift**~~ (Dim 8) —
+  **CLOSED 2026-08-11.** All nine project entries in `ecosystem.md` now carry a
+  single `(2026-08-11)` label, and each was actually re-probed rather than
+  carried forward.
 
 - **Body still feature-list / pointer-map shaped, not operator-workflow ordered** (Dim 2) — `SKILL.md` (top third: lines ~16-98, the decision-guide table → load-bearing facts → pod shape → sibling boundaries → structure ordering). Hypothesis was to lead with the operator workflow (audit → cache mount → HF_TOKEN → probes → serve_args → autoscale) before the vendor-named decision table. Not applied: medium-complexity structural rewrite that must preserve every existing pointer, keep SKILL.md < 500 lines, and not disturb trigger-relevant keyword placement in the body — needs reliable read-back to cold-score honestly and confirm no pointer/frontmatter regression. (carried 2026-05-29)
 - **probe-trigger.py all-zero measurement bug** (Dim 1) — skill-improver probe tooling, not a `vllm-deployment` file. Trigger precision cannot be measured/tuned for this skill until the harness probe returns non-zero scores. Not single-iteration-breakable inside this skill. (carried 2026-05-29)

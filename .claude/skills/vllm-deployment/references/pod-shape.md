@@ -116,6 +116,27 @@ Kubernetes has no equivalent of Docker's `--ipc=host`. The in-cluster default `/
 
 Size at 2–10 GiB. Backed by host memory (`medium: Memory`), capped at `sizeLimit` so a runaway process can't OOM the node.
 
+**A too-small `/dev/shm` does not fail at boot — it fails hours later.** tmpfs allocation
+is lazy, so `SharedMemory(create=True, size=...)` succeeds on the 64 MiB default and
+pages only fault in under load; when usage crosses the tmpfs limit the worker takes an
+uncatchable `SIGBUS` that surfaces as an opaque `EngineDeadError: EngineCore encountered
+an issue`. The pod serves text-only traffic fine and dies on multimodal traffic, because
+image payloads broadcast to the TP workers are what fill the ring buffer. Sizing math:
+`MessageQueue` allocates `max_chunk_bytes` (24 MiB) × `max_chunks` (10) ≈ **240 MiB** by
+default at TP ≥ 2 — already 3.75× the 64 MiB default. **vLLM ≥ v0.27.0 (#48879)** adds
+`check_shm_free_space()` in `vllm/distributed/device_communicators/shm_broadcast.py`,
+which fails fast with `Insufficient space in /dev/shm: N MiB required, M MiB free.` On
+older engines there is no such check — the delayed-SIGBUS shape above is what to expect.
+
+### `resources.limits.memory` — only honoured from v0.27.0
+
+Before **v0.27.0 (#49966)** vLLM read *host* RAM inside a Pod and ignored the cgroup
+limit, so a container capped at `memory: 240Gi` on a 900 GiB node sized its host-memory
+decisions against the node. The reported symptom is a weight-loading heuristic firing on
+the wrong number — e.g. auto-prefetch disabled because "the checkpoint size exceeds 90%
+of available RAM" computed from host RAM. Set the limit anyway on older engines (the
+kernel still enforces it), but expect vLLM's own memory math to disagree with it.
+
 ### `VLLM_HOST_IP` via `status.podIP` (LOAD-BEARING on multi-node)
 
 On multi-NIC pods, vLLM may auto-select the wrong interface for the engine-core process's gRPC bind. Feeding `status.podIP` guarantees the pod's primary CNI IP. Source: ``vllm` repo: vllm/envs.py:15`. This interacts with `NCCL_SOCKET_IFNAME` — see `references/multi-node.md`.
@@ -192,6 +213,16 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
   limit is the deploy-layer bug to catch in review. Choosing between TP/EP/DP and
   sizing them → `vllm-performance-tuning`; this file owns whether the manifest's flags,
   GPU limits, and nodeSelector agree.
+  - **DeepEPv2 is an image-only capability.** v0.27.0 (#45321) raised the
+    `vllm/vllm-openai` image's NCCL to **2.30.7** (DeepEPv2 needs ≥ 2.30.4 for the GIN
+    backend; `docker/Dockerfile` `ARG NCCL_VERSION=2.30.7`, `ARG DEEPEP_COMMIT_HASH`).
+    The PyPI wheel is unchanged because DeepEP is not shipped in it — a pip-installed
+    vLLM in a custom image does not get DeepEPv2 by bumping the version alone.
+  - **DP+EP on an external load balancer can hang the whole cluster.** When one DP rank
+    dies the EP all-to-all on surviving ranks blocks indefinitely. v0.27.0 (#44428) adds
+    an opt-in fault-tolerance framework for the external-LB topology that detects the
+    fault, aborts in-flight requests, and exposes `POST /fault_tolerance/apply` for an
+    external orchestrator to drive recovery. External-LB mode only.
 
 ## Custom tool/reasoning parser via ConfigMap
 
