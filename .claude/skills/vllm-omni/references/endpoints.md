@@ -4,7 +4,11 @@ Load when operator asks about a specific API endpoint's shape, streaming, auth, 
 
 **Contents:** Endpoint map · `/v1/images/generations` · `/v1/images/edits` · `/v1/audio/speech` · `/v1/audio/voices` · `/v1/audio/speech/stream` · `/v1/videos` (async vs sync) · `/v1/realtime` · `/v1/chat/completions` with diffusion.
 
-## Endpoint map (v0.20.0)
+## Endpoint map (compiled v0.20.0; not re-verified since)
+
+> Not re-probed in the 2026-08-11 pass. Known addition from v0.26.0 that is
+> **missing below**: the experimental full-duplex pair `/v1/duplex` and
+> `/v1/realtime?duplex=1` for MiniCPM-o 4.5 (#3907).
 
 | Path | Method | Purpose |
 |---|---|---|

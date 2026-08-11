@@ -11,7 +11,7 @@ Unlike AR generation, DiT runs a **fixed number of denoising steps** against a l
 | Field | Default | Purpose |
 |---|---|---|
 | `num_inference_steps` | model-specific (20-50) | Total denoising steps |
-| `guidance_scale` | 0.0 (sentinel "unset") | CFG scale; set > 1.0 to enable |
+| `guidance_scale` | **`None`** from v0.26.0 (was `0.0` as an "unset" sentinel) | CFG scale; set > 1.0 to enable |
 | `guidance_scale_2` | 0.0 | **Dual CFG** high-noise branch (Wan2.2) |
 | `guidance_rescale` | 0.0 | Pixel-space rescale after CFG |
 | `true_cfg_scale` | 1.0 | Qwen-Image variant of CFG |
@@ -31,7 +31,7 @@ Unlike AR generation, DiT runs a **fixed number of denoising steps** against a l
 | `vae_use_slicing`, `vae_use_tiling` | False | VAE memory optimizations |
 | `layers` | None | Layered image output count (3-10, Qwen-Image-Layered) |
 
-**Sentinel gotcha**: `guidance_scale=0.0` is treated as "not provided". Passing `0.5` is coerced to 1.0 (CFG disabled). To intentionally disable CFG, leave unset; to enable, pass > 1.0.
+**Sentinel gotcha — fixed in v0.26.0 (#4999, fixes #4998).** Below v0.26.0, `guidance_scale=0.0` was the "unset" default, so an explicit `0` was indistinguishable from an omitted value and the **pipeline's own default was substituted instead** — HunyuanImage-3.0 substitutes `5.0`, which turns CFG *on* when the caller asked for it off. The collision was in the shared input layer (`vllm_omni/inputs/data.py`), so every pipeline that fills in a default was affected. v0.26.0 makes `None` the sentinel (matching `num_inference_steps`) and tests presence by identity in `OmniDiffusionRequest.__post_init__`, so `0` now means `0`. On older builds, omit the field to disable CFG — do not send `0`. The CFG gate is `guidance_scale > 1.0` on every version, so `0.5` disables CFG regardless.
 
 ## Schedulers
 
@@ -111,7 +111,9 @@ Supported formats (factory `vllm_omni/quantization/factory.py:138-178`):
 |---|---|---|
 | FP8 | Flux family DiT | v0.16 #1640 |
 | INT8 | Z-Image, Qwen-Image DiT | v0.18 #1470 |
-| GGUF | Qwen-Image DiT (llama.cpp-compatible) | v0.16 #1755 |
+| ~~GGUF~~ | **moved out of tree in v0.26.0** — install `vllm-project/vllm-gguf-plugin` | v0.16 #1755, removed by #4769 |
+| BitsAndBytes W4 (online) | diffusion transformers | v0.26.0 #5037 |
+| Transformer Engine FP8 (online) | FLUX.2-dev Mistral text encoder | v0.26.0 #5136 |
 | NVFP4, MXFP4 | via upstream vLLM registry | inherited |
 | INC / AutoRound | Intel Neural Compressor path | factory delegate |
 
@@ -183,4 +185,17 @@ If DiT latency looks wrong:
 2. Confirm TeaCache or Cache-DiT is enabled (stage-config extras).
 3. Check quantization is engaging: `python -c "from vllm_omni.quantization.factory import ...; print(built_config)"`.
 4. Wan2.2 specifically: `guidance_scale_2` + `boundary_ratio` must both be set or dual-CFG no-ops.
-5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS; pin `flashinfer<0.6.7` if TRTLLM attention hangs (borrowed from upstream vLLM bug).
+5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS.
+   **Do not pin `flashinfer<0.6.7`** — that advice is obsolete *and*
+   unsatisfiable on v0.26.0, which inherits vLLM 0.26.0's hard
+   `flashinfer-python==0.6.14`. Provenance, since the pin looked load-bearing:
+   upstream vLLM issue #38729 reported all models hanging on **GB300 (SM103)
+   only** with FlashInfer 0.6.7 — 99% SM utilisation, 0% memory bandwidth, at
+   large batch — because TRTLLM attention kernels stopped being
+   forward-compatible with SM103. **GB200 / SM100 was never affected**, so the
+   old "SM100/SM103" wording overstated the blast radius. vLLM fixed it in
+   tree on 2026-04-01 (PR #38730) by restricting `supports_trtllm_attention()`
+   to exact SM100 so SM103 falls back to the default FlashInfer backend, and
+   the FlashInfer-side issue (flashinfer-ai/flashinfer#2939) was closed as
+   fixed on 2026-04-07. If TRTLLM attention still hangs on SM103, that is a
+   new bug — capture it rather than downgrading FlashInfer.

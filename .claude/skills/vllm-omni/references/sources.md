@@ -44,26 +44,28 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 | v0.24.0rc1 | 2026-06-30 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.24.0rc1> | 2026-07-21 |
 | v0.24.0 | 2026-07-06 | stable, rebased on vLLM v0.23.0 + v0.24.0 (#4286, #4709). 285 commits / 112 contributors. **Newest version available as a wheel and as a container.** Omni stage runtime + distributed replica control-plane refactor (#3855), diffusion **request-level batching** (#4079), async output materialization (#4476), orchestrator output-path split (#4527), HF-config-based pipeline resolution (#3760), structured `VllmOmniConfig` (#4425). Speech hardening: SSE audio streaming, word-level timestamps, cross-request audio-corruption fix (#4034, #4490, #4706) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.24.0> | 2026-07-21 |
 | **v0.24.1** | 2026-07-10 | **Current GitHub "Latest" — but published to NO other channel.** Single PR #5017: restores `vllm_c` IR op priority and `torch.nn.RMSNorm` for Qwen-Image, fixing the perf regression in issue #4964 | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.24.1> | 2026-07-21 |
-| v0.25.0rc1 | 2026-07-12 | latest pre-release | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.25.0rc1> | 2026-07-21 |
+| v0.25.0rc1 | 2026-07-12 | **rc only — no v0.25.0 stable was ever cut** | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.25.0rc1> | 2026-08-11 |
+| v0.26.0rc1 | 2026-07-28 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0rc1> | 2026-08-11 |
+| **v0.26.0** | 2026-08-03 | **Current stable on all three channels.** Rebased on vLLM **0.26.0** (#5443). 252 changes / 96 contributors. Headline: MiniMax H3 joint video+audio via `/v1/videos` (#5691), experimental full-duplex realtime runtime for MiniCPM-o 4.5 (#3907), distributed layerwise diffusion offload with mmap-backed sharded weights + DP multi-concurrency (#5397, Ascend 910B3 Cosmos3-Nano DP4: 178 GB → 47 GB peak). **Two breaking changes** — LTX registry renames (#5148) and GGUF diffusion moved out of tree (#4769). Also: `guidance_scale=0` honored (#4999), composable parallel-strategy overlays phase 1 (#4281), TensorRT-LLM diffusion attention with Skip-Softmax (#5283) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0> | 2026-08-11 |
 
-### Distribution-channel mismatch — verified 2026-07-21
+### Distribution channels — re-verified 2026-08-11: parity restored
 
-The three channels disagree, and GitHub's "Latest" badge is the outlier. Check
-all three before quoting a version for this project.
+The 2026-07-21 mismatch is gone. All three channels now agree on **v0.26.0**.
 
 | Channel | Newest | Evidence |
 |---|---|---|
-| GitHub releases | **v0.24.1** (2026-07-10) | `gh release list -R vllm-project/vllm-omni` |
-| PyPI | **0.24.0** (2026-07-07) | `pypi.org/pypi/vllm-omni/json` — full release index is `0.11.0rc1, 0.12.0rc1, 0.14.0, 0.14.0rc1, 0.16.0, 0.18.0, 0.18.0rc1, 0.20.0, 0.20.0rc1, 0.21.0rc1, 0.22.0, 0.23.0rc1, 0.24.0, 0.24.0rc1, 0.25.0rc1`. **`0.24.1` is absent entirely** — not yanked, never uploaded. |
-| Docker Hub | **v0.24.0** (2026-07-07), and `latest` resolves to it | Docker Hub v2 tags API. Per-tag `-x86_64` / `-aarch64` variants exist. A `cosmos3` tag (2026-07-20) is newer than any versioned tag — a model-specific build, not a release. |
+| GitHub releases | **v0.26.0** (2026-08-03), marked Latest | `gh release list -R vllm-project/vllm-omni` |
+| PyPI | **0.26.0** (2026-08-03) | `pypi.org/pypi/vllm-omni/json` — `info.version` = `0.26.0`; index now `…, 0.24.0, 0.24.0rc1, 0.25.0rc1, 0.26.0, 0.26.0rc1`. **`0.24.1` is still absent** — never uploaded, and now moot. |
+| Docker Hub | **v0.26.0** (2026-08-03); `latest` resolves to **`v0.26.0post1.20260811`** (2026-08-11) | Docker Hub v2 tags API. Per-tag `-x86_64` / `-aarch64` variants. Model-specific builds also present: `minimax-h3`, `minimax-h3-cu129` (2026-08-02), `cosmos3` (2026-07-20). ROCm images are a **separate repo**, `vllm/vllm-omni-rocm`. |
 
-Consequence: the Qwen-Image regression fix in v0.24.1 is **not** reachable via
-`pip install vllm-omni` or `vllm/vllm-omni:latest`. Use
-`git+https://github.com/vllm-project/vllm-omni@v0.24.1`.
+The v0.24.1 Qwen-Image fix (#5017) is reachable from v0.26.0 by descent, so the
+`git+…@v0.24.1` install form is no longer needed. Two caveats survive:
 
-Note v0.22.0's release notes list "PyPI upload support" (#3667) as a *new*
-capability for that release, which is consistent with the channel plumbing
-still being immature — a reason to keep re-checking rather than assume parity.
+- **`latest` is not a release.** It currently points at a `post1` build dated
+  after v0.26.0. Pin the exact version tag in any manifest.
+- **Parity is not guaranteed to persist.** v0.22.0's notes listed "PyPI upload
+  support" (#3667) as a *new* capability, so this plumbing is young. Re-check
+  all three channels each pass rather than trusting this row.
 
 ## Community
 
@@ -83,7 +85,9 @@ still being immature — a reason to keep re-checking rather than assume parity.
 
 | # | Title | State | URL | Last verified |
 |---|---|---|---|---|
-| #4964 | Qwen-Image performance degradation (nightly CI) | **CLOSED 2026-07 — genuinely fixed** by PR #5017, shipped **v0.24.1 only** (not on PyPI/Docker) | <https://github.com/vllm-project/vllm-omni/issues/4964> | 2026-07-21 |
+| #4964 | Qwen-Image performance degradation (nightly CI) | **CLOSED — genuinely fixed** by PR #5017. Was v0.24.1-only (a GitHub tag with no wheel); now carried by v0.26.0 on every channel | <https://github.com/vllm-project/vllm-omni/issues/4964> | 2026-08-11 |
+| #4998 | `guidance_scale=0` silently overridden by the pipeline default | **CLOSED — genuinely fixed** by PR #4999 (merged 2026-08-01, v0.26.0). Sentinel collision in `OmniDiffusionSamplingParams`: `0.0` meant "unset", so an explicit `0` was replaced by the model default (HunyuanImage-3.0 substitutes `5.0`, enabling CFG). Fix makes `None` the sentinel and tests by identity | <https://github.com/vllm-project/vllm-omni/issues/4998> | 2026-08-11 |
+| vllm#38729 | All models hang on GB300 (SM103) with FlashInfer 0.6.7 | **CLOSED/COMPLETED 2026-04-01 via workaround PR vllm#38730**, which restricts `supports_trtllm_attention()` to exact SM100 so SM103 falls back. **SM100/GB200 was never affected.** FlashInfer-side issue flashinfer-ai/flashinfer#2939 closed "as fixed" 2026-04-07. This is the origin of the `flashinfer<0.6.7` pin that `diffusion.md` used to recommend — now obsolete *and* unsatisfiable against vLLM 0.26.0's `flashinfer-python==0.6.14` | <https://github.com/vllm-project/vllm/issues/38729> | 2026-08-11 |
 | #2898 | NPU 910B install regression | **CLOSED 2026-04-20 — answered, not patched.** Resolution is a usage correction: `--dtype`, `--max-model-len`, `--served-model-name` etc. "can't be passed correctly currently, because omni is multi-stage deployment", so set them in the **YAML stage config** instead of on the CLI | <https://github.com/vllm-project/vllm-omni/issues/2898> | 2026-07-21 |
 | #2880 | HunyuanVideo-1.5 flash-attn shape on NPU mindiesd | **CLOSED 2026-06-02**, `COMPLETED`. Last comment is a maintainer ping (`@gcanlin PTAL`, 2026-04-20) with no fix reference — **fix unconfirmed**, re-test before relying on it | <https://github.com/vllm-project/vllm-omni/issues/2880> | 2026-07-21 |
 | #2866 | Qwen3-TTS code2wav crash when enforce_eager=false | **CLOSED 2026-04-29** (CUDA-graph capture shipped via PR #2690 in v0.20.0) | <https://github.com/vllm-project/vllm-omni/issues/2866> | 2026-05-28 |
@@ -154,17 +158,31 @@ Also re-check the **distribution channels**, not just the release list. The
 2026-07-21 pass found GitHub, PyPI, and Docker Hub disagreeing on the newest
 version, with a real bugfix reachable from only one of them.
 
-Compiled 2026-04-18 against v0.18.0 stable. Freshened 2026-05-28 (rebased to
-v0.20.0 stable). **Last freshened 2026-07-21**: rebased v0.20.0 -> v0.24.0/v0.24.1
-across four minors, documented the GitHub/PyPI/Docker channel mismatch, and
-re-probed all tracked issues — six had flipped to CLOSED but only one against a
-named fix (see the §3.0 note in the issue table).
+Compiled 2026-04-18 against v0.18.0 stable. Freshened 2026-05-28 (v0.20.0) and
+2026-07-21 (v0.24.0/v0.24.1 + channel mismatch + six issue-closure
+re-classifications). **Last freshened 2026-08-11**: rebased to **v0.26.0**,
+recorded its two breaking changes (LTX registry renames #5148, GGUF moved out
+of tree #4769), and closed three long-standing open questions against primary
+sources —
+
+- the **`guidance_scale=0` sentinel** was a real bug, fixed by #4999 in
+  v0.26.0, not a design choice to document forever;
+- the **GLM-Image `transformers>=5.0`** hedge is retired: vllm-omni v0.26.0's
+  own `requirements/common.txt` floors transformers at `>= 5.5.3`;
+- the **`flashinfer<0.6.7`** pin traces to upstream vLLM issue #38729 (SM103
+  only, fixed in-tree by #38730 on 2026-04-01) and is now unsatisfiable
+  against vLLM 0.26.0's `flashinfer-python==0.6.14`.
+
+Runtime pins confirmed for this line: vllm-omni v0.26.0 rides vLLM 0.26.0, so
+**PyTorch 2.11.0 / FlashInfer 0.6.14 / torchvision 0.26.0** (vLLM v0.26.0
+`requirements/cuda.txt`) plus `transformers >= 5.5.3` and `diffusers==0.38.0`
+(vllm-omni `requirements/common.txt`). Upstream vLLM v0.27.0 moved to PyTorch
+2.13.0 / FlashInfer 0.6.16.post3 — **that is not this stack**, and the strict
+minor-alignment rule means it will not be until vllm-omni v0.27.x.
 
 **Not re-probed this pass:** the docs-root / supported-models / architecture /
 serving / features doc pages (all still 2026-04-18), the arXiv paper, and the
-open RFC list. Four minors of model additions mean `references/models.md` is
-very likely incomplete — v0.22.0 alone added Cosmos3, DreamZero, MiniCPM-o 4.5,
-MOSS-TTS, GLM-TTS, Higgs Audio v2, HiDream-I1-Full, SenseNova U1 and more, and
-v0.24.0 added Higgs Audio V3, IndexTTS2, Step-Audio2, SDXL, GR00T-N1.7 and
-others. Re-syncing that roster against `supported_models.md` should lead the
-next pass.
+open RFC list. `references/models.md` is now **five** minors behind on its
+roster; only the LTX rows and the GLM-Image note were re-verified against the
+v0.26.0 registry. Re-syncing that roster should lead the next pass — it is a
+multi-row content import, not a freshen edit.

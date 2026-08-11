@@ -1,6 +1,18 @@
 # vllm-omni supported models
 
-Load when operator asks "what's supported" / "is model X supported" / "which platform for model Y". Source: [`docs/models/supported_models.md`](https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md), code in `vllm_omni/model_executor/`. Current as of v0.20.0 (2026-05-07).
+Load when operator asks "what's supported" / "is model X supported" / "which platform for model Y". Source: [`docs/models/supported_models.md`](https://github.com/vllm-project/vllm-omni/blob/main/docs/models/supported_models.md), code in `vllm_omni/diffusion/registry.py` and `vllm_omni/model_executor/`.
+
+> **This roster is a floor, not a complete list.** The tables below were
+> compiled against v0.20.0 (2026-05-07) and have not been re-synced against
+> `supported_models.md` since. Only the LTX rows and the GLM-Image note were
+> re-verified against the v0.26.0 registry on 2026-08-11. v0.22.0 → v0.26.0
+> added at least: Cosmos3 (incl. Edge/Distilled), DreamZero, MiniCPM-o 4.5,
+> MOSS-TTS(-Local v1.5), GLM-TTS, Higgs Audio v2 and V3, HiDream-I1-Full,
+> SenseNova U1, IndexTTS2, Step-Audio2, SDXL, GR00T-N1.7, **MiniMax H3**
+> (joint video+audio, `MiniMaxH3Pipeline`), **Krea 2** (`Krea2Pipeline`),
+> **Boogu Image 0.1** (`BooguImagePipeline`), Nemotron Audex, LingBot Video
+> and MammothModa2-Dev. If a model is missing here, check the registry before
+> concluding it is unsupported.
 
 ## Any-to-any omni models
 
@@ -27,7 +39,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `FluxKontextPipeline` | `black-forest-labs/FLUX.1-Kontext-dev` | Y | Y | | | |
 | `Flux2Pipeline` | `black-forest-labs/FLUX.2-dev` | Y | Y | | | FP8 path v0.16 (#1640). |
 | `Flux2KleinPipeline` | `black-forest-labs/FLUX.2-klein-{4B,9B}` | Y | Y | Y | Y | v0.14. |
-| `GlmImagePipeline` | `zai-org/GLM-Image` | Y | Y | | | Required `transformers>=5.0` manual upgrade on v0.18; v0.20.0 ships Transformers 5.x compat fixes — verify if still needed. |
+| `GlmImagePipeline` | `zai-org/GLM-Image` | Y | Y | | | Required a `transformers>=5.0` manual upgrade on v0.18 only. Resolved: v0.26.0's `requirements/common.txt` floors transformers at `>= 5.5.3`. |
 | `ZImagePipeline` | `Tongyi-MAI/Z-Image-Turbo` | Y | Y | Y | Y | Quickstart default. Smallest footprint. INT8 supported. |
 | `HunyuanImage3ForCausalMM` | `tencent/HunyuanImage-3.0`, `-Instruct` | Y | Y | Y | Y | v0.18. |
 | `LongcatImagePipeline` | `meituan-longcat/LongCat-Image` | Y | Y | Y | Y | |
@@ -45,9 +57,10 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `WanPipeline` | `Wan-AI/Wan2.1-T2V-{1.3B,14B}-Diffusers`, `Wan-AI/Wan2.2-T2V-A14B-Diffusers`, `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Y | Y | Y | Y | T2V. v0.16 ships OpenAI `/v1/videos` endpoint. Orphan procs on crash #2768. |
 | `WanImageToVideoPipeline` | `Wan-AI/Wan2.2-I2V-A14B-Diffusers` | Y | Y | Y | Y | I2V. |
 | `Wan22VACEPipeline` | `Wan-AI/Wan2.1-VACE-{1.3B,14B}-diffusers` | Y | Y | Y | Y | VACE control variant. |
-| `LTX2Pipeline` | `Lightricks/LTX-2`, `rootonchair/LTX-2-19b-distilled` | Y | Y | | | T2V. |
-| `LTX2ImageToVideoPipeline` | `Lightricks/LTX-2` | Y | Y | | | I2V. |
-| `LTX2TwoStagesPipeline` / `LTX2ImageToVideoTwoStagesPipeline` | `rootonchair/LTX-2-19b-distilled` | Y | Y | | | Distilled two-stage variants. |
+| `LTX2Pipeline` | `Lightricks/LTX-2`, LTX-2.3 checkpoints | Y | Y | | | **Renamed surface in v0.26.0 (#5148).** Now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata selects the version, passing `image=` selects I2V. |
+| `LTX2DistilledPipeline` | `rootonchair/LTX-2-19b-distilled` | Y | Y | | | Distilled two-stage path, renamed in v0.26.0 (#5148). A plain `LTX2TwoStagePipeline` name is reserved for a follow-up PR and does not exist yet. |
+| `LTX2T2VDMD2Pipeline` / `LTX2I2VDMD2Pipeline` | LTX-2 DMD2 checkpoints | Y | Y | | | DMD2 variants, registered in v0.26.0. |
+| ~~`LTX2ImageToVideoPipeline`~~, ~~`LTX23Pipeline`~~, ~~`LTX23ImageToVideoPipeline`~~, ~~`LTX2TwoStagesPipeline`~~, ~~`LTX2ImageToVideoTwoStagesPipeline`~~ | — | | | | | **Removed in v0.26.0** (#5148). A stage config naming any of these will fail to resolve. |
 | `HeliosPipeline`, `HeliosPyramidPipeline` | `BestWishYsh/Helios-{Base,Mid,Distilled}` | Y | Y | Y | | |
 | `MagiHumanPipeline` | `SII-GAIR/daVinci-MagiHuman-Base-1080p` | Y | Y | | | |
 | `HunyuanVideo15Pipeline` | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-{480p,720p}_t2v` | Y | Y | | | T2V. Flash-attn shape issue on NPU mindiesd #2880. |
@@ -68,7 +81,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 ## Platform legend
 
 - **CUDA** — NVIDIA H100/A100/H200/Blackwell.
-- **ROCm** — AMD MI300 family. `vllm==X.X.X+rocm700` wheel index.
+- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.26.0 uses `vllm==0.26.0+rocm723` from `https://wheels.vllm.ai/rocm/0.26.0/rocm723` (v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo.
 - **NPU** — Huawei Ascend 910B. Fresh-install regression on main for some models #2898.
 - **XPU** — Intel Arc / Ponte Vecchio. Backend: XCCL / oneccl_bindings_for_pytorch.
 - **MUSA** — Tencent GPU (not shown in this table). Auto-detected via `torchada`.
