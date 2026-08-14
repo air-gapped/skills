@@ -26,7 +26,10 @@ skill before; score it blind.
 1. Read the rubric: <skill-improver-dir>/references/quality-rubric.md
 2. Read the design guide: <skill-improver-dir>/references/anthropic-skill-design.md
 3. Read the skill: <target-skill-dir>/SKILL.md
-4. Read all files in: <target-skill-dir>/references/
+4. Read all files in: <target-skill-dir>/references/ — EXCEPT
+   improvement-backlog.md. Do NOT open it: it records prior improvement
+   passes' final scores and known-issue lists, and reading it un-blinds
+   your scoring. Do not penalize the skill for its presence either.
 5. Read any scripts/evals: <target-skill-dir>/scripts/ and <target-skill-dir>/evals/ (if present)
 
 For Dimension 1: check what falls within the first 1,536 chars of combined

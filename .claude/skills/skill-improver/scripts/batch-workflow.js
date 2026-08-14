@@ -136,7 +136,7 @@ function blindPrompt(s) {
     '1. Read the rubric: ' + REF + '/quality-rubric.md',
     '2. Read the design guide: ' + REF + '/anthropic-skill-design.md',
     '3. Read the skill: ' + s.dir + '/SKILL.md',
-    '4. Read all files in: ' + s.dir + '/references/',
+    '4. Read all files in: ' + s.dir + '/references/ — EXCEPT improvement-backlog.md. Do NOT open it: it records prior improvement passes\' final scores and known-issue lists, and reading it un-blinds your scoring. Do not penalize the skill for its presence either.',
     '5. Read any scripts/evals: ' + s.dir + '/scripts/ and ' + s.dir + '/evals/ (if present).',
     '',
     'For Dimension 1: check what falls within the first 1,536 chars of combined description + when_to_use, and penalize if key trigger phrases are past the cutoff. Note whether the skill splits the two fields or stuffs everything into description.',
