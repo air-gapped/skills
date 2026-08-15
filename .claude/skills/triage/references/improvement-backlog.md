@@ -3,16 +3,6 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Open
-
-- **(2026-08-16, operator decision) SKILL.md phase-extraction is HELD — do
-  not propose it.** At 911 lines SKILL.md exceeds the 500-line ceiling, and
-  skill-improver's own extraction (improve-loop → reference) is precedent —
-  but this skill is single-mode: the phases load every run regardless, so
-  the token win mostly evaporates and a skipped Read on a security-verdict
-  workflow is a real risk. Operator ruling: no extraction without a
-  with/without measurement first.
-
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Anti-manipulation prologue** added to the `triage-verifier` agent body:
@@ -95,7 +85,13 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   fragments the resumable-runbook coherence the skill depends on — a
   multi-section restructure that needs author judgment on how far to split a
   deliberately single-file pipeline. The residual length is load-bearing phase
-  methodology, not padding.
+  methodology, not padding. **(2026-08-16 operator ruling: extraction is
+  HELD — do not propose it.** Now 911 lines after the Visa-harness and
+  call-graph additions, and skill-improver's own improve-loop extraction is
+  precedent — but this skill is single-mode: the phases load every run
+  regardless, so the token win mostly evaporates and a skipped Read on a
+  security-verdict workflow is a real risk. No extraction without a
+  with/without measurement first.)
 - **Add a `when_to_use` field (Dim 1).** The 447-char `description` carries the
   four primary triggers; secondary phrasings ("false positive review",
   "scanner noise", "dedupe vulns", "rank by exploitability") would lift Dim 1

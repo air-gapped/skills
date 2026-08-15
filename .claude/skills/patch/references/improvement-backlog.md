@@ -3,16 +3,6 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Open
-
-- **(2026-08-16, operator decision) SKILL.md phase-extraction is HELD — do
-  not propose it.** At 590 lines SKILL.md exceeds the 500-line ceiling, and
-  skill-improver's own extraction (improve-loop → reference) is precedent —
-  but this skill is single-mode with two tightly coupled input modes: the
-  phases load every run regardless, so the token win mostly evaporates and
-  a skipped Read on a patch-generation workflow is a real risk. Operator
-  ruling: no extraction without a with/without measurement first.
-
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Reviewer four-gate structure** (adapted Apache-2.0 from
@@ -88,7 +78,14 @@ four; each skill's own delegated surface still needs its own check.
   (also stated in Phase 3). NOT applied: each restatement is a load-bearing
   safety reminder (the reviewer must never see finding prose), and collapsing
   them risks dropping a standing safety instruction. Author judgment on
-  whether the ~28-line overage is worth the consolidation.
+  whether the ~28-line overage is worth the consolidation. **(2026-08-16
+  operator ruling: phase-extraction is HELD — do not propose it.** Now 590
+  lines after the gate/prologue additions, and skill-improver's improve-loop
+  extraction is precedent — but this skill's phases load every run
+  regardless of input mode, so the token win mostly evaporates and a
+  skipped Read on a patch-generation workflow is a real risk. No extraction
+  without a with/without measurement first. The Design-notes/Guard-rails
+  consolidation above remains a separate, still-open question.)
 - **4 second-person slips in body prose (Dim 3).** SKILL.md:201, 224, 226, 408
   ("you need", "your conversation", "end your turn", "you find yourself") — in
   operational/async-recovery notes, not quoted prompts. Convertible to
