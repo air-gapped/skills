@@ -54,6 +54,19 @@ When scoring, consider:
 
 **Check method:** Mentally test 5 realistic user prompts. Would this description trigger? Then test 3 unrelated prompts. Would it falsely trigger? Also verify the first 1,536 chars of combined `description` + `when_to_use` contain the most important trigger keywords. Use `head -c 1536` to check.
 
+**Invocation-fit check (run before scoring the wording):** A description is
+permanent context load — every installed skill's description sits in the
+context on every turn, fired or not. So the first question is not "is the
+description good?" but "should this skill model-trigger at all?" A skill the
+user only ever fires by hand (`/name` — task skills, personal pipelines,
+anything whose backlog or git history shows exclusively slash invocations)
+should carry `disable-model-invocation: true`: its description leaves the
+always-loaded listing entirely, and the trigger wording becomes moot. When
+that fits, recommend it as the single highest-impact Dim 1 improvement and
+score Dim 1 on the human-facing one-liner instead of trigger coverage. This
+check applies at creation time too, not only when retrofitting — the cheapest
+description is the one that never loads.
+
 ---
 
 ## Dimension 2: Progressive Disclosure (0–10)
@@ -115,12 +128,21 @@ contents at the top.
 | 3–4 | Some steps but vague ("set up the environment appropriately") |
 | 5–6 | Steps are present but some lack specificity (missing commands, file paths, parameter values) |
 | 7–8 | Clear step-by-step with specific commands, paths, and expected outcomes |
-| 9–10 | Every instruction is unambiguous, includes validation steps, handles decision points |
+| 9–10 | Every instruction is unambiguous, includes validation steps, handles decision points, and ends on completion criteria that are both checkable AND exhaustive |
+
+**Completion-criterion demand:** a step's done-condition has two properties —
+*clarity* (can the agent tell done from not-done?) and *demand* (how much the
+bound requires). "Produce a change list" is checkable but undemanding; "every
+modified flag accounted for" forces the agent to keep digging until the bound
+is met. Undemanding criteria invite premature completion — the agent ends the
+step as soon as any output exists. The 9–10 band requires exhaustive bounds
+("every X handled", "all Y verified") wherever the work has an enumerable scope.
 
 **Common failures:**
 - "Configure the settings as needed" — which settings? What values?
 - Steps assume knowledge the skill should provide
 - Missing validation — no way to confirm a step succeeded
+- Completion criteria that check existence, not coverage ("write the report" vs "every finding from the scan appears in the report")
 
 ---
 
@@ -197,6 +219,12 @@ contents at the top.
 - Instructions don't contradict each other
 - File references from SKILL.md are one level deep (no A→B→C chains)
 - All frontmatter fields are valid per the Agent Skills spec
+- Each concept's material is co-located: definition, rules, and caveats under
+  one heading. Scattering is distinct from duplication — duplication repeats
+  one meaning in two places; scattering fragments one meaning across many, so
+  an agent reading one fragment acts on a partial picture (e.g. a flag defined
+  in §Flags, version-gated in §Compatibility, and warned-about in
+  §Troubleshooting — an agent landing on §Flags recommends it blind)
 
 ---
 

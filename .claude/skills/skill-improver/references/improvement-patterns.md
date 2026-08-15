@@ -5,12 +5,12 @@ Common improvements organized by scoring dimension. Each pattern includes the pr
 ## Table of Contents
 - [Dim 1 — Trigger Precision](#dimension-1-trigger-precision): 1.1 Add specific phrases · 1.2 Fix person · 1.3 Reduce false positives · 1.4 Front-load within listing cap · 1.5 Split description vs when-to-use
 - [Dim 2 — Progressive Disclosure](#dimension-2-progressive-disclosure): 2.1 Extract to references · 2.2 Add missing pointers · 2.3 Flatten nested references
-- [Dim 3 — Writing Style](#dimension-3-writing-style): 3.1 Second-person → imperative · 3.2 One-time steps → standing instructions · 3.3 Remove hedge language
-- [Dim 4 — Actionability](#dimension-4-actionability): 4.1 Add concrete commands · 4.2 Add validation steps
+- [Dim 3 — Writing Style](#dimension-3-writing-style): 3.1 Second-person → imperative · 3.2 One-time steps → standing instructions · 3.3 Remove hedge language · 3.4 Prohibitions → positive statements
+- [Dim 4 — Actionability](#dimension-4-actionability): 4.1 Add concrete commands · 4.2 Add validation steps · 4.3 Raise completion-criterion demand
 - [Dim 5 — Completeness](#dimension-5-completeness): 5.1 Cover missing use cases · 5.2 Add error handling
 - [Dim 6 — Simplicity](#dimension-6-simplicity): 6.1 Remove redundant sections · 6.2 Cut defensive boilerplate · 6.3 Collapse trivial examples
 - [Dim 7 — Resource Quality](#dimension-7-resource-quality): 7.1 Make examples runnable · 7.2 Add script documentation
-- [Dim 8 — Internal Consistency](#dimension-8-internal-consistency): 8.1 Fix dangling references · 8.2 Standardize terminology
+- [Dim 8 — Internal Consistency](#dimension-8-internal-consistency): 8.1 Fix dangling references · 8.2 Standardize terminology · 8.3 Co-locate scattered concept material
 - [Dim 9 — Domain Accuracy](#dimension-9-domain-accuracy): 9.1 Update deprecated APIs · 9.2 Fix incorrect defaults · 9.3 Add missing frontmatter fields · 9.4 Use ${CLAUDE_SKILL_DIR} · 9.5 Use dynamic context injection
 - [Dim 10 — Differentiation](#dimension-10-differentiation): 10.1 Add procedural knowledge · 10.2 Add decision trees
 - [Meta-Patterns](#meta-patterns-cross-dimensional): Simplification Pass · Trigger Audit · Reference Rebalance
@@ -251,6 +251,37 @@ you try to make any changes to the configuration.
 Check the logs before modifying the configuration.
 ```
 
+### Pattern 3.4: Convert Steering-by-Prohibition to Positive Statements
+
+**Problem:** Guidance steers by naming the unwanted behavior ("don't write
+long comments", "avoid nested callbacks"). Negation drags the forbidden
+behavior into context and makes it MORE available, not less — the "don't"
+is a weak modifier on a strongly-activated concept, so the ban half-reads
+as an instruction to do the thing.
+
+**Fix:** State the target behavior so the banned one is never named.
+
+**Before:**
+```markdown
+Don't write multi-paragraph comments. Avoid explaining what the next line
+does. Never narrate why your change is correct.
+```
+
+**After:**
+```markdown
+Write one-line comments that state only what the code cannot show — a
+constraint, an invariant, a non-obvious reason.
+```
+
+**Guardrail exception:** hard prohibitions for destructive or irreversible
+actions stay — SkillLens found High-Risk Action Blacklists predictive of
+skill utility (rubric §SkillLens Utility Check), and rubric Dim 5 caps
+skills that omit them where risk exists. The two rules compose: keep "do
+NOT" for the blacklist (what must never run and when), and pair each entry
+with the positive alternative ("do NOT `git checkout -- <file>` with
+uncommitted keeps — restore the last kept snapshot instead"). What this
+pattern removes is prohibition as *style steering*, not as a safety rail.
+
 ---
 
 ## Dimension 4: Actionability
@@ -288,6 +319,29 @@ Deploy the application to staging:
 1. Run `deploy.sh staging`
 2. Verify: `curl -s https://staging.example.com/health` should return `{"status":"ok"}`
 3. If health check fails, check `deploy.log` for errors.
+```
+
+### Pattern 4.3: Raise Completion-Criterion Demand
+
+**Problem:** A step's done-condition checks that output exists, not that the
+work is covered. The agent ends the step as soon as anything is produced —
+premature completion — because nothing in the bound forces it to keep digging.
+
+**Fix:** Where the work has an enumerable scope, bind the step to exhaustive
+coverage: "every X accounted for", not "produce an X list". Demand is a
+separate axis from clarity — both criteria below are checkable; only the
+second forces legwork.
+
+**Before:**
+```markdown
+Review the migration and list the affected tables.
+```
+
+**After:**
+```markdown
+Review the migration. The step is done when every table the migration
+touches appears in the list with its change type (added / dropped /
+altered) — cross-check the list against `grep -c 'TABLE' migration.sql`.
 ```
 
 ---
@@ -387,6 +441,38 @@ Use `--verbose` for detailed output.
 
 **Fix:** Pick one term and use it consistently. Find-and-replace across all files in the skill directory.
 
+### Pattern 8.3: Co-locate Scattered Concept Material
+
+**Problem:** One concept's definition, rules, and caveats are fragmented
+across sections. Distinct from duplication (Pattern 6.1): duplication repeats
+one meaning in two places; scattering splits one meaning across many, so an
+agent that jumps to one fragment acts on a partial picture.
+
+**Before:**
+```markdown
+## Flags
+`--foo` — enables foo mode.
+...
+## Compatibility
+`--foo` requires v2.3+.
+...
+## Troubleshooting
+`--foo` with TP>1 corrupts state.
+```
+(An agent grepping to §Flags recommends `--foo` and never sees the caveats.)
+
+**After:**
+```markdown
+## Flags
+`--foo` — enables foo mode. Requires v2.3+. Do NOT combine with TP>1
+(corrupts state) — use `--bar` there instead.
+```
+
+**Fix:** For each load-bearing concept (flag, command, config key), gather
+its definition, version gates, and caveats under one heading. Grep the
+concept's name across the skill directory; more than one hit outside its
+home section is the smell.
+
 ---
 
 ## Dimension 9: Domain Accuracy
@@ -420,7 +506,11 @@ value from memory.
 **Common opportunities:**
 - Description stuffed with trigger phrases → split to `description` (what) + `when_to_use` (triggers)
 - Skill scoped to file types but missing `paths:` → add `paths: ["*.py", "*.rs"]`
-- Task skill with side effects but missing `disable-model-invocation: true`
+- Task skill with side effects — or any skill the user only ever fires by
+  hand (`/name`) — missing `disable-model-invocation: true`. The second case
+  is the bigger win: a hand-only skill's description is pure context load on
+  every turn, and the flag removes it from the always-loaded listing entirely
+  (see rubric §Dim 1 "Invocation-fit check")
 - Background knowledge skill missing `user-invocable: false`
 - Script-heavy skill missing `allowed-tools: Bash(python *)`
 - Computationally light skill that could use `effort: low`

@@ -43,11 +43,22 @@ example are the sections that follow in this file.
 ### Phase T0: Setup
 
 1. Read the target skill (SKILL.md frontmatter, body, references/).
-2. Read `<skill>/references/improvement-backlog.md` if present — open
+2. **Invocation gate — should this skill model-trigger at all?** A
+   description is permanent context load on every turn. If the evidence
+   says the user only ever fires the skill by hand — the request that
+   started this run was "make `/name` work", the backlog and git history
+   show exclusively slash invocations, or the user confirms it — the
+   correct mutation is `disable-model-invocation: true`, which removes
+   the description from the always-loaded listing entirely. Apply it,
+   rewrite `description` as a human-facing one-liner (trigger phrases
+   stripped), and stop: the rest of trigger mode measures a gate this
+   skill no longer has. Only proceed to T1 when model-triggering is
+   actually wanted.
+3. Read `<skill>/references/improvement-backlog.md` if present — open
    "trigger" findings carry forward.
-3. Review the mutation patterns and decision rules in the sections below.
-4. Snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-trigger-baseline`.
-5. Initialize a results log: `iter | train | test | desc-chars | status | change`.
+4. Review the mutation patterns and decision rules in the sections below.
+5. Snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-trigger-baseline`.
+6. Initialize a results log: `iter | train | test | desc-chars | status | change`.
 
 ### Phase T1: Build (or load) the eval set
 
@@ -510,10 +521,21 @@ the borderline of triggering — small wording shifts could flip it either way.
 **Symptom:** mutations keep hitting the cap, the loop keeps shortening, signal
 isn't improving. Frontmatter is over-stuffed.
 
-**Fix:** Re-balance. Move the *what* to `description`, the trigger phrases to
-`when_to_use`. The combined cap is 1,536 chars on v2.1.105+ but `description`
-alone is hard-capped at 1024 by the spec. `when_to_use` has no per-field cap
-— use it for the long trigger list.
+**Fix:** Two mutations, try in order (one per iteration):
+
+1. **Re-balance.** Move the *what* to `description`, the trigger phrases to
+   `when_to_use`. The combined cap is 1,536 chars on v2.1.105+ but `description`
+   alone is hard-capped at 1024 by the spec. `when_to_use` has no per-field cap
+   — use it for the long trigger list.
+2. **Collapse near-synonyms.** Trigger phrases that rename the same use case
+   ("improve a skill", "make my skill better", "optimize a SKILL.md") are one
+   trigger written three times; keep one phrase per genuinely distinct use
+   case and spend the freed characters on uncovered cases. The re-probe
+   decides: if the test rate holds, the synonyms were dead weight; if it
+   drops, they were doing matching work — discard per the decision rules.
+   (Tension with Pattern T4's "add redundancy" is real and intended: T4
+   strengthens a borderline query, this trims a cap-bound description; both
+   answer to the same eval.)
 
 ### Pattern T6: Cross-skill conflict (sibling steals triggers)
 
