@@ -258,11 +258,13 @@ the skill to score it objectively. Run it twice: at baseline (Phase 0 step 6,
 in the background, parallel with the loop) and after the loop stops (§"On
 stop") — the spawn points the loop itself already marks.
 
-### Agent Prompt, Model Pin, and Comparison Table
+### Scorer Agent, Model Rule, and Comparison Table
 
-The scorer prompt (verbatim, substitute paths), the model pin, the
-opt-in-guarded parallel-scoring variant, and the bias-check table format live
-in **`references/blind-validation.md`**. Read it when spawning either agent.
+The scorer is the **`blind-scorer` agent definition** (canonical instruction
+text; spawn it with a two-line path tail so every scorer in a run shares the
+cached prefix). The spawn mechanics, fallback chain, model rule, parallel-
+scoring variant, and bias-check table format live in
+**`references/blind-validation.md`**. Read it when spawning either agent.
 Two rules that bind without reading it: the scorer inherits the session model
 and effort (omit both in the spawn call; same model for baseline and final
 within a run, never a Haiku-class model) — and print the bias-check table

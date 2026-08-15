@@ -1,69 +1,48 @@
-# Blind Validation — Scorer Prompt, Model Pin, Comparison Format
+# Blind Validation — Scorer Agent, Model Rule, Comparison Format
 
 The mechanics of the blind scoring pass described in `SKILL.md` §"Blind
 Validation". Load when spawning a baseline or final blind scorer.
 
 ## Table of Contents
-- [Agent Prompt](#agent-prompt)
+- [The scorer agent and prompt tail](#the-scorer-agent-and-prompt-tail)
 - [Model selection](#model-selection)
 - [Parallel scoring (dynamic workflows)](#parallel-scoring-dynamic-workflows)
 - [Comparison Table](#comparison-table)
 
-## Agent Prompt
+## The scorer agent and prompt tail
 
-This block is the canonical scorer prompt; `scripts/batch-workflow.js`
-`blindPrompt()` carries the same instructions in JS-array form. Change both
-together — a solo-run blind score and a batch-run blind score are only
-comparable while they ask for the same checks.
-
-Spawn a subagent with this task (substitute paths):
+The canonical scoring instructions live in the **`blind-scorer` agent
+definition** — `.claude/agents/blind-scorer.md` at the repo root, shipped
+with the `agent` plugin as `agent:blind-scorer`. Its body is the subagent's
+system prompt, which sits in the prompt-cache prefix every scorer in a run
+shares (fan-out cache discipline — improvement-patterns Pattern 7.3), and it
+restricts the scorer to read-only tools. The spawn prompt carries only the
+two variable paths:
 
 ```
-Score this Claude Code skill for quality. Be honest and critical — most decent
-skills score 50-70, 80+ is excellent, 90+ is rare. You have never seen this
-skill before; score it blind.
-
-1. Read the rubric: <skill-improver-dir>/references/quality-rubric.md
-2. Read the design guide: <skill-improver-dir>/references/anthropic-skill-design.md
-3. Read the skill: <target-skill-dir>/SKILL.md
-4. Read all files in: <target-skill-dir>/references/ — EXCEPT
-   improvement-backlog.md. Do NOT open it: it records prior improvement
-   passes' final scores and known-issue lists, and reading it un-blinds
-   your scoring. Do not penalize the skill for its presence either.
-5. Read any scripts/evals: <target-skill-dir>/scripts/ and <target-skill-dir>/evals/ (if present)
-
-For Dimension 1: check what falls within the first 1,536 chars of combined
-`description` + `when_to_use`, and penalize if key trigger phrases are past the
-cutoff. Note whether the skill splits the two fields or stuffs everything into
-`description`.
-For Dimension 9: check the `sources.md` `Last verified:` dates (staleness cap),
-the spec validity of `name` / `description` (hard-fail cap at 3), and whether
-appropriate frontmatter fields are used. Do NOT mark
-a version, date, or other external-world claim wrong from internal knowledge —
-the skill is freshened continuously and its claims may postdate the knowledge
-cutoff. A claim covered by a recent `Last verified:` stamp in sources.md
-outranks the prior. If a claim looks wrong, say "verify online" — never
-recommend reverting it to an older value from memory.
-Apply the Boris Alignment Check caps, the SkillLens Utility Check caps, and
-the Negative-Transfer Gate where they fire (rubric §§). For the
-Negative-Transfer Gate: unless a `benchmark.json` with a positive
-`delta_pass_rate` is present in the skill directory, Dim 10 is capped at 8 —
-"essential" is a claim about measured outcomes, not about how the text reads. Do not reward fluency: text that reads well
-does not predict utility (SkillLens inversion) — check for failure
-mechanisms with executable remedies, actionable specificity, and high-risk
-blacklists, and never justify a score delta on format alone.
-
-Score each dimension (0-10) with one-sentence justification. Return the
-scoring table, the total, and a "Top 3 issues" list (one line each, with
-file:line if applicable).
+Score this skill blind per your instructions.
+RUBRIC DIR: <skill-improver-dir>/references
+TARGET DIR: <target-skill-dir>
 ```
 
-Spawn via whatever subagent mechanism the runtime exposes — in Claude Code,
-the `Agent` tool with `subagent_type: general-purpose` and
-`run_in_background: true` for the baseline (parallel with the loop), foreground
-for the final (comparison table needs the result). If no subagent mechanism is
-available, run the same prompt manually in a fresh session and feed back the
-result.
+Spawn with `subagent_type: "blind-scorer"` (project/user agents dir) or
+`"agent:blind-scorer"` (plugin install) — `run_in_background: true` for the
+baseline (parallel with the loop), foreground for the final (the comparison
+table needs the result).
+
+**Fallback when neither agent name resolves:** Read
+`.claude/agents/blind-scorer.md` (relative to the skill dir:
+`../../agents/blind-scorer.md` — same layout in the repo and in a plugin
+install), paste its body above the two-path tail, and spawn a
+`general-purpose` agent with that combined prompt. If no subagent mechanism
+is available at all, run the combined prompt manually in a fresh session and
+feed back the result.
+
+**Sync rule:** the agent definition is the single canonical copy.
+`scripts/batch-workflow.js` `legacyBlindPrompt()` carries a self-contained
+fallback of the same instructions — when the agent definition changes, update
+it in the same commit; a solo-run blind score and a batch-run blind score are
+only comparable while they ask for the same checks.
 
 ## Model selection
 

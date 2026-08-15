@@ -396,6 +396,10 @@ GROUPS: dict[str, dict] = {
     },
     "agent": {
         "members": ["autoresearch", "skill-improver"],
+        # Custom agent definitions shipped with the plugin (installed as
+        # `agent:<name>`). Version bumps still track member SKILL dirs only,
+        # so bump an agent file together with a member-skill edit.
+        "agents": ["./.claude/agents/blind-scorer.md"],
         "description": (
             "Agent workflow suite — Karpathy-pattern autoresearch "
             "(hill-climbing, multi-agent research) and skill-improver "
@@ -938,6 +942,7 @@ def plugin_entry(
     skill_dirs: list[pathlib.Path],
     category: str | None,
     tags: list[str],
+    agents: list[str] | None = None,
 ) -> dict:
     entry = {
         "name": name,
@@ -949,6 +954,8 @@ def plugin_entry(
         "skills": ["./" + str(d.relative_to(REPO_ROOT)) for d in skill_dirs],
         "strict": False,
     }
+    if agents:
+        entry["agents"] = list(agents)
     if category:
         entry["category"] = category
     if tags:
@@ -1006,6 +1013,7 @@ def build_plugins() -> list[dict]:
                 skill_dirs=members,
                 category=gcfg.get("category"),
                 tags=gcfg.get("tags", []),
+                agents=gcfg.get("agents"),
             )
         )
 

@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260815.38",
+      "version": "0.20260815.39",
       "author": {
         "name": "Jörgen"
       },
@@ -21,6 +21,9 @@
         "./.claude/skills/skill-improver"
       ],
       "strict": false,
+      "agents": [
+        "./.claude/agents/blind-scorer.md"
+      ],
       "category": "ai-workflow",
       "tags": [
         "autoresearch",

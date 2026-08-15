@@ -9,7 +9,7 @@ Common improvements organized by scoring dimension. Each pattern includes the pr
 - [Dim 4 — Actionability](#dimension-4-actionability): 4.1 Add concrete commands · 4.2 Add validation steps · 4.3 Raise completion-criterion demand
 - [Dim 5 — Completeness](#dimension-5-completeness): 5.1 Cover missing use cases · 5.2 Add error handling
 - [Dim 6 — Simplicity](#dimension-6-simplicity): 6.1 Remove redundant sections · 6.2 Cut defensive boilerplate · 6.3 Collapse trivial examples
-- [Dim 7 — Resource Quality](#dimension-7-resource-quality): 7.1 Make examples runnable · 7.2 Add script documentation
+- [Dim 7 — Resource Quality](#dimension-7-resource-quality): 7.1 Make examples runnable · 7.2 Add script documentation · 7.3 Fan-out cache discipline
 - [Dim 8 — Internal Consistency](#dimension-8-internal-consistency): 8.1 Fix dangling references · 8.2 Standardize terminology · 8.3 Co-locate scattered concept material
 - [Dim 9 — Domain Accuracy](#dimension-9-domain-accuracy): 9.1 Update deprecated APIs · 9.2 Fix incorrect defaults · 9.3 Add missing frontmatter fields · 9.4 Use ${CLAUDE_SKILL_DIR} · 9.5 Use dynamic context injection
 - [Dim 10 — Differentiation](#dimension-10-differentiation): 10.1 Add procedural knowledge · 10.2 Add decision trees
@@ -423,6 +423,46 @@ Use `--verbose` for detailed output.
 # Usage: ./validate.sh <config-path>
 # Validates the configuration file against the schema.
 # Exit code 0 on success, 1 on validation failure.
+```
+
+### Pattern 7.3: Fan-out Cache Discipline
+
+**Problem:** A skill that spawns many same-shape subagents (reviewers,
+scorers, scanners — sometimes hundreds) repeats its invariant instructions in
+every spawn's prompt string. Cross-subagent prompt-cache sharing covers only
+the prefix *before* the prompt string (tools + agent system prompt + project
+context) — there is no cache breakpoint inside the first user message — so
+every agent bills the full instruction block at full input price, when a
+shared prefix would bill it at ~10%.
+
+**Fix:** Restructure the fleet around the cached prefix
+(per the Claude Code prompt-caching and workflows docs):
+
+- Move the invariant instructions into a **custom agent definition**
+  (`.claude/agents/<name>.md`, or the plugin's `agents/` dir) — its body
+  becomes the system prompt, which sits inside the shared cached prefix.
+  Each spawn's prompt carries only the variable tail (target path, finding,
+  query).
+- Keep the fleet uniform on the **six prefix-identity dimensions**: agent
+  type, model, effort, tools, output schema (one schema constant, stable key
+  order), and working directory. Any mismatch forks the cache.
+- `isolation: "worktree"` gives every agent a unique working directory —
+  zero sharing. Reserve it for agents that mutate files; read-only fleets
+  run in the repo.
+- No per-agent decoration early in the prompt ("reviewer 7 of 100",
+  timestamps, run IDs).
+- Spawn same-type agents in one wave (Claude Code holds all-but-the-first
+  until the first response begins, then releases the rest onto the warm
+  cache) and keep waves within the 5-minute subagent cache TTL.
+
+**Before (in a workflow script or skill body):**
+```js
+agent(`${TWO_KB_OF_REVIEW_RULES}\nNow review ${file}`)   // ×200 agents, full price each
+```
+
+**After:**
+```js
+agent(`Review target: ${file}`, {agentType: 'reviewer'}) // rules live in agents/reviewer.md, cached once
 ```
 
 ---

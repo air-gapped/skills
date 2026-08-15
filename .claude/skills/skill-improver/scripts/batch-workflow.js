@@ -127,7 +127,43 @@ function reconPrompt(s) {
   ].join('\n')
 }
 
-function blindPrompt(s) {
+// Fan-out cache discipline (improvement-patterns Pattern 7.3): the invariant
+// scoring instructions live in the `blind-scorer` agent definition
+// (.claude/agents/blind-scorer.md, shipped with the `agent` plugin as
+// agent:blind-scorer). Its body is the subagent SYSTEM prompt, which sits in
+// the prompt-cache prefix shared by every scorer in the fleet; each spawn's
+// prompt carries only the two variable paths. legacyBlindPrompt() below is the
+// self-contained fallback for installs where neither agent name resolves —
+// keep its text in sync with the agent definition (canonical copy: the agent
+// file).
+function blindTail(s) {
+  return [
+    'Score this skill blind per your instructions.',
+    'RUBRIC DIR: ' + REF,
+    'TARGET DIR: ' + s.dir,
+  ].join('\n')
+}
+
+// Resolution order: project/user agents dir, then plugin namespace, then the
+// inline legacy prompt on the default workflow agent. agent() THROWS on an
+// unresolvable agentType (try next candidate) but returns null on a runtime
+// death (pass that through — it is a real result, not a resolution failure).
+let BLIND_TYPE
+async function blindAgent(s, opts) {
+  const candidates = BLIND_TYPE ? [BLIND_TYPE] : ['blind-scorer', 'agent:blind-scorer']
+  for (const t of candidates) {
+    try {
+      const r = await agent(blindTail(s), { ...opts, agentType: t, schema: BLIND_SCHEMA })
+      BLIND_TYPE = t
+      return r
+    } catch (e) {
+      log(`blind-scorer agentType '${t}' unavailable (${e && e.message ? e.message.slice(0, 80) : e}); trying fallback`)
+    }
+  }
+  return agent(legacyBlindPrompt(s), { ...opts, schema: BLIND_SCHEMA })
+}
+
+function legacyBlindPrompt(s) {
   return [
     'Score this Claude Code skill for quality. Be honest and critical — most decent skills score 50-70, 80+ is excellent, 90+ is rare. You have never seen this skill before; score it blind. Your final output IS structured data.',
     '',
@@ -192,7 +228,7 @@ const results = await pipeline(
   async (skill) => {
     const [recon, baselineBlind] = await parallel([
       () => agent(reconPrompt(skill), { label: `recon:${skill.name}`, phase: 'Recon', schema: RECON_SCHEMA }),
-      () => agent(blindPrompt(skill), { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind', schema: BLIND_SCHEMA }),
+      () => blindAgent(skill, { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind' }),
     ])
     log(`recon ${skill.name}: self=${recon?.self?.total ?? '?'} baselineBlind=${baselineBlind?.total ?? '?'} freshen=${(recon?.freshen || []).filter(f => f.verdict === 'stale' || f.verdict === 'deprecated').length} actionable`)
     return { skill, recon, baselineBlind }
@@ -208,7 +244,7 @@ const results = await pipeline(
     // ONE blind scorer — symmetric with the single baseline scorer so the
     // baseline->final delta is apples-to-apples (a median-of-N final vs a
     // single-sample baseline would credit variance-reduction as "improvement").
-    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA })
+    const finalBlind = await blindAgent(skill, { label: `final-blind:${skill.name}`, phase: 'Final blind' })
     log(`final-blind ${skill.name}: ${finalBlind?.total ?? '?'}`)
     return { ...prev, finalBlind }
   }
