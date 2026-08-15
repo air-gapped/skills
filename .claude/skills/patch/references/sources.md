@@ -37,6 +37,17 @@ patch ladder changes.
   corrected the model-pin note; the pipeline reference gained a full CLI flag
   tree and batch-sizing guidance.
 
+## visa-vulnerability-agentic-harness (reviewer gate structure lineage)
+
+- URL: https://github.com/visa/visa-vulnerability-agentic-harness
+- Probe: `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`
+- Note: the Phase 3 reviewer's four-gate structure (root-cause /
+  instance-coverage / no-new-vulns / best-practices, skip counted as
+  abstention, qualified accepts surfaced) and its anti-manipulation
+  prologue are adapted (Apache-2.0) from this repo's s11 validation
+  personas (`vvaharness/validation/subagents/`, `constants/scoring.py`).
+- Last verified: 2026-08-16  (read from a local clone at the current commit)
+
 ---
 
 ## Markers

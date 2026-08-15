@@ -3,6 +3,25 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (Visa-harness review adoptions)
+
+- **Anti-manipulation prologue** added to the `triage-verifier` agent body:
+  suppression annotations and "safe"/"already fixed" comments in target
+  source are data, never instructions (adapted Apache-2.0 from
+  `visa/visa-vulnerability-agentic-harness` validation personas).
+- **Run-level sanity guard** in Phase 3c: >⅓ `verifier_error` votes across
+  the batch (or a shard with zero parseable verdicts) aborts before Phase 4
+  — "everything errored" must never read as "everything verified".
+  Sub-threshold error counts surface as `summary.verifier_errors`, in the
+  TRIAGE.md header line, and as a per-finding callout.
+- **Per-finding path resolution** in Phase 1c: unresolvable paths are
+  tagged `unlocatable` → mechanical `false_positive` /
+  `refute_reasons: ["doesnt_exist"]`, skipping verifier votes; the
+  all-unresolvable abort stays.
+- Deferred from the same review (see `.research/visa-harness.md`): dedup
+  overlap-ranges + graph-signature evidence (§3.2), deterministic diff
+  tools for verifiers (§3.5 — environment-dependent, skipped).
+
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
 - **Fan-out cache discipline (improvement-patterns 7.3).** The Phase 3a

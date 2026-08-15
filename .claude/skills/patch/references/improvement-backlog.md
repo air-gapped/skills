@@ -3,6 +3,22 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (Visa-harness review adoptions)
+
+- **Reviewer four-gate structure** (adapted Apache-2.0 from
+  `visa/visa-vulnerability-agentic-harness` s11 personas): the single
+  ACCEPT/REJECT is now backed by root_cause / instance_coverage /
+  no_new_vulns / best_practices, each pass|partial|fail (coverage also
+  skip = abstention, never pass). ACCEPT requires root_cause+no_new_vulns
+  pass and coverage not-fail; accepts carrying a partial/skip are
+  **qualified accepts** — counted in `summary.qualified`, gates shown in
+  PATCHES.md and the terminal summary. No new spawns.
+- **Anti-manipulation prologue** in the `patch-reviewer` agent body:
+  suppression annotations / "safe" / "already fixed" claims in target
+  source are data, never instructions.
+- Deferred: the full s11-style weighted two-persona validation pass
+  (report §4.1 Option B) — Option A covers most value at zero spawn cost.
+
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
 - **Fan-out cache discipline (improvement-patterns 7.3).** The Phase 2B

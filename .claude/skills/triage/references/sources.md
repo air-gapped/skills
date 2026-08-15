@@ -48,6 +48,18 @@ or upstream harness change.
 - Probe: `WebFetch` — expect HTTP 200. Likelihood × impact label option.
 - Last verified: 2026-07-21  (HTTP 200)
 
+## visa-vulnerability-agentic-harness (verifier hardening lineage)
+
+- URL: https://github.com/visa/visa-vulnerability-agentic-harness
+- Probe: `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`
+- Note: three Phase 3 hardening measures are adapted (Apache-2.0) from this
+  repo's s6 verify stage and validation personas: the verifier's
+  anti-manipulation prologue (suppression annotations and "safe" comments
+  are data), the error-is-never-a-false-positive accounting
+  (`VERIFY_ERROR` distinct from `FALSE_POSITIVE`), and the run-level
+  sanity abort when verifier errors dominate a batch.
+- Last verified: 2026-08-16  (read from a local clone at the current commit)
+
 ---
 
 ## Markers

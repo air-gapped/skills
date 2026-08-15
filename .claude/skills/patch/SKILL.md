@@ -332,10 +332,15 @@ the finding prose or author rationale.
 #### Spawn and parse
 
 One Task per finding with `status != "no_patch"`. Parse the trailing block.
-Attach `review`, `style_score`, `out_of_scope_hunks`, `review_reason` to the
-finding. Set `verified: "static_review_only"` for every static-mode result
-regardless of ACCEPT/REJECT — the label describes the verification class,
-not the outcome.
+Attach `review`, `gates` (`{root_cause, instance_coverage, no_new_vulns,
+best_practices}`, each `pass|partial|fail`, instance_coverage also `skip`),
+`style_score`, `out_of_scope_hunks`, `review_reason` to the finding. An
+ACCEPT with any gate at `partial` (or instance_coverage `skip`) is a
+**qualified accept** — count it in `summary.qualified` and keep the gate
+values visible downstream; never collapse it to a plain accept. Set
+`verified: "static_review_only"` for every static-mode result regardless
+of ACCEPT/REJECT — the label describes the verification class, not the
+outcome.
 
 **Checkpoint:** Write tool → `./.patch-state/_chunk.tmp`:
 `{"phase": 3, "findings": [...]}`
@@ -367,6 +372,12 @@ For each finding (both modes), Write
   "mode": "exec" | "static",
   "verified": "ladder_passed" | "ladder_failed" | "static_review_only",
   "review": "ACCEPT" | "REJECT" | null,
+  "gates": {
+    "root_cause": "pass|partial|fail",
+    "instance_coverage": "pass|partial|fail|skip",
+    "no_new_vulns": "pass|partial|fail",
+    "best_practices": "pass|partial|fail"
+  },
   "style_score": 0,
   "out_of_scope_hunks": [],
   "rationale": "...",
@@ -394,6 +405,7 @@ In exec mode, also Read the pipeline's
     "patched": 0,
     "no_patch": 0,
     "accepted": 0,
+    "qualified": 0,
     "rejected": 0,
     "ladder_passed": 0
   },
@@ -434,6 +446,7 @@ In exec mode, also Read the pipeline's
 `{file}:{line}` · {category} · owner: {owner_hint or "?"}
 **Asset:** {asset or "?"} · **severity moves if:** {deployment_condition or "n/a"}
 **Status:** {verified} · review {review or "n/a"} · style {style_score or "n/a"}/10
+{if gates:}**Gates:** root-cause {gates.root_cause} · coverage {gates.instance_coverage} · no-new-vulns {gates.no_new_vulns} · best-practices {gates.best_practices}
 **Diff:** `PATCHES/bug_{NN}/patch.diff` ({hunk count} hunks, {line count} lines)
 
 **Rationale:** {rationale}
@@ -463,6 +476,7 @@ Under ~10 lines:
 Patches generated ({mode} mode): {N} findings → {M} diffs.
 
   Accepted:  {n}   {title of top accepted}
+  {if any:} Qualified accepts (a gate at partial/skip): {n} — read their Gates lines
   Rejected:  {n}
   No patch:  {n}
   {if exec:} Ladder passed: {n}/{M}
@@ -569,3 +583,8 @@ Adapted (Apache-2.0) from the `patch` skill in
 [`anthropics/defending-code-reference-harness`](https://github.com/anthropics/defending-code-reference-harness).
 Static mode is self-contained; execution-verified mode delegates to that
 harness's `vuln-pipeline patch` ladder (see `../vuln-scan/HARNESS.md`).
+The reviewer's four-gate structure (root-cause / instance-coverage /
+no-new-vulns / best-practices, skip-as-abstention) and its
+anti-manipulation prologue are adapted (Apache-2.0) from
+[`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
+s11 validation personas.

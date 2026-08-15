@@ -307,10 +307,16 @@ check the path resolves under the repo. Try, in order: (a) `repo/file`
 as-given; (b) `file` as an absolute or cwd-relative path; (c) `repo/file`
 with common prefixes stripped from `file` (`src/`, `app/`, `./`, or the
 repo's own basename, e.g. `myapp/server.py` with `--repo myapp`).
-Record which resolution worked and apply it to every finding. If none
-resolve, **stop**: tell the user verification needs source access and the
-cited files aren't reachable, and suggest a `--repo` value based on the
-longest common suffix you can see.
+Record which resolution worked, then apply it to **every** finding
+individually. A finding whose path still resolves to nothing on disk is
+**unlocatable** — exactly the 1b semantics (mechanical `false_positive` /
+`doesnt_exist` / `needs_manual_test`, no verifier votes, excluded from
+dedup), with the `rationale` naming the unresolvable path. One bad scanner
+row must not cost verifier votes or stall the batch. If NO finding
+resolves, **stop**:
+tell the user verification needs source access and the cited files aren't
+reachable, and suggest a `--repo` value based on the longest common suffix
+you can see.
 
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
 
@@ -541,6 +547,17 @@ Build:
     one AskUserQuestion call at the end of Phase 3 (header: id + title,
     options: keep / drop), then apply the user's choices.
 
+**Run-level sanity guard.** After tallying, count `verifier_error` votes
+across the whole batch. If they exceed a third of all votes cast, or any
+sharded batch returned zero parseable verdicts, **stop before Phase 4**:
+the verifier harness itself is failing (agent type not resolving, tool
+permissions, wrong `--repo`), and verdicts produced under those conditions
+are noise, not evidence. Report the error rate and the first raw failure
+to the user instead of writing a TRIAGE.json where "everything errored"
+silently reads as "everything was verified". A batch with a sub-threshold
+error count proceeds, but carries the count into the summary as
+`verifier_errors` — never launder an error into a false-positive.
+
 Build `confirmed[]` = candidates with `verdict == true_positive`.
 
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
@@ -677,6 +694,7 @@ Order all findings by:
     "false_positives": 0,
     "true_positives": 0,
     "needs_manual_test": 0,
+    "verifier_errors": 0,
     "by_severity": {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
   },
   "findings": [
@@ -731,7 +749,7 @@ containing only the title block, summary, and `## Act on these` heading:
 ```
 # Triage Report
 
-{summary line: N in -> D duplicates, F false positives, T confirmed (H high / M med / L low), X need manual test}
+{summary line: N in -> D duplicates, F false positives, T confirmed (H high / M med / L low), X need manual test{if verifier_errors: , E verifier-error votes — see flagged findings}}
 
 Context: {mode}; environment = {environment}; scoring = {scoring}; {votes}-vote verification.
 
@@ -754,6 +772,9 @@ Context: {mode}; environment = {environment}; scoring = {scoring}; {votes}-vote 
 **Reachability evidence:** {first_links}
 {if verify_verdict == needs_manual_test:}
 > Recommend a human build a PoC; static reasoning hit its limit.
+{if "verifier_error" in refute_reasons:}
+> {n} of this finding's votes were verifier ERRORS, not verdicts — the
+> remaining votes decided. Weigh accordingly.
 ```
 
 2. Bash:

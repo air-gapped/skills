@@ -128,12 +128,49 @@ EXTRA CHECKS:
 3. Assign stable ids `F-001`, `F-002`, ... in (severity desc, file, line)
    order.
 
+## Step 3a — Deterministic pre-filter (no subagents)
+
+A mechanical gate between collation and the confidence pass. It exists
+because prompt rules alone are not enough — reviewers ignore the
+DO-NOT-REPORT list a measurable fraction of the time — and a finding that
+fails a check a script could run should never cost a confidence subagent.
+**Nothing is dropped**: gated findings stay in the output with a
+mechanically assigned confidence and reason, and skip Step 3b.
+
+For each finding, in order:
+
+1. **Hallucinated path.** Resolve `file` under `<target-dir>` (as-given,
+   then with common prefixes stripped). If it does not exist on disk:
+   set `confidence: 0.05`, `prefilter: "hallucinated_path"`,
+   `confidence_reason: "prefilter: cited file not found under target"`.
+   Skip 3b for it.
+2. **Test/fixture path.** Match the resolved path (case-insensitive)
+   against:
+
+   ```
+   (^|/)(tests?|__tests__|mocks?|examples?|fixtures?|samples?|testdata)(/|$)
+   |_test\.|\.test\.|\.spec\.|Test\.java$|Tests\.cs$
+   ```
+
+   On match: set `confidence: 0.15`, `prefilter: "test_path"`,
+   `confidence_reason: "prefilter: test/example/fixture path"`. Skip 3b.
+   **Exception — committed credentials stay live:** if the category is
+   `hardcoded-secret` or the description evidences a committed credential
+   (key material, token, password), do NOT gate it — a real secret in a
+   fixture file is in source control and was likely real once. It proceeds
+   to 3b at its reported confidence.
+
+All other findings get `prefilter: null` and proceed. Report the gate's
+work in the terminal ("pre-filter: X hallucinated, Y test-path, Z passed")
+— silent gating reads as "nothing was gated".
+
 ## Step 3b — Confidence pass (skip if `--no-score`)
 
 A cheap second-opinion read that **ranks** findings by signal quality.
 **Nothing is dropped** — this pass calibrates `confidence` so humans and
 `/triage` see high-signal findings first. Spawn **one subagent per
-finding** in parallel — all Task calls in one message, `subagent_type:
+finding that passed the Step 3a pre-filter** in parallel — all Task calls
+in one message, `subagent_type:
 "vuln-confidence-scorer"` (plugin installs:
 `defending-code:vuln-confidence-scorer`). The scoring instructions are that
 agent definition's cached system prompt; the fallback is as in Step 2, with
@@ -175,10 +212,11 @@ Write **both** files to `<target-dir>/`:
       "description": "...",
       "exploit_scenario": "...",
       "recommendation": "...",
-      "confidence_reason": "..."
+      "confidence_reason": "...",
+      "prefilter": null
     }
   ],
-  "summary": {"total": 0, "high": 0, "medium": 0, "low": 0, "low_confidence": 0}
+  "summary": {"total": 0, "high": 0, "medium": 0, "low": 0, "low_confidence": 0, "prefiltered": 0}
 }
 ```
 
@@ -193,8 +231,8 @@ the full description.
 
 Tell the user:
 
-1. Counts: N findings (H/M/L split, X low-confidence), across K focus
-   areas, from M source files.
+1. Counts: N findings (H/M/L split, X low-confidence, P pre-filtered),
+   across K focus areas, from M source files.
 2. Top 3 by confidence, one line each.
 3. Next step: `> /triage <target-dir>/VULN-FINDINGS.json --repo <target-dir>`
 4. Remind: these are **static candidates**, not verified. For
@@ -224,5 +262,9 @@ logic the autonomous pipeline uses, applied statically. The broader category
 menu, DO-NOT-REPORT exclusions, per-finding confidence pass, and
 `exploit_scenario`/`recommendation` output fields originate in
 [`anthropics/claude-code-security-review`](https://github.com/anthropics/claude-code-security-review)'s
-`/security-review` command. See `HARNESS.md` for the execution-verified
+`/security-review` command. The Step 3a deterministic pre-filter — the
+test-path exclusion regex, the committed-credential exception to it, and
+the gate-before-the-expensive-stage ordering — is adapted (Apache-2.0) from
+[`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
+s5 prefilter stage. See `HARNESS.md` for the execution-verified
 pipeline this static skill complements.

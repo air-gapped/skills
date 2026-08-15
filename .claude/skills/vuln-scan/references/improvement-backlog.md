@@ -3,6 +3,22 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (Visa-harness review adoptions)
+
+- **Step 3a deterministic pre-filter added** (from
+  `visa/visa-vulnerability-agentic-harness` s5, Apache-2.0; verified in its
+  source before porting). Hallucinated-path and test/fixture-path findings
+  get a mechanical confidence + reason and skip the 3b subagent round;
+  committed-credential findings are exempt from the test-path gate; nothing
+  is dropped (`prefilter` field + `prefiltered` summary count). Rationale:
+  the harness's measured "model ignores the prompt rule ~10%" — a check a
+  script can run must never cost a subagent.
+- Deferred from the same review (see `.research/visa-harness.md`):
+  call-graph context blocks for reviewers (§2.2, wants codegraph-indexed
+  targets), specialist lens aliases for `--focus` (§2.3),
+  source_ref/sink_ref as structured fields (§3.2 — cross-skill schema
+  change, own pass).
+
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
 - **Fan-out cache discipline (improvement-patterns 7.3).** The Step 2 review

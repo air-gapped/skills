@@ -48,6 +48,18 @@ security-review tooling changes.
   this action's `/security-review` command.
 - Last verified: 2026-07-21  (active; not archived; **still last pushed 2026-02-11** — unchanged for ~5 months, so the category menu, DO-NOT-REPORT exclusions, confidence pass and `exploit_scenario`/`recommendation` fields are stable)
 
+## visa-vulnerability-agentic-harness (Step 3a pre-filter lineage)
+
+- URL: https://github.com/visa/visa-vulnerability-agentic-harness
+- Probe: `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`
+- Note: the Step 3a deterministic pre-filter is adapted (Apache-2.0) from this
+  repo's `vvaharness/pipeline/stages/s5_prefilter.py` — the test-path
+  exclusion regex (`_EXCLUDE_PATH_RE`), the committed-credential exception
+  (`_SECRET_TEXT_RX` rationale), and the gate-before-expensive-stages
+  ordering (its docstring's measured "model ignores the prompt rule ~10%"
+  is the justification for a mechanical gate).
+- Last verified: 2026-08-16  (read from a local clone at the current commit)
+
 ## "Using LLMs to secure source code" (methodology write-up)
 
 - URL: https://claude.com/blog/using-llms-to-secure-source-code

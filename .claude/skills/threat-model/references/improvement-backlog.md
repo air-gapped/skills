@@ -3,6 +3,19 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Checked, no change — 2026-08-16 (Visa-harness review)
+
+- An external review against `visa/visa-vulnerability-agentic-harness`
+  (`.research/visa-harness.md` §1.1) recommended requiring a `controls`
+  column and an "every trust boundary is the surface of ≥1 threat"
+  coverage rule. **Both already exist** — `schema.md` §4 mandates
+  `controls` (Q3 fills it, `[Code-verified]` vs `[Owner-states]`),
+  `interview.md` Q4 checks boundary coverage verbatim-name-match, and
+  `bootstrap.md` enforces the same invariant at emit time. Do not
+  re-propose. Deferred from the same review: repo-kind baseline table for
+  the interview backbone (§1.2), threat-id tagging of vuln-scan focus
+  areas (§1.4).
+
 ## Resolved — 2026-07-21 (freshen)
 
 All four sources re-probed; **nothing in this skill needed correcting.**
