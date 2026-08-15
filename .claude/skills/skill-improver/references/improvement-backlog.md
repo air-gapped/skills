@@ -131,7 +131,9 @@ this and future runs changed before the loop (operator-directed, commit
 `12ebe38`): blind scorers now **inherit the session model** (same model for
 baseline+final within a run; frontier floor) with **effort pinned `high`** —
 the per-release model pin is retired; this run's scorers ran on the session
-model (Fable 5). Pre-loop the operator also landed five writing-for-agents
+model (Fable 5). *(2026-08-16 revision: the effort pin was dropped the next
+day on operator instruction — scorers now inherit session model AND effort;
+the run log records the effective effort.)* Pre-loop the operator also landed five writing-for-agents
 patterns (`dc8d04e`): negation→positive (3.4), completion demand (Dim 4 +
 4.3), invocation-fit (Dim 1 + T0 gate + 9.3), co-location (Dim 8 + 8.3),
 synonym collapse (T5 fix 2).

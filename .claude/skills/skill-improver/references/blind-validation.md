@@ -83,17 +83,13 @@ field in the `Agent` call. Two constraints bind:
   small model, pass a frontier-tier model explicitly (`model: "opus"` or
   better) instead of inheriting.
 
-**Effort: `high`, pinned — never inherit the session effort.** Per the
-platform effort doc (verified 2026-08-15), `high` is the level for complex
-reasoning and nuanced analysis where quality outranks speed (and equals the
-API default), while `xhigh` is scoped to long-horizon agentic runs — 30+
-minutes, million-token budgets — which a scoring pass is not. Inheriting
-would let a low-effort session silently degrade the justifications the loop
-steers by; pinning above `high` buys agentic-exploration depth a read-and-
-judge task does not use. Where the runtime's agent-spawn call exposes an
-effort field (e.g. the `Workflow` tool's `agent()`), set it; where it does
-not (the solo-run `Agent` tool), the session effort applies — record the
-effective effort in the run log so scores stay interpretable.
+**Effort: inherited from the session, like the model** (operator decision,
+2026-08-16 — the scorer runs with whatever the calling session runs). Omit
+any effort field in the spawn call; record the effective effort in the run
+log so scores stay interpretable. One caution to surface — not enforce — in
+the run log: per the platform effort doc (verified 2026-08-15), a scoring
+pass is complex-reasoning work that maps to `high`; if the session is at
+`low`, note that the blind scores were produced at low effort.
 
 **Why dynamic replaced the model pin (2026-08-15).** The pin was re-pointed
 on every model release — Opus 4.8 (2026-05-28), Fable 5 (2026-06-09), Opus 5

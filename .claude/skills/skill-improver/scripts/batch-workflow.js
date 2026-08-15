@@ -22,10 +22,10 @@ export const meta = {
 //   { skills: [...], baseDir: "/some/skills/root" }    override the default skills root
 //
 // All agents inherit the main-loop model (the role the session model plays in
-// a solo run). Blind scorers additionally pin effort: 'high' — never the
-// session effort — matching references/blind-validation.md §Model selection;
-// within one batch run every blind scorer therefore shares one model, which is
-// the comparison the bias check depends on.
+// a solo run). Blind scorers inherit the session model AND effort (operator
+// decision 2026-08-16), matching references/blind-validation.md §Model
+// selection; within one batch run every blind scorer therefore shares one
+// model, which is the comparison the bias check depends on.
 // No git ops happen inside agents; commit after review.
 // ---------------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ const results = await pipeline(
   async (skill) => {
     const [recon, baselineBlind] = await parallel([
       () => agent(reconPrompt(skill), { label: `recon:${skill.name}`, phase: 'Recon', schema: RECON_SCHEMA }),
-      () => agent(blindPrompt(skill), { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind', schema: BLIND_SCHEMA, effort: 'high' }),
+      () => agent(blindPrompt(skill), { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind', schema: BLIND_SCHEMA }),
     ])
     log(`recon ${skill.name}: self=${recon?.self?.total ?? '?'} baselineBlind=${baselineBlind?.total ?? '?'} freshen=${(recon?.freshen || []).filter(f => f.verdict === 'stale' || f.verdict === 'deprecated').length} actionable`)
     return { skill, recon, baselineBlind }
@@ -208,7 +208,7 @@ const results = await pipeline(
     // ONE blind scorer — symmetric with the single baseline scorer so the
     // baseline->final delta is apples-to-apples (a median-of-N final vs a
     // single-sample baseline would credit variance-reduction as "improvement").
-    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA, effort: 'high' })
+    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA })
     log(`final-blind ${skill.name}: ${finalBlind?.total ?? '?'}`)
     return { ...prev, finalBlind }
   }

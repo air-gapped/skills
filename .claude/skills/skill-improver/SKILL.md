@@ -264,10 +264,10 @@ The scorer prompt (verbatim, substitute paths), the model pin, the
 opt-in-guarded parallel-scoring variant, and the bias-check table format live
 in **`references/blind-validation.md`**. Read it when spawning either agent.
 Two rules that bind without reading it: the scorer inherits the session model
-(omit `model`; same model for baseline and final within a run, never a
-Haiku-class model) at pinned `effort: "high"` — and print the bias-check
-table after each agent returns, flagging every dimension where self and
-blind differ by 2 or more.
+and effort (omit both in the spawn call; same model for baseline and final
+within a run, never a Haiku-class model) — and print the bias-check table
+after each agent returns, flagging every dimension where self and blind
+differ by 2 or more.
 
 ---
 
@@ -281,7 +281,7 @@ To improve multiple skills:
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
 5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes. The batch is done when **every skill from step 1 has a row** — including skills whose loop was skipped, crashed, or hit the cap (mark the status). A missing row is silent truncation, not a smaller batch.
 
-**Dynamic workflows (Fable 5 / Opus 5, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; recon, apply, and blind agents all inherit the session model (blind scorers at pinned `effort: 'high'`, same frontier floor as a solo run), and no agent does git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
+**Dynamic workflows (Fable 5 / Opus 5, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; recon, apply, and blind agents all inherit the session model and effort (blind scorers under the same frontier floor as a solo run), and no agent does git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
 
 **Native loops (Claude Code `/loop` v2.1.71+, `/goal` v2.1.139+).** For recurring or goal-driven runs, drive this skill with the harness's loop primitives: `/loop <interval> /skill-improver batch freshen --all` for scheduled passes, or `/goal` with a checkable stop ("every skill scores ≥85, stop after N tries") — `/goal`'s evaluator-checked stop condition maps directly onto this skill's scalar metric. Size batch fan-outs against three live caps: **20 concurrent subagents** (v2.1.217 default, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`), **200 subagents + 200 web searches per session** (v2.1.212), and the **medium workflow size guideline of <15 agents** (v2.1.219 default, `workflowSizeGuideline`) — a batch wider than these queues silently or trips a guideline warning mid-run. Official guidance: https://claude.com/blog/getting-started-with-loops (2026-06-30).
 
