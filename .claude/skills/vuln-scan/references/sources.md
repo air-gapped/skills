@@ -57,7 +57,9 @@ security-review tooling changes.
   exclusion regex (`_EXCLUDE_PATH_RE`), the committed-credential exception
   (`_SECRET_TEXT_RX` rationale), and the gate-before-expensive-stages
   ordering (its docstring's measured "model ignores the prompt rule ~10%"
-  is the justification for a mechanical gate).
+  is the justification for a mechanical gate). The Step 2 call-graph
+  context block, with its "graph is a starting point, validate edges
+  yourself" stance, follows the same repo's s6 context injection.
 - Last verified: 2026-08-16  (read from a local clone at the current commit)
 
 ## "Using LLMs to secure source code" (methodology write-up)

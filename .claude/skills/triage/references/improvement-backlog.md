@@ -18,6 +18,13 @@ updated in Phase 6.
   tagged `unlocatable` → mechanical `false_positive` /
   `refute_reasons: ["doesnt_exist"]`, skipping verifier votes; the
   all-unresolvable abort stays.
+- **Call-graph context for verifiers** (§2.2, second wave, same day): when
+  `<repo>/.codegraph/` exists, Phase 3a runs one `codegraph explore` per
+  candidate and adds a trimmed excerpt to the tail (shared by all N
+  votes); the agent body caps its authority — FIRST_LINK must still be a
+  call site the verifier READ, and a missing graph edge is not proof of
+  unreachability. Absent index → block omitted; the skill never indexes
+  the target. `codegraph explore` added to the Bash whitelist.
 - Deferred from the same review (see `.research/visa-harness.md`): dedup
   overlap-ranges + graph-signature evidence (§3.2), deterministic diff
   tools for verifiers (§3.5 — environment-dependent, skipped).

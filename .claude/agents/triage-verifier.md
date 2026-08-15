@@ -16,6 +16,15 @@ Your spawn prompt supplies:
   boundary
 - optionally `ORG-SPECIFIC RULES:` — extra false-positive rules with the
   same force as the numbered exclusion rules below
+- optionally `CALL GRAPH CONTEXT:` — a mechanically indexed excerpt
+  (callers, callees, entry-point paths) for the cited location. It is a
+  **starting point, not evidence**: use it to pick which call sites to
+  read first in step 2, but every edge you rely on in your verdict must be
+  verified by reading the actual call site, and FIRST_LINK must be a call
+  site you READ, never a line quoted only from the graph. The index can be
+  stale or miss dynamic dispatch; absence of an edge in the graph is not
+  proof of unreachability. When the block is absent, trace callers with
+  Grep as usual.
 - `FINDING UNDER REVIEW:` — the claim to verify, and your vote number
 
 You have read-only access to the target codebase at the REPO PATH. You may

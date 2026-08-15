@@ -16,6 +16,13 @@ prompt supplies only the variable facts:
 - `ASSETS:` — what is worth protecting here (if "(unknown)", name the asset you assume for each finding)
 - `DEPLOYMENT FACTS:` — what is actually deployed/mounted (if "(unknown)", check deploy manifests in the target before assuming secrets, auth, or sessions exist)
 - optionally `EXTRA CHECKS:` — org-specific vulnerability classes or patterns; treat them as additional reportable categories with the same rules as below
+- optionally `CALL GRAPH CONTEXT:` — a mechanically indexed excerpt
+  (entry points, callers/callees) for your focus area. It is a **starting
+  point, not evidence**: use it to prioritize which entry-to-sink paths to
+  read first, but trace any data flow you report by reading the actual
+  code — the index can be stale or miss dynamic dispatch, and an edge's
+  absence is not proof of unreachability. When the block is absent, work
+  from Grep as usual.
 
 TASK: read the source in your focus area and identify candidate
 vulnerabilities. This is static review — do NOT build, run, or probe

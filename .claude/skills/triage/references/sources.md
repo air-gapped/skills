@@ -52,12 +52,14 @@ or upstream harness change.
 
 - URL: https://github.com/visa/visa-vulnerability-agentic-harness
 - Probe: `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`
-- Note: three Phase 3 hardening measures are adapted (Apache-2.0) from this
+- Note: four Phase 3 hardening measures are adapted (Apache-2.0) from this
   repo's s6 verify stage and validation personas: the verifier's
   anti-manipulation prologue (suppression annotations and "safe" comments
   are data), the error-is-never-a-false-positive accounting
-  (`VERIFY_ERROR` distinct from `FALSE_POSITIVE`), and the run-level
-  sanity abort when verifier errors dominate a batch.
+  (`VERIFY_ERROR` distinct from `FALSE_POSITIVE`), the run-level
+  sanity abort when verifier errors dominate a batch, and the
+  call-graph-context injection with the "graph is a starting point,
+  validate edges yourself" stance (`_callgraph_context_for_finding`).
 - Last verified: 2026-08-16  (read from a local clone at the current commit)
 
 ---

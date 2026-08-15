@@ -32,6 +32,10 @@ ENVIRONMENT (from the operator; this defines the trust boundary):
 {context.environment or "Unknown. Treat any externally-reachable entry point as untrusted."}
 {if context.extra_fp_rules: append here verbatim under an
  "ORG-SPECIFIC RULES:" heading}
+{if the repo has a .codegraph/ index (SKILL.md Phase 3a):
+CALL GRAPH CONTEXT (mechanical index — a starting point, not evidence;
+verify any edge you rely on by reading the call site):
+<excerpt>}
 
 ────────────────────────────────────────────────────────────────────────
 FINDING UNDER REVIEW (from the scanner; treat as a CLAIM, not a fact):

@@ -64,7 +64,8 @@ not stable across runtimes):
   phase if a checkpoint is present.
 
 **Tools:** Read, Glob, Grep, Write, Task, AskUserQuestion. Bash is
-permitted only for `git`, `find`, `wc`, `ls`, `jq`, and
+permitted only for `git`, `find`, `wc`, `ls`, `jq`,
+`codegraph explore` (read-only index query, Phase 3a), and
 `python3 .claude/skills/triage/scripts/checkpoint.py` (checkpoint I/O).
 
 **Do not execute target code.** No building, running, installing
@@ -420,6 +421,20 @@ every verifier in the batch shares; each spawn's prompt carries only the
 per-finding block in 3b. The per-spawn tail template (context header +
 finding block) lives in **`references/prompts.md` § Verifier tail (Phase
 3a)**.
+
+**Call-graph context (only when the target is indexed).** If
+`<repo>/.codegraph/` exists, spare each verifier the from-scratch caller
+hunt: per candidate, run
+`codegraph explore "<cited function, or file:line>"` from inside the repo
+(e.g. `cd <repo> && codegraph explore "..."`), trim to a compact excerpt —
+direct callers/callees of the cited function and any entry-point paths,
+≤ ~40 lines, no verbatim source bodies — and add it to that candidate's
+tail as the optional `CALL GRAPH CONTEXT` block (template in
+`references/prompts.md`). All N votes for a candidate share the same
+excerpt. If there is no index, or the command fails, omit the block and
+say nothing — never index the target yourself. The verifier is instructed
+to treat the graph as a starting point and read the actual call sites;
+this changes where it looks first, not what counts as evidence.
 
 ### 3b. Spawn N verifiers per candidate, all in one message
 

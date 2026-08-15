@@ -24,6 +24,7 @@ allowed-tools:
   - Bash(wc:*)
   - Bash(head:*)
   - Bash(file:*)
+  - Bash(codegraph:*)
 ---
 
 # /vuln-scan
@@ -45,7 +46,8 @@ do not provision them — `allowed-tools` is a permission filter, not a loader,
 so listing them here does not make them appear. When Glob/Grep are
 unavailable, fall back to the read-only Bash commands whitelisted above:
 `rg --files <scope>` / `ls -R` for enumeration, `rg -n` / `grep -rn` for
-search, `wc` / `head` / `file` for sniffing. These are the ONLY permitted
+search, `wc` / `head` / `file` for sniffing, and `codegraph explore`
+(read-only index query, Step 2). These are the ONLY permitted
 Bash commands; do not write helper scripts or pipe target content into a
 shell interpreter.
 
@@ -116,7 +118,24 @@ DEPLOYMENT FACTS (what is actually deployed/mounted):
 {if --extra <file> was given:
 EXTRA CHECKS:
 <file contents verbatim>}
+{if the target has a .codegraph/ index:
+CALL GRAPH CONTEXT (mechanical index — a starting point, not evidence;
+trace any flow you report by reading the code):
+<excerpt>}
 ```
+
+### Call-graph context (only when the target is indexed)
+
+If `<target-dir>/.codegraph/` exists, give each reviewer a head start on
+reachability: run
+`codegraph explore "<the focus area's functions/files from Step 1>"` from
+inside `<target-dir>` (e.g. `cd <target-dir> && codegraph explore "..."`),
+trim the output to a compact excerpt — entry points, direct callers and
+callees of the focus area's functions, ≤ ~40 lines; drop verbatim source
+bodies — and append it to that reviewer's spawn prompt as the block above.
+One query per focus area. If there is no `.codegraph/` directory, or the
+command fails, omit the block entirely and say nothing — never index the
+target yourself.
 
 ## Step 3 — Collate
 

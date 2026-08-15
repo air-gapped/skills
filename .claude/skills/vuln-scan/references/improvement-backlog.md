@@ -13,9 +13,15 @@ updated in Phase 6.
   is dropped (`prefilter` field + `prefiltered` summary count). Rationale:
   the harness's measured "model ignores the prompt rule ~10%" — a check a
   script can run must never cost a subagent.
+- **Call-graph context for reviewers** (§2.2, second wave, same day): when
+  `<target-dir>/.codegraph/` exists, the orchestrator runs one
+  `codegraph explore` per focus area and appends a trimmed excerpt to that
+  reviewer's tail; the agent body instructs "starting point, not evidence
+  — trace flows by reading code". Absent index → block omitted, behavior
+  unchanged; the skill never indexes the target itself.
+  `Bash(codegraph:*)` added to allowed-tools.
 - Deferred from the same review (see `.research/visa-harness.md`):
-  call-graph context blocks for reviewers (§2.2, wants codegraph-indexed
-  targets), specialist lens aliases for `--focus` (§2.3),
+  specialist lens aliases for `--focus` (§2.3),
   source_ref/sink_ref as structured fields (§3.2 — cross-skill schema
   change, own pass).
 
