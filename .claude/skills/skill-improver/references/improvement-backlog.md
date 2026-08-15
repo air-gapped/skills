@@ -61,17 +61,18 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   the entry point, it has to *replace* those two passages, which is a
   multi-section rewrite, not one iteration.
 
-- **(new 2026-07-24, Opus 5 final-blind, author decision) Dim 9: skill omits
-  two fields from its own Pattern 9.3 checklist.** `effort: xhigh` is the
-  defensible one — this is a reasoning-heavy skill whose scoring quality the
-  loop depends on, and the platform effort docs recommend `xhigh` as the
-  starting point for agentic work — but it raises token spend on every
-  invocation, including cheap `score` runs, so it is the operator's call.
-  `disable-model-invocation: true` is **not** appropriate despite the checklist:
-  proactive model invocation is the point (the whole `trigger` mode exists to
-  make it fire), and setting it would remove the description from Claude's
-  context entirely. Record the decision here either way so the next blind
-  scorer's Dim 9 note can be dismissed with a reason.
+- **(2026-07-24 final-blind; DECIDED 2026-08-16, operator) Dim 9: skill omits
+  two fields from its own Pattern 9.3 checklist — both stay omitted; do not
+  re-propose.** `effort: xhigh` is **rejected**: the operator's 2026-08-16
+  ruling is that this skill and all its subagents inherit the session's model
+  AND effort (see blind-validation.md §Model selection) — a frontmatter
+  effort pin would override the session on every invocation, cheap `score`
+  runs included, which is exactly the per-release pin churn that ruling
+  removed. A blind scorer's Dim 9 note about a missing `effort` field is
+  dismissed with this reason. `disable-model-invocation: true` remains **not**
+  appropriate: proactive model invocation is the point (the whole `trigger`
+  mode exists to make it fire), and setting it would remove the description
+  from Claude's context entirely.
 
 - **(new 2026-07-24, final-blind, not attempted — cap reached) Dim 7:
   `scripts/batch-workflow.js` `DEFAULT_BASE` hard-codes the author's repo
