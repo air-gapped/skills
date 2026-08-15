@@ -211,9 +211,16 @@ multi-perspective pattern — split by viewpoint, not by subtopic:
 - What are the competing approaches?
 - What are the failure modes and edge cases?
 
-Spawn one subagent per angle using the Research Agent Prompt Template in
-`references/deep-research.md`. Each returns structured LEARNINGS, CONTRADICTIONS,
-FOLLOW_UPS, SOURCES, and a CONFIDENCE rating. Once all agents return:
+Spawn one subagent per angle — all in one message, `subagent_type:
+"deep-researcher"` (plugin installs: `agent:deep-researcher`). The research
+instructions are that agent definition's system prompt, shared and
+prompt-cached across the round; each spawn's prompt carries only the
+question, the angle, and prior learnings (tail template in
+`references/deep-research.md`). Fallback: if neither agent name resolves,
+Read `../../agents/deep-researcher.md` (relative to this skill directory)
+and spawn `general-purpose` with its body pasted above the tail. Each
+returns structured LEARNINGS, CONTRADICTIONS, FOLLOW_UPS, SOURCES, and a
+CONFIDENCE rating. Once all agents return:
 
 1. **Merge learnings** — deduplicate, resolve contradictions, note confidence levels
 2. **Identify gaps** — what follow-up questions are most important?

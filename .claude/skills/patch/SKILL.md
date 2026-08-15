@@ -247,20 +247,28 @@ After all findings, write the consolidated phase payload to `_chunk.tmp` then:
 ### 2B. Static mode — one patch subagent per finding
 
 One Task per finding, all in a SINGLE assistant message for parallel
-execution. `subagent_type: "general-purpose"`. Never set
-`run_in_background` — you need the diff text, not an async handle.
+execution. `subagent_type: "patch-author"` (plugin installs:
+`defending-code:patch-author`). Never set `run_in_background` — you need
+the diff text, not an async handle.
 
-Each subagent has read-only access to `--repo`. It cannot modify the target;
-it emits the diff as text in its response. The orchestrator writes that text
-to `PATCHES/bug_NN/patch.diff`.
+Each subagent is restricted to read-only tools and cannot modify the
+target; it emits the diff as text in its response. The orchestrator writes
+that text to `PATCHES/bug_NN/patch.diff`.
 
-#### Patch subagent prompt (assemble once, reuse per finding)
+#### Patch-author instructions and tail
 
-The full patch-author prompt lives in **`references/prompts.md` § Patch subagent prompt (Phase 2B)**. Read it at the start of Phase 2B and use it verbatim, substituting the per-finding fields (see #### Spawn below).
+The full patch-author instructions are the system prompt of the
+`patch-author` agent definition (`../../agents/patch-author.md` relative to
+this skill directory — same layout in the repo and in a plugin install),
+shared and prompt-cached across every author in the batch. Each spawn's
+prompt is only the tail in **`references/prompts.md` § Patch-author tail
+(Phase 2B)**. **Fallback:** if neither agent name resolves, Read the agent
+definition file and spawn `general-purpose` with its body pasted above the
+tail.
 
 #### Spawn
 
-For each finding in `findings[]`, build a Task call with the prompt above
+For each finding in `findings[]`, build a Task call with the tail above
 (substituting `{REPO_PATH}`, `{id}`, `{file}`, `{line}`, `{category}`,
 `{severity}`, `{title}`, `{description}`, `{recommendation}`, and a fresh
 `{nonce}` per spawn — see the `references/prompts.md` preamble; it isolates the
@@ -302,7 +310,9 @@ After all findings, write the consolidated phase payload to `_chunk.tmp` then:
 ## Phase 3: Independent review (static mode only)
 
 One reviewer subagent per generated diff, all in ONE message,
-`subagent_type: "general-purpose"`.
+`subagent_type: "patch-reviewer"` (plugin installs:
+`defending-code:patch-reviewer`; fallback as in Phase 2B, with
+`../../agents/patch-reviewer.md`).
 
 **The reviewer never sees the finding's `description`, `recommendation`, or
 the patch author's `rationale`.** It gets only `{file, line, category}`
@@ -310,9 +320,14 @@ plus the raw diff bytes, and re-derives whether the diff is a minimal,
 in-scope fix by reading the source itself. This keeps any instructions
 embedded in finding prose from reaching both the author and the gate.
 
-#### Reviewer prompt (assemble once, reuse per diff)
+#### Reviewer instructions and tail
 
-The full reviewer prompt lives in **`references/prompts.md` § Reviewer prompt (Phase 3)**. Read it at the start of Phase 3 and use it verbatim, substituting `{REPO_PATH}`, `{file}`, `{line}`, `{category}`, the diff, and a fresh `{nonce}` per spawn (it wraps the diff as untrusted data). Pass it ONLY those fields — never the finding prose or author rationale.
+The full reviewer instructions are the `patch-reviewer` agent definition's
+cached system prompt. Each spawn's prompt is only the tail in
+**`references/prompts.md` § Reviewer tail (Phase 3)** — `{REPO_PATH}`,
+`{file}`, `{line}`, `{category}`, the diff, and a fresh `{nonce}` per spawn
+(it wraps the diff as untrusted data). Pass it ONLY those fields — never
+the finding prose or author rationale.
 
 #### Spawn and parse
 

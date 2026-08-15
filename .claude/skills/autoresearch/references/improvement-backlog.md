@@ -2,6 +2,16 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-08-16 (operator-directed restructure)
+
+- **Fan-out cache discipline (skill-improver improvement-patterns 7.3).**
+  The Mode 2 Research Agent Prompt Template moved verbatim into the
+  `deep-researcher` agent definition (`.claude/agents/`, shipped as
+  `agent:deep-researcher`) — one cached system prompt shared across each
+  research round; spawns send only question/angle/prior-learnings.
+  `references/deep-research.md` keeps the tail template and fallback. No
+  change to the return format or synthesis flow.
+
 ## Resolved this pass — 2026-07-24 (improve + freshen)
 
 Baseline self **79** (recalibrated from 82 after the blind scorer verified two

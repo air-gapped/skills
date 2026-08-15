@@ -3,6 +3,18 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (operator-directed restructure)
+
+- **Fan-out cache discipline (improvement-patterns 7.3).** The Phase 3a
+  verifier and Phase 4a ranker prompts moved verbatim into the
+  `triage-verifier` / `triage-ranker` agent definitions (`.claude/agents/`,
+  shipped with the plugin) — one cached system prompt shared across the
+  `candidates × votes` batch instead of ~1200 inline words per spawn, with
+  read-only tools enforced structurally. `references/prompts.md` now holds
+  only the per-spawn tails; the compact verifier form is rescoped to the
+  `general-purpose` fallback path, where inline prompt size still matters.
+  No behavioral change to procedure, exclusion rules, or output contracts.
+
 ## Resolved — 2026-07-21 (freshen)
 
 All three sources re-probed; **nothing needed correcting.**

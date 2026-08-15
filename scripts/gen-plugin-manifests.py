@@ -399,7 +399,10 @@ GROUPS: dict[str, dict] = {
         # Custom agent definitions shipped with the plugin (installed as
         # `agent:<name>`). Version bumps still track member SKILL dirs only,
         # so bump an agent file together with a member-skill edit.
-        "agents": ["./.claude/agents/blind-scorer.md"],
+        "agents": [
+            "./.claude/agents/blind-scorer.md",
+            "./.claude/agents/deep-researcher.md",
+        ],
         "description": (
             "Agent workflow suite — Karpathy-pattern autoresearch "
             "(hill-climbing, multi-agent research) and skill-improver "
@@ -720,6 +723,19 @@ GROUPS: dict[str, dict] = {
         # at it. checkpoint.py is vendored per-skill (threat-model, triage,
         # patch).
         "members": ["threat-model", "vuln-scan", "triage", "patch"],
+        # Subagent definitions for the fan-out phases (installed as
+        # `defending-code:<name>`): review/score briefs and verifier/ranker/
+        # author/reviewer instructions live in the agent bodies so every
+        # spawn in a batch shares one cached system prompt and read-only
+        # tools are enforced structurally.
+        "agents": [
+            "./.claude/agents/vuln-area-reviewer.md",
+            "./.claude/agents/vuln-confidence-scorer.md",
+            "./.claude/agents/triage-verifier.md",
+            "./.claude/agents/triage-ranker.md",
+            "./.claude/agents/patch-author.md",
+            "./.claude/agents/patch-reviewer.md",
+        ],
         "description": (
             "Security find-and-fix loop — adapted (Apache-2.0) from "
             "anthropics/defending-code-reference-harness and generalised to "

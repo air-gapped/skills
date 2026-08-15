@@ -11,44 +11,22 @@
 
 ## Research Agent Prompt Template
 
-When spawning research subagents, use this template adapted for the specific angle:
+The canonical research instructions — including the exact LEARNINGS /
+CONTRADICTIONS / FOLLOW_UPS / SOURCES / CONFIDENCE return format — are the
+system prompt of the **`deep-researcher` agent definition**
+(`../../agents/deep-researcher.md` relative to the skill directory; plugin
+installs resolve `agent:deep-researcher`). As the agent's system prompt they
+are shared and prompt-cached across every researcher in a round; each spawn
+sends only this tail:
 
 ```
-You are a research agent investigating a specific angle of a broader topic.
-
 BROADER QUESTION: {user_question}
 YOUR ANGLE: {research_angle}
-PRIOR LEARNINGS: {learnings_from_previous_rounds}
-
-Instructions:
-1. Use WebSearch to find 3-5 authoritative sources on your angle
-2. For each promising result, use WebFetch to read the full content
-3. Extract SPECIFIC information: names, numbers, dates, code snippets,
-   direct quotes. Vague summaries are not useful.
-4. Note any contradictions between sources
-5. Identify 1-2 follow-up questions that emerged
-
-Return your findings in this exact format:
-
-LEARNINGS:
-- [Specific finding] (Source: [url])
-- [Specific finding] (Source: [url])
-...
-
-CONTRADICTIONS:
-- [Source A] says X, but [Source B] says Y
-...
-
-FOLLOW_UPS:
-- [Question that needs deeper investigation]
-...
-
-SOURCES:
-- [url]: [one-line description of what it contained and its credibility]
-...
-
-CONFIDENCE: [high/medium/low] — how well-supported are your findings?
+PRIOR LEARNINGS: {learnings_from_previous_rounds, or "(first round)"}
 ```
+
+Fallback (neither agent name resolves): Read the agent definition file,
+paste its body above the tail, and spawn `general-purpose`.
 
 ## Question Decomposition Strategies
 

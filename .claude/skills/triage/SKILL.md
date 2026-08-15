@@ -71,9 +71,12 @@ permitted only for `git`, `find`, `wc`, `ls`, `jq`, and
 dependencies, or sending requests. A proof-of-concept that accidentally
 works against something real is unacceptable, and "couldn't write a working
 PoC" is weak evidence of non-exploitability. Every conclusion comes from
-reading source. This applies to the orchestrator and every subagent;
-include the constraint in every Task prompt. For high-confidence HIGH
-findings, recommend a human-built PoC as a follow-up instead.
+reading source. This applies to the orchestrator and every subagent: the
+`triage-verifier` / `triage-ranker` agent definitions carry it in their
+system prompts and read-only tool lists; for any `general-purpose` spawn
+(the 2b dedupe agent, or the fallback path), include the constraint in the
+Task prompt. For high-confidence HIGH findings, recommend a human-built
+PoC as a follow-up instead.
 
 **Do not reach the network.** No package-registry lookups, CVE-database
 queries, or upstream-commit fetches.
@@ -401,59 +404,52 @@ wrong." Each starts from the code at the cited location, not the scanner's
 description, and never sees the other verifiers' reasoning (shared context
 propagates blind spots).
 
-### 3a. Verifier prompt (assemble once, reuse for every spawn)
+### 3a. Verifier instructions
 
-The full verifier prompt lives in **`references/prompts.md` § Verifier prompt (Phase 3a)**. Read it once at the start of Phase 3 and reuse it verbatim, substituting `{REPO_PATH}` and `{context.environment}` (and appending `context.extra_fp_rules` under an "ORG-SPECIFIC RULES:" heading if set). The per-finding "FINDING UNDER REVIEW" block in 3b is appended to it before each spawn.
+The full verifier instructions are the system prompt of the
+**`triage-verifier` agent definition** (`../../agents/triage-verifier.md`
+relative to this skill directory — same layout in the repo and in a plugin
+install). As the agent's system prompt they sit in the prompt-cache prefix
+every verifier in the batch shares; each spawn's prompt carries only the
+per-finding block in 3b. The per-spawn tail template (context header +
+finding block) lives in **`references/prompts.md` § Verifier tail (Phase
+3a)**.
 
 ### 3b. Spawn N verifiers per candidate, all in one message
 
 For each finding in `candidates[]`, build N Task calls (N = `--votes`,
-default 3) with `subagent_type: "general-purpose"` and `description:
-"verify {id} vote {k}/{N}"`.
+default 3) with `subagent_type: "triage-verifier"` (plugin installs:
+`defending-code:triage-verifier`) and `description:
+"verify {id} vote {k}/{N}"`. **Fallback:** if neither agent name resolves,
+Read the agent definition file above and spawn `general-purpose` verifiers
+with its body pasted above the per-spawn tail.
 
 **Always set `subagent_type`; never fork.** Omitting `subagent_type` forks
 the orchestrator, and a fork inherits the full conversation context: every
 other finding's description, the scanner's prose, and any prior verifier
 results. That defeats verifier independence and re-introduces the
 inherited-framing failure mode this phase exists to prevent. Each verifier
-must start with a fresh, empty context and receive only the 3a prompt
-plus the single finding under review. The same applies to the ranking
-subagents in 4a.
+must start with a fresh, empty context and receive only the verifier
+instructions plus the single finding under review. The same applies to the
+ranking subagents in 4a.
 
-Each prompt is the verifier prompt from 3a with this block appended:
-
-```
-────────────────────────────────────────────────────────────────────────
-FINDING UNDER REVIEW (from the scanner; treat as a CLAIM, not a fact):
-
-  id:        {id}
-  file:      {file}
-  line:      {line}
-  category:  {category}
-  severity (claimed): {severity}
-  title:     {title}
-
-  description:
-  {description}
-
-  exploit_scenario:
-  {exploit_scenario or "(not provided)"}
-
-  preconditions (claimed):
-  {preconditions as bullets or "(not provided)"}
-
-You are vote {k} of {N}. You have NOT seen the other verifiers' reasoning
-and you must NOT try to find it. Work independently from the code.
-```
+Each spawn's prompt is only the tail from **`references/prompts.md`
+§ Verifier tail (Phase 3a)**: the run-constant context header (REPO PATH,
+ENVIRONMENT, org rules) plus the per-finding "FINDING UNDER REVIEW" block
+and the vote number.
 
 **Put all verifier Task calls in a single assistant message** so they run
 concurrently. Do not set `run_in_background`; you need the final text, not
 an async handle. If `len(candidates) * N` exceeds ~40, shard into
 sequential batches of ~40, but keep each batch a single message.
 
-**Prompt size at scale.** The 3a prompt is ~1200 words. When
-`candidates * votes > ~50`, use this compact form instead (same procedure
-and output contract, prose stripped):
+**Prompt size at scale — fallback path only.** When the `triage-verifier`
+agent type resolves, the ~1200-word instructions live in the shared cached
+system prompt and per-spawn cost stays flat at any batch size — never
+switch to the compact form there. On the `general-purpose` fallback, every
+spawn re-pays the full instructions inline; when `candidates * votes > ~50`
+on that path, use this compact form instead (same procedure and output
+contract, prose stripped):
 
 ```
 Adversarially verify ONE scanner finding. Default: scanner is WRONG.
@@ -582,9 +578,16 @@ severity separately. Verification and severity are independent judgments;
 "this is real" must not inflate into "this is critical," and easy reach
 must not inflate an empty asset into a HIGH.
 
-### 4a. Ranking prompt
+### 4a. Ranking spawn
 
-Spawn one Task per confirmed finding (`subagent_type: "general-purpose"`, all in one message). The full ranking prompt lives in **`references/prompts.md` § Ranking prompt (Phase 4a)**. Read it at the start of Phase 4 and use it verbatim, substituting `{REPO_PATH}`, the `{context.*}` values, and the per-finding fields.
+Spawn one Task per confirmed finding (`subagent_type: "triage-ranker"`;
+plugin installs: `defending-code:triage-ranker`; all in one message). The
+full ranking instructions are that agent definition's cached system prompt;
+each spawn's prompt is only the tail in **`references/prompts.md` § Ranker
+tail (Phase 4a)** — `{REPO_PATH}`, the `{context.*}` values, and the
+per-finding fields. **Fallback:** if neither agent name resolves, Read
+`../../agents/triage-ranker.md` (relative to this skill directory) and
+spawn `general-purpose` rankers with its body pasted above the tail.
 
 ### 4b. Merge
 

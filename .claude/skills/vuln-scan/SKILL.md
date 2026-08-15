@@ -55,10 +55,11 @@ shell interpreter.
 - `--focus <area>` — scan only this focus area (repeatable). Skips recon.
 - `--single` — no subagent fan-out; one sequential pass. Use on tiny targets
   or when debugging the prompt.
-- `--extra <file>` — append the contents of `<file>` to the review brief
-  (after the category list). Use to add org-specific vulnerability classes,
-  compliance checks, or stack-specific patterns. Plain text; same shape as
-  the category blocks below.
+- `--extra <file>` — pass the contents of `<file>` to every reviewer as an
+  `EXTRA CHECKS` section of its per-spawn prompt (Step 2). Use to add
+  org-specific vulnerability classes, compliance checks, or stack-specific
+  patterns. Plain text; same shape as the category blocks in the
+  `vuln-area-reviewer` agent definition.
 - `--no-score` — skip the Step 3b confidence pass (saves a round of
   subagents). Findings keep the scanner's self-reported confidence only.
 
@@ -87,109 +88,34 @@ fanning out.
 
 ## Step 2 — Fan out
 
-Unless `--single`, spawn **one Task subagent per focus area** in parallel.
-Cap at 10 concurrent. Each subagent gets the review brief below with its
-focus area filled in. On tiny targets (<15 source files), fall through to
-`--single` automatically.
+Unless `--single`, spawn **one review subagent per focus area** in parallel
+— all Task calls in a SINGLE message, `subagent_type: "vuln-area-reviewer"`
+(plugin installs: `defending-code:vuln-area-reviewer`). Cap at 10
+concurrent. The full review brief is that agent definition's system prompt
+— shared and prompt-cached across every reviewer in the wave — so each
+spawn's prompt carries only the variable facts below. On tiny targets
+(<15 source files), fall through to `--single` automatically.
 
-### Review brief (per subagent)
+**Fallback:** if neither agent name resolves, Read the agent definition at
+`../../agents/vuln-area-reviewer.md` relative to this skill directory (same
+layout in the repo and in a plugin install), and spawn `general-purpose`
+subagents with its body pasted above the per-spawn block. In `--single`
+mode, follow that same body inline, once per focus area sequentially.
+
+### Per-spawn prompt (variable facts only)
 
 ```
-You are conducting authorized static security review of source code. Your
-focus area: **{focus_area}**. Other agents cover other areas; duplication
-is wasted effort.
-
+FOCUS AREA: **{focus_area}**
+FINDING ID PREFIX: F-{focus_idx:02d}-
 TARGET: {target_dir}
 TRUST BOUNDARY: {from THREAT_MODEL.md section 3, or "untrusted input → process memory"}
 ASSETS (what is worth protecting here):
-{assets bullets from THREAT_MODEL.md section 2, or "(unknown — name the
- asset you assume for each finding)"}
+{assets bullets from THREAT_MODEL.md section 2, or "(unknown)"}
 DEPLOYMENT FACTS (what is actually deployed/mounted):
-{deployment_facts bullets, or "(unknown — check deploy manifests in the
- target before assuming secrets, auth, or sessions exist)"}
-
-TASK: read the source in your focus area and identify candidate
-vulnerabilities. This is static review — do NOT build, run, or probe
-anything. Reason from the code.
-
-REPORTING BAR: report anything with a plausible exploit path. Skip style
-concerns, best-practice gaps, and purely theoretical issues with no attack
-story at all — but if you're unsure whether something is real, REPORT IT
-with a low confidence score rather than dropping it. A downstream triage
-step does the rigorous verification; your job is to not miss things.
-
-WHAT TO LOOK FOR:
-
-  MEMORY SAFETY (C/C++ and unsafe/FFI blocks) — HIGH VALUE:
-  - heap-buffer-overflow / stack-buffer-overflow / global-buffer-overflow
-  - heap-use-after-free / double-free
-  - integer overflow feeding an allocation or index
-  - format-string bugs
-  - unbounded recursion or allocation driven by untrusted size fields
-
-  INJECTION & CODE EXECUTION — HIGH VALUE:
-  - SQL / command / LDAP / XPath / NoSQL / template injection
-  - path traversal in file operations
-  - unsafe deserialization (pickle, YAML, native), eval injection
-  - XSS (reflected, stored, DOM-based) — but see React/Angular note below
-
-  AUTH, CRYPTO, DATA — HIGH VALUE:
-  - authentication or authorization bypass, privilege escalation
-  - TOCTOU on a security check
-  - hardcoded secrets, weak crypto, broken cert validation
-  - sensitive data (secrets, PII) in logs or error responses
-
-  LOW VALUE — note briefly, keep looking:
-  - null-pointer deref at small fixed offsets with no attacker control
-  - assertion failures / clean error returns (correct handling, not a bug)
-
-DO NOT REPORT (common false positives — skip even if technically present):
-  - volumetric DoS / rate-limiting / resource-exhaustion — BUT unbounded
-    recursion, algorithmic-complexity blowup, or ReDoS driven by untrusted
-    input ARE reportable
-  - memory-safety findings in memory-safe languages outside unsafe/FFI
-  - XSS in React/Angular/Vue unless via dangerouslySetInnerHTML,
-    bypassSecurityTrustHtml, v-html, or equivalent raw-HTML escape hatch
-  - findings in test files, fixtures, build scripts, docs, or .ipynb
-  - missing hardening / best-practice gaps with no concrete exploit
-  - env vars and CLI flags as the attack vector (operator-controlled)
-  - regex injection, log spoofing, open redirect, missing audit logs
-  - outdated third-party dependency versions
-
-{if --extra <file> was given: append its contents here verbatim}
-
-For each finding you DO report, trace: where does the untrusted input
-enter, what path reaches the sink, and what condition triggers it.
-
-OUTPUT — one block per finding, nothing else:
-
-<finding>
-<id>F-{focus_idx:02d}-{n:02d}</id>
-<file>{relative/path}</file>
-<line>{line_number}</line>
-<category>{heap-buffer-overflow | use-after-free | integer-overflow | sql-injection | command-injection | path-traversal | deserialization | xss | auth-bypass | hardcoded-secret | ...}</category>
-<severity>{HIGH | MEDIUM | LOW}</severity>
-<confidence>{0.0-1.0}</confidence>
-<title>{one line}</title>
-<description>{root cause, attacker control, trigger condition, data flow from entry to sink. Cite line numbers.}</description>
-<exploit_scenario>{concrete attack: what input, from where, causing what outcome}</exploit_scenario>
-<recommendation>{specific fix: parameterize the query, bounds-check before memcpy, etc.}</recommendation>
-</finding>
-
-SEVERITY: severity is impact-on-asset, not vuln class. Name the asset the
-finding compromises and what it is worth in THIS deployment. HIGH requires
-a high-value asset actually present here (secrets, sessions, code
-execution, regulated data) — never inferred from the category: XSS
-severity depends on what the origin protects (sessions? cookies? actions?);
-file-read severity on what the process filesystem actually holds; SSRF
-severity on what is reachable and whether the allowlist/DNS is
-attacker-influenceable. MEDIUM = real impact under a stated condition
-(state it in the description). LOW = reachable but the asset is absent or
-low-value here. Severity is not a reporting filter — report reachable
-findings at the severity the asset supports.
-
-If you find nothing reportable in your area after a thorough read, emit a
-single <finding> with category=none and a one-line note of what you covered.
+{deployment_facts bullets, or "(unknown)"}
+{if --extra <file> was given:
+EXTRA CHECKS:
+<file contents verbatim>}
 ```
 
 ## Step 3 — Collate
@@ -206,39 +132,18 @@ single <finding> with category=none and a one-line note of what you covered.
 
 A cheap second-opinion read that **ranks** findings by signal quality.
 **Nothing is dropped** — this pass calibrates `confidence` so humans and
-`/triage` see high-signal findings first. Spawn **one Task subagent per
-finding** in parallel with the brief below. Shallow: re-read and score, not
-a full reachability trace.
-
-### Scoring brief (per finding)
+`/triage` see high-signal findings first. Spawn **one subagent per
+finding** in parallel — all Task calls in one message, `subagent_type:
+"vuln-confidence-scorer"` (plugin installs:
+`defending-code:vuln-confidence-scorer`). The scoring instructions are that
+agent definition's cached system prompt; the fallback is as in Step 2, with
+`../../agents/vuln-confidence-scorer.md`. Each spawn's prompt is only:
 
 ```
-You are giving ONE candidate security finding an independent confidence
-score. You are NOT deciding whether to keep it — every finding is kept.
-You are deciding how likely it is to survive rigorous triage.
-
 FINDING:
 {the full <finding> block}
 
-TARGET: {target_dir} (you may Read/Grep inside it; do NOT execute)
-
-STEP 1 — Re-read the cited code. Open {file} around line {line}. Does the
-code actually do what the description claims?
-
-STEP 2 — Check against common false-positive patterns (volumetric DoS,
-memory-safe language, test/fixture/doc file, framework auto-escape, env-var
-vector, missing-hardening-only, regex/log injection, outdated dep). A match
-lowers confidence sharply but does not auto-zero it.
-
-STEP 3 — Score 1-10 that this is a real, actionable vulnerability:
-  1-3  likely false positive or noise
-  4-5  plausible but speculative
-  6-7  credible, needs investigation
-  8-10 high confidence, clear pattern
-
-OUTPUT (exactly this, nothing else):
-  CONFIDENCE: <1-10>
-  REASON: <one line>
+TARGET: {target_dir}
 ```
 
 **Resolve:** overwrite each finding's `confidence` with the score

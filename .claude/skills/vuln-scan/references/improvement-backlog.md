@@ -3,6 +3,18 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (operator-directed restructure)
+
+- **Fan-out cache discipline (improvement-patterns 7.3).** The Step 2 review
+  brief and Step 3b scoring brief moved verbatim into the
+  `vuln-area-reviewer` / `vuln-confidence-scorer` agent definitions
+  (`.claude/agents/`, shipped with the plugin). Their bodies are the
+  subagents' system prompts — one cached prefix shared across every spawn in
+  a wave instead of a full inline brief per spawn — and their `tools:` lists
+  make the read-only constraint structural. SKILL.md now carries only the
+  per-spawn variable tails plus a read-the-agent-file fallback (also the
+  `--single` path). No behavioral change to the briefs themselves.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Last of the four security skills sharing the `defending-code-reference-harness`

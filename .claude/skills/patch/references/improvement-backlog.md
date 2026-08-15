@@ -3,6 +3,19 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-16 (operator-directed restructure)
+
+- **Fan-out cache discipline (improvement-patterns 7.3).** The Phase 2B
+  patch-author and Phase 3 reviewer prompts moved verbatim into the
+  `patch-author` / `patch-reviewer` agent definitions (`.claude/agents/`,
+  shipped with the plugin) — one cached system prompt per role across the
+  per-finding batch, read-only tools structural. `references/prompts.md`
+  keeps the nonce preamble and per-spawn tails (trusted metadata +
+  `<untrusted_data>` blocks); the untrusted-data conventions now sit in the
+  agents' system prompts while injected text stays confined to the user
+  message — a strictly stronger separation. No behavioral change to
+  procedure or output contracts.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Harness re-probed: active, not archived, **last push 2026-07-16**, **17 commits**
