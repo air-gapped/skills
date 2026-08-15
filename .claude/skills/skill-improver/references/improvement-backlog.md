@@ -5,6 +5,7 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved this pass — 2026-08-15](#resolved-this-pass--2026-08-15-improve-self-run-dynamic-scorer-config)
 - [Resolved — 2026-07-24 (scaffolding discriminator)](#resolved--2026-07-24-scaffolding-discriminator-claude-code-team-blog-pair)
 - [Resolved this pass — 2026-07-24](#resolved-this-pass--2026-07-24-freshen--improve-opus-5-release-day)
 - [Resolved this pass — 2026-07-18](#resolved-this-pass--2026-07-18-improve-self-run-mechanics-shakedown)
@@ -14,6 +15,25 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 - [Resolved — 2026-05-28](#resolved--2026-05-28-improve--freshen-opus-48-learnings)
 
 ## Open
+
+- **(new 2026-08-15) Rule-ceiling discard: invocation-fit decision has no
+  blind-visible record.** Dim 1. Both 2026-08-15 blind agents flagged "the
+  invocation-fit question is never self-applied" — the author decision (keep
+  model invocation; `disable-model-invocation` does not apply because
+  proactive firing is the point) lives only in this backlog, which blind
+  scorers are instructed not to read, so every future blind run will re-flag
+  it. Attempted as iter 9 (3-line note in SKILL.md §Invocation): Δ0 — Dim 1
+  scores the description, which the note does not change. Author call:
+  accept the rubric-invisible note (SKILL.md §Invocation) to retire the
+  recurring false flag, or keep SKILL.md lean and live with the flag.
+
+- **(new 2026-08-15) Dim 10 unmeasured — build `evals/evals.json`, then
+  measure `delta_pass_rate`.** Dim 10 capped at 8 by the Negative-Transfer
+  Gate in both blind runs and self-score; the skill prescribes measuring net
+  utility for others but has never measured its own. Planned this run,
+  not applicable in one iteration: needs an authored eval set (cases +
+  assertions) plus a with/without benchmark via skill-creator's
+  `aggregate_benchmark` — multi-file, author-judgment content.
 
 - **(new 2026-07-24) Rule-ceiling discards: three rubric-invisible hardenings.**
   All three were applied, cold-scored Δ0 (every affected dim band-internal),
@@ -102,6 +122,53 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+## Resolved this pass — 2026-08-15 (improve, self-run; dynamic scorer config)
+
+Baseline self **81** / blind **82** (aligned, no 2+ gaps) → final self **83** /
+blind **82**. 8 keeps, 2 discards, 10-iteration cap reached. Scorer config for
+this and future runs changed before the loop (operator-directed, commit
+`12ebe38`): blind scorers now **inherit the session model** (same model for
+baseline+final within a run; frontier floor) with **effort pinned `high`** —
+the per-release model pin is retired; this run's scorers ran on the session
+model (Fable 5). Pre-loop the operator also landed five writing-for-agents
+patterns (`dc8d04e`): negation→positive (3.4), completion demand (Dim 4 +
+4.3), invocation-fit (Dim 1 + T0 gate + 9.3), co-location (Dim 8 + 8.3),
+synonym collapse (T5 fix 2).
+
+**Keeps:**
+- **iter 1 (+1, noise-confirmed):** aligned 3 stale runs-per-query spots in
+  trigger-patterns.md (defaults table, T4 fix order, worked example) to the
+  N=7 decision floor.
+- **iter 2 (simplification):** collapsed the drifted §Decision rules
+  duplicate (missing the mean-rate tie-break) into a pointer at T5/T7; −10
+  lines, single source restored.
+- **iter 3 (+1, noise-confirmed):** Batch Mode summary now binds exhaustive
+  coverage — every scanned skill gets a row, skipped/crashed marked
+  (first application of new Pattern 4.3).
+- **iter 4 (simplification):** SKILL.md Dim 10-cap paragraph collapsed to a
+  rubric §Negative-Transfer Gate pointer; SkillLens figures single-sourced.
+- **iter 5 (simplification):** philosophy P4's fragile cross-skill example
+  pointer (`instructions-triage` backlog — machine-local) replaced by
+  canonical `backlog-format.md`.
+- **iter 6 (+1, noise-confirmed):** batch-philosophy scope corrected from
+  `~/.claude/skills/` to the scan-skills.sh target list.
+- **iter 7 (defect fix):** missing blank line before `---` made the whole
+  Native-loops paragraph render as a setext H2; fixed.
+- **iter 10 (simplification):** §Blind Validation "When to Run" sub-list
+  folded into one sentence pointing at Phase 0 step 6 / §On stop; −6 lines.
+- **post-cap (final-blind finding):** two residual "default 3" spots iter 1
+  missed (probe-mechanism step 5, cost-budget math 195→455) fixed; the
+  final bias check flagged self Dim 8 = 10 vs blind 8 over exactly these —
+  self Dim 8 settles at 9.
+
+**Discards (anti-re-proposal guards):**
+- **iter 8:** trimming the v2.1.105 boundary from trigger-patterns' T4
+  constraint as "provenance archaeology" — reverted: the version is the
+  decision boundary for which cap applies, and trigger mode loads without
+  the rubric. Shape guard: do not trim version markers from point-of-use
+  constraints.
+- **iter 9:** rule-ceiling — invocation-fit self-record (moved to Open).
 
 ## Resolved — 2026-07-24 (scaffolding discriminator; Claude Code team blog pair)
 

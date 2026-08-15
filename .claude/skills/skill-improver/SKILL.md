@@ -254,14 +254,9 @@ the model's prior, never the reverse. This rule applies in EVERY mode, not just
 
 Self-evaluation bias is real — the agent that wrote improvements tends to score
 them generously. Blind validation uses independent subagents that have never seen
-the skill to score it objectively. Run it twice: at baseline and after the loop.
-
-### When to Run
-
-1. **Baseline** — after the self-score in Phase 0 step 5, spawn a blind scoring
-   agent in the background. It runs in parallel with the improvement loop.
-2. **Final** — after the loop stops, spawn another blind scoring agent on the
-   final version.
+the skill to score it objectively. Run it twice: at baseline (Phase 0 step 6,
+in the background, parallel with the loop) and after the loop stops (§"On
+stop") — the spawn points the loop itself already marks.
 
 ### Agent Prompt, Model Pin, and Comparison Table
 
@@ -284,11 +279,12 @@ To improve multiple skills:
 2. Score each skill (baseline only) and print a ranked table.
 3. Sort by score ascending (worst first).
 4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
-5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes.
+5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes. The batch is done when **every skill from step 1 has a row** — including skills whose loop was skipped, crashed, or hit the cap (mark the status). A missing row is silent truncation, not a smaller batch.
 
 **Dynamic workflows (Fable 5 / Opus 5, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; recon, apply, and blind agents all inherit the session model (blind scorers at pinned `effort: 'high'`, same frontier floor as a solo run), and no agent does git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
 
 **Native loops (Claude Code `/loop` v2.1.71+, `/goal` v2.1.139+).** For recurring or goal-driven runs, drive this skill with the harness's loop primitives: `/loop <interval> /skill-improver batch freshen --all` for scheduled passes, or `/goal` with a checkable stop ("every skill scores ≥85, stop after N tries") — `/goal`'s evaluator-checked stop condition maps directly onto this skill's scalar metric. Size batch fan-outs against three live caps: **20 concurrent subagents** (v2.1.217 default, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`), **200 subagents + 200 web searches per session** (v2.1.212), and the **medium workflow size guideline of <15 agents** (v2.1.219 default, `workflowSizeGuideline`) — a batch wider than these queues silently or trips a guideline warning mid-run. Official guidance: https://claude.com/blog/getting-started-with-loops (2026-06-30).
+
 ---
 
 ## Standalone Evaluation (No Loop)
@@ -309,12 +305,9 @@ with no metric, no keep/discard, and no blind check — run it first for free
 hypotheses, then use this skill when the question is *did the change measurably
 help*. Do NOT report `/doctor` output as a score.
 
-**Dim 10 is capped until net value is measured.** A skill is not
-neutral-to-positive by default — SkillLens measured **25% of skills as
-net-harmful** against a no-skill baseline (47% in the worst domain). The rubric's
-§"Negative-Transfer Gate" caps Dim 10 at 8 while unmeasured and at 2 when the
-skill loses to no-skill. Measuring means `delta_pass_rate` from skill-creator's
-`aggregate_benchmark`, not a judgement about the text.
+**Dim 10 is capped until net value is measured** — apply the rubric's
+§"Negative-Transfer Gate" (8 unmeasured, 2 when the skill loses to no-skill;
+measuring means `delta_pass_rate`, not a judgement about the text).
 
 **Scope boundary — every metric here scores the skill's *text*, never its
 outputs.** SkillLens measured text-only judging at 46.4% accuracy against real

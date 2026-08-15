@@ -344,13 +344,13 @@ How it works (per query, repeated `runs_per_query` times):
 4. Remove the temp project dir.
 5. `trigger_rate = triggers / runs`. Pass = `rate ≥ trigger_threshold` for
    should-trigger items, `rate < trigger_threshold` for should-not items.
-   Threshold defaults to 0.5; runs default to 3.
+   Threshold defaults to 0.5; runs default to 7.
 
 Defaults:
 
 | Knob | Default | When to change |
 |---|---|---|
-| `--runs-per-query` | 3 | Bump to 5 if variance is killing signal (1/3 vs 2/3 keep flipping). |
+| `--runs-per-query` | 7 | 7 is the decision floor (§Pattern T4 noise rule). A lower N is acceptable only for a throwaway first sighting-pass, never for a keep/discard decision. |
 | `--trigger-threshold` | 0.5 | Lower to 0.34 to count any single trigger (more lenient); raise to 0.67 to require strong consistency. |
 | `--num-workers` | 6 | Lower if hitting rate limits; higher when rate-limit headroom allows. Each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Sized for `claude -p` latency here (60–150s/call incl. cold start / Opus). It only caps a *hung* call — a fast call returns as soon as it emits its `result` event — so a high value has no downside. Timed-out runs are now tracked per query and surfaced as a `warn:` line, and an all-positives-0.0 result emits an explicit "probe isn't measuring" warning instead of looking like genuine under-triggering. Lower only if calls are reliably fast. |
@@ -407,8 +407,10 @@ change conclusions — so choose deliberately:
 ### Cost & time budget
 
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
-**Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 3-run × 5-iteration
-loop ≈ 195 invocations — minutes on Haiku, far longer on Opus. Keep total
+**Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration
+loop ≈ 455 invocations if every query re-probes every iteration — minutes on
+Haiku, far longer on Opus; re-measuring only the disputed queries (§Phase T5)
+is what keeps the real cost well below that ceiling. Keep total
 concurrent `claude -p` modest (≈6 for Opus; Haiku tolerates more): the global
 cap is `(parallel probes × --num-workers)`, and oversubscribing it triggers
 rate-limit storms that read as mass timeouts/false-0.0. Trigger mode is
@@ -509,12 +511,14 @@ If they're tied, fix under-trigger first (T1) — over-trigger is recoverable
 the borderline of triggering — small wording shifts could flip it either way.
 
 **Fix:**
-1. **Strengthen by adding redundancy.** If the variance is on a should-trigger
-   query, add the missing keyword multiple times (in `description` AND in
-   `when_to_use`). Anthropic's improver explicitly recommends "be a little
-   bit pushy" for borderline cases.
-2. **Bump `--runs-per-query` to 5** for the next iteration to get tighter
-   estimates before deciding.
+1. **Re-measure before mutating.** Fractional rates mean the measurement is
+   underpowered, not that the description needs another edit — re-run the
+   disputed queries at `--runs-per-query` 7 or higher (the decision floor;
+   see the T4 row in Phase T3) and only treat a rate that survives as real.
+2. **Then strengthen by adding redundancy.** If the confirmed variance is on
+   a should-trigger query, add the missing keyword multiple times (in
+   `description` AND in `when_to_use`). Anthropic's improver explicitly
+   recommends "be a little bit pushy" for borderline cases.
 
 ### Pattern T5: Description hits the 1024-char hard cap
 
@@ -549,20 +553,10 @@ instead" line to one or both. Cross-skill negotiation requires the author.
 
 ## Decision rules
 
-After Phase T5 (re-score), apply this decision tree on the **train** scores:
-
-1. **Train improved by ≥1 query** → KEEP. New baseline.
-2. **Train equal but description is shorter or simpler** → KEEP (simplification
-   wins ties — same Karpathy rule as the score loop).
-3. **Train equal or worse** → DISCARD. Revert the frontmatter via `git
-   checkout` or undo edit.
-4. **Train improved AND test got worse by 2+ queries** → DISCARD as overfit.
-   The mutation taught Claude the train phrasings without generalizing.
-5. **Train improved BUT description hit the 1024-char hard cap** → DISCARD,
-   apply T5 next iteration.
-
-When picking the **final** description at end of loop: best by **TEST** score,
-not train. (Anthropic's loop does the same thing for the same reason.)
+The keep/discard decision tree lives in **Phase T5** above (§"Phase T5:
+Re-probe and decide" — the authoritative copy, including the
+mean-trigger-rate tie-break the noise floor requires). Final-description
+selection is in **Phase T7**: best by **TEST** score, never train.
 
 ## Minimalism test (Boris alignment)
 
@@ -656,7 +650,7 @@ frontmatter: `description` mentions "tiered KV cache", "CPU offload", "LMCache",
 ```
 
 ### T2: baseline probe
-`probe-trigger.py --holdout 0.4 --runs-per-query 3` → train 5/8, test 4/5.
+`probe-trigger.py --holdout 0.4 --runs-per-query 7` → train 5/8, test 4/5.
 
 Failures (train):
 - "how do I tune prefix cache memory in vllm" — 1/3 trigger (under)

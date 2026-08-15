@@ -59,15 +59,17 @@ findings; the operator decides whether to:
 
 ## Phase P4: Persist
 
-Append a Philosophy entry to `references/improvement-backlog.md` (create
-the file if absent) with the score, flagged patterns, and a one-line
-recommendation per finding. Same format as the existing backlog
-pattern (e.g. `instructions-triage`'s backlog).
+Append a Philosophy entry to the target skill's
+`references/improvement-backlog.md` (create the file if absent) with the
+score, flagged patterns, and a one-line recommendation per finding —
+section shapes and admission rules per `references/backlog-format.md`.
 
 ## Batch Mode
 
 `/skill-improver batch philosophy --all` runs P1-P4 across every skill
-under `~/.claude/skills/`. Output is a leaderboard of Boris scores so
+`scripts/scan-skills.sh` returns (profile and project scopes, nested
+`.claude/skills/` included — same target list as every other batch mode).
+Output is a leaderboard of Boris scores so
 the operator can target the worst offenders first. ~10 seconds per
 skill — fast because no probes hit external services and no rubric
 re-scoring runs.
