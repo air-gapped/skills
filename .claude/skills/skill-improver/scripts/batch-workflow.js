@@ -21,11 +21,11 @@ export const meta = {
 //   [{ dir: "keda", hints: "check kedacore/keda releases" }, ...]   per-skill freshen focus
 //   { skills: [...], baseDir: "/some/skills/root" }    override the default skills root
 //
-// Recon and apply agents inherit the main-loop model (they play the role the
-// session model plays in a solo run). Blind scorers are pinned explicitly to
-// Opus 5 at xhigh, matching references/blind-validation.md §Model selection —
-// inheriting there would make batch and solo blind scores non-comparable, which
-// is the one comparison the bias check depends on.
+// All agents inherit the main-loop model (the role the session model plays in
+// a solo run). Blind scorers additionally pin effort: 'high' — never the
+// session effort — matching references/blind-validation.md §Model selection;
+// within one batch run every blind scorer therefore shares one model, which is
+// the comparison the bias check depends on.
 // No git ops happen inside agents; commit after review.
 // ---------------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ const results = await pipeline(
   async (skill) => {
     const [recon, baselineBlind] = await parallel([
       () => agent(reconPrompt(skill), { label: `recon:${skill.name}`, phase: 'Recon', schema: RECON_SCHEMA }),
-      () => agent(blindPrompt(skill), { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind', schema: BLIND_SCHEMA, model: 'opus', effort: 'xhigh' }),
+      () => agent(blindPrompt(skill), { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind', schema: BLIND_SCHEMA, effort: 'high' }),
     ])
     log(`recon ${skill.name}: self=${recon?.self?.total ?? '?'} baselineBlind=${baselineBlind?.total ?? '?'} freshen=${(recon?.freshen || []).filter(f => f.verdict === 'stale' || f.verdict === 'deprecated').length} actionable`)
     return { skill, recon, baselineBlind }
@@ -208,7 +208,7 @@ const results = await pipeline(
     // ONE blind scorer — symmetric with the single baseline scorer so the
     // baseline->final delta is apples-to-apples (a median-of-N final vs a
     // single-sample baseline would credit variance-reduction as "improvement").
-    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA, model: 'opus', effort: 'xhigh' })
+    const finalBlind = await agent(blindPrompt(skill), { label: `final-blind:${skill.name}`, phase: 'Final blind', schema: BLIND_SCHEMA, effort: 'high' })
     log(`final-blind ${skill.name}: ${finalBlind?.total ?? '?'}`)
     return { ...prev, finalBlind }
   }

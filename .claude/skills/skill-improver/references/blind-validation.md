@@ -67,44 +67,43 @@ result.
 
 ## Model selection
 
-**Default pin: Opus 5** (`claude-opus-5`) at `xhigh` effort — in the `Agent`
-call pass `model: "opus"` explicitly rather than inheriting the parent's
-default.
+**Model: dynamic — the scorer inherits the session model.** Omit the `model`
+field in the `Agent` call. Two constraints bind:
 
-Pick the pin from benchmark rows that match the scoring task, not from a
-vendor tier label. As of 2026-07-24 the two signals disagree, and the label is
-the weaker one:
+- **Same-run consistency.** The baseline and final scorers of one run must use
+  the same model — the bias-check table and the run's score trend are only
+  comparable within one scorer. If the session model changes mid-run, pass the
+  baseline scorer's model explicitly to the final scorer.
+- **Frontier floor.** Never score with a Haiku-class or smaller model.
+  Validation is the loop's hard task — the dim-by-dim justifications are what
+  make subsequent iterations targetable — and Boris Cherny's counterintuitive
+  observation holds: cheaper-per-token models often use *more* total tokens on
+  hard tasks because of correction loops, and shallow justifications cost more
+  wasted iterations than they save in per-token spend. If the session runs a
+  small model, pass a frontier-tier model explicitly (`model: "opus"` or
+  better) instead of inheriting.
 
-- **Docs label (weaker signal):** "Claude Fable 5 is Anthropic's most capable
-  widely released model… For workloads that need the highest available
-  capability, use Claude Fable 5" (platform docs, models overview).
-- **Launch benchmarks (stronger signal, Opus 5 launch page):** Opus 5 leads
-  Fable 5 on every axis blind scoring actually exercises — knowledge work
-  (GDPval-AA 1861 vs 1747), agentic search (BrowseComp 90.8% vs 87.4%),
-  multidisciplinary reasoning with tools (HLE 64.7% vs 63.9%), agentic terminal
-  coding (43.3% vs 33.7%). Fable 5 leads only on tool-free HLE (56.5% vs 56.3%)
-  and two coding benchmarks, all inside 1 point, plus legal; Mythos 5 leads
-  health.
-- **Knowledge cutoff decides ties for this task:** Opus 5 is May 2026, Fable 5
-  Jan 2026. A scorer judging Dim 9 on a freshly freshened skill is exactly the
-  case where a later cutoff means fewer false "that version looks wrong" flags.
-- Opus 5 is also half the price ($5/$25 vs $10/$50) and supports all five
-  effort levels.
+**Effort: `high`, pinned — never inherit the session effort.** Per the
+platform effort doc (verified 2026-08-15), `high` is the level for complex
+reasoning and nuanced analysis where quality outranks speed (and equals the
+API default), while `xhigh` is scoped to long-horizon agentic runs — 30+
+minutes, million-token budgets — which a scoring pass is not. Inheriting
+would let a low-effort session silently degrade the justifications the loop
+steers by; pinning above `high` buys agentic-exploration depth a read-and-
+judge task does not use. Where the runtime's agent-spawn call exposes an
+effort field (e.g. the `Workflow` tool's `agent()`), set it; where it does
+not (the solo-run `Agent` tool), the session effort applies — record the
+effective effort in the run log so scores stay interpretable.
 
-Escalate to Fable 5 (`model: "fable"`, `xhigh`) for a long-horizon batch where
-the vendor's "highest available capability" positioning is worth the 2× cost,
-or when a scoring run must be reproducible against earlier Fable-scored
-baselines. Never step below this tier: Boris Cherny's counterintuitive
-observation is that cheaper-per-token models often use *more* total tokens on
-hard tasks because of correction loops, so the "expensive" model is
-paradoxically the cheapest path to a reliable answer. Validation is the loop's
-hard task — the dim-by-dim justifications are what make subsequent iterations
-targetable, and shallow Sonnet justifications cost more re-runs than they save
-in per-token spend.
-
-**Re-pin only on measurements.** A new model being the newest, the default, or
-the one labelled "most capable" is not evidence; the benchmark rows that match
-the scoring task are. Re-check both signals at each freshen.
+**Why dynamic replaced the model pin (2026-08-15).** The pin was re-pointed
+on every model release — Opus 4.8 (2026-05-28), Fable 5 (2026-06-09), Opus 5
+(2026-07-24), Fable 5 again by operator override (2026-08-15) — a
+three-file sync edit plus a benchmark-vs-label adjudication each time.
+Inheriting the session model removes that churn and follows the operator's
+model choice automatically. Cross-pass score trends were never scorer-stable
+anyway (three different scorer models across three months of passes); the
+comparability the loop actually uses — baseline vs final within one run —
+survives under the same-run consistency rule above.
 
 For the baseline agent, copy the original skill to a temp directory first so
 the agent scores the unmodified version even if the loop has already started.
