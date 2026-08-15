@@ -79,29 +79,21 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   layout.** Overridable, so not a bug; portability nit only. Decide whether the
   script should derive the base from `${CLAUDE_SKILL_DIR}` instead.
 
-- **(carried 2026-06-09, still Open) Dim 2 → 8/9: extract the improve-loop
-  phases (Phase 0–5) to a reference.** Re-flagged by the 2026-07-24 final blind
-  as the top Dim 2/6 ceiling. SKILL.md is now **379 lines** (was 493 at the
-  start of this pass) after extracting Blind Validation and the Phase 6 backlog
-  format; the ~150-line improve loop (SKILL.md §"The Improvement Loop") is the
-  only workflow still inline and is what holds the file above the 300-line lean
-  band. It remains the PRIMARY default mode and must stay visible — burying it
-  trades Dim 2 +1 for usability/Dim 4 on every default invocation.
-  **Author judgment:** decide whether a thin-dispatcher SKILL.md (loop detail in
-  `references/improve-loop.md`) is acceptable. Not a single-iteration mutation.
-  **(2026-07-24 evidence)** `scripts/scaffold-probe.py SKILL.md` now quantifies
-  this: 28 numbered items → **20 scaffold / 8 criteria / 0 branch**, tripping the
-  Boris strict-workflow-scaffolding cap (Dim 6 → 6) on the discriminating
-  detector, not just the naive count. The scaffold items are concentrated in
-  exactly the sections this item proposes extracting — Phase 0 (L65–71), Phase 3–5
-  (L112–119, L146–147), Batch Mode (L272–276), Standalone Evaluation (L287–290).
-  Three are outright redundant: L112 "apply exactly one change" and L113 "keep the
-  diff minimal" restate L114, which is the only one of the three carrying the
-  reason ("so cause is attributable"). **Applied 2026-07-24** — Phase 3's three
-  items collapsed to one sentence carrying the reason; 28 → 25 items, 20 → 18
-  scaffold. `keep (simplification)`. The cap still stands: the remaining 18 are
-  in Phase 0, Phase 4–5, Batch Mode and Standalone Evaluation, and clearing them
-  requires the extraction this item proposes, not more local deletions.
+- **(carried 2026-06-09; RESOLVED 2026-08-16, operator-approved) Dim 2 → 8/9:
+  improve-loop phases extracted to `references/improve-loop.md`.** The
+  operator accepted the thin-dispatcher trade ("the read is fine",
+  2026-08-16). Phases 0–6 moved verbatim (pointer-only adjustments for
+  cross-references that now cross files); SKILL.md **401 → 287 lines**,
+  inside the 300-line lean band for the first time. The stub keeps the loop
+  shape plus the three binding rules (blind validation non-optional, one
+  change per iteration, backlog persistence non-optional) so a skipped Read
+  cannot drop the safety rails. The Boris scaffold concentration
+  (18 scaffold items in Phase 0/4–5) now lives in the reference, out of
+  SKILL.md's scaffold count — re-run `scripts/scaffold-probe.py SKILL.md`
+  on the next scoring pass to confirm the Dim 6 cap lifts. Same-day
+  operator decision: the same extraction for `triage` (911 lines) and
+  `patch` (590) is **HELD** — single-mode skills where the phases load
+  every run anyway; do not extract them without a with/without measurement.
 
 - **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
   Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy

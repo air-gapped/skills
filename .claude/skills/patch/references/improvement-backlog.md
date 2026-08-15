@@ -3,6 +3,16 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Open
+
+- **(2026-08-16, operator decision) SKILL.md phase-extraction is HELD — do
+  not propose it.** At 590 lines SKILL.md exceeds the 500-line ceiling, and
+  skill-improver's own extraction (improve-loop → reference) is precedent —
+  but this skill is single-mode with two tightly coupled input modes: the
+  phases load every run regardless, so the token win mostly evaporates and
+  a skipped Read on a patch-generation workflow is a real risk. Operator
+  ruling: no extraction without a with/without measurement first.
+
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Reviewer four-gate structure** (adapted Apache-2.0 from
