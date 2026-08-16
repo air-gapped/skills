@@ -1,0 +1,62 @@
+{
+  "skill_name": "skill-improver",
+  "method_note": "Fixture skills are embedded in the prompts so cases are self-contained and reproducible. All cases are read-only: agents propose edits in their response, never write files. with_skill runs point the executor at the installed skill directory and instruct it to follow the skill; without_skill runs present only the task. Executor = clean-context subagent; analyzer grades assertions against the final response with quoted evidence.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "score-with-planted-traps",
+      "prompt": "A colleague asks you to evaluate the quality of their Claude Code skill and tell them what to improve. Do not modify anything — assess and report. The skill is this single SKILL.md; its directory contains no other files (no references/, no scripts/):\n\n```markdown\n---\nname: pgtune-analytics\ndescription: Helps tune PostgreSQL.\n---\n\n# pgtune-analytics\n\nTune PostgreSQL for analytics workloads.\n\n## Core settings\n\nSet shared_buffers to 25% of RAM, effective_cache_size to 75%, and raise work_mem for large sorts — but budget work_mem times max parallel sorts, or you will OOM the box. Prefer changing one setting at a time and re-running the workload.\n\n## Version support\n\nSupports PostgreSQL 18.2 (released 2026-07-30). Use pg_stat_io for I/O statistics; on 18.x also check pg_stat_checkpointer.\n\n## Tuning procedure\n\n1. Capture a baseline with pgbench or the real workload.\n2. Apply one setting change.\n3. Re-measure; keep the change only if the numbers improved.\n\n## Memory settings\n\nSet shared_buffers to 25% of RAM and effective_cache_size to 75% of RAM. Raise work_mem when sorts spill to disk, but multiply by the number of concurrent sorts first or you risk OOM. Change one setting at a time and re-run the workload to compare.\n```\n\nGive your quality assessment and what to do next.",
+      "expected_output": "A standalone quality evaluation per the skill-improver rubric: a 10-dimension scoring table (0-10 each, 0-100 total); flags the duplicated Core settings / Memory settings content; treats the absence of any sources/verification record as a staleness risk rather than judging the PostgreSQL 18.2 claim from memory; recommends the single highest-impact improvement; stops without applying changes.",
+      "files": [],
+      "assertions": [
+        "Produces a structured multi-dimension scoring table with per-dimension scores and a total (a rubric-style breakdown, not a single holistic grade or prose-only review)",
+        "Does not assert from memory that the PostgreSQL 18.2 claim is wrong, future-dated, or nonexistent, and does not recommend changing it to an older version — any doubt about it is expressed as 'verify online/at the source'",
+        "Identifies the near-duplicate settings guidance ('Core settings' vs 'Memory settings') as a defect and recommends deletion/merging of the redundancy",
+        "Flags the absence of a sources/verification record (no references, no dated verification of external claims) as a staleness/verifiability risk",
+        "Recommends a single highest-impact next improvement rather than an undifferentiated list of rewrites",
+        "Applies no changes — the response assesses and recommends only, and does not present a rewritten version of the skill as the deliverable"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "refuse-the-downgrade",
+      "prompt": "Here is one of our Claude Code skills. I'm pretty sure it has a factual error: it claims Valkey 9.2, but as far as I know Valkey's latest major is 8.x and 9.2 does not exist. Please fix the skill to say the correct version.\n\n```markdown\n---\nname: valkey-tuning\ndescription: Tune Valkey memory limits, eviction policies, and persistence for self-hosted clusters.\n---\n\n# valkey-tuning\n\n## Version floor\n\nRequires Valkey 9.2 or later (9.2 released 2026-07-14) for the per-slot memory accounting this skill's eviction guidance depends on.\n<!-- Last verified: 2026-08-11 against the Valkey release page -->\n\n## Eviction\n\nStart from allkeys-lru unless the workload proves otherwise; set maxmemory to 70% of container limit, never unbounded.\n```",
+      "expected_output": "Refuses to mutate the claim on the requester's word or from memory: the in-file dated verification stamp (2026-08-11) postdates any training prior, so the claim is presumed freshened until checked. Either declines pending a live-source check, or performs the verification itself and edits only from that evidence. Explains the downgrade-alarm reasoning (wanting to lower a version is the signature of training-data staleness). The failure this eval measures is complying with the downgrade from memory alone.",
+      "files": [],
+      "assertions": [
+        "Does not apply the requested change on the requester's word or from memory alone — any edit to the version claim is gated on, or performed only after, verification against the live release source",
+        "States that the claim must be verified against the live source (release page/changelog) before any edit is made, or performs such verification, rather than trusting memory",
+        "Treats the in-file dated verification stamp as evidence that outranks unverified recollection — both the requester's and the model's own (the stamp yields only to live-source evidence, never to memory)",
+        "Explains that wanting to lower a version/date is itself a staleness warning sign (the claim may simply be newer than the model's knowledge cutoff)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "one-change-iteration",
+      "prompt": "Run one improvement iteration on this Claude Code skill: pick the single best change, apply it, and show your decision. The skill is this single SKILL.md (no other files):\n\n```markdown\n---\nname: certbot-renewals\ndescription: Certificate stuff.\n---\n\n# certbot-renewals\n\nManage Let's Encrypt renewals with certbot on standalone hosts.\n\n## Renewal\n\nRun certbot renew from a systemd timer twice daily; certbot only renews certs within 30 days of expiry, so frequent runs are safe. Always run with --deploy-hook to reload the consuming service.\n\n## Renewal timing\n\nSchedule certbot renew on a twice-daily systemd timer. Renewal only happens inside the 30-day window before expiry, so running often is harmless. Use --deploy-hook so the web server reloads after a successful renewal.\n\n## Troubleshooting\n\nCheck /var/log/letsencrypt/letsencrypt.log. Port 80 must be reachable for HTTP-01.\n```",
+      "expected_output": "One atomic change with loop discipline: a baseline assessment and stated hypothesis first (target weakness, expected impact), then exactly one applied change chosen by an explicit impact criterion — the duplicated Renewal/Renewal-timing section and the two-word description are the two candidates; either is defensible if the choice is justified against the other — then a re-evaluation and an explicit keep/discard decision. The response shows the concrete edit and does NOT bundle a second fix into the same iteration.",
+      "files": [],
+      "assertions": [
+        "States the improvement hypothesis before applying it: which weakness is targeted and what effect is expected",
+        "Applies exactly one atomic change — the shown edit does one thing; it does not bundle the deduplication with a description rewrite, added sections, or other fixes",
+        "The subtractive candidate (merging the duplicated renewal sections) is explicitly considered in the hypothesis choice — either chosen, or the chosen change is justified against it by an explicit impact criterion",
+        "Re-evaluates after the change and states an explicit keep-or-discard decision with a reason grounded in the observed result of the change",
+        "Shows the concrete edit (diff or before/after text of the affected section), not just advice that someone should deduplicate"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "trigger-fix-empirically",
+      "prompt": "One of our Claude Code skills never fires. A user asked 'why is my Redis eviction policy evicting hot keys' and Claude answered without the skill. Its frontmatter is:\n\n```yaml\nname: cache-ops\ndescription: Helps with cache things.\n```\n\nThe skill body covers Redis/Valkey memory management: eviction policies, maxmemory sizing, TTL strategy, keyspace analysis, and fragmentation. Fix the triggering.",
+      "expected_output": "An empirical trigger-tuning response: rewrites the description with concrete trigger vocabulary generalized to the failure class (eviction/maxmemory/TTL/memory pressure across Redis AND Valkey — not just the literal user sentence), keeps it scoped so unrelated queries don't fire it, respects the platform character budget, and — the skill-specific behavior — proposes measuring the new description against a set of should-trigger and should-NOT-trigger queries over repeated runs rather than declaring the rewrite done.",
+      "files": [],
+      "assertions": [
+        "Proposes measuring trigger behavior empirically — an eval set of test queries, repeated runs, or a held-out split — rather than treating the description rewrite alone as the fix",
+        "The proposed description generalizes the missed query's class (eviction policy, maxmemory, TTL, memory pressure, hot keys — for both Redis and Valkey) instead of embedding only the user's literal sentence",
+        "The proposed description stays scoped to the skill's domain — it does not balloon into generic phrasing (e.g. plain 'performance', 'databases', 'caching' with no qualifiers) that would fire on unrelated queries",
+        "Shows awareness of the description character budget (states a limit or keeps the rewrite compact and says why)",
+        "Includes at least one example of a query that should NOT trigger the skill (negative scope), or an explicit statement of what the skill must stay silent on"
+      ]
+    }
+  ]
+}

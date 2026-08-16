@@ -1,0 +1,189 @@
+{
+  "metadata": {
+    "skill_name": "skill-improver",
+    "skill_path": ".claude/skills/skill-improver",
+    "executor_model": "claude-fable-5",
+    "analyzer_model": "claude-fable-5",
+    "timestamp": "2026-08-16T00:09:05Z",
+    "evals_run": [0, 1, 2, 3],
+    "runs_per_configuration": 3,
+    "method_notes": "Executors were clean-context general-purpose subagents. with_skill runs were pointed at the installed skill directory and instructed to follow it; without_skill runs were instructed to answer from their own judgment and not consult installed skills. All runs read-only. Two assertions were amended mid-run BEFORE any grading, disclosed here: eval 1 assertion 1 and eval 2 assertion 3 originally encoded the author's predicted answer rather than the skill's doctrine (a verified-online edit is compliant, and the lowest-dimension rule can outrank deletion-preference); both were reworded to test the doctrine and all runs were graded against the amended text only. Analyzer = the session model grading final responses against assertions with quoted evidence."
+  },
+  "summary": {
+    "with_skill": {"passed": 60, "total": 60, "pass_rate": 1.0},
+    "without_skill": {"passed": 44, "total": 60, "pass_rate": 0.733},
+    "delta_pass_rate": 0.267,
+    "per_eval_delta": {"0": 0.5, "1": 0.167, "2": 0.2, "3": 0.133},
+    "cost_note": "with_skill runs averaged ~82k subagent tokens and 127s vs ~49k and 36s without — the skill costs roughly +65% tokens per task in exchange for the behavioral deltas below."
+  },
+  "runs": [
+    {"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 117.1, "tokens": 77191, "tool_calls": 5, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": true, "evidence": "Full 10-dimension rubric table, per-dim justifications, total 46/100."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": true, "evidence": "Probed postgresql.org before judging: '18.2 was released 2026-02-12... current 18.x is 18.6' with cited release announcements."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Core settings and Memory settings are near-verbatim duplicates... Delete the duplication... shrinks ~40% with zero information loss.'"},
+      {"text": "Absent sources/verification record flagged", "passed": true, "evidence": "'No sources.md → Dim 9 is also capped at 6'; recommends creating references/sources.md with Last verified dates."},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "'Lowest dimension: Trigger Precision (2/10). Recommended first improvement: rewrite the frontmatter description.'"},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "Read-only throughout; recommendations with example phrasing only."}
+    ]},
+    {"eval_id": 0, "configuration": "with_skill", "run_number": 2, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 104.0, "tokens": 79912, "tool_calls": 6, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": true, "evidence": "10-dim table, total 45/100, Standalone Evaluation mode named."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": true, "evidence": "'Verified error: PostgreSQL 18.2 was released 2026-02-12' — online probe with three cited postgresql.org sources."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Delete one of the two duplicate sections... largest per-token quality gain available.'"},
+      {"text": "Absent sources/verification record flagged", "passed": true, "evidence": "'the absence of any source-verification trail caps this dimension at 6 under the rubric.'"},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "'Rewrite the frontmatter description (highest-impact single change)' leads the ordered list."},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "'score-only, no loop, nothing modified.'"}
+    ]},
+    {"eval_id": 0, "configuration": "with_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 118.9, "tokens": 77396, "tool_calls": 7, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": true, "evidence": "10-dim table, total 46/100."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": true, "evidence": "'Verification complete — both external claims checked against postgresql.org' before scoring Dim 9."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Delete the Memory settings section — it restates Core settings verbatim with drifted wording.'"},
+      {"text": "Absent sources/verification record flagged", "passed": true, "evidence": "'its absence caps Domain Accuracy at 6 permanently under this rubric.'"},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "'Recommended first improvement: Rewrite the frontmatter description' with lowest dimension named."},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "'Standalone Evaluation mode, no modifications made.'"}
+    ]},
+    {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 47.5, "tokens": 48798, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": false, "evidence": "Prose sections with a single holistic 'Roughly a 3/10' — no per-dimension breakdown."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": false, "evidence": "'The release claim looks wrong... (likely wrong) release date' asserted from cadence memory; action item says 'drop the pinned 18.2 claim' ungated on the suggested verification."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Keep one memory section, delete the other.'"},
+      {"text": "Absent sources/verification record flagged", "passed": false, "evidence": "Suggests verifying one date but never flags the missing verification/sources record as a defect."},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "Description rewrite explicitly ranked 'highest priority' at the top of an ordered list."},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "Assessment and ordered recommendations only."}
+    ]},
+    {"eval_id": 0, "configuration": "without_skill", "run_number": 2, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 56.0, "tokens": 48798, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": false, "evidence": "Critical/secondary issue prose, no dimension scores or total."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": false, "evidence": "'the date is almost certainly wrong... 18.2 would predate mid-2026' from memory; 'regardless of the outcome' the pinned claim should be replaced — change recommended unconditionally."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Merge the two duplicate settings sections into one.'"},
+      {"text": "Absent sources/verification record flagged", "passed": false, "evidence": "No concept of a verification trail; only a one-off 'verify against the release archive'."},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "'Rewrite the description' first in the ordered list, called the single highest-leverage fix."},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "Recommendations only (includes an example description, framed as suggestion)."}
+    ]},
+    {"eval_id": 0, "configuration": "without_skill", "run_number": 3, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 59.7, "tokens": 48798, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Structured multi-dimension scoring table", "passed": false, "evidence": "'Verdict: weak' plus prose sections; no dimension scoring."},
+      {"text": "No memory-based judgment of the PG 18.2 claim", "passed": false, "evidence": "'doesn't fit reality as I know it... puts 18.2 around February 2026 — not July 30' from memory; structural change recommended regardless of verification outcome."},
+      {"text": "Duplication flagged with deletion remedy", "passed": true, "evidence": "'Collapse to a single Memory settings section.'"},
+      {"text": "Absent sources/verification record flagged", "passed": false, "evidence": "No verification-record concept."},
+      {"text": "Single highest-impact recommendation", "passed": true, "evidence": "'Rewrite the frontmatter description (biggest return for least effort — it gates everything else)' first."},
+      {"text": "Assess-only, no applied rewrite", "passed": true, "evidence": "Assessment and next-steps list only."}
+    ]},
+    {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 117.2, "tokens": 67074, "tool_calls": 12, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "'Do not apply the fix as requested'; correction produced only after gh probes of the full release list."},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "Probed releases, RFC #852, PR #3966; found 9.2 fabricated AND the user's 8.x premise stale (9.1.1 current)."},
+      {"text": "Stamp outranks unverified recollection", "passed": true, "evidence": "Stamp honored as presumption then tested against the live source it cites — 'no verification against the release page could have confirmed 9.2'."},
+      {"text": "Downgrade-alarm reasoning explained", "passed": true, "evidence": "'The skill-improver downgrade alarm fired exactly as designed' — probe mandated before any downgrade."}
+    ]},
+    {"eval_id": 1, "configuration": "with_skill", "run_number": 2, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 120.0, "tokens": 73049, "tool_calls": 13, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "'the requested correction... is itself stale training data'; edit derived solely from enumerated release evidence."},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "'Enumerated full release list, not just releases/latest'; checked src/cluster_slot_stats.c for the claimed feature."},
+      {"text": "Stamp outranks unverified recollection", "passed": true, "evidence": "Stamp assessed against its own cited source and found 'unearned' — evidence hierarchy applied, not memory."},
+      {"text": "Downgrade-alarm reasoning explained", "passed": true, "evidence": "'The Downgrade alarm rule (SKILL.md §The Skill Outranks Training Data) mandated an online probe before applying any version downgrade.'"}
+    ]},
+    {"eval_id": 1, "configuration": "with_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 128.7, "tokens": 80090, "tool_calls": 16, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "'their proposed correction would have introduced a second error — this is exactly why skill-improver mandates the online probe.'"},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "Probed releases, git tags, cluster_slot_stats.h at tag 9.1.1 and unstable, issue #20."},
+      {"text": "Stamp outranks unverified recollection", "passed": true, "evidence": "Claim presumed freshened per rule, then falsified against the stamp's own cited source."},
+      {"text": "Downgrade-alarm reasoning explained", "passed": true, "evidence": "'The rule... forbids downgrading a version claim from memory, so I probed the Valkey repo before touching anything.'"}
+    ]},
+    {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 2, "failed": 2, "total": 4, "time_seconds": 68.8, "tokens": 56030, "tool_calls": 5, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "Verified via GitHub before editing; rejected the 8.x premise from evidence (9.1.1 current)."},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "Checked releases and PR #3966; found 9.2 nonexistent and the feature unshipped."},
+      {"text": "Stamp outranks unverified recollection", "passed": false, "evidence": "The Last verified stamp is never reasoned about — no stamp-vs-memory hierarchy stated."},
+      {"text": "Downgrade-alarm reasoning explained", "passed": false, "evidence": "No staleness-signature reasoning; went straight to verification without explaining why memory is suspect."}
+    ]},
+    {"eval_id": 1, "configuration": "without_skill", "run_number": 2, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 32.1, "tokens": 48601, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "'I'm not going to make that edit... the premise looks wrong, not the skill.'"},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "'the check is one authenticated call... gh release list --repo valkey-io/valkey' gated before any change."},
+      {"text": "Stamp outranks unverified recollection", "passed": true, "evidence": "'A dated, source-attributed verification stamp should outrank an unverified recollection.'"},
+      {"text": "Downgrade-alarm reasoning explained", "passed": true, "evidence": "'past my knowledge cutoff... Downgrading a version claim in a skill based on memory is exactly the wrong move.'"}
+    ]},
+    {"eval_id": 1, "configuration": "without_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 29.7, "tokens": 48601, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "No edit on requester's word or memory alone", "passed": true, "evidence": "'I'm not going to apply that change'; edit offered only 'once the release list actually contradicts the skill'."},
+      {"text": "Verification against live source before any edit", "passed": true, "evidence": "'check the primary source — gh release list' required before any fix."},
+      {"text": "Stamp outranks unverified recollection", "passed": true, "evidence": "'A recently verified claim... should not be overwritten by unverified recollection... the burden of proof is on the memory.'"},
+      {"text": "Downgrade-alarm reasoning explained", "passed": true, "evidence": "'sits after my cutoff, so I can't personally confirm' — staleness logic stated explicitly."}
+    ]},
+    {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 191.1, "tokens": 98930, "tool_calls": 8, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Phase 2 hypothesis: Dim 1 lowest at 1/10, Patterns 1.1+1.2, expected +5–7, zero complexity cost."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "Description field only, body byte-identical; split test stated ('no and')."},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "'the duplicate-section merge is deliberately NOT bundled in; it is the next iteration' — choice justified by the lowest-dimension gateway argument."},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": true, "evidence": "Cold rescore 53→60, +5 anomaly gate run (cold = delta-math), 'Decision: KEEP', run log printed."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "Full replacement description YAML included."}
+    ]},
+    {"eval_id": 2, "configuration": "with_skill", "run_number": 2, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 185.2, "tokens": 95681, "tool_calls": 6, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Hypothesis with patterns, atomicity split test, and expected impact before mutation; baseline self 53 / blind 48 first."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "'Runner-up... deliberately not bundled in.'"},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "Deletion runner-up named with smaller expected delta as the explicit criterion."},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": true, "evidence": "Anomaly-gated cold rescore, 'Decision: KEEP (+7 self, corroborated +11 blind)', bias-check tables from two real blind scorers."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "New description YAML shown; char budget checked."}
+    ]},
+    {"eval_id": 2, "configuration": "with_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 209.0, "tokens": 99380, "tool_calls": 7, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Baseline 10-dim table (51/100), then candidates A/B with expected lifts (~+7 vs ~+4)."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "Frontmatter only; 'one verb, no and; body untouched'."},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "'The prioritize-deletion rule breaks ties between equal gains only — it doesn't apply when the additive change dominates. B is the queued next iteration.'"},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": true, "evidence": "Anomaly-gate cold rescore to 58, 'Decision: KEEP', blind delta +9 independently confirms."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "Full mutated SKILL.md shown with description/when_to_use split."}
+    ]},
+    {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 19.8, "tokens": 48644, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Three candidates with rationale before choosing #1."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "'#2 was a close second... I did not bundle it in, to keep this an honest single-change step.'"},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "Dedup considered and justified against: 'duplication wastes tokens but only after a successful trigger'."},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": false, "evidence": "Change applied and explained; no re-scoring of the result and no keep/discard decision."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "Full modified SKILL.md shown."}
+    ]},
+    {"eval_id": 2, "configuration": "without_skill", "run_number": 2, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 20.1, "tokens": 48644, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Three candidates analyzed; trigger-rate multiplier argument for #1."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "'#2 is the runner-up for a second iteration; #3 comes after that.'"},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "Merge candidate weighed: 'wasted tokens and a maintenance hazard, but harmless to correctness'."},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": false, "evidence": "No post-change evaluation or keep/discard — rationale only."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "Full modified file delivered."}
+    ]},
+    {"eval_id": 2, "configuration": "without_skill", "run_number": 3, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 20.3, "tokens": 48644, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Hypothesis stated before the change", "passed": true, "evidence": "Candidate table with impact column before the pick."},
+      {"text": "Exactly one atomic change, no bundling", "passed": true, "evidence": "'Diff summary: only the description line changed'; next candidate explicitly deferred ('one change per iteration')."},
+      {"text": "Subtractive candidate weighed explicitly", "passed": true, "evidence": "Merge rated Medium impact and justified against activation-bottleneck reasoning."},
+      {"text": "Re-evaluation plus explicit keep/discard", "passed": false, "evidence": "No re-evaluation and no keep/discard verdict on the applied change."},
+      {"text": "Concrete edit shown", "passed": true, "evidence": "Full modified file plus diff summary."}
+    ]},
+    {"eval_id": 3, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 85.7, "tokens": 77662, "tool_calls": 4, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": true, "evidence": "13-query eval set (7 pos / 6 neg), probe-trigger.py with holdout 0.4 and 7 runs/query, baseline-then-candidate protocol, decision rules by test score."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "'hot keys getting evicted generalizes the miss (weakness criterion: pasting whole queries overfits train)'."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "Fences off LLM KV caches, HTTP/CDN, memoization; names sibling redis-to-valkey for routing."},
+      {"text": "Character budget awareness", "passed": true, "evidence": "'description ≈ 330 chars (≤1024 hard cap), combined ≈ 1,180 (≤1,536 listing cap)'."},
+      {"text": "Negative scope present", "passed": true, "evidence": "'Do NOT use for LLM inference KV caches...' plus six should-NOT-trigger eval queries."}
+    ]},
+    {"eval_id": 3, "configuration": "with_skill", "run_number": 2, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 65.9, "tokens": 76998, "tool_calls": 3, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": true, "evidence": "'a description change is a hypothesis until probed' — eval set JSON, probe command, 7 runs/query floor, pick by test score."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "Symptom-class phrases across Redis and Valkey; user query kept only as gold eval entry."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "Negative boundary against LLM KV caching, HTTP/CDN, CPU caches, topology questions."},
+      {"text": "Character budget awareness", "passed": true, "evidence": "'description ~200 chars (≤1024 hard cap), combined ~860 (≤1536 listing cap)'."},
+      {"text": "Negative scope present", "passed": true, "evidence": "'Do NOT use for...' clause plus 6 negative eval queries including sibling-territory decoys."}
+    ]},
+    {"eval_id": 3, "configuration": "with_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 88.9, "tokens": 78506, "tool_calls": 6, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": true, "evidence": "Baseline-first probe protocol, --description dry-run before writing, N=7 decision floor, keep/regression rules stated."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "'generalizes your reported miss rather than pasting it (verbatim pasting overfits train, buys nothing on test)'."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "Front-loaded Redis/Valkey vocabulary with an explicit collision analysis for the word 'cache'."},
+      {"text": "Character budget awareness", "passed": true, "evidence": "'~750 chars, well under the 1024 hard cap' with base-spec fallback discussed."},
+      {"text": "Negative scope present", "passed": true, "evidence": "'Do NOT use for Redis-to-Valkey migration, application/HTTP/CDN caching layers, or CPU/GPU/KV caches' plus negative eval queries."}
+    ]},
+    {"eval_id": 3, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 24.9, "tokens": 48466, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": true, "evidence": "'re-test with the original failing query plus a few paraphrases and a few should-NOT-fire queries' — an eval-query set, though no repeated-runs or holdout protocol."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "Policy names, symptom phrasings, Redis and Valkey both covered."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "Negative scope fences HTTP/CDN/CPU caches and non-memory Redis topics."},
+      {"text": "Character budget awareness", "passed": false, "evidence": "No mention of any description length limit or budget."},
+      {"text": "Negative scope present", "passed": true, "evidence": "'Not for HTTP/CDN caching, CPU caches, application-level memoization...'"}
+    ]},
+    {"eval_id": 3, "configuration": "without_skill", "run_number": 2, "result": {"pass_rate": 0.8, "passed": 4, "failed": 1, "total": 5, "time_seconds": 25.9, "tokens": 48466, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": false, "evidence": "Rewrite delivered as the fix; secondary checks are registration/YAML validity — no test-query or measurement proposal."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "Symptom phrasings and command surface forms beyond the user's sentence."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "'Do NOT use for Redis clustering, replication/Sentinel topology, or persistence...'"},
+      {"text": "Character budget awareness", "passed": true, "evidence": "'descriptions can run to ~1024 characters' with cost/benefit stated."},
+      {"text": "Negative scope present", "passed": true, "evidence": "Explicit Do-NOT-use clause."}
+    ]},
+    {"eval_id": 3, "configuration": "without_skill", "run_number": 3, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 29.6, "tokens": 48462, "tool_calls": 0, "errors": 0}, "expectations": [
+      {"text": "Empirical measurement proposed", "passed": true, "evidence": "'replay that query plus a few paraphrases and a couple of off-topic controls and confirm it fires on the former and stays silent on the latter'."},
+      {"text": "Failure class generalized, not literal query", "passed": true, "evidence": "Four separate matching terms plus near-verbatim symptom class; policies and metrics enumerated."},
+      {"text": "Domain-scoped, not generic", "passed": true, "evidence": "First-sentence scoping plus negative boundary against the other meanings of 'cache'."},
+      {"text": "Character budget awareness", "passed": true, "evidence": "'comfortably under the 1024-character description ceiling... so nothing gets truncated out of the trigger surface'."},
+      {"text": "Negative scope present", "passed": true, "evidence": "'Not for CDN/HTTP caching, application-level memoization, or CPU caches' plus off-topic control queries."}
+    ]}
+  ]
+}

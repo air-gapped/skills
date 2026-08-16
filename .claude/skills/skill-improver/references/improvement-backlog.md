@@ -27,13 +27,25 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   accept the rubric-invisible note (SKILL.md §Invocation) to retire the
   recurring false flag, or keep SKILL.md lean and live with the flag.
 
-- **(new 2026-08-15) Dim 10 unmeasured — build `evals/evals.json`, then
-  measure `delta_pass_rate`.** Dim 10 capped at 8 by the Negative-Transfer
-  Gate in both blind runs and self-score; the skill prescribes measuring net
-  utility for others but has never measured its own. Planned this run,
-  not applicable in one iteration: needs an authored eval set (cases +
-  assertions) plus a with/without benchmark via skill-creator's
-  `aggregate_benchmark` — multi-file, author-judgment content.
+- **(2026-08-15; RESOLVED 2026-08-16, operator-directed) Dim 10 measured —
+  `delta_pass_rate = +0.267`, Negative-Transfer Gate lifts.** Authored
+  `evals/evals.json` (4 cases, 20 assertions, fixtures embedded in prompts)
+  and ran the with/without benchmark: 4 evals × 2 configs × 3 runs = 24
+  clean-context subagents, graded per assertion with quoted evidence →
+  `evals/benchmark.json`. **with_skill 60/60 (1.000) vs without_skill 44/60
+  (0.733).** Where the skill earns its keep: rubric-table scoring (0/3
+  baseline runs produced one), probe-before-judging planted version claims
+  (0/3 baseline runs resisted memory-asserting them), sources-record
+  staleness flagging (0/3), post-change re-evaluation + keep/discard (0/3),
+  and full empirical trigger protocol (baseline proposed ad-hoc replay at
+  best). Where the baseline is already strong: refusing memory downgrades
+  (2/3 clean refusals unaided) and trigger-description rewriting craft.
+  Honest caveats recorded in benchmark.json metadata: two assertions were
+  amended before grading because they encoded the author's predicted answer
+  rather than the skill's doctrine; and the skill costs ~+65% tokens per
+  task (~82k vs ~49k) for these deltas. Next measurement should rerun the
+  same evals.json after any structural change (e.g. the improve-loop
+  extraction) to check for regression.
 
 - **(new 2026-07-24) Rule-ceiling discards: three rubric-invisible hardenings.**
   All three were applied, cold-scored Δ0 (every affected dim band-internal),
