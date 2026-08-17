@@ -39,6 +39,61 @@
 - **"Long uptime" is a red herring for staleness on Linux** (db/KEK live in NVRAM, written live, independent of
   OS reboot) — **except on Dell**, where a BIOS-staged key set genuinely needs a reboot to apply.
 
+## Recovery — back out an enrollment that went wrong
+
+### Capture this first, or rollback is not available later
+
+| Surface | Backup command | Restorable? |
+|---|---|---|
+| Linux host | `for v in PK KEK db dbx; do efi-readvar -v $v -o old_$v.esl; done` | **Usually not by replay** — see caveat |
+| Dell PowerEdge | `dellemc.openmanage.idrac_secure_boot` with `export_certificates: true` (dumps PK/KEK/db/dbx to a directory) | Yes — re-import with `import_certificates` / `bioscert import` |
+| VM, persistent NVRAM | snapshot the backend-storage PVC before the change | Yes — the *only* documented restore |
+| VM, ephemeral NVRAM | nothing to back up (state does not survive a cold restart by design) | n/a |
+
+> **The `efi-readvar` caveat that surprises people.** Writing a variable back needs a signature from the
+> *next-higher* key — restoring `db` needs the KEK private key, restoring `KEK` needs the PK. On an OEM-keyed
+> fleet those are Dell's/Microsoft's, not yours, so an `.esl` dump is **evidence, not a restore path**. Replay
+> works only where the keys are self-managed (own PK/KEK, e.g. `sbctl`). For OEM-default content the real
+> restore is the firmware's own factory-keys option below.
+
+### The ladder — least to most destructive
+
+1. **Disable Secure Boot in firmware setup, boot, repair.** Non-destructive: the `SecureBoot` enforcement flag
+   is separate from PK/KEK/db/dbx, so nothing enrolled is lost. **Fix the offending `db` entry before
+   re-enabling**, or the same failure returns. Always try this first.
+2. **"Restore Factory Keys" / "Load Default Keys".** Reloads the OEM factory set — a known-good baseline, but
+   it **also erases the 2023 certs already enrolled**, so it is back-to-square-one on the migration, not an
+   undo of just the last change. On Dell this is `ResetAllKeysToDefault` (`dell-poweredge.md`).
+3. **"Reset to Setup Mode" / delete all keys.** Empties every database and leaves no PK. Last resort — where
+   both exist, prefer (2); a cleared PK leaves the box silently re-provisionable.
+
+**Never delete files under `/sys/firmware/efi/efivars/` directly** — it is a live view of firmware NVRAM, and
+removing `PK`/`KEK`/`db`/`Setup` entries can corrupt the store.
+
+**Dell:** roll back keys with the `ResetKeys` action types, not a BIOS downgrade. Whether a **BIOS rollback
+reverts enrolled key databases is undocumented — do not rely on it**; rollback addresses a defective BIOS
+*update*, not a key change you made. (A corrupt/interrupted BIOS *flash* is a different, separately documented
+Dell recovery path.)
+
+**VMs:** ephemeral NVRAM needs no recovery procedure — a cold stop/start re-templates it, which is simply the
+default behavior. For **persistent** NVRAM there is a real gap: **no KubeVirt/Harvester-documented way to reset
+a varstore to template defaults exists.** Only snapshot-restore-into-the-same-VM is documented. Deleting the
+`persistent-state-for-<vm>` PVC is *not* a documented or supported reset — do not present it as one.
+
+### How bad does this actually get?
+
+The worst *documented* outcome of a bad `db`/`KEK` change on server-class hardware is **unbootable until
+someone reaches firmware setup** and disables Secure Boot or restores factory keys — no authoritative source
+records an unrecoverable brick on PowerEdge or generic rack hardware from a key change alone. Hold that
+alongside the LWN note under Failure modes: permanent damage *has* been observed from **forced** updates on
+certain (largely client/OEM) firmware. Both are true; the fleet-relevant read is "recoverable, but needs hands
+or iDRAC, so pilot first."
+
+A concrete recoverable case worth recognizing: HP's April 2026 BIOS (v01.04.05 Rev A) staged the 2023 certs
+and threw affected machines into a **BitLocker recovery loop** — PCR7 no longer matched the sealed value. Fix
+was firmware setup: enable the three 2023 CA options, save, reboot. Suspend BitLocker *before* the write and
+this never happens.
+
 ## The do-nothing risk timeline (what to tell a worried operator)
 
 - **The deadline: settled, not predicted.** Two of the three 2011 CAs have now expired — KEK CA 2011 on

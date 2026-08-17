@@ -87,6 +87,10 @@ Dell out-of-band: `racadm ... bioscert view --all` or Redfish `GET /redfish/v1/S
 Harvester VMs: first find which VMs even *use* Secure Boot (`kubectl ... efi.secureBoot`) — many don't, and
 those are moot. Exact commands per reference.
 
+**Capture a rollback point before the first write** — on Dell an `export_certificates` dump, on a persistent-
+NVRAM VM a backend-storage snapshot. On an OEM-keyed Linux host an `efi-readvar` dump is evidence but *not* a
+replayable restore; the real undo there is the firmware's factory-keys option. `gotchas-and-decisions.md` § Recovery.
+
 ### 2. Establish the surface and route (table above), then apply that reference's runbook
 
 Each reference is self-contained: audit → cleanest fix → fallback → verify.
@@ -143,6 +147,7 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
   (floor **v1.6.0**, per-line table, the artifact-proof method), host Secure Boot + bug #7343, the
   ephemeral-vs-persistent NVRAM triage with exact `kubectl` commands, `virt-fw-vars` injection.
 - `references/gotchas-and-decisions.md` — order of operations (PK→KEK→db), HP/Fujitsu standalone-db block,
-  NVRAM exhaustion, BitLocker/PCR7 reseal, the do-nothing risk timeline, the disable-Secure-Boot tradeoff.
+  NVRAM exhaustion, BitLocker/PCR7 reseal, **the backup + recovery ladder for an enrollment that went wrong**,
+  the do-nothing risk timeline, the disable-Secure-Boot tradeoff.
 - `references/sources.md` — primary sources (Microsoft, Dell, Red Hat, Canonical, fwupd/LVFS, SUSE/Harvester,
   KubeVirt) with one-line credibility notes.
