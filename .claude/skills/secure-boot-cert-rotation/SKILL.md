@@ -38,7 +38,10 @@ would be a self-inflicted brick vector). Canonical, Red Hat, fwupd, and LWN all 
 
 Consequences, and the entire reason this is a *hygiene* task and not a *fire*:
 
-- **Every machine that boots today keeps booting after the expiry dates.** Nothing breaks on the deadline.
+- **Every machine that boots today keeps booting after the expiry dates.** Nothing breaks on the deadline —
+  and this is now **observed, not predicted**: the **2011 KEK CA expired 2026-06-24 and the 2011 UEFI CA on
+  2026-06-27**, with no resulting fleet incident (LWN retrospective, 2026-07-01). **Windows Production PCA
+  2011 expires 2026-10-19** and is expected to pass the same way. Say this plainly to a worried operator.
 - The **real** risks are forward-looking:
   1. **Forward-compat** — once a distro ships a shim/bootloader signed *only* by the **Microsoft UEFI CA 2023**,
      a machine whose firmware `db` lacks that 2023 cert can't validate the new binary. On Linux this surfaces

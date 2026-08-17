@@ -36,14 +36,23 @@
 
 ## The do-nothing risk timeline (what to tell a worried operator)
 
-- **Immediate (the deadline):** nothing. No reboot, no error — firmware ignores expiry; machines boot and patch
-  normally. The expiry is invisible to running systems.
-- **Months later:** the realistic break is *forward-compat* — new install/PXE media and post-cutover bootloader
-  updates are signed only with 2023 keys; a `db` lacking the 2023 CA can't validate them. On Linux this stalls
-  the boot-stack update chain ("can't install updates"); installers fail rather than producing an unbootable
-  machine.
-- **Ongoing:** dbx/revocation freeze — a machine on the expired 2011 KEK can't receive new revocations; known
-  bootkits stay trusted. On Linux this is softened by SBAT (self-healing).
+- **The deadline: settled, not predicted.** Two of the three 2011 CAs have now expired — KEK CA 2011 on
+  **2026-06-24**, UEFI CA 2011 on **2026-06-27** — and **nothing happened**. No fleet incident, no boot
+  failures attributable to expiry; the post-expiry retrospective (LWN 2026-07-01) confirms it outright. Use
+  this as observed fact when reassuring an operator, not as a forecast. **Windows Production PCA 2011 expires
+  2026-10-19** and there is no reason to expect it to behave differently. What *has* hurt people is the
+  remediation (see Failure modes above), not the expiry.
+- **The real trigger to watch is not a date.** Per the same retrospective, the event that actually bites is
+  **the next CVE-driven shim respin** — the first security update that forces a distro to ship a 2023-only
+  signed shim. That is unscheduled and could land any month, which is exactly why this is worth doing on a
+  calm calendar rather than under an advisory. It has already happened on **aarch64** (`mechanism.md`).
+- **Forward-compat, when it comes:** new install/PXE media and post-cutover bootloader updates signed only
+  with 2023 keys; a `db` lacking the 2023 CA can't validate them. On Linux this stalls the boot-stack update
+  chain ("can't install updates"); installers fail rather than producing an unbootable machine.
+- **Revocation freeze: not yet in effect.** Microsoft is still signing `dbx` with the **2011** KEK (verified by
+  parsing the June 2026 payload — `mechanism.md`), so machines lacking the 2023 KEK are not currently missing
+  revocations. The freeze starts at the un-announced dbx signing cutover. On Linux it is softened anyway by
+  SBAT (self-healing).
 
 So: **low immediate risk, real *compounding* risk.** It's a scheduled hygiene task, not a fire drill. The
 dominant practitioner framing: "real but probably won't hurt you — do it before the forward-compat and
