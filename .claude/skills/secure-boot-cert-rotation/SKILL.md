@@ -59,9 +59,11 @@ A machine has exactly one of three firmware surfaces. Identify it first; everyth
 | **VM virtual OVMF varstore** | Harvester / KubeVirt (and any QEMU/OVMF) guest VMs | iDRAC does **not** touch this. Governed by the **Harvester version → virt-launcher → OVMF** (floor **v1.6.0**); then ephemeral-vs-persistent-NVRAM triage. | `references/harvester-vms.md` |
 
 `fwupd`/LVFS is the desktop/laptop path. It is the **wrong tool** for Dell PowerEdge (firmware ships via
-iDRAC/DSU, not LVFS), for VMs (no capsule path), and on stock Ubuntu it is also simply **too old** (22.04 ships
-1.7.9, 24.04 ships 1.9.34; the `uefi-db`/`uefi-kek` cert plugins need **fwupd ≥ 2.0.8**). If `fwupdmgr` "does
-nothing" on a server, that is expected — use the firmware-native path. Details in each platform reference.
+iDRAC/DSU, not LVFS) and for VMs (no capsule path) — a **coverage** limit, not a version one. The old "stock
+Ubuntu fwupd is too old" caveat has **expired**: jammy and noble `-updates` both carry **fwupd 2.0.20** as of
+2026-07-09, past the **≥ 2.0.8** floor the `uefi-db`/`uefi-kek` cert plugins need, so a plain `apt upgrade` now
+clears it. If `fwupdmgr` still "does nothing" on a server, that is expected — it means no LVFS/capsule path for
+that hardware, so use the firmware-native path. Details in each platform reference.
 
 ## Workflow
 

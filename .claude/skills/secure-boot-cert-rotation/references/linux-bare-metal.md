@@ -80,11 +80,13 @@ Append keeps the 2011 certs alongside — that's correct.
 
 ## fwupd — only if it's a supported laptop/desktop on LVFS, and only ≥ 2.0.8
 
-The `uefi-db`/`uefi-kek` plugins that perform this rotation exist only in **fwupd ≥ 2.0.8**. Stock Ubuntu is
-too old (verify on Launchpad at use time — historically jammy `-updates` = 1.7.9, noble `-updates` = 1.9.34,
-and the 2.0.20 backport sat in `-proposed`). 26.04 ships fwupd ≥ 2.1 with the plugins. To get a new-enough
-fwupd on 22.04/24.04: `sudo snap install fwupd` (Canonical-maintained; `--channel=2.0.x/stable` for the 2.0
-track) — **remove the deb fwupd first; two daemons conflict.** Then:
+The `uefi-db`/`uefi-kek` plugins that perform this rotation exist only in **fwupd ≥ 2.0.8**. **Stock Ubuntu is
+no longer too old** — the 2.0.20 backport left `-proposed` and landed in both LTS `-updates` pockets on
+2026-07-09 (`jammy-updates` / `noble-updates` = `2.0.20-1ubuntu2~22.04.2` / `~24.04.2`), and 26.04 ships
+2.1.1. So `sudo apt update && sudo apt upgrade` is now the normal way to clear the floor; re-verify on
+Launchpad at use time. The snap (`sudo snap install fwupd`, Canonical-maintained, stable = 2.1.7) remains a
+fallback for older pockets — **remove the deb fwupd first; two daemons conflict** — but prefer snap **≥ 2.1.6**
+if enrolling a KEK: earlier snap builds installed the wrong blob for KEK updates (fixed in 2.1.6). Then:
 ```bash
 sudo fwupdmgr refresh && sudo fwupdmgr get-updates && sudo fwupdmgr update
 sudo fwupdmgr security          # the "UEFI db" HSI attribute flips to passing once 2023 is in db
@@ -99,9 +101,9 @@ cert into firmware. So:
 
 - **22.04 long-uptime boxes:** don't reinstall *for the cert problem* — it won't help. Audit + enroll the 2023
   `db` (or take the Dell iDRAC path). Reinstall only for other reasons (support window, newer fwupd-by-default).
-- **24.04** is "better equipped" only in that its fwupd baseline is closer to 2.0 — but it still needs the
-  snap/backport, so the manual `db` append is the more reliable path there too.
-- **26.04** is the one release where `fwupdmgr` would just work on supported hardware — still irrelevant on
-  PowerEdge and in VMs.
+- **24.04 (and 22.04)** now reach a cert-capable fwupd through `-updates` alone — so OS version no longer
+  gates the fwupd path on either LTS. What still gates it is *hardware coverage* (LVFS), not the release.
+- **26.04** ships 2.1.1 out of the box — but that only matters on LVFS-covered hardware, so it remains
+  irrelevant on PowerEdge and in VMs.
 
 **Bottom line:** the firmware-cert fix is orthogonal to OS version. Decouple the two decisions.
