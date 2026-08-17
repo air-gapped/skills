@@ -24,11 +24,16 @@
   guidance."*
 - **NVRAM exhaustion** → `failed to write efivarfs`. Fix: reboot + BIOS "restore Secure Boot keys to factory
   defaults" to defragment EFI variable space. Pre-check free space before any write on old firmware.
-- **Real 2026 incidents:** a wave of *update-application* failures (Event IDs **1795** "media is write
-  protected" / **1796**) hit Jan–Mar 2026, prominently on **Hyper-V VMs during the KEK step** and on buggy
-  firmware. Microsoft shipped fixes 2026-03-10 (Server 2025: 2026-04-14). These were **failed enrollments, not
-  mass bricking** — devices kept running. fwupd's measured rates: ~98% KEK / ~99% db success — small but
-  non-zero absolute failures at fleet scale.
+- **Real 2026 incidents:** a wave of *update-application* failures hit Jan–Mar 2026, prominently on **Hyper-V
+  VMs during the KEK step** and on buggy firmware. The two Windows event IDs, verbatim from Microsoft's
+  "Secure Boot DB and DBX variable update events" article — **1795**: *"The system firmware returned an error
+  &lt;firmware error code&gt; when attempting to update a Secure Boot variable"*; **1796**: *"The Secure Boot update
+  failed to update &lt;event type&gt; with error &lt;error code&gt;"* (the catch-all for steps 1795 doesn't cover — event
+  types include DB, DBX, SBAT, KEK 2023, Revoke UEFI CA 2011). Both retry on next restart. Status today: the
+  **Hyper-V 1795 issue is resolved** (fixes 2026-03-10; Server 2025 2026-04-14), but an **Azure Trusted Launch
+  1795 issue remains open** (last updated 2026-07-14). These were **failed enrollments, not mass bricking** —
+  devices kept running. fwupd's measured rates: ~98% KEK / ~99% db success — small but non-zero absolute
+  failures at fleet scale.
 - **Dual-boot / FDE:** a db change can re-seal TPM PCR7 → BitLocker recovery prompt / Linux FDE re-enroll.
   Suspend BitLocker before the write.
 - **"Long uptime" is a red herring for staleness on Linux** (db/KEK live in NVRAM, written live, independent of
