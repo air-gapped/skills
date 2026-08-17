@@ -32,9 +32,24 @@ running systems.
 1. **Forward-compat.** When a distro cuts over to shipping shim/bootloaders signed *only* by the Microsoft UEFI
    CA 2023, a firmware `db` lacking that 2023 cert can't validate the new binary. On Linux: "package-management
    failures / inability to install updates" once the boot-stack update chain stalls. New installs/PXE on such
-   firmware also fail. Distros mitigate by shipping **dual-signed** shim (2011 **and** 2023) until cutover —
-   Red Hat: RHEL 9/10 May 2026, RHEL 8 June 2026; Canonical's dual-signed shim was planned, verify it has
-   landed in stable before relying on it.
+   firmware also fail. Distros mitigate by shipping **dual-signed** shim (2011 **and** 2023) until cutover.
+
+   **Where the cutover actually stands (verified 2026-08-18):**
+
+   | Distro | Shim status | Evidence |
+   |---|---|---|
+   | **RHEL 8 / 9 / 10, x86_64** | **dual-signed, shipped 2026-06-10** — `shim-x64` 16.1-2 / 16.1-7 / 16.1-4 | access.redhat.com/articles/7128933 (upd. 2026-07-10) |
+   | **RHEL 9.7 / 10.0, aarch64** | ⚠️ **2023-ONLY signed** — the cliff, already here | AlmaLinux wiki (states same holds for RHEL) |
+   | **SUSE SLES 15 SP6** | shim **16.1** shipped 2026-06-16 (same upstream release RHEL dual-signs; advisory does not say "dual-signed" verbatim) | SUSE-SU-2026:0741 |
+   | **Ubuntu (all LTS)** | **no new shim at all** — archive `shim-signed` is still `1.59+15.8-0ubuntu2` (2024-10-02) | archive.ubuntu.com pool listing |
+
+   Two consequences. **(a) The cliff is real and has already landed on aarch64** — an ARM RHEL/AlmaLinux host
+   whose `db` lacks the 2023 CA cannot validate its current shim. On **x86_64 no distro has dropped the 2011
+   signature yet**, and none has published a date. **(b) Canonical took a different route**: rather than a new
+   shim, it pushed the **2023 certs themselves via fwupd** in June 2026 (rollout 06-08, paused 06-11 for MTD
+   LP#2156479 and BitLocker/TPM-FDE dual-boot LP#2156480, completed 06-23), pre-staging firmware trust so a
+   future shim update won't strand systems. Ubuntu 26.04 point releases and new cloud images are stated to
+   require the 2023 CA *later* — planned, not shipped.
 2. **Revocation freeze — real, but *not yet started* (verified 2026-08-18).** The eventual risk: no valid 2023
    KEK → the machine can never enroll new `dbx` entries, so known-vulnerable bootloaders stay trusted. But
    Microsoft is **still signing dbx with the 2011 KEK**, so machines that never got the 2023 KEK are *not*
