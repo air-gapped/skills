@@ -1,5 +1,11 @@
 # Linux bare metal — audit, fwupd-free manual db append, and the reinstall decision
 
+- [Audit](#audit-read-only)
+- [The fwupd-free manual db append](#the-fwupd-free-manual-db-append-works-everywhere-no-setup-mode)
+- [Firmware-menu enrollment + the ESP staging trick](#firmware-menu-enrollment-amiwhitebox-key-management-and-the-esp-staging-trick)
+- [fwupd — when it applies](#fwupd-only-if-its-a-supported-laptopdesktop-on-lvfs-and-only-208)
+- [The reinstall decision](#the-reinstall-decision-patch-in-place-vs-reinstall-to-24042604)
+
 For Dell hardware, prefer the iDRAC path (`dell-poweredge.md`) — it also delivers the 2023 KEK. Use the
 OS-side append below for non-Dell bare metal, or when you want to enroll the `db` cert from the OS without an
 iDRAC BIOS flash/reboot.

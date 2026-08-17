@@ -1,5 +1,11 @@
 # Harvester HCI / KubeVirt VMs — two layers, the v1.6.0 floor, and NVRAM triage
 
+- [Where guest Secure Boot keys come from](#where-guest-secure-boot-keys-actually-come-from-verified-not-inferred)
+- [Minimum Harvester version = v1.6.0](#minimum-harvester-version-with-2023-certs-in-guest-ovmf-v160)
+- [Layer 1 — Dell host firmware](#layer-1-the-dell-host-firmware-only-if-the-host-runs-secure-boot-on)
+- [Layer 2 — the guest VMs](#layer-2-the-guest-vms-idrac-never-touches-these)
+- [Bottom line for a 1.5.0 fleet](#bottom-line-for-a-150-fleet)
+
 A Harvester-on-Dell deployment has **two independent firmware surfaces**. Keep them separate — conflating them
 is the #1 source of wrong advice here.
 

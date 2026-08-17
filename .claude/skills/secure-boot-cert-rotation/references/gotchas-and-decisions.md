@@ -1,5 +1,12 @@
 # Gotchas, order of operations, and the do-nothing decision
 
+- [Order of operations](#order-of-operations)
+- [Failure modes](#failure-modes-usually-recoverable-but-not-always-pilot-before-fleet)
+- [Recovery — back out an enrollment that went wrong](#recovery-back-out-an-enrollment-that-went-wrong)
+- [The do-nothing risk timeline](#the-do-nothing-risk-timeline-what-to-tell-a-worried-operator)
+- [The disable-Secure-Boot stopgap](#the-disable-secure-boot-stopgap)
+- [OEM-abandonment](#oem-abandonment-the-one-no-patch-fixes)
+
 ## Order of operations
 
 1. **Ensure PK present → (KEK) → db.** A `db`-2023 enrollment is authorized by the **existing 2011 KEK**, so
@@ -27,8 +34,8 @@
 - **Real 2026 incidents:** a wave of *update-application* failures hit Jan–Mar 2026, prominently on **Hyper-V
   VMs during the KEK step** and on buggy firmware. The two Windows event IDs, verbatim from Microsoft's
   "Secure Boot DB and DBX variable update events" article — **1795**: *"The system firmware returned an error
-  &lt;firmware error code&gt; when attempting to update a Secure Boot variable"*; **1796**: *"The Secure Boot update
-  failed to update &lt;event type&gt; with error &lt;error code&gt;"* (the catch-all for steps 1795 doesn't cover — event
+  `<firmware error code>` when attempting to update a Secure Boot variable"*; **1796**: *"The Secure Boot update
+  failed to update `<event type>` with error `<error code>`"* (the catch-all for steps 1795 doesn't cover — event
   types include DB, DBX, SBAT, KEK 2023, Revoke UEFI CA 2011). Both retry on next restart. Status today: the
   **Hyper-V 1795 issue is resolved** (fixes 2026-03-10; Server 2025 2026-04-14), but an **Azure Trusted Launch
   1795 issue remains open** (last updated 2026-07-14). These were **failed enrollments, not mass bricking** —
