@@ -29,8 +29,8 @@ varstore has had the 2023 KEK + UEFI CA 2023 baked in (via `virt-fw-vars`) since
 |---|---|---|
 | **1.5.x** (incl. 1.5.2, last GA; EOL) | SLES 15.6 / `ovmf-202308` | ❌ **No — 2011-only** |
 | **1.6.0 / 1.6.1** | SLES 15.7 / `ovmf-202408` | ✅ Yes |
-| **1.7.x** | SLES 15.7 / `ovmf-202408` | ✅ Yes |
-| **1.8.0** (GA 2026-04-24) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
+| **1.7.x** (maintenance line; latest 1.7.3, 2026-08-07) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
+| **1.8.x** (1.8.0 GA 2026-04-24 → **1.8.2, 2026-08-06 = latest GA**) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
 
 → **No 1.5.x release contains the 2023 certs**, and there is no node patch that adds them to guests — a 1.5.x
 cluster must **upgrade to ≥ 1.6.0.** The template only re-seeds **new/ephemeral** VMs; a pre-existing
@@ -42,8 +42,10 @@ harvester/harvester` + the per-release virt-launcher image at use time — versi
 Harvester *can* boot SB-on (the SLE Micro shim is Microsoft-UEFI-CA-signed → SUSE keys for grub/kernel), but
 1.5.x is commonly installed **SB-off** because of bug **harvester#7343** — the 1.5.x ISO's stale shim fails the
 SBAT self-check (`Security Policy Violation` / `SBAT self-check failed`) when booting on a Secure-Boot host;
-the documented workaround is install with SB off, optionally re-enable after (fixed only in 1.8.0-dev, so
-**1.5.x is still affected**). Check: iDRAC/BIOS Secure Boot setting, or `mokutil --sb-state` on the node.
+the documented workaround is install with SB off, optionally re-enable after. **Now fixed and shipped in
+v1.8.0 GA** (PR `harvester-installer#1217`; the issue's close is a genuine QA verification on
+`v1.8.0-dev-20260118`, not a stale-bot close) — so **1.5.x/1.6.x/1.7.x installers remain affected** and still
+need the SB-off workaround. Check: iDRAC/BIOS Secure Boot setting, or `mokutil --sb-state` on the node.
 **ON** → iDRAC BIOS update + reboot (`dell-poweredge.md`). **OFF** → host firmware certs are irrelevant to the
 host.
 
@@ -108,7 +110,7 @@ kubectl exec -n "$NS" "$POD" -- sh -c 'strings /usr/share/qemu/ovmf-x86_64-smm-m
 ## Bottom line for a 1.5.0 fleet
 
 No 1.5.x has the 2023 certs and no node patch adds them to guests. The durable, clean fix is **upgrade
-1.5.0 → ≥ 1.6.0** (sequential: 1.5.0 → 1.5.2 → 1.6.x → … → 1.8.0 — and you must leave EOL 1.5.x anyway), then
+1.5.0 → ≥ 1.6.0** (sequential: 1.5.0 → 1.5.2 → 1.6.x → … → 1.8.2 — and EOL 1.5.x has to be left anyway), then
 **cold stop/start each Secure-Boot Linux VM** (ephemeral → re-templates and picks up 2023). Low urgency: VMs
 keep booting regardless; the 2023 db cert only bites once a guest's shim updates to a 2023-only-signed build,
 and distros dual-sign shim meanwhile — so fold this into the (already-needed) Harvester upgrade rather than
