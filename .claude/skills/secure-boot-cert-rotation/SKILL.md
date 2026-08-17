@@ -1,18 +1,19 @@
 ---
 name: secure-boot-cert-rotation
 description: >-
-  Triage and remediate the Microsoft Secure Boot 2011→2023 UEFI certificate rotation (CAs expiring June/October
-  2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs.
-  Establishes the load-bearing fact that UEFI firmware ignores certificate expiry — nothing stops booting on the
-  deadline; the real risk is forward-compat once a 2023-only-signed shim arrives, plus a dbx/revocation freeze —
-  then routes to the cleanest per-platform fix: iDRAC BIOS-staged keys applied on reboot (Dell), fwupd-free
-  manual `db` append that self-authenticates via the existing 2011 KEK (Linux), and the Harvester virt-launcher
-  OVMF floor (v1.6.0) with ephemeral-vs-persistent NVRAM triage (VMs). Covers the PK→KEK→db trust chain, why no
-  generic Microsoft 2023 KEK payload exists, and audit via mokutil / efi-readvar / racadm bioscert / Redfish.
+  Triage and fix the Microsoft Secure Boot 2011→2023 UEFI certificate rotation across Dell PowerEdge / iDRAC9
+  bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs. Two 2011 CAs expired June 2026 and
+  Windows Production PCA 2011 expires 2026-10-19 — but UEFI firmware ignores certificate expiry, so nothing
+  stopped booting; the real risks are forward-compat once a 2023-only-signed shim arrives (already true on
+  aarch64) plus a dbx/revocation freeze. Routes to the per-platform fix: iDRAC BIOS-staged keys applied on
+  reboot (Dell), fwupd-free manual `db` append self-authenticating via the existing 2011 KEK (Linux), and the
+  Harvester virt-launcher OVMF floor (v1.6.0) with ephemeral-vs-persistent NVRAM triage (VMs). Covers the
+  PK→KEK→db trust chain, the missing generic 2023 KEK payload, backup/rollback, and audit via mokutil /
+  efi-readvar / racadm bioscert / Redfish.
 when_to_use: >-
-  Use whenever secure boot certificate expiry, the 2026 deadline, KEK/db/dbx updates, KEK CA 2011, Microsoft
-  UEFI CA 2011/2023, or "will our servers still boot after 2026" come up. Also on symptom-only prompts that
-  don't name the rotation: a kernel/shim update that won't boot, "Secure
+  Use whenever secure boot certificate expiry, KEK/db/dbx updates, KEK CA 2011, Microsoft UEFI CA 2011/2023,
+  "did the June 2026 expiry break anything", or "will our servers still boot" come up. Also on symptom-only
+  prompts that don't name the rotation: a kernel/shim update that won't boot, "Secure
   Boot Violation" / "Invalid signature" at boot, "fwupdmgr does nothing on our servers", mokutil / efi-updatevar,
   Dell PowerEdge secure boot BIOS, Harvester VM secure boot, OVMF varstore, virt-fw-vars, or "should we
   reinstall to fix secure boot". NOT for MOK enrollment of self-signed kernel modules or generic GRUB/UEFI repair.
