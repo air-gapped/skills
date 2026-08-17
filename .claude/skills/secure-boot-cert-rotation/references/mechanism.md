@@ -79,11 +79,11 @@ maintainer, confirming: "it's actually signed by the old KEK… now it can apply
 KEK/` is organized **per-OEM**: each `KEKUpdate_<OEM>_PK*.bin` is signed by *that vendor's PK* and only enrolls
 on that vendor's firmware. The 2023 KEK ships only as a **raw cert**. So the 2023 KEK arrives via: (a) OEM BIOS
 update (Dell), (b) Windows Update servicing, (c) fwupd's per-hardware LVFS KEK update, or (d) self-sign with
-your own PK in Setup Mode. For VMs, `virt-fw-vars` injects it offline (acting as the platform owner).
+a local PK in Setup Mode. For VMs, `virt-fw-vars` injects it offline (acting as the platform owner).
 
-**Practical consequence:** the **db cert** (what you need to *boot* future 2023-signed bootloaders) is trivially
-enrollable everywhere, fwupd-free. The **2023 KEK** (what you need to keep *receiving* future db/dbx updates) is
-the OEM/firmware-dependent part — prioritize db first; do KEK where the platform gives you a path.
+**Practical consequence:** the **db cert** (required to *boot* future 2023-signed bootloaders) is trivially
+enrollable everywhere, fwupd-free. The **2023 KEK** (required to keep *receiving* future db/dbx updates) is
+the OEM/firmware-dependent part — prioritize db first; do KEK wherever the platform offers a path.
 
 ## Deployment ordering (Microsoft's documented sequence)
 

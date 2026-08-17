@@ -87,7 +87,7 @@ The crux: **ephemeral NVRAM is re-templated from the virt-launcher firmware on e
   the VM** — it re-templates off the 2023 virt-launcher and picks up the certs (*a soft guest reboot does NOT
   re-seed* — the launcher pod must be recreated). ⚠️ On a `< 1.6.0` cluster, an in-guest append is **wiped on
   the next cold stop/start** (re-templated from the 2011-only launcher), so it is **not durable** — don't rely
-  on it until you've upgraded, or convert the VM to persistent NVRAM first.
+  on it until the cluster is upgraded, or convert the VM to persistent NVRAM first.
 - **Secure Boot + persistent NVRAM** → not auto-refreshed (varstore in the `persistent-state-for-<vm>` PVC,
   `nvram` subpath). Either in-guest append (durable here), or offline-inject with the VM stopped:
   ```bash

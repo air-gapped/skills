@@ -12,11 +12,12 @@ description: >-
   efi-readvar / racadm bioscert / Redfish.
 when_to_use: >-
   Use whenever secure boot certificate expiry, KEK/db/dbx updates, KEK CA 2011, Microsoft UEFI CA 2011/2023,
-  "did the June 2026 expiry break anything", or "will our servers still boot" come up. Also on symptom-only
-  prompts that don't name the rotation: a kernel/shim update that won't boot, "Secure
+  "did the June 2026 expiry break anything", or "will our servers still boot" come up. NOT for MOK enrollment
+  of self-signed kernel modules, or generic GRUB/UEFI boot repair. Also fires on symptom-only prompts that
+  never name the rotation: a kernel/shim update that won't boot, "Secure
   Boot Violation" / "Invalid signature" at boot, "fwupdmgr does nothing on our servers", mokutil / efi-updatevar,
-  Dell PowerEdge secure boot BIOS, Harvester VM secure boot, OVMF varstore, virt-fw-vars, or "should we
-  reinstall to fix secure boot". NOT for MOK enrollment of self-signed kernel modules or generic GRUB/UEFI repair.
+  Dell PowerEdge secure boot BIOS, Harvester VM secure boot, OVMF varstore, virt-fw-vars, "should we
+  reinstall to fix secure boot".
 ---
 
 # secure-boot-cert-rotation
@@ -71,7 +72,7 @@ that hardware, so use the firmware-native path. Details in each platform referen
 
 ## Workflow
 
-### 1. Audit before you touch anything (read-only)
+### 1. Audit before touching anything (read-only)
 
 Always start by reading what's actually enrolled — the fix and its urgency depend on it. Verdict: *NEEDS
 UPDATE* if `db` has the 2011 Microsoft UEFI CA but not `Microsoft UEFI CA 2023`; *GOOD* if the 2023 certs are

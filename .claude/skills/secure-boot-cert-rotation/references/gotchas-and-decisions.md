@@ -57,9 +57,9 @@
 | VM, persistent NVRAM | snapshot the backend-storage PVC before the change | Yes — the *only* documented restore |
 | VM, ephemeral NVRAM | nothing to back up (state does not survive a cold restart by design) | n/a |
 
-> **The `efi-readvar` caveat that surprises people.** Writing a variable back needs a signature from the
+> **The `efi-readvar` caveat.** Writing a variable back needs a signature from the
 > *next-higher* key — restoring `db` needs the KEK private key, restoring `KEK` needs the PK. On an OEM-keyed
-> fleet those are Dell's/Microsoft's, not yours, so an `.esl` dump is **evidence, not a restore path**. Replay
+> fleet those belong to Dell/Microsoft, so an `.esl` dump is **evidence, not a restore path**. Replay
 > works only where the keys are self-managed (own PK/KEK, e.g. `sbctl`). For OEM-default content the real
 > restore is the firmware's own factory-keys option below.
 
@@ -79,7 +79,7 @@ removing `PK`/`KEK`/`db`/`Setup` entries can corrupt the store.
 
 **Dell:** roll back keys with the `ResetKeys` action types, not a BIOS downgrade. Whether a **BIOS rollback
 reverts enrolled key databases is undocumented — do not rely on it**; rollback addresses a defective BIOS
-*update*, not a key change you made. (A corrupt/interrupted BIOS *flash* is a different, separately documented
+*update*, not an operator-made key change. (A corrupt/interrupted BIOS *flash* is a different, documented
 Dell recovery path.)
 
 **VMs:** ephemeral NVRAM needs no recovery procedure — a cold stop/start re-templates it, which is simply the

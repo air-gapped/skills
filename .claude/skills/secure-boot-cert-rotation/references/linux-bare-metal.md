@@ -7,7 +7,7 @@
 - [The reinstall decision](#the-reinstall-decision-patch-in-place-vs-reinstall-to-24042604)
 
 For Dell hardware, prefer the iDRAC path (`dell-poweredge.md`) — it also delivers the 2023 KEK. Use the
-OS-side append below for non-Dell bare metal, or when you want to enroll the `db` cert from the OS without an
+OS-side append below for non-Dell bare metal, or to enroll the `db` cert from the OS without an
 iDRAC BIOS flash/reboot.
 
 ## Audit (read-only)
@@ -46,15 +46,15 @@ sudo chattr +i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f
 The payload filenames are confirmed against `microsoft/secureboot_objects` — note `DBUpdate2024.bin` *contains*
 the **Windows UEFI CA 2023** (the file-year is the servicing year, not the cert year).
 
-**KEK 2023:** there's no generic signed payload (see `mechanism.md`). On whitebox you either self-sign the raw
-`microsoft corporation kek 2k ca 2023.der` with your own PK (Setup Mode), or accept keeping the 2011 KEK — the
-db cert alone still lets you *boot* 2023-signed bootloaders; you just won't get *future* 2023-KEK-signed db/dbx
+**KEK 2023:** there's no generic signed payload (see `mechanism.md`). On whitebox, either self-sign the raw
+`microsoft corporation kek 2k ca 2023.der` with a local PK (Setup Mode), or accept keeping the 2011 KEK — the
+db cert alone is enough to *boot* 2023-signed bootloaders; what it forfeits is *future* 2023-KEK-signed db/dbx
 pushes. On Dell, take the KEK via the BIOS path instead.
 
 ## Firmware-menu enrollment (AMI/whitebox Key Management) — and the ESP staging trick
 
 The OS-side append above does **db** only. To also enroll the **2023 KEK** (no generic in-band KEK payload
-exists) or when you'd rather use the firmware UI, enroll from **UEFI Setup → Key Management**. Field-proven on
+exists), or to use the firmware UI instead, enroll from **UEFI Setup → Key Management**. Field-proven on
 whitebox AMI (ASRock Rack, etc.) — enrolls db+KEK in one console pass.
 
 **Files = raw `.der` from `PreSignedObjects/`** — NOT the `.bin` in `PostSignedObjects/` (those are the *signed*
@@ -73,7 +73,7 @@ payloads for the in-band `efi-updatevar`/`dbxtool` path above). In `microsoft/se
 1. **FAT32 USB** — `mkfs.vfat -F32 -n SBKEYS2023 /dev/sdXN`; the picker shows the volume by label.
 2. **ESP trick (no USB, no iKVM virtual-media):** `sudo cp *.cer /boot/efi/` — Key Management browses the live
    FAT32 **ESP** exactly like fwupd reads it. Pair with **iKVM console-only** for a fully-remote enroll, dodging
-   the flaky virtual-media layer entirely. Delete the files afterward if you want tidy.
+   the flaky virtual-media layer entirely. Delete the files afterward to keep the ESP tidy.
 
 **AMI flow:** Secure Boot Mode → **Custom** → **Key Management** → select **Authorized Signatures** (db) or
 **Key Exchange Keys** (KEK) → **Append** (*Set New*/*Update* **replace** — don't use them) → pick the file →
@@ -102,8 +102,8 @@ fwupd is irrelevant on Dell PowerEdge (not on LVFS) and in VMs (no capsule path)
 ## The reinstall decision (patch-in-place vs reinstall to 24.04/26.04)
 
 **Reinstalling the OS does NOT touch the firmware `db`/`KEK`** — NVRAM is OS-independent (Red Hat states this
-explicitly). A 26.04 install only ships a freshly 2023-aware shim/grub/fwupd stack; you **still** enroll the
-cert into firmware. So:
+explicitly). A 26.04 install only ships a freshly 2023-aware shim/grub/fwupd stack; the cert **still** has to
+be enrolled into firmware. So:
 
 - **22.04 long-uptime boxes:** don't reinstall *for the cert problem* — it won't help. Audit + enroll the 2023
   `db` (or take the Dell iDRAC path). Reinstall only for other reasons (support window, newer fwupd-by-default).

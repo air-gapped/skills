@@ -4,6 +4,16 @@ Grounded 2026-06-01; re-probed 2026-08-18 (first freshen, ~8 weeks after the Jun
 leaf numbers (Dell BIOS minimums, Ubuntu fwupd pockets, Harvester release dates / virt-launcher OVMF) against
 these at use time — methodology is durable, version numbers are not.
 
+- [Freshness ledger](#freshness-ledger)
+- [The mechanism](#the-mechanism-dates-cert-map-firmware-ignores-expiry)
+- [Post-expiry distro status](#post-expiry-distro-status-checked-2026-08-18)
+- [The signed payloads](#the-signed-payloads)
+- [Dell PowerEdge / iDRAC9](#dell-poweredge-idrac9)
+- [Ubuntu / Linux](#ubuntu-linux)
+- [Harvester / KubeVirt](#harvester-kubevirt-guest-ovmf-floor-v160)
+- [Recovery / rollback](#recovery-rollback-the-backup-and-back-out-path)
+- [Full research provenance](#full-research-provenance)
+
 ## Freshness ledger
 
 Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-probe and re-stamp).

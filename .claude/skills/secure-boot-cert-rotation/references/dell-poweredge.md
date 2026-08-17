@@ -67,5 +67,5 @@ during POST/LC) → a second reboot completes it.
   Pre-14G / EoSL servers may have no 2023-bearing DUP → manual `bioscert import` or accept the frozen posture.
 - These Dell hosts are also where the Ubuntu/Linux servers live — so for **bare-metal Linux on Dell, this
   iDRAC path is the primary fix** (it also delivers the 2023 *KEK*, which the OS-side manual `db` append in
-  `linux-bare-metal.md` cannot). Use the OS-side append only when you want db enrollment without a BIOS
+  `linux-bare-metal.md` cannot). Use the OS-side append only for db enrollment without a BIOS
   flash/reboot.
