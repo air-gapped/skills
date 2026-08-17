@@ -10,7 +10,14 @@
    updating WDS/PXE to serve 2023-signed boot files before clients trust the 2023 CA → every deploy fails.
    Dual-signed shim (2011 + 2023) is what makes the OS side forgiving during the transition.
 
-## Failure modes (recoverable, but real — pilot before fleet)
+## Failure modes (usually recoverable — but not always; pilot before fleet)
+
+- **Forced updates are not safe on all hardware — the one non-recoverable case.** Post-expiry retrospective
+  (LWN 2026-07-01, by a Microsoft author): *"Forced updates have left some machines unbootable. On certain
+  hardware, recovery requires physical access, and in some cases we have observed that systems were
+  permanently damaged."* Microsoft now publishes **"High Confidence Buckets"** in `microsoft/secureboot_objects`
+  — telemetry-derived device configurations where the 2023 db update is confirmed to apply safely. Check fleet
+  hardware against it before any force-push, and prefer the vendor firmware path over forcing a db write.
 
 - **HP & Fujitsu block standalone db updates** (observed post-update boot failures) → use a **full firmware
   update** on those, not a standalone db push. Red Hat: *"Do not force install db updates. Always follow vendor

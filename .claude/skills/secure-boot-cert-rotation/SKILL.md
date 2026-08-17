@@ -119,7 +119,10 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
    on a Harvester *node* to check guest OVMF (it isn't there — guest OVMF ships in the `virt-launcher`
    container). Match the mechanism to the firmware surface (routing table).
 7. **Audit → sample → fleet.** Read what's enrolled before acting; pilot one host/VM per model+firmware before
-   rolling out. Transient unbootability is the real (recoverable) risk, not hardware damage.
+   rolling out. The usual worst case is transient, recoverable unbootability — but *forced* trust-DB updates
+   are not safe on all firmware: some machines have needed physical recovery and a few were **permanently
+   damaged** (LWN, 2026-07-01, authored from Microsoft). That is what makes the pilot non-optional, and why
+   "force it fleet-wide" is never the answer. Note this is a risk of the *update*, not of the expiry.
 
 ## References
 
