@@ -32,9 +32,34 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   the 2011 signature and none has published a date; Ubuntu has not shipped a new shim at all. The next
   CVE-driven shim respin is the event to catch.
 
+## Ceiling analysis (2026-08-18) — read this before starting another improve loop
+
+**Three independent blind scores this pass all returned 84/100** (baseline, post-freshen, post-fix). The
+composition moved but the total did not, and that is the finding: **the rubric scores the text, not whether
+its claims are true.** This pass corrected a wrong safety claim, retired stale tooling advice, and re-verified
+twenty sources — none of which the rubric can see. Do not read "84 → 84" as a wasted pass, and do not chase
+the number with prose churn.
+
+Per-dimension movement across the three runs (baseline → post-freshen → post-fix):
+`1: 8→9→8 · 2: 9→9→9 · 3: 8→7→9 · 4: 9→9→8 · 5: 8→8→8 · 6: 8→8→7 · 7: 8→8→9 · 8: 9→9→9 · 9: 9→9→9 · 10: 8→8→8`
+
+Dims 1, 4 and 6 swing ±1 between scorers on unchanged text — that is scorer variance, not signal. **Only the
+Dim 3 move (7→9) was a real, verified fix**, and it corrected a regression this pass introduced. Treat single
+±1 dimension changes as noise; require two runs agreeing before acting.
+
+Two structural caps hold the total at 84 and neither is fixable by editing prose:
+- **Dim 10 capped at 8** by the Negative-Transfer Gate (no evals — see Open).
+- **Dim 6 vs Dim 2 are in genuine tension.** Scorers flag the "firmware ignores expiry" argument appearing in
+  both SKILL.md and `mechanism.md`, and the in-guest append block duplicated between `linux-bare-metal.md` and
+  `harvester-vms.md`. Both duplications are deliberate: SKILL.md states the fact because it is load-bearing
+  before any routing decision, and each reference is self-contained by design so a runbook can be followed
+  without cross-loading. Deduping would raise Dim 6 and lower Dim 2/4. **Two prior blind agents called the
+  House Rules "standing instructions, not waste."** Do not dedup without an author ruling — this is the third
+  pass to reach the same conclusion.
+
 ## Resolved this pass (2026-08-18 — freshen + improve, ~11 weeks after the previous pass)
 
-Ten changes kept, one per commit. Baseline blind **84/100**.
+Twelve changes kept, one per commit. Baseline blind **84/100** → final **84/100** (see ceiling analysis).
 
 Freshen (evidence-driven):
 - **Forced db updates have permanently damaged some machines** — SKILL.md said the real risk was transient

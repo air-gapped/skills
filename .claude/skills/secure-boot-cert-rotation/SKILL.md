@@ -105,7 +105,8 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
 
 ## House rules (the hard-won ones — encode these into every answer)
 
-1. **Don't fearmonger.** Lead with "nothing stops booting on the deadline." Expiry ≠ revocation; firmware
+1. **Don't fearmonger.** Lead with the strongest available form: *two of the three CAs already expired, in June
+   2026, and nothing stopped booting* — that is a record, not a reassurance. Expiry ≠ revocation; firmware
    ignores `notAfter`. The honest framing is forward-compat + revocation-freeze on a slow fuse, not a brick
    event. Getting this wrong sends operators into needless emergency reinstalls.
 2. **`db`-first works without the 2023 KEK.** The Microsoft 2023 `db` payloads are signed by the *old 2011 KEK*
