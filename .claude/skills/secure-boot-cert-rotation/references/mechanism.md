@@ -2,9 +2,10 @@
 
 ## Exact expiry dates (staggered — not one cliff)
 
-Three Microsoft 2011 CAs expire; the 2023 replacements are valid to **2038**.
+Three Microsoft 2011 CAs expire; the 2023 replacements are valid to **2038**. **Two have already passed**
+(2026-06-24, 2026-06-27) with no operational effect — only the October one is still ahead.
 
-| 2011 cert (expiring) | UEFI store | Signs | Expiry | → 2023 replacement(s) |
+| 2011 cert | UEFI store | Signs | Expiry | → 2023 replacement(s) |
 |---|---|---|---|---|
 | **Microsoft Corporation KEK CA 2011** | **KEK** | Updates to `db`/`dbx` | **2026-06-24** | **Microsoft Corporation KEK 2K CA 2023** (KEK) |
 | **Microsoft Corporation UEFI CA 2011** (the "third-party CA") | **db** | Linux **shim**, 3rd-party bootloaders **and** option ROMs | **2026-06-27** | split into **Microsoft UEFI CA 2023** (bootloaders/shim) **+ Microsoft Option ROM UEFI CA 2023** (db) |
