@@ -35,10 +35,18 @@ running systems.
    firmware also fail. Distros mitigate by shipping **dual-signed** shim (2011 **and** 2023) until cutover —
    Red Hat: RHEL 9/10 May 2026, RHEL 8 June 2026; Canonical's dual-signed shim was planned, verify it has
    landed in stable before relying on it.
-2. **Revocation freeze.** No valid 2023 KEK → the machine can never enroll new `dbx` entries; known-vulnerable
-   bootloaders (BlackLotus / CVE-2023-24932 class) stay trusted. On **Linux** this risk is lower because
-   revocation rides **SBAT** (generation-number, self-healing in shim), not `dbx`. The 2023 cert transition
-   does **not** change dbx/SBAT handling — it's an orthogonal axis (trust/expiry of signing CAs, not revocation).
+2. **Revocation freeze — real, but *not yet started* (verified 2026-08-18).** The eventual risk: no valid 2023
+   KEK → the machine can never enroll new `dbx` entries, so known-vulnerable bootloaders stay trusted. But
+   Microsoft is **still signing dbx with the 2011 KEK**, so machines that never got the 2023 KEK are *not*
+   currently missing revocations. Proof (House Rule #4 — parse the artifact, don't infer): the June 2026 dbx
+   push — `PostSignedObjects/DBX/amd64/DBXUpdate.bin`, commit `a728996` (2026-06-09), 12 new x64 hashes,
+   bootmgfw SVN → v9, **CVE-2026-45654** — parses as a PKCS#7 `EFI_VARIABLE_AUTHENTICATION_2` blob whose
+   SignerInfo is `CN=Microsoft Windows UEFI Key Exchange Key`, **issuer `CN=Microsoft Corporation KEK CA 2011`**.
+   No cert chaining to `KEK 2K CA 2023` appears in it. The freeze begins only when Microsoft cuts dbx signing
+   over to the 2023 KEK — **no cutover date is published**, so treat this as the trigger to watch, not a
+   present-day gap. On **Linux** the risk is lower regardless: revocation rides **SBAT** (generation-number,
+   self-healing in shim), not `dbx`. The 2023 cert transition does **not** change dbx/SBAT handling — it's an
+   orthogonal axis (trust/expiry of signing CAs, not revocation).
 
 ## The PK → KEK → db trust chain (why the fix needs no fwupd and no new KEK)
 
