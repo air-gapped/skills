@@ -4,7 +4,7 @@ External claims in this skill, with source, tier, and verify date. Re-verify dat
 
 Tiers: **A** = primary (project README / official docs site / repo files) · **B** = derived/secondary.
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | github.com/sooperset/mcp-atlassian (README) | A | MCP server for Jira+Confluence; **DC supported (Jira v8.14+, PAT)**; key tools; 72 tools; `uvx`/Docker quick start | 2026-06-07 |
 | github.com/sooperset/mcp-atlassian `pyproject.toml` | A | `requires-python>=3.10`; ~26 runtime deps; `uv-dynamic-versioning` build backend (version from git tags); entry point `mcp-atlassian` | 2026-06-07 |

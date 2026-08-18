@@ -10,7 +10,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 
 ## Execution layer (agent tooling)
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | github.com/sooperset/mcp-atlassian (README + releases) | A/B | mcp-atlassian: Jira+Confluence MCP, **DC supported (Jira v8.14+, PAT auth)**, key tools, ~98 tools (63 jira + 35 confluence `@tool` registrations at v0.23.0, 2026-07-18; repo active), READ_ONLY_MODE; v0.23.0 adds `jira_get_project_epic_hierarchy` + `jira_get_cross_project_dependencies` (#1286) | 2026-08-18 |
 | mcp-atlassian.soomiles.com/docs/tools-reference | A/B | Full jira_ tool list (read/write), `jira_get_transitions`/`jira_search_fields`/`jira_link_to_epic`/…; **no admin/schema tools** (URL 200 OK) | 2026-08-18 |
@@ -18,7 +18,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 
 ## Hierarchy
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | support.atlassian.com/.../what-are-issue-types | A | Verbatim work-type defs; 3-tier hierarchy; parentage rules | 2026-06-07 |
 | atlassian.com/agile/project-management/epics-stories-themes | A | Initiative/Epic/Story/Theme; Theme = goal/label, not a level; sizing | 2026-06-07 |
@@ -32,7 +32,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 
 Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-work-decomposition-research-2026-06-07.md` (8 agents, STORM, depth 2).
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | en.wikipedia.org/wiki/Work_breakdown_structure (quoting PMI Practice Standard for WBS, MIL-STD-881F) | A/B | 100% rule; work package = estimable leaf; 8/80 heuristic; deliverable/verb test; WBS-scope-vs-network-sequencing split | 2026-06-07 |
 | pmi.org WBS basic-principles (4883) + WBS→CPM (6212/6978) | A | work-package/critical-path defs; 80h-or-one-reporting-period; noun/verb boundary | 2026-06-07 |
@@ -64,7 +64,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Lean configuration
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | confluence.atlassian.com/ENTERPRISE/.../Managing number of custom fields in Jira DC | A | **800/1,200** custom-field guardrail; 4 perf-impact areas | 2026-06-07 |
 | support.atlassian.com/jira/kb/...too many custom fields | A | Context-per-issue driver; default-value cost; 1,916-field/12–13 s case | 2026-06-07 |
@@ -81,7 +81,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Workflows, automation, reporting
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | confluence.atlassian.com/automation/understand-versions-licenses-upgrades | A | **A4J free/native in DC** since JSW 9.0 (8.0+ no separate license) | 2026-06-07 |
 | confluence.atlassian.com/automation/automation-service-limits | A | Exact DC automation service limits + REST property keys | 2026-06-07 |
@@ -99,7 +99,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Non-software
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | confluence.atlassian.com/jiracoreserver/jira-core-overview + applications overview | A | Jira Core = always-present business base on DC | 2026-06-07 |
 | eficode.com/.../jira-software-and-jira-work-management-have-merged | A/B | JWM→Jira merger is **Cloud-only**; DC separate | 2026-06-07 |
@@ -112,7 +112,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Platform state (2026-08 pass)
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | atlassian.com/licensing/data-center-end-of-life | A | DC EOL: sale-end 2026-03-30, renew 2028-03-30, read-only 2029-03-28 (all three dates re-confirmed on the live page) | 2026-08-18 |
 | endoflife.date/jira-software | A | Server EOL 2024-02-15; latest **11.3.10 (2026-08-07)**; LTS 11.3 (EOL 2027-12-03) & 10.3 (latest 10.3.24, EOL 2026-12-05) | 2026-08-18 |
@@ -125,7 +125,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Multilingual & discovery
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | developer.atlassian.com/server/.../jira-issue-statuses-as-lozenges | A | `statusCategory` keys/ids/colors — language-independent anchor | 2026-06-07 |
 | docs.atlassian.com/.../REST/8.20.0 + DC REST examples | A | Discovery endpoints; transitions by id; createmeta/editmeta; `untranslatedName`/`clauseNames`/`cf[ID]` | 2026-06-07 |
@@ -138,7 +138,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 
 ## Dread / critique (use for principles, read skeptically)
 
-| Source | Tier | Supports | Verified |
+| Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | news.ycombinator.com/item?id=25590846 | A* | "It's your process, not Jira"; "minimal process" succeeds (*primary practitioner voices) | 2026-06-07 |
 | medium.com/@ss-tech/jira-is-not-agile… | B | Surveillance/velocity-as-target; "team serving the tool" | 2026-06-07 |

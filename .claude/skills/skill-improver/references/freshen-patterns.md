@@ -101,7 +101,7 @@ Decision rule (different from score-based loop — verification-based):
 ### Phase F6: Stamp and Summarize
 
 1. Any ref that probed successfully — fresh or updated — gets `Last verified: <today>` in sources.md.
-2. If sources.md was absent at Phase F1, create it now from the successfully-probed refs.
+2. If sources.md was absent at Phase F1, create it now from the successfully-probed refs — in the format standard (§1.1b). If the file exists in a legacy shape and step 0 didn't already convert it, convert it now.
 3. Print summary: total findings, kept, discarded, unverifiable, flagged-for-review.
 4. Stop. Do not re-probe the same skill in the same session.
 
@@ -130,6 +130,27 @@ Decision rule (different from score-based loop — verification-based):
 Each row carries `URL`, `Last verified` (YYYY-MM-DD), and optional `Pinned`
 (version or git ref). These are the authoritative refs — probe them first
 and stamp their dates on success.
+
+### 1.1b The sources.md format standard (enforced by freshen)
+
+Freshen normalizes every sources.md it touches to ONE canonical shape, so
+`staleness-report.py` and the Dim 9 staleness cap read the whole fleet
+uniformly:
+
+- **Markdown table rows** (one table total, or one per topic section) with a
+  date column named exactly **`Last verified`** — not `Verified`, not `LV`,
+  not `Date`. Any other columns (`Source`, `URL`, `Tier`, `Supports`,
+  `Notes`, `Pinned`) are free-form.
+- **Dates are ISO `YYYY-MM-DD`**, one per row, living only in that column.
+  Prose dates in notes cells are fine — they are never parsed as stamps.
+- **Historical/pinned rows** the author keeps as-is (lab results, quoted
+  posts, frozen snapshots) carry `<!-- ignore-freshen -->` in the row.
+- Legacy shapes — a `Verified` column, `[LV: YYYY-MM-DD]` bullet lists,
+  inline `Last verified:` prose — are still *read* by
+  `scripts/staleness-report.py` for back-compat, but **convert the file to
+  the standard as step 0 of the pass** (a pure-relocation mutation, no
+  content change, one commit) before probing. Do not leave a file in a
+  legacy shape after freshening it.
 
 ### 1.2 Secondary: SKILL.md and other reference files
 

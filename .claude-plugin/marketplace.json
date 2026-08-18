@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260818.46",
+      "version": "0.20260818.47",
       "author": {
         "name": "Jörgen"
       },
@@ -666,7 +666,7 @@
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
-      "version": "0.20260818.12",
+      "version": "0.20260818.13",
       "author": {
         "name": "Jörgen"
       },
@@ -680,7 +680,7 @@
       "name": "jira-confluence-mcp",
       "source": "./",
       "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
-      "version": "0.20260721.3",
+      "version": "0.20260818.4",
       "author": {
         "name": "Jörgen"
       },
