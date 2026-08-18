@@ -4,13 +4,30 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 
 ## Open
 
-_None requiring multi-file work._ Both skill-improver passes ran this session (trigger: no mutation needed; improve: converged in the 87–88 blind band, no dimension below 8).
+- **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
+- **Frontmatter headroom ~3 chars (1,533/1,536 combined; both scorers' nit).** Any trim/rewrite invalidates the trigger pass's validated 14/14 frontmatter, so the mutation requires a trigger-mode probe run (`probe-trigger.py`), not an improve iteration. If a trigger pass runs anyway, bank ~50–80 chars of headroom while it's measured.
+
+Anti-re-proposal guards (tried 2026-08-18, judged net-negative — do not re-propose the same shape):
+- **Condensing SKILL.md summary sections toward pointers** (the blind scorers' recurring Dim 6 flag: hierarchy misconceptions/heuristic, non-software bullets, decomposition anti-patterns). Tried on the non-software section — DISCARDED: each condensed bullet carried unique one-line coverage (Jira Core base, scheduler-app recurrence) for a primary trigger; Dim 5 loss ≥ Dim 6 gain. The genuinely redundant site (the closing Execution paragraph) was removed instead. The remaining SKILL.md/reference overlap is deliberate progressive-disclosure summary, priced in at blind Dim 6 = 7.
 
 Cosmetic-only notes (NOT attempted-and-blocked — future-cosmetic, content is correct):
-- Bold/em-dash density in the prime-directive and lean-levers sections (SKILL.md) — a marginal Dim 6 styling trim; flagged by both this session's blind scorers as the only stylistic fat.
-- `hierarchy.md` (exactly 100 lines, at the rubric's >100-line TOC threshold) has no in-file TOC; `work-modeling.md` gained one this pass. Add a `hierarchy.md` TOC if it grows past 100 lines.
+- Bold/em-dash density in the prime-directive and lean-levers sections (SKILL.md) — a marginal Dim 6 styling trim; flagged by the 2026-06-07 blind scorers as the only stylistic fat (SkillLens: format-only, low EV).
+- `hierarchy.md` (exactly 100 lines, at the rubric's >100-line TOC threshold) has no in-file TOC. Add one if it grows past 100 lines.
+- `sources.md` and `work-modeling.md` cite `autoresearch/results/...` provenance paths that exist only in the authoring repo (final 2026-08-18 blind docked Dim 8 for it). Harmless pointer on other installs; convert to plain-text provenance notes if it ever bites.
 
-## Resolved this pass
+## Resolved this pass — 2026-08-18 (`/skill-improver improve, freshen`)
+
+- **Freshen (F0–F6, ~13 probes, 0 unverifiable):** DC state re-stamped to 2026-08 (11.3.10 latest, 11.3 still the newest line, 10.3→2026-12-05); mcp-atlassian ~72→~98 tools at v0.23.0; in-scope new-feature note for `jira_get_project_epic_hierarchy` + `jira_get_cross_project_dependencies` (#1286). Re-affirmed fresh: JPOSERVER-4430 (still Closed/Not-a-bug via public REST), `jira_batch_create_issues` epic-link silent-drop (schema on main unchanged post-v0.23.0), DC EOL milestones, docs URL. 7 sources.md rows stamped 2026-08-18.
+- **Improve (6 iterations: 5 keeps, 1 discard): baseline blind 84 → final blind 85; self 87 → 89; bias aligned both ends (no dim gap ≥2).**
+  - Iter 1 KEEP (Dim 3 8→9, confirmed by final blind): purged 16 second-person slips from 5 reference files; residual grep hits are verbatim quotes only.
+  - Iter 2 KEEP (simplification): closing Execution paragraph collapsed to a one-line pointer (restated "How the work gets done").
+  - Iter 3 KEEP: contents line added to sources.md (146 lines; rubric-prescribed).
+  - Iter 4 KEEP (Dim 4 blind 8→9): scaffold sequence step 5 — exhaustive verify bound (exact child count, every epic link, every `blocks` edge; diffs reported, never silently re-created).
+  - Iter 5 DISCARD: non-software summary condensation (see anti-re-proposal guard above).
+  - Iter 6 KEEP: field audit completion bound (every Create-screen field gets a recorded yes or a remove recommendation).
+- Scaffold-probe verdict (11 flagged items) overridden with justification by self and both blind scorers independently: the flags are anti-pattern blacklists / thresholds / named-failure criteria, not invocation-flow scaffolding — no Dim 6 Boris cap.
+
+## Resolved — 2026-06-07
 
 ### 2026-06-07 — Improve pass (`/skill-improver improve`) — Dim 3 fix + Dim 2 TOC
 
