@@ -107,7 +107,7 @@ kubectl logs -n gpu-operator nvidia-cuda-validator-XXX -c cuda-validation
 
 On `failed to allocate device vector A, error code system not yet initialized` → FM not running on the host. See section above.
 
-On `unable to get device name: failed to find device with id '3182'` → known cosmetic bug gpu-operator #2231. Symptom is benign — `/dev/nvidia*` symlinks are still created. Real workloads work; only the validator's name-table check is unhappy. See [[gpu-operator]].
+On `unable to get device name: failed to find device with id '3182'` → known cosmetic bug gpu-operator #2231 (maintainer-closed 2026-07-27 stating B300 is supported, but no fix PR was named — treat the symptom as possible on operator versions ≤ v26.3.3 and re-test on newer releases). Symptom is benign — `/dev/nvidia*` symlinks are still created. Real workloads work; only the validator's name-table check is unhappy. See [[gpu-operator]].
 
 If the pod CrashLoopBackoffs for less than 3 minutes on first boot → normal; FM is still initializing. Wait.
 
