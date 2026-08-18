@@ -1,5 +1,7 @@
 # Sources — dated URL index for freshen mode
 
+Freshened: 2026-08-18
+
 Each row records the authoritative source for a claim in this skill. Freshen mode probes these and updates `Last verified:` dates.
 
 ## Official documentation
@@ -18,9 +20,9 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | sgl-project/sglang main | https://github.com/sgl-project/sglang | 2026-07-21 | Repo root. `main` = post-v0.5.15.post1 dev line |
-| Latest stable tag | https://github.com/sgl-project/sglang/releases/tag/v0.5.15.post1 | 2026-07-21 | **v0.5.15.post1 cut 2026-07-14 (isLatest)**. v0.5.15 07-10, v0.5.14 06-26, v0.5.13 06-13, v0.5.12.post1 05-26, v0.5.11 05-05 |
+| Latest stable tag | https://github.com/sgl-project/sglang/releases | 2026-07-21 | **v0.5.17 cut 2026-08-08 (isLatest)**; v0.5.16 shipped between it and v0.5.15.post1 (2026-07-14). Earlier: v0.5.15 07-10, v0.5.14 06-26, v0.5.13 06-13, v0.5.12.post1 05-26, v0.5.11 05-05. **The flag surface below was verified at v0.5.15.post1** — re-check it against v0.5.17 before quoting defaults |
 | `server_args.py` hicache field definitions | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py | 2026-07-21 | **Refactored to annotated-dataclass form** (`A[type, Arg(...)]`) — the old `:5635-5733` argparse line range no longer resolves; flags derive from field names. At v0.5.15.post1: write-policy gains `write_through_selective`; io-backend defaults to `kernel` and gains `kernel_ascend`; mem-layout defaults to `page_first` and gains `page_first_kv_split` + `page_head`; storage-backend gains `mori`. A separate `--enable-hisparse` / `--hisparse-config` subsystem now sits next to the hicache block |
-| `server_args.py:_handle_hicache` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py#L3100-L3200 | 2026-08-18 | Auto-rewrite normalisation rules — silent flips with WARNING logs |
+| `server_args.py:_handle_hicache` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py | 2026-08-18 | Auto-rewrite normalisation rules — silent flips with WARNING logs. `_handle_hicache` sits near line 7370 on main (`_handle_hicache_ratio_default` at 7366) in a 9974-line file; grep the name, the line moves every release |
 | `mem_cache/hiradix_cache.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/hiradix_cache.py | 2026-08-18 | `HiRadixCache` class |
 | `mem_cache/hi_mamba_radix_cache.py` (**removed on main** by #33468 "Remove the HiMambaRadixTree that is no longer in use" — still present through v0.5.17, so released-version guidance stands; re-gate when the next minor ships) | https://github.com/sgl-project/sglang/blob/v0.5.17/python/sglang/srt/mem_cache/hi_mamba_radix_cache.py | 2026-08-18 | `HiMambaRadixCache` for hybrid SSM models |
 | `managers/cache_controller.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/managers/cache_controller.py | 2026-08-18 | `HiCacheController` with two CUDA streams + two daemon threads |
@@ -39,7 +41,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | #21880 file backend slow in containers | https://github.com/sgl-project/sglang/issues/21880 | 2026-07-21 | **CLOSED 2026-06-18 BY THE STALE BOT — not fixed.** Last substantive comment 2026-04-18 reproduced it. Keep treating `file` as dev-only; v0.5.15 #26670 (CP-aware LRU eviction on this backend) may have changed the picture — measure, don't assume |
 | #16797 Mooncake 0.5.6+ TTFT regression | https://github.com/sgl-project/sglang/issues/16797 | 2026-05-29 | **CLOSED 2026-05-12**. Fixed in v0.5.11/v0.5.12. Pin 0.3.10.post1 only on older builds |
 | #19737 sgl-kernel 0.3.21 + FA3 + MoE + SXM IMA | https://github.com/sgl-project/sglang/issues/19737 | 2026-07-21 | **CLOSED COMPLETED 2026-05-03** |
-| #22105 input-length validation rejects L1+L2 fits | https://github.com/sgl-project/sglang/issues/22105 | 2026-07-21 | Still OPEN (activity 2026-06-02). Workaround `--allow-auto-truncate` (silent truncation) |
+| #22105 input-length validation rejects L1+L2 fits | https://github.com/sgl-project/sglang/issues/22105 | 2026-08-18 | **Treat as still open** — stale-bot closed it 2026-08-02 with no fix; last real comment (2026-06-02) has a maintainer saying smaller host-memory pools are still being worked on. Workaround `--allow-auto-truncate` (silent truncation) |
 | #20529 GLM5 pp2 indexer shape mismatch | https://github.com/sgl-project/sglang/issues/20529 | 2026-07-21 | **CLOSED COMPLETED 2026-05-20** |
 | #22757 GLM5/DSA L3 segfault on H20 | https://github.com/sgl-project/sglang/issues/22757 | 2026-07-21 | **CLOSED 2026-06-14 BY THE STALE BOT — not confirmed fixed.** Candidate PR #22120 was suggested 2026-04-14 but never confirmed on the thread. Treat as a live risk |
 | #22572 3FS hybrid/DSA support | https://github.com/sgl-project/sglang/issues/22572 | 2026-05-29 | **CLOSED 2026-04-25**. PR #23241 shipped in v0.5.11 |
@@ -63,7 +65,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 |---|---|---|---|
 | Mooncake × SGLang HiCache integration | https://kvcache-ai.github.io/Mooncake/getting_started/examples/sglang-integration/hicache-integration-v1.html | 2026-08-18 | Mooncake-side config recipe |
 | Mooncake × SGLang HiCache benchmark | https://kvcache-ai.github.io/Mooncake/performance/sglang/sglang-hicache-benchmark-results-v1.html | 2026-08-18 | 8× H800 + Qwen3-235B + 8× mlx5; 2× A10 + Qwen3-14B + 2× 100Gbps eRDMA |
-| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/_602767 | 2026-08-18 | Cross-references Novita Qwen3-Coder-480B numbers |
+| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/_602767 | 2026-08-18 | **GONE** — soft-404s to `alibabacloud.com/notfound` (HTTP 200 masking a dead page). Cross-referenced Novita Qwen3-Coder-480B numbers; find another source before citing them |
 | Strata: Hierarchical Context Caching paper | https://arxiv.org/html/2508.18572v1 | 2026-08-18 | arXiv 2508.18572. Academic background — not normative for production decisions |
 
 ## 2026-07-21 freshen pass
