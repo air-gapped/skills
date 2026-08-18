@@ -1,18 +1,18 @@
 # Discovery & non-English content — the agent's language-safe backbone
 
-This is the operational heart of the skill for an **agent** driving Jira through `jira-cli` or the **`mcp-atlassian`** MCP server. Two jobs: (1) **discover** the org's real configuration so you never guess values, and (2) handle **non-English** content and configured values correctly — which is fully normal and must never be "fixed" or translated.
+This is the operational heart of the skill for an **agent** driving Jira through `jira-cli` or the **`mcp-atlassian`** MCP server. Two jobs: (1) **discover** the org's real configuration so values are never guessed, and (2) handle **non-English** content and configured values correctly — which is fully normal and must never be "fixed" or translated.
 
 ## Non-English is normal — the stance
 
 Many self-hosted instances have issue summaries, descriptions, and comments in a local language, AND configured values (issue type, status, priority, resolution, transition, link-type, component, custom-field names) authored in that language — e.g. status "Erledigt", type "Fehler", priority "Hoch". This is normal and correct.
 
-- **Never auto-translate or rewrite a user's content.** Keep summaries/descriptions/comments in the team's working language. When you create or edit an issue on a non-English instance, write in that instance's language.
+- **Never auto-translate or rewrite a user's content.** Keep summaries/descriptions/comments in the team's working language. When creating or editing an issue on a non-English instance, write in that instance's language.
 - **Never assume English configured values.** "Bug", "Done", "High" may not exist on the instance — the equivalent local string does.
 - **Some orgs legally must be multilingual** (e.g. Canada's Official Languages Act) — so "standardise on English" is not universally valid advice. Per-team local language is legitimate.
 
-## Discover before you act (agent-executable)
+## Discover before acting (agent-executable)
 
-Map each thing you need to learn to the REST endpoint and the tool that fetches it. **Anchor logic on the language-independent column**, never on a display name.
+Map each thing to learn to the REST endpoint and the tool that fetches it. **Anchor logic on the language-independent column**, never on a display name.
 
 | To learn… | DC REST v2 | `mcp-atlassian` tool | `jira-cli` | Language-safe anchor |
 |---|---|---|---|---|
@@ -26,7 +26,7 @@ Map each thing you need to learn to the REST endpoint and the tool that fetches 
 | What a project actually *allows* | `/issue/createmeta`, `/issue/{key}/editmeta` | issue meta | — | reflects real config |
 | Projects / boards / sprints | `/project`, agile API | `jira_get_all_projects`, `jira_get_agile_boards`, `jira_get_sprints_from_board` | `jira project list`, `jira board list`, `jira sprint list` | `id`/`key` |
 
-> Read existing issues to *see* the values in use: pull a handful with `jira_search`/`jira issue list --raw` and inspect `fields.issuetype.name`, `fields.status.name` + `fields.status.statusCategory.key`, `fields.priority.name`, etc. That tells you the instance's real, possibly-localized vocabulary.
+> Read existing issues to *see* the values in use: pull a handful with `jira_search`/`jira issue list --raw` and inspect `fields.issuetype.name`, `fields.status.name` + `fields.status.statusCategory.key`, `fields.priority.name`, etc. That reveals the instance's real, possibly-localized vocabulary.
 
 ## The two rules that prevent localized-value bugs
 
@@ -41,13 +41,13 @@ Map each thing you need to learn to the REST endpoint and the tool that fetches 
 
 On Data Center, REST responses and webhooks are localized to the **authenticating / triggering user's profile language** — there is **no per-request language override** (`X-Force-Accept-Language` is **Cloud-only**; JRASERVER-74088 is still open). So:
 - To get stable **canonical** strings, run discovery as a **dedicated service/integration account whose profile language is set to the canonical language** (e.g. English).
-- Use an account with **admin-level visibility** — *permissions* decide which statuses/projects you even see (a separate axis from language). A low-privilege account returns a subset.
+- Use an account with **admin-level visibility** — *permissions* decide which statuses/projects are even visible (a separate axis from language). A low-privilege account returns a subset.
 - **Webhook consumers:** don't string-match status names from webhook payloads — they arrive in the *triggering* user's language. Match on `statusCategory.key` / IDs instead.
 
 ## JQL: basic-search vs advanced-search asymmetry
 
 - **Basic Search (Issue Navigator UI)** matches the **translated/localized** name a user sees.
-- **JQL / Advanced Search** matches the **canonical** name (JRASERVER-39215, open since 2014). On a natively-non-English instance the canonical *is* the local string (the constant was created as "Erledigt"), so JQL needs that local string. Generic web advice "just use English in JQL" is **wrong** for instances whose constants were authored in a local language. The safe rule: **match the canonical string you discovered, or better, anchor on `statusCategory`/IDs.**
+- **JQL / Advanced Search** matches the **canonical** name (JRASERVER-39215, open since 2014). On a natively-non-English instance the canonical *is* the local string (the constant was created as "Erledigt"), so JQL needs that local string. Generic web advice "just use English in JQL" is **wrong** for instances whose constants were authored in a local language. The safe rule: **match the discovered canonical string, or better, anchor on `statusCategory`/IDs.**
 
 ## Search & indexing caveats (set expectations; don't over-promise text search)
 

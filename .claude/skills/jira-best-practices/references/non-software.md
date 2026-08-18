@@ -2,7 +2,7 @@
 
 Jira is used far beyond software: operations, IT service management, systems/hardware engineering, manufacturing, infrastructure, services, marketing, HR, finance, legal, program/portfolio management, and physical-deliverable projects. Its **software defaults** (sprints, story points, velocity, "Bug") are precisely what makes these teams dread it. The job is to remove the software machinery and fit the team's real process.
 
-## What you're working with on Data Center
+## What Data Center provides
 
 - **"Jira Core" is the always-present business/platform base** on Data Center; Jira Software and JSM are *add-on applications* on top. Non-software ("business") projects build on this base.
 - The 2024–25 **"Jira Work Management → single Jira" unification is Cloud-only.** DC never had a product called "Jira Work Management" — and the rich Cloud business views don't exist natively on DC.

@@ -2,7 +2,7 @@
 
 The "filling in a ticket is a chore" / "Jira is slow" dread is overwhelmingly a **configuration bloat** problem. This file has the numbers and the concrete Data Center admin mechanics to fix it.
 
-> **Who does what.** Almost everything in this file is **schema/admin configuration** that neither `jira-cli` nor `mcp-atlassian` can perform — so the agent's job here is to **diagnose the bloat and hand the user the exact, minimal steps** (the click-paths below). The agent acts directly only at the issue level: creating issues with a lean field set, setting the Resolution **in the transition payload** (the REST/CLI/MCP path ignores transition screens), and auditing field usage by reading issues. Treat the admin click-paths as the *recommendation you give the human admin*, not something to attempt via a tool.
+> **Who does what.** Almost everything in this file is **schema/admin configuration** that neither `jira-cli` nor `mcp-atlassian` can perform — so the agent's job here is to **diagnose the bloat and hand the user the exact, minimal steps** (the click-paths below). The agent acts directly only at the issue level: creating issues with a lean field set, setting the Resolution **in the transition payload** (the REST/CLI/MCP path ignores transition screens), and auditing field usage by reading issues. Treat the admin click-paths as the *recommendation handed to the human admin*, not something to attempt via a tool.
 
 ## Custom fields — the guardrail and the real cost driver
 
@@ -36,7 +36,7 @@ Make the **Create** screen short and the **Edit/View** screens fuller. Design Cr
 
 **Screen Scheme — map operations to different screens.** A screen scheme maps three issue operations — **Create**, **Edit**, **View** — to (possibly different) screens.
 - Path: **Administration → Issues → Screens → Screen schemes →** *Configure* the scheme → **Associate an issue operation with a screen** (pick the operation + screen).
-- The **Default** entry catches any unmapped operation and **cannot be deleted** — if you only map Create + View, Edit falls back to Default.
+- The **Default** entry catches any unmapped operation and **cannot be deleted** — if only Create + View are mapped, Edit falls back to Default.
 - Hierarchy: screen → (screen scheme, by operation) → (issue-type screen scheme, by issue type) → project. So one project can show a lean Create screen for Task and a different set for Bug.
 - **DC quirk:** the **View** operation only controls layout/order of *custom* fields in the middle section — it does not hide system fields (those are governed by Field Configuration).
 
@@ -55,7 +55,7 @@ Start from the three default categories (To Do / In Progress / Done) and add **o
 ## Status vs Resolution — the single biggest over-modeling fix
 
 - **Status** = where the issue is in the workflow. **Resolution** = *why* it's no longer in flight.
-- Mechanic: **once Resolution has any value, Jira treats the issue as resolved even if its Status isn't in a final category.** Reports like "Created vs Resolved" key off **Resolution**, not status. So you need only **one or two terminal statuses** (Done/Closed) plus a small **Resolution set** (Done, Won't Fix, Duplicate, Canceled) — not many "done-like" statuses.
+- Mechanic: **once Resolution has any value, Jira treats the issue as resolved even if its Status isn't in a final category.** Reports like "Created vs Resolved" key off **Resolution**, not status. So only **one or two terminal statuses** are needed (Done/Closed) plus a small **Resolution set** (Done, Won't Fix, Duplicate, Canceled) — not many "done-like" statuses.
 - **Set Resolution only on closing transitions**, via a **transition screen** containing just the Resolution field (the historical default is literally named "Resolve Issue Screen"), or via an **Update Issue Field** post-function for a fixed value. **Never put Resolution on the Create or Edit screen** — that's a common mistake that lets items be "resolved" the moment they're created.
 - **Reopen trap:** on every transition that re-opens an issue, add a post-function **Update Issue Field → Resolution → None** — otherwise the reopened item keeps showing as resolved in reports.
   - Path: edit workflow → select the reopen transition → **Post functions → Add post function → Update Issue Field →** Issue Field = Resolution, value = None. **Publish the draft.** Repeat on *every* reopen transition.

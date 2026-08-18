@@ -21,7 +21,7 @@ Atlassian's own verbatim definitions: Epic = "A big user story that needs to be 
 ## The five misconceptions to correct on sight
 
 1. **"A Story is bigger than / sits above a Task."** FALSE. *A story cannot be a parent of a Task and a Task cannot be a parent of a Story — they are peers.* This is the #1 error, especially for people migrating from Azure DevOps (where Tasks nest under stories). 
-2. **"An Epic is just a big Story."** FALSE. An Epic is a **container** that itself moves To Do → In Progress → **Done**. *If your Epic never closes, you want a Label or a Component, not an Epic.* Permanent categories ("Social Media", "Onboarding", "Maintenance") modelled as epics is the classic abuse.
+2. **"An Epic is just a big Story."** FALSE. An Epic is a **container** that itself moves To Do → In Progress → **Done**. *An Epic that never closes should be a Label or a Component, not an Epic.* Permanent categories ("Social Media", "Onboarding", "Maintenance") modelled as epics is the classic abuse.
 3. **"Sub-tasks are just small tasks."** FALSE. Size is irrelevant — a Task can be as large as a Story. Sub-tasks carry real constraints (next point).
 4. **"Story vs Task is a size decision."** FALSE. The axis is **value vs operational need**: Story = something an end user/customer values; Task = a team/technical/administrative necessity.
 5. **"Parent/child and links are interchangeable."** FALSE. **Parent/child rolls up** in reporting and roadmaps; **issue links do not** (and have no native hierarchy view). Use hierarchy for *containment*, links only for *true cross-cutting dependencies* ("blocks", "is duplicated by").
@@ -30,7 +30,7 @@ Atlassian's own verbatim definitions: Epic = "A big user story that needs to be 
 
 Sub-tasks: don't appear on boards by default; don't count independently in sprint burndown/velocity; are **locked to the parent's project**; and **cannot be assigned to a different sprint than the parent** (no native workaround). Use a sub-task **only if** at least one is true:
 - multiple people work pieces of the parent **in parallel**, or
-- you need **per-step time tracking**, or
+- the work needs **per-step time tracking**, or
 - the step must be **visible on the board**.
 
 Otherwise use a checklist (a custom field or a checklist app). And if a story won't fit one sprint, **split it into smaller stories** — never stretch it with cross-sprint sub-tasks.
@@ -66,13 +66,13 @@ Never assume the literal words "Epic" and "Story" occupy the standard roles on a
 
 ## Data Center field gotcha — Epic Link vs Parent Link
 
-On **Cloud**, Epic Link and Parent Link were merged into a single `Parent` field. **This was NOT implemented in Data Center** (JPOSERVER-4430, closed *Not a bug*). On DC you therefore have **two separate, independently-acting fields**:
+On **Cloud**, Epic Link and Parent Link were merged into a single `Parent` field. **This was NOT implemented in Data Center** (JPOSERVER-4430, closed *Not a bug*). DC therefore has **two separate, independently-acting fields**:
 - **Epic Link** — links a Story/Task/Bug to its **Epic**.
 - **Parent Link** — an **Advanced Roadmaps** field linking an Epic to a higher level (Initiative, etc.).
 
 Crucially, **Epic Link does *not* respect the Advanced Roadmaps custom hierarchy**, which breaks naïve JQL and roll-up reporting that assume one unified parent. **DC workaround** when this bites: create a *new* Epic-style issue type, add it to the Advanced Roadmaps hierarchy, and use **only the Parent Link field** for all parent/child relationships in plans.
 
-When writing JQL across the hierarchy on DC, be explicit about which field you mean; don't assume a single `parent` clause covers both like it does on Cloud.
+When writing JQL across the hierarchy on DC, be explicit about which field is meant; don't assume a single `parent` clause covers both like it does on Cloud.
 
 ## Setting up levels above Epic on Data Center
 

@@ -12,7 +12,7 @@ Two named dreads live here: "our workflow is a maze" and "status updates are bus
 
 ### DC "Simplified Workflow" — a lean default with sharp edges
 
-Enable via **Board → Configure → Columns tab → "Simplify workflow"**. It lets you add/remove statuses and columns straight from board config (no separate workflow editor); transitions need no screen; **resolution auto-sets to Done** when an issue reaches a "done" column.
+Enable via **Board → Configure → Columns tab → "Simplify workflow"**. It allows adding/removing statuses and columns straight from board config (no separate workflow editor); transitions need no screen; **resolution auto-sets to Done** when an issue reaches a "done" column.
 
 Trade-offs (why it's good for small/non-software teams but not governed multi-team setups):
 - the board must represent a **single project**;
