@@ -28,6 +28,8 @@ So a high total can be fine if fields are tightly scoped; a moderate total can h
 
 If "no" to all four, it's intake-only context — put it in the description, not a field. And a **new global field needs a named owner** for maintenance — *"the owner requirement kills most requests, and rightly so."*
 
+A field audit is complete only when **every** field on the Create screen has either a recorded yes to one of the four questions or a make-optional / remove recommendation — a shortlist of "obvious offenders" is not an audit.
+
 > **DC note:** native **Forms/Proforma** (the Cloud "escape hatch" for intake-only data) are **not** part of plain Data Center. On DC the equivalent levers are description text, **context-scoped field configurations**, and **minimal Create screens** (below) — do not recommend native Forms on DC.
 
 ## Minimum-viable Create screen (the highest-leverage fix)
