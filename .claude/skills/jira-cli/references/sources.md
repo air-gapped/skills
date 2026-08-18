@@ -1,12 +1,14 @@
 # Sources
 
+Freshened: 2026-08-18
+
 Per-row `Last verified:` dates for the external claims in this skill. `freshen` mode reads + updates this file. The most authoritative reference for the installed build is always the binary's own `jira <cmd> <subcmd> --help`.
 
 | Source | URL | Last verified | Pinned |
 |---|---|---|---|
 | jira-cli repo | https://github.com/ankitpokhrel/jira-cli | 2026-07-21 | |
-| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | 2026-07-21 | matches v1.7.0 binary; `main` has not moved since 2026-01-20 so the README↔binary sync still holds |
-| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | 2026-07-21 | **Still v1.7.0 (2025-08-31)** — no new release in ~11 months. Repo last pushed 2026-01-20; **0 commits on `main` in the trailing 90 days**; 172 open issues; not archived. See `known-issues.md` § Upstream cadence. |
+| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | 2026-08-18 | **README↔binary sync has broken.** `main` moved 2026-07-30 → 2026-08-12 (PRs #1008–#1014) while the release stayed at v1.7.0, so README-on-main now documents unreleased behaviour |
+| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | 2026-08-18 | **Still v1.7.0 (2025-08-31)** — no new release in ~12 months, but development resumed: repo last pushed 2026-08-17, **10 commits on `main` in the trailing 90 days**; 163 open issues; not archived. See `known-issues.md` § Upstream cadence. |
 | jira-cli v1.7.0 tag | https://github.com/ankitpokhrel/jira-cli/releases/tag/v1.7.0 | 2026-06-07 | v1.7.0 |
 | Installation guide (wiki) | https://github.com/ankitpokhrel/jira-cli/wiki/Installation | 2026-06-07 | |
 | Token storage (.netrc/keychain) discussion #356 | https://github.com/ankitpokhrel/jira-cli/discussions/356 | 2026-06-07 | |
@@ -45,9 +47,30 @@ framed.** Measured via the GitHub API rather than inferred:
 - **0 commits on `main` in the trailing 90 days**;
 - 172 open issues; **not archived**; 5.8k stars.
 
+**Superseded by the 2026-08-18 pass** — see below.
+
 Recorded in `known-issues.md` § Upstream cadence with the operational
 consequence: **do not write guidance that defers to a future fix.** The
 documented workarounds (`</dev/null` for the stdin hang, no paging past 100 on
 Cloud, GFM→wiki asymmetry on `edit`) are the answer, not a bridge. Framed as a
 cadence measurement, not an abandonment claim — the repo is live and quiet, and
 a new release is the signal to revisit.
+
+## 2026-08-18 freshen — the repo woke up
+
+The cadence signal measured on 2026-07-21 has reversed. `main` took 10 commits
+between 2026-07-30 and 2026-08-12 (PRs #1008–#1014) and the repo was last
+pushed 2026-08-17; open issues fell 172 → 163. **No new release** — v1.7.0
+(2025-08-31) is still `isLatest`, so the installed binary is unchanged.
+
+The operational consequence flips in one specific way: the workarounds are
+still correct for v1.7.0, but README-on-`main` no longer describes the binary.
+Changes landed in areas this skill documents — `epic add`/`epic remove`
+permissions, `--plain` output for `epic list` / `sprint list`,
+`--show-all-issues` JQL retention, multibyte UTF-8 in the jirawiki parser.
+When the next release cuts, re-verify those four surfaces first.
+
+Also re-verified this pass: the Atlassian "comment during a transition" URL now
+redirects from `confluence.atlassian.com` to `support.atlassian.com/jira/kb/…`
+(benign, content intact). `jira.atlassian.com` wiki-markup help returns 401
+behind an auth wall to any non-browser client — bot-block, not a dead page.

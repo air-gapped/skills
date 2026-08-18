@@ -25,16 +25,24 @@ How-to references (stable behavior, not bugs — essence inlined, kept here for 
 
 ## Upstream cadence — measured 2026-07-21
 
-The workarounds in this skill should be treated as **the permanent answer, not
-a stopgap**. Measured, not inferred:
+The workarounds in this skill are still the answer today, but **the repo
+resumed development in late July 2026** after six quiet months — so this is no
+longer a "nothing will ever change" situation. Measured, not inferred:
 
 | Signal | Value |
 |---|---|
-| Latest release | **v1.7.0, 2025-08-31** — ~11 months old, still `isLatest` |
-| Last push to the repo | **2026-01-20** — ~6 months ago |
-| Commits on `main` in the trailing 90 days | **0** |
-| Open issues | 172 |
-| Archived? | **No** — 5.8k stars, repo is live, just quiet |
+| Latest release | **v1.7.0, 2025-08-31** — ~12 months old, still `isLatest` |
+| Last push to the repo | **2026-08-17** (was 2026-01-20 at the previous pass) |
+| Commits on `main` in the trailing 90 days | **10** (2026-07-30 → 2026-08-12) |
+| Open issues | 163 |
+| Archived? | **No** — 5.9k stars, live and active again |
+
+**`main` is now ahead of the released binary.** PRs #1008–#1014 changed
+`epic add`/`epic remove` (no longer requires admin), `--plain` behaviour for
+`epic list` / `sprint list`, `--show-all-issues` JQL retention, and multibyte
+UTF-8 in the jirawiki parser — all areas this skill documents. None of it is in
+v1.7.0. Read the README on `main` as a description of unreleased behaviour, not
+of the binary you have installed.
 
 Every tracked bug row above (#898 pagination, #948/#984 stdin hangs, #935 edit
 asymmetry, #941/#974 ADF rendering, #477 SSO, #342 GDPR accountId) is unchanged
