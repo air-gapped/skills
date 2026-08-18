@@ -11,7 +11,7 @@ Output is one row per skill, stalest first — the ranking `freshen --all`
 batch mode uses. `--json` emits the same rows as a JSON array.
 
 Date extraction per sources.md, in order:
-  1. table with a `Last verified` header column → that column's cell per row
+  1. table with a `Last verified` / `Verified` header column → that cell per row
   2. table without that header → rightmost cell that is exactly a date
      (prose dates in notes cells never count)
   3. no usable table rows → inline `Last verified: YYYY-MM-DD` occurrences
@@ -93,7 +93,7 @@ def parse_sources(path):
             hits = [
                 j
                 for j, c in enumerate(row)
-                if re.fullmatch(r"last verified:?", c, re.I)
+                if re.fullmatch(r"(last )?verified:?", c, re.I)
             ]
             lv_col, skip_table = (hits[0], False) if hits else (None, True)
             continue
