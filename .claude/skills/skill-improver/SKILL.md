@@ -7,21 +7,24 @@ description: >-
   (release notes, docs, deprecation signals) and applies verified updates,
   plus a `trigger` mode that measures and tunes the skill's frontmatter
   description until it reliably fires when it should and stays silent when
-  it shouldn't (60/40 train/test split, 7 runs/query, blinded test scores).
+  it shouldn't (60/40 train/test split, 7 runs/query, blinded test scores),
+  plus an `ages` mode that prints a fleet-wide table of every skill's
+  verification age vs last content change, no probes.
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",
   "score my skill", "audit a skill", "rate my skill", "refine skill
   description", "iterate on a skill", "freshen skill", "freshen skills",
   "update skill references", "check skill staleness", "is my skill out of
-  date", "refresh skill sources", "skill not triggering", "skill didn't
+  date", "refresh skill sources", "skill ages", "how old are my skills",
+  "list skills by date", "skill not triggering", "skill didn't
   fire", "skill won't trigger", "skill not invoked", "tune skill
   description", "fix skill triggers", "skill under-triggers",
   "skill over-triggers", "false-positive skill", "make skill trigger",
   "Claude isn't using my skill", or mentions autonomous skill improvement,
   skill quality scoring, skill optimization loops, stale skill content,
   or skill activation problems.
-argument-hint: '[improve|score|freshen|trigger|philosophy|batch] [<skill-name>|--all|<glob>]'
+argument-hint: '[improve|score|freshen|trigger|philosophy|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver — Autoresearch for SKILL.md
@@ -39,13 +42,15 @@ Argument grammar:
 /skill-improver <mode> <target> [--opts]
 ```
 
-- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `philosophy` | `batch`
+- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `philosophy` | `ages` | `batch`
 - `<target>` — skill name (e.g. `gh-cli`), absolute SKILL.md path, `--all`, or glob (e.g. `vllm-*`)
 - `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`, `--runs-per-query 5`)
 
 Examples:
 
 ```
+/skill-improver ages
+/skill-improver ages 'vllm-*'
 /skill-improver freshen autoresearch
 /skill-improver score gh-cli
 /skill-improver improve ~/.claude/skills/helm
@@ -214,7 +219,10 @@ place — same keep/discard loop as `improve`, but hypotheses come from online
 evidence (release notes, doc commits, deprecation signals), not rubric scores.
 
 **Invocation:** `freshen <skill-path>` · `--all` · `--group <glob>`. Defaults to
-**apply**; for a read-only readout use Standalone Evaluation (Dim 9 tracks `sources.md`).
+**apply**. For a read-only staleness readout — "how old are my skills?", which
+to freshen first — use `ages` mode instead (fleet-wide table in one command,
+no probes); Standalone Evaluation covers the single-skill case (Dim 9 tracks
+`sources.md`).
 
 Full phase workflow (F0→F6), batch mode, and anti-patterns live in
 **`references/freshen-patterns.md` §"Freshen Mode Workflow"** with the extraction
@@ -238,6 +246,22 @@ Full phase workflow (T0 Setup → T7 Apply/persist), batch mode, and anti-patter
 live in **`references/trigger-patterns.md` §"Trigger Mode Workflow"** with the
 eval-set construction rules, probe mechanism, and mutation patterns. Read it when
 running `trigger`.
+
+---
+
+## Ages Mode
+
+Read-only fleet readout — no probes, no scoring, no mutation. Run
+`scripts/staleness-report.py` and print its table verbatim, then one
+sentence naming the stalest bucket and the suggested next `freshen` target.
+That is the whole mode; do not start scoring or freshening from it.
+
+**Invocation:** `ages` (whole fleet) · `ages <glob>` (e.g. `ages 'vllm-*'`) ·
+`ages <root-dir>`. Two date tracks per skill: `oldest`/`age` = last online
+verification of external claims (sources.md `Last verified:`, the freshen
+track) vs `changed` = last content change on disk (newest file mtime). A
+skill can be freshly edited yet stale on verification — and vice versa; the
+`cap` column shows the Dim 9 staleness cap the verification age implies.
 
 ---
 
@@ -282,6 +306,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/staleness-report.py`** — Fleet-wide staleness readout, no probes/network: per skill, the oldest `sources.md` `Last verified:` date, its age, dated-row coverage, the Dim 9 staleness cap it implies, last improvement-pass date (from `improvement-backlog.md`), and whether trigger/outcome evals exist. Stalest first — this is the ranking `freshen --all` uses. `--json` for machine output.
 - **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
 - **`scripts/scaffold-probe.py`** — Boris strict-workflow-scaffolding detector. Classifies each numbered item as scaffold, criterion, or branch, and caps on the scaffold count alone. Used by the Boris Alignment Check (quality-rubric §"The scaffolding discriminator") and freshen §4b.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

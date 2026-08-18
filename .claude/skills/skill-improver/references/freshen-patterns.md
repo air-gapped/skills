@@ -109,11 +109,12 @@ Decision rule (different from score-based loop — verification-based):
 
 `freshen --all` iterates skills sequentially:
 
-1. Scan scope via `scripts/scan-skills.sh`.
-2. Rank by sources.md staleness (oldest `Last verified:` first; missing dates sort last).
-3. Cap findings-per-skill at 5 in batch mode.
-4. Share the 100-probe global budget across the batch; stop early on exhaustion.
-5. Print ranked summary: skill, findings, kept, new stamp date.
+1. Rank the fleet with `scripts/staleness-report.py` (oldest `Last verified:`
+   first, hard Dim 9 caps ahead of soft; one command, no probes). Fall back to
+   `scripts/scan-skills.sh` + manual sources.md reads only if the script fails.
+2. Cap findings-per-skill at 5 in batch mode.
+3. Share the 100-probe global budget across the batch; stop early on exhaustion.
+4. Print ranked summary: skill, findings, kept, new stamp date.
 
 ### Anti-Patterns
 
