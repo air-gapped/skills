@@ -1,5 +1,7 @@
 # Sources
 
+**Contents:** Execution layer · Hierarchy · Work modeling / decomposition · Lean configuration · Workflows, automation, reporting · Non-software · Platform state (2026-08 pass) · Multilingual & discovery · Dread / critique
+
 External claims in this skill, with source, tier, and what they support. **Most recent freshen pass: 2026-08-18** (decay-prone rows spot-probed and stamped per row; unprobed rows keep their 2026-06-07 research-date stamp). Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits) — these move.
 
 Tiers: **A** = official Atlassian docs / issue tracker / primary spec · **B** = experienced practitioners / solution partners / surveys · **C** = vendor-advocacy / community opinion (down-weighted, used for *principles* not facts).
