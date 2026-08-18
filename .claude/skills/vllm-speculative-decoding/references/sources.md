@@ -1,5 +1,7 @@
 # External-reference provenance
 
+Freshened: 2026-08-18
+
 Cited upstream sources for this skill, probed on the `Last verified` date. Used
 by skill-improver Dim 9 (staleness) and by anyone auditing whether a claim is
 still current.

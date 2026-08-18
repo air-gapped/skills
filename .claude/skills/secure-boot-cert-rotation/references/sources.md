@@ -1,5 +1,7 @@
 # Sources (primary / high-credibility)
 
+Freshened: 2026-08-18
+
 Grounded 2026-06-01; re-probed 2026-08-18 (first freshen, ~8 weeks after the June expiries). Re-verify volatile
 leaf numbers (Dell BIOS minimums, Ubuntu fwupd pockets, Harvester release dates / virt-launcher OVMF) against
 these at use time — methodology is durable, version numbers are not.
