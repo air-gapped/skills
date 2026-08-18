@@ -43,7 +43,7 @@ The canonical "one page, one type" model. Four types on two axes (study↔work �
 - **Tables** for genuine 2-D structured data (and to feed Page Properties Reports). **Keep them small** — Atlassian flags "10+ tables" or large row counts as the slow case.
 - **Lists** for sequential or short items.
 - **Child pages** when content is long enough to be its own purpose.
-- **New-editor table regressions** to be aware of (and warn about): oversized cells, fixed line height, no compact layout, copy/paste loss of formatting/links (CONFCLOUD-67594). Practical rule: prefer fewer/smaller tables, build them fresh rather than copy-pasting, and move to lists/child pages as a table grows.
+- **New-editor table regressions** to be aware of (and warn about): oversized cells, fixed line height, no compact layout, copy/paste loss of formatting/links (CONFCLOUD-67594, closed Won't Do 2025-10-28 — the behaviour stands, Atlassian just won't change it; the related latency ticket CONFCLOUD-69740 was Fixed 2026-02-13). Practical rule: prefer fewer/smaller tables, build them fresh rather than copy-pasting, and move to lists/child pages as a table grows.
 
 ## Templates enforce readability
 

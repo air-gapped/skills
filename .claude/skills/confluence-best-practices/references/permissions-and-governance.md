@@ -16,7 +16,7 @@ The day-to-day mental model is "space permissions vs page restrictions," but the
 
 - **Space permissions are ADDITIVE:** a user's effective access is the *union* of every group they're in plus any individual grant. Revoking one group/individual does nothing if another group still grants it.
 - **Page restrictions SUBTRACT — they narrow, never grant.** *"Restrictions don't override a person's space permission":* a restriction can **deny** a user who has space-View, but can **never give** View to someone who lacks space-View. Net: a user sees a page only if they pass **global Can-Use AND space-View AND (no excluding view-restriction on the page or any ancestor).**
-- **View restrictions CASCADE to child pages; edit restrictions do NOT.** Edit must be set per page (CONFSERVER-5095, open ~20 years).
+- **View restrictions CASCADE to child pages; edit restrictions do NOT.** Edit must be set per page — by design, not a pending fix: CONFSERVER-5095 was closed **Won't Do** on 2020-06-29.
 - **Admin override:** space admins, `confluence-administrators`, and sysadmins can remove restrictions even from pages they can't see — restrictions are not confidentiality against admins.
 - You **cannot restrict yourself out** — Confluence adds you to the restriction automatically.
 

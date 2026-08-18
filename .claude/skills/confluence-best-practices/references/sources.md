@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-08-18
+
 External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date); volatile rows re-probed **2026-07-21** — see the freshen note at the end. Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits, open-bug status) — these move.
 
 Tiers: **A** = official Atlassian docs / issue tracker (jira.atlassian.com) / primary spec & peer-reviewed · **B** = experienced practitioners / solution partners / surveys · **C** = vendor-advocacy / competitor marketing / community opinion (down-weighted, used for *principles* not facts).
@@ -55,7 +57,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | confluence.atlassian.com/doc/table-of-contents-macro-182682099.html | A | TOC builds from heading levels; long-page use | 2026-06-07 |
 | diataxis.fr (+ /start-here/) | A | Four doc types; "blurring boundaries… vast number of problems"; writer+reader benefit | 2026-06-07 |
 | confluence.atlassian.com/doc/info-tip-note-and-warning-macros...; excerpt/expand macro docs | A | Panels, Expand, Excerpt — readability macros + storage format | 2026-06-07 |
-| jira.atlassian.com/browse/CONFCLOUD-67594 (+ -69740) | A | New-editor table copy/paste regressions; editor latency on heavy pages | 2026-06-07 |
+| jira.atlassian.com/browse/CONFCLOUD-67594 (+ -69740) | A | New-editor table copy/paste regressions; editor latency on heavy pages. **Both closed** — 67594 Won't Do 2025-10-28 (behaviour stands, won't be changed), 69740 Fixed 2026-02-13. Cite as documented behaviour, not as live bugs | 2026-08-18 |
 | WCAG 2.x; siteimprove + university Confluence accessibility KBs | A/B | Alt text, descriptive links, no skipped headings, 4.5:1/3:1 contrast, no colour-only | 2026-06-07 |
 | k15t.com/rock-the-docs/...make-beautiful-pages; refined.com; covectors.io headings | B | BLUF, chunking, 60-char lines, title=H1, "less is more", one-page-one-purpose, vague-title warning | 2026-06-07 |
 | thoughtworks / RAG practitioner posts | B | Confluence rarely AI-ready; retrieval needs text not screenshots | 2026-06-07 |
@@ -88,7 +90,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| endoflife.date/confluence | A | Latest 10.2.13 (2 Jun 2026); LTS 10.2→Dec 2027 / 9.2→Dec 2026; 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-06-07 |
+| endoflife.date/confluence | A | Latest **10.2.15 (2026-08-04)**; LTS 10.2→Dec 2027 / 9.2→Dec 2026; 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-08-18 |
 | atlassian.com/licensing/data-center-end-of-life | A | DC sunset (announced 8 Sep 2025): sale-stop 30 Mar 2026, renewal 30 Mar 2028, read-only 28 Mar 2029; Bitbucket exception | 2026-06-07 |
 | confluence.atlassian.com/doc/confluence-10-2-release-notes-1652924013.html | A | 10.2 LTS, Java 21, TinyMCE 7.9.1 editor, Storage Format Source Editor in 10.2.3 | 2026-06-07 |
 | atlassian.com/migration/assess/compare-cloud-data-center/confluence; support.atlassian.com/migration/docs/differences-... | A | Cloud-only list (Whiteboards, Databases, Rovo/AI, automation, page-archive, guests, smart links); DC-only (nested macros, RTL) | 2026-06-07 |
