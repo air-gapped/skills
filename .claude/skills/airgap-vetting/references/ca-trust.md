@@ -10,7 +10,7 @@ your CA" for a replacement-semantics variable.
 | Ecosystem | Inject via | Failure mode to grep for |
 |-----------|-----------|--------------------------|
 | Python | `REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`; `truststore` pkg for OS trust; pip ≥24.2 uses OS store | `certifi.where()` w/o env override; **aiohttp ignores all CA env vars** (aiohttp#3180); `verify=False` |
-| Node | `NODE_EXTRA_CA_CERTS` (appends); npm `cafile`; Yarn Berry `httpsCaFilePath` | **Electron ignores `NODE_EXTRA_CA_CERTS`** (electron#41590); **undici/fetch() ignored it on Node 18** (undici#2200); `rejectUnauthorized:false` |
+| Node | `NODE_EXTRA_CA_CERTS` (appends); npm `cafile`; Yarn Berry `httpsCaFilePath` | **Electron <30 ignores `NODE_EXTRA_CA_CERTS`** (electron#41590; fixed in Electron 30, PR #41689); **undici/fetch() ignored it on Node 18** (undici#2200); `rejectUnauthorized:false` |
 | Go | native system store; `SSL_CERT_FILE`/`SSL_CERT_DIR` | **`FROM scratch`/distroless with no ca-certificates** → `x509: unknown authority`; `InsecureSkipVerify: true` |
 | Java | JKS/PKCS12 truststore; `-Djavax.net.ssl.trustStore`; `keytool -import` | replaces cacerts entirely; per-app `SSLContext` bypass; empty `X509TrustManager` |
 | Rust | `rustls-native-certs` / native-tls (runtime OS trust) | **`webpki-roots` compiles Mozilla roots INTO the binary — cannot trust a corporate CA without a rebuild**; `danger_accept_invalid_certs` |

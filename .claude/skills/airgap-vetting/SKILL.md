@@ -7,8 +7,8 @@ description: >-
   content egress / offline degradation, day-two sustainment (feed mirroring,
   staleness), and a 4-grade verdict (air-gap-native / possible-with-mirror /
   proxy-in-disguise / no-go). Two-pass: static grep of source + container
-  image (bundled fingerprint tables work offline), then an optional dynamic
-  harness (--network=none, egress deny+log, mitmproxy CA injection, faketime).
+  image, then an optional dynamic harness (--network=none, egress deny+log,
+  mitmproxy CA injection, faketime).
   Writes AIRGAP-VETTING.json + .md. Use for any "should we adopt X?" question
   in a disconnected environment, not just when the user says "air gap".
 when_to_use: >-
@@ -36,21 +36,17 @@ own offline flag set, and the decisive distinction (*air-gap-native* vs
 *proxy-in-disguise*) is only provable by denying egress **after** activation
 and watching whether the product keeps working.
 
-Invoke with `/airgap-vetting <target> [--dynamic] [--repo PATH] [--image REF]
-[--stakes low|high]`.
-
 **Arguments** (parse from `$ARGUMENTS`):
 - target (first positional, required): a product name (`meilisearch`), a
   local source checkout, a git URL, or a container image ref. Resolve
   whatever else is needed in Phase 0.
-- `--dynamic`: run the Phase-2 dynamic harness (requires Docker and, for
-  the deny+log step, root/iptables on a **disposable** host or VM). Without
-  it the vet is static-only and the verdict says so.
+- `--dynamic`: run the Phase-2 dynamic harness. Without it the vet is
+  static-only and the verdict says so.
 - `--repo PATH` / `--image REF`: explicit source checkout / image when the
   positional target is ambiguous.
 - `--stakes low|high` (default `low`): `high` mandates the dynamic pass for
-  any candidate that survives static (refuse to emit a final grade without
-  it); `low` allows a static-only provisional grade.
+  any candidate that survives static; `low` allows a static-only
+  provisional grade. Enforcement lives in the gate section.
 
 **The eight questions:**
 
@@ -64,10 +60,6 @@ Invoke with `/airgap-vetting <target> [--dynamic] [--repo PATH] [--image REF]
 | 6 | Ships user *content* out / degrades offline? | `references/content-egress.md` |
 | 7 | Can it be kept alive offline (day-two)? | `references/sustainment.md` |
 | 8 | Overall verdict grade | rubric below |
-
-Two cross-cutting sub-check clusters feed several questions:
-time/revocation/offline signature verification (`references/verification-time.md`)
-and identity/inbound/connectivity-probes (tail of `references/content-egress.md`).
 
 Read each reference file at its question — they carry the exact hostnames,
 env vars, grep patterns, and known counter-examples. Do not answer a
@@ -107,19 +99,15 @@ without a grep hit or citation is a guess, and guesses get `unknown`, not
 `no`.
 
 **Q1 — Telemetry.** Read `references/telemetry.md` §Fingerprints. Run BOTH
-grep layers (SDK packages AND hostnames) over source and — if an image is
-in scope — `strings` over its binaries, `docker inspect` ENV, entrypoint
-scripts, and a CNAME check of the registry host (Scarf Gateway hides in the
-*distribution channel*). One layer alone misses what the other catches.
+grep layers (SDK packages AND hostnames) — one alone misses what the other
+catches — plus, when an image is in scope, every §Container-image check
+(binary strings, ENV, entrypoints, registry-host CNAME).
 
 **Q2 — Opt-out semantics.** Read `references/telemetry.md` §Opt-out. Grep
-the candidate for kill-switch-shaped tokens (telemetry-adjacent substrings,
-not an exact-name list) — the mere *presence* of opt-out handling is
-evidence telemetry exists. Then check the
-six pitfalls (opt-out-by-default, phones-home-before-opt-out,
-value-vs-presence bugs, reduce-not-eliminate, separate update-check
-channel, destination drift) against the code that actually reads the
-variable. Verify polarity in source, not docs.
+for kill-switch-shaped tokens (telemetry-adjacent substrings, not an
+exact-name list — the mere *presence* of opt-out handling is evidence
+telemetry exists), then check all six pitfalls against the code that
+actually reads the variable. Verify polarity in source, not docs.
 
 **Q3 — Proxy-in-disguise.** Read `references/downloads-and-proxy.md` §Proxy.
 Repo topology, hardcoded base URLs, BYOK-routing docs, pricing-page
@@ -127,21 +115,19 @@ Repo topology, hardcoded base URLs, BYOK-routing docs, pricing-page
 
 **Q4 — Runtime downloads.** Same file, §Downloads. Build-time vs runtime is
 the organizing principle. For Helm charts, enumerate images from rendered
-output (`helm template | grep -oE 'image: *"?[^"]+' | sort -u`), never
-values.yaml alone. Runtime-computed image names are an automatic `no-go`.
+`helm template` output, never values.yaml alone; runtime-computed image
+names are an automatic `no-go`.
 
 **Q5 — Custom CA.** Read `references/ca-trust.md`. Identify the TLS stack
 per ecosystem, check additive-vs-replacement semantics, and hunt the two
-hard blockers (compiled-in `webpki-roots`, certificate pinning) plus the
-anti-pattern of verification-off switches offered *instead of* a CA option.
+hard blockers plus the verification-off-instead-of-CA anti-pattern.
 
 **Q6 — Content egress & offline degradation.** Read
-`references/content-egress.md`. Inventory features that send user content
-(AI assist, gravatar, map tiles/GeoIP, link previews) with their kill
-switches, plus CDN-loaded frontend assets. Also run the identity and
-inbound sub-checks at the tail of that file. Output here is a per-feature
-table: feature → destination → default on/off → kill switch → what's lost
-offline.
+`references/content-egress.md`. Inventory every feature that sends user
+content, with kill switches, plus CDN-loaded frontend assets; run the
+identity and inbound sub-checks at the tail of that file. Output is a
+per-feature table: feature → destination → default on/off → kill switch →
+what's lost offline.
 
 **Q7 — Sustainment.** Read `references/sustainment.md`. How do upgrades and
 content feeds (vuln DBs, rules, models) cross the gap, and what does the
@@ -186,15 +172,13 @@ requires running the listed dynamic steps on a disposable host.
 
 ## Phase 2: Dynamic pass (gated)
 
-Read `references/dynamic-harness.md` and run its ladder on a disposable
-host/VM: (1) `--network=none` first-run, (2) iptables `DOCKER-USER`
-deny+log with REJECT, (3) passive DNS/egress enumeration, (4) mitmproxy
-with CA injection — this one test settles Q5 *and* inventories Q1
-destinations, (5) post-activation egress-deny (the Q3 tie-breaker),
-(6) browser-console check under deny for web UIs (Q6), (7) stale-feed run
-for security tools (Q7), (8) `faketime` skew runs (+30 days, +13 months)
-for time dependencies. Capture in two windows — first-run AND 10–30 min
-steady-state; timer-based heartbeats don't show up in a 30-second capture.
+Read `references/dynamic-harness.md` and run all eight steps of its ladder
+on a disposable host/VM — isolation, deny+log, passive enumeration,
+mitmproxy CA injection (settles Q5 *and* inventories Q1), post-activation
+egress-deny (the Q3 tie-breaker), browser-console under deny (Q6),
+stale-feed (Q7), `faketime` skew. Capture every step in two windows —
+first-run AND 10–30 min steady-state; timer-based heartbeats don't show up
+in a 30-second capture.
 
 ---
 

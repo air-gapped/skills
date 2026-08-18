@@ -124,7 +124,7 @@ means "the variable must not exist".
 
 **`DO_NOT_TRACK` is advisory — never assume it works.** Spec at
 `donottrack.sh` (consoledonottrack.com lapsed to unrelated content,
-verified 2026-07-14). Adoption is inconsistent and several prominent
+verified 2026-08-18). Adoption is inconsistent and several prominent
 projects have explicitly refused it (closed-unmerged PRs). It is
 process-env-scoped only — it cannot stop install-time telemetry. Verify
 honoring in the candidate's source, never from an adopter list.

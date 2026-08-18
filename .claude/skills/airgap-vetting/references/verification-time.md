@@ -24,7 +24,7 @@ Two traps:
    no-egress evidence; observe the network.
 2. **v2→v3 flag break** — v2.6.3 `verify` has `--offline`,
    `--private-infrastructure`, `--new-bundle-format`, `--rekor-url`; cosign
-   v3.1.1 removed all four (verified by repo-doc grep 2026-07-14), replaced
+   v3 removed all four (v3.1.1 repo-doc grep; still true at v3.1.3), replaced
    by bundle-by-default + `--trusted-root <json>` + `--local-image`.
    Version-gate any guidance emitted in the report.
 
@@ -38,11 +38,12 @@ every ≤3 days and consumers must refresh within ~7; expired mirrors
 historically panicked (`failed to decode timestamp.json: expired at …`,
 cosign#1293). `--trusted-root` bypasses the TUF client (and its expiry
 checks) entirely. Env escape hatches: `SIGSTORE_ROOT_FILE`,
-`SIGSTORE_REKOR_PUBLIC_KEY`, `SIGSTORE_CT_LOG_PUBLIC_KEY_FILE` (v2-era;
-whether v3 still honors them is a freshen target).
+`SIGSTORE_REKOR_PUBLIC_KEY`, `SIGSTORE_CT_LOG_PUBLIC_KEY_FILE` (still
+defined in v3 — `pkg/cosign/env/env.go`, verified 2026-08-18).
 
-Policy engines: Kyverno `rekor.ignoreTlog: true` / inline pubkeys (but
-kyverno#10115 documents the flag being ignored — test, don't trust);
+Policy engines: Kyverno `rekor.ignoreTlog: true` / inline pubkeys (ignored
+pre-1.12 — kyverno#10115, fixed in 1.12.0 by PR #9957; still test, don't
+trust);
 sigstore policy-controller `TrustRoot` CR accepts a serialized TUF repo for
 air-gap; OpenShift `ClusterImagePolicy` embeds Fulcio CA + Rekor key with
 no callout, and oc-mirror v2 mirrors sigstore signatures alongside images
