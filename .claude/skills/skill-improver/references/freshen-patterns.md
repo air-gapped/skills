@@ -47,19 +47,41 @@ Precedence (extractors in §1 below):
 
 If the target skill has no `sources.md`, create one in Phase F6 from the extracted set so future freshens have a baseline.
 
-Mark rows with `<!-- ignore-freshen -->` to exclude refs the author deliberately keeps as-is (e.g., historical references).
+### Phase F2: Probe — everything, batched
 
-### Phase F2: Probe
+A pass verifies **every ref**, so that the single stamp written in F6 is
+true. **Delegate the sweep to cheap subagents — do not run probes in the
+main context.** Spawn in one background wave, then spend main-context turns
+only on judgment and mutations when findings return:
 
-For each ref, run the cheapest applicable probe first (templates in §2 below). Stop probing a ref as soon as it produces a finding.
+- **`web-searcher`** (cheap tier, has Bash/gh/WebFetch) — one per skill:
+  "Verify every row of `<skill>/references/sources.md`: bulk-curl the URLs,
+  batch issue/PR states via one GraphQL query per repo, check latest
+  releases against the versions the rows claim. Return ONLY a findings
+  table: `ref | ok|drifted|gone|blocked | evidence`, nothing else."
+- **`Explore`** (read-only, has Bash) — local-clone checks: file paths,
+  tags, symbols cited by rows, against `~/projects/github.com/<org>/<repo>`.
 
-Default probe budget: **20 per skill, 100 per batch run**. On budget exhaustion, stop probing and summarize; flag the skill `partial-freshen` in the log.
+The probes themselves batch, which is what makes full verification cheap:
+
+- URL rows → ONE bulk liveness sweep (`xargs -P 8 curl -sL -w '%{http_code}'`)
+- issue/PR state rows → ONE GraphQL query per repo (aliased `issueOrPullRequest` fragments)
+- repo file/tag/symbol rows → local clone under `~/projects/github.com/` (`git cat-file -e`, `git grep`), free and unlimited
+- version rows → one release-API call per project
+
+Only rows the batch flags (non-200, state changed, path gone, version moved)
+get individual attention — that judgment work is the real cost, and it only
+scales with *drift*, not with row count. Per-ref, run the cheapest applicable
+probe first (templates in §2 below).
+
+Stop early only on rate-limit (§5). A stopped pass does NOT update the stamp
+— the previous stamp stands, and the summary says why.
 
 ### Phase F3: Classify
 
 | Class | Action |
 |-------|--------|
-| `fresh` | Stamp `Last verified: <today>` on the sources.md row; no content change |
+| `fresh` | No content change (the F6 pass stamp covers it) |
 | `version-drift` | Hypothesis: bump pinned version + version-specific guidance |
 | `deprecation` | Hypothesis: replace deprecated API / flag with current equivalent |
 | `new-feature` | Hypothesis: add a ≤3-line note IFF feature maps to an existing trigger phrase in the skill's `description` / `when_to_use` |
@@ -93,28 +115,42 @@ Same atomicity rule as the improvement loop — one finding per iteration, diff 
 
 Decision rule (different from score-based loop — verification-based):
 
-- **Verified source + ≤ equal complexity** → KEEP. Update sources.md with new `Last verified:` (and `Pinned:` if relevant). Commit per §4 below.
+- **Verified source + ≤ equal complexity** → KEEP (update `Pinned:`/notes if relevant). Commit per §4 below.
 - **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
 - **>20 added lines for one finding** → DISCARD and flag for human review in the summary.
 - **Breaks self-consistency** (orphans a section, contradicts another part) → REVERT.
 
 ### Phase F6: Stamp and Summarize
 
-1. Any ref that probed successfully — fresh or updated — gets `Last verified: <today>` in sources.md.
-2. If sources.md was absent at Phase F1, create it now from the successfully-probed refs — in the format standard (§1.1b). If the file exists in a legacy shape and step 0 didn't already convert it, convert it now.
-3. Print summary: total findings, kept, discarded, unverifiable, flagged-for-review.
+1. Write (or update) ONE line at the top of sources.md:
+   `Freshened: <today>` — plus, only if something could not be verified,
+   `(exceptions: <n> rows, noted inline)`. Unverifiable rows carry a short
+   inline note ("403 to curl — bot-blocked", "cookie-gated PDF"). That is
+   the entire bookkeeping. Per-row `Last verified` columns are legacy:
+   delete the column when convenient, or leave it — the header stamp is
+   authoritative either way.
+2. If sources.md was absent at Phase F1, create it now from the extracted
+   refs (§1.1b) with today's stamp.
+3. Print summary: total findings, kept, discarded, exceptions.
 4. Stop. Do not re-probe the same skill in the same session.
+
+**The stamp never lies.** It means "every row was verified on this date,
+except the ones that say otherwise inline." A pass that verified only part
+of the file keeps the old stamp.
 
 ### Batch Mode
 
 `freshen --all` iterates skills sequentially:
 
-1. Rank the fleet with `scripts/staleness-report.py` (oldest `Last verified:`
-   first, hard Dim 9 caps ahead of soft; one command, no probes). Fall back to
-   `scripts/scan-skills.sh` + manual sources.md reads only if the script fails.
-2. Cap findings-per-skill at 5 in batch mode.
-3. Share the 100-probe global budget across the batch; stop early on exhaustion.
-4. Print ranked summary: skill, findings, kept, new stamp date.
+1. Rank the fleet with `scripts/staleness-report.py` (stalest first; one
+   command, no probes).
+2. Spawn ONE verification subagent per skill (§F2 — `web-searcher` for
+   web/version/issue rows, `Explore` for local-clone rows), all in one
+   background wave. Main context stays free for judgment.
+3. As each agent's findings table returns: apply mutations for drifted rows
+   (cap 5 findings per skill), stamp the header, move on.
+4. Print ranked summary: skill, findings, kept, new stamp date — every
+   skill from step 1 gets a row.
 
 ### Anti-Patterns
 
@@ -127,30 +163,35 @@ Decision rule (different from score-based loop — verification-based):
 
 ### 1.1 Primary: `references/sources.md` rows
 
-Each row carries `URL`, `Last verified` (YYYY-MM-DD), and optional `Pinned`
-(version or git ref). These are the authoritative refs — probe them first
-and stamp their dates on success.
+Each row carries the source (URL or repo path), what claim it supports, and
+optional `Pinned` (version or git ref). These are the authoritative refs —
+the pass verifies all of them (§F2) and the file's header stamp (§1.1b)
+records when.
 
-### 1.1b The sources.md format standard (enforced by freshen)
+### 1.1b The sources.md contract — ONE stamp, full verification
 
-Freshen normalizes every sources.md it touches to ONE canonical shape, so
-`staleness-report.py` and the Dim 9 staleness cap read the whole fleet
-uniformly:
+The whole freshness state of a skill is a single header line at the top of
+sources.md:
 
-- **Markdown table rows** (one table total, or one per topic section) with a
-  date column named exactly **`Last verified`** — not `Verified`, not `LV`,
-  not `Date`. Any other columns (`Source`, `URL`, `Tier`, `Supports`,
-  `Notes`, `Pinned`) are free-form.
-- **Dates are ISO `YYYY-MM-DD`**, one per row, living only in that column.
-  Prose dates in notes cells are fine — they are never parsed as stamps.
-- **Historical/pinned rows** the author keeps as-is (lab results, quoted
-  posts, frozen snapshots) carry `<!-- ignore-freshen -->` in the row.
-- Legacy shapes — a `Verified` column, `[LV: YYYY-MM-DD]` bullet lists,
-  inline `Last verified:` prose — are still *read* by
-  `scripts/staleness-report.py` for back-compat, but **convert the file to
-  the standard as step 0 of the pass** (a pure-relocation mutation, no
-  content change, one commit) before probing. Do not leave a file in a
-  legacy shape after freshening it.
+```
+Freshened: 2026-08-18
+```
+
+(optionally `Freshened: 2026-08-18 (exceptions: 3 rows, noted inline)`).
+
+- The stamp asserts: *every row below was verified on this date*, except
+  rows carrying an inline exception note ("403 to curl — bot-blocked",
+  "cookie-gated PDF, needs a browser").
+- **There is no per-row date column.** Rows carry source, what it supports,
+  and notes — dates in notes are prose, never bookkeeping. Existing
+  `Last verified` columns and `[LV:]` markers are legacy: `ages` reads
+  them as a fallback until the file's next pass, which writes the header
+  stamp and may delete the column outright.
+- No `volatile` tiers, no coverage percentages, no `ignore-freshen`
+  markers needed: a full pass re-confirms immutable rows for free in the
+  batch sweep, and the only special state a row can have is an inline
+  exception note.
+- A partial pass does NOT update the stamp. The stamp never lies.
 
 ### 1.2 Secondary: SKILL.md and other reference files
 

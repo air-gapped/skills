@@ -217,6 +217,10 @@ https://agentskills.io/skill-creation/evaluating-skills
 Probe a skill's external references for staleness and apply verified updates in
 place — same keep/discard loop as `improve`, but hypotheses come from online
 evidence (release notes, doc commits, deprecation signals), not rubric scores.
+A pass verifies **every** sources.md row (delegated to cheap subagents —
+`web-searcher` for web/gh rows, `Explore` for local-clone rows — in one
+background wave) and ends by writing the single `Freshened: <date>` header
+stamp; unverifiable rows get inline exception notes. No per-row dates.
 
 **Invocation:** `freshen <skill-path>` · `--all` · `--group <glob>`. Defaults to
 **apply**. For a read-only staleness readout — "how old are my skills?", which
@@ -257,9 +261,10 @@ sentence naming the stalest bucket and the suggested next `freshen` target.
 That is the whole mode; do not start scoring or freshening from it.
 
 **Invocation:** `ages` (whole fleet) · `ages <glob>` (e.g. `ages 'vllm-*'`) ·
-`ages <root-dir>`. Two date tracks per skill: `oldest`/`age` = last online
-verification of external claims (sources.md `Last verified:`, the freshen
-track) vs `changed` = last content change on disk (newest file mtime). A
+`ages <root-dir>`. Two date tracks per skill: `oldest`/`age` = when the
+skill's external claims were last verified — the sources.md `Freshened:`
+header stamp (rows shows `full`), or for legacy files the oldest per-row
+date — vs `changed` = last content change on disk (newest file mtime). A
 skill can be freshly edited yet stale on verification — and vice versa; the
 `cap` column shows the Dim 9 staleness cap the verification age implies.
 

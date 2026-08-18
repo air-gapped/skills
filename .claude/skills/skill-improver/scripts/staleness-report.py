@@ -11,6 +11,9 @@ Output is one row per skill, stalest first — the ranking `freshen --all`
 batch mode uses. `--json` emits the same rows as a JSON array.
 
 Date extraction per sources.md, in order:
+  0. `Freshened: YYYY-MM-DD` header stamp (the one-stamp contract,
+     freshen-patterns §1.1b) → the skill's date; rows shows "full"
+  Legacy fallbacks for files not yet on the contract:
   1. table with a `Last verified` / `Verified` header column → that cell per row
   2. table without that header → rightmost cell that is exactly a date
      (prose dates in notes cells never count)
@@ -46,6 +49,7 @@ from pathlib import Path
 
 DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
 INLINE_LV_RE = re.compile(r"Last verified:?\s*\**(\d{4}-\d{2}-\d{2})", re.I)
+STAMP_RE = re.compile(r"^\*{0,2}Freshened:?\*{0,2}\s*(\d{4}-\d{2}-\d{2})", re.I | re.M)
 
 
 def default_roots():
@@ -71,8 +75,15 @@ def cells(line):
 
 
 def parse_sources(path):
-    """Return (oldest, dated_rows, counted_rows) for a sources.md file."""
-    lines = path.read_text(errors="replace").splitlines()
+    """Return (oldest, dated_rows, counted_rows) for a sources.md file.
+
+    dated_rows == -1 signals a `Freshened:` header stamp (full-pass contract).
+    """
+    text = path.read_text(errors="replace")
+    m = STAMP_RE.search(text[:2000])
+    if m:
+        return m.group(1), -1, -1
+    lines = text.splitlines()
     lv_col = None  # `Last verified` column of the current table, if any
     skip_table = False  # current table has a header without that column
     saw_header = False  # file has at least one explicit table header
@@ -153,8 +164,14 @@ def scan_skill(skill_md, today):
     if src.is_file():
         oldest, dated, counted = parse_sources(src)
         row["oldest"] = oldest
-        row["rows"] = f"{dated}/{counted}"
-        row["cap"], row["age"] = dim9_cap(oldest, dated, counted, today)
+        if dated == -1 and oldest:  # Freshened: header stamp — full-pass contract
+            row["rows"] = "full"
+            age = (today - date.fromisoformat(oldest)).days
+            row["age"] = age
+            row["cap"] = "5" if age > 180 else "7" if age > 90 else "-"
+        else:
+            row["rows"] = f"{dated}/{counted}"
+            row["cap"], row["age"] = dim9_cap(oldest, dated, counted, today)
     else:
         row.update(oldest=None, rows="-", cap="6", age=None)
     backlog = d / "references" / "improvement-backlog.md"
