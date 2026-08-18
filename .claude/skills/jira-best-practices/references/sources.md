@@ -1,6 +1,6 @@
 # Sources
 
-External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date). Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits) — these move.
+External claims in this skill, with source, tier, and what they support. **Most recent freshen pass: 2026-08-18** (decay-prone rows spot-probed and stamped per row; unprobed rows keep their 2026-06-07 research-date stamp). Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits) — these move.
 
 Tiers: **A** = official Atlassian docs / issue tracker / primary spec · **B** = experienced practitioners / solution partners / surveys · **C** = vendor-advocacy / community opinion (down-weighted, used for *principles* not facts).
 
@@ -10,8 +10,8 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| github.com/sooperset/mcp-atlassian (README) | A/B | mcp-atlassian: Jira+Confluence MCP, **DC supported (Jira v8.14+, PAT auth)**, key tools, 72 tools, READ_ONLY_MODE | 2026-06-07 |
-| mcp-atlassian.soomiles.com/docs/tools-reference | A/B | Full jira_ tool list (read/write), `jira_get_transitions`/`jira_search_fields`/`jira_link_to_epic`/…; **no admin/schema tools** | 2026-06-07 |
+| github.com/sooperset/mcp-atlassian (README + releases) | A/B | mcp-atlassian: Jira+Confluence MCP, **DC supported (Jira v8.14+, PAT auth)**, key tools, ~98 tools (63 jira + 35 confluence `@tool` registrations at v0.23.0, 2026-07-18; repo active), READ_ONLY_MODE; v0.23.0 adds `jira_get_project_epic_hierarchy` + `jira_get_cross_project_dependencies` (#1286) | 2026-08-18 |
+| mcp-atlassian.soomiles.com/docs/tools-reference | A/B | Full jira_ tool list (read/write), `jira_get_transitions`/`jira_search_fields`/`jira_link_to_epic`/…; **no admin/schema tools** (URL 200 OK) | 2026-08-18 |
 | (sibling skill) `jira-cli` | — | `jira` CLI execution surface, automation contract, ADF, auth — the other execution path | 2026-06-07 |
 
 ## Hierarchy
@@ -21,7 +21,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 | support.atlassian.com/.../what-are-issue-types | A | Verbatim work-type defs; 3-tier hierarchy; parentage rules | 2026-06-07 |
 | atlassian.com/agile/project-management/epics-stories-themes | A | Initiative/Epic/Story/Theme; Theme = goal/label, not a level; sizing | 2026-06-07 |
 | confluence.atlassian.com/.../configuring-hierarchy-levels (Advanced Roadmaps DC) | A | DC custom hierarchy levels; issue-type mapping; system-wide effect | 2026-06-07 |
-| jira.atlassian.com/browse/JPOSERVER-4430 | A | DC Epic Link/Parent Link **not** unified (closed Not-a-bug); workaround | 2026-06-07 |
+| jira.atlassian.com/browse/JPOSERVER-4430 | A | DC Epic Link/Parent Link **not** unified (closed Not-a-bug); workaround. Re-probed via public REST: still Closed/Not-a-bug, untouched since 2023-09 | 2026-08-18 |
 | support.atlassian.com/.../upcoming-changes-epic-link-replaced-with-parent | A | Cloud Parent unification; DC "not affected" | 2026-06-07 |
 | seibert.group/.../jira-story-vs-task-vs-epic | B | Misconceptions; Story=value/Task=operational; sub-task constraints; non-software examples | 2026-06-07 |
 | tempo.io/blog/which-safe-hierarchy-should-you-choose | B | Two valid SAFe mappings; "depends on your situation" | 2026-06-07 |
@@ -55,7 +55,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 | docs.getdbt.com how-we-structure; Airflow TaskGroups | A/B | per-domain pipeline decomposition (staging-by-source / marts-by-domain) | 2026-06-07 |
 | hubspot WBS; smartinsights/rock.so (campaign); event + onboarding WBS templates | B/C | business-domain four-phase WBS; parallel streams; measure phase; operational Tasks | 2026-06-07 |
 | hyperproof/accountablehq (audit remediation); tldrsec/jit/atlassian Security tab/wiz | A/B | finding→owner+deadline+verification; **triage filter (already-fine→nothing)**; severity decides 1:1-vs-grouped | 2026-06-07 |
-| **mcp-atlassian source** (servers/jira.py; jira/{issues,epics,links,fields}.py; utils/decorators.py) | A | `jira_batch_create_issues` **can't set epic/parent inline (silent drop)**; single-create can; `READ_ONLY_MODE`/`validate_only`; no upsert → search-before-create | 2026-06-07 |
+| **mcp-atlassian source** (servers/jira.py; jira/{issues,epics,links,fields}.py; utils/decorators.py) | A | `jira_batch_create_issues` **can't set epic/parent inline (silent drop)**; single-create can; `READ_ONLY_MODE`/`validate_only`; no upsert → search-before-create. Re-read servers/jira.py on main (post-v0.23.0): batch schema still project_key/summary/issue_type/description/assignee/components only — claim holds | 2026-08-18 |
 | **jira-cli source** (cmdcommon/create.go; pkg/jira/{create,epic,issue}.go; cmd/epic, cmd/issue/link) | A | `--parent`→Epic Link on DC; `epic add` = only batched epic-link (≤50); `issue link A B Blocks`; no bulk-create | 2026-06-07 |
 | developer.atlassian.com issue-bulk + community 54083 + adminjiraserver rate-limiting | A/B | bulk 50-cap (Cloud); DC bounded by rate-limiting → chunk ~50 | 2026-06-07 |
 | github.com/fourplusone(+anubhavmishra)/terraform-provider-jira | B | declarative desired-state; `terraform plan` = approve-not-author idempotency (derive every issue from the plan) | 2026-06-07 |
@@ -108,13 +108,13 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 | scrum.org/.../jira-anti-patterns | B | "team serving Jira" anti-pattern | 2026-06-07 |
 | atlassian.com/agile/project-management/lean-process-improvement | A | Minimum Viable Process Change rollout | 2026-06-07 |
 
-## June-2026 state
+## Platform state (2026-08 pass)
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| atlassian.com/licensing/data-center-end-of-life | A | DC EOL: sale-end 2026-03-30, renew 2028-03-30, read-only 2029-03-28 | 2026-06-07 |
-| endoflife.date/jira-software | A | Server EOL 2024-02-15; latest **11.3.7 (2026-06-03)**; 11.3 & 10.3 LTS | 2026-06-07 |
-| confluence.atlassian.com/jirasoftware/jira-software-11-3-x-release-notes | A | DC 11.x leanness guardrails (JQL cap, automation-rule restriction, optimizer, 10k board) | 2026-06-07 |
+| atlassian.com/licensing/data-center-end-of-life | A | DC EOL: sale-end 2026-03-30, renew 2028-03-30, read-only 2029-03-28 (all three dates re-confirmed on the live page) | 2026-08-18 |
+| endoflife.date/jira-software | A | Server EOL 2024-02-15; latest **11.3.10 (2026-08-07)**; LTS 11.3 (EOL 2027-12-03) & 10.3 (latest 10.3.24, EOL 2026-12-05) | 2026-08-18 |
+| confluence.atlassian.com/jirasoftware/jira-software-11-3-x-release-notes | A | DC 11.x leanness guardrails (JQL cap, automation-rule restriction, optimizer, 10k board); release-notes index confirms **11.3 is still the newest DC line** (no 11.4) | 2026-08-18 |
 | atlassian.com/software/jira/ai | A | Rovo/AI is **Cloud-only**; DC via Cloud connectors | 2026-06-07 |
 | community.atlassian.com/.../work-is-the-new-collective-term | A/B | issue→work item is **Cloud-only**; APIs keep "issue" | 2026-06-07 |
 | uctoday.com / deiser.com (Projects→Spaces) | B | Project→Space rename **Cloud-only** | 2026-06-07 |
