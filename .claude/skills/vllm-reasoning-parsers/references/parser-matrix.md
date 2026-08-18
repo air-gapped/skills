@@ -15,8 +15,9 @@ split by `make_adapters()` into *both* a reasoning adapter and a tool adapter:
 The `vllm/reasoning/*_engine_reasoning_parser.py` files are now **three-line
 re-export shims** — the logic is in `vllm/parser/<model>.py`. This is the
 unified reasoning+tool parser design from RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713), which is still
-formally OPEN (and stale-bot-marked) even though the code has landed.
+[#32713](https://github.com/vllm-project/vllm/issues/32713), which the stale
+bot auto-closed as `NOT_PLANNED` on 2026-07-24 — a closure for inactivity, not
+a completion — even though the code has landed. Read the tree, not the tracker.
 
 | Path | Names | Where the logic lives |
 |---|---|---|
@@ -49,7 +50,7 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 | `deepseek_v3` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | Delegates → R1 or Identity | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default: **off**) | Inherits from delegate |
 | `deepseek_v4` | `DeepSeekV4ParserReasoningAdapter` | `deepseek_v4_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v4.py` | **No longer an alias of `deepseek_v3`** — as of v0.25.1 it has its own `DeepSeekV4Parser` on the adapter path | — | See `vllm/parser/deepseek_v4.py` | See file |
 | `poolside_v1` | `PoolsideV1ReasoningParser` | `poolside_v1_reasoning_parser.py` | Subclass of `DeepSeekV3ReasoningParser` (`<think>`/`</think>`); scopes the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't false-positive `prompt_is_reasoning_end` | — | Same as `deepseek_v3` | Inherits from delegate |
-| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared, 571 lines) | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`); both classes derive from `BaseCohereCommandReasoningParser` | — | None — the subclass only selects a filter profile, `PyFilterOptions().cmd3()` streaming / `.cmd3().no_tools()` unary | Base class behaviour |
+| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared, 716 lines at v0.27.1) | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`); both classes derive from `BaseCohereCommandReasoningParser` | — | None — the subclass only selects a filter profile, `PyFilterOptions().cmd3()` streaming / `.cmd3().no_tools()` unary | Base class behaviour |
 | `cohere_command4` | `CohereCommand4ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Same delimiters and base class as `cohere_command3` | — | None — differs from `cohere_command3` **only** by `PyFilterOptions().cmd4()` / `.cmd4().no_tools()` | Base class behaviour |
 | `glm45` / `glm47` | `Glm47MoeParserReasoningAdapter` | `glm47_moe_reasoning_parser.py` (shim) → `vllm/parser/glm47_moe.py` | **`glm45` moved off the DeepSeek-V3 class onto the adapter path and now shares with the new `glm47` name** — it no longer behaves identically to `holo2` | — | See `vllm/parser/glm47_moe.py` | See file |
 | `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |

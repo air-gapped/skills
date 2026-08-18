@@ -1,5 +1,7 @@
 # Sources — Autoresearch Ecosystem
 
+Freshened: 2026-08-18
+
 URLs backing the autoresearch skill's ecosystem reference. Freshen Mode reads
 this file, probes each row, and stamps `Last verified` / `Pinned` fields.
 Dim 9 of the quality rubric caps Domain Accuracy based on oldest `Last verified`.

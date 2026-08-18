@@ -1,6 +1,6 @@
 # NIXL Python API Reference
 
-Source: `src/api/python/_api.py` (1099 lines, fully docstring'd). Bindings via pybind11 wrap `src/api/cpp`. Install: `pip install nixl` (auto-selects nixl-cu12 / nixl-cu13 based on PyTorch CUDA at runtime in v1.0.1+).
+Source: `src/api/python/_api.py` (~1220 lines, fully docstring'd). Bindings via pybind11 wrap `src/api/cpp`. Install: `pip install nixl` (auto-selects nixl-cu12 / nixl-cu13 based on PyTorch CUDA at runtime in v1.0.1+).
 
 ## Table of Contents
 - [Imports + agent creation](#imports--agent-creation)

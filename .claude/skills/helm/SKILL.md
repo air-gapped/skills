@@ -46,10 +46,10 @@ value in chart X" is usually not a chart-authoring question.
 
 ### 1. Helm 4 Is Current (Released November 2025)
 
-Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.3 (2026-07-09); the
-4.1 series stops at v4.1.4. Helm 3 has *not* been retired — v3.21.3 shipped the
-same day as v4.2.3, so "still on Helm 3" is a supported position, not a lapsed
-one. Key changes:
+Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.4 (2026-08-13); the
+4.1 series stops at v4.1.4. Helm 3 has *not* been retired — the 3.x line is
+still patched in parallel (v3.21.4), so "still on Helm 3" is a supported
+position, not a lapsed one. Key changes:
 
 - **Server-Side Apply** is default for new installations (existing Helm 3 releases
   keep client-side apply on upgrade unless `--server-side` is passed)

@@ -19,7 +19,7 @@ The paper's central claim: disaggregation enables per-stage scaling independentl
 
 ## Stage config YAML grammar
 
-Canonical layout from `vllm_omni/model_executor/stage_configs/qwen3_omni_moe.yaml`:
+Canonical layout from `vllm_omni/deploy/qwen3_omni_moe.yaml`:
 
 ```yaml
 stage_args:
@@ -161,7 +161,7 @@ All nodes must see the same `--stage-configs-path` YAML. The `MooncakeStoreConne
 
 3. **Wrong `hf_config_name` for quantized multi-stage**: when a checkpoint has per-stage quant (modelopt FP8 multi-stage), `hf_config_name` must name the specific sub-config for each stage — otherwise talker/code2wav inherit thinker's quant wrongly. Symptoms: silent accuracy drop on one stage.
 
-4. **BAGEL YAML/docs mismatch (#2635)**: parallel-config field names in the official docs don't match the YAML shape that actually loads. Cross-check against an existing known-good config in `vllm_omni/model_executor/stage_configs/` before copy-paste.
+4. **BAGEL YAML/docs mismatch (#2635)**: parallel-config field names in the official docs don't match the YAML shape that actually loads. Cross-check against an existing known-good config in `vllm_omni/deploy/` before copy-paste.
 
 5. **Swap between `qwen3_omni_moe.yaml` and `..._async_chunk.yaml`**: if realtime is required, do **not** use the async-chunk variant — `async_chunk: true` causes `/v1/realtime` to reject at connection.
 
@@ -183,4 +183,4 @@ If `need_kv_receive: true` and transfer stalls (broken connector, mis-sized buff
 - `bagel.yaml` — BAGEL DiT-only (v0.14 layout)
 - `wan2_2_t2v.yaml` — Wan2.2 T2V disagg
 
-Check `ls vllm_omni/model_executor/stage_configs/` in the cloned repo for the current list.
+Check `ls vllm_omni/deploy/` in the cloned repo for the current list.

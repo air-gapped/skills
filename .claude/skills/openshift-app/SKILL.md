@@ -94,7 +94,7 @@ namespaces with PSA levels matching the most privileged SCC available.
 - Helm 4.0.0 released November 2025 with Server-Side Apply as default
 - **OpenShift 4.19-4.21 still ships Helm 3** (web terminal bundles v3.17.1); 4.22's bundled version was not verified this pass
 - **ArgoCD (through v3.3 / GitOps 1.20) only supports Helm 3**
-- Helm 3 EOL: **no published date could be confirmed** (2026-07-21). Helm's version-skew and release-policy pages state only that the most recent minor gets fixes, with no Helm 3 sunset date — and Helm 3 is still shipping patches (**v3.21.3 on 2026-07-09**, alongside v4.2.3 the same day). Treat "Helm 3 is dead" as unsupported; plan on ArgoCD support, not on a calendar
+- Helm 3 EOL: **no published date could be confirmed** (2026-07-21). Helm's version-skew and release-policy pages state only that the most recent minor gets fixes, with no Helm 3 sunset date — and Helm 3 is still shipping patches (**v3.21.4 on 2026-08-14**, alongside the 4.x line). Treat "Helm 3 is dead" as unsupported; plan on ArgoCD support, not on a calendar
 - **Recommendation**: use Helm 3 now, plan Helm 4 migration after ArgoCD adds support
 
 ### 4. DeploymentConfig Is Deprecated (OCP 4.14)

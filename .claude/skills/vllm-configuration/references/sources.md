@@ -1,5 +1,7 @@
 # Sources — external reference verification log
 
+Freshened: 2026-08-18
+
 Tracks external URLs, GitHub issues/PRs, and docs pages cited by this skill. Each row carries a verification date and a brief status note. Refresh via the `freshen` mode of the `skill-improver` skill.
 
 Last skill-wide verification pass: 2026-08-11. **Everything below was probed at tag `v0.27.0`** (published 2026-08-10). Latest stable is **v0.27.1** (published 2026-08-11, mid-pass) — a single-change patch ("Support quantized DSpark Markov heads", #50424) that touches no config surface, so the v0.27.0 probes stand and are stamped v0.27.0 deliberately rather than restamped to a tag nobody read. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, is what gates this stack.

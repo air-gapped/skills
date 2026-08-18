@@ -24,10 +24,10 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 
 | Item | Value | Source |
 |---|---|---|
-| Latest release | **v1.3.1** (2026-07-08) | `gh release list --repo ai-dynamo/nixl` |
+| Latest release | **v1.4.0** (2026-08-14; v1.3.2 shipped 2026-07-24 in between) | `gh release list --repo ai-dynamo/nixl` |
 | Previous releases | **v1.3.0** (2026-06-15) — AMD ROCm/HIP, C++20, DDN Infinia backend, path-based file registration; **v1.2.0** (2026-05-30) — OS-assigned listener port, libfabric `FI_MORE` batching; **v1.1.0** (2026-05-12); **v1.0.1** (2026-04-14); **v1.0.0** (2026-03-13) — first stable | release notes |
 | HEAD pyproject version | **1.4.0** | `pyproject.toml` |
-| What vLLM pins | **`nixl == 1.3.0`** (exact) at vLLM v0.25.1 | `requirements/kv_connectors.txt` |
+| What vLLM pins | **`nixl == 1.3.1`** (exact) at vLLM v0.27.1; main pins `1.3.2` | `requirements/kv_connectors.txt` |
 | PyPI wheels | `nixl-cu12`, `nixl-cu13` (auto-selects at runtime via PyTorch CUDA version since 1.0.1) | `pip install nixl` |
 | Torch dep pin | `torch==2.11.*`; `nixl_ep` wheels build against 2.11/2.12/2.13 and select by installed Torch at import (1.3.1, #1775) | `pyproject.toml`, `contrib/Dockerfile` |
 | C++ standard | **C++20** since v1.3.0 (#1571) — building NIXL or a plugin from source now needs a C++20 toolchain | release notes |

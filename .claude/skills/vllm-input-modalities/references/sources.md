@@ -1,5 +1,7 @@
 # External references — verification audit
 
+Freshened: 2026-08-18
+
 Log of external citations probed during skill freshen passes. Each row
 records when the reference was last verified and its classification:
 

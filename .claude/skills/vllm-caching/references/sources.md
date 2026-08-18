@@ -1,5 +1,7 @@
 # External sources
 
+Freshened: 2026-08-18
+
 Load-bearing external references cited in this skill, with verification dates. Probed via `gh api` / `gh release list` / WebFetch. Only refreshed when the skill-improver `freshen` mode runs — not meant to be exhaustive.
 
 | Ref | URL | Last verified | Notes |

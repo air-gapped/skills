@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-08-18
+
 Citation anchors backing every claim in this skill. Use to verify — or to feed follow-up searches when a claim looks stale.
 
 ## First-party
@@ -57,13 +59,14 @@ The 2026-07-21 mismatch is gone. All three channels now agree on **v0.26.0**.
 |---|---|---|
 | GitHub releases | **v0.26.0** (2026-08-03), marked Latest | `gh release list -R vllm-project/vllm-omni` |
 | PyPI | **0.26.0** (2026-08-03) | `pypi.org/pypi/vllm-omni/json` — `info.version` = `0.26.0`; index now `…, 0.24.0, 0.24.0rc1, 0.25.0rc1, 0.26.0, 0.26.0rc1`. **`0.24.1` is still absent** — never uploaded, and now moot. |
-| Docker Hub | **v0.26.0** (2026-08-03); `latest` resolves to **`v0.26.0post1.20260811`** (2026-08-11) | Docker Hub v2 tags API. Per-tag `-x86_64` / `-aarch64` variants. Model-specific builds also present: `minimax-h3`, `minimax-h3-cu129` (2026-08-02), `cosmos3` (2026-07-20). ROCm images are a **separate repo**, `vllm/vllm-omni-rocm`. |
+| Docker Hub | **v0.26.0** (2026-08-03); `latest` no longer matches any versioned release — as of 2026-08-18 its per-arch digests match the **`vtest-nightly`** tag (pushed 2026-08-12), not `v0.26.0post1.20260811` and not `v0.27.0rc1` | Docker Hub v2 tags API. Per-tag `-x86_64` / `-aarch64` variants. Model-specific builds also present: `minimax-h3`, `minimax-h3-cu129` (2026-08-02), `cosmos3` (2026-07-20). ROCm images are a **separate repo**, `vllm/vllm-omni-rocm`. |
 
 The v0.24.1 Qwen-Image fix (#5017) is reachable from v0.26.0 by descent, so the
 `git+…@v0.24.1` install form is no longer needed. Two caveats survive:
 
-- **`latest` is not a release.** It currently points at a `post1` build dated
-  after v0.26.0. Pin the exact version tag in any manifest.
+- **`latest` is not a release.** As of 2026-08-18 it does not match *any*
+  versioned tag — it tracks an unversioned nightly (`vtest-nightly`). Pin the
+  exact version tag in any manifest.
 - **Parity is not guaranteed to persist.** v0.22.0's notes listed "PyPI upload
   support" (#3667) as a *new* capability, so this plumbing is young. Re-check
   all three channels each pass rather than trusting this row.
@@ -93,7 +96,7 @@ The v0.24.1 Qwen-Image fix (#5017) is reachable from v0.26.0 by descent, so the
 | #2880 | HunyuanVideo-1.5 flash-attn shape on NPU mindiesd | **CLOSED 2026-06-02**, `COMPLETED`. Last comment is a maintainer ping (`@gcanlin PTAL`, 2026-04-20) with no fix reference — **fix unconfirmed**, re-test before relying on it | <https://github.com/vllm-project/vllm-omni/issues/2880> | 2026-07-21 |
 | #2866 | Qwen3-TTS code2wav crash when enforce_eager=false | **CLOSED 2026-04-29** (CUDA-graph capture shipped via PR #2690 in v0.20.0) | <https://github.com/vllm-project/vllm-omni/issues/2866> | 2026-05-28 |
 | #2804 | Diffusion API accepts model mismatch silently | **CLOSED 2026-04-19** | <https://github.com/vllm-project/vllm-omni/issues/2804> | 2026-08-18 |
-| #2777 | v0.18 Pydantic ChatCompletionResponse validation bug | **still OPEN.** Last comment asks the reporter to re-check against the latest version per issue #4610 | <https://github.com/vllm-project/vllm-omni/issues/2777> | 2026-07-21 |
+| #2777 | v0.18 Pydantic ChatCompletionResponse validation bug | **Treat as still open.** Shows CLOSED/COMPLETED 2026-07-30, but the closing comment is "no response over 1 month. I can reopen if needed" — an inactivity closure, not a fix | <https://github.com/vllm-project/vllm-omni/issues/2777> | 2026-08-18 |
 | #2768 | Orphan procs after Wan2.2 crash | **CLOSED 2026-05-16 `COMPLETED` — but treat as UNRESOLVED.** The last comment (2026-05-12, four days before closure) is a **fresh reproduction by a different reporter** — *"When I kill the serve process … the same bug occurred."* No fix PR referenced. Keep the process-group mitigation | <https://github.com/vllm-project/vllm-omni/issues/2768> | 2026-07-21 |
 | #2760 | [Bugfix] T5 text encoder to render correct text in FLUX.1-dev | **MERGED 2026-04-24** (closes #2730); shipped in v0.20.0 | <https://github.com/vllm-project/vllm-omni/pull/2760> | 2026-05-28 |
 | #2730 | FLUX.1-dev regression on v0.19.0rc1 | **CLOSED 2026-04-24** via PR #2760 — **fixed in v0.20.0 stable** | <https://github.com/vllm-project/vllm-omni/issues/2730> | 2026-05-28 |
@@ -114,7 +117,6 @@ alone would have retired five live caveats from this skill.
 
 ## Open RFCs (shape of roadmap)
 
-- [#677 2026 Q1 Roadmap](https://github.com/vllm-project/vllm-omni/issues/677)
 - [#938 Qwen3-TTS Production Ready milestone](https://github.com/vllm-project/vllm-omni/issues/938)
 - [#984 Omni Coordinator](https://github.com/vllm-project/vllm-omni/issues/984)
 - [#1217 Continuous Diffusion Model Acceleration Support](https://github.com/vllm-project/vllm-omni/issues/1217)
@@ -141,7 +143,7 @@ alone would have retired five live caveats from this skill.
 - `vllm_omni/profiler/omni_torch_profiler.py` — profiler wrapper
 - `vllm_omni/patch.py` — early-import patch registering OmniModelConfig (**removed in v0.20.0**; the old entrypoint hijack was dropped for the 0.20.0 integration path per release notes, rebase PR #3232)
 - `vllm_omni/version.py` — version resolution + vLLM alignment check
-- `vllm_omni/model_executor/stage_configs/*.yaml` — reference stage configs
+- `vllm_omni/deploy/*.yaml` — reference stage configs
 - `examples/online_serving/qwen3_omni/openai_realtime_client.py` — realtime client template
 - `examples/online_serving/qwen3_omni/README.md` — realtime deployment notes
 - `examples/online_serving/text_to_video/README.md` — video job API walkthrough

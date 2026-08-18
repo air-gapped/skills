@@ -1,5 +1,7 @@
 # External sources — verification log
 
+Freshened: 2026-08-18
+
 All external references cited by this skill, probed and timestamped. Use this table to decide when a claim needs re-verification before citing in a response.
 
 **Skill version:** freshened **2026-08-11** against vLLM **v0.27.0** (published 2026-08-10; prior passes 2026-07-21/v0.25.1, 2026-05-28/v0.21.0).

@@ -30,7 +30,7 @@ Verified 2026-08-11. All three channels now agree on **v0.26.0**:
 |---|---|---|
 | GitHub releases | **v0.26.0** (2026-08-03), marked Latest | `gh release list` |
 | PyPI | **0.26.0** (2026-08-03) | `pypi.org/pypi/vllm-omni/json` |
-| Docker Hub | **v0.26.0** (2026-08-03), plus `v0.26.0post1.20260811` pushed 2026-08-11 which `latest` now points at | Docker Hub v2 tags API |
+| Docker Hub | **v0.26.0** (2026-08-03); `latest` matches no versioned tag — it tracks the unversioned `vtest-nightly` build | Docker Hub v2 tags API |
 
 The 2026-07-21 finding — v0.24.1 existing as a GitHub tag with no wheel and no
 image — is now **moot, not fixed**: v0.24.1 was never uploaded to PyPI, but
@@ -39,8 +39,8 @@ issue #4964) is in v0.26.0 by descent. Nobody needs the `git+…@v0.24.1` instal
 form any more.
 
 Two things carry forward. First, **`latest` on Docker Hub is not a released
-version**: it currently resolves to `v0.26.0post1.20260811`, a post-release
-build newer than any tagged release. Pin the exact tag. Second, the underlying
+version**: as of 2026-08-18 its digests match no versioned tag at all — it
+tracks the unversioned `vtest-nightly` build. Pin the exact tag. Second, the underlying
 lesson stands — a tag is not a wheel — so check all three channels before
 quoting a version, rather than assuming this pass's parity is permanent.
 
@@ -84,7 +84,7 @@ quoting a version, rather than assuming this pass's parity is permanent.
 
 ## The top operator mistakes this skill exists to prevent
 
-- **`/v1/realtime` with `async_chunk: true`**. The realtime WebSocket rejects at connection if `async_chunk` is enabled (api_server.py:1208). Use the default stage-config (`vllm_omni/model_executor/stage_configs/qwen3_omni_moe.yaml`) — **not** the `...moe_async_chunk.yaml` variant — for realtime sessions. The async-chunk config is for higher-throughput non-realtime Qwen3-Omni serving.
+- **`/v1/realtime` with `async_chunk: true`**. The realtime WebSocket rejects at connection if `async_chunk` is enabled (api_server.py:1208). Use the default stage-config (`vllm_omni/deploy/qwen3_omni_moe.yaml`) — **not** the `...moe_async_chunk.yaml` variant — for realtime sessions. The async-chunk config is for higher-throughput non-realtime Qwen3-Omni serving.
 
 - **Qwen3-TTS with CUDA graphs on (v0.18 only)**. Issue #2866: on v0.18 the code2wav stage crashed when `enforce_eager: false`, so `--enforce-eager` was mandatory. **#2866 is CLOSED (2026-04-29)** and v0.20.0 ships TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803), lifting the requirement. On v0.20.0+ keep `--trust-remote-code` but `--enforce-eager` is no longer forced — drop it to regain CUDA-graph throughput, and re-test latency.
 
@@ -138,7 +138,7 @@ and FlashInfer 0.6.14** (vLLM v0.26.0 `requirements/cuda.txt`) — not the 2.13.
 Python **3.12 is required** (3.11 is not supported). Docker image:
 `vllm/vllm-omni:v0.26.0` (`-x86_64` / `-aarch64` variants published per tag);
 ROCm images live in a **separate** repo, `vllm/vllm-omni-rocm:v0.26.0`. Pin the
-exact tag: `latest` currently resolves to `v0.26.0post1.20260811`. Model-specific
+exact tag: `latest` tracks an unversioned nightly, not a release. Model-specific
 builds also appear on the tag list (`cosmos3`, `minimax-h3`, `minimax-h3-cu129`)
 — those are not releases.
 
@@ -157,7 +157,7 @@ vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni \
 
 # Qwen3-Omni high-throughput non-realtime (async_chunk ON):
 vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni \
-  --stage-configs-path vllm_omni/model_executor/stage_configs/qwen3_omni_moe_async_chunk.yaml
+  --stage-configs-path vllm_omni/deploy/qwen3_omni_moe_async_chunk.yaml
 
 # Qwen3-TTS (trust-remote-code; --enforce-eager only required on v0.18, lifted by TTS CUDA-graph capture in v0.20.0+):
 vllm serve Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice --omni \
@@ -190,7 +190,7 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 | Metric | Value |
 |---|---|
 | Current stable, all channels | **v0.26.0** (2026-08-03), rebased on vLLM 0.26.0 (#5443) |
-| Docker `latest` resolves to | `v0.26.0post1.20260811` — a post-release build, pin the exact tag |
+| Docker `latest` resolves to | the unversioned `vtest-nightly` build — matches no release, pin the exact tag |
 | Latest pre-release | v0.26.0rc1 (2026-07-28) |
 | Stables in the line | v0.14.0, v0.16.0, v0.18.0, v0.20.0, v0.22.0, v0.24.0, v0.24.1, v0.26.0 (v0.21/v0.23/v0.25 are rc1-only) |
 | First stable | v0.14.0 (2026-01-31) |

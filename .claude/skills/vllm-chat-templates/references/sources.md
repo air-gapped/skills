@@ -1,5 +1,7 @@
 # Source verification log
 
+Freshened: 2026-08-18
+
 Tracks external references cited by this skill and their last-verified dates.
 Lift Dim 9 staleness cap by keeping this table current: when adding a new
 issue/PR/URL to the skill, probe it and add a row here.

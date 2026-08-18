@@ -47,7 +47,7 @@ Optional:
 
 ## The CLI path (what `--reasoning-parser qwen3` actually triggers)
 
-`vllm/engine/arg_utils.py:552` declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser`. `api_server.py` validates it against `ReasoningParserManager.list_registered()` at startup (invalid name = fast-fail with the list of registered names).
+`vllm/engine/arg_utils.py:985` (v0.27.1; grep for `--reasoning-parser` — line moves between releases) declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser`. `api_server.py` validates it against `ReasoningParserManager.list_registered()` at startup (invalid name = fast-fail with the list of registered names).
 
 On request, `OpenAIServingChat` instantiates a **fresh parser per request** via `self.reasoning_parser_cls(tokenizer, chat_template_kwargs=chat_template_kwargs)` (`vllm/entrypoints/openai/chat_completion/serving.py:240`). "Fresh per request" is load-bearing for stateful parsers — see Hunyuan in the matrix.
 

@@ -72,7 +72,7 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Repro.** `--reasoning-parser deepseek_r1 --tool-call-parser hermes --enable-auto-tool-choice`. Model emits `<think>…</think><tool_call>…</tool_call>`. Non-streaming response has reasoning but `tool_calls: []`.
 
-**Root cause.** `OpenAIServingChat` runs tool parser on the **content** half of `extract_reasoning` — see `vllm/entrypoints/openai/chat_completion/serving.py:1365-1370`. If the reasoning parser returned `(everything, None)` (e.g. because model didn't emit `</think>` due to training drift), tool parser sees an empty content string.
+**Root cause.** `OpenAIServingChat` runs tool parser on the **content** half of the reasoning split — see the `parser.parse()` call sites in `vllm/entrypoints/openai/chat_completion/serving.py` (around 901–995 at v0.27.1; grep rather than trusting line numbers). If the reasoning parser returned `(everything, None)` (e.g. because model didn't emit `</think>` due to training drift), tool parser sees an empty content string.
 
 **Fix.**
 - Ensure the model actually emits `</think>` before tool calls (chat-template job).

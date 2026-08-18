@@ -23,7 +23,7 @@
 | **4.19** | 1.32 | **cgroup v1 removed.** RHCOS built as layered image. Image mode for OpenShift GA. Gateway API CRDs ship by default. |
 | **4.20** | 1.33 | Pipelines 1.20. GitOps 1.18. In-place VPA beta (k8s 1.33). |
 | **4.21** | 1.34 | **ClusterImagePolicy GA** (sigstore verification enforced by default for OCP releases). Pipelines 1.21. GitOps 1.20 (ArgoCD 3.3). RHTAS 1.3. RHADS-SSC 1.8. GA ~Feb 2026. |
-| **4.22** | 1.35 | GA 2026-07-14 (RHEA-2026:0449), CRI-O 1.35. JobSet controller GA for multi-Job orchestration. **Lazy image pulling** via a plug-in CRI-O architecture — containers start before the image is fully pulled, aimed at large AI/ML images. Dev Spaces 3.26–3.28. Only headline items captured this pass; the release notes were 403 to direct fetch, so treat this row as incomplete. |
+| **4.22** | 1.35 | GA 2026-06-09 (RHEA-2026:0449), CRI-O 1.35. JobSet controller GA for multi-Job orchestration. **Lazy image pulling** via a plug-in CRI-O architecture — containers start before the image is fully pulled, aimed at large AI/ML images. Dev Spaces 3.26–3.28. Only headline items captured this pass; the release notes were 403 to direct fetch, so treat this row as incomplete. |
 
 ---
 

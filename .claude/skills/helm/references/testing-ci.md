@@ -36,7 +36,7 @@ Five layers from fastest (no cluster) to slowest (real cluster):
 
 ## helm-unittest
 
-BDD-style unit testing. No cluster needed. v1.1.1.
+BDD-style unit testing. No cluster needed. v1.1.2.
 
 ### Installation
 
@@ -591,7 +591,7 @@ based on conventional commits scoped to the chart path.
 
 ## Helmfile
 
-Declarative multi-release management. v1.7.1. Supports Helm 3+4.
+Declarative multi-release management. v1.7.4. Supports Helm 3+4.
 
 ### helmfile.yaml
 

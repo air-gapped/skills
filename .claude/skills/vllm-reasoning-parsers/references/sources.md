@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-08-18
+
 Upstream primary references for claims in this skill.
 
 ## In-tree code (authoritative)
@@ -16,14 +18,14 @@ Upstream primary references for claims in this skill.
 - `vllm/reasoning/hy_v3_reasoning_parser.py` — `HYV3ReasoningParser` (Hunyuan V3), `<think>`/`</think>` with `reasoning_effort=no_think` → `IdentityReasoningParser` delegation. 143 lines at v0.25.1. Last verified: 2026-07-21.
 - `deepseek_v4` — **no longer an alias of `deepseek_v3`.** At v0.25.1 it maps to `deepseek_v4_engine_reasoning_parser` + `DeepSeekV4ParserReasoningAdapter`, backed by its own `vllm/parser/deepseek_v4.py`. Last verified: 2026-07-21.
 - `vllm/reasoning/poolside_v1_reasoning_parser.py` — `PoolsideV1ReasoningParser`, subclass of `DeepSeekV3ReasoningParser`; overrides `is_reasoning_end` to scope the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't short-circuit `prompt_is_reasoning_end`. Registered as `poolside_v1`; new since 2026-04 sweep. Last verified: 2026-05-28.
-- `vllm/reasoning/cohere_command_reasoning_parser.py` — 571 lines; holds `BaseCohereCommandReasoningParser` plus `CohereCommand3ReasoningParser` (`cohere_command3`) and `CohereCommand4ReasoningParser` (`cohere_command4`). Delimiters are the vocab tokens `<|START_THINKING|>` / `<|END_THINKING|>`, with `<|CHATBOT_TOKEN|>` also resolved. **The two subclasses differ only by a filter profile** — `PyFilterOptions().cmd3()` vs `.cmd4()` for streaming, and the same with `.no_tools()` for unary; neither adds a thinking-disable switch. Last verified: 2026-07-21.
+- `vllm/reasoning/cohere_command_reasoning_parser.py` — 716 lines at v0.27.1; holds `BaseCohereCommandReasoningParser` plus `CohereCommand3ReasoningParser` (`cohere_command3`) and `CohereCommand4ReasoningParser` (`cohere_command4`). Delimiters are the vocab tokens `<|START_THINKING|>` / `<|END_THINKING|>`, with `<|CHATBOT_TOKEN|>` also resolved. **The two subclasses differ only by a filter profile** — `PyFilterOptions().cmd3()` vs `.cmd4()` for streaming, and the same with `.no_tools()` for unary; neither adds a thinking-disable switch. Last verified: 2026-07-21.
 - `glm45` / `holo2` — **diverged at v0.25.1.** `holo2` still maps to `deepseek_v3_reasoning_parser` + `DeepSeekV3ReasoningWithThinkingParser` (default thinking-on). `glm45` moved to `glm47_moe_reasoning_parser` + `Glm47MoeParserReasoningAdapter`, shared with the new `glm47` name. Last verified: 2026-07-21.
 - `mimo` — still a registry alias of `qwen3`, but both now map to `qwen3_engine_reasoning_parser` + `Qwen3ParserReasoningAdapter` (logic in `vllm/parser/qwen3.py`). Last verified: 2026-07-21.
 - `vllm/entrypoints/openai/chat_completion/protocol.py` — response field is `reasoning` on `ChatMessage.reasoning` / `DeltaMessage.reasoning` (renamed from `reasoning_content`); request side still accepts `reasoning_content` via backward-compat normalization. Last verified: 2026-05-28.
 - `vllm/config/reasoning.py` — `ReasoningConfig.initialize_token_ids` (derives reasoning_start/end_token_ids for structured-output backends).
-- `vllm/engine/arg_utils.py:552,862` — `--reasoning-parser` / `--reasoning-parser-plugin` CLI argument declaration.
-- `vllm/entrypoints/openai/api_server.py:380,477,523–530,544–545` — validation + plugin import on server startup.
-- `vllm/entrypoints/openai/chat_completion/serving.py:103,130,240,326–330,595,724–731,825–870,940–955,1365–1373` — per-request instantiation, `prompt_is_reasoning_end_arr` caching, `extract_reasoning_streaming` + `extract_reasoning` call sites, tool-parser content-only contract.
+- `vllm/engine/arg_utils.py:985,990` (v0.27.1) — `--reasoning-parser` / `--reasoning-parser-plugin` CLI argument declaration.
+- `vllm/entrypoints/openai/api_server.py:610–616,630–631,775–776` (v0.27.1) — validation, then plugin import in two separate code paths.
+- `vllm/entrypoints/openai/chat_completion/serving.py:331–355,638–665,901–995` (v0.27.1) — per-request instantiation and the reasoning call sites, plus the tool-parser content-only contract. **The call surface changed:** serving.py no longer calls `extract_reasoning` / `extract_reasoning_streaming` directly and no longer holds `prompt_is_reasoning_end_arr`; it calls the unified `parser.parse()` / `parser.is_reasoning_end()` interface. Line anchors drift every release — grep, don't trust the numbers.
 - `vllm/entrypoints/openai/chat_completion/batch_serving.py:264–270` — batch mode parser use.
 - `vllm/v1/structured_output/__init__.py:295–334` — xgrammar gating via `is_reasoning_end` / `is_reasoning_end_streaming`.
 - Tests in `tests/reasoning/` — canonical contract tests per parser.
@@ -50,7 +52,7 @@ Upstream primary references for claims in this skill.
 - [#39130](https://github.com/vllm-project/vllm/issues/39130) — `gemma4` silently disables xgrammar with `enable_thinking=False`.
 - [#31954](https://github.com/vllm-project/vllm/issues/31954) — OLMo3 parser fails to detect `</think>` end → GCD not activated.
 - [#17638](https://github.com/vllm-project/vllm/discussions/17638) — structured generation with reasoning parser in offline mode.
-- [#32713](https://github.com/vllm-project/vllm/issues/32713) — RFC: unified parser for reasoning + tool calling. **State 2026-07-21: OPEN and stale-bot-marked** ("no activity within 90 days… will be automatically closed") — *while its implementation is already shipping* in `vllm/parser/`. The tracker state says nothing about whether the work landed; read the tree. Last verified: 2026-07-21.
+- [#32713](https://github.com/vllm-project/vllm/issues/32713) — RFC: unified parser for reasoning + tool calling. **State 2026-08-18: CLOSED `NOT_PLANNED` 2026-07-24 by the stale bot** ("automatically closed due to inactivity"), with no implementation-tracking comment — *while its implementation is already shipping* in `vllm/parser/`. Same non-fix closure pattern as #20227. The tracker state says nothing about whether the work landed; read the tree.
 - [#20227](https://github.com/vllm-project/vllm/issues/20227) — how to write a custom reasoning parser. State: CLOSED **`NOT_PLANNED`** 2025-10-29 — closed *without* an upstream change; the value is the last comment, a working CLI-wrapper workaround that registers a parser via `@ReasoningParserManager.register_module` before calling `vllm.entrypoints.cli.main`. That workaround is what this skill documents, so the `NOT_PLANNED` label does not diminish it — but do not read this issue as "vLLM added first-class support". Last verified: 2026-07-21.
 - [Magistral discussion](https://huggingface.co/mistralai/Magistral-Small-2506/discussions/17) — Mistral tokenizer-mode requirement.
 - [#27755](https://github.com/vllm-project/vllm/issues/27755) — RFC `reasoning_content` → `reasoning` response-field rename; backward-compat kept request-side. **Re-confirmed at v0.27.0**: `ChatMessage.reasoning` (`chat_completion/protocol.py:71`), `DeltaMessage.reasoning` (`engine/protocol.py:397`), and a request-side normalizer whose own comment reads "Renames the deprecated `reasoning_content` field to `reasoning`" (`protocol.py:515-531`). The sibling `vllm-chat-templates` skill asserted the opposite ("vLLM settled on `reasoning_content`") — corrected there this pass. Last verified: 2026-08-11.
@@ -148,5 +150,6 @@ Upstream primary references for claims in this skill.
   module does not tell you which implementation the reasoning path uses —
   `_REASONING_PARSERS_TO_REGISTER` is the only authority.
 
-  RFC #32713 itself is OPEN and stale-bot-marked while all of the above ships.
+  RFC #32713 itself was stale-bot-closed (`NOT_PLANNED`, 2026-07-24) while all
+  of the above ships — the closure records inactivity, not completion.
   Source: `gh api repos/vllm-project/vllm/contents/{vllm/reasoning/__init__.py,vllm/parser,vllm/parser/engine}?ref=v0.25.1`.
