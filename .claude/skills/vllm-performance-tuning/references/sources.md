@@ -125,7 +125,7 @@ the release note's Dependencies section mixes runtime and CI pins.
 - [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing — **CLOSED `NOT_PLANNED` 2026-02-26 by the inactivity bot.** Not fixed; mitigations still apply.
 - [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size — not re-probed this pass
 
-### Async-scheduling status (Last verified: 2026-05-28)
+### Async-scheduling status (Last verified: 2026-08-18 — tracker states re-confirmed closed)
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
 - [#27614](https://github.com/vllm-project/vllm/issues) — default-on landing
 - [#28250](https://github.com/vllm-project/vllm/issues) — follow-up
@@ -168,7 +168,7 @@ the release note's Dependencies section mixes runtime and CI pins.
 - [#20069](https://github.com/vllm-project/vllm/issues/20069) — MI300X Whisper inaccurate
 - [#28362](https://github.com/vllm-project/vllm/issues/28362) — Intel 125H Arc fail
 - [#30758](https://github.com/vllm-project/vllm/issues/30758) — gpt-oss B200/GB200 tracker
-- [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — async-sched precision — Last verified: 2026-05-28 — **CLOSED 2026-03-13** (fixed)
+- [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — async-sched precision — Last verified: 2026-08-18 — **CLOSED 2026-03-13** (fixed)
 - [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857) — MI325X Qwen2.5-VL 100× slowdown
 
 ### Forum threads

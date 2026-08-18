@@ -120,7 +120,7 @@ Two production paths exist:
 
 - **FP8 Hopper, no calibration wanted** → llm-compressor `FP8_DYNAMIC` (data-free, ~15 min for a 70B on H100).
 - **W4A16 INT4 (AWQ or GPTQ) with best accuracy** → llm-compressor, `AWQModifier` or `GPTQModifier` with 256–512 ultrachat samples.
-- **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.12.0**, and note the project ships parallel maintenance lines — see `references/llm-compressor.md`).
+- **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.13.0**, and note the project ships parallel maintenance lines — see `references/llm-compressor.md`).
 - **MXFP4 MoE for GPT-OSS-style models** → use the vendor checkpoint as-is, or ModelOpt MXFP4.
 - **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). The MLA multi-turn corruption once flagged here — [#38652](https://github.com/vllm-project/vllm/issues/38652) — was **fixed by PR #37054** and is no longer a reason to avoid FP8 KV on MLA.
 

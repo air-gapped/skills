@@ -32,7 +32,7 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 | Native CPU KV offload (`vllm/v1/kv_offload/`) | **v0.11.0** (2025-10-02) | Infrastructure + scheduler integration |
 | CLI flags `--kv-offloading-size` / `--kv-offloading-backend` | **v0.11.1** (2025-11-18) | Before this, required editing config objects |
 | LMCache bundled in official x86 `vllm/vllm-openai` image | **v0.14.0** (2026-01-20) | arm64 had it from v0.10.2; x86 was intentionally stripped July 2025–Jan 2026 due to torch version conflict — many ops teams had to pip install LMCache at container start during that window, which is now unnecessary |
-| `--calculate-kv-scales` deprecated | pre-v0.19 (still present in v0.27.0) | Flag emits a deprecation warning but still accepted. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-08-11 against `vllm/config/cache.py:273` at tag v0.27.0. |
+| `--calculate-kv-scales` deprecated | pre-v0.19; **removed on main post-v0.27.1** (#49389) | Still accepted with a deprecation warning through v0.27.1; gone from the next minor. FP8 KV without shipped scales falls back to scale=1.0 (see pitfalls). Verified 2026-08-18 against tags v0.27.0/v0.27.1 + main (commit dd11df04f3). |
 | KV Offload + Hybrid Memory Allocator (HMA) | **v0.21.0** (2026-05-15) | Native offload integrates with HMA — full enablement (#41445) + sliding-window groups (#41228) + multi-connector HMA (#39571), plus Qwen3.5/Mamba hybrid support (#35520). |
 | **Native multi-tier offloading** (`TieringOffloadingSpec`, fs / obj / p2p secondary tiers) | **v0.22.0** (2026-05-29) | Framework #40020 + Python filesystem tier #41735; object-store tier #41968 and per-request policy hooks landed in v0.23.0. Native offload is no longer CPU-DRAM-only — an NVMe or S3 tier no longer requires LMCache. See the decision tree. |
 | **HMA on by default for capable connectors** | **v0.23.0** (2026-06-15) | #41847. `disable_hybrid_kv_cache_manager` became tri-state (`None` = auto): vLLM disables HMA only for connectors that don't subclass `SupportsHMA`. This retires the manual-flag pitfall for native offload — see "Critical pitfalls". |
@@ -156,7 +156,7 @@ Recommending `--cpu-offload-gb` when the user asked about KV tiering is a seriou
 
 ### FP8 KV cache without shipped scales
 
-`--calculate-kv-scales` is deprecated (still accepted as of v0.27.0, emits a warning, scheduled for removal). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
+`--calculate-kv-scales` is deprecated (still accepted through v0.27.1, emits a warning; removal has landed on main via #49389 — the flag errors on the next minor). Setting it has no effect — vLLM now always loads scales from the checkpoint. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
 
 Symptoms: subtle quality degradation, often only past 128k context. "Usually works fine" is the common operator experience because most activations fit, but the risk is real.
 

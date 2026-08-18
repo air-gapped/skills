@@ -17,87 +17,87 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 
 ## Fundamentals / HBM / supply / energy
 
-- [arXiv 2512.01644 — Systematic roofline characterization (2025-12)](https://arxiv.org/html/2512.01644v1)
-- [arXiv 2402.16363 — LLM Inference Unveiled (foundational)](https://arxiv.org/pdf/2402.16363)
-- [Towards Data Science — Prefill/Decode](https://towardsdatascience.com/prefill-is-compute-bound-decode-is-memory-bound-why-your-gpu-shouldnt-do-both/)
-- [SemiAnalysis — Memory Wall (2024-09, foundational)](https://semianalysis.com/2024/09/03/the-memory-wall/)
-- [SemiAnalysis — HBM rise and roadmap](https://newsletter.semianalysis.com/p/scaling-the-memory-wall-the-rise-and-roadmap-of-hbm)
-- [SemiAnalysis — Tensor core evolution Volta→Blackwell](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell)
-- [NotebookCheck — SK hynix sold out 2026](https://www.notebookcheck.net/SK-hynix-sells-out-its-DRAM-NAND-and-HBM-chip-supply-to-Nvidia-through-2026-as-AI-demand-outpaces-Samsung-and-Micron-s-capacity.1151402.0.html)
-- [Astute — HBM market share](https://www.astutegroup.com/news/general/sk-hynix-holds-62-of-hbm-micron-overtakes-samsung-2026-battle-pivots-to-hbm4/)
-- [Network World — 2026 memory shortage](https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026)
-- [Introl — AI Memory Supercycle](https://introl.com/blog/ai-memory-supercycle-hbm-2026)
-- [Future of Computing — Breaking the Memory Wall pt 2](https://news.future-of-computing.com/p/breaking-the-memory-wall-pt-2-a-closer-look-at-hbm-high-bandwidth-memory)
-- [NVIDIA HPCA 2017 — Energy-efficient DRAM (foundational)](https://research.nvidia.com/sites/default/files/pubs/2017-02_Architecting-an-Energy-Efficient/chatterjee.hpca2017.pdf)
+- [arXiv 2512.01644 — Systematic roofline characterization (2025-12)](https://arxiv.org/html/2512.01644v1) [LV: 2026-08-18]
+- [arXiv 2402.16363 — LLM Inference Unveiled (foundational)](https://arxiv.org/pdf/2402.16363) [LV: 2026-08-18]
+- [Towards Data Science — Prefill/Decode](https://towardsdatascience.com/prefill-is-compute-bound-decode-is-memory-bound-why-your-gpu-shouldnt-do-both/) [LV: 2026-08-18]
+- [SemiAnalysis — Memory Wall (2024-09, foundational)](https://semianalysis.com/2024/09/03/the-memory-wall/) [LV: 2026-08-18]
+- [SemiAnalysis — HBM rise and roadmap](https://newsletter.semianalysis.com/p/scaling-the-memory-wall-the-rise-and-roadmap-of-hbm) [LV: 2026-08-18]
+- [SemiAnalysis — Tensor core evolution Volta→Blackwell](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell) [LV: 2026-08-18]
+- [NotebookCheck — SK hynix sold out 2026](https://www.notebookcheck.net/SK-hynix-sells-out-its-DRAM-NAND-and-HBM-chip-supply-to-Nvidia-through-2026-as-AI-demand-outpaces-Samsung-and-Micron-s-capacity.1151402.0.html) [LV: 2026-08-18]
+- [Astute — HBM market share](https://www.astutegroup.com/news/general/sk-hynix-holds-62-of-hbm-micron-overtakes-samsung-2026-battle-pivots-to-hbm4/) [LV: 2026-08-18]
+- [Network World — 2026 memory shortage](https://web.archive.org/web/2026/https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026) [LV: 2026-08-18, original 404 — swapped to archive.org snapshot]
+- [Introl — AI Memory Supercycle](https://introl.com/blog/ai-memory-supercycle-hbm-2026) [LV: 2026-08-18]
+- [Future of Computing — Breaking the Memory Wall pt 2](https://news.future-of-computing.com/p/breaking-the-memory-wall-pt-2-a-closer-look-at-hbm-high-bandwidth-memory) [LV: 2026-08-18]
+- [NVIDIA HPCA 2017 — Energy-efficient DRAM (foundational)](https://research.nvidia.com/sites/default/files/pubs/2017-02_Architecting-an-Energy-Efficient/chatterjee.hpca2017.pdf) [LV: 2026-08-18]
 
 ## NVIDIA hardware
 
-- [H100 datasheet](https://resources.nvidia.com/en-us-tensor-core/nvidia-tensor-core-gpu-datasheet)
-- [H200 datasheet](https://nvdam.widen.net/s/nb5zzzsjdf/hpc-datasheet-sc-nvidia-h200-datasheet-nvidia-us)
-- [HGX product brief](https://www.nvidia.com/en-us/data-center/hgx/)
-- [Hopper in-depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)
-- [AnandTech — H100 NVL](https://www.anandtech.com/show/18781/nvidia-announces-h100-nvl-max-memory-server-card-for-large-language-models)
-- [Blackwell architecture page](https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/)
-- [GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/)
-- [GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72/) **[LV: 2026-04-24]** — page live, status "Available Now"; NVIDIA markets 20 TB HBM (we report 20.7 TB detailed), 130 TB/s NVLink, 576 TB/s aggregate HBM BW. No per-rack power on the page itself.
-- [Blackwell Ultra datasheet](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-ultra-datasheet) **[LV: 2026-04-24, unverifiable]** — URL behind NVIDIA cookie gate; full PDF contents could not be re-read via WebFetch. Content inherited from prior pass; re-verify via a browser session if making sizing calls.
-- [DGX B200 datasheet](https://resources.nvidia.com/en-us-dgx-systems/dgx-b200-datasheet)
-- [DGX SuperPOD B300 RA](https://docs.nvidia.com/pdf/dgx-spod-gb300-ra.pdf)
-- [Inside Blackwell Ultra blog](https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/)
-- [NVFP4 blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)
-- [Quantum-X800 docs](https://docs.nvidia.com/networking/nvidia-quantum-x800-xdr-clusters/index.html)
-- [Vera Rubin Pod dev blog](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/) **[LV: 2026-04-24, drift]** — NVIDIA now officially names the first rack product "Vera Rubin NVL72" (not "VR200 NVL144"); blog states it is "in full production, on track to ship in the second half of 2026". Rubin-roadmap reference patched accordingly.
-- [SemiAnalysis — Rubin extreme co-design](https://newsletter.semianalysis.com/p/vera-rubin-extreme-co-design-an-evolution)
-- [SemiAnalysis — GTC 2025 Rubin/Kyber](https://newsletter.semianalysis.com/p/nvidia-gtc-2025-built-for-reasoning-vera-rubin-kyber-cpo-dynamo-inference-jensen-math-feynman)
-- [Glenn Lockwood — Kyber](https://www.glennklockwood.com/garden/Kyber)
-- [Tom's — B300 announcement](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4)
-- [Tom's — 1400 W B300 TDP](https://www.tomshardware.com/tech-industry/artificial-intelligence/nvidias-next-gen-b300-gpus-have-1400w-tdp-deliver-50-percent-more-ai-horsepower-report)
-- [Tom's — Rubin $8.8M](https://www.tomshardware.com/tech-industry/artificial-intelligence/price-of-nvidias-vera-rubin-nvl72-racks-skyrockets-to-as-much-as-usd8-8-million-apiece-but-server-makers-margins-will-be-tight-nvidia-is-moving-closer-to-shipping-entire-full-scale-systems)
-- [Tom's — $50k cooling BoM](https://www.tomshardware.com/pc-components/cooling/cooling-system-for-a-single-nvidia-blackwell-ultra-nvl72-rack-costs-a-staggering-usd50-000-set-to-increase-to-usd56-000-with-next-generation-nvl144-racks)
-- [Register — 600 kW racks](https://www.theregister.com/2025/03/19/nvidia_charts_course_for_600kw/)
-- [DCD — 1 MW racks / 800 VDC](https://www.datacenterdynamics.com/en/news/nvidia-prepares-data-center-industry-for-1mw-racks-and-800-volt-dc-power-architectures/)
+- [H100 datasheet](https://resources.nvidia.com/en-us-tensor-core/nvidia-tensor-core-gpu-datasheet) [LV: 2026-08-18]
+- [H200 datasheet](https://nvdam.widen.net/s/nb5zzzsjdf/hpc-datasheet-sc-nvidia-h200-datasheet-nvidia-us) [LV: 2026-08-18]
+- [HGX product brief](https://www.nvidia.com/en-us/data-center/hgx/) [LV: 2026-08-18]
+- [Hopper in-depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/) [LV: 2026-08-18]
+- [AnandTech — H100 NVL](https://www.anandtech.com/show/18781/nvidia-announces-h100-nvl-max-memory-server-card-for-large-language-models) [LV: 2026-08-18]
+- [Blackwell architecture page](https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/) [LV: 2026-08-18]
+- [GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) [LV: 2026-08-18]
+- [GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72/) **[LV: 2026-08-18]** — page live, status "Available Now"; NVIDIA markets 20 TB HBM (we report 20.7 TB detailed), 130 TB/s NVLink, 576 TB/s aggregate HBM BW. No per-rack power on the page itself.
+- [Blackwell Ultra datasheet](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-ultra-datasheet) **[LV: 2026-08-18, unverifiable]** — gateway URL 200s (curl sweep 2026-08-18) but sits behind NVIDIA's cookie gate; full PDF contents could not be re-read via WebFetch. Content inherited from prior pass; re-verify via a browser session if making sizing calls.
+- [DGX B200 datasheet](https://resources.nvidia.com/en-us-dgx-systems/dgx-b200-datasheet) [LV: 2026-08-18]
+- [DGX SuperPOD B300 RA](https://docs.nvidia.com/pdf/dgx-spod-gb300-ra.pdf) [LV: 2026-08-18]
+- [Inside Blackwell Ultra blog](https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/) [LV: 2026-08-18]
+- [NVFP4 blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) [LV: 2026-08-18]
+- [Quantum-X800 docs](https://docs.nvidia.com/networking/nvidia-quantum-x800-xdr-clusters/index.html) [LV: 2026-08-18]
+- [Vera Rubin Pod dev blog](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/) **[LV: 2026-08-18]** — NVIDIA now officially names the first rack product "Vera Rubin NVL72" (not "VR200 NVL144"); blog states it is "in full production, on track to ship in the second half of 2026". Rubin-roadmap reference patched accordingly.
+- [SemiAnalysis — Rubin extreme co-design](https://newsletter.semianalysis.com/p/vera-rubin-extreme-co-design-an-evolution) [LV: 2026-08-18]
+- [SemiAnalysis — GTC 2025 Rubin/Kyber](https://newsletter.semianalysis.com/p/nvidia-gtc-2025-built-for-reasoning-vera-rubin-kyber-cpo-dynamo-inference-jensen-math-feynman) [LV: 2026-08-18]
+- [Glenn Lockwood — Kyber](https://www.glennklockwood.com/garden/Kyber) [LV: 2026-08-18]
+- [Tom's — B300 announcement](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4) [LV: 2026-08-18]
+- [Tom's — 1400 W B300 TDP](https://web.archive.org/web/2026/https://www.tomshardware.com/tech-industry/artificial-intelligence/nvidias-next-gen-b300-gpus-have-1400w-tdp-deliver-50-percent-more-ai-horsepower-report) [LV: 2026-08-18, original 404 — swapped to archive.org snapshot]
+- [Tom's — Rubin $8.8M](https://www.tomshardware.com/tech-industry/artificial-intelligence/price-of-nvidias-vera-rubin-nvl72-racks-skyrockets-to-as-much-as-usd8-8-million-apiece-but-server-makers-margins-will-be-tight-nvidia-is-moving-closer-to-shipping-entire-full-scale-systems) [LV: 2026-08-18]
+- [Tom's — $50k cooling BoM](https://www.tomshardware.com/pc-components/cooling/cooling-system-for-a-single-nvidia-blackwell-ultra-nvl72-rack-costs-a-staggering-usd50-000-set-to-increase-to-usd56-000-with-next-generation-nvl144-racks) [LV: 2026-08-18]
+- [Register — 600 kW racks](https://www.theregister.com/2025/03/19/nvidia_charts_course_for_600kw/) [LV: 2026-08-18]
+- [DCD — 1 MW racks / 800 VDC](https://www.datacenterdynamics.com/en/news/nvidia-prepares-data-center-industry-for-1mw-racks-and-800-volt-dc-power-architectures/) [LV: 2026-08-18]
 - [Wikipedia — Blackwell microarch](https://en.wikipedia.org/wiki/Blackwell_(microarchitecture))
-- [TweakTown — B100 cancelled](https://www.tweaktown.com/news/100083/analyst-nvidia-has-effectively-canceled-b100-ai-gpu-over-design-flaw-b200-to-replace-it/index.html)
-- [Modal — Decoding Blackwell](https://modal.com/blog/nvidia-blackwell)
+- [TweakTown — B100 cancelled](https://www.tweaktown.com/news/100083/analyst-nvidia-has-effectively-canceled-b100-ai-gpu-over-design-flaw-b200-to-replace-it/index.html) [LV: 2026-08-18]
+- [Modal — Decoding Blackwell](https://modal.com/blog/nvidia-blackwell) [LV: 2026-08-18]
 
 ## Dell, OEMs, integrated racks
 
-- [Dell PowerEdge XE spec sheet (PDF)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf) **— primary for all Dell specs** **[LV: 2026-04-24, unverifiable]** — URL still live, but WebFetch only retrieved the PDF binary without extractable text on this pass. Rev A04 (2026-03) content inherited; confirm per-SKU availability directly in the PDF if making a purchase call.
-- [Dell XE9712 spec sheet](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9712-spec-sheet.pdf)
-- [Lenovo GB300 NVL72 product guide lp2357](https://lenovopress.lenovo.com/lp2357-lenovo-nvidia-gb300-nvl72-rack-scale-ai)
-- [Lenovo GB300 NVL72 datasheet ds0207](https://lenovopress.lenovo.com/datasheet/en-us/ds0207-lenovo-nvidia-gb300-nvl72)
-- [Lenovo HGX B200 180 GB lp2226](https://lenovopress.lenovo.com/lp2226-thinksystem-nvidia-b200-180gb-1000w-gpu)
-- [Supermicro GB300 NVL72 product](https://www.supermicro.com/en/products/system/gpu/48u/srs-gb300-nvl72)
-- [Supermicro GB200 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB200_NVL72.pdf)
-- [Supermicro GB300 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB300_NVL72.pdf)
-- [HPE Store — GB300 NVL72 by HPE](https://buy.hpe.com/us/en/compute/rack-scale-system/nvidia-nvl-system/nvidia-gb300-nvl72-by-hpe/p/1014890105)
-- [Wiwynn GTC 2025](https://www.wiwynn.com/news/wiwynn-showcases-ai-servers-featuring-nvidia-gb300-nvl72-platform-and-liquid-cooling-innovations-at-gtc-2025)
-- [STH — first GB300 NVL72](https://www.servethehome.com/dell-and-coreweave-show-off-first-nvidia-gb300-nvl72-rack/)
-- [TweakTown — IR7000 480 kW](https://www.tweaktown.com/news/101839/)
-- [Sunbird DCIM — GB300 power](https://www.sunbirddcim.com/blog/how-much-power-does-nvidia-gb300-nvl72-need)
-- [Introl — B300 infra requirements](https://introl.com/blog/nvidia-blackwell-ultra-b300-infrastructure-requirements-2025)
+- [Dell PowerEdge XE spec sheet (PDF)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf) **— primary for all Dell specs** **[LV: 2026-08-18, unverifiable]** — URL still live (curl 200, sweep 2026-08-18), but WebFetch only retrieved the PDF binary without extractable text on this pass. Rev A04 (2026-03) content inherited; confirm per-SKU availability directly in the PDF if making a purchase call.
+- [Dell XE9712 spec sheet](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9712-spec-sheet.pdf) [LV: 2026-08-18]
+- [Lenovo GB300 NVL72 product guide lp2357](https://lenovopress.lenovo.com/lp2357-lenovo-nvidia-gb300-nvl72-rack-scale-ai) [LV: 2026-08-18]
+- [Lenovo GB300 NVL72 datasheet ds0207](https://lenovopress.lenovo.com/datasheet/en-us/ds0207-lenovo-nvidia-gb300-nvl72) [LV: 2026-08-18]
+- [Lenovo HGX B200 180 GB lp2226](https://lenovopress.lenovo.com/lp2226-thinksystem-nvidia-b200-180gb-1000w-gpu) [LV: 2026-08-18]
+- [Supermicro GB300 NVL72 product](https://www.supermicro.com/en/products/system/gpu/48u/srs-gb300-nvl72) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
+- [Supermicro GB200 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB200_NVL72.pdf) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
+- [Supermicro GB300 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB300_NVL72.pdf) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
+- [HPE Store — GB300 NVL72 by HPE](https://buy.hpe.com/us/en/compute/rack-scale-system/nvidia-nvl-system/nvidia-gb300-nvl72-by-hpe/p/1014890105) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
+- [Wiwynn GTC 2025](https://www.wiwynn.com/news/wiwynn-showcases-ai-servers-featuring-nvidia-gb300-nvl72-platform-and-liquid-cooling-innovations-at-gtc-2025) [LV: 2026-08-18]
+- [STH — first GB300 NVL72](https://www.servethehome.com/dell-and-coreweave-show-off-first-nvidia-gb300-nvl72-rack/) [LV: 2026-08-18]
+- [TweakTown — IR7000 480 kW](https://www.tweaktown.com/news/101839/) [LV: 2026-08-18]
+- [Sunbird DCIM — GB300 power](https://www.sunbirddcim.com/blog/how-much-power-does-nvidia-gb300-nvl72-need) [LV: 2026-08-18]
+- [Introl — B300 infra requirements](https://introl.com/blog/nvidia-blackwell-ultra-b300-infrastructure-requirements-2025) [LV: 2026-08-18]
 
 ## Mitigations (algorithms)
 
-- [DeepSeek-V2 MLA](https://arxiv.org/abs/2405.04434)
-- [DeepSeek-V3](https://arxiv.org/abs/2412.19437)
-- [EAGLE-3](https://arxiv.org/abs/2503.01840)
-- [Mooncake (FAST 2025)](https://arxiv.org/abs/2407.00079)
-- [vLLM paged attention (SOSP 2023, foundational)](https://arxiv.org/abs/2309.06180)
-- [AWQ (MLSys 2024, foundational)](https://arxiv.org/abs/2306.00978)
-- [Transformer Engine docs](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
+- [DeepSeek-V2 MLA](https://arxiv.org/abs/2405.04434) [LV: 2026-08-18]
+- [DeepSeek-V3](https://arxiv.org/abs/2412.19437) [LV: 2026-08-18]
+- [EAGLE-3](https://arxiv.org/abs/2503.01840) [LV: 2026-08-18]
+- [Mooncake (FAST 2025)](https://arxiv.org/abs/2407.00079) [LV: 2026-08-18]
+- [vLLM paged attention (SOSP 2023, foundational)](https://arxiv.org/abs/2309.06180) [LV: 2026-08-18]
+- [AWQ (MLSys 2024, foundational)](https://arxiv.org/abs/2306.00978) [LV: 2026-08-18]
+- [Transformer Engine docs](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html) [LV: 2026-08-18]
 
 ## vLLM releases
 
-- [v0.10.2](https://github.com/vllm-project/vllm/releases/tag/v0.10.2)
-- [v0.11.0](https://github.com/vllm-project/vllm/releases/tag/v0.11.0)
-- [v0.11.1](https://github.com/vllm-project/vllm/releases/tag/v0.11.1)
-- [v0.12.0](https://github.com/vllm-project/vllm/releases/tag/v0.12.0)
-- [v0.19.0](https://github.com/vllm-project/vllm/releases/tag/v0.19.0) **[LV: 2026-04-24]** — published 2026-04-03. First-class B300/GB300 (SM 10.3); cu130 wheels; FlashInfer sparse MLA default for FP8 KV cache.
-- [v0.19.1](https://github.com/vllm-project/vllm/releases/tag/v0.19.1) **[LV: 2026-05-28]** — published 2026-04-18. Ships `transformers>=5` compat. (Was "latest stable" as of the 2026-04-24 pass; superseded — see v0.21.0.)
-- [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) **[LV: 2026-05-28]** — **GA 2026-04-27** (left pre-release). **CUDA 13.0 default** (breaking env change), PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV), TurboQuant 2-bit KV cache (4× capacity), MXFP4 W4A4 CUTLASS MoE SM100, TRTLLM GEN NVFP4 MoE non-512-aligned hidden dims, tuned fused_moe config for RTX PRO 6000 Blackwell.
-- [v0.20.1](https://github.com/vllm-project/vllm/releases/tag/v0.20.1) **[LV: 2026-05-28]** — published 2026-05-04. Patch release on the v0.20 line.
-- [v0.20.2](https://github.com/vllm-project/vllm/releases/tag/v0.20.2) **[LV: 2026-05-28]** — published 2026-05-10. Patch release on the v0.20 line.
+- [v0.10.2](https://github.com/vllm-project/vllm/releases/tag/v0.10.2) [LV: 2026-08-18]
+- [v0.11.0](https://github.com/vllm-project/vllm/releases/tag/v0.11.0) [LV: 2026-08-18]
+- [v0.11.1](https://github.com/vllm-project/vllm/releases/tag/v0.11.1) [LV: 2026-08-18]
+- [v0.12.0](https://github.com/vllm-project/vllm/releases/tag/v0.12.0) [LV: 2026-08-18]
+- [v0.19.0](https://github.com/vllm-project/vllm/releases/tag/v0.19.0) **[LV: 2026-08-18]** — published 2026-04-03. First-class B300/GB300 (SM 10.3); cu130 wheels; FlashInfer sparse MLA default for FP8 KV cache.
+- [v0.19.1](https://github.com/vllm-project/vllm/releases/tag/v0.19.1) **[LV: 2026-08-18]** — published 2026-04-18. Ships `transformers>=5` compat. (Was "latest stable" as of the 2026-04-24 pass; superseded — see v0.21.0.)
+- [v0.20.0](https://github.com/vllm-project/vllm/releases/tag/v0.20.0) **[LV: 2026-08-18]** — **GA 2026-04-27** (left pre-release). **CUDA 13.0 default** (breaking env change), PyTorch 2.11, **FlashAttention 4 as default MLA prefill** (SM90+ paged-KV), TurboQuant 2-bit KV cache (4× capacity), MXFP4 W4A4 CUTLASS MoE SM100, TRTLLM GEN NVFP4 MoE non-512-aligned hidden dims, tuned fused_moe config for RTX PRO 6000 Blackwell.
+- [v0.20.1](https://github.com/vllm-project/vllm/releases/tag/v0.20.1) **[LV: 2026-08-18]** — published 2026-05-04. Patch release on the v0.20 line.
+- [v0.20.2](https://github.com/vllm-project/vllm/releases/tag/v0.20.2) **[LV: 2026-08-18]** — published 2026-05-10. Patch release on the v0.20 line.
 - [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) **[LV: 2026-07-21]** — published 2026-05-15. (Was "current latest" at the 2026-05-28 pass; superseded four times over.)
 - [v0.22.0](https://github.com/vllm-project/vllm/releases/tag/v0.22.0) **[LV: 2026-07-21]** — published 2026-05-29. FlashInfer b12x MoE + FP4 GEMM for SM120/121 (#40082); per-tensor FP8 CUTLASS on SM12.1 (#41215); GDN prefill for SM100 (#43273). FlashInfer -> 0.6.11.post2 (#41711).
 - [v0.23.0](https://github.com/vllm-project/vllm/releases/tag/v0.23.0) **[LV: 2026-07-21, drift]** — published 2026-06-15. **Triton MoE backend becomes default on Hopper (#44220)** — a silent default change on the H100/H200 MoE path. Also NUMA auto-binding on DGX B300 (#43270), tuned `selective_state_update` for H200/RTX PRO (#44251), fail-fast on unsupported NVFP4 KV-cache-dtype arch (#43669). FlashInfer -> 0.6.12 (#44036).
@@ -107,19 +107,19 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [v0.26.0](https://github.com/vllm-project/vllm/releases/tag/v0.26.0) **[LV: 2026-08-11]** — published 2026-07-27. **arm64 Blackwell SM10x/SM110 image builds (#48041)** — GB200/GB300/Thor no longer need a local aarch64 build. Attention backend selectable per KV-cache group (#48012); sliding window as an explicit backend capability (#48011); Hopper FA4 relative attention (#48858). FA3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable FlashMLA build (#48174). FlashInfer -> 0.6.14 (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442). (The "Transformers 5.13.0 (#47867)" line in the release notes is a **CI pin only** — `requirements/common.txt` at v0.26.0 reads `transformers >= 5.5.3`, unchanged.)
 - [v0.27.0](https://github.com/vllm-project/vllm/releases/tag/v0.27.0) **[LV: 2026-08-11, drift]** — published 2026-08-10. **`torch==2.13.0` / `torchvision==0.28.0` (#48155) — a breaking environment change**, so rebuild the container rather than pip-upgrading. Triton 3.7.1 is named in the PR title but is **not pinned in any vLLM runtime requirements file** — it arrives transitively with torch. **NCCL 2.30.7 (#45321) enables DeepEPv2 in the `vllm/vllm-openai` image** (GIN backend needs >= 2.30.4). FlashInfer -> 0.6.16.post3 (#48914 -> 0.6.15, #50892 -> 0.6.16.post3); at >= 0.6.14 the DSv4 sparse-MLA q-head padding is removed (#48047). **`sm_107` build target for Rubin (#49387)** + SM107 NVLink all-reduce paths (#49647). **SM121 (GB10/DGX Spark) CUDA-arch detection fixed (#49904)** — pre-v0.27.0 source builds silently produced a kernel-less `.so`. **FlashAttention 4 on SM100 gained FP8 KV cache (#42569) and headdim-256 (#42669)**, with JIT warmup infrastructure (#47451) and runner-owned Triton kernel warmup (#49903). **Runtime Transformers floor is `>= 5.5.3`, NOT 5.14.1** — #49223 ("Bump Transformers version to 5.14.1") touches only `requirements/test/*` and is a CI pin; the runtime floor in `requirements/common.txt` is unchanged from v0.26.0. Verified against the v0.27.0 source tree: `requirements/cuda.txt` (`torch==2.13.0`, `torchvision==0.28.0`, `torchaudio==2.11.0`, `flashinfer-python==0.6.16.post3`, `flashinfer-cubin==0.6.16.post3`, `nvidia-cutlass-dsl[cu13]==4.6.0`), `requirements/common.txt` (`transformers >= 5.5.3`, `tokenizers >= 0.21.1`), `CMakeLists.txt:117-121` (arch list), `docker/versions.json` + `docker/Dockerfile:25,288` (CUDA 13.0.3, NCCL 2.30.7, arch list). **Verification tag for this pass is 0.27.0** — see the v0.27.1 row below for why that is still current.
 - [v0.27.1](https://github.com/vllm-project/vllm/releases/tag/v0.27.1) **[LV: 2026-08-11]** — published 2026-08-11 10:47Z. **Current latest stable.** Patch on v0.27.0; the entire release body is one line: "Support quantized DSpark Markov heads" (#50424, merged 2026-08-03 — `DSparkMarkovHead` now forwards `quant_config` to its `ParallelLMHead`-based `markov_w2` projection, allowing W4A16 with `weight_scale_2`). **No hardware, platform, dependency, or arch-list change**, so every claim in this file verified at the v0.27.0 tag remains valid. Belongs to `vllm-quantization` / `vllm-speculative-decoding`, not here. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release. **Caught mid-pass:** at 12:30Z this tag existed with no GitHub release; the release appeared ~2 h later. A "tag exists but is unreleased" note is itself a decaying negative — re-probe it rather than inheriting it.
-- [NVIDIA vLLM release notes 25.09](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-25-09.html)
+- [NVIDIA vLLM release notes 25.09](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-25-09.html) [LV: 2026-08-18]
 
 ## Public deployments / benchmarks
 
-- [CoreWeave GB200 NVL72 GA](https://www.coreweave.com/news/coreweave-first-cloud-provider-to-announce-general-availability-of-nvidia-gb200-nvl72-instances)
-- [Oracle OCI GB200 NVL72 (DCD)](https://www.datacenterdynamics.com/en/news/nvidia-gb200-nvl72-now-available-via-oracle-cloud/)
-- [Microsoft Azure GB300 NVL72](https://techcommunity.microsoft.com/blog/azureinfrastructureblog/reimagining-ai-at-scale-nvidia-gb300-nvl72-on-azure/4464556)
-- [LMSYS / SGLang GB300 benchmarks](https://www.lmsys.org/blog/2026-02-20-gb300-inferencex/)
-- [TrendForce — GTC 2025 Blackwell/Rubin](https://www.trendforce.com/research/download/RP250319GB)
+- [CoreWeave GB200 NVL72 GA](https://www.coreweave.com/news/coreweave-first-cloud-provider-to-announce-general-availability-of-nvidia-gb200-nvl72-instances) [LV: 2026-08-18]
+- [Oracle OCI GB200 NVL72 (DCD)](https://www.datacenterdynamics.com/en/news/nvidia-gb200-nvl72-now-available-via-oracle-cloud/) [LV: 2026-08-18]
+- [Microsoft Azure GB300 NVL72](https://techcommunity.microsoft.com/blog/azureinfrastructureblog/reimagining-ai-at-scale-nvidia-gb300-nvl72-on-azure/4464556) [LV: 2026-08-18]
+- [LMSYS / SGLang GB300 benchmarks](https://www.lmsys.org/blog/2026-02-20-gb300-inferencex/) [LV: 2026-08-18]
+- [TrendForce — GTC 2025 Blackwell/Rubin](https://www.trendforce.com/research/download/RP250319GB) [LV: 2026-08-18]
 
 ## Upstream bug trackers
 
-- [flashinfer-ai/flashinfer#2939 — TRTLLM attention hang on GB300 (SM103) with FlashInfer 0.6.7](https://github.com/flashinfer-ai/flashinfer/issues/2939) **[LV: 2026-05-28]** — **Closed 2026-04-07** (state=closed re-confirmed via `gh api` 2026-05-28). Fixed via PR #2956, which is a *revert* of the Blackwell-Ultra optimization that caused the deadlock (titled "[Fmha] revert blackwell ultra optimization that causes deadlocks", merged 2026-04-03), shipped in a 0.6.7.postN (verify the exact tag before pinning). vllm-platform-matrix reference patched from "open, pin older FlashInfer" to "fixed (by revert) — upgrade".
+- [flashinfer-ai/flashinfer#2939 — TRTLLM attention hang on GB300 (SM103) with FlashInfer 0.6.7](https://github.com/flashinfer-ai/flashinfer/issues/2939) **[LV: 2026-08-18]** — **Closed 2026-04-07** (state=closed re-confirmed via `gh api` 2026-05-28). Fixed via PR #2956, which is a *revert* of the Blackwell-Ultra optimization that caused the deadlock (titled "[Fmha] revert blackwell ultra optimization that causes deadlocks", merged 2026-04-03), shipped in a 0.6.7.postN (verify the exact tag before pinning). vllm-platform-matrix reference patched from "open, pin older FlashInfer" to "fixed (by revert) — upgrade".
 
 ## Rubin shipping status — probed 2026-07-21
 

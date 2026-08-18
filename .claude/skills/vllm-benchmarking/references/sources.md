@@ -15,10 +15,10 @@ Tracks external references cited in this skill. `Last verified` indicates the mo
 | `vllm bench` dataset table (rendered docs) | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 2026-08-11 | Dataset set unchanged since 2026-05-28. Cross-checked against argparse `choices` in the v0.27.0 tree — 14 values, identical between docs and source. `bfcl` is **not** a `--dataset-name` value (selected via `--dataset-path`/`--hf-name` + `--backend openai-chat`); `datasets.md` corrected. |
 | `vllm/benchmarks/sonnet.txt` | https://github.com/vllm-project/vllm/blob/v0.27.0/benchmarks/sonnet.txt | 2026-08-11 | 22,706 bytes at v0.27.0 — unchanged, still in tree. Dataset still marked deprecated in docs; file remains, so the air-gapped "never downloads" claim holds. |
 | In-tree benchmarks dir | https://github.com/vllm-project/vllm/tree/v0.27.0/vllm/benchmarks | 2026-08-11 | Contents at v0.27.0: `datasets/`, `lib/`, `sweep/`, `latency.py`, `mm_processor.py`, `plot.py`, `serve.py`, `startup.py`, `throughput.py`. `sweep/` still carries all five documented sub-modes (serve, serve_workload, startup, plot, plot_pareto). |
-| Air-gapped discussion thread | https://discuss.vllm.ai/t/setting-up-vllm-in-an-airgapped-environment/916 | not probed | Low priority — forum thread, supplementary. Probe next cycle if cited. |
-| vLLM performance dashboard | https://docs.vllm.ai/en/latest/benchmarking/dashboard/ | not probed | Low priority this cycle; subdomain of already-verified docs.vllm.ai. |
-| Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05) | https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html | not probed | Blog post, dated; excluded per freshen rule "drop blogs/social posts." |
-| Blog: Large Scale Serving — DeepSeek @ 2.2k tok/s/H200 (2025-12-17) | https://blog.vllm.ai/2025/12/17/large-scale-serving.html | not probed | Same — blog; not on the priority list for this cycle. |
+| Air-gapped discussion thread | https://discuss.vllm.ai/t/setting-up-vllm-in-an-airgapped-environment/916 | 2026-08-18 | Live; thread active with solutions through mid-2025, related topics to 2026-01. |
+| vLLM performance dashboard | https://docs.vllm.ai/en/latest/benchmarking/dashboard/ | 2026-08-18 | Live; documents the perf dashboard incl. manual benchmark triggers and continuous monitoring. |
+| Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05) | https://vllm.ai/blog/2025-09-05-anatomy-of-vllm | 2026-08-18 | Live. **blog.vllm.ai 301s to vllm.ai/blog/** — URL updated to the canonical target. |
+| Blog: Large Scale Serving — DeepSeek @ 2.2k tok/s/H200 (2025-12-17) | https://vllm.ai/blog/2025-12-17-large-scale-serving | 2026-08-18 | Live at the migrated vllm.ai/blog domain (301 from blog.vllm.ai). |
 
 ## Probe budget 2026-05-28 cycle: 8/8 used
 
