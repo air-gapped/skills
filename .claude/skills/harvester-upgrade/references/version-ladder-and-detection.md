@@ -34,18 +34,18 @@ is what couples this to the external Rancher (`external-rancher-coupling.md`).
 
 | Line | Latest GA | Published |
 |---|---|---|
-| **1.8** | **v1.8.1** | 2026-06-29 |
-| 1.7 | **v1.7.2** | 2026-07-07 |
-| 1.9 | *none — RC only* | v1.9.0-rc1 2026-07-08, rc2 2026-07-15 |
+| **1.8** | **v1.8.2** | 2026-08-06 |
+| 1.7 | **v1.7.3** | 2026-08-07 |
+| 1.9 | *none — RC only* | through v1.9.0-rc5 (2026-08-12) |
 
-**⚠ `releases/latest` on this repo currently points at v1.7.2, not the 1.8 line.**
-GitHub marks "latest" by *publish date*, and v1.7.2 (2026-07-07) shipped after
-v1.8.1 (2026-06-29) because Harvester patches multiple minors in parallel. An
+**⚠ `releases/latest` on this repo currently points at v1.7.3, not the 1.8 line.**
+GitHub marks "latest" by *publish date*, and v1.7.3 (2026-08-07) shipped after
+v1.8.2 (2026-08-06) because Harvester patches multiple minors in parallel. An
 `releases/latest` query therefore reports a **lower minor** as newest. This is
 live in this repo today — enumerate and reason per minor line; never take
 `latest` as the highest version.
 
-**v1.9.0 is in RC, not GA** (rc1 2026-07-08, rc2 2026-07-15, plus a stream of
+**v1.9.0 is in RC, not GA** (through rc5, 2026-08-12, plus a stream of
 `v1.9.0-dev-<date>` tags). The ladder tops out at 1.8 for now; do not plan a
 1.9 hop against an RC.
 
@@ -56,7 +56,7 @@ same bits** — not a separate, paywalled artifact set. Evidence (verify the rea
 
 - Every patch ISO downloads publicly: `curl -I releases.rancher.com/harvester/<tag>/harvester-<tag>-amd64.iso`
   → **HTTP 200**, multi-GB, for v1.5.2 / v1.6.1 / v1.7.1 / v1.8.0. Re-verified 2026-07-21 on the
-  current patches: **v1.8.1 → 200**, **v1.7.2 → 200**.
+  current patches: **v1.8.2 → 200**, **v1.7.3 → 200**.
 - All are real GA releases (`gh release ... --json isPrerelease` → `prerelease=false`).
 - Zero Prime-gating language in patch release notes. The only edition-ish line is v1.5.2's advisory: *"Only
   SUSE Virtualization customers affected by issues listed in the Bug Fixes section must install this patch"* —

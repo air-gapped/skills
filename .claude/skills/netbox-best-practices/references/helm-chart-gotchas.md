@@ -356,12 +356,15 @@ PR #661) is dated in four ways:
 - Its pipeline inserts `social_core.pipeline.social_auth.associate_by_email` —
   an account-linking risk; see sso-hardening.md hardening rule 7.
 
-Anti-fact (do not repeat): "the social-core OIDC backend has no PKCE support"
-circulates in community writeups but is FALSE for NetBox 4.6+ —
-social-auth-core 4.8.7 (NetBox's pin [source: requirements.txt:39])
-has `OpenIdConnectAuth(BaseOAuth2PKCE)` with `DEFAULT_USE_PKCE = True`
-[source: social_core/backends/open_id_connect.py@4.8.7:48]. A PKCE-required
-Keycloak client policy works fine. What IS true at 4.8.7:
+PKCE: the backend supports it, but it is **off unless you turn it on**.
+social-auth-core 4.8.7 (NetBox's pin [source: requirements.txt:39]) declares
+`OpenIdConnectAuth(BaseOAuth2PKCE)` [source:
+social_core/backends/open_id_connect.py@4.8.7:48] — but that class overrides
+the base default with `DEFAULT_USE_PKCE = False` [:94] and documents
+`SOCIAL_AUTH_OIDC_USE_PKCE = True` as the opt-in [:59]. So "the OIDC backend
+has no PKCE support" is wrong, and "PKCE works out of the box" is equally
+wrong: a PKCE-required Keycloak client policy fails until you set
+`SOCIAL_AUTH_OIDC_USE_PKCE: true`. What else is true at 4.8.7:
 `JWT_ALGORITHMS = ["RS256"]` — an IdP signing tokens with ES256/EdDSA fails
 until you set `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`
 [source: open_id_connect.py@4.8.7:72].

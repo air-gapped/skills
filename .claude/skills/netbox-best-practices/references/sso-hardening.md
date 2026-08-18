@@ -129,11 +129,15 @@ Notes:
   [source: open_id_connect.py@4.8.7:72]. An IdP signing id_tokens with
   ES256/EdDSA fails token validation until
   `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS = ['RS256', 'ES256']`.
-- **Anti-fact — PKCE**: community writeups claim the OIDC backend lacks PKCE.
-  FALSE at NetBox's pin: social-auth-core 4.8.7 has
-  `OpenIdConnectAuth(BaseOAuth2PKCE)` with `DEFAULT_USE_PKCE = True`
-  [source: open_id_connect.py@4.8.7:48] — PKCE-required client policies
-  (e.g. Keycloak) work out of the box.
+- **PKCE is available but OFF by default — you must enable it.**
+  `OpenIdConnectAuth` does inherit `BaseOAuth2PKCE`
+  [source: open_id_connect.py@4.8.7:48], so the backend *supports* PKCE — but
+  the class overrides the base default back to `DEFAULT_USE_PKCE = False`
+  [source: open_id_connect.py@4.8.7:94], with the class docstring naming
+  `SOCIAL_AUTH_OIDC_USE_PKCE = True` as the opt-in [:59]. Set
+  `SOCIAL_AUTH_OIDC_USE_PKCE = True` explicitly; a PKCE-required client
+  policy (e.g. Keycloak) fails the authorization request without it. The
+  challenge method is already `S256` once enabled [:93].
 
 ## If you use the header / proxy backend instead
 

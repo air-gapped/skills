@@ -1,12 +1,14 @@
 # Sources
 
+Freshened: 2026-08-18
+
 External claims in this skill, with source, tier, and verify date. Re-verify dated/volatile facts (latest image tag/digest, the v0.22 default change, env-var names) before relying on them — the project moves fast.
 
 Tiers: **A** = primary (project README / official docs site / repo files) · **B** = derived/secondary.
 
 | Source | Tier | Supports | Last verified |
 |---|---|---|---|
-| github.com/sooperset/mcp-atlassian (README) | A | MCP server for Jira+Confluence; **DC supported (Jira v8.14+, PAT)**; key tools; 72 tools; `uvx`/Docker quick start | 2026-06-07 |
+| github.com/sooperset/mcp-atlassian (README) | A | MCP server for Jira+Confluence; **DC supported (Jira v8.14+, PAT)**; key tools; **98 tools** (was 72 at the 2026-06-07 pass) ; `uvx`/Docker quick start | 2026-08-18 |
 | github.com/sooperset/mcp-atlassian `pyproject.toml` | A | `requires-python>=3.10`; ~26 runtime deps; `uv-dynamic-versioning` build backend (version from git tags); entry point `mcp-atlassian` | 2026-06-07 |
 | github.com/sooperset/mcp-atlassian `Dockerfile` | A | Build pulls deps via `uv sync` (PyPI); base images `ghcr.io/astral-sh/uv:python3.13-alpine` + `python:3.13-alpine`; `.venv` baked into final image; `ENTRYPOINT mcp-atlassian` | 2026-06-07 |
 | github.com/sooperset/mcp-atlassian releases (gh) | A | Latest release **v0.23.0** (2026-07-18); also v0.22.1 (07-11) and **v0.22.0 (07-10)**. Three releases since the v0.21.1 baseline — the project resumed a fast cadence after a ~3-month gap | 2026-07-21 |
@@ -14,7 +16,7 @@ Tiers: **A** = primary (project README / official docs site / repo files) · **B
 | mcp-atlassian.soomiles.com/docs/authentication | A | API token (Cloud), **PAT (Server/DC)**, OAuth 2.0, BYOT, multi-cloud, OAuth proxy; PAT-vs-token env vars; SSL note | 2026-06-07 |
 | mcp-atlassian.soomiles.com/docs/configuration | A | Env-var catalog (connection, filtering, server, proxy, custom headers); IDE configs; tool filtering; v0.22 toolset-default warning | 2026-06-07 |
 | mcp-atlassian.soomiles.com/docs/compatibility | A | Cloud-vs-DC matrix: auth methods, tool availability (Cloud-only changelogs/forms/page-views), content format (ADF vs wiki markup), accountId vs username, ~100 req/min Cloud rate limit | 2026-06-07 |
-| mcp-atlassian.soomiles.com/docs/tools-reference | A | 72 tools; **15 Jira + 6 Confluence toolsets** with core flags; `TOOLSETS`/`ENABLED_TOOLS`/`READ_ONLY_MODE` mechanics | 2026-06-07 |
+| mcp-atlassian.soomiles.com/docs/tools-reference | A | **98 tools; 16 Jira + 8 Confluence toolsets** (was 72 / 15+6 on 2026-06-07 — growth tracks the v0.23.0 JSM/epic-hierarchy additions plus later ones; new toolsets include `jira_service_desk`, `jira_forms`, `jira_metrics`, `jira_development`, `jira_project_analysis`, `confluence_analytics`, `confluence_templates`, `confluence_permissions`) with core flags; `TOOLSETS`/`ENABLED_TOOLS`/`READ_ONLY_MODE` mechanics | 2026-06-07 |
 | mcp-atlassian.soomiles.com/docs/troubleshooting | A | 401/403, OAuth-expired, SSL (truststore + `JIRA_SSL_VERIFY=false` + `MCP_ATLASSIAN_USE_SYSTEM_TRUSTSTORE`), mTLS, field-not-found→`jira_search_fields`, 50 MB attachment cap, 429→batch tools, timeout (75s default), MCP Inspector, custom-header format | 2026-06-07 |
 | mcp-atlassian.soomiles.com/docs/advanced/docker-production | A | Docker Compose / production deployment + read-only mode + Kubernetes notes | 2026-06-07 |
 | mcp-atlassian.soomiles.com/llms-full.txt | A | The complete LLM-readable docs bundle (this skill points users here for tool/JQL/CQL depth rather than duplicating it) | 2026-06-07 |

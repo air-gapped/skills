@@ -84,7 +84,7 @@ often also avoids the newest Rancher minor's churn. Ground the actual latest pat
 **Do not use `releases/latest` to find the newest version here.** Harvester
 patches several minors in parallel, so GitHub's date-ranked "latest" regularly
 points at a *lower* minor. Verified 2026-07-21: `releases/latest` resolved to
-**v1.7.2** (2026-07-07) while **v1.8.1** (2026-06-29) was the highest GA.
+**v1.7.3** (2026-08-07) while **v1.8.2** (2026-08-06) was the highest GA.
 Enumerate the tag list, drop prereleases, and derive the top patch **per minor
 line**:
 

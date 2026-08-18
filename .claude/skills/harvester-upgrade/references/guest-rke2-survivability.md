@@ -145,7 +145,7 @@ contexts, two different mechanisms** (don't conflate them):
 (path B); (2) dedicate the migration network + make the bond LACP not active-backup (helps *all* VMs); (3) if
 migrating etcd is unavoidable, a `MigrationPolicy` with auto-converge + explicit bandwidth (accept brief Raft churn);
 (4) scale etcd to 5 + low-write windows; (5) **never** post-copy for etcd. Migrate one member at a time
-regardless (concurrent live migration is still open, harvester#10425).
+regardless. (Concurrent live migration landed for the 1.9 line — harvester#10425 closed COMPLETED 2026-07-20, QA-verified on v1.9.0-rc2 — so this constraint lifts once 1.9 goes GA.)
 
 ## 6. Other safety levers
 

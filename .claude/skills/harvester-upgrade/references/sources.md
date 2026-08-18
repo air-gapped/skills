@@ -1,5 +1,7 @@
 # Sources (primary / high-credibility)
 
+Freshened: 2026-08-18
+
 Grounded 2026-06-01; release/edition rows re-grounded **2026-07-21**. The ladder/pairing/ordering *mechanics* are durable methodology; the volatile leaf
 numbers — latest patch per minor, GA dates, "fixed in vX" claims, Node-Driver ranges — must be re-grounded via
 `gh` at use time (House Rule #2). Distilled from the deep-research report (see Provenance).
@@ -16,7 +18,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 | Harvester docs `rancher/{virtualization-management,harvester-ui-extension}.md` + `airgap.md` | 2026-06-01 | 3-step order, UI-ext support matrix, ui-plugin-catalog image map |
 | Harvester docs `rancher/{cloud-provider,csi-driver}.md` + `vm/{live-migration,create-vm,backup-restore}.md` | 2026-06-01 | CCM/CSI standalone install, migratability, backup primitives |
 | Harvester source `pkg/controller/master/upgrade/*` | 2026-06-01 | node order delegated, serial interlock, restoreVM, pause-map |
-| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-07-21 | Edition reality re-confirmed (v1.8.1 and v1.7.2 ISOs both HTTP 200 → patches remain community). Latest GA per line: **v1.8.1** (2026-06-29), **v1.7.2** (2026-07-07). **Still no 1.9.0 GA** — v1.9.0-rc1/rc2 only (2026-07-08 / 07-15). ⚠ **`releases/latest` currently resolves to v1.7.2, a *lower* minor than v1.8.1**, because Harvester patches several minors in parallel and GitHub ranks by date. |
+| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-08-18 | Edition reality re-confirmed (v1.8.2 and v1.7.3 ISOs both HTTP 200 → patches remain community). Latest GA per line: **v1.8.2** (2026-08-06), **v1.7.3** (2026-08-07). **Still no 1.9.0 GA** — RCs through v1.9.0-rc5 (2026-08-12). ⚠ **`releases/latest` currently resolves to v1.7.3, a *lower* minor than v1.8.2**, because Harvester patches several minors in parallel and GitHub ranks by date. |
 | harvester/upgrade-helpers `pre-check/v1.x/check.sh` | 2026-06-01 | the enforced pre-flight gate thresholds |
 | KubeVirt live-migration (user-guide + `types.go`/`virt-config.go` v1.4.0) + harvester#9144/#10482/#10698/#4375 | 2026-06-01 | busy-etcd non-convergence; real v1.4 migration defaults; bandwidth-0 self-throttle; no-circuit-breaker |
 | Harvester upgrade drain + gating (`upgrade_controller.go`, `job_controller.go`, `virtualmachineinstance.go`, `upgrade_node.sh` @ v1.5.0/1.6.0/1.7.0) | 2026-06-02 | drain is eviction-based + honors PDBs; detector force-stops NodeSelector-pinned VMs pre-eviction; `restoreVM` is 1.6+ (auto-restart job, not a gate); pause-map is 1.7.0+; no guest-etcd gate; PDB+VMI-readinessProbe native gate |
@@ -72,16 +74,16 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
   Node maintenance/eviction; KubeVirt `staging/.../v1/types.go` + `pkg/virt-config/virt-config.go` @ v1.4.0 (real
   defaults: auto-converge off, post-copy off, `bandwidthPerMigration: 0`, completion/progress timeout 150;
   evictionStrategy semantics).
-- kubevirt#3504 (busy-VM dirty-rate non-convergence, canonical repro), kubevirt#15924 (post-copy crashes VM, no
+- kubevirt#3504 (busy-VM dirty-rate non-convergence, canonical repro), kubevirt#15924 (post-copy crashes VM, no — shows closed 2026-07-19, but kubevirt-bot rotted it closed with no fix, so the constraint stands;
   recovery — OPEN), kubevirt#15373 (1.6.0 upgrade left RKE2 control-plane VMs double-running/corrupt).
-- Harvester: chart `dependency_charts/kubevirt/values.yaml` (migrations block commented out in v1.5/v1.6),
+- Harvester: chart `deploy/charts/harvester/dependency_charts/kubevirt/values.yaml` (migrations block commented out in v1.5/v1.6; the root-level `dependency_charts/…` path cited before 2026-08-18 never existed),
   `pkg/settings/settings.go` + `pkg/controller/master/setting/kubevirt_migration.go` (the `kubevirt-migration`
   Setting, 1.7.0+ only, reconciles/overwrites direct CR edits), `package/upgrade/upgrade_node.sh`
   (`wait_vms_out_or_shutdown` — infinite wait on 1.5.x), `docs/advanced/{vm-migration-network,settings}.md`,
   `docs/networking/clusternetwork.md` (mgmt bond active-backup), `docs/host/host.md` (`maintain-mode-strategy`).
 - harvester#9144 (real v1.5.x migration-config support-bundle dump), #10482 (bandwidth-0 self-throttle analysis),
   #4375 (auto-converge motivation), #5756/#8731/#10349 (pre-drain stuck "Waiting for VM live-migration"),
-  #10698 (evacuation loop has no retry limit — maintainer-confirmed 2026-06-01), #10425 (concurrent live
+  #10698 (evacuation loop has no retry limit — maintainer-confirmed 2026-06-01), #10425 (**FIXED** — closed COMPLETED 2026-07-20, QA signed off against v1.9.0-rc2 via harvester-ui-extension PR #863; concurrent live
   migration — open). OpenShift Virtualization "Live migration" docs + etcd.io tuning/maintenance (quorum,
   heartbeat/election, defrag).
 
@@ -94,7 +96,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 
 ## Full research provenance
 - The deep-research report this skill was distilled from:
-  `~/.claude/skills/autoresearch/results/harvester-upgrade-eol-1.5-to-latest-2026-06-01.md` (autoresearch
+  `.claude/skills/autoresearch/results/harvester-upgrade-eol-1.5-to-latest-2026-06-01.md` in this repo (autoresearch
   Research mode, 6 parallel agents + a verification recurse that pinned the edition correction and the
   controlled-flow source-level facts).
 </content>
