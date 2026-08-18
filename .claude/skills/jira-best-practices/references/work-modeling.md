@@ -180,6 +180,11 @@ Build the whole structure in a controlled pass, then keep it idempotent:
    (`jira_get_link_types` first; the exact `"Blocks"` spelling varies per
    instance). jira-cli equivalents: `jira epic add EPIC K1 K2 …` (the only
    *batched* epic-link, max 50) and `jira issue link A B Blocks`.
+5. **Verify before reporting done** — the scaffold is complete only when JQL
+   `labels = "agent-scaffold:<plan-id>"` returns **exactly** the planned child
+   count, **every** child carries the epic link, and **every** `blocks` edge
+   from the plan appears on its issue's links. Report any diff as a diff — do
+   not silently re-create (step 2's batch isn't atomic; a re-run duplicates).
 
 - **Idempotency is the agent's job** (no upsert; batch isn't atomic →
   re-running duplicates). **Tag every scaffolded issue with a deterministic label**
