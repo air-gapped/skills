@@ -132,9 +132,10 @@ or gateway layer — not in sglang.
 CLI field at `vllm/entrypoints/openai/cli_args.py:118-120`. Default
 `False`.
 
-Enforced at `vllm/entrypoints/openai/engine/serving.py:415-425`:
-`_validate_chat_template` returns a 4xx error if the flag is False
-AND the request carries `chat_template` or `chat_template_kwargs`.
+Enforced via `vllm/entrypoints/chat_utils.py` (the flag moved there in the
+entrypoint-hierarchy refactor #47498; it was
+`openai/engine/serving.py:415-425` pre-mid-2026): a 4xx error if the flag
+is False AND the request carries `chat_template` or `chat_template_kwargs`.
 
 Set to `True` only in deployments where every caller is already
 trusted (e.g. behind an auth-gated gateway).
@@ -197,11 +198,13 @@ Subclass contracts:
 
 ### Call site
 
-`vllm/entrypoints/serve/render/serving.py:372-383`:
+Now `vllm/parser/abstract_parser.py` (the chain moved from
+`entrypoints/serve/render/serving.py:372-383` into the unified parser
+layer during the scale-out consolidation #44512 / parser unification):
 
 ```python
-request = reasoning_parser(tokenizer, model_config=...).adjust_request(request=request)
-request = tool_parser(tokenizer, request.tools).adjust_request(request=request)
+request = self._reasoning_parser.adjust_request(request)
+request = self._tool_parser.adjust_request(request)
 ```
 
 Order: **reasoning first, then tool.** Tool parser can override what

@@ -212,8 +212,8 @@ Built-in events (from `docs/telemetry.md`):
 
 | Category | Event | Type | Description |
 |---|---|---|---|
-| MEMORY | `agent_memory_registered` | bytes | per `registerMem` call |
-| MEMORY | `agent_memory_deregistered` | bytes | per `deregisterMem` call |
+| MEMORY | `agent_memory_registered` (**≥v1.4.0: `agent_memory_registered_last_bytes`** in Prometheus/DOCA exporters, rename #1850) | bytes | per `registerMem` call |
+| MEMORY | `agent_memory_deregistered` (**≥v1.4.0: `agent_memory_deregistered_last_bytes`**) | bytes | per `deregisterMem` call |
 | TRANSFER | `agent_tx_bytes` | counter | bytes transmitted per TX |
 | TRANSFER | `agent_rx_bytes` | counter | bytes received per RX |
 | TRANSFER | `agent_tx_requests_num` | counter | TX request count |

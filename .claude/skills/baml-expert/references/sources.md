@@ -1,33 +1,33 @@
 # Sources
 
-Authoritative references this skill is derived from. Freshen mode probes these rows for drift; keep `Last verified:` dates current. Latest BAML SDK release verified 2026-07-21: **0.223.0** (PyPI + npm + repo changelog, published 2026-06-23).
+Authoritative references this skill is derived from. Freshen mode probes these rows for drift; keep `Last verified:` dates current. Latest BAML SDK release verified 2026-08-18: **0.225.0** (PyPI, published 2026-08-01; no breaking-change notes in the release body).
 
-**Two version lines — do not confuse them.** `baml-py` / `@boundaryml/baml` are the user-facing SDK, currently **0.223.0**. Since 2026-06 the repo ALSO cuts `baml-language-0.NN.N` releases (0.15.0, 2026-07-14) for the `baml_language` Rust workspace — the new compiler (`compiler2` / `sys_llm` renderer) and its VM. `gh release list` shows the language tags plus nightlies at the top because they are more *recent*, not because they supersede the SDK. Never "downgrade" a 0.22x SDK pin to a 0.1x language-toolchain number.
+**Two version lines — do not confuse them.** `baml-py` / `@boundaryml/baml` are the user-facing SDK, currently **0.225.0**. Since 2026-06 the repo ALSO cuts `baml-language-0.NN.N` releases (0.17.0, 2026-08-16) for the `baml_language` Rust workspace — the new compiler (`compiler2` / `sys_llm` renderer) and its VM. `gh release list` shows the language tags plus nightlies at the top because they are more *recent*, not because they supersede the SDK. Never "downgrade" a 0.22x SDK pin to a 0.1x language-toolchain number.
 
 | Ref | Scope | Last verified | Pinned |
 |---|---|---|---|
-| https://docs.boundaryml.com/home | BAML public docs landing + /guide /ref tree | 2026-04-19 | — |
-| https://docs.boundaryml.com/guide/introduction/what-is-baml | BAML overview | 2026-04-19 | — |
+| https://docs.boundaryml.com/home | BAML public docs landing + /guide /ref tree | 2026-08-18 | — |
+| https://docs.boundaryml.com/guide/introduction/what-is-baml | BAML overview | 2026-08-18 | — |
 | https://docs.boundaryml.com/ref/baml/function | function syntax + semantics | 2026-07-21 | — |
-| https://docs.boundaryml.com/ref/baml/class | class syntax (no colons, no inheritance) | 2026-04-19 | — |
-| https://docs.boundaryml.com/ref/baml/attributes | @/@@ attribute catalogue | 2026-04-19 | — |
-| https://docs.boundaryml.com/ref/baml/test | test block + @@assert / @@check | 2026-04-19 | — |
+| https://docs.boundaryml.com/ref/baml/class | class syntax (no colons, no inheritance) | 2026-08-18 | — |
+| https://docs.boundaryml.com/ref/attributes/what-are-attributes | @/@@ attribute catalogue (docs reorg: was /ref/baml/attributes, now split per-attribute under /ref/attributes/) | 2026-08-18 | — |
+| https://docs.boundaryml.com/ref/baml/test | test block + @@assert / @@check | 2026-08-18 | — |
 | https://docs.boundaryml.com/ref/llm-client-providers | provider catalogue (openai, anthropic, vertex, bedrock, openai-generic, fallback, round-robin) | 2026-07-21 | — |
 | https://docs.boundaryml.com/guide/baml-basics/streaming | @stream.done / @stream.not_null / @stream.with_state semantics | 2026-07-21 | — |
-| https://docs.boundaryml.com/guide/baml-advanced/prompt-caching | Anthropic cache_control role metadata | 2026-04-19 | — |
+| https://docs.boundaryml.com/guide/baml-advanced/prompt-caching-message-role-metadata | Anthropic cache_control role metadata (page renamed; old /prompt-caching 404s) | 2026-08-18 | — |
 | https://docs.boundaryml.com/ref/baml-cli | baml-cli commands (init/generate/test/serve/dev/fmt) | 2026-07-21 | — |
-| https://www.boundaryml.com/blog/schema-aligned-parsing | SAP motivation and behavior | 2026-04-19 | — |
-| https://www.boundaryml.com/blog/type-definition-prompting-baml | why ctx.output_format uses type-def syntax over JSON Schema | 2026-04-19 | — |
+| https://www.boundaryml.com/blog/schema-aligned-parsing | SAP motivation and behavior | 2026-08-18 | — |
+| https://www.boundaryml.com/blog/type-definition-prompting-baml | why ctx.output_format uses type-def syntax over JSON Schema | 2026-08-18 | — |
 | https://github.com/boundaryml/baml | source of truth — compiler, clients, changelog | 2026-07-21 | SDK 0.223.0 (2026-06-23); toolchain baml-language-0.15.0 (2026-07-14) |
-| https://github.com/boundaryml/baml/pull/1251 | optional lists + maps (`string[]?`, `map<..>?`) — contradicts public types.mdx | 2026-04-19 | merged |
+| https://github.com/boundaryml/baml/pull/1251 | optional lists + maps (`string[]?`, `map<..>?`) — contradicts public types.mdx | 2026-08-18 | merged |
 | https://github.com/boundaryml/baml/blob/canary/fern/pages/changelog.mdx | canonical changelog for release-gated features | 2026-07-21 | tops out at 0.223.0 |
 | https://github.com/boundaryml/baml/pull/3822 | `ctx.output_format(render_null_as=...)` — shipped in 0.223.0 | 2026-07-21 | merged 2026-06-23 |
 | https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | 2026-07-21 | latest 0.223.0 |
 | https://www.npmjs.com/package/@boundaryml/baml | npm package + `baml-cli`/`baml` binaries (TS/JS) | 2026-07-21 | latest 0.223.0 |
-| https://studio.boundaryml.com | Boundary Studio v2 (v1 at app.boundaryml.com deprecates end-of-March 2026) | 2026-04-19 | deprecation: 2026-03-31 |
-| https://marketplace.visualstudio.com/items?itemName=Boundary.baml-extension | VSCode/Cursor playground extension | 2026-04-19 | — |
-| https://promptfiddle.com | web playground, embeddable | 2026-04-19 | — |
-| https://github.com/BoundaryML/baml-examples | starter repos (Python FastAPI, Next.js, Rails) | 2026-04-19 | — |
+| https://studio.boundaryml.com | Boundary Studio v2 (v1 at app.boundaryml.com deprecates end-of-March 2026) | 2026-08-18 | deprecation: 2026-03-31 |
+| https://marketplace.visualstudio.com/items?itemName=Boundary.baml-extension | VSCode/Cursor playground extension | 2026-08-18 | — |
+| https://promptfiddle.com | web playground, embeddable | 2026-08-18 | — |
+| https://github.com/BoundaryML/baml-examples | starter repos (Python FastAPI, Next.js, Rails) | 2026-08-18 | — |
 
 ## Version-sensitive claims tracked here
 

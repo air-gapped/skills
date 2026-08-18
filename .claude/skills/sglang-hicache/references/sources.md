@@ -6,12 +6,12 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| LMSYS HiCache blog (2025-09-10) | https://www.lmsys.org/blog/2025-09-10-sglang-hicache/ | 2026-04-25 | Architecture overview + headline performance numbers (Novita TTFT –56%, Ant Group TTFT –84%, "up to 6×/80%" uncited) |
-| SGLang HiCache user doc | https://docs.sglang.ai/advanced_features/hicache.html | 2026-04-25 | User-facing entry-point. Mirrored in the local repo at `docs/advanced_features/hicache.rst` |
-| SGLang HiCache design doc | https://docs.sglang.ai/advanced_features/hicache_design.html | 2026-04-25 | Class architecture, write/read paths, eviction. Local: `docs/advanced_features/hicache_design.md` |
-| SGLang HiCache best-practices | https://docs.sglang.ai/advanced_features/hicache_best_practices.html | 2026-04-25 | Recommended flag combos. Local: `docs/advanced_features/hicache_best_practices.md` |
-| SGLang HiCache runtime attach/detach | https://docs.sglang.ai/advanced_features/hicache_storage_runtime_attach_detach.html | 2026-04-25 | HTTP admin API for L3 swap without engine restart. Local: `docs/advanced_features/hicache_storage_runtime_attach_detach.md` |
-| SGLang server-arguments doc | https://docs.sglang.ai/references/server_arguments.html | 2026-04-25 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
+| LMSYS HiCache blog (2025-09-10) | https://www.lmsys.org/blog/2025-09-10-sglang-hicache/ | 2026-08-18 | Architecture overview + headline performance numbers (Novita TTFT –56%, Ant Group TTFT –84%, "up to 6×/80%" uncited) |
+| SGLang HiCache user doc | https://docs.sglang.ai/advanced_features/hicache.html | 2026-08-18 | User-facing entry-point. Mirrored in the local repo at `docs/advanced_features/hicache.rst` |
+| SGLang HiCache design doc | https://docs.sglang.ai/advanced_features/hicache_design.html | 2026-08-18 | Class architecture, write/read paths, eviction. Local: `docs/advanced_features/hicache_design.md` |
+| SGLang HiCache best-practices | https://docs.sglang.ai/advanced_features/hicache_best_practices.html | 2026-08-18 | Recommended flag combos. Local: `docs/advanced_features/hicache_best_practices.md` |
+| SGLang HiCache runtime attach/detach | https://docs.sglang.ai/advanced_features/hicache_storage_runtime_attach_detach.html | 2026-08-18 | HTTP admin API for L3 swap without engine restart. Local: `docs/advanced_features/hicache_storage_runtime_attach_detach.md` |
+| SGLang server-arguments doc | https://docs.sglang.ai/advanced_features/server_arguments.html | 2026-08-18 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
 
 ## Repository (source of truth for flags)
 
@@ -20,11 +20,11 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | sgl-project/sglang main | https://github.com/sgl-project/sglang | 2026-07-21 | Repo root. `main` = post-v0.5.15.post1 dev line |
 | Latest stable tag | https://github.com/sgl-project/sglang/releases/tag/v0.5.15.post1 | 2026-07-21 | **v0.5.15.post1 cut 2026-07-14 (isLatest)**. v0.5.15 07-10, v0.5.14 06-26, v0.5.13 06-13, v0.5.12.post1 05-26, v0.5.11 05-05 |
 | `server_args.py` hicache field definitions | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py | 2026-07-21 | **Refactored to annotated-dataclass form** (`A[type, Arg(...)]`) — the old `:5635-5733` argparse line range no longer resolves; flags derive from field names. At v0.5.15.post1: write-policy gains `write_through_selective`; io-backend defaults to `kernel` and gains `kernel_ascend`; mem-layout defaults to `page_first` and gains `page_first_kv_split` + `page_head`; storage-backend gains `mori`. A separate `--enable-hisparse` / `--hisparse-config` subsystem now sits next to the hicache block |
-| `server_args.py:_handle_hicache` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py#L3100-L3200 | 2026-04-25 | Auto-rewrite normalisation rules — silent flips with WARNING logs |
-| `mem_cache/hiradix_cache.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/hiradix_cache.py | 2026-04-25 | `HiRadixCache` class |
-| `mem_cache/hi_mamba_radix_cache.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/hi_mamba_radix_cache.py | 2026-04-25 | `HiMambaRadixCache` for hybrid SSM models |
-| `managers/cache_controller.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/managers/cache_controller.py | 2026-04-25 | `HiCacheController` with two CUDA streams + two daemon threads |
-| `mem_cache/storage/backend_factory.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/storage/backend_factory.py | 2026-04-25 | `StorageBackendFactory` — backend selection logic |
+| `server_args.py:_handle_hicache` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/server_args.py#L3100-L3200 | 2026-08-18 | Auto-rewrite normalisation rules — silent flips with WARNING logs |
+| `mem_cache/hiradix_cache.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/hiradix_cache.py | 2026-08-18 | `HiRadixCache` class |
+| `mem_cache/hi_mamba_radix_cache.py` (**removed on main** by #33468 "Remove the HiMambaRadixTree that is no longer in use" — still present through v0.5.17, so released-version guidance stands; re-gate when the next minor ships) | https://github.com/sgl-project/sglang/blob/v0.5.17/python/sglang/srt/mem_cache/hi_mamba_radix_cache.py | 2026-08-18 | `HiMambaRadixCache` for hybrid SSM models |
+| `managers/cache_controller.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/managers/cache_controller.py | 2026-08-18 | `HiCacheController` with two CUDA streams + two daemon threads |
+| `mem_cache/storage/backend_factory.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/storage/backend_factory.py | 2026-08-18 | `StorageBackendFactory` — backend selection logic |
 
 ## Open bugs (release-blocker tier)
 
@@ -48,23 +48,23 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| PR #21259 Mooncake DSA + Mamba | https://github.com/sgl-project/sglang/pull/21259 | 2026-04-25 | Merged 2026-04-14. Lands in v0.5.10. Bench: Qwen3.5-9B TTFT 714 ms cold → 218 ms warm, throughput 11.6k → 20.9k tok/s |
+| PR #21259 Mooncake DSA + Mamba | https://github.com/sgl-project/sglang/pull/21259 | 2026-08-18 | Merged 2026-04-14. Lands in v0.5.10. Bench: Qwen3.5-9B TTFT 714 ms cold → 218 ms warm, throughput 11.6k → 20.9k tok/s |
 | PR #23241 3FS DSA + Mamba | https://github.com/sgl-project/sglang/pull/23241 | 2026-05-29 | Merged. Shipped in v0.5.11 |
 | PR #23391 SWA support in HiRadixCache | https://github.com/sgl-project/sglang/pull/23391 | 2026-05-29 | **MERGED 2026-05-06**, shipped in v0.5.11 (day-0 Gemma 4). Closed #23659 |
 | PR #22878 Channel-B writing_check budget cap | https://github.com/sgl-project/sglang/pull/22878 | 2026-07-21 | **CLOSED WITHOUT MERGING.** The PP+HiCache fix did not land via this PR; #22607 stays open |
 | PR #27759 HybridModel launches HiCache via UnifiedTree by default | https://github.com/sgl-project/sglang/pull/27759 | 2026-07-21 | **MERGED 2026-06-11, shipped v0.5.13.** Hybrid (SWA/Mamba) models get HiCache by default — the most consequential HiCache change of this window |
 | PR #26670 opt-in CP-aware LRU eviction, file backend | https://github.com/sgl-project/sglang/pull/26670 | 2026-07-21 | MERGED 2026-06-11, shipped v0.5.15 line. Touches the backend that #21880 complained about |
-| PR #22894 Emit KV events for L2 host insertions | https://github.com/sgl-project/sglang/pull/22894 | 2026-04-25 | Merged 2026-04-21. Restores L2 promotion observability |
-| PR #19518 Spec v2 + decode KV offloading | https://github.com/sgl-project/sglang/pull/19518 | 2026-04-25 | Merged in v0.5.10. Lifted "Spec v2 and decode offload kv cache are incompatible" block |
+| PR #22894 Emit KV events for L2 host insertions | https://github.com/sgl-project/sglang/pull/22894 | 2026-08-18 | Merged 2026-04-21. Restores L2 promotion observability |
+| PR #19518 Spec v2 + decode KV offloading | https://github.com/sgl-project/sglang/pull/19518 | 2026-08-18 | Merged in v0.5.10. Lifted "Spec v2 and decode offload kv cache are incompatible" block |
 
 ## Backend-specific external sources
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| Mooncake × SGLang HiCache integration | https://kvcache-ai.github.io/Mooncake/getting_started/examples/sglang-integration/hicache-integration-v1.html | 2026-04-25 | Mooncake-side config recipe |
-| Mooncake × SGLang HiCache benchmark | https://kvcache-ai.github.io/Mooncake/performance/sglang-hicache-benchmark-results-v1.html | 2026-04-25 | 8× H800 + Qwen3-235B + 8× mlx5; 2× A10 + Qwen3-14B + 2× 100Gbps eRDMA |
-| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/_602767 | 2026-04-25 | Cross-references Novita Qwen3-Coder-480B numbers |
-| Strata: Hierarchical Context Caching paper | https://arxiv.org/html/2508.18572v1 | 2026-04-25 | arXiv 2508.18572. Academic background — not normative for production decisions |
+| Mooncake × SGLang HiCache integration | https://kvcache-ai.github.io/Mooncake/getting_started/examples/sglang-integration/hicache-integration-v1.html | 2026-08-18 | Mooncake-side config recipe |
+| Mooncake × SGLang HiCache benchmark | https://kvcache-ai.github.io/Mooncake/performance/sglang/sglang-hicache-benchmark-results-v1.html | 2026-08-18 | 8× H800 + Qwen3-235B + 8× mlx5; 2× A10 + Qwen3-14B + 2× 100Gbps eRDMA |
+| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/_602767 | 2026-08-18 | Cross-references Novita Qwen3-Coder-480B numbers |
+| Strata: Hierarchical Context Caching paper | https://arxiv.org/html/2508.18572v1 | 2026-08-18 | arXiv 2508.18572. Academic background — not normative for production decisions |
 
 ## 2026-07-21 freshen pass
 

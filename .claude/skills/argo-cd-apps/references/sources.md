@@ -11,7 +11,21 @@ Each row has `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version, git ref, or commit SHA — optional). Rows the author wants
 freshen to skip get `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-07-21
+## Most recent freshen pass: 2026-08-18
+
+- **v3.5 GA'd**: latest stable **v3.5.1** (2026-08-12; v3.5.0 GA 2026-08-04);
+  maintenance **v3.4.7** and **v3.3.14** (both 2026-08-12). The v3.5 breaking
+  changes recorded below at rc2 shipped unchanged (re-read via the live
+  `upgrading/3.4-3.5/` page): Helm 4.2.1, React 19 UI-extension rebuilds,
+  gRPC EventList type, **impersonation now server-wide** (extra RBAC for
+  `destinationServiceAccounts`), SSH known_hosts behavior, GnuPG verification
+  deprecated for Source Integrity, `--repo-server-strict-tls` deprecated.
+- **Security: no change** — advisory list still tops out at the two
+  2026-05-13 entries.
+- **Docs URLs**: readthedocs dropped `.md`-suffix redirects — every
+  `*.md` doc URL in this file 404'd and is rewritten to the `…/` form.
+
+## Prior freshen pass: 2026-07-21
 
 Re-probed releases, security advisories, and the shipped upgrade docs via `gh`.
 
@@ -61,29 +75,29 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Full Argo CD source + docs/ tree (user-guide, operator-manual, applicationset/) — primary source for every cited file path in references/. Cited paths are relative to repo root (e.g. `docs/user-guide/best_practices.md`); access via local clone or `gh api repos/argoproj/argo-cd/contents/<path>`. | 2026-05-06 | main @ 4d02fc2f5 (2026-05-05) |
+| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Full Argo CD source + docs/ tree (user-guide, operator-manual, applicationset/) — primary source for every cited file path in references/. Cited paths are relative to repo root (e.g. `docs/user-guide/best_practices.md`); access via local clone or `gh api repos/argoproj/argo-cd/contents/<path>`. | 2026-08-18 | main @ 4d02fc2f5 (2026-05-05) |
 
 ## Official documentation
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| Argo CD docs (stable) | https://argo-cd.readthedocs.io/en/stable/ | User guide, operator manual, upgrading guides — same content as local clone's docs/ tree | 2026-05-06 | v3.3.9 |
-| Application spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/application.yaml | Canonical Application CR YAML — every spec field with comments | 2026-05-06 | v3.3.9 |
-| ApplicationSet spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset.yaml | Canonical ApplicationSet CR YAML | 2026-05-06 | v3.3.9 |
-| AppProject spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/project.yaml | Canonical AppProject CR YAML | 2026-05-06 | v3.3.9 |
-| Best practices | https://argo-cd.readthedocs.io/en/stable/user-guide/best_practices.md | Argo's own 5-reason config-vs-source repo split, immutable-revision rule, replicas/HPA pattern | 2026-05-06 | v3.3.9 |
-| Sync options | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options.md | Every `syncPolicy.syncOptions` value | 2026-05-06 | v3.3.9 |
-| Sync waves | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves.md | Wave annotation, phase ordering | 2026-05-06 | v3.3.9 |
-| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks.md | All 7 hook types, all 3 delete policies | 2026-05-06 | v3.3.9 |
-| Cluster bootstrapping | https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping.md | App-of-apps pattern; line 7 explicitly recommends ApplicationSets first | 2026-05-06 | v3.3.9 |
-| ApplicationSet generators | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Git.md | Git generator (and siblings: List, Cluster, Matrix, Merge, SCMProvider, PullRequest, ClusterDecisionResource, Plugin) | 2026-05-06 | v3.3.9 |
-| Progressive Sync | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Progressive-Syncs.md | RollingSync strategy, formal Beta in v3.3 | 2026-05-06 | v3.3.9 |
-| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator.md | DRY/HYDRATED source flow — Alpha as of v3.4 | 2026-05-06 | v3.3.9 |
-| AppProject specification | https://argo-cd.readthedocs.io/en/stable/operator-manual/project-specification.md | AppProject field-level reference | 2026-05-06 | v3.3.9 |
-| Sync impersonation | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-sync-using-impersonation.md | `destinationServiceAccounts` — Beta in v3.4 | 2026-05-06 | v3.3.9 |
-| Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace.md | Tenant-namespace Applications | 2026-05-06 | v3.3.9 |
-| Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity.md | Alpha / Beta / Stable status per feature | 2026-05-06 | v3.3.9 |
-| Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-05-06 | v3.3.9 |
+| Argo CD docs (stable) | https://argo-cd.readthedocs.io/en/stable/ | User guide, operator manual, upgrading guides — same content as local clone's docs/ tree | 2026-08-18 | v3.3.9 |
+| Application spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/application.yaml | Canonical Application CR YAML — every spec field with comments | 2026-08-18 | v3.3.9 |
+| ApplicationSet spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset.yaml | Canonical ApplicationSet CR YAML | 2026-08-18 | v3.3.9 |
+| AppProject spec | https://argo-cd.readthedocs.io/en/stable/operator-manual/project.yaml | Canonical AppProject CR YAML | 2026-08-18 | v3.3.9 |
+| Best practices | https://argo-cd.readthedocs.io/en/stable/user-guide/best_practices/ | Argo's own 5-reason config-vs-source repo split, immutable-revision rule, replicas/HPA pattern | 2026-08-18 | v3.3.9 |
+| Sync options | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/ | Every `syncPolicy.syncOptions` value | 2026-08-18 | v3.3.9 |
+| Sync waves | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | Wave annotation, phase ordering | 2026-08-18 | v3.3.9 |
+| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/ | All 7 hook types, all 3 delete policies | 2026-08-18 | v3.3.9 |
+| Cluster bootstrapping | https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/ | App-of-apps pattern; line 7 explicitly recommends ApplicationSets first | 2026-08-18 | v3.3.9 |
+| ApplicationSet generators | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Git/ | Git generator (and siblings: List, Cluster, Matrix, Merge, SCMProvider, PullRequest, ClusterDecisionResource, Plugin) | 2026-08-18 | v3.3.9 |
+| Progressive Sync | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Progressive-Syncs/ | RollingSync strategy, formal Beta in v3.3 | 2026-08-18 | v3.3.9 |
+| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator/ | DRY/HYDRATED source flow — Alpha as of v3.4 | 2026-08-18 | v3.3.9 |
+| AppProject specification | https://argo-cd.readthedocs.io/en/stable/operator-manual/project-specification/ | AppProject field-level reference | 2026-08-18 | v3.3.9 |
+| Sync impersonation | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-sync-using-impersonation/ | `destinationServiceAccounts` — Beta in v3.4 | 2026-08-18 | v3.3.9 |
+| Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace/ | Tenant-namespace Applications | 2026-08-18 | v3.3.9 |
+| Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity/ | Alpha / Beta / Stable status per feature | 2026-08-18 | v3.3.9 |
+| Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-08-18 | v3.3.9 |
 | Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-07-21 | v3.4.5 |
 | Upgrading 3.4 → 3.5 | https://github.com/argoproj/argo-cd/blob/v3.5.0-rc2/docs/operator-manual/upgrading/3.4-3.5.md | Breaking changes in v3.5 (RC). Helm 4.2.0 + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap | 2026-07-21 | v3.5.0-rc2 |
 
@@ -91,24 +105,24 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-05-29 | main @ 4d02fc2f5 |
+| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-08-18 | main @ 4d02fc2f5 |
 | Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Latest stable **v3.4.5** (2026-07-09); v3.3 maintenance **v3.3.12** (2026-06-18); v3.2.12, v3.1.16 active. **v3.5.0-rc2** (2026-07-01) in RC, not GA | 2026-07-21 | v3.4.5 |
 | Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **Re-probed 2026-07-21: no new advisories since 2026-05-13** | 2026-07-21 | — |
-| gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-05-06 | — |
+| gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-08-18 | — |
 
 ## Blog & community
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog with release announcements (note: WebFetch hit TLS cert chain errors during research; access via WebSearch site: queries works) | 2026-05-06 | — |
+| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog with release announcements (note: WebFetch hit TLS cert chain errors during research; access via WebSearch site: queries works) | 2026-08-18 | — |
 
 ## Adjacent skills referenced
 
 | Source | What it contains | Last verified |
 |--------|------------------|---------------|
-| `helm` skill | Helm chart authoring (Helm 4 SSA, OCI digest, helpers) — this skill assumes Helm authoring competence | 2026-05-06 |
-| `kubefwd` skill | Bulk Kubernetes service port-forwarding for Argo CD UI/API access | 2026-05-06 |
-| `gh-cli` skill | GitHub CLI for fetching argo-cd releases, security advisories, PRs (canonical changelog source) | 2026-05-06 |
+| `helm` skill | Helm chart authoring (Helm 4 SSA, OCI digest, helpers) — this skill assumes Helm authoring competence | 2026-08-18 |
+| `kubefwd` skill | Bulk Kubernetes service port-forwarding for Argo CD UI/API access | 2026-08-18 |
+| `gh-cli` skill | GitHub CLI for fetching argo-cd releases, security advisories, PRs (canonical changelog source) | 2026-08-18 |
 
 ## Search queries for future research
 
