@@ -202,4 +202,4 @@ Match the symptom, name the cause, apply the smallest fix:
 | `references/multilingual-and-discovery.md` | Non-English instances — discovery recipe, language-independent anchors, JQL canonical-vs-translated, search/indexing (CJK, umlaut), service-account locale |
 | `references/sources.md` | Verifying or freshening a claim — per-row source + tier + what it supports |
 
-**Execution:** to *carry out* any of this (creating issues at the right level, transitioning by id, JQL, links, bulk edits, ADF), act through **`jira-cli`** (sibling skill) or the **`mcp-atlassian`** MCP server — both Data-Center-capable, both issue-level. This skill decides *what* and *how to structure work*; those tools do the *how*. Anything needing schema/admin (screens, fields, workflows, types) → hand the user the exact steps; neither tool can do it.
+**Execution:** act through `jira-cli` or `mcp-atlassian` per "How the work gets done" above; schema/admin changes go to the human as exact steps.
