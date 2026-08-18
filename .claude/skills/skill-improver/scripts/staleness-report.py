@@ -116,6 +116,19 @@ def parse_sources(path):
         inline = INLINE_LV_RE.findall("\n".join(lines))
         if inline:
             return min(inline), len(inline), len(inline)
+        # bullet-list format: `- [title](url) ... [LV: YYYY-MM-DD]` per row
+        bullets = [
+            ln
+            for ln in lines
+            if ln.lstrip().startswith("- [") and "ignore-freshen" not in ln
+        ]
+        if bullets:
+            lv = [
+                m.group(1)
+                for ln in bullets
+                if (m := re.search(r"\[LV: (\d{4}-\d{2}-\d{2})", ln))
+            ]
+            return (min(lv) if lv else None), len(lv), len(bullets)
     if not dates:
         return None, 0, counted
     return min(dates), len(dates), counted
