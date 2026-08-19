@@ -17,17 +17,6 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Open
 
-- **(new 2026-08-15) Rule-ceiling discard: invocation-fit decision has no
-  blind-visible record.** Dim 1. Both 2026-08-15 blind agents flagged "the
-  invocation-fit question is never self-applied" — the author decision (keep
-  model invocation; `disable-model-invocation` does not apply because
-  proactive firing is the point) lives only in this backlog, which blind
-  scorers are instructed not to read, so every future blind run will re-flag
-  it. Attempted as iter 9 (3-line note in SKILL.md §Invocation): Δ0 — Dim 1
-  scores the description, which the note does not change. Author call:
-  accept the rubric-invisible note (SKILL.md §Invocation) to retire the
-  recurring false flag, or keep SKILL.md lean and live with the flag.
-
 - **(2026-08-15; RESOLVED 2026-08-16, operator-directed) Dim 10 measured —
   `delta_pass_rate = +0.267`, Negative-Transfer Gate lifts.** Authored
   `evals/evals.json` (4 cases, 20 assertions, fixtures embedded in prompts)
@@ -107,6 +96,24 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   judgment: accept as rubric-invisible operational hardening.
 
 ## Resolved — 2026-08-19 (workflow-sandbox probe)
+
+- **(2026-08-15; DECIDED 2026-08-19, operator — DECLINED) Dim 1: no
+  blind-visible record of the invocation-fit decision, and none is being
+  added.** Both 2026-08-15 blind agents flagged "the invocation-fit question
+  is never self-applied". The decision itself is unchanged and settled: model
+  invocation stays ON, because proactive firing is the entire point of the
+  skill (`trigger` mode exists to make it fire), so `disable-model-invocation`
+  would remove the description from Claude's context and defeat it. What was
+  rejected is the *remedy* — a 3-line note in SKILL.md §Invocation, attempted
+  as iter 9 at Δ0 (Dim 1 scores the description, which the note does not
+  touch). It buys nothing but silencing a recurring false flag, and it grows
+  a SKILL.md that only just reached the lean band and is now guarded by the
+  line-ceiling gate above. **A blind scorer's Dim 1 note about the
+  invocation-fit question being unaddressed is dismissed with this reason**
+  — same handling as the `effort: xhigh` ruling below. Do not re-propose the
+  note; if the recurring flag is ever worth retiring, the fix belongs in the
+  blind-scorer agent (a documented, deliberate invocation choice is not a
+  Dim 1 defect), not in this skill's line count.
 
 - **(operator-accepted 2026-08-19) Line-ceiling gate is in improve-loop
   Phase 4.** `wc -l SKILL.md` runs before the decision rule; a change that
