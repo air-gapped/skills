@@ -38,7 +38,7 @@ See `sgl-project/sglang#17623` for an operator's reproduction.
 
 **Symptom:** Gateway pod fails to start with DNS resolution errors for `huggingface.co`, despite `HF_ENDPOINT=https://internal-mirror.example.com` set.
 
-**Diagnosis:** The Rust gateway uses the `hf-hub` crate, which (as of v0.3.x) does not honour `HF_ENDPOINT`. Only Python `huggingface_hub` does.
+**Diagnosis:** The Rust gateway has two network paths and neither honours `HF_ENDPOINT` (as of v0.3.x) — service discovery uses raw `reqwest`, tokenizer fetches use `llm-tokenizer`'s `hf-hub` path. Only Python `huggingface_hub` reads `HF_ENDPOINT`.
 
 **Fix:** Pass a local snapshot directory to `--model-path` / `--tokenizer-path`. Mount the snapshot via PVC. `HF_ENDPOINT` is irrelevant — the resolver should never need to touch the network.
 

@@ -59,6 +59,8 @@ PR refs: `sgl-project/sglang#14283` (crate rename), `sgl-project/sglang#14312` (
 
 The gateway is a stateless Rust process that accepts OpenAI-compatible HTTP and native gRPC traffic on a front port, maintains a registry of healthy backend workers, and forwards each request to one worker chosen by a **policy**. Six policies are selectable via `--policy`: `cache_aware` (default — radix-tree prefix matching on **raw text**, no tokenizer needed), `random`, `round_robin`, `power_of_two`, `prefix_hash` (xxh3 over the first 256 token IDs against a consistent-hash ring — needs a working tokenizer), and `manual`. Two more — `consistent_hashing` (deterministic hash-ring) and `bucket` — exist in the policy factory but are **not** in the `--policy` value_parser, so they are constructed at runtime rather than chosen by the CLI flag (`src/policies/factory.rs:77-91`). Workers are added either statically (`--worker-urls`), dynamically (`POST /workers`), or via Kubernetes service discovery (`--service-discovery --selector key=value --service-discovery-namespace ns`). The internal `WorkerType` enum has three variants — `Regular`, `Prefill`, `Decode` (PD-disagg) — and the `RuntimeType` enum has three — `Sglang`, `Vllm`, `External` (OpenAI-compatible non-local). Connection mode is `Http` or `Grpc`. The gRPC path hard-requires a HuggingFace tokenizer (so tiktoken-only models like Kimi K2/K2.6 must use HTTP). A separate Prometheus exporter on `--prometheus-port` (default 29000) emits 40+ `smg_*` metrics. Source: `sgl-model-gateway/src/core/worker.rs`, `src/core/steps/worker/local/discover_metadata.rs`, `src/policies/`, `src/server.rs`, `src/service_discovery.rs`.
 
+"Stateless" holds for chat traffic only. If clients use `/v1/responses` or `/v1/conversations`, the gateway keeps that conversation state in a `--history-backend`, which defaults to in-process `memory` — so a gateway restart or a second replica loses or splits it. Anyone running more than one replica, or serving stateful endpoints at all, needs `references/history.md` before choosing a backend.
+
 ## Decision tree — vLLM behind the gateway
 
 The single most-asked question is "how do I put N vLLM replicas behind one sgl-model-gateway?" There are **three viable paths**, and choosing the wrong one wastes a day:
@@ -86,6 +88,16 @@ sgl-model-gateway \
   --policy cache_aware \
   --host 0.0.0.0 --port 8080
 ```
+
+Confirm it came up before sending traffic — three checks, in this order:
+
+```bash
+curl -s http://localhost:8080/v1/models | jq '.data[].id'   # models the gateway will route
+curl -s http://localhost:8080/workers   | jq                # every worker registered, not just reachable
+curl -s http://localhost:8080/metrics | grep -c '^smg_'     # non-zero: new metric prefix is live
+```
+
+An empty `/workers` list with a healthy `/v1/models` means discovery registered nothing — check the selector and namespace before assuming the workers are down.
 
 No `--tokenizer-path` is needed for cache_aware-only deployments — the radix tree is text-based, not token-based (full rationale in the "Tokenizer must live" section below). Cache-aware policy steers same-prefix requests to the same replica so vLLM's *own* prefix cache hits — it does not query vLLM's internal cache state. Set `--enable-prompt-tokens-details` on vLLM for OpenAI-standard `usage.prompt_tokens_details.cached_tokens` in responses (off by default).
 
@@ -174,6 +186,17 @@ The pattern in production (matches the user's `k8s-homelab/` reference) is **one
 - ServiceMonitor with relabelings to surface `model_id`, `pod`, `node` labels.
 
 Full manifests in `assets/sglang-gateway-deployment.yaml` (SGLang worker) and `assets/vllm-behind-gateway.yaml` (vLLM worker). For RBAC details, multi-port-per-pod limitation (`#20184`), gRPC probes-need-numeric-ports, and HA gateway pattern, see `references/kubernetes.md`.
+
+Verify the rollout before pointing clients at it:
+
+```bash
+kubectl -n <ns> rollout status deploy/sgl-model-gateway --timeout=120s
+kubectl -n <ns> port-forward svc/sgl-model-gateway 8080:8080 &
+curl -s localhost:8080/workers | jq 'length'      # equals the worker replica count
+kubectl -n <ns> logs deploy/sgl-model-gateway | grep -i 'discover\|registered' | tail
+```
+
+If `/workers` returns fewer entries than there are worker Pods, the RBAC verbs or the `--selector`/`--service-discovery-namespace` pair is wrong — the gateway starts healthy either way, so an unvalidated rollout looks identical to a working one.
 
 ## Critical pitfalls
 

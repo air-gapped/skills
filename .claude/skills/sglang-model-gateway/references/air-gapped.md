@@ -63,7 +63,7 @@ Pass either:
 
 The `vllm-configuration` skill documents `HF_ENDPOINT=https://internal-mirror.example.com` as the way to point Python `huggingface_hub` at an internal mirror. The Python library reads this env var and rewrites `https://huggingface.co/` URLs accordingly.
 
-The Rust gateway uses the `hf-hub` crate, which **does not honour `HF_ENDPOINT`** as of the v0.3.x gateway releases. Searching the gateway source for `HF_ENDPOINT` returns no hits. Result: an air-gapped cluster that has only an HF mirror but uses `--model-path meta-llama/Llama-3.1-8B-Instruct` will fail when the gateway tries to reach `huggingface.co`.
+The Rust gateway reaches the network on two distinct paths, and **neither honours `HF_ENDPOINT`** as of the v0.3.x releases: service-discovery probes use raw `reqwest`, and tokenizer fetches go through `llm-tokenizer`'s `hf-hub` path (`crates/tokenizer/src/hub.rs`, raw `hf-hub` semantics). Searching the gateway source for `HF_ENDPOINT` returns no hits. Result: an air-gapped cluster that has only an HF mirror but uses `--model-path meta-llama/Llama-3.1-8B-Instruct` will fail when the gateway tries to reach `huggingface.co`.
 
 **The fix is structural, not a flag:** mount the snapshot on a PVC and pass the local path. The gateway never touches the network.
 

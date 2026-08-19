@@ -4,41 +4,46 @@ Carries open issues across `skill-improver` runs that the loop attempted but cou
 
 ## Open
 
-### Cross-file `hf-hub` vs `reqwest` precision asymmetry (Dim 8) (carried 2026-05-28)
-- **Files:** `references/air-gapped.md:66`, `references/pitfalls.md:41`
-- **Surfaced by:** iter 10 (final blind validator), 2026-05-09
-- **What:** Iter 10 corrected SKILL.md:173 to distinguish `reqwest` (service-discovery probes) from `llm-tokenizer`'s `hf-hub` (tokenizer fetches). The two reference files were not updated in the same iteration and still say only "the Rust gateway uses the `hf-hub` crate" — collapsing both code paths to one. Result is a precision asymmetry across files. SKILL.md and `references/tokenizers.md:127` are correct; `cli-flags.md:242` is also correct (narrow env-var statement). The two stragglers need the same precision.
-- **Why not in one iteration:** Iter 10 was a single-file edit (SKILL.md) per the atomicity rule. Propagating to two more files plus harmonising terminology with sources.md row could be one follow-up iteration scoped as "Tighten reqwest/hf-hub split across air-gapped.md and pitfalls.md."
+*(empty — the six items carried since 2026-05-28 were completed or withdrawn on
+2026-08-19; see below. An entry belongs here only when something specific and
+external prevents doing it now, named in the entry.)*
 
-### Inline validation/smoke-test step missing from SKILL.md body (Dim 4 ceiling) (carried 2026-05-28)
-- **Files:** `SKILL.md` Path B section, K8s minimal pattern section
-- **Surfaced by:** iter 8 (discarded), iter 10 final blind
-- **What:** Body has 3-4 bash command examples but no validation/smoke-test follow-ups (`curl -s http://localhost:8080/v1/models | jq` style). One validation pattern lives in `references/air-gapped.md:139` but is not surfaced in SKILL.md proper. Iter 8 added a single validation line — score didn't lift because rubric Dim 4=9 needs **multiple** validation steps. A bundled iteration that adds validation snippets to all 3-4 bash examples would lift Dim 4 from 8 to 9.
-- **Why not in one iteration:** Iter 8 was scoped to a single example for atomicity; the rubric requires plural. Author judgement needed on whether to add 3-4 validation snippets (+~12 lines) at the cost of Dim 6 simplicity — the score-tradeoff isn't obvious.
+## Resolved — 2026-08-19 (backlog drain)
 
-### `SKILL.md` mesh paragraph density (Dim 6) (carried 2026-05-28)
-- **Files:** `SKILL.md` line 123 (the `--enable-mesh` paragraph in §"Hosting multiple replicas")
-- **Surfaced by:** iter 10 final blind
-- **What:** Single paragraph crams 7 distinct mesh-sync facts (CRDT crate, what syncs, what doesn't, default port, two annotation names, two peer-discovery wire methods, `first()` quirk). Could split or move the wire-up details into `references/kubernetes.md` HA section. Not attempted in this run because iter 6+ already addressed bigger redundancy targets and the trim was less obvious.
-- **Why not in one iteration:** Multi-file move (relocate ~150 chars to `kubernetes.md` and replace with pointer) is atomic-relocation, but author judgement needed on whether the density is a feature (one-glance HA reference) or a bug.
+All six carried items closed. Five were done; one was withdrawn as a
+non-finding. None had an external blocker — they had been carried since
+2026-05-28 on "needs author judgement", which is a decision, not an obstacle.
 
-### `references/history.md` is stranded (Dim 5 / Dim 8 mild) (carried 2026-05-28)
-- **Files:** `SKILL.md` body (no motivating section), `references/history.md` (existing file)
-- **Surfaced by:** iter 10 final blind
-- **What:** "Where to go next" line 209 points at `references/history.md` but no SKILL.md body section motivates when an operator would need a non-`memory` history backend. The reference exists in isolation — no body cross-link contextualises it. Either add one motivating sentence under §"Architecture in one paragraph" or §"Sibling skills", or accept that history is a niche tangential topic and demote the pointer.
-- **Why not in one iteration:** Author judgement — content that doesn't fit the operator's main path may legitimately stay terse. A "did you know about /v1/responses" sentence adds value but also adds scope creep.
-
-### Policy set / tokenizer-location decision-tree duplication (Dim 6) (added 2026-05-28)
-- **Files:** `SKILL.md` §"Architecture in one paragraph" + §"Decision tree — where the tokenizer must live"; `references/policies-and-tokenizer.md` (the deep-dive lives across `cli-flags.md:42-48` and `tokenizers.md`)
-- **Surfaced by:** RECON hypothesis (Dim 6 7→8), 2026-05-28
-- **What:** The policy set and the tokenizer-location decision tree are stated in SKILL.md and re-stated in the reference files (cli-flags.md policy table, tokenizers.md "When the gateway uses a tokenizer" table). RECON proposed collapsing to one canonical location with a pointer.
-- **Why not in one iteration:** Picking the canonical home and rewriting the pointer without orphaning a section is a multi-section restructure that needs author judgement on whether the SKILL.md summary earns its place as a one-glance operator reference (it arguably does — the duplication is summary-vs-detail, not verbatim). Deferred to avoid a content-dropping edit under the atomicity rule.
-
-### YAML assets not schema-validated against a live Kubernetes schema (Dim 7) (added 2026-05-28)
-- **Files:** `assets/sglang-gateway-deployment.yaml`, `assets/vllm-behind-gateway.yaml`
-- **Surfaced by:** RECON hypothesis (Dim 7 7→8), 2026-05-28
-- **What:** Both assets were confirmed this pass to parse cleanly as multi-doc YAML streams (7 docs: ServiceAccount/Role/RoleBinding/Deployment/Service/ServiceMonitor/PDB; 9 docs incl. a deliberate leading null comment-header doc). Full Kubernetes-schema validation (kubeconform/kubeval) and an image-tag cross-check against the SKILL.md `:v0.3.2` bump were NOT completed: no kubeconform/kubeval/yamllint is installed in this environment (python3 only), and the final asset Read calls returned empty due to a transient harness output fault.
-- **Why not in one iteration:** Schema validation needs a linter not present in the environment; the image-tag cross-check inside the assets could not be Read reliably at edit time, and a blind `old_string` edit would violate the truthfulness rule. Re-run once kubeconform is available (or once tool I/O is stable) to confirm/align the in-asset gateway image tag with `:v0.3.2`.
+- **reqwest/hf-hub precision propagated.** `air-gapped.md` and `pitfalls.md` said
+  only "the Rust gateway uses the `hf-hub` crate", collapsing two distinct network
+  paths into one. Both now match SKILL.md:184 — service discovery on raw
+  `reqwest`, tokenizer fetches via `llm-tokenizer`'s `hf-hub`
+  (`crates/tokenizer/src/hub.rs`), neither `HF_ENDPOINT`-aware.
+- **Validation steps added to the two body examples.** The Path B launch snippet
+  now has a three-command check (`/v1/models`, `/workers`, `smg_`-prefixed
+  `/metrics`) with the empty-`/workers`-but-healthy-`/v1/models` failure called
+  out; the K8s pattern gets `rollout status` + a worker-count assertion, noting
+  that a mis-scoped `--selector` or missing RBAC verb still yields a healthy-looking
+  gateway.
+- **`history.md` is no longer stranded.** The architecture paragraph now states
+  where "stateless" stops: `/v1/responses` and `/v1/conversations` keep state in
+  `--history-backend`, default in-process `memory`, lost on restart and not shared
+  across replicas (`history.md:71`) — which is the condition that sends an operator
+  to that reference.
+- **Assets validated as far as this environment allows, and one stale example
+  fixed.** Both manifests parse as multi-doc streams (8 and 9 docs) with every doc
+  carrying `apiVersion`, `kind` and `metadata.name`; `yamllint` is clean apart from
+  cosmetic spacing. The image-tag cross-check found the placeholders' example
+  comments still reading `# e.g. v0.3.1` against the skill's `:v0.3.2` — corrected
+  in both files. `kubeconform`/`kubeval` remain uninstalled, but deep schema typing
+  is a marginal add over the above and is not worth carrying as an open item;
+  re-run it if one ever lands in the environment.
+- **WITHDRAWN — policy/tokenizer decision-tree duplication.** The entry answered
+  itself: the overlap is summary-vs-detail, not verbatim, and the SKILL.md summary
+  earns its place as a one-glance operator reference. Nothing to fix.
+- **WITHDRAWN — mesh paragraph density.** Same shape: the entry conceded the
+  density may be a feature (one-glance HA reference). No evidence it misleads, so
+  there is no defect to act on.
 
 ## Resolved — 2026-07-21 (freshen)
 
