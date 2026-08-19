@@ -74,6 +74,23 @@ next loop pivots to the wrong category.
 
 1. Re-score the skill using the same rubric.
 2. Compare to previous best score.
+3. Run `wc -l SKILL.md` and compare to the count before the change.
+
+**Line-ceiling gate — applies before the decision rule below.** If the file
+now exceeds **500 lines** (the agentskills.io / platform best-practices cap,
+`quality-rubric.md` §Dim 2) *and* is longer than it was, the change is a Dim 2
+regression **regardless of the total score**: DISCARD it, and log
+`discard (line ceiling)` with both counts. A change that keeps the file over
+500 while removing lines is fine — the gate is about growth past the ceiling,
+not about skills already over it (some legitimately are).
+
+The gate exists because the rubric cannot see this. A real miss: freshen
+additions took a SKILL.md 493 → 506, past the spec ceiling, and every
+dimension stayed band-internal — only a manual count caught it. Length is
+also the defect the cost measurements price directly (`quality-rubric.md`
+§Boris Alignment Check): stale bulk cost 36% more per ticket at unchanged
+accuracy, and scaffolding that fights the model cost 7-11 accuracy points.
+Growth past the ceiling is not a tidiness question.
 
 **Decision rule:**
 - **Score improved by +2 or more** → KEEP. Log as `keep`. This is the new

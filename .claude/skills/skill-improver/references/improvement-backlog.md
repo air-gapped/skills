@@ -48,16 +48,6 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   same evals.json after any structural change (e.g. the improve-loop
   extraction) to check for regression.
 
-- **(new 2026-07-24, one of three left) Rule-ceiling discard: line-ceiling
-  gate** (improve-loop Phase 4, ~7 lines): run `wc -l SKILL.md` before the
-  decision rule; >500 is a Dim 2 regression regardless of total. Motivated by
-  a real miss — freshen additions took a SKILL.md 493 → 506, over the spec
-  ceiling, and no rule caught it; only a manual count did. Applied and
-  reverted at Δ0 (2026-07-24), so author acceptance is required. The other
-  two hardenings filed with it are closed: the freshen recency filter was
-  accepted 2026-08-19 (see below), and the reciprocal drift comment is moot —
-  `batch-workflow.js` and `blind-validation.md` now both carry the sync rule.
-
 - **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
   §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
   guidance already carried by the Trigger Mode stub ("Use trigger mode when…")
@@ -117,6 +107,18 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   judgment: accept as rubric-invisible operational hardening.
 
 ## Resolved — 2026-08-19 (workflow-sandbox probe)
+
+- **(operator-accepted 2026-08-19) Line-ceiling gate is in improve-loop
+  Phase 4.** `wc -l SKILL.md` runs before the decision rule; a change that
+  leaves the file over 500 lines *and* longer than it was is a Dim 2
+  regression regardless of total, discarded as `discard (line ceiling)` with
+  both counts. Scoped to growth past the ceiling, not to skills already over
+  it — a change that shrinks an over-500 file still passes. Rubric-invisible
+  (Δ0, reverted 2026-07-24); accepted on the miss that motivated it (freshen
+  additions took a SKILL.md 493 → 506 with every dimension band-internal, so
+  only a manual count caught it) and on the cost evidence added the same day,
+  which prices length rather than merely disliking it. This closes the last
+  of the three 2026-07-24 rule-ceiling discards.
 
 - **(operator-accepted 2026-08-19) Freshen recency filter is in
   `freshen-patterns.md` §F2.** Under 7 days since the last pass, re-probe
