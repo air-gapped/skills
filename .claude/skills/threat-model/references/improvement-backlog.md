@@ -3,7 +3,21 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Resolved — 2026-08-19 (Visa §1.4 downstream contract)
+## Resolved — 2026-08-19 (Visa §1.2 baselines, §1.4 downstream contract)
+
+- **Repo-kind baseline table in interview Q2 (§1.2).** Five kinds — `web-api`,
+  `native`, `mobile`, `iac`, `library` (default) — each with recognition
+  signals taken from section 1 rather than asked, and a concrete class list.
+  Kinds are a **union**, not a choice: a Rust service with a Helm chart is
+  three of them. The rule that makes it safe is the harness's: a class with
+  a matching surface and no row covering it is a gap to raise; a class with
+  no surface here is **dropped silently**, and the table is never shown to
+  the owner as a list to answer. Q2 also gained a per-entry-point-kind
+  STRIDE mapping (network → all six; IPC → T/I/E; file → T/I/D; CLI and
+  deserialization → T/E; else T/I) so the owner is not asked about
+  repudiation on a CLI flag. `bootstrap.md` Stage 4 cross-references the
+  same table — past-vuln clustering is biased toward what has been found,
+  and this is the cheapest correction, but only while it stays a recall aid.
 
 - Section-4 `id` stability now has a named downstream consumer: `/vuln-scan`
   tags focus areas and findings with these ids and reports per-row

@@ -183,3 +183,8 @@ Adapted (Apache-2.0) from the `threat-model` skill in
 [`anthropics/defending-code-reference-harness`](https://github.com/anthropics/defending-code-reference-harness).
 The companion autonomous discovery pipeline (C/C++ + AddressSanitizer
 reference) lives there; see `../vuln-scan/HARNESS.md` for how to run it.
+The repo-kind baseline table and the per-entry-point-kind STRIDE mapping in
+`interview.md` §Q2 are adapted (Apache-2.0) from
+[`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
+s2 `_BASELINES` / `_STRIDE_BY_KIND`, including its rule that a baseline class
+with no matching surface in the evidence is omitted silently.

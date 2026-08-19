@@ -106,6 +106,22 @@ entry point from section 3 through STRIDE:
 | **D**enial of service | "Could someone make this unavailable or too expensive to run?" |
 | **E**levation of privilege | "Could someone end up with more access than they started with?" |
 
+Not every letter applies to every entry point, and asking all six everywhere
+burns the owner's patience on questions with an obvious "no". Ask the letters
+that fit the kind of entry point:
+
+| entry point kind | ask |
+|---|---|
+| network (HTTP, RPC, socket) | all six |
+| IPC / message queue | T, I, E |
+| file or directory input | T, I, D |
+| CLI / job parameter | T, E |
+| deserialization / plugin load | T, E |
+| anything else | T, I |
+
+Ask a skipped letter anyway the moment the owner's answer suggests it — the
+table sets the default order, not a ceiling.
+
 Then derive the domain-specific classes. From the section 1 context (stack,
 language, deployment, data flows), name the 5-8 attack classes most likely
 to matter for *this* system. Derive from what the owner described, not from
@@ -116,9 +132,29 @@ rows" or "integer overflow on length fields", not "web vulnerabilities" or
 Show the derived list to the owner: "Based on what you've described, these
 are the classes I'd focus on. Anything you'd add from incidents you've seen
 here or on similar systems?" Their additions are high-signal; weight them
-above your own. If a class you'd expect for this stack (injection,
-deserialization, auth, memory safety, crypto, supply chain, infra/IAM)
-didn't make either list, ask the owner why before dropping it.
+above your own.
+
+**Then check the derived list against the baseline for this repo's kind(s).**
+A repo usually has more than one kind — a Rust service with a Helm chart is
+`native` + `web-api` + `iac` — so take the union. Recognize the kind from
+what section 1 established, not by asking:
+
+| kind | recognize it by | baseline classes |
+|---|---|---|
+| `web-api` | a network entry point, a web framework in the manifests, or an OpenAPI/proto/GraphQL artefact | broken access control (IDOR, forced browsing, privilege escalation) · injection (SQL/NoSQL/OS/LDAP/template/header) · authentication and session failures (weak session, JWT flaws) · SSRF · XSS · CSRF or state-changing GET · cryptographic failures (plaintext transport or secrets) · security misconfiguration (default creds, debug on, permissive CORS) · unsafe deserialization or unsigned updates · insecure design (no rate limit, assumed-trust boundary) |
+| `native` | C, C++, Rust, or Objective-C in the primary languages | buffer overflow, stack or heap · use-after-free and double-free · integer overflow feeding an allocation · format string · TOCTOU · OS command injection via `system`/`exec` |
+| `mobile` | `AndroidManifest.xml`, `Info.plist`, or a `Podfile` in the tree | improper credential usage (hardcoded keys, token leakage) · insecure authentication or authorization · insecure communication (no cert pinning, cleartext traffic) · misconfiguration (exported components, debuggable build) · insecure data storage (world-readable prefs, unencrypted DB) |
+| `iac` | `.tf`/`.hcl`, a Helm chart, `kustomization.yaml`, or CI pipeline definitions | over-permissive IAM or RBAC (wildcard actions, cluster-admin) · public network exposure (0.0.0.0/0, hostNetwork, public bucket) · plaintext secrets in config or env · privileged or root containers, missing securityContext · disabled TLS or unencrypted storage |
+| `library` | none of the above — the default | injection via untrusted caller input · unsafe deserialization · path traversal in file-handling APIs · ReDoS or algorithmic-complexity DoS |
+
+**The baseline is a recall aid, not a threat generator.** For each class,
+look for a matching surface in what sections 1-3 already established. If one
+exists and no threat covers it, that is a gap — raise it with the owner. If
+no such surface exists here, **drop it silently**: a row emitted because a
+checklist named it, with no surface behind it, is noise that costs the owner
+attention on every future read of the model. Never present the baseline to
+the owner as a list to answer — it is yours to check against, and the
+question you bring back is about the specific gap you found.
 
 Walk each section 3 entry point through STRIDE plus the derived-and-confirmed
 classes. For each candidate threat, pin down: **actor** (who, from the enum in

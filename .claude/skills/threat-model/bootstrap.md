@@ -309,6 +309,15 @@ Also walk the entry points that **do** have rows: is the existing row the only
 plausible threat, or are other STRIDE categories live too? (A file parser with
 an RCE threat probably also has a DoS threat.)
 
+Then check the table against the **repo-kind baseline** in `interview.md`
+§Q2 — the same union-of-kinds list, used the same way: a baseline class with
+a matching surface here and no row covering it is a gap to fill; a class with
+no such surface is dropped silently. Past-vuln clustering is biased toward
+what has already been found, and the baseline is the cheapest correction for
+that bias — but only while it stays a recall aid. A row emitted because a
+checklist named it, with no surface behind it, is noise in every future read
+of this model.
+
 For **infra/IAM entry points** (from the Infra reader), STRIDE maps less
 cleanly than for code. Walk these instead:
 
