@@ -1,0 +1,79 @@
+{
+  "skill": "jinja-expert",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "c84bedc9d313",
+  "extraction_cost_usd": 0.1171,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What Jinja environment class does transformers use to render chat templates?",
+      "skill_answer": "ImmutableSandboxedEnvironment"
+    },
+    {
+      "id": 1,
+      "question": "What are trim_blocks and lstrip_blocks set to in the transformers chat-template environment?",
+      "skill_answer": "Both True"
+    },
+    {
+      "id": 2,
+      "question": "Which Jinja extension is loaded in the transformers chat-template environment?",
+      "skill_answer": "loopcontrols (ext.do, ext.i18n, ext.debug are not loaded)"
+    },
+    {
+      "id": 3,
+      "question": "What ensure_ascii value does transformers force on the tojson filter in chat templates?",
+      "skill_answer": "ensure_ascii=False"
+    },
+    {
+      "id": 4,
+      "question": "Which globals does the transformers chat-template environment inject?",
+      "skill_answer": "raise_exception and strftime_now"
+    },
+    {
+      "id": 5,
+      "question": "What exception do .append/.pop/.update raise inside a HuggingFace chat template?",
+      "skill_answer": "SecurityError"
+    },
+    {
+      "id": 6,
+      "question": "How do you make a {% set %} value persist outside a {% for %} loop in Jinja2?",
+      "skill_answer": "Use namespace(): {% set ns = namespace(x=false) %} then {% set ns.x = true %}"
+    },
+    {
+      "id": 7,
+      "question": "What templating language do Helm charts use?",
+      "skill_answer": "Go text/template plus Sprig, not Jinja"
+    },
+    {
+      "id": 8,
+      "question": "Should Ansible when: conditions be wrapped in {{ }} delimiters?",
+      "skill_answer": "No \u2014 when: takes a bare expression; same for failed_when/changed_when/until"
+    },
+    {
+      "id": 9,
+      "question": "What does Ansible's !unsafe tag do to lookups within the value?",
+      "skill_answer": "Disables templating for the whole value, including lookups; use {% raw %} for mixed content"
+    },
+    {
+      "id": 10,
+      "question": "What does | default(omit) do to an Ansible task parameter?",
+      "skill_answer": "Removes the parameter entirely from the task"
+    },
+    {
+      "id": 11,
+      "question": "How many levels are in Ansible's variable precedence system?",
+      "skill_answer": "22"
+    },
+    {
+      "id": 12,
+      "question": "Which 2026 Kubernetes GitOps tool is natively Jinja-based rather than Go-templated?",
+      "skill_answer": "kluctl"
+    },
+    {
+      "id": 13,
+      "question": "Which variables are in scope inside a HuggingFace chat template?",
+      "skill_answer": "messages, tools, documents, add_generation_prompt, special_tokens_map entries, date_string, chat_template_kwargs"
+    }
+  ]
+}

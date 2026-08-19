@@ -1,0 +1,69 @@
+{
+  "skill": "open-webui-api",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "93bf12f5d45a",
+  "extraction_cost_usd": 0.1075,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What environment variable must be set to enable API keys in Open WebUI, given they are off by default since 0.6.37?",
+      "skill_answer": "ENABLE_API_KEYS=true (the older ENABLE_API_KEY name is silently ignored)"
+    },
+    {
+      "id": 1,
+      "question": "How long do Open WebUI JWTs remain valid by default since version 0.6.34?",
+      "skill_answer": "4 weeks (previously they never expired)"
+    },
+    {
+      "id": 2,
+      "question": "What replaced the access_control field on Open WebUI resources in 0.10.0?",
+      "skill_answer": "access_grants: a list of {principal_type, principal_id, permission} objects"
+    },
+    {
+      "id": 3,
+      "question": "Under Open WebUI 0.10.x access_grants, what does an absent access_grants field mean for a resource?",
+      "skill_answer": "Private; public requires an explicit user:* read grant"
+    },
+    {
+      "id": 4,
+      "question": "What format does the Open WebUI config export use since 0.10.0?",
+      "skill_answer": "A flat dot-keyed dict, e.g. {\"ui.default_models\": ...}, not a nested blob"
+    },
+    {
+      "id": 5,
+      "question": "Which environment variable must be true for Open WebUI to mount /docs and /openapi.json?",
+      "skill_answer": "ENV=dev; the Docker image ships ENV=prod"
+    },
+    {
+      "id": 6,
+      "question": "What version does Open WebUI's openapi.json report in info.version?",
+      "skill_answer": "Always \"0.1.0\"; use GET /api/version instead"
+    },
+    {
+      "id": 7,
+      "question": "What HTTP status and content does Open WebUI return for an unknown API path?",
+      "skill_answer": "HTTP 200 with the SPA's index.html (HTML-200 trap)"
+    },
+    {
+      "id": 8,
+      "question": "Why does POST /api/v1/models/model/update return 500 in Open WebUI 0.11.0?",
+      "skill_answer": "access_grants omitted; send it explicitly, e.g. \"access_grants\": []"
+    },
+    {
+      "id": 9,
+      "question": "How must custom_params values be encoded in Open WebUI model payloads?",
+      "skill_answer": "As JSON strings, e.g. {\"reasoning\": \"{\\\"effort\\\": \\\"medium\\\"}\"}, not nested objects"
+    },
+    {
+      "id": 10,
+      "question": "Which environment variable enables the /api/v1/scim/v2 mount in Open WebUI?",
+      "skill_answer": "ENABLE_SCIM=true, plus a restart"
+    },
+    {
+      "id": 11,
+      "question": "What is the page-size cap for GET /api/v1/users/ and GET /api/v1/chats/?page= in Open WebUI 0.11.0?",
+      "skill_answer": "30/page for users, 60/page for chats; no limit param"
+    }
+  ]
+}

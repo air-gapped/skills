@@ -1,0 +1,59 @@
+{
+  "skill": "secure-boot-cert-rotation",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "651b85e25d3e",
+  "extraction_cost_usd": 0.1165,
+  "claims": [
+    {
+      "id": 0,
+      "question": "On what date did the Microsoft Corporation KEK CA 2011 certificate expire?",
+      "skill_answer": "2026-06-24"
+    },
+    {
+      "id": 1,
+      "question": "On what date did the Microsoft Corporation UEFI CA 2011 certificate expire?",
+      "skill_answer": "2026-06-27"
+    },
+    {
+      "id": 2,
+      "question": "When does the Microsoft Windows Production PCA 2011 certificate expire?",
+      "skill_answer": "2026-10-19"
+    },
+    {
+      "id": 3,
+      "question": "Does UEFI firmware check a certificate's notAfter expiry date when validating Secure Boot signatures?",
+      "skill_answer": "No \u2014 EDK2 sets NO_CHECK_TIME on PKCS#7 verification."
+    },
+    {
+      "id": 4,
+      "question": "What is the minimum Harvester version whose virt-launcher OVMF varstore contains the 2023 Secure Boot certificates?",
+      "skill_answer": "v1.6.0"
+    },
+    {
+      "id": 5,
+      "question": "What minimum fwupd version is required for the uefi-db and uefi-kek certificate plugins?",
+      "skill_answer": "fwupd 2.0.8 or newer"
+    },
+    {
+      "id": 6,
+      "question": "What fwupd version do Ubuntu jammy and noble -updates carry as of July 2026?",
+      "skill_answer": "fwupd 2.0.20"
+    },
+    {
+      "id": 7,
+      "question": "Which key signs Microsoft's 2023 db certificate payloads, and does enrolling them require Setup Mode?",
+      "skill_answer": "The 2011 KEK signs them; they self-authenticate, so no Setup Mode."
+    },
+    {
+      "id": 8,
+      "question": "Is there a generic Microsoft-signed 2023 KEK update payload for all machines?",
+      "skill_answer": "No \u2014 KEK updates are per-OEM and PK-signed."
+    },
+    {
+      "id": 9,
+      "question": "Does Linux revoke vulnerable bootloaders primarily via dbx or SBAT?",
+      "skill_answer": "SBAT, not dbx."
+    }
+  ]
+}

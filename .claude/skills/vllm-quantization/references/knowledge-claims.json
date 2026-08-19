@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-quantization",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "7421c1d03f3e",
+  "extraction_cost_usd": 0.1848,
+  "claims": [
+    {
+      "id": 0,
+      "question": "How many `--quantization` flag values does vLLM v0.27.0 accept?",
+      "skill_answer": "31"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM release deprecated the `--calculate-kv-scales` flag?",
+      "skill_answer": "v0.19 (PR #37201)"
+    },
+    {
+      "id": 2,
+      "question": "Which two quantization methods are in vLLM's DEPRECATED_QUANTIZATION_METHODS list?",
+      "skill_answer": "`fbgemm_fp8` and `fp_quant`"
+    },
+    {
+      "id": 3,
+      "question": "Where did GGUF quantization support move after leaving vLLM's in-tree flag list?",
+      "skill_answer": "Out-of-tree to the `vllm-gguf-plugin` package"
+    },
+    {
+      "id": 4,
+      "question": "What replaced the `cpu_awq` quantization flag value in vLLM?",
+      "skill_answer": "Folded into `awq_marlin` (PR #43841)"
+    },
+    {
+      "id": 5,
+      "question": "In which vLLM version did `nvfp4` become a supported `--kv-cache-dtype` value?",
+      "skill_answer": "v0.25.0, via PR #42890"
+    },
+    {
+      "id": 6,
+      "question": "What is the default FP8 KV-cache format in vLLM, E4M3 or E5M2?",
+      "skill_answer": "E4M3; E5M2 only for ROCm-specific setups"
+    },
+    {
+      "id": 7,
+      "question": "What PyTorch, Triton, and Transformers versions does vLLM v0.27.0 require?",
+      "skill_answer": "PyTorch 2.13.0, Triton 3.7.1, Transformers 5.14.1"
+    },
+    {
+      "id": 8,
+      "question": "Which vLLM version introduced the online quantization redesign (`fp8_per_tensor`, `fp8_per_block`)?",
+      "skill_answer": "v0.14, via PR #37776"
+    },
+    {
+      "id": 9,
+      "question": "What is the minimum SM capability for `modelopt_fp4` native versus emulated execution?",
+      "skill_answer": "SM100 native, SM75 emulated"
+    }
+  ]
+}

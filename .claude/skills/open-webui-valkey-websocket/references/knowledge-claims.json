@@ -1,0 +1,59 @@
+{
+  "skill": "open-webui-valkey-websocket",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "34f999fdc059",
+  "extraction_cost_usd": 0.142,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which Open WebUI env var mitigates the Socket.IO frame-amplification bug in multi-pod deployments?",
+      "skill_answer": "CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE"
+    },
+    {
+      "id": 1,
+      "question": "What is the default value of CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE?",
+      "skill_answer": "1 (emit a frame on every token)"
+    },
+    {
+      "id": 2,
+      "question": "What does each Socket.IO frame carry during Open WebUI response streaming?",
+      "skill_answer": "The full accumulated assistant message, not the delta"
+    },
+    {
+      "id": 3,
+      "question": "Does Open WebUI 0.11.0 support rolling updates across its schema change?",
+      "skill_answer": "No; all instances must be updated simultaneously"
+    },
+    {
+      "id": 4,
+      "question": "Which Open WebUI release version shipped on 2026-07-27 as current stable?",
+      "skill_answer": "0.11.0"
+    },
+    {
+      "id": 5,
+      "question": "Before which Open WebUI version did base64 model icons live in model.meta.profile_image_url?",
+      "skill_answer": "Pre-0.6.37 (fix started November 2025)"
+    },
+    {
+      "id": 6,
+      "question": "What per-request/model parameter can raise the stream delta chunk size above the env floor?",
+      "skill_answer": "stream_delta_chunk_size; effective value is max(env, per_request or 1)"
+    },
+    {
+      "id": 7,
+      "question": "Which Redis env vars prevent mass WebSocket disconnects after firewall idle timeouts?",
+      "skill_answer": "REDIS_SOCKET_KEEPALIVE=True and REDIS_HEALTH_CHECK_INTERVAL=60 (added 0.9.0+)"
+    },
+    {
+      "id": 8,
+      "question": "What new Redis timeout env var did Open WebUI 0.11.0 add?",
+      "skill_answer": "REDIS_SOCKET_TIMEOUT (read/write timeout)"
+    },
+    {
+      "id": 9,
+      "question": "What does the 0.11.0 uq_user_email_lower migration do if two accounts differ only by email case?",
+      "skill_answer": "Raises RuntimeError and aborts startup"
+    }
+  ]
+}

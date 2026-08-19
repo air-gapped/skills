@@ -1,0 +1,59 @@
+{
+  "skill": "keycloak-iam",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "ba9ada8dbc1e",
+  "extraction_cost_usd": 0.1491,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which Keycloak version replaced `--proxy edge|reencrypt|passthrough` with `--proxy-headers xforwarded|forwarded`?",
+      "skill_answer": "26.4.x"
+    },
+    {
+      "id": 1,
+      "question": "What env var prefix replaced `KEYCLOAK_ADMIN` for the initial admin account in Keycloak 26.0.0?",
+      "skill_answer": "`KC_BOOTSTRAP_ADMIN_*` (USERNAME/PASSWORD)"
+    },
+    {
+      "id": 2,
+      "question": "After how long does the Keycloak bootstrap admin account auto-expire?",
+      "skill_answer": "120 minutes"
+    },
+    {
+      "id": 3,
+      "question": "What is the default management port that Keycloak health probes (`/health/started`, `/health/live`, `/health/ready`) listen on?",
+      "skill_answer": "9000"
+    },
+    {
+      "id": 4,
+      "question": "Which env var prefix should be used instead of `KC_*` for values containing `$`, and in which version was it added?",
+      "skill_answer": "`KCRAW_*`, added in 26.6"
+    },
+    {
+      "id": 5,
+      "question": "What is the latest stable Keycloak release as of July 2026 and its release date?",
+      "skill_answer": "26.7.0, released 2026-07-09"
+    },
+    {
+      "id": 6,
+      "question": "In which Keycloak version did hostname-v2 become GA with `hostname-v1` removed?",
+      "skill_answer": "26.4.x"
+    },
+    {
+      "id": 7,
+      "question": "Which Keycloak version made Token Exchange Standard (RFC 8693) generally available?",
+      "skill_answer": "26.5.x"
+    },
+    {
+      "id": 8,
+      "question": "What apiVersion do the Keycloak Operator's `Keycloak` and `KeycloakRealmImport` custom resources use?",
+      "skill_answer": "k8s.keycloak.org/v2alpha1"
+    },
+    {
+      "id": 9,
+      "question": "Which admin REST endpoint exposes the server version to non-master realm admins with `manage-realm`, and from which version?",
+      "skill_answer": "`GET /admin/serverinfo`, from 26.5.4"
+    }
+  ]
+}

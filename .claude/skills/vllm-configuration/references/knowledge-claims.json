@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-configuration",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "43c8c5cdc35a",
+  "extraction_cost_usd": 0.1249,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the configuration precedence order in vLLM from highest to lowest?",
+      "skill_answer": "CLI arg > --config YAML file > VLLM_* env var > library default."
+    },
+    {
+      "id": 1,
+      "question": "In which vLLM version was the YAML config key-order bug (issue #8947) affecting `served-model-name` fixed?",
+      "skill_answer": "v0.10.1."
+    },
+    {
+      "id": 2,
+      "question": "What does the VLLM_HOST_IP environment variable actually control in vLLM?",
+      "skill_answer": "The internal inter-worker bind IP for distributed TP/PP/DP init, not the API server host."
+    },
+    {
+      "id": 3,
+      "question": "What is the default value of VLLM_CACHE_ROOT?",
+      "skill_answer": "~/.cache/vllm"
+    },
+    {
+      "id": 4,
+      "question": "Which environment variables disable vLLM usage stats, and what is the default telemetry endpoint?",
+      "skill_answer": "VLLM_NO_USAGE_STATS=1, VLLM_DO_NOT_TRACK=1, or DO_NOT_TRACK=1; endpoint https://stats.vllm.ai."
+    },
+    {
+      "id": 5,
+      "question": "Does VLLM_USE_MODELSCOPE route LoRA adapter downloads to ModelScope?",
+      "skill_answer": "No \u2014 LoRA adapters still fetch from HuggingFace; PR #13220 closed unmerged 2025-06-20."
+    },
+    {
+      "id": 6,
+      "question": "Is HF_TOKEN still required for gated HuggingFace repos when weights are already local and offline?",
+      "skill_answer": "Yes \u2014 hub config validation consults it before weight loading (issue #9255)."
+    },
+    {
+      "id": 7,
+      "question": "What formatting constraint applies to the HF_ENDPOINT value when pointing at a mirror?",
+      "skill_answer": "No trailing slash, or it breaks."
+    },
+    {
+      "id": 8,
+      "question": "Which HuggingFace cache environment variable is deprecated in favor of HF_HOME?",
+      "skill_answer": "TRANSFORMERS_CACHE \u2014 still works but emits FutureWarning."
+    },
+    {
+      "id": 9,
+      "question": "What are the dependency requirements for vLLM's `--load-format fastsafetensors`?",
+      "skill_answer": "fastsafetensors>=0.2.2 and libnuma-dev; no env-var toggle exists."
+    }
+  ]
+}

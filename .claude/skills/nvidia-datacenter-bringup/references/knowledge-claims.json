@@ -1,0 +1,59 @@
+{
+  "skill": "nvidia-datacenter-bringup",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "3ff11e683900",
+  "extraction_cost_usd": 0.1224,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which kernel module flavor is mandatory for NVIDIA Blackwell (B300/B200/B100) and Grace Hopper GH200 GPUs?",
+      "skill_answer": "Open kernel modules; proprietary modules are unsupported on that silicon."
+    },
+    {
+      "id": 1,
+      "question": "What PCI device ID does the gpu-operator validator fail to resolve for NVIDIA B300 GPUs?",
+      "skill_answer": "0x3182 (logged as device id '3182')."
+    },
+    {
+      "id": 2,
+      "question": "What minimum Dell HGX B300 SXM6 GPU baseboard firmware version is required on XE9780/XE9785 chassis?",
+      "skill_answer": "v1.4.30."
+    },
+    {
+      "id": 3,
+      "question": "Which Redfish action reliably activates Dell GPU baseboard firmware instead of Chassis.Reset FullPowerCycle?",
+      "skill_answer": "DellOemChassis.ExtendedReset."
+    },
+    {
+      "id": 4,
+      "question": "In what order must DOCA-OFED and the NVIDIA driver be installed on a B200/B300 host?",
+      "skill_answer": "DOCA-OFED first, then the NVIDIA driver."
+    },
+    {
+      "id": 5,
+      "question": "Which kernel module fails to autoload at boot when DOCA is installed after the NVIDIA driver, breaking fabricmanager?",
+      "skill_answer": "ib_umad."
+    },
+    {
+      "id": 6,
+      "question": "Which apt meta-package installs the 4th-gen NVSwitch fabric stack (fabricmanager, nvlsm, libnvsdm) for driver branch 580?",
+      "skill_answer": "nvlink5-580."
+    },
+    {
+      "id": 7,
+      "question": "Does the nvlink5-<branch> meta-package provide nvidia-smi / nvidia-utils?",
+      "skill_answer": "No; nvidia-open-<branch> must also be installed for full userland."
+    },
+    {
+      "id": 8,
+      "question": "Which driver version has a broken fabricmanager start script in gpu-operator managed-driver mode, and what is the minimum fixed version?",
+      "skill_answer": "570.158.01 is broken; pin \u2265570.172.08 or move to 580+."
+    },
+    {
+      "id": 9,
+      "question": "Do HGX 4-GPU SXM baseboards (e.g. H100 in XE8640) require nvidia-fabricmanager?",
+      "skill_answer": "No; no NVSwitch, so fabricmanager, DOCA, and NVLSM are all skipped."
+    }
+  ]
+}

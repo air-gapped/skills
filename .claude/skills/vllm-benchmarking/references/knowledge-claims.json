@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-benchmarking",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "75d9bb27254e",
+  "extraction_cost_usd": 0.1102,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which vLLM CLI flag replaced the removed `--endpoint-type` for `vllm bench serve`?",
+      "skill_answer": "`--backend`"
+    },
+    {
+      "id": 1,
+      "question": "In which vLLM version was `--endpoint-type` deprecated?",
+      "skill_answer": "v0.11.0"
+    },
+    {
+      "id": 2,
+      "question": "What is the default value of `--num-iters-warmup` for `vllm bench latency`?",
+      "skill_answer": "10"
+    },
+    {
+      "id": 3,
+      "question": "Does `vllm bench serve` perform automatic warmup in v0.11\u2013v0.27?",
+      "skill_answer": "No; `--num-warmups` defaults to 0."
+    },
+    {
+      "id": 4,
+      "question": "What are the four default metrics in `--percentile-metrics` for `vllm bench serve`?",
+      "skill_answer": "ttft, tpot, itl, e2el"
+    },
+    {
+      "id": 5,
+      "question": "What unit does the `--goodput KEY:VALUE` flag expect for its values?",
+      "skill_answer": "Milliseconds"
+    },
+    {
+      "id": 6,
+      "question": "Which environment variable reroutes HuggingFace downloads to a mirror such as hf-mirror.com?",
+      "skill_answer": "HF_ENDPOINT"
+    },
+    {
+      "id": 7,
+      "question": "Which environment variable enables ModelScope model loading in vLLM?",
+      "skill_answer": "VLLM_USE_MODELSCOPE=True (plus trust_remote_code=True)"
+    },
+    {
+      "id": 8,
+      "question": "Where does the `sonnet` benchmark dataset live so it never downloads?",
+      "skill_answer": "In-tree at `vllm/benchmarks/sonnet.txt`"
+    },
+    {
+      "id": 9,
+      "question": "Which vLLM bench subcommand disables prefix caching by default?",
+      "skill_answer": "`latency`"
+    }
+  ]
+}

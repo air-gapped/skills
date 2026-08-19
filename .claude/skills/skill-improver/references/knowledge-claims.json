@@ -1,0 +1,59 @@
+{
+  "skill": "skill-improver",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "c7086b535566",
+  "extraction_cost_usd": 0.1588,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default maximum number of concurrent subagents in Claude Code as of v2.1.217, and which env var overrides it?",
+      "skill_answer": "20 concurrent subagents; CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"
+    },
+    {
+      "id": 1,
+      "question": "What per-session caps on subagents and web searches did Claude Code v2.1.212 introduce?",
+      "skill_answer": "200 subagents and 200 web searches per session"
+    },
+    {
+      "id": 2,
+      "question": "In which Claude Code version did the `/loop` and `/goal` slash commands ship?",
+      "skill_answer": "/loop in v2.1.71, /goal in v2.1.139"
+    },
+    {
+      "id": 3,
+      "question": "What is the medium `workflowSizeGuideline` agent limit, and in which Claude Code version did it become the default?",
+      "skill_answer": "Fewer than 15 agents; default in v2.1.219"
+    },
+    {
+      "id": 4,
+      "question": "Since which Claude Code version has `claude doctor` / `/doctor` been a bundled skill?",
+      "skill_answer": "v2.1.205"
+    },
+    {
+      "id": 5,
+      "question": "What accuracy did SkillLens measure for text-only judging of skills against real utility?",
+      "skill_answer": "46.4%"
+    },
+    {
+      "id": 6,
+      "question": "What is the character cap on a Claude Code skill's frontmatter description?",
+      "skill_answer": "1024 characters"
+    },
+    {
+      "id": 7,
+      "question": "What train/test split and runs-per-query does Anthropic's skill-creator trigger-eval methodology use?",
+      "skill_answer": "60/40 train/test split, 7 runs per query"
+    },
+    {
+      "id": 8,
+      "question": "How is the official skill-creator plugin installed in Claude Code?",
+      "skill_answer": "/plugin install skill-creator@claude-plugins-official"
+    },
+    {
+      "id": 9,
+      "question": "Which script in anthropics/skills does probe-trigger.py adapt, and what tool_use events does it parse?",
+      "skill_answer": "skill-creator/scripts/run_eval.py; Skill and Read events from stream-json"
+    }
+  ]
+}

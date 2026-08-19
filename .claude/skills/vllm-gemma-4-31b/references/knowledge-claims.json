@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-gemma-4-31b",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "3ac61e868b82",
+  "extraction_cost_usd": 0.1823,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What attention backend does vLLM force for Gemma 4 due to its heterogeneous head dimensions?",
+      "skill_answer": "TRITON_ATTN (not FLASH_ATTN)"
+    },
+    {
+      "id": 1,
+      "question": "What are Gemma 4 31B's dense and global attention head_dim values?",
+      "skill_answer": "head_dim=256 dense, global_head_dim=512"
+    },
+    {
+      "id": 2,
+      "question": "What is the architectural max_model_len (max_position_embeddings) for Gemma 4 31B?",
+      "skill_answer": "262144 tokens"
+    },
+    {
+      "id": 3,
+      "question": "At what batch size does Gemma 4 31B throughput plateau on H100 versus H200?",
+      "skill_answer": "64 on H100, 128 on H200"
+    },
+    {
+      "id": 4,
+      "question": "What is the highest safe gpu-memory-utilization for Gemma 4 31B TP=2 on H100 before cudagraph-capture OOM?",
+      "skill_answer": "0.94; 0.95+ OOMs during capture"
+    },
+    {
+      "id": 5,
+      "question": "Which vLLM release is the last safe version for Gemma 4 31B, and which releases are known-bad?",
+      "skill_answer": "Hold at 0.25.1; avoid 0.26.0, 0.27.0, 0.27.1"
+    },
+    {
+      "id": 6,
+      "question": "Which vLLM version first fixed the thinking-plus-tools CoT leak via adjust_initial_state_from_prompt()?",
+      "skill_answer": "v0.24.0 (PR #45852, fixing issue #45834)"
+    },
+    {
+      "id": 7,
+      "question": "What acceptance rate does the BF16 MTP assistant achieve against an AWQ-4bit Gemma 4 31B target?",
+      "skill_answer": "0% acceptance at every position"
+    },
+    {
+      "id": 8,
+      "question": "What are the reasoning-parser and tool-call-parser names for Gemma 4 on vLLM?",
+      "skill_answer": "gemma4 for both"
+    },
+    {
+      "id": 9,
+      "question": "What extra EOS token ids does Gemma 4's generation_config define that xgrammar ignores?",
+      "skill_answer": "106 (`<turn|>`) and 50 (`<|tool_response>`)"
+    }
+  ]
+}

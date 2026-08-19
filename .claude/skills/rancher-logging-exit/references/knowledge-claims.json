@@ -1,0 +1,69 @@
+{
+  "skill": "rancher-logging-exit",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "d9fa564ba69c",
+  "extraction_cost_usd": 0.0996,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the minimum upstream kube-logging logging-operator version recommended to migrate to when leaving Rancher's bundled logging?",
+      "skill_answer": "6.7.0"
+    },
+    {
+      "id": 1,
+      "question": "Which upstream logging-operator version do Rancher 2.11 through 2.15-dev all bundle?",
+      "skill_answer": "4.10.0 (released Oct 2024)"
+    },
+    {
+      "id": 2,
+      "question": "What is the CVE ID and CVSS score of the config-injection RCE affecting logging-operator \u22646.5.2?",
+      "skill_answer": "CVE-2026-54680, CVSS 9.9 (GHSA-mjqf-28ph-426h)"
+    },
+    {
+      "id": 3,
+      "question": "Which logging-operator versions are affected by CVE-2026-54680?",
+      "skill_answer": "All versions up to and including 6.5.2"
+    },
+    {
+      "id": 4,
+      "question": "Why is logging-operator 6.6.0 not recommended even though it fixes the CVE?",
+      "skill_answer": "It breaks newline-containing passwords (issue #2254); 6.7.0 has the corrected fix"
+    },
+    {
+      "id": 5,
+      "question": "What Kubernetes API group and version do both Rancher-bundled 4.10 and upstream 6.7 logging CRs use?",
+      "skill_answer": "logging.banzaicloud.io/v1beta1"
+    },
+    {
+      "id": 6,
+      "question": "Which kubectl flags are required to apply the logging-operator 6.7.0 CRDs?",
+      "skill_answer": "kubectl apply --server-side --force-conflicts (CRDs are 828KB/557KB)"
+    },
+    {
+      "id": 7,
+      "question": "What happens if you run `helm uninstall rancher-logging-crd` on a live install?",
+      "skill_answer": "No resource-policy keep, so CRDs delete and cascade-delete all CRs and the data plane"
+    },
+    {
+      "id": 8,
+      "question": "Which CR fields are silently pruned when moving from logging-operator 4.10 to 6.7?",
+      "skill_answer": "sumologic, enhanceK8s, ClusterOutput enabledNamespaces, and nodeAgents"
+    },
+    {
+      "id": 9,
+      "question": "What must be preserved for fluentd buffer PVCs to survive the migration?",
+      "skill_answer": "The Logging name (rancher-logging-root) and controlNamespace (cattle-logging-system)"
+    },
+    {
+      "id": 10,
+      "question": "Which fluent-bit and fluentd versions ship in the Rancher-bundled logging chart?",
+      "skill_answer": "fluent-bit 3.1.8 and fluentd v1.16"
+    },
+    {
+      "id": 11,
+      "question": "Which Rancher role gains flow/output write access via the chart's logging-admin ClusterRole aggregation?",
+      "skill_answer": "The Kubernetes admin role, so any Rancher project-owner"
+    }
+  ]
+}

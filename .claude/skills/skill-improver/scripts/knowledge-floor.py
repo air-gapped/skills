@@ -139,6 +139,24 @@ Items:
 # --------------------------------------------------------------------------
 
 
+_PROBE_HOME: Path | None = None
+
+
+def _probe_home() -> str:
+    """One temp project reused by every probe in this process.
+
+    A fresh TemporaryDirectory per call looked tidy and was not: Claude Code
+    derives a project directory under ~/.claude/projects from the cwd, so a
+    per-call temp dir leaves one junk project dir per probe -- hundreds in a
+    fleet pass. One dir per process keeps the isolation (still empty, still no
+    discoverable skills) and leaves one.
+    """
+    global _PROBE_HOME
+    if _PROBE_HOME is None:
+        _PROBE_HOME = Path(tempfile.mkdtemp(prefix="kfloor-"))
+    return str(_PROBE_HOME)
+
+
 def run_claude(
     prompt: str, *, model: str | None = None, effort: str | None = None, timeout: int
 ) -> tuple[str, float, bool]:
@@ -149,7 +167,8 @@ def run_claude(
     lookup. Deny rules beat any allow-list in the user's settings, so this
     holds regardless of host configuration.
     """
-    with tempfile.TemporaryDirectory(prefix="kfloor-") as work:
+    work = _probe_home()
+    if True:
         cmd = ["claude", "-p", prompt, "--output-format", "json",
                "--setting-sources", "project"]  # fmt: skip
         if model:

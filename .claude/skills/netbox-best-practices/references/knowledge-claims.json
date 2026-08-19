@@ -1,0 +1,59 @@
+{
+  "skill": "netbox-best-practices",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "e37dccd298b8",
+  "extraction_cost_usd": 0.0848,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which NetBox version introduced v2 peppered API tokens that cannot be pre-seeded by the container entrypoint?",
+      "skill_answer": "NetBox 4.5 (nbt_ prefixed v2 tokens)"
+    },
+    {
+      "id": 1,
+      "question": "What REST endpoint bootstraps an API token on NetBox 4.5+ without an existing token?",
+      "skill_answer": "POST /api/users/tokens/provision/"
+    },
+    {
+      "id": 2,
+      "question": "Which NetBox minor release reworked front/rear port (patch panel) mappings in the REST API?",
+      "skill_answer": "NetBox 4.5"
+    },
+    {
+      "id": 3,
+      "question": "Which NetBox minor release introduced module type profiles?",
+      "skill_answer": "NetBox 4.3"
+    },
+    {
+      "id": 4,
+      "question": "Which NetBox release changed the services REST API in a breaking way?",
+      "skill_answer": "NetBox 4.3"
+    },
+    {
+      "id": 5,
+      "question": "Do NetBox's REMOTE_AUTH_SUPERUSER_GROUPS/_STAFF group-sync settings apply to native OIDC/SAML backends?",
+      "skill_answer": "No \u2014 header/proxy backend only; OIDC/SAML ignores them"
+    },
+    {
+      "id": 6,
+      "question": "What mechanism maps IdP groups to NetBox roles when using native OIDC/SAML?",
+      "skill_answer": "A custom SOCIAL_AUTH_PIPELINE function"
+    },
+    {
+      "id": 7,
+      "question": "Which JWT signing algorithm does NetBox's OIDC backend accept by default, and is PKCE on?",
+      "skill_answer": "RS256 only; PKCE off by default"
+    },
+    {
+      "id": 8,
+      "question": "Does the official netbox-community container image include plugin code when plugins are set in helm values?",
+      "skill_answer": "No \u2014 values are config-only; a custom image is required"
+    },
+    {
+      "id": 9,
+      "question": "Does netbox-chart provide dedicated OIDC/SSO helm values?",
+      "skill_answer": "No \u2014 declined upstream (#987); configure via extraConfig"
+    }
+  ]
+}

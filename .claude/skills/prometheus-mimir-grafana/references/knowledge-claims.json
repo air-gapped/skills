@@ -1,0 +1,59 @@
+{
+  "skill": "prometheus-mimir-grafana",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "c2a82302b2fb",
+  "extraction_cost_usd": 0.1266,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which HTTP header identifies the tenant when querying Grafana Mimir?",
+      "skill_answer": "X-Scope-OrgID"
+    },
+    {
+      "id": 1,
+      "question": "What is Prometheus's default query lookback-delta for staleness?",
+      "skill_answer": "5 minutes (--query.lookback-delta=5m)"
+    },
+    {
+      "id": 2,
+      "question": "What HTTP status does Mimir return when a per-tenant query limit like max_samples_per_query is tripped?",
+      "skill_answer": "422"
+    },
+    {
+      "id": 3,
+      "question": "What URL path prefix does Mimir serve the Prometheus-compatible query API under?",
+      "skill_answer": "/prometheus/api/v1/\u2026"
+    },
+    {
+      "id": 4,
+      "question": "What is the Kubernetes-style dashboard API path introduced in Grafana 12?",
+      "skill_answer": "/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>"
+    },
+    {
+      "id": 5,
+      "question": "When did Grafana 13.0 reach GA?",
+      "skill_answer": "2026-04-17"
+    },
+    {
+      "id": 6,
+      "question": "Which Grafana version formally deprecated the legacy /api/dashboards/db path?",
+      "skill_answer": "Grafana 13"
+    },
+    {
+      "id": 7,
+      "question": "What are the multi-window multi-burn-rate SLO alert burn factors and windows?",
+      "skill_answer": "14.4\u00d7/1h+5m, 6\u00d7/6h+30m, 3\u00d7/1d+2h, 1\u00d7/3d+6h"
+    },
+    {
+      "id": 8,
+      "question": "Which Grafana interval variable is safe to use for counter rates?",
+      "skill_answer": "$__rate_interval"
+    },
+    {
+      "id": 9,
+      "question": "Which Prometheus version added the `limit=` parameter capping /query result cardinality?",
+      "skill_answer": "Prometheus 3+"
+    }
+  ]
+}

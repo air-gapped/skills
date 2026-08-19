@@ -1,0 +1,59 @@
+{
+  "skill": "patch",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "d651346adba2",
+  "extraction_cost_usd": 0.1708,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which four slash-command steps make up the defending-code find-and-fix loop, in order?",
+      "skill_answer": "/threat-model \u2192 /vuln-scan \u2192 /triage \u2192 /patch"
+    },
+    {
+      "id": 1,
+      "question": "What files does the patch step write per finding?",
+      "skill_answer": "PATCHES/bug_NN/patch.diff and PATCHES/bug_NN/patch_result.json"
+    },
+    {
+      "id": 2,
+      "question": "What CLI does execution-verified patch mode delegate to?",
+      "skill_answer": "vuln-pipeline patch <findings_path> --model M [--bug N]"
+    },
+    {
+      "id": 3,
+      "question": "What four stages make up the execution-verified patch verification ladder?",
+      "skill_answer": "build \u2192 reproduce \u2192 regress \u2192 re-attack"
+    },
+    {
+      "id": 4,
+      "question": "Which marker files in a directory indicate execution-verified (pipeline) input?",
+      "skill_answer": "reports/manifest.jsonl, found_bugs.jsonl, or run_*/result.json"
+    },
+    {
+      "id": 5,
+      "question": "What are the four patch-reviewer gates?",
+      "skill_answer": "root_cause, instance_coverage, no_new_vulns, best_practices"
+    },
+    {
+      "id": 6,
+      "question": "Which gate value doubles as an abstention, and on which gate?",
+      "skill_answer": "skip, on instance_coverage only"
+    },
+    {
+      "id": 7,
+      "question": "What fields does the patch reviewer receive from the finding?",
+      "skill_answer": "file, line, category, and the raw diff only"
+    },
+    {
+      "id": 8,
+      "question": "What are the allowed values of the `verified` field in patch_result.json?",
+      "skill_answer": "ladder_passed, ladder_failed, static_review_only"
+    },
+    {
+      "id": 9,
+      "question": "What subagent types does the patch step spawn, with plugin-namespaced names?",
+      "skill_answer": "patch-author and patch-reviewer (defending-code:patch-author / defending-code:patch-reviewer)"
+    }
+  ]
+}

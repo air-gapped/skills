@@ -1,0 +1,109 @@
+{
+  "skill": "messages-api",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "72aca37dec08",
+  "extraction_cost_usd": 0.1091,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which HTTP endpoint path is the Anthropic Messages API served at?",
+      "skill_answer": "POST /v1/messages"
+    },
+    {
+      "id": 1,
+      "question": "Which local inference servers implement the Anthropic Messages API natively?",
+      "skill_answer": "vLLM, SGLang, llama.cpp, Ollama, mistral.rs, Llama Stack/OGX, Lemonade"
+    },
+    {
+      "id": 2,
+      "question": "Does the Messages API have a server-side conversation state identifier like previous_response_id?",
+      "skill_answer": "No \u2014 it is stateless; full history is resent every turn"
+    },
+    {
+      "id": 3,
+      "question": "What LiteLLM model_info field forwards Anthropic bodies untranslated to Messages-native backends?",
+      "skill_answer": "supported_endpoints: [\"/v1/messages\"]"
+    },
+    {
+      "id": 4,
+      "question": "At how many characters does LiteLLM's chat-completions bridge truncate tool names?",
+      "skill_answer": "64 characters"
+    },
+    {
+      "id": 5,
+      "question": "Which local inference server emits SSE ping events on /v1/messages?",
+      "skill_answer": "Only mistral.rs"
+    },
+    {
+      "id": 6,
+      "question": "How does vLLM handle the `thinking` request parameter on /v1/messages?",
+      "skill_answer": "Silently ignores it \u2014 absent from its pydantic model"
+    },
+    {
+      "id": 7,
+      "question": "Does SGLang enforce the thinking `budget_tokens` value?",
+      "skill_answer": "No \u2014 it accepts the field but does not enforce it"
+    },
+    {
+      "id": 8,
+      "question": "Which stop_reason values never come from third-party Messages backends?",
+      "skill_answer": "refusal and pause_turn; stop_sequence is unreliable (~half never emit it)"
+    },
+    {
+      "id": 9,
+      "question": "What base URL suffix should be configured for Anthropic SDKs, and which gateway is the exception?",
+      "skill_answer": "http://host/v1; Bifrost needs an /anthropic prefix"
+    },
+    {
+      "id": 10,
+      "question": "What approximate token count does Claude Code's system prompt plus tool schemas consume?",
+      "skill_answer": "~18k tokens (system + 17 tool schemas)"
+    },
+    {
+      "id": 11,
+      "question": "How many output tokens does Claude Code reserve by default, and what minimum context does that imply?",
+      "skill_answer": "32k reserved; backends under ~52k max_model_len reject turn 1"
+    },
+    {
+      "id": 12,
+      "question": "Which environment variable caps Claude Code's output-token reservation?",
+      "skill_answer": "CLAUDE_CODE_MAX_OUTPUT_TOKENS (e.g. 8192)"
+    },
+    {
+      "id": 13,
+      "question": "Should ANTHROPIC_BASE_URL for Claude Code include the /v1 path segment?",
+      "skill_answer": "No \u2014 origin only; the client appends /v1"
+    },
+    {
+      "id": 14,
+      "question": "Which anthropic-beta headers does opencode always send?",
+      "skill_answer": "interleaved-thinking and fine-grained-tool-streaming"
+    },
+    {
+      "id": 15,
+      "question": "What is the correct SSE event order for a Messages streaming response?",
+      "skill_answer": "message_start, content_block_start, deltas, content_block_stop, message_delta, message_stop"
+    },
+    {
+      "id": 16,
+      "question": "Which clients call the /v1/messages/count_tokens endpoint?",
+      "skill_answer": "Claude Code when present; opencode never calls it"
+    },
+    {
+      "id": 17,
+      "question": "How does Superagent Gateway compute count_tokens?",
+      "skill_answer": "Approximation \u2014 characters divided by 4"
+    },
+    {
+      "id": 18,
+      "question": "What breaks when thinking blocks from third-party backends are replayed to Anthropic's real API?",
+      "skill_answer": "Signature validation fails \u2014 signatures are fabricated or omitted"
+    },
+    {
+      "id": 19,
+      "question": "What npm package must opencode's anthropic provider models declare explicitly?",
+      "skill_answer": "@ai-sdk/anthropic"
+    }
+  ]
+}

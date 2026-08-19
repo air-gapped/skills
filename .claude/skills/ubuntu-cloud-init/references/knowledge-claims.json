@@ -1,0 +1,59 @@
+{
+  "skill": "ubuntu-cloud-init",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "74bdfb31fef9",
+  "extraction_cost_usd": 0.1163,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which cloud-init version introduced the requirement that an HTTP/seed NoCloud source include a network-config file, or else boot retries/times out?",
+      "skill_answer": "cloud-init 24.3"
+    },
+    {
+      "id": 1,
+      "question": "In cloud-init 25.1.4, what does ds-identify require for strict datasource identification before network?",
+      "skill_answer": "DMI platform data, kernel command line, or explicit datasource_list"
+    },
+    {
+      "id": 2,
+      "question": "If no datasource is identified under cloud-init 25.1.4's strict identification, what happens at boot?",
+      "skill_answer": "cloud-init stays disabled and performs no configuration at all"
+    },
+    {
+      "id": 3,
+      "question": "What filesystem label must a NoCloud seed ISO/USB carry?",
+      "skill_answer": "CIDATA (case-insensitive), on vfat or iso9660"
+    },
+    {
+      "id": 4,
+      "question": "In what precedence order does cloud-init search for NoCloud configuration sources?",
+      "skill_answer": "SMBIOS serial, kernel cmdline, seed dirs, labeled block device"
+    },
+    {
+      "id": 5,
+      "question": "What is the default NoCloud seed directory path on disk?",
+      "skill_answer": "/var/lib/cloud/seed/nocloud/"
+    },
+    {
+      "id": 6,
+      "question": "What condition causes cloud-init to re-apply NoCloud user-data on a later boot?",
+      "skill_answer": "A changed instance-id in meta-data, or cloud-init clean"
+    },
+    {
+      "id": 7,
+      "question": "What are the exit codes of `cloud-init status --long --wait`?",
+      "skill_answer": "0=ok, 1=error, 2=recoverable error"
+    },
+    {
+      "id": 8,
+      "question": "Which cloud-config key applies a password hash to existing users, unlike `passwd`?",
+      "skill_answer": "hashed_passwd"
+    },
+    {
+      "id": 9,
+      "question": "In cloud-init 25.3, what did the build backend change to?",
+      "skill_answer": "meson, replacing setuptools/distutils (PEP-0632)"
+    }
+  ]
+}

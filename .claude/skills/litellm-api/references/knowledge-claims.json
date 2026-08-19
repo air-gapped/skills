@@ -1,0 +1,59 @@
+{
+  "skill": "litellm-api",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "326681ab69f9",
+  "extraction_cost_usd": 0.1172,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In LiteLLM, what does an empty `models: []` list on a key, team, or user grant access to?",
+      "skill_answer": "All models \u2014 empty means unlimited, not deny."
+    },
+    {
+      "id": 1,
+      "question": "What sentinel value in LiteLLM's `models` field denies access to all models?",
+      "skill_answer": "`\"no-default-models\"`"
+    },
+    {
+      "id": 2,
+      "question": "What sentinel value denies a LiteLLM key access to all MCP servers?",
+      "skill_answer": "`\"no-mcp-servers\"`"
+    },
+    {
+      "id": 3,
+      "question": "If no master key is set on a LiteLLM proxy, how are management API requests authenticated?",
+      "skill_answer": "Treated as INTERNAL_USER with common_checks skipped \u2014 API fully open."
+    },
+    {
+      "id": 4,
+      "question": "Which LiteLLM endpoint returns the complete live route inventory, and does it require auth?",
+      "skill_answer": "`GET /routes`, unauthenticated (it's a public route)."
+    },
+    {
+      "id": 5,
+      "question": "Since which LiteLLM version does team-key spend count against members' personal budgets by default?",
+      "skill_answer": "~v1.94 (intentional, issue #26239)."
+    },
+    {
+      "id": 6,
+      "question": "Does adding `budget_duration` to an existing LiteLLM entity via update reset its carried spend?",
+      "skill_answer": "No \u2014 it 429s immediately; must reset spend explicitly."
+    },
+    {
+      "id": 7,
+      "question": "How do LiteLLM budget boundary checks differ between teams and keys/orgs?",
+      "skill_answer": "Team uses `>`, key/org use `>=`."
+    },
+    {
+      "id": 8,
+      "question": "What does including enterprise-only fields like `guardrails` or `tags` as empty arrays in a LiteLLM update body cause?",
+      "skill_answer": "A spurious \"LiteLLM Enterprise\" 403."
+    },
+    {
+      "id": 9,
+      "question": "What happens to unknown fields sent to LiteLLM management endpoints?",
+      "skill_answer": "Silently dropped (extra=\"ignore\"), except PATCH /v2/organization/{id} which 422s."
+    }
+  ]
+}

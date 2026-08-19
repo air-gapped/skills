@@ -1,0 +1,39 @@
+{
+  "skill": "redis-to-valkey",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "86e2f190413d",
+  "extraction_cost_usd": 0.1039,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What RDB format version does Redis 7.4/8.x write?",
+      "skill_answer": "RDB version 12"
+    },
+    {
+      "id": 1,
+      "question": "What is the highest Redis version whose RDB/replication stream Valkey can load?",
+      "skill_answer": "Redis 7.2.x"
+    },
+    {
+      "id": 2,
+      "question": "What RDB version number does Valkey 9.0/9.1 write?",
+      "skill_answer": "v80, its own numbering, loadable only by Valkey 9"
+    },
+    {
+      "id": 3,
+      "question": "What does a Valkey replica do with its existing dataset before discovering an incoming RDB is unreadable?",
+      "skill_answer": "It flushes its own dataset first (valkey-io/valkey#2588)"
+    },
+    {
+      "id": 4,
+      "question": "What redis_version does Valkey report in INFO, and where is the real version?",
+      "skill_answer": "Hardcoded redis_version:7.2.4; real version in valkey_version"
+    },
+    {
+      "id": 5,
+      "question": "In which Valkey release was the dual-channel replication + Sentinel phantom-replica bug (#2338) fixed?",
+      "skill_answer": "Valkey 9.1.0 only; below that set dual-channel-replication-enabled no"
+    }
+  ]
+}

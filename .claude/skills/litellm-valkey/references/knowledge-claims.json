@@ -1,0 +1,59 @@
+{
+  "skill": "litellm-valkey",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "944f9b157d78",
+  "extraction_cost_usd": 0.1295,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the minimum LiteLLM version where `general_settings.coordination_redis` is first-class?",
+      "skill_answer": "v1.93.0 (PR #32661)"
+    },
+    {
+      "id": 1,
+      "question": "In LiteLLM, which four sources can supply the coordination Redis, in precedence order?",
+      "skill_answer": "coordination_redis config block, Admin-UI DB copy, borrowed response-cache client, REDIS_* env"
+    },
+    {
+      "id": 2,
+      "question": "What does LiteLLM do when Redis coordination fails or is never wired?",
+      "skill_answer": "Silently falls back to per-pod in-memory enforcement; warning log only, no metric"
+    },
+    {
+      "id": 3,
+      "question": "Which LiteLLM admin endpoint reports which coordination Redis source won, and what does `source: null` mean?",
+      "skill_answer": "GET /coordination_redis/settings; null means per-pod mode"
+    },
+    {
+      "id": 4,
+      "question": "What is the default value of LiteLLM's REDIS_CIRCUIT_BREAKER_RECOVERY_TIMEOUT and how many failures trip it?",
+      "skill_answer": "60 seconds, after 5 failed operations"
+    },
+    {
+      "id": 5,
+      "question": "Which LiteLLM setting makes budgets reject requests when Redis fails, and is there a rate-limit equivalent?",
+      "skill_answer": "fail_closed_budget_enforcement: true; no rate-limit equivalent exists"
+    },
+    {
+      "id": 6,
+      "question": "What are LiteLLM's staleness bounds for Redis sync, DualCache batch reads, in-memory tiers, and leaked parallel-request slots?",
+      "skill_answer": "1s, 10s, 60s, 3600s"
+    },
+    {
+      "id": 7,
+      "question": "Is REDIS_CONNECTION_POOL_KWARGS functional in LiteLLM, and what is the working alternative?",
+      "skill_answer": "No-op; use cache_params.max_connections"
+    },
+    {
+      "id": 8,
+      "question": "Which rate limiter does LiteLLM use by default, and what env var restores the legacy one?",
+      "skill_answer": "v3 Lua-per-request limiter; LEGACY_MULTI_INSTANCE_RATE_LIMITING=true"
+    },
+    {
+      "id": 9,
+      "question": "Which redis-py version regression breaks LiteLLM v1.93.0 with an ssl_check_hostname TypeError?",
+      "skill_answer": "redis-py 5.3.1 (issue #34614)"
+    }
+  ]
+}

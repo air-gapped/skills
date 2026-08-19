@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-speculative-decoding",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "eba7b280b22b",
+  "extraction_cost_usd": 0.1596,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which vLLM version first added the `ngram_gpu` speculative method?",
+      "skill_answer": "v0.18.0"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM version first shipped the `dflash` speculative decoding method?",
+      "skill_answer": "v0.19.0"
+    },
+    {
+      "id": 2,
+      "question": "Which attention backend does DFlash speculative decoding require?",
+      "skill_answer": "`--attention-backend flash_attn`"
+    },
+    {
+      "id": 3,
+      "question": "What is the minimum vLLM version for speculative decoding combined with structured outputs?",
+      "skill_answer": "v0.16.0"
+    },
+    {
+      "id": 4,
+      "question": "What minimum vLLM version fixes the spec-dec remote DoS from invalid recovered-token reinjection?",
+      "skill_answer": "v0.24.0"
+    },
+    {
+      "id": 5,
+      "question": "What four Prometheus metric names does vLLM V1 emit for speculative decoding?",
+      "skill_answer": "vllm:spec_decode_num_drafts, num_draft_tokens, num_accepted_tokens, num_accepted_tokens_per_pos"
+    },
+    {
+      "id": 6,
+      "question": "What relationship must draft-model tensor parallel size have to the target's TP in vLLM?",
+      "skill_answer": "It must be equal; mismatch is a hard error."
+    },
+    {
+      "id": 7,
+      "question": "Which two config keys must be set for vLLM's heterogeneous-vocabulary TLI speculative decoding?",
+      "skill_answer": "`use_heterogeneous_vocab: true` with `method: \"draft_model\"` (and greedy draft sampling)"
+    },
+    {
+      "id": 8,
+      "question": "Which vLLM version introduced the `-sc` short alias for `--speculative-config`?",
+      "skill_answer": "v0.19.0"
+    },
+    {
+      "id": 9,
+      "question": "How does vLLM determine EAGLE-3 aux-hidden-state support as of v0.27.0?",
+      "skill_answer": "Via the `SupportsEagle3` interface, not a hardcoded model-name allowlist."
+    }
+  ]
+}

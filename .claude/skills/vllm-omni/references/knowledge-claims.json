@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-omni",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "9eb630e5d81e",
+  "extraction_cost_usd": 0.1546,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the current stable version of vllm-omni and its release date?",
+      "skill_answer": "v0.26.0, released 2026-08-03, rebased on upstream vLLM 0.26.0"
+    },
+    {
+      "id": 1,
+      "question": "What CLI flag enables vLLM-Omni output-side multimodal serving?",
+      "skill_answer": "`--omni` added to `vllm serve`"
+    },
+    {
+      "id": 2,
+      "question": "What is the minimum Python version required for vllm-omni?",
+      "skill_answer": "Python 3.12; 3.11 is not supported"
+    },
+    {
+      "id": 3,
+      "question": "What audio format does Qwen3-Omni's `/v1/realtime` endpoint require for input, and what does it output?",
+      "skill_answer": "16-bit PCM mono at 16 kHz in; PCM at 24 kHz out"
+    },
+    {
+      "id": 4,
+      "question": "What stage-config setting blocks a `/v1/realtime` WebSocket connection in vllm-omni?",
+      "skill_answer": "`async_chunk: true` \u2014 realtime rejects at connection time"
+    },
+    {
+      "id": 5,
+      "question": "In which vllm-omni version was the FLUX.1-dev incorrect-image regression from v0.19.0rc1 fixed?",
+      "skill_answer": "v0.20.0 stable, via PR #2760"
+    },
+    {
+      "id": 6,
+      "question": "What is the transformers version floor in vllm-omni v0.26.0's requirements/common.txt?",
+      "skill_answer": "transformers >= 5.5.3"
+    },
+    {
+      "id": 7,
+      "question": "Why was `guidance_scale=0` silently ignored in vllm-omni before v0.26.0?",
+      "skill_answer": "0.0 was the unset default sentinel; fixed in v0.26.0 (#4999) using None"
+    },
+    {
+      "id": 8,
+      "question": "What happened to GGUF diffusion support in vllm-omni v0.26.0?",
+      "skill_answer": "Moved out of tree (#4769) to the vllm-project/vllm-gguf-plugin package"
+    },
+    {
+      "id": 9,
+      "question": "What is the hardcoded timeout for the `/v1/videos/sync` endpoint?",
+      "skill_answer": "About 1200 seconds; returns 504 past that"
+    }
+  ]
+}

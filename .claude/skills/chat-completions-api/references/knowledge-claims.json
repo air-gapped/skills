@@ -1,0 +1,59 @@
+{
+  "skill": "chat-completions-api",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "d0a962b103fd",
+  "extraction_cost_usd": 0.1008,
+  "claims": [
+    {
+      "id": 0,
+      "question": "On what date do the last first-party OpenAI models on the legacy /v1/completions endpoint shut down?",
+      "skill_answer": "2026-09-28"
+    },
+    {
+      "id": 1,
+      "question": "Which field name does vLLM use for reasoning traces in Chat Completions responses, and what does it do to an incoming reasoning_content field?",
+      "skill_answer": "Emits `reasoning`; silently renames incoming `reasoning_content` to `reasoning`."
+    },
+    {
+      "id": 2,
+      "question": "Which two Chat Completions request parameters does Ollama silently drop rather than rejecting?",
+      "skill_answer": "`tool_choice` and `max_completion_tokens`"
+    },
+    {
+      "id": 3,
+      "question": "What HTTP status code does LiteLLM return for an UnsupportedParamsError?",
+      "skill_answer": "HTTP 500"
+    },
+    {
+      "id": 4,
+      "question": "Which SGLang server flag is required for `seed` to have any effect?",
+      "skill_answer": "`--enable-deterministic-inference`"
+    },
+    {
+      "id": 5,
+      "question": "Which two Chat Completions fields has OpenAI formally deprecated for reproducibility?",
+      "skill_answer": "`seed` and `system_fingerprint`"
+    },
+    {
+      "id": 6,
+      "question": "Which server flags gate cached-prompt-token reporting on vLLM and SGLang?",
+      "skill_answer": "vLLM `--enable-prompt-tokens-details`; SGLang `--enable-cache-report`"
+    },
+    {
+      "id": 7,
+      "question": "What is the billing multiplier for cache_write_tokens under OpenAI's explicit Chat Completions prompt caching?",
+      "skill_answer": "1.25\u00d7"
+    },
+    {
+      "id": 8,
+      "question": "What finish_reason does llama.cpp default to?",
+      "skill_answer": "`length`"
+    },
+    {
+      "id": 9,
+      "question": "With a named tool_choice, what finish_reason do vLLM/OpenAI return versus SGLang/mistral.rs?",
+      "skill_answer": "vLLM/OpenAI return `stop`; SGLang/mistral.rs return `tool_calls`."
+    }
+  ]
+}

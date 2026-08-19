@@ -1,0 +1,59 @@
+{
+  "skill": "baml-expert",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "b13324fff889",
+  "extraction_cost_usd": 0.1312,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which BAML version first supports the `render_null_as` argument to `ctx.output_format`?",
+      "skill_answer": "0.223.0 (PR #3822)"
+    },
+    {
+      "id": 1,
+      "question": "What relationship must hold between the `version` in a BAML generator block and the installed baml-py?",
+      "skill_answer": "They must match exactly, unless `--no-version-check` is passed."
+    },
+    {
+      "id": 2,
+      "question": "What are the exit codes of `baml-cli test`?",
+      "skill_answer": "0 pass, 1 fail, 2 human-eval-required, 3 cancelled, 4 no tests found."
+    },
+    {
+      "id": 3,
+      "question": "From which package is BAML's `ClientRegistry` imported in Python?",
+      "skill_answer": "baml_py, not baml_client."
+    },
+    {
+      "id": 4,
+      "question": "From which package is BAML's `TypeBuilder` imported in Python?",
+      "skill_answer": "baml_client.type_builder"
+    },
+    {
+      "id": 5,
+      "question": "Since which baml-py version does `baml-cli test` auto-load `.env`?",
+      "skill_answer": "0.214.0+"
+    },
+    {
+      "id": 6,
+      "question": "Since which baml-py version can per-call overrides be passed via `baml_options`?",
+      "skill_answer": "0.216"
+    },
+    {
+      "id": 7,
+      "question": "Can BAML class fields and enums be optional arrays, e.g. `string[]?`?",
+      "skill_answer": "Yes; optional arrays and maps are supported (added in #1251)."
+    },
+    {
+      "id": 8,
+      "question": "How must PDFs be supplied to BAML multimodal functions?",
+      "skill_answer": "Base64 only \u2014 no URL form, for any provider."
+    },
+    {
+      "id": 9,
+      "question": "When composite BAML clients (fallback/round-robin) nest timeouts, which timeout applies?",
+      "skill_answer": "The minimum of parent and child timeouts."
+    }
+  ]
+}

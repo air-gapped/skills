@@ -1,0 +1,59 @@
+{
+  "skill": "openshift-app",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "a883fb7675aa",
+  "extraction_cost_usd": 0.1113,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which OpenShift version made restricted-v2 the default SCC for authenticated users?",
+      "skill_answer": "OCP 4.11"
+    },
+    {
+      "id": 1,
+      "question": "What GID does OpenShift always assign to pods running under restricted-v2 with an arbitrary UID?",
+      "skill_answer": "GID 0 (root group)"
+    },
+    {
+      "id": 2,
+      "question": "In which OpenShift release was OpenShift SDN removed, forcing migration to OVN-Kubernetes?",
+      "skill_answer": "OCP 4.17"
+    },
+    {
+      "id": 3,
+      "question": "Which CIDR ranges does OVN-Kubernetes reserve that can conflict with existing networks?",
+      "skill_answer": "100.64.0.0/16 and 100.88.0.0/16"
+    },
+    {
+      "id": 4,
+      "question": "In which OpenShift release was cgroup v1 removed?",
+      "skill_answer": "OCP 4.19"
+    },
+    {
+      "id": 5,
+      "question": "When was Helm 4.0.0 released and what became its default apply strategy?",
+      "skill_answer": "November 2025; Server-Side Apply by default"
+    },
+    {
+      "id": 6,
+      "question": "Does ArgoCD through v3.3 (OpenShift GitOps 1.20) support Helm 4 charts?",
+      "skill_answer": "No \u2014 Helm 3 only"
+    },
+    {
+      "id": 7,
+      "question": "What is the maximum number of image layers allowed under Red Hat container certification?",
+      "skill_answer": "40 layers (5-20 recommended)"
+    },
+    {
+      "id": 8,
+      "question": "What is the last OpenShift release to ship the Operator SDK CLI?",
+      "skill_answer": "OCP 4.18 (deprecation announced at 4.16)"
+    },
+    {
+      "id": 9,
+      "question": "What install scope and prerequisites does an OLM v1 ClusterExtension require on OCP 4.18+?",
+      "skill_answer": "AllNamespaces only; user-provided ServiceAccount plus RBAC"
+    }
+  ]
+}

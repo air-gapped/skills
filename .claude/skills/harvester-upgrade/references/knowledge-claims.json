@@ -1,0 +1,59 @@
+{
+  "skill": "harvester-upgrade",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "82fa8711cf38",
+  "extraction_cost_usd": 0.1149,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which Rancher minor version pairs with Harvester 1.7?",
+      "skill_answer": "Rancher 2.13"
+    },
+    {
+      "id": 1,
+      "question": "Which Rancher minor version pairs with Harvester 1.8?",
+      "skill_answer": "Rancher 2.14"
+    },
+    {
+      "id": 2,
+      "question": "From which Harvester version is the `nodeUpgradeOption: manual` pause-between-nodes setting available?",
+      "skill_answer": "v1.7.0 and later"
+    },
+    {
+      "id": 3,
+      "question": "What node concurrency does the Harvester upgrade controller enforce during host upgrades?",
+      "skill_answer": "Strictly serial, concurrency=1, one host at a time"
+    },
+    {
+      "id": 4,
+      "question": "How much free space must a Harvester node have on /usr/local to pass the upgrade pre-check?",
+      "skill_answer": "At least 30 GiB"
+    },
+    {
+      "id": 5,
+      "question": "What projected post-image-load disk usage threshold must be stayed under to pass Harvester pre-flight?",
+      "skill_answer": "Under 85% (kubelet imageGC threshold)"
+    },
+    {
+      "id": 6,
+      "question": "What is the minimum remaining certificate validity Harvester pre-flight requires before an upgrade?",
+      "skill_answer": "More than 7 days from expiry"
+    },
+    {
+      "id": 7,
+      "question": "What is the default value of Harvester's `bandwidthPerMigration` live-migration setting?",
+      "skill_answer": "0 (self-throttling), with auto-converge shipped off"
+    },
+    {
+      "id": 8,
+      "question": "Which network stack replaces wicked in the Harvester minor upgrades?",
+      "skill_answer": "NetworkManager"
+    },
+    {
+      "id": 9,
+      "question": "What is the relationship between SUSE Virtualization (Prime) and community Harvester artifacts?",
+      "skill_answer": "Same bits; Prime is a paid support subscription, patches are community-downloadable"
+    }
+  ]
+}

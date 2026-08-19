@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-chat-templates",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "28864a53690a",
+  "extraction_cost_usd": 0.1616,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In vLLM, what is the chat template resolution precedence order?",
+      "skill_answer": "--chat-template flag \u2192 AutoProcessor (tools=None only) \u2192 tokenizer chat_template \u2192 bundled fallback"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM version is required for the fix that whitelists standard HF params like add_generation_prompt in chat_template_kwargs?",
+      "skill_answer": "vLLM \u2265 v0.11.1 (PR #27622)"
+    },
+    {
+      "id": 2,
+      "question": "How many tool_chat_template_*.jinja files ship in vLLM's examples/ directory at v0.25.1 and v0.27.0?",
+      "skill_answer": "26 files"
+    },
+    {
+      "id": 3,
+      "question": "What is vLLM v0.27.0's runtime minimum transformers version?",
+      "skill_answer": "transformers >= 5.5.3"
+    },
+    {
+      "id": 4,
+      "question": "On current vLLM, what is the response field name carrying extracted reasoning text?",
+      "skill_answer": "`reasoning` (not `reasoning_content`); requests still accept `reasoning_content`"
+    },
+    {
+      "id": 5,
+      "question": "How many model types are in vLLM v0.27.0's _MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK, and onto how many .jinja files?",
+      "skill_answer": "13 model types mapping onto 7 bundled .jinja files"
+    },
+    {
+      "id": 6,
+      "question": "What happens to unknown keys passed in chat_template_kwargs that aren't Jinja vars or HF params?",
+      "skill_answer": "Silently filtered out, no warning or error"
+    },
+    {
+      "id": 7,
+      "question": "Which chat_template_kwargs keys are reserved and raise ValueError in vLLM?",
+      "skill_answer": "`chat_template` and `tokenize`"
+    },
+    {
+      "id": 8,
+      "question": "Which tool-call parser and chat template does DeepSeek-V3.1 use in vLLM?",
+      "skill_answer": "`deepseek_v31` parser, tool_chat_template_deepseekv31.jinja, reasoning parser deepseek_r1"
+    },
+    {
+      "id": 9,
+      "question": "What is vLLM's internal multimodal placeholder token format in chat_utils.py?",
+      "skill_answer": "`<##IMAGE##>`, `<##AUDIO##>`, `<##VIDEO##>`"
+    }
+  ]
+}

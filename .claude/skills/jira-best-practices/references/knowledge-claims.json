@@ -1,0 +1,59 @@
+{
+  "skill": "jira-best-practices",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "28b0142914f2",
+  "extraction_cost_usd": 0.1686,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which minimum Jira Server/Data Center version does the mcp-atlassian MCP server support with PAT auth?",
+      "skill_answer": "Jira v8.14+"
+    },
+    {
+      "id": 1,
+      "question": "What are the two separate epic/parent link fields in Jira Data Center 10.3/11.x?",
+      "skill_answer": "Epic Link and Parent Link, acting independently"
+    },
+    {
+      "id": 2,
+      "question": "What is the fixed enum of Jira REST statusCategory keys?",
+      "skill_answer": "new, indeterminate, done, undefined"
+    },
+    {
+      "id": 3,
+      "question": "At what custom-field counts does Jira Data Center performance go from optimal to degraded?",
+      "skill_answer": "Optimal under 800; degraded above 1,200"
+    },
+    {
+      "id": 4,
+      "question": "Which HTTP header for forcing response language is unavailable on Jira Data Center?",
+      "skill_answer": "X-Force-Accept-Language \u2014 Cloud-only"
+    },
+    {
+      "id": 5,
+      "question": "What is the latest Jira Data Center release and its supported LTS lines as of August 2026?",
+      "skill_answer": "11.3.10 (2026-08-07); LTS 11.3 (to Dec 2027) and 10.3 (to Dec 2026)"
+    },
+    {
+      "id": 6,
+      "question": "When did Jira Data Center sales to new customers end, and when is read-only EOL?",
+      "skill_answer": "Sales ended 2026-03-30; read-only EOL 2029-03-28"
+    },
+    {
+      "id": 7,
+      "question": "Which mcp-atlassian tools were added in v0.23.0 (2026-07)?",
+      "skill_answer": "jira_get_project_epic_hierarchy and jira_get_cross_project_dependencies"
+    },
+    {
+      "id": 8,
+      "question": "Does jira_batch_create_issues set epic/parent links inline?",
+      "skill_answer": "No \u2014 link fields are silently dropped; link in a later pass"
+    },
+    {
+      "id": 9,
+      "question": "Can a Jira sub-task be assigned to a different sprint or project than its parent?",
+      "skill_answer": "No \u2014 locked to the parent's project and sprint"
+    }
+  ]
+}

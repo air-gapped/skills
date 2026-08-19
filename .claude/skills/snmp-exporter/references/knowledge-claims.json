@@ -1,0 +1,69 @@
+{
+  "skill": "snmp-exporter",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "7a8b1d93cabd",
+  "extraction_cost_usd": 0.1225,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In snmp_exporter, what is the worst-case per-request duration at default timeout and retries?",
+      "skill_answer": "20 seconds (5s timeout \u00d7 4 attempts, i.e. retries=3)"
+    },
+    {
+      "id": 1,
+      "question": "Which snmp_exporter version first allowed one scrape to request multiple modules (e.g. module=if_mib,vendor_health)?",
+      "skill_answer": "v0.24"
+    },
+    {
+      "id": 2,
+      "question": "In which snmp_exporter version did sysUpTime move out of the if_mib module into the system module?",
+      "skill_answer": "v0.28"
+    },
+    {
+      "id": 3,
+      "question": "Which snmp_exporter flag expands environment variables in config, and which fields does it apply to?",
+      "skill_answer": "--config.expand-environment-variables; only v3 username, password, priv_password"
+    },
+    {
+      "id": 4,
+      "question": "What port does snmp_exporter listen on by default?",
+      "skill_answer": "9116"
+    },
+    {
+      "id": 5,
+      "question": "Does snmp_exporter honor Prometheus's X-Prometheus-Scrape-Timeout-Seconds header?",
+      "skill_answer": "No; Prometheus just disconnects, cancelling the walk, yielding up=0"
+    },
+    {
+      "id": 6,
+      "question": "Which snmp_exporter module option works around agents that return non-increasing OIDs?",
+      "skill_answer": "allow_nonincreasing_oids: true"
+    },
+    {
+      "id": 7,
+      "question": "Which module option fixes a multi-homed device replying from a different source IP?",
+      "skill_answer": "use_unconnected_udp_socket: true"
+    },
+    {
+      "id": 8,
+      "question": "After which snmp_exporter version are tables indexed by non-renderable types (DateAndTime, Bits) rejected?",
+      "skill_answer": "After v0.30.1 (issue #1653); override index type to OctetString"
+    },
+    {
+      "id": 9,
+      "question": "Which URL parameter enables full SNMP packet traces on an snmp_exporter scrape?",
+      "skill_answer": "&snmp_debug_packets=true, with --log.level=debug"
+    },
+    {
+      "id": 10,
+      "question": "What minimum prometheus-operator version is required for params support in the Probe CRD?",
+      "skill_answer": "v0.85.0"
+    },
+    {
+      "id": 11,
+      "question": "Is there an snmp_up metric emitted by snmp_exporter for device liveness?",
+      "skill_answer": "No; use the job's up metric"
+    }
+  ]
+}

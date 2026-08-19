@@ -1,0 +1,59 @@
+{
+  "skill": "mimir-upgrade",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "01f12f956d73",
+  "extraction_cost_usd": 0.1202,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In the mimir-distributed Helm chart, which chart versions map to Mimir app versions along the 5.7\u21925.8\u21926.0.6\u21926.1.0 ladder?",
+      "skill_answer": "Chart 5.7=app 2.16, 5.8=2.17, 6.0.6=3.0.4, 6.1.0=3.1.2"
+    },
+    {
+      "id": 1,
+      "question": "What write-path settings are hardcoded in mimir-distributed chart 6.0's default Mimir config?",
+      "skill_answer": "ingest_storage.enabled: true and ingester.push_grpc_method_enabled: false"
+    },
+    {
+      "id": 2,
+      "question": "What is the supported way to stay on classic (non-Kafka) architecture on mimir-distributed 6.x?",
+      "skill_answer": "Use the chart's shipped classic-architecture.yaml; kafka.enabled: false alone is not the switch"
+    },
+    {
+      "id": 3,
+      "question": "What happens to the community proxy Deployment name in mimir-distributed chart 6.0?",
+      "skill_answer": "<release>-nginx is deleted and replaced by <release>-gateway at a different DNS name"
+    },
+    {
+      "id": 4,
+      "question": "Does the mimir-distributed chart ship a values.schema.json in the 5.7\u20136.1 range?",
+      "skill_answer": "No \u2014 stale chart keys are silent no-ops, while stale structuredConfig keys crashloop Mimir"
+    },
+    {
+      "id": 5,
+      "question": "In which Mimir version does the Mimir Query Engine (MQE) become the querier default?",
+      "skill_answer": "Mimir 2.17 (chart 5.8); 3.0 only extends the default to query-frontends"
+    },
+    {
+      "id": 6,
+      "question": "Which flag pins the old query engine while passing through Mimir 2.17?",
+      "skill_answer": "-querier.query-engine=prometheus"
+    },
+    {
+      "id": 7,
+      "question": "What is the default terminationGracePeriodSeconds for Mimir ingesters in the chart?",
+      "skill_answer": "1200 seconds"
+    },
+    {
+      "id": 8,
+      "question": "What known defect affects mimir-distributed chart 6.0.0 and 6.0.1?",
+      "skill_answer": "A rollout-operator cert bug requiring manual secret deletion"
+    },
+    {
+      "id": 9,
+      "question": "What is the CoreDNS Service name on RKE2 that global.dnsService must be set to?",
+      "skill_answer": "rke2-coredns-rke2-coredns, not kube-dns"
+    }
+  ]
+}

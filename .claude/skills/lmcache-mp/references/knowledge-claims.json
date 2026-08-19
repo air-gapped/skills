@@ -1,0 +1,59 @@
+{
+  "skill": "lmcache-mp",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "c691870ff0fe",
+  "extraction_cost_usd": 0.1606,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the minimum vLLM version that registers LMCacheMPConnector in factory.py?",
+      "skill_answer": "vLLM v0.19.0"
+    },
+    {
+      "id": 1,
+      "question": "What is the default ZMQ port for vLLM-to-LMCache MP communication?",
+      "skill_answer": "5555 (DEALER/ROUTER pattern)"
+    },
+    {
+      "id": 2,
+      "question": "Which LMCache version first added the MP adapter file lmcache.integration.vllm.vllm_multi_process_adapter?",
+      "skill_answer": "LMCache 0.4.0"
+    },
+    {
+      "id": 3,
+      "question": "Which LMCache version added the ParallelStrategy class that vLLM main imports?",
+      "skill_answer": "LMCache 0.4.4 (absent in 0.4.3)"
+    },
+    {
+      "id": 4,
+      "question": "Which LMCache release line first supports hybrid-attention models in MP mode via SupportsHMA?",
+      "skill_answer": "LMCache 0.5.x"
+    },
+    {
+      "id": 5,
+      "question": "Which vLLM interface does LMCacheMPConnector declare to keep the hybrid KV cache manager enabled?",
+      "skill_answer": "SupportsHMA"
+    },
+    {
+      "id": 6,
+      "question": "Which vLLM flag must be set on the vLLM side when using LMCacheMPConnector?",
+      "skill_answer": "--no-enable-prefix-caching"
+    },
+    {
+      "id": 7,
+      "question": "Is LMCache's --l1-size-gb a total or per-GPU/per-rank value?",
+      "skill_answer": "Total for that LMCache server; do not multiply by TP"
+    },
+    {
+      "id": 8,
+      "question": "What are LMCache's default eviction settings?",
+      "skill_answer": "LRU policy, trigger watermark 0.8, eviction ratio 0.2"
+    },
+    {
+      "id": 9,
+      "question": "What is the default of LMCache's --separate-object-groups flag for hybrid models?",
+      "skill_answer": "On (enabled) by default"
+    }
+  ]
+}

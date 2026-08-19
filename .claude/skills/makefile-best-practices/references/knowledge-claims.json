@@ -1,0 +1,59 @@
+{
+  "skill": "makefile-best-practices",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "eb6cbc6ac8e2",
+  "extraction_cost_usd": 0.1167,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which GNU Make version first supports the `--shuffle=random` flag for randomizing prerequisite order?",
+      "skill_answer": "GNU Make 4.4"
+    },
+    {
+      "id": 1,
+      "question": "Which GNU Make version introduced grouped targets using the `&:` separator?",
+      "skill_answer": "GNU Make 4.3"
+    },
+    {
+      "id": 2,
+      "question": "Which POSIX revision standardized `.PHONY`, `.WAIT`, `.NOTPARALLEL`, and the `::=`/`:::=`/`!=` assignment operators?",
+      "skill_answer": "POSIX Issue 8, IEEE Std 1003.1-2024"
+    },
+    {
+      "id": 3,
+      "question": "Is plain `:=` immediate-expansion assignment standardized in POSIX Issue 8?",
+      "skill_answer": "No; Issue 8 spells immediate expansion `::=`."
+    },
+    {
+      "id": 4,
+      "question": "How does POSIX Issue 8 treat pattern rules using `%`?",
+      "skill_answer": "Unspecified \u2014 `%` is reserved for future use; metarules rejected."
+    },
+    {
+      "id": 5,
+      "question": "What `.SHELLFLAGS` value makes recipes abort on unset variables, errors, and pipe failures?",
+      "skill_answer": "`-eu -o pipefail -c`"
+    },
+    {
+      "id": 6,
+      "question": "What does the `.DELETE_ON_ERROR:` special target do?",
+      "skill_answer": "Deletes the target file when its recipe fails, preventing stale half-built artifacts."
+    },
+    {
+      "id": 7,
+      "question": "What Make error results from using spaces instead of a tab to indent a recipe line?",
+      "skill_answer": "\"missing separator\""
+    },
+    {
+      "id": 8,
+      "question": "What do the `-MMD` and `-MP` compiler flags produce for auto-generated Make dependencies?",
+      "skill_answer": "`-MMD` writes `.d` dep files; `-MP` adds phony header targets."
+    },
+    {
+      "id": 9,
+      "question": "What is the default `SHELL` used by GNU Make recipes if not overridden?",
+      "skill_answer": "`/bin/sh` (dash on Debian, not bash)"
+    }
+  ]
+}

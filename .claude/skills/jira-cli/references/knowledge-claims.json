@@ -1,0 +1,59 @@
+{
+  "skill": "jira-cli",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "185283bb86b0",
+  "extraction_cost_usd": 0.133,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the latest released version of ankitpokhrel/jira-cli and its release date?",
+      "skill_answer": "v1.7.0, released 2025-08-31"
+    },
+    {
+      "id": 1,
+      "question": "Which REST API version does jira-cli use against Jira Cloud versus Server/Data Center?",
+      "skill_answer": "v3 for Cloud, v2 for Server/Data Center"
+    },
+    {
+      "id": 2,
+      "question": "What is the maximum result count for jira-cli's --paginate flag?",
+      "skill_answer": "100"
+    },
+    {
+      "id": 3,
+      "question": "On Jira Cloud with jira-cli v1.7.0, is the `<from>:` offset of --paginate honored?",
+      "skill_answer": "No \u2014 silently ignored; cannot page past first 100 issues"
+    },
+    {
+      "id": 4,
+      "question": "Which environment variable holds the Jira credential for jira-cli, and where is it not stored?",
+      "skill_answer": "JIRA_API_TOKEN; never in .config.yml"
+    },
+    {
+      "id": 5,
+      "question": "What environment variable value enables PAT/bearer authentication in jira-cli?",
+      "skill_answer": "JIRA_AUTH_TYPE=bearer"
+    },
+    {
+      "id": 6,
+      "question": "In `jira issue edit`, which field flags append versus replace?",
+      "skill_answer": "--label and --fix-version append; --component replaces"
+    },
+    {
+      "id": 7,
+      "question": "How do you remove an existing label or component value with `jira issue edit`?",
+      "skill_answer": "Prefix the value with a minus, e.g. --label -stale"
+    },
+    {
+      "id": 8,
+      "question": "Which jira-cli flag disables prompting for non-required fields on write commands?",
+      "skill_answer": "--no-input"
+    },
+    {
+      "id": 9,
+      "question": "Does `jira epic create` support a --raw flag, and is -n/--name required on next-gen projects?",
+      "skill_answer": "No --raw; -n/--name required even on next-gen (value ignored)"
+    }
+  ]
+}

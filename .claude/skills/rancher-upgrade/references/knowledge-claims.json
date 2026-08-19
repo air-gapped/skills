@@ -1,0 +1,59 @@
+{
+  "skill": "rancher-upgrade",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "f6cf9b8d7fe7",
+  "extraction_cost_usd": 0.1143,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which Rancher component governs which downstream RKE2/K3s Kubernetes minors a given Rancher version can provision and manage?",
+      "skill_answer": "Kontainer Driver Metadata (KDM)"
+    },
+    {
+      "id": 1,
+      "question": "Does introducing a new downstream Kubernetes minor under Rancher require upgrading Rancher first?",
+      "skill_answer": "Yes for minors; downstream patch upgrades do not require it."
+    },
+    {
+      "id": 2,
+      "question": "What is the supported Rancher minor-to-minor upgrade path between 2.11 and 2.14?",
+      "skill_answer": "One minor at a time: 2.11\u21922.12\u21922.13\u21922.14; never skip minors."
+    },
+    {
+      "id": 3,
+      "question": "In Rancher 2.14, what replaces the removed embedded cluster-api (CAPI) implementation?",
+      "skill_answer": "Rancher Turtles (with CAPRKE2/CAAPF providers)."
+    },
+    {
+      "id": 4,
+      "question": "Which Rancher version introduces the one-way CAPI v1beta2 boundary that cannot be rolled back without an etcd snapshot?",
+      "skill_answer": "Rancher 2.14"
+    },
+    {
+      "id": 5,
+      "question": "For Rancher community releases on GitHub, what is the reliable signal distinguishing community from Prime-only tags?",
+      "skill_answer": "The GitHub release-notes first line."
+    },
+    {
+      "id": 6,
+      "question": "For every Rancher minor except the current one, what edition is the newest GitHub tag?",
+      "skill_answer": "Prime-only, and uninstallable in community editions."
+    },
+    {
+      "id": 7,
+      "question": "What is the GitHub API rate limit for anonymous (unauthenticated) `gh` requests?",
+      "skill_answer": "60 requests per hour."
+    },
+    {
+      "id": 8,
+      "question": "Which kubectl resource lists Rancher-provisioned downstream clusters, and how are downstreams identified?",
+      "skill_answer": "clusters.provisioning.cattle.io -A; any row whose name \u2260 `local`."
+    },
+    {
+      "id": 9,
+      "question": "How is a Rancher single-node Docker install upgraded?",
+      "skill_answer": "Stop container, back up data volume, start newer image against same volume; no helm."
+    }
+  ]
+}

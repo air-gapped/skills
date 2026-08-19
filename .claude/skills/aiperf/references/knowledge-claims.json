@@ -1,0 +1,59 @@
+{
+  "skill": "aiperf",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "82bca6dee838",
+  "extraction_cost_usd": 0.1414,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the latest stable AIPerf release on PyPI and its release date?",
+      "skill_answer": "v0.11.0, released 2026-07-08"
+    },
+    {
+      "id": 1,
+      "question": "What Python versions does AIPerf require?",
+      "skill_answer": ">=3.10, <3.14"
+    },
+    {
+      "id": 2,
+      "question": "In AIPerf, what is the difference between the TTFT and TTFO metrics for reasoning models?",
+      "skill_answer": "TTFT counts any first token including reasoning; TTFO is first non-reasoning output token"
+    },
+    {
+      "id": 3,
+      "question": "At what token granularity do Mooncake trace hash_ids encode prefix blocks?",
+      "skill_answer": "512 tokens"
+    },
+    {
+      "id": 4,
+      "question": "What is AIPerf's default --export-level?",
+      "skill_answer": "records (per-request metrics, no payloads)"
+    },
+    {
+      "id": 5,
+      "question": "What is the default --benchmark-grace-period in aiperf profile?",
+      "skill_answer": "30 seconds (infinite for user-centric mode)"
+    },
+    {
+      "id": 6,
+      "question": "What does the aiperf --goodput flag measure and report?",
+      "skill_answer": "Per-request SLO compliance; reports good_request_count / benchmark_duration"
+    },
+    {
+      "id": 7,
+      "question": "Which tokenizer encoding does AIPerf's `--tokenizer builtin` use?",
+      "skill_answer": "tiktoken o200k_base (GPT-4o-class)"
+    },
+    {
+      "id": 8,
+      "question": "What is the default value of AIPERF_HTTP_VIDEO_POLL_INTERVAL for video_generation endpoints?",
+      "skill_answer": "0.1 seconds"
+    },
+    {
+      "id": 9,
+      "question": "Which AIPerf release added AMD ROCm GPU telemetry via amdsmi?",
+      "skill_answer": "v0.9.0 (PR #908)"
+    }
+  ]
+}

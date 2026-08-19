@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-input-modalities",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "bbc177df3ca4",
+  "extraction_cost_usd": 0.1679,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In vLLM v0.27.0, which CLI flag replaced the old `--task {generate|embed|score|...}` flag for selecting workload type?",
+      "skill_answer": "`--runner` combined with `--convert`; `--task` no longer exists at v0.27.0."
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM version fixed the bug where LAST-pooling rerankers returned wrong scores on chunk-prefilled pairs under torch.compile?",
+      "skill_answer": "v0.26.0 (PR #48901)."
+    },
+    {
+      "id": 2,
+      "question": "What must a loaded model's pooler support for vLLM to expose `/score` and `/rerank` endpoints?",
+      "skill_answer": "`classify` with num_labels==1, `embed`, or `token_embed`; no flag needed."
+    },
+    {
+      "id": 3,
+      "question": "Starting in which vLLM version does an embeddings `dimensions` value above the model's hidden_size raise an error instead of silently truncating?",
+      "skill_answer": "v0.24.0 (PR #46313)."
+    },
+    {
+      "id": 4,
+      "question": "In vLLM v0.20.0, what did the `PoolerConfig` fields `logit_bias` and `logit_scale` get renamed to?",
+      "skill_answer": "`logit_mean` and `logit_sigma` (PR #39530)."
+    },
+    {
+      "id": 5,
+      "question": "What replaced the removed `encode` pooling task in vLLM?",
+      "skill_answer": "`token_embed` and `token_classify`."
+    },
+    {
+      "id": 6,
+      "question": "Which three flags does the canonical vLLM DeepSeek-OCR serving recipe require?",
+      "skill_answer": "`--logits-processors ...NGramPerReqLogitsProcessor`, `--no-enable-prefix-caching`, `--mm-processor-cache-gb 0`."
+    },
+    {
+      "id": 7,
+      "question": "What ngram_size and window_size does DeepSeek-OCR's NGramPerReqLogitsProcessor enforce?",
+      "skill_answer": "ngram_size=30, window_size=90, whitelist_token_ids {128821,128822}."
+    },
+    {
+      "id": 8,
+      "question": "Which Jina v4 checkpoint is vLLM-compatible, and what pooling type does it need?",
+      "skill_answer": "`jinaai/jina-embeddings-v4-vllm-retrieval` with `pooling_type: ALL` and float16."
+    },
+    {
+      "id": 9,
+      "question": "Is Model Runner V2 the default for pooling models in vLLM v0.27.0?",
+      "skill_answer": "No \u2014 pooling defaults to V1; needs `VLLM_USE_V2_MODEL_RUNNER=1` (PR #48290 still open)."
+    }
+  ]
+}

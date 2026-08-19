@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-reasoning-parsers",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "c6a2d4eb5c75",
+  "extraction_cost_usd": 0.1375,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the response field name for chain-of-thought output on current vLLM main?",
+      "skill_answer": "`reasoning` (renamed from `reasoning_content` at v0.19)"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM CLI flag selects a reasoning parser, and which older flag was removed?",
+      "skill_answer": "`--reasoning-parser NAME`; `--enable-reasoning` removed around v0.8"
+    },
+    {
+      "id": 2,
+      "question": "How many reasoning parsers are registered in vLLM v0.27.0?",
+      "skill_answer": "29"
+    },
+    {
+      "id": 3,
+      "question": "Which config option makes xgrammar enforce structured output during reasoning?",
+      "skill_answer": "`--structured-outputs-config.enable_in_reasoning=true`"
+    },
+    {
+      "id": 4,
+      "question": "What happened to GptOssReasoningParser at vLLM v0.27.0?",
+      "skill_answer": "Gutted by PR #45560; extract methods raise NotImplementedError, logic moved to HarmonyParser"
+    },
+    {
+      "id": 5,
+      "question": "Does the mistral reasoning parser still raise ValueError for non-Mistral tokenizers in v0.27.0?",
+      "skill_answer": "No; removed at v0.27.0 (PR #48947), now falls back to generic adjust_request"
+    },
+    {
+      "id": 6,
+      "question": "Which token besides `</think>` ends reasoning for Kimi K2?",
+      "skill_answer": "`<|tool_calls_section_begin|>`"
+    },
+    {
+      "id": 7,
+      "question": "What is the default return value of `count_reasoning_tokens` on ReasoningParser?",
+      "skill_answer": "0"
+    },
+    {
+      "id": 8,
+      "question": "How many of vLLM's 29 reasoning parser names use the unified adapter path at v0.27.0?",
+      "skill_answer": "12 (17 remain on the legacy ReasoningParser path)"
+    },
+    {
+      "id": 9,
+      "question": "What is the truncation policy for Qwen3 with `enable_thinking=False`?",
+      "skill_answer": "Returns `(None, model_output)` \u2014 all content"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "confluence-best-practices",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "d313cf334ef2",
+  "extraction_cost_usd": 0.154,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What content format do Confluence Data Center pages use for API writes?",
+      "skill_answer": "Storage format (XHTML-based), not ADF; ADF does not apply to Confluence DC."
+    },
+    {
+      "id": 1,
+      "question": "Which Confluence REST API versions are available on Data Center versus Cloud?",
+      "skill_answer": "DC: v1 only (/rest/api/content, start/limit); Cloud: v1 and v2 (/wiki/api/v2, cursor paging)."
+    },
+    {
+      "id": 2,
+      "question": "Does Confluence Data Center support native page-level archiving?",
+      "skill_answer": "No \u2014 space-level only (CONFSERVER-31010); move pages to an archive space instead."
+    },
+    {
+      "id": 3,
+      "question": "What is the recommended maximum number of spaces on Confluence Data Center before performance degrades?",
+      "skill_answer": "Under 8,000 spaces optimal; 8\u201310k approaching limits; over 10k degraded."
+    },
+    {
+      "id": 4,
+      "question": "When does the Confluence Data Center 9.2 LTS line reach end of life?",
+      "skill_answer": "2026-12-10."
+    },
+    {
+      "id": 5,
+      "question": "What are the current Confluence Data Center LTS lines and their Java requirement?",
+      "skill_answer": "10.2 (supported to 2027-12-02, Java 21 only) and 9.2."
+    },
+    {
+      "id": 6,
+      "question": "Which user identifier does the Confluence API use on Data Center versus Cloud?",
+      "skill_answer": "DC uses username/userKey; Cloud uses accountId."
+    },
+    {
+      "id": 7,
+      "question": "Do Confluence view restrictions and edit restrictions cascade to child pages?",
+      "skill_answer": "View restrictions cascade to children; edit restrictions do not."
+    },
+    {
+      "id": 8,
+      "question": "Can a Confluence page restriction grant view access to a user lacking space View permission?",
+      "skill_answer": "No \u2014 page restrictions only subtract; space permissions are additive."
+    },
+    {
+      "id": 9,
+      "question": "What are the default limits of the Confluence Page Properties Report macro?",
+      "skill_answer": "3,000 pages and 60 labels, both tunable."
+    }
+  ]
+}

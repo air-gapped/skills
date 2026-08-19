@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-performance-tuning",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "fe49c3cbd2cf",
+  "extraction_cost_usd": 0.1525,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default max_num_batched_tokens and max_num_seqs for `vllm serve` on a \u226570 GiB non-A100 GPU?",
+      "skill_answer": "8192 and 1024"
+    },
+    {
+      "id": 1,
+      "question": "What activation density threshold (experts_per_token / total_experts) should be exceeded before enabling expert parallelism in vLLM?",
+      "skill_answer": "Greater than 2%"
+    },
+    {
+      "id": 2,
+      "question": "What environment variable points vLLM at a folder of tuned fused-MoE kernel configs?",
+      "skill_answer": "VLLM_TUNED_CONFIG_FOLDER"
+    },
+    {
+      "id": 3,
+      "question": "What replaced the vLLM `--cuda-graph-sizes` flag?",
+      "skill_answer": "--cudagraph-capture-sizes (plus --max-cudagraph-capture-size)"
+    },
+    {
+      "id": 4,
+      "question": "What is vLLM's default CUDA graph mode at -O2?",
+      "skill_answer": "FULL_AND_PIECEWISE"
+    },
+    {
+      "id": 5,
+      "question": "What gpu-memory-utilization cap is recommended for MoE models in vLLM, and why?",
+      "skill_answer": "0.85; all-to-all/NVSHMEM staging buffers are outside memory accounting"
+    },
+    {
+      "id": 6,
+      "question": "Which parallelism configuration does the DeepSeek-V3.2 vLLM recipe prescribe instead of TP=8?",
+      "skill_answer": "DP=8, EP=8, TP=1"
+    },
+    {
+      "id": 7,
+      "question": "Which two vLLM CLI flags for partial prefills were removed in v0.27.0?",
+      "skill_answer": "--max-num-partial-prefills and --max-long-partial-prefills"
+    },
+    {
+      "id": 8,
+      "question": "In vLLM v0.27.0, which torch and torchvision versions are required?",
+      "skill_answer": "torch 2.13.0 and torchvision 0.28.0"
+    },
+    {
+      "id": 9,
+      "question": "Which vLLM version made Model Runner V2 the default for all dense models?",
+      "skill_answer": "v0.25.0 (PR #44443)"
+    }
+  ]
+}

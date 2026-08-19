@@ -1,0 +1,59 @@
+{
+  "skill": "responses-api",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "78383edb8143",
+  "extraction_cost_usd": 0.1089,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What environment variable must vLLM be launched with to honor `store: true` on /v1/responses?",
+      "skill_answer": "VLLM_ENABLE_RESPONSES_API_STORE=1 (env var only, no CLI flag)"
+    },
+    {
+      "id": 1,
+      "question": "How many typed streaming events does the OpenAI Responses API define?",
+      "skill_answer": "53 typed events"
+    },
+    {
+      "id": 2,
+      "question": "What is the default value of `strict` for tool definitions in the Responses API versus Chat Completions?",
+      "skill_answer": "true in Responses API, false in Chat Completions"
+    },
+    {
+      "id": 3,
+      "question": "Which non-OpenAI backend implements `/v1/responses/compact` natively?",
+      "skill_answer": "Llama Stack; LiteLLM exposes the route only as passthrough"
+    },
+    {
+      "id": 4,
+      "question": "When was WebSocket transport (wss://api.openai.com/v1/responses) launched, and what is its connection cap?",
+      "skill_answer": "Launched 2026-02-23; 60-minute cap, sequential one in-flight per socket"
+    },
+    {
+      "id": 5,
+      "question": "Which field must be preserved verbatim on assistant messages for gpt-5.3-codex and later, and what breaks if dropped?",
+      "skill_answer": "`phase`; dropping it silently re-emits preambles as final answers"
+    },
+    {
+      "id": 6,
+      "question": "What include value is required when using `store: false` to retain reasoning across turns?",
+      "skill_answer": "include: [\"reasoning.encrypted_content\"]"
+    },
+    {
+      "id": 7,
+      "question": "What became a required field in the Responses API as of the 2026-03-25 breaking change?",
+      "skill_answer": "ResponseInputMessageItem.type"
+    },
+    {
+      "id": 8,
+      "question": "What values does `prompt_cache_retention` accept in the Responses API?",
+      "skill_answer": "\"in_memory\" or \"24h\""
+    },
+    {
+      "id": 9,
+      "question": "What new tool type and reasoning effort level did GPT-5.6 (2026-07-09) add?",
+      "skill_answer": "programmatic_tool_calling tool type; reasoning.effort: \"max\""
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "sglang-model-gateway",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "0797ee9ec57e",
+  "extraction_cost_usd": 0.1805,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default `--policy` value for sgl-model-gateway?",
+      "skill_answer": "`cache_aware`"
+    },
+    {
+      "id": 1,
+      "question": "What was `sgl-router` renamed to, and when?",
+      "skill_answer": "`sgl-model-gateway`, in December 2025"
+    },
+    {
+      "id": 2,
+      "question": "What Prometheus metric prefix replaced `sgl_router_*` in the SGLang gateway?",
+      "skill_answer": "`smg_*`"
+    },
+    {
+      "id": 3,
+      "question": "What is the default `--prometheus-port` for sgl-model-gateway?",
+      "skill_answer": "29000"
+    },
+    {
+      "id": 4,
+      "question": "Which tokenizer type does the sgl-model-gateway gRPC path hard-require?",
+      "skill_answer": "A HuggingFace tokenizer; tiktoken-only models cannot use gRPC."
+    },
+    {
+      "id": 5,
+      "question": "How many values does the sgl-model-gateway `--policy` flag accept, and what are they?",
+      "skill_answer": "Six: cache_aware, random, round_robin, power_of_two, prefix_hash, manual"
+    },
+    {
+      "id": 6,
+      "question": "What does the `prefix_hash` policy hash, and with which algorithm?",
+      "skill_answer": "xxh3 over the first 256 token IDs against a consistent-hash ring"
+    },
+    {
+      "id": 7,
+      "question": "Does the sgl-model-gateway Rust binary honor the `HF_ENDPOINT` environment variable?",
+      "skill_answer": "No \u2014 zero source hits; always pass a local path."
+    },
+    {
+      "id": 8,
+      "question": "What is the default mesh port and peer-discovery annotation for `--enable-mesh`?",
+      "skill_answer": "Port 39527; annotation `sglang.ai/ha-port`"
+    },
+    {
+      "id": 9,
+      "question": "Which vLLM flag enables `usage.prompt_tokens_details.cached_tokens` in responses?",
+      "skill_answer": "`--enable-prompt-tokens-details` (off by default)"
+    }
+  ]
+}

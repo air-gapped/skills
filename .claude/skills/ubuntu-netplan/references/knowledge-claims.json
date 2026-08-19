@@ -1,0 +1,84 @@
+{
+  "skill": "ubuntu-netplan",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "d0333ddb1cc4",
+  "extraction_cost_usd": 0.1065,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What netplan version does Ubuntu Server 24.04 LTS ship?",
+      "skill_answer": "Netplan 1.0.x (26.04 tracks 1.2.x)"
+    },
+    {
+      "id": 1,
+      "question": "What is the only accepted value of the `version:` key in a netplan config?",
+      "skill_answer": "2 \u2014 netplan has no v1 format"
+    },
+    {
+      "id": 2,
+      "question": "In what order are differently-named netplan files merged?",
+      "skill_answer": "Lexicographic order of basename, across all directories"
+    },
+    {
+      "id": 3,
+      "question": "How does netplan merge sequence values like `addresses:` across multiple files?",
+      "skill_answer": "Sequences are concatenated, not replaced"
+    },
+    {
+      "id": 4,
+      "question": "Which netplan directory has highest priority for same-named files?",
+      "skill_answer": "/run/netplan > /etc/netplan > /lib/netplan"
+    },
+    {
+      "id": 5,
+      "question": "What does netplan do about world-readable files in /etc/netplan?",
+      "skill_answer": "Only warns; it does not refuse or auto-fix"
+    },
+    {
+      "id": 6,
+      "question": "What file permissions does `netplan set` give files it creates?",
+      "skill_answer": "0600"
+    },
+    {
+      "id": 7,
+      "question": "Which netplan command validates YAML without applying it?",
+      "skill_answer": "netplan generate"
+    },
+    {
+      "id": 8,
+      "question": "What replaced the deprecated `gateway4:` key for default routes?",
+      "skill_answer": "routes entry with `to: default` and `via:`"
+    },
+    {
+      "id": 9,
+      "question": "Does `netplan apply` delete virtual devices removed from the YAML?",
+      "skill_answer": "No \u2014 stale bonds/bridges linger until ip link delete or reboot"
+    },
+    {
+      "id": 10,
+      "question": "Where must the `--debug` flag be placed in a netplan command?",
+      "skill_answer": "Globally, before the subcommand: netplan --debug apply"
+    },
+    {
+      "id": 11,
+      "question": "What unit does the bond `mii-monitor-interval` value use without a suffix?",
+      "skill_answer": "Milliseconds"
+    },
+    {
+      "id": 12,
+      "question": "What file disables cloud-init network management on Ubuntu?",
+      "skill_answer": "/etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with network: {config: disabled}"
+    },
+    {
+      "id": 13,
+      "question": "Which netplan option prevents boot waiting ~2 minutes for a disconnected NIC?",
+      "skill_answer": "optional: true"
+    },
+    {
+      "id": 14,
+      "question": "What netplan setting is required for an off-subnet gateway to work?",
+      "skill_answer": "on-link: true"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "airgap-vetting",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "f39cb1decc97",
+  "extraction_cost_usd": 0.1179,
+  "claims": [
+    {
+      "id": 0,
+      "question": "On what date does Docker Content Trust (DCT) shut down?",
+      "skill_answer": "2026-12-08"
+    },
+    {
+      "id": 1,
+      "question": "Which Helm command's output must be used to enumerate container images for air-gap mirroring, rather than values.yaml?",
+      "skill_answer": "helm template rendered output"
+    },
+    {
+      "id": 2,
+      "question": "What is the decisive objective test distinguishing proxy-in-disguise from possible-with-mirror?",
+      "skill_answer": "Whether the product survives permanent egress-deny applied after activation"
+    },
+    {
+      "id": 3,
+      "question": "What Docker flag fully isolates a container from the network for offline testing?",
+      "skill_answer": "--network=none"
+    },
+    {
+      "id": 4,
+      "question": "Which Kubernetes operator CSV field enumerates images for air-gapped mirroring?",
+      "skill_answer": "relatedImages"
+    },
+    {
+      "id": 5,
+      "question": "How long should a steady-state egress capture run to catch timer-based heartbeats?",
+      "skill_answer": "10\u201330 minutes, in addition to a first-run capture"
+    },
+    {
+      "id": 6,
+      "question": "What tool is used to inject a custom CA and inventory TLS destinations in dynamic air-gap testing?",
+      "skill_answer": "mitmproxy"
+    },
+    {
+      "id": 7,
+      "question": "What utility is used to test license/certificate expiry behavior under clock skew?",
+      "skill_answer": "faketime"
+    },
+    {
+      "id": 8,
+      "question": "Does image/artifact naming computed at runtime rate as mirrorable-with-effort or unmirrorable?",
+      "skill_answer": "Unmirrorable \u2014 automatic no-go, it defeats all mirroring"
+    },
+    {
+      "id": 9,
+      "question": "What is the best grade achievable when security content feeds go silently stale?",
+      "skill_answer": "possible-with-mirror"
+    }
+  ]
+}

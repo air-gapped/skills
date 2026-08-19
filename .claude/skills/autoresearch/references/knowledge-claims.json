@@ -1,0 +1,59 @@
+{
+  "skill": "autoresearch",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "740cf397325f",
+  "extraction_cost_usd": 0.1356,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default iteration cap for an autoresearch optimize loop, and which flag overrides it?",
+      "skill_answer": "20 iterations, overridden with --max N"
+    },
+    {
+      "id": 1,
+      "question": "How many consecutive discards spanning how many hypothesis categories signal that the optimization ceiling has been mapped?",
+      "skill_answer": "8+ consecutive discards across at least 3 categories"
+    },
+    {
+      "id": 2,
+      "question": "What is the verifier timeout budget multiplier for runs between 30 seconds and 5 minutes?",
+      "skill_answer": "2x baseline duration"
+    },
+    {
+      "id": 3,
+      "question": "At what run-to-run variance threshold should the verifier be run 3 times, and which statistic is used?",
+      "skill_answer": "Variance >2%; take the median, not the mean"
+    },
+    {
+      "id": 4,
+      "question": "What delta magnitude relative to the rolling average of kept deltas triggers a reward-hacking anomaly flag?",
+      "skill_answer": "Delta greater than 3x rolling average after 3+ consecutive discards"
+    },
+    {
+      "id": 5,
+      "question": "What are the six columns of the autoresearch results.tsv ledger schema?",
+      "skill_answer": "commit, metric, delta, status, duration_s, description"
+    },
+    {
+      "id": 6,
+      "question": "What git command does the loop use to undo a regressed experiment?",
+      "skill_answer": "git revert HEAD --no-edit"
+    },
+    {
+      "id": 7,
+      "question": "What are the per-session limits on subagents, web searches, and concurrent subagents?",
+      "skill_answer": "200 subagents, 200 web searches, 20 subagents in flight"
+    },
+    {
+      "id": 8,
+      "question": "What subagent_type does Mode 2 research spawn, and what is the plugin-install name?",
+      "skill_answer": "deep-researcher; plugin installs as agent:deep-researcher"
+    },
+    {
+      "id": 9,
+      "question": "Which arXiv paper supports preferring the weakest hypothesis consistent with the data for generalization?",
+      "skill_answer": "Bennett, arXiv:2301.12987"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "open-webui-embeddings",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "134139d58ba6",
+  "extraction_cost_usd": 0.1313,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default value of Open WebUI's RAG_EMBEDDING_BATCH_SIZE?",
+      "skill_answer": "1 \u2014 one HTTP round-trip per chunk"
+    },
+    {
+      "id": 1,
+      "question": "What is the default value of RAG_EMBEDDING_CONCURRENT_REQUESTS in Open WebUI?",
+      "skill_answer": "0, meaning unlimited (asyncio.gather with no semaphore)"
+    },
+    {
+      "id": 2,
+      "question": "Does Open WebUI auto-append a path to RAG_EXTERNAL_RERANKER_URL?",
+      "skill_answer": "No \u2014 that URL is used exactly; only the embed base URL gets /embeddings appended"
+    },
+    {
+      "id": 3,
+      "question": "What request body shape does Open WebUI's ExternalReranker send?",
+      "skill_answer": "{model, query, documents, top_n} \u2014 Cohere shape, top_n = len(documents)"
+    },
+    {
+      "id": 4,
+      "question": "What response shape must a reranker return for Open WebUI to use it?",
+      "skill_answer": "{\"results\": [{\"index\", \"relevance_score\"}]}"
+    },
+    {
+      "id": 5,
+      "question": "What happens in Open WebUI retrieval when the external reranker returns non-2xx?",
+      "skill_answer": "predict() returns None; retrieval silently falls back to un-reranked hybrid order"
+    },
+    {
+      "id": 6,
+      "question": "Why can't Text Embeddings Inference's native /rerank be wired directly to Open WebUI?",
+      "skill_answer": "TEI uses {query, texts} \u2192 [{index, score}]; incompatible, returns 422. Needs LiteLLM translation"
+    },
+    {
+      "id": 7,
+      "question": "What does setting RAG_EMBEDDING_PREFIX_FIELD_NAME do?",
+      "skill_answer": "Switches prefixes from string-prepended to a separate JSON field (Ollama-only); leave unset for openai engine"
+    },
+    {
+      "id": 8,
+      "question": "Which common embedding model requires no query/document prefixes?",
+      "skill_answer": "BGE-M3 \u2014 it is symmetric; e5, EmbeddingGemma, Qwen3-Embedding are asymmetric"
+    },
+    {
+      "id": 9,
+      "question": "In Open WebUI 0.11.0, why does GET /api/v1/knowledge/{id} no longer show extracted file text?",
+      "skill_answer": "get_file_metadatas_by_id became column-only SELECT excluding File.data; fetch GET /api/v1/files/{id} instead"
+    }
+  ]
+}

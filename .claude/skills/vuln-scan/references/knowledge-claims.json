@@ -1,0 +1,59 @@
+{
+  "skill": "vuln-scan",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "96f01ee06700",
+  "extraction_cost_usd": 0.1162,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the maximum number of concurrent review subagents spawned during the vuln-scan fan-out step?",
+      "skill_answer": "10 concurrent subagents, one per focus area"
+    },
+    {
+      "id": 1,
+      "question": "Below what source-file count does a scan automatically fall through to single-pass mode instead of fanning out?",
+      "skill_answer": "Fewer than 15 source files"
+    },
+    {
+      "id": 2,
+      "question": "What subagent_type is used for per-focus-area vulnerability review, including its plugin-install name?",
+      "skill_answer": "vuln-area-reviewer, or defending-code:vuln-area-reviewer"
+    },
+    {
+      "id": 3,
+      "question": "What subagent_type scores per-finding confidence in the confidence pass?",
+      "skill_answer": "vuln-confidence-scorer, or defending-code:vuln-confidence-scorer"
+    },
+    {
+      "id": 4,
+      "question": "What confidence value and prefilter tag are assigned when a finding cites a file that does not exist on disk?",
+      "skill_answer": "confidence 0.05, prefilter \"hallucinated_path\""
+    },
+    {
+      "id": 5,
+      "question": "What confidence value and prefilter tag are assigned to findings on test/fixture paths?",
+      "skill_answer": "confidence 0.15, prefilter \"test_path\""
+    },
+    {
+      "id": 6,
+      "question": "Which finding category is exempt from the test/fixture path pre-filter gate?",
+      "skill_answer": "hardcoded-secret / committed credentials (key material, token, password)"
+    },
+    {
+      "id": 7,
+      "question": "Below what confidence threshold is a finding counted as low-confidence?",
+      "skill_answer": "confidence < 0.4"
+    },
+    {
+      "id": 8,
+      "question": "What is the final sort order of findings in VULN-FINDINGS.json?",
+      "skill_answer": "confidence desc, then severity desc, then file, then line"
+    },
+    {
+      "id": 9,
+      "question": "Which sections of THREAT_MODEL.md are parsed for focus areas, assets, and deployment facts?",
+      "skill_answer": "Section 3 entry points, section 4 threats, section 2 assets, section 1 context"
+    }
+  ]
+}

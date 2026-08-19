@@ -1,0 +1,59 @@
+{
+  "skill": "k8s-components-checker",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "e04bfb8a409a",
+  "extraction_cost_usd": 0.1192,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which apiserver Prometheus metric reports deprecated API usage actually served by a cluster?",
+      "skill_answer": "apiserver_requested_deprecated_apis"
+    },
+    {
+      "id": 1,
+      "question": "Up to which Kubernetes minor do kubent's rulesets extend, making it unmaintained?",
+      "skill_answer": "k8s 1.32"
+    },
+    {
+      "id": 2,
+      "question": "What was the final patch release of the Argo CD 3.2 line?",
+      "skill_answer": "v3.2.6"
+    },
+    {
+      "id": 3,
+      "question": "Which KEDA version supports Kubernetes 1.32 through 1.34?",
+      "skill_answer": "KEDA 2.19.0"
+    },
+    {
+      "id": 4,
+      "question": "What is the highest Kubernetes minor supported by KEDA 2.18.x?",
+      "skill_answer": "Kubernetes 1.33 (2.18 ceiling)"
+    },
+    {
+      "id": 5,
+      "question": "Does a GitHub repo's releases/latest endpoint always return the highest version number?",
+      "skill_answer": "No \u2014 it is most-recently-published/maintainer-pinned, not highest version"
+    },
+    {
+      "id": 6,
+      "question": "Which Harbor minor line existed while Harbor's releases/latest pointed at 2.14.4?",
+      "skill_answer": "Harbor 2.15.x"
+    },
+    {
+      "id": 7,
+      "question": "What Helm Chart.yaml field encodes a chart's Kubernetes version constraint?",
+      "skill_answer": "kubeVersion:"
+    },
+    {
+      "id": 8,
+      "question": "What is the recommended migration target when replacing the Zalando postgres-operator?",
+      "skill_answer": "CloudNativePG"
+    },
+    {
+      "id": 9,
+      "question": "Which container runtime does RKE2 use, fixed and not operator-selectable?",
+      "skill_answer": "containerd"
+    }
+  ]
+}

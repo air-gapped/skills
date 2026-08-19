@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260819.52",
+      "version": "0.20260819.53",
       "author": {
         "name": "Jörgen"
       },
@@ -40,7 +40,7 @@
       "name": "bitnami-exit",
       "source": "./",
       "description": "Bitnami-exit suite — migrate off dead-ended Bitnami charts/images. First member: redis-to-valkey (Sentinel HA migration to Valkey: the RDB-version wall, RedisShake/rdb-cli logical replay, chart selection and values translation, consumer-app reconnection, air-gap mirroring, Argo CD source rewiring away from charts.bitnami.com).",
-      "version": "0.20260718.2",
+      "version": "0.20260819.3",
       "author": {
         "name": "Jörgen"
       },
@@ -66,7 +66,7 @@
       "name": "defending-code",
       "source": "./",
       "description": "Security find-and-fix loop — adapted (Apache-2.0) from anthropics/defending-code-reference-harness and generalised to all vulnerability classes. Four read/write-only skills (no target-code execution): threat-model (bootstrap from code+CVEs+git-history, or interview an owner via Shostack's four questions, or both -> THREAT_MODEL.md), vuln-scan (static source review, parallel per-focus-area subagents -> VULN-FINDINGS.json), triage (adversarial N-vote verification, 16 false-positive exclusion rules, root-cause dedup, impact-on-asset x exploitability severity with stated deployment conditions, owner routing, checkpoint/resume -> TRIAGE.json), and patch (root-cause candidate diffs + independent reviewer, fix-first priority for deployment-conditional dangerous primitives, never auto-applied -> PATCHES/). The autonomous C/C++ + AddressSanitizer execution pipeline this was extracted from is referenced, not bundled (vuln-scan/HARNESS.md).",
-      "version": "0.20260816.33",
+      "version": "0.20260819.34",
       "author": {
         "name": "Jörgen"
       },
@@ -107,7 +107,7 @@
       "name": "dell",
       "source": "./",
       "description": "Dell hardware suite — Ansible automation against Dell PowerEdge iDRAC 9 (14G–16G) and iDRAC 10 (17G) BMCs via the `dellemc.openmanage` collection. Covers the iDRAC 10 / iDRAC 9 ≥ 7.30.10.50 `BasicAuthState: Unadvertised` default that silently 401s `ansible.builtin.uri`, the canonical `idrac_session` + `x_auth_token` lifecycle, iDRAC 10 attribute registry deltas (renamed groups, deprecated `vFlashSD*`/`Telemetry*`/`GroupManager`, the BIOS→`System.ServerPwr.*` move), iDRAC 9-only modules to avoid on 17G, WS-MAN removal on 17G, and the upstream bug catalog. Room for sibling skills covering RACADM, OpenManage Enterprise, DUP catalogs, and PowerEdge BIOS tuning.",
-      "version": "0.20260721.3",
+      "version": "0.20260819.4",
       "author": {
         "name": "Jörgen"
       },
@@ -135,7 +135,7 @@
       "name": "dev",
       "source": "./",
       "description": "Developer tooling suite — BAML (typed LLM functions), Jinja2 templates (HuggingFace chat templates, Ansible), GNU Make best practices, and HuggingFace transformers config/tokenizer preflight (vLLM/sglang engine bridge).",
-      "version": "0.20260818.16",
+      "version": "0.20260819.17",
       "author": {
         "name": "Jörgen"
       },
@@ -166,7 +166,7 @@
       "name": "harvester",
       "source": "./",
       "description": "Harvester HCI operator suite — controlled, community-edition Harvester upgrades off an EOL line up to latest stable: the no-skip minor ladder (1.5→1.6→1.7→1.8 carrying embedded RKE2 / KubeVirt / Longhorn / SLE-Micro together), external-Rancher + Harvester UI-extension pairing and ordering, air-gapped version detection, controlling the node-by-node upgrade flow (serial interlock, the v1.7+ pause-map, and the PodDisruptionBudget + VMI-readinessProbe native gate for 1.5/1.6), keeping VM-hosted self-managed RKE2 control planes quorate via anti-affinity spread and live-migration-vs-clean-shutdown tradeoffs (busy-etcd non-convergence, auto-converge, dedicated migration network), per-hop breaking changes (wicked→NetworkManager, Intel NIC rename, DHCP churn), the enforced pre-flight health gates, and the no-downgrade backup/rollback reality. Companion to the k8s suite's k8s-components-checker (Harvester↔Rancher↔RKE2 pairing registry) and rancher-upgrade (the external Rancher's own chain).",
-      "version": "0.20260818.4",
+      "version": "0.20260819.5",
       "author": {
         "name": "Jörgen"
       },
@@ -195,7 +195,7 @@
       "name": "inference-apis",
       "source": "./",
       "description": "Inference-API compatibility suite — the three open LLM serving protocols as third-party surfaces: OpenAI Chat Completions + legacy /v1/completions (7 local servers, gateways, 10 cloud compat endpoints, reasoning-field schism, client wire behavior), OpenAI Responses (spec, streaming events, store/previous_response_id semantics, translation), and Anthropic Messages (7 native server implementations, thinking-signature seam, stop_reason divergences, Claude Code/opencode integration). Source-examined at pinned commits with live-verification logs.",
-      "version": "0.20260731.13",
+      "version": "0.20260819.14",
       "author": {
         "name": "Jörgen"
       },
@@ -225,7 +225,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260818.8",
+      "version": "0.20260819.9",
       "author": {
         "name": "Jörgen"
       },
@@ -253,7 +253,7 @@
       "name": "inference-host",
       "source": "./",
       "description": "Inference host bring-up + tuning suite — Linux/GPU bare-metal host work that sits beneath any inference framework (vLLM, sglang, TensorRT-LLM). Two phases. Bring-up (nvidia-datacenter-bringup): Ubuntu 24.04 LTS from clean OS to gpu-operator cuda-validator passing — B300/B200/H100/A100/L40S/L4 driver + fabricmanager + NVLSM + DOCA-OFED install order, NVIDIA CUDA repo + DOCA repo + air-gap mirror, MOK + DKMS sign-on-build under Secure Boot, Dell PowerEdge XE9780/XE9785 baseboard firmware via iDRAC Redfish DellOemChassis.ExtendedReset, gpu-operator pre-installed-driver-mode integration. Tuning (gpu-host-tuning): read-only snapshot of CPU power state, C-states, NUMA topology, PCIe link state, GPU settings, kernel boot params, sysctl, ulimits, IRQ affinity, container runtime; optional pinned-host↔GPU memcpy bench (torch + numactl); per-lever cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC, hugepages, intel_iommu, NCCL env, tuned-adm profiles, BIOS guidance for Dell XE / SMC / HPE). Surfaces config gaps that bottleneck LMCache CPU-tier throughput, KV offload, NCCL bandwidth, prefix-cache rebuild.",
-      "version": "0.20260819.13",
+      "version": "0.20260819.14",
       "author": {
         "name": "Jörgen"
       },
@@ -295,7 +295,7 @@
       "name": "jira",
       "source": "./",
       "description": "Jira suite — drive Atlassian Jira from the terminal with `jira` (ankitpokhrel/jira-cli, v1.7.0) against ANY Jira (Cloud or on-premise/Data Center). Covers the full command surface (issue / epic / sprint / board / project / release), the non-interactive automation contract (`--no-input` + `--plain`/`--raw`/`--csv` for agent-safe, parseable runs), JQL filtering and the date/negation idioms, GitHub- and Jira-flavored markdown → Atlassian Document Format (ADF) conversion and its lossy edges, authentication for every backend (Cloud API token, on-prem basic, PAT/bearer, mTLS), and live-discovery of instance-specific values (project keys, issue types, statuses, priorities, resolutions, link types, custom field IDs) instead of hardcoding them. Instance-agnostic — no account-specific content.",
-      "version": "0.20260818.6",
+      "version": "0.20260819.7",
       "author": {
         "name": "Jörgen"
       },
@@ -324,7 +324,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients. Also postgres-operator-cloudnative-pg-migration — migrate PostgreSQL clusters off the Zalando postgres-operator (Spilo/Patroni) onto CloudNativePG: the glibc/collation and WAL-G↔Barman walls, three migration paths (logical replication default), full acid.zalan.do→Cluster manifest field map, barman-cloud plugin backup re-plumbing, consumer cutover, air-gap mirroring.",
-      "version": "0.20260819.71",
+      "version": "0.20260819.72",
       "author": {
         "name": "Jörgen"
       },
@@ -384,7 +384,7 @@
       "name": "litellm",
       "source": "./",
       "description": "LiteLLM proxy operator suite — multi-pod Redis/Valkey coordination (the silent per-pod-fallback failure mode, the 4-way coordination-Redis resolution order incl. the undocumented general_settings.coordination_redis block since v1.93.0, Sentinel/Cluster support matrix with fix versions, per-pod-vs-shared truth table with real staleness bounds, no-op documented knobs, open-issue catalog) and the management REST API (447-path control plane, ~63% undocumented; the four 'empty means unlimited' footguns, budget semantics traps, presence-sensitive updates that trigger spurious enterprise 403s, config-vs-DB precedence, recon-first protocol via GET /routes).",
-      "version": "0.20260730.1",
+      "version": "0.20260819.2",
       "author": {
         "name": "Jörgen"
       },
@@ -418,7 +418,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
-      "version": "0.20260731.10",
+      "version": "0.20260819.11",
       "author": {
         "name": "Jörgen"
       },
@@ -458,7 +458,7 @@
       "name": "open-webui",
       "source": "./",
       "description": "Open WebUI operator suite — REST API administration (v0.10.x: user/group lifecycle, model catalog GitOps via models/sync, config-as-code, SCIM, event webhooks, the 0.10.0 access_control→access_grants break, auth traps), RAG pipeline wiring (HuggingFace embedding + reranker via LiteLLM in front of HuggingFace Text Embeddings Inference; exact wire shapes, LiteLLM ↔ TEI gotchas, TEI configuration cliffs, end-to-end production config; BGE-M3 + BGE-Reranker-v2-m3 worked examples) and multi-pod deployment with WebSockets + Valkey Sentinel at 1000+ user scale (the structural Socket.IO + Redis frame-amplification bug #23733 and the CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE mitigation, all multi-pod env vars, custom-model-icon perf history, helm chart gaps, full known-issues catalog with fix status).",
-      "version": "0.20260818.27",
+      "version": "0.20260819.28",
       "author": {
         "name": "Jörgen"
       },
@@ -497,7 +497,7 @@
       "name": "sglang",
       "source": "./",
       "description": "SGLang operator reference suite — HiCache (three-tier hierarchical prefix cache: GPU HBM → host DRAM → distributed L3 via Mooncake/3FS/NIXL/AIBrix/EIC/SiMM/file/LMCache) and the SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM/SGLang inference workers on Kubernetes with cache-aware/prefix-hash/consistent-hash routing, K8s label-selector service discovery, PD-disaggregation, and `--enable-mesh` CRDT sync between gateway replicas. Pairs with the `vllm` suite for vLLM-side reference and `inference-cache` for engine-agnostic KV-cache transport.",
-      "version": "0.20260819.15",
+      "version": "0.20260819.16",
       "author": {
         "name": "Jörgen"
       },
@@ -525,7 +525,7 @@
       "name": "ubuntu",
       "source": "./",
       "description": "Ubuntu Server provisioning suite — the three configuration layers of an unattended on-premise / air-gapped Ubuntu Server LTS 24.04 / 26.04 bring-up: ubuntu-autoinstall (the Subiquity `autoinstall:` v1 schema — identity, storage LVM/ZFS/RAID/encryption, apt mirror + proxy + offline fallback, early/late-commands, NoCloud zero-touch delivery), ubuntu-cloud-init (NoCloud-datasource `#cloud-config` user-data — users, ssh, write_files, runcmd, local apt mirrors, internal-CA ca_certs, seed ISO / SMBIOS serial / `ds=nocloud` cmdline, boot stages, `datasource_list` pinning), and ubuntu-netplan (the `/etc/netplan/*.yaml` v2 network substrate both share — static addressing, bonds, bridges, VLANs, VRFs, policy routing, predictable interface naming, systemd-networkd renderer). The installer's `network:` block is netplan and its `user-data:` block is cloud-config, so the three are designed to be used together.",
-      "version": "0.20260721.4",
+      "version": "0.20260819.5",
       "author": {
         "name": "Jörgen"
       },
@@ -557,7 +557,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260818.80",
+      "version": "0.20260819.81",
       "author": {
         "name": "Jörgen"
       },
@@ -596,7 +596,7 @@
       "name": "aiperf",
       "source": "./",
       "description": "NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (the genai-perf successor): `aiperf profile` with concurrency / request-rate / fixed-schedule trace-replay / user-centric / multi-run-confidence load, 15 endpoint types and 6 custom dataset formats, goodput SLOs, GPU + Prometheus telemetry, and the reasoning-token TTFT/TTFO split — benchmarks vLLM / SGLang / TensorRT-LLM / Dynamo / NIM / Triton / Ollama.",
-      "version": "0.20260721.3",
+      "version": "0.20260819.4",
       "author": {
         "name": "Jörgen"
       },
@@ -625,7 +625,7 @@
       "name": "airgap-vetting",
       "source": "./",
       "description": "Vet an open-source product for air-gap readiness BEFORE adoption",
-      "version": "0.20260818.3",
+      "version": "0.20260819.4",
       "author": {
         "name": "Jörgen"
       },
@@ -639,7 +639,7 @@
       "name": "analytical-troubleshooting",
       "source": "./",
       "description": "Structured live troubleshooting for deviation problems: something worked (or should work) and now doesn't, and the cause is unknown",
-      "version": "0.20260809.14",
+      "version": "0.20260819.15",
       "author": {
         "name": "Jörgen"
       },
@@ -653,7 +653,7 @@
       "name": "confluence-best-practices",
       "source": "./",
       "description": "Advise on USING Confluence well, not operating it: make the structural call",
-      "version": "0.20260818.3",
+      "version": "0.20260819.4",
       "author": {
         "name": "Jörgen"
       },
@@ -667,7 +667,7 @@
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
-      "version": "0.20260819.15",
+      "version": "0.20260819.16",
       "author": {
         "name": "Jörgen"
       },
@@ -681,7 +681,7 @@
       "name": "jira-confluence-mcp",
       "source": "./",
       "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
-      "version": "0.20260818.5",
+      "version": "0.20260819.6",
       "author": {
         "name": "Jörgen"
       },
@@ -695,7 +695,7 @@
       "name": "netbox-best-practices",
       "source": "./",
       "description": "NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm…",
-      "version": "0.20260818.6",
+      "version": "0.20260819.7",
       "author": {
         "name": "Jörgen"
       },
@@ -709,7 +709,7 @@
       "name": "secure-boot-cert-rotation",
       "source": "./",
       "description": "Secure Boot certificate-rotation suite — triage and remediate the Microsoft Secure Boot 2011→2023 UEFI CA rotation (CAs expiring 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs: the PK→KEK→db trust chain, per-platform fixes (iDRAC BIOS-staged keys applied on reboot, self-authenticating manual `db` append via the existing 2011 KEK, the Harvester OVMF v1.6.0 floor with ephemeral-vs-persistent NVRAM triage), and audit via mokutil / efi-readvar / racadm bioscert / Redfish.",
-      "version": "0.20260818.18",
+      "version": "0.20260819.19",
       "author": {
         "name": "Jörgen"
       },

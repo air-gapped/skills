@@ -1,0 +1,59 @@
+{
+  "skill": "sglang-hicache",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "53558fd97abd",
+  "extraction_cost_usd": 0.1665,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Is SGLang's `--hicache-size` value per TP rank or the total across ranks?",
+      "skill_answer": "Per rank \u2014 `--hicache-size 30 --tp 8` allocates 240 GB total."
+    },
+    {
+      "id": 1,
+      "question": "What is the default value of SGLang's `--hicache-ratio`?",
+      "skill_answer": "2.0"
+    },
+    {
+      "id": 2,
+      "question": "What is the default `--hicache-io-backend` in SGLang v0.5.15.post1?",
+      "skill_answer": "`kernel` (options: kernel, kernel_ascend, direct)."
+    },
+    {
+      "id": 3,
+      "question": "Which SGLang release added SWA (sliding-window attention) support to HiCache?",
+      "skill_answer": "v0.5.11, via PR #23391 merged 2026-05-06."
+    },
+    {
+      "id": 4,
+      "question": "What error do pre-v0.5.11 SGLang builds raise when HiCache is used with an SWA model?",
+      "skill_answer": "`ValueError: HiRadixCache only supports MHA, MLA, and NSA (DSA) models`."
+    },
+    {
+      "id": 5,
+      "question": "Which SGLang release made HiCache the default path for hybrid (SWA/Mamba) models, and via what mechanism?",
+      "skill_answer": "v0.5.13, via UnifiedTree by default (PR #27759)."
+    },
+    {
+      "id": 6,
+      "question": "What are the valid values of `--hicache-write-policy` in SGLang v0.5.15.post1, and which is the default?",
+      "skill_answer": "write_through (default), write_back, write_through_selective."
+    },
+    {
+      "id": 7,
+      "question": "What `--page-size` does SGLang recommend for HiCache with an L3 backend, and what is the CUDA default?",
+      "skill_answer": "Recommended 64; default is 1 on CUDA."
+    },
+    {
+      "id": 8,
+      "question": "What happens if you combine `--hicache-mem-layout page_first` with `--hicache-io-backend direct` in SGLang?",
+      "skill_answer": "Layout is silently auto-rewritten to `page_first_direct` with only a boot WARNING."
+    },
+    {
+      "id": 9,
+      "question": "Is pipeline parallelism (`--pp-size > 1`) supported with SGLang HiCache?",
+      "skill_answer": "No \u2014 issue #22607 still open; keep pp_size = 1."
+    }
+  ]
+}

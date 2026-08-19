@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-observability",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "e30d2b4d2c0b",
+  "extraction_cost_usd": 0.1279,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the current default metric name in vLLM V1 for KV cache utilization percentage?",
+      "skill_answer": "vllm:kv_cache_usage_perc (replaced vllm:gpu_cache_usage_perc)"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM PR hid the deprecated gpu_* cache metrics behind --show-hidden-metrics-for-version, and when did it merge?",
+      "skill_answer": "PR #24245, merged 2025-09-16."
+    },
+    {
+      "id": 2,
+      "question": "What happened to vLLM PR #25392, the proposed revert of the gpu_* metric hiding?",
+      "skill_answer": "Closed without merging on 2025-09-23; the hiding stuck."
+    },
+    {
+      "id": 3,
+      "question": "Which DCGM field is the real GPU saturation signal instead of GPU_UTIL?",
+      "skill_answer": "DCGM_FI_PROF_SM_OCCUPANCY."
+    },
+    {
+      "id": 4,
+      "question": "Which vLLM V1 metric replaces the deprecated time_per_output_token_seconds?",
+      "skill_answer": "vllm:inter_token_latency_seconds."
+    },
+    {
+      "id": 5,
+      "question": "What vLLM flag values are accepted by --collect-detailed-traces, and what is its overhead?",
+      "skill_answer": "model, worker, or all; roughly 5-10% overhead."
+    },
+    {
+      "id": 6,
+      "question": "Which two per-step timing metrics are missing unless --collect-detailed-traces is set?",
+      "skill_answer": "model_forward_time_milliseconds and model_execute_time_milliseconds."
+    },
+    {
+      "id": 7,
+      "question": "Why should KV capacity not be derived from num_gpu_blocks * block_size as of vLLM v0.24.0?",
+      "skill_answer": "Wrong on hybrid models; use cache_config_info's kv_cache_size_tokens (#42206)."
+    },
+    {
+      "id": 8,
+      "question": "What MFU error affected MLA models like DeepSeek-V3 before vLLM v0.24.0?",
+      "skill_answer": "GQA assumptions caused ~57x KV-bandwidth overestimate until MLAAttentionMetrics (#39457)."
+    },
+    {
+      "id": 9,
+      "question": "What two gates control the per-request metrics block added to response bodies in vLLM v0.25.0?",
+      "skill_answer": "--enable-per-request-metrics flag and the include_metrics request field."
+    }
+  ]
+}

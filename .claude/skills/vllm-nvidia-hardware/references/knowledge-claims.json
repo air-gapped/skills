@@ -1,0 +1,59 @@
+{
+  "skill": "vllm-nvidia-hardware",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "1ec374ad436a",
+  "extraction_cost_usd": 0.1201,
+  "claims": [
+    {
+      "id": 0,
+      "question": "How much HBM and what TDP does the HGX B300 NVL8 SXM6 bin have per GPU?",
+      "skill_answer": "270 GB HBM3E, 1,100 W"
+    },
+    {
+      "id": 1,
+      "question": "How much HBM and what TDP does the DGX/GB300 Superchip B300 bin have per GPU?",
+      "skill_answer": "288 GB HBM3E, 1,400 W"
+    },
+    {
+      "id": 2,
+      "question": "What memory type does B300 use?",
+      "skill_answer": "HBM3E (12-Hi stacks), not HBM4"
+    },
+    {
+      "id": 3,
+      "question": "What is the nominal and peak rack power of a GB300 NVL72?",
+      "skill_answer": "135 kW nominal, 155 kW peak"
+    },
+    {
+      "id": 4,
+      "question": "What are the aggregate HBM capacity and bandwidth of a GB300 NVL72 rack?",
+      "skill_answer": "20.7 TB HBM3E, ~576 TB/s"
+    },
+    {
+      "id": 5,
+      "question": "What minimum vLLM version is required to serve NVFP4 without garbage output?",
+      "skill_answer": "v0.25.1; v0.25.0 and earlier emit repeated '!!!!!'"
+    },
+    {
+      "id": 6,
+      "question": "Which FlashInfer version hangs with TRTLLM attention on SM103 (GB300), and when was it fixed?",
+      "skill_answer": "0.6.7; fixed 2026-04-07 in 0.6.7.postN (flashinfer#2956)"
+    },
+    {
+      "id": 7,
+      "question": "What torch and NCCL versions does vLLM v0.27.0 pin?",
+      "skill_answer": "torch 2.13.0, torchvision 0.28.0, NCCL_VERSION 2.30.7"
+    },
+    {
+      "id": 8,
+      "question": "What CUDA version does vLLM's sm_107 (Rubin) build target require?",
+      "skill_answer": "CUDA \u2265 13.4"
+    },
+    {
+      "id": 9,
+      "question": "What are Rubin R100's expected HBM capacity, bandwidth, and ship window?",
+      "skill_answer": "~288 GB HBM4, ~20 TB/s, H2 2026"
+    }
+  ]
+}

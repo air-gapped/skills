@@ -1,0 +1,59 @@
+{
+  "skill": "traefik-hardening",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "cebc2c3086d3",
+  "extraction_cost_usd": 0.1025,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the default `period` for Traefik's RateLimit middleware if omitted?",
+      "skill_answer": "1 second \u2014 so `average: 30` means 30 requests per second."
+    },
+    {
+      "id": 1,
+      "question": "What was the Traefik v2 IPAllowList middleware called before v3?",
+      "skill_answer": "IPWhiteList."
+    },
+    {
+      "id": 2,
+      "question": "From which Traefik version does RateLimit support a Redis backend for distributed counting?",
+      "skill_answer": "v3.4+."
+    },
+    {
+      "id": 3,
+      "question": "Does Traefik's InFlightReq middleware support a Redis/distributed backend?",
+      "skill_answer": "No \u2014 counters are in-memory and per-Traefik-pod."
+    },
+    {
+      "id": 4,
+      "question": "Can Traefik plugins access the TLS ClientHello to compute JA3/JA4 fingerprints?",
+      "skill_answer": "No \u2014 declined upstream (traefik/traefik #8627, #12421)."
+    },
+    {
+      "id": 5,
+      "question": "Which Traefik product tier provides native Coraza WAF support?",
+      "skill_answer": "Traefik Hub (commercial); OSS only has the community coraza-http-wasm plugin."
+    },
+    {
+      "id": 6,
+      "question": "What fields can Traefik's RateLimit/InFlightReq `sourceCriterion` key on?",
+      "skill_answer": "Source IP, a request header, or host \u2014 not a cookie directly."
+    },
+    {
+      "id": 7,
+      "question": "How does a streaming (SSE) response count against InFlightReq's `amount`?",
+      "skill_answer": "As one in-flight request for the response's whole duration."
+    },
+    {
+      "id": 8,
+      "question": "What is the default `maxBodySize` for ForwardAuth in Traefik v3?",
+      "skill_answer": "Unbounded by default."
+    },
+    {
+      "id": 9,
+      "question": "Does the plain Kubernetes Ingress annotation path respect Traefik's `allowCrossNamespace` flag?",
+      "skill_answer": "No \u2014 only the CRD path enforces it; annotations bypass it."
+    }
+  ]
+}

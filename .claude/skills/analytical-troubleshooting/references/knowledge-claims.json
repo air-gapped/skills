@@ -1,0 +1,59 @@
+{
+  "skill": "analytical-troubleshooting",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "40c42e68e3ef",
+  "extraction_cost_usd": 0.119,
+  "claims": [
+    {
+      "id": 0,
+      "question": "In Kepner-Tregoe-style problem analysis, what are the four dimensions of the IS / IS-NOT problem specification?",
+      "skill_answer": "WHAT, WHERE, WHEN, EXTENT"
+    },
+    {
+      "id": 1,
+      "question": "How many failed hypotheses on the fast path signal escalation to a full comparative specification?",
+      "skill_answer": "About three failed hypotheses"
+    },
+    {
+      "id": 2,
+      "question": "What three provenance tags should every fact in a troubleshooting analysis carry?",
+      "skill_answer": "[observed], [reported], [assumed]"
+    },
+    {
+      "id": 3,
+      "question": "How many candidate causes should be generated in parallel during hypothesis generation?",
+      "skill_answer": "Three to five"
+    },
+    {
+      "id": 4,
+      "question": "What three conditions must all hold for a deviation to warrant full analytical troubleshooting?",
+      "skill_answer": "Real SHOULD-vs-ACTUAL deviation, unknown cause, knowing the cause matters"
+    },
+    {
+      "id": 5,
+      "question": "In the paper test, how are surviving candidate causes ranked?",
+      "skill_answer": "Weakest first \u2014 least commitment beyond what the table forces"
+    },
+    {
+      "id": 6,
+      "question": "What cognitive bias explains why an over-specific hypothesis feels more explanatory while being less probable?",
+      "skill_answer": "The conjunction fallacy"
+    },
+    {
+      "id": 7,
+      "question": "What is the strongest form of real-world verification for a suspected cause?",
+      "skill_answer": "Reverse the suspected change, then re-apply it and watch the problem return"
+    },
+    {
+      "id": 8,
+      "question": "What should the IS-NOT side of the specification contain?",
+      "skill_answer": "The closest logical comparison that could have failed but didn't, not everything else"
+    },
+    {
+      "id": 9,
+      "question": "For intermittent faults, how long should a fix-and-monitor window run?",
+      "skill_answer": "Several times the longest observed gap between occurrences"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "transformers-config-tokenizers-expert",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "a8a23c28f0ca",
+  "extraction_cost_usd": 0.1524,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the GA release date of transformers v5?",
+      "skill_answer": "2026-01-26"
+    },
+    {
+      "id": 1,
+      "question": "Which vLLM version shipped PR #27622 fixing the chat_template_kwargs allowlist filter?",
+      "skill_answer": "v0.11.1, released 2025-11-18"
+    },
+    {
+      "id": 2,
+      "question": "What are the three EOS token IDs in GLM-5.1's generation_config.json?",
+      "skill_answer": "[154820, 154827, 154829]"
+    },
+    {
+      "id": 3,
+      "question": "What is the default value of vLLM's trust_request_chat_template flag?",
+      "skill_answer": "False"
+    },
+    {
+      "id": 4,
+      "question": "What ensure_ascii value does the transformers chat-template Jinja tojson filter default to?",
+      "skill_answer": "ensure_ascii=False (stdlib Jinja defaults to True)"
+    },
+    {
+      "id": 5,
+      "question": "Which timezone does strftime_now use in transformers chat templates?",
+      "skill_answer": "Local time, not UTC"
+    },
+    {
+      "id": 6,
+      "question": "Under which nested config key does Kimi-K2.6 store its quantization_config?",
+      "skill_answer": "config[\"text_config\"][\"quantization_config\"]"
+    },
+    {
+      "id": 7,
+      "question": "What tokenizer_class and backend does moonshotai/Kimi-K2.6 use?",
+      "skill_answer": "TikTokenTokenizer (auto_map), PythonBackend; needs trust_remote_code and tiktoken"
+    },
+    {
+      "id": 8,
+      "question": "Which EOS token does Qwen3.5-Base use versus the Instruct variant?",
+      "skill_answer": "Base uses <|endoftext|>; Instruct uses <|im_end|>"
+    },
+    {
+      "id": 9,
+      "question": "What are Gemma-4-26B-A4B-it's EOS token IDs and its chat-template loading issue number?",
+      "skill_answer": "EOS [1, 106, 50]; separate chat_template.jinja not auto-loaded, issue #45205"
+    }
+  ]
+}

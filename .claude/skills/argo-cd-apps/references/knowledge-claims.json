@@ -1,0 +1,59 @@
+{
+  "skill": "argo-cd-apps",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "fb44e97946cc",
+  "extraction_cost_usd": 0.142,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which CVE describes the Argo CD Secret leak via `IncludeMutationWebhook=true` with ServerSideDiff, and in which patch releases was it fixed?",
+      "skill_answer": "CVE-2026-42880, patched in v3.3.9 and v3.2.11"
+    },
+    {
+      "id": 1,
+      "question": "What is the default resource tracking method in Argo CD v3.x?",
+      "skill_answer": "Annotation-based tracking (not labels)"
+    },
+    {
+      "id": 2,
+      "question": "Which Argo CD 3.3 patch releases should be skipped due to a forced client-side-apply\u2192SSA field-manager migration regression?",
+      "skill_answer": "3.3.0 and 3.3.1; fixed in 3.3.2"
+    },
+    {
+      "id": 3,
+      "question": "What is the maturity level of the Argo CD Source Hydrator (`spec.sourceHydrator`) in v3.4?",
+      "skill_answer": "Alpha"
+    },
+    {
+      "id": 4,
+      "question": "What is the default value of `goTemplate` in an ApplicationSet spec?",
+      "skill_answer": "false (legacy fasttemplate)"
+    },
+    {
+      "id": 5,
+      "question": "Which syncOption is required when Argo CD manages itself, because the ApplicationSet CRD exceeds the client-side-apply annotation limit?",
+      "skill_answer": "ServerSideApply=true; the limit is 262144 bytes"
+    },
+    {
+      "id": 6,
+      "question": "Which sync option values let Argo CD prompt for confirmation before destructive prune/delete operations, and since which version?",
+      "skill_answer": "`Prune=confirm` and `Delete=confirm`, since v3.3"
+    },
+    {
+      "id": 7,
+      "question": "Does the Git directory generator's `**` path pattern recurse into nested subdirectories?",
+      "skill_answer": "No; `*` matches one level, use `*/*` for two-deep"
+    },
+    {
+      "id": 8,
+      "question": "What is the default value of `syncPolicy.automated.prune` in an Argo CD Application?",
+      "skill_answer": "false"
+    },
+    {
+      "id": 9,
+      "question": "Is Server-Side Diff the default diff strategy in Argo CD v3.x, and what is its maturity?",
+      "skill_answer": "Stable since v3.2 but not the default"
+    }
+  ]
+}

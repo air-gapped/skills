@@ -1,0 +1,59 @@
+{
+  "skill": "ansible-idrac-9-10",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "334697782e84",
+  "extraction_cost_usd": 0.1259,
+  "claims": [
+    {
+      "id": 0,
+      "question": "At which iDRAC 9 firmware version does the Redfish BasicAuthState default change to Unadvertised?",
+      "skill_answer": "7.30.10.50"
+    },
+    {
+      "id": 1,
+      "question": "Which Dell KB documents the BasicAuthState Unadvertised change that breaks Basic auth clients?",
+      "skill_answer": "KB 000437501"
+    },
+    {
+      "id": 2,
+      "question": "What minimum dellemc.openmanage collection version gives full iDRAC 10 coverage including SCP and storage?",
+      "skill_answer": "10.0.2 (9.12.3 for broad support)"
+    },
+    {
+      "id": 3,
+      "question": "Which dellemc.openmanage collection version must be pinned for iDRAC 8 fleets?",
+      "skill_answer": "9.12.1, since 10.0.0 dropped iDRAC 8"
+    },
+    {
+      "id": 4,
+      "question": "What is the iDRAC 10 replacement for the iDRAC 9 attribute iDRAC.IPv4Static.Address?",
+      "skill_answer": "iDRAC.IPv4.StaticAddress"
+    },
+    {
+      "id": 5,
+      "question": "Which iDRAC 10 attribute group replaces both iDRAC.ACME.* and iDRAC.SCEP.*?",
+      "skill_answer": "iDRAC.ACE.*"
+    },
+    {
+      "id": 6,
+      "question": "Which dellemc.openmanage module replaces idrac_network on iDRAC 10?",
+      "skill_answer": "idrac_network_attributes"
+    },
+    {
+      "id": 7,
+      "question": "Which two dellemc.openmanage modules cannot authenticate with x_auth_token because they use OMSDK?",
+      "skill_answer": "idrac_firmware and idrac_server_config_profile"
+    },
+    {
+      "id": 8,
+      "question": "What value does idrac_user's privilege silently default to on iDRAC 10 when omitted?",
+      "skill_answer": "ReadOnly"
+    },
+    {
+      "id": 9,
+      "question": "What value does idrac_user.authentication_protocol take on iDRAC 10 versus iDRAC 9?",
+      "skill_answer": "SHA-512 on iDRAC 10, SHA on iDRAC 9"
+    }
+  ]
+}

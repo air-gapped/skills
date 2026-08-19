@@ -1,0 +1,69 @@
+{
+  "skill": "vllm-deployment",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "ed9a1b59c7f5",
+  "extraction_cost_usd": 0.1327,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What vLLM version added a pre-flight /dev/shm free-space check that raises a startup RuntimeError?",
+      "skill_answer": "v0.27.0 (PR #48879)"
+    },
+    {
+      "id": 1,
+      "question": "What /dev/shm emptyDir size does the vLLM k8s guide recommend for TP>1 pods?",
+      "skill_answer": "10Gi, emptyDir with medium: Memory"
+    },
+    {
+      "id": 2,
+      "question": "What is the default value of VLLM_ENGINE_READY_TIMEOUT_S?",
+      "skill_answer": "600 seconds"
+    },
+    {
+      "id": 3,
+      "question": "Which Ray pattern replaced the old head/worker split for multi-node vLLM as of November 2025?",
+      "skill_answer": "ray symmetric-run"
+    },
+    {
+      "id": 4,
+      "question": "Which Kubernetes CRD is the endorsed gang-scheduling primitive for multi-node vLLM?",
+      "skill_answer": "LeaderWorkerSet (kubernetes-sigs/lws)"
+    },
+    {
+      "id": 5,
+      "question": "What UID does the upstream vllm/vllm-openai image run as?",
+      "skill_answer": "root"
+    },
+    {
+      "id": 6,
+      "question": "What is the RHAIIS vLLM CUDA image reference for OpenShift?",
+      "skill_answer": "registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0"
+    },
+    {
+      "id": 7,
+      "question": "What KEDA threshold on vllm:num_requests_waiting avoids scaling thrash, and what cooldownPeriod?",
+      "skill_answer": "5\u201310 per replica; cooldownPeriod: 360"
+    },
+    {
+      "id": 8,
+      "question": "What is the default idle timeout on an OpenShift Route, and which annotation extends it?",
+      "skill_answer": "60s; haproxy.router.openshift.io/timeout: 10m"
+    },
+    {
+      "id": 9,
+      "question": "On which OpenShift version is Gateway API GA versus dev-preview?",
+      "skill_answer": "GA on 4.19+; dev-preview on 4.17"
+    },
+    {
+      "id": 10,
+      "question": "Which two env vars disable vLLM usage telemetry to stats.vllm.ai?",
+      "skill_answer": "VLLM_NO_USAGE_STATS=1 and VLLM_DO_NOT_TRACK=1"
+    },
+    {
+      "id": 11,
+      "question": "What version is vLLM's in-tree chart-helm and what is its stability status?",
+      "skill_answer": "v0.0.1, experimental \u2014 not for production"
+    }
+  ]
+}

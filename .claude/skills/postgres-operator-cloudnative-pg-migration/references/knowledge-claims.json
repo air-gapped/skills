@@ -1,0 +1,59 @@
+{
+  "skill": "postgres-operator-cloudnative-pg-migration",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "e2a58be53f21",
+  "extraction_cost_usd": 0.1118,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which CNPG version is the in-tree `barmanObjectStore` backup configuration scheduled to be removed in?",
+      "skill_answer": "CNPG 1.31"
+    },
+    {
+      "id": 1,
+      "question": "What is the minimum CloudNativePG version providing the Publication and Subscription CRDs for logical replication migration?",
+      "skill_answer": "CNPG 1.25"
+    },
+    {
+      "id": 2,
+      "question": "What glibc version do Spilo images use when `USE_OLD_LOCALES=true` is set?",
+      "skill_answer": "glibc 2.27 (bundled Ubuntu 18.04 archive)"
+    },
+    {
+      "id": 3,
+      "question": "What locale does CNPG's initdb default to, versus Zalando/Spilo's initdb default?",
+      "skill_answer": "CNPG defaults to `C`; Zalando defaults to `en_US.UTF-8`"
+    },
+    {
+      "id": 4,
+      "question": "Which PostgreSQL major versions do CloudNativePG operand images support?",
+      "skill_answer": "PostgreSQL 14\u201318"
+    },
+    {
+      "id": 5,
+      "question": "What object-store layouts do WAL-G and Barman Cloud use respectively?",
+      "skill_answer": "WAL-G: `basebackups_005`/`wal_005`; Barman: `base`/`wals`"
+    },
+    {
+      "id": 6,
+      "question": "What CNPG service names replace Zalando's `<cluster>` and `<cluster>-repl` services?",
+      "skill_answer": "`<cluster>-rw`, `<cluster>-ro`, `<cluster>-r`"
+    },
+    {
+      "id": 7,
+      "question": "What secret names does CNPG use in place of Zalando's `<user>.<cluster>.credentials` secrets?",
+      "skill_answer": "`<cluster>-app` and `<cluster>-superuser`"
+    },
+    {
+      "id": 8,
+      "question": "What is the default value of CNPG's `enableSuperuserAccess` setting?",
+      "skill_answer": "false"
+    },
+    {
+      "id": 9,
+      "question": "Which extensions do CNPG `standard` operand images bundle beyond core PostgreSQL?",
+      "skill_answer": "PGAudit, pgvector, pg_failover_slots, locales, JIT"
+    }
+  ]
+}

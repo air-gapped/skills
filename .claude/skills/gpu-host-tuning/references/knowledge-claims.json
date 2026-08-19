@@ -1,0 +1,59 @@
+{
+  "skill": "gpu-host-tuning",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "f776503bbfd6",
+  "extraction_cost_usd": 0.0885,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which NVIDIA service must be active (running) before host tuning of an NVLink/NVSwitch GPU server is meaningful?",
+      "skill_answer": "nvidia-fabricmanager"
+    },
+    {
+      "id": 1,
+      "question": "Which environment variable overrides the output parent directory for a GPU host audit snapshot collector?",
+      "skill_answer": "HOST_AUDIT_DIR"
+    },
+    {
+      "id": 2,
+      "question": "Which CPU driver files expose the energy performance preference (EPP) knob on Intel and AMD hosts?",
+      "skill_answer": "intel_pstate and amd_pstate"
+    },
+    {
+      "id": 3,
+      "question": "Which command prints the NVIDIA GPU-to-GPU topology matrix including NVLink and PCIe hops?",
+      "skill_answer": "nvidia-smi topo -m"
+    },
+    {
+      "id": 4,
+      "question": "Which nvidia-smi subcommand reports per-link NVLink up/down state?",
+      "skill_answer": "nvidia-smi nvlink --status"
+    },
+    {
+      "id": 5,
+      "question": "Which CLI applies NVIDIA's stock DGX-style host tuning profiles?",
+      "skill_answer": "tuned-adm"
+    },
+    {
+      "id": 6,
+      "question": "Which kernel boot parameter controls Intel IOMMU on GPU inference hosts?",
+      "skill_answer": "intel_iommu"
+    },
+    {
+      "id": 7,
+      "question": "Which tool measures short-window CPU C-state residency during a host audit?",
+      "skill_answer": "turbostat"
+    },
+    {
+      "id": 8,
+      "question": "Which Dell 8-GPU chassis hosts B200/B300 GPUs with Granite Rapids CPUs?",
+      "skill_answer": "Dell XE9780 / XE9780L"
+    },
+    {
+      "id": 9,
+      "question": "Which Dell chassis pairs H100/H200 GPUs with Sapphire Rapids or Emerald Rapids CPUs?",
+      "skill_answer": "Dell XE9680"
+    }
+  ]
+}

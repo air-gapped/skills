@@ -1,0 +1,59 @@
+{
+  "skill": "ubuntu-autoinstall",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "8fe020468842",
+  "extraction_cost_usd": 0.1068,
+  "claims": [
+    {
+      "id": 0,
+      "question": "What is the schema version number used in Ubuntu Subiquity autoinstall documents?",
+      "skill_answer": "1"
+    },
+    {
+      "id": 1,
+      "question": "Which key is the only schema-required key in an autoinstall version 1 document?",
+      "skill_answer": "version"
+    },
+    {
+      "id": 2,
+      "question": "In Subiquity's autoinstall precedence order, which source is checked first?",
+      "skill_answer": "The `--autoinstall <path>` CLI argument"
+    },
+    {
+      "id": 3,
+      "question": "What kernel cmdline parameter points Subiquity at an autoinstall file path?",
+      "skill_answer": "subiquity.autoinstallpath=..."
+    },
+    {
+      "id": 4,
+      "question": "Which filesystem label does cloud-init look for on a NoCloud volume seed?",
+      "skill_answer": "cidata (or CIDATA)"
+    },
+    {
+      "id": 5,
+      "question": "What are the valid values of `apt.fallback` in autoinstall?",
+      "skill_answer": "abort, offline-install, continue-anyway"
+    },
+    {
+      "id": 6,
+      "question": "What are the valid values for `storage.layout.name` in autoinstall?",
+      "skill_answer": "lvm, direct, zfs, hybrid"
+    },
+    {
+      "id": 7,
+      "question": "Where is the target system mounted while autoinstall `late-commands` run?",
+      "skill_answer": "/target (commands run in the installer environment)"
+    },
+    {
+      "id": 8,
+      "question": "Which Ubuntu release added acceptance of the `autoinstall:` wrapper key in on-media autoinstall.yaml files?",
+      "skill_answer": "24.04"
+    },
+    {
+      "id": 9,
+      "question": "From which Ubuntu release are the autoinstall keys `kernel-crash-dumps` and `zdevs` available?",
+      "skill_answer": "24.10 and later; absent in 24.04"
+    }
+  ]
+}

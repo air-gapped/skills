@@ -1,0 +1,59 @@
+{
+  "skill": "logging-operator",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "31f331dc2148",
+  "extraction_cost_usd": 0.1007,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which logging-operator version is the minimum safe floor for the fluentd config-injection RCE CVE-2026-54680?",
+      "skill_answer": "6.7.0"
+    },
+    {
+      "id": 1,
+      "question": "What is the CVSS score of CVE-2026-54680 in logging-operator?",
+      "skill_answer": "9.9"
+    },
+    {
+      "id": 2,
+      "question": "Which logging-operator release first fixed CVE-2026-54680, and what did it break?",
+      "skill_answer": "6.6.0; it broke newline-containing passwords (issue #2254)"
+    },
+    {
+      "id": 3,
+      "question": "What Logging spec field makes Fluent Bit's JSON merging work on containerd/CRI, and from which operator version?",
+      "skill_answer": "enableDockerParserCompatibilityForCRI: true, since 4.9"
+    },
+    {
+      "id": 4,
+      "question": "Why does Fluent Bit's Merge_Log fail to parse JSON on containerd?",
+      "skill_answer": "Merge_Log reads the `log` field, but the CRI parser writes to `message`"
+    },
+    {
+      "id": 5,
+      "question": "What must a FluentbitAgent's name equal for it to bind to a Logging resource?",
+      "skill_answer": "The Logging resource's name"
+    },
+    {
+      "id": 6,
+      "question": "In which Kubernetes Secret and key does the operator store the rendered fluentd config?",
+      "skill_answer": "Secret <logging-name>-fluentd-app, key fluentd.conf"
+    },
+    {
+      "id": 7,
+      "question": "What does a Flow `match` statement with no `select` clause select?",
+      "skill_answer": "Nothing; `- select: {}` is the select-all idiom"
+    },
+    {
+      "id": 8,
+      "question": "In which namespace are ClusterFlow/ClusterOutput evaluated by default?",
+      "skill_answer": "The Logging's controlNamespace, unless allowClusterResourcesFromAllNamespaces: true"
+    },
+    {
+      "id": 9,
+      "question": "Which Fluent Bit settings give real bounded backpressure instead of storage.total_limit_size?",
+      "skill_answer": "storage.pause_on_chunks_overlimit on plus storage.type filesystem per input"
+    }
+  ]
+}

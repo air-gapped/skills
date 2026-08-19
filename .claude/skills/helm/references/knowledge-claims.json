@@ -1,0 +1,59 @@
+{
+  "skill": "helm",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "296e011c9407",
+  "extraction_cost_usd": 0.1091,
+  "claims": [
+    {
+      "id": 0,
+      "question": "When was Helm 4.0.0 released?",
+      "skill_answer": "November 2025, at KubeCon"
+    },
+    {
+      "id": 1,
+      "question": "What is the end-of-life date for Helm 3 security fixes?",
+      "skill_answer": "November 11, 2026 (bug fixes end July 8, 2026)"
+    },
+    {
+      "id": 2,
+      "question": "What apply mode is the default for new installations in Helm 4?",
+      "skill_answer": "Server-Side Apply"
+    },
+    {
+      "id": 3,
+      "question": "What did the Helm 4 CLI rename `--force` and `--atomic` to?",
+      "skill_answer": "`--force-replace` and `--rollback-on-failure`"
+    },
+    {
+      "id": 4,
+      "question": "What mechanism replaces `--wait` readiness checks in Helm 4?",
+      "skill_answer": "kstatus, with helm.sh/readiness-success and helm.sh/readiness-failure annotations"
+    },
+    {
+      "id": 5,
+      "question": "Which Kubernetes version first supports `allocateLoadBalancerNodePorts`?",
+      "skill_answer": "Kubernetes 1.24+"
+    },
+    {
+      "id": 6,
+      "question": "Which two labels belong in a Deployment's selector matchLabels?",
+      "skill_answer": "app.kubernetes.io/name and app.kubernetes.io/instance"
+    },
+    {
+      "id": 7,
+      "question": "What happens to CRDs placed in a chart's `crds/` directory on helm upgrade?",
+      "skill_answer": "Nothing \u2014 they are installed once, never upgraded or deleted"
+    },
+    {
+      "id": 8,
+      "question": "In which OpenShift version was DeploymentConfig deprecated?",
+      "skill_answer": "OpenShift 4.14"
+    },
+    {
+      "id": 9,
+      "question": "When did Dependabot add Helm support, and what does it cover?",
+      "skill_answer": "April 2025; only Chart.yaml dependency versions"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "jira-confluence-mcp",
+  "extracted": "2026-08-19",
+  "extractor_model": "session-default",
+  "skill_md_sha": "e591acaa6da2",
+  "extraction_cost_usd": 0.1179,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which env var authenticates mcp-atlassian against Jira Data Center/Server?",
+      "skill_answer": "JIRA_PERSONAL_TOKEN (a Personal Access Token); no username needed."
+    },
+    {
+      "id": 1,
+      "question": "How many Personal Access Tokens can a single Jira Data Center user create?",
+      "skill_answer": "Maximum 10 per user."
+    },
+    {
+      "id": 2,
+      "question": "What must CONFLUENCE_URL end with for Atlassian Cloud?",
+      "skill_answer": "/wiki, e.g. https://<site>.atlassian.net/wiki"
+    },
+    {
+      "id": 3,
+      "question": "Which mcp-atlassian version changed the default from all tools to a core subset, and when?",
+      "skill_answer": "v0.22.0, released 2026-07-10; defaults to 6 core toolsets."
+    },
+    {
+      "id": 4,
+      "question": "How many tools did mcp-atlassian v0.21.1 expose?",
+      "skill_answer": "72 tools."
+    },
+    {
+      "id": 5,
+      "question": "What security hole did mcp-atlassian v0.22.0 close in streamable-http transport?",
+      "skill_answer": "Unauthenticated requests fell back to operator global credentials; now 401."
+    },
+    {
+      "id": 6,
+      "question": "Which env var re-enables the pre-v0.22.0 global credential fallback, and its default?",
+      "skill_answer": "ALLOW_GLOBAL_CRED_FALLBACK, default off."
+    },
+    {
+      "id": 7,
+      "question": "Which env var disables TLS certificate verification for Jira in mcp-atlassian?",
+      "skill_answer": "JIRA_SSL_VERIFY=false (and CONFLUENCE_SSL_VERIFY=false)."
+    },
+    {
+      "id": 8,
+      "question": "What trust store does mcp-atlassian use for TLS by default, and how do you switch to certifi?",
+      "skill_answer": "OS trust store via truststore; set MCP_ATLASSIAN_USE_SYSTEM_TRUSTSTORE=false."
+    },
+    {
+      "id": 9,
+      "question": "How do TOOLSETS and ENABLED_TOOLS combine in mcp-atlassian?",
+      "skill_answer": "They intersect; unknown toolset names are silently ignored."
+    }
+  ]
+}
