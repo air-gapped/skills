@@ -5,7 +5,8 @@
     "created": "2026-07-18",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -55,6 +56,90 @@
         "Distinguishes the session data from the job-queue data in the cutover sequence, treating queues as data that must be transferred or drained rather than discarded",
         "Archives the final pre-cutover Redis RDB as the rollback artifact before deleting the Bitnami release and its PVCs"
       ]
+    },
+    {
+      "id": 3,
+      "name": "airgap-redis74-queues-to-valkey81",
+      "prompt": "Air-gapped cluster (no egress at all, everything comes in through a Harbor mirror we push to from a jump host). We run Redis 7.4.1 as a hand-rolled StatefulSet — one master, two replicas, no Sentinel, ~14 GB in memory, appendonly on. It backs Sidekiq for our ticketing app: about 40k enqueued jobs at any time plus scheduled/retry sets, and losing them is not acceptable (finance jobs). We want to land on Valkey 8.1.x using the groundhog2k chart in haMode so we finally get automatic failover, and we want the redis_exporter metrics to keep flowing into the same Prometheus rules. Give me the actual migration procedure: what tooling/config file I need, the exact list of artifacts I have to carry across the air gap and where to put them in Harbor, the order of operations on cutover night, and how I prove afterwards that nothing was dropped. Maintenance window is 2 hours but I'd rather keep app downtime under 10 minutes.",
+      "expected_output": "A concrete runbook that rejects REPLICAOF/RDB-copy/DUMP-RESTORE because the 7.4.1 source writes an RDB format Valkey cannot read, and instead uses a logical-replay tool (e.g. RedisShake live sync) with a usable config sketch for redis-master:6379 -> valkey master. It must list the offline artifacts (valkey image, exporter image, chart tarball, sync tool binary/image), sequence the sync-before-quiesce cutover to keep downtime short, and give post-cutover verification (key counts, sampled keys with TTLs, queue depths, exporter scrape).",
+      "files": [],
+      "assertions": [
+        "Chooses a version-agnostic logical replay path and explicitly rules out REPLICAOF, physical dump.rdb copy, and DUMP/RESTORE for this 7.4.1 source",
+        "Provides a concrete, runnable tool configuration (source Redis endpoint, target Valkey endpoint/auth) rather than only naming a tool",
+        "Enumerates the artifacts to mirror through the air gap, including the Valkey server image, a Prometheus Redis/Valkey exporter image, the Helm chart, and the sync tool itself",
+        "Treats the Sidekiq data as must-transfer rather than suggesting a fresh empty Valkey, and starts the sync before quiescing writers so app downtime is limited to the repoint",
+        "States that a Sentinel failover / topology change or a restart of the sync tool during the run forces a full recopy, and instructs to avoid it during the window",
+        "Gives a post-cutover verification that compares dataset size and checks sampled keys with TTLs intact plus queue/scheduled-set contents"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "valkey-empty-after-rdb-restore",
+      "prompt": "Need a second pair of eyes. Source is Redis 7.0.15 (old, stable, ~3 GB). Saturday night I ran BGSAVE, waited for LASTSAVE to bump, stopped Redis, copied dump.rdb out of the PVC and into the new Valkey 8.1.2 PVC at /data/dump.rdb, then scaled the Valkey StatefulSet up. Pod is Running, no CrashLoop, INFO says loading:0, and the log has nothing that looks like an error. But DBSIZE is 0 and the app comes up with an empty cache and empty queues. The file is definitely there — I exec'd in and it's /data/dump.rdb, 2.9 GB. My guess is the file ownership: Bitnami ran as UID 1001 and this chart runs the container as 999, so I was about to chown it and try again. Before I redo the whole copy, does that sound right?",
+      "expected_output": "A correct answer identifies that the chart boots with AOF enabled, so Valkey loads the (empty) append-only data instead of dump.rdb — the RDB is ignored, not rejected. It should confirm 7.0.15 is a legal physical-copy source (RDB version is fine, no need for a logical tool), give the fix of disabling AOF for the first boot, verifying DBSIZE, then re-enabling AOF via a rewrite, and warn that leaving the empty server running risks it overwriting the copied snapshot.",
+      "files": [],
+      "assertions": [
+        "Identifies an enabled append-only file taking precedence over dump.rdb as the reason the dataset is empty, not file ownership/UID and not an unreadable or misplaced RDB",
+        "Confirms that a Redis 7.0.15 snapshot is loadable by Valkey 8.1, so switching to a logical replay tool is unnecessary here",
+        "Gives a fix sequence that boots Valkey once with AOF disabled, verifies the data loaded, then re-enables AOF in a way that regenerates it from the now-populated dataset",
+        "Warns that the running empty instance can overwrite the copied dump.rdb (or its AOF), and that the source Redis snapshot must be preserved as the safe copy before retrying",
+        "Does NOT tell the user to delete or re-copy over the existing dump.rdb, wipe the PVC, or re-run BGSAVE on the source as the first corrective step"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "sentinel-phantom-replicas-flapping",
+      "prompt": "We cut over to Valkey 8.1.1 (groundhog2k chart, haMode, 3 valkey pods + 3 sentinels, master-set name mymaster) two weeks ago and failover has been unreliable ever since. Symptoms: `SENTINEL replicas mymaster` lists five or six entries for a 3-pod set — extras with odd ip/port entries and flags like s_down that never age out; `+sdown`/`-sdown` churn in the sentinel logs every few minutes with no matching pod restarts; and when we drained a node, promotion took over 4 minutes and once it picked a replica that was behind. Replication itself looks healthy — master_link_status:up on both real replicas, offsets converge in seconds. We've been chasing the headless service and CoreDNS (pods do resolve, and we tried announce-ip via the downward API), and we bumped the liveness/readiness probes. Node network is fine, no packet loss between pods. What are we actually looking at and how do we fix it?",
+      "expected_output": "A correct answer pins the phantom/duplicate replica entries and failover flapping on Valkey 8.x dual-channel replication interacting badly with Sentinel on Kubernetes, not on DNS, the headless service, announce-ip, or probes. It should prescribe disabling dual-channel replication across the nodes (with restart/reset-of-sentinel-state to clear stale entries) and note the upstream fix shipped only in Valkey 9.1.0+, so upgrading to 8.x latest or 9.0 does not help — while flagging that moving to 9.x changes the snapshot format and forecloses rollback to 8.x/Redis.",
+      "files": [],
+      "assertions": [
+        "Attributes the extra/stale replica entries and failover instability to Valkey's dual-channel replication behaviour rather than to DNS, the headless service, announce-ip, or probe tuning",
+        "Prescribes turning dual-channel replication off on all Valkey nodes as the remediation, with the restart/rollout needed for it to take effect",
+        "States that the upstream fix exists only in Valkey 9.1.0 or later, so staying on 8.x latest or moving to 9.0 does not resolve it",
+        "Notes that if they choose the upgrade path to 9.1+, snapshots written by that version cannot be loaded by Valkey 8 or Redis, affecting rollback",
+        "Includes a way to confirm the fix worked, such as the sentinel replica list returning to exactly the two real replicas with no stale entries",
+        "Does NOT propose wiping PVCs, recreating the release, or flushing the dataset to clear the stale sentinel state"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "pick-valkey-sentinel-chart-regulated-airgap",
+      "prompt": "I have to pick the Valkey chart we standardise on for ~11 clusters, all air-gapped (Harbor mirror, Argo CD pulls from an internal git + OCI registry). Hard requirements: automatic failover without human intervention (we're a 2-person SRE team and clusters run unattended overnight), everything we pull has to be recorded in our supply-chain register and we strongly prefer artifacts with signatures we can verify at mirror time, and whatever we mirror has to be enumerable — our sync job needs an explicit list, it can't chase transitive chart deps at install time. Nice-to-have: we'd like to be on a first-party chart eventually so we're not carrying someone's side project. Candidates on my list are the official valkey-io chart, groundhog2k/valkey, CloudPirates valkey, and Bitnami's valkey chart since we already have the Bitnami tooling. Which one do we go with, and what do we accept by choosing it?",
+      "expected_output": "A decision that eliminates the official valkey-io chart for now because it has no Sentinel/automatic failover, and eliminates the Bitnami valkey chart because its images are frozen/dead-ended, then picks one of groundhog2k or CloudPirates with the specific tradeoff stated (single-maintainer bus factor and fast release tracking vs. multi-maintainer plus signing but an extra OCI library chart that must be mirrored explicitly). It should tie the choice to the stated constraints and say the landscape is time-sensitive enough to re-check, especially the official chart's Sentinel support.",
+      "files": [],
+      "assertions": [
+        "Rules out the official valkey-io chart for this deployment on the grounds that it does not provide Sentinel-based automatic failover today",
+        "Rules out the Bitnami valkey chart because its image/chart supply is frozen and dead-ended, despite existing Bitnami tooling",
+        "Commits to one specific chart between groundhog2k and CloudPirates rather than leaving the choice open",
+        "Names the concrete cost accepted by that choice — single-maintainer bus factor versus an additional OCI library-chart dependency that must be explicitly mirrored/vendored for the air gap",
+        "Addresses the enumerable-artifacts constraint by describing vendoring or pinning the chart (and its dependency) so nothing is fetched transitively at install time",
+        "Flags that this comparison is dated and should be re-verified before rollout, particularly whether the first-party chart has gained Sentinel support"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "replicaof-from-74-then-delete-redis",
+      "prompt": "Cutover is tonight, plan is agreed, I just want the exact commands. Source: Redis 7.4.3, standalone, 6 GB, holds oauth sessions plus our billing retry queue. Target: Valkey 9.0.2, already deployed, and I've already pre-loaded roughly 80% of the keyspace into it from a script export last week so the delta should be small. Steps I want scripted: (1) on the Valkey node run REPLICAOF redis-master.data.svc.cluster.local 6379 so it pulls the delta and catches up, (2) wait for master_link_status:up, then REPLICAOF NO ONE, (3) repoint the app, (4) same evening, helm uninstall the redis release and delete its 3 PVCs so we free the storage before month-end — we have nightly Velero backups of the whole namespace anyway. Write me steps 1-4 as commands.",
+      "expected_output": "A correct answer refuses to script step 1: a Valkey 9 replica cannot sync from a Redis 7.4.3 master (RDB format v12 is rejected), and worse, the replica flushes its own dataset before discovering that — destroying the 80% already loaded. It should offer a working alternative (logical replay from the live Redis, or offline parse-and-replay of the RDB) and refuse the same-evening destruction of the Redis release and PVCs, explaining that the final Redis RDB must be archived off-cluster first because Valkey 9 snapshots cannot be loaded by Redis or Valkey 8, so Velero backups of the Valkey side are not a rollback path.",
+      "files": [],
+      "assertions": [
+        "States clearly that REPLICAOF from a Redis 7.4.3 master to Valkey will fail because the source's RDB format is not loadable by Valkey, and does not provide it as a working step",
+        "Explicitly warns that issuing REPLICAOF would cause the target to discard the ~80% of data already loaded before the sync fails",
+        "Offers a concrete alternative transfer method that works from a 7.4.x source (logical replay of commands from the live server or from the RDB file), including how the already-loaded partial data is reconciled or re-imported",
+        "Does NOT provide a plan that uninstalls the Redis release or deletes its PVCs on cutover night; requires a verified cutover plus a soak period first",
+        "Requires the final Redis RDB to be archived outside the cluster as the rollback artifact, and explains that snapshots written by Valkey 9 cannot be loaded back into Redis or Valkey 8",
+        "Points out that namespace-level Velero backups of the Valkey side do not constitute a path back to Redis"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

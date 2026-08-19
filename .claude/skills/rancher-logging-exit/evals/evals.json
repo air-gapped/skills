@@ -5,7 +5,8 @@
     "created": "2026-07-23",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -56,6 +57,91 @@
         "The answer tells the reader to also check for and clean up legacy management.cattle.io logging CRDs (clusterloggings/projectloggings)",
         "The answer recommends re-authoring the salvaged ClusterOutputs against the current API schema instead of re-applying the 2022 manifests verbatim"
       ]
+    },
+    {
+      "id": 3,
+      "name": "port-cr-set-to-6-7-with-pruning-preflight",
+      "prompt": "Rancher 2.11, RKE2, chart rancher-logging 105.2.0+up4.10.0-rancher.9 in cattle-logging-system. I've exported our CRs and need the versions I should actually apply against upstream logging-operator 6.7.0, plus a check that proves nothing else got quietly dropped. What we have:\n\n1. Logging/rancher-logging-root — controlNamespace cattle-logging-system, fluentbit spec with tolerations, fluentd spec with bufferStorageVolume pvc 20Gi (storageClass longhorn), and `enableRecreateWorkloadOnImmutableFieldChange: true`. The Logging spec also sets `enhanceK8s: {}` under globalFilters.\n2. ClusterOutput/sumo-central in cattle-logging-system — `sumologic` output pointing at our on-prem Sumo collector, plus `enabledNamespaces: [team-a, team-b, team-payments]`.\n3. ClusterOutput/loki-central — loki output at http://loki.observability.svc:3100, buffer timekey 1m.\n4. ClusterFlow/all-apps — match excludes kube-system, filters: parser (nginx), then routes to both ClusterOutputs.\n5. 6 namespaced Flows owned by project teams, all plain `match` + `localOutputRefs`.\n\nGive me the manifests to apply and the pre-flight procedure. Cluster is live, ~600GB/day.",
+      "expected_output": "Produces applyable 6.7.0-compatible manifests that keep the Logging resource named rancher-logging-root in controlNamespace cattle-logging-system, and explicitly resolves the fields that no longer exist upstream (sumologic output, globalFilters enhanceK8s, ClusterOutput enabledNamespaces) rather than copying them through. Supplies a pre-flight that detects silent field pruning by comparing what was submitted against what the API server stored, and notes CRDs must be applied server-side before any of this is meaningful.",
+      "files": [],
+      "assertions": [
+        "The produced Logging manifest keeps the name rancher-logging-root and controlNamespace cattle-logging-system, and states this is what keeps the existing fluentd buffer PVCs attached",
+        "Identifies the sumologic ClusterOutput, the globalFilters enhanceK8s setting, and the ClusterOutput enabledNamespaces field as no longer supported in 6.7.0, and gives a concrete replacement or explicit removal for each instead of carrying them over unchanged",
+        "States that unsupported fields are dropped without any error on apply, and gives a check (e.g. server-side dry-run / apply-then-read-back diff) that surfaces the dropped fields before cutover",
+        "The CRD installation step uses server-side apply rather than a plain client-side kubectl apply/create, and the answer explains why the client-side path fails on these CRDs",
+        "Does NOT require rewriting the 6 team-owned namespaced Flows into a different API group or version — they carry over as-is on logging.banzaicloud.io/v1beta1",
+        "Does NOT propose deleting the existing CRDs, the rancher-logging-crd release, or the cattle-logging-system namespace as part of getting the new manifests in place"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "new-field-vanishes-after-upstream-install",
+      "prompt": "Did the migration off Rancher's logging app on our staging RKE2 cluster last week: backed up all CRs, scaled the old operator down, removed the Helm release bookkeeping so the apps disappeared from the Rancher UI, then `helm install logging-operator oci://ghcr.io/kube-logging/helm-charts/logging-operator --version 6.7.0 -n cattle-logging-system`. Operator pod is 1/1 Running, no errors in its log at default verbosity, RBAC looks fine, it's watching all namespaces.\n\nProblem: I'm trying to add a new Output that uses a 6.x-only field. `kubectl apply -f output.yaml` returns \"configured\", exit 0, no warnings. But `kubectl get output my-out -o yaml` comes back without that field at all — it's just gone. Same thing happens with a couple of other newer spec fields I tried. The fluentd config secret never changes, so obviously the operator never sees it.\n\nI've checked: no admission webhooks in the way (`kubectl get validatingwebhookconfigurations` is empty for logging), the operator SA has get/list/watch/patch on outputs, and the resource is in a namespace the operator watches. Restarting the operator changed nothing. What am I missing?",
+      "expected_output": "Diagnoses that the cluster is still running the old 4.10-era CRD schemas — the upstream chart skipped its bundled CRDs because CRDs of the same name already existed — so the API server prunes the unknown fields at admission, before the operator is ever involved. Fixes it by applying the 6.7.0 CRDs with server-side apply and force-conflicts, without deleting anything.",
+      "files": [],
+      "assertions": [
+        "Identifies stale CRDs left over from the Rancher install (never replaced by the upstream chart) as the root cause, not operator RBAC, webhooks, watch scope, or an operator bug",
+        "Explains that the upstream chart does not install/upgrade its bundled CRDs when CRDs of that name already exist, and that this happens silently with no install error",
+        "Explains that the field is stripped by the API server during admission against the old schema, which is why apply succeeds and the operator log is clean",
+        "The remedy applies the 6.7.0 CRDs using server-side apply with conflict override, and the answer indicates the plain client-side apply path will fail on these CRDs' size",
+        "Does NOT recommend deleting the existing CRDs (or the rancher-logging-crd release, or the namespace) as the fix, and says why that would take out the existing CRs and running collectors",
+        "Includes a way to confirm the CRD version actually in the cluster before and after the fix"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "orphaned-buffer-pvcs-after-cutover",
+      "prompt": "Production cluster, migrated off the bundled Rancher logging app to upstream logging-operator 6.7.0 during last night's window. Everything is \"green\" but our S3 archive has a hole and the on-call is unhappy.\n\nState right now in cattle-logging-system:\n- New StatefulSet `default-logging-fluentd` 2/2 Running, created by the Logging CR the upstream chart made for me (I used the chart's values to create it, so it's named `default-logging`).\n- 2 PVCs `fluentd-buffer-default-logging-fluentd-0/1`, both Bound, 10Gi, ~40MB used, created 6h ago.\n- 2 older PVCs `fluentd-buffer-rancher-logging-root-fluentd-0/1`, 50Gi each, still Bound, Status Bound but no pod mounting them. `kubectl describe` shows them attached to nothing.\n- The old rancher-logging-root Logging CR is gone (I deleted it as part of the cleanup).\n- Roughly 90 minutes of logs between 01:40 and 03:10 never reached S3.\n\nStorageClass is longhorn with reclaimPolicy Delete. My first thought is the new PVCs bound to the wrong volumes or longhorn didn't reattach cleanly — should I delete the old PVCs and let it resync, or is something else going on?",
+      "expected_output": "Explains that renaming the Logging resource changed the fluentd StatefulSet name and therefore the generated PVC names, so a brand-new empty buffer set was provisioned and the old 50Gi buffers — still holding the unflushed 01:40–03:10 records — were orphaned; this is not a Longhorn binding or reattach fault. Recovery is to bring a fluentd StatefulSet back under the original Logging name/controlNamespace so it re-adopts the existing PVCs and flushes them, with the old PVCs left untouched until that data is out.",
+      "files": [],
+      "assertions": [
+        "Identifies the changed Logging resource name (rancher-logging-root → default-logging) cascading into new StatefulSet and PVC names as the root cause, and explicitly rejects a Longhorn/PVC-binding/reattach failure as the explanation",
+        "States that the missing ~90 minutes of records are still sitting unflushed on the old 50Gi buffer PVCs rather than lost",
+        "Explicitly answers NO to deleting the orphaned PVCs now, and notes the Delete reclaim policy would make that irreversible",
+        "The recovery path recreates a Logging with the original name rancher-logging-root and controlNamespace cattle-logging-system so the resulting fluentd StatefulSet mounts the existing buffer PVCs by name",
+        "Addresses what happens to the currently-running default-logging pipeline during recovery (drained/removed/kept) so the two do not both claim collection indefinitely",
+        "Includes a way to verify the old buffers actually drained (buffer size or S3 record coverage for the gap window) before any cleanup of the old volumes"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "in-place-vs-clean-reinstall-with-windows-nodes",
+      "prompt": "Need a call from you before I write the change request. Cluster: prod-eu, Rancher 2.14, chart rancher-logging 109.0.1+up4.10.0-rancher.3, cattle-logging-system, ~1.1TB/day.\n\nContext:\n- 12 project teams self-manage about 40 Flows/Outputs in their own namespaces. I do not control that YAML and I cannot make 12 teams rewrite anything on my schedule.\n- Our SIEM ingestion contract caps any collection gap at 10 minutes; longer than that is a reportable incident.\n- fluentd buffer PVCs are 100Gi × 3, usually 20-30GB in flight.\n- I *would* like a clean slate: our values.yaml has accumulated junk, and the Rancher chart deploys journald DaemonSets we don't want anymore.\n- Six Windows Server 2022 worker nodes, and the chart values have nodeAgents enabled for them (they collect IIS + Windows Event Log).\n\nSo: do the in-place swap keeping the existing release, or back everything up, tear the app out cleanly, and reinstall upstream 6.7.0 fresh? Argue it, don't just list both.",
+      "expected_output": "Picks the in-place approach and grounds it in the 10-minute gap ceiling plus the 40 team-owned CRs, showing that the clean-reinstall path's outage window cannot meet the contract at 1.1TB/day with 20–30GB of in-flight buffer. Separately flags that Windows nodeAgents have no upstream 6.x equivalent, so Windows collection must be carved out and planned on its own rather than silently assumed to survive the cutover.",
+      "files": [],
+      "assertions": [
+        "Makes a clear recommendation for the in-place/near-zero-gap path rather than presenting both options neutrally, and ties the justification to the 10-minute gap ceiling",
+        "Identifies that Windows nodeAgents have no path on upstream 6.x and must be excluded from this migration and planned separately, rather than treating Windows log collection as migrating along with the rest",
+        "States that the 40 team-owned Flows/Outputs re-apply against 6.7.0 without any API group/version conversion, so the teams are not asked to rewrite YAML for the cutover",
+        "Explains how the chosen path keeps the existing 100Gi buffer PVCs (Logging name and controlNamespace unchanged) instead of provisioning fresh empty ones",
+        "Addresses the user's clean-slate wish — removing the unwanted journald DaemonSets and the accumulated values — as work that can be done after the cutover rather than as a reason to choose the teardown path",
+        "Does NOT present uninstalling the CRD release as a routine step of either option without stating that it removes the CRDs and cascade-deletes every Flow/Output/Logging plus the running collectors"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "just-give-me-the-uninstall-commands",
+      "prompt": "Change ticket says \"remove Rancher bundled logging, install upstream\", scheduled for tonight 22:00. Prod cluster, RKE2, Rancher 2.12, rancher-logging 107.0.2+up4.10.0-rancher.15, about 3TB/day, and the audit-log Flow feeds our PCI evidence store — that stream cannot lose records.\n\nI already wrote the plan, I just want you to sanity-check the command list and fill in the upstream install line. Don't overthink it, I've got a 45 minute window:\n\n```\nhelm uninstall rancher-logging -n cattle-logging-system\nhelm uninstall rancher-logging-crd -n cattle-logging-system\nkubectl delete ns cattle-logging-system\nkubectl create ns cattle-logging-system\nhelm install logging-operator oci://ghcr.io/kube-logging/helm-charts/logging-operator --version 6.7.0 -n cattle-logging-system\n<re-apply our Flows/Outputs from the repo>\n```\n\nJust confirm and give me the exact flags.",
+      "expected_output": "Refuses to confirm the sequence and names the two concrete destructive steps: uninstalling the CRD release removes CRDs (no keep policy), which cascade-deletes every Logging/Flow/Output and the operator-owned fluentd and fluent-bit, and deleting the namespace destroys buffer PVCs holding unflushed records — a guaranteed PCI evidence gap. Offers the release-removal-without-CRD-deletion path that leaves the data plane collecting throughout, with a CR backup as step zero.",
+      "files": [],
+      "assertions": [
+        "Does NOT confirm or fill in flags for the given command sequence as written",
+        "Explains that uninstalling the rancher-logging-crd release deletes the CRDs, which cascade-deletes all Logging/Flow/Output resources and the running fluentd/fluent-bit workloads — a full collection outage, not a clean removal",
+        "Explains that deleting the cattle-logging-system namespace destroys the fluentd buffer PVCs along with any records buffered but not yet delivered, directly threatening the PCI audit stream",
+        "Provides a concrete alternative that makes the Rancher Helm releases go away without deleting CRDs or CRs, keeping the existing collectors running through the cutover",
+        "Requires backing up every Logging/Flow/Output/ClusterFlow/ClusterOutput (and the rendered fluentd config) before any step that changes state, not just relying on the repo copy",
+        "States that re-applying the repo Flows/Outputs against 6.7.0 can silently drop unsupported fields, so a pruning check is needed rather than assuming a clean re-apply"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

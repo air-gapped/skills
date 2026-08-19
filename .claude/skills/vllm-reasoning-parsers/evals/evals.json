@@ -5,7 +5,8 @@
     "created": "2026-04-20",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,91 @@
         "Names `--structured-outputs-config.enable_in_reasoning=true` (enforce grammar from token 0 regardless of reasoning state) as a remedy or explicit alternative",
         "Does NOT resolve the issue by telling the user to abandon structured output, drop the reasoning parser, or permanently leave thinking enabled as the only fix"
       ]
+    },
+    {
+      "id": 3,
+      "name": "multitoken-delimiter-plugin-parser",
+      "prompt": "We serve an in-house 32B reasoning model (\"Aurora-32B\") on vLLM 0.27.1. Its CoT is wrapped in `<|start_of_thought|>` ... `<|end_of_thought|>`. These are NOT single entries in the tokenizer vocab — `tokenizer.encode(\"<|start_of_thought|>\", add_special_tokens=False)` returns 3 ids and the end marker returns 4 ids. Two more facts: our chat template appends `<|start_of_thought|>` to the prompt, so the model output almost never contains the start marker itself; and we use `response_format: {\"type\":\"json_schema\"}` on about half our traffic, so grammar enforcement must stay off until the model has finished thinking. We cannot fork vLLM — this has to load from a file at startup. Give me the parser file, the exact serve command, and a pytest file covering the cases that actually bite in streaming.",
+      "expected_output": "A complete out-of-tree parser module that self-registers and is loaded via the plugin flag, resolving both delimiters as multi-token id sequences and matching them as subsequences of input_ids rather than doing a single vocab lookup. Non-streaming extraction must tolerate output with no start marker, streaming must be per-instance stateful only, and the reasoning-end check must flip exactly at the end marker so structured decoding stays gated until then. Tests must exercise the streaming edge cases, not just the happy path.",
+      "files": [],
+      "assertions": [
+        "The delivered parser resolves both delimiters by encoding them to id sequences and searching for that subsequence in the token ids, rather than assuming a single token id exists for either marker",
+        "The reasoning-end check returns False before the end marker is complete and True once it is, so json_schema grammar enforcement begins only after the CoT ends",
+        "Non-streaming extraction returns the pre-end-marker text as reasoning and the post-end-marker text as content even when the start marker never appears in the model output",
+        "The parser is registered under a name and loaded via a plugin file path, and the serve command passes both the plugin file and the parser name, with no edits to vLLM source",
+        "All mutable streaming state lives on the instance (set in __init__), with no module-level or class-level mutable buffers shared between requests",
+        "The test file covers at least: an end marker split across two consecutive deltas, a delta consisting solely of marker tokens producing no visible empty delta to the client, and a delta containing both trailing reasoning and leading content"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "tool-calls-vanish-with-reasoning-on",
+      "prompt": "vLLM 0.27.0, serving our fine-tune of DeepSeek-R1-Distill-Llama-70B which we trained to emit Hermes-style `<tool_call>{...}</tool_call>` blocks. Serve line: `--reasoning-parser deepseek_r1 --tool-call-parser hermes --enable-auto-tool-choice`. Symptom: `message.tool_calls` is always null and `finish_reason` is never `tool_calls`. The raw `<tool_call>` JSON is clearly visible — it shows up inside the reasoning field of the response, well formed, exactly the schema we expect. If I drop `--reasoning-parser deepseek_r1` and restart, tool calling works perfectly on the same prompts and the same build. I've already diffed our hermes template against the upstream one and re-run the hermes parser unit tests — both clean. What am I missing?",
+      "expected_output": "Correctly identifies that the tool-call parser only ever sees the content half of what the reasoning parser returns, so a tool-call block emitted before (or without) the reasoning end marker is invisible to it — the hermes parser and its regex are not at fault. Should explain why removing the reasoning parser 'fixes' it (whole stream becomes content) and point to making the tool-call start marker an implicit reasoning end, or ensuring the model/template closes reasoning before tool calls.",
+      "files": [],
+      "assertions": [
+        "Identifies that tool-call extraction runs only on the content portion produced by the reasoning parser, not on the raw model output",
+        "Concludes the hermes tool parser, its regex, and the chat template are not the defect, consistent with the clean tests the operator already ran",
+        "Explains that the model is emitting the tool-call block before the reasoning end marker is produced (or without producing it at all), so the reasoning parser classifies it as reasoning",
+        "Explains that removing the reasoning parser appears to fix it only because the entire stream then lands in content, and that this is a symptom-masking workaround rather than a correct configuration",
+        "Recommends a fix that makes the tool-call opening marker terminate reasoning (custom or model-aware reasoning-end logic), or otherwise guarantees the end marker precedes tool calls, instead of swapping to a different tool-call parser",
+        "Notes that the same reasoning-end boundary also controls when structured/grammar enforcement is released, so the fix must move that boundary rather than special-case only the tool output"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "gptoss-notimplemented-after-upgrade",
+      "prompt": "We upgraded a gpt-oss-120b deployment from vLLM 0.25.1 to 0.27.0 and two things broke at once. (1) Our serve line still has `--reasoning-parser openai_gptoss`; non-streaming `/v1/chat/completions` requests now 500 with `NotImplementedError` raised out of the reasoning parser. (2) Separately, our out-of-tree parser for an internal model — which we wrote last quarter by copying the gpt-oss parser, including its `reasoning_end_token_ids_prefix` handling and the max-tokens-between-markers scan — now fails at import because those attributes are gone. Nothing else in the serve line changed and the model weights are identical. Is this a packaging problem on our side, a bad flag, or do we need to roll back?",
+      "expected_output": "Attributes both failures to a deliberate 0.27.0 change that gutted the gpt-oss reasoning parser — its extraction methods now raise and its reasoning-end checks are unconditional — with harmony channel parsing relocated out of the reasoning-parser interface entirely. Should tell them the flag is the wrong lever for a harmony model and that the copied backward-scan machinery is deleted for good, so the internal parser must be rewritten against a different multi-token example.",
+      "files": [],
+      "assertions": [
+        "Attributes both failures to an upstream change between the two versions in the gpt-oss reasoning parser itself, ruling out a packaging error, a mistyped flag, or a model/weights problem",
+        "States that harmony channel parsing (analysis vs final) is now handled elsewhere in the serving stack rather than through the reasoning-parser extraction interface, so reasoning and content are still split without that flag doing the work",
+        "Tells the operator the deleted backward-scan attributes are not coming back, so the internal parser must be rewritten against a currently valid multi-token-delimiter example rather than restored",
+        "Does not recommend modelling the harmony/channel-marker model on the DeepSeek-R1 style `<think>`/`</think>` parser as the replacement",
+        "Notes that the gpt-oss parser's reasoning-end check is now unconditionally true, so anything relying on it to hold grammar enforcement back until reasoning ends no longer gates at all",
+        "Does not present rolling back to 0.25.1 as the correct long-term fix for the internal custom parser"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "choose-parser-shape-out-of-tree",
+      "prompt": "We're standing up reasoning support for our internal model on vLLM 0.27.0. One of our engineers opened `vllm/reasoning/qwen3_reasoning_parser.py` as a worked example, found it was three lines, followed it to `vllm/parser/qwen3.py`, and now wants us to mirror that design — one parser class plus `make_adapters()` to generate the reasoning and tool adapters together, since our model emits both CoT and tool calls. Our constraints: we ship vLLM from the upstream wheel and cannot fork or patch site-packages; the parser has to load at server startup from a path we control; and in about six months we'd like to upstream it. Which shape should we build, and what do we lose by picking it?",
+      "expected_output": "Recommends the classic ReasoningParser subclass for the deliverable because the plugin loader is what the constraints require and it is the only shape that loader supports, while explaining that the unified adapter design is in-tree-only. Should honestly state the tradeoff (tool-call side must be handled separately now, migration at upstreaming time) and warn that picking a worked example by filename is unreliable.",
+      "files": [],
+      "assertions": [
+        "Recommends building the ReasoningParser subclass shape now, on the grounds that it is what a startup-loaded plugin file can register and load without forking or patching the installed package",
+        "Explains that the unified single-class-plus-generated-adapters design is only usable from inside the vLLM tree and cannot be loaded through the plugin mechanism",
+        "States the concrete cost of the recommendation: the tool-call parsing side is not generated for free and must be handled as a separate parser, unlike the in-tree unified path",
+        "Addresses the six-month upstreaming goal by treating a later migration to the unified design as the expected path, rather than claiming the plugin shape is permanent or that the choice is irreversible",
+        "Warns that several files under vllm/reasoning are thin re-exports whose logic lives elsewhere, and gives a filename-independent way to tell which files actually contain parser logic before copying one",
+        "Does not recommend forking vLLM, patching site-packages, or vendoring a modified wheel as the primary way to ship this"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "cache-parser-instance-globally",
+      "prompt": "Flame graphs on our vLLM 0.27.0 fleet show we construct a fresh reasoning parser object on every single chat request — tokenizer lookups, token-id resolution, the lot. At 400 rps that's measurable. I want to patch `serving.py` so the parser is built once per parser name at server startup and stashed in a module-level dict, then reused for every request. We run two pools: `--reasoning-parser hunyuan_a13b` on one, and on the other a custom plugin parser of ours that keeps `self.buffer` and `self.state` across streaming deltas. Write me the patch — module-level cache, keyed by parser name, returned from the existing construction site. We want to roll it to prod this week.",
+      "expected_output": "Refuses to produce the shared-instance patch as specified and explains that per-request construction is load-bearing precisely for the two stateful parsers named: a single instance shared across concurrent streams will interleave buffered reasoning between unrelated requests. Should redirect to caching only the immutable, precomputed pieces and to measuring the real cost of construction first.",
+      "files": [],
+      "assertions": [
+        "Declines to deliver the requested module-level shared-instance patch, and states the reason as cross-request state corruption rather than style or convention",
+        "Identifies that both named parsers carry mutable per-stream state (a streaming state machine and buffered deltas) and that this is exactly what makes sharing unsafe, while noting stateless parsers would not have this problem",
+        "Predicts the concrete failure: reasoning or content fragments from one concurrent request appearing in another request's stream, and that it appears under load rather than in single-request testing",
+        "Offers a safe alternative that keeps per-request instances while hoisting only the immutable expensive work (resolved delimiter token ids / tokenizer-derived data) into shared or cached state, and suggests measuring the actual construction cost before optimizing",
+        "Does NOT produce code that stores a parser instance in module-level or class-level scope for reuse across concurrent requests, even as a caveated or 'stateless parsers only' example the operator could roll out this week",
+        "Does not propose disabling streaming, serializing requests, or dropping the reasoning parser as the way to make the shared instance safe"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

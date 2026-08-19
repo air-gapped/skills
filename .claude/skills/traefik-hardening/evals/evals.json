@@ -5,7 +5,8 @@
     "created": "2026-07-22",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+4 to 8)"
   },
   "evals": [
     {
@@ -69,6 +70,75 @@
         "Redirects the user toward per-identity resource capping at the proxy as the durable control instead of browser-versus-script classification",
         "Does NOT present User-Agent or header-based browser detection as a reliable block, though it may mention such checks as an easily bypassed speed bump"
       ]
+    },
+    {
+      "id": 4,
+      "name": "render-endpoint-standalone-v2-chain",
+      "prompt": "I run Traefik 2.11 standalone (Docker Compose, file provider, dynamic config in /etc/traefik/dynamic/reports.yml) in front of a service called reportsvc. The expensive endpoint is POST /v1/render — it spins up headless Chrome to turn an uploaded HTML bundle into a PDF, and we only have 8 render workers. Everything else on that service (/v1/jobs, /v1/status, /healthz) is cheap.\n\nTraefik is not internet-facing: an nginx on the same host terminates TLS, validates the OIDC token, and forwards to Traefik with X-Forwarded-For set and X-Auth-Request-User injected with the user's account id (nginx always overwrites that header, so a client can't set it). That's the only proxy in front of Traefik.\n\nWhat I need on the render path only:\n- reachable only from the office range 10.42.0.0/16 and the VPN pool 10.99.4.0/24\n- HTML bundles bigger than 12 MB rejected with a 413 instead of hitting Chrome\n- no single user running more than 2 renders at the same time\n- no single user firing more than 20 renders a minute\n\nGive me the dynamic config file and the router wiring. The other routes on reportsvc must keep working exactly as they do now.",
+      "expected_output": "A complete, valid Traefik 2.x dynamic configuration containing an IP allowlist (2.x spelling), a request-body buffering cap, an in-flight/concurrency limiter and a rate limiter, all keyed on the trusted identity header rather than source IP, chained and attached to a router that matches only POST /v1/render while the cheap routes stay on an unmiddlewared router. The IP allowlist must account for the single upstream nginx when deriving the client IP, and the rate limiter must express 20 per minute rather than relying on the default period.",
+      "files": [],
+      "assertions": [
+        "The configuration is valid for Traefik 2.11 — it uses the 2.x IP allowlist middleware name rather than the 3.x rename, and 2.x field spellings throughout",
+        "The rate limiter is configured so the effective limit is 20 requests per minute (period explicitly set to a minute, or an equivalent per-second average), not 20 per second",
+        "The concurrency cap (2 simultaneous renders) and the rate limit are both keyed on the identity header injected by nginx, not on the raw source IP",
+        "Request bodies are capped at roughly 12 MB, and no response-body size cap is imposed",
+        "The IP allowlist derives the client address from the forwarded chain in a way that accounts for exactly one trusted proxy in front of Traefik, rather than allowlisting the nginx address itself or trusting the raw remote address",
+        "The middlewares are attached only to a router matching the /v1/render path (and POST method), leaving /v1/jobs, /v1/status and /healthz unthrottled and unrestricted"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "sse-chat-stops-streaming-after-hardening",
+      "prompt": "Traefik v3.3.2 on k3s, chat product with an SSE endpoint at /api/chat/stream. Last Tuesday we rolled out a hardening chain on that IngressRoute — a Buffering middleware (maxRequestBodyBytes 2097152, maxResponseBodyBytes 5242880, retryExpression \"IsNetworkError() && Attempts() < 2\") followed by an InFlightReq amount 3 keyed on X-User-Id.\n\nSince then two things broke. (1) Answers no longer appear token by token — the user stares at a spinner for 20-40 seconds and then the entire answer lands at once. (2) Long answers (big code dumps, transcript summaries) die partway with a truncated stream and the client throws a parse error.\n\nWe've been chasing this for two days. We raised the backend's uvicorn timeout-keep-alive to 120, set the k3s service sessionAffinity to ClientIP, and bumped Traefik's respondingTimeouts.readTimeout to 300s — none of it changed anything. The model server logs show it emitting tokens continuously the whole time and finishing the generation normally, and its own request log shows a 200. Where is this actually going wrong?",
+      "expected_output": "Correctly attributes both symptoms to the response-buffering behaviour introduced by the Buffering middleware (incremental delivery lost because the response is held until complete; truncation at the response-size cap), not to timeouts, keep-alive, session affinity or the backend. The fix is to stop buffering responses on the streaming route — the request-body cap can stay — and to recognise that the retry expression forces response buffering, so it cannot coexist with streaming on this route.",
+      "files": [],
+      "assertions": [
+        "Identifies the Buffering middleware on the streaming route as the cause of both the batched delivery and the truncation, rather than the timeouts, keep-alive settings, session affinity, or the model backend",
+        "Explains that the ~5 MB cutoff corresponds to the configured response-body limit, so responses exceeding it are cut off mid-stream",
+        "States that raising the response-body limit is not an adequate fix, because any response cap still forces the proxy to hold the whole response and destroys incremental delivery",
+        "Notes that a retry-on-response configuration requires the response to be buffered and therefore cannot be used on this SSE route",
+        "Keeps a request-body size cap available as a separate, safe control (applied without any response-side cap) if body-size protection is still wanted",
+        "Confirms the per-identity concurrency limiter can stay on the streaming route, and that each open stream occupies one slot for its whole duration"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "where-to-cap-embeddings-multi-replica",
+      "prompt": "EKS, Traefik v3.4.1 deployed as 6 replicas behind an AWS NLB with externalTrafficPolicy: Cluster (so requests land on any replica). The endpoint we need to protect is POST /v1/embeddings, which fans out to a 4-GPU Triton pool; one tenant with a bulk backfill job can pin every GPU for half an hour. We already run a JWT decode plugin that writes the tenant id into X-Tenant-Id.\n\nProduct wants two caps per tenant: no more than 3 embedding requests in flight at once, and no more than 120 requests per minute. We have an ElastiCache Redis cluster already in the VPC, and the embeddings service is our own FastAPI app in front of Triton.\n\nThe three options on the table are: (a) do both caps in Traefik and point them at Redis, (b) scale Traefik down to 1 replica (or pin the LB to a single node) so the in-memory counters are effectively global, (c) enforce both caps inside the FastAPI app with a Redis-backed semaphore. Pick one and tell me why the others lose — or tell me if the answer is a split.",
+      "expected_output": "Recommends a split: the per-minute rate cap belongs in Traefik using its Redis-backed rate limiter, while the 3-concurrent cap cannot be enforced correctly in Traefik at 6 replicas because the in-flight limiter has no shared backend, so it must live in the app or the Triton queue. Rejects collapsing Traefik to one replica as trading away HA and throughput to work around a counter-sharing limitation.",
+      "files": [],
+      "assertions": [
+        "States that Traefik's in-flight/concurrency middleware has no shared/Redis backend and counts per replica, so with 6 replicas an amount of 3 permits roughly 18 concurrent requests per tenant",
+        "Recommends enforcing the 3-concurrent cap in the application or the Triton-side queue rather than in Traefik, given the multi-replica topology",
+        "Recommends keeping the 120/minute cap at Traefik using its Redis-backed rate limiting, keyed on the tenant header rather than source IP",
+        "Does NOT claim that pointing Traefik at Redis makes the concurrency cap globally accurate",
+        "Rejects scaling Traefik to a single replica (or pinning traffic to one node) as the recommended answer, naming the availability/throughput cost of doing so",
+        "Explicitly names which control ends up outside the proxy, so the resulting plan is not presented as proxy-only"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "client-settable-bypass-header-for-etl",
+      "prompt": "Traefik v3.2 on our shared cluster. We have a RateLimit on /api/v2/exports keyed on X-User-Id (our JWT plugin decodes the sub claim into it), average 60, period 1m. That's been fine until the data team's nightly ETL pods started pulling exports — they blow through 60/min and get walls of 429s, and last night's run failed.\n\nJust make the rate limit skip requests that carry the header X-Internal-Job: true. The ETL pods will set it on every call. It's an internal-only header so nobody outside is going to send it, and this is the fastest fix — the run has to work tonight. Give me the middleware config for the conditional skip. If that's fiddly, I'm also fine with just dropping the rate limit off the exports route between 01:00 and 05:00 and putting it back after.",
+      "expected_output": "Refuses to build an exemption that any client can trigger by setting a header, since the same entrypoint serves untrusted traffic and the header is trivially forgeable, and refuses to leave the exports route unprotected during the ETL window. Instead ties the exemption to something unforgeable — a separate router matched on the ETL pods' source addresses, a distinct internal entrypoint/listener, mTLS, or a verified claim/role from the JWT — and notes that Traefik chains are per-router, so the exemption is a routing decision rather than a conditional skip inside the middleware.",
+      "files": [],
+      "assertions": [
+        "Refuses the client-settable header bypass and explains that any external caller can send X-Internal-Job: true and thereby obtain unlimited access to the exports endpoint",
+        "Does NOT produce a configuration in which the presence of a client-supplied header alone disables the rate limit",
+        "Does NOT recommend removing or disabling the rate limit on the exports route for the nightly window",
+        "Offers a concrete alternative that anchors the exemption to something the ETL traffic has and outside clients cannot forge — e.g. a source-IP/CIDR-matched router for the ETL pods, a separate internal entrypoint or listener, mTLS, or a verified JWT claim/role — rather than an unauthenticated header",
+        "Explains that a middleware chain applies per router, so the exemption must be expressed as a distinct router/route (or a separate identity bucket) rather than a conditional skip inside the existing middleware",
+        "If any header-based routing is retained, requires that the header be stripped or overwritten at a trusted boundary before Traefik evaluates it",
+        "Keeps the ETL under some bound — a higher-limit bucket or its own limit — rather than granting it unmetered access to the export path"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

@@ -5,7 +5,8 @@
     "created": "2026-04-20",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+3 to 8)"
   },
   "evals": [
     {
@@ -81,6 +82,57 @@
         "Explains that when enable_thinking=False does take effect the template emits an empty think block rather than suppressing the tags entirely",
         "Does NOT recommend switching or adding a --reasoning-parser as the fix for enable_thinking being ignored"
       ]
+    },
+    {
+      "id": 5,
+      "name": "llama4-maverick-tgi-migration-smoke-test",
+      "prompt": "We're cutting our agent backend over from TGI to vLLM v0.27.0 next Tuesday. Model is meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8, 8xH200 single node, TP8, served behind /v1/chat/completions to an internal LangGraph orchestrator. Traffic profile: multi-turn, every request carries 6-14 function definitions, and roughly 15% of turns also attach a screenshot as an image_url content part. LangGraph serializes every assistant turn it stores, and for turns where the model didn't call anything it writes \"tool_calls\": [] rather than omitting the key. On TGI the prompts looked right and tool calling was at ~97% success, so I want to prove the prompt vLLM builds is correct before I move production traffic. Give me the vllm serve command we should launch with, and a smoke-test script I can wire into CI that fails the build if the rendered prompt is wrong.",
+      "expected_output": "A launch command that pairs Llama-4's pythonic tool template with the matching pythonic tool parser (and no reasoning parser), plus a runnable CI smoke test that captures and compares the actual rendered prompt rather than only checking that requests return 200. The answer should flag that supplying tools bypasses the AutoProcessor-supplied template path, so the image-plus-tools combination needs its own explicit check, and should handle the empty tool_calls arrays LangGraph emits.",
+      "files": [],
+      "assertions": [
+        "The launch configuration pairs a Llama-4 pythonic-style tool chat template with a pythonic-style tool-call parser, not a Hermes/JSON-style parser",
+        "No reasoning parser is configured for Llama-4, or the answer states explicitly that Llama-4 has no reasoning-content path",
+        "The smoke test verifies the actual rendered prompt string (via server prompt logging and/or calling the tokenizer's apply_chat_template directly) against an expected reference, rather than asserting only on HTTP status or non-empty responses",
+        "The answer states that a request carrying tools causes vLLM to skip the processor-derived (multimodal) template, and therefore includes a distinct check for the image-plus-tools request shape",
+        "The answer addresses assistant history messages containing an empty tool_calls list as a known template hazard rather than ignoring it",
+        "The answer tells the operator to confirm the chat-template file path actually exists/resolves rather than assuming a bad path falls back harmlessly to the tokenizer default"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "gemma4-pad-tokens-under-load",
+      "prompt": "Production incident, need a second opinion. We run google/gemma-4-27b-it on 4x RTX A6000 (Ampere) with the vllm/vllm-openai:v0.25.1 container, --tool-call-parser gemma4 --reasoning-parser gemma4, max-num-seqs 64. Single requests and light traffic are perfect. Once our nightly batch kicks in and concurrency climbs, a fraction of responses come back as strings of <pad><pad><pad> with the real content missing or truncated. It is not deterministic — the same request replayed alone always succeeds. Our platform team's theory is either flaky FP8 weights on Ampere or a marginal GPU, and they want to RMA card 3 and rebuild the quantization. I pushed back because nothing shows up in dmesg or nvidia-smi XID logs. Before we spend a week on hardware, what's actually going on and what do we do Monday morning?",
+      "expected_output": "Correctly identifies this as the known Gemma-4 concurrency defect whose trigger is specifically parallel tool-calling requests, not general load, and not quantization or failing hardware. Should say that upgrading vLLM does not currently clear it, and propose serializing the tool-call path (rather than only clamping the whole server to one sequence) as the practical Monday mitigation, with a cheap way to confirm the diagnosis first.",
+      "files": [],
+      "assertions": [
+        "Identifies concurrent tool-calling requests specifically — not general throughput, batch size, or prefill — as the trigger for the <pad> corruption",
+        "Rejects the hardware-failure and FP8-quantization theories as the cause, and does NOT recommend the RMA or requantization as the next step",
+        "Does NOT present a vLLM version upgrade as the fix; states that the defect is still unresolved on current releases",
+        "Proposes a mitigation that constrains only the tool-calling path (e.g. serializing or capping concurrency for those requests) rather than presenting a global single-sequence setting as the only option",
+        "Gives a concrete way to confirm the diagnosis before committing to the mitigation, such as reproducing with N parallel tool-call requests versus N parallel plain-chat requests",
+        "Distinguishes this from special-token stripping in the reasoning/output path, or otherwise rules that layer out rather than conflating the two"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "merged-qwen3-vl-checkpoint-no-template",
+      "prompt": "Our platform team stripped the chat_template key out of tokenizer_config.json when they merged a LoRA into a Qwen3-VL-30B checkpoint and republished it to our internal S3 model registry as vision-agent-v4. vLLM v0.27.0 now refuses to start serving it and raises ChatTemplateResolutionError, with a message saying that as of transformers v4.44 a default chat template is no longer allowed. Three proposals on the table and I have to pick one by end of day:\n\n1. Infra lead: pin transformers to 4.43.x in our serving image so the default template comes back and nothing else has to change. The error message literally names 4.44 as the cutoff.\n2. ML eng: extract chat_template from the upstream Qwen3-VL repo into a .jinja file, bake it into the image, and pass --chat-template /opt/templates/qwen3vl.jinja.\n3. Me: republish vision-agent-v4 with chat_template restored in tokenizer_config.json, and re-run the merge script fix so v5 onward doesn't regress.\n\nRelevant constraint: about a third of this endpoint's traffic sends tools alongside images. Which one do we do, and why are the others wrong?",
+      "expected_output": "Picks the checkpoint-level fix as the durable answer, with the baked-in .jinja plus --chat-template accepted as a legitimate same-day unblock, and rules out the transformers downgrade outright by explaining that the v4.44 in the error text names when HF removed default templates, not a version to pin — vLLM v0.27.0 requires a far newer transformers and will not run on 4.43. Should also note there is no bundled fallback template for this model family, and that because a third of traffic sends tools, the processor-supplied template path is skipped for those requests so whatever template is chosen must render tools correctly.",
+      "files": [],
+      "assertions": [
+        "Rejects proposal 1 and explains that the v4.44 in the error string refers to when HF removed default chat templates, not a transformers version to pin to; states that vLLM v0.27.0 requires a substantially newer transformers so the downgrade would break the server",
+        "Selects restoring the template into the published checkpoint as the durable fix, while treating the file-plus-CLI-flag route as an acceptable immediate unblock rather than dismissing it",
+        "States that vLLM has no bundled fallback template for this model family, so no built-in template will resolve on its own",
+        "Notes that requests carrying tools bypass the processor-supplied template, so the chosen template must render tool definitions for the ~1/3 of traffic that sends them alongside images",
+        "Requires verifying the chosen template renders correctly (existing file path, prompt compared against the upstream model's expected format) before the endpoint is declared healthy",
+        "Does NOT recommend forking or patching vLLM's own bundled fallback registry / serving image as the primary route"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

@@ -5,7 +5,8 @@
     "created": "2026-04-20",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -50,6 +51,92 @@
         "Accounts for the fact that a new vLLM pod takes many minutes to load the model and become ready, so it cannot absorb queue depth immediately - e.g. via polling interval, cooldown, or probe/startup guidance sized to that load time",
         "Does NOT recommend keeping an aggressive low threshold with short/default cooldown, and does NOT propose scale-to-zero or immediate scale-down as the remedy for the bursty pattern described"
       ]
+    },
+    {
+      "id": 3,
+      "name": "moe-cold-boot-cache-manifest",
+      "prompt": "I need a production Deployment for Qwen/Qwen3-235B-A22B-Instruct-2507-FP8 on a single 8xH200 node in our GKE cluster (namespace `inference`, node pool labelled nvidia.com/gpu.product=NVIDIA-H200). Constraints: the model is gated so we need the HF token, and it already lives on a 2Ti RWX PVC called `model-weights-rwx` that our download job populated. Cold boot is currently ~13 minutes and about 4 of those are torch.compile/Triton autotune that we redo on every single pod restart, which is killing us during node drains — we want that work to survive restarts. We serve it as an MoE with expert parallelism, TP 8 on the one node. We also ship a custom tool-call parser as a single Python file (`hermes_ext_parser.py`, ~200 lines) that ops maintains separately from the image and wants to be able to change without a rebuild. Give me the full manifest set I can `kubectl apply -f`.",
+      "expected_output": "A complete, applyable manifest set (Deployment + Service + ConfigMap, with the Secret referenced) that runs the model with TP 8 and expert parallelism enabled, and that persists the compile/inductor/Triton caches on durable storage so the ~4 min of compile work is not repeated on restart. Probes must tolerate a 13-minute load, the HF token must come from a Secret rather than a literal, the image must be a pinned version tag, and the pod must have a memory-backed /dev/shm for the multi-GPU collectives. The parser plugin is supplied via a mounted ConfigMap and wired into the serve args.",
+      "files": [],
+      "assertions": [
+        "The compile/Inductor/Triton cache directories are redirected via environment variables onto the persistent volume (not the container filesystem or an emptyDir), so autotune results survive pod restarts",
+        "The Hugging Face token is injected from a Kubernetes Secret reference rather than written as a plaintext value in the manifest",
+        "Probe configuration allows at least ~13 minutes of startup before the container can be restarted for failing liveness (via startupProbe or a correspondingly large initial delay), while readiness still gates traffic",
+        "The container image is pinned to a specific version tag rather than :latest or a floating tag",
+        "A memory-backed emptyDir of at least several GiB is mounted at /dev/shm for the TP=8 pod",
+        "The parser file is delivered by a ConfigMap volume mount and referenced by the serving arguments, so changing it requires no image rebuild",
+        "Serving arguments enable expert parallelism for this MoE model in addition to setting tensor parallelism to 8"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "podman-lab-two-gpu-run",
+      "prompt": "I'm a researcher with a workstation running Fedora 42, two A100 80GB PCIe cards, no Kubernetes, no root on the box beyond sudo for package installs. I want to serve meta-llama/Llama-3.3-70B-Instruct (the gated FP8 dynamic quant from RedHatAI is fine too) across both cards under rootless Podman, reachable on port 8000 from my laptop on the LAN. I have ~1.5TB free on /data and I do NOT want to re-download 70B of weights every time I restart the container. I've got my HF token in ~/.config/hf/token. Give me the exact command line(s) plus anything I have to set up on the host first, and tell me what will bite me that wouldn't bite me with plain docker.",
+      "expected_output": "A working rootless-Podman invocation that exposes both GPUs, sets shared memory large enough for a TP=2 run, bind-mounts /data as the Hugging Face cache so weights persist across container restarts, passes the token without baking it into the image or command history in the clear, publishes port 8000 on an address reachable from the LAN, and pins the image tag. It should also flag the rootless-specific friction (CDI/nvidia-container-toolkit device setup, SELinux relabeling on the bind mount, unprivileged port and cgroup caveats) rather than assuming docker semantics.",
+      "files": [],
+      "assertions": [
+        "The command allocates shared memory sufficient for a 2-GPU tensor-parallel run rather than leaving Podman's small default in place, and explains why that is required at TP=2",
+        "The Hugging Face cache directory is bind-mounted from /data so model weights are reused across container restarts instead of re-downloaded",
+        "Both GPUs are made visible to the container using a mechanism that actually works under rootless Podman (CDI device / nvidia-container-toolkit configuration), including any host-side setup step needed first",
+        "The gated-model token is supplied at runtime from the existing token file or environment rather than hardcoded into an image layer or a literal in a shared script",
+        "Tensor parallel size is set to 2 and the image is pinned to a specific version tag",
+        "At least one rootless/Podman-specific pitfall that does not occur with docker is called out concretely (e.g. SELinux :z/:Z labelling on the bind mount, rootless port binding, or cgroup/ulimit differences)"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "rollout-stuck-no-spare-gpus",
+      "prompt": "Fixed fleet: 4 bare-metal nodes, 8x H100 each, no cluster autoscaler, nothing else GPU-hungry on them. One Deployment `vllm-llama70b`, replicas: 4, each pod requests nvidia.com/gpu: 8, so one pod per node. I changed --max-model-len in the args and ran the rollout. It's been stuck for 40 minutes: `kubectl rollout status` never returns, one new ReplicaSet pod sits in Pending with `0/4 nodes are available: 4 Insufficient nvidia.com/gpu`, and all 4 old pods are still Running and serving. Node describe shows nvidia.com/gpu 8 allocatable, 8 allocated on every node. We had a GPU Operator upgrade last week so my working theory is the device plugin is under-reporting or leaking allocations after that upgrade, and I'm about to drain node 3 and reinstall the operator there. Before I do — what's actually going on and what do I change?",
+      "expected_output": "A correct answer identifies that nothing is broken with the device plugin or the operator: the default RollingUpdate strategy wants to create a surge pod before terminating an old one, and with every GPU on every node already held by the existing replicas there is no capacity for it, so the rollout deadlocks by design. It should prescribe a concrete fix (Recreate strategy, or maxSurge: 0 with maxUnavailable: 1, or manually scaling down/freeing a node first), name the availability cost of each given the long model load time, and steer the operator away from the destructive operator reinstall.",
+      "files": [],
+      "assertions": [
+        "Identifies the root cause as the rollout needing spare GPU capacity for a surge pod that a fully-allocated fixed fleet cannot provide, not a device-plugin/GPU-Operator/driver fault",
+        "Explains that the allocated==allocatable accounting shown is the expected, correct state given 4 pods each holding 8 GPUs",
+        "Recommends a specific, concrete change that unblocks the rollout (e.g. Recreate strategy, or maxSurge 0 with maxUnavailable 1, or freeing one node's worth of GPUs first)",
+        "States the availability consequence of the recommended fix, accounting for the fact that a replacement pod takes minutes to load the model before it can serve",
+        "Does NOT recommend draining the node and reinstalling or upgrading the GPU Operator / device plugin as the remedy",
+        "Does NOT propose deleting the old ReplicaSet's pods or force-deleting the Deployment as the primary fix without noting the resulting service gap"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "control-plane-choice-12-node",
+      "prompt": "We're standardising our inference platform and I need a decision I can defend in an architecture review next week. Current state: 12 nodes of 8x H200 on vanilla upstream Kubernetes 1.32 (no OpenShift), Prometheus + Grafana already running, Gateway API CRDs installed. We serve three models today (Llama-3.3-70B, Qwen3-32B, and a Mistral-Small for cheap traffic), all long-context RAG workloads where prompt prefixes repeat heavily across requests, so prefix-cache-aware routing is worth real money to us. Platform team is two people, both k8s-fluent but neither has ever run Ray. Roadmap says we want to try prefill/decode disaggregation in roughly two quarters. We are NOT doing per-tenant LoRA adapters and have no plans to. Candidates on the table: llm-d, vllm-production-stack, AIBrix, NVIDIA Dynamo, or just the in-tree vLLM Helm chart plus an nginx we write ourselves. Pick one and tell me why the others lose.",
+      "expected_output": "A single clear recommendation, justified against the stated constraints — two-person team, existing Prometheus/Gateway API, prefix-cache-aware routing needed now, PD disaggregation wanted in ~6 months, no multi-tenant LoRA requirement — with an explicit reason each rejected candidate loses on those constraints rather than a neutral feature table. It should reject the experimental in-tree Helm chart for production, and describe how the chosen path reaches disaggregated serving later without a full re-platform.",
+      "files": [],
+      "assertions": [
+        "Commits to one named control plane as the recommendation rather than presenting the options neutrally or deferring the choice back to the user",
+        "Justifies the pick against the specific stated constraints (small platform team, KV/prefix-cache-aware routing requirement, existing Prometheus and Gateway API, disaggregation on the roadmap)",
+        "Gives a constraint-based reason each rejected candidate loses, including why the absence of a multi-tenant LoRA requirement weakens the case for the ByteDance-style option",
+        "Explicitly rules out the in-tree experimental vLLM Helm chart plus a hand-written nginx as a production choice",
+        "Describes a concrete path to prefill/decode disaggregation from the recommended stack in ~2 quarters without requiring a rebuild of the whole platform",
+        "Names at least one condition or future change that would flip the recommendation to a different candidate"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "aggressive-liveness-probe-guard",
+      "prompt": "On-call got burned last night: a vLLM pod threw a CUDA error, the engine was dead, but the pod sat there Ready and Kubernetes never restarted it — we bled traffic into a black hole for 25 minutes. I don't trust /health anymore. I want you to write me the patch for our Deployment (Llama-3.3-70B, 4x H100, ~9 min cold load) that does this: livenessProbe becomes an exec probe that curls POST /v1/completions with max_tokens 1 and a 5s timeoutSeconds, periodSeconds 10, failureThreshold 1, and drop initialDelaySeconds entirely so we catch a wedge the second it happens. Also set terminationGracePeriodSeconds: 5 so a bad pod gets out of the rotation fast instead of lingering. Give me the YAML.",
+      "expected_output": "A correct answer declines to ship the probe as specified and explains the failure mode concretely: a real-generation liveness probe with a 5s timeout and failureThreshold 1 will fire on healthy pods that are merely queued under load, and with no startup grace it will kill every pod during its ~9 minute load, producing a permanent CrashLoopBackOff; a 5s grace period drops in-flight generations. It should then deliver a configuration that genuinely covers the reported incident — a cheap health-endpoint liveness that returns non-200 when the engine is dead, a startup grace covering the cold load, readiness kept separate for traffic shedding, and metrics/alerting for the stuck-but-alive case.",
+      "files": [],
+      "assertions": [
+        "Explains that a probe issuing a real generation request with a 5s timeout and failureThreshold 1 will fail on healthy pods that are simply busy or queued, restarting them under exactly the load they are handling",
+        "States that removing the startup grace makes the probe fire during the ~9 minute model load, so pods are killed before they ever serve and never recover",
+        "Does NOT deliver the requested probe configuration (generation-based liveness with failureThreshold 1 and no startup grace) as the recommended YAML",
+        "Does NOT endorse terminationGracePeriodSeconds: 5, and instead specifies a grace period long enough for in-flight generations to complete or drain, explaining the request loss otherwise",
+        "Provides a concrete alternative that actually detects the reported dead-engine condition — a cheap liveness check against the health endpoint that returns non-200 once the engine is dead, plus alerting on serving metrics for the stuck-but-alive case",
+        "Keeps readiness and liveness as distinct mechanisms, with readiness (not liveness) responsible for removing a pod from the Service endpoints"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

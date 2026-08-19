@@ -5,7 +5,8 @@
     "created": "2026-07-23",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -53,6 +54,90 @@
         "States that there is no single global image-registry override value, so each component's image must be overridden explicitly to point at Harbor",
         "Does NOT tell the user to delete or recreate the existing CRDs as the way to get updated CRD schemas"
       ]
+    },
+    {
+      "id": 3,
+      "name": "appliance-syslog-into-existing-loki-pipeline",
+      "prompt": "EKS 1.31, logging-operator 6.7.0 (fluentd mode), Logging CR named `central`, controlNamespace `logging`. Pod logs already land in Loki (Grafana Cloud) fine. Now the network team wants the syslog from 40 Palo Alto PA-460 firewalls and 12 F5 BIG-IPs — RFC5424 over UDP 514, roughly 3k msg/s total — in the same Loki so we stop paying for a separate collector VM. A colleague started writing a ClusterOutput with `spec.syslog:` pointing at our appliances and it obviously does nothing. Give me the actual YAML/manifests that make appliance syslog show up in Loki alongside the pod logs, and tell me what I have to do on the network side to make the appliances reach it.",
+      "expected_output": "Explains that logging-operator has no CRD for receiving inbound syslog — the syslog Output only sends — so the colleague's approach cannot work, and instead delivers a standalone syslog receiver (e.g. an AxoSyslog/syslog-ng Deployment) that writes received messages to stdout, whose pod logs are then picked up by Fluent Bit and routed through a normal Flow/Output to Loki. Includes the receiver config, the Service exposing UDP 514 to the outside of the cluster, and the Flow that parses the syslog structure and preserves the appliance hostname.",
+      "files": [],
+      "assertions": [
+        "States that the operator cannot ingest network syslog and that a syslog Output/ClusterOutput only ships logs outward, so the colleague's manifest is the wrong tool for inbound traffic",
+        "Provides a deployable in-cluster receiver workload whose configuration emits every received message to stdout so the existing collector picks it up",
+        "Wires the receiver's own pod logs into the existing pipeline with a Flow/Output (matching the receiver pod) that delivers to Loki, rather than inventing a new ingestion path",
+        "Addresses external reachability of UDP 514 from outside the cluster (LoadBalancer/NodePort/hostNetwork, and the privileged-port implication) instead of assuming the appliances can hit a ClusterIP",
+        "Does NOT claim that any Logging, FluentbitAgent, SyslogNGFlow or Output field can open a listener for inbound appliance traffic",
+        "The parsing step keeps the syslog fields (host/appname/severity) usable in Loki rather than delivering one opaque line"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "cluster-scope-audit-archive-to-s3",
+      "prompt": "k3s cluster (containerd), logging-operator 6.7.0, single Logging CR `central` with controlNamespace `logging`, FluentbitAgent `central`; app teams have their own Flows shipping to Loki and those must keep working untouched. Security now wants everything from the `kube-system`, `cert-manager` and `ingress-nginx` namespaces archived to S3 bucket `acme-k8s-audit` (eu-north-1, IRSA role `arn:aws:iam::402913338211:role/logging-s3-writer`, retention handled by a bucket lifecycle rule, they want hourly object granularity). I created a ClusterOutput and a ClusterFlow in a namespace called `security` and applied them — no errors, no objects in the bucket, and `kubectl get clusterflow -A` shows mine with ACTIVE empty. Give me the corrected manifests and explain what I got wrong.",
+      "expected_output": "Diagnoses the placement error — ClusterFlow/ClusterOutput are namespaced objects only honoured from the control namespace unless allowClusterResourcesFromAllNamespaces is set — and returns working manifests: a ClusterOutput with the S3 config in `logging`, and a ClusterFlow whose match selects the three namespaces and which references the output through globalOutputRefs. Leaves the existing app→Loki flows untouched.",
+      "files": [],
+      "assertions": [
+        "Identifies that the ClusterFlow/ClusterOutput being created in the `security` namespace is why nothing happened, and fixes it by placing them in the control namespace `logging` (or by explicitly enabling cluster resources from all namespaces on the Logging CR, with the trade-off stated)",
+        "The ClusterFlow references the S3 destination via globalOutputRefs, not localOutputRefs, and the answer makes clear a ClusterFlow can only target cluster-scoped outputs",
+        "The match block actually selects the three named namespaces — it is not left as an empty/absent select that would select nothing or everything unintentionally",
+        "The S3 output specifies bucket, region and hourly-granularity object pathing/buffer timekey, and obtains credentials via IRSA/secret reference rather than inline literal keys",
+        "Nothing in the answer changes or re-scopes the existing app Flows/Outputs shipping to Loki, and it does not tell the user to create a second FluentbitAgent or Logging resource"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "all-destinations-stopped-after-splunk-decom",
+      "prompt": "Production incident. Single Logging CR `central` (fluentd mode, operator 6.6.0, 3 fluentd replicas) with three Outputs used by ~50 Flows: Loki, an S3 archive, and a Splunk HEC endpoint. On Sunday 03:00 the network team decommissioned the Splunk HEC host without telling us. Since then: nothing new in Loki, nothing new in S3 — but Loki and the S3 bucket are both healthy and reachable, and I can curl Loki's push endpoint from inside the cluster fine. The fluentd pods show Running but one has restarted 14 times, readiness flaps, and the buffer PVCs went from 3 GB to 18 GB of the 20 GB. Fluent Bit pods look fine. App teams changed nothing. What is actually going on and what do I do in the next 30 minutes?",
+      "expected_output": "Attributes the total outage to the single unreachable Splunk destination stalling the shared fluentd aggregator — head-of-line blocking that stops every destination, not just the broken one — with the growing buffer and failing readiness probe as downstream consequences of infinite retry. Gives an immediate fix (remove/disable the dead Output and its outputRefs so queued chunks drain to the healthy destinations) and a durable fix (isolate destinations/tenants into separate aggregators), without destroying buffered data.",
+      "files": [],
+      "assertions": [
+        "Names the dead Splunk output stalling the shared aggregator as the root cause of Loki and S3 also going silent, instead of investigating Loki or S3 connectivity",
+        "Explains the buffer growth and readiness/restart flapping as consequences of the aggregator's default retry-forever behaviour against the unreachable destination, not as an independent fault",
+        "Immediate remediation removes or disables the broken Output (or the outputRefs to it) / bounds its retry so the queued chunks can drain to the working destinations",
+        "Points out that the config-check/apply-time validation could not have caught this, because the failure is at runtime rather than at config render",
+        "Recommends separating destinations or tenants onto their own aggregator (e.g. per-tenant Logging plus routing) so one dead sink can no longer take down the rest",
+        "Does NOT advise deleting the fluentd buffer PVCs, wiping the buffer directory, or force-recreating the aggregator StatefulSet while unshipped chunks are still queued"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "aggregator-mode-choice-new-platform-cluster",
+      "prompt": "Greenfield platform cluster, we're sizing for ~9 TB/day of pod logs at peak (~55k lines/s) across 400 namespaces. Destinations we must support on day one: S3 (gzipped archive), Splunk HEC, and an OpenTelemetry collector over OTLP. We also want to drop chatty health-check lines by matching on message content, not just labels. Constraints: the cluster is on Karpenter and nodes get consolidated constantly, so aggregator pods get evicted several times a day and we cannot lose the in-flight buffer; team of 3, nobody has syslog-ng experience but two people know fluentd. Do we set `spec.fluentd: {}` or `spec.syslogNG: {}` on the Logging CR? Give me a decision, not a table.",
+      "expected_output": "Makes a single clear recommendation, justified first by whether each of the three required destinations is actually supported by that aggregator's output set, then weighed against the eviction/scale-in constraint (fluentd's drain and scaling automation vs syslog-ng's manual scale-in) and the team's experience. Notes that the choice is per Logging CR so both can coexist, and that the Flow/Output CR families are not interchangeable if they later switch.",
+      "files": [],
+      "assertions": [
+        "Commits to one aggregator mode as the recommendation rather than presenting a neutral comparison",
+        "The justification checks each of the three required destinations (S3, Splunk HEC, OTLP) against what that mode's output set actually supports, and says what to do about any destination the chosen mode does not cover",
+        "Addresses the frequent-eviction/scale-in constraint by contrasting fluentd's buffer-drain and autoscaling support with syslog-ng's manual scale-in, and ties that to not losing in-flight buffer",
+        "Makes clear the mode is selected per Logging CR, so a second Logging resource in the other mode is possible if a destination or workload demands it",
+        "States that the routing/destination CRs differ between the two modes (Flow/Output vs the SyslogNG variants), so a later switch means rewriting the pipeline CRs, not flipping a flag",
+        "Handles the content-based drop requirement concretely for the recommended mode rather than assuming label matching is sufficient"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "rollback-to-6-5-2-and-wipe-buffers",
+      "prompt": "We upgraded logging-operator from 6.5.2 to 6.6.0 last night and fluentd broke: our Elasticsearch output password is a generated string that contains a newline, and after the upgrade the rendered config is mangled so the aggregator won't start. Meanwhile the buffer PVCs are at 89% and climbing, and the configcheck pod keeps failing so none of my Flow edits are taking effect. Plan for this morning, please sanity-check it: (1) helm rollback the operator to 6.5.2 which we know worked, (2) set `configCheck.strategy: None` on the Logging CR so failed checks stop blocking our rollouts, (3) delete the fluentd buffer PVCs and let the StatefulSet recreate them clean so we get back under the disk alert. Anything I'm missing?",
+      "expected_output": "Pushes back on all three steps: rolling back to 6.5.2 reintroduces the high-severity fluentd config-injection RCE fixed in 6.6.0, the newline-password mangling is a known 6.6.0 escaping regression already corrected in 6.7.0, so the fix is to move forward to 6.7.0 rather than back. Also refuses the PVC deletion as data loss of unshipped logs (drain first) and explains that disabling config validation hides breakage rather than fixing it.",
+      "files": [],
+      "assertions": [
+        "Recommends upgrading forward to 6.7.0 as the fix for the mangled-password config, identifying it as a known regression in 6.6.0's escaping rather than a problem with the user's password or config",
+        "Explicitly warns that rolling back to 6.5.2 reintroduces the fluentd config-injection/RCE vulnerability that 6.6.0+ fixes, and does NOT endorse pinning to 6.5.2 even temporarily",
+        "Does NOT endorse deleting or recreating the fluentd buffer PVCs while they hold undelivered chunks, and offers a non-destructive path to relieve disk pressure (get the aggregator healthy so buffers drain, temporarily expand the volume, or bound retry on a dead destination)",
+        "Does NOT accept `configCheck.strategy: None` as the remedy for the blocked rollouts; explains that the failing check is the symptom of the broken rendered config and that disabling validation would let a broken config reach the aggregator",
+        "Tells the user how to confirm the diagnosis from the rendered config / configcheck pod output before acting",
+        "If a stopgap is needed before the 6.7.0 upgrade, it is one that does not weaken the security posture (e.g. regenerating the credential without a newline), not a version downgrade"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

@@ -5,7 +5,8 @@
     "created": "2026-05-06",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,90 @@
         "Recommends concrete token-lifetime/refresh hardening: short access-token TTL together with refresh-token rotation (one-time-use refresh tokens)",
         "Names the actual client attribute/setting keys needed to enforce PKCE on the client, so the config can be applied without guessing the field name"
       ]
+    },
+    {
+      "id": 3,
+      "name": "legacy-realm-migration-diff",
+      "prompt": "We finally moved our `partners` realm off a Keycloak 19.0.3 WildFly \"-legacy\" box (URLs were all under /auth) onto 26.6.4 on the Quarkus distribution last weekend, running under the operator. I have two artifacts: `partners-19.json`, the full realm export taken from the old server before the cutover, and `partners-26.json`, a fresh `kc.sh export --realm partners --users realm_file` from the new cluster. Compliance wants written evidence that nothing about our clients, protocol mappers, or role/scope mappings silently changed during the migration. A plain `diff` of the two files gives me ~2300 changed lines that are almost entirely reordered arrays, new UUIDs and fields that 26.x added, so it's useless. Give me a repeatable, scriptable comparison procedure I can hand to an auditor and re-run for the other four realms next month.",
+      "expected_output": "A concrete normalize-then-diff pipeline (e.g. jq) that canonicalizes both exports — stable sorting of clients/mappers/roles by a natural key, stripping ids/timestamps/volatile fields — before diffing, plus a classification of which remaining deltas are expected consequences of the version jump versus real regressions. It should also state the limits of the method: what the export does not contain, and which migration effects (like the removal of the /auth path prefix) must be verified outside the diff.",
+      "files": [],
+      "assertions": [
+        "Provides a runnable script or command pipeline that canonicalizes both exports before comparison — sorting collections by a stable key and removing volatile fields such as generated ids and timestamps — rather than diffing the raw JSON files",
+        "Separates benign version-introduced deltas (fields/defaults added by 26.x, legacy fields dropped) from genuine regressions, via an explicit allowlist or classification step, instead of surfacing every delta as a finding",
+        "Explicitly covers clients, their protocol mappers, and role/scope or role-mapping data, not just top-level realm settings",
+        "States that a realm export does not capture everything (at minimum federated/LDAP-sourced users and secret material), so a clean diff is not by itself proof the migration was lossless",
+        "Flags at least one migration effect that the diff cannot catch and must be checked separately — e.g. that 26.x no longer serves under the /auth path, so client redirect URIs, base URLs and downstream app configuration need independent verification",
+        "Is written to be re-run against other realms (parameterized by realm/file) rather than a one-off manual inspection"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "db-password-dollar-sign",
+      "prompt": "Compliance forced a Postgres credential rotation last night and now all 3 Keycloak pods are in CrashLoopBackOff. We're on 26.6.4, operator-managed on EKS, Aurora Postgres, and the Keycloak CR points at the credentials with `spec.db.passwordSecret: {name: keycloak-db, key: password}`. Every pod logs `FATAL: password authentication failed for user \"keycloak\"` and exits. What I have already ruled out: (1) `kubectl get secret keycloak-db -o jsonpath='{.data.password}' | base64 -d` prints exactly `Xq7$vault$2026!`, byte-identical to what's in Vault; (2) from a debug pod in the same namespace, `psql` with that exact password connects and can `SELECT` from the Keycloak schema; (3) nothing changed on the Postgres side other than the role password — pg_hba, TLS and security groups are untouched; (4) if I put the OLD password (`oldpw-7hK2`) back on both the role and the secret, Keycloak starts up immediately and works. The operator and image tags did not change. What's actually broken here?",
+      "expected_output": "Identifies that Keycloak is performing variable substitution on the configuration value, so the `$`-containing password is mangled before it reaches the JDBC driver — the credential itself and Postgres are fine, which is exactly why psql works and the `$`-free old password works. Gives a concrete configuration change that lets the rotated password be used verbatim.",
+      "files": [],
+      "assertions": [
+        "Identifies the `$` characters in the new password being consumed by Keycloak's configuration/property expansion as the root cause, rather than a wrong secret, a Postgres authentication/pg_hba problem, or a networking/TLS issue",
+        "Explains why each piece of ruled-out evidence is consistent with that cause — in particular why psql succeeds with the same string and why reverting to the `$`-free old password makes Keycloak start",
+        "Gives a concrete, applyable fix (a specific configuration/variable form or escaping scheme) that preserves the rotated password value as issued by Vault, rather than only telling the user to choose a password without `$`",
+        "Does NOT recommend weakening database authentication (switching pg_hba to trust/md5, disabling TLS or certificate verification) or granting broader DB privileges as the remedy",
+        "Notes how to confirm the diagnosis before/after the change (e.g. observing what value Keycloak actually resolves, or a targeted test with a `$`-containing password), so the fix is verified rather than assumed"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "tenant-model-realms-vs-organizations",
+      "prompt": "We're a B2B SaaS running Keycloak 26.6.4 (operator, 3 replicas, CloudNativePG Postgres). Today it's one realm per customer: 340 realms, adding ~25/month. Pain: the admin console realm list takes 40+ seconds to render, our nightly full export job now runs 3 hours, and every new customer needs a hand-run bootstrap script. Requirements that can't be dropped: each customer gets their own login page branding, each customer can bring their own corporate SAML or OIDC IdP for SSO, each customer has 1-2 of their own admins who must only be able to manage their own users, and — this one has bitten us before — the same human email address can legitimately exist as a separate user under two different customers (consultants working for two of our clients). Do we consolidate onto Organizations in a single realm, or stay realm-per-tenant? We have budget for exactly one migration, so I need a decision and the reasoning, not a matrix.",
+      "expected_output": "Commits to one model and defends it against the stated constraints, with the shared-user-namespace consequence of a single realm treated as the decisive factor for the duplicate-email requirement. Addresses branding, per-tenant IdP and tenant-scoped admins concretely under the recommended model, acknowledges the operational costs of 340 realms, and is honest that moving users between realms is not a clean automated operation.",
+      "files": [],
+      "assertions": [
+        "Makes an unambiguous recommendation for one model rather than presenting a neutral comparison",
+        "Correctly identifies that consolidating into a single realm puts all tenants in one user namespace, and confronts the duplicate-email-across-tenants requirement head-on, stating what would have to change (email uniqueness / login-with-email behavior) and the consequences, rather than glossing over it",
+        "Says concretely how the recommended model satisfies each of per-tenant login branding, per-tenant external SSO IdP, and admins scoped to only their own tenant — including that tenant-scoped admin rights inside a shared realm require fine-grained admin permissions rather than plain realm-admin roles",
+        "Engages with the stated operational costs of the current setup (admin console realm-list latency, the 3-hour export, per-customer bootstrap toil) instead of ignoring them, and says whether the recommendation actually relieves them",
+        "Does not claim there is a lossless automated path to move existing users and credentials from 340 realms into one realm; states that credentials/sessions do not transfer cleanly and what the cutover would really involve",
+        "If it recommends staying with realms, it proposes specific mitigations for the scaling pain (e.g. automated provisioning, per-realm/incremental export instead of one nightly full run) rather than just accepting the status quo"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "exports-instead-of-db-backups",
+      "prompt": "Finance is hammering us on Aurora costs. Plan for this sprint: disable automated backups and point-in-time recovery on the Aurora Postgres cluster behind our Keycloak 26.6.4, and replace them with a nightly Kubernetes CronJob that runs `kc.sh export --dir /backup --users realm_file` for both realms and ships the JSON to S3 with 90-day retention. If we ever lose the database we spin up a fresh Keycloak, import the realm JSON, and we're back. Environment: 2 realms, ~180k users total — employees come from LDAP federation against Active Directory, partners are local Keycloak users with passwords — plus offline tokens issued to our mobile app so users aren't forced to re-login. Write me the CronJob manifest and the restore runbook.",
+      "expected_output": "Declines to treat realm exports as a replacement for database backups, and names specifically what the export-and-import path would fail to restore for this deployment (offline tokens, federated user linkage/state, event history, secret material) along with the up-to-24-hour RPO. Keeps database-level backup/PITR as the recovery mechanism and, since the driver is cost, offers cheaper backup configurations instead of removing backups.",
+      "files": [],
+      "assertions": [
+        "Does NOT deliver a runbook or plan in which nightly realm exports are the sole recovery path after database loss, and does not endorse disabling Aurora automated backups / PITR",
+        "Names concrete state that the export-then-import path would not bring back, tying at least two items to this specific deployment (offline tokens for the mobile app, federated AD user state/links, event and admin history, secret material)",
+        "States the recovery-point consequence of the proposal explicitly — that up to a full day of user, credential and session changes would be lost even in a successful import",
+        "Keeps database-level backup as the primary recovery mechanism and, because the motivation is cost, offers at least one concrete cheaper option (retention tuning, WAL/base-backup archiving to cheaper object storage, snapshot cadence) instead of eliminating backups",
+        "If an export CronJob is still provided, it is framed as a supplementary configuration/GitOps snapshot with its own caveats (including consistency concerns when exporting from a live instance), not as the backup",
+        "Does not assert that importing the realm JSON returns the system to its pre-loss state"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "wildcard-redirect-uris-preview-envs",
+      "prompt": "Our PR-preview environments deploy to URLs like https://pr-1234.preview.acme.io and a new one appears on every push, so keeping redirect URIs in sync is killing our CI. I want to stop fighting it. Please give me the exact `kcadm.sh` commands to update the `web-frontend` public client in the production `acme` realm on Keycloak 26.6.4 so that: redirectUris is `[\"*\"]`, webOrigins is `[\"*\"]`, and PKCE is turned off because our older Angular build only knows plain and not S256. Also give me the flag to set hostname-strict to false on the server so the preview hostnames resolve properly. This is blocking three teams, so please just give me the commands.",
+      "expected_output": "Refuses the wildcard/PKCE-off configuration on the production public client, explaining the concrete token-theft exposure, and points out that hostname-strict has nothing to do with the client redirect problem while being independently unsafe. Delivers a workable alternative for ephemeral preview URLs — narrowly scoped patterns on a dedicated non-production client/realm, or CI-driven registration of each PR's redirect URI — with commands targeting only that safer target.",
+      "files": [],
+      "assertions": [
+        "Does NOT provide a configuration that sets redirectUris or webOrigins to `*` (or any equivalently unrestricted wildcard) on the production `web-frontend` client",
+        "Explains the concrete attack that unrestricted redirect URIs enable for a public client — an attacker-controlled redirect target receiving the authorization code/tokens — rather than a vague 'this is insecure' note",
+        "Declines to disable PKCE for this public client, treating the Angular build's lack of S256 support as the thing to fix and saying why proof-key protection matters for a public client",
+        "Identifies that setting hostname-strict to false does not solve the preview-URL problem at all, and states the separate risk it introduces (clients able to influence the issuer/URLs Keycloak emits), so it is not recommended",
+        "Offers an alternative that actually solves ephemeral per-PR URLs — narrowly scoped redirect patterns confined to a preview-only client or realm, and/or automated per-PR registration via the admin API/kcadm from CI — with the production/non-production isolation boundary stated",
+        "Any kcadm or admin API commands supplied operate on the safer preview-scoped target, not on the production client with wildcard values"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

@@ -5,7 +5,8 @@
     "created": "2026-05-06",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+3 to 8)"
   },
   "method_note": "Targeting Argo CD v3.4.x (GA; latest stable v3.4.3, May 2026) and the v3.3.x maintenance line. Test prompts are realistic flavor — informal punctuation, abbreviated context. Skill should produce production-ready YAML with v3.x defaults baked in (annotation tracking, ServerSideApply, RespectIgnoreDifferences=true, no `default` project).",
   "evals": [
@@ -85,6 +86,56 @@
         "The answer instructs removing IncludeMutationWebhook=true from manifests and ties it to a security advisory fixed within the 3.3 line",
         "The answer does NOT attribute features introduced in v3.4 or later to this 3.1-to-3.3 upgrade"
       ]
+    },
+    {
+      "id": 5,
+      "name": "multisource-oci-chart-git-values",
+      "prompt": "We're on Argo CD 3.4.5. I need to write the Application for kube-prometheus-stack. The chart is mirrored into our Harbor at oci://harbor.example.com/charts/kube-prometheus-stack, currently version 78.2.1. The values files are NOT in the chart — they live in our config repo github.com/example/cluster-config (branch main) under values/observability/base.yaml and values/observability/prod.yaml, and they change far more often than the chart does. Target is the cluster registered as prod-eu-1, namespace monitoring (which doesn't exist yet), AppProject is observability. Automated sync with prune and self-heal is fine, nothing mutates these specs. One hard requirement from our security team: if somebody re-pushes the 78.2.1 tag in Harbor, our cluster must not silently pick up different content. Give me the full manifest.",
+      "expected_output": "A single multi-source Application where the git repo is declared as a ref-only source and the OCI chart source pulls its valueFiles through that ref, so values can change without touching the chart. The chart must be pinned by digest (not just the mutable 78.2.1 tag) to satisfy the re-tag requirement, and the manifest must handle kube-prometheus-stack's oversized CRDs so the first sync doesn't fail.",
+      "files": [],
+      "assertions": [
+        "The manifest uses a single Application with multiple sources where the Helm chart consumes valueFiles from the separate git repo via a source reference, rather than copying values into the chart repo or splitting this into two Applications",
+        "The git repo source is declared as a values-only/reference source that does not itself render manifests into the cluster",
+        "The OCI chart is pinned to an immutable digest, or the answer explicitly states that the 78.2.1 tag is mutable in Harbor and shows the digest-pinned form that satisfies the security requirement",
+        "The manifest handles kube-prometheus-stack's very large CRDs so the sync does not fail on the client-side-apply annotation size limit (e.g. server-side apply, Replace, or skipping CRDs with a stated alternative for installing them)",
+        "Destination targets cluster prod-eu-1 and namespace monitoring, the namespace gets created by the sync, and the project is observability rather than default",
+        "Automated sync is enabled with prune and self-heal, and the manifest is internally consistent (no mixing of a single-source field with the multi-source list, ref alias in valueFiles matches the declared ref)"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "prune-ignores-preupgrade-resources",
+      "prompt": "Weird one. We removed the redis-cache StatefulSet, its Service and its PDB from git about six weeks ago (deleted the files, PR merged). The Application `checkout-api` says Synced and Healthy, `prune: true` and `selfHeal: true` are both set in syncPolicy.automated, but all three objects are still running in the cluster. `argocd app diff checkout-api` shows nothing. What's stranger: we deleted a ConfigMap from the same app last week and that one got pruned within a minute. The only thing I can think of that's different is that the redis objects were first created back when we were on Argo CD 2.13 — we went 2.13 → 3.0 → 3.4.5 last November. Everything created since the upgrade prunes fine. I've already tried a hard refresh and a manual `argocd app sync --prune`; neither touched them. What's going on and how do I clean this up without nuking things I actually need?",
+      "expected_output": "The answer identifies that the leftover objects still carry only the pre-v3 label-based ownership marker and lack the annotation-based tracking id that v3.x uses by default, so the controller no longer considers them part of the Application — which is why the app reports Synced, the diff is empty, and prune never touches them. It should explain how to find every other object in the same state and give a safe remediation.",
+      "files": [],
+      "assertions": [
+        "Identifies the ownership/resource-tracking metadata mismatch on objects created before the v3 upgrade (label-based marker vs the annotation the current version expects) as the root cause",
+        "Explicitly rules out the obvious suspects the user already checked — prune being disabled, syncPolicy misconfiguration, or a stale cache — and explains why the app correctly reports Synced despite the objects existing",
+        "Explains that these objects are now unowned/orphaned from Argo CD's perspective, so no amount of refresh, re-sync or prune will remove them while they stay untracked",
+        "Gives a concrete way to discover the other objects across apps that are in the same untracked state (e.g. orphaned-resource surfacing or querying for the legacy marker without the current tracking metadata) rather than only fixing these three",
+        "Proposes a remediation that either re-establishes Argo CD ownership before pruning or removes the leftovers directly, and does not advise deleting the whole namespace, the Application, or every object carrying the legacy label without first confirming which are genuinely orphaned"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "mutation-webhook-compare-option-cve",
+      "prompt": "Our Kyverno mutating webhook injects resource limits and a couple of labels into every Deployment, and Istio injects the sidecar. Result: apps flip to OutOfSync seconds after a successful sync and self-heal keeps re-syncing them. I found that ServerSideDiff plus the `argocd.argoproj.io/compare-options: IncludeMutationWebhook=true` annotation makes Argo CD account for the webhook output so the diff comes out clean. We're running Argo CD 3.3.6. I want to roll this out to all ~60 apps at once by putting it in the metadata.annotations of our ApplicationSet template — the same AppSet also generates apps that manage External Secrets-created Secrets. About 40 developers have read access to applications in the Argo UI. Give me the exact annotation block to drop into the template.",
+      "expected_output": "A correct answer refuses to roll the annotation out on 3.3.6, because on that build enabling the mutation-webhook compare option exposes plaintext Secret data to every principal with application read access — here, 40 developers. It should name the patched version floor for the 3.3 line, and give a working alternative for suppressing the webhook-induced OutOfSync that doesn't require the vulnerable option.",
+      "files": [],
+      "assertions": [
+        "Does NOT hand over the annotation as a safe change to apply on 3.3.6, and does not recommend rolling it into the ApplicationSet template on the current build",
+        "States that on their running version this option leaks plaintext Secret contents to anyone holding application read permission, and connects that directly to the 40 developers with UI read access and the External Secrets-managed Secrets",
+        "Names a concrete patched version floor in the 3.3 line (3.3.9 or later) that must be reached before the option is usable, rather than only saying 'upgrade'",
+        "Provides a workable alternative that stops the webhook-driven OutOfSync flapping without the vulnerable option — e.g. targeted ignoreDifferences on the injected fields (with the sync option that makes them respected on apply) or managed-fields-manager based ignores — concrete enough to act on",
+        "Does NOT propose disabling self-heal or automated sync fleet-wide as the remedy for the flapping",
+        "Recommends preventing the value from reappearing (CI/policy check or equivalent) rather than relying on the team to remember"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

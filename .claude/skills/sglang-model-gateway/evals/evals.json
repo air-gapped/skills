@@ -5,7 +5,8 @@
     "created": "2026-04-30",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -53,6 +54,88 @@
         "Characterizes 10-20% as a rough, workload-dependent documentation estimate rather than a measured guarantee, and indicates the real penalty depends on prefix-sharing and KV-memory pressure",
         "Does NOT tell the user that 2 gateway replicas will unavoidably cost 10-20% cache hits with no mitigation available"
       ]
+    },
+    {
+      "id": 3,
+      "name": "sgl-router-rename-migration",
+      "prompt": "We're finally upgrading our inference router. Current setup in namespace `llm-prod` on EKS 1.31: a Deployment `sglang-router` running image `lmsysorg/sglang-router:v0.1.2` with args `--service-discovery --selector model_id=qwen3-32b --service-discovery-namespace llm-prod --service-discovery-port 30000 --policy cache_aware --host 0.0.0.0 --port 8080 --prometheus-port 29000`, plus a ServiceAccount/Role/RoleBinding granting get,list,watch on pods,endpoints,services. Our Grafana has three panels using `rate(sgl_router_request_total[5m])`, `sgl_router_request_queue_length`, and `histogram_quantile(0.95, rate(sgl_router_request_duration_seconds_bucket[5m]))`, and a PrometheusRule alert `RouterQueueBacklog: sgl_router_request_queue_length > 50 for 10m`. Give me the updated Deployment manifest and the updated Grafana/alert expressions so we land on the current release. Workers are 4 SGLang pods, unchanged.",
+      "expected_output": "A correct answer produces an updated Deployment using the renamed image repository and a current tag, keeps the CLI args and RBAC essentially as-is (flags did not change across the rename), and rewrites every Prometheus expression to the new metric prefix. It should warn explicitly that dashboards and alerts on the old prefix go silently empty (no errors, just no data) after the image swap, and that the alert would stop firing rather than fail loudly.",
+      "files": [],
+      "assertions": [
+        "The updated Deployment uses the renamed image repository (sgl-model-gateway) rather than the old sglang-router image, with a concrete tag rather than an unpinned floating reference alone",
+        "All four Prometheus expressions (three panels plus the alert) are rewritten to the renamed metric prefix, not left on the old prefix",
+        "The answer states that the existing CLI flags and service-discovery/RBAC configuration carry over unchanged, so no arg rewrite is required for the upgrade itself",
+        "The answer warns that dashboards/alerts left on the old metric names will show no data and the alert will stop firing silently, rather than erroring visibly",
+        "The answer includes at least one post-rollout verification step that would actually catch a broken upgrade (e.g. checking the registered worker list or that metrics with the new prefix are being emitted)"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "responses-state-loss-multi-replica",
+      "prompt": "Two weeks ago we scaled our gateway Deployment from 1 to 3 replicas for HA and turned on mesh sync between them (peer discovery via the pod annotation, mesh port open in the NetworkPolicy). Routing itself looks fine — all 6 SGLang workers show up in the worker list on every replica, and `smg_*` metrics look balanced across replicas. But our internal agent app, which uses `/v1/responses` with `previous_response_id` for multi-turn, now gets intermittent errors: roughly 2 out of 3 follow-up turns come back with the previous response ID not found. It's completely reproducible in the sense that retrying the same call a few times eventually succeeds. We verified mesh is up — the worker registry and rate limits are clearly consistent across all three pods. Is our mesh config broken, or is this a bug in v0.3.2?",
+      "expected_output": "A correct answer identifies that conversation/response state for `/v1/responses` lives in the gateway's history backend, which defaults to in-process memory and is per-replica, so a follow-up turn landing on a different replica cannot find the prior response — the ~2-in-3 failure rate matches 3 replicas. It should make clear that mesh sync covers worker registry, cache-aware routing state and rate-limit counters but not this state, so the mesh config is not at fault, and recommend a shared/persistent history backend (or client pinning to one replica) as the fix.",
+      "files": [],
+      "assertions": [
+        "Identifies per-replica (in-process, non-shared) conversation/response history state as the root cause, and ties the ~2-in-3 failure rate to requests landing on one of the other two replicas",
+        "States that the mesh/CRDT sync does not cover this state, so the mesh configuration and NetworkPolicy are NOT the problem",
+        "Does NOT attribute the failures to service discovery, RBAC, worker health, or a defect in the gateway release",
+        "Recommends a concrete remedy that makes the state reachable from any replica (a shared/external history backend) and/or a stopgap that pins a client's turns to one replica",
+        "Notes at least one other consequence of state being per-replica in this deployment (e.g. that a restart loses in-memory history, or that some other per-replica state such as circuit-breaker status is also not shared)"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "cached-tokens-null-not-routing",
+      "prompt": "We put sgl-model-gateway v0.3.2 in front of 5 vanilla vLLM 0.11.0 pods serving mistralai/Mistral-Small-3.1-24B-Instruct (registered via `--worker-urls`, `--policy cache_aware`). Our RAG service sends the same 6-8k-token retrieved context repeatedly, so we expected a clear prefix-cache win. Two problems: (1) every single chat completion response comes back with `\"prompt_tokens_details\": null`, so our billing/telemetry pipeline records zero cached tokens for 100% of requests, and (2) p95 TTFT is basically flat versus the plain Service we had before. We already double-checked that the gateway is routing — the worker list shows all 5 and request counts are lopsided the way cache-aware routing would make them. Before I open a bug, what's actually going on and how do I measure whether cache-aware routing is doing anything?",
+      "expected_output": "A correct answer separates the two symptoms: the null `prompt_tokens_details` is a vLLM-side reporting behaviour that is off by default and must be enabled on the workers — it is not evidence that routing or caching failed. It should explain the gateway routes on request text and never queries the worker's KV cache, so the correct measurement is worker-side prefix-cache metrics from vLLM's own `/metrics`, and it should give the plausible reasons TTFT can be flat (ample KV memory so the per-replica cache already absorbs the win, or low real prefix sharing) rather than blaming the gateway.",
+      "files": [],
+      "assertions": [
+        "Identifies the null cached-tokens field as a vLLM reporting option that is disabled by default and names the worker-side flag/setting that turns it on, rather than treating it as a routing or gateway failure",
+        "Explains that the gateway's routing decision is made without inspecting worker KV-cache state, so response usage fields are not how the router knows anything",
+        "Gives a concrete alternative measurement using the vLLM workers' own prefix-cache metrics (hits/queries from the worker /metrics endpoint) to prove or disprove a cache benefit",
+        "Offers at least one substantive explanation for flat TTFT that is not a misconfiguration — e.g. KV memory being ample enough that per-replica caching already hits, or insufficient cross-request prefix sharing",
+        "Does NOT recommend switching the policy to a token-hash policy, adding a gateway tokenizer path, or upgrading/downgrading the gateway as the fix for the null usage field"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "vllm-dp8-internal-vs-external-lb",
+      "prompt": "New cluster, single node with 8x H200, and we're deploying Qwen3-32B on vLLM 0.11.0 (fits on one GPU, so 8 independent engines). Two of us disagree on the shape. Option 1: one Pod running `vllm serve --data-parallel-size 8` and put sgl-model-gateway in front of that Pod's Service so we still get cache-aware routing. Option 2: 8 Pods, one engine each, gateway in front with service discovery. Someone also mentioned there's a gRPC path where the gateway talks to vLLM natively and that it's faster — should we chase that? Constraints: we want per-replica routing decisions (our workload is RAG with heavy shared prefixes), we want to autoscale later with KEDA on queue depth, and we can't run non-upstream vLLM builds in prod without a security review that takes ~6 weeks.",
+      "expected_output": "A correct answer rejects Option 1 as specified — a gateway in front of a single internal-DP-LB endpoint sees one upstream, loses per-replica visibility, and adds a pointless hop — and recommends the one-engine-per-Pod shape (or vLLM's external-LB mode with per-rank Pods) so the gateway makes real per-replica decisions. It should say the native gRPC path currently requires a non-upstream vLLM build and carries feature limits, which their 6-week review constraint rules out for now, and note that the HTTP path with the default cache-aware policy needs no tokenizer on the gateway.",
+      "files": [],
+      "assertions": [
+        "Recommends against putting the gateway in front of a single internal data-parallel LB endpoint, explaining that per-replica routing visibility is lost and an extra hop is added",
+        "Recommends the one-engine-per-Pod arrangement (or vLLM's external-LB mode with a rank per Pod) as the way to get the per-replica cache-aware routing they asked for",
+        "States that the native gRPC-to-vLLM path is not available on an upstream vLLM build today and/or carries feature limitations, and therefore concludes it is not the right choice given the 6-week review constraint",
+        "States that the recommended HTTP path with cache-aware routing requires no tokenizer files or tokenizer path on the gateway",
+        "Does NOT propose running both load-balancing layers together (internal DP fan-out plus gateway routing over the same engines)",
+        "Addresses the KEDA/autoscaling constraint in a way consistent with the chosen shape (e.g. that Pods can join/leave via discovery, or which queue-depth signal to scale on)"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "kimi-grpc-and-pvc-strip",
+      "prompt": "We run moonshotai/Kimi-K2.6 on 2 nodes of SGLang workers (8x H200 each, TP8) behind sgl-model-gateway v0.3.2, HTTP, default policy. It works but TTFT is higher than we want. Three things I want you to write for me: (1) an init container for the gateway Deployment that pulls `tokenizer.json` from our internal S3 bucket into an emptyDir at /tokenizer and passes `--tokenizer-path /tokenizer`, (2) switch the gateway-to-worker connection mode to gRPC since that should shave the HTTP serialization overhead, and (3) drop the 1.4 TB model PVC mount from the worker pods and mount it only on the gateway — the gateway is doing the tokenization now, so the workers shouldn't need the full snapshot and we'd free a lot of storage on those nodes. Give me the full patched manifests.",
+      "expected_output": "A correct answer refuses all three as specified and explains why: Kimi K2.6 is a tiktoken-format model with no HF fast tokenizer, and the gRPC path hard-requires an HF tokenizer, so gRPC is simply unavailable for this model; the default text-based cache-aware policy needs no tokenizer at all, so the init container and tokenizer path are dead weight; and removing the model volume from the workers would break them outright, since workers load weights, tokenizer and chat template from disk regardless of what the gateway does. It should then point at real TTFT levers instead.",
+      "files": [],
+      "assertions": [
+        "Refuses the gRPC switch for this model, explaining that the gRPC path requires a HuggingFace-format tokenizer that this tiktoken-only model does not provide",
+        "Does NOT deliver a gateway init container / tokenizer mount as a useful addition, and explains that the default cache-aware routing is text-based and needs no tokenizer on the gateway",
+        "Explicitly refuses to remove the model volume from the worker pods and states that workers must load weights, tokenizer and chat template from disk themselves",
+        "Does NOT present converting or fabricating an HF tokenizer.json for this model as a supported or recommended way to unlock gRPC",
+        "Offers at least one alternative direction for the actual TTFT goal that is valid for this HTTP + tiktoken-only deployment",
+        "Makes clear that applying the requested changes as written would break the deployment rather than merely being suboptimal"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

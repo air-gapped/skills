@@ -5,7 +5,8 @@
     "created": "2026-04-20",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,90 @@
         "Gives a serve invocation that loads the NVFP4 target with its quantization flag and attaches the drafter via a speculative-config argument specifying both the method and the drafter model path",
         "Does NOT claim that speculative decoding is incompatible with serving a quantized target, and does not require discarding the existing NVFP4 checkpoint"
       ]
+    },
+    {
+      "id": 3,
+      "name": "qwen3-32b-w4a16-kv-scales-recipe",
+      "prompt": "I run inference for a customer-support product on 2x H200 (single node, TP=2). Target model is Qwen/Qwen3-32B-Instruct, BF16 today. Accuracy is what my team gets paged about — the assistant does tool calling and quotes policy text verbatim, so I can't afford sloppy output. Contexts are 32k-ish, ~60 concurrent streams, and I'm running out of KV before I run out of compute. I want to go 4-bit on weights and also quantize the KV cache. Give me the actual quantization script I run offline (we have an 8x H100 box for the job, HF datasets available, vLLM 0.27.0 in prod) that produces both the 4-bit weights and the KV-cache scales in one output directory, plus the exact `vllm serve` command for the prod node. Tell me roughly how long the offline job takes and how many calibration samples to use.",
+      "expected_output": "A runnable llm-compressor script that applies a W4A16 INT4 scheme (AWQ or GPTQ modifier) with a stated calibration dataset and sample count in the low hundreds, plus a kv_cache_scheme block producing per-tensor FP8 KV scales into the same HF output directory, followed by a vLLM serve command that loads it with the correct quantization value and `--kv-cache-dtype fp8_e4m3` on TP=2. It must not rely on runtime scale calculation, and it should tell the operator to evaluate the result on their own tool-calling/policy traffic rather than assuming parity with BF16.",
+      "files": [],
+      "assertions": [
+        "produces an offline quantization script using llm-compressor (not vLLM itself) that emits a single HF checkpoint directory containing both 4-bit weights and FP8 KV-cache scales",
+        "the weight scheme is a 4-bit weight-only/W4A16 scheme with group-wise scales and a stated calibration sample count in the ~128-512 range with a named calibration dataset",
+        "the KV-cache scales are configured with per-tensor (not per-head) granularity",
+        "the serve command sets an FP8 E4M3 KV-cache dtype and a quantization value that matches what the produced checkpoint actually is (compressed-tensors, or the corresponding marlin loader)",
+        "does NOT instruct the operator to pass `--calculate-kv-scales` or otherwise compute KV scales at server startup",
+        "states that the quantized model must be evaluated on the team's real traffic and is not accuracy-equivalent to the BF16 original"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "nvfp4-tp8-exclamation-garbage",
+      "prompt": "Need a second pair of eyes before I redo three days of work. 8x B200 node, vLLM 0.25.0 from our internal wheel, serving an NVFP4 checkpoint of Llama-3.3-70B-Instruct we exported with ModelOpt. With `--tensor-parallel-size 8` every request comes back as a wall of `!!!!!!!!` or occasionally random punctuation — same prompt, same sampling params, deterministic garbage. When I bring the same checkpoint up on a single B200 with TP=1 (had to shrink max-model-len to fit) the output is completely normal and passes our smoke evals. TP=4 is also bad. My colleague is convinced the ModelOpt export is broken across the TP=8 shard boundary and wants me to re-run PTQ with a different calibration set and force per-tensor scales. That's another 3 days of GPU time. Is he right?",
+      "expected_output": "A correct answer identifies the vLLM build, not the checkpoint, as the cause: v0.25.0 has a known corruption in the fused allreduce+RMSNorm+quant path that only engages with multi-GPU collectives, which is exactly why TP=1 is clean and TP=4/TP=8 are not. The fix is to upgrade to v0.25.1 or later, and the operator should be told not to spend the three days re-quantizing.",
+      "files": [],
+      "assertions": [
+        "attributes the corruption to the vLLM version/runtime rather than to the ModelOpt checkpoint or its calibration",
+        "explains that the failure only appears with tensor parallelism because it lives in a fused collective/normalization+quantization code path that TP=1 never executes",
+        "recommends upgrading to vLLM v0.25.1 or newer as the fix",
+        "explicitly advises against re-running PTQ or recalibrating the checkpoint as the remedy",
+        "gives a concrete way to confirm the diagnosis cheaply — running the unchanged checkpoint at TP=8 on a patched build (or disabling the fused path) rather than producing a new checkpoint"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "online-fp8-quality-drop-qwen3-14b",
+      "prompt": "vLLM 0.27.0, 2x H200, Qwen3-14B. I didn't want to stand up a whole offline quantization pipeline so I'm using load-time quantization: `vllm serve Qwen/Qwen3-14B --quantization fp8_per_tensor --tensor-parallel-size 2`. It loads fine, no warnings I can see, throughput is great. Problem is quality — internal eval suite drops from 0.81 to 0.64, and the failures are weird: answers are fluent and on-topic but factually drift, and structured-output/JSON mode fails schema validation way more often. Same model in BF16 on the same node scores 0.81. I assumed per-tensor scales were too coarse so I switched to `--quantization fp8_per_block`, then added `--quantization-config '{\"ignore\":[\"lm_head\"]}'`. Barely moved. What granularity should I be using?",
+      "expected_output": "A correct answer rejects the framing: scale granularity is not the problem. vLLM's online/load-time FP8 path drops bias weights, and Qwen3's attention projections carry biases, so every granularity variant will stay degraded. The fix is to produce a pre-quantized FP8 checkpoint offline (e.g. llm-compressor FP8_DYNAMIC, which is data-free and fast) and serve that instead.",
+      "files": [],
+      "assertions": [
+        "identifies that the online/load-time quantization path mishandles (drops) bias weights as the root cause, rather than scale granularity or the ignore list",
+        "connects this to the specific model — Qwen3's biased attention/linear projections — explaining why this model is affected",
+        "states that switching between per-tensor, per-block, or other online granularities will not recover the accuracy",
+        "recommends producing a pre-quantized FP8 checkpoint offline and serving that, naming a concrete tool/recipe for it",
+        "notes that the offline FP8 route requires little or no calibration data, so the reason the operator avoided it does not hold",
+        "does NOT propose more `--quantization-config` tuning or a different online quantization flag as the solution"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "h200-kv-bound-weights-vs-kvcache",
+      "prompt": "Capacity planning argument I need settled. 8x H200 (single node, TP=8), Llama-3.3-70B-Instruct, currently BF16 weights and `auto` KV cache. Workload is document Q&A: average prompt 60k tokens, output ~400 tokens, we want to hold 150+ concurrent sequences at 128k max-model-len. Right now we cap out around 40 concurrent and Grafana shows kv_cache_usage_perc pinned at 100% while GPU utilization sits in the 40s. Our ML engineer wants to convert to AWQ W4A16 INT4 to free ~70GB of weight memory for KV, arguing 4-bit weights also give us a decode speedup. I'd rather ship FP8 weights. Neither of us has run the experiment. Which way do we go, and what would you actually change first?",
+      "expected_output": "A correct answer diagnoses the workload as KV-capacity bound (KV at 100%, GPUs at 40%) and puts the KV-cache dtype ahead of the weight format: switching to FP8 E4M3 KV roughly doubles KV capacity and buys far more concurrency than the ~70GB freed by going from BF16 to INT4 weights. It should also correct the claimed W4A16 compute win on Hopper — W4A16 dequantizes to FP16 for the MMA, so it helps memory bandwidth in low-batch decode but does nothing for their prefill-heavy, large-batch profile and risks hurting it.",
+      "files": [],
+      "assertions": [
+        "identifies the workload as KV-capacity bound from the stated metrics and makes the KV-cache dtype the first change, ahead of the weight format",
+        "recommends an FP8 E4M3 KV cache and quantifies the resulting KV-capacity gain as roughly 2x versus the unquantized cache",
+        "corrects the claim that W4A16 INT4 gives a general compute speedup on H200, explaining that 4-bit weight-only quantization still runs the matmul at higher precision and only helps memory-bandwidth-bound decode",
+        "recommends FP8 W8A8 weights over AWQ W4A16 for this specific prefill-heavy, high-batch profile, or explains that weight format is the secondary lever either way",
+        "gives a concrete measurement plan — re-check kv_cache_usage_perc and achieved concurrency after the KV change before touching weights",
+        "notes that a 60k-token prefill workload is where 4-bit weight-only quantization is least likely to pay off"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "sm120-nvfp4-moe-fleet-standardization",
+      "prompt": "Budget decision already went through, I just need the config. We're standardizing our inference fleet on 6x RTX 6000 Pro Blackwell workstation cards (96GB each, SM120) — they were dramatically cheaper per GB than another H200 node and they're Blackwell, so we get FP4. Plan is to serve Qwen3-30B-A3B-Instruct as NVFP4 with the MoE layers in FP4 and lean on the FP4 tensor cores for throughput. Write me the vLLM 0.27.0 serve command and a docker-compose for it. Also, our two H200 nodes come off lease at the end of next month and I'd like to hand them back rather than pay to extend — assume they're gone. Ship it.",
+      "expected_output": "A correct answer refuses to hand over an NVFP4-MoE config as if it will work: SM120 (desktop/workstation Blackwell) does not have the full NVFP4 MoE kernel set — that is SM100/SM103 only — and known issues make FP4/MXFP4 paths brittle there. It should offer the supported alternative (FP8 weights with FP8 E4M3 KV on the SM120 boxes) and warn that returning the H200 nodes before the new fleet is validated on real traffic removes the only working fallback.",
+      "files": [],
+      "assertions": [
+        "states that the full NVFP4 MoE kernel set is not available on SM120 workstation Blackwell and is limited to datacenter SM100/SM103 parts",
+        "does NOT deliver an NVFP4/FP4-MoE serve command or compose file presented as a working configuration for the SM120 cards",
+        "offers FP8 as the production-supported quantization path on these cards, with a concrete serve configuration for Qwen3-30B-A3B on that hardware",
+        "explicitly advises against returning or decommissioning the H200 nodes until the new fleet has been validated on real traffic, rather than treating them as already gone",
+        "identifies a cheap validation step the operator can run on one SM120 card before the lease deadline to confirm or refute the recommendation",
+        "does not silently accept the premise that 'Blackwell' implies usable FP4 for this workload"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

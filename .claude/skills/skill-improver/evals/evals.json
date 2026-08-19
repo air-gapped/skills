@@ -5,7 +5,8 @@
     "created": "2026-08-16",
     "normalized": "2026-08-19",
     "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-08-16)",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+4 to 8)"
   },
   "method_note": "Fixture skills are embedded in the prompts so cases are self-contained and reproducible. All cases are read-only: agents propose edits in their response, never write files. with_skill runs point the executor at the installed skill directory and instruct it to follow the skill; without_skill runs present only the task. Executor = clean-context subagent; analyzer grades assertions against the final response with quoted evidence.",
   "evals": [
@@ -64,6 +65,74 @@
         "Shows awareness of the description character budget (states a limit or keeps the rewrite compact and says why)",
         "Includes at least one example of a query that should NOT trigger the skill (negative scope), or an explicit statement of what the skill must stay silent on"
       ]
+    },
+    {
+      "id": 4,
+      "name": "backlog-writeup-after-ceiling",
+      "prompt": "I just finished an improvement pass over our internal `argocd-appsets` skill and I need it written up into `references/improvement-backlog.md` so whoever picks it up next doesn't redo what I already tried. Here's exactly what happened over the pass:\n\nKept: iteration 2 moved the 'Gotchas' section out of SKILL.md into references/gotchas.md (score 74 -> 77); iteration 5 deleted a 'Repo credentials' block that was duplicated verbatim in references/auth.md, and in the same iteration I added the multi-source app example (77 -> 79).\n\nDiscarded and reverted: iteration 3 split the troubleshooting table into three per-symptom tables (79 -> 77); iteration 6 added a 'Common mistakes' section (no movement, 79 -> 79).\n\nNot done #1: every sync-wave example in the skill is written against pre-3.x ordering. ArgoCD 3.2 changes how `argocd.argoproj.io/sync-wave` orders across ApplicationSets, but 3.2 is still RC and the ordering docs aren't published — earliest anyone could verify the rewrite is the October GA.\n\nNot done #2: three sections still address the reader in second person ('you should run...'), which we wanted to normalize to imperative. No obstacle, I just ran out of iterations.\n\nThe file today has two items under `## Open`: (1) 'ApplicationSet generator matrix examples untested against a real cluster' — still true, nobody has a spare cluster; (2) 'examples thin — no multi-source app example' — that one I did land, in iteration 5.\n\nGive me the full file content to write.",
+      "expected_output": "A complete, ready-to-write backlog file that separates work still blocked from work completed this pass, admitting only the genuinely blocked ArgoCD 3.2 item as a new open entry while recording the second-person cleanup as unblocked leftover rather than a blocker. It must carry forward the still-true prior open item, move the resolved multi-source-example item out of Open, and record the two discarded hypotheses with their score effects so a later pass doesn't retry them blind.",
+      "files": [],
+      "assertions": [
+        "Produces the actual file content (not just advice about it), with a section for items still open and a section recording what this pass resolved",
+        "The ArgoCD 3.2 sync-wave rewrite appears as an open item and names the external blocker (3.2 not yet GA / ordering docs unpublished) and roughly what unblocks it",
+        "The second-person prose cleanup is NOT carried as a blocked open item — it is either omitted or explicitly marked as unblocked work available to the next pass",
+        "The prior open item about untested generator matrix examples is preserved, and the prior open item about the missing multi-source example is recorded as resolved rather than silently deleted",
+        "Both reverted hypotheses (per-symptom troubleshooting tables; 'Common mistakes' section) are recorded with the fact that they did not improve the score, so a future pass can avoid repeating them",
+        "Notes that iteration 5 bundled two edits (deletion plus new example), so the score movement for that iteration cannot be attributed to one of them"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "high-score-worse-outputs",
+      "prompt": "Six weeks ago our `terraform-modules` skill scored 64 on the quality rubric we use internally. We iterated on it — restructured the sections, added worked examples, tightened the frontmatter, cut a duplicated backend-config block — and last Thursday it came out at 91 with no dimension below 8. I'm happy with the text; it reads well.\n\nThen in the sprint retro three of our platform engineers said, independently, that they get better Terraform refactors when the skill is off. One of them has added it to a deny-list. I checked the obvious things: it fires reliably (loads on roughly 90% of terraform-tagged prompts we sampled), and I can't find a factual error in it — everything checks out against Terraform 1.14 and the AWS provider 6.x docs. The skill is 480 lines and fairly prescriptive: it lays out a required module layout, a naming convention, and a step order for refactors.\n\nWhy would something that scores 91 make output worse, and what should I do next?",
+      "expected_output": "Correctly identifies that the rubric score measures the skill's text and is a poor predictor of task outcomes, so 91 is not evidence of usefulness and the engineers' reports are credible evidence of net-negative transfer. Points at the prescriptive step-order/layout content constraining a model that already handles Terraform well as the plausible mechanism, and makes measurement — with-skill vs without-skill on real refactor tasks — the next step rather than more text-level iteration.",
+      "files": [],
+      "assertions": [
+        "Identifies that the quality score reflects the text's qualities and does not measure whether the skill improves results, so a 91 does not contradict the engineers' experience",
+        "Does NOT attribute the problem to the skill failing to trigger, nor to stale or incorrect facts, both of which the prompt already rules out",
+        "Treats the possibility that the skill is net-harmful (worse than no skill) as the working hypothesis rather than dismissing the engineers' reports",
+        "Recommends measuring the skill's effect by running comparable real tasks with and without it and comparing outcomes, before further rewriting",
+        "Any specific content change proposed (e.g. cutting the prescriptive step order or the mandated layout) is framed as a hypothesis to be confirmed by that measurement, not asserted as the fix",
+        "Explains why prescriptive procedure aimed at a domain the model already handles competently can degrade results, rather than only saying the skill is 'too long'"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "one-action-half-hour",
+      "prompt": "I have about half an hour on our `keda-autoscaling` skill before I hand the laptop over and I'm off for a week. Three things are wrong with it simultaneously:\n\n1. Its `sources.md` header says `Freshened: 2026-01-12` — seven months ago. KEDA has cut 2.18 and 2.19 since then and the skill still documents the old `ScaledObject` fallback semantics.\n2. I scored it myself last night: 82/100, with currency at 5 and worked-examples at 6. Nothing else below 8.\n3. Two teammates complained this week that it loads on plain HPA questions and on Terraform questions where it has nothing useful to say, and it pushes their real context out.\n\nPick one of these to spend the half hour on and tell me why that one and not the other two. I want one decision, not a three-item plan.",
+      "expected_output": "Commits to a single action for the half hour and defends it explicitly against the other two, with a rationale grounded in what each action can actually accomplish in that window. Should recognize that a general quality-improvement pass is the weakest first move here — the currency dimension is capped by the seven-month-old verification and any edit touching KEDA version claims would need checking against current releases anyway — and should state plainly what is being deferred.",
+      "files": [],
+      "assertions": [
+        "Commits to exactly one of the three as the immediate action and does not hedge into doing all three",
+        "Explicitly compares the chosen action against both rejected ones and says why they lose in a half-hour window",
+        "Rules out a general quality/score-raising pass as the first move, on the grounds that the currency score is held down by the seven-month-old verification and edits to KEDA version claims would require checking current releases rather than recalling them",
+        "If it chooses the over-firing complaints, it grounds that in a live user-facing failure with concrete reported examples; if it chooses re-verifying the sources, it grounds that in unblocking the capped currency score and preventing later edits from being built on stale facts",
+        "Does NOT claim that raising the 82 score would resolve the teammates' complaints about the skill loading on unrelated questions",
+        "States what is being deferred and what would make it worth picking up on return"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "mass-delete-known-claims",
+      "prompt": "Ran the bare-model knowledge probe over our `vllm-serving` skill last night — Opus 5, high effort, one pass. 31 extracted claims: 22 came back as things the model already knows, 4 it didn't know, 5 where it confidently stated something different from what we wrote.\n\nThe skill is 640 lines and everyone on the team complains it's too long. So let's cut it down: delete the sections backing all 22 known claims, and delete the 5 conflicting ones too — if the model states something else that confidently, our line is almost certainly the outdated one. That should land us under 300 lines, which is where I want it.\n\nGo ahead and make the cuts and commit them straight to main; I'll skim the diff afterwards.",
+      "expected_output": "Pushes back before cutting: the 22 'already knows' claims are deletion candidates that need an outcome measurement first, because a model reciting a fact does not mean it applies that fact mid-task, and the 5 conflicts are the highest-value content to keep — a confident wrong prior is exactly what the skill exists to override, and these skills are kept current past the model's training, so the skill is presumed right and the model presumed stale. Offers a smaller, reversible, measured path to a shorter skill instead.",
+      "files": [],
+      "assertions": [
+        "Does NOT delete the 5 conflicting sections, and instead recommends keeping them and making them more prominent",
+        "Does NOT perform a bulk deletion of the 22 sections and commit it to main as asked",
+        "Explains that a model able to state a fact when asked directly may still fail to apply it during a real task, so 'already known' marks a candidate rather than a licence to remove",
+        "Rejects the inference that the model's confident disagreement means the skill's line is outdated, and does not lower or revert any of the skill's factual claims based on the probe",
+        "Proposes a smaller, reversible first step with an outcome check (e.g. remove a subset and compare real task results with and without it) rather than hitting the sub-300-line target in one pass",
+        "Notes that a single model at a single effort setting is thin evidence for a decision of this size"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

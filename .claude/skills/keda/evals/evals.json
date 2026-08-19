@@ -5,7 +5,8 @@
     "created": "2026-04-20",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+4 to 8)"
   },
   "evals": [
     {
@@ -66,6 +67,74 @@
         "Configures fallback only on the Prometheus trigger or otherwise notes that fallback does not apply to the cpu trigger",
         "Any HPA stabilization window values given are multiples of 15 seconds"
       ]
+    },
+    {
+      "id": 4,
+      "name": "kafka-weighted-scaling-modifiers",
+      "prompt": "I need a KEDA manifest for our `settlement-worker` Deployment in the `payments` namespace (KEDA 2.14.0, EKS 1.29). It's a Kafka consumer on topic `payments.events`, consumer group `settlement-worker`, brokers `kafka-0.kafka.messaging.svc:9092,kafka-1.kafka.messaging.svc:9092`, SASL_SSL. Credentials already exist in a namespace secret called `kafka-sasl` with keys `sasl`, `username`, `password`, `tls`, `ca` — I do not want any of that inline in the manifest.\n\nRequirements: when there is any work at all the service must never run below 3 pods (it holds a warm in-memory FX rate cache and a cold pod produces bad quotes for ~40s), but overnight when the topic is completely idle we want it at literally zero pods to free the node pool. Cap at 40.\n\nTwo signals matter: consumer lag (target ~500 messages per pod) and a Prometheus p95 processing latency query `histogram_quantile(0.95, sum(rate(settlement_process_duration_seconds_bucket[5m])) by (le))` against `http://prometheus-operated.monitoring.svc:9090` with a target of 0.4s. I already tried just listing both triggers and it overshoots badly — whichever one is hottest wins outright and we get 40 pods for a latency blip. I want lag to be the dominant signal with latency able to contribute maybe a third of the decision, not to win outright. Also: if Prometheus or the Kafka broker is unreachable for a couple of polls I'd rather sit at 6 pods than collapse.",
+      "expected_output": "A complete, applyable ScaledObject plus TriggerAuthentication that keeps 3 replicas whenever work exists but reaches true zero when idle (idleReplicaCount: 0 with minReplicaCount: 3, not minReplicaCount: 0), uses a scalingModifiers formula over two named triggers to blend lag and latency instead of accepting the default max-of behavior, sources Kafka SASL/TLS material from the existing secret via TriggerAuthentication, and sets a fallback replica count on the external-metric triggers.",
+      "files": [],
+      "assertions": [
+        "The manifest is a keda.sh/v1alpha1 ScaledObject targeting the settlement-worker Deployment with a maximum of 40 replicas",
+        "The configuration yields 0 pods when the workload is fully idle while never sitting below 3 pods when work exists — i.e. it does not simply set minReplicaCount to 0, and does not leave a floor of 3 pods running overnight",
+        "Both triggers are given names and an explicit combining formula weights them so lag dominates and a latency spike alone cannot drive the replica count to the maximum",
+        "Kafka SASL/TLS credentials are supplied through a TriggerAuthentication (or ClusterTriggerAuthentication) referencing the existing kafka-sasl secret, with no passwords or CA material written literally into the ScaledObject",
+        "A fallback replica count of 6 is configured so metric-source unavailability holds replicas there instead of dropping to the minimum",
+        "No second/manual HorizontalPodAutoscaler is created for the same Deployment, and the polling interval is not set to an aggressive sub-30s value"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "external-metrics-provider-hijack",
+      "prompt": "Confusing one. We run KEDA 2.13.1 on a 60-node GKE cluster. Our ScaledObject `report-generator` in namespace `analytics` uses a single prometheus trigger. `kubectl describe scaledobject report-generator -n analytics` shows Ready=True, Active=True, no events, no errors. `kubectl get hpa keda-hpa-report-generator -n analytics` exists but TARGETS shows `<unknown>/100 (avg)` and the deployment has been pinned at 1 replica for three days while the report backlog is huge.\n\nkeda-operator logs are clean — it's polling Prometheus fine and I can see it logging an active trigger. I've run the exact Prometheus query in the Grafana explore tab and it returns 4300, well above the threshold of 100. I've bumped the query, tried `ignoreNullValues`, restarted keda-operator and the metrics apiserver twice, and rebuilt the ScaledObject from scratch. Nothing.\n\nOne thing I noticed but don't think is related: `kubectl get apiservice v1beta1.external.metrics.k8s.io -o yaml` shows the service is `datadog-cluster-agent-metrics-api` in the `datadog` namespace, status True. The observability team rolled out the Datadog Cluster Agent with the external metrics server enabled about a week ago. That shouldn't matter, right? They're on a totally different metric API than us.\n\nWhat's actually wrong here?",
+      "expected_output": "Correctly identifies that the cluster's single external.metrics.k8s.io APIService is registered to the Datadog Cluster Agent, so the HPA's metric requests never reach KEDA's metrics apiserver — which is exactly why the ScaledObject looks healthy while the HPA target is <unknown>. Explains that the Prometheus query, KEDA operator, and ScaledObject spec are all fine and that further tuning or restarts cannot help, and lays out the choice: only one component may serve that API, so either Datadog's external metrics server is disabled (and Datadog metrics routed through KEDA's datadog scaler) or KEDA's is given up.",
+      "files": [],
+      "assertions": [
+        "Names the Datadog Cluster Agent's ownership of the v1beta1.external.metrics.k8s.io APIService as the root cause, explicitly rejecting the user's assumption that it is unrelated",
+        "Explains that only one component per cluster can serve the external metrics API, so KEDA's metrics apiserver is being bypassed rather than failing",
+        "Explains why the ScaledObject correctly shows Ready/Active and the operator logs are clean while the HPA still reports <unknown> — the operator-side polling and the HPA-side metric read are different paths",
+        "States that the Prometheus query, ignoreNullValues, and further restarts/rebuilds of the ScaledObject are not the problem and will not fix it",
+        "Gives a concrete resolution requiring a choice between the two providers (e.g. disable Datadog's external metrics server so KEDA's APIService registration takes over, optionally consuming Datadog through KEDA's own scaler), rather than proposing to run both simultaneously",
+        "Includes a verification step that would confirm the fix, such as re-checking which service backs the APIService or querying the external metrics endpoint for the ScaledObject's metric"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "http-scale-to-zero-option-choice",
+      "prompt": "Need a decision from you. We have an internal HTTP service `doc-preview` (Node, ~8s cold start including a headless Chromium warmup) in namespace `platform` on a shared EKS cluster. It gets maybe 200 requests on a busy weekday, in clusters, and literally nothing between 19:00 and 08:00 or on weekends. Right now it sits at 2 replicas 24/7 at 3 CPU / 6Gi each and finance has flagged it.\n\nWe want it at zero when nobody's using it. Requests come from other in-cluster services and from a couple of humans hitting it through ingress-nginx. There's no service mesh. Everything is deployed via Argo CD from a monorepo, and our platform policy says nothing pre-1.0 in the prod cluster without a written exception. We already run KEDA 2.14 and Prometheus (ingress-nginx metrics are scraped).\n\nThree options on the table: (1) the KEDA HTTP Add-on, (2) a plain ScaledObject with a prometheus trigger on the ingress-nginx request rate, (3) put the thing on Knative. Which one, and what do we actually lose with your pick? Callers can tolerate a slow first request but not an error page.",
+      "expected_output": "Picks one option and justifies it against the stated constraints, and — crucially — establishes that a plain Prometheus-RPS ScaledObject cannot hold a request while pods spin up, so with zero replicas the first requests fail rather than merely being slow, which violates the no-error-page requirement. Weighs the HTTP Add-on's pre-1.0 status against the platform policy (recommending the exception, or Knative, or a non-zero floor as the honest alternative) and names what is given up.",
+      "files": [],
+      "assertions": [
+        "Makes one clear primary recommendation rather than listing all three neutrally",
+        "Establishes that a prometheus-RPS-driven ScaledObject has no way to buffer or hold traffic during the 0→1 activation, so requests arriving at zero replicas error out instead of just being slow — which disqualifies it given the stated no-error-page requirement",
+        "Explicitly surfaces that the KEDA HTTP Add-on is pre-1.0/beta and therefore collides with the stated platform policy, and resolves that collision (exception, alternative, or accepting the risk) instead of ignoring the policy",
+        "States the concrete cost of the recommended option — e.g. an added proxy hop in the request path, a new platform to operate, or continued spend from a non-zero floor",
+        "Accounts for the ~8s cold start in the recommendation, e.g. by noting first-request latency and any client/ingress timeout implications",
+        "Does not claim that core KEDA on its own scales HTTP workloads to zero without dropping or failing the requests that arrive while at zero"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "fleet-wide-cooldown-and-hpa-deletion",
+      "prompt": "Change window is tomorrow 06:00 and I want the exact commands ready. Background: our queue workers take about five minutes to come down from ~40 pods to 1 after a burst drains, and finance is on us about it. Here's the plan the team agreed on for all 62 ScaledObjects in the cluster (KEDA 2.14, they all poll either the shared RabbitMQ cluster or the shared Prometheus):\n\n1. Set `cooldownPeriod: 15` on every ScaledObject via a kustomize patch — that's the knob that controls how long pods hang around after the queue drains, so 15s should make the 40→1 drop nearly instant.\n2. Set `pollingInterval: 5` everywhere so we notice the drain faster.\n3. `kubectl delete hpa -n <ns> -l app.kubernetes.io/managed-by=keda-operator` across all namespaces to remove the keda-hpa-* objects — we're fairly sure the HPA is what's dragging its feet, and KEDA can do the scaling itself without it.\n4. For the 11 ScaledObjects that have `minReplicaCount: 2`, add `activationThreshold: 300` as a second, higher bar for scaling down so they don't thrash.\n\nGive me the kustomize patches and the kubectl commands.",
+      "expected_output": "Pushes back on the plan: cooldownPeriod governs only the final N→0 deactivation, so changing it cannot speed up 40→1 — that is HPA scaleDown stabilization window plus policies, which is the actual fix. Also rejects deleting the KEDA-managed HPAs (KEDA recreates them and the workloads lose autoscaling in the meantime), warns that 62 ScaledObjects at a 5s polling interval hammers the shared RabbitMQ/Prometheus, and explains that activationThreshold is inert when minReplicaCount ≥ 1.",
+      "files": [],
+      "assertions": [
+        "States that cooldownPeriod does not control the 40→1 scale-down and that step 1 alone will not change the observed behaviour",
+        "Identifies the HPA scale-down stabilization window (default 300s) and scale-down policies under the ScaledObject's advanced HPA behavior config as the actual mechanism to tune, with a concrete replacement setting",
+        "Does NOT supply or endorse a command that deletes the keda-hpa-* HorizontalPodAutoscalers, and explains that KEDA owns and recreates them so deleting them removes autoscaling rather than speeding it up, instead of treating the HPA as an obstacle to remove",
+        "Rejects setting pollingInterval to 5 across all 62 ScaledObjects on the grounds of load against the shared RabbitMQ/Prometheus, and notes it would not fix the scale-down speed anyway",
+        "Explains that activationThreshold only gates the 0→1 transition and is therefore ineffective on the ScaledObjects with minReplicaCount: 2, so step 4 is a no-op rather than a scale-down guard",
+        "Delivers a corrected, applyable plan for the change window that achieves the actual goal (faster 40→1 drain) rather than only refusing"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

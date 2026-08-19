@@ -5,7 +5,8 @@
     "created": "2026-04-25",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,92 @@
         "Does NOT recommend disabling GPU usage, switching to CPU-only transfer, downgrading/reinstalling vLLM, or abandoning NIXL/NixlConnector as the fix",
         "Gives concrete pod-spec-level changes (env var names with their new values) sufficient to apply without further guesswork"
       ]
+    },
+    {
+      "id": 3,
+      "name": "telemetry-cyclic-buffer-wiring",
+      "prompt": "I run a 12-node Dynamo disagg cluster (H200, NIXL 1.4.0 from the nixl-cu13 wheel, 2 agents per node — one prefill, one decode). Ops wants per-agent transfer counters and transfer latency exported somewhere we can chart, but we are NOT adding a Prometheus scrape target to these pods this quarter — security review for new listening ports takes six weeks. Give me the exact container env vars to turn NIXL telemetry on writing to a file under /var/log/nixl (it's an emptyDir), plus a small Python collector I can run as a sidecar that tails whatever NIXL writes and prints bytes moved and transfer time per agent as newline JSON to stdout so Fluent Bit picks it up. We do about 40k transfers/minute per agent so tell me what to set the buffer to. Note whether any of this changed recently — we upgraded from 1.2.x last month.",
+      "expected_output": "A correct answer configures the file/shared-memory cyclic-buffer telemetry exporter via environment variables (master enable switch plus an output directory, buffer size sized above the per-flush event volume, and a flush interval), explains that one file is produced per agent, and supplies a reader that consumes the ring and emits the tx/rx byte counters and transfer-time metrics. It must build the collector against the current event schema — ordering derived from insertion order rather than a per-event timestamp, and no dependency on a per-event category field — and if it mentions the Prometheus exporter at all it should flag it as experimental and as the thing the user explicitly ruled out.",
+      "files": [],
+      "assertions": [
+        "The configuration enables NIXL telemetry to a filesystem directory without requiring a Prometheus scrape endpoint or any new listening port in the vLLM/Dynamo pod",
+        "The answer states that telemetry output is per-agent (one file/buffer per agent), so the two agents on a node produce separate streams",
+        "The supplied collector derives event ordering from the ring/insertion order rather than reading a timestamp field off each event",
+        "The collector does not depend on a per-event 'category' field, which no longer exists on this version",
+        "The answer sets a ring/buffer capacity larger than the default and justifies it against the stated 40k transfers/minute and the flush interval",
+        "The emitted records include per-agent transferred-byte counters and transfer duration, not just a count of events",
+        "If the Prometheus exporter is offered as an alternative, it is labeled experimental/beta rather than presented as the production-ready path"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "path-mode-file-registration-rejected",
+      "prompt": "Storage team here. We register 16 checkpoint shards for GDS reads: /mnt/wekafs/model/shard_00.bin .. shard_15.bin. Working code on our old image built one nixlBlobDesc per shard with metaInfo set to \"rw:/mnt/wekafs/model/shard_NN.bin\", len = file size, addr = 0, and devId = 0 on every one of them, then one registerMem call with the whole FILE_SEG list. After rebuilding the image (NIXL moved from 1.3.0 to 1.4.0) registerMem now returns NIXL_ERR_INVALID_PARAM immediately and nothing gets registered. Nothing else changed — same Weka mount, same cufile.json with allow_compat_mode true, same CUDA 12.8, gdscheck -p is clean, files are 0644 and readable by the container user, and single-shard registration still works. Our storage vendor thinks it's the mount options. What's actually wrong and what's the smallest change to our registration code?",
+      "expected_output": "A correct answer identifies that path-based FILE_SEG registrations now require a unique devId per descriptor, so 16 descriptors all carrying devId=0 are rejected by a validation added upstream in the 1.3.x line; it is not a Weka mount, cufile, permission, or GDS problem. The fix is to assign a distinct devId to each path-mode descriptor. It should also explain that the check exists because the old behavior caused a double free on deregisterMem, and that the older fd-in-devId mode is unaffected — one fd may still back multiple descriptors at different offsets.",
+      "files": [],
+      "assertions": [
+        "Identifies the duplicated devId across distinct path-mode file descriptors as the cause",
+        "Explicitly rules out the mount options, cufile.json/allow_compat_mode, GDS driver state, and file permissions as the cause",
+        "The proposed fix assigns a distinct devId to each path-registered file rather than changing metaInfo format, splitting into 16 separate registerMem calls as the only remedy, or altering the filesystem",
+        "Explains that the older fd-based mode still permits one fd/devId to back multiple descriptors at different offsets, so this constraint is specific to path-mode registration",
+        "States that the new error is a deliberate validation that replaced a memory-corruption/double-free failure on deregistration, i.e. the old code was already unsafe",
+        "Does NOT recommend downgrading NIXL, patching out the validation, or reverting to the previous image as the remedy"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "nixl-ep-rank-refactor-break",
+      "prompt": "We maintain in-house MoE all-to-all code built on the NIXL-EP device kernels (low-latency path, nixl_ep_ll). It has been stable for months on NIXL 1.2.1. Last week we rebuilt our training/serving image on NIXL 1.4.0 to pick up an unrelated UCX fix, and the build broke on a missing mask-clean symbol. Our engineer stubbed that call out with an empty function to get the build green. Now dispatch runs but is wrong: with 8 nodes everything looks fine, but when the elastic controller scales us to 12 nodes, experts living on ranks 8-11 receive zero tokens and the loss curve goes flat. We also see occasional GPU timeouts on combine. We suspect the vLLM elastic-EP communicator commit we pulled at the same time, or an NCCL version skew in the new base image. Where should we actually be looking?",
+      "expected_output": "A correct answer pins the failure on the NIXL-EP rank/expert semantics refactor that landed in the 1.3 line, not on vLLM's communicator or NCCL: dispatch/combine now take an active-rank bound plus experts-per-rank parameterization, buffers and layouts moved to an active-range model, mask updates became a public API with host-side active-rank tracking, and the legacy mask-clean entry point was removed. It must say that stubbing the removed call out silently leaves the active-rank state stale, which is exactly why newly-joined ranks 8-11 get nothing, and that the fix is a real port to the new API rather than a shim.",
+      "files": [],
+      "assertions": [
+        "Attributes the breakage to the NIXL-EP rank/expert API refactor introduced between the pinned old version and the new one, not to the vLLM commit or an NCCL skew",
+        "States that the legacy mask-clean API was intentionally removed and that stubbing it with a no-op cannot preserve the previous behavior",
+        "Explains the connection between stale/unupdated active-rank or mask state and the newly added ranks receiving zero tokens after scale-up",
+        "The prescribed fix threads an active-rank bound and experts-per-rank parameterization through dispatch/combine and updates masks through the supported public path with host-side active-rank tracking",
+        "Notes that the low-latency and high-throughput NIXL-EP surfaces cannot be mixed on a single agent, so the port must stay on one mode",
+        "Does NOT present the version bump as drop-in or recommend simply deleting/ignoring the removed call as the resolution"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "etcd-vs-sidechannel-autoscale",
+      "prompt": "Kubernetes question. We run 1P-many-D disaggregated serving: 6 fixed prefill pods and a decode deployment that an HPA scales between 4 and 24 replicas depending on traffic, all on 8-GPU H100 nodes, often 2-3 pods of ours per node. Today every agent is created with enable_listen_thread=True and listen_port=5555, and each pod gets its peer list from a ConfigMap we regenerate by hand — which obviously falls apart the moment the HPA moves. VLLM_NIXL_SIDE_CHANNEL_HOST is currently set to our decode Service DNS name. We already run a 3-node etcd for our scheduler. Should we move NIXL metadata exchange to etcd or fix the side-channel setup? Give me a decision with the concrete config for whichever you pick, including what breaks first if we do nothing.",
+      "expected_output": "A correct answer recommends etcd-based metadata exchange for this topology because peers are not known ahead of time under an HPA, gives the endpoint env var (comma-separated for the 3-node HA cluster) and the push/fetch calls that replace the IP/port form, and notes etcd becomes an availability dependency. It must also fix the two things that break regardless: the hardcoded shared port colliding when multiple pods land on one node (use OS-assigned ports or per-pod distinct ports, with the caveat that an OS-assigned port must be communicated out of band), and the side-channel host pointing at a Service VIP instead of the pod's own IP, which requires the downward-API pod IP plus a headless Service that publishes not-ready addresses.",
+      "files": [],
+      "assertions": [
+        "Recommends etcd-backed metadata exchange for the autoscaling decode fleet and justifies it by peers being unknown/changing at runtime rather than by performance",
+        "Supplies the etcd endpoint configuration in a form that accepts all three HA endpoints, and shows metadata publish/fetch without per-peer IP and port arguments",
+        "Identifies that advertising the Service DNS name / VIP is wrong and requires each agent to advertise its own pod IP, backed by a headless Service that publishes not-ready addresses",
+        "Flags the fixed shared listen port as a collision hazard when several of these pods share a node, and offers either per-pod distinct ports or OS-assigned ports while noting an OS-assigned port must be conveyed out of band",
+        "States what fails first under the status quo — hand-maintained peer lists going stale on scale events and/or port collisions — rather than only describing the target state",
+        "Acknowledges the operational cost of the recommendation (etcd becomes a hard dependency of the data-plane bring-up) instead of presenting it as free"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "nixl-as-persistent-cache",
+      "prompt": "Cost-reduction plan for our vLLM fleet, want a sanity check plus the config. We currently run an LMCache tier backed by a Redis StatefulSet with a 2 TB PVC holding offloaded KV for long system prompts. Since NIXL already moves KV between our prefill and decode pods, we want to cut that tier: tonight we delete the Redis StatefulSet and its PVC to reclaim the storage spend, drop gpu_memory_utilization from 0.90 to 0.55 on every decode pod to free HBM for a colocated embedding model, and rely on NIXL to hold the KV blocks so that when a decode pod gets rescheduled it pulls the warm prefixes back over RDMA instead of recomputing. Give me the NIXL agent config and the vLLM flags to make that work.",
+      "expected_output": "A correct answer refuses the premise: NIXL is a point-to-point transfer library between live registered memory regions, not a cache — nothing it moves survives the process that registered it, so a rescheduled decode pod has no warm prefixes to pull and cutting HBM would just shrink the block pool while recompute cost rises. It must not hand over a config that pretends otherwise, must warn against deleting the Redis PVC on this reasoning, and should redirect to a standalone cache server (an LMCache-style KV server, which can itself use NIXL as one transport backend) as the component that actually delivers persistent warm prefixes.",
+      "files": [],
+      "assertions": [
+        "States plainly that NIXL is a transport between registered memory regions, not a cache store, and that KV it transfers does not persist beyond the registering process",
+        "Explains that a rescheduled/restarted decode pod therefore has nothing to pull back, so the stated warm-prefix goal is not achievable with NIXL alone",
+        "Does NOT supply a NIXL agent configuration or vLLM flag set presented as making NIXL serve warm prefixes to restarted pods",
+        "Explicitly advises against deleting the Redis StatefulSet and its 2 TB PVC on this plan's reasoning, noting the deletion is irreversible and the replacement capability does not exist",
+        "Rejects lowering gpu_memory_utilization to 0.55 on the premise that NIXL backfills KV, and notes it shrinks the KV block pool and increases recompute/preemption instead",
+        "Redirects the persistence requirement to a standalone KV cache server (LMCache-style, which may use NIXL as one of its transport backends) rather than leaving the user with no path"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

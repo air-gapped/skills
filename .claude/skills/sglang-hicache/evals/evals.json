@@ -5,7 +5,8 @@
     "created": "2026-04-27",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -54,6 +55,91 @@
         "Explains that page_first combined with direct IO is silently normalized to page_first_direct at startup and tells the user to check the boot WARNING log to see the effective layout/IO actually in use",
         "Does NOT attribute the 30-second hangs solely to model or hardware limits while leaving the file backend, write_back policy, or ratio 1.5 in the recommended configuration"
       ]
+    },
+    {
+      "id": 3,
+      "name": "build-dsa-l2-then-3fs-launch",
+      "prompt": "I need a launch command for a new box and I want to get it right the first time. Single node, 8x H200 SXM (141GB HBM each), 2TB of host DRAM of which ops has told me I may use at most 1.2TB for the inference process (the rest is for the 3FS client, node_exporter and headroom). Model is deepseek-ai/DeepSeek-V3.2-Exp, TP=8 on one node. Container is lmsysorg/sglang:v0.5.15.post1. Workload is a coding agent: ~35k token repo-context prefix reused across bursts of 20-40 requests, then a new repo. We already have a DeepSeek 3FS cluster in the rack with the operator deployed and the client mounted at /3fs/kvcache, and I want to use it as the shared tier eventually, but for week one I want to bring it up with host DRAM only so I can attribute any regression, then add the shared tier as a second step. Give me both commands plus how I confirm at boot that the engine is actually running the config I asked for, and what host memory I should expect it to pin. We have not touched pipeline parallelism.",
+      "expected_output": "A pair of runnable sglang.launch_server commands (DRAM-only first, then the same with the 3FS L3 added) that respect the 1.2TB host budget by sizing the host pool per rank (~150GB/rank, or an equivalent ratio-based figure), use page size 64 as DSA requires, and use a mutually consistent memory-layout/IO-backend pair so nothing is silently rewritten at boot. It should keep pipeline parallelism at 1, pick a prefetch policy that bounds tail latency, and tell the operator to grep the startup log to confirm the effective layout/IO/backend and expected pinned-DRAM figure.",
+      "files": [],
+      "assertions": [
+        "The host-cache sizing yields roughly 1.2TB total across the 8 ranks (about 150GB per rank), not 1.2TB per rank, and the answer states explicitly that the sizing flag is applied per rank",
+        "Both commands set the KV page size to 64 (or explain that DSA forces it), rather than leaving the CUDA default of 1",
+        "The memory-layout and IO-backend values chosen are a self-consistent pair, and the answer says the engine rewrites mismatched combinations at boot with only a warning",
+        "Pipeline parallelism is left at 1 and the answer does not suggest enabling PP alongside hierarchical caching",
+        "The second command adds the 3FS tier only, keeping every other value from the first command so the week-one baseline stays comparable",
+        "The answer gives a concrete boot-log check (log line / grep) the operator can run to confirm the effective layout, IO backend and storage backend actually in use"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "hybrid-path-changed-after-upgrade",
+      "prompt": "Help me work out what changed. We serve google/gemma-3-27b-it on 4x H100 for a document-QA product. We were on lmsysorg/sglang:v0.5.12.post1 with `--tp 4 --page-size 64 --enable-hierarchical-cache --hicache-ratio 2 --hicache-mem-layout page_first_direct --hicache-io-backend direct --enable-cache-report --enable-metrics` and it was stable for six weeks: host RSS parked around 310GB, p50 TTFT 0.8s, cache hit rate 61%. Last Tuesday we rolled the image to v0.5.15.post1. Not one flag changed, same model revision, same weights on the same NFS mount, same request mix (we replay a fixed trace nightly). Since the roll: host RSS climbs to ~470GB and stays there, p50 TTFT is 1.4s, hit rate reports 74%. No errors in the log, no OOM yet, but we're 60GB from the ceiling on a 512GB box. Our runbook has a note from last year saying sliding-window models need `--disable-hybrid-swa-memory` with hicache, which we never applied because it wasn't needed. Should I apply it now? What actually changed here?",
+      "expected_output": "Correctly attributes the behaviour change to the SGLang release line rather than to the operator's config, model or workload: between v0.5.12 and v0.5.15 the hierarchical-cache path for sliding-window/hybrid models changed (HiCache became the default hybrid path via a unified tree in v0.5.13), so identical flags now take a different code path. It should treat the higher hit rate and higher host RSS as consistent with that change, tell the operator to re-benchmark and re-derive sizing on the new path instead of blindly applying a runbook note written against the old one, and give a way to bound host memory before the box OOMs.",
+      "files": [],
+      "assertions": [
+        "Identifies a change in the SGLang release (the v0.5.13-era default hybrid/sliding-window cache path) as the root cause, not a config error, model change, workload drift or memory leak",
+        "Does not tell the operator to apply the old `--disable-hybrid-swa-memory` runbook note as-is; treats that guidance as predating the code-path change and requiring re-verification on the current version",
+        "Explains that the host-DRAM pool is sized by the ratio flag and gives a concrete way to cap it (lower ratio or explicit per-rank size) so the 512GB box is not pushed to OOM",
+        "Connects the higher hit rate and higher RSS as two effects of the same change rather than treating them as unrelated symptoms",
+        "Recommends re-benchmarking / re-tuning on the new version (or pinning back to v0.5.12.post1 as a controlled comparison) instead of assuming the old tuning still transfers",
+        "Does not recommend disabling hierarchical caching outright as the fix"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "replica-fleet-hit-rate-collapse",
+      "prompt": "Something is off with our cache numbers and I've burned two days on it. Setup: 4 identical SGLang replicas, each its own node with 8x H100 and 1.5TB DRAM, serving deepseek-ai/DeepSeek-R1 at TP=8, image v0.5.15.post1. Flags per replica: `--enable-hierarchical-cache --hicache-ratio 4 --page-size 64 --hicache-mem-layout page_first_direct --hicache-io-backend direct --hicache-write-policy write_through --hicache-storage-prefetch-policy timeout --enable-cache-report --enable-metrics --mem-fraction-static 0.85`. No `--hicache-storage-backend`. In front of them is nginx with plain round-robin over the four upstreams, health check on /health. The workload should be a cache dream: an internal coding agent where every request carries the same 38k-token system prompt plus repo context, and a single agent session fires 30-60 turns over ten minutes. Measured cached_tokens ratio per replica sits at 11-14%. I've taken the ratio from 2 to 3 to 4 (host pool is nowhere near full, ~180GB used of the budget), tried page-size 32, tried best_effort prefetch. Nothing moves the number. GPU util is fine, no errors. Where is the hit rate going?",
+      "expected_output": "Identifies request routing as the root cause: nginx round-robin scatters a session's turns across four replicas whose host and device caches are entirely private, so each turn lands on a worker that has never seen the prefix. It should explain that raising the host-pool ratio cannot help a miss caused by landing on the wrong worker, and offer the two real fixes — cache-aware/session-affine routing across replicas, and/or adding a shared distributed tier so the four workers can hit each other's cached prefixes.",
+      "files": [],
+      "assertions": [
+        "Identifies round-robin request distribution across independent replicas as the root cause, not host-pool sizing, page size, prefetch policy or write policy",
+        "States that each replica's device and host cache tiers are private to that process and are not shared between the four nodes",
+        "Explains why increasing the host-pool ratio further cannot raise the hit rate under this routing, so the operator stops tuning that knob",
+        "Proposes cache-aware or session-affinity routing in front of the replicas (replacing plain round-robin) as a fix",
+        "Proposes adding a shared distributed L3 tier as the alternative or complementary fix that lets one replica hit a prefix another replica populated",
+        "Notes that ~12% is roughly what random 1-of-4 placement would yield, connecting the measured number to the routing explanation"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "write-and-prefetch-policy-for-p99-slo",
+      "prompt": "Contract question, need a decision I can defend to our SRE lead. We run Qwen/Qwen3-235B-A22B-Instruct-2507, TP=8, on v0.5.15.post1, with Mooncake as the shared tier over a healthy 400G RoCE fabric, host pool at ratio 2, page size 64. The contract SLO is p99 TTFT under 2.5s, measured end to end, with financial penalties past it; mean TTFT nobody cares about. Two open questions: (1) write policy — we're on the default write_through, and one of our engineers read that write_back roughly halves host-to-storage write traffic and wants to switch, another says write_back is a known crash. (2) prefetch policy — we're currently on best_effort and our hit-rate is lower than the blog numbers; wait_complete looks like it would fix that. Which combination do you actually recommend for this SLO, and what's the argument?",
+      "expected_output": "Recommends a bounded-wait prefetch policy (timeout) and explicitly rejects wait_complete for a p99-penalty SLO because it blocks on the distributed tier and inflates tail latency; explains best_effort trades hit rate for a bounded tail. On write policy, recommends staying on write_through as the production default while correcting both engineers: write_back is no longer a known-open crash on this version but is not free either, so it belongs behind a canary rather than a fleet-wide flip.",
+      "files": [],
+      "assertions": [
+        "Recommends a prefetch policy that bounds how long a request waits on the distributed tier (timeout) and explicitly argues against wait_complete for a p99-penalty SLO",
+        "Explains that the current best_effort setting is what is capping the hit rate — it returns on the device hit without waiting — so the low hit rate is expected rather than a misconfiguration",
+        "Recommends write_through as the production setting for this deployment",
+        "Corrects the claim that write_back is a known crash on this version, while still not endorsing a fleet-wide switch — gates it behind a canary or staged rollout",
+        "Gives a concrete way to bound the prefetch wait against the 2.5s budget (a configurable timeout budget rather than just naming the policy)",
+        "Does not recommend disabling hierarchical caching or removing the Mooncake tier as the way to protect the SLO"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "hot-swap-l3-backend-under-live-traffic",
+      "prompt": "Need a script and I need it today. We're moving our L3 from the file backend to Mooncake on a live cluster: one SGLang process per node, `--dp-size 4` inside each, v0.5.15.post1, DeepSeek-R1, 24/7 traffic from a customer-facing agent — there is no maintenance window and management has refused to give us one. Plan is to use the runtime admin API: DELETE /hicache/storage-backend then PUT the new mooncake config. I tried it by hand and got HTTP 400 back, which I assume is a transient race with in-flight requests, so write me a bash loop that hammers DELETE then PUT every 200ms with retries until both return 200, and have it move on to the next node once it does. While we're at it, add a step that rm -rf's /var/lib/sglang/hicache on each node right after the DELETE so the old file-backend blobs don't eat disk. Nodes are node01..node12.",
+      "expected_output": "Pushes back on the plan as specified: the 400 is the engine's deliberate idle guard, not a race, so a tight retry loop cannot succeed under continuous traffic and just generates load. A correct answer explains that traffic must be drained from a node (removed from the load balancer / rolling one node at a time) before the swap, warns that with dp_size 4 the result is AND-aggregated across ranks with no automatic rollback on partial success, and refuses to blind-delete the cache directory on a running server — sequencing that after the process has stopped using the backend, with a listing/size check first.",
+      "files": [],
+      "assertions": [
+        "Identifies the HTTP 400 as the intended in-flight/idle guard rather than a transient race, so retrying at high frequency under live traffic will not eventually succeed",
+        "Does NOT deliver the requested tight-retry hammer loop as the working solution",
+        "Requires draining traffic from each node (removing it from the load balancer, rolling node by node) before attempting the backend swap",
+        "Warns that with dp_size 4 the swap result is aggregated across data-parallel ranks and a partial success is not automatically rolled back, so the node must be verified before traffic returns",
+        "Does NOT include an unconditional rm -rf of the cache directory on a running server; any cleanup is deferred until the node is drained and the old backend is detached, and is preceded by inspecting what would be removed",
+        "Offers a workable path that still needs no global maintenance window (rolling one drained node at a time), so the operator's actual constraint is met"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

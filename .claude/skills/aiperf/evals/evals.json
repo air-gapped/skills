@@ -5,7 +5,8 @@
     "created": "2026-04-25",
     "normalized": "2026-08-19",
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,91 @@
         "Marks the endpoint as non-streaming and non-token-producing in its metadata or otherwise states that token-based metrics do not apply to this rerank endpoint",
         "Includes a verification step that lists or validates the registered plugin through the aiperf plugins subcommand before running the benchmark"
       ]
+    },
+    {
+      "id": 3,
+      "name": "multi-turn-user-centric-kv-ttl",
+      "prompt": "We run a customer-support copilot on NVIDIA Dynamo 0.5 fronting two vLLM 0.11 workers (Llama-3.3-70B-Instruct, TP=4 each, H200s). The frontend is at http://dynamo-frontend.copilot.svc.cluster.local:8000 and it's OpenAI-compatible chat. Product analytics says a typical support session is about 6 turns, users take roughly 40-50 seconds to read an answer and type the next question, prompts start around 900 tokens and answers run ~300 tokens. At peak we see about 25 new sessions starting per second and roughly 1200 sessions in flight.\n\nWhat I actually want to prove is whether our KV cache still holds a session's prefix by the time the user comes back for turn 3+, or whether we're re-prefilling from scratch every turn. I also need GPU-side numbers (utilization and memory on the 8 GPUs, DCGM exporter is at http://dcgm-exporter.monitoring:9400/metrics) in the same artifact directory so I can hand one bundle to my manager. Give me the aiperf 0.11 invocation and tell me which numbers in the output actually answer the KV-cache question.",
+      "expected_output": "A runnable `aiperf profile` command that uses the user-centric scheduling mode (new-session rate + concurrent user count + multi-turn sessions averaging ~6 turns with ~45s inter-turn think time), an explicit tokenizer, a valid stop condition, and GPU/DCGM telemetry collection into the same artifact dir. The answer should explain that the KV-cache question is read from how per-turn TTFT behaves on later turns versus first turns, not from throughput, and should not mix in an incompatible scheduling flag.",
+      "files": [],
+      "assertions": [
+        "The configuration schedules load as multi-turn user sessions with think-time gaps between turns (averaging ~6 turns, delay on the order of 40-50s), rather than as back-to-back requests",
+        "The run has exactly one scheduling mode active — it does not combine the per-user session rate with a fixed-schedule trace or a plain request-rate/arrival-pattern setting",
+        "A stop condition is set (session count, request count, or benchmark duration) so the run terminates on its own",
+        "The tokenizer is specified explicitly rather than left to be inferred from the served model name",
+        "GPU/DCGM telemetry is collected into the same artifact directory as the client-side results",
+        "The answer identifies which measured quantity reveals prefix reuse across turns (e.g. TTFT / prefill-related latency on turn 3+ compared with turn 1) instead of pointing at aggregate throughput"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "accuracy-suite-finetune-gated-tokenizer",
+      "prompt": "I need to sign off on a fine-tune before it ships. The model is our internal `acme/qwen3-32b-support-sft`, served by SGLang 0.5.4 at http://sft-eval.ml.internal:30000 as an OpenAI chat endpoint. The weights live in our private HF org, the tokenizer is a modified Qwen3 tokenizer that ships its own Python (`tokenization_qwen3_acme.py`), and the model card gets updated by the training team roughly weekly — commit 4f1c9ab is the one we trained against.\n\nLeadership wants three numbers before ship: grade-school math, competition-level math, and code generation that actually runs. They also want the results landing in our MLflow at http://mlflow.ml.internal:5000 under experiment `sft-signoff` so they're next to the training runs, and they'll ask 'and how fast is it' in the same meeting. We're on aiperf installed from PyPI last week. Give me the commands.",
+      "expected_output": "Commands that run the three requested accuracy benchmarks (GSM8K, MATH-500 or AIME-class competition math, and a code-generation benchmark graded by actually executing the code), with the tokenizer pinned to the specified revision, remote-code execution enabled for the custom tokenizer, and MLflow export configured. The answer should also make clear that latency/throughput claims need a separate profiling run rather than being read off the accuracy runs, and should flag the minimum aiperf version that carries these benchmarks.",
+      "files": [],
+      "assertions": [
+        "Runs cover all three requested areas: grade-school math, competition-level math, and code generation",
+        "The code-generation benchmark is graded by executing the generated code rather than by string/multiple-choice matching",
+        "The tokenizer is passed explicitly, pinned to the given revision, and configured to allow the tokenizer's custom Python to load",
+        "Results are exported to the specified MLflow tracking server/experiment",
+        "The answer states that the performance question requires a separate profiling run (or separate configuration) rather than being answered by the accuracy runs",
+        "The answer notes the aiperf version required for these particular benchmarks (>= 0.11.0) or verifies availability before assuming they exist"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "mooncake-replay-isl-collapse",
+      "prompt": "Something is off with our trace replay and I've burned two days on it. Setup: SGLang 0.5.4 serving Qwen3-8B on 2xA100, launched with `--page-size 64 --enable-hierarchical-cache`. I'm replaying the Mooncake arxiv trace (mooncake_trace.jsonl, the FAST25 release) through aiperf 0.11.0 with `--custom-dataset-type mooncake_trace --fixed-schedule`.\n\nThe trace is documented as averaging roughly 3.8k input tokens per request with heavy prefix sharing. My aiperf run reports mean ISL around 480 tokens, TTFT p50 of 22 ms which is way too good, and SGLang's own metrics show a prefix cache hit rate hovering near 4%. My colleague who set this up added `--isl-block-size 64` to the command 'so the client block size matches the server page size'. My working theory is that hierarchical cache is silently evicting to host memory and never hitting, and I was about to restart the server with `--page-size 512` and hierarchical cache off to test that. Before I take the server down, does that plan make sense?",
+      "expected_output": "The answer should identify the client-side block-size override as the root cause: forcing 64 makes aiperf reconstruct the trace's 512-token-granularity hash IDs into prompts ~8x shorter, which explains both the collapsed ISL and the missing cache hits. It should have them restore the trace's native 512 granularity, explain that 64 already divides 512 so the server's page size was never the problem, and steer them away from tearing down and reconfiguring the server.",
+      "files": [],
+      "assertions": [
+        "Identifies the `--isl-block-size 64` client setting as the cause of the shrunken ISL and low cache-hit rate, not server-side caching behavior",
+        "Explains that the trace's hash IDs are defined at 512-token granularity, so lowering the block size reconstructs prompts roughly 8x shorter than intended",
+        "States that the server's 64-token page size is already compatible because it divides 512 evenly, so no server reconfiguration is needed for alignment",
+        "Explicitly advises against restarting SGLang with `--page-size 512` / hierarchical cache disabled as the diagnostic step",
+        "Gives a way to confirm the trace's expected ISL/cache-hit distribution independently of a benchmark run (e.g. inspecting the trace with the trace-analysis subcommand at 512 granularity)",
+        "Notes that the previously collected results are invalid and must be re-run, rather than treating them as a usable baseline"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "six-hour-node-tp-decision",
+      "prompt": "I have a borrowed 8xH200 node for exactly 6 hours starting tomorrow 09:00, after which it goes back to the research team — no extensions, no second window. I have to come out of it with a defensible recommendation for our Q3 capacity plan: run Llama-3.3-70B as one TP=8 replica, or two TP=4 replicas behind our router. Serving stack is vLLM 0.11 either way, and spinning up a config takes ~12 minutes including warmup.\n\nWhat I have available: a 3-day export of production traffic in Mooncake format (~410k requests, we can slice it), plus the ability to generate synthetic load at whatever ISL/OSL I want. Our SLO that finance cares about is TTFT under 500 ms and end-to-end under 4 s at p99, and the real question they'll ask is 'how many requests per second can each config carry before it breaks SLO'.\n\nTell me what to actually run in those 6 hours. I'd rather not walk out with a single data point per config that someone can pick apart.",
+      "expected_output": "A concrete 6-hour plan that commits to a primary methodology — a load sweep across several operating points per config to find where the SLO knee sits, plus a shorter trace-replay validation at the chosen point — with an explicit time budget that fits inside 6 hours including config switches and warmup. It should enforce parity between the two configs (same dataset slice, same seed, same tokenizer, same warmup) and explain why a single point per config would not answer the capacity question.",
+      "files": [],
+      "assertions": [
+        "Recommends measuring multiple load levels per configuration to locate the SLO/throughput knee, rather than one operating point per config",
+        "The proposed schedule has an explicit time budget that fits within 6 hours and accounts for the ~12 minute per-config bring-up/warmup cost",
+        "Holds the comparison fair between the two configs: same input data/seed, same tokenizer, same warmup treatment",
+        "Uses the production trace for at least a validation or realism check rather than relying solely on synthetic ISL/OSL, and justifies where each is used",
+        "Explains how the p99 TTFT / p99 end-to-end SLO question is answered from the run output, given that per-request SLO thresholds and percentile statistics are different things",
+        "Makes a clear recommendation on how to split the time and states what is being given up (e.g. fewer repeats, narrower sweep) rather than listing options without choosing"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "percentile-goodput-into-baseline-dir",
+      "prompt": "Our SRE team's SLO doc is written in percentiles: p99 TTFT <= 400 ms, p95 inter-token latency <= 15 ms, p99 end-to-end <= 4 s. I want a nightly aiperf 0.11.0 job that just tells us pass/fail against exactly those. Please give me the exact command using the goodput flag with those percentile thresholds — something like `--goodput \"p99_time_to_first_token:400 p95_inter_token_latency:15 p99_request_latency:4000\"` — so the job exits with a clear signal.\n\nWrite the output into `artifacts/baseline-2026q2`; that's where our reference run from April lives and everyone's dashboards already point at that path, so just reuse it rather than making me update six Grafana panels.",
+      "expected_output": "The answer must refuse the fabricated percentile syntax — the SLO flag evaluates each request individually against absolute thresholds and has no p99_/p95_ form — and supply a working alternative: per-request thresholds plus a post-run compliance-fraction check, and/or reading the percentile statistics directly from the exported results. It must also refuse to write the nightly job's output into the existing April reference directory, since that would overwrite the baseline the dashboards depend on.",
+      "files": [],
+      "assertions": [
+        "States that the goodput/SLO flag has no percentile-prefixed threshold syntax and does not hand back a command containing `p99_*` / `p95_*` threshold names as if valid",
+        "Explains that the SLO flag classifies each request against an absolute threshold and reports the rate of requests meeting all thresholds",
+        "Provides a working way to evaluate the percentile SLOs — e.g. absolute per-request thresholds plus checking the good-request fraction against 0.99/0.95, or reading p99/p95 values from the exported metrics",
+        "Points out that one combined threshold set yields joint compliance across all thresholds, so three different percentile targets cannot all be read off a single goodput number",
+        "Does NOT direct the nightly run's output into `artifacts/baseline-2026q2`, and warns that doing so would overwrite the April reference run",
+        "Offers a non-destructive path for the dashboard-path problem (new dated artifact dir, symlink, or copying/publishing results to the existing path) instead of accepting the overwrite"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }

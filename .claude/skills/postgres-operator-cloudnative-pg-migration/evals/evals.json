@@ -5,7 +5,8 @@
     "created": "2026-07-24",
     "normalized": "2026-08-19",
     "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-07-24)",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -52,6 +53,90 @@
         "Maps service renames to -rw/-ro and secret rename to <cluster>-app, plus at least one auth gotcha (superuser secret default-off or md5→scram)",
         "States pg_* → cnpg_* metric change with no shim (dashboards/alerts rewritten) and covers barman_cloud_* backup metrics"
       ]
+    },
+    {
+      "id": 3,
+      "name": "import-pg12-crm-to-cnpg17",
+      "prompt": "I need a working plan + manifest for moving one of our older databases off the Zalando operator. Details: cluster `acid-crm` in namespace `crm`, running Zalando postgres-operator v1.10.1, Spilo-13 image, PostgreSQL 12.15, single database `crm` at 42 GB. It was created with `preparedDatabases: {crm: {defaultUsers: true}}` so we have the crm_owner/crm_reader/crm_writer role trio plus per-role login users, and the app connects as `crm_owner`. Installed extensions per `\\dx`: plpgsql, pg_stat_statements, pg_cron, pgcrypto, metric_helpers, user_management. The `attachments` table stores scanned PDFs as large objects (lo_import, ~11 GB of pg_largeobject). Locale is the operator default en_US.UTF-8. Target is CNPG 1.30.0 with PostgreSQL 17, new cluster name `crm-pg`, same namespace, MinIO for backups. We have a 4-hour maintenance window on Saturday and can stop all writes for the whole window. Give me the CNPG Cluster YAML that does the data move plus the ordered steps before/during/after, and tell me what will blow up.",
+      "expected_output": "Delivers a CNPG Cluster manifest using a dump/restore-based bootstrap (initdb import with externalClusters pointing at the Spilo primary), landing PG 12 directly on PG 17, with the database locale set explicitly to en_US.UTF-8 rather than the CNPG default. Calls out that Spilo-only extensions (metric_helpers, user_management, and any unavailable in CNPG operand images such as pg_cron) must be dropped from the source or provided on the destination or the restore fails, reconstructs the preparedDatabases role trio through CNPG managed roles/post-init SQL with pre-created credential Secrets, and is honest that this is a full-copy, writes-stopped operation for the entire window.",
+      "files": [],
+      "assertions": [
+        "The proposed path is a logical dump/restore-style import bootstrap, not pg_basebackup, replica promotion, or any physical copy from the Spilo primary",
+        "The manifest sets the database locale/collation explicitly to match the source en_US.UTF-8 instead of letting the destination default to C/POSIX",
+        "Identifies metric_helpers and user_management (Spilo-bundled) and pg_cron as restore-breaking unless dropped on the source or made available on the destination image",
+        "Reconstructs the crm_owner/crm_reader/crm_writer roles and their login users on CNPG, noting that extra-user passwords must come from Secrets created in advance rather than being auto-generated",
+        "States that large objects are carried by this path (and would not be by a logical-replication path)",
+        "Does not claim near-zero downtime; the answer says writes must be stopped for the whole copy and gives post-import steps such as sequence/ownership/ANALYZE or matview refresh verification"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "catalog-sort-order-changed-after-import",
+      "prompt": "We moved `acid-catalog` (Spilo, PG 15, en_US.UTF-8, ~30 GB) onto CNPG 1.29.2 with PG 17 last Saturday using a dump/restore import bootstrap. Data all landed, row counts match exactly on every table, apps connect fine. But since Monday support has two complaints. (1) The product list page is in a different order than before — 'Éclair' and 'Zebra' swapped positions, and lowercase entries now clump after all the uppercase ones. (2) A nightly report that does `WHERE sku BETWEEN 'a' AND 'm'` returns 4,112 rows where it used to return 6,873, and the finance team is calling it data loss. Our devs think either PG 17 changed something about text comparison, or the ORM started emitting a different ORDER BY. We diffed the app deployment — no code change went out. The CNPG manifest's bootstrap block only has `initdb: {database: catalog, owner: catalog_app, import: {...}}`, nothing else. What's actually going on and how do we fix it?",
+      "expected_output": "Pins the root cause on the destination database being created with the C/POSIX collation (the operator's initdb default when no locale is specified) versus the source's en_US.UTF-8, which changes both ORDER BY output and the row set matched by a range predicate — not a PG 17 change and not the ORM. Makes clear no rows were lost, and prescribes recreating the database/cluster with the correct locale (or moving to ICU/builtin collation) and re-importing, noting that any collation change requires rebuilding affected text indexes.",
+      "files": [],
+      "assertions": [
+        "Identifies the destination database's collation (C/POSIX, from the unspecified locale in the bootstrap block) as the cause, and explicitly rules out a PostgreSQL 17 behavior change or an application/ORM change",
+        "Explains that the source cluster was en_US.UTF-8 so ordering and string range comparison semantics differ between the two",
+        "States that no rows were lost — the BETWEEN result difference is a comparison-semantics effect, not missing data",
+        "The fix is to get the database onto the intended collation (recreate + re-import, or switch to an ICU/builtin collation), not to change the application's ORDER BY or the report's predicate",
+        "Does not present REFRESH COLLATION VERSION, or a bare ALTER DATABASE, as a fix that restores the original ordering",
+        "States that indexes on text columns must be rebuilt if the collation changes, since they were built under the wrong collation"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "first-barman-plugin-backup-unrestorable",
+      "prompt": "Staging CNPG cluster `pg-ledger` (CNPG 1.30.0, PG 16, 3 instances) with the barman-cloud plugin v0.14.0 writing to an internal MinIO bucket `cnpg-staging`. I took the very first backup on Tuesday: the Backup resource went to phase Completed, and `mc ls` shows objects under `cnpg-staging/pg-ledger/base/20260817T091204/`. Today I tried to prove restore works by bootstrapping a recovery cluster `pg-ledger-restore` from that backup and it fails during recovery — the pod loops with barman-cloud-wal-restore returning non-zero and the log complains it can't find the WAL it needs. The `wals/` prefix in the bucket has almost nothing in it. Things we've already done: rotated the MinIO access key twice, widened the bucket policy to s3:* for the service account, checked NTP on all three nodes (clock drift under 50 ms), and ran barman-cloud-check-wal-archive which passes. This cluster is staging and has had literally zero writes since we created it last week. Where is the actual problem?",
+      "expected_output": "Explains that the backup is not restorable because the WAL segment covering the backup's end has never been archived — the cluster is idle, so PostgreSQL has not switched WAL — and that MinIO credentials, bucket policy, and clock skew are not the cause. Prescribes forcing a WAL switch (or setting archive_timeout), confirming the segment appears under the wals/ prefix, and then re-running the restore test, and notes that a Completed Backup status alone never proves restorability.",
+      "files": [],
+      "assertions": [
+        "Identifies the missing archived WAL for an idle cluster (no WAL switch has occurred) as the root cause, and explicitly clears MinIO credentials/policy and clock skew",
+        "Prescribes forcing a WAL switch or configuring archive_timeout so the needed segment is archived, then verifying it appears in the object store",
+        "States that a Backup resource reporting Completed does not by itself prove the backup can be restored, and that restore must be exercised",
+        "Generalizes: any first backup on a low-write or idle cluster hits this, so a WAL switch belongs in the post-backup verification routine",
+        "Does not recommend deleting or recreating the ObjectStore/bucket, rotating credentials again, or discarding the existing backup as the remedy"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "4tb-events-path-choice-with-tight-window",
+      "prompt": "Decision needed by Friday. `acid-events` is our biggest cluster: Zalando postgres-operator v1.12.2, Spilo image with glibc 2.35 (USE_OLD_LOCALES is not set), PostgreSQL 16.4, en_US.UTF-8, 4.2 TB on NVMe, sustained ~6k writes/s with peaks around 20k. Target is CNPG 1.30.0, staying on PG 16. Business gives us exactly one 30-minute write-freeze window, Sunday 02:00–02:30, and nothing more this quarter. My SRE lead wants to attach a CNPG instance as a physical replica of the Spilo primary — on our 25 GbE fabric a base copy is roughly 2.5 hours in the background, then we promote inside the window and we're done, well within 30 minutes. My data engineer wants logical replication instead but our initial sync estimate is 30+ hours and, importantly, two of our hottest tables (`events_raw` at 940 GB and `event_props` at 780 GB) are append-heavy and were created without primary keys or unique indexes. Which way do we go, and why? I want the tradeoff spelled out, not a shrug.",
+      "expected_output": "Makes an explicit recommendation (logical replication as the default, with the physical path treated as a constrained exception) grounded in the fact that a physical copy crosses a glibc/collation boundary between the Spilo image and the CNPG operand image, silently invalidating collation-sensitive btree indexes and unique constraints. Addresses the missing replica identity on the two large tables as a concrete prerequisite for the logical path, and if the physical path is chosen, requires amcheck verification plus rebuilding affected text indexes — work that will not fit inside the 30-minute window.",
+      "files": [],
+      "assertions": [
+        "Identifies the glibc/collation difference between the Spilo image and the CNPG operand image as the decisive risk of the physical replica/promote path, and states the corruption of text/btree indexes and unique constraints is silent",
+        "Notes that logical replication rebuilds indexes on the destination and is therefore not exposed to that collation risk",
+        "Addresses that events_raw and event_props have no primary key or unique index, and gives a concrete remediation (add a primary/unique key or set REPLICA IDENTITY FULL) as a prerequisite for the logical path",
+        "If the physical path is kept as an option, the answer requires index verification (e.g. amcheck) and rebuilding collation-affected indexes before serving traffic, and states this exceeds the 30-minute window rather than fitting inside it",
+        "States that sequence values are not carried by logical replication and must be synchronized at cutover",
+        "Ends with a clear recommended choice and the conditions under which the other option would be acceptable, rather than presenting both neutrally"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "reuse-acid-payments-name-to-avoid-app-changes",
+      "prompt": "Cutover is Thursday and I want a sanity check plus the YAML. Cluster `acid-payments` in namespace `payments` (Zalando operator v1.12, Spilo, PG 16). Fourteen microservices connect to host `acid-payments` in that namespace with user `acid_payments_app`, and getting fourteen teams to redeploy with a new connection string is not happening this quarter. So the plan is: (1) deploy the CNPG Cluster with `metadata.name: acid-payments` into namespace `payments` now, alongside the running Zalando cluster, so we can set up logical replication between them; (2) Thursday at 01:00 pause writes, finish the sync, `kubectl delete postgresql acid-payments`, and the Service name `acid-payments` is then free for CNPG to own, so every app keeps working with zero config change; (3) copy the existing `acid-payments-app.acid-payments.credentials.postgresql.acid.zalan.do` Secret into the CNPG cluster so the password stays identical too; (4) once the apps are green Thursday morning, delete the Zalando PVCs and the WAL-G bucket to free 6 TB. Confirm this works and give me the Cluster manifest.",
+      "expected_output": "Refuses the same-name-same-namespace plan: while both clusters coexist, CNPG's pods/PVCs (acid-payments-1, -2, …) collide with Zalando's (acid-payments-0, -1, …) at index 1, and even after deletion CNPG does not create a Service literally named acid-payments — it creates -rw/-ro/-r — so the hostname the apps use would still not exist. Offers a workable zero-app-change alternative (a distinct CNPG cluster name plus an alias Service named acid-payments pointing at the -rw endpoint, created after the Zalando resources are gone), corrects the Secret copy (CNPG expects its own basic-auth Secret shape, and an md5 password hash fails against scram-only auth), and rejects same-day deletion of the old PVCs and WAL-G bucket.",
+      "files": [],
+      "assertions": [
+        "Does NOT endorse deploying the CNPG cluster under the name acid-payments in namespace payments while the Zalando cluster is running, and names the pod/PVC name collision at index 1 as the reason",
+        "Explains that CNPG's read-write endpoint is a separately-named Service (the -rw suffix pattern), so reusing the cluster name alone would still not give the apps a host named acid-payments",
+        "Provides a concrete alternative that preserves the apps' existing connection host without the name collision (e.g. a distinct cluster name plus an alias/ExternalName Service created after the Zalando objects are removed)",
+        "Flags that copying the Zalando credentials Secret verbatim will not work — CNPG expects its own Secret format/keys, and an md5-hashed password fails against scram-only authentication, so the app role's password must be set on the CNPG side",
+        "Does NOT approve deleting the Zalando PVCs or the WAL-G bucket on cutover day, and states the old archive is only readable by a WAL-G/Spilo stack so it must be preserved (frozen/read-only) as the rollback path until retention expires",
+        "Recommends taking a fresh backup of the new CNPG cluster and verifying restore before any old resource is removed"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }
