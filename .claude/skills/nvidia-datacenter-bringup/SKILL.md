@@ -127,7 +127,6 @@ On a fresh 8-GPU B300, FM takes ~30–90 s to finish fabric registration on firs
 | gpu-operator host-contract + cuda-validator triage | [[gpu-operator]] |
 | Symptom → cause → fix playbook | [[troubleshooting]] |
 | Dated URL index | [[sources]] |
-| Open follow-ups / ceiling findings | [[improvement-backlog]] |
 | NVIDIA Fabric Manager User Guide (offline copy) | [[fabric-manager-guide]] |
 | NVIDIA Driver Install Guide — Ubuntu chapter | [[driver-install-ubuntu]] |
 | NVIDIA Driver Install Guide — Kernel modules | [[driver-install-kernel-modules]] |

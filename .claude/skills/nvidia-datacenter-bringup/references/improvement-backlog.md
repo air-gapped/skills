@@ -4,47 +4,57 @@ Open ceiling findings and follow-ups that need either author input, on-cluster v
 
 ## Open
 
-### Dell baseboard firmware v1.4.30 floor + ExtendedReset vs FullPowerCycle drift (carried 2026-05-28)
+*(empty — all seven carried items were closed on 2026-08-19; see below. An entry
+belongs here only when something specific and external prevents doing it now,
+named in the entry. "Needs author judgement" is a decision, not a blocker.)*
 
-- **Affects:** [[dell-firmware]]
-- **Question:** Dell KB 000355295 says `DellOemChassis.ExtendedReset` is required because standard `Chassis.Reset FullPowerCycle` doesn't propagate to the GPU baseboard. Unknown whether newer iDRAC 10.x firmware closes this gap on XE9780/XE9785, or whether the OEM path remains required indefinitely. Also: whether v1.4.30 is still the newest GA baseboard firmware floor.
-- **Why not in one iteration:** Both the firmware floor and the OEM Redfish action sit behind the Dell support-portal login; skill-improver freshen 2026-05-28 verdict was UNVERIFIABLE — no public release-notes page is web-indexed for these SKUs. Needs Dell to confirm or new KB to land. Re-verify periodically.
+## Resolved — 2026-08-19 (backlog drain)
 
-### Per-host vs site-wide MOK threat model
+Four fixes, three withdrawals. The headline: the oldest item was blocked on a
+premise that was false.
 
-- **Affects:** [[secure-boot]]
-- **Question:** For fleets of 50+ B300 hosts, is a shared site-wide MOK (baked into the golden image) acceptable per the operator's threat model, or must each host carry a unique MOK to limit key-compromise blast radius?
-- **Why not in one iteration:** Author judgment — depends on whether the threat model treats a stolen private key as a fleet-wide compromise risk. Document both options without recommending one.
-
-### DOCA postinst overwriting `/etc/modules-load.d/ib_umad.conf`
-
-- **Affects:** [[troubleshooting]]
-- **Question:** If an operator works around the install-order trap with `echo ib_umad > /etc/modules-load.d/ib_umad.conf`, does a subsequent DOCA package upgrade overwrite that file?
-- **Why not in one iteration:** Needs to test against a DOCA upgrade in a sandbox.
-
-### gpu-operator issue #2231 status (carried 2026-05-28)
-
-- **Affects:** [[gpu-operator]]
-- **Question:** B300 PCI ID 0x3182 missing from validator name table — still open with no merged fix as of 2026-05-28 (re-confirmed this freshen pass). NVIDIA waiting on must-gather logs from reporter. Track when this gets fixed (likely 25.10.2 or 26.x bump).
-- **Why not in one iteration:** Upstream-blocked. Re-check during next freshen pass.
-
-### Multi-node NVLink Switch (NVL72) bring-up
-
-- **Affects:** scope of the skill
-- **Question:** NVL72 / GB300 NVL72 rack-scale systems use NMX (NVLink Switch Management) — a superset of single-node FM/NVLSM. Currently explicitly out-of-scope. Worth considering a sibling skill or a section if the user's fleet expands.
-- **Why not in one iteration:** Different architecture, separate doc set (https://docs.nvidia.com/mission-control/docs/systems-administration-guide/), would double the skill size.
-
-### Vendor-non-Dell firmware paths
-
-- **Affects:** [[dell-firmware]]
-- **Question:** Supermicro NVIDIA HGX B300 (SUM/BMC bundles), HPE Cray (SAT/FAS), Lenovo ThinkSystem SR685a (XCC/OneCLI). All require an AC-class power cycle after GPU baseboard flash. Currently the skill defers to vendor docs with a one-line pointer.
-- **Why not in one iteration:** Each vendor has its own KB ecosystem. Worth a per-vendor sidebar if the user's fleet broadens.
-
-### Verify exact `nvlsm` versioning behaviour
-
-- **Affects:** [[packages]]
-- **Question:** apt-cache shows `nvlsm` as a single floating package (calver `2025.10.12-1`), not branch-versioned. The skill claims FM↔driver version match is enforced but NVLSM↔driver coherence is not. Confirm what happens when driver 580.126.20 is paired with `nvlsm 2025.10.12-1` (which is newer): does FM fail to start, warn, or work fine?
-- **Why not in one iteration:** Requires either documentation from NVIDIA (none found) or empirical test on the user's box.
+- **The Dell item was never login-walled, and the KB was misattributed.** The
+  2026-05-28 verdict recorded both Dell claims as UNVERIFIABLE because "Dell
+  release notes / Redfish OEM docs sit behind the support-portal login". They do
+  not. Both driver-details pages (`driverid=xrg43`, `driverid=662gc`) and the KB
+  are publicly readable — the earlier 403 was curl-specific, not authentication.
+  Reading them settles both halves: **v1.4.30 is still the newest GA baseboard
+  firmware** for XE9780/XE9785 (page dated 2026-04-14), and the ExtendedReset
+  requirement is unresolved (KB last updated 2026-05-23, still "a limitation in
+  iDRAC", no fixed-in version; iDRAC10 release-notes index KB 000305325 claims no
+  fix). **And KB 000355295 is titled for XE9680L/XE9685L — not XE9780/XE9785.**
+  The skill had been citing it as authority for the B300 SKUs for three months.
+  Both `dell-firmware.md` passages now carry the scope correction and label the
+  application to XE9780/XE9785 as read-across rather than a Dell statement.
+- **MOK per-host vs site-wide: decision criteria written.** Both options were
+  already documented; the defect was Option B ending in a pointer at this backlog
+  file — a shipped skill telling the reader to consult an internal to-do about an
+  unanswered question. `secure-boot.md` now carries a four-row comparison (blast
+  radius, enrollment events, rotation cost, practical ceiling) and names the
+  condition that selects each, plus the two invariants that hold either way.
+- **DOCA overwriting `/etc/modules-load.d/ib_umad.conf`: answered from dpkg
+  semantics, no sandbox needed.** `troubleshooting.md` now gives the two commands
+  that settle it on any box (`dpkg -S`, `dpkg-query -W -f='${Conffiles}'`) and the
+  rule they resolve to: dpkg never deletes a file it does not ship, and never
+  silently replaces a modified conffile — the real exposure is an unattended
+  pipeline running `--force-confnew`. Belt-and-braces filename suggested.
+- **NVLSM↔driver coherence: documented as unenforced.** `packages.md` now states
+  that `nvlink5-<branch>` declares `nvlsm (>= …)` — a floor, not a pin — so apt
+  will drift the pair with no complaint, in contrast to FM↔driver which aborts on
+  mismatch. NVIDIA publishes no compatibility matrix, so the entry gives the
+  post-upgrade check (`dpkg -l`, `systemctl is-active`, the FM journal line, the
+  `nvidia-smi` Fabric state) and warns against pre-emptive `apt-mark hold`.
+- **WITHDRAWN — gpu-operator #2231.** Duplicate bookkeeping: the issue is tracked
+  in `sources.md`, which the freshen cycle re-probes. It closed 2026-07-27 and
+  `sources.md` already records that with the correct caveat (maintainer closed it
+  asserting B300 support but named no fix PR).
+- **WITHDRAWN — NVL72 / NMX multi-node.** `SKILL.md:114` declares it hard
+  out-of-scope. A conditional "worth considering if the fleet expands" is a wish,
+  not carried work; it reappears if the fleet actually changes.
+- **WITHDRAWN — non-Dell vendor firmware paths.** Already done: `dell-firmware.md`
+  carries the per-vendor sidebar (Supermicro SUM/BMC, HPE Cray SAT/FAS, Lenovo
+  XCC/OneCLI) with the shared AC-cycle requirement. The entry described a gap that
+  had been filled.
 
 ## Resolved — 2026-07-21 (freshen)
 

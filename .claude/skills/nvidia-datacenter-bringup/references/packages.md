@@ -155,6 +155,19 @@ What `nvlink5-580` does **NOT** install:
 
 (Yes, just "SM" — terse.) It depends on `libibumad3` plus build-essential / libc / libgcc / libstdc++. **No dependency on a specific NVIDIA driver branch.**
 
+**Consequence: NVLSM↔driver coherence is not enforced anywhere.** `nvlink5-<branch>` declares `nvlsm (>= 2025.10.12)` — a floor, not a pin — so `apt upgrade` will pull a newer calver `nvlsm` alongside a pinned 580-branch driver and neither apt nor the meta will object. This is the opposite of the FM↔driver relationship, which *is* enforced and aborts with "kernel driver stack version not compatible" on mismatch (see [[troubleshooting]]).
+
+NVIDIA publishes no NVLSM↔driver compatibility matrix, so treat a drifted pair as unverified rather than broken, and confirm on the box after any upgrade that moved `nvlsm`:
+
+```bash
+dpkg -l nvlsm nvidia-fabricmanager | awk '/^ii/{print $2, $3}'
+systemctl is-active nvlsm nvidia-fabricmanager
+journalctl -u nvidia-fabricmanager -b | grep -i 'nvlsm\|subnet manager'   # "Failed to connect to NVLSM" is the tell
+nvidia-smi -q | grep -A2 'Fabric'                                          # State: Completed once registration succeeds
+```
+
+If FM reaches `State: Completed`, the pair is fine in practice whatever the version gap. Hold `nvlsm` at a known-good calver (`apt-mark hold nvlsm`) only after seeing an actual failure — pre-emptive holds strand the subnet manager on old firmware-support tables.
+
 If the FM User Guide text shows `nvlink5-<branch>` but it's missing from the repo: search a fresh `apt-cache search nvlink5` against the current CUDA repo. Package names occasionally lag the docs.
 
 ## What's NOT in Ubuntu archive

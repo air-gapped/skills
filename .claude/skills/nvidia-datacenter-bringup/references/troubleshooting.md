@@ -54,6 +54,17 @@ sudo journalctl --no-pager -u nvidia-fabricmanager -b | tail -50
    ```
    Long-term, reinstall DOCA so its postinst regenerates the modules-load configuration: `sudo apt install --reinstall doca-ofed`.
 
+   **Does a later DOCA upgrade wipe that hand-written file?** Check before assuming, because the answer depends on whether DOCA ships that exact path:
+
+   ```bash
+   dpkg -S /etc/modules-load.d/ib_umad.conf            # names a package, or "no path found"
+   dpkg-query -W -f='${Conffiles}\n' doca-ofed | grep -i modules-load
+   ```
+
+   If `dpkg -S` reports **no path found**, the file is yours alone — dpkg never deletes a file it does not ship, so upgrades leave it intact. If it *is* listed as a package conffile, dpkg will not silently overwrite a locally modified conffile either; it prompts (or, under `-o Dpkg::Options::=--force-confold` in an automated pipeline, keeps yours and drops the new one at `.dpkg-dist`). Either way silent loss is not the failure mode — but an unattended upgrade configured with `--force-confnew` *will* replace it, which is the case worth checking in a CI-driven fleet.
+
+   Belt-and-braces for either outcome: use a distinct filename the package will never own, e.g. `/etc/modules-load.d/zz-site-ib_umad.conf`.
+
 2. **FM version doesn't match driver version** — FM aborts with "kernel driver stack version not compatible". Check:
    ```bash
    cat /proc/driver/nvidia/version | head -1     # driver version

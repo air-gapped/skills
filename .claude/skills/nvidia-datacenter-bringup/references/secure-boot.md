@@ -146,7 +146,22 @@ After enrollment, every B300 in the fleet uses the same MOK. Threat model: a sto
 
 ### Option B: Unique MOK per host
 
-Each host generates its own key on first boot, requires one supervised reboot via iDRAC virtual KVM to confirm MokManager. More secure, more operational overhead. See [[improvement-backlog]] for the open per-host-vs-site-wide question.
+Each host generates its own key on first boot, requires one supervised reboot via iDRAC virtual KVM to confirm MokManager. More secure, more operational overhead.
+
+### Choosing between them
+
+There is no NVIDIA or Canonical guidance here — this is a site threat-model call, and both options are legitimate. Decide on blast radius versus enrollment cost:
+
+| | Site-wide MOK (A) | Per-host MOK (B) |
+|---|---|---|
+| Enrollment events | One supervised reboot per *image*, then unattended | One supervised reboot per *host* |
+| Blast radius of a stolen private key | Every host trusting that key | One host |
+| Key rotation | Re-enroll the fleet | Re-enroll one host |
+| Practical ceiling | Scales to any fleet size | Painful past a few dozen hosts without automated KVM |
+
+Pick per-host when a stolen signing key would be treated as a fleet-wide compromise — regulated environments, shared-tenancy clusters, or anywhere the key material lives on builder hosts with broad access. Pick site-wide otherwise: for most single-tenant lab and HPC fleets the key never leaves the image builder, and the per-host enrollment cost buys little.
+
+Two things that do **not** vary: the MOK's Code-Signing OID restricts it to module signing either way (it cannot sign a kernel or shim), and the private half must be `0600` root-owned on whichever host holds it. A world-readable `/var/lib/dkms/mok.key` defeats both options equally.
 
 ## Disabling Secure Boot entirely
 

@@ -71,7 +71,9 @@ Release notes warning, verbatim:
 
 Translation: the iDRAC web-UI "Full Power Cycle" button doesn't reliably propagate to the GPU baseboard. The firmware update job reports "success" but the new firmware doesn't take effect — sometimes for the GPU baseboard, sometimes for the CX bridge, sometimes partially. The failure is visible when `FirmwareInventory` is checked after the cycle and the versions haven't moved.
 
-**Cure**: use `DellOemChassis.ExtendedReset`, NOT `Chassis.Reset FullPowerCycle`. Per Dell KB 000355295.
+**Cure**: use `DellOemChassis.ExtendedReset`, NOT `Chassis.Reset FullPowerCycle`.
+
+**Citation scope — read this before quoting the KB at Dell support.** The article usually cited here, KB 000355295, is titled *"PowerEdge XE9680L and XE9685L: GPU Firmware Update may Fail with Virtual Power Cycle"* and lists exactly those two liquid-cooled models — **not** XE9780/XE9785 (verified 2026-08-19; last updated 23 May 2026, publicly readable, no login). Dell publishes no equivalent public KB naming XE9780/XE9785. What the KB establishes is the *class* of defect — an iDRAC limitation where a virtual power cycle does not propagate to GPU-assembly firmware — and the three sanctioned workarounds: physical AC cycle, the `DellOemChassis.ExtendedReset` two-step, or the BIOS `Power Cycle Request → FullPowerCycle` setting driven from F2. Applying that recipe to XE9780/XE9785 is a reasonable read-across, not a documented Dell statement about those SKUs. Say so if a support case turns on it.
 
 ## Reliable activation: two-step Redfish (Dell OEM)
 
@@ -111,7 +113,7 @@ curl -k -u "$USER:$PWD" -X POST \
   -d '{"ResetType":"FullPowerCycle"}'
 ```
 
-Dell KB 000355295 indicates the `DellOemChassis.ExtendedReset` two-step is the supported recipe. The single-call `Chassis.Reset FullPowerCycle` works on newer iDRAC firmware but not reliably — Dell engineering called this out. Prefer the two-step.
+KB 000355295 lists the `DellOemChassis.ExtendedReset` two-step as one of three sanctioned workarounds (for XE9680L/XE9685L — see the scope note above). The single-call `Chassis.Reset FullPowerCycle` works on newer iDRAC firmware but not reliably. As of 2026-08-19 the KB still attributes the behaviour to "a limitation in iDRAC" and names no fixed-in version, and the iDRAC10 release-notes index (KB 000305325) carries no entry claiming standard `Chassis.Reset` now propagates to the GPU baseboard. Prefer the two-step.
 
 ## Reliable activation: physical AC pull
 
