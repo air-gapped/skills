@@ -21,6 +21,16 @@ export const meta = {
 //   [{ dir: "keda", hints: "check kedacore/keda releases" }, ...]   per-skill freshen focus
 //   { skills: [...], baseDir: "/some/skills/root" }    override the default skills root
 //
+// baseDir is the portability knob, and it cannot be replaced by auto-detection.
+// A workflow script runs in a sandbox whose entire global set is: log, phase,
+// console, budget, setTimeout, clearTimeout, Date, agent, parallel, pipeline,
+// workflow, args. There is no `process`, no env, no filesystem, and `eval` is
+// disabled — so the script cannot read CLAUDE_SKILL_DIR, $PWD, or its own path
+// (measured 2026-08-19; do not re-open this without re-probing). DEFAULT_BASE
+// below is therefore a convenience for one machine's layout, not a discovered
+// value: on any other checkout, pass baseDir. Bare names are resolved against
+// it, absolute dirs bypass it entirely.
+//
 // All agents inherit the main-loop model (the role the session model plays in
 // a solo run). Blind scorers inherit the session model AND effort (operator
 // decision 2026-08-16), matching references/blind-validation.md §Model
@@ -32,6 +42,10 @@ export const meta = {
 // Paths use ~ (home dir) so the committed script never hard-codes a username.
 // Agents are told to expand ~ to an absolute path before reading.
 const REF = '~/.claude/skills/skill-improver/references'
+// Author-machine default; override with args.baseDir (see header — it cannot
+// be derived, the sandbox has no env or filesystem access). Note this is NOT
+// the same root as REF: skill-improver itself is installed under
+// ~/.claude/skills, while the skills it improves live in the plugin repo.
 const DEFAULT_BASE = '~/projects/skills/.claude/skills'
 const HOME_NOTE = 'NOTE: paths below starting with ~ are under your home directory — expand ~ to an absolute path (run `echo $HOME` if unsure) before reading or editing.'
 
@@ -108,6 +122,8 @@ function reconPrompt(s) {
     '',
     'Skill: ' + s.name,
     'Skill directory: ' + s.dir,
+    '',
+    'STEP 0 — Confirm ' + s.dir + '/SKILL.md exists and is readable. If it does not: STOP. Return notes "skill directory not found: ' + s.dir + ' — caller must pass args.baseDir for this checkout", with empty hypotheses, empty freshen, empty dims, and self.total 0. Do NOT search for a similarly-named skill elsewhere, do not substitute another path, and never emit scores for a file you did not read — a wrong base directory must surface as a stopped run, not as a plausible-looking score.',
     '',
     'STEP 1 — Read these reference files IN FULL:',
     '- ' + REF + '/quality-rubric.md  (the 10-dimension rubric + the Boris Alignment Check caps)',

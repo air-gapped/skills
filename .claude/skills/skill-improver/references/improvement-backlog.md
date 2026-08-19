@@ -5,6 +5,7 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved — 2026-08-19 (workflow-sandbox probe)](#resolved--2026-08-19-workflow-sandbox-probe)
 - [Resolved this pass — 2026-08-15](#resolved-this-pass--2026-08-15-improve-self-run-dynamic-scorer-config)
 - [Resolved — 2026-07-24 (scaffolding discriminator)](#resolved--2026-07-24-scaffolding-discriminator-claude-code-team-blog-pair)
 - [Resolved this pass — 2026-07-24](#resolved-this-pass--2026-07-24-freshen--improve-opus-5-release-day)
@@ -86,11 +87,6 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   mode exists to make it fire), and setting it would remove the description
   from Claude's context entirely.
 
-- **(new 2026-07-24, final-blind, not attempted — cap reached) Dim 7:
-  `scripts/batch-workflow.js` `DEFAULT_BASE` hard-codes the author's repo
-  layout.** Overridable, so not a bug; portability nit only. Decide whether the
-  script should derive the base from `${CLAUDE_SKILL_DIR}` instead.
-
 - **(carried 2026-06-09; RESOLVED 2026-08-16, operator-approved) Dim 2 → 8/9:
   improve-loop phases extracted to `references/improve-loop.md`.** The
   operator accepted the thin-dispatcher trade ("the read is fine",
@@ -127,6 +123,24 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+## Resolved — 2026-08-19 (workflow-sandbox probe)
+
+- **`DEFAULT_BASE` cannot be derived — measured, not assumed.** The 2026-07-24
+  item asked whether `batch-workflow.js` should compute its skills root from
+  `${CLAUDE_SKILL_DIR}`. It cannot: a zero-agent probe run enumerated the
+  workflow sandbox's entire global set as `log, phase, console, budget,
+  setTimeout, clearTimeout, Date, agent, parallel, pipeline, workflow, args`
+  — no `process`, no env, no filesystem, and `eval` disabled. `args.baseDir`
+  is therefore the only portability mechanism there is. What changed instead:
+  the header documents why derivation is impossible (so this does not get
+  re-opened without a re-probe), the constant notes it is one machine's
+  layout and that it is deliberately *not* the same root as `REF`
+  (skill-improver is installed under `~/.claude/skills`; the skills it
+  improves live in the plugin repo), and recon gained a STEP 0 — confirm
+  `SKILL.md` is readable, else STOP and report the bad base. A wrong
+  `baseDir` previously produced agents that could not read the target; the
+  guard makes that a stopped run instead of a plausible-looking score.
 
 ## Resolved this pass — 2026-08-15 (improve, self-run; dynamic scorer config)
 
