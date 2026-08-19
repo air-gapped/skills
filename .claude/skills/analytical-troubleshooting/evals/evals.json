@@ -5,7 +5,8 @@
     "created": "2026-07-29",
     "normalized": "2026-08-19",
     "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-07-29)",
-    "harness": "skill-creator eval loop (aggregate_benchmark)"
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
   },
   "evals": [
     {
@@ -53,6 +54,91 @@
         "Uses the already-performed eliminations (playbook rerun, BIOS version match, NVMe swap) as search-narrowing evidence and does not re-propose them as next steps",
         "States candidate causes as testable mechanisms linking the difference to a ~35% uniform slowdown (e.g. fewer active memory channels → bandwidth-bound analytics queries run slower), not bare component names"
       ]
+    },
+    {
+      "id": 3,
+      "name": "handheld-scanner-dropouts-spec-doc",
+      "prompt": "I need help turning three weeks of scattered on-call notes into one document I can hand to the next shift, because we keep re-explaining this from scratch every Monday.\n\nSite: DC-2, our 34,000 m2 distribution centre. 62 Zebra TC52 handhelds on Android 11, Aruba AP-515 APs on ArubaOS 8.10, ClearPass for auth, one 7210 controller.\n\nWhat we have, in the state we have it:\n- Around July 28 pickers in Zone C (aisles 40-60) started getting kicked off Wi-Fi mid-pick. Scanner shows 'no network', comes back after 20-60 s, the pick has to be redone.\n- Mikael (day shift lead) says it's roughly 15-20 dropouts a day across the zone. I've watched it happen myself twice, both times around 10:30 in aisle 47.\n- Nobody has reported it in aisles 1-39, in receiving, or at the packing stations. Night shift claims it happened twice at about 03:00 but nobody logged the device or aisle.\n- No single scanner is a repeat offender that we know of - the devices roam all over the building.\n- We added 6 more AP-515s in Zone C on July 22 because coverage was thin up there.\n- Racking in Zone C was raised from 6 m to 9 m during the June shutdown, and since mid-July we've been storing foil-wrapped pallets on the top two levels, which we didn't before.\n- All APs building-wide were pushed ArubaOS 8.10.0.7 on July 30. Our network guy is convinced that's it.\n- We have never pulled controller logs or done an RF capture. We also have about 8 older TC51 units still in service in Zone C and I have no idea whether they drop too.\n\nWrite me the handover document.",
+      "expected_output": "A persisted, self-contained document that lays out the problem as a comparative specification: what/where/when/extent, each with the closest thing that could have shown the fault but didn't (aisles 1-39, packing, the pre-July-28 period, the TC51 units), with each fact marked according to whether it was directly witnessed, second-hand, or assumed. It should carry a numbered list of candidate mechanisms with status, an explicit list of the unknown cells as the data-collection task for the next shift, and should note that the July 30 firmware push postdates the first occurrence and therefore cannot be the originating cause. No remediation should be proposed yet.",
+      "files": [],
+      "assertions": [
+        "The document organises the evidence into what/where/when/extent and, for each, pairs the failing case with the closest comparable case that did not fail",
+        "Each fact is marked by how it was obtained - personally witnessed, second-hand from another person, or assumed - and the two directly witnessed observations are distinguished from Mikael's and night shift's reports",
+        "The answer states that the July 30 ArubaOS push cannot be the originating cause because the dropouts began around July 28, and does not carry it as a leading candidate",
+        "At least three candidate causes are stated as mechanisms describing how the dropout would occur, not merely as named components or vendors",
+        "The unanswered items - controller logs, RF capture, whether TC51 units are affected, night shift device/aisle - appear as an explicit list of facts to collect",
+        "No repair, replacement, firmware rollback, or reconfiguration is recommended as the fix in this document"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 4,
+      "name": "intermittent-fiber-link-test-order",
+      "prompt": "Give me a test running order for Saturday morning, please.\n\nThe 10G link between Building A (office) and Building B (lab) drops hard for 3-8 seconds somewhere between every 20 and 90 minutes, then comes straight back. Been doing it since roughly August 4. During a drop we lose 100% of traffic; between drops the link is clean.\n\nThe path, end to end:\n1. Arista 7050SX3 in A, port Et49, 10GBASE-LR optic\n2. 2 m LC-LC patch cord to A patch panel port 12\n3. outside plant single-mode pair, ~1.2 km, two splice enclosures on the route, one of them in a manhole by the car park\n4. B patch panel port 12\n5. 2 m LC-LC patch cord\n6. Juniper EX4400, xe-0/2/0, 10GBASE-LR optic\n\nWhat we know: input CRC errors accumulate on the Juniper side only - the Arista counters stay clean. Optical levels read -6.1 dBm at the Arista and -7.4 dBm at the Juniper, both within spec, but we've only ever read them between drops. The manhole flooded in the spring and was pumped out in April.\n\nConstraints: exactly one maintenance window, Saturday 06:00-08:00, and the link must be back up by 08:00. I can rent an OTDR for that window for 180 euro if I book it Thursday. There is a completely unused spare dark pair on the same route between the same two panels. I have spare LR optics and spare patch cords in the store.\n\nWhat do I do, in what order?",
+      "expected_output": "A test order that leads with a move splitting the eight-element chain roughly in half - most obviously migrating to the spare dark pair, or looping at a patch panel - rather than working along the chain replacing one component at a time, with each step stating which candidates its result would eliminate. It should keep to one change per step, respect the two-hour window by saying what gets deferred if time runs out, and use the one-sided CRC accumulation as directional evidence about where in the path the corruption enters.",
+      "files": [],
+      "assertions": [
+        "The first substantive test splits the path into roughly two halves (for example moving to the spare dark pair, or looping back at a patch panel) rather than sequentially swapping individual components from one end",
+        "Each proposed step states which candidate causes would be eliminated by each possible outcome of that step, not just what to do",
+        "Only one element of the path is changed per step, and the plan does not swap optics, patch cords and re-terminate/re-splice within a single step",
+        "The plan is scoped to the 06:00-08:00 window and explicitly says which steps get dropped or deferred if time runs short, including whether the OTDR rental is worth booking Thursday",
+        "The asymmetry of CRC errors accumulating only on the Juniper side is used to reason about direction or location of the fault rather than ignored",
+        "The plan accounts for the fault being intermittent - it does not treat a clean reading taken between drops as proof that a segment is good"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 5,
+      "name": "backup-window-creep-flash-purchase",
+      "prompt": "Need a sanity check before I sign off a purchase.\n\nVeeam B&R 12, job DAILY-FILESRV backs up FS01 (Windows Server 2019 file server) to a Dell PowerVault ME5024 disk repo over a single proxy. In January the job ran 3 h 05 m. It's now 9 h 20 m and it's started overrunning into the working day, which is why this became my problem.\n\nThe curve is smooth - I have the monthly averages: Jan 3h05, Feb 3h40, Mar 4h15, Apr 5h10, May 6h05, Jun 7h20, Jul 8h30, Aug 9h20. No step, no single bad night.\n\nProtected data went from 2.10 TB to 2.27 TB over the same period - about 8%. File count on the FS01 data volume went from 4.1 million to 26.4 million; the scanning department went live with a workflow in January that writes one JPEG per scanned page into \\\\FS01\\scans.\n\nDAILY-SQL runs to the same ME5024 repo through the same proxy an hour earlier and has sat at 38-42 minutes all year, unchanged.\n\nWe updated the ME5024 controller firmware on July 29. My backup admin is adamant that's what did it and wants me to sign a 38,000 euro all-flash repository to fix the overrun. Purchasing wants an answer this week.\n\nIs the firmware the cause, and does the flash box fix this?",
+      "expected_output": "A correct answer rejects the July 29 firmware update as the cause of a degradation that was already underway for six months before it, uses the flat DAILY-SQL job on the same repo and proxy to exonerate the shared storage path, and identifies the 6x growth in file count against 8% growth in bytes as the mechanism - per-object overhead, not throughput. It should decline to endorse the 38,000 euro purchase on current evidence and name a concrete check that would confirm or refute the per-file mechanism before money is spent.",
+      "files": [],
+      "assertions": [
+        "Concludes the July 29 firmware update does not explain a slowdown whose trend began in January, and does not present it as the cause",
+        "Identifies growth in the number of files/objects (4.1M to 26.4M) rather than total data volume as the leading mechanism for the increased runtime",
+        "Uses DAILY-SQL - same repository, same proxy, runtime unchanged all year - as the comparison that argues against the shared storage hardware being the distinguishing factor",
+        "Treats the month-by-month curve as gradual drift rather than as the effect of a single dated change",
+        "Does not endorse the 38,000 euro all-flash purchase as justified by the evidence presented, and states what would have to be true for it to help",
+        "Proposes at least one specific check or measurement that would confirm or refute the per-file/metadata mechanism before the purchase decision"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 6,
+      "name": "rabbitmq-nine-day-stall-verification-choice",
+      "prompt": "We've narrowed our RabbitMQ problem down to two possibilities and I need a call on how to prove which one it is.\n\nSetup: 3-node RabbitMQ 3.12.13 cluster on RHEL 9, behind an internal F5. Roughly every 9 days (occurrences: May 30, Jun 8, Jun 18, Jun 26, Jul 5, Jul 14, Jul 24, Aug 2, Aug 11) our Java consumers on the order-events queue stop consuming. The connections still show as established on the RabbitMQ side; the consumers think they're fine; messages pile up until someone restarts the consumer pods. Never all three nodes at once, never the publisher side.\n\nThe two candidates left standing:\nH1 - idle connections are being silently reaped by something in the network path (the firewall team changed the TCP session idle timeout on May 21, and our client heartbeat is longer than the new timeout), so the socket is dead but neither end knows.\nH2 - a memory alarm on one node trips flow control, and our consumers handle the resulting block badly and never recover.\n\nThree ways I could go:\nA) Revert the May 21 firewall idle-timeout change. Firewall team can do it Tuesday but only during business hours; there's a ~10 minute window where all site traffic through that pair is at risk, and it burns our one change slot for the sprint.\nB) Reproduce in staging with synthetic load and let it soak for 10-12 days. Zero risk. Staging carries about 1/20th of prod message volume and half the connection count.\nC) Turn on per-connection TCP and channel instrumentation plus memory-alarm logging in prod and wait for the next occurrence, which by the pattern is around Aug 20.\n\nWe have a compliance audit starting Aug 28 and I'd rather not be carrying an unexplained production stall into it. Which one, and why?",
+      "expected_output": "A single recommended primary route with an explicit justification weighing risk, certainty, cost and elapsed time against the Aug 20 expected recurrence and the Aug 28 audit date, rather than a neutral list of pros and cons. It should say, for the recommended action, what each possible result would prove or eliminate about H1 and H2 specifically, and should note that a staging soak failing to reproduce would not refute either candidate given the reduced load and connection count.",
+      "files": [],
+      "assertions": [
+        "Commits to one primary course of action and justifies it, rather than presenting the three options neutrally or recommending all of them equally",
+        "For the recommended action, states what each possible outcome would prove or eliminate about H1 and about H2 individually",
+        "Explicitly reasons about the ~9-day recurrence interval when judging whether the chosen observation window is long enough to mean anything, in relation to the Aug 20 expected occurrence and Aug 28 audit",
+        "Identifies that a staging soak that fails to reproduce the stall would not refute either candidate, given 1/20th volume and half the connections",
+        "Does not recommend applying permanent fixes for both candidates at once, or changing the firewall timeout and the consumer heartbeat configuration in the same step",
+        "Addresses the risk and reversibility of the business-hours firewall change rather than treating it as cost-free"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-08-19"
+    },
+    {
+      "id": 7,
+      "name": "zfs-snapshot-purge-runbook",
+      "prompt": "Write me the exact command sequence for tonight, we're doing this at 22:00.\n\nTrueNAS SCALE 24.04.2, single pool 'tank', dataset tank/vmstore exported over NFS to a 4-host Proxmox cluster, 31 production VMs. Pool is 8x 8 TB in raidz2, 74% full. Several times a day - not on a schedule anyone can see - every VM on the share goes unresponsive for 30 to 60 seconds, then everything resumes as if nothing happened. Started about ten days ago, no config change we're aware of.\n\nA couple of forum threads say a large snapshot count causes exactly this. We have 640 snapshots on tank/vmstore, going back 14 days on an hourly/daily schedule. Plan is: destroy all 640 snapshots, then destroy and recreate the dataset from the replication target and re-import the VMs.\n\nOne detail: the replication task to the offsite box has been failing since Aug 8 - last successful replication was Aug 10... actually let me correct that, last good one was Aug 10 but the task has errored every night since, and I haven't looked at why. Those 640 snapshots and the offsite copy are the only copies of these VMs; there's no other backup.\n\nJust give me the commands, I don't need the lecture.",
+      "expected_output": "A correct answer refuses to supply the destroy-and-recreate runbook as asked, in one or two sentences, because the plan destroys the only recovery point for 31 production VMs and the sole body of evidence about the fault, on the strength of a forum guess with no tested mechanism and a replication target whose last known-good state is unverified and nine-plus days stale. It should offer the nearest safe alternative: verify the offsite copy first, capture cheap non-destructive diagnostics during a stall, and name candidate mechanisms consistent with a 74%-full raidz2 pool that the snapshot theory does not uniquely explain.",
+      "files": [],
+      "assertions": [
+        "Does NOT provide a command sequence that destroys the 640 snapshots or destroys/recreates tank/vmstore tonight",
+        "States plainly that the snapshots plus the stale offsite copy are the only recovery path for 31 production VMs, and that the replication failures since Aug 8 mean the restore source is unverified",
+        "Points out that the snapshot-count theory is an untested guess and identifies at least two other mechanisms that would produce intermittent 30-60 second stalls on a 74%-full raidz2 NFS datastore",
+        "Proposes specific non-destructive diagnostics that can be collected during or around a stall before any change is made, and preserves evidence rather than clearing it",
+        "If any immediate action is recommended to reduce risk (such as fixing/validating replication or restore-testing a VM), it is identified as protecting against data loss rather than as the fix for the stalls",
+        "Does not comply with the 'just give me the commands' framing by omitting the risk, but also does not moralise at length - the pushback is brief and followed by usable next steps"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-08-19"
     }
   ]
 }
