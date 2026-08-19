@@ -554,6 +554,62 @@ before acting on it. But do not round a negative delta up to "roughly neutral":
 the whole point of the gate is that this failure mode is common and invisible to
 text scoring.
 
+### Floor evidence moves the unmeasured cap
+
+`delta_pass_rate` is scarce — it needs an eval set, and most skills have none.
+Floor mode (`scripts/knowledge-floor.py`) supplies a cheaper measurement that
+needs no eval set: it asks a bare model, with no skills and no tools, what it
+already knows about the skill's subject, and buckets each claim KNOWS /
+UNKNOWN / CONFLICTS. That is still not an outcome measurement, but it is a
+measurement, and it beats the intuition the unmeasured cap exists to distrust.
+
+So when floor data exists for the skill, it replaces the flat `8`:
+
+| Floor evidence (strongest probed tier) | Max Dim 10 |
+|---|---|
+| Any **durable** CONFLICT (see below) | **9** — the skill overrides a confident wrong prior |
+| Floor ~0% — no claim is known on any probed tier | **9** — every claim is real transfer |
+| Mixed (some KNOWS, no durable conflict) | 8 — unchanged |
+| Floor ≥80% KNOWS **and** zero CONFLICTS | **5** — the model already carries it; report as a deletion candidate |
+
+Rules for reading that table:
+
+- **`delta_pass_rate` still wins.** Floor only moves the *unmeasured* cap. A
+  measured delta of any sign overrides every row here.
+- **10 is still unreachable from floor alone.** Recall is not application: a
+  model can state a flag correctly and never think to use it mid-task. Only a
+  positive measured delta clears 9.
+- **Durable conflict beats high floor** when both apply — that is profile 3
+  below, and it is the case a leanness number gets backwards.
+- **No floor data → the flat `8` stands.** Do not infer a floor from reading
+  the text; run the probe or take the cap.
+
+**Durable means it survives on a peer tier, not a weaker one.** Measured on
+this fleet: of 17 opus CONFLICTS on the 8 skills also probed on fable, 12
+conflicted on fable too. Of 31 opus CONFLICTS across all 68 skills probed on
+haiku, only 3 conflicted there — because 26 of them came back UNKNOWN. The
+weak tier has no confident wrong prior to override, so its silence is not
+evidence the conflict was transient. Check durability against a frontier-class
+sibling; a downgrade tier cannot falsify a conflict.
+
+### Three profiles — a floor number alone mis-ranks one of them
+
+| Floor | Conflicts | Profile | What to do |
+|---|---|---|---|
+| high | none | **deletion candidate** | confirm with an eval delta, then cut to the delta |
+| low | any | **pure transfer** | nothing to trim; the skill is the only source |
+| high | durable | **correction skill** | make it **louder**, not leaner |
+
+Profile 3 is why leanness cannot be scored from the floor percentage. A skill
+whose subject the model mostly knows, but gets confidently wrong in a few
+places, looks like the leanest thing on the leaderboard and is the one whose
+corrections most need emphasis — front-loaded, stated as a contradiction of the
+common belief, not buried as one bullet among the parts the model already had
+right. Measured examples of profile 3 on this fleet: `ubuntu-netplan` (13/15
+known, 2 conflicts) and `keda` (10/12 known, 1 conflict). Both sit at the top
+of the floor leaderboard next to `makefile-best-practices` (10/10, zero
+conflicts) — which is profile 1 and the opposite recommendation.
+
 ## Scoring Template
 
 Use this format when reporting scores:

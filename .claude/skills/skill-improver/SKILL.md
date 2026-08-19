@@ -311,6 +311,12 @@ downgrade machine.
 
 Re-run on each model release — the movement in `KNOWS` is the delete list.
 
+Floor results are also a **rubric input**: they move the unmeasured Dim 10 cap
+off its flat `8`, and they classify the skill into one of three profiles —
+deletion candidate, pure transfer, or correction skill. A high floor with
+durable conflicts means *louder*, not leaner. See
+`references/quality-rubric.md` § Negative-Transfer Gate.
+
 ---
 
 ## Philosophy Mode
