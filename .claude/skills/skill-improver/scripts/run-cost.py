@@ -35,6 +35,7 @@ import re
 import sys
 from collections import defaultdict
 from datetime import datetime
+from statistics import median
 from pathlib import Path
 
 PROJECTS = Path.home() / ".claude" / "projects"
@@ -162,9 +163,15 @@ class Rates:
 
 
 class Bucket:
-    __slots__ = ("calls", "toks", "thinking", "searches", "cost", "models", "effort")
+    __slots__ = (
+        "calls", "toks", "thinking", "searches", "cost", "models", "effort",
+        "latencies", "first_ts", "last_ts",
+    )  # fmt: skip
 
     def __init__(self):
+        self.latencies: list[float] = []
+        self.first_ts = ""
+        self.last_ts = ""
         self.calls = 0
         self.toks = defaultdict(int)
         self.thinking = 0
@@ -182,6 +189,29 @@ class Bucket:
         )
 
     @property
+    def gen_tps(self) -> float:
+        """Output tokens per second of model turnaround.
+
+        Derived from consecutive transcript timestamps, so it measures
+        request-to-response wall time -- prefill, generation, and network
+        together -- not decode speed alone. Good for comparing models on the
+        same workload; not a decode benchmark.
+        """
+        t = sum(self.latencies)
+        return self.toks["output_tokens"] / t if t else 0.0
+
+    @property
+    def wall_s(self) -> float:
+        if not (self.first_ts and self.last_ts):
+            return 0.0
+        try:
+            a = datetime.fromisoformat(self.first_ts.replace("Z", "+00:00"))
+            b = datetime.fromisoformat(self.last_ts.replace("Z", "+00:00"))
+            return (b - a).total_seconds()
+        except ValueError:
+            return 0.0
+
+    @property
     def hit_rate(self) -> float:
         tot = self.input_total
         return self.toks["cache_read_input_tokens"] / tot if tot else 0.0
@@ -194,15 +224,19 @@ def scan(path: Path, rates: Rates, since: str | None, seen: set[str]):
     except OSError as e:
         print(f"run-cost: cannot read {path}: {e}", file=sys.stderr)
         return
+    prev_ts = ""
     with fh:
         for line in fh:
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            ts = rec.get("timestamp") or ""
             msg = rec.get("message") or {}
             usage = msg.get("usage")
             if not usage:
+                if ts:
+                    prev_ts = ts  # a user turn / tool result: starts the clock
                 continue
             # `<synthetic>` records are harness-local, never a billed API call.
             if msg.get("model") == "<synthetic>":
@@ -213,6 +247,18 @@ def scan(path: Path, rates: Rates, since: str | None, seen: set[str]):
             if rid in seen:
                 continue
             seen.add(rid)
+            lat = 0.0
+            if prev_ts and ts:
+                try:
+                    a = datetime.fromisoformat(prev_ts.replace("Z", "+00:00"))
+                    b = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                    d = (b - a).total_seconds()
+                    # Guard the gap where a human was thinking, not the model.
+                    lat = d if 0 < d < 600 else 0.0
+                except ValueError:
+                    lat = 0.0
+            rec["_latency_s"] = lat
+            prev_ts = ts
             cost = rates.cost(
                 msg.get("model", ""),
                 usage,
@@ -223,6 +269,13 @@ def scan(path: Path, rates: Rates, since: str | None, seen: set[str]):
 
 
 def add(bucket: Bucket, rec, msg, usage, cost):
+    lat = rec.get("_latency_s") or 0.0
+    if lat:
+        bucket.latencies.append(lat)
+    ts = rec.get("timestamp") or ""
+    if ts:
+        bucket.first_ts = min(bucket.first_ts or ts, ts)
+        bucket.last_ts = max(bucket.last_ts, ts)
     bucket.calls += 1
     bucket.cost += cost
     for f in TOKEN_FIELDS:
@@ -276,18 +329,31 @@ def render(session: Path, total: Bucket, by_model, by_agent, rates: Rates, args)
         print(
             f"{'  web searches':22}{total.searches:>14,}{'':>9}{fmt_usd(search_cost):>12}"
         )
+    p50 = median(total.latencies) if total.latencies else 0.0
+    busy = sum(total.latencies)
+    wall = total.wall_s
     print(
         f"\n{total.calls} API requests · cache hit rate {total.hit_rate:.0%}"
         f" · {fmt_usd(grand / total.calls) if total.calls else '$0'} per request"
     )
+    print(
+        f"latency p50 {p50:.1f}s · {total.gen_tps:.1f} output tok/s"
+        f" · {busy / 60:.0f}m in-model of {wall / 60:.0f}m wall"
+        + (f" ({busy / wall:.1f}x concurrency)" if wall > 0 and busy > wall else "")
+    )
 
     if len(by_model) > 1 or args.verbose:
-        print(f"\n{'model':22}{'calls':>7}{'in':>14}{'out':>11}{'cost':>12}")
-        print("-" * 66)
+        print(
+            f"\n{'model':22}{'calls':>7}{'in':>13}{'out':>10}"
+            f"{'p50 s':>8}{'tok/s':>8}{'cost':>11}"
+        )
+        print("-" * 79)
         for name, b in sorted(by_model.items(), key=lambda kv: -kv[1].cost):
+            p50 = median(b.latencies) if b.latencies else 0.0
             print(
-                f"{name:22}{b.calls:>7}{b.input_total:>14,}"
-                f"{b.toks['output_tokens']:>11,}{fmt_usd(b.cost):>12}"
+                f"{name:22}{b.calls:>7}{b.input_total:>13,}"
+                f"{b.toks['output_tokens']:>10,}{p50:>8.1f}{b.gen_tps:>8.1f}"
+                f"{fmt_usd(b.cost):>11}"
             )
 
     if by_agent:
@@ -378,6 +444,12 @@ def main():
                     "thinking_tokens": total.thinking,
                     "web_searches": total.searches,
                     "cache_hit_rate": round(total.hit_rate, 4),
+                    "latency_p50_s": round(
+                        median(total.latencies) if total.latencies else 0.0, 2
+                    ),
+                    "output_tokens_per_s": round(total.gen_tps, 2),
+                    "in_model_s": round(sum(total.latencies), 1),
+                    "wall_s": round(total.wall_s, 1),
                     "cost_usd": round(total.cost + search_cost, 4),
                     "by_model": {
                         k: {
@@ -385,6 +457,10 @@ def main():
                             "cost_usd": round(v.cost, 4),
                             "input": v.input_total,
                             "output": v.toks["output_tokens"],
+                            "output_tokens_per_s": round(v.gen_tps, 2),
+                            "latency_p50_s": round(
+                                median(v.latencies) if v.latencies else 0.0, 2
+                            ),
                         }
                         for k, v in by_model.items()
                     },
