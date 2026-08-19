@@ -429,6 +429,47 @@ When a Boris cap triggers, record the justification like:
 > (lines 45-89) the model could discover via plan mode. Boris
 > alignment failure: strict workflow scaffolding."
 
+### Induced cost — what the skill costs to OBEY
+
+Every cap above measures the skill's **text**. Dim 2 counts lines, Dim 6 counts
+scaffolding, and both are satisfied by a 90-line skill that says "read every
+reference before starting", fans out subagents with no ceiling, and pins
+`effort: xhigh`. That skill is cheap to load and expensive to run, and nothing
+in this rubric currently sees the difference.
+
+`scripts/induced-cost-probe.py [SKILL.md] [--refs]` reports four triggers.
+All four are **structural** — none asks whether prose "feels wasteful," which
+is the judgment SkillLens clocked at 46.4%, worse than chance:
+
+| Trigger | Detection | Why it costs |
+|---|---|---|
+| `effort-pin` | frontmatter `effort:` at high/xhigh/max on a skill with 2+ modes | Overrides the session on *every* invocation, including the cheap modes the skill itself defines. |
+| `eager-read` | "read all/every/each reference" with no conditional scoping it | Pays for the whole reference set on a run that needed one file. Point-of-use phrasing ("read each reference at its question") is the fix, and the probe stays quiet on it. |
+| `uncapped-fanout` | a spawn imperative with no agent-count cap **anywhere in the skill** | An unbounded fan-out is unbounded spend. The cap is looked for skill-wide, so stating it once in SKILL.md covers the reference files carrying the spawn tails. |
+| `over-obedience` | "verify twice", "be maximally thorough", "investigate fully even when it looks simple" | The priced one: removing "verify twice" cut cost per ticket **by a third** with no accuracy change, and the source says these patterns apply to skills. |
+
+**Cap: Dim 6 (Simplicity) capped at 6** when any trigger fires. As with the
+other caps, a triggered skill may still be right — record the dismissal reason
+rather than silently ignoring it, the way the `effort: xhigh` ruling is
+dismissed in the backlog.
+
+**The cap is two-sided, and this half is not optional.** Leaner is not
+automatically cheaper. A skill trimmed until it is vague makes the agent flail,
+re-deriving from scratch what the text used to state, and that costs more than
+the lines saved. **Dim 5 (Completeness) is the brake**: an induced-cost hit
+never justifies a cut that drops scope the description promises. Fix the
+trigger — scope the read, state the cap, delete the over-obedience clause —
+not the length. The probe has no "too short" trigger by design.
+
+Measured on this fleet (68 skills, `--refs`): **3 fire**. An earlier, looser
+version fired on 4 of 6 skills it was tested against, mostly on prose that
+*quoted* these patterns while discussing them; it was narrowed until it
+separated mention from use. `--selftest` asserts each trigger fires on its own
+shape and stays quiet on the near-miss that shares its vocabulary — run it
+after any change to the patterns.
+
+---
+
 The improvement loop should prefer hypotheses that lift Boris caps over
 those that lift uncapped dims of the same magnitude — capped dims are
 *structural* problems (rot fast across releases) while uncapped ones

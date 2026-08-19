@@ -115,6 +115,28 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   blind-scorer agent (a documented, deliberate invocation choice is not a
   Dim 1 defect), not in this skill's line count.
 
+- **(2026-08-19) Induced-cost cap added — `scripts/induced-cost-probe.py` +
+  `quality-rubric.md` §Induced cost.** Every prior cost signal measured the
+  skill's TEXT (Dim 2 lines, Dim 6 scaffolding); none saw the runtime bill the
+  skill induces. Four structural triggers, no prose judgement (SkillLens 46.4%
+  limit): `effort-pin` (frontmatter effort at high+ on a multi-mode skill),
+  `eager-read` (unconditional read-everything), `uncapped-fanout` (spawn
+  imperative with no agent-count cap anywhere in the skill), `over-obedience`
+  ("verify twice" / "be maximally thorough" / no-early-exit). Caps Dim 6 at 6;
+  the two-sided half is binding — Dim 5 is the brake, and a hit never
+  justifies a cut that drops promised scope. **Tuning is the substance here:**
+  the first version fired on 4 of 6 skills, mostly on text that *quoted* these
+  patterns while discussing them, which is the 61%-vs-31% constant-not-a-
+  diagnostic failure. Narrowed by stripping quoted spans and table rows
+  (mention vs use), widening cap detection to the whole skill directory,
+  dropping "load" from the read verbs ("permanent context load" is a noun),
+  requiring `exhaustive` to modify an action (it is a mode NAME in
+  autoresearch), and skipping negated forms ("not meant to be exhaustive").
+  Fleet result: **3 of 68 fire with `--refs`**, all three verified by hand.
+  `--selftest` (17 cases) asserts each trigger fires on its shape and stays
+  quiet on the near-miss sharing its vocabulary — run it after any pattern
+  edit.
+
 - **(operator-accepted 2026-08-19) Line-ceiling gate is in improve-loop
   Phase 4.** `wc -l SKILL.md` runs before the decision rule; a change that
   leaves the file over 500 lines *and* longer than it was is a Dim 2
