@@ -23,7 +23,8 @@
       "strict": false,
       "agents": [
         "./.claude/agents/blind-scorer.md",
-        "./.claude/agents/deep-researcher.md"
+        "./.claude/agents/deep-researcher.md",
+        "./.claude/agents/web-searcher.md"
       ],
       "category": "ai-workflow",
       "tags": [

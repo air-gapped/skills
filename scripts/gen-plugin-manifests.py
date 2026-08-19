@@ -402,6 +402,7 @@ GROUPS: dict[str, dict] = {
         "agents": [
             "./.claude/agents/blind-scorer.md",
             "./.claude/agents/deep-researcher.md",
+            "./.claude/agents/web-searcher.md",
         ],
         "description": (
             "Agent workflow suite — Karpathy-pattern autoresearch "
