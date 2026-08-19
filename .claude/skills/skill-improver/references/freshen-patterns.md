@@ -77,6 +77,29 @@ probe first (templates in §2 below).
 Stop early only on rate-limit (§5). A stopped pass does NOT update the stamp
 — the previous stamp stands, and the summary says why.
 
+**Recency filter — when the last pass was under 7 days ago.** A full sweep of
+a file freshened three days ago mostly re-reads specs that change on a scale
+of quarters. Re-probe only the row kinds that can actually move in a week:
+changelogs, release tags and versions, pinned commits, package-registry
+rows, and launch/announcement pages. Leave documentation, specification,
+paper, and standards rows unprobed.
+
+The filter buys cost, and it is paid for by **not stamping**: a filtered pass
+verified some rows, so it must not claim it verified all of them.
+
+- Header-stamp files (`Freshened: <date>`): the old stamp **stands**. This is
+  the same rule a rate-limited pass follows, for the same reason — the stamp
+  means "every row, on this date", and a narrow pass did not do that.
+- Legacy per-row files (`Last verified` column): restamp **only rows actually
+  probed**. Never touch a row you skipped.
+
+Restamping an unprobed row is the one move that must never happen. Dim 9's
+staleness cap reads that date and trusts it, so a restamp on unverified
+content does not merely lose information — it silently disarms the cap that
+exists to catch exactly this, and the skill then scores as fresh forever.
+Say in the summary that the pass was filtered and which kinds were skipped;
+a filtered pass that reads as a full one is worse than no pass at all.
+
 ### Phase F3: Classify
 
 | Class | Action |

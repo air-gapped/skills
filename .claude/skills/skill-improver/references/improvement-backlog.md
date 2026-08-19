@@ -48,23 +48,15 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   same evals.json after any structural change (e.g. the improve-loop
   extraction) to check for regression.
 
-- **(new 2026-07-24) Rule-ceiling discards: three rubric-invisible hardenings.**
-  All three were applied, cold-scored Δ0 (every affected dim band-internal),
-  and reverted per the Phase 4 rule — logged here because each has demonstrated
-  operational value and only the author can accept rubric-invisible content:
-  - **Line-ceiling gate** (Phase 4, ~7 lines): run `wc -l SKILL.md` before the
-    decision rule; >500 is a Dim 2 regression regardless of total. Motivated by
-    this run: the freshen additions took SKILL.md 493 → 506 (over the spec
-    ceiling) and no rule caught it — only a manual count did.
-  - **Freshen recency filter** (`freshen-patterns.md` §F2, ~8 lines): when a
-    `Last verified:` stamp is under 7 days old, re-probe only changelogs,
-    release tags, pinned commits, and launch pages; leave doc/spec/paper rows
-    unprobed AND unrestamped (restamping an unprobed row silently disarms the
-    Dim 9 staleness cap). This run followed the rule ad hoc with no text to cite.
-  - **Reciprocal drift comment** (`scripts/batch-workflow.js`, 3 lines): a
-    header on `blindPrompt()` naming `references/blind-validation.md` as
-    canonical. The reference side of that guard was kept (iter 4); the script
-    side scored Δ0, so the guard is currently one-directional.
+- **(new 2026-07-24, one of three left) Rule-ceiling discard: line-ceiling
+  gate** (improve-loop Phase 4, ~7 lines): run `wc -l SKILL.md` before the
+  decision rule; >500 is a Dim 2 regression regardless of total. Motivated by
+  a real miss — freshen additions took a SKILL.md 493 → 506, over the spec
+  ceiling, and no rule caught it; only a manual count did. Applied and
+  reverted at Δ0 (2026-07-24), so author acceptance is required. The other
+  two hardenings filed with it are closed: the freshen recency filter was
+  accepted 2026-08-19 (see below), and the reciprocal drift comment is moot —
+  `batch-workflow.js` and `blind-validation.md` now both carry the sync rule.
 
 - **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
   §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
@@ -125,6 +117,21 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   judgment: accept as rubric-invisible operational hardening.
 
 ## Resolved — 2026-08-19 (workflow-sandbox probe)
+
+- **(operator-accepted 2026-08-19) Freshen recency filter is in
+  `freshen-patterns.md` §F2.** Under 7 days since the last pass, re-probe
+  only the row kinds that can move in a week — changelogs, release tags and
+  versions, pinned commits, registry rows, launch pages — and leave doc,
+  spec, paper, and standards rows alone. Restated for the current contract:
+  the 2026-07-24 draft assumed per-row `Last verified` columns, but F6 has
+  since moved to a single header stamp, so the rule now says a filtered pass
+  **keeps the old header stamp** (same reason a rate-limited pass does — the
+  stamp means "every row, on this date"), and on legacy per-row files
+  restamps only rows actually probed. Rubric-invisible (Δ0, reverted
+  2026-07-24), accepted on the operational argument: Dim 9's staleness cap
+  reads that date and trusts it, so a restamp on unprobed content disarms
+  the cap permanently and silently, which is the one failure mode nothing
+  downstream can detect.
 
 - **Boris caps now carry measured cost evidence.** `quality-rubric.md`
   §Boris Alignment Check cited only the >80% system-prompt reduction, which
