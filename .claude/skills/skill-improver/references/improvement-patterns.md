@@ -451,9 +451,24 @@ shared prefix would bill it at ~10%.
   run in the repo.
 - No per-agent decoration early in the prompt ("reviewer 7 of 100",
   timestamps, run IDs).
-- Spawn same-type agents in one wave (Claude Code holds all-but-the-first
-  until the first response begins, then releases the rest onto the warm
-  cache) and keep waves within the 5-minute subagent cache TTL.
+- Spawn same-type agents in one wave (in a **workflow** fan-out Claude Code
+  holds all-but-the-first until the first response begins, then releases the
+  rest onto the warm cache) and keep waves within the subagent cache TTL.
+- **Subagents get the 5-minute TTL even on a subscription** — the automatic
+  1-hour TTL applies only to the main conversation (Claude Code prompt-caching
+  docs, verified 2026-08-19). This is the constraint that decides fan-out
+  shape: agents spawned minutes apart share nothing, however identical their
+  prefixes. Two scorers separated by a full improvement loop can never share a
+  cache; the sharing opportunity is *across skills within one wave*, never
+  across phases of one skill.
+- The system prompt embeds **working directory, platform, shell, OS version,
+  and auto-memory paths**, so cwd is part of the prefix by construction — and
+  each git worktree is its own working directory.
+- A **fork** (`context: fork`) is the exception to all of this: it inherits the
+  parent's system prompt, tools, and history exactly, so its first request
+  reads the *parent's* cache rather than warming its own.
+- Background vs foreground does **not** fork the prefix. `run_in_background`
+  changes when the result returns, not the system prompt or tool set.
 
 **Before (in a workflow script or skill body):**
 ```js
