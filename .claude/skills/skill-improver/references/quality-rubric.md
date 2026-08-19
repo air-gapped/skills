@@ -524,7 +524,8 @@ So Dim 10 is capped by what has actually been measured:
 | Evidence | Max Dim 10 |
 |---|---|
 | `delta_pass_rate < 0` — skill loses to no-skill | **2**, and surface it as the headline finding |
-| `delta_pass_rate ≈ 0` (inside run-to-run variance) — non-discriminating | 5 |
+| `delta_pass_rate ≈ 0` **and** `delta_tokens > 0` — pure tax | **3**, and surface it: it costs and does not pay |
+| `delta_pass_rate ≈ 0` **and** `delta_tokens ≤ 0` — same answer, cheaper | 6 |
 | `delta_pass_rate > 0`, measured | no cap — score on the evidence |
 | Never measured | **8** — "essential" (9–10) is a claim about outcomes, not text |
 
@@ -553,6 +554,44 @@ flaky eval can invert a small delta. Confirm the sign is stable across runs
 before acting on it. But do not round a negative delta up to "roughly neutral":
 the whole point of the gate is that this failure mode is common and invisible to
 text scoring.
+
+### The cost side of the same benchmark
+
+`benchmark.json` carries `delta_tokens` next to `delta_pass_rate`. It is what
+splits the old flat `≈ 0` row: a skill that changes no outcome while adding
+context is not merely non-discriminating, it is a **pure tax** — a harder
+finding than the gate used to produce, and one grounded in measurement rather
+than a line count.
+
+`≈ 0` means **inside run-to-run variance**, not literally zero: compare the
+delta against the per-config `pass_rate.stddev` that `benchmark.json` already
+reports. A delta smaller than the baseline's own spread is noise.
+
+Three things about that number have to be checked before it is used, because
+all three are quiet:
+
+- **Sign convention.** The delta is `configs[0] - configs[1]` over the config
+  directories in **alphabetical** order. `with_skill` sorts before
+  `without_skill` (`_` < `o`), so positive means *the skill costs more*. That
+  is an accident of naming, not a guarantee — confirm the two config
+  directory names before reading a sign.
+- **It may not be tokens.** `tokens` is read from `timing.json`, but only when
+  `grading.json` carries no timing of its own; otherwise it silently falls back
+  to `execution_metrics.output_chars`. In the common case the field is
+  characters. Both configs are measured the same way, so the **sign is sound**
+  — the magnitude is not tokens unless you have confirmed the source.
+- **The deltas are strings.** `"+0.12"`, `"+1840"` — formatted, not numeric.
+  Parse them; do not compare them as they come.
+
+A **positive** `delta_pass_rate` with a large positive `delta_tokens` is not a
+cap. The skill earned its cost; report the cost alongside the win and let the
+reader decide. Only the `≈ 0` case converts cost into a ceiling.
+
+**No cost dimension, ever.** The obvious move — an 11th dimension scoring
+cheapness — is wrong twice: the rubric total is a scalar sum, so a cost term
+makes the loop trade quality for cost at an exchange rate nobody chose, and an
+empty skill scores 10 on it. Cost enters as caps and gates only. Dim 5 remains
+the brake on length; this is the brake on length that bought nothing.
 
 ### Floor evidence moves the unmeasured cap
 
