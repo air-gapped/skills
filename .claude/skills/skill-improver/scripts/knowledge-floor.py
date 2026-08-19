@@ -10,6 +10,7 @@ each claim is extracted once, then put to a BARE model -- no skills loaded, no
 tools, no web -- and the answer is bucketed against what the skill says:
 
   KNOWS     model states the skill's claim correctly    -> deletion candidate
+  PARTIAL   same direction, incomplete or less specific -> weak candidate
   UNKNOWN   model does not know, or hedges              -> keep, real transfer
   CONFLICTS model confidently states something else     -> keep, and strengthen
 
@@ -48,7 +49,6 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -57,7 +57,7 @@ DENY = [
     "WebFetch", "WebSearch", "Read", "Glob", "Grep", "Skill",
 ]  # fmt: skip
 
-BUCKETS = ("KNOWS", "UNKNOWN", "CONFLICTS")
+BUCKETS = ("KNOWS", "PARTIAL", "UNKNOWN", "CONFLICTS")
 
 
 def search_roots() -> list[Path]:
@@ -117,17 +117,27 @@ continuously, often past the model's training cutoff. When the model's answer \
 disagrees, that is the MODEL being stale -- never evidence the reference is \
 wrong. Never grade the reference.
 
-For each item, choose one bucket:
-- KNOWS: the model's answer matches the reference in substance. Wording, \
-formatting, and extra detail do not matter. Close-but-vaguer still counts if \
-it would lead to the same action.
-- UNKNOWN: the model said it does not know, hedged, refused, or answered \
-something unrelated.
-- CONFLICTS: the model gave a confident, specific answer that contradicts the \
-reference.
+Choose exactly one bucket per item:
+
+- KNOWS: matches the reference in substance. Wording, formatting, and extra \
+correct detail do not matter. A superset that includes everything the \
+reference says is KNOWS, not CONFLICTS.
+- PARTIAL: points the same direction but is incomplete or less specific -- \
+right value with the version omitted, some list items missing, the right idea \
+stated vaguely. PARTIAL is NOT a conflict.
+- UNKNOWN: says it does not know, refuses, answers something unrelated, or \
+HEDGES about its own knowledge ("as of my knowledge", "I believe", "as of my \
+training data"). A hedged answer is UNKNOWN even when the content looks close.
+- CONFLICTS: confident, specific, and genuinely contradicts the reference -- a \
+different version number, a different flag name, an opposite yes/no. Reserve \
+this for answers that would lead someone to do the WRONG thing.
+
+When torn between PARTIAL and CONFLICTS, choose PARTIAL. When torn between \
+UNKNOWN and CONFLICTS, choose UNKNOWN. CONFLICTS must be earned.
 
 Return ONLY a JSON array, no prose, no fences, one object per item, in order:
-[{{"id": <id>, "bucket": "KNOWS|UNKNOWN|CONFLICTS", "why": "<under 15 words>"}}]
+[{{"id": <id>, "bucket": "KNOWS|PARTIAL|UNKNOWN|CONFLICTS", "why": "<under 15 \
+words>"}}]
 
 Items:
 {items}
@@ -139,22 +149,30 @@ Items:
 # --------------------------------------------------------------------------
 
 
-_PROBE_HOME: Path | None = None
-
-
 def _probe_home() -> str:
-    """One temp project reused by every probe in this process.
+    """One STABLE, empty directory shared by every probe, ever.
 
-    A fresh TemporaryDirectory per call looked tidy and was not: Claude Code
-    derives a project directory under ~/.claude/projects from the cwd, so a
-    per-call temp dir leaves one junk project dir per probe -- hundreds in a
-    fleet pass. One dir per process keeps the isolation (still empty, still no
-    discoverable skills) and leaves one.
+    Claude Code puts the working directory in the cached prefix, so cwd is one
+    of the six prefix-identity dimensions (with model, effort, agent type,
+    tools, and schema). A per-process temp dir therefore forks the cache once
+    per process, and the prefix -- ~10k tokens of system prompt and tool
+    definitions -- gets REWRITTEN at 1.25x input price instead of READ at
+    0.1x. That is a 12.5x penalty on that slice.
+
+    Measured on the first fleet pass, which spread 2,577 calls over 636 temp
+    dirs: 8.6M cache-WRITE tokens costing $27.31, where a shared prefix would
+    have read the same tokens for $2.19. Roughly 43% of a $58 run.
+
+    Verified directly -- same cwd, three sequential probes: 0 created / 23,333
+    read. Three distinct cwds: 10,112 created / 13,221 read, every time.
+
+    The directory stays empty, so `--setting-sources project` still finds no
+    skills and the probe stays hermetic. Isolation came from emptiness, never
+    from uniqueness.
     """
-    global _PROBE_HOME
-    if _PROBE_HOME is None:
-        _PROBE_HOME = Path(tempfile.mkdtemp(prefix="kfloor-"))
-    return str(_PROBE_HOME)
+    home = Path.home() / ".cache" / "skill-improver" / "probe-home"
+    home.mkdir(parents=True, exist_ok=True)
+    return str(home)
 
 
 def run_claude(

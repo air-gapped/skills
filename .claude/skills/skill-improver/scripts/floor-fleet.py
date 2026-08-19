@@ -18,6 +18,7 @@ most likely to be carrying content the model no longer needs.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
 import json
 import subprocess
 import sys
@@ -158,7 +159,23 @@ def main():
     ap.add_argument("--models", default="sonnet,opus")
     ap.add_argument("--max-claims", type=int, default=10)
     ap.add_argument("--timeout", type=int, default=240)
-    ap.add_argument("--workers", type=int, default=5)
+    ap.add_argument(
+        "--max-inflight",
+        type=int,
+        default=8,
+        help="global cap on concurrent `claude -p`. The failure mode above this "
+        "is not a crash: rate-limit storms surface as timeouts, which this probe "
+        "reads as 'the model does not know' -- a measurement error wearing the "
+        "costume of a finding. Raise it with the timeout-rate guard watched.",
+    )
+    ap.add_argument(
+        "--skill-workers",
+        type=int,
+        default=2,
+        help="skills in flight at once. >1 is what fills the single-threaded "
+        "extraction and grading gaps, so it buys more wall-clock than raising "
+        "per-skill workers does.",
+    )
     ap.add_argument("--skills", default="", help="comma list, else the whole root")
     ap.add_argument("--report", action="store_true", help="print leaderboard only")
     ap.add_argument(
@@ -190,32 +207,56 @@ def main():
         file=sys.stderr,
     )
 
+    sw = max(1, args.skill_workers)
+    per_skill = max(1, args.max_inflight // sw)
+    print(
+        f"{sw} skills in flight x {per_skill} probe workers "
+        f"= {sw * per_skill} peak concurrent requests",
+        file=sys.stderr,
+    )
+
     t0 = time.time()
-    for i, skill in enumerate(todo, 1):
+    done = 0
+
+    def work(skill: Path):
         started = time.time()
-        d = run_one(skill, args.models, args.max_claims, args.timeout, args.workers)
+        d = run_one(skill, args.models, args.max_claims, args.timeout, per_skill)
+        # Write on completion, not at the end: a fleet pass is long enough that
+        # losing it to a crash is a real cost, and resuming reads this file.
         (out_dir / f"{skill.name}.json").write_text(json.dumps(d, indent=2) + "\n")
-        s = summarize(d)
-        el = time.time() - t0
-        eta = el / i * (len(todo) - i)
-        if s:
-            cells = " ".join(
-                f"{lab}={c['knows']}/{s['claims']}" for lab, c in s["cells"].items()
-            )
-            print(
-                f"[{i}/{len(todo)}] {skill.name:<40} {cells}"
-                f"  conf={s['conflicts']}  ${s['cost']:.2f}"
-                f"  {time.time() - started:.0f}s  eta {eta / 60:.0f}m",
-                file=sys.stderr,
-                flush=True,
-            )
-        else:
-            print(
-                f"[{i}/{len(todo)}] {skill.name:<40} FAILED: "
-                f"{str(d.get('error'))[:90]}  eta {eta / 60:.0f}m",
-                file=sys.stderr,
-                flush=True,
-            )
+        return skill, d, time.time() - started
+
+    with cf.ThreadPoolExecutor(max_workers=sw) as ex:
+        for skill, d, took in ex.map(work, todo):
+            done += 1
+            i = done
+            s = summarize(d)
+            el = time.time() - t0
+            eta = el / i * (len(todo) - i)
+            if s:
+                cells = " ".join(
+                    f"{lab}={c['knows']}/{s['claims']}" for lab, c in s["cells"].items()
+                )
+                fails = sum(
+                    (c.get("failures") or 0) for c in (d.get("cells") or {}).values()
+                )
+                warn = ""
+                if fails > max(1, s["claims"] // 5):
+                    warn = f"  !! {fails} probe failures — floor may be understated"
+                print(
+                    f"[{i}/{len(todo)}] {skill.name:<40} {cells}"
+                    f"  conf={s['conflicts']}  ${s['cost']:.2f}"
+                    f"  {took:.0f}s  eta {eta / 60:.0f}m{warn}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+            else:
+                print(
+                    f"[{i}/{len(todo)}] {skill.name:<40} FAILED: "
+                    f"{str(d.get('error'))[:90]}  eta {eta / 60:.0f}m",
+                    file=sys.stderr,
+                    flush=True,
+                )
 
     leaderboard(out_dir, merge)
 
