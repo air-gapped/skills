@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-08-16",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-08-16)",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "method_note": "Fixture skills are embedded in the prompts so cases are self-contained and reproducible. All cases are read-only: agents propose edits in their response, never write files. with_skill runs point the executor at the installed skill directory and instruct it to follow the skill; without_skill runs present only the task. Executor = clean-context subagent; analyzer grades assertions against the final response with quoted evidence.",

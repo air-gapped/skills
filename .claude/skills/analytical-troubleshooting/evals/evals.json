@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-07-29",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-07-29)",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
