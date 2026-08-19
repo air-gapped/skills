@@ -3,7 +3,20 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
+## Resolved — 2026-08-19 (Visa §3.2 data-flow evidence, §1.4 threat tagging)
+
+- **Focus areas and findings carry their threat rows (§1.4).** Step 1 tags
+  each THREAT_MODEL.md-derived focus area with the section-4 `id`s whose
+  `surface` names its entry point, and rule 5 turns any unmapped or
+  unscanned row into its own focus area (skipped under `--focus`, which
+  means "scan only this"; section 5 "Deprioritized" rows stay out). The
+  spawn tail carries the rows as a prior to confirm or refute, never as a
+  bound on what to report. `threat_ids` is inherited mechanically at
+  collate — the reviewer is never asked which threat its finding
+  instantiates. `threat_coverage` lists **every** row including the
+  zero-finding ones, and Step 5 names those out loud: "found nothing for
+  T2, T6" is a result, and it is invisible if only matched rows are
+  listed. Mirrors the harness's s3 `threat_id` chunk tagging.
 
 - **`source_ref` / `sink_ref` are structured fields now**, not prose. The
   `vuln-area-reviewer` emits both in its `<finding>` block (equal refs for

@@ -3,7 +3,13 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
+## Resolved — 2026-08-19 (Visa §3.2 data-flow evidence, §1.4 threat tagging)
+
+- **`threat_ids` carried through ingest** (§1.4 plumbing): `/vuln-scan`
+  stamps which threat rows a finding's focus area came from. Phase 4's
+  `threat_match` stays independently computed from the operator's own
+  threat model — the two disagreeing is signal, not something to reconcile
+  at ingest.
 
 - **Dedup anchors on data flow, not only line distance.** Phase 1b ingests
   `source_ref` / `sink_ref` / `end_line` (with aliases); Phase 2a keeps the

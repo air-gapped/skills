@@ -15,6 +15,14 @@ prompt supplies only the variable facts:
 - `TRUST BOUNDARY:` — where untrusted input enters
 - `ASSETS:` — what is worth protecting here (if "(unknown)", name the asset you assume for each finding)
 - `DEPLOYMENT FACTS:` — what is actually deployed/mounted (if "(unknown)", check deploy manifests in the target before assuming secrets, auth, or sessions exist)
+- optionally `THREATS THIS AREA IS SCOPED TO:` — rows from a threat model
+  that already predicted something here. They are a **prior, not a
+  conclusion**: confirm or refute each in the code, and say so even when
+  the answer is "the control the row claims is genuinely there". A row
+  marked `mitigated` is the model author's claim about the code, which is
+  exactly the kind of claim worth checking. They do not bound your review
+  — report anything else you find in the area as usual, and never suppress
+  a finding because no row predicted it.
 - optionally `EXTRA CHECKS:` — org-specific vulnerability classes or patterns; treat them as additional reportable categories with the same rules as below
 - optionally `CALL GRAPH CONTEXT:` — a mechanically indexed excerpt
   (entry points, callers/callees) for your focus area. It is a **starting

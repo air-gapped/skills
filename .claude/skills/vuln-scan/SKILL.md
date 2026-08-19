@@ -75,6 +75,15 @@ shell interpreter.
    section 2 "Assets" table and section 1 system context into two bullet
    lists — `assets` and `deployment_facts` — for the review brief: severity
    calibration needs what the system protects, not just where input enters.
+
+   **Tag each focus area with the threat rows it came from.** A section-4
+   row's `surface` column names the section-3 entry point(s) it traverses;
+   the focus area built from that entry point carries `threat_ids: ["T1",
+   "T4", ...]` — every row whose `surface` names it. Keep the rows' one-line
+   `threat` text alongside the ids: the reviewer needs the sentence, the
+   output needs the id. A focus area derived from recon rather than from a
+   threat row carries `threat_ids: []` — legitimate, and not the same as
+   "no threats apply here".
 3. If no THREAT_MODEL.md and no `--focus`: do a **quick recon** — list the
    source tree, read entry points and dispatch code, and propose 3-10 focus
    areas using the pattern `<subsystem> (<function/file>) — <key operations>`.
@@ -84,9 +93,22 @@ shell interpreter.
    persistent state, tenancy. "Stateless, no auth, chart mounts no secret"
    changes every severity downstream.
 4. If `--focus` was given, use exactly those.
+5. **Coverage rule — no threat drops out of scope.** Only when step 2 ran
+   (a THREAT_MODEL.md was read) and `--focus` was not given — `--focus`
+   means "scan only this", and silently widening it would break that
+   contract. Walk the section-4 rows: any row whose `surface` matches no
+   section-3 entry point, or whose entry point produced no focus area,
+   becomes **its own focus area**, phrased from the threat text and tagged
+   with that row's id. Its `status`
+   does not exempt it: a row marked `mitigated` is the author's claim, and
+   confirming a control still holds in the code is review work. Only
+   section 5 "Deprioritized" rows are out of scope — they were ruled out
+   deliberately. A threat the model names and the scan never looks at is
+   the failure this rule exists to prevent, and it is silent without it.
 
 Tell the user the focus areas you'll scan and the source-file count before
-fanning out.
+fanning out, and name any focus area added by rule 5 as threat-derived —
+it is the one the operator did not ask for.
 
 ## Step 2 — Fan out
 
@@ -111,6 +133,11 @@ FOCUS AREA: **{focus_area}**
 FINDING ID PREFIX: F-{focus_idx:02d}-
 TARGET: {target_dir}
 TRUST BOUNDARY: {from THREAT_MODEL.md section 3, or "untrusted input → process memory"}
+{if this focus area has threat_ids:
+THREATS THIS AREA IS SCOPED TO (from THREAT_MODEL.md section 4 — what the
+model already predicted here; confirm or refute them in the code, and
+report anything else you find as well):
+{one bullet per row: "T4: <threat sentence> (status: <status>, controls: <controls>)"}}
 ASSETS (what is worth protecting here):
 {assets bullets from THREAT_MODEL.md section 2, or "(unknown)"}
 DEPLOYMENT FACTS (what is actually deployed/mounted):
@@ -146,6 +173,11 @@ target yourself.
    duplicate id. (Heavy dedupe is `/triage`'s job; don't over-engineer here.)
 3. Assign stable ids `F-001`, `F-002`, ... in (severity desc, file, line)
    order.
+4. Attach `threat_ids` to each finding: the `threat_ids` of the focus area
+   whose reviewer produced it. This is **mechanical inheritance from the
+   spawn**, not a judgment — the reviewer is not asked which threat its
+   finding instantiates, and you do not infer one. Findings from an
+   untagged focus area get `threat_ids: []`.
 
 ## Step 3a — Deterministic pre-filter (no subagents)
 
@@ -228,6 +260,7 @@ Write **both** files to `<target-dir>/`:
   "target": "<target-dir>",
   "scanned_at": "<iso8601>",
   "focus_areas": ["..."],
+  "threat_coverage": {"T1": ["F-001"], "T2": [], "T5": ["F-004", "F-009"]},
   "findings": [
     {
       "id": "F-001",
@@ -242,6 +275,7 @@ Write **both** files to `<target-dir>/`:
       "recommendation": "...",
       "source_ref": "relative/path.c:88",
       "sink_ref": "relative/path.c:123",
+      "threat_ids": ["T1"],
       "confidence_reason": "...",
       "prefilter": null
     }
@@ -260,6 +294,16 @@ Emit them as given; do not repair, infer, or normalize a ref the reviewer
 did not produce. For a context-free finding (hardcoded secret, weak
 constant) both point at the same location — that is correct, not a defect.
 
+`threat_ids` is which THREAT_MODEL.md section-4 rows the finding's focus
+area was scoped to — inherited from the spawn, so it says "this finding
+came from work aimed at T4", not "this finding proves T4". `threat_coverage`
+inverts it across the whole run: **every** section-4 row appears as a key,
+including the ones no reviewer produced a finding for. An empty list is the
+useful half — it says the scan looked at that threat and found nothing,
+which is a result, and it is invisible if only matched threats are listed.
+A row absent from the map entirely is a bug in Step 1 rule 5, not a clean
+result.
+
 In `summary`, `prefiltered` counts only findings the Step 3a **gates**
 caught (rules 1-2, which skip 3b); `unproven_flow` counts the rule-3
 annotation separately, since those findings were scored and kept.
@@ -269,8 +313,11 @@ the top of the file is the highest-signal material.
 
 **`VULN-FINDINGS.md`** — human-readable: a summary table (id | severity |
 category | file:line | title), then one `### F-NNN` section per finding with
-the full description and a `**Flow:** {source_ref} -> {sink_ref}` line
-(omit the line when both are null).
+the full description, a `**Flow:** {source_ref} -> {sink_ref}` line (omit
+when both are null), and a `**Threats:** {threat_ids}` line (omit when
+empty). Close the file with a `## Threat coverage` table — one row per
+section-4 threat, its finding ids or `none` — when a THREAT_MODEL.md was
+read.
 
 ## Step 5 — Hand back
 
@@ -279,8 +326,11 @@ Tell the user:
 1. Counts: N findings (H/M/L split, X low-confidence, P pre-filtered,
    U without traced data flow), across K focus areas, from M source files.
 2. Top 3 by confidence, one line each.
-3. Next step: `> /triage <target-dir>/VULN-FINDINGS.json --repo <target-dir>`
-4. Remind: these are **static candidates**, not verified. For
+3. If a THREAT_MODEL.md was read: which section-4 threats got no findings,
+   by id. Say it plainly — "the scan found nothing for T2, T6" — and that
+   this is not the same as those threats being absent.
+4. Next step: `> /triage <target-dir>/VULN-FINDINGS.json --repo <target-dir>`
+5. Remind: these are **static candidates**, not verified. For
    execution-verified crashes, an autonomous harness is needed (see HARNESS.md).
 
 ## Constraints
@@ -312,5 +362,7 @@ test-path exclusion regex, the committed-credential exception to it, and
 the gate-before-the-expensive-stage ordering — is adapted (Apache-2.0) from
 [`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
 s5 prefilter stage; the `source_ref`/`sink_ref` evidence fields carry the
-same semantics as that harness's s4 finding schema. See `HARNESS.md` for
-the execution-verified pipeline this static skill complements.
+same semantics as that harness's s4 finding schema, and per-focus-area
+threat tagging mirrors the `threat_id` its s3 stage stamps on every chunk.
+See `HARNESS.md` for the execution-verified pipeline this static skill
+complements.

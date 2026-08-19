@@ -77,7 +77,9 @@ actor-wants-outcome pair, at the abstraction level where it survives a patch.
 |---|---|---|---|---|---|---|---|---|---|
 
 - `id`: `T1`, `T2`, … Stable across edits; do not renumber when rows are
-  removed.
+  removed. `/vuln-scan` tags its focus areas and findings with these ids
+  and reports which rows a scan produced nothing for, so renumbering
+  silently re-points every downstream reference.
 - `threat`: One sentence, active voice, names the outcome. "Remote code
   execution via untrusted media parsing", not "buffer overflow in dr_wav".
 - `actor` ∈ {`remote_unauth`, `remote_auth`, `adjacent_network`,

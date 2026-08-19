@@ -3,6 +3,13 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-19 (Visa §1.4 downstream contract)
+
+- Section-4 `id` stability now has a named downstream consumer: `/vuln-scan`
+  tags focus areas and findings with these ids and reports per-row
+  coverage, so renumbering silently re-points every reference. Noted on the
+  `id` bullet in `schema.md`.
+
 ## Checked, no change — 2026-08-16 (Visa-harness review)
 
 - An external review against `visa/visa-vulnerability-agentic-harness`

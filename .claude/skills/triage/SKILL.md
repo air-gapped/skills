@@ -279,6 +279,7 @@ guess what's absent.** Field map (source-key aliases → canonical):
 | `end_line`      | `line_end`, `location.end_line`, `endLine`, `line_range` end |
 | `source_ref`    | `source`, `taint_source`, `entry_point` (as `file:line`) |
 | `sink_ref`      | `sink`, `taint_sink`, `dangerous_call` (as `file:line`)  |
+| `threat_ids`    | `threat_id`, `threats`, `rule_tags` (list of ids)        |
 | `category`      | `type`, `cwe`, `rule_id`, `crash_type`, `vulnerability_class` |
 | `severity`      | `severity_rating`, `level`, `priority`, `risk`           |
 | `title`         | `name`, `summary`, `message`                             |
@@ -287,6 +288,11 @@ guess what's absent.** Field map (source-key aliases → canonical):
 | `preconditions` | `requirements`, `assumptions`                            |
 | `recommendation`| `fix`, `remediation`, `mitigation`                       |
 | `scanner_confidence` | `confidence`, `score`, `certainty` (normalize to 0.0-1.0) |
+
+`threat_ids` is which threat-model rows the scanner's scope came from
+(`/vuln-scan` stamps them). Carry it through; Phase 4's `threat_match` is
+computed independently from the operator's own threat model, and the two
+disagreeing is signal, not an error to reconcile at ingest.
 
 `source_ref` / `sink_ref` are the scanner's **data-flow evidence** — the
 `file:line` where untrusted input enters and the `file:line` where it is
@@ -781,6 +787,7 @@ Order all findings by:
       "end_line": null,
       "source_ref": "...|null",
       "sink_ref": "...|null",
+      "threat_ids": [],
       "category": "...",
       "claimed_severity": "HIGH",
       "verdict": "true_positive|false_positive|duplicate",
