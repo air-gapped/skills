@@ -268,6 +268,13 @@ date — vs `changed` = last content change on disk (newest file mtime). A
 skill can be freshly edited yet stale on verification — and vice versa; the
 `cap` column shows the Dim 9 staleness cap the verification age implies.
 
+The `open` column counts items under `## Open` in each
+`improvement-backlog.md`, with a fleet total in the footer. Read it as a
+deferral signal, not a workload: an entry earns its place there only when
+something external blocks the work, so a count that only ever rises is
+recording work that was parked rather than blocked. Report it in the `ages`
+summary sentence whenever the fleet total moved since the last run.
+
 ---
 
 ## Philosophy Mode
@@ -311,7 +318,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
-- **`scripts/staleness-report.py`** — Fleet-wide staleness readout, no probes/network: per skill, the oldest `sources.md` `Last verified:` date, its age, dated-row coverage, the Dim 9 staleness cap it implies, last improvement-pass date (from `improvement-backlog.md`), and whether trigger/outcome evals exist. Stalest first — this is the ranking `freshen --all` uses. `--json` for machine output.
+- **`scripts/staleness-report.py`** — Fleet-wide staleness readout, no probes/network: per skill, the oldest `sources.md` `Last verified:` date, its age, dated-row coverage, the Dim 9 staleness cap it implies, last improvement-pass date (from `improvement-backlog.md`), whether trigger/outcome evals exist, and the count of items still under that backlog's `## Open` heading (fleet total in the footer). Stalest first — this is the ranking `freshen --all` uses. `--json` for machine output.
 - **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
 - **`scripts/scaffold-probe.py`** — Boris strict-workflow-scaffolding detector. Classifies each numbered item as scaffold, criterion, or branch, and caps on the scaffold count alone. Used by the Boris Alignment Check (quality-rubric §"The scaffolding discriminator") and freshen §4b.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

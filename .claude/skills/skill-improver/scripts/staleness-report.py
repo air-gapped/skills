@@ -38,6 +38,16 @@ Columns:
   pass   newest non-future date in references/improvement-backlog.md
   evals  t if references/trigger-evals.json exists, o if evals/evals.json
          exists (outcome evals), to for both, - for neither
+  open   items under `## Open` in references/improvement-backlog.md
+         (- if the skill has no backlog); fleet total printed as a footer
+
+The `open` column exists because that number kept getting re-derived by hand
+from two different file layouts and came out wrong. Items are counted as `### `
+headings where a section uses them and top-level `- ` bullets otherwise —
+counting bullets everywhere inflates heading-style files roughly fourfold.
+A rising `open` count is the signal worth acting on: an entry belongs there
+only when something external blocks the work, so a backlog that only grows is
+recording deferral, not blockage.
 """
 
 import json
@@ -145,6 +155,37 @@ def parse_sources(path):
     return min(dates), len(dates), counted
 
 
+def count_open(path):
+    """Open items in an improvement-backlog.md `## Open` section.
+
+    Two layouts are in use and a single rule miscounts one of them: most files
+    list one item per top-level `- ` bullet, but some give each item a `### `
+    heading with `- **Files:**` / `- **What:**` sub-bullets underneath. Counting
+    bullets everywhere inflates the latter ~4x (sglang-model-gateway read as 24
+    open when it held 6). So: headings win where a section uses them, bullets
+    otherwise. Sub-bullets under a heading are never items.
+
+    Nested bullets (any leading whitespace) are excluded either way, as are the
+    trailing note blocks some files keep inside `## Open` — anything after a
+    `**...:**`-style paragraph lead-in that is not itself an item.
+    """
+    if not path.is_file():
+        return None
+    in_open = False
+    headings, bullets = 0, 0
+    for line in path.read_text(errors="replace").splitlines():
+        if line.startswith("## "):
+            in_open = re.fullmatch(r"##\s+Open\b.*", line, re.I) is not None
+            continue
+        if not in_open:
+            continue
+        if line.startswith("### "):
+            headings += 1
+        elif line.startswith("- "):
+            bullets += 1
+    return headings if headings else bullets
+
+
 def dim9_cap(oldest, dated, counted, today):
     """quality-rubric.md §Dim 9 staleness-cap table."""
     if counted == 0 or dated == 0 or dated / counted < 0.8:
@@ -182,6 +223,7 @@ def scan_skill(skill_md, today):
     )
     past = [x for x in dates if x <= today.isoformat()]
     row["pass"] = max(past) if past else None
+    row["open"] = count_open(backlog)
     row["evals"] = (
         ("t" if (d / "references" / "trigger-evals.json").is_file() else "")
         + ("o" if (d / "evals" / "evals.json").is_file() else "")
@@ -220,13 +262,22 @@ def main():
         return
     print(
         f"{'age':>4}  {'oldest':<10}  {'changed':<10}  {'rows':>7}  {'cap':>3}  "
-        f"{'pass':<10}  {'evals':<5}  skill"
+        f"{'pass':<10}  {'evals':<5}  {'open':>4}  skill"
     )
     for r in rows:
         print(
             f"{r['age'] if r['age'] is not None else '-':>4}  {r['oldest'] or '-':<10}  "
             f"{r['changed'] or '-':<10}  {r['rows']:>7}  {r['cap']:>3}  "
-            f"{r['pass'] or '-':<10}  {r['evals']:<5}  {r['skill']}"
+            f"{r['pass'] or '-':<10}  {r['evals']:<5}  "
+            f"{'-' if r['open'] is None else r['open']:>4}  {r['skill']}"
+        )
+    with_backlog = [r for r in rows if r["open"] is not None]
+    if with_backlog:
+        total = sum(r["open"] for r in with_backlog)
+        nonzero = sum(1 for r in with_backlog if r["open"])
+        print(
+            f"\n{total} open backlog items across {nonzero} of "
+            f"{len(with_backlog)} skills with a backlog."
         )
 
 
