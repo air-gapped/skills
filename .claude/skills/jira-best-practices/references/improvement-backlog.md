@@ -6,6 +6,7 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 
 - **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
 - **Frontmatter headroom ~3 chars (1,533/1,536 combined; both scorers' nit).** Any trim/rewrite invalidates the trigger pass's validated 14/14 frontmatter, so the mutation requires a trigger-mode probe run (`probe-trigger.py`), not an improve iteration. If a trigger pass runs anyway, bank ~50–80 chars of headroom while it's measured.
+- **33 of 65 `sources.md` cells are URL shorthand, not URLs (found 2026-08-19).** They elide the path middle (`community.atlassian.com/.../Designing Jira Fields in 2026`), use brace sets (`JRASERVER-{39215,39009}`), or trail into prose, so they cannot be clicked or machine-probed — which is why every prior freshen left ~85 rows on the original research date and the skill read as 72 days stale. A further 11 Atlassian cells store a slug without the trailing numeric ID + `.html`, so a direct fetch 404s on a live page. Action: expand each to a full resolvable URL (search once per row, paste the real target), which makes future freshens a single bulk sweep. Deliberately not done in the 2026-08-19 pass: ~44 row rewrites is far past the freshen one-finding diff budget and is mechanical editing, not verification. Until then the header carries this as a standing exception.
 
 Anti-re-proposal guards (tried 2026-08-18, judged net-negative — do not re-propose the same shape):
 - **Condensing SKILL.md summary sections toward pointers** (the blind scorers' recurring Dim 6 flag: hierarchy misconceptions/heuristic, non-software bullets, decomposition anti-patterns). Tried on the non-software section — DISCARDED: each condensed bullet carried unique one-line coverage (Jira Core base, scheduler-app recurrence) for a primary trigger; Dim 5 loss ≥ Dim 6 gain. The genuinely redundant site (the closing Execution paragraph) was removed instead. The remaining SKILL.md/reference overlap is deliberate progressive-disclosure summary, priced in at blind Dim 6 = 7.
@@ -74,3 +75,19 @@ Cosmetic-only notes (NOT attempted-and-blocked — future-cosmetic, content is c
 ### Not directly probed (co-installation)
 
 The trigger probe isolates one skill per run, so `jira-best-practices` vs `jira-cli` competing **in the same session** wasn't tested. From this side the boundary is clean (this skill declines all CLI-mechanics queries). If a real session shows `jira-cli` stealing an advisory query, that's a T6 fix on `jira-cli`'s description, not here.
+
+## Resolved this pass — 2026-08-19 (`/skill-improver freshen`)
+
+- **Freshen (full sweep, 65 source cells).** Bulk liveness probe of every
+  resolvable URL plus targeted claim checks on each Tier-A hard fact. **Zero
+  drift** — DC 11.3.10 (2026-08-07) still latest with no 11.4 line, LTS
+  11.3→2027-12-03 and 10.3→2026-12-05, the DC sunset trio (2026-03-30 /
+  2028-03-30 / 2029-03-28), the 800/1,200 custom-field guardrail, and
+  Automation-for-Jira free-and-native since JSW DC 9.0 all re-confirmed against
+  the live pages.
+- Converted `sources.md` from mixed per-row dates to the single header stamp,
+  with the URL-shorthand limitation recorded as a standing exception rather than
+  papered over (see Open). The prior scheme is what kept 85 rows pinned to
+  2026-06-07.
+- Two `medium.com` rows recorded as permanent bot-block exceptions (403 to any
+  non-browser client).

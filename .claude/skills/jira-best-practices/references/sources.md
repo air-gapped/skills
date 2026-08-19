@@ -1,8 +1,33 @@
 # Sources
 
+Freshened: 2026-08-19 (exceptions: 33 URL-shorthand cells + 2 bot-blocked, noted below)
+
 **Contents:** Execution layer · Hierarchy · Work modeling / decomposition · Lean configuration · Workflows, automation, reporting · Non-software · Platform state (2026-08 pass) · Multilingual & discovery · Dread / critique
 
-External claims in this skill, with source, tier, and what they support. **Most recent freshen pass: 2026-08-18** (decay-prone rows spot-probed and stamped per row; unprobed rows keep their 2026-06-07 research-date stamp). Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits) — these move.
+External claims in this skill, with source, tier, and what they support. Every
+Tier-A hard fact was re-verified on 2026-08-19 with **no drift**: DC 11.3.10
+(2026-08-07) latest, LTS 11.3→Dec 2027 and 10.3→Dec 2026, the DC sunset trio
+(2026-03-30 / 2028-03-30 / 2029-03-28), the 800/1,200 custom-field guardrail,
+and Automation-for-Jira free-and-native since JSW DC 9.0.
+
+**Two standing exceptions this stamp does not cover.**
+
+1. **33 of 65 source cells are shorthand, not URLs** — they elide the middle of
+   the path (`community.atlassian.com/.../Designing Jira Fields in 2026`), use
+   brace sets (`JRASERVER-{39215,39009}`), or trail into prose. They cannot be
+   clicked or machine-probed as written, so their liveness is unverified; the
+   *claims* the Tier-A ones support are verified above. Most are Tier-B/C
+   principle sources where the idea, not the page, is what is cited.
+2. **A further 11 Atlassian cells store a truncated slug** without Atlassian's
+   trailing numeric ID and `.html`, so a direct fetch 404s even though the page
+   is live — e.g. the real page for `adminjiraserver/optimizing-custom-fields` is
+   `…/optimizing-custom-fields-956713279.html`. Confirmed live by search, not by
+   the stored string. Do not read a 404 on these as a dead reference.
+3. Both `medium.com` rows return 403 to any non-browser client (bot-block, not
+   gone).
+
+Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC
+feature splits) — these move.
 
 Tiers: **A** = official Atlassian docs / issue tracker / primary spec · **B** = experienced practitioners / solution partners / surveys · **C** = vendor-advocacy / community opinion (down-weighted, used for *principles* not facts).
 
