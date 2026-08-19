@@ -493,6 +493,28 @@ when_to_use: >-
   handles those without this skill.
 ```
 
+**A negative boundary can raise the very rate it targets.** Measured on
+`skill-improver`, 2026-08-20: three should-NOT queries about *creating* skills
+fired at 1.00/1.00/0.71. Adding "Does NOT apply to writing a new skill from
+scratch, scaffolding a SKILL.md for a workflow that has none, or packaging and
+publishing plugins" moved the mean negative rate the wrong way, 0.452 → 0.476;
+`write me a SKILL.md for my terraform workflow` went 0.71 → 0.86. The clause
+introduced "new skill from scratch" and "SKILL.md" as *matching* text. Fix 2
+(narrow the positive wording) and fix 3 (name the sibling) do not have this
+failure mode; prefer them, and treat fix 1 as the one that must be re-probed
+before it is believed.
+
+**Over-trigger measured solo is not attributable.** The probe installs the
+synthetic as the *only* skill in a fresh temp project, so there is no sibling
+for the query to route to and the synthetic wins by default. A negative that
+belongs to a sibling's territory therefore reads as a T2 failure of this
+skill's description when it is really T6 in the other direction. Before
+mutating on a failed negative, ask whether the correct handler exists in the
+real environment; if it does, the finding is cross-skill and the fix is the
+sibling's description, not this one. Only negatives that no installed skill
+should handle — generic conversation, adjacent-domain decoys — are cleanly
+this skill's problem.
+
 ### Pattern T3: Mixed failures (under and over together)
 
 **Symptom:** failures on both should-trigger and should-not queries.
@@ -550,6 +572,10 @@ sessions. Some other skill's description over-claims the territory.
 identify the sibling skill stealing the trigger, recommend either tightening
 the sibling's `description` or adding a "Do NOT use for X — use `<sibling>`
 instead" line to one or both. Cross-skill negotiation requires the author.
+
+The inverse case — a should-NOT query the probe shows firing at 1.00 because
+the real handler was not installed in the temp project — is also T6, not T2.
+See the attribution note under Pattern T2.
 
 ## Decision rules
 

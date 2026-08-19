@@ -1,0 +1,16 @@
+[
+  {"query": "run a boris check on my skill", "should_trigger": true},
+  {"query": "check my skill for scaffolding decay", "should_trigger": true},
+  {"query": "is my skill fighting the grain?", "should_trigger": true},
+  {"query": "run the philosophy pass over my skills", "should_trigger": true},
+  {"query": "does this skill still match Claude Code's design philosophy?", "should_trigger": true},
+  {"query": "which of my skills have decayed into rigid step-by-step scaffolding?", "should_trigger": true},
+  {"query": "improve a skill", "should_trigger": true},
+  {"query": "my skill didn't fire when I asked it to do its job", "should_trigger": true},
+  {"query": "create a brand new skill for postgres tuning from scratch", "should_trigger": false},
+  {"query": "write me a SKILL.md for my terraform workflow", "should_trigger": false},
+  {"query": "improve the performance of this python script", "should_trigger": false},
+  {"query": "what is the design philosophy behind kubernetes operators?", "should_trigger": false},
+  {"query": "help me improve the wording of my resume", "should_trigger": false},
+  {"query": "package this skill as a plugin and publish it to a marketplace", "should_trigger": false}
+]
