@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-07-23",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "We're on RKE2 (containerd) with the kube-logging logging-operator installed. Our apps write JSON to stdout, but in Elasticsearch every document just has one big string field with the raw JSON inside it instead of proper fields. Write the CRs I need so the JSON gets parsed into real fields and shipped to our Elasticsearch at https://es.observability.svc:9200 (user elastic, password in secret es-creds key password, namespace apps). Explain why it wasn't parsing.",
       "expected_output": "Identifies the CRI/containerd trap (Merge_Log reads `log`, CRI parser emits `message`) and fixes it via enableDockerParserCompatibilityForCRI: true on the Logging (or documents the pre-4.9 cri parser workaround). Provides a complete chain (Logging/FluentbitAgent if needed + Flow + Output in namespace apps) with parser filter carrying BOTH remove_key_name_field: true AND reserve_data: true, acknowledges BOTH parse points exist (fluent-bit Merge_Log vs Flow parser) and warns about double-parsing if both are active, and an elasticsearch Output with scheme https + secretKeyRef password + buffer with timekey. Does not invent field names.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Attributes the unparsed-JSON symptom to a mismatch between the field the CRI/containerd runtime writes log lines into and the field Fluent Bit's JSON-merging logic reads, rather than to an Elasticsearch mapping problem or a missing parser filter alone",
+        "Sets enableDockerParserCompatibilityForCRI to true in the Logging resource spec (or supplies an equivalent explicit CRI-parser/field-rename workaround for pre-4.9 operators)",
+        "The parser filter in the Flow sets both remove_key_name_field: true and reserve_data: true, and the answer connects reserve_data to preserving the Kubernetes metadata fields",
+        "Supplies an Elasticsearch Output in namespace apps whose password is taken via a secret reference to secret es-creds key password rather than an inline literal, with host/port/scheme matching https://es.observability.svc:9200",
+        "States that JSON can be parsed either at the collector (Fluent Bit merge) or in the aggregator Flow, and warns that having both active causes double-parsing/conflict",
+        "The Flow and Output are placed in namespace apps and the Flow references the Output through a namespace-local output reference (not a cluster-scoped reference)"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,14 @@
       "prompt": "logging-operator pipeline: my new Flow in namespace shop shows ACTIVE=false and nothing arrives in Loki. Other flows work. How do I debug this systematically? We have multiple Logging resources in the cluster.",
       "expected_output": "Systematic sequence: check Flow status.problems + `kubectl get logging-all -n shop`; with multiple Loggings, flags the missing/mismatched loggingRef as a prime suspect; check dangling outputRefs (localOutputRefs same-ns, ClusterOutput protected flag); check configcheck pod (failed check silently blocks rollouts); decode the rendered <logging>-fluentd-app secret and look for the Flow's label_router route; mention timekey+timekey_wait latency and stdout:{} debug filter tap. Not just generic 'check operator logs'.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Names a missing or mismatched loggingRef on the Flow as a leading suspect given multiple Logging resources in the cluster, and explains that it must match the intended Logging's name",
+        "Directs the reader to read the Flow's own status (problems/problemsCount or equivalent status fields) rather than only inspecting operator or fluentd pod logs",
+        "Instructs checking whether the referenced Output exists in the same namespace as the Flow (or that a cluster-scoped output reference is used correctly for a ClusterOutput)",
+        "States that a failed configcheck pod blocks the rollout of new configuration silently, so previously working flows keep running while the new one never takes effect",
+        "Includes inspecting the rendered aggregator configuration stored in the <logging-name>-fluentd-app secret (base64-decoded) to confirm whether a route for this Flow was generated",
+        "Accounts for delivery delay from the output buffer's timekey plus timekey_wait before concluding logs are lost"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +44,15 @@
       "prompt": "We need to install the kube-logging logging-operator on a fully air-gapped RKE2 cluster (internal Harbor registry). Which version should we pick right now, what exactly do we mirror (chart + images), and any install gotchas with the CRDs?",
       "expected_output": "Recommends 6.7.0 explicitly (CVE-2026-54680 fixed 6.6.0 but newline-password regression means 6.7.0; never ≤6.5.2). OCI-only chart (helm pull oci://ghcr.io/kube-logging/helm-charts/logging-operator, push to Harbor). Mirror list includes operator, fluentd:<v>-full, config-reloader, fluentd-drain-watch, node-exporter, fluent-bit, pause, busybox (+ optional syslog-ng/eventrouter images). CRD gotchas: crds/ dir installed only on first install and silently skipped if CRDs exist; upgrades need logging-operator-crds.install=true --skip-crds or server-side kubectl apply (huge CRDs break client-side apply). Notes there is no global registry rewrite value - explicit image overrides per component.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Recommends version 6.7.0 specifically and justifies it over 6.6.0 by the newline-containing-password regression, while ruling out 6.5.2 and earlier due to the fluentd config-injection RCE",
+        "States that the Helm chart is distributed as an OCI artifact pulled from ghcr.io/kube-logging/helm-charts/logging-operator and re-pushed to the internal Harbor registry, not from a classic HTTP chart repo index",
+        "Lists the sidecar/auxiliary images that must be mirrored beyond the operator and fluentd, including config-reloader, the fluentd drain watch image, node-exporter, fluent-bit, and pause/busybox",
+        "Warns that the chart's bundled CRDs are applied only on a fresh install and are skipped when the CRDs already exist, so upgrades require an explicit CRD install path (e.g. the logging-operator-crds chart / --skip-crds handling) rather than relying on helm upgrade",
+        "Warns that the CRDs are too large for client-side kubectl apply and that server-side apply (or an equivalent) must be used",
+        "States that there is no single global image-registry override value, so each component's image must be overridden explicitly to point at Harbor",
+        "Does NOT tell the user to delete or recreate the existing CRDs as the way to get updated CRD schemas"
+      ]
     }
   ]
 }

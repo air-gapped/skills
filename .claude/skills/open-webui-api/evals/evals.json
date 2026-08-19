@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-07-22",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -15,10 +15,13 @@
       "expected_output": "provision.sh using POST /api/v1/auths/add, POST /api/v1/groups/create then /users/add (incremental membership), and model visibility via 0.10.x access_grants list with a group read grant — NOT the dead access_control dict.",
       "files": [],
       "assertions": [
-        "Creates users via POST /api/v1/auths/add (admin create endpoint), not signup or a nonexistent /users/create",
-        "Adds group members incrementally via POST /api/v1/groups/id/{id}/users/add — not user_ids in group create/update",
-        "Sets model visibility using the 0.10.x access_grants list with a group-read grant (principal_type/principal_id/permission)",
-        "Does not use the dead pre-0.10 access_control dict shape anywhere"
+        "The script grants the model to the group using an access_grants list containing an entry with principal_type 'group' and permission 'read', rather than an access_control object with read/write group_ids",
+        "The script does NOT make the model public (it includes no read grant to a wildcard '*' / all-users principal, and does not leave access grants absent/null in a way it describes as public)",
+        "The script creates the three users via an admin user-creation endpoint that accepts email/password/role (e.g. POST /api/v1/auths/add) rather than a plain signup or a non-existent /api/v1/users/create endpoint",
+        "Group membership is established by updating the group with the newly created users' IDs (IDs captured from the user-creation responses), not by passing email addresses as members",
+        "Each user is created with role 'user' and a randomly generated password (not a hardcoded shared literal password)",
+        "The script reads the instance URL and admin token from $OWUI_URL and $OWUI_TOKEN and sends the token as an Authorization: Bearer header",
+        "The answer saves the script to provision.sh and does not execute it against an instance"
       ]
     },
     {
@@ -28,10 +31,14 @@
       "expected_output": "triage.md identifying (1) the 0.10.0 access_control→access_grants breaking change with silent-ignore of old payloads, giving the new grant-list shape, and (2) the 0.6.37 ENABLE_API_KEY→ENABLE_API_KEYS rename with default flip and no fallback for the old name, plus the permission gate.",
       "files": [],
       "assertions": [
-        "Identifies the 0.10.0 access_control-to-access_grants breaking change and explains the silent-ignore (200 but no-op) behavior",
-        "Shows the correct new grant shape, including that public now requires an explicit user:* read grant (defaults inverted)",
-        "Identifies the ENABLE_API_KEY to ENABLE_API_KEYS rename with default flipped to off and no fallback for the old name (0.6.37)",
-        "Mentions the additional API-key permission gate (admin role or features.api_keys permission)"
+        "Identifies the cause of the silent permission failures as the 0.10.0 rename/reshape of resource ACLs from access_control to access_grants, and states that the old-shaped payload is ignored rather than rejected (hence HTTP 200 with no effect)",
+        "Provides a corrected request body whose grants are a list of entries each carrying a principal type (user or group), a principal id, and a permission of read or write",
+        "States that under the new scheme absence of grants means private, and that public access requires an explicit read grant to all users (wildcard principal), i.e. the old null=public/{}=private convention is inverted or gone",
+        "Identifies the API key 401 as caused by ENABLE_API_KEY no longer being the recognized variable — the correct name is ENABLE_API_KEYS — and states that the old name is not honored as a fallback, so keys are effectively disabled",
+        "States that API keys are disabled by default in current versions, so the variable must be explicitly set to true (not merely left at its default)",
+        "Notes that key issuance/use additionally requires the account to be admin or to hold the api_keys user permission, which is not granted by default",
+        "Does NOT attribute the API key failure to the key itself expiring or to a JWT 4-week expiry as the sole cause of a non-admin service account's api key breaking",
+        "Writes the explanation and corrected examples to triage.md"
       ]
     },
     {
@@ -41,10 +48,13 @@
       "expected_output": "runbook.md using GET /api/v1/configs/export (flat dot-keyed) and POST /api/v1/configs/import (partial upsert), explaining PersistentConfig: env vars only seed the DB on first boot, DB wins thereafter, so post-boot env changes are ignored — change it via the API instead.",
       "files": [],
       "assertions": [
-        "Exports config via GET /api/v1/configs/export",
-        "Applies config via POST /api/v1/configs/import with {\"config\": {...}} and notes partial-upsert semantics",
-        "Explains PersistentConfig correctly: env vars seed the DB on first boot only, DB wins thereafter, so the RAG_TEMPLATE env change was ignored",
-        "Recommends changing the value via the API (configs/import or retrieval config endpoint) rather than env, or disabling persistence knowingly"
+        "The runbook exports config via GET /api/v1/configs/export and applies it via POST /api/v1/configs/import, both with an admin Bearer token",
+        "States that the exported config is a flat dictionary keyed by dotted names rather than a nested JSON object",
+        "States that import applies a partial upsert — only supplied keys are changed, unsupplied keys are left alone — so CI can send a subset",
+        "Explains the RAG_TEMPLATE mystery as PersistentConfig behavior: the env var only seeds the database on first boot, after which the stored value takes precedence and later env changes are ignored",
+        "Prescribes changing the RAG template through the API/config import (or otherwise updating the stored value) as the fix, rather than only re-setting or renaming the Helm env var",
+        "Does NOT recommend wiping/recreating the database or deleting the persistent volume as the way to make the env var take effect",
+        "The output is written to runbook.md"
       ]
     }
   ]

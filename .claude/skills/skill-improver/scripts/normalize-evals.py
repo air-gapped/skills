@@ -93,7 +93,14 @@ def normalize(path: Path) -> tuple[dict, dict]:
         if not c["expected_output"]:
             report["no_expected"] += 1
         c.setdefault("files", [])
-        c.setdefault("assertions", [])
+        # Two early files wrote assertions as {"text": "..."} objects. The
+        # schema is a list of strings; flatten rather than special-case every
+        # consumer downstream.
+        c["assertions"] = [
+            a if isinstance(a, str) else str((a or {}).get("text", "")).strip()
+            for a in (c.get("assertions") or [])
+        ]
+        c["assertions"] = [a for a in c["assertions"] if a]
         if not c["assertions"]:
             report["no_assertions"] += 1
         c["id"] = i  # renumber densely; ids were not always contiguous

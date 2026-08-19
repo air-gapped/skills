@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-30",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -15,33 +15,13 @@
       "expected_output": "Manifest + explanation should: (1) note the canonical name is sgl-model-gateway not sgl-router, (2) explain that HTTP service discovery does NOT work for vLLM (probes /server_info which vLLM 404s), (3) recommend --worker-urls instead OR sidecar reconciliation, (4) wire cache_aware policy with --tokenizer-path, (5) set --enable-prompt-tokens-details on vLLM for cache feedback, (6) include RBAC + Service + ServiceMonitor, (7) mention that single gateway replica avoids the 10-20% multi-replica cache penalty",
       "files": [],
       "assertions": [
-        {
-          "text": "Mentions that HTTP service discovery does not work with vLLM (because vLLM 404s on /server_info or /model_info)"
-        },
-        {
-          "text": "Recommends --worker-urls (static list) for vLLM workers, not --service-discovery"
-        },
-        {
-          "text": "Sets --policy cache_aware (or explains why)"
-        },
-        {
-          "text": "Provides --tokenizer-path / --model-path so cache-aware policy can hash prompts"
-        },
-        {
-          "text": "Suggests --enable-prompt-tokens-details on vLLM workers"
-        },
-        {
-          "text": "Includes RBAC (ServiceAccount + Role + RoleBinding)"
-        },
-        {
-          "text": "Notes the canonical name is sgl-model-gateway (formerly sgl-router) and uses the lmsysorg/sgl-model-gateway image"
-        },
-        {
-          "text": "Mentions single-replica gateway pattern (or sessionAffinity ClientIP for HA) to avoid the 10-20% multi-replica cache hit penalty"
-        },
-        {
-          "text": "Output includes a complete-looking YAML manifest (Deployment + Service for the gateway)"
-        }
+        "States that the deployed component's current/canonical name is sgl-model-gateway and that sgl-router is the former name for the same project",
+        "States that Kubernetes label-selector service discovery cannot enrich vLLM workers with metadata because vLLM does not serve the /server_info (and /model_info) endpoints the gateway probes",
+        "The gateway configuration supplies the four vLLM worker endpoints via a static worker-URL list (or an equivalent explicit registration mechanism such as POST /workers or a sidecar reconciler) rather than relying solely on label-selector discovery for correct operation",
+        "The gateway is configured with the cache-aware routing policy as the mechanism that restores prefix locality",
+        "Recommends enabling vLLM's prompt-token-details reporting so responses include cached_tokens, and states it is off by default",
+        "The manifest runs exactly one gateway replica, and the answer ties that choice to avoiding the ~10-20% cache-hit loss that comes from multiple gateway replicas keeping independent routing state",
+        "Does NOT claim that a tokenizer file/path must be mounted or configured on the gateway for cache-aware routing to work"
       ]
     },
     {
@@ -51,24 +31,12 @@
       "expected_output": "Should: (1) explain that the Rust gateway does NOT honor HF_ENDPOINT (uses hf-hub crate which differs from Python huggingface_hub), (2) recommend passing the local snapshot directory to --model-path, (3) list env vars: HF_HOME, HF_HUB_CACHE, HF_HUB_OFFLINE=1, HF_HUB_DISABLE_TELEMETRY, (4) describe the failure mode if --model-path is an HF repo ID instead of a local path (DNS errors / connection refused), (5) note that HF_HOME must be writable, (6) ideally also note that workers need their own offline env vars",
       "files": [],
       "assertions": [
-        {
-          "text": "Explicitly states that the Rust gateway does NOT honor HF_ENDPOINT (or that the Rust hf-hub crate differs from Python huggingface_hub on this point)"
-        },
-        {
-          "text": "Recommends passing a local snapshot directory path to --model-path or --tokenizer-path"
-        },
-        {
-          "text": "Lists HF_HOME, HF_HUB_CACHE, HF_HUB_OFFLINE env vars"
-        },
-        {
-          "text": "Describes the failure mode (gateway tries to reach huggingface.co / DNS errors / connection refused) when --model-path is an HF repo ID"
-        },
-        {
-          "text": "Mentions that HF_HOME should point to a writable location, not the read-only PVC mount"
-        },
-        {
-          "text": "Includes a working CLI args example pointing at the snapshot path"
-        }
+        "States that the Rust gateway ignores HF_ENDPOINT, so pointing it at the internal mirror hostname will not redirect its downloads",
+        "Instructs that the gateway be given the local snapshot directory path /models/huggingface/hub/models--Qwen--Qwen3-Coder-32B-Instruct/snapshots/abc123def/ (via --model-path or --tokenizer-path) rather than the repo ID Qwen/Qwen3-Coder-32B-Instruct",
+        "Describes the concrete failure mode of passing a repo ID: the gateway attempts to reach huggingface.co and fails with a DNS/connection error rather than falling back to the mirror or the PVC",
+        "States that the offline env vars (HF_HUB_OFFLINE=1 / TRANSFORMERS_OFFLINE=1) are required on the SGLang worker pods, which load weights and tokenizer from the mounted snapshot",
+        "States that HF_HOME must point at a writable location and warns that a read-only mount there breaks initialization",
+        "Does NOT instruct the user to set HF_ENDPOINT to the internal mirror on the gateway as the means of achieving air-gapped operation"
       ]
     },
     {
@@ -78,21 +46,12 @@
       "expected_output": "Should: (1) clarify that the 10-20% claim is about multi-replica gateways (independent radix trees), not multi-replica workers, (2) explain why: each gateway has its own radix tree so two same-prefix requests landing on different gateways may pick different workers, (3) suggest sessionAffinity: ClientIP on the gateway Service as the mitigation, OR keeping a single replica with PDB, (4) note that the actual penalty is workload-dependent and the number is a rough docs claim, (5) point to issue #17623 or similar for empirical context",
       "files": [],
       "assertions": [
-        {
-          "text": "Explains that the 10-20% applies to multiple GATEWAY replicas, not multiple worker replicas"
-        },
-        {
-          "text": "Explains the mechanism: each gateway replica has its own independent radix tree for cache-aware routing"
-        },
-        {
-          "text": "Suggests sessionAffinity: ClientIP on the gateway Service as a mitigation for HA + cache locality"
-        },
-        {
-          "text": "OR suggests running a single gateway replica with PodDisruptionBudget as an alternative"
-        },
-        {
-          "text": "Acknowledges the number is workload-dependent / rough / not empirical for every deployment"
-        }
+        "States that the 10-20% figure applies to running multiple gateway replicas, not to running multiple workers behind one gateway",
+        "Explains the mechanism as each gateway replica maintaining its own independent prefix/radix routing state, so the same prefix arriving at a different gateway can be routed to a different worker",
+        "Offers at least one concrete way to preserve prefix locality with 2 gateway replicas — client-IP session affinity on the gateway Service, or the gateway's built-in replica state-sync/mesh mode",
+        "Presents keeping a single gateway replica protected by a PodDisruptionBudget as a viable HA-adjacent option, noting the gateway restarts fast/is stateless for chat traffic",
+        "Characterizes 10-20% as a rough, workload-dependent documentation estimate rather than a measured guarantee, and indicates the real penalty depends on prefix-sharing and KV-memory pressure",
+        "Does NOT tell the user that 2 gateway replicas will unavoidably cost 10-20% cache hits with no mitigation available"
       ]
     }
   ]

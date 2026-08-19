@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-20",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "Running DeepSeek-R1-Distill-Qwen-32B on vLLM with `--reasoning-parser deepseek_r1`. The chat-completion responses have `content` populated with the full model output including `</think>` markers, but `reasoning_content` is always `null`. Why? How do I fix it? Be specific about what the parser is doing and why it's returning null.",
       "expected_output": "Identifies root cause (chat template injects `<think>` into the prompt so the model never emits it; naive regex matchers see no pair). Explains how `BaseThinkingReasoningParser.extract_reasoning` handles this via `partition`. Points to specific files (qwen3_reasoning_parser.py, deepseek_r1_reasoning_parser.py, basic_parsers.py) or the serving layer.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Attributes the null reasoning field to the chat template placing the `<think>` start marker in the prompt, so the model output contains only the closing marker and never the opening one",
+        "States that the parser handles a missing start marker by splitting on the end marker alone (e.g. partition/split on `</think>`) rather than requiring a matched open/close pair",
+        "Names at least one concrete vLLM source location involved in the split (e.g. `vllm/reasoning/basic_parsers.py`, `deepseek_r1_reasoning_parser.py`, or the OpenAI chat serving layer)",
+        "Raises the possibility that the response field is named `reasoning` rather than `reasoning_content` on current versions, so a client reading `reasoning_content` sees null even when the split succeeded",
+        "Gives at least one concrete diagnostic or fix the user can run (inspecting the rendered prompt/template, inspecting the actual response field names, or correcting the client field name / template)",
+        "Does NOT advise passing a now-removed `--enable-reasoning` flag as the fix"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,14 @@
       "prompt": "I need to add reasoning-parser support for a custom model that uses `<|think|>` and `<|/think|>` as its single-token reasoning delimiters. I want to do this as a plugin without modifying vLLM source. Walk me through the minimum code to write, where to put it, and the exact `vllm serve` flags to use. Then show me how to verify it's working.",
       "expected_output": "Shows plugin file with `@ReasoningParserManager.register_module([\"my_model\"])` decorator, inherits `BaseThinkingReasoningParser`, overrides `start_token`/`end_token`. Gives `--reasoning-parser-plugin /path/file.py --reasoning-parser my_model` command. Notes order matters (plugin loaded before lookup). Verification with curl + jq on /v1/chat/completions expecting both `reasoning_content` and `content` populated.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The plugin file defines a parser class registered under a chosen name via the `ReasoningParserManager` registration decorator applied at import time",
+        "The parser reuses the built-in single-vocab-token thinking base class and supplies only the start (`<|think|>`) and end (`<|/think|>`) delimiters rather than reimplementing streaming and non-streaming extraction from scratch",
+        "States that the delimiters must each resolve to a single entry in the tokenizer vocabulary for this base-class approach, and that a multi-token delimiter would require different handling",
+        "The serve command passes both the plugin file path and the registered parser name (a plugin-path flag plus `--reasoning-parser <registered name>`), with the name matching the one used at registration",
+        "Verification issues an actual chat-completion request against the running server and checks that the reasoning and final-answer fields are populated separately, including checking the actual field names present on the message",
+        "Does NOT instruct the user to edit vLLM's in-tree registry or otherwise modify vLLM source files to register the parser"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +44,14 @@
       "prompt": "Running Qwen3-235B with `--reasoning-parser qwen3 --guided-decoding-backend xgrammar`. Requests with `chat_template_kwargs: {\"enable_thinking\": false}` and `response_format: {\"type\": \"json_object\"}` are producing outputs that start with extra tokens before the JSON, and sometimes the JSON is invalid. With `enable_thinking: true` it works fine (but is slow because of reasoning). What is going wrong, and how do I make structured output work cleanly when thinking is disabled?",
       "expected_output": "Explains the xgrammar gating mechanism (`is_reasoning_end` on prompt determines when grammar enforcement starts). Explains that with thinking-disabled, the Qwen3 chat template injects `<think>\\n\\n</think>\\n\\n` into the prompt, and that `BaseThinkingReasoningParser.is_reasoning_end` reverse-scans and correctly flips true for this shape so xgrammar should enforce from token 0. Identifies the actual failure mode (custom chat template without the fake think block; parser not checking `enable_thinking`; etc.) and gives remediation.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Explains that grammar/xgrammar enforcement is withheld until the parser's reasoning-end check returns true for the prompt, and that leading non-JSON tokens mean that check returned false so the grammar was still gated",
+        "States that the stock Qwen3 thinking-disabled chat template emits an empty think block (`<think>\\n\\n</think>\\n\\n`) into the prompt and that this shape is what makes the reasoning-end check flip true",
+        "Identifies a concrete cause for the check failing in this deployment — e.g. a custom/overridden chat template that omits the empty think block, a template that doesn't honor `enable_thinking`, or the flag not reaching the template — rather than blaming the model or the JSON schema",
+        "Offers verifying the rendered prompt actually contains the closing think marker before enforcement is expected to start",
+        "Names `--structured-outputs-config.enable_in_reasoning=true` (enforce grammar from token 0 regardless of reasoning state) as a remedy or explicit alternative",
+        "Does NOT resolve the issue by telling the user to abandon structured output, drop the reasoning parser, or permanently leave thinking enabled as the only fix"
+      ]
     }
   ]
 }

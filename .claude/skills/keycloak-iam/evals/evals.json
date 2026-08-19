@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-05-06",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "I just deployed Keycloak 26.6.1 to our EKS cluster behind an AWS ALB and our SPA login is bouncing in an infinite loop between /auth and /realms/myapp/authenticate?code=... — the page never finishes loading. The Keycloak pod logs show nothing obviously wrong. The ALB is doing TLS termination and the Keycloak pod is on plain HTTP 8080 inside the cluster. What's going wrong and what specific KC_* env vars do I need to set to fix it?",
       "expected_output": "Identifies hostname/proxy mismatch as the root cause. Recommends KC_HOSTNAME=<full https URL>, KC_HOSTNAME_STRICT=true, KC_PROXY_HEADERS=xforwarded (since ALB sends X-Forwarded-*), and explains why. Bonus: mentions KC_PROXY_TRUSTED_ADDRESSES and that the issuer in /.well-known/openid-configuration should match what the SPA expects.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies the root cause as Keycloak's hostname/proxy-header configuration (Keycloak building URLs from the request rather than the external HTTPS address), not an ALB routing, DNS, or SPA-library bug",
+        "Instructs setting the hostname to the full external HTTPS URL (e.g. https://auth.<domain>) rather than a bare host, port, or http:// value",
+        "Instructs configuring the server to trust X-Forwarded-* headers from the ALB (the xforwarded proxy-header mode), rather than the removed/legacy edge-proxy setting",
+        "Does NOT resolve the loop by disabling strict hostname checking (hostname-strict=false) as the recommended fix",
+        "Gives the fix as concrete KC_* environment variable names paired with their values, usable as-is in the pod spec",
+        "Provides a way to verify the fix by checking that the issuer/endpoint URLs returned by the realm's OIDC discovery document are the external HTTPS URLs the SPA expects"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,14 @@
       "prompt": "Write me a production-ready Keycloak custom resource (the Keycloak Operator CR) for 26.6.1 with 3 replicas, Postgres backend, hostname auth.example.com behind an ingress doing TLS termination, Prometheus metrics enabled, and zero-downtime upgrades configured. We don't have a custom image yet so use the stock quay.io image. Include the install commands for the operator first (we don't have it installed yet), and any pre-requisite Secrets we need.",
       "expected_output": "Provides install commands referencing https://github.com/keycloak/keycloak-k8s-resources at tag 26.6.1 with all three manifest files (CRDs + operator manifest). Provides a valid Keycloak CR with: instances:3, image set to 26.6.1, hostname.hostname (full URL) + strict:true, proxy.headers, db section, bootstrapAdmin, update.strategy: Auto, serviceMonitor: {} or metrics surfaced, and lists the Secrets needed (DB credentials, bootstrap admin, optionally TLS). Notes that since TLS terminates at ingress, http.tlsSecret may be omitted and http-enabled=true via additionalOptions/env.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Operator install steps pull the manifests pinned to the 26.6.1 version tag (not latest/main) and apply both the Keycloak and KeycloakRealmImport CRDs in addition to the operator deployment/RBAC manifest",
+        "The Keycloak CR sets 3 instances and pins the image to a stock quay.io Keycloak 26.6.1 tag rather than :latest or :nightly",
+        "The CR configures hostname as the full external URL for auth.example.com with strict hostname checking left enabled, and sets the proxy headers mode for the TLS-terminating ingress",
+        "The CR uses a Postgres database backend with credentials sourced from a Kubernetes Secret rather than inline plaintext or the default dev/H2 file database",
+        "The CR enables zero-downtime/automatic update handling (update strategy Auto) and exposes Prometheus metrics (metrics enabled plus a ServiceMonitor or equivalent scrape configuration)",
+        "Explains that because TLS terminates at the ingress, no TLS secret is needed on the Keycloak HTTP config and plain HTTP must be enabled inside the cluster, and enumerates the prerequisite Secrets (DB credentials and bootstrap admin) with their required keys"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +44,14 @@
       "prompt": "I'm a backend engineer and I need to wire our React SPA to Keycloak as the OIDC IdP for the first time. The SPA lives at https://app.acme-internal.com and our Keycloak is at https://auth.acme-internal.com running 26.6. What's the right OIDC flow to use, what client config goes in Keycloak (include valid redirect URIs etc), and what should I be careful about security-wise? We may want to bind tokens to the browser later so token theft is harder — is there something in Keycloak for that?",
       "expected_output": "Recommends Authorization Code + PKCE with S256 challenge method as the right flow for SPAs (NOT implicit). Specifies: public client, standardFlowEnabled true, redirectUris exact (https://app.acme-internal.com/* or specific paths, not wildcards on subdomains), webOrigins set, pkce.code.challenge.method=S256 attribute. Mentions DPoP (now GA in 26.6) as the answer for binding tokens to the browser, and that it's enabled per-client via 'Use DPoP-bound tokens' in Advanced. Security cautions: short access-token TTLs, refresh-token rotation enabled, no implicit/ROPC, web origins tight.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Recommends the Authorization Code flow with PKCE using the S256 challenge method, and explicitly rules out the implicit flow (and ROPC/password grant) for this SPA",
+        "Specifies a public client (no client secret) with standard flow enabled, and does not recommend a confidential client secret embedded in the browser app",
+        "Gives redirect URIs scoped to the exact https://app.acme-internal.com origin and specific paths rather than open wildcards such as https://* or a wildcard across subdomains, and sets web origins to that same specific origin rather than *",
+        "Answers the token-binding question with DPoP as the Keycloak capability for cryptographically binding tokens to the client, and states it is turned on per-client in the client's advanced settings",
+        "Recommends concrete token-lifetime/refresh hardening: short access-token TTL together with refresh-token rotation (one-time-use refresh tokens)",
+        "Names the actual client attribute/setting keys needed to enforce PKCE on the client, so the config can be applied without guessing the field name"
+      ]
     }
   ]
 }

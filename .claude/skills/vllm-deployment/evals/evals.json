@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-20",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "I've got a 4-node H200 cluster (8 GPUs per node) and I want to serve DeepSeek-V3 across 2 nodes because the weights won't fit on one node. I've been trying to build this myself with a headless Service + StatefulSet but when the TP group tries to init NCCL the pods segfault. What K8s primitive / manifest should I actually be using in April 2026? Give me a minimum viable manifest and explain the NCCL segfault fix.",
       "expected_output": "",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Recommends LeaderWorkerSet (LWS) as the gang-scheduling primitive for the 2-node deployment rather than the headless Service + StatefulSet approach the user built",
+        "Identifies the missing shared-memory volume (an emptyDir with medium: Memory mounted at /dev/shm) as the cause of the NCCL segfault, and the provided manifest includes that volume and mount",
+        "The /dev/shm volume is given a size of several GiB (at least ~10Gi or comparably large), not left at the container default of 64 MiB",
+        "The manifest or accompanying guidance sets the liveness/startup probe delay to a multi-minute budget (on the order of 10 minutes or more) rather than leaving a default tens-of-seconds delay",
+        "Uses a pinned vLLM image version tag rather than :latest",
+        "Addresses NIC/interface selection for NCCL on multi-NIC hosts (e.g. pinning NCCL_SOCKET_IFNAME or NCCL_IB_HCA) so NCCL does not hang or pick the wrong interface"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,13 @@
       "prompt": "We're deploying vLLM on OpenShift 4.18 using the upstream vllm/vllm-openai image. Two problems: (1) the pod crashes on start with what looks like a permission/UID error from the SCC, and (2) once we got it running on a dev cluster with anyuid, our streaming /v1/chat/completions responses cut off at exactly 60 seconds. What do I need to fix? Is there a Red Hat-supported image I should use instead?",
       "expected_output": "",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies that the upstream vllm/vllm-openai image runs as root and therefore fails under OpenShift's restricted SCC which assigns an arbitrary UID",
+        "Recommends a Red Hat-supported UID-agnostic vLLM image (RHAIIS, e.g. registry.redhat.io/rhaiis/vllm-cuda-rhel9) as the fix, or alternatively rebuilding the image with group-writable permissions on the directories it writes to (e.g. chgrp -R 0 and chmod -R g=u on /root and /tmp)",
+        "Attributes the 60-second streaming cutoff to the OpenShift Route/HAProxy default idle timeout rather than to a vLLM, client, or model-side problem",
+        "Gives the Route timeout fix as an annotation raising the HAProxy timeout to a value well above 60s (e.g. haproxy.router.openshift.io/timeout set to minutes)",
+        "Does NOT present granting anyuid (or running the workload as root / privileged SCC) as the recommended production fix for the UID problem"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +43,13 @@
       "prompt": "I set up KEDA on my vLLM Deployment using vllm:num_requests_waiting as the trigger with threshold 2. Traffic is bursty — spikes of ~50 concurrent requests for 1-2 minutes, then idle. My pods keep spinning up and immediately being scaled back down before they've finished loading. What's wrong with my autoscaler setup? Can you give me a corrected ScaledObject?",
       "expected_output": "",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies the threshold of 2 on num_requests_waiting as too low and raises it to roughly 5-10 queued requests per replica in the corrected ScaledObject",
+        "Identifies the absence of an adequate cooldown/stabilization window as a cause of the scale-up/scale-down thrash",
+        "The corrected ScaledObject sets a cooldownPeriod of several minutes (on the order of 360 seconds or more)",
+        "Accounts for the fact that a new vLLM pod takes many minutes to load the model and become ready, so it cannot absorb queue depth immediately - e.g. via polling interval, cooldown, or probe/startup guidance sized to that load time",
+        "Does NOT recommend keeping an aggressive low threshold with short/default cooldown, and does NOT propose scale-to-zero or immediate scale-down as the remedy for the bursty pattern described"
+      ]
     }
   ]
 }

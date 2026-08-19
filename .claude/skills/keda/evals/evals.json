@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-20",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "I've got a Python worker Deployment called `image-processor` in the `media` namespace on EKS. It consumes messages from an SQS queue at https://sqs.eu-west-1.amazonaws.com/444455556666/image-jobs. Traffic is very bursty — most of the day the queue is empty, but we get thousands of messages in short spikes when a customer uploads a batch. Each message takes roughly 5 seconds to process. The worker pod's service account `image-processor-sa` is already annotated with IRSA role arn:aws:iam::444455556666:role/image-processor. I want to scale from 0 to 40 pods and fall back gracefully if SQS is unreachable. Write me a complete KEDA ScaledObject + TriggerAuthentication, and explain the key parameter choices.",
       "expected_output": "A complete ScaledObject with aws-sqs-queue trigger, minReplicaCount 0, maxReplicaCount 40, fallback configured, TriggerAuthentication using podIdentity.provider=aws (IRSA), plus reasoning about polling interval / queueLength target / cooldown based on the 5s processing time and bursty workload.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The ScaledObject sets minReplicaCount to 0 and maxReplicaCount to 40",
+        "The trigger is an aws-sqs-queue scaler pointing at queue URL https://sqs.eu-west-1.amazonaws.com/444455556666/image-jobs with awsRegion eu-west-1",
+        "The TriggerAuthentication authenticates via AWS pod identity (IRSA) referencing the existing service account role rather than embedding static AWS access keys or a secret containing them",
+        "The ScaledObject includes a fallback block with both a failure threshold and a replica count so SQS unavailability does not collapse the deployment",
+        "The answer justifies the chosen per-pod queueLength/target value and the pollingInterval/cooldownPeriod settings in terms of the ~5s per-message processing time and the bursty spike pattern",
+        "The answer states that the scale-to-zero (N→0) delay is governed by cooldownPeriod while scale-down above zero is governed by the HPA scale-down stabilization window"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,13 @@
       "prompt": "My ScaledObject `order-api` in the `apps` namespace is not working. `kubectl describe scaledobject order-api` shows Ready=False, and the deployment is still at 3 replicas even though traffic is high. When I check `kubectl get hpa` I see two HPAs on the same deployment — one called `order-api-hpa` that I created last year and one called `keda-hpa-order-api`. The ScaledObject has a Prometheus trigger querying `sum(rate(http_requests_total{service=\"order-api\"}[1m]))` with threshold 200 and `kubectl get --raw \"/apis/external.metrics.k8s.io/...\"` returns 404. Walk me through diagnosing this step by step and give me the exact fix.",
       "expected_output": "Explanation that the old manual HPA is the root cause (HPA conflict validation). Diagnosis steps including `kubectl describe scaledobject` conditions, looking at operator logs, checking APIService. Fix: delete the old HPA (`kubectl delete hpa -n apps order-api-hpa`), or use the transfer-hpa-ownership annotation to adopt it. Mention the external metrics 404 is a downstream symptom, not the root cause.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies the pre-existing manually created HPA (order-api-hpa) on the same Deployment as the root cause of Ready=False",
+        "States that the external.metrics.k8s.io 404 is a downstream symptom of the ScaledObject never becoming ready, not an independent fault of the metrics API or the Prometheus query",
+        "Gives a concrete fix that either removes the manual HPA on that deployment or adopts it via the transfer-hpa-ownership annotation on the ScaledObject",
+        "Provides a diagnostic sequence that includes inspecting the ScaledObject's status conditions/events and the KEDA operator logs",
+        "Does NOT attribute the failure primarily to a wrong Prometheus query, wrong threshold value, or a missing/broken Prometheus adapter, and does NOT recommend deleting the KEDA-managed keda-hpa-order-api as the fix"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +43,14 @@
       "prompt": "We have a GPU cluster with 14 H100s and two workloads sharing it: `sglang-inference` (4 GPUs/pod) and `batch-processing` (2 GPUs/pod). Inference should scale up during European business hours and weekdays; batch takes over off-hours and weekends. Weekdays 07:00-18:00 Stockholm time we want 3 inference pods (12 GPUs) and 1 batch pod (2 GPUs) = 14 GPUs total. Evenings 18:00-22:00 we want 2 inference + 3 batch = 14. Nights 22:00-07:00 we want 1 inference + 5 batch = 14. Weekends: 1 inference + 5 batch all day. Write me KEDA ScaledObjects for both workloads using the cron scaler. All timestamps in Europe/Stockholm.",
       "expected_output": "Two ScaledObjects (one per workload) with multiple cron triggers. Because cron triggers combine as max, the pattern is to define one cron window per time slot. Correct schedules with IANA timezone Europe/Stockholm. The desiredReplicas for each window should match the user's table. An explanation that overlapping cron windows take max (not sum), so non-overlapping windows are needed.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Produces two separate ScaledObjects, one targeting sglang-inference and one targeting batch-processing",
+        "Every cron trigger specifies timezone Europe/Stockholm",
+        "The cron windows for a given workload do not overlap each other, and the answer explains that overlapping cron triggers combine as the maximum desired replicas rather than summing",
+        "The inference schedule yields 3 replicas on weekdays 07:00-18:00, 2 replicas weekdays 18:00-22:00, and 1 replica at all other times including weekends",
+        "The batch schedule yields 1 replica on weekdays 07:00-18:00, 3 replicas weekdays 18:00-22:00, and 5 replicas at all other times including weekends",
+        "The combined replica counts in every time window respect the 14-GPU budget given 4 GPUs per inference pod and 2 GPUs per batch pod"
+      ]
     },
     {
       "id": 3,
@@ -38,7 +58,14 @@
       "prompt": "Write a production-grade KEDA ScaledObject for a Go HTTP API called `checkout` in namespace `ecommerce`. Scale between 5 and 50 pods based on two signals: (1) Prometheus RPS query `sum(rate(http_requests_total{service=\"checkout\"}[1m]))` with a target of 150 RPS per pod, and (2) CPU utilization target 70%. The pods take about 45 seconds to warm up (JVM-like cold start from Go's init code). We've had issues with flapping during quiet nights. Also explain: when both metrics recommend different replica counts, which one wins and why? And what happens during a Black Friday spike that would push us past 50 pods?",
       "expected_output": "ScaledObject with two triggers (prometheus and cpu), behavior tuned for slow warmup (scaleDown stabilization at least 900s > 45s warmup), scaleUp moderately aggressive. Correct explanation: the HPA picks MAX of the two, so whichever trigger suggests more pods wins — this is OR-semantics. During a Black Friday spike maxReplicaCount caps at 50; the user should monitor `keda_scaled_object_errors_total` and consider raising the ceiling. Ideally mention fallback for when Prometheus is down.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The ScaledObject sets minReplicaCount 5 and maxReplicaCount 50 with a prometheus trigger at threshold 150 and a cpu trigger targeting 70% utilization",
+        "Configures HPA scaleDown stabilization substantially longer than the default 300s (at least ~900s) to stop night-time flapping, while keeping scale-up responsive",
+        "States that the effective replica count is the maximum of the two triggers' recommendations, i.e. whichever signal demands more pods wins",
+        "Explains that during a spike the workload is hard-capped at 50 replicas and says what the user should do about it (raise the ceiling / monitor KEDA scaler or scaled-object error metrics)",
+        "Configures fallback only on the Prometheus trigger or otherwise notes that fallback does not apply to the cpu trigger",
+        "Any HPA stabilization window values given are multiples of 15 seconds"
+      ]
     }
   ]
 }

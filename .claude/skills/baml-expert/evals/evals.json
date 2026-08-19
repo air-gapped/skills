@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-20",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "I'm working in a BAML project (python/pydantic client, baml_src/ at repo root). I need to add a new LLM function that classifies a customer support ticket into a category and urgency. Category is one of: BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER. Urgency is LOW / MEDIUM / HIGH / CRITICAL. The function should also return a one-sentence rationale and a list of tags (strings). Write the .baml code for the function, its input/output classes and enums, a sensible client block (openai/gpt-4o-mini with retry), and one test block with assertions. Put everything in a new file `baml_src/ticket_classifier.baml`. Also show me the Python snippet to call this from an async FastAPI handler. Use the current directory as the project root — don't actually write files, just return the full contents with file paths.",
       "expected_output": "A .baml file with: enum Category, enum Urgency, class TicketClassification (category, urgency, rationale string, tags string[]), function ClassifyTicket(ticket_text: string) -> TicketClassification with prompt containing {{ ctx.output_format }}, a client<llm> block with retry_policy, one test with @@assert. Plus Python async FastAPI endpoint using baml_client.async_client.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The .baml code defines a Category enum whose values are exactly BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER and an Urgency enum whose values are exactly LOW, MEDIUM, HIGH, CRITICAL",
+        "The output class declares its fields without colons between field name and type (e.g. `rationale string`, `tags string[]`), and includes a category field, an urgency field, a string rationale, and a string list of tags",
+        "The function's prompt body renders the return-type schema via ctx.output_format",
+        "The client configuration targets openai/gpt-4o-mini and attaches a retry policy defined in the same file",
+        "The .baml file includes at least one test block that supplies ticket text as an argument and carries at least one assertion on the result",
+        "The Python snippet awaits the generated function from the async BAML client inside an async FastAPI route handler (not the sync client, and not a raw OpenAI SDK call)"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,14 @@
       "prompt": "I'm getting parse failures on this BAML function — every call raises BamlValidationError. Here's the file:\n\n```baml\nclass UserProfile {\n  name: string\n  age: int\n  interests: string[]?\n  metadata: any\n}\n\nfunction ExtractProfile(text: string) -> UserProfile {\n  client \"openai/gpt-4o-mini\"\n  prompt #\"\n    Pull the user profile from this text.\n\n    {{ text }}\n  \"#\n}\n\ntest basic {\n  functions [ExtractProfile]\n  args {\n    text \"Jane is 30, likes hiking and python\"\n  }\n}\n```\n\nWhat's wrong with it? Fix everything you see and explain each fix. The test should actually be able to pass.",
       "expected_output": "Identify: (1) colons in class fields must be removed, (2) `string[]?` invalid — arrays can't be optional, (3) `any` not a supported BAML type — replace with string/string map/structured class, (4) prompt is missing `{{ ctx.output_format }}` which is the root cause of parse failures, (5) test name must start with uppercase (PascalCase convention) or at least the issue, (6) test has no @@assert. Return corrected file.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies the missing output-schema rendering (ctx.output_format) in the prompt as the reason parsing fails, not merely as a style improvement",
+        "The corrected class declares fields without colons between the field name and the type",
+        "Flags `any` as unsupported in BAML and replaces the metadata field with a supported type such as a string, a map, or a dedicated class",
+        "The corrected code does not leave the interests field as an optional array of the form `string[]?` — it is either a plain `string[]` or otherwise reworked",
+        "The corrected test block includes at least one assertion so the test verifies something about the result",
+        "Returns a complete corrected version of the file rather than only prose describing the fixes"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +44,14 @@
       "prompt": "Given a BAML function `function WriteStory(topic: string) -> Story` where Story is a class with `title string`, `chapters Chapter[]`, and `Chapter { heading string, body string }` — I want to stream the output to a browser via NDJSON from a FastAPI endpoint. The browser should see chapters appear one-at-a-time, each chapter complete when it appears (not partially streamed mid-chapter). Tell me: (1) what attributes I need to add to the .baml types to get this streaming shape, (2) the full FastAPI async endpoint, (3) how to cancel the stream if the client disconnects, (4) any gotchas.",
       "expected_output": "Should mention: (1) `Chapter @stream.done` on the element type in the chapters array, i.e. `chapters (Chapter @stream.done)[]` — so each chapter appears atomically. Optionally `title @stream.done` too. (2) FastAPI endpoint using async_client's `b.stream.WriteStory(topic)` in an async generator yielding NDJSON. (3) AbortController from baml_py wired to request.is_disconnected(). (4) Gotchas: numbers don't stream partially, BamlAbortError handling, NDJSON `\\n` terminator.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Specifies that each chapter must be marked as streaming atomically by applying a stream-done attribute to the Chapter element inside the chapters list (e.g. `chapters (Chapter @stream.done)[]`), rather than only to the chapters field or the Chapter class fields individually",
+        "Provides a FastAPI endpoint that iterates the BAML async streaming call and yields one JSON object per line terminated by a newline, served as a streaming response",
+        "Wires client-disconnect detection to an abort mechanism that actually cancels the in-flight BAML call (an AbortController-style handle passed into the call), not just breaking out of the loop or relying on garbage collection",
+        "Handles the abort-specific BAML error raised when the stream is cancelled",
+        "Notes that integer/float fields do not arrive during streaming and only appear in the final result",
+        "Does not claim the desired per-chapter-complete behavior can be achieved purely in Python by buffering partials, without any .baml attribute change"
+      ]
     }
   ]
 }

@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-07-22",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,15 @@
       "prompt": "We run a shared internal LLM chat behind Traefik on RKE2. A couple of users figured out they can copy their session token out of the browser and hammer the chat API from scripts, and it's eating all the GPU so nobody else can use it. Traffic's all from our office VPN so IP blocking won't help. How do I stop one user from starving everyone at the Traefik layer? What can Traefik actually do here and what can't it?",
       "expected_output": "Leads with cap-per-identity-not-classify. Recommends InFlightReq (concurrency) scoped to the expensive completion path via a separate Ingress, keyed on Authorization or a decoded user claim; RateLimit with explicit period. Notes IP allowlist is blunt (users inside trusted CIDRs). Explicitly states what must live in the app/backend/IdP (revocation, per-user cross-pod concurrency, session validation). Does NOT propose UA/JA3 detection as the primary control.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Recommends capping per-identity resource consumption regardless of client type, rather than trying to identify or classify which clients are scripts versus browsers",
+        "Recommends a concurrency cap (limiting simultaneous in-flight requests per identity) as a control, not only a requests-per-time-period limit",
+        "Scopes the limits to the expensive completion/inference path rather than applying them to the whole application",
+        "Keys the limit on something tied to the user's identity (e.g. the Authorization token or a user claim decoded into a header) rather than on source IP",
+        "States that source-IP-based allowlisting or blocking cannot separate these users because they all originate from the same trusted office/VPN range",
+        "Names at least one control that must live outside Traefik — in the app, backend, or identity provider — such as token revocation/session invalidation or per-user concurrency accounting that spans multiple proxy replicas",
+        "Does NOT propose User-Agent inspection or TLS/JA3 fingerprinting as the primary mechanism for stopping the abuse"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +30,14 @@
       "prompt": "I need to run the CrowdSec bouncer and a JWT-to-header plugin on our Traefik 3.7, but the cluster is fully air-gapped — no internet, no plugins.traefik.io. How do I actually load Traefik plugins without the catalog, and are there gotchas?",
       "expected_output": "Explains experimental.localPlugins (not experimental.plugins/catalog), the ./plugins-local/src/<module>/ layout, that .traefik.yml is still required, git-clone-or-carry-the-zip to obtain source, Yaegi stdlib-subset/vendoring gotchas vs WASM (3.x only), and that catalog mode makes a startup network call (issue #13005) so localPlugins is mandatory air-gapped.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Directs the user to the local-plugin loading mechanism (localPlugins) rather than the standard catalog-backed plugin configuration",
+        "Specifies that plugin source must be placed in a local directory tree whose path mirrors the plugin's module path (a plugins-local/src/<module-path> layout)",
+        "States that each plugin still requires its own plugin manifest file (.traefik.yml) present in the plugin source tree",
+        "Explains that the plugin source must be obtained out-of-band (git clone or downloaded archive carried into the air-gapped environment) since the catalog is unreachable",
+        "Identifies at least one Yaegi-interpreter constraint on Go plugins (restricted/subset standard library or the need to vendor dependencies) and distinguishes it from the WASM plugin path available in Traefik 3.x",
+        "States that the catalog-based plugin mode performs a network call at Traefik startup, so it will fail or hang without internet, making the local mechanism mandatory here"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +45,15 @@
       "prompt": "set up a traefik middleware to rate limit our /api/search endpoint to 30 requests a minute per user. we're on kubernetes with ingressroute crds. it's traefik v3",
       "expected_output": "Provides a RateLimit Middleware CRD (traefik.io/v1alpha1) with average:30 AND period:1m explicitly (flags the 1s default trap), burst, sourceCriterion. Notes that keying per-USER (not per-token) needs a JWT-claim->header decode since sourceCriterion reads a header not a cookie, and that per-pod counters need single-leader topology or Redis. Scopes it to the search path.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The provided RateLimit middleware sets an explicit period of 1 minute (e.g. period: 1m) alongside average: 30, rather than relying on the default",
+        "Explicitly warns that omitting the period makes the limit per second, not per minute",
+        "The manifest is a Traefik Middleware custom resource using the v3 API group (traefik.io/v1alpha1) and is referenced from an IngressRoute, with a burst value set",
+        "Configures sourceCriterion to key the limit on a request header rather than leaving it to default to source IP",
+        "States that keying on a raw token or session header yields a per-token/per-session bucket, and that a true per-user bucket requires decoding a JWT claim into a header first (because sourceCriterion cannot read a cookie)",
+        "Notes that the rate-limit counters are held per Traefik pod, so the limit is only accurate with a single ingress replica/leader receiving the traffic, or requires the Redis-backed configuration",
+        "The rate limit is applied only to the /api/search route rather than to all routes on the ingress"
+      ]
     },
     {
       "id": 3,
@@ -38,7 +61,14 @@
       "prompt": "Can I use JA3 fingerprinting in Traefik to tell real browsers from python scripts hitting our API? Trying to block the scripts.",
       "expected_output": "States clearly that Traefik CANNOT see JA3/JA4 (plugin API doesn't receive the ClientHello; issues #8627/#12421), no JA3 plugin exists, and it would need a TLS-terminating layer in front. Notes JA3 is spoofable (curl-impersonate) anyway, and reframes toward per-identity capping + Sec-Fetch header speed-bump rather than fingerprint classification.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "States that Traefik cannot expose JA3/JA4 TLS fingerprints to middleware or plugins, because the plugin/middleware layer never receives the TLS ClientHello",
+        "States that no working JA3 fingerprinting plugin exists for Traefik and that the feature has been declined/unimplemented upstream, rather than offering a JA3 middleware configuration as if it worked",
+        "Says that obtaining a JA3/JA4 signal requires a TLS-terminating component in front of Traefik (e.g. nginx with a JA4 module, HAProxy, or a CDN) that passes the fingerprint to Traefik as a header",
+        "Notes that JA3/JA4 fingerprints are themselves forgeable — a script can impersonate a browser's TLS stack (e.g. curl-impersonate) — so it is not a reliable block/allow signal even where available",
+        "Redirects the user toward per-identity resource capping at the proxy as the durable control instead of browser-versus-script classification",
+        "Does NOT present User-Agent or header-based browser detection as a reliable block, though it may mention such checks as an easily bypassed speed bump"
+      ]
     }
   ]
 }

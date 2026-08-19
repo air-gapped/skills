@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-05-06",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "method_note": "Targeting Argo CD v3.4.x (GA; latest stable v3.4.3, May 2026) and the v3.3.x maintenance line. Test prompts are realistic flavor — informal punctuation, abbreviated context. Skill should produce production-ready YAML with v3.x defaults baked in (annotation tracking, ServerSideApply, RespectIgnoreDifferences=true, no `default` project).",
@@ -15,7 +15,15 @@
       "prompt": "set up a new ApplicationSet that creates one Argo CD app per directory under apps/staging/ in our config repo at github.com/example/cluster-config (revision main). Each app should deploy a helm chart from oci://my-registry.example.com/charts and override values from a values.yaml in the same directory. We use kubernetes the destination is in-cluster and the namespace should match the directory name. We're on argo cd v3.3.9. give me the manifest plus a short note on the gotchas",
       "expected_output": "ApplicationSet YAML using Git directories generator, goTemplate: true, goTemplateOptions: [missingkey=error], OCI Helm chart source pinned by digest (or at least tag), correct destination, hard-coded project (not templated), with a note on the goTemplate=false default trap, the v3.0+ annotation-tracking default, ApplicationSet finalizer placement, OCI digest pinning best practice, and ServerSideApply syncOption recommendation. Should NOT recommend `path: dir/**` (doesn't recurse).",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The manifest uses an ApplicationSet with a Git generator that enumerates directories under apps/staging/ using a single-level glob such as apps/staging/*, and does not use a `**` recursive glob pattern",
+        "The ApplicationSet sets goTemplate to true and sets goTemplateOptions to include missingkey=error",
+        "The project field in the generated Application template is a fixed literal value rather than a value derived from generator variables such as the directory path or basename",
+        "The generated Applications pull the Helm chart from the oci://my-registry.example.com/charts registry and override values with the per-directory values.yaml, with the destination namespace derived from the directory name",
+        "The answer specifies a pinned chart version reference (a digest or explicit chart version/tag) rather than leaving the OCI chart reference floating or unversioned",
+        "The resources-finalizer.argocd.argoproj.io finalizer, if present, is placed in the Application template metadata rather than only on the ApplicationSet's own metadata",
+        "The answer flags at least one behavioral trap that would silently produce wrong results, such as the legacy non-Go templating default or v3.x annotation-based resource tracking"
+      ]
     },
     {
       "id": 1,
@@ -23,7 +31,14 @@
       "prompt": "my Application is stuck OutOfSync — kubectl shows the Deployment exists and the spec matches what's in git, but argo cd says replicas differ. I have an HPA on it. how do I make argo stop fighting the HPA? we're on 3.3",
       "expected_output": "Should diagnose: HPA mutates Deployment.spec.replicas; without ignoreDifferences + RespectIgnoreDifferences=true the controller will sync-loop. Provides the exact ignoreDifferences entry (group: apps, kind: Deployment, jsonPointers: [/spec/replicas]) plus RespectIgnoreDifferences=true syncOption. May also suggest removing replicas from the Deployment template entirely (Argo's best_practices.md recommendation) or using ServerSideDiff=true. Should NOT suggest disabling selfHeal as the primary fix (cruder). Should NOT suggest IncludeMutationWebhook=true (that annotation is the CVE-2026-42880 vector and removed/dangerous).",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The answer identifies the HPA writing to the Deployment's spec.replicas field as the cause of the persistent OutOfSync state",
+        "The answer supplies an ignoreDifferences entry scoped to group apps, kind Deployment, targeting the /spec/replicas field",
+        "The answer states that the ignoreDifferences entry alone is insufficient for the apply path and pairs it with the RespectIgnoreDifferences=true sync option (or an equivalent server-side diff mechanism)",
+        "The answer does NOT present turning off selfHeal (or disabling automated sync) as the primary recommended fix",
+        "The answer does NOT recommend the IncludeMutationWebhook=true compare-option",
+        "Any suggestion to remove the replicas field from the Deployment manifest in git is presented as a valid fix or complement rather than being contradicted"
+      ]
     },
     {
       "id": 2,
@@ -31,7 +46,13 @@
       "prompt": "I need a presync hook that runs db migrations before each deploy. The migration is a Job. it must complete before the app rolls forward, and we want old completed jobs cleaned up but kept on failure for debugging. show me the right manifest",
       "expected_output": "Job with argocd.argoproj.io/hook: PreSync and argocd.argoproj.io/hook-delete-policy: HookSucceeded (succeeded jobs cleaned up, failed jobs kept for debugging). Should use `metadata.generateName` (NOT a fixed name) to avoid the 'PreSync hook re-run' issue. Optionally a Sync wave on the Job. Brief explanation of phase ordering: PreSync runs before Sync; if hook fails, app goes Failed and Sync doesn't proceed. Should NOT use BeforeHookCreation policy with a generateName job (that pairing leaks Jobs across syncs).",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The Job carries the hook annotation designating it as a PreSync hook",
+        "The hook delete policy is set so that successful hook runs are garbage-collected while failed runs are retained for inspection",
+        "The Job uses generateName rather than a fixed metadata.name",
+        "The answer does NOT set BeforeHookCreation as the delete policy on this Job",
+        "The answer states that the PreSync hook must reach completion before the main sync phase applies workloads, and that a hook failure aborts the sync"
+      ]
     },
     {
       "id": 3,
@@ -39,7 +60,15 @@
       "prompt": "we're a platform team setting up multi-tenant argo cd. team-payments needs their own AppProject that can only sync to namespaces starting with `payments-`, only from our company gitlab repos under `gitlab.example.com/payments/`, and we want their syncs to use a per-app ServiceAccount so kubernetes RBAC limits the blast radius. write the AppProject. We're on argo cd v3.4 RC.",
       "expected_output": "AppProject with: namespace argocd, finalizer resources-finalizer.argocd.argoproj.io, sourceRepos: ['https://gitlab.example.com/payments/*'], destinations with namespace: 'payments-*' glob, an explicit clusterResourceWhitelist that's tight (Namespace + minimal cluster resources, NOT '*'), namespaceResourceBlacklist for Secret (or note that ESO/SealedSecrets is recommended), AND destinationServiceAccounts block (sync impersonation, Beta in v3.4). Should mention: impersonation is keyed by `server` not `name` so destinations should standardize on server URL; the SA needs perms for both apply ops AND server ops (logs/exec) in v3.4. Should NOT use spec.project: default. May add signatureKeys for signed-commit enforcement.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The AppProject restricts sourceRepos to a pattern scoped to gitlab.example.com/payments/ rather than allowing all repositories",
+        "The destinations entry limits the namespace to a payments- prefixed glob rather than allowing all namespaces",
+        "The clusterResourceWhitelist is an explicit enumerated list rather than a wildcard permitting all cluster-scoped kinds",
+        "The manifest includes a destinationServiceAccounts configuration mapping destinations to per-app ServiceAccounts for sync impersonation",
+        "The answer does NOT assign the tenant to the built-in default project or otherwise leave the tenant's apps on an unrestricted project",
+        "The answer notes a concrete operational constraint of impersonation, such as destination matching being keyed on the cluster server URL rather than the cluster name, or the ServiceAccount needing permissions beyond plain apply",
+        "The answer restricts or explicitly addresses tenant handling of Secret resources (blacklisting the kind or directing them to an external secrets mechanism)"
+      ]
     },
     {
       "id": 4,
@@ -47,7 +76,15 @@
       "prompt": "upgrading from argo cd 3.1 to 3.3, what app-author-facing changes do I need to know about? what should I update in our manifests?",
       "expected_output": "Should call out: (1) v3.3 SSA migration regression — skip 3.3.0/3.3.1, upgrade direct to 3.3.2+; ApplicationSet CRD exceeds client-side-apply 256KB annotation limit so use server-side apply; if Argo manages itself, set ServerSideApply=true on the meta-app. (2) `automated.enabled: true|false` field added in 3.1 — use to pause apps cleanly. (3) `Prune=confirm`/`Delete=confirm` per-resource annotations added in 3.3. (4) PreDelete/PostDelete hooks added in 3.3. (5) `SkipDryRunOnMissingResource=true` syncOption added in 3.1. (6) clusterResourceWhitelist now scopable by name (3.3). (7) Maturity: Server-Side Diff stable since 3.2; Progressive Sync formal Beta in 3.3; OCI source Beta since 3.1. (8) CVE-2026-42880 patched in 3.3.8+ — strip IncludeMutationWebhook=true. (9) Hydrator state moved to git-notes in 3.3 (relevant only if using Source Hydrator). Should NOT mention v3.4 features. Should reference upgrade docs path.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "The answer warns that the 3.3.0 and 3.3.1 releases contain a server-side-apply migration defect and directs the upgrade to 3.3.2 or later",
+        "The answer states that a self-managing Argo CD Application needs ServerSideApply enabled because the ApplicationSet CRD exceeds the client-side apply annotation size limit",
+        "The answer identifies the automated.enabled boolean as the supported way to pause automated sync rather than deleting the automated block",
+        "The answer identifies confirmation-gated prune/delete for destructive resources as newly available in this version range",
+        "The answer identifies at least two additional app-author-facing additions in the 3.1-3.3 window (e.g. PreDelete/PostDelete hooks, SkipDryRunOnMissingResource, name-scoped clusterResourceWhitelist, Server-Side Diff reaching stable, Progressive Sync at Beta, OCI sources at Beta)",
+        "The answer instructs removing IncludeMutationWebhook=true from manifests and ties it to a security advisory fixed within the 3.3 line",
+        "The answer does NOT attribute features introduced in v3.4 or later to this 3.1-to-3.3 upgrade"
+      ]
     }
   ]
 }

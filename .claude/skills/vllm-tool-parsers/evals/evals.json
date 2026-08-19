@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-04-20",
     "normalized": "2026-08-19",
-    "assertions_source": null,
+    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)"
   },
   "evals": [
@@ -14,7 +14,14 @@
       "prompt": "We're serving DeepSeek-V3.1 on 8xH100 with vllm 0.11.2 and tool calls completely fail — model emits what looks like `<|tool_calls_begin|><|tool_call_begin|>get_weather<|tool_sep|>{\"city\":\"Paris\"}<|tool_call_end|><|tool_calls_end|>` but vLLM returns it as raw content and `finish_reason=stop`. We copied the chat template from their HF repo into our own Jinja file. `--enable-auto-tool-choice --tool-call-parser deepseek_v31` is set. What's going on?",
       "expected_output": "Identify that the sentinels in the output use ASCII `|` (copy-paste artifact) but the parser expects full-width `｜` (U+FF5C). Recommend verifying via hex dump / codepoint check, fixing the template to use the exact Unicode characters from the tokenizer, and confirming with a raw /v1/completions call that the model actually emits full-width. Mention related close-path empty-args gotcha on V3.1.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Identifies the root cause as a character-encoding mismatch: the deployed template's sentinel delimiters use the ASCII vertical bar U+007C while the parser and tokenizer require the full-width vertical bar U+FF5C",
+        "Prescribes a byte- or codepoint-level inspection of the deployed Jinja template and/or raw model output (e.g. hex dump, ord()/unicodedata check) rather than visual comparison of the template text",
+        "Prescribes calling the non-tool endpoint (/v1/completions) or otherwise bypassing the tool parser to establish whether the model itself emits the correct sentinels, separating a template/model problem from a parser problem",
+        "States that the fix is to make the deployed template emit the exact tokenizer sentinel characters (copying from the tokenizer/original template rather than retyping), not to change the --tool-call-parser value or drop --enable-auto-tool-choice",
+        "Explains that finish_reason staying at 'stop' follows from the parser never matching sentinels and therefore never registering a tool call, rather than being an independent bug",
+        "Does NOT attribute the failure to a missing or wrong CLI flag combination, since both --enable-auto-tool-choice and --tool-call-parser are already correctly set"
+      ]
     },
     {
       "id": 1,
@@ -22,7 +29,13 @@
       "prompt": "My Qwen3-Coder-30B deployment on vllm 0.10.2 is returning tool calls non-streaming correctly, but when I stream, the `arguments` field stays empty until the very last delta when it arrives all at once. Using `--tool-call-parser qwen3_coder --enable-auto-tool-choice` with tool_chat_template_qwen3coder.jinja. Clients (LangChain) hang waiting for incremental JSON. Is this a bug?",
       "expected_output": "Yes — this is GitHub issue vllm-project/vllm#30439. Qwen3-Coder historically did not stream arguments and returned them all at once. Fix was merged; recommend upgrading vLLM. Explain the underlying reason (state machine only emitted after seeing complete `</function>`). As a workaround before upgrading, suggest non-streaming mode. Mention that qwen3_xml (expat-based) streams cleanly if the model variant supports it.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Confirms this is a known upstream vLLM defect rather than a misconfiguration of the user's flags or chat template",
+        "Attributes the behavior to the parser only being able to emit argument deltas once a complete closing function/tool marker has been seen, so all arguments arrive in one final delta",
+        "Recommends upgrading vLLM to a version containing the merged fix as the primary remedy",
+        "Offers non-streaming mode as an interim workaround given that non-streaming already returns correct tool calls",
+        "Does NOT tell the user to fix it by switching the chat template away from the Qwen3-Coder reference template or by removing --enable-auto-tool-choice"
+      ]
     },
     {
       "id": 2,
@@ -30,7 +43,14 @@
       "prompt": "I'm trying to upstream a tool parser for our internal fine-tune of Llama-3.1-70B that emits calls as `<<<TOOL>>>function_name(arg1=\"x\", arg2=42)<<<END>>>` (pythonic but with custom delimiters, supports parallel calls). I want to support streaming too. Where do I start and what's the minimum contract I need to satisfy?",
       "expected_output": "Direct to writing a `--tool-parser-plugin`. Point at `vllm/tool_parsers/pythonic_tool_parser.py` as the closest starting point (ast.parse + make_valid_python + compute_tool_delta utilities). List the required state fields (prev_tool_call_arr, current_tool_id, current_tool_name_sent, streamed_args_for_tool). Cover the serving-layer contract — prev_tool_call_arr[i]['arguments'] must hold full accumulated args at stream end; streamed_args_for_tool[i] must be appended to every arg flush. Mention the HACK pattern pythonic parsers use. Flag the known pitfalls: O(n^2) re-parse per delta, apostrophe bug in `'`→`\"` substitution. Recommend aligning with in-flight parse_delta refactor (RFC #11522, PRs #39446/#39728/#38755). Mention AGENTS.md duplicate-work check before opening PR.",
       "files": [],
-      "assertions": []
+      "assertions": [
+        "Directs the user to implement an out-of-tree parser loaded via --tool-parser-plugin with a registration decorator, and states that serving requires both the plugin path flag and --tool-call-parser naming the registered parser",
+        "Names the existing pythonic parser implementation as the closest template to copy, on the grounds that the target syntax is Python-call-shaped",
+        "Enumerates the four parser state fields that must be maintained for streaming: prev_tool_call_arr, current_tool_id, current_tool_name_sent, and streamed_args_for_tool",
+        "States that prev_tool_call_arr must hold the accumulated arguments at stream end or finish_reason will be 'stop' instead of 'tool_calls'",
+        "States that every argument delta emitted must also be appended to streamed_args_for_tool for that tool index, otherwise the end-of-stream flush re-sends already-streamed argument text",
+        "Points to the in-flight parse_delta refactor as the shape to align a new parser with, rather than copying the older workaround patterns, and flags checking repo contributor guidance for duplicate in-flight work before opening a PR"
+      ]
     }
   ]
 }
