@@ -3,7 +3,7 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Resolved — 2026-08-19 (Visa §3.2 data-flow evidence, §1.4 threat tagging)
+## Resolved — 2026-08-19 (Visa §3.2 evidence, §1.4 threat tagging, §2.3 lenses)
 
 - **`threat_ids` carried through ingest** (§1.4 plumbing): `/vuln-scan`
   stamps which threat rows a finding's focus area came from. Phase 4's

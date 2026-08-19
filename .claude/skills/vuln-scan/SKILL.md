@@ -55,6 +55,15 @@ shell interpreter.
 
 - `<target-dir>` (required) — directory to scan. Relative or absolute.
 - `--focus <area>` — scan only this focus area (repeatable). Skips recon.
+  Six names are **reserved specialist lenses** rather than subsystems:
+  `crypto`, `logic-bug`, `access-control`, `deserialization`, `batch-etl`,
+  `iac`. Each scopes the reviewer to the whole target seen through one
+  vulnerability class, with a stricter cite-or-drop gate than the general
+  bar (the lens bodies are in the `vuln-area-reviewer` agent definition, so
+  they cost one cached prefix per wave, not one per spawn). Any other value
+  is a subsystem, as before. A lens name is only reserved when it is the
+  *entire* argument — `--focus "crypto (keystore.rs) — key derivation"` is
+  a subsystem whose name happens to start with a lens word.
 - `--single` — no subagent fan-out; one sequential pass. Use on tiny targets
   or when debugging the prompt.
 - `--extra <file>` — pass the contents of `<file>` to every reviewer as an
@@ -92,7 +101,16 @@ shell interpreter.
    what is actually there: mounted secrets, auth in front, sessions/cookies,
    persistent state, tenancy. "Stateless, no auth, chart mounts no secret"
    changes every severity downstream.
-4. If `--focus` was given, use exactly those.
+4. If `--focus` was given, use exactly those. For each value that is a
+   reserved lens name, resolve it to the whole target rather than a
+   subsystem, and **check the lens has material before spawning**: `iac`
+   needs infrastructure files (Terraform, Dockerfile, k8s/Helm YAML, CI
+   pipeline definitions, Ansible, compose, CloudFormation); `batch-etl`
+   needs a job entry point rather than a request handler; `deserialization`
+   needs a deserializer call site anywhere in the tree. Skip a lens with no
+   material and say so — "no IaC files under the target, skipping the iac
+   lens" — rather than spending a reviewer to be told nothing is there.
+   `crypto`, `logic-bug`, and `access-control` apply to any code.
 5. **Coverage rule — no threat drops out of scope.** Only when step 2 ran
    (a THREAT_MODEL.md was read) and `--focus` was not given — `--focus`
    means "scan only this", and silently widening it would break that
@@ -150,6 +168,11 @@ CALL GRAPH CONTEXT (mechanical index — a starting point, not evidence;
 trace any flow you report by reading the code):
 <excerpt>}
 ```
+
+When `{focus_area}` is one of the six reserved lens names, that name alone
+is the whole instruction — the agent body carries the lens and its gate.
+Pass the bare name; do not paste the lens text into the tail, which would
+un-share the one thing the cached prefix exists to share.
 
 ### Call-graph context (only when the target is indexed)
 
@@ -361,8 +384,10 @@ menu, DO-NOT-REPORT exclusions, per-finding confidence pass, and
 test-path exclusion regex, the committed-credential exception to it, and
 the gate-before-the-expensive-stage ordering — is adapted (Apache-2.0) from
 [`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
-s5 prefilter stage; the `source_ref`/`sink_ref` evidence fields carry the
-same semantics as that harness's s4 finding schema, and per-focus-area
-threat tagging mirrors the `threat_id` its s3 stage stamps on every chunk.
+s5 prefilter stage. From the same harness: the `source_ref`/`sink_ref`
+evidence fields carry the semantics of its s4 finding schema, per-focus-area
+threat tagging mirrors the `threat_id` its s3 stage stamps on every chunk,
+and the six `--focus` specialist lenses — with the cite-or-drop gate that
+is the transferable part of each — follow its `SPECIALIST_HINTS` set.
 See `HARNESS.md` for the execution-verified pipeline this static skill
 complements.

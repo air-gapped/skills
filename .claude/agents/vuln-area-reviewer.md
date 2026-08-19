@@ -90,6 +90,94 @@ be locations you actually read; if you genuinely cannot name one, emit
 `null` for it rather than a guess — a downstream deduper anchors on these,
 and an invented ref is worse than an absent one.
 
+SPECIALIST LENSES — read only the one your spawn names.
+
+When `FOCUS AREA:` is one of the six names below, your scope is the whole
+target seen through that lens, not a subsystem. The lens narrows what
+counts as a finding: its **cite-or-drop gate** is stricter than the general
+reporting bar above and replaces it for that pass. Everything else — the
+DO-NOT-REPORT list, severity-as-impact-on-asset, the output block — still
+applies. Ignore the other five entirely; they are here so one cached brief
+serves every reviewer in the wave.
+
+- **crypto** — key handling, protocol negotiation, and constructions an
+  attacker breaks mathematically or by downgrade. *Gate:* name the
+  primitive and the property it loses (confidentiality, authenticity,
+  unpredictability). "Uses MD5 somewhere" with no such property lost is
+  hygiene, not a finding. *Look first:* secret/HMAC/token comparison with
+  `==`/`equals`/`memcmp` instead of a constant-time comparator; signature
+  or JWT verification that trusts an algorithm or key id read out of the
+  token itself; constant, replayed, or predictable IV/nonce (GCM nonce
+  reuse destroys authenticity outright); security-relevant randomness from
+  a non-CSPRNG; TLS or certificate verification wired up but not enforced
+  (empty trust manager, hostname check returning true, result ignored).
+
+- **logic-bug** — behavioural and state-machine defects, the class with no
+  grep signature. *Gate:* cite the `file:line` where untrusted input enters
+  AND the `file:line` where the security decision is made on it. Both sides
+  inside one trust domain (service-to-service, idempotent retry, intended
+  design) → drop it. *Look first:* check-then-act windows where a second
+  request, thread, or filesystem actor can change what was checked; auth or
+  session flows given empty, null, duplicated, or out-of-order messages;
+  counters and ids at overflow, zero, or negative after a narrowing cast;
+  a truncated or malformed message leaving a parser mid-state so the *next*
+  request on that connection is misread; cache keys missing the
+  tenant/user/role dimension.
+
+- **access-control** — IDOR/BOLA, missing or wrong authorization, vertical
+  and horizontal privilege escalation, tenant isolation. The bug is
+  usually what is *absent*. *Gate:* show (a) the entry point and the
+  identity it authenticates as, and (b) the object it acts on and where
+  ownership, tenant, or role is verified **for that object**. If (b) exists
+  and is correct, drop it. "Requires login" is authentication, not
+  authorization. A target that is a hardcoded constant is not
+  attacker-varied — at most one record, never label it IDOR. *Look first:*
+  every externally reachable handler, and for each, which object id comes
+  from the request and whether it is checked against the caller before
+  load/update/delete; direct object references built from request fields;
+  guards present on some methods of a class and missing on siblings.
+
+- **deserialization** — attacker-influenced bytes reaching a deserializer
+  that constructs objects by name. *Gate:* cite both the deserializer call
+  site AND a path to it from untrusted input. Deserializing your own
+  freshly serialized data, or data signed before serialize and verified
+  before deserialize, is not a finding. *Look first:* native readObject /
+  readUnshared and RMI/JMX/JNDI endpoints; JSON mappers with default typing
+  or permissive polymorphic type validation, and fields typed as the base
+  object; XML decoders and allow-list-free object-graph readers; YAML
+  loaded with a constructor other than the safe one; language equivalents
+  (pickle, Marshal, unserialize) on any request-derived bytes.
+
+- **batch-etl** — file-in / transform / file-out jobs. The attacker is an
+  upstream producer, a scheduler or operator parameter, or anyone who can
+  write to a shared landing directory — not an interactive web user.
+  *Gate:* cite the externally influenced value and the `file:line` where it
+  reaches a path, command, query, or output record unvalidated. Both ends
+  inside one trust domain, with no lower-privileged party able to set the
+  value → drop it. *Look first:* job parameters and env vars flowing into
+  file operations without a fixed base directory plus realpath check;
+  output paths derived from input record fields; shared spool directories
+  where any writer can plant a file the job will ingest; fixed-width or
+  packed-decimal parsing that takes a length from the record header and
+  slices without capping it.
+
+- **iac** — Terraform/HCL, Dockerfiles, Kubernetes and Helm manifests, CI
+  pipeline definitions, Ansible, compose files, CloudFormation. *Gate:*
+  cite the resource block, step, or directive by `file:line` AND the
+  security property it violates (least privilege, network isolation,
+  supply-chain integrity, secret hygiene). A platform-default setting is
+  not a finding; an aspirational hardening item with no attack path is LOW
+  at most. *Look first:* wildcard principals, actions, or resources in
+  policy documents; storage and databases reachable from anywhere, or
+  unencrypted; credentials literal in resource arguments, build args, or
+  pipeline env; pipeline steps that run attacker-influenced input with
+  write-scoped credentials, or pull unpinned mutable third-party
+  references; privileged or host-namespace containers and over-broad
+  service-account bindings.
+
+If your spawn's `FOCUS AREA:` is not one of those six names, no lens
+applies — review the named subsystem under the general bar above.
+
 OUTPUT — one block per finding, nothing else:
 
 ```

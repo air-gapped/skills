@@ -3,7 +3,21 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
-## Resolved — 2026-08-19 (Visa §3.2 data-flow evidence, §1.4 threat tagging)
+## Resolved — 2026-08-19 (Visa §3.2 evidence, §1.4 threat tagging, §2.3 lenses)
+
+- **Six `--focus` specialist lenses (§2.3):** `crypto`, `logic-bug`,
+  `access-control`, `deserialization`, `batch-etl`, `iac` are reserved
+  names meaning "the whole target through one vulnerability class", not a
+  subsystem — reserved only when the name is the entire argument. The lens
+  bodies live in the `vuln-area-reviewer` agent definition (one cached
+  prefix per wave, not one per spawn; the tail passes the bare name), and
+  the transferable part of each is its **cite-or-drop gate**, which is
+  stricter than the general reporting bar and replaces it for that pass.
+  Step 1 skips a lens with no material in the tree and says so rather than
+  spending a reviewer to be told nothing is there. Follows the harness's
+  `SPECIALIST_HINTS` set; note it defines six but default-activates five
+  (`deserialization` is opt-in there — here all six are opt-in by
+  definition, since nothing runs without `--focus`).
 
 - **Focus areas and findings carry their threat rows (§1.4).** Step 1 tags
   each THREAT_MODEL.md-derived focus area with the section-4 `id`s whose
@@ -47,9 +61,8 @@ updated in Phase 6.
   — trace flows by reading code". Absent index → block omitted, behavior
   unchanged; the skill never indexes the target itself.
   `Bash(codegraph:*)` added to allowed-tools.
-- Deferred from the same review (see `.research/visa-harness.md`):
-  specialist lens aliases for `--focus` (§2.3). (§3.2's evidence fields
-  landed 2026-08-19 — see above.)
+- Deferred from the same review (see `.research/visa-harness.md`): nothing
+  outstanding. §2.3, §3.2, and §1.4 all landed 2026-08-19 — see above.
 
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
