@@ -1,5 +1,12 @@
 {
   "skill_name": "confluence-best-practices",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-06-07",
+    "normalized": "2026-08-19",
+    "assertions_source": null,
+    "harness": "skill-creator eval loop (aggregate_benchmark)"
+  },
   "evals": [
     {
       "id": 0,
@@ -17,7 +24,7 @@
     {
       "id": 1,
       "name": "permissions-cant-see-page",
-      "prompt": "A teammate says she can't find or open a Confluence page I sent her the link to \u2014 she gets a 'page not available' message, but the page works fine for me. Search doesn't surface it for her either. We're on self-hosted Confluence (Data Center). It's not a brand-new page. How do I figure out what's wrong and fix it?",
+      "prompt": "A teammate says she can't find or open a Confluence page I sent her the link to — she gets a 'page not available' message, but the page works fine for me. Search doesn't surface it for her either. We're on self-hosted Confluence (Data Center). It's not a brand-new page. How do I figure out what's wrong and fix it?",
       "expected_output": "Correctly diagnoses the #1 cause: an inherited VIEW restriction on an ANCESTOR page silently hides the page (and its children) from search and the tree, with no clear error. Fix = verify she has space View permission, then walk UP the page tree checking each ancestor's restrictions (not just the page itself). Should mention space-permission vs page-restriction layers and that restrictions narrow, never grant.",
       "files": [],
       "assertions": [
@@ -31,7 +38,7 @@
     {
       "id": 2,
       "name": "lean-agent-governance",
-      "prompt": "Our Confluence has become a graveyard \u2014 thousands of pages, tons of it stale, nobody knows what's current or who owns what, and people can't find anything. We run Confluence Data Center 9.x and we have an automated agent with API access to the instance. I want to set up an automated, ongoing way to surface stale and unowned pages and make ownership visible. How should we approach this, and what can the agent actually do versus what needs an admin?",
+      "prompt": "Our Confluence has become a graveyard — thousands of pages, tons of it stale, nobody knows what's current or who owns what, and people can't find anything. We run Confluence Data Center 9.x and we have an automated agent with API access to the instance. I want to set up an automated, ongoing way to surface stale and unowned pages and make ownership visible. How should we approach this, and what can the agent actually do versus what needs an admin?",
       "expected_output": "Recommends the Page Properties (Owner/Review-Date/Status) + label-keyed Page Properties Report dashboard as the highest-leverage agent-buildable, no-admin pattern; CQL rot sweeps (lastModified < startOfYear(), no-label); Excerpt/Include for duplication. Correctly notes DC has NO native page archiving (move-to-archive-space workaround), retention rules + space archiving are admin, and draws the act-on-content vs advise-the-human line. Should not hallucinate Cloud-only features (per-page archive, automation rule-builder) as available on DC.",
       "files": [],
       "assertions": [
