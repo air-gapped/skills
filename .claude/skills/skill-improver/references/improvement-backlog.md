@@ -126,6 +126,22 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Resolved — 2026-08-19 (workflow-sandbox probe)
 
+- **Boris caps now carry measured cost evidence.** `quality-rubric.md`
+  §Boris Alignment Check cited only the >80% system-prompt reduction, which
+  shows lean prompts are *survivable*, not that fat ones are *expensive*.
+  Added from *Optimizing for cost and intelligence* (re-probed 2026-08-19,
+  `sources.md` row restamped): Opus 4.8-era prompts cost **36% more per
+  ticket** on Opus 5 at unchanged accuracy; the audit returns **14%** plus
+  five accuracy points (14% again on Sonnet 4.6 → 5); removing "verify
+  twice" cut cost **by a third**; and a retired thinking setting,
+  contradictory rules, and a hand-rolled scratchpad each restored **7-11
+  accuracy points**. The page states the patterns apply to skills, so this
+  is evidence about the rubric's own subject, not an analogy. Maps
+  one-to-one onto the cap table — "verify twice" is Dim 6 scaffolding, the
+  scratchpad is scaffolding fighting the grain, an old model's workarounds
+  are the compensation cap — which turns the caps from a style preference
+  into a priced defect.
+
 - **`DEFAULT_BASE` cannot be derived — measured, not assumed.** The 2026-07-24
   item asked whether `batch-workflow.js` should compute its skills root from
   `${CLAUDE_SKILL_DIR}`. It cannot: a zero-agent probe run enumerated the

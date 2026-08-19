@@ -349,6 +349,32 @@ removed for Opus 5 / Fable 5 with no measurable loss on coding evals**, and name
 all three patterns below as superseded practice. Cite the blog, not the podcast:
 the X row in `sources.md` is unfetchable and cannot be re-probed.
 
+The cost of *not* lifting these caps is measured, first-party, and stated to
+apply to skills. From *Optimizing for cost and intelligence* (Anthropic,
+re-read 2026-08-19), on a support-desk evaluation:
+
+- Prompts written for Opus 4.8 cost **36% more per ticket** on Opus 5 **for no
+  change in accuracy** — text that compensated for an older model is pure
+  overhead on a newer one, which is the decay these caps predict, priced.
+- Auditing the same prompts against the current model made Opus 5 both
+  **14% cheaper than unaudited and more accurate** (97% of tickets, up from
+  92%). The Sonnet 4.6 → Sonnet 5 migration: **14% off at equal accuracy**.
+- The two kinds of stale text fail differently. Over-obeyed instructions cost
+  **money**: removing "verify twice" cut cost per ticket **by a third**, and
+  "be maximally thorough" nearly as much. Broken or conflicting scaffolding
+  costs **accuracy**: a retired thinking setting, contradictory rules, and a
+  hand-rolled scratchpad that fights the model's own thinking each restored
+  **7-11 accuracy points** on Opus 5 when removed.
+- The page says the patterns "appear in tool descriptions and skills, and are
+  worth removing there too" — so this is evidence about this rubric's subject
+  matter, not an analogy borrowed from prompt engineering.
+
+Read that against the cap table: "verify twice" is Dim 6 scaffolding, the
+hand-rolled scratchpad is scaffolding that fights the grain, and a prompt
+carrying an older model's workarounds is the compensation cap exactly. The
+caps are not a style preference — an uncapped skill of this shape is
+measurably slower, dearer, and less accurate on the model it runs on today.
+
 These do NOT add an 11th dimension — they cap existing dims when triggered, the
 same way the Dim 9 staleness cap works. The bitter lesson applied to skills:
 skills that fight the model's grain or compensate for current-model limits decay
