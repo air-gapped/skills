@@ -277,6 +277,42 @@ summary sentence whenever the fleet total moved since the last run.
 
 ---
 
+## Floor Mode
+
+Measure what a **bare** model already knows about the skill's subject — no
+skills loaded, no tools, no web. Whatever the model knows unaided does not need
+to be in the skill; as the bleeding edge is absorbed into training, the skill
+should shrink to the delta. Read-only: surfaces candidates, never edits.
+
+**Invocation:** `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
+
+The skill is its own answer key. Claims are extracted once to
+`<skill>/references/knowledge-claims.json` (cached, hash-stamped against
+SKILL.md) and each is put to the bare model across a model × effort matrix.
+Three buckets:
+
+| Bucket | Meaning | Action |
+|---|---|---|
+| **KNOWS** | model states the claim correctly | deletion **candidate** |
+| **UNKNOWN** | does not know, or hedges | keep — real knowledge transfer |
+| **CONFLICTS** | confidently states something else | keep, and make it louder |
+
+`CONFLICTS` is the valuable bucket: filling a blank is worth something,
+overriding a confident wrong prior is worth more, because unaided the model
+does not hesitate — it proceeds, wrong.
+
+Two limits bind. **Recall is not application** — a model can state a flag and
+still not think to use it mid-task, so `KNOWS` is a candidate to confirm with
+an eval delta, never a licence to cut. And **a conflict never means the skill
+is wrong**: skills here are freshened past the model cutoff, so the skill is
+presumed correct and the model presumed stale (§"The Skill Outranks Training
+Data"). The grader prompt encodes this; without it the probe becomes a
+downgrade machine.
+
+Re-run on each model release — the movement in `KNOWS` is the delete list.
+
+---
+
 ## Philosophy Mode
 
 Cheap weekly check that runs the three Boris-derived signals as one
@@ -321,5 +357,6 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`scripts/staleness-report.py`** — Fleet-wide staleness readout, no probes/network: per skill, the oldest `sources.md` `Last verified:` date, its age, dated-row coverage, the Dim 9 staleness cap it implies, last improvement-pass date (from `improvement-backlog.md`), whether trigger/outcome evals exist, and the count of items still under that backlog's `## Open` heading (fleet total in the footer). Stalest first — this is the ranking `freshen --all` uses. `--json` for machine output.
 - **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
 - **`scripts/scaffold-probe.py`** — Boris strict-workflow-scaffolding detector. Classifies each numbered item as scaffold, criterion, or branch, and caps on the scaffold count alone. Used by the Boris Alignment Check (quality-rubric §"The scaffolding discriminator") and freshen §4b.
+- **`scripts/knowledge-floor.py`** — Floor-mode probe. Extracts checkable factual claims from a skill (cached to `<skill>/references/knowledge-claims.json`), then asks a **bare** `claude -p` — empty project so no skills resolve, every tool denied so the answer is parametric recall — and buckets each answer KNOWS / UNKNOWN / CONFLICTS against the skill's own claim. `--models`/`--efforts` sweep the matrix; each invocation reports its own `total_cost_usd`. See Floor Mode.
 - **`scripts/run-cost.py`** — Token and cost accounting for a session, read from its transcript. The agent cannot see its own spend at runtime; the harness records every call's `usage`, so cost is recoverable after the fact. Deduplicates on `requestId` (one request writes one record per content block — summing records overcounts 2x+) and reads `<session>/subagents/agent-*.jsonl` so blind scorers and probe fleets are costed by `agentType` and task. `--json` for machine output, `--list` to enumerate sessions, `--since` to scope to one phase. Rates live in **`scripts/model-rates.json`** (dated; refreshed from the `Model pricing` row in `sources.md`). List API rates — read the dollars as relative sizing between runs, not as an invoice.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.
