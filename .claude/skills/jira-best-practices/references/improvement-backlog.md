@@ -6,7 +6,6 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 
 - **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
 - **Frontmatter headroom ~3 chars (1,533/1,536 combined; both scorers' nit).** Any trim/rewrite invalidates the trigger pass's validated 14/14 frontmatter, so the mutation requires a trigger-mode probe run (`probe-trigger.py`), not an improve iteration. If a trigger pass runs anyway, bank ~50–80 chars of headroom while it's measured.
-- **33 of 65 `sources.md` cells are URL shorthand, not URLs (found 2026-08-19).** They elide the path middle (`community.atlassian.com/.../Designing Jira Fields in 2026`), use brace sets (`JRASERVER-{39215,39009}`), or trail into prose, so they cannot be clicked or machine-probed — which is why every prior freshen left ~85 rows on the original research date and the skill read as 72 days stale. A further 11 Atlassian cells store a slug without the trailing numeric ID + `.html`, so a direct fetch 404s on a live page. Action: expand each to a full resolvable URL (search once per row, paste the real target), which makes future freshens a single bulk sweep. Deliberately not done in the 2026-08-19 pass: ~44 row rewrites is far past the freshen one-finding diff budget and is mechanical editing, not verification. Until then the header carries this as a standing exception.
 
 Anti-re-proposal guards (tried 2026-08-18, judged net-negative — do not re-propose the same shape):
 - **Condensing SKILL.md summary sections toward pointers** (the blind scorers' recurring Dim 6 flag: hierarchy misconceptions/heuristic, non-software bullets, decomposition anti-patterns). Tried on the non-software section — DISCARDED: each condensed bullet carried unique one-line coverage (Jira Core base, scheduler-app recurrence) for a primary trigger; Dim 5 loss ≥ Dim 6 gain. The genuinely redundant site (the closing Execution paragraph) was removed instead. The remaining SKILL.md/reference overlap is deliberate progressive-disclosure summary, priced in at blind Dim 6 = 7.
@@ -85,9 +84,19 @@ The trigger probe isolates one skill per run, so `jira-best-practices` vs `jira-
   2028-03-30 / 2029-03-28), the 800/1,200 custom-field guardrail, and
   Automation-for-Jira free-and-native since JSW DC 9.0 all re-confirmed against
   the live pages.
-- Converted `sources.md` from mixed per-row dates to the single header stamp,
-  with the URL-shorthand limitation recorded as a standing exception rather than
-  papered over (see Open). The prior scheme is what kept 85 rows pinned to
-  2026-06-07.
+- **Expanded every shorthand citation into a full resolvable URL — 75 source
+  cells rewritten.** This was the root cause of the apparent staleness: elided
+  paths (`community.atlassian.com/.../Designing Jira Fields in 2026`), brace sets
+  (`JRASERVER-{39215,39009}`), and Atlassian slugs missing their trailing numeric
+  ID + `.html` could not be probed, so three consecutive passes left ~85 rows on
+  the 2026-06-07 research date. The file now holds 126 unique URLs, 120 of which
+  return 200 in one bulk sweep; the sweep command is recorded in the header so the
+  next pass is a single command.
+- Converted `sources.md` from mixed per-row dates to the single header stamp.
+- Two dead references replaced rather than merely flagged: `success.atlassian.com`
+  is gone at the DNS level (entire domain, not just the page — it read as a
+  timeout, not a 404), repointed at the equivalent `atlassian.com/blog` article;
+  and a paused Vercel deployment (HTTP 402) dropped from the Linear-vs-Jira row,
+  which keeps two live siblings.
 - Two `medium.com` rows recorded as permanent bot-block exceptions (403 to any
   non-browser client).
