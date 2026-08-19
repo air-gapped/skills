@@ -46,6 +46,7 @@ FINDING UNDER REVIEW (from the scanner; treat as a CLAIM, not a fact):
   category:  {category}
   severity (claimed): {severity}
   title:     {title}
+  claimed data flow: {source_ref} -> {sink_ref}, or "(none traced)"
 
   description:
   {description}
@@ -55,6 +56,14 @@ FINDING UNDER REVIEW (from the scanner; treat as a CLAIM, not a fact):
 
   preconditions (claimed):
   {preconditions as bullets or "(not provided)"}
+
+The claimed data flow is the scanner's assertion of where untrusted input
+enters and where it is used unsafely. Treat it as the claim to check, not
+as established fact: read both locations and decide whether input actually
+reaches that sink. A flow whose two ends do not connect in the code refutes
+the finding; "(none traced)" means the scanner named no flow at all, which
+is neither evidence for nor against — derive the reachability yourself
+either way.
 
 You are vote {k} of {N}. You have NOT seen the other verifiers' reasoning
 and you must NOT try to find it. Work independently from the code.

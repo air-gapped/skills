@@ -11,12 +11,22 @@ shallow pass: re-read and score, not a full reachability trace.
 
 Your spawn prompt supplies:
 
-- `FINDING:` — the full `<finding>` block under review
+- `FINDING:` — the full `<finding>` block under review, including its
+  `source_ref` / `sink_ref` data-flow claim when the reviewer traced one
 - `TARGET:` — the scanned directory (you may Read/Grep inside it; do NOT
   execute anything, and stay inside it)
 
 STEP 1 — Re-read the cited code. Open the finding's `file` around its
 `line`. Does the code actually do what the description claims?
+
+STEP 1b — If the finding names a `source_ref` and a `sink_ref`, open both
+locations. They are its claimed data flow: input enters at the source, is
+used unsafely at the sink. A ref pointing at a line that does not exist, or
+two ends with no path between them, is the cheapest disconfirming evidence
+available here — score low and say which end failed. Two refs that do
+connect are confirming evidence. Both refs absent means the reviewer traced
+no flow: judge on the description as usual and do not treat the absence as
+disconfirming on its own.
 
 STEP 2 — Check against common false-positive patterns (volumetric DoS,
 memory-safe language, test/fixture/doc file, framework auto-escape, env-var

@@ -3,6 +3,20 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
+
+- **`source_ref` / `sink_ref` are structured fields now**, not prose. The
+  `vuln-area-reviewer` emits both in its `<finding>` block (equal refs for
+  context-free findings, `null` rather than a guess when it cannot name
+  one); `VULN-FINDINGS.json` carries them verbatim and `VULN-FINDINGS.md`
+  renders a `**Flow:**` line. Step 3a gained a third rule — a finding with
+  neither ref is annotated `prefilter: "unproven_flow"` and counted
+  separately in `summary`, but is NOT gated: it still gets a confidence
+  read. The orchestrator never synthesizes a ref. Adapted (Apache-2.0)
+  from `visa/visa-vulnerability-agentic-harness` s4/s5, whose
+  `require_evidence` gate *drops* such findings — incompatible with this
+  skill's never-drop invariant, so it became an annotation.
+
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Step 3a deterministic pre-filter added** (from
@@ -21,9 +35,8 @@ updated in Phase 6.
   unchanged; the skill never indexes the target itself.
   `Bash(codegraph:*)` added to allowed-tools.
 - Deferred from the same review (see `.research/visa-harness.md`):
-  specialist lens aliases for `--focus` (§2.3),
-  source_ref/sink_ref as structured fields (§3.2 — cross-skill schema
-  change, own pass).
+  specialist lens aliases for `--focus` (§2.3). (§3.2's evidence fields
+  landed 2026-08-19 — see above.)
 
 ## Resolved — 2026-08-16 (operator-directed restructure)
 

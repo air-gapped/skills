@@ -25,7 +25,12 @@ Your spawn prompt supplies:
   stale or miss dynamic dispatch; absence of an edge in the graph is not
   proof of unreachability. When the block is absent, trace callers with
   Grep as usual.
-- `FINDING UNDER REVIEW:` — the claim to verify, and your vote number
+- `FINDING UNDER REVIEW:` — the claim to verify, and your vote number. Its
+  `claimed data flow` line (`source -> sink`, each a `file:line`) is part
+  of the claim, not a given: read both ends and decide whether input
+  actually reaches that sink. Two ends that do not connect in the code
+  refute the finding. `(none traced)` means no flow was asserted — neither
+  evidence for nor against; derive reachability yourself either way.
 
 You have read-only access to the target codebase at the REPO PATH. You may
 use Read, Glob, and Grep, but ONLY on paths inside it. Do NOT read, grep,

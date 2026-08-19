@@ -276,6 +276,9 @@ guess what's absent.** Field map (source-key aliases → canonical):
 |-----------------|----------------------------------------------------------|
 | `file`          | `path`, `location.file`, `filename`, ASAN top-frame file |
 | `line`          | `line_number`, `location.line`, `lineno`                 |
+| `end_line`      | `line_end`, `location.end_line`, `endLine`, `line_range` end |
+| `source_ref`    | `source`, `taint_source`, `entry_point` (as `file:line`) |
+| `sink_ref`      | `sink`, `taint_sink`, `dangerous_call` (as `file:line`)  |
 | `category`      | `type`, `cwe`, `rule_id`, `crash_type`, `vulnerability_class` |
 | `severity`      | `severity_rating`, `level`, `priority`, `risk`           |
 | `title`         | `name`, `summary`, `message`                             |
@@ -284,6 +287,17 @@ guess what's absent.** Field map (source-key aliases → canonical):
 | `preconditions` | `requirements`, `assumptions`                            |
 | `recommendation`| `fix`, `remediation`, `mitigation`                       |
 | `scanner_confidence` | `confidence`, `score`, `certainty` (normalize to 0.0-1.0) |
+
+`source_ref` / `sink_ref` are the scanner's **data-flow evidence** — the
+`file:line` where untrusted input enters and the `file:line` where it is
+used unsafely (`/vuln-scan` emits both; most third-party scanners emit
+neither, and a taint-tracking one emits both). Ingest them verbatim.
+**Never synthesize a ref** from the description, the `file:line`, or a
+guess: dedup and verification below anchor on these, and a manufactured
+ref asserts a flow nobody traced. A finding whose two refs are
+equal is a context-free finding (hardcoded secret, weak constant), not a
+malformed one. `end_line` likewise: absent means "the scanner named one
+line", not "the region is one line" — the difference matters in 2a.
 
 Attach to every finding:
 - `id`: `f001`, `f002`, ... in ingest order. If `scanner_confidence` is
@@ -336,16 +350,46 @@ Collapse repeats so duplicate findings don't each burn N verifiers.
 
 ### 2a. Deterministic pass (inline, no subagent)
 
-Cluster findings where all of:
+Cluster findings that share **both** of:
 - same `file` (after path normalization), AND
-- same `category` (case-insensitive, punctuation stripped), AND
-- `line` numbers within 10 of each other. Both-missing matches; one-side-
-  missing does NOT (a line-less record must not absorb a located one).
+- same `category` (case-insensitive, punctuation stripped),
+
+and then meet **any one** of these three location tests:
+
+1. **Line proximity** — `line` values within 10 of each other. Both-missing
+   matches; one-side-missing does NOT (a line-less record must not absorb a
+   located one).
+2. **Range overlap** — the findings' line ranges intersect:
+   `a.start <= b.end AND b.start <= a.end`, where a finding's range is
+   `[line, end_line]` and `end_line` falls back to `line` when absent. This
+   catches the same region re-detected at different boundaries — a scanner
+   reporting a whole vulnerable function as `40-120` and another reporting
+   `95-130` inside it are one finding, though their start lines are 55
+   apart and rule 1 misses them.
+3. **Identical flow** — both findings carry a `source_ref` AND a `sink_ref`
+   and both refs match. Same entry, same sink, same category is one bug at
+   any line distance; the `line` a scanner chose to anchor on is arbitrary
+   along a flow. This test alone is exempt from the same-`file` gate above:
+   one scanner anchors a finding on its source file and another on its
+   sink file, and matching refs pin the flow harder than `file` does.
+
+**Ref conflict blocks a deterministic collapse.** If both findings carry a
+`sink_ref` and the two differ, do NOT collapse them here even when rule 1
+or 2 matches — hand the pair to 2b. Two distinct sinks a few lines apart in
+one function are two fixes, and a ±10 window is wide enough to swallow the
+second one silently. This is what makes any line window unsafe on its own;
+the refs are what make the collision detectable without spending a model on
+it.
 
 Within each cluster, the canonical is the record with the fewest
-`missing_fields`; ties break to lowest `id`. Every other member gets
-`verdict: duplicate`, `duplicate_of: <canonical id>`, and is removed from
-the working set. Record duplicate ids on the canonical as `absorbed: [...]`.
+`missing_fields`; ties break to lowest `id`. (Because `source_ref` /
+`sink_ref` are canonical fields, this already prefers the record that
+carries data-flow evidence.) Every other member gets `verdict: duplicate`,
+`duplicate_of: <canonical id>`, and is removed from the working set. Record
+duplicate ids on the canonical as `absorbed: [...]`; where the canonical
+lacks a ref that an absorbed member carries, copy that ref onto the
+canonical — the evidence survives the collapse even though the record does
+not.
 
 ### 2b. Semantic pass (one subagent, only if >1 cluster survives)
 
@@ -374,8 +418,19 @@ Treat as DISTINCT:
 - Two endpoints missing the same check, where the fix is per-endpoint
   rather than a shared gate
 
+Some findings carry data-flow evidence — `source -> sink`, each a
+`file:line`. Where both findings have it, prefer it over the prose:
+- Matching source AND sink is one flow: DUPLICATE even when the categories
+  are labelled differently (one scanner's "missing input validation" and
+  another's "sql injection" on that flow are cause and consequence).
+- Matching sink, different sources: DUPLICATE only if one fix at the sink
+  closes both; if each source needs its own validation, they are DISTINCT.
+- Different sinks: DISTINCT unless one shared helper feeds both.
+- A finding whose last field is `(none traced)` has no such evidence —
+  judge it on prose alone, and do not read the absence as independence.
+
 Below are the candidate findings (one per line: id | file:line | category |
-title). Group them. Respond with ONLY lines of the form:
+title | source -> sink). Group them. Respond with ONLY lines of the form:
 
   GROUP: <canonical_id> <- <dup_id>, <dup_id>, ...
 
@@ -383,14 +438,18 @@ One line per group that has duplicates. Omit singletons. Pick the most
 specific / best-described finding as canonical. No prose.
 
 CANDIDATES:
-{one line per surviving finding: "f003 | src/auth.py:112 | sql_injection | User lookup concatenates name into query"}
+{one line per surviving finding: "f003 | src/auth.py:112 | sql_injection | User lookup concatenates name into query | src/api.py:40 -> src/auth.py:112"}
+{findings without both refs end with "| (none traced)"}
 ```
 
 Parse `GROUP:` lines. For each, mark the listed dup ids with
 `verdict: duplicate`, `duplicate_of: <canonical>`, append them to the
 canonical's `absorbed`, and drop them from the working set.
 
-Carry forward `candidates[]` = the surviving canonicals.
+Carry forward `candidates[]` = the surviving canonicals. Report the split
+in the terminal — `"dedup: N deterministic, M semantic, K canonical"` — so
+a run that collapsed half its input on the ±10 window is visible as such,
+not as a quiet drop in the verifier bill.
 
 **Checkpoint:** Write tool → `./.triage-state/_chunk.tmp`:
 
@@ -719,6 +778,9 @@ Order all findings by:
       "title": "...",
       "file": "...",
       "line": 0,
+      "end_line": null,
+      "source_ref": "...|null",
+      "sink_ref": "...|null",
       "category": "...",
       "claimed_severity": "HIGH",
       "verdict": "true_positive|false_positive|duplicate",
@@ -785,6 +847,7 @@ Context: {mode}; environment = {environment}; scoring = {scoring}; {votes}-vote 
 **Threat-model match:** {threat_match or "none"}
 **Why:** {rationale}
 **Reachability evidence:** {first_links}
+{if source_ref or sink_ref:}**Claimed flow:** {source_ref or "?"} -> {sink_ref or "?"} (scanner-asserted; the verifier's reachability evidence above is what was read)
 {if verify_verdict == needs_manual_test:}
 > Recommend a human build a PoC; static reasoning hit its limit.
 {if "verifier_error" in refute_reasons:}
@@ -855,7 +918,9 @@ Expected: f001 and f003 confirmed; f002 duplicate of f001; f004 dropped
 (`already_handled`: there is a null check at line 68). Without the source
 tree the verifiers cannot read the cited code, so they return
 `needs_manual_test` — the fixture then documents the ingest/dedup shape rather
-than exercising verification.
+than exercising verification. Its findings carry no `source_ref`/`sink_ref`
+(most scanners emit none), so it exercises the refs-absent path: f001/f002
+must still collapse on the line window alone.
 
 Against any real scanner output, hand-check a sample of TRUE_POSITIVE/HIGH
 results (the `first_links` should point at real call sites) and a sample of
@@ -874,7 +939,8 @@ defensible).
 - **Dedupe runs before verify** to cut verifier spend by the duplication
   factor (often 2-4x on multi-scanner input) at the cost of one cheap
   subagent.
-- **Semantic dedupe is one agent**, given only id/file/line/category/title:
+- **Semantic dedupe is one agent**, given only id/file/line/category/title
+  and the data-flow refs where a scanner supplied them:
   enough to cluster, not enough to leak one scanner's reasoning into
   another finding's verification.
 - **Bash is allowed narrowly** for `git log` (owner hints), `jq`/`find`
@@ -908,4 +974,8 @@ Adapted (Apache-2.0) from the `triage` skill in
 Class-agnostic: the verifier exclusion rules and impact x exploitability
 severity apply to web, cloud, crypto, and memory-safety findings alike. See
 `../vuln-scan/HARNESS.md` for the autonomous pipeline whose output this skill
-can ingest.
+can ingest. The Phase-2a range-overlap collapse and the `source_ref` /
+`sink_ref` data-flow evidence the dedup and verifier passes anchor on are
+adapted (Apache-2.0) from
+[`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
+s7 dedup stage and s4 finding schema.

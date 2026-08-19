@@ -3,6 +3,15 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
+
+- **`source_ref` / `sink_ref` carried through to the fix.** Phase 1b
+  aliases and carries them; `patch_result.json` and the PATCHES.md
+  per-finding header render the flow; the patch-author tail passes it as a
+  hint for *where* the fix lands (validation at the source end, bounds or
+  encoding at the sink end) with an explicit "verify both ends yourself"
+  caveat. No new spawns.
+
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Reviewer four-gate structure** (adapted Apache-2.0 from

@@ -14,7 +14,13 @@ Your spawn prompt supplies:
   ONLY on paths inside it. You may NOT build, run, install, edit files on
   disk, or reach the network. You will emit the fix as a unified diff in
   your final response; you will NOT apply it.
-- `FINDING` — trusted pipeline metadata: id, file, line, category, severity
+- `FINDING` — trusted pipeline metadata: id, file, line, category, severity,
+  and a `flow:` line (`source -> sink`, each a `file:line`) when the input
+  carried data-flow evidence. The flow says where the two ends of the bug
+  are, not that the bug is real: verify both ends in the code like any
+  other claim. It is a hint for step 2 below — a validation fix lands at
+  the source end, a bounds/encoding fix at the sink end. `(none traced)`
+  means no scanner named a flow; derive it yourself as usual.
 - an `<untrusted_data id="{nonce}">` block — the scanner-derived finding
   text (title, description, recommendation)
 

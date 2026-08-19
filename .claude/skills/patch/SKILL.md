@@ -170,9 +170,16 @@ flat `findings[]` of dicts. Pull what's present; never guess what's absent.
 | `description`    | `details`, `report`, `body`, `evidence`, `rationale`     |
 | `recommendation` | `fix`, `remediation`, `mitigation`                       |
 | `owner_hint`     | `owner`, `component`                                     |
+| `source_ref`     | `source`, `taint_source` (as `file:line`)                 |
+| `sink_ref`       | `sink`, `taint_sink` (as `file:line`)                     |
 
 Attach `id` (`f001`, `f002`, ... in ingest order; preserve existing ids from
 TRIAGE.json) and `source` (relative path of the file it came from).
+
+`source_ref` / `sink_ref` decide **where** the fix lands: a validation fix
+belongs at the source, a bounds/escaping fix at the sink, and when several
+findings share one sink the fix belongs there once rather than at each
+source. Carry them verbatim; never infer a ref the input did not carry.
 
 From TRIAGE.json, also carry `asset`, `impact`, `deployment_condition`,
 and `verify_verdict` verbatim when present — they tell the human reviewer
@@ -362,6 +369,8 @@ For each finding (both modes), Write
   "source": "TRIAGE.json#2",
   "title": "...",
   "file": "...",
+  "source_ref": "...|null",
+  "sink_ref": "...|null",
   "line": 0,
   "category": "...",
   "severity": "HIGH",
@@ -444,6 +453,7 @@ In exec mode, also Read the pipeline's
 ## bug_{NN}: [{severity}{if fix_priority == "high"}, FIX-FIRST{/if}] {title}  ({id})
 
 `{file}:{line}` · {category} · owner: {owner_hint or "?"}
+{if source_ref or sink_ref}**Flow:** {source_ref or "?"} -> {sink_ref or "?"}{/if}
 **Asset:** {asset or "?"} · **severity moves if:** {deployment_condition or "n/a"}
 **Status:** {verified} · review {review or "n/a"} · style {style_score or "n/a"}/10
 {if gates:}**Gates:** root-cause {gates.root_cause} · coverage {gates.instance_coverage} · no-new-vulns {gates.no_new_vulns} · best-practices {gates.best_practices}

@@ -179,9 +179,18 @@ For each finding, in order:
    fixture file is in source control and was likely real once. It proceeds
    to 3b at its reported confidence.
 
+3. **Unproven data flow.** If the finding carries neither `source_ref` nor
+   `sink_ref` (§ Step 4), set `prefilter: "unproven_flow"`. Unlike 1 and 2
+   this is an **annotation, not a gate** — the finding still goes to 3b and
+   is still written out. It records that the reviewer asserted a flow in
+   prose without naming its two ends, which is the shape a hallucinated
+   flow takes, and it tells `/triage` that this finding cannot be deduped
+   on data-flow evidence. Never synthesize the refs yourself to clear the
+   annotation: a ref the reviewer did not derive is not evidence.
+
 All other findings get `prefilter: null` and proceed. Report the gate's
-work in the terminal ("pre-filter: X hallucinated, Y test-path, Z passed")
-— silent gating reads as "nothing was gated".
+work in the terminal ("pre-filter: X hallucinated, Y test-path, Z
+unproven-flow, W passed") — silent gating reads as "nothing was gated".
 
 ## Step 3b — Confidence pass (skip if `--no-score`)
 
@@ -231,27 +240,44 @@ Write **both** files to `<target-dir>/`:
       "description": "...",
       "exploit_scenario": "...",
       "recommendation": "...",
+      "source_ref": "relative/path.c:88",
+      "sink_ref": "relative/path.c:123",
       "confidence_reason": "...",
       "prefilter": null
     }
   ],
-  "summary": {"total": 0, "high": 0, "medium": 0, "low": 0, "low_confidence": 0, "prefiltered": 0}
+  "summary": {"total": 0, "high": 0, "medium": 0, "low": 0, "low_confidence": 0, "prefiltered": 0, "unproven_flow": 0}
 }
 ```
+
+`source_ref` / `sink_ref` are the two ends of the data flow the reviewer
+traced — where untrusted input enters, and where it is used unsafely —
+copied verbatim from its `<finding>` block, `null` when it named neither.
+They are the finding's **data-flow evidence**: `/triage` deduplicates and
+verifies against them instead of re-reading the prose, so two reviewers
+who describe one bug from different angles collapse on matching refs.
+Emit them as given; do not repair, infer, or normalize a ref the reviewer
+did not produce. For a context-free finding (hardcoded secret, weak
+constant) both point at the same location — that is correct, not a defect.
+
+In `summary`, `prefiltered` counts only findings the Step 3a **gates**
+caught (rules 1-2, which skip 3b); `unproven_flow` counts the rule-3
+annotation separately, since those findings were scored and kept.
 
 Findings are sorted by `confidence` desc (then severity, file, line), so
 the top of the file is the highest-signal material.
 
 **`VULN-FINDINGS.md`** — human-readable: a summary table (id | severity |
 category | file:line | title), then one `### F-NNN` section per finding with
-the full description.
+the full description and a `**Flow:** {source_ref} -> {sink_ref}` line
+(omit the line when both are null).
 
 ## Step 5 — Hand back
 
 Tell the user:
 
-1. Counts: N findings (H/M/L split, X low-confidence, P pre-filtered),
-   across K focus areas, from M source files.
+1. Counts: N findings (H/M/L split, X low-confidence, P pre-filtered,
+   U without traced data flow), across K focus areas, from M source files.
 2. Top 3 by confidence, one line each.
 3. Next step: `> /triage <target-dir>/VULN-FINDINGS.json --repo <target-dir>`
 4. Remind: these are **static candidates**, not verified. For
@@ -285,5 +311,6 @@ menu, DO-NOT-REPORT exclusions, per-finding confidence pass, and
 test-path exclusion regex, the committed-credential exception to it, and
 the gate-before-the-expensive-stage ordering — is adapted (Apache-2.0) from
 [`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
-s5 prefilter stage. See `HARNESS.md` for the execution-verified
-pipeline this static skill complements.
+s5 prefilter stage; the `source_ref`/`sink_ref` evidence fields carry the
+same semantics as that harness's s4 finding schema. See `HARNESS.md` for
+the execution-verified pipeline this static skill complements.

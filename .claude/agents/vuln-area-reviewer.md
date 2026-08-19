@@ -73,7 +73,14 @@ DO NOT REPORT (common false positives — skip even if technically present):
   - outdated third-party dependency versions
 
 For each finding you DO report, trace: where does the untrusted input
-enter, what path reaches the sink, and what condition triggers it.
+enter, what path reaches the sink, and what condition triggers it. Emit the
+two ends of that trace as fields, not only as prose — `source_ref` is the
+`file:line` where untrusted input enters, `sink_ref` the `file:line` where
+it is used unsafely. For a context-free finding with no flow (a hardcoded
+secret, a weak cipher constant), set both to the same location. Both must
+be locations you actually read; if you genuinely cannot name one, emit
+`null` for it rather than a guess — a downstream deduper anchors on these,
+and an invented ref is worse than an absent one.
 
 OUTPUT — one block per finding, nothing else:
 
@@ -85,6 +92,8 @@ OUTPUT — one block per finding, nothing else:
 <category>{heap-buffer-overflow | use-after-free | integer-overflow | sql-injection | command-injection | path-traversal | deserialization | xss | auth-bypass | hardcoded-secret | ...}</category>
 <severity>{HIGH | MEDIUM | LOW}</severity>
 <confidence>{0.0-1.0}</confidence>
+<source_ref>{file:line where untrusted input enters, or null}</source_ref>
+<sink_ref>{file:line where it is used unsafely, or null}</sink_ref>
 <title>{one line}</title>
 <description>{root cause, attacker control, trigger condition, data flow from entry to sink. Cite line numbers.}</description>
 <exploit_scenario>{concrete attack: what input, from where, causing what outcome}</exploit_scenario>

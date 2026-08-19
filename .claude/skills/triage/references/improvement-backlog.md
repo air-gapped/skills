@@ -3,6 +3,28 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
+
+- **Dedup anchors on data flow, not only line distance.** Phase 1b ingests
+  `source_ref` / `sink_ref` / `end_line` (with aliases); Phase 2a keeps the
+  ±10 window and adds two tests from the harness's s7 — **range overlap**
+  (`a.start <= b.end AND b.start <= a.end`, `end_line` defaulting to
+  `line`) and **identical flow** (both refs match; exempt from the
+  same-`file` gate) — plus a guard the harness's own history argues for:
+  **differing `sink_ref`s block a deterministic collapse**, deferring the
+  pair to 2b. Phase 2b sees the refs on each candidate line and has
+  ref-based DUPLICATE/DISTINCT rules; the verifier tail carries the claimed
+  flow as a claim to check, not a given. Terminal now reports the
+  deterministic-vs-semantic dedup split.
+- **The research note's "widen the window to ~30" was not adopted, and the
+  source says why.** `.research/visa-harness.md` §3.2 read ~30 off the s7
+  *semantic* SYSTEM prompt, where a model weighs it against descriptions.
+  The harness's deterministic `line_tolerance` shipped at **3** in every
+  profile, commented `was 10 — too wide; collapsed distinct sinks in same
+  method`. Widening 10 → 30 would have moved this pass further in the
+  direction the harness reverted. The sink-ref conflict guard addresses the
+  same failure without narrowing the window.
+
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Anti-manipulation prologue** added to the `triage-verifier` agent body:
@@ -25,9 +47,15 @@ updated in Phase 6.
   call site the verifier READ, and a missing graph edge is not proof of
   unreachability. Absent index → block omitted; the skill never indexes
   the target. `codegraph explore` added to the Bash whitelist.
-- Deferred from the same review (see `.research/visa-harness.md`): dedup
-  overlap-ranges + graph-signature evidence (§3.2), deterministic diff
-  tools for verifiers (§3.5 — environment-dependent, skipped).
+- Deferred from the same review (see `.research/visa-harness.md`):
+  deterministic diff tools for verifiers (§3.5 — environment-dependent,
+  skipped). (§3.2's overlap-ranges and evidence fields landed 2026-08-19 —
+  see above. The same section's per-candidate **graph-signature block** for
+  the 2b deduper was considered and **not** adopted: it costs one
+  `codegraph explore` per candidate *before* dedup, i.e. paying for the
+  duplicates the pass exists to collapse, and the verifiers already get
+  graph context in Phase 3a, after the set has shrunk. Revisit only if a
+  run shows 2b splitting findings that share a call neighborhood.)
 
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
