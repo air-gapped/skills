@@ -452,7 +452,14 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`scripts/dedup-fleet.py`** — Fleet driver for intra-skill dedup, and the
   measurement behind Pattern 6.1. Runs `context-optimization-check` per skill,
   writing each result as it lands so a killed pass keeps what finished, and
-  ranks skills by **DUPLICATE count** — the only actionable verdict. Results
+  ranks skills by **duplicate share**, not count — 1 duplicate among 22 clusters
+  is noise, 4 among 7 is structural, and sorting by count buries the second
+  behind large skills that are mostly fine. Shares over fewer than 5 clusters
+  print `n/a` rather than a number, because 1-of-2 is two clusters, not "50%
+  duplicated". It also names **name families with repetition in 3+ members** —
+  measured `vllm-*` at 13 skills and 29 duplicate clusters, a third of all
+  duplication in the fleet, which is shared material to fix once rather than
+  thirteen separate jobs. Results
   cache in `${XDG_CACHE_HOME:-~/.cache}/skillevaluator/dedup/`, never in the
   repo, keyed by the skill's content hash **and** the chat model, embedding
   model and endpoint that produced the verdicts: a verdict is only valid for

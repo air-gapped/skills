@@ -58,6 +58,10 @@ VERDICT_RE = re.compile(r"Verdict:\s*([A-Z_]+)")
 CHUNKS_RE = re.compile(r"Extracted\s+(\d+)\s+chunk")
 TOO_BIG_RE = re.compile(r"scalar comparison work exceeds", re.I)
 VERDICTS = ("DUPLICATE", "INTENTIONAL_DETAIL", "RELATED_BUT_DISTINCT")
+# A duplicate share computed over 1-2 clusters is arithmetic, not evidence.
+MIN_CLUSTERS_FOR_SHARE = 5
+# Three members of a name family repeating means shared material, not coincidence.
+FAMILY_MIN = 3
 
 
 def cache_root() -> Path:
@@ -239,19 +243,57 @@ def main() -> int:
         )
         return 2
 
+    # Rank by SHARE, not count. A skill with 1 duplicate among 22 clusters is
+    # noise; one with 4 among 7 is structurally repetitive. Sorting by raw count
+    # buries the second behind large skills that are mostly fine.
+    for r in rows:
+        v = r["verdicts"]
+        r["keep"] = v["INTENTIONAL_DETAIL"] + v["RELATED_BUT_DISTINCT"]
+        total = v["DUPLICATE"] + r["keep"]
+        r["dup_share"] = (v["DUPLICATE"] / total) if total else None
+
     dupes = [r for r in rows if r["verdicts"]["DUPLICATE"]]
-    dupes.sort(key=lambda r: -r["verdicts"]["DUPLICATE"])
+    # A share needs a denominator to mean anything: 1-of-2 is not "50% duplicated",
+    # it is two clusters. Those rank by count and are marked, never by share.
+    solid = [
+        r
+        for r in dupes
+        if (r["verdicts"]["DUPLICATE"] + r["keep"]) >= MIN_CLUSTERS_FOR_SHARE
+    ]
+    thin = [r for r in dupes if r not in solid]
+    solid.sort(key=lambda r: -r["dup_share"])
+    thin.sort(key=lambda r: -r["verdicts"]["DUPLICATE"])
+
     print(f"\n{len(rows)} skills · cache {cdir}")
-    print(f"\n{'dup':>4} {'keep':>5} {'chunks':>7}  skill")
-    for r in dupes:
-        keep = (
-            r["verdicts"]["INTENTIONAL_DETAIL"] + r["verdicts"]["RELATED_BUT_DISTINCT"]
-        )
+    print(f"\n{'dup':>4} {'keep':>5} {'share':>6} {'chunks':>7}  skill")
+    for r in solid:
         print(
-            f"{r['verdicts']['DUPLICATE']:>4} {keep:>5} {r['chunks'] or '-':>7}  {r['skill']}"
+            f"{r['verdicts']['DUPLICATE']:>4} {r['keep']:>5} {r['dup_share']:>5.0%} "
+            f"{r['chunks'] or '-':>7}  {r['skill']}"
+        )
+    for r in thin:
+        print(
+            f"{r['verdicts']['DUPLICATE']:>4} {r['keep']:>5} {'  n/a':>6} "
+            f"{r['chunks'] or '-':>7}  {r['skill']}  (under {MIN_CLUSTERS_FOR_SHARE} clusters, share not meaningful)"
         )
     if not dupes:
         print("   none — no DUPLICATE verdict anywhere")
+
+    # Name the families. Repetition concentrated in one prefix is a different
+    # problem from repetition scattered across unrelated skills: it means the
+    # same material restated per skill, and it is fixed once, not N times.
+    fams: dict[str, list] = {}
+    for r in dupes:
+        prefix = r["skill"].split("-")[0]
+        fams.setdefault(prefix, []).append(r)
+    hot = {k: v for k, v in fams.items() if len(v) >= FAMILY_MIN}
+    if hot:
+        print(
+            "\nfamilies with repetition in 3+ members (fix the shared material once):"
+        )
+        for k, v in sorted(hot.items(), key=lambda kv: -len(kv[1])):
+            n = sum(x["verdicts"]["DUPLICATE"] for x in v)
+            print(f"   {k}-*  {len(v)} skills, {n} duplicate clusters")
 
     clean = [r for r in rows if r["status"] == "ok" and not r["verdicts"]["DUPLICATE"]]
     kept = sum(
