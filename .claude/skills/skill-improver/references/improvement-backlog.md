@@ -36,55 +36,6 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
-- **(2026-08-20; RESOLVED same day) Three saturated eval cases replaced and the
-  replacements validated before entry.** Cases 5, 6 and 7 each scored **18/18 in
-  both configurations** on Opus 5 — delta exactly 0.000. Not wrong, *saturated*:
-  their prompts handed over the discriminating facts, so nothing was left for the
-  skill to add. Replaced by `settle-the-disagreement` (+0.500),
-  `iteration-log-into-a-decision` (+0.111) and
-  `downgrade-with-plausible-evidence` (+0.167), each pitched at a behaviour the
-  unaided arm actually missed and each **validated by a 6-run with/without pass
-  before entering the corpus** under a standing rule: a candidate returning 18/18
-  in both arms is discarded, not kept. One candidate was discarded under that
-  rule (`keep-or-revert-the-applied-change`, +0.056) — it repeated the original
-  defect by naming the two bundled edits as two in the prompt. Full record in
-  `evals/case-validation.2026-08-20.json`.
-
-  **Carried caveat:** case 6 is the weak one. Its +0.111 rests on a single
-  unaided run failing two assertions, which at n=3 is one coin-flip from zero.
-  Re-check it on the next full benchmark rather than treating it as settled.
-
-  **Method worth reusing:** a case earns its place by measurement, not by
-  reading well. Write it against a behaviour the unaided model has been *observed*
-  to miss, then run it before it counts.
-
-- **(2026-08-15; RESOLVED 2026-08-16, operator-directed) Dim 10 measured —
-  `delta_pass_rate = +0.267`, Negative-Transfer Gate lifts.** Authored
-  `evals/evals.json` (4 cases, 20 assertions, fixtures embedded in prompts)
-  and ran the with/without benchmark: 4 evals × 2 configs × 3 runs = 24
-  clean-context subagents, graded per assertion with quoted evidence →
-  `evals/benchmark.json`. **with_skill 60/60 (1.000) vs without_skill 44/60
-  (0.733).** Where the skill earns its keep: rubric-table scoring (0/3
-  baseline runs produced one), probe-before-judging planted version claims
-  (0/3 baseline runs resisted memory-asserting them), sources-record
-  staleness flagging (0/3), post-change re-evaluation + keep/discard (0/3),
-  and full empirical trigger protocol (baseline proposed ad-hoc replay at
-  best). Where the baseline is already strong: refusing memory downgrades
-  (2/3 clean refusals unaided) and trigger-description rewriting craft.
-  Honest caveats recorded in benchmark.json metadata: two assertions were
-  amended before grading because they encoded the author's predicted answer
-  rather than the skill's doctrine; and the skill costs ~+65% tokens per
-  task (~82k vs ~49k) for these deltas. **Reran 2026-08-20 after the freshen
-  redesign and ages mode → `evals/benchmark.2026-08-20.json`: no regression.**
-  On the baseline's own executor model (Fable 5) without_skill reproduced at
-  45/60 and the skill still buys **+0.217**; the 2-assertion with_skill
-  shortfall is one ambiguously-worded assertion (eval 1 a2), since reworded.
-  New finding from the same run: on Opus 5 the *unaided* baseline rises to
-  0.850 on the identical four cases while with_skill stays 0.967, cutting the
-  delta to +0.117 — the stronger model does unaided ~40% of what the skill was
-  adding, which is the leanness-frontier hypothesis measured rather than
-  asserted.
-
 - **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
   §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
   guidance already carried by the Trigger Mode stub ("Use trigger mode when…")
@@ -92,35 +43,6 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   redundancy. Do not re-propose as an addition — if mode dispatch is wanted at
   the entry point, it has to *replace* those two passages, which is a
   multi-section rewrite, not one iteration.
-
-- **(2026-07-24 final-blind; DECIDED 2026-08-16, operator) Dim 9: skill omits
-  two fields from its own Pattern 9.3 checklist — both stay omitted; do not
-  re-propose.** `effort: xhigh` is **rejected**: the operator's 2026-08-16
-  ruling is that this skill and all its subagents inherit the session's model
-  AND effort (see blind-validation.md §Model selection) — a frontmatter
-  effort pin would override the session on every invocation, cheap `score`
-  runs included, which is exactly the per-release pin churn that ruling
-  removed. A blind scorer's Dim 9 note about a missing `effort` field is
-  dismissed with this reason. `disable-model-invocation: true` remains **not**
-  appropriate: proactive model invocation is the point (the whole `trigger`
-  mode exists to make it fire), and setting it would remove the description
-  from Claude's context entirely.
-
-- **(carried 2026-06-09; RESOLVED 2026-08-16, operator-approved) Dim 2 → 8/9:
-  improve-loop phases extracted to `references/improve-loop.md`.** The
-  operator accepted the thin-dispatcher trade ("the read is fine",
-  2026-08-16). Phases 0–6 moved verbatim (pointer-only adjustments for
-  cross-references that now cross files); SKILL.md **401 → 287 lines**,
-  inside the 300-line lean band for the first time. The stub keeps the loop
-  shape plus the three binding rules (blind validation non-optional, one
-  change per iteration, backlog persistence non-optional) so a skipped Read
-  cannot drop the safety rails. The Boris scaffold concentration
-  (18 scaffold items in Phase 0/4–5) now lives in the reference, out of
-  SKILL.md's scaffold count — re-run `scripts/scaffold-probe.py SKILL.md`
-  on the next scoring pass to confirm the Dim 6 cap lifts. Same-day
-  operator decision: the same extraction for `triage` (911 lines) and
-  `patch` (590) is **HELD** — single-mode skills where the phases load
-  every run anyway; do not extract them without a with/without measurement.
 
 - **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
   Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy
@@ -142,6 +64,18 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+## Resolved — carried entries purged from Open 2026-08-20
+
+Four entries sat under `## Open` already carrying RESOLVED or DECIDED markers —
+the oldest since 2026-08-16. Their resolutions are recorded in the dated
+sections below and in the commits that closed them; the duplicate Open rows
+added nothing but an inflated count. Deleted rather than re-ticked, per
+`backlog-format.md` §"Drain duty": the diff is the record.
+
+A fleet sweep the same day found this skill was the ONLY one of 68 with
+resolved items squatting in Open (4 of its 8). Writing the rule and being its
+sole violator is the finding worth keeping.
 
 ## Resolved — 2026-08-19 (workflow-sandbox probe)
 

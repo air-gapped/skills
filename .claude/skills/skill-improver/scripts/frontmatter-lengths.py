@@ -18,7 +18,11 @@ CAP_DESCRIPTION = 1024
 
 
 def field(fm: str, name: str) -> str | None:
-    m = re.search(rf"^{name}:\s*(.*?)(?=^\w+:|\Z)", fm, re.S | re.M)
+    # [\w-] not \w: YAML keys may contain hyphens (argument-hint, allowed-tools).
+    # With \w the lookahead misses them and the preceding field swallows the rest
+    # of the frontmatter — measured 2026-08-20 inflating a combined total by 99
+    # chars and inventing an overrun that did not exist.
+    m = re.search(rf"^{name}:\s*(.*?)(?=^[\w-]+:|\Z)", fm, re.S | re.M)
     return m.group(1).strip() if m else None
 
 
