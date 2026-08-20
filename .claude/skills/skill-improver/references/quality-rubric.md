@@ -81,8 +81,11 @@ description is the one that never loads.
 | 7–8 | SKILL.md is lean (150–300 lines), detailed content in references/, clear pointers |
 | 9–10 | SKILL.md is focused (<150 lines), excellent separation, every resource explicitly referenced with clear guidance on when to load |
 
-**Official limit:** Keep SKILL.md **under 500 lines** (per agentskills.io spec and
-official docs). The 3-level loading system: metadata (~100 tokens at startup) →
+**Stated as an imperative, not enforced:** "Keep your main `SKILL.md` under 500
+lines" — agentskills.io/specification, echoed by Anthropic's best-practices page
+("under 500 lines for optimal performance") and the Claude Code skills docs. No
+validator checks it: `skills-ref validate` covers frontmatter only. The same page
+hedges the companion figure — "Instructions (< 5000 tokens *recommended*)". The 3-level loading system: metadata (~100 tokens at startup) →
 SKILL.md body (when triggered) → bundled files (on demand).
 
 **Reference depth rule:** Keep file references **one level deep** from SKILL.md.
