@@ -249,10 +249,12 @@ To improve multiple skills:
 When the user only wants a quality score without iterating:
 
 1. Read the target skill and `references/quality-rubric.md` from the skill-improver directory.
-2. Score all 10 dimensions using the scoring template from the rubric.
-3. Print the results table. Highlight the lowest dimension and recommend the single highest-impact improvement.
-4. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
-5. Stop. Do not enter the improvement loop unless asked.
+2. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>` and take Dim 10's cap from it — never judge the delta's sign by eye. It also prints the case count and noise floor.
+3. Score all 10 dimensions using the scoring template from the rubric.
+4. Print the results table. Highlight the lowest dimension and recommend the single highest-impact improvement.
+5. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
+6. If step 2 reported fewer than 8 cases, recommend `scripts/grow-evals.py` — a corpus that small cannot resolve a delta and quietly defends the skill it tests. No eval set at all is a different finding: the cap is correct and needs no fix.
+7. Stop. Do not enter the improvement loop unless asked.
 
 **`/doctor` is the first-party sibling, not a substitute.** Anthropic ships
 `claude doctor` / `/doctor` to "rightsize your skills, and CLAUDE.md files"
