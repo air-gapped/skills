@@ -36,6 +36,17 @@ repos:
         language: system
         types: [shell]
         stages: [pre-commit]
+      - id: skillevaluator
+        name: skillevaluator gate (staged skills)
+        entry: bash scripts/skillevaluator-gate.sh
+        language: system
+        pass_filenames: false
+        # Scoped to staged skills inside the script: ~0.3s each against ~4m40s
+        # for the fleet, and pre-existing debt in untouched skills never blocks
+        # unrelated work. Skips silently when skillevaluator is not installed.
+        # Severity decisions live in .claude/skillevaluator-policy.yaml.
+        files: ^(\.claude/skills/.+|\.claude/skillevaluator-policy\.yaml|scripts/skillevaluator-gate\.sh)$
+        stages: [pre-commit]
       - id: readme-skills-table
         name: README skill table in sync
         entry: python3 scripts/gen-skills-table.py

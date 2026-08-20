@@ -1,0 +1,91 @@
+# SkillEvaluator gate policy for this repository.
+#
+# Overlays the bundled `external` profile. Every entry below is a severity
+# DOWNGRADE with a measured reason — findings stay visible in reports, they
+# just stop blocking a commit. Nothing is hidden.
+#
+# Run the gate:
+#   skillevaluator validate .claude/skills --type skill --external \
+#     --policy .claude/skillevaluator-policy.yaml --no-dedup -c
+#
+# Setup, flags and provider config are NVIDIA's to document:
+#   https://docs.nvidia.com/skills/skillevaluator/installation
+#   https://docs.nvidia.com/skills/skillevaluator/ci-integration
+#
+# Severity and gating: critical/high block, medium/low are advisory warnings,
+# info is silent. Measured across all 68 skills on 2026-08-21.
+
+profile: skills-repo
+
+severity_overrides:
+  # --- SkillSpector security scan: keyword matching without context ---------
+  # These skills DOCUMENT privileged infrastructure, so a scanner built to
+  # catch malicious skills fires on their subject matter. Measured: 150
+  # "Credential Access (PE3)" hits on words like `keyring` and `secret.yaml`
+  # in prose; 29 "Hidden Instructions (P2)" on this repo's own
+  # `<!-- ignore-freshen -->` marker, which freshen mode depends on;
+  # "Anti-Refusal (AR2)" on the substrings "Don't lecture", "never judge",
+  # "without warning" in ordinary sentences. Zero true positives found.
+  # Kept at low, not info: a real prompt injection would still be listed.
+  SECURITY.*: low
+
+  # --- PII: placeholder-shaped, not secret-shaped --------------------------
+  # 17/17 hardcoded_secrets were Jinja references (`{{ idrac_password }}`),
+  # angle-bracket placeholders, or already-redacted values. ip_addresses
+  # matched four-part firmware versions (7.30.10.50). emails matched
+  # documentation placeholders outside upstream's example.com allowlist.
+  # gitleaks already gates real secrets in .pre-commit-config.yaml.
+  PII.hardcoded_secrets: low
+  PII.database_credentials: low
+  PII.emails: low
+  PII.ip_addresses: low
+  PII.phone_numbers: low
+  PII.gps_coordinates: low
+  PII.mac_addresses: low
+  PII.aws_identifiers: low
+
+  # NOT downgraded, and deliberately so:
+  #   PII.home_paths  — a real leak, and expensive to
+  #     undo once committed. Set SKILLEVALUATOR_SUBMITTER or the check is
+  #     silently skipped.
+  #   UNICODE.*  — severity scales with run length, and only a RUN blocks.
+  #     Verified: a 32-char tag-block payload is CRITICAL and the report
+  #     decodes it ("ignore all previous instructions"); a single stray tag
+  #     char is LOW and passes, same as the 29 emoji variation selectors
+  #     already in the fleet. The check cannot separate those two, so
+  #     escalating it would block every ✅ in a table.
+
+  # --- Schema: Claude Code differs from the base Agent Skills spec ---------
+  # `allowed-tools` as a YAML list is valid in Claude Code (the spec wants a
+  # string), and `<dir>`-style placeholders in a description are ordinary
+  # argument syntax. Both are portability notes, not defects. Changing a
+  # description also changes trigger behaviour, so it is never a free edit.
+  SCHEMA.frontmatter_field: low
+  # Same placeholder syntax in `argument-hint`: `<target-dir>` reads as an XML
+  # tag to the checker. 7 hits, all ordinary argument documentation.
+  QUALITY.quality_correctness: low
+
+  # `/users/default/` is an Open WebUI API route, not a macOS home directory —
+  # the only hit fleet-wide. The real leak class is home_paths (an actual
+  # /home/<user>/ or /Users/<user>/ prefix), which stays blocking above.
+  PII.personal_paths: low
+
+  # --- Size: guidance, not a defect ---------------------------------------
+  # "Large skill (N tokens, recommended max <5000)". agentskills.io says
+  # RECOMMENDED, and SkillEvaluator's own schema check treats >500 lines as an
+  # advisory finding — so blocking here is stricter than upstream intends, and
+  # would make any edit to a large skill require restructuring it first, which
+  # is how a hook gets disabled. Stays visible at low in every report.
+  # 16 of 68 skills are over. skill-improver was the worst at 10,051 tokens and
+  # is at 7,048 after extracting its script catalogue to references/scripts.md
+  # (its own Pattern 2.1, applied to itself). The rest is real work, not a gate.
+  QUALITY.quality_efficiency: low
+
+  # --- Schema: upstream publication policy this repo does not share --------
+  # author_missing expects `metadata.author: Name <email>`; authorship lives
+  # in git here. folder_hierarchy expects `skills/<name>/`; Claude Code uses
+  # `.claude/skills/<name>/`. body_recommended_section prescribes
+  # `## Instructions` / `## Examples` headings — a template preference.
+  SCHEMA.author_missing: info
+  SCHEMA.folder_hierarchy: info
+  SCHEMA.body_recommended_section: info
