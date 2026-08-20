@@ -1,7 +1,7 @@
 {
   "metadata": {
     "skill_name": "autoresearch",
-    "skill_path": "/home/jorgen/projects/skills/.claude/worktrees/autoresearch-improve-freshen/.claude/skills/autoresearch",
+    "skill_path": ".claude/skills/autoresearch",
     "executor_model": "<model-name>",
     "analyzer_model": "<model-name>",
     "timestamp": "2026-08-20T12:49:37Z",
@@ -15,7 +15,7 @@
       6,
       7
     ],
-    "runs_per_configuration": 3
+    "runs_per_configuration": 1
   },
   "runs": [
     {
@@ -814,5 +814,7 @@
       "tokens": "+0"
     }
   },
-  "notes": []
+  "notes": [
+    "runs_per_configuration is 1, not the aggregator's default of 3: each of the 8 cases was run once per configuration (16 records total). The stddev in run_summary is therefore spread ACROSS CASES, not across repeats of the same case -- it fixes the sign and rough size of the delta, not an interval. The robust result is the per-case tally: 5 wins, 3 ties, 0 losses."
+  ]
 }
