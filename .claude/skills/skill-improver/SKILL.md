@@ -371,7 +371,10 @@ skills loaded, no tools, no web. Whatever the model knows unaided does not need
 to be in the skill; as the bleeding edge is absorbed into training, the skill
 should shrink to the delta. Read-only: surfaces candidates, never edits.
 
-**Invocation:** `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
+**Invocation:** one skill — `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
+· whole fleet — `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`, which
+writes each result as it lands so a multi-hour pass is resumable, and ranks by the
+share of claims the strongest probed model already knows.
 
 The skill is its own answer key. Claims are extracted once to
 `<skill>/references/knowledge-claims.json` (cached, hash-stamped against
