@@ -68,11 +68,33 @@ starting eval set and append any new user-reported failures from `--missed
 
 If absent, construct a fresh eval set per §"Eval-set construction" below:
 
-- 6–8 should-trigger queries: prioritise user-reported failures verbatim;
-  fill the rest with description paraphrases, body-mined examples, and
-  everyday user vocabulary.
-- 5–7 should-NOT-trigger queries: keyword-collision distractors,
-  sibling-skill territory, generic conversation, adjacent-domain decoys.
+Positives split three ways, because they fail differently and an aggregate
+pass rate hides which one broke. Each entry carries a `bucket`:
+
+| bucket | what it is | target share |
+|---|---|---|
+| `explicit` | names the skill, its command, or a distinctive token | 20% |
+| `implicit` | describes the task in the user's own words, never naming it | 30% |
+| `contextual` | arrives inside a real scenario — a file, an error, mid-task | 20% |
+| `negative` | should NOT fire | 30% |
+
+- 6–8 should-trigger queries across `explicit` / `implicit` / `contextual`:
+  prioritise user-reported failures verbatim; fill the rest with description
+  paraphrases, body-mined examples, and everyday user vocabulary.
+- 5–7 `negative` queries: keyword-collision distractors, sibling-skill
+  territory, generic conversation, adjacent-domain decoys.
+
+**`contextual` is the bucket that matters and the one that goes missing.**
+Measured across this fleet's 14 corpora and 220 queries: `contextual` sat at
+**9% against the 20% target, with four corpora at zero**, while negatives ran
+45%. A description tuned against explicit and implicit phrasings passes by
+keyword match and can still miss every request that arrives mid-task — which is
+how the skill is actually reached.
+
+`scripts/bucket-evals.py` labels an existing corpus (negatives are definitional,
+positives are classified by the configured chat model) and prints the fleet
+balance; `scripts/probe-trigger.py` reports `summary.by_bucket` so a run says
+*which* bucket failed rather than one number.
 
 Save to `<skill>/references/trigger-evals.json`. The file persists so future
 trigger-mode runs build on the same eval baseline.

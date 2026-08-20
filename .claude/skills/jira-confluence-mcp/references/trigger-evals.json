@@ -2,91 +2,109 @@
   {
     "query": "how do I install the mcp-atlassian server",
     "should_trigger": true,
-    "source": "description-mined"
+    "source": "description-mined",
+    "bucket": "explicit"
   },
   {
     "query": "set up the jira MCP for our self-hosted Data Center instance",
     "should_trigger": true,
-    "source": "everyday"
+    "source": "everyday",
+    "bucket": "explicit"
   },
   {
     "query": "which env vars do I need for the atlassian MCP on Data Center",
     "should_trigger": true,
-    "source": "description-mined"
+    "source": "description-mined",
+    "bucket": "explicit"
   },
   {
     "query": "install mcp-atlassian in an air-gapped environment",
     "should_trigger": true,
-    "source": "everyday"
+    "source": "everyday",
+    "bucket": "explicit"
   },
   {
     "query": "the jira MCP keeps returning a 401",
     "should_trigger": true,
-    "source": "troubleshooting"
+    "source": "troubleshooting",
+    "bucket": "explicit"
   },
   {
     "query": "how do I limit which tools the jira MCP exposes, read-only",
     "should_trigger": true,
-    "source": "hardening"
+    "source": "hardening",
+    "bucket": "explicit"
   },
   {
     "query": "mcp-atlassian fails with a self-signed certificate error",
     "should_trigger": true,
-    "source": "CA/SSL"
+    "source": "CA/SSL",
+    "bucket": "explicit"
   },
   {
     "query": "mirror the mcp-atlassian image to our internal registry",
     "should_trigger": true,
-    "source": "air-gap"
+    "source": "air-gap",
+    "bucket": "explicit"
   },
   {
     "query": "create a jira ticket from the command line non-interactively",
     "should_trigger": false,
-    "source": "sibling (jira-cli)"
+    "source": "sibling (jira-cli)",
+    "bucket": "negative"
   },
   {
     "query": "is this work an epic or a story",
     "should_trigger": false,
-    "source": "sibling (jira-best-practices)"
+    "source": "sibling (jira-best-practices)",
+    "bucket": "negative"
   },
   {
     "query": "search jira for my open issues and summarize them",
     "should_trigger": false,
-    "source": "runtime tool usage (delegate to live MCP)"
+    "source": "runtime tool usage (delegate to live MCP)",
+    "bucket": "negative"
   },
   {
     "query": "set up the github MCP server",
     "should_trigger": false,
-    "source": "different-MCP decoy"
+    "source": "different-MCP decoy",
+    "bucket": "negative"
   },
   {
     "query": "hello there",
     "should_trigger": false,
-    "source": "generic"
+    "source": "generic",
+    "bucket": "negative"
   },
   {
     "query": "explain what an MCP server is in general",
     "should_trigger": false,
-    "source": "generic concept"
+    "source": "generic concept",
+    "bucket": "negative"
   },
   {
     "query": "set up the confluence MCP for our self-hosted Data Center wiki",
     "should_trigger": true,
-    "source": "confluence-mcp"
+    "source": "confluence-mcp",
+    "bucket": "explicit"
   },
   {
     "query": "which CONFLUENCE_PERSONAL_TOKEN and env vars do I need to connect the atlassian MCP to Confluence",
     "should_trigger": true,
-    "source": "confluence-mcp"
+    "source": "confluence-mcp",
+    "bucket": "explicit"
   },
   {
     "query": "the mcp-atlassian server can't reach our Confluence, do I need CONFLUENCE_SPACES_FILTER",
     "should_trigger": true,
-    "source": "confluence-mcp"
+    "source": "confluence-mcp",
+    "bucket": "explicit"
   },
   {
     "query": "how should we organise our confluence spaces and stop the wiki going stale",
     "should_trigger": false,
-    "source": "sibling (confluence-best-practices)"
+    "source": "sibling (confluence-best-practices)",
+    "bucket": "negative"
   }
 ]

@@ -2,71 +2,85 @@
   {
     "query": "Set up an autoresearch loop to make this function as fast as possible.",
     "should_trigger": true,
-    "source": "canonical — names the skill directly"
+    "source": "canonical \u2014 names the skill directly",
+    "bucket": "explicit"
   },
   {
     "query": "Keep trying different approaches until the p99 latency on this endpoint drops below 200ms.",
     "should_trigger": true,
-    "source": "when_to_use — numeric target pursued autonomously"
+    "source": "when_to_use \u2014 numeric target pursued autonomously",
+    "bucket": "implicit"
   },
   {
     "query": "I want you to hill-climb on our bundle size until it stops improving, then tell me where the ceiling is.",
     "should_trigger": true,
-    "source": "when_to_use — 'hill climbing' + ceiling mapping"
+    "source": "when_to_use \u2014 'hill climbing' + ceiling mapping",
+    "bucket": "implicit"
   },
   {
     "query": "Run an experiment loop on my training script overnight and keep whatever improves val loss.",
     "should_trigger": true,
-    "source": "when_to_use — 'experiment loop' + unattended keep/discard"
+    "source": "when_to_use \u2014 'experiment loop' + unattended keep/discard",
+    "bucket": "contextual"
   },
   {
-    "query": "Optimize this system prompt autonomously — I'll be away, keep the wins and revert everything else.",
+    "query": "Optimize this system prompt autonomously \u2014 I'll be away, keep the wins and revert everything else.",
     "should_trigger": true,
-    "source": "body Mode 1 — keep/discard ratchet, unattended"
+    "source": "body Mode 1 \u2014 keep/discard ratchet, unattended",
+    "bucket": "implicit"
   },
   {
     "query": "Research best practices for our slow search endpoint and then actually try to improve it.",
     "should_trigger": true,
-    "source": "body Mode 3 — research-then-optimize"
+    "source": "body Mode 3 \u2014 research-then-optimize",
+    "bucket": "contextual"
   },
   {
     "query": "Do multi-perspective research on vector database options, save the report, and use it to seed an optimization run.",
     "should_trigger": true,
-    "source": "body Mode 2 — recursive research WITH saved report and optimize handoff (the half that is NOT bundled deep-research)"
+    "source": "body Mode 2 \u2014 recursive research WITH saved report and optimize handoff (the half that is NOT bundled deep-research)",
+    "bucket": "implicit"
   },
   {
     "query": "Do deep research on the current state of EU AI Act compliance deadlines.",
     "should_trigger": false,
-    "source": "B4 collision — bare 'deep research', one-shot, no metric or handoff; belongs to the bundled deep-research skill"
+    "source": "B4 collision \u2014 bare 'deep research', one-shot, no metric or handoff; belongs to the bundled deep-research skill",
+    "bucket": "negative"
   },
   {
     "query": "Research the tradeoffs between Postgres and MySQL for our workload and summarize them.",
     "should_trigger": false,
-    "source": "B4 collision — one-shot comparative research, no optimize phase"
+    "source": "B4 collision \u2014 one-shot comparative research, no optimize phase",
+    "bucket": "negative"
   },
   {
     "query": "Make this function faster.",
     "should_trigger": false,
-    "source": "over-broad numeric clause — plain optimization ask with no loop, autonomy, or metric"
+    "source": "over-broad numeric clause \u2014 plain optimization ask with no loop, autonomy, or metric",
+    "bucket": "negative"
   },
   {
     "query": "What's the p99 latency of our API right now?",
     "should_trigger": false,
-    "source": "measurement question, not an optimization request — tests the latency keyword"
+    "source": "measurement question, not an optimization request \u2014 tests the latency keyword",
+    "bucket": "negative"
   },
   {
     "query": "Write a benchmark for this sorting function.",
     "should_trigger": false,
-    "source": "adjacent domain — creates a verifier but requests no loop"
+    "source": "adjacent domain \u2014 creates a verifier but requests no loop",
+    "bucket": "negative"
   },
   {
     "query": "Improve the wording of the error messages in this file.",
     "should_trigger": false,
-    "source": "'improve' keyword collision with no measurable metric"
+    "source": "'improve' keyword collision with no measurable metric",
+    "bucket": "negative"
   },
   {
     "query": "Summarize this paper for me.",
     "should_trigger": false,
-    "source": "generic conversation decoy"
+    "source": "generic conversation decoy",
+    "bucket": "negative"
   }
 ]

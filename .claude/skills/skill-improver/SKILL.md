@@ -444,7 +444,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Index of official docs, specs, changelogs, and blog posts, one row per URL with an optional `Pinned:` version or git ref. Freshen Mode probes every row and writes the single `Freshened: <date>` header stamp; per-row dates are legacy.
 - **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.
-- **`<skill>/references/trigger-evals.json`** (per-target) — Persistent eval set for Trigger Mode. Built on first `trigger` run; reused and extended on subsequent runs. Schema: `[{"query": str, "should_trigger": bool, "source": str}, ...]`.
+- **`<skill>/references/trigger-evals.json`** (per-target) — Persistent eval set for Trigger Mode. Built on first `trigger` run; reused and extended on subsequent runs. Schema: `[{"query": str, "should_trigger": bool, "source": str, "bucket": "explicit"|"implicit"|"contextual"|"negative"}, ...]`. The bucket splits positives by how the user phrases the request — see `trigger-patterns.md` §Phase T1 for the target mix and why `contextual` is the one that goes missing.
 
 ### Scripts
 
@@ -539,4 +539,14 @@ trustworthy — not during a normal `improve` or `freshen` run.
 - **`scripts/grow-evals.py`** — Adds cases until a skill has enough to resolve a change. At the corpus median of 3 cases, one flip moves pass rate 33 points, so `delta_pass_rate` cannot separate "this edit hurt" from "one case is flaky". Floor of 8 (one flip = 12.5 points). New cases are generated to complement the existing prompts, not repeat them.
 - **`scripts/regrade.py`** — Re-buckets stored floor-mode answers with a stricter grader, no re-probing. The first fleet pass inflated `CONFLICTS` by dumping agree-with-different-detail and hedged answers into it — the one bucket that can least afford noise, since overriding a confident wrong prior is the whole point of Floor Mode.
 
+- **`scripts/bucket-evals.py`** — Labels every trigger-eval query by bucket and
+  reports the fleet's balance. A true/false corpus says whether a query should
+  fire, not what KIND it is, and the kinds fail differently: a description tuned
+  on explicit phrasings passes by keyword match while missing every implicit or
+  mid-task one, and an aggregate rate reads identically either way. Negatives are
+  definitional; the three positive buckets are classified by the configured chat
+  model, one batched call per skill. Measured on 14 corpora / 220 queries:
+  `contextual` **9% against a 20% target, four corpora at zero**, negatives 45%.
+  Fails closed — a labelling run that leaves anything UNLABELLED exits 1 rather
+  than reporting shares over a partial corpus.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

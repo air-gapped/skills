@@ -354,6 +354,7 @@ def score_set(
             {
                 "query": q,
                 "should_trigger": item["should_trigger"],
+                "bucket": item.get("bucket"),
                 "trigger_rate": rate,
                 "triggers": n_trig,
                 "timeouts": n_to,
@@ -375,6 +376,23 @@ def score_set(
         # The caller must refuse to compare two descriptions when this is set.
         "complete": unmeasured == 0,
     }
+    # Per-bucket rates. An aggregate hides the failure that matters: a
+    # description tuned on explicit phrasings passes by keyword match while
+    # missing every implicit one, and 80% overall reads the same whether the
+    # misses are spread evenly or sit entirely in one bucket.
+    by_bucket: dict[str, dict] = {}
+    for r in results:
+        b = r.get("bucket") or "unlabelled"
+        cell = by_bucket.setdefault(b, {"total": 0, "passed": 0, "unmeasured": 0})
+        cell["total"] += 1
+        if r["pass"] is True:
+            cell["passed"] += 1
+        elif r["pass"] is None:
+            cell["unmeasured"] += 1
+    for cell in by_bucket.values():
+        scored = cell["total"] - cell["unmeasured"]
+        cell["pass_rate"] = (cell["passed"] / scored) if scored else None
+    summary["by_bucket"] = by_bucket
     return {"description": description, "results": results, "summary": summary}
 
 

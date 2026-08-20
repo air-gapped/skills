@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260820.101",
+      "version": "0.20260820.102",
       "author": {
         "name": "Jörgen"
       },
@@ -295,7 +295,7 @@
       "name": "jira",
       "source": "./",
       "description": "Jira suite — drive Atlassian Jira from the terminal with `jira` (ankitpokhrel/jira-cli, v1.7.0) against ANY Jira (Cloud or on-premise/Data Center). Covers the full command surface (issue / epic / sprint / board / project / release), the non-interactive automation contract (`--no-input` + `--plain`/`--raw`/`--csv` for agent-safe, parseable runs), JQL filtering and the date/negation idioms, GitHub- and Jira-flavored markdown → Atlassian Document Format (ADF) conversion and its lossy edges, authentication for every backend (Cloud API token, on-prem basic, PAT/bearer, mTLS), and live-discovery of instance-specific values (project keys, issue types, statuses, priorities, resolutions, link types, custom field IDs) instead of hardcoding them. Instance-agnostic — no account-specific content.",
-      "version": "0.20260819.10",
+      "version": "0.20260820.11",
       "author": {
         "name": "Jörgen"
       },
@@ -418,7 +418,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
-      "version": "0.20260819.14",
+      "version": "0.20260820.15",
       "author": {
         "name": "Jörgen"
       },
@@ -525,7 +525,7 @@
       "name": "ubuntu",
       "source": "./",
       "description": "Ubuntu Server provisioning suite — the three configuration layers of an unattended on-premise / air-gapped Ubuntu Server LTS 24.04 / 26.04 bring-up: ubuntu-autoinstall (the Subiquity `autoinstall:` v1 schema — identity, storage LVM/ZFS/RAID/encryption, apt mirror + proxy + offline fallback, early/late-commands, NoCloud zero-touch delivery), ubuntu-cloud-init (NoCloud-datasource `#cloud-config` user-data — users, ssh, write_files, runcmd, local apt mirrors, internal-CA ca_certs, seed ISO / SMBIOS serial / `ds=nocloud` cmdline, boot stages, `datasource_list` pinning), and ubuntu-netplan (the `/etc/netplan/*.yaml` v2 network substrate both share — static addressing, bonds, bridges, VLANs, VRFs, policy routing, predictable interface naming, systemd-networkd renderer). The installer's `network:` block is netplan and its `user-data:` block is cloud-config, so the three are designed to be used together.",
-      "version": "0.20260819.5",
+      "version": "0.20260820.6",
       "author": {
         "name": "Jörgen"
       },
@@ -557,7 +557,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260819.84",
+      "version": "0.20260820.85",
       "author": {
         "name": "Jörgen"
       },
@@ -625,7 +625,7 @@
       "name": "airgap-vetting",
       "source": "./",
       "description": "Vet an open-source product for air-gap readiness BEFORE adoption",
-      "version": "0.20260819.4",
+      "version": "0.20260820.5",
       "author": {
         "name": "Jörgen"
       },
@@ -639,7 +639,7 @@
       "name": "analytical-troubleshooting",
       "source": "./",
       "description": "Structured live troubleshooting for deviation problems: something worked (or should work) and now doesn't, and the cause is unknown",
-      "version": "0.20260819.18",
+      "version": "0.20260820.19",
       "author": {
         "name": "Jörgen"
       },
@@ -653,7 +653,7 @@
       "name": "confluence-best-practices",
       "source": "./",
       "description": "Advise on USING Confluence well, not operating it: make the structural call",
-      "version": "0.20260819.7",
+      "version": "0.20260820.8",
       "author": {
         "name": "Jörgen"
       },
@@ -667,7 +667,7 @@
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
-      "version": "0.20260819.16",
+      "version": "0.20260820.17",
       "author": {
         "name": "Jörgen"
       },
@@ -681,7 +681,7 @@
       "name": "jira-confluence-mcp",
       "source": "./",
       "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
-      "version": "0.20260819.6",
+      "version": "0.20260820.7",
       "author": {
         "name": "Jörgen"
       },
