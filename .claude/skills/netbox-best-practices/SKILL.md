@@ -1,6 +1,7 @@
 ---
 name: netbox-best-practices
-description: NetBox 4.2-4.6 deployment and upgrade knowledge that the official netboxlabs/skills marketplace does NOT cover - use for deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning between NetBox 4.2 and 4.6, module type profiles, and front/rear port (patch panel) API changes. Trigger on "netbox helm", "netbox chart", "netbox kubernetes", "netbox upgrade", "netbox plugin install", "netbox api token bootstrap", "netbox 4.x breaking changes", "netbox oidc/sso group mapping", "netbox sso hardening", "netbox keycloak" or OIDC via the helm chart (extraConfig wiring), or seeding/automation that must survive a NetBox version bump. For general NetBox data modeling, IPAM design, Diode, or validation questions - and for turning on an auth backend in the first place - prefer the official netboxlabs/skills marketplace skills (netbox-administration); this skill only covers the gaps.
+description: NetBox 4.2-4.6 deployment and upgrade knowledge the official netboxlabs/skills marketplace does not cover — deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning across 4.2-4.6, module type profiles, front/rear port (patch panel) API changes, and OIDC/SSO group-to-role mapping. Gap-filler only: for general NetBox data modeling, IPAM design, Diode, validation, or turning an auth backend on in the first place, prefer the official netbox-administration skill.
+when_to_use: Trigger on "netbox helm", "netbox chart", "netbox kubernetes", "netbox upgrade", "netbox plugin install", "netbox api token bootstrap", "netbox 4.x breaking changes", "netbox oidc/sso group mapping", "netbox sso hardening", "netbox keycloak", OIDC via the helm chart (extraConfig wiring), or seeding/automation that must survive a NetBox version bump.
 ---
 
 # NetBox Best Practices (helm + version deltas)
@@ -8,7 +9,7 @@ description: NetBox 4.2-4.6 deployment and upgrade knowledge that the official n
 This skill COMPLEMENTS the official `netboxlabs/skills` marketplace
 (`/plugin marketplace add netboxlabs/skills`). For data modeling, IPAM design,
 API patterns, Diode ingestion, or validation, consult those skills first —
-they are maintained upstream and authoritative. This skill covers three areas
+they are maintained upstream and authoritative. This skill covers four areas
 they do not (as of 2026-06):
 
 1. **netbox-chart (helm) deployment gotchas** → `references/helm-chart-gotchas.md`
