@@ -90,10 +90,15 @@ Three rules that bind without reading it:
   without both on record.
 - **One change per iteration, diff minimal.** Bundling attributes the score
   lift to the wrong cause, so the next loop pivots to the wrong category.
-- **Backlog persistence is non-optional.** Before declaring the run done,
-  update `<skill>/references/improvement-backlog.md` per
+- **Backlog persistence is non-optional, and the backlog is not a parking
+  space.** Before declaring the run done, update
+  `<skill>/references/improvement-backlog.md` per
   `references/backlog-format.md` — ceiling findings that exist only in chat
-  disappear with the session.
+  disappear with the session. But an Open entry must **name the absent thing**
+  that prevents doing the work (a ruling, a credential, an unreleased version,
+  a measurement nobody can run now). "Too big for this pass" is not a blocker:
+  if the honest answer is "nothing, it is just work", do it before the pass
+  ends. A pass may not end having added an unblocked item, under any heading.
 
 ---
 

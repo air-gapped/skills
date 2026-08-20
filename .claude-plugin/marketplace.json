@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260820.77",
+      "version": "0.20260820.78",
       "author": {
         "name": "Jörgen"
       },
@@ -695,7 +695,7 @@
       "name": "netbox-best-practices",
       "source": "./",
       "description": "NetBox 4.2-4.6 deployment and upgrade knowledge the official netboxlabs/skills marketplace does not cover",
-      "version": "0.20260820.9",
+      "version": "0.20260820.10",
       "author": {
         "name": "Jörgen"
       },

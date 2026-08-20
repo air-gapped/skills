@@ -143,7 +143,7 @@ The chart pulls `ghcr.io/netbox-community/netbox`
 the `netbox-community/netbox-docker` repo** (same artifact published to
 ghcr.io and docker.io/netboxcommunity/netbox). So plugin READMEs that link the
 [netbox-docker "Using NetBox Plugins" wiki](https://github.com/netbox-community/netbox-docker/wiki/Using-Netbox-Plugins)
-*are* describing your base image — but that wiki's `plugin_requirements.txt` +
+*are* describing the base image — but that wiki's `plugin_requirements.txt` +
 `docker-compose build` / `Dockerfile-Plugins` flow is for running netbox-docker's
 **compose stack**, which a helm deployment does NOT use. The chart has no build
 step; it pulls a finished image. Apply the wiki's *principle* (extend the image),
@@ -160,8 +160,8 @@ RUN /opt/netbox/venv/bin/pip install \
       <other-plugin>==<ver>
 ```
 
-Push to your **private registry** (air-gap: Harbor is ideal — pull the base
-through your proxy/cache, build, push the derived tag), then point the chart at
+Push to a **private registry** (air-gap: Harbor is ideal — pull the base
+through the proxy/cache, build, push the derived tag), then point the chart at
 it AND list the plugins:
 
 ```yaml
@@ -177,13 +177,13 @@ pluginsConfig:
 
 Then `make diff` → `make upgrade`. Note `plugins:` wants the importable **module
 name** (underscores, e.g. `netbox_topology_views`), which often differs from the
-PyPI distribution name you `pip install` (hyphens, e.g. `netbox-topology-views`);
+PyPI distribution name passed to `pip install` (hyphens, e.g. `netbox-topology-views`);
 each plugin's README states its `PLUGINS` entry — use that verbatim.
 
 ### 5.4 Version pinning and migrations
 
 - **Pin every plugin to the NetBox version.** Each plugin declares a compatible
-  NetBox range in its metadata; a mismatch crashloops on boot. You must rebuild
+  NetBox range in its metadata; a mismatch crashloops on boot. Rebuild
   the derived image on every NetBox minor bump — treat the plugin set as part of
   the upgrade, not a one-time step. [docs]
 - **Plugins with models run Django migrations at pod startup**, exactly like a
@@ -316,7 +316,7 @@ extraConfig:
   - values:
       SOCIAL_AUTH_OIDC_OIDC_ENDPOINT: https://keycloak.example.com/realms/<realm>
       SOCIAL_AUTH_OIDC_KEY: netbox          # client ID
-      SOCIAL_AUTH_OIDC_SCOPE: ["groups"]    # if you map groups (sso-hardening.md)
+      SOCIAL_AUTH_OIDC_SCOPE: ["groups"]    # when mapping groups (sso-hardening.md)
   - secret:
       secretName: netbox-oidc
 ```
@@ -356,18 +356,12 @@ PR #661) is dated in four ways:
 - Its pipeline inserts `social_core.pipeline.social_auth.associate_by_email` —
   an account-linking risk; see sso-hardening.md hardening rule 7.
 
-PKCE: the backend supports it, but it is **off unless you turn it on**.
-social-auth-core 4.8.7 (NetBox's pin [source: requirements.txt:39]) declares
-`OpenIdConnectAuth(BaseOAuth2PKCE)` [source:
-social_core/backends/open_id_connect.py@4.8.7:48] — but that class overrides
-the base default with `DEFAULT_USE_PKCE = False` [:94] and documents
-`SOCIAL_AUTH_OIDC_USE_PKCE = True` as the opt-in [:59]. So "the OIDC backend
-has no PKCE support" is wrong, and "PKCE works out of the box" is equally
-wrong: a PKCE-required Keycloak client policy fails until you set
-`SOCIAL_AUTH_OIDC_USE_PKCE: true`. What else is true at 4.8.7:
-`JWT_ALGORITHMS = ["RS256"]` — an IdP signing tokens with ES256/EdDSA fails
-until you set `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`
-[source: open_id_connect.py@4.8.7:72].
+PKCE and JWT algorithms both need explicit opt-in on social-auth-core 4.8.7
+(NetBox's pin [source: requirements.txt:39]) — set
+`SOCIAL_AUTH_OIDC_USE_PKCE: true` and, for an IdP signing with ES256/EdDSA,
+`SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`. Both defaults, the
+source lines behind them, and why "no PKCE support" and "PKCE out of the box"
+are each wrong: sso-hardening.md §"OIDC backend gotchas".
 
 ### 9.3 Custom pipeline code cannot ride in extraConfig
 

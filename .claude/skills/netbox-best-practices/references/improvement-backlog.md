@@ -43,24 +43,6 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
   does NOT qualify — it is claim extraction, not a KNOWS/UNKNOWN/CONFLICTS floor
   probe.
 
-### Unblocked work available to the next pass (NOT blockers)
-
-These are next-iteration hypotheses, recorded because the 2026-08-20 pass
-stopped on operator scope rather than on a rubric stop condition. Nothing
-external prevents them.
-
-- **Second-person sweep in references** (Dim 3, currently 7 — the lowest
-  dimension in the final blind, and its own recommended next fix). ~19
-  instances across `sso-hardening.md` (`:57`, `:132`, `:142`) and
-  `helm-chart-gotchas.md` (`:186`, `:359`): "you must", "your function",
-  "you don't need". SKILL.md itself is clean; only the references slip.
-- **PKCE-off-by-default duplicated near-verbatim** (Dim 6) across
-  `helm-chart-gotchas.md:359-370` and `sso-hardening.md:132-141`. Deletion
-  candidate — merge to one location and cross-reference.
-- **`[live]` labels pinned to chart 8.3.14 / NetBox v4.6.2** while upstream is
-  chart 8.3.57 / v4.6.8. Inside the 90-day window so no Dim 9 cap fires yet;
-  `sources.md` already flags it as the next freshen target.
-
 ## Resolved this pass — 2026-08-20
 
 - **`when_to_use` field split** (Dim 1 + Dim 9) — RESOLVED. The June note called
@@ -76,6 +58,17 @@ external prevents them.
 - **Intro said "three areas" and listed four** (Dim 8 8→9). Kept under the
   noise-zone rule: a bare +1 with no simplification, re-checked cold on the
   affected dimension, where it reproduced.
+- **Second-person prose in references** (Dim 3, the final blind's lowest at 7
+  and its own recommended next fix) — 21 instances across `sso-hardening.md`
+  (12) and `helm-chart-gotchas.md` (9) converted to imperative. Now 0 in both.
+- **PKCE-off-by-default duplicated near-verbatim** (Dim 6) across
+  `helm-chart-gotchas.md` and `sso-hardening.md` — merged to one source of
+  truth in `sso-hardening.md`, with the helm file carrying the two settings a
+  chart operator needs plus a pointer. helm-chart-gotchas.md 400 → 394 lines.
+- **`[live]` labels pinned to chart 8.3.14 / NetBox v4.6.2** while upstream is
+  chart 8.3.57 / v4.6.8 — NOT resolved, and NOT filed as a blocker either: it
+  is a `freshen` job, which is a different mode with its own evidence
+  requirement, and `sources.md` already flags it as the next freshen target.
 
 **Pass record (2026-08-20, commit d7da2e5).** 2 iterations, 2 keeps, 0
 discards. Self 73 → 83 cold; blind 78 → 86. Anomaly gate fired on iteration 1

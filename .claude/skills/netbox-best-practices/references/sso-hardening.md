@@ -50,11 +50,11 @@ and logs an error if a named group doesn't exist (so pre-create them).
 
 So with stock config, **every OIDC user lands in the same groups with the same
 (non-admin) privileges**. Dynamic per-user role mapping from IdP claims does
-not exist until you add it.
+not exist until it is added.
 
 ## Mapping IdP groups → NetBox groups / is_staff / is_superuser (OIDC)
 
-You need a **custom pipeline function**. Two prerequisites first:
+A **custom pipeline function** is required. Two prerequisites first:
 
 1. Configure the IdP client to emit a `groups` claim and request the scope
    (e.g. Authentik "groups" scope, Keycloak group/client-scope mapper, Entra
@@ -89,7 +89,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_user',
-    'configuration.map_groups',            # <-- your function (module path must be importable)
+    'configuration.map_groups',            # <-- the custom function (module path must be importable)
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
@@ -97,7 +97,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 Notes:
 - **On the helm chart, `configuration.map_groups` does NOT work as written** —
-  `configuration.py` there is the chart-managed YAML loader you don't edit, and
+  `configuration.py` there is the chart-managed YAML loader — do not edit it — and
   `extraConfig` is YAML-only (it can set the `SOCIAL_AUTH_PIPELINE` string list
   but can never carry the function). Mount the function as its own module via
   `extraVolumes`/`extraVolumeMounts` to `/opt/netbox/netbox/netbox/<name>.py`
@@ -106,10 +106,10 @@ Notes:
   The snippet above as-is applies to installs that own `configuration.py`
   (VM / netbox-docker).
 - NetBox **object permissions** are attached to the local `Group` objects, not
-  carried in the token. SSO decides *which groups* a user is in; you still
+  carried in the token. SSO decides *which groups* a user is in; NetBox still
   define what those groups *can do* in NetBox. Pre-create the groups + perms.
 - `user.groups.set(...)` makes membership authoritative on every login (removal
-  in the IdP propagates on next login). Use `.add(...)` if you want SSO to be
+  in the IdP propagates on next login). Use `.add(...)` for SSO to be
   additive-only over locally-assigned groups.
 - Re-deriving flags every login means an IdP demotion takes effect next login —
   but an already-issued NetBox **API token keeps working**; SSO never expires
@@ -129,7 +129,7 @@ Notes:
   [source: open_id_connect.py@4.8.7:72]. An IdP signing id_tokens with
   ES256/EdDSA fails token validation until
   `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS = ['RS256', 'ES256']`.
-- **PKCE is available but OFF by default — you must enable it.**
+- **PKCE is available but OFF by default — enable it explicitly.**
   `OpenIdConnectAuth` does inherit `BaseOAuth2PKCE`
   [source: open_id_connect.py@4.8.7:48], so the backend *supports* PKCE — but
   the class overrides the base default back to `DEFAULT_USE_PKCE = False`
@@ -139,9 +139,9 @@ Notes:
   policy (e.g. Keycloak) fails the authorization request without it. The
   challenge method is already `S256` once enabled [:93].
 
-## If you use the header / proxy backend instead
+## If the header / proxy backend is used instead
 
-Then the `REMOTE_AUTH_*` group settings *do* work and you don't need a custom
+Then the `REMOTE_AUTH_*` group settings *do* work and no custom
 pipeline:
 
 ```python
@@ -159,7 +159,7 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
 
 1. **Keep a local break-glass superuser.** SSO misconfig, a pipeline typo, or
    an IdP outage will otherwise lock everyone out. The local
-   `/admin`-capable account is your recovery path — never delete it, store its
+   `/admin`-capable account is the recovery path — never delete it, store its
    password in the vault. (NetBox tries backends in `REMOTE_AUTH_BACKEND` order
    and falls through to local `ModelBackend`.)
 
@@ -183,12 +183,12 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
 
 5. **Pre-create groups; don't auto-create.** Leave
    `REMOTE_AUTH_AUTO_CREATE_GROUPS = False` (the default) in prod and create
-   only the groups you attach permissions to — otherwise the IdP's entire group
+   only the groups that carry attached permissions — otherwise the IdP's entire group
    namespace materializes as empty NetBox groups, and
    `user_default_groups_handler` errors on any name that doesn't exist anyway.
 
 6. **Least privilege default.** Point `REMOTE_AUTH_DEFAULT_GROUPS` at a
-   read-only group; elevate only via explicit IdP-group membership in your
+   read-only group; elevate only via explicit IdP-group membership in the
    mapping function. Never default new SSO users to a writable/admin group.
 
 7. **Don't add `associate_by_email` to the pipeline** — the chart repo's
