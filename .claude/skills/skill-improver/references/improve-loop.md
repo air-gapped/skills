@@ -140,9 +140,22 @@ the same category, force the next hypothesis to be a different category. Print:
 **Stop conditions:**
 - Score reaches 90+ AND no dimension is below 7.
 - **Ceiling mapped:** 5+ consecutive discards spanning at least 2 different
-  improvement categories. This is not failure — it means the skill is near its
-  quality ceiling. Report as a positive finding: which categories were tried,
-  what the ceiling is, and what would require the author's input to break through.
+  improvement categories, **and** one widened pass has been tried since the last
+  keep. This is not failure — it means the skill is near its quality ceiling.
+  Report as a positive finding: which categories were tried, what the ceiling is,
+  and what would require the author's input to break through.
+
+  **Widen before declaring the ceiling.** A discard run is evidence that the
+  remaining improvements have gone *sparse*, not that there are none. Changing
+  one thing at a time is the right default while they are dense, and it holds up against
+  costlier strategies then (arXiv:2603.27415) — but which strategy wins depends
+  on that density, and an agent that switches on detecting stagnation beat every
+  fixed-strategy agent tested (arXiv:2605.17373). So on hitting the discard run,
+  do one pass that generates 3-4 candidate edits across *different* dimensions,
+  compares them against each other and the discard rows, and applies the most
+  promising one — instead of the next single lowest-dimension guess. If that
+  pass also discards, the ceiling claim is earned. Then go back to one-at-a-time;
+  widening is a response to stagnation, not a permanent upgrade.
 - **Structural ceiling claim requires evidence.** "Structural ceiling" stops
   require at least 2 logged discards naming the patterns that were attempted
   and why each failed. A run with zero discards has not mapped any ceiling —

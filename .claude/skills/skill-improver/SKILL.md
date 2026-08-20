@@ -108,6 +108,22 @@ Three rules that bind without reading it:
 
 Run the loop continuously. Do not ask permission between iterations. The user may be away. Print status lines so they can review when they return.
 
+### State the Spend Before a Fan-out
+
+Any wave of subagents or `claude -p` probes — a batch pass, a freshen wave, a
+floor fleet, a trigger eval — gets a one-line estimate before it starts: how
+many calls, on which model, and the rough dollar size from
+`scripts/model-rates.json`. `scripts/run-cost.py` prices a run afterwards, which
+is too late to decide against it.
+
+Two things this catches, both observed: probes inheriting the session model when
+a cheap one would do (a grader that only checks text against assertions does not
+need the strongest model), and optional work being started because a rubric cap
+*could* be cleared rather than because clearing it was worth the spend. **A cap
+is a resting state, not a task** — the unmeasured Dim 10 cap in particular is
+documented as deliberate. Reaching for it is a choice that costs money, so
+price it first and say the number.
+
 ### Git as State Machine
 
 When improving skills in a git-tracked directory:
@@ -148,6 +164,17 @@ the model's prior, never the reverse. This rule applies in EVERY mode, not just
 - This binds blind scorers too — the validation prompt instructs them to check
   `sources.md` stamps instead of scoring Dim 9 down from memory, and the loop
   must not act on a blind agent's "wrong version" finding without its own probe.
+- **A new citation is a claim too — verify it before writing it down.** The rule
+  above covers *altering* an existing claim; the recurring failure has been
+  *adding* one. Before a paper, post, issue, or doc URL enters any file, open it
+  and confirm the title, the author, the date, and that the specific number or
+  finding being attributed is actually there. A plausible-looking arXiv ID is not
+  a source. Where a research agent supplied the citation, the check is a separate
+  step from the research — an agent asked only "is this real?" catches what the
+  agent that found it will not. Both known instances were caught this way, and
+  the ones that slipped through (`e379abd`) were not checked at all. If a detail
+  cannot be confirmed on the page, cite the paper without it rather than
+  repeating the unverified figure.
 
 ---
 
