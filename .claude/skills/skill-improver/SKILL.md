@@ -402,6 +402,21 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/tier1-sweep.py`** — Deterministic pre-scoring gate over a whole
+  fleet: invisible Unicode (tag-block smuggling, BiDi overrides), leaked home
+  paths, credentials, and Agent-Skills schema violations. No model, no key, no
+  network — it wraps NVIDIA SkillEvaluator's keyless Tier 1
+  (`validate --checks schema,pii,unicode,lint --no-dedup`). Scores what a skill
+  *is*, not what it says, so it catches what no rubric dimension can reach: a
+  `U+E0000..E007F` payload renders as nothing in the editor a scorer reads.
+  Sorts findings into **actionable** / **review** / **suppressed** because the
+  raw gate is unusable here — a measured pass over 105 skills produced 529
+  findings (368 excluding two pure-policy checks), 28 actionable, with
+  `hardcoded_secrets` 17/17 false (Jinja refs,
+  `<placeholder>`, redacted values) and `ip_addresses` matching four-part
+  firmware versions. The suppression list names its reason per check; `--all`
+  shows everything, `--json` for machine output. Never suppresses credential
+  classes — one real key outranks the whole false-positive tail.
 - **`scripts/frontmatter-lengths.py`** — Exact `name` / `description` /
   `when_to_use` character counts for one SKILL.md, the combined total against
   the 1,536-char listing cap, and any `description` breach of the 1,024-char
