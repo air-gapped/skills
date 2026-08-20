@@ -402,6 +402,23 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/overlap-scan.py`** — Fleet-wide overlap measurement, and the
+  empirical input Dim 10 has been missing. Embeds every skill twice via
+  SkillEvaluator Tier 2 — `name: description` alone, then the whole SKILL.md —
+  because the two answer different questions: description similarity means the
+  skills compete for the same **queries** (a trigger problem), body similarity
+  means they may duplicate **material** (a Dim 10 problem). The cross-tab of the
+  two is the output. **Rank, do not threshold**: upstream's 0.95/0.90/0.75 bands
+  come from another model and corpus, and measured here on 68 skills with bge-m3
+  the *median* body pair scored 0.789 — above `SIMILAR` — so a
+  `--full-body --threshold 0.75` run aborts on the 1000-match cap. It saves
+  vectors once and scores locally as z-scores against the fleet's own
+  distribution. A lexical-overlap column guards the known artifact: pooling a
+  long document measures *register* as much as subject (measured
+  `corr(body, lexical) = 0.515`), so two unrelated 400-line operator guides
+  score high for both being 400-line operator guides. Endpoint config is env-only
+  (`--env-file`); no host is hardcoded and none should be added. `--from-catalogs`
+  re-scores offline with no API calls.
 - **`scripts/tier1-sweep.py`** — Deterministic pre-scoring gate over a whole
   fleet: invisible Unicode (tag-block smuggling, BiDi overrides), leaked home
   paths, credentials, and Agent-Skills schema violations. No model, no key, no
