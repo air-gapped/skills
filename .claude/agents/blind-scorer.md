@@ -31,14 +31,24 @@ This is a **read-only pass: never modify any file.**
 
 ## Scoring guards
 
-**Dimension 1:** check what falls within the first 1,536 chars of combined
-`description` + `when_to_use`, and penalize if key trigger phrases are past
-the cutoff. Note whether the skill splits the two fields or stuffs everything
-into `description`.
+**Dimension 1:** MEASURE the frontmatter field lengths — never estimate them:
+
+```bash
+python3 <RUBRIC DIR>/../scripts/frontmatter-lengths.py <TARGET DIR>/SKILL.md
+```
+
+It prints each field's exact length, the combined `description` + `when_to_use`
+total against the 1,536-char listing cap, and any overrun. Penalize if key
+trigger phrases fall past that cutoff, and note whether the skill splits the two
+fields or stuffs everything into `description`. A character count you did not
+run is not evidence: scorers have been observed inventing a length and
+hard-failing a dimension on it.
 
 **Dimension 9:** check `sources.md` `Last verified:` dates (staleness cap),
 the spec validity of `name` / `description` (hard-fail cap at 3), and whether
-appropriate frontmatter fields are used. Do NOT mark a version, date, or
+appropriate frontmatter fields are used. The `description` hard max is 1,024
+chars — take that length from the Dimension 1 command above, never from an
+estimate, and do not fire the hard-fail cap on a number you did not measure. Do NOT mark a version, date, or
 other external-world claim wrong from internal knowledge — the skill is
 freshened continuously and its claims may postdate your knowledge cutoff. A
 claim covered by a recent `Last verified:` stamp outranks your prior. If a

@@ -367,6 +367,12 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/frontmatter-lengths.py`** — Exact `name` / `description` /
+  `when_to_use` character counts for one SKILL.md, the combined total against
+  the 1,536-char listing cap, and any `description` breach of the 1,024-char
+  hard max. The blind scorer calls this for Dim 1 and Dim 9 instead of
+  estimating: a scorer was measured reporting 1,120 chars for an 847-char field
+  and hard-failing Dim 9 to 3 on the invented number (2026-08-20).
 - **`scripts/staleness-report.py`** — Fleet-wide staleness readout, no probes/network: per skill, the oldest `sources.md` `Last verified:` date, its age, dated-row coverage, the Dim 9 staleness cap it implies, last improvement-pass date (from `improvement-backlog.md`), whether trigger/outcome evals exist, and the count of items still under that backlog's `## Open` heading (fleet total in the footer). Stalest first — this is the ranking `freshen --all` uses. `--json` for machine output.
 - **`scripts/batch-workflow.js`** — Reusable `Workflow`-tool driver for batch improve + freshen (recon → apply → blind pipeline, median-of-3 final blind). Skill list comes from `args`. Invoke with `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`. See Batch Mode § Dynamic workflows.
 - **`scripts/scaffold-probe.py`** — Boris strict-workflow-scaffolding detector. Classifies each numbered item as scaffold, criterion, or branch, and caps on the scaffold count alone. Used by the Boris Alignment Check (quality-rubric §"The scaffolding discriminator") and freshen §4b.
