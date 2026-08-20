@@ -48,6 +48,29 @@ Any stored delta is still read, but only as a cross-check: a stored value that
 does not match a derived one is reported as a MISMATCH, meaning the file was
 hand-edited or written by a different aggregator than its own arms.
 
+## The verdict band is asymmetric, and measured from the corpus
+
+A delta smaller than one eval case flipping cannot be told apart from one flaky
+case, so the resolution floor is `1/n_cases`. (Pass rate is assertion-weighted
+rather than case-weighted, but cases carry roughly equal assertion counts — 60
+assertions over 8 cases in this repo's own benchmark — so one case flipping is
+within rounding of `1/n`.)
+
+That floor is measured rather than borrowed. NVIDIA publishes a fixed
++0.05 / -0.10 band for the same job; a constant is too tight at 8 cases and far
+too loose at 3. With no case count available this falls back to their +0.05.
+
+The band is deliberately **asymmetric**: clearing the cap needs `delta >= floor`,
+but firing the harmful verdict needs `delta <= -2 * floor`. Calling a skill
+harmful is the expensive error — it gets rewritten or deleted on the strength of
+that number — while a false "unresolved" merely withholds a 9 or 10. NVIDIA's
+band is asymmetric in the same direction and for the same reason.
+
+A delta inside the band is **measured but unresolved**, which is not the same as
+"roughly neutral": the corpus simply cannot answer the question. It leaves the
+unmeasured cap of 8 standing. The fix for an unresolved delta is more cases
+(`grow-evals.py`, floor of 8), not a more generous reading.
+
 Usage:
     eval-evidence.py <TARGET DIR>
     eval-evidence.py <TARGET DIR> --json
@@ -162,24 +185,66 @@ def count_cases(evals_dir: Path) -> tuple[int | None, str]:
     return None, ""
 
 
-def cap_for(deltas: list[tuple[str, float]]) -> tuple[int, str]:
-    """Map measured evidence onto the Negative-Transfer Gate's Dim 10 cap."""
+def noise_floor(cases: int | None) -> tuple[float, str]:
+    """Smallest delta this corpus can resolve.
+
+    One eval case flipping moves the pass rate by 1/n, so a delta below that is
+    indistinguishable from a single flaky case. This is measured from the corpus
+    rather than borrowed: NVIDIA publishes a fixed +0.05 / -0.10 band for the
+    same purpose, but a fixed constant is either too tight or too loose
+    depending on how many cases you have.
+    """
+    if cases and cases > 0:
+        return 1.0 / cases, f"one case of {cases} flipping = {1.0 / cases:.3f}"
+    # No case count: fall back to the published fixed band.
+    return 0.05, "no case count — NVIDIA's published +0.05 band"
+
+
+def cap_for(
+    deltas: list[tuple[str, float]],
+    cases: int | None,
+    tokens_delta: float | None = None,
+) -> tuple[int, str]:
+    """Map measured evidence onto the Negative-Transfer Gate's Dim 10 cap.
+
+    The band is ASYMMETRIC on purpose. Calling a skill harmful is the expensive
+    error — it gets rewritten or deleted — so cap 2 needs twice the evidence
+    that clearing the cap needs. A false "unresolved" only withholds a 9 or 10.
+    """
     rates = [v for _, v in deltas]
     if not rates:
         return 8, "no delta_pass_rate measured — unmeasured cap applies"
-    # Several benchmarks may be present (per-model, per-date). The gate asks
-    # whether the skill loses to no-skill, so the worst measurement governs.
+    floor, how = noise_floor(cases)
+    # Several measurements may be present (per-model, per-date, per case
+    # subset). They are not replicates of one experiment, so they cannot be
+    # averaged. The gate asks whether the skill is SHOWN to be essential, and a
+    # measurement that fails to show it is evidence against that claim — so the
+    # worst governs. Conservative on purpose: this cap guards 9 and 10.
     worst = min(rates)
-    if worst < 0:
-        return 2, f"delta_pass_rate {worst:+.3f} is negative — skill loses to no-skill"
-    if abs(worst) < 0.01:
-        return (
-            6,
-            f"delta_pass_rate {worst:+.3f} is ~0 — check delta_tokens for the 3-vs-6 split",
+    if len(rates) > 1:
+        how = f"{how}; worst of {len(rates)} measurements"
+    if worst <= -2 * floor:
+        return 2, (
+            f"delta_pass_rate {worst:+.3f} is below -2x the noise floor "
+            f"({-2 * floor:+.3f}; {how}) — skill loses to no-skill"
         )
-    return (
-        10,
-        f"delta_pass_rate {worst:+.3f} is positive — no cap, score on the evidence",
+    if worst >= floor:
+        return 10, (
+            f"delta_pass_rate {worst:+.3f} clears the noise floor "
+            f"({floor:.3f}; {how}) — no cap, score on the evidence"
+        )
+    band = f"({-2 * floor:+.3f} to {floor:+.3f}; {how})"
+    if tokens_delta is not None and tokens_delta > 0:
+        # The cost is measured even though the benefit is not. Costs and has
+        # not been shown to pay.
+        return 3, (
+            f"delta_pass_rate {worst:+.3f} is INSIDE the noise band {band} "
+            f"while delta_tokens is {tokens_delta:+.0f} — it costs and has not "
+            "been shown to pay"
+        )
+    return 8, (
+        f"delta_pass_rate {worst:+.3f} is INSIDE the noise band {band} — "
+        "measured but unresolved, so the unmeasured cap stands"
     )
 
 
@@ -220,7 +285,11 @@ def main() -> int:
                 deltas.append((f"{path.name}:{where}", with_rate - without_rate))
             for key, value in find_deltas(data):
                 stored.append((f"{path.name}:{key}", value))
-        cap, reason = cap_for(deltas)
+        tokens = next(
+            (v for k, v in stored if k.endswith(("delta_tokens", "delta.tokens"))),
+            None,
+        )
+        cap, reason = cap_for(deltas, cases, tokens)
         out = {
             "has_evals": True,
             "cases": cases,

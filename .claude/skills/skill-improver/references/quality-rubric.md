@@ -575,13 +575,35 @@ worse results?" — is precisely this measurement. Scorers currently answer it f
 intuition, which is the judgment SkillLens clocked at 46.4% (worse than chance).
 So Dim 10 is capped by what has actually been measured:
 
+Every row below is against a **noise floor of `1/n_cases`** — the delta produced
+by a single eval case flipping. Take the floor and the verdict from
+`scripts/eval-evidence.py`; do not eyeball the sign.
+
 | Evidence | Max Dim 10 |
 |---|---|
-| `delta_pass_rate < 0` — skill loses to no-skill | **2**, and surface it as the headline finding |
-| `delta_pass_rate ≈ 0` **and** `delta_tokens > 0` — pure tax | **3**, and surface it: it costs and does not pay |
-| `delta_pass_rate ≈ 0` **and** `delta_tokens ≤ 0` — same answer, cheaper | 6 |
-| `delta_pass_rate > 0`, measured | no cap — score on the evidence |
+| `delta_pass_rate ≤ −2 × floor` — skill loses to no-skill | **2**, and surface it as the headline finding |
+| inside the band (`−2 × floor` … `+floor`) **and** `delta_tokens > 0` — unresolved, and it costs | **3**, and surface it: it costs and has not been shown to pay |
+| inside the band, `delta_tokens ≤ 0` — unresolved, but free | **8** — unresolved is not "neutral"; the unmeasured cap stands |
+| `delta_pass_rate ≥ +floor` | no cap — score on the evidence |
 | Never measured | **8** — "essential" (9–10) is a claim about outcomes, not text |
+
+**Why the band is asymmetric.** Clearing the cap takes `+floor`; firing the
+harmful verdict takes twice that. Calling a skill harmful is the expensive
+error — it gets rewritten or deleted on the strength of that number — while a
+false "unresolved" only withholds a 9 or 10. NVIDIA's published Skill Lift band
+(+0.05 pass, −0.10 fail) is asymmetric in the same direction, for the same
+reason; the floor here is measured from the corpus instead of fixed, because a
+constant is too tight at 8 cases and far too loose at 3.
+
+**"Inside the band" is not "roughly neutral."** It means the corpus cannot
+answer the question. At the fleet median of 3 cases the floor is 0.33 — almost
+nothing resolves. The fix is more cases (`scripts/grow-evals.py`, floor of 8),
+never a more generous reading of the same number.
+
+**Several measurements: the worst governs.** Per-model and per-case-subset runs
+are not replicates and cannot be averaged. The gate asks whether the skill is
+*shown* to be essential, so a measurement that fails to show it counts against
+the claim.
 
 The unmeasured cap is the one that binds most often, and it is deliberate: a
 9–10 on Dim 10 asserts the skill "fundamentally changes Claude's capability",
