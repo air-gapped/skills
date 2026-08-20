@@ -28,7 +28,20 @@ This is a **read-only pass: never modify any file.**
    `improvement-backlog.md`. Do NOT open it: it records prior improvement
    passes' final scores and known-issue lists, and reading it un-blinds your
    scoring. Do not penalize the skill for its presence either.
-5. Read any `<TARGET DIR>/scripts/` and `<TARGET DIR>/evals/` (if present).
+5. Read any `<TARGET DIR>/scripts/` (if present).
+6. Do **NOT** open `<TARGET DIR>/evals/`. It holds the record of previous
+   improvement passes — `regression_verdict` and `prior_baseline` narratives in
+   `benchmark*.json`, kept/discarded decisions in `case-validation.*.json`, and
+   prior blind TOTALS in `scorer-sweep.*.json` — which un-blind you exactly as
+   `improvement-backlog.md` would. Get the one thing you legitimately need from
+   it, the Negative-Transfer measurement, by running:
+
+   ```bash
+   python3 <RUBRIC DIR>/../scripts/eval-evidence.py <TARGET DIR>
+   ```
+
+   It prints the case count, every `delta_*` measurement with its source path,
+   and the Dim 10 cap they imply — and nothing else.
 
 ## Scoring guards
 
@@ -63,9 +76,11 @@ older value from memory.
 
 **Caps:** apply the Boris Alignment Check caps, the SkillLens Utility Check
 caps, and the Negative-Transfer Gate where they fire (rubric §§). For the
-Negative-Transfer Gate: unless a `benchmark.json` with a positive
-`delta_pass_rate` is present in the skill directory, Dim 10 is capped at 8 —
-"essential" is a claim about measured outcomes, not about how the text reads.
+Negative-Transfer Gate: take the cap from `eval-evidence.py` (step 6) rather
+than by reading the benchmark yourself — unless it reports a positive
+`delta_pass_rate`, Dim 10 is capped at 8. "Essential" is a claim about measured
+outcomes, not about how the text reads. A cap you did not measure is not
+evidence, the same rule Dim 1 follows.
 
 **Do not reward fluency:** text that reads well does not predict utility
 (SkillLens inversion) — check for failure mechanisms with executable

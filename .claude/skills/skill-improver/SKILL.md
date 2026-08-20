@@ -427,6 +427,16 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/eval-evidence.py`** — The blind scorer's only channel into a
+  target's `evals/`. That directory is not neutral input: it accumulates prior
+  blind totals, kept/discarded records, and regression verdicts, so reading it
+  un-blinds the pass exactly as `improvement-backlog.md` does. But it cannot be
+  excluded outright — the Negative-Transfer Gate needs `delta_pass_rate` out of
+  it. This prints the case count, every `delta_*` measurement with its source
+  path, and the Dim 10 cap they imply, and nothing else. Handles all three
+  benchmark shapes in the fleet (flat `delta_pass_rate`, a `delta` object, and
+  either encoded as a string); an unrecognized one yields the unmeasured cap of
+  8 rather than a guess.
 - **`scripts/overlap-scan.py`** — Fleet-wide overlap measurement, and the
   empirical input Dim 10 has been missing. Embeds every skill twice via
   SkillEvaluator Tier 2 — `name: description` alone, then the whole SKILL.md —

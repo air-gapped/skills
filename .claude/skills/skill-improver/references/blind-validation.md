@@ -184,6 +184,36 @@ without the user's explicit opt-in (the keyword "ultracode" — it replaced
 "workflow" as the trigger keyword in v2.1.160 — or a direct request in the
 user's own words) — a single `Agent` is the default.
 
+## What blinding actually excludes
+
+"Blind" means the scorer has not seen this skill's improvement history — not
+merely that a different agent runs the pass. Two directories inside a target
+skill carry that history and must not be read:
+
+- **`references/improvement-backlog.md`** — prior final scores and known-issue
+  lists. Excluded in the agent definition since the leak was first found.
+- **`evals/`** — the same class, found later and easy to miss because the
+  directory looks like input data. `benchmark*.json` carries
+  `regression_verdict`, `prior_baseline`, and a `why_run` narrative of what
+  recently changed; `case-validation.*.json` records which changes were kept and
+  discarded and why; `scorer-sweep.*.json` records prior blind TOTALS — in one
+  case for four *other* skills, which anchors a scorer that was told "most
+  decent skills score 50–70".
+
+`evals/` cannot simply be excluded, because the Negative-Transfer Gate needs one
+number out of it. So the directory is off-limits and
+**`scripts/eval-evidence.py`** is the only channel: it prints the case count,
+every `delta_*` measurement with the JSON path it came from, and the Dim 10 cap
+they imply. No verdicts, no prior scores, no assertions.
+
+It reads all three benchmark shapes in the fleet — a flat `delta_pass_rate`, a
+`delta` object whose children are the deltas, and either encoded as a string
+(`"+0.19"`). A benchmark whose delta it cannot find yields the unmeasured cap of
+8 rather than a guess, so a schema it does not know fails toward "not measured".
+
+Same principle as the Dim 1 character count: replace a judgement the scorer
+would make by reading with a measurement it runs.
+
 ## When a scorer does not return a score
 
 A scorer that dies, times out, returns prose without the table, or omits
