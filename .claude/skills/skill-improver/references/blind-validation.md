@@ -206,10 +206,27 @@ number out of it. So the directory is off-limits and
 every `delta_*` measurement with the JSON path it came from, and the Dim 10 cap
 they imply. No verdicts, no prior scores, no assertions.
 
-It reads all three benchmark shapes in the fleet — a flat `delta_pass_rate`, a
-`delta` object whose children are the deltas, and either encoded as a string
-(`"+0.19"`). A benchmark whose delta it cannot find yields the unmeasured cap of
-8 rather than a guess, so a schema it does not know fails toward "not measured".
+**The canonical benchmark format is whatever the official
+`aggregate_benchmark.py` writes** — `run_summary.<arm>.pass_rate.{mean, stddev,
+min, max}` plus `runs[]`. The rubric already mandates that tool, so its output
+is the standard; this repo's two hand-rolled `summary.delta_pass_rate` files are
+the deviants, not the other way round.
+
+**But the delta is derived from the arms, never read from the file.** The stored
+`run_summary.delta.pass_rate` has three defects, all visible in the aggregator's
+source: it is written as `f"{delta:+.2f}"` (a string, rounded — a real +0.1875
+is stored as `"+0.19"`); it is `configs[0] - configs[1]` by dict insertion order,
+so the sign flips if the arms are recorded the other way round; and both sides
+use `.get(..., 0)`, so a missing arm becomes 0 and an absent baseline yields a
+maximally *positive* delta. That last one is the same coerce-missing-to-zero
+failure the trigger and floor probes were fixed for.
+
+Computing `with_skill − without_skill` from the arms fixes all three: full
+precision, order-independent, and a missing arm yields no delta instead of a
+flattering one. Every shape in the fleet carries the arms, so it is also the
+only route that works across all of them. A stored delta that disagrees with the
+derived one is reported as a MISMATCH — the file was hand-edited, or written by
+a different aggregator than its own arms.
 
 Same principle as the Dim 1 character count: replace a judgement the scorer
 would make by reading with a measurement it runs.

@@ -433,10 +433,12 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
   un-blinds the pass exactly as `improvement-backlog.md` does. But it cannot be
   excluded outright — the Negative-Transfer Gate needs `delta_pass_rate` out of
   it. This prints the case count, every `delta_*` measurement with its source
-  path, and the Dim 10 cap they imply, and nothing else. Handles all three
-  benchmark shapes in the fleet (flat `delta_pass_rate`, a `delta` object, and
-  either encoded as a string); an unrecognized one yields the unmeasured cap of
-  8 rather than a guess.
+  path, and the Dim 10 cap they imply, and nothing else. The delta is **derived**
+  from the `with_skill`/`without_skill` arms, never read from the stored
+  `delta.pass_rate` — which the official aggregator writes as a 2-decimal string,
+  orders by dict insertion, and defaults a missing arm to 0 — turning an
+  absent baseline into a maximally positive result. A missing arm now
+  yields no delta at all rather than a flattering one.
 - **`scripts/overlap-scan.py`** — Fleet-wide overlap measurement, and the
   empirical input Dim 10 has been missing. Embeds every skill twice via
   SkillEvaluator Tier 2 — `name: description` alone, then the whole SKILL.md —

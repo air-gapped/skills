@@ -15,12 +15,38 @@ Negative-Transfer Gate needs one number from it: `delta_pass_rate` decides
 whether Dim 10 is capped at 8, and reading it is the whole point of the gate.
 
 So the directory becomes off-limits and this script becomes the only channel.
-It prints the case count, every `delta_*` measurement it can find with the JSON
-path it came from, and the Dim 10 cap those imply. It prints no verdict text, no
-prior score, no assertion, and no narrative.
+It prints the case count, the delta, and the Dim 10 cap that implies — no
+verdict text, no prior score, no assertion, no narrative.
 
 Same principle as `frontmatter-lengths.py`: replace a judgement call the scorer
 would otherwise make by reading, with a measurement it runs.
+
+## The delta is DERIVED from the arms, never read
+
+The canonical on-disk format is whatever the official `aggregate_benchmark.py`
+writes (`run_summary.<arm>.pass_rate.{mean,stddev,min,max}` plus `runs[]`) —
+the rubric mandates that tool, so its output is the standard and this repo's
+two hand-rolled `summary.delta_pass_rate` files are the deviants.
+
+But its stored `run_summary.delta.pass_rate` must not be trusted, for three
+reasons visible in its source:
+
+1. It is written as `f"{delta:+.2f}"` — a **string, rounded to 2 decimals**. A
+   real +0.1875 is stored as "+0.19". That is a rendering, not a value.
+2. It is `configs[0] - configs[1]` by **dict insertion order**. If the arms are
+   recorded in the other order the sign silently flips.
+3. Both sides use `.get(..., 0)`, so a **missing arm becomes 0** — an absent
+   baseline yields a maximally positive delta. That is the same coerce-missing-
+   to-zero bug the trigger and floor probes were fixed for, fail-open.
+
+Deriving `with_skill − without_skill` from the arms fixes all three at once:
+full precision, order-independent, and an absent arm produces no delta at all
+rather than a flattering one. Every shape in the fleet carries the arms, so
+this is also the one route that works across all of them.
+
+Any stored delta is still read, but only as a cross-check: a stored value that
+does not match a derived one is reported as a MISMATCH, meaning the file was
+hand-edited or written by a different aggregator than its own arms.
 
 Usage:
     eval-evidence.py <TARGET DIR>
@@ -81,6 +107,43 @@ def find_deltas(node, path: str = "") -> list[tuple[str, float]]:
     return found
 
 
+def rate_of(arm) -> float | None:
+    """A configuration's pass rate, across the shapes in use: a bare float, or
+    a stats object with a mean."""
+    if isinstance(arm, dict):
+        value = arm.get("pass_rate")
+        if isinstance(value, dict):
+            return as_number(value.get("mean"))
+        return as_number(value)
+    return None
+
+
+def find_arms(node, path: str = "") -> list[tuple[str, float | None, float | None]]:
+    """Locate every with_skill/without_skill pair and return their pass rates.
+
+    The arms are the measurement; the stored delta is a rendering of it. Both
+    the official aggregator and the hand-rolled files carry the arms, so
+    deriving from them is the one route that works everywhere AND avoids three
+    defects in the stored value (see module docstring).
+    """
+    found: list[tuple[str, float | None, float | None]] = []
+    if isinstance(node, dict):
+        if "with_skill" in node and "without_skill" in node:
+            found.append(
+                (
+                    path or "<root>",
+                    rate_of(node["with_skill"]),
+                    rate_of(node["without_skill"]),
+                )
+            )
+        for key, value in node.items():
+            found.extend(find_arms(value, f"{path}.{key}" if path else key))
+    elif isinstance(node, list):
+        for i, value in enumerate(node):
+            found.extend(find_arms(value, f"{path}[{i}]"))
+    return found
+
+
 def count_cases(evals_dir: Path) -> tuple[int | None, str]:
     """Case count only — never the prompts, expected outputs, or assertions."""
     for name in ("evals.json", "evals.yaml", "evals.yml"):
@@ -101,7 +164,7 @@ def count_cases(evals_dir: Path) -> tuple[int | None, str]:
 
 def cap_for(deltas: list[tuple[str, float]]) -> tuple[int, str]:
     """Map measured evidence onto the Negative-Transfer Gate's Dim 10 cap."""
-    rates = [v for k, v in deltas if k.endswith(("delta_pass_rate", "delta.pass_rate"))]
+    rates = [v for _, v in deltas]
     if not rates:
         return 8, "no delta_pass_rate measured — unmeasured cap applies"
     # Several benchmarks may be present (per-model, per-date). The gate asks
@@ -138,6 +201,8 @@ def main() -> int:
     else:
         cases, source = count_cases(evals_dir)
         deltas: list[tuple[str, float]] = []
+        stored: list[tuple[str, float]] = []
+        incomplete: list[str] = []
         for path in sorted(evals_dir.glob("*.json")):
             if not path.name.startswith("benchmark"):
                 continue
@@ -145,14 +210,24 @@ def main() -> int:
                 data = json.loads(path.read_text())
             except (json.JSONDecodeError, UnicodeDecodeError):
                 continue
+            for where, with_rate, without_rate in find_arms(data):
+                if with_rate is None or without_rate is None:
+                    # One arm unmeasured. The official aggregator defaults the
+                    # missing side to 0, which turns an absent baseline into a
+                    # maximally positive delta. Refuse instead.
+                    incomplete.append(f"{path.name}:{where}")
+                    continue
+                deltas.append((f"{path.name}:{where}", with_rate - without_rate))
             for key, value in find_deltas(data):
-                deltas.append((f"{path.name}:{key}", value))
+                stored.append((f"{path.name}:{key}", value))
         cap, reason = cap_for(deltas)
         out = {
             "has_evals": True,
             "cases": cases,
             "case_source": source,
             "deltas": [{"path": k, "value": v} for k, v in deltas],
+            "stored_deltas": [{"path": k, "value": v} for k, v in stored],
+            "incomplete_arms": incomplete,
             "dim10_cap": cap,
             "cap_reason": reason,
         }
@@ -171,11 +246,26 @@ def main() -> int:
             f"{' (' + out['case_source'] + ')' if out['case_source'] else ''}"
         )
         if out["deltas"]:
-            print("  measurements:")
+            print("  delta_pass_rate (derived from the arms):")
             for d in out["deltas"]:
                 print(f"    {d['value']:+.4f}  {d['path']}")
         else:
-            print("  measurements: none (no benchmark*.json with a delta_* value)")
+            print(
+                "  delta_pass_rate: none derivable (no with_skill/without_skill pair)"
+            )
+        for path in out.get("incomplete_arms", []):
+            print(f"    INCOMPLETE — one arm unmeasured, no delta: {path}")
+        # Cross-check. A stored value that disagrees means the file was edited
+        # by hand or written by a different aggregator than its arms.
+        for s in out.get("stored_deltas", []):
+            if not s["path"].endswith(("delta_pass_rate", "delta.pass_rate")):
+                continue
+            near = [d for d in out["deltas"] if abs(d["value"] - s["value"]) <= 0.005]
+            if not near:
+                print(
+                    f"    MISMATCH — stored {s['value']:+.4f} at {s['path']} "
+                    "does not match any derived delta; trust the arms"
+                )
     print(f"  Dim 10 cap: {out['dim10_cap']}  — {out['cap_reason']}")
     print("\nThis is the ONLY evidence from evals/ a blind scorer may use. Do not")
     print("open the directory: it also holds prior scores, keep/discard records,")
