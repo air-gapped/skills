@@ -65,6 +65,33 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
 
+## Pass record — 2026-08-20 (self-run, commits aa0db2f + follow-up)
+
+**Blind 83 → 85.** 4 iterations, 4 keeps, 0 discards. **Stopped early — not a
+ceiling.** Zero discards maps nothing; one known cap trigger is named below and
+left unfixed by choice, not by blocker.
+
+| iter | change | effect |
+|---|---|---|
+| 1 | purged 4 already-RESOLVED rows squatting under `## Open` | backlog only — the scorer is blind to this file by design |
+| 2 | `frontmatter-lengths.py`: `\w+:` → `[\w-]+:` field lookahead | Dim 1 7→9 (the 99-char overrun was the bug, not the file) |
+| 3 | scoped the Phase 0 eager-read to point-of-use | cleared the induced-cost half of the Dim 6 cap |
+| 4 | TOC for `improve-loop.md` (198 lines, 9 siblings had one) | Dim 8; applied after the final blind, so unscored |
+
+**Next iteration, already identified — NOT a backlog item.** Dim 6 stays capped
+at 6 by `scaffold-probe.py`: 24 scaffold items in `trigger-patterns.md`, 16 in
+`freshen-patterns.md`, threshold 8. Nothing is absent; it is a workflow
+restructure converting derivable imperative steps to goal+pointer form, and it
+was left because doing it properly does not fit one iteration at the end of a
+long session. It is the first hypothesis of the next pass.
+
+**Two findings about this skill's own tooling, both shipped hours earlier:**
+`frontmatter-lengths.py` had never been run against a file with a hyphenated
+frontmatter key, so `argument-hint:` was folded into `when_to_use` — it had
+already been cited as evidence in two blind scores and a bead before the bug
+surfaced. And the skill was the only one of 68 with resolved rows left under
+Open, having written the delete-do-not-tick rule an hour before.
+
 ## Resolved — carried entries purged from Open 2026-08-20
 
 Four entries sat under `## Open` already carrying RESOLVED or DECIDED markers —

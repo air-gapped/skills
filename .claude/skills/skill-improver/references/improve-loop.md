@@ -6,10 +6,21 @@ rules that bind without reading this file. Cross-cutting rules (Operating
 Rules, The Skill Outranks Training Data, Blind Validation spawn mechanics)
 stay in `SKILL.md` and the references it names.
 
+## Table of Contents
+
+- [Phase 0: Setup](#phase-0-setup)
+- [Phase 1: Evaluate (Score the Skill)](#phase-1-evaluate-score-the-skill)
+- [Phase 2: Hypothesize (Pick One Improvement)](#phase-2-hypothesize-pick-one-improvement)
+- [Phase 3: Mutate (Make the Change)](#phase-3-mutate-make-the-change)
+- [Phase 4: Re-evaluate (Score Again)](#phase-4-re-evaluate-score-again)
+- [Phase 5: Log and Loop](#phase-5-log-and-loop)
+- [Phase 6: Persist the backlog](#phase-6-persist-the-backlog)
+- [Phase 7: Land it](#phase-7-land-it)
+
 ## Phase 0: Setup
 
 1. Identify the target skill. Accept a path, or run `scripts/scan-skills.sh` (or Glob pattern `**/SKILL.md` under `~/.claude/skills/` and `.claude/skills/`) to list candidates. Do NOT search `~/.claude/plugins/` — those are managed externally.
-2. Read the target skill's entire directory: SKILL.md and any references/, examples/, scripts/, assets/ present.
+2. Read `SKILL.md`, then list the directory. Open a `references/`, `scripts/`, `examples/` or `assets/` file when a phase needs it — Phase 1 scoring needs the reference files, Phase 2 needs whichever the hypothesis targets. Reading the whole tree up front costs the loop its own induced-cost cap on a large skill and buys nothing the phases do not ask for.
 3. **Read `<skill>/references/improvement-backlog.md` if it exists.** This file carries open issues from prior skill-improver runs — ceiling-hit items that require multi-file restructure or author judgment. Do NOT re-propose items already listed there unless new evidence (e.g. the ceiling is now breakable in one iteration due to earlier structural changes). Items resolved mid-loop get moved to the backlog's "Resolved this pass" section in Phase 6.
 4. Read **both** `references/quality-rubric.md` (scoring criteria) **and** `references/improvement-patterns.md` (concrete before/after patterns by dimension) from the skill-improver directory. Both are non-optional — skipping the patterns file means later iterations propose changes that miss documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). Feeling unsure what to try next at any phase is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") on the baseline — three diagnostic patterns (strict workflow scaffolding, up-front context dumps, model-version compensation) cap Dims 6, 4, and 9 respectively. Caps surface as cross-cutting structural issues that should be lifted ahead of cosmetic dim improvements of the same magnitude.
 5. Establish a baseline score by evaluating the skill against the rubric.
