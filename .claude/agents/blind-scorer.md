@@ -39,7 +39,12 @@ python3 <RUBRIC DIR>/../scripts/frontmatter-lengths.py <TARGET DIR>/SKILL.md
 ```
 
 It prints each field's exact length, the combined `description` + `when_to_use`
-total against the 1,536-char listing cap, and any overrun. Penalize if key
+total against the 1,536-char listing cap, and any overrun. It also parse-gates
+the frontmatter first: if it reports `SPEC VIOLATION: frontmatter is not valid
+YAML`, stop and hard-fail Dim 9 at 3 — Claude Code loads such a skill with every
+field dropped, so the description you can see in the file is not the one that
+reaches the model, and Dim 1 cannot be scored from it. Say so explicitly in the
+justification instead of scoring the text you read. Penalize if key
 trigger phrases fall past that cutoff, and note whether the skill splits the two
 fields or stuffs everything into `description`. A character count you did not
 run is not evidence: scorers have been observed inventing a length and

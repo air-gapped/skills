@@ -260,6 +260,23 @@ complete frontmatter reference.
 Verify the skill would pass `skills-ref validate`. Any of these failures is a
 spec violation that makes the skill non-conformant — `skills-ref` would reject it.
 
+**The frontmatter block must first PARSE as YAML.** Check this before scoring
+any field, because a block that does not parse makes every other check
+meaningless: Claude Code loads the skill with **every field dropped** — `name`
+falls back to the directory name, `description` to the first line of the body,
+and `allowed-tools`, `model`, and `disable-model-invocation` silently stop
+applying. Nothing warns at normal verbosity, and the file still *reads*
+correctly, so a scorer eyeballing it sees a healthy description and scores Dim 1
+on text the loader already threw away.
+
+Regex extraction cannot see this — `rg '^description:'` matches a broken block
+exactly as well as a valid one. That is not hypothetical: this rubric's own
+quick-check snippet and `frontmatter-lengths.py` were both regex-only until
+2026-08-20, and printed clean, confident numbers for two skills whose
+frontmatter had not parsed for months. Run the script (it now parse-gates first)
+rather than grepping. The usual cause is an unquoted value containing `': '`;
+the fix is a block scalar (`description: >-` with the value indented beneath).
+
 `name:` must:
 - Be 1–64 characters, only `[a-z0-9-]`
 - NOT start or end with a hyphen
@@ -273,7 +290,15 @@ spec violation that makes the skill non-conformant — `skills-ref` would reject
 - Be ≤ 1024 characters
 - NOT contain XML tags
 
-Quick check:
+Quick check — `frontmatter-lengths.py` covers the parse gate and both length
+caps in one call, and exits non-zero on a violation:
+
+```bash
+python3 <skill-improver>/scripts/frontmatter-lengths.py <skill>/SKILL.md
+```
+
+Name-rule check (regex is adequate here ONLY because the parse gate above has
+already passed):
 
 ```bash
 # Extract name
