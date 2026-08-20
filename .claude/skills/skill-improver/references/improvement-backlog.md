@@ -17,22 +17,27 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Open
 
-- **(2026-08-20) Three of the eight eval cases are saturated on the current
-  model and carry no signal.** Cases 5 (`high-score-worse-outputs`), 6
-  (`one-action-half-hour`) and 7 (`mass-delete-known-claims`) each scored
-  **18/18 in both configurations** on Opus 5 — delta exactly 0.000. Case 4 gave
-  +0.111. The unaided model already does what they assert, so they dilute the
-  aggregate: +0.068 across all eight cases vs +0.117 across the original four.
-  They are not wrong, they are *saturated*. Replacing them needs cases pitched
-  at behaviours the unaided model actually misses, and the 2026-08-20 run names
-  those from evidence — every unaided failure fell into one of five buckets:
-  emitting a structured per-dimension rubric table rather than a holistic
-  grade; refusing to judge a planted version claim from memory; stating an
-  explicit keep-or-discard *after* a change rather than a prospective
-  verification plan; showing awareness of the description character budget;
-  and attributing score movement when an iteration bundled two edits. Any
-  replacement case should target one of those and be validated by a run, not
-  by inspection.
+- **(2026-08-20; RESOLVED same day) Three saturated eval cases replaced and the
+  replacements validated before entry.** Cases 5, 6 and 7 each scored **18/18 in
+  both configurations** on Opus 5 — delta exactly 0.000. Not wrong, *saturated*:
+  their prompts handed over the discriminating facts, so nothing was left for the
+  skill to add. Replaced by `settle-the-disagreement` (+0.500),
+  `iteration-log-into-a-decision` (+0.111) and
+  `downgrade-with-plausible-evidence` (+0.167), each pitched at a behaviour the
+  unaided arm actually missed and each **validated by a 6-run with/without pass
+  before entering the corpus** under a standing rule: a candidate returning 18/18
+  in both arms is discarded, not kept. One candidate was discarded under that
+  rule (`keep-or-revert-the-applied-change`, +0.056) — it repeated the original
+  defect by naming the two bundled edits as two in the prompt. Full record in
+  `evals/case-validation.2026-08-20.json`.
+
+  **Carried caveat:** case 6 is the weak one. Its +0.111 rests on a single
+  unaided run failing two assertions, which at n=3 is one coin-flip from zero.
+  Re-check it on the next full benchmark rather than treating it as settled.
+
+  **Method worth reusing:** a case earns its place by measurement, not by
+  reading well. Write it against a behaviour the unaided model has been *observed*
+  to miss, then run it before it counts.
 
 - **(2026-08-15; RESOLVED 2026-08-16, operator-directed) Dim 10 measured —
   `delta_pass_rate = +0.267`, Negative-Transfer Gate lifts.** Authored

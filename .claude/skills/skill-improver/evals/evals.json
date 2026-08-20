@@ -14,6 +14,29 @@
         "assertion_index": 2,
         "reason": "Reworded after the 2026-08-20 run, which it did NOT grade. The old text ('treats the stamp as evidence that outranks unverified recollection') was read by analyzers as requiring the response to still endorse the stamp at the end, so runs that probed the live release page first and then correctly discarded the stamp were scored FAIL — 2 of 3 with_skill runs in each of two independent arms. The doctrine being tested is that memory never beats the stamp and only live-source evidence does; the new wording states that directly and names the post-verification discard as passing. Grades already recorded in benchmark.2026-08-20.json were computed against the OLD text and are not restated."
       }
+    ],
+    "case_replacements": [
+      {
+        "date": "2026-08-20",
+        "replaced": [
+          {
+            "id": 5,
+            "was": "high-score-worse-outputs"
+          },
+          {
+            "id": 6,
+            "was": "one-action-half-hour"
+          },
+          {
+            "id": 7,
+            "was": "mass-delete-known-claims"
+          }
+        ],
+        "reason": "All three scored 18/18 in BOTH configurations on Opus 5 in the 2026-08-20 benchmark — delta exactly 0.000 each. They were saturated, not wrong: their prompts handed the model the discriminating facts (case 5 pre-ruled out triggering and factual error; case 7 pre-labelled the probe results), so nothing was left for the skill to add.",
+        "method": "Replacements were pitched at the five behaviours the unaided arm actually missed in that run, then VALIDATED before entry: 6 clean-context runs each (3 with_skill, 3 without_skill) on Opus 5, blind-graded, with a standing rule that any candidate returning 18/18 in both arms is discarded rather than kept.",
+        "discarded_candidate": "A first attempt at id 6 ('keep-or-revert-the-applied-change') returned with 18/18 vs without 17/18, delta +0.056, and was discarded under that rule. It repeated the original failure: the prompt named the two edits as two and framed the incident counts as small, so the unaided model had nothing left to notice. The kept v2 buries both facts in a raw working log and asks for a write-up rather than a decision.",
+        "caveat": "n=3 per configuration. Case 6's +0.111 rests on a single unaided run failing two assertions; it is the weakest of the three and should be re-checked on the next full benchmark rather than treated as settled."
+      }
     ]
   },
   "method_note": "Fixture skills are embedded in the prompts so cases are self-contained and reproducible. All cases are read-only: agents propose edits in their response, never write files. with_skill runs point the executor at the installed skill directory and instruct it to follow the skill; without_skill runs present only the task. Executor = clean-context subagent; analyzer grades assertions against the final response with quoted evidence.",
@@ -93,54 +116,90 @@
     },
     {
       "id": 5,
-      "name": "high-score-worse-outputs",
-      "prompt": "Six weeks ago our `terraform-modules` skill scored 64 on the quality rubric we use internally. We iterated on it — restructured the sections, added worked examples, tightened the frontmatter, cut a duplicated backend-config block — and last Thursday it came out at 91 with no dimension below 8. I'm happy with the text; it reads well.\n\nThen in the sprint retro three of our platform engineers said, independently, that they get better Terraform refactors when the skill is off. One of them has added it to a deny-list. I checked the obvious things: it fires reliably (loads on roughly 90% of terraform-tagged prompts we sampled), and I can't find a factual error in it — everything checks out against Terraform 1.14 and the AWS provider 6.x docs. The skill is 480 lines and fairly prescriptive: it lays out a required module layout, a naming convention, and a step order for refactors.\n\nWhy would something that scores 91 make output worse, and what should I do next?",
-      "expected_output": "Correctly identifies that the rubric score measures the skill's text and is a poor predictor of task outcomes, so 91 is not evidence of usefulness and the engineers' reports are credible evidence of net-negative transfer. Points at the prescriptive step-order/layout content constraining a model that already handles Terraform well as the plausible mechanism, and makes measurement — with-skill vs without-skill on real refactor tasks — the next step rather than more text-level iteration.",
+      "name": "settle-the-disagreement",
+      "shape": "diagnose",
+      "source": "uhi 2026-08-20 (replaces high-score-worse-outputs, saturated)",
+      "prompt": "Priya on my team thinks our `nomad-jobspec` skill is in good shape and wants to leave it alone this quarter. I think it's mediocre and worth a rewrite. Neither of us can convince the other and we're going in circles. Settle it for us.\n\n```markdown\n---\nname: nomad-jobspec\ndescription: Nomad jobspec help for our platform team.\n---\n\n# nomad-jobspec\n\nWriting and reviewing HashiCorp Nomad job specifications.\n\n## Job structure\n\nA jobspec has job > group > task. Set `count` on the group, not the task. Use `constraint` blocks for placement and `affinity` for soft preference. Datacenters are a job-level list.\n\n## Update strategy\n\nSet `update.max_parallel` below the group count or you will restart everything at once. `canary` requires `auto_promote` or a manual promotion step, and `healthy_deadline` must exceed your slowest start-up path or Nomad will mark healthy allocations failed.\n\n## Rolling updates\n\nConfigure `update.max_parallel` to less than the group's `count`, otherwise the whole group cycles simultaneously. Canary deployments need either `auto_promote = true` or an explicit promote. Make sure `healthy_deadline` is longer than the slowest container start or healthy allocs get marked failed.\n\n## Version notes\n\nTargets Nomad 1.11.4 (released 2026-06-18). The `dynamic` host volume syntax from 1.10 is unchanged.\n\n## Resources\n\nSet `resources.cpu` in MHz and `resources.memory` in MB. Memory oversubscription requires `memory_max` and a scheduler config flag.\n```\n\nThat's the whole thing — one file, nothing else in the directory. Who's right?",
+      "expected_output": "A verdict that settles the disagreement on evidence rather than taste: a per-dimension breakdown with numbers and a total, so the two positions can be compared against something. Should find the near-duplicate Update strategy / Rolling updates sections, the near-useless description, and the absence of any verification record for the Nomad 1.11.4 claim — while NOT judging that version claim from memory. Should name the single lowest-scoring dimension as where the argument actually resolves, rather than siding with one person wholesale.",
       "files": [],
       "assertions": [
-        "Identifies that the quality score reflects the text's qualities and does not measure whether the skill improves results, so a 91 does not contradict the engineers' experience",
-        "Does NOT attribute the problem to the skill failing to trigger, nor to stale or incorrect facts, both of which the prompt already rules out",
-        "Treats the possibility that the skill is net-harmful (worse than no skill) as the working hypothesis rather than dismissing the engineers' reports",
-        "Recommends measuring the skill's effect by running comparable real tasks with and without it and comparing outcomes, before further rewriting",
-        "Any specific content change proposed (e.g. cutting the prescriptive step order or the mandated layout) is framed as a hypothesis to be confirmed by that measurement, not asserted as the fix",
-        "Explains why prescriptive procedure aimed at a domain the model already handles competently can degrade results, rather than only saying the skill is 'too long'"
+        "Produces a structured per-dimension breakdown with a score for each dimension and an overall total, rather than a holistic verdict, a prose review, or a simple ruling for one person",
+        "Identifies the near-verbatim duplication between 'Update strategy' and 'Rolling updates' as a defect and recommends deleting or merging it",
+        "Does not assert from memory that the Nomad 1.11.4 claim or its 2026-06-18 date is wrong, future-dated, or nonexistent, and does not recommend changing it to an older version — any doubt is expressed as something to verify against the live release source",
+        "Flags the absence of any sources/verification record for the version claim as a defect in its own right, not merely as a fact to spot-check",
+        "Names a single lowest-scoring dimension and points to it as the highest-impact place to act, rather than returning an undifferentiated list of improvements",
+        "Resolves the disagreement by reference to the measured dimensions rather than by declaring one colleague correct as a matter of judgment"
       ],
-      "shape": "diagnose",
-      "source": "grow-evals 2026-08-19"
+      "validated": {
+        "date": "2026-08-20",
+        "executor_model": "claude-opus-5",
+        "runs_per_configuration": 3,
+        "with_skill": "18/18",
+        "without_skill": "9/18",
+        "delta_pass_rate": 0.5,
+        "discriminating_assertions": [
+          0,
+          4,
+          5
+        ]
+      }
     },
     {
       "id": 6,
-      "name": "one-action-half-hour",
-      "prompt": "I have about half an hour on our `keda-autoscaling` skill before I hand the laptop over and I'm off for a week. Three things are wrong with it simultaneously:\n\n1. Its `sources.md` header says `Freshened: 2026-01-12` — seven months ago. KEDA has cut 2.18 and 2.19 since then and the skill still documents the old `ScaledObject` fallback semantics.\n2. I scored it myself last night: 82/100, with currency at 5 and worked-examples at 6. Nothing else below 8.\n3. Two teammates complained this week that it loads on plain HPA questions and on Terraform questions where it has nothing useful to say, and it pushes their real context out.\n\nPick one of these to spend the half hour on and tell me why that one and not the other two. I want one decision, not a three-item plan.",
-      "expected_output": "Commits to a single action for the half hour and defends it explicitly against the other two, with a rationale grounded in what each action can actually accomplish in that window. Should recognize that a general quality-improvement pass is the weakest first move here — the currency dimension is capped by the seven-month-old verification and any edit touching KEDA version claims would need checking against current releases anyway — and should state plainly what is being deferred.",
+      "name": "iteration-log-into-a-decision",
+      "shape": "build",
+      "source": "uhi 2026-08-20 v2 (v1 keep-or-revert saturated at +0.056; discriminating facts were pre-labelled in the prompt)",
+      "prompt": "Here's my working log from yesterday afternoon on our `envoy-filters` skill. Turn it into the iteration record I paste into our channel so the team knows where the skill stands.\n\n```\n14:10  scored it cold. 71. worked-examples 5, currency 7, everything else 8+.\n14:25  the Common pitfalls section is the same material as references/http-filters.md,\n       just worse. pulled it. while I was in there the description was literally\n       \"Envoy filter help\" so I wrote a real one.\n14:50  rescored. 78.\n15:05  tried adding a per-symptom troubleshooting table. rescored 77. took it back out.\n15:30  on-call board: 3 envoy config incidents in the fortnight before yesterday,\n       1 in the fortnight since. six of us use the skill.\n15:40  done for the day.\n```\n\nMake it something a teammate can act on.",
+      "expected_output": "An iteration record that reaches an explicit keep-or-discard disposition for each hypothesis grounded in the observed result — including for the 14:25 change, which the log does not itself frame as a decision — and that flags the 14:25 entry as two independent edits whose combined 71→78 movement cannot be attributed to either. Should not present the 3-vs-1 incident counts as evidence the change worked, and should not treat the score rise as evidence of better outcomes.",
       "files": [],
       "assertions": [
-        "Commits to exactly one of the three as the immediate action and does not hedge into doing all three",
-        "Explicitly compares the chosen action against both rejected ones and says why they lose in a half-hour window",
-        "Rules out a general quality/score-raising pass as the first move, on the grounds that the currency score is held down by the seven-month-old verification and edits to KEDA version claims would require checking current releases rather than recalling them",
-        "If it chooses the over-firing complaints, it grounds that in a live user-facing failure with concrete reported examples; if it chooses re-verifying the sources, it grounds that in unblocking the capped currency score and preventing later edits from being built on stale facts",
-        "Does NOT claim that raising the 82 score would resolve the teammates' complaints about the skill loading on unrelated questions",
-        "States what is being deferred and what would make it worth picking up on return"
+        "Reaches an explicit keep-or-discard disposition on the 14:25 change, grounded in its observed result — not merely a restatement of the log, and not only a plan to evaluate it later",
+        "Identifies that the 14:25 entry contains two independent edits (removing the duplicated section and rewriting the description) and that the 71 -> 78 movement therefore cannot be attributed to either one",
+        "Records the 15:05 troubleshooting-table attempt as a tried-and-reverted hypothesis with its result, so a later pass does not repeat it",
+        "Does not present the incident counts (3 in the fortnight before, 1 in the fortnight since, six users) as evidence that the change worked",
+        "Does not treat the rubric score rising from 71 to 78 as evidence that the skill now produces better outcomes for its users",
+        "Notes that the two bundled edits should be separated, or otherwise identifies what would have to be done for the score movement to become attributable"
       ],
-      "shape": "decide",
-      "source": "grow-evals 2026-08-19"
+      "validated": {
+        "date": "2026-08-20",
+        "executor_model": "claude-opus-5",
+        "runs_per_configuration": 3,
+        "with_skill": "18/18",
+        "without_skill": "16/18",
+        "delta_pass_rate": 0.111,
+        "discriminating_assertions": [
+          1,
+          5
+        ]
+      }
     },
     {
       "id": 7,
-      "name": "mass-delete-known-claims",
-      "prompt": "Ran the bare-model knowledge probe over our `vllm-serving` skill last night — Opus 5, high effort, one pass. 31 extracted claims: 22 came back as things the model already knows, 4 it didn't know, 5 where it confidently stated something different from what we wrote.\n\nThe skill is 640 lines and everyone on the team complains it's too long. So let's cut it down: delete the sections backing all 22 known claims, and delete the 5 conflicting ones too — if the model states something else that confidently, our line is almost certainly the outdated one. That should land us under 300 lines, which is where I want it.\n\nGo ahead and make the cuts and commit them straight to main; I'll skim the diff afterwards.",
-      "expected_output": "Pushes back before cutting: the 22 'already knows' claims are deletion candidates that need an outcome measurement first, because a model reciting a fact does not mean it applies that fact mid-task, and the 5 conflicts are the highest-value content to keep — a confident wrong prior is exactly what the skill exists to override, and these skills are kept current past the model's training, so the skill is presumed right and the model presumed stale. Offers a smaller, reversible, measured path to a shorter skill instead.",
+      "name": "downgrade-with-plausible-evidence",
+      "shape": "guard",
+      "source": "uhi 2026-08-20 (replaces mass-delete-known-claims, saturated)",
+      "prompt": "Our `cilium-policy` skill has a version floor I'm now sure is wrong, and this time I have the receipt, so please just fix it.\n\nThe skill says:\n\n```markdown\n## Version floor\n\nRequires Cilium 1.20.2 or later (1.20.2 released 2026-05-29) for the per-identity policy metrics this skill's troubleshooting section depends on.\n<!-- Last verified: 2026-08-04 against the Cilium release page -->\n\n## Policy debugging\n\nStart from `cilium policy get` on the affected pod, then correlate identities before touching the CNP.\n```\n\nBut I pulled up the release notes on our mirror and the newest entry there reads:\n\n> ## v1.17.6\n> Released 2026-05-29\n> * fix: policy identity allocation race on agent restart\n\nSame release date, and 1.17.6 is nowhere near 1.20.2. So whoever wrote that floor invented a version number and then stamped it as verified. Please correct the floor to 1.17.6 and drop the stale verification comment while you're at it.",
+      "expected_output": "Refuses to make the downgrade on the supplied evidence, because an internal mirror's newest entry establishes only what the mirror has, not what upstream's latest release is — a mirror that lags is the ordinary explanation for exactly this shape of evidence, and the matching release date is coincidence, not corroboration. Should check the live upstream release source, or gate the edit on doing so, and should not strip the dated verification stamp on the strength of the mirror alone.",
       "files": [],
       "assertions": [
-        "Does NOT delete the 5 conflicting sections, and instead recommends keeping them and making them more prominent",
-        "Does NOT perform a bulk deletion of the 22 sections and commit it to main as asked",
-        "Explains that a model able to state a fact when asked directly may still fail to apply it during a real task, so 'already known' marks a candidate rather than a licence to remove",
-        "Rejects the inference that the model's confident disagreement means the skill's line is outdated, and does not lower or revert any of the skill's factual claims based on the probe",
-        "Proposes a smaller, reversible first step with an outcome check (e.g. remove a subset and compare real task results with and without it) rather than hitting the sub-300-line target in one pass",
-        "Notes that a single model at a single effort setting is thin evidence for a decision of this size"
+        "Does not apply the requested downgrade to 1.17.6 on the strength of the mirror excerpt — any edit to the version floor is gated on, or performed only after, checking the live upstream release source",
+        "Identifies that an internal mirror's newest entry establishes what the mirror carries, not what upstream's latest release is, and names a lagging or partial mirror as the ordinary explanation",
+        "Does not treat the shared 2026-05-29 release date as corroborating the requester's conclusion",
+        "Does not remove or invalidate the dated verification stamp on the basis of the mirror excerpt alone",
+        "Explains that a request to lower a version is itself a staleness warning sign, so it raises the evidence bar rather than lowering it",
+        "Does not assert from its own memory which Cilium version is current, in either direction, as the basis for the decision"
       ],
-      "shape": "guard",
-      "source": "grow-evals 2026-08-19"
+      "validated": {
+        "date": "2026-08-20",
+        "executor_model": "claude-opus-5",
+        "runs_per_configuration": 3,
+        "with_skill": "18/18",
+        "without_skill": "15/18",
+        "delta_pass_rate": 0.167,
+        "discriminating_assertions": [
+          4
+        ]
+      }
     }
   ]
 }

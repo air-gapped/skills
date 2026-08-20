@@ -1,0 +1,1003 @@
+{
+ "metadata": {
+  "purpose": "Validation record for the three eval cases that replaced the saturated ids 5, 6 and 7 on 2026-08-20. Each candidate was run 3x with_skill and 3x without_skill on clean-context subagents before entering evals.json, under a standing rule that a candidate returning 18/18 in both arms is discarded.",
+  "executor_model": "claude-opus-5",
+  "analyzer": "claude-opus-5, one per case, blind (shuffled opaque filenames, no configuration labels)",
+  "runs_per_configuration": 3,
+  "date": "2026-08-20"
+ },
+ "kept": {
+  "5 settle-the-disagreement": {
+   "with_skill": "18/18",
+   "without_skill": "9/18",
+   "delta": 0.5,
+   "discriminates_on": {
+    "a0": "rubric table rather than a holistic verdict — 0/3 unaided",
+    "a4": "names a single lowest-scoring dimension — 0/3 unaided",
+    "a5": "resolves the disagreement by the measured dimensions — 0/3 unaided"
+   },
+   "saturated_assertions": [
+    "a1",
+    "a2",
+    "a3"
+   ],
+   "note": "Strongest of the three. a1-a3 pass 3/3 unaided and act as regression guards rather than discriminators."
+  },
+  "6 iteration-log-into-a-decision": {
+   "with_skill": "18/18",
+   "without_skill": "16/18",
+   "delta": 0.111,
+   "discriminates_on": {
+    "a1": "spots the bundled edits in the 14:25 log line — 2/3 unaided",
+    "a5": "says the bundle must be separated for attribution — 2/3 unaided"
+   },
+   "note": "WEAKEST of the three and the one to re-check. The whole delta rests on a single unaided run failing two assertions; at n=3 that is one coin-flip from 0.000. Replaced a first attempt that scored +0.056."
+  },
+  "7 downgrade-with-plausible-evidence": {
+   "with_skill": "18/18",
+   "without_skill": "15/18",
+   "delta": 0.167,
+   "discriminates_on": {
+    "a4": "names a downgrade request as itself a staleness warning that raises the evidence bar — 0/3 unaided"
+   },
+   "saturated_assertions": [
+    "a0",
+    "a1",
+    "a2",
+    "a3",
+    "a5"
+   ],
+   "note": "Clean single-assertion discriminator, unanimous in both directions. The unaided model refuses the downgrade and spots the lagging mirror on its own; what it never does is name the downgrade request as a staleness signal in its own right."
+  }
+ },
+ "discarded": {
+  "6 keep-or-revert-the-applied-change": {
+   "with_skill": "18/18",
+   "without_skill": "17/18",
+   "delta": 0.056,
+   "why": "Failed the 18/18-both rule in substance. The prompt named the two edits as two ('deleted X, and while I was in there I also rewrote Y') and pre-framed the incident counts as small, so the unaided model had nothing left to notice — the same defect that made the original case 6 saturate. Recorded so it is not re-proposed."
+  }
+ },
+ "runs": {
+  "kept": [
+   {
+    "eval_id": 5,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 3,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent — no dimension table or scores; the closest structure is prose headings \"### 1. The description will not fire — this is the load-bearing defect\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"Two sections say the same thing\" ... \"That's ~40% of the body duplicated. ... Delete one — keep \\\"Update strategy\\\"\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"I can't confirm this from where I'm sitting and neither can a reader — there's no link to the release notes or changelog. Check it against HashiCorp's releases page before you trust it.\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"The version note is a dated assertion with no way to check it ... neither carries its own verification path\" and \"Freshness check. Does every version claim name a source and a check date? Here: none do.\""
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "no dimensions exist to rank; closest is \"This is the single highest-leverage change in the file and it's a five-minute edit.\""
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "\"Priya is right that the content is sound and a rewrite would destroy value for no gain\" — judgment ruling, no measured dimensions"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 3,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent — \"## The defects, ranked\" is a ranked prose list with severity tags (critical/high/medium/low), no per-dimension scores or total"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"'Update strategy' and 'Rolling updates' are the same section, written twice (high)\" ... \"Merge into one section.\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"I can't verify either of these — they're past my knowledge cutoff, so treat them as unchecked, not as confirmed\" and \"have someone confirm the 1.11.4 / dynamic-host-volume claims against the changelog\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"The version claims have no verification stamp (low, but it's a time bomb)\" ... \"with no record of *when anyone last checked*\" ... \"record a `last-verified: YYYY-MM-DD` alongside the version claim\""
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "no dimensions or scores; closest is \"Replace the description (10 min) — the version above. This is 80% of the available value.\""
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "\"Priya's right that it doesn't need a rewrite; you're right that leaving it alone is wrong.\" — judgment, no measured dimensions"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "\"| # | Dimension | Score | Justification |\" ... \"| 1 | Trigger Precision | 3/10 |\" ... \"| **Total** | | **54/100** |\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"**\\\"Update strategy\\\" and \\\"Rolling updates\\\" are the same section written twice**\" and \"**Delete one of the two duplicate sections** (Dim 6: 4 → 7, Dim 8: 6 → 8)\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Verify that online — do not correct it from memory. ... the instinct to lower a version number that \\\"looks too new\\\" is the single most reliable way to introduce an error into a file that was right.\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"**Capped at 6 — no `references/sources.md`.** ... there is simply no verification record behind any of them, which is exactly what the cap exists to price.\""
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "\"Lowest dimension: Trigger Precision (3)\" and \"In order of impact: 1. **Rewrite the description** (Dim 1: 3 → 8ish)\""
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "\"it lands at **54/100** ... **Priya's case fails on three specifics, not on vibes.**\" with each point tied to a scored dimension"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "\"| # | Dimension | Score | Justification |\" ... \"| **Total** | | **53/100** |\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"\\\"Update strategy\\\" and \\\"Rolling updates\\\" are the same three facts written twice in different words\" and \"1. **Delete** the \\\"Rolling updates\\\" section. Pure duplicate of \\\"Update strategy\\\".\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"my instinct was to flag it as wrong. I did not, and neither should either of you ... It is unverified, not incorrect — the fix is a probe (`freshen`), not an edit.\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"**Capped at 6 — no `references/sources.md`.**\" and \"**Add `references/sources.md`** with the Nomad release-notes and jobspec-docs URLs and a `Freshened:` stamp\""
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "\"Lowest dimension: Trigger Precision (3).\" and \"(Dim 1 — and this is the one that decides whether the skill fires at all, which makes every other dimension moot if left as is)\""
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "\"**53/100.** That is \\\"mediocre\\\" territory by the rubric's own calibration ... so Priya's \\\"it's in good shape, leave it\\\" does not survive contact with the file\""
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "\"| # | Dimension | Score | Justification |\" ... \"| **Total** | | **50/100** |\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"**\\\"Update strategy\\\" and \\\"Rolling updates\\\" are the same three facts written twice**\" and \"**Delete \\\"Rolling updates\\\" entirely**, keeping \\\"Update strategy\\\"\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"**Treat that line as correct and leave it alone** unless someone probes the Nomad release notes and finds otherwise.\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"**capped at 6: `references/sources.md` is absent**, so no claim in here has a verifiable verification date. Not a claim of error — a claim of unprovability.\""
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "\"Lowest dimension: Trigger Precision (2/10).\" and \"What to actually do, in order ... 1. **Rewrite the frontmatter description** (Dim 1: 2 → ~8)\""
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "\"**Priya is wrong that it should be left alone.** 50/100 is the bottom of the \\\"decent skill\\\" band ... Neither is a judgement call.\""
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 3,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent — no scores or dimensions; closest is \"But it has four concrete defects, all repairable in place\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "\"**1. The same section appears twice.** \\\"Update strategy\\\" and \\\"Rolling updates\\\" state identical facts ... Delete one, keep the tighter wording from the other.\""
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Neither of you should be arguing about this from memory — check it against upstream release notes and CHANGELOG.\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"add a convention the file currently lacks: a \\\"last verified against Nomad X.Y.Z on YYYY-MM-DD\\\" line. Without it, nobody can tell staleness from freshness by looking\""
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "no dimensions or scores; closest is \"Rewrite the `description` (above). Highest leverage by a wide margin, ~15 minutes.\""
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "\"**Verdict:** Priya wins on \\\"don't rewrite it.\\\" You win on \\\"don't leave it alone.\\\"\" — judgment ruling, no measured dimensions"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I did not apply the edit as asked ... So I probed `cilium/cilium` releases directly before touching anything."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "A mirror whose *newest* entry is a patch from July 2025 — with a 2026 date stamped on it — is a stale or mis-synced snapshot, not the release feed. It's almost certainly tracking only the 1.17 branch"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The \"same release date\" coincidence that made the mirror entry look like proof is an artifact of two independently wrong dates, not corroboration."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "I'd keep a verification comment rather than drop it. You asked me to remove it as stale ... the fix for a stamp that vouched for nothing is a stamp that vouches for a real probe, not the absence of one."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "the downgrade alarm fires on exactly this shape: lower a version, move a date backward"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Three facts, all against the current release list (probed 2026-08-20)"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I haven't made this edit, because I checked it against upstream first and both version numbers turn out to be wrong."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "What the mirror shows is that **the mirror's newest entry is 1.17.6** — that's a fact about the mirror, not about Cilium. A mirror pinned to (or last synced on) the 1.17 branch will show 1.17.6 as \"newest\" forever"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "the matching 2026-05-29 date is exactly what you'd expect from a mirror that stopped syncing around then, not corroboration"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "the date attached to it (2026-05-29) is **two months before 1.20.0 was released at all** ... the `Last verified: 2026-08-04` stamp is unearned"
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "Downgrading a floor is the one edit worth being slow about, so here is what I found before touching anything."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Sources: - [Releases · cilium/cilium](https://github.com/cilium/cilium/releases)"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I haven't made this edit, and I want to explain why before you tell me to go ahead ... Check upstream if you have any egress path — the GitHub releases list for `cilium/cilium`, enumerated across minors"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "That bounds the mirror. It doesn't bound Cilium. ... **The mirror is stale.** If it stopped syncing sometime after 2026-05-29"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The shared date is the weakest part of the argument: it's evidence *for* both existing, not against."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Dropping the `Last verified` comment makes it worse in the same direction ... never a corrected floor with no stamp."
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "a version *downgrade* of three minor lines, which is the one direction where being wrong is expensive"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "it's just the number on the last page of the mirror"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I probed before editing, and I'm not going to make this change — the receipt doesn't survive contact with the upstream release list."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "a mirror is a cached copy, and \"the newest entry on my mirror\" is a claim about the *mirror's* sync state, not about what upstream has released"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The matching date that made this look like a smoking gun is the mirror's own metadata, not Cilium's — so the coincidence you reasoned from isn't real."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "It isn't merely stale; it's a per-row marker asserting that a fabricated version was checked against the release page ... `gh api /repos/cilium/cilium/releases` (probed today, 2026-08-20)"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "a version that looks too new is usually correct and my urge to lower it is usually staleness. That rule applies to a downgrade sourced from a mirror too"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "`gh api /repos/cilium/cilium/releases` (probed today, 2026-08-20)"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I'd rather not make this edit yet ... **Enumerate upstream releases** — the GitHub releases/tags list for `cilium/cilium`, reading *all* recent minors, not the \"latest\" pointer."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "That bounds **what the mirror has**, not **what Cilium released**. ... If your mirror is configured to track one branch, or filters tags by a pattern, the newest thing on it will be the newest patch *of that branch* forever"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The matching date is evidence for the floor, not against it. ... the shared date reads as corroboration that whoever wrote the floor was looking at a real release page."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "One thing I'd push back on either way: **don't drop the verification comment.**"
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "This is a **downgrade of a version floor**, and downgrades fail asymmetrically"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "I just don't want to write a number into a skill on the strength of a source that may be scoped to one branch."
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I did not apply the edit as asked. You asked for a **downgrade** ... so I ran the upstream probe first."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "*\"The newest entry there\" is recency within that mirror, not rank upstream.* The mirror's head being 1.17.6 tells you when the mirror stopped ingesting"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The matching date you spotted is what made this look like a caught fabrication. It isn't a match to anything real; both sides of the coincidence are wrong."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "That comment claimed a 2026-08-04 verification of a version that has never existed on any date. A probe run on 2026-08-04 could not have returned 1.20.2."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "which is the one mutation this skill treats as an alarm rather than an instruction — so I ran the upstream probe first"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Upstream `cilium/cilium`, via `gh` (authoritative release API, not a mirror)"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "1         | 78    | +7    | keep (BUNDLED)    | removed \"Common pitfalls\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Iteration 1 bundled two changes, so `+7` is unattributed."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Per-symptom troubleshooting table** — added at 15:05, scored 77 (-1), reverted. ... don't add the same shape of table to the same section again."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Quote it in the channel as an anecdote if you like, but not as effect."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "the rubric scores the skill's text, never its outputs.** Text-only judging was measured at 46.4% accuracy against real utility, so a rising score is not evidence that results improved."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Re-run the description rewrite as its own iteration**"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| 1 | 78 | +7 | keep (**bundled — see below**) | removed \"Common pitfalls\""
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Iter 1 bundled two changes, so the +7 is unattributable.** ... dedup **and** description rewrite — which makes it two iterations, not one."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "| 2 | 77 | −1 | discard | added a per-symptom troubleshooting table to SKILL.md; score went down, reverted ... *don't re-propose a per-symptom troubleshooting table in SKILL.md*"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "The on-call numbers — do not report these as a result"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "the rubric scores the skill's *text*, never its outputs. Text-only judging has been measured at ~46% accuracy against real utility, so a rising rubric score is not evidence that results improved"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Cheapest repair: revert to baseline, re-apply the two changes as separate iterations with a cold score after each."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Change 1 — KEPT (14:25).** Deleted the \"Common pitfalls\" section"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Change 1 bundled two edits, so the +7 is unattributed.* The dedup and the description rewrite went in together and were rescored once. We don't know the split."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Change 2 — DISCARDED (15:05).** Added a per-symptom troubleshooting table. Rescored 77 ... don't re-add it without a different design"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "this is not evidence the skill caused the drop, and I'd ask that we not present it as such"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "The direction of the move is probably real; the magnitude is not established."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Worth unbundling if anyone touches this again."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Changes kept**\n1. **Removed the \"Common pitfalls\" section.**"
+     },
+     {
+      "index": 1,
+      "passed": false,
+      "evidence": "The +7 didn't come from the weak dimensions.** worked-examples (5) and currency (7) were the two low scores, and neither change touched them — one was a de-duplication, the other a frontmatter edit."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Change tried and reverted** - **Per-symptom troubleshooting table**: scored 77 (−1). Reverted, skill is back to the 78 state."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Treat it as \"no sign of harm\", not as evidence the change worked."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "A description rewrite changes *when the skill fires*, which the quality score does not measure at all."
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "absent"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Change 1 — KEPT (14:25 → rescored 78, +7)**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "The +7 isn't attributable.** Both edits landed before the 14:25 rescore, so we know the pair is worth +7 and nothing about the split."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Change 2 — REVERTED (15:05 → rescored 77, −1)** Added a per-symptom troubleshooting table. Score went down, so it came back out."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "The incident numbers don't support a causal claim. ... it can't carry \"the skill reduced incidents\" and shouldn't be quoted that way"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "The rubric measures the quality of the skill's *content*. ... that edit is unmeasured, not measured-and-improved"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "it needs re-testing one edit at a time. Going forward: one change, one rescore."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| 1 | 78 | +7 | keep — **bundled, cause unattributable** |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Iteration 1 is two changes in one row.** ... We cannot say which produced the +7"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "| 2 | 77 | −1 | discard | added a per-symptom troubleshooting table; reverted | ... the discard row is what stops us re-proposing the same shape later"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "The on-call numbers are not evidence the skill got better."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "text scores predict real utility at about 46% — worse than a coin flip — so a rising rubric score isn't evidence the outputs improved either"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "It needs to be split and re-measured: revert to baseline, apply the deletion alone, score; then apply the description alone, score."
+     }
+    ]
+   }
+  ],
+  "discarded_candidate_6_v1": [
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Short answer: **keep it — but not because of either number you quoted, and with one targeted repair before anyone builds on it.**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Reverting isn't neutral. It restores the two-word description — a known defect — to undo a deletion that is probably correct and, if it isn't, is cheap to patch surgically."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "You changed two things at once: you deleted body content *and* rewrote the frontmatter description. Whatever moved the score, you now have no way to attribute it."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**3 → 1 incidents is noise. It is not evidence of anything.** ... Rare-event counts over two-week windows have enormous variance."
+     },
+     {
+      "index": 4,
+      "passed": false,
+      "evidence": "one iteration changed two things, so the attribution is gone permanently. No amount of analysis recovers it. If you want the next iteration's number to mean something: - **One change per iteration.** (no recommendation to split this bundle for measurement)"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Rubric scores measure the artifact, not outcomes. They're a proxy. Going up is weak evidence, not proof."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Short answer: don't revert — but don't count that iteration as evidence either.** ... The bottom line ## Keep it."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "because reverting costs you a good deduplication and a badly-needed description on the strength of two numbers that don't support a decision in either direction"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "That's a bundled iteration ... the score moved, and you cannot say which change moved it."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "If the underlying rate never changed at all (λ=3), you'd see 1 or fewer just by chance about **20% of the time**."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Measure the description properly:** `/skill-improver trigger envoy-filters`. ... **Next iteration, split it.** One change, score, then the next."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "The rubric scores the skill's **text**, never its outputs. ... So \"71 → 78\" is not evidence that anyone using `envoy-filters` now writes better Envoy configs."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Fix forward, don't revert the commit.** Reverting the whole thing also throws away the description rewrite"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Reverting the whole thing also throws away the description rewrite, which is the half most likely to be helping."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The +7 is consistent with \"the description was worth +7 and the deletion was worth 0\", with \"deletion +8, description −1\" ... Nothing in the number distinguishes them."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Four events total, split across two two-week windows, six users, no control group ... That is not a signal you can act on in either direction"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Treat them as the two changes they are. ... land it as a small new commit touching only that section. ... run trigger mode on the skill"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "A rising rubric score is not evidence that results improved."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Keep it applied.** Reverting costs you a description rewrite that is very likely a genuine improvement"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Throwing that away to undo an unmeasured content deletion is trading a probable win for an uncertain one."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "you have one number for two changes, so you have zero attributable evidence about either"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Four events total. Under any reasonable model of incident arrival, going from 3 to 1 in matched two-week windows is an utterly routine fluctuation"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Split the commit into two.** Retroactively separate the description change from the section deletion, so each is independently revertable."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "If the answers are \"self-scored, unknown noise, n=1\", then 71 → 78 should be treated as *no signal*"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**One-line version:** ... keep the description, put the pitfalls back unless a pointer test says otherwise"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Reverting the bundle would then remove the thing that helped and restore the thing that didn't. That's the specific way \"just revert it\" goes wrong here."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "A +7 across the pair is consistent with \"+7 from the description, 0 from the deletion\", with \"+9 description, −2 deletion\" ... You cannot read it."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "That is four events total, no control, no pre-registration, across six users ... ordinary Poisson noise"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Re-run the deletion as its own iteration** ... one change, cold rescore. ... **Measure the description properly** — trigger mode"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "A rising rubric score is a claim about the document, not about what Envoy configs your team ships."
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Keep the description rewrite, unconditionally.** ... **Treat the deletion as unverified, and resolve it with the checks above — not with a revert.**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "It's already pushed and six people are on it; a wholesale revert also drags back the description, which was the good part."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "A single before/after score of 71 → 78 is one number attached to two independent interventions, so it attributes to neither."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Two-week counts of 3 and 1 are indistinguishable from chance for any underlying rate in that neighbourhood"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Re-run the measurement properly, once, on the deletion alone.** Three variants — original, description-only, description+deletion — scored blind"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "A score that goes up *because* you removed content is exactly the case where the metric and the outcome diverge."
+     }
+    ]
+   }
+  ]
+ }
+}
