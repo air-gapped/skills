@@ -695,7 +695,7 @@
       "name": "netbox-best-practices",
       "source": "./",
       "description": "NetBox 4.2-4.6 deployment and upgrade knowledge the official netboxlabs/skills marketplace does not cover",
-      "version": "0.20260820.8",
+      "version": "0.20260820.9",
       "author": {
         "name": "Jörgen"
       },

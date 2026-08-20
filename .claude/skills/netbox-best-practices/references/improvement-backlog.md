@@ -36,11 +36,57 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
   content (chart issues sweep + a live multi-replica test) — not a
   single-iteration mutation. Source candidates: netbox-community/netbox-chart
   issues; deep-research run 2026-06-12 flagged this as its open question.
-- **`when_to_use` field split** (Dim 1) — blind scorers (both passes) note
-  trigger phrases are stuffed into `description` (866 chars, inside caps).
-  Splitting is spec-preferred but cosmetic today; do it next description edit.
+- **No eval set → Dim 10 capped at 8** (Negative-Transfer Gate). Both blind
+  passes on 2026-08-20 named this as the only route past the cap. Blocked on a
+  measurement, not on writing: needs `evals/evals.json` plus a with/without
+  `benchmark.json` producing a real `delta_pass_rate`. Note `knowledge-claims.json`
+  does NOT qualify — it is claim extraction, not a KNOWS/UNKNOWN/CONFLICTS floor
+  probe.
 
-## Resolved this pass — 2026-06-12
+### Unblocked work available to the next pass (NOT blockers)
+
+These are next-iteration hypotheses, recorded because the 2026-08-20 pass
+stopped on operator scope rather than on a rubric stop condition. Nothing
+external prevents them.
+
+- **Second-person sweep in references** (Dim 3, currently 7 — the lowest
+  dimension in the final blind, and its own recommended next fix). ~19
+  instances across `sso-hardening.md` (`:57`, `:132`, `:142`) and
+  `helm-chart-gotchas.md` (`:186`, `:359`): "you must", "your function",
+  "you don't need". SKILL.md itself is clean; only the references slip.
+- **PKCE-off-by-default duplicated near-verbatim** (Dim 6) across
+  `helm-chart-gotchas.md:359-370` and `sso-hardening.md:132-141`. Deletion
+  candidate — merge to one location and cross-reference.
+- **`[live]` labels pinned to chart 8.3.14 / NetBox v4.6.2** while upstream is
+  chart 8.3.57 / v4.6.8. Inside the 90-day window so no Dim 9 cap fires yet;
+  `sources.md` already flags it as the next freshen target.
+
+## Resolved this pass — 2026-08-20
+
+- **`when_to_use` field split** (Dim 1 + Dim 9) — RESOLVED. The June note called
+  this "cosmetic today, do it next description edit" at 866 chars. It stopped
+  being cosmetic: `description` had drifted to **1,070 chars, past the 1,024
+  spec hard max**, hard-capping Dim 9 at 3. Split into `description` 654 +
+  `when_to_use` 351 (combined 1,005, inside the 1,536 listing cap). Self Dim 9
+  3→9, Dim 1 6→8. Both blind scorers independently named this the single
+  highest-impact fix, each having measured the length with
+  `skill-improver/scripts/frontmatter-lengths.py` rather than estimating it.
+  Lesson worth carrying: a "cosmetic" frontmatter item can silently cross a
+  hard cap as the field grows — it is worth re-measuring, not re-reading.
+- **Intro said "three areas" and listed four** (Dim 8 8→9). Kept under the
+  noise-zone rule: a bare +1 with no simplification, re-checked cold on the
+  affected dimension, where it reproduced.
+
+**Pass record (2026-08-20, commit d7da2e5).** 2 iterations, 2 keeps, 0
+discards. Self 73 → 83 cold; blind 78 → 86. Anomaly gate fired on iteration 1
+(+8 ≥ +5): cold rescore of all ten dims gave 83 against delta-math 82, inside
+the 2-point tolerance, so the delta stood. Scorer was Sonnet 5 (pinned in the
+`blind-scorer` agent frontmatter as of 2026-08-20). **Stopped on operator
+scope, not on a rubric stop condition** — no ceiling was mapped and zero
+discards were logged, so this pass has NOT established that the skill is near
+its ceiling.
+
+## Resolved this pass — 2026-06-12## Resolved this pass — 2026-06-12
 
 - sources.md created, all rows stamped 2026-06-12 (Dim 9 cap 6 → 9).
 - Token section deduplicated against official netbox-labs:netbox-api-integration,
