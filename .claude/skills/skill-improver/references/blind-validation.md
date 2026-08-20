@@ -101,8 +101,24 @@ solid, the exact numbers are not.
 
 ## Model selection
 
-**Model: dynamic — the scorer inherits the session model.** Omit the `model`
-field in the `Agent` call. Two constraints bind:
+**Model: pinned to Fable 5 — pass `model: "fable"` in the `Agent` call.**
+Measured 2026-08-20 (§Measured scorer behaviour): Fable was the steadiest
+scorer of the four tested (spread median 2, max 3 re-scoring an unchanged
+skill) and the only one that comes close to the loop's ±2 keep threshold, while
+preserving the same skill ranking as Opus. It costs about 1.3× Opus per run —
+the trade is deliberate, because a score that has to be re-run before it can be
+trusted is not the cheap option. Sonnet is the acceptable cost fallback:
+ranking preserved at roughly half Opus, but spread median 4 / max 6.
+
+This **reverses the 2026-08-15 dynamic-inheritance decision, for the model
+only** — effort still inherits. The churn that decision killed was re-pointing
+a pin on every model release from a *label* ("most capable"), with no
+measurement behind it. This pin comes from variance measured on this skill's
+own scoring task, so it moves when a sweep says so, not when a release
+announcement does. Re-run the sweep before changing it;
+`evals/scorer-sweep.2026-08-20.json` records the harness.
+
+Two constraints still bind:
 
 - **Same-run consistency.** The baseline and final scorers of one run must use
   the same model — the bias-check table and the run's score trend are only
@@ -120,7 +136,7 @@ field in the `Agent` call. Two constraints bind:
   small model, pass a frontier-tier model explicitly (`model: "opus"` or
   better) instead of inheriting.
 
-**Effort: inherited from the session, like the model** (operator decision,
+**Effort: inherited from the session** (operator decision,
 2026-08-16 — the scorer runs with whatever the calling session runs). Omit
 any effort field in the spawn call; record the effective effort in the run
 log so scores stay interpretable. One caution to surface — not enforce — in
