@@ -67,9 +67,27 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Pass record — 2026-08-20 (self-run, commits aa0db2f + follow-up)
 
-**Blind 83 → 85.** 4 iterations, 4 keeps, 0 discards. **Stopped early — not a
-ceiling.** Zero discards maps nothing; one known cap trigger is named below and
-left unfixed by choice, not by blocker.
+**Blind 83, 85, 82 — no detectable change.** 4 iterations, 4 keeps, 0
+discards. **Stopped early — not a ceiling.**
+
+Three blind scores were taken across near-identical states and the spread is 3
+points, inside this scorer's measured noise (Sonnet: spread median 4, max 6 —
+`evals/scorer-sweep.2026-08-20.json`). The run was first reported as "83 → 85";
+that was noise read as signal, and the loop's own rule — a bare +2 is
+*undecided* — applies to it. The third score settles it: the honest result of
+this pass is **no measurable movement in the total**, mean 83.3.
+
+That does NOT make the iterations worthless, and the distinction matters. Two
+of them fixed things a score cannot see: a measurement script that was
+silently wrong, and four dead rows in this file. The rubric scores the skill's
+text; neither defect lived there. **A pass whose value does not show up in the
+total is a normal outcome, not a failed one** — but it must be reported as
+"no movement, here is what was fixed", never as a delta the metric did not
+produce.
+
+Cheap check worth repeating: this run is itself a three-sample replication of
+the scorer-noise finding, taken on a different skill from the sweep that
+produced it, and it reproduced.
 
 | iter | change | effect |
 |---|---|---|
