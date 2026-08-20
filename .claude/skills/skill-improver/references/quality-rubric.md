@@ -382,7 +382,6 @@ across releases.
 
 | Pattern | Detection | Cap |
 |---|---|---|
-| **Strict workflow scaffolding** — skill prescribes "do step 1, then 2, then 3..." procedural steps the model could discover via plan mode | `scripts/scaffold-probe.py <SKILL.md>` reports ≥ 8 **scaffold** items. Scaffold ≠ every numbered item — see the discriminator below. | **Dim 6 (Simplicity) capped at 6** |
 | **Up-front context dumps** — skill front-loads domain context the model could fetch via Read/Grep/WebFetch | Sections >30 lines describing facts (not procedures) without pointing at a tool/file. Boris: "give it a tool so it can get the context it needs." | **Dim 4 (Actionability) capped at 7** |
 | **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | Compensation-language probe below finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
 | **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
@@ -395,44 +394,62 @@ matches nothing, so a pasted-from-table command reports a clean skill):
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
 ```
 
-### The scaffolding discriminator
+### Procedural steps — advisory signal, NO cap (withdrawn 2026-08-20)
 
-Counting every numbered item conflates three species of list, and only one of
-them is scaffolding:
+**There is no step-count cap.** A "≥ 8 scaffold items → Dim 6 capped at 6" rule
+was carried here and is withdrawn: it had no source, and it contradicted the
+evidence it cited.
 
-| Species | Example | Counts? |
-|---|---|---|
-| **Scaffold** — unconditional imperative the model would land on anyway | "Read the target skill's entire directory." | **Yes** |
-| **Criterion** — invariant with a prohibition, named failure, or threshold | "Do NOT bundle multiple improvements — one change per iteration so cause is attributable." | No |
-| **Branch** — decision table or differential diagnosis, condition → action | "Hit rate is low? → no prefix reuse, offload gains nothing." | No |
+What the sources actually say, checked 2026-08-20:
 
-Criteria and branches encode judgment the model cannot infer. Delba de
-Oliveira's verification-loops post makes the case directly: *"Reject any
+- **No first-party or peer-reviewed source gives a numeric threshold** for
+  numbered or procedural steps in a skill. Not the platform best-practices doc,
+  not the two claude.com blog posts, not SkillLens, not agentskills.io. The 8
+  was inherited from a naive `rg -c '^\s*\d+\. '` detector and never
+  revisited when that detector was replaced.
+- **Anthropic's guidance points the other way.** *"Set appropriate degrees of
+  freedom. Match the level of specificity to the task's fragility and
+  variability."* Low freedom — explicit sequential steps — is the RECOMMENDED
+  shape when *"operations are fragile and error-prone / consistency is critical
+  / a specific sequence must be followed."* The same doc says *"Use workflows
+  for complex tasks. Break complex operations into clear, sequential steps"*,
+  with no ceiling, and its own worked examples run 4–6 steps.
+  [best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+- **SkillLens measured this property as non-predictive.** Rewriting one skill
+  into different surface formats yielded *statistically indistinguishable*
+  downstream gains (p > 0.34). Its three validated predictors —
+  Failure Mechanism Encoding, Actionable Specificity, High-Risk Action
+  Blacklist — are content properties. **None is a count.**
+- Capping on a step count therefore contradicted this rubric's own
+  §"Format-only hypotheses are low expected value", which cites the same paper.
+
+**What replaces it.** Judge procedure by fit, not by count. A long sequence is
+correct where the operation is fragile, consistency matters, or order is
+load-bearing; it is waste where the model would reach the same steps unaided.
+That is a judgement, and the rubric records it as one — in the Dim 6
+justification, never as an automatic cap.
+
+`scripts/scaffold-probe.py` still classifies items (scaffold / criterion /
+branch) and remains useful for *finding* candidate bloat — read its list, then
+decide. It no longer sets a score. Its classification insight stands on its own:
+criteria and branches encode judgment the model cannot infer, and Delba de
+Oliveira's verification-loops post makes the case directly — *"Reject any
 migration that drops a column without a backfill step" is a deterministic rule
-no generic linter will catch but a project-specific one will.* Capping a skill
-for writing those down inverts the intent — and it is the same property
-SkillLens found predictive (Failure Mechanism Encoding, High-Risk Action
-Blacklist, Actionable Specificity; see the next section).
+no generic linter will catch but a project-specific one will.* Penalising a
+skill for writing those down was always the inversion; the fix is to stop
+penalising steps at all, not to count them more cleverly.
 
-The discrimination is load-bearing, not cosmetic. Measured across 92 installed
-skills: the raw numbered-item count caps **61%**, scaffold-only caps **31%**. A
-detector that fires on three of every four skills is a constant, not a
-diagnostic.
-
-`scripts/scaffold-probe.py` does the classification (`--verbose` prints the
-per-item verdict, `--refs` extends to `references/`). Read its scaffold list
-before accepting the cap — the probe is a signal, and an item it calls scaffold
-may still be load-bearing for a reason the markers do not capture.
+**Do not re-introduce a count-based cap without a source that states one.**
 
 When a Boris cap triggers, record the justification like:
-> "Dim 6 capped at 6 — skill prescribes 11-step procedural workflow
-> (lines 45-89) the model could discover via plan mode. Boris
-> alignment failure: strict workflow scaffolding."
+> "Dim 4 capped at 7 — §Background front-loads 60 lines of protocol facts
+> (lines 45-105) with no pointer to a tool or file that would fetch them.
+> Boris alignment failure: up-front context dump."
 
 ### Induced cost — what the skill costs to OBEY
 
-Every cap above measures the skill's **text**. Dim 2 counts lines, Dim 6 counts
-scaffolding, and both are satisfied by a 90-line skill that says "read every
+Every cap above measures the skill's **text**. Dim 2 counts lines, and a lean
+line count is satisfied by a 90-line skill that says "read every
 reference before starting", fans out subagents with no ceiling, and pins
 `effort: xhigh`. That skill is cheap to load and expensive to run, and nothing
 in this rubric currently sees the difference.

@@ -462,7 +462,7 @@ awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{i
 | Finding | Action |
 |---|---|
 | Version-specific reference to an old Claude release (e.g. "Claude 3.5 tends to over-eagerly call tools") | Flag for author review. Verify against current model behaviour via a quick probe. If fixed → delete the compensation. |
-| 8+ **scaffold** items in SKILL.md body (probe's scaffold count, not its item count) | Flag — likely Dim 6 cap candidate. Recommend extracting to `references/runbook.md` or deleting if plan mode would cover. Read the probe's per-item list first; criteria and branches are keepers. |
+| Many **scaffold** items in SKILL.md body (probe's scaffold count, not its item count) | Advisory only — NO cap (rubric §"Procedural steps"). Read the list; a long sequence is correct where the operation is fragile or order is load-bearing |
 | Section >30 lines of context dump with no tool/file pointer | Flag for refactor — replace bulk with a one-line pointer to where the context lives ("see `tokenizer.json` for the full vocabulary"). |
 | All three patterns clean | Skill is Boris-aligned. Note in the freshen summary. |
 

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Boris scaffolding probe with a criterion discriminator.
+"""Scaffolding probe with a criterion discriminator. ADVISORY — sets no score.
+
+The "8+ scaffold items caps Dim 6" rule this fed was withdrawn 2026-08-20: no
+first-party or peer-reviewed source states a numeric step threshold, Anthropic's
+degrees-of-freedom guidance recommends explicit steps where operations are
+fragile or order is load-bearing, and SkillLens measured surface format as
+non-predictive of utility (p > 0.34). The classification below is still useful
+for FINDING candidate bloat; deciding whether a sequence earns its place is a
+judgement, recorded in the Dim 6 justification.
 
 The naive detector (`rg -c '^\\s*\\d+\\. ' SKILL.md >= 8`) cannot tell
 procedural scaffolding from encoded acceptance criteria. It counts both, so a
@@ -133,7 +141,9 @@ def probe(path: Path, threshold: int, verbose: bool) -> int:
     print(f"{path}")
     print(f"  numbered items : {len(items)}")
     print(f"  criteria       : {len(criteria)}  (carry a marker — do not count)")
-    print(f"  scaffold       : {len(scaffold)}  (threshold {threshold})")
+    print(
+        f"  scaffold       : {len(scaffold)}  (advisory — no cap; {threshold} is a filter default only)"
+    )
 
     if verbose:
         for item in scaffold:
@@ -143,9 +153,11 @@ def probe(path: Path, threshold: int, verbose: bool) -> int:
             print(f"    CRITERION L{item.lineno} [{marks}]: {item.body[:70]}")
 
     if len(scaffold) >= threshold:
-        print(f"  VERDICT: Dim 6 capped at 6 — {len(scaffold)} scaffold items")
+        print(
+            f"  ADVISORY: {len(scaffold)} scaffold items (was a cap until 2026-08-20; now a signal to read, not a score)"
+        )
         return 1
-    print("  VERDICT: clean — no strict-workflow-scaffolding cap")
+    print("  ADVISORY: low scaffold density")
     return 0
 
 
@@ -153,7 +165,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("skill", nargs="?", default="SKILL.md", type=Path)
     ap.add_argument("--refs", action="store_true", help="also probe references/*.md")
-    ap.add_argument("--threshold", type=int, default=8)
+    ap.add_argument(
+        "--threshold",
+        type=int,
+        default=8,
+        help="advisory only; retained so batch sweeps can still filter",
+    )
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
 
