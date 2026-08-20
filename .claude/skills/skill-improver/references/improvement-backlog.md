@@ -17,6 +17,25 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Open
 
+- **(2026-08-20) The blind scorer's noise floor exceeds the loop's own keep
+  threshold — measured, and SKILL.md amended.** 24 cells, 4 skills, n=3, via
+  `claude -p --model M --effort E`. **No model tested holds within-cell spread
+  under ±2** (medians 2–4, maxima 3–6; Haiku 14). A bare +2 keep is inside
+  measurement error, so SKILL.md now treats it as *undecided* — confirm with a
+  second cold score, or keep only when the change also simplifies. Two further
+  results: **effort is flat** (Opus low/high/xhigh within ~3 points, identical
+  rankings, no variance reduction — never raise scorer effort), and the
+  **frontier floor is real but is a floor, not a pin** — Haiku alone reordered
+  the skills and swung 14 points on one unchanged skill, while Sonnet, Opus and
+  Fable all agreed on ranking; Fable was steadiest, Opus harshest, and all three
+  non-Opus models sat ~+5 above Opus in absolute level. Recorded in
+  `references/blind-validation.md` §Measured scorer behaviour and
+  `evals/scorer-sweep.2026-08-20.json`.
+
+  **Still open from this:** ranking stability was only shown on skills spanning
+  68–86. Whether it survives on skills closer together in quality — the case
+  that actually matters for batch ranking — is untested, and n=3 is thin.
+
 - **(2026-08-20; RESOLVED same day) Three saturated eval cases replaced and the
   replacements validated before entry.** Cases 5, 6 and 7 each scored **18/18 in
   both configurations** on Opus 5 — delta exactly 0.000. Not wrong, *saturated*:

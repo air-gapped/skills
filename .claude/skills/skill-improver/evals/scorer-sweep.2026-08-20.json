@@ -1,0 +1,248 @@
+{
+ "metadata": {
+  "date": "2026-08-20",
+  "bead": "skills-scorer-model-effort-sweep-ox4",
+  "harness": "claude -p --model M --effort E --append-system-prompt <blind-scorer agent body> --allowedTools Read,Grep,Glob",
+  "skills": [
+   "traefik-hardening",
+   "netbox-best-practices",
+   "vllm-tool-parsers",
+   "triage"
+  ],
+  "runs_per_cell": 3,
+  "design": "Two phases in the order the cost doc prescribes: (1) effort swept on the current model (opus x low/high/xhigh); (2) models swept at a fixed effort (haiku/sonnet/opus/fable x high).",
+  "metrics": "NOT score agreement. (a) does the cell preserve the RANKING between skills, (b) is within-cell run-to-run spread below the loop's +2 keep threshold.",
+  "caveats": "n=3 per cell is thin; the four skills span 68-86 so ranking stability on closer-quality skills is untested; the metered Sonnet cost run finished early and under-reports."
+ },
+ "findings": {
+  "effort_is_flat": "Opus low/high/xhigh: means within ~3 points, no consistent direction, identical rankings, spread medians 2.5/3.0/3.0. Raising scorer effort buys nothing.",
+  "frontier_floor_confirmed": "At high effort Haiku was the ONLY model to reorder the skills, and swung 14 points across 3 runs of one unchanged skill. Sonnet, Opus and Fable returned identical rankings. Floor holds \u2014 on ranking instability and variance, not on the shallow-justification argument.",
+  "floor_not_a_pin": "Sonnet and Fable both preserve ranking. Fable was steadiest (spread median 2, max 3); Opus harshest.",
+  "cross_model_offset": "Haiku/Sonnet/Fable all scored ~+5 to +6 above Opus on the same skills. Totals are not comparable across scorer models.",
+  "noise_exceeds_keep_threshold": "No model held within-cell spread under +/-2 (medians 2-4, maxima 3-6, 14 for Haiku). A bare +2 keep decision is inside measurement error. SKILL.md amended to treat a bare +2 as undecided.",
+  "cost_usd_one_metered_run_high": {
+   "haiku": 0.231,
+   "sonnet": 1.136,
+   "opus": 1.958,
+   "fable": 2.618
+  }
+ },
+ "cells": {
+  "netbox-best-practices|fable|high": {
+   "scores": [
+    75,
+    78,
+    78
+   ],
+   "mean": 77,
+   "spread": 3
+  },
+  "netbox-best-practices|haiku|high": {
+   "scores": [
+    71,
+    74,
+    85
+   ],
+   "mean": 76.67,
+   "spread": 14
+  },
+  "netbox-best-practices|opus|high": {
+   "scores": [
+    72,
+    72,
+    74
+   ],
+   "mean": 72.67,
+   "spread": 2
+  },
+  "netbox-best-practices|opus|low": {
+   "scores": [
+    72,
+    73,
+    73
+   ],
+   "mean": 72.67,
+   "spread": 1
+  },
+  "netbox-best-practices|opus|xhigh": {
+   "scores": [
+    71,
+    74,
+    74
+   ],
+   "mean": 73,
+   "spread": 3
+  },
+  "netbox-best-practices|sonnet|high": {
+   "scores": [
+    78,
+    79,
+    80
+   ],
+   "mean": 79,
+   "spread": 2
+  },
+  "traefik-hardening|fable|high": {
+   "scores": [
+    85,
+    86,
+    86
+   ],
+   "mean": 85.67,
+   "spread": 1
+  },
+  "traefik-hardening|haiku|high": {
+   "scores": [
+    82,
+    83,
+    84
+   ],
+   "mean": 83,
+   "spread": 2
+  },
+  "traefik-hardening|opus|high": {
+   "scores": [
+    82,
+    83,
+    83
+   ],
+   "mean": 82.67,
+   "spread": 1
+  },
+  "traefik-hardening|opus|low": {
+   "scores": [
+    83,
+    84,
+    84
+   ],
+   "mean": 83.67,
+   "spread": 1
+  },
+  "traefik-hardening|opus|xhigh": {
+   "scores": [
+    79,
+    83,
+    83
+   ],
+   "mean": 81.67,
+   "spread": 4
+  },
+  "traefik-hardening|sonnet|high": {
+   "scores": [
+    84,
+    86,
+    87
+   ],
+   "mean": 85.67,
+   "spread": 3
+  },
+  "triage|fable|high": {
+   "scores": [
+    76,
+    76,
+    77
+   ],
+   "mean": 76.33,
+   "spread": 1
+  },
+  "triage|haiku|high": {
+   "scores": [
+    75,
+    78,
+    78
+   ],
+   "mean": 77,
+   "spread": 3
+  },
+  "triage|opus|high": {
+   "scores": [
+    66,
+    69,
+    70
+   ],
+   "mean": 68.33,
+   "spread": 4
+  },
+  "triage|opus|low": {
+   "scores": [
+    71,
+    72,
+    75
+   ],
+   "mean": 72.67,
+   "spread": 4
+  },
+  "triage|opus|xhigh": {
+   "scores": [
+    70,
+    70,
+    71
+   ],
+   "mean": 70.33,
+   "spread": 1
+  },
+  "triage|sonnet|high": {
+   "scores": [
+    72,
+    75,
+    77
+   ],
+   "mean": 74.67,
+   "spread": 5
+  },
+  "vllm-tool-parsers|fable|high": {
+   "scores": [
+    82,
+    85,
+    85
+   ],
+   "mean": 84,
+   "spread": 3
+  },
+  "vllm-tool-parsers|haiku|high": {
+   "scores": [
+    84,
+    84,
+    87
+   ],
+   "mean": 85,
+   "spread": 3
+  },
+  "vllm-tool-parsers|opus|high": {
+   "scores": [
+    75,
+    78,
+    79
+   ],
+   "mean": 77.33,
+   "spread": 4
+  },
+  "vllm-tool-parsers|opus|low": {
+   "scores": [
+    78,
+    80,
+    83
+   ],
+   "mean": 80.33,
+   "spread": 5
+  },
+  "vllm-tool-parsers|opus|xhigh": {
+   "scores": [
+    76,
+    77,
+    79
+   ],
+   "mean": 77.33,
+   "spread": 3
+  },
+  "vllm-tool-parsers|sonnet|high": {
+   "scores": [
+    81,
+    87,
+    87
+   ],
+   "mean": 85,
+   "spread": 6
+  }
+ }
+}

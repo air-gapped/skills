@@ -52,6 +52,53 @@ fallback of the same instructions — when the agent definition changes, update
 it in the same commit; a solo-run blind score and a batch-run blind score are
 only comparable while they ask for the same checks.
 
+## Measured scorer behaviour (2026-08-20)
+
+The model rule and the frontier floor below rested on a quote plus reasoning
+until this sweep. Four skills spanning 77-988 SKILL.md lines, scored blind,
+n=3 per cell, via `claude -p --model M --effort E` with this agent body as the
+system prompt. Two axes, run in the order the cost doc prescribes: effort on
+the current model first, then models at a fixed effort.
+
+**Effort buys nothing.** Opus at low / high / xhigh returned mean totals within
+about 3 points of each other per skill, with no consistent direction, and
+identical skill rankings at all three levels. Within-cell spread did not shrink
+with effort (median 2.5 / 3.0 / 3.0). A scoring pass is *not* the
+complex-reasoning workload the platform effort doc's `high` recommendation is
+aimed at — inherit the session effort and do not raise it for the scorer.
+
+**The frontier floor is real, and Haiku fails it for a measurable reason.**
+At `high`, Haiku was the ONLY model that reordered the skills, and it produced
+a 14-point spread across three runs of one unchanged skill. Sonnet, Opus and
+Fable all returned the identical ranking. So the floor holds — but on ranking
+instability and variance, not on the "shallow justifications" argument, and it
+is a *floor*, not a pin: Sonnet and Fable both qualify. Fable was the steadiest
+scorer measured (spread median 2, max 3), Opus the harshest.
+
+**Never compare totals across scorer models.** Haiku, Sonnet and Fable all
+scored about +5 to +6 points above Opus on the same skills. The same-run
+consistency rule above is what makes a run's trend meaningful; this is the
+size of the error when it is broken.
+
+**The scorer's noise floor exceeds the loop's keep threshold.** No model tested
+held within-cell spread under +/-2: medians were 2-4, maxima 3-6 (14 for
+Haiku). A single iteration kept on a bare +2 is therefore inside the
+measurement error, which is why SKILL.md now treats a bare +2 as undecided
+rather than as a keep. What survives the noise is the *ranking* between
+skills, which was stable across every effort level and every model above the
+floor.
+
+**Cost, one metered run each at `high`** (netbox-best-practices, first-party
+list rates): Haiku $0.23, Sonnet ~$1.14, Opus $1.96, Fable $2.62. Sonnet
+preserves the ranking at roughly half Opus's cost and is the cost-effective
+choice where only ranking is needed; the Sonnet figure is a floor, its metered
+run finished early and under-reports.
+
+**Not measured:** models below Haiku, efforts other than the three above, and
+whether ranking stability holds on skills closer together in quality than these
+four (spread 68-86). n=3 per cell is thin — the direction of these findings is
+solid, the exact numbers are not.
+
 ## Model selection
 
 **Model: dynamic — the scorer inherits the session model.** Omit the `model`
@@ -61,7 +108,10 @@ field in the `Agent` call. Two constraints bind:
   the same model — the bias-check table and the run's score trend are only
   comparable within one scorer. If the session model changes mid-run, pass the
   baseline scorer's model explicitly to the final scorer.
-- **Frontier floor.** Never score with a Haiku-class or smaller model.
+- **Frontier floor.** Never score with a Haiku-class or smaller model —
+  **measured 2026-08-20** (§Measured scorer behaviour): Haiku was the only
+  model to reorder a fixed set of skills, and it swung 14 points across three
+  runs of one unchanged skill.
   Validation is the loop's hard task — the dim-by-dim justifications are what
   make subsequent iterations targetable — and Boris Cherny's counterintuitive
   observation holds: cheaper-per-token models often use *more* total tokens on
