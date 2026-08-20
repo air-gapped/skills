@@ -164,3 +164,35 @@ counts as **Resolved this pass** (a mutation the metric registered; not a
 placeholder file), the carry-forward marker, and the append-only rule that
 preserves prior passes' discard rationales — live in
 **`references/backlog-format.md`**. Read it before writing the file.
+
+## Phase 7: Land it
+
+A pass is not done when the score moves. It is done when the work is applied,
+verified, committed, and the record updated — in that order, with nothing left
+staged for a later session.
+
+**Definition of done.** All five, or the pass is unfinished:
+
+1. Every keep is applied to the real files (not a scratch copy, not a diff).
+2. Both blind scores are on record — baseline and final. A run reporting one
+   of them has no bias check and its trend is self-scored.
+3. Committed through the repo's own hook sequence, with the backlog update in
+   the **same** commit. A backlog that lands a commit later describes a state
+   that never existed.
+4. Anything the pass resolved is **deleted** from Open, not ticked. The diff is
+   the record.
+5. Every unblocked item the pass surfaced is done, not filed
+   (`backlog-format.md` §"The admission test").
+
+**A pass ends with work, not with a report of work.** Findings named only in
+the run summary are gone with the session; the same finding written into the
+target's files or a commit message survives. If the choice is between one more
+paragraph of explanation and one more applied fix, apply the fix.
+
+**Stopping short is a legitimate outcome, but say which kind.** Three endings
+look identical in a summary and are not: *ceiling mapped* (5+ discards across
+2+ categories — the skill is near its limit), *cap reached* (10 iterations),
+and *stopped early* (scope, budget, or an operator interrupt). Only the first
+is evidence about the skill. A run with **zero discards has not mapped a
+ceiling** — name it as stopped early, in the backlog, so the next pass does not
+inherit a false "this skill is done".

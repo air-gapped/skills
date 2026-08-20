@@ -76,7 +76,7 @@ behaviour). Treat a bare +2 as *undecided*, not as a keep: confirm it with a
 second cold score, or keep it only when the change also simplifies. Rankings
 between skills are stable under that noise; single-iteration totals are not.
 
-The full phase workflow — **Phase 0 Setup → Phase 6 Persist the backlog**,
+The full phase workflow — **Phase 0 Setup → Phase 7 Land it**,
 including the cold-score discipline, the hypothesis criteria (simplicity,
 weakness, format-only), the keep/discard decision rules with the anomaly
 gate and noise zone, and the stop conditions — lives in
@@ -85,20 +85,20 @@ that decides keeps and discards is there.
 
 Three rules that bind without reading it:
 
-- **Blind validation is non-optional.** A baseline blind scorer at setup
-  (background, on a snapshot) and a final one on stop — do NOT report a run
-  without both on record.
 - **One change per iteration, diff minimal.** Bundling attributes the score
   lift to the wrong cause, so the next loop pivots to the wrong category.
-- **Backlog persistence is non-optional, and the backlog is not a parking
-  space.** Before declaring the run done, update
-  `<skill>/references/improvement-backlog.md` per
-  `references/backlog-format.md` — ceiling findings that exist only in chat
-  disappear with the session. But an Open entry must **name the absent thing**
-  that prevents doing the work (a ruling, a credential, an unreleased version,
-  a measurement nobody can run now). "Too big for this pass" is not a blocker:
-  if the honest answer is "nothing, it is just work", do it before the pass
-  ends. A pass may not end having added an unblocked item, under any heading.
+- **The backlog records blockers, not leftovers.** Persist ceiling findings to
+  `<skill>/references/improvement-backlog.md` (`references/backlog-format.md`)
+  — but every Open entry must **name the absent thing** that prevents the work:
+  a ruling, a credential, an unreleased version, a measurement nobody can run
+  now. Effort is not a blocker. If the honest answer is "nothing, it is just
+  work", do it before the pass ends; a pass may not end having added an
+  unblocked item under any heading.
+- **A pass ends with work, not a report of work.** Done = every keep applied +
+  **both** blind scores on record (baseline at setup on a snapshot, final on
+  stop — one alone is self-scored) + committed with the backlog in the same
+  commit + resolved items deleted from Open. Zero discards means no ceiling was
+  mapped: record that as stopped early, never as finished (Phase 7).
 
 ---
 
