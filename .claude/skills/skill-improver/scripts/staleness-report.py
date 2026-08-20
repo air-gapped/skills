@@ -38,6 +38,10 @@ Columns:
   pass   newest non-future date in references/improvement-backlog.md
   evals  t if references/trigger-evals.json exists, o if evals/evals.json
          exists (outcome evals), to for both, - for neither
+  cases  number of outcome eval cases, with `!` when below 8. Existence is
+         not resolution: one case flipping moves the pass rate by 1/n, so a
+         3-case corpus cannot resolve anything under 0.33 and quietly defends
+         the skill it is meant to test (quality-rubric §Negative-Transfer Gate)
   open   items under `## Open` in references/improvement-backlog.md
          (- if the skill has no backlog); fleet total printed as a footer
 
@@ -228,9 +232,41 @@ def scan_skill(skill_md, today):
         ("t" if (d / "references" / "trigger-evals.json").is_file() else "")
         + ("o" if (d / "evals" / "evals.json").is_file() else "")
     ) or "-"
+    # Existence is not enough: a corpus too small to resolve a delta defends
+    # the skill it is supposed to test. One case flipping moves the pass rate
+    # by 1/n, so n cases can only resolve effects of 1/n or larger.
+    row["cases"] = count_eval_cases(d / "evals" / "evals.json")
+    row["floor"] = round(1.0 / row["cases"], 3) if row["cases"] else None
     mtimes = [f.stat().st_mtime for f in d.rglob("*") if f.is_file()]
     row["changed"] = date.fromtimestamp(max(mtimes)).isoformat() if mtimes else None
     return row
+
+
+# Below this many cases a benchmark cannot resolve much: at 8 one case flipping
+# is 0.125, at 3 it is 0.333. Matches grow-evals.py's floor.
+RESOLVABLE_CASES = 8
+
+
+def count_eval_cases(path: Path) -> int | None:
+    """Number of outcome eval cases, or None if absent/unreadable."""
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text())
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+        return None
+    if isinstance(data, dict) and isinstance(data.get("evals"), list):
+        return len(data["evals"])
+    if isinstance(data, list):
+        return len(data)
+    return None
+
+
+def fmt_cases(cases):
+    """Case count, flagged when the corpus cannot resolve a delta."""
+    if not cases:
+        return "-"
+    return f"{cases}{'!' if cases < RESOLVABLE_CASES else ''}"
 
 
 def main():
@@ -262,14 +298,27 @@ def main():
         return
     print(
         f"{'age':>4}  {'oldest':<10}  {'changed':<10}  {'rows':>7}  {'cap':>3}  "
-        f"{'pass':<10}  {'evals':<5}  {'open':>4}  skill"
+        f"{'pass':<10}  {'evals':<5}  {'cases':>5}  {'open':>4}  skill"
     )
     for r in rows:
         print(
             f"{r['age'] if r['age'] is not None else '-':>4}  {r['oldest'] or '-':<10}  "
             f"{r['changed'] or '-':<10}  {r['rows']:>7}  {r['cap']:>3}  "
             f"{r['pass'] or '-':<10}  {r['evals']:<5}  "
+            f"{fmt_cases(r['cases']):>5}  "
             f"{'-' if r['open'] is None else r['open']:>4}  {r['skill']}"
+        )
+    thin = [r for r in rows if r.get("cases") and r["cases"] < RESOLVABLE_CASES]
+    if thin:
+        # The `!` rows. Existence of an eval set is not the same as being able
+        # to resolve a result with it, and nothing else in the fleet reports
+        # that gap — so it is named here, with the command that closes it.
+        worst = max(r["floor"] for r in thin)
+        print(
+            f"! {len(thin)} skill(s) have outcome evals too few to resolve a "
+            f"delta (worst floor {worst:.2f} — a result smaller than that is "
+            "one flaky case). Fix with scripts/grow-evals.py, then re-run the "
+            "benchmark."
         )
     with_backlog = [r for r in rows if r["open"] is not None]
     if with_backlog:

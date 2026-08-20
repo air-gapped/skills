@@ -333,6 +333,14 @@ date — vs `changed` = last content change on disk (newest file mtime). A
 skill can be freshly edited yet stale on verification — and vice versa; the
 `cap` column shows the Dim 9 staleness cap the verification age implies.
 
+The `cases` column counts outcome eval cases and marks `!` below 8. **A skill
+with an eval set is not the same as a skill that can be measured**: one case
+flipping moves the pass rate by `1/n`, so a 3-case corpus resolves nothing under
+0.33 and quietly defends the skill it exists to test. This is the only place the
+fleet reports that gap — `eval-evidence.py` computes the same floor per skill,
+but nothing would ever run it on a corpus nobody had flagged. Act on `!` rows
+with `scripts/grow-evals.py`, then re-run the benchmark.
+
 The `open` column counts items under `## Open` in each
 `improvement-backlog.md`, with a fleet total in the footer. Read it as a
 deferral signal, not a workload: an entry earns its place there only when
