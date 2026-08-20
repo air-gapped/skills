@@ -101,22 +101,32 @@ solid, the exact numbers are not.
 
 ## Model selection
 
-**Model: pinned to Fable 5 — pass `model: "fable"` in the `Agent` call.**
-Measured 2026-08-20 (§Measured scorer behaviour): Fable was the steadiest
-scorer of the four tested (spread median 2, max 3 re-scoring an unchanged
-skill) and the only one that comes close to the loop's ±2 keep threshold, while
-preserving the same skill ranking as Opus. It costs about 1.3× Opus per run —
-the trade is deliberate, because a score that has to be re-run before it can be
-trusted is not the cheap option. Sonnet is the acceptable cost fallback:
-ranking preserved at roughly half Opus, but spread median 4 / max 6.
+**Model: pinned to Sonnet 5 — pass `model: "sonnet"` in the `Agent` call.**
+Chosen on cost, from what the 2026-08-20 sweep actually established
+(§Measured scorer behaviour). The sweep proves ONE thing about model choice:
+**Haiku is disqualified** — it was the only model to reorder a fixed set of
+skills, and it swung 14 points across three runs of one unchanged skill.
+Sonnet, Opus and Fable all returned the identical ranking, and their variance
+differences (spread medians 4, 3, 2) are a one-to-two point gap at n=3 on four
+skills — inside the noise, not a ranking of scorers. Treating that gap as a
+finding would be exactly the mistake this sweep caught the loop making.
 
-This **reverses the 2026-08-15 dynamic-inheritance decision, for the model
-only** — effort still inherits. The churn that decision killed was re-pointing
-a pin on every model release from a *label* ("most capable"), with no
-measurement behind it. This pin comes from variance measured on this skill's
-own scoring task, so it moves when a sweep says so, not when a release
-announcement does. Re-run the sweep before changing it;
-`evals/scorer-sweep.2026-08-20.json` records the harness.
+Given three models that are indistinguishable on the evidence, take the
+cheapest: Sonnet at ~$1.14/run against Opus $1.96 and Fable $2.62. **This is a
+trial pin, set 2026-08-20** — if blind scores start disagreeing with judgement
+in ways Opus did not, that is the signal to re-measure, not to quietly switch
+back.
+
+This reverses the 2026-08-15 dynamic-inheritance decision **for the model
+only**; effort still inherits. The churn that decision killed was re-pointing a
+pin on every release from a marketing label with nothing measured behind it.
+This pin has a measured floor under it and a stated reason above it, and
+`evals/scorer-sweep.2026-08-20.json` records the harness to re-run before
+moving it.
+
+**Known gap:** the effort sweep ran on Opus. Sonnet's own effort curve is
+untested, so "effort is flat, inherit it" is an inference here, not a
+measurement.
 
 Two constraints still bind:
 

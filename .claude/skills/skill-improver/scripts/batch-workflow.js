@@ -166,10 +166,11 @@ function blindTail(s) {
 // death (pass that through — it is a real result, not a resolution failure).
 let BLIND_TYPE
 async function blindAgent(s, opts) {
-  // Model pinned to Fable 5: measured 2026-08-20 as the steadiest scorer
-  // (spread median 2 / max 3 re-scoring an unchanged skill) while preserving
-  // Opus's skill ranking. See references/blind-validation.md §Model selection.
-  opts = { ...opts, model: 'fable' }
+  // Model pinned to Sonnet 5 on cost: measured 2026-08-20, Sonnet/Opus/Fable
+  // were indistinguishable on ranking and their variance differences were
+  // inside the noise at n=3. Haiku was NOT — it reordered the skills. Sonnet is
+  // the cheapest model above that floor. See references/blind-validation.md.
+  opts = { ...opts, model: 'sonnet' }
   const candidates = BLIND_TYPE ? [BLIND_TYPE] : ['blind-scorer', 'agent:blind-scorer']
   for (const t of candidates) {
     try {
