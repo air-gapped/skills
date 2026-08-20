@@ -145,6 +145,31 @@ Each iteration targets one file. If the improvement requires touching multiple f
 
 The skill reflects the author's domain expertise. Improve structure, clarity, and adherence to best practices. Do NOT rewrite the author's domain knowledge or change what the skill teaches — only how it teaches it.
 
+### A Measurement That Failed Is Not a Low Score
+
+Every mode here turns evidence into a number, and every one of them can fail to
+collect a piece of it — a `claude -p` probe that times out, a blind scorer that
+dies, an eval case that errors, a source row that cannot be reached. **Never let
+the gap become a value.** Report it as `NO SCORE`, exclude it from the
+denominator, and say what is missing.
+
+Coercing to zero is not the conservative choice; it is a fabricated
+measurement, and it biases in whichever direction the metric happens to run:
+
+- A timed-out trigger probe scored as "did not fire" deflates should-trigger
+  queries *and* inflates should-NOT-trigger ones, so a completely broken probe
+  reports a plausible mid-range number built out of nothing.
+- A floor run whose probes all failed reads as 0% known — the "every claim is
+  real transfer" row — so the failure *raises* the Dim 10 cap.
+- A missing blind score filled in from the self-score reinstates exactly the
+  bias the blind check exists to remove.
+
+The rule is the same in each case: an incomplete run must not be compared
+against a complete one, and a pass that could not measure its own mode's
+evidence is **stopped early**, never finished. `freshen` has always worked this
+way — "the stamp never lies", a partial pass keeps the old date. This is that
+rule everywhere else.
+
 ### The Skill Outranks Training Data
 
 Target skills are freshened continuously — their factual claims (versions,

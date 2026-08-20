@@ -184,6 +184,31 @@ without the user's explicit opt-in (the keyword "ultracode" — it replaced
 "workflow" as the trigger keyword in v2.1.160 — or a direct request in the
 user's own words) — a single `Agent` is the default.
 
+## When a scorer does not return a score
+
+A scorer that dies, times out, returns prose without the table, or omits
+dimensions has **not scored**. Treat the gap as absent, never as a value:
+
+- **Do not fill it from the self-score.** That is the exact bias blind
+  validation exists to remove, reintroduced at the moment the check failed.
+- **Do not coerce a missing dimension to 0**, and do not carry forward its
+  previous value. A total summed over fewer than 10 dimensions is not
+  comparable to a 10-dimension total — report the dimensions that came back
+  and mark the **total** `NO SCORE`.
+- **Retry once.** If the second attempt also fails, that end of the run has no
+  blind score. Record `NO SCORE` and say which end.
+
+The consequence is a stop condition, not a footnote. A pass is done only with
+**both** blind scores on record (SKILL.md §Improvement Loop, improve-loop
+Phase 7). With one end unscored the pass is **stopped early** — the keeps may
+still be sound, but nothing measured them, so it must not be reported as
+finished or its delta quoted.
+
+With median-of-3 parallel scoring, report the count that actually returned:
+three is the median as designed, two is an average of two and must be labelled
+`n=2`, one is a solo score labelled `n=1`, and none is `NO SCORE`. A run that
+scored 3 at baseline and 2 at final is comparable only with both counts stated.
+
 ## Comparison Table
 
 After each blind agent returns, print a side-by-side comparison:

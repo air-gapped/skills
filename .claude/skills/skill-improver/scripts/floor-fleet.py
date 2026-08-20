@@ -78,13 +78,25 @@ def summarize(d: dict) -> dict | None:
     }
     for label, c in cells.items():
         b = c["buckets"]
+        # A claim whose probe failed reaches no bucket, and an UNGRADED one was
+        # never classified. Both are unmeasured, NOT evidence the model does not
+        # know the claim — dividing by `n` would deflate known_share exactly
+        # when the probe broke, ranking a half-failed run as a high-transfer
+        # skill. Score over what was actually graded.
+        scored = sum(
+            len(b.get(k) or []) for k in ("KNOWS", "PARTIAL", "UNKNOWN", "CONFLICTS")
+        )
         out["cells"][label] = {
             "knows": len(b["KNOWS"]),
             "unknown": len(b["UNKNOWN"]),
             "conflicts": len(b["CONFLICTS"]),
+            "scored": scored,
+            "unmeasured": n - scored,
         }
     s = out["cells"][strongest]
-    out["known_share"] = s["knows"] / n
+    out["known_share"] = (s["knows"] / s["scored"]) if s["scored"] else None
+    out["scored"] = s["scored"]
+    out["unmeasured"] = s["unmeasured"]
     out["conflicts"] = s["conflicts"]
     return out
 
@@ -118,30 +130,60 @@ def leaderboard(out_dir: Path, merge_dirs: list[Path] | None = None):
     if not rows:
         print("no completed skills yet", file=sys.stderr)
         return
-    rows.sort(key=lambda r: -r["known_share"])
+    # Unscored rows have no rank. Sort them last rather than coercing to 0.0,
+    # which would read as "the model knows none of this" — the opposite end of
+    # the scale from "we did not find out".
+    scored_rows = [r for r in rows if r["known_share"] is not None]
+    unscored_rows = [r for r in rows if r["known_share"] is None]
+    scored_rows.sort(key=lambda r: -r["known_share"])
+    rows = scored_rows + unscored_rows
 
     labels = sorted({lab for r in rows for lab in r["cells"]}, key=tier_rank)
     head = "".join(f"{lab[:9]:>11}" for lab in labels)
     print(f"\n{'skill':<44}{'claims':>7}{head}{'known':>8}{'conf':>6}")
     print("-" * (44 + 7 + 11 * len(labels) + 14))
     for r in rows:
+        # Denominator is what that cell graded, so a partial cell reads as the
+        # fraction it actually measured instead of borrowing the full claim set.
         cells = "".join(
-            f"{r['cells'].get(lab, {}).get('knows', 0):>6}/{r['claims']:<4}"
+            f"{r['cells'].get(lab, {}).get('knows', 0):>6}"
+            f"/{r['cells'].get(lab, {}).get('scored', 0):<4}"
             for lab in labels
         )
+        share = (
+            f"{r['known_share']:>7.0%}"
+            if r["known_share"] is not None
+            else f"{'NO SCORE':>8}"
+        )
+        flag = " !" if r.get("unmeasured") else ""
         print(
             f"{r['skill'][:43]:<44}{r['claims']:>7}{cells}"
-            f"{r['known_share']:>7.0%}{r['conflicts']:>6}"
+            f"{share}{r['conflicts']:>6}{flag}"
         )
 
     n = len(rows)
-    avg = sum(r["known_share"] for r in rows) / n
     conf = sum(r["conflicts"] for r in rows)
     print("-" * (44 + 7 + 11 * len(labels) + 14))
-    print(
-        f"{n} skills · mean known {avg:.0%} on the strongest model"
-        f" · {conf} total conflicts · ${total_cost:,.2f}"
-    )
+    # The mean covers only rows that produced a share; saying so keeps it from
+    # being read as a fleet-wide figure when part of the fleet went unmeasured.
+    if scored_rows:
+        avg = sum(r["known_share"] for r in scored_rows) / len(scored_rows)
+        mean = f"mean known {avg:.0%} on the strongest model (n={len(scored_rows)})"
+    else:
+        mean = "mean known NO SCORE — nothing was graded"
+    print(f"{n} skills · {mean} · {conf} total conflicts · ${total_cost:,.2f}")
+    partial = [r for r in rows if r.get("unmeasured")]
+    if partial:
+        print(
+            f"! {len(partial)} skill(s) have unmeasured claims on the strongest "
+            "model (probe failure or ungraded); their shares are over graded "
+            "claims only. Re-run before comparing them."
+        )
+    if unscored_rows:
+        print(
+            f"NO SCORE: {len(unscored_rows)} skill(s) graded nothing at all — "
+            "not a low floor, no measurement."
+        )
     if failed:
         print(f"\nno result ({len(failed)}): {', '.join(str(x) for x in failed[:12])}")
     print(
@@ -235,7 +277,7 @@ def main():
             eta = el / i * (len(todo) - i)
             if s:
                 cells = " ".join(
-                    f"{lab}={c['knows']}/{s['claims']}" for lab, c in s["cells"].items()
+                    f"{lab}={c['knows']}/{c['scored']}" for lab, c in s["cells"].items()
                 )
                 fails = sum(
                     (c.get("failures") or 0) for c in (d.get("cells") or {}).values()

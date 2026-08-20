@@ -239,6 +239,14 @@ sequentially:
 
 ### Anti-Patterns
 
+- Do NOT compare an incomplete probe run. `probe-trigger.py` exits 1 and sets
+  `summary.complete: false` when any query produced no measured run; those
+  queries carry `"trigger_rate": null`. Re-run — do not rank a description
+  against another one, and do not keep or discard a mutation, on a partial
+  set. An unmeasured query is not a low score, and treating it as one biases
+  both directions at once: should-trigger queries deflate toward failure while
+  should-NOT-trigger queries inflate toward passing, so a fully broken probe
+  produces a plausible mid-range number built out of nothing.
 - Do NOT mutate the SKILL.md body — body cannot influence trigger.
 - Do NOT pick the final by train score — always test, to guard overfit.
 - Do NOT eval against only passing phrasings — include user-reported

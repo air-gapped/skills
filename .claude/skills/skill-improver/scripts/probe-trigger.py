@@ -16,12 +16,23 @@ or `Read` tool_use whose input references our synthetic id (do not bail on the
 first other tool, and do not stop at message_stop — a tool-using turn spans
 several messages). Each query runs N times; rate >= threshold counts as
 triggered. The default `--timeout` is 180s because `claude -p` routinely takes
-60-150s/call; a call killed before the model reaches the Skill reads as a miss,
-so timed-out runs are tracked separately and surfaced as a warning — an all-0.0
-result from premature kills must never be mistaken for genuine under-triggering.
+60-150s/call.
+
+Fails closed on anything it did not measure. A call killed before the model
+reaches the Skill measured nothing, so it is excluded from the rate instead of
+counted as a non-trigger; a query with no measured run at all gets
+`"trigger_rate": null` and `"pass": null`, and the process exits 1. Coercing
+those to 0.0 biases both directions at once — should-trigger queries deflate
+toward failure while should-NOT-trigger queries inflate toward passing — so a
+fully broken probe used to report a plausible mid-range score built entirely
+out of nothing.
 
 Output: JSON — per-query pass/fail plus aggregate train/test scores when a
 holdout is requested. The parent loop reads this and decides what to mutate.
+`summary.complete` is false when any query went unmeasured; the caller must
+not rank such a run against another description.
+
+Exit: 0 when every query was measured, 1 when any was not.
 
 Usage:
   probe-trigger.py --skill-path <dir> --eval-set <eval.json> [--description <override>]
@@ -323,13 +334,22 @@ def score_set(
         n_trig = sum(1 for triggered, _ in runs if triggered)
         n_to = sum(1 for _, to in runs if to)
         total_timeouts += n_to
-        rate = n_trig / n
+        # A timed-out or crashed run measured NOTHING. Dividing by `n` would
+        # turn it into a confident non-trigger, which biases both directions at
+        # once: it deflates should-trigger queries toward failure and inflates
+        # should-NOT-trigger queries toward passing. Score over measured runs
+        # only, and give a query with no measured run no score at all.
+        measured = n - n_to
+        rate = (n_trig / measured) if measured else None
         item = by_query[q]
-        passed = (
-            (rate >= trigger_threshold)
-            if item["should_trigger"]
-            else (rate < trigger_threshold)
-        )
+        if rate is None:
+            passed = None
+        else:
+            passed = (
+                (rate >= trigger_threshold)
+                if item["should_trigger"]
+                else (rate < trigger_threshold)
+            )
         results.append(
             {
                 "query": q,
@@ -338,14 +358,22 @@ def score_set(
                 "triggers": n_trig,
                 "timeouts": n_to,
                 "runs": n,
+                "measured": measured,
                 "pass": passed,
             }
         )
+    unmeasured = sum(1 for r in results if r["pass"] is None)
     summary = {
         "total": len(results),
-        "passed": sum(1 for r in results if r["pass"]),
-        "failed": sum(1 for r in results if not r["pass"]),
+        # `passed` + `failed` + `unmeasured` == `total`. Never fold an
+        # unmeasured query into either side to keep the arithmetic tidy.
+        "passed": sum(1 for r in results if r["pass"] is True),
+        "failed": sum(1 for r in results if r["pass"] is False),
+        "unmeasured": unmeasured,
+        "scored": len(results) - unmeasured,
         "timeouts": total_timeouts,
+        # The caller must refuse to compare two descriptions when this is set.
+        "complete": unmeasured == 0,
     }
     return {"description": description, "results": results, "summary": summary}
 
@@ -440,12 +468,14 @@ def main():
     # never actually measured. Make that failure mode loud, never silent.
     all_out = [o for o in (train_out, test_out) if o]
     total_timeouts = sum(o["summary"].get("timeouts", 0) for o in all_out)
+    total_unmeasured = sum(o["summary"].get("unmeasured", 0) for o in all_out)
     pos_results = [r for o in all_out for r in o["results"] if r["should_trigger"]]
     if total_timeouts:
         print(
             f"warn: {total_timeouts} run(s) hit the {args.timeout}s timeout and were "
-            "killed before completing. These count as non-triggers but are NOT "
-            "reliable — raise --timeout and re-run before trusting the scores.",
+            "killed before completing. They are excluded from every rate rather "
+            "than counted as non-triggers — raise --timeout and re-run to score "
+            "on a full set.",
             file=sys.stderr,
         )
     if pos_results and not any(r["triggers"] > 0 for r in pos_results):
@@ -456,7 +486,20 @@ def main():
             "`claude -p` works and raise --timeout before trusting these scores.",
             file=sys.stderr,
         )
+    if total_unmeasured:
+        # Fail closed. An incomplete set is not a lower score — it is no score.
+        # Exiting non-zero stops a caller from ranking this description against
+        # another one measured on a different number of queries.
+        print(
+            f"error: {total_unmeasured} quer(ies) produced NO measured run and are "
+            'reported as `"trigger_rate": null`. This run is INCOMPLETE: do not '
+            "compare its scores against another description. Fix the probe "
+            "(`claude -p` auth, --timeout) and re-run.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

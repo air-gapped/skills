@@ -602,6 +602,17 @@ Requires the target to have `evals/evals.json`. A skill with no eval set cannot
 clear the unmeasured cap — that is a finding, not an obstacle: log it as an Open
 backlog item with action "build an eval set, then measure delta_pass_rate".
 
+**An errored case is not a failed case.** Before reading any delta, check that
+every case in `benchmark.json` actually ran. A case that crashed, timed out, or
+came back ungraded measured nothing — counting it as a failure manufactures a
+negative delta, and silently dropping it changes the denominator between the
+with-skill and without-skill arms so the two are no longer comparable. Re-run
+the errored cases. If they cannot be made to run, the delta is **unmeasured**
+and the 8 cap applies: partial evidence does not clear a gate that exists
+precisely because unmeasured skills look fine. This bites hardest at small
+corpus sizes — at the fleet median of 3 cases, one errored case is a third of
+the evidence (`scripts/grow-evals.py`, floor of 8).
+
 **A negative delta is not automatically a delete.** Check the analyst pass first
 — a skill can lose on `pass_rate` while winning on tokens or time, and a single
 flaky eval can invert a small delta. Confirm the sign is stable across runs
@@ -669,6 +680,13 @@ Rules for reading that table:
 
 - **`delta_pass_rate` still wins.** Floor only moves the *unmeasured* cap. A
   measured delta of any sign overrides every row here.
+- **A partial floor run moves nothing.** Read `scored` / `unmeasured` before
+  the share: a claim whose probe failed or came back `UNGRADED` was not
+  measured, and a share computed over the full claim set instead of the graded
+  one understates the floor. `NO SCORE` — nothing graded — leaves the flat `8`
+  in place. Note which row this protects: a totally failed run used to produce
+  a 0% floor, and 0% is the "every claim is real transfer" row, so the probe
+  breaking *raised* the cap to 9. Failure must never score better than success.
 - **10 is still unreachable from floor alone.** Recall is not application: a
   model can state a flag correctly and never think to use it mid-task. Only a
   positive measured delta clears 9.
