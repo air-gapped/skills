@@ -101,7 +101,13 @@ solid, the exact numbers are not.
 
 ## Model selection
 
-**Model: pinned to Sonnet 5 — pass `model: "sonnet"` in the `Agent` call.**
+**Model: pinned to Sonnet 5 in the agent definition** — `model: sonnet` in
+`.claude/agents/blind-scorer.md` frontmatter. **Omit `model` in the spawn
+call.** The pin lives in one place, which is also what makes the same-run
+consistency rule below hold by construction rather than by discipline. The one
+exception is `batch-workflow.js`'s `legacyBlindPrompt()` fallback: it runs
+without the agent definition, so it states the pin explicitly and must be
+changed with it.
 Chosen on cost, from what the 2026-08-20 sweep actually established
 (§Measured scorer behaviour). The sweep proves ONE thing about model choice:
 **Haiku is disqualified** — it was the only model to reorder a fixed set of

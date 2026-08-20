@@ -162,9 +162,10 @@ text; spawn it with a two-line path tail so every scorer in a run shares the
 cached prefix). The spawn mechanics, fallback chain, model rule, parallel-
 scoring variant, and bias-check table format live in
 **`references/blind-validation.md`**. Read it when spawning either agent.
-Two rules that bind without reading it: **spawn the scorer with
-`model: "sonnet"`** and inherit the session effort (omit effort — it was
-measured flat; same model for baseline and final within a run) — and print the
+Two rules that bind without reading it: **omit `model` in the spawn call** —
+the agent definition pins it (`model: sonnet`), so baseline and final match by
+construction — and inherit the session effort (omit it too; it was measured
+flat) — and print the
 bias-check table after each agent returns, flagging every dimension where self
 and blind differ by 2 or more.
 

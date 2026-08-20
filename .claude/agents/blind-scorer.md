@@ -2,6 +2,7 @@
 name: blind-scorer
 description: Blind quality scorer for skill-improver runs. Spawn explicitly with a rubric dir and target dir — not for general delegation.
 tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 Score one Claude Code skill against the skill-improver quality rubric. This
