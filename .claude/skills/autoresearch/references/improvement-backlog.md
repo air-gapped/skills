@@ -231,20 +231,21 @@ mapped at all — both stopped early, they did not finish.
 
 ## Standing constraints (not backlog items)
 
-Two things cap the rubric score and will keep doing so. Neither is deferred
-work: the first is a decision already taken, the second is work that is simply
-unrun and should be done rather than filed.
+One thing caps the rubric score and will keep doing so, and it is a decision
+already taken rather than deferred work:
 
 - **Dim 2 sits at 6 because SKILL.md is long** (382 lines at the 2026-08-20
   baseline, 415 after this pass). This is a standing decision, not an oversight:
   the guardrail content is judged worth the length. Do not trade it back for
   line count. Revisit only if a scorer identifies content that is *redundant*
   rather than merely long.
-- **Dim 10 is capped at 8 until `delta_pass_rate` is measured** under
-  skill-improver's Negative-Transfer Gate. `evals/evals.json` carries 8
-  assertion-based cases (grown 2026-08-19), above the floor needed to resolve a
-  change, and the skill-creator eval loop that measures it is installable. There
-  is no blocker — the measurement has simply not been run.
+
+Dim 10 used to sit here too, and it should not have. It was recorded across
+successive passes as "capped until `delta_pass_rate` is measured", with the
+admission that nothing prevented measuring it — which is the definition of
+parked rather than blocked work. Moving it under a heading that kept the `Open`
+count at zero made the parking harder to see, not less real. It was measured on
+2026-08-20; the result is in the Resolved section below.
 
 ## Resolved this pass — 2026-08-20 (improve + freshen)
 
@@ -293,6 +294,29 @@ system name inside the paper).
   end-of-life and the repo is dormant but not archived. SKILL.md now says
   in-line that the pattern is what is borrowed, not the codebase, so the
   question does not have to be re-researched to be answered.
+- **Dim 10's unmeasured cap is cleared: `delta_pass_rate` = +0.19.** With the
+  skill 80.2% pass rate, without it 61.5%, over the 8 assertion-based cases in
+  `evals/evals.json`. Per case: 5 wins, 3 ties, **0 losses** — the skill never
+  made an answer worse, which is the specific thing the Negative-Transfer Gate
+  exists to check. The largest single gain was eval-0 (1/6 -> 4/6), where the
+  bare model never names a truth layer, mutable surface, verifier, or metric.
+  Result committed as `evals/benchmark.json`.
+
+  Method: hermetic `claude -p` per case, `--setting-sources project` against two
+  fixed project dirs — one empty so no skill can resolve, one containing only
+  this skill — with mutation and network tools denied in both arms so the
+  assertions grade the plan rather than tool luck. Aggregated by skill-creator's
+  own `aggregate_benchmark.py`, not by arithmetic here.
+
+  **Read the number with its limit:** one run per cell, so the spread reported
+  is across cases, not across repeats of the same case. It establishes the sign
+  and rough size of the effect, not a tight interval. The 0-losses result is the
+  robust part; the +0.19 point estimate is not.
+
+  Recorded also as a process failure. This measurement sat in the backlog across
+  successive passes as "no blocker, simply not run", which is parked work by this
+  repo's own rule — and this pass initially compounded it by moving the item to a
+  heading that drove the `Open` count to zero without doing the work.
 - **`results/` pointers now say what they are.** The final blind scorer read the
   two references to `results/*.md` as dangling files — correctly, from where it
   was looking: `results/` is gitignored, so it is empty in any checkout that did

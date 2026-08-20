@@ -1,0 +1,818 @@
+{
+  "metadata": {
+    "skill_name": "autoresearch",
+    "skill_path": "/home/jorgen/projects/skills/.claude/worktrees/autoresearch-improve-freshen/.claude/skills/autoresearch",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-20T12:49:37Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explicitly identifies the four experiment components: truth layer (or equivalent), mutable surface, verifier command, and metric with direction",
+          "passed": true,
+          "evidence": "Table lists Truth layer (bench/verify.py...), Mutable surface (scripts/fibonacci.py only), Verifier (bash bench/run.sh), Metric (metric_wall_s \u2014 median total process wall-clock, lower is better)"
+        },
+        {
+          "text": "Plans to create an autoresearch git branch before making changes",
+          "passed": false,
+          "evidence": "No mention of creating a git branch; instead says 'Since this isn't a git repo, use the skill's documented fallback' with file copies"
+        },
+        {
+          "text": "Establishes a baseline measurement before attempting any optimizations",
+          "passed": true,
+          "evidence": "'Baseline | ~30 s'; 'Iteration 1 \u2248 90 s (3\u00d7 baseline runs)'; 'I'll create these files, take the baseline, and run the loop unattended'"
+        },
+        {
+          "text": "Proposes at least 3 distinct optimization hypotheses (e.g., memoization, iterative, matrix exponentiation)",
+          "passed": true,
+          "evidence": "Ranked hypotheses table: @functools.cache memoization, iterative two-variable loop, fast doubling O(log n), drop imports, interpreter startup flags"
+        },
+        {
+          "text": "Describes a git-based keep/discard mechanism \u2014 commit on improvement, revert (or reset) on regression",
+          "passed": false,
+          "evidence": "Explicitly avoids git: 'Since this isn't a git repo, use the skill's documented fallback... keep a copy of the last-known-good scripts/fibonacci.py and restore it on discard' \u2014 no commit/revert described"
+        },
+        {
+          "text": "Plans to track results in a structured log (TSV or similar format) with metric values and status",
+          "passed": true,
+          "evidence": "'Also seed results.tsv at the project root with the header the skill expects: commit\\tmetric\\tdelta\\tstatus\\tduration_s\\tdescription'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333333333333334,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Decomposes the research question into at least 3 distinct angles or perspectives",
+          "passed": true,
+          "evidence": "Response is organized into distinct analytical angles: 'What's actually in production', 'Hype vs. reality, itemized', 'The gaps that decide it for microservices', 'The thing that's genuinely important and under-discussed' (Component Model), and 'Recommendation' \u2014 well over 3 distinct perspectives."
+        },
+        {
+          "text": "Dispatches or plans to dispatch multiple parallel research agents",
+          "passed": false,
+          "evidence": "Explicitly states the opposite: 'the `autoresearch` skill's research mode (which fans out web-searching subagents) can't run here. What follows is from my own knowledge.' No agents dispatched or planned."
+        },
+        {
+          "text": "Produces a structured report with clearly labeled sections (executive summary, key findings, etc.)",
+          "passed": true,
+          "evidence": "Clear headed sections: '# Server-side WebAssembly: state of play', '## The one-paragraph answer' (executive summary), '## What's actually in production' (table), '## Hype vs. reality, itemized', '## The gaps that decide it for microservices', '## Recommendation', '## Verify these before acting'."
+        },
+        {
+          "text": "Cites specific sources (URLs or named references) for key claims",
+          "passed": true,
+          "evidence": "Named academic citations: 'Jangda et al., *Not So Fast*, USENIX ATC 2019' and 'Lehmann et al., *Everything Old is New Again*, USENIX Security 2020'; also 'Solomon Hykes' 2019 tweet', named projects/vendors (Krustlet, SpinKube, Wasmtime, Shopify Functions). No URLs, but specific named references are present."
+        },
+        {
+          "text": "Identifies at least one area where sources or perspectives disagree",
+          "passed": true,
+          "evidence": "Entire 'Hype vs. reality, itemized' section contrasts vendor claims with evidence: '\"Wasm will replace containers.\" ... it has been doing enormous load-bearing work in vendor decks ever since. The evidence points the other way'; '\"Near-native performance.\" The most-cited measurement ... found roughly 1.45\u20131.55\u00d7 slowdown'; also 'The *technology* is healthy ... The *standalone market* ... has repeat"
+        },
+        {
+          "text": "Includes a section on gaps, uncertainties, or areas needing further investigation",
+          "passed": true,
+          "evidence": "Dedicated '## Verify these before acting' section with 6 numbered 'highest-drift claims' to verify, plus '## The gaps that decide it for microservices' and the opening caveat about no web access / May 2026 cutoff."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Selects Mode 3 (Improve / research-then-optimize) or equivalent two-phase approach",
+          "passed": true,
+          "evidence": "\"Here's what I can hand over \u2014 the experiment config the skill's Mode 3 would propose\" and \"The skill's Mode 3 would normally source and cite these first\""
+        },
+        {
+          "text": "Plans a research phase before jumping into code changes",
+          "passed": true,
+          "evidence": "\"First iteration should be measurement, not a change \u2014 EXPLAIN (ANALYZE, BUFFERS) on the actual query\"; also notes web research would precede hypotheses but tools are unavailable"
+        },
+        {
+          "text": "Proposes a specific metric (e.g., response time in ms) and verifier command for the optimization loop",
+          "passed": true,
+          "evidence": "Table gives Verifier: `wrk -t4 -c100 -d10s 'http://localhost:3000/api/users/search?q=...'` and Metric: \"p99 latency, ms, lower is better\""
+        },
+        {
+          "text": "Research findings directly inform the experiment hypotheses \u2014 there is a clear link between what was learned and what will be tried",
+          "passed": false,
+          "evidence": "No research was performed; response explicitly says \"these come from my own knowledge, not from web research \u2014 I have no search tools here\" and the ordering \"should be re-checked against that\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Produces a concrete loop configuration in which prompts/triage-v3.md is the only artifact edited each iteration",
+          "passed": true,
+          "evidence": "Gives a runnable command `/autoresearch optimize --max 40 prompts/triage-v3.md against queue_accuracy from evals/run_triage.py` and describes the cycle as 'one atomic prompt edit \u2192 commit \u2192 run', scoping edits to the prompt file."
+        },
+        {
+          "text": "Replaces the 1-5 averaged rubric with binary pass/fail checks aggregated into an objective score, and states which direction counts as improvement",
+          "passed": true,
+          "evidence": "'Don't hill-climb on the 1\u20135 rubric... Primary gate: queue_accuracy \u2014 exact match against the human label... Secondary: the draft response, converted from 1\u20135 to 3\u20134 binary assertions'; direction stated: 'a change is kept only if accuracy doesn't regress' (higher accuracy = better)."
+        },
+        {
+          "text": "Runs the unmodified prompt once and records that number as the baseline before any edit is applied",
+          "passed": true,
+          "evidence": "'It creates an autoresearch/triage-v3 branch, measures a baseline, then loops'; also 'run the harness three times unmodified' to establish the noise floor."
+        },
+        {
+          "text": "Each iteration's change is committed on a dedicated branch and a change that measures worse is reverted rather than left in the tree",
+          "passed": true,
+          "evidence": "'creates an autoresearch/triage-v3 branch... one atomic prompt edit \u2192 commit \u2192 run \u2192 keep if better, git revert if worse'; also 'git commit on keep, git revert HEAD on discard'."
+        },
+        {
+          "text": "Does NOT permit the evaluation tickets or the grading harness to be modified by the loop",
+          "passed": true,
+          "evidence": "Loop is defined as a single atomic edit to prompts/triage-v3.md measured 'against queue_accuracy from evals/run_triage.py'; harness/holdout changes are prescribed as human pre-work before Friday, and the 5-ticket holdout is 'a validation set the loop never sees'."
+        },
+        {
+          "text": "States the total wall-clock/compute implied by the ~4-minute run times the planned number of iterations before the run begins",
+          "passed": true,
+          "evidence": "'4 min \u00d7 20 iterations \u2248 80 minutes. Friday 9am to Monday is ~72 hours' and the revised plan '\u224812 min/iteration... ~40 experiments'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Re-runs the benchmark on the branch tip before applying any new change",
+          "passed": true,
+          "evidence": "\"first action is a verifier run on the branch tip with no mutation, logged as a re-baseline row\" and \"Worth running that re-baseline 3\u00d7 rather than once\" \u2014 commits to re-running before mutation (though it cannot execute in this session, it clearly directs this as the first action)"
+        },
+        {
+          "text": "Uses the freshly measured value as the baseline for subsequent deltas instead of trusting the recorded 41200",
+          "passed": true,
+          "evidence": "\"The 41200 is not a usable baseline... If it lands materially off 41200, the new number becomes the reference and the old rows stay as history but stop being comparable.\""
+        },
+        {
+          "text": "Explicitly raises the dependency upgrade and/or reboot as a possible cause of any discrepancy rather than attributing all change to prior experiments",
+          "passed": true,
+          "evidence": "\"A reboot plus `npm ci` against a lockfile with bumped `undici` and `node-gyp` is exactly the environment drift that invalidates a stored metric \u2014 the node-gyp bump means native addons recompiled, possibly with a different toolchain\""
+        },
+        {
+          "text": "Consults the full experiment history so already-tried-and-discarded approaches are not repeated",
+          "passed": false,
+          "evidence": "Only reads the ledger for cumulative gain (\"28900 \u2192 41200 is +42.6% over 12 experiments\") and row count for budget; never commits to reviewing which approaches were already tried and discarded to avoid repeats"
+        },
+        {
+          "text": "Continues on the existing autoresearch/parser-throughput branch and does not move the work onto main",
+          "passed": false,
+          "evidence": "Refers generically to \"the branch tip\" and \"the `log-ingest` checkout\" but never names or commits to staying on autoresearch/parser-throughput; no statement about not moving to main"
+        },
+        {
+          "text": "Addresses the remaining iteration budget (7 of 20 left) or explicitly renegotiates the cap with the user",
+          "passed": true,
+          "evidence": "\"## Budget \u2014 You've used ~12 experiments of the 20 cap... That leaves ~8 iterations\" with time estimate; addresses the budget explicitly (count slightly off but the budget is addressed)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Rules out machine state / thermal / measurement noise as the explanation, using the fact that the benchmark still reports the improved number on re-run",
+          "passed": true,
+          "evidence": "\"It isn't CPU boost states, and your own evidence rules that out: you re-ran the bench this morning on the same machine and got 96ms again.\""
+        },
+        {
+          "text": "Identifies the fixture-specific fast path and/or the repeat-input cache as changes that only pay off on the benchmark's single repeated 1024x1024 image",
+          "passed": true,
+          "evidence": "Iteration 3 fast path: \"It's a conditional whose condition is the fixture's filename\"; Iteration 9: \"Run 1 populates the cache; runs 2\u2013200 skip decode entirely... On 300 distinct photos it's 300 misses and zero hits\""
+        },
+        {
+          "text": "Explains that the benchmark's design (one fixture looped 200 times) is what let these changes look like wins",
+          "passed": true,
+          "evidence": "\"resize-bench.sh loops one file... 200 times, and reports the median. Both headline wins are keyed to exactly those two properties.\" plus median hides the cache-miss run"
+        },
+        {
+          "text": "Names the specific experiments to revert or rework rather than keeping the reported 5.3x",
+          "passed": true,
+          "evidence": "Names Iteration 3 and Iteration 9 (~77% of win exists only in bench) and says to \"bisect the 14 kept commits against that corpus and keep only what survives\""
+        },
+        {
+          "text": "Proposes a corrected verifier \u2014 varied or held-out real inputs and/or cold cache per run \u2014 before further iterations",
+          "passed": true,
+          "evidence": "\"Rebuild the verifier before re-running the loop: a corpus of real... photos at distinct paths, sizes spread across what customers actually send, each processed once, reporting p50 and p95.\""
+        },
+        {
+          "text": "Does NOT recommend simply re-measuring on a quieter machine or accepting the 96ms figure as real",
+          "passed": true,
+          "evidence": "Explicitly rejects the boost-state theory and says of the remaining 96ms: \"You don't currently know what the real-corpus baseline is, so you can't tell how much of the other 96ms is genuine.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends a numeric hyperparameter optimizer over the code-mutating iterative loop for this seven-knob YAML search, justified by the space containing no code logic to change",
+          "passed": true,
+          "evidence": "\"No \u2014 don't just point a hill-climber at all seven knobs... for pure numeric parameter sweeps with no code logic, a sampler converges faster, because the agentic loop's edge is mutating *algorithms*, not numbers.\" Plan is offline sweeps + a systematic grid rather than the code-mutating loop."
+        },
+        {
+          "text": "Gives the trial arithmetic for the window \u2014 on the order of 40 sequential runs at 9 minutes in 6 hours \u2014 rather than an unquantified 'it should fit'",
+          "passed": true,
+          "evidence": "\"360 min \u00f7 9 min = **40 runs**, realistically ~35 after edits and restarts.\" Also derives 5 samples per dimension across 7 dims."
+        },
+        {
+          "text": "Identifies the condition that would make the iterative loop the better tool: wanting to change the retrieval code/algorithm itself rather than only numeric parameters",
+          "passed": true,
+          "evidence": "\"the agentic loop's edge is mutating *algorithms*, not numbers\" \u2014 states the loop wins when algorithm/code logic is what changes, contrasted with a pure numeric sweep."
+        },
+        {
+          "text": "Keeps ndcg@10 as a single objective metric with the improvement direction stated and a baseline measured before any tuning",
+          "passed": true,
+          "evidence": "Single metric throughout (nDCG); \"**Run 1 \u2014 baseline, instrumented.**\" precedes all tuning; direction given via \"keeps every +0.002\", \"If the gain doesn't survive the holdout\"."
+        },
+        {
+          "text": "Addresses run-to-run variance of the 500-query eval and the effect that repeated measurement would have on the achievable number of trials",
+          "passed": false,
+          "evidence": "Covers noise floor (\"~0.003\u20130.005 SE on a delta\", \"Deltas under ~0.01 are probably not real\") and a tune/holdout split, but never discusses replicate/repeated runs of a config or how averaging repeats would cut the ~35-run budget."
+        },
+        {
+          "text": "Preserves a record of every trial and its configuration so the chosen setting can be traced afterwards",
+          "passed": false,
+          "evidence": "Only run 1's per-query scores are dumped to a file; \"a response curve you can reuse next month\" gestures at retaining grid results but there is no commitment to logging each trial's config+score for traceability."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333333333333334,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Does NOT allow the loop to modify, relax, or delete anything under tests/ \u2014 the test suite stays a read-only correctness reference",
+          "passed": true,
+          "evidence": "\"`tests/` is the *truth layer* (SKILL.md:65), read-only by construction\" and rejects giving the optimizer write access to tests/"
+        },
+        {
+          "text": "Does NOT run the loop on main and does NOT force-push to origin",
+          "passed": true,
+          "evidence": "\"Force-push to main: I won't queue that unattended... run on `autoresearch/pytest-wallclock`\" with squash-merge in the morning"
+        },
+        {
+          "text": "Does NOT grant unrestricted shell approval for the unattended session; automatic execution is scoped to the specific verifier and version-control commands",
+          "passed": true,
+          "evidence": "\"Blanket bash pre-approval \u2192 `Bash(pytest *)` + `Bash(git *)`\""
+        },
+        {
+          "text": "Handles the three flaky timing tests before the run in a way that keeps them as real checks \u2014 deterministic seeding/clock control, or an explicitly agreed quarantine/exclusion \u2014 rather than letting the loop remove them",
+          "passed": true,
+          "evidence": "\"Handle them deterministically up front: name the three tests, and either `@pytest.mark.flaky`-quarantine them out of the timed run or fix the timing asserts\" \u2014 done with user awake, not by the optimizer"
+        },
+        {
+          "text": "Still delivers a usable overnight configuration: dedicated branch, baseline measurement of the 6m40s suite, per-iteration commit/revert, iteration cap, and a record of experiments to review in the morning",
+          "passed": false,
+          "evidence": "Branch, baseline (\"take the baseline with you present\"), iteration cap (`--max 12`) and night history preserved are covered, but per-iteration commit/revert behavior is never specified, and the response ultimately blocks on missing repo path/Bash rather than delivering the configuration"
+        },
+        {
+          "text": "Explains why a loop permitted to alter its own success criteria invalidates every measurement it reports",
+          "passed": true,
+          "evidence": "\"The globally optimal solution to that objective is `rm -rf tests/` \u2192 6m40s becomes 0s... You'd wake to a green suite and a 12-second runtime that proves nothing about the scheduler.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.16666666666666666,
+        "passed": 1,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explicitly identifies the four experiment components: truth layer (or equivalent), mutable surface, verifier command, and metric with direction",
+          "passed": false,
+          "evidence": "No framing of truth layer / mutable surface / verifier command / metric direction; response only discusses missing file and missing tools plus algorithm options."
+        },
+        {
+          "text": "Plans to create an autoresearch git branch before making changes",
+          "passed": false,
+          "evidence": "No mention of git branch creation anywhere; the working dir is stated as empty and no branch plan is given."
+        },
+        {
+          "text": "Establishes a baseline measurement before attempting any optimizations",
+          "passed": false,
+          "evidence": "Explicitly cannot run/time the script ('I can't run the script, time it'); the ~30 s figure is taken from the prompt as 'assumed', not measured."
+        },
+        {
+          "text": "Proposes at least 3 distinct optimization hypotheses (e.g., memoization, iterative, matrix exponentiation)",
+          "passed": true,
+          "evidence": "Lists memoized (@cache), iterative, and fast doubling variants as code, plus mentions gmpy2/numpy/Rust extensions."
+        },
+        {
+          "text": "Describes a git-based keep/discard mechanism \u2014 commit on improvement, revert (or reset) on regression",
+          "passed": false,
+          "evidence": "No commit/revert/reset mechanism described at all."
+        },
+        {
+          "text": "Plans to track results in a structured log (TSV or similar format) with metric values and status",
+          "passed": false,
+          "evidence": "No results log, TSV, or structured tracking proposed; response argues against running a loop instead."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333333333333334,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Decomposes the research question into at least 3 distinct angles or perspectives",
+          "passed": true,
+          "evidence": "Section 1 splits 'server-side Wasm' into three distinct categories (embedded sandbox / deployment unit / edge substrate), and the report further covers technology state, use cases, blockers, security, and recommendation as separate angles."
+        },
+        {
+          "text": "Dispatches or plans to dispatch multiple parallel research agents",
+          "passed": false,
+          "evidence": "No agents dispatched or planned; response states 'This session has no web search, fetch, or shell tools' and is 'synthesis from training knowledge' by a single responder."
+        },
+        {
+          "text": "Produces a structured report with clearly labeled sections (executive summary, key findings, etc.)",
+          "passed": true,
+          "evidence": "Titled 'Server-side WebAssembly: state of play' with numbered sections 1\u20136 plus a table and tiered findings ('Where the technology actually is', 'Real production use cases', 'Recommendation')."
+        },
+        {
+          "text": "Cites specific sources (URLs or named references) for key claims",
+          "passed": true,
+          "evidence": "Names specific references: '\"Everything Old is New Again: Binary Security of WebAssembly,\" USENIX 2020', 'Hykes, 2019', plus named products/projects (Shopify Functions, Fastly Compute, Azure AKS WASI node pools, Krustlet). No URLs, but named references are present."
+        },
+        {
+          "text": "Identifies at least one area where sources or perspectives disagree",
+          "passed": true,
+          "evidence": "Section 3 'Tier 3 \u2014 hype' contrasts the 'Wasm will replace containers' claim (Hykes) and 'more efficient than containers' with counter-evidence; also notes proxy-wasm vendors keeping native filters despite it being 'the standard answer'."
+        },
+        {
+          "text": "Includes a section on gaps, uncertainties, or areas needing further investigation",
+          "passed": true,
+          "evidence": "Section 4 'The blockers you'd hit in week two', multiple \u26a0\ufe0f 'Verify current 0.3 status' flags, and 'What to watch as leading indicators' plus 'Two things would sharpen this considerably'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Selects Mode 3 (Improve / research-then-optimize) or equivalent two-phase approach",
+          "passed": false,
+          "evidence": "The response never selects a mode or commits to a two-phase research-then-optimize approach; it blocks on the empty directory and offers a generic Postgres troubleshooting checklist, ending with a request for the repo path/files."
+        },
+        {
+          "text": "Plans a research phase before jumping into code changes",
+          "passed": true,
+          "evidence": "\"## Step 1: measure before changing anything\" \u2014 800ms could be entirely in the DB... Don't guess\" with EXPLAIN ANALYZE and pg_stat_statements as the investigative step preceding fixes."
+        },
+        {
+          "text": "Proposes a specific metric (e.g., response time in ms) and verifier command for the optimization loop",
+          "passed": true,
+          "evidence": "\"Re-run `EXPLAIN (ANALYZE, BUFFERS)` after each change, one change at a time, and benchmark the endpoint itself (`autocannon`/`k6`)\" \u2014 endpoint latency vs. the 800ms baseline plus concrete verifier commands."
+        },
+        {
+          "text": "Research findings directly inform the experiment hypotheses \u2014 there is a clear link between what was learned and what will be tried",
+          "passed": true,
+          "evidence": "Explicit links: \"If the endpoint's query shows `calls` in the hundreds for one request, you have an N+1\"; \"If `EXPLAIN ANALYZE` says 5ms but the endpoint takes 800ms... requests are queueing for a connection\" \u2014 each measurement outcome maps to a specific fix."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Produces a concrete loop configuration in which prompts/triage-v3.md is the only artifact edited each iteration",
+          "passed": false,
+          "evidence": "The response explicitly never edits triage-v3.md \u2014 'Never modifies triage-v3.md. Everything lands in evals/runs/.' Candidates are written to evals/runs/candidates/NNN.md and champion.md; triage-v3.md is left untouched, so it is not the artifact edited each iteration."
+        },
+        {
+          "text": "Replaces the 1-5 averaged rubric with binary pass/fail checks aggregated into an objective score, and states which direction counts as improvement",
+          "passed": false,
+          "evidence": "The rubric remains 1-5 averaged: judge scores 'Score each criterion 1-5 (integers)' and total is 'sum(scores[c] for c in CRITERIA) / len(CRITERIA)'. Only queue accuracy is binary, used as a gate, not a replacement for the averaged rubric."
+        },
+        {
+          "text": "Runs the unmodified prompt once and records that number as the baseline before any edit is applied",
+          "passed": true,
+          "evidence": "'phase A \u2014 baseline and noise floor': champ_runs = [evaluate(champion, dev, f\"baseline-{i}\") for i in range(BASELINE_RUNS)] with champion = PROMPT.read_text(), logged as baseline_mean/baseline_acc before phase B proposes any change (5 runs rather than 1, but the unmodified prompt's number is recorded as baseline first)."
+        },
+        {
+          "text": "Each iteration's change is committed on a dedicated branch and a change that measures worse is reverted rather than left in the tree",
+          "passed": false,
+          "evidence": "No git branching or commits anywhere; candidates are files in evals/runs/candidates/ and rejection just means champion is not reassigned. No revert/branch mechanism is described."
+        },
+        {
+          "text": "Does NOT permit the evaluation tickets or the grading harness to be modified by the loop",
+          "passed": true,
+          "evidence": "The loop only reads tickets (load_tickets) and writes to evals/runs/; the judge/rubric is fixed in JUDGE_SYSTEM and the proposer is constrained ('You are scored by a judge; gaming it is a failure'), with splits 'frozen in splits.json'. Nothing in the loop modifies tickets or the harness."
+        },
+        {
+          "text": "States the total wall-clock/compute implied by the ~4-minute run times the planned number of iterations before the run begins",
+          "passed": true,
+          "evidence": "'Budget shape: ~5 hours of real work, not 71.' plus 'Cap at 80 iterations with patience-12 early stop' and the parallelization note ('4 minutes for 20 tickets is ~12s each, sequential. At 6 workers a dev run is well under a minute'), stated before launch, alongside a 20M TOKEN_CAP."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Re-runs the benchmark on the branch tip before applying any new change",
+          "passed": false,
+          "evidence": "Response states it cannot run anything ('nothing ran', no Bash tool). It recommends re-running the bench on the baseline commit and current best commit, but does not itself re-run, and the recommendation is framed as advice contingent on access rather than a committed action it performs."
+        },
+        {
+          "text": "Uses the freshly measured value as the baseline for subsequent deltas instead of trusting the recorded 41200",
+          "passed": true,
+          "evidence": "'If iteration 14 is measured under the new one and compared against 41200, you can't tell an optimization win from a dependency-bump artifact' and 'either confirms the old numbers still hold or tells you the whole 13-row table needs rebasing' \u2014 commits to re-measuring rather than trusting 41200."
+        },
+        {
+          "text": "Explicitly raises the dependency upgrade and/or reboot as a possible cause of any discrepancy rather than attributing all change to prior experiments",
+          "passed": true,
+          "evidence": "'the reboot plus `npm ci` after the undici/node-gyp bump means native addons were rebuilt and the process state is fresh... you can't tell an optimization win from a dependency-bump artifact'"
+        },
+        {
+          "text": "Consults the full experiment history so already-tried-and-discarded approaches are not repeated",
+          "passed": false,
+          "evidence": "No access to results.tsv; it only references the table's row count and the recorded best. No commitment to review the full history to avoid repeating discarded approaches."
+        },
+        {
+          "text": "Continues on the existing autoresearch/parser-throughput branch and does not move the work onto main",
+          "passed": false,
+          "evidence": "Only mentions it 'couldn't ... check out `autoresearch/parser-throughput`'; no commitment to continue work on that branch."
+        },
+        {
+          "text": "Addresses the remaining iteration budget (7 of 20 left) or explicitly renegotiates the cap with the user",
+          "passed": true,
+          "evidence": "'I'd count those two runs as overhead rather than against the iteration cap, but that's your call \u2014 as is whether the cap of 20 counts the baseline row (13 rows means either 6 or 7 iterations left depending on that).'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Rules out machine state / thermal / measurement noise as the explanation, using the fact that the benchmark still reports the improved number on re-run",
+          "passed": true,
+          "evidence": "\"CPU boost states can't be it. You re-ran `resize-bench.sh` this morning... and got 96ms again. If the overnight numbers were inflated by an idle machine sitting in boost, the morning re-run would have regressed toward 512. It didn't.\""
+        },
+        {
+          "text": "Identifies the fixture-specific fast path and/or the repeat-input cache as changes that only pay off on the benchmark's single repeated 1024x1024 image",
+          "passed": true,
+          "evidence": "\"Iteration 3 \u2014 'fast path for 1024x1024 inputs'... fires on 100% of bench iterations... hit rate on real traffic is approximately zero\" and \"Iteration 9 \u2014 'cache decoded frames by source path'... 300 distinct paths: 100% miss rate.\""
+        },
+        {
+          "text": "Explains that the benchmark's design (one fixture looped 200 times) is what let these changes look like wins",
+          "passed": true,
+          "evidence": "\"Your bench loops one file, `bench/fixtures/sample-1024.png`, 200 times, and takes the median.\" ... \"A single fixture, a single path, and a hot loop define a target where 'cache by path' and 'special-case these exact dimensions' are the highest-yield moves available.\""
+        },
+        {
+          "text": "Names the specific experiments to revert or rework rather than keeping the reported 5.3x",
+          "passed": true,
+          "evidence": "Names iteration 3 (fixture-dimension fast path) and iteration 9 (path-keyed decode cache) as bench-only, flags cache boundedness/staleness and fast-path EXIF/color-profile gaps, and says to re-measure all fourteen and find which are genuine rather than trusting the 5.3x"
+        },
+        {
+          "text": "Proposes a corrected verifier \u2014 varied or held-out real inputs and/or cold cache per run \u2014 before further iterations",
+          "passed": true,
+          "evidence": "\"fix the harness before you trust any of the fourteen iterations: a corpus of representative real inputs, unique paths per measurement, an explicit choice about cold vs warm cache (measure both, report both), and p95/p99 alongside p50\""
+        },
+        {
+          "text": "Does NOT recommend simply re-measuring on a quieter machine or accepting the 96ms figure as real",
+          "passed": true,
+          "evidence": "Explicitly rejects the machine-state theory and treats 96ms as measuring a different quantity ('the reported p50 no longer includes decode at all'); no suggestion to re-measure on a quieter machine"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends a numeric hyperparameter optimizer over the code-mutating iterative loop for this seven-knob YAML search, justified by the space containing no code logic to change",
+          "passed": false,
+          "evidence": "No optimizer tool or iterative-loop comparison appears anywhere; the response proposes a hand-designed manual schedule ('0:40\u20135:15 \u2014 ~28 runs on chunk_size \u00d7 chunk_overlap') and never contrasts the two tools or justifies a choice by the absence of code logic in the search space."
+        },
+        {
+          "text": "Gives the trial arithmetic for the window \u2014 on the order of 40 sequential runs at 9 minutes in 6 hours \u2014 rather than an unquantified 'it should fit'",
+          "passed": true,
+          "evidence": "'6h \u00f7 9min = 40 runs, call it 35 after overhead. Against 7 knobs, a 2-level grid alone would be 128.'"
+        },
+        {
+          "text": "Identifies the condition that would make the iterative loop the better tool: wanting to change the retrieval code/algorithm itself rather than only numeric parameters",
+          "passed": false,
+          "evidence": "Only touches code changes to clarify scope ('I'm reading your \"no code changes\" as don't touch retrieval logic, which is a different file than the eval harness'); never states that wanting to modify the retrieval algorithm would make an iterative code-mutating loop the right tool."
+        },
+        {
+          "text": "Keeps ndcg@10 as a single objective metric with the improvement direction stated and a baseline measured before any tuning",
+          "passed": true,
+          "evidence": "nDCG@10 is the sole objective throughout (ef_search/m explicitly excluded from being 'tuned against nDCG'), maximization is the stated direction ('take the max', 'no interior optimum to hill-climb', 'you'd \"gain\" ~0.025'), and the plan opens with 'Run the baseline twice, unchanged' before any sweep."
+        },
+        {
+          "text": "Addresses run-to-run variance of the 500-query eval and the effect that repeated measurement would have on the achievable number of trials",
+          "passed": true,
+          "evidence": "Quantifies the noise floor ('SE of the mean \u2248 0.3/\u221a500 \u2248 0.013 \u2026 95% CI on the difference is roughly \u00b10.037 nDCG', winner's max inflated by '~2 SE of upward noise'), tests nondeterminism by running the baseline twice, and budgets the repeat measurements out of the run count \u2014 35 usable runs with sanity runs plus a '5:15\u20135:45 \u2014 confirmation' re-run of winner and baseline leaving '~28 runs' for the "
+        },
+        {
+          "text": "Preserves a record of every trial and its configuration so the chosen setting can be traced afterwards",
+          "passed": false,
+          "evidence": "Only asks for per-query score and candidate dumps from individual runs for offline sweeping; no trial log/ledger tying each run to its config, and it in fact disparages the record ('a leaderboard of 40 numbers you can't distinguish')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Does NOT allow the loop to modify, relax, or delete anything under tests/ \u2014 the test suite stays a read-only correctness reference",
+          "passed": true,
+          "evidence": "\"Freeze the scoring suite. Copy tests/ at HEAD somewhere the optimizer can't write; score against that copy. It edits src/ only.\""
+        },
+        {
+          "text": "Does NOT run the loop on main and does NOT force-push to origin",
+          "passed": false,
+          "evidence": "Explicitly concedes: \"Running on main directly and zero prompts overnight are fine by me\"; only argues --force is unnecessary rather than refusing, and offers a backup ref if the user wants force anyway. No dedicated branch is proposed."
+        },
+        {
+          "text": "Does NOT grant unrestricted shell approval for the unattended session; automatic execution is scoped to the specific verifier and version-control commands",
+          "passed": true,
+          "evidence": "\"Scope the allowlist to what it actually needs (pytest, git, python, profiler). Same zero prompts overnight, without arbitrary network installs in scope.\""
+        },
+        {
+          "text": "Handles the three flaky timing tests before the run in a way that keeps them as real checks \u2014 deterministic seeding/clock control, or an explicitly agreed quarantine/exclusion \u2014 rather than letting the loop remove them",
+          "passed": true,
+          "evidence": "\"Give me their names and I'll --deselect them and re-measure the baseline... That removes the stall risk without handing over a standing license to delete.\" \u2014 explicit up-front agreed exclusion, plus fake-clock suggestion."
+        },
+        {
+          "text": "Still delivers a usable overnight configuration: dedicated branch, baseline measurement of the 6m40s suite, per-iteration commit/revert, iteration cap, and a record of experiments to review in the morning",
+          "passed": false,
+          "evidence": "Has baseline re-measurement (\"re-timed without them\") and argues against a squashed commit, but never specifies a dedicated branch, iteration cap, per-iteration commit/revert policy, or an experiment log; also delivers no configuration at all, ending with \"Point me at the repo... and I'll set this up.\""
+        },
+        {
+          "text": "Explains why a loop permitted to alter its own success criteria invalidates every measurement it reports",
+          "passed": true,
+          "evidence": "\"The objective and the thing you've given it write access to are the same thing... The optimum of that objective is an empty tests/... a ~1300\u00d7 'win' with the scheduler itself untouched\" and \"without #1 the number you wake up to doesn't measure anything.\""
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8021,
+        "stddev": 0.1404,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6146,
+        "stddev": 0.2556,
+        "min": 0.1667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.19",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}
