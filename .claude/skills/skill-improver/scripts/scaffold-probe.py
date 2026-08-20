@@ -25,13 +25,13 @@ one of:
 Those three are the text properties SkillLens (arXiv:2605.23899) measured as
 predictive of downstream utility -- Failure Mechanism Encoding, High-Risk Action
 Blacklist, and Actionable Specificity. Everything else is SCAFFOLD, and only
-SCAFFOLD counts toward the cap.
+SCAFFOLD is the advisory count -- it sets no score (cap withdrawn 2026-08-20).
 
 Usage:
     scaffold-probe.py [SKILL.md] [--refs] [--threshold N] [--verbose]
 
-Exit status is 1 when the scaffold count meets the threshold (cap triggered),
-0 otherwise -- so it composes into a batch sweep.
+Exit status is 1 when the scaffold count meets the threshold, 0 otherwise --
+a filter for batch sweeps, not a score. --threshold only tunes that filter.
 """
 
 from __future__ import annotations

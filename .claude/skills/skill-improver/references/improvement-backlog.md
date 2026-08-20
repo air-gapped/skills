@@ -5,6 +5,8 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved this pass — 2026-08-20b (improve + freshen)](#resolved-this-pass--2026-08-20b-improve--freshen-self-run)
+- [Discard guards — do not re-propose](#discard-guards--do-not-re-propose)
 - [Resolved — 2026-08-19 (workflow-sandbox probe)](#resolved--2026-08-19-workflow-sandbox-probe)
 - [Resolved this pass — 2026-08-15](#resolved-this-pass--2026-08-15-improve-self-run-dynamic-scorer-config)
 - [Resolved — 2026-07-24 (scaffolding discriminator)](#resolved--2026-07-24-scaffolding-discriminator-claude-code-team-blog-pair)
@@ -36,20 +38,15 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
-- **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
-  §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
-  guidance already carried by the Trigger Mode stub ("Use trigger mode when…")
-  and Standalone Evaluation step 4, so the Dim 4 gain was cancelled by Dim 6
-  redundancy. Do not re-propose as an addition — if mode dispatch is wanted at
-  the entry point, it has to *replace* those two passages, which is a
-  multi-section rewrite, not one iteration.
-
 - **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
   Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy
   mode", "boris alignment check", "scaffolding decay", "is my skill fighting the
   model's grain" have no trigger phrases (only `argument-hint` + body). Combined
-  `description` + `when_to_use` is 1,305/1,536 chars — ~230 chars of headroom.
-  Adding triggers blindly is a guess; do it empirically:
+  `description` + `when_to_use` measured **1536/1536 on 2026-08-20 — zero
+  headroom** (the "~230 chars free" figure recorded here was stale). Any added
+  trigger phrase must now be funded by removing an existing one, per
+  `trigger-patterns.md` §T4. Adding triggers blindly is a guess; do it
+  empirically:
   `/skill-improver trigger skill-improver --missed "run a boris check on my skill"
   --missed "check my skill for scaffolding decay"`. Trigger-mode, not score-loop.
   Both 2026-06-09 blind agents and the 2026-07-24 baseline blind also flagged a
@@ -64,6 +61,123 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+## Resolved this pass — 2026-08-20b (improve + freshen, self-run)
+
+Baseline blind **86/100**, final blind **86/100** (both Sonnet 5, on snapshots).
+**No measurable movement in the total** — and that is the honest headline, not a
+hedge. Per-dim the two runs disagree by a point in both directions (Dim 2 7→8,
+Dim 8 9→8), which is inside this scorer's measured spread (median 4, max 6).
+
+Two caveats on the final score, stated because they cut against the pass:
+the final blind ran on a snapshot taken **before** the X-row citation fixes and
+before the orphaned-script documentation, so neither is reflected in it; and its
+Dim 8 deduction was for those orphaned scripts, which have since been fixed.
+Neither is grounds for claiming a higher number — a score not taken is not a
+score.
+
+**The pass's value is in Dim 9, not in the total.** Two of the findings below
+are factual errors that no rubric dimension can see — the loop was telling
+itself to size fan-outs against a cap that had been deleted, and citing a quote
+to a file that does not contain it. Both were caught by probes, not by reading.
+
+### Freshen — all 29 rows probed (three parallel `web-searcher` agents)
+
+- **Removed cap still being taught.** SKILL.md §Batch Mode named three live
+  fan-out caps; **v2.1.224 removed the 200-subagent-per-session spawn cap**
+  outright (*"long-running sessions no longer refuse new agents"*). Corrected
+  to two caps plus the removal. Verified against the primary `CHANGELOG.md`.
+- **Misattributed quote.** sources.md credited
+  `skill-creator/scripts/improve_description.py` as the source of
+  `"be a little pushy"`. It is not in that file. The guidance — and its
+  rationale, that Claude *"has a tendency to 'undertrigger' skills"* — is in
+  `skill-creator/SKILL.md`. Both rows corrected and `trigger-patterns.md`
+  Pattern T4 re-attributed. `improve_description.py` remains the source of the
+  overfitting guard and the ≤200-word / 1024-char targets.
+- **v2.1.219 → v2.1.237**, seven new rows in `anthropic-skill-design.md`.
+  Notably **v2.1.221's `prompt-audit`** subcommand on the bundled `claude-api`
+  skill, which audits prompts *and tool descriptions* for "patterns written for
+  older models" — first-party tooling aimed at the same target as the
+  model-version-compensation cap, now cited in `quality-rubric.md`
+  §Boris Alignment Check as a hypothesis source.
+- **A subagent report was wrong and the skill was right.** A probe claimed
+  nesting-depth default moved 1→3 in v2.1.232; the primary changelog shows
+  v2.1.219 already carried it. Existing text kept. §"The Skill Outranks
+  Training Data" applies to subagent findings, not only to model priors — the
+  rule was written for the latter and just earned its keep on the former.
+- **This file's own contract fixed.** sources.md was the last file in the fleet
+  still on the legacy per-row `Last verified` format that Freshen Mode replaced
+  with a single `Freshened:` header stamp. Stamped 2026-08-20; the staleness
+  report now reads it as `full`. SKILL.md §Additional Resources still described
+  the legacy behaviour — a straight contradiction with its own §Freshen Mode,
+  also fixed.
+
+### Improve
+
+- **A citation that four rules rested on says none of what was attributed to
+  it.** The `x.com/Mnilax` row had been marked `ignore-freshen` as "X
+  unfetchable, content quoted in skill", so no pass had ever read it. Read
+  through the operator's browser this pass: it is a third-party post about
+  *nine patterns that waste 73% of your tokens*, and contains **none** of the
+  five claims it was sourced for ("don't box the model in", the bitter lesson
+  applied to skills, "give it a tool, not context up front", build for the
+  model 6 months out, plan-mode default). The Boris Alignment Check survives
+  untouched — it was re-attributed to the first-party context-engineering blog
+  in July, which carries all three capped patterns plus the cost evidence — but
+  the *podcast origin* named by Philosophy Mode, freshen §4b and the trigger
+  Minimalism Test is now **unverified rather than refuted**, and is labelled as
+  such in SKILL.md, `quality-rubric.md` and the row itself. The rubric's line
+  "the X row is unfetchable and cannot be re-probed" was false and is gone.
+  **The general lesson, and the reason the escalation rule above matters:
+  `ignore-freshen` on a row that was merely bot-blocked is how a bad citation
+  survives indefinitely — nobody re-reads what the file says cannot be read.**
+- **`bcherny` Steps-of-AI-Adoption row is now partially verified.** Ladder
+  steps 0–3 confirmed verbatim from the linked claude.ai artifact (the primary
+  source; the tweet is just a pointer). The step-4 "AI-native (1,000+)" label,
+  the "I don't prompt Claude anymore … my job is to write loops" quote, and
+  "Anthropic self-reports step 3" could not be reached — the embedded artifact
+  iframe would not scroll past step 3. Recorded as unverified, not dropped.
+
+
+- **Withdrawn cap not swept through its dependents.** The 2026-08-20 step-count
+  withdrawal left three live references to a cap that no longer exists:
+  `improve-loop.md` Phase 0 told the loop three Boris patterns cap Dims 6/4/9,
+  `freshen-patterns.md` pointed at a rubric section renamed out of existence,
+  and `scaffold-probe.py`'s docstring still said "cap triggered". All three
+  corrected. Dim 8.
+- **The 1,536-char cap was stated but never measured.** `trigger-patterns.md`
+  Phase T4 listed it as a hard constraint with no instruction to check it, so
+  an over-cap mutation truncates in silence and the probe scores a description
+  the model never saw whole. Added the measurement step and the at-the-cap rule
+  (an addition must be funded by a deletion). Grounded in a measured instance:
+  this skill sits at exactly **1536/1536** while this very backlog recorded
+  "~230 chars of headroom" — that figure is now corrected too.
+- **Bot-blocks were treated as terminal.** `freshen-patterns.md` §2.4 sent a
+  `402`/`403` straight to an inline "unverifiable" exception note. Four
+  `x.com` rows — including the origin source for the Boris Alignment Check —
+  had therefore gone unverified across several passes, when the operator's
+  logged-in browser reads them fine. Added the escalation rule, and corrected
+  the F2 description of `web-searcher`, which had understated its own tooling
+  as "Bash/gh/WebFetch" when it also carries full browser control. That
+  understatement is why the escalation never occurred to any prior pass.
+
+- **Four scripts were orphaned.** `normalize-evals.py`,
+  `backfill-assertions.py`, `grow-evals.py` and `regrade.py` existed, were
+  non-trivial, and were referenced from nowhere — a Pattern 2.2 gap the final
+  blind caught and both blind runs before it missed. Documented in
+  §Additional Resources under a new "Eval-corpus maintenance (fleet-wide, not
+  per-run)" sub-heading, with the reason each exists. Fixed rather than filed:
+  nothing was absent, so it failed the admission test. SKILL.md 391 → 403
+  lines, well inside the 500 ceiling.
+
+### Backlog hygiene
+
+Open 4 → 3. The symptom→mode dispatch-table entry moved to a new
+**Discard guards** section: a change judged net-negative is a guard against
+re-proposal, not work pending a blocker, and its only obstacle was the size of
+the rewrite — effort, which the admission test explicitly rejects. The three
+remaining Open items each name a genuinely absent thing (a measurement run, a
+trigger-probe run, an operator ruling).
 
 ## Pass record — 2026-08-20 (self-run, commits aa0db2f + follow-up)
 
@@ -96,12 +210,13 @@ produced it, and it reproduced.
 | 3 | scoped the Phase 0 eager-read to point-of-use | cleared the induced-cost half of the Dim 6 cap |
 | 4 | TOC for `improve-loop.md` (198 lines, 9 siblings had one) | Dim 8; applied after the final blind, so unscored |
 
-**Next iteration, already identified — NOT a backlog item.** Dim 6 stays capped
-at 6 by `scaffold-probe.py`: 24 scaffold items in `trigger-patterns.md`, 16 in
-`freshen-patterns.md`, threshold 8. Nothing is absent; it is a workflow
-restructure converting derivable imperative steps to goal+pointer form, and it
-was left because doing it properly does not fit one iteration at the end of a
-long session. It is the first hypothesis of the next pass.
+**That "next iteration" is void.** The pass above closed by naming a scaffold
+restructure as the next hypothesis, on the grounds that `scaffold-probe.py`
+capped Dim 6 at 6. Hours later the same day the step-count cap was withdrawn
+entirely (no source states a threshold; Anthropic's degrees-of-freedom guidance
+recommends explicit steps for fragile work; SkillLens measured format as
+non-predictive). There is no cap to lift, so there is no iteration to run —
+recorded here so a later pass does not inherit the plan without the retraction.
 
 **Two findings about this skill's own tooling, both shipped hours earlier:**
 `frontmatter-lengths.py` had never been run against a file with a hyphenated
@@ -109,6 +224,19 @@ frontmatter key, so `argument-hint:` was folded into `when_to_use` — it had
 already been cited as evidence in two blind scores and a bead before the bug
 surfaced. And the skill was the only one of 68 with resolved rows left under
 Open, having written the delete-do-not-tick rule an hour before.
+
+## Discard guards — do not re-propose
+
+- **(2026-07-24) Dim 6/4: symptom → mode dispatch table** in §Invocation
+  (13 lines). Net-negative: the table duplicated guidance already carried by
+  the Trigger Mode stub ("Use trigger mode when…") and Standalone Evaluation
+  step 4, so the Dim 4 gain was cancelled by Dim 6 redundancy. Do not
+  re-propose as an addition — if mode dispatch is wanted at the entry point it
+  has to *replace* those two passages. **Moved out of Open 2026-08-20:** a
+  judged-net-negative change is a guard against re-proposal, not work pending a
+  blocker, and it fails the admission test (the only thing standing in its way
+  was the size of the rewrite, which is effort, not an absent thing). Keeping it
+  under Open inflated the count with something nobody should ever do.
 
 ## Resolved — carried entries purged from Open 2026-08-20
 

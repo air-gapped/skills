@@ -346,8 +346,14 @@ Anthropic; Lenny's podcast 2026) and since confirmed in first-party writing by
 Thariq Shihipar, *"The new rules of context engineering for Claude 5 generation
 models"* (2026-07-24) — which reports **over 80% of Claude Code's system prompt
 removed for Opus 5 / Fable 5 with no measurable loss on coding evals**, and names
-all three patterns below as superseded practice. Cite the blog, not the podcast:
-the X row in `sources.md` is unfetchable and cannot be re-probed.
+all three patterns below as superseded practice. **Cite the blog, never the
+podcast.** The X row that once carried the podcast attribution was read through
+a browser on 2026-08-20 — the `402` had been the fetcher, not the page — and it
+turned out to be a third-party post about token-waste patterns containing none
+of the claims attributed to it (`sources.md`, row marked MISATTRIBUTED). The
+blog is first-party and carries all three patterns plus the measured cost
+evidence below, so nothing here rests on the bad citation; but the podcast
+origin itself is now **unverified**, and no rule may be justified by it alone.
 
 The cost of *not* lifting these caps is measured, first-party, and stated to
 apply to skills. From *Optimizing for cost and intelligence* (Anthropic,
@@ -393,6 +399,12 @@ matches nothing, so a pasted-from-table command reports a clean skill):
 ```bash
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
 ```
+
+First-party tooling now targets the same pattern: Claude Code v2.1.221 added a
+`prompt-audit` subcommand to the bundled `claude-api` skill, which audits
+prompts **and tool descriptions** for "patterns written for older models".
+Run it alongside the regex — it is free hypothesis supply for this cap, and it
+reads the same text the cap scores.
 
 ### Procedural steps — advisory signal, NO cap (withdrawn 2026-08-20)
 

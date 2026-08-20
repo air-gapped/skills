@@ -133,6 +133,22 @@ constraints:
 - Do NOT touch SKILL.md body — it loads after triggering and cannot influence
   trigger decisions. Trigger mode is frontmatter-only.
 
+**Measure both caps before and after every mutation** —
+`python3 ${CLAUDE_SKILL_DIR}/scripts/frontmatter-lengths.py <target>/SKILL.md`.
+Stating the bound is not enforcing it: the overrun is silent. Claude Code
+truncates the combined field at 1,536 and says nothing, so the phrases that
+disappear are simply the last ones written, whether or not they were the
+load-bearing ones — and the probe still runs, scoring a description the model
+never saw in full.
+
+**At the cap, an addition must be funded by a deletion.** When the combined
+count is already at (or within ~50 chars of) 1,536, do NOT append: pick the
+weakest existing phrase and swap it out, then re-probe. A mutation that assumes
+headroom it does not have is not a mutation — it is a silent truncation with a
+trigger score attached. Measured instance: this skill sat at exactly 1536/1536
+on 2026-08-20 while its own backlog planned an addition on the belief that ~230
+chars were free.
+
 ### Phase T5: Re-probe and decide
 
 Re-run the probe with the new description (override via
@@ -539,8 +555,10 @@ the borderline of triggering — small wording shifts could flip it either way.
    see the T4 row in Phase T3) and only treat a rate that survives as real.
 2. **Then strengthen by adding redundancy.** If the confirmed variance is on
    a should-trigger query, add the missing keyword multiple times (in
-   `description` AND in `when_to_use`). Anthropic's improver explicitly
-   recommends "be a little bit pushy" for borderline cases.
+   `description` AND in `when_to_use`). Anthropic's own skill-creator says
+   Claude "has a tendency to 'undertrigger' skills" and tells authors to make
+   descriptions "a little bit 'pushy'" to counter it (`skills/skill-creator/SKILL.md`,
+   not the description optimizer — verified 2026-08-20).
 
 ### Pattern T5: Description hits the 1024-char hard cap
 

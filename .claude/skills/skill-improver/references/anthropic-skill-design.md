@@ -47,7 +47,7 @@ skill and it will read them at appropriate times.
 | `when_to_use` | No | Additional trigger context appended to `description` in the skill listing. Counts toward the 1,536-char combined cap. Use for trigger phrases and example requests that don't belong in the core description. |
 | `license` | No | License name or reference to bundled file |
 | `compatibility` | No | Max 500 chars. Environment requirements (product, packages, network) |
-| `metadata` | No | Arbitrary key-value mapping for custom properties |
+| `metadata` | No | Key-value mapping for custom properties. Spec clarified 2026-08-09: keys AND values are strings — not arbitrary YAML |
 | `allowed-tools` | No | Space-delimited list or YAML list of pre-approved tools |
 
 ### Claude Code Extension Fields
@@ -312,6 +312,13 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.217 | 2026-07-21 | Concurrent-subagent cap: default **20** in flight (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); nested subagent spawning off by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`); `--max-budget-usd` now halts running background subagents. `paths` frontmatter brace expansion budget-bounded (many brace groups previously OOM-killed startup). |
 | v2.1.218 | 2026-07-22 | **New skill frontmatter field `background`** — `context: fork` skills run in the background by default; `background: false` blocks the turn and restores the full tool set. Frontmatter booleans also accept `yes`/`no`/`on`/`off`/`1`/`0`. `/deep-research` and `/code-review` no longer self-launch. |
 | v2.1.219 | 2026-07-24 | **Claude Opus 5 (`claude-opus-5`) ships** — default Opus model, 1M context, $5/$25 per Mtok, knowledge cutoff May 2026. Platform docs still label Fable 5 "most capable widely released model", but the launch benchmarks put Opus 5 ahead of Fable 5 on knowledge work, agentic search, tool-using reasoning, and agentic terminal coding, with Fable 5 ahead only on sub-1-point coding/tool-free-reasoning margins and legal — **blind-validation pin moved to Opus 5** (see `blind-validation.md` §Model selection). Dynamic workflows default to a **medium size guideline (<15 agents)**, settable via `workflowSizeGuideline`; nested subagent depth raised to 3. |
+| v2.1.221 | 2026-08 | **`claude-api` skill gained a `prompt-audit` subcommand** — first-party auditing of prompts *and tool descriptions* for "patterns written for older models". Same target as this rubric's model-version-compensation cap (§Boris Alignment Check); run it as a free hypothesis source before a compensation-cap iteration. Also: `claude plugin validate` warns on marketplace/plugin names Claude Desktop would reject; plugins accept `"."` as a `skills` path. |
+| v2.1.222 | 2026-08 | A skill with `disable-model-invocation` that Claude tries to invoke now produces a refusal telling Claude to **ask the user to run it**, rather than replicating the workflow inline. Strengthens the Dim 1 invocation-fit check: opting a task skill out of model invocation no longer risks Claude re-deriving it badly. |
+| v2.1.224 | 2026-08 | **The 200-subagent-per-session spawn cap was removed** — *"long-running sessions no longer refuse new agents (concurrency and depth limits still apply)"*. Total agent count no longer bounds a `batch --all` pass; the 20-concurrent cap and the `<15` workflow size guideline are the live bounds. |
+| v2.1.228 | 2026-08 | Skills synced from claude.ai are hardened: they cannot shadow local commands or MCP prompts, descriptions are sanitized and labeled, and their bodies do not run `!` commands or expand `@` files locally. |
+| v2.1.232 | 2026-08 | **Subagent forking on by default** — a `subagent_type: "fork"` subagent inherits the full conversation *and prompt cache*; non-teammate agent spawns in interactive sessions run in the background by default. (Nesting depth 3 dates from v2.1.219, not this release.) |
+| v2.1.233 | 2026-08 | `claude plugin validate` now checks a **bare `.claude/skills` directory**, reporting SKILL.md files whose frontmatter fails to parse — a cheap pre-check before the Dim 9 hard-fail rules. Todo/task tools (TaskCreate/Get/Update/List, TodoWrite) are no longer available on Opus 4.8, Sonnet 5, Fable 5, Mythos 5 and newer (`CLAUDE_CODE_ENABLE_TODO_TOOLS=1` restores them). |
+| v2.1.236 | 2026-08 | Fixed skills hot-reload erroring on every change in SDK/VS Code sessions whose working directory had been deleted (regression from 2.1.229). Latest release at the 2026-08-20 freshen: **v2.1.237**. |
 
 ### Key Settings
 

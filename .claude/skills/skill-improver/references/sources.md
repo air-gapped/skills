@@ -1,13 +1,15 @@
 # Sources — Skill Design & Agent Skills Ecosystem
 
-URLs for keeping the skill-improver's references current. Freshen Mode reads
-this file, probes each row, and stamps `Last verified` (and `Pinned` where
-applicable). Standalone Evaluation uses the oldest `Last verified` to cap
-Dim 9 (see `references/quality-rubric.md` §Dim 9).
+**Freshened: 2026-08-20**
+
+URLs for keeping the skill-improver's references current. Freshen Mode probes
+every row and writes the single header stamp above; the per-row `Last verified`
+column is legacy and no longer authoritative. Standalone Evaluation reads the
+stamp to cap Dim 9 (see `references/quality-rubric.md` §Dim 9).
 
 ## Table of Contents
 - [Convention](#convention)
-- [Most recent freshen pass](#most-recent-freshen-pass-2026-07-24) (and prior passes)
+- [Most recent freshen pass](#most-recent-freshen-pass-2026-08-20) (and prior passes)
 - [Official Documentation](#official-documentation)
 - [GitHub Repositories](#github-repositories)
 - [Blog Posts & Articles](#blog-posts--articles)
@@ -20,7 +22,74 @@ Each row below has these columns: `Source`, `URL`, `What it contains`,
 Mark rows you want Freshen Mode to skip with `<!-- ignore-freshen -->`
 at the end of the row.
 
-## Most recent freshen pass: 2026-07-24
+## Most recent freshen pass: 2026-08-20
+
+All 29 rows probed (three parallel `web-searcher` agents: docs/blogs, GitHub,
+papers/announcements). First pass on this file to use the one-stamp contract —
+it had been running the legacy per-row format that Freshen Mode replaced, the
+only file in the fleet still doing so.
+
+### Notable changes since the previous pass (2026-07-24 → 2026-08-20)
+
+- **A cap this skill told the loop to size against no longer exists.**
+  Claude Code **v2.1.224 removed the 200-subagent-per-session spawn cap**
+  (*"long-running sessions no longer refuse new agents (concurrency and depth
+  limits still apply)"*). SKILL.md §Batch Mode named it as one of three live
+  caps; corrected to two, with the removal stated. Verified against the primary
+  `CHANGELOG.md`, not the summary.
+- **A quote was attributed to the wrong file.** The `"be a little bit pushy"`
+  guidance is in `skills/skill-creator/SKILL.md` (with its rationale — Claude
+  *"has a tendency to 'undertrigger' skills"*), **not** in
+  `scripts/improve_description.py`, where sources.md had claimed it. That file
+  is the source of the overfitting guard and the ≤200-word / 1024-char targets.
+  Both rows corrected; `trigger-patterns.md` Pattern T4 re-attributed.
+- **Claude Code v2.1.219 → v2.1.237.** Seven new rows in
+  `anthropic-skill-design.md`. Skill-relevant beyond v2.1.224: **v2.1.221**
+  added a `prompt-audit` subcommand to the bundled `claude-api` skill that
+  audits prompts *and tool descriptions* for "patterns written for older
+  models" — first-party tooling aimed at the same target as the
+  model-version-compensation cap, now cited in the rubric as a hypothesis
+  source; **v2.1.222** makes Claude ask the user to run a
+  `disable-model-invocation` skill rather than replicate it inline (strengthens
+  the Dim 1 invocation-fit check); **v2.1.232** turns subagent forking on by
+  default; **v2.1.233** extends `claude plugin validate` to bare
+  `.claude/skills` frontmatter parse errors, and removes todo/task tools by
+  default on Opus 4.8 / Sonnet 5 / Fable 5 / Mythos 5 and newer.
+- **One probe finding was wrong and the skill was right.** An agent reported
+  nesting-depth default moving 1→3 in v2.1.232; the primary changelog shows
+  v2.1.232 says nothing about depth and v2.1.219 already carried it. Existing
+  text kept. This is §"The Skill Outranks Training Data" applied to a subagent
+  report rather than to a model prior.
+- **Repos:** anthropics/skills @ 1f630fdf → `0a64e398` (2026-08-18), but
+  `skills/skill-creator/**` is **unchanged** — Trigger Mode's mirroring of
+  `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate, and
+  all four of `run_loop.py`'s semantics re-confirmed in source (holdout 0.4,
+  runs-per-query 3, test scores stripped before the improver sees them,
+  best-by-test). agentskills/agentskills @ 38a2ff82 → `69ef37e9` (2026-08-09),
+  one spec clarification: `metadata` values are strings, not arbitrary YAML.
+  skill-creator plugin @ `2a40fd2e` unchanged.
+- **Papers all stable:** SkillOpt v2, SkillLens v1, Bennett v4 — no new
+  versions, and every load-bearing SkillLens figure re-confirmed verbatim
+  (25% negative transfer, 46.4% / 15.8% judging, p > 0.34 on format, 73.8%
+  rubric-guided, 64–66% better-rates).
+- **Models:** no launch after Opus 5 (2026-07-24). The models-overview page
+  again leads with **Fable 5** as most capable widely released, with Opus 5 the
+  recommended default for complex agentic coding — the blind-scorer pin is
+  Sonnet 5 and is unaffected.
+- **The X rows were never unfetchable — only bot-blocked.** All four were read
+  this pass through the operator's logged-in browser. Result: two Thariq essays
+  confirmed as described; the `bcherny` ladder confirmed for steps 0–3 from the
+  linked claude.ai artifact (step 4 and two quotes unreachable behind a
+  non-scrolling iframe); and the `Mnilax` row **misattributed** — it contains
+  none of the five claims it was sourced for. That row had been marked
+  `ignore-freshen (X unfetchable)`, which is precisely why nothing caught it for
+  months. `freshen-patterns.md` §2.4 now requires escalating a `402`/`403` to
+  the browser before writing an exception note.
+- **Cost figures re-confirmed verbatim** on the optimizing-for-cost page (36%,
+  14%, +5 accuracy points, a third off for "verify twice", 7–11 points each for
+  the three scaffolding defects, and the sentence extending all of it to
+  skills).
+
 
 ### Notable changes since the previous pass (2026-07-18 → 2026-07-24)
 
@@ -175,12 +244,12 @@ unrestamped.
 | Claude Code skills docs | https://code.claude.com/docs/en/skills | Complete skill authoring guide, frontmatter reference (incl. `background`, `arguments`), bundled skills, "Evaluate and iterate on a skill" section | 2026-07-24 | — |
 | Evaluating skill output quality | https://agentskills.io/skill-creation/evaluating-skills | Output-quality eval methodology: `evals/evals.json` schema, assertions, clean-context runs, `grading.json` / `benchmark.json`, blind A/B comparison, iterate-until-flat loop | 2026-07-24 | — |
 | Skill authoring best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | Official best practices: conciseness, freedom levels, progressive disclosure, evaluation-first testing, anti-patterns | 2026-07-18 | — | **Re-read 2026-08-20** to settle the step-count question: the page gives degrees-of-freedom guidance (low freedom = explicit steps when operations are fragile / consistency critical / sequence matters) and "use workflows for complex tasks" with NO step ceiling — the basis for withdrawing the unsourced scaffold cap.
-| Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields (incl. license/compatibility/metadata/allowed-tools), validation rules | 2026-07-18 | — |
-| Claude models overview | https://platform.claude.com/docs/en/about-claude/models/overview | Per-model IDs, pricing, context windows, knowledge cutoffs, and the vendor capability positioning — the label side of the blind-validation model pin | 2026-07-24 | — |
+| Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields (incl. license/compatibility/metadata/allowed-tools), validation rules; `description` hard cap 1024 chars and the `name` rules are unchanged; `metadata` clarified 2026-08-09 to a map of string keys to **string** values | 2026-07-18 | — |
+| Claude models overview | https://platform.claude.com/docs/en/about-claude/models/overview | Per-model IDs, pricing, context windows, knowledge cutoffs, and the vendor capability positioning — the label side of the blind-validation model pin. As of 2026-08-20 the page leads with **Fable 5** as most capable widely released, with Opus 5 the recommended default for complex agentic coding (not the top model) | 2026-07-24 | — |
 | Effort levels | https://platform.claude.com/docs/en/build-with-claude/effort | Which models support `xhigh`/`max`, per-model defaults and recommended levels; ultracode = `xhigh` + standing multiagent-workflow permission | 2026-07-24 | — |
-| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-24 | v2.1.219 |
+| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-24 | v2.1.237 |
 | Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-07-18 | — |
-| Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents | 2026-07-18 | — |
+| Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents. **The 200-subagent-per-session cap was removed in v2.1.224** — concurrency (20, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) is now the only live subagent bound; nesting-depth default is 3 | 2026-07-18 | — |
 | Claude Code prompt-caching docs | https://code.claude.com/docs/en/prompt-caching | Prefix layers (system prompt / project context / conversation); model and effort are cache keys; system prompt embeds cwd, platform, shell, OS, auto-memory paths — so each worktree is its own prefix; **subagents use the 5-min TTL even on a subscription** (1-hour is main-conversation only); fork inherits the parent prefix; workflow fan-out hold-and-release; grounds Pattern 7.3 | 2026-08-19 | — |
 | Claude Code workflows docs | https://code.claude.com/docs/en/workflows | Workflow agent() cache mechanics (same prefix rules as Agent tool), fan-out cache warm-up | 2026-08-16 | — |
 | Optimizing for cost and intelligence | https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence | Measured cost levers: caching 2.5-3.7x; prompt audit — Opus 4.8-era prompts cost 36% more per ticket on Opus 5 at equal accuracy, audit returns 14% and +5pts accuracy (14% again on Sonnet 4.6→5); "verify twice" removal cut cost by a third; retired thinking setting / contradictory rules / hand-rolled scratchpad each restored 7-11 accuracy points; page states the patterns apply to skills. Cited in quality-rubric.md §Boris Alignment Check and §The cost side of the same benchmark. Also: effort curves flat on knowledge work, re-run-failures policy | 2026-08-19 | — |
@@ -193,14 +262,14 @@ unrestamped.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-24 | main @ 1f630fdf (2026-07-22) |
-| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained) | 2026-07-24 | main |
+| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-24 | main @ 0a64e398 (2026-08-18) — **`skills/skill-creator/**` unchanged since 1f630fdf**, so Trigger Mode's mirroring of `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate |
+| Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained). **Source of the "a little bit 'pushy'" guidance** and the undertrigger rationale behind it (body, §description) — cited by trigger-patterns Pattern T4 | 2026-07-24 | main |
 | skill-creator plugin (install path) | https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator | The copy the official docs tell users to install (`/plugin install skill-creator@claude-plugins-official`); last synced from anthropics/skills 2026-04-23 | 2026-07-24 | main @ 2a40fd2e |
-| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for "be a little pushy", overfitting guard, ≤200 word target. Trigger Mode mirrors this approach. | 2026-07-24 | main (unchanged since 2026-04-20) |
+| skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for the overfitting guard ("do NOT produce an ever-expanding list of specific queries"; generalize to broader categories of user intent) and the ≤200-word / 1024-char targets. Trigger Mode mirrors this approach. The "pushy" guidance is NOT here — it lives in skill-creator's SKILL.md (row above); this row misattributed it until 2026-08-20. | 2026-07-24 | main (unchanged since 2026-04-20) |
 | skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-07-24 | main (unchanged since 2026-04-20) |
 | skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-07-24 | main (unchanged since 2026-04-20) |
-| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-24 | main @ 38a2ff82 (2026-07-10) |
-| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-24 | v2.1.219 |
+| Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-24 | main @ 69ef37e9 (2026-08-09) — one spec clarification since: `metadata` is now stated to be a map from string keys to **string values**. No `skills-ref validate` behaviour change |
+| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-24 | v2.1.237 |
 
 ## Blog Posts & Articles
 
@@ -210,10 +279,10 @@ unrestamped.
 | Anthropic news — Opus 4.8 | https://www.anthropic.com/news/claude-opus-4-8 | Opus 4.8 launch (2026-05-28): `claude-opus-4-8`, effort tiers, dynamic workflows, fast mode pricing | 2026-05-28 | — | <!-- ignore-freshen (historical launch page) -->
 | Anthropic news — Opus 5 | https://www.anthropic.com/news/claude-opus-5 | Opus 5 launch (2026-07-24): `claude-opus-5`, $5/$25 per Mtok, near-frontier at half Fable 5's price but below it; new default Opus | 2026-07-24 | — | <!-- ignore-freshen (historical launch page) -->
 | Anthropic news — Fable 5 | https://www.anthropic.com/news/claude-fable-5-mythos-5 | Fable 5 launch (2026-06-09): `claude-fable-5`, Mythos-class tier above Opus, pricing ($10/$50 per Mtok), availability windows | 2026-06-09 | — | <!-- ignore-freshen (historical launch page) -->
-| Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | Lessons from building Claude Code: How We Use Skills (March 17, 2026) | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
-| Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | Agent design philosophy | 2026-05-01 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
-| Boris Cherny on Lenny's podcast | https://x.com/Mnilax/status/2050321700802408552 | Creator of Claude Code interviewed 2026; "don't box the model in", bitter lesson applied to skills, "give it a tool, not context up front", build for the model 6 months out, plan-mode default. Source for Boris Alignment Check (rubric §), Scaffolding Decay Probes (freshen §4b), Minimalism Test (trigger §), and Philosophy Mode (SKILL.md §). | 2026-05-03 | — | <!-- ignore-freshen (X unfetchable, content quoted in skill) -->
-| Boris Cherny — Steps of AI Adoption | https://x.com/bcherny/status/2077929379661844559 | Loop-era adoption ladder (2026-07-16): Gated (0) → Assisted (~1) → Parallel (~10) → Supervised autonomy (~100) → AI-native (1,000+ agents); "I don't prompt Claude anymore … my job is to write loops"; Anthropic self-reports step 3. Verified 2026-07-18 via LinkedIn mirror + press syndication (X direct fetch 402). | 2026-07-18 | — | <!-- ignore-freshen (X unfetchable, verified via syndication) -->
+| Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | "Lessons from Building Claude Code: How We Use Skills", 2026-03-17. Skill categories, "don't state the obvious", gotchas sections, progressive disclosure, distribution/marketplace, measuring skills. Browser-read 2026-08-20 — the row's prior `X unfetchable` note was wrong, the block is fetcher-side | 2026-08-20 | — |
+| Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | "Lessons from Building Claude Code: Seeing like an Agent", 2026-02-27. Tool-space design philosophy, AskUserQuestion history, TodoWrite → Task tool evolution, progressive disclosure via Grep/skills, Claude Code Guide subagent. Browser-read 2026-08-20 | 2026-08-20 | — |
+| ~~Boris Cherny on Lenny's podcast~~ **MISATTRIBUTED** | https://x.com/Mnilax/status/2050321700802408552 | **Read via browser 2026-08-20 (the `402` was the fetcher, not the page) and it does NOT say what this row claimed.** It is a third-party post by @Mnilax (2026-05-01) summarising a podcast as *nine patterns that waste 73% of your tokens* — CLAUDE.md overhead, re-read chat history, forgotten hooks. **None** of the five claims this row sourced — "don't box the model in", the bitter lesson applied to skills, "give it a tool, not context up front", build for the model 6 months out, plan-mode default — appears in it or its quoted tweet. Kept as a record of the bad citation, not as a source. The Boris Alignment Check does not depend on it (re-attributed 2026-07-24 to the first-party context-engineering blog, which carries all three capped patterns plus the measured cost evidence). Philosophy Mode, freshen §4b and the trigger Minimalism Test still describe their origin as this podcast — that origin is **unverified**, not refuted: the podcast may well say these things; this post is simply not evidence that it does. | 2026-08-20 | — |
+| Boris Cherny — Steps of AI Adoption | https://x.com/bcherny/status/2077929379661844559 | Loop-era adoption ladder. **Browser-read 2026-08-20:** tweet is Boris Cherny, 2026-07-17, linking a claude.ai artifact "Steps of AI Adoption" dated 2026-07-16 — the artifact is the primary source, the tweet is a pointer. Ladder steps **0–3 confirmed verbatim** in the artifact table (0 Gated / 0 agents · 1 Assisted, a pair / ~1 · 2 Parallel, orchestrator / ~10 · 3 Supervised autonomy, manager of managers / ~100). **Not confirmed:** the step-4 "AI-native (1,000+)" label, the "I don't prompt Claude anymore … my job is to write loops" quote, and "Anthropic self-reports step 3" — the embedded artifact iframe would not scroll past step 3, so these are unverified rather than refuted. Do not quote them as sourced until someone reads the lower rows. | 2026-08-20 | — |
 | Armin Ronacher — The Coming Loop | https://lucumr.pocoo.org/2026/6/23/the-coming-loop/ | Independent practitioner take (2026-06-23) on the loop shift — third-party corroboration of the loop-engineering discourse | 2026-07-18 | — |
 | SkillOpt paper | https://arxiv.org/abs/2605.23904 | Microsoft text-space optimizer for agent skills (v2, 2026-05-25): bounded add/delete/replace edits, held-out validation gate, textual learning rate, rejected-edit buffer, slow/meta update. Source of this skill's rejected-edit buffer + noise floor (adopted 2026-07-18). Read from local PDF. | 2026-07-18 | v2 |
 | SkillLens paper | https://arxiv.org/abs/2605.23899 | Companion lifecycle study (2026-05-22): 25% negative transfer; LLM plausibility judging = 46.4% accuracy, inverts to 15.8% on high-gap pairs; format non-significant; validated 3-dim rubric (failure mechanism encoding, actionable specificity, high-risk blacklist) lifts judging to 73.8%. Source of rubric §SkillLens Utility Check + Pattern 10.1b. Read from local PDF. | 2026-07-18 | v1 |

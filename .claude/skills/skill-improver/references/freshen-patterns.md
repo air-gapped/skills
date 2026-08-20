@@ -54,7 +54,7 @@ true. **Delegate the sweep to cheap subagents — do not run probes in the
 main context.** Spawn in one background wave, then spend main-context turns
 only on judgment and mutations when findings return:
 
-- **`web-searcher`** (cheap tier, has Bash/gh/WebFetch) — one per skill:
+- **`web-searcher`** (cheap tier; has Bash/gh/WebFetch **and full browser control** — so it, not the main context, is what retries a bot-blocked row per §2.4) — one per skill:
   "Verify every row of `<skill>/references/sources.md`: bulk-curl the URLs,
   batch issue/PR states via one GraphQL query per repo, check latest
   releases against the versions the rows claim. Return ONLY a findings
@@ -305,6 +305,17 @@ Treat `404`, `410`, or an unexpected redirect to an index / marketing
 page as `broken`. Non-canonical redirects (e.g., `https://` → `https://`
 with trailing slash) are fine.
 
+**A bot-block is not an exception — escalate to the browser.** `402`, `403`,
+and login walls mean *this fetcher* was refused, not that the page is
+unverifiable. Before writing an inline exception note, retry the row through
+the operator's logged-in Chrome session (`mcp__claude-in-chrome__*`: open a
+NEW tab, `get_page_text`, close it) — delegate it to a `web-searcher`, which
+carries those tools. X/Twitter is the standing case: every `x.com` row returns
+`402` to curl and WebFetch, and those rows sat marked unverifiable across
+several passes of this skill's own sources.md until a browser probe read them
+directly. Reserve the exception note for what survives the browser too:
+paywalls, deleted posts, cookie-gated PDFs.
+
 ### 2.5 Concept / blog post search
 
 ```
@@ -450,7 +461,7 @@ rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)
 # 2. Procedural prescription where plan mode would suffice.
 # Counts scaffold items only — numbered items that carry a prohibition, named
 # failure, threshold, or branch condition are encoded judgment, not scaffolding.
-# See quality-rubric.md §"The scaffolding discriminator".
+# See quality-rubric.md §"Procedural steps" — advisory only, no cap.
 python3 "$SKILL_IMPROVER/scripts/scaffold-probe.py" SKILL.md --verbose
 
 # 3. Up-front context dumps (sections >30 lines of pure facts, no tool/file pointer)
