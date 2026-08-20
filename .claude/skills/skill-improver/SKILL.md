@@ -135,6 +135,18 @@ When improving skills in a git-tracked directory:
 
 In practice, removing redundant content produces the largest per-iteration score gains. When choosing between an additive improvement (+1 from adding content) and a subtractive one (+1 from deleting content), prefer deletion — it improves simplicity as a side effect.
 
+**But similar is not redundant, and this bias is exactly what gets that wrong.**
+Before deleting on the grounds that two passages overlap, classify the overlap:
+only `DUPLICATE` is actionable, while `INTENTIONAL_DETAIL` (an overview in
+SKILL.md developed in `references/`) and `RELATED_BUT_DISTINCT` (same topic,
+different purpose) must be kept — the first of those *is* progressive
+disclosure, the structure a good skill is meant to have. Measured across the
+whole fleet — 62 skills, 520 clusters — **83% of similar-looking content was
+correct as written** (292 INTENTIONAL_DETAIL + 138 RELATED_BUT_DISTINCT vs 90
+real duplicates). Those 430 clusters are what a deletion bias would have cut.
+`scripts/dedup-fleet.py` produces that table; `references/improvement-patterns.md`
+§Pattern 6.1 explains how to read it.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
@@ -437,6 +449,20 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 ### Scripts
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/dedup-fleet.py`** — Fleet driver for intra-skill dedup, and the
+  measurement behind Pattern 6.1. Runs `context-optimization-check` per skill,
+  writing each result as it lands so a killed pass keeps what finished, and
+  ranks skills by **DUPLICATE count** — the only actionable verdict. Results
+  cache in `${XDG_CACHE_HOME:-~/.cache}/skillevaluator/dedup/`, never in the
+  repo, keyed by the skill's content hash **and** the chat model, embedding
+  model and endpoint that produced the verdicts: a verdict is only valid for
+  the pipeline that made it, and the same `bge-m3` scores differently across
+  gateways. Unchanged skills are skipped (a 68-skill re-report is 0.07s against
+  7m19s cold). Skills over the tool's pairwise-work budget (~221 chunks at 1024 dims) are
+  reported SKIPPED
+  with the reason rather than failing. An unmatched cache exits 2 saying nothing
+  was measured, rather than printing a clean fleet. Config via `--env-file`;
+  needs both provider roles.
 - **`scripts/eval-evidence.py`** — The blind scorer's only channel into a
   target's `evals/`. That directory is not neutral input: it accumulates prior
   blind totals, kept/discarded records, and regression verdicts, so reading it

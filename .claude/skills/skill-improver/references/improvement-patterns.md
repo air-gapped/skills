@@ -364,11 +364,57 @@ altered) — cross-check the list against `grep -c 'TABLE' migration.sql`.
 
 ## Dimension 6: Simplicity
 
-### Pattern 6.1: Remove Redundant Sections
+### Pattern 6.1: Remove Redundant Sections — after classifying the overlap
 
 **Problem:** The same information appears in multiple places.
 
-**Fix:** Keep it in one place. Prefer the more prominent location. Delete the duplicate.
+**Two of the three kinds of overlap must NOT be deleted.** Similar text is not
+evidence of redundancy, and this skill's standing bias toward deletion is what
+makes the distinction load-bearing. Classify before cutting:
+
+| Verdict | What it looks like | Action |
+|---|---|---|
+| `DUPLICATE` | Repeats the same information with nothing added | Consolidate into one place. The only actionable verdict. |
+| `INTENTIONAL_DETAIL` | A short overview in `SKILL.md`, the development in `references/` | **Keep.** This is progressive disclosure — the structure the skill is supposed to have. |
+| `RELATED_BUT_DISTINCT` | Same topic, different purpose or angle | **Keep.** Both earn their place. |
+
+**This is not a hypothetical guard.** Measured across the whole fleet —
+62 skills analysed (6 exceeded the tool's chunk ceiling), 520 clusters of
+similar content classified:
+
+| verdict | clusters | action |
+|---|---|---|
+| `INTENTIONAL_DETAIL` | 292 | keep |
+| `RELATED_BUT_DISTINCT` | 138 | keep |
+| `DUPLICATE` | **90** | consolidate |
+
+**83% of similar-looking content was correct as written.** Those 430 clusters
+are what a bare similarity score would flag and a deletion bias would cut —
+and cutting them destroys the progressive disclosure that makes a skill
+readable. 23 skills had no duplication at all.
+
+The 90 that are real are why this is a classifier and not a rubber stamp. Worst
+offenders: `autoresearch` (7), `jinja-expert` (6), `keda` (6), `sglang-hicache`
+(5). One was verified by hand: `keda` carries the same six-step triage block in
+`SKILL.md:295-313` and `references/troubleshooting.md:12-27`, differing only in
+placeholder style (`<name>` vs `"$NAME"`). Two independent models agreed on
+keda's count, through different gateways.
+
+**Fix (for `DUPLICATE` only):** keep it in one place, prefer the more prominent
+location, delete the other. Pure relocation is one atomic change; relocation
+that rewrites prose is two (SKILL.md §"The split test for atomicity").
+
+**To find candidates** rather than eyeballing them, SkillEvaluator's intra-skill
+pass does the clustering and the classification:
+
+```bash
+skillevaluator context-optimization-check <skill-dir>
+```
+
+It needs both an embeddings provider and a chat model. Two limits worth knowing:
+it bounds pairwise work at `n*(n-1)/2 * vector_dimension <= 25M`, which at
+bge-m3's 1024 dims refuses above ~221 chunks (`skill-improver` is 444), and the classification is one LLM's judgement —
+treat a `DUPLICATE` verdict as a candidate to read, not a mandate to cut.
 
 ### Pattern 6.2: Cut Defensive Boilerplate
 
