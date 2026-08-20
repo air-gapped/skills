@@ -1,7 +1,9 @@
 # Autoresearch Ecosystem & Prior Art
 
-*Last updated: 2026-07-24. See `results/autoresearch-evolution-research-2026-04-06.md`
-for the full research report with methodology, findings, and source assessments.*
+*Last updated: 2026-08-20. Full research reports with methodology, findings, and
+source assessments live in `results/` — `autoresearch-evolution-research-2026-04-06.md`
+and `autoresearch-landscape-research-2026-08-20.md`. That directory is a local
+archive and is gitignored, so it is empty in a fresh checkout.*
 
 ## Canonical
 
@@ -28,6 +30,34 @@ for the full research report with methodology, findings, and source assessments.
   with UCB bandit model selection. Dynamic islands, code embedding novelty tracking.
 - [OpenEvolve](https://huggingface.co/blog/codelion/openevolve) — Open-source
   population-based evolution. YAML config, EVOLVE-BLOCK markers, multi-objective.
+
+### Does greedy actually hold up? (2026 evidence, both directions)
+
+The honest answer is *it depends on the density of remaining improvements*, and
+the strongest result says a loop should switch strategy rather than pick one.
+
+- [Greedy Is a Strong Default: Agents as Iterative Optimizers](https://arxiv.org/abs/2603.27415)
+  (Yitao Li, 2026-03-28) — greedy hill climbing with early stopping is a strong
+  default; more sophisticated strategies added evaluation cost without
+  meaningful benefit. The direct defence of Mode 1's core choice.
+- [FML-bench](https://arxiv.org/abs/2605.17373) (Qiran Zou, 2026-05-17) — a
+  controlled study of research-agent strategies through the lens of search
+  dynamics. A simple greedy hill-climber nearly matches the best tree-search
+  agent, **which strategy wins depends on whether improvement opportunities are
+  dense or sparse**, and an agent that switches strategy on detecting stagnation
+  beat every fixed-strategy agent tested. This is why Mode 1's plateau rule
+  widens the search rather than only rotating hypothesis category.
+- [GEAR: Genetic Autoresearch for Agentic Code Evolution](https://arxiv.org/abs/2605.13874)
+  (Ahmadreza Jeddi, 2026-05-08) — population-based search (parent selection on
+  productivity/novelty/coverage, plus mutation and crossover) sustains
+  improvement over long runs where single-path greedy settles into one local
+  optimum. The counter-case to the two above.
+- [SwarmResearch](https://arxiv.org/abs/2607.02807) (Yuvraj Virk, 2026-07-02) —
+  a single long-running optimizer narrows onto one high-level approach as
+  context accumulates; a coordinator plus parallel search agents on separate git
+  branches beat both single-agent and standard evolutionary search on 13/15
+  tasks. Read alongside REFLECT (Mode 1 step 9), which exists to counteract the
+  same narrowing inside one agent.
 
 ## Meta / Self-Improving Agents
 
@@ -60,6 +90,16 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   reusable skills and prompts *from failed trajectories* against benchmarks;
   supports Claude Code, Codex CLI, OpenCode, OpenHands, Goose. Turns the discard
   pile into an artifact instead of discarding it.
+- [Rehearse](https://arxiv.org/abs/2607.27687) (Jiazhen Ji, 2026-07-30) — studies
+  autoresearch-style loops directly and finds a **confidence cliff**: as kept
+  changes accumulate, a judge's selective accuracy at predicting whether a
+  proposed change will help collapses from 82.8% to 56.9%. Comparing candidates
+  *before* execution against a focused memory of similar past attempts restores
+  it to 83.5% and improves the final metric under a fixed budget. This is the
+  mechanism behind Mode 1's HYPOTHESIZE step sketching 2-3 candidates and
+  checking them against the nearest results.tsv rows rather than committing to
+  the first idea — the correction is cheap because results.tsv is already the
+  memory it needs.
 
 ## Swarm / Distributed
 
@@ -89,16 +129,91 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
   depth+breadth implementation in <500 lines.
 - **Actively-maintained alternatives to a dormant STORM**, if the codebase rather
-  than the pattern is what's wanted: [bytedance/deer-flow](https://github.com/bytedance/deer-flow)
-  (now a long-horizon harness with sandboxes, memory, subagents — pushed
-  2026-07-24), [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
+  than the pattern is what's wanted (all verified 2026-08-20):
+  [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
   (parallelized plan-and-solve: static planner decomposes, concurrent retrieval
-  agents execute), and [langchain-ai/open_deep_research](https://github.com/langchain-ai/open_deep_research).
-  All three are outline-or-plan-driven like STORM; none replaces the
-  multi-perspective decomposition Mode 2 borrows.
+  agents execute; v3.6.0 2026-07-18) and
+  [langchain-ai/open_deep_research](https://github.com/langchain-ai/open_deep_research)
+  (continuous off `main`, no tagged releases). Both are outline-or-plan-driven
+  like STORM; neither replaces the multi-perspective decomposition Mode 2
+  borrows.
+  **[bytedance/deer-flow](https://github.com/bytedance/deer-flow) no longer
+  belongs on that list.** Its v2.0.0 (2026-06-25) is a ground-up rewrite into a
+  general persistent-agent harness — sandboxed sub-agents, memory, chat-bot
+  channels, self-editing agent files. The STORM-shaped research-report pipeline
+  it used to be now lives only on the frozen `main-1.x` branch. Very active, but
+  no longer a comparable deep-research report generator.
+- **STORM has a successor by lineage, not a replacement:**
+  [stanford-oval/DataSTORM](https://github.com/stanford-oval/DataSTORM) (created
+  2026-08-06, pushed 2026-08-19, and essentially unadopted at 1 star — new, not
+  established) is built on STORM's `knowledge_storm/` codebase by
+  the same lab, and is the implementation for arXiv:2604.06474. It reframes deep
+  research over **structured databases** — tree search where each node poses a
+  sub-question answered by generated SQL, branches scored for interestingness and
+  expanded, findings reranked into a staged citation-traceable report. Scoped to
+  database/EDA work, not general prose topics, so it is adjacent to Mode 2 rather
+  than a drop-in. Note what this does *not* mean: Stanford OVAL has never declared
+  STORM end-of-life, the repo is dormant but not archived, and the succession is
+  inferred from code lineage and lab activity, not from any statement.
+- **Newer entrants worth watching**, none adopted here:
+  [EverMind-AI/Raven](https://github.com/EverMind-AI/Raven) (created 2026-05-21,
+  fastest-growing new project in the space — self-improving harness exposing a
+  `deep_research` tool with cross-session memory),
+  [lajosdeme/mole](https://github.com/lajosdeme/mole) (created 2026-08-01 —
+  enforced step/token budget plus quote-level verification, the two things Mode 2
+  handles by convention rather than mechanism), and
+  [LearningCircuit/local-deep-research](https://github.com/LearningCircuit/local-deep-research)
+  (local-first, 10+ search backends including arXiv/PubMed).
 - [Deep Researcher Reflect Evolve](https://arxiv.org/abs/2601.20843) — Sequential
   refinement with Global Research Context. Beat Claude Researcher, Perplexity, and Grok.
   Key finding: sequential > parallel in 95.6% of configurations.
+
+### Verification as a separate stage (2026 evidence behind Mode 2's Audit step)
+
+Four independent 2026 results converge on the same architectural point: in
+deep research the failure is not fluency, it is claims that do not trace to
+evidence — and catching that needs a stage of its own, not a more careful
+writer.
+
+- [Inference-Time Scaling of Verification](https://arxiv.org/abs/2601.15808)
+  (Yuxuan Wan, 2026-01-22) — builds a failure taxonomy of five major categories
+  and thirteen sub-categories, and shows a rubric-guided verifier
+  ("DeepVerifier") beats vanilla agent-as-judge and LLM-judge baselines by
+  **12-48% meta-evaluation F1**. The case for auditing against an explicit
+  checklist rather than asking a model "is this good".
+- [AREX](https://arxiv.org/abs/2607.21461) (Shuqi Lu, 2026-07-23) — alternates
+  evidence gathering with provisional-answer construction, then audits the
+  provisional answer constraint-by-constraint and launches targeted follow-up on
+  what is unresolved. A sequential-refinement counterpart to STORM's
+  parallel-perspective decomposition; Mode 2's Audit step borrows the outer loop
+  without giving up the parallel first round.
+- [Towards Verifiable Multimodal Deep Research](https://arxiv.org/abs/2605.29861)
+  (Chenghao Zhang, 2026-05-28; the system is named Ptah inside the paper) —
+  plan → research → write, with a dedicated verifier agent as an explicit
+  acceptance gate on factual grounding and citation fidelity.
+- [From Fluent to Verifiable](https://arxiv.org/abs/2602.13855) (Razeen A
+  Rasheed, 2026-02-14) — proposes an Auditable Autonomous Research standard
+  measured on provenance coverage, provenance soundness, **contradiction
+  transparency**, and audit effort. Contradiction transparency is the one Mode 2
+  most easily loses: merging is allowed to *note* a disagreement, never to
+  quietly pick a winner. The report's Competing Perspectives section is where
+  that obligation lands.
+- [DR³-Eval](https://arxiv.org/abs/2604.14683) (Qianqian Xie, 2026-04-16) — five
+  scoring axes for deep-research reports (Information Recall, Factual Accuracy,
+  Citation Coverage, Instruction Following, Depth Quality). The nearest thing to
+  an off-the-shelf rubric if Mode 2's output ever needs a number.
+
+**Two things are NOT settled, and should not be cited as if they were.** No 2026
+work found revises STORM's guidance on the optimal *number* of perspectives, and
+no paper benchmarks parallel-perspective decomposition head-to-head against
+sequential refinement on the same tasks. Examples exist on both sides; a
+comparison does not.
+
+- [OSU-NLP-Group/QUEST](https://github.com/OSU-NLP-Group/QUEST) /
+  [arXiv:2605.24218](https://arxiv.org/abs/2605.24218) (Jian Xie, 2026-05-22) —
+  open-weight 2B-35B models trained specifically as deep-research agents on
+  fully synthetic rubric-tree-verified tasks. Relevant only if the underlying
+  model, rather than the harness, is what gets swapped.
 
 ## Reward Hacking & Safety
 
@@ -108,13 +223,29 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   Detailed reward hacking case study. "Move the judge out of the arena."
 - [Langfuse: Cautionary Tale](https://langfuse.com/blog/2026-03-24-optimizing-ai-skill-with-autoresearch) —
   Score 0.35→0.824 but optimizer removed safety gates. "Review like a junior's PR."
+- [Hardening Agent Benchmarks with Adversarial Hacker-Fixer Loops](https://arxiv.org/abs/2606.08960)
+  (Ziqian Zhong, 2026-06-08) — 323 environments (16%) across five benchmarks were
+  hackable by frontier models *from the task description alone*; a
+  hacker/fixer/solver triad patching the verifier per discovered exploit cut
+  KernelBench attack success from 62% to 0%. The base rate that justifies the
+  anomaly check: reward hacking is not an exotic failure, it is one task in six.
+- [Self-Authored Verification Is Unreliable in Heuristic Self-Improving Agents](https://arxiv.org/abs/2607.24300)
+  (Diandian Guo, 2026-07-27) — names the **verifier-deployment gap**: self-scored
+  improvement can stay near-perfect while real performance degrades, and weaker
+  agents damage prior capability while still passing their own tests. Proposes
+  SEAL, a sealed external verification layer the agent cannot edit. This is the
+  measured argument for the Truth Layer being read-only by construction rather
+  than by good intentions.
 
 ## Eval-Driven Development
 
 - [Anthropic: Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) —
   Capability evals vs regression evals. Start with 20-50 tasks from real failures.
-- [DSPy MIPROv2](https://dspy.ai/) — Bayesian surrogate model (TPE) for prompt optimization.
-  State of the art for systematic prompt tuning.
+- [DSPy](https://dspy.ai/) — Programmatic prompt optimization. **GEPA** (reflective
+  prompt evolution) is now the optimizer DSPy leads with; MIPROv2 (Bayesian
+  surrogate over a TPE) is still shipped but no longer the headline. The
+  surrogate-search idea is what this skill points at for pure parameter sweeps
+  — the flagship label moved, the mechanism did not.
 
 ## Benchmarks for the Loop Itself
 
@@ -140,6 +271,16 @@ evidence about the loop's design, not as dependencies.
 - [SEAGym](https://arxiv.org/abs/2606.17546) (2026-06-16) — evaluation
   environment for self-evolving agents on Terminal-Bench 2.0 and HLE, with a
   shared epoch/batch protocol for comparing outer-loop designs.
+- [PAST-Bench](https://arxiv.org/abs/2608.04003) (Shuhan Xue, 2026-08-04) —
+  benchmarks the foundations of recursive self-improvement in personal agents.
+  Retained-experience gains are real but uneven across capabilities and models,
+  so a session-carryover mechanism should be validated end-to-end rather than
+  assumed to help.
+- [Recursive Self-Improvement in AI](https://arxiv.org/abs/2607.07663) (Mingguang
+  Chen, 2026-07-08) — survey of ~1,250 papers building a verification-reliability
+  hierarchy. Its framing is worth internalizing: every self-improvement loop's
+  choice of evaluator is an implicit claim about what may substitute for human
+  judgment. That is the question Step 1's "Verifier" row is really asking.
 
 ## Curated Lists
 
@@ -152,9 +293,11 @@ evidence about the loop's design, not as dependencies.
 
 ## Production Results
 
-- [SkyPilot: Scaling Autoresearch](https://blog.skypilot.co/scaling-autoresearch/) —
+- [SkyPilot: Scaling Autoresearch](https://skypilot.ai/blog/scaling-autoresearch/) —
   16 GPUs, 910 experiments, $300. Agent autonomously developed two-tier H100/H200 strategy.
 - [Shopify Liquid PR #2056](https://github.com/Shopify/liquid/pull/2056) — 93 commits,
-  53% faster rendering, 61% fewer allocations from autoresearch.
+  53% faster parse+render, 61% fewer allocations from autoresearch. **Still open,
+  not merged** (verified 2026-08-20) — the measured win is real; upstream
+  acceptance is a separate question and this row is not evidence of it.
 - [PJ Hoberman: 60 Experiments](https://blog.pjhoberman.com/autoresearch-60-experiments-production-search) —
   Production search optimization. Mapped the ceiling. Co-optimization pitfalls.

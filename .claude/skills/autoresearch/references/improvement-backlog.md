@@ -222,18 +222,86 @@ as a signal rather than as an absence of findings.
 
 ## Open
 
-*Empty as of 2026-07-24 — B1/B4/B5/B6/B7 resolved, B3 scoped down and closed.*
+*Empty as of 2026-08-20.* Nothing here is waiting on an absent ruling,
+credential, release, or measurement nobody can run.
 
-**This is not a ceiling claim.** Every item that had been attempted and parked is
-now closed; that means the backlog is current, not that the skill is finished.
-The 2026-07-24 improve run hit its 10-iteration cap with zero discards, which by
-this skill's own rule demonstrates no ceiling at all. Known live constraints for
-the next pass: Dim 2/6 sit at 7 because SKILL.md is 353 lines (the guardrail
-content added on 2026-07-24 was judged worth the length — do not trade it back
-for line count), and **Dim 10 is now capped at 8 for this skill until
-`delta_pass_rate` is measured** under skill-improver's Negative-Transfer Gate.
-`evals/evals.json` exists with 3 cases, so that measurement is available to run
-and has not been run.
+**This is not a ceiling claim.** Neither the 2026-07-24 nor the 2026-08-20 pass
+produced a discard, which by this skill's own rule means no ceiling has been
+mapped at all — both stopped early, they did not finish.
+
+## Standing constraints (not backlog items)
+
+Two things cap the rubric score and will keep doing so. Neither is deferred
+work: the first is a decision already taken, the second is work that is simply
+unrun and should be done rather than filed.
+
+- **Dim 2 sits at 6 because SKILL.md is long** (382 lines at the 2026-08-20
+  baseline, 415 after this pass). This is a standing decision, not an oversight:
+  the guardrail content is judged worth the length. Do not trade it back for
+  line count. Revisit only if a scorer identifies content that is *redundant*
+  rather than merely long.
+- **Dim 10 is capped at 8 until `delta_pass_rate` is measured** under
+  skill-improver's Negative-Transfer Gate. `evals/evals.json` carries 8
+  assertion-based cases (grown 2026-08-19), above the floor needed to resolve a
+  change, and the skill-creator eval loop that measures it is installable. There
+  is no blocker — the measurement has simply not been run.
+
+## Resolved this pass — 2026-08-20 (improve + freshen)
+
+Baseline blind **80** (Sonnet 5). Discovery-oriented freshen: every sources.md
+row re-probed, plus four research sweeps on the August 2026 landscape. All 16
+newly-cited arXiv IDs were independently verified against their abstract pages
+before being written down; one title was corrected in the process (2605.29861
+is "Towards Verifiable Multimodal Deep Research", not "Ptah" — Ptah is the
+system name inside the paper).
+
+- **Mode 2 gained an Audit step (step 5), the pass's substantive addition.**
+  Synthesis previously ran straight into Save with no verification stage. Four
+  independent 2026 results converge on making verification its own stage rather
+  than folding it into writing; a rubric-guided verifier was measured 12-48% F1
+  over LLM-as-judge. Checklist lives in `deep-research.md` §"Audit Pass" with
+  five checks (provenance coverage, provenance soundness, contradiction
+  transparency, currency, confidence honesty).
+- **HYPOTHESIZE now compares 2-3 candidates before executing** rather than
+  committing to the first idea. Grounded in the measured confidence cliff — a
+  judge's selective accuracy at predicting which change helps collapses as kept
+  changes accumulate, and comparing against similar past attempts restores it.
+  results.tsv was already the memory this needs.
+- **The plateau rule now widens the search, not just the hypothesis category.**
+  2026 evidence runs both directions on greedy hill climbing; the reconciling
+  result is that density of remaining improvements decides, and strategy
+  switching on stagnation beat every fixed strategy tested.
+- **Dim 6's induced-cost cap cleared.** "Read all mutable surface files" tripped
+  the eager-read trigger; scoped to the mutable surface explicitly, with the
+  truth layer and wider tree named as out of scope. Probe now reads clean.
+- **Two dead facts corrected.** The Mode 2 budget paragraph asserted a
+  200-subagent-per-session cap that Claude Code removed in v2.1.224; the live
+  bounds are 200 web searches (v2.1.212) and 20 concurrent subagents (v2.1.217).
+  The `sources.md` blurb still described per-row `Last verified:` stamping after
+  the convention moved to a single header stamp.
+- **Three source drifts fixed, none of which a liveness probe could see.**
+  deer-flow's v2.0.0 is a ground-up rewrite that abandoned the STORM-shaped
+  pipeline, so it no longer belongs on the alternatives list despite being the
+  most active repo on it; DSPy's flagship optimizer moved from MIPROv2 to GEPA;
+  Shopify Liquid PR #2056 is still open rather than merged. Semantic drift
+  behind a 200 is now the dominant failure mode in this file — third pass
+  running.
+- **STORM's status resolved.** `stanford-oval/DataSTORM` (created 2026-08-06) is
+  built on STORM's `knowledge_storm/` package by the same lab, but is scoped to
+  structured-database research — a successor by lineage, not a replacement for
+  the prose-topic pattern Mode 2 borrows. Stanford OVAL has never declared STORM
+  end-of-life and the repo is dormant but not archived. SKILL.md now says
+  in-line that the pattern is what is borrowed, not the codebase, so the
+  question does not have to be re-researched to be answered.
+- **`results/` pointers now say what they are.** The final blind scorer read the
+  two references to `results/*.md` as dangling files — correctly, from where it
+  was looking: `results/` is gitignored, so it is empty in any checkout that did
+  not generate the reports. The pointers are valid, the absence is expected, and
+  both places now say so. Left alone deliberately: the gitignore policy itself.
+- **Recorded as explicitly unsettled**, so it is not cited as if it were: no
+  2026 work revises STORM's guidance on the optimal *number* of perspectives,
+  and nothing benchmarks parallel-perspective decomposition head-to-head against
+  sequential refinement on the same tasks.
 
 ## Resolved this pass — 2026-06-09 (improve + freshen)
 

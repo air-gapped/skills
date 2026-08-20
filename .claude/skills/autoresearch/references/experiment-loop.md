@@ -145,9 +145,22 @@ Hill climbing can get stuck. Signs:
 
 Escape strategies:
 - Try a fundamentally different approach (not a tweak)
+- **Widen the search, not just the category.** Greedy one-at-a-time is the right
+  default while remaining improvements are dense; when they go sparse it is the
+  wrong tool, and a run of discards is the evidence that they have. Generate
+  several candidates and evaluate them as a batch — via the Parallel Experiments
+  pattern above where the verifier is cheap enough, or by sketching a wider
+  candidate set and picking on comparison where it is not. An agent that switches
+  strategy on detecting stagnation beat every fixed-strategy agent tested
+  (arXiv:2605.17373); staying greedy past the plateau is the failure GEAR
+  measured (arXiv:2605.13874).
 - Temporarily accept a small regression to reach a new part of the search space
   (only with user permission — this breaks the ratchet guarantee)
 - Ask the user for new ideas to explore
+
+Switching back is part of the pattern: once a wider pass finds a new productive
+region, return to greedy single-change iteration inside it. The strategy is
+adaptive, not a permanent upgrade.
 
 ### Nondeterminism
 GPU kernels, thread scheduling, and compilation caches can introduce noise. The

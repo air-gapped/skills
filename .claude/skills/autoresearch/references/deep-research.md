@@ -6,6 +6,7 @@
 - [Structured Extraction](#structured-extraction): facts · opinions · code · gaps
 - [Source Quality Assessment](#source-quality-assessment): A/B/C tiers
 - [Synthesis Patterns](#synthesis-patterns): Convergence · Divergence · Gap
+- [Audit Pass](#audit-pass): claim tracing · contradiction transparency · targeted follow-up
 - [Recursion Control](#recursion-control): when to recurse · when to stop · breadth halving
 - [Report Templates](#report-templates): standard report · quick summary
 
@@ -125,6 +126,41 @@ When information is missing, be explicit:
 "We could not find reliable data on X. The closest information available is Y,
 which applies to a related but different context. This is a gap that may require
 [experimentation / asking domain experts / waiting for more data]."
+
+## Audit Pass
+
+Run between Synthesize and Save (Mode 2 step 5). The draft is treated as a
+provisional answer to be checked, not a finished one to be proofread — the
+failure mode is a fluent report whose claims do not trace to what the sources
+actually say, and that is invisible to a re-read by the agent that wrote it.
+
+Work the draft claim by claim. A claim is **load-bearing** if a recommendation,
+a conclusion, or another claim rests on it; decorative context does not need
+this treatment.
+
+| Check | Question | Fails when |
+|---|---|---|
+| Provenance coverage | Does this claim cite a source at all? | A confident sentence with no citation behind it |
+| Provenance soundness | Does the cited source actually say this? | The source is real, the claim is a stretch of it |
+| Contradiction transparency | Did any angle report something incompatible with this? | Two agents disagreed and the draft states one side as settled |
+| Currency | Is the claim time-sensitive, and is the source current enough? | A version, price, or status cited from a stale page |
+| Confidence honesty | Does the report's certainty match the sources' certainty? | One medium-confidence agent rendered as flat assertion |
+
+Every claim that fails becomes a targeted follow-up: dispatch a research agent
+scoped to that single claim, not to the original angle. Then re-synthesize the
+affected section. If a claim still cannot be grounded after follow-up, it does
+not get quietly dropped — it moves to Gaps and Open Questions with a note on
+what was tried.
+
+**Contradiction transparency deserves its own emphasis** because merging
+naturally destroys it. Step 1 says "resolve contradictions", and the honest
+reading of that is *resolve the question of what each source claims and why they
+differ* — not pick a winner and delete the loser. When the disagreement is real
+and unresolved, it belongs in Competing Perspectives with both positions and the
+variable that separates their contexts (see the Divergence Pattern above).
+
+Skip the audit only for Quick-depth runs, where the report is short enough that
+synthesis and checking are the same act. At Standard depth and above, run it.
 
 ## Recursion Control
 

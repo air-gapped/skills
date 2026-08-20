@@ -86,7 +86,9 @@ recorded delta is measured against.
 ### Step 2: Establish Baseline
 
 1. Create a git branch: `autoresearch/<descriptive-tag>` from current HEAD
-2. Read all mutable surface files to build full context
+2. Read the mutable surface files — those only. The surface is small by
+   construction (Step 1), so this is bounded; the truth layer and the wider
+   tree are not read here
 3. Run the verifier once unmodified to get the **baseline metric**
 4. Record in `results.tsv` (see "Results Ledger" below for the canonical schema):
    ```
@@ -111,8 +113,12 @@ the loop's whole premise is that it mutates code while nobody is watching.
 ```
 LOOP:
   1. HYPOTHESIZE: Read results.tsv, recent verifier output (errors, warnings,
-     timing breakdowns — not just the scalar), and the mutable surface. Form
-     one specific hypothesis with expected impact and rationale.
+     timing breakdowns — not just the scalar), and the mutable surface. Sketch
+     2-3 candidate hypotheses, compare them against the results.tsv rows most
+     similar to each, then commit to ONE with expected impact and rationale.
+     Compare before executing, not after — the ability to predict which change
+     will help decays as kept changes accumulate, and this restores it
+     (`references/ecosystem.md` §Mechanisms Worth Borrowing).
 
   2. MUTATE: Apply exactly ONE atomic change. Small reversible edit over large
      rewrite. Never bundle. Don't retry discarded ideas without a meaningfully
@@ -163,6 +169,12 @@ At 5 consecutive discards (plateau — likely a local maximum), do NOT stop yet:
 apply the escape strategies in `references/experiment-loop.md` §"Local Maxima"
 and pivot to a different hypothesis category.
 
+Treat the plateau as a signal to widen the *search*, not just to rotate
+category. Greedy one-at-a-time is the right default while remaining
+improvements are dense; a run of discards is the evidence they have gone
+sparse, and that is when to generate and compare candidates in a batch. Switch
+back to single-change iteration once a productive region is found.
+
 Stop the loop when ANY of these are true:
 - **Ceiling mapped:** 8+ consecutive discards spanning at least 3 different hypothesis
   categories. This is not a failure — it means the optimization space has been explored
@@ -203,7 +215,10 @@ Recursive depth+breadth research with parallel agents. Produces a comprehensive,
 source-grounded report.
 
 Break the question into 3-6 independent research angles using the STORM
-multi-perspective pattern — split by viewpoint, not by subtopic:
+multi-perspective pattern — split by viewpoint, not by subtopic. What is
+borrowed is the *pattern*; the STORM codebase itself has been dormant since
+2025 and is not a dependency here (`references/ecosystem.md` §Research
+Patterns):
 
 - What would a practitioner want to know?
 - What would a skeptic question?
@@ -231,7 +246,14 @@ CONFIDENCE rating. Once all agents return:
    (by theme, not by source), Competing Perspectives, Gaps/Uncertainties, and Sources.
    Read `references/deep-research.md` for report templates, agent prompt templates,
    and synthesis patterns.
-5. **Save** — write the final report to this skill's own
+5. **Audit** — before saving, check the draft against its own sources
+   claim-by-claim: does every load-bearing claim trace to a cited source, does
+   that source actually say it, and is each contradiction surfaced rather than
+   quietly resolved in favour of one side? Dispatch targeted follow-up on claims
+   that fail, then re-synthesize. Verification is a separate stage, not something
+   folded into writing. Checklist: `references/deep-research.md` §"Audit Pass".
+   Skip only at Quick depth.
+6. **Save** — write the final report to this skill's own
    `results/<topic>-research-<date>.md`, not the target project's tree. Reports
    accumulate there as a durable cross-project research archive, and the report
    is the provenance record that "Provenance Comments" below points back to.
@@ -250,10 +272,13 @@ The user can specify: `/autoresearch research --depth deep "topic"`
 **Budget the fan-out before dispatching it.** Sum the agents across levels, not
 just the first round — Standard is ~6+3+2 ≈ 11 agents, Exhaustive reaches ~23.
 Each agent runs several searches, so web searches, not agents, is the binding
-constraint: a session allows 200 subagents and 200 web searches total, with 20
-subagents in flight at once. An Exhaustive run at 5 searches per agent consumes
-over half the session's search budget, and a run that exhausts it fails
-mid-synthesis with partial findings and no report. State the agent count when
+constraint: a session allows 200 web searches total
+(`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`, Claude Code v2.1.212) and 20
+subagents in flight at once (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, v2.1.217).
+The per-session cap on *total* subagents was removed in v2.1.224, so agent count
+no longer bounds a run — searches and concurrency do. An Exhaustive run at 5
+searches per agent consumes over half the session's search budget, and a run
+that exhausts it fails mid-synthesis with partial findings and no report. State the agent count when
 proposing a depth above Standard.
 
 ---
@@ -367,16 +392,24 @@ the agent prompt template, and the comparison-table format.
   mechanics, timeout policies, common pitfalls, and the Blind Validation Protocol
   (agent prompt template + comparison-table format for subjective metrics)
 - `references/deep-research.md` — Full research agent prompt templates, structured
-  extraction schemas, synthesis patterns, and source quality assessment
+  extraction schemas, synthesis patterns, source quality assessment, and the
+  Audit Pass checklist (Mode 2 step 5)
 - `references/domain-templates.md` — Pre-built experiment configurations for web
   perf, ML training, prompt optimization, test coverage, bundle size, API latency
 - `references/ecosystem.md` — Prior art: canonical repos, tree search / evolutionary
   / meta-agent alternatives, Claude Code implementations, reward hacking case studies
-- `references/sources.md` — Dated per-URL index backing ecosystem.md; freshen passes
-  stamp `Last verified:` fields here
+- `references/sources.md` — Per-URL index backing ecosystem.md; a freshen pass
+  probes every row and stamps the `Freshened:` date in the file header
 - `references/improvement-backlog.md` — Ceiling findings carried across skill-improver
   passes; not needed at invocation time
 
 ### Example Reports
+
+`results/` is a local research archive, not shipped content — it is gitignored,
+so these files are present only where the reports were generated. Their absence
+in a fresh checkout is expected and is not a broken reference.
 - `results/autoresearch-evolution-research-2026-04-06.md` — Mode 2 output: how the
   autoresearch ecosystem has evolved since Karpathy's original release
+- `results/autoresearch-landscape-research-2026-08-20.md` — Mode 2 output with an
+  Audit pass applied to its own citations; the evidence behind this skill's
+  Audit step, plateau rule, and candidate-comparison in HYPOTHESIZE
