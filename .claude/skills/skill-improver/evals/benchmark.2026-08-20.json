@@ -1,0 +1,2818 @@
+{
+ "metadata": {
+  "skill_name": "skill-improver",
+  "skill_path": ".claude/skills/skill-improver",
+  "timestamp": "2026-08-20",
+  "supersedes": null,
+  "prior_baseline": "evals/benchmark.json (2026-08-16, executor claude-fable-5, 4 cases, delta +0.267)",
+  "why_run": "Regression check after structural changes to the skill since the 2026-08-16 baseline (freshen redesign + one-stamp sources.md contract, ages mode with backlog-item column and fleet footer, and the matching SKILL.md rewrites). Also the first execution of the eval corpus repaired and grown to 8 cases on 2026-08-19 \u2014 every case and assertion in cases 4-7 was model-written and had never been run.",
+  "runs_per_configuration": 3,
+  "arms": {
+   "opus_5": {
+    "executor_model": "claude-opus-5",
+    "evals_run": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "note": "Full 8-case corpus on the current session model."
+   },
+   "fable_5": {
+    "executor_model": "claude-fable-5",
+    "evals_run": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "note": "Replicates the 2026-08-16 executor model so the regression comparison is not confounded by a model change. Cases 4-7 did not exist at baseline and were not re-run here."
+   }
+  },
+  "analyzer": "claude-opus-5, one analyzer per eval case, grading all six responses for that case",
+  "method_notes": "Executors were clean-context general-purpose subagents, one per (case, configuration, run). with_skill runs were pointed at the installed skill directory and told to follow it; without_skill runs were told to answer unaided and not to consult any installed skill. All runs read-only: responses were written to a response file, nothing in the repo was modified. Grading was BLIND at the case level: each analyzer received the six response files for its case in a shuffled order with opaque hash filenames and no configuration labels, and was instructed to grade each file independently. This is stricter than the 2026-08-16 run, where the session model graded labelled responses. Blinding is imperfect by construction \u2014 a with_skill response often names the skill's own machinery in its text \u2014 so it removes label bias, not content leakage. No assertion was amended at any point in this run.",
+  "known_grading_ambiguity": "Eval 1 assertion 2 ('Treats the in-file dated verification stamp as evidence that outranks unverified recollection - the stamp yields only to live-source evidence, never to memory') was scored FAIL on 2 of 3 with_skill runs in BOTH arms. In every one of those runs the executor did probe the live release source first and only then discarded the stamp, which is the behaviour the assertion's own parenthetical permits; the analyzers keyed on the response calling the stamp 'not trustworthy'. This assertion is the entire with_skill gap from the 1.000 baseline in both arms. It was NOT amended - amending an assertion after seeing its grades would invalidate the comparison. Filed for rewording BEFORE the next run."
+ },
+ "summary": {
+  "regression_verdict": "NO REGRESSION. Against the baseline's own executor model, without_skill reproduced at 45/60 (baseline 44/60) and the skill still buys +0.217 (baseline +0.267). The entire 2-assertion with_skill shortfall is the known grading ambiguity above, not a behaviour change.",
+  "fable_5_comparable_to_baseline": {
+   "with_skill": {
+    "passed": 58,
+    "total": 60,
+    "pass_rate": 0.9667
+   },
+   "without_skill": {
+    "passed": 45,
+    "total": 60,
+    "pass_rate": 0.75
+   },
+   "delta_pass_rate": 0.2167
+  },
+  "opus_5_same_four_cases": {
+   "with_skill": {
+    "passed": 58,
+    "total": 60,
+    "pass_rate": 0.9667
+   },
+   "without_skill": {
+    "passed": 51,
+    "total": 60,
+    "pass_rate": 0.85
+   },
+   "delta_pass_rate": 0.1167
+  },
+  "opus_5_full_eight_cases": {
+   "with_skill": {
+    "passed": 130,
+    "total": 132,
+    "pass_rate": 0.9848
+   },
+   "without_skill": {
+    "passed": 121,
+    "total": 132,
+    "pass_rate": 0.9167
+   },
+   "delta_pass_rate": 0.0682
+  },
+  "per_eval_delta_fable_5": {
+   "0": 0.3333,
+   "1": 0.1667,
+   "2": 0.2,
+   "3": 0.1333
+  },
+  "per_eval_delta_opus_5": {
+   "0": 0.1667,
+   "1": 0.0833,
+   "2": 0.1333,
+   "3": 0.0667,
+   "4": 0.1111,
+   "5": 0.0,
+   "6": 0.0,
+   "7": 0.0
+  },
+  "model_effect": "On the identical four cases, the unaided baseline rises from 0.750 (Fable 5) to 0.850 (Opus 5) while with_skill is flat at 0.967, so the skill's measured delta falls from +0.217 to +0.117. The stronger model does unaided roughly 40% of what the skill was adding. This is a direct, if narrow, measurement of the leanness-frontier hypothesis: part of this skill is compensation the current model no longer needs.",
+  "new_cases_do_not_discriminate": "Cases 5, 6 and 7 (high-score-worse-outputs, one-action-half-hour, mass-delete-known-claims) scored 18/18 in BOTH configurations on Opus 5 - delta exactly 0.000 each. Case 4 gave +0.111. Three of the four cases added on 2026-08-19 to raise resolution contribute no signal on the current model: the unaided model already does what they assert. They are not wrong, they are saturated, and they dilute the aggregate delta (+0.068 over eight cases vs +0.117 over the original four)."
+ },
+ "runs": {
+  "fable_5": [
+   {
+    "eval_id": 0,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 6,
+    "pass_rate": 0.6667,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent \u2014 prose-only review with numbered sections ('## 1. The description will not trigger the skill (highest priority)'), no scoring table, no per-dimension scores, no total"
+     },
+     {
+      "index": 1,
+      "passed": false,
+      "evidence": "The release date is almost certainly wrong. PostgreSQL minor releases ship on a scheduled quarterly cadence ... a 2026-07-30 minor release doesn't fit that calendar."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Core settings\" and \"Memory settings\" are the same advice written twice ... Fix: merge into a single \"Memory settings\" section"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "No sources or references are recorded anywhere. For a skill making version-specific claims, keep a short list of the pages checked (release notes, docs) so future freshness passes can re-verify"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "## 1. The description will not trigger the skill (highest priority)"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Fix: rewrite the frontmatter description in two parts \u2014 ... Aim for a paragraph, not four words."
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 0,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **52/100** |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "the \"PostgreSQL 18.2 (released 2026-07-30)\" claim should NOT be \"corrected\" from memory \u2014 dated claims like this are exactly what a freshen probe verifies online"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Core settings\" and \"Memory settings\" say the same thing twice. Delete one section outright \u2014 pure deletion, no rewording"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Add a sources.md and run a freshen pass (Dim 9 capped at 6). The skill makes dated external claims ... with no verification trail."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Recommended first improvement: Rewrite the frontmatter description ... This is the single highest-leverage change"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Assess-and-report only \u2014 no files modified."
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 0,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **53/100** |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Do not \"correct\" the 18.2 date from memory \u2014 verify it online; the version that looks too new is usually the right one."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Delete the duplication (Dim 6, 3 \u2192 ~7 ...). Merge \"Core settings\" and \"Memory settings\" into one section"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Add `references/sources.md` and run `freshen` (lifts the Dim 9 cap, 6 \u2192 up to 8+). The 18.2 release-date claim and the pg_stat_io / pg_stat_checkpointer facts should each get a sourced, `Last verified:`-stamped row."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Recommended first improvement: Rewrite the frontmatter description ... this is the single change most likely to make the skill fire at all."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Assessment only \u2014 no files were modified; all suggested edits below are proposals for the author."
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 0,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **50/100** |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "these claims should NOT be \"corrected\" from memory \u2014 the skill outranks training data; verify them with an online probe (`freshen`), never a downgrade"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Delete the duplication (Dim 6 + 8). \"Core settings\" and \"Memory settings\" are the same section twice. Keep one, delete the other"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Capped at 6 \u2014 `references/sources.md` is absent**, so the external claims ... are unverified"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Rewrite the frontmatter description (Dim 1, the floor). ... This is the cheapest, largest single gain"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Standalone evaluation per the skill-improver rubric (score only \u2014 no loop, no edits, as requested)."
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 0,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 3,
+    "total": 6,
+    "pass_rate": 0.5,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent \u2014 '## Findings, in priority order' prose sections only; no dimension table, no scores, no total"
+     },
+     {
+      "index": 1,
+      "passed": false,
+      "evidence": "\"PostgreSQL 18.2 (released 2026-07-30)\" doesn't line up with the project's release cadence ... which would put 18.2 around February 2026 \u2014 a 2026-07-30 date would correspond to roughly 18.4."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Core settings\" and \"Memory settings\" say the same thing twice ... Delete \"Memory settings\" entirely; nothing in it is new."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "closest present: \"No `references/` or `scripts/` is fine at this size\" \u2014 the missing sources/verification record is not flagged as a risk"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Rewrite the frontmatter description with scope, trigger phrases, symptoms, and a negative boundary (highest impact, five minutes)."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Action: verify the current release line against postgresql.org release notes, restate as version floors per feature, and remove the date."
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 0,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "absent \u2014 '## Findings, ordered by impact' numbered prose; no per-dimension scoring table or total"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "If the date is wrong (I cannot confirm an 18.2 release on that date) ... Drop the point-release/date claim or back it with a cited source that can be re-verified later."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Duplicated content: \"Core settings\" and \"Memory settings\" are the same section ... Fix: delete \"Memory settings\" entirely"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "a hard-coded point release plus release date is exactly the kind of claim that goes stale immediately and can't be verified from the skill itself ... Version claims in a skill should either cite a source or be phrased as a floor"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "### 1. The description is too thin to trigger (highest priority)"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**Fix:** rewrite the description to say what it does, when to use it, and the phrases that should activate it. Something like:"
+     }
+    ],
+    "name": "score-with-planted-traps"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "a mandatory online probe is. I ran it before editing"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Probe results (GitHub, valkey-io/valkey, checked 2026-08-20)"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "The verification stamp is unsupported. `<!-- Last verified: 2026-08-11 ... -->` cannot be true as written"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "wanting to lower a version claim from memory. These skills are freshened past any model's training cutoff"
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Before editing anything I verified the version claims against the Valkey release record"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "verified the version claims against the Valkey release record (github.com/valkey-io/valkey releases)"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "because the skill carries a recent verification stamp (2026-08-11) and a version *downgrade* on someone's recollection is exactly the kind of change that should never be made from memory"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "a version *downgrade* on someone's recollection is exactly the kind of change that should never be made from memory"
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Before touching a version claim, skill-improver's rules require an online probe"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I probed the Valkey GitHub releases and issue tracker (2026-08-20)"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "The skill's `<!-- Last verified: 2026-08-11 -->` stamp cannot be accurate ... Treat that stamp as void."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "wanting to *lower* a version is the classic signature of training-data staleness, so neither my memory nor yours counts as evidence"
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I checked the live Valkey release data before changing anything"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "it should be re-verified at the source. Here is what the valkey-io/valkey GitHub releases actually show"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "a version claim inside a skill that carries a recent verification stamp (\"Last verified: 2026-08-11\") should never be downgraded from memory \u2014 it should be re-verified at the source"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "This is exactly why version \"fixes\" should be verified against the release page rather than applied from memory."
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 2,
+    "total": 4,
+    "pass_rate": 0.5,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I checked the live Valkey release record before touching the skill"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "because a claim like this should never be downgraded from memory \u2014 and it's good I did"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "Verification stamp updated to today's date, since the claim was actually re-verified against the release page now"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "a claim like this should never be downgraded from memory"
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 1,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 4,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "the rule is a mandatory online check, not memory ... So I probed the Valkey release page first."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "What the probe found (gh api, valkey-io/valkey, 2026-08-20)"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "the skill carries a `Last verified: 2026-08-11` stamp newer than any prior"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "wanting to lower a version is the signature of training-data staleness"
+     }
+    ],
+    "name": "refuse-the-downgrade"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Decision: rewrite the description (change 1) ... Rationale: the description is the highest-leverage change because it gates everything else. A skill that never triggers delivers zero value regardless of body quality"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Only the `description` field changed."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The body duplication (change 2) wastes ~60 tokens but the content still works when loaded \u2014 it is a real cleanup, just strictly less valuable than making the skill reachable."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent \u2014 after '## Applied change' the response only explains the new description's properties ('States what the skill does', 'Lists concrete trigger phrases') and then moves to '## Next iteration (not applied now)'; no re-evaluation and no keep-or-discard decision"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "currently `Certificate stuff.` ... description: Manage Let's Encrypt certificate renewals with certbot on standalone (non-containerized) hosts \u2014 systemd timer scheduling, deploy hooks"
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**A (Dim 1, score 1):** `description: Certificate stuff.` ... Expected impact: Dim 1 \u2192 7\u20138, i.e. **+6\u20137 total**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Body unchanged. ~430 chars \u2014 well inside the 1,024-char spec cap"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**B (Dim 6, score 3):** delete the duplicate \"Renewal timing\" section \u2014 Pattern 6.1 ... The deletion-over-addition rule breaks ties between *equal* gains; these are not equal, so **A wins**."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Decision: KEEP** (score improved \u2265 +2; anomaly gate passed via independent cold score)."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "-description: Certificate stuff.\n+description: >-\n+  Manage Let's Encrypt certificate renewals with certbot on standalone"
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Lowest dimension: **Dim 1 (score 1)** ... 1. **Rewrite the frontmatter description** ... Expected impact: Dim 1 \u2192 ~8, total +7."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Replace the frontmatter description only; body untouched"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "2. **Delete the duplicate \"Renewal timing\" section** (Pattern 6.1, redundancy removal). Expected impact: Dim 6 \u2192 ~7, Dim 8 \u2192 ~8, total +5 ... these are not equal"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Delta-math total: 68 (+7). **Anomaly gate (+5 or more) fires:** cold rescore ... **Decision: KEEP** (+7 \u2265 +2). New baseline: 68."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "`description: Certificate stuff.` ... description: >-\n  This skill should be used when the user asks to \"renew Let's Encrypt certificates\""
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "1. **Rewrite the frontmatter description** (Pattern 1.1, Dim 1). Dim 1 sits at 1/10 ... Expected impact: Dim 1 \u2192 ~8, total +6\u20137."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Body unchanged. Diff: frontmatter description replaced; net +8 lines, all in the trigger surface."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "2. **Delete the duplicate \"Renewal timing\" section** (Pattern 6.1, Dim 6). Pure deletion ... here the gains are not equal \u2014 Dim 1 is the lowest dimension and the largest liftable gap"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Cold total 61 vs delta-math 61 \u2014 within 2, no inflation found ... **Decision rule: +7 \u2265 +2 \u2192 KEEP.** New baseline: 61."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "`description: Certificate stuff.` ... description: >-\n  Manage Let's Encrypt certificate renewals with certbot on standalone\n  hosts"
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Change 1 wins. Discovery precedes content ... whereas the bad description prevents it from loading at all. Highest impact, lowest risk, smallest diff."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Everything below the frontmatter is left untouched this iteration."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "2. **Merge the duplicated sections.** ... the skill still works correctly when loaded ... the duplication (2) and thin troubleshooting (3) only cost anything *after* the skill loads"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent \u2014 after '## Applied change' the response gives '## Why this description' rationale and '## Next iteration (not applied now)'; no post-change re-evaluation or keep/discard verdict"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "\"Certificate stuff.\" is the single field ... Replace the frontmatter with: description: Manage and troubleshoot Let's Encrypt certificate renewals with certbot on standalone hosts"
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 2,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Decision: fix the description (change 1) ... a skill that never triggers delivers zero value regardless of body quality ... Highest expected impact per edit, so it wins this iteration."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Only the frontmatter `description` changes; the body is untouched this iteration."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "2. **Deduplicate the body.** ... Wasteful, but the content is still correct and usable once loaded ... the broken description gates everything else."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent \u2014 the response ends with 'The new description states what the skill does, when to use it ... and one explicit negative boundary'; no re-evaluation of the changed skill and no keep-or-discard decision"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Currently `Certificate stuff.` ... description: Manage Let's Encrypt certificate renewals with certbot on standalone hosts \u2014 systemd timer scheduling"
+     }
+    ],
+    "name": "one-change-iteration"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Baseline the current one-liner, then the candidate, at the decision floor of 7 runs/query with a 60/40 train/test split"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management \u2014 eviction policies (allkeys-lru, volatile-lru, volatile-ttl, noeviction), maxmemory sizing, TTL and key-expiry strategy, keyspace analysis, and memory fragmentation diagnosis."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Use whenever the user mentions Redis or Valkey eviction, evicted keys, hot keys disappearing"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "description \u2248 210 chars (\u22641024 spec hard cap), combined \u2248 730 chars (\u22641,536 Claude Code listing cap)"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "{\"query\": \"how do I clear my browser cache\", \"should_trigger\": false, \"source\": \"keyword-collision\"}"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Probe with `scripts/probe-trigger.py --holdout 0.4 --runs-per-query 7` \u2014 baseline on the old description first, then the candidate"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management \u2014 eviction policies (allkeys-lru, volatile-lru, volatile-ttl, noeviction), maxmemory sizing, TTL and key-expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Do NOT use for Redis features unrelated to memory management (data structures, pub/sub, replication, clustering, Sentinel failover)."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Combined length \u2248 950 chars, comfortably under the 1024-char description cap and the 1,536-char combined cap."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "\"how does HTTP browser caching work with ETags\" (\"cache\" collision, different domain)"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Test both directions before calling it done: ... re-run the original query ... plus variants ... in fresh sessions and confirm the skill is invoked ... run negative probes"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey server-side memory management: eviction policies ... maxmemory sizing and maxmemory-policy tuning, TTL and key-expiration strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Do NOT use for HTTP/CDN/browser caching, application-level memoization, or Redis topics unrelated to memory"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Should stay silent: run negative probes (\"how do I set Cache-Control headers\", \"memoize this Python function\", \"set up Redis Sentinel replication\")"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "After editing, verify by re-asking the original question ... in a fresh session and confirming the skill loads; also spot-check a few negative queries"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management \u2014 eviction policies (allkeys-lru, volatile-ttl, noeviction), maxmemory sizing, TTL strategy, keyspace analysis, and memory fragmentation."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Avoid making it *too* broad (e.g. don't claim generic \"caching\" like CDN or HTTP caching, which the body doesn't cover)"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Keep the description in third person, one block, and comfortably under the length limit (~1024 chars); front-load the most distinctive terms."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "spot-check a few negative queries (e.g. \"browser cache headers\") to make sure it stays silent"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "After editing, **verify empirically**: re-run the original query ... plus try a few negative probes ... Triggering fixes should be tested, not assumed."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management operations \u2014 eviction policies (noeviction, allkeys-lru, volatile-lru, allkeys-lfu, volatile-ttl), maxmemory sizing, TTL and expiration strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Not for generic application-level caching design (HTTP caching, CDN, memoization) unrelated to Redis/Valkey."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "try a few negative probes (\"how do I cache API responses in my React app\") to confirm it stays silent"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   },
+   {
+    "eval_id": 3,
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "N=7 runs per query is the decision floor ... Pick the winner by TEST score, never train."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "eviction policy choice or misbehavior (\"evicting hot keys\", \"keys disappearing\", allkeys-lru vs volatile-lru vs noeviction, maxmemory-policy), maxmemory sizing, TTL or expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Do NOT use for HTTP/CDN or application-level caching, CPU caches, or Redis topics outside memory management"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "description \u2248 170 chars (cap 1024); combined \u2248 810 chars (cap 1536 on Claude Code v2.1.105+)"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "{\"query\": \"how do I set cache headers for CDN caching\", \"should_trigger\": false, \"source\": \"keyword-collision\"}"
+     }
+    ],
+    "name": "trigger-fix-empirically"
+   }
+  ],
+  "opus_5": [
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "**Overall: weak \u2014 roughly a 3/10 as a working skill.**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "**Verify that version and date against postgresql.org before shipping**"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Merge them into one `## Memory` section and delete `## Core settings` entirely."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "There is no freshness marker. ... add a `sources.md` ... listing the upstream URLs those claims came from and the date they were last verified"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "1. **Rewrite the description** (section 1). Biggest return per minute of work"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Nothing has been modified; this is assessment only."
+     }
+    ]
+   },
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **46/100** | |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "do not \"correct\" the PostgreSQL 18.2 / 2026-07-30 claim from memory. ... Verify it against the official release page"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"Core settings\" and \"Memory settings\" are one section written twice. Keep the \"Memory settings\" wording ..., delete \"Core settings\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Capped at 6** \u2014 `references/sources.md` is absent (rubric \u00a7Dim 9 staleness table)."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Recommended first improvement: replace the one-line `description` with a specific third-person trigger description"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "standalone evaluation \u2014 no improvement loop run, nothing modified"
+     }
+    ]
+   },
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "**Verdict: not yet usable as a skill. Roughly 3/10.**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "The dated release claim is a maintenance liability and I cannot verify it from the skill alone. ... Please re-check each version claim against the official release notes before shipping"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Delete \"Core settings\" entirely, keep one \"Memory\" section, and keep the procedure once."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "needs a source link and a \"last verified\" stamp, otherwise a reader has no way to know whether it is current or two years stale"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "1. **Rewrite the description** ... Highest impact by far \u2014 everything else is worthless if the skill never loads."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Below: what's wrong, ordered by impact, then a concrete rewrite plan."
+     }
+    ]
+   },
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **56/100** | |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I have not scored it down and I am not recommending a revert. It should be **verified by an online probe**"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Delete the \"Memory settings\" section outright (Dim 6, +several points).** It is a duplicate of \"Core settings\""
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**capped at 6 by the rubric's staleness rule because `references/sources.md` is absent** \u2014 there is no dated verification trail behind the version claims"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "1. **Rewrite the `description` (highest impact \u2014 Dim 1 is 2/10).**"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "standalone evaluation (score only, no improvement loop, nothing modified)"
+     }
+    ]
+   },
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": false,
+      "evidence": "| Triggering (description quality) | **Poor** \u2014 will not reliably fire |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Add the release-notes URL and a \"verified: YYYY-MM-DD\" stamp so a future reader can tell staleness from error."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Delete \"Core settings\" entirely, keep \"Memory settings\" (it is the slightly better-written of the two)"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**No source and no verification date.** A hard version-plus-release-date assertion with no link is unverifiable by the next reader"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "1. **Rewrite the `description`** using the draft above. Highest value per minute of effort"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Below: the problems in priority order, then a concrete plan."
+     }
+    ]
+   },
+   {
+    "eval_id": 0,
+    "name": "score-with-planted-traps",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "| # | Dimension | Score | Justification | ... | **Total** | | **52/100** | |"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Do not \"fix\" the version claim from memory. ... Treat it as unverified-either-way until a probe confirms it against the release notes."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Delete \"Memory settings\" outright and keep \"Core settings\" \u2014 the deletion loses no information"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Capped at 6 \u2014 `references/sources.md` is absent**, so nothing here is verifiable by stamp."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Recommended first improvement: replace the four-word description with a specific, analytics-scoped trigger description"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "standalone evaluation only \u2014 nothing was modified, and I did not enter the improvement loop"
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 4,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I probed before touching it ... I have not written anything to the repo \u2014 both fixes above are proposals."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "So: mandatory online check first. ## What the probe found (2026-08-20) ... `gh release list --repo valkey-io/valkey`"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "this file carries a `Last verified: 2026-08-11` stamp, nine days old. Editing it from memory would have regressed a skill that was mostly right."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "A request to *lower* a version is this skill's downgrade alarm ... Skills here are freshened past the model's knowledge cutoff, so \"I'm pretty sure 9.x doesn't exist\" is exactly what training-data staleness feels like from the inside"
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 2,
+    "total": 4,
+    "pass_rate": 0.5,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I checked the Valkey release history before editing ... ## Proposed edit"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Enumerated from `valkey-io/valkey` (GitHub releases, tags, and branches)"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "this skill carried a `Last verified: 2026-08-11` stamp against a version that has never existed. Whatever produced that stamp did not actually check the release page"
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "the skill is wrong, but not in the direction you thought ... Your premise (\"8.x is the latest major\") is out of date."
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I did **not** make the change you asked for, because the probe says your premise is wrong"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "an external-world claim never gets mutated from recall; it gets verified online first ... **Source 2 \u2014 https://valkey.io/download/** (fetched today)"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "So the `<!-- Last verified: 2026-08-11 -->` stamp is not trustworthy for this line."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "This is a textbook **downgrade alarm**: you asked to move a version number *backwards* from memory ... their factual claims are routinely newer than any model's training data \u2014 and mine."
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I checked the Valkey releases before touching the skill ... ## Why I did not make the edit you asked for"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Enumerating tags and releases on `valkey-io/valkey` (not just trusting `releases/latest`)"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "A recent verification stamp normally outranks memory \u2014 which is exactly why I went and looked instead of applying either version from recall."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "it would have been a *downgrade of a version floor based on recollection*. That is the more dangerous direction of the two ... wrong downward is silent."
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 4,
+    "total": 4,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I have not edited the file yet \u2014 please pick from the options below."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I checked the Valkey release page before touching the skill ... ## What the release page actually says"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The skill carries a `Last verified: 2026-08-11` stamp \u2014 nine days ago, and *after* every release above. A recently verified skill claiming a higher version than either of us remembers is exactly the case where the skill is right and our recollection is stale."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**This edit is a version downgrade, which is the highest-risk class of skill edit.** ... exactly the case where the skill is right and our recollection is stale."
+     }
+    ]
+   },
+   {
+    "eval_id": 1,
+    "name": "refuse-the-downgrade",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 3,
+    "total": 4,
+    "pass_rate": 0.75,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "I did not make the change you asked for ... so the rule is: probe first, expect the skill to be right. I probed."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "`gh` against `valkey-io/valkey` (releases, tags, branches, PRs) on 2026-08-20"
+     },
+     {
+      "index": 2,
+      "passed": false,
+      "evidence": "The `<!-- Last verified: 2026-08-11 against the Valkey release page -->` stamp cannot be trusted \u2014 that page on that date would have shown 9.1.1 as latest"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"wanting to lower a version, move a date backward, or revert a claim to an older state is the signature of training-data staleness\""
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Apply A: rewrite the frontmatter description. Defer B, C, D.** Reasoning, in one line: **triggering gates everything else.**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Full file after the change (body untouched this iteration)"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "the expected value of B and C is multiplied by a trigger rate that is currently near zero"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Keep.** The change is strictly additive in coverage: every request the old description could have matched, the new one still matches"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "`description` before:\n\n```yaml\ndescription: Certificate stuff.\n```"
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "## Decision: apply A (rewrite the description) ... **Why A over B/C/D:** A is a *gating* defect, not a *quality* defect."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "The body is deliberately byte-identical to the original \u2014 this iteration touches only the description."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Rejected as this iteration's change:** B is real and will be iteration 2 \u2014 but the redundancy is *consistent* ... so it costs tokens rather than causing wrong answers."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "**Keep the change** only if positive-set firing rises with no new false positives on the negative set; otherwise revert \u2014 a conditional plan for a future measurement, no post-change re-evaluation or decision actually made"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Before**\n\n```yaml\ndescription: Certificate stuff.\n```\n\n**After**"
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "## Phase 2 \u2014 Hypothesis (one change) ... **Why this one:** Dim 1 is the lowest dimension by a margin of 3 points ... **Expected impact:**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Nothing below the frontmatter changed."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The competing candidate \u2014 deleting the duplicated `## Renewal timing` section \u2014 is a deletion, which the loop normally prefers, but Dim 6 (4) is not the lowest dimension"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**KEEP** \u2014 +7, well past the +2 threshold, and the change is confined to six lines of frontmatter."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "```diff\n-description: Certificate stuff.\n+description: >-"
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "## Phase 2: Hypothesis ... **Expected impact:** Dim 1 \u2192 8. Complexity cost: +6 lines of frontmatter, 0 body lines"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "**Atomicity (split test):** \"Rewrite the frontmatter trigger text with specific phrases.\" One verb, no \"and\". The body is untouched"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Why this and not the duplicate sections.** The dedupe is the tempting move ... But Dim 1 is at 1/10, four points below the next-lowest"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Decision: KEEP** (+8, well past the +2 threshold; not in the noise zone)."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "```diff\n-description: Certificate stuff.\n+description: Automate and troubleshoot Let's Encrypt certificate renewals"
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "## Phase 2 \u2014 Hypothesis (one change) ... Expected impact: Dim 1 1 \u2192 8. Complexity cost: +8 lines of frontmatter, 0 new files."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Only the `description` line changed; the body is byte-identical."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**B. Delete the duplicated \u00a7Renewal timing section** (Dim 6, currently 3/10) ... The deletion rule breaks ties between improvements of comparable magnitude; it does not outrank a dimension sitting at 1."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Decision: KEEP.** +7 \u2265 +2, well outside the noise zone."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "```diff\n-description: Certificate stuff.\n+description: >-"
+     }
+    ]
+   },
+   {
+    "eval_id": 2,
+    "name": "one-change-iteration",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "## 3. Decision \u2014 apply change 1 (rewrite the description) ... the description is a strict gate on every other dimension \u2014 a perfect body behind \"Certificate stuff.\" delivers exactly nothing."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Everything below the frontmatter is unchanged this iteration."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The duplicate-section fix (B) is real and should be the *next* iteration, but it is second: it improves the skill for the reader who already got here, whereas (A) determines whether there is a reader at all."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "\"Before/after, run the same query set and count firings ... Expected: near-zero \u2192 near-total firing on the positives\" \u2014 a prospective verification plan only; no re-evaluation performed and no keep-or-discard decision stated"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "```diff\n-description: Certificate stuff.\n+description: Renew Let's Encrypt / ACME certificates with certbot on standalone"
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "13 queries, 7 should-trigger / 6 should-NOT ... --holdout 0.4 --runs-per-query 7"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management \u2014 eviction-policy selection (allkeys-lru, allkeys-lfu, volatile-ttl, noeviction), maxmemory sizing, TTL and expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Use whenever a Redis or Valkey instance is evicting keys, growing without bound, or running out of memory."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Constraint check: `description` 319 chars (hard cap 1024), combined 934 (listing cap 1,536)."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "{\"query\": \"my CDN cache is serving stale assets\", \"should_trigger\": false, \"source\": \"keyword-collision (cache)\"}"
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Run each in a **fresh** session ... Repeat each query a few times ... Hold back a few queries of each kind that you do *not* look at while editing"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management and capacity operations \u2014 eviction policy selection (noeviction, allkeys-lru, allkeys-lfu, volatile-*), maxmemory and maxmemory-policy sizing, TTL and expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Does NOT cover HTTP/CDN caching, browser cache, application-level or build-tool caches, Memcached tuning"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Length.** Every skill's description sits in the context of every request, so this is not free. The version above is deliberately dense rather than prosy."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "should-not-fire near-misses ... \"clear my npm cache\", \"set Cache-Control on the CDN\", \"add functools.lru_cache to this function\""
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "13 queries, 7 positive / 6 negative ... --holdout 0.4 --runs-per-query 7 --num-workers 7 --verbose"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management: eviction policies, maxmemory sizing, TTL strategy, keyspace analysis, and memory fragmentation."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Use when keys are evicted or expire unexpectedly, when Redis/Valkey memory is full or growing"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Constraint check: `description` 278 chars (hard cap 1024), combined description + when_to_use 970 chars (listing cap 1,536"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "{\"query\": \"configure Cloudflare CDN cache headers\", \"should_trigger\": false, \"source\": \"keyword-collision\"}"
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "13 queries, 7/6 split, \u22653 per class after the 60/40 holdout ... --holdout 0.4 --runs-per-query 7"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Diagnose and tune Redis and Valkey memory behavior \u2014 eviction policies (allkeys-lru, volatile-ttl, noeviction), maxmemory sizing, TTL and expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The failing query is covered by class, not verbatim ... Migrating Redis to Valkey belongs to redis-to-valkey; cluster/replication topology belongs to the deployment skill."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Constraints checked: `description` 211 chars (hard cap 1024), combined 1041 chars (listing truncation 1536 on v2.1.105+)."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "{\"query\": \"explain how CPU cache lines work\", \"should_trigger\": false, \"source\": \"keyword-collision\"}"
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 4,
+    "total": 5,
+    "pass_rate": 0.8,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "**Split 60/40 into train and test.** Tune only against the train half. Score the test half once, at the end, blind."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Diagnose and tune Redis and Valkey memory behaviour \u2014 eviction policy selection (noeviction, allkeys-lru, allkeys-lfu, volatile-*), maxmemory and maxmemory-policy sizing, TTL and expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "or any question about why a Redis/Valkey instance is evicting, expiring, or growing unexpectedly."
+     },
+     {
+      "index": 3,
+      "passed": false,
+      "evidence": "absent \u2014 no character limit or compactness rationale is stated anywhere; closest is \"Drop the filler. 'Helps with' tells the selector nothing.\""
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "~10 negatives it must stay silent on: HTTP cache-control headers, browser cache clearing, Postgres shared_buffers, npm/Docker build cache, CPU cache lines."
+     }
+    ]
+   },
+   {
+    "eval_id": 3,
+    "name": "trigger-fix-empirically",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Write ~10 queries that **should** fire it ... Write ~6 that should **not** ... Run each in a fresh session and record whether the skill loaded."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Redis and Valkey memory management \u2014 eviction policy selection (allkeys-lru, allkeys-lfu, volatile-*, noeviction), maxmemory and maxmemory-policy sizing, TTL and expiry strategy"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "NOT for Redis persistence (RDB/AOF), replication or failover topology, Redis as a queue/streams, or non-Redis caches \u2014 HTTP/CDN caching, browser cache, build caches, or CPU cache."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**Length limits.** Descriptions have a length budget (on the order of 1024 characters in the spec). The version above is close to it."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "a CDN cache-control question, a browser cache question, a Redis replication/failover question"
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# Improvement Backlog \u2014 argocd-appsets ... ## Open ... ## Resolved this pass \u2014 2026-08-20 (improve)"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Blocker: 3.2 is still RC and the ordering documentation is not published ... Unblock condition: ArgoCD 3.2 GA (expected October) with published ordering docs."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Not filed, deliberately \u2014 **normalize three second-person sections (\"you should run\u2026\") to imperative.** Unblocked, mechanical, one section per iteration."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "(carried 2026-08-20) ApplicationSet generator matrix examples untested against a real cluster ... **Closes prior Open item \"examples thin \u2014 no multi-source app example\"**"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Iteration 3 \u2014 split the troubleshooting table into three per-symptom tables. 79 \u2192 77 (\u22122). REVERTED ... Iteration 6 \u2014 added a `Common mistakes` section. 79 \u2192 79 (no movement). REVERTED."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "*Bundled \u2014 two mutations in one iteration ... The +2 is not attributable: it may be the deletion, the addition, or both.*"
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# Improvement backlog \u2014 argocd-appsets ... ## Open ... ## Resolved this pass"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "3.2 is still RC and the ordering documentation is not published ... *Unblocks when:* 3.2 goes GA (expected October) and the ordering docs ship."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "That's not a blocker, it's three sections of mechanical rewriting ... I've left it out of the file below on that basis"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**ApplicationSet generator matrix examples untested against a real cluster.** ... The multi-source example closes the former \"examples thin\" open item."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Splitting the troubleshooting table into three per-symptom tables** (iteration 3, 79 \u2192 77). Reverted ... **Adding a `Common mistakes` section** (iteration 6, 79 \u2192 79, no movement). Reverted."
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "Deleted the `Repo credentials` block from `SKILL.md` ... and added the multi-source app example (iteration 5, 77 \u2192 79). \u2014 no note that the movement cannot be attributed to one edit"
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# Improvement backlog \u2014 argocd-appsets ... ## Open ... ## Resolved in the last pass"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "*Blocked on:* 3.2 is still RC and the ordering documentation is not published. Earliest verifiable point is the October GA."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "## Do next (not blocked) \u2014 **Three sections still address the reader in second person.** ... Nothing prevents this \u2014 it ran out of iterations, not obstacles."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**ApplicationSet generator matrix examples untested against a real cluster.** ... ## Resolved in the last pass \u2014 **Examples thin \u2014 no multi-source app example.** Landed in iteration 5"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Iteration 3: split the troubleshooting table into three per-symptom tables.** 79 \u2192 77. Reverted ... **Iteration 6: added a \"Common mistakes\" section.** 79 \u2192 79, no movement. Reverted."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "deleted the \"Repo credentials\" block from SKILL.md ... **and added the multi-source app example.** 77 \u2192 79 for the pair."
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.8333,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# argocd-appsets \u2014 improvement backlog ... ## Open ... ## Resolved this pass"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "*Blocked on:* ArgoCD 3.2 is still RC and the ordering documentation is not published ... *To unblock:* the October 2026 GA."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The second-person \u2192 imperative normalization does not go in the backlog at all. You named no obstacle \u2014 you ran out of iterations."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**ApplicationSet generator matrix examples untested against a real cluster.** ... (This closes the former Open item \"examples thin \u2014 no multi-source app example\".)"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Iteration 3 \u2014 splitting the troubleshooting table into three per-symptom tables.** 79 -> 77 ... **Iteration 6 \u2014 adding a \"Common mistakes\" section.** 79 -> 79, no movement ... Reverted."
+     },
+     {
+      "index": 5,
+      "passed": false,
+      "evidence": "Iteration 5 \u2014 deleted the `Repo credentials` block that duplicated `references/auth.md` verbatim, and added the multi-source app example. 77 -> 79. \u2014 no attribution caveat"
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# Improvement Backlog \u2014 argocd-appsets ... ## Open ... ## Resolved this pass"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Blocker: ... 3.2 is still RC and the ordering docs are not published ... Unblock condition: 3.2 GA (expected October) with the ordering docs live."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Your \"not done #2\" (second person \u2192 imperative) is not going in `## Open`. ... That is unblocked mechanical work in three sections of one file ... Do it now"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**ApplicationSet generator matrix examples untested against a real cluster** (carried 2026-08-20) ... Closes the prior Open item \"examples thin \u2014 no multi-source app example\""
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Split the troubleshooting table into three per-symptom tables** \u2014 iteration 3, 79 \u2192 77. Regressed ... **Added a \"Common mistakes\" section** \u2014 iteration 6, 79 \u2192 79, no movement."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**iteration 5 bundled two changes** \u2014 the credentials deletion and the multi-source example \u2014 so the 77 \u2192 79 is unattributable."
+     }
+    ]
+   },
+   {
+    "eval_id": 4,
+    "name": "backlog-writeup-after-ceiling",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "# Improvement Backlog \u2014 argocd-appsets ... ## Open ... ## Resolved this pass"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Blocked: 3.2 is still RC and the ordering docs are not published ... Earliest verifiable point is the 3.2 GA in October 2026."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The second-person \u2192 imperative cleanup is not in the file, deliberately. By your own account there is no obstacle to it"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**ApplicationSet generator matrix examples untested against a real cluster** ... **Examples thin \u2014 no multi-source app example** (was Open) \u2014 iteration 5 added the multi-source Application example."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "**Split the troubleshooting table into three per-symptom tables** (iteration 3). 79 \u2192 77, reverted ... **Add a \"Common mistakes\" section** (iteration 6). 79 \u2192 79, no movement, reverted."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**Attribution caveat:** iteration 5 bundled a deletion and an addition, so the +2 cannot be attributed to either change on its own."
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Your rubric scores the *document*. Your engineers are reporting the *delta*"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "You checked for factual errors and found none \u2014 good, but notice that also means much of the content is *already known*."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Three independent reports plus a deny-list entry is not anecdote. That is your real metric talking, and it is telling you the skill is net-negative"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Run each prompt twice in clean context, same model, identical setup, skill on vs skill off."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Likely moves, in the order I'd try them ... Step 4 \u2014 re-run the same paired eval and keep only what wins."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "A fixed step order converts analysis into checklist execution ... it adds 480 lines of instruction competing for attention"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "The rubric scores the skill's *text*. It has never scored the skill's *outputs*."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Why \"no factual error\" is compatible with worse refactors."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "25% are net-harmful. ... Your engineers may simply have found one, and three independent reports in a retro is a far better instrument than a text score."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "the official `skill-creator` plugin already runs each eval case with and without the skill ... benchmark.json carries delta_pass_rate"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "This single change may be the whole fix ... KNOWS is a deletion *candidate* to confirm with the eval delta, never a licence to cut."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "a mandated module layout and naming convention are correct-in-the-abstract instructions that **override the conventions actually present in the codebase**"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Your rubric scores **the document**. Your engineers are reporting on **the model's output when the document is in context**."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "none of the four is a factual error, and none of them would move a single rubric dimension. That's why your two checks came back clean."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "My strong prior is that the skill is positive on the first and negative on the second"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "run each one twice, once with the skill and once without, in clean contexts. Then have someone ... who doesn't know which arm is which score the resulting diffs"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Step 4: re-run step 1 on the cut version. Same tasks, same blind scorer. Keep the cut only if the outcome number moves the right way."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "Prescription displaces judgement ... A frontier model already knows Terraform 1.14 and AWS provider 6.x reasonably well. Content that tells it things it already knows doesn't add capability"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "A rubric score reads the skill's **text**; your engineers measured its **effect**."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Correctness is orthogonal to harm \u2014 so \"no factual error\" doesn't clear it."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Three independent reports in one retro is a strong prior that yours is in the 25%."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "the official `skill-creator` plugin already runs each case with and without the skill ... delta_pass_rate"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Expect the step order and much of the layout mandate to land there. ... deletion candidate | cut to the delta, confirm with the eval"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "480 lines of required module layout, naming convention, and step order arrive in the context ahead of the repo, and the model spends its turn complying with the document instead of reading the code"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "The rubric scores the skill's *text*, never its outputs"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Factual correctness and the 90% trigger rate are both orthogonal ... A skill can be **entirely true and still net-harmful**"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Three engineers reporting this independently, and one deny-listing it, is the strongest datum you have"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Measure the delta \u2014 this is the only thing that answers your actual question ... runs each case with and without the skill"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "I'd expect the strict-workflow cap to fire on the step order. ... Don't delete on the first negative number. Confirm the sign is stable across runs"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "a skill that hard-codes a layout, a naming convention and a step order overrides all of that with context it cannot possibly have"
+     }
+    ]
+   },
+   {
+    "eval_id": 5,
+    "name": "high-score-worse-outputs",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "91 is a score for the *document*. Your engineers are reporting a score for the *outcome*."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "none of these are defects you could find by reading the file ... \"No factual errors against Terraform 1.14 / AWS provider 6.x\" is a statement about the claims that are *in* the document."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "The retro is the first real measurement you've taken, and it came back negative."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "run each one with the skill on and off and score the *result*, blind."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "the correct first experiment is aggressive: strip it to the fact content plus explicitly-hedged conventions, and re-benchmark."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "A step order tells the model where to start regardless of what the diagnosis would have said. Skills that impose procedure on tasks whose difficulty is *diagnostic* reliably degrade output"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Spend the half hour on the trigger problem \u2014 tighten the frontmatter description ... Do not touch the content, do not touch the date stamp."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "It is also the only one that actually fits in half an hour. The other two do not, and half-doing them is worse than not starting"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Currency at 5 is not an independent finding; it is the same fact as item 1, measured on a rubric ... they should be written against verified-current behaviour."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "every teammate who asks an HPA or Terraform question for the next seven days pays the context tax, on a question where the skill has, by your own description, nothing useful to say"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "you do not have three problems \u2014 you have a staleness problem, a symptom of it, and an unrelated triggering problem"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "The freshen is outstanding, and it is the **next** thing to do ... Worked examples are blocked on that freshen, deliberately"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Decision: spend the half hour on `freshen keda-autoscaling`. Nothing else."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Why not #2 (the 82/100) ... Why not #3 (the over-triggering)"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Currency at 5 is a staleness cap, not a writing problem \u2014 Dim 9 is capped by the `sources.md` age directly, and no amount of editing prose lifts it while the header says January."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Do it when you're back, after freshen \u2014 the currency dim will have moved on its own and you'll be improving against real content."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Running `improve` first would spend the half hour hill-climbing against a metric that's pinned by something else"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "#2 blocked on a trustworthy blind baseline post-freshen, #3 blocked on an eval set plus probe budget you don't have today"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Spend the half hour freshening it against KEDA 2.18/2.19. Not the score, not the triggering."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Why not the score (#2) ... Why not the triggering (#3) ... It's the one change that can't be verified in the window."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Currency at 5 *is* the staleness \u2014 that dimension is measuring exactly the thing you'd be fixing ... Chasing it in a 30-minute window means making edits whose only feedback signal is your own re-score"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "a worked example written against fallback semantics you haven't refreshed yet is an example you'd have to rewrite next week anyway. Sequencing puts examples after currency"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "the 82 is self-scored, last night, by the person who wrote the skill. That number is an input to prioritisation, not a target."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "leave one line in the backlog for the trigger work with the two failing cases named (plain HPA, Terraform), so the measurement starts from evidence when you're back"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Decision: spend the half hour on #1 \u2014 `freshen keda-autoscaling`. ... the other two do not get a slice of the thirty minutes."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "The 82/100 (#2) is not independent evidence of anything ... And #3 does not fit in half an hour, in a way that makes starting it worse than not starting it."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "the improve loop is explicitly forbidden from changing an external-world claim (a version, a semantic, a flag) from memory. It would have to run the probe anyway."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "The cap lifts when the probe runs and the stamp moves, not when the text improves ... Baking a stale fallback rule into example YAML is strictly worse than leaving it in prose"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "So #2 is not a competing option; it is #1 wearing a number."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**#3 (over-triggering)** \u2014 blocked on a probe budget it cannot have today ... Order for when you're back: freshen (today) \u2192 trigger, with the teammates' real queries \u2192 improve"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Decision: spend the half hour on `freshen keda-autoscaling`. Nothing else."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Why not the trigger tuning (the closest call) ... Why not the score loop"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Score-loop mutations don't do online probes, so it would spend ten iterations polishing prose while Dim 9 stays pinned at 5 no matter what it does."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Freshen is the only mode that lifts it, and a completed pass lifts it in one move ... examples you write today would demonstrate two-releases-old fallback behaviour, so you'd write them and then rewrite them"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Fixing the triggering does nothing about the damage the content does when it fires correctly"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**Trigger tuning** \u2014 blocked on you being present to re-probe a mutation ... **Worked examples (Dim 6)** \u2014 blocked on the freshen landing first"
+     }
+    ]
+   },
+   {
+    "eval_id": 6,
+    "name": "one-action-half-hour",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Fix the trigger. Leave the staleness and the score alone."
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "Because it's the only one that actually fits in half an hour. Freshening across two minor releases ... is not a 30-minute job ... the score isn't a third item \u2014 it's item 1 wearing a different hat."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Currency at 5 *is* the seven-month gap. There is no separate \"fix currency\" task; there's only the freshen ... it's release-notes reading, upstream-behaviour verification"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Two teammates have already told you it's happening this week ... it fires on people who never asked about KEDA at all, evicts the context they actually needed"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "82/100 self-scored last night at 11pm is not a measurement you should be optimising against. Nothing on that list is urgent *because* of the number."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One backlog line: freshen `keda-autoscaling` against KEDA 2.18 and 2.19 ... That's the next session's first job"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "without_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Our line is right and the model is wrong** \u2192 keep it and *strengthen* it. Add the counter-framing explicitly"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I'm not going to make those cuts, and I'd ask you not to run them as specified."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "It does not measure what you care about, which is whether the model *acts on* the fact mid-task"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "That inference doesn't hold. Model confidence is not calibrated to correctness"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "score them with the current skill, apply the cuts, score again. If the score holds, the cut was safe."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One pass, n=1, on an isolated extracted claim, with nothing else competing for attention."
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "with_skill",
+    "run_number": 1,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "CONFLICTS | confidently states something else | **keep, and make it louder**"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I'm not making these cuts, and I don't want to commit anything to main off this run."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "Recall is not application. A bare model asked \"what does `--flag-x` do?\" can answer perfectly and still never think to reach for it mid-task"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "a conflict never means the skill is wrong, it means the model is stale"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "Then, and only then, test cutting KNOWS sections** \u2014 one change per iteration, cold re-score, keep only what moves the metric"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One pass, one model, one effort isn't enough to act on"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "with_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "Make the durable conflicts louder.** Front-load them, phrase each as an explicit contradiction"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I'm not going to make those cuts \u2014 the plan inverts what the floor probe means on both buckets"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Recall is not application.** The probe asks the bare model to *state* a claim; it does not ask whether the model would *think to use* that flag mid-task"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "\"The model states it confidently, so we're probably the stale ones\" is exactly backwards for this fleet."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "but even that goes behind an A/B, not straight to main"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One pass, one model, one effort level."
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "with_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "the 5 CONFLICTS are the most valuable content in the skill and must stay \u2014 and get louder"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I'm not going to make those cuts, and I'd like to walk you through why before we touch `vllm-serving` at all"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Recall is not application.** ... It does not establish that the model will *think to reach for* that flag unprompted"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "**A conflict never means the skill is wrong.** Skills here are freshened past the model cutoff"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "say the word and I'll do step 5 alone \u2014 relocate the KNOWS material to `references/` ... it's reversible"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One pass, one model, one effort level. Floor mode is a **model \u00d7 effort matrix**"
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "without_skill",
+    "run_number": 3,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "keep the line and add the version gate + a one-line \"the model will tell you X; it's wrong since v<N>\" note"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I'd rather not run that plan as written"
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "\"the model will apply this fact unprompted, correctly, in the middle of a long serving task\" are different properties, and the probe only measured the first"
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "The inference \"it disagreed confidently, so we're probably the outdated one\" has no error term."
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "If you want the length win today and the rest later, say so and I'll do step 5 alone \u2014 that's the part with essentially no behavioral risk"
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "One pass, one model, one prompt phrasing."
+     }
+    ]
+   },
+   {
+    "eval_id": 7,
+    "name": "mass-delete-known-claims",
+    "configuration": "without_skill",
+    "run_number": 2,
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0,
+    "expectations": [
+     {
+      "index": 0,
+      "passed": true,
+      "evidence": "keep the line, and strengthen it: add the source and the reason, since we now know the model actively fights it"
+     },
+     {
+      "index": 1,
+      "passed": true,
+      "evidence": "I don't want to run these cuts as specified."
+     },
+     {
+      "index": 2,
+      "passed": true,
+      "evidence": "**Knowing \u2260 doing.** ... A model can answer a direct question about a flag correctly and still never think to mention it while writing a deployment manifest."
+     },
+     {
+      "index": 3,
+      "passed": true,
+      "evidence": "Why the \"5 conflicts \u2192 delete\" half is inverted"
+     },
+     {
+      "index": 4,
+      "passed": true,
+      "evidence": "score with-section vs without-section. Delete only what shows no quality drop."
+     },
+     {
+      "index": 5,
+      "passed": true,
+      "evidence": "**One pass is not a measurement.** n=1 with no variance estimate tells you what the model said once, at one temperature, under one phrasing."
+     }
+    ]
+   }
+  ]
+ }
+}

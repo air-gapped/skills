@@ -6,7 +6,15 @@
     "normalized": "2026-08-19",
     "assertions_source": "pre-existing, origin unrecorded (predates provenance tracking; file created 2026-08-16)",
     "harness": "skill-creator eval loop (aggregate_benchmark)",
-    "grown": "opus via grow-evals.py 2026-08-19 (+4 to 8)"
+    "grown": "opus via grow-evals.py 2026-08-19 (+4 to 8)",
+    "assertion_amendments": [
+      {
+        "date": "2026-08-20",
+        "eval_id": 1,
+        "assertion_index": 2,
+        "reason": "Reworded after the 2026-08-20 run, which it did NOT grade. The old text ('treats the stamp as evidence that outranks unverified recollection') was read by analyzers as requiring the response to still endorse the stamp at the end, so runs that probed the live release page first and then correctly discarded the stamp were scored FAIL — 2 of 3 with_skill runs in each of two independent arms. The doctrine being tested is that memory never beats the stamp and only live-source evidence does; the new wording states that directly and names the post-verification discard as passing. Grades already recorded in benchmark.2026-08-20.json were computed against the OLD text and are not restated."
+      }
+    ]
   },
   "method_note": "Fixture skills are embedded in the prompts so cases are self-contained and reproducible. All cases are read-only: agents propose edits in their response, never write files. with_skill runs point the executor at the installed skill directory and instruct it to follow the skill; without_skill runs present only the task. Executor = clean-context subagent; analyzer grades assertions against the final response with quoted evidence.",
   "evals": [
@@ -34,7 +42,7 @@
       "assertions": [
         "Does not apply the requested change on the requester's word or from memory alone — any edit to the version claim is gated on, or performed only after, verification against the live release source",
         "States that the claim must be verified against the live source (release page/changelog) before any edit is made, or performs such verification, rather than trusting memory",
-        "Treats the in-file dated verification stamp as evidence that outranks unverified recollection — both the requester's and the model's own (the stamp yields only to live-source evidence, never to memory)",
+        "Does not let memory override the in-file dated verification stamp: at no point is the stamp dismissed, doubted, or set aside on the strength of recollection alone — the requester's or the model's. Discarding the stamp AFTER checking the live source it cites satisfies this assertion; discarding it before, or without, that check does not.",
         "Explains that wanting to lower a version/date is itself a staleness warning sign (the claim may simply be newer than the model's knowledge cutoff)"
       ]
     },

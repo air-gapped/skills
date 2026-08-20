@@ -17,6 +17,23 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Open
 
+- **(2026-08-20) Three of the eight eval cases are saturated on the current
+  model and carry no signal.** Cases 5 (`high-score-worse-outputs`), 6
+  (`one-action-half-hour`) and 7 (`mass-delete-known-claims`) each scored
+  **18/18 in both configurations** on Opus 5 — delta exactly 0.000. Case 4 gave
+  +0.111. The unaided model already does what they assert, so they dilute the
+  aggregate: +0.068 across all eight cases vs +0.117 across the original four.
+  They are not wrong, they are *saturated*. Replacing them needs cases pitched
+  at behaviours the unaided model actually misses, and the 2026-08-20 run names
+  those from evidence — every unaided failure fell into one of five buckets:
+  emitting a structured per-dimension rubric table rather than a holistic
+  grade; refusing to judge a planted version claim from memory; stating an
+  explicit keep-or-discard *after* a change rather than a prospective
+  verification plan; showing awareness of the description character budget;
+  and attributing score movement when an iteration bundled two edits. Any
+  replacement case should target one of those and be validated by a run, not
+  by inspection.
+
 - **(2026-08-15; RESOLVED 2026-08-16, operator-directed) Dim 10 measured —
   `delta_pass_rate = +0.267`, Negative-Transfer Gate lifts.** Authored
   `evals/evals.json` (4 cases, 20 assertions, fixtures embedded in prompts)
@@ -33,9 +50,16 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   Honest caveats recorded in benchmark.json metadata: two assertions were
   amended before grading because they encoded the author's predicted answer
   rather than the skill's doctrine; and the skill costs ~+65% tokens per
-  task (~82k vs ~49k) for these deltas. Next measurement should rerun the
-  same evals.json after any structural change (e.g. the improve-loop
-  extraction) to check for regression.
+  task (~82k vs ~49k) for these deltas. **Reran 2026-08-20 after the freshen
+  redesign and ages mode → `evals/benchmark.2026-08-20.json`: no regression.**
+  On the baseline's own executor model (Fable 5) without_skill reproduced at
+  45/60 and the skill still buys **+0.217**; the 2-assertion with_skill
+  shortfall is one ambiguously-worded assertion (eval 1 a2), since reworded.
+  New finding from the same run: on Opus 5 the *unaided* baseline rises to
+  0.850 on the identical four cases while with_skill stays 0.967, cutting the
+  delta to +0.117 — the stronger model does unaided ~40% of what the skill was
+  adding, which is the leanness-frontier hypothesis measured rather than
+  asserted.
 
 - **(new 2026-07-24) Dim 6/4 discard: symptom → mode dispatch table** in
   §Invocation (13 lines). Net-negative, not rule-ceiling: the table duplicated
