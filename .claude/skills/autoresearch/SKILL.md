@@ -278,8 +278,8 @@ subagents in flight at once (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, v2.1.217).
 The per-session cap on *total* subagents was removed in v2.1.224, so agent count
 no longer bounds a run — searches and concurrency do. An Exhaustive run at 5
 searches per agent consumes over half the session's search budget, and a run
-that exhausts it fails mid-synthesis with partial findings and no report. State the agent count when
-proposing a depth above Standard.
+that exhausts it fails mid-synthesis with partial findings and no report.
+State the agent count when proposing a depth above Standard.
 
 ---
 
