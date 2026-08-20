@@ -400,17 +400,4 @@ trustworthy — not during a normal `improve` or `freshen` run.
 - **`scripts/grow-evals.py`** — Adds cases until a skill has enough to resolve a change. At the corpus median of 3 cases, one flip moves pass rate 33 points, so `delta_pass_rate` cannot separate "this edit hurt" from "one case is flaky". Floor of 8 (one flip = 12.5 points). New cases are generated to complement the existing prompts, not repeat them.
 - **`scripts/regrade.py`** — Re-buckets stored floor-mode answers with a stricter grader, no re-probing. The first fleet pass inflated `CONFLICTS` by dumping agree-with-different-detail and hedged answers into it — the one bucket that can least afford noise, since overriding a confident wrong prior is the whole point of Floor Mode.
 
-- **`scripts/outcome-bench.py`** — measures `delta_pass_rate`, the one number
-  the Negative-Transfer Gate needs and the rubric otherwise caps Dim 10 at 8 for
-  wanting. Runs each case in `<skill>/evals/evals.json` twice under hermetic
-  `claude -p` — once in an empty project dir where no skill can resolve, once in
-  a dir containing only the skill under test — grades both against the case's
-  assertions, and writes the run layout skill-creator's `aggregate_benchmark.py`
-  consumes, so the delta comes from the official aggregator. Both project dirs
-  are fixed rather than per-process, for the prompt-cache reason
-  `knowledge-floor.py` documents. Mutation and network tools are denied in both
-  arms so the assertions grade the answer, not tool luck. Read the per-case
-  win/tie/**loss** line before the point estimate: a single run per cell fixes
-  the sign and rough size of the effect, not an interval, and a loss anywhere is
-  the negative-transfer signal that matters.
 - **`scripts/probe-trigger.py`** — Trigger-mode measurement tool. Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`. Spawns `claude -p` subprocesses against a synthetic slash-command and parses stream-json for `Skill`/`Read` `tool_use` events to compute per-query trigger rate. Supports stratified train/test split, configurable runs-per-query, threshold, and parallelism.

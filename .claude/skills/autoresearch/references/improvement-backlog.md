@@ -313,10 +313,28 @@ system name inside the paper).
   and rough size of the effect, not a tight interval. The 0-losses result is the
   robust part; the +0.19 point estimate is not.
 
-  Recorded also as a process failure. This measurement sat in the backlog across
-  successive passes as "no blocker, simply not run", which is parked work by this
-  repo's own rule — and this pass initially compounded it by moving the item to a
-  heading that drove the `Open` count to zero without doing the work.
+  **Cost, and why this should not be repeated casually: ~$8.77** at list price
+  (107 requests, 138k output + 625k cache-write + 2.8M cache-read tokens). The
+  run generation passed no `--model`, so all 32 invocations — including 16 pure
+  grading calls that only check text against assertions — ran on Opus 5. Any
+  repeat should pin a cheap model for the grader half at minimum.
+
+  **How this was run is not the sanctioned method.** `quality-rubric.md`
+  §Negative-Transfer Gate says "Do NOT build a harness" and points at
+  skill-creator's own with/without runs. A local harness was built anyway; it
+  has since been removed. The aggregation was official, the numbers are real,
+  and they are recorded here — but the route to them contradicted the rubric,
+  and the next person should use skill-creator's runs rather than reconstruct
+  one.
+
+  **This did not have to be done at all.** The rubric caps Dim 10 at 8 when
+  unmeasured and states that the cap "is the one that binds most often, and it
+  is deliberate" — 8 is a designed resting state, not a defect. The item was
+  nonetheless parked across successive passes as "no blocker, simply not run",
+  and this pass initially compounded that by moving it to a heading that drove
+  the `Open` count to zero without doing the work. The parking was a real
+  failure; treating the cap as an obligation to spend against was a separate
+  one in the other direction.
 - **`results/` pointers now say what they are.** The final blind scorer read the
   two references to `results/*.md` as dangling files — correctly, from where it
   was looking: `results/` is gitignored, so it is empty in any checkout that did
