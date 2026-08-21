@@ -47,6 +47,19 @@ repos:
         # Severity decisions live in .claude/skillevaluator-policy.yaml.
         files: ^(\.claude/skills/.+|\.claude/skillevaluator-policy\.yaml|scripts/skillevaluator-gate\.sh)$
         stages: [pre-commit]
+      - id: prose-reminder
+        name: prose check (added skill markdown)
+        entry: bash scripts/prose-reminder.sh
+        language: system
+        pass_filenames: false
+        # Counts added lines and asks the question; never blocks, never tries to
+        # decide which lines are bad. A signature list only catches shapes
+        # someone already noticed, and the author is reading the diff anyway --
+        # the gap is that the test never gets applied, not that the lines are
+        # hard to see. Rubric Dim 6 scores this properly, but only inside
+        # `improve` mode, so manual edits reach main without ever meeting it.
+        files: ^\.claude/skills/.+\.md$
+        stages: [pre-commit]
       - id: readme-skills-table
         name: README skill table in sync
         entry: python3 scripts/gen-skills-table.py
