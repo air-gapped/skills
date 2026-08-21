@@ -9,7 +9,8 @@ archive and is gitignored, so it is empty in a fresh checkout.*
 
 - [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — The original
   630-line implementation. Three-file architecture (prepare.py read-only,
-  train.py agent-editable, program.md human-editable). val_bpb metric, 5-min budget.
+  train.py agent-editable, program.md human-editable). nanochat val_bpb metric,
+  5-min budget.
 - [karpathy/autoresearch program.md](https://github.com/karpathy/autoresearch/blob/master/program.md) —
   The agent instruction file. Our SKILL.md is heavily influenced by this.
 - [Karpathy, "notes from claude coding" (X, 2026-01-26)](https://x.com/karpathy/status/2015883857489522876) —
@@ -22,8 +23,10 @@ archive and is gitignored, so it is empty in a fresh checkout.*
 
 ## Beyond Hill-Climbing
 
-- [WecoAI/aideml](https://github.com/WecoAI/aideml) — Tree search in code space.
-  4x more medals than linear agents on MLE-Bench (75 Kaggle competitions).
+- [WecoAI/aideml](https://github.com/WecoAI/aideml) — Tree search in code space
+  (arXiv:2502.13138). 4x more medals than linear agents on MLE-Bench (75 Kaggle
+  competitions). Now positioned as the OSS research root of the commercial Weco
+  product; the technical claim is unaffected.
 - [gepa-ai/gepa](https://github.com/gepa-ai/gepa) — Pareto-aware evolutionary search.
   ICLR 2026 Oral. Multi-objective, reads full execution traces. 35x fewer rollouts.
 - [SakanaAI/ShinkaEvolve](https://github.com/SakanaAI/ShinkaEvolve) — Island evolution
@@ -122,8 +125,8 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
 - [stanford-oval/storm](https://github.com/stanford-oval/storm) — STORM/Co-STORM v1.1.0.
   Multi-perspective research. Our Mode 2 is based on this pattern. **Note the
   pin is stable because the project is quiet, not because it is actively
-  maintained at that version**: v1.1.0 dates from 2025-01-23 (~18 months) and
-  the repo's last push was 2025-09-30 (~10 months) as of 2026-07-21. The
+  maintained at that version**: v1.1.0 dates from 2025-01-23 (~19 months) and
+  the repo's last push was 2025-09-30 (~11 months) as of 2026-08-20. The
   *pattern* is what Mode 2 borrows and that doesn't rot; treat the codebase as
   reference rather than a dependency to track.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
@@ -150,7 +153,8 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   the same lab, and is the implementation for arXiv:2604.06474. It reframes deep
   research over **structured databases** — tree search where each node poses a
   sub-question answered by generated SQL, branches scored for interestingness and
-  expanded, findings reranked into a staged citation-traceable report. Scoped to
+  expanded, findings reranked into a staged citation-traceable report. The paper
+  reports SOTA on InsightBench (+19.4% insight recall, +7.2% summary). Scoped to
   database/EDA work, not general prose topics, so it is adjacent to Mode 2 rather
   than a drop-in. Note what this does *not* mean: Stanford OVAL has never declared
   STORM end-of-life, the repo is dormant but not archived, and the succession is

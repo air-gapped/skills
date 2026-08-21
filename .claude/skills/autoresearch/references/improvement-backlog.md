@@ -2,6 +2,22 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Accepted duplicates — do not "fix"
+
+`context-optimization-check` flags `ecosystem.md` against `sources.md` in the
+sections where both sides hold only two or three entries — Swarm / Distributed,
+Meta / Self-Improving Agents, Eval-Driven Development, Curated Lists. This is
+structural: the two files cover the same URL set by design (SKILL.md calls
+`sources.md` the per-URL index backing `ecosystem.md`), so where an entry
+warrants a single line, the index and the prose necessarily say the same thing.
+Read on 2026-08-21 and kept — deleting prose prior art to move a scanner number
+would be gaming it.
+
+The rule that keeps this from spreading to sections that *can* diverge is in
+`sources.md` under Convention: its description column carries what a source is
+plus probe state, never findings or why-it-matters — those live in
+`ecosystem.md` only.
+
 ## Resolved — 2026-08-16 (operator-directed restructure)
 
 - **Fan-out cache discipline (skill-improver improvement-patterns 7.3).**
@@ -191,28 +207,11 @@ produced).
 
 ## Resolved — 2026-07-21 (freshen)
 
-**Third consecutive clean pass.** All 16 ecosystem repos alive and unarchived;
-all 9 non-GitHub URLs return 200; Shopify Liquid PR #2056 still OPEN with
-unchanged claims. Nothing to correct.
-
-The value this pass was **separating "stable" from "dormant"** — three passes of
-"no drift" can quietly mean "nothing is being maintained":
-
-- **stanford-oval/storm** — the v1.1.0 pin has held across three passes, but
-  v1.1.0 is from **2025-01-23 (~18 months)** and the repo last pushed
-  **2025-09-30 (~10 months)**. Annotated in `ecosystem.md` so a reader doesn't
-  infer active maintenance from a stable pin: Mode 2 borrows the *pattern*,
-  which doesn't rot — treat the codebase as reference, not a tracked dependency.
-- **SakanaAI/AI-Scientist-v2** — last push 2025-12-19 (~7 months).
-- **karpathy/autoresearch** — dormant since 2026-03-26 (~4 months) while stars
-  climbed **85,764 → 91,664** in six weeks. Recorded as a trend note in
-  `sources.md` only (B2 keeps counts out of the body). The distinction matters
-  for a skill whose methodology derives from that repo: the source is static,
-  the practice is spreading. Dormancy is not deprecation here.
-
-Most active, for contrast: `gepa-ai/gepa` pushed on the probe date itself,
-`ralph-claude-code` (9.5k stars), `ShinkaEvolve`, `awesome-autoresearch`,
-`aideml` — all within the last week.
+Third consecutive clean pass; nothing to correct. The probe record — per-repo
+push dates, the dormancy findings on `stanford-oval/storm`,
+`SakanaAI/AI-Scientist-v2` and `karpathy/autoresearch`, and what was annotated
+in `ecosystem.md` as a result — is in `references/sources.md` under "Notable
+findings (freshen pass 2026-07-21)".
 
 **Method note for future passes:** a clean liveness sweep is necessary but not
 sufficient. `archived=false` + `HTTP 200` says a link works, not that the
@@ -380,8 +379,10 @@ Baseline self **84** / blind **80** (Fable 5 scorer) → final self **86** / bli
 
 ## Resolved — 2026-05-28
 
-- **Freshen — date stamps:** Probed and stamped `Last verified: 2026-05-28` on karpathy/autoresearch (×2), stanford-oval/storm (v1.1.0 pin confirmed), WecoAI/aideml, gepa-ai/gepa, SakanaAI/ShinkaEvolve, metauto-ai/HGM, dzhng/deep-research, alvinreal/awesome-autoresearch. All alive, unarchived, no drift/deprecations/broken links. Three-file architecture of karpathy/autoresearch verified in the live tree.
-- **Freshen — new primary source (Dim 9/10):** Added Karpathy's "notes from claude coding" X post (x.com/karpathy/status/2015883857489522876, 2026-01-26) to `sources.md` Canonical and `ecosystem.md`. Verified live via the Chrome browser agent. Its *Leverage* paragraph is the author's own articulation of the skill's thesis; same post the 160K-star `andrej-karpathy-skills` repo derives from.
+- **Freshen:** no drift, deprecations or broken links; one new primary source
+  added (Karpathy's "notes from claude coding" X post) to `sources.md` Canonical
+  and `ecosystem.md`. Probe record in `references/sources.md` under "Notable
+  findings (freshen pass 2026-05-28)".
 - **Improve — Dim 6 (kept, +1 self):** Trimmed `SKILL.md` Blind Validation section from a duplicated 3-step protocol to a summary + pointer, matching the skill's own progressive-disclosure pattern (the full protocol already lives in `experiment-loop.md`). 329→324 lines, no decision rule lost.
 - **Improve — crash/timeout consolidation (attempted, discarded):** Tried replacing the inline crash/timeout bullets in LOOP Step 4 with a pointer to the Crash Handling section. Discarded — the loop is the skill's core executable artifact and must read top-to-bottom; the inline thresholds are the loop-critical subset, intentionally placed. Net actionability cost for ~0 simplicity gain.
 
