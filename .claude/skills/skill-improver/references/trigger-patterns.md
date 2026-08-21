@@ -491,6 +491,35 @@ what was requested, `model_reported` is what ran, and a mismatch (or more than
 one entry) prints a `warn:` line and means the arm must not be ranked against
 another.
 
+**Corpus size is not cost-limited — size it for statistical power.** At ~$0.03
+a call, 40 queries at the 7-run decision floor is 280 calls, roughly $8, and
+tens of minutes of wall-clock (30 concurrent calls measured at ~45s). The
+binding constraint is resolution, not budget: a 13-query corpus with 6 negatives
+leaves 7 positives, so one query flipping moves the positive pass rate 14
+points, and at `--runs-per-query 3` a rate can only land on 0, 0.33, 0.67 or
+1.00. That grid is what made one query read 0.67 on a 3-run pass and 0.00 at
+n=7 — coarseness, not a regression.
+
+**Keep a sweep inside an hour.** Anthropic's session-cost guidance states "the
+prompt cache expires after an hour"
+([blog](https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions),
+read 2026-08-21). A sweep that runs longer loses the 0.1x cache-read discount
+partway through and starts paying cache-creation rates again, so `est_cost_usd`
+rises for reasons that have nothing to do with the descriptions under test.
+Split a long sweep rather than letting it straddle the boundary. The same page
+independently corroborates the batch-by-identity rule above: "Set your model and
+effort level before you start... Changing either one mid-conversation can bust
+your prompt cache."
+
+**`MAX_THINKING_TOKENS=0` — measured, not adopted.** The same guidance offers it
+as a cost knob for "grunt work". Tested 2026-08-21 on the 5-query discriminating
+subset, n=3, twice: trigger rates were **identical in all ten comparisons**, so
+it is fidelity-safe, and output tokens fell 29-37%. But cost is input-dominated
+here, so the warm steady-state saving is only ~6% ($0.0326 to $0.0305 a call) —
+and the env var is its own cache identity, so the first run after a switch pays
+a ~35k rewrite that costs more than several runs save (measured cold: $0.0420 a
+call, *worse* than leaving thinking on). Not worth a second prefix to manage.
+
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
 **Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration
 loop ≈ 455 invocations if every query re-probes every iteration — minutes on
