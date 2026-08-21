@@ -511,33 +511,42 @@ independently corroborates the batch-by-identity rule above: "Set your model and
 effort level before you start... Changing either one mid-conversation can bust
 your prompt cache."
 
-**`MAX_THINKING_TOKENS=0` — measured, deliberately not adopted.** The same
-guidance offers it as a cost knob for "grunt work". Tested 2026-08-21 on the
-5-query discriminating subset across four arms (sonnet n=3 twice, haiku n=1
-twice): trigger rates were **identical in all fifteen comparisons**, and output
-tokens fell 29-50%.
+**`MAX_THINKING_TOKENS=0` — measured, rejected. It degrades triggering.**
 
-The cost picture, since the obvious reasoning goes wrong twice:
+Anthropic's session-cost guidance offers it as a cost knob for grunt work, and
+it looks ideal here: this probe reads one bit, and thinking tokens are output
+generated before the tool choice. It is also ~6% cheaper on warm calls and cuts
+output tokens 29-50%.
 
-- **Warm calls save ~6%** ($0.0326 to $0.0305 a call on sonnet).
-- **Cold calls save nothing.** Measured cold-vs-cold: thinking-on $0.0255 a
-  call, thinking-off $0.0266 — a wash, slightly worse. A ~90-100k cache write
-  dwarfs a 1-2k output saving, and with several workers, racing decides who
-  writes and who reads.
-- There is **no break-even to reach**. An earlier note here claimed one, on the
-  assumption that the default prefix is already warm. It is not: sessions run
-  Opus and the probe is pinned to Sonnet, so a sweep forks to a cold Sonnet
-  prefix either way. The cold start is paid regardless of this setting, and in a
-  280-call sweep only about `--num-workers` calls are cold — the rest are warm
-  and would each save the 6%.
+Do not use it. At `--runs-per-query 7` on the 5-query discriminating subset,
+both firing queries dropped **1.00 (7/7) to 0.71 (5/7)** with thinking off —
+same direction, same magnitude, on both. The skill still *passes* either way
+(0.71 clears the 0.5 threshold), but the margin is gone, and margin is what lets
+a probe detect that a description actually changed.
 
-So it is worth roughly 5% of a full sweep and is safe on the evidence. It is
-still not adopted, for a reason that is not arithmetic: **a real session has
-thinking on by default, and this probe exists to measure what the real product
-does.** Trading fidelity to the thing being measured for 5% is a bad trade, and
-"the outcomes matched on fifteen pairs" is weaker evidence than "the request is
-shaped like the one users actually send". Recorded so the next pass does not
-re-run the experiment or re-derive the wrong break-even.
+**The n=3 lesson matters more than the setting.** Four earlier arms at
+`--runs-per-query 3` (sonnet twice, haiku twice) reported trigger rates
+*identical in all fifteen comparisons*, and that was used to call the flag
+fidelity-safe. It was an artifact of the grid: at n=3 a rate can only be 0,
+0.33, 0.67 or 1.00, so a true 0.71 and a true 1.00 both land on 1.00 most of the
+time. A real, one-directional degradation was invisible until n=7.
+
+Consequences to carry forward:
+
+1. **n=3 cannot support a keep/discard decision** — this file already said 7 is
+   the decision floor and 3 is a sighting pass; here is the measured proof.
+   "Rates were identical at n=3" is not evidence of equivalence.
+2. **Anything else concluded from n=3 on this subset is provisional**, including
+   the sonnet-vs-opus agreement behind the current `--model` default. That
+   comparison deserves an n=7 rerun before it is treated as settled.
+
+Do not stretch this into a general "the probe must mirror a real session in
+every respect" rule. It does not and cannot: the probe already runs in an empty
+temp project with one synthetic skill, no user settings, and eight tools denied.
+Every one of those is a deliberate departure from a real session, made because
+isolation is what lets the measurement mean anything. The model pin is the same
+kind of choice — pick deliberately, record what was picked, and never compare
+across a change.
 
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
 **Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration
