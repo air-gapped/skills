@@ -511,14 +511,33 @@ independently corroborates the batch-by-identity rule above: "Set your model and
 effort level before you start... Changing either one mid-conversation can bust
 your prompt cache."
 
-**`MAX_THINKING_TOKENS=0` — measured, not adopted.** The same guidance offers it
-as a cost knob for "grunt work". Tested 2026-08-21 on the 5-query discriminating
-subset, n=3, twice: trigger rates were **identical in all ten comparisons**, so
-it is fidelity-safe, and output tokens fell 29-37%. But cost is input-dominated
-here, so the warm steady-state saving is only ~6% ($0.0326 to $0.0305 a call) —
-and the env var is its own cache identity, so the first run after a switch pays
-a ~35k rewrite that costs more than several runs save (measured cold: $0.0420 a
-call, *worse* than leaving thinking on). Not worth a second prefix to manage.
+**`MAX_THINKING_TOKENS=0` — measured, deliberately not adopted.** The same
+guidance offers it as a cost knob for "grunt work". Tested 2026-08-21 on the
+5-query discriminating subset across four arms (sonnet n=3 twice, haiku n=1
+twice): trigger rates were **identical in all fifteen comparisons**, and output
+tokens fell 29-50%.
+
+The cost picture, since the obvious reasoning goes wrong twice:
+
+- **Warm calls save ~6%** ($0.0326 to $0.0305 a call on sonnet).
+- **Cold calls save nothing.** Measured cold-vs-cold: thinking-on $0.0255 a
+  call, thinking-off $0.0266 — a wash, slightly worse. A ~90-100k cache write
+  dwarfs a 1-2k output saving, and with several workers, racing decides who
+  writes and who reads.
+- There is **no break-even to reach**. An earlier note here claimed one, on the
+  assumption that the default prefix is already warm. It is not: sessions run
+  Opus and the probe is pinned to Sonnet, so a sweep forks to a cold Sonnet
+  prefix either way. The cold start is paid regardless of this setting, and in a
+  280-call sweep only about `--num-workers` calls are cold — the rest are warm
+  and would each save the 6%.
+
+So it is worth roughly 5% of a full sweep and is safe on the evidence. It is
+still not adopted, for a reason that is not arithmetic: **a real session has
+thinking on by default, and this probe exists to measure what the real product
+does.** Trading fidelity to the thing being measured for 5% is a bad trade, and
+"the outcomes matched on fifteen pairs" is weaker evidence than "the request is
+shaped like the one users actually send". Recorded so the next pass does not
+re-run the experiment or re-derive the wrong break-even.
 
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
 **Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration

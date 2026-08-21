@@ -87,12 +87,24 @@ def _model_rate(model: str | None) -> dict | None:
 
     Reads the same model-rates.json run-cost.py uses, so a probe and a session
     are priced off one table. Returns None rather than guessing when the model
-    is absent — an invented rate is worse than no cost line."""
+    is absent — an invented rate is worse than no cost line.
+
+    Dated ids resolve to their family: `claude-haiku-4-5-20251001` is a real
+    thing to pass to `--model`, but the table is keyed `claude-haiku-4-5`, so an
+    exact lookup silently dropped the cost line from an otherwise valid run
+    (observed 2026-08-21). Strip a trailing -YYYYMMDD and retry before giving
+    up."""
+    if not model:
+        return None
     try:
         rates = json.loads((Path(__file__).with_name("model-rates.json")).read_text())
-        return rates["models"][model]
     except Exception:
         return None
+    models = rates.get("models", {})
+    if model in models:
+        return models[model]
+    undated = re.sub(r"-\d{8}$", "", model)
+    return models.get(undated)
 
 
 def parse_skill_md(skill_dir: Path) -> tuple[str, str]:
