@@ -1,0 +1,116 @@
+[
+  {
+    "query": "We run Traefik 3 in front of our API and the rate limit keys on source IP, which is useless because everyone comes out of one office NAT. How do I make it per-user instead?",
+    "should_trigger": true,
+    "source": "core decision-flow step 2 — identity keying, names Traefik + the hardening concern",
+    "bucket": "explicit"
+  },
+  {
+    "query": "Can Traefik give me the JA3 fingerprint of the client so I can tell a real browser from python-requests hitting the ingress?",
+    "should_trigger": true,
+    "source": "REGRESSION (a) JA3/TLS fingerprint at the ingress — was past the 1536-char listing cutoff; skill answers 'Traefik cannot see it, needs a TLS-terminating layer in front'",
+    "bucket": "explicit"
+  },
+  {
+    "query": "Our cluster has no egress to the internet. What's the trick to getting the CrowdSec bouncer plugin into Traefik without it calling out to the plugin catalog on every restart?",
+    "should_trigger": true,
+    "source": "REGRESSION (b) air-gapped plugin loading — localPlugins vs experimental.plugins, past the listing cutoff",
+    "bucket": "explicit"
+  },
+  {
+    "query": "I put the middleware annotation on the Ingress but nothing is actually being throttled — requests sail straight through Traefik. What did I get wrong?",
+    "should_trigger": true,
+    "source": "REGRESSION (d) Kubernetes Ingress/IngressRoute middleware wiring — annotation format, namespace prefix, chain order; past the listing cutoff",
+    "bucket": "explicit"
+  },
+  {
+    "query": "One guy is hammering our inference endpoint from a script and starving everyone else off the GPU. Do I cap him at the proxy, in the app, or at the model gateway?",
+    "should_trigger": true,
+    "source": "REGRESSION (e) where to cap when one identity starves a shared resource — the Traefik-vs-app-vs-backend split, past the listing cutoff; no 'Traefik' word",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Someone copied their session token out of devtools and is replaying it in a loop. We already turned off API keys and it didn't help.",
+    "should_trigger": true,
+    "source": "load-bearing gotcha — disabling one auth path doesn't block session-JWT replay; per-token vs per-user keying",
+    "bucket": "implicit"
+  },
+  {
+    "query": "I want to limit how many streaming completions a single account can have open at the same time, not how many requests per minute they make.",
+    "should_trigger": true,
+    "source": "decision flow step 3 — InFlightReq concurrency cap, streaming = one slot for its duration",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Scrapers are chewing through our search endpoint. Can we shut them out at the proxy without breaking real browser users?",
+    "should_trigger": true,
+    "source": "detection-and-response — Sec-Fetch/UA signals as speed bump, cap per identity instead of classifying",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Our proxy is handing out 429s way too early — we configured 30 and users trip it after a handful of clicks.",
+    "should_trigger": true,
+    "source": "middleware quick map — RateLimit default period is 1s; also scoping limits off the cheap paths",
+    "bucket": "implicit"
+  },
+  {
+    "query": "We're opening the internal chat app up to the whole company next week. It talks to one shared GPU node and there's nothing in front of it but the ingress and SSO. Anything I should sort out first?",
+    "should_trigger": true,
+    "source": "latent — user is planning a rollout, hardening need is implied by shared scarce resource + broad audience, never stated",
+    "bucket": "contextual"
+  },
+  {
+    "query": "RKE2 ships its own Traefik and I'm writing the HelmChartConfig for it before we put an LLM gateway behind it. What belongs in there besides the entrypoints and TLS?",
+    "should_trigger": true,
+    "source": "REGRESSION (c) RKE2's bundled Traefik — past the listing cutoff; latent hardening need inside a config-authoring task (static config: forwardedHeaders.trustedIPs, localPlugins, access-log fields)",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Reviewing this IngressRoute before I merge it — it sends /v1/chat/completions straight at the vllm service with TLS and a ForwardAuth and that's it. Look OK?",
+    "should_trigger": true,
+    "source": "REGRESSION (d) IngressRoute middleware — latent: a review task where the missing concurrency/rate caps on an expensive path are the finding, not the question",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Our LLM spend tripled last month and it's basically one team. We already attribute per user in the gateway, so we can see it — now what?",
+    "should_trigger": true,
+    "source": "REGRESSION (e) where to cap — latent: user frames it as a cost/visibility problem; the answer is the enforcement-layer split (ingress concurrency cap vs backend budget vs IdP suspend)",
+    "bucket": "contextual"
+  },
+  {
+    "query": "We're behind an F5 that terminates TLS and my access logs show every request coming from the load balancer's IP. How do I get the real client IP back?",
+    "should_trigger": true,
+    "source": "identity-keying — forwardedHeaders.trustedIPs must be set before any ipStrategy.depth is trustworthy; latent, framed as a logging annoyance",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Traefik won't serve the wildcard cert from cert-manager — the DNS-01 challenge completes but the site still gets the default self-signed one.",
+    "should_trigger": false,
+    "source": "pure Traefik TLS/cert plumbing, zero abuse angle — explicitly excluded by when_to_use",
+    "bucket": "negative"
+  },
+  {
+    "query": "How do I write a Cloudflare WAF rate-limiting rule that only counts POSTs to /login?",
+    "should_trigger": false,
+    "source": "cloud-WAF product with no Traefik in the path — explicitly excluded by when_to_use",
+    "bucket": "negative"
+  },
+  {
+    "query": "Pods in namespace A can't reach a service in namespace B. Is that a NetworkPolicy problem or CoreDNS?",
+    "should_trigger": false,
+    "source": "generic Kubernetes networking — adjacent but wrong; no proxy, no ingress, no abuse",
+    "bucket": "negative"
+  },
+  {
+    "query": "Traefik keeps routing to pods that are already terminating during a rolling update. How do I get clean zero-downtime deploys through the ingress?",
+    "should_trigger": false,
+    "source": "Traefik service-discovery/graceful-shutdown question — names Traefik but is availability, not hardening",
+    "bucket": "negative"
+  },
+  {
+    "query": "I need to rotate the Keycloak realm signing key without logging every user out. What's the safe order?",
+    "should_trigger": false,
+    "source": "adjacent-but-wrong — JWT/identity territory, but IdP key lifecycle; belongs to keycloak-iam, no proxy enforcement question",
+    "bucket": "negative"
+  }
+]
