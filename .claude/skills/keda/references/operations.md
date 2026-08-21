@@ -255,15 +255,9 @@ mode. In Helm:
 
 ### TriggerAuthentication vs ClusterTriggerAuthentication
 
-- Namespace: TriggerAuthentication lives in and only serves ScaledObjects in
-  the same namespace. Secrets referenced in `secretTargetRef` must be in that
-  namespace.
-- Cluster: ClusterTriggerAuthentication can be referenced from any namespace
-  via `authenticationRef.kind: ClusterTriggerAuthentication`. Secrets
-  referenced in `secretTargetRef` must live in the KEDA operator's namespace
-  (usually `keda`), unless `KEDA_CLUSTER_OBJECT_NAMESPACE` is set.
-- `KEDA_RESTRICT_SECRET_ACCESS=true` forces ClusterTriggerAuthentication for
-  any cross-namespace secret use.
+Scope and secret-lookup rules — which namespace each kind reads secrets from,
+and how `KEDA_CLUSTER_OBJECT_NAMESPACE` and `KEDA_RESTRICT_SECRET_ACCESS`
+change that — are in `references/crds.md` → "Secret namespace rules".
 
 ### TLS for scalers
 
@@ -377,11 +371,9 @@ scaler calls.
 
 ### Multiple KEDA instances in one cluster
 
-Not recommended. When strictly required (regulated-workload isolation), use
-`WATCH_NAMESPACE` to scope each operator and deploy into distinct namespaces.
-But only **one** instance can own `external.metrics.k8s.io` — the others'
-external-metric scalers will fail. Consider using the `metrics-api` scaler
-pointing at internal APIs as a workaround, or split clusters.
+Not recommended. See `references/patterns.md` → "Per-namespace KEDA instances"
+for when it is justified and the `external.metrics.k8s.io` ownership constraint
+that limits it.
 
 ---
 

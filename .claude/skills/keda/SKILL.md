@@ -291,7 +291,7 @@ Annotations on a ScaledObject (not TriggerAuthentication):
 
 ## Debugging a stuck ScaledObject
 
-Run this sequence. 90% of issues surface in the first three steps:
+Run these three first — 90% of issues surface here:
 
 ```bash
 # 1. Is the ScaledObject Ready? What reason?
@@ -302,21 +302,15 @@ kubectl get hpa keda-hpa-<name> -n <ns> -o yaml
 
 # 3. Operator saying anything?
 kubectl logs -n keda deploy/keda-operator --tail=300 | grep <name>
-
-# 4. Is the external metrics API itself alive?
-kubectl get apiservice v1beta1.external.metrics.k8s.io
-
-# 5. Can KEDA serve the metric?
-kubectl get --raw \
-  "/apis/external.metrics.k8s.io/v1beta1/namespaces/<ns>/<metric-name>?labelSelector=scaledobject.keda.sh%2Fname%3D<name>"
-
-# 6. Metrics server logs (scaler-side errors)
-kubectl logs -n keda deploy/keda-operator-metrics-apiserver --tail=200
 ```
 
+If all three are clean, the problem is not KEDA itself but the trigger's event
+source. Steps 4-6 — external metrics API health, serving the metric, and
+metrics-apiserver logs — are in `references/troubleshooting.md`, which also
+carries a decision tree mapping symptoms to root causes.
+
 The helper `${CLAUDE_SKILL_DIR}/scripts/debug-scaledobject.sh <name> [namespace]`
-runs all of these in one shot. See `references/troubleshooting.md` for a
-decision tree mapping symptoms to root causes.
+runs all six in one shot.
 
 ## When to reach for the references
 

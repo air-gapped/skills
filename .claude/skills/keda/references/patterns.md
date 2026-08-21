@@ -449,8 +449,8 @@ ScaledJob jobTargetRef then uses a matching toleration and nodeSelector.
   namespace.
 - **Only one instance can own `external.metrics.k8s.io`**. Others'
   external-metric scalers fail. Work around by using the `metrics-api`
-  scaler pointed at an internal metrics service, or accept that only one
-  namespace can use external-metric triggers.
+  scaler pointed at an internal metrics service, accept that only one
+  namespace can use external-metric triggers, or split into separate clusters.
 
 ### Multi-cluster GitOps
 

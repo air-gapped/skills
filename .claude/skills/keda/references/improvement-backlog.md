@@ -1,5 +1,19 @@
 # Improvement backlog — keda
 
+## Accepted duplicates — do not "fix"
+
+`context-optimization-check` flags these two as DUPLICATE on every run. Both
+were read on 2026-08-21 and kept deliberately; leave them alone.
+
+- **SKILL.md 3-step fast path vs `troubleshooting.md` step 1-3.** The body
+  carries only the three checks that cover 90% of cases so a stuck-ScaledObject
+  question is answered without a file read. The reference carries all six as a
+  runnable sequence.
+- **`operations.md` "Probing the external metrics API" vs `troubleshooting.md`
+  steps 4-5.** The probe is run top-to-bottom; replacing two of its steps with a
+  pointer breaks the sequence. `operations.md` is the reference for the
+  `s<index>-<type>-<hash>` metric-name scheme, which the probe links to.
+
 ## Open
 
 - **Full three-file max-of consolidation** — Dim 6 — SKILL.md gotcha #4 +

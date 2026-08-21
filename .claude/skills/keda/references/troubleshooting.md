@@ -30,7 +30,9 @@ kubectl logs -n keda deploy/keda-operator-metrics-apiserver --tail=200
 ```
 
 Use `${CLAUDE_SKILL_DIR}/scripts/debug-scaledobject.sh <name> [namespace]` to
-run all of these in one shot.
+run all of these in one shot. Step 5 needs the real metric name — the
+`s<index>-<type>-<hash>` pattern and how to list every served metric are in
+`references/operations.md` → "Probing the external metrics API".
 
 ## Symptom catalogue
 
