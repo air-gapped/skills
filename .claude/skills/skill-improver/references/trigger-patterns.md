@@ -469,6 +469,28 @@ change conclusions — so choose deliberately:
 
 ### Cost & time budget
 
+**Read the run's own numbers, don't estimate.** Every probe run reports
+`summary.usage`: `requests`, `calls`, the four token counts, `model_reported`
+(what the children actually ran, versus what `--model` asked for), and
+`est_cost_usd` / `est_cost_per_call_usd` priced from `scripts/model-rates.json`.
+
+This exists because probe spend used to be **invisible to every other tool**.
+The probe returns the instant it sees the tool call and kills the subprocess, so
+`claude -p` never emits its `result` event and never writes a usage record —
+measured 2026-08-21, a 3-query probe produced 3 sessions carrying 0 usage
+records between them. `run-cost.py` reconstructs cost from transcripts, so it
+sees nothing for the killed runs and silently prices a sweep off only the runs
+that happened to finish. Usage is therefore taken off the stream
+(`message_start` carries the input side before any content block;
+`message_delta` carries the running output count), which is in hand before the
+kill. Measured this way a probe call costs **~$0.03 on Sonnet** — cross-checked
+against an independent transcript-based estimate of ~$0.027.
+
+`model_reported` is the guard that matters when comparing arms: `--model` is
+what was requested, `model_reported` is what ran, and a mismatch (or more than
+one entry) prints a `warn:` line and means the arm must not be ranked against
+another.
+
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
 **Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration
 loop ≈ 455 invocations if every query re-probes every iteration — minutes on

@@ -82,6 +82,19 @@ from pathlib import Path
 DEFAULT_MODEL = "claude-sonnet-5"
 
 
+def _model_rate(model: str | None) -> dict | None:
+    """Per-MTok input/output list price for `model`, or None if unknown.
+
+    Reads the same model-rates.json run-cost.py uses, so a probe and a session
+    are priced off one table. Returns None rather than guessing when the model
+    is absent — an invented rate is worse than no cost line."""
+    try:
+        rates = json.loads((Path(__file__).with_name("model-rates.json")).read_text())
+        return rates["models"][model]
+    except Exception:
+        return None
+
+
 def parse_skill_md(skill_dir: Path) -> tuple[str, str]:
     """Return (name, description) from SKILL.md frontmatter.
 
@@ -125,16 +138,31 @@ def run_single_query(
     skill_description: str,
     timeout: int,
     model: str | None,
-) -> tuple[bool, bool]:
+) -> tuple[bool, bool, dict]:
     """Run one query against a synthetic skill installation.
 
-    Returns (triggered, timed_out):
+    Returns (triggered, timed_out, usage):
       triggered — the skill name appeared in a Skill/Read tool_use event.
       timed_out — the `claude -p` subprocess was still running when `timeout`
                   elapsed and was killed. A timed-out run is NOT a genuine
                   non-trigger (the model may simply not have reached its tool
                   call yet); the caller surfaces timeouts so an all-0.0 result
-                  from premature kills is never read as under-triggering."""
+                  from premature kills is never read as under-triggering.
+      usage     — token counts accumulated from the STREAM, not from the
+                  `result` event.
+
+    Why usage comes off the stream: this probe returns the moment it sees the
+    tool call and the `finally` kills the subprocess, so `claude -p` never emits
+    its `result` event and never writes a usage record to its session
+    transcript. That is by design — it is what makes a probe cheap — but it also
+    made trigger-mode spend INVISIBLE: `run-cost.py` reconstructs cost from
+    transcripts, so it reports nothing for the killed runs and silently prices a
+    sweep off only the runs that happened to finish. Measured 2026-08-21: a
+    3-query probe created 3 sessions carrying 0 usage records between them.
+
+    `message_start` carries input/cache_creation/cache_read before any content
+    block (line 4 of a 115-line stream in that run), and `message_delta` carries
+    the running output count, so both are already in hand when we bail."""
     unique_id = uuid.uuid4().hex[:8]
     safe = re.sub(r"[^a-z0-9-]+", "-", skill_name.lower()).strip("-") or "skill"
     clean_name = re.sub(r"-{2,}", "-", f"{safe}-probe-{unique_id}")
@@ -217,6 +245,38 @@ def run_single_query(
         in_target = False
         accum_json = ""
         timed_out = False
+        # Per-API-request usage, accumulated as the stream arrives. `cur` holds
+        # the request currently streaming; it is flushed into `usage` when the
+        # next message_start arrives or when the run ends, so a killed run still
+        # reports everything it was billed for up to the kill.
+        usage: dict = {
+            "requests": 0,
+            "input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 0,
+        }
+        cur: dict[str, int] | None = None
+
+        def flush() -> None:
+            nonlocal cur
+            if cur is None:
+                return
+            usage["requests"] += 1
+            for k in (
+                "input_tokens",
+                "cache_creation_input_tokens",
+                "cache_read_input_tokens",
+                "output_tokens",
+            ):
+                usage[k] += cur.get(k, 0)
+            cur = None
+
+        def snap() -> dict:
+            """Close the in-flight request and return the run's totals."""
+            flush()
+            return dict(usage)
+
         try:
             while time.time() - start < timeout:
                 if proc.poll() is not None:
@@ -245,9 +305,45 @@ def run_single_query(
                     # Claude often calls TodoWrite/etc. before the Skill), and do NOT
                     # stop at message_stop (a tool-using turn spans several messages).
                     # Only a `result` event (or EOF/timeout) ends the turn.
+                    # The child reports the model it actually resolved in
+                    # `system/init`. Capture it: --model is what we ASKED for,
+                    # this is what ran, and a silent mismatch would invalidate a
+                    # comparison. (Effort is NOT reported anywhere in the stream
+                    # — the only "effort" token is a slash-command name — so it
+                    # can only be recorded from our own arguments.)
+                    if (
+                        event.get("type") == "system"
+                        and event.get("subtype") == "init"
+                        and event.get("model")
+                    ):
+                        usage["model_reported"] = event["model"]
                     if event.get("type") == "stream_event":
                         se = event.get("event", {})
                         se_type = se.get("type", "")
+                        # Usage first: message_start carries the input side
+                        # (input/cache_creation/cache_read) before any content
+                        # block, and message_delta carries the running output
+                        # count for the message in flight. Capturing here — not
+                        # at the `result` event — is what makes spend visible on
+                        # a run this function is about to kill.
+                        if se_type == "message_start":
+                            flush()
+                            mu = (se.get("message") or {}).get("usage") or {}
+                            cur = {
+                                k: mu.get(k, 0) or 0
+                                for k in (
+                                    "input_tokens",
+                                    "cache_creation_input_tokens",
+                                    "cache_read_input_tokens",
+                                    "output_tokens",
+                                )
+                            }
+                        elif se_type == "message_delta" and cur is not None:
+                            du = se.get("usage") or {}
+                            # output_tokens is cumulative for this message, so
+                            # overwrite rather than add.
+                            if du.get("output_tokens") is not None:
+                                cur["output_tokens"] = du["output_tokens"]
                         if se_type == "content_block_start":
                             cb = se.get("content_block", {})
                             in_target = cb.get("type") == "tool_use" and cb.get(
@@ -257,13 +353,13 @@ def run_single_query(
                             if in_target and clean_name in json.dumps(
                                 cb.get("input", "")
                             ):
-                                return (True, False)
+                                return (True, False, snap())
                         elif se_type == "content_block_delta" and in_target:
                             d = se.get("delta", {})
                             if d.get("type") == "input_json_delta":
                                 accum_json += d.get("partial_json", "")
                                 if clean_name in accum_json:
-                                    return (True, False)
+                                    return (True, False, snap())
                         elif se_type == "content_block_stop":
                             in_target = False
                             accum_json = ""
@@ -275,9 +371,9 @@ def run_single_query(
                                 "Skill",
                                 "Read",
                             ) and clean_name in json.dumps(c.get("input", {})):
-                                return (True, False)
+                                return (True, False, snap())
                     elif event.get("type") == "result":
-                        return (False, False)
+                        return (False, False, snap())
             else:
                 # The while condition went false without break/return: the
                 # subprocess was still running when `timeout` elapsed and is
@@ -287,7 +383,7 @@ def run_single_query(
             if proc.poll() is None:
                 proc.kill()
                 proc.wait()
-        return (False, timed_out)
+        return (False, timed_out, snap())
     finally:
         shutil.rmtree(work_root, ignore_errors=True)
 
@@ -318,8 +414,8 @@ def score_set(
     num_workers: int,
     model: str | None,
 ) -> dict:
-    # Per query: list of (triggered, timed_out) tuples, one per run.
-    runs_by_query: dict[str, list[tuple[bool, bool]]] = {}
+    # Per query: list of (triggered, timed_out, usage) tuples, one per run.
+    runs_by_query: dict[str, list[tuple[bool, bool, dict]]] = {}
     by_query: dict[str, dict] = {}
     with ProcessPoolExecutor(max_workers=num_workers) as ex:
         futs = {}
@@ -345,14 +441,14 @@ def score_set(
                 # A crashed worker measured nothing — flag it as unreliable
                 # (timed_out=True) rather than a confident non-trigger.
                 print(f"warn: query failed: {e}", file=sys.stderr)
-                runs_by_query[q].append((False, True))
+                runs_by_query[q].append((False, True, {}))
 
     results = []
     total_timeouts = 0
     for q, runs in runs_by_query.items():
         n = len(runs)
-        n_trig = sum(1 for triggered, _ in runs if triggered)
-        n_to = sum(1 for _, to in runs if to)
+        n_trig = sum(1 for triggered, _, _ in runs if triggered)
+        n_to = sum(1 for _, to, _ in runs if to)
         total_timeouts += n_to
         # A timed-out or crashed run measured NOTHING. Dividing by `n` would
         # turn it into a confident non-trigger, which biases both directions at
@@ -413,6 +509,58 @@ def score_set(
         scored = cell["total"] - cell["unmeasured"]
         cell["pass_rate"] = (cell["passed"] / scored) if scored else None
     summary["by_bucket"] = by_bucket
+
+    # Spend for this arm, summed from the stream. Reported because it is
+    # otherwise unrecoverable: killed runs write no transcript, so run-cost.py
+    # cannot see them and prices a sweep off only the runs that finished.
+    # Priced with model-rates.json (cache write 1.25x input, cache read 0.1x)
+    # when the model is in the table — API list rates, for relative sizing
+    # between runs, not an invoice.
+    tot: dict = {
+        k: sum(u.get(k, 0) for runs in runs_by_query.values() for _, _, u in runs)
+        for k in (
+            "requests",
+            "input_tokens",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "output_tokens",
+        )
+    }
+    tot["calls"] = sum(len(runs) for runs in runs_by_query.values())
+    # What the children actually ran, as opposed to what --model asked for. A
+    # set with more than one entry means the arm is internally inconsistent and
+    # its rates must not be ranked against another arm's.
+    ran = sorted(
+        {
+            u["model_reported"]
+            for runs in runs_by_query.values()
+            for _, _, u in runs
+            if u.get("model_reported")
+        }
+    )
+    tot["model_reported"] = ran
+    if ran and (len(ran) > 1 or (model and ran != [model])):
+        print(
+            f"warn: asked for model {model!r} but runs reported {ran} — "
+            "do not compare this arm against another",
+            file=sys.stderr,
+        )
+    rate = _model_rate(model)
+    if rate:
+        tot["est_cost_usd"] = round(
+            (
+                tot["input_tokens"] * rate["input"]
+                + tot["cache_creation_input_tokens"] * rate["input"] * 1.25
+                + tot["cache_read_input_tokens"] * rate["input"] * 0.1
+                + tot["output_tokens"] * rate["output"]
+            )
+            / 1e6,
+            4,
+        )
+        tot["est_cost_per_call_usd"] = (
+            round(tot["est_cost_usd"] / tot["calls"], 4) if tot["calls"] else None
+        )
+    summary["usage"] = tot
     return {"description": description, "results": results, "summary": summary}
 
 
