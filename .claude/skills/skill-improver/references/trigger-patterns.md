@@ -445,108 +445,47 @@ change conclusions — so choose deliberately:
   flag alone — confirm the missed positives on the user's real model (Opus)
   first.** The workflow is: screen on Haiku → re-probe only the flagged misses on
   Opus → fix only what Opus also misses.
-- **Sonnet 5 is the default, and it is PINNED — not inherited.** Measured
-  2026-08-21 on a 5-query discriminating subset (the two near-threshold cases
-  plus positive and negative controls), n=3: **sonnet and opus returned
-  identical trigger rates on all five**, and sonnet reproduced itself exactly
-  across two independent runs. Haiku diverged on one contextual query (0.67 vs
-  1.00), under-firing — a sixth instance of the bullet above, in the bucket the
-  fleet is weakest in. Three models agreeing on the verdict means choosing on
-  cost: sonnet $2/$10 per MTok against opus $5/$25. Same reasoning as the blind
-  scorer's pin. This replaces the older "inherits the session model" behaviour,
-  which made a run unreproducible and quietly measured whichever model the
-  caller happened to be using.
-- **Probe with the model the user actually runs** when the question is "does it
-  trigger for *them*" specifically — pass `--model` explicitly for that.
-- **Never interleave models inside one sweep.** Model is a cache-prefix identity
-  dimension: alternating arms pays a ~35k-token cache rewrite on every switch
-  (measured 2026-08-21 — a fresh model or effort value writes ~35.5k and reads
-  ~24.4k, then runs warm at ~0 write). Batch all calls of one model together.
-  The same holds for `--effort` and for any `--settings` override.
+- **Default is `claude-sonnet-5`, pinned — not inherited.** An inherited model
+  makes a run unreproducible and silently measures whatever the caller was
+  using. Sonnet matched Opus on a 5-query subset, but only at n=3, so treat that
+  agreement as provisional (see §Cost & time budget on n=3).
+- **Pass `--model` explicitly** when the question is "does it fire on the model
+  *I* run".
+- **Never vary model, `--effort`, or `--settings` inside one sweep.** Each is a
+  cache-prefix identity: a fresh value writes ~35k tokens, then runs warm at ~0.
+  Batch all calls of one identity together.
 - High variance on a borderline query (e.g. 0/3 then 3/3 across runs) is real —
   re-probe a lone Opus 0.00 before trusting it; one run that times out also reads
   as 0.0 (the `timeouts` field tells them apart).
 
 ### Cost & time budget
 
-**Read the run's own numbers, don't estimate.** Every probe run reports
-`summary.usage`: `requests`, `calls`, the four token counts, `model_reported`
-(what the children actually ran, versus what `--model` asked for), and
-`est_cost_usd` / `est_cost_per_call_usd` priced from `scripts/model-rates.json`.
+**Read `summary.usage`, don't estimate.** Every run reports `requests`,
+`calls`, four token counts, `est_cost_usd`, `est_cost_per_call_usd`, and
+`model_reported`. Killed runs write no transcript, so `run-cost.py` cannot see a
+probe sweep — this block is the only record. ~$0.03/call on Sonnet.
 
-This exists because probe spend used to be **invisible to every other tool**.
-The probe returns the instant it sees the tool call and kills the subprocess, so
-`claude -p` never emits its `result` event and never writes a usage record —
-measured 2026-08-21, a 3-query probe produced 3 sessions carrying 0 usage
-records between them. `run-cost.py` reconstructs cost from transcripts, so it
-sees nothing for the killed runs and silently prices a sweep off only the runs
-that happened to finish. Usage is therefore taken off the stream
-(`message_start` carries the input side before any content block;
-`message_delta` carries the running output count), which is in hand before the
-kill. Measured this way a probe call costs **~$0.03 on Sonnet** — cross-checked
-against an independent transcript-based estimate of ~$0.027.
+**`model_reported` gates comparability.** It is what the children actually ran,
+versus what `--model` asked for. A mismatch, or more than one value, prints a
+`warn:` and means the arm must not be ranked against another.
 
-`model_reported` is the guard that matters when comparing arms: `--model` is
-what was requested, `model_reported` is what ran, and a mismatch (or more than
-one entry) prints a `warn:` line and means the arm must not be ranked against
-another.
+**Size corpora for power, not budget.** 40 queries × 7 runs ≈ 280 calls ≈ $8 and
+tens of minutes — affordable. The real limit is resolution: at n=3 a rate can
+only be 0, 0.33, 0.67 or 1.00, and a 13-query corpus with 6 negatives moves 14
+points when one query flips.
 
-**Corpus size is not cost-limited — size it for statistical power.** At ~$0.03
-a call, 40 queries at the 7-run decision floor is 280 calls, roughly $8, and
-tens of minutes of wall-clock (30 concurrent calls measured at ~45s). The
-binding constraint is resolution, not budget: a 13-query corpus with 6 negatives
-leaves 7 positives, so one query flipping moves the positive pass rate 14
-points, and at `--runs-per-query 3` a rate can only land on 0, 0.33, 0.67 or
-1.00. That grid is what made one query read 0.67 on a 3-run pass and 0.00 at
-n=7 — coarseness, not a regression.
+**n=3 cannot support a keep/discard decision.** Measured: a setting that dropped
+two queries from 1.00 (7/7) to 0.71 (5/7) read as *identical* across four n=3
+arms, because 0.71 and 1.00 both land on 1.00 on that grid. "Identical at n=3"
+is not evidence of equivalence.
 
-**Keep a sweep inside an hour.** Anthropic's session-cost guidance states "the
-prompt cache expires after an hour"
-([blog](https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions),
-read 2026-08-21). A sweep that runs longer loses the 0.1x cache-read discount
-partway through and starts paying cache-creation rates again, so `est_cost_usd`
-rises for reasons that have nothing to do with the descriptions under test.
-Split a long sweep rather than letting it straddle the boundary. The same page
-independently corroborates the batch-by-identity rule above: "Set your model and
-effort level before you start... Changing either one mid-conversation can bust
-your prompt cache."
+**Keep a sweep under an hour** — the prompt cache expires at 60 min
+([source](https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions)),
+after which calls silently revert to cache-creation pricing. Split long sweeps.
 
-**`MAX_THINKING_TOKENS=0` — measured, rejected. It degrades triggering.**
-
-Anthropic's session-cost guidance offers it as a cost knob for grunt work, and
-it looks ideal here: this probe reads one bit, and thinking tokens are output
-generated before the tool choice. It is also ~6% cheaper on warm calls and cuts
-output tokens 29-50%.
-
-Do not use it. At `--runs-per-query 7` on the 5-query discriminating subset,
-both firing queries dropped **1.00 (7/7) to 0.71 (5/7)** with thinking off —
-same direction, same magnitude, on both. The skill still *passes* either way
-(0.71 clears the 0.5 threshold), but the margin is gone, and margin is what lets
-a probe detect that a description actually changed.
-
-**The n=3 lesson matters more than the setting.** Four earlier arms at
-`--runs-per-query 3` (sonnet twice, haiku twice) reported trigger rates
-*identical in all fifteen comparisons*, and that was used to call the flag
-fidelity-safe. It was an artifact of the grid: at n=3 a rate can only be 0,
-0.33, 0.67 or 1.00, so a true 0.71 and a true 1.00 both land on 1.00 most of the
-time. A real, one-directional degradation was invisible until n=7.
-
-Consequences to carry forward:
-
-1. **n=3 cannot support a keep/discard decision** — this file already said 7 is
-   the decision floor and 3 is a sighting pass; here is the measured proof.
-   "Rates were identical at n=3" is not evidence of equivalence.
-2. **Anything else concluded from n=3 on this subset is provisional**, including
-   the sonnet-vs-opus agreement behind the current `--model` default. That
-   comparison deserves an n=7 rerun before it is treated as settled.
-
-Do not stretch this into a general "the probe must mirror a real session in
-every respect" rule. It does not and cannot: the probe already runs in an empty
-temp project with one synthetic skill, no user settings, and eight tools denied.
-Every one of those is a deliberate departure from a real session, made because
-isolation is what lets the measurement mean anything. The model pin is the same
-kind of choice — pick deliberately, record what was picked, and never compare
-across a change.
+**Do not set `MAX_THINKING_TOKENS=0`.** It is ~6% cheaper and cuts output 29-50%,
+but at n=7 both firing queries fell 1.00 → 0.71. It still passes the 0.5
+threshold, so the loss shows up as vanished margin rather than a failure.
 
 Each query × run = one `claude -p` invocation. On **Haiku** ~2–5s typical; on
 **Opus** ~60–150s (set `--timeout` ≥ 180). Default 13-query × 7-run × 5-iteration
