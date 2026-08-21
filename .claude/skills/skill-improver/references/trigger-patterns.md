@@ -401,6 +401,7 @@ Defaults:
 | `--num-workers` | 6 | Lower if hitting rate limits; higher when rate-limit headroom allows. Each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Sized for `claude -p` latency here (60–150s/call incl. cold start / Opus). It only caps a *hung* call — a fast call returns as soon as it emits its `result` event — so a high value has no downside. Timed-out runs are now tracked per query and surfaced as a `warn:` line, and an all-positives-0.0 result emits an explicit "probe isn't measuring" warning instead of looking like genuine under-triggering. Lower only if calls are reliably fast. |
 | `--holdout` | 0.0 | Set 0.4 to enable train/test split. The loop sets this; standalone probes can leave at 0. |
+| `--model` | `claude-sonnet-5` | Pinned, not inherited (§Which model to probe with). Override only to answer "does it fire on the model *I* run", and never mid-sweep. |
 
 ### Calling the probe
 
@@ -444,8 +445,24 @@ change conclusions — so choose deliberately:
   flag alone — confirm the missed positives on the user's real model (Opus)
   first.** The workflow is: screen on Haiku → re-probe only the flagged misses on
   Opus → fix only what Opus also misses.
-- **Probe with the model the user actually runs** when measuring "does it trigger
-  for *them*". Default (no `--model`) inherits the session model.
+- **Sonnet 5 is the default, and it is PINNED — not inherited.** Measured
+  2026-08-21 on a 5-query discriminating subset (the two near-threshold cases
+  plus positive and negative controls), n=3: **sonnet and opus returned
+  identical trigger rates on all five**, and sonnet reproduced itself exactly
+  across two independent runs. Haiku diverged on one contextual query (0.67 vs
+  1.00), under-firing — a sixth instance of the bullet above, in the bucket the
+  fleet is weakest in. Three models agreeing on the verdict means choosing on
+  cost: sonnet $2/$10 per MTok against opus $5/$25. Same reasoning as the blind
+  scorer's pin. This replaces the older "inherits the session model" behaviour,
+  which made a run unreproducible and quietly measured whichever model the
+  caller happened to be using.
+- **Probe with the model the user actually runs** when the question is "does it
+  trigger for *them*" specifically — pass `--model` explicitly for that.
+- **Never interleave models inside one sweep.** Model is a cache-prefix identity
+  dimension: alternating arms pays a ~35k-token cache rewrite on every switch
+  (measured 2026-08-21 — a fresh model or effort value writes ~35.5k and reads
+  ~24.4k, then runs warm at ~0 write). Batch all calls of one model together.
+  The same holds for `--effort` and for any `--settings` override.
 - High variance on a borderline query (e.g. 0/3 then 3/3 across runs) is real —
   re-probe a lone Opus 0.00 before trusting it; one run that times out also reads
   as 0.0 (the `timeouts` field tells them apart).

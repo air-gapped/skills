@@ -37,7 +37,22 @@ Exit: 0 when every query was measured, 1 when any was not.
 Usage:
   probe-trigger.py --skill-path <dir> --eval-set <eval.json> [--description <override>]
                    [--runs-per-query 7] [--trigger-threshold 0.5] [--timeout 180]
-                   [--num-workers 6] [--holdout 0.4] [--seed 42] [--model <id>]
+                   [--num-workers 6] [--holdout 0.4] [--seed 42]
+                   [--model claude-sonnet-5]
+
+Model is PINNED to Sonnet 5, not inherited from the session. Measured
+2026-08-21 on a 5-query discriminating subset (the two near-threshold cases
+plus positive and negative controls), n=3: sonnet and opus returned identical
+trigger rates on all five, and sonnet reproduced itself exactly across two
+independent runs. Haiku diverged on one contextual query (0.67 against 1.00),
+under-firing -- consistent with the standing "haiku over-reports
+under-triggering" rule, and in the bucket the fleet is weakest in. Three models
+that agree on the verdict, so choose on cost: sonnet is $2/$10 per MTok against
+opus $5/$25. Same reasoning that pinned the blind scorer.
+
+Pass --model explicitly to override. Do NOT interleave models within one sweep:
+model is a cache-prefix identity dimension, so alternating arms pays a ~35k
+cache rewrite per switch (measured). Batch all calls of one model together.
 
 Eval-set JSON shape:
   [{"query": "user phrasing", "should_trigger": true},
@@ -60,6 +75,11 @@ import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+
+# Pinned, not inherited: a probe that runs on "whatever the session happened to
+# use" is not reproducible, and two arms compared across a model switch are not
+# comparable. See the module docstring for the measurement behind this choice.
+DEFAULT_MODEL = "claude-sonnet-5"
 
 
 def parse_skill_md(skill_dir: Path) -> tuple[str, str]:
@@ -423,7 +443,16 @@ def main():
         help="Stratified train/test split. 0 = single set.",
     )
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--model", default=None)
+    p.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"Model for the probed `claude -p` calls (default: {DEFAULT_MODEL}). "
+        "Pinned rather than inherited so a probe is reproducible and does not "
+        "silently measure whichever model the calling session happened to use. "
+        "Sonnet and Opus returned identical trigger rates on every query "
+        "measured; Haiku under-fires on contextual queries. Do not interleave "
+        "models in one sweep -- each switch forks the cache prefix.",
+    )
     p.add_argument("--verbose", action="store_true")
     args = p.parse_args()
 
@@ -474,6 +503,13 @@ def main():
 
     output = {
         "skill_name": name,
+        # Recorded so a stored run is attributable and two runs can be checked
+        # for comparability before their scores are ranked against each other.
+        # Rates from different models are not interchangeable: haiku under-fires
+        # on contextual queries where sonnet and opus agree.
+        "model": args.model,
+        "runs_per_query": args.runs_per_query,
+        "trigger_threshold": args.trigger_threshold,
         "description": description,
         "train": train_out,
         "test": test_out,
