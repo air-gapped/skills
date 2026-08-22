@@ -77,11 +77,12 @@ Don't gate on this; just note it so the user can choose.
 
 **Budget the run before entering it.** Multiply the baseline verifier duration by
 the iteration cap: a 5-minute verifier over 20 iterations is ~1.7 hours of compute
-plus the agent's own token spend, and the loop is designed to run unattended. State
-that product when presenting the configuration. If it exceeds what the user has
-agreed to, lower `--max` or make the verifier cheaper (smaller input, fewer trials)
-*before* starting — mid-loop budget changes invalidate the baseline that every
-recorded delta is measured against.
+plus the agent's own token spend, and the loop is designed to run unattended.
+Triple that product if Step 2's noise floor turns out to force median-of-3 runs
+per iteration. State the figure when presenting the configuration. If it exceeds
+what the user has agreed to, lower `--max` or make the verifier cheaper (smaller
+input, fewer trials) *before* starting — mid-loop budget changes invalidate the
+baseline that every recorded delta is measured against.
 
 ### Step 2: Establish Baseline
 
@@ -89,11 +90,18 @@ recorded delta is measured against.
 2. Read the mutable surface files — those only. The surface is small by
    construction (Step 1), so this is bounded; the truth layer and the wider
    tree are not read here
-3. Run the verifier once unmodified to get the **baseline metric**
-4. Record in `results.tsv` (see "Results Ledger" below for the canonical schema):
+3. Run the verifier **three times** unmodified. The median is the **baseline
+   metric**; the spread (max − min, as a percentage of the median) is the
+   **noise floor**
+4. Compare the noise floor against the gains the target plausibly offers. A
+   delta smaller than the floor is not a result, and the loop must not keep on
+   one. If the floor is larger than the improvements being chased, the verifier
+   cannot resolve them: make it cheaper and repeat it more, or declare the
+   target un-optimizable — before spending twenty iterations ranking noise
+5. Record in `results.tsv` (see "Results Ledger" below for the canonical schema):
    ```
    commit	metric	delta	status	duration_s	description
-   <hash>	<value>	0	baseline	<s>	Initial measurement
+   <hash>	<value>	0	baseline	<s>	Initial measurement; noise floor <pct>%
    ```
 
 ### Step 3: The Loop
@@ -135,9 +143,9 @@ LOOP:
      - Duration over the timeout budget: kill, log "timeout". Budget is 2x
        baseline for 30s-5min runs; shorter runs get 3x, longer runs 1.5x/1.3x
        (`references/experiment-loop.md` §Timeout Policies).
-     - Variance >2% between identical runs: run the verifier 3 times and take
-       the MEDIAN, not the mean — one outlier run otherwise moves the metric
-       more than the change under test. Note the variance in the log.
+     - Noise floor above 2% (measured in Step 2): take the MEDIAN of 3 runs
+       every iteration, not the mean — one outlier run otherwise moves the
+       metric more than the change under test. Note the spread in the log.
 
   5. MEASURE: Extract the metric from the output. Before accepting an improved
      number, confirm the truth layer is untouched — `allowed-tools` pre-approves
@@ -147,12 +155,12 @@ LOOP:
      nothing (`references/experiment-loop.md` §Reward Hacking).
 
   6. DECIDE:
-     - IMPROVED: Keep the commit as new baseline. Log "kept".
+     - IMPROVED beyond the noise floor: Keep the commit as new baseline. Log "kept".
        **Anomaly check:** If delta >3x rolling average of kept deltas AND
        follows 3+ consecutive discards, flag: `⚠ ANOMALY: delta=X is Nx rolling
        avg after plateau — inspect for reward hacking.` Pause one iteration to
        reflect. Do NOT auto-discard — could be a breakthrough — but be suspicious.
-     - EQUAL: Keep ONLY if simpler (fewer lines, simpler logic) or strictly
+     - EQUAL, or moved less than the noise floor: Keep ONLY if simpler (fewer lines, simpler logic) or strictly
        more general (drops an assumption about inputs the verifier doesn't
        exercise). Log "kept-simpler" or "discarded-no-gain".
      - REGRESSED: `git revert HEAD --no-edit` (preserves history). Log "discarded".
@@ -335,7 +343,7 @@ Track all experiments in `results.tsv` (append-only) at the project root:
 
 ```
 commit	metric	delta	status	duration_s	description
-abc1234	0.9979	0.0000	baseline	301	Initial measurement
+abc1234	0.9979	0.0000	baseline	301	Initial measurement; noise floor 0.4%
 def5678	0.9952	-0.0027	kept	298	Increased depth from 8 to 12
 ```
 
