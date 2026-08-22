@@ -6,6 +6,17 @@ URLs backing the autoresearch skill's ecosystem reference. Freshen Mode reads
 this file, probes each row, and stamps `Last verified` / `Pinned` fields.
 Dim 9 of the quality rubric caps Domain Accuracy based on oldest `Last verified`.
 
+## Table of Contents
+
+The freshen record runs first and the source tables follow it, so a partial read
+of this file reaches probe history before it reaches a single URL. Jump to
+[Canonical](#canonical) for the index itself.
+
+- [Convention](#convention): column meanings · the sources.md / ecosystem.md split
+- Freshen record: [2026-08-20](#most-recent-freshen-pass-2026-08-20) · [2026-07-24](#prior-pass-2026-07-24) · [2026-07-21](#prior-pass-2026-07-21) · [2026-06-09](#prior-pass-2026-06-09) · [2026-05-28](#prior-pass-2026-05-28) · [2026-04-19](#prior-pass-2026-04-19)
+- Source tables: [Canonical](#canonical) · [Beyond Hill-Climbing](#beyond-hill-climbing) · [Meta / Self-Improving Agents](#meta--self-improving-agents) · [Swarm / Distributed](#swarm--distributed) · [Claude Code Specific](#claude-code-specific) · [Research Patterns](#research-patterns) · [Reward Hacking & Safety](#reward-hacking--safety) · [Benchmarks for the Loop Itself](#benchmarks-for-the-loop-itself) · [Mechanisms Worth Borrowing](#mechanisms-worth-borrowing) · [Eval-Driven Development](#eval-driven-development) · [Curated Lists](#curated-lists) · [Production Results](#production-results)
+- [Search Queries for Future Research](#search-queries-for-future-research)
+
 ## Convention
 
 Columns: `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),

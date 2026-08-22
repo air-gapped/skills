@@ -5,6 +5,20 @@ source assessments live in `results/` — `autoresearch-evolution-research-2026-
 and `autoresearch-landscape-research-2026-08-20.md`. That directory is a local
 archive and is gitignored, so it is empty in a fresh checkout.*
 
+## Table of Contents
+- [Canonical](#canonical): Karpathy's implementation · program.md · the thesis post
+- [Beyond Hill-Climbing](#beyond-hill-climbing): tree search · evolutionary · does greedy hold up (2026 evidence, both directions)
+- [Meta / Self-Improving Agents](#meta--self-improving-agents)
+- [Mechanisms Worth Borrowing](#mechanisms-worth-borrowing): fitness-function-first · novelty injection · cross-session memory · skill evolution · the confidence cliff
+- [Swarm / Distributed](#swarm--distributed)
+- [Claude Code Specific](#claude-code-specific)
+- [Research Patterns](#research-patterns): STORM and its live successors · verification as a separate stage (behind Mode 2's Audit step)
+- [Reward Hacking & Safety](#reward-hacking--safety)
+- [Eval-Driven Development](#eval-driven-development)
+- [Benchmarks for the Loop Itself](#benchmarks-for-the-loop-itself): PERFOPT-Bench · OPT-BENCH · SEAGym · PAST-Bench
+- [Curated Lists](#curated-lists)
+- [Production Results](#production-results)
+
 ## Canonical
 
 - [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — The original
