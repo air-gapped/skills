@@ -9,6 +9,7 @@ or final blind scorer, or the end-of-run comparator.
 - [Model selection](#model-selection)
 - [Parallel scoring (dynamic workflows)](#parallel-scoring-dynamic-workflows)
 - [The A/B comparator](#the-ab-comparator)
+- [Measured comparator behaviour](#measured-comparator-behaviour-2026-08-22-first-live-run)
 - [Comparison Table](#comparison-table)
 
 ## The scorer agent and prompt tail
@@ -336,9 +337,55 @@ was presented as `A` in most runs, the blinding is not holding. Track it: the
 mapping is recorded, so the A-vs-B win rate is checkable at any time and
 should sit near 50%.
 
-**Non-empty `leakage` invalidates the run.** If a comparator reports an
-ordering marker it noticed, fix the exclusion and re-spawn — do not accept a
-verdict from an agent that knew the order.
+**Spawn the comparator from outside the repo.** This is the one step that
+cannot be fixed by preparing the directories better. A subagent spawned from
+a session whose cwd is the repo inherits an environment block listing the
+repo's recent commits — and those subjects *describe the diff being judged*
+("decide the pass by blind A/B", "expand X's Show more"). Measured on the
+first live run: one of three comparators reported exactly that, having
+consulted no git command itself. The prepared copies live in a temp
+directory and need no repo cwd, so run the comparison as a bare `claude -p`
+with cwd set to `$AB` — the same empty-project trick `knowledge-floor.py`
+uses to keep a probe parametric. An in-session subagent is a degraded
+fallback whose verdict must be recorded as semi-blind.
+
+**`leakage_external` invalidates the run; `leakage_content` does not.**
+
+| Field | What it means | Action |
+|---|---|---|
+| `leakage_external` | git metadata, mtimes, directory names, caller session context | Close that channel and re-spawn. A verdict from an agent that knew the order is not evidence. |
+| `leakage_content` | a `Verified 2026-..-..` stamp or version line *inside the compared text* | Record it and accept the verdict. |
+
+The split exists because the strict version of this rule was unusable. Every
+skill here carries freshness stamps, and `sources.md` is nothing but dated
+rows — so "any ordering marker invalidates" fails every run on a signal that
+cannot be removed without changing the artifact under comparison. Measured on
+the first live run: two of three comparators reported a marker, but only one
+was a real channel. Redacting in-text dates is not the fix — a freshness stamp
+is Dim 9 evidence, so stripping it would hide part of what is being judged.
+
+## Measured comparator behaviour (2026-08-22, first live run)
+
+One pair, three comparators, skill-improver at `e2384e1` vs a four-commit
+successor. Baseline was assigned to `A` by coin flip.
+
+- **3 of 3 picked the newer version**, all `high` confidence / `decisive`
+  margin → `IMPROVED`. For reference, the absolute scorer on a comparable
+  pass returned the same total at both ends.
+- **One comparator found a real defect in the winning side** — a new script
+  documented nowhere in `scripts.md`, which `SKILL.md` promises lists every
+  script. A `regressions` field that only ever says `none` is not doing any
+  work; this one paid for itself on the first run.
+- **Two of three reported an ordering marker**, one external (caller session
+  context) and one in-text (dated stamps). That is what motivated the split
+  rule above.
+- Cost roughly 140k subagent tokens and ~3.5 min wall-clock for the three,
+  run in parallel.
+
+Do not read a 3-of-3 sweep as proof the instrument is calibrated: this pair
+had a large, strictly-additive diff, which is the easy case. The open
+question is resolution on a small or mixed diff, and whether the A-side win
+rate stays near 50%. Log both.
 
 ## Comparison Table
 

@@ -46,8 +46,18 @@ to answer here. Do not produce two absolute scores and subtract them.
 
 Never run `git log`, `git diff`, `stat`, or `ls -l` to date either directory,
 and ignore any date, version, or changelog line inside the skills that would
-identify one as later. If you notice such a marker, say so in `leakage` and
-disregard it.
+identify one as later. Report anything that revealed order, split by where it
+came from — the two are handled differently by the caller:
+
+- **`leakage_content`** — a marker inside the text being compared: a
+  `Verified 2026-..-..` stamp, a version line, a changelog entry. Expected in
+  a freshened skill and impossible to strip without changing what is being
+  judged. Note it, disregard it, keep going.
+- **`leakage_external`** — anything from outside the compared text: git
+  metadata, file timestamps, directory names, or **your own session context**
+  (an environment block naming the repo's recent commits will describe the
+  very diff you are judging). This is a blinding failure, not an observation.
+  Report it precisely enough that the caller can close the channel.
 
 ## Judging
 
@@ -80,7 +90,8 @@ Return exactly these fields:
 - `reasons` — 2–5 bullets, each naming a concrete difference with
   `file:line` on the side it favours, and the rubric dimension it bears on
 - `regressions` — anything the winning side made worse, or `none`
-- `leakage` — any ordering marker noticed despite the exclusions, or `none`
+- `leakage_content` — in-text ordering markers noticed, or `none`
+- `leakage_external` — out-of-band ordering signals noticed, or `none`
 
 When the caller requires structured output, your final output IS that
 structured data.

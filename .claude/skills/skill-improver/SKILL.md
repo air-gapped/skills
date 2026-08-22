@@ -241,25 +241,27 @@ and blind differ by 2 or more.
 ### The A/B Comparator Decides the Pass
 
 The absolute score answers "how good is this?". It does not reliably answer
-"did this pass help?": scoring the same skill twice has a measured 2–4 point
-spread, and a recorded pass that kept six correctness fixes came back with an
+"did this pass help?": re-scoring the same skill has a measured 2–4 point
+spread, and a pass that kept six correctness fixes came back with an
 unchanged blind total. **The pass verdict comes from a comparator, not from
 the delta between two absolute scores.**
 
-After the loop stops and the final blind score is in, materialise the
-baseline and the final version as two plain directories with `git archive`,
-delete `evals/` and `improvement-backlog.md` from both, and flatten every
-mtime to one fixed value — `git archive` stamps each side with its own commit
-time, so skipping that step hands the comparator a 13-hour tell. Then assign
-them to `DIR A` / `DIR B` by coin flip and spawn **three `skill-comparator`
-agents**; majority vote over their `winner` gives `IMPROVED`, `NO CHANGE`, or
+After the loop stops, materialise baseline and final as two blinded
+directories, assign them `DIR A` / `DIR B` by coin flip, and spawn **three
+`skill-comparator` agents**; majority vote gives `IMPROVED`, `NO CHANGE`, or
 `REGRESSED`. Omit `model` — the agent definition pins it.
 
-**A `REGRESSED` verdict outranks a positive absolute delta**: revert the
-responsible iteration rather than recording a lift. A `TIE` majority is
-recorded as `NO CHANGE`, not as an improvement. Commands, the vote table, the
-order-bias check, and the leakage rule are in
-**`references/blind-validation.md`** §"The A/B comparator".
+Three rules bind without opening the reference. **Blind the pair on disk** —
+`git archive` stamps each side with its own commit time, a 13-hour tell.
+**Spawn from outside the repo** — a subagent started in the repo inherits an
+environment block listing recent commit subjects, which describe the very
+diff it is judging; one comparator in three reported that leak having run no
+git command. **`REGRESSED` outranks a positive delta** — revert the
+responsible iteration rather than recording a lift, and record a `TIE`
+majority as `NO CHANGE`.
+
+Exact commands, the vote table, the order-bias check and the two leakage
+classes: **`references/blind-validation.md`** §"The A/B comparator".
 
 ---
 
