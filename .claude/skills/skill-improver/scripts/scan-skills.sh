@@ -19,10 +19,13 @@ else
     [[ -d "$HOME/.claude/skills" ]] && search_roots+=("$HOME/.claude/skills")
     [[ -d ".claude/skills" ]] && search_roots+=(".claude/skills")
     # Nested project skills (monorepo packages carrying their own .claude/skills).
+    # A git worktree carries a full copy of .claude/skills; counting it would
+    # hand batch mode the same skill three times.
     while IFS= read -r nested; do
         search_roots+=("$nested")
     done < <(find . -mindepth 3 -type d -path '*/.claude/skills' \
-                  -not -path './.git/*' -not -path '*/node_modules/*' 2>/dev/null)
+                  -not -path './.git/*' -not -path '*/node_modules/*' \
+                  -not -path '*/worktrees/*' 2>/dev/null)
 fi
 
 if [[ ${#search_roots[@]} -eq 0 ]]; then

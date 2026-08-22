@@ -79,6 +79,9 @@ def default_roots():
             nested.is_dir()
             and ".git" not in nested.parts
             and "node_modules" not in nested.parts
+            # A git worktree carries a full copy of .claude/skills; counting it
+            # duplicates every skill in the repo and inflates the fleet totals.
+            and "worktrees" not in nested.parts
         ):
             roots.append(nested)
     return roots
