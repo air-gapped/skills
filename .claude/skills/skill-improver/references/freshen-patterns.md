@@ -325,19 +325,28 @@ delegate it to a `web-searcher`, which carries those tools. Reserve the
 exception note for what survives the browser too: paywalls, deleted posts,
 cookie-gated PDFs.
 
-**X/Twitter — read posts with curl, not WebFetch.** WebFetch returns `402`
-on every `x.com` URL. Bare curl returns the server-rendered post:
+**X/Twitter — read posts with the script, not WebFetch.** WebFetch returns
+`402` on every `x.com` URL; curl is served the real page.
 
 ```bash
-curl -sS -L --max-time 30 "https://x.com/<user>/status/<id>" \
-  | python3 -c 'import html,re,sys; b=re.sub(r"(?is)<(script|style|title)\b.*?</\1>"," ",sys.stdin.read()); print("\n".join(l.strip() for l in html.unescape(re.sub(r"(?s)<[^>]+>","\n",b)).splitlines() if l.strip()))'
+scripts/read-x-post.py "https://x.com/<user>/status/<id>"
 ```
 
-`twitter.com` URLs work too (needs `-L`). Three limits, all measured:
-the `og:description` meta tag is hard-capped at 278 chars — strip the body
-instead; long **replies and thread continuations** are cut at a literal
-`Show more`; and **profile** URLs (`x.com/<user>` with no `/status/`) return
-only a ~2.6 KB shell with no timeline. Escalate those three to the browser.
+Text to stdout, `[notes: N | expanded: N | unexpanded: N]` to stderr. The
+script exists because X truncates twice and both cuts are silent. The
+`og:description` meta tag is hard-capped at **278 chars**, and long posts
+render only their first 278 chars followed by a `Show more` button — so a
+naive tag-strip returns a partial post that *looks* complete. The full text
+is in the page either way: X ships it in a `<script>` payload as
+`__typename:"NoteTweet",text:"..."`, and the script splices it back over the
+truncated render.
+
+Verified 2026-08-22 against all six `x.com` rows in this repo's sources plus
+a `twitter.com` host (needs `-L`, which the script passes): **`unexpanded: 0`
+on every one.** Profile URLs (no `/status/`) work too and return the ~7 most
+recent posts. Escalate to the browser only when stderr reports a non-zero
+`unexpanded` count, or when the timeline you need is older than the profile
+page carries.
 
 ### 2.5 Concept / blog post search
 
