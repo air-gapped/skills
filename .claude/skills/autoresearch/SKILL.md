@@ -375,10 +375,14 @@ previous session comments — don't replace them.
 
 Before the first hypothesis of a resumed run, read the prior session comments and
 the **full** results.tsv, not just its tail — the files are the durable record and
-in-context memory of earlier experiments is not. Then re-run the verifier once on
-the branch tip: a metric recorded days ago may not reproduce on today's machine
+in-context memory of earlier experiments is not. Then re-run the verifier three
+times on the branch tip, re-deriving both the baseline metric and the noise floor
+as Step 2 does: a metric recorded days ago may not reproduce on today's machine
 state, and mutating against a stale baseline silently corrupts every subsequent
-delta (see "Baseline Re-establishment" in `references/experiment-loop.md`).
+delta (see "Baseline Re-establishment" in `references/experiment-loop.md`). If
+the floor has moved materially, deltas from the earlier session are no longer
+comparable with new ones — record that in the log rather than continuing one
+series across both.
 Carrying summaries across sessions this way is measured to unlock further gains,
 not just to document them — see PERFOPT-Bench in `references/ecosystem.md`.
 

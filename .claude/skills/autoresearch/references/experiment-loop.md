@@ -84,8 +84,9 @@ The loop naturally exploits (small tweaks to what's working). To encourage explo
 
 Every 10 iterations, re-run the baseline (unmodified verifier on current best) to
 check for drift. GPU noise, background processes, or system state changes can shift
-the baseline over time. If the re-baseline differs significantly (>2%) from the
-last measurement, note it in the log.
+the baseline over time. Judge the shift against the noise floor measured in
+SKILL.md Step 2 rather than a fixed percentage: a re-baseline inside the floor is
+the floor, and one outside it is drift and belongs in the log.
 
 ### Context Exhaustion in Long Loops
 
