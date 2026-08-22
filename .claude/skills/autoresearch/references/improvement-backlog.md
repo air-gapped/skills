@@ -2,6 +2,18 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Table of Contents
+
+Live sections first. Everything below them is append-only pass history, and it is
+not in date order — `Open` and `Standing constraints` sit between the 2026-07-21
+and 2026-08-20 entries rather than at the end.
+
+- **[Open](#open)** — what is still blocked, and on what
+- **[Standing constraints](#standing-constraints-not-backlog-items)** — decisions already taken, not deferred work
+- **[Accepted duplicates — do not "fix"](#accepted-duplicates--do-not-fix)** — what the dedup scanner flags every pass and why it is correct as written
+- **[Score record](#score-record)** — self and blind totals per pass
+- Pass history: [2026-08-20](#resolved-this-pass--2026-08-20-improve--freshen) · [2026-08-16](#resolved--2026-08-16-operator-directed-restructure) · [2026-07-24 improve+freshen](#resolved-this-pass--2026-07-24-improve--freshen) · [2026-07-24 browser verifiers](#resolved--2026-07-24-b3-browser-verifiers) · [2026-07-24 trigger](#resolved--2026-07-24-trigger-mode) · [2026-07-21](#resolved--2026-07-21-freshen) · [2026-06-09](#resolved-this-pass--2026-06-09-improve--freshen) · [2026-05-28](#resolved--2026-05-28)
+
 ## Accepted duplicates — do not "fix"
 
 `context-optimization-check` flags `ecosystem.md` against `sources.md` in the
