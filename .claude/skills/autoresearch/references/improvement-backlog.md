@@ -12,7 +12,7 @@ and 2026-08-20 entries rather than at the end.
 - **[Standing constraints](#standing-constraints-not-backlog-items)** — decisions already taken, not deferred work
 - **[Accepted duplicates — do not "fix"](#accepted-duplicates--do-not-fix)** — what the dedup scanner flags every pass and why it is correct as written
 - **[Score record](#score-record)** — self and blind totals per pass
-- Pass history: [2026-08-20](#resolved-this-pass--2026-08-20-improve--freshen) · [2026-08-16](#resolved--2026-08-16-operator-directed-restructure) · [2026-07-24 improve+freshen](#resolved-this-pass--2026-07-24-improve--freshen) · [2026-07-24 browser verifiers](#resolved--2026-07-24-b3-browser-verifiers) · [2026-07-24 trigger](#resolved--2026-07-24-trigger-mode) · [2026-07-21](#resolved--2026-07-21-freshen) · [2026-06-09](#resolved-this-pass--2026-06-09-improve--freshen) · [2026-05-28](#resolved--2026-05-28)
+- Pass history: [2026-08-22](#resolved-this-pass--2026-08-22-improve) · [2026-08-20](#resolved-this-pass--2026-08-20-improve--freshen) · [2026-08-16](#resolved--2026-08-16-operator-directed-restructure) · [2026-07-24 improve+freshen](#resolved-this-pass--2026-07-24-improve--freshen) · [2026-07-24 browser verifiers](#resolved--2026-07-24-b3-browser-verifiers) · [2026-07-24 trigger](#resolved--2026-07-24-trigger-mode) · [2026-07-21](#resolved--2026-07-21-freshen) · [2026-06-09](#resolved-this-pass--2026-06-09-improve--freshen) · [2026-05-28](#resolved--2026-05-28)
 
 ## Accepted duplicates — do not "fix"
 
@@ -233,23 +233,46 @@ as a signal rather than as an absence of findings.
 
 ## Open
 
-*Empty as of 2026-08-20.* Nothing here is waiting on an absent ruling,
+*Empty as of 2026-08-22.* Nothing here is waiting on an absent ruling,
 credential, release, or measurement nobody can run.
 
-**This is not a ceiling claim.** Neither the 2026-07-24 nor the 2026-08-20 pass
-produced a discard, which by this skill's own rule means no ceiling has been
-mapped at all — both stopped early, they did not finish.
+**This is not a ceiling claim.** The 2026-08-22 pass produced one discard in one
+category, against a rule that wants five across two, so it stopped early like the
+2026-07-24 and 2026-08-20 passes before it. Three consecutive passes have now
+ended with work still available rather than with a mapped ceiling.
 
 ## Standing constraints (not backlog items)
 
-One thing caps the rubric score and will keep doing so, and it is a decision
+Two things cap the rubric score and will keep doing so. Both are decisions
 already taken rather than deferred work:
 
 - **Dim 2 sits at 6 because SKILL.md is long** (382 lines at the 2026-08-20
-  baseline, 415 after this pass). This is a standing decision, not an oversight:
-  the guardrail content is judged worth the length. Do not trade it back for
+  baseline, 415 after it, 433 after 2026-08-22). This is a standing decision,
+  not an oversight: the guardrail content is judged worth the length. Do not trade it back for
   line count. Revisit only if a scorer identifies content that is *redundant*
   rather than merely long.
+
+  **The recommendation that keeps coming back cannot move this dimension, and
+  the arithmetic is why.** Three scorers across two passes have now proposed the
+  same fix: move the Generality Criterion's arXiv discussion and similar inline
+  citation prose into `references/`. That is roughly 10–15 lines. The rubric's
+  band table is explicit — 300–500 lines scores 5–6, and 150–300 scores 7–8 — so
+  moving to the next band from 432 requires cutting **more than 130 lines**, not
+  fifteen. Every proposed version of this edit lands the file at ~420 and leaves
+  Dim 2 at exactly 6. The dimension is reachable only by a restructure nobody has
+  proposed, and it is not reachable by relocating citations. A future scorer will
+  suggest it again; this paragraph is the answer.
+
+- **Eval-set size is a spend decision already taken, not a gap.** The 2026-08-22
+  blind flagged that 8 cases clear the Dim 10 noise floor (0.125) by only 1.5x
+  and suggested growing the corpus. Generating cases with `grow-evals.py` is
+  cheap; the number is only worth anything if `benchmark.json` is re-measured
+  against the larger set, and that run cost ~$8.77 last time. Growing the corpus
+  without re-running would leave `evals.json` and `benchmark.json` describing
+  different sets — strictly worse than now. The cap is already cleared with a
+  measured +0.188 and 0 losses across 8 cases; making it *more* decisive is
+  optional spend, and the 2026-08-20 record already ruled against repeating that
+  run casually.
 
 Dim 10 used to sit here too, and it should not have. It was recorded across
 successive passes as "capped until `delta_pass_rate` is measured", with the
@@ -257,6 +280,113 @@ admission that nothing prevented measuring it — which is the definition of
 parked rather than blocked work. Moving it under a heading that kept the `Open`
 count at zero made the parking harder to see, not less real. It was measured on
 2026-08-20; the result is in the Resolved section below.
+
+## Resolved this pass — 2026-08-22 (improve)
+
+Baseline self **80** / blind **85** (Sonnet 5) → final self **85** / blind **85**.
+
+**The blind total did not move, and that is the finding.** Six keeps lifted the
+self-score five points and the independent scorer returned exactly the number it
+started at. Between its two runs only Dim 7 moved up (+1, the table-of-contents
+deduction it had itself named at baseline) and Dim 3 down (−1, noise — both runs
+found zero second-person hits). A 0-point move sits well inside the measured
+scorer spread of 2–4 points, so the honest reading is that this pass made five
+substantive correctness fixes that the rubric does not price, not that it
+improved the score. The same thing happened on 2026-07-24's post-blind pass; it
+is now the second recorded instance, and it is evidence about the rubric rather
+than about the changes.
+
+Six keeps, one discard, no freshen (sources.md was two days old at baseline, so
+no Dim 9 cap applied and no row needed re-probing).
+
+The blind scorer opened *above* the self-score for the first time in this record,
+and the only dimension with a 2+ gap was Dim 8 — where the **self** score was the
+lower one. The loop had found a defect the blind pass does not look for: its
+Dim 8 check confirms that referenced files exist and terminology is consistent,
+neither of which catches a stated capability limit that does not exist.
+
+- **The truth layer was read-only by assertion only.** `experiment-loop.md` said
+  "the truth layer is read-only. The agent cannot modify the verifier or the eval
+  data." The second sentence was false, and SKILL.md's own Step 3 already says
+  why: `allowed-tools` is a pre-approval list, not a restriction list, so `Edit`
+  and `Write` reach the verifier and the eval data unscoped *and* without a
+  prompt — on a loop whose stated premise is that nobody is watching. The skill
+  cited SEAL (arXiv:2607.24300) for a verification layer read-only "by
+  construction rather than by good intentions" while implementing good
+  intentions, and arXiv:2606.08960 for a 16% base rate of environments hackable
+  from the task description alone. Replaced with a `git diff --name-only` check
+  against the baseline commit that Step 2 already records, placed in LOOP step 5
+  as well as in the reference — a check that lives only in a reference file never
+  runs. A non-empty result invalidates every delta since that file changed, not
+  only the current one.
+
+- **The verifier's noise floor is measured now instead of assumed.** Three
+  separate rules keyed off a number nobody had. Step 2 ran the verifier once, so
+  the baseline every later delta is ranked against was a single draw. LOOP step 4
+  keyed its median-of-3 remedy to "variance >2% between identical runs" — a
+  condition with no defined moment of evaluation, because identical runs were
+  never made. DECIDE kept on any improvement at all. Step 2 now runs three times:
+  median is the metric, spread is the floor, DECIDE keeps only beyond it, and the
+  floor is written into the baseline row of results.tsv rather than held in
+  context, because the loop re-reads that file precisely because in-context
+  memory degrades. Step 2 also gained the exit that makes the measurement worth
+  taking: a floor larger than the gains on offer means the verifier cannot
+  resolve them, so make it cheaper and repeat it or declare the target
+  un-optimizable — before twenty iterations, not after. This is the call
+  `domain-templates.md` already made for browser flows, generalised to every
+  verifier instead of the one class known to be noisy.
+
+- **That change left two places working from the assumptions it replaced.** Both
+  were found and fixed inside the same pass. Resume re-ran the verifier *once* on
+  the branch tip, which is the single-draw baseline reintroduced at the exact
+  moment machine state is known to have changed — the stated reason for re-running
+  at all. And §Baseline Re-establishment checked drift against a fixed ">2%",
+  which was a stand-in for a number that now exists and is per-target: 2% is
+  meaningless on a verifier whose own floor is 5% and far too loose on one at
+  0.1%.
+
+- **A floor-mode answer key had inverted its own verdict.**
+  `knowledge-claims.json` claim 7 recorded "200 subagents, 200 web searches, 20
+  subagents in flight" as the skill's answer, extracted 2026-08-19 — one day
+  before the pass that corrected the fact in SKILL.md, and never re-extracted.
+  Floor mode grades a bare model against this key, so a model answering
+  *correctly* (no per-session subagent cap since v2.1.224) would have been graded
+  CONFLICTS — the bucket the rubric reads as "the skill overrides a confident
+  wrong prior, keep it and make it louder". The stale key would have argued for
+  amplifying a retired limit, and counted toward lifting the Dim 10 cap while
+  doing it. Corrected against the changelog in skill-improver's
+  `anthropic-skill-design.md`, not from memory. The file's `skill_md_sha` is left
+  deliberately mismatched: it is the signal that a full re-extraction is due, and
+  correcting one answer does not make the cache current.
+
+- **The reference-depth rule is satisfied across the skill now.**
+  `ecosystem.md` (307 lines), `sources.md` (342) and this file (402) had no table
+  of contents, against a rule that asks for one above 100 lines because Claude
+  previews indirectly-reached files with a `head -100`. `sources.md` was the
+  expensive one: six passes of probe history occupy lines 21–211, so a partial
+  read of it reached no URL at all. This file was the other: `Open` sits mid-file
+  with three Resolved sections below it, and `Standing constraints` — which
+  exists to stop a pass re-proposing the SKILL.md length trade — sits next to it.
+  All 69 internal anchors across the six reference files were validated against
+  real heading slugs before landing.
+
+**Answered rather than filed — bundling helper scripts.** The 2026-08-22 blind
+suggested a small script for the results.tsv append and the noise-floor
+calculation, since the loop composes that Bash fresh each iteration. Not taken,
+and not a backlog item: the verifier, its output format and the metric's
+extraction pattern are established per-run in Step 1 and differ on every target,
+so a bundled script would have to be configured before it could be called. The
+per-iteration Bash is short because the schema is fixed and the arithmetic is a
+median and a spread.
+
+**Discard worth not re-proposing — trimming the Step 3 `allowed-tools`
+preamble.** Removing the sentence that explains why WebSearch/WebFetch/Agent are
+pre-approved, plus a trailing clause repeating the autonomy premise, saved two
+lines and moved no dimension; two lines cannot move Dim 6's band on a 432-line
+file. The removed sentence is the worked example showing the field governs
+*prompting* rather than capability, which is the misreading B7 records three
+separate blind scorers making. Trading it for line count is the swap Standing
+constraints forbids, and it will look like an obvious simplification again.
 
 ## Resolved this pass — 2026-08-20 (improve + freshen)
 
@@ -412,3 +542,6 @@ digging through git.)*
 | 2026-06-09 final | 86 | 84 (Fable 5) | no 2+ gaps; Dim 6 cap persists on Mode 2 (B1) — 3 of last 4 scorers cap it |
 | 2026-07-24 baseline | 79 | 74 (Opus 5) | self recalibrated 82→79 after blind verified 2 real Dim 8 contradictions; Dim 8 gap +3, Dim 2 gap +2 |
 | 2026-07-24 final | 85 | 80 (Opus 5) | no 2+ gaps; **B1 closed** — blind explicitly exempts Mode 1 LOOP from the Boris cap |
+| 2026-08-20 baseline | — | 80 (Sonnet 5) | row added retroactively 2026-08-22; that pass recorded no final blind, so it has no measured end state |
+| 2026-08-22 baseline | 80 | 85 (Sonnet 5) | first pass where blind opened *above* self; only 2+ gap was Dim 8, with **self** lower — the loop found a defect the blind's file-existence and terminology checks do not look for |
+| 2026-08-22 final | 85 | 85 (Sonnet 5) | **blind flat across the pass**; self converged onto blind exactly; Dim 7 +1 (ToCs), Dim 3 −1 (noise); 6 keeps, 1 discard — stopped early, no ceiling |

@@ -160,9 +160,10 @@ LOOP:
        follows 3+ consecutive discards, flag: `⚠ ANOMALY: delta=X is Nx rolling
        avg after plateau — inspect for reward hacking.` Pause one iteration to
        reflect. Do NOT auto-discard — could be a breakthrough — but be suspicious.
-     - EQUAL, or moved less than the noise floor: Keep ONLY if simpler (fewer lines, simpler logic) or strictly
-       more general (drops an assumption about inputs the verifier doesn't
-       exercise). Log "kept-simpler" or "discarded-no-gain".
+     - EQUAL, or moved less than the noise floor: Keep ONLY if simpler (fewer
+       lines, simpler logic) or strictly more general (drops an assumption about
+       inputs the verifier doesn't exercise). Log "kept-simpler" or
+       "discarded-no-gain".
      - REGRESSED: `git revert HEAD --no-edit` (preserves history). Log "discarded".
 
   7. LOG: Append to results.tsv (commit, metric, delta, status, duration_s, description).
