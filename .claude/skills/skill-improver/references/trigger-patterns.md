@@ -690,7 +690,7 @@ ref_invocations=$(rg -cE 'references/[\w-]+\.md|scripts/[\w-]+\.(sh|py)' SKILL.m
 
 | Signal | Action |
 |---|---|
-| `body_lines < 40` AND `ref_invocations < 2` | **Collapse candidate** — flag for review. The skill could plausibly be a `.claude/rules/` entry or CLAUDE.md line pointing at the tool. Recommend running `instructions-triage` to confirm. |
+| `body_lines < 40` AND `ref_invocations < 2` | **Collapse candidate** — flag for review. The skill could plausibly be a `.claude/rules/` entry or CLAUDE.md line pointing at the tool. Confirm by checking whether the body does anything a one-line pointer would not. |
 | `body_lines < 40` AND `ref_invocations ≥ 2` | Skill is correctly minimal — pointer-shaped. Pass. |
 | `body_lines ≥ 40` AND `ref_invocations < 2` | Skill is monolithic — flag for Dim 2 (Progressive Disclosure) work, separate from trigger tuning. |
 
