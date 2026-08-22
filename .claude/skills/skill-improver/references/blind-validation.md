@@ -276,14 +276,22 @@ picks one.
 able to date either side, so do not hand it the live git working tree.
 
 ```bash
-BASE=$(mktemp -d) && FINAL=$(mktemp -d)
-git archive <baseline-ref> -- <skill-path> | tar -x -C "$BASE" --strip-components=<n>
-git archive HEAD            -- <skill-path> | tar -x -C "$FINAL" --strip-components=<n>
+AB=$(mktemp -d) && mkdir -p "$AB/x" "$AB/y"
+git archive <baseline-ref> -- <skill-path> | tar -x -C "$AB/x" --strip-components=<n>
+git archive HEAD           -- <skill-path> | tar -x -C "$AB/y" --strip-components=<n>
+# Delete what would un-blind rather than trusting the agent not to open it.
+rm -rf "$AB"/*/evals "$AB"/*/references/improvement-backlog.md
+# git archive stamps every file with ITS OWN commit time, so the two sides
+# arrive with different mtimes. Equalise them or `stat` orders the pair.
+find "$AB" -exec touch -h -d '2000-01-01T00:00:00Z' {} +
 ```
 
-`git archive` writes no `.git`, and normalises mtimes — both leaks closed.
 `<baseline-ref>` is the commit the loop started from, the same ref Phase 0
-recorded.
+recorded. Verified 2026-08-22: `git archive` writes no `.git`, but it does
+**not** neutralise time — a baseline and a final taken this way came out 13
+hours apart, which is a one-command tell. The `touch` line is what closes it;
+after it, `find "$AB" -printf '%T@\n' | sort -u | wc -l` must print `1`.
+Check that before spawning, because the failure is silent.
 
 **Randomise the order, per spawn.** Assign baseline and final to `DIR A` /
 `DIR B` by coin flip and keep a private note of the mapping. Do not label the

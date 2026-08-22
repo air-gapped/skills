@@ -247,11 +247,13 @@ unchanged blind total. **The pass verdict comes from a comparator, not from
 the delta between two absolute scores.**
 
 After the loop stops and the final blind score is in, materialise the
-baseline and the final version as two plain directories with `git archive`
-(no `.git`, no mtimes to date them), assign them to `DIR A` / `DIR B` by coin
-flip, and spawn **three `skill-comparator` agents**; majority vote over their
-`winner` gives `IMPROVED`, `NO CHANGE`, or `REGRESSED`. Omit `model` — the
-agent definition pins it.
+baseline and the final version as two plain directories with `git archive`,
+delete `evals/` and `improvement-backlog.md` from both, and flatten every
+mtime to one fixed value — `git archive` stamps each side with its own commit
+time, so skipping that step hands the comparator a 13-hour tell. Then assign
+them to `DIR A` / `DIR B` by coin flip and spawn **three `skill-comparator`
+agents**; majority vote over their `winner` gives `IMPROVED`, `NO CHANGE`, or
+`REGRESSED`. Omit `model` — the agent definition pins it.
 
 **A `REGRESSED` verdict outranks a positive absolute delta**: revert the
 responsible iteration rather than recording a lift. A `TIE` majority is
