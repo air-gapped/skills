@@ -42,8 +42,8 @@
     },
     {
       "id": 7,
-      "question": "What are the per-session limits on subagents, web searches, and concurrent subagents?",
-      "skill_answer": "200 subagents, 200 web searches, 20 subagents in flight"
+      "question": "What per-session limits bound a research fan-out, and which cap no longer applies?",
+      "skill_answer": "200 web searches per session and 20 subagents in flight; the per-session cap on total subagents was removed in v2.1.224, so agent count no longer bounds a run"
     },
     {
       "id": 8,
