@@ -364,28 +364,56 @@ the first live run: two of three comparators reported a marker, but only one
 was a real channel. Redacting in-text dates is not the fix — a freshness stamp
 is Dim 9 evidence, so stripping it would hide part of what is being judged.
 
-## Measured comparator behaviour (2026-08-22, first live run)
+## Measured comparator behaviour (2026-08-22)
 
-One pair, three comparators, skill-improver at `e2384e1` vs a four-commit
-successor. Baseline was assigned to `A` by coin flip.
+**Head-to-head against the absolute scorer**, on `netbox-best-practices` —
+a skill neither instrument's author had edited. Three versions: `base`,
+`improved` (structural only: a routing table replacing three trailing "when
+to read X" sections, plus an explicit out-of-scope boundary), and `degraded`
+(a negative control — longer and smoother than base, with the concrete error
+string, the naming convention, the API endpoint, the Dockerfile lines and the
+evidence labels all removed). Comparators: 3 per pair, coin-flipped, run via
+`claude -p` from outside the repo. Scorer: 2 runs per version.
 
-- **3 of 3 picked the newer version**, all `high` confidence / `decisive`
-  margin → `IMPROVED`. For reference, the absolute scorer on a comparable
-  pass returned the same total at both ends.
-- **One comparator found a real defect in the winning side** — a new script
-  documented nowhere in `scripts.md`, which `SKILL.md` promises lists every
-  script. A `regressions` field that only ever says `none` is not doing any
-  work; this one paid for itself on the first run.
-- **Two of three reported an ordering marker**, one external (caller session
-  context) and one in-text (dated stamps). That is what motivated the split
-  rule above.
-- Cost roughly 140k subagent tokens and ~3.5 min wall-clock for the three,
-  run in parallel.
+| Pair | Absolute scorer | Comparator |
+|---|---|---|
+| base vs improved | 86.5 vs 86.0 → **−0.5** | **3/3 improved**, medium / slight |
+| base vs degraded | 86.5 vs 69.5 → **−17.0** | **3/3 base**, high / decisive |
 
-Do not read a 3-of-3 sweep as proof the instrument is calibrated: this pair
-had a large, strictly-additive diff, which is the easy case. The open
-question is resolution on a small or mixed diff, and whether the A-side win
-rate stays near 50%. Log both.
+Within-version scorer spread on identical content: **base 88 / 85**. So the
+−0.5 on the real edit sits inside the instrument's own noise — the score
+cannot tell that pass from no pass, and its sign is negative for a change
+three independent judges called an improvement. The −17 shows the scorer is
+fine at catching gross damage. **That is the division of labour: the score
+catches large regressions, the comparator resolves the small diffs that make
+up most passes.**
+
+Two behaviours worth relying on:
+
+- **The fluency trap held.** The degraded version read *better* and was
+  *longer*. All three comparators rejected it decisively. A pass that
+  smooths prose while dropping mechanisms is the failure mode this rubric
+  warns about most, and comparative judgment caught it.
+- **Confidence tracks the size of the difference** — medium/slight on the
+  modest edit, high/decisive on the degradation — rather than sounding
+  certain either way.
+
+What this does **not** establish: one pair per direction, and the "improved"
+version was authored by the same party judging the result useful, so the
+small-diff pair has no independent ground truth. It shows the comparator
+returns a *directional* answer where the score returns noise; it does not
+prove that direction is right on a marginal edit. A comparator also flagged a
+real regression inside the version it voted for (the routing table dropped
+one reference file's usage note) — read `regressions` even on a win.
+
+**Blinding, measured.** An earlier run of this procedure from *inside* the
+repo had one comparator in three report the caller's own environment block
+listing recent commit subjects — a description of the diff under judgement,
+reached without running any git command. Hence the `claude -p`-from-outside
+rule above. That same run had another comparator flag the dated stamps inside
+the text, which is why `leakage_content` is recorded rather than
+disqualifying. Cost: ~3.5 min wall-clock and ~140k tokens per 3-agent pair,
+run in parallel.
 
 ## Comparison Table
 
