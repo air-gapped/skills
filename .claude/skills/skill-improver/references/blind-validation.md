@@ -289,9 +289,23 @@ find "$AB" -exec touch -h -d '2000-01-01T00:00:00Z' {} +
 `<baseline-ref>` is the commit the loop started from, the same ref Phase 0
 recorded. Verified 2026-08-22: `git archive` writes no `.git`, but it does
 **not** neutralise time — a baseline and a final taken this way came out 13
-hours apart, which is a one-command tell. The `touch` line is what closes it;
-after it, `find "$AB" -printf '%T@\n' | sort -u | wc -l` must print `1`.
-Check that before spawning, because the failure is silent.
+hours apart, which is a one-command tell. The `touch` line is what closes it.
+
+**Gate the spawn on the check, per directory:**
+
+```bash
+for d in "$AB"/x "$AB"/y; do
+  printf '%s %s\n' "$(find "$d" -printf '%T@\n' | sort -u | wc -l)" "$d"
+done   # each line must start with 1
+```
+
+Check each side on its own, not the parent. Running it over `$AB` counts
+anything else that landed there — the A/B mapping note is the obvious one —
+and reports a spurious `3` while both trees are in fact uniform. That false
+alarm happened on the first real run of this procedure. **Keep the mapping
+note outside `$AB`**, and gate on the per-directory numbers, because a
+blinding failure here is silent: the verdict still comes back, it is just no
+longer blind.
 
 **Randomise the order, per spawn.** Assign baseline and final to `DIR A` /
 `DIR B` by coin flip and keep a private note of the mapping. Do not label the
