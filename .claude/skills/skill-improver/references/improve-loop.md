@@ -176,6 +176,16 @@ the same category, force the next hypothesis to be a different category. Print:
 Validation"). Print both comparison tables (baseline + final) and the overall
 results summary.
 
+Then run the **A/B comparator** — it, not the score delta, decides whether the
+pass stands. `git archive` the baseline ref and `HEAD` into two temp
+directories, assign them to `DIR A` / `DIR B` by coin flip, and spawn three
+`skill-comparator` agents; majority vote gives `IMPROVED`, `NO CHANGE`, or
+`REGRESSED`. Report that verdict alongside the totals, and never report a lift
+the comparator did not confirm. On `REGRESSED` — which outranks a positive
+delta — read the returned `reasons`, revert the iteration they identify, and
+re-run this step. Commands and the vote table are in
+**`references/blind-validation.md`** §"The A/B comparator".
+
 ## Phase 6: Persist the backlog
 
 Before declaring the run done, update `<skill>/references/improvement-backlog.md`

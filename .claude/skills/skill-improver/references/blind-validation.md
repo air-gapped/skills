@@ -1,12 +1,14 @@
-# Blind Validation — Scorer Agent, Model Rule, Comparison Format
+# Blind Validation — Scorer Agent, A/B Comparator, Model Rule, Formats
 
-The mechanics of the blind scoring pass described in `SKILL.md` §"Blind
-Validation". Load when spawning a baseline or final blind scorer.
+The mechanics of the blind scoring pass and the A/B comparator pass
+described in `SKILL.md` §"Blind Validation". Load when spawning a baseline
+or final blind scorer, or the end-of-run comparator.
 
 ## Table of Contents
 - [The scorer agent and prompt tail](#the-scorer-agent-and-prompt-tail)
 - [Model selection](#model-selection)
 - [Parallel scoring (dynamic workflows)](#parallel-scoring-dynamic-workflows)
+- [The A/B comparator](#the-ab-comparator)
 - [Comparison Table](#comparison-table)
 
 ## The scorer agent and prompt tail
@@ -255,6 +257,66 @@ With median-of-3 parallel scoring, report the count that actually returned:
 three is the median as designed, two is an average of two and must be labelled
 `n=2`, one is a solo score labelled `n=1`, and none is `NO SCORE`. A run that
 scored 3 at baseline and 2 at final is comparable only with both counts stated.
+
+## The A/B comparator
+
+The absolute score answers "how good is this?"; the comparator answers "did
+this pass help?". They are different questions and the second one is the
+pass verdict. Run the comparator once, after the loop stops.
+
+**Why the absolute delta cannot be the verdict.** Scoring the same skill
+twice has a measured 2–4 point spread (§"Measured scorer behaviour"), which
+is wider than many real passes. A recorded pass kept six correctness fixes,
+lifted the self-score 80 → 85, and the blind scorer returned 85 both times —
+the improvement was real and the instrument could not see it. A comparator
+never has to resolve a delta against that spread; it reads both texts and
+picks one.
+
+**Materialise both sides as plain directories.** The comparator must not be
+able to date either side, so do not hand it the live git working tree.
+
+```bash
+BASE=$(mktemp -d) && FINAL=$(mktemp -d)
+git archive <baseline-ref> -- <skill-path> | tar -x -C "$BASE" --strip-components=<n>
+git archive HEAD            -- <skill-path> | tar -x -C "$FINAL" --strip-components=<n>
+```
+
+`git archive` writes no `.git`, and normalises mtimes — both leaks closed.
+`<baseline-ref>` is the commit the loop started from, the same ref Phase 0
+recorded.
+
+**Randomise the order, per spawn.** Assign baseline and final to `DIR A` /
+`DIR B` by coin flip and keep a private note of the mapping. Do not label the
+directories: `mktemp -d` names are opaque, so leave them as they are rather
+than renaming to anything meaningful.
+
+**Spawn three `skill-comparator` agents, majority vote.** Omit `model` — the
+agent definition pins it, so every comparator in a run matches by
+construction. The vote is over `winner` after mapping A/B back to
+baseline/final:
+
+| Votes for final | Verdict | Action |
+|---|---|---|
+| 3 of 3, or 2 of 3 | `IMPROVED` | Pass stands. Record the margin. |
+| any split with 2+ `TIE` | `NO CHANGE` | Pass kept nothing measurable — record it as such rather than claiming a lift. |
+| 2 of 3, or 3 of 3, for baseline | `REGRESSED` | Something in the pass made the skill worse. Read `reasons`, revert the responsible iteration, re-run. |
+
+**Both agree on the winner but split high/low `confidence`** is still a
+verdict; only `TIE` counts as no change.
+
+**A `REGRESSED` verdict outranks a positive absolute delta.** If the scores
+went up and the comparator says the baseline was better, trust the
+comparator and find out which iteration did it — that combination is the
+exact failure mode the absolute instrument is blind to.
+
+**Check for order bias across runs.** If the comparator picks whichever side
+was presented as `A` in most runs, the blinding is not holding. Track it: the
+mapping is recorded, so the A-vs-B win rate is checkable at any time and
+should sit near 50%.
+
+**Non-empty `leakage` invalidates the run.** If a comparator reports an
+ordering marker it noticed, fix the exclusion and re-spawn — do not accept a
+verdict from an agent that knew the order.
 
 ## Comparison Table
 

@@ -238,6 +238,27 @@ flat) — and print the
 bias-check table after each agent returns, flagging every dimension where self
 and blind differ by 2 or more.
 
+### The A/B Comparator Decides the Pass
+
+The absolute score answers "how good is this?". It does not reliably answer
+"did this pass help?": scoring the same skill twice has a measured 2–4 point
+spread, and a recorded pass that kept six correctness fixes came back with an
+unchanged blind total. **The pass verdict comes from a comparator, not from
+the delta between two absolute scores.**
+
+After the loop stops and the final blind score is in, materialise the
+baseline and the final version as two plain directories with `git archive`
+(no `.git`, no mtimes to date them), assign them to `DIR A` / `DIR B` by coin
+flip, and spawn **three `skill-comparator` agents**; majority vote over their
+`winner` gives `IMPROVED`, `NO CHANGE`, or `REGRESSED`. Omit `model` — the
+agent definition pins it.
+
+**A `REGRESSED` verdict outranks a positive absolute delta**: revert the
+responsible iteration rather than recording a lift. A `TIE` majority is
+recorded as `NO CHANGE`, not as an improvement. Commands, the vote table, the
+order-bias check, and the leakage rule are in
+**`references/blind-validation.md`** §"The A/B comparator".
+
 ---
 
 ## Batch Mode
@@ -371,6 +392,23 @@ skills loaded, no tools, no web. Whatever the model knows unaided does not need
 to be in the skill; as the bleeding edge is absorbed into training, the skill
 should shrink to the delta. Read-only: surfaces candidates, never edits.
 
+**Classify the skill before probing it — the premise does not hold for both
+kinds.** A *capability-uplift* skill encodes something the base model cannot do,
+or cannot do consistently; its content decays as models improve, which is
+exactly what a floor probe detects. An *encoded-preference* skill sequences
+things the model can already do, into a specific house order — an air-gap
+procedure, a commit ritual, which of several valid tools this operator uses.
+Its claims are **supposed** to score `KNOWS`: the model knowing what a Helm
+upgrade is says nothing about whether it knows to do it this way here.
+
+Run Floor Mode on capability-uplift skills. On an encoded-preference skill a
+high floor is the expected reading and not a delete list, so the probe spends
+tokens to produce a number that must then be ignored — and the standing risk
+is that some pass eventually acts on it. Where a skill is both, probe it and
+scope the delete list to the capability-uplift claims. `--extract` writes the
+claim set; the preference claims in it are the ones a high `KNOWS` share must
+not touch.
+
 **Invocation:** one skill — `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
 · whole fleet — `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`, which
 writes each result as it lands so a multi-hour pass is resumable, and ranks by the
@@ -442,7 +480,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
 - **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
 - **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
-- **`references/blind-validation.md`** — The blind-scorer agent, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent.
+- **`references/blind-validation.md`** — The blind-scorer agent, the `skill-comparator` A/B pass that decides the run verdict, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent, or the end-of-run comparator.
 - **`references/backlog-format.md`** — The `Open` / `Resolved this pass` section shapes, admission rules, and append-only history rule. Load when writing a target skill's `improvement-backlog.md` in Phase 6.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
 - **`references/sources.md`** — Index of official docs, specs, changelogs, and blog posts, one row per URL with an optional `Pinned:` version or git ref. Freshen Mode probes every row and writes the single `Freshened: <date>` header stamp; per-row dates are legacy.
