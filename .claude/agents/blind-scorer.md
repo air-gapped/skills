@@ -63,7 +63,10 @@ fields or stuffs everything into `description`. A character count you did not
 run is not evidence: scorers have been observed inventing a length and
 hard-failing a dimension on it.
 
-**Dimension 9:** check `sources.md` `Last verified:` dates (staleness cap),
+**Dimension 9:** check when `sources.md` was last verified (staleness cap) —
+the `Freshened: <date>` header stamp is the current contract and per-row
+`Last verified:` dates are legacy, so a file carrying only the stamp is marked,
+not unmarked; also check
 the spec validity of `name` / `description` (hard-fail cap at 3), and whether
 appropriate frontmatter fields are used. The `description` hard max is 1,024
 chars — take that length from the Dimension 1 command above, never from an

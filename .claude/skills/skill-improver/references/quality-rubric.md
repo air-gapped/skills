@@ -320,19 +320,33 @@ edit the frontmatter.
 
 **Staleness cap (sources.md dates):**
 
-When `references/sources.md` exists with per-row `Last verified:` dates, cap
-Dim 9 based on the **oldest** `Last verified:` date:
+When `references/sources.md` exists, cap Dim 9 on the date it was last
+verified. Read that date in this order:
 
-| Oldest entry age | Max Dim 9 |
+1. **`Freshened: YYYY-MM-DD` header stamp** — the current contract
+   (`freshen-patterns.md` §1.1b). One stamp asserting every row was verified
+   on that date, except rows carrying an inline exception note. Age it exactly
+   as you would a per-row date.
+2. **Per-row `Last verified:` dates** — legacy. Use the **oldest**.
+
+| Age of that date | Max Dim 9 |
 |------------------|-----------|
 | ≤ 90 days | no cap |
 | 91–180 days | 7 |
 | > 180 days | 5 |
-| No `Last verified:` markers | 6 |
+| Neither a header stamp nor `Last verified:` markers | 6 |
 | `references/sources.md` absent | 6 |
 
-Tolerance: if ≥ 80% of rows have `Last verified:` dates, use the oldest dated
-row; if < 80% have dates, treat the file as lacking markers. Rows marked
+**A header stamp with no per-row column is on the current contract, not
+unmarked.** Do not read it as "no markers" — that caps a skill at 6 on the day
+it was freshened, which is the opposite of what the cap is for. Two blind
+scorers split on exactly this on 2026-08-22: one declined the cap and scored
+Dim 9 8, the other applied it and scored 6, on byte-identical input.
+`staleness-report.py` already resolves the stamp first and prints `full` in its
+`rows` column for these files; the rubric now matches it.
+
+Tolerance (legacy files only): if ≥ 80% of rows have `Last verified:` dates, use
+the oldest dated row; if < 80% have dates, treat the file as lacking markers. Rows marked
 `<!-- ignore-freshen -->` (historical/pinned sources the author keeps as-is,
 e.g. unfetchable social posts already quoted in the skill) are excluded from
 the cap computation entirely.
@@ -340,9 +354,14 @@ the cap computation entirely.
 Quick check:
 
 ```bash
-rg -v 'ignore-freshen' references/sources.md \
-  | rg '^\|.*\| (\d{4}-\d{2}-\d{2}) \|' -o -r '$1' | sort | head -1
+# current contract first — the header stamp; only fall back to legacy per-row dates
+rg -m1 '^\*{0,2}Freshened:?\*{0,2}\s*(\d{4}-\d{2}-\d{2})' -o -r '$1' references/sources.md \
+  || rg -v 'ignore-freshen' references/sources.md \
+     | rg '^\|.*\| (\d{4}-\d{2}-\d{2}) \|' -o -r '$1' | sort | head -1
 ```
+
+Running only the second command on a header-stamped file prints nothing, which
+reads as "no markers" and fires the 6-cap on a freshly verified skill.
 
 When the cap triggers, record a justification like "Dim 9 capped at 7 —
 oldest sources.md date is 2025-12-02 (139 days old)" and recommend running
