@@ -134,8 +134,22 @@ artifact. Watch for:
   not generalize
 - **Metric manipulation:** Changing output format to make parsing extract a "better" number
 
-Mitigation: the truth layer is read-only. The agent cannot modify the verifier or
-the eval data. If reward hacking is suspected, add a second metric as a sanity check.
+Mitigation is a check, not a guarantee. "The truth layer is read-only" is an
+instruction to the agent, not a restriction on it: `allowed-tools` pre-approves
+`Edit` and `Write` with no path scoping, so the verifier and the eval data are
+reachable *and* silently writable — no prompt, on a loop whose whole premise is
+that nobody is watching. Verify it rather than assume it. Every experiment is a
+commit on a branch off the baseline, so one command settles it:
+
+```bash
+git diff --name-only <baseline-commit> -- <truth-layer paths>   # must print nothing
+```
+
+Run it before accepting any improved metric. A non-empty result invalidates every
+delta recorded since that file changed, not only the current one: restore the
+truth layer to its baseline content and re-run the affected experiments. If
+reward hacking is suspected while the truth layer is clean, add a second metric
+as a sanity check.
 
 ### Local Maxima
 Hill climbing can get stuck. Signs:

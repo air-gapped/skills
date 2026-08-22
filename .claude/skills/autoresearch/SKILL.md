@@ -139,7 +139,12 @@ LOOP:
        the MEDIAN, not the mean — one outlier run otherwise moves the metric
        more than the change under test. Note the variance in the log.
 
-  5. MEASURE: Extract the metric from the output.
+  5. MEASURE: Extract the metric from the output. Before accepting an improved
+     number, confirm the truth layer is untouched — `allowed-tools` pre-approves
+     Edit/Write unscoped, so nothing but this check stands between the loop and
+     editing its own verifier:
+     `git diff --name-only <baseline-commit> -- <truth-layer paths>` must print
+     nothing (`references/experiment-loop.md` §Reward Hacking).
 
   6. DECIDE:
      - IMPROVED: Keep the commit as new baseline. Log "kept".
