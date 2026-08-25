@@ -12,6 +12,22 @@ Carries ceiling findings across skill-improver runs. Append-only history.
   sibling `postgres-operator-cloudnative-pg-migration`, so the run has to test
   both directions of confusion — this skill firing on migration queries and
   vice versa — not just its own recall.
+- **Duplication between SKILL.md and `upgrade-v1-v2.md` is still the lowest
+  dimension** (Dim 6). The final blind scorer of the 2026-08-25 pass scored
+  Dim 6 **6/10** against a self-score of 8 — the largest self/blind gap in the
+  run, and in the generous direction. It named three specific blocks still
+  carried in both files: the pins/breaking-defaults table, the "Choosing a
+  path" table, and the v2.0.2-viability writeup. Its recommendation is to keep
+  each once and have SKILL.md point at the reference.
+
+  Do not act on that recommendation blind. Iteration 8 of the same pass ran the
+  experiment on a fourth such block and it came back negative: −4 lines for a
+  Dim 5 loss, because SKILL.md is what loads when the skill fires and the
+  compressed content answered an advertised symptom. The open question is which
+  of the three named blocks are decision-critical on trigger (keep in SKILL.md)
+  and which are reference material (move). That needs the eval corpus below to
+  settle, not another round of judgement.
+
 - **Dim 2 will not reach 9 without an evidence-backed restructure** (Dim 2).
   The 9–10 band wants SKILL.md under 150 lines; it is 231. This is a mapped
   trade, not a pending chore: iteration 8 of the 2026-08-25 pass measured it.
