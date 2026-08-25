@@ -138,34 +138,18 @@ Do not read "2.0.1 has the real release notes" as "2.0.1 is the release".
 v2.0.0's notes are a single line redirecting to v2.0.1's, which is where the
 full v2 changelog lives — but the *artifact* to deploy is v2.0.2.
 
-**v2.0.0** — the generated `operatorconfigurations` CRD is rejected by the
-apiserver (invalid string default on the object-typed
-`oauth_token_secret_name`); the operator fatals on startup (#3143, #3152,
-#3153).
+- **v2.0.0** — generated CRD rejected by the apiserver; the operator fatals
+  on startup (#3143).
+- **v2.0.1** — three defects, all fixed only in v2.0.2: the scram
+  `ALTER ROLE`-every-sync loop (#3170), global `sidecars` rejected by the
+  apiserver (#3159), and the missing chart `strategy.type: Recreate` that
+  lets two operators run at once (#3164).
 
-**v2.0.1** — three defects, all fixed only in v2.0.2:
+**#3170 reproduces on v1.15.1 too — it is a scram bug, not a v2 bug.** On
+v1.15.1 the default is still md5, so it bites only on opt-in. When staging
+through v1.15.1, do **not** enable scram there.
 
-- **#3170 — the one that matters.** With `password_encryption:
-  scram-sha-256`, `syncUsers` compares the stored `rolpassword` to a freshly
-  generated hash by string equality. A SCRAM verifier embeds a **random
-  salt**, so it never matches, so the operator issues `ALTER ROLE ...
-  PASSWORD` for *every managed role on every sync cycle* — forever, every
-  30 min by default. It rewrites `pg_authid.rolpassword` each time (WAL and
-  audit noise), and breaks pgbouncer SCRAM pass-through with `auth_query`:
-  client keys are bound to the previous salt, so server logins fail twice an
-  hour with `server_login_retry` throttling catching unrelated clients.
-  **v2 makes scram the default, so v2.0.1 ships a default that activates
-  this bug.** Fixed by #3171.
-- **#3159** — `configuration.sidecars` is generated as `type: object` while
-  the Go field is `[]v1.Container`, so any OperatorConfiguration defining
-  global sidecars is rejected by the apiserver. The feature is unusable on
-  v2.0.0, v2.0.1 and master; it worked on v1.14.0. Fixed by #3160.
-- **#3163 / #3164** — the chart had no `strategy.type: Recreate`, so the old
-  and new operators run concurrently and fight over scram vs md5 (see above).
-
-Note #3170 reproduces on **v1.15.1** too — it is a scram bug, not a v2 bug.
-On v1.15.1 the default is still md5, so you only hit it by opting in. If you
-stage through v1.15.1, do **not** enable scram there.
+Mechanisms, blast radius and fix PRs: `references/upgrade-v1-v2.md`.
 
 ### Two v2-upgrade traps that are only in the issue tracker
 
