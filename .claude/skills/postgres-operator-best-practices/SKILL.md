@@ -43,14 +43,6 @@ v2.0.1 (2026-07-29) · **v2.0.2** (2026-08-20, current). Default Spilo:
 `spilo-17:4.0-p2` in v1.14.0, `spilo-17:4.0-p3` in v1.15.1,
 `spilo-18:4.1-p2` in v2.0.x.
 
-**v1.15.1 is the staging point for anyone on v1.14.x.** It is the last
-release with `kubernetes_use_configmaps` disabled by default, and it is
-where the code that the ConfigMap switch *needs* landed — service-selector
-comparison in `compareServices` (#2955, explicitly "required when switching
-to `kubernetes_use_configmaps`") and the extended RBAC for configmap-based
-cluster management (#2961). Going v1.14 -> v1.15.1 crosses no changed
-default at all. See "Choosing a path" below.
-
 For migrating away to CloudNativePG, and for the "is this project still
 alive" evidence, use `postgres-operator-cloudnative-pg-migration`. This
 skill assumes the decision is to stay.
@@ -183,9 +175,14 @@ mitigation the reporter landed on, and it is not documented anywhere else.
 | **A. straight to v2.0.2**, pin `kubernetes_use_configmaps: false`, migrate DCS later | scram + PG13 drop + spilo default + regenerated CRDs, all at once | small fleets, tolerant of a pod roll, want one upgrade |
 | **B. v1.14 -> v1.15.1, migrate DCS there, then v2.0.2** | nothing on the first hop; DCS alone on the second; scram alone on the third | production fleets; splits the two biggest risks apart |
 
-Path B's first hop crosses **no changed default** and lands on a release
-soaked since 2025-12-18, versus v2.0.2's few weeks. Its third hop needs no
-DCS pin at all, because reality already matches the v2 default.
+**v1.15.1 is the designed staging point, not just an older release.** It is
+the last release with `kubernetes_use_configmaps` disabled by default, and it
+is where the code the ConfigMap switch *needs* landed — service-selector
+comparison in `compareServices` (#2955, explicitly "required when switching to
+`kubernetes_use_configmaps`") and the extended RBAC for configmap-based cluster
+management (#2961). So Path B's first hop crosses **no changed default at all**
+and lands on a release soaked since 2025-12-18, versus v2.0.2's few weeks; its
+third hop needs no DCS pin, because reality already matches the v2 default.
 
 Full release history, the upgrade method, the layered diff, the
 issue-tracker-only traps and two wrong expectations worth not repeating:

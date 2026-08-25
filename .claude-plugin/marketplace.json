@@ -709,7 +709,7 @@
       "name": "postgres-operator-best-practices",
       "source": "./",
       "description": "Run, configure, upgrade and troubleshoot the Zalando postgres-operator (acid.zalan.do `postgresql` CRs, Spilo, Patroni, WAL-G) on Kubernetes",
-      "version": "0.20260825.6",
+      "version": "0.20260825.7",
       "author": {
         "name": "Jörgen"
       },
