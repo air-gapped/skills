@@ -49,6 +49,7 @@ def main() -> int:
     # Parse gate. A block that does not parse is a hard fail regardless of what
     # any field measures, so report it and stop rather than printing lengths the
     # loader will never use.
+    parsed = None
     try:
         import yaml
     except ImportError:
@@ -87,9 +88,26 @@ def main() -> int:
             )
             return 1
 
+    def value_of(name: str) -> str | None:
+        # Measure what the LOADER sees, not the raw block text. A `>-` folded
+        # scalar spans many indented lines; YAML folds each newline+indent to a
+        # single space, so the regex capture is longer than the real string by
+        # ~2 chars per continuation line. Measured 2026-08-25 across 61 skills:
+        # the regex over-counts by up to 54 chars and invents a cap overrun on
+        # 15 skills that are in fact under it. That is the same defect class as
+        # the `[\w-]` bug noted on `field()` — a regex standing in for a parser
+        # — and it bites hardest exactly where it matters, on skills near the
+        # cap, where the fix an agent then applies is to delete real trigger
+        # phrases. Regex stays as the fallback for a missing PyYAML, which the
+        # warning above already flags as unverified.
+        if isinstance(parsed, dict):
+            v = parsed.get(name)
+            return None if v is None else str(v)
+        return field(fm, name)
+
     combined = 0
     for name in ("name", "description", "when_to_use"):
-        value = field(fm, name)
+        value = value_of(name)
         if value is None:
             print(f"{name}: ABSENT")
             continue
@@ -97,7 +115,7 @@ def main() -> int:
         if name != "name":
             combined += len(value)
 
-    desc = field(fm, "description")
+    desc = value_of("description")
     if desc is not None and len(desc) > CAP_DESCRIPTION:
         print(
             f"SPEC VIOLATION: description {len(desc)} > {CAP_DESCRIPTION} hard max "
