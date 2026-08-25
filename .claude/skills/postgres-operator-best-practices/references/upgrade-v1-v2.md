@@ -131,14 +131,6 @@ code upgrade does not double as a behaviour change:
 `minimal_major_version` can usually be allowed to move `13` -> `14`, provided
 nothing runs PG13.
 
-### The three breaking defaults, restated
-
-| Option | v1.14.0 | v2.0.x | Consequence if unpinned |
-|---|---|---|---|
-| `kubernetes_use_configmaps` | `false` | `true` | DCS switch mid-upgrade; split-brain risk |
-| `docker_image` | `spilo-17:4.0-p2` | `spilo-18:4.1-p2` | rolls every cluster on the default image |
-| password encryption | md5 | `scram-sha-256` | rewrites secrets, alters DB passwords, rolls pods |
-
 The scram change has the widest blast radius and is the easiest to miss:
 unless a cluster sets `password_encryption: md5` under
 `spec.postgresql.parameters`, v2 re-encrypts existing passwords and alters
