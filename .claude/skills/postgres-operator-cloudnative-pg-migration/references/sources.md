@@ -7,6 +7,12 @@ applicable). Columns: Ref, URL, What it grounds, Last verified
 
 ## Most recent freshen pass: 2026-07-29
 
+**Targeted update 2026-08-25 (NOT a full pass — the stamp above stands).**
+Re-probed only: both operators' release lists (enumerated unfiltered) and
+the Zalando release-defect record, feeding `decision.md`. Rows and volatile
+facts touched by that probe carry a 2026-08-25 stamp; every other row keeps
+its earlier date and is still due a full freshen.
+
 Triggered by Zalando v2.0.0 (2026-07-27) / v2.0.1 (2026-07-29). Probed:
 both operators' release state, plugin-barman-cloud + chart, CNCF
 incubation, all tracked issue states. Rows not re-probed keep their
@@ -21,7 +27,7 @@ clones at HEAD 2026-07-23). Research report:
 |---|---|---|---|---|
 | CNPG repo/docs | https://github.com/cloudnative-pg/cloudnative-pg | all CNPG field/version claims (API ref, bootstrap, database_import, logical_replication, failover, instance_manager, replication, backup, postgres_upgrades, supported_releases, operator_conf, cnpg_i) | 2026-07-24 | clone @ 0552b9caa (v1.30.0+51) |
 | CNPG lease source | internal/cmd/manager/instance/run/lease/runnable.go | isolated-primary lease behavior (retry vs self-stop) | 2026-07-24 | same clone |
-| Zalando repo/docs | https://github.com/zalando/postgres-operator | manifest reference, CRD Go types, admin docs, service/secret naming, scram default; release state (v2.0.1 latest) | 2026-07-29 | clone @ 86d3027e (pre-v2; re-clone before deep CRD work) |
+| Zalando repo/docs | https://github.com/zalando/postgres-operator | manifest reference, CRD Go types, admin docs, service/secret naming, scram default; release state (**v2.0.2 latest, 2026-08-20**; v2.0.0 and v2.0.1 both defective — see the sibling skill `postgres-operator-best-practices`) | 2026-08-25 | clone @ 86d3027e (pre-v2; re-clone before deep CRD work) |
 | Spilo repo | https://github.com/zalando/spilo | USE_OLD_LOCALES / Ubuntu 18.04 locale archive (Dockerfile, launch.sh), WAL-G-only (ENVIRONMENT.rst), wal_level default (configure_spilo.py) | 2026-07-24 | — |
 | CNPG supported releases | https://cloudnative-pg.io/docs/devel/supported_releases | 3-month cadence, ~6-month minor life, K8s/PG windows | 2026-07-24 | 1.30.x: K8s 1.34–1.36, PG 14–18 |
 | CNPG installation_upgrade | https://cloudnative-pg.io/docs/devel/installation_upgrade | operator upgrade → fleet rolling restart; in-place update flag | 2026-07-24 | — |
@@ -62,9 +68,10 @@ clones at HEAD 2026-07-23). Research report:
 
 ## Volatile facts to re-verify on every freshen
 
-- In-tree barmanObjectStore removal version (currently 1.31.0 — slipped 4×; 1.31 still unreleased as of 2026-07-29).
+- In-tree barmanObjectStore removal version (currently 1.31.0 — slipped 4×; 1.31 still unreleased as of **2026-08-25**).
 - Latest plugin-barman-cloud release and its CNPG module target (v0.14.0 / CNPG 1.30.0 as of 2026-07-29).
-- Zalando release state (v2.0.1 latest, 2026-07-29; Spilo-17 4.1-p2; PG 14–18).
-- CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4 as of 2026-07-29).
+- Zalando release state (**v2.0.2 latest, 2026-08-20**, re-probed 2026-08-25; Spilo-18 4.1-p2 is the v2 default; PG 14–18).
+- CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4, all 2026-06-29 — unchanged at **2026-08-25**, ~8 weeks against a 5–7 week train).
+- **Enumerate release lists unfiltered.** A `test()` pattern built from expected versions hid an entire release line during the 2026-08-25 probe; list everything, then narrow by reading.
 - CNCF incubation outcome (cncf/toc#1961).
 - Open-bug states listed above (esp. #3788, #8902, #652, HA set).

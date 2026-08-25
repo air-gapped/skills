@@ -58,6 +58,10 @@ backup-plugin transition in flight).
 Full evidence, the skeptic's case, and alternatives:
 `references/decision.md`. Migrate deliberately, cluster by cluster.
 
+For staying and operating Zalando instead — the v1.x→v2.x upgrade, the
+Patroni DCS/Endpoints switch, rolling-update triggers, day-2 operations —
+use the sibling skill `postgres-operator-best-practices`.
+
 ## The two walls that shape every plan
 
 **Wall 1 — glibc/collation (physical data paths).** Spilo images are
