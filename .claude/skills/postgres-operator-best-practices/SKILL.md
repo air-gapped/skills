@@ -143,30 +143,25 @@ through v1.15.1, do **not** enable scram there.
 
 Mechanisms, blast radius and fix PRs: `references/upgrade-v1-v2.md`.
 
-### Two v2-upgrade traps that are only in the issue tracker
+### Three v2-upgrade traps that are only in the issue tracker
 
-Neither is in the release notes or `migrate.md`. Both from **#3163 (still
-open)**, with a detailed field report from an operator who hit the cascade:
+None of them is in the release notes or `migrate.md`. All three come from
+**#3163 (still open)**, with a detailed field report from an operator who hit
+the whole cascade:
 
-**The v2 operator does not serve `/readyz` until every cluster has been
-reconciled.** On v1.15.1 the API server came up first. Now the pod can sit
-un-Ready for ~20-30 minutes on a fleet of any size. Do not interpret this as
-a failed upgrade and do not roll back into it.
+- **Expect ~20-30 minutes un-Ready.** The v2 operator serves `/readyz` only
+  after every cluster has reconciled; v1.15.1 served it before the sync. Do
+  not read this as a failed upgrade and do not roll back into it.
+- **Confirm `strategy.type: Recreate` is in the rendered Deployment.** Before
+  v2.0.2 the chart lacked it, so the old and new operators ran together and
+  fought over scram vs md5 — one reporter saw 16 pods roll two or three times
+  each, with a switchover apiece.
+- **Set `workers` >= number of Postgres clusters.** Fewer workers than
+  clusters leaves a cluster waiting on a pod informer that never starts, which
+  burns `pod_deletion_wait_timeout` (10m), fails the sync, and costs a full
+  `resync_period` (30m) before the retry — rolling pods again each time.
 
-**If the old operator keeps running during that window, the two fight.**
-Before v2.0.2 the Helm chart had no `Recreate` strategy, so both ran. The
-v1 operator resets `scram-sha-256` back to `md5` while the v2 operator sets
-it forward — one reporter saw 16 pods roll two or three times each, with a
-switchover per cluster, plus `pod_deletion_wait_timeout` (10m) sync failures
-and another 30m `resync_period` wait before recovery. **v2.0.2's `Recreate`
-strategy fixes the fight**; confirm it is actually in the rendered
-Deployment before upgrading.
-
-**Set `workers` >= number of Postgres clusters first.** With fewer workers
-than clusters, a cluster can wait on a pod informer that never starts,
-burn `pod_deletion_wait_timeout`, fail the sync, and wait a full
-`resync_period` to retry — rolling pods again each time. This is the
-mitigation the reporter landed on, and it is not documented anywhere else.
+The full cascade with its timings: `references/upgrade-v1-v2.md`.
 
 ### Choosing a path from v1.14.x
 
