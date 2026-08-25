@@ -47,6 +47,19 @@ For migrating away to CloudNativePG, and for the "is this project still
 alive" evidence, use `postgres-operator-cloudnative-pg-migration`. This
 skill assumes the decision is to stay.
 
+## Symptom index
+
+| Symptom | Where |
+|---|---|
+| Unknown-field errors after a chart bump; config options silently ignored | §1 below — Helm does not update the CRDs |
+| Pods rolled unexpectedly; an unplanned switchover | `references/operations.md` §"What triggers a rolling update" |
+| `last-major-upgrade-failure` annotation; the upgrade will not retry | `references/operations.md` §"In-place major version upgrades" |
+| Clusters not syncing; a `postgresql` CR stuck; operator un-Ready for 20+ min after a v2 upgrade | "Three v2-upgrade traps" below — `workers`, `/readyz` |
+| PDB blocking a node drain | `references/operations.md` §"Pod Disruption Budgets" |
+| `v1 Endpoints is deprecated` warning | `references/dcs-endpoints.md` |
+| Logical-backup cronjob, password rotation, connection pooler / pgbouncer | `references/operations.md` |
+| Roles re-`ALTER`ed every 30 min; pgbouncer logins failing twice an hour | scram bug #3170 — upgrade to v2.0.2 |
+
 ## The four things that cause unplanned downtime
 
 **1. Helm does not update the CRDs.** Upstream says so explicitly: "installing
