@@ -1,25 +1,24 @@
 # Sources — postgres-operator-cloudnative-pg-migration
 
-Dated per-URL index backing this skill's factual claims. Freshen Mode
-probes each row and stamps `Last verified` (and `Pinned` where
-applicable). Columns: Ref, URL, What it grounds, Last verified
-(YYYY-MM-DD), Pinned.
+Per-URL index backing this skill's factual claims. Freshen Mode probes every
+row and rewrites the stamp below; rows it could not reach carry an inline
+exception note instead.
 
-## Most recent freshen pass: 2026-07-29
+**Freshened: 2026-08-25** (exceptions: 1 row, noted inline)
 
-**Targeted update 2026-08-25 (NOT a full pass — the stamp above stands).**
-Re-probed only: both operators' release lists (enumerated unfiltered) and
-the Zalando release-defect record, feeding `decision.md`. Rows and volatile
-facts touched by that probe carry a 2026-08-25 stamp; every other row keeps
-its earlier date and is still due a full freshen.
+Full pass. URL liveness swept in bulk; issue and PR states batched per repo
+through the GitHub API; release lists for CNPG, Zalando and
+plugin-barman-cloud enumerated **unfiltered**; local-clone rows checked
+against `~/projects/github.com/cloudnative-pg/cloudnative-pg` at the pinned
+commit and against `origin/main`. Four drifts found and applied: Zalando
+release state (and a Spilo major that was wrong when written), Crunchy #3601
+open not closed, the Instana deep link retired, and a PG19 beta in the
+operand-image repo. Prior passes: 2026-07-29 (Zalando v2 trigger),
+2026-07-24 (initial creation; 9 agents over 2 rounds, both operator repos
+read from full local clones at HEAD 2026-07-23).
 
-Triggered by Zalando v2.0.0 (2026-07-27) / v2.0.1 (2026-07-29). Probed:
-both operators' release state, plugin-barman-cloud + chart, CNCF
-incubation, all tracked issue states. Rows not re-probed keep their
-2026-07-24 stamp. Prior pass: initial creation 2026-07-24 (research
-pass: 9 agents over 2 rounds; both operator repos read from full local
-clones at HEAD 2026-07-23). Research report:
-`.claude/skills/autoresearch/results/zalando-postgres-operator-vs-cloudnative-pg-research-2026-07-24.md`.
+Per-row `Last verified` dates below are legacy — the header stamp is
+authoritative.
 
 ## Primary sources (repos, official docs, release artifacts)
 
@@ -69,9 +68,9 @@ clones at HEAD 2026-07-23). Research report:
 ## Volatile facts to re-verify on every freshen
 
 - In-tree barmanObjectStore removal version (currently 1.31.0 — slipped 4×; 1.31 still unreleased as of **2026-08-25**).
-- Latest plugin-barman-cloud release and its CNPG module target (v0.14.0 / CNPG 1.30.0 as of 2026-07-29).
+- Latest plugin-barman-cloud release and its CNPG module target (v0.14.0, 2026-07-29 — still latest at 2026-08-25; chart 0.7.1 / appVersion v0.14.0).
 - Zalando release state (**v2.0.2 latest, 2026-08-20**, re-probed 2026-08-25; Spilo-18 4.1-p2 is the v2 default; PG 14–18).
 - CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4, all 2026-06-29 — unchanged at **2026-08-25**, ~8 weeks against a 5–7 week train).
 - **Enumerate release lists unfiltered.** A `test()` pattern built from expected versions hid an entire release line during the 2026-08-25 probe; list everything, then narrow by reading.
-- CNCF incubation outcome (cncf/toc#1961).
+- CNCF incubation outcome (cncf/toc#1961 — still open at 2026-08-25; cncf.io still lists the project at **Sandbox** maturity, so the application has not landed).
 - Open-bug states listed above (esp. #3788, #8902, #652, HA set).
