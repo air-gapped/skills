@@ -8,6 +8,9 @@ Verified **2026-08-25** against upstream at tag `v2.0.2`
 - [Maintenance windows](#maintenance-windows)
 - [Pod Disruption Budgets](#pod-disruption-budgets)
 - [Delete protection](#delete-protection)
+- [Password rotation in K8s secrets](#password-rotation-in-k8s-secrets)
+- [Logical backups](#logical-backups)
+- [Connection pooler](#connection-pooler)
 - [Configuration hygiene worth auditing](#configuration-hygiene-worth-auditing)
 - [Open issues worth knowing](#open-issues-worth-knowing)
 
@@ -96,6 +99,78 @@ node upgrades, at the cost of longer database downtime.
 `YYYY-MM-DD` form). **Unset by default, which means no delete protection at
 all** — any `kubectl delete postgresql` takes the cluster. Either or both keys
 can be used. Turn this on before it is needed, not after.
+
+## Password rotation in K8s secrets
+
+Off by default. `enable_password_rotation: true` makes the operator refresh
+credentials in the K8s secrets of `LOGIN` roles that have one — manifest roles
+and the default users from `preparedDatabases`. Interval:
+`password_rotation_interval`, default `90` days, minimum 1.
+
+**Rotation creates a new role, it does not change the old one's password.** On
+each rotation the secret's username *and* password are replaced, pointing at a
+freshly created user named after the original role plus the rotation date in
+`YYMMDD` form. Privileges are inherited, which is the trap: **migration scripts
+must still grant and revoke against the original role**, never the dated one.
+The next rotation timestamp (RFC 3339, UTC) is written into the secret too.
+
+Four categories are deliberately excluded — infrastructure role secrets
+(rotation belongs to the infrastructure), Team API roles using OAuth2/JWT (no
+secret exists), database owners (object ownership cannot be inherited), and the
+system users `postgres`, `standby` and `pooler`.
+
+Shortening the interval does not take effect immediately: it only applies once
+the already-scheduled next rotation date is further away than the new interval.
+
+## Logical backups
+
+Per-cluster, off by default — set `enableLogicalBackup: true` in the cluster
+manifest. The operator manages a K8s CronJob that spawns a batch job running a
+single pod; it updates the CronJob during Sync when the schedule changes, using
+the job name as the identifier.
+
+**These are not a substitute for basebackups and WAL archiving.** The operator
+cannot restore them automatically and they give no point-in-time recovery —
+treat them as SQL snapshots for reloading into an empty test cluster. The
+stock image runs `pg_dumpall` (which needs superuser, and runs on a replica
+where possible) and uploads compressed, encrypted output to S3.
+
+Four operational consequences worth planning for:
+
+- **The operator never removes old backups.** Retention is somebody else's job.
+- **Monitor the CronJob separately.** K8s cron jobs can miss runs, and upstream
+  states explicitly that such monitoring is outside operator responsibility.
+- **RBAC must allow `cronjobs` in the `batch` API group** for the operator
+  service account, or the feature silently does nothing.
+- A custom image must tolerate pod restarts and simultaneous invocations of the
+  cron job. Pod-template resources default to the Spilo pod values when unset.
+
+## Connection pooler
+
+Off by default. Two independent flags, either usable alone:
+
+```yaml
+spec:
+  enableConnectionPooler: true          # pooler in front of the master
+  enableReplicaConnectionPooler: true   # pooler in front of the replicas
+```
+
+The master pooler is reachable on its own service, `{cluster-name}-pooler`.
+Per-cluster tuning goes under `spec.connectionPooler` (`numberOfInstances`,
+`mode: session|transaction`, `schema`, `user`, `resources`); the default
+configuration is adequate for most deployments.
+
+Two behaviours that surprise: the `connectionPooler` section alone is enough —
+`enableConnectionPooler` is not required when it is present — but the flag
+still works as an on/off switch that **removes the pooler while keeping its
+configuration**. And in v2 the pooler image moved off
+`registry.opensource.zalan.do` to
+`ghcr.io/zalando/postgres-operator/pgbouncer:<ver>`, so any pinned pooler image
+from a v1 values file must be re-pointed.
+
+Note the pooler interacts with the scram bug in `upgrade-v1-v2.md` (#3170):
+pgbouncer doing SCRAM pass-through with `auth_query` breaks when the operator
+rewrites role passwords every sync cycle.
 
 ## Configuration hygiene worth auditing
 
