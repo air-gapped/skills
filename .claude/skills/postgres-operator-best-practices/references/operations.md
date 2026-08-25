@@ -31,19 +31,11 @@ The operator logs the *reason* for a rolling update at `info` and the full
 StatefulSet spec diff at `debug` (view with `echo -e`; expect noise, since the
 operator's PodTemplate is not defaulted the way Kubernetes will default it).
 
-**Changing the operator's `docker_image` rolls every cluster that does not pin
-its own.** A cluster manifest's `spec.dockerImage` wins; clusters without one
-ride the operator default. Count the blast radius before touching it:
-
-```bash
-kubectl get pods -A -l application=spilo \
-  -o jsonpath='{range .items[*]}{.spec.containers[0].image}{"\n"}{end}' | sort | uniq -c
-```
-
-`enable_lazy_spilo_upgrade: true` updates the StatefulSet without a rolling
-update, deferring the switchover to whenever the pod next restarts — useful
-when nodes rotate anyway, since it saves a switchover. Default is `false`,
-which means an image change rolls immediately.
+The `docker_image` blast radius and the blast-radius count command are in
+SKILL.md §"The four things that cause unplanned downtime", item 3. One nuance
+belongs here rather than there: `enable_lazy_spilo_upgrade: true` is worth
+enabling when nodes rotate on their own schedule, because the deferred
+switchover then happens during a reboot that was going to occur anyway.
 
 ## In-place major version upgrades
 
