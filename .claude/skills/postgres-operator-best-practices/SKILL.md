@@ -53,7 +53,7 @@ default at all. See "Choosing a path" below.
 
 For migrating away to CloudNativePG, and for the "is this project still
 alive" evidence, use `postgres-operator-cloudnative-pg-migration`. This
-skill assumes you are staying.
+skill assumes the decision is to stay.
 
 ## The four things that cause unplanned downtime
 
@@ -76,12 +76,12 @@ already in the *installed* CRD before assuming a pin will survive —
 `kubectl get crd operatorconfigurations.acid.zalan.do -o yaml | grep <option>`.
 Note `enable_crd_registration: true` (the default) makes the operator update
 CRDs itself at runtime, but that happens *after* Helm has already applied the
-CR, so it does not save you.
+CR, so it does not prevent the pruning.
 
-**2. A changed default is a config change you did not make.** Every major
+**2. A changed default is a config change nobody made.** Every major
 upgrade, diff the upstream default values file against the previous one and
-pin anything whose new value you are not ready to adopt. Rebuild your values
-file *from the new upstream defaults* rather than patching your old copy —
+pin anything whose new value is not ready to be adopted. Rebuild the values
+file *from the new upstream defaults* rather than patching the old copy —
 that way removed keys drop out and new keys arrive with their comments,
 instead of accumulating orphans that get silently pruned.
 
@@ -167,7 +167,7 @@ v1 operator resets `scram-sha-256` back to `md5` while the v2 operator sets
 it forward — one reporter saw 16 pods roll two or three times each, with a
 switchover per cluster, plus `pod_deletion_wait_timeout` (10m) sync failures
 and another 30m `resync_period` wait before recovery. **v2.0.2's `Recreate`
-strategy fixes the fight**; confirm it is actually in your rendered
+strategy fixes the fight**; confirm it is actually in the rendered
 Deployment before upgrading.
 
 **Set `workers` >= number of Postgres clusters first.** With fewer workers
@@ -201,7 +201,7 @@ The two highest-value knobs most deployments leave off:
 
 - **Delete protection** (`delete_annotation_name_key` /
   `delete_annotation_date_key`) is unset by default, so any `kubectl delete
-  postgresql` takes the cluster. Turn it on before you need it.
+  postgresql` takes the cluster. Turn it on before it is needed.
 - **`enable_patroni_failsafe_mode`** defaults to `false`. With it off, a DCS
   outage can demote a healthy primary. Worth enabling *before* a DCS
   migration, not after.

@@ -31,8 +31,8 @@ gh api repos/zalando/postgres-operator/releases \
 | v2.0.1 | 2026-07-29 | carries the full v2 changelog; **three defects**, not deployable |
 | v2.0.2 | 2026-08-20 | the only viable v2 |
 
-**Never filter a release list by a pattern built from what you expect to
-find.** A `test("v2|v1.14")` filter on the API call above hides the entire
+**Never filter a release list by a pattern built from the versions expected
+to be there.** A `test("v2|v1.14")` filter on the API call above hides the entire
 `v1.15.*` line — which is exactly where the designed staging point lives. The
 filter can only ever confirm the assumption that built it. List everything,
 then narrow by reading.
