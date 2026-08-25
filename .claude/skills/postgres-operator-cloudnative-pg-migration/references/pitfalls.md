@@ -43,6 +43,20 @@ gates verified 2026-07-24.
    against scram-only pg_hba — looks like an outage at first app
    connect. Pre-flight finds them (`substr(rolpassword,1,6)='md5…'`);
    reset those passwords.
+7b. **A scram source below Zalando v2.0.2 re-salts every managed role's
+   verifier every sync cycle** (zalando#3170; reproduces on v1.15.1 and
+   master, so it is a scram bug, not a v2 one — but v2 makes scram the
+   default, so v2.0.0/v2.0.1 sources have it switched on). The password
+   in the secret is untouched, so a direct libpq connection re-negotiates
+   and is fine. What breaks is anything caching a SCRAM verifier —
+   explicitly pgbouncer with `auth_query`, **including Zalando's own
+   `enableConnectionPooler`** — which fails its next server login after
+   every sync, twice an hour at :04 and :34 by default, then throttles
+   unrelated clients via `server_login_retry`. Consequences for a
+   migration: point `externalClusters` at the Spilo **primary**, never at
+   `<cluster>-pooler` (logical replication needs a direct connection
+   anyway), and expect `pg_authid` churn in the source's WAL for the
+   whole migration window. Upgrading the source to v2.0.2 ends it.
 
 ## Outage-causing
 

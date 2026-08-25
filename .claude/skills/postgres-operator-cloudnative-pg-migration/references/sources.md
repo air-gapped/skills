@@ -42,7 +42,8 @@ authoritative.
 
 | Ref | URL | Grounds | Last verified | State |
 |---|---|---|---|---|
-| Zalando #2921 | https://github.com/zalando/postgres-operator/issues/2921 | maintainer "idle state" statement, internal scale, "will keep maintaining" | 2026-07-29 | closed 2026-01-08 — statement is historical fact; "will keep maintaining" borne out by v2.0.0 (2026-07-27) |
+| Zalando #2921 | https://github.com/zalando/postgres-operator/issues/2921 | maintainer "idle state" statement, internal scale, "will keep maintaining" | 2026-08-25 | closed 2026-01-08 — statement is historical fact; "will keep maintaining" borne out by the v2 line |
+| Zalando #3170 | https://github.com/zalando/postgres-operator/issues/3170 | scram source-side verifier re-salted every sync cycle; breaks pgbouncer `auth_query` verifier caching but not the password — pitfalls.md §7b | 2026-08-25 | closed — fixed by #3171 in v2.0.2; reproduces on v1.15.1 and master |
 | Spilo #1131 | https://github.com/zalando/spilo/issues/1131 | Spilo aliveness, internal fork, migration testimonials both directions | 2026-07-29 | open |
 | CNPG #5736 (+#5568) | https://github.com/cloudnative-pg/cloudnative-pg/issues/5736 | "should not use physical replication from Zalando"; SSL required | 2026-07-24 | closed |
 | CNPG #7407 / disc #7462 | https://github.com/cloudnative-pg/cloudnative-pg/discussions/7462 | split-brain history; closed 2025-12-31 citing 1.27 isolation + 1.28 quorum | 2026-07-24 | closed |
