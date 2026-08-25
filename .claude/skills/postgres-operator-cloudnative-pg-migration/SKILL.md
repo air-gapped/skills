@@ -37,16 +37,19 @@ restorable at every phase, and no dependency left on maintenance-mode
 artifacts. Facts below were verified 2026-07-24 against primary sources
 (both operator repos at HEAD, release manifests, maintainer statements);
 re-verify anything version-gated before relying on it in a later year.
-Version anchor (updated 2026-07-29): Zalando v2.0.1 (Spilo-17 4.1-p2,
-PG 14–18), CNPG 1.30.0 / 1.29.2 (PG 14–18), plugin-barman-cloud v0.14.0.
+Version anchor (2026-08-25): Zalando v2.0.2 (Spilo-18 4.1-p2, PG 14–18;
+v2.0.0 and v2.0.1 are both defective), CNPG 1.30.0 / 1.29.2 / 1.28.4
+(2026-06-29; PG 14–18; 1.31 unreleased), plugin-barman-cloud v0.14.0.
 
 ## Why this migration exists
 
 Zalando's operator runs on one sustained maintainer in confirmed low
 gear ("a little idle state… not encouraged by management", issue #2921,
-June 2025) — but it is not dead: v2.0.0/v2.0.1 (2026-07-27/29) shipped
-PG18 support, dropped PG13, flipped `kubernetes_use_configmaps` on by
-default (the K8s Endpoints deprecation), and defaulted scram-sha-256.
+June 2025) — but it is not dead: the v2 line (2026-07/08) shipped PG18
+support, dropped PG13, flipped `kubernetes_use_configmaps` on by default
+(the K8s Endpoints deprecation), and defaulted scram-sha-256. Deploy
+**v2.0.2** — v2.0.0 fatals on startup and v2.0.1's own new scram default
+triggers a per-sync `ALTER ROLE` loop.
 CNPG still runs ~7× the human commit volume, releases quarterly across
 three maintained lines, entered CNCF Sandbox (Jan 2025, incubation
 pending), and has a documented migration wave (IBM Instana ships
