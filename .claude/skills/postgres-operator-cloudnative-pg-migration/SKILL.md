@@ -43,23 +43,14 @@ v2.0.0 and v2.0.1 are both defective), CNPG 1.30.0 / 1.29.2 / 1.28.4
 
 ## Why this migration exists
 
-Zalando's operator runs on one sustained maintainer in confirmed low
-gear ("a little idle state… not encouraged by management", issue #2921,
-June 2025) — but it is not dead: the v2 line (2026-07/08) shipped PG18
-support, dropped PG13, flipped `kubernetes_use_configmaps` on by default
-(the K8s Endpoints deprecation), and defaulted scram-sha-256. Deploy
-**v2.0.2** — v2.0.0 fatals on startup and v2.0.1's own new scram default
-triggers a per-sync `ALTER ROLE` loop.
-CNPG still runs ~7× the human commit volume, releases quarterly across
-three maintained lines, entered CNCF Sandbox (Jan 2025, incubation
-pending), and has a documented migration wave (IBM Instana ships
-official Zalando→CNPG docs). **This is strategic, not an emergency** —
-v2 extends the safe-to-stay horizon well past the old ~2027 estimate,
-Patroni itself is thriving, and CNPG brings its own churn costs
-(quarterly operator upgrades that rolling-restart every cluster; a
-backup-plugin transition in flight).
-Full evidence, the skeptic's case, and alternatives:
-`references/decision.md`. Migrate deliberately, cluster by cluster.
+Zalando's operator runs on one sustained maintainer in confirmed low gear
+(#2921) but is not dead — the v2 line shipped PG18, dropped PG13, and
+flipped both `kubernetes_use_configmaps` and scram-sha-256 on by default.
+CNPG runs ~7× the human commit volume across three maintained lines and
+has a documented migration wave. **This is strategic, not an emergency**:
+v2 extends the safe-to-stay horizon well past the old ~2027 estimate, and
+CNPG brings its own churn costs. Migrate deliberately, cluster by cluster.
+Full evidence, the skeptic's case, and alternatives: `references/decision.md`.
 
 For staying and operating Zalando instead — the v1.x→v2.x upgrade, the
 Patroni DCS/Endpoints switch, rolling-update triggers, day-2 operations —
