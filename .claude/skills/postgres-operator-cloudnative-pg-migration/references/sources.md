@@ -55,7 +55,7 @@ clones at HEAD 2026-07-23). Research report:
 | HA bugs #10430 #10287 #11202 #10547 #11110 | github.com/cloudnative-pg/cloudnative-pg/issues/… | open HA-adjacent bugs listed in pitfalls | 2026-07-29 | all open |
 | PR #11148 | https://github.com/cloudnative-pg/cloudnative-pg/pull/11148 | multi-instance-no-sync warning is 1.31 material ("do not backport") | 2026-07-24 | merged, unreleased |
 | CNCF incubation | https://github.com/cncf/toc/issues/1961 | CNPG incubation application (2025-11-12) | 2026-07-29 | open |
-| Crunchy #3601 | https://github.com/CrunchyData/postgres-operator/issues/3601 | Developer Program image revocation incident (alternatives assessment) | 2026-07-24 | closed |
+| Crunchy #3601 | https://github.com/CrunchyData/postgres-operator/issues/3601 | Developer Program image revocation incident (alternatives assessment) | 2026-08-25 | **open** — filed 2023-03-08, never closed; prior passes recorded "closed", which was wrong |
 
 ## Secondary (practitioner / vendor — bias noted)
 
