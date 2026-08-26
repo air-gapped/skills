@@ -2,7 +2,36 @@
 
 ## Open
 
-- **Extract Color-Output + Target-Specific-Variables blocks to references** (Dim 2) — SKILL.md L184-235 (~45 inline lines). SKILL.md is 374 lines, above the lean <300 band. Not applied in one iteration: a clean move needs a new `references/patterns.md` (or coherent host file) plus pointers plus re-verification of the target file — a multi-step restructure, not a single atomic edit. Deferred to keep the change atomic and avoid muddying ci-integration.md's CI focus.
+- **SKILL.md is 415 lines, still above the lean <300 band** (Dim 2). The
+  originally-named extraction (Color Output + Target-Specific Variables, plus
+  Non-Interactive Guards which sat between them) was done on 2026-08-26 into
+  `references/recipe-patterns.md`, taking 461 → 415. Two `##@`/heredoc additions
+  the same day account for the rest of the gap from the original 374.
+  Next concrete candidates, both pure lookup material with no decision content:
+  **§Debugging Makefile Issues** (~36 lines: flag table, diagnostic functions,
+  symptom table) and **§Portability Notes** (~30 lines: GNU-vs-BSD table, shell
+  portability). Either would land it near 350; both, near 320. Not blocked on
+  anything — it is a move plus a pointer plus a re-read.
+
+## Resolved — 2026-08-26
+
+- **Extracted Color Output, Target-Specific Variables and Non-Interactive Guards
+  to `references/recipe-patterns.md`** (53 lines out, 5-line pointer in). Closes
+  the extraction named in the previous Open item. All three were code-only
+  lookup blocks with no prose deciding anything, so they cost SKILL.md budget on
+  every trigger while being read rarely.
+- **Added `##@ Section` support to the `help` target** (SKILL.md §Minimal
+  Skeleton). The documented target printed a flat alphabetical list, which
+  discards ordering — the load-bearing information in any Makefile that encodes a
+  procedure rather than independent tasks. `##@` is the kubebuilder/operator-sdk
+  convention. The awk was extracted back out of the committed file and executed,
+  not eyeballed.
+- **Extended the `cd` bug section to heredocs.** Same one-shell-per-line root
+  cause, completely different symptom: the heredoc body runs as shell commands
+  (`syntax error near unexpected token`), and interactively the build hangs
+  instead of failing because `python3 -` inherits the terminal. Measured that
+  `.ONESHELL:` is *not* a clean fix — recipe tabs are preserved so the terminator
+  no longer matches at column 0 and leaks into stdout. Sidecar script is the fix.
 
 ## Resolved — 2026-07-21 (freshen)
 

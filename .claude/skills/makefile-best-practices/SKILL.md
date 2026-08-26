@@ -227,58 +227,11 @@ parser.c parser.h &: parser.y
 parser.c parser.h: .parser.sentinel
 ```
 
-### Target-Specific Variables
+### Target-Specific Variables, CI-Safe Guards, Color Output
 
-```makefile
-# Different flags for different targets
-debug: CFLAGS += -g -O0 -DDEBUG
-debug: all
-
-release: CFLAGS += -O3 -DNDEBUG
-release: all
-
-test: CFLAGS += -DTEST --coverage
-test: $(target)
-	./run-tests
-```
-
-### Non-Interactive Guards (CI-Safe)
-
-```makefile
-# BAD: Breaks in CI
-confirm:
-	@read -p "Are you sure? [y/N] " ans && [ "$$ans" = y ]
-
-# GOOD: Environment variable guard
-deploy: guard-CONFIRM ## Deploy (requires CONFIRM=1)
-	./deploy.sh
-
-guard-%:
-	@if [ -z '${${*}}' ]; then \
-		echo "ERROR: Variable $* is not set"; \
-		exit 1; \
-	fi
-```
-
-### Color Output (Respecting NO_COLOR)
-
-```makefile
-ifdef NO_COLOR
-  CYAN :=
-  GREEN :=
-  RESET :=
-else
-  CYAN := \033[36m
-  GREEN := \033[32m
-  RESET := \033[0m
-endif
-
-.PHONY: build
-build:
-	@echo "$(CYAN)Building...$(RESET)"
-	$(MAKE) all
-	@echo "$(GREEN)Done$(RESET)"
-```
+See **`references/recipe-patterns.md`** — per-target `CFLAGS`, the reusable
+`guard-%` rule for gating destructive targets on an env var instead of a
+stdin prompt that deadlocks CI, and `NO_COLOR`-respecting output.
 
 ## Anti-Patterns to Avoid
 
@@ -459,3 +412,4 @@ wholesale. Real-world Makefiles typically use 10-20 targets.
 - `Makefile.helm-k8s` - Helm charts & Kubernetes operations
 - `Makefile.portable` - Cross-platform POSIX compatible
 - `ci-integration.md` - CI/CD usage patterns
+- `recipe-patterns.md` - Target-specific variables, CI guards, color output
