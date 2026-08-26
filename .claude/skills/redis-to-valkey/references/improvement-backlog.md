@@ -149,6 +149,17 @@ fuller and now-corrected picture lives in `known-consumers.md`. Left as
 compressed. Restore the licence fact if a future pass wants the intro to stand
 alone.
 
+### Rejected scorer findings (do not re-litigate)
+
+- **"one-way door restated 3× in SKILL.md" — not a defect, do not delete.**
+  Raised by the post-fix blind scorer. Actual distribution: `SKILL.md:8` is the
+  frontmatter trigger surface (must name it), `SKILL.md:77` is the single
+  explanation, `SKILL.md:141` is a back-reference from runbook step 7 ("see
+  one-way door"), and `pitfalls.md:20` is the separate scan-before-execute
+  file. One statement, one pointer, one trigger phrase — `INTENTIONAL_DETAIL`
+  plus a cross-reference, not duplication. Cutting the step-7 pointer would
+  strand the rollback-artifact instruction from its rationale.
+
 ### Status of the ceiling
 
 **Stopped early, not ceiling-mapped.** Three iterations, three keeps, zero

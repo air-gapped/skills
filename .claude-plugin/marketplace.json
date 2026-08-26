@@ -40,7 +40,7 @@
       "name": "bitnami-exit",
       "source": "./",
       "description": "Bitnami-exit suite — migrate off dead-ended Bitnami charts/images. First member: redis-to-valkey (Sentinel HA migration to Valkey: the RDB-version wall, RedisShake/rdb-cli logical replay, chart selection and values translation, consumer-app reconnection, air-gap mirroring, Argo CD source rewiring away from charts.bitnami.com).",
-      "version": "0.20260826.9",
+      "version": "0.20260826.10",
       "author": {
         "name": "Jörgen"
       },
