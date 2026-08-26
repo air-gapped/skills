@@ -106,6 +106,14 @@ failures because `matchLabels` cannot be changed after creation.
 - Quote all strings: `{{ .Values.foo | quote }}` (prevents YAML type coercion)
 - Prefer maps over arrays for `--set` ergonomics
 - Large integers can become scientific notation; store as strings if needed
+- **Never pair a null default (`foo: ~`) with a `hasKey` guard.** Whether an
+  inherited null survives the merge flipped in 4.1.3 and again in 4.2.0; at
+  v4.2.4 a chart's own null defaults are stripped only when the user passes no
+  `-f` at all, so the same chart renders differently with and without a values
+  file — and a checksum annotation then rolls pods on upgrade
+  ([helm#32093](https://github.com/helm/helm/issues/32093), open). Give the key
+  a real sentinel value or omit it from defaults. Setting `foo: ~` in a *user*
+  `-f` file to delete a non-null default is unaffected and still works.
 
 ### 6. CRDs in `crds/` Directory Are Never Upgraded
 

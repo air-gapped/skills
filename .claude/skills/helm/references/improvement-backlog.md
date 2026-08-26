@@ -12,6 +12,44 @@ a single atomic iteration, plus what each pass actually resolved.
   Dim 6 (Simplicity); recon ranked it last, below the cap-lifting and freshen fixes.
   Apply as a small table only, after a fresh read.
 
+## Resolved — 2026-08-26 (freshen + measured finding)
+
+Probed the 11 release-feed rows and all 8 CI action pins. **All eight SHAs still
+resolve** — no repeat of the 2026-07-21 phantom-SHA finding. The defect this pass
+is the same class one level down: a pinned **tag**.
+
+- **`rev: v0.23.3` for `dadav/helm-schema` (`testing-ci.md`) does not exist.**
+  That repo tags without a `v` prefix (`0.23.5`, `0.23.4`, …); `v0.23.3` returns
+  404. A pre-commit block pinned this way fails to resolve, exactly like a bad
+  SHA — and version-only checking never catches it, because the *version* was
+  real. Fixed to `0.23.5`, and `sources.md` now states tag resolution as a
+  standing requirement alongside SHA resolution, with the per-repo format noted
+  (helm-docs `v`-prefixed, helm-schema not).
+- **Version drift, both released in the 48h before this pass:** dadav/helm-schema
+  0.23.4 → **0.23.5** (2026-08-24, also in `chart-structure.md`); release-please
+  v17.11.1 → **v17.11.2** (2026-08-24).
+- **Confirmed unchanged:** helm v4.2.4 / v3.21.4, helm-unittest v1.1.2, helmfile
+  v1.7.4, kubeconform v0.8.0, cosign v3.1.3 (v2.6.5), helm-docs v1.14.2,
+  chart-testing-action v2.8.0, chart-releaser-action v1.7.0, ArgoCD issue #22609
+  still OPEN (no activity since 2025-04-22).
+- **Swept the other three `rev:` pins** after finding the first — all resolve.
+  `pre-commit/pre-commit-hooks` was `v5.0.0` (2024-10) against a current v6.0.0
+  (2025-08); bumped, the three hooks used still exist in v6. yamllint v1.38.0 and
+  helm-docs v1.14.2 are current. `sources.md` now tracks all four in their own
+  table so the next pass checks them.
+- **Not probed this pass** (doc pages, no release feed, dates left at 2026-05-28):
+  helm.sh/docs, Bitnami common, Flux, OpenShift docs, Renovate docs.
+
+**New gotcha — null defaults + `hasKey`** (`SKILL.md` §5). Measured on seven Helm
+binaries (v3.17.3, v4.0.5, v4.1.0, v4.1.1, v4.1.4, v4.2.0, v4.2.4) with a minimal
+chart. Whether a chart's own `foo: ~` default survives the values merge flipped
+twice inside the v4 line — PR #31644 in v4.1.3, PR #31979 in v4.2.0 — and at
+v4.2.4 `cleanNilValues` runs only when the user supplies no values at all, so the
+same chart renders differently with and without any `-f`. Upstream helm#32093 is
+OPEN with fix PR #32097 unmerged. The documented idiom (a user `-f` null deleting
+a *non-null* default) is unaffected and works on every version tested, so the
+gotcha is scoped to authors writing null defaults, not to consumers.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Probed 20 refs: 10 tool repos, 8 CI action pins, plus the Helm 4.1/3.21 release

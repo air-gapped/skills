@@ -684,7 +684,7 @@ Renovate is significantly more capable than Dependabot for Helm chart management
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -705,7 +705,7 @@ repos:
         args: [--chart-search-root=charts]
 
   - repo: https://github.com/dadav/helm-schema
-    rev: v0.23.3
+    rev: 0.23.5   # tags carry no `v` prefix; `v0.23.5` does not resolve
     hooks:
       - id: helm-schema
 ```
