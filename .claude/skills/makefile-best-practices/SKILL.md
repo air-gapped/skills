@@ -148,12 +148,10 @@ help: ## Show this help
 
 ### `##@ Section` Headers — Group the Targets
 
-The version above prints a flat alphabetical list. At the 10-20 targets typical
-of a real Makefile that is already hard to scan, and it throws away **ordering** —
-which is the most important information in any Makefile that encodes a
-*procedure* (release pipelines, upgrades, migrations) rather than independent
-tasks. `##@` is the convention kubebuilder, operator-sdk and most of the
-Kubernetes tooling ecosystem use:
+The target above prints one flat alphabetical list and encodes no ordering. Use
+`##@` headers instead whenever the Makefile is a *procedure* (release pipeline,
+upgrade, migration) rather than a set of independent tasks. This is the
+kubebuilder / operator-sdk convention:
 
 ```makefile
 help: ## Show this help
@@ -265,9 +263,9 @@ install:
 # OR: Use .ONESHELL (changes all recipes)
 ```
 
-**The same bug bites heredocs, and looks completely different.** A script
-inlined into a recipe does not run as a script — each line still goes to its own
-shell, so the heredoc body is executed *as shell commands*:
+**Never inline a heredoc in a recipe** — same root cause, unrecognisable
+symptom. Each line still gets its own shell, so the heredoc body runs *as shell
+commands*:
 
 ```makefile
 # WRONG
@@ -280,11 +278,10 @@ gen:
 /bin/sh: -c: line 1: syntax error near unexpected token `"hello"'
 ```
 
-Interactively it is worse than an error: `python3 -` inherits the terminal, finds
-no EOF, and the build **hangs** instead of failing. `.ONESHELL:` is not a clean
-fix either — recipe tabs are preserved, so the `PY` terminator no longer matches
-at column 0 and leaks into the output. Move the script to a sidecar file and call
-it, which is also more readable than a heredoc buried in a recipe:
+On a terminal it does not even error: `python3 -` inherits stdin, never sees EOF,
+and the build **hangs**. `.ONESHELL:` does not fix it — recipe tabs are
+preserved, so the `PY` terminator stops matching at column 0 and leaks into
+stdout. Use a sidecar script:
 
 ```makefile
 # RIGHT
