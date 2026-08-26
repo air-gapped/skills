@@ -73,6 +73,43 @@ Two corrections found while writing it, both measured rather than assumed:
 Helm 4 emits different wording for the same failure (`at '/image': additional
 properties ... not allowed`), noted so nobody matches on the message text.
 
+**Scope widened to cover the values file from the consuming side**, and
+`references/values-porting.md` added.
+
+The skill was named `helm` — the bare tool name, the broadest claim in the repo —
+while its description said "NOT for installing or consuming third-party charts".
+That clause was never a decision: it landed in the skill's first commit
+(`8fc591a`) and was only restated by a cross-reference pass (`aef8f18`). No
+trigger measurement, no backlog entry, nothing recording why.
+
+It was also already being violated. Gotcha #5's null-coalescing rule is
+values-*merge* behaviour — what a consumer hits — and was admitted on the grounds
+that an author causes it. Splitting merge semantics from the porting workflow
+would have scattered one mechanism across two skills.
+
+Scope is now: authoring, all of it; consuming, the values file only. Everything
+else still routes to `argo-cd-apps` / `openshift-app` /
+`k8s-components-checker`, which own different domains rather than the other half
+of Helm.
+
+Verified in-session on minimal inputs rather than taken on report: `patch -F3`
+exits **0** and silently applies a `hostPort:`-scoped edit to `hostFirewall:`
+once upstream deletes the anchor block, while `diff3 -m` and
+`git merge-file -p --diff3` both exit 1 and raise the conflict with the base
+visible.
+
+`mimir-upgrade` ships `scripts/audit-values.sh` for the product-specific half of
+this and should point here. **Blocked, not forgotten:** that skill currently
+fails the pre-commit `skillevaluator` gate with
+`Semgrep error (exit code 2): Failed to obtain target files from semgrep-core`,
+on unmodified content, in both the main checkout and a worktree — so no edit to
+it can be committed at all. The same skill passes when copied outside the repo,
+so it is a semgrep target-collection problem in-repo, not the skill's content
+(10 files, no symlinks, nothing unusual). Add the pointer once that is fixed.
+
+**If this over-triggers**, tune the description with `skill-improver`'s `trigger`
+mode — do not re-amputate the scope, which is what happened the first time.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Probed 20 refs: 10 tool repos, 8 CI action pins, plus the Helm 4.1/3.21 release

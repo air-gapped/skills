@@ -1,30 +1,38 @@
 ---
 name: helm
 description: >-
-  This skill should be used when authoring or maintaining Helm charts — creating
-  charts, writing templates and _helpers.tpl, values.yaml patterns, Chart.yaml,
-  values.schema.json, helm-docs, and library charts. Covers Helm 4 (SSA, WASM, OCI
-  digest), chart CI/CD, OpenShift compatibility, chart security, CRD management, and
-  production templates. NOT for installing or consuming third-party charts.
+  This skill should be used for Helm chart work in either direction. Authoring:
+  creating charts, templates and _helpers.tpl, values.yaml patterns, Chart.yaml,
+  values.schema.json, helm-docs, library charts, chart CI/CD and signing. Consuming:
+  carrying a values file across chart versions with a three-way merge, and why a
+  chart accepted a key that never took effect. Covers Helm 4 (SSA, WASM, OCI digest),
+  OpenShift compatibility, CRD management, and production templates.
 when_to_use: >-
   Triggers on Helm charts, _helpers.tpl, values.schema.json, helm-docs, library
   charts, helm-unittest, chart-testing, kubeconform, OCI push, SCCs, Routes,
   adaptSecurityContext, cosign signing, image digest pinning, SecurityContext, RBAC,
   NetworkPolicy, ServiceMonitor templates, HPA, persistence, or resource presets.
+  Also on upgrading a chart you consume: porting or re-applying a values.yaml onto
+  a new chart version, three-way merge of values, `diff3`/`git merge-file` on a
+  values file, "my setting stopped applying after a chart bump", a misspelled
+  values key silently ignored, or `helm lint` passing on values that are wrong.
 ---
 
 # Helm Charts
 
-Create, test, secure, and publish Helm charts. Covers Helm 4 (November 2025),
-OCI distribution, OpenShift compatibility, and production patterns from Bitnami,
+Create, test, secure and publish Helm charts — and carry a values file across
+upgrades of the ones you consume. Covers Helm 4 (November 2025), OCI
+distribution, OpenShift compatibility, and production patterns from Bitnami,
 Cilium, cert-manager, and ArgoCD.
 
-**Authoring only.** This skill is for charts you write. Consuming someone
-else's chart routes elsewhere in the `k8s` plugin: delivering it through GitOps
-is **`argo-cd-apps`**, making it survive OpenShift's SCCs and arbitrary UIDs is
-**`openshift-app`**, and checking a chart's version against the rest of the
-stack before an upgrade is **`k8s-components-checker`**. "How do I set this
-value in chart X" is usually not a chart-authoring question.
+**Scope.** Authoring a chart: all of the below. Consuming one: only the values
+file — merge semantics (Gotcha #5) and carrying yours across a chart bump
+(`references/values-porting.md`). Both are the same machinery either way.
+
+Route elsewhere: delivering a chart through GitOps → **`argo-cd-apps`**; making
+one survive OpenShift SCCs and arbitrary UIDs → **`openshift-app`**; checking a
+chart version against the rest of the stack → **`k8s-components-checker`**; "what
+does value X do in chart Y" → that chart's own documentation.
 
 ## Quick Decision Guide
 
@@ -41,6 +49,8 @@ value in chart X" is usually not a chart-authoring question.
 | Add ServiceMonitor, HPA, persistence, extensions | `references/production-patterns.md` |
 | Manage CRDs properly | `references/chart-structure.md` § CRDs |
 | Multi-chart management (Helmfile) | `references/testing-ci.md` § Helmfile |
+| Carry a values file onto a new chart version | `references/values-porting.md` |
+| A values key was accepted but never applied | `references/values-porting.md` § helm lint |
 
 ## Critical Gotchas
 
@@ -266,3 +276,4 @@ Complete starter _helpers.tpl, values.yaml, and other templates are in
 - **`references/openshift.md`** — Detection, SCCs, Routes vs Ingress, arbitrary UIDs, adaptSecurityContext, service certs, certification
 - **`references/testing-ci.md`** — Testing pyramid, helm-unittest, ct, kubeconform, security scanning, CI workflows, Helmfile, Renovate
 - **`references/production-patterns.md`** — ServiceMonitor, HPA, PDB, persistence, checksums, extension points, multi-component, presets
+- **`references/values-porting.md`** — Consuming side: three-way merge of a values file across chart versions, why `patch` corrupts, set-difference verification, keeping the ancestor
