@@ -39,15 +39,12 @@ a later year.
 
 ## Why this migration exists
 
-Broadcom locked down the free Bitnami catalog (effective 2025-09-29):
-versioned images moved to frozen `docker.io/bitnamilegacy` and most charts
-froze. `charts.bitnami.com` still serves, so pinned charts *sync* fine and
-the failure arrives later, at **image-pull time** — the first pod reschedule
-onto a node without the tag cached fails. Migrate deliberately, but don't
-assume the status quo is stable (full risk model:
-`references/airgap-gitops.md`). Valkey (Linux Foundation fork of Redis
-7.2.4, BSD-licensed) is the sanctioned successor — major consumers (Harbor,
-GitLab) have adopted or officially support it.
+A pinned Bitnami chart still *syncs* — `charts.bitnami.com` serves — so the
+failure arrives later, at **image-pull time**, on the first pod reschedule onto
+a node without the tag cached: versioned images moved to frozen
+`docker.io/bitnamilegacy` on 2025-09-29. Valkey, the Linux Foundation fork of
+Redis 7.2.4, is the successor. Full risk model:
+`references/airgap-gitops.md`.
 
 ## The one fact that shapes every plan: the RDB-version wall
 
@@ -138,24 +135,22 @@ charts. Deploy Valkey next to Redis, move data, repoint, decommission:
    secret (shape may change per chart — see values translation). For
    URL-style single-endpoint apps note that some Valkey charts' HA service
    exposes ONLY the sentinel port — the app must actually speak Sentinel.
-6. **Scale up and verify**: `DBSIZE` comparison, sampled keys with TTLs
-   intact, app functional probe, exporter metrics flowing.
+6. **Scale up and verify**: `DBSIZE` on **every DB index in use** — db0 alone
+   matching reads as success while other indexes sit empty — plus sampled keys
+   with TTLs intact, app functional probe, exporter metrics flowing.
 7. **Archive the final Redis RDB** (rollback artifact — see one-way door),
    soak, then delete the Bitnami release, its PVCs, and its image pins.
 
 ## Chart selection and values translation
 
-As of 2026-08-26: **groundhog2k/valkey** (Sentinel HA `haMode`, upstream
-`valkey/valkey` images, tracks Valkey releases within days, bus-factor 1) and
-**CloudPirates valkey** (Sentinel + an `externalReplica` migration mode,
-plus a `sentinel.masterProxy` HAProxy front-end that gives non-Sentinel-aware
-clients a stable master endpoint; multi-maintainer, cosign-signed, but one
-extra OCI library-chart to mirror) are the production-ready Sentinel options.
-The **official valkey-io chart still has no Sentinel** (replication without
-automatic failover; PRs #234/#235 open and unmerged as of 2026-08-26 —
-recheck before new deployments, a first-party chart likely wins long-term). The Bitnami valkey chart is frozen with dead-ended images. The
-official valkey-operator is cluster-mode-only and self-declared not
-production-ready.
+Sentinel-capable charts, as of 2026-08-26:
+
+| Chart | Verdict |
+|---|---|
+| **groundhog2k/valkey** | Production-ready. `haMode`, upstream images, tracks Valkey within days — **bus factor 1** |
+| **CloudPirates valkey** | Production-ready. Adds `externalReplica` (cutover helper) and `sentinel.masterProxy` (HAProxy front-end giving non-Sentinel-aware clients a stable master endpoint); costs one extra OCI library chart to mirror |
+| valkey-io (official) | **No Sentinel** — replication without automatic failover; PRs #234/#235 open. Recheck before new deployments: a first-party chart likely wins long-term |
+| Bitnami valkey · valkey-operator | Do not adopt. Frozen with dead-ended images · cluster-mode-only and self-declared not production-ready |
 
 Bitnami-redis values do NOT translate 1:1. The traps that break clients or
 lose data are: auth as config-file fragments instead of a bare
