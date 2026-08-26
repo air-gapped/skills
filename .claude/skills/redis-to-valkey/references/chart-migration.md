@@ -1,16 +1,16 @@
 # Chart selection and Bitnami→Valkey values translation
 
-Chart-health facts dated 2026-07-18 — chart landscapes shift; re-verify
+Chart-health facts dated 2026-08-26 — chart landscapes shift; re-verify
 release recency and Sentinel support before committing a new deployment.
 
 ## Chart landscape (Sentinel-capable options first)
 
 | Chart | Sentinel | Images | Health signals (2026-07-18) | Air-gap surface |
 |---|---|---|---|---|
-| **groundhog2k/valkey** | ✅ `haMode` | `docker.io/valkey/valkey` (upstream) | tracks Valkey point releases within days; 5 parallel appVersion lines maintained; issue turnaround in hours; **bus factor 1**; no values.schema.json | 1 image (+ optional exporter); per-image registry override |
-| **CloudPirates valkey** | ✅ `architecture: replication` + `sentinel.enabled`; plus `externalReplica` mode (replicate from an external Redis/Valkey — cutover helper, source ≤ 7.2 rule still applies) | `docker.io/valkey/valkey` | multi-maintainer + Renovate; cosign-signed; values.schema + tests + CHANGELOG | extra `common` library chart pulled via OCI — must also be mirrored for offline `helm dependency build` |
-| **valkey-io/valkey-helm** (official) | ❌ standalone + replication only, **no automatic failover**; Sentinel(+HAProxy) PR pending — recheck | `docker.io/valkey/valkey`, `global.imageRegistry` | LF umbrella, 3+ named maintainers, very active; values.schema | clean |
-| valkey-io/valkey-operator (official) | ❌ "Cluster mode only (no standalone or sentinel)", self-declared not production-ready | — | early development, v1alpha1 | — |
+| **groundhog2k/valkey** | ✅ `haMode` | `docker.io/valkey/valkey` (upstream) | chart 2.3.3 / appVersion 9.1.1; tracks Valkey point releases within days; 5 parallel appVersion lines maintained; issue turnaround in hours; **bus factor 1**; no values.schema.json | 1 image (+ optional exporter); per-image registry override |
+| **CloudPirates valkey** | ✅ `architecture: replication` + `sentinel.enabled`; plus `externalReplica` mode (replicate from an external Redis/Valkey — cutover helper, source ≤ 7.2 rule still applies) and `sentinel.masterProxy` (HAProxy sidecar publishing a stable master endpoint — the escape hatch for the 26379-only trap below) | `docker.io/valkey/valkey` | chart 0.25.5 / appVersion 9.1.0; multi-maintainer + Renovate; cosign-signed; values.schema + tests + CHANGELOG | extra `common` library chart pulled via OCI — must also be mirrored for offline `helm dependency build` |
+| **valkey-io/valkey-helm** (official) | ❌ standalone + replication only, **no automatic failover**; Sentinel PR #234 and HAProxy PR #235 both open/unmerged at chart 0.11.0 — recheck | `docker.io/valkey/valkey`, `global.imageRegistry` | LF umbrella, 3+ named maintainers, very active; values.schema | clean |
+| valkey-io/valkey-operator (official) | ❌ "Cluster mode only (no standalone or sentinel)", self-declared not production-ready | — | early development at v0.5.0, still v1alpha1 | — |
 | Bitnami valkey | ✅ | 5 Bitnami-built images, dead-ended for free users | frozen (~Oct 2025, a major behind); maintained continuation is paid BSI | worst case |
 | OpsTree redis-operator | ✅ (Redis) | OpsTree images | active, but Valkey support roadmap-only | — |
 
@@ -62,7 +62,8 @@ Verified against groundhog2k valkey 2.3.x and Bitnami redis 19.x–23.x.
 ## Prometheus exporter continuity
 
 `oliver006/redis_exporter` is the de-facto Valkey exporter (README now
-titled "Prometheus Valkey & Redis Metrics Exporter"; supports Valkey 7–9).
+titled "Prometheus Valkey & Redis Metrics Exporter"; supports Valkey 7–9;
+v1.89.0 current).
 Published on `docker.io/oliver006/redis_exporter`, **`ghcr.io/oliver006/redis_exporter`**,
 and **`quay.io/oliver006/redis_exporter`** — pick ghcr/quay to dodge Docker
 Hub rate limits; any of the three works as a mirror source. Bitnami's

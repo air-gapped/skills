@@ -1,15 +1,18 @@
 # Pitfalls catalog
 
 Scan before executing any migration plan. Ordered by severity. Version
-gates verified 2026-07-18.
+gates verified 2026-08-26.
 
 ## Data-destroying
 
-1. **Replica flushes before rejecting a foreign RDB** (valkey-io/valkey#2588):
-   during full sync a Valkey replica runs its flush *before* discovering the
-   incoming RDB (Redis 7.4+/v12) is unparseable — the replica ends up empty
-   AND unsynced. Never point a Valkey that holds data at any source; never
-   "test" replication from a >7.2 source.
+1. **Replica flushes before rejecting a foreign RDB — below 9.1.0**
+   (valkey-io/valkey#2588): during full sync a Valkey replica runs its flush
+   *before* discovering the incoming RDB (Redis 7.4+/v12) is unparseable —
+   the replica ends up empty AND unsynced. **Fixed by PR #2600 (validate
+   before `emptyData`), contained in 9.1.0+ only** — verified absent from
+   tags 8.1.9 and 9.0.5 by compare. On 8.x/9.0.x the hazard is live; on
+   9.1.0+ the replica keeps its data and the sync merely fails. Never point a
+   Valkey that holds data at a >7.2 source on any version.
 2. **AOF masks RDB import on first boot**: with `appendonly yes` at first
    start, a copied-in dump.rdb is silently ignored (empty AOF wins). Boot
    with AOF off, verify data, then re-enable (AOF rewrites from the loaded
@@ -17,7 +20,10 @@ gates verified 2026-07-18.
 3. **Valkey 9 one-way door**: RDB v80 loads nowhere else (not Redis, not
    Valkey 8). Archive the final Redis RDB before decommissioning — it is
    the only rollback artifact. If a rollback window matters, land on
-   Valkey 8.1.x first (still writes Redis-7.2-compatible v11).
+   Valkey 8.1.x first (still writes Redis-7.2-compatible v11) — but weigh it
+   against #1 and #5: both the foreign-RDB flush and the dual-channel
+   Sentinel bug are fixed **only in 9.1.0+**, so 8.1.x buys rollback at the
+   cost of carrying both live hazards.
 4. **Persistence defaults**: some charts (groundhog2k) default to emptyDir
    unless a storage size is set — an HA deployment that "works" until the
    whole StatefulSet restarts. Set persistent storage explicitly for any
@@ -41,7 +47,9 @@ gates verified 2026-07-18.
    binary/systemd swaps, not chart deployments.
 8. **RedisShake panics on topology change** — quiesce Sentinel failovers
    for the duration of a sync (temporarily raise down-after, or accept the
-   full-recopy risk; there is no resume).
+   full-recopy risk; there is no resume). Resume is not coming: maintainers
+   declined it as out of scope for a sync tool (issue #1016, still open at
+   v4.6.2) — plan the window around a full recopy rather than waiting.
 
 ## Client-breaking
 

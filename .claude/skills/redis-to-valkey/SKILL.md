@@ -33,7 +33,7 @@ argument-hint: "[chart|data|cutover|apps|airgap] (optional focus area)"
 Migrate Redis (Bitnami-chart Sentinel HA or any standalone/replicated Redis)
 to Valkey on Kubernetes with data intact, clients reconnected, and no
 dependency left on dead-ended Bitnami artifacts. Facts below were verified
-2026-07-18 against primary sources (valkey source at release tags, chart
+2026-08-26 against primary sources (valkey source at release tags, chart
 repos, vendor docs); re-verify anything version-gated before relying on it in
 a later year.
 
@@ -70,9 +70,13 @@ Consequences:
    from Redis ≤ 7.2.x sources.** A full sync ships an RDB stream; a DUMP
    payload embeds RDB encodings. From Redis 7.4+ these fail with
    `Can't handle RDB format version 12`.
-2. **Worse than failing: a Valkey replica FLUSHES its own dataset before it
-   discovers the incoming RDB is unreadable** (valkey-io/valkey#2588). Never
-   point a Valkey holding data at a source "to see if replication works".
+2. **Below Valkey 9.1.0, a replica FLUSHES its own dataset before it
+   discovers the incoming RDB is unreadable** (valkey-io/valkey#2588). Fixed
+   by PR #2600 — validation now precedes `emptyData` — and that fix is
+   contained in **9.1.0+ only**, not 8.1.x and not 9.0.x (verified by tag
+   compare). Never point a Valkey holding data at a source "to see if
+   replication works" regardless: on 9.1.0+ the replica survives, but the
+   replication attempt still fails.
 3. **Valkey 9 is a one-way door.** Its v80 snapshots load on nothing else —
    not Redis, not Valkey 8. The final pre-cutover Redis RDB is the only
    rollback artifact; archive it before decommissioning.
@@ -141,14 +145,15 @@ charts. Deploy Valkey next to Redis, move data, repoint, decommission:
 
 ## Chart selection and values translation
 
-As of 2026-07-18: **groundhog2k/valkey** (Sentinel HA `haMode`, upstream
+As of 2026-08-26: **groundhog2k/valkey** (Sentinel HA `haMode`, upstream
 `valkey/valkey` images, tracks Valkey releases within days, bus-factor 1) and
 **CloudPirates valkey** (Sentinel + an `externalReplica` migration mode,
-multi-maintainer, cosign-signed, but one extra OCI library-chart to mirror)
-are the production-ready Sentinel options. The **official valkey-io chart
-has no Sentinel yet** (replication without automatic failover; Sentinel PR
-pending — recheck before new deployments, a first-party chart likely wins
-long-term). The Bitnami valkey chart is frozen with dead-ended images. The
+plus a `sentinel.masterProxy` HAProxy front-end that gives non-Sentinel-aware
+clients a stable master endpoint; multi-maintainer, cosign-signed, but one
+extra OCI library-chart to mirror) are the production-ready Sentinel options.
+The **official valkey-io chart still has no Sentinel** (replication without
+automatic failover; PRs #234/#235 open and unmerged as of 2026-08-26 —
+recheck before new deployments, a first-party chart likely wins long-term). The Bitnami valkey chart is frozen with dead-ended images. The
 official valkey-operator is cluster-mode-only and self-declared not
 production-ready.
 

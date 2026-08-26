@@ -53,11 +53,14 @@ Release-name preservation: if the old app pinned `helm.releaseName`, choose
 the new release name deliberately — resource names (services, secrets,
 configmaps) derive from it, and client configs reference those DNS names.
 
-## Bitnami endpoint risk model (as of 2026-07-18)
+## Bitnami endpoint risk model (as of 2026-08-26)
 
 - `charts.bitnami.com` 302-redirects to `repo.broadcom.com/bitnami-files`
-  and still serves the full index + old tarballs. **No announced sunset**,
-  but Broadcom labels the legacy arrangement temporary.
+  and still serves the full index + old tarballs (re-probed 2026-08-26: 200,
+  index last-modified 2026-08-24, 144 chart entries). **Still no announced
+  sunset** — re-checked against bitnami/charts#35164, quiet since 2025-09-16
+  — but Broadcom labels the legacy arrangement temporary. Absence of a date
+  is not a reprieve; it removes the deadline, not the dead end.
 - Only ~13 of 144 charts still receive updates — and those reference
   `docker.io/bitnami/*:latest` images only, because **versioned tags no
   longer exist on docker.io/bitnami** (moved to frozen

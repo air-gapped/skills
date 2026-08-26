@@ -4,6 +4,33 @@ Append-only product findings (research pass 2026-07-18, primary sources).
 Config-surface classes refer to `app-cutover.md`. Re-verify anything
 version-gated at use time.
 
+## 2026-08-26 — freshen delta (supersedes the dated entries below where noted)
+
+- **Harbor — the chart now ships Valkey.** goharbor#22935 is **closed**; the
+  swap landed in app **v2.15.2**, not the 2.16.0 the July entry names (no
+  2.16.0 exists). More importantly **harbor-helm v1.19.2 (2026-08-03) sets
+  `redis.internal.image.repository: goharbor/valkey-photon`** — the released
+  chart default, not just `main`. Any advice to wait for a chart release is
+  obsolete: an internal-cache Harbor already runs Valkey after a chart bump.
+  External-Sentinel keys are unchanged (`addr`, `sentinelMasterSet`).
+- **GitLab — there is no bundled Redis left to migrate.** GitLab **19.0
+  removed the bundled Bitnami PostgreSQL, Redis and MinIO charts outright,
+  with no replacement**; operators must move to externally managed services
+  *before* upgrading. The "replace the bundled subchart with Valkey" path is
+  moot (spike gitlab-org/charts/gitlab#6227 closed 2025-12-10). GitLab's own
+  dev tooling provisions Valkey as the external replacement. Route GitLab
+  users to the external-Redis/Valkey wiring in the entry below, and treat the
+  19.0 upgrade and the Valkey cutover as one coupled migration.
+- **Sentry — fixed.** getsentry#107394 (two-part `7.2` version-string crash)
+  closed **COMPLETED 2026-02-09**. Still test version parsers on any app, but
+  Sentry is no longer the live example.
+- **Sidekiq — floor is lower than recorded.** 8.0.1 relaxed the requirement
+  to Redis **7.0** (Ubuntu 24.04 compatibility), not 7.2. Valkey's frozen
+  7.2.4 clears either gate; the entry below overstates the constraint.
+- Unchanged and re-verified: Open WebUI tutorial + #19401 (closed, no
+  reopen), oauth2-proxy sentinel flags, GitLab Valkey beta 18.9 / GA 19.0 and
+  the 7.2 minimum.
+
 ## 2026-07-18 — Harbor (classes A + C)
 
 - Harbor is **itself replacing Redis with Valkey**: decision goharbor#22935
