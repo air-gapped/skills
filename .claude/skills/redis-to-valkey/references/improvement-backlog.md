@@ -110,6 +110,45 @@ stated in current docs but was not disproven.
   coverage" failure in one line, and the metric did not register the fix —
   expected, and why the A/B comparator decides the pass.
 
+- **iter 4 — keep (correctness), found by the final blind scorer.** The freshen
+  updated the date stamps in SKILL.md, pitfalls.md, chart-migration.md and
+  airgap-gitops.md but missed two: `data-transfer.md`'s "Facts verified
+  2026-07-18" header and `chart-migration.md`'s "Health signals (2026-07-18)"
+  column. Both files' facts *were* re-probed this pass — only the stamps
+  lagged — so the skill asserted two different verification dates about itself.
+  The blind scorer caught it and dropped Dim 8 from 9 to 7. Fixed; a
+  repo-wide grep now shows no stale stamp outside deliberate historical
+  references.
+
+  Worth carrying forward: **a freshen pass must grep its own skill for the old
+  date before it finishes.** Updating the stamps a pass happens to edit is not
+  the same as updating every stamp.
+
+### Verdict
+
+**A/B comparator: IMPROVED, 3-0, all three high-confidence and "decisive".**
+Baseline and final were materialised as blinded directories with equalised
+mtimes and the backlog removed; mapping held outside the compared tree. All
+three cited the same top reasons — the version-gated #2588 hazard, the
+exhaustive per-DB bound on runbook step 6, and the corrected Harbor/GitLab
+consumer facts.
+
+**Absolute blind scores: 89 baseline → 85 final — and the comparator outranks
+that delta**, which is exactly the case the method exists for. The drop
+decomposes as: Dim 8 −2, a real defect this pass introduced (the stamp
+mismatch above, now fixed in iter 4 *after* the score was taken), and Dim 3
+−2, which nothing in the diff touched and which sits inside the documented
+2–4 point re-scoring spread. Both comparators and the scorer read the same
+files; only the comparator was asked the question that matters.
+
+One regression the comparators raised, kept deliberately: iter 1's compression
+dropped "BSD-licensed" and "major consumers (Harbor, GitLab) have adopted it"
+from the intro. One comparator called it a minor loss of differentiation
+content; the other two called it consolidation or an accuracy fix, since the
+fuller and now-corrected picture lives in `known-consumers.md`. Left as
+compressed. Restore the licence fact if a future pass wants the intro to stand
+alone.
+
 ### Status of the ceiling
 
 **Stopped early, not ceiling-mapped.** Three iterations, three keeps, zero

@@ -5,7 +5,7 @@ release recency and Sentinel support before committing a new deployment.
 
 ## Chart landscape (Sentinel-capable options first)
 
-| Chart | Sentinel | Images | Health signals (2026-07-18) | Air-gap surface |
+| Chart | Sentinel | Images | Health signals (2026-08-26) | Air-gap surface |
 |---|---|---|---|---|
 | **groundhog2k/valkey** | ✅ `haMode` | `docker.io/valkey/valkey` (upstream) | chart 2.3.3 / appVersion 9.1.1; tracks Valkey point releases within days; 5 parallel appVersion lines maintained; issue turnaround in hours; **bus factor 1**; no values.schema.json | 1 image (+ optional exporter); per-image registry override |
 | **CloudPirates valkey** | ✅ `architecture: replication` + `sentinel.enabled`; plus `externalReplica` mode (replicate from an external Redis/Valkey — cutover helper, source ≤ 7.2 rule still applies) and `sentinel.masterProxy` (HAProxy sidecar publishing a stable master endpoint — the escape hatch for the 26379-only trap below) | `docker.io/valkey/valkey` | chart 0.25.5 / appVersion 9.1.0; multi-maintainer + Renovate; cosign-signed; values.schema + tests + CHANGELOG | extra `common` library chart pulled via OCI — must also be mirrored for offline `helm dependency build` |

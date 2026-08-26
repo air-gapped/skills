@@ -1,6 +1,6 @@
 # Data transfer: Redis → Valkey
 
-Facts verified 2026-07-18. Version-gate everything here against the actual
+Facts verified 2026-08-26. Version-gate everything here against the actual
 source/target versions before running.
 
 ## Table of Contents
