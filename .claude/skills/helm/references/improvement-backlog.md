@@ -50,6 +50,29 @@ OPEN with fix PR #32097 unmerged. The documented idiom (a user `-f` null deletin
 a *non-null* default) is unaffected and works on every version tested, so the
 gotcha is scoped to authors writing null defaults, not to consumers.
 
+**`values.schema.json` did not close its objects** (`chart-structure.md`). The
+skill's own example schema listed `properties` and stopped, so a chart built from
+it accepts any key it does not name — a consumer's typo renders the default and
+reports success. Measured on 3.17.3 and 4.2.4: `--set totallyMadeUpKey=42` and
+`--set image.repositry=oops` both exit 0 against the old example, and both exit 1
+once `additionalProperties: false` is added. `helm lint`/`template` passing is
+therefore not evidence a key is valid.
+
+Two corrections found while writing it, both measured rather than assumed:
+
+- The generator this skill recommends, `dadav/helm-schema`, **already** defaults
+  `additionalProperties` to `false`. The hole is in hand-written schemas, not
+  generated ones — so the text says which is which instead of blaming generators.
+- **Closing the root schema breaks any chart with dependencies.** A subchart's
+  values sit under its own name at the parent root, so a bare
+  `additionalProperties: false` rejects the subchart and the chart stops
+  rendering on both Helm 3 and 4. The section now shows declaring each dependency
+  as an open property, verified to restore rendering while still catching a
+  root-level typo.
+
+Helm 4 emits different wording for the same failure (`at '/image': additional
+properties ... not allowed`), noted so nobody matches on the message text.
+
 ## Resolved — 2026-07-21 (freshen)
 
 Probed 20 refs: 10 tool repos, 8 CI action pins, plus the Helm 4.1/3.21 release

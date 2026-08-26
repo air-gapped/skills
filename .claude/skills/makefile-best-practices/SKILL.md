@@ -146,6 +146,47 @@ help: ## Show this help
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 ```
 
+### `##@ Section` Headers — Group the Targets
+
+The version above prints a flat alphabetical list. At the 10-20 targets typical
+of a real Makefile that is already hard to scan, and it throws away **ordering** —
+which is the most important information in any Makefile that encodes a
+*procedure* (release pipelines, upgrades, migrations) rather than independent
+tasks. `##@` is the convention kubebuilder, operator-sdk and most of the
+Kubernetes tooling ecosystem use:
+
+```makefile
+help: ## Show this help
+	@awk 'BEGIN{FS=":.*?## "} \
+	     /^##@/{printf "\n\033[1m%s\033[0m\n", substr($$0,5); next} \
+	     /^[a-zA-Z_0-9-]+:.*?## /{printf "  \033[36m%-14s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
+
+##@ 1 · Build
+build: ## Compile the binary
+test:  ## Run tests
+
+##@ 2 · Release
+push:  ## Push the image
+```
+
+```
+1 · Build
+  build          Compile the binary
+  test           Run tests
+
+2 · Release
+  push           Push the image
+```
+
+- `substr($$0,5)` strips `##@ `; `next` stops the header line also matching the
+  target rule.
+- **Numbering the sections makes the help output the procedure**, so a human
+  reads top-to-bottom and an agent gets the same ordering with no separate
+  runbook to drift out of sync.
+- Put a `##@ Help` line before the `help` target itself, or it lands under
+  whatever section precedes it.
+- Costs one awk clause and comments; works with `.DEFAULT_GOAL := help`.
+
 ## Essential Patterns
 
 ### Order-Only Prerequisites for Directories
@@ -269,6 +310,33 @@ install:
 	cd /usr/local && cp myapp bin/
 
 # OR: Use .ONESHELL (changes all recipes)
+```
+
+**The same bug bites heredocs, and looks completely different.** A script
+inlined into a recipe does not run as a script — each line still goes to its own
+shell, so the heredoc body is executed *as shell commands*:
+
+```makefile
+# WRONG
+gen:
+	python3 - <<'PY'
+	print("hello")
+	PY
+```
+```
+/bin/sh: -c: line 1: syntax error near unexpected token `"hello"'
+```
+
+Interactively it is worse than an error: `python3 -` inherits the terminal, finds
+no EOF, and the build **hangs** instead of failing. `.ONESHELL:` is not a clean
+fix either — recipe tabs are preserved, so the `PY` terminator no longer matches
+at column 0 and leaks into the output. Move the script to a sidecar file and call
+it, which is also more readable than a heredoc buried in a recipe:
+
+```makefile
+# RIGHT
+gen:
+	python3 scripts/gen.py
 ```
 
 ### 3. Silencing Everything

@@ -566,6 +566,7 @@ serviceType: ClusterIP
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
   "required": ["image"],
+  "additionalProperties": false,
   "properties": {
     "replicaCount": {
       "type": "integer",
@@ -574,6 +575,7 @@ serviceType: ClusterIP
     "image": {
       "type": "object",
       "required": ["repository"],
+      "additionalProperties": false,
       "properties": {
         "repository": {
           "type": "string",
@@ -584,6 +586,7 @@ serviceType: ClusterIP
     },
     "service": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "type": {
           "type": "string",
@@ -596,6 +599,55 @@ serviceType: ClusterIP
 ```
 
 `required` alone doesn't ensure non-empty strings. Add `pattern` regex for that.
+
+### `additionalProperties: false` — Without It the Schema Cannot Catch a Typo
+
+**Every object needs it, root included.** A schema that only lists `properties`
+validates the keys it knows and silently accepts every key it doesn't, so a
+consumer's misspelling is not a failure — the setting just never applies, and
+the chart renders its default as though nothing were wrong. That is the single
+most common way a values file is "valid" and still wrong.
+
+Verified on Helm 3.17.3 and Helm 4.2.4 against the schema above:
+
+| values passed | without `additionalProperties` | with it |
+|---|---|---|
+| `--set totallyMadeUpKey=42` | **exit 0**, renders | exit 1, `(root): Additional property totallyMadeUpKey is not allowed` |
+| `--set image.repositry=oops` (typo) | **exit 0**, renders | exit 1, `image: Additional property repositry is not allowed` |
+
+So `helm lint`/`template` passing is *not* evidence a key is valid. Helm 4 reports
+the same failures with different wording (`at '/image': additional properties
+'repositry' not allowed`) — do not match on the message text.
+
+`dadav/helm-schema` already defaults to `additionalProperties: false` for
+non-empty maps; `-k additionalProperties` or a `# additionalProperties: true`
+annotation opts out. Hand-written schemas get no such default — add it
+explicitly. Leave it out only for genuinely open maps (`extraAnnotations`,
+`nodeSelector`, `extraSpec`), which must stay open to accept arbitrary keys.
+
+**If the chart has dependencies, closing the root schema breaks it.** Each
+subchart's values live under its own name at the parent root, so a bare
+`"additionalProperties": false` rejects the subchart itself and the chart stops
+rendering — measured on both 3.17.3 and 4.2.4:
+
+```
+- (root): Additional property sub is not allowed        # Helm 3
+- at '': additional properties 'sub' not allowed        # Helm 4
+```
+
+Declare every dependency as a property of the parent root, left open so you are
+not re-validating the subchart's own surface:
+
+```json
+"properties": {
+  "replicaCount": { "type": "integer" },
+  "sub": { "type": "object", "additionalProperties": true }
+}
+```
+
+Verified: the chart renders again, and a root-level typo (`replicaCont`) is
+still rejected. Add a property here for each entry in `Chart.yaml`
+`dependencies:` — forgetting one is a render-time failure, not a silent pass.
 
 ### IDE Integration
 
