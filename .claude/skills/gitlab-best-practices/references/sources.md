@@ -73,6 +73,38 @@ re-verified.
 | Charts issues | `gitlab-org/charts/gitlab` #1444, #3813, #3021, #4918, #6152 |
 | Runner issues | `gitlab-org/gitlab-runner` #4509, #37448 |
 
+## Issue states — probed via `glab api` 2026-08-29
+
+State drifts independently of the claim. Re-probe this table on every freshen;
+the claims resting on these issues are cited in the reference files above.
+
+| Issue | State | Note |
+|---|---|---|
+| `gitlab#594569` | **open** | paused background migrations after 18.10; no fix version |
+| `gitlab#477791` | **open**, milestone 19.4 | backup-cli docs link; `missed:` 17.7 → 19.3 |
+| `charts#4918` | **open** | mirror chart images to an external registry |
+| `charts#5151` | **open** | best practice for very large backups |
+| `gitaly#6934` | **open** | ZDU on Cloud Hybrid; rollout ordering; tableflip removal |
+| `gitlab#388094` | closed 2023-09-18 | **closed on a triage ping, not by a fix** — see below |
+| `gitlab#595725` | closed, milestone 19.0 | backports reached 18.9/18.10/18.11 — milestone ≠ fixed-in |
+| `gitlab#597558` | closed, milestone 19.1 | the dropped-index pre-flight |
+| `gitlab#241672` | closed | stale Sidekiq schema cache |
+| `gitlab#587846` | closed | MCP server decoupled from Duo in 19.2 |
+| `charts#1444` | closed | prepared statements / PgBouncer — no chart flag shipped |
+| `charts#3021` | closed | migrations Job under Argo CD |
+| `charts#3338` | closed 2024-01-29 | retitled to a docs task; the `404 NoSuchKey` crash is in the body |
+| `charts#3421` | closed unimplemented | incremental backup in `backup-utility` |
+| `charts#3813`, `#5376` | closed, milestone 17.1 | exporter/Sentinel — fixed, not a live limitation |
+| `gitaly#4616` | closed | "Final decision: NO-GO" on retiring Praefect's PostgreSQL |
+| `runner#4509` | closed | helper-image tagging asymmetry |
+
+**Method rule — a closed issue is not a fixed bug.** `gitlab#388094` closed with
+*"Thanks for the reminder. I will close this issue"* in reply to a triage bot
+asking for a status update, and the last substantive comment says the safe
+ordering exists in the **Operator** while leaving the chart case open. Read the
+closing comment before downgrading a hazard on the strength of a `closed` badge;
+housekeeping closes and fix closes look identical in the state field.
+
 ## Volatile facts to re-verify on every freshen
 
 - **Latest chart and app version.** Enumerate unfiltered from

@@ -258,8 +258,10 @@ object storage.
 1. **`--skip` the large blob components** and replicate those buckets at the
    storage layer. Removes the round trip entirely. Biggest lever.
 2. **`--s3tool awscli`** — the default is `s3cmd`, which is single-threaded;
-   awscli parallelises, and avoids a known 404 `NoSuchKey` crash on artifacts
-   buckets (charts#3338). `--s3tool-backup` and `--s3tool-data` set it
+   awscli parallelises, and avoids the `S3Error: 404 (NoSuchKey)` backup crash
+   reported against artifacts buckets in charts#3338 (**closed**, and retitled
+   to a docs task — the crash report is in the body, not the title).
+   `--s3tool-backup` and `--s3tool-data` set it
    separately for the two paths. On non-AWS S3 this may need
    `AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED` in toolbox `extraEnv`.
 3. **`--repositories-server-side`** once the Gitaly bucket exists.

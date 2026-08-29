@@ -28,7 +28,8 @@ A `grep image:` over a render of *your* values finds none of these.
    (`helper_image = "..."`), tagged `${CI_RUNNER_VERSION}`, expanded by the
    runner at job time. Runner issue #4509 documents the underlying asymmetry
    (runner tagged `CI_RUNNER_VERSION`, helper historically `CI_RUNNER_REVISION`)
-   and is still open. **[A]**
+   and is **closed** — the tagging was reconciled, but the image still never
+   appears in a rendered manifest, so it stays on the list. **[A]**
    **Derive it, do not hardcode it:** take the runner's chart image tag
    (`gitlab-runner:alpine-v18.6.3`), strip `alpine-v`, substitute →
    `gitlab-runner-helper:x86_64-v18.6.3`. Confirmed against a live runner

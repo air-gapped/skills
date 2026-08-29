@@ -172,9 +172,10 @@ driver's registration table before planning a migration.
 ## Connection pooling
 
 - Prepared statements collide with transaction-mode pooling →
-  `PG::DuplicatePstatement` on webservice startup. Charts issue #1444 (open)
-  requests a chart flag to disable prepared statements; until then it is handled
-  via `database.yml` overrides or session-mode pooling. **[A]**
+  `PG::DuplicatePstatement` on webservice startup. Charts issue #1444, which
+  requested a chart flag to disable prepared statements, is **closed** — so
+  handle it via `database.yml` overrides or session-mode pooling rather than
+  waiting for a values key. **[A]** for the collision itself.
 - **"Do not back up or restore GitLab through a PgBouncer connection. These
   tasks must bypass PgBouncer and connect directly to the PostgreSQL primary
   database node, or they cause a GitLab outage."** **[A]**

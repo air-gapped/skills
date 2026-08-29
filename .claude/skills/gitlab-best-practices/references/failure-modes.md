@@ -104,6 +104,13 @@ key in Redis. New pods then log `deduplicated: dropped until executing` forever
 and **background migrations never run — while the install looks completely
 green.** **[A]**
 
+**The issue is closed; the hazard is not.** It closed **2023-09-18** on a triage
+ping — *"Thanks for the reminder. I will close this issue"* — with no fix
+referenced. The substantive comment before it states the safe ordering is
+implemented in the **Operator**, and leaves the chart case unaddressed. Read
+"closed" here as *stopped being tracked*, not *fixed*, and keep the mitigation
+on a chart deployment.
+
 Mitigations, in order of preference: scale Sidekiq to 0 before upgrading and
 back up after; or run a **single Sidekiq replica**; or clear the `DuplicateJob`
 idempotency key from Rails console afterwards.
@@ -161,4 +168,4 @@ complete (issue #241672). Fixed only by restarting Sidekiq pods. **[A]**
 | `BackfillSentNotificationsAfterPartition` fails on upgrade to 18.2.8 with `PG::CheckViolation: no partition of relation ... found for row` | known; GitLab published KB #27529828806812 as the fix **[A]** |
 | `RenameWebHookLogsSequence` fails with `PG::ObjectNotInPrerequisiteState: sequence must have same owner as table it is linked to` | external/operator-managed PG where ownership is not what GitLab assumes; thread unresolved **[A]** |
 | Explicit KAS/agentk registration error | KAS↔agentk compatibility is **major.minor** — mismatch fails loudly, not silently **[A]** |
-| `gitlab-migrations-*` Job fails to start under Argo CD | charts issue #3021 — GitOps hook-ordering interaction, distinct from any SQL failure **[A]** |
+| `gitlab-migrations-*` Job fails to start under Argo CD | charts issue #3021 (**closed**) — GitOps hook-ordering interaction, distinct from any SQL failure **[A]** |
