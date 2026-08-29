@@ -29,9 +29,9 @@ argument-hint: "[upgrade|ha|air-gap|backup|duo] (optional focus area)"
 
 Run and upgrade a **self-managed GitLab on the official Helm chart** without
 unplanned downtime. The hard part is never `helm upgrade`. It is that the
-chart changes defaults you never set, ships prerequisites written for a
-configuration you do not run, and removed its own bundled databases in a
-release that breaks your *tooling* before it breaks your deployment.
+chart changes defaults the site never set, ships prerequisites written for a
+configuration the site does not run, and removed its own bundled databases in a
+release that breaks the *tooling* before it breaks the deployment.
 
 Facts here were verified **2026-08-29** against machine-readable upstream
 sources, the unpacked chart, and a live install taken through a multi-hop
@@ -90,7 +90,7 @@ extensions, and the extensions docs page does not carry the table.
 → `references/external-deps.md`
 
 **2. Chart 10.0 makes external PostgreSQL, Redis and object storage
-mandatory — and breaks your tooling first.** The bundled databases are gone
+mandatory — and breaks the tooling first.** The bundled databases are gone
 and `NOTES.txt` carries hard `fail`s, so any "render the chart with defaults"
 step dies, taking the all-features image sweep with it. Installs already on
 external dependencies are insulated at the *deployment* layer and still lose
@@ -100,18 +100,18 @@ the *diffing* layer. → `references/upgrade-campaign.md`
 default cannot see it change by looking at what it sets. Crossing chart
 9.11.12 → 10.2.5 flipped five defaults; a hand-built breaking-change list built
 from the release notes missed one. **Diff stock values every hop, including
-against your own notes.** Left unpinned,
+against a hand-built list.** Left unpinned,
 `global.ingress.enabled: false` alone takes the instance off the network.
 
 **4. A prerequisite in release notes is written for the DEFAULT
 configuration.** Chart 10.3.0's "apply the Gateway API CRDs before upgrading or
 it fails on the GitLab Shell TCPRoute" reads as mandatory for everyone. It
-fires only if you render Gateway API objects. Render the target with your real
-values, grep for the object kind the prerequisite names, and if it does not
+fires only where Gateway API objects actually render. Render the target with the
+real values, grep for the object kind the prerequisite names, and if it does not
 render, record *why* it cannot apply. Complying anyway is not free — Gateway
 API CRDs are cluster-scoped and permanent.
 
-**5. Offline `helm template` corrupts exactly the artifacts your gates read.**
+**5. Offline `helm template` corrupts exactly the artifacts the diff gates read.**
 A cluster-less render cannot populate `.Capabilities.APIVersions`, so the chart
 falls to its **oldest** apiVersion branch and silently drops blocks. `helm
 upgrade` is unaffected because it talks to the cluster — so only the diffs are
@@ -158,8 +158,8 @@ nothing says so until restore. Drop `--skip repositories`.
 - **Free tier gets no Duo at all**, and **CE can never hold a licence**, so no
   Duo path exists there ever. The chart defaults to `edition: ee` — which is
   what keeps an unlicensed install upgradeable later.
-- **Duo against your own vLLM needs Premium/Ultimate plus the Duo Enterprise
-  add-on.** Bringing your own GPU does not buy you out of the licence. The
+- **Duo against a self-hosted vLLM needs Premium/Ultimate plus the Duo
+  Enterprise add-on.** Owning the GPUs does not buy out the licence. The
   mandatory AI Gateway defaults to calling `customers.gitlab.com`, and when
   that is unreachable and unoverridden it costs **20 seconds per request** —
   presenting as "the AI is slow", not as an egress error.
@@ -187,7 +187,7 @@ nothing says so until restore. Drop `--skip repositories`.
   unauthenticated fetchers and comments are JS-rendered. A scraped pass once
   concluded a fix had no backport; `glab api .../related_merge_requests`
   returned three and proved the opposite. **A milestone says when a fix landed
-  on master, not whether it reached your version** — only backport MRs and
+  on master, not whether it reached the target version** — only backport MRs and
   their `target_branch` answer that.
 - **Get background migrations to zero at every stop, not just the last.**
   Active is fine; paused or failed is not.
