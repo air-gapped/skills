@@ -39,11 +39,11 @@ modern versions.
 
 **`gitlab-rake gitlab:doctor:secrets` detects undecryptable values but does not
 repair them.** Run it *before* an upgrade: it walks every encrypted model and
-proves the secrets you are about to back up actually decrypt what is in the
-database — the half of a restore that a database dump cannot tell you about. A
+proves the secrets about to be backed up actually decrypt what is in the
+database — the half of a restore that a database dump cannot reveal. A
 healthy instance ends `Total: 0 row(s) affected`.
 
-## Rehearsing the restore — three things that only appear when you try
+## Rehearsing the restore — three things that only appear on a real attempt
 
 Rehearse before relying on the artifact. Row counts matching production across
 projects, users, namespaces, members, merge_requests, personal_access_tokens and
@@ -72,13 +72,13 @@ Spilo dump into a vanilla `postgres:17` produced 87 errors — `extension "X" is
 not available` (pg_stat_kcache, set_user, pg_cron, plpython3u, pg_auth_mon),
 `schema "X" does not exist`, plus cascading failures from those. The GitLab
 database itself restored fine, so this reads as success or failure depending on
-which line you happen to read.
+which line is read first.
 
 **3. A table-count match does not prove the instance boots.** It proves the dump
 loads and the data is there. Booting additionally requires the secrets to line
 up with the restored rows. Prove the halves separately — restore for the data,
-`doctor:secrets` for the keys — unless you are willing to wire a full GitLab at
-the restored database.
+`doctor:secrets` for the keys — unless wiring a full GitLab at the
+restored database is acceptable.
 
 ## Consistency is the real problem with external state
 

@@ -82,7 +82,7 @@ cannot see it change by looking at what it *sets*. Crossing chart 9.11.12 →
 10.2.5, a hand-built breaking-change table written a week earlier from the
 release notes still missed one of five flips
 (`global.ingress.configureCertmanager`); only the mechanical stock-values diff
-caught it. Diff stock values every hop, including against your own notes.
+caught it. Diff stock values every hop, including against a hand-built list.
 
 ## Four rules that keep the diff honest
 
@@ -160,7 +160,7 @@ Two-step test, cheaper than both guessing and complying blindly:
    next person does not re-derive it.
 
 Complying "just in case" is not free: Gateway API CRDs are cluster-scoped, and
-installing them to satisfy a step you do not need leaves another controller's
+installing them to satisfy a step that does not apply leaves another controller's
 API surface in the cluster permanently.
 
 **Deprecation removals cluster on required stops.** `global.appConfig.knowledgeGraph`

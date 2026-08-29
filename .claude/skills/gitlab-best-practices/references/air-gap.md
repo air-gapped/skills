@@ -1,4 +1,4 @@
-# Air-gapped GitLab — the image set the chart will not tell you about
+# Air-gapped GitLab — the image set the chart does not reveal
 
 **Tag convention.** Untagged claims were verified against a primary source or a
 live install on 2026-08-29. **[A]** = reported but not independently
@@ -17,12 +17,12 @@ documented community method is: clone the chart at the exact version,
 Charts issue #4918 ("mirror chart images to an external registry") is open —
 upstream has not solved its own single point of failure either. **[A]**
 
-Treat air-gap as an engineering problem you own, with the chart as an
+Treat air-gap as an engineering problem the operator owns, with the chart as an
 **unreliable narrator about its own image set**.
 
-## Six sources of images a rendered manifest cannot show you
+## Six sources of images a rendered manifest cannot show
 
-A `grep image:` over a render of *your* values finds none of these.
+A `grep image:` over a render of *site* values finds none of these.
 
 1. **The runner helper image.** Declared in the runner's `config.toml` as TOML
    (`helper_image = "..."`), tagged `${CI_RUNNER_VERSION}`, expanded by the
@@ -43,18 +43,18 @@ A `grep image:` over a render of *your* values finds none of these.
 3. **Helm hook Jobs** — migrations, shared-secrets, upgrade-check — which exist
    only during `helm upgrade`.
 4. **`helm test` pods.**
-5. **Images only rendered when an optional subchart is enabled** that your own
-   values disable. A render of *your* values misses them; a render of *stock*
+5. **Images only rendered when an optional subchart is enabled** that the site's
+   values disable. A render of *site* values misses them; a render of *stock*
    values includes them. At chart 10.x this includes `ai-gateway`
    (`ai-gateway.install: false` by default), `gitlab-zoekt`, `openbao`,
    `envoy-gateway` and the bundled ingress/cert-manager charts — several of
    which are new since chart 9.x, so a mirror list carried forward from an
-   older version has gaps that no diff of *your* values reveals.
+   older version has gaps that no diff of *site* values reveals.
 6. **Security scanner images**, fetched at pipeline runtime by
    `Secure-Binaries.gitlab-ci.yml`. Without mirroring these *and* rewriting the
    template, scanners cannot run offline at all. **[A]**
 
-**Derive the list from more than one render pass** — your values *and* stock
+**Derive the list from more than one render pass** — site values *and* stock
 defaults — plus an explicit extraction from the runner config, plus the derived
 helper tag.
 

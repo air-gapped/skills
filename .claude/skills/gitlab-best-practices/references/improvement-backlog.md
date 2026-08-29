@@ -24,6 +24,44 @@ Carries ceiling findings across skill-improver runs. Append-only history.
   move), so the run must test both directions of confusion, not just this
   skill's own recall.
 
+## Resolved this pass — 2026-08-29 (freshen + improve)
+
+Freshen: 24 upstream issue states probed via `glab api`. Five citations were
+stale; the state table now lives in `sources.md` so the next pass diffs rather
+than re-derives.
+
+- **`gitlab#388094` reads `closed` but was never fixed.** Closed 2023-09-18 on a
+  triage ping — *"Thanks for the reminder. I will close this issue"* — with the
+  last substantive comment placing the safe ordering in the **Operator** and
+  leaving the chart case open. The skill presented it as a live hazard, which is
+  right, but anyone re-checking the issue would have dropped the mitigation.
+  Now states that the issue is closed and the hazard is not, with the closing
+  quote and a general rule: housekeeping closes and fix closes are
+  indistinguishable in the state field.
+- `charts#1444`, `charts#3021`, `runner#4509` corrected from open to closed;
+  `charts#3338` corrected and its 404 crash located in the body, not the title.
+
+Improve: 2 keeps, 1 discard. Self 76 → 81; blind baseline **85**.
+
+- iter 1 (keep, Dim 8): `references/values-porting.md` was cited in SKILL.md and
+  `upgrade-campaign.md` in a shape that reads as a local path. The file belongs
+  to the `helm` skill. Independently flagged by the baseline blind scorer as a
+  top-three issue.
+- iter 2 (keep, Dim 3): 13 second-person occurrences swept out of SKILL.md,
+  meaning unchanged, file still 199 lines. The blind scorer's single
+  highest-impact recommendation.
+
+**Discard — iter 3: tables of contents for the three reference files over 200
+lines.** Bare +1 on the self-score while adding ~27 lines, so the noise-zone
+rule discards it; the blind scored Dim 2 **9 without** the TOCs, and SkillLens
+measured format-only changes as non-significant. Do not re-propose a
+formatting-only Dim 2 change against these files without new evidence that a
+reader actually mis-navigates them.
+
+**Ceiling not mapped.** One discard in one category is short of the 5-across-2
+the ceiling claim requires, so the remaining improvement space is unmeasured
+rather than known-empty. This pass stopped early, not finished.
+
 ## Resolved during authoring — 2026-08-29
 
 Not a scored improve pass; recorded because each item corrects a claim that

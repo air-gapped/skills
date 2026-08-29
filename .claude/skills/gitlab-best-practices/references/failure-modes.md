@@ -30,8 +30,8 @@ glab api projects/gitlab-org%2Fgitlab/issues/<iid>/notes --paginate
 glab api projects/gitlab-org%2Fgitlab/issues/<iid>/related_merge_requests
 ```
 
-**An issue's milestone tells you when it was fixed on master, not whether the
-fix reached the version you are going to.** Only the backport MRs and their
+**An issue's milestone says when it was fixed on master, not whether the fix
+reached the target version.** Only the backport MRs and their
 `target_branch` answer that. A milestone of 19.0 does not mean 18.11 is unfixed.
 
 Reading public repos is fine. Never post, comment or open anything upstream.

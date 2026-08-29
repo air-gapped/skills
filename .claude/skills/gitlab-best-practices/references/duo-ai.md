@@ -1,4 +1,4 @@
-# AI on self-managed GitLab — licence gates and your own inference
+# AI on self-managed GitLab — licence gates and self-hosted inference
 
 **Tag convention.** Untagged claims were verified against a primary source on
 2026-08-29. **[A]** = reported but not independently re-verified. **[?]** =
@@ -11,9 +11,9 @@ claimed somewhere but contradicted or unsupported when checked.
 | Any GitLab Duo feature at all | **Premium or Ultimate.** Free tier gets none | — | — |
 | Duo Core (Code Suggestions + Agentic Chat) | Premium/Ultimate, auto-included, ≥18.0 | **no** — requires GitLab's cloud AI Gateway | **no** |
 | Duo Pro / Duo Enterprise, GitLab-hosted models | Premium/Ultimate + seat-based add-on | no | no |
-| **Duo Self-Hosted** — Duo features against your model | Premium/Ultimate + **Duo Enterprise** add-on (seats) | **yes**, vLLM is the reference platform | not without the offline path below |
+| **Duo Self-Hosted** — Duo features against a self-hosted model | Premium/Ultimate + **Duo Enterprise** add-on (seats) | **yes**, vLLM is the reference platform | not without the offline path below |
 | **Duo Agent Platform Self-Hosted, offline licence** | Premium/Ultimate + **Agent Platform Self-Hosted** add-on (flat-fee ELA) + a sales-approved **offline cloud licence** | **yes** | **yes** |
-| **GitLab MCP server** | **Free, Premium or Ultimate — no add-on**, GitLab ≥19.2 | you supply the model entirely | **yes** |
+| **GitLab MCP server** | **Free, Premium or Ultimate — no add-on**, GitLab ≥19.2 | the model is entirely operator-supplied | **yes** |
 | External agent via REST/GraphQL + webhooks | **none** — a PAT on Free or CE | yes | yes |
 
 **The short answer for an unlicensed instance: run the MCP server.** It is the
@@ -69,8 +69,8 @@ gets no GitLab AI features.**
 > with GitLab Duo Core or GitLab Duo Pro when GitLab hosts and connects to those
 > models through the cloud-based AI Gateway."
 
-Bringing your own GPU does not buy you out of the add-on. It buys you control of
-where inference happens.
+Owning the GPUs does not buy out the add-on. It buys control of where inference
+happens.
 
 **Version history:** feature-flagged (`ai_custom_model`) from 17.1 → enabled
 self-managed 17.6 → flag removed 17.8 → GA **17.9** → extended to Premium at
@@ -101,7 +101,7 @@ returns 200. A 403 on a GitLab docs URL is more often a stale path than a block.
 `https://<hostname>:8000/v1`. Behind a proxy or load balancer the port may be
 omitted, but the `/v1` never is.
 
-**The model identifier is prefixed, and the name is not the one you served
+**The model identifier is prefixed, and the name is not the one it was served
 under.** Query the running server and use `data.id` verbatim:
 
 ```bash
@@ -139,7 +139,7 @@ verbose request logging as a notable latency cost under load.
   `extraEnvironmentVariables` (the documented path for AWS IRSA and for secret
   references).
 - **Footprint is trivial:** ~340 MB image, minimum 512 MB RAM, 2 CPUs, **no
-  GPU**. All GPU cost sits on the model server you already run.
+  GPU**. All GPU cost sits on the model server already running.
 - Config: `AIGW_GITLAB_URL`, `AIGW_GITLAB_API_URL`,
   `AIGW_SELF_SIGNED_JWT__SIGNING_KEY` / `__VALIDATION_KEY`,
   `DUO_WORKFLOW_AUTH__ENABLED`, `DUO_WORKFLOW_SELF_SIGNED_JWT__*`,
@@ -187,7 +187,7 @@ billing metadata only — `InstanceId`, a SHA-256-derived de-identified
 > does not leave the customer network... GitLab does not capture which model or
 > model provider the customer uses."
 
-That is GitLab's own assertion about software you build from their source. It is
+That is GitLab's own assertion about software built from their source. It is
 documented, not independently audited.
 
 ## The zero-licence path: the MCP server
@@ -211,14 +211,14 @@ The MCP server docs page carries `Tier: Free, Premium, Ultimate`.
 **Consequences:**
 
 - A Free-tier EE instance on ≥19.2 can serve GitLab's own MCP tool surface to
-  any MCP-capable agent, backed by whatever model you like.
+  any MCP-capable agent, backed by any model.
 - No add-on, no seat count, no egress, no AI Gateway.
 - Below 19.2 this does not work — the MCP server was gated behind Duo's
   cloud-gateway requirement, which was a real filed bug, not a docs gap.
 
 **Fallback if MCP is unavailable or administratively locked:** the REST and
 GraphQL APIs plus webhooks work unconditionally on Free *and* CE with a PAT.
-Same practical outcome — an external agent on your own inference reading and
+Same practical outcome — an external agent on self-hosted inference reading and
 writing issues, MRs and pipelines — at the cost of more integration work and no
 GitLab-maintained tool schema.
 

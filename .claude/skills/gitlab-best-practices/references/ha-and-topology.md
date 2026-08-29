@@ -1,4 +1,4 @@
-# High availability — what the chart actually gives you
+# High availability — what the chart actually provides
 
 **Tag convention.** Untagged claims were verified against a primary source on
 2026-08-29. **[A]** = reported but not independently re-verified. **[?]** =
@@ -54,7 +54,7 @@ The whole mitigation set is written for **RWO, one-PVC-per-pod** StatefulSet
 semantics. Nothing in the docs suggests RWX is required or supported. A
 single-replica Gitaly on RWO is the documented, expected shape.
 
-### The Raft direction — intent, not a plan you can schedule
+### The Raft direction — intent, not a schedulable plan
 
 Epic 8903 goals, unchanged since `gitaly#4436` (2022): *"1. Solve the variety of
 inconsistency issues Gitaly Cluster has. 2. Remove Praefect. 3. Remove Postgres.

@@ -1,7 +1,7 @@
 # External dependencies — PostgreSQL, Redis, object storage, pooling
 
 From chart 10.0 these are **mandatory**, not optional. Everything here is the
-part of a GitLab install that GitLab does not run for you.
+part of a GitLab install that GitLab does not run.
 
 **Tag convention.** Untagged claims were verified against a primary source or a
 live install on 2026-08-29. **[A]** = reported but not independently
@@ -35,7 +35,7 @@ resting point on both sides.
 The 19.0 requirement is marked **"Affects: All installation methods"** — not
 Linux-package-only, despite reading that way.
 
-### Extensions — GitLab will not install them for you
+### Extensions — GitLab does not install them
 
 | Extension | Minimum GitLab version | Type |
 |---|---|---|
@@ -60,7 +60,7 @@ CREATE EXTENSION IF NOT EXISTS amcheck;
 
 **The extensions docs page does not carry this table** — it defers to
 `doc/install/requirements.md`. Fetching the extensions page and grepping for
-`amcheck` returns nothing, which reads as "not required" if you stop there.
+`amcheck` returns nothing, which reads as "not required" to anyone who stops there.
 
 ### Major-version upgrades of the database itself
 

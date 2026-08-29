@@ -209,7 +209,7 @@ Recorded so nobody re-derives them.
 - CE image publication for a specific 19.x tag was not confirmed; the registry
   API cannot sort tags reverse-chronologically.
 - "Inference data never leaves the network" is GitLab's own documented
-  assertion about software you build from their source, not an audited fact.
+  assertion about software built from their source, not an audited fact.
 
 ## Related skills
 
