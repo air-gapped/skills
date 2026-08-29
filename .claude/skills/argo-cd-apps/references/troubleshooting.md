@@ -386,7 +386,7 @@ draining, notifications.
 
 ---
 
-## 5. `ComparisonError` — six sub-causes
+## 5. `ComparisonError` — seven sub-causes
 
 `troubleshooting.md`, `helm.md`, `faq.md`. Status condition meaning
 "something blew up while figuring out the desired state" — pre-sync.
@@ -399,6 +399,42 @@ draining, notifications.
 | 5.4 | `values file glob "envs/prod/*.yaml" matched no files` | `valueFiles` glob expanded to nothing (`helm.md` 301-323) | `ignoreMissingValueFiles: true` (below) |
 | 5.5 | `RUNTIME ERROR: Top-level argument 'env' not provided` | Jsonnet expects TLAs your app spec doesn't supply | Set `directory.jsonnet.tlas` (below) |
 | 5.6 | `The order in patch list … doesn't match $setElementOrder list:` (`faq.md` 272-307) | Duplicate keys in a list — usually `env:` arrays with same `name`, different value | Dedupe |
+| 5.7 | `failed to list refs: authentication required: HTTP Basic: Access denied. If a password was provided … you are required to use a token instead of a password` — on a repo whose token is valid | Token put in `bearerToken`. **Repository credentials have no such field**; it is a *cluster* credential. Repo creds take `username`/`password` (HTTPS), `sshPrivateKey`, `githubAppPrivateKey`, or `azureServicePrincipalClientSecret` — so the token is never sent at all | Re-add with basic auth (below). **Check the field before rotating the token** |
+
+### 5.7 `bearerToken` on a repository — never sent
+
+```bash
+argocd repo add https://<host>/<org>/<repo>.git --username <user> --password <token>
+```
+
+Three things make this one expensive to diagnose:
+
+- **`bearerToken` reads as the modern home for a token**, so the config looks
+  right on inspection. It is valid YAML, accepted without complaint, and
+  belongs to a different object type entirely.
+- **The error message misdirects.** It says to use a token instead of a
+  password when a token *was* supplied — in a field nothing reads. The instinct
+  is to assume expiry and mint a new one, which produces a second correct token
+  in the same wrong field and confirms the wrong diagnosis.
+- **It is not host-specific.** Any git remote fails identically; the host named
+  in the error is incidental.
+
+**Why it is dangerous rather than merely broken.** An app with manual sync
+(`syncPolicy: null`, no selfHeal) sitting in `ComparisonError` silently stops
+doing both of its jobs — it neither reverts drift nor picks up new commits —
+while **`health` stays `Healthy`** and only `sync` goes `Unknown`. Nothing
+crashes and no pod is unhealthy, so pod-level monitoring reports normal. Read
+the *condition*, not the health:
+
+```bash
+kubectl get application -n argocd <app> -o json \
+  | jq -r '.status.sync.status, .status.health.status,
+           (.status.conditions[]?|"\(.type): \(.message)")'
+```
+
+`health=Healthy` + `sync=Unknown` + a `ComparisonError` condition is the
+signature. After repair, conditions is empty and sync returns to
+`Synced`/`OutOfSync`.
 
 ```yaml
 # 5.4
