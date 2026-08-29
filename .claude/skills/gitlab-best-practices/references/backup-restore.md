@@ -116,7 +116,7 @@ pages, ci_secure_files, agent_plan_content, ci_catalog_bundles) → `pack_backup
 Per bucket, from `object_storage_backup.rb`:
 
 ```
-s3cmd --stop-on-error --delete-removed --exclude <glob> sync s3://<bucket>/ /srv/gitlab/tmp/<name>/
+s3cmd --stop-on-error --delete-removed --exclude 'tmp/builds/*' sync s3://<bucket>/ /srv/gitlab/tmp/<name>/
 tar -cf <name>.tar.gz -I gzip -C /srv/gitlab/tmp/<name> .
 ```
 
@@ -149,10 +149,33 @@ Upstream's Helm recipe for `gitlab.toolbox.backups.cron.extraArgs`, verbatim:
 --skip packages --skip ci_secure_files
 ```
 
-**Read that `--skip repositories` before copying it.** It sits alongside
-`--repositories-server-side` in the same upstream line, which reads
-contradictory; the one-off full-backup example on the same page omits it.
-Confirm which behaviour is intended against your own run rather than assuming.
+### DANGER: that documented cron recipe backs up no repositories
+
+**Delete `--skip repositories` from it.** As written, the recipe silently
+produces scheduled backups containing **no Git repository data**, and the
+failure is only discovered at restore time.
+
+The two flags are mutually exclusive and skip wins. From `backup-utility`:
+
+```bash
+--repositories-server-side)
+  export REPOSITORIES_SERVER_SIDE="true"      # sets a variable, nothing else
+```
+
+```bash
+if ! [[ ${skipped_via_flag[@]} =~ "repositories" ]]; then
+  gitlab-rake gitlab:backup:repo:create        # the only consumer of that variable
+fi
+```
+
+With both flags the rake task is **never invoked**, so
+`REPOSITORIES_SERVER_SIDE=true` is exported into a process that never runs. No
+repository backup is produced — server-side or otherwise.
+
+The one-off full-backup example on the same upstream page omits
+`--skip repositories` and is correct. **Use the flag set from that example for
+cron as well**, and verify a scheduled run actually lands data in the Gitaly
+backup bucket before trusting the schedule.
 
 **Omnibus asymmetry — the reason copied commands do not help.** On Omnibus,
 `SKIP=db` alone suffices because the Rake task does not back up object storage

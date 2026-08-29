@@ -147,7 +147,11 @@ the three obvious levers are all unavailable there: `COMPRESS_CMD` never reaches
 the blob path (gzip is hardcoded), `SKIP=tar` is refused with object storage,
 and `backup-utility` has no incremental mode at all. Move PostgreSQL to its own
 tooling, blobs to bucket-to-bucket replication, and repositories to **Gitaly
-server-side backups**. → `references/backup-restore.md`
+server-side backups**. **Upstream's documented `cron.extraArgs` recipe is
+defective** — it pairs `--skip repositories` with `--repositories-server-side`,
+and skip wins, so the scheduled backup contains **no Git repository data** and
+nothing says so until restore. Drop `--skip repositories`.
+→ `references/backup-restore.md`
 
 ## AI, in three lines
 

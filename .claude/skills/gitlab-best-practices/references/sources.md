@@ -48,7 +48,7 @@ re-verified.
 | Install the AI Gateway | https://docs.gitlab.com/install/install_ai_gateway/ | `AIGW_*` / `DUO_WORKFLOW_*` env vars; 512 MB / 2 CPU / no GPU; the `customers.gitlab.com` 20-second timeout |
 | AI Gateway source + licence | `gitlab-org/modelops/applied-ml/code-suggestions/ai-assist` | public repo, **GitLab EE licence** — source-available, not OSI open source |
 | Configure LLM platforms | https://docs.gitlab.com/administration/gitlab_duo_self_hosted/supported_llm_serving_platforms/ | vLLM **v0.18.1+**; LiteLLM as the provider layer; validated provider list; the `/v1` URL suffix and `custom_openai/<id>` identifier format; `--disable-log-requests`. **Note the path moved** — the `self_hosted_models/` form 403s |
-| Large-instance backups | `doc/administration/backup_restore/backup_large_reference_architectures.md` @ master | the split-by-data-class approach; the `cron.extraArgs` recipe (**including its `--skip repositories`**); "incremental repository backup is not supported by `backup-utility` with server-side repository backup" |
+| Large-instance backups | `doc/administration/backup_restore/backup_large_reference_architectures.md` @ master | the split-by-data-class approach; `pg_dump` "not appropriate for databases over 100 GB"; "incremental repository backup is not supported by `backup-utility` with server-side repository backup". **Its `cron.extraArgs` recipe is defective** — `--skip repositories` there suppresses the repository backup entirely; proven against the `backup-utility` gate |
 | `backup_gitlab.md` | `doc/administration/backup_restore/backup_gitlab.md` @ master | `COMPRESS_CMD` (default `gzip -c -1`); **"It is not possible to skip the tar creation when using object storage for backups"** |
 | `object_storage_backup.rb` | `gitlab-org/build/CNG` → `gitlab-toolbox/scripts/lib/object_storage_backup.rb` @ master | the per-bucket `s3cmd ... sync` + `tar -I gzip` path; **`gzip` hardcoded**, no `COMPRESS_CMD` hook; `s3cmd` is the default `s3_tool`, `awscli` the alternative |
 | `backup-utility` | `gitlab-org/build/CNG` → `gitlab-toolbox/scripts/bin/backup-utility` @ master | `--repositories-server-side`, `--s3tool` / `--s3tool-backup` / `--s3tool-data`; **no `--incremental`, no `PREVIOUS_BACKUP`** (verified by absence) |
@@ -102,6 +102,11 @@ re-verified.
   time of writing) and the supported-model matrix.
 - **MCP server availability and its admin toggle path** — free and
   Duo-decoupled since 19.2; verify it has not been re-gated.
+- **Whether upstream fixes the `cron.extraArgs` recipe** in
+  `backup_large_reference_architectures.md` (it currently ships
+  `--skip repositories` alongside `--repositories-server-side`), and whether
+  `backup-utility` starts rejecting that flag pair instead of silently
+  producing a repository-free backup.
 
 ## Method notes that changed an answer
 
@@ -133,12 +138,17 @@ Recorded so nobody re-derives them.
   milestone 17.1, along with #5376. Secondary sources still describe it as live.
 - **[?] "Upstream states the toolbox `backup-utility` *fails* with a large
   amount of data, and repositories must then be backed up from a Linux-package
-  VM."** Attributed to `backup_large_reference_architectures.md`. **Not present**
-  at master, in raw or rendered form, nor in the charts backup doc — searched
-  2026-08-29. It may have been reworded or removed. The surrounding guidance
-  *is* real (the page scopes itself to 3,000 users / 60 RPS and up, and its
-  whole Helm recipe is server-side repositories plus skipping every blob), so
-  use that rather than the quote. Do not reproduce the sentence as upstream text.
+  VM."** Attributed to `backup_large_reference_architectures.md`; **not present**
+  there at master, raw or rendered, nor in the charts backup doc. Provenance
+  traced: it is **2023-era doc text quoted inside a comment on charts#5151**
+  (2023-12-05), since reworded or removed. **Do not restore it.** For a
+  current line with similar force, that page does still say `pg_dump` is *"not
+  appropriate for databases over 100 GB"*.
+
+  **Method rule this produced — a quotation inside an issue comment is evidence
+  about the past, not about the current page.** Issue threads preserve doc text
+  as it read the day someone pasted it. Re-grep the live file before attributing
+  any quote to it, even when the comment names the file.
 - **[?] "19.0's `s3_v2` change breaks an `s3:` registry stanza."** The legacy
   name is registered onto the v2 factory; the stanza keeps working.
 - **[?] "Chart 10.3.0's Gateway API CRD step is required for everyone."**
