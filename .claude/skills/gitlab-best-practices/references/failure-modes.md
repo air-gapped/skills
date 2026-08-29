@@ -157,6 +157,7 @@ complete (issue #241672). Fixed only by restarting Sidekiq pods. **[A]**
 
 | Symptom | Cause |
 |---|---|
+| Migrations sitting **paused** (not failed) after an 18.10 upgrade — ~41 of them reported | #594569, **no confirmed fix version**. Paused is a known upstream post-18.10 outcome, not a local misconfiguration — but it still blocks the next hop, so re-check `status NOT IN (3,6)` after *every* hop rather than assuming a clean run stays clean **[A]** |
 | `BackfillSentNotificationsAfterPartition` fails on upgrade to 18.2.8 with `PG::CheckViolation: no partition of relation ... found for row` | known; GitLab published KB #27529828806812 as the fix **[A]** |
 | `RenameWebHookLogsSequence` fails with `PG::ObjectNotInPrerequisiteState: sequence must have same owner as table it is linked to` | external/operator-managed PG where ownership is not what GitLab assumes; thread unresolved **[A]** |
 | Explicit KAS/agentk registration error | KAS↔agentk compatibility is **major.minor** — mismatch fails loudly, not silently **[A]** |
