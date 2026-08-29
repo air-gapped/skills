@@ -664,6 +664,20 @@
       "strict": false
     },
     {
+      "name": "gitlab-best-practices",
+      "source": "./",
+      "description": "Operate self-managed GitLab on the official Helm chart",
+      "version": "0.20260829.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/gitlab-best-practices"
+      ],
+      "strict": false
+    },
+    {
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
