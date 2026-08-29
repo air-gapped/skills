@@ -4,6 +4,15 @@
 2026-08-29. **[A]** = reported but not independently re-verified. **[?]** =
 claimed somewhere but contradicted or unsupported when checked.
 
+## Table of contents
+- [Decision table](#decision-table)
+- [CE vs Free — settle this before anything else](#ce-vs-free-settle-this-before-anything-else)
+- [Duo tiering as of 19.x](#duo-tiering-as-of-19x)
+- [Duo Self-Hosted](#duo-self-hosted)
+- [Air-gapped Duo](#air-gapped-duo)
+- [The zero-licence path: the MCP server](#the-zero-licence-path-the-mcp-server)
+- [Air-gap interaction](#air-gap-interaction)
+
 ## Decision table
 
 | Want | Licence needed | Own vLLM/SGLang/Ollama? | Zero egress? |

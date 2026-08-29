@@ -6,6 +6,15 @@ The half of an upgrade plan that `helm rollback` cannot cover.
 live install on 2026-08-29. **[A]** = reported but not independently
 re-verified — re-check before acting.
 
+## Table of contents
+- [Mechanics](#mechanics)
+- [Secrets are not in the backup, and without them the backup is useless](#secrets-are-not-in-the-backup-and-without-them-the-backup-is-useless)
+- [Rehearsing the restore — three things that only appear on a real attempt](#rehearsing-the-restore-three-things-that-only-appear-on-a-real-attempt)
+- [Consistency is the real problem with external state](#consistency-is-the-real-problem-with-external-state)
+- [Gitaly](#gitaly)
+- [Performance and scale — the toolbox path does not scale](#performance-and-scale-the-toolbox-path-does-not-scale)
+- [Open question worth settling empirically](#open-question-worth-settling-empirically)
+
 ## Mechanics
 
 - Backup and restore run from the **toolbox pod**: `backup-utility`, restore via

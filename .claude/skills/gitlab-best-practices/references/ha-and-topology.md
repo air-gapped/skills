@@ -4,6 +4,15 @@
 2026-08-29. **[A]** = reported but not independently re-verified. **[?]** =
 claimed somewhere but contradicted or unsupported when checked.
 
+## Table of contents
+- [The one-paragraph answer](#the-one-paragraph-answer)
+- [Gitaly — the ladder and the gap](#gitaly-the-ladder-and-the-gap)
+- [The zero-downtime contradiction — the load-bearing one](#the-zero-downtime-contradiction-the-load-bearing-one)
+- [Per-component HA in the chart](#per-component-ha-in-the-chart)
+- [Where GitLab says Kubernetes starts](#where-gitlab-says-kubernetes-starts)
+- [Deployment shape — chart vs Operator](#deployment-shape-chart-vs-operator)
+- [Backup implications](#backup-implications)
+
 ## The one-paragraph answer
 
 **There is no generally-available HA path for Git data on Kubernetes today.**

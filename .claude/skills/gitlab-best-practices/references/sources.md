@@ -13,6 +13,16 @@ campaign, and against the unpacked chart at 10.3.1. Claims tagged **[A]** in
 the reference files were reported by a source but not independently
 re-verified.
 
+## Table of contents
+- [Primary sources — verified directly](#primary-sources-verified-directly)
+- [Agent-sourced — fetched but not independently re-verified (**[A]**)](#agent-sourced-fetched-but-not-independently-re-verified-a)
+- [Issue states — probed via `glab api` 2026-08-29](#issue-states-probed-via-glab-api-2026-08-29)
+- [Volatile facts to re-verify on every freshen](#volatile-facts-to-re-verify-on-every-freshen)
+- [Method notes that changed an answer](#method-notes-that-changed-an-answer)
+- [Claims that did not survive checking](#claims-that-did-not-survive-checking)
+- [Known weak spots](#known-weak-spots)
+- [Related skills](#related-skills)
+
 ## Primary sources — verified directly
 
 | Ref | URL | Grounds |

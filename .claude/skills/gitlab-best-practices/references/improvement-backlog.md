@@ -41,7 +41,16 @@ than re-derives.
 - `charts#1444`, `charts#3021`, `runner#4509` corrected from open to closed;
   `charts#3338` corrected and its 404 crash located in the body, not the title.
 
-Improve: 2 keeps, 1 discard. Self 76 → 81; blind baseline **85**.
+Improve: 4 keeps, 1 discard (later re-proposed on a changed basis and kept).
+Self 76 → 81; blind **85 → 86 → 86**, with **Dim 3 confirmed 7 → 9** on the
+last run. The A/B comparator returned **IMPROVED 3–0**, high confidence, no
+regressions found by any of the three. The absolute delta sits inside the
+instrument's own 2–4 point spread and is *not* the verdict; the comparator is.
+
+One caveat on that verdict: one comparator disclosed that the session's
+`gitStatus` block named the very transformation under test. Excluding its vote
+entirely still leaves **2–0 for the final**, and the other two identified the
+same two changes from the diff alone.
 
 - iter 1 (keep, Dim 8): `references/values-porting.md` was cited in SKILL.md and
   `upgrade-campaign.md` in a shape that reads as a local path. The file belongs
@@ -51,12 +60,30 @@ Improve: 2 keeps, 1 discard. Self 76 → 81; blind baseline **85**.
   meaning unchanged, file still 199 lines. The blind scorer's single
   highest-impact recommendation.
 
-**Discard — iter 3: tables of contents for the three reference files over 200
-lines.** Bare +1 on the self-score while adding ~27 lines, so the noise-zone
-rule discards it; the blind scored Dim 2 **9 without** the TOCs, and SkillLens
-measured format-only changes as non-significant. Do not re-propose a
-formatting-only Dim 2 change against these files without new evidence that a
-reader actually mis-navigates them.
+- iter 4 (keep, Dim 3): the iteration-2 sweep covered SKILL.md only, so the
+  final blind still scored Dim 3 at 7 and named `duo-ai.md` as the concentrated
+  source. 22 further prose occurrences rewritten across seven reference files.
+  **Quoted upstream text was left alone** — ten occurrences remain inside
+  blockquotes, inline citations, or a URL placeholder from GitLab's own docs;
+  editing a quotation to satisfy a register rule would misquote the source.
+
+**Discard — iter 3: tables of contents, on Dim 2 formatting grounds.** Bare +1
+on the self-score while adding ~27 lines, so the noise-zone rule discarded it.
+The stated rationale was that the first blind scored Dim 2 **9 without** the
+TOCs and SkillLens measured format-only changes as non-significant.
+
+- **iter 5 (keep, Dim 8): re-proposed on a changed basis, and the discard's
+  own evidence turned out to be scorer-specific.** The second blind scored
+  Dim 2 **8**, named the missing TOCs its **#1 recommendation**, and framed it
+  as an **internal inconsistency** rather than formatting — 3 of 8 reference
+  files carried a TOC and the rest did not. That is a different dimension from
+  the one iteration 3 was rejected under. All six reference files over 100
+  lines now carry one; `air-gap.md` (97) and this backlog (96) stay under the
+  threshold.
+  **Standing caution:** two blind scorers disagreed 9 vs 8 on this exact
+  question, so the metric never resolved it — the tie was broken on internal
+  consistency, not on a score movement. Do not re-litigate it from a score
+  alone in either direction.
 
 **Ceiling not mapped.** One discard in one category is short of the 5-across-2
 the ceiling claim requires, so the remaining improvement space is unmeasured
