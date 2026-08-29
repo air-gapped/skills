@@ -95,3 +95,55 @@ gates verified 2026-08-26.
 19. **Per-DB verification**: multiplexed deployments (several logical DBs)
     must be verified per index — DBSIZE on db0 alone reads as success while
     other indexes are empty.
+20. **`useHostnames: false` makes Sentinel remember dead pod IPs forever**
+    (Bitnami chart). In that branch `get_full_hostname()` has **no `echo`** —
+    the function's value is the `until` condition's pipeline,
+    `getent hosts | awk '{print $1}'`, i.e. the **resolved IP**. Both
+    `replica-announce-ip` and `sentinel announce-ip` capture it, so every
+    StatefulSet roll leaves the old IP in the replica table as a permanent
+    `s_down` phantom. Deliberate design for that mode, so there is no upstream
+    bug to wait on.
+    **The check that looks right and isn't:** `announce-hostnames yes` and
+    `resolve-hostnames yes` are written into the config *regardless of the
+    flag*, so byte-identical configs across installs prove nothing — and
+    `resolve-hostnames` per Redis docs "will still refer to IP addresses when
+    announcing an instance". Test the flag, not the directives:
+    `helm get values <release> -n <ns> | grep useHostnames`.
+    **Scope the impact honestly:** quorum is computed over the *sentinel*
+    table, which stays clean, and Sentinel will not promote an `s_down`
+    replica — do not claim a failover risk without new evidence. The real
+    costs are external: whatever later inherits a recycled IP receives
+    continuous connection attempts, and an unallocated IP can black-hole into
+    an ICMP Time Exceeded storm (often invisible, since ICMP is inexpressible
+    in a NetworkPolicy). Distinct from pitfall 5 — same phantom-replica
+    symptom, different mechanism.
+    **Repair** `SENTINEL RESET <mastergroup>` on each sentinel, one at a time
+    verifying between so quorum never drops. That is a repair, not a fix: the
+    next roll regenerates phantoms. **Fix** is `useHostnames: true` plus one
+    reset to clear stored IPs — but check with the owner first, because
+    upstream history runs both ways (#9689's workaround is to *disable* it;
+    #25136 is cross-namespace pollution *with* it enabled).
+21. **A single lost DNS packet puts Sentinel into TILT and fails exec
+    probes.** With `resolve-hostnames yes`, sentinels re-resolve peer
+    hostnames on every hello (~2 s), making them the one process class
+    permanently exposed to UDP DNS loss. One lost packet costs a full glibc
+    resolver timeout — **5 s by default** — spent inside a blocking
+    `getaddrinfo()` (upstream-confirmed TILT cause, redis/redis#13866). That
+    single stall is simultaneously over the 2 s TILT threshold *and* over any
+    exec probe timeout ≤ 5 s, so it reads as a liveness failure and can
+    restart otherwise-healthy pods.
+    **Fix, independent of what drops the packet:** pod `dnsConfig.options`
+    `timeout: 1` (or 2) and `attempts: 3`, making a lost packet cost 1 s —
+    below both thresholds. Carry it per chart:
+    - **Bitnami in sentinel mode → `replica.dnsConfig`.** The `-node`
+      StatefulSet renders from the `replica` block, not a sentinel block.
+    - **groundhog2k valkey has no `dnsConfig`/`dnsPolicy` value at all**
+      (through 2.3.3; only `dnsFailureWait`). Use a Helm post-renderer. A live
+      `kubectl patch` does survive ordinary upgrades via Helm's three-way
+      merge, but is silently lost on `--force`, a reinstall or a fresh
+      air-gapped install, and never appears in `helm get manifest`.
+    Do **not** "fix" this by announcing IPs instead of hostnames — that is
+    pitfall 20. Underlying packet loss is environment-specific (CNI conntrack
+    or NAT-map GC evicting an in-flight UDP query is one documented cause);
+    the `dnsConfig` change is worth making regardless, because it bounds the
+    cost rather than chasing the source.

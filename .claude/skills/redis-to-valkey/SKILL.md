@@ -188,7 +188,7 @@ dependency's replacement). Details, OCI syntax (no `oci://` prefix in Argo
 
 ## Pitfalls quick index
 
-Before executing any plan, scan `references/pitfalls.md` (19 entries by
+Before executing any plan, scan `references/pitfalls.md` (21 entries by
 severity). Beyond the traps already covered above: dual-channel replication
 + Sentinel phantom replicas on Kubernetes (#2338 — fix shipped in Valkey
 9.1.0 ONLY; keep `dual-channel-replication-enabled no` below that); HEXPIRE
