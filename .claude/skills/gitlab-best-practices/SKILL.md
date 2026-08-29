@@ -179,8 +179,8 @@ nothing says so until restore. Drop `--skip repositories`.
 - **Never `patch` a values delta onto a new version; use `diff3`.** `patch` has
   two inputs and cannot know what the file looked like when it was edited — it
   has already fuzz-matched a hunk onto an adjacent identically-shaped key and
-  silently changed cluster-wide behaviour, exit 0. Merge mechanics: the `helm`
-  skill, `references/values-porting.md`.
+  silently changed cluster-wide behaviour, exit 0. Merge mechanics live in the
+  **`helm`** skill (its own `references/values-porting.md`), not here.
 - **`helm lint` is not a typo check**, and **never `kubectl apply` a rendered
   template** — it rotates lookup-generated TLS/CA secrets.
 - **Use `glab`, not a scraper, for gitlab.com.** The notes endpoint 401s to

@@ -93,7 +93,8 @@ Replaying a site delta with `patch -F3` once fuzz-matched a
 `hostFirewall.enabled`, silently enabling host firewall cluster-wide, exit 0.
 `diff3` has three inputs and raises a conflict. Keep the stock values file of
 the version currently running — it is the common ancestor for the next merge.
-Merge mechanics: the `helm` skill, `references/values-porting.md`.
+Merge mechanics live in the **`helm`** skill, in its own
+`references/values-porting.md` — not in this skill.
 
 **2. `helm lint` is not a typo check.** Charts that ship
 `values.schema.json` usually generate it from values keys and never set
