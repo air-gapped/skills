@@ -83,9 +83,9 @@ announces itself as an air-gap problem. **[A]**
 **GitLab's docs are silent on digest-vs-tag pinning** for both Omnibus and
 Helm. **[A]** Defensible practice, independent of the docs:
 
-- Pin the chart **tarball** in git, not a repo reference. A practitioner report
-  worth heeding: a chart clone only ~4 weeks stale already failed to deploy
-  because the images no longer matched what the chart expected. **[A]**
+- Pin the chart **tarball** in git, not a repo reference. A chart clone only
+  ~4 weeks stale has failed to deploy because the images no longer matched what
+  the chart expected. **[A]**
 - Keep **both** the digest form and the de-digested tag form in the mirror list.
   Some references arrive with a digest attached while the same image is pulled
   by tag elsewhere.

@@ -106,7 +106,7 @@ lookup-generated TLS/CA secrets. Only `helm upgrade`.
 **4. Offline `helm template` misreports API versions, badly.** A cluster-less
 render cannot populate `.Capabilities.APIVersions`, so any chart choosing an
 apiVersion via `Capabilities.APIVersions.Has` falls to its **oldest** branch.
-Measured on chart 9.7.0, the offline render emitted `autoscaling/v2beta1`
+On a chart 9.x render the offline output emitted `autoscaling/v2beta1`
 (removed in k8s 1.26), `extensions/v1beta1` Ingress (removed in 1.22),
 `policy/v1beta1` PDB (removed in 1.25), and **dropped the HPA `behavior` block
 entirely**. `helm upgrade` is unaffected because it talks to the cluster — so
@@ -242,7 +242,7 @@ minor too. **Budget review time from the diff, not from the version number.**
 
 ## Diffs that look like damage and are not
 
-Both cost real review time; neither is a defect.
+Neither is a defect.
 
 - **`web_exporter.address: "0.0.0.0"` → empty.** Upstream set the default to
   `null`, commented *"binds IPv4 and IPv6"*. The empty value is **broader** than

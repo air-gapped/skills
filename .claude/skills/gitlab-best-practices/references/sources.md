@@ -8,9 +8,10 @@ exception note instead.
 
 Chart and app versions enumerated unfiltered from the Helm repo index; the
 required-stop list read from its machine-readable source; deployment-level
-claims checked against a live RKE2 install carried from GitLab 18.7.0 to
-19.3.1 across four hops on the same day. Claims tagged **[A]** in the
-reference files were reported by a source but not independently re-verified.
+claims checked against a live install taken through a multi-hop 18.x → 19.x
+campaign, and against the unpacked chart at 10.3.1. Claims tagged **[A]** in
+the reference files were reported by a source but not independently
+re-verified.
 
 ## Primary sources — verified directly
 
@@ -23,7 +24,8 @@ reference files were reported by a source but not independently re-verified.
 | Chart 10.0 release notes | https://docs.gitlab.com/charts/releases/10_0/ | bundled PostgreSQL / Redis / MinIO removed; external deps become required |
 | PostgreSQL extensions | https://docs.gitlab.com/administration/postgresql/extensions/ | defers to requirements.md — the page itself carries no table (a null result worth recording) |
 | Registry S3 driver | `registry/storage/driver/s3-aws/s3.go` @ `v4.40.2-gitlab` | legacy `s3` name registered onto the v2 factory — `s3_v2` is not a breaking change |
-| Live install | chart 9.7.0 → 10.3.1 / GitLab 18.7.0 → 19.3.1, RKE2 | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal |
+| Live install | a multi-hop 18.x → 19.x campaign, chart 9.x → 10.x | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal |
+| Unpacked chart | `helm pull gitlab/gitlab --version 10.3.1 --untar` | per-component PDBs and replica defaults; the `praefect` and `ai-gateway` subcharts; optional-subchart image sources |
 | Gitaly on Kubernetes | `doc/administration/gitaly/kubernetes.md` @ master | GA at 18.11 standalone-only; the "single point of failure by design" quote; the SPoF mitigation set |
 | Praefect index | `doc/administration/gitaly/praefect/_index.md` @ master | Gitaly Cluster on Kubernetes **beta**, introduced 19.1; snapshot backups unsupported for Cluster |
 | Reference architectures | `doc/administration/reference_architectures/_index.md` @ master | Cloud Native Hybrid scope; 2,000-user floor; the zero-downtime "not supported" claim and its stale citation |
@@ -34,6 +36,11 @@ reference files were reported by a source but not independently re-verified.
 | Epic 20405 | https://gitlab.com/groups/gitlab-org/-/work_items/20405 | "Make Gitaly Cluster a first-class solution"; open Praefect bugs; public weekly "No progress" notes at ~5 h/week |
 | Epic 6127 | https://gitlab.com/groups/gitlab-org/-/epics/6127 | "Gitaly should run well in Kubernetes"; customer notes incl. a paused evaluation over Praefect-on-VMs |
 | cloud-native#52 | https://gitlab.com/gitlab-org/cloud-native/-/work_items/52 | **closed**, and about the Operator — the stale citation the reference-architectures claim rests on |
+| **gitaly#6934** | https://gitlab.com/gitlab-org/gitaly/-/issues/6934 | **open** (2025-09-29, 60 notes read in full). GitLab's own "No documented or publicly supported approach to ZDU in Cloud Hybrid"; `tableflip` removal and its Kubernetes incompatibility; unsolved Rails↔Gitaly rollout ordering; the sequencing argument |
+| gitaly#4616 | https://gitlab.com/gitlab-org/gitaly/-/issues/4616 | **closed** decision record — **"Final decision: NO-GO"** on retiring Praefect's PostgreSQL ahead of Raft |
+| gitaly#4436 | https://gitlab.com/gitlab-org/gitaly/-/issues/4436 | **closed** (2022) — the four Raft goals, unchanged in epic 8903 four years later |
+| Epic 6127 note trail | https://gitlab.com/groups/gitlab-org/-/epics/6127 | 150+ notes read end to end: the 2023 "unsupported vs document the risks" argument; the 2023→2026 customer-commitment trail with tiers and seat counts; the reversed-recommendation quote; the FY26Q4 GA target that slipped |
+| GitLab 18.11 release | https://docs.gitlab.com/releases/18/gitlab-18-11-released/ | GA date 2026-04-16, against the FY26Q4 (Dec 2025–Jan 2026) commitment |
 | charts#3813, #5376 | https://gitlab.com/gitlab-org/charts/gitlab/-/issues/3813 | gitlab-exporter/Sentinel — **both closed at milestone 17.1**, not open |
 | Duo Self-Hosted | https://docs.gitlab.com/administration/self_hosted_models/ | the Duo Enterprise add-on requirement, verbatim; version history to GA 17.9 |
 | Duo add-ons | https://docs.gitlab.com/subscriptions/subscription-add-ons/ | tier table; Duo Core unavailable on an offline licence; Agent Platform Self-Hosted flat-fee ELA |
@@ -104,12 +111,17 @@ reference files were reported by a source but not independently re-verified.
 
 Recorded so nobody re-derives them.
 
-- **[?] "GitLab publicly walked back an HA promise, and staff objected."**
-  Searched the trackers, the epics' full note threads, forums and aggregators —
-  **no such statement was found**. What *is* documented is a stall: epic 20405
-  reports "No progress" at ~5 contributor hours/week (2026-07-23, 2026-07-30)
-  and a customer evaluation paused over Praefect-on-VMs. Use the stall framing;
-  the reversal framing is unsupported.
+- **[?] "Staff publicly objected to their own company's HA direction."** Not
+  found in that form, and a first pass wrongly generalised that null result into
+  "the reversal framing is unsupported." **It is supported** — the error was
+  searching for internal dissent instead of for commitments to customers.
+  Documented: a reversed recommendation stated by staff (*"architecture that
+  GitLab had once blessed and has since changed our recommendation"*, 2023), a
+  three-year unmet-requirement trail on epic 6127 ending in a **July 2026 lost
+  deal**, a **published GA target that slipped** (FY26Q4 → 18.11 on 2026-04-16,
+  standalone only), and a substantive engineering argument on `gitaly#6934` that
+  the platform migration was sequenced ahead of the HA work. What is *not*
+  evidenced is anyone stating that leadership was wrong to do it.
 - **[?] "charts#3813 (gitlab-exporter ignores Sentinel) is open."** Closed at
   milestone 17.1, along with #5376. Secondary sources still describe it as live.
 - **[?] "19.0's `s3_v2` change breaks an `s3:` registry stanza."** The legacy

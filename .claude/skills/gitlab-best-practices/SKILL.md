@@ -34,8 +34,8 @@ configuration you do not run, and removed its own bundled databases in a
 release that breaks your *tooling* before it breaks your deployment.
 
 Facts here were verified **2026-08-29** against machine-readable upstream
-sources, the chart at master, and a live RKE2 install carried from GitLab
-18.7.0 to 19.3.1 across four hops. Re-verify anything version-bearing.
+sources, the unpacked chart, and a live install taken through a multi-hop
+18.x → 19.x campaign. Re-verify anything version-bearing.
 
 **Version anchor (2026-08-29):** latest chart **10.3.1** / app **19.3.1**.
 Chart major = app major − 9. Required stops through 19.x: **18.2 · 18.5 ·
@@ -96,9 +96,9 @@ the *diffing* layer. → `references/upgrade-campaign.md`
 
 **3. Default flips are invisible to a values diff.** A site inheriting a
 default cannot see it change by looking at what it sets. Crossing chart
-9.11.12 → 10.2.5 flipped five defaults, and a hand-built breaking-change table
-written a week earlier from the release notes still missed one of them. **Diff
-stock values every hop, including against your own notes.** Left unpinned,
+9.11.12 → 10.2.5 flipped five defaults; a hand-built breaking-change list built
+from the release notes missed one. **Diff stock values every hop, including
+against your own notes.** Left unpinned,
 `global.ingress.enabled: false` alone takes the instance off the network.
 
 **4. A prerequisite in release notes is written for the DEFAULT

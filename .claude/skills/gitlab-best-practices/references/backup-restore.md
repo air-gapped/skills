@@ -45,10 +45,10 @@ healthy instance ends `Total: 0 row(s) affected`.
 
 ## Rehearsing the restore — three things that only appear when you try
 
-Measured on a real restore of an operator-taken `pg_dumpall` artifact into a
-throwaway PostgreSQL. Row counts matched production exactly across projects,
-users, namespaces, members, merge_requests, personal_access_tokens and issues —
-but only after two failures that are in no documentation.
+Rehearse before relying on the artifact. Row counts matching production across
+projects, users, namespaces, members, merge_requests, personal_access_tokens and
+issues is achievable — after clearing two failures that appear in no
+documentation.
 
 **1. A `pg_dumpall` stream rewrites the superuser password partway through, and
 then `psql` cannot reconnect.** The dump contains `ALTER ROLE ... PASSWORD` for

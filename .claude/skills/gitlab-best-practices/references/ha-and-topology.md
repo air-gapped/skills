@@ -52,46 +52,47 @@ Upstream's own guidance for living with it:
 
 The whole mitigation set is written for **RWO, one-PVC-per-pod** StatefulSet
 semantics. Nothing in the docs suggests RWX is required or supported. A
-single-replica Gitaly on RWO is the documented, expected shape — not a
-misconfiguration to apologise for.
+single-replica Gitaly on RWO is the documented, expected shape.
 
 ### The Raft direction — intent, not a plan you can schedule
 
-Epic 8903 states the goals plainly: *"1. Solve the variety of inconsistency
-issues Gitaly Cluster has. 2. Remove Praefect. 3. Remove Postgres. 4. Through an
-upgrade, make every Gitaly a cluster of one."*
+Epic 8903 goals, unchanged since `gitaly#4436` (2022): *"1. Solve the variety of
+inconsistency issues Gitaly Cluster has. 2. Remove Praefect. 3. Remove Postgres.
+4. Through an upgrade, make every Gitaly a cluster of one."*
 
-**[?]** The epic's last dated status update is **2024-06-18**, describing a
-proof-of-concept just starting. There is no public evidence it has shipped, is
-in beta, or is currently staffed. Treat Raft as stated intent with no date.
-**Do not put it in a roadmap.**
+### Planning rule: Praefect-on-Kubernetes GA has no credible date
 
-### The roadmap signal, and what it is honest to conclude
+**Do not put it in a roadmap, a migration plan, or a commitment to anyone.**
+Design the HA posture for what exists today.
 
-Epic 20405 ("Make Gitaly Cluster a first-class solution") is open and describes
-Praefect as *"our high availability solution for Git data"*, listing critical
-open bugs: sticky-TCP imbalance needing client-side DNS load balancing, object
-pools breaking under Praefect, forks/parents migrating out of order, Praefect-DB
-WAL bloat, repository-move API failures on large repos, HEAD-reference
+Grounding, enough that this is not re-litigated every planning cycle:
+
+| Signal | State |
+|---|---|
+| Epic 20405, make Gitaly Cluster first-class | open; public weekly status **"No progress"**, ~5 contributor h/week (Jul 2026) |
+| Epic 8903, Raft — removes Praefect *and* its Postgres | no status update since **2024-06-18** |
+| `gitaly#4616`, retire Praefect's Postgres ahead of Raft | **closed — "Final decision: NO-GO"** |
+| Published GA target FY26Q4 (Dec 2025–Jan 2026) | landed **18.11, 2026-04-16**, standalone only |
+| Requirement age on epic 6127 | live and unmet **2023 → 2026** |
+
+`gitaly#4616` matters most: the incremental route off Praefect's PostgreSQL was
+evaluated and explicitly declined (*"k8s will still not work due to Git I/O
+needs"*), so the only path is the full Raft rewrite — which has no visible
+investment. Treat "Praefect's Postgres goes away" as having no path and no date.
+
+Open Praefect bugs named in epic 20405, worth checking against any Praefect
+deployment: sticky-TCP imbalance requiring client-side DNS load balancing,
+object pools breaking, forks/parents migrating out of order, Praefect-DB WAL
+bloat, repository-move API failures on large repos, HEAD-reference
 inconsistency.
 
-Its public weekly status notes read **"total hours spent this week by all
-contributors: 5 ... achievements: No progress"** (2026-07-23), and **"No
-progress"** again (2026-07-30), with prior weeks in the 5–20 hour range. A
-publicly visible customer note on the sibling epic (2026-07-28) records a
-**paused evaluation**: Gitaly GA at 18.11 *"partially resolved the blocker...
-However, the Praefect dependency on VMs remains a hard blocker for production
-readiness."*
+### Do not cite pre-2024 GitLab architecture guidance
 
-**What this supports:** the HA-on-Kubernetes work is stalled, upstream says so
-in public, and planning around Praefect-on-Kubernetes reaching GA is planning
-around an unstaffed epic.
-
-**[?] What it does not support:** a claim that GitLab publicly reversed an HA
-promise, or that staff publicly objected to their own company's HA direction.
-Searched the trackers, forums and aggregators — **no such statement was found**.
-Do not repeat that framing; the stall is documented, the reversal narrative is
-not.
+GitLab withdrew an earlier recommendation that blessed in-cluster stateful
+components. Staff record it directly: *"architecture that GitLab had once
+blessed and has since changed our recommendation"*. Any design resting on
+GitLab guidance older than ~2024 must be re-checked against the current
+reference architectures before it is trusted.
 
 ## The zero-downtime contradiction — the load-bearing one
 
@@ -126,10 +127,24 @@ requirements:
 a disruptive rolling restart. Land them in **their own release**, ahead of the
 upgrade they are meant to protect — not in the same change.
 
-Note the tension with the migration-loss race: multi-replica Sidekiq is required
-for zero-downtime *and* is the precondition for the deduplication race that
-silently loses background migrations (`references/failure-modes.md` § Sidekiq).
-On a small install, prefer a single Sidekiq replica and accept the restart.
+### Do not promise zero downtime on Kubernetes
+
+Follow the chart procedure, but budget a brief disruption. It is not a
+guarantee, and the gap is stated by GitLab's own delivery organisation in
+`gitaly#6934` (open, 2025-09-29), under "Self-Managed Charts":
+
+> "Current status: **No documented or publicly supported approach to ZDU in
+> Cloud Hybrid.**"
+
+Three mechanics from that issue constrain what is achievable:
+
+| Mechanic | Consequence |
+|---|---|
+| `tableflip`, the in-place restart that delivered ZDU on Omnibus, is being **removed** — *"does not work to any extent with immutable infrastructure... This includes containerised deployments like Kubernetes"* | ZDU for Gitaly on Kubernetes rests on **client retries**, not process survival |
+| No backward/forward gRPC compatibility guarantee between Rails and Gitaly | a single Helm release cannot order them safely; **open** |
+| Pod restart latency vs in-place VM swap | **open** |
+
+Verify against the actual workload, never against the word "zero".
 
 ## Per-component HA in the chart
 

@@ -86,7 +86,7 @@ Two lessons generalise:
 2. **Being in the latent shape is not the same as being broken.** The exposed
    state is `label_links_archived` absent *and* the migration sitting at status
    6. That describes a healthy-looking instance where every status check reports
-   finished — which is exactly why it surprises people mid-upgrade.
+   finished.
 
 These finalize hazards were **18.x-scoped** and did not recur crossing into
 19.2, which queued 9 fresh background migrations, all active, none paused, none
@@ -139,7 +139,7 @@ From 18.9 the chart sets this env var in the Sidekiq pod, derived from
 unexpectedly — job backlogs, Redis memory growth, delayed webhook and audit
 workers. Buggy in 18.9.0–18.9.5 and 18.10.0–18.10.3; fixed in 18.9.6 / 18.10.4.
 
-**The interaction worth noticing:** pinning `maxReplicas: 1` to stop HPA
+**The interaction:** pinning `maxReplicas: 1` to stop HPA
 flapping also feeds `1` — the smallest possible value — into this limiter.
 Landing past 18.10.4 means the *bug* is gone but the feature is live at its
 lowest setting. **Check queue depth after the hop rather than assuming.**
