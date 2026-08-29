@@ -98,6 +98,164 @@ Either drive both from one orchestration, or accept the window and document it.
   but a restored snapshot still needs `git fsck` verification, and repositories
   must not be copied during concurrent writes. **[A]**
 
+## Performance and scale — the toolbox path does not scale
+
+**Do not tune the toolbox backup. Split the backup by data class instead.** The
+chart's default path pulls every blob through the toolbox pod on every run, and
+the three optimizations a reader reaches for first are all unavailable on that
+path.
+
+### The data path
+
+`backup-utility`'s `backup()`: `gitlab:backup:db:create` → `gitlab:backup:repo:create`
+(repos stream **through** the pod) → **eleven** object-storage backends
+(registry, uploads, artifacts, lfs, packages, external_diffs, terraform_state,
+pages, ci_secure_files, agent_plan_content, ci_catalog_bundles) → `pack_backup`
+(one `tar` over all of it) → upload.
+
+Per bucket, from `object_storage_backup.rb`:
+
+```
+s3cmd --stop-on-error --delete-removed --exclude <glob> sync s3://<bucket>/ /srv/gitlab/tmp/<name>/
+tar -cf <name>.tar.gz -I gzip -C /srv/gitlab/tmp/<name> .
+```
+
+Consequences: every blob makes a full round trip object storage → pod disk →
+gzip → tar.gz → tarred again into the archive → uploaded back. Nothing is
+incremental, nothing is server-side, and local scratch must hold roughly **2x
+total data size**.
+
+### Three optimizations that do not apply here
+
+| Technique | Why it fails on the chart's blob path |
+|---|---|
+| `COMPRESS_CMD` (pigz/zstd) | reaches the **Rake** tasks only. `object_storage_backup.rb` hardcodes `gzip_cmd = 'gzip' + (ENV['GZIP_RSYNCABLE'] == 'yes' ? ' --rsyncable' : '')`. No hook — the blob half is single-threaded gzip |
+| `SKIP=tar` | docs, verbatim: *"It is not possible to skip the tar creation when using object storage for backups."* |
+| Incremental | `backup-utility` has no `--incremental` and no `PREVIOUS_BACKUP`. Incremental exists in the Rake layer; the chart wrapper cannot reach it. Upstream docs confirm: *"Incremental repository backup is not supported by `backup-utility` with server-side repository backup"* (charts#3421, **closed unimplemented**) |
+
+### The supported answer: split by data class
+
+| Data | Back it up with |
+|---|---|
+| PostgreSQL | the database's own tooling, **not** `pg_dump` via toolbox — `pg_dump` is documented as *"not appropriate for databases over 100 GB"* |
+| Blobs + registry | bucket-to-bucket replication at the storage layer |
+| Git repositories | **Gitaly server-side backups** (chart support since GitLab 17.0) |
+
+Upstream's Helm recipe for `gitlab.toolbox.backups.cron.extraArgs`, verbatim:
+
+```
+--repositories-server-side --skip db --skip repositories --skip uploads --skip builds
+--skip artifacts --skip pages --skip lfs --skip terraform_state --skip registry
+--skip packages --skip ci_secure_files
+```
+
+**Read that `--skip repositories` before copying it.** It sits alongside
+`--repositories-server-side` in the same upstream line, which reads
+contradictory; the one-off full-backup example on the same page omits it.
+Confirm which behaviour is intended against your own run rather than assuming.
+
+**Omnibus asymmetry — the reason copied commands do not help.** On Omnibus,
+`SKIP=db` alone suffices because the Rake task does not back up object storage
+at all. **The chart adds blob backup on top**, so every blob component must be
+skipped individually.
+
+### Gitaly server-side backups — three parts, docs cover one
+
+**1. Destination** — `gitlab.gitaly.backup.goCloudUrl`, rendered by the chart
+helper into a `[backup] go_cloud_url` entry in Gitaly's config. **Quote the
+value**; an unquoted `&` is ambiguous in YAML.
+
+```yaml
+gitlab:
+  gitaly:
+    backup:
+      goCloudUrl: "s3://<bucket>?region=us-east-1&endpoint=https://s3.example.com"
+```
+
+**2. Credentials** — the URL carries none. Gitaly reads standard AWS env vars:
+
+```yaml
+gitlab:
+  gitaly:
+    extraEnvFrom:
+      AWS_ACCESS_KEY_ID:
+        secretKeyRef: { name: <secret>, key: <key> }
+      AWS_SECRET_ACCESS_KEY:
+        secretKeyRef: { name: <secret>, key: <key> }
+```
+
+`secretKeyRef` takes secret name **and** key name as free-form fields, so any
+existing secret works — **the key does not need a particular name**, and a
+differently-shaped secret is not a blocker.
+
+**3. Invocation** — `--repositories-server-side`, on the command or in
+`cron.extraArgs`. **Gitaly does not back itself up.**
+
+**Name trap:** `gitlab.gitaly.bundleUri.goCloudUrl` is a *different* feature
+(serving repo bundles to clients on clone). Do not confuse the two keys.
+
+### Non-AWS S3 works — and silently defeats Object Lock
+
+Gitaly's `internal/backup/sink.go` (gocloud.dev s3blob) treats third-party S3 as
+a deliberate target, so `endpoint` is a supported query parameter. But:
+
+> "// This maintains compatibility with third-party S3 providers that don't support AWS SDK checksums.
+> // When no custom endpoint is configured (i.e., using AWS S3 directly), checksums are left enabled
+> // as they work correctly and are required for features like Object Lock."
+
+`withS3DefaultChecksumCalculation` sets
+`request_checksum_calculation=when_required` **whenever a custom `endpoint` is
+present** and the parameter is not already specified.
+
+**That is exactly the setting that breaks S3 Object Lock (WORM), which needs
+`when_supported`.** Hardening a backup bucket with Object Lock on
+S3-compatible storage requires overriding it explicitly in the URL — the
+compatibility default silently defeats the immutability control.
+
+**[?] Unverified:** some S3-compatible backends may additionally need path-style
+addressing (`use_path_style`). Reading the sink proves `endpoint` is honoured;
+it does not prove any given provider round-trips. Test before relying on it.
+
+### Give Gitaly its own object-storage credential
+
+Gitaly stores repositories on a PersistentVolume and ships with **no S3
+credentials at all**. Server-side backups are the only reason it ever touches
+object storage.
+
+- Issue it a **dedicated** object-storage identity, shared with nothing else —
+  not Rails (LFS/artifacts/uploads/packages), the registry, or the runner cache,
+  each of which has its own.
+- Scope it **read+write but not delete**, so a compromised GitLab cannot destroy
+  its own backups. Run retention from a bucket lifecycle rule or a separate
+  admin credential.
+- Combine with versioning and Object Lock — subject to the checksum trap above.
+
+### Quick wins, by payoff
+
+1. **`--skip` the large blob components** and replicate those buckets at the
+   storage layer. Removes the round trip entirely. Biggest lever.
+2. **`--s3tool awscli`** — the default is `s3cmd`, which is single-threaded;
+   awscli parallelises, and avoids a known 404 `NoSuchKey` crash on artifacts
+   buckets (charts#3338). `--s3tool-backup` and `--s3tool-data` set it
+   separately for the two paths. On non-AWS S3 this may need
+   `AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED` in toolbox `extraEnv`.
+3. **`--repositories-server-side`** once the Gitaly bucket exists.
+4. **`GITLAB_BACKUP_MAX_CONCURRENCY`** in toolbox `extraEnv` — defaults to
+   logical CPU count, so it only helps with a real CPU request on the pod.
+5. **Size the toolbox**: ~2x data in local scratch, CPU-bound in gzip
+   (charts#5151).
+
+### Do not plan around `gitlab-backup-cli`
+
+The strategic replacement ("Unified Backup") is real and actively worked, but
+**undocumented and not GA**. `gitlab#477791` — an issue that merely restores the
+documentation link — carries `missed:` labels for **every release from 17.7
+through 19.3**.
+
+**Generalisable maturity signal: read the `missed:` label chain, not the
+milestone.** A milestone says where something is aimed; twenty consecutive
+`missed:` labels say what actually happens.
+
 ## Open question worth settling empirically
 
 Whether `backup-utility`'s `db` component behaves safely — succeeds, fails, or

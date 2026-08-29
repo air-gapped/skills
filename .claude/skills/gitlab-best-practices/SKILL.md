@@ -56,6 +56,8 @@ from memory.
 | Redis / Sentinel / Valkey, object storage on non-AWS S3, registry `s3_v2` | `references/external-deps.md` |
 | Building an air-gapped image list; what the render will not show | `references/air-gap.md` |
 | Backup, restore, `gitlab-rails-secret`, rehearsing a restore | `references/backup-restore.md` |
+| Backup takes hours; toolbox out of disk; "how do I speed up backups" | `references/backup-restore.md` § Performance and scale |
+| Gitaly server-side backups, `goCloudUrl`, Object Lock on a backup bucket | `references/backup-restore.md` § Gitaly server-side backups |
 | "Is this HA?", Gitaly Cluster, Praefect, zero-downtime upgrades | `references/ha-and-topology.md` |
 | GitLab Duo, AI features, pointing it at a local model | `references/duo-ai.md` |
 
@@ -77,7 +79,7 @@ A stop is a minor, satisfied by any patch of it — take the highest. Chart and
 app patch numbers drift apart (chart 9.11.12 carries app 18.11.11); name both
 in every artifact.
 
-## The eight facts that cause unplanned downtime
+## The nine facts that cause unplanned downtime
 
 **1. PostgreSQL 17 is both the minimum and the maximum for 19.x.** There is no
 running ahead to PG 18. Because 18.x already tolerates PG 17, that overlap is
@@ -138,6 +140,14 @@ downgraded to, and the restore overwrites all newer content. **There is no
 supported `helm rollback` after migrations have run against production data** —
 the documented remedy for a bad state is to go *forward* to a required stop.
 `helm rollback` recovers a bad values change, nothing more.
+
+**9. Do not tune the toolbox backup — split it by data class.** Every blob
+round-trips object storage → pod disk → gzip → tar → back on *every* run, and
+the three obvious levers are all unavailable there: `COMPRESS_CMD` never reaches
+the blob path (gzip is hardcoded), `SKIP=tar` is refused with object storage,
+and `backup-utility` has no incremental mode at all. Move PostgreSQL to its own
+tooling, blobs to bucket-to-bucket replication, and repositories to **Gitaly
+server-side backups**. → `references/backup-restore.md`
 
 ## AI, in three lines
 

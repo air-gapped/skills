@@ -667,7 +667,7 @@
       "name": "gitlab-best-practices",
       "source": "./",
       "description": "Operate self-managed GitLab on the official Helm chart",
-      "version": "0.20260829.2",
+      "version": "0.20260829.3",
       "author": {
         "name": "Jörgen"
       },

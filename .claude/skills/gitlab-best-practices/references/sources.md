@@ -48,6 +48,13 @@ re-verified.
 | Install the AI Gateway | https://docs.gitlab.com/install/install_ai_gateway/ | `AIGW_*` / `DUO_WORKFLOW_*` env vars; 512 MB / 2 CPU / no GPU; the `customers.gitlab.com` 20-second timeout |
 | AI Gateway source + licence | `gitlab-org/modelops/applied-ml/code-suggestions/ai-assist` | public repo, **GitLab EE licence** — source-available, not OSI open source |
 | Configure LLM platforms | https://docs.gitlab.com/administration/gitlab_duo_self_hosted/supported_llm_serving_platforms/ | vLLM **v0.18.1+**; LiteLLM as the provider layer; validated provider list; the `/v1` URL suffix and `custom_openai/<id>` identifier format; `--disable-log-requests`. **Note the path moved** — the `self_hosted_models/` form 403s |
+| Large-instance backups | `doc/administration/backup_restore/backup_large_reference_architectures.md` @ master | the split-by-data-class approach; the `cron.extraArgs` recipe (**including its `--skip repositories`**); "incremental repository backup is not supported by `backup-utility` with server-side repository backup" |
+| `backup_gitlab.md` | `doc/administration/backup_restore/backup_gitlab.md` @ master | `COMPRESS_CMD` (default `gzip -c -1`); **"It is not possible to skip the tar creation when using object storage for backups"** |
+| `object_storage_backup.rb` | `gitlab-org/build/CNG` → `gitlab-toolbox/scripts/lib/object_storage_backup.rb` @ master | the per-bucket `s3cmd ... sync` + `tar -I gzip` path; **`gzip` hardcoded**, no `COMPRESS_CMD` hook; `s3cmd` is the default `s3_tool`, `awscli` the alternative |
+| `backup-utility` | `gitlab-org/build/CNG` → `gitlab-toolbox/scripts/bin/backup-utility` @ master | `--repositories-server-side`, `--s3tool` / `--s3tool-backup` / `--s3tool-data`; **no `--incremental`, no `PREVIOUS_BACKUP`** (verified by absence) |
+| Gitaly backup sink | `gitlab-org/gitaly` → `internal/backup/sink.go` @ master | `endpoint` supported for third-party S3; `withS3DefaultChecksumCalculation` forces `request_checksum_calculation=when_required` whenever a custom endpoint is set — the **Object Lock** trap, named in the code comment |
+| charts#3421 / #3338 / #5151 | https://gitlab.com/gitlab-org/charts/gitlab/-/issues/3421 | incremental (closed unimplemented); s3cmd 404 `NoSuchKey` on artifacts; large-backup guidance |
+| gitlab#477791 | https://gitlab.com/gitlab-org/gitlab/-/issues/477791 | `gitlab-backup-cli` docs — `missed:` labels for every release 17.7 → 19.3 |
 | MCP server | https://docs.gitlab.com/user/model_context_protocol/mcp_server/ | `Tier: Free, Premium, Ultimate` |
 | gitlab#587846 | https://gitlab.com/gitlab-org/gitlab/-/work_items/587846 | MCP server decoupled from Duo and the cloud AI Gateway in **19.2**; the admin toggle path |
 | Chart deployment doc | `charts/gitlab` → `doc/installation/deployment.md` @ master | `global.edition=ce` opt-in; EE is the default |
@@ -124,6 +131,14 @@ Recorded so nobody re-derives them.
   evidenced is anyone stating that leadership was wrong to do it.
 - **[?] "charts#3813 (gitlab-exporter ignores Sentinel) is open."** Closed at
   milestone 17.1, along with #5376. Secondary sources still describe it as live.
+- **[?] "Upstream states the toolbox `backup-utility` *fails* with a large
+  amount of data, and repositories must then be backed up from a Linux-package
+  VM."** Attributed to `backup_large_reference_architectures.md`. **Not present**
+  at master, in raw or rendered form, nor in the charts backup doc — searched
+  2026-08-29. It may have been reworded or removed. The surrounding guidance
+  *is* real (the page scopes itself to 3,000 users / 60 RPS and up, and its
+  whole Helm recipe is server-side repositories plus skipping every blob), so
+  use that rather than the quote. Do not reproduce the sentence as upstream text.
 - **[?] "19.0's `s3_v2` change breaks an `s3:` registry stanza."** The legacy
   name is registered onto the v2 factory; the stanza keeps working.
 - **[?] "Chart 10.3.0's Gateway API CRD step is required for everyone."**
