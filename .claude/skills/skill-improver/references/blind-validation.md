@@ -175,16 +175,6 @@ the run log: per the platform effort doc (verified 2026-08-15), a scoring
 pass is complex-reasoning work that maps to `high`; if the session is at
 `low`, note that the blind scores were produced at low effort.
 
-**Why dynamic replaced the model pin (2026-08-15).** The pin was re-pointed
-on every model release — Opus 4.8 (2026-05-28), Fable 5 (2026-06-09), Opus 5
-(2026-07-24), Fable 5 again by operator override (2026-08-15) — a
-three-file sync edit plus a benchmark-vs-label adjudication each time.
-Inheriting the session model removes that churn and follows the operator's
-model choice automatically. Cross-pass score trends were never scorer-stable
-anyway (three different scorer models across three months of passes); the
-comparability the loop actually uses — baseline vs final within one run —
-survives under the same-run consistency rule above.
-
 For the baseline agent, copy the original skill to a temp directory first so
 the agent scores the unmodified version even if the loop has already started.
 
