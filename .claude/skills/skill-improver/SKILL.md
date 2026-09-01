@@ -139,11 +139,9 @@ only `DUPLICATE` is actionable, while `INTENTIONAL_DETAIL` (an overview in
 SKILL.md developed in `references/`) and `RELATED_BUT_DISTINCT` (same topic,
 different purpose) must be kept — the first of those *is* progressive
 disclosure, the structure a good skill is meant to have. Measured across the
-whole fleet — 62 skills, 520 clusters — **83% of similar-looking content was
-correct as written** (292 INTENTIONAL_DETAIL + 138 RELATED_BUT_DISTINCT vs 90
-real duplicates). Those 430 clusters are what a deletion bias would have cut.
-`scripts/dedup-fleet.py` produces that table; `references/improvement-patterns.md`
-§Pattern 6.1 explains how to read it.
+whole fleet, **83% of similar-looking content was correct as written**; a
+deletion bias would have cut it. `scripts/dedup-fleet.py` produces the table
+and `references/improvement-patterns.md` §Pattern 6.1 explains how to read it.
 
 ### One File at a Time
 
