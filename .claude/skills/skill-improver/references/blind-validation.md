@@ -112,6 +112,17 @@ consistency rule below hold by construction rather than by discipline. The one
 exception is `batch-workflow.js`'s `legacyBlindPrompt()` fallback: it runs
 without the agent definition, so it states the pin explicitly and must be
 changed with it.
+
+The pin outranks `CLAUDE_CODE_SUBAGENT_MODEL` (a default since v2.1.251 — an
+agent definition's `model:` takes precedence) but **not**
+`CLAUDE_CODE_SUBAGENT_MODEL_FORCE` (v2.1.257), which overrides agent-definition
+and per-spawn models alike. With it set, both scorers of a run land on the
+forced model: same-run consistency survives, the Sonnet pin does not, and the
+totals are not comparable with any other run's. `scripts/run-cost.py` reports
+the model each scorer actually ran on — check it before quoting a score. A new
+frontier release does not move this pin by itself (Fable 5.1, 2026-09-01: Sonnet
+5 unchanged, its $2/$10 rate made permanent); only the re-measurement signal
+below does.
 Chosen on cost, from what the 2026-08-20 sweep actually established
 (§Measured scorer behaviour). The sweep proves ONE thing about model choice:
 **Haiku is disqualified** — it was the only model to reorder a fixed set of
