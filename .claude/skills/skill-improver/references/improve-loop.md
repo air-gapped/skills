@@ -1,4 +1,4 @@
-# The Improvement Loop — Phase Workflow (Phases 0–6)
+# The Improvement Loop — Phase Workflow (Phases 0–7)
 
 The full phase workflow for `improve` mode (the default). Extracted verbatim
 from `SKILL.md` §"The Improvement Loop"; the stub there carries the three

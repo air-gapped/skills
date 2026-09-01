@@ -443,7 +443,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 
 ### Reference Files
 
-- **`references/improve-loop.md`** — The full **Improvement Loop workflow** (Phases 0–6): setup, cold scoring, hypothesis criteria, keep/discard decision rules, stop conditions, backlog persistence. Load when running `improve` (the default mode).
+- **`references/improve-loop.md`** — The full **Improvement Loop workflow** (Phases 0–7): setup, cold scoring, hypothesis criteria, keep/discard decision rules, stop conditions, backlog persistence, landing the pass. Load when running `improve` (the default mode).
 - **`references/quality-rubric.md`** — Full scoring rubric with sub-criteria, examples of each score level, and common failure patterns. Load this before scoring.
 - **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
