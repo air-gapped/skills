@@ -92,6 +92,9 @@ def summarize(d: dict) -> dict | None:
             "conflicts": len(b["CONFLICTS"]),
             "scored": scored,
             "unmeasured": n - scored,
+            # Which release the alias resolved to when this cell ran; absent
+            # on results written before the field existed.
+            "resolved_model": c.get("resolved_model", []),
         }
     s = out["cells"][strongest]
     out["known_share"] = (s["knows"] / s["scored"]) if s["scored"] else None

@@ -37,6 +37,11 @@ Usage:
 Claims cache to <skill>/references/knowledge-claims.json so probes are cheap,
 repeatable, and comparable across model releases. Re-extract when the skill
 changes materially; the cache records the SKILL.md hash it was built from.
+
+Every cell records `resolved_model` — the full model ids the probes ran on,
+next to the alias it was asked for. Compare cells across releases on that
+field, not on the alias: `fable` resolved to Fable 5 before 2026-09-01 and to
+Fable 5.1 after, and a `fable` column that spans both is two measurements.
 """
 
 from __future__ import annotations
@@ -177,8 +182,15 @@ def _probe_home() -> str:
 
 def run_claude(
     prompt: str, *, model: str | None = None, effort: str | None = None, timeout: int
-) -> tuple[str, float, bool]:
-    """Run one hermetic `claude -p`. Returns (text, cost_usd, ok).
+) -> tuple[str, float, bool, list[str]]:
+    """Run one hermetic `claude -p`. Returns (text, cost_usd, ok, models).
+
+    `models` is the list of full model ids the call actually ran on, read from
+    the result's `modelUsage` keys. It exists because `--model` takes an alias
+    (`fable`, `sonnet`) and an alias tracks its family's current release —
+    `fable` meant Fable 5 until 2026-09-01 and Fable 5.1 after — so a cell
+    labelled by the alias alone cannot be attributed to a release, and
+    "re-run on each model release" has nothing to diff against.
 
     Hermetic means: an empty temp project so no skills are discoverable, and
     every tool denied so the answer is parametric knowledge rather than
@@ -206,19 +218,21 @@ def run_claude(
                 timeout=timeout,
             )
         except subprocess.TimeoutExpired:
-            return ("", 0.0, False)
+            return ("", 0.0, False, [])
         if p.returncode != 0:
-            return ("", 0.0, False)
+            return ("", 0.0, False, [])
         try:
             d = json.loads(p.stdout)
         except json.JSONDecodeError:
-            return ("", 0.0, False)
+            return ("", 0.0, False, [])
+        models = sorted((d.get("modelUsage") or {}).keys())
         if d.get("is_error"):
-            return ("", float(d.get("total_cost_usd") or 0), False)
+            return ("", float(d.get("total_cost_usd") or 0), False, models)
         return (
             str(d.get("result") or ""),
             float(d.get("total_cost_usd") or 0),
             True,
+            models,
         )
 
 
@@ -264,7 +278,7 @@ def skill_hash(skill: Path) -> str:
 
 def extract_claims(skill: Path, n: int, model: str | None, timeout: int) -> dict:
     body = (skill / "SKILL.md").read_text()
-    text, cost, ok = run_claude(
+    text, cost, ok, models = run_claude(
         EXTRACT_PROMPT.format(n=n, body=body), model=model, timeout=timeout
     )
     if not ok:
@@ -285,6 +299,7 @@ def extract_claims(skill: Path, n: int, model: str | None, timeout: int) -> dict
         "skill": skill.name,
         "extracted": date.today().isoformat(),
         "extractor_model": model or "session-default",
+        "extractor_model_resolved": models,
         "skill_md_sha": skill_hash(skill),
         "extraction_cost_usd": round(cost, 4),
         "claims": claims,
@@ -315,6 +330,7 @@ def probe_cell(claims, model, effort, timeout, workers):
     answers: dict[int, str] = {}
     cost = 0.0
     failures = 0
+    resolved: set[str] = set()
 
     def one(c):
         return c["id"], run_claude(
@@ -325,13 +341,14 @@ def probe_cell(claims, model, effort, timeout, workers):
         )
 
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
-        for cid, (text, c, ok) in ex.map(one, claims):
+        for cid, (text, c, ok, models) in ex.map(one, claims):
             cost += c
+            resolved.update(models)
             if ok:
                 answers[cid] = text.strip()
             else:
                 failures += 1
-    return answers, cost, failures
+    return answers, cost, failures, sorted(resolved)
 
 
 def grade(claims, answers, grader_model, timeout, chunk=10):
@@ -349,7 +366,7 @@ def grade(claims, answers, grader_model, timeout, chunk=10):
             f"model answer: {answers[cid]}"
             for cid in batch
         )
-        text, c, ok = run_claude(
+        text, c, ok, _ = run_claude(
             GRADE_PROMPT.format(items=items), model=grader_model, timeout=timeout
         )
         cost += c
@@ -423,12 +440,14 @@ def main():
         for effort in efforts:
             label = f"{model}/{effort}" if effort else model
             print(f"probing {label} ({len(claims)} claims)…", file=sys.stderr)
-            answers, pcost, fails = probe_cell(
+            answers, pcost, fails, resolved = probe_cell(
                 claims, model, effort, args.timeout, args.workers
             )
             graded, gcost = grade(claims, answers, args.grader_model, args.timeout)
             total_cost += pcost + gcost
             results[label] = {
+                # The alias the cell was asked for is the key; this is what ran.
+                "resolved_model": resolved,
                 "buckets": {
                     b: [c for c, g in graded.items() if g["bucket"] == b]
                     for b in (*BUCKETS, "UNGRADED")
@@ -473,6 +492,8 @@ def main():
             print(
                 f"{'':22}  ({len(b['UNGRADED'])} ungraded, {r['failures']} probe failures)"
             )
+        if r["resolved_model"]:
+            print(f"{'':22}  ran on {', '.join(r['resolved_model'])}")
 
     by_id = {c["id"]: c for c in claims}
     for label, r in results.items():
