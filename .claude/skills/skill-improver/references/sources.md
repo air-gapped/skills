@@ -1,6 +1,6 @@
 # Sources — Skill Design & Agent Skills Ecosystem
 
-**Freshened: 2026-08-20**
+**Freshened: 2026-09-01**
 
 URLs for keeping the skill-improver's references current. Freshen Mode probes
 every row and writes the single header stamp above; the per-row `Last verified`
@@ -9,7 +9,7 @@ stamp to cap Dim 9 (see `references/quality-rubric.md` §Dim 9).
 
 ## Table of Contents
 - [Convention](#convention)
-- [Most recent freshen pass](#most-recent-freshen-pass-2026-08-20) (and prior passes)
+- [Most recent freshen pass](#most-recent-freshen-pass-2026-09-01) (and prior passes)
 - [Official Documentation](#official-documentation)
 - [GitHub Repositories](#github-repositories)
 - [Blog Posts & Articles](#blog-posts--articles)
@@ -22,7 +22,91 @@ Each row below has these columns: `Source`, `URL`, `What it contains`,
 Mark rows you want Freshen Mode to skip with `<!-- ignore-freshen -->`
 at the end of the row.
 
-## Most recent freshen pass: 2026-08-20
+## Most recent freshen pass: 2026-09-01
+
+All 29 rows probed (three parallel `web-searcher` agents: docs/blogs, GitHub,
+papers/X), and every drifted claim re-read on its primary page from the main
+context before it entered a file. Trigger: the Fable 5.1 release.
+
+### Notable changes since the previous pass (2026-08-20 → 2026-09-01)
+
+- **Claude Fable 5.1 and Mythos 5.1 shipped 2026-09-01** (Claude Code
+  v2.1.257), model id `claude-fable-5-1` — now the default Fable model: 1M
+  context, 128K max output, $10/$50 per Mtok, reliable knowledge cutoff June
+  2026, default effort `high`. The models-overview page moves Fable 5 to the
+  legacy list and now reads *"start with Claude Opus 5 for most workloads. Use
+  Claude Fable 5.1 for demanding reasoning and long-horizon agentic work, or
+  when your evals on Claude Opus 5 at higher effort still fall short."* The
+  launch page (new row) attributes a ~25% lower cost than Fable 5 on typical
+  workloads, up to ~45% on highly agentic ones, to cache-read pricing alone,
+  and its benchmark table has Fable 5.1 ahead of Opus 5 on every listed row.
+  **The blind-scorer pin is unaffected** — it is cost-chosen among models that
+  tied on ranking (`blind-validation.md` §Model selection), Sonnet 5 is
+  unchanged, and no Sonnet 5.1 / Opus 5.1 / Haiku 5 shipped.
+- **Cache reads on Fable 5.1 / Mythos 5.1 cost 0.025× base input ($0.25/MTok);
+  every other model stays at 0.1×** — the first per-model exception to the
+  multiplier table. `scripts/model-rates.json` gained a per-model `cache_read`
+  override, honoured by `run-cost.py` and by `probe-trigger.py` (which had 0.1
+  hardcoded); `verified` restamped 2026-09-01. Same page: **Sonnet 5's $2/$10
+  is now the standard price** — the increase to $3/$15 scheduled for
+  2026-09-01 was cancelled.
+- **Effort availability moved.** `xhigh` adds Fable 5.1 / Mythos 5.1; `max`
+  now lists Mythos Preview, Opus 4.6 and Sonnet 4.6 alongside — and **Opus 4.5
+  is gone from both lists**. Fable 5.1, Mythos 5.1 and Opus 5 accept a
+  per-message effort change (beta) that keeps the prompt cache.
+  `anthropic-skill-design.md` effort row and improvement-patterns Pattern 9.3
+  corrected.
+- **Claude Code v2.1.237 → v2.1.257**, seven new version-table rows. Beyond
+  the release itself: **v2.1.251** demotes `CLAUDE_CODE_SUBAGENT_MODEL` to a
+  default that an agent definition's `model:` outranks, and **v2.1.257** adds
+  `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, which overrides agent definitions — the
+  one setting that silently moves the blind-scorer pin, now stated in
+  `blind-validation.md`; **v2.1.243 / v2.1.248** make the subagent cache TTL
+  configurable (`subagentPromptCacheTtl`, agent frontmatter
+  `experimental.cacheTtl`), so Pattern 7.3's "5-minute TTL even on a
+  subscription" became "by default"; **v2.1.246** subagents stopping at
+  `maxTurns` return output marked partial; **v2.1.239** BOM-prefixed skill
+  files were silently ignored; **v2.1.247** `/claude-api cost-optimize`;
+  **v2.1.248** Workflow prompt cut to ~1k tokens with a bundled
+  `workflow-authoring` skill. Nothing in the range touches the 20-concurrent
+  cap, nesting depth, `workflowSizeGuideline`, `plugin validate`,
+  `disable-model-invocation` or `prompt-audit`.
+- **The `fable` alias now names two releases.** Claude Code resolves `fable`
+  to Fable 5.1, while Claude-apps gateway sessions keep resolving it to Fable 5
+  (v2.1.257). Floor-mode results are keyed by that alias and
+  `knowledge-floor.py` recorded no resolved model id, so a `fable` column
+  could not be attributed to a release — a Dim 7 defect handed to the improve
+  pass that followed.
+- **A pinned SkillEvaluator release never existed.** The row pinned "v0.2.0
+  (2026-08-18)"; GitHub carries only the `v0.1.0` tag and release
+  (2026-08-05). The number came from `pyproject.toml` / `CHANGELOG.md`, which
+  now read **0.2.1 (2026-08-24)** with further fixes under Unreleased: license
+  detection no longer trusts a frontmatter `license` over a conflicting
+  LICENSE file (a blocking conflict no longer reports `allowed`), PII scanning
+  catches emails in Markdown headings, and `tools/` is scanned like
+  `scripts/`. Tier 1 check names, Tier 2 classes and bands, and the profiles
+  are unchanged. The host running this repo's pre-commit gate has **0.2.0**
+  installed, so that tightening is not yet what the gate enforces.
+- **anthropics/skills @ 0a64e398 → `53048666`** (2026-09-01, claude-api skill
+  updated for Fable 5.1 / Mythos 5.1); **`skills/skill-creator/**` has zero
+  commits since 2026-07-22**, so every Trigger-Mode invariant (holdout 0.4,
+  3 runs/query, test scores stripped, best-by-test, the "pushy" guidance in
+  SKILL.md, the overfitting guard and ≤200-word / 1024-char targets in
+  `improve_description.py`) stands by inheritance. Plugin copy @ `2a40fd2e`
+  and agentskills/agentskills @ `69ef37e9` both unchanged.
+- **Papers stable:** SkillOpt v2, SkillLens v1, Bennett v4 — no new versions.
+- **One date was wrong.** The Fable field-guide row said 2026-07-03; the
+  page's own `datePublished` is **2026-07-06** and its title is "A field guide
+  to Claude Fable 5: Finding your unknowns". Corrected.
+- **X rows all read by `scripts/read-x-post.py`**, `unexpanded: 0` on every
+  one. The `bcherny` thread's fourth post re-confirmed verbatim; the `Mnilax`
+  row still contains none of the claims it was once cited for and stays as a
+  record of the bad citation.
+- **Cost figures re-confirmed verbatim** on the optimizing-for-cost page
+  (36%, 14%, +5 points, a third, 7–11 points, and the sentence extending them
+  to skills).
+
+### Previous freshen pass: 2026-08-20
 
 All 29 rows probed (three parallel `web-searcher` agents: docs/blogs, GitHub,
 papers/announcements). First pass on this file to use the one-stamp contract —
@@ -245,15 +329,15 @@ unrestamped.
 | Evaluating skill output quality | https://agentskills.io/skill-creation/evaluating-skills | Output-quality eval methodology: `evals/evals.json` schema, assertions, clean-context runs, `grading.json` / `benchmark.json`, blind A/B comparison, iterate-until-flat loop | 2026-07-24 | — |
 | Skill authoring best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | Official best practices: conciseness, freedom levels, progressive disclosure, evaluation-first testing, anti-patterns | 2026-07-18 | — | **Re-read 2026-08-20** to settle the step-count question: the page gives degrees-of-freedom guidance (low freedom = explicit steps when operations are fragile / consistency critical / sequence matters) and "use workflows for complex tasks" with NO step ceiling — the basis for withdrawing the unsourced scaffold cap.
 | Agent Skills specification | https://agentskills.io/specification | Cross-platform SKILL.md spec: required/optional fields (incl. license/compatibility/metadata/allowed-tools), validation rules; `description` hard cap 1024 chars and the `name` rules are unchanged; `metadata` clarified 2026-08-09 to a map of string keys to **string** values. **Size guidance, read verbatim 2026-08-21** (previously omitted from this row while quality-rubric.md leaned on it as an "Official limit"): "Keep your main SKILL.md **under 500 lines**. Move detailed reference material to separate files." plus the three-level loading model — metadata ~100 tokens at startup, "Instructions (**< 5000 tokens recommended**)" for the body, resources on demand. Note the asymmetry: the line figure is a bare imperative, the token figure is hedged. **Neither is enforced** — `skills-ref validate` checks frontmatter, not body length — so these are directives, not schema constraints. Anthropic's best-practices page and the Claude Code skills docs both state the same 500 lines, no conflicting number. **Do not conflate** the spec's "< 5000 tokens" *authoring* guidance with Claude Code's separate *runtime* cap: after auto-compaction it re-attaches "the first 5,000 tokens of each" skill, with re-attached skills sharing "a combined budget of 25,000 tokens". Same number, different mechanism. Verified by independent agent 2026-08-21 | 2026-07-18 | — |
-| Claude models overview | https://platform.claude.com/docs/en/about-claude/models/overview | Per-model IDs, pricing, context windows, knowledge cutoffs, and the vendor capability positioning — the label side of the blind-validation model pin. As of 2026-08-20 the page leads with **Fable 5** as most capable widely released, with Opus 5 the recommended default for complex agentic coding (not the top model) | 2026-07-24 | — |
-| Effort levels | https://platform.claude.com/docs/en/build-with-claude/effort | Which models support `xhigh`/`max`, per-model defaults and recommended levels; ultracode = `xhigh` + standing multiagent-workflow permission | 2026-07-24 | — |
-| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-24 | v2.1.237 |
+| Claude models overview | https://platform.claude.com/docs/en/about-claude/models/overview | Per-model IDs, pricing, context windows, knowledge cutoffs, and the vendor capability positioning — the label side of the blind-validation model pin. As of 2026-09-01 the table leads with **Fable 5.1** (`claude-fable-5-1`, June 2026 cutoff, $10/$50) "for demanding reasoning and long-horizon agentic work", with Opus 5 the recommended start "for most workloads"; Fable 5 is on the legacy list | 2026-07-24 | — |
+| Effort levels | https://platform.claude.com/docs/en/build-with-claude/effort | Which models support `xhigh`/`max`, per-model defaults and recommended levels; per-message effort change (beta) on Fable 5.1 / Mythos 5.1 / Opus 5 keeps the cache, other models restart it; ultracode = `xhigh` + standing multiagent-workflow permission | 2026-07-24 | — |
+| Claude Code changelog | https://code.claude.com/docs/en/changelog | Version history with skill-related feature additions | 2026-07-24 | v2.1.257 |
 | Claude Code hooks docs | https://code.claude.com/docs/en/hooks | Hook integration including hooks-in-skills frontmatter | 2026-07-18 | — |
 | Claude Code subagents docs | https://code.claude.com/docs/en/sub-agents | Subagent types, skill preloading, context: fork, agent teams, background agents. **The 200-subagent-per-session cap was removed in v2.1.224** — concurrency (20, `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) is now the only live subagent bound; nesting-depth default is 3 | 2026-07-18 | — |
-| Claude Code prompt-caching docs | https://code.claude.com/docs/en/prompt-caching | Prefix layers (system prompt / project context / conversation); model and effort are cache keys; system prompt embeds cwd, platform, shell, OS, auto-memory paths — so each worktree is its own prefix; **subagents use the 5-min TTL even on a subscription** (1-hour is main-conversation only); fork inherits the parent prefix; workflow fan-out hold-and-release; grounds Pattern 7.3 | 2026-08-19 | — |
+| Claude Code prompt-caching docs | https://code.claude.com/docs/en/prompt-caching | Prefix layers (system prompt / project context / conversation); model and effort are cache keys; system prompt embeds cwd, platform, shell, OS, auto-memory paths — so each worktree is its own prefix; **subagents use the 5-min TTL even on a subscription** (1-hour is main-conversation only); fork inherits the parent prefix; workflow fan-out hold-and-release; `promptCacheTtl` / `subagentPromptCacheTtl` (v2.1.242+) and agent frontmatter `experimental.cacheTtl` (v2.1.248+) set the TTL per bucket / per agent; automatic model fallback on Fable 5.1 / Fable 5 / Opus 5 is a cache-invalidating model switch; grounds Pattern 7.3 | 2026-08-19 | — |
 | Claude Code workflows docs | https://code.claude.com/docs/en/workflows | Workflow agent() cache mechanics (same prefix rules as Agent tool), fan-out cache warm-up | 2026-08-16 | — |
 | Optimizing for cost and intelligence | https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence | Measured cost levers: caching 2.5-3.7x; prompt audit — Opus 4.8-era prompts cost 36% more per ticket on Opus 5 at equal accuracy, audit returns 14% and +5pts accuracy (14% again on Sonnet 4.6→5); "verify twice" removal cut cost by a third; retired thinking setting / contradictory rules / hand-rolled scratchpad each restored 7-11 accuracy points; page states the patterns apply to skills. Cited in quality-rubric.md §Boris Alignment Check and §The cost side of the same benchmark. Also: effort curves flat on knowledge work, re-run-failures policy | 2026-08-19 | — |
-| Model pricing | https://platform.claude.com/docs/en/about-claude/pricing | Per-MTok list rates for every live model plus the cache multipliers (read 0.1x, 5m write 1.25x, 1h write 2x), `inference_geo: us` 1.1x, fast-mode premium, web search $10/1k. **Backs `scripts/model-rates.json`** — when this row is re-probed, update that file's `verified` stamp in the same pass | 2026-08-19 | — |
+| Model pricing | https://platform.claude.com/docs/en/about-claude/pricing | Per-MTok list rates for every live model plus the cache multipliers (read 0.1x — **0.025x on Fable 5.1 and Mythos 5.1**, 5m write 1.25x, 1h write 2x), `inference_geo: us` 1.1x, fast-mode premium (Opus 5 / Opus 4.8 only), web search $10/1k; Sonnet 5's $2/$10 is the standard price since 2026-09-01 (scheduled $3/$15 increase cancelled). **Backs `scripts/model-rates.json`** — when this row is re-probed, update that file's `verified` stamp in the same pass | 2026-08-19 | — |
 | Loop engineering blog post | https://claude.com/blog/getting-started-with-loops | Official loops guide (2026-06-30): /loop, /goal, /schedule taxonomy by trigger + stop condition; best practices (deterministic criteria, turn caps, verify via skills) | 2026-07-18 | — |
 | Context engineering for Claude 5 models | https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models | Thariq Shihipar, 2026-07-24. **First-party written source for the Boris Alignment Check** — 80% of Claude Code's system prompt removed with no eval loss; six then/now shifts (rules→judgment, examples→interface design, upfront→progressive disclosure, repetition→simple tool descriptions, CLAUDE.md memory→auto-memory, simple specs→rich references); `/doctor` rightsizes skills + CLAUDE.md; rubrics-as-references + verifier agents | 2026-07-24 | — |
 | Building verification loops with skills | https://claude.com/blog/building-verification-loops-in-claude-code-with-skills | Delba de Oliveira, 2026-07-22. Invocation-mode taxonomy (standalone / embedded / chained / on-every-PR) with outgrow signals and skip conditions; encode manual checks as skills; "a deterministic rule no generic linter will catch but a project-specific one will" — the criterion side of the scaffolding discriminator; plugin-managed skills off-limits for embedding (overwritten on update) | 2026-07-24 | — |
@@ -262,15 +346,15 @@ unrestamped.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-24 | main @ 0a64e398 (2026-08-18) — **`skills/skill-creator/**` unchanged since 1f630fdf**, so Trigger Mode's mirroring of `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate |
+| anthropics/skills | https://github.com/anthropics/skills | Official skill examples, spec, skill-creator, document skills | 2026-07-24 | main @ 53048666 (2026-09-01, claude-api skill updated for Fable 5.1) — **`skills/skill-creator/**` unchanged since 1f630fdf** (zero commits since 2026-07-22), so Trigger Mode's mirroring of `run_eval.py` / `run_loop.py` / `improve_description.py` stays accurate |
 | Official skill-creator | https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md | Anthropic's skill for creating/evaluating skills (has known bugs, actively maintained). **Source of the "a little bit 'pushy'" guidance** and the undertrigger rationale behind it (body, §description) — cited by trigger-patterns Pattern T4 | 2026-07-24 | main |
 | skill-creator plugin (install path) | https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator | The copy the official docs tell users to install (`/plugin install skill-creator@claude-plugins-official`); last synced from anthropics/skills 2026-04-23 | 2026-07-24 | main @ 2a40fd2e |
 | skill-creator: improve_description.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/improve_description.py | Description-improvement prompt — authoritative source for the overfitting guard ("do NOT produce an ever-expanding list of specific queries"; generalize to broader categories of user intent) and the ≤200-word / 1024-char targets. Trigger Mode mirrors this approach. The "pushy" guidance is NOT here — it lives in skill-creator's SKILL.md (row above); this row misattributed it until 2026-08-20. | 2026-07-24 | main (unchanged since 2026-04-20) |
 | skill-creator: run_eval.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_eval.py | Trigger-detection mechanism: synthetic slash-command + `claude -p` + stream-json `tool_use` parsing. Source for `scripts/probe-trigger.py`. | 2026-07-24 | main (unchanged since 2026-04-20) |
 | skill-creator: run_loop.py | https://github.com/anthropics/skills/blob/main/skills/skill-creator/scripts/run_loop.py | 60/40 train/test split, 3 runs/query, blind test scores, best-by-test selection — Trigger Mode loop semantics. | 2026-07-24 | main (unchanged since 2026-04-20) |
-| NVIDIA SkillEvaluator | https://github.com/NVIDIA/SkillEvaluator | Three-tier skill evaluation framework: keyless deterministic Tier 1 (schema / PII / unicode-smuggling / license / code-integrity / lint), embedding Tier 2 dedup (intra-skill DUPLICATE vs INTENTIONAL_DETAIL vs RELATED_BUT_DISTINCT; inter-skill similarity bands), Harbor-sandboxed Tier 3 A/B Skill Lift. Backs the pre-commit gate (`scripts/skillevaluator-gate.sh` + `.claude/skillevaluator-policy.yaml`, base+security install) and `scripts/overlap-scan.py` / `scripts/dedup-fleet.py` (tier2 extra, only — no LLM or Harbor deps, nothing leaves the machine). Its `external` profile is a public-marketplace policy, not this fleet's; the sweep script documents which checks it suppresses and why | 2026-08-20 | v0.2.0 (2026-08-18) |
+| NVIDIA SkillEvaluator | https://github.com/NVIDIA/SkillEvaluator | Three-tier skill evaluation framework: keyless deterministic Tier 1 (schema / PII / unicode-smuggling / license / code-integrity / lint), embedding Tier 2 dedup (intra-skill DUPLICATE vs INTENTIONAL_DETAIL vs RELATED_BUT_DISTINCT; inter-skill similarity bands), Harbor-sandboxed Tier 3 A/B Skill Lift. Backs the pre-commit gate (`scripts/skillevaluator-gate.sh` + `.claude/skillevaluator-policy.yaml`, base+security install) and `scripts/overlap-scan.py` / `scripts/dedup-fleet.py` (tier2 extra, only — no LLM or Harbor deps, nothing leaves the machine). Its `external` profile is a public-marketplace policy, not this fleet's; the sweep script documents which checks it suppresses and why | 2026-08-20 | CHANGELOG 0.2.1 (2026-08-24) — the only GitHub release is v0.1.0 (2026-08-05); the earlier "v0.2.0" pin named a release that does not exist. Unreleased since 0.2.1: license conflicts no longer report `allowed`, PII in Markdown headings, `tools/` scanned like `scripts/`. The gate host runs 0.2.0 |
 | Agent Skills spec repo | https://github.com/agentskills/agentskills | Spec source, `skills-ref validate` CLI tool | 2026-07-24 | main @ 69ef37e9 (2026-08-09) — one spec clarification since: `metadata` is now stated to be a map from string keys to **string values**. No `skills-ref validate` behaviour change |
-| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-24 | v2.1.237 |
+| Claude Code releases | https://github.com/anthropics/claude-code/releases | Release notes with detailed changelogs | 2026-07-24 | v2.1.257 (2026-09-01) |
 
 ## Blog Posts & Articles
 
@@ -279,12 +363,13 @@ unrestamped.
 | Anthropic engineering blog | https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills | Agent Skills announcement (2025-10-16), architecture, security considerations; standard open-sourced 2025-12-18 | 2026-07-18 | — |
 | Anthropic news — Opus 4.8 | https://www.anthropic.com/news/claude-opus-4-8 | Opus 4.8 launch (2026-05-28): `claude-opus-4-8`, effort tiers, dynamic workflows, fast mode pricing | 2026-05-28 | — | <!-- ignore-freshen (historical launch page) -->
 | Anthropic news — Opus 5 | https://www.anthropic.com/news/claude-opus-5 | Opus 5 launch (2026-07-24): `claude-opus-5`, $5/$25 per Mtok, near-frontier at half Fable 5's price but below it; new default Opus | 2026-07-24 | — | <!-- ignore-freshen (historical launch page) -->
+| Anthropic — Fable 5.1 / Mythos 5.1 | https://www.anthropic.com/claude-fable-and-mythos-5-1 | "Introducing Claude Fable 5.1 and Claude Mythos 5.1" (2026-09-01): `claude-fable-5-1`, same $10/$50 base as Fable 5 with cache reads cut to $0.25/MTok — an estimated 25% cheaper on typical workloads, up to ~45% on highly agentic ones; benchmark table vs Opus 5 (Terminal-Bench 4.0 55.8 vs 42.0, Terminal-Bench-Science 52.6 vs 29.0, GDPval-AA v2 1853 vs 1824); Mythos 5.1 is the same model with looser safeguards for vetted cyber / life-science programs | 2026-09-01 | — |
 | Anthropic news — Fable 5 | https://www.anthropic.com/news/claude-fable-5-mythos-5 | Fable 5 launch (2026-06-09): `claude-fable-5`, Mythos-class tier above Opus, pricing ($10/$50 per Mtok), availability windows | 2026-06-09 | — | <!-- ignore-freshen (historical launch page) -->
 | Thariq Shihipar — Skills lessons | https://x.com/trq212/status/2033949937936085378 | "Lessons from Building Claude Code: How We Use Skills", 2026-03-17. Skill categories, "don't state the obvious", gotchas sections, progressive disclosure, distribution/marketplace, measuring skills. Browser-read 2026-08-20 — the row's prior `X unfetchable` note was wrong, the block is fetcher-side | 2026-08-20 | — |
 | Thariq — Seeing like an Agent | https://x.com/trq212/status/2027463795355095314 | "Lessons from Building Claude Code: Seeing like an Agent", 2026-02-27. Tool-space design philosophy, AskUserQuestion history, TodoWrite → Task tool evolution, progressive disclosure via Grep/skills, Claude Code Guide subagent. Browser-read 2026-08-20 | 2026-08-20 | — |
 | Anthropic — Improving skill-creator | https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills | First-party post on testing/measuring/refining skills (2026-03-03) — the closest published analogue to this skill, and previously uncited. **Comparator agents**: blind A/B of two skill versions, or skill vs. no-skill, judged without knowing which is which. **Two skill kinds**: *capability uplift* (decays as models improve — the case Floor Mode exists for) vs *encoded preference* (durable; evals verify workflow fidelity). Benchmark mode tracks pass rate + elapsed time + token usage. Description tuning improved triggering on 5 of 6 public skills. Floor Mode's premise stated first-party: base model passing evals with the skill unloaded means the skill is unnecessary, not broken. | 2026-08-22 | — |
 | Thariq — Dynamic workflows | https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code | 2026-06-02. Names three single-context failure modes this skill's fan-outs already work around: **agentic laziness** (declaring done after partial progress), **self-preferential bias** (preferring one's own output when judging against a rubric — the stated reason blind validation exists), and **goal drift** (lossy compaction dropping constraints). Six composable patterns: classify-and-act, fan-out-and-synthesize, adversarial verification, generate-and-filter, tournament, loop-until-done. States that **comparative judgment is more reliable than absolute scoring** for qualitative ranking, and names skill refinement against a rubric as an eval use case. | 2026-08-22 | — |
-| Thariq — Field guide to Fable: finding your unknowns | https://claude.com/blog/a-field-guide-to-claude-fable-finding-your-unknowns | 2026-07-03. Known/unknown quadrants over prompts-skills-context as "the map"; the blindspot pass (literal phrasing "blindspot pass", "unknown unknowns"); implementation-notes.md with a Deviations log; quiz-before-merge as a comprehension gate. Techniques for finding what a skill fails to cover. | 2026-08-22 | — |
+| Thariq — A field guide to Claude Fable 5: finding your unknowns | https://claude.com/blog/a-field-guide-to-claude-fable-finding-your-unknowns | 2026-07-06 (the page's `datePublished`; an earlier row said 07-03). Known/unknown quadrants over prompts-skills-context as "the map"; the blindspot pass (literal phrasing "blindspot pass", "unknown unknowns"); implementation-notes.md with a Deviations log; quiz-before-merge as a comprehension gate. Techniques for finding what a skill fails to cover. | 2026-08-22 | — |
 | ~~Boris Cherny on Lenny's podcast~~ **MISATTRIBUTED** | https://x.com/Mnilax/status/2050321700802408552 | **Read via browser 2026-08-20 (the `402` was the fetcher, not the page) and it does NOT say what this row claimed.** It is a third-party post by @Mnilax (2026-05-01) summarising a podcast as *nine patterns that waste 73% of your tokens* — CLAUDE.md overhead, re-read chat history, forgotten hooks. **None** of the five claims this row sourced — "don't box the model in", the bitter lesson applied to skills, "give it a tool, not context up front", build for the model 6 months out, plan-mode default — appears in it or its quoted tweet. Kept as a record of the bad citation, not as a source. The Boris Alignment Check does not depend on it (re-attributed 2026-07-24 to the first-party context-engineering blog, which carries all three capped patterns plus the measured cost evidence). Philosophy Mode, freshen §4b and the trigger Minimalism Test still describe their origin as this podcast — that origin is **unverified**, not refuted: the podcast may well say these things; this post is simply not evidence that it does. | 2026-08-20 | — |
 | Boris Cherny — Steps of AI Adoption | https://x.com/bcherny/status/2077929379661844559 | Loop-era adoption ladder. **Browser-read 2026-08-20:** tweet is Boris Cherny, 2026-07-17, linking a claude.ai artifact "Steps of AI Adoption" dated 2026-07-16 — the artifact is the primary source, the tweet is a pointer. Ladder steps **0–3 confirmed verbatim** in the artifact table (0 Gated / 0 agents · 1 Assisted, a pair / ~1 · 2 Parallel, orchestrator / ~10 · 3 Supervised autonomy, manager of managers / ~100). **Confirmed 2026-08-22 by `curl` on the tweet itself** (not the artifact): the thread's fourth post reads "Anthropic is on step 3 and pushing toward 4. Personally, I just hit level 4." — so "Anthropic self-reports step 3" is first-party sourced, and a step 4 exists. The **whole four-post thread** has since been read via `scripts/read-x-post.py` (which expands X's `Show more` truncation), and it does **not** contain the step-4 "AI-native (1,000+)" label or the "I don't prompt Claude anymore … my job is to write loops" quote — so neither is sourced *to this tweet*. Both would have to come from the linked claude.ai artifact (whose iframe the browser could not scroll past step 3) or the @Scale talk. Unverified rather than refuted; do not quote them as sourced. | 2026-08-20 | — |
 | Armin Ronacher — The Coming Loop | https://lucumr.pocoo.org/2026/6/23/the-coming-loop/ | Independent practitioner take (2026-06-23) on the loop shift — third-party corroboration of the loop-engineering discourse | 2026-07-18 | — |
