@@ -208,10 +208,8 @@ the model's prior, never the reverse. This rule applies in EVERY mode, not just
   finding being attributed is actually there. A plausible-looking arXiv ID is not
   a source. Where a research agent supplied the citation, the check is a separate
   step from the research — an agent asked only "is this real?" catches what the
-  agent that found it will not. Both known instances were caught this way, and
-  the ones that slipped through (`e379abd`) were not checked at all. If a detail
-  cannot be confirmed on the page, cite the paper without it rather than
-  repeating the unverified figure.
+  agent that found it will not. If a detail cannot be confirmed on the page,
+  cite the paper without it rather than repeating the unverified figure.
 
 ---
 
