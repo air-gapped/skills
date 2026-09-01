@@ -392,62 +392,27 @@ summary sentence whenever the fleet total moved since the last run.
 ## Floor Mode
 
 Measure what a **bare** model already knows about the skill's subject — no
-skills loaded, no tools, no web. Whatever the model knows unaided does not need
-to be in the skill; as the bleeding edge is absorbed into training, the skill
-should shrink to the delta. Read-only: surfaces candidates, never edits.
-
-**Classify the skill before probing it — the premise does not hold for both
-kinds.** A *capability-uplift* skill encodes something the base model cannot do,
-or cannot do consistently; its content decays as models improve, which is
-exactly what a floor probe detects. An *encoded-preference* skill sequences
-things the model can already do, into a specific house order — an air-gap
-procedure, a commit ritual, which of several valid tools this operator uses.
-Its claims are **supposed** to score `KNOWS`: the model knowing what a Helm
-upgrade is says nothing about whether it knows to do it this way here.
-
-Run Floor Mode on capability-uplift skills. On an encoded-preference skill a
-high floor is the expected reading and not a delete list, so the probe spends
-tokens to produce a number that must then be ignored — and the standing risk
-is that some pass eventually acts on it. Where a skill is both, probe it and
-scope the delete list to the capability-uplift claims. `--extract` writes the
-claim set; the preference claims in it are the ones a high `KNOWS` share must
-not touch.
+skills loaded, no tools, no web — and bucket each claim `KNOWS` / `UNKNOWN` /
+`CONFLICTS`. Whatever the model knows unaided does not need to be in the
+skill; `CONFLICTS` is worth more than a filled blank, because unaided the
+model does not hesitate — it proceeds, wrong. Read-only: surfaces candidates,
+never edits. Re-run on each model release — the movement in `KNOWS` is the
+delete list.
 
 **Invocation:** one skill — `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
-· whole fleet — `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`, which
-writes each result as it lands so a multi-hour pass is resumable, and ranks by the
-share of claims the strongest probed model already knows.
+· whole fleet — `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`.
 
-The skill is its own answer key. Claims are extracted once to
-`<skill>/references/knowledge-claims.json` (cached, hash-stamped against
-SKILL.md) and each is put to the bare model across a model × effort matrix.
-Three buckets:
+Two rules bind without reading the reference. **Classify the skill first** —
+probe capability-uplift skills; on an encoded-preference skill (a house order
+for things the model already knows how to do) a high floor is the expected
+reading, not a delete list. **`KNOWS` is a candidate, never a licence to cut**
+— recall is not application, and a conflict never means the skill is wrong
+(§"The Skill Outranks Training Data").
 
-| Bucket | Meaning | Action |
-|---|---|---|
-| **KNOWS** | model states the claim correctly | deletion **candidate** |
-| **UNKNOWN** | does not know, or hedges | keep — real knowledge transfer |
-| **CONFLICTS** | confidently states something else | keep, and make it louder |
-
-`CONFLICTS` is the valuable bucket: filling a blank is worth something,
-overriding a confident wrong prior is worth more, because unaided the model
-does not hesitate — it proceeds, wrong.
-
-Two limits bind. **Recall is not application** — a model can state a flag and
-still not think to use it mid-task, so `KNOWS` is a candidate to confirm with
-an eval delta, never a licence to cut. And **a conflict never means the skill
-is wrong**: skills here are freshened past the model cutoff, so the skill is
-presumed correct and the model presumed stale (§"The Skill Outranks Training
-Data"). The grader prompt encodes this; without it the probe becomes a
-downgrade machine.
-
-Re-run on each model release — the movement in `KNOWS` is the delete list.
-
-Floor results are also a **rubric input**: they move the unmeasured Dim 10 cap
-off its flat `8`, and they classify the skill into one of three profiles —
-deletion candidate, pure transfer, or correction skill. A high floor with
-durable conflicts means *louder*, not leaner. See
-`references/quality-rubric.md` § Negative-Transfer Gate.
+The classification test, the bucket table, the two limits in full, and how
+floor results move the Dim 10 cap into one of three skill profiles live in
+**`references/floor-patterns.md`**. Read it when running the probe or reading
+its leaderboard.
 
 ---
 
@@ -484,6 +449,7 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
 - **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
 - **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
+- **`references/floor-patterns.md`** — The full **Floor Mode** reference: the capability-uplift vs encoded-preference classification, the KNOWS / UNKNOWN / CONFLICTS bucket table, the two limits, and how floor evidence moves the Dim 10 cap. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading a floor leaderboard.
 - **`references/blind-validation.md`** — The blind-scorer agent, the `skill-comparator` A/B pass that decides the run verdict, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent, or the end-of-run comparator.
 - **`references/backlog-format.md`** — The `Open` / `Resolved this pass` section shapes, admission rules, and append-only history rule. Load when writing a target skill's `improvement-backlog.md` in Phase 6.
 - **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
