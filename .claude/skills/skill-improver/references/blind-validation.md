@@ -33,9 +33,10 @@ Spawn with `subagent_type: "blind-scorer"` (project/user agents dir) or
 baseline (parallel with the loop), foreground for the final (the comparison
 table needs the result).
 
-**Cache note — baseline and final never share a prefix.** Subagents use the
-5-minute cache TTL even on a subscription (the 1-hour TTL is main-conversation
-only), and a full improvement loop runs far longer than that. Do not try to
+**Cache note — baseline and final never share a prefix.** Subagents default
+to the 5-minute cache TTL even on a subscription (the 1-hour TTL is
+main-conversation only; `subagentPromptCacheTtl: 1h`, v2.1.242+, raises it),
+and a full improvement loop runs far longer than an hour anyway. Do not try to
 "keep the scorers warm"; the baseline pays its own prefix write and so does
 the final. Where sharing *is* available is **batch mode**: baseline scorers
 for different skills spawned concurrently share one prefix, provided agent
