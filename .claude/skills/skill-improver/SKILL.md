@@ -116,13 +116,11 @@ many calls, on which model, and the rough dollar size from
 `scripts/model-rates.json`. `scripts/run-cost.py` prices a run afterwards, which
 is too late to decide against it.
 
-Two things this catches, both observed: probes inheriting the session model when
-a cheap one would do (a grader that only checks text against assertions does not
-need the strongest model), and optional work being started because a rubric cap
-*could* be cleared rather than because clearing it was worth the spend. **A cap
-is a resting state, not a task** — the unmeasured Dim 10 cap in particular is
-documented as deliberate. Reaching for it is a choice that costs money, so
-price it first and say the number.
+Pin the cheap model on mechanical work — a grader that only checks text
+against assertions does not need the strongest model, and a probe that
+inherits the session model pays for one. **A cap is a resting state, not a
+task** — the unmeasured Dim 10 cap in particular is deliberate; clearing one
+is optional work that costs money, so price it first and say the number.
 
 ### Git as State Machine
 
