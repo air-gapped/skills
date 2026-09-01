@@ -415,10 +415,9 @@ Cheap weekly check that runs the three Boris-derived signals as one
 pass without spinning up the full 10-dim rubric or the trigger eval set.
 Sibling to `freshen` and `trigger`. All three signals are grounded in
 the first-party context-engineering blog (2026-07-24); the podcast
-origin the name comes from is **unverified** — the X row that carried it
-was browser-read 2026-08-20 and does not contain the claims (`sources.md`).
-Output is a Boris score (0-3 anti-patterns flagged) plus the existing dim
-caps that fire as a side-effect.
+origin the name comes from is **unverified** (`sources.md`). Output is a
+Boris score (0-3 anti-patterns flagged) plus the existing dim caps that
+fire as a side-effect.
 
 **Invocation:** `philosophy <skill-name>` · `batch philosophy --all`.
 Surfaces findings only — never auto-applies mutations; the operator decides.
