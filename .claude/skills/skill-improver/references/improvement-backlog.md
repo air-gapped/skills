@@ -5,7 +5,8 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
-- [Resolved this pass — 2026-08-20b (improve + freshen)](#resolved-this-pass--2026-08-20b-improve--freshen-self-run)
+- [Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)](#resolved-this-pass--2026-09-01-freshen--improve-fable-51-release-day)
+- [Resolved — 2026-08-20b (improve + freshen)](#resolved-this-pass--2026-08-20b-improve--freshen-self-run)
 - [Discard guards — do not re-propose](#discard-guards--do-not-re-propose)
 - [Resolved — 2026-08-19 (workflow-sandbox probe)](#resolved--2026-08-19-workflow-sandbox-probe)
 - [Resolved this pass — 2026-08-15](#resolved-this-pass--2026-08-15-improve-self-run-dynamic-scorer-config)
@@ -38,17 +39,20 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
-- **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` mode +
-  Boris/scaffolding-decay vocabulary absent from `when_to_use`.** "philosophy
-  mode", "boris alignment check", "scaffolding decay", "is my skill fighting the
-  model's grain" have no trigger phrases (only `argument-hint` + body). Combined
-  `description` + `when_to_use` measured **1536/1536 on 2026-08-20 — zero
-  headroom** (the "~230 chars free" figure recorded here was stale). Any added
-  trigger phrase must now be funded by removing an existing one, per
-  `trigger-patterns.md` §T4. Adding triggers blindly is a guess; do it
-  empirically:
+- **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` and `floor` mode
+  vocabulary absent from `when_to_use`.** "philosophy mode", "boris alignment
+  check", "scaffolding decay", "is my skill fighting the model's grain" — and,
+  added 2026-09-01, "knowledge floor", "floor mode", "what does the model
+  already know" — have no trigger phrases (only `argument-hint` + body).
+  Combined `description` + `when_to_use` measured **1486/1536 on 2026-09-01**
+  (50 chars free; the "1536/1536" recorded on 2026-08-20 no longer holds), so
+  at most one short phrase fits before an addition must be funded by a
+  deletion, per `trigger-patterns.md` §T4. Adding triggers blindly is a guess;
+  do it empirically:
   `/skill-improver trigger skill-improver --missed "run a boris check on my skill"
-  --missed "check my skill for scaffolding decay"`. Trigger-mode, not score-loop.
+  --missed "check my skill for scaffolding decay" --missed "what does the model
+  already know about this skill's subject"`. Trigger-mode, not score-loop — the
+  2026-09-01 improve pass declined to add the floor phrases for this reason.
   Both 2026-06-09 blind agents and the 2026-07-24 baseline blind also flagged a
   T6-class cross-skill collision — the installed skill-creator plugin claims
   "modify and improve existing skills" territory; the trigger run should include
@@ -62,7 +66,73 @@ update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
 
-## Resolved this pass — 2026-08-20b (improve + freshen, self-run)
+## Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)
+
+Baseline blind **85** (pre-pass snapshot) → final blind **86** (both Sonnet 5;
+per-dim 9/6/10/9/9/7/9/9/9/8 → 9/8/9/9/9/7/9/9/9/8). The +1 total is inside
+the scorer's noise and is not the finding; Dim 2 6 → 8 is, and it was the
+target. **Comparator: 3 of 3 for the final, high confidence, decisive margin**,
+run as bare `claude -p` from a non-repo cwd — final won from position A twice
+and B once, `leakage_external: none` on all three, content leakage the dated
+stamps only. Self 82 → 85. Freshen 6 findings applied / 0 discarded / 0
+exceptions; improve **cap reached at 10** — 9 keeps, 1 discard — so the
+ceiling is **not mapped**.
+
+### Freshen — 29/29 rows, trigger Fable 5.1
+
+- **Fable 5.1 (`claude-fable-5-1`, v2.1.257) priced, and its cache-read
+  exception modelled.** `model-rates.json` gained per-model `cache_read`
+  (0.025× on Fable 5.1 / Mythos 5.1, 0.1× everywhere else); `run-cost.py`
+  and `probe-trigger.py` (which hardcoded 0.1) honour it. Sonnet 5's $2/$10
+  is now permanent — the 2026-09-01 increase was cancelled.
+- **Effort table**: `xhigh` adds Fable 5.1 / Mythos 5.1; `max` adds Mythos
+  Preview, Sonnet 4.6 and **drops Opus 4.5**; per-message effort change
+  (beta) keeps the cache on Fable 5.1 / Mythos 5.1 / Opus 5.
+- **v2.1.237 → v2.1.257**, seven version rows. The one that touches this
+  skill's own rules: `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` (v2.1.257) overrides
+  agent-definition `model:` pins, so it silently moves the blind-scorer off
+  Sonnet — stated in `blind-validation.md` §Model selection with the check
+  (`run-cost.py` shows what ran). The pin itself is unaffected by the release.
+- **Subagent cache TTL is configurable since v2.1.242** — Pattern 7.3 and the
+  blind-validation cache note said "5 minutes even on a subscription" as a
+  fixed fact; now "by default".
+- **A pinned release never existed**: SkillEvaluator "v0.2.0 (2026-08-18)" —
+  GitHub has only v0.1.0; the number was `pyproject.toml`'s. Re-pinned to the
+  CHANGELOG version (0.2.1) with the fact stated; the gate host runs 0.2.0.
+- **A date was wrong**: the Fable field guide is 2026-07-06, not 07-03.
+- `fable` alias now names two releases (5.1; still 5 in gateway sessions) —
+  handed to improve as a Dim 7 defect (below).
+
+### Improve — 10 iterations, self-score column
+
+| iter | Δ | status | change |
+|---|---|---|---|
+| 1 | +1 | keep | Floor Mode extracted to `references/floor-patterns.md`; SKILL.md 497 → 463 (the baseline blind's top issue) |
+| 2 | +1 | keep | `knowledge-floor.py` records `resolved_model` per cell from `modelUsage`; `floor-fleet.py` passes it through; stubbed-subprocess self-check |
+| 3 | +1 | keep | "Phases 0–6" → 0–7 in SKILL.md and improve-loop.md's title |
+| 4 | 0 | keep (simplification) | provenance sentence (`e379abd`) dropped from the citation rule |
+| 5 | 0 | keep (simplification) | blind-validation stub: "two rules" listing three → three imperatives |
+| 6 | 0 | keep (simplification) | §State the Spend states its rule instead of arguing it |
+| 7 | 0 | keep (simplification) | blind-validation.md "why dynamic replaced the pin" paragraph deleted — DUPLICATE of the section's own rationale |
+| 8 | 0 | keep (simplification) | Pattern 6.1's dedup table no longer repeated in SKILL.md |
+| 9 | 0 | **discard** | extracting §A Measurement That Failed to a one-rule reference: Dim 2 band unchanged at 439 lines, a 16th reference for one rule is the too-granular failure, and the per-mode failure mechanisms land a hop from the rule they justify |
+| 10 | 0 | keep (simplification, widened pass) | Philosophy stub keeps the origin's status, not its story. Compared against: a Freshen-stub rules line (additive, Δ0), the "(Fable 5 / Opus 5, v2.1.154+)" label (true as written), floor trigger vocabulary (blocked — trigger-probe run, folded into the Open item) |
+
+SKILL.md 497 → 455 lines. Comparators flagged two regressions on the winning
+side — the `e379abd` example and the 62/520/292/138/90 breakdown — both are
+iterations 4 and 8 by design: the breakdown lives in Pattern 6.1, the hash in
+git.
+
+### Not a ceiling
+
+One discard in ten does not map a ceiling. What the pass did not try, and
+why: Dim 1 phrases for `floor` / `philosophy` (blocked on a trigger-probe run —
+Open item); Dim 10 above 8 (blocked on an eval corpus that resolves a delta —
+`eval-evidence.py` reports the worst of four measurements inside the noise
+band at 8 cases; `grow-evals.py` is the fix and the final blind named it too).
+Both blockers are real absent things, not effort.
+
+## Resolved — 2026-08-20b (improve + freshen, self-run)
 
 Baseline blind **86/100**, final blind **86/100** (both Sonnet 5, on snapshots).
 **No measurable movement in the total** — and that is the honest headline, not a
