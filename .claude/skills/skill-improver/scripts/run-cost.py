@@ -136,6 +136,9 @@ class Rates:
             return 0.0
 
         inp, out = rate["input"] / 1e6, rate["output"] / 1e6
+        # A model row may override the global cache-read multiplier (Fable 5.1
+        # and Mythos 5.1 bill cache hits at 0.025x, every other model at 0.1x).
+        cache_read = rate.get("cache_read", self.mult["cache_read"])
 
         # Cache writes are billed at different rates by TTL. The nested
         # `cache_creation` block splits them; fall back to the flat 5m figure.
@@ -147,7 +150,7 @@ class Rates:
 
         total = (
             u.get("input_tokens", 0) * inp
-            + u.get("cache_read_input_tokens", 0) * inp * self.mult["cache_read"]
+            + u.get("cache_read_input_tokens", 0) * inp * cache_read
             + w5 * inp * self.mult["cache_write_5m"]
             + w1h * inp * self.mult["cache_write_1h"]
             + u.get("output_tokens", 0) * out

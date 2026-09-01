@@ -563,7 +563,9 @@ def score_set(
             (
                 tot["input_tokens"] * rate["input"]
                 + tot["cache_creation_input_tokens"] * rate["input"] * 1.25
-                + tot["cache_read_input_tokens"] * rate["input"] * 0.1
+                + tot["cache_read_input_tokens"]
+                * rate["input"]
+                * rate.get("cache_read", 0.1)
                 + tot["output_tokens"] * rate["output"]
             )
             / 1e6,
