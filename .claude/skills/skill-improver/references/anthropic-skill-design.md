@@ -54,7 +54,7 @@ skill and it will read them at appropriate times.
 
 | Field | Description |
 |-------|-------------|
-| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Availability per model (platform effort docs, 2026-07-24): `xhigh` on Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Opus 4.6/4.5. **Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
+| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Availability per model (platform effort docs, 2026-09-01): `xhigh` on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Mythos Preview, Opus 4.6, Sonnet 4.6 (Opus 4.5 is no longer listed). **Fable 5.1, Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. Fable 5.1, Mythos 5.1 and Opus 5 accept a per-message effort change (beta) that keeps the prompt cache; on every other model a changed effort restarts the cache. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
 | `paths` | Glob patterns (comma-separated string or YAML list) limiting when skill activates based on files being worked on. |
 | `context` | Set to `fork` to run in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
 | `agent` | Subagent type when `context: fork` is set. Built-in: `Explore`, `Plan`, `general-purpose`. Or custom from `.claude/agents/`. Defaults to `general-purpose` if omitted. |
