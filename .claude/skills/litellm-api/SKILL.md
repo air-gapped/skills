@@ -8,11 +8,47 @@ when_to_use: |-
 
 # LiteLLM proxy management API — operator reference
 
-Target: operators scripting a LiteLLM proxy's control plane — key/team/user/org lifecycle, model management, budgets, spend — instead of clicking the Admin UI. Grounded in source @ `4d543245` (v1.95.0-dev, 2026-07-29; latest stable v1.94.0) + docs corpus + issue-tracker sweep of 2026-07-30. LiteLLM releases weekly; treat claims as version-stamped and re-verify on the deployed tag.
+Target: operators scripting a LiteLLM proxy's control plane — key/team/user/org lifecycle, model management, budgets, spend — instead of clicking the Admin UI. Grounded in source @ `4d543245` (v1.95.0-dev, 2026-07-29) + docs corpus + issue-tracker sweep of 2026-07-30. **Latest stable is v1.100.1 (2026-09-10)** — six minors past the grounding tag, so re-verify file:line claims against the deployed tag; LiteLLM ships weekly.
 
 Siblings: multi-pod Redis/Valkey coordination is **`litellm-valkey`**; the inference protocols are `chat-completions-api` / `messages-api` / `responses-api`. BerriAI's official `litellm-skills` repo (add-key, add-team, …) is a set of thin curl templates — several of which emit exactly the dangerous values documented here (`"models": []`); treat them as UI sugar, not as a semantics reference.
 
 **Neither the docs nor `/openapi.json` is ground truth.** Measured: 746 route decorators, 624 unique paths, 447 non-inference; **225 of 359 management paths appear nowhere in the docs**; **91 endpoints set `include_in_schema=False`** (all of `/config/*`, `/global/spend/*`, `/invitation/*`, `/sso/*`, most `/customer/*` …); the OpenAPI schema for `budget_limits` documents field names the API rejects (#32695). The only complete live inventory is **`GET /routes`** — which is unauthenticated (it's in `public_routes`, so its auth dependency short-circuits).
+
+## Security floor — run **≥ v1.94.0**, and know why before auditing auth
+
+This skill's subject *is* the auth model, so the version matters before any of it
+is worth reasoning about: **below v1.94.0 the proxy is inside at least one
+published advisory, and three of them bypass authentication outright.** Auditing
+`allowed_routes` on a build where auth can be skipped entirely is wasted work.
+
+| CVE | Sev | Affected | Floor | What it defeats |
+|-----|-----|----------|-------|-----------------|
+| CVE-2026-35030 | **critical** | `< 1.83.0` | 1.83.0 | Auth bypass — OIDC userinfo **cache-key collision** |
+| CVE-2026-42208 | **critical** | `>= 1.81.16, < 1.83.7` | 1.83.7 | **SQL injection in proxy API-key verification** |
+| CVE-2026-49468 | **critical** | `< 1.84.0` | 1.84.0 | Auth bypass via **`Host:` header injection** |
+| (no CVE id) | high | `< 1.83.0` | 1.83.0 | Password-hash exposure → **pass-the-hash** bypass |
+| CVE-2026-59822 | high | `< 1.84.0` | 1.84.0 | **MCP auth bypass** via OAuth2 passthrough fallback |
+| CVE-2026-42271 | high | `>= 1.74.2, < 1.83.7` | 1.83.7 | Authenticated **command execution** via MCP stdio test endpoints |
+| CVE-2026-84377 | medium | `< 1.94.0` | **1.94.0** | Authenticated SSRF + **provider-credential exfiltration** via request-body routing params |
+| CVE-2026-59823 | medium | `<= 1.83.8` | 1.83.9 | SSRF via the `user_config` request parameter |
+
+**All ranges are bounded, so each upper bound is the floor directly** — no
+`first_patched_version` is populated on any of them, which is normal for this
+feed and not a sign the fix is missing.
+
+Two of these compound documented behaviour rather than sitting beside it. The
+**MCP auth bypass** lands on the same surface as the `/v1/mcp/*` RBAC bypass
+below — one defeats authentication, the other authorisation, and a proxy under
+both has no MCP access control at all. And **CVE-2026-84377 exfiltrates provider
+credentials**, so remediation on an exposed build is rotating the upstream
+provider keys, not only upgrading.
+
+Check the running version first — `GET /health/readiness` returns
+`litellm_version` and needs only a valid key:
+
+```bash
+curl -s -H "Authorization: Bearer $K" $B/health/readiness | jq -r .litellm_version
+```
 
 ## Recon-first protocol (before scripting anything)
 

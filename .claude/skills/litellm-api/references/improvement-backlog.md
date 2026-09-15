@@ -2,6 +2,36 @@
 
 Carries ceiling findings across skill-improver runs. See skill-improver `references/backlog-format.md` for admission rules.
 
+## Resolved — 2026-09-15 (a skill about the auth model with no security floor)
+
+- **Eight published advisories against LiteLLM's auth surface, none of them in
+  the skill.** Three bypass authentication outright: OIDC userinfo cache-key
+  collision (CVE-2026-35030, critical), SQL injection in proxy API-key
+  verification (CVE-2026-42208, critical), and `Host:` header injection
+  (CVE-2026-49468, critical). Reasoning about `allowed_routes` on a build where
+  auth can be skipped entirely is wasted work, which is why the floor now sits
+  above the recon protocol rather than in a reference.
+- **Floor: v1.94.0**, the highest of the eight upper bounds (CVE-2026-84377).
+  Every range is bounded, so each upper bound gives its floor directly — no
+  `first_patched_version` is populated on any of them, which is normal for this
+  feed and not evidence a fix is missing. Contrast the unbounded-range case
+  recorded in `vllm-configuration`, where the same reasoning would produce "no
+  safe version".
+- **Two compound documented behaviour rather than sitting beside it.** The MCP
+  auth bypass (CVE-2026-59822) lands on the same surface as the `/v1/mcp/*` RBAC
+  bypass this skill already documents — one defeats authentication, the other
+  authorisation, and a proxy under both has no MCP access control at all. And
+  CVE-2026-84377 exfiltrates **provider credentials**, so remediation on an
+  exposed build is rotating upstream keys, not just upgrading.
+- **Latest-stable figure was six minors behind**: the header read "latest stable
+  v1.94.0" against an actual v1.100.1 (2026-09-10). The grounding tag
+  `4d543245` (v1.95.0-dev) is left as written — it records when the source was
+  read and is not a claim about the world — but the gap is now stated as a
+  number, which is what the skill's own "re-verify on the deployed tag" advice
+  needs to be actionable.
+- Added the one-line version probe (`/health/readiness` → `litellm_version`) so
+  the floor can be checked before any of the auth analysis is applied.
+
 ## Open
 
 - **Run `scripts/litellm-key-audit.sh` against a real proxy** — Dim 7. Execution-tested against a mock paginated `/key/list` (all four flag categories verified, fields checked against `LiteLLM_VerificationToken` in schema.prisma), but never against a live deployment. Requires author environment.
