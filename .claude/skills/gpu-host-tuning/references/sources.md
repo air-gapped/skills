@@ -16,7 +16,7 @@ content was confirmed at skill authoring; freshen mode flags these as
 |-----|-------|---------------|--------|-------|
 | https://github.com/NVIDIA/nvbandwidth | host↔device + multinode bandwidth bench | 2026-09-15 | v0.10.0 | **v0.10.0 (2026-07-21) is latest** — it was published the same day as the previous pass's stamp, so that row was stale within hours of being written. v0.9 (2026-04-08) was previously latest; NVIDIA-recommended replacement for the removed cuda-samples `bandwidthTest` (dropped in cuda-samples v13.0) |
 | https://github.com/NVIDIA/nccl-tests | NCCL all-reduce / all-gather perf tests | 2026-09-15 | NCCL_TESTS_VERSION 2.20.0 | **`src/common.h` now defines `NCCL_TESTS_VERSION "2.20.0"`** (HEAD 2026-08-28). **The "no git tags" claim is false: `gh api .../tags` lists v2.20.0, v2.19.7, v2.19.6 and older.** `gh release list` is still empty, which is what the earlier check must have used — tags and GitHub Release objects are different things and the absence of one is not the absence of the other. Historically, HEAD 2026-07-09, no git releases — the version lives in `src/common.h`, bumped 2.19.3→2.19.6 across 2026-07-02..07-09. Build from HEAD; there is nothing to pin to. |
-| https://docs.nvidia.com/dgx/dgx-el10-user-guide/modifying-tuned.html | DGX TuneD profile catalog (a100/a800/h100/h200/h800/b200/b300 `-performance` + `-crashdump`, plus `dgx-base`, `nvidia-base`, `nvidia-x86-64-performance`, `nvidia-crashdump-core`, `nvidia-no-mitigations`, `nvidia-acs-disable`) | 2026-07-21 | DGX EL 10 | page last updated 2026-07-15; profile roster unchanged vs the 2026-05 probe — no Rubin/Vera entries yet |
+| https://docs.nvidia.com/dgx/dgx-el10-user-guide/modifying-tuned.html | DGX TuneD profile catalog (a100/a800/h100/h200/h800/b200/b300 `-performance` + `-crashdump`, plus `dgx-base`, `nvidia-base`, `nvidia-x86-64-performance`, `nvidia-crashdump-core`, `nvidia-no-mitigations`, `nvidia-acs-disable`) | 2026-09-15 | DGX EL 10 | page last updated 2026-07-15; profile roster unchanged vs the 2026-05 probe — no Rubin/Vera entries yet |
 | https://enterprise-support.nvidia.com/s/article/bios-performance-tuning-example | NVIDIA BIOS performance tuning example | 2026-08-18 | — | live; SPA — WebFetch returns CSS error, browser-only |
 | https://enterprise-support.nvidia.com/s/article/understanding-bios-configuration-for-performance-tuning | NVIDIA BIOS configuration guide | 2026-08-18 | — | live; SPA — WebFetch returns CSS error, browser-only |
 
@@ -37,17 +37,17 @@ future freshen that "corrects" 8 → 33 has miscounted, not found drift.
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release | Ubuntu 22.04 BaseOS apt index | 2026-07-21 | jammy 2026-04-03 | 5 components: common (106 pkgs), dgx (35), dcs, egx, preview, c2 |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release | Ubuntu 22.04 BaseOS apt index | 2026-09-15 | jammy 2026-04-03 | 5 components: common (106 pkgs), dgx (35), dcs, egx, preview, c2 |
 | https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/common/binary-amd64/Packages.gz | Ubuntu 22.04 `common` package list | 2026-09-15 | — | **Now 88 stanzas / 86 unique — NVIDIA pruned this component.** Recounted by `gunzip | awk` on the live file. Historically 106 stanzas / 99 unique settings packages (`nv-*`, `nvidia-*`) |
 | https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/dgx/binary-amd64/Packages.gz | Ubuntu 22.04 `dgx` package list | 2026-09-15 | — | **Now 8 stanzas / 8 unique metapackages — a ~77% prune.** Remaining: dgx-kvm-guest-utils, dgx-repo, dgx-server-grub, dgxstation-a100/a800-ota-update-meta, dgxstation-desktop, dgxstation-grub, dgxstation-ota-update-meta. Any playbook selecting from the old set will now fail to resolve. Historically 35 metapackages, all unique (a100/a800/dgx1/dgx2/station only — no h100+ here) |
 | https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/dgx/binary-amd64/Packages.gz | Ubuntu 24.04 `dgx` package list | 2026-09-15 | — | **Now 3 unique / 12 stanzas** (dgx-a100-ota-update-meta, dgx-kvm-guest-utils, dgx-repo-keys) — same pruning as jammy. Historically 8 unique metapackages, 33 stanzas (thin — Hopper+ metapackages STILL gated as of 2026-07; noble `Release` dated 2026-03-19, components common/dgx/egx/preview) |
-| https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml | RHEL 10 BaseOS dnf index | 2026-07-21 | EL 10 | 19 RPMs incl. `nv-common-apis-25.10-1.el.noarch.rpm`; repomd `revision` still 1762989347 (2025-11-12) — unchanged since authoring |
+| https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml | RHEL 10 BaseOS dnf index | 2026-09-15 | EL 10 | 19 RPMs incl. `nv-common-apis-25.10-1.el.noarch.rpm`; repomd `revision` still 1762989347 (2025-11-12) — unchanged since authoring |
 
 ## Distro / OS docs
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://documentation.suse.com/sles/15-SP7/html/SLES-all/cha-tuning-tuned.html | SLES 15 SP7 — TuneD chapter | 2026-07-21 | SLES 15 SP7 | live (200). **SP7 is still the newest SLES carrying this chapter.** SLES 16.0 is GA (docs portal live; `documentation.suse.com/sles/` now redirects there) but publishes no System Analysis and Tuning Guide — `16.0/html/SLES-all/cha-tuning-tuned.html` and `book-tuning.html` both 404, and there is no 15-SP8. Do not "upgrade" this citation to a 16.0 URL; it does not exist. |
+| https://documentation.suse.com/sles/15-SP7/html/SLES-all/cha-tuning-tuned.html | SLES 15 SP7 — TuneD chapter | 2026-09-15 | SLES 15 SP7 | live (200). **SP7 is still the newest SLES carrying this chapter.** SLES 16.0 is GA (docs portal live; `documentation.suse.com/sles/` now redirects there) but publishes no System Analysis and Tuning Guide — `16.0/html/SLES-all/cha-tuning-tuned.html` and `book-tuning.html` both 404, and there is no 15-SP8. Do not "upgrade" this citation to a 16.0 URL; it does not exist. |
 
 ## Dell PowerEdge XE chassis docs
 
@@ -66,6 +66,6 @@ future freshen that "corrects" 8 → 33 has miscounted, not found drift.
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://github.com/wilicc/gpu-burn | gpu-burn stress tool | 2026-07-21 | — | maintenance project; HEAD 2026-05-31 (Windows build tidy-up). No releases; CUDA 13+ support landed 2025-11-04 |
+| https://github.com/wilicc/gpu-burn | gpu-burn stress tool | 2026-09-15 | — | maintenance project; HEAD 2026-05-31 (Windows build tidy-up). No releases; CUDA 13+ support landed 2025-11-04 |
 | https://www.intel.com/content/www/us/en/download/736633/intel-memory-latency-checker-intel-mlc.html | Intel MLC bandwidth/latency (403 to curl 2026-08-18 — bot-blocked, verify in browser) tool | 2026-08-18 | MLC v3.x | URL valid; WebFetch 403 (anti-bot) |
 | https://www.storagereview.com/review/dell-poweredge-xe9680-the-ultimate-ai-powerhouse | XE9680 third-party review | 2026-08-18 | — | live; published 2024-11-16 |

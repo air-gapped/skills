@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260915.179",
+      "version": "0.20260915.180",
       "author": {
         "name": "Jörgen"
       },
@@ -166,7 +166,7 @@
       "name": "harvester",
       "source": "./",
       "description": "Harvester HCI operator suite — controlled, community-edition Harvester upgrades off an EOL line up to latest stable: the no-skip minor ladder (1.5→1.6→1.7→1.8 carrying embedded RKE2 / KubeVirt / Longhorn / SLE-Micro together), external-Rancher + Harvester UI-extension pairing and ordering, air-gapped version detection, controlling the node-by-node upgrade flow (serial interlock, the v1.7+ pause-map, and the PodDisruptionBudget + VMI-readinessProbe native gate for 1.5/1.6), keeping VM-hosted self-managed RKE2 control planes quorate via anti-affinity spread and live-migration-vs-clean-shutdown tradeoffs (busy-etcd non-convergence, auto-converge, dedicated migration network), per-hop breaking changes (wicked→NetworkManager, Intel NIC rename, DHCP churn), the enforced pre-flight health gates, and the no-downgrade backup/rollback reality. Companion to the k8s suite's k8s-components-checker (Harvester↔Rancher↔RKE2 pairing registry) and rancher-upgrade (the external Rancher's own chain).",
-      "version": "0.20260915.11",
+      "version": "0.20260915.12",
       "author": {
         "name": "Jörgen"
       },
@@ -225,7 +225,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260915.25",
+      "version": "0.20260915.26",
       "author": {
         "name": "Jörgen"
       },
@@ -253,7 +253,7 @@
       "name": "inference-host",
       "source": "./",
       "description": "Inference host bring-up + tuning suite — Linux/GPU bare-metal host work that sits beneath any inference framework (vLLM, sglang, TensorRT-LLM). Two phases. Bring-up (nvidia-datacenter-bringup): Ubuntu 24.04 LTS from clean OS to gpu-operator cuda-validator passing — B300/B200/H100/A100/L40S/L4 driver + fabricmanager + NVLSM + DOCA-OFED install order, NVIDIA CUDA repo + DOCA repo + air-gap mirror, MOK + DKMS sign-on-build under Secure Boot, Dell PowerEdge XE9780/XE9785 baseboard firmware via iDRAC Redfish DellOemChassis.ExtendedReset, gpu-operator pre-installed-driver-mode integration. Tuning (gpu-host-tuning): read-only snapshot of CPU power state, C-states, NUMA topology, PCIe link state, GPU settings, kernel boot params, sysctl, ulimits, IRQ affinity, container runtime; optional pinned-host↔GPU memcpy bench (torch + numactl); per-lever cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC, hugepages, intel_iommu, NCCL env, tuned-adm profiles, BIOS guidance for Dell XE / SMC / HPE). Surfaces config gaps that bottleneck LMCache CPU-tier throughput, KV offload, NCCL bandwidth, prefix-cache rebuild.",
-      "version": "0.20260915.22",
+      "version": "0.20260915.23",
       "author": {
         "name": "Jörgen"
       },
@@ -324,7 +324,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients. Also postgres-operator-cloudnative-pg-migration — migrate PostgreSQL clusters off the Zalando postgres-operator (Spilo/Patroni) onto CloudNativePG: the glibc/collation and WAL-G↔Barman walls, three migration paths (logical replication default), full acid.zalan.do→Cluster manifest field map, barman-cloud plugin backup re-plumbing, consumer cutover, air-gap mirroring.",
-      "version": "0.20260915.146",
+      "version": "0.20260915.147",
       "author": {
         "name": "Jörgen"
       },
@@ -384,7 +384,7 @@
       "name": "litellm",
       "source": "./",
       "description": "LiteLLM proxy operator suite — multi-pod Redis/Valkey coordination (the silent per-pod-fallback failure mode, the 4-way coordination-Redis resolution order incl. the undocumented general_settings.coordination_redis block since v1.93.0, Sentinel/Cluster support matrix with fix versions, per-pod-vs-shared truth table with real staleness bounds, no-op documented knobs, open-issue catalog) and the management REST API (447-path control plane, ~63% undocumented; the four 'empty means unlimited' footguns, budget semantics traps, presence-sensitive updates that trigger spurious enterprise 403s, config-vs-DB precedence, recon-first protocol via GET /routes).",
-      "version": "0.20260915.10",
+      "version": "0.20260915.11",
       "author": {
         "name": "Jörgen"
       },
@@ -695,7 +695,7 @@
       "name": "jira-confluence-mcp",
       "source": "./",
       "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
-      "version": "0.20260915.9",
+      "version": "0.20260915.10",
       "author": {
         "name": "Jörgen"
       },

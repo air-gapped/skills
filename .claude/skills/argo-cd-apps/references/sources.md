@@ -104,15 +104,15 @@ stamp.
 | Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace/ | Tenant-namespace Applications | 2026-08-18 | v3.3.9 |
 | Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity/ | Alpha / Beta / Stable status per feature | 2026-08-18 | v3.3.9 |
 | Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-08-18 | v3.3.9 |
-| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-07-21 | v3.4.5 |
-| Upgrading 3.4 → 3.5 | https://github.com/argoproj/argo-cd/blob/v3.5.0-rc2/docs/operator-manual/upgrading/3.4-3.5.md | Breaking changes in v3.5 (RC). Helm 4.2.0 + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap | 2026-07-21 | v3.5.0-rc2 |
+| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-09-15 | v3.4.5 |
+| Upgrading 3.4 → 3.5 | https://github.com/argoproj/argo-cd/blob/v3.5.0-rc2/docs/operator-manual/upgrading/3.4-3.5.md | Breaking changes in v3.5 (RC). Helm 4.2.0 + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap | 2026-09-15 | v3.5.0-rc2 |
 
 ## GitHub
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
 | argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-08-18 | main @ 4d02fc2f5 |
-| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Latest stable **v3.4.5** (2026-07-09); v3.3 maintenance **v3.3.12** (2026-06-18); v3.2.12, v3.1.16 active. **v3.5.0-rc2** (2026-07-01) in RC, not GA | 2026-07-21 | v3.4.5 |
+| Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Latest stable **v3.4.5** (2026-07-09); v3.3 maintenance **v3.3.12** (2026-06-18); v3.2.12, v3.1.16 active. **v3.5.0-rc2** (2026-07-01) in RC, not GA | 2026-09-15 | v3.4.5 |
 | Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **Re-probed 2026-09-15: still no new advisories since 2026-05-13**, so all three remain the current set and anything on 3.4.2+/3.3.10+/3.2.12+ is unaffected | 2026-09-15 | — |
 | gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-08-18 | — |
 
