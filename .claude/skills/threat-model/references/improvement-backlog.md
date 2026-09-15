@@ -3,6 +3,27 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15 (least privilege: dropped an unused tool grant)
+
+- **`Agent` was in `allowed-tools` and this skill never spawns a subagent.**
+  Verified before removing: zero occurrences of `subagent_type`, `spawn`,
+  `delegate`, `in parallel` or "Agent tool" anywhere in `SKILL.md` or any
+  `references/` file. The only hits in the whole skill directory are in this
+  backlog, discussing the historical `Task` to `Agent` rename. Removed.
+- **Why it is worth doing rather than noting.** `allowed-tools` is a permission
+  filter, as this family's own skills say. A grant the skill never exercises is
+  capability without a caller, and this skill's entire job is reading a target's
+  source to enumerate exactly that shape of over-permission. Leaving it would be
+  the thing the skill exists to flag.
+- **Scope, so this is easy to reverse.** One line removed from frontmatter, no
+  body change. If a future revision does delegate — a parallel bootstrap pass
+  over a large repo is the obvious candidate — add it back at that point, when
+  there is a call site to justify it.
+- Found by sweeping the four defending-code skills for consistent
+  `untrusted_data` isolation. Three spawn attacker-influenced text and needed
+  the guard; this one turned out not to spawn at all, which answered the
+  isolation question and raised this one instead.
+
 ## Resolved — 2026-09-15
 
 - **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
