@@ -135,7 +135,15 @@ where it merged. Each is wrong whichever side you believe.
 **Closed is not fixed, and the checker cannot tell you which.** It reports drift,
 never a rewrite. Read `stateReason` and the closing comment before editing:
 `NOT_PLANNED` plus a bot comment is abandonment and the warning stays; `COMPLETED`
-with a linked PR is a fix. Measured 2026-09-15 across 694 citations: **6 real
+with a linked PR is a fix. **`stateReason` is not portable across repos**, though:
+some inactivity bots close as `COMPLETED`, so a stale closure reads as a fix.
+Measured 2026-09-15 on an inference-server repo — three issues closed by
+`github-actions[bot]` carrying an `inactive` label all report `COMPLETED`. When
+the reason looks like a fix, confirm with the closer and the labels before
+believing it:
+
+    gh api repos/O/R/issues/N --jq '.state_reason, .closed_by.login, [.labels[].name]'
+ Measured 2026-09-15 across 694 citations: **6 real
 findings, and they split three-to-three** between the two. Deciding by state alone
 would have been wrong half the time — in one direction deleting a live warning, in
 the other keeping a dead one.

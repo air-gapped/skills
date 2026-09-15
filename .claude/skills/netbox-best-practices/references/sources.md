@@ -1,11 +1,17 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed. **NetBox 4.7.0 GA'd 2026-09-02** and the chart followed; the header figures below were a release behind and are corrected.
+
+**One cited source path is gone**: `netbox/api/authentication.py` no longer exists on `main`. Relocate it before trusting the row that reads token behaviour from it.
+
+**A real dependency break landed in 4.7.0** that this file did not capture: `social-auth-core` was unpinned from `4.8.7` to `5.1.0` (a major), alongside `social-auth-app-django` to v6.0. Re-verified at both tags. The OIDC behaviour cited here is byte-identical between 4.8.7 and 5.1.0, so the guidance holds — but anyone pinning the old version is now off the shipped set.
+
+Line anchors into `netbox/netbox/authentication/__init__.py` and `settings.py` have drifted substantially — find those symbols by name, not by line.
 
 Dated index of every external source backing this skill's claims. `[live]`
 claims were additionally verified on a production install (chart 8.3.14 /
 NetBox v4.6.2, 2026-06-12). **The `[live]` labels have not been re-verified
-since** — upstream is now at chart 8.3.57 / v4.6.8 (2026-08-18 probe), so treat
+since** — upstream is now at chart 8.3.76 / v4.7.0 (2026-09-15 probe), so treat
 them as observed-on-4.6.2 rather than confirmed-current.
 
 ## ⚠ Version-lookup trap — `releases/latest` on `netbox-chart` returns the *operator*
@@ -13,7 +19,7 @@ them as observed-on-4.6.2 rather than confirmed-current.
 The `netbox-community/netbox-chart` repo publishes **two products into one
 release stream**: `netbox-<chart>` and `netbox-operator-<chart>`. As of
 2026-07-21 the `isLatest` release is **`netbox-operator-1.2.128`** (2026-07-20),
-while the newest NetBox chart is **`netbox-8.3.57`** (2026-08-18).
+while the newest NetBox chart is **`netbox-8.3.76`** (2026-09-15).
 
 So `gh release view --repo netbox-community/netbox-chart` reports an *operator*
 version that looks nothing like a chart version, and enumerating without
@@ -23,7 +29,7 @@ cleanly and carries `appVersion`:
 ```bash
 curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
   | yq '.entries.netbox[0] | {version, appVersion, created}'
-# chart 8.3.57 / app v4.6.8 / 2026-08-18
+# chart 8.3.76 / app v4.7.0 / 2026-09-15
 ```
 
 | Source | What it backs | Last verified |
@@ -44,7 +50,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | github.com/netbox-community/netbox `netbox/netbox/authentication/__init__.py` | sso-hardening: REMOTE_AUTH_SUPERUSER/STAFF/GROUP_SYNC are RemoteUserBackend-only (`_is_superuser`/`_is_staff`/`configure_groups` L163-262); `user_default_groups_handler` assigns flat REMOTE_AUTH_DEFAULT_GROUPS, no flag mapping (L383-401) | 2026-06-14 (main @ gh api) |
 | github.com/netbox-community/netbox `netbox/netbox/settings.py` | sso-hardening: default SOCIAL_AUTH_PIPELINE (L716-726), only NetBox step is user_default_groups_handler | 2026-06-14 (main @ gh api) |
 | netboxlabs.com/docs/.../authentication/overview, hull.au/blog/netbox-authentik-oidc-sso, docs.goauthentik.io/integrations/services/netbox | sso-hardening: SOCIAL_AUTH_PROTECTED_USER_FIELDS=['groups'] sign-in workaround, SOCIAL_AUTH_REDIRECT_IS_HTTPS, groups-claim prerequisite, usersocialauth linking | 2026-06-14 |
-| helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.57 / app v4.6.8** (2026-08-18), up from 8.3.37 / v4.6.5 at the previous pass — still 8.x (no major) | 2026-08-18 |
+| helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.76 / app v4.7.0** (2026-09-15), up from 8.3.37 / v4.6.5 at the previous pass — still 8.x (no major) | 2026-08-18 |
 | github.com/netbox-community/netbox releases | **NetBox v4.6.8** is latest stable; the stable line is still **4.6.x — no 4.7 GA, no 5.0**, though a **v4.7.0-beta1 prerelease now exists**. The refresh trigger ("new NetBox minor" — GA, not beta) has **not** fired, so `version-deltas.md` and the v1-token-removal-at-v5.0 claim stand. Re-check when 4.7.0 goes GA | 2026-08-18 |
 | Production install (chart 8.3.14 / v4.6.2) | all `[live]` labels: token provision flow, PG name collision, sentinel wiring, first-boot timing, template-API legacy shape, module-type slug absence, enum case validation | 2026-06-12 |
 | netbox-chart `charts/netbox/docs/auth.md` + `docs/extra.md` | §9 chart SSO docs exist (Keycloak/GitLab examples, pipeline-mount pattern, extraConfig `*.yaml`-key mechanics); dated-example findings (legacy /auth URLs, KeycloakOAuth2 pasted key, associate_by_email) | 2026-07-30 (clone @ HEAD, post-8.3.57) |

@@ -9,11 +9,11 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | LMSYS HiCache blog (2025-09-10) | https://www.lmsys.org/blog/2025-09-10-sglang-hicache/ | 2026-08-18 | Architecture overview + headline performance numbers (Novita TTFT –56%, Ant Group TTFT –84%, "up to 6×/80%" uncited) |
-| SGLang HiCache user doc | https://docs.sglang.ai/advanced_features/hicache.html | 2026-08-18 | User-facing entry-point. Mirrored in the local repo at `docs/advanced_features/hicache.rst` |
-| SGLang HiCache design doc | https://docs.sglang.ai/advanced_features/hicache_design.html | 2026-08-18 | Class architecture, write/read paths, eviction. Local: `docs/advanced_features/hicache_design.md` |
-| SGLang HiCache best-practices | https://docs.sglang.ai/advanced_features/hicache_best_practices.html | 2026-08-18 | Recommended flag combos. Local: `docs/advanced_features/hicache_best_practices.md` |
-| SGLang HiCache runtime attach/detach | https://docs.sglang.ai/advanced_features/hicache_storage_runtime_attach_detach.html | 2026-08-18 | HTTP admin API for L3 swap without engine restart. Local: `docs/advanced_features/hicache_storage_runtime_attach_detach.md` |
-| SGLang server-arguments doc | https://docs.sglang.ai/advanced_features/server_arguments.html | 2026-08-18 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
+| SGLang HiCache user doc | https://docs.sglang.io/advanced_features/hicache.html | 2026-08-18 | User-facing entry-point. Mirrored in the local repo at `docs/advanced_features/hicache.rst` |
+| SGLang HiCache design doc | https://docs.sglang.io/advanced_features/hicache_design.html | 2026-08-18 | Class architecture, write/read paths, eviction. Local: `docs/advanced_features/hicache_design.md` |
+| SGLang HiCache best-practices | https://docs.sglang.io/advanced_features/hicache_best_practices.html | 2026-08-18 | Recommended flag combos. Local: `docs/advanced_features/hicache_best_practices.md` |
+| SGLang HiCache runtime attach/detach | https://docs.sglang.io/advanced_features/hicache_storage_runtime_attach_detach.html | 2026-08-18 | HTTP admin API for L3 swap without engine restart. Local: `docs/advanced_features/hicache_storage_runtime_attach_detach.md` |
+| SGLang server-arguments doc | https://docs.sglang.io/advanced_features/server_arguments.html | 2026-08-18 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
 
 ## Repository (source of truth for flags)
 
@@ -70,7 +70,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 
 ## 2026-07-21 freshen pass
 
-SGLang moved three minors (v0.5.12.post1 → v0.5.15.post1). Headline: **v0.5.13 makes HiCache the default path for hybrid SWA/Mamba models via UnifiedTree (#27759)**, superseding the per-arch opt-in matrix. Bug state moved a lot: #19212 (`write_back` crash), #23429, #23457, #19737 and #20529 all closed **with fixes**, while #21880 (`file` backend slow) and #22757 (DSA + Mooncake L3 segfault, H20 and B300) were closed **by the stale bot with no fix** — those two are recorded as live risks, not resolutions. #22607 (PP + HiCache) is still open and its fix PR #22878 was closed unmerged; a new TP-only sibling #30760 opened 2026-07-10. Flag surface changed (new write-policy / io-backend / mem-layout / storage-backend choices, `server_args.py` refactored to annotated dataclasses). Cross-skill: the "vLLM is broken on 2026 hybrids" framing used to justify this skill's existence is now stale — corrected in SKILL.md, `hybrid-models.md`, and `migration-from-vllm-caching.md`. Not re-probed: LMSYS blog + docs.sglang.ai pages, Mooncake/Tair/arXiv rows, the `mem_cache/` source-file rows (2026-04-25 stamps stand).
+SGLang moved three minors (v0.5.12.post1 → v0.5.15.post1). Headline: **v0.5.13 makes HiCache the default path for hybrid SWA/Mamba models via UnifiedTree (#27759)**, superseding the per-arch opt-in matrix. Bug state moved a lot: #19212 (`write_back` crash), #23429, #23457, #19737 and #20529 all closed **with fixes**, while #21880 (`file` backend slow) and #22757 (DSA + Mooncake L3 segfault, H20 and B300) were closed **by the stale bot with no fix** — those two are recorded as live risks, not resolutions. #22607 (PP + HiCache) is still open and its fix PR #22878 was closed unmerged; a new TP-only sibling #30760 opened 2026-07-10. Flag surface changed (new write-policy / io-backend / mem-layout / storage-backend choices, `server_args.py` refactored to annotated dataclasses). Cross-skill: the "vLLM is broken on 2026 hybrids" framing used to justify this skill's existence is now stale — corrected in SKILL.md, `hybrid-models.md`, and `migration-from-vllm-caching.md`. Not re-probed: LMSYS blog + docs.sglang.io pages, Mooncake/Tair/arXiv rows, the `mem_cache/` source-file rows (2026-04-25 stamps stand).
 
 ## Versions
 
