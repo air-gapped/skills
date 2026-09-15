@@ -2,7 +2,11 @@
 
 Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers with dates, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode.
 
-Versions referenced span 0.5.x (Dec 2024) through **0.11.0 (current stable, 2026-07-27)**. Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched. **Caveat as of the 2026-07-29 freshen:** the 0.11.0 release notes WERE read this pass (hence §Version upgrades and the two new triage rows), and the multi-pod env block was re-verified against 0.11.0 `env.py`/`config.py`. Still NOT done: load-testing 0.9.6→0.11.0 for scaling regressions, and re-resolving the line-number map below, which remains resolved against 0.9.4.
+**Freshened: 2026-09-15 — every row probed.** The headline result is that **the RedisCluster `publish()` breakage is fixed from v0.11.2** (#19840 closed by PR #29165; ancestry `diverged` for v0.11.1, `behind` for v0.11.2) — see `known-issues.md`. Three other issues this file listed as OPEN have closed: #23733 as NOT_PLANNED (won't-fix, not fixed), #27622 and #27651 as COMPLETED.
+
+**Two rows need rediscovery, not a line bump.** `PersistentConfig` no longer exists anywhere in the tree, so the cache-through-Redis mechanism this file documents is gone or renamed; and `profile_image_url`'s default changed from `/static/favicon.png` to `None`, which is a behaviour change rather than drift. `validate_profile_image_url` moved to `utils/validate.py`, and the in-tree `helm-charts-temp/` directory is gone entirely — the chart lives in its own repo now. Line anchors throughout have shifted; re-resolve by symbol. Issue **#16074 is a 404** and should be dropped. Several entries labelled PR are issues and vice versa, so `gh pr view` fails on them.
+
+Versions referenced span 0.5.x (Dec 2024) through **v0.11.3 (current stable, 2026-08-31)**, via v0.11.1 and v0.11.2; the chart line is now 16.5.0 / appVersion 0.11.3. Historically this file topped out at 0.11.0 (2026-07-27). Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched. **Caveat as of the 2026-07-29 freshen:** the 0.11.0 release notes WERE read this pass (hence §Version upgrades and the two new triage rows), and the multi-pod env block was re-verified against 0.11.0 `env.py`/`config.py`. Still NOT done: load-testing 0.9.6→0.11.0 for scaling regressions, and re-resolving the line-number map below, which remains resolved against 0.9.4.
 
 ## Verification log
 
