@@ -133,13 +133,6 @@ Prior skill-improver runs and ceiling findings.
 ## Open
 
 
-### Recipes for `simm` / `eic` / `dynamic` backends (carried 2026-05-29)
-
-- **Dim:** 5
-- **Where:** `references/recipes.md` would need 3 new recipe sections.
-- **Why ceiling-bound:** these backends are listed in `references/storage-backends.md` but have no worked recipe — niche but documented. Adding sample configs requires probing the AIBrix / Volcengine / Scitix doc sites for proprietary env-var sets that may not be public. Defer until an operator request surfaces.
-- **Score impact if resolved:** Dim 5 9→10 (~+1 total).
-
 
 ### Two stale-bot closures recorded as live risks (new 2026-07-21)
 
@@ -154,6 +147,28 @@ Prior skill-improver runs and ceiling findings.
   them needs a measurement, not a probe: v0.5.15's CP-aware LRU eviction on the file
   backend (#26670) may have changed #21880's picture, and #22757 needs H20 hardware.
 - **Score impact if resolved:** removes two hedged entries from the bug table.
+
+## Resolved — 2026-09-15 (the three backends that had no recipe)
+
+- **Recipes 11–13 added for `simm`, `eic` and `dynamic`.** The carried entry deferred
+  these on the grounds that the config might be proprietary. It is not: every key is
+  read in SGLang's own source, so the whole surface was recoverable without vendor
+  docs. The blocker was assumed, never tested.
+- **`SIMM_CLUSTER_MANAGER` and `DEFAULT_SIMM_CONFIG_PATH_ENV` do not exist in SGLang.**
+  The simm backend's bundled README documents both as part of its config precedence;
+  neither string appears anywhere else in the repo, so SGLang never reads them.
+  `storage-backends.md` had copied the first one. Corrected there, and the real env
+  var (`SGLANG_HICACHE_SIMM_CONFIG_PATH`) is now the only one named.
+- **The `dynamic` example was missing a required key.** `backend_name` sits in
+  `required_fields` beside `module_path` and `class_name`, so the example as published
+  would have raised `ValueError` at startup. Fixed.
+- **Two `eic` misconfigurations surface as `TypeError`, not as config errors** — an
+  absent `eic_log_dir` reaches `os.path.exists(None)`, and an absent `remote_url` gets
+  past a guard that builds an `AssertionError` without raising it. Both documented,
+  because neither traceback names the key at fault.
+- Version floors verified by tag rather than by changelog: `eic` and `dynamic` from
+  v0.5.3, `simm` from v0.5.11 (the file is absent at v0.5.10, which the skill had
+  recorded as `v0.5.10rc0`).
 
 ## Resolved this pass (2026-07-21)
 

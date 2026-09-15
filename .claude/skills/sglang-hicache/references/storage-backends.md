@@ -10,9 +10,9 @@ Pick exactly one (omit `--hicache-storage-backend` for L1+L2 only). Backend fact
 | `hf3fs` | ✓ on DeepSeek operator clusters | Mamba/SSM + DSA ✓ (v0.5.11, PR #23241) | any | DeepSeek 3FS deployment |
 | `nixl` | ✓ for NVIDIA Dynamo / GB200 | depends on NIXL plugin | `page_first` or `page_first_direct` for zero-copy | `nixl-cu12` or `nixl-cu13` |
 | `aibrix` | partial (PrisKV not OSS) | not documented | configurable | `aibrix-kvcache` Python lib |
-| `eic` | volcengine cloud only | not documented | `page_first` | proprietary |
-| `simm` | scitix RDMA shops | not documented | `page_first` or `page_first_direct` | scitix cluster manager |
-| `dynamic` | user-supplied | depends on impl | depends | none |
+| `eic` | volcengine cloud only | recipes.md § Recipe 12 | `page_first` | proprietary |
+| `simm` | scitix RDMA shops | recipes.md § Recipe 11 | `page_first` or `page_first_direct` | scitix cluster manager |
+| `dynamic` | user-supplied | recipes.md § Recipe 13 | depends | none |
 | `lmcache` | replaces hicache, doesn't extend it | depends on LMCache (still broken on hybrid per LMCache #3106) | n/a | `pip install lmcache` |
 | `file` | DEV / CI ONLY | yes (any model) | any | none |
 
@@ -163,10 +163,16 @@ Configurable via `AIBRIX_KV_CACHE_OL_*` env vars (see `python/sglang/srt/mem_cac
 ## `eic`, `simm`, `dynamic`
 
 - **`eic`** — Elastic Instant Cache (Volcengine). Closed-source SDK. Use only on volcengine cloud.
-- **`simm`** — Scitix SiMM (RDMA distributed memory pool). Requires cluster-manager + data-server services (`SIMM_CLUSTER_MANAGER` env var). Added in PR #18016 (v0.5.10rc0).
-- **`dynamic`** — User-supplied class via `module_path` + `class_name` extra-config keys. Add `interface_v1: 1` to opt into the zero-copy v1 path:
+- **`simm`** — Scitix SiMM (RDMA distributed memory pool). Requires cluster-manager +
+  data-server services. The address goes in extra-config as `manager_address`, or in a JSON
+  file pointed at by `SGLANG_HICACHE_SIMM_CONFIG_PATH`. The backend's bundled README also
+  names `SIMM_CLUSTER_MANAGER` and `DEFAULT_SIMM_CONFIG_PATH_ENV`; neither string exists in
+  SGLang's source, so setting them does nothing. Added in PR #18016, first release tag
+  v0.5.11. Full config: recipes.md § Recipe 11.
+- **`dynamic`** — User-supplied class via `backend_name` + `module_path` + `class_name`
+  extra-config keys — **all three required**, a missing one raises `ValueError` at startup. Add `interface_v1: 1` to opt into the zero-copy v1 path:
   ```bash
-  --hicache-storage-backend-extra-config '{"module_path":"my_pkg.kv","class_name":"MyKV","interface_v1":1}'
+  --hicache-storage-backend-extra-config '{"backend_name":"mykv","module_path":"my_pkg.kv","class_name":"MyKV","interface_v1":1}'
   ```
   Subclass `HiCacheStorage` (`python/sglang/srt/mem_cache/hicache_storage.py:98`).
 

@@ -254,3 +254,99 @@ Useful counters:
 - `sglang_hicache_cpu_eviction_count` — L2 evictions to free pages already in L3
 - `sglang_hicache_prefetch_started_total` / `_completed_total` / `_aborted_total` — L3 prefetch lifecycle (PR #18460)
 - `sglang_hicache_kv_event_count` — L2 promotion events (PR #22894, v0.5.11)
+
+## Recipe 11 — SiMM (Scitix) L3
+
+Floor **v0.5.11**. Config reaches SGLang two ways, and `--hicache-storage-backend-extra-config` wins whenever it carries `manager_address`:
+
+```bash
+python -m sglang.launch_server \
+  --model-path Qwen/Qwen3-32B-Instruct \
+  --tp 4 --port 30000 \
+  --page-size 64 \
+  --enable-hierarchical-cache \
+  --hicache-ratio 2 \
+  --hicache-storage-backend simm \
+  --hicache-storage-backend-extra-config \
+    '{"manager_address":"10.0.0.5:30001","clnt_threadpool_size":10,"enable_profile":false}'
+```
+
+File form — used **only** when `manager_address` is absent from extra-config, and the env var is then mandatory (unset raises, it does not fall back to a default path):
+
+```bash
+export SGLANG_HICACHE_SIMM_CONFIG_PATH=/etc/sglang/simm.json
+# {"manager_address": "10.0.0.5:30001", "clnt_threadpool_size": 10, "enable_profile": false}
+```
+
+| Key | Default | Notes |
+|---|---|---|
+| `manager_address` | none — **required** | `host:port` of the SiMM cluster manager |
+| `clnt_threadpool_size` | `10` | |
+| `enable_profile` | `false` | |
+| `extra_backend_tag` | unset | extra-config only; forwarded to the SiMM data server |
+
+**Do not copy the env vars out of the backend's bundled README.** It documents `DEFAULT_SIMM_CONFIG_PATH_ENV` and `SIMM_CLUSTER_MANAGER` as part of the precedence chain; neither string exists anywhere in SGLang's source, so SGLang never reads them. `SGLANG_HICACHE_SIMM_CONFIG_PATH` is the only env var that works. The `simm` package is a separate install (`github.com/scitix/SiMM`) — absent, the backend raises ImportError at startup.
+
+## Recipe 12 — EIC (Volcengine) L3
+
+Floor **v0.5.3**. YAML only — there is no extra-config path:
+
+```bash
+export REMOTE_EIC_YAML=/etc/sglang/remote-eic.yaml   # default if unset: /sgl-workspace/config/remote-eic.yaml
+python -m sglang.launch_server \
+  --model-path Qwen/Qwen3-32B-Instruct \
+  --tp 4 --port 30000 \
+  --page-size 64 \
+  --enable-hierarchical-cache \
+  --hicache-storage-backend eic \
+  --hicache-write-policy write_through \
+  --hicache-mem-layout page_first
+```
+
+```yaml
+# /etc/sglang/remote-eic.yaml
+remote_url: "eic://10.0.0.7:9000"   # required; the eic:// prefix is stripped to form the endpoint
+eic_instance_id: "inst-001"
+eic_log_dir: "/var/log/sglang-eic"  # required in practice — see below
+eic_thread_num: 1
+eic_log_level: 2
+eic_trans_type: 3
+eic_namespace: ""
+enable_kvset_direct: true
+enable_kvget_direct: true
+enable_kvset_gpu_direct: false      # also requires CUDA available
+enable_kvget_gpu_direct: false
+enable_gpu_nic_affinity: false
+```
+
+Two startup failures read as something other than their cause:
+
+- **Omitting `eic_log_dir` crashes with `TypeError`, not a config error.** It defaults to `None` and is then passed straight to `os.path.exists()`. Set it.
+- **Omitting `remote_url` also crashes with `TypeError`.** The guard constructs an `AssertionError` without raising it, so execution continues to the `eic://` prefix strip on `None`. A `TypeError` here means `remote_url` is missing, not malformed.
+
+Set `gpu_nic_affinity_config` / `cpu_nic_affinity_config` (JSON strings) only alongside `enable_gpu_nic_affinity: true` — they are ignored otherwise.
+
+## Recipe 13 — `dynamic`: your own L3 backend
+
+Floor **v0.5.3**. Loads any class subclassing `HiCacheStorage` by import path. All three keys are required; a missing one raises `ValueError` at startup:
+
+```bash
+PYTHONPATH=/opt/mybackend \
+python -m sglang.launch_server \
+  --model-path Qwen/Qwen3-32B-Instruct \
+  --port 30000 \
+  --page-size 64 \
+  --enable-hierarchical-cache \
+  --hicache-storage-backend dynamic \
+  --hicache-storage-backend-extra-config \
+    '{"backend_name":"mystore","module_path":"mybackend.store","class_name":"MyHiCacheStore"}'
+```
+
+| Key | Meaning |
+|---|---|
+| `backend_name` | label only — appears in logs, selects nothing |
+| `module_path` | import path; must be importable from the server process (`PYTHONPATH`) |
+| `class_name` | class in that module, must subclass `HiCacheStorage` |
+| `interface_v1` | optional, `0`/`1` — `1` routes through `batch_get_v1` / `batch_set_v1` |
+
+The class is constructed as `MyHiCacheStore(storage_config, kwargs)` — two positional arguments, the second a plain dict. A constructor taking only `storage_config` fails at startup.

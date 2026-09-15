@@ -107,7 +107,10 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - **k8s floor jumped from 1.29 (v3.0) to 1.31.** RKE2 / Rancher clusters that ran v3.0 on k8s 1.29 / 1.30 must bump the kube control plane before installing 3.1.
   - **SSA field-manager migration options added** (`#23337`) — opt-in here; defaults flipped in 3.3.0 and immediately regressed. Pre-stage `ClientSideApplyMigration=false` syncOption on apps that already opted in, so the 3.3 upgrade path is reversible.
   - **`spec.preserveUnknownFields` default ignoreDifference removed** (`#22948`) — Applications that relied on that hidden ignore now show drift on CRDs that still carry the field. Drop the field from CRD specs (it's `false` by default in apiextensions/v1 anyway).
-  - **CVE-2026-42880 patched** in **v3.1.15** (2026-04-21). Surveyed cluster on 3.1.x must be ≥ 3.1.15 if it ever handled Secrets — but the whole minor is EOL now, so just bump.
+  - **CVE-2026-42880 does not affect this minor — do not record a 3.1 floor for it.** The advisory's
+    ranges are `>= 3.2.0, < 3.2.11` and `>= 3.3.0, < 3.3.9` only. 3.1 was still supported when it
+    published (2026-05-01) and was not listed, and v3.1.15 carries no security banner. The blocker
+    on 3.1 is EOL, nothing else.
 - **CRD migrations:** none.
 - **Upgrade ordering:** bump k8s to ≥ 1.31 before installing 3.1 if jumping from 3.0 on 1.29 / 1.30.
 - **Deprecations:** none new this minor.
@@ -130,7 +133,9 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   5. **`.status` ignored on all resources by default** (was: only CRDs). Mutation-webhook drift in `.status` no longer surfaces.
   6. **In-cluster destination off by default** (`cluster.inClusterEnabled: "false"`). New apps targeting the local cluster hard-fail until flipped on.
   7. **`spec.preserveUnknownFields: false` on CRDs causes drift.** Drop the field; use `x-kubernetes-preserve-unknown-fields: true` on schemas.
-  - **CVE-2026-42880 patched** in **v3.0.22** (2026-01-13). Last security patch before EOL. Any unpatched 3.0.x is double-blocker (EOL + unpatched CVE).
+  - **CVE-2026-42880 does not affect this minor either** (see § 3.1). v3.0.22 shipped 2026-01-13,
+    three months before the fix releases of 2026-04-30 — a patch cannot predate the fix it claims.
+    3.0.x is a blocker on EOL alone.
   - **Batch event processing enabled by default** (`#22338`) — perf win, but reorders some controller events; CI smoke tests that race on event timing may flake.
 - **CRD migrations:** none in this minor itself, but the 2.x→3.0 jump requires `resources-finalizer.argocd.argoproj.io` finalizer audit (cascade-delete behavior changed with the RBAC inheritance flip).
 - **Upgrade ordering:** k8s must be ≥ 1.29 for 3.0; cannot install on 1.28 or older RKE2.
