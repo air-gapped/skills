@@ -3,20 +3,22 @@
 Tracks issues attempted but not landed in a single keep/discard iteration, and
 changes the metric registered this pass. Append-only audit; not a wishlist.
 
-## Open
+## Resolved — 2026-09-15 (the label-name ambiguity, resolved without asserting a name)
 
-- **Reconcile `status` vs `status_code` label naming** — Dim 8 —
-  `SKILL.md:89,157` use `status=~"5.."`; `references/agent-workflow.md:47-63`
-  use `status_code=~"5.."` for the same concept. This is intentional
-  (label name is cluster-dependent; the discovery-first discipline tells the
-  agent to confirm the actual label), so a blind find-and-replace would be
-  *wrong* — it would assert a label name the skill deliberately leaves open.
-  Resolving cleanly needs a one-line standing note ("the 5xx label is
-  `status` or `status_code` depending on the exporter — confirm via
-  /api/v1/series before filtering") placed once, plus a decision about which
-  example form to standardize on. That is an author-judgment edit touching
-  three sites in two files; deferred rather than risk introducing a false
-  determinism in one atomic step.
+- **Added a pitfall rather than standardising on one label.** The entry was right
+  that a find-and-replace would be *wrong*: the 5xx label is exporter-dependent,
+  and picking one would assert a determinism the skill deliberately leaves open.
+  The fix it described — one standing note — is now in the pitfalls list, which
+  is where a reader meets it at the moment it matters.
+- **Stated with the failure shape, which is what makes it actionable.** A wrong
+  label name here does not error. It matches nothing, so the panel reads as zero
+  errors — the most dangerous possible outcome for an error panel. The note says
+  to confirm against the live label set (`/api/v1/series`, or `label_values()`)
+  before filtering.
+- The existing mixed usage across `SKILL.md` and `references/agent-workflow.md`
+  is left as-is and now explained rather than looking like drift.
+
+## Open
 
 ## Decided — do not re-propose
 

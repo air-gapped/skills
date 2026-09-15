@@ -22,6 +22,7 @@ Source of truth: `vllm/v1/metrics/loggers.py` (primary), `vllm/v1/metrics/stats.
 - [Per-request timing in the response body (not Prometheus)](#per-request-timing-in-the-response-body-not-prometheus)
 - [Speculative decoding](#speculative-decoding)
 - [MFU / performance](#mfu--performance)
+- [Observability switches that never reach /metrics](#observability-switches-that-never-reach-metrics)
 - [KV connector / offload](#kv-connector--offload)
 - [Bucket boundaries](#bucket-boundaries)
 - [V0 vs V1 deltas](#v0-vs-v1-deltas)
@@ -251,6 +252,37 @@ the GQA assumption — a ~57× overestimate of KV bandwidth. PR #39457 (merged
 2026-06-12, **v0.24.0**) adds `MLAAttentionMetrics` to model it correctly.
 Treat any MFU or bandwidth figure collected from a DeepSeek deployment on
 **< v0.24.0** as unusable, not merely imprecise.
+
+## Observability switches that never reach `/metrics`
+
+`ObservabilityConfig` carries several operator-visible switches whose output is
+**log-only**. Turning one on and then grepping `/metrics` for it is a wasted
+half-hour, so the first column below is the one that matters. All are read from
+`vllm/config/observability.py` and exposed as CLI flags in
+`vllm/engine/arg_utils.py` (verified at upstream `main`, 2026-09-15).
+
+| Flag | Output | What it gives you |
+|---|---|---|
+| `--cudagraph-metrics` | **log only** | Padded/unpadded token counts, runtime cudagraph dispatch modes, and their observed frequencies, at every logging interval |
+| `--enable-layerwise-nvtx-tracing` | **NVTX ranges** | Per-layer/module ranges annotated with input/output shapes, for Nsight. **Does not work with CUDA graphs enabled** — a real constraint, not a caveat |
+| `--enable-logging-iteration-details` | **log only** | Per-iteration context/generation request and token counts, plus elapsed CPU time |
+| `--jit-monitor-mode` (`warn`\|`error`) | **log only** | How to handle post-warmup JIT compilation events. `error` turns a late recompile into a failure instead of a line nobody reads |
+| `--jit-monitor-verbose` | **log only** | Every monitored JIT compile with runtime detail. Emits many logs and adds overhead — debugging only |
+
+`--enable-mfu-metrics` is the exception in this family: it **does** produce
+Prometheus series (see § MFU / performance above).
+
+**`enable_mm_processor_stats` is not a CLI flag.** It collects multimodal
+processor timings and its own docstring says it is for internal use, e.g.
+benchmarks. If a config-file or env approach appears to set it, that is not a
+supported operator surface.
+
+**Why this matters beyond the flags themselves:** "vLLM has a metric for X" and
+"vLLM can tell you X" are different claims. Three of the five above answer real
+operator questions — is the cudagraph dispatch doing what I configured, is
+something recompiling after warmup — and none of them will ever appear on a
+dashboard. Reach for the logs, or for `--jit-monitor-mode error` to turn a
+silent regression into a loud one.
 
 ## KV connector / offload
 

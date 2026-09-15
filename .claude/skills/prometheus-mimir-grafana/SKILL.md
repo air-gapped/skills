@@ -89,6 +89,7 @@ Full reference in [references/promql.md](references/promql.md). The trap list:
 - **Regex not anchored.** It is. `=~"foo"` means `^foo$` — write `=~"foo.*"` for prefix match.
 - **Counter on gauge.** `rate()` on a gauge produces garbage. `delta`/`deriv` are the gauge equivalents.
 - **`absent()` with matchers that don't really exist.** `absent(up{job="api", pod="abc"})` fires even if `pod="abc"` never existed. Keep deadman-switch queries minimal.
+- **`status` vs `status_code`.** The 5xx label name is exporter-dependent — some emit `status`, others `status_code`. Examples in this skill deliberately use both; neither is the right answer in general. **Confirm against the live label set** (`/api/v1/series`, or `label_values()` in Grafana) before filtering. A wrong label name is the worst failure shape here: it matches nothing, so the panel reads as zero errors rather than erroring.
 - **Staleness marker.** Default `--query.lookback-delta=5m`. Series absent >5m disappear from `/query` results even if in `/series` list.
 - **Mimir limits.** 422 after a tight query means `max_samples_per_query` or `max_query_length` tripped. Raise `step`, shrink window, tighten matchers.
 

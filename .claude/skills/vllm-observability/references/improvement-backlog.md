@@ -2,9 +2,29 @@
 
 Work-not-done log from skill-improver passes. Open = attempted-but-not-applied or deferred verification; not a wishlist.
 
+## Resolved — 2026-09-15 (the switches that never reach /metrics)
+
+- **Added the `ObservabilityConfig` switches the catalog never carried**, in a
+  new `metrics-catalog.md` section. Read from `vllm/config/observability.py` and
+  `vllm/engine/arg_utils.py` at upstream `main`: `--cudagraph-metrics`,
+  `--enable-layerwise-nvtx-tracing`, `--enable-logging-iteration-details`,
+  `--jit-monitor-mode`, `--jit-monitor-verbose`.
+- **The load-bearing column is "output", not "flag".** All five are **log-only**.
+  Turning one on and then grepping `/metrics` for it is the wasted half-hour this
+  section exists to prevent. `--enable-mfu-metrics` is the exception and does
+  emit Prometheus series — it already had its own section, now cross-referenced.
+- Two details worth having that the entry did not record: layerwise NVTX tracing
+  **does not work with CUDA graphs enabled** (a constraint, not a caveat), and
+  `--jit-monitor-mode error` converts a post-warmup recompile from a log line
+  nobody reads into a failure.
+- **`enable_mm_processor_stats` is not a CLI flag** — confirmed absent from
+  `arg_utils.py`, and its own docstring says internal use only. Recorded so a
+  later pass does not "fix" the catalog by adding it.
+- The entry was correct that this is a pre-existing gap rather than drift, and
+  it was never blocked on anything: writing it down was the whole task.
+
 ## Open
 
-- **(new 2026-08-11) Undocumented observability flags** (Dim 5) — `vllm/config/observability.py` at v0.27.0 carries several operator-visible switches the catalog never mentions: `cudagraph_metrics` (padded/unpadded token counts and runtime cudagraph dispatch modes — **log-only, emitted via `CUDAGraphLogging`, not Prometheus**), `enable_layerwise_nvtx_tracing` (per-layer NVTX ranges, incompatible with CUDA graphs), `enable_logging_iteration_details`, and `jit_monitor_mode` / `jit_monitor_verbose` (post-warmup JIT compilation events). Verified present at v0.25.1 as well, so this is a **pre-existing catalog gap, not drift** — out of scope for `freshen`, and left for an `improve` pass. The log-vs-Prometheus distinction is the load-bearing part: `cudagraph_metrics` will not appear on `/metrics`.
 
 - ~~**Re-probe non-GitHub sources online**~~ (Dim 9) — **CLOSED 2026-08-11.** All four rows (docs.vllm.ai metrics page, ebpfchirp article, DCGM dashboard 15117, canonical design doc) probed; all HTTP 200. Carried unprobed since 2026-04-24 through two passes — and the deferral was hiding content, not just staleness: the docs.vllm.ai page documents the concrete NIXL series that replaced a `vllm:nixl_*` wildcard in the catalog.
 
