@@ -2,6 +2,33 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (Traefik: eight documented lines, exactly one supported)
+
+- **The file documented 3.0–3.7 and 2.11 as if a survey could land on any of them.** Upstream's
+  support table says only **3.7** still has active *or* security support. 3.6's security window
+  ended **2026-08-16**; 3.5 and below have none; 2.11's ended **2026-09-07**.
+- **The dates interlock with the advisories, which is what makes this a verdict and not a support
+  argument.** GHSA-5w68-77r2-r64c (critical — complete authentication bypass in the `digestAuth`
+  middleware) published **2026-08-21**, five days *after* 3.6 left security support, with affected
+  range `>= v3.0.0, <= v3.7.10`. The 3.6 line's final release is **v3.6.25** (2026-07-31), inside
+  that range. **No 3.6.x will ever be patched for it.** CVE-2026-88007 (critical, 2026-09-07) then
+  raised the 3.x ceiling to `<= v3.7.12`, moving the floor to **v3.7.13**.
+- **A survey now has exactly one answer: v3.7.13+.** "Upgrade to the latest patch of the minor you
+  are on" is wrong here for every minor except 3.7 — the usual advice produces a still-vulnerable,
+  unsupported build.
+- **The 2.11 section was wrong in the direction that strands an operator.** It read "latest patch
+  v2.11.46 … security ENDED 2026-02-01". The line kept shipping security releases for another
+  seven months through **v2.11.57** (2026-09-04), and upstream gives the end as **2026-09-07**.
+  The old text told a 2.11 operator no patch existed when eleven more had shipped, including the
+  ones clearing both 2026 criticals. 2.11.57 is not currently exposed — but the window has now
+  closed, so the next advisory against it has no fix.
+- **The file carried no advisory floors at all** despite Traefik publishing **30 advisories in
+  2026**, 16 of them in the seven weeks after the previous sift. A verdict shortcut with the floor
+  and the support table now sits at the top, with an instruction to re-derive every pass.
+- Upstream's support rule changed at v3.6: each minor now gets 6 months from GA so several overlap,
+  where previously a minor's support ended the moment the next shipped. Worth knowing before
+  reading the older rows as though the current rule produced them.
+
 ## Resolved — 2026-09-15 (a "correction" had deleted six real releases and inverted the verdict)
 
 - **Retracted the 2026-05-30 operator correction in `compat/argo-cd.md`.** It claimed the 3.2 line

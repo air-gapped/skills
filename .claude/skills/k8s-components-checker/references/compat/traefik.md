@@ -5,8 +5,43 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-07-21
-- **Last release-verified:** 2026-07-21
+- **Last sifted:** 2026-09-15
+- **Last release-verified:** 2026-09-15
+
+> ## Verdict shortcut — only ONE line is supported, and everything else is inside an unpatched CRITICAL
+>
+> **Floor: `v3.7.13`** (2026-09-04). Any Traefik at or below **v3.7.12** — which includes *every*
+> release of 3.0 through 3.6 — is inside a **critical authentication bypass**, and on every line
+> except 3.7 there is no patch and never will be.
+>
+> Upstream's own support table (`docs/content/deprecation/releases.md`, read 2026-09-15):
+>
+> | Line | Active support | Security support |
+> |------|----------------|------------------|
+> | **3.7** | **Yes** | **Yes** |
+> | 3.6 | ended 2026-05-07 | **ended 2026-08-16** |
+> | 3.5 / 3.4 / 3.3 / 3.2 / 3.1 / 3.0 | ended | **No** |
+> | 2.11 | ended 2025-04-29 | **ended 2026-09-07** |
+>
+> **The dates and the advisories interlock — this is not an abstract support argument.**
+> GHSA-5w68-77r2-r64c (**critical**, complete authentication bypass in the `digestAuth`
+> middleware) was published **2026-08-21**, five days *after* 3.6's security support ended, and its
+> affected range is `>= v3.0.0, <= v3.7.10` plus `<= v2.11.54`. The 3.6 line's final release is
+> **v3.6.25** (2026-07-31), which sits inside that range. **No 3.6.x will ever be patched for it.**
+> Then CVE-2026-88007 (**critical**, HTTP/3 backend NTLM connection reuse, published 2026-09-07)
+> raised the 3.x ceiling to `<= v3.7.12`, so the floor moved again to **v3.7.13**.
+>
+> **2.11 is no longer an escape hatch.** Its security window closed **2026-09-07**, three days
+> after its final release **v2.11.57** (2026-09-04). That release does clear both criticals, so a
+> 2.11.57 deployment is not *currently* exposed — but the next advisory against it has no patch.
+>
+> **So a survey has exactly one answer: move to `v3.7.13`+.** There is no supported landing point
+> on any other line, and "upgrade to the latest patch of the minor you are on" is wrong here for
+> every minor but 3.7.
+>
+> **Re-derive the floor every pass — Traefik publishes faster than it documents.** 30 advisories in
+> 2026, 16 of them in the seven weeks after this file's previous sift. Per-line sections below
+> record behaviour and migration detail; they do **not** imply a line is choosable.
 
 Traefik does not publish a Kubernetes support matrix. The k8s floor is implicit
 in the `client-go` version vendored at release time and is rarely a hard
@@ -54,7 +89,7 @@ sighting as `✗ blocker` and route operators to v2-to-v3 migration. v3 is
 backward-compatible with v2 router syntax (`core.defaultRuleSyntax: v2`), so the
 upgrade is mostly install-config + CRD-group flip.
 
-## 3.7.0  (2026-05-05, latest patch **3.7.8** 2026-07-15; 3.7.1 carried the CVE-2026-44774 fix)
+## 3.7.0  (2026-05-05, latest patch **v3.7.13** 2026-09-04 — **the only supported line**; 3.7.1 carried the CVE-2026-44774 fix)
 
 - **k8s floor:** no hard floor stated; tested against currently-supported k8s minors (~1.30+ as of release date). `client-go` upstream supports current-3.
 - **Breaking:** none for routing config. Ingress NGINX provider RBAC now needs `configmaps: [list, watch]` for the `nginx.ingress.kubernetes.io/custom-headers` annotation — pods will start but the feature silently fails without it. ForwardAuth `trustForwardHeader` deprecation (introduced 3.6.14) escalates — explicit `true`/`false` required to avoid warning logs.
@@ -63,7 +98,7 @@ upgrade is mostly install-config + CRD-group flip.
 - **Deprecations:** none new beyond 3.6.14's `trustForwardHeader`. `experimental.kubernetesIngressNGINX` flag still deprecated (removed-experimental in 3.6.2).
 - **Notable:** Wildcard `Host(*.example.com)` / `HostSNI` matchers (v3 rule syntax only — v2-compat mode does not get these). TLSOptions can attach to wildcard hosts now; `HostRegexp` still unsupported for TLSOptions. Knative provider supports v1.20.0.
 
-## 3.6.0  (2025-11-07)
+## 3.6.0  (2025-11-07 — final release **v3.6.25** 2026-07-31; security support ended **2026-08-16**, so it is permanently inside the 2026-08-21 `digestAuth` critical)
 
 - **k8s floor:** no hard floor stated; targets current-3 k8s minors (~1.29+ as of release date).
 - **Breaking:** none for routing config. `traefik.containo.us` CRD group is still gone (removed in v3.0) — operators arriving from 2.11 must flip every CRD manifest from `apiVersion: traefik.containo.us/v1alpha1` to `apiVersion: traefik.io/v1alpha1`. The v3.6 CRD bundle does not ship the legacy group.
@@ -130,7 +165,13 @@ upgrade is mostly install-config + CRD-group flip.
 - **Deprecations:** v2 rule syntax (`defaultRuleSyntax`/`ruleSyntax`) deprecated from day one of v3 (removal slated next major); TCP `terminationDelay` at LoadBalancer level.
 - **Notable:** this is the only v3 minor where the api-group flip and rule-syntax break land — every higher 3.x section assumes the `traefik.io` group is already in place.
 
-## 2.11  (2024-02-12, latest patch v2.11.46 — community support ENDED 2025-04-29, security ENDED 2026-02-01; fully EOL)
+## 2.11  (2024-02-12, final release **v2.11.57** 2026-09-04 — active support ended 2025-04-29, **security support ended 2026-09-07**; now EOL)
+
+> **Corrected 2026-09-15.** This section previously read "latest patch v2.11.46 … security ENDED
+> 2026-02-01". Both were wrong: the line kept receiving security releases for another seven
+> months, through **v2.11.57**, and upstream's table gives the security end as **2026-09-07**.
+> The practical consequence of the old text was to tell a 2.11 operator that no patch existed
+> when eleven more shipped — including the ones clearing both 2026 criticals.
 
 - **Status:** the **last v2 minor** and the **migration SOURCE** for the v2→v3 jump. Out of community support entirely as of 2026-02-01. **Flag any 2.x sighting as `✗ blocker`** and route operators to §3.0 (v2→v3 migration). No further patches beyond v2.11.46.
 - **k8s floor:** no hard floor stated; the v2.11 patch line was kept building against a current `client-go` (`v0.32.3` at v2.11.46), so it runs on modern k8s — but this does NOT extend its support: EOL is calendar-based, not k8s-based.
