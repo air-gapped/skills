@@ -3,6 +3,32 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (the same gap in YAML fences)
+
+- **Shipped `scripts/check-yaml-fences.py`**, sibling to the shell checker. 576
+  YAML fences across the fleet, none previously parsed by anything.
+- **One real bug, in `vllm-deployment/references/multi-node.md`** (twice — leader
+  and worker templates): a LeaderWorkerSet env entry written in YAML **flow**
+  style with an unquoted `fieldPath`:
+  `{fieldRef: {fieldPath: metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']}}`.
+  Flow style forbids `[` and `]` in a plain scalar, so the mapping — and the whole
+  manifest — failed to parse. Quoting the value fixes it.
+  - **Why it survived review:** in *block* style that exact value is legal, and it
+    is how every `fieldRef` in Kubernetes documentation looks. The bug is the flow
+    braces, not the value, and the two are far apart on the line.
+  - The annotation domain was checked rather than assumed: `leaderworkerset.sigs.k8s.io`
+    is correct upstream even though the `apiVersion` is `leaderworkerset.x-k8s.io/v1`.
+    Not a typo; no change made there.
+- **The only other flagged block was a mislabelled fence** — a whole example
+  `SKILL.md` (frontmatter *plus* body, including `` !`gh pr diff` `` dynamic
+  injection) fenced as `yaml`. YAML reads a leading `!` as a tag. Re-fenced as
+  `markdown`, which is what it is.
+- **YAML is in much better shape than shell here** — 1 bug in 576 fences against
+  7 in 753. Worth stating so a future pass does not expect a rich seam.
+- Count discrepancy noted and resolved rather than papered over: an earlier
+  ad-hoc run reported 623 fences. The shipped script and a raw grep of fence
+  openers both give **576**, so 576 is what the docstring records.
+
 ## Resolved — 2026-09-15 (nothing was checking the inside of a shell fence)
 
 - **Shipped `scripts/check-shell-fences.py`.** `shellcheck` runs on `.sh` files

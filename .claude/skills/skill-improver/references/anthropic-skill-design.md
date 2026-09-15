@@ -83,7 +83,7 @@ The `` !`command` `` syntax runs shell commands **before** the skill content is 
 to Claude. The output replaces the placeholder. Claude sees the result, not the
 command. Example:
 
-```yaml
+```markdown
 ---
 name: pr-summary
 context: fork

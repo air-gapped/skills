@@ -66,7 +66,7 @@ spec:
           command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
           args: ["leader"]
           env:
-            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']}}}
+            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: "metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']"}}}
             - {name: VLLM_HOST_IP,       valueFrom: {fieldRef: {fieldPath: status.podIP}}}
             # + all the usual pod-shape envs from references/pod-shape.md
           ports: [{containerPort: 8000, name: http}]
@@ -83,7 +83,7 @@ spec:
           command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
           args: ["worker"]
           env:
-            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']}}}
+            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: "metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']"}}}
             - {name: VLLM_HOST_IP,       valueFrom: {fieldRef: {fieldPath: status.podIP}}}
           resources: {limits: {nvidia.com/gpu: "8"}}
           volumeMounts: [{name: dshm, mountPath: /dev/shm}, {name: models, mountPath: /models}]

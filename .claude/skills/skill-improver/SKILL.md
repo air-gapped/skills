@@ -164,6 +164,13 @@ real, while placeholder blocks (`<model>`) and prompt transcriptions (`$ cmd` /
 `# cmd`, copied from vendor docs) are expected to fail and are fixed with a note
 about the convention, never by editing the command.
 
+`scripts/check-yaml-fences.py` is the sibling for ```yaml blocks. 576 fences,
+**one real bug**: a `fieldPath` containing `[` and `]` sat unquoted inside a YAML
+**flow** mapping (`{...}`), which forbids those characters in a plain scalar. The
+same value is legal in block style, which is why it read as correct. Expect this
+one to be quiet — its value is the next edit, not the current run. Go/Jinja
+templating is reported separately, since a Helm chart is not YAML until rendered.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
