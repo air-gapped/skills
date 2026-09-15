@@ -1,6 +1,8 @@
 # Sources — redis-to-valkey
 
-Freshened: 2026-08-26 (exceptions: 2 rows, noted inline)
+Freshened: 2026-09-15 (exceptions: 2 rows, noted inline) — every row probed.
+
+**Six version pins moved and not one qualitative claim did.** The upstream release lines, three charts, the operator and the exporter are all a release or two on; meanwhile every *behavioural* claim re-verified exactly as written — the official chart still has no Sentinel (both PRs still open), the operator README still says not production-ready, the sync tool's maintainers still decline the feature, and the bundled-chart lockdown thread still has no comment since 2025-09-16. Version pins are the cheap half of this file; the claims they support did not rot.
 
 Dated index of the primary sources backing this skill's factual claims. One
 stamp asserts every row below was re-probed on that date, except rows carrying
@@ -23,7 +25,7 @@ proves containment, and a release-notes read would have gotten both wrong.
 | valkey #2588 + **PR #2600** | https://github.com/valkey-io/valkey/pull/2600 | replica flushed before rejecting a foreign RDB; fix "validate before emptyData" merged 2025-11-19, **contained in 9.1.0+ only** — `compare` says `diverged` from 8.1.9 and 9.0.5 | fix ∈ 9.1.0, 9.1.1 |
 | valkey #2338 / PR #2846 | https://github.com/valkey-io/valkey/issues/2338 | dual-channel + Sentinel phantom replica; merged 2026-02-23, **9.1 line only** — `diverged` from 9.0 and 8.1 | fix ∈ 9.1.0+ |
 | valkey #845 | https://github.com/valkey-io/valkey/issues/845 | "Can't handle RDB format version 12" failure mode; still OPEN, no upstream fix — third-party tools are the only answer | — |
-| valkey releases | https://github.com/valkey-io/valkey/releases | current lines 9.1.1 / 9.0.5 / 8.1.9 / 8.0.10 / 7.2.14; no 9.2 or 10.x | 9.1.1 (2026-07-21) |
+| valkey releases | https://github.com/valkey-io/valkey/releases | current lines **9.1.2 / 9.0.6** (both 2026-09-01), **8.1.10 / 8.0.11** (both 2026-08-31), 7.2.14 (2026-07-21, unchanged); **still no 9.2 or 10.x** | 9.1.2 (2026-09-01) |
 | RedisShake | https://github.com/tair-opensource/RedisShake | v4.6.2 (2026-08-17); Redis 2.8–8.4.x → Valkey 8–9; sync/scan/rdb readers; topology-panic caveat | v4.6.2 |
 | RedisShake #1016 | https://github.com/tair-opensource/RedisShake/issues/1016 | resume/checkpoint **declined by maintainers** as out of scope for a sync tool — the "restart = full recopy" caveat is permanent, not pending | open |
 | librdb / rdb-cli | https://github.com/redis/librdb | rdb-cli replay recipe; git tags only, **no binary releases** (build via make) | tag v2.3.0 |
@@ -31,8 +33,8 @@ proves containment, and a release-notes read would have gotten both wrong.
 | Bitnami redis chart | https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml | source-side key names/defaults (auth.*, sentinel.*, replica.*, metrics.*) across 19.x–23.x; chart still updated, app pinned redis 8.2.1 | 19.6.4–23.1.1 |
 | CloudPirates charts | https://github.com/CloudPirates-io/helm-charts | sentinel + externalReplica modes, **new `sentinel.masterProxy` HAProxy front-end**, cosign, common-lib OCI dep | chart 0.25.5 / app 9.1.0 |
 | valkey-io/valkey-helm | https://github.com/valkey-io/valkey-helm | official chart, **still no Sentinel**; Sentinel PR #234 and HAProxy PR #235 open/unmerged (earlier attempts #82/#137/#158 closed) | chart 0.11.0 |
-| valkey-io/valkey-operator | https://github.com/valkey-io/valkey-operator | cluster-mode only, README still "not ready for production", v1alpha1 | v0.5.0 |
-| redis_exporter | https://github.com/oliver006/redis_exporter | Valkey 7–9 support statement; docker.io/ghcr.io/quay.io mirrors | v1.89.0 |
+| valkey-io/valkey-operator | https://github.com/valkey-io/valkey-operator | cluster-mode only, README still "not ready for production", v1alpha1 | v0.6.0 (2026-09-01) |
+| redis_exporter | https://github.com/oliver006/redis_exporter | Valkey 7–9 support statement; docker.io/ghcr.io/quay.io mirrors | v1.91.1 (2026-09-07) |
 | Bitnami lockdown issue | https://github.com/bitnami/charts/issues/35164 | timeline (2025-08-28 / 2025-09-29), bitnamilegacy semantics, :latest-only free tier; closed, **no comment since 2025-09-16 and no sunset date announced** | — |
 | charts.bitnami.com (live probe) | https://charts.bitnami.com/bitnami/index.yaml | 302 → repo.broadcom.com; still serving 200, index last-modified 2026-08-24, **144 chart entries** | — |
 | Argo CD Helm docs | https://argo-cd.readthedocs.io/en/stable/user-guide/helm/ | OCI repoURL **without** `oci://` prefix (page still states this verbatim); multi-source $values | — |

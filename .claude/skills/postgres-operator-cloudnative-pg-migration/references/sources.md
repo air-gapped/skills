@@ -4,7 +4,7 @@ Per-URL index backing this skill's factual claims. Freshen Mode probes every
 row and rewrites the stamp below; rows it could not reach carry an inline
 exception note instead.
 
-**Freshened: 2026-08-25** (exceptions: 1 row, noted inline)
+**Freshened: 2026-09-15** (exceptions: 1 row, noted inline)
 
 Full pass. URL liveness swept in bulk; issue and PR states batched per repo
 through the GitHub API; release lists for CNPG, Zalando and
@@ -31,7 +31,7 @@ authoritative.
 | CNPG supported releases | https://cloudnative-pg.io/docs/devel/supported_releases | 3-month cadence, ~6-month minor life, K8s/PG windows | 2026-07-24 | 1.30.x: K8s 1.34–1.36, PG 14–18 |
 | CNPG installation_upgrade | https://cloudnative-pg.io/docs/devel/installation_upgrade | operator upgrade → fleet rolling restart; in-place update flag | 2026-07-24 | — |
 | plugin-barman-cloud | https://github.com/cloudnative-pg/plugin-barman-cloud | v0.14.0 images (sidecar in base64 Secret), ObjectStore CRD shape, migration.md, cert-manager avoidance, CNPG ≥1.26 floor | 2026-07-29 | v0.14.0 (2026-07-29) |
-| plugin Helm chart | https://github.com/cloudnative-pg/charts/tree/main/charts/plugin-barman-cloud | chart 0.7.1 / appVersion v0.14.0; certificate.create* toggles | 2026-07-29 | chart 0.7.1 |
+| plugin Helm chart | https://github.com/cloudnative-pg/charts/tree/main/charts/plugin-barman-cloud | chart **0.8.0** / appVersion **v0.15.0**; certificate.create* toggles | 2026-09-15 | chart 0.7.1 |
 | CNPG postgres-containers | https://github.com/cloudnative-pg/postgres-containers | operand image repo builds majors 13–18, plus **PG19 Beta 3 "for testing purposes only"** (13 deprecated; CNPG 1.29/1.30 *support* only PG 14–18 per supported_releases, so a built image is not a supported one), minimal/standard flavors, Debian bases, system deprecated | 2026-08-25 | — |
 | Instana runbook | https://www.ibm.com/docs/en/instana-observability/saas?topic=postgres-migrating-data-from-zalando-cnpg | path C sequence: streaming_replica role, replica mode, Spilo conf-path fix, REFRESH COLLATION VERSION | 2026-08-25 | **EXCEPTION — topic not machine-verifiable.** The old `1.0.314` path now 302s to the docs root; IBM maps `current` → `saas`, which returns 200 but client-side-routes the `?topic=` so no fetcher resolves the page itself. Probed with bare curl on four URL variants. The path-C content is unconfirmed this pass — re-check in a browser before relying on it |
 | Bartolini Recipe #5 | https://www.gabrielebartolini.it/articles/2024/03/cloudnativepg-recipe-5-how-to-migrate-your-postgresql-database-in-kubernetes-with-~0-downtime-from-anywhere/ | canonical path A recipe (schemaOnly import + pub/sub + sync-sequences) | 2026-07-24 | — |
@@ -69,7 +69,7 @@ authoritative.
 ## Volatile facts to re-verify on every freshen
 
 - In-tree barmanObjectStore removal version (currently 1.31.0 — slipped 4×; 1.31 still unreleased as of **2026-08-25**).
-- Latest plugin-barman-cloud release and its CNPG module target (v0.14.0, 2026-07-29 — still latest at 2026-08-25; chart 0.7.1 / appVersion v0.14.0).
+- Latest plugin-barman-cloud release and its CNPG module target: **v0.15.0** (2026-09-03), up from v0.14.0; chart **0.8.0** / appVersion **v0.15.0** (2026-09-04).
 - Zalando release state (**v2.0.2 latest, 2026-08-20**, re-probed 2026-08-25; Spilo-18 4.1-p2 is the v2 default; PG 14–18).
 - CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4, all 2026-06-29 — unchanged at **2026-08-25**, ~8 weeks against a 5–7 week train).
 - **Enumerate release lists unfiltered.** A `test()` pattern built from expected versions hid an entire release line during the 2026-08-25 probe; list everything, then narrow by reading.

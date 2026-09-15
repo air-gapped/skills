@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260915.170",
+      "version": "0.20260915.171",
       "author": {
         "name": "Jörgen"
       },
@@ -40,7 +40,7 @@
       "name": "bitnami-exit",
       "source": "./",
       "description": "Bitnami-exit suite — migrate off dead-ended Bitnami charts/images. First member: redis-to-valkey (Sentinel HA migration to Valkey: the RDB-version wall, RedisShake/rdb-cli logical replay, chart selection and values translation, consumer-app reconnection, air-gap mirroring, Argo CD source rewiring away from charts.bitnami.com).",
-      "version": "0.20260829.11",
+      "version": "0.20260915.12",
       "author": {
         "name": "Jörgen"
       },
@@ -195,7 +195,7 @@
       "name": "inference-apis",
       "source": "./",
       "description": "Inference-API compatibility suite — the three open LLM serving protocols as third-party surfaces: OpenAI Chat Completions + legacy /v1/completions (7 local servers, gateways, 10 cloud compat endpoints, reasoning-field schism, client wire behavior), OpenAI Responses (spec, streaming events, store/previous_response_id semantics, translation), and Anthropic Messages (7 native server implementations, thinking-signature seam, stop_reason divergences, Claude Code/opencode integration). Source-examined at pinned commits with live-verification logs.",
-      "version": "0.20260915.19",
+      "version": "0.20260915.20",
       "author": {
         "name": "Jörgen"
       },
@@ -324,7 +324,7 @@
       "name": "k8s",
       "source": "./",
       "description": "Kubernetes suite — Argo CD application authoring (GitOps Application/ApplicationSet manifests, sync policies, AppProjects), Helm chart authoring, KEDA event-driven autoscaling, Keycloak IAM (Operator + CRDs, realm/client configuration, OIDC/SAML integration, security hardening), OpenShift application packaging, and k8s-components-checker (cross-component compatibility registry for RKE2 community stacks — kubectl/helm/pluto cluster survey, structured verdict + pre-upgrade report wrapper, skill-improver freshen and operator floor-override flows; covers 19 components: RKE2, Rancher, Harvester, Cilium, Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph, OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator), plus rancher-upgrade — community Rancher fleet upgrade methodology (KDM downstream support matrix, CAPI→Turtles migration, Fleet, air-gapped upgrade procedure, per-minor 2.11→2.14 runbook), companion to k8s-components-checker. Harvester HCI upgrades live in the separate `harvester` suite. Also traefik-hardening — cap abusive/unwanted traffic at a Traefik 2.x/3.x ingress (per-identity rate + concurrency limiting, IPAllowList, buffering, middleware chaining, JWT-claim/header keying, air-gapped plugin loading, detection/response) on the principle of capping per-identity resource use rather than trying to classify good vs bad clients. Also postgres-operator-cloudnative-pg-migration — migrate PostgreSQL clusters off the Zalando postgres-operator (Spilo/Patroni) onto CloudNativePG: the glibc/collation and WAL-G↔Barman walls, three migration paths (logical replication default), full acid.zalan.do→Cluster manifest field map, barman-cloud plugin backup re-plumbing, consumer cutover, air-gap mirroring.",
-      "version": "0.20260915.130",
+      "version": "0.20260915.131",
       "author": {
         "name": "Jörgen"
       },
@@ -557,7 +557,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260915.138",
+      "version": "0.20260915.139",
       "author": {
         "name": "Jörgen"
       },
@@ -723,7 +723,7 @@
       "name": "postgres-operator-best-practices",
       "source": "./",
       "description": "Run, configure, upgrade and troubleshoot the Zalando postgres-operator (acid.zalan.do `postgresql` CRs, Spilo, Patroni, WAL-G) on Kubernetes",
-      "version": "0.20260915.14",
+      "version": "0.20260915.15",
       "author": {
         "name": "Jörgen"
       },

@@ -4,7 +4,9 @@ Per-URL index backing this skill's factual claims. Freshen Mode probes every
 row and rewrites the stamp below; rows it could not reach carry an inline
 exception note instead.
 
-**Freshened: 2026-08-25**
+**Freshened: 2026-09-15**
+
+Re-probed end to end with no drift: every URL, every cited issue and PR state, and each of the volatile facts below. `v2.0.2` is still the newest release (list enumerated unfiltered), the `/readyz` regression is still open and still undocumented upstream, and Spilo still has no tag past the one this release pins — so the claim that the md5 drop is still ahead of us remains forward-looking rather than wrong. Release containment for each fix was re-established with `git tag --contains`, never from a merge date.
 
 Upstream read at tag **v2.0.2**; release list enumerated unfiltered via
 `gh api`; issue tracker swept the same day; claims about a running deployment

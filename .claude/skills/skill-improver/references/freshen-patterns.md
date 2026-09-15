@@ -113,6 +113,24 @@ a filtered pass that reads as a full one is worse than no pass at all.
 
 Only drift, deprecation, new-feature, and broken produce mutation hypotheses.
 
+**Re-run every ABSENCE claim, and re-run it against the snapshot it names.** A row
+saying "zero hits for X", "not documented", "no such flag before vN" is the only
+kind that can be **false from birth and stay invisible**. A present claim that
+goes stale contradicts something checkable; an absence that was wrong reads
+exactly like an absence that is right, forever, until someone re-runs the exact
+check. Nothing else in the file degrades that way, which is what makes these the
+highest-value rows in a pass, not the version pins.
+
+Measured 2026-09-15: a row recorded two doc-absence greps over a pinned docs
+snapshot. Re-grepping *that snapshot* — not current `main` — one term matched two
+files, and the commit introducing them was an ancestor of the pin. The claim had
+been false on the day it was written. It had survived because the row invited a
+re-grep and no pass had spent the thirty seconds.
+
+So: when a row names a snapshot, probe **the snapshot**, not the branch tip.
+Current-`main` evidence cannot distinguish "the claim was wrong then" from
+"the world changed since", and those want different fixes.
+
 **Gate on `unverifiable`: name the probe that failed.** The class means *probes
 were run and came back ambiguous* — not *two documents look like they disagree*.
 Reading sources and finding tension is the trigger for probing, not a substitute
@@ -160,6 +178,20 @@ Decision rule (different from score-based loop — verification-based):
 **The stamp never lies.** It means "every row was verified on this date,
 except the ones that say otherwise inline." A pass that verified only part
 of the file keeps the old stamp.
+
+**Restamp the table rows, not the file.** A blanket `s/<old date>/<today>/` over a
+sources file is the obvious way to move the per-row column and it is wrong: these
+files also carry dates that are *historical* and must not move —
+
+- the `<!-- Grounding note: authored <date> ... -->` comment, which records when
+  the skill was written, not when it was last checked; and
+- the `## <date> freshen — ...` heading of a previous pass, which titles a section
+  recording *that* pass's findings.
+
+Rewriting either one silently backdates this pass's work onto an older record and
+erases when the skill was actually authored. Hit in three files in a single pass
+on 2026-09-15 before being caught and reverted. Anchor the substitution to the
+row shape (`| ... | <date> |`), or replace each row explicitly.
 
 ### Batch Mode
 
