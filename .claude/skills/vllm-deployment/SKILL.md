@@ -141,6 +141,30 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments.
 10. **Assuming Gateway API is GA on every OCP.** It is GA on OCP 4.19+, dev-preview on 4.17. Check the cluster version.
 
+## Upgrading past v0.27.x (swept 2026-09-15)
+
+Upstream is at **v0.29.0** (2026-09-09), with **v0.28.0** (2026-08-26) in
+between. Four changes affect a deployment manifest or its rollout plan:
+
+- **`python -m vllm.entrypoints.openai.api_server` is deprecated** in favour of
+  `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
+  module form, change it now rather than on the release that removes it.
+- **Model Runner V2 is the default for all models** (#53183, v0.29.0). MRV1 is
+  deprecated with **removal targeted at v0.32**, and upstream states it will not
+  accept further MRV1-specific work. It does still fall back to MRV1 for a few
+  ROCm models and for features MRV2 does not yet cover, so a fleet can be split
+  across both without anyone choosing that.
+- **FlashInfer all-reduce is on by default** for TP CUDA groups (#52998,
+  v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` if you are pinning
+  collective behaviour.
+- **New admission-control flags** `--max-num-queued-reqs` and
+  `--max-num-queued-tokens` (#49445, v0.29.0) give queue-depth limits that
+  previously had to be approximated with autoscaling thresholds.
+
+Do not read v0.28.0's "`max_num_batched_tokens` raised from 8192 to 16384" as a
+change to your serving default — it is not. See `vllm-performance-tuning` for
+the entrypoint-gated table; on H100/H200 `vllm serve` still starts at 8192.
+
 ## External references
 
 Canonical entry: https://docs.vllm.ai/en/stable/deployment/ — topic URLs live in the reference files (`references/ecosystem.md`, `references/multi-node.md`, `references/openshift.md`).

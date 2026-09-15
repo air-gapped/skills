@@ -4,6 +4,21 @@ Work-not-done log for the skill-improver loop. `## Open` lists issues attempted 
 hypotheses that could not be applied (or safely verified) in a single iteration.
 `## Resolved this pass` lists changes the metric actually registered.
 
+## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
+
+- Recorded the four v0.28/v0.29 changes that touch a manifest or a rollout plan:
+  `python -m vllm.entrypoints.openai.api_server` deprecated for `vllm serve`
+  (#52131); **Model Runner V2 now default with MRV1 removal targeted at v0.32**
+  (#53183), while MRV1 still runs for some ROCm models and unsupported features,
+  so a fleet can split across both without anyone choosing that; FlashInfer
+  all-reduce on by default (#52998) with `VLLM_ALLREDUCE_USE_FLASHINFER=0` as
+  the opt-out; and the new `--max-num-queued-reqs` / `--max-num-queued-tokens`
+  admission-control flags (#49445).
+- Added an explicit warning **not** to read v0.28.0's
+  "`max_num_batched_tokens` raised from 8192 to 16384" as a change to the
+  serving default. It is not — see `vllm-performance-tuning` for the
+  entrypoint-gated table.
+
 ## Resolved — 2026-08-11 (freshen)
 
 vLLM shipped **two** minors since the last pass (v0.26.0 2026-07-27, v0.27.0

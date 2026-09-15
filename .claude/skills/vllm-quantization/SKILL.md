@@ -10,8 +10,13 @@ when_to_use: |-
 # vLLM quantization — operator skill
 
 **Last verified:** 2026-08-11. Claims below are probed against **v0.27.0**
-(2026-08-10); latest stable is **v0.27.1** (2026-08-11), a one-change patch —
-see `references/sources.md` for the per-ref audit table.
+(2026-08-10) — see `references/sources.md` for the per-ref audit table.
+
+**Partial sweep 2026-09-15:** upstream is now **v0.29.0** (2026-09-09), with
+v0.28.0 in between. Only the two releases' *breaking changes* were swept and
+applied (see the deprecated-formats note below and `references/version-gates.md`).
+The per-ref audit table is still at v0.27.0, so treat any claim not marked with a
+v0.28/v0.29 note as verified only to v0.27.0.
 
 For production vLLM operators on **H100 / H200 / B200 / B300 / GB200 / GB300** fleets
 deciding which quantization format fits a given target model, producing a
@@ -89,7 +94,20 @@ Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_e
 | `quark` | varies | AMD ROCm path |
 | `fp8_per_tensor` / `fp8_per_block` / `int8_per_channel_weight_only` / `online` | 75 | **Online** quantization from BF16 checkpoint — no pre-quant step |
 
-**Deprecated / legacy / narrow:** `fbgemm_fp8` and `fp_quant` are the only two in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list. Also avoid for new work: `awq` (unfused Triton — use `awq_marlin`), `gptq` (unfused — use `gptq_marlin`), `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `bitsandbytes`, `inc` / `auto-round` (Intel), `torchao`. Aliases `auto_awq` / `auto_gptq` resolve to the same configs as `awq` / `gptq`.
+**Deprecated / legacy / narrow:** `fbgemm_fp8` and `fp_quant` are the only two in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list. Also avoid for new work: `awq` (unfused Triton — use `awq_marlin`), `gptq` (unfused — use `gptq_marlin`), `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `inc` / `auto-round` (Intel), `torchao`. Aliases `auto_awq` / `auto_gptq` resolve to the same configs as `awq` / `gptq`.
+
+**`bitsandbytes` left the tree in v0.28.0** (#43529, listed under Breaking
+Changes). It is now an out-of-tree plugin, so on v0.28.0+ the value is not
+built in and an existing `--quantization bitsandbytes` deployment needs the
+plugin installed rather than a flag change. This is the same shape as `gguf`
+moving to `vllm-gguf-plugin` — check the plugin before assuming the flag still
+resolves.
+
+**Two quantization-adjacent env vars were removed in v0.29.0**:
+`VLLM_TEST_FORCE_FP8_MARLIN` (#52182), superseded by `--linear-backend` /
+`--moe-backend`, and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141). v0.28.0 also
+removed the deprecated `calculate_kv_scales` runtime KV-scale calculation
+(#49389) and `override_attention_dtype` (#48684).
 
 **Gone from the in-tree flag list — do not offer them:**
 

@@ -7,6 +7,20 @@ Work-not-done log from skill-improver passes. Open = attempted but not applicabl
 - Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28)
 - Re-stamp the docs.vllm.ai env_vars / serve_args rows and the discuss.vllm.ai / GH-discussion #1405 rows in sources.md — Dim 9. Not re-confirmed this pass: the canonical docs URL `docs.vllm.ai/en/.../configuration/env_vars.html` 302-redirects and WebFetch of the redirect target 404s from this sandbox; only the `/serving/env_vars.html` variant resolved. Could not truthfully re-stamp those four rows to 2026-05-28, so they retain their 2026-04-24 date. GitHub-hosted rows (#8947, releases/latest) WERE re-verified via `gh` and stamped 2026-05-28. (carried 2026-05-28)
 
+## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
+
+- **Dependency floors moved and an air-gapped mirror seeded for v0.27.x does not
+  satisfy them**: `transformers` to 5.15.0 (#51668), `huggingface-hub` to 1.27.0
+  then 1.28.0 (#52797), FlashInfer 0.6.18, NIXL 1.3.2, and the runtime image to
+  Ubuntu 24.04. Stage these before the image bump.
+- **The build now fails closed when the selected precompiled CUDA variant is
+  missing** (#52545, v0.29.0), where it could previously fall back silently.
+  Better behaviour, but it converts a quiet degradation into a hard stop on the
+  first air-gapped build that lacks a variant — worth knowing before it happens.
+- Env-var catalog updated: two removed in v0.29.0, one added
+  (`VLLM_ALLREDUCE_USE_FLASHINFER`), and `prefix_cache_retention_interval`
+  deprecated in its env-var form in favour of the CLI argument.
+
 ## Resolved this pass (2026-05-28)
 
 - Release-version freshen: corrected sources.md latest-release line and row from v0.19.1 (2026-04-18) to the real latest **v0.21.0 (2026-05-15)**, verified via `gh api repos/vllm-project/vllm/releases/latest` — Dim 9. (A mid-pass intermediate edit briefly set this to a wrong "v0.11.2 (2026-05-23)"; corrected to v0.21.0. v0.11.2 actually published 2025-11-20.)

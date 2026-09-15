@@ -3,6 +3,20 @@
 Tracks improvement attempts that could not be applied in a single atomic
 iteration, plus changes the metric registered this pass.
 
+## Resolved — 2026-09-15 (v0.28/v0.29 breaking-change sweep)
+
+- **`bitsandbytes` left the tree in v0.28.0** (#43529) and is now an out-of-tree
+  plugin, so on v0.28.0+ an existing `--quantization bitsandbytes` deployment
+  needs the plugin installed rather than a flag change. Same shape as `gguf`
+  moving to `vllm-gguf-plugin`. It had been sitting in the avoid-for-new-work
+  list as though it were merely discouraged.
+- Recorded the removals: `calculate_kv_scales` and `override_attention_dtype`
+  (v0.28.0), `VLLM_TEST_FORCE_FP8_MARLIN` and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM`
+  (v0.29.0).
+- **The header now says the sweep was partial.** Only the two releases' breaking
+  changes were applied; the per-ref audit table is still at v0.27.0, and the
+  skill says so rather than implying a full freshen it did not have.
+
 ## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.1)
 
 Two minors of drift. **The three highest-value findings were not release-note

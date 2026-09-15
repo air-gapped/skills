@@ -80,6 +80,26 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace. PR #13220 attempted the fix but was closed unmerged (2025-06-20); no upstream fix has landed. Workaround: download LoRA adapters manually, pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
+**Version floors and failure modes that matter to a mirror (v0.28.0 / v0.29.0,
+swept 2026-09-15):**
+- **`transformers` floor moved to 5.15.0** (#51668, v0.28.0) and
+  `huggingface-hub` to 1.27.0, then **1.28.0** in v0.29.0 (#52797). A mirror
+  seeded for a v0.27.x deployment does not satisfy v0.28+; stage the new floors
+  before the image bump, not after.
+- **The build now fails closed when the selected precompiled CUDA variant is
+  unavailable** (#52545, v0.29.0). Previously this could fall back silently.
+  Failing loudly is the better behaviour, but it turns a quiet degradation into
+  a hard stop on the first air-gapped build that is missing a variant.
+- Other v0.29.0 dependency floors: FlashInfer 0.6.18 (#54313), NIXL 1.3.2
+  (#51777). v0.28.0 also moved the runtime image to Ubuntu 24.04 (#51058).
+- Two env vars were **removed** in v0.29.0 — `VLLM_TEST_FORCE_FP8_MARLIN`
+  (#52182, superseded by `--linear-backend` / `--moe-backend`) and
+  `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141). One was **added**:
+  `VLLM_ALLREDUCE_USE_FLASHINFER=0`, the opt-out for FlashInfer all-reduce now
+  being on by default.
+- `prefix_cache_retention_interval` is now a CLI argument and the env var form
+  is deprecated (#52216).
+
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.
 
