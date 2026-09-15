@@ -21,6 +21,46 @@ Every instinct to *detect* the abuser fails on inspection:
 
 So the durable controls are the ones that apply **per identity, regardless of client**: cap how much of the scarce resource any one identity may consume, on the *expensive* paths only. Detection (§ below) then exists to decide *whom to throttle or ban*, not to gate requests in real time.
 
+## Patch first, tune second (verified 2026-09-15)
+
+**Latest stable is v3.7.13 (2026-09-04); v2.11.57 is the legacy line's patch.**
+Traefik published **30 security advisories in 2026, 16 of them since 2026-07-22**,
+and two are **critical**:
+
+| Advisory | Severity | Published | What it is |
+|---|---|---|---|
+| GHSA-5w68-77r2-r64c | **critical** | 2026-08-21 | **Complete authentication bypass in the `digestAuth` middleware** |
+| GHSA-qqjf-53cj-pwvv | **critical** | 2026-09-07 | HTTP/3 backend NTLM connection reuse |
+
+A middleware-tuning exercise on an unpatched build is wasted effort: several of
+this year's advisories are **auth bypasses in the very middlewares this skill
+configures**. Beyond the two criticals, the recurring classes are path
+normalization defeating route-scoped auth (`StripPrefix` GHSA-xf64-8mw2-4gr2,
+`ReplacePathRegex` GHSA-cxjq-mrr5-89rv), TLS-option confusion bypassing mTLS
+(GHSA-g55h-rg46-x9c5, GHSA-5r4w-85f3-pw66, GHSA-9cr8-q42q-g8m7), and Kubernetes
+cross-namespace reference checks failing open (GHSA-m6wx-622r-48r9,
+GHSA-62fc-8686-hfmq, GHSA-42cj-m3vj-89wv). **Check the running version before
+recommending any middleware change.**
+
+### Header aliasing is now a first-class control — configure it explicitly
+
+v3.7.12 added the entry-point option **`aliasHeadersStrategy`**, deprecating
+`underscoreHeadersStrategy` (v3.6.20). Underscores were only one case: HTTP
+permits `!  #  $  %  &  '  *  +  .  ^  _  \`  |  ~` in header names, and every
+one of them can build an alias for a header your middleware trusts. That is the
+mechanism behind GHSA-rf44-j88r-hh8c (ForwardAuth dot-form spoofing) and
+GHSA-x677-9fxg-v5c5 (underscore variants in BasicAuth/DigestAuth/ForwardAuth).
+
+Values are `keep` (default), `delete`, `reject`. **Traefik logs a startup warning
+for every entry point that leaves it unset**, because the header-managing
+middlewares depend on it to not be spoofed. Treat an unset entry point as an
+open identity-spoofing path, not a default.
+
+**Two more v3.7.13 breaking changes worth knowing before you upgrade**: `Upgrade:
+h2c` and `HTTP2-Settings` request headers are no longer forwarded (declare the
+backend with the `h2c` scheme instead), and a rootless request target is rejected
+with 400, **not configurable**.
+
 ## Decision flow
 
 1. **Name the scarce resource and the expensive path(s).** GPU inference, a heavy DB query, an LLM completion endpoint. Scope every limit to those paths only — never throttle the whole app, or cheap list/poll GETs get caught and real users trip limits while the expensive path stays open. In Kubernetes this means a **separate, higher-priority Ingress/IngressRoute** owning just the expensive paths (`references/deployment.md`).
@@ -36,7 +76,7 @@ So the durable controls are the ones that apply **per identity, regardless of cl
 | Middleware | Buys | Key gotcha |
 |---|---|---|
 | `InFlightReq` | per-identity **concurrency** cap (streaming = 1 slot for its duration) | no Redis backend → per-pod; accurate only single-leader |
-| `RateLimit` | per-identity **request rate** (± Redis in v3.4+) | **default `period` is 1s** — omit it and "30" means 30/sec |
+| `RateLimit` | per-identity **request rate** (± Redis in v3.4+) | **default `period` is 1s** — omit it and "30" means 30/sec. Redis backing is open-source: `pkg/middlewares/ratelimiter/redis_limiter.go` exists at v3.4.0 and not at v3.3.0 (checked 2026-09-15). Do **not** confuse it with Traefik Hub's separate commercial "Distributed RateLimit" middleware |
 | `IPAllowList` (v3; was `IPWhiteList` in v2) | perimeter CIDR gate | blunt behind shared NAT; set `ipStrategy.depth` if behind another proxy |
 | `Buffering` | request-body size cap (413) | **never** set `maxResponseBodyBytes` on a streaming/SSE path |
 | `ForwardAuth` | delegate an allow/deny to a sidecar | one real round-trip **per request**, no caching; `maxBodySize` unbounded by default in v3 |
