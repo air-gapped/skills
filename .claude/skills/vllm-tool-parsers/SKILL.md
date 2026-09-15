@@ -33,7 +33,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
 
-**Except for the 13 names on the unified-parser path**, where that file is a
+**Except for the 14 names on the unified-parser path** (13 through v0.27.1, plus `ling3` at v0.29.0), where that file is a
 stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 
 | CLI name(s) | Registry class | Real implementation |
