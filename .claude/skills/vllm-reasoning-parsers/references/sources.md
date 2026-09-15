@@ -1,6 +1,8 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed and every row holds. All 32 issue/PR states reproduce with the same reason AND closer; every line anchor, file length and registry count re-read at the tag it names. Registry re-probed at v0.29.0: **29 -> 32 names**, adding exactly `hy_v4`, `ling3` and `muse_glimmer`, no removals.
+
+One URL moved: the OpenAI Harmony spec now serves from `developers.openai.com/cookbook/...` — the cited `cookbook.openai.com` address still 200s by redirect and has been repointed below.
 
 Upstream primary references for claims in this skill.
 
@@ -62,7 +64,7 @@ Upstream primary references for claims in this skill.
 
 ## OpenAI harmony
 
-- https://cookbook.openai.com/articles/openai-harmony — the spec.
+- https://developers.openai.com/cookbook/articles/openai-harmony — the spec. (Moved from `cookbook.openai.com`, which still redirects here.)
 - https://github.com/openai/harmony — renderer / reference impl (vLLM vendors via `openai-harmony` package).
 
 ## Freshen sweep log

@@ -35,7 +35,7 @@ freshen to skip get `<!-- ignore-freshen -->` at the end.
 
 Re-probed releases, security advisories, and the shipped upgrade docs via `gh`.
 
-- **Releases moved:** latest stable **v3.4.5** (2026-07-09, was v3.4.3);
+- **Releases moved (2026-09-15):** latest stable **v3.5.3** (2026-09-14), with maintenance lines v3.4.9 (2026-09-14) and v3.3.14 (2026-08-12). Docs `stable` now resolves to v3.5.3. No security advisory newer than 2026-05-13. Historically, v3.4.5 (2026-07-09, was v3.4.3);
   maintenance **v3.3.12** (2026-06-18, was v3.3.11); v3.2.12 and v3.1.16 also
   active. **v3.5 entered RC** — v3.5.0-rc1 (2026-06-16), v3.5.0-rc2
   (2026-07-01), not GA.
@@ -94,11 +94,11 @@ stamp.
 | Best practices | https://argo-cd.readthedocs.io/en/stable/user-guide/best_practices/ | Argo's own 5-reason config-vs-source repo split, immutable-revision rule, replicas/HPA pattern | 2026-08-18 | v3.3.9 |
 | Sync options | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/ | Every `syncPolicy.syncOptions` value | 2026-08-18 | v3.3.9 |
 | Sync waves | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | Wave annotation, phase ordering | 2026-08-18 | v3.3.9 |
-| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/ | All 7 hook types, all 3 delete policies | 2026-08-18 | v3.3.9 |
+| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | All 7 hook types, all 3 delete policies | 2026-09-15 | v3.5.3 — **URL repointed: the old `resource_hooks/` page still returns 200 but its whole body is now "This page has moved". The content merged into the sync-waves page**, which this table already cites separately. A status check alone would have called this row healthy. |
 | Cluster bootstrapping | https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/ | App-of-apps pattern; line 7 explicitly recommends ApplicationSets first | 2026-08-18 | v3.3.9 |
 | ApplicationSet generators | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Git/ | Git generator (and siblings: List, Cluster, Matrix, Merge, SCMProvider, PullRequest, ClusterDecisionResource, Plugin) | 2026-08-18 | v3.3.9 |
 | Progressive Sync | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Progressive-Syncs/ | RollingSync strategy, formal Beta in v3.3 | 2026-08-18 | v3.3.9 |
-| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator/ | DRY/HYDRATED source flow — Alpha as of v3.4 | 2026-08-18 | v3.3.9 |
+| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator/ | DRY/HYDRATED source flow — **Beta, not Alpha, and only on the v3.5 line.** Promoted by PR #28229 (merged 2026-06-11); `compare <tag>...08e959d` is `behind` for v3.5.0 and v3.5.3 but `diverged` for v3.4.9 and v3.3.14, so the promotion was never backported. "Alpha as of v3.4" was wrong twice over — wrong level, and v3.4 never carried it at all. | 2026-09-15 | v3.5.3 |
 | AppProject specification | https://argo-cd.readthedocs.io/en/stable/operator-manual/project-specification/ | AppProject field-level reference | 2026-08-18 | v3.3.9 |
 | Sync impersonation | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-sync-using-impersonation/ | `destinationServiceAccounts` — Beta in v3.4 | 2026-08-18 | v3.3.9 |
 | Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace/ | Tenant-namespace Applications | 2026-08-18 | v3.3.9 |
