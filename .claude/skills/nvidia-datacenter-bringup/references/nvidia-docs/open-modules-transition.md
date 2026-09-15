@@ -1,6 +1,13 @@
 # NVIDIA Transitions Fully Towards Open-Source GPU Kernel Modules
 
 > Retrieved 2026-05-21 from https://developer.nvidia.com/blog/nvidia-transitions-fully-towards-open-source-gpu-kernel-modules/
+
+> **Prompt convention, carried over from the source:** `$ ` marks a command run as
+> a normal user and `# ` marks one run as **root**. They are prompts, not shell
+> syntax — to a shell every `# ` line is a **comment**. Do not paste these blocks
+> verbatim: strip the prompt first. Blocks where a `# ` line ends in `\` and
+> continues into a pipe do not merely no-op, they fail with a syntax error on the
+> orphaned `|`. Use `pkexec`/`sudo` for the root lines.
 >
 > This is the authoritative source for the claim that open kernel modules are MANDATORY on Blackwell.
 

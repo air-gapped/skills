@@ -143,6 +143,27 @@ whole fleet, **83% of similar-looking content was correct as written**; a
 deletion bias would have cut it. `scripts/dedup-fleet.py` produces the table
 and `references/improvement-patterns.md` §Pattern 6.1 explains how to read it.
 
+### A Fence Is Code, and Nothing Else Checks It
+
+Skill markdown is copy-paste material. `shellcheck` runs on `.sh` files; **no gate
+looks inside a ```bash fence**, so a broken command fails on the reader's machine
+rather than here. Run
+`python3 ${CLAUDE_SKILL_DIR}/scripts/check-shell-fences.py [root]` after editing
+any block a reader is meant to run.
+
+It makes two passes because one is not enough. `bash -n` catches syntax errors.
+It does **not** catch `cmd \   # note` — the backslash escapes the space, the `#`
+opens a comment, and the next line silently becomes a separate command. That
+stays syntactically valid and means something else, so a regex pass exists
+alongside the parser. Measured 2026-09-15: 753 fences, **7 occurrences across 4
+skills, none visible to `bash -n`** — one had been quietly dropping two of three
+`--config.file` flags.
+
+Read the output by class: broken continuations and unexplained parse failures are
+real, while placeholder blocks (`<model>`) and prompt transcriptions (`$ cmd` /
+`# cmd`, copied from vendor docs) are expected to fail and are fixed with a note
+about the convention, never by editing the command.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.

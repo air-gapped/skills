@@ -2,6 +2,13 @@
 
 > Retrieved 2026-05-21 from https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/latest/advanced-options.html
 
+> **Prompt convention, carried over from the source:** `$ ` marks a command run as
+> a normal user and `# ` marks one run as **root**. They are prompts, not shell
+> syntax — to a shell every `# ` line is a **comment**. Do not paste these blocks
+> verbatim: strip the prompt first. Blocks where a `# ` line ends in `\` and
+> continues into a pipe do not merely no-op, they fail with a syntax error on the
+> orphaned `|`. Use `pkexec`/`sudo` for the root lines.
+
 ## Switching between Driver Module Flavors
 
 Replace `XXX` with the NVIDIA driver branch number (e.g., 595).

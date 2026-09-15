@@ -3,6 +3,36 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (nothing was checking the inside of a shell fence)
+
+- **Shipped `scripts/check-shell-fences.py`.** `shellcheck` runs on `.sh` files
+  and the skillevaluator gate does not parse fenced code, so a broken command in
+  skill markdown fails on the reader's machine and nowhere else. 753 fences
+  across the fleet had never been parsed.
+- **Two passes, because `bash -n` alone would have reported the fleet clean.**
+  The bug that motivated this — `cmd \   # note`, where the backslash escapes a
+  space and the `#` opens a comment so the next line becomes a separate command —
+  leaves the block **syntactically valid**. `bash -n` passes it. It was found by
+  grep, and the second pass exists so it stays found.
+- **7 occurrences across 4 skills**, each in a copy-pasteable block: the ORAS
+  push recipes (argo-cd-apps), the vLLM embedding serve command
+  (open-webui-embeddings), the mesh bootstrap (sglang-model-gateway), and all
+  three `--config.file` flags (snmp-exporter) — that last one would have run with
+  only the first config file rather than failing.
+- **The selfcheck asserts the negative**, that `bash -n` must *not* be credited
+  with catching the continuation case. Writing that assertion is what exposed the
+  first draft of this tool claiming a detection it did not have; the docstring
+  had to be corrected before shipping.
+- **Output is classed, because most failures are expected.** Placeholders
+  (`<model>`) and prompt transcriptions (`$ cmd` / `# cmd` from vendor docs) do
+  not parse by design. 23 blocks are prompt transcriptions; the fix there is a
+  note that the prompt is not syntax — added to the three vendored NVIDIA files
+  that carry most of them, where a `#` root-prompt line ending in `\` leaves the
+  next line's pipe orphaned and errors outright rather than no-opping.
+- One genuine parse failure remained after the fixes: a `case`-arm fragment
+  quoted from `backup-utility` and fenced as `bash`. Re-fenced as `text` with a
+  note that it is a fragment. Fleet now exits 0.
+
 ## Resolved — 2026-09-15 (the lag table could not distinguish a date from a guess)
 
 - **A proxy date rendered as a verification date, and it cost a whole

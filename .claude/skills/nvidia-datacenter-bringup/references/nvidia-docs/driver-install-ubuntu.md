@@ -2,9 +2,16 @@
 
 > Retrieved 2026-05-21 from https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/latest/ubuntu.html
 
+> **Prompt convention, carried over from the source:** `$ ` marks a command run as
+> a normal user and `# ` marks one run as **root**. They are prompts, not shell
+> syntax — to a shell every `# ` line is a **comment**. Do not paste these blocks
+> verbatim: strip the prompt first. Blocks where a `# ` line ends in `\` and
+> continues into a pipe do not merely no-op, they fail with a syntax error on the
+> orphaned `|`. Use `pkexec`/`sudo` for the root lines.
+
 ## Preparation
 
-1. Complete the [Pre-installation Actions](pre-installation-actions.html).
+1. Complete the [Pre-installation Actions](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/latest/pre-installation-actions.html).
 
 2. Install kernel headers and development packages for the current kernel:
 
@@ -103,7 +110,7 @@ or
 # apt install nvidia-driver-pinning-<version>
 ```
 
-Install the pinning package before the driver for best results. See [Version locking](version-locking.html) for detailed information.
+Install the pinning package before the driver for best results. See [Version locking](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/latest/version-locking.html) for detailed information.
 
 **Note:** Starting with branch 590, branch designation was removed from Ubuntu package names. Use version locking packages to manage branch and version switching.
 
@@ -165,7 +172,7 @@ Desktop components can be excluded to reduce footprint and dependencies. Exclude
 # reboot
 ```
 
-Complete the [Post-installation Actions](post-installation-actions.html).
+Complete the [Post-installation Actions](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/latest/post-installation-actions.html).
 
 ## Package Upgrades
 

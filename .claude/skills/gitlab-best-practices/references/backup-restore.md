@@ -166,7 +166,8 @@ failure is only discovered at restore time.
 
 The two flags are mutually exclusive and skip wins. From `backup-utility`:
 
-```bash
+```text
+# fragment of a case arm, quoted verbatim — not runnable on its own
 --repositories-server-side)
   export REPOSITORIES_SERVER_SIDE="true"      # sets a variable, nothing else
 ```
