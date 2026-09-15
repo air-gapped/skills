@@ -162,6 +162,14 @@ its reader to ignore the whole report. A line citing several refs in *differing*
 states is reported separately as ambiguous rather than guessed at — the claim
 cannot be attached to one ref by text alone.
 
+**AMBIGUOUS is not a defect count and is not meant to reach zero.** A dense,
+correct line naming a fixed issue, its merged fix, an abandoned earlier attempt
+and a still-open sibling lands there by construction, with nothing wrong in it.
+Read such a line and move on. **Do not reword correct prose to clear the
+counter** — splitting a sentence that an agent benefits from reading whole, to
+make a parser attribute it, is the tool driving the content. Only the findings
+count is an error count.
+
 ## A Release Note Saying "Bumped X to N" May Be a CI Pin
 
 Before recording a dependency floor from release notes, **read the pull request's
