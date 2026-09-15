@@ -3,7 +3,7 @@ name: rancher-upgrade
 description: >-
   Plan and sequence COMMUNITY-edition Rancher upgrades across air-gapped multi-cluster fleets — a
   management/"hosting" Rancher cluster plus the downstream RKE2/K3s clusters it provisions. Covers the community
-  release model (2.11→2.14, community-vs-Prime cadence, EOL), the Kontainer Driver Metadata (KDM) matrix
+  release model (2.11→2.15, community-vs-Prime cadence, EOL), the Kontainer Driver Metadata (KDM) matrix
   deciding which downstream k8s minors each Rancher version can manage (and the stranding risk when a
   host-Rancher bump outruns its sub-clusters), cross-cluster upgrade ordering, the
   embedded-CAPI→Rancher-Turtles migration, Fleet coupling, cert-manager/Helm/backup prerequisites, backup-
@@ -88,7 +88,7 @@ forward. This is the single most common way a fleet upgrade goes wrong. See
 ### 2. Compute the upgrade path (no minor skipping)
 
 The only supported path between minors is **latest-COMMUNITY-patch-of-current-minor → latest-
-COMMUNITY-patch-of-next-minor, one minor at a time** (2.11→2.12→2.13→2.14; never 2.11→2.14).
+COMMUNITY-patch-of-next-minor, one minor at a time** (2.11→2.12→2.13→2.14→2.15; never 2.11→2.14).
 Intra-minor patch jumps are fine.
 
 ⛔ **The rung is the community ceiling, not the newest tag.** Rancher ships both editions to one
@@ -213,7 +213,7 @@ target versions follow look-ahead (House Rule #4).
 | cert-manager / Helm / backup prereqs, cross-cluster ordering, etcd rollback | `references/prereqs-and-ordering.md` |
 | embedded-CAPI→Turtles migration, CAPRKE2/CAAPF, Fleet per-minor + Helm v4 | `references/capi-turtles-fleet.md` |
 | Air-gapped upgrade: what to mirror, `helm upgrade` flags, downstream RKE2 SUC | `references/air-gap-procedure.md` |
-| Per-minor (2.11→2.14) breaking changes + ordered pre/upgrade/post runbook | `references/per-minor-runbook.md` |
+| Per-minor (2.11→2.15) breaking changes + ordered pre/upgrade/post runbook | `references/per-minor-runbook.md` |
 
 Each reference carries a header stating **what was grounded and when — and what was NOT re-derived
 on the latest pass**. Read that header before citing anything from the file: a claim under a

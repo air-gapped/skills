@@ -5,6 +5,46 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-09-15 (the ladder stopped at 2.14 while 2.15 was six weeks old)
+
+- **Scope extended to 2.15** across the frontmatter, the no-skip ladder, the decision guide, the
+  prereqs ordering line and the per-minor runbook. 2.15 GA'd 2026-07-30 and is the current
+  community minor — the only one still receiving community patches.
+- **Target v2.15.1, never the 2.15.0 GA.** Two release-blocker regressions live only in 2.15.0 and
+  appear nowhere in the published notes: local principal search stopped matching `displayName`,
+  making OIDC/SAML-provisioned users unassignable (#56392), and a crashloop with "setting is read
+  only" when `--no-cacerts` must clear an existing `cacerts` Setting (#56522), which blocks
+  migrating TLS source off the self-signed CA.
+- **k8s 1.34–1.36**, overlapping 2.14's 1.33–1.35 only at 1.34/1.35 — the narrowest overlap on the
+  ladder, so a mgmt cluster on 1.33 moves k8s before Rancher rather than after.
+- **Four open hazards recorded**, each verified still open or unshipped: #57078 (2.14.2 → 2.15.1
+  stranding downstream clusters; reporter rolled back and restored a backup, then still re-ran
+  registration by hand), #57050 (ClusterRole reconciliation loop under GlobalRole inheritance,
+  milestoned v2.15.2 so in no shipped release, and reproducing on fresh installs too), #57196
+  (downstream Unavailable after `cattle-credentials` regeneration), #57240 (default registry
+  ignored on the Docker install — air-gap relevant).
+- **The security batch reaches outside this repo's feed.** v2.15.1 fixes five Rancher CVEs and the
+  same batch ships CVE-2026-75036 against **Fleet**, in the `rancher/fleet` advisory feed. Any
+  sweep that maps one skill to one upstream repo misses it.
+- **2.14's heading corrected** from "current community line" to "community line CLOSED at v2.14.3"
+  — 2.14.4+ are Prime-only, which follows from the flip rule recorded this pass.
+
+### Two source traps recorded while grounding the above
+
+- **`endoflife.date`'s `latest` column is the PRIME tag.** It reports 2.14.5 / 2.13.9 / 2.12.13 /
+  2.11.17, every one a Prime-docs redirect — it overshoots exactly as `sort -V | tail -1` does.
+  Use it for dates only; take ceilings from the edition discriminator. Its `releaseDate` is the
+  stabilized date rather than the GitHub `.0`, which is why 2.14 reads 2026-04-30 against a
+  2026-03-26 tag.
+- **2.15 has no EOL date yet** (`eol: false`). Recorded as unannounced rather than computed: the
+  published dates are not GA+18mo arithmetic — 2.11 GA 2025-03-31 would give 2026-09-30 against a
+  published 2026-10-24 — because SUSE counts from the stabilized `.1`.
+- **KDM windows re-derived post-GA and unchanged**: 1.34 `[v2.13.0, v2.15.99]`, 1.35
+  `[v2.14.0, v2.15.99]`, 1.36 `[v2.15.0, v2.15.99]`, and 1.33 still capped at `v2.14.99`. The
+  pre-GA reading taken on 2026-07-25 was right, which is the case for trusting a served KDM branch
+  over a release date. Newly recorded: the raw `minChannelServerVersion` values carry an `-alpha1`
+  suffix, so an exact-string match on `v2.13.0` finds nothing.
+
 ## Resolved — 2026-09-15 (community patch ceilings vs advisory floors)
 
 - **The advisory guidance assumed the floor was reachable. On community edition it usually is

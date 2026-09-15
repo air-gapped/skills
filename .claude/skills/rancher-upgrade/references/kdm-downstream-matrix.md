@@ -39,17 +39,25 @@ k8s window**:
 | 2.12 | **1.31, 1.32, 1.33** |
 | 2.13 | **1.32, 1.33, 1.34** |
 | 2.14 | **1.33, 1.34, 1.35** |
-| 2.15 *(pre-GA — RC as of 2026-07-25, do not plan onto it)* | **1.34, 1.35, 1.36** |
+| 2.15 *(GA 2026-07-30; plan onto **v2.15.1**, not the `.0` — see per-minor-runbook.md)* | **1.34, 1.35, 1.36** |
 
 Live channel windows confirming the new edge (release-v2.14 `data.json`): k8s 1.33 = `[v2.12.0,
 v2.14.99]`, 1.34 = `[v2.13.0, v2.14.99]`, 1.35 = `[v2.14.0, v2.14.99]`.
 
-**The `release-v2.15` branch is already serving** (re-derived 2026-07-25) and shows the rolling
+**The `release-v2.15` branch is already serving** (first derived 2026-07-25 while 2.15 was still
+pre-GA; the window below was confirmed unchanged after GA on 2026-09-15 — the pre-GA reading was
+correct, which is the case for trusting a served KDM branch over a release date) and shows the rolling
 window advanced by exactly one: 1.34 = `[v2.13.0, v2.15.99]`, 1.35 = `[v2.14.0, v2.15.99]`, 1.36 =
 `[v2.15.0, v2.15.99]`. Note 1.34's max moved **`v2.14.99` → `v2.15.99` between branches for the same
 k8s minor** — that is the "windows extend per KDM branch" rule below, observed live rather than
 asserted. It also means k8s **1.33 drops out** at 2.15: a downstream still on 1.33 must be lifted to
 ≥1.34 *before* a future host hop to 2.15.
+
+> **The raw `minChannelServerVersion` values carry an `-alpha1` suffix** — `v2.13.0-alpha1`,
+> `v2.14.0-alpha1`, `v2.15.0-alpha1`, not the bare `.0` written above. Harmless when reading by
+> eye, but an exact-string match on `v2.13.0` finds nothing. Compare semver, or match on the
+> prefix. (`maxChannelServerVersion` has no suffix: plain `v2.14.99` / `v2.15.99`.)
+
 
 **Windows extend per KDM branch.** The max for a fixed k8s minor moves up across `release-v2.X`
 branches as newer Rancher qualifies it. So the answer to "can Rancher 2.X run downstream k8s 1.Y"

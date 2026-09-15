@@ -37,7 +37,7 @@ to the apiserver:
 ## Upgrade path rule
 
 Supported path between minors: **latest COMMUNITY patch of the current minor → latest COMMUNITY patch
-of the next minor, one minor at a time.** No minor skipping (2.11→2.12→2.13→2.14, never 2.11→2.14).
+of the next minor, one minor at a time.** No minor skipping (2.11→2.12→2.13→2.14→2.15, never 2.11→2.14).
 Intra-minor patch jumps are fine and expected (land on the community ceiling *before* stepping).
 
 ⛔ **"Latest patch" ≠ newest tag.** For every minor except the current one, the newest tag is a

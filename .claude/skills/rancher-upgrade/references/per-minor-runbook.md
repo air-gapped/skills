@@ -1,4 +1,4 @@
-# per-minor-runbook.md — breaking changes 2.11→2.14 + the ordered runbook
+# per-minor-runbook.md — breaking changes 2.11→2.15 + the ordered runbook
 
 **Grounded via `gh` release notes/issues + ranchermanager docs: 2026-05-30; spot-re-verified
 2026-07-25 — Fleet #4878 CLOSED, turtles #2176 MERGED, BRO #844 still OPEN, latest 2.14 patch
@@ -53,7 +53,7 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   namespace emptied; Fleet 0.13→0.14 rode the chart; OIDC survived (the #53995 backup was correct
   insurance, not needed). All post-upgrade errors were startup-transient.
 
-### 2.14 (GA 2026-03-26; current community line, latest **v2.14.3** — grounded 2026-07-25)
+### 2.14 (GA 2026-03-26; community line CLOSED at **v2.14.3** — 2.14.4+ are Prime-only — grounded 2026-09-15)
 - **Embedded Cluster API removed** (#53291); **CAPI → v1beta2** (#52034/#53334) — one-way rollback
   boundary. See `capi-turtles-fleet.md`.
 - **cert-manager compat shims removed** (#52922) — out-of-window cert-manager fails admission; bump
@@ -76,9 +76,53 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   `source:` key, so when porting an ingress `tls.source` customization, disambiguate by indent (the
   ingress `source` is shallower) or the edit lands in the wrong block.
 
-## The runbook — iterate ONCE PER MINOR STEP (2.11→2.12→2.13→2.14)
+### 2.15 (GA 2026-07-30; current community line, latest **v2.15.1** — grounded 2026-09-15)
+- **k8s 1.34 – 1.36** (adds 1.36 #54303; removes 1.33 #55306). Only **1.34 and 1.35 overlap** with
+  2.14's 1.33–1.35, so a mgmt cluster still on 1.33 must move k8s **before** this hop, not after —
+  the narrowest overlap on the whole ladder.
+- **Target v2.15.1, never the 2.15.0 GA.** 2.15.0 carries two release-blocker regressions that the
+  published notes do not mention: local principal search stopped matching `displayName`, making
+  **OIDC/SAML-provisioned users unassignable** to projects and clusters (#56392, fixed pre-2.15.1),
+  and Rancher **crashloops with "setting is read only"** when `--no-cacerts` has to clear an
+  existing `cacerts` Setting (#56522, milestone v2.15.1) — that one blocks migrating TLS source off
+  the self-signed CA. Both are invisible in the release notes; read the tracker on this line.
+- **Ember-based UI plugins removed** for cluster/node drivers, deprecated since 2.11
+  (rancher/dashboard#14005). No shim — migrate to the UI Extensions Framework **before** the hop.
+- **`ui-sql-cache` can no longer be disabled** (rancher/dashboard#16822), ahead of 2.16 where it is
+  always on. If the flag is currently off, the hop turns it on and there is no way back.
+- **Native CAPI infra providers in v2prov: Tech Preview → GA** (#53777); CAPI to **v1.13.2**
+  (#54304). Standard-user and create-clusters roles now allow creating/updating CAPI infra objects
+  in `fleet-default` — a permission widening worth re-checking against your RBAC before the hop.
+- **Rancher chart-repo retention cut to the 7 most recent minors** (~2.5 years). Existing installs
+  keep running, but re-deploying an app from a pinned older chart version may find it gone —
+  confirm the pin still resolves, or upgrade the app first.
+- **Security: v2.15.1 IS the batch** — CVE-2026-75033/75034/75035 and CVE-2026-71404 (high) plus
+  CVE-2026-71403 (medium). The same batch ships **CVE-2026-75036 against Fleet** (medium, floors
+  `0.16.1 / 0.15.6 / 0.14.10 / 0.13.15 / 0.12.19`), which lives in the **`rancher/fleet` advisory
+  feed** — a Rancher-only sweep does not see it.
+- **Open on this line as of 2026-09-15 — verify before committing to the hop:**
+  - **#57078 (OPEN)** — after 2.14.2 → 2.15.1, downstream clusters stuck `Provisioning` with
+    "Failed to get token secret … crt-token-system not found". The reporter rolled back to 2.14.2
+    and restored a pre-upgrade backup; even after re-upgrading, most clusters needed their
+    registration command re-run by hand. **The single biggest reason to take a fresh etcd snapshot
+    before this hop** on a fleet with many long-lived downstream clusters.
+  - **#57050 (fix milestoned v2.15.2, so in NO shipped release)** — `inheritedClusterRoles` /
+    `inheritedFleetWorkspacePermissions` drive an endless ClusterRole create/delete loop that
+    floods the logs, on **fresh installs as well as upgrades**. Using GlobalRole inheritance on
+    2.15.1 means living with it.
+  - **#57196 (OPEN)** — downstream cluster stuck `Unavailable` after upgrade despite a working
+    agent tunnel; Ready/Connected stops tracking session state once `cattle-credentials` is
+    regenerated during the upgrade.
+  - **#57240 (OPEN)** — `CATTLE_SYSTEM_DEFAULT_REGISTRY` ignored on the 2.15.1 single-node Docker
+    install, CoreDNS falling back to `docker.io`. **Air-gap relevant.**
+- **No minimum source version is stated** for upgrading to 2.15. That is an absence in the notes,
+  not permission to skip a minor — the no-skip rule below still governs.
 
-The supported path is one minor at a time on latest patches; run this whole block per step.
+## The runbook — iterate ONCE PER MINOR STEP (2.11→2.12→2.13→2.14→2.15)
+
+The supported path is one minor at a time on the latest **community** patch of each minor; run this
+whole block per step. Only the newest minor still receives community patches, so every hop below
+2.15 lands on a frozen ceiling that sits under its advisory floors — see SKILL.md House Rule #4.
 
 **Execution model (field-validated 2026-05-30).** Treat each step as `MANDATORY`, `CONDITIONAL`
 (predicate stated — verify, then skip silently if it doesn't apply), or `MAY-NOT-APPLY`. Evaluate

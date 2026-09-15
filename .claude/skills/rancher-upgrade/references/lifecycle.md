@@ -47,7 +47,7 @@ No match at all = an unrecognized notes format; read the body before assuming co
 ## Cadence & lifecycle
 
 - **Minor cadence ≈ every 4 months (Mar / Jul / Nov).** Grounded GA dates: 2.11.0 = 2025-03-31,
-  2.12.0 = 2025-07-31, 2.13.0 = 2025-11-25, 2.14.0 = 2026-03-26.
+  2.12.0 = 2025-07-31, 2.13.0 = 2025-11-25, 2.14.0 = 2026-03-26, 2.15.0 = 2026-07-30.
 - **Patches are monthly and in lockstep across all active minors** (one batch, same day). There is
   **no separate "Prime patch cadence" offset** — the apparent Apr/Aug/Dec pattern is just the
   `.0`→`.1` stabilization gap (SUSE counts the support clock from the stabilized ~`.1` GA, ~1 month
@@ -63,8 +63,19 @@ No match at all = an unrecognized notes format; read the body before assuming co
 | 2.12 | 2025-07-31 | **2027-02-28** |
 | 2.13 | 2025-11-25 | **2027-06-17** |
 | 2.14 | 2026-03-26 | **2027-10-10** |
+| 2.15 | 2026-07-30 | **not yet published** |
 
-EOL table re-verified 2026-07-21 against endoflife.date — all four dates unchanged.
+EOL table re-verified 2026-09-15 against endoflife.date — the four published dates unchanged.
+**2.15 has no EOL date yet** (`eol: false` in the API). Do not compute one: the published dates
+are not GA+18mo arithmetic (2.11 GA 2025-03-31 would give 2026-09-30, the published date is
+2026-10-24), because SUSE counts from the stabilized ~`.1` GA. State it as unannounced.
+
+> **Trap — endoflife.date's `latest` column is the PRIME tag, not the community ceiling.** It
+> reports 2.14.5 / 2.13.9 / 2.12.13 / 2.11.17, every one of which is a Prime-docs redirect. It
+> overshoots exactly the way `sort -V | tail -1` does, so use it for **dates only** and take
+> ceilings from the edition discriminator below. Its `releaseDate` column is the stabilized
+> date, not the GitHub `.0` — which is why it reads 2.14 as 2026-04-30 while the `.0` tag is
+> 2026-03-26.
 
 ### Latest patch per minor — the **community** ceiling is NOT the top tag
 
