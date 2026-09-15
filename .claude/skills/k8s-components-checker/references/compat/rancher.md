@@ -5,10 +5,11 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
+- **max_tracked_version:** 2.15
 - **Last sifted:** 2026-07-21
 - **Last release-verified (gh):** 2026-09-15 — edition discriminator run over **all 50** stable tags of 2.11–2.15, not just the newest few. Two corrections: **the 2.12 community ceiling is v2.12.3, not v2.12.4** (v2.12.4 carries inline notes but self-declares Prime — the same under-detection the 2.11 line already documented), and **2.15 is a new community minor** (v2.15.0 2026-07-30, v2.15.1 2026-08-28, both self-declaring Community). 2.14 / 2.13 / 2.11 ceilings unchanged at v2.14.3 / v2.13.3 / v2.11.3. Prior verify 2026-07-21 — discriminator on the four newest stable tags: **v2.14.3 (2026-06-29) self-declares "This is a Community version release"** → new 2.14 community ceiling. **v2.13.7 / v2.12.11 / v2.11.15 are all Prime-docs redirects** → the 2.13 / 2.12 / 2.11 community ceilings are UNCHANGED at v2.13.3 / v2.12.4 / v2.11.3 (the v2.12.4 in that pass is the superseded value — see the 2026-09-15 correction above), exactly as the "older minor's top tag is Prime" pattern predicts. Prior verify 2026-06-02 — 2.11 community patch ceiling derived by edition discriminator (see § Community vs Prime). Prior verify (2026-05-30) re-derived 2.12/2.13/2.14 by edition; the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
 
-Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.11 (Mar 2025) supported through ~Sep 2026, 2.12 (Jul 2025) through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027. 2.11 is a common **migration source** minor; its community line ends at v2.11.3 (see §2.11).
+Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward — 2.11 (Mar 2025) supported through ~Sep 2026, 2.12 (Jul 2025) through ~Jan 2027, 2.13 (Nov 2025) through ~May 2027, 2.14 (Mar 2026) through ~Sep 2027, 2.15 (Jul 2026) through ~Jan 2028. 2.11 is a common **migration source** minor; its community line ends at v2.11.3 (see §2.11).
 
 **Community vs Prime — how the per-minor ceilings below are derived (do NOT trust `sort -V | tail -1`).** `rancher/rancher` GitHub releases carry **both** editions and the `prerelease` flag does not separate them. Discriminator = release-notes first line: a patch is **Prime-only iff its body redirects to "Please refer to our Prime Documentation …"**; community patches either say "This is a Community version release" or carry inline notes (`# Release vX.Y.Z`) — so test for the Prime marker and treat its **absence** as community (a positive "community version release" grep misses the older inline-notes format). **Pattern — and it is exact, so the ceiling is derivable without re-testing every tag:** a minor gets community patches only while it is the newest minor. The first patch published on or after the next minor's GA is Prime, and every patch after it stays Prime. Confirmed on all 50 stable tags of 2.11–2.15 (2026-09-15): `v2.11.4` flipped on 2.12.0's GA date, `v2.12.4` one day before 2.13.0's, `v2.13.4` on 2.14.0's, `v2.14.4` on 2.15.0's. **A community ceiling therefore moves only when a new minor GAs** — re-derive then, not on every sift. Full derivation protocol: `references/version-verification.md` § Edition discrimination.
 
@@ -26,6 +27,55 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 > ```
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Downstream-cluster provisioning (KDM bundling, downstream RKE2/K3s version dropdowns) is **out of scope** — the operator manages downstream clusters by hand. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
+
+## 2.15 (latest community: v2.15.1, 2026-08-28 — current minor, so patches are still community)
+
+- **k8s floor:** 1.34 – 1.36 (adds 1.36 — #54303; removes 1.33 — #55306). Narrower than it looks
+  next to 2.14's 1.33–1.35: only **1.34 and 1.35 overlap**, so a management cluster on 1.33 must
+  move k8s before Rancher, not after.
+- **Prerequisites:** Helm client **≥ 3.18** (unchanged since 2.12; restated in the 2.15.0 notes).
+  No cert-manager version floor is stated in the 2.15 notes — 2.14's #52922 change made the
+  supported window follow the k8s window instead of a fixed number, so derive it from k8s, and do
+  not copy the `v1.13.1` figure from the doc site (that string is reused verbatim across several
+  Rancher doc versions and is not a 2.15 statement).
+- **No minimum source version is stated** for upgrading to 2.15. Absence of a floor is not
+  permission to skip minors — the no-skip rule still comes from `rancher-upgrade`.
+- **Breaking:**
+  - **Kubernetes 1.33 support removed** (#55306).
+  - **Ember-based UI plugins removed** for cluster/node drivers, deprecated since 2.11
+    (rancher/dashboard#14005). Migrate to the UI Extensions Framework before the hop; there is no
+    compatibility shim.
+  - **The `ui-sql-cache` feature flag can no longer be disabled** (rancher/dashboard#16822), ahead
+    of 2.16 where it is always on. A cluster relying on the off state loses that option at 2.15.
+  - **Rancher chart-repo retention cut to the 7 most recent minors** (~2.5 years); older chart
+    versions are removed from the repo. Existing installs keep running, but a survey that plans to
+    re-deploy an app from a pinned older chart version should confirm it still exists first.
+  - **Native CAPI infrastructure providers in v2prov go Tech Preview → GA** (#53777); CAPI bumped
+    to v1.13.2.
+- **Security:** v2.15.1 is the security batch — CVE-2026-75033/75034/75035 and CVE-2026-71404
+  (high) plus CVE-2026-71403 (medium), all fixed at 2.15.1. The same batch carries
+  **CVE-2026-75036** (medium) against **Fleet**, floors `0.16.1 / 0.15.6 / 0.14.10 / 0.13.15 /
+  0.12.19` — a separate feed (`rancher/fleet`), so a Rancher-only advisory sweep misses it.
+- **Open hazards on the 2.15 line (verified 2026-09-15 — all still OPEN or unshipped):**
+  - **#57078 — upgrade to 2.15.1 left downstream clusters stuck `Provisioning`** with "Failed to
+    get token secret … crt-token-system not found". Reporter rolled back to 2.14.2 and restored a
+    pre-upgrade backup; after re-upgrading, most clusters still needed their registration command
+    re-run by hand. The single most plan-changing item here for a fleet with many long-lived
+    downstream clusters.
+  - **#57050 — ClusterRole reconciliation loop** with `inheritedClusterRoles` /
+    `inheritedFleetWorkspacePermissions`, reported on **both upgraded and fresh** 2.15.1 installs.
+    The v2.15 backport is milestoned **v2.15.2**, so the fix is in **no shipped release** — using
+    GlobalRole inheritance on 2.15.1 means living with the loop.
+  - **#57196 — downstream cluster stuck `Unavailable`** after a multi-hop upgrade despite a working
+    agent tunnel; the Ready/Connected condition stops tracking session state after
+    `cattle-credentials` is regenerated during upgrade.
+  - **#57240 — `CATTLE_SYSTEM_DEFAULT_REGISTRY` ignored** on the 2.15.1 single-node Docker install,
+    CoreDNS falling back to `docker.io`. Air-gap relevant.
+- **Release notes run thinner than the tracker on this line.** Several `status/release-blocker`
+  regressions fixed between 2.15.0 and 2.15.1 — the local principal-search break that made
+  OIDC-provisioned users unassignable (#56392), and the `--no-cacerts` crashloop when a `cacerts`
+  Setting is already populated (#56522) — appear nowhere in the published notes. **Do not treat
+  2.15.0 as a landing point**: it carries both, and both are fixed only in 2.15.1.
 
 ## 2.14 (latest community: v2.14.3, 2026-06-29)
 

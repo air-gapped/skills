@@ -2,6 +2,35 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (Rancher 2.15 added to the registry)
+
+- **The registry stopped at 2.14 while 2.15 had been out for six weeks.** v2.15.0
+  (2026-07-30) and v2.15.1 (2026-08-28) both self-declare Community, so this is the
+  current community minor and the only one still receiving community patches.
+- **k8s axis 1.34–1.36** (adds 1.36 #54303, removes 1.33 #55306). Only 1.34 and 1.35
+  overlap with 2.14's 1.33–1.35, so a management cluster on 1.33 has to move k8s
+  before Rancher rather than after — the narrow overlap is the part a verdict needs.
+- **No cert-manager number recorded, deliberately.** 2.14's #52922 made the supported
+  window follow the k8s window instead of a fixed version, and the `v1.13.1` string on
+  the doc site is reused verbatim across several Rancher doc versions, so it is not a
+  2.15 statement. Derive from k8s instead of copying it.
+- **No minimum source version is stated** for the hop to 2.15. Recorded as an absence,
+  not as permission to skip minors.
+- **v2.15.1 is the security batch**; the same batch carries CVE-2026-75036 against
+  **Fleet**, which lives in the `rancher/fleet` advisory feed. A Rancher-only sweep
+  misses it — worth knowing for any tooling that maps one skill to one repo.
+- **Four open hazards recorded, all verified still open or unshipped on 2026-09-15:**
+  #57078 (upgrade to 2.15.1 stranding downstream clusters, rollback-and-restore
+  required), #57050 (ClusterRole reconciliation loop on GlobalRole inheritance,
+  milestoned **v2.15.2** so it is in no shipped release), #57196 (downstream stuck
+  Unavailable after credential regeneration), #57240 (default-registry ignored on the
+  Docker install — air-gap relevant).
+- **2.15.0 is explicitly not a landing point.** Two release-blocker regressions fixed
+  between 2.15.0 and 2.15.1 — OIDC-provisioned users unassignable (#56392) and the
+  `--no-cacerts` crashloop (#56522) — appear nowhere in the published notes. The
+  release notes on this line run thinner than the tracker, which is the same
+  read-the-tracker-too pattern the registry already applies elsewhere.
+
 ## Resolved — 2026-09-15 (the 2.12 community ceiling was one patch too high)
 
 - **`v2.12.4` is a Prime release that the registry scored as community.** It carries inline
