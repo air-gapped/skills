@@ -43,7 +43,25 @@ Precedence (extractors in §1 below):
 
 1. `references/sources.md` rows — authoritative refs with prior `Last verified` / `Pinned` markers.
 2. SKILL.md + other reference-file scan — URLs, `owner/repo` patterns, CLI names with versions, semver strings, API paths, dated claims.
-3. Deduplicate (normalize URLs, collapse owner/repo variants).
+3. **The frontmatter `description` and `when_to_use`** — scan these explicitly, not
+   as part of the step-2 body sweep. They are the most-read and least-reviewed
+   lines in a skill, load on every trigger check, and routinely carry bare
+   factual claims.
+4. Deduplicate (normalize URLs, collapse owner/repo variants).
+
+**A bare count in a description has nothing to age against.** "31 flag values",
+"29 built-in parsers", "98 tools" read as definitions rather than measurements,
+so nothing about them looks dated and no probe touches them — a freshen pass
+probes `sources.md` rows, and a number in the description is not one. Sweep for
+them directly: `\b[0-9]{2,3}\+? (flag|parser|tool|scaler|endpoint|model|metric|
+value)s?\b` over every description. Then either attach a version ("30 on current
+vLLM, 31 through v0.27.x") or make it an explicit lower bound ("40+"), which
+survives growth and fails only on removal.
+
+(2026-09-15: a fleet sweep of 70 descriptions found five carrying counts. Two
+were wrong — both had been correct when written and had been superseded by
+upstream removals and additions the skill's own `sources.md` already recorded
+that same day. The bodies were right; only the descriptions were stale.)
 
 If the target skill has no `sources.md`, create one in Phase F6 from the extracted set so future freshens have a baseline.
 
