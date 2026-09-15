@@ -3,6 +3,29 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (dead links outside the staged-commit gate)
+
+- **Shipped `scripts/check-links.py`.** The skillevaluator gate has a dead-link
+  check, but it only runs against skills staged for a commit, so a citation in an
+  unedited skill rots unobserved. Nothing swept the tree.
+- **Two classes carry nearly all the rot.** Of 2573 unique URLs: documentation
+  hosts (322 checked, 7 dead) and GitHub `blob`/`tree` paths (189 checked, 4
+  dead). GitHub issue/PR/release and arXiv URLs were spot-checked and are stable
+  by design — and they are most of the corpus, so sweeping them costs a long run
+  for nothing. The tool encodes that as a `DOC_HOSTS` set plus a `blob|tree`
+  regex, with `--all` to re-test the judgement later.
+- **A moved file is not a renamed repo.** GitHub redirects the second and not the
+  first, so all four GitHub findings had to be searched for rather than guessed
+  at. One was a docs-to-generated-site migration, which kills every deep link
+  into the old tree simultaneously.
+- **403 and 429 are printed outside the dead list and do not set the exit code.**
+  Treating either as a finding is the failure mode that makes a link sweep waste
+  a morning: 403 is a user-agent block (docs.gitlab.com), 429 is this sweep's own
+  concurrency (huggingface.co).
+- All 11 dead links found by the manual sweep are fixed; the tool now reports 0
+  dead across 519 in-class URLs, with the single docs.gitlab.com 403 in its own
+  section.
+
 ## Resolved — 2026-09-15 (content scheduled to become false)
 
 - **Shipped `scripts/check-expiring-claims.py`.** `freshen` re-probes sources that

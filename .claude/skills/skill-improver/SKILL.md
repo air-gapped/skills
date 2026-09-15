@@ -189,6 +189,35 @@ those. Measured 2026-09-15: 37 future-dated claims, 2 worth acting on, and both
 Fix them by deleting the relative phrase and instructing the reader to compute
 from the date. A replacement phrase rots identically.
 
+### Two Classes of Link Rot, and the Rest Is Noise
+
+The skillevaluator gate checks links only in skills **staged for a commit**, so a
+citation rots for months in any skill nobody edits. Run
+`python3 ${CLAUDE_SKILL_DIR}/scripts/check-links.py [root] [--workers N]` to sweep
+the whole tree.
+
+It checks two classes and skips the rest. Measured 2026-09-15 over 2573 unique
+URLs: **documentation hosts** (322 checked, 7 dead — doc sites reorganise
+silently, the old path 404s while the product is fine) and **GitHub `blob`/`tree`
+paths** (189 checked, 4 dead — GitHub redirects a renamed *repo*, never a *moved
+file*). GitHub issue/PR/release and arXiv URLs are stable by design and are most
+of the corpus; sweeping them buys nothing. `--all` drops the filter when that
+judgement needs re-testing.
+
+**A moved file is searched for, not guessed at.** All four GitHub findings were
+relocations, so no edit to the path would have found them — and when a project
+migrates its docs to a generated site, every deep link into the old tree dies at
+once.
+
+Two statuses are not findings. **403** is a user-agent block (docs.gitlab.com
+serves one); re-check by hand before believing it. **429** means this sweep
+tripped a rate limit — lower `--workers` and re-run rather than recording it.
+Both print in their own sections, outside the dead list, and neither affects the
+exit code.
+
+Add a host to `DOC_HOSTS` when a skill starts citing it. A host that is absent is
+simply never swept.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
