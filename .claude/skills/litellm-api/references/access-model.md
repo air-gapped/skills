@@ -15,6 +15,43 @@ if (len(filtered_models) == 0 and len(models) == 0) or "*" in filtered_models:
 
 One proxy-level modifier: `litellm.default_key_generate_params` fills `models` (and `max_budget`, `team_id`, `tpm_limit`, …) when the request sends `None`/`[]`/`{}` (`key_management_endpoints.py:790-805`) — on such a proxy, `[]` means "the default list", elsewhere it means "everything".
 
+## Organizations — two asymmetries that bite
+
+Verified against `organization_endpoints.py` @ v1.100.1.
+
+**Deleting an org deletes its keys. Removing a member does not.**
+
+| Call | What it removes |
+|---|---|
+| `DELETE /organization/delete` | every team in the org, every membership, **every key carrying that `organization_id`**, then the org row — four `delete_many` calls in sequence (`:949`–`:960`) |
+| `DELETE /organization/member_delete` | the `OrganizationMembership` row and nothing else (`:1498`) — the member's keys, teams and budget row survive |
+
+So off-boarding one person leaves their virtual keys live and callable; only tearing
+down the whole org revokes keys, and it revokes them for everyone at once. Neither is
+a soft delete.
+
+**An org admin can do everything to an org except delete it.** `/organization/delete`
+and `/organization/new` check `user_role != PROXY_ADMIN` inline and 401; every other
+org route goes through `_verify_org_access`, which passes a proxy admin **or** an
+`ORG_ADMIN` member of that specific org. So an org admin may update the org, add,
+update and remove members — but cannot delete the org.
+
+`member_add`, `member_update` and `member_delete` each carry an in-code note that the
+org scoping "was never enforced" before being added: on older builds any authenticated
+key could manage members of **any** org. Treat org-member isolation as a property of
+recent versions, not of the API's design.
+
+**The empty-list rule extends to orgs.** `org.models: []` means every model, by the
+same `_check_model_access_helper` line quoted above — an org created without `models`
+is unrestricted, not unprovisioned.
+
+**Budget scopes are ANDed, not resolved.** Org, team, key, tag, user, team-member and
+end-user budgets are each checked independently and the request fails if any one is
+over (`auth_checks.py`, `asyncio.gather` over the budget coroutines). Nothing "wins";
+a generous org budget does not lift a tight key budget. The org check is also
+opportunistic — it skips silently when the org id cannot be resolved from the key or
+its team, or when the org's `max_budget` is unset or `<= 0`.
+
 ## The three sentinels (`_types.py:3110-3113`)
 
 | Sentinel | Behavior |

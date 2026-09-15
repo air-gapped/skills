@@ -44,7 +44,36 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 ## Unblocked — actionable
 
 - **Measure `delta_pass_rate`** — Dim 10 (capped at 8 unmeasured). Requires `evals/evals.json` + skill-creator's `aggregate_benchmark`. Flagged by the blind scorer as the binding cap.
-- **Organizations coverage is comparatively thin** — Dim 5 (blind-baseline finding). Deeper org-lifecycle content (v2 PATCH clear-token semantics beyond the one row, org-admin permission bugs) needs research-pass material, not a one-iteration edit.
+
+## Resolved — 2026-09-15 (organization lifecycle, read out of the source)
+
+The research pass this item asked for, against v1.100.1. Everything below was
+confirmed by fetching `organization_endpoints.py` and `auth_checks.py` at that tag
+and matching the cited code, not from the docs.
+
+- **Two deletes, opposite blast radius.** `DELETE /organization/delete` removes every
+  team, every membership and **every key carrying that `organization_id`** before
+  deleting the org — four cascading deletes. `DELETE /organization/member_delete`
+  removes the membership row only, leaving that member's keys live and callable. So
+  off-boarding one person revokes nothing, and the call that does revoke keys revokes
+  them for the whole org at once.
+- **Org admins can do everything to an org except delete it.** Delete and create check
+  `PROXY_ADMIN` inline; every other org route accepts an `ORG_ADMIN` of that org
+  through `_verify_org_access`.
+- **Org-member isolation is recent, not designed-in.** The add, update and delete
+  member routes each carry an in-code note that the org scoping was previously
+  unenforced — on older builds any authenticated key could manage members of any org.
+- **The legacy update endpoint cannot clear a field at all** — `exclude_none=True`
+  before the write makes an explicit `null` indistinguishable from an omitted field.
+  The v2 route's clear tokens were already documented; that the legacy one silently
+  ignores them was not.
+- **The empty-list footgun repeats on `org.models`**, and **budget scopes are ANDed
+  rather than resolved** — no scope overrides another, and the org budget check skips
+  silently when the org id cannot be resolved or `max_budget` is unset.
+- Not closed out: whether org-level model restriction is wired into the live request
+  path at this tag. The helper's own logic is verified; its call site in
+  `user_api_key_auth` was not found. Written as a property of the helper, not as a
+  claim about enforcement.
 
 ## Resolved — 2026-09-15 (freshen to v1.100.1)
 

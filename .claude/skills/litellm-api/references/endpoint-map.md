@@ -63,7 +63,7 @@ Additional spec distortions: `DOCS_FILTERED=True` + premium license reduces the 
 |---|---|---|
 | `/key/update`, `/team/update` | POST | `exclude_unset=True` merge — omitted fields untouched (`key_management_endpoints.py:1887`) |
 | `PATCH /team/{team_id}` | PATCH | RFC 7386: `metadata` deep-merged, `key: null` deletes |
-| `/organization/update` | PATCH | raw `request.json()`, no typed body |
+| `/organization/update` | PATCH | raw `request.json()`, no typed body — and it **cannot clear anything**: the handler applies `exclude_none=True` before writing, so an explicit `null` is indistinguishable from an omitted field and is dropped. Use the v2 route below to clear. |
 | `PATCH /v2/organization/{id}` | PATCH | typed, `extra="forbid"`, per-field clear tokens (`null` budgets/metadata, `[]` models) |
 | `/model/update` | POST | requires `STORE_MODEL_IN_DB`; 500 (not 400) when off |
 | `PATCH /model/{model_id}/update` | PATCH | rejects config-YAML models |
