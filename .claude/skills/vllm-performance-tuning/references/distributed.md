@@ -1,6 +1,19 @@
 # NCCL / DCGM + PD disaggregation
 
-Load when: multi-node deploy, IB/RoCE fabric tuning, DCGM monitoring for perf triage, or deciding whether to split prefill and decode across nodes.
+Load when: multi-node deploy, IB/RoCE fabric tuning, DCGM monitoring for perf triage, deciding whether to split prefill and decode across nodes, or triaging a throughput change across a v0.29.0 upgrade.
+
+## Before tuning NCCL: v0.29.0 flipped an all-reduce default
+
+**FlashInfer all-reduce is ON by default for TP CUDA groups from v0.29.0**
+([#52998](https://github.com/vllm-project/vllm/pull/52998)). It is a behaviour change on an unchanged
+config, so a TP deployment can move on throughput or latency across that upgrade
+with nothing in the launch command touched. Opt out with
+`VLLM_ALLREDUCE_USE_FLASHINFER=0`.
+
+**Check this before attributing a post-upgrade delta to NCCL.** The env vars
+below tune the NCCL path; on v0.29.0+ the collective may not be taking it. Bisect
+by setting the opt-out and re-running the same benchmark — if the delta closes,
+it is the new default, not fabric tuning.
 
 ## NCCL baseline
 
