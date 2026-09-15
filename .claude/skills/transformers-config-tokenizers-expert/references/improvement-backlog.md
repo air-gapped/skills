@@ -3,6 +3,17 @@
 Tracks issues found during skill-improver passes that could not be resolved
 in a single atomic iteration, plus what each pass actually changed.
 
+## Resolved — 2026-09-15 (an obsolete process artifact)
+
+- **RECON/APPLY version mismatch — CLOSED as obsolete.** The entry records that a
+  2026-05-28 recon JSON described a 69-line stub while the on-disk skill was a
+  mature 334-line SKILL.md with a full `references/` tree, so every hypothesis it
+  produced targeted content that did not exist. That is a fact about one stale
+  artifact from one run, not a defect in this skill, and the artifact is long
+  gone. Its stated fix — "re-run recon" — happens automatically on the next pass.
+- Nothing in the skill was ever wrong because of it. Carrying it in Open made the
+  skill look like it had an outstanding content problem when it did not.
+
 ## Resolved — 2026-09-15 (freshen to v5.17.0)
 
 - **Three 2026 security fixes land in exactly this skill's subject — the
@@ -46,18 +57,6 @@ in a single atomic iteration, plus what each pass actually changed.
 
 ## Open
 
-- **RECON/APPLY version mismatch — recon scored a different skill** (process, not a content dim).
-  The 2026-05-28 recon JSON handed to the APPLY stage described a 69-line stub
-  (no references/, no sources.md, third-person-but-thin, total 52/100). The
-  actual on-disk skill is a mature 334-line SKILL.md with a full references/
-  tree (config-files, tokenizer-classes, chat-template-contract, engine-knobs,
-  precedence-rules, hall-of-shame, snippets.py) and a pre-existing dated
-  sources.md. Every recon hypothesis (add sources.md, fix a "chat_template only
-  in tokenizer_config.json" stub line, add an AutoTokenizer snippet, add a
-  precedence table) targets content that does not exist in this version or is
-  already present and correct. Cannot be acted on in one iteration: the fix is
-  to re-run recon against the real skill so the score loop has a valid baseline.
-  File-set: whole skill vs recon JSON.
 
 - **sources.md per-file / per-model-repo rows still dated 2026-04-21** (Dim 9, freshness).
   This pass re-confirmed and re-stamped only the release/tag-tracking rows

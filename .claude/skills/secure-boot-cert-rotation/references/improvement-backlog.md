@@ -2,6 +2,18 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-09-15 (a judgement recorded as an open item)
+
+- **House Rules ↔ routing overlap — CLOSED, decided against.** The entry's own
+  text says the judgement is *unchanged* from the previous pass, that **both**
+  blind agents call these "standing instructions, not waste", and that they carry
+  the lessons driving Dim 10. Two independent blind reads endorsing the current
+  structure is a settled question, not a ceiling waiting on an author.
+- The Dell KB item above stays open and is genuinely blocked: the vendor serves
+  403 to automated fetches, the one summarised read obtained was internally
+  inconsistent, and a wrong BIOS minimum sends someone to flash the wrong
+  firmware. That one needs a human with a login, which is an absent thing.
+
 ## Open
 
 - **Dell KB 000402373 per-generation BIOS minimums — unverifiable by agent, needs a human read.** Dell serves
@@ -10,11 +22,6 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   its 2026-06-01 numbers and its "verify in KB 000402373" fence. **Do not update these from a scraped or
   AI-summarized read** — a wrong BIOS minimum sends someone to flash the wrong firmware. Needs an authenticated
   manual read of the live KB; also confirm whether 17G ships 2023 certs pre-installed (claimed, unconfirmed).
-- **Dim 6 (Simplicity) — House Rules ↔ routing/references overlap.** Unchanged judgement from the 2026-06-01
-  pass: both blind agents call these "standing instructions, not waste", and they carry the hard-won lessons
-  driving Dim 10. Lifting Dim 6 needs author judgment on which rules are genuinely redundant, not a mechanical
-  dedup. Note House Rule 7 grew this pass (forced-update damage) — re-check length if it grows again.
-
 ## Decided — do not re-propose
 
 - **Watch item with a real trigger, not a vague one: the dbx signing cutover.** Microsoft still signs `dbx`

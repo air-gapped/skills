@@ -2,6 +2,25 @@
 
 Work-not-done log from skill-improver passes. Open = attempted but not applicable in one atomic iteration.
 
+## Resolved — 2026-09-15 (the doc-URL blocker cleared, and then reversed)
+
+- **The re-stamp item was already stale, and the situation has inverted.** It
+  recorded that `configuration/env_vars.html` 302'd to a 404 while only the
+  `serving/env_vars.html` variant resolved. Re-probed today:
+  **`configuration/env_vars` now returns 200 and `serving/env_vars` returns 404**
+  — exactly the opposite. Anything that had "fixed" the citation by switching to
+  the `serving/` path on the strength of that entry would now hold a dead link.
+- No change needed: `sources.md` already cites
+  `configuration/env_vars/` and `configuration/serve_args/`, and both rows were
+  re-stamped (2026-07-21 and 2026-08-18) after the entry was written. The item
+  outlived its own resolution.
+- **The two `unverified-recent` rows are now verified** rather than carried:
+  the discuss.vllm.ai air-gap thread returns 200, and GH discussion #1405 is
+  live and open ("How can I run VLLM serving without an internet connection?").
+- Lesson worth keeping: a sandbox fetch failure is a fact about one probe on one
+  day, and recording it as a property of the URL is how a transient becomes a
+  permanent-looking blocker.
+
 ## Resolved — 2026-09-15 (the pre-auth route that proves `--api-key` is not a boundary)
 
 - **CVE-2026-22778 (CRITICAL, floor v0.14.1)** added beside the auth-bypass
@@ -101,8 +120,6 @@ what this skill tells an operator to rely on.
 ## Open
 
 - Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28)
-- Re-stamp the docs.vllm.ai env_vars / serve_args rows and the discuss.vllm.ai / GH-discussion #1405 rows in sources.md — Dim 9. Not re-confirmed this pass: the canonical docs URL `docs.vllm.ai/en/.../configuration/env_vars.html` 302-redirects and WebFetch of the redirect target 404s from this sandbox; only the `/serving/env_vars.html` variant resolved. Could not truthfully re-stamp those four rows to 2026-05-28, so they retain their 2026-04-24 date. GitHub-hosted rows (#8947, releases/latest) WERE re-verified via `gh` and stamped 2026-05-28. (carried 2026-05-28)
-
 ## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
 
 - **Dependency floors moved and an air-gapped mirror seeded for v0.27.x does not

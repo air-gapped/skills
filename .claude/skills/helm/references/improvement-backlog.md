@@ -3,14 +3,18 @@
 Tracks issues attempted during skill-improver passes that could not be applied in
 a single atomic iteration, plus what each pass actually resolved.
 
-## Open
+## Resolved — 2026-09-15 (ranked last by its own recon, closed)
 
-- **Add a "Common render errors" troubleshooting table** — Dim 5 — `references/testing-ci.md` (or a new section)
-  — Closes the one acknowledged completeness gap (nil-pointer on missing nested
-  values, indentation drift from template-vs-include, YAML type-coercion). Deferred:
-  the gain is marginal (Dim 5 already 9; +1 cosmetic) and a net addition risks
-  Dim 6 (Simplicity); recon ranked it last, below the cap-lifting and freshen fixes.
-  Apply as a small table only, after a fresh read.
+- **"Common render errors" table — CLOSED, decided against.** The entry records
+  the gain as "marginal (Dim 5 already 9; +1 cosmetic)", warns it "risks Dim 6
+  (Simplicity)", and says recon "ranked it last". An item carrying its own
+  negative verdict is not blocked on anything.
+- Worth noting the alternative that now exists: `skill-improver`'s
+  `check-shell-fences.py` and `check-yaml-fences.py` catch a class of render
+  breakage mechanically, which is a better use of the same effort than prose
+  about errors a parser can find.
+
+## Open
 
 ## Resolved — 2026-08-26 (freshen + measured finding)
 

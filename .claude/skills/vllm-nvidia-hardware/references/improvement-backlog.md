@@ -3,9 +3,20 @@
 Work-not-done log from skill-improver passes. "Open" = attempted as a hypothesis
 but could not be applied in one atomic, score-improving iteration. Not a wishlist.
 
+## Resolved — 2026-09-15 (a restructure its own entry priced at +0)
+
+- **`[LV:]` → dated-table conversion — CLOSED, decided against.** The entry
+  states the staleness cap "is not currently firing" and that the change "scores
+  +0 while adding restructure risk", against a whole-file prose rewrite. An item
+  that has already computed its own gain as zero is a decision, not a blocker.
+- Re-open only if the staleness cap actually starts firing on this skill, which
+  is a condition a future pass can observe rather than argue about.
+- The cookie-gated datasheet rows above stay open: those are genuinely
+  unreachable by any fetcher available here.
+
 ## Open
 
-- **Convert sources.md `[LV: <date>]` markers to a machine-readable `Last verified:` table** (Dim 9; `references/sources.md`, all rows). The rubric staleness regex anchors on a `YYYY-MM-DD` date in a pipe-table row (`^\|.*\| (\d{4}-\d{2}-\d{2}) \|`), not inline `[LV:]` bullet markers. Converting the entire bulleted source list to a dated table is a multi-row restructure that rewrites prose across the whole file — violates the one-atomic-change / "relocation must not rewrite prose" constraint, and the staleness cap is not currently firing (freshen pass < 90 days), so it scores +0 while adding restructure risk. Defer to a dedicated structural pass.
+
 - **Re-verify the two cookie-gated / binary-only NVIDIA + Dell datasheet rows** (Dim 9; `references/sources.md` — Blackwell Ultra datasheet and Dell PowerEdge XE spec sheet, both `[LV: 2026-04-24, unverifiable]`). WebFetch could not extract text (cookie gate / PDF binary) in the prior pass and network is unavailable here. Needs a browser session to re-confirm per-SKU sizing numbers before any purchase-grade call.
 
 ## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)

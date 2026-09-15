@@ -4,6 +4,19 @@ Gaps carried from the 2026-07-22 research pass (report:
 `.claude/skills/autoresearch/results/logging-operator-research-2026-07-22.md`).
 Address opportunistically during freshen/improve passes.
 
+## Resolved — 2026-09-15 (a conflict that does not exist at runtime)
+
+- **T6 trigger conflict with `rancher-logging-exit` — CLOSED.** The entry
+  documents that the over-firing appears **in isolation only**, and that it is
+  "resolved in the REAL both-installed runtime" because the sibling's description
+  is strictly more specific on that territory and fires 1.00 on both contested
+  queries. Its own unblock condition — "only act if real-session misrouting is
+  observed" — has not been met.
+- The residual cause is legitimate and should not be edited away: this skill
+  documents CVE-2026-54680 as its upstream **version floor**, so it has to carry
+  the keyword. Removing it to win an isolation probe would trade a real fact for
+  a synthetic score.
+
 ## Checked 2026-09-15 — no change needed
 
 - **The CVE floor is correct and comfortably conservative.** `kube-logging/logging-operator`
@@ -18,20 +31,6 @@ Address opportunistically during freshen/improve passes.
   re-checking should read the range, not the patched field.
 
 ## Open
-
-- **T6 cross-skill trigger conflict with `rancher-logging-exit` on the shared
-  `CVE-2026-54680` + `rancher-logging` keywords** (Dim 1). Trigger probe
-  (2026-07-23): in ISOLATION this skill over-fires on two rancher-bundled
-  queries — "Rancher 2.13 bundled rancher-logging migration" (1.00) and "is
-  cattle-logging-system exposed to CVE-2026-54680" (0.67, down from 1.00 after
-  the routing clause was pulled inside the 1536-char visible window). Cannot be
-  driven to 0 by single-skill frontmatter edits because this skill legitimately
-  documents the CVE as its upstream version floor. Resolved in the REAL
-  both-installed runtime because `rancher-logging-exit`'s description is
-  strictly more specific on that territory (it fires 1.00 on both queries in its
-  own probe). Only act if real-session misrouting is observed; the fix would be
-  author-level (tighten which install each skill's CVE mention claims), not a
-  probe-scored mutation. Eval set: `references/trigger-evals.json`.
 
 ## Research gaps (carried 2026-07-22)
 
