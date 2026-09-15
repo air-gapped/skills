@@ -98,7 +98,7 @@ recipe = QuantizationModifier(targets="Linear", scheme="FP8_BLOCK", ignore=["lm_
 - **Output name**: `*-FP8-Block`
 - **Accuracy**: slightly better than dynamic, modest compute overhead
 - **Example**: `examples/quantization_w8a8_fp8/fp8_block_example.py`
-- **Caveat on Gemma 4**: **do not use** ([#39407](https://github.com/vllm-project/vllm/issues/39407) — double-applied absorbed scales)
+- **Caveat on Gemma 4**: **do not use** ([#39407](https://github.com/vllm-project/vllm/issues/39407) — double-applied absorbed scales; autoclosed 2026-09-02 with no fix, PR #40391 still open)
 
 ### W8A8 INT8 (requires SmoothQuant)
 

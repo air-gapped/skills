@@ -60,7 +60,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | Gemma-4-31B-IT-NVFP4 OOM RTX 5090 | — | [#40291](https://github.com/vllm-project/vllm/issues/40291) | Open — suspect BF16 weights during init |
 | Qwen3.5 INT4 memory > FP8 (unexpected) | — | [#37080](https://github.com/vllm-project/vllm/issues/37080) | Open |
 | Gemma 4 31B INT4 KV only 25K tokens at 131K ctx | — | [#39133](https://github.com/vllm-project/vllm/issues/39133) | Use FP8 KV to fit more |
-| Online FP8 drops bias → memory surprises | — | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Use pre-quantized checkpoint |
+| Online FP8 drops bias → memory surprises | below v0.21.0 only | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Fixed in v0.21.0 (PR #41424); below that, use a pre-quantized checkpoint |
 | Online FP8 + MoE + TP/EP: single-GPU OOM | Qwen3-Next | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
 
 ## CUDA errors
@@ -103,7 +103,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 | Symptom | Issue | Fix |
 |---|---|---|
-| Online FP8 drops bias weights | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Use pre-quantized checkpoint |
+| Online FP8 drops bias weights (below v0.21.0) | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Upgrade to v0.21.0+ (PR #41424), or use a pre-quantized checkpoint |
 | Online FP8 doesn't split MoE across TP/EP | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
 | fp8_e5m2 KV gate fires on any quantized load | [#39137](https://github.com/vllm-project/vllm/issues/39137) | Patch in discussion |
 | MLA casts activations to int32 with Marlin FP8 sm<89 | [#38658](https://github.com/vllm-project/vllm/issues/38658) | Upgrade or switch kernel |

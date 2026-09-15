@@ -198,16 +198,16 @@ ignore: [...]}`; `linear` / `moe` also accept a bare shorthand string. Names com
 from `QUANT_KEY_NAMES` in `vllm/config/quantization.py`. There is no
 `--quantization-config-file` flag and no `global_scheme` key.
 
-**Known gotchas** — see [#39663](https://github.com/vllm-project/vllm/issues/39663) (drops bias weights), [#34129](https://github.com/vllm-project/vllm/issues/34129) (doesn't split MoE across EP), [#19020](https://github.com/vllm-project/vllm/issues/19020) / [#32029](https://github.com/vllm-project/vllm/issues/32029) / [#32412](https://github.com/vllm-project/vllm/issues/32412) (multiple active RFCs). For any bias-ed or MoE model, prefer a pre-quantized checkpoint.
+**Known gotchas** — [#34129](https://github.com/vllm-project/vllm/issues/34129) (doesn't split MoE across EP, closed `NOT_PLANNED` — won't-fix), [#19020](https://github.com/vllm-project/vllm/issues/19020) / [#32029](https://github.com/vllm-project/vllm/issues/32029) / [#32412](https://github.com/vllm-project/vllm/issues/32412) (multiple active RFCs). Dropped bias weights ([#39663](https://github.com/vllm-project/vllm/issues/39663)) is **fixed in v0.21.0** and no longer a reason to avoid online FP8. For MoE models, still prefer a pre-quantized checkpoint.
 
 ## The operator-pain-point shortlist
 
 Internalize these before debugging accuracy / throughput regressions:
 
 1. **`--kv-cache-dtype fp8` on MLA models → garbage on multi-turn** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **FIXED, guidance reversed 2026-07-21.** Closed 2026-05-15 with *"Fixed by #37054"*, a PR that merged **2026-03-18** and was already recorded elsewhere in this skill as the v0.19 MLA KV-scale fix. The issue tracker lagged the fix by ~2 months, and this skill carried the blanket avoid-on-DeepSeek/GLM/Kimi warning for longer still. On a current release FP8 KV on MLA is usable — measure it instead of excluding it. See `references/kv-cache.md` items 1 and 5.
-2. **Gemma 4 FP8-block → logit saturation / repetitive garbage** ([#39407](https://github.com/vllm-project/vllm/issues/39407), [#39049](https://github.com/vllm-project/vllm/issues/39049)). Use non-block FP8 or FP16.
+2. **Gemma 4 FP8-block → logit saturation / repetitive garbage** ([#39407](https://github.com/vllm-project/vllm/issues/39407), [#39049](https://github.com/vllm-project/vllm/issues/39049)). Use non-block FP8 or FP16. Both issues were closed `NOT_PLANNED` by the inactivity bot on 2026-09-02 with no fix and PR #40391 still open — closed state here is not a fix.
 3. **NVFP4 on Qwen3-Next / hybrid-attention models** silently corrupted output when `quantization_config.ignore` missed `linear_attn` layers ([#40252](https://github.com/vllm-project/vllm/issues/40252), fixed + closed 2026-04-20). The underlying pattern still applies to any new hybrid-attention model: always audit the `ignore` list when quantizing non-standard architectures.
-4. **Online FP8 drops bias weights** ([#39663](https://github.com/vllm-project/vllm/issues/39663)). Any bias-ed target → use pre-quantized checkpoint.
+4. **Online FP8 dropped bias weights — fixed in v0.21.0** ([#39663](https://github.com/vllm-project/vllm/issues/39663), fix PR #41424). Below v0.21.0, a bias-ed target needs a pre-quantized checkpoint; at or above it, online FP8 is fine for bias. MoE is a separate problem (#34129, won't-fix).
 5. **Dynamic FP8 + LoRA-merged model on B200 → non-deterministic degenerate output** ([#39662](https://github.com/vllm-project/vllm/issues/39662)). Pin static FP8.
 6. **SM120 (RTX 5090, 6000 Pro) is not a datacenter NVFP4 MoE target** ([#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085)) — full kernel set is SM100 / SM103 only. Desktop Blackwell is production only for `fp8`.
 
