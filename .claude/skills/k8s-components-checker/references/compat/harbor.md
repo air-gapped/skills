@@ -5,12 +5,12 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 — release lines, chart matrix and the no-1.35 absence claim all re-verified; **the `releases/latest` pointer has since moved**, see below
 - **Last release-verified:** 2026-07-21 — 2.15.2 (2026-07-02) carries a security fix (blob-mount source-project validation, reject tokens missing `iat`), swaps the cache backend Redis → **Valkey**, and moves the portal to Angular 21 / Clarity 18 / Node 22.
 - **2026-05-31 release-verified (gh):** enumerating `goharbor/harbor`
   non-prerelease tags (no version named) returns **`v2.15.2` / `v2.15.1` / `v2.15.0` as real,
   higher releases** alongside the maintained **2.14 line (`v2.14.4`)**.
-  `releases/latest` = **v2.14.4** is *recency, not rank* — Harbor keeps the
+  **Pointer moved 2026-09-15: `releases/latest` is now v2.15.2**, so the specific value below is historical. The *mechanism* it illustrates still stands and is still worth keeping — `releases/latest` is a recency/maintainer-pinned flag, not the highest semver — but do not expect to see v2.14.4 there today. Historically, `releases/latest` = **v2.14.4** was *recency, not rank* — Harbor keeps the
   "Latest" flag on the 2.14 maintenance line while 2.15 is the newer feature line
   (a 2.14 patch published after 2.15.x). **The prior banner here ("2.15 NOT
   released — the list query was contamination") was WRONG** and is corrected:
@@ -103,7 +103,7 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   core `find: '/etc/harbor/ssl': No such file or directory` + `init global
   config instance failed ... app.conf` = normal when `internalTLS` is disabled.
 
-## 2.15 — chart 1.19.x  (RELEASED; latest patch **v2.15.2** 2026-07-02 — gh-enumerated 2026-07-21. `releases/latest` stays v2.14.4 = recency, not rank. Tested k8s 1.32–1.34 — does NOT add 1.35.)
+## 2.15 — chart 1.19.x  (RELEASED; latest patch **v2.15.2** 2026-07-02 — re-verified 2026-09-15 as `isLatest`. `releases/latest` now points here, no longer at v2.14.4. Tested k8s **1.32.8 / 1.33.4 / 1.34.0** off `integration.yaml` at chart tag v1.19.2 — **still does NOT add 1.35**, absence claim re-tested and holds.)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
   `v1.32.8, v1.33.4, v1.34.0`). README still claims "Kubernetes v1.20+"

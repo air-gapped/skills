@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 (release lines re-enumerated with `isLatest` read explicitly; k8s windows re-read off each line's own prerequisites page at that line's latest patch tag)
 
 ## Node drain / reboot during a k8s/RKE2 upgrade (cross-version)
 
@@ -95,7 +95,9 @@ after a clean operator hop typically surfaces only:
 Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
 no CephFS).
 
-## 1.20 (latest: **1.20.7**, 2026-09-02 — release-verified 2026-09-15; was 1.20.2 at sift, patch contents not sifted)
+## 1.20 (latest: **1.20.7**, 2026-09-02 — release-verified 2026-09-15; was 1.20.2 at sift, patch contents not sifted. k8s **1.31–1.36**)
+
+**Cross-component (Ceph)** — this row was missing from the 1.20 section while every other line has one. Squid **v19.2.0+**; Tentacle **v20.2.1+**, and **v20.2.0 is not recommended**: it carries a read-affinity data-corruption bug, with upstream guidance to move to **v20.2.2+** if read affinity was ever enabled. Same caveat applies on 1.19.
 
 - **k8s floor:** **1.31 – 1.36** (stated in the 1.20.0 release notes).
 - **Breaking:**
@@ -125,7 +127,7 @@ no CephFS).
 - **Not yet field-validated** — the 1.19 entry below carries the operator's live
   upgrade notes; 1.20 is release-note-grounded only.
 
-## 1.19 (latest: 1.19.7, 2026-06-16)
+## 1.19 (latest: **1.19.11**, 2026-09-02 — was 1.19.7 at sift; 1.19.8/.9/.10/.11 shipped since. k8s **1.30–1.35**. Ceph: Squid v19.2.0+, Tentacle **v20.2.1+**)
 
 - **k8s floor:** 1.30 – 1.35
 - **Breaking:**
