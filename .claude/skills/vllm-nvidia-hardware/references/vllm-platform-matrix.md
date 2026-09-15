@@ -164,7 +164,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashAttention-3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable
   FlashMLA build (#48174) — both reduce torch-upgrade breakage. FlashInfer
   **0.6.14** (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442).
-- **v0.27.1** (2026-08-11, **current latest**) — patch on v0.27.0; sole change is
+- **v0.27.1** (2026-08-11, **newest release this matrix covers** — the line is at v0.29.0 as of 2026-09-15, so v0.28.0 and v0.29.0 are not yet assessed here) — patch on v0.27.0; sole change is
   "Support quantized DSpark Markov heads" (#50424), a model-specific quantization
   path with no hardware or platform implications. Everything in the v0.27.0 row
   below still applies unchanged.
