@@ -27,7 +27,7 @@
 | **UCX** | network | yes | yes | yes | DRAM, VRAM | UCX 1.20.x, optional GDRCopy, CUDA | stable, default |
 | **libfabric** | network | partial | yes | yes | DRAM, VRAM | libfabric ≥1.21.0, hwloc 2.10+, libnuma | stable; thread-safe in v1.0.1 |
 | **mooncake** | network | yes | yes | yes | DRAM, VRAM | Mooncake (BUILD_SHARED_LIBS=ON) | preview; own metadata path |
-| **uccl** | network | no (yet) | yes | yes | DRAM, VRAM | UCCL P2P engine, RDMA NIC | preview; intra-node WIP |
+| **uccl** | network | yes | yes | yes | DRAM, VRAM | UCCL P2P engine, RDMA NIC | preview; progress thread still open |
 | **gpunetio** | network | no | yes | yes | DRAM, VRAM | DOCA GPUNetIO, gdrcopy | stable; single-NIC + single-GPU |
 | **cuda_gds** | storage | yes | no | no | VRAM, FILE | cuFile (CUDA Toolkit 12.8+) | stable |
 | **gds_mt** | storage | yes | no | no | VRAM, FILE | cuFile + thread pool | stable |
@@ -87,6 +87,14 @@ agent.create_backend("LIBFABRIC", {})
 - PR #1506: multi-GPU memory registration.
 - PR #1462: log-level cleanups.
 
+**Runtime config** (backend init params unless noted):
+
+| Param | Default | Effect |
+|---|---|---|
+| `num_threads` | `0` | `0` keeps the serial posting path. Above zero, enables a thread pool for parallel descriptor posting in `postXfer` |
+| `split_batch_size` | `1024` | Minimum descriptor count before `postXfer` uses that pool. **Only applies when `num_threads` > 0** |
+| `max_bw_per_dram_seg` | auto-computed | Per-NUMA-node bandwidth cap for `DRAM_SEG`, so one node cannot saturate a shared PCIe switch. Also settable as `NIXL_LIBFABRIC_MAX_BW_PER_DRAM_SEG`, which overrides the param |
+
 **Build flags:**
 ```bash
 meson setup build -Dlibfabric_path=/path/to/libfabric
@@ -119,7 +127,10 @@ config = nixl_agent_config(backends=["UCCL"])
 agent = nixl_agent("agent-name", config)
 ```
 
-**Today:** internode only. Intra-node and progress thread on the roadmap. Auto-discovers NIC by PCIe distance during memory registration.
+**Today:** internode over RDMA / TCP / TCP-X / EFA **and intranode** (GPU↔GPU and GPU↔CPU, via IPC) —
+intra-node shipped and is ticked off upstream's roadmap as of v1.4.1. Still open there:
+progress-thread support and telemetry. Auto-discovers NIC by PCIe distance during memory
+registration.
 
 vLLM has a UCCL-based NIXL connector path: see vLLM commit `e731733d30d0aed3252dc60427927768bfc0ca73`.
 
@@ -132,7 +143,7 @@ agent.create_backend("GPUNETIO", {
     "network_devices": "mlx5_0",
     "oob_interface": "ens9f0",       # optional, not needed for IB-mode NICs
     "gpu_devices": "0",
-    "cuda_streams": "8",
+    "cuda_streams": "8",       # omit → DOCA_POST_STREAM_NUM; only used in stream-pool mode
 })
 ```
 
@@ -189,7 +200,11 @@ Same cuFile-level config as `cuda_gds`. Use for high-IOPS / many-small-files wor
 
 ### posix
 
-POSIX file I/O. Default backend = libaio; opt-in liburing.
+POSIX file I/O. Default backend = libaio; opt in to liburing with `use_uring`.
+
+**liburing needs no manual install.** It comes from the Meson wrap at
+`subprojects/liburing.wrap` (pinned to WrapDB `liburing_2.14-1`), and `meson setup` builds it
+from source when pkg-config finds no system copy. Do not go looking for a distro package.
 
 ```python
 agent.create_backend("POSIX", {"use_uring": "true"})
@@ -227,6 +242,9 @@ agent.create_backend("OBJ", {
     "bucket": "my-kv-cache",
     # crtMinLimit: object size threshold for CRT vs std client
     "crtMinLimit": "16777216",
+    # throughput_target_gbps: whole Gbps, default 10. Sizes how many parallel
+    # connections the CRT client opens — raise it on 25 GbE or IB.
+    "throughput_target_gbps": "25",
 })
 ```
 
@@ -262,6 +280,10 @@ nixl_b_params_t params = gen_gusli_plugin_params(agent);
 nixlBackendH* gusli_ptr = nullptr;
 agent.createBackend("GUSLI", params, gusli_ptr);
 ```
+
+**Requests must be created and released per iteration** — a GUSLI library limitation,
+listed as a known issue upstream. NIXLBench handles it for you, so calling the backend
+directly is where it bites: reusing a request across iterations is not supported.
 
 Config file built via GUSLI client API:
 
@@ -342,6 +364,30 @@ export NIXL_TELEMETRY_EXPORTER=prometheus
 ```
 
 Exposer is shared across all agents in the same process (PR #1470). Beta status as of v1.0.1.
+
+```bash
+export NIXL_TELEMETRY_PROMETHEUS_PORT=9090   # default 9090
+export NIXL_TELEMETRY_PROMETHEUS_LOCAL=y     # NOT the default — see below
+```
+
+**The endpoint binds publicly unless you set `NIXL_TELEMETRY_PROMETHEUS_LOCAL`.** Upstream's
+default address is public; that variable is what restricts it to localhost. Set it on any host
+where the metrics port is not already behind a network policy.
+
+**libcurl is not vendored.** Unlike liburing for POSIX, it is not fetched automatically —
+install `libcurl4-openssl-dev` / `libcurl-devel` before building, or the build fails.
+
+### DOCA Telemetry exporter (dynamic)
+
+A third exporter, alongside the cyclic buffer and Prometheus. Exports via DOCA Telemetry
+Exporter over an HTTP endpoint Prometheus scrapes, and needs the DOCA Telemetry Exporter
+library present on the system.
+
+```bash
+export NIXL_TELEMETRY_EXPORTER=doca
+export NIXL_TELEMETRY_DOCA_PROMETHEUS_PORT=9091   # default 9091
+export NIXL_TELEMETRY_DOCA_PROMETHEUS_LOCAL=y     # same public-by-default caveat
+```
 
 ### Custom exporter
 

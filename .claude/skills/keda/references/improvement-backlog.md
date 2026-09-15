@@ -18,15 +18,23 @@ were read on 2026-08-21 and kept deliberately; leave them alone.
 
 ## Unblocked — actionable
 
-- **Full three-file max-of consolidation** — Dim 6 — SKILL.md gotcha #4 +
-  `references/crds.md` (multi-trigger semantics) + `references/patterns.md`
-  ("Default: max of triggers"). This pass collapsed the crds.md restatement to
-  a one-line pointer to patterns.md. The remaining two are NOT pure duplication:
-  SKILL.md gotcha #4 is the gotcha-summary surface and patterns.md is the
-  canonical depth (intro paragraph that the scalingModifiers section builds on).
-  Removing either in one atomic step orphans its section's context, so deeper
-  consolidation could not be applied without a multi-step rewrite that re-flows
-  the patterns.md scalingModifiers lead-in.
+## Decided — do not re-propose
+
+- **Do not consolidate the max-of semantics further.** The entry already conceded
+  the remaining two statements are not duplicates: SKILL.md gotcha #4 is the
+  gotcha-summary surface and `patterns.md` § "Default: max of triggers" is the
+  canonical depth the `scalingModifiers` section builds on. That is the shape
+  skill-improver's rubric names INTENTIONAL_DETAIL and requires to be kept — an
+  overview in the body developed in `references/` *is* progressive disclosure, and
+  the fleet measurement behind that rule found 83% of similar-looking content
+  correct as written. Gotcha #4 already points at `patterns.md`, so the two are
+  linked rather than merely repeated.
+- **The third statement is not a duplicate either.** The Prometheus + CPU recipe
+  states the max-of rule immediately above its manifest. A recipe read on its own
+  needs it there, and the gotcha it would otherwise depend on sits 180 lines later.
+- What the earlier pass did do — collapsing the `crds.md` restatement to a pointer
+  — was the part that was genuine duplication. Nothing is left that can be removed
+  without orphaning the context around it.
 
 ## Resolved — 2026-09-15 (freshen to v2.20.2)
 
