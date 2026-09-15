@@ -5,6 +5,29 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-09-15 (community patch ceilings vs advisory floors)
+
+- **The advisory guidance assumed the floor was reachable. On community edition it usually is
+  not.** Rancher publishes community patches for a minor only while that minor is the newest one;
+  the day minor N+1 GAs, minor N's next patch becomes a Prime-docs redirect. Verified across all
+  50 releases of 2.11–2.15: `v2.11.4` turned Prime the day 2.12.0 shipped, `v2.12.4` the day
+  before 2.13.0, `v2.13.4` and `v2.14.4` on their successors' GA dates.
+- **Ceilings are frozen; floors keep climbing.** Community ceiling vs highest advisory floor:
+  2.15 v2.15.1 / 2.15.1 (reachable) · 2.14 v2.14.3 / 2.14.5 · 2.13 v2.13.3 / 2.13.9 ·
+  2.12 v2.12.3 / 2.12.13 · 2.11 v2.11.3 / 2.11.17.
+- **Every community minor except the newest is inside an unpatched CRITICAL.** 2.13, 2.12 and 2.11
+  all sit below CVE-2026-44939's floors (command injection via unsanitized YAML) and below
+  CVE-2026-44945's. There is no patch-in-place remediation for any of them, so a community
+  security answer must be a minor hop, never a patch number.
+- The previous text named the 2026-08-28 batch in prose without its floors, which are strictly
+  higher than the CVE-2026-44945 numbers it did state (2.15.1 / 2.14.5 / 2.13.9 / 2.12.13 /
+  2.11.17 across CVE-2026-75033/75034/75035/71404). An agent grounding on the stated numbers
+  landed two batches behind.
+- This turns House Rule #5's no-skip ladder into the security path rather than merely the
+  supported one, and makes the look-ahead rule mandatory: land on the newest minor or land
+  somewhere unpatchable.
+- Re-derive both columns at plan time. Ceilings move only on a GA; floors move with every batch.
+
 ## Resolved — 2026-09-15 (advisory-grounded patch floors)
 
 - **An upgrade skill with no advisory step was picking target patches blind.**

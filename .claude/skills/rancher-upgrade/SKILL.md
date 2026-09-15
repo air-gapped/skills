@@ -166,18 +166,36 @@ target versions follow look-ahead (House Rule #4).
            | "\(.vulnerable_version_range) -> \(.first_patched_version)"'
    ```
 
-   **Worked example, and a live one — CVE-2026-44945 / GHSA-v584-7w32-jwpq, CRITICAL, published
-   2026-07-31.** Privilege escalation in the local cluster via cross-cluster impersonation, a
-   confused-deputy problem. Its affected ranges give four different per-minor floors at once:
-   **< 2.14.2, < 2.13.8, < 2.12.12, < 2.11.16**. A ladder that targets, say, 2.11.14 because it is
-   "a recent 2.11" lands on a version that is still vulnerable. A further batch of **high**-severity
-   advisories landed 2026-08-28 (account takeover via principal rebind, cross-cluster Project Secret
-   disclosure, SAML assertion replay across HA replicas, cross-user token disclosure), so re-run the
-   enumeration at plan time rather than trusting these numbers.
+   One advisory sets several floors at once: CVE-2026-44945 (CRITICAL, cross-cluster impersonation)
+   lists `< 2.14.2`, `< 2.13.8`, `< 2.12.12`, `< 2.11.16`. A ladder targeting "a recent 2.11" lands
+   inside it. **`first_patched_version` is almost always null on this feed** — derive the floor from
+   `vulnerable_version_range`; "no patched version listed" does not mean "no fix".
 
-   **The advisory feed's `first_patched_version` is frequently null here** — as it is for the CVE
-   above. Derive the floor from `vulnerable_version_range` instead; "no patched version listed" does
-   not mean "no fix".
+   **On community edition most of those floors are unreachable, and that decides the plan.** Rancher
+   publishes community patches for a minor only while it is the newest minor; the day minor N+1 GAs,
+   minor N's next patch becomes a Prime-docs redirect. Verified across every 2.11–2.15 release
+   (2026-09-15): `v2.11.4` turned Prime the day 2.12.0 shipped, `v2.12.4` the day before 2.13.0,
+   `v2.13.4` and `v2.14.4` on their successors' GA dates. So the community ceiling is frozen at the
+   last patch before the next GA, while advisory floors keep climbing:
+
+   | Minor | Community ceiling | Highest advisory floor | Reachable on community? |
+   |-------|-------------------|------------------------|-------------------------|
+   | 2.15  | v2.15.1           | 2.15.1                 | **yes** |
+   | 2.14  | v2.14.3           | 2.14.5                 | no — 2 Prime-only patches |
+   | 2.13  | v2.13.3           | 2.13.9                 | no — 6 |
+   | 2.12  | v2.12.3           | 2.12.13                | no — 10 |
+   | 2.11  | v2.11.3           | 2.11.17                | no — 14 |
+
+   **Consequence: every community minor except the newest is inside an unpatched CRITICAL.** 2.13,
+   2.12 and 2.11 all sit below CVE-2026-44939's floors (command injection via unsanitized YAML,
+   `< 2.13.6` / `< 2.12.10` / `< 2.11.14`), and 2.13/2.12/2.11 below CVE-2026-44945's as well. There
+   is no patch-in-place remediation for any of them.
+
+   **So do not answer a community security question with a patch number.** The remediation is the
+   minor hop — which makes House Rule #5's ladder the security path, not merely the supported one,
+   and makes the look-ahead rule above mandatory rather than advisory: land on the newest minor or
+   you land somewhere unpatchable. Re-derive both columns at plan time; the ceilings move only on a
+   GA, but the floors move with every batch.
 5. **Management Rancher upgrades BEFORE downstream k8s minor bumps**, always. And **no minor
    skipping** on the Rancher axis. Violating either is the classic fleet-stranding / rebuild path.
 6. **Back up before every step.** An RKE2 etcd snapshot of the management cluster is the real
