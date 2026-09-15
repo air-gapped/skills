@@ -3,6 +3,36 @@
 Tracks issues found during skill-improver passes that could not be resolved
 in a single atomic iteration, plus what each pass actually changed.
 
+## Resolved — 2026-09-15 (the engine floor does not reach the security floor)
+
+- **Corrected: "≥ 5.15.0 … is also vLLM v0.28.0's floor".** It is not. Read from
+  `requirements/common.txt` at the tags today: **v0.27.0 and v0.28.0 pin
+  `transformers >= 5.5.3`; v0.29.0 and `main` pin `>= 5.10.4`.** Neither reaches
+  5.15.0.
+- **The sentence it supported was the dangerous part** — "the version you need
+  for engine compatibility is the version you need for these" — because it is
+  reassuring and false. An install resolving `transformers` from vLLM's floor
+  alone lands on 5.10.4, which clears #46191 and leaves the arbitrary-file-read
+  (#46279, 5.13.0) and the ReDoS (#47498, 5.15.0) open. Replaced with a
+  four-row table showing exactly which fixes each floor clears, and an explicit
+  instruction to pin `transformers` rather than inherit it.
+- **New, and the reason this is worth more than a number swap:** the advisory's
+  `first_patched_version: 5.10.0` points at a version that **is on PyPI and
+  fully yanked** — yank reason, verbatim: *"We pushed from a week old main
+  branch … mostly it is missing a bunch of fixes!"*. A resolver picking latest
+  skips it, **but `transformers==5.10.0` pinned exactly still installs**, because
+  pip honours an exact pin over a yank. That is precisely how an air-gapped
+  mirror built from a pinned requirements file acquires a build the advisory
+  calls patched and upstream calls broken.
+- The skill was already **ahead of the advisory database** on the 5.10.0-vs-5.10.1
+  distinction, and that is what stopped this pass from "correcting" a right
+  floor down to a wrong one on the strength of the feed. The fleet advisory
+  sweep surfaced this via the *ecosystem* database (`/advisories?ecosystem=pip
+  &affects=transformers`), which lists four 2026 advisories the repo feed shows
+  as empty — the blind spot the sweep's `no repo feed` marker exists to flag.
+- Verified but unchanged: PR #47498 is merged 2026-07-24, "Fix potential ReDoS by
+  escaping tokenizer filename used as regex pattern", matching the table.
+
 ## Resolved — 2026-09-15 (an obsolete process artifact)
 
 - **RECON/APPLY version mismatch — CLOSED as obsolete.** The entry records that a

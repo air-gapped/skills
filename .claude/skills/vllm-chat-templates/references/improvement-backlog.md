@@ -3,6 +3,22 @@
 Tracks work attempted-but-not-completed and changes the metric registered.
 Append-only; carry open items forward with a `(carried <date>)` marker.
 
+## Resolved — 2026-09-15 (the transformers pin moved, and still is not a security floor)
+
+- **The `transformers >= 5.5.3` note is correct for v0.27.0 and now incomplete.**
+  v0.28.0 is unchanged; **v0.29.0 and `main` raise the pin to `>= 5.10.4`**. Added
+  rather than overwritten, because the existing guard note against "modernizing"
+  the `v4.44` error string is still right and the two facts sit next to each other.
+- **Neither pin reaches 5.15.0**, the floor that clears all three 2026 fixes in
+  the tokenizer-loading path. One of those is directly this skill's subject: a
+  hostile repo's **chat-template names** become `<name>.jinja` paths, so
+  `save_pretrained` writes outside the target directory. A skill about chat
+  templates should say that template *names* are an attack surface, not only
+  template *bodies*.
+- Consequence stated plainly: satisfying vLLM's requirement is not the same as
+  being patched — pin `transformers` explicitly. Per-fix detail is left in
+  `transformers-config-tokenizers-expert`, which owns that surface.
+
 ## Open
 
 - **DeepSeek-V3.1 #28804 won't-fix mitigation phrasing could be tightened** (Dim 4/6) —

@@ -42,6 +42,8 @@ vLLM picks a chat template in this order. First hit wins. Source: `vllm/renderer
 If none resolves, **`ChatTemplateResolutionError`** raised at `hf.py:718` with: *"As of transformers v4.44, default chat template is no longer allowed, so you must provide a chat template if the tokenizer does not define one."*
 
 > **Do not "modernize" that v4.44.** It is vLLM's own error string, verbatim and unchanged on v0.27.0 — it refers to the *transformers release that removed default templates*, not to the version vLLM needs. vLLM v0.27.0's actual runtime floor is **`transformers >= 5.5.3`** (`requirements/common.txt`, unchanged since v0.25.1). Two different facts; don't collapse them.
+>
+> **The pin has since moved, and it is still below the security floor.** v0.28.0 is unchanged at `>= 5.5.3`; **v0.29.0 and `main` raise it to `>= 5.10.4`** (read 2026-09-15). Neither reaches **5.15.0**, which is the floor that clears all three 2026 fixes in the tokenizer-loading path — including one where a hostile repo's **chat-template names** become filenames and `save_pretrained` writes outside the target directory. So satisfying vLLM's requirement is not the same as being patched: pin `transformers` yourself. Detail and the per-fix table: `transformers-config-tokenizers-expert` § "Loading a tokenizer is a trust decision".
 
 ### Consequences operators miss
 

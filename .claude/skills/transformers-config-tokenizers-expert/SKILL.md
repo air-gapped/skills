@@ -264,12 +264,32 @@ Three 2026 fixes landed in this exact code path. All are reachable from a plain
 | **#47498** | v5.15.0 | Put regex metacharacters in the tokenizer filename; it was passed straight to `re.search()` as a pattern — **ReDoS** via catastrophic backtracking. Now `re.escape()`d. |
 | **#46191** | v5.10.1 | Name a chat template `"../../foo"`; template names became `<name>.jinja` paths under a directory join, so `save_pretrained` **wrote outside the target directory**. Names are now restricted to plain filenames in both `PreTrainedTokenizerBase.save_pretrained` and `ProcessorMixin.save_pretrained`. |
 
-**Floor: transformers ≥ 5.15.0** clears all three, which is also vLLM v0.28.0's
-floor — so the version you need for engine compatibility is the version you need
-for these. Note the advisory for the third records `first_patched_version:
-5.10.0`, and **v5.10.0 does not exist**: it was yanked for being published from
-a corrupted branch, and v5.10.1's own notes say so. The first installable fix is
-5.10.1.
+**Floor: transformers ≥ 5.15.0** clears all three. **Do not expect the engine to
+get you there** — vLLM's pin is lower, and the gap is where the exposure lives:
+
+| vLLM | `requirements/common.txt` | Clears |
+|---|---|---|
+| v0.27.0, v0.28.0 | `transformers >= 5.5.3` | none of the three |
+| v0.29.0, `main` | `transformers >= 5.10.4` | #46191 only |
+| — | `>= 5.13.0` | + #46279 |
+| — | **`>= 5.15.0`** | + #47498 — all three |
+
+(Read from the tags on 2026-09-15.) So "satisfy the engine's requirement" leaves
+the arbitrary-file-read and the ReDoS open, and an install resolving
+`transformers` from vLLM's floor alone lands on 5.10.4. **Pin transformers
+explicitly at ≥ 5.15.0**; the engine will not raise it for you.
+
+Two traps in the third fix's version numbers, both of which point the wrong way:
+
+- The advisory records `first_patched_version: 5.10.0`, and **5.10.0 is yanked
+  on PyPI** — its own yank reason reads *"We pushed from a week old main branch
+  … mostly it is missing a bunch of fixes!"*. A resolver picking the latest will
+  skip it, **but `transformers==5.10.0` pinned exactly still installs**, because
+  pip honours an exact pin over a yank. An air-gapped mirror built from a pinned
+  requirements file is exactly where that happens, and the advisory will tell
+  you that version is patched. The first installable fix is **5.10.1**.
+- vLLM's `>= 5.10.4` clears this one comfortably, which is why it is the only
+  one of the three the engine floor covers.
 
 The operational point is narrower than "untrusted models are dangerous". The
 `trust_remote_code` flag is the control everyone reaches for, and none of these
