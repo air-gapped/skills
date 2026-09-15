@@ -2,6 +2,31 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (a "correction" had deleted six real releases and inverted the verdict)
+
+- **Retracted the 2026-05-30 operator correction in `compat/argo-cd.md`.** It claimed the 3.2 line
+  ended at **v3.2.6**, never received the CVE-2026-42880 backport, and that `v3.2.10` / `v3.2.12`
+  **do not exist**. All three are false. The line runs to **v3.2.12** (2026-05-13); v3.2.7–v3.2.12
+  are real published stable releases; the CVE fixes landed in **v3.2.11** and **v3.2.12**.
+- **The verdict it produced was wrong in the operationally expensive direction** — "a 3.2.x cluster
+  handling Secrets is permanently exposed, the only path is bump to 3.4.x". A 3.2 cluster already
+  on v3.2.12 is exposed to neither CVE. The correction turned schedulable maintenance into an
+  incident, and pointed at a destination chosen for the wrong reason.
+- **Shape to distrust: a correction that removes releases.** Enumerate the tags before deleting
+  one. A single `gh api releases --paginate` would have refuted it at the time.
+- **The real reason to leave 3.2 is EOL, and it is derivable rather than looked up.** Argo CD
+  supports exactly the newest three minors: **minor N reaches EOL the day minor N+3 GAs.** Three
+  independent confirmations — 3.0 EOL 2026-02-02 = v3.3.0 GA, 3.1 EOL 2026-05-06 = v3.4.1 GA,
+  3.2 EOL 2026-08-04 = v3.5.0 GA — and v3.2.12's own notes carry the banner. Minors land ~every
+  3 months, so **3.3 EOLs when 3.6 GAs, ~2026-11**: a 3.3 landing is temporary by construction.
+- **Two more floors were wrong in the unsafe direction.** §3.3 said CVE-2026-42880 was "patched
+  3.3.8", but the advisory's range is `3.2.0 - 3.3.8`, so 3.3.8 is *affected*; and §3.4 gave
+  "≥ 3.4.0", which is not a usable floor because **there is no `v3.4.0` tag**. With
+  CVE-2026-45737's incomplete-fix follow-up the per-line floors are **3.4.2 / 3.3.10 / 3.2.12**.
+- **3.5 added** (GA 2026-08-04, latest v3.5.3 2026-09-14), with its k8s floor explicitly marked
+  not-re-derived rather than guessed from the 3.4 row.
+- Latest-patch figures refreshed: 3.4 → v3.4.9, 3.3 → v3.3.14 (were v3.4.5 / v3.3.12).
+
 ## Resolved — 2026-09-15 (Rancher 2.15 added to the registry)
 
 - **The registry stopped at 2.14 while 2.15 had been out for six weeks.** v2.15.0
