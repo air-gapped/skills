@@ -1,6 +1,6 @@
 # Runbooks — Strategy A (release-secret surgery) and B (clean reinstall)
 
-Target 6.7.0+. Air-gapped clusters: complete `airgap-prep.md` FIRST (images +
+Target 6.7.0+, **but read this before picking 6.8.0**: from logging-operator 6.8.0 a duplicate parser name is fatal and crash-loops the Fluent Bit DaemonSet. Built-in names (`json`, `docker`, `cri`, `kube-custom`) now collide with any custom parser reusing them, and it is not in the Fluent Bit release notes. 6.7.0 remains the safe default target unless you have audited your parser names. Air-gapped clusters: complete `airgap-prep.md` FIRST (images +
 chart in the internal registry, values overrides drafted).
 
 ## Shared step 0 — inventory & backup (both strategies)

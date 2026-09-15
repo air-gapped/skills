@@ -46,7 +46,9 @@ DiT has no KV cache (no autoregression). Instead, vllm-omni ships several latent
 | Cache | Source | What it caches |
 |---|---|---|
 | **TeaCache** | `vllm_omni/diffusion/cache/teacache/` | Token-level activation similarity threshold (reuse last step) |
-| **Cache-DiT** | `vllm_omni/diffusion/cache/cache_dit/` | Block-level activations across steps |
+| **Cache-DiT** | `vllm_omni/diffusion/cache/cachedit/` | Block-level activations across steps. **Directory renamed from `cache_dit/` (no underscore) by PR #5226, 2026-07-24.** |
+| **MagCache** | `vllm_omni/diffusion/cache/magcache/` | Added in the same 2026-07-24 cache refactor |
+| **StepCache** | `vllm_omni/diffusion/cache/stepcache/` | Added in the same 2026-07-24 cache refactor |
 | Latent cache | `latents` field | Pre-seeded initial latent |
 | Noise-pred cache | `noise_pred` field | Output cache for duplicate prompts |
 

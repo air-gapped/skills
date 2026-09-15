@@ -166,7 +166,7 @@
       "name": "harvester",
       "source": "./",
       "description": "Harvester HCI operator suite — controlled, community-edition Harvester upgrades off an EOL line up to latest stable: the no-skip minor ladder (1.5→1.6→1.7→1.8 carrying embedded RKE2 / KubeVirt / Longhorn / SLE-Micro together), external-Rancher + Harvester UI-extension pairing and ordering, air-gapped version detection, controlling the node-by-node upgrade flow (serial interlock, the v1.7+ pause-map, and the PodDisruptionBudget + VMI-readinessProbe native gate for 1.5/1.6), keeping VM-hosted self-managed RKE2 control planes quorate via anti-affinity spread and live-migration-vs-clean-shutdown tradeoffs (busy-etcd non-convergence, auto-converge, dedicated migration network), per-hop breaking changes (wicked→NetworkManager, Intel NIC rename, DHCP churn), the enforced pre-flight health gates, and the no-downgrade backup/rollback reality. Companion to the k8s suite's k8s-components-checker (Harvester↔Rancher↔RKE2 pairing registry) and rancher-upgrade (the external Rancher's own chain).",
-      "version": "0.20260915.10",
+      "version": "0.20260915.11",
       "author": {
         "name": "Jörgen"
       },
@@ -418,7 +418,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
-      "version": "0.20260915.31",
+      "version": "0.20260915.32",
       "author": {
         "name": "Jörgen"
       },
@@ -557,7 +557,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260915.149",
+      "version": "0.20260915.150",
       "author": {
         "name": "Jörgen"
       },

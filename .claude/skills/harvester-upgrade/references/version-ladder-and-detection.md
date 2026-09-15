@@ -2,7 +2,7 @@
 
 ## The ladder (no minor skipping)
 
-Authoritative: Harvester docs `upgrade/automatic.md` (supported-paths table + component table + the k8s
+Authoritative: Harvester docs `upgrade/index.md` (**was `upgrade/automatic.md`, which now 404s — the page was merged into its section index**) (supported-paths table + component table + the k8s
 version-skew note). The only supported paths are one minor at a time:
 
 ```
