@@ -2,6 +2,32 @@
 
 Prior skill-improver runs and ceiling findings.
 
+## Resolved — 2026-09-15 (hicache-doctor.sh shipped)
+
+- **Shipped `scripts/hicache-doctor.sh`.** The entry deferred it as
+  "author-judgment-dependent on which log sources to scan (systemd / docker /
+  kubectl)" and said to "skip until the operator workflow is more concrete".
+  That is a judgement, and the answer is just *all three*: the script
+  auto-detects in the order an operator is most likely on, and `--systemd` /
+  `--docker` / `--kubectl` / `--file` / `--stdin` override it.
+- **Grounded in the real strings, not a guessed grep.** All three rewrite sites
+  in `arg_groups/hicache_hook.py` were read at upstream `main` on 2026-09-15:
+  "Kernel io backend does not support page first direct layout, switching to
+  direct io backend", "Page first layout is not supported with direct IO
+  backend, switching to page first direct layout", and the templated
+  "switching to {layout} layout for {io_backend} io backend". **`switching to`
+  is the invariant across all three**, so that is what the script matches —
+  a pattern built from the specific messages would rot on the next rewrite rule.
+- **Prints the resolved configuration as well as the rewrites**, because the
+  rewrite line alone does not tell an operator what they ended up running.
+- **Says what a clean result does and does not mean.** "No rewrites found" is
+  reported as weak evidence — it covers the log window read, and both
+  `journalctl -n 5000` and `docker logs` can have rolled past startup. Silent
+  success here would be the same failure the script exists to catch.
+- Exit 1 when a rewrite fired, so it drops into a post-deploy gate unchanged.
+- The one-liner previously inlined in pitfall #3 stays; it is the zero-install
+  version. This is the multi-source one the entry said was the remaining value.
+
 ## Resolved — 2026-09-15 (unguarded SWA fallthrough re-verified at v0.5.19)
 
 - **The footgun stands, and it is wider than the three archs recorded.** Exactly
@@ -82,12 +108,6 @@ Prior skill-improver runs and ceiling findings.
 
 ## Open
 
-### Bundle `scripts/hicache-doctor.sh` boot-log auto-rewrite scanner (carried 2026-05-29)
-
-- **Dim:** 7 + 4
-- **Where:** new `scripts/hicache-doctor.sh`; pointer in SKILL.md "Critical pitfalls #3" and `references/troubleshooting.md` "Validation / debug commands".
-- **Why ceiling-bound:** `_handle_hicache` silently rewrites layout × IO × storage combinations and only emits a WARNING log. A short shell helper (`tail journalctl -u sglang | grep -E '(switching to|FlashAttention3 decode backend|Hierarchical cache enabled)'`) would surface all the auto-rewrites in one go. Operator-side, scriptable, but author-judgment-dependent on which log sources to scan (systemd / docker / kubectl). NOTE: the grep one-liner itself was inlined into SKILL.md pitfall #3 this pass (Dim 4 9→10), so the remaining value of a bundled script is only the multi-source (systemd/docker/kubectl) auto-detection — narrower than before. Skip until the operator workflow is more concrete.
-- **Score impact if resolved:** Dim 7 9→10 (~+1 total; the Dim 4 half is already captured).
 
 ### Recipes for `simm` / `eic` / `dynamic` backends (carried 2026-05-29)
 

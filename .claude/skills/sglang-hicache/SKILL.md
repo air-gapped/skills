@@ -189,6 +189,7 @@ For symptom → diagnosis → fix flow, see `references/troubleshooting.md`.
 | `references/troubleshooting.md` | A specific error message, a wrong-looking number, or "TTFT regressed when I added hicache". Open bug list with symptoms + workarounds. |
 | `references/migration-from-vllm-caching.md` | Operators with a vLLM/LMCache deploy hitting the hybrid-attention wall. What's equivalent, what's better, what's worse. |
 | `references/sources.md` | Verifying or freshening external claims. Per-row `Last verified:` dates. |
+| `scripts/hicache-doctor.sh` | Surfacing the boot-time auto-rewrites. Auto-detects systemd / docker / kubectl (or `--file` / `--stdin`), prints the resolved HiCache configuration and every `switching to ...` line. Exit 1 when a rewrite fired, so it works as a post-deploy gate. Run it before trusting any benchmark. |
 | `scripts/inspect-sglang-image.sh <tag>` | Confirm which `mooncake-transfer-engine` / `nixl-cu*` / `aibrix-kvcache` / `lmcache` versions an `lmsysorg/sglang:<tag>` image bundles, without pulling. Reads the image config blob from Docker Hub. |
 
 The upstream repo at https://github.com/sgl-project/sglang is the most authoritative reference — `docs/advanced_features/hicache*.md`, `python/sglang/srt/server_args.py:5635-5733` for flag definitions, and `docs/advanced_features/hicache_storage_runtime_attach_detach.md` for the admin HTTP API. When this skill disagrees with the repo, trust the repo (and update this skill).
