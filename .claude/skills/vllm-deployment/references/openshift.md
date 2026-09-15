@@ -108,6 +108,7 @@ spec:
 ```
 
 Without the `timeout: 10m` annotation, SSE streaming cuts off at 60 s. This is the single most common OCP-specific failure.
+Annotation reference: https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html#nw-route-specific-annotations_route-configuration
 
 ### Gateway API on OCP
 

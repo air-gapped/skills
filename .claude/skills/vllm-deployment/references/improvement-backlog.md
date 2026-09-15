@@ -4,6 +4,20 @@ Work-not-done log for the skill-improver loop. `## Open` lists issues attempted 
 hypotheses that could not be applied (or safely verified) in a single iteration.
 `## Resolved this pass` lists changes the metric actually registered.
 
+## Resolved — 2026-09-15 (one Route timeout, one canonical treatment)
+
+- **`openshift.md` is now the single treatment; `routing.md` points at it.** The
+  60-second HAProxy idle timeout had a full Route manifest in both files. The
+  `openshift.md` copy was the better one — it also carries the health-check-interval
+  annotation and names this the most common OCP-specific failure — so `routing.md`
+  keeps one sentence and the annotation name, which is what a reader needs to
+  recognise the symptom before following the pointer.
+- **SKILL.md pitfall 6 stays.** It is the index an agent reads first; removing it
+  would mean the gotcha is only findable by already knowing to open the OpenShift
+  reference.
+- The annotation reference URL only existed in `routing.md` and moved with the
+  content rather than being deleted with it.
+
 ## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
 
 - Recorded the four v0.28/v0.29 changes that touch a manifest or a rollout plan:
@@ -113,10 +127,6 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
-- **OCP Route 60s timeout taught in three places** (Dim 6) — SKILL.md pitfall 6,
-  `routing.md` §OpenShift Route, `openshift.md` §Routes. Keep the pitfall
-  one-liner plus one canonical treatment and point the other at it. Multi-file,
-  but nothing is absent.
 - **Body still feature-list / pointer-map shaped, not operator-workflow ordered**
   (Dim 2) — `SKILL.md` top third (~L16-98). Lead with the operator workflow
   (audit → cache mount → HF_TOKEN → probes → serve_args → autoscale) before the

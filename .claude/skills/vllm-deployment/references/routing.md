@@ -79,23 +79,9 @@ Pre-v1 CRDs (`v1alpha1`, `v1alpha2`) will not work with current gateways. Conver
 
 ## OpenShift Route (the 60-second gotcha)
 
-OpenShift's HAProxy Router has a **60-second default idle timeout**. This kills long SSE streams. The fix:
-
-```yaml
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: vllm
-  annotations:
-    haproxy.router.openshift.io/timeout: 10m           # REQUIRED for streaming
-    haproxy.router.openshift.io/timeout-tunnel: 10m
-spec:
-  to: {kind: Service, name: vllm}
-  port: {targetPort: http}
-  tls: {termination: edge}
-```
-
-See https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html#nw-route-specific-annotations_route-configuration
+OpenShift's HAProxy Router has a **60-second default idle timeout** that kills long
+SSE streams; fix it with `haproxy.router.openshift.io/timeout: 10m`. Full Route
+manifest and the surrounding OCP specifics: `openshift.md` § Routes.
 
 ## Gateway API on OpenShift (version gate)
 
