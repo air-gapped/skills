@@ -137,8 +137,11 @@ Server-side:
    if the model handles its own chunking.
 
 Recent fix: **#39116** (merged 2026-04-09) fixed a spacing bug between
-chunks in multi-chunk transcription. Shipped in v0.19.1 (2026-04-18) and
-v0.20.0 (2026-04-27). Pin ≥v0.19.1 for long-form audio.
+chunks in multi-chunk transcription. **It ships in v0.20.0 (2026-04-27) and not
+before — pin ≥v0.20.0 for long-form audio.** v0.19.1 was published 2026-04-18, nine
+days *after* the merge, and still does not contain the fix: its branch was already
+cut. Established by `git tag --contains` on the merge commit, not by comparing dates
+— comparing dates is what produced the earlier, too-low floor of ≥v0.19.1.
 
 **Long-form timestamps were wrong until v0.27.0** (#41131, fixes issue
 #32588). Chunk start times were computed as if `split_audio` cut exactly at
@@ -227,5 +230,6 @@ duration raised to 90 minutes (#49403) — all v0.27.0. The entrypoint package
 also moved out of `vllm/entrypoints/openai/` (§2, §11); the old paths 404 at
 v0.27.0. Earlier: #42370/#42274 (v0.22.0) were internal consolidation,
 #47071/#47437 (v0.25.0) fixed pooled-Whisper KV *sizing* only, and
-MOSS-Transcribe-Diarize joined the roster in v0.25.0 (#47729). PR #39116
-merged 2026-04-09, shipped v0.19.1 + v0.20.0.
+MOSS-Transcribe-Diarize joined the roster in **v0.26.0** (#47729 — merged 2026-07-08,
+three days before v0.25.0 published, but not an ancestor of it). PR #39116
+merged 2026-04-09, ships in **v0.20.0 only**.

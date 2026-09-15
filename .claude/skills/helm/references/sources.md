@@ -1,6 +1,8 @@
 # Sources
 
-Freshened: 2026-08-26
+Freshened: 2026-09-15 — every row probed. All eight pinned CI-action SHAs and all four pre-commit tag pins still resolve.
+
+**Methodology note for the null-coalescing rows:** their release attributions are confirmable only from each release's own notes, **not** from git ancestry. This project backports, so a fix reaches an older patch release as a *different commit*; comparing the pull request's main-branch merge commit against that tag reports "diverged" even though the fix is in it. Measured here: #31644's merge commit is not an ancestor of v4.1.3, yet v4.1.3's notes credit #31644 — while v4.2.0, which does contain that commit, never mentions it.
 
 External references this skill depends on, with the version/state observed and
 the date each was last verified online. Re-run `freshen helm` to refresh.
@@ -20,10 +22,10 @@ not guessable: `norwoodj/helm-docs` tags `v1.14.2`, `dadav/helm-schema` tags
 
 | Source | URL | Last verified | Notes |
 |--------|-----|---------------|-------|
-| Helm releases | https://github.com/helm/helm/releases | 2026-08-26 | Latest stable v4.2.4 (2026-08-13); latest 4.1 patch v4.1.4 (2026-04-09), line quiet since. **Helm 3 is still maintained in parallel** — now at v3.21.4. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
+| Helm releases | https://github.com/helm/helm/releases | 2026-09-15 | Latest stable **v4.3.0 (2026-09-09)**, up from v4.2.4 (2026-08-13); latest 4.1 patch v4.1.4 (2026-04-09), line quiet since. **Helm 3 is still maintained in parallel** — now at **v3.22.0 (2026-09-10)**, and note it was cut a day *after* the Helm 4 release. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
 | Helm docs | https://helm.sh/docs/ | 2026-05-28 | Chart API v2 current; v3 format planned, not released. SSA default on new installs in Helm 4. |
 | helm-unittest | https://github.com/helm-unittest/helm-unittest/releases | 2026-08-26 | Latest v1.1.2 (2026-07-24). BDD-style unit testing plugin, no cluster needed. |
-| helmfile | https://github.com/helmfile/helmfile/releases | 2026-08-26 | Latest v1.7.4 (2026-08-16). Declarative multi-release management; supports Helm 3+4. |
+| helmfile | https://github.com/helmfile/helmfile/releases | 2026-09-15 | Latest **v1.8.0 (2026-09-13)**, up from v1.7.4. Declarative multi-release management; supports Helm 3+4. |
 | chart-testing (ct) action | https://github.com/helm/chart-testing-action/releases | 2026-08-26 | Still v2.8.0 (2025-11-05), SHA `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` — resolves, matches the skill pin. |
 | chart-releaser action | https://github.com/helm/chart-releaser-action/releases | 2026-08-26 | Still v1.7.0 (2025-01-20). **Skill SHA was wrong** and now reads `cae68fefc6b5f367a0275617c9f83181ba54714f`. |
 | helm-docs | https://github.com/norwoodj/helm-docs/releases | 2026-08-26 | Still v1.14.2 (2024-07-08) — no release in two years; matches skill pin. Tags here **are** `v`-prefixed. |

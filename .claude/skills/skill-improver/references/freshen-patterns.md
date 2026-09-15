@@ -131,6 +131,22 @@ So: when a row names a snapshot, probe **the snapshot**, not the branch tip.
 Current-`main` evidence cannot distinguish "the claim was wrong then" from
 "the world changed since", and those want different fixes.
 
+**Tag ancestry answers "did this COMMIT ship", not "did this FIX ship".** Use it
+against the merge-date trap — but know its blind spot: on a project that
+backports, the fix reaches an older patch release as a *different commit*, so
+`compare <tag>...<merge-sha>` reports `diverged` and the fix is in that tag
+anyway. A false negative, and a confident one.
+
+Measured 2026-09-15 on a chart tool that maintains two major lines: a pull
+request's merge commit is not an ancestor of the patch release whose own notes
+credit that pull request by number — while the release that *does* contain the
+commit never mentions it. The two methods disagree in both directions at once.
+
+So: ancestry is authoritative for a commit, and the release notes are
+authoritative for an attribution. When they disagree, the project backports, and
+**both answers are true about different things**. Say which question you asked.
+Reach for the notes whenever the project maintains parallel stable lines.
+
 **Gate on `unverifiable`: name the probe that failed.** The class means *probes
 were run and came back ambiguous* — not *two documents look like they disagree*.
 Reading sources and finding tension is the trigger for probing, not a substitute

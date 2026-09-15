@@ -9,7 +9,7 @@ exception note instead.
 Chart and app versions enumerated unfiltered from the Helm repo index; the
 required-stop list read from its machine-readable source; deployment-level
 claims checked against a live install taken through a multi-hop 18.x → 19.x
-campaign, and against the unpacked chart at 10.3.1. Claims tagged **[A]** in
+campaign, and against the unpacked chart at 10.3.1 (the chart has since moved to 10.3.2; the unpacked-chart facts below were not re-diffed against it). Claims tagged **[A]** in
 the reference files were reported by a source but not independently
 re-verified.
 
@@ -28,7 +28,7 @@ re-verified.
 | Ref | URL | Grounds |
 |---|---|---|
 | `config/upgrade_path.yml` | https://gitlab.com/gitlab-org/gitlab/-/raw/master/config/upgrade_path.yml | required stops, minor-level only; **no 19.0 entry**; the "x.2/x.5/x.8/x.11 from 17.5" comment. **Re-verified 2026-08-29** |
-| Helm repo index | https://charts.gitlab.io/index.yaml | chart↔app mapping and the chart-major = app-major − 9 offset. **Pinned: chart 10.3.1 / app v19.3.1 latest, 2026-08-29** |
+| Helm repo index | https://charts.gitlab.io/index.yaml | chart↔app mapping and the chart-major = app-major − 9 offset. **Pinned: chart 10.3.2 / app v19.3.2 latest, 2026-09-10** (up from 10.3.1 / v19.3.1; the chart-major = app-major − 9 offset still holds) |
 | `doc/install/requirements.md` | https://gitlab.com/gitlab-org/gitlab/-/raw/master/doc/install/requirements.md | PG min/max per GitLab major (19.x is 17.x/17.x); the required-extensions table incl. `amcheck` at 18.4 |
 | GitLab 19 changes | https://docs.gitlab.com/update/versions/gitlab_19_changes/ | PG 17 mandatory "Affects: All installation methods"; Redis 6 removed; Spamcheck removed; registry `s3_v2`; NGINX → Gateway API |
 | Chart 10.0 release notes | https://docs.gitlab.com/charts/releases/10_0/ | bundled PostgreSQL / Redis / MinIO removed; external deps become required |
@@ -42,10 +42,10 @@ re-verified.
 | Zero-downtime (Omnibus) | `doc/update/zero_downtime.md` @ master | scoped to the Linux package only |
 | **Chart upgrade doc** | `charts/gitlab` → `doc/installation/upgrade.md` @ master | the chart's **own** zero-downtime procedure and required rollout settings — contradicts the reference architectures |
 | Chart source @ master | `gitlab-org/charts/gitlab` (shallow clone) | per-component PDB templates and replica defaults; `edition: ee` default |
-| Epic 8903 | https://gitlab.com/groups/gitlab-org/-/work_items/8903 | Raft goals: remove Praefect, remove Postgres. **Last status update 2024-06-18** |
+| Epic 8903 | https://gitlab.com/groups/gitlab-org/-/work_items/8903 | Raft goals: remove Praefect, remove Postgres. **Now CLOSED** (activity 2026-09-15), where the last recorded status update here was 2024-06-18. **Closed is not shipped** — this file's own method rule — so read the closing note before narrating the Raft architecture as delivered or as abandoned; neither reading is established yet |
 | Epic 20405 | https://gitlab.com/groups/gitlab-org/-/work_items/20405 | "Make Gitaly Cluster a first-class solution"; open Praefect bugs; public weekly "No progress" notes at ~5 h/week |
 | Epic 6127 | https://gitlab.com/groups/gitlab-org/-/epics/6127 | "Gitaly should run well in Kubernetes"; customer notes incl. a paused evaluation over Praefect-on-VMs |
-| cloud-native#52 | https://gitlab.com/gitlab-org/cloud-native/-/work_items/52 | **closed**, and about the Operator — the stale citation the reference-architectures claim rests on |
+| cloud-native#52 | https://gitlab.com/groups/gitlab-org/cloud-native/-/work_items/52 | **closed**, and about the Operator — the stale citation the reference-architectures claim rests on. **URL corrected 2026-09-15:** `cloud-native` is a **group**, so the work item needs the `/groups/` prefix; the project-form URL previously cited here **403s**. Do not file that 403 under this skill's bot-block convention — it was a wrong path shape, not a refused fetcher, and GitLab's own reference-architectures page cites the group form |
 | **gitaly#6934** | https://gitlab.com/gitlab-org/gitaly/-/issues/6934 | **open** (2025-09-29, 60 notes read in full). GitLab's own "No documented or publicly supported approach to ZDU in Cloud Hybrid"; `tableflip` removal and its Kubernetes incompatibility; unsolved Rails↔Gitaly rollout ordering; the sequencing argument |
 | gitaly#4616 | https://gitlab.com/gitlab-org/gitaly/-/issues/4616 | **closed** decision record — **"Final decision: NO-GO"** on retiring Praefect's PostgreSQL ahead of Raft |
 | gitaly#4436 | https://gitlab.com/gitlab-org/gitaly/-/issues/4436 | **closed** (2022) — the four Raft goals, unchanged in epic 8903 four years later |
