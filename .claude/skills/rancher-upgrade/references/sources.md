@@ -10,21 +10,21 @@ the primary for a community claim.
 
 | Source | URL | Last verified | Tier |
 |--------|-----|---------------|------|
-| Rancher releases + issues (versions, EOL, breaking changes, issue numbers) | https://github.com/rancher/rancher/releases | 2026-07-25 | community |
-| Rancher per-release assets — `rancher-data.json` (KDM bundle), `rancher-mirror-to-rancher-org.sh` (exact shipped image tags) | https://github.com/rancher/rancher/releases/tag/v2.14.3 | 2026-07-25 | community |
-| Kontainer Driver Metadata — live downstream channel windows (`release-v2.14` **and** `release-v2.15`) | https://releases.rancher.com/kontainer-driver-metadata/release-v2.14/data.json | 2026-07-25 | community |
-| KDM repo (branches `release-v2.X`, `data/data.json`) | https://github.com/rancher/kontainer-driver-metadata | 2026-07-25 | community |
+| Rancher releases + issues (versions, EOL, breaking changes, issue numbers) | https://github.com/rancher/rancher/releases | 2026-09-15 | community |
+| Rancher per-release assets — `rancher-data.json` (KDM bundle), `rancher-mirror-to-rancher-org.sh` (exact shipped image tags) | https://github.com/rancher/rancher/releases/tag/v2.14.3 | 2026-09-15 | community |
+| Kontainer Driver Metadata — live downstream channel windows (`release-v2.14` **and** `release-v2.15`) | https://releases.rancher.com/kontainer-driver-metadata/release-v2.14/data.json | 2026-09-15 | community |
+| KDM repo (branches `release-v2.X`, `data/data.json`) | https://github.com/rancher/kontainer-driver-metadata | 2026-09-15 | community |
 | rancher/charts — Fleet / Turtles / provisioning-capi / rancher-backup chart versions per `release-v2.X` | https://github.com/rancher/charts | 2026-07-25 *(branch list only; `assets/` not re-read)* | community |
-| Rancher Turtles releases (CAPI contract, v0.25/v0.26/v0.27 timeline) | https://github.com/rancher/turtles/releases | 2026-07-25 | community |
-| Fleet releases (per-minor app version, Helm v4 at 0.15) | https://github.com/rancher/fleet/releases | 2026-07-25 | community |
-| backup-restore-operator releases + restore-quirk issues (#844 open, #916 closed-with-workaround) | https://github.com/rancher/backup-restore-operator | 2026-07-25 | community |
-| CAPRKE2 `v1alpha1` deprecation (#797) | https://github.com/rancher/cluster-api-provider-rke2 | 2026-07-25 | community |
-| Community Helm chart index — **decisive test for the per-minor community ceiling** (`latest` + `stable`) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-07-25 | community |
+| Rancher Turtles releases (CAPI contract, v0.25/v0.26/v0.27 timeline) | https://github.com/rancher/turtles/releases | 2026-09-15 | community |
+| Fleet releases (per-minor app version, Helm v4 at 0.15) | https://github.com/rancher/fleet/releases | 2026-09-15 | community |
+| backup-restore-operator releases + restore-quirk issues (#844 open, #916 closed-with-workaround) | https://github.com/rancher/backup-restore-operator | 2026-09-15 | community |
+| CAPRKE2 `v1alpha1` deprecation (#797) | https://github.com/rancher/cluster-api-provider-rke2 | 2026-09-15 | community |
+| Community Helm chart index — **decisive test for the per-minor community ceiling** (`latest` + `stable`) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-09-15 | community |
 | Rancher Manager docs — upgrades, air-gapped-upgrades, publish-images, helm-chart-options, tls-settings, rollbacks, update-k8s-without-upgrading-rancher | https://ranchermanager.docs.rancher.com | 2026-07-25 *(rollbacks page only)* | community |
-| RKE2 docs — air-gap, etcd backup/restore, automated SUC upgrades | https://docs.rke2.io | 2026-07-21 | community |
-| Rancher EOL dates (cross-check) | https://endoflife.date/rancher | 2026-07-25 | community |
-| SUSE lifecycle / support matrix (corroborates EOL + downstream window) | https://www.suse.com/lifecycle | 2026-07-21 | Prime (corroboration only) |
-| Companion: mgmt-cluster k8s window (single source of truth — cited, not restated) | k8s-components-checker/references/compat/rancher.md | 2026-07-21 | community/local |
+| RKE2 docs — air-gap, etcd backup/restore, automated SUC upgrades | https://docs.rke2.io | 2026-09-15 | community |
+| Rancher EOL dates (cross-check) | https://endoflife.date/rancher | 2026-09-15 | community |
+| SUSE lifecycle / support matrix (corroborates EOL + downstream window) | https://www.suse.com/lifecycle | 2026-09-15 | Prime (corroboration only) |
+| Companion: mgmt-cluster k8s window (single source of truth — cited, not restated) | k8s-components-checker/references/compat/rancher.md | 2026-09-15 | community/local |
 
 ## Freshen history — observed state
 
@@ -62,7 +62,7 @@ ceilings, confirmed by **two independent sources** — the release-notes edition
 | 2.11 | v2.11.15 | **v2.11.3** | 2025-06-25 |
 | 2.12 | v2.12.11 | **v2.12.3** | 2025-10-22 |
 | 2.13 | v2.13.7 | **v2.13.3** | 2026-02-25 |
-| 2.14 | v2.14.3 | **v2.14.3** | 2026-06-29 |
+| 2.14 | v2.14.3 | **v2.14.3** | 2026-09-15 |
 
 Corroborated by the skill's own field reports (validated hops 2.12.3→2.13.3 and 2.13.3→2.14.2).
 `k8s-components-checker` § Edition discrimination owns the protocol and is now cited from
