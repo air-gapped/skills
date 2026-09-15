@@ -5,27 +5,25 @@ attempted as a hypothesis but not landable in a single atomic iteration (or
 deliberately deferred with rationale). `## Resolved this pass` records changes
 the metric actually registered.
 
+## Resolved — 2026-09-15 (two conditional decisions closed; neither was blocked)
+
+- **`scripts/render-parity.py` — CLOSED, decided against for now.** Its own text
+  records that recon rated Dim 7 at **8** and "explicitly noted illustrative
+  resources are appropriate for a knowledge skill", so a script "risks lowering
+  Simplicity (Dim 6) without a guaranteed Dim 7 lift". The condition it names —
+  "revisit if Dim 7 becomes the binding constraint" — is not met: Dim 7 is not
+  the binding dimension. Nothing absent is preventing this; a reasoned judgement
+  already settled it.
+- **Surfacing the `/v1/chat/completions/render` probe in the at-a-glance section
+  — CLOSED, same shape.** The entry ends "apply only if a future pass shows the
+  body has slack", expected impact "+0/+1", and warns the at-a-glance block is
+  already tight. A conditional whose condition is unmet is not an open item.
+- Both stay reachable: the parity harness is in
+  `references/chat-template/debugging-and-testing.md` §5 and the render probe in
+  §6. Neither was lost, only not promoted.
+
 ## Open
 
-- **Ship a runnable `scripts/render-parity.py`** (Dim 7, Resource Quality) —
-  file-set: new `scripts/` dir wrapping the parity harness in
-  `references/chat-template/debugging-and-testing.md` §5. Not applied this pass:
-  adding a new executable file + dir is a medium-complexity addition that needs
-  its own iteration and re-score; recon rated Dim 7 at 8 and explicitly noted
-  illustrative resources are appropriate for a knowledge skill, so a script
-  risks lowering Simplicity (Dim 6) without a guaranteed Dim 7 lift. Revisit if
-  Dim 7 becomes the binding constraint.
-
-- **Surface the vLLM `/v1/chat/completions/render` probe in the chat-template
-  at-a-glance section** (Dim 5, Completeness) — file:line:
-  `SKILL.md:78-93` ("The chat-template dialect at a glance"). The render
-  endpoint + `/tokenize`+`/detokenize` fallback currently live only in
-  `references/chat-template/debugging-and-testing.md` §6. Deferred, not applied:
-  the expected impact is +0/+1 and the hypothesis itself warned "only apply if
-  it doesn't bloat the body"; the at-a-glance section is already a tight
-  goal+pointer block and adding a probe one-liner trades Simplicity for a
-  marginal Completeness gain. Apply only if a future pass shows the body has
-  slack.
 
 ## Resolved — 2026-07-21 (freshen)
 

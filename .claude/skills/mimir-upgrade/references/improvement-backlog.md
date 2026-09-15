@@ -2,6 +2,26 @@
 
 Work-not-done log across skill-improver runs. Append-only history; not a wishlist.
 
+## Drain check — 2026-09-15 (both upstream blockers re-probed; both still stand)
+
+Neither item below is closed. Recorded so the next pass does not repeat the probe.
+
+- **Kafka sizing — still absent upstream.** `grafana/mimir#12012` ("Add best
+  practices on how to use Mimir with Kafka") and `#14008` ("Document capacity
+  planning for running Mimir with Kafka") are **both still OPEN**. Newly found
+  and now tracked: **`#13981`** ("Docs: Kafka capacity planning for ingest
+  storage architecture"), also open — a third issue on the same gap, which is
+  itself a signal about how long this has been missing. The single-community-
+  datapoint extrapolation stays, tagged `[RFC]`.
+- **MQE differencing rig — still a reconstruction.** The upstream query-tee page
+  (`docs/sources/mimir/manage/tools/query-tee.md`) documents comparison between
+  **two clusters** — `-proxy.compare-responses`, `-proxy.value-comparison-tolerance`,
+  `-proxy.compare-skip-recent-samples`, `cortex_querytee_responses_compared_total`
+  — and still publishes **no engine-vs-engine procedure**, which is what §7
+  reconstructs. Checked: `verification.md` §7 already carries every one of those
+  flags and the metric, so there is nothing to lift; only the procedure is
+  missing, and it is missing upstream.
+
 ## Resolved — 2026-09-15 (chart supersession: answered, and the item was already stale)
 
 - **No `6.1.x` patch chart ever landed.** The item's hypothesis was that one

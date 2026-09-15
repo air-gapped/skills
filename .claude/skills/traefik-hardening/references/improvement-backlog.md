@@ -1,5 +1,16 @@
 # Improvement backlog — traefik-hardening
 
+## Resolved — 2026-09-15 (a deliberate choice was filed as an open defect)
+
+- **JWT-plugin version placeholder — CLOSED, decided, not blocked.** The entry
+  says `identity-keying.md` "**intentionally** does not pin a version (operator
+  picks the plugin and pins at install)" and then argues that making it concrete
+  would mean hardcoding a number that goes stale. That is the current behaviour
+  being correct, described as though it were a gap. An Open item whose own text
+  argues against acting on it is a decision already made.
+- Re-open only if the skill ever settles on one specific plugin, at which point
+  pinning becomes meaningful rather than arbitrary.
+
 ## Resolved — 2026-09-15 (the advisory feed was load-bearing and unsourced)
 
 - **`sources.md` had no advisory row.** All 15 rows were documentation links, all
@@ -27,8 +38,6 @@
 
 - **Dim 1 — full trigger set won't fit the 1,536-char listing cutoff.** Combined `description`+`when_to_use` = ~1,934 chars. After the iter-11 reorder, the core positives + symptoms + the "Do NOT" guard land within 1,536, but the JA3/air-gap trigger *phrases* and the "choose where to cap" clause sit past it (their concepts are covered in `description`, which is fully within cutoff). iter-7 proved a trim-to-fit stays over 1,536 (1,564) while deleting symptom+intent coverage — net negative. Closing fully needs an author decision on which trigger phrases to sacrifice vs. accept tail-truncation. File: `SKILL.md:6`.
 - **Dim 6 — single-leader / fan-out topology caveat repeats across 4 files.** Appears in `SKILL.md` (decision-flow step 4 + quick-map), `references/middleware-primitives.md` (InFlightReq), `references/deployment.md` (counting-trap section), and `references/known-products/open-webui-api-abuse.md`. Partly intentional (each file needs the caveat in its own context), but a canonical treatment in `deployment.md` + one-line pointers elsewhere would cut ~15 lines. Multi-file restructure; author call on whether the reinforcement earns its place.
-- **Dim 9 — JWT plugin version/config left as `v<latest>` placeholder.** `references/identity-keying.md:27` intentionally does not pin a version (operator picks the plugin and pins at install). Making it concrete would require an online probe of the plugin's Releases (freshen-style), not a score-loop mutation — and hardcoding a number risks staleness. Run `freshen` if a pinned reference example is wanted.
-
 ## Resolved — 2026-09-15 (freshen to v3.7.13)
 
 - **The skill was 16 security advisories behind, two of them critical.** Traefik

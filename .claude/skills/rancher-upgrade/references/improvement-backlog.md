@@ -5,6 +5,20 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-09-15 (the triple-statement "ceiling" is the intended design)
+
+- **Cross-cluster ordering stated at three altitudes — CLOSED, decided.** The
+  entry records that iteration 6 already **attempted the dedup and discarded
+  it**, that each occurrence has a distinct function (concept / procedure /
+  compaction-surviving standing rule, improvement-pattern 3.2), and that the
+  blind validator scored Dim 6 = **8, "non-repetitive"**. An attempted-and-
+  discarded change with a blind score saying the repetition is not repetitive is
+  a settled question, not a ceiling waiting on an author.
+- This is also the deletion-bias trap the improver's own rules warn about:
+  `INTENTIONAL_DETAIL` and `RELATED_BUT_DISTINCT` overlap must be kept, and
+  measured across the fleet 83% of similar-looking content was correct as
+  written. Collapsing three altitudes into one would be exactly that error.
+
 ## Resolved — 2026-09-15 (the ladder stopped at 2.14 while 2.15 was six weeks old)
 
 - **Scope extended to 2.15** across the frontmatter, the no-skip ladder, the decision guide, the
@@ -132,15 +146,6 @@ changes that actually landed.
   because the remedies are **author domain knowledge, not groundable via `gh`**: the field reports
   in this file record both as non-events on the operator's own clusters, so there is no observed
   failure to write up. Needs either a field occurrence or the author's own procedure.
-
-- **Dim 6 (Simplicity) ceiling — the cross-cluster ordering rule is stated at three altitudes.**
-  Iteration 6 (2026-05-30) attempted to dedup it and **discarded**. "Management Rancher before any
-  downstream k8s *minor* bump" appears as a mental-model concept (SKILL.md § two coupled axes), a
-  workflow step (SKILL.md §4), standing House Rule #5, and once in `prereqs-and-ordering.md`. Each
-  has a distinct function — concept / procedure / compaction-surviving standing rule
-  (improvement-pattern 3.2) — so a one-line collapse loses force with no score gain (blind validator
-  scored Dim 6 = 8, "non-repetitive"). Breaking past 8 needs an author decision on collapsing to one
-  canonical statement + cross-refs across ≥3 locations — a restructure, not a single-iteration mutation.
 
 ## Unblocked — actionable
 
