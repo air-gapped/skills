@@ -14,8 +14,20 @@ second-choice ("we recommend trying Responses") — and since 2026-07-29
 OpenAI's own publications call it "our **legacy** Chat Completions API"
 (ARC-AGI-3 post; still no deprecation or sunset date); xAI, Groq, and Azure
 declare it legacy too. Legacy `/v1/completions` loses its last
-first-party OpenAI models 2026-09-28 and survives as a local/third-party
-surface.
+first-party OpenAI models **2026-09-28** and survives as a local/third-party
+surface. **Re-verified against the live deprecations page 2026-09-15 — date
+unchanged, and it is now 13 days out.** The four shutdowns that day, all
+replaced by `gpt-5.6-terra`: **`gpt-3.5-turbo-instruct`**, **`babbage-002`**,
+**`davinci-002`** (the three completions models) and `gpt-3.5-turbo-1106` (chat).
+**Their fine-tuned variants get longer**: `ft-babbage-002` and `ft-davinci-002`
+shut down **2026-10-23**, so a fleet running a fine-tune does not lose it on the
+28th and should not be migrated on that assumption.
+
+> **This paragraph expires on a known date.** After 2026-09-28 the first-party
+> completions surface is gone and the tense here has to change; after 2026-10-23
+> so does the fine-tune line. Re-read the deprecations page rather than editing
+> from memory — the page is JS-rendered, so fetch it and strip tags rather than
+> expecting a clean scrape.
 
 **Fleet property: stateless.** Full history resent every turn, like
 Messages; no server-side session state to break load-balanced fleets

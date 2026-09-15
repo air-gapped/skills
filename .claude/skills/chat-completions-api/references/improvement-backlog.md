@@ -2,6 +2,26 @@
 
 Carried across skill-improver runs.
 
+## Resolved — 2026-09-15 (the completions shutdown, named and dated precisely)
+
+- **Date re-verified against the live deprecations page: 2026-09-28, unchanged**,
+  and now **13 days out**. The claim was correct; what it lacked was specificity.
+- **Named the four shutdowns**, all replaced by `gpt-5.6-terra`:
+  `gpt-3.5-turbo-instruct`, `babbage-002`, `davinci-002` — the three
+  `/v1/completions` models — plus `gpt-3.5-turbo-1106` (a chat model sharing the
+  date).
+- **The fine-tuned variants are on a later date**: `ft-babbage-002` and
+  `ft-davinci-002` shut down **2026-10-23**, roughly four weeks after. A fleet
+  running a fine-tune does not lose it on the 28th, and migrating on that
+  assumption would be premature — precisely what the general phrasing hid.
+- **The paragraph now declares its own expiry**, per half, so the next pass gets
+  an instruction rather than a judgement: after 2026-09-28 the first-party
+  completions surface is gone and the tense must change; after 2026-10-23 so must
+  the fine-tune line.
+- Recorded for whoever re-probes: the deprecations page is **JS-rendered**, so a
+  plain fetch returns markup — strip tags and search the text. Two attempts were
+  wasted on that here.
+
 ## Open
 
 (none — the run converged with zero discards; no attempted mutation failed
