@@ -28,6 +28,32 @@ were read on 2026-08-21 and kept deliberately; leave them alone.
   consolidation could not be applied without a multi-step rewrite that re-flows
   the patterns.md scalingModifiers lead-in.
 
+## Resolved — 2026-09-15 (freshen to v2.20.2)
+
+- **Two things must happen before a v2.20 upgrade, and the skill named neither.**
+  v2.20.0 moved event recording to the **`events.k8s.io`** API group, so a
+  custom or restricted RBAC role needs `create`/`patch` there **before** the
+  upgrade or events stop being recorded. v2.20.2 then had to restore the core
+  `""` group as well (#7922) because client-go's legacy broadcaster still uses
+  it — a hand-rolled Role wants both, which is not obvious from either release
+  note alone.
+- **Four deprecated scaler fields were removed in v2.20.0**, so an existing
+  manifest can break: GCP PubSub `subscriptionSize`, Huawei Cloudeye
+  `minMetricValue`, InfluxDB `authToken` in `triggerMetadata`, and the IBM MQ
+  `tls` setting. Recorded with replacements.
+- **Security:** GHSA-6w3m-4hhp-775q (medium, 2026-06-01), connection-string
+  parameter injection in the **PostgreSQL scaler**, affects ≤ 2.19.x, patched in
+  2.20.
+- **Kubernetes support is a tested N-2 window, not a floor** — v2.20 covers
+  1.33–1.35. Stating it as a floor would overclaim; 1.36 was not in the matrix
+  at this check.
+- **Three open defects recorded**, the first of which is the one most likely to
+  be mistaken for a target-side fault: `TriggerAuthentication` resolves auth
+  params once at scaler build time and never re-reads them, so a **rotated
+  Secret produces silent 401s** until the ScaledObject is recreated (#7906).
+  Also stuck finalizers wedging namespace teardown (#7950) and a
+  CloudEventSource deadlock that keeps passing its liveness probe (#8039).
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **KEDA release moved 2.19.0 → 2.20.1** — `operations.md` install pin bumped;

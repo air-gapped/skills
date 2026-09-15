@@ -217,6 +217,57 @@ spec:
         name: aws-irsa
 ```
 
+## Upgrading to v2.20.x (verified 2026-09-15)
+
+Latest stable is **v2.20.2** (2026-07-31). Two things must happen before the
+upgrade, not after.
+
+**1. Grant RBAC on `events.k8s.io` first.** v2.20.0 moved Kubernetes event
+recording from the legacy core `events` resource to the **`events.k8s.io`** API
+group, following the Kubernetes 0.35 dependency bump. If you run KEDA with
+custom or restricted RBAC, grant the operator `create` and `patch` on
+`events.k8s.io/events` **before upgrading**, or event recording fails. The
+bundled manifests and Helm chart already carry it. Note v2.20.2 then had to
+**restore** the core `""` API group as well (#7922), because client-go's legacy
+event broadcaster still needs it — so a hand-rolled Role wants both.
+
+**2. Four deprecated scaler fields were removed in v2.20.0**, and a manifest
+still using them breaks:
+
+| Scaler | Removed | Use instead |
+|---|---|---|
+| GCP PubSub | `subscriptionSize` | `mode` + `value` (#7720) |
+| Huawei Cloudeye | `minMetricValue` | `activationTargetMetricValue` (#7436) |
+| InfluxDB | `authToken` in `triggerMetadata` | `authToken` via `resolvedEnv` or `authParams` (#7722) |
+| IBM MQ | the `tls` setting | removed outright (#6094) |
+
+Temporal's `buildId`, `selectAllActive` and `selectUnversioned` are newly
+deprecated in favour of `workerDeploymentName` / `workerDeploymentBuildId`.
+
+**Security:** GHSA-6w3m-4hhp-775q (medium, 2026-06-01) is a connection-string
+parameter injection in the **PostgreSQL scaler**, affecting **≤ 2.19.x** and
+patched in 2.20. If you use that scaler and are below 2.20, that is the upgrade
+reason.
+
+**Kubernetes compatibility is a tested window, not a floor.** KEDA tests N-2
+minors: v2.20 covers **1.33–1.35**, v2.19 covers 1.32–1.34, v2.18 covers
+1.31–1.33. Kubernetes 1.36 was not yet in the tested matrix at this check.
+
+### Open defects worth knowing before you rely on a feature
+
+- **`TriggerAuthentication` does not pick up rotated Secrets** (#7906). Auth
+  params are resolved once when the scaler is built and never re-read, so a
+  rotated token produces **silent 401s** from the target until the ScaledObject
+  is recreated or the operator restarts. Confirmed through 2.20.1. This is the
+  one to know if you rotate credentials on a schedule.
+- **Finalizers can wedge a namespace teardown** for 20–30 minutes (#7950): a
+  `resourceVersion` conflict between finalizer removal and the scale loop's
+  status writes drops into controller-runtime backoff. Manual `kubectl patch`
+  clears it.
+- **CloudEventSource can deadlock the operator** with two or more sources
+  registered (#8039), while still passing its liveness probe. Open at time of
+  check.
+
 ## Gotchas that bite in production
 
 Every item here has cost people incidents. Internalize them.

@@ -20,13 +20,6 @@ Ceiling findings from skill-improver runs.
   not apply. Ground via the GitLab API / `glab` / `helm search`, else mark
   versions `UNVERIFIED`.
 
-### NVIDIA GPU Operator v26.3.2 content not sifted (new 2026-05-30)
-
-- `compat/nvidia-gpu-operator.md` (banner added 2026-05-30). Existence grounded
-  via `gh`; the 26.3.2 release-note content (breaking changes, driver defaults,
-  k8s-floor confirmation) still needs a sift on a trusted network — document
-  `§ 26.3.2` then.
-
 ### ES 8.8 / 8.14 exact end-of-maintenance dates UNVERIFIED (new 2026-06-02)
 
 - `compat/eck.md` § "Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17?".
@@ -38,6 +31,24 @@ Ceiling findings from skill-improver runs.
 - Action: if an exact 8.8/8.14 EOL date is ever needed for a verdict, fetch
   Elastic's archived support-matrix snapshot (web.archive.org of
   elastic.co/support/eol at the relevant date) — not groundable via `gh`.
+
+## Resolved — 2026-09-15 (NVIDIA GPU Operator)
+
+- **The item asked for a 26.3.2 sift; by the time it ran there was a whole new
+  minor.** 26.3.2 is now two releases back — **26.3.3** (2026-06-25) and
+  **26.7.0** (2026-08-21) both shipped. Sifted from the NVIDIA release-notes
+  page, because the GitHub release body for 26.7.0 is nothing but a link to it.
+  That thin-body shape is worth remembering: `gh release view` looks empty here
+  and the content lives entirely off-GitHub.
+- **26.7.0 changes a host requirement, not an operator setting**: minimum
+  supported **containerd moves from 1.8 to 2.0**. The operator cannot satisfy
+  that from inside the cluster, so it gates the hop at the node level. Also adds
+  Kubernetes 1.37.
+- **26.3.3 fixed a regression that silently broke RDMA and NCCL.**
+  `MOFED_ENABLED` and `GDS_ENABLED` were defaulting on for the device-plugin
+  operand, injecting every ibverbs device node on the host into GPU workload
+  containers. Now inferred from the kernel modules actually loaded per node
+  (PR #2525). Anything on 26.3.0–26.3.2 running multi-node NCCL wants this.
 
 ## Resolved — 2026-09-15 (Mimir chart axis)
 

@@ -7,12 +7,16 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 (26.7.0 sifted from the NVIDIA release-notes page; the GitHub release body is only a link to it)
 - **2026-05-31 matrix-grounded (platform-support page):** the 26.3 k8s window is **1.32 – 1.36** —
   **26.3.2 added k8s 1.36** (earlier entries said 1.32–1.35; the prior "presumed unchanged" caveat is
   now lifted and § 26.3.2 is sifted below). The floor is **1.32** across the whole 26.3 line — **not
   1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.3** (2026-06-25; 26.3.2 was the prior)
   (gh, 2026-05-30). (House Rule #8 · `references/version-verification.md`)
+
+**26.7.0 (2026-08-21) is out and it changes a host requirement, not just the operator.** The release notes state: *"The minimum supported containerd version changed from 1.8 to 2.0."* That is a node-level prerequisite — check the container runtime on every GPU node **before** planning this hop, because the operator cannot fix it from inside the cluster. 26.7.0 also adds Kubernetes **1.37** support (and 1.36 for Canonical MicroK8s), restores AKS to the cloud-provider table, and bumps NVIDIA vGPU Device Manager to v0.5.0 and the KubeVirt GPU Device Plugin to v1.6.0.
+
+**26.3.3 (2026-06-25) fixed a regression that silently broke RDMA and NCCL workloads.** `MOFED_ENABLED` and `GDS_ENABLED` were being enabled by default on the device-plugin operand, which injected **every ibverbs device node on the host** into GPU workload containers, exposing network interfaces the workload was never meant to see. The operator now infers those flags from the kernel modules actually loaded per node (PR #2525, k8s-device-plugin PR #1837). If a fleet sits on 26.3.0–26.3.2 and runs multi-node NCCL, this is the upgrade reason.
 
 Lifecycle (per upstream): 26.3.x **current**; 25.10.x **deprecated** (critical fixes only); 25.3.x and lower **end of support**. Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.3 in one step.
 
