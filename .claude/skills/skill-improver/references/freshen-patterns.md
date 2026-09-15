@@ -182,6 +182,20 @@ Two probes are nearly always available and cheap:
   describes human workflow and another describes agent behaviour. Check whether
   the two are even talking about the same actor before declaring a conflict.
 
+**A release note describing a default change is a summary, not the code.** "Raised
+X from A to B" is written for humans reading a changelog, and it flattens
+conditional logic. Read the branch that sets the default before writing the
+number down.
+
+Measured 2026-09-15: a note read "raised `max_num_batched_tokens` from 8192 to
+16384". The code added a *new device tier* above the existing branch — the
+largest GPUs now default to 16384 while the previously-documented class still
+defaults to 8192, unchanged. Both readings of the note are actionable and wrong
+in opposite directions: an operator on the unchanged class re-plans a batch size
+that never moved, and one on the new tier misses that their default doubled
+without a flag change. Diff the defining branch across the tags on either side
+(`git show <tag>:<path>`), not the changelog entry.
+
 **A reported "current HEAD" is a different ref, not a fresher reading of the
 tag.** Delegated probes answer at whatever ref they checked out, and they
 usually say so — "at current tip", "on main", "at HEAD". Those numbers then land
