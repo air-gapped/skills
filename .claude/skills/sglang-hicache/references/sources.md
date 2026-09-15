@@ -32,7 +32,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| #22607 PP + HiCache consistency meta | https://github.com/sgl-project/sglang/issues/22607 | 2026-07-21 | **Still OPEN** (activity 2026-07-10). PR #22878 **closed without merging**. Workaround: pp_size = 1 |
+| #22607 PP + HiCache consistency meta | https://github.com/sgl-project/sglang/issues/22607 | 2026-09-15 | **CLOSED COMPLETED 2026-08-25 by PR #27010**, merge `829138a3`, first tag **v0.5.19** (ancestry checked in-clone). PR #22878 was closed unmerged and is not the fix. Below v0.5.19 the workaround stands: pp_size = 1 |
 | #30760 HiCache prefetch all_reduce deadlock, TP=4 no PP | https://github.com/sgl-project/sglang/issues/30760 | 2026-07-21 | **NEW, OPEN** (2026-07-10). Split out of #22607 as the TP-only case. Mismatched all_reduce call count across ranks. No published workaround — undermines the assumption that TP-only deploys dodge the #22607 family |
 | #19212 write_back crashes under load | https://github.com/sgl-project/sglang/issues/19212 | 2026-07-21 | **CLOSED COMPLETED 2026-05-24.** Reporter confirmed PRs #22592 (merged 2026-04-16) + #23696 (merged 2026-05-01) fix it. write_through remains the default |
 | #23659 SWA HiRadixCache rejection | https://github.com/sgl-project/sglang/issues/23659 | 2026-05-29 | **CLOSED 2026-05-08**. Resolved by PR #23391 (merged 2026-05-06), shipped in v0.5.11 |

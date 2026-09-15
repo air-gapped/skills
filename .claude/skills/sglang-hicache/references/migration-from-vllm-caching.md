@@ -137,7 +137,7 @@ Where the TOML has `master_server_address`, `metadata_server`, `global_segment_s
 1. **Page size default differs**. vLLM: 16. SGLang: 1 on CUDA, 64 on MUSA. Set `--page-size 64` explicitly to match production hicache recipe.
 2. **Reasoning-parser flag must match.** vLLM `--reasoning-parser deepseek_r1` ↔ SGLang `--reasoning-parser deepseek-r1` (note hyphen). aiperf TTFT/TTFO splits depend on this.
 3. **Sizing in wrong units** is the #1 OOM source. See "Sizing math" above.
-4. **PP > 1 doesn't work** with SGLang HiCache (issue #22607, still open 2026-07-21; the writing-ack-sync PR #22878 was closed unmerged). vLLM works with PP. If migrating from vLLM `pipeline-parallel-size > 1`, drop to `--pp-size 1` — and note #30760 (2026-07-10) reports a related prefetch `all_reduce` deadlock at TP=4 with **no** PP.
+4. **PP > 1 needs v0.5.19+** with SGLang HiCache (issue #22607, fixed by PR #27010; the earlier writing-ack-sync PR #22878 was closed unmerged and is not the fix). vLLM works with PP at any version. Migrating from vLLM `pipeline-parallel-size > 1`: upgrade to v0.5.19 or drop to `--pp-size 1`. Independently, #30760 reports a prefetch `all_reduce` deadlock at TP=4 with **no** PP, still open — that one v0.5.19 does not fix.
 5. **`write_back` policy is bugged** — stay on `write_through` even if vLLM's LMCache was using lazy.
 
 ## Decision tree for the migrating operator

@@ -107,7 +107,7 @@ This overlap is what makes the L2 hit a multi-second-saver instead of a wash. Wi
 | Parallelism | HiCache behaviour |
 |---|---|
 | TP > 1 | Per-rank L1 + L2 + L3 namespace. `prefetch_tp_group` synchronises hit length. Mooncake / 3FS / NIXL backends use `tp_lcm_size` extra-config key for heterogeneous TP support |
-| PP > 1 | **Broken** — issue [#22607](https://github.com/sgl-project/sglang/issues/22607). Async prefetch + per-rank scheduler diverge under wall-clock LRU; host-tree shape mismatch crash |
+| PP > 1 | **Broken below v0.5.19**, fixed in v0.5.19 by PR [#27010](https://github.com/sgl-project/sglang/pull/27010) (issue [#22607](https://github.com/sgl-project/sglang/issues/22607)). Async prefetch + per-rank scheduler diverged under wall-clock LRU; host-tree shape mismatch crash |
 | DP > 1 | Per-DP-rank state. Runtime attach/detach is AND-aggregated across DP ranks; partial-success has no automatic rollback (hicache_storage_runtime_attach_detach.md:50-65) |
 | MLA models | Write-back optimisation: only **one** rank writes (LMSYS blog), since MLA KV is identical across TP ranks. MHA / GQA must split per-rank |
 | MoE | Each routed expert's KV slice goes through the same path. PR [#19737](https://github.com/sgl-project/sglang/issues/19737) IMA on FA3 + MoE + SXM is unrelated to HiCache itself but breaks HiCache by extension |

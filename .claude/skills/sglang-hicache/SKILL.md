@@ -173,7 +173,7 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
 
 5. **`write_back` crashes under load — fixed, but verify before switching.** Issue [#19212](https://github.com/sgl-project/sglang/issues/19212) (`AssertionError: parent does not have child key` in `evict_host()`) was **closed COMPLETED 2026-05-24**; the reporter confirmed PRs [#22592](https://github.com/sgl-project/sglang/pull/22592) (stale eviction assertion in `HiMambaRadixCache`, merged 2026-04-16) and [#23696](https://github.com/sgl-project/sglang/pull/23696) (host-protected node deletion in the HiMamba tombstone path, merged 2026-05-01) resolved it. `write_through` is still the default and still the safe choice; `write_back` is now a defensible experiment on ≥ v0.5.12 rather than a known crash.
 
-6. **PP + HiCache is still broken.** Issue [#22607](https://github.com/sgl-project/sglang/issues/22607) (high-priority meta): async L3 prefetch + per-rank scheduler diverge under `--pp-size > 1`. Wall-clock LRU produces different victim selection on each rank → host-tree shape mismatch → crash. Still **OPEN** as of 2026-07-21 (last activity 2026-07-10), and the writing-ack-sync PR #22878 was **closed without merging**. Keep `pp_size = 1` with hicache. New in this window: [#30760](https://github.com/sgl-project/sglang/issues/30760) (opened 2026-07-10) reports a HiCache prefetch `all_reduce` deadlock with **TP=4 and no PP** — mismatched call count across ranks — so the failure mode is no longer PP-only. Watch it before assuming a TP-only deploy is safe.
+6. **PP + HiCache: fixed in v0.5.19. Below that, keep `pp_size = 1`.** Issue [#22607](https://github.com/sgl-project/sglang/issues/22607) (high-priority meta): async L3 prefetch + per-rank scheduler diverge under `--pp-size > 1`; wall-clock LRU selects different victims per rank → host-tree shape mismatch → crash. **Closed 2026-08-25 by PR [#27010](https://github.com/sgl-project/sglang/pull/27010)** ("Fix PP inconsistency with HiCache L3"), first released in **v0.5.19**. The earlier writing-ack-sync PR #22878 was closed unmerged and is not the fix. **Separately still broken:** [#30760](https://github.com/sgl-project/sglang/issues/30760) reports a HiCache prefetch `all_reduce` deadlock at **TP=4 with no PP** — mismatched call count across ranks, open, candidate PR [#33029](https://github.com/sgl-project/sglang/pull/33029) unmerged. That one is independent of PP, so v0.5.19 does not clear a TP-only deploy.
 
 7. **Mooncake 0.5.6+ TTFT 10× regression vs 0.5.5** (historically: TTFT ~0.5 s → 5+ s, hit rate ~90% → ~30%). Issue [#16797](https://github.com/sgl-project/sglang/issues/16797) was **closed 2026-05-12** — fixed in the v0.5.11/v0.5.12 line. On ≥ v0.5.11 the pin is no longer load-bearing; on older builds, still pin `mooncake-transfer-engine 0.3.10.post1` and, if TTFT regresses, try `--hicache-storage-prefetch-policy best_effort` to bypass and isolate.
 
@@ -187,7 +187,7 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
 
 Issue states verified 2026-07-21. Recheck via `gh issue view <N> --repo sgl-project/sglang` before quoting.
 
-The PP+HiCache release-blocker (#22607, plus the new TP-only #30760) is detailed with root-cause in "Critical pitfalls" #6 above — not repeated here. Still open:
+PP+HiCache (#22607) is fixed in v0.5.19; the TP-only #30760 is not. Both are detailed with root-cause in "Critical pitfalls" #6 above — not repeated here. Still open:
 
 | Issue | Severity | Affects | Workaround |
 |---|---|---|---|
