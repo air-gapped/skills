@@ -4,62 +4,42 @@ Carries findings across `/skill-improver` runs. Open = work the loop
 attempted but couldn't apply atomically; Resolved = mutations the loop
 made and the metric registered.
 
+## Resolved — 2026-09-15 (all four carried items; none named an absent thing)
+
+- **Item 1 (Supermicro / HPE chassis coverage) — FIXED, and not the way the item
+  proposed.** The entry offered either authoring `smc-*.md` / `hpe-*.md` (needs
+  vendor BIOS-menu access — a genuine blocker) or trimming the description to
+  "Dell BIOS guidance" only. **Option (b) would have deleted real coverage:**
+  `tuned-profiles.md` already carries Supermicro's "Maximum Performance" BIOS
+  preset equivalence and HPE's iLO "OS Control" vs "Static High" power-mode
+  guidance. The defect was never missing content, it was the description
+  implying *parity* with Dell. Now precise: per-chassis Dell references, plus
+  Supermicro/HPE BIOS-preset and iLO pointers. Keeps triggering on all three
+  vendors, promises only what exists. The chassis files stay genuinely blocked
+  on hardware access and are not re-filed — nothing is missing that this skill
+  can supply.
+- **Item 3 (`--bench` torch caveat) — DONE.** Its own text said "atomic enough
+  but cosmetic — bumped to backlog for reviewer attention", which is not a
+  blocker; it is a one-line edit that was filed instead of made. The Quick start
+  now says torch usually lives in the serving container rather than on the host,
+  and that `collect.sh` skips the bench when torch is absent.
+- **Item 2 (`bringup-recipe.md` compression) — DROPPED.** Its stated concern was
+  the "strict workflow scaffolding" cap, and the entry itself notes the cap does
+  **not** trigger because the file lives in `references/`. Reference files cost
+  nothing until something reads them, so 322 lines of procedural detail are in
+  exactly the right place. The proposed unblock — "measure whether the full
+  recipe is referenced often enough" — is not a measurement anyone can run.
+  There is no defect here to fix.
+- **Item 4 (2nd-person slips in 5 reference files) — DROPPED.** Same shape as the
+  one dropped from `argo-cd-apps` this pass: the blocker was "diminishing
+  returns", a judgement. Making it — the remaining slips are in BIOS tables and
+  shell comments where `"# adjust to your HCAs"` is idiomatic, and converting
+  them fights the convention. Not worth the churn.
+
 ## Open
 
-### 1. Supermicro / HPE chassis references missing (Dim 5 — Completeness)
-- **Where:** `SKILL.md` description names "Dell/Supermicro/HPE BIOS guidance",
-  but only `dell-xe9680.md` and `dell-xe9780.md` are stocked. Supermicro and
-  HPE are mentioned briefly in `tuned-profiles.md` (5-line stubs) and
-  `recommended-tunings.md:473-475`, no chassis-specific reference files.
-- **Why not auto-applied:** authoring chassis-specific BIOS guidance for
-  Supermicro AS-8125GS / SYS-821GE-TNHR and HPE Apollo 6500 ML270 / ProLiant
-  XL645d requires real BIOS-menu names + slot-map + DDR5 expectations the
-  author has access to and the loop does not. Two paths: (a) add `smc-*.md`
-  + `hpe-*.md` companion files (author content needed), or (b) trim
-  description to "Dell BIOS guidance" only (deletion-friendly per the
-  Karpathy "remove for equal results" rule).
-- **Recommendation:** option (b) is faster and honest about current
-  coverage; option (a) increases value but requires SMC/HPE chassis
-  expertise.
 
-### 2. `bringup-recipe.md` procedural depth — Boris-alignment candidate (Dim 6)
-- **Where:** `references/bringup-recipe.md`, 322 lines of numbered Phase 0-7
-  procedural steps.
-- **Why not auto-applied:** placement in `references/` (not SKILL.md body)
-  keeps the Boris "strict workflow scaffolding" cap from triggering — but
-  the file is dense procedural prescription that plan mode could discover
-  much of. Compressing requires author judgment about which steps are
-  "must-do" (e.g. dcgmi diag levels, Phase 7 tear-up checklist) vs which
-  Claude could derive (most of Phase 4 stability testing).
-- **Recommendation:** target compression in a future pass after measuring
-  whether the full recipe is referenced often enough to justify its
-  length, or split into `bringup-recipe-checklist.md` (the Phase 7
-  one-page version) + a longer narrative.
 
-### 3. Quick-start `--bench` torch availability caveat (Dim 4 — Actionability)
-- **Where:** `SKILL.md:43` — `# Audit + pinned-memcpy bench (needs torch + CUDA, ~5 min)`
-- **Why not auto-applied:** the comment says "needs torch + CUDA" but
-  doesn't note the common reality that torch lives inside the vLLM
-  container, not on the host. `scripts/collect.sh` already handles graceful
-  fallback (its bench section probes for torch and skips if absent), but
-  the SKILL.md comment could surface the "run inside vllm container"
-  caveat one level up. Atomic enough but cosmetic — bumped to backlog
-  for reviewer attention.
-- **Recommendation:** one-line addition to SKILL.md Quick start:
-  `# (run inside the vllm container if host torch is unavailable)`
-
-### 4. Remaining 2nd-person prose slips in 5 reference files (Dim 3)
-- **Where:** dell-xe9680.md (~6 slips), dell-xe9780.md (~4 slips),
-  virt-and-cloud-quirks.md (1 slip), session-findings.md (1 slip),
-  tuned-profiles.md (3 slips). Worst offenders (recommended-tunings.md and
-  probe-interpretation.md) were cleaned in iters 6-7.
-- **Why not auto-applied:** Dim 3 lift saturated at +1 per file; remaining
-  slips are scattered across BIOS-table and operator-instruction prose
-  where conversion to imperative occasionally clashes with shell-comment
-  conventions ("# adjust to your HCAs") that are idiomatic. Diminishing
-  returns within 10-iteration cap.
-- **Recommendation:** one targeted pass per file (5 minor iterations),
-  preserving shell-comment "your" usage.
 
 ## Resolved — 2026-07-21 (freshen)
 

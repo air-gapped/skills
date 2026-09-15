@@ -5,8 +5,8 @@ description: Audit AND tune Linux/GPU inference hosts — read-only host snapsho
   kernel boot params, sysctl, ulimits, IRQ affinity, container runtime),
   optional pinned-host↔GPU memcpy bench (torch + numactl), and per-lever
   cheat-sheets to flip settings (governor, EPP, cpuidle, persistence, ECC,
-  hugepages, intel_iommu, NCCL env, tuned-adm profiles, Dell/Supermicro/HPE
-  BIOS guidance). Sits beneath any inference framework (vLLM, sglang,
+  hugepages, intel_iommu, NCCL env, tuned-adm profiles, per-chassis Dell BIOS
+  references plus Supermicro/HPE BIOS-preset and iLO power-mode pointers). Sits beneath any inference framework (vLLM, sglang,
   TensorRT-LLM) — about the host, not the framework.
 when_to_use: Triggers on "tune the host", "audit this box", "snapshot
   inference host", "characterize this server", "what's missing on bare-metal",
@@ -49,6 +49,8 @@ authoritative references in `references/`.
 ./scripts/collect.sh
 
 # Audit + pinned-memcpy bench (needs torch + CUDA, ~5 min)
+# torch is usually in the vLLM/sglang container, not on the host — run this
+# inside it if the host has no torch. collect.sh skips the bench if absent.
 ./scripts/collect.sh --bench
 ```
 
