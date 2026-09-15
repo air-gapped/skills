@@ -25,6 +25,43 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
+## Decided — do not re-propose
+
+- **Do not merge the Quick Decision Guide into Additional References** (was filed
+  2026-09-15 as actionable). Inspected: the two tables index different lookups. The
+  first maps a *task* to a destination and is the only place two in-file anchors are
+  reachable from; the second maps a *file* to its contents, which is what a reader
+  scans when they do not yet have a task. A merged table can be keyed on one or the
+  other, not both, so the merge loses whichever it is not keyed on — it is a net
+  loss, not a deferred win.
+- **The real defect underneath it is fixed.** Two Quick Decision Guide rows pointed
+  only at in-file sections while a deeper reference file existed, so a reader
+  following them stopped at the summary and never learned the reference was there.
+  Both rows now name the in-file anchor *and* the reference.
+
+## Resolved — 2026-09-15 (a compliance claim expiring in six days)
+
+- **"FIPS 140-2 validations remain active through September 21, 2026" had no
+  expiry marker and no after-state.** It is **6 days** from becoming false, in a
+  block an operator reads for a compliance answer.
+- **The gap is the point, and it is why this could not be fixed by bumping a
+  date.** The 140-2 window closes while the same block still records the 140-3
+  submissions as *pending CMVP review* — so the live question after the 21st is
+  whether modules are submitted-but-not-validated, and what that does to an
+  attestation.
+- **Deliberately did not assert what happens next.** Nothing here predicts CMVP
+  behaviour; the entry says to check the CMVP validated-modules search and Red
+  Hat's compliance page at the time of asking, and demotes the block to a
+  starting point for that lookup. Replacing an expiring fact with an invented one
+  would be worse than the expiry.
+
+## Open
+
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Unblocked — actionable
+
 - **Merge the two top-of-file routing tables** (Dim 6) — `SKILL.md` Quick Decision Guide (~L18-30) and Additional References (~L223-233). The two tables overlap slightly in intent (task-routing vs file-contents). Merging into one canonical navigation surface is a structural rewrite of two sections that also risks dropping the distinct in-file anchors (#container-image-essentials, #packaging-decision-matrix) the Quick Decision Guide carries; deferred to avoid conflating relocation with prose rewrite in a single step. Nothing external blocks it — it needs two iterations, a move and then a rewrite.
 
 ## Resolved — 2026-09-15

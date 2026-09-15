@@ -21,8 +21,8 @@ hardening, operational patterns, and disconnected environments.
 
 | Task | Go to |
 |------|-------|
-| Build a container image for OpenShift | [Container Images](#container-image-essentials) below |
-| Choose Helm vs Kustomize vs Operator | [Packaging Decision Matrix](#packaging-decision-matrix) below |
+| Build a container image for OpenShift | [Container Images](#container-image-essentials) below; `references/container-images.md` for Podman, ImageStreams, certification |
+| Choose Helm vs Kustomize vs Operator | [Packaging Decision Matrix](#packaging-decision-matrix) below; `references/packaging-formats.md` for OLM v1 RBAC and certified charts |
 | Fix SCC / permission errors | `references/security.md` (Restricted-v2 section) |
 | Set up CI/CD pipeline | `references/cicd-gitops.md` |
 | Harden supply chain (sign, attest, scan) | `references/security.md` (Supply Chain section) |
