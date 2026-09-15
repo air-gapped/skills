@@ -5,7 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi`  (k8s axis is loose; the **kernel** axis is the load-bearing one)
 - **min_tracked_version:** 1.5
-- **Last sifted:** 2026-07-21 (re-probed: **1.7.0 still latest**, no 1.8 — entry unchanged)
+- **Last sifted:** 2026-09-15 — every kernel-axis claim re-verified verbatim against the upstream FAQ and the 1.5/1.6/1.7 release notes, and **all of them hold**: floor 4.19, arm64 ≥5.10, BTF required, `CONFIG_BPF_KPROBE_OVERRIDE` for enforcement, LSM sensor needs `CONFIG_BPF_LSM` + ≥5.7 + `lsm=bpf`, ring buffer default from 5.11 since 1.6.0, cgroup v1 on ≥6.11 needs `CONFIG_MEMCG_V1`/`CPUSETS_V1`. No `kubeVersion:` gate at any tag; chart version tracks app version 1:1. Ceiling **v1.7.1** (2026-08-25, `isLatest`); no v1.8.
+- Noted for the next patch-contents sift (the file declares 1.7.1 contents unsifted, so this is a gap, not an error): **v1.7.1 changed a CRD-visible behaviour — `returnArgAction` no longer accepts `"Post"`.** (re-probed: **1.7.0 still latest**, no 1.8 — entry unchanged)
 - **Last release-verified (gh):** 2026-09-15 — **`v1.7.1` shipped 2026-08-25**;
   still no 1.8, so the minor and its k8s window are unchanged. Patch contents
   not sifted.

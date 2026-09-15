@@ -44,15 +44,16 @@ sifted here.
 
 ## 10.x  (GitLab 19.x — current chart minor)
 
-- **k8s floor:** 1.33 – 1.35 (`1.32` deprecated, `1.31` and below unsupported on chart 10.x; GitLab 19.0 requires app ≥ 18.9 on k8s 1.35, ≥ 18.6 on 1.34, ≥ 18.1 on 1.33).
+- **k8s floor (re-read 2026-09-15): 1.34 – 1.36 supported**, `1.33` deprecated, `1.32` and below unsupported. Min GitLab per minor: **19.3 on k8s 1.36**, 18.9 on 1.35, 18.6 on 1.34, 18.1 on 1.33. **The whole window rolled forward by one k8s minor since the last sift** — this is a *live rolling* matrix keyed to the current release, not a table fixed at the chart major, so re-read it every pass rather than treating it as a property of chart 10.x. Current chart **v10.3.2 / appVersion v19.3.2** (2026-09-10), up from the v19.2.0 recorded here.
+- **Caveat on the older rows below:** that same page shows only the current window, so the chart-9.x/8.x floors recorded here can no longer be re-verified against it. They are unconfirmed, not contradicted — do not silently "refresh" them from a page that no longer carries them.
 - **Breaking:**
-  - **Bundled Redis chart dropped.** Operator must provide external Redis 7.2+ (or Valkey 7.2+). No more `helm upgrade` rolling out a fresh in-cluster Redis.
+  - **Bundled Redis chart dropped.** Operator must provide external **Redis 7.0+ or Valkey 7.2** — 7.2 is *recommended*, not the floor (corrected 2026-09-15; a vendor-maintained 7.0/7.1, e.g. ElastiCache 7.1, is explicitly acceptable). No more `helm upgrade` rolling out a fresh in-cluster Redis.
   - **Bundled PostgreSQL chart dropped.** Operator must provide external Postgres ≥ 17.x. Single-node Linux package installs trigger auto-upgrade to PG 17.7; chart-based installs do NOT — the operator owns the PG upgrade.
   - **Bundled MinIO chart dropped.** Object storage is now BYO (S3, GCS, Azure, Ceph RGW, anything S3-compatible). Migrate before upgrade or the chart refuses.
   - **Spamcheck subchart removed.**
   - **Mattermost bundled removal** (chart-side; operator-tier impact unless Mattermost was actually deployed).
-  - **NGINX Ingress support discontinued** (medium impact). Chart moves to Envoy Gateway v1.8.0 + Gateway API. Operator must migrate Ingress → Gateway API or hold on 9.x.
-  - **Redis 6 removed** (app-tier). Redis ≥ 7.2 required.
+  - **NGINX Ingress is NOT discontinued — corrected 2026-09-15.** Envoy Gateway + Gateway API became the **default** in 19.0; NGINX reached end-of-life *as the default* in March 2026 but remains available as an opt-in conditional subchart, and GitLab's own 19.0 changes doc says it stays *"until its proposed removal in GitLab 20.0"*. Verified in `Chart.yaml` at both v10.0.0 and v10.3.2: `- name: nginx-ingress` with `condition: nginx-ingress.enabled` is still a live dependency. **Migrating to Gateway API is not forced on 10.x** — plan it before 20.0, do not treat it as a 10.x upgrade blocker. Bundled Envoy Gateway is now **v1.9.0** (v1.8.0 at the 19.0 launch tag).
+  - **Redis 6 removed** (app-tier). Floor is **Redis 7.0** (or Valkey 7.2); 7.2 is recommended, not required.
   - **PostgreSQL 16 support ended.** PG 17.x is min AND max for app 19.x.
   - **Heroku builder image retired** (CI-tier — Auto DevOps users only).
 - **CRD migrations:** N/A. GitLab uses standard `Deployment` + `StatefulSet`; no custom CRDs in scope.
@@ -61,7 +62,7 @@ sifted here.
   2. **Single-minor steps.** Do not jump 9.x → 10.x without landing on chart 9.11.z first. The chart's pre-migration jobs assume schema continuity.
   3. **Required app stops** between 18.x and 19.x: 18.2 → 18.5 → 18.8 → 18.11 → 19.x. Each stop runs background migrations; let them drain (Sidekiq queue length on `database_background_migration_*`) before the next bump.
   4. **Zero-downtime sequence inside one minor bump** (per upgrade doc): pause Webservice + Sidekiq → `helm upgrade` skipping post-deploy migrations → wait for pre-migrations → resume Sidekiq → resume Webservice → final `helm upgrade` for post-deploy migrations.
-  5. **Pre-bump 9.x → 10.x checklist:** external PG ≥ 17, external Redis ≥ 7.2, external object storage configured, Gateway API CRDs installed, NGINX Ingress removed from `values.yaml`. Skipping any one of these breaks the install.
+  5. **Pre-bump 9.x → 10.x checklist:** external PG ≥ 17, external Redis ≥ 7.0 (Valkey 7.2), external object storage configured. **Gateway API CRDs and removing NGINX are NOT required for 10.x** — Gateway API is the new default, NGINX stays opt-in until 20.0; do both before 20.0, not as a gate on this hop. Skipping any one of these breaks the install.
   6. **`db-migrate` job timeout:** default 600s. Bump for large datasets — past failure mode is the job OOM/timeouts mid-migration, leaving partial schema.
 - **Deprecations:** Ubuntu 20.04 package support removed. SUSE distros support ending. Bitbucket Cloud import API changed (CI-tier). Slack slash command removed. Spamcheck removed. Heroku builder retired.
 - **Notable:**
