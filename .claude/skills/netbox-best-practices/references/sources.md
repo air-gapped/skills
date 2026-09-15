@@ -28,6 +28,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 
 | Source | What it backs | Last verified |
 |---|---|---|
+| https://github.com/netbox-community/netbox/releases/tag/v4.7.0 | 4.7.0 upgrade gates in SKILL.md: PostgreSQL 14 dropped (15+, upgrade script aborts — 4.6 warned only); `ltree` extension required (trusted, auto-installed, no superuser); Redis 5.x dropped (6.0+); selection custom fields return `{value,label}` on read in REST and GraphQL, writes unchanged; `ipam.Service` `protocol`/`ports` → `port_mappings` (legacy pair still accepted by REST, ORM-read-only). Published 2026-09-02. Version-delta sheet is still 4.2–4.6. | 2026-09-15 |
 | https://netboxlabs.com/docs/netbox/getting-started/planning/ | SoT definition, 16-step order | 2026-06-12 |
 | https://netboxlabs.com/docs/netbox/release-notes/version-4.2 | MACAddress objects | 2026-06-12 |
 | https://netboxlabs.com/docs/netbox/release-notes/version-4.3 | module profiles, Service API break | 2026-06-12 |
