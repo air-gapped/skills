@@ -5,6 +5,12 @@ updated in Phase 6.
 
 ## Resolved — 2026-09-15
 
+- **Four second-person slips converted to the directive register.** Three
+  sentences, in the subagent-spawn note, the async-recovery branch and the
+  never-apply-diffs rule. The entry called this "convertible on a style pass",
+  which is work rather than a blocker. The line numbers it recorded had drifted by
+  roughly 55 lines, so the slips were found by phrase, not by line.
+
 - **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
   frontmatter and in every body reference, across all four defending-code
   skills in one pass. The entry's own blocker was "verify `Agent` is a valid
@@ -100,15 +106,6 @@ four; each skill's own delegated surface still needs its own check.
 
 
 ## Open
-
-## Resolved — 2026-09-15
-
-- **Four second-person slips converted to the directive register.** Three
-  sentences, in the subagent-spawn note and the async-recovery branch and the
-  never-apply-diffs rule; the fourth was the same sentence as one of them. The
-  entry called this "convertible on a style pass", which is work rather than a
-  blocker. Line numbers in the old entry had drifted by roughly 55 lines, so the
-  slips were found by phrase, not by line.
 
 ## Decided — do not re-propose
 

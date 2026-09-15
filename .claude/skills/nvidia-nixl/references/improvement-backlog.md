@@ -19,8 +19,6 @@ restructure or author judgment. Updated by skill-improver Phase 6.
 _None._ Nothing here is waiting on an absent ruling, credential, release, or
 measurement nobody can run.
 
-## Unblocked — actionable
-
 ## Resolved — 2026-09-15 (per-plugin re-read finished)
 
 All 15 plugin entries checked against their upstream README at tag v1.4.1, and
@@ -46,22 +44,13 @@ below was read off upstream at that tag, not inferred.
   parallelism), `gpunetio` `cuda_streams` defaulting to `DOCA_POST_STREAM_NUM`, and
   the `gusli` per-iteration request lifetime, which NIXLBench hides and a direct
   caller does not.
-- **Not carried in: the file-registration path-mode surface** shared by `posix`,
-  `cuda_gds`, `gds_mt` and `hf3fs` (`src/utils/file/README.md`), and three
-  source-only `cuda_gds` params. Real, and a coherent block of its own rather than a
-  line per plugin — see Open.
-
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
 
 ## Resolved — 2026-09-15 (file registration, written once)
 
-- **Shared `## File registration: fd mode vs path mode` section added.** Filed hours
-  earlier the same day with "nothing external blocks this", which by this repo's own
-  rule means do it rather than file it. Written once for all four file-aware plugins
-  instead of a line repeated in each.
+- **Shared `## File registration: fd mode vs path mode` section added** to
+  `plugins.md`, covering all four file-aware plugins instead of repeating a line in
+  each. Filed hours earlier the same day with "nothing external blocks this", which
+  by this repo's own rule means do it rather than file it.
 - **The fallback is the part worth knowing.** Path-mode parsing is fail-loud on a bad
   token, but a `metaInfo` that does not match the grammar at all is not an error — it
   silently falls through to fd mode and the backend reads `devId`. So a typo in the
@@ -69,87 +58,6 @@ measurement nobody can run.
 - **`cuda_gds` batching params documented from source.** `batch_pool_size` (16),
   `batch_limit` (128) and `max_request_size` (16 MiB) are read in `gds_backend.cpp`
   and appear in no README.
-
-## Resolved — 2026-09-15 (per-plugin re-read finished)
-
-All 15 plugin entries checked against their upstream README at tag v1.4.1, and
-against the plugin source where the README is silent. Ten had findings; every claim
-below was read off upstream at that tag, not inferred.
-
-- **One entry was wrong, not merely thin: `uccl`.** The matrix said
-  `supportsLocal: no (yet)` and the section said "internode only, intra-node on the
-  roadmap". Upstream ships intranode (GPU↔GPU and GPU↔CPU over IPC) and ticks it off
-  its own roadmap; what remains open there is the progress thread and telemetry. A
-  reader would have ruled the backend out for a single-node topology it supports.
-- **The Prometheus telemetry endpoint binds publicly by default.**
-  `NIXL_TELEMETRY_PROMETHEUS_LOCAL` is what restricts it to localhost and is not set
-  by default. The skill documented the exporter without either that or the port
-  variable. A third exporter (DOCA) existed and was entirely absent, with the same
-  public-bind default.
-- **`libfabric` had no runtime-config surface at all** — `num_threads` (default 0,
-  serial), `split_batch_size` (default 1024, inert unless `num_threads` > 0), and
-  `max_bw_per_dram_seg` with its env-var override.
-- **The `posix` entry sent operators hunting for a package that is vendored.**
-  liburing is built from the Meson wrap when pkg-config finds no system copy.
-- Smaller gaps closed: `obj` `throughput_target_gbps` (default 10, sizes CRT
-  parallelism), `gpunetio` `cuda_streams` defaulting to `DOCA_POST_STREAM_NUM`, and
-  the `gusli` per-iteration request lifetime, which NIXLBench hides and a direct
-  caller does not.
-- **Not carried in: the file-registration path-mode surface** shared by `posix`,
-  `cuda_gds`, `gds_mt` and `hf3fs` (`src/utils/file/README.md`), and three
-  source-only `cuda_gds` params. Real, and a coherent block of its own rather than a
-  line per plugin — see Open.
-
-## Open
-
-### File-registration path-mode surface, and cuda_gds's source-only params
-
-Dim 5. File-set: `references/plugins.md`, the four file-aware plugin entries.
-
-Upstream documents a `"<modes>:<path>"` `metaInfo` form for `FILE_SEG` descriptors
-as an alternative to passing an fd in `devId`, shared by `posix`, `cuda_gds`,
-`gds_mt` and `hf3fs`, with per-plugin flag sets (`ro`/`rw`, `direct`, `sync`,
-`noatime`, `create`) and a documented trap: `gds_file_map` keys on fd, so two
-path-mode registrations of the same path get two cuFile handles with no path-level
-dedup. Separately `cuda_gds` reads `batch_pool_size` (16), `batch_limit` (128) and
-`max_request_size` (16 MiB) in `gds_backend.cpp`, none of them in any README.
-
-Nothing external blocks this. It was left out because it belongs in one shared
-section with per-plugin deltas rather than duplicated four times, and writing it
-against the source is a pass of its own.
-
-## Resolved — 2026-09-15 (a bundling floor read as a deployment floor)
-
-- **"NIXL is bundled into vLLM images since v0.14.0" is true and was being read as
-  a blessing.** It answers "from which tag is NIXL present", not "which tag is
-  safe to run". vLLM's security floor is higher: **v0.22.0** clears
-  CVE-2026-48746, a critical bypass of `--api-key` via the `Host:` header.
-- The statement now says which question it answers, and points at
-  `vllm-configuration` § Server auth for the floor. Same correction applied in
-  `vllm-caching`, which had the same conflation in its known-good tag list — one
-  ambiguity, two skills, worth fixing in both rather than only where it was found.
-
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
-
-## Unblocked — actionable
-
-### Per-plugin README re-read for the 1.2-1.4 line (partial)
-
-Dim 9. File-set: `references/plugins.md`, the per-plugin entries other than
-`infinia`.
-
-The 2026-09-15 pass re-read all 15 plugin READMEs at tag v1.4.1 and used the
-result to write the missing `infinia` entry and the ROCm build path. The
-remaining entries' deps/params/gotchas were **not** rewritten against that
-read. Worth doing; nothing external blocks it. Three upstream facts worth
-carrying in when it happens, all confirmed at v1.4.1: `gds_mt`, `tracing` and
-`ucx` have **no README of their own** (`gds_mt` is documented via the shared
-`src/utils/file/README.md`); several plugins state ProgThread as unsupported
-(`gusli`, `mooncake`) or unimplemented (`uccl`); and `obj` silently clamps
-`crtMinLimit` below S3's 5 MiB multipart minimum.
 
 ## Resolved — 2026-09-15
 
