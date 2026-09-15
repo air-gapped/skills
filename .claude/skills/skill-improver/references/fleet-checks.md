@@ -82,11 +82,12 @@ relocations, so no edit to the path would have found them — and when a project
 migrates its docs to a generated site, every deep link into the old tree dies at
 once.
 
-Two statuses are not findings. **403** means this fetcher was refused, not that the
-page is gone — and a bare `curl` retry distinguishes the two kinds: a user-agent
-block serves the real page to it, a bot challenge returns 403 again with an
-interstitial title. The second still is not a dead link; it just cannot be cleared
-from a terminal. **429** means this sweep
+Two statuses are not findings by default, but **403 deserves one more step**: a
+retired docs URL is often answered with a block page rather than a 404, so **try the
+sibling path first** — that is the only one of the three causes that is a real defect,
+and it is what the fleet's last standing 403 turned out to be. Otherwise a bare `curl`
+separates a user-agent block (gets the real page) from a bot challenge (refused again,
+interstitial title). Neither of those two is a dead link. **429** means this sweep
 tripped a rate limit — lower `--workers` and re-run rather than recording it.
 Both print in their own sections, outside the dead list, and neither affects the
 exit code.

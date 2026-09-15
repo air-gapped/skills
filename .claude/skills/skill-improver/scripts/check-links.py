@@ -22,13 +22,17 @@ stable by design, and they are most of the corpus.
 **Two statuses are not findings, and treating them as such is the main way this
 check wastes someone's morning:**
 
-  * **403** is a refusal of *this fetcher*, not a missing page. Re-check by hand
-    before believing it, and note there are two kinds. A plain user-agent block
-    serves the real page to a bare `curl`. A **bot challenge does not** — the
-    fleet's one standing 403 returns 403 to bare `curl` too, with
-    `<title>Just a moment...`, which is an interstitial rather than the document.
-    Neither is a dead link, but only the first can be confirmed from a terminal;
-    the second needs a browser, so do not read "curl also failed" as "page gone".
+  * **403 is a refusal, and the interesting question is a refusal of what.** Three
+    causes, in the order worth testing:
+    1. **A moved path.** The likeliest, and the only one that is a real defect. Docs
+       sites answer a retired URL with a block page rather than a 404. Try the
+       sibling path before anything else — the fleet's one standing 403 was exactly
+       this, and repointing it left the tree with no 403 at all.
+    2. **A user-agent block.** A bare `curl` gets the real page; nothing to fix.
+    3. **A bot challenge.** `curl` is refused too, with an interstitial title such as
+       `Just a moment...` rather than the document. Needs a browser.
+    Cases 2 and 3 are not dead links. Case 1 is — and because 1 and 3 look identical
+    from a terminal, **"curl also failed" is not evidence the page is gone.**
   * **429** means *this sweep* tripped a rate limit — huggingface.co does at
     even modest concurrency. Lower `--workers` and re-run; do not record it.
 

@@ -52,7 +52,7 @@ re-verified.
 | Epic 6127 note trail | https://gitlab.com/groups/gitlab-org/-/epics/6127 | 150+ notes read end to end: the 2023 "unsupported vs document the risks" argument; the 2023→2026 customer-commitment trail with tiers and seat counts; the reversed-recommendation quote; the FY26Q4 GA target that slipped |
 | GitLab 18.11 release | https://docs.gitlab.com/releases/18/gitlab-18-11-released/ | GA date 2026-04-16, against the FY26Q4 (Dec 2025–Jan 2026) commitment |
 | charts#3813, #5376 | https://gitlab.com/gitlab-org/charts/gitlab/-/issues/3813 | gitlab-exporter/Sentinel — **both closed at milestone 17.1**, not open |
-| Duo Self-Hosted | https://docs.gitlab.com/administration/self_hosted_models/ | the Duo Enterprise add-on requirement, verbatim; version history to GA 17.9 |
+| Duo Self-Hosted | https://docs.gitlab.com/administration/gitlab_duo_self_hosted/ | the Duo Enterprise add-on requirement, verbatim; version history to GA 17.9. **Repointed 2026-09-15** — the old `/administration/self_hosted_models/` path now 403s; same page, moved. |
 | Duo add-ons | https://docs.gitlab.com/subscriptions/subscription-add-ons/ | tier table; Duo Core unavailable on an offline licence; Agent Platform Self-Hosted flat-fee ELA |
 | Duo offline deployment | https://docs.gitlab.com/administration/gitlab_duo_self_hosted/offline_deployment/ | sales-gated offline licence; the three hosts not contacted; `vllm/vllm-openai` pinned v0.18.1+; side-load list |
 | Install the AI Gateway | https://docs.gitlab.com/install/install_ai_gateway/ | `AIGW_*` / `DUO_WORKFLOW_*` env vars; 512 MB / 2 CPU / no GPU; the `customers.gitlab.com` 20-second timeout |
@@ -210,7 +210,11 @@ Recorded so nobody re-derives them.
   `.../administration/gitlab_duo_self_hosted/supported_llm_serving_platforms/`
   returns 200 and is now the cited source. **A 403 on a GitLab docs URL is more
   often a stale path than a block — try the sibling path before recording the
-  page as unfetchable.**
+  page as unfetchable.** **The same move caught the parent page too**: the
+  `Duo Self-Hosted` row above was still on `/administration/self_hosted_models/`
+  (403) and is repointed to `/administration/gitlab_duo_self_hosted/` (200,
+  same title) as of 2026-09-15. When a docs section moves, fix every row that
+  points into it, not just the one that failed.
 - Whether `backup-utility --skip db` is *required* against operator-managed
   PostgreSQL is unresolved by any source found → `references/backup-restore.md`.
 - Default replica literals for webservice/sidekiq/kas/shell resolve through a

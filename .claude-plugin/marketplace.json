@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20260915.166",
+      "version": "0.20260915.167",
       "author": {
         "name": "Jörgen"
       },
@@ -667,7 +667,7 @@
       "name": "gitlab-best-practices",
       "source": "./",
       "description": "Operate self-managed GitLab on the official Helm chart",
-      "version": "0.20260915.11",
+      "version": "0.20260915.12",
       "author": {
         "name": "Jörgen"
       },
