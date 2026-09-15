@@ -2,6 +2,30 @@
 
 Prior skill-improver runs and ceiling findings.
 
+## Resolved — 2026-09-15 (a security floor the repo feed does not show)
+
+- **Added a v0.5.13 floor.** Two **critical** advisories cover
+  `>= 0.5.5, <= 0.5.12`, both published 2026-05-18, and `sgl-project/sglang`'s
+  **repo** advisory feed returns nothing for them. They exist only in the
+  ecosystem database (`gh api "/advisories?ecosystem=pip&affects=sglang"`) —
+  the exact blind spot the fleet sweep's `no repo feed` marker was added to flag,
+  and the second skill this pass where following it up produced a real finding.
+- **CVE-2026-7301** — the multimodal generation runtime scheduler's ROUTER socket
+  **binds `0.0.0.0` by default** and `pickle.loads()` incoming messages: RCE for
+  anyone who can reach the port. **CVE-2026-7302** — unauthenticated path
+  traversal via `../` in an upload filename, arbitrary file write.
+- **Scoped deliberately.** Both are confined to the multimodal generation
+  runtime, so a text-only deployment is unaffected and this must not be used to
+  raise a fleet-wide floor. Every version this skill already recommends
+  (v0.5.15+) is above the floor, so nothing here was wrong — the gap was that
+  the floor was unstated for anyone arriving on an older build.
+- **Explicitly disambiguated from HiCache's own ZMQ**, which is a different
+  socket in a different subsystem. Written up anyway because the *pattern*
+  transfers: a default `0.0.0.0` bind plus pickle on the wire also produced
+  CVE-2025-32444 and CVE-2025-47277 in vLLM's KV-transfer pipes. The durable
+  instruction is to ask which interface a transport binds and whether it
+  deserializes, every time one is wired.
+
 ## Resolved — 2026-09-15 (hicache-doctor.sh shipped)
 
 - **Shipped `scripts/hicache-doctor.sh`.** The entry deferred it as

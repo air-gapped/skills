@@ -31,6 +31,34 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 - **Source of truth for flags**: `python -m sglang.launch_server --help`. If this skill disagrees with `--help` on a flag spelling, trust `--help` and freshen the skill. Note `server_args.py` was refactored to annotated-dataclass form — flags are derived from field names, so old line-number citations into the argparse block no longer resolve.
 - **Flag surface at v0.5.15.post1** (verified 2026-07-21 against `python/sglang/srt/server_args.py`): `--hicache-write-policy` now takes `write_through` (default), `write_back`, **`write_through_selective`**. `--hicache-io-backend` defaults to **`kernel`** and adds `kernel_ascend` alongside `direct`. `--hicache-mem-layout` defaults to `page_first` and adds **`page_first_kv_split`** and **`page_head`** to the old three. `--hicache-storage-backend` at **v0.5.19** accepts eleven values — `file`, `sim`, `mooncake`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm` — with `npu_memcache` added on `main` after that tag. `--hicache-ratio` defaults to 2.0, `--hicache-size` to 0 (ratio wins unless size is set).
 
+## Security floor: v0.5.13, and the repo feed will not show you why
+
+**Run ≥ v0.5.13.** Two **critical** advisories cover `>= 0.5.5, <= 0.5.12`, both
+published 2026-05-18, and `sgl-project/sglang`'s repo advisory feed returns
+nothing — they are only in the **ecosystem** database
+(`gh api "/advisories?ecosystem=pip&affects=sglang"`). Every version this skill
+recommends is already above the floor; the entry is here for anyone arriving on
+an older build, and because one of the two is a deployment-shape problem rather
+than a patch-and-forget one.
+
+| CVE | What it is |
+|---|---|
+| **CVE-2026-7301** (GHSA-gwv6-pq6m-p3rq) | The multimodal generation runtime scheduler's **ROUTER socket binds to `0.0.0.0` by default** and calls `pickle.loads()` on incoming messages — **RCE** for anyone who can reach the port |
+| **CVE-2026-7302** (GHSA-qwrp-wghp-94q2) | Unauthenticated **path traversal**: `../` in an upload filename on certain endpoints writes arbitrary files anywhere the server process can write |
+
+**Both are scoped to the multimodal generation runtime**, so a text-only
+deployment is not exposed to either — do not raise a fleet-wide floor on this
+without checking what each server actually serves.
+
+**Do not confuse that ROUTER socket with HiCache's ZMQ.** They are different
+sockets in different subsystems; the advisory is about the multimodal scheduler,
+not about anything `--hicache-*` configures. The reason it belongs in this skill
+anyway is the pattern: **a default `0.0.0.0` bind plus pickle on the wire is a
+recurring shape in this class of software**, and the same pair produced
+CVE-2025-32444 and CVE-2025-47277 in vLLM's KV-transfer pipes. Treat "which
+interface does this subsystem bind, and does it deserialize" as a standing
+question when wiring any of these transports, not a fact to look up once.
+
 ## Upgrading past v0.5.15 (swept 2026-09-15, latest stable v0.5.19)
 
 Four releases landed since this skill's baseline: v0.5.16 (2026-07-25),
