@@ -2,6 +2,31 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (Harvester advisory floors)
+
+- **The registry named two vulnerable releases as upgrade targets.**
+  `compat/harvester.md` described the community path as
+  `1.5.x → 1.6.1 → 1.7.1 → …`. `1.6.1` is inside **both** Harvester advisories
+  and `1.7.1` inside the second, so a verdict built on that sentence recommends
+  a vulnerable landing point. Replaced with latest-patch-per-minor plus the
+  floors themselves.
+- **CVE-2025-62877 (CRITICAL)** — the interactive installer **exposes the OS
+  default SSH login password**, affecting `1.5.0–1.5.2` and `1.6.0–1.6.1`.
+  Recorded with the consequence that matters for a verdict: this is an
+  *installer* exposure, so a node built by an affected installer stays exposed
+  after the version moves. Remediation is credential rotation, not the hop.
+- **CVE-2025-71261 (HIGH)** — registration-client MITM/DoS, affecting `< 1.8`,
+  `<= 1.7.1`, `<= 1.6.1`, `<= 1.5.2`. A floor **per minor**, the same shape as
+  the Rancher advisories handled earlier in this pass.
+- `first_patched_version` null on both, so the floors come from
+  `vulnerable_version_range`. Latest stables at this check: 1.8.2 (2026-08-06),
+  1.7.3 (2026-08-07).
+- Same correction applied to the `harvester-upgrade` skill, whose
+  patch-skipping example named the same `1.5.2 → 1.6.1` pair. Two skills, one
+  wrong pair of numbers, found once — which is the argument for keeping the
+  compat registry and the upgrade runbook consistent rather than independently
+  maintained.
+
 ## Open
 
 ### Per-version "fixed-in vX.Y.Z" / CVE-patch claims not release-grounded (Dim 9) (new 2026-05-30)

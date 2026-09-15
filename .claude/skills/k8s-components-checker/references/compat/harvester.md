@@ -5,7 +5,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi` — axis 1 = bundled stack (embedded RKE2, KubeVirt, Longhorn, SLE Micro all move together with the Harvester version); axis 2 = management plane (which Rancher community minor manages this Harvester + the pinned `harvester-ui-extension`)
 - **min_tracked_version:** 1.5.0
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 (security advisories added; version tables otherwise unchanged from the 2026-07-21 sift)
 
 ## Community editions and lifecycle (load-bearing — corrected 2026-06-02)
 
@@ -14,8 +14,23 @@
 — is a normal community release with a publicly downloadable ISO** (`releases.rancher.com/harvester/<tag>/…`,
 HTTP 200, verified). **Prime ("SUSE Virtualization") is a paid SUSE *support subscription* on the same bits** —
 NOT a separate artifact set, and NOT a `x.y.0`-community / `x.y.[1..z]`-Prime split. So a community operator can
-and should run the **latest patch of each minor**; the community upgrade path is `1.5.x → 1.6.1 → 1.7.1 → …`,
+and should run the **latest patch of each minor**; the community upgrade path is latest-patch-per-minor,
 **not `.0`-only**.
+
+**Two advisories put a floor under "latest patch", and the versions this file used to
+name as targets are below it.** Checked 2026-09-15; `first_patched_version` is null on
+both, so these are derived from the affected ranges:
+
+| Advisory | Severity | Affected |
+|---|---|---|
+| **CVE-2025-62877** / GHSA-6g8q-hp2j-gvwv | **CRITICAL** | `1.5.0 – 1.5.2`, `1.6.0 – 1.6.1` — interactive installer **exposes the OS default SSH login password** |
+| **CVE-2025-71261** / GHSA-pgh9-mpwc-8jjf | HIGH | `< 1.8`, `<= 1.7.1`, `<= 1.6.1`, `<= 1.5.2` — registration client MITM/DoS |
+
+So `1.6.1` sits inside **both**, and `1.7.1` inside the second. A verdict that
+recommends either as a landing point is recommending a vulnerable release. Latest
+stables at this check: **1.8.2** (2026-08-06), **1.7.3** (2026-08-07). Note the
+critical one is an *installer* exposure: a node built by an affected installer stays
+exposed after the upgrade, so the remediation is credential rotation, not the hop.
 
 > **Correction:** earlier versions of this file claimed `x.y.0`=community / `x.y.[1..z]`=Prime(paid) and that a
 > minor's community support ended when "the first Prime patch of the next minor ships." That *mechanism* was
