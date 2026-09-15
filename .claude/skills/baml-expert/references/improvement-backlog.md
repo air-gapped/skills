@@ -9,7 +9,21 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
-- **Add evals coverage for the decision-table rows not yet exercised** — Dim 10 — `evals/evals.json` (3 cases exist: add-function, fix-broken-file, stream-to-fastapi). Uncovered intents: provider/client-block authoring (round-robin/fallback), ClientRegistry/TypeBuilder runtime override, multimodal (image/pdf) input, BAML_LOG debugging. Adding cases is additive content, not a one-line edit; nothing external blocks it. (carried 2026-07-21)
+- **Add evals coverage for the three decision-table rows still not exercised** —
+  Dim 10 — `evals/evals.json`. **Re-measured 2026-09-15: 8 cases, not the 3 this
+  entry was written against**, and two of its four named gaps have since closed —
+  `fallback` client blocks (5 occurrences) and PDF input (8) are both exercised.
+  What is genuinely uncovered, by a search of prompts and assertions together:
+  **round-robin** client blocks (0), **ClientRegistry / TypeBuilder** runtime
+  override (0 — the dynamic-taxonomy case circles the topic without naming either
+  API), **image or audio** input (0; only PDF), and **`BAML_LOG`** debugging (0).
+  Nothing external blocks writing them.
+  **But do not author them blind.** An eval case whose `expected_output` encodes the
+  wrong BAML semantics grades the skill against a wrong answer and defends the bug
+  instead of catching it, which is worse than the gap. These four need someone who
+  can run the case against a real BAML project and confirm the expected behaviour
+  before it is written down — not a reading of this skill's own text, which is
+  circular. (carried 2026-07-21, re-scoped 2026-09-15)
 
 ## Resolved — 2026-09-15
 
