@@ -2,6 +2,38 @@
 
 Prior skill-improver runs and ceiling findings.
 
+## Resolved — 2026-09-15 (unguarded SWA fallthrough re-verified at v0.5.19)
+
+- **The footgun stands, and it is wider than the three archs recorded.** Exactly
+  one architecture has a guard keyed on hierarchical cache: `Step3p5ForCausalLM`,
+  which under `if cfg.enable_hierarchical_cache` sets `swa_full_tokens_ratio = 1.0`
+  and `disable_hybrid_swa_memory = True` in
+  `python/sglang/srt/arg_groups/overrides.py`. All 21 other members of the
+  hybrid-SWA set are unguarded. UnifiedTree-by-default (#27759) did not add guards.
+- **The detection set grew from 8 architectures to 22**, so the blast radius grew
+  with it: Llama-4, gpt-oss, Granite-SWA (×2), DeepSeek-V4 (×3), MiMo-V2 (×3),
+  Step3p7, Gemma-4 (×3), Laguna, Mellum, MuseGlimmer (×2), Inkling (×2),
+  UnlimitedOCR.
+- **Gemma-3 is safe and Gemma-4 is not**, which is the likeliest operator mistake
+  on the page. `gemma2_gemma3.py`, `exaone.py` and `olmo2.py` set
+  `disable_hybrid_swa_memory = True` **unconditionally**, so those archs never
+  enter the path — not comparable to a hicache-conditional guard.
+- **Inkling cannot take the documented mitigation at all**: `models/inkling.py`
+  asserts `not disable_hybrid_swa_memory`.
+- **Mechanism located:** `arg_groups/hicache_hook.py`, the dedicated
+  hierarchical-cache argument hook, contains no SWA handling whatsoever.
+- **Citations repaired.** `model_config.py:1503-1515` and
+  `server_args.py:1948-2030` are both dead — detection is now
+  `is_hybrid_swa_model()` and the arg plumbing moved wholesale into
+  `python/sglang/srt/arg_groups/`. Named functions rather than line ranges this
+  time, since the refactor is what invalidated them.
+- **Why this was not really blocked:** the entry said resolving it meant
+  "re-reading the current scheduler routing and the guard list" — that is source
+  reading against a local clone, i.e. work, not an absent thing. What *is* absent
+  is the paired quality eval on Gemma-4 or gpt-oss with hicache on, and the
+  `HiRadixCache`-doesn't-model-SWA half is still carried from the earlier pass
+  unverified. The scope of this check is stated in both files rather than implied.
+
 ## Resolved — 2026-09-15 (freshen to v0.5.19)
 
 - **The "unguarded SWA fallthrough" footgun is resolved for the three
@@ -64,24 +96,6 @@ Prior skill-improver runs and ceiling findings.
 - **Why ceiling-bound:** these backends are listed in `references/storage-backends.md` but have no worked recipe — niche but documented. Adding sample configs requires probing the AIBrix / Volcengine / Scitix doc sites for proprietary env-var sets that may not be public. Defer until an operator request surfaces.
 - **Score impact if resolved:** Dim 5 9→10 (~+1 total).
 
-### Re-verify the "unguarded SWA fallthrough" footgun against v0.5.13+ (new 2026-07-21)
-
-- **Dim:** 9 + 5
-- **Where:** `SKILL.md` pitfall #4 (last bullet) and `references/hybrid-models.md`
-  ("Hybrid SWA — unguarded" matrix row + the "What unguarded SWA fallthrough means in
-  practice" section, incl. the `server_args.py:1948-2030` / `model_config.py:1503-1515`
-  line citations).
-- **Why ceiling-bound:** the finding — that `Llama4ForConditionalGeneration`,
-  `GptOssForCausalLM` and `Gemma4ForCausalLM` have no server-side guard, so HiCache
-  silently treats SWA layers as full attention — was established pre-v0.5.13. PR #27759
-  (merged 2026-06-11, shipped v0.5.13) then made `HybridModel` launch HiCache through
-  **UnifiedTree by default**, which changes the routing this analysis depends on. The
-  freshen pass added a re-verify warning in both places but could not resolve it:
-  confirming or retiring the footgun means re-reading the current scheduler routing
-  and the guard list at v0.5.15.post1, and the `server_args.py` refactor to annotated
-  dataclasses invalidated the cited line ranges. Ideally paired with a quality eval on
-  Gemma-4 or gpt-oss with hicache on.
-- **Score impact if resolved:** Dim 9 correctness on the skill's most-cited footgun.
 
 ### Two stale-bot closures recorded as live risks (new 2026-07-21)
 

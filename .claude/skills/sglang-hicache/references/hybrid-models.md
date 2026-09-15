@@ -22,8 +22,22 @@ else:                                           # MHA / MLA / DSA via NSA
     cache = HiRadixCache(...) or HiMambaRadixCache(...)  # depending on indexer pool
 ```
 
-Hybrid-SWA detection list (`python/sglang/srt/configs/model_config.py:1503-1515`):
-`Llama4ForConditionalGeneration`, `GptOssForCausalLM`, `MiMoV2FlashForCausalLM`, `MiMoV2FlashForCausalLMMTP`, `Step3p5ForCausalLM`, `Step3p5ForCausalLMMTP`, `Gemma4ForCausalLM`, `Gemma4ForConditionalGeneration`.
+Hybrid-SWA detection list — **re-read at v0.5.19 (2026-09-15)**, now
+`is_hybrid_swa_model()` in `python/sglang/srt/configs/model_config.py`
+(the old `:1503-1515` citation is dead; the arg plumbing moved to
+`python/sglang/srt/arg_groups/`). The set has grown from 8 architectures to 22:
+
+`Llama4ForConditionalGeneration` · `DeepseekV4ForCausalLM` ·
+`DeepseekV4ForCausalLMNextN` · `DeepseekV4ForCausalLMDSpark` · `GptOssForCausalLM` ·
+`GraniteSWAForCausalLM` · `GraniteMoeSWAForCausalLM` (those three via
+`SWA_SINK_ARCHS`) · `MiMoV2ForCausalLM` · `MiMoV2FlashForCausalLM` (via
+`MIMO_V2_MODEL_ARCHS`) · `MiMoV2MTP` · `Step3p5ForCausalLM` · `Step3p5MTP` ·
+`Step3p7ForConditionalGeneration` · `Gemma4ForCausalLM` ·
+`Gemma4ForConditionalGeneration` · `Gemma4UnifiedForConditionalGeneration` ·
+`LagunaForCausalLM` (only when it actually carries a sliding window — the
+function special-cases it) · `MellumForCausalLM` · `MuseGlimmerForCausalLM` ·
+`MuseGlimmerForConditionalGeneration` · `InklingForConditionalGeneration` ·
+`InklingForConditionalGenerationMTP` · `UnlimitedOCRForCausalLM`.
 
 Hybrid-SSM detection (`scheduler.py:765-769`): models inheriting `Qwen3NextConfig`, `MambaConfig`, gated-delta-net (`gdn`) configs.
 
@@ -35,7 +49,7 @@ Hybrid-SSM detection (`scheduler.py:765-769`): models inheriting `Qwen3NextConfi
 | **NSA / DSA** | DeepSeek-V3.2 | ✓ v0.5.9+ | ✓ v0.5.9+ | ✓ v0.5.11 | ✓ v0.5.9+ | partial |
 | **Hybrid SSM** (Mamba/GDN) | Qwen3-Next, **Qwen3.5**, Qwen3.6 *(if SSM)*, MiniMax-M2 | partial — needs `--mamba-scheduler-strategy extra_buffer` + `--max-mamba-cache-size N` | ✓ **v0.5.10** (PR #21259) | ✓ **v0.5.11** (PR #23241) | partial | not documented |
 | **Hybrid SWA — guarded** | MiMoV2 (#11215), Step3p5, Gemma2, Gemma3, Gemma3n | ✓ (auto `disable_hybrid_swa_memory`) | ✓ | ✓ | ✓ | ✓ |
-| **Hybrid SWA — unguarded** | **Llama-4**, **gpt-oss**, **Gemma-4** | ⚠ silent fallthrough — SWA layers treated as full attention (no server-side guard; orthogonal to v0.5.11 SWA HiCache) | same | same | same | same |
+| **Hybrid SWA — unguarded** | **every hybrid-SWA arch except Step3p5** — incl. Llama-4, gpt-oss, Gemma-**4**, Granite-SWA, DeepSeek-V4, MiMo-V2, Step3p7, Laguna, Mellum, MuseGlimmer, Inkling, UnlimitedOCR | ⚠ silent fallthrough — SWA layers treated as full attention (no hicache-conditional guard; orthogonal to v0.5.11 SWA HiCache) | same | same | same | same |
 | **Hybrid SWA — proper** | Mistral-class SWA-only | ✓ **v0.5.11+** (PR #23391) | ✓ | ✓ | ✓ | ✓ |
 | **DeepSeek V4 UnifiedRadix** | DeepSeek-V4 | open feature | open feature | open feature | open feature | open feature |
 
@@ -43,10 +57,35 @@ Pre-v0.5.11 SWA error message: `ValueError: HiRadixCache only supports MHA, MLA,
 
 ## What "unguarded SWA fallthrough" means in practice
 
-For `Llama4ForConditionalGeneration`, `GptOssForCausalLM`, `Gemma4ForCausalLM` with `--enable-hierarchical-cache`:
+**Re-verified at v0.5.19 on 2026-09-15: the footgun stands, and it is wider than
+three architectures.** Exactly **one** architecture gets a guard that keys on
+hierarchical cache — `Step3p5ForCausalLM`, at
+`python/sglang/srt/arg_groups/overrides.py`, which under
+`if cfg.enable_hierarchical_cache` sets `swa_full_tokens_ratio = 1.0` and
+`disable_hybrid_swa_memory = True`. Every *other* member of the 22-arch
+hybrid-SWA set above is unguarded.
 
-1. `is_hybrid_swa` is detected as `True` (model_config.py:1503-1515).
-2. Unlike MiMoV2/Step3p5/Gemma3, no server-side guard force-disables hybrid SWA memory (server_args.py:1948-2030).
+Three archs look guarded but are not comparable: `gemma2_gemma3.py`, `exaone.py`
+and `olmo2.py` set `disable_hybrid_swa_memory = True` **unconditionally**, so they
+never enter the hybrid-SWA path at all. That is why **Gemma-3 is safe and Gemma-4
+is not** — adjacent names, opposite behaviour, and the single likeliest mistake
+on this page. `InklingForConditionalGeneration` is worse still: `models/inkling.py`
+*asserts* `not disable_hybrid_swa_memory`, so the usual mitigation cannot be
+applied to it.
+
+`python/sglang/srt/arg_groups/hicache_hook.py` — the dedicated hierarchical-cache
+argument hook — contains **no SWA handling whatsoever**. That absence is the
+mechanism.
+
+**Scope of this check:** the server-argument guard layer (`arg_groups/`) and the
+detection function only. The downstream claim that `HiRadixCache` does not model
+SWA is carried from the earlier pass and was **not** re-read at v0.5.19; a quality
+eval on Gemma-4 or gpt-oss with hicache on is still the missing measurement.
+
+For any unguarded arch with `--enable-hierarchical-cache`:
+
+1. `is_hybrid_swa` is detected as `True` (`is_hybrid_swa_model()` in `model_config.py`).
+2. No hicache-conditional guard force-disables hybrid SWA memory (only Step3p5 has one).
 3. `swa_full_tokens_ratio` keeps its model-config default (e.g. 0.5).
 4. `HiRadixCache` doesn't model SWA; it treats SWA layers as full-attention layers in the radix tree.
 5. **Effect**: pinned host pool (L2) over-allocates by the SWA ratio (full-len vs window-len), and prefix-cache hits on SWA layers may serve stale/wrong KV when the actual sliding window has scrolled past — quality drift, hard to spot.
@@ -55,7 +94,7 @@ For `Llama4ForConditionalGeneration`, `GptOssForCausalLM`, `Gemma4ForCausalLM` w
 
 1. **Don't enable hicache on those archs** — easiest, lossless option for now.
 2. **Pass `--disable-hybrid-swa-memory` explicitly** AND **verify quality** with a held-out eval (e.g. MMLU, GSM8K) before going live. See `test/manual/4-gpu-models/test_qwen35_hicache.py:32` for the verification pattern.
-3. **Upgrade to ≥ v0.5.11** — PR #23391 (merged 2026-05-06) added proper SWA support to HiRadixCache, so on v0.5.11+ the guarded/unguarded distinction collapses for SWA-proper models; the unguarded-fallthrough footgun above remains only for Llama-4/gpt-oss/Gemma-4 archs lacking the server-side guard.
+3. **Upgrade to ≥ v0.5.11** — PR #23391 (merged 2026-05-06) added proper SWA support to HiRadixCache, so on v0.5.11+ the guarded/unguarded distinction collapses for SWA-proper models; the unguarded-fallthrough footgun above remains for every hybrid-SWA arch lacking a hicache-conditional guard — which at v0.5.19 is all of them except Step3p5.
 
 ## Tested combinations (CI / benchmark evidence)
 
