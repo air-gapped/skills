@@ -6,6 +6,14 @@
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
 - **Last sifted:** 2026-07-21
+- **Last release-verified (gh):** 2026-09-15 — **3.5.0 shipped 2026-08-04**, one
+  minor above the newest section below (3.4.0 / latest patch 3.4.1). Its k8s,
+  OpenShift, Helm and Stack ranges are **not recorded here** — the support
+  matrix was not re-read. Treat a 3.5 deployment as **unverified, not
+  unsupported**, and sift before issuing a verdict on it. Recorded rather than
+  guessed because this file's own header notes that per-minor rows are
+  reconstructed and some floors are already inferred; adding an invented 3.5
+  row would not be distinguishable from the grounded ones.
 - **Last release-verified:** 2026-07-21
 
 Notes on sources:

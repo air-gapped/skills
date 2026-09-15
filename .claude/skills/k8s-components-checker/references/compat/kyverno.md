@@ -6,10 +6,23 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 1.16
 - **Last sifted:** 2026-07-21
+- **Last release-verified (gh):** 2026-09-15 — **1.19 has shipped** (1.19.0
+  2026-08-20, 1.19.1 2026-09-10), which by the support rule below puts **1.18
+  EOL as of 2026-08-20**. The matrices were not re-read, so the per-minor k8s
+  ranges below are unchanged and 1.19's range is **not yet recorded** — sift
+  before issuing a 1.19 verdict.
 
 Docs publish only the **current minor's** support window — historical floors recovered from git history of the install page (pre-Astro path `content/en/docs/installation/_index.md`, commit `bcd1f63`). The chart's `kubeVersion: ">=1.25.0-0"` is permissive and **not authoritative**; the docs matrix below is the contract. Helm `kyverno-policies` chart (Pod Security Standards) is versioned separately and not on the matrix — pin to the same minor as the main chart.
 
-Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL. As of 2026-07-21: **1.18 supported** (no 1.19 yet), 1.17 / 1.16 are EOL upstream.
+Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL.
+
+**Status as of 2026-09-15 (release-verified, matrices not re-sifted): 1.19 is
+current; 1.18 went EOL on 2026-08-20 when 1.19.0 shipped**; 1.17 / 1.16 remain
+EOL. The previous line here read "1.18 supported (no 1.19 yet)" as of
+2026-07-21 — a **1.18 cluster that verdicted as supported then is EOL now**, and
+that flip is the whole reason this component's status is re-checked on release
+rather than on sift: the rule is mechanical, so a single release date moves it.
+1.19's own k8s range is not in the table below yet.
 
 ## 1.18.0 (2026-04-29, latest patch **1.18.2** 2026-07-10)
 

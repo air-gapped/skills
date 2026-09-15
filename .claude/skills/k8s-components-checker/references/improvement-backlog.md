@@ -2,6 +2,33 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (registry release-verify: one EOL flip, one new minor)
+
+- **Kyverno 1.18 is EOL as of 2026-08-20**, when 1.19.0 shipped (1.19.1 followed
+  2026-09-10). The file's support rule is mechanical — "when `x.(y+1)` ships,
+  `x.y` is EOL" — so the sifted line "1.18 supported (no 1.19 yet)", correct on
+  2026-07-21, now returns the **opposite** of the right verdict. A 1.18 cluster
+  that passed then is on an EOL minor now.
+  - This is the argument for release-verifying mechanically-derived statuses
+    separately from sifting matrices: no reading was required to know the answer
+    flipped, only a release date.
+  - 1.19's own k8s range is **deliberately not recorded** — that would be a sift.
+- **ECK 3.5.0 shipped 2026-08-04**, one minor above the newest section (3.4).
+  Ranges marked *not recorded*, and a 3.5 deployment marked **unverified rather
+  than unsupported**. Not filled in from inference because this file's header
+  already flags some rows as reconstructed and some floors as inferred, so an
+  invented 3.5 row would be indistinguishable from the grounded ones.
+- **`Last sifted` deliberately untouched on both.** Only `Last release-verified`
+  moved. The two stamps answer different questions and the registry's value
+  depends on not conflating them.
+- **Checked, accurate, unchanged:** cert-manager — its in-scope set (1.21 current,
+  1.20 current, 1.19 EOL) matches upstream, despite a patch-level string that
+  looked four minors stale to a regex. Recorded so the next pass does not re-open it.
+- Method note: a crude "latest version" regex across the registry produced several
+  false alarms of exactly that shape, because most files state *per-minor* latest
+  patches rather than an overall latest. Read the in-scope set, not the first
+  version-looking string.
+
 ## Resolved — 2026-09-15 (Traefik: eight documented lines, exactly one supported)
 
 - **The file documented 3.0–3.7 and 2.11 as if a survey could land on any of them.** Upstream's
