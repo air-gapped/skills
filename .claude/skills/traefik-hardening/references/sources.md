@@ -2,8 +2,11 @@
 
 Dated index of the primary sources behind this skill's claims. `freshen` mode reads and re-stamps the `Last verified` column. Traefik version claims track the release line current at the last verified date; re-probe on `freshen`.
 
+Traefik ships security advisories faster than its docs change — 30 in 2026, 16 of them in the seven weeks after the doc rows below were last checked. **Re-probe the advisory row on every pass even when nothing else looks stale**; several of those advisories are auth bypasses in the middlewares this skill configures, so a row-date that only tracks documentation will not move when the thing that matters does.
+
 | Claim / area | Source | Last verified |
 |---|---|---|
+| Security advisories + patch floor — latest stable v3.7.13, legacy v2.11.57; the two 2026 criticals are the `digestAuth` complete authentication bypass (no CVE assigned) and CVE-2026-88007 HTTP/3 backend NTLM reuse | https://github.com/traefik/traefik/security/advisories | 2026-09-15 |
 | RateLimit fields (`average`/`period` default 1s/`burst`/`sourceCriterion`) + `redis` backend (v3.4+) | https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/ratelimit/ | 2026-07-22 |
 | InFlightReq fields (`amount`/`sourceCriterion`, no Redis backend) | https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/inflightreq/ | 2026-07-22 |
 | IPAllowList (v3) fields (`sourceRange`/`ipStrategy`/`rejectStatusCode`); `IPWhiteList`→`IPAllowList` rename at v3.0 | https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/ipallowlist/ + migrate/v3 | 2026-07-22 |

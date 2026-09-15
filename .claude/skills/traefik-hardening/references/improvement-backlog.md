@@ -1,5 +1,28 @@
 # Improvement backlog — traefik-hardening
 
+## Resolved — 2026-09-15 (the advisory feed was load-bearing and unsourced)
+
+- **`sources.md` had no advisory row.** All 15 rows were documentation links, all
+  dated 2026-07-22, while the skill's patch floor and its two criticals came from
+  the advisory feed. A source that decides a load-bearing claim has to be in the
+  index or nothing re-probes it.
+- Consequence beyond the missing row: the fleet lag sweep reads the oldest row
+  when a skill has no `Freshened:` stamp, so this skill reported as 16 advisories
+  behind with two criticals **after** those 16 had already been applied. The
+  investigation was repeated from scratch. Marking that proxy is fixed in
+  `skill-improver/scripts/advisory-lag.py`; the missing row is fixed here.
+- **Traefik ships advisories faster than its docs change** — 30 in 2026, 16 in
+  the seven weeks after the doc rows were last checked. A row-date tracking
+  documentation does not move when the thing that matters does, so the header now
+  says to re-probe the advisory row every pass regardless of what else looks
+  stale.
+- Re-verified 2026-09-15: latest stable **v3.7.13** (2026-09-04), legacy
+  **v2.11.57** (2026-09-04). GHSA-5w68-77r2-r64c (`digestAuth` complete auth
+  bypass, no CVE assigned) and GHSA-qqjf-53cj-pwvv / CVE-2026-88007 (HTTP/3
+  backend NTLM reuse) are the two 2026 criticals. All five 2026-09-07 advisories
+  cap at `<= v3.7.12`, so v3.7.13 clears them — it shipped three days before they
+  were published.
+
 ## Open
 
 - **Dim 1 — full trigger set won't fit the 1,536-char listing cutoff.** Combined `description`+`when_to_use` = ~1,934 chars. After the iter-11 reorder, the core positives + symptoms + the "Do NOT" guard land within 1,536, but the JA3/air-gap trigger *phrases* and the "choose where to cap" clause sit past it (their concepts are covered in `description`, which is fully within cutoff). iter-7 proved a trim-to-fit stays over 1,536 (1,564) while deleting symptom+intent coverage — net negative. Closing fully needs an author decision on which trigger phrases to sacrifice vs. accept tail-truncation. File: `SKILL.md:6`.
