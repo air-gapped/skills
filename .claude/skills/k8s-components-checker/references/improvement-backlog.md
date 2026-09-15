@@ -2,6 +2,26 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (patch-level release-verify: RKE2, Rook, Tetragon, KEDA)
+
+- **No new minors**, so every k8s window and in-scope set is unchanged and no
+  verdict flips. Only the latest-patch figures moved — which is what a currency
+  question reads.
+- **RKE2 drifted on all four tracked minors**: 1.36 → `v1.36.4+rke2r1`,
+  1.35 → `v1.35.8+rke2r1`, 1.34 → `v1.34.11+rke2r1` (all 2026-08-28),
+  1.33 → `v1.33.13+rke2r2` (2026-08-04).
+- **The 1.33 move is the one worth keeping.** It is `+rke2r1` → `+rke2r2` — a
+  **second RKE2 build of the same Kubernetes patch**, with `1.33.13` unchanged.
+  A currency check comparing only the k8s portion of the tag calls such a node
+  current while a newer build exists. The entry now says to compare the whole
+  tag, suffix included.
+- **Tetragon** → `v1.7.1` (2026-08-25), still no 1.8. **Rook** → `1.20.7`
+  (2026-09-02). **KEDA** → `2.20.2` (2026-07-31) — which also matches what the
+  standalone `keda` skill already says, so the two are now consistent.
+- All four marked *patch contents not sifted*, and `Last sifted` untouched
+  throughout. That separation is what makes a cheap, frequent currency refresh
+  possible without implying anyone re-read a support matrix.
+
 ## Resolved — 2026-09-15 (Cilium 1.20 GA'd after the sift; the file said not to use it)
 
 - **Cilium's "1.20 is still pre-release only … do not treat it as available" is

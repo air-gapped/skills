@@ -6,6 +6,9 @@
 - **Axis type:** `multi`  (k8s axis is loose; the **kernel** axis is the load-bearing one)
 - **min_tracked_version:** 1.5
 - **Last sifted:** 2026-07-21 (re-probed: **1.7.0 still latest**, no 1.8 — entry unchanged)
+- **Last release-verified (gh):** 2026-09-15 — **`v1.7.1` shipped 2026-08-25**;
+  still no 1.8, so the minor and its k8s window are unchanged. Patch contents
+  not sifted.
 - **Last release-verified:** 2026-05-30  (anchored on `gh api repos/cilium/tetragon/releases/latest` → `v1.7.0`; minors enumerated + `sort -V`; Chart.yaml read at `v1.7.0`/`v1.6.0`/`v1.5.0` tags)
 
 In-scope set: current stable **1.7** + prior 2 (**1.6**, **1.5**). Latest patch

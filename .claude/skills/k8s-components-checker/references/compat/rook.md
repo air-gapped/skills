@@ -95,7 +95,7 @@ after a clean operator hop typically surfaces only:
 Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
 no CephFS).
 
-## 1.20 (latest: 1.20.2, 2026-07-07)
+## 1.20 (latest: **1.20.7**, 2026-09-02 — release-verified 2026-09-15; was 1.20.2 at sift, patch contents not sifted)
 
 - **k8s floor:** **1.31 – 1.36** (stated in the 1.20.0 release notes).
 - **Breaking:**

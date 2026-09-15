@@ -6,6 +6,16 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 1.31
 - **Last sifted:** 2026-07-21
+- **Last release-verified (gh):** 2026-09-15 — **no new minor**, so the in-scope
+  set and every k8s window below are unchanged. All four tracked minors have
+  newer patches than the headings state: **1.36 → `v1.36.4+rke2r1`**,
+  **1.35 → `v1.35.8+rke2r1`**, **1.34 → `v1.34.11+rke2r1`** (all 2026-08-28),
+  **1.33 → `v1.33.13+rke2r2`** (2026-08-04). Patch contents not sifted.
+- **Watch the `+rke2rN` suffix on that last one.** 1.33 did not move Kubernetes
+  patch at all — `v1.33.13+rke2r1` → `v1.33.13+rke2r2` is a **second RKE2 build
+  of the same k8s release**. A currency check that compares only the `1.33.13`
+  part reports the node as current when a newer build exists. Compare the whole
+  tag, suffix included.
 
 Versions tagged `vX.Y.Z+rke2rN`. Compat verdict is k8s-minor-driven (`X.Y`).
 Each `## <version>` block below covers the **latest patch of one k8s minor**
