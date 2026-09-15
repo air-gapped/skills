@@ -2,6 +2,25 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (rancher-logging: the pending respin shipped everywhere)
+
+- **`rancher.24` has shipped on all five lines**, where at sift it existed only as
+  an rc on 2.14: 2.11 → `106.0.8`, 2.12 → `107.0.6`, 2.13 → `108.0.5`,
+  2.14 → `109.0.1`, all `+up4.10.0-rancher.24`.
+- **The 2.15 chart line is released, not an rc** — `110.0.0+up4.10.0-rancher.24`.
+  That closes a loop opened earlier in this same pass: Rancher **2.15 was added to
+  the registry today** as a new community minor, and its logging chart being real
+  is what makes a 2.15 survey answerable at all.
+- **Its kube gate was deliberately not re-derived** and is marked so. Reading it
+  is a sift; enumerating assets is a release check. Same discipline as the other
+  components verified in this pass.
+- **Upstream base is still 4.10.0 on every line** — the freeze the sift predicted
+  continues, and the per-line kube gates are untouched.
+- Worth restating why exact strings matter here: the `+…` build metadata is
+  **invisible to Helm's version comparison**, so two artifacts on a line can
+  differ only in a field Helm ignores. The file already warned about that on the
+  2.12 line; this refresh is precisely that field moving on all five.
+
 ## Resolved — 2026-09-15 (the recommended Postgres-operator patch had a write loop)
 
 - **"Use 2.0.1, never 2.0.0" is superseded: require ≥ 2.0.2** (2026-08-20).
