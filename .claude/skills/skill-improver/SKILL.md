@@ -247,6 +247,30 @@ true defect, `--selfcheck` replays the Argo CD line verbatim and asserts it stil
 comes out condemned — a clean run means nothing if that assertion has been tuned
 away.
 
+### A Ragged Table Loses Its Last Column Silently
+
+No renderer warns about a table whose rows and header disagree on width — it
+**drops every cell past the header count** and renders the rest as if intended.
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/check-tables.py [root]` after editing any
+table, and after adding a column to one.
+
+The dropped cell is the last one, which is where a table puts its payload.
+Measured 2026-09-15: 34 ragged rows across 7 files. The worst had a header
+reading `| Symptom | Issue | Fix |` over rows written with an extra
+model/scenario column, so the **Fix** column was discarded on exactly the rows
+carrying a model-specific workaround. Too-short rows are the quieter half and
+still wrong: a single value spanning a two-variant comparison renders as an empty
+cell, which reads as *absent on that variant* rather than *same on both*.
+
+**When the rows agree with each other and only the header disagrees, fix the
+header.** Ragged rows cluster, because they come from one table whose shape
+changed and whose header did not follow.
+
+Two things are content, not borders: a `|` inside backticks, and an escaped `\|`.
+Documentation tables write alternatives that way constantly, so a checker missing
+either reports a clean fleet as broken — an earlier draft of this one produced 13
+findings, all of them escaped pipes. Both cases are pinned by `--selfcheck`.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.

@@ -54,7 +54,7 @@ Task types (from `vllm/tasks.py:5-6`):
 | Voxtral | `mistralai/Voxtral-Mini-3B-2507` | `VoxtralForConditionalGeneration` | Mistral's speech model; Small variant also exists |
 | Qwen2-Audio | `Qwen/Qwen2-Audio-*` | `Qwen2AudioForConditionalGeneration` | also does audio understanding |
 | Qwen3-Omni | `Qwen/Qwen3-Omni-MoE-Thinker-*` | `Qwen3OmniMoeThinkerForConditionalGeneration` | unified audio+vision |
-| Qwen3-ASR | `qwen3_asr_realtime`, `qwen3_asr_forced_aligner` | dedicated ASR variants |
+| Qwen3-ASR | — | `qwen3_asr_realtime`, `qwen3_asr_forced_aligner` | dedicated ASR variants |
 | Ultravox | `fixie-ai/ultravox-v0_*` | `UltravoxModel` | LLaMA 3 + Whisper encoder |
 | Kimi-Audio | `moonshotai/Kimi-Audio-7B-Instruct` | `KimiAudioWhisperEncoder` | long-form audio understanding |
 | FunASR | `funasr/*` | family | Chinese-first ASR |

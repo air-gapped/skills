@@ -36,10 +36,10 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 ## Load / init failures
 
-| Symptom | Issue | Fix |
-|---|---|---|
-| `AttributeError: cannot deserialize quantization_config` | — | Upgrade: `vllm>=0.5.5`, `compressed-tensors>=0.5.0` |
-| Unknown quantization method: mxfp4 | Closed [#22276](https://github.com/vllm-project/vllm/issues/22276) | Upgrade vLLM; mxfp4 needs v0.14+ |
+| Symptom | Model / scenario | Issue | Fix |
+|---|---|---|---|
+| `AttributeError: cannot deserialize quantization_config` | — | — | Upgrade: `vllm>=0.5.5`, `compressed-tensors>=0.5.0` |
+| Unknown quantization method: mxfp4 | — | Closed [#22276](https://github.com/vllm-project/vllm/issues/22276) | Upgrade vLLM; mxfp4 needs v0.14+ |
 | NVFP4 weight missing `_double_scale` key | ModelOpt export on DGX Spark | [#38980](https://github.com/vllm-project/vllm/issues/38980) | Regenerate with ModelOpt ≥ current release |
 | Uninitialised `PerTensorScaleParameter` → NaN | Fused-QKV NVFP4 | [#39764](https://github.com/vllm-project/vllm/issues/39764) | Use split-QKV checkpoints |
 | `quant_algo MIXED_PRECISION` rejected | NGC vLLM 26.02 + Nemotron-3 NVFP4 | [#37854](https://github.com/vllm-project/vllm/issues/37854) | Use plain NVFP4 config; allow-list gap |
@@ -54,40 +54,40 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 ## OOM / memory
 
-| Symptom | Issue | Fix |
-|---|---|---|
-| GPU OOM processing AWQ Marlin with UVA offload | [#21864](https://github.com/vllm-project/vllm/issues/21864) | Disable UVA or load less aggressively |
-| Gemma-4-31B-IT-NVFP4 OOM RTX 5090 | [#40291](https://github.com/vllm-project/vllm/issues/40291) | Open — suspect BF16 weights during init |
-| Qwen3.5 INT4 memory > FP8 (unexpected) | [#37080](https://github.com/vllm-project/vllm/issues/37080) | Open |
-| Gemma 4 31B INT4 KV only 25K tokens at 131K ctx | [#39133](https://github.com/vllm-project/vllm/issues/39133) | Use FP8 KV to fit more |
-| Online FP8 drops bias → memory surprises | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Use pre-quantized checkpoint |
+| Symptom | Model / scenario | Issue | Fix |
+|---|---|---|---|
+| GPU OOM processing AWQ Marlin with UVA offload | — | [#21864](https://github.com/vllm-project/vllm/issues/21864) | Disable UVA or load less aggressively |
+| Gemma-4-31B-IT-NVFP4 OOM RTX 5090 | — | [#40291](https://github.com/vllm-project/vllm/issues/40291) | Open — suspect BF16 weights during init |
+| Qwen3.5 INT4 memory > FP8 (unexpected) | — | [#37080](https://github.com/vllm-project/vllm/issues/37080) | Open |
+| Gemma 4 31B INT4 KV only 25K tokens at 131K ctx | — | [#39133](https://github.com/vllm-project/vllm/issues/39133) | Use FP8 KV to fit more |
+| Online FP8 drops bias → memory surprises | — | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Use pre-quantized checkpoint |
 | Online FP8 + MoE + TP/EP: single-GPU OOM | Qwen3-Next | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
 
 ## CUDA errors
 
-| Symptom | Issue | Fix |
-|---|---|---|
-| CUDA illegal memory access awq_marlin | [#32834](https://github.com/vllm-project/vllm/issues/32834) | Open; try `--enforce-eager` |
+| Symptom | Model / scenario | Issue | Fix |
+|---|---|---|---|
+| CUDA illegal memory access awq_marlin | — | [#32834](https://github.com/vllm-project/vllm/issues/32834) | Open; try `--enforce-eager` |
 | CUDA graph replay triggers Xid 13 | Qwen3-32B-AWQ TP=2 | [#40121](https://github.com/vllm-project/vllm/issues/40121) | `--enforce-eager` |
 | CUDA illegal instruction during NVFP4 decode | aarch64 GB10 DGX Spark | [#35519](https://github.com/vllm-project/vllm/issues/35519), [#39761](https://github.com/vllm-project/vllm/issues/39761) | Tracked [#37141](https://github.com/vllm-project/vllm/issues/37141) |
-| CUDA illegal memory access GPTQ Marlin | [#36811](https://github.com/vllm-project/vllm/issues/36811) | Open |
+| CUDA illegal memory access GPTQ Marlin | — | [#36811](https://github.com/vllm-project/vllm/issues/36811) | Open |
 | Hang mid-inference FP8 | Qwen3.5-35B-A3B-FP8 | [#36736](https://github.com/vllm-project/vllm/issues/36736) | Open |
-| FlashInfer FP8 ScaledMM segfault SM100 | [#39814](https://github.com/vllm-project/vllm/issues/39814) | Pin to CUTLASS backend |
+| FlashInfer FP8 ScaledMM segfault SM100 | — | [#39814](https://github.com/vllm-project/vllm/issues/39814) | Pin to CUTLASS backend |
 
 ## Kernel / backend not dispatched
 
-| Symptom | Issue | Fix |
-|---|---|---|
+| Symptom | Model / scenario | Issue | Fix |
+|---|---|---|---|
 | `No NvFp4 MoE backend supports the deployment configuration` | RTX 5090 (SM120) | [#35065](https://github.com/vllm-project/vllm/issues/35065) | SM120 gap [#31085](https://github.com/vllm-project/vllm/issues/31085); partial [PR #33417](https://github.com/vllm-project/vllm/pull/33417). Not production. |
 | MXFP4 Marlin MoE fails K=N=2880 | GPT-OSS-20B | [#38022](https://github.com/vllm-project/vllm/issues/38022) | Open — not aligned for Marlin thread config |
 | GPT-OSS-120b SM120 → kernel not dispatched | RTX Pro 6000 | [#34817](https://github.com/vllm-project/vllm/issues/34817) | SM120 gap |
-| GLM-5 MXFP4 sparse MLA decode crash MI355x | [#38924](https://github.com/vllm-project/vllm/issues/38924) | Open |
-| Triton MXFP4 MoE device capability `<(11,0)` breaks RDNA3.5 | [#40301](https://github.com/vllm-project/vllm/issues/40301) | Open |
-| Misleading FP8 error about CUDA version | [#36805](https://github.com/vllm-project/vllm/issues/36805) | Error refers to wrong thing — check SM capability |
-| Gemma 4 MoE 26B-A4B MXFP4 crash | [#39000](https://github.com/vllm-project/vllm/issues/39000) | Open |
-| `CompressedTensorsWNA16MarlinMoEMethod` crash actorder=null AWQ MoE | [#35303](https://github.com/vllm-project/vllm/issues/35303) | Open |
-| `CutlassW4A8LinearKernel` dim alignment DeepSeek-V3.1 W4AF8 (K=7168, N=2112) | [#33783](https://github.com/vllm-project/vllm/issues/33783) | Dims must be %128==0 |
-| FP8 + FlashInfer on Llama-4 B200 | [#32488](https://github.com/vllm-project/vllm/issues/32488), [#32862](https://github.com/vllm-project/vllm/issues/32862) | Open |
+| GLM-5 MXFP4 sparse MLA decode crash MI355x | — | [#38924](https://github.com/vllm-project/vllm/issues/38924) | Open |
+| Triton MXFP4 MoE device capability `<(11,0)` breaks RDNA3.5 | — | [#40301](https://github.com/vllm-project/vllm/issues/40301) | Open |
+| Misleading FP8 error about CUDA version | — | [#36805](https://github.com/vllm-project/vllm/issues/36805) | Error refers to wrong thing — check SM capability |
+| Gemma 4 MoE 26B-A4B MXFP4 crash | — | [#39000](https://github.com/vllm-project/vllm/issues/39000) | Open |
+| `CompressedTensorsWNA16MarlinMoEMethod` crash actorder=null AWQ MoE | — | [#35303](https://github.com/vllm-project/vllm/issues/35303) | Open |
+| `CutlassW4A8LinearKernel` dim alignment DeepSeek-V3.1 W4AF8 (K=7168, N=2112) | — | [#33783](https://github.com/vllm-project/vllm/issues/33783) | Dims must be %128==0 |
+| FP8 + FlashInfer on Llama-4 B200 | — | [#32488](https://github.com/vllm-project/vllm/issues/32488), [#32862](https://github.com/vllm-project/vllm/issues/32862) | Open |
 
 ## Performance regression
 

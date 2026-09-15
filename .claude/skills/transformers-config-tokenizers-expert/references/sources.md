@@ -29,15 +29,15 @@ refs).
 
 ## Transformers issues + PRs
 
-| URL | Purpose | Last verified |
-|---|---|---|
-| https://github.com/huggingface/transformers/issues/38182 | Gemma-3 IT EOS mismatch | 2026-08-18 |
-| https://github.com/huggingface/transformers/issues/41870 | GemmaTokenizerFast SP inconsistency | 2026-08-18 |
-| https://github.com/huggingface/transformers/issues/42914 | chat_template.jinja not cached offline | 2026-08-18 |
-| https://github.com/huggingface/transformers/issues/43066 | DeepSeek-R1-Distill decoder shape regression | 2026-08-18 |
+| URL | Purpose | Last verified | Notes |
+|---|---|---|---|
+| https://github.com/huggingface/transformers/issues/38182 | Gemma-3 IT EOS mismatch | 2026-08-18 | — |
+| https://github.com/huggingface/transformers/issues/41870 | GemmaTokenizerFast SP inconsistency | 2026-08-18 | — |
+| https://github.com/huggingface/transformers/issues/42914 | chat_template.jinja not cached offline | 2026-08-18 | — |
+| https://github.com/huggingface/transformers/issues/43066 | DeepSeek-R1-Distill decoder shape regression | 2026-08-18 | — |
 | https://github.com/huggingface/transformers/pull/43104 | v5 decoder doc clarification | 2026-07-21 | **still OPEN**, unmerged since 2026-01 |
 | https://github.com/huggingface/transformers/issues/45205 | Gemma-4 chat_template not auto-loaded | 2026-07-21 | **Shows CLOSED 2026-06-10 with `stateReason: COMPLETED` — but the closing comment is the stale bot** ("automatically marked as stale because it has not had recent activity"). **No fix landed; the gotcha stands.** See the stale-bot warning below. |
-| https://github.com/huggingface/transformers/issues/45356 | Kimi-K2.5 `</think>` decode regression 5.3→5.4 | 2026-08-18 |
+| https://github.com/huggingface/transformers/issues/45356 | Kimi-K2.5 `</think>` decode regression 5.3→5.4 | 2026-08-18 | — |
 | https://github.com/huggingface/transformers/pull/45359 | Fix for #45356 | 2026-07-21 | MERGED 2026-04-13 |
 
 ## vLLM

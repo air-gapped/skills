@@ -18,16 +18,19 @@ XE9785L carries B300 on AMD EPYC 9005 — different BIOS, similar approach.
 | Chassis | 439.5 × 482.3 × 1044.7 mm; **163.2 kg** | 3 OU sled in IR7000 ORv3 rack |
 | CPUs | 2× Intel Xeon 6 (Granite Rapids), up to **86c**, 350W TDP | L: 2× Xeon 6, up to 86c. **LAP: up to 128c** |
 | Supported SKUs | 6747P (48c/2.7G), 6767P (64c/2.4G), 6776P (64c/2.3G), 6787P (86c/2.0G) — all 350W, all DDR5-6400 | Same SPR/EMR-class supported list |
-| UPI | 4× per socket @ 24 GT/s (vs SPR 16 / EMR 20 GT/s) |
-| PCIe per CPU | **192 Gen5 lanes** dual-socket (vs 80 Gen5 on SPR/EMR) |
-| DDR5 | **6400 MT/s 1DPC** / 5200 MT/s 2DPC |
 | DIMMs | 32 RDIMM, 4 TB (8 TB post-RTS with 256 GB DIMMs) | L: 4 TB; **LAP: 6 TB** |
-| GPUs | 8× HGX B300 NVL8 270 GB **1100W SXM6** (Dell HGX bin) **or** 8× HGX B200 180 GB 1000W SXM6 |
-| Embedded NICs | 8× ConnectX-8 OSFP integrated on the GPU baseboard (B300 only, 800 Gb/s/port) |
 | Storage | 16× E3.S Gen5 NVMe direct from PSB **or** 10× U.2 Gen5 NVMe (post-RTS) | L: 16× E1.S **or** 8× U.2 + 2× CEM |
 | PSU | 12× 3200W AC Titanium (200-240 VAC / 240 VDC) | 6× 5500W AC in 33 kW power shelf @ 54 V busbar (IR7000 rack-level) |
 | Cooling | 15 hot-swap GPU fans + 5 cold-swap CPU fans | DLC on CPU + GPU + NVSwitch |
 | Rack | Standard 19" | **IR7000** ORv3 21" only |
+
+Common to every variant (not broken out per column above):
+
+- **UPI** — 4× per socket @ 24 GT/s (vs SPR 16 / EMR 20 GT/s)
+- **PCIe per CPU** — **192 Gen5 lanes** dual-socket (vs 80 Gen5 on SPR/EMR)
+- **DDR5** — **6400 MT/s 1DPC** / 5200 MT/s 2DPC
+- **GPUs** — 8× HGX B300 NVL8 270 GB **1100W SXM6** (Dell HGX bin) **or** 8× HGX B200 180 GB 1000W SXM6
+- **Embedded NICs** — 8× ConnectX-8 OSFP integrated on the GPU baseboard (B300 only, 800 Gb/s/port)
 
 ---
 

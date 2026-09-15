@@ -3,6 +3,29 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (tables that lose their last column)
+
+- **Shipped `scripts/check-tables.py`.** Nothing checked table shape: the
+  skillevaluator gate reads frontmatter and links, the fence checkers parse code
+  blocks, and a table is neither. A renderer drops cells past the header count
+  without warning, so a ragged row looks deliberate.
+- **34 ragged rows across 7 files, all fixed.** The worst: a quantization
+  troubleshooting file whose four later tables kept a `| Symptom | Issue | Fix |`
+  header while their rows had been written in the first table's four-column shape.
+  The discarded cell was **Fix**, on precisely the rows carrying a model-specific
+  workaround.
+- **Too-short rows are wrong in the other direction.** Five rows in a hardware
+  comparison stated one value covering both variants; each rendered with an empty
+  second column, which reads as *not available on that variant*. Lifted out of the
+  comparison as shared specs rather than given an invented per-variant value.
+- **Three `ignore-freshen` markers and one re-read note were sitting in a sixth
+  column of a five-column table**, invisible to the renderer. Folded back into
+  real cells; the markers stay greppable.
+- **The tool's own near-miss is pinned by assertion.** A first version did not
+  treat `\|` as an escape and reported 13 findings, every one a docs table listing
+  alternatives. A table checker that mishandles either escaped pipes or pipes
+  inside backticks reports a healthy fleet as broken, so `--selfcheck` covers both.
+
 ## Resolved — 2026-09-15 (floors a skill already wrote down)
 
 - **Shipped `scripts/check-advisory-floors.py`.** Nothing verified a remediation
