@@ -1,6 +1,8 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed. No dead links; every nuanced "closed but not actually fixed" reading re-confirmed against the actual comment text.
+
+**A backport was mistaken for descent.** The Qwen-Image fix is in v0.26.0, but not by the route this file claimed — see the v0.24.1 row. **Stable is now v0.28.0** (2026-08-31), with v0.29.0rc1 (2026-09-10) as the current rc; the v0.27.0 line never got a stable cut, the same pattern as v0.21/v0.23/v0.25. Docker `latest` has moved again, now tracking an rc (v0.29.0rc1) rather than the nightly it tracked last pass — the parity caveat below is doing its job and should stay.
 
 Citation anchors backing every claim in this skill. Use to verify — or to feed follow-up searches when a claim looks stale.
 
@@ -61,7 +63,7 @@ The 2026-07-21 mismatch is gone. All three channels now agree on **v0.26.0**.
 | PyPI | **0.26.0** (2026-08-03) | `pypi.org/pypi/vllm-omni/json` — `info.version` = `0.26.0`; index now `…, 0.24.0, 0.24.0rc1, 0.25.0rc1, 0.26.0, 0.26.0rc1`. **`0.24.1` is still absent** — never uploaded, and now moot. |
 | Docker Hub | **v0.26.0** (2026-08-03); `latest` no longer matches any versioned release — as of 2026-08-18 its per-arch digests match the **`vtest-nightly`** tag (pushed 2026-08-12), not `v0.26.0post1.20260811` and not `v0.27.0rc1` | Docker Hub v2 tags API. Per-tag `-x86_64` / `-aarch64` variants. Model-specific builds also present: `minimax-h3`, `minimax-h3-cu129` (2026-08-02), `cosmos3` (2026-07-20). ROCm images are a **separate repo**, `vllm/vllm-omni-rocm`. |
 
-The v0.24.1 Qwen-Image fix (#5017) is reachable from v0.26.0 by descent, so the
+The v0.24.1 Qwen-Image fix reaches v0.26.0 **as a separate backport, not by descent** — PR #5017's merge commit is `diverged` from v0.26.0 (it *is* the v0.24.1 tag), while the re-landed PR #5009, whose title marks it "Same As #5017", is contained. Verified with `compare <tag>...<sha>` on both. Checking #5017's ancestry alone would say the fix never shipped, which is false. So the
 `git+…@v0.24.1` install form is no longer needed. Two caveats survive:
 
 - **`latest` is not a release.** As of 2026-08-18 it does not match *any*
@@ -89,7 +91,7 @@ The v0.24.1 Qwen-Image fix (#5017) is reachable from v0.26.0 by descent, so the
 
 | # | Title | State | URL | Last verified |
 |---|---|---|---|---|
-| #4964 | Qwen-Image performance degradation (nightly CI) | **CLOSED — genuinely fixed** by PR #5017. Was v0.24.1-only (a GitHub tag with no wheel); now carried by v0.26.0 on every channel | <https://github.com/vllm-project/vllm-omni/issues/4964> | 2026-08-11 |
+| #4964 | Qwen-Image performance degradation (nightly CI) | **CLOSED — genuinely fixed**, originally by PR #5017 (v0.24.1-only, a GitHub tag with no wheel) and carried forward into v0.26.0+ by the re-landed **PR #5009**, not by descent from #5017 — that commit is not an ancestor of v0.26.0 | <https://github.com/vllm-project/vllm-omni/issues/4964> | 2026-08-11 |
 | #4998 | `guidance_scale=0` silently overridden by the pipeline default | **CLOSED — genuinely fixed** by PR #4999 (merged 2026-08-01, v0.26.0). Sentinel collision in `OmniDiffusionSamplingParams`: `0.0` meant "unset", so an explicit `0` was replaced by the model default (HunyuanImage-3.0 substitutes `5.0`, enabling CFG). Fix makes `None` the sentinel and tests by identity | <https://github.com/vllm-project/vllm-omni/issues/4998> | 2026-08-11 |
 | vllm#38729 | All models hang on GB300 (SM103) with FlashInfer 0.6.7 | **CLOSED/COMPLETED 2026-04-01 via workaround PR vllm#38730**, which restricts `supports_trtllm_attention()` to exact SM100 so SM103 falls back. **SM100/GB200 was never affected.** FlashInfer-side issue flashinfer-ai/flashinfer#2939 closed "as fixed" 2026-04-07. This is the origin of the `flashinfer<0.6.7` pin that `diffusion.md` used to recommend — now obsolete *and* unsatisfiable against vLLM 0.26.0's `flashinfer-python==0.6.14` | <https://github.com/vllm-project/vllm/issues/38729> | 2026-08-11 |
 | #2898 | NPU 910B install regression | **CLOSED 2026-04-20 — answered, not patched.** Resolution is a usage correction: `--dtype`, `--max-model-len`, `--served-model-name` etc. "can't be passed correctly currently, because omni is multi-stage deployment", so set them in the **YAML stage config** instead of on the CLI | <https://github.com/vllm-project/vllm-omni/issues/2898> | 2026-07-21 |
@@ -136,9 +138,9 @@ alone would have retired five live caveats from this skill.
 - `vllm_omni/entrypoints/openai/serving_speech_stream.py` — `/v1/audio/speech/stream`
 - `vllm_omni/distributed/omni_connectors/connectors/*.py` — connector implementations
 - `vllm_omni/diffusion/` — DiT engine
-- `vllm_omni/diffusion/cache/teacache/` + `cache_dit/` — DiT activation caches
-- `vllm_omni/inputs/data.py:174-300` — OmniDiffusionSamplingParams
-- `vllm_omni/quantization/factory.py:138-178` — unified quantization factory
+- `vllm_omni/diffusion/cache/teacache/`, `cachedit/`, `magcache/`, `stepcache/` — DiT activation caches. **`cache_dit/` was renamed to `cachedit/` (no underscore) by PR #5226, merged 2026-07-24** — before the previous pass, which recorded the old name anyway; `magcache/` and `stepcache/` arrived in the same refactor and were never listed
+- `vllm_omni/inputs/data.py:203-417` — OmniDiffusionSamplingParams (was cited as 174-300; it is the last class in the module and runs to end-of-file)
+- `vllm_omni/quantization/factory.py` — unified quantization factory: the public entry point is `build_quant_config()` at **line 389**. The previously cited 138-178 range points at internal per-scheme builder helpers, not the factory — a wrong-symbol citation, not just line drift
 - `vllm_omni/platforms/__init__.py:21-130` — platform auto-detect
 - `vllm_omni/profiler/omni_torch_profiler.py` — profiler wrapper
 - `vllm_omni/patch.py` — early-import patch registering OmniModelConfig (**removed in v0.20.0**; the old entrypoint hijack was dropped for the 0.20.0 integration path per release notes, rebase PR #3232)

@@ -2,10 +2,16 @@
 
 Authoritative references underlying this skill. Read these when this skill is wrong.
 
-> **Version note (re-probed 2026-07-29).** Upstream open-webui is now at
-> **v0.11.0** (2026-07-27). Line numbers below are re-resolved against the
-> v0.11.0 tag: `generate_openai_batch_embeddings` 677→845 (0.10.2)→**862**,
-> `get_embedding_function` 905→1073 (0.10.2)→**1090**, `ExternalReranker` class
+> **Version note (re-probed 2026-09-15).** Upstream open-webui is now at
+> **v0.11.3** (2026-08-31), three patches past v0.11.0. Line numbers below are
+> re-resolved against the v0.11.3 tag: `generate_openai_batch_embeddings`
+> 677→845 (0.10.2)→862 (0.11.0)→**882**, `get_embedding_function`
+> 905→1073 (0.10.2)→1090 (0.11.0)→**1098** (its `asyncio.gather` fan-out at
+> **1163**), and the four RAG config keys moved again to **1013 / 1019 / 1027 /
+> 1042**. Every default and behaviour re-confirmed unchanged — only positions
+> moved, which is the third consecutive release to do so.
+> Historically at v0.11.0: `generate_openai_batch_embeddings` 862,
+> `get_embedding_function` 1090, `ExternalReranker` class
 > at **13** with `predict` at **26** (the previously-cited 14/27 were off by one
 > and pointed at `__init__`). Re-resolve by symbol name, never by remembered
 > line number — `config.py` was restructured wholesale (not appended to) between
@@ -55,11 +61,16 @@ fastest-moving claims in the skill — MTEB shipped releases daily around
 2026-08-05, and the multilingual top-10 turned over substantially in the preceding
 year. Anything sourced to a leaderboard should be treated as stale after ~3 months.
 
-**The `encoding_format: None` gotcha is still live (checked 2026-07-21).** The
-revert (25698) has not been re-reverted and no general fix has merged. PR
-**#24277** — `fix(openai): filter None values from embedding optional_params` —
-is **still open**, so the per-model `encoding_format` pin this skill recommends
-remains necessary, not merely defensive. Watch #24277 as the tell for when it
-can be dropped.
+**The `encoding_format: None` gotcha is still live (checked 2026-09-15).** The
+revert (25698) has not been re-reverted and no general fix has merged, so the
+per-model `encoding_format` pin this skill recommends remains necessary, not
+merely defensive.
+
+**Do not watch #24277 — it is dead.** The stale bot closed it 2026-08-10
+(`closed_by: github-actions[bot]`, label `stale`, `merged: false`). It was
+never merged, so its closure is not the signal this file said to wait for, and
+the pin must not be dropped on the strength of it. There is no known
+replacement PR to watch; re-derive one on the next pass rather than inheriting
+a dead tell.
 
 Run `/skill-improver freshen open-webui-embeddings` to re-probe these refs and bump `Last verified:` dates.
