@@ -2,6 +2,30 @@
 
 Work-not-done log across skill-improver runs. Append-only history; not a wishlist.
 
+## Resolved — 2026-09-15 (chart supersession: answered, and the item was already stale)
+
+- **No `6.1.x` patch chart ever landed.** The item's hypothesis was that one
+  might. What actually superseded `6.1.0` is a new chart minor:
+  **`mimir-distributed-6.2.0` = appVersion 3.2.0** (2026-08-20), read from the
+  `grafana.github.io/helm-charts` index. Between them there are only
+  `6.2.0-weekly.*` and `6.3.0-weekly.*` builds, which are not stable charts.
+- **The chart lags the app, which is the part worth carrying.** App `3.2.1` and
+  `3.1.6` both shipped 2026-09-10, and **no chart references either** — the
+  newest stable chart is still pinned to app 3.2.0. "Latest Mimir" and
+  "latest Mimir you can install from the chart" are different versions, so a
+  ladder derived from app releases alone lands on something unbuildable.
+- **The item was already answered in the body and never drained.** SKILL.md
+  already carries 6.2.0 with its appVersion, `kubeVersion`, the querier
+  `max_concurrent` default drop (#15984) and the `kedaAutoscaling.fallback`
+  `ScaledObject` fix (#15793). `k8s-components-checker` → `compat/mimir.md` —
+  which this skill defers to for the version matrix, exactly as the item
+  instructed — was sifted the same day and lists 6.2.0 with an unchanged
+  `^1.32.0-0` floor. The blocker had cleared; only the Open entry remained.
+- Left alone deliberately: the frontmatter ladder still reads
+  `5.7→5.8→6.0.6→6.1.0`, matching the body's framing of 6.2.0 as one more
+  ordinary hop rather than a terminus move. Rewriting it would be churn, not a
+  correction.
+
 ## Open
 
 ### No claim has been behaviourally observed on a cluster (Dim 9 / integrity)
@@ -48,14 +72,6 @@ Work-not-done log across skill-improver runs. Append-only history; not a wishlis
 - **Why not closed:** the guidance does not exist yet.
 - **Next pass:** check whether #14008 landed capacity-planning docs for ingest storage; if so, replace the
   extrapolation with the real numbers.
-
-### Chart 6.1.x may supersede 6.1.0 (Dim 9)
-
-- **What:** the ladder terminates at 6.1.0 / app 3.1.2, but app 3.1.3 exists upstream and a 6.1.x patch chart may
-  land.
-- **Why not closed:** correct at authoring time; this is a freshen concern, not a defect.
-- **Next pass:** re-derive the terminal hop from `k8s-components-checker` → `compat/mimir.md` rather than
-  updating numbers here. This skill deliberately holds no version matrix.
 
 ## Resolved — 2026-09-15
 
