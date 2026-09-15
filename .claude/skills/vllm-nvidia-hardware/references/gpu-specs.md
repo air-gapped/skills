@@ -36,13 +36,23 @@ Primary sources:
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | B100 | 2 chiplets | 192 GB HBM3E | 8 TB/s | ~1,750 TF | ~3,500 TF | ~7,000 TF | 1.8 TB/s | 700 W | **Effectively cancelled for HGX volume**; replaced by B200A/B102 |
 | B200 SXM | 2 chiplets | 180–192 GB HBM3E (SKU-dependent) | 8 TB/s | 2,250 TF | 4,500 TF | 9,000 TF | 1.8 TB/s | 1,000 W | Standard HGX Blackwell |
-| **B300 — DGX / GB300 Superchip bin** | 2 chiplets (160 SMs, 208B transistors) | **288 GB HBM3E** (12-Hi) | 8 TB/s | 3,750 TF | 7,500 TF | **15,000 TF** | 1.8 TB/s | **1,400 W** | NVIDIA reference, DGX B300, GB300 Superchip. +67% FP4 vs B200 |
-| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | **7.7 TB/s** | ~3,750 TF | ~7,500 TF | ~15,000 TF | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **18 GB less HBM and 300 W less TDP than the DGX-bin** |
+| **B300 — DGX / GB300 Superchip bin** | 2 chiplets (160 SMs, 208B transistors) | **279 GB HBM3E** (12-Hi; see note) | 8 TB/s | 2,500 TF | 5,000 TF | **15,000 TF** | 1.8 TB/s | **1,400 W** | NVIDIA reference, DGX B300, GB300 Superchip. +67% FP4 vs B200 |
+| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | **7.7 TB/s** | 2,250 TF | 4,500 TF | **14,000 TF** | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **18 GB less HBM and 300 W less TDP than the DGX-bin** |
 
 **The bin split matters.** Without it, 8-GPU TDP math is off by 2.4 kW. When the
 operator refers to B300 in a Dell / Supermicro / Lenovo HGX box, default to the
 **270 GB / 1,100 W / 7.7 TB/s HGX NVL8** bin. When citing NVIDIA marketing numbers
 ("288 GB B300", "15 PFLOPS FP4"), those are the DGX / Superchip bin.
+
+**The dense FLOPS above are NVIDIA's, not a halving of FP4.** Its datasheet marks
+each row with one of two footnotes — *"Specification in Sparse | Dense"* for FP4, and
+*"Specification in sparse. Dense is 1/2 sparse spec shown."* for the rest. Applying
+them to the GB300 column gives **FP4 15, FP8 5, FP16 2.5 PFLOPS** dense, and to the
+HGX column **14 / 4.5 / 2.25**. This skill previously carried 7,500 and 3,750 TF,
+derived by halving from FP4 on the usual two-times-per-step assumption. **Blackwell
+Ultra breaks that cadence** — it is the "1.5x more AI compute FLOPS" the datasheet
+advertises, and it lands entirely on FP4, making FP4 three times FP8 rather than
+twice. Anything sized on the old ratio overstates FP8 and BF16 throughput by 50%.
 
 **Size against 279 GB, not 288.** NVIDIA's own Blackwell Ultra datasheet — read
 2026-09-15, the primary source this skill had recorded as unreachable — states
