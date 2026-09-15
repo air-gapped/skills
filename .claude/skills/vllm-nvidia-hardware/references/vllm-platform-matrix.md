@@ -164,7 +164,34 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashAttention-3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable
   FlashMLA build (#48174) — both reduce torch-upgrade breakage. FlashInfer
   **0.6.14** (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442).
-- **v0.27.1** (2026-08-11, **newest release this matrix covers** — the line is at v0.29.0 as of 2026-09-15, so v0.28.0 and v0.29.0 are not yet assessed here) — patch on v0.27.0; sole change is
+- **v0.29.0** (2026-09-09, **newest release, assessed 2026-09-15**) — **FlashInfer
+  all-reduce is now ON by default** for TP CUDA groups; opt out with
+  `VLLM_ALLREDUCE_USE_FLASHINFER=0` (#52998). That is the one default flip in this
+  release that changes behaviour on an existing deployment without a config change.
+  **Opt-in Rubin Docker builds for CUDA 13.4 / 13.5** (#53443) — first appearance of
+  that generation here. FA4 re-enabled for `head_size=256` on Blackwell / SM100
+  (#52980); FP4 MoE backend for **SM120 / SM121** plus SM120 sparse-MLA fixes
+  (#52018, #51395, #53574); FlashInfer all-reduce tuning on **SM103** (#53318,
+  #53606); cuBLAS router GEMM extended to all archs including **GB10** (#54048).
+  FlashInfer **0.6.18** (#54313); **NIXL 1.3.2** (#51777) — the latter confirmed by
+  running the published image. AMD: CPU offload on ROCm 7.13+ (#43018), fused KDA
+  decode on MI325X (#52293). **Model Runner V2 is now the default for all models**
+  (#53183) and MRV1 is deprecated for removal in v0.32 — but vLLM still falls back to
+  MRV1 for a few ROCm models and for features MRV2 lacks, so a ROCm deployment can be
+  silently on the deprecated runner. **PyAV video decoder removed** — use OpenCV or
+  Torchcodec (#54231); ROCm's `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141).
+- **v0.28.0** (2026-08-26) — **Blackwell CUDA-graph capture default raised to 1024**
+  (#49390), an arch-specific default worth knowing before sizing memory. Runtime
+  Docker image moved to **Ubuntu 24.04**, picking up rdma-core > 44 (#51058).
+  FlashInfer XQA decode on **SM12x** (#49718); CuTeDSL fused query kernel on SM100
+  (#49792); native DSA decode for MTP=3 on SM90 (#52164); GB10 fused-MoE FP8 tuning
+  configs (#52502). ROCm stack to torch **2.12** / triton **3.7** (#50607), with
+  DeepSeek-V4 on gfx11 and gfx950 (#47017, #52212). CPU: GPTQ/AWQ on **s390x**
+  (#51148), unquantized MoE for **Power VSX** (#51624). Transformers pinned to
+  **5.15.0** (#51668). **bitsandbytes moved out-of-tree to a plugin** (#43529) — a
+  removal, not a deprecation warning. No FlashInfer, NIXL or CUDA base-version bump
+  is stated in this release's notes.
+- **v0.27.1** (2026-08-11) — patch on v0.27.0; sole change is
   "Support quantized DSpark Markov heads" (#50424), a model-specific quantization
   path with no hardware or platform implications. Everything in the v0.27.0 row
   below still applies unchanged.
