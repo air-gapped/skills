@@ -681,7 +681,7 @@
       "name": "jira-best-practices",
       "source": "./",
       "description": "Advise on USING Jira well, not operating it: make the structural call",
-      "version": "0.20260915.19",
+      "version": "0.20260915.20",
       "author": {
         "name": "Jörgen"
       },
