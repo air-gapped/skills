@@ -164,6 +164,20 @@ Two probes are nearly always available and cheap:
   describes human workflow and another describes agent behaviour. Check whether
   the two are even talking about the same actor before declaring a conflict.
 
+**Re-test an inherited `unverifiable` flag; never carry it forward.** A row
+annotated "blocked — read manually" or "verify in browser" stops being probed,
+so a wrong claim resting on it survives every later pass. Re-run the escalation
+each time: curl, then bare curl, then the browser. Delete the flag the moment
+one of them works, and say which did.
+
+A vendor bot-block is the common false positive. (2026-09-15: a row carrying
+"not re-verified — vendor blocks automated reads; read manually" opened first
+try in the browser, and every per-generation figure in the companion reference
+read back identically off the live page. The flag had made the row unfalsifiable
+rather than unverified.) The same pass found six documentation URLs returning
+`429` to curl even probed one at a time, all of which loaded normally in a
+browser at their cited addresses.
+
 ### Phase F4: Mutate (One Finding at a Time)
 
 Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Always cite the verifying source URL.
@@ -316,6 +330,22 @@ gh api /repos/<owner>/<repo>/releases/latest --jq '{tag: .tag_name, published: .
 
 Compare latest `tagName` against the `Pinned` field or skill body version
 strings.
+
+**Read `isLatest`; never sort by date and never take `[0]`.** Projects that
+maintain parallel lines publish a maintenance patch on an older line *after* a
+newer minor, so the newest-by-date release is routinely not the ceiling.
+(2026-09-15: a hypervisor's `isLatest` was `v1.8.2` while `v1.7.3`, one day
+newer, sat on the 1.7 line; a Kubernetes distro published three lines —
+`v1.34.11`, `v1.35.8`, `v1.36.4` — on a single day.) Report per-line ceilings,
+not one number.
+
+**An empty `gh release list` does not mean the project has no tags.** Releases
+and tags are different objects: a repo can tag every version and never create a
+GitHub Release. Check `gh api repos/O/R/tags` before writing any "no
+releases/tags" absence claim. (2026-09-15: a row read "No git tags/releases —
+the version lives in a header file"; `gh release list` was indeed empty, and the
+repo had tags for every version including one newer than the header the row
+quoted.)
 
 ### 2.2 GitHub doc / code churn
 
