@@ -59,7 +59,7 @@ Pre-v1 CRDs (`v1alpha1`, `v1alpha2`) will not work with current gateways. Conver
 
 ### vllm-production-stack router
 
-- Repo: https://github.com/vllm-project/production-stack/tree/main/router
+- Repo: https://github.com/vllm-project/production-stack/tree/main/src/vllm_router
 - Bundled with the production-stack Helm chart.
 - Modes: round-robin, session-sticky, prefix-aware, KV-aware (Q1 2025 roadmap → GA'd), disagg-prefill.
 - Non-GAIE; speaks OpenAI API directly. GAIE-compat path exists: https://docs.vllm.ai/projects/production-stack/en/latest/deployment/gateway-inference-extension.html

@@ -95,7 +95,7 @@ NIXL plugin selection is implicit (UCX-default); per-deploy tuning via `UCX_TLS`
 
 ## TensorRT-LLM (TRT-LLM)
 
-The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. The doc was renamed: the old `docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html` returns 404 (re-probed 2026-05-28); the current source lives at `https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/trtllm/trtllm-kv-cache-transfer.md` (rendered under the Dynamo docs root `https://docs.nvidia.com/dynamo/`).
+The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. The doc was renamed: the old `docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html` returns 404 (re-probed 2026-05-28); the current source lives at `https://github.com/ai-dynamo/dynamo/blob/main/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/tensorrt-llm/reference-guide.md` (rendered under the Dynamo docs root `https://docs.nvidia.com/dynamo/`).
 
 Config patterns are framed inside Dynamo's deploy spec (Helm values for TRT-LLM workers), not directly inside TRT-LLM. NIXL agent comes up with the worker container, ETCD endpoints come from the Dynamo control plane.
 

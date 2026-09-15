@@ -24,7 +24,7 @@ Single-node TP is covered by the base pod-shape manifest. This reference is for 
 The "pure headless Service + `parallel-config` + manual rank enumeration" path exists but is not the vLLM-endorsed recipe. LWS is the K8s-native gang-scheduling primitive; Ray is the transport vLLM uses across nodes.
 
 - **LWS project**: https://github.com/kubernetes-sigs/lws — https://lws.sigs.k8s.io/docs/
-- **LWS vLLM example (upstream LWS)**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples/vllm
+- **LWS vLLM example (upstream LWS)**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples
 - **vLLM doc**: https://docs.vllm.ai/en/latest/deployment/frameworks/lws/
 - **In-repo bootstrap script**: ``vllm` repo: examples/ray_serving/multi-node-serving.sh`
   — **moved from `examples/online_serving/` at some point before v0.25.1.** The

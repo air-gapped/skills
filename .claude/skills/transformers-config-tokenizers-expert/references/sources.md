@@ -44,7 +44,7 @@ refs).
 
 | URL | Purpose | Last verified |
 |---|---|---|
-| https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/openai/cli_args.py | --chat-template, --trust-request-chat-template, --default-chat-template-kwargs | 2026-08-18 |
+| https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/launchers/cli_args.py | --chat-template, --trust-request-chat-template, --default-chat-template-kwargs | 2026-08-18 |
 | https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/openai/chat_completion/serving.py | OpenAIServingChat init, request flow | 2026-08-18 |
 | https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/chat_utils.py | trust_request_chat_template enforcement, kwargs merge (moved from openai/engine/serving.py in refactor #47498) | 2026-08-18 |
 | https://github.com/vllm-project/vllm/blob/main/vllm/renderers/hf.py | safe_apply_chat_template, resolve_chat_template_kwargs allowlist | 2026-08-18 |

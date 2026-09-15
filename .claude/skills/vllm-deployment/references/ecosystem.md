@@ -36,7 +36,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 - **Version (2026-08-11)**: **v0.9.0** (2026-06-17) — **still pre-GA, no v1.0 cut** (re-probed, unchanged since the prior pass). v0.9.0 is a maintenance release (Kubernetes deps to v0.35.0, migration to generic webhook APIs, dependabot bumps), not an API-stability milestone
 - **Maintainer / license**: Kubernetes SIG-Apps · Apache-2.0
 - **Role**: K8s primitive for "group of pods as a unit of replication". The gang-scheduling piece of every multi-node vLLM deploy.
-- **vLLM integration**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples/vllm — wraps `examples/ray_serving/multi-node-serving.sh`
+- **vLLM integration**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples — wraps `examples/ray_serving/multi-node-serving.sh`
 - **Pick when**: The minimum primitive is wanted without an opinionated control plane, or to understand what the fancier projects do under the hood.
 - **Known limitation**: No native gang-scheduling ([issue #167](https://github.com/kubernetes-sigs/lws/issues/167)) — pair with Kueue or Volcano if strict gang-scheduling matters.
 
