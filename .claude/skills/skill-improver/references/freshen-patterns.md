@@ -182,6 +182,22 @@ Two probes are nearly always available and cheap:
   describes human workflow and another describes agent behaviour. Check whether
   the two are even talking about the same actor before declaring a conflict.
 
+**A reported "current HEAD" is a different ref, not a fresher reading of the
+tag.** Delegated probes answer at whatever ref they checked out, and they
+usually say so — "at current tip", "on main", "at HEAD". Those numbers then land
+in a file whose other rows are tag-pinned, where they read as tag measurements
+and nothing marks them as otherwise. Record the ref beside every line number,
+and re-measure at the tag before writing it down.
+
+Measured 2026-09-15, twice in one pass, both times on numbers the reporting
+agent had labelled correctly and the *writer* mislabelled: one file gained
+anchors 60+ lines past their true position at the named tag, another 23 lines
+past. Both point a reader at unrelated code, which is worse than no anchor,
+and neither is detectable later — a wrong line number looks exactly like a
+right one. Cheap guard: `git show <tag>:<path> | grep -n '^def <symbol>'`, or
+the contents API with an explicit `?ref=<tag>`, and put the file's line count
+next to the anchor so the next reader can tell which ref they are holding.
+
 **An absence claim that licensed an inference is the expensive kind.** A plain
 absence claim ("no matrix is published") is wrong on its own. One that made the
 file *derive* values instead is wrong plus everything derived from it — and the
