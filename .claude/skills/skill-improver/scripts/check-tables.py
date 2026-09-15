@@ -26,6 +26,9 @@ with each other.
 Pipes inside backticks are not column separators; a row need not end in a pipe.
 Both are handled -- get either wrong and the tool reports every table as ragged.
 
+Ignored paths are skipped. `results/` holds local research artifacts that never ship,
+so a finding in one cannot be acted on by anyone else, and they accumulate.
+
 Usage:
     python3 check-tables.py [root]
     python3 check-tables.py --selfcheck
@@ -37,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -99,6 +103,24 @@ def ragged(path: Path) -> list[tuple[int, int, int, str]]:
     return found
 
 
+def ignored(paths: list[Path]) -> set[Path]:
+    """Paths git ignores. Research artifacts under `results/` are ignored and
+    local-only, so a finding in one cannot be fixed by anybody else and is noise
+    that grows over time. Outside a git repo, nothing is ignored."""
+    if not paths:
+        return set()
+    r = subprocess.run(
+        ["git", "check-ignore", "--stdin"],
+        input="\n".join(str(x) for x in paths),
+        capture_output=True,
+        text=True,
+    )
+    # 0 = some ignored, 1 = none ignored, 128 = not a repo.
+    if r.returncode not in (0, 1):
+        return set()
+    return {Path(line) for line in r.stdout.splitlines() if line}
+
+
 def selfcheck() -> int:
     assert cells("| a | b | c |") == [" a ", " b ", " c "]
     assert cells("| a | b | c") == [" a ", " b ", " c"]  # no trailing pipe
@@ -130,6 +152,9 @@ def selfcheck() -> int:
         f.write_text(doc, encoding="utf-8")
         hits = ragged(f)
     assert [(n, got, want) for n, got, want, _ in hits] == [(4, 4, 3), (5, 2, 3)], hits
+
+    # Ignored paths are skipped, and a non-repo must not swallow every file.
+    assert ignored([]) == set()
     print("selfcheck: all assertions passed")
     return 0
 
@@ -146,9 +171,15 @@ def main() -> int:
         print(f"not a directory: {a.root}", file=sys.stderr)
         return 2
 
+    files = [
+        md
+        for md in sorted(a.root.rglob("*.md"))
+        if not md.relative_to(a.root).parts[0].endswith("-workspace")
+    ]
+    skip = ignored(files)
     total = 0
-    for md in sorted(a.root.rglob("*.md")):
-        if md.relative_to(a.root).parts[0].endswith("-workspace"):
+    for md in files:
+        if md in skip:
             continue
         for n, got, want, text in ragged(md):
             total += 1
