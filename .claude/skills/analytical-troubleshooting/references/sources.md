@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-15 — all 15 rows re-probed and live, no drift. Four rows (a SAGE journal page, the Kepner-Tregoe excerpt PDF, a Justia trademark page, a Medium article) answer bare `curl` with 403; each is a bot/WAF challenge, not link rot, and each resolved to the expected content through a browser. Do not record those as dead.
+
 Dated per-URL index behind `evidence.md` and the method content. All sources
 were fetched and verified during the 2026-07-29 deep-research run that produced
 this skill (full report:

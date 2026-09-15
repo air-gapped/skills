@@ -1,4 +1,6 @@
-# Sources — ubuntu-cloud-init
+# Sources
+
+Freshened: 2026-09-15 — every row probed (releases via `gh`, source anchors re-read on current `main`, URLs swept with `curl -L`). — ubuntu-cloud-init
 
 Authoritative references behind this skill's factual claims, with verification dates.
 Re-probe with `skill-improver freshen ubuntu-cloud-init`. Claims verified against the
@@ -6,17 +8,17 @@ Re-probe with `skill-improver freshen ubuntu-cloud-init`. Claims verified agains
 
 | Ref | URL / location | Pinned | Last verified | Verified claim |
 |---|---|---|---|---|
-| cloud-init repo | https://github.com/canonical/cloud-init | `main` | 2026-07-21 | Live (**pushed 2026-07-17**), not archived, default branch `main`. |
-| Latest release | https://github.com/canonical/cloud-init/releases | `26.1` | 2026-07-21 | **Still `26.1`** (2026-02-28) — ~5 months, no new release despite active `main`. "26.04 LTS ≈ 26.1" holds. |
-| netplan render target | `cloudinit/net/netplan.py` **L23** | `main` | 2026-07-21 | Re-read: `CLOUDINIT_NETPLAN_FILE = "/etc/netplan/50-cloud-init.yaml"`. Unchanged. |
-| NoCloud `network-config` | `cloudinit/sources/DataSourceNoCloud.py` **L102** | `main` | 2026-07-21 | Re-read: `"optional": ["vendor-data", "network-config"]`. Unchanged. |
-| Service rename (24.3) | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-07-21 | `cloud-init.service` → `cloud-init-network.service`. |
-| `datasource_list` None (24.1) | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-07-21 | ds-identify no longer auto-appends `None` to a single-entry list. |
-| ntp → ntpsec (26.1) | `ChangeLog` #6684 | `26.1` | 2026-07-21 | "migrate from ntp client package installed from ntp to ntpsec". |
-| deb822 apt sources (23.4) | `cloudinit/config/cc_apt_configure.py` | `main` | 2026-07-21 | deb822 `sources_list` → `/etc/apt/sources.list.d/ubuntu.sources`. |
-| cloud-init docs | https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html | — | 2026-07-21 | Authoritative NoCloud reference; repo `doc/rtd/reference/` is the source. |
-| **Breaking changes (full sweep)** | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-07-21 | **Read end-to-end this pass, not just the two entries previously cited.** The doc carries entries for 26.1, 25.3, **25.1.4**, 25.1, 24.4, 24.3, 24.1, 23.4, 23.2. Five were undocumented here; now summarised in SKILL.md § Upstream breaking changes. The doc's own caveat is worth repeating: *"These changes may not be present in all distributions … many operating system vendors patch out breaking changes"* — so confirm against the actual image. |
-| **25.1.4 strict datasource identity** | `doc/rtd/reference/breaking_changes.rst` (25.1.4) | `main` | 2026-07-21 | `ds-identify` now requires strict identification via DMI / kernel cmdline / explicit `datasource_list:`; the old late-discovery mode (bring up networking, probe well-known link-local IPs) was removed to stop a local bad actor answering provisioning requests. Affects **Ec2 / OpenStack / AltCloud on non-x86** without DMI. If nothing is identified, **cloud-init stays disabled and configures nothing at boot**. Mitigations: `--config-drive true`, or pin `datasource_list:`. |
+| cloud-init repo | https://github.com/canonical/cloud-init | `main` | 2026-09-15 | Live (**pushed 2026-09-14**), not archived, default branch `main`. |
+| Latest release | https://github.com/canonical/cloud-init/releases | `26.2` | 2026-09-15 | **`26.2`** (2026-07-29), up from `26.1` (2026-02-28). **Adds no breaking-changes entry** — `breaking_changes.rst` still tops out at 26.1, re-read on current `main` this pass. Highlights are additive (NetworkManager `route-metric`, Azure and BSD options). "26.04 LTS ≈ 26.1" still describes the LTS pairing. |
+| netplan render target | `cloudinit/net/netplan.py` **L23** | `main` | 2026-09-15 | Re-read: `CLOUDINIT_NETPLAN_FILE = "/etc/netplan/50-cloud-init.yaml"`. Unchanged. |
+| NoCloud `network-config` | `cloudinit/sources/DataSourceNoCloud.py` **L102** | `main` | 2026-09-15 | Re-read: `"optional": ["vendor-data", "network-config"]`. Unchanged. |
+| Service rename (24.3) | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-09-15 | `cloud-init.service` → `cloud-init-network.service`. |
+| `datasource_list` None (24.1) | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-09-15 | ds-identify no longer auto-appends `None` to a single-entry list. |
+| ntp → ntpsec (26.1) | `ChangeLog` #6684 | `26.1` | 2026-09-15 | "migrate from ntp client package installed from ntp to ntpsec". |
+| deb822 apt sources (23.4) | `cloudinit/config/cc_apt_configure.py` | `main` | 2026-09-15 | deb822 `sources_list` → `/etc/apt/sources.list.d/ubuntu.sources`. |
+| cloud-init docs | https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html | — | 2026-09-15 | Authoritative NoCloud reference; repo `doc/rtd/reference/` is the source. **Docs moved to `docs.cloud-init.io`** — the old `cloudinit.readthedocs.io` URL 302s here and still resolves, but cite the new host. |
+| **Breaking changes (full sweep)** | `doc/rtd/reference/breaking_changes.rst` | `main` | 2026-09-15 | **Read end-to-end this pass, not just the two entries previously cited.** The doc carries entries for 26.1, 25.3, **25.1.4**, 25.1, 24.4, 24.3, 24.1, 23.4, 23.2. Five were undocumented here; now summarised in SKILL.md § Upstream breaking changes. The doc's own caveat is worth repeating: *"These changes may not be present in all distributions … many operating system vendors patch out breaking changes"* — so confirm against the actual image. |
+| **25.1.4 strict datasource identity** | `doc/rtd/reference/breaking_changes.rst` (25.1.4) | `main` | 2026-09-15 | `ds-identify` now requires strict identification via DMI / kernel cmdline / explicit `datasource_list:`; the old late-discovery mode (bring up networking, probe well-known link-local IPs) was removed to stop a local bad actor answering provisioning requests. Affects **Ec2 / OpenStack / AltCloud on non-x86** without DMI. If nothing is identified, **cloud-init stays disabled and configures nothing at boot**. Mitigations: `--config-drive true`, or pin `datasource_list:`. |
 
 <!-- Grounding note: authored 2026-07-21 against a local checkout of canonical/cloud-init
 @ main (26.1, June 2026). network-config v2 == netplan format (see ubuntu-netplan); the

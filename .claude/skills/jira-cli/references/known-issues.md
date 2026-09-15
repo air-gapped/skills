@@ -37,7 +37,7 @@ longer a "nothing will ever change" situation. Measured, not inferred:
 | Open issues | 163 |
 | Archived? | **No** — 5.9k stars, live and active again |
 
-**`main` is now ahead of the released binary.** PRs #1008–#1014 changed
+**`main` is now ahead of the released binary.** Six of the seven PRs #1008–#1014 merged (**#1012, `feat: globalId for remote links`, is still open** — re-checked 2026-09-15); those that landed changed
 `epic add`/`epic remove` (no longer requires admin), `--plain` behaviour for
 `epic list` / `sprint list`, `--show-all-issues` JQL retention, and multibyte
 UTF-8 in the jirawiki parser — all areas this skill documents. None of it is in

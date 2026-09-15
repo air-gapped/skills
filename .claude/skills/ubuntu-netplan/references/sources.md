@@ -1,4 +1,6 @@
-# Sources — ubuntu-netplan
+# Sources
+
+Freshened: 2026-09-15 — every row probed. `1.2.2` is still the latest release (no netplan release since 2026-07-20), and the `since`-marker sweep below was re-run end-to-end on current `main`: markers still top out at `since 1.1` with the same three occurrences, so the 24.04-vs-26.04 gating stands unchanged. — ubuntu-netplan
 
 Authoritative references behind this skill's factual claims, with verification dates.
 Re-probe with `skill-improver freshen ubuntu-netplan`. Claims verified against the
@@ -6,14 +8,14 @@ Re-probe with `skill-improver freshen ubuntu-netplan`. Claims verified against t
 
 | Ref | URL / location | Pinned | Last verified | Verified claim |
 |---|---|---|---|---|
-| netplan repo | https://github.com/canonical/netplan | `main` | 2026-07-21 | Live (**pushed 2026-07-20**), not archived, default branch `main`. |
-| Latest release | https://github.com/canonical/netplan/releases | `1.2.2` | 2026-07-21 | **`1.2.2` is latest (2026-07-20)**, up from 1.2.1. **Bug fixes only** — SR-IOV udev ordering before the apply service (#569), terminal `BlockingIOError` handling (#572), CI/doc chores. **No new YAML surface, no breaking change.** "26.04 tracks 1.2.x" unchanged. |
-| Release tags | https://github.com/canonical/netplan/tags | — | 2026-07-21 | `1.0`, `1.0.1` (2024-07-04, in the 24.04 window → "24.04 ships ~1.0.x"), `1.1` (2024-08-14, *after* 24.04), `1.1.1`, `1.1.2`, `1.2`, `1.2.1` all exist. |
-| YAML version | `src/parse.c` **L38-39**, reject at **L3155** | `main` | 2026-07-21 | Re-read: `NETPLAN_VERSION_MIN 2` / `NETPLAN_VERSION_MAX 3`, rejecting `< MIN \|\| >= MAX` → only `network.version: 2` accepted. Unchanged. |
-| `ra-overrides` / `advertised-mss` gating | `doc/netplan-yaml.md` **L406, L709, L845** | `main` | 2026-07-21 | Both still marked "since 1.1" → present on 26.04 (1.2.x), NOT on 24.04 (1.0.x). **These are the only three `since 1.1` markers in the file** — see the sweep below. |
-| `netplan try` timeout | `netplan_cli/cli/commands/try_command.py` **L36** | `main` | 2026-07-21 | Re-read: `DEFAULT_INPUT_TIMEOUT = 120` (also the `--timeout` default at L75). Unchanged. |
-| `hairpin` / `port-mac-learning` | `doc/netplan-yaml.md` | `main` | 2026-07-21 | Bridge-port props "since 1.0" → available on both 24.04 and 26.04. |
-| netplan docs | https://netplan.readthedocs.io/en/stable/netplan-yaml/ | — | 2026-07-21 | Authoritative YAML reference; repo `doc/netplan-yaml.md` (~2200 lines) is the source. |
+| netplan repo | https://github.com/canonical/netplan | `main` | 2026-09-15 | Live (**pushed 2026-09-07**), not archived, default branch `main`. |
+| Latest release | https://github.com/canonical/netplan/releases | `1.2.2` | 2026-09-15 | **`1.2.2` is latest (2026-07-20)**, up from 1.2.1. **Bug fixes only** — SR-IOV udev ordering before the apply service (#569), terminal `BlockingIOError` handling (#572), CI/doc chores. **No new YAML surface, no breaking change.** "26.04 tracks 1.2.x" unchanged. |
+| Release tags | https://github.com/canonical/netplan/tags | — | 2026-09-15 | `1.0`, `1.0.1` (2024-07-04, in the 24.04 window → "24.04 ships ~1.0.x"), `1.1` (2024-08-14, *after* 24.04), `1.1.1`, `1.1.2`, `1.2`, `1.2.1` all exist. |
+| YAML version | `src/parse.c` **L38-39**, reject at **L3155** | `main` | 2026-09-15 | Re-read: `NETPLAN_VERSION_MIN 2` / `NETPLAN_VERSION_MAX 3`, rejecting `< MIN \|\| >= MAX` → only `network.version: 2` accepted. Unchanged. |
+| `ra-overrides` / `advertised-mss` gating | `doc/netplan-yaml.md` **L406, L709, L845** | `main` | 2026-09-15 | Both still marked "since 1.1" → present on 26.04 (1.2.x), NOT on 24.04 (1.0.x). **These are the only three `since 1.1` markers in the file** — see the sweep below. |
+| `netplan try` timeout | `netplan_cli/cli/commands/try_command.py` **L36** | `main` | 2026-09-15 | Re-read: `DEFAULT_INPUT_TIMEOUT = 120` (also the `--timeout` default at L75). Unchanged. |
+| `hairpin` / `port-mac-learning` | `doc/netplan-yaml.md` | `main` | 2026-09-15 | Bridge-port props "since 1.0" → available on both 24.04 and 26.04. |
+| netplan docs | https://netplan.readthedocs.io/en/stable/netplan-yaml/ | — | 2026-09-15 | Authoritative YAML reference; repo `doc/netplan-yaml.md` (~2200 lines) is the source. |
 
 <!-- Grounding note: authored 2026-07-21 against a local checkout of canonical/netplan
 @ main (June 2026, post-1.2.1). netplan v2 is the shared substrate: cloud-init

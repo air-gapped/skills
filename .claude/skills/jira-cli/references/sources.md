@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15
 
 Per-row `Last verified:` dates for the external claims in this skill. `freshen` mode reads + updates this file. The most authoritative reference for the installed build is always the binary's own `jira <cmd> <subcmd> --help`.
 
@@ -59,7 +59,7 @@ a new release is the signal to revisit.
 ## 2026-08-18 freshen — the repo woke up
 
 The cadence signal measured on 2026-07-21 has reversed. `main` took 10 commits
-between 2026-07-30 and 2026-08-12 (PRs #1008–#1014) and the repo was last
+between 2026-07-30 and 2026-08-12 (six of PRs #1008–#1014; #1012 never merged) and the repo was last
 pushed 2026-08-17; open issues fell 172 → 163. **No new release** — v1.7.0
 (2025-08-31) is still `isLatest`, so the installed binary is unchanged.
 
