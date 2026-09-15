@@ -46,7 +46,7 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 | Ollama PR #15404 (previous_response_id) | open (re-probed 2026-07-31) |
 | LiteLLM #20975 (Azure passthrough strips setup events) | open (re-probed 2026-07-31) |
 | LiteLLM #22102 (codex skips output_item.added) | stale-closed 2026-06-27, unverified |
-| SGLang #16806 / #20771 | closed unmerged 2026-06-12; superseded by #25881 (merged 2026-06-12); custom function tools still unverified at v0.5.16 |
+| SGLang custom tools on `/v1/responses` | **Settled by [#38690](https://github.com/sgl-project/sglang/pull/38690), merged 2026-09-12** (commit `925e684a`). It adds custom-tool support and states the prior behaviour: `_response_tools_to_chat_tools` skipped every non-`function` tool, so a `custom` tool produced no call and `tool_choice="required"` returned HTTP 400. **Main only — no tag contains it; latest release v0.5.19 (2026-09-05).** Earlier attempts #16806 and #20771 were abandoned 2026-06-12 in favour of #25881, which fixed request handling but not this. |
 | mistral.rs #1944 | closed 2026-07-07 (~v0.9.0) |
 | mistral.rs #1945, #1946 | open (re-probed 2026-07-31) |
 | llama.cpp #19173 (stream cancel) | open (re-probed 2026-07-31) |

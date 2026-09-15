@@ -5,15 +5,6 @@ applicable in a single iteration. Do not re-propose without new evidence.
 
 ## Open
 
-- **SGLang custom function tools: current behavior unverified** (Dim 9,
-  carried 2026-07-19) — competing PRs #16806/#20771 closed unmerged
-  2026-06-12; #25881 merged same day but its description doesn't confirm
-  custom function-tool support. Re-probed 2026-07-31 at v0.5.16: only
-  model-specific Responses fixes landed since (#31401 passthrough, #32757
-  Kimi K3 reasoning leak) — no function-tool evidence either way. Both
-  `backend-implementations.md` and `streaming-events.md` carry a "re-verify"
-  marker. **Absent thing:** a live SGLang backend to send a custom function
-  tool to; not resolvable from PR metadata alone.
 - **GPT-5.6 Programmatic Tool Calling / multi-agent orchestration depth**
   (Dim 5, narrowed 2026-07-31) — the tool type (`programmatic_tool_calling`)
   and beta status are now in spec.md, but the API reference documents only

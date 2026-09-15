@@ -290,7 +290,7 @@ item/event types through untouched (e.g., `openai:web_search_call`,
 | Ollama | No `previous_response_id` (PR #15404 open, not merged) | Open |
 | LiteLLM | Setup events stripped on Azure passthrough (#20975) | Open |
 | LiteLLM | Splits large argument deltas into 10-char chunks | By design |
-| SGLang | Custom function tools broken on `/v1/responses` (#16806, #20771) | Both PRs closed unmerged 2026-06-12; request-handling fix #25881 merged same day — re-verify on ≥ v0.5.15 |
+| SGLang | Custom tools on `/v1/responses` return no call; `tool_choice="required"` gives HTTP 400 | **Broken in every release through v0.5.19.** Fixed by #38690 (merged 2026-09-12), which is **not in any tag yet** — build from main or wait for the next release. Cause, from that PR: non-`function` tools were skipped during conversion |
 | OpenAI gpt-5.3-codex | Sometimes skips `output_item.added` (LiteLLM #22102) | Stale-closed 2026-06-27, no confirmed fix — stay resilient |
 
 ## Comparison to Chat Completions Streaming
