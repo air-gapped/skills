@@ -11,7 +11,7 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 - Throughput 41.7 → 33.6 tok/s per user
 - System-wide throughput unchanged — V1 compensates with more concurrent requests at the expense of per-user latency
 - **Workaround:** stay on v0.14.0
-- **Status 2026-07-21: still OPEN, but stale-bot-marked** ("no activity within 90 days… will be automatically closed"). If a later pass finds it CLOSED, that will mean abandonment, not a fix — the regression is unaddressed.
+- **Status 2026-09-15: CLOSED `NOT_PLANNED` 2026-07-22 by the inactivity bot, with no linked fix.** This is the abandonment a previous pass predicted, not a resolution — the regression is unaddressed and the workaround stands.
 
 ### v0.13.0 → v0.14.0rc2 GLM-4.7-GPTQ-Int4 MTP regression ([#32547](https://github.com/vllm-project/vllm/issues/32547))
 

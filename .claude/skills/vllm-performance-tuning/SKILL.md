@@ -227,6 +227,6 @@ Three prior passes verified *issues* diligently and never verified the *flag
 surface*. When freshening, read `vllm/config/*.py` + `vllm/engine/arg_utils.py`
 at the target tag and check each flag this skill names, by name.
 
-**Treat a `CLOSED` issue as unfixed until you read why it closed.** This pass found #31475 (MI300X FP8 slower than BF16) and #25538 (preempt/resume thrashing) both closed `NOT_PLANNED` by the inactivity bot, and #35048 stale-marked and heading the same way — none of them fixed. Only #29539 and #34249 closed against real fixes, and #38971 closed with a usable *answer* (`--moe-backend`).
+**Treat a `CLOSED` issue as unfixed until you read why it closed.** This pass found #31475 (MI300X FP8 slower than BF16), #25538 (preempt/resume thrashing) and #35048 (MiniMax latency regression) all closed `NOT_PLANNED` by the inactivity bot — none of them fixed. #35048 was merely stale-marked when last checked and was predicted to go this way; it did, on 2026-07-22. Only #29539 and #34249 closed against real fixes, and #38971 closed with a usable *answer* (`--moe-backend`).
 
 Next refresh when v0.26.x ships, or when the Wide-EP GB200 Part II blog lands (still Part I only as of 2026-07-21, not re-probed this pass).

@@ -265,7 +265,7 @@ Ranked by likelihood:
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
 - LMCache K8s Operator: [operator-v0.1.1 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1) (CRD-based DaemonSet+Service+ConfigMap reconciler)
 - Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (open), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
-- cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (open)
+- cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (autoclosed 2026-08-17 for inactivity, **not fixed** — fix PR #40041 still open)
 
 See `references/sources.md` for verification dates and the inspection ritual.
 
