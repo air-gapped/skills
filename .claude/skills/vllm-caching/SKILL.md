@@ -105,6 +105,8 @@ If an SGLang config was 200 GB per GPU × 8 GPUs = 1600 GB, then on vLLM use `--
 
 **For per-token KV formulas, worked slot-math examples, Dell XE9680 hardware reference numbers, and NVMe-vs-DRAM-vs-prefill load-time comparisons, see `references/hardware-sizing.md`.**
 
+**If Model Runner V2 was opted into before v0.29.0, KV auto-sizing did not reserve CUDA graph memory.** MRV1 always did; MRV2 gained it in **v0.29.0** ([#53306](https://github.com/vllm-project/vllm/pull/53306)), explicitly to unblock making MRV2 the default. Since the default flip ships in that same release, a deployment that never set `VLLM_USE_V2_MODEL_RUNNER=1` is unaffected. An **early opt-in on v0.27.x or v0.28.0** is the exposed case: auto-sizing over-allocated KV against memory the graphs then needed. Suspect it before re-deriving a sizing formula on a box that OOMs only after capture.
+
 When using LMCache as the backend, keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots and either over-subscribing or under-using the cache.
 
 ## Critical pitfalls
