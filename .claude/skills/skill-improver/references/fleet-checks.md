@@ -159,7 +159,7 @@ on a fleet that looked healthy — including a troubleshooting table silently dr
 its **Fix** column and a critical advisory credited to two release lines it never
 affected.
 
-**Three semantic sweeps were tried on 2026-09-15 and produced nothing but false
+**Four semantic sweeps were tried on 2026-09-15 and produced nothing but false
 positives. Do not rebuild them without a sharper idea:**
 
 | Sweep | Why it failed |
@@ -167,6 +167,7 @@ positives. Do not rebuild them without a sharper idea:**
 | Reference files nothing points at | A pointer can be a bare filename, a relative path, a `[[wikilink]]`, or live in another reference rather than the body. Three drafts, 21 → 9 → 1 hits, and the last one was reachable too. |
 | Two different versions called "latest" in one file | Grouping by version family lumps unrelated products together — a ten-product comparison row reads as one product contradicting itself. 53 hits, none real. |
 | Cross-skill pointers that resolve to no skill | Backtick-quoted lowercase-hyphenated tokens are mostly frontmatter fields, agent types, CLI flags and component names. 79 hits, none real. |
+| JSON literals inside shell fences | A single-quoted `{...}` in a shell example is far more often kubectl JSONPath, an awk program, a jq filter, a Go template or brace expansion than it is JSON. 152 candidates, 77 "invalid", every one a false positive. |
 
 The distinction is not "hard versus easy". It is whether the thing being checked has
 a **decidable** definition. When it does not, the sweep's own false-positive rate

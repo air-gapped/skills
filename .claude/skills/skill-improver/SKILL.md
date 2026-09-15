@@ -159,7 +159,7 @@ skills nobody was touching. Each exits non-zero on findings and has `--selfcheck
 | `check-expiring-claims.py` | content dated to become false, especially relative phrases beside a date | lifecycle tables of future EOL dates |
 
 **Read the expected-non-findings column before acting on output.** Details, measured
-hit counts, and the three sweep shapes already tried and abandoned:
+hit counts, and the four sweep shapes already tried and abandoned:
 `references/fleet-checks.md`.
 
 ### One File at a Time
