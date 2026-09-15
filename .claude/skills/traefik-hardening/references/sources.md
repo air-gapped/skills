@@ -4,6 +4,8 @@ Dated index of the primary sources behind this skill's claims. `freshen` mode re
 
 Traefik ships security advisories faster than its docs change — **48** in 2026 (re-counted 2026-09-15 over the full advisory list), 16 of them in the seven weeks after the doc rows below were last checked. The earlier figure of 30 was right when written — the point it supports has only got stronger. **Re-probe the advisory row on every pass even when nothing else looks stale**; several of those advisories are auth bypasses in the middlewares this skill configures, so a row-date that only tracks documentation will not move when the thing that matters does.
 
+**Freshened: 2026-09-15 — every row probed, and every row holds.** Patch floor re-confirmed at v3.7.13 / v2.11.57 (both 2026-09-04) and the advisory counts re-derived from the full list. Three absence claims re-tested and still true: InFlightReq still has no Redis backend, there is still no OSS-native Coraza (it is Hub-only), and none of the four tracked plugins is archived. **#8627's `stateReason` reads `COMPLETED` but the maintainer's closing comment declines the request** — the row's own caveat about not trusting that field is correct and stays.
+
 | Claim / area | Source | Last verified |
 |---|---|---|
 | Security advisories + patch floor — latest stable v3.7.13, legacy v2.11.57; the two 2026 criticals are the `digestAuth` complete authentication bypass (no CVE assigned) and CVE-2026-88007 HTTP/3 backend NTLM reuse | https://github.com/traefik/traefik/security/advisories | 2026-09-15 |

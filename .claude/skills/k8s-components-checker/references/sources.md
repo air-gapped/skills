@@ -100,32 +100,52 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
   the 2026-05-30 `releases/latest`-anchored pass should be re-checked per-minor-line
   on the next `freshen`.
 
+## 2026-09-15 — full re-ground pass
+
+Every component re-enumerated with `gh release list --exclude-pre-releases --json
+tagName,publishedAt,isLatest`. **Fourteen of seventeen components had moved**; the
+per-component rows below carry the measured version. Three notes that change how
+to probe, not just what the answer is:
+
+- **Do not sort a release list by date.** Harvester's `isLatest` is `v1.8.2`
+  (2026-08-06) while `v1.7.3` (2026-08-07) is one day newer on a maintenance line;
+  RKE2 published `v1.34.11`, `v1.35.8` and `v1.36.4` on one day. Date-ordering picks
+  the wrong ceiling for both. This is the 2026-05-31 correction below seen from the
+  other side: recency is not rank in *either* direction.
+- **ECK's probe method is broken, not just its URL.** The row's "older minors 404,
+  so a 404 infers the floor" rule no longer holds: `2.14`, `3.1`, `3.3` and `3.5`
+  all 404, while `2.16` and `3.0` still serve. It is not an old-vs-new split any
+  more, so a 404 carries no information. The canonical page has also moved to
+  `elastic.co/docs/deploy-manage/deploy/cloud-on-k8s`.
+- **A row can be stale on the day it is written.** KEDA v2.20.2 shipped ten days
+  before the previous pass stamped v2.20.1.
+
 ## RKE2 (anchor)
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.36.4+rke2r1 (2026-08-28) is `isLatest`; v1.35.8 and v1.34.11 published the SAME day on lower lines. v1.37 is in rc only.
 
 ## Rancher
 
 - URL: https://github.com/rancher/rancher/releases
 - Probe: `gh release list --repo rancher/rancher --limit 30`
 - Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
-- Last verified: 2026-07-21 (floor → 2.11; community ceiling v2.11.3)
+- Last verified: 2026-09-15 — floor -> 2.11; **community ceiling v2.11.3 re-confirmed** by reading every v2.11.x body up to v2.11.17 — .4 through .17 each self-declare "Prime version release"; only v2.11.3 says "Community and Prime". Overall latest line is v2.15.1, unrelated to this floor.
 
 ## Harvester
 
 - URL: https://github.com/harvester/harvester/wiki
 - Secondary URL: https://github.com/harvester/harvester/releases
 - Probe: WebFetch the per-version compatibility wiki page; filter to community columns.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.8.2 (2026-08-06) is `isLatest` — **v1.7.3 (2026-08-07) is one day newer and is NOT the ceiling.** Sorting this list by date picks the wrong answer. v1.9.0 is rc only.
 
 ## Cilium
 
 - URL: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
 - Secondary URL: https://github.com/cilium/cilium/releases
 - Probe: WebFetch docs page for the matrix; `gh release list --repo cilium/cilium` for per-version notes.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.20.1 (2026-08-18); v1.21 in pre-release.
 
 ## Tetragon
 
@@ -134,21 +154,21 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Chart source: `install/kubernetes/tetragon/Chart.yaml` at release tags (chart == app version; no `kubeVersion:`)
 - Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes".
 - Note: separate component from Cilium core. The k8s axis is loose; the **kernel** axis is load-bearing.
-- Last verified: 2026-07-21  (release-grounded: `releases/latest` = `v1.7.0`; minors 1.7/1.6/1.5 enumerated)
+- Last verified: 2026-09-15 — v1.7.1 (2026-08-25).
 
 ## cert-manager
 
 - URL: https://cert-manager.io/docs/releases/
 - Secondary URL: https://github.com/cert-manager/cert-manager/releases
 - Probe: WebFetch releases page; `gh release list --repo cert-manager/cert-manager`.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.21.2 (2026-09-11) — new v1.21 minor line since last pass.
 
 ## Kyverno
 
 - URL: https://kyverno.io/docs/installation/
 - Secondary URL: https://github.com/kyverno/kyverno/releases
 - Probe: WebFetch installation page for compatibility table; `gh release list --repo kyverno/kyverno`.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.19.1 (2026-09-10) — new v1.19 minor line since last pass.
 
 ## KEDA
 
@@ -156,14 +176,14 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Governance / support window: https://github.com/kedacore/governance/blob/main/SUPPORT.md
 - Secondary URL: https://github.com/kedacore/keda/releases
 - Probe: WebFetch docs + governance; `gh release list --repo kedacore/keda`.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v2.20.2 (2026-07-31), which landed 10 days AFTER the previous stamp and was missed by it. Still current — no release since.
 
 ## Argo CD
 
 - URL: https://argo-cd.readthedocs.io/en/stable/operator-manual/tested-kubernetes-versions/
 - Secondary URL: https://github.com/argoproj/argo-cd/releases
 - Probe: WebFetch tested-versions page; `gh release list --repo argoproj/argo-cd`.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v3.5.3 (2026-09-14); two full minors (3.4, 3.5) since the last pass.
 
 ## Harbor
 
@@ -171,21 +191,21 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/goharbor/harbor/releases
 - Probe: WebFetch docs index for release notes pages; `gh release list --repo goharbor/harbor`.
 - Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm. Authoritative k8s floor = chart `.github/workflows/integration.yaml` at the chart tag (README only states generic "1.20+").
-- Last verified: 2026-07-21 (floor → 2.11)
+- Last verified: 2026-09-15 — v2.15.2 (2026-07-02). **Absence claim re-tested and still true:** harbor-helm v1.19.2 `integration.yaml` lists k8s v1.34.0/v1.33.4/v1.32.8 — still no v1.35. Note goharbor.io/docs/ redirects to /docs/2.15.0/, so the cited URL is not the final one.
 
 ## Traefik
 
 - URL: https://github.com/traefik/traefik/releases
 - Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
 - Note: extract k8s API minimums from "Kubernetes" section of release notes; Traefik does not publish a separate matrix. v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
-- Last verified: 2026-07-21 (floor → 2.11; v2→v3 landing documented at §3.0)
+- Last verified: 2026-09-15 — v3.7.13 and v2.11.57 (both 2026-09-04). Same 3.7/2.11 lines — no new v2->v3 breaking hop.
 
 ## Rook (operator)
 
 - Primary URL: https://github.com/rook/rook/releases
 - Secondary URL: https://rook.io/docs/rook/latest-release/
 - Probe: `gh release list --repo rook/rook --limit 30`; for each in-scope release, `gh release view <tag>` and sift k8s floor + supported Ceph versions; WebFetch docs landing page as cross-reference.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v1.20.7 (2026-09-02) — new v1.20 minor line since last pass.
 
 ## Ceph (storage)
 
@@ -193,7 +213,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://docs.ceph.com/en/latest/releases/ (upstream Ceph EOL line + standalone breaking changes — Reef / Squid / Tentacle).
 - Probe: Read `compat/rook.md` for Rook↔Ceph pairings; WebFetch ceph.io releases page for upstream EOL signal + OSD encoding / cluster-wide breaking changes.
 - Note: Ceph's k8s axis collapses through Rook — the cluster doesn't see Ceph version against k8s directly; it sees Rook version against k8s, and Rook bounds Ceph.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — unchanged. Current named line is still Tentacle (20.2.4); no new named release, so this row's claims are untouched.
 
 ## OpenEBS (LocalPV-LVM only)
 
@@ -201,7 +221,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/openebs/openebs (umbrella → LVM pin map only — `charts/Chart.yaml` `dependencies:` at the umbrella tag)
 - Probe: `gh api --paginate 'repos/openebs/lvm-localpv/releases?per_page=100'` (two tag schemes — `vX.Y.Z` app tags + `lvm-localpv-X.Y.Z` chart tags; enumerate both, no candidate named). Cross-check the umbrella pin via `gh api repos/openebs/openebs/contents/charts/Chart.yaml?ref=<umbrella-tag>`.
 - Scope: **LocalPV-LVM only** (operator runs no other OpenEBS engine). Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva are out of registry scope — do NOT probe or sift them.
-- Last verified: 2026-07-21 (refocused to LVM; floor → LVM 1.5, the engine umbrella 4.0.1 pins)
+- Last verified: 2026-09-15 — lvm-localpv **v1.10.1** (2026-09-09). The umbrella `openebs/openebs` is now v4.6.1 and pins `lvm-localpv: 1.10.1`, so the "umbrella 4.0.1 pins LVM 1.5" mapping recorded earlier is stale as a *ceiling*. The LVM **floor** claim is unaffected — it describes an older umbrella.
 
 ## GitLab
 
@@ -209,27 +229,27 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat)
 - Probe: WebFetch docs sections covering k8s compat and Helm chart minimums.
 - Note: operator runs the EE binary as CE; ignore EE-only features in the sift.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — both doc URLs 200 direct, no redirect. Correctly not gh-groundable; this row states no version to falsify.
 
 ## ECK
 
-- URL: https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-supported.html
+- URL: https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s
 - Stack-matrix URL: https://www.elastic.co/support/matrix
 - Versioned supported-versions pages: https://www.elastic.co/guide/en/cloud-on-k8s/<minor>/k8s-supported.html (older minors 404 → infer floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
 - Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
-- Last verified: 2026-07-21 (floor → 2.16; ES 8.8/8.14/8.17 Stack-support table added)
+- Last verified: 2026-09-15 — v3.5.0 (2026-08-04). **The probe method below is broken, not just the URL** — see the pass note at the top: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve, so a 404 no longer infers "too old".
 
 ## Zalando postgres-operator
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-07-29 (v2.0.0 2026-07-27 + v2.0.1 2026-07-29 sifted into the compat file; latest is now v2.0.1 — PG 14–18, configmaps default-on)
+- Last verified: 2026-09-15 — v2.0.2 (2026-08-20), one patch past the v2.0.1 the last pass sifted.
 
 ## Grafana Mimir (chart_metadata)
 
 - URL: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/Chart.yaml
 - Probe: `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml` at each chart-release tag; extract `kubeVersion:` constraint and `appVersion:`.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — `Chart.yaml` path still resolves and the probe method still works. Last tagged stable chart is `mimir-distributed-6.2.0` (`kubeVersion: ^1.32.0-0`); HEAD carries a 6.3.0-weekly dev tag.
 
 ## NVIDIA GPU Operator
 
@@ -237,7 +257,7 @@ needed in the higher line), so `releases/latest` can sit *below* a real higher m
 - Secondary URL: https://github.com/NVIDIA/gpu-operator/releases
 - Probe: WebFetch platform-support page; `gh release list --repo NVIDIA/gpu-operator`.
 - Note: driver-version-per-release is captured in the compat file, not here.
-- Last verified: 2026-07-21
+- Last verified: 2026-09-15 — v26.7.0 (2026-08-21) — a new minor line past v26.3.2.
 
 ---
 
