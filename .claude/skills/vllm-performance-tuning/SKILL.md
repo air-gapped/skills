@@ -24,7 +24,15 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 **Throughput / batching:**
 - **`auto_tune.sh`** (`benchmarks/auto_tune/`) sweeps `max_num_seqs × max_num_batched_tokens`.
 - **`--gpu-memory-utilization`** — raise from 0.90 toward 0.95 until steady OOM margin, then back off. MoE: cap at 0.85 (all-to-all buffers not in accounting).
-- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. **Know your starting point: the default is device-gated, not 2048** — `vllm serve` on a ≥70 GiB non-A100 GPU starts at **8192 / `max_num_seqs`=1024**; only below 70 GiB (or on A100) is it 2048 / 256.
+- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. **Know your starting point: the default is gated on BOTH device memory and entrypoint**, not a single number. Read from `vllm/engine/arg_utils.py` at tag v0.29.0:
+
+  | Device | `vllm serve` (OpenAI API) | Offline `LLM(...)` |
+  |---|---|---|
+  | ≥160 GiB (B200/B300) | 16384 / seqs 1024 | 16384 / seqs 1024 |
+  | ≥70 GiB non-A100 (H100/H200) | **8192** / seqs 1024 | 16384 / seqs 1024 |
+  | everything else, incl. A100 | 2048 / seqs 256 | 8192 / seqs 256 |
+
+  **v0.28.0's "max_num_batched_tokens raised from 8192 to 16384" (#51726) did not change the serving default on H100/H200.** It raised the offline `LLM_CLASS` value and the big-memory tier. Taking that release note at face value and assuming your `vllm serve` default moved is the mistake to avoid — it is still 8192 there. TPU chips have their own smaller table (V6E 1024, V5E 512, V5P lower still, on the serving path).
 - **`--performance-mode {balanced,interactivity,throughput}`** — one flag for the whole posture; try it before hand-tuning the batching pair.
 
 **Latency / graph + compile:**

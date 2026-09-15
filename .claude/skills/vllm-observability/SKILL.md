@@ -123,6 +123,23 @@ namespace, where the legacy `vllm:kv_offload_total_*` series are deprecated in
 favour of a direction-split load/store set; see `references/metrics-catalog.md`
 § KV connector / offload for the verified names.
 
+**v0.28.0 renamed two tiering series, and the rename is invisible in code
+review.** `vllm:kv_offload_tiering_block_queries` and `…_block_hits` became
+`vllm:kv_offload_tiering_chunk_queries` and `…_chunk_hits` (#52812, listed under
+that release's Breaking Changes). The Python constants that hold them are
+**still called `BLOCK_QUERIES` and `BLOCK_HITS`** — only the exported strings
+changed — so a dashboard or alert keyed on the old names goes silently empty
+while nothing in the source looks renamed. Verified in
+`vllm/v1/kv_offload/tiering/base.py` at tag v0.29.0.
+
+The full tiering family at v0.29.0, all prefixed `vllm:kv_offload_tiering_`:
+`lookup_sync_delay_seconds`, `lookup_async_delay_seconds`, `read_bytes`,
+`read_time`, `write_bytes`, `write_time`, `chunk_queries`, `chunk_hits`,
+`promotion_job_failures`, `cascade_job_failures`, `promotion_allocation_failures`,
+`active_promotion_jobs`, `active_cascade_jobs`, `primary_write_usage_perc`,
+`primary_read_usage_perc`. These are emitted only when the offloading spec is a
+`TieringOffloadingSpec`.
+
 - V1 engine is default as of late 2025. V0 metrics hidden unless `--show-hidden-metrics-for-version=X.Y`.
 - Metric rename saga: `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`. PR #24245 (merged 2025-09-16) hid the deprecated `gpu_*` names behind `--show-hidden-metrics-for-version`; the proposed revert PR #25392 was **closed without merging** (2025-09-23), so the hiding stuck. Current main emits only `kv_cache_usage_perc` by default.
 - Deprecated on V1: `num_requests_swapped`, `cpu_cache_usage_perc`, `cpu_prefix_cache_hit_rate`, `time_per_output_token_seconds` (replaced by `inter_token_latency_seconds`), the `model_forward_time_milliseconds` / `model_execute_time_milliseconds` pair (now behind `--collect-detailed-traces`).

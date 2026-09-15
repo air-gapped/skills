@@ -5,6 +5,20 @@
 - **PD-disagg connector wiring is thin** (Dim 5) — `references/distributed.md` + SKILL.md router. Nixl/Mooncake/LMCache are named but the actual connector-config recipe (KVTransferConfig fields, proxy wiring) is shallow. Adding it is author-domain content + a multi-section write, not a one-iteration atomic edit; also overlaps `vllm-caching`, so the split needs a deliberate boundary decision.
 - **No bundled scripts** (Dim 7, ceiling) — skill points at vLLM's `benchmark_moe.py` / `auto_tune.sh` rather than shipping a wrapper. Scoring this past 7 would require authoring and testing a real bundled script (e.g. a tuned-config-presence checker); cannot be fabricated in one iteration without a tested artifact.
 
+## Resolved — 2026-09-15
+
+- **A release note would have made this skill wrong, and checking the source
+  stopped it.** vLLM v0.28.0 lists "`max_num_batched_tokens` raised from 8192 to
+  16384" (#51726) under New defaults. Applied literally, that would have
+  contradicted this skill's correct statement that `vllm serve` on a ≥70 GiB
+  non-A100 GPU starts at 8192. Reading `vllm/engine/arg_utils.py` at tag v0.29.0
+  shows the default is gated on **both** device memory and entrypoint: on
+  H100/H200 the offline `LLM_CLASS` value moved to 16384 while the
+  `OPENAI_API_SERVER` value is **still 8192**. Only the ≥160 GiB tier
+  (B200/B300) is 16384 on both paths. The skill now carries the full table plus
+  the TPU tier, and states explicitly that the release note does not apply to
+  the serving default on H100/H200.
+
 ## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
 
 **The pass's central finding is about method, not content: three prior freshens

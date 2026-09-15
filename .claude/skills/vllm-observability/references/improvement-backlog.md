@@ -8,6 +8,18 @@ Work-not-done log from skill-improver passes. Open = attempted-but-not-applied o
 
 - ~~**Re-probe non-GitHub sources online**~~ (Dim 9) — **CLOSED 2026-08-11.** All four rows (docs.vllm.ai metrics page, ebpfchirp article, DCGM dashboard 15117, canonical design doc) probed; all HTTP 200. Carried unprobed since 2026-04-24 through two passes — and the deferral was hiding content, not just staleness: the docs.vllm.ai page documents the concrete NIXL series that replaced a `vllm:nixl_*` wildcard in the catalog.
 
+## Resolved — 2026-09-15
+
+- **Two tiering metrics were renamed in v0.28.0 and the rename is invisible in
+  code review.** `vllm:kv_offload_tiering_block_queries` and `…_block_hits`
+  became `…_chunk_queries` and `…_chunk_hits` (#52812, under that release's
+  Breaking Changes). The Python constants holding them are **still named
+  `BLOCK_QUERIES` and `BLOCK_HITS`** — only the exported strings changed — so a
+  dashboard keyed on the old names goes silently empty while grepping the source
+  for a rename finds nothing. Verified in `vllm/v1/kv_offload/tiering/base.py`
+  at tag v0.29.0, and the full 15-metric tiering family is now listed alongside
+  the note that it only emits under a `TieringOffloadingSpec`.
+
 ## Resolved — 2026-08-11 (freshen)
 
 The 2026-07-21 trigger fired twice over — **v0.26.0** and **v0.27.0** both
