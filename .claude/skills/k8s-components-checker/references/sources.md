@@ -197,7 +197,7 @@ to probe, not just what the answer is:
 
 - URL: https://github.com/traefik/traefik/releases
 - Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
-- Note: extract k8s API minimums from "Kubernetes" section of release notes; Traefik does not publish a separate matrix. v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
+- Note: extract k8s API minimums from the "Kubernetes" section of release notes. **Traefik publishes no separate k8s support matrix — absence claim re-tested 2026-09-15 against the kubernetes-crd provider page, which carries no explicit "Kubernetes N.N" statement, and it holds.** (Two sibling "upstream publishes no matrix" claims in this registry turned out false the same day, so this one was checked rather than inherited.) v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
 - Last verified: 2026-09-15 — v3.7.13 and v2.11.57 (both 2026-09-04). Same 3.7/2.11 lines — no new v2->v3 breaking hop.
 
 ## Rook (operator)
@@ -235,7 +235,8 @@ to probe, not just what the answer is:
 
 - URL: https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s
 - Stack-matrix URL: https://www.elastic.co/support/matrix
-- Versioned supported-versions pages: https://www.elastic.co/guide/en/cloud-on-k8s/<minor>/k8s-supported.html (older minors 404 → infer floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
+- ~~Versioned supported-versions pages: `.../cloud-on-k8s/<minor>/k8s-supported.html`, older minors 404 → infer floor~~ — **RETIRED 2026-09-15, the rule no longer discriminates**: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve.
+- **WORKING PROBE:** `curl` https://www.elastic.co/support/matrix, read the `<script id="__NEXT_DATA__">` blob, take the CSV asset `support-matrix-product-and-kubernetes-elastic-cloud-on-kubernetes-and-kubernetes-distro.csv` — it carries **every ECK minor 1.0.x→3.5.x** with release date, k8s range and OpenShift range in one request. Historical note, the old rule inferred a floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
 - Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
 - Last verified: 2026-09-15 — v3.5.0 (2026-08-04). **The probe method below is broken, not just the URL** — see the pass note at the top: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve, so a 404 no longer infers "too old".
 
