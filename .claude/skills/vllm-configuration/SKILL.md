@@ -82,8 +82,13 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 
 **Version floors and failure modes that matter to a mirror (v0.28.0 / v0.29.0,
 swept 2026-09-15):**
-- **`transformers` floor moved to 5.15.0** (#51668, v0.28.0) and
-  `huggingface-hub` to 1.27.0, then **1.28.0** in v0.29.0 (#52797). A mirror
+- **The `transformers` runtime floor did NOT move to 5.15.0.** #51668 bumped only
+  `requirements/test/*`, a CI pin; `requirements/common.txt` reads
+  `transformers >= 5.5.3` at both v0.27.0 and v0.28.0, and **`>= 5.10.4` at
+  v0.29.0** (read from the tags 2026-09-15). Do not infer a security floor from
+  it — see the `transformers-config-tokenizers-expert` skill, where the CVE
+  fixes land at 5.10.1 / 5.13.0 / 5.15.0 and the engine's pin reaches none of
+  them. `huggingface-hub` moved to 1.27.0, then **1.28.0** in v0.29.0 (#52797). A mirror
   seeded for a v0.27.x deployment does not satisfy v0.28+; stage the new floors
   before the image bump, not after.
 - **The build now fails closed when the selected precompiled CUDA variant is

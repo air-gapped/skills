@@ -187,8 +187,9 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   (#49792); native DSA decode for MTP=3 on SM90 (#52164); GB10 fused-MoE FP8 tuning
   configs (#52502). ROCm stack to torch **2.12** / triton **3.7** (#50607), with
   DeepSeek-V4 on gfx11 and gfx950 (#47017, #52212). CPU: GPTQ/AWQ on **s390x**
-  (#51148), unquantized MoE for **Power VSX** (#51624). Transformers pinned to
-  **5.15.0** (#51668). **bitsandbytes moved out-of-tree to a plugin** (#43529) — a
+  (#51148), unquantized MoE for **Power VSX** (#51624). Transformers **CI pin** raised to
+  **5.15.0** (#51668) — `requirements/test/*` only; the runtime floor in
+  `requirements/common.txt` stays `>= 5.5.3` here and moves to `>= 5.10.4` in v0.29.0. **bitsandbytes moved out-of-tree to a plugin** (#43529) — a
   removal, not a deprecation warning. No FlashInfer, NIXL or CUDA base-version bump
   is stated in this release's notes.
 - **v0.27.1** (2026-08-11) — patch on v0.27.0; sole change is
