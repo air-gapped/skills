@@ -1,11 +1,25 @@
 # ECK (Elastic Cloud on Kubernetes) — compat (sifted from published matrix + release notes)
 
 - **Primary source:** https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-supported.html
-- **Secondary sources:** https://www.elastic.co/support/matrix (Stack-side only; does NOT cover ECK — verified empty) ; https://github.com/elastic/cloud-on-k8s/releases
+- **PRIMARY source (corrected 2026-09-15):** https://www.elastic.co/support/matrix — **it DOES cover ECK, in full.** Fetch the page with plain `curl` (no JS needed), read the server-rendered `<script id="__NEXT_DATA__">` blob, and take the CSV asset named `support-matrix-product-and-kubernetes-elastic-cloud-on-kubernetes-and-kubernetes-distro.csv`. It carries **every ECK minor from 1.0.x to 3.5.x** with release date, Kubernetes range and OpenShift range — one round trip for the whole history.
+- **Secondary:** https://github.com/elastic/cloud-on-k8s/releases ; https://elastic.co/docs/deploy-manage/deploy/cloud-on-k8s#k8s-supported (the current guide page — a tabbed widget covering only the ~5 newest minors, but it carries the Elastic Stack compatibility axis the CSV does not)
 - **Truth source type:** `published_matrix`
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15
+- **CORRECTION — the probe method was broken and the inferences it produced were wrong.** This file recorded that `support/matrix` "does NOT cover ECK — verified empty", and so fell back to probing per-minor guide pages and *inferring* windows from which ones 404. Both halves failed. The matrix does cover ECK (above). And the 404 rule no longer discriminates: probed today, **2.14, 3.1, 3.3, 3.4 and 3.5 all 404 while 2.16 and 3.0 still serve** — it is not an old-vs-new split, so a 404 carries no information at all.
+- **Four inferred values were wrong**, now replaced with published ones: 3.2.x k8s **1.30–1.34** (was inferred 1.29–1.34) and OpenShift **4.15–4.20** (was 4.14–4.19); 3.4.x k8s **1.31–1.36** (was 1.31–1.35) and OpenShift **4.16–4.22** (was 4.16–4.20). The 3.0.0 release date was also wrong: **2025-04-15**, not 2025-04-22. Unlike a stale number, a wrong inference never ages into correctness — it had to be read off the source to be caught.
+- **Published matrix, CSV dated 2026-08-04** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
+
+  | ECK line | Released | Kubernetes | OpenShift |
+  |---|---|---|---|
+  | 2.16.x | 2024-12-19 | 1.27–1.32 | 4.12–4.17 |
+  | 3.0.x | 2025-04-15 | 1.28–1.32 | 4.14–4.18 |
+  | 3.1.x | 2025-07-29 | 1.29–1.33 | 4.15–4.19 |
+  | 3.2.x | 2025-10-23 | **1.30–1.34** | **4.15–4.20** |
+  | 3.3.x | 2026-02-03 | 1.31–1.35 | 4.16–4.20 |
+  | 3.4.x | 2026-05-05 | **1.31–1.36** | **4.16–4.22** |
+  | 3.5.x | 2026-07-28 | 1.31–1.36 | 4.16–4.22 |
 - **Last release-verified (gh):** 2026-09-15 — **3.5.0 shipped 2026-08-04**, one
   minor above the newest section below (3.4.0 / latest patch 3.4.1). Its k8s,
   OpenShift, Helm and Stack ranges are **not recorded here** — the support
@@ -21,7 +35,7 @@ Notes on sources:
 - The current `k8s-supported.html` page collapses 3.3 and 3.4 into one matrix ("3.3 and later"). Per-minor differences are reconstructed from release notes (`v3.X.0` GitHub releases) and from `pkg/controller/elasticsearch/version/supported_versions.go` on the `3.x` branch.
 - The k8s/OpenShift/Helm floors for **3.1, 3.0, and 2.16 are matrix-grounded** off the still-reachable per-version pages: 2.16 / 3.0 versioned `…/cloud-on-k8s/<ver>/k8s-supported.html` resolve directly, and the *current* page still tabulates a per-minor row for 3.1/3.2 (3.1's Stack column is collapsed there, so 3.1's Stack range is carried from the 3.2 row — same pre-3.3 shape). Only the 3.2.0 floors remain inferred (its versioned page 404s). The 3.1 versioned URL also 404s but its row survives on the current page.
 - The Helm `Chart.yaml` `kubeVersion` is permissive (`>=1.21.0-0`) across all 3.x minors — **do not trust it**, it admits k8s minors the docs page excludes. Use the docs page.
-- `support/matrix` is Stack-only and does not surface ECK at all — confirmed 2026-05-28.
+- ~~`support/matrix` is Stack-only and does not surface ECK at all~~ — **false, retracted 2026-09-15.** See the corrected primary-source note above; it has carried the full ECK history throughout.
 
 ## 3.4.0 — 2026-05-05  (latest patch **3.4.1**, 2026-06-22 — version-verified 2026-07-21, patch contents not sifted)
 

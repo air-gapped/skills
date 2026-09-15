@@ -5,7 +5,12 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.16
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15
+- **SECURITY — this file tracked no advisories at all, and the gap is load-bearing.** Kyverno published **five advisories on 2026-09-10, every one fixed only in v1.19.1**, including **GHSA-5qq8-67g6-4h2w (CRITICAL): privilege escalation to cluster admin via Policy `apiCall` urlPath**, vulnerable `<1.19.1`. The others: GHSA-c5qq-7g2q-cpqp (HIGH, namespace-isolation bypass), GHSA-q825-p383-r9v5 (HIGH, SSRF-blocklist bypass), GHSA-5cjf-wwfg-pj4c (HIGH, ImageValidatingPolicy exception bypass), GHSA-59v6-2x73-wfg4 (HIGH, cross-namespace GlobalContextEntry read).
+  **Consequence for this registry: every Kyverno line it tracks below 1.19 — 1.16.x, 1.17.x, 1.18.x — is currently vulnerable to a CRITICAL cluster-admin escalation with no patch on its own line.** There is no backport; 1.19.1 is the only fixed release. A survey that reports those lines as merely "older" understates it.
+  Earlier, already fixed at the ceilings recorded below but never mentioned here: GHSA-79gf-7frw-68m9 (CRITICAL, cross-namespace generation, fixed 1.18.2), and a cluster of HIGHs fixed in 1.17.2 / 1.16.4 including ServiceAccount-token forwarding via `apiCall`.
+- **Release ceilings re-read with `isLatest`:** 1.19.x **v1.19.1** (2026-09-10, isLatest) · 1.18.x v1.18.2 · 1.17.x v1.17.2 · **1.16.x v1.16.4** (2026-04-23 — the 1.16 section never recorded a patch ceiling).
+- **k8s window for 1.19 (gap closed): v1.33–v1.35**, unchanged from 1.18. Verified against the `kyverno/website` commit that shipped the row, not only the rendered page — a frozen per-release doc mirror still shows a stale v1.32–v1.35 for 1.18, so the repo history is the primary source here.
 - **Last release-verified (gh):** 2026-09-15 — **1.19 has shipped** (1.19.0
   2026-08-20, 1.19.1 2026-09-10), which by the support rule below puts **1.18
   EOL as of 2026-08-20**. The matrices were not re-read, so the per-minor k8s

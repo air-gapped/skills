@@ -5,7 +5,10 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15
+- **Ceilings moved:** lvm-localpv **v1.10.1** (2026-09-09, `isLatest`), umbrella **v4.6.1** (2026-09-10). New umbrella→LVM pins: **4.6.1 → 1.10.1**, **4.6.0 → 1.10.0** (read from `charts/Chart.yaml` `dependencies:` at each umbrella tag).
+- **New hazard at 1.10.1 — node-level `formatOptions`.** `mkfs.xfs` ≥6.5 enables `nrext64` by default, and a filesystem created with it is **unmountable on kernel <5.19** — which covers RHEL 8/9, Ubuntu 20.04/22.04 and SLES 15. Set `lvmNode.defaultFormatOptions.xfs="-i nrext64=0"` on any such node, or the volume formats fine and then fails to mount.
+- Re-confirmed absent: no `kubeVersion:` constraint in the LVM chart at 1.9.0/1.9.1/1.10.0/1.10.1, and **no published k8s support matrix for OpenEBS anywhere** — `openebs.io/docs/releases` carries no compatibility statement. The "verify the k8s minor manually" guidance stands, and this absence claim was re-tested rather than inherited.
 - **Last release-verified (gh):** 2026-09-15 — the umbrella has moved past the
   newest pin recorded below: **v4.6.0 (2026-08-26)** and **v4.6.1 (2026-09-10)**
   exist, while the sections below stop at the LocalPV-LVM versions pinned by

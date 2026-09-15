@@ -5,7 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.17
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 — all four line ceilings and all four k8s windows re-read and **unchanged** (2.20 → 1.33–1.35 · 2.19 → 1.32–1.34 · 2.18 → 1.31–1.33 · 2.17 → 1.30–1.32; v2.20.2 still `isLatest`).
+- **A second CVE exists that this file did not track.** It recorded CVE-2025-68476 as the only one. **CVE-2026-53572 / GHSA-6w3m-4hhp-775q (medium, published 2026-06-01)**: the PostgreSQL scaler builds libpq connection strings and escapes only on a literal space, not tab/CR/LF, so a tenant-controlled field can inject extra libpq parameters — forcing `sslmode=disable`, or redirecting `host=` to capture the trailing `password=`. **Vulnerable ≤2.19.x, fixed only in 2.20.** Both 2.17.x and 2.18.x — lines this registry still tracks as current — are unpatched, and there is no backport.
 
 Support policy: N-2 against Kubernetes minors — each KEDA release tested against the current k8s minor plus the two prior. No formal time-bound EOL; community supports the latest minor + targeted CVE backports to the prior. CVE-2025-68476 was backported to 2.18.3 and 2.17.3 (Dec 2025) — older 2.17.x / 2.18.x are vulnerable; bump.
 
