@@ -3,6 +3,10 @@
 Dated per-URL index. Freshen mode reads and stamps `Last verified:` here.
 "Commit examined" per repo is recorded in backend-implementations.md.
 
+Freshened: 2026-09-15 — every row probed. **Two upstreams changed identity since the last pass**: `sst/opencode` → `anomalyco/opencode`, and `llamastack/llama-stack` → `ogx-ai/ogx` (the project renamed itself OGX). Both old URLs still redirect, so nothing 404s, but neither is canonical any more.
+
+The pinned versions below are **point-in-time examination snapshots, not latest-version claims** — every upstream here has released since, which is expected and not drift. `llama.cpp` also changed tag scheme, from `bNNNNN` nightly builds to semver.
+
 All repo rows were examined by source (local clones of the upstream repos)
 on 2026-07-19 at the listed commit.
 
@@ -14,11 +18,11 @@ on 2026-07-19 at the listed commit.
 | LiteLLM | https://github.com/BerriAI/litellm | 2026-07-19 | v1.92.0 (live) / main | b83c60b |
 | Bifrost | https://github.com/maximhq/bifrost | 2026-07-19 | — | 7a1543e85 |
 | Superagent Gateway | https://github.com/superagent-ai/gateway | 2026-07-19 | — | d182a5b |
-| opencode (anthropic provider) | https://github.com/sst/opencode | 2026-07-19 | v1.18.3 | 127bdb307 (v1.18.3 tag) |
+| opencode (anthropic provider) | https://github.com/anomalyco/opencode | 2026-09-15 | v1.18.3 examined; **latest is now v2.0.3** | 127bdb307 (v1.18.3 tag) — **repo moved `sst/` → `anomalyco/`**; the old URL redirects but is no longer canonical |
 | llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-07-19 | b10068 | 571d0d5 |
 | Ollama | https://github.com/ollama/ollama | 2026-07-19 | v0.32.1 | 573386c |
 | mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-07-19 | v0.9.0 | 0ae0476 |
-| Llama Stack / OGX | https://github.com/llamastack/llama-stack | 2026-07-19 | v1.2.1 | f05b98f |
+| Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.1 examined; **latest is now v1.4.0** | f05b98f — **repo moved and the project renamed**: its README now reads "Llama Stack is now OGX" |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-07-19 | v11.0.0 | b09a0e9 |
 
 ## Live-verification log

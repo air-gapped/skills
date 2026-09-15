@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed. Issue-tracker rows were re-read through the public Jira REST API and all remain in the states recorded here.
 
 External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date); volatile rows re-probed **2026-07-21** — see the freshen note at the end. Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits, open-bug status) — these move.
 
@@ -90,12 +90,12 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| endoflife.date/confluence | A | Latest **10.2.15 (2026-08-04)**; LTS 10.2→Dec 2027 / 9.2→Dec 2026; 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-08-18 |
+| endoflife.date/confluence | A | Latest **10.2.18 (2026-09-08)**, up from 10.2.15; LTS 10.2→Dec 2027 / 9.2→Dec 2026 (**both EOL dates unchanged**); 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-09-15 |
 | atlassian.com/licensing/data-center-end-of-life | A | DC sunset (announced 8 Sep 2025): sale-stop 30 Mar 2026, renewal 30 Mar 2028, read-only 28 Mar 2029; Bitbucket exception | 2026-06-07 |
 | confluence.atlassian.com/doc/confluence-10-2-release-notes-1652924013.html | A | 10.2 LTS, Java 21, TinyMCE 7.9.1 editor, Storage Format Source Editor in 10.2.3 | 2026-06-07 |
 | atlassian.com/migration/assess/compare-cloud-data-center/confluence; support.atlassian.com/migration/docs/differences-... | A | Cloud-only list (Whiteboards, Databases, Rovo/AI, automation, page-archive, guests, smart links); DC-only (nested macros, RTL) | 2026-06-07 |
 | confluence.atlassian.com/doc/the-editor-251006017.html; migration-from-wiki-markup-...-255363895.html | A | DC TinyMCE editor; wiki-markup deprecated-as-storage; unmigrated-wiki-markup macro | 2026-06-07 |
-| support.atlassian.com/organization-administration/docs/connect-confluence-data-center-to-rovo | A | Rovo AI Cloud-only; DC via connectors | 2026-06-07 |
+| support.atlassian.com/organization-administration/docs/connect-confluence-data-center-to-**teamwork-graph** | A | Rovo AI Cloud-only; DC via connectors. **Atlassian renamed this connector doc from "Rovo" to "Teamwork Graph"** — the old URL 301s to the new one. The mechanism is unchanged; the branding in prose may not be. | 2026-09-15 |
 | Team Calendars / Analytics-for-Confluence bundling KBs | A | Bundled on DC (Team Calendars since 1 Feb 2021 / 7.11+) | 2026-06-07 |
 
 ## Dread / critique (use for principles, read skeptically)

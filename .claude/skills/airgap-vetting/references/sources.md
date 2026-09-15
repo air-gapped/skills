@@ -1,5 +1,7 @@
 # Sources — dated per-URL index
 
+Freshened: 2026-09-15 — all 27 rows probed, no dead sources. One path moved (Replicated's air-gap install page, corrected inline). Signing-tool pins re-checked and unchanged: cosign v3.1.3 and notation v1.3.2 are both still the latest stable.
+
 Primary sources grounding the fingerprints, mechanisms, and pitfall classes
 in the pattern files. Verified 2026-07-14 unless restamped; freshen mode
 probes and re-stamps rows here, fastest-drifting rows marked `volatile`.
@@ -23,7 +25,7 @@ at re-vet time, not tracked here.
 | docs.slack.dev socket-mode | inbound-expectations sub-check (content-egress.md) | 2026-07-14 |
 | bitwarden.com configure-push-relay | vendor-held push keys pattern (content-egress.md) | 2026-07-14 |
 | docs.dependencytrack.org NVD (feeds retired 2023-12-15) | mirror-and-re-serve + upstream-feed-death lesson (sustainment.md) | 2026-07-14 |
-| docs.rke2.io airgap; openshift/oc-mirror README; docs.zarf.dev differential; hauler.dev; docs.replicated.com airgap | offline upgrade patterns + sync tooling (sustainment.md) | 2026-07-14 |
+| docs.rke2.io airgap; openshift/oc-mirror README; docs.zarf.dev differential; hauler.dev; docs.replicated.com airgap | offline upgrade patterns + sync tooling (sustainment.md). **Replicated moved the page**: `/enterprise/installing-airgap` now 404s — use `/enterprise/installing-existing-cluster-airgapped` (or `installing-embedded-air-gap`). `hauler.dev` redirects to `docs.hauler.dev`. | 2026-09-15 |
 | cosign issues #3423/#3437/#3368/#1293; cosign repo doc/cosign_verify.md (v2.6.3 vs v3.1.1, direct grep; v3.1.3 latest, no flag reinstatement); cosign pkg/cosign/env/env.go (SIGSTORE_* vars alive in v3); sigstore/root-signing README; blog.sigstore.dev cosign-3-0 | stdout lie, v2→v3 flag break, TUF 7-day expiry — volatile (verification-time.md) | 2026-08-18 |
 | kyverno#10115 (fixed by PR #9957, Kyverno 1.12.0)/#16435; docs.sigstore.dev policy-controller; Red Hat disconnected-sigstore articles (OCP 4.19/4.20) | policy-engine air-gap paths (verification-time.md) | 2026-08-18 |
 | notaryproject.dev v1.3 blog + notation#959 + trust-policy spec | default revocation enforcement + skip override (verification-time.md); notation v1.3.2 latest | 2026-08-18 |

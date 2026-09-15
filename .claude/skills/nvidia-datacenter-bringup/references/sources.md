@@ -1,5 +1,11 @@
 # Sources
 
+Freshened: 2026-09-15 — every row probed.
+
+**Three DOCA rows moved host this pass**: `docs.nvidia.com/doca/sdk/...` now permanently redirects to `networking-docs.nvidia.com/doca/archive/3-5-0/...`. The URLs below are the new ones.
+
+**Exception — Dell pages:** several `dell.com` rows answer `curl` with an Akamai block page (and one release-notes asset blocks a real browser too). Those were confirmed through a browser session against the linking driver page; treat a 403 there as a bot block, never as link rot.
+
 Dated index of authoritative URLs the skill draws on. `Last verified:` reflects the date the content was read in full; the loop's freshen pass updates these.
 
 ## NVIDIA — Fabric Manager
@@ -27,9 +33,9 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://docs.nvidia.com/doca/sdk/doca-host-installation-and-upgrade/index.html | DOCA-Host install for Ubuntu | 2026-08-18 | — |
-| https://docs.nvidia.com/doca/sdk/doca-host-installation-and-dkms-management-guide/index.html | DOCA DKMS sign-on-build mechanics | 2026-08-18 | — |
-| https://docs.nvidia.com/doca/sdk/index.html | MLNX_OFED end-of-life, DOCA-OFED forward path | 2026-08-18 | — |
+| https://networking-docs.nvidia.com/doca/archive/3-5-0/doca-host-installation-and-upgrade | DOCA-Host install for Ubuntu | 2026-08-18 | — |
+| https://networking-docs.nvidia.com/doca/archive/3-5-0/doca-host-installation-and-dkms-management-guide | DOCA DKMS sign-on-build mechanics | 2026-08-18 | — |
+| https://networking-docs.nvidia.com/doca/archive/3-5-0 | MLNX_OFED end-of-life, DOCA-OFED forward path | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/ | DOCA repo root (umbrella GPG key) | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/public_keys/ | Current split GPG keys (deb + rpm) | 2026-08-18 | rotated 2026-02-24 |
 | https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/ | DOCA 3.2 LTS Ubuntu 24.04 flat repo | 2026-08-18 | LTS line — path note: `ubuntu24.04` with dot |
@@ -53,11 +59,11 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes | 2026-08-18 | **v26.3.3 still latest** (2026-06-25; re-confirmed via releases API); 26.3.2 (2026-05-29) in between |
+| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes | 2026-08-18 | **v26.7.0 is now latest** (2026-08-21), superseding v26.3.3 (2026-06-25); 26.3.2 (2026-05-29) in between |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html | Driver branch + GPU compat matrix | 2026-08-18 | — |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/install-gpu-operator.html | Pre-installed driver mode helm flags | 2026-08-18 | — |
 | https://github.com/NVIDIA/gpu-operator | Upstream source: validator code, helm values.yaml | 2026-08-18 | — |
-| https://github.com/NVIDIA/gpu-operator/issues/2231 | B300 PCI 0x3182 validator name table | 2026-08-18 | **CLOSED 2026-07-27 by maintainer tariq1890** — closing thread asserts "B300 should be supported" but names no fix PR; troubleshooting note kept with a re-test-on-newer-operator caveat |
+| https://github.com/NVIDIA/gpu-operator/issues/2231 | B300 PCI 0x3182 validator name table | 2026-08-18 | **CLOSED 2026-07-27 — and the fix is now identifiable.** PR **#2625** ("Update default vGPU devices config for vGPU 20.0", merge `9724cee4`) references this issue and adds the B300 `0x318210DE` vGPU entry. Release containment by `gh api compare`: **not** in v26.3.3 (diverged), **is** in v26.7.0 (behind) — so it ships from **v26.7.0**. The earlier "names no fix PR, re-test on a newer operator" caveat is resolved: the newer operator is v26.7.0 |
 | https://github.com/NVIDIA/gpu-operator/issues/1595 | CLOSED 2025-11-17: FM broken in 570.158.01 | 2026-08-18 | fixed in 570.172.08 |
 | https://github.com/NVIDIA/gpu-operator/issues/2463 | CONFIG_MEMORY_HOTPLUG hostPath mount | 2026-07-21 | **now CLOSED 2026-07-07** (was open at last pass) — recheck any workaround the skill still recommends for it |
 | https://github.com/NVIDIA/gpu-operator/issues/286 | CLOSED: original cudaErrorSystemNotReady → FM diagnosis | 2026-08-18 | — |

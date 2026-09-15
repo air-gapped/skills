@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-08-19 (exceptions: 3 bot-blocked rows, noted below)
+Freshened: 2026-09-15 (exceptions: 5 bot-blocked rows, noted below) — all 126 URL rows probed. Both Data Center patch levels moved (11.3.11, 10.3.25) with every LTS EOL date unchanged and still no 11.4 line. **Two further rows are now bot-blocked** beyond the three already listed — `age-of-product.com` and `scrum.org` answer every fetcher with 403/202; both were corroborated live through search snippets and are not dead.
 
 **Contents:** Execution layer · Hierarchy · Work modeling / decomposition · Lean configuration · Workflows, automation, reporting · Non-software · Platform state (2026-08 pass) · Multilingual & discovery · Dread / critique
 
@@ -150,7 +150,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 | Source | Tier | Supports | Last verified |
 |---|---|---|---|
 | https://atlassian.com/licensing/data-center-end-of-life | A | DC EOL: sale-end 2026-03-30, renew 2028-03-30, read-only 2029-03-28 (all three dates re-confirmed on the live page) | 2026-08-18 |
-| https://endoflife.date/jira-software | A | Server EOL 2024-02-15; latest **11.3.10 (2026-08-07)**; LTS 11.3 (EOL 2027-12-03) & 10.3 (latest 10.3.24, EOL 2026-12-05) | 2026-08-18 |
+| https://endoflife.date/jira-software | A | Server EOL 2024-02-15; latest **11.3.11 (2026-09-02)**; LTS 11.3 (EOL 2027-12-03) & 10.3 (latest **10.3.25**, 2026-09-01, EOL 2026-12-05) — **both patch levels moved, both EOL dates unchanged, and there is still no 11.4 line** | 2026-09-15 |
 | https://confluence.atlassian.com/jirasoftware/jira-software-11-3-x-release-notes-1689288832.html | A | DC 11.x leanness guardrails (JQL cap, automation-rule restriction, optimizer, 10k board); release-notes index confirms **11.3 is still the newest DC line** (no 11.4) | 2026-08-18 |
 | https://atlassian.com/software/jira/ai | A | Rovo/AI is **Cloud-only**; DC via Cloud connectors | 2026-06-07 |
 | https://community.developer.atlassian.com/t/work-is-the-new-collective-term-for-items-tracked-in-jira/88552 | A/B | issue→work item is **Cloud-only**; APIs keep "issue" | 2026-06-07 |
