@@ -252,6 +252,32 @@ Deep dive with file:line per knob: `references/engine-knobs.md`.
 
 ---
 
+## Loading a tokenizer is a trust decision, even without `trust_remote_code`
+
+Three 2026 fixes landed in this exact code path. All are reachable from a plain
+`AutoTokenizer.from_pretrained(...)` on a hostile repo, with **no**
+`trust_remote_code`, which is the assumption most preflight code is built on.
+
+| Fix | Shipped | What a hostile repo could do |
+|---|---|---|
+| **#46279** | v5.13.0 | Put `"vocab_file": "/etc/x"` or `"../x"` in `tokenizer_config.json`; the value was kept and opened verbatim — **arbitrary local file read**. Now the repo-resolved path wins over a config-supplied one for `vocab_file` / `merges_file` / `tokenizer_file`, while an explicit user kwarg is still honoured. |
+| **#47498** | v5.15.0 | Put regex metacharacters in the tokenizer filename; it was passed straight to `re.search()` as a pattern — **ReDoS** via catastrophic backtracking. Now `re.escape()`d. |
+| **#46191** | v5.10.1 | Name a chat template `"../../foo"`; template names became `<name>.jinja` paths under a directory join, so `save_pretrained` **wrote outside the target directory**. Names are now restricted to plain filenames in both `PreTrainedTokenizerBase.save_pretrained` and `ProcessorMixin.save_pretrained`. |
+
+**Floor: transformers ≥ 5.15.0** clears all three, which is also vLLM v0.28.0's
+floor — so the version you need for engine compatibility is the version you need
+for these. Note the advisory for the third records `first_patched_version:
+5.10.0`, and **v5.10.0 does not exist**: it was yanked for being published from
+a corrupted branch, and v5.10.1's own notes say so. The first installable fix is
+5.10.1.
+
+The operational point is narrower than "untrusted models are dangerous". The
+`trust_remote_code` flag is the control everyone reaches for, and none of these
+three needed it. Treat **repo provenance**, not the flag, as the boundary — the
+same conclusion `vllm-configuration` reaches from the opposite direction, where
+a loader passed an inert `trust_remote_code` onward and executed model code with
+it set to `False`.
+
 ## Hall of shame (verified 2026)
 
 Pre-loaded real incidents. Each entry in `references/hall-of-shame.md`

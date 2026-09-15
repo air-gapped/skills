@@ -28,13 +28,28 @@ Needs `gh` authenticated. Skills whose repo has no advisory feed, or where the
 API call fails, are skipped silently rather than reported as zero — an
 unreachable feed is not the same as a clean one.
 
-One thing this script deliberately does not report, because you cannot get it
-from the feed: **a version floor**. Measured 2026-09-15 across three upstreams
-(vllm-project/vllm 35 advisories, open-webui/open-webui 69,
-rancher/rancher 23), `first_patched_version` was null for **every single
-advisory** in the window. Tooling that reads that field concludes nothing is
-fixed. Derive a floor from the `vulnerable_version_range` ceilings instead, and
-treat a populated `first_patched_version` as the exception rather than the rule.
+**An empty result is not zero advisories.** `repos/<o>/<r>/security-advisories`
+returns `[]` both for a repo that has published none and for one where the token
+lacks `repository_advisories=read` — and the second case is common on repos you
+do not administer. huggingface/transformers returns `[]` here while the global
+database lists four 2026 advisories for the same package. Empty rows are
+therefore reported as `no repo feed`, not skipped, so the gap is visible. Check
+those against the ecosystem database, which is a different endpoint keyed by
+package rather than repo:
+
+    gh api "/advisories?ecosystem=pip&affects=<package>&per_page=50"
+
+**On version floors.** Where the repo-level feed does return data, this pass
+measured `first_patched_version` null for every advisory across
+vllm-project/vllm (35), open-webui/open-webui (69) and rancher/rancher (23), so
+a floor there has to come from `vulnerable_version_range` ceilings. The global
+database behaves differently and does populate the field. Do not generalise
+either way: check which endpoint answered before trusting that field.
+
+**And a populated `first_patched_version` can still name a version you cannot
+install.** GHSA-xrqw-3rrv-vx5w records `5.10.0` for transformers; that release
+was yanked for being published from a corrupted branch, and the first usable fix
+is 5.10.1.
 """
 
 import argparse
@@ -95,6 +110,23 @@ def collect(root: Path):
         if adv is None:
             continue
         newer = [a for a in adv if (a.get("published_at") or "") > since]
+        if not adv:
+            # Empty is ambiguous: no published advisories, or no read permission
+            # on a repo we do not administer. Surface it rather than hide it.
+            rows.append(
+                {
+                    "skill": d.name,
+                    "upstream": f"{rp[0]}/{rp[1]}",
+                    "verified": since,
+                    "verified_from": how,
+                    "new": 0,
+                    "critical": 0,
+                    "high": 0,
+                    "worst": None,
+                    "note": "no repo feed - check the ecosystem database by package",
+                }
+            )
+            continue
         if not newer:
             continue
         sev = collections.Counter(a.get("severity") for a in newer)
@@ -128,13 +160,13 @@ def main():
         print(json.dumps(rows, indent=2))
         return
     print(
-        "%-34s %-30s %-12s %4s %4s %4s"
-        % ("skill", "upstream", "verified", "new", "crit", "high")
+        "%-34s %-30s %-12s %4s %4s %4s  %s"
+        % ("skill", "upstream", "verified", "new", "crit", "high", "note")
     )
     for r in rows:
         mark = "!" if r["critical"] else " "
         print(
-            "%s%-33s %-30s %-12s %4d %4d %4d"
+            "%s%-33s %-30s %-12s %4d %4d %4d  %s"
             % (
                 mark,
                 r["skill"],
@@ -143,12 +175,22 @@ def main():
                 r["new"],
                 r["critical"],
                 r["high"],
+                r.get("note", ""),
             )
         )
+    unseen = [r for r in rows if r["new"]]
+    nofeed = [r for r in rows if not r["new"]]
     print(
         "\n%d skills have unseen advisories. Rows marked ! have an unseen CRITICAL."
-        % len(rows)
+        % len(unseen)
     )
+    if nofeed:
+        print(
+            "%d more returned an EMPTY repo feed, which is not the same as zero: the "
+            "token may lack repository_advisories=read. Check those by package against\n"
+            '  gh api "/advisories?ecosystem=<eco>&affects=<package>&per_page=50"'
+            % len(nofeed)
+        )
     print(
         "Counts are leads: check that the advisory touches the skill's subject before acting."
     )

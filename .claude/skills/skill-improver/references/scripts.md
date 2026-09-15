@@ -23,6 +23,19 @@ the 5,000 guidance.
   touch a given skill's subject. A repo with no advisory feed, or a failed API
   call, is skipped rather than reported as zero, because an unreachable feed is
   not a clean one.
+
+  **Corrected 2026-09-15, same day it shipped.** The first version skipped an
+  empty repo feed silently, which hid a real class of gap: the endpoint returns
+  `[]` both for a repo with no published advisories and for one where the token
+  lacks `repository_advisories=read`, which is common on repos you do not
+  administer. Measured on this fleet, **27 skills were being dropped that way**
+  — including `huggingface/transformers`, which returns `[]` from the repo
+  endpoint while the ecosystem database lists four 2026 advisories for the same
+  package, two of them high and in the tokenizer-loading path. Empty rows now
+  print with a `no repo feed` note and a pointer to the package-keyed endpoint,
+  and the footer counts them separately. The docstring's earlier claim that
+  `first_patched_version` is reliably null was also withdrawn: that holds on the
+  repo feed and is false on the ecosystem database.
 - **`scripts/dedup-fleet.py`** — Fleet driver for intra-skill dedup, and the
   measurement behind Pattern 6.1. Runs `context-optimization-check` per skill,
   writing each result as it lands so a killed pass keeps what finished, and

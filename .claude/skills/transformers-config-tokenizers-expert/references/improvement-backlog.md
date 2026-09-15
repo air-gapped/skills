@@ -3,6 +3,47 @@
 Tracks issues found during skill-improver passes that could not be resolved
 in a single atomic iteration, plus what each pass actually changed.
 
+## Resolved — 2026-09-15 (freshen to v5.17.0)
+
+- **Three 2026 security fixes land in exactly this skill's subject — the
+  tokenizer/config loading path — and all three are reachable with NO
+  `trust_remote_code`.** #46279 (v5.13.0): a `"vocab_file": "/etc/x"` or
+  `"../x"` in `tokenizer_config.json` was kept and opened verbatim, giving
+  **arbitrary local file read** from a plain `AutoTokenizer.from_pretrained`.
+  #47498 (v5.15.0): the tokenizer filename went straight into `re.search()` as
+  a pattern, so regex metacharacters in a repo-controlled name gave **ReDoS**.
+  #46191 (v5.10.1): chat-template names became `<name>.jinja` paths under a
+  directory join, so `"../../foo"` made `save_pretrained` **write outside the
+  target directory**. Added as a table with the floor.
+- **The floor is transformers ≥ 5.15.0, which is also vLLM v0.28.0's floor** —
+  the version needed for engine compatibility is the version needed for these.
+- **A patched-version field that names a release you cannot install.** The
+  advisory for #46191 records `first_patched_version: 5.10.0`. **v5.10.0 does
+  not exist**: it was yanked for being published from a corrupted branch, and
+  v5.10.1's own release notes say so verbatim. First installable fix is 5.10.1.
+  Worth keeping as a worked example of why a patched-version field is a lead
+  rather than an answer.
+- **Chat-template precedence is now documented upstream, so it stops being
+  folklore.** `docs/source/en/chat_templating_writing.md` §"Loading precedence"
+  (PR #47650, shipped v5.15.0): the loader reads any embedded `chat_template`
+  from `tokenizer_config.json`, then **overrides it** with a root
+  `chat_template.jinja` if present, then merges `additional_chat_templates/`.
+  When both exist the embedded value is read and discarded — so a repo with a
+  *current* inline template beside a *stale* sidecar silently serves the stale
+  one. The docs now call the embedded field and `chat_template.json`
+  "load-only legacy format[s]"; writers only ever emit the sidecar.
+
+### Checked — one citation that does not resolve
+
+- **`transformers_keys_to_ignore_compat` returns 0 hits** in a code search over
+  `huggingface/transformers`. The real, populous analogs are
+  `_keys_to_ignore_on_load_missing` / `_keys_to_ignore_on_load_unexpected` and
+  `keys_to_ignore_at_inference`. Recorded as **unverified rather than removed**:
+  the name surfaced in a *vLLM Omni* requirements comment referring to that
+  project's own `model_executor/models/utils.py`, so it may be a vllm-omni-side
+  symbol rather than a transformers one. Do not cite it as a transformers
+  attribute without resolving it there first.
+
 ## Open
 
 - **RECON/APPLY version mismatch — recon scored a different skill** (process, not a content dim).

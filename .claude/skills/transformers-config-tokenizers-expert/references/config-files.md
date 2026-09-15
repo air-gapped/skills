@@ -214,10 +214,24 @@ that Gemma-4 has a dedicated processor is wrong.
 
 **Holds:** pure Jinja template string.
 
-**v5 status:** the **preferred** location. Inline
-`tokenizer_config.json["chat_template"]` still honored for backward
-compat, but new models (Gemma-4, Llama-3.x recent) ship only the
-sidecar file.
+**v5 status:** the **preferred** location, and since v5.15.0 the precedence is
+documented rather than folklore. `docs/source/en/chat_templating_writing.md`
+§"Loading precedence" (added by PR #47650) states the loader:
+
+1. reads any `chat_template` field in `tokenizer_config.json` (or, for
+   processors, the legacy `chat_template.json`);
+2. reads `chat_template.jinja` at the repo root if present and uses it as the
+   `default` template, **overriding** step 1;
+3. merges every `.jinja` in `additional_chat_templates/`, keyed by filename stem.
+
+So when both exist the embedded value is read and then **fully discarded** — a
+repo carrying a stale inline template alongside a current sidecar behaves
+correctly, and one carrying a *current* inline template alongside a stale
+sidecar does not. The docs call the embedded field and `chat_template.json`
+**"load-only legacy format[s] … kept for backward-compatible loading only. Don't
+write chat templates to either of them"**; `save_pretrained` and `push_to_hub`
+only ever write the sidecar. New models (Gemma-4, recent Llama-3.x) ship only
+the sidecar.
 
 **Issue #45205** (transformers 5.5.0, 2026; GitHub shows it closed 2026-06-10 but that was the **stale bot**, not a fix — still unresolved as of 2026-07-21): Gemma-4 E2B/E4B
 ship only the sidecar file; `AutoTokenizer` fails to wire it into
