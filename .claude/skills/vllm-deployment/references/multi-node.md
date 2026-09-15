@@ -124,7 +124,7 @@ Dynamo + vLLM + NIXL specifically:
 
 Three ingredients:
 
-1. **NVIDIA Network Operator** — installs Mellanox OFED drivers, SR-IOV device plugin, Multus CNI. https://docs.nvidia.com/networking/display/kubernetes
+1. **NVIDIA Network Operator** — installs Mellanox OFED drivers, SR-IOV device plugin, Multus CNI. https://docs.nvidia.com/networking/software/cloud-orchestration/index.html
 2. **Secondary network via Multus** — annotate the pod with `k8s.v1.cni.cncf.io/networks` pointing at a `NetworkAttachmentDefinition` for the RDMA/SR-IOV fabric.
 3. **NCCL env on pods**: `NCCL_IB_HCA=mlx5_*`, `NCCL_IB_DISABLE=0`, `NCCL_IB_GID_INDEX=3` (RoCE v2), `NCCL_SOCKET_IFNAME=<CNI-iface>`.
 

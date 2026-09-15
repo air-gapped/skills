@@ -341,7 +341,7 @@ Two patterns supported in 26.x:
 1. **Active-passive**: One cluster takes traffic, the other is warm. DB replicates between sites (CNPG cross-cluster, AWS RDS read replica, etc.). On failover, switch DNS + promote the replica.
 2. **Active-active with external Infinispan**: Both clusters serve traffic. Each Keycloak cluster points at its local Infinispan, and the Infinispan clusters do site-to-site replication. Sessions survive a DC outage.
 
-The active-active pattern was rewritten in 26.x to use external Infinispan (the legacy embedded JGroups cross-site path is deprecated and being removed). The full guide lives at `https://www.keycloak.org/high-availability/`. Don't roll your own — the failure modes are subtle (split-brain handling, session ownership, lock service).
+The active-active pattern was rewritten in 26.x to use external Infinispan (the legacy embedded JGroups cross-site path is deprecated and being removed). The full guide lives at `https://www.keycloak.org/high-availability/introduction`. Don't roll your own — the failure modes are subtle (split-brain handling, session ownership, lock service).
 
 ---
 

@@ -156,7 +156,7 @@ The full tiering family at v0.29.0, all prefixed `vllm:kv_offload_tiering_`:
 - Metrics source of truth: https://github.com/vllm-project/vllm/tree/main/vllm/v1/metrics
 - Example dashboards: https://github.com/vllm-project/vllm/tree/main/examples/observability
 - Production metrics docs: https://docs.vllm.ai/en/stable/usage/metrics/
-- OTel POC: https://docs.vllm.ai/en/latest/examples/online_serving/opentelemetry/
+- OTel POC: https://docs.vllm.ai/en/stable/examples/observability/opentelemetry.html
 - Blog — Anatomy of vLLM (defines goodput, scheduler scoring): https://vllm.ai/blog/anatomy-of-vllm
 - Blog — Large-Scale Serving (DeepSeek @ 2.2k tok/s/H200): https://blog.vllm.ai/2025/12/17/large-scale-serving.html
 - Blog — MorIIO disagg (bimodal-ITL, goodput framing): https://vllm.ai/blog/moriio-kv-connector

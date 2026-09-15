@@ -205,7 +205,7 @@ For multi-cluster active-active or active-passive setups, Keycloak no longer rel
 --cache-remote-tls-enabled=true
 ```
 
-See `https://www.keycloak.org/high-availability/` for the full topology, including the recommended pattern: Keycloak in DC1 + Keycloak in DC2 each pointing at their own local Infinispan, with Infinispan doing site-to-site replication between DCs. This pattern survives a DC failure with bounded session loss.
+See `https://www.keycloak.org/high-availability/introduction` for the full topology, including the recommended pattern: Keycloak in DC1 + Keycloak in DC2 each pointing at their own local Infinispan, with Infinispan doing site-to-site replication between DCs. This pattern survives a DC failure with bounded session loss.
 
 ---
 

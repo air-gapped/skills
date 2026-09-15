@@ -29,7 +29,7 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 |---|---|---|---|
 | https://docs.nvidia.com/doca/sdk/doca-host-installation-and-upgrade/index.html | DOCA-Host install for Ubuntu | 2026-08-18 | — |
 | https://docs.nvidia.com/doca/sdk/doca-host-installation-and-dkms-management-guide/index.html | DOCA DKMS sign-on-build mechanics | 2026-08-18 | — |
-| https://docs.nvidia.com/doca/sdk/MLNX_OFED-to-DOCA-OFED-Transition-Guide/index.html | MLNX_OFED end-of-life, DOCA-OFED forward path | 2026-08-18 | — |
+| https://docs.nvidia.com/doca/sdk/index.html | MLNX_OFED end-of-life, DOCA-OFED forward path | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/ | DOCA repo root (umbrella GPG key) | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/public_keys/ | Current split GPG keys (deb + rpm) | 2026-08-18 | rotated 2026-02-24 |
 | https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/ | DOCA 3.2 LTS Ubuntu 24.04 flat repo | 2026-08-18 | LTS line — path note: `ubuntu24.04` with dot |

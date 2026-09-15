@@ -101,7 +101,7 @@ docker run ... \
 
 For IB/RoCE: `-e NCCL_IB_DISABLE=0 -e NCCL_IB_HCA=mlx5_*`
 
-**vLLM debugging guide**: https://docs.vllm.ai/en/stable/getting_started/debugging/
+**vLLM debugging guide**: https://docs.vllm.ai/en/stable/usage/troubleshooting/ (was `getting_started/debugging/`, now 404)
 
 ## Rootless Docker + `nvidia-container-toolkit`
 

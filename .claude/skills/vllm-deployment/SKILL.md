@@ -167,7 +167,7 @@ the entrypoint-gated table; on H100/H200 `vllm serve` still starts at 8192.
 
 ## External references
 
-Canonical entry: https://docs.vllm.ai/en/stable/deployment/ — topic URLs live in the reference files (`references/ecosystem.md`, `references/multi-node.md`, `references/openshift.md`).
+Canonical entry: https://docs.vllm.ai/en/stable/ (there is **no** `/deployment/` index page — `deployment/k8s/` and `deployment/docker/` are direct) — topic URLs live in the reference files (`references/ecosystem.md`, `references/multi-node.md`, `references/openshift.md`).
 
 Sibling skills: `vllm-observability`, `vllm-caching`, `vllm-performance-tuning`, `vllm-benchmarking`, `vllm-configuration`, `vllm-nvidia-hardware`, `helm`, `openshift-app`.
 

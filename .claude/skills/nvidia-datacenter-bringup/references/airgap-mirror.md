@@ -178,4 +178,4 @@ Set up Renovate (or equivalent) against an internal manifest listing pinned vers
 
 Last standalone MLNX_OFED October 2024; security-only until October 2027. CX-8 support is **only** in DOCA-OFED. Do not mirror MLNX_OFED for new B300 builds.
 
-Reference: https://docs.nvidia.com/doca/sdk/MLNX_OFED-to-DOCA-OFED-Transition-Guide/index.html
+Reference: https://docs.nvidia.com/doca/sdk/index.html

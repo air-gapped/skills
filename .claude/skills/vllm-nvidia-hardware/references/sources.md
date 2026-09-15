@@ -85,7 +85,7 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [Mooncake (FAST 2025)](https://arxiv.org/abs/2407.00079) [LV: 2026-08-18]
 - [vLLM paged attention (SOSP 2023, foundational)](https://arxiv.org/abs/2309.06180) [LV: 2026-08-18]
 - [AWQ (MLSys 2024, foundational)](https://arxiv.org/abs/2306.00978) [LV: 2026-08-18]
-- [Transformer Engine docs](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html) [LV: 2026-08-18]
+- [Transformer Engine docs](https://docs.nvidia.com/deeplearning/transformer-engine/) [LV: 2026-08-18]
 
 ## vLLM releases
 
