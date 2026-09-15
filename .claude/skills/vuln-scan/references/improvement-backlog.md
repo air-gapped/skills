@@ -3,6 +3,27 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15 (untrusted_data isolation, completing the family)
+
+- **The confidence-scorer spawn embedded a finding block unwrapped.** Step 3b's
+  prompt was `FINDING:\n{the full <finding> block}\nTARGET: {target_dir}`. That
+  block is produced by a reviewer subagent reading the target's source, so it is
+  attacker-influenced in exactly the way `/patch` and `/triage` already guard
+  against. It now sits inside `<untrusted_data id="{nonce}">` with the
+  data-not-instructions line after it.
+- **Found by checking the family for consistency rather than by a report.**
+  `/patch` already had the pattern, correctly, including the nonce on the
+  closing tag; `/triage` was fixed in the same pass; this was the remaining
+  member. Three of four spawn attacker-influenced text, and only one of them had
+  the guard — the kind of gap that shows up when you ask "does the sibling do
+  this too?" rather than when you read one skill in isolation.
+- The `{nonce}` contract is spelled out inline: fresh `secrets.token_hex(16)`
+  per spawn, on **both** tags, plus sanitization of closing-tag lookalikes
+  before substitution. The closing tag carrying the nonce is the load-bearing
+  part — a bare `</untrusted_data>` in the finding text cannot terminate a block
+  whose terminator needs an unguessable id, which is the defect upstream fixed
+  in PR #13.
+
 ## Resolved — 2026-09-15
 
 - **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
