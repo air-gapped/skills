@@ -32,7 +32,7 @@ Other key files checked, no H100/H200 switch found:
   `max_cudagraph_capture_size = min(max_num_seqs*2, 512)`; capture
   pattern `[1, 2, 4] + range(8, 256, 8) + range(256, max+1, 16)`.
   Identical for H100 and H200.
-- `vllm/platforms/cuda.py` — zero hits on `max_num_seqs`, `H100`,
+- `vllm/platforms/cuda.py` — zero hits (**re-tested 2026-09-15 at both v0.27.0 and v0.29.0: still 0**) on `max_num_seqs`, `H100`,
   `H200`, `sm_90`, or `sm_100`.
 - `vllm/v1/spec_decode/{eagle,llm_base_proposer,extract_hidden_states,dflash}.py`
   — `max_batch_size` is just `scheduler_config.max_num_seqs`

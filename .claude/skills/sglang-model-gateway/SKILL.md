@@ -230,7 +230,7 @@ infrastructure fault rather than a gateway bug.
 
 2. **PD-disaggregation does not support vLLM workers.** Per PR #13120 limitation matrix. Don't mix vLLM into prefill/decode pools.
 
-3. **The Rust gateway ignores `HF_ENDPOINT` entirely.** Service-discovery probes use raw `reqwest`; tokenizer fetches go through `llm-tokenizer`'s `hf-hub` path which is also `HF_ENDPOINT`-unaware. Verified by grep: zero hits for `HF_ENDPOINT` in the gateway source. Always pass a local directory to `--model-path` / `--tokenizer-path` in air-gapped clusters.
+3. **The Rust gateway ignores `HF_ENDPOINT` entirely** — re-tested 2026-09-15 and it holds, with the detail that makes it counter-intuitive: `HF_ENDPOINT` appears in **16 files repo-wide** in `sgl-project/sglang` but **zero** under `sgl-model-gateway/`. Setting it is not obviously wrong, which is exactly why it gets set. Probe: `git grep -il HF_ENDPOINT -- 'sgl-model-gateway/'`.** Service-discovery probes use raw `reqwest`; tokenizer fetches go through `llm-tokenizer`'s `hf-hub` path which is also `HF_ENDPOINT`-unaware. Verified by grep: zero hits for `HF_ENDPOINT` in the gateway source. Always pass a local directory to `--model-path` / `--tokenizer-path` in air-gapped clusters.
 
 4. **gRPC liveness/readiness probes need numeric ports**, not named (Kubernetes API constraint, not gateway-specific). For HTTP gateways probing `/health`, named ports work fine.
 
