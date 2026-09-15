@@ -42,7 +42,7 @@ Don't reach for MP mode just because it's newest — it adds operational surface
 
 ## Version gates — check these FIRST
 
-Current stable pair (2026-07): **vLLM v0.25.1** (2026-07-14) + **LMCache v0.5.1** (2026-07-06). v0.19.1 remains the verified-floor bundling example below.
+Current stable pair (2026-09-15): **vLLM v0.29.0** (2026-09-09) + **LMCache v0.5.5** (2026-09-12). **The image lags the pair:** `vllm/vllm-openai:v0.29.0` bundles LMCache **0.5.4** (2026-08-20), verified by container run 2026-09-15 — so "latest vLLM image" and "latest LMCache" are not the same thing, and `pip install -U lmcache` inside that image moves you off the pair it was built against. v0.19.1 remains the verified-floor bundling example below.
 
 | Component | What you need | Notes |
 |---|---|---|
@@ -51,7 +51,7 @@ Current stable pair (2026-07): **vLLM v0.25.1** (2026-07-14) + **LMCache v0.5.1*
 | vLLM | **v0.23.0+** for HMA-by-default | #41847 made `disable_hybrid_kv_cache_manager` tri-state; combined with LMCache 0.5.x's `SupportsHMA` declaration this is what unlocks hybrid models in MP mode. |
 | LMCache | **0.4.0+** for the MP adapter file (`lmcache.integration.vllm.vllm_multi_process_adapter`) | Moved into LMCache repo on 2026-01-07 (PR #2360). Earlier versions had it in vLLM. |
 | LMCache | **0.4.4+** for vLLM v0.20+/main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified against tags v0.4.3 (no class) vs v0.4.4 (has class); still present at v0.5.1. |
-| LMCache | **0.5.1 recommended** as current stable | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
+| LMCache | **0.5.4** is what the current image ships; **0.5.5** (2026-09-12) is the newest release — the 0.5.2 → 0.5.5 changes are not yet sifted here | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
 | LMCache | **0.5.x required** for hybrid-attention models | The `SupportsHMA`-declaring connector lives in `lmcache/integration/vllm/lmcache_mp_connector.py`. See the hybrid-model section. |
 
 **Renames in 0.5.0 that break old greps and docs:** `MPCacheEngine` → `MPCacheServer`, `GPUKVFormat` → `EngineKVFormat` (`gpu_kv_*` → `engine_kv_*`), `GPUTransferModule` → `LMCacheDrivenTransferModule`, `NonGPUTransferModule` → `EngineDrivenTransferModule`. The CLI was also refactored into multi-subcommand form (#3678).
@@ -190,8 +190,11 @@ vLLM `main` (post-2026-03) imports `ParallelStrategy` from `lmcache.integration.
 |---|---|
 | v0.19.0, v0.19.1 | 0.4.0+ (works with bundled 0.4.3) |
 | v0.20.0 – v0.22.x | **0.4.4+** — verify on the released image |
-| v0.23.0 – v0.25.1 (current stable) | **0.5.x** (0.5.1 recommended) — 0.4.x works but forfeits hybrid-model support |
+| v0.23.0 – v0.25.1 | **0.5.x** (0.5.1+) — 0.4.x works but forfeits hybrid-model support |
+| v0.29.0 | ships **0.5.4**, `ParallelStrategy` present — verified by container run 2026-09-15 |
 | main / nightly | **0.5.1+** |
+
+v0.26.x – v0.28.x are not listed because nobody has run the check on them: unverified, not known-bad.
 
 If you mix vLLM main with the v0.19.1 image's bundled 0.4.3, expect:
 
