@@ -16,16 +16,6 @@
   and an A/B of `--separate-object-groups`. Until then the section is upstream-doc
   authority, not lab-verified.
 
-- **Re-run verify-bundling.sh against a v0.25.1 / lmcache 0.5.1 image** (Dim 9) —
-  `scripts/verify-bundling.sh` + the bundling table in `SKILL.md` ("Image bundling"
-  section, ~lines 53-67) and `references/sources.md`. The freshen pass updated the
-  version anchors to vLLM v0.21.0 + LMCache v0.4.5 but could NOT execute the script
-  in this environment. Carried forward and re-scoped on 2026-07-21: the anchors are
-  now vLLM v0.25.1 + LMCache v0.5.1, and the gap is five vLLM minors wide. Only the
-  v0.19.1 floor table is evidence-backed. Run the script and replace/extend the
-  bundling table when an environment with working Bash + Docker is available; expect
-  nixl 1.3.0 (vLLM's exact pin) and lmcache ≥ 0.5.x.
-
 - **Version-compat matrix triplication** (Dim 6) — `SKILL.md` version-gate table
   (~line 45), `SKILL.md` pitfall #3 ParallelStrategy table (~line 157), and
   `references/troubleshooting.md` version-compatibility matrix (~line 57). The same
@@ -35,6 +25,22 @@
   triage entry point). Collapsing to one + pointers would trade a small Dim 6 gain
   for a Dim 4 (actionability) loss from indirection, so the net metric does not
   improve. Revisit only if a future restructure consolidates the version surface.
+
+## Resolved — 2026-09-15 (the bundling table, measured)
+
+- **Ran `scripts/verify-bundling.sh` against `vllm/vllm-openai:v0.29.0`.** The item
+  was waiting for "an environment with working Bash + Docker"; this one has both, so
+  the wait was the blocker rather than anything absent.
+- **Measured:** vllm 0.29.0, lmcache **0.5.4**, nixl **1.3.2**, mooncake
+  **0.3.13.post1**. All import; the MP adapter classes and `ParallelStrategy` are
+  present; all four KV-offload connector classes load. Exit 0. The table now records
+  this run, with the v0.19.1 floor kept for anyone pinned to that era.
+- **nixl is 1.3.2, not the 1.3.0 this entry predicted** — the prediction was read off
+  a vLLM pin the image had already moved past.
+- **The probe under-reported mooncake and would have written a false absence.** Its
+  distribution is `mooncake-transfer-engine-cuda13` on this image while the module is
+  still `mooncake`, so the unsuffixed query returned NOT INSTALLED for a package that
+  imports fine. `verify-bundling.sh` now tries the CUDA-suffixed names first.
 
 ## Resolved this pass (2026-07-21)
 

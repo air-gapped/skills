@@ -32,15 +32,26 @@ Address opportunistically during freshen/improve passes.
 
 ## Open
 
+## Resolved — 2026-09-15 (two gaps that only needed the source opened)
+
+- **Escaping character table written from `render/fluent.go` @ 6.7.0.** The entry
+  deferred it until "#2254/#2255 diffs" were read; both are public. #2254 is the
+  issue, #2255 the fix. `escapeFluentValue` has two branches and the split is
+  decided *after* trailing newlines are trimmed: a trailing `\n`/`\r` is stripped
+  and the value emitted bare (that is the fix), while an interior newline quotes the
+  value and applies the `fluentEscaper` map now recorded in
+  `production-hardening.md`.
+- **`#` is escaped only in the quoted branch, and that is correct.** fluentd
+  interpolates `#{...}` only inside double quotes, so the escape exists because
+  quoting creates the exposure, not despite it.
+- **Flow `Select`/`Exclude` asymmetry confirmed real.** `Select` carries only
+  `labels`, `hosts`, `container_names`; `Exclude` also carries `namespace_labels`;
+  `ClusterSelect` and `ClusterExclude` both carry it (`api/v1beta1/flow_types.go`,
+  `clusterflow_types.go`). So a namespaced Flow can exclude by namespace label but
+  cannot select by one — recorded in `cr-model.md` with the workaround.
+
 ## Research gaps (carried 2026-07-22)
 
-- **6.6.0/6.7.0 escaping character table**: the CVE fix changes rendering of values
-  containing quotes/backslashes/#/newlines; direction verified but the exact
-  per-character diff (#2254/#2255 PR diffs) was never opened. Before asserting a
-  concrete table, read those PRs.
-- **Flow Select `namespace_labels` asymmetry**: generated docs show it under Flow's
-  Exclude but not Select (ClusterFlow has both). Confirm against flow_types.go
-  before asserting either way.
 - **Telemetry Controller hands-on smoke test** never run — the "usable standalone
   with caveats" verdict is docs/source-based. If TC reaches 1.0/v1beta1, rerun the
   assessment and revisit the LoggingRoute-first recommendation.

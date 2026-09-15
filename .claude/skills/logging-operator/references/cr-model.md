@@ -44,7 +44,12 @@ works (they're namespaced) but only control-namespace ones are honored;
 - Fields: `labels`, `hosts`, `container_names` (**container**, not pod, names).
 - ClusterFlow adds `namespaces`, `namespaces_regex` (ruby regex, 5.3+),
   `namespace_labels` (4.8+; requires `filterKubernetes.namespace_labels: "On"`,
-  default on since 4.9).
+  default on since 4.9) — on **both** its `select` and `exclude`.
+- **A namespaced Flow can `exclude` by `namespace_labels` but cannot `select` by
+  it.** Not a doc omission: `Select` carries only `labels`/`hosts`/`container_names`
+  while `Exclude` also carries `namespace_labels` (`api/v1beta1/flow_types.go`,
+  verified 2026-09-15). To route *into* a Flow by namespace label, use a ClusterFlow
+  — or select broadly and exclude everything else.
 - Multiple criteria **inside one statement = AND**; **separate statements = OR**;
   evaluated in order.
 - **No `select` statement ⇒ nothing matches.** Select-all: `- select: {}`.

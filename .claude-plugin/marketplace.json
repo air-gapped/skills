@@ -225,7 +225,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260915.17",
+      "version": "0.20260915.18",
       "author": {
         "name": "Jörgen"
       },
@@ -418,7 +418,7 @@
       "name": "observability",
       "source": "./",
       "description": "Observability suite — metrics: Prometheus, Grafana Mimir, and Grafana reference for agents querying metrics, writing PromQL, building and fixing dashboards, and reasoning about SLOs, KPIs, and burn-rate alerting, plus the community, air-gapped mimir-distributed Helm upgrade methodology (chart↔app co-pinned ladder, the classic-vs-ingest-storage/Kafka decision, the nginx→gateway rename that silently moves the proxy's DNS name, rollout-operator sequencing and abort levers, per-hop verification, and air-gap image/CRD/egress staging); and logs: the kube-logging logging-operator (16-CRD Fluent Bit→fluentd/syslog-ng pipeline, JSON/CRI parsing, routing, buffers, upgrade floor 6.7.0) plus rancher-logging-exit — the air-gap-first migration off Rancher's frozen bundled rancher-logging chart (CVE-2026-54680, release-secret cutover, CR compatibility); and hardware metrics: snmp-exporter — Prometheus snmp_exporter v0.30.x best practices (generator.yml module curation, the never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, timeout math, Kubernetes Probe/ScrapeConfig deployment, local docker testing, worked device references for Dell iDRAC 9/10, Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi).",
-      "version": "0.20260915.23",
+      "version": "0.20260915.24",
       "author": {
         "name": "Jörgen"
       },

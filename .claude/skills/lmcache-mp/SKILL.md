@@ -58,17 +58,19 @@ Current stable pair (2026-07): **vLLM v0.25.1** (2026-07-14) + **LMCache v0.5.1*
 
 ### Image bundling (what's actually in the container)
 
-Verified 2026-04-26 inside `vllm/vllm-openai:v0.19.1` (sleep-overridden, exec'd in):
+Verified 2026-09-15 inside `vllm/vllm-openai:v0.29.0` (sleep-overridden, exec'd in):
 
-| Package | Version in v0.19.1 image | Import works? | Notes |
+| Package | Version in v0.29.0 image | Import works? | Notes |
 |---|---|---|---|
-| `vllm` | 0.19.1 | OK | — |
-| `lmcache` | 0.4.3 | OK | `ParallelStrategy` class **NOT** present yet (added 0.4.4) |
-| `nixl` | 0.9.0 | OK | — |
-| `mooncake-transfer-engine` | 0.3.10.post1 | OK as `import mooncake` | Pip name vs import name differ |
+| `vllm` | 0.29.0 | OK | — |
+| `lmcache` | 0.5.4 | OK | `ParallelStrategy` present — the v0.19.1-era ImportError cannot occur here |
+| `nixl` | 1.3.2 | OK | — |
+| `mooncake-transfer-engine-cuda13` | 0.3.13.post1 | OK as `import mooncake` | **Distribution now carries a CUDA suffix; the module does not.** Querying `mooncake-transfer-engine` reports NOT INSTALLED for a package that is present |
 | `lmcache` CLI | — | `/usr/local/bin/lmcache` | Server entrypoint ready out of the box |
 
-All three KV connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`) import cleanly in v0.19.1. **Bundling is real this time** — no pip install at container start needed for v0.19.x. The torch-conflict era of mid-2025 is over.
+All four KV-offload connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`, `NixlConnector`) load through the factory's own thunk. Sixteen connectors are registered at this tag; the four above are the ones to gate on. No pip install at container start is needed.
+
+Earlier floor, kept because anyone pinning that era still meets it: `v0.19.1` shipped vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1, and its lmcache predates `ParallelStrategy`.
 
 But: **always verify the tag you actually deploy** with `scripts/verify-bundling.sh <tag>`. It builds a sleep-overridden container, runs the import test, prints the version table. ~30 seconds (after pull).
 

@@ -72,6 +72,29 @@ can't stay under the `timekey + timekey_wait` flush window.
   Flows/Outputs. When upgrading across 6.6: rendered config changes for values
   containing quotes/backslashes/newlines — diff the `<logging>-fluentd-app` secret
   before/after.
+- **What 6.7.0 actually does to a value** (`escapeFluentValue`, verified against
+  `render/fluent.go` at tag 6.7.0). Two branches, and which one applies is decided
+  *after* trailing newlines are stripped:
+  - **Trailing `\n` / `\r` are trimmed and the value is emitted bare.** This is the
+    #2254 fix: a secret created with `echo` rather than `printf` no longer changes
+    meaning. The trailing byte is gone from the rendered config — if a credential
+    genuinely ends in a newline, it will not survive.
+  - **An *interior* newline makes the value quoted and escaped**, per this map:
+
+    | In the value | Rendered as |
+    |---|---|
+    | `\` | `\\` |
+    | `"` | `\"` |
+    | newline | `\n` |
+    | carriage return | `\r` |
+    | tab | `\t` |
+    | `#` | `\#` |
+
+  - **`#` is escaped only inside the quoted branch.** That is deliberate, not an
+    oversight: fluentd interpolates `#{...}` only within double quotes, so a bare
+    value needs no escape and quoting is what would create the exposure.
+  - Newlines in a **directive or key** are not escaped at all — `validateFluentToken`
+    rejects them outright, so that path fails loudly rather than rendering.
 - Fluentd runs non-root since 5.3: UID 100 / GID 101 / fsGroup 101, seccomp
   RuntimeDefault. Pre-5.3 root-owned buffer PVCs break on upgrade
   (`Permission denied @ dir_s_mkdir`) — chown 100:101 (#1908).
