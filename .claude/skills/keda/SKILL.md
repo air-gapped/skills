@@ -2,7 +2,7 @@
 name: keda
 description: >-
   Configure, operate, and master KEDA (Kubernetes Event-driven Autoscaling) —
-  ScaledObject, ScaledJob, TriggerAuthentication CRDs, 70+ scalers, HPA
+  ScaledObject, ScaledJob, TriggerAuthentication CRDs, 77 scalers, HPA
   behavior tuning, scale-to-zero, the KEDA HTTP Add-on, production hardening,
   multi-trigger semantics, scalingModifiers formulas, GitOps integration, and
   troubleshooting stuck scalers. Covers the common traps (cooldownPeriod only
@@ -25,7 +25,7 @@ when_to_use: >-
 KEDA extends Kubernetes HPA with event-driven scalers (queues, cron, Prometheus,
 etc.) and owns the `0 ↔ 1` transition so workloads can truly scale to zero.
 The skill covers three CRDs (`ScaledObject`, `ScaledJob`, `TriggerAuthentication`),
-70+ scalers, HPA behavior tuning, and the gotchas that make production KEDA
+77 scalers (counted at v2.20), HPA behavior tuning, and the gotchas that make production KEDA
 misbehave.
 
 This file holds the mental model and the 80% patterns. Reach for the files in

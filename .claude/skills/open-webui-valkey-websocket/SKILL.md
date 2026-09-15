@@ -40,7 +40,7 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 |---|---|---|
 | Multi-pod + WS works at 10 users, melts at 100+ | #23733 amplification — every token re-broadcasts full message via Valkey pub/sub | `references/issue-23733.md` |
 | `/api/models` response is multi-MB; reconnect storms during rollouts | Pre-0.6.37 base64 model icons in `model.meta.profile_image_url` | `references/icons-thumbnails.md` |
-| `POST /api/tasks/stop/{id}` does nothing across pods | Worker-local task tracking — fixed in dev for Sentinel; broken on RedisCluster (#19840) | `references/known-issues.md` §RedisCluster |
+| `POST /api/tasks/stop/{id}` does nothing across pods | Worker-local task tracking — fixed for Sentinel, and **fixed for RedisCluster too from v0.11.2** (#19840 / PR #29165); still broken on RedisCluster at v0.11.1 and earlier (#19840) | `references/known-issues.md` §RedisCluster |
 | "Model not found" intermittent under load | `RedisDict.set()` race (DELETE + HSET non-atomic) — fixed in 0.8.x (#22734) | `references/known-issues.md` §RedisDict-race |
 | Login loop / 401 on session validation across pods | `WEBUI_SECRET_KEY` differs across replicas | `references/configuration.md` §Secrets |
 | Direct-connection chat hangs with `workers > 1` | WS lands on one worker, API request on another (#15162, partial fix #22402) | `references/known-issues.md` §direct-connection |
@@ -202,7 +202,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 - **`references/configuration.md`** — Every multi-pod-relevant env var with default, source-file location, and version added. Valkey/Redis configuration (`maxclients`, `timeout`, `maxmemory-policy`). Why `WEBUI_SECRET_KEY` must be shared.
 - **`references/helm-chart.md`** — `open-webui/helm-charts` v15.2.0 specifics. The bundled Redis is unsuitable for production — disable it. What the chart doesn't ship (HPA, PDB, probes, sticky sessions). The values.yaml override block. Open chart issues (#383 gateway-API). **The released chart does not yet ship 0.11.0**: `main` is still v15.2.0/appVersion 0.10.2 (2026-07-01), and v15.2.1/appVersion 0.11.0 sits unmerged on `automation/open-webui-0.11.0` (2026-07-27) — running 0.11.0 via the chart means overriding `image.tag` yourself.
 - **`references/icons-thumbnails.md`** — Why custom model icons crashed multi-pod pre-0.6.37. The full chronology of fixes. Endpoints to spot-check on the upgrade target. SSO avatar mitigation.
-- **`references/known-issues.md`** — #23733, #15162 direct-connection multi-worker routing, #19840 RedisCluster publish broken, #22734 RedisDict race, #23987 Sentinel 0.9.1 regression, #16074 inflated user count, plus the April-2026 batch of merged fixes (#23571 keepalive, #23709 ASGI middleware, #23642 stale Socket.IO sessions, #23896 cross-worker cache invalidation).
+- **`references/known-issues.md`** — #23733, #15162 direct-connection multi-worker routing, #19840 RedisCluster publish — fixed from v0.11.2, #22734 RedisDict race, #23987 Sentinel 0.9.1 regression, #16074 inflated user count, plus the April-2026 batch of merged fixes (#23571 keepalive, #23709 ASGI middleware, #23642 stale Socket.IO sessions, #23896 cross-worker cache invalidation).
 - **`references/sources.md`** — Authoritative source files in the open-webui codebase, GitHub issue/PR numbers with dates, and docs.openwebui.com URLs underlying every claim. Load to verify a specific fact or run `freshen` mode.
 
 ### Scripts
