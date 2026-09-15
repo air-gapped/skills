@@ -2,6 +2,27 @@
 
 Carries findings across skill-improver runs. Append-only history; do not drop prior passes.
 
+## Resolved — 2026-09-15 (security floor for API consumers)
+
+- **69 advisories in a 3.5-month window, and the advisory feed cannot give you
+  the floor.** Every one of those 69 (2026-06-01 to 2026-09-15) has
+  `first_patched_version` set to **null** — not most, all. Tooling that reads
+  that field concludes nothing is fixed. The floor has to be derived from
+  `vulnerable_version_range` ceilings, the highest being `< 0.11.1` and
+  `<= 0.11.0`, giving **v0.11.1**. Upstream additionally states some security
+  fixes are withheld from the enumerated notes for a period, so that list is a
+  lower bound.
+- **Framed for this skill's reader specifically.** The largest advisory cluster
+  (~30) is cross-tenant and privilege issues — endpoints checking ownership at
+  the wrong granularity, trusting a client-supplied `knowledge_id`, folder
+  parent or model metadata instead of re-deriving access server-side. That is
+  the class most relevant to anyone driving the API, because it needs only an
+  authenticated caller, which is exactly what an API token is.
+- Checked and found already correct, so left alone: the `usage.prompt_tokens` /
+  `completion_tokens` inversion to last-call-only, with `input_tokens` /
+  `output_tokens` / `total_tokens` staying cumulative, is already documented in
+  `breaking-changes.md` with the metering consequence spelled out.
+
 ## Open
 
 ## Unblocked — actionable

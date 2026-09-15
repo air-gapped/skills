@@ -53,6 +53,25 @@ Everything the community (and LLM training data) teaches about two core shapes d
 
 0.11.0 adds a second break class — responses that **silently redact fields by access level** (`models/list` drops `params`, `tools` drops `content`), which can round-trip an emptied model catalog back through `import`/`sync`. Full ledger 0.6.19→0.11.0 with dates, issue numbers and both translation guides: `references/breaking-changes.md`.
 
+## Security floor before you script against it: v0.11.1
+
+**69 security advisories were published between 2026-06-01 and 2026-09-15**, and
+the largest cluster (~30) is cross-tenant and privilege issues — endpoints that
+check ownership at the wrong granularity, trusting a client-supplied
+`knowledge_id`, folder parent or model metadata instead of re-deriving access
+server-side. That class matters most to anyone driving this API, because it is
+reachable by **any authenticated caller**, which is what an API token is.
+
+Deriving the floor is not automatic: **every one of those 69 advisories has
+`first_patched_version` set to `null`**, so tooling that reads that field
+concludes nothing is fixed. The floor comes from `vulnerable_version_range`
+ceilings, the highest being `< 0.11.1`. Upstream also warns that not every
+security fix is enumerated in the release notes.
+
+Full class breakdown and why an internal-only deployment behind an
+authenticating proxy does **not** cover most of it:
+`open-webui-valkey-websocket` §"Security floor".
+
 ## Task → reference routing
 
 | Task | Read |

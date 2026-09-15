@@ -113,6 +113,34 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_RERANKING_MODEL` | rerank | Sent in payload as `model`. Match the backend's served name. |
 | `RAG_EXTERNAL_RERANKER_TIMEOUT` | rerank | Seconds. Bump for very large `Top_K × Hybrid Search` candidate pools. |
 
+## Do not pin at exactly v0.11.0 — RAG was silently broken there
+
+**v0.11.0 shipped a regression that answers as though your knowledge base were
+empty**, and v0.11.1 fixed it. From the v0.11.1 notes: knowledge search and
+shared files in chat *"had failed since 0.11.0 and quietly answered as though
+the knowledge were empty, affecting instances that forward user details to their
+embedding service."*
+
+That is the worst shape a RAG bug can take — no error, no empty-result signal,
+just a confident answer with no retrieved context. If retrieval quality
+"mysteriously collapsed" after upgrading to 0.11.0 and the embedding service
+receives per-user details, this is it.
+
+**v0.11.1 also fixed a cross-tenant retrieval bug**: knowledge search applied
+the caller's allowed-collection list only in the application, and *"that
+restriction was handed to the vector store and silently discarded, so results
+could include material from knowledge bases you have no access to."* On a
+multi-tenant instance that is a data-disclosure bug, not a relevance bug.
+
+Two more embedding-config fixes in the same release, both silent-corruption
+shaped: saving settings for one provider **overwrote the stored address and key
+of the other two**, and an embedding server behind HTTP basic auth (no API key)
+was sent a rejected empty `Authorization` header.
+
+**Security floor is v0.11.1 regardless** — see `open-webui-valkey-websocket`
+§"Security floor" for why that number has to be derived by hand from affected
+ranges rather than read from the advisory feed.
+
 ## Triage table
 
 | Symptom | First check | Where |

@@ -2,6 +2,31 @@
 
 Carries open quality findings across `/skill-improver` runs. Items here are ceiling-hit issues that require multi-file restructure, mode switching, online re-probing, or author judgment — not single-iteration `improve` mutations.
 
+## Resolved — 2026-09-15 (the v0.11.0 RAG regression)
+
+- **v0.11.0 answers as though the knowledge base were empty, and v0.11.1 fixes
+  it.** Knowledge search and shared files in chat "had failed since 0.11.0 and
+  quietly answered as though the knowledge were empty, affecting instances that
+  forward user details to their embedding service". That is the worst shape a
+  retrieval bug takes: no error, no empty-result signal, just a confident answer
+  with no context. The skill now says outright not to pin at exactly v0.11.0.
+- **A cross-tenant retrieval bug was fixed in the same release**: the caller's
+  allowed-collection list "was handed to the vector store and silently
+  discarded, so results could include material from knowledge bases you have no
+  access to". On a multi-tenant instance that is data disclosure, not relevance.
+- Two further silent-corruption fixes recorded: saving one provider's embedding
+  settings **overwrote the stored address and key of the other two**, and an
+  embedding server behind HTTP basic auth was sent a rejected empty
+  `Authorization` header.
+- **69 advisories in a 3.5-month window, and the advisory feed cannot give you
+  the floor.** Every one of those 69 (2026-06-01 to 2026-09-15) has
+  `first_patched_version` set to **null** — not most, all. Tooling that reads
+  that field concludes nothing is fixed. The floor has to be derived from
+  `vulnerable_version_range` ceilings, the highest being `< 0.11.1` and
+  `<= 0.11.0`, giving **v0.11.1**. Upstream additionally states some security
+  fixes are withheld from the enumerated notes for a period, so that list is a
+  lower bound.
+
 ## Resolved — 2026-07-29 (freshen mode, → v0.11.0)
 
 - **Line-number re-resolution DONE** (closes the long-standing Open item below, which had been carried since it was written against v0.9.5). Re-resolved against v0.11.0: `generate_openai_batch_embeddings` 677→**862**, `get_embedding_function` 905→**1090**, `ExternalReranker` 14→**13**, `predict` 27→**26**. The last two were off by one and pointed at `__init__`, not the class/method claimed.

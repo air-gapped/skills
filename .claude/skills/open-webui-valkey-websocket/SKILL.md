@@ -119,6 +119,38 @@ Every variable in that block still exists and is still read in 0.11.0 (verified 
 
 Practical use: keep the global at `10`, and set `stream_delta_chunk_size: 20` (or higher) in `params` on the reasoning and long-output models specifically — those are the ones whose O(N²) constant hurts most — without coarsening streaming for short chat models. This predates 0.11.0 (present in 0.10.2) but is absent from most deployment guides.
 
+## Security floor: v0.11.1, and the feed will not tell you that
+
+**Run v0.11.1 or later.** Open WebUI published **69 security advisories between
+2026-06-01 and 2026-09-15** (checked that day). Deriving the floor takes work
+that the tooling normally does for you:
+
+- **Every one of those 69 has `first_patched_version` set to `null`.** Not most
+  — all of them. A script that reads that field concludes there is no fix for
+  anything. The floor has to come from `vulnerable_version_range` ceilings
+  instead, and the highest are `< 0.11.1` and `<= 0.11.0`, which is where
+  **v0.11.1** comes from.
+- Upstream also states in the v0.11.1 notes: *"Not all security fixes in this
+  version may be enumerated in the fixed section. Some may be withheld for a
+  short time to give administrators time to upgrade."* The enumerated list is a
+  lower bound.
+- v0.11.2 and v0.11.3 are not additional security releases (a migration-crash
+  fix and a bug-fix release), so **v0.11.1 is the security floor and v0.11.3 the
+  sensible target**.
+
+**Do not assume an internal-only deployment behind an authenticating proxy is
+covered.** The proxy removes one narrow slice — advisories needing an
+*unauthenticated* caller, and only if it actually fronts `/ws`, the OAuth
+callback and `/api/v1/` rather than just `/`. It does nothing for the rest:
+
+| Class | Why the proxy does not help |
+|---|---|
+| **Cross-tenant / privilege** (~30 advisories, the largest cluster) | Needs only "any authenticated user". An endpoint trusting a client-supplied `knowledge_id`, folder parent or model metadata is exactly the multi-tenant case an internal instance exists to serve. |
+| **XSS to account takeover** | One authenticated user attacking another's browser through a profile image, message or shared terminal link. Never crosses the network boundary. |
+| **Code execution** (terminal, Pyodide) | Reached through legitimate features by an authenticated user. |
+| **Denial of service** | Any authenticated user can hang a shared worker with a pathological input. |
+| **SSRF** | **Worse internally, not better.** The mechanism is the server reaching hosts the attacker cannot — which internally means your service endpoints and cloud metadata. Internal placement changes the target set, not the risk. |
+
 ## Version upgrades — rolling updates are NOT supported
 
 **0.11.0 (2026-07-27) changes the database schema, and the release states plainly that rolling updates will fail:**
@@ -134,7 +166,29 @@ For a schema-changing upgrade on Kubernetes:
 - **Back up the database first.** The 0.11.0 migration set includes a case-insensitive unique index on user email (`uq_user_email_lower`) whose migration **raises `RuntimeError` and aborts startup** if two accounts differ only by case — a real possibility on OAuth-provisioned instances. Dedupe before upgrading.
 - Accept a hard maintenance window. There is no zero-downtime path across a schema change.
 
+**v0.11.1 carries the identical warning**, so that is two consecutive
+schema-changing releases — do not read the 0.11.0 note as a one-off.
+
 Not every release changes the schema; check the release notes' "Database Migrations" warning before assuming a rolling update is safe.
+
+### What v0.11.1 changed for a multi-pod deployment
+
+- **`ENABLE_REALTIME_CHAT_SAVE` is now a no-op.** Verbatim: *"The
+  `ENABLE_REALTIME_CHAT_SAVE` setting no longer has any effect, because a reply
+  in progress is now held outside the database and written once when it
+  finishes."* If your values file sets it either way, it is doing nothing — and
+  the write pattern it used to control changed underneath you.
+- **`THREAD_POOL_SIZE` now sizes both pools**, where it previously governed only
+  one while the other carried most of the blocking work. A value tuned as a
+  ceiling under the old meaning now applies somewhere it never did; re-check it.
+- **Two new tunables**: `WEBSOCKET_HEARTBEAT_INTERVAL` (the per-tab check-in was
+  hardcoded at 30s, so a large deployment can cut background traffic) and
+  `REDIS_RESPONSE_STREAM_TTL` (expires the saved state of a reply that never
+  finished, so a server killed mid-answer stops leaking that state permanently).
+- **Password change revokes other sessions only when Redis is configured.**
+  Without Redis nothing is revoked and a warning is logged. On a deployment that
+  skipped Redis because it runs a single pod, that is a security gap, not a
+  missing convenience.
 
 ## Custom model icons / thumbnails — was this our problem?
 

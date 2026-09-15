@@ -4,6 +4,40 @@ Carried across `skill-improver` runs. Each Open item is a finding that the
 loop attempted but couldn't apply atomically in a single iteration. Resolved
 items are an audit trail of what was fixed.
 
+## Resolved — 2026-09-15 (security floor + v0.11.1 multi-pod deltas)
+
+- **69 advisories in a 3.5-month window, and the advisory feed cannot give you
+  the floor.** Every one of those 69 (2026-06-01 to 2026-09-15) has
+  `first_patched_version` set to **null** — not most, all. Tooling that reads
+  that field concludes nothing is fixed. The floor has to be derived from
+  `vulnerable_version_range` ceilings, the highest being `< 0.11.1` and
+  `<= 0.11.0`, giving **v0.11.1**. Upstream additionally states some security
+  fixes are withheld from the enumerated notes for a period, so that list is a
+  lower bound.
+- **Added the class breakdown and, more usefully, what an internal deployment
+  does NOT get.** An authenticating proxy removes only advisories needing an
+  *unauthenticated* caller, and only if it fronts `/ws`, the OAuth callback and
+  `/api/v1/` rather than just `/`. The ~30-advisory cross-tenant cluster, the
+  XSS-to-takeover class, code execution and DoS all need nothing more than "any
+  authenticated user". **SSRF is worse internally, not better** — the mechanism
+  is the server reaching hosts the attacker cannot, which internally means
+  service endpoints and cloud metadata.
+- **v0.11.1 carries the same no-rolling-updates warning as 0.11.0**, so that is
+  two consecutive schema-changing releases; the existing section said 0.11.0 and
+  could be read as a one-off.
+- **`ENABLE_REALTIME_CHAT_SAVE` became a no-op** in v0.11.1 — a values file
+  setting it either way is doing nothing, and the write pattern it used to
+  control changed underneath. **`THREAD_POOL_SIZE` now sizes both pools** where
+  it previously governed one while the other carried most of the blocking work,
+  so a value tuned as a ceiling now applies somewhere it never did.
+- **Password change revokes other sessions only when Redis is configured**;
+  without it nothing is revoked and a warning is logged. For a single-pod
+  deployment that skipped Redis, that is a security gap rather than a missing
+  convenience.
+- Two new tunables recorded: `WEBSOCKET_HEARTBEAT_INTERVAL` (per-tab check-in
+  was hardcoded at 30s) and `REDIS_RESPONSE_STREAM_TTL` (expires the state of a
+  reply that never finished).
+
 ## Resolved — 2026-07-29 (freshen mode, v0.10.2 → v0.11.0)
 
 Verification-based pass; every claim checked against v0.11.0 source or `gh`.
