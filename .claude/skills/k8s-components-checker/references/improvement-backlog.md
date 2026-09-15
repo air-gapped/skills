@@ -2,6 +2,35 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (the recommended Postgres-operator patch had a write loop)
+
+- **"Use 2.0.1, never 2.0.0" is superseded: require ≥ 2.0.2** (2026-08-20).
+- **The reason is a compound, not a newer number.** §2.0.0 already documents that
+  `password_encryption` defaults to **scram-sha-256**. v2.0.2 fixes "skip
+  `ALTER ROLE` when the stored SCRAM verifier already matches the password"
+  (#3171). Together: on 2.0.0/2.0.1 that default makes the operator re-issue
+  `ALTER ROLE` for managed roles **every sync cycle, indefinitely** — a
+  steady-state write loop against every managed database, not a one-off
+  migration cost. Neither fact says that alone, which is why it was worth writing
+  at the recommendation rather than leaving it in a changelog.
+- **2.0.1 was not "the release where the CRD is correct".** v2.0.2 also fixes
+  `sidecars` schema validation in the OperatorConfiguration CRD (#3160) — a
+  *different* field from the type mismatch 2.0.1 fixed, so a GitOps diff/apply
+  loop could still bite.
+- Also recorded: the Helm chart gained `strategy: Recreate` (#3164) to smooth the
+  **v1.x → v2.x** hop, and the only breaking change (#3156, `/v2` Go module path)
+  affects library consumers, not deployments.
+- **The durable instruction:** this operator's pattern now reads three deep —
+  1.15.0 broken images, 2.0.0 broken CRD, 2.0.1 write loop plus a second CRD gap.
+  The entry says not to treat the newest patch on this line as safe by default,
+  which is the opposite of the usual take-the-latest-patch advice.
+- **GitLab release-verified in the same pass**: chart tags `v10.3.2` / `v10.2.6` /
+  `v10.1.8` (2026-09-10), all still inside the documented 10.x / GitLab-19.x row,
+  so the row and floors are unchanged. The chart→app mapping was **not**
+  re-derived; the entry now says to read `appVersion` from the chart at survey
+  time rather than trusting the July figure. Note `gh` does not apply to
+  gitlab.com — the tags came from the GitLab API.
+
 ## Resolved — 2026-09-15 (patch-level release-verify: RKE2, Rook, Tetragon, KEDA)
 
 - **No new minors**, so every k8s window and in-scope set is unchanged and no

@@ -6,7 +6,10 @@
 - **Axis type:** `multi`        # (operator version → bundled Spilo image → bundled PostgreSQL majors)
 - **min_tracked_version:** 1.13.0
 - **Last sifted:** 2026-07-29 (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
-- **Last release-verified:** 2026-07-29 (full release listing enumerated via `gh api`; v2.0.0/v2.0.1 notes read in full)
+- **Last release-verified:** 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
+  notes read in full; it supersedes v2.0.1 as the only deployable 2.0.** See the
+  new §2.0.2 below. Prior verify 2026-07-29 (full release listing enumerated via
+  `gh api`; v2.0.0/v2.0.1 notes read in full).
 
 The axis tuple `(operator, Spilo image, PG majors)` is the verdict-load-bearing
 unit. The operator has a loose k8s floor (works on any currently-supported
@@ -20,13 +23,40 @@ The PG major in the image tag is the **default** primary major Spilo will
 initdb with; the Patroni/Spilo bundle inside that image also ships several
 older majors so `pg_upgrade` flows work.
 
+## 2.0.2  (2026-08-20)  — **the deployable 2.0**
+
+- **k8s floor / Spilo image / PG majors:** unchanged from 2.0.1.
+- **Breaking:** Go module path gained the `/v2` major suffix (#3156) — **only
+  affects consumers importing the operator as a library**, not deployments.
+- **Fixes that change the recommendation:**
+  - **`skip ALTER ROLE when the stored SCRAM verifier already matches the
+    password` (#3171).** This is the one that matters, and it compounds a change
+    already documented under §2.0.0: `password_encryption` now defaults to
+    **scram-sha-256**. On 2.0.0/2.0.1 with that default, the operator re-issues
+    `ALTER ROLE` for managed roles **every sync cycle**, indefinitely — a
+    steady-state write loop against every managed database, not a one-off
+    migration cost. **This is why "use 2.0.1" is no longer the right answer.**
+  - **`sidecars` schema validation in the OperatorConfiguration CRD (#3160)** — a
+    *second* CRD schema bug, distinct from the type mismatch 2.0.1 fixed. 2.0.1
+    was therefore not "the release where the CRD is correct"; GitOps diff/apply
+    loops could still bite on `sidecars`.
+  - Owner references skipped on user secrets when secret deletion is disabled
+    (#3165).
+- **Helm:** the chart gained `strategy: Recreate` on the operator Deployment
+  (#3164) specifically to smooth the **v1.x → v2.x** upgrade — relevant to any
+  fleet still making that hop.
+- **Verdict: on the 2.0 line, require ≥ 2.0.2.** The 1.15.x → 2.0.x pattern now
+  reads *three* deep: 1.15.0 shipped broken images, 2.0.0 a broken CRD, 2.0.1 a
+  scram write-loop plus a second CRD gap. Do not treat "the newest 2.0 patch at
+  the time of writing" as safe by default on this operator.
+
 ## 2.0.1  (2026-07-29)
 
 - **k8s floor:** unstated by upstream (as before); the release exists because k8s is deprecating the bare Endpoints API — see the configmaps flip under 2.0.0.
 - **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.1-p2` (default PG17)
 - **Bundled PostgreSQL majors:** 14 – 18 (PG13 dropped, PG18 added at 2.0.0)
 - **Breaking:** none beyond 2.0.0 — hotfix release.
-- **CRD migrations:** fixes the 2.0.0 OperatorConfiguration CRD type mismatch that broke GitOps pipelines (diff/apply loops). **Use 2.0.1, never 2.0.0.**
+- **CRD migrations:** fixes the 2.0.0 OperatorConfiguration CRD type mismatch that broke GitOps pipelines (diff/apply loops). Never 2.0.0. **But 2.0.1 is also superseded — use ≥ 2.0.2**: it still carries the scram `ALTER ROLE` write-loop and a second CRD schema gap on `sidecars`. See §2.0.2.
 - **Notable:** same use-the-patch pattern as 1.15.x (1.15.0 shipped broken images, 1.15.1 fixed; 2.0.0 shipped a broken CRD, 2.0.1 fixed — turnaround this time was 2 days, not 2 months).
 
 ## 2.0.0  (2026-07-27)

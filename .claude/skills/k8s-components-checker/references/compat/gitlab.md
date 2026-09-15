@@ -13,6 +13,13 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 8.11      # chart minors: current (10.x) + prior 2 (9.x, 8.x)
 - **Last sifted:** 2026-07-21 (re-probed: latest app tag **v19.2.0**, still within the chart-10.x / GitLab-19.x row — no chart-minor shift)
+- **Last release-verified:** 2026-09-15 — chart tags enumerated from the GitLab
+  API (`gh` does not apply here): newest are **`v10.3.2`, `v10.2.6`, `v10.1.8`**,
+  all 2026-09-10. Still inside the **10.x / GitLab 19.x** row below, so the row
+  and its floors are unchanged. The chart→app mapping for 10.3 was **not**
+  re-derived, so the `v19.2.0` app figure above is from the July sift and may
+  lag; derive the app version from the chart's `appVersion` at survey time
+  rather than from that number.
 
 ## Reading the file
 
