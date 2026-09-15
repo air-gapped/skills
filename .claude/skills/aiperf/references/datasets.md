@@ -115,6 +115,13 @@ When using `random_pool`, `--conversation-num` defaults to 100 if not specified.
 "Added ≤v0.11.0" means the value is present in the v0.11.0 CLI reference; the
 exact introducing release was not pinned down this pass.
 
+### New at v0.12.0 — agentic and trace replay
+
+`exgentic`, `exgentic_v2`, `baseten_trace` and the WEKA types (`weka_hf`,
+`semianalysis_cc_traces_weka`) arrive with AgentX v1.0 (PR #1165, PR #1064, PR #1078,
+PR #1129). Verified present in `docs/cli-options.md` at `v0.12.0` and absent at `v0.11.0`.
+Nothing was removed — every type below still resolves at v0.12.0.
+
 ## `--input-file` is the single switch
 
 Same flag for all custom types — the parser is selected by `--custom-dataset-type`. Files for `single_turn` / `multi_turn` / `mooncake_trace` / `bailian_trace` / `burst_gpt_trace` are JSONL; `random_pool` accepts a directory or a JSONL with one prompt per line.

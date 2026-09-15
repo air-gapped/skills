@@ -2,7 +2,7 @@
 
 Pick `--endpoint-type <name>` to match the inference target's wire format. AIPerf appends the canonical path to `--url` automatically; override via `--custom-endpoint` for non-standard paths.
 
-## Built-in endpoints (15)
+## Built-in endpoints (16)
 
 | `--endpoint-type` | Default path | Streaming | Wire format / target |
 |---|---|---|---|
@@ -10,6 +10,7 @@ Pick `--endpoint-type <name>` to match the inference target's wire format. AIPer
 | `chat_embeddings` | `/v1/chat/completions` | no | vLLM multimodal embeddings via chat API. |
 | `completions` | `/v1/completions` | yes | OpenAI legacy text completion. |
 | `responses` | `/v1/responses` | yes | OpenAI Responses API. v0.7.0 added support (PR #695). |
+| `messages` | `/v1/messages` | yes | Anthropic Messages API. **New at v0.12.0** (PR #731) — absent from `docs/cli-options.md` at v0.11.0. |
 | `embeddings` | `/v1/embeddings` | no | OpenAI Embeddings. Returns vectors. Use `--prompt-batch-size` to batch. |
 | `nim_embeddings` | `/v1/embeddings` (NIM) | no | NVIDIA NIM Embeddings. |
 | `cohere_rankings` | `/v1/rerank` | no | Cohere Reranking API. |

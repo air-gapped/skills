@@ -2,7 +2,7 @@
 name: aiperf
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 17 endpoint types (chat, completions, embeddings, rankings, responses, image-gen, image-edit, video-gen, NIM, HF-TGI, raw, template, etc.), 10 custom dataset formats (single_turn, multi_turn, mooncake_trace, bailian_trace, burst_gpt_trace, random_pool, dag_jsonl, raw_payload, inputs_json, sagemaker_data_capture) plus the SPEED-Bench family, 20+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze-trace/synthesize/service subcommands, plugin extensibility, and reasoning-token TTFT/TTFO split.
+  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 18 endpoint types (chat, completions, embeddings, rankings, responses, image-gen, image-edit, video-gen, NIM, HF-TGI, raw, template, etc.), 10 custom dataset formats (single_turn, multi_turn, mooncake_trace, bailian_trace, burst_gpt_trace, random_pool, dag_jsonl, raw_payload, inputs_json, sagemaker_data_capture) plus the SPEED-Bench family, 20+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze-trace/synthesize/service subcommands, plugin extensibility, and reasoning-token TTFT/TTFO split.
 when_to_use: |-
   Trigger on "aiperf", "ai-dynamo/aiperf", "genai-perf migration", or "benchmark vllm / sglang / trt-llm / dynamo / nim / triton / ollama" — vendor-neutral, prefer over `vllm bench` when target is non-vLLM or trace-driven. Also `aiperf profile / plot / plugins / analyze-trace / synthesize / service`, "mooncake / bailian / burstgpt trace", "sharegpt", "speed-bench", "MMLU / AIME accuracy benchmark", "TTFO / time-to-first-output-token", "reasoning-token TTFT split", "goodput SLO", "DistServe goodput", "fixed-schedule replay", "user-centric rate", "prefill concurrency", "multi-run confidence", "DCGM / pynvml telemetry", "profile_export.jsonl", "NIM embeddings/rankings", "HF TEI rerank", "image / video generation benchmark", "register custom endpoint / dataset plugin". Defer to `vllm-benchmarking` for `vllm bench` workflows.
 ---
@@ -23,9 +23,9 @@ Target audience: operators producing defensible latency/throughput/goodput numbe
 
 If the target is exclusively vLLM and the operator wants the in-tree `vllm bench` toolchain (sweep, latency-only, startup, mm-processor), defer to the `vllm-benchmarking` skill. AIPerf is the right answer when (a) the target is non-vLLM or (b) the workload is trace-driven, multi-modal, multi-server, or needs goodput.
 
-## What landed in v0.9.0 – v0.11.0
+## What landed in v0.9.0 – v0.12.0
 
-Three minors shipped between 2026-05-30 and 2026-07-08. The ones that change how you drive AIPerf:
+Four minors shipped between 2026-05-30 and 2026-08-06. The ones that change how you drive AIPerf:
 
 - **Adaptive sweep orchestrator + YAML-native v2 config** (v0.10.0, PR #912) — Bayesian Optimization and reusable search recipes, instead of hand-rolled concurrency sweeps.
 - **Multi-tier SLO search** (v0.11.0, PR #1035) — resolve N tier boundaries in a single job rather than one job per tier.
@@ -35,12 +35,18 @@ Three minors shipped between 2026-05-30 and 2026-07-08. The ones that change how
 - **`network_adjusted_*` latency metrics** (v0.11.0, PR #1066) — subtract network RTT so numbers reflect the server, not the path to it.
 - **Power metrics** — initial implementation (v0.10.0, PR #803).
 - **Warmup fix** (v0.11.0) preventing prefix-cache reuse from skewing results — if you have baselines from ≤v0.10.x with warmup enabled, they may not be comparable.
+- **v0.12.0 drops Python 3.10** (PR #1107) — the floor is **3.11**. A 3.10 host that installed v0.11.0 fine gets no candidate for v0.12.0; this is the one change that stops an upgrade rather than altering a result.
+- **New endpoint `messages`** (v0.12.0, PR #731) — Anthropic Messages API at `/v1/messages`. Benchmark an Anthropic-protocol server without the `template` escape hatch. See the `messages-api` skill for what the wire format costs.
+- **Multiple warmup and profiling phases in one run** (v0.12.0, PR #1150) and **single-run adaptive scaling** (PR #1058, plus scale variables for controls and SLA metrics in PR #1074) — replaces the run-per-phase and run-per-scale-point loops.
+- **Per-request spec-decode acceptance + vLLM adapter** (v0.12.0, PR #1167) — acceptance per request rather than a server-wide average. Pairs with vLLM's own `--per-request-spec-decode-metrics`; see `vllm-speculative-decoding`.
+- **AgentX v1.0** (v0.12.0, PR #1165) — agentic replay and DAG-shaped workloads, with new `exgentic` / `exgentic_v2` / `baseten_trace` / WEKA dataset types.
+- **`aiperf analyze` + swim-lane viewer** (PR #1116) and **`aiperf chat`** (PR #1076) — inspect a run interactively instead of post-processing the export by hand.
 
 ## Versions
 
-- **Stable on PyPI:** v0.11.0 (2026-07-08), `requires-python >=3.10,<3.14`. `pip install aiperf`. A nightly wheel is published alongside as `aiperf-nightly` (v0.10.0+).
-- **Repo `main`** at https://github.com/ai-dynamo/aiperf: post-v0.11.0.
-- **Python:** ≥3.10, <3.14. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows — Windows is a first-class port with blocking CI since v0.11.0 (PR #1007).
+- **Stable on PyPI:** v0.12.0 (2026-08-06), `requires-python >=3.11,<3.14`. `pip install aiperf`. A nightly wheel is published alongside as `aiperf-nightly` (v0.10.0+).
+- **Repo `main`** at https://github.com/ai-dynamo/aiperf: post-v0.12.0.
+- **Python:** **≥3.11**, <3.14 — the floor moved at v0.12.0 (PR #1107); v0.11.0 and earlier accept 3.10. Pin to v0.11.0 if the runner is stuck on 3.10. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows — Windows is a first-class port with blocking CI since v0.11.0 (PR #1007), and Windows-on-ARM install/run was added at v0.12.0 (PR #1068).
 - **Source of truth for flags:** `aiperf profile --help`. CLI options doc is auto-generated via `make generate-cli-docs`. If the doc disagrees with `--help` on a flag spelling, trust `--help`.
 
 ## Decision tree — which subcommand
