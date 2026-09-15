@@ -6,6 +6,9 @@ pass actually changed.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **v0.20.0 PR-list redundancy across three files** (Dim 6) —

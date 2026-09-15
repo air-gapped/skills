@@ -4,6 +4,9 @@ Carries ceiling findings across skill-improver runs. Append-only history.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Dim 10 capped at 8 by design** (Dim 10). No `delta_pass_rate`: `evals/`

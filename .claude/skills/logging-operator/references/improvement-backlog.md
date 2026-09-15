@@ -32,6 +32,9 @@ Address opportunistically during freshen/improve passes.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Resolved — 2026-09-15 (two gaps that only needed the source opened)
 
 - **Escaping character table written from `render/fluent.go` @ 6.7.0.** The entry

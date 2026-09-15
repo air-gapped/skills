@@ -106,6 +106,8 @@ in a single atomic iteration, plus what each pass actually changed.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
 ## Resolved — 2026-09-15 (the re-probe already happened; only a header said otherwise)
 

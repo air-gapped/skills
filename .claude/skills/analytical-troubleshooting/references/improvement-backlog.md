@@ -5,6 +5,9 @@ Carries findings across skill-improver runs. See skill-improver's
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Discard rationales (anti-re-proposal guards)
 
 - **2026-07-29, iter 10, discarded:** "Universal discriminating probes" command

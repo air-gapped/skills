@@ -52,6 +52,9 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Dim 7 (Resource Quality, ~7 — neutral ceiling) — no bundled scripts, by design.** The skill points at the

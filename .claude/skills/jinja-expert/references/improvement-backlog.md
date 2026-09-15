@@ -24,6 +24,8 @@ the metric actually registered.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
 ## Resolved — 2026-07-21 (freshen)
 

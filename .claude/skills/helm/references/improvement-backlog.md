@@ -16,6 +16,9 @@ a single atomic iteration, plus what each pass actually resolved.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Resolved — 2026-08-26 (freshen + measured finding)
 
 Probed the 11 release-feed rows and all 8 CI action pins. **All eight SHAs still

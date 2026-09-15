@@ -5,6 +5,9 @@ items without new evidence.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Move the Backlog section out of SKILL.md body** (Dim 2/6) —

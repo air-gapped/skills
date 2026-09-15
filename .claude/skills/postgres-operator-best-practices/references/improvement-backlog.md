@@ -4,6 +4,9 @@ Carries ceiling findings across skill-improver runs. Append-only history.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Unblocked — actionable
 
 - **No trigger-mode measurement yet** (Dim 1, empirical). The description and

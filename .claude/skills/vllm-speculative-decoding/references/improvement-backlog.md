@@ -90,6 +90,9 @@ training-data recipe survey, and the four long-merged original PRs.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Resolved — 2026-09-15 (the generic caveat now lives in one place)
 
 - **Collapsed to SKILL.md, method-specific deltas kept.** `eagle3.md` and

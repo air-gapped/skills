@@ -16,6 +16,9 @@ were read on 2026-08-21 and kept deliberately; leave them alone.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Unblocked — actionable
 
 ## Decided — do not re-propose

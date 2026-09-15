@@ -20,6 +20,9 @@ changes the metric registered this pass. Append-only audit; not a wishlist.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Trim kpis-frameworks.md §7 dashboard recipes** — Dim 2 / Dim 6 —

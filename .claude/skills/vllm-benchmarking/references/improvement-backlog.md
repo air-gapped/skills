@@ -4,6 +4,9 @@ Work-not-done log from skill-improver passes. "Open" = issues attempted or ident
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Resolved — 2026-09-15 (the intro stops restating the pitfalls)
 
 - **"Why this matters" collapsed to consequences and retitled.** It had been

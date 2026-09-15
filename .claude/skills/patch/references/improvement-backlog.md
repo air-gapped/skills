@@ -107,6 +107,9 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried

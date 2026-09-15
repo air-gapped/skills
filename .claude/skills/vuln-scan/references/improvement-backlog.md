@@ -158,6 +158,9 @@ four identically and told us nothing.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Do not extract the "inline review briefs" to `references/prompts.md`** (carried

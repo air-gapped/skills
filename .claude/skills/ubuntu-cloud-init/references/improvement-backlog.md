@@ -45,6 +45,9 @@ old, so a release-tag check would have reported nothing to do.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
 ## Decided — do not re-propose
 
 - **Dim 7 (Resource Quality) — no bundled scripts (by design).** cloud-init is a
