@@ -186,6 +186,21 @@ first ships in **v0.29.0**. At v0.28.0 and below a pooling deployment behaves
 exactly as before unless the operator opts in; at v0.29.0 the upgrade itself
 switches the runner, and `VLLM_USE_V2_MODEL_RUNNER=0` is the way back.
 
+**That escape hatch has a horizon — treat it as a migration window, not a setting.**
+v0.29.0 also made MRV2 the default for *every* model, not just pooling
+([#53183](https://github.com/vllm-project/vllm/pull/53183)), and its notes declare MRV1 deprecated and
+**target v0.32 for its removal**, with no further MRV1-specific work accepted.
+Pinning `VLLM_USE_V2_MODEL_RUNNER=0` buys time to fix a blocker; it is not a
+durable configuration, and a deployment still relying on it at v0.32 has
+nowhere to fall back to.
+
+**vLLM also falls back to MRV1 by itself** when a feature MRV2 does not yet
+support is configured — sequence parallelism, dual-batch overlap, elastic
+expert parallelism, custom logits processors, and some speculative-decoding
+methods ([tracking issue #47172](https://github.com/vllm-project/vllm/issues/47172)). So a v0.29.0
+deployment can still be on MRV1 with no flag set. Check which runner is
+actually in use before concluding the upgrade changed anything.
+
 If you do opt in with `VLLM_USE_V2_MODEL_RUNNER=1`:
 
 - Token-wise tasks (`token_embed`, `token_classify`) are enabled **only for
