@@ -33,11 +33,17 @@ Across Volta → Ampere → Hopper → Blackwell:
 | H100 (2022) | 989 | 3.35 | 295 |
 | H200 (2024) | 989 | 4.8 | 206 |
 | B200 (2024–25) | 2,250 | 8.0 | 281 |
-| B300 / Blackwell Ultra (2025) | 3,750 | 8.0 | 469 |
+| B300 / Blackwell Ultra (2025) | 2,500 | 8.0 | 312 |
 | Rubin R100 (2026 projected) | ~8,000 (est.) | ~20 | ~400 |
 
 Compute grew ~18× from V100→B200 while bandwidth grew ~9× — the **compute:bandwidth
 ratio roughly doubled**, pushing the memory wall further into the workloads we run.
+
+**Blackwell Ultra is not a further jump on this axis.** Its dense FP16 is 2,500 TF
+against B200's 2,250 on the same 8 TB/s — about 11% more, so the ratio moves 281 → 312,
+not to the ~470 a halving-from-FP4 derivation implies. The generation's advertised
+1.5× compute uplift lands on FP4 alone. **If a plan leans on B300 for FP16 or BF16
+throughput, it is buying roughly a tenth more than B200, not half again.**
 Blackwell Ultra's higher FP16 TFLOPs (vs B200) comes with the same 8 TB/s HBM BW, so
 the ratio worsens again — which is precisely why **FP4 becomes structurally important
 on B300**: halving weight bytes buys a direct 2× relief on the memory-bound decode
