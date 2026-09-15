@@ -4,6 +4,47 @@ Carries open ceiling findings across skill-improver runs. Each entry: title,
 affected dim, file:line pointer (or file-set), why it couldn't be applied in
 one iteration this run, enough context for a future loop to act on.
 
+## Resolved — 2026-09-15 (four carried items: one shipped, two closed on evidence, one re-stated)
+
+- **Item 4 (no `scripts/` directory) — DONE.** Shipped
+  `scripts/check-serversidediff-exposure.py`. The entry called it "author work",
+  which is effort, not an absent thing, so it never qualified as a blocker. What
+  it asked for was also too narrow: checking only for
+  `IncludeMutationWebhook=true` passes a cluster exposed to CVE-2026-45737,
+  which needs no annotation. The shipped script does both — text scan plus a
+  per-line version floor — and refuses to print a pass for a clean manifest scan
+  when no `--version` was given.
+  - Scans as **text** rather than parsed YAML deliberately: the annotation must
+    be caught inside Helm templates, kustomize patches and ApplicationSet
+    `template:` blocks, none of which parse standalone.
+  - `--selfcheck` asserts all six per-line boundaries plus the 3.4-specific case
+    where CVE-2026-42880 never applied, so the floors cannot silently rot.
+  - Exit 1 on exposure, so it drops into CI unchanged.
+- **Item 3 (`paths:` frontmatter) — CLOSED, decided against, on evidence.** The
+  entry deferred to "author judgment". The docs settle it without a judgement
+  call: `paths` is real and supported, and it means *"when set, Claude loads the
+  skill automatically **only** when working with files matching the patterns"*
+  (code.claude.com/docs/en/skills.md, frontmatter reference, read 2026-09-15).
+  This skill's `when_to_use` is explicitly conversational — "even if they don't
+  say 'Argo CD' explicitly" — so `paths` would silence the exact trigger the
+  description is built around. The suggestion and the skill's trigger design
+  contradict each other; adding it would trade a real recall loss for a
+  frontmatter-completeness point. **Do not add it.** Reopen only if the skill is
+  ever narrowed to file-editing work.
+  - Fleet context: **0 of 70 skills** here use `paths`. That is now a deliberate
+    position rather than an oversight.
+- **Item 2 (second-person sweep of `references/`) — DROPPED, not deferred.** Its
+  blocker was that "cost-benefit is marginal" — a judgement, and judgements do
+  not belong in Open. Making it: ~1% density across 5326 lines, in reading-flow
+  contexts rather than instructional voice, in `references/`, which costs nothing
+  until something reads it. Not worth the churn. A future pass may re-open it
+  with a reason; carrying it unresolved for four months was the failure.
+- **Item 1 (relocate canonical YAML) — KEPT, blocker re-stated.** It read as
+  blocked on being a three-edit multi-file restructure. That is effort and does
+  not qualify. The real blocker is that the inline placement is a *deliberate*
+  author choice for fast reach, so overriding it needs the blind A/B comparator
+  — a paid run nobody has authorised. Now recorded that way, with what unblocks it.
+
 ## Resolved — 2026-09-15 (the stated remediation was inside the follow-up advisory)
 
 - **The skill told operators to reach v3.3.9 / v3.2.11. Both are affected by
@@ -115,34 +156,21 @@ that line starts at v3.4.1, which its own release notes state.
 
 ### 1. Inline canonical YAML in SKILL.md — relocate to references (carried 2026-05-29)
 
-- **Dim 2** (Progressive Disclosure) / **Dim 6** (Simplicity)
-- `SKILL.md:127-176` (Canonical Application) and `SKILL.md:187-229` (Canonical ApplicationSet)
-- Blind reviewer's top recommendation: drop both YAML blocks from SKILL.md (replace with a 5-line intent + pointer) to shed ~98 body lines.
-- **Why it is NOT a one-iteration atomic change (corrected 2026-05-29):** `references/application.md` line 5 explicitly says "Canonical full example lives in SKILL.md § Canonical Application — **not repeated here**", so the Application YAML is NOT currently duplicated in the reference. Relocating it means (a) MOVING the block into `application.md`, (b) rewriting that "not repeated here" cross-pointer, and (c) deleting from SKILL.md + adding a back-pointer — a 3-edit multi-file restructure across two files, not a pure relocation. The author also deliberately chose fast-reach (the highest-traffic authoring surface starts at these blocks). A future loop should test the lean variant via blind A/B and, if kept, do the full move+rewrite.
-- Estimated lift: Dim 2 from 8→9 / Dim 6 7→8. SKILL.md drops from 350 → ~250 lines.
-
-### 2. Second-person leakage in reference files (carried 2026-05-29)
-
-- **Dim 3** (Writing Style)
-- `references/version-changes.md:540` ("PRs you'll cite most often"), `references/troubleshooting.md:120, 215, 218`, plus ~50 more across `version-changes.md` and `troubleshooting.md`.
-- Loop iter 3 cleared all 10 second-person uses in `SKILL.md` body but did not sweep references/. Sweeping all reference files in one atomic mutation works (same category as iter 3) but blind reviewer's count of "≈1% density across 5326 lines" suggests the cost-benefit is marginal — most are in casual reading-flow contexts ("you deploy a CR") rather than instructional voice.
-- Estimated lift: Dim 3 from 9→10 self / 9→10 blind.
-
-### 3. No `paths:` frontmatter despite a tightly file-scoped skill (carried 2026-05-29)
-
-- **Dim 9** (Domain Accuracy / frontmatter completeness)
-- `SKILL.md:1-22`
-- Blind reviewer suggested `paths: ["**/argocd/**", "**/Application*.yaml", "**/AppProject*.yaml", "**/ApplicationSet*.yaml"]` — this would tighten triggering on file edits to argo-cd-related YAML and reduce false positives.
-- Could not apply in one iteration: the skill is task-flavored ("how do I write an ApplicationSet?") not pure-file-flavored. Adding `paths:` could *miss* triggers on conversational prompts ("set up a multitenant AppProject"). Author judgment needed on whether file-scoped triggering is worth the conversational-trigger cost.
-- Estimated lift: Dim 9 from 9→10 if no regression; could regress Dim 1 (trigger recall) on conversational prompts.
-
-### 4. No `scripts/` directory (carried 2026-05-29)
-
-- **Dim 7** (Resource Quality)
-- A useful script: `scripts/check-cve-2026-42880.sh` that runs `kubeconform` or `conftest` against an Application directory and fails on `argocd.argoproj.io/compare-options: IncludeMutationWebhook=true`. The skill recommends this in `SKILL.md` § Critical gotchas #1 but doesn't bundle the implementation.
-- Could not apply in one iteration: requires writing and testing real `conftest`/`kubeconform` policies, which is author work.
-- Estimated lift: Dim 7 from 8→9.
-
+- **Blocked on:** a paid blind A/B run nobody has authorised. NOT on effort.
+- **Dim 2** (Progressive Disclosure) / **Dim 6** (Simplicity). `SKILL.md`
+  § Canonical Application and § Canonical ApplicationSet — ~98 body lines that
+  load on every trigger.
+- **The blocker is the measurement, not the edit.** The move is three edits
+  across two files (`references/application.md:5` says the example is "not
+  repeated here", so it must be moved and that pointer rewritten) — mechanical,
+  and by itself no reason to defer. What is absent is evidence: the author
+  *deliberately* chose fast reach, putting the highest-traffic authoring surface
+  at the top of the body. Overriding a deliberate choice needs the blind A/B
+  comparator, which costs money and is optional work under skill-improver's
+  "state the spend before a fan-out" rule.
+- **To unblock:** price a 3-comparator A/B (baseline vs lean variant), get a
+  yes, run it. `REGRESSED` or `NO CHANGE` closes this permanently.
+- Estimated lift if kept: Dim 2 8→9, Dim 6 7→8; SKILL.md ~350 → ~250 lines.
 ## Resolved this pass (2026-05-29 freshen + improve)
 
 - **CVE-2026-42880 patched-version matrix was WRONG** — claimed patched `v3.3.8 / v3.2.10 / v3.1.15`; actual is `v3.3.9 / v3.2.11` per GHSA-3v3m-wc6v-x4x3 (advisory 2026-05-01), and v3.3.8 predates the advisory. Corrected in `SKILL.md` gotcha #1, `references/projects-rbac.md` §8, `references/version-changes.md` CVE-callouts. Security-critical: the old text would have left an operator on an unpatched build (iter 1).

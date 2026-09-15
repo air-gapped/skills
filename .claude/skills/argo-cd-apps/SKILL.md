@@ -103,6 +103,20 @@ Secrets server-side so the annotation stops carrying plaintext. Strip
 `IncludeMutationWebhook=true` anyway and block it in CI with
 `kubeconform`/conftest; it is a footgun independent of patch level.
 
+**Bundled checker — `scripts/check-serversidediff-exposure.py`.** Runs both
+checks, because neither alone decides it:
+
+```bash
+python3 scripts/check-serversidediff-exposure.py ./apps --version 3.4.1
+python3 scripts/check-serversidediff-exposure.py --selfcheck   # verifies the floors
+```
+
+It scans manifests as **text**, not parsed YAML, so the annotation is caught
+inside Helm templates, kustomize patches and ApplicationSet `template:` blocks —
+none of which parse standalone. Exit 1 on any exposure, so it drops into CI as
+is. A clean manifest scan with no `--version` prints a warning rather than a
+pass, because it proves nothing about the annotation-free CVE.
+
 Also on this line: **CVE-2026-45738** (high, 2026-05-13) — stored XSS in
 application **link annotations**, escalating a developer who can edit an
 Application to admin. Affects `< 3.0.0` only, so any 3.x is clear; it matters
