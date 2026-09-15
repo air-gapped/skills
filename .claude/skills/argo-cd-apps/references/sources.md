@@ -11,10 +11,16 @@ Each row has `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version, git ref, or commit SHA — optional). Rows the author wants
 freshen to skip get `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-08-18
+## Most recent freshen pass: 2026-09-15
 
-- **v3.5 GA'd**: latest stable **v3.5.1** (2026-08-12; v3.5.0 GA 2026-08-04);
-  maintenance **v3.4.7** and **v3.3.14** (both 2026-08-12). The v3.5 breaking
+- **v3.5 GA'd**: latest stable **v3.5.3** (2026-09-14; v3.5.0 GA 2026-08-04, then v3.5.1
+  2026-08-12 and v3.5.2 2026-08-27); maintenance **v3.4.9** (2026-09-14) and
+  **v3.3.14** (2026-08-12, no newer v3.3.x). **No new security advisory since
+  2026-05-13** — re-checked this pass across the whole advisory list.
+  **The `Pinned: v3.3.9` value on every readthedocs row below is wrong and has been
+  for at least two passes.** Those URLs use `/en/stable/`, which is a *moving alias*,
+  not a pin — it currently resolves to v3.5.3. A pin column cannot describe a moving
+  target; read those rows as "whatever `stable` is today". The v3.5 breaking
   changes recorded below at rc2 shipped unchanged (re-read via the live
   `upgrading/3.4-3.5/` page): Helm 4.2.1, React 19 UI-extension rebuilds,
   gRPC EventList type, **impersonation now server-wide** (extra RBAC for

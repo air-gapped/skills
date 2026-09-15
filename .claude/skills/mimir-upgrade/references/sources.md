@@ -51,7 +51,7 @@ render against upstream's golden CI fixture, and a Go probe compiled against Mim
 | Perform a rolling update | https://grafana.com/docs/mimir/latest/manage/run-production-environment/perform-a-rolling-update/ | "one ingester at a time", or one whole zone with zone-aware replication | 2026-07-21 | latest |
 | Mimir runbooks | https://grafana.com/docs/mimir/latest/manage/mimir-runbooks/ | Alert runbooks; the readiness-gated definition of "caught up" | 2026-07-21 | mimir-3.1.2 |
 | Mimir Query Engine reference | https://grafana.com/docs/mimir/latest/references/architecture/mimir-query-engine/ | The four documented MQE-vs-Prometheus divergences | 2026-07-21 | latest |
-| mimir-continuous-test | https://grafana.com/docs/mimir/latest/manage/tools/mimir-continuous-test/ | Smoke-test semantics, metric names | 2026-07-21 | latest |
+| continuous-test | https://grafana.com/docs/mimir/latest/manage/tools/continuous-test/ | Smoke-test semantics, metric names. **Page renamed — the `mimir-` prefix was dropped**; the old path 301s here | 2026-09-15 | latest |
 | query-tee | https://grafana.com/docs/mimir/latest/manage/tools/query-tee/ | Differencing flags and comparison metrics | 2026-07-21 | latest |
 | About versioning | https://grafana.com/docs/mimir/latest/configure/about-versioning/ | Forward-only data guarantee; **no downgrade commitment** | 2026-07-21 | latest |
 

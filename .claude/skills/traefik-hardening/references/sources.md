@@ -2,7 +2,7 @@
 
 Dated index of the primary sources behind this skill's claims. `freshen` mode reads and re-stamps the `Last verified` column. Traefik version claims track the release line current at the last verified date; re-probe on `freshen`.
 
-Traefik ships security advisories faster than its docs change — 30 in 2026, 16 of them in the seven weeks after the doc rows below were last checked. **Re-probe the advisory row on every pass even when nothing else looks stale**; several of those advisories are auth bypasses in the middlewares this skill configures, so a row-date that only tracks documentation will not move when the thing that matters does.
+Traefik ships security advisories faster than its docs change — **48** in 2026 (re-counted 2026-09-15 over the full advisory list), 16 of them in the seven weeks after the doc rows below were last checked. The earlier figure of 30 was right when written — the point it supports has only got stronger. **Re-probe the advisory row on every pass even when nothing else looks stale**; several of those advisories are auth bypasses in the middlewares this skill configures, so a row-date that only tracks documentation will not move when the thing that matters does.
 
 | Claim / area | Source | Last verified |
 |---|---|---|

@@ -57,6 +57,18 @@ spec:
 Indentation of `customParsers` matters — wrong indent makes fluent-bit swallow the
 whole message.
 
+**From logging-operator 6.8.0, a duplicate parser name crash-loops the DaemonSet.**
+6.8.0 ships Fluent Bit 5.1.0, which made a duplicate parser name **fatal** where 5.0
+logged a warning and carried on. A `customParsers` entry reusing a built-in name —
+`json`, `docker`, `cri`, `kube-custom` — now stops Fluent Bit from starting at all.
+The operator's own generated parser does not collide, and the `cri-log-key` name used
+above is safe precisely because it is not a built-in.
+
+Rename any colliding parser **before** upgrading, or pin the Fluent Bit image to
+`5.0.5`. **This is not in the Fluent Bit release notes** — upstream found it while
+testing the bump and documented it in the logging-operator 6.8.0 notes instead, so
+reading the dependency's own changelog will not warn you.
+
 Tuning: `Merge_Log_Key: parsed` nests merged fields under one key (prevents app
 JSON with its own `time`/`kubernetes` keys colliding with metadata).
 `Keep_Log: "Off"` drops the raw string after a successful merge (default On keeps
