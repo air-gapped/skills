@@ -101,6 +101,15 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Open
 
+## Resolved — 2026-09-15
+
+- **Four second-person slips converted to the directive register.** Three
+  sentences, in the subagent-spawn note and the async-recovery branch and the
+  never-apply-diffs rule; the fourth was the same sentence as one of them. The
+  entry called this "convertible on a style pass", which is work rather than a
+  blocker. Line numbers in the old entry had drifted by roughly 55 lines, so the
+  slips were found by phrase, not by line.
+
 ## Decided — do not re-propose
 
 - **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried
@@ -124,10 +133,6 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Unblocked — actionable
 
-- **4 second-person slips in body prose (Dim 3).** SKILL.md:201, 224, 226, 408
-  ("you need", "your conversation", "end your turn", "you find yourself") — in
-  operational/async-recovery notes, not quoted prompts. Convertible to
-  imperative on a style pass; minor (Dim 3 already 8).
 - **Add a `when_to_use` field (Dim 1).** 665/1536 chars of budget unused;
   symptom triggers ("draft a fix for", "remediate") would lift recall. Defer
   to a `trigger`-mode pass.

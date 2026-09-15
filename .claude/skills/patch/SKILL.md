@@ -255,7 +255,7 @@ After all findings, write the consolidated phase payload to `_chunk.tmp` then:
 
 One Agent per finding, all in a SINGLE assistant message for parallel
 execution. `subagent_type: "patch-author"` (plugin installs:
-`defending-code:patch-author`). Never set `run_in_background` — you need
+`defending-code:patch-author`). Never set `run_in_background` — this needs
 the diff text, not an async handle.
 
 Each subagent is restricted to read-only tools and cannot modify the
@@ -287,9 +287,9 @@ one message). Per-finding shard checkpoint after each result is parsed.
 If any Agent call returns `status: "async_launched"` instead of the
 subagent's text, the runtime backgrounded it. Pick one recovery and use it
 for the whole batch:
-  - If completion notifications arrive in your conversation: parse each
+  - If completion notifications arrive in the conversation: parse each
     subagent's tagged blocks from its notification `result` as it lands. Do
-    not end your turn until every finding is accounted for.
+    not end the turn until every finding is accounted for.
   - If notifications do not arrive: do NOT poll transcript files. Re-spawn
     the missing patch subagents in a fresh Agent batch (smaller shard, e.g.
     10) and use the synchronous results.
@@ -502,7 +502,7 @@ End of the defending-code loop. No skill applies these; a human does.
 ## Guard rails
 
 - **The skill never applies diffs.** No `git apply`, no `patch`, no Edit
-  against `--repo`. If you find yourself needing to, the design is wrong.
+  against `--repo`. Needing to means the design is wrong.
 - **Write only under `./PATCHES/` and `./.patch-state/`.**
 - **Reviewer isolation.** The reviewer prompt receives `{file, line,
   category, diff}` and nothing else from the finding. Do not pass it

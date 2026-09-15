@@ -146,12 +146,12 @@ Red Hat's EAGLE-3 post is explicit:
 
 Concrete causes:
 
-1. **Domain mismatch** — chat-tuned EAGLE-3 on SQL/code/agent traffic, AL
-   drops from ~3 to ~2. Solution: domain-adapt the head (continual
-   pretraining) or pick a workload-specific checkpoint.
-2. **BS >= 32** — verification batch contends with drafter batch, target
-   becomes compute-bound, spec-dec loses. Solution: gate spec-dec to the
-   low-concurrency tier, or use `disable_by_batch_size`.
+1. **Domain mismatch** (see SKILL.md for the size of the drop) — the EAGLE-3
+   fix is to domain-adapt the head by continual pretraining, or to pick a
+   workload-specific checkpoint rather than a stock one.
+2. **BS >= 32** (see SKILL.md for why) — EAGLE-3 exposes
+   `disable_by_batch_size`, so the threshold can be enforced in config instead
+   of by routing.
 3. **Context > 2048** on older stock checkpoints — they were trained at short
    context and extrapolate badly. Check the checkpoint's released sequence
    length before deploying on long context.

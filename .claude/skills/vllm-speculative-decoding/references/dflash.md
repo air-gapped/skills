@@ -89,8 +89,9 @@ batch sizes; watch the per-position acceptance histogram.
 - Target not in allow-list → method won't load.
 - `--attention-backend` pinned to Triton (common on some Hopper deployments)
   → the cross-attention path is unsupported.
-- BS consistently ≥ 32 in production → all spec-dec methods degrade; DFlash
-  falls off faster than vanilla EAGLE-3 in the published data.
+- BS consistently ≥ 32 in production → **DFlash falls off faster than vanilla
+  EAGLE-3** in the published data. The general effect is in SKILL.md; this is
+  the DFlash-specific part of it.
 - Multimodal workload → untested, expect trouble.
 - No DFlash adapter exists for the target family → stick with EAGLE-3.
 
