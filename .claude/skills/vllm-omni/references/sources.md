@@ -139,8 +139,8 @@ alone would have retired five live caveats from this skill.
 - `vllm_omni/distributed/omni_connectors/connectors/*.py` — connector implementations
 - `vllm_omni/diffusion/` — DiT engine
 - `vllm_omni/diffusion/cache/teacache/`, `cachedit/`, `magcache/`, `stepcache/` — DiT activation caches. **`cache_dit/` was renamed to `cachedit/` (no underscore) by PR #5226, merged 2026-07-24** — before the previous pass, which recorded the old name anyway; `magcache/` and `stepcache/` arrived in the same refactor and were never listed
-- `vllm_omni/inputs/data.py:203-417` — OmniDiffusionSamplingParams (was cited as 174-300; it is the last class in the module and runs to end-of-file)
-- `vllm_omni/quantization/factory.py` — unified quantization factory: the public entry point is `build_quant_config()` at **line 389**. The previously cited 138-178 range points at internal per-scheme builder helpers, not the factory — a wrong-symbol citation, not just line drift
+- `vllm_omni/inputs/data.py:198-411` — OmniDiffusionSamplingParams **at tag v0.28.0** (the current stable); it is the last class in the module and runs to end-of-file. Was cited as 174-300, which is stale. On `main` it sits at 204 and the file is longer — **that is a different ref, not a newer reading of this one**; pin citations to the tag.
+- `vllm_omni/quantization/factory.py` — unified quantization factory: the public entry point is `build_quant_config()` at **line 366 at tag v0.28.0** (file is 499 lines there). It is at 389 on `main`; use the tag value. The previously cited 138-178 range points at internal per-scheme builder helpers, not the factory — a wrong-symbol citation, not just line drift
 - `vllm_omni/platforms/__init__.py:21-130` — platform auto-detect
 - `vllm_omni/profiler/omni_torch_profiler.py` — profiler wrapper
 - `vllm_omni/patch.py` — early-import patch registering OmniModelConfig (**removed in v0.20.0**; the old entrypoint hijack was dropped for the 0.20.0 integration path per release notes, rebase PR #3232)
