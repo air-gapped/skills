@@ -10,6 +10,10 @@ marked `<!-- ignore-freshen -->` are deliberately not refreshed.
 
 ## Most recent pass: 2026-07-21
 
+**Freshened: 2026-09-15 — every row probed, and every row holds.** No dead links, no redirect drift, no changed issue states (#13351, #2807, #12012, #14008, #5449 all still open; discussion #13354 still open). **Seven absence claims were re-tested against the exact snapshot each row names and all seven still hold** — no `-querier.compare-*` flag and no fallback counter in `help-all.txt.tmpl` at mimir-3.1.2; `pkg/storage/ingest/version.go` still absent at mimir-2.16.0; `classic-architecture.yaml` still absent at chart 5.8.0; still no `global.imageRegistry` in the 6.1.0 chart values; zero case-insensitive hits for "downgrade" in the versioning doc; zero for "OnDelete" in kubectl's `objectrestarter.go`; and the classic-architecture page still names no removal version.
+
+**What has moved is the upgrade ceiling, not the evidence.** Mimir is at **3.2.1** (2026-09-10) against this skill's 3.1.2 pin, the chart line released **6.2.0** stable (with 6.3.0 in weekly pre-release) against its 6.1.0 pin, and rollout-operator is at **v0.40.0** (2026-09-11) against v0.38.0. Every pinned row below was read at its own tag and is still correct there — but the skill targets a version that is no longer the top of any of the three lines. Read the 3.1.3→3.2.1 and chart 6.1.0→6.2.0 changelogs before using this as an upgrade plan.
+
 Skill authored 2026-07-21 from a six-agent research pass. **No lab cluster was available** — every claim is
 either upstream-grounded (tagged `[UG]`) or reasoned from chart/source reading (tagged `[RFC]`). Static
 verification performed: `helm template` renders of charts 5.7.0/5.8.0/6.0.6/6.1.0, a key-by-key diff of one

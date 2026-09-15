@@ -23,8 +23,8 @@ refs).
 | https://github.com/huggingface/transformers/blob/main/src/transformers/models/auto/tokenization_auto.py | AutoTokenizer dispatcher | 2026-08-18 |
 | https://github.com/huggingface/transformers/blob/main/MIGRATION_GUIDE_V5.md | v4→v5 consolidation notes | 2026-08-18 |
 | https://github.com/huggingface/transformers/releases/tag/v5.0.0 | v5.0.0 GA notes | 2026-08-18 |
-| https://github.com/huggingface/transformers/releases | Release cadence + latest version (**v5.15.0, 2026-08-10**; was v5.14.1 at the 07-21 pass; minors 5.10–5.14 landed 2026-06-10 → 07-16). **No breaking tokenizer/chat-template API change through 5.14.1** — the `Breaking changes` sections of 5.13.0 and 5.14.0 are entirely `kernels`-integration and generation/SDPA items; 5.10/5.11/5.12 have none touching this surface. Independently corroborated the same day by re-reading `chat_template_utils.py` on `main`: the Jinja env contract is byte-identical to the 5.9-era description. | 2026-08-18 |
-| https://github.com/huggingface/tokenizers/tags | `tokenizers` (Rust) latest tag — backs the fast tokenizer / `tokenizer.json` (**still v0.23.1**; newest tags are v0.23.1 and rc's, no v0.24) | 2026-07-21 |
+| https://github.com/huggingface/transformers/releases | Release cadence + latest version (**v5.17.0, 2026-09-09**, via v5.15.1, v5.16.0 and v5.16.1. The no-breaking-tokenizer/chat-template claim was re-checked against the releases this file had missed and still holds: v5.16.0's breaking change is the DTensor-native TP backend and v5.17.0's is unified vision RoPE — neither touches the tokenizer or chat-template surface. Historically **v5.15.0, 2026-08-10**; was v5.14.1 at the 07-21 pass; minors 5.10–5.14 landed 2026-06-10 → 07-16). **No breaking tokenizer/chat-template API change through 5.14.1** — the `Breaking changes` sections of 5.13.0 and 5.14.0 are entirely `kernels`-integration and generation/SDPA items; 5.10/5.11/5.12 have none touching this surface. Independently corroborated the same day by re-reading `chat_template_utils.py` on `main`: the Jinja env contract is byte-identical to the 5.9-era description. | 2026-08-18 |
+| https://github.com/huggingface/tokenizers/tags | `tokenizers` (Rust) latest tag — backs the fast tokenizer / `tokenizer.json` (**now v0.23.2**, up from v0.23.1 — **still no v0.24**, so the claim that matters is intact and only the patch pin moved) | 2026-07-21 |
 | https://huggingface.co/blog/tokenizers | Transformers v5 tokenizer blog | 2026-08-18 |
 
 ## Transformers issues + PRs
@@ -60,7 +60,7 @@ refs).
 | https://github.com/vllm-project/vllm/pull/27622 | chat_template_kwargs allowlist fix (v0.11.1) | 2026-08-18 |
 | https://github.com/vllm-project/vllm/issues/25401 | tokenizer-mode mistral silently ignores --chat-template | 2026-08-18 |
 | https://github.com/vllm-project/vllm/releases/tag/v0.11.1 | Shipped PR #27622 | 2026-08-18 |
-| https://github.com/vllm-project/vllm/releases | vLLM release cadence + latest version (**v0.27.1, 2026-08-11**; was v0.25.1 at the 07-21 pass; v0.22.1 → v0.23.0 → v0.24.0 → v0.25.0 → v0.25.1 since the last stamp — four minors in two months). The vLLM source rows above are `blob/main` links, so they do not rot, but their *claims* were verified against a v0.21-era tree and were **not** re-read this pass. | 2026-08-18 |
+| https://github.com/vllm-project/vllm/releases | vLLM release cadence + latest version (**v0.29.0, 2026-09-09**, via v0.28.0. Note this row's own caveat — that its claims were verified against a v0.21-era tree and not re-read — now spans eight minors, so treat it as a cadence pointer and nothing more. Historically **v0.27.1, 2026-08-11**; was v0.25.1 at the 07-21 pass; v0.22.1 → v0.23.0 → v0.24.0 → v0.25.0 → v0.25.1 since the last stamp — four minors in two months). The vLLM source rows above are `blob/main` links, so they do not rot, but their *claims* were verified against a v0.21-era tree and were **not** re-read this pass. | 2026-08-18 |
 
 ## sglang
 
