@@ -36,7 +36,9 @@ code-revision: null                 # for trust-remote-code modules
 trust-remote-code: false
 dtype: auto                         # auto | half | bfloat16 | float | float32 | ...
 max-model-len: null                 # overrides config.json max_position_embeddings
-quantization: null                  # awq | gptq | squeezellm | fp8 | bitsandbytes | ...
+quantization: null                  # awq | gptq | fp8 | compressed-tensors | modelopt | ...
+                                    # full list: `vllm-quantization` skill; `bitsandbytes`
+                                    # is out-of-tree from v0.28.0 and `squeezellm` is gone
 served-model-name: null             # name surfaced at /v1/models
 chat-template: null
 allowed-local-media-path: null      # required for file:// image URIs
