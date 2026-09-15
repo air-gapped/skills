@@ -37,12 +37,24 @@ Primary sources:
 | B100 | 2 chiplets | 192 GB HBM3E | 8 TB/s | ~1,750 TF | ~3,500 TF | ~7,000 TF | 1.8 TB/s | 700 W | **Effectively cancelled for HGX volume**; replaced by B200A/B102 |
 | B200 SXM | 2 chiplets | 180–192 GB HBM3E (SKU-dependent) | 8 TB/s | 2,250 TF | 4,500 TF | 9,000 TF | 1.8 TB/s | 1,000 W | Standard HGX Blackwell |
 | **B300 — DGX / GB300 Superchip bin** | 2 chiplets (160 SMs, 208B transistors) | **288 GB HBM3E** (12-Hi) | 8 TB/s | 3,750 TF | 7,500 TF | **15,000 TF** | 1.8 TB/s | **1,400 W** | NVIDIA reference, DGX B300, GB300 Superchip. +67% FP4 vs B200 |
-| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | 8 TB/s | ~3,750 TF | ~7,500 TF | ~15,000 TF | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **18 GB less HBM and 300 W less TDP than the DGX-bin** |
+| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | **7.7 TB/s** | ~3,750 TF | ~7,500 TF | ~15,000 TF | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **18 GB less HBM and 300 W less TDP than the DGX-bin** |
 
-**The bin split matters.** Without it, 8-GPU TDP math is off by 2.4 kW and per-GPU HBM
-is off by 18 GB. When the operator refers to B300 in a Dell / Supermicro / Lenovo HGX
-box, default to the **270 GB / 1,100 W HGX NVL8** bin. When citing NVIDIA marketing
-numbers ("288 GB B300", "15 PFLOPS FP4"), those are the DGX / Superchip bin.
+**The bin split matters.** Without it, 8-GPU TDP math is off by 2.4 kW. When the
+operator refers to B300 in a Dell / Supermicro / Lenovo HGX box, default to the
+**270 GB / 1,100 W / 7.7 TB/s HGX NVL8** bin. When citing NVIDIA marketing numbers
+("288 GB B300", "15 PFLOPS FP4"), those are the DGX / Superchip bin.
+
+**Size against 279 GB, not 288.** NVIDIA's own Blackwell Ultra datasheet — read
+2026-09-15, the primary source this skill had recorded as unreachable — states
+**279 GB HBM3E | 8 TB/s** for GB300 NVL72 and **270 GB HBM3E | 7.7 TB/s** for HGX
+B300, with max TDP 1,400 W and 1,100 W respectively. **The string "288" does not
+appear anywhere in that document.** The 288 figure here comes from launch coverage
+and matches raw 12-Hi stack arithmetic, so the likeliest reconciliation is raw versus
+usable capacity — but that is inference, not something the datasheet states. For any
+sizing decision use the datasheet number: the gap is 9 GB per GPU, 648 GB across an
+NVL72 rack, and 72 x 279 GB = 20.1 TB agrees with the datasheet's own
+"> 20 TB of HBM3E" rack figure. The HGX bin's 270 GB and 1,100 W are confirmed
+exactly, and are NVIDIA's spec rather than a Dell-specific bin.
 
 **Compute-format ratio** is 4:2:1 FP4:FP8:FP16 dense — if only one column is cited,
 derive the others.

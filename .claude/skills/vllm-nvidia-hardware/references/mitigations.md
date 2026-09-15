@@ -48,10 +48,10 @@ Legend: ✅ supported / 🆕 Blackwell-only / 🧪 experimental / ❌ not suppor
 - **FP4 as default**, not research — 2× BW relief on decode that Hopper literally can't run.
 - **NVL72-scoped disagg** — prefill/decode pool fits one NVLink5 domain; ~20× faster
   KV transfer than cross-fabric IB.
-- **288 GB HBM per GPU (B300/GB300 DGX bin; 270 GB on Dell HGX bin)** — a 405B FP4
+- **279 GB HBM per GPU (GB300 NVL72, per NVIDIA's datasheet; 270 GB on HGX B300)** — a 405B FP4
   model (~200 GB) fits on one GB300 with room for KV; a 70B FP4 at 2M-context fits
   without any offload. Changes the "do I even need offload?" calculus.
-- **NVLink-C2C + 270–288 GB HBM** — when offload *is* needed (1M+ context, heavy
+- **NVLink-C2C + 270–279 GB HBM** — when offload *is* needed (1M+ context, heavy
   prefix reuse), the Grace side is a genuine fast tier at 900 GB/s, not a slow fallback.
 - **Speculative decoding ROI grows** — the more memory-bound decode becomes, the bigger
   the acceptance-rate-amortised win; 3–4× routine on Blackwell. Method-pick guidance

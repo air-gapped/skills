@@ -16,16 +16,33 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-- **Re-verify the NVIDIA Blackwell Ultra datasheet row** (Dim 9; `references/sources.md`).
-  The gateway URL returns 200 and the right `<title>`, but the body is a JavaScript shell —
-  522 KB of HTML containing none of the spec strings — so `curl` cannot reach the numbers.
-  **Absent thing:** a browser session, or the underlying PDF's direct URL.
-  **The Dell half of this item is done** (2026-09-15): that source is a plain PDF, and
-  `curl` piped to `pdftotext -layout` yields the whole per-SKU table. It had been filed as
-  needing a browser purely because the earlier pass used a fetcher that could not read a
-  PDF — worth remembering before marking any PDF source unverifiable again.
+## Resolved — 2026-09-15 (the gated datasheet was one grep away)
 
+- **Both halves of the datasheet item are done; no browser was needed for either.**
+  The Dell sheet is a plain PDF. The NVIDIA one is a JavaScript gateway, but its HTML
+  embeds the direct asset URL for the PDF — `curl` the gateway, grep for
+  `dam-cdn.nvd.orangelogic.com/AssetLink/...pdf`, fetch that, run `pdftotext`. Both
+  source rows are re-stamped.
+- **The primary source disagrees with this skill's headline memory figure.** NVIDIA's
+  "Individual Blackwell Ultra GPU Specifications" table reads **279 GB HBM3E | 8 TB/s**
+  for GB300 NVL72 and **270 GB HBM3E | 7.7 TB/s** for HGX B300, max TDP 1,400 W and
+  1,100 W. The skill carried **288 GB** for the DGX/GB300 bin, sourced from launch
+  coverage. **"288" appears nowhere in the datasheet.**
+- **Not overwritten blindly.** 288 matches raw 12-Hi stack arithmetic, so raw-versus-
+  usable is the likely reconciliation — but the datasheet does not say that, so the
+  text records both, names the provenance of each, and directs sizing decisions to the
+  datasheet number. The rack figure corroborates it: 72 x 279 GB = 20.1 TB against the
+  datasheet's own "> 20 TB of HBM3E".
+- **Two smaller corrections fell out of the same table.** The HGX bin's bandwidth is
+  **7.7 TB/s**, not the 8 TB/s this skill gave both bins; and its 270 GB / 1,100 W are
+  NVIDIA's own HGX B300 spec rather than a Dell-specific bin, which is how the Dell
+  sheet reproduces them exactly.
+- **Method worth keeping:** before recording a `resources.nvidia.com` page as gated,
+  grep the gateway HTML for an asset link. The page was filed as needing a browser for
+  two months and did not.
 ## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
 
 - **Reversed the pass's own headline negative: vLLM now has Rubin support.**
