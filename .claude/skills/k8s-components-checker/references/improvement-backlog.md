@@ -2,6 +2,31 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (Cilium 1.20 GA'd after the sift; the file said not to use it)
+
+- **Cilium's "1.20 is still pre-release only … do not treat it as available" is
+  now a wrong instruction.** `v1.20.0` GA'd **2026-07-29** — eight days after the
+  2026-07-21 sift — and `v1.20.1` followed 2026-08-18.
+- **The scope shift is the part that is easy to miss.** The in-scope rule is
+  "current stable + prior 2", so a new stable minor does not add a row, it
+  **rotates** the set: 1.20 / 1.19 / 1.18, with **1.17 dropping out**. A 1.17
+  verdict flips from supported to out-of-window without anyone editing a table.
+- 1.20 has **no section**, so its k8s range is marked not recorded. Not inferred —
+  the per-minor sections are the thing a verdict reads.
+- **A pre-release note is a statement about a date written in the present tense.**
+  `v1.20.0-pre.4, 2026-07-03` was accurate when written and misleading within the
+  month. Worth a standing habit: pre-release notes are the shortest-lived claims
+  in this registry and should be the first thing a release-verify re-reads.
+- **OpenEBS umbrella moved twice past the newest recorded pin** — v4.6.0
+  (2026-08-26), v4.6.1 (2026-09-10) against sections stopping at 4.5.0 / 4.5.1.
+  The LocalPV-LVM version each pins is **deliberately not filled in**: that
+  mapping *is* this file's structure, and guessing it from the umbrella number
+  would produce a row indistinguishable from the grounded ones.
+- **Checked, accurate, unchanged:** Harbor — it already records 2.15 with the note
+  that `releases/latest` returns v2.14.4 by recency rather than rank, which is the
+  exact trap a naive latest-version check falls into. Recorded so it is not
+  re-opened.
+
 ## Resolved — 2026-09-15 (registry release-verify: one EOL flip, one new minor)
 
 - **Kyverno 1.18 is EOL as of 2026-08-20**, when 1.19.0 shipped (1.19.1 followed

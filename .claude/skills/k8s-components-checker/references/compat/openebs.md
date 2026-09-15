@@ -6,6 +6,12 @@
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
 - **Last sifted:** 2026-07-21
+- **Last release-verified (gh):** 2026-09-15 — the umbrella has moved past the
+  newest pin recorded below: **v4.6.0 (2026-08-26)** and **v4.6.1 (2026-09-10)**
+  exist, while the sections below stop at the LocalPV-LVM versions pinned by
+  4.5.0 / 4.5.1. **Which LocalPV-LVM version 4.6.x pins is not recorded** —
+  that mapping is the sift, and this file's whole structure is keyed on it, so
+  it is left empty rather than inferred from the umbrella number.
 - **Last release-verified:** 2026-07-21
 - **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
   LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).

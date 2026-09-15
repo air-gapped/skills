@@ -7,7 +7,24 @@
 - **min_tracked_version:** 1.17
 - **Last sifted:** 2026-07-21
 
-In-scope set: current stable 1.19 + prior 2 (1.18, 1.17). 1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest patches as of sift: **1.19.6, 1.18.12, 1.17.18** (all 2026-07-16). 1.20 is still pre-release only (`v1.20.0-pre.4`, 2026-07-03) — do not treat it as available.
+In-scope set **as sifted 2026-07-21**: current stable 1.19 + prior 2 (1.18, 1.17).
+1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest
+patches as of sift: **1.19.6, 1.18.12, 1.17.18** (all 2026-07-16).
+
+> **Release-verified 2026-09-15 — the line below this one used to say "1.20 is
+> still pre-release only … do not treat it as available". That is now wrong.**
+> **`v1.20.0` GA'd 2026-07-29** — eight days after the sift — and `v1.20.1`
+> followed 2026-08-18. Two consequences, and the second is easy to miss:
+> the instruction not to deploy 1.20 must not be followed; and by this file's
+> own "current + prior 2" rule the in-scope set **shifts to 1.20 / 1.19 / 1.18,
+> dropping 1.17**. The per-minor sections below still describe the old set, and
+> **1.20 has no section at all** — its k8s range is not recorded here, so sift
+> before issuing a 1.20 verdict. A 1.17 verdict is now out-of-window rather than
+> supported.
+>
+> This is the shape a pre-release note always ages into: it is a statement about
+> a date, written in the present tense. `v1.20.0-pre.4` was accurate on
+> 2026-07-03 and misleading eight days later.
 
 CRD schema versions per minor (from stable matrix page): 1.17.x → 1.30.8, 1.18.x → 1.31.11, 1.19.x → 1.32.6. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
 
