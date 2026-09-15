@@ -77,7 +77,7 @@ refs).
 | https://github.com/sgl-project/sglang/pull/22549 | Fix: serving_chat.py double-slice | 2026-08-18 |
 | https://github.com/sgl-project/sglang/commit/9e7dfcc151e4ba79457851019458567eabfc2764 | Merge commit | 2026-08-18 |
 
-## HuggingFace model repos (verified 2026-04-21)
+## HuggingFace model repos
 
 | URL | Purpose | Last verified |
 |---|---|---|

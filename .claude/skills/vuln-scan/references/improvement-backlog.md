@@ -158,13 +158,26 @@ four identically and told us nothing.
 
 ## Open
 
-## Unblocked — actionable
+## Decided — do not re-propose
 
-- **Inline review briefs could move to `references/` (Dim 2).** (carried
-  2026-07-05; body grew 294 → 319 lines with the asset/deployment-facts
-  additions — blind final scored Dim 2 at 6 for it. Still under the ~350
-  revisit threshold, but the margin is shrinking; next content addition
-  should trigger the extraction to `references/prompts.md`.)
+- **Do not extract the "inline review briefs" to `references/prompts.md`** (carried
+  from 2026-07-05). Three facts settle it, checked 2026-09-15:
+  - **The review brief is already extracted.** It is the `vuln-area-reviewer` agent
+    definition (217 lines), which is where it has to live to be prompt-cached across
+    a wave of reviewers. What is still inline in Step 2 is the per-spawn tail of
+    *variable facts*, which is deliberately small for exactly that reason.
+  - **The body is 410 lines, under the 500-line soft cap**, so nothing is forcing a
+    split.
+  - **What remains inline is main-loop instruction, not reference.** The per-spawn
+    template, the call-graph block and the output schema are read by the agent
+    driving the scan, on the path it is already executing. Moving those trades a
+    Dim 2 gain for a Dim 4 loss — an extra Read in the critical path — which is the
+    opposite of the `patch` precedent, where what moved was subagent prompt text the
+    main loop never reads.
+- **If the body does cross 500**, the candidate is the `VULN-FINDINGS.json` schema in
+  Step 4, because it is consumed once at write time rather than throughout the run.
+  That is a trigger and a candidate, not an open item.
+
 ## Resolved — 2026-07-05 (improve, operator feedback)
 
 Applied FEEDBACK-impact-on-asset.md §2 in 2 kept iterations plus one

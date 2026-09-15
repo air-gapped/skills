@@ -107,16 +107,18 @@ in a single atomic iteration, plus what each pass actually changed.
 ## Open
 
 
-- **sources.md per-file / per-model-repo rows still dated 2026-04-21** (Dim 9, freshness).
-  This pass re-confirmed and re-stamped only the release/tag-tracking rows
-  (transformers releases, vLLM releases, tokenizers tags) to 2026-05-28 from
-  authenticated `gh` lookups. The ~45 per-source-file (github blob) and
-  per-model-repo (huggingface.co) rows were NOT individually re-fetched this
-  pass, so they correctly retain their 2026-04-21 stamp (re-stamping unverified
-  rows would be false). They are 37 days old — under the 90-day Dim 9 cap, so no
-  cap fires, but a future freshen should re-probe the HF model-repo configs
-  (Kimi-K2.6, GLM-5.1, Gemma-4, DeepSeek-V3) since lab configs churn fastest.
-  File: references/sources.md.
+## Resolved — 2026-09-15 (the re-probe already happened; only a header said otherwise)
+
+- **The item was stale and the stale thing was a heading.** It asked a future
+  freshen to re-probe the HuggingFace model-repo rows, still stamped 2026-04-21.
+  That re-probe landed on 2026-08-18: all 21 rows in that section carry that date,
+  as do 67 of the 77 rows in the file. Only the section header still read
+  "(verified 2026-04-21)".
+- **Header removed rather than updated.** A date in the heading duplicates the
+  per-row `Last verified` column and can only drift away from it — which is exactly
+  what happened, leaving a header claiming five months where every row underneath
+  claimed four weeks. The row stamp is the truth; the heading now says nothing about
+  time.
 
 ## Resolved — 2026-07-21 (freshen)
 
