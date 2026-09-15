@@ -114,7 +114,7 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog with release announcements (note: WebFetch hit TLS cert chain errors during research; access via WebSearch site: queries works) | 2026-08-18 | — |
+| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog with release announcements (note: **not a TLS problem, despite an earlier reading** — checked 2026-09-15, `curl` reports the certificate verifying cleanly and the server returning **403**, i.e. a bot block on scripted clients. Do not debug certificates here; reach it via WebSearch `site:` queries, which works) | 2026-08-18 | — |
 
 ## Adjacent skills referenced
 
