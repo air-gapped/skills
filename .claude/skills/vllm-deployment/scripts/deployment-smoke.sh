@@ -8,7 +8,7 @@
 # Exits non-zero on any fail.
 
 set -u
-POD="${1:?usage: $0 <pod-name> [namespace]}"
+POD="${1:?usage: $0 POD_NAME [NAMESPACE]}"
 NS="${2:-default}"
 KUBECTL="kubectl -n $NS"
 RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RESET=$'\033[0m'

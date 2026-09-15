@@ -2,6 +2,21 @@
 
 GPU pods are expensive and slow to start. Autoscaling a vLLM fleet is more about **cooldown discipline** than reactive scaling — scale signals that are too sensitive cause thrashing, and pods that take 10 minutes to cold-start punish reactive scaling anyway.
 
+## Table of Contents
+
+- [The signal to scale on](#the-signal-to-scale-on)
+- [KEDA — the recommended autoscaler](#keda--the-recommended-autoscaler)
+- [HPA with custom metrics (alternative)](#hpa-with-custom-metrics-alternative)
+- [llm-d Workload Variance Autoscaler (WVA)](#llm-d-workload-variance-autoscaler-wva)
+- [KServe / OpenShift AI autoscaling](#kserve--openshift-ai-autoscaling)
+- [Multi-node scale (LWS + autoscaler)](#multi-node-scale-lws--autoscaler)
+- [Scale-down gotcha: draining streams](#scale-down-gotcha-draining-streams)
+- [SLO-driven autoscaling (advanced)](#slo-driven-autoscaling-advanced)
+- [Smoke test — is autoscaling wired?](#smoke-test--is-autoscaling-wired)
+- [Reference posts](#reference-posts)
+
+---
+
 ## The signal to scale on
 
 **`vllm:num_requests_waiting`** is the canonical GPU-backpressure metric. It measures requests queued in the vLLM scheduler — not CPU or memory, which for LLM inference do not correlate with load.

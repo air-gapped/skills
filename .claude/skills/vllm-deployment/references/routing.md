@@ -8,6 +8,21 @@ How requests reach the right vLLM pod. Three architectural layers:
 
 Each layer has multiple implementations. This reference is a pointer map.
 
+## Table of Contents
+
+- [The K8s-standard surface: Gateway API Inference Extension (GAIE)](#the-k8s-standard-surface-gateway-api-inference-extension-gaie)
+- [Non-GAIE options (still viable)](#non-gaie-options-still-viable)
+- [OpenShift Route (the 60-second gotcha)](#openshift-route-the-60-second-gotcha)
+- [Gateway API on OpenShift (version gate)](#gateway-api-on-openshift-version-gate)
+- [Istio sidecar caveat for streaming](#istio-sidecar-caveat-for-streaming)
+- [Prefix-aware vs KV-aware vs semantic routing](#prefix-aware-vs-kv-aware-vs-semantic-routing)
+- [Load balancing across replicas — health & draining](#load-balancing-across-replicas--health--draining)
+- [Autoscaler coordination](#autoscaler-coordination)
+- [Smoke test — is routing working?](#smoke-test--is-routing-working)
+- [Next](#next)
+
+---
+
 ## The K8s-standard surface: Gateway API Inference Extension (GAIE)
 
 **GAIE is the SIG-Network standard for LLM routing on K8s.** v1 went GA in September 2025. For new builds, start here.

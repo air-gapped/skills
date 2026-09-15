@@ -2,6 +2,21 @@
 
 Single-node TP is covered by the base pod-shape manifest. This reference is for the case where one model doesn't fit on one host: TP spanning two or more nodes, or PP spanning nodes.
 
+## Table of Contents
+
+- [The canonical recipe (April 2026)](#the-canonical-recipe-april-2026)
+- [Ray symmetric-run (November 2025 change)](#ray-symmetric-run-november-2025-change)
+- [LWS minimum viable manifest](#lws-minimum-viable-manifest)
+- [NCCL on Kubernetes — the short list of load-bearing gotchas](#nccl-on-kubernetes--the-short-list-of-load-bearing-gotchas)
+- [Known load-bearing GitHub issues](#known-load-bearing-github-issues)
+- [RDMA / InfiniBand / RoCE on k8s](#rdma--infiniband--roce-on-k8s)
+- [KubeRay as an alternative](#kuberay-as-an-alternative)
+- [Pipeline parallelism (PP) vs tensor parallelism (TP) across pods](#pipeline-parallelism-pp-vs-tensor-parallelism-tp-across-pods)
+- [Smoke test — did multi-node come up?](#smoke-test--did-multi-node-come-up)
+- [Next](#next)
+
+---
+
 ## The canonical recipe (April 2026)
 
 **LeaderWorkerSet (LWS) + Ray, driven by vLLM's `multi-node-serving.sh`.**

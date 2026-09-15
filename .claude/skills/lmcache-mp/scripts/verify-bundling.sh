@@ -23,7 +23,7 @@
 
 set -euo pipefail
 
-REF="${1:?usage: verify-bundling.sh <tag|full-image-ref>}"
+REF="${1:?usage: verify-bundling.sh TAG_OR_FULL_IMAGE_REF}"
 if [[ "$REF" == */* ]]; then
   IMAGE="$REF"
 else

@@ -4,6 +4,24 @@
 
 The price: KV cache must move from prefill → decode pods. That's what the connectors are for.
 
+## Table of Contents
+
+- [The connector catalogue (in-repo)](#the-connector-catalogue-in-repo)
+- [Example topologies in-repo](#example-topologies-in-repo)
+- [NixlConnector (the current reference)](#nixlconnector-the-current-reference)
+- [Mooncake](#mooncake)
+- [LMCache (tiered + disagg)](#lmcache-tiered--disagg)
+- [MORI-IO (April 2026)](#mori-io-april-2026)
+- [The llm-d native path](#the-llm-d-native-path)
+- [NVIDIA Dynamo's relation to vLLM disagg](#nvidia-dynamos-relation-to-vllm-disagg)
+- [Disagg status in upstream docs](#disagg-status-in-upstream-docs)
+- [When NOT to disagg](#when-not-to-disagg)
+- [Load-bearing network requirements](#load-bearing-network-requirements)
+- [Smoke test — disagg pods actually talking?](#smoke-test--disagg-pods-actually-talking)
+- [Next](#next)
+
+---
+
 ## The connector catalogue (in-repo)
 
 Source: ``vllm` repo: vllm/distributed/kv_transfer/`

@@ -107,7 +107,7 @@ stamp.
 |--------|-----|------------------|---------------|--------|
 | argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-08-18 | main @ 4d02fc2f5 |
 | Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Latest stable **v3.4.5** (2026-07-09); v3.3 maintenance **v3.3.12** (2026-06-18); v3.2.12, v3.1.16 active. **v3.5.0-rc2** (2026-07-01) in RC, not GA | 2026-07-21 | v3.4.5 |
-| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **Re-probed 2026-07-21: no new advisories since 2026-05-13** | 2026-07-21 | — |
+| Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **Re-probed 2026-09-15: still no new advisories since 2026-05-13**, so all three remain the current set and anything on 3.4.2+/3.3.10+/3.2.12+ is unaffected | 2026-09-15 | — |
 | gitops-engine | https://github.com/argoproj/gitops-engine | Sync engine library — `pkg/sync/sync_tasks.go` carries the canonical kind-ordering for sync waves | 2026-08-18 | — |
 
 ## Blog & community

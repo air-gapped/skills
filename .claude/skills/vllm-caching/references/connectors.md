@@ -81,7 +81,14 @@ Config keys that bite:
 - `store_threshold` is single-tier only — `TieringOffloadingSpec` raises `ValueError: store_threshold is not supported for TieringOffloadingSpec` (still true at v0.27.0). `self_describing_kv_events` **used** to be rejected the same way; since v0.26.0 (#48679) it works with `TieringOffloadingSpec`, including full payloads on blocks promoted back up from a secondary tier.
 - Per-request cap: a request may set `kv_transfer_params.max_offload_tokens` to bound how much of it is eligible for offload (`0` disables offload for that request). Marked experimental upstream.
 
-**fs tier layout and cross-instance sharing.** Blocks land under `<root_dir>/<model>_<digest>_r<rank>/<hhh>/<hh>_g<group>/<hash>.bin`, with `<digest>` derived from model + block size + parallelism + dtype, so differently-configured runs coexist under one `root_dir` without colliding. To share one `root_dir` across vLLM instances (e.g. a shared PVC), **every instance must set `PYTHONHASHSEED` to the same fixed value** — otherwise each process seeds its block-hash chain randomly and identical token content produces different filenames, so the cache never hits across pods.
+**fs tier layout and cross-instance sharing.** Blocks land under `<root_dir>/<model>_<digest>_r<rank>/<hhh>/<hh>_g<group>/<hash>.bin`, with `<digest>` derived from model + block size + parallelism + dtype, so differently-configured runs coexist under one `root_dir` without colliding. To share one `root_dir` across vLLM instances (e.g. a shared PVC), **whether you must pin `PYTHONHASHSEED` depends on the version**:
+
+| vLLM | Behaviour |
+|---|---|
+| **≤ v0.28.x** | `NONE_HASH` is seeded from `os.urandom(32)` when `PYTHONHASHSEED` is unset, so every process hashes identical token content differently and the cache never hits across pods. **Every instance must set the same fixed `PYTHONHASHSEED`.** The `p2p` tier refuses to start without it. |
+| **≥ v0.29.0** | `NONE_HASH` derives from a fixed default seed (#51875, merged 2026-08-18), so independent instances share a prefix cache out of the box and the `p2p` tier starts without it. `PYTHONHASHSEED` still overrides the default seed if you set it. |
+
+Setting it remains harmless and is still the safe choice for a mixed-version fleet.
 
 **p2p tier** shares blocks between vLLM instances over NIXL. It replaces the `P2pNcclConnector` removed in v0.24.0 (#44854). Keys (verified at v0.27.0, `tiering/p2p/manager.py`): `backends` default `["UCX"]` (also `MOONCAKE`, `LIBFABRIC`), `num_threads` default 4 on the UCX-only path, plus `host` / `port` which since v0.26.0 (#47636) default to the env vars **`VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) and `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`)** — the old literal `7777` default is gone. Two traps:
 

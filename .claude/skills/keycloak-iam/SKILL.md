@@ -65,9 +65,23 @@ references/
 
 **When in doubt about a CLI flag**, the source of truth is `https://www.keycloak.org/server/all-config` (full option index). When in doubt about a CR field, the source of truth is the CRD YAML in `keycloak-k8s-resources` at the version tag (see §"Authoritative sources" below).
 
-## Version map (May 2026)
+## Version map (verified 2026-09-15)
 
-Latest stable: **Keycloak 26.7.0** (released 2026-07-09). The 26.6 line continued to **26.6.4** (2026-06-26) and both 26.6.3 and 26.6.4 are security batches, so anything still on 26.6.0–26.6.2 is missing fixes. Do **not** quote specific CVE IDs from memory; pull the authoritative list with `gh api repos/keycloak/keycloak/security-advisories` and `gh release view <version> --repo keycloak/keycloak --json body`. **The feed alone is not enough** — its `first_patched_version` fields are empty, so read the candidate releases' notes to learn which version actually closes a CVE. See `security-hardening.md` §CVE table for how to surface the current set.
+Latest stable: **Keycloak 26.7.3** (2026-08-31). The 26.7 line ran 26.7.0
+(2026-07-09) → 26.7.1 (2026-08-05) → 26.7.2 (2026-08-19) → 26.7.3, and **every
+one of the three patches is a security batch** — 26.7.1 fixed 12 CVEs, 26.7.3
+fixed 20. Two in 26.7.2 are account-takeover class. Anything sitting on 26.7.0
+is missing all of it. The 26.6 line ended at **26.6.4** (2026-06-26).
+
+**There is no 27.x.** Milestones show 26.8 due 2026-09-30 and 27.0 not due until
+2027-03-31, so 26.x is the current line. Plan for one thing now though:
+Keycloak has announced it **removes all uses of SHA1 in version 27**.
+
+**Support window is narrower than most people assume.** The project's security
+policy fixes issues "in the current `major.minor` release … or for lower
+severity vulnerabilities or hardening in the following `major.minor` release".
+That is effectively the current minor only — there is no N-minors-back window.
+Long-term support is the commercial Red Hat build, not upstream. Do **not** quote specific CVE IDs from memory; pull the authoritative list with `gh api repos/keycloak/keycloak/security-advisories` and `gh release view <version> --repo keycloak/keycloak --json body`. **The feed alone is not enough** — its `first_patched_version` fields are empty, so read the candidate releases' notes to learn which version actually closes a CVE. See `security-hardening.md` §CVE table for how to surface the current set.
 
 Notable changes through the 26.x line:
 
@@ -82,6 +96,67 @@ Notable changes through the 26.x line:
 | 26.0.0   | `KEYCLOAK_ADMIN` removed → `KC_BOOTSTRAP_ADMIN_*`, persistent user sessions on by default, hostname-v2 by default |
 
 Always cross-check with the release-notes body via `gh release view <tag> --repo keycloak/keycloak --json body --jq '.body'`. Do not rely solely on this table — bump the date and verify.
+
+## 26.7.x breaking changes (upgrading guide, verified 2026-09-15)
+
+These bite on upgrade and several are silent. Sourced from the upgrading guide,
+which carries items the release notes do not.
+
+**26.7.0**
+
+| Change | Action |
+|---|---|
+| Feature renamed `dynamic-scopes` → **`parameterized-scopes`** | `--features=dynamic-scopes` no longer matches. Switch the flag. The DB attribute `is.dynamic.scope` auto-migrates. Parameterized scopes now also need `parameterized.scope.type`; a `custom` type additionally needs `parameterized.scope.regexp`. |
+| **`view-system` admin role removed** | Introduced in 26.5.4 and deprecated immediately; removed for security. Full server information now needs a `master`-realm user with `manage-realm`. |
+| Identity Provider alias is immutable | Changing an alias via the Admin REST API after creation returns `400`. |
+| X.509 client auth: "Certificate Authority subject DN" is **compulsory** | "Allow regex pattern comparison" is deprecated. New client policy executor `tls-client-auth-ca-subject-dn`. |
+| Client secrets always 86 characters | Length no longer varies with signing algorithm; existing secrets unaffected. |
+| `shutdown-timeout` default 1s → **10s** | Caches now rebalance before shutdown. Restore with `shutdown-timeout=1s`. |
+| Session cookies hashed with SHA-384 | `KC_AUTH_SESSION_HASH` and `KEYCLOAK_SESSION` replaced on next request; no config needed. |
+| Removed config keys | `spi-user-sessions--infinispan--use-batches`, `spi-user-sessions--infinispan--max-batch-size`. |
+
+**26.7.1** — Admin API access tightened twice, and both can lock people out:
+admin roles granted **via protocol mappers no longer grant Admin API access**
+(only directly-assigned roles do), and client-scope assignment endpoints now
+require `manage` on client scopes. A regression where a custom realm role named
+`admin` could not be updated in non-master realms was fixed in the same release.
+
+**26.7.2** — the legacy client-initiated account-linking endpoint
+`/realms/{realm}/broker/{provider}/link` is **disabled by default**. Migrate to
+AIA `kc_action=idp_link`; `allow-client-initiated-account-linking` restores it
+temporarily and is itself deprecated.
+
+**26.7.3** — redirect URIs containing OIDC response parameters (`state`, `code`,
+`session_state`, …) are **rejected by default**. The escape hatch
+`allow-oidc-params-in-redirect-uris` is deprecated with removal planned for 27,
+and `allow.oidc.params.in.redirect.uris` allows per-client migration. Separately,
+Authorization Services now reserve the **`kc.` claim prefix** for server-controlled
+attributes and filter user-supplied claims carrying it.
+
+**Feature status moved too.** `step-up-authentication-saml` went preview →
+**supported**. SCIM is now **preview** (`--features=scim-api`). Identity
+Brokering API **V2** is supported but off by default while V1 is deprecated and
+still on by default. The experimental `token-exchange-external-internal:v2` was
+removed.
+
+### Multi-cluster HA without external Infinispan: preview, and v1 is not deprecated
+
+Enable with **`--features=stateless`**. It connects clusters through their
+embedded Infinispan caches and propagates invalidation **through the database**
+using an outbox table that other sites poll, which is what removes the external
+Infinispan requirement and the Kubernetes/AWS-specific assumptions with it.
+
+Two things to hold onto before treating it as the new default:
+
+- **It is preview**, stated as such on the introduction and concepts pages.
+- **v1 is not deprecated.** The HA overview lists single-cluster, multi-cluster
+  v1 and multi-cluster v2 side by side as current choices; only v2 carries the
+  preview admonition. v1 remains the non-preview path.
+- The documented cost is roughly **twice the database CPU and write IOPS**,
+  since session data lives in the database and less is cached.
+- 26.7.2 fixed an upgrade regression specific to this provider: upgrading to
+  26.7.0 with preview features on failed when the stateless cluster provider
+  captured a null `NodeInfo` before `postInit`.
 
 ## Authoritative sources
 

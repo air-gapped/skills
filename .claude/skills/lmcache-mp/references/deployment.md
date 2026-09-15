@@ -174,7 +174,7 @@ spec:
 - **`hostNetwork: true` on the DaemonSet** — vLLM pods reach LMCache via `status.hostIP` (host's IP). Without `hostNetwork`, the LMCache port isn't exposed on the host's IP and sibling pods can't reach it.
 - **`/dev/shm` mounted from host on both** — CUDA IPC shared-memory transfers require both ends to share the same `/dev/shm` namespace.
 - **GPU NOT requested in DaemonSet** — LMCache server doesn't run inference. The NVIDIA container runtime grants the implicit access needed for IPC. Requesting GPUs there steals them from the vLLM pods.
-- **`PYTHONHASHSEED=0` on vLLM** — makes prefix hash computation deterministic across pod restarts so cached prefixes survive.
+- **`PYTHONHASHSEED=0` on vLLM** — makes prefix hash computation deterministic across pod restarts so cached prefixes survive. **Required only on vLLM ≤ v0.28.x**: from v0.29.0 the prefix-cache `NONE_HASH` derives from a fixed default seed (#51875), so determinism no longer depends on this variable. Keeping it set is harmless and still overrides the default seed, which is the safe choice while a fleet spans both sides of that boundary.
 - **`PROMETHEUS_MULTIPROC_DIR=/tmp`** — required for vLLM's multi-process Prometheus metrics.
 
 ### Health check via HTTP server variant

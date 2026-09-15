@@ -24,12 +24,31 @@ when_to_use: >-
 # Argo CD application authoring
 
 For developers and platform teams who **publish** Argo CD `Application` and
-`ApplicationSet` manifests in git. Targets Argo CD v3.4.x (latest stable
-**v3.4.5**, 2026-07-09) and the v3.3.x maintenance line (latest **v3.3.12**,
-2026-06-18); v3.4 reached GA in early May 2026. **v3.5 is in RC**
-(v3.5.0-rc2, 2026-07-01) and carries a **Helm v4 breaking change for
-plain-HTTP OCI registries** — if you use one, read
-`references/version-changes.md` § v3.5 *before* planning the hop, not after. Cited file paths in references/ are relative to a local clone
+`ApplicationSet` manifests in git. **v3.5 shipped** (v3.5.0 on 2026-08-04;
+latest **v3.5.3**, 2026-09-14) and the v3.4 line continues in parallel (latest
+**v3.4.9**, also 2026-09-14). Note there is no `v3.4.0` tag — that line's first
+stable release is **v3.4.1**, as its own notes say.
+
+**Before upgrading to 3.5, read these three.** All verified 2026-09-15:
+
+- **A Secret data-loss regression is open.** `RespectIgnoreDifferences=true`
+  plus a key-level `ignoreDifferences` rule on a Secret that renders
+  `stringData` now drops the **entire `data` map** on sync
+  ([#29644](https://github.com/argoproj/argo-cd/issues/29644), OPEN, filed
+  2026-09-09). It is a regression from #27136, cherry-picked into both the 3.4
+  and 3.5 lines, and the reporter has a unit test passing on v3.4.4 and failing
+  on v3.5.2. Self-heal then re-applies the key-less manifest forever. If you
+  ignore individual Secret keys, check this before you sync.
+- **Helm 4 can change your rendered manifests with no chart or values edit.**
+  v3.5.0 bundles Helm 4.2.x, whose null/nil coalescing differs, so a chart may
+  start emitting explicit `null` fields
+  ([#29068](https://github.com/argoproj/argo-cd/issues/29068)). Diff a render
+  across the bump rather than assuming parity.
+- **Plain-HTTP OCI registries need an explicit flag** under Helm 4:
+  `--insecure-oci-force-http`, or `insecureOCIForceHttp: "true"` on the repo
+  secret. Documented limitation: combining it with
+  `--insecure-skip-server-verification` makes Helm 4 silently drop
+  `--plain-http`, with no workaround when both are legitimately required. Cited file paths in references/ are relative to a local clone
 of `argoproj/argo-cd` (e.g. `docs/user-guide/best_practices.md`). Without
 a local clone, fetch the same content via `gh api repos/argoproj/argo-cd/contents/<path>`
 or read https://github.com/argoproj/argo-cd at the matching path.
@@ -124,6 +143,40 @@ The official guidance — `docs/operator-manual/cluster-bootstrapping.md` line 7
 (root → ApplicationSets), but for app fan-out, prefer an ApplicationSet with a
 Git directory generator over a parent Application that points at child
 Applications.
+
+## v3.4 → v3.5 breaking changes (upgrade guide, verified 2026-09-15)
+
+Beyond the three hazards at the top, the official 3.4→3.5 upgrade guide lists:
+
+| Change | What it breaks |
+|---|---|
+| **GnuPG replaced by Source Integrity** | `.spec.signatureKeys` on `AppProject` and `argocd proj add-signature-key` / `remove-signature-key` are deprecated in favour of `sourceIntegrity`. |
+| **Impersonation now covers all API-server actions** | Previously sync-only. Viewing logs, deleting resources and running resource actions now impersonate too, so the service account's RBAC must cover them or those actions start failing. |
+| **gRPC `EventList` type changed** | `ListResourceEvents` (Application, ApplicationSet) and `ListEvents` (Project) return Argo CD's own type, not the Kubernetes one. Regenerate custom gRPC clients. REST/JSON is unaffected. |
+| **React 19 in the UI** | UI extensions must be rebuilt to externalize `react/jsx-runtime`, or fail with `Extension <name>.js failed to load: TypeError: Cannot read properties of undefined`. |
+| `--repo-server-strict-tls` deprecated | Use `--repo-server-ca-cert-path`. Repo-server also gains opt-in mTLS via an `argocd-repo-server-mtls` Secret. |
+
+**From v3.4.1, an ApplicationSet change that is easy to miss.** Helm 3.19.0
+changed how the cluster version is interpreted, so Cluster Generators that
+select on Kubernetes version and use `argocd.argoproj.io/auto-label-cluster-info`
+must move to **`argocd.argoproj.io/kubernetes-version`** in
+`vMajor.Minor.Patch` form, not the old `Major.Minor`.
+
+**Feature maturity — none of these is GA.** Source Hydrator went Alpha → **Beta**
+in v3.5.0, sync impersonation went → **Beta** in v3.5.0, and Progressive Sync
+has been **Beta since v3.3.0** (not v3.4, which the docs corrected). The
+v3.5.0 dry-source signature verification under the hydrator is **Alpha**.
+ApplicationSet in any namespace is now **stable**. OCI sources are absent from
+the maturity table entirely, which is the closest thing to unqualified status
+they have.
+
+**Two more post-3.5 regressions worth knowing**, both open: `valueFiles` glob
+patterns such as `*.yaml` stopped matching
+([#29069](https://github.com/argoproj/argo-cd/issues/29069)) in the same release
+that advertised wildcard support, and an `oci://` source combined with the
+`argocd.argoproj.io/manifest-generate-paths` annotation flaps the Application to
+Unknown every reconcile with `unsupported scheme "oci"`
+([#29058](https://github.com/argoproj/argo-cd/issues/29058)).
 
 ## Canonical Application
 

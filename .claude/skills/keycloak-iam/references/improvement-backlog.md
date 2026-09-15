@@ -4,16 +4,36 @@ Skill-improver carries open ceiling findings forward across runs. Items here eit
 
 ## Open
 
-- **26.7.0 feature surface is unresearched** — Dim 5 — `SKILL.md:56-62` (version
-  table), `references/k8s-deployment.md`, `references/integration.md`. 26.7.0
-  (2026-07-09) introduces SCIM user provisioning (preview), **multi-cluster HA
-  without external caches** (preview), the OpenID Shared Signals Framework
-  (experimental), Identity Brokering API V2 (V1 deprecated but still default-on),
-  SAML step-up auth, and HAProxy/Traefik proxy blueprints. The freshen pass
-  recorded these as headline items and flagged the body as 26.6-era, but writing
-  them at reference depth — especially the cacheless multi-cluster topology,
-  which *supersedes* the external-Infinispan HA design this skill documents — is
-  a research pass, not a freshen mutation. (opened 2026-07-21)
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Resolved — 2026-09-15
+
+- **The 26.7.0 feature surface is now written up, and the version map was two
+  patches behind a security-critical line.** The carried item said 26.7.0's
+  headline features were recorded but the body was 26.6-era. Latest stable is
+  **26.7.3** (2026-08-31): 26.7.1 fixed 12 CVEs, 26.7.3 fixed 20, and 26.7.2
+  fixed two account-takeover issues. Anything on 26.7.0 is missing all of it.
+- **Breaking changes recorded from the upgrading guide, not the release notes**,
+  because the guide carries items the notes omit entirely. Three are silent
+  lockout risks rather than errors at startup: the `view-system` admin role was
+  **removed**; admin roles granted through **protocol mappers no longer grant
+  Admin API access** (26.7.1); and redirect URIs containing OIDC response
+  parameters are **rejected by default** (26.7.3). One is a flag rename that
+  fails closed: `dynamic-scopes` became **`parameterized-scopes`**, so an
+  existing `--features=dynamic-scopes` stops matching.
+- **Multi-cluster HA v2 documented with its status intact.** Enabled by
+  `--features=stateless`, it replaces external Infinispan with database-mediated
+  invalidation via an outbox table. Two qualifiers that matter more than the
+  feature: it is **preview**, and **v1 is not deprecated** — the HA overview
+  lists both as current choices and only v2 carries the preview admonition.
+  Recorded the documented cost (roughly double database CPU and write IOPS) and
+  the 26.7.2 fix for an upgrade regression in that provider.
+- **Checked and recorded as forward guidance:** Keycloak has announced it
+  removes all SHA1 use in **version 27**, which does not exist yet — milestones
+  put 27.0 at 2027-03-31 — and the upstream security policy effectively supports
+  only the current minor, which is narrower than most deployments assume.
+
 
 ## Resolved — 2026-07-21 (freshen)
 

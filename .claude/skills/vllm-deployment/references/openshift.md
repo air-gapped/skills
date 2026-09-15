@@ -4,6 +4,22 @@ OCP has its own flavor of k8s with stricter security defaults, a different ingre
 
 For OpenShift-only teams: also read `references/pod-shape.md`, `references/multi-node.md`, and `references/autoscaling.md` — everything there still applies; this doc is the diff.
 
+## Table of Contents
+
+- [The three things that bite OCP operators first](#the-three-things-that-bite-ocp-operators-first)
+- [RHAIIS — Red Hat AI Inference Server](#rhaiis--red-hat-ai-inference-server)
+- [RHOAI — Red Hat OpenShift AI model serving](#rhoai--red-hat-openshift-ai-model-serving)
+- [SCC (Security Context Constraints)](#scc-security-context-constraints)
+- [The arbitrary-UID rebuild recipe](#the-arbitrary-uid-rebuild-recipe)
+- [Routes, Gateway API, and service mesh](#routes-gateway-api-and-service-mesh)
+- [Monitoring](#monitoring)
+- [NVIDIA GPU Operator on OCP](#nvidia-gpu-operator-on-ocp)
+- [Disconnected / air-gapped OCP](#disconnected--air-gapped-ocp)
+- [OCP-specific pitfalls checklist](#ocp-specific-pitfalls-checklist)
+- [Full OCP blog trail (for deeper detail)](#full-ocp-blog-trail-for-deeper-detail)
+
+---
+
 ## The three things that bite OCP operators first
 
 1. **Arbitrary UID**: the upstream `vllm/vllm-openai` image runs as root. OCP assigns random UIDs per namespace. Root-user image → pod refuses to start under `restricted-v2`.

@@ -2,6 +2,21 @@
 
 For dev boxes, 1-to-2-node labs, and kicking the tyres on a new model before handing it to the k8s operator. For cluster deployment, this is not the right reference — see `references/pod-shape.md`.
 
+## Table of Contents
+
+- [`docker run` canonical template](#docker-run-canonical-template)
+- [GPU selection: `--gpus` vs `--device` vs MIG](#gpu-selection---gpus-vs---device-vs-mig)
+- [Multi-NIC NCCL (`NCCL_SOCKET_IFNAME`)](#multi-nic-nccl-nccl_socket_ifname)
+- [Rootless Docker + `nvidia-container-toolkit`](#rootless-docker--nvidia-container-toolkit)
+- [Podman](#podman)
+- [Docker Compose — 2-node disagg PD lab](#docker-compose--2-node-disagg-pd-lab)
+- [Observability compose (for dashboard dev)](#observability-compose-for-dashboard-dev)
+- [Building a custom image](#building-a-custom-image)
+- [Common single-node pitfalls](#common-single-node-pitfalls)
+- [Scaling up to k8s](#scaling-up-to-k8s)
+
+---
+
 ## `docker run` canonical template
 
 ```bash

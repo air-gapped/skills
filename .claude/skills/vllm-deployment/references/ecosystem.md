@@ -2,6 +2,16 @@
 
 A pointer map to the control-plane and data-plane projects that deploy, route, autoscale, and coordinate vLLM on Kubernetes. For each: canonical URL, what it does, when to pick it, and the single biggest differentiator from its siblings.
 
+## Table of Contents
+
+- [Decision matrix](#decision-matrix)
+- [Projects in detail](#projects-in-detail)
+- [Ray Serve](#ray-serve)
+- [Load-bearing comparisons to read](#load-bearing-comparisons-to-read)
+- [Consolidation / breaking-change notes](#consolidation--breaking-change-notes)
+
+---
+
 ## Decision matrix
 
 | Goal | Pick | Why |

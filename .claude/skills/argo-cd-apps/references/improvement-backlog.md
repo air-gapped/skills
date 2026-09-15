@@ -45,6 +45,40 @@ one iteration this run, enough context for a future loop to act on.
 second-person leakage) — unchanged reasoning, and this pass's budget went to the
 v3.5 material.
 
+## Resolved — 2026-09-15 (freshen: v3.4/v3.5 re-baseline)
+
+The skill targeted "v3.4.x latest v3.4.5" and called v3.5 an RC. v3.5.0 shipped
+2026-08-04 and both lines are now at .9 / .3 (2026-09-14). Re-baselined, and
+three upgrade hazards recorded that a version bump alone would have hidden:
+
+- **An open Secret data-loss regression** (#29644, filed 2026-09-09).
+  `RespectIgnoreDifferences=true` with a key-level `ignoreDifferences` rule on a
+  Secret rendering `stringData` drops the whole `data` map on sync. Regression
+  from #27136, cherry-picked into **both** 3.4 and 3.5, with a reporter unit
+  test passing on v3.4.4 and failing on v3.5.2. Self-heal then re-applies the
+  key-less manifest indefinitely. This is the reason the re-baseline is not just
+  a number change.
+- **Helm 4 rendering differences** (#29068) — v3.5 bundles Helm 4.2.x whose
+  null coalescing changed, so charts can emit explicit `null` fields with no
+  edit. Diff a render across the bump.
+- **Two further open 3.5 regressions**: `valueFiles` globs stopped matching
+  (#29069), in the release that advertised wildcard support; and `oci://` plus
+  `manifest-generate-paths` flaps apps to Unknown (#29058).
+
+Also recorded: the 3.4→3.5 breaking list (GnuPG → Source Integrity, impersonation
+widened past sync, gRPC `EventList` type change, React 19 UI extensions,
+`--repo-server-strict-tls` deprecation); the v3.4.1 ApplicationSet Cluster
+Generator move to `argocd.argoproj.io/kubernetes-version` in `vMajor.Minor.Patch`
+form; and corrected feature maturity — Source Hydrator and impersonation both
+reached **Beta** in v3.5.0, Progressive Sync has been Beta since **v3.3.0**, and
+none of them is GA.
+
+Two things checked and found already correct, so left alone: the advisory list
+already named CVE-2026-45737 and CVE-2026-45738 alongside CVE-2026-42880, and no
+advisory has been published since 2026-05-13. There is also no `v3.4.0` tag —
+that line starts at v3.4.1, which its own release notes state.
+
+
 ## Open
 
 ### 1. Inline canonical YAML in SKILL.md — relocate to references (carried 2026-05-29)

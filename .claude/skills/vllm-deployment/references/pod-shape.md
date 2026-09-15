@@ -2,6 +2,23 @@
 
 This is a pointer-map companion to the "Minimum viable pod shape" block in `SKILL.md`. Its job is to explain **why each field is there** and **where the authoritative reference lives**, enabling adaptation to a non-default cluster without cargo-culting.
 
+## Table of Contents
+
+- [The complete annotated template](#the-complete-annotated-template)
+- [Why each load-bearing field is there](#why-each-load-bearing-field-is-there)
+- [The env-var surface worth tuning](#the-env-var-surface-worth-tuning)
+- [Serve-args review (deploy layer)](#serve-args-review-deploy-layer)
+- [Custom tool/reasoning parser via ConfigMap](#custom-toolreasoning-parser-via-configmap)
+- [nodeSelector matrix (per GPU SKU)](#nodeselector-matrix-per-gpu-sku)
+- [Model weights: PVC vs ModelCar vs in-image](#model-weights-pvc-vs-modelcar-vs-in-image)
+- [Startup probe (recommended over long initialDelay)](#startup-probe-recommended-over-long-initialdelay)
+- [Endpoints the probes see](#endpoints-the-probes-see)
+- [Image tag discipline](#image-tag-discipline)
+- [Gotchas not yet covered](#gotchas-not-yet-covered)
+- [Next](#next)
+
+---
+
 ## The complete annotated template
 
 ```yaml

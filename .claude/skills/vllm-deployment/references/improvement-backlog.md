@@ -93,27 +93,46 @@ a reason it didn't anticipate.
 
 ## Open
 
-- **(new 2026-07-18) ToCs for >100-line references** (Dim 2/7) —
-  pod-shape.md (292 lines), docker-lab.md (248), and the other five
-  100+-line reference files lack the official-best-practice table of
-  contents (partial-read navigation). Planned as an iteration this run;
-  displaced by the blind-flag Dim 5 work and the 90+ stop condition fired
-  first. Single Pattern-8.2-style cross-file iteration next run.
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-- **(new 2026-07-18) OCP Route 60s timeout taught in three places** (Dim 6)
-  — SKILL.md pitfall 6, routing.md §OpenShift Route, openshift.md §Routes.
-  Final-blind finding. Candidate: keep the pitfall one-liner + one canonical
-  treatment, pointer from the other. Not attempted (stop condition reached).
+## Unblocked — actionable
 
-- ~~**(new 2026-07-18) ecosystem.md verification-label drift**~~ (Dim 8) —
-  **CLOSED 2026-08-11.** All nine project entries in `ecosystem.md` now carry a
-  single `(2026-08-11)` label, and each was actually re-probed rather than
-  carried forward.
+- **OCP Route 60s timeout taught in three places** (Dim 6) — SKILL.md pitfall 6,
+  `routing.md` §OpenShift Route, `openshift.md` §Routes. Keep the pitfall
+  one-liner plus one canonical treatment and point the other at it. Multi-file,
+  but nothing is absent.
+- **Body still feature-list / pointer-map shaped, not operator-workflow ordered**
+  (Dim 2) — `SKILL.md` top third (~L16-98). Lead with the operator workflow
+  (audit → cache mount → HF_TOKEN → probes → serve_args → autoscale) before the
+  vendor-named decision table. A structural rewrite that must preserve every
+  pointer, keep SKILL.md under 500 lines, and not disturb trigger-relevant
+  keyword placement — work, not a blocker. (carried 2026-05-29)
+- **Trigger measurement for this skill and its vLLM siblings** (Dim 1) — the
+  eval-set mining and the cross-skill over-trigger batch (e.g. "without
+  restarting" stealing from spec-decode) are both a `trigger`-mode run away. The
+  over-trigger case needs a batched run across the vLLM family, not an isolated
+  edit here.
 
-- **Body still feature-list / pointer-map shaped, not operator-workflow ordered** (Dim 2) — `SKILL.md` (top third: lines ~16-98, the decision-guide table → load-bearing facts → pod shape → sibling boundaries → structure ordering). Hypothesis was to lead with the operator workflow (audit → cache mount → HF_TOKEN → probes → serve_args → autoscale) before the vendor-named decision table. Not applied: medium-complexity structural rewrite that must preserve every existing pointer, keep SKILL.md < 500 lines, and not disturb trigger-relevant keyword placement in the body — needs reliable read-back to cold-score honestly and confirm no pointer/frontmatter regression. (carried 2026-05-29)
-- **probe-trigger.py all-zero measurement bug** (Dim 1) — skill-improver probe tooling, not a `vllm-deployment` file. Trigger precision cannot be measured/tuned for this skill until the harness probe returns non-zero scores. Not single-iteration-breakable inside this skill. (carried 2026-05-29)
-- **Trigger eval-set mining** (Dim 1) — `references/trigger-evals.json` needs a larger, mined positive/negative query set before the description can be tuned against real false-positive/under-trigger data. Belongs to skill-improver's trigger mode, not a one-iteration content edit here. (carried 2026-05-29)
-- **Cross-cluster / sibling-skill over-trigger batch** (Dim 1) — documented over-trigger steal vs sibling vLLM skills (e.g. "without restarting" vs spec-decode). Resolving it requires a batched trigger-measurement run across the whole vLLM skill family, not an isolated `vllm-deployment` edit. (carried 2026-05-29)
+## Resolved — 2026-09-15
+
+- **Tables of contents added to all eight >100-line reference files** (Dim 2/7)
+  — `pod-shape.md` (12 entries), `disagg.md` (13), `openshift.md` (11),
+  `docker-lab.md` (10), `autoscaling.md` (10), `multi-node.md` (10),
+  `routing.md` (10), `ecosystem.md` (5). Every anchor checked against a real
+  heading. Carried since 2026-07-18, displaced by other work each pass; nothing
+  was ever blocking it.
+- **The `probe-trigger.py` all-zero blocker was stale by three months.** The
+  entry claimed trigger precision "cannot be measured/tuned for this skill until
+  the harness probe returns non-zero scores", carried since 2026-05-29. That
+  probe was repaired on **2026-06-07** — the `jira-cli` pass fixed it (it had
+  installed a non-auto-invoked slash command, bailed on the first non-Skill
+  tool, and shared a project root between concurrent workers) and then ran a
+  real 13/15 measurement with it. Nothing has blocked trigger work here since.
+  **This is drain duty failing, not a blocker**: the absent thing arrived, no
+  pass noticed, and it held two further trigger items behind it.
+- **`ecosystem.md` verification-label drift** (Dim 8) — already struck through
+  as closed on 2026-08-11 but still sitting under Open; moved here.
 
 ## Resolved this pass (2026-07-18 — improve run, post-SkillLens rubric)
 
