@@ -3,6 +3,41 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (the `no repo feed` follow-up, carried out to the end)
+
+`advisory-lag.py` reports rows whose repo feed returns `[]` as **`no repo feed`**
+rather than zero, with an instruction to check them by package against the
+ecosystem database. That instruction had never been executed. It has now been,
+for every package identity behind those rows.
+
+**Result: 2 real findings out of 27 rows**, both critical-or-high, both invisible
+to the repo feed:
+
+| Package | Finding |
+|---|---|
+| `pip/transformers` | 4 advisories in 2026. The one that mattered: **`save_pretrained` path traversal via chat-template names** (< 5.10.0), plus the discovery that vLLM's dependency pin does not reach the floor clearing all three known fixes. Fixed in `transformers-config-tokenizers-expert` + `vllm-chat-templates`. |
+| `pip/sglang` | Two **criticals** (`>= 0.5.5, <= 0.5.12`): a scheduler ROUTER socket binding `0.0.0.0` and unpickling, and an unauthenticated path traversal. Floor **0.5.13**. Fixed in `sglang-hicache`. |
+
+**Checked and genuinely empty** — recorded so this is not re-run on a hunch:
+`pip/openai`, `pip/baml-py`, `pip/nixl`, `pip/aiperf`, `pip/cloud-init`,
+`pip/vllm-omni`, `pip/aibrix`, `go/github.com/grafana/mimir`,
+`go/github.com/zalando/postgres-operator`,
+`go/github.com/prometheus/node_exporter`, `go/github.com/ankitpokhrel/jira-cli`.
+`pip/lmcache` has one **low** (hash collision, `<= 0.4.6`) which every version
+`lmcache-mp` recommends already clears.
+
+**The mapping is the reusable part.** A repo slug is not a package name, and that
+is why the follow-up kept being skipped — `huggingface/transformers` →
+`pip/transformers` is easy, `sgl-project/sglang` → `pip/sglang` is not obvious,
+and several rows (`visa/…-harness`, `NVIDIA/SkillEvaluator`, `beatcracker/toptout`,
+`NVIDIA/nvbandwidth`) have **no package identity at all** and cannot be checked
+this way. Automating the fallback inside `advisory-lag.py` would need that
+mapping as data; it is not derivable from the slug.
+
+**Hit rate worth remembering:** 2 of 27. The marker is not noise — an empty repo
+feed hid two criticals and a high — but most of the rows really are empty, so
+budget the follow-up as a slow sweep rather than expecting a rich seam.
+
 ## Resolved — 2026-09-15 (the same gap in YAML fences)
 
 - **Shipped `scripts/check-yaml-fences.py`**, sibling to the shell checker. 576
