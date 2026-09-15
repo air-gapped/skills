@@ -2,6 +2,52 @@
 
 Prior skill-improver runs and ceiling findings.
 
+## Resolved — 2026-09-15 (freshen to v0.5.19)
+
+- **The "unguarded SWA fallthrough" footgun is resolved for the three
+  architectures the skill named, and the skill was telling operators to work
+  around a problem they no longer have.** `cli-flags.md` said Llama4, GptOss and
+  Gemma4 do NOT get SWA-aware handling and that the operator must pass
+  `--disable-hybrid-swa-memory` or avoid hicache on them. Verified in source at
+  tag **v0.5.19**: `is_hybrid_swa_model()`'s `hybrid_swa_archs` allowlist in
+  `configs/model_config.py` contains `Llama4ForConditionalGeneration`,
+  `GptOssForCausalLM` (via `SWA_SINK_ARCHS`) and all three `Gemma4*` entries.
+  PR #27759 made hybrid models route through `UnifiedRadixCache` by default in
+  v0.5.13, and **v0.5.19 made the unified tree the default for every model**.
+- **The failure class narrowed rather than disappeared, and the rewrite says
+  so.** The guard is an allowlist plus one opt-in (`hf_text_config.is_hybrid_swa`).
+  A genuinely-SWA architecture in neither returns a plain `False` with no
+  assertion, and its SWA layers are still cached as full attention. That is now
+  framed as the thing to check for a new, custom or vendor-forked architecture.
+- **The skill cited a symbol that no longer exists.** `_handle_hicache()` was
+  removed from `server_args.py` by PR #38047 (merged 2026-09-06, after v0.5.19);
+  the fields moved to `arg_groups/fields/memory.py` and the logic to
+  `arg_groups/hicache_hook.py::handle_hicache()`, with the two rewrite rules
+  named `resolve_layout_io_compatibility()` and
+  `resolve_storage_layout_compatibility()`. Three call sites updated, and the
+  line-range citations replaced with an instruction to grep the symbol.
+- **`--hicache-storage-backend` had grown from 8 values to 11** at v0.5.19
+  (`sim`, `shm` and `mori` beyond the documented set), with `npu_memcache` on
+  `main` after the tag.
+- **Two flag renames ship with no deprecated alias**, so an existing launch
+  command fails outright: `--enable-deepep-waterfill` → `--enable-waterfill` and
+  `--optimistic-prefill-retries` → `--optimistic-prefill-attempts`, both v0.5.16.
+- **v0.5.18 moved every compiled-kernel cache under `SGLANG_CACHE_DIR`**, which
+  costs one recompile on first boot and invalidates a mounted cache volume's
+  path — recorded with the migration paths.
+- Two open HiCache correctness bugs added (#39147 file-backend prefix
+  intersection on hybrid pools; #39444 `write_through` eviction before backup
+  completes), both narrow enough to plan around.
+
+### Checked and still CORRECT — do not close these
+
+- **The two stale-bot issues remain genuinely unfixed.** #21880 (file backend
+  slow in containers) and #22757 (GLM5/DSA L3 crash on H20) were both closed by
+  the inactivity bot, and #22757's candidate fix **PR #22120 was closed
+  unmerged**. GitHub reports `stateReason: COMPLETED` for both, which does not
+  distinguish a fix from an autoclose. The skill's decision to keep recording
+  them as live risks was right and stays.
+
 ## Open
 
 ### Bundle `scripts/hicache-doctor.sh` boot-log auto-rewrite scanner (carried 2026-05-29)

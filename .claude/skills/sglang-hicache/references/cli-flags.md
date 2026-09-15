@@ -1,6 +1,6 @@
 # HiCache CLI flags
 
-All defaults from `python/sglang/srt/server_args.py:577-585`. Argparse definitions at `server_args.py:5635-5733`. Normalisation in `_handle_hicache()` at `server_args.py:3100-3200`.
+All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:** `_handle_hicache()` no longer exists — as of PR #38047 (merged 2026-09-06, after v0.5.19) the `--hicache-*` field declarations live in `python/sglang/srt/arg_groups/fields/memory.py` and the logic in `python/sglang/srt/arg_groups/hicache_hook.py::handle_hicache()`. Grep the symbol, not a line range; this file's ranges predate the move.
 
 ## Master switch
 
@@ -61,7 +61,7 @@ All defaults from `python/sglang/srt/server_args.py:577-585`. Argparse definitio
 
 ## Auto-rewrite normalisation rules — silent flips, watch the boot log
 
-`server_args.py:_handle_hicache` enforces compatibility, never errors, just rewrites and logs WARNING. If benchmark numbers don't match the recipe, scan the boot log for these.
+`arg_groups/hicache_hook.py::handle_hicache()` (formerly `server_args.py:_handle_hicache`) enforces compatibility, never errors, just rewrites and logs WARNING. The two rewrite rules are `resolve_layout_io_compatibility()` and `resolve_storage_layout_compatibility()`. If benchmark numbers don't match the recipe, scan the boot log for these.
 
 ### Layout × IO compatibility (`_resolve_layout_io_compatibility`, server_args.py:3129-3146)
 
@@ -96,7 +96,28 @@ Log: `"FlashAttention3 decode backend is not compatible with hierarchical cache.
 
 ### Hybrid SWA model handling
 
-`server_args.py:1948-1988` and `server_args.py:2019-2030` — only **MiMoV2FlashForCausalLM, Step3p5ForCausalLM, and Gemma2/Gemma3/Gemma3n** force `disable_hybrid_swa_memory = True` and `swa_full_tokens_ratio = 1.0` automatically when `--enable-hierarchical-cache` is set. Llama4, GptOss, Gemma4 do NOT. Operator must pass `--disable-hybrid-swa-memory` explicitly OR avoid hicache on those archs.
+**RESOLVED for the three named architectures — re-verified in source 2026-09-15 at tag v0.5.19.**
+
+The routing question is now decided by `is_hybrid_swa_model()` in
+`python/sglang/srt/configs/model_config.py`, whose `hybrid_swa_archs` allowlist
+**includes all three**: `Llama4ForConditionalGeneration`, `GptOssForCausalLM`
+(via `SWA_SINK_ARCHS`, alongside `GraniteSWAForCausalLM` and
+`GraniteMoeSWAForCausalLM`) and `Gemma4ForCausalLM` / `Gemma4ForConditionalGeneration`
+/ `Gemma4UnifiedForConditionalGeneration`. Also on it: the DeepSeek-V4 family,
+MiMo-V2, Step3p5 / Step3p7, Laguna (only when it actually has a sliding window),
+Mellum, MuseGlimmer, Inkling and UnlimitedOCR. A model on this list is routed
+through `UnifiedRadixCache` with the SWA component, so its sliding-window layers
+are cached and evicted as SWA rather than as full attention. PR #27759 made that
+the default for hybrid models in v0.5.13, and **v0.5.19 made the unified radix
+tree the default for every model, not just hybrid ones**. Do not tell an operator
+to pass `--disable-hybrid-swa-memory` or avoid hicache for these three.
+
+**The failure class has not gone away, it has narrowed.** The guard is an
+allowlist plus one opt-in escape hatch (`hf_text_config.is_hybrid_swa`). An
+architecture that is genuinely SWA but appears in neither returns a plain
+`False` — no assertion, no error — and its SWA layers are treated as full
+attention exactly as before. That is the shape to check for a new, custom or
+vendor-forked architecture, rather than for the three models above.
 
 ### Decode-side offload validation
 

@@ -29,7 +29,50 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 - **v0.5.14–v0.5.15** are HiCache-heavy: int8 checkpoint pool for linear-attention recurrent states in the Mamba radix cache (#28185), hybrid-pool staged H2D kernel (#28434), asymmetric pool direct-backend support (#28446), HiCache for MiMo-V2 (#27378), opt-in CP-aware LRU eviction on the `file` backend (#26670), bucketed multi-dir layout for NIXL file storage (#27672), a NIXL FILE cache cleaner (#28258), Mooncake group semantics (#26574), bulk-token-byte hash generation (#28287), and an AMD **UMBP** tiered DRAM + SSD L3 backend with a hugepage host allocator (#25377). A separate `--enable-hisparse` subsystem (hierarchical sparse attention) also landed and can target NIXL DRAM KV destinations (#27563) — distinct from HiCache, don't conflate the flags.
 - **Image**: `lmsysorg/sglang:v0.5.15.post1` (pip-installs `mooncake-transfer-engine`; install `nixl-cu13`, `aibrix-kvcache`, `simm` etc. as needed for that backend). Confirm the bundled versions with `scripts/inspect-sglang-image.sh v0.5.15.post1` — the 0.3.10.post1 Mooncake figure was captured on the v0.5.12 line.
 - **Source of truth for flags**: `python -m sglang.launch_server --help`. If this skill disagrees with `--help` on a flag spelling, trust `--help` and freshen the skill. Note `server_args.py` was refactored to annotated-dataclass form — flags are derived from field names, so old line-number citations into the argparse block no longer resolve.
-- **Flag surface at v0.5.15.post1** (verified 2026-07-21 against `python/sglang/srt/server_args.py`): `--hicache-write-policy` now takes `write_through` (default), `write_back`, **`write_through_selective`**. `--hicache-io-backend` defaults to **`kernel`** and adds `kernel_ascend` alongside `direct`. `--hicache-mem-layout` defaults to `page_first` and adds **`page_first_kv_split`** and **`page_head`** to the old three. `--hicache-storage-backend` adds **`mori`** to file / mooncake / hf3fs / nixl / aibrix / dynamic / eic / simm. `--hicache-ratio` defaults to 2.0, `--hicache-size` to 0 (ratio wins unless size is set).
+- **Flag surface at v0.5.15.post1** (verified 2026-07-21 against `python/sglang/srt/server_args.py`): `--hicache-write-policy` now takes `write_through` (default), `write_back`, **`write_through_selective`**. `--hicache-io-backend` defaults to **`kernel`** and adds `kernel_ascend` alongside `direct`. `--hicache-mem-layout` defaults to `page_first` and adds **`page_first_kv_split`** and **`page_head`** to the old three. `--hicache-storage-backend` at **v0.5.19** accepts eleven values — `file`, `sim`, `mooncake`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm` — with `npu_memcache` added on `main` after that tag. `--hicache-ratio` defaults to 2.0, `--hicache-size` to 0 (ratio wins unless size is set).
+
+## Upgrading past v0.5.15 (swept 2026-09-15, latest stable v0.5.19)
+
+Four releases landed since this skill's baseline: v0.5.16 (2026-07-25),
+v0.5.17 (08-08), v0.5.18 (08-22), v0.5.19 (09-05).
+
+**Two flags were renamed with no deprecated alias, so an existing launch command
+dies with `unrecognized arguments`** (both v0.5.16):
+
+| Old | New |
+|---|---|
+| `--enable-deepep-waterfill` | `--enable-waterfill` |
+| `--optimistic-prefill-retries` | `--optimistic-prefill-attempts` |
+
+**The unified radix tree became the default for everything.** v0.5.16 made it
+the default for SWA, Mamba and DSA models; **v0.5.19 extended that to every
+configuration including full-attention-only models**, and
+`SGLANG_ENABLE_UNIFIED_RADIX_TREE` is deprecated and can be unset.
+
+**v0.5.18 relocates every compiled-kernel cache under `SGLANG_CACHE_DIR`**, so
+the first launch after upgrading recompiles once. On a pod with a mounted cache
+volume, expect one slow boot and re-point the mount — the release notes give
+copy/symlink paths for `~/.triton`, `~/.cache/flashinfer`, `~/.cache/deep_gemm`,
+`/tmp/torchinductor_$USER` and `~/.nv/ComputeCache`. Same release moves the CUDA
+stack to torch 2.13.0.
+
+**Two more defaults flipped**, both with an env-var escape hatch: MoE deferred
+finalize on the NVFP4 + `flashinfer_trtllm` path
+(`SGLANG_ENABLE_MOE_DEFERRED_FINALIZE=False` to revert), and unified-cache
+out-of-window SWA slot freeing
+(`SGLANG_OPT_UNIFIED_CACHE_FREE_OUT_OF_WINDOW_SLOTS=False`).
+
+**Two HiCache correctness bugs are open** as of this sweep, both filed
+September 2026 and both scoped narrowly enough to plan around:
+
+- **#39147** — `HiCacheFile.batch_exists_v2()` computes the wrong shared usable
+  prefix for hybrid SWA+Mamba pools, returning an endpoint the SWA pool cannot
+  actually serve. `MooncakeStore` does the intersection correctly, so this is
+  the **file backend only**.
+- **#39444** — with `--hicache-write-policy write_through` plus Mooncake Store,
+  a first-seen prefix can be evicted from L1/L2 before its KV finishes backing
+  up, so replay restores only a partial prefix. `write_back` with
+  `--hicache-storage-prefetch-policy wait_complete` does not reproduce it.
 
 ## Three-tier architecture, in one paragraph
 
@@ -80,7 +123,7 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
 
 2. **`--hicache-ratio` must be > 1.** Host pool must exceed device pool. The L2 capacity used for prefetch is `0.8 * (mem_pool_host.size − mem_pool_device.size)`, so `--hicache-ratio 1.2` leaves only ~16% of L1 for prefetched-but-not-yet-used pages — enough for spec-decode tests but chokes under multi-turn workloads. Production deployments use ratio ≥ 2.
 
-3. **Layout × IO × storage are silently auto-rewritten at boot.** Three normalisation rules in `server_args.py:_handle_hicache`:
+3. **Layout × IO × storage are silently auto-rewritten at boot.** Three normalisation rules, now in `arg_groups/hicache_hook.py::handle_hicache()` — `_handle_hicache()` in `server_args.py` was removed by PR #38047 (2026-09-06, post-v0.5.19), so grep the symbol rather than a line range:
    - `page_first_direct` + `kernel` IO → forces IO to `direct`
    - `page_first` + `direct` IO → forces layout to `page_first_direct`
    - Mooncake + `layer_first` → forces `page_first` or `page_first_direct`
