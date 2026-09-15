@@ -12,7 +12,7 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 8.11      # chart minors: current (10.x) + prior 2 (9.x, 8.x)
-- **Last sifted:** 2026-07-21 (re-probed: latest app tag **v19.2.0**, still within the chart-10.x / GitLab-19.x row — no chart-minor shift)
+- **Last sifted:** 2026-09-15 — chart ceiling v10.3.2/app v19.3.2, k8s window rolled to 1.34–1.36, and the "NGINX discontinued" claim retracted (it remains opt-in until GitLab 20.0) (re-probed: latest app tag **v19.2.0**, still within the chart-10.x / GitLab-19.x row — no chart-minor shift)
 - **Last release-verified:** 2026-09-15 — chart tags enumerated from the GitLab
   API (`gh` does not apply here): newest are **`v10.3.2`, `v10.2.6`, `v10.1.8`**,
   all 2026-09-10. Still inside the **10.x / GitLab 19.x** row below, so the row

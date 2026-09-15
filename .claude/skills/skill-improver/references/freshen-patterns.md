@@ -182,6 +182,35 @@ Two probes are nearly always available and cheap:
   describes human workflow and another describes agent behaviour. Check whether
   the two are even talking about the same actor before declaring a conflict.
 
+**An absence claim that licensed an inference is the expensive kind.** A plain
+absence claim ("no matrix is published") is wrong on its own. One that made the
+file *derive* values instead is wrong plus everything derived from it — and the
+derivations look like findings, so they attract no suspicion.
+
+Measured 2026-09-15 on two registry files that each said upstream published no
+Kubernetes support matrix. Both were false; both upstreams had published one all
+along. The difference was what each file did next. One guessed a floor and
+happened to guess right, so nothing ever contradicted it and every pass
+re-derived the same guess. The other inferred whole version windows from which
+documentation pages 404, and **four of those windows were wrong** — a floor, a
+ceiling and two OpenShift ranges. The 404 rule had also quietly stopped
+discriminating: recent minors 404 alongside old ones, so the signal it rested on
+was gone.
+
+So when a row says a source does not exist, check the source before trusting
+anything downstream of it, and treat "we infer X because upstream publishes
+nothing" as a defect report rather than a method. **A stale number eventually
+contradicts something; a wrong inference never does.**
+
+**Read a published lifecycle date; never compute one.** Support windows are
+quoted as a duration ("18 months from release"), which invites arithmetic on the
+release tag. The vendor's own clock usually starts from a *docs* release date
+that trails the tag. Measured 2026-09-15: a tag-derived table ran about a month
+early on every one of five minors, and on the oldest that turned a version with
+39 days of support left into one that read as already expired — retiring a live
+migration source. Take the date from the vendor's lifecycle page or
+endoflife.date, and when a date falls inside the next 60 days, say so in days.
+
 **Re-test an inherited `unverifiable` flag; never carry it forward.** A row
 annotated "blocked — read manually" or "verify in browser" stops being probed,
 so a wrong claim resting on it survives every later pass. Re-run the escalation
