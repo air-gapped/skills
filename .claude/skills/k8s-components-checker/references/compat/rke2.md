@@ -5,7 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.31
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 — per-line ceilings re-read with `isLatest`: **1.36 → v1.36.4+rke2r1** (isLatest), 1.35 → v1.35.8+rke2r1, 1.34 → v1.34.11+rke2r1 (all three published 2026-08-28), 1.33 → v1.33.13+rke2r2. **No new GA minor** — v1.37.0+rke2r1 exists but is still `isPrerelease`.
+- **Upstream k8s EOL per line, which this file did not carry** (dates from endoflife.date): 1.31 → 2025-11-11 · 1.32 → 2026-02-28 · 1.33 → 2026-06-28 — **all three already past**; **1.34 → 2026-10-27, which is 42 days from 2026-09-15** and the next one to fall; 1.35 → 2027-02-28; 1.36 → 2027-06-28. A line whose upstream k8s is EOL gets no further community CVE backports regardless of RKE2 patch activity.
 - **Last release-verified (gh):** 2026-09-15 — **no new minor**, so the in-scope
   set and every k8s window below are unchanged. All four tracked minors have
   newer patches than the headings state: **1.36 → `v1.36.4+rke2r1`**,
@@ -163,11 +164,11 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
 ## 1.31 (latest community patch v1.31.14+rke2r1, 2025-11-20; upstream k8s 1.31 EOL Oct 2025)
 
 - **k8s floor:** 1.31.
-- **Breaking:** upstream Kubernetes 1.31 reached EOL October 2025 — no further community CVE backports at the k8s layer. A `+rke2r2` rebuild (2026-03-18) exists upstream but is labeled Prime-only; manually installable if needed. Treat 1.31 as a freeze-in-place tier regardless — new deploys SHOULD target 1.32+.
+- **Breaking:** upstream Kubernetes 1.31 reached EOL **2025-11-11** (corrected 2026-09-15; previously recorded as "October 2025") — no further community CVE backports at the k8s layer. A `+rke2r2` rebuild (2026-03-18) exists upstream but is labeled Prime-only; manually installable if needed. Treat 1.31 as a freeze-in-place tier regardless — new deploys SHOULD target 1.32+.
 - **CRD migrations:** snapshot-controller stays at the 4.0.x line (`rke2-snapshot-controller-crd` 4.0.003) — the 4.2.x / `VolumeGroupSnapshot v1beta2` jump does **not** backport to 1.31. rke2-traefik is pinned to the 27.0.x chart (Traefik v2.x) for the entire 1.31 series — the v2→v3 break lives in 1.32+.
 - **Upgrade ordering:** servers before agents. Cross-minor: 1.31 → 1.32 is the first hop that crosses Traefik v2→v3, the snapshot-controller v1beta1→v1beta2 group-snapshot break (the etcd 3.5→3.6 jump comes later, within the 1.33 line at 1.33.11 — see § 1.33; 1.32 still ships etcd 3.5). Stage tests at each minor; don't skip.
 - **Deprecations:** etcd v3.5 in use across the entire 1.31 series; the 3.6 transition does not happen until 1.33. Operators staying on 1.31 should expect no further etcd minor bumps on this branch.
 - **Notable:**
-  - Packaged at 1.31.14+rke2r2: etcd v3.5.21-k3s1, containerd v2.1.5-k3s1, runc v1.3.3, CoreDNS v1.13.1, helm-controller v0.16.16. Ingress-Nginx version field is **empty** in the published release notes (Prime-only build artifact tagged externally); cross-reference the chart version `rke2-ingress-nginx 4.13.500` rather than the packaged-components table.
+  - **Correction (2026-09-15): the Ingress-Nginx field is NOT empty on the community build.** At `v1.31.14+rke2r1` it reads **`v1.13.4-hardened1`** with chart `rke2-ingress-nginx 4.13.400`. The `4.13.500` chart previously cross-referenced here belongs to the later **`+rke2r2` Prime rebuild** (2026-03-18), not to the community r1 — so the "empty field, look up the chart version" workaround was reading a Prime artifact to fill a gap that did not exist. Historically, packaged at 1.31.14+rke2r2: etcd v3.5.21-k3s1, containerd v2.1.5-k3s1, runc v1.3.3, CoreDNS v1.13.1, helm-controller v0.16.16; Ingress-Nginx version field **empty** in the published release notes (Prime-only build artifact tagged externally); cross-reference the chart version `rke2-ingress-nginx 4.13.500` rather than the packaged-components table.
   - No Traefik listed under packaged components (chart-only delivery in this minor; expected).
   - CNI floor at 1.31.14+rke2r2: Cilium 1.18.4, Calico 3.31.2, Flannel 0.27.4, Multus 4.2.4. Cilium 1.18.x is the ceiling for 1.31 — the Cilium 1.19 jump tracks with 1.33+.
