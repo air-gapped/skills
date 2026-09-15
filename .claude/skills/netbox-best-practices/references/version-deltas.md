@@ -66,6 +66,31 @@ writing automation that must span versions.
 - **v1 tokens formally deprecated** in 4.6.1 (#22128). Removal timeline
   SHIFTED: 4.5 notes said v4.7; 4.6.1 reschedules removal to **v5.0**.
 
+## 4.7.0 (2026-09-02) → 4.7.1 (2026-09-15) — skip 4.7.0
+
+Beyond the four upgrade gates in `SKILL.md` (PG 15+, ltree, Redis 6+, selection
+custom-field shape), 4.7.0 carries two defects that make it a bad target
+[docs, verified 2026-09-15]:
+
+- **#23112** — the SSO login button does nothing under a restrictive
+  `form-action` CSP; fixed in 4.7.1 by starting the login via script-driven
+  navigation. Any OIDC/SAML install on 4.7.0 loses its login button.
+- **#23130** — the triggers that cascade a hierarchical object's path to its
+  descendants could not be recreated from a `pg_dump` of a 4.7.0 database: the
+  restore reports success, then renaming/moving a region, site group,
+  location, device role, platform, tenant group, contact group, WLAN group,
+  module bay or inventory item stops updating descendants. 4.7.1 reinstalls
+  the triggers but does **not** repair already-stale values — see the 4.7.1
+  release note and the "Repairing Hierarchical Paths" admin page.
+
+Chart pin map at 2026-09-15: **8.3.66 → 4.6.10** (last 4.6), 8.3.70–8.3.76 →
+4.7.0, nothing → 4.7.1 yet. Also: 4.7 changes `ipam.Service` to
+`port_mappings` (legacy `protocol`/`ports` accepted by REST, read-only at the
+ORM), pre-renders config context into every device/VM REST representation
+(`?exclude=config_context` silently ignored), makes REST token plaintexts
+server-generated only, and requires write-enabled tokens to run custom scripts.
+Not re-verified live.
+
 ## Anti-facts (plausible, verified FALSE — do not repeat)
 
 - ~~"4.6 lets VMs be assigned directly to a device without a cluster"~~ —

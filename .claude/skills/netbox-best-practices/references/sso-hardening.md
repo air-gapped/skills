@@ -74,8 +74,8 @@ from django.contrib.auth.models import Group
 
 def map_groups(backend, user, response, *args, **kwargs):
     idp_groups = response.get('groups', []) or []
-    # role flags
-    user.is_staff      = 'netbox-staff'  in idp_groups or 'netbox-admins' in idp_groups
+    # role flag — NetBox 4.x has NO is_staff field (dropped in 4.0); assigning
+    # it is a no-op and save(update_fields=[..., 'is_staff']) raises ValueError
     user.is_superuser  = 'netbox-admins' in idp_groups
     user.save()
     # mirror IdP groups onto NetBox groups that already exist (don't auto-create)
@@ -199,11 +199,123 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
    the default pipeline's create/associate steps; for one-time linking of
    existing local users, use `/admin/social_django/usersocialauth/` instead.
 
+## Worked example — Keycloak on the helm chart [live 2026-09-15]
+
+Ran end to end on chart 8.3.66 / NetBox 4.6.10 / Keycloak 26.7.2 (issuer with
+a deliberate `/auth` prefix). Everything below was verified against the
+running pods and the IdP redirect, not just rendered.
+
+**Keycloak client** (created over the admin REST API with a realm-scoped
+service account; no admin console login needed):
+
+```json
+{"clientId": "netbox.example.com", "protocol": "openid-connect", "publicClient": false,
+ "standardFlowEnabled": true, "implicitFlowEnabled": false, "directAccessGrantsEnabled": false,
+ "redirectUris": ["https://netbox.example.com/oauth/complete/oidc/"],
+ "attributes": {"pkce.code.challenge.method": "S256"}}
+```
+
+plus one dedicated protocol mapper on the client:
+`oidc-group-membership-mapper`, `claim.name: groups`, `full.path: false`,
+`userinfo.token.claim: true` (and id/access). social-core merges the userinfo
+response into `response`, so the pipeline reads `response["groups"]` as a
+plain list of group names — no realm-wide scope change needed.
+
+**Values** (chart `remoteAuth` + `extraConfig`; the secret is a k8s Secret whose
+single key `oidc.yaml` contains `SOCIAL_AUTH_OIDC_SECRET: "<client secret>"`):
+
+```yaml
+remoteAuth:
+  enabled: true
+  backends: [social_core.backends.open_id_connect.OpenIdConnectAuth]
+  autoCreateUser: true
+  defaultGroups: [readers]          # pre-created, view-only
+extraConfig:
+  - values:
+      SOCIAL_AUTH_OIDC_OIDC_ENDPOINT: https://kc.example.com/auth/realms/lab   # copy the discovery `issuer` verbatim
+      SOCIAL_AUTH_OIDC_KEY: netbox.example.com
+      SOCIAL_AUTH_OIDC_USE_PKCE: true
+      SOCIAL_AUTH_REDIRECT_IS_HTTPS: true
+      SOCIAL_AUTH_PROTECTED_USER_FIELDS: [groups]
+      SOCIAL_AUTH_BACKEND_ATTRS: {oidc: [Keycloak, key]}
+      SOCIAL_AUTH_PIPELINE:
+        - social_core.pipeline.social_auth.social_details
+        - social_core.pipeline.social_auth.social_uid
+        - social_core.pipeline.social_auth.social_user
+        - social_core.pipeline.user.get_username
+        - social_core.pipeline.user.create_user
+        - social_core.pipeline.social_auth.associate_user
+        - netbox.authentication.user_default_groups_handler
+        - netbox.sso_pipeline.map_groups
+        - social_core.pipeline.social_auth.load_extra_data
+        - social_core.pipeline.user.user_details
+  - secret:
+      secretName: netbox-oidc
+extraVolumes:
+  - name: sso-pipeline
+    configMap: {name: netbox-sso-pipeline}
+extraVolumeMounts:
+  - name: sso-pipeline
+    mountPath: /opt/netbox/netbox/netbox/sso_pipeline.py
+    subPath: sso_pipeline.py
+    readOnly: true
+# worker.extraVolumes / worker.extraVolumeMounts: same two blocks
+```
+
+**Pipeline module — the flags-only variant.** Smaller than `map_groups` above
+and enough for the common "one admin group, everyone else read-only" case:
+group *membership* stays with NetBox's own `user_default_groups_handler` +
+`REMOTE_AUTH_DEFAULT_GROUPS`, and the custom step only derives the two flags,
+so it never touches `user.groups` at all:
+
+```python
+ADMIN_GROUPS = {"admins"}          # Keycloak group names
+
+def map_groups(backend, user, response, *args, **kwargs):
+    if backend.name != "oidc" or user is None:
+        return
+    is_admin = bool(set(response.get("groups") or []) & ADMIN_GROUPS)
+    if user.is_superuser != is_admin:
+        user.is_superuser = is_admin
+        user.save(update_fields=["is_superuser"])   # NOT is_staff: no such field on NetBox 4.x
+```
+
+Authoritative on every login: leaving the IdP group demotes at the next login.
+Compile and stub-test it before applying (`helm-chart-gotchas.md` §9.3) — and
+note the stub test does NOT catch model-field mistakes: the first live login
+failed with `ValueError: ... non-concrete fields: is_staff` because a stub user
+happily accepts any attribute. `is_staff` does not exist on NetBox 4.x's
+`users.User` [live 2026-09-15]; `REMOTE_AUTH_STAFF_GROUPS` is a header-backend
+setting that survives from 3.x. A failed pipeline step still leaves the user
+created with the default groups (steps before it committed), so the retry
+after the fix only has to flip the flag.
+
+**Read-only default group**, pre-created from a script on the pod's stdin
+(`ObjectPermission` with `actions=['view']` over the infra apps, attached to
+the group — NetBox permissions live on the local Group, not in the token):
+
+```python
+from users.models import Group, ObjectPermission
+from core.models import ObjectType
+g, _ = Group.objects.get_or_create(name='readers')
+p, _ = ObjectPermission.objects.get_or_create(name='readers: view infra', defaults={'actions': ['view'], 'enabled': True})
+p.object_types.set(ObjectType.objects.filter(app_label__in=['dcim','ipam','circuits','virtualization','wireless','tenancy','vpn','extras','core']))
+p.groups.add(g)
+```
+
+**What it looked like when right:** `/login/` shows a **Keycloak** button
+above the local form; `/oauth/login/oidc/` 302s to
+`…/protocol/openid-connect/auth?client_id=…&redirect_uri=https://…/oauth/complete/oidc/&…&code_challenge_method=S256&…&scope=openid+profile+email`;
+`settings.AUTHENTICATION_BACKENDS` in the pod lists `OpenIdConnectAuth` first
+and `ObjectPermissionBackend` second; local `admin` still logs in; API tokens
+unaffected; object counts identical before and after.
+
 ## Quick verification after wiring SSO
 
 - Log in as a non-admin IdP user → confirm they are **not** staff/superuser and
   land in the read-only group.
-- Log in as an `netbox-admins` IdP user → confirm `is_superuser` flips.
+- Log in as an `netbox-admins` IdP user → confirm `is_superuser` flips (there
+  is no `is_staff` on 4.x — do not look for it).
 - Remove a user from the admin IdP group, re-login → confirm demotion (and that
   any issued API token of theirs still works — expected, revoke manually).
 - Existing local users can be linked to an OIDC identity at

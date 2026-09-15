@@ -1,5 +1,38 @@
 # Improvement backlog — netbox-best-practices
 
+## Resolved — 2026-09-15 (live build: 4.6.10 hop + Keycloak SSO on noffe)
+
+The helm SSO design (§9 + `sso-hardening.md`) went from `[source]` to
+`[live]` in one evening: chart 8.3.37/4.6.5 → 8.3.66/4.6.10, then Keycloak
+26.7.2 login via the generic `OpenIdConnectAuth`, mounted pipeline module,
+`readers` default group. What the build corrected or added:
+
+- **§9.2 `/auth` claim was too strong.** A Keycloak that keeps the legacy
+  prefix on purpose (operator `spec.hostname` with `/auth`) has
+  `/auth/realms/<realm>` as its issuer; the rule is now "copy the discovery
+  `issuer`", not "Quarkus has no `/auth`".
+- **Fifth 4.7 gate.** 4.7.0 breaks the SSO login button (#23112) and its
+  `pg_dump` loses cascade triggers (#23130); 4.7.1 fixes both, no chart pins
+  it yet. Recorded in `SKILL.md` and `version-deltas.md`; 8.3.66 named as the
+  last 4.6 chart.
+- **Worked example** appended to `sso-hardening.md`: Keycloak client JSON +
+  groups mapper, complete values, the smaller flags-only pipeline variant,
+  the read-only-group script, and what the redirect/pod look like when right.
+- **§9.1/9.3/9.5/9.6** gained the live mount paths, a compile + stub
+  self-check for the module, the from-outside verification recipe, the
+  "feed Django code on stdin" observation (`shell -c` output did not come
+  back through `kubectl exec` on the 4.6.10 image), and the two-revision
+  pattern (hop, then SSO).
+
+- **`is_staff` does not exist on NetBox 4.x** — both the skill's original
+  `map_groups` snippet and the first live module set it; the first real
+  login 500ed with `ValueError: … non-concrete fields: is_staff`. Corrected
+  in both examples; the stub self-check cannot catch this class of error.
+
+Still open from this build: the first real IdP login by a human was pending
+when this was written — the promote/demote path is stub-tested and the
+redirect verified, not yet exercised with a live Keycloak session.
+
 ## Resolved — 2026-07-21 (freshen)
 
 **The skill's own refresh trigger did not fire — and that is the finding.**

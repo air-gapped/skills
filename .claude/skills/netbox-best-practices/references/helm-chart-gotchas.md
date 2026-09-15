@@ -300,7 +300,11 @@ wiring is:
   [source: netbox/netbox/settings.py:748-751].
 - Secrets/ConfigMaps referenced by `extraConfig` must expose their data under
   keys ending in `.yaml` (the loader globs `*/*.yaml`); the filename itself is
-  arbitrary.
+  arbitrary. [live 2026-09-15] The `values:` entry renders into the release's
+  own ConfigMap as key `extra-0.yaml`, mounted at `/run/config/extra/0`; each
+  `secret:`/`configMap:` entry mounts as the next index (`/run/config/extra/1`
+  …) on the web, worker **and** housekeeping pods — so a syntax error in one
+  `.yaml` key stops all three at boot.
 
 Minimal Keycloak values with the generic OIDC backend (see 9.2 for why this
 backend and not the chart docs' `KeycloakOAuth2`):
@@ -349,8 +353,12 @@ PR #661) is dated in four ways:
   `SOCIAL_AUTH_OIDC_OIDC_ENDPOINT` (`<server>/realms/<realm>`, reads
   `/.well-known/openid-configuration`) and survives rotation.
 - Its example URLs carry the legacy `/auth/realms/...` prefix — Keycloak ≥17
-  (Quarkus) serves `/realms/...` with no `/auth` unless started in legacy
-  compatibility mode.
+  (Quarkus) serves `/realms/...` with no `/auth` by default. But an install
+  can keep `/auth` deliberately (the operator's `spec.hostname.hostname:
+  https://kc.example/auth`, or `KC_HTTP_RELATIVE_PATH`), and then
+  `/auth/realms/<realm>` IS the issuer [live 2026-09-15]. Never guess the
+  prefix from the version: fetch `<candidate>/.well-known/openid-configuration`
+  and copy its `issuer` into `SOCIAL_AUTH_OIDC_OIDC_ENDPOINT` verbatim.
 - It sets `SOCIAL_AUTH_JSONFIELD_ENABLED: true` — redundant; NetBox always
   sets it [source: netbox/netbox/settings.py:754].
 - Its pipeline inserts `social_core.pipeline.social_auth.associate_by_email` —
@@ -376,6 +384,51 @@ that own `configuration.py` (VM / netbox-docker); on the chart,
 `configuration.py` is the chart-managed loader — use the mount pattern.
 Only the web Deployment needs the mount (the pipeline imports lazily at login),
 but adding it to `worker` too is harmless and avoids surprises.
+
+Self-check the module BEFORE `helm upgrade` — a syntax error only surfaces as
+a 500 on `/oauth/complete/oidc/` after the roll [live 2026-09-15]:
+
+```bash
+python3 -c "import yaml; src=yaml.safe_load(open('configmap-netbox-sso-pipeline.yaml'))['data']['sso_pipeline.py']; compile(src,'sso_pipeline.py','exec'); print('ok')"
+```
+
+and exercise the function with stub `backend`/`user` objects (promote,
+demote, missing claim) — three asserts, no Django needed. Guard the function
+with `if backend.name != "oidc": return` so a later second backend cannot
+inherit the mapping by accident.
+
+### 9.5 Verify from outside, without logging in
+
+```bash
+curl -sI https://<host>/oauth/login/oidc/ | grep -i ^location
+```
+
+must be a 302 to the IdP's `/protocol/openid-connect/auth` carrying
+`client_id=<yours>`, `redirect_uri=https://<host>/oauth/complete/oidc/`
+(https, trailing slash) and, if PKCE is on, `code_challenge_method=S256`
+[live 2026-09-15]. Then confirm the running pod loaded the backend — the
+values file is not the truth, the process is:
+
+```bash
+kubectl -n <ns> exec -i deploy/<release> -- python /opt/netbox/netbox/manage.py shell <<'EOF'
+from django.conf import settings
+print(settings.AUTHENTICATION_BACKENDS, settings.REMOTE_AUTH_ENABLED, settings.SOCIAL_AUTH_OIDC_OIDC_ENDPOINT)
+EOF
+```
+
+Feed Django code to the pod **on stdin** like this. On the 4.6.10 image,
+`manage.py shell -c "..."` and `manage.py nbshell --command "..."` ran but
+their `print()` output never came back through `kubectl exec`; a script on
+stdin (and `manage.py dumpdata`) did [live 2026-09-15].
+
+### 9.6 Two revisions, not one
+
+Land the version hop as one values revision and the SSO switch as the next
+(`-a` = hop, `-b` = hop + SSO), each with its own `kubectl diff` and DB
+snapshot. The hop's diff must be labels + image tag only; the SSO diff must be
+the auth ConfigMap keys plus the mounts and nothing else. A single combined
+roll cannot tell a migration failure from a pipeline failure [live 2026-09-15].
+
 
 ### 9.4 extraConfig type trap: YAML in, Python literals never
 

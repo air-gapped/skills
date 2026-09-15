@@ -62,6 +62,10 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | python-social-auth.readthedocs.io/en/latest/backends/oidc.html | SOCIAL_AUTH_OIDC_* setting names (ENDPOINT/KEY/SECRET/SCOPE/USERNAME_KEY/JWT_ALGORITHMS) | 2026-07-30 |
 | netbox discussion #19584 (+ younsl.github.io blog, **now 404 — dropped**) | corroboration: group-mapping-needs-custom-pipeline on k8s, pipeline ConfigMap-mount pattern in the wild. Discussion #19584 still live; the blog corroboration is gone, so the claim now rests on the discussion plus the in-tree pipeline source | 2026-08-18 |
 
+| netbox v4.7.1 release notes + issues #23112, #23130 | 4.7.0 SSO login button broken under `form-action` CSP; 4.7.0 `pg_dump` cannot restore the ltree cascade triggers; both fixed 4.7.1 (2026-09-15) | 2026-09-15 |
+| netbox-chart Helm index (`helm search repo netbox/netbox --versions`) | chart→app pins: 8.3.66 → 4.6.10 (last 4.6), 8.3.70–8.3.76 → 4.7.0, no 4.7.1 chart yet | 2026-09-15 |
+| noffe lab build (chart 8.3.66 / 4.6.10 / Keycloak 26.7.2), `~/projects/air_gapped/helm_charts/netbox` | every `[live 2026-09-15]` label: mount paths, `/auth` issuer, PKCE redirect shape, pipeline stdin/exec behaviour, two-revision roll | 2026-09-15 |
+
 Refresh cadence: run `/skill-improver freshen netbox-best-practices` when a new
 NetBox minor (4.7/5.0) or netbox-chart major lands — the v1-token removal
 (rescheduled to v5.0) and the PortMapping template-endpoint nuance are the two

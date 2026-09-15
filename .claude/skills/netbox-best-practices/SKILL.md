@@ -21,7 +21,7 @@ they do not (as of 2026-06):
 
 Evidence labels used throughout: `[source]` = verified against chart/NetBox
 source code (file:line cited); `[live]` = verified on a production install of
-chart 8.3.14 / NetBox v4.6.2. At the 2026-07-21 check upstream was chart 8.3.37 / v4.6.5 — still 4.6.x, so no delta was invalidated. **Since then NetBox 4.7.0 shipped (2026-09-02), a minor beyond this skill's 4.2–4.6 range.** Nothing below has been re-verified against it, so on a 4.7 target treat every delta as unconfirmed rather than as covered — but read the 4.7 upgrade gates immediately below first, because they stop an upgrade before any delta matters; `[docs]` = official docs/release notes,
+chart 8.3.14 / NetBox v4.6.2, and — for the helm SSO wiring (§9 + the worked example in `sso-hardening.md`) — re-verified end to end on **chart 8.3.66 / NetBox v4.6.10 with Keycloak 26.7.2 on 2026-09-15**. At the 2026-07-21 check upstream was chart 8.3.37 / v4.6.5 — still 4.6.x, so no delta was invalidated. **Since then NetBox 4.7.0 shipped (2026-09-02), a minor beyond this skill's 4.2–4.6 range.** Nothing below has been re-verified against it, so on a 4.7 target treat every delta as unconfirmed rather than as covered — but read the 4.7 upgrade gates immediately below first, because they stop an upgrade before any delta matters; `[docs]` = official docs/release notes,
 adversarially verified (3-vote panel).
 
 ## Upgrading to 4.7.0 — four gates, from the release notes [docs]
@@ -35,6 +35,18 @@ stated gates, not deltas re-derived here; the rest of this skill is still 4.2–
 | **The `ltree` extension must be available** | Installed automatically on upgrade. It is a trusted module shipping with PostgreSQL and needs no superuser — but a managed or operator-run database that restricts extension creation will block it. Confirm the app role may create it, on a provider-managed DB especially. |
 | **Redis 6.0+ required; 5.x dropped** | Applies to the external valkey/Redis wiring. Valkey is 7.x-derived and unaffected; a pinned legacy Redis 5 sidecar is not. |
 | **Selection custom fields change shape on read** | REST *and* GraphQL now return `{"value": "...", "label": "..."}` instead of the bare value. Writes still accept the raw value. Any seeding or reconciliation script that reads a selection custom field back breaks silently — it gets a dict where it expected a string. |
+
+**Fifth gate — target 4.7.1 or later, never 4.7.0** [docs, verified 2026-09-15]: 4.7.0
+ships an OIDC/SSO login button that does nothing under a restrictive `form-action`
+CSP ([#23112](https://github.com/netbox-community/netbox/issues/23112)) and a
+`pg_dump` that silently drops the ltree cascade triggers, so a restore reports
+success and hierarchy renames stop propagating
+([#23130](https://github.com/netbox-community/netbox/issues/23130), with a
+"Repairing Hierarchical Paths" admin doc for already-stale values). Both are fixed
+in 4.7.1 (2026-09-15). On the helm chart, check which app version the chart pins
+(`helm search repo netbox/netbox --versions`): **8.3.66 is the last 4.6 chart
+(4.6.10)**, 8.3.70+ pin 4.7.0, and as of 2026-09-15 no chart pinned 4.7.1 — the
+safe staging point from 4.6.x is 8.3.66, then 4.7.x once a chart pins ≥ 4.7.1.
 
 The `ipam.Service` `protocol`/`ports` → `port_mappings` change also lands in 4.7,
 with the legacy pair still accepted by the REST API but read-only at the ORM
@@ -94,8 +106,10 @@ backend gotchas (redirect URI shape, RS256-only default, PKCE off by default) an
 break-glass / header-spoofing / SSO≠API-token / associate_by_email hardening
 rules. [source-verified against netbox 4.6 authentication code]
 
-**Deploying SSO on the helm chart** (Keycloak etc.): also read
-`references/helm-chart-gotchas.md` §9 — there are no dedicated OIDC chart
+**Deploying SSO on the helm chart** (Keycloak etc.): start from the **worked
+example at the end of `references/sso-hardening.md`** — the complete Keycloak
+wiring that ran live on 2026-09-15 (client, mapper, values, pipeline module,
+self-check, verification) — and read `references/helm-chart-gotchas.md` §9 — there are no dedicated OIDC chart
 values (maintainers declined, #987); everything rides in `extraConfig`, custom
 pipeline code must be volume-mounted as a `netbox.*` module, and the chart's
 own `docs/auth.md` examples carry a dated KeycloakOAuth2 config (legacy /auth
