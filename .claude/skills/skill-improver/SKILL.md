@@ -218,6 +218,35 @@ exit code.
 Add a host to `DOC_HOSTS` when a skill starts citing it. A host that is absent is
 simply never swept.
 
+### A Remediation Floor Is the Number an Operator Acts On
+
+`freshen` re-probes sources; `advisory-lag.py` finds advisories a skill has not
+absorbed. Neither checks a floor the skill already wrote down. Run
+`python3 ${CLAUDE_SKILL_DIR}/scripts/check-advisory-floors.py [root] --verify`
+after any edit that names a CVE and a fixed version.
+
+It fails in two directions and only one of them is loud. **Too low** sends an
+operator to a build still inside the affected range. **Attributed to the wrong
+line** credits a version the advisory never listed — which changes no upgrade
+advice, reads as correct, and therefore survives review indefinitely. Measured
+2026-09-15: 104 advisory ids across the fleet, one skill crediting a critical
+Argo CD advisory to two minors it never affected, one of them in a release that
+shipped three months before the fix existed. That file stated the correct range
+four sections above the error.
+
+**Read every flag before editing; three shapes flag legitimately.** A per-minor
+backport floor sits outside the advisory's range by design. An unbounded range
+with a null `first_patched_version` means the feed does not know the fix — derive
+it from the fix PR's merge commit, never read it as "no fix". A negative claim
+("does not affect 3.1") is a correction, not a floor.
+
+The tool checks 7 lines out of those 104 ids and skips the rest. That is the
+intended trade: a line naming several advisories cannot be resolved by pattern,
+and guessing manufactures findings. Because every such filter can also hide a
+true defect, `--selfcheck` replays the Argo CD line verbatim and asserts it still
+comes out condemned — a clean run means nothing if that assertion has been tuned
+away.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.

@@ -3,6 +3,31 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (floors a skill already wrote down)
+
+- **Shipped `scripts/check-advisory-floors.py`.** Nothing verified a remediation
+  floor after it was written: `freshen` re-probes sources and `advisory-lag.py`
+  finds unabsorbed advisories, but a wrong floor already in a skill was invisible
+  to both.
+- **One real defect, found by hand before the tool existed.** `k8s-components-checker`
+  credited CVE-2026-42880 to Argo CD v3.1.15 and v3.0.22; the advisory lists only
+  `>= 3.2.0, < 3.2.11` and `>= 3.3.0, < 3.3.9`, neither named release carries a
+  security banner, and v3.0.22 shipped three months before the fix. The same file
+  stated the correct range four sections above. It survived because both minors are
+  EOL, so the verdict — bump — was right for another reason.
+- **Two false-negative traps are pinned by assertion.** An unbounded range contains
+  every later version, so testing containment before checking for a null
+  `first_patched_version` condemns every correctly-derived floor; the selfcheck
+  caught that ordering bug before the tool ran. And because each noise filter can
+  silence a true defect, the selfcheck replays the shipped Argo CD line verbatim and
+  asserts it still comes out condemned.
+- **Yield is low on purpose: 7 checkable claims from 104 advisory ids.** A line
+  naming several advisories and several versions cannot be resolved by pattern.
+  Skipping it is correct; attributing the versions anyway is how a checker invents
+  findings. An earlier draft did exactly that and reported 27, of which none was
+  real.
+- Fleet currently clean: 0 flagged.
+
 ## Resolved — 2026-09-15 (dead links outside the staged-commit gate)
 
 - **Shipped `scripts/check-links.py`.** The skillevaluator gate has a dead-link
