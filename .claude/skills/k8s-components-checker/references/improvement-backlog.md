@@ -2,6 +2,15 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (GitLab grounding, done rather than pending)
+
+- **The item asked for chart versions to be grounded through the GitLab API since
+  `gh` does not reach that host, or else marked UNVERIFIED. That happened today.**
+  `compat/gitlab.md` now carries a `Last release-verified: 2026-09-15` stamp with the
+  chart tags enumerated from the GitLab API and a note that `gh` does not apply — the
+  exact action requested, and the file says which part was *not* re-derived (the
+  chart→app mapping), so the remaining uncertainty is named rather than implied.
+
 ## Resolved — 2026-09-15 (the registry was carrying a component its index did not list)
 
 - **`rancher-logging` added to `components.md`; count 19 → 20.** Its compat file was
@@ -285,12 +294,6 @@ Ceiling findings from skill-improver runs.
   confirmatory/contaminated here, so a patch's *changelog contents* can't be
   trusted from it. Action: author verifies the "fixed-in" patches against real
   changelogs on a trusted network, then stamp `Last release-verified:`.
-
-### GitLab not gh-groundable (new 2026-05-30)
-
-- `compat/gitlab.md`. Chart at `gitlab.com/gitlab-org/charts/gitlab`; `gh` does
-  not apply. Ground via the GitLab API / `glab` / `helm search`, else mark
-  versions `UNVERIFIED`.
 
 ### ES 8.8 / 8.14 exact end-of-maintenance dates UNVERIFIED (new 2026-06-02)
 

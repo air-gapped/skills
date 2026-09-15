@@ -41,7 +41,9 @@ attach data to each mechanism.
 
 ### 4. "Reproduction artifacts" tree points to a private repo (Dim 6/8 — minor, carried 2026-05-28)
 
-**Pointer:** `SKILL.md:246-262`
+**Pointer:** `SKILL.md` § "Reproduction artifacts" (the last section; lines
+466-482 as of 2026-09-15 — the previously recorded `246-262` had drifted about 220
+lines and now lands in an unrelated pitfall, so find it by heading, not by number)
 
 **Finding:** Block lists paths in the `model-preflight` repo
 (`findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/...`). Useful for the author's

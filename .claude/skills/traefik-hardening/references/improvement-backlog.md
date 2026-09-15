@@ -36,8 +36,19 @@
 
 ## Open
 
-- **Dim 1 — full trigger set won't fit the 1,536-char listing cutoff.** Combined `description`+`when_to_use` = ~1,934 chars. After the iter-11 reorder, the core positives + symptoms + the "Do NOT" guard land within 1,536, but the JA3/air-gap trigger *phrases* and the "choose where to cap" clause sit past it (their concepts are covered in `description`, which is fully within cutoff). iter-7 proved a trim-to-fit stays over 1,536 (1,564) while deleting symptom+intent coverage — net negative. Closing fully needs an author decision on which trigger phrases to sacrifice vs. accept tail-truncation. File: `SKILL.md:6`.
 - **Dim 6 — single-leader / fan-out topology caveat repeats across 4 files.** Appears in `SKILL.md` (decision-flow step 4 + quick-map), `references/middleware-primitives.md` (InFlightReq), `references/deployment.md` (counting-trap section), and `references/known-products/open-webui-api-abuse.md`. Partly intentional (each file needs the caveat in its own context), but a canonical treatment in `deployment.md` + one-line pointers elsewhere would cut ~15 lines. Multi-file restructure; author call on whether the reinforcement earns its place.
+## Resolved — 2026-09-15 (the frontmatter already fits)
+
+- **Dim 1 listing-cutoff item closed: nothing is truncated.** The entry described a
+  combined `description` + `when_to_use` of ~1,934 chars with the JA3/air-gap phrases
+  and the "choose where to cap" clause pushed past the 1,536 cutoff, and called for an
+  author decision about which triggers to sacrifice. Measured today with
+  `skill-improver/scripts/frontmatter-lengths.py`: **1,517 chars, overrun 0** — 19
+  under the cap, with both named phrases present and inside the boundary.
+- **The decision it asked for was never needed.** Some later pass trimmed the
+  frontmatter under the cap without closing the item, so it survived as a question
+  about a trade-off that had already stopped existing.
+
 ## Resolved — 2026-09-15 (freshen to v3.7.13)
 
 - **The skill was 16 security advisories behind, two of them critical.** Traefik
