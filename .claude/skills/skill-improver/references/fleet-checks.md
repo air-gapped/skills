@@ -124,6 +124,44 @@ true defect, `--selfcheck` replays the Argo CD line verbatim and asserts it stil
 comes out condemned — a clean run means nothing if that assertion has been tuned
 away.
 
+## A Cited Issue's State Drifts, and the Skill Keeps Its Old Verdict
+
+Run `python3 ${CLAUDE_SKILL_DIR}/scripts/check-issue-states.py [root]`. It resolves
+every cited issue and PR in one batched GraphQL call and reports only three
+disagreement classes: prose saying **open** where the tracker says closed or
+merged, saying **merged** where a PR was closed unmerged, and saying **unmerged**
+where it merged. Each is wrong whichever side you believe.
+
+**Closed is not fixed, and the checker cannot tell you which.** It reports drift,
+never a rewrite. Read `stateReason` and the closing comment before editing:
+`NOT_PLANNED` plus a bot comment is abandonment and the warning stays; `COMPLETED`
+with a linked PR is a fix. Measured 2026-09-15 across 694 citations: **6 real
+findings, and they split three-to-three** between the two. Deciding by state alone
+would have been wrong half the time — in one direction deleting a live warning, in
+the other keeping a dead one.
+
+**Get the fix version from ancestry, not from dates.**
+`git -C <clone> tag --contains <sha> | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | head -1`.
+A merge landing after a release branch was cut ships in the release *after* the
+next one: one finding merged five days before a release and is not in it. Date
+arithmetic gives the wrong answer and looks right.
+
+**A fix can predate the close by months.** One issue stayed open for four
+releases after its fix merged, so a re-probe reading only state kept the warning
+alive — and a previous pass had recorded it as "confirmed still true". What
+settled it was in the thread: a third party re-ran the issue's own reproduction
+and the author closed it naming the fix.
+
+**Retire only the justification that died.** That same warning carried two
+independent reasons; one was fixed and the other closed won't-fix. Deleting the
+rule wholesale would have dropped a live warning.
+
+Deliberate "stale-bot closed it, treat as a live risk" phrasing is exempt by
+design. That wording is correct and common, and a checker condemning it trains
+its reader to ignore the whole report. A line citing several refs in *differing*
+states is reported separately as ambiguous rather than guessed at — the claim
+cannot be attached to one ref by text alone.
+
 ## A Ragged Table Loses Its Last Column Silently
 
 No renderer warns about a table whose rows and header disagree on width — it

@@ -157,6 +157,7 @@ skills nobody was touching. Each exits non-zero on findings and has `--selfcheck
 | `check-links.py` | dead doc-host URLs and moved GitHub file paths | 403 (fetcher refused), 429 (own rate limit) |
 | `check-advisory-floors.py` | a CVE floor that is still vulnerable or outside the advisory's range (needs `--verify`) | per-minor backports, unbounded ranges, negative claims |
 | `check-expiring-claims.py` | content dated to become false, especially relative phrases beside a date | lifecycle tables of future EOL dates |
+| `check-issue-states.py` | prose calling a closed issue open, a closed-unmerged PR merged, or a merged PR unmerged | deliberate "stale bot closed it, still a live risk" wording, which is exempt |
 
 **Read the expected-non-findings column before acting on output.** Details, measured
 hit counts, and the four sweep shapes already tried and abandoned:
