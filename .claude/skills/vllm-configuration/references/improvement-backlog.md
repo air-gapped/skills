@@ -2,6 +2,34 @@
 
 Work-not-done log from skill-improver passes. Open = attempted but not applicable in one atomic iteration.
 
+## Resolved — 2026-09-15 (the pre-auth route that proves `--api-key` is not a boundary)
+
+- **CVE-2026-22778 (CRITICAL, floor v0.14.1)** added beside the auth-bypass
+  entry it completes. A malicious **video URL** to a deployment serving a
+  **video model** chains a PIL error-message address leak (ASLR bypass) with a
+  JPEG2000 `cdef`-box heap overflow in the OpenCV/FFmpeg decoder to reach RCE.
+  Affected `>= 0.8.3, < 0.14.1`.
+- **Why it belongs in the auth block rather than a multimodal one:** the
+  advisory states the payload executes **pre-auth** through the `/invocations`
+  route *even with `--api-key` set*. The section already asserted that the key
+  is not an authentication boundary; this is the worked example, and an agent
+  that has one is far less likely to treat the key as sufficient.
+- **Scoped deliberately, both directions.** Deployments not serving a video
+  model are **not** affected, so this must not be used to raise a floor across a
+  whole fleet — check what the model consumes first. Equally it is not
+  "unauthenticated instances only", which is the assumption that would
+  otherwise dismiss it.
+- No dedicated video-*input* skill exists to host this: `vllm-omni` covers video
+  **output** (generation) and `vllm-input-modalities` covers embedding,
+  reranking, STT and OCR. Placing it next to the auth discussion keeps it where
+  the reasoning it changes actually lives, rather than creating a third home.
+- Checked and deliberately NOT added: the Mooncake KV-pipe RCE (CVE-2025-32444)
+  and its incomplete predecessor (CVE-2025-29783). The unbounded `>= 0.6.5`
+  range resolves to `< 0.8.5` via PR #17192, and the v0 pipe was deleted
+  outright in #29705 (v0.13.0). `vllm-caching`'s known-good floor is already
+  v0.14.0+, so no reader of this fleet is in range — adding it would have cost
+  tokens on every read and changed nothing.
+
 ## Resolved — 2026-09-15 (the auth-bypass CVE has a floor; the advisory just never recorded it)
 
 - **CVE-2026-48746 is fixed in v0.22.0 (2026-05-29).** The entry was left reading

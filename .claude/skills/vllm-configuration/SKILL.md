@@ -146,9 +146,26 @@ swept 2026-09-15):**
     endpoints** (#51999) — a separate statement from the CVE, and the same
     conclusion.
 
-  **The floor does not change the advice.** Run v0.22.0+, and still put a real
-  authenticating proxy in front of vLLM, treating the API key as a convenience
-  for client wiring rather than as access control — the v0.28.0 warning about
+  **A pre-auth route exists, and it reaches RCE — CVE-2026-22778, CRITICAL,
+  floor v0.14.1.** This is the concrete reason the two bullets above are not
+  merely tidy-minded. A malicious **video URL** sent to a deployment serving a
+  **video model** chains a PIL error-message address leak (ASLR bypass) with a
+  JPEG2000 `cdef`-box heap overflow in the OpenCV/FFmpeg decoder to execute
+  commands on the server. Affected `>= 0.8.3, < 0.14.1`.
+
+  Two scoping facts decide whether it applies, and both cut the other way from
+  the usual assumptions:
+
+  - **`--api-key` does not stop it.** The advisory states the payload executes
+    **pre-auth** via the `/invocations` route even on an api-key-enabled
+    configuration. So this is not "unauthenticated instances only" — it is the
+    worked example of `--api-key` not being an authentication boundary.
+  - **Deployments not serving a video model are not affected.** Do not raise a
+    floor across a fleet on this one; check what the model consumes first.
+
+  **The floor does not change the advice.** Run v0.22.0+ (which also clears
+  v0.14.1), and still put a real authenticating proxy in front of vLLM, treating
+  the API key as a convenience for client wiring rather than as access control — the v0.28.0 warning about
   ungated endpoints is independent of the CVE and still stands. The advisory
   says instances behind an RFC-conforming server such as nginx were never
   exposed to this one at all, because such a server rejects the malformed
