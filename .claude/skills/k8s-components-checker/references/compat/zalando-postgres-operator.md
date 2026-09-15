@@ -45,6 +45,11 @@ older majors so `pg_upgrade` flows work.
 - **Helm:** the chart gained `strategy: Recreate` on the operator Deployment
   (#3164) specifically to smooth the **v1.x → v2.x** upgrade — relevant to any
   fleet still making that hop.
+- **The `postgres-operator-best-practices` skill already had this right** and
+  carries the operational half this registry does not: the observable symptom
+  (*roles re-`ALTER`ed every 30 min; pgbouncer logins failing twice an hour*)
+  and the upstream issue (#3170; #3171 is the fix PR cited in the release
+  notes). Cite it for the symptom; this file owns the version verdict only.
 - **Verdict: on the 2.0 line, require ≥ 2.0.2.** The 1.15.x → 2.0.x pattern now
   reads *three* deep: 1.15.0 shipped broken images, 2.0.0 a broken CRD, 2.0.1 a
   scram write-loop plus a second CRD gap. Do not treat "the newest 2.0 patch at
