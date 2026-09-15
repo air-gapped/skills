@@ -18,11 +18,11 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 | Harvester docs `rancher/{virtualization-management,harvester-ui-extension}.md` + `airgap.md` | 2026-06-01 | 3-step order, UI-ext support matrix, ui-plugin-catalog image map |
 | Harvester docs `rancher/{cloud-provider,csi-driver}.md` + `vm/{live-migration,create-vm,backup-restore}.md` | 2026-06-01 | CCM/CSI standalone install, migratability, backup primitives |
 | Harvester source `pkg/controller/master/upgrade/*` | 2026-06-01 | node order delegated, serial interlock, restoreVM, pause-map |
-| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-08-18 | Edition reality re-confirmed (v1.8.2 and v1.7.3 ISOs both HTTP 200 → patches remain community). Latest GA per line: **v1.8.2** (2026-08-06), **v1.7.3** (2026-08-07). **Still no 1.9.0 GA** — RCs through v1.9.0-rc5 (2026-08-12). ⚠ **`releases/latest` currently resolves to v1.7.3, a *lower* minor than v1.8.2**, because Harvester patches several minors in parallel and GitHub ranks by date. |
+| `gh release list/api -R harvester/harvester` + `curl -I releases.rancher.com/harvester/<tag>/…iso` | 2026-08-18 | Edition reality re-confirmed (v1.8.2 and v1.7.3 ISOs both HTTP 200 → patches remain community). Latest GA per line: **v1.8.2** (2026-08-06), **v1.7.3** (2026-08-07). **Still no 1.9.0 GA** — RCs through v1.9.0-rc5 (2026-08-12). ⚠ **`releases/latest` currently resolves to v1.7.3, a *lower* minor than v1.8.2**, because Harvester patches several minors in parallel and GitHub ranks by date.  **Re-probed 2026-09-15:** GA is still **v1.8.2** (2026-08-06) / v1.7.3 (2026-08-07), and **there is still no 1.9.0 GA** — but the release-candidate ceiling moved to **v1.9.0-rc7** (2026-09-01), past the rc5 recorded here. Also: the GitHub `releases/latest` date-ranking quirk this row warned about **has self-corrected** — it now resolves to v1.8.2, not the lower minor. |
 | harvester/upgrade-helpers `pre-check/v1.x/check.sh` | 2026-06-01 | the enforced pre-flight gate thresholds |
 | KubeVirt live-migration (user-guide + `types.go`/`virt-config.go` v1.4.0) + harvester#9144/#10482/#10698/#4375 | 2026-06-01 | busy-etcd non-convergence; real v1.4 migration defaults; bandwidth-0 self-throttle; no-circuit-breaker |
 | Harvester upgrade drain + gating (`upgrade_controller.go`, `job_controller.go`, `virtualmachineinstance.go`, `upgrade_node.sh` @ v1.5.0/1.6.0/1.7.0) | 2026-06-02 | drain is eviction-based + honors PDBs; detector force-stops NodeSelector-pinned VMs pre-eviction; `restoreVM` is 1.6+ (auto-restart job, not a gate); pause-map is 1.7.0+; no guest-etcd gate; PDB+VMI-readinessProbe native gate |
-| `compat/harvester.md` + `compat/rancher.md` (k8s-components-checker) | 2026-06-01 | pairing, Node-Driver ranges, Rancher mgmt-k8s windows (NB: edition claim there is wrong — §Editions) |
+| `compat/harvester.md` + `compat/rancher.md` (k8s-components-checker) | 2026-06-01 | pairing, Node-Driver ranges, Rancher mgmt-k8s windows (**the edition caveat that used to sit here is retired** — `compat/harvester.md` has since corrected its own edition claim and now agrees with this skill; historical note: it previously said the edition claim there is wrong — §Editions) |
 
 ## The ladder, editions, lifecycle
 - Harvester docs `upgrade/automatic.md` — lifecycle (4-month minor / 2-month patch cadence), the supported
@@ -45,7 +45,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 ## Controlled flow / upgrade controller
 - Harvester source `pkg/controller/master/upgrade/{upgrade_controller,secret_controller,job_controller,
   node_controller,common}.go` (node order delegated to RKE2 with concurrency=1; one-at-a-time interlock;
-  per-node state machine; pause-map annotation; `upgrade_controller.go:601-608` = drain `Enabled/Force/
+  per-node state machine; pause-map annotation; `upgrade_controller.go:741-748` (was cited as `601-608`, wrong even at the grounding commit — find by symbol) = drain `Enabled/Force/
   IgnoreDaemonSets/DeleteEmptyDirData`, **no `disableEviction` → eviction-based, PDBs honored**;
   `job_controller.go sendRestoreVMJob`+`util.IsRestoreVM` = `restoreVM` is a post-host restart job, **not** a
   gate), `pkg/util/virtualmachineinstance/virtualmachineinstance.go GetAllNonLiveMigratableVMINames` (NodeSelector
