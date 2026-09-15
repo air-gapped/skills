@@ -21,8 +21,8 @@ a completion — even though the code has landed. Read the tree, not the tracker
 
 | Path | Names | Where the logic lives |
 |---|---|---|
-| **Adapter** | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`, `seed_oss` (12) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
-| **Legacy** (standalone) | the other 17 | `vllm/reasoning/<file>.py` as before |
+| **Adapter** | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`, `seed_oss`, plus `ling3` at v0.29.0 (13) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
+| **Legacy** (standalone) | the other 19 — 17 through v0.27.x, plus `hy_v4` and `muse_glimmer` at v0.29.0 | `vllm/reasoning/<file>.py` as before |
 
 **Membership is decided by the import, not the filename.** Only some shims are
 named `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
