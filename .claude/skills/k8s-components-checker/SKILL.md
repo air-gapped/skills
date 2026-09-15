@@ -2,10 +2,10 @@
 name: k8s-components-checker
 description: >-
   Survey an RKE2 community cluster against an embedded compatibility registry of
-  19 stack components and produce a verdict for upgrade-readiness, drift-review,
+  20 stack components and produce a verdict for upgrade-readiness, drift-review,
   and version-skew questions. Components: RKE2, Rancher, Harvester, Cilium,
   Tetragon, cert-manager, Kyverno, KEDA, Argo CD, Harbor, Traefik, Rook, Ceph,
-  OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator.
+  OpenEBS, GitLab, ECK, Zalando postgres-operator, Grafana Mimir, NVIDIA GPU Operator, rancher-logging.
   Works air-gapped — compatibility data lives in `references/compat/`. Surveys
   run via `kubectl` + `helm` + `pluto` + the apiserver
   `apiserver_requested_deprecated_apis` metric from the operator's workstation.

@@ -2,6 +2,28 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (the registry was carrying a component its index did not list)
+
+- **`rancher-logging` added to `components.md`; count 19 → 20.** Its compat file was
+  already a complete first-class entry — primary and secondary sources, axis type,
+  `min_tracked_version`, and both the `Last sifted` and `Last release-verified`
+  stamps, the latter written today. It was never in the lookup table the survey
+  reads, so the documented path from a survey to that file did not exist and its
+  4.8 KB were unreachable in practice.
+- **The body already treated it as a registry component**, calling it one of "two
+  registry components with no upgrade ladder" alongside Zalando. Only the index and
+  the counts disagreed, which is why the gap survived: every sentence a reader hits
+  first was right.
+- **`enumerated_artifacts` documented as a fourth truth-source type.** The compat
+  file uses it — no matrix, no usable release notes, versions read out of
+  `Chart.yaml` per release branch — and the registry header listed only three. It
+  remains the only component of that type.
+- **Found by sweeping for reference files nothing names.** Across 541 reference
+  files this was the single real hit; the sweep's first three drafts produced only
+  false positives, because a pointer can be a filename, a relative path, a
+  `[[wikilink]]`, or live in another reference file. No checker shipped — a tool
+  whose only demonstrated output was its own false positives is worse than none.
+
 ## Resolved — 2026-09-15 (rancher-logging: the pending respin shipped everywhere)
 
 - **`rancher.24` has shipped on all five lines**, where at sift it existed only as

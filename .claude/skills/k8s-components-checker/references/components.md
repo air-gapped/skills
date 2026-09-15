@@ -1,11 +1,11 @@
 # components.md — the registry
 
-19 components. Community editions only. Lookup table the survey reads.
+20 components. Community editions only. Lookup table the survey reads.
 
 Each entry carries:
 
 - **axis_type** — `single` (single k8s axis) or `multi` (two or more dimensions the operator picks independently)
-- **truth_source_type** — `published_matrix` | `release_notes` | `chart_metadata` (branches the lookup; see SKILL.md)
+- **truth_source_type** — `published_matrix` | `release_notes` | `chart_metadata` | `enumerated_artifacts` (branches the lookup; see SKILL.md). `enumerated_artifacts` means no matrix and no usable release notes: versions are read out of the artifacts themselves, per branch.
 - **source** — canonical URL the freshen probe reads. Also indexed in `references/sources.md`.
 - **min_tracked_version** — registry floor. Default = current minor + prior 2 (~18 months). Operator overrides win; freshen leaves overridden rows alone.
 - **compat file** — `references/compat/<name>.md` carries per-version compatibility signal (sifted from matrix, docs, release notes, FAQ — whatever the truth_source_type dictates).
@@ -111,6 +111,16 @@ downstream-provisioning axis is not in scope here.
 - **Source:** https://github.com/zalando/postgres-operator/releases + the Spilo image tag matrix referenced from each release.
 - **compat file:** `compat/zalando-postgres-operator.md`
 - **min_tracked_version:** 1.13.0
+
+### rancher-logging (Rancher-bundled chart) — `axis_type: dual`, `truth_source_type: enumerated_artifacts`
+
+- **Axes:** Rancher minor gate **and** kube-version gate, both read from the chart's `catalog.cattle.io/*` annotations rather than from any published matrix.
+- **No matrix and no usable release notes:** versions are enumerated from `Chart.yaml` / `values.yaml` on each `release-v2.1x` branch. This is the only component of that truth type.
+- **Watch:** the `-rancher.N` respins are chart-level only and ship out of a separate fork, so a line can move without the upstream operator version changing at all.
+- **Source:** https://github.com/rancher/charts (`assets/rancher-logging` on `release-v2.1x`); secondary https://github.com/rancher/ob-team-charts and the upstream operator releases.
+- **compat file:** `compat/rancher-logging.md`
+- **min_tracked_version:** 106.x (Rancher 2.11)
+- **No upgrade ladder.** Like Zalando, a verdict here hands off — to `rancher-logging-exit`, because the answer is migration rather than a version bump.
 
 ### Grafana Mimir — `axis_type: single`, `truth_source_type: chart_metadata`
 
