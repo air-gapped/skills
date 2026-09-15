@@ -3,6 +3,8 @@
 External references underpinning this skill's GNU Make claims. Re-verify the
 listed facts and stamp the date when you re-confirm a row online.
 
+**Freshened: 2026-09-15 — all 6 URLs probed.** GNU Make's own NEWS file at `cgit.git.savannah.gnu.org` returned **502** on repeated attempts; Savannah's cgit is intermittently unavailable and a 502 is a server fault, not a removed file, so the row is left standing with this note rather than deleted. Re-probe before relying on it; if it stays down, cite the GNU mirror instead.
+
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | GNU Make Manual | https://www.gnu.org/software/make/manual/make.html | 2026-07-21 | Authoritative reference for variables, automatic variables, pattern rules, `.PHONY`, `.DELETE_ON_ERROR`, order-only prerequisites, grouped targets. |

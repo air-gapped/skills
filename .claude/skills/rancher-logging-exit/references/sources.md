@@ -3,7 +3,17 @@
 Dated per-URL index backing this skill's factual claims. Freshen Mode probes each
 row and stamps `Last verified`.
 
-## Most recent freshen pass: 2026-07-22
+## Most recent freshen pass: 2026-09-15
+
+**Two watch-list triggers fired, and both strengthen the skill's case rather than weakening it.**
+
+*Upstream moved past the floor:* logging-operator **6.8.0** (2026-08-11) is out. It carries a breaking change — a duplicate parser name now crash-loops the Fluent Bit DaemonSet — which is upstream's business, not Rancher's, but it widens the version distance this skill exists to describe.
+
+*The Rancher chart line moved and still did not move upstream:* the newest rancher-logging chart is now **`110.0.0+up4.10.0-rancher.24`** (release-v2.15 and dev-v2.15), up from the `107.0.2`/`109.0.0` recorded below, with `108.0.x` and `109.0.1` in between across release-v2.13/14/15. **Every one of them is still `+up4.10.0`.** Six chart releases, a fork suffix that advanced from `-rancher.15` to `-rancher.24`, and the bundled upstream version unchanged. So as of 2026-09-15 Rancher still ships logging-operator 4.10.0 while upstream is at 6.8.0, and 4.10.0 remains below the 6.6.0 that patched CVE-2026-54680. No SUSE backport was found.
+
+The chart-version numbers below are historical; re-read the branch listing rather than trusting them. What has not changed is the only thing the skill turns on: the `+upX.Y.Z` suffix.
+
+## Historical — freshen pass 2026-07-22
 
 Initial creation. Every row probed live 2026-07-22 (research pass: 9 agents over
 2 rounds; rancher/charts chart internals read from local clone + release branches
