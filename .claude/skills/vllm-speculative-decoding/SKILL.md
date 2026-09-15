@@ -120,6 +120,17 @@ should scrape and dashboard all four:
 
 Counters export with `_total` suffix (prometheus_client convention).
 
+**Per-request acceptance, v0.29.0+.** Those counters are server-wide, so they
+cannot tell one bad workload from a uniformly bad drafter — which is the first
+question low acceptance raises. From **v0.29.0**
+([#48915](https://github.com/vllm-project/vllm/pull/48915), not in v0.28.0), start the server with
+`--per-request-spec-decode-metrics summary` (or `detailed`) and each response
+carries its own stats in the top-level `metrics` object under
+`speculative_decoding`, including `mean_acceptance_length`. **Off by default and
+the response is byte-identical when off**, so turning it on is safe to trial and
+has to be turned on deliberately — it is a server-start flag, not per-request.
+Use it to attribute acceptance before tuning anything global.
+
 **PromQL recipes (from source comments in `metrics.py:122-139`):**
 
 ```promql
