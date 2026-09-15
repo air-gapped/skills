@@ -121,6 +121,13 @@ docker run ... \
     --enable-prefix-caching
 ```
 
+> **The tag above is below the security floor.** This recipe's numbers were measured on
+> `v0.19.0-cu130`, so the tag is kept rather than silently bumped — changing it would invalidate
+> the measurement it documents. For anything but reproducing these numbers, run **≥ v0.22.0**
+> (CVE-2026-48746, critical `--api-key` bypass) and re-run the two-step bundling check in
+> SKILL.md against whichever tag you pick, since bundling is verified per tag.
+
+
 The in-process `LMCacheConnectorV1` does **not** declare `SupportsHMA` at v0.27.0, so on v0.23.0+ vLLM auto-disables HMA for it and logs a warning — you don't pass the flag yourself, but you do inherit the consequence: hybrid-attention models stay unsupported on this path (LMCache #3106, still open 2026-07-17).
 
 Key env vars:

@@ -3,6 +3,17 @@
 Tracks ceiling findings from `skill-improver` runs that need multi-file
 restructure or author judgment. Updated by skill-improver Phase 6.
 
+## Resolved — 2026-09-15 (a bundling floor read as a deployment floor)
+
+- **"NIXL is bundled into vLLM images since v0.14.0" is true and was being read as
+  a blessing.** It answers "from which tag is NIXL present", not "which tag is
+  safe to run". vLLM's security floor is higher: **v0.22.0** clears
+  CVE-2026-48746, a critical bypass of `--api-key` via the `Host:` header.
+- The statement now says which question it answers, and points at
+  `vllm-configuration` § Server auth for the floor. Same correction applied in
+  `vllm-caching`, which had the same conflation in its known-good tag list — one
+  ambiguity, two skills, worth fixing in both rather than only where it was found.
+
 ## Open
 
 _None._ Nothing here is waiting on an absent ruling, credential, release, or

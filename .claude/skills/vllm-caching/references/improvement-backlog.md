@@ -3,6 +3,26 @@
 > **Local-only file. NOT committed yet** — captures live-lab findings staged
 > for SKILL.md / sources.md. Reapply when ready to publish.
 
+## Resolved — 2026-09-15 ("known-good tag" meant two different things)
+
+- **The known-good tag list is a *bundling* claim and reads as a safety one.**
+  `v0.14.0`+, `v0.19.0` and `v0.19.0-cu130` are listed because they ship
+  `INSTALL_KV_CONNECTORS=true`. All three are **below the security floor**, so an
+  operator picking the oldest listed tag gets working connectors and a vLLM with
+  a critical authentication bypass. The two questions are now separated in place.
+- **Floors named with their derivation**: **v0.22.0** for CVE-2026-48746 (critical
+  `--api-key` / `VLLM_API_KEY` bypass via URL characters in the `Host:` header) —
+  derived from the fix PR, because the advisory records *no* patched version and
+  an unbounded range; and **v0.14.1** for CVE-2026-22778, the pre-auth video RCE,
+  which applies **only** to deployments serving a video model. Detail lives in
+  `vllm-configuration` § Server auth rather than being duplicated here.
+- **The `v0.19.0-cu130` recipe tag in `connectors.md` is deliberately NOT bumped.**
+  The recipe's numbers were measured on that image; silently changing the tag
+  would invalidate the measurement it documents. It now carries a note saying the
+  tag is below the floor, that it is kept for reproducing those numbers, and that
+  anything else should run ≥ v0.22.0 and re-run the two-step bundling check —
+  bundling is verified per tag, so a security bump is not free.
+
 ## Open — pending publish
 
 ### Hybrid-attention live-lab matrix — re-run needed on v0.25.1 (carried 2026-05-28, re-scoped 2026-07-21)

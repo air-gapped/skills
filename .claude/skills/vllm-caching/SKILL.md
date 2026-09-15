@@ -43,6 +43,15 @@ Latest stable as of 2026-08-11: **v0.27.1** (2026-08-11), a one-change patch on 
 
 Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x` through `v0.27.x`, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed. Confirmed on `v0.27.0` (amd64, CUDA 13.0.2) 2026-08-11 via the build-flag script below. Confirm bundling on a specific tag with the two-step check below before trusting it.
 
+**"Known-good" above means the connectors are bundled — not that the tag is safe to run.**
+Those are different questions and the security floor is higher than the oldest tags listed:
+**v0.22.0** clears CVE-2026-48746, a critical bypass of `--api-key` / `VLLM_API_KEY` via URL
+characters in the `Host:` header (the advisory records no patched version, so that floor is
+derived from the fix PR, not read off the feed). **v0.14.1** clears CVE-2026-22778, a critical
+pre-auth RCE reachable by sending a malicious video URL — *only* on deployments serving a video
+model. So `v0.14.0`, `v0.19.0` and `v0.19.0-cu130` bundle the connectors correctly **and** sit
+below the auth floor. Full detail: `vllm-configuration` § Server auth.
+
 Backend pins in `requirements/kv_connectors.txt` at v0.27.0 (verified 2026-08-11): `lmcache >= 0.3.9`, **`nixl == 1.3.1` (an exact pin, bumped from 1.3.0 in v0.26.0 by #47559)**, `mooncake-transfer-engine >= 0.3.8`, plus `cupy-cuda13x < 14.1.0`. If a deploy installs its own NIXL wheel, match 1.3.1 exactly — v0.22.1 (#44266) also fixed image builds keeping both CUDA-major NIXL wheels, which surfaced as `ImportError: libcudart.so.12` when importing `nixl_ep` on CUDA 13 images.
 
 ### Two-step bundling verification (build flag + runtime import)

@@ -147,6 +147,10 @@ The repo's `Dockerfile`s under `contrib/` and `benchmark/nixlbench/contrib/` bui
 
 For inference workloads, NIXL is **bundled into vLLM images** since v0.14.0:
 - `vllm/vllm-openai:v0.14.0+` with `INSTALL_KV_CONNECTORS=true` ships `nixl-cu12` / `nixl-cu13` along with LMCache and Mooncake-transfer-engine.
+  - **`v0.14.0` is the bundling floor, not a floor you should deploy at.** vLLM's own security
+    floor is higher — **v0.22.0** clears CVE-2026-48746, a critical bypass of `--api-key` via the
+    `Host:` header. Take the bundling statement as "NIXL is present from here on", and pick the
+    tag on the security floor. See `vllm-configuration` § Server auth.
 - `cu130-nightly` and per-model tags like `glm51-cu130` ship both `nixl-cu12` AND `nixl-cu13` — the meta `nixl` wheel `Requires: nixl-cu12`, but `nixl_cu13._bindings` is what gets loaded on CUDA 13 hosts. Both coexist.
 
 Verify a vLLM image's CUDA + bundled NIXL:
