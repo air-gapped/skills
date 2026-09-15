@@ -42,6 +42,12 @@ pipeline: the **logging-operator** skill.
   The `-rancher.N` fork is **chart-level only** (rancher/ob-team-charts); the
   operator image is a stock upstream mirror. "Wait for Rancher" has been dead for
   20+ months of releases.
+  **Re-confirmed 2026-09-15**: the newest chart in `rancher/charts` is
+  **`110.0.0+up4.10.0-rancher.24`**. A whole chart major has landed since this
+  skill was written and the upstream base in the version string is *still*
+  `up4.10.0`. The chart major number moving while the `up` component does not is
+  exactly the shape that makes "we're on the latest chart" feel like currency
+  when it is not.
 - **CVE-2026-54680** (GHSA-mjqf-28ph-426h, CVSS 9.9): operator ≤6.5.2 renders
   CRD/secret values into fluent.conf unescaped — a newline in a Flow/Output field
   or referenced Secret injects arbitrary fluentd directives (`<match **>

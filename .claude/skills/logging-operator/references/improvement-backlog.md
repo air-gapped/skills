@@ -4,6 +4,19 @@ Gaps carried from the 2026-07-22 research pass (report:
 `.claude/skills/autoresearch/results/logging-operator-research-2026-07-22.md`).
 Address opportunistically during freshen/improve passes.
 
+## Checked 2026-09-15 — no change needed
+
+- **The CVE floor is correct and comfortably conservative.** `kube-logging/logging-operator`
+  has exactly **one** published security advisory,
+  **GHSA-mjqf-28ph-426h = CVE-2026-54680** (critical, 2026-06-08, Fluentd
+  configuration injection allowing remote code execution), affecting
+  **`<= 6.5.2`**. This skill's documented floor is **6.7.0**, which clears it
+  with room to spare. No newer advisory exists.
+- Recorded so a later pass does not re-derive it: the advisory's
+  `first_patched_version` is **null**, as it is for every upstream checked in
+  this pass, so the `<= 6.5.2` ceiling is what establishes the floor. Anyone
+  re-checking should read the range, not the patched field.
+
 ## Open
 
 - **T6 cross-skill trigger conflict with `rancher-logging-exit` on the shared
