@@ -123,9 +123,14 @@ what this skill tells an operator to rely on.
 ## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
 
 - **Dependency floors moved and an air-gapped mirror seeded for v0.27.x does not
-  satisfy them**: `transformers` to 5.15.0 (#51668), `huggingface-hub` to 1.27.0
-  then 1.28.0 (#52797), FlashInfer 0.6.18, NIXL 1.3.2, and the runtime image to
-  Ubuntu 24.04. Stage these before the image bump.
+  satisfy them**: `huggingface-hub` to 1.27.0 then 1.28.0 (#52797), FlashInfer
+  0.6.18, NIXL 1.3.2, and the runtime image to Ubuntu 24.04. Stage these before
+  the image bump. **Corrected same day: `transformers` did NOT move.** #51668
+  touched `requirements/test/*` only; the runtime floor in `requirements/common.txt`
+  is `>= 5.5.3` at v0.27.0 and v0.28.0, `>= 5.10.4` at v0.29.0. Do not restore the
+  5.15.0 figure here or in SKILL.md — it is the version that clears three tokenizer
+  CVEs the `transformers-config-tokenizers-expert` skill tracks, and recording it as
+  the engine's floor reads those exposures as patched when they are not.
 - **The build now fails closed when the selected precompiled CUDA variant is
   missing** (#52545, v0.29.0), where it could previously fall back silently.
   Better behaviour, but it converts a quiet degradation into a hard stop on the
