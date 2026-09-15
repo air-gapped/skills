@@ -11,7 +11,7 @@ the defects it catches.
 
 ---
 
-### A Fence Is Code, and Nothing Else Checks It
+## A Fence Is Code, and Nothing Else Checks It
 
 Skill markdown is copy-paste material. `shellcheck` runs on `.sh` files; **no gate
 looks inside a ```bash fence**, so a broken command fails on the reader's machine
@@ -39,7 +39,7 @@ same value is legal in block style, which is why it read as correct. Expect this
 one to be quiet — its value is the next edit, not the current run. Go/Jinja
 templating is reported separately, since a Helm chart is not YAML until rendered.
 
-### Content Scheduled to Become False
+## Content Scheduled to Become False
 
 `freshen` catches sources that drifted. It does not catch content that is correct
 today and wrong on a date already written into it. Run
@@ -62,7 +62,7 @@ above quotes a real date beside a real relative phrase, so `--relative` flags th
 file every run. It is a quotation of a defect, not a live claim — leave it. A run
 whose only `[rel]` hit is this paragraph is a clean run.
 
-### Two Classes of Link Rot, and the Rest Is Noise
+## Two Classes of Link Rot, and the Rest Is Noise
 
 The skillevaluator gate checks links only in skills **staged for a commit**, so a
 citation rots for months in any skill nobody edits. Run
@@ -94,7 +94,7 @@ exit code.
 Add a host to `DOC_HOSTS` when a skill starts citing it. A host that is absent is
 simply never swept.
 
-### A Remediation Floor Is the Number an Operator Acts On
+## A Remediation Floor Is the Number an Operator Acts On
 
 `freshen` re-probes sources; `advisory-lag.py` finds advisories a skill has not
 absorbed. Neither checks a floor the skill already wrote down. Run
@@ -123,7 +123,7 @@ true defect, `--selfcheck` replays the Argo CD line verbatim and asserts it stil
 comes out condemned — a clean run means nothing if that assertion has been tuned
 away.
 
-### A Ragged Table Loses Its Last Column Silently
+## A Ragged Table Loses Its Last Column Silently
 
 No renderer warns about a table whose rows and header disagree on width — it
 **drops every cell past the header count** and renders the rest as if intended.
@@ -147,7 +147,7 @@ Documentation tables write alternatives that way constantly, so a checker missin
 either reports a clean fleet as broken — an earlier draft of this one produced 13
 findings, all of them escaped pipes. Both cases are pinned by `--selfcheck`.
 
-### Which Fleet Sweeps Pay, and Three That Do Not
+## Which Fleet Sweeps Pay, and Three That Do Not
 
 Every checker in this directory tests something a parser can decide. That is not a
 coincidence, and it is the rule for proposing the next one.
