@@ -47,8 +47,22 @@ explicitly defers Harvester host→guest coordination here). Respect the boundar
 
 1. **No minor skipping, ever.** The only supported path is one minor at a time: `1.5.x → 1.6.x → 1.7.x →
    1.8.x` (each Harvester minor bumps embedded RKE2 exactly one k8s minor; skipping a k8s minor is unsupported
-   upstream). Intermediate **patches** within a jump *may* be skipped (`1.5.2 → 1.6.1` directly) — land on each
+   upstream). Intermediate **patches** within a jump *may* be skipped — land on each
    minor's latest patch. **Never hand-edit embedded RKE2** — it is locked to the Harvester version.
+
+   **Two advisories set a patch floor per minor, so "latest patch" is not just hygiene.**
+   Checked 2026-09-15; `first_patched_version` is null on both, so these are derived
+   from the affected ranges:
+
+   | Advisory | Severity | Affected | Why it matters on a ladder |
+   |---|---|---|---|
+   | **CVE-2025-62877** / GHSA-6g8q-hp2j-gvwv | **CRITICAL** | `1.5.0 – 1.5.2`, `1.6.0 – 1.6.1` | The interactive installer **exposes the OS default SSH login password**. Any node built by an affected installer stays exposed after the upgrade — rotate, do not just upgrade. |
+   | **CVE-2025-71261** / GHSA-pgh9-mpwc-8jjf | HIGH | `< 1.8`, `<= 1.7.1`, `<= 1.6.1`, `<= 1.5.2` | Registration client is MITM- and DoS-able. Note the shape: a floor **per minor**, not one version. |
+
+   The obvious patch-skipping example — `1.5.2 → 1.6.1` — lands on a release inside
+   **both** ranges. Aim each hop at that minor's latest patch and check it against the
+   two ranges above, rather than at whatever patch was current when a runbook was
+   written. Latest stables at this check: **1.8.2** (2026-08-06), **1.7.3** (2026-08-07).
 2. **External Rancher leads every hop.** When Harvester is imported into an external Rancher, each hop is a
    three-step sequence in order: **upgrade Rancher → upgrade the Harvester UI extension → upgrade Harvester.**
    The pairing is required (1.6↔Rancher 2.12, 1.7↔2.13, 1.8↔2.14); a mismatch yields "VM tab missing" /

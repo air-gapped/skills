@@ -2,6 +2,30 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-09-15 (advisory-derived patch floors on the ladder)
+
+- **The skill's own patch-skipping example landed on a vulnerable release.**
+  Load-bearing fact #1 illustrated skippable patches with `1.5.2 → 1.6.1`.
+  Both endpoints of that example are inside **CVE-2025-71261** (`<= 1.5.2`,
+  `<= 1.6.1`), and `1.6.1` is also inside **CVE-2025-62877**, which is
+  **critical**. The example has been removed and replaced with the floors.
+- **The critical one does not end at the upgrade.** CVE-2025-62877 is the
+  interactive installer **exposing the OS default SSH login password**
+  (`1.5.0–1.5.2`, `1.6.0–1.6.1`). A node built by an affected installer stays
+  exposed after you move the version — the remediation is rotation, not just
+  the hop. That distinction is why it is in the skill body rather than a
+  footnote.
+- **Both advisories express a floor per minor, not a single fixed version** —
+  CVE-2025-71261 lists `< 1.8`, `<= 1.7.1`, `<= 1.6.1`, `<= 1.5.2`. Same shape
+  as the Rancher advisories handled earlier in this pass, and the same trap: a
+  ladder aiming at "a recent 1.6" can still land inside the range.
+- `first_patched_version` is **null on both**, so the floors are derived from
+  `vulnerable_version_range`. Latest stables recorded at this check: 1.8.2
+  (2026-08-06) and 1.7.3 (2026-08-07).
+- Found via the fleet advisory-lag sweep, which surfaced `harvester/harvester`
+  carrying an unseen critical against a skill whose entire job is planning hops
+  across exactly those versions.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **Release state re-grounded.** Latest GA per line is now **v1.8.1**
