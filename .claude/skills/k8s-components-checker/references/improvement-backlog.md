@@ -299,13 +299,18 @@ Ceiling findings from skill-improver runs.
 
 - `compat/eck.md` § "Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17?".
   ES **8.17 EOL = 2025-08-05** is verified (endoflife.date). **8.8.x and 8.14.x**
-  have rolled off endoflife.date's per-minor table (long superseded), so their
-  exact end-of-maintenance day is derived from Elastic's "two-newest-8.x-minors"
-  policy + successor-minor GA dates, not a fetched per-minor EOL. Only "EOL well
-  before 2026" is certain. Both are flagged UNVERIFIED in the table.
-- Action: if an exact 8.8/8.14 EOL date is ever needed for a verdict, fetch
-  Elastic's archived support-matrix snapshot (web.archive.org of
-  elastic.co/support/eol at the relevant date) — not groundable via `gh`.
+  have no per-minor end-of-maintenance day published anywhere current, so their
+  rows are derived from the maintenance policy plus successor-minor GA dates.
+  Only "EOL well before 2026" is certain. Both are flagged UNVERIFIED.
+- **Re-checked 2026-09-15 against the live elastic.co/support/eol page: 8.8 and
+  8.14 appear nowhere on it.** The blocker is confirmed, not an unfinished
+  lookup — do not re-fetch that page expecting a date. What the page *did* yield
+  is the policy verbatim, and in a more useful form than the skill carried: an
+  **N+2 rule** ("8.17 will be maintained until the release date of version
+  8.19"), now quoted in `compat/eck.md` and corroborating the 8.17 figure.
+- Action: only an archived snapshot (web.archive.org of elastic.co/support/eol
+  from the relevant period) can supply an exact 8.8/8.14 day. Worth doing only
+  if a verdict ever turns on it — no current verdict does.
 
 ## Resolved — 2026-09-15 (NVIDIA GPU Operator)
 

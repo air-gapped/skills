@@ -185,11 +185,25 @@ Notes on sources:
 
 All three are **8.x**, so the 7.17-drop at ECK 3.3.0 does **not** affect any of them — every tracked ECK minor documents `8.x` (i.e. `8+`) in its Elasticsearch/Kibana/APM Stack column. So the *full* tracked window manages all three:
 
-| Elasticsearch | GA | ECK minors that document support | ES EOL status (Elastic policy: only the 2 newest 8.x minors get maintenance) |
+| Elasticsearch | GA | ECK minors that document support | ES EOL status (Elastic policy, below) |
 |---|---|---|---|
 | **8.8.x** | 2023-05-23 | ECK 2.16.1 → 3.4 (every tracked minor; 8.x is in-window throughout) | **EOL** — superseded by 8.9 (mid-2023); out of maintenance since ~late 2023. Long past support. |
 | **8.14.x** | 2024-06 (8.14.0) | ECK 2.16.1 → 3.4 (every tracked minor) | **EOL** — superseded by 8.15 (Aug 2024); out of maintenance since late 2024. |
 | **8.17.x** | 2024-12-11 | ECK 2.16.1 → 3.4 (every tracked minor) | **EOL 2025-08-05** (endoflife.date) — was the final 8.x before 8.18; maintenance ran to 8.19 GA. |
+
+**The policy, in Elastic's own words** ([elastic.co/support/eol](https://www.elastic.co/support/eol),
+read 2026-09-15): *"Elastic Stack version 8.17 will be maintained until the release date of
+version 8.19, Elastic Stack version 8.18 will be maintained until the release date of version
+9.2."* That is an **N+2 rule** — a minor is maintained until its successor's successor ships —
+which is what makes the two newest minors the maintained ones at any moment. Derive a date from
+the successor-minor GA, not from a fixed interval. It corroborates the 8.17 figure above:
+maintenance to 8.19 GA, which endoflife.date dates 2025-08-05.
+
+**8.8 and 8.14 are not on that page at all**, and not on endoflife.date's per-minor table either.
+Both are long superseded, so no publisher still lists a per-minor day for them. Their rows above
+are derived from the N+2 rule, not fetched — treat "EOL well before 2026" as the certain part and
+do not quote an exact day. Re-fetching the live page will not produce one; an archived snapshot
+from the relevant period is the only route.
 
 Practical reading for an upgrade verdict:
 
