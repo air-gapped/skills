@@ -214,8 +214,11 @@ relocations, so no edit to the path would have found them — and when a project
 migrates its docs to a generated site, every deep link into the old tree dies at
 once.
 
-Two statuses are not findings. **403** is a user-agent block (docs.gitlab.com
-serves one); re-check by hand before believing it. **429** means this sweep
+Two statuses are not findings. **403** means this fetcher was refused, not that the
+page is gone — and a bare `curl` retry distinguishes the two kinds: a user-agent
+block serves the real page to it, a bot challenge returns 403 again with an
+interstitial title. The second still is not a dead link; it just cannot be cleared
+from a terminal. **429** means this sweep
 tripped a rate limit — lower `--workers` and re-run rather than recording it.
 Both print in their own sections, outside the dead list, and neither affects the
 exit code.

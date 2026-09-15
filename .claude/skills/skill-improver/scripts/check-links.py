@@ -22,8 +22,13 @@ stable by design, and they are most of the corpus.
 **Two statuses are not findings, and treating them as such is the main way this
 check wastes someone's morning:**
 
-  * **403** is usually a user-agent block, not a missing page (docs.gitlab.com
-    does this). Re-check by hand before believing it.
+  * **403** is a refusal of *this fetcher*, not a missing page. Re-check by hand
+    before believing it, and note there are two kinds. A plain user-agent block
+    serves the real page to a bare `curl`. A **bot challenge does not** — the
+    fleet's one standing 403 returns 403 to bare `curl` too, with
+    `<title>Just a moment...`, which is an interstitial rather than the document.
+    Neither is a dead link, but only the first can be confirmed from a terminal;
+    the second needs a browser, so do not read "curl also failed" as "page gone".
   * **429** means *this sweep* tripped a rate limit — huggingface.co does at
     even modest concurrency. Lower `--workers` and re-run; do not record it.
 
