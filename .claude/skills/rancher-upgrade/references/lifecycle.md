@@ -116,8 +116,11 @@ Mar/Jul/Nov cadence, 2.15 GA is **due now** — but it is still a prerelease, so
 - **Re-run the ceiling probe before writing any plan.** This line is the fastest-moving fact in the
   skill; between GA and this stamp the correct target changes.
 
-⚠ **2.11 goes EOL 2026-10-24 — roughly three months out, and community 2.11 is
-already frozen.** 2.11 is this skill's upgrade *floor*, so an operator arriving
+⚠ **2.11 goes EOL 2026-10-24 — and community 2.11 is already frozen.**
+(As of 2026-09-15 that is **~5½ weeks**, not the "roughly three months" this
+line said when written. **Compute the runway from the date; never trust a
+relative phrase in this file** — the date stays correct while the phrase rots,
+and the runway is the whole point of the warning.) 2.11 is this skill's upgrade *floor*, so an operator arriving
 on 2.11 has a short runway: they are starting a one-minor-at-a-time ladder
 (2.11→2.12→2.13→2.14) from a version that leaves support before that ladder is
 likely to finish. **Sharper than the EOL date alone:** the community ceiling

@@ -2,6 +2,22 @@
 
 Tracks improvement hypotheses attempted but not landed in one atomic iteration, plus changes the metric registered this pass. Open is a work-not-done log, not a wishlist.
 
+## Resolved — 2026-09-15 (a compliance claim expiring in six days)
+
+- **"FIPS 140-2 validations remain active through September 21, 2026" had no
+  expiry marker and no after-state.** It is **6 days** from becoming false, in a
+  block an operator reads for a compliance answer.
+- **The gap is the point, and it is why this could not be fixed by bumping a
+  date.** The 140-2 window closes while the same block still records the 140-3
+  submissions as *pending CMVP review* — so the live question after the 21st is
+  whether modules are submitted-but-not-validated, and what that does to an
+  attestation.
+- **Deliberately did not assert what happens next.** Nothing here predicts CMVP
+  behaviour; the entry says to check the CMVP validated-modules search and Red
+  Hat's compliance page at the time of asking, and demotes the block to a
+  starting point for that lookup. Replacing an expiring fact with an invented one
+  would be worse than the expiry.
+
 ## Open
 
 _None._ Nothing here is waiting on an absent ruling, credential, release, or

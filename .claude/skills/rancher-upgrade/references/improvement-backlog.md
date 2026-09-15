@@ -5,6 +5,22 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-09-15 (the date was right; the phrase about it had rotted)
+
+- **"2.11 goes EOL 2026-10-24 — roughly three months out"** — the date is correct,
+  the description is not. As of 2026-09-15 it is **~5½ weeks**.
+- **In this warning the rotted half is the half that matters.** The whole point of
+  the line is how short the runway is before a one-minor-at-a-time ladder can
+  complete from this skill's upgrade floor. "Three months" and "five weeks" imply
+  different decisions.
+- Fixed by removing the relative phrase from the claim and adding an instruction:
+  **compute the runway from the date, never trust a relative phrase in this
+  file.** Left as a standing rule rather than a one-off correction, because a
+  replacement phrase would rot exactly the same way.
+- **General lesson from the sweep that found it:** absolute dates age gracefully;
+  sentences *about* dates do not. 37 future-dated claims exist across the fleet —
+  the ones to watch are those paired with a relative descriptor.
+
 ## Resolved — 2026-09-15 (the triple-statement "ceiling" is the intended design)
 
 - **Cross-cluster ordering stated at three altitudes — CLOSED, decided.** The
