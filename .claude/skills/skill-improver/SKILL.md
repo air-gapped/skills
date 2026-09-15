@@ -276,6 +276,36 @@ Documentation tables write alternatives that way constantly, so a checker missin
 either reports a clean fleet as broken — an earlier draft of this one produced 13
 findings, all of them escaped pipes. Both cases are pinned by `--selfcheck`.
 
+### Which Fleet Sweeps Pay, and Three That Do Not
+
+Every checker in this directory tests something a parser can decide. That is not a
+coincidence, and it is the rule for proposing the next one.
+
+**Syntactic sweeps pay.** A fence either parses or it does not; a table row either
+matches its header or it does not; a URL either resolves or it does not; a version
+either is inside an advisory's range or it is not. Each of those found real defects
+on a fleet that looked healthy — including a troubleshooting table silently dropping
+its **Fix** column and a critical advisory credited to two release lines it never
+affected.
+
+**Three semantic sweeps were tried on 2026-09-15 and produced nothing but false
+positives. Do not rebuild them without a sharper idea:**
+
+| Sweep | Why it failed |
+|---|---|
+| Reference files nothing points at | A pointer can be a bare filename, a relative path, a `[[wikilink]]`, or live in another reference rather than the body. Three drafts, 21 → 9 → 1 hits, and the last one was reachable too. |
+| Two different versions called "latest" in one file | Grouping by version family lumps unrelated products together — a ten-product comparison row reads as one product contradicting itself. 53 hits, none real. |
+| Cross-skill pointers that resolve to no skill | Backtick-quoted lowercase-hyphenated tokens are mostly frontmatter fields, agent types, CLI flags and component names. 79 hits, none real. |
+
+The distinction is not "hard versus easy". It is whether the thing being checked has
+a **decidable** definition. When it does not, the sweep's own false-positive rate
+becomes the finding, and a checker whose only demonstrated output is noise costs more
+than the defects it was meant to catch.
+
+**One real defect did come out of those three**, found by reading the hits rather
+than by the rule: a compatibility registry carrying a component its index never
+listed. Run a loose sweep once by hand if you like — just do not ship it.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
