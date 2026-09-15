@@ -28,7 +28,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 | Microsoft DB/DBX update events `37e47cf8…` | 2026-08-18 | **the** source for event IDs 1795/1796 (not the known-issues page) |
 | Microsoft registry-key article `a7be69c9…` | 2026-08-18 | still opt-in (`MicrosoftUpdateManagedOptIn`); not mandatory |
 | LWN 1079808 — post-expiry retrospective | 2026-08-18 | expiry passed cleanly; forced updates damaged some machines |
-| Dell KB 000402373 (PowerEdge BIOS minimums) | ⚠️ 2026-06-01 | **not re-verified** — Dell blocks automated reads; page modified 2026-06-23. Read manually |
+| Dell KB 000402373 (PowerEdge BIOS minimums) | 2026-09-15 | **Verified — the "cannot be checked" flag was wrong.** Dell blocks bare curl, but the page loads normally in a browser; "Last Modified: 23 Jun 2026, Version 11" matches the note below. Every per-generation BIOS minimum in `dell-poweredge.md` was read back off the live page and matches: 14G 2.25.0 family; 750/650/550/450 → 1.19.2; 350/250 → 1.13.0; 340/240 → 2.21.0; 15G 6515/7515/6525/7525 → 2.22.0; 16G 660/760/860 → 2.8.2; 260/360/T160/T360 → 2.4.0. 17G has no row, consistent with shipping pre-installed. **A vendor bot-block is not unverifiability** — escalate to the browser instead of marking the row human-only. |
 | Dell KB 000390990 (Transition FAQ) | 2026-08-18 | EoSL cutoff confirmed: EoSL before 2026-01-01 = no BIOS remediation |
 | Red Hat 2026-02-04 RHEL guidance + article 7128933 | 2026-08-18 | dual-signed shim shipped 2026-06-10 (8/9/10, x86_64) |
 | AlmaLinux Secure Boot 2023 wiki | 2026-08-18 | aarch64 shim is **2023-only** signed (states same for RHEL) |
@@ -37,12 +37,12 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 | Ubuntu fwupd pockets (Launchpad / Snap) | 2026-08-18 | **2.0.20 now in jammy/noble `-updates`** — floor cleared by apt |
 | Harvester releases (`gh release list harvester/harvester`) | 2026-08-18 | v1.8.2 latest GA (2026-08-06); v1.6.0 guest-OVMF floor unchanged |
 | harvester#7343 (installer SBAT) | 2026-08-18 | fixed in v1.8.0 GA; close is a real QA verification, not stale-bot |
-| `microsoft/secureboot_objects` payloads | 2026-08-18 | three DB payloads unchanged; KEK still per-OEM; rel v1.6.5 |
-| `secureboot_objects` DBX payload signer | 2026-08-18 | June 2026 dbx signed under **2011** KEK — freeze not yet started |
+| `microsoft/secureboot_objects` payloads | 2026-09-15 | three DB payloads unchanged; KEK still per-OEM; **release now v1.7.0 (2026-09-03)**, up from v1.6.5 — its changelog reads "New DBX hashes and new pk-signed keks" |
+| `secureboot_objects` DBX payload signer | 2026-09-15 | **REVERSED: the freeze HAS started.** The repo now carries `PostSignedObjects/.../SignedByKEK2023/` alongside the `SignedByKEK2011` tree plus a `SignedByKEKLatest` pointer, and the DBX README states newer DBX binaries are signed with **KEK 2023** and that the KEK-2011 folder **"will be deleted in 2027"**. Landed via PR #448 (2026-09-01), after the previous stamp. **Scope: DBX (revocation) only** — the DB payload signer is untouched, 2011 KEK still signs DBUpdate3P2023/2024/OROM2023, re-checked this pass. Anything that assumed "all Microsoft payloads are still 2011-signed" is now wrong for revocation updates. |
 | SUSE-RU-2026:1157-1 (node-OS OVMF backport) | 2026-08-18 | still current; separate path, NOT the guest fix |
 | SUSE-SU-2026:0741 (shim 16.1) | 2026-08-18 | 2026-06-16, SLES 15 SP6; advisory does not say "dual-signed" |
 | KubeVirt persistent TPM/UEFI state docs | 2026-08-18 | no documented varstore reset-to-template path exists |
-| `virt-firmware` (virt-fw-vars) | 2026-08-18 | PyPI 26.8.1 (2026-08-17); `--microsoft-kek/-db` flags unchanged |
+| `virt-firmware` (virt-fw-vars) | 2026-09-15 | PyPI **26.9 (2026-09-06)**, up from 26.8.1; `--microsoft-kek {none,2011,2023,all}` and `-db` flags unchanged |
 
 ## The mechanism (dates, cert map, firmware-ignores-expiry)
 - Microsoft — "Windows Secure Boot certificate expiration and CA updates" (support.microsoft.com topic
@@ -81,7 +81,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   configurations where the 2023 db update is confirmed safe. Check hardware against it before any force-push.
 
 ## The signed payloads
-- microsoft/secureboot_objects (GitHub) — PostSignedObjects/Optional/DB/amd64/{DBUpdate3P2023, DBUpdate2024,
+- microsoft/secureboot_objects (GitHub) — **path corrected 2026-09-15: there is no `amd64/` level under `Optional/DB`** (the only `amd64` dir in the repo is under `PostSignedObjects/DBX/`, a different artifact). This was wrong from when it was written, not drift — the three filenames were always correct, the directory never existed. PostSignedObjects/Optional/DB/{DBUpdate3P2023, DBUpdate2024,
   DBUpdateOROM2023}.bin (EFI_VARIABLE_AUTHENTICATION_2, signed by the 2011 KEK); PostSignedObjects/KEK/ is
   per-OEM (no generic 2023 KEK payload); PreSignedObjects/KEK/Certificates/microsoft corporation kek 2k ca
   2023.der (raw cert only).
