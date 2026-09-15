@@ -498,9 +498,12 @@ repo-server. Multi-layer images are rejected — pack as a single layer.
 
 ```bash
 oras push <registry>/guestbook:1.2.3 .                       # default mediaType
-oras push <registry>/guestbook:1.2.3 \                       # tarball form
+# tarball form
+oras push <registry>/guestbook:1.2.3 \
   archive.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip
-oras push -a "org.opencontainers.image.version=1.2.3" \      # UI annotations
+
+# with the annotations Argo CD surfaces in the UI
+oras push -a "org.opencontainers.image.version=1.2.3" \
           -a "org.opencontainers.image.source=<repo>" \
           <registry>/guestbook:1.2.3 .
 ```

@@ -52,10 +52,12 @@ Required for modern LLM-derived embedders (Qwen3, Gemma3, Mistral-derived), whic
 TEI does not implement.
 
 ```bash
+# --gpu-memory-utilization stays low: an embedding model needs almost no KV
+# cache, and the default reserves the whole card.
 vllm serve <model> \
   --runner pooling \
   --served-model-name <short-name> \
-  --gpu-memory-utilization 0.08 \   # else it reserves the whole card for KV cache
+  --gpu-memory-utilization 0.08 \
   --max-num-seqs 256 \
   --max-num-batched-tokens 32768
 ```

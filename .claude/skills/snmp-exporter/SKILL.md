@@ -116,11 +116,14 @@ modules:
 
 ```
 snmp_exporter \
-  --config.file=/etc/snmp_exporter/snmp.yml \   # stock modules (if_mib, system, hr*)
-  --config.file=/config/snmp-custom.yml \        # generated custom modules
-  --config.file=/secrets/auths.yml \             # credentials, from a Secret
+  --config.file=/etc/snmp_exporter/snmp.yml \
+  --config.file=/config/snmp-custom.yml \
+  --config.file=/secrets/auths.yml \
   --config.expand-environment-variables
 ```
+
+The three `--config.file` flags, in order: stock modules (`if_mib`, `system`,
+`hr*`), the generated custom modules, then credentials from a Secret.
 
 - Validate in CI with `--dry-run`; reload via SIGHUP or `POST /-/reload`;
   liveness on `/-/healthy`; inspect effective config at `/config`.

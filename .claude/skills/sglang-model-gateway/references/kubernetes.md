@@ -410,10 +410,11 @@ If you're not on K8s, or you have a stable IP plan (e.g. cluster-local fixed IPs
 
 ```bash
 # Pod 0 (10.42.1.10)
+# --mesh-peer-urls only needs to bootstrap to one peer; gossip finds the rest.
 sgl-model-gateway \
   --enable-mesh --mesh-host 0.0.0.0 --mesh-port 39527 \
   --mesh-server-name gateway-0 \
-  --mesh-peer-urls 10.42.1.11:39527 \   # bootstrap to peer 1; gossip finds the rest
+  --mesh-peer-urls 10.42.1.11:39527 \
   ...
 
 # Pod 1 (10.42.1.11)
