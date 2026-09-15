@@ -2,6 +2,36 @@
 
 Carries findings across skill-improver runs. Append-only history; do not drop prior passes.
 
+## Resolved — 2026-09-15 (no security floor, and the grounding tag is below it)
+
+- **The skill carried no advisory content at all**, while Open WebUI published 69
+  advisories between 2026-06-01 and 2026-09-15. Floor is **v0.11.1**; this file
+  is grounded in **v0.11.0** source, so its own grounding tag sits *below* the
+  floor. The file:line claims still describe 0.11.0 correctly — the instance they
+  are pointed at should not be on it. Stated explicitly rather than quietly
+  bumping the grounding stamp, which would have been a lie about what was read.
+- **Four advisories defeat what this skill teaches**, which is why they are in
+  the body and not a reference:
+  - CVE-2026-87016 (`>= 0.6.41, < 0.11.1`) — sign in as another user via wildcard
+    characters in the OAuth subject claim, **on SQLite**.
+  - CVE-2026-70482 (`>= 0.8.0, < 0.11.0`) — account takeover; OAuth token
+    exchange accepts tokens issued to any client.
+  - CVE-2026-87998 (`>= 0.10.0, < 0.11.1`) — a non-admin deletes admin-owned
+    external knowledge connections, so the `access_grants` model this file
+    documents does not hold on 0.10.0–0.11.0.
+  - CVE-2026-87999 (`< 0.11.1`) — any authenticated user reaches an internal
+    platform channel via server-side web fetch.
+- **The consequence is ordering, not just patching.** The first two mean user
+  identity is not trustworthy below the floor, so group-membership and user
+  provisioning cannot be meaningfully audited on such a build. The third means a
+  permissions audit written against the `access_grants` section returns the wrong
+  answer, because deletion did not honour it.
+- **Derivation deliberately not duplicated.** `open-webui-valkey-websocket`
+  §"Security floor" already carries the count, the all-null `first_patched_version`
+  problem, and why an authenticating reverse proxy does not cover most of these.
+  This file states the floor, the four that bear on its own subject, and points
+  there — an overview developed in a sibling rather than a copy.
+
 ## Resolved — 2026-09-15 (security floor for API consumers)
 
 - **69 advisories in a 3.5-month window, and the advisory feed cannot give you

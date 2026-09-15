@@ -10,6 +10,39 @@ when_to_use: |-
 
 Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
+## Security floor: v0.11.1 — above this skill's own grounding tag
+
+**Run v0.11.1+ (v0.11.3 is the sensible target).** Note what that means here:
+this file is grounded in **v0.11.0 source**, which is *below* the floor. The
+file:line claims still describe 0.11.0 accurately; the instance you point them at
+should not be on it.
+
+Four of the advisories defeat things this skill teaches, so knowing the version
+comes before trusting the permission model:
+
+| CVE | Affected | Defeats |
+|-----|----------|---------|
+| CVE-2026-87016 | `>= 0.6.41, < 0.11.1` | **Sign in as another user** — wildcard characters in the OAuth subject claim, **on SQLite** |
+| CVE-2026-70482 | `>= 0.8.0, < 0.11.0` | **Account takeover** — OAuth token exchange accepts tokens issued to *any* client |
+| CVE-2026-87998 | `>= 0.10.0, < 0.11.1` | A non-admin deletes **admin-owned** external knowledge connections — i.e. the `access_grants` model below does not hold |
+| CVE-2026-87999 | `< 0.11.1` | Any authenticated user reaches an internal platform channel via server-side web fetch |
+
+The first two mean **user identity itself is not trustworthy below the floor**,
+so `/api/v1/users` and group membership reconciliation cannot be audited on such
+a build — provisioning is only as sound as the identity it keys on. The third
+means a permissions audit written against this file's `access_grants` section
+gives the wrong answer on `0.10.0`–`0.11.0`, because deletion did not honour it.
+
+Check first, before any scripting: `GET /api/version` (already the recon step
+above) — and treat anything below `0.11.1` as "fix the version, then script".
+
+**Derivation, and why it is not automatic:** every Open WebUI advisory sets
+`first_patched_version` to `null`, so the floor has to come from the
+`vulnerable_version_range` ceilings. The volume is large enough that it is worth
+re-deriving rather than re-reading this table. `open-webui-valkey-websocket`
+§"Security floor" carries the full derivation, the count, and the reason an
+authenticating reverse proxy does **not** cover most of these.
+
 ## The API in 30 seconds
 
 Four surfaces, one Bearer header (`Authorization: Bearer <jwt-or-api-key>`):
