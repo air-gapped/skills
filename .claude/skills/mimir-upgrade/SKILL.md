@@ -88,6 +88,19 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 1. **Chart and app are co-pinned; walk one minor at a time.** [UG] Mimir's policy is that upgrading one minor to
    the next works and deprecated features survive two minors. Chart minors track app minors, so the two ladders
    are one walk. Skipping 6.0 to reach 6.1 is not possible — the architecture decision lands *at* 6.0.
+
+   **The ladder below terminates at 6.1.0, but 6.2.0 exists** (appVersion **3.2.0**,
+   `kubeVersion: ^1.32.0-0`, read from `Chart.yaml` at tag
+   `mimir-distributed-6.2.0` on 2026-09-15). It is **not** a floor event — 1.32
+   still gates the whole 6.1/6.2 line — so it is one more ordinary hop rather
+   than a second architecture decision. Two things to carry into it: the chart
+   CHANGELOG records `[CHANGE] Querier: Reduce the default concurrency of
+   queriers, querier.max_concurrent, to 8` (#15984), which silently lowers query
+   concurrency for anyone who never set it; and a `ScaledObject` template bug
+   with `kedaAutoscaling.fallback` was fixed there (#15793), which matters if
+   this install is KEDA-autoscaled. Re-derive the terminal hop from
+   `k8s-components-checker` → `compat/mimir.md` rather than trusting this
+   paragraph's numbers.
 2. **Chart 6.0 flips the write path by default.** [UG] `ingest_storage.enabled: true` and
    `ingester.push_grpc_method_enabled: false` are hardcoded in the chart's default Mimir config. A naive upgrade
    with a 5.x values file moves the entire write path onto a **single-node demo Kafka**. Decide the architecture

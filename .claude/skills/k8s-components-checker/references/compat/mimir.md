@@ -5,26 +5,44 @@
 - **Truth source type:** `chart_metadata`
 - **Axis type:** `single`
 - **min_tracked_version:** 5.7
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 (chart axis re-read from `Chart.yaml` at chart-release tags; 6.2.0 added)
 
-In-scope set: current stable chart minor **6.1** + prior 2 (6.0, 5.8). Latest patches as of sift: `mimir-distributed-6.1.0` (2026-07-16, appVersion 3.1.2), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
+In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.0` (appVersion 3.2.0), `6.1.0` (2026-07-16, appVersion 3.1.2), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
 **Chart → Mimir-app mapping (load-bearing):**
 
 | Chart | `kubeVersion:` | `appVersion:` (Mimir) |
 |---|---|---|
+| 6.2.0 | `^1.32.0-0` | 3.2.0 |
 | 6.1.0 | `^1.32.0-0` | 3.1.2 |
 | 6.0.6 | `^1.29.0-0` | 3.0.4 |
 | 5.8.0 | `^1.20.0-0` | 2.17.0 |
 | 5.7.0 | `^1.20.0-0` | 2.16.0 |
 
-The k8s floor moves only at chart-minor boundaries, and it has moved **twice in two minors** — `^1.20` → `^1.29` (6.0.0) → `^1.32` (6.1.0). A fleet on k8s < 1.32 can reach 6.0.x but not 6.1.0. Mimir-app major bump (2.x → 3.x) lands in chart 6.0.0; Mimir 2.x stays available via chart 5.x.
+The k8s floor moves only at chart-minor boundaries, and it has moved **twice in two minors** — `^1.20` → `^1.29` (6.0.0) → `^1.32` (6.1.0). A fleet on k8s < 1.32 can reach 6.0.x but not 6.1.0 or 6.2.0 — **6.2.0 did not move the floor again**, so 1.32 remains the gate for the whole 6.1/6.2 line. Mimir-app major bump (2.x → 3.x) lands in chart 6.0.0; Mimir 2.x stays available via chart 5.x.
 
 **Upgrade ladder (app policy: one minor at a time — deprecated features survive two minors).** Chart minors track app minors, so the two ladders are one walk: `5.7 (2.16) → 5.8 (2.17) → 6.0.x (3.0.4) → 6.1.0 (3.1.2)`. The 5.8 hop is cheap and is the last stop on the Mimir 2.x line; **6.0 is the architecture event**, not a `helm upgrade`.
 
 **Naming trap.** Grafana's doc "Migrate the Mimir Helm chart from version 2.x to 3.0" is about **chart** 2.x → 3.0 (2022) and has nothing to do with **app** Mimir 2.x → 3.0. Chart and app version numbers collide across this whole component — always say which one.
 
 **`kubeVersion` enforcement — corrected 2026-07-21.** Helm checks the chart's `kubeVersion:` constraint against `.Capabilities.KubeVersion`, which is the **API-server** version for `install`/`upgrade` and **helm's own compiled-in default** for `helm template`. **kubectl is not involved.** Verified: `helm template` of `mimir-distributed-6.1.0` (`^1.32.0-0`) passes under helm 3.17.3 with no flag, and fails only with an explicit `--kube-version 1.31.0`. Practical consequences: (a) a real `helm upgrade` against a too-old **cluster** fails and there is no bypass flag; (b) an *old helm binary* can fail a `helm template` dry-run that would succeed against the live cluster — pass `--kube-version <server-version>` for the render. **`kubeVersionOverride` does NOT bypass the constraint** — it only feeds the chart's internal `mimir.kubeVersion` helper for `internalTrafficPolicy` / PVC-retention / PSP decisions. The earlier "checks the kubectl client version" claim here was wrong. Restricted PSA via namespace labels (used by the chart's templates) needs **k8s 1.23+** regardless of the constraint.
+
+## 6.2.0
+
+- **k8s floor:** **1.32+** (`kubeVersion: ^1.32.0-0`) — unchanged from 6.1.0, so
+  this minor is not a floor event.
+- **Mimir app version:** 3.2.0.
+- **Default change worth catching before it surprises you:** the chart CHANGELOG
+  records `[CHANGE] Querier: Reduce the default concurrency of queriers,
+  querier.max_concurrent, to 8` (#15984). A fleet that never set that value
+  explicitly gets less query concurrency after the bump; pin it in values if the
+  previous behaviour was load-bearing.
+- New: `VolumeAttributesClass` support on PVCs for alertmanager, ingester,
+  store-gateway, compactor and kafka (#15919); `revisionHistoryLimit` now honoured
+  on StatefulSet-based components and the memcached StatefulSets, where it
+  previously applied only to Deployments (#15950).
+- Bugfix relevant to autoscaled installs: `ScaledObject` templates were broken
+  when using `kedaAutoscaling.fallback` (#15793).
 
 ## 6.1.0
 

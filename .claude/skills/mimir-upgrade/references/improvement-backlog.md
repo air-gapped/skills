@@ -57,6 +57,21 @@ Work-not-done log across skill-improver runs. Append-only history; not a wishlis
 - **Next pass:** re-derive the terminal hop from `k8s-components-checker` → `compat/mimir.md` rather than
   updating numbers here. This skill deliberately holds no version matrix.
 
+## Resolved — 2026-09-15
+
+- **"Chart 6.1.x may supersede 6.1.0" — answered, and it is a minor, not a
+  patch.** Chart **6.2.0** exists with appVersion **3.2.0**, read from
+  `Chart.yaml` at tag `mimir-distributed-6.2.0`. The ladder note now says so and
+  keeps its own deferral intact: re-derive the terminal hop from
+  `k8s-components-checker` → `compat/mimir.md` rather than trusting numbers in
+  this skill.
+- **It is an ordinary hop, not a second architecture event.** `kubeVersion`
+  stays `^1.32.0-0`, so no k8s floor move. Two things to carry into it: the
+  `querier.max_concurrent` default drops to 8 (#15984), silently reducing query
+  concurrency where it was never set explicitly, and a `ScaledObject` template
+  bug under `kedaAutoscaling.fallback` was fixed (#15793), which matters on a
+  KEDA-autoscaled install.
+
 ## Resolved — 2026-07-21 (skill-improver improve, 5 iterations)
 
 Baseline blind 81 → final blind 82. Self-score peaked at 87, so **the self-scoring ran ~5 points

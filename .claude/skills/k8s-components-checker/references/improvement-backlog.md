@@ -20,14 +20,6 @@ Ceiling findings from skill-improver runs.
   not apply. Ground via the GitLab API / `glab` / `helm search`, else mark
   versions `UNVERIFIED`.
 
-### Grafana Mimir chart-vs-app axis (new 2026-05-30)
-
-- `compat/mimir.md`. `releases/latest` returns the **app** tag (`mimir-3.0.6`);
-  the load-bearing axis is the `mimir-distributed` **chart** `Chart.yaml`
-  `kubeVersion:`. Ground via
-  `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml`
-  at chart-release tags, not `releases/latest`.
-
 ### NVIDIA GPU Operator v26.3.2 content not sifted (new 2026-05-30)
 
 - `compat/nvidia-gpu-operator.md` (banner added 2026-05-30). Existence grounded
@@ -46,6 +38,24 @@ Ceiling findings from skill-improver runs.
 - Action: if an exact 8.8/8.14 EOL date is ever needed for a verdict, fetch
   Elastic's archived support-matrix snapshot (web.archive.org of
   elastic.co/support/eol at the relevant date) — not groundable via `gh`.
+
+## Resolved — 2026-09-15 (Mimir chart axis)
+
+- **The chart-vs-app axis item was already done; what was stale was the
+  window.** The entry asked to ground Mimir via `Chart.yaml` at chart-release
+  tags rather than `releases/latest`. That had already been applied on
+  2026-07-21 — the file carries `kubeVersion` per chart and both floor jumps.
+  What it did not have was **chart 6.2.0** (appVersion **3.2.0**), read from
+  `Chart.yaml` at tag `mimir-distributed-6.2.0`. Added, along with the in-scope
+  window moving to 6.2 + prior two.
+- **6.2.0 is not a floor event**: `kubeVersion` stays `^1.32.0-0`, so 1.32 gates
+  the whole 6.1/6.2 line. Recorded explicitly, because "a new minor" and "a new
+  floor" have been the same thing twice running in this chart and assuming it a
+  third time would be wrong.
+- Carried the operator-visible default change from its CHANGELOG:
+  `querier.max_concurrent` default reduced to **8** (#15984), which lowers query
+  concurrency for anyone who never set it, plus the `kedaAutoscaling.fallback`
+  `ScaledObject` template fix (#15793).
 
 ## Resolved — 2026-09-15
 
