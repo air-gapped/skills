@@ -62,7 +62,7 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 
 ## Dell, OEMs, integrated racks
 
-- [Dell PowerEdge XE spec sheet (PDF)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf) **— primary for all Dell specs** **[LV: 2026-08-18, unverifiable]** — URL still live (curl 200, sweep 2026-08-18), but WebFetch only retrieved the PDF binary without extractable text on this pass. Rev A04 (2026-03) content inherited; confirm per-SKU availability directly in the PDF if making a purchase call.
+- [Dell PowerEdge XE spec sheet (PDF)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf) **— primary for all Dell specs** **[LV: 2026-09-15]** — **no longer unverifiable: `curl` returns the PDF (200, ~1.1 MB, 9 pages) and `pdftotext -layout` extracts the full per-SKU tables.** No browser needed; the earlier note was a limitation of the fetcher, not of the source. Previously (curl 200, sweep 2026-08-18), but WebFetch only retrieved the PDF binary without extractable text on this pass. Rev A04 (2026-03) content inherited; confirm per-SKU availability directly in the PDF if making a purchase call.
 - [Dell XE9712 spec sheet](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9712-spec-sheet.pdf) [LV: 2026-08-18]
 - [Lenovo GB300 NVL72 product guide lp2357](https://lenovopress.lenovo.com/lp2357-lenovo-nvidia-gb300-nvl72-rack-scale-ai) [LV: 2026-08-18]
 - [Lenovo GB300 NVL72 datasheet ds0207](https://lenovopress.lenovo.com/datasheet/en-us/ds0207-lenovo-nvidia-gb300-nvl72) [LV: 2026-08-18]

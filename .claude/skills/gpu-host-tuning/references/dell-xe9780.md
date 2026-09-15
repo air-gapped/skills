@@ -29,7 +29,11 @@ Common to every variant (not broken out per column above):
 - **UPI** — 4× per socket @ 24 GT/s (vs SPR 16 / EMR 20 GT/s)
 - **PCIe per CPU** — **192 Gen5 lanes** dual-socket (vs 80 Gen5 on SPR/EMR)
 - **DDR5** — **6400 MT/s 1DPC** / 5200 MT/s 2DPC
-- **GPUs** — 8× HGX B300 NVL8 270 GB **1100W SXM6** (Dell HGX bin) **or** 8× HGX B200 180 GB 1000W SXM6
+- **GPUs** — 8× HGX B300 NVL8 270 GB **1100W SXM6** (Dell HGX bin) on every variant.
+  **The B200 option is not universal:** 8× HGX B200 180 GB 1000W SXM6 is offered on the
+  air-cooled XE9780 (which also has a no-GPU config) and on **XE9780L**, but **not on
+  XE9780LAP**, which is B300-only. Verified against Dell's PowerEdge XE AI spec sheet
+  2026-09-15 — do not read the shared row above as covering the LAP.
 - **Embedded NICs** — 8× ConnectX-8 OSFP integrated on the GPU baseboard (B300 only, 800 Gb/s/port)
 
 ---

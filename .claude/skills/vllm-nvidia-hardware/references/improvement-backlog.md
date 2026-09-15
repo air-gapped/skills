@@ -17,7 +17,14 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 ## Open
 
 
-- **Re-verify the two cookie-gated / binary-only NVIDIA + Dell datasheet rows** (Dim 9; `references/sources.md` — Blackwell Ultra datasheet and Dell PowerEdge XE spec sheet, both `[LV: 2026-04-24, unverifiable]`). WebFetch could not extract text (cookie gate / PDF binary) in the prior pass and network is unavailable here. Needs a browser session to re-confirm per-SKU sizing numbers before any purchase-grade call.
+- **Re-verify the NVIDIA Blackwell Ultra datasheet row** (Dim 9; `references/sources.md`).
+  The gateway URL returns 200 and the right `<title>`, but the body is a JavaScript shell —
+  522 KB of HTML containing none of the spec strings — so `curl` cannot reach the numbers.
+  **Absent thing:** a browser session, or the underlying PDF's direct URL.
+  **The Dell half of this item is done** (2026-09-15): that source is a plain PDF, and
+  `curl` piped to `pdftotext -layout` yields the whole per-SKU table. It had been filed as
+  needing a browser purely because the earlier pass used a fetcher that could not read a
+  PDF — worth remembering before marking any PDF source unverifiable again.
 
 ## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
 
