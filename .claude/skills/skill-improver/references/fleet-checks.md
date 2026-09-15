@@ -162,6 +162,34 @@ its reader to ignore the whole report. A line citing several refs in *differing*
 states is reported separately as ambiguous rather than guessed at — the claim
 cannot be attached to one ref by text alone.
 
+## A Release Note Saying "Bumped X to N" May Be a CI Pin
+
+Before recording a dependency floor from release notes, **read the pull request's
+changed-file list**, not its title:
+
+    gh pr view <N> --repo <O>/<R> --json title,files --jq '.files|map(.path)|join(", ")'
+
+Then read the floor from the file the runtime actually installs, at the tag:
+
+    git -C <clone> show <tag>:requirements/common.txt | grep -i '^<package>'
+
+Measured 2026-09-15, two lines in the *same* release notes: "Transformers bumped
+to 5.15.0" touched `requirements/test/*` only — a CI pin, runtime floor unchanged
+— while "Upgrade huggingface-hub to 1.28.0" touched `requirements/common.txt` and
+was a real floor. Nothing in either summary line distinguishes them.
+
+Two skills had recorded the first as the engine's floor. The damage was not the
+version being wrong by a few minors: a third skill tracks three tokenizer CVEs
+whose fixes land at three specific versions, and the CI pin happens to be the one
+that clears all three, while the real floor clears none at that release. **A
+dependency-floor misread does not fail loudly — it silently reclassifies an
+exposure as patched.** That is what makes this worth a file-list check every
+time rather than when something looks off.
+
+Corollary for the same check: leave neighbouring claims alone until separately
+verified. The two package claims sat in one sentence; correcting both on the
+strength of checking one would have been right by luck.
+
 ## A Ragged Table Loses Its Last Column Silently
 
 No renderer warns about a table whose rows and header disagree on width — it
