@@ -27,6 +27,14 @@ Read the output as a LEAD, not a verdict:
 Needs `gh` authenticated. Skills whose repo has no advisory feed, or where the
 API call fails, are skipped silently rather than reported as zero — an
 unreachable feed is not the same as a clean one.
+
+One thing this script deliberately does not report, because you cannot get it
+from the feed: **a version floor**. Measured 2026-09-15 across three upstreams
+(vllm-project/vllm 35 advisories, open-webui/open-webui 69,
+rancher/rancher 23), `first_patched_version` was null for **every single
+advisory** in the window. Tooling that reads that field concludes nothing is
+fixed. Derive a floor from the `vulnerable_version_range` ceilings instead, and
+treat a populated `first_patched_version` as the exception rather than the rule.
 """
 
 import argparse

@@ -108,7 +108,22 @@ swept 2026-09-15):**
 - `VLLM_PORT` — internal base port for distributed; auto-increments for each worker. NOT the API server port. Use `--port`.
 
 **Server auth:**
-- `VLLM_API_KEY` — Bearer token for the OpenAI-compat server. Equivalent to `--api-key` on the CLI.
+- `VLLM_API_KEY` — Bearer token for the OpenAI-compat server. Equivalent to
+  `--api-key` on the CLI. **Do not treat it as an authentication boundary.** Two
+  independent reasons, both upstream:
+  - **CVE-2026-48746 / GHSA-94f4-hr76-p5j6, CRITICAL** (published 2026-06-02,
+    not withdrawn): an ASGI/starlette request-scope trust issue lets a caller
+    bypass the OpenAI API `AuthenticationMiddleware` entirely and use the API
+    **without** the configured `VLLM_API_KEY` or `--api-key`. The recorded
+    affected range is **`>=0.3.0` with no upper bound and no patched version**,
+    so as published it covers every current release. Read that as "unresolved
+    or unrecorded", not "fixed and stale".
+  - v0.28.0 added documentation warning that **`--api-key` does not gate all
+    endpoints** (#51999) — a separate statement from the CVE, and the same
+    conclusion.
+
+  Put a real authenticating proxy in front of vLLM and treat the API key as a
+  convenience for client wiring, not as access control.
 
 **Long-context / safety overrides:**
 - `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` — bypasses the model's `max_position_embeddings` sanity check. Footgun — usually means the rope scaling config doesn't match the served weights.
@@ -168,6 +183,15 @@ Full recipe in `references/air-gapped.md`. The essentials:
 3. **Gated models offline still need `HF_TOKEN`.** The token is consulted during hub-config validation before weight load. Putting it only on the staging host isn't enough; bake it into the runtime env.
 
 4. **`trust_remote_code` executes arbitrary Python from the model repo.** Any model not in vLLM's hard-coded architecture registry falls through to `AutoConfig` + `auto_map`, which only runs with the flag. In air-gap this runs pre-staged code — treat model directory provenance as equivalent to running arbitrary binaries. Verify checksums.
+
+   **And `trust_remote_code=False` is not a guarantee.** GHSA-3c86-2m5g-59q7
+   (**HIGH**, 2026-08-28, affected `< 0.28.0`): the LlavaOnevision2 processor
+   loader passed an **inert** `trust_remote_code` kwarg to
+   `transformers.get_class_from_dynamic_module`, so a malicious model achieved
+   RCE **with the flag set to False**. The flag is a policy expressed in code,
+   and a loader that forgets to honour it silently removes the control. Provenance
+   of the model directory is the real boundary; the flag is a second line, not
+   the first.
 
 5. **`TRANSFORMERS_CACHE` is deprecated.** Rename legacy scripts to use `HF_HOME` (and let `HF_HUB_CACHE` default). Setting the old var still works but emits `FutureWarning`.
 

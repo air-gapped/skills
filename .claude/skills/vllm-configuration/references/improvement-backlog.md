@@ -2,6 +2,46 @@
 
 Work-not-done log from skill-improver passes. Open = attempted but not applicable in one atomic iteration.
 
+## Resolved — 2026-09-15 (vLLM advisory sweep, 2026-06-01 onward)
+
+35 advisories in that window: 1 critical, 5 high, 27 medium, 2 low. Two change
+what this skill tells an operator to rely on.
+
+- **`VLLM_API_KEY` / `--api-key` is not an authentication boundary, and the
+  skill listed it without qualification.** CVE-2026-48746 /
+  GHSA-94f4-hr76-p5j6, **CRITICAL**, published 2026-06-02 and **not withdrawn**:
+  an ASGI/starlette request-scope trust issue lets a caller bypass the OpenAI
+  API `AuthenticationMiddleware` and use the API without the configured key.
+  The recorded affected range is **`>=0.3.0` with no upper bound and no patched
+  version**, so as published it covers every current release — read that as
+  unresolved-or-unrecorded, not as a stale entry. Independently, v0.28.0 added
+  documentation warning that `--api-key` does not gate all endpoints (#51999).
+  Two separate sources, same conclusion: put a real authenticating proxy in
+  front.
+- **`trust_remote_code=False` is not a guarantee.** GHSA-3c86-2m5g-59q7
+  (**HIGH**, 2026-08-28, `< 0.28.0`): the LlavaOnevision2 processor loader
+  passed an **inert** `trust_remote_code` kwarg to
+  `transformers.get_class_from_dynamic_module`, so a malicious model achieved
+  RCE **with the flag set to False**. The skill's pitfall #4 correctly warned
+  what the flag enables; it now also says that a loader forgetting to honour it
+  silently removes the control, which makes model-directory provenance the real
+  boundary.
+
+- **The `first_patched_version` trap recurs here.** All 35 advisories in the
+  window have it set to null, exactly as with Open WebUI and Rancher earlier in
+  this pass. Any floor must be derived from `vulnerable_version_range`. This is
+  now the third upstream where that holds, so treat a populated
+  `first_patched_version` as the exception rather than the rule when writing
+  tooling against this feed.
+
+- Shape of the rest, for context rather than action: the medium cluster is
+  overwhelmingly **request-controlled denial of service** — out-of-range
+  `stop_token_ids`, unbounded `cache_salt`, negative token ids on
+  `/v1/embeddings` and `/pooling` (that one HIGH, `< 0.28.0`), and media-decode
+  bombs. They share a mechanism worth recognising: a request field reaching a
+  GPU-side or decoder path without a bound check, killing the engine rather
+  than the request.
+
 ## Open
 
 - Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28)
