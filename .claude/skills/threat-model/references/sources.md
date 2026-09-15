@@ -3,6 +3,8 @@
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 
+**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it.
+
 Re-run `/skill-improver freshen threat-model` quarterly or when the threat-model
 frameworks or upstream harness change.
 
@@ -10,13 +12,13 @@ frameworks or upstream harness change.
 
 - URL: https://shostack.org/files/papers/The_Four_Question_Framework.pdf
 - Probe: `WebFetch` — expect HTTP 200. Interview mode walks the four questions.
-- Last verified: 2026-07-21  (HTTP 200, re-probed)
+- Last verified: 2026-09-15  (HTTP 200, re-probed)
 
 ## OWASP Threat Modeling Cheat Sheet
 
 - URL: https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html
 - Probe: `WebFetch` — expect HTTP 200. Cross-reference for STRIDE gap-fill.
-- Last verified: 2026-07-21  (HTTP 200, re-probed)
+- Last verified: 2026-09-15  (HTTP 200, re-probed)
 
 ## GitHub Security Advisories API (bootstrap advisory fetcher)
 
@@ -31,7 +33,7 @@ frameworks or upstream harness change.
 - URL: https://github.com/anthropics/defending-code-reference-harness
 - Probe: `gh repo view anthropics/defending-code-reference-harness --json pushedAt,isArchived`
 - Note: this skill is adapted (Apache-2.0) from that repo's `threat-model` skill.
-- Last verified: 2026-07-21  (active; not archived; **last push 2026-07-16**; 17 commits since the 2026-06-15 stamp).
+- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
 
   **This skill's adapted surface is unchanged.** Only two threat-model paths
   moved upstream in the window — `.claude/skills/threat-model/README.md` and

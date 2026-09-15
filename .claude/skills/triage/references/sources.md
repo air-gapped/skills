@@ -3,6 +3,8 @@
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 
+**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it.
+
 Re-run `/skill-improver freshen triage` quarterly or when the scoring standards
 or upstream harness change.
 
@@ -12,7 +14,7 @@ or upstream harness change.
 - Probe: `gh repo view anthropics/defending-code-reference-harness --json pushedAt,isArchived`
 - Note: adapted (Apache-2.0) from that repo's `triage` skill; Phase 1 ingests
   its pipeline `results/<target>/<ts>/` output. `../vuln-scan/HARNESS.md` points here.
-- Last verified: 2026-07-21  (active; not archived; **last push 2026-07-16**; 17 commits since the 2026-06-15 stamp).
+- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
 
   **The ingest contract this skill depends on is unchanged.** `docs/triage.md`
   still documents `results/<target>/<timestamp>/` as the pipeline input and
@@ -40,11 +42,11 @@ or upstream harness change.
 - URL: https://www.first.org/cvss/   (v3.1 and v4.0 specifications)
 - Probe: `WebFetch` — expect HTTP 200. The Phase-0 interview offers CVSS v3.1 / v4.0
   `severity_label` output; the impact x exploitability HIGH/MEDIUM/LOW is always computed.
-- Last verified: 2026-07-21  (HTTP 200; v3.1 and v4.0 both still published)
+- Last verified: 2026-09-15  (HTTP 200; v3.1 and v4.0 both still published)
 
 ## OWASP Risk Rating Methodology (Phase 0 scoring-standard option)
 
-- URL: https://owasp.org/www-community/OWASP_Risk_Rating_Methodology
+- URL: https://community.owasp.org/OWASP_Risk_Rating_Methodology
 - Probe: `WebFetch` — expect HTTP 200. Likelihood × impact label option.
 - Last verified: 2026-07-21  (HTTP 200)
 

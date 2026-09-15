@@ -3,6 +3,8 @@
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 
+**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it.
+
 Re-run `/skill-improver freshen patch` quarterly or when the upstream harness's
 patch ladder changes.
 
@@ -14,7 +16,7 @@ patch ladder changes.
   self-contained; execution-verified mode delegates to the harness's
   `vuln-pipeline patch` build→reproduce→regress→re-attack ladder. See
   `../vuln-scan/HARNESS.md` for setup/run.
-- Last verified: 2026-07-21  (active; not archived; **last push 2026-07-16**; 17 commits since the 2026-06-15 stamp). **The patch ladder itself is unchanged** — `docs/patching.md` still describes the build→reproduce→regress→re-attack tiers, with the regress tier (T2) skipped on targets lacking a `test_command` (only `canary` sets one among the four bundled targets). Four patch-relevant paths moved in the window — `.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`, `harness/prompts/patch_prompt.py` — but as docs/prompt refinement, not a change to the verification tiers this skill delegates to.
+- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16). **The patch ladder itself is unchanged** — `docs/patching.md` still describes the build→reproduce→regress→re-attack tiers, with the regress tier (T2) skipped on targets lacking a `test_command` (only `canary` sets one among the four bundled targets). Four patch-relevant paths moved in the window — `.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`, `harness/prompts/patch_prompt.py` — but as docs/prompt refinement, not a change to the verification tiers this skill delegates to.
 
 ### Delta worth knowing (2026-06-15 → 2026-07-21)
 

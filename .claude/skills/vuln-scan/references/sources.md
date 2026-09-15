@@ -1,7 +1,9 @@
 # sources.md — external references for `vuln-scan` (freshen index)
 
 One row per external reference this skill depends on. `skill-improver freshen`
-probes each URL, classifies staleness, and re-stamps `Last verified:`. Surveys
+probes each URL, classifies staleness, and re-stamps `Last verified:`.
+
+**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it. Surveys
 at use time read this only to surface staleness.
 
 Re-run `/skill-improver freshen vuln-scan` quarterly or when the upstream
@@ -14,7 +16,7 @@ security-review tooling changes.
 - Note: the skill is adapted (Apache-2.0) from this repo's `vuln-scan` skill and
   its autonomous `find`/`recon` pipeline prompts. `HARNESS.md` points operators
   here for execution-verified scanning.
-- Last verified: 2026-07-21  (active; not archived; **last push 2026-07-16**; 17 commits since the 2026-06-15 stamp).
+- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
 
   **The prompts this skill lifts are unchanged.** `harness/prompts/find_prompt.py`
   appears in a `--since=2026-06-15` commit sweep, but **only** via PR #13 dated
@@ -46,7 +48,7 @@ security-review tooling changes.
 - Note: the review-brief category menu, DO-NOT-REPORT exclusions, per-finding
   confidence pass, and `exploit_scenario`/`recommendation` fields originate in
   this action's `/security-review` command.
-- Last verified: 2026-07-21  (active; not archived; **still last pushed 2026-02-11** — unchanged for ~5 months, so the category menu, DO-NOT-REPORT exclusions, confidence pass and `exploit_scenario`/`recommendation` fields are stable)
+- Last verified: 2026-09-15  (active; not archived; **still last pushed 2026-02-11** — now unchanged for ~7 months, so the category menu, DO-NOT-REPORT exclusions, confidence pass and `exploit_scenario`/`recommendation` fields are stable)
 
 ## visa-vulnerability-agentic-harness (Step 3a pre-filter lineage)
 
