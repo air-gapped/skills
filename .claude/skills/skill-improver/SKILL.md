@@ -189,6 +189,11 @@ those. Measured 2026-09-15: 37 future-dated claims, 2 worth acting on, and both
 Fix them by deleting the relative phrase and instructing the reader to compute
 from the date. A replacement phrase rots identically.
 
+**This section is itself the checker's one standing false positive.** The example
+above quotes a real date beside a real relative phrase, so `--relative` flags this
+file every run. It is a quotation of a defect, not a live claim — leave it. A run
+whose only `[rel]` hit is this paragraph is a clean run.
+
 ### Two Classes of Link Rot, and the Rest Is Noise
 
 The skillevaluator gate checks links only in skills **staged for a commit**, so a
