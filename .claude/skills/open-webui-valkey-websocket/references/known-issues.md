@@ -16,7 +16,9 @@ PR #22402 (merged Mar 2026) added Redis pub/sub fan-out for direct-connection ch
 
 Mitigation: keep `UVICORN_WORKERS=1` and stay on ≥0.9.3 to pick up #22402.
 
-### #19840 — RedisCluster `publish()` AttributeError on `/api/tasks/stop/{id}`
+### #19840 — RedisCluster `publish()` AttributeError on `/api/tasks/stop/{id}` — **FIXED, from v0.11.2**
+
+**Resolved 2026-09-15.** Issue closed `COMPLETED` 2026-08-29 by the final PR **#29165** ("fix: stopping a response across instances on Redis Cluster"), merged the same day. **The fix ships from v0.11.2, not v0.11.1** — `compare <tag>...<merge-sha>` reports `diverged` for v0.11.1 and `behind` for v0.11.2 and v0.11.3. The issue thread credits v0.11.1 with "basically 99%" of it, so taking the comment at face value would put the fix one release too early. **On v0.11.2+ the RedisCluster `publish()` warning below no longer applies**; on v0.11.1 and earlier it still does. Retained as history:
 
 Opened 2025-12-09, still open as of May 2026. The redis-py `RedisCluster` client doesn't expose `publish()` (cluster mode requires `spublish` to a specific node). The `tasks.py` stop-cancellation path calls `redis.publish(...)`, raises `AttributeError`, stop-button is broken on RedisCluster setups.
 

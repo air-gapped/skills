@@ -37,10 +37,10 @@ below is the minimum an operator needs before citing anything.
 
 Grounded per the § Grounding protocol (enumerate-and-derive, no candidate named in any query).
 
-- **Stable patch state UNCHANGED** — 2.11.15 / 2.12.11 / 2.13.7 / **2.14.3**, all 2026-06-29;
-  `releases/latest` = v2.14.3. EOL dates re-cross-checked against endoflife.date, all unchanged.
-- **v2.15 is at RC** (`rc1` 2026-07-21 … `rc3` 2026-07-24) with `release-v2.15` branches live in both
-  KDM and charts. Do NOT plan onto it — see `lifecycle.md` § Cadence.
+- **2026-09-15: v2.15 HAS SHIPPED — this file said "still RC, do NOT plan onto it" while `SKILL.md` already carried the correct v2.15.1 ceiling.** An internal contradiction inside one skill, and the sources file was the wrong half. v2.15.0 (2026-07-30) and **v2.15.1 (2026-08-28)** both self-declare "This is a Community version release", and v2.15.1 is `isLatest`. Nuance that matters for the ceiling: the community chart index at `releases.rancher.com/server-charts/latest` carries **2.15.1 but not 2.15.0** — 2.15.0 appears there only as rc1–rc5. So the reachable community ceiling is **2.15.1**, and the chart index, not the GitHub release list, is what settles it.
+- Three further monthly patch cycles landed (07-30, 08-26, 08-28) across every active minor; `releases/latest` is **v2.15.1**, not v2.14.3. Historically, stable patch state was 2.11.15 / 2.12.11 / 2.13.7 / **2.14.3**, all 2026-06-29.
+- **EOL moved:** endoflife.date now reports 2.10 as **actually EOL** (passed 2026-06-19), and 2.11's EOL falls **2026-10-24 — next month**. Re-check any EOL claim dated to the 2026-07-25 pass.
+- `release-v2.16` branches now exist in rancher/charts while KDM has none yet — charts runs ahead of KDM, so a branch in one is not evidence of a release in the other.
 - **KDM 2.15 window: 1.34 / 1.35 / 1.36**, k8s **1.33 drops out** — `kdm-downstream-matrix.md`.
 - **The community-vs-Prime `head -1` classifier was broken** (matched 0 of 4 probed releases) and has
   been replaced — `lifecycle.md` § Community vs Prime.
@@ -66,8 +66,7 @@ ceilings, confirmed by **two independent sources** — the release-notes edition
 
 Corroborated by the skill's own field reports (validated hops 2.12.3→2.13.3 and 2.13.3→2.14.2).
 `k8s-components-checker` § Edition discrimination owns the protocol and is now cited from
-`lifecycle.md` § Grounding. **2.15 re-checked at the same time: still RC, `releases/latest` still
-v2.14.3.**
+`lifecycle.md` § Grounding. **2.15 re-checked 2026-09-15: no longer RC — v2.15.1 is the current community release and `releases/latest`.**
 
 ### 2026-07-21
 

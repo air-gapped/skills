@@ -12,7 +12,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 
 | Source | Last verified | Note |
 |---|---|---|
-| Harvester docs `upgrade/automatic.md` (lifecycle, paths, component table) | 2026-06-01 | no-skip ladder + per-minor stack + Rancher-first |
+| Harvester docs `upgrade/index.md` (lifecycle, paths, component table) | 2026-09-15 — **five doc pages were merged into their section index pages and the old slugs now 404**: `upgrade/automatic`, `vm/create-vm`, `host/host`, `networking/clusternetwork`, `advanced/settings`. Each is repointed here. `host/` resolves only as the bare path — `host/index/` 404s too. | no-skip ladder + per-minor stack + Rancher-first |
 | Harvester docs `upgrade/{v1-5-x-to-v1-6-x,v1-6-x-to-v1-7-x,v1-7-x-to-v1-8-x}.md` | 2026-06-01 | per-hop breaking changes — volatile fix versions |
 | Harvester docs `upgrade/troubleshooting.md` + `advanced/addons/upgrade-manager.md` | 2026-06-01 | 5-phase flow, Phase-4 "do not restart", experimental/no-air-gap manager |
 | Harvester docs `rancher/{virtualization-management,harvester-ui-extension}.md` + `airgap.md` | 2026-06-01 | 3-step order, UI-ext support matrix, ui-plugin-catalog image map |
@@ -25,7 +25,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 | `compat/harvester.md` + `compat/rancher.md` (k8s-components-checker) | 2026-06-01 | pairing, Node-Driver ranges, Rancher mgmt-k8s windows (**the edition caveat that used to sit here is retired** — `compat/harvester.md` has since corrected its own edition claim and now agrees with this skill; historical note: it previously said the edition claim there is wrong — §Editions) |
 
 ## The ladder, editions, lifecycle
-- Harvester docs `upgrade/automatic.md` — lifecycle (4-month minor / 2-month patch cadence), the supported
+- Harvester docs `upgrade/index.md` — lifecycle (4-month minor / 2-month patch cadence), the supported
   upgrade-paths table (1.5.x→1.6.x→1.7.x→1.8.x, no skip), the per-minor component table, the k8s version-skew
   note, "Harvester does not support downgrades", free-space/cert gates, VM-handling + restoreVM, customize/pause
   node upgrade (v1.7.0+), air-gapped `version.yaml` registration.
@@ -63,8 +63,8 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 ## Guest RKE2 survivability
 - Harvester docs `rancher/cloud-provider.md`, `rancher/csi-driver.md` (standalone CCM/CSI install + cloud-config
   token via `generate_addon.sh` / `generate_addon_csi.sh`; macvlan requirement; Node-Driver ranges),
-  `vm/live-migration.md` (migratability rules, timeouts), `vm/create-vm.md` (VM Scheduling / anti-affinity, VLAN
-  auto-affinity), `vm/backup-restore.md` (VM Backup vs Snapshot; virt-freezer fsfreeze), `host/host.md`
+  `vm/live-migration.md` (migratability rules, timeouts), `vm/index.md` (VM Scheduling / anti-affinity, VLAN
+  auto-affinity), `vm/backup-restore.md` (VM Backup vs Snapshot; virt-freezer fsfreeze), `host/ (bare path)`
   (maintenance-mode strategy), `advanced/addons/virtual-machine-auto-balance.md`.
 - harvester-csi-driver repo (`README`, `deploy/generate_addon_csi.sh`, `deploy/manifests/deployment.yaml`);
   cloud-provider-harvester `deploy/generate_addon.sh`; harvester/upgrade-helpers `pre-check/v1.x/check.sh`.
@@ -80,10 +80,10 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
   `pkg/settings/settings.go` + `pkg/controller/master/setting/kubevirt_migration.go` (the `kubevirt-migration`
   Setting, 1.7.0+ only, reconciles/overwrites direct CR edits), `package/upgrade/upgrade_node.sh`
   (`wait_vms_out_or_shutdown` — infinite wait on 1.5.x), `docs/advanced/{vm-migration-network,settings}.md`,
-  `docs/networking/clusternetwork.md` (mgmt bond active-backup), `docs/host/host.md` (`maintain-mode-strategy`).
+  `docs/networking/index.md` (mgmt bond active-backup), `docs/host/ (bare path)` (`maintain-mode-strategy`).
 - harvester#9144 (real v1.5.x migration-config support-bundle dump), #10482 (bandwidth-0 self-throttle analysis),
   #4375 (auto-converge motivation), #5756/#8731/#10349 (pre-drain stuck "Waiting for VM live-migration"),
-  #10698 (evacuation loop has no retry limit — maintainer-confirmed 2026-06-01), #10425 (**FIXED** — closed COMPLETED 2026-07-20, QA signed off against v1.9.0-rc2 via harvester-ui-extension PR #863; concurrent live
+  #10698 (evacuation loop has no retry limit — maintainer-confirmed 2026-06-01), #10425 (**FIXED** — closed COMPLETED 2026-07-20 by `albinsun`, QA signed off against v1.9.0-rc2 via harvester-ui-extension PR #863. **The trailing "concurrent live migration — open" clause was removed 2026-09-15: it contradicted the same row's own FIXED verdict, and no second open issue exists — a search for "concurrent live migration" returns exactly one hit, #10425 itself.** Historically the row also said; concurrent live
   migration — open). OpenShift Virtualization "Live migration" docs + etcd.io tuning/maintenance (quorum,
   heartbeat/election, defrag).
 

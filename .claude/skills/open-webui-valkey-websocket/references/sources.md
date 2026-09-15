@@ -62,7 +62,7 @@ These paths are stable across recent versions. Line numbers may drift in clones 
 
 - `backend/open_webui/tasks.py`:
   - Lines 25–86: distributed task tracking.
-  - Lines 49–86: `{prefix}:tasks` hash, `{prefix}:tasks:item:{id}` sets, `{prefix}:tasks:commands` pubsub channel. Uses `execute_command('PUBLISH', ...)` for RedisCluster paths (which still fails — see #19840).
+  - Lines 49–86: `{prefix}:tasks` hash, `{prefix}:tasks:item:{id}` sets, `{prefix}:tasks:commands` pubsub channel. Uses `execute_command('PUBLISH', ...)` for RedisCluster paths. **No longer fails from v0.11.2** — #19840 closed by PR #29165; see `known-issues.md`. Line anchors in this file have all shifted and `tasks.py` gained a `REDIS_RESPONSE_STREAMS_KEY` not recorded here.
 
 ### Model icons / profile images
 
@@ -110,7 +110,7 @@ These paths are stable across recent versions. Line numbers may drift in clones 
 ```
 gh issue view 23733 --repo open-webui/open-webui     # Socket.IO frame amplification (THE BIG ONE)
 gh issue view 15162 --repo open-webui/open-webui     # direct-connection multi-worker routing
-gh issue view 19840 --repo open-webui/open-webui     # RedisCluster publish broken
+gh issue view 19840 --repo open-webui/open-webui     # RedisCluster publish — FIXED, ships v0.11.2 (PR #29165)
 gh issue view 23987 --repo open-webui/open-webui     # Sentinel coroutine regression in 0.9.1
 gh issue view 23939 --repo open-webui/open-webui     # 0.9.0/0.9.1 loading and login issues — CLOSED 2026-04-22
 ```
@@ -215,7 +215,7 @@ https://helm.openwebui.com/                             # helm repository URL
 - `Ithanil` — operator who reported #23733 with measurements.
 - `adam-skalicky` — author of #19097 (group-IDs preload + profile_image_url strip).
 - `luke-wren` — auditor of remaining icon-bloated endpoints (#18950 thread).
-- `HANIHALILI` — author of unmerged RedisCluster `publish()` fixes (#19840).
+- `HANIHALILI` — author of the earlier, unmerged RedisCluster `publish()` fixes (#19840); the change that finally landed was PR #29165 (2026-08-29).
 
 ## Refresh procedure
 
