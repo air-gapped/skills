@@ -2,6 +2,34 @@
 
 Carries open issues across `skill-improver` runs that the loop attempted but couldn't apply in a single iteration. NOT a wishlist — entries here were proposed as hypotheses, attempted or planned, and could not land atomically.
 
+## Resolved — 2026-09-15
+
+- **Two open gateway defects added, both of which present as infrastructure
+  faults rather than gateway bugs.** #39400 (OPEN, 2026-09-14): in
+  PD-disaggregation mode the Prefill-side Bootstrap HTTP service exposes
+  `PUT /route` with no authentication and no integrity check, so anything that
+  can reach the port can overwrite the Decode transfer endpoint — route
+  poisoning or metadata redirection. #37554 (OPEN, 2026-09-02): a worker whose
+  metadata discovery failed is registered permanently as `model_id: "unknown"`,
+  never self-heals, and was reported from production as a large share of a fleet
+  silently unrouted after a rollout, with a router restart the only recovery.
+  Both matter more than their severity labels suggest because the symptom points
+  somewhere else — the second reads as a load-balancer or autoscaling problem.
+
+### Checked and NOT changed — do not "correct" these
+
+- **The `Dec 2025` dates in the description are historical, not currency
+  claims.** They record the `sgl-router` to `sgl-model-gateway` rename and the
+  `sgl_router_*` to `smg_*` metric rename, both of which happened then. A
+  staleness sweep that flags date-bearing frontmatter will surface this skill;
+  the dates are correct as written.
+- **The `v0.3.2` / `latest` image-tag claim was left alone.** The newest in-repo
+  git tag is `gateway-v0.3.1`, which looks like a contradiction but is not
+  evidence: the skill's sentence is about **Docker Hub tags**, and Docker tags
+  and git tags are different namespaces that routinely disagree. Verifying it
+  needs a registry query (`skopeo list-tags`), not `gh`. Do not lower the number
+  from the git tag list.
+
 ## Open
 
 *(empty — the six items carried since 2026-05-28 were completed or withdrawn on

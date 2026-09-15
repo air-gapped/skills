@@ -198,6 +198,32 @@ kubectl -n <ns> logs deploy/sgl-model-gateway | grep -i 'discover\|registered' |
 
 If `/workers` returns fewer entries than there are worker Pods, the RBAC verbs or the `--selector`/`--service-discovery-namespace` pair is wrong — the gateway starts healthy either way, so an unvalidated rollout looks identical to a working one.
 
+## Two open gateway defects worth knowing (checked 2026-09-14/15)
+
+Neither is fixed at time of writing; both are the kind that look like an
+infrastructure fault rather than a gateway bug.
+
+- **Unauthenticated `PUT /route` on the PD-disaggregation bootstrap service**
+  ([#39400](https://github.com/sgl-project/sglang/issues/39400), OPEN, filed
+  2026-09-14). In PD-disaggregation mode the Prefill-side Bootstrap HTTP service
+  exposes `PUT /route` with **no authentication and no integrity check**, so any
+  client that can reach it can overwrite the Decode transfer endpoint — route
+  poisoning, or redirection of metadata to an endpoint the attacker controls.
+  If you run PD disaggregation, treat the bootstrap port as a **trusted-network
+  service** and keep it off any segment you would not trust with the KV path
+  itself. A NetworkPolicy restricting it to the worker set is the cheap
+  mitigation.
+- **A worker whose metadata discovery failed registers permanently as
+  `model_id: "unknown"`**
+  ([#37554](https://github.com/sgl-project/sglang/issues/37554), OPEN, filed
+  2026-09-02). Reported from production: a large share of a fleet silently
+  stopped being routed to after a rollout, and **a router restart was the only
+  recovery** — the bad registration never self-heals. The symptom is capacity
+  that exists and passes health checks but receives no traffic, which reads as a
+  load-balancer or autoscaling problem rather than a discovery one. Check the
+  gateway's registered `model_id` values after any rollout, not just worker
+  readiness.
+
 ## Critical pitfalls
 
 1. **HTTP service discovery registers vLLM workers with empty metadata, not rich metadata.** Discovery probes `/server_info` + `/model_info`, which vLLM 404s. The gateway falls through gracefully (`discover_metadata.rs:237-298` returns `Ok((empty_labels, None))`) and **the worker is still registered** — routing works, but worker-side label enrichment is missing. For `prefix_hash`, `/v1/tokenize`, or gRPC mode, pass `--tokenizer-path` explicitly since the gateway can't fetch it from the worker. Static `--worker-urls` is also fine — pick whichever fits the autoscaling story.
