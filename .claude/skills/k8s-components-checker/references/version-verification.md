@@ -176,8 +176,15 @@ for t in $(gh api 'repos/rancher/rancher/releases?per_page=100' --paginate \
 done   # a bare "… Prime version release" (no "Community") falls through `continue`-less → skipped as Prime
 ```
 
-Verified 2026-05-30: 2.12 → **v2.12.4** (v2.12.5+ Prime), 2.13 → **v2.13.3** (v2.13.4+ Prime),
-2.14 → **v2.14.2** (current minor).
+Verified 2026-09-15 over all 50 stable tags of 2.11–2.15: 2.11 → **v2.11.3**, 2.12 → **v2.12.3**
+(v2.12.4+ Prime), 2.13 → **v2.13.3** (v2.13.4+ Prime), 2.14 → **v2.14.3** (v2.14.4+ Prime),
+2.15 → **v2.15.1** (current minor).
+
+The 2.12 value replaces **v2.12.4**, carried here since 2026-05-30. That derivation predates the
+2026-06-02 discovery of format 2 below and was never re-run against it — v2.12.4 has an inline
+`# Release` first line but self-declares `"Prime version release"`, so the first-line-only test
+passed it. **Re-derive every line whenever the discriminator itself changes**, not only the line
+that exposed the gap: a fix applied to one line leaves the same error standing in the others.
 Verified 2026-06-02 (2.11 line — the case that exposed format 2): **v2.11.3** is the community
 ceiling (`"Community and Prime"`). v2.11.0 `"Community"`; v2.11.1/.2 legacy inline; **v2.11.4–.8
 self-declare `"Prime version release"` with an inline `# Release` first line** (the first-line

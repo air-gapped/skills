@@ -2,6 +2,30 @@
 
 Ceiling findings from skill-improver runs.
 
+## Resolved — 2026-09-15 (the 2.12 community ceiling was one patch too high)
+
+- **`v2.12.4` is a Prime release that the registry scored as community.** It carries inline
+  `# Release v2.12.4` notes but its body reads "This is a **Prime** version release" — format 2,
+  the exact under-detection the 2.11-line caveat already described. Community ceiling for 2.12 is
+  **v2.12.3** (2025-10-22).
+- **Cause: the fix was scoped to the line that exposed it.** The 2.12 value was derived 2026-05-30
+  with the first-line-only test. Format 2 was discovered 2026-06-02 on the 2.11 line, the caveat
+  was written as a *2.11-line* caveat, and 2.12 was never re-derived against the better test. Three
+  later verifies re-ran the discriminator on "the newest few tags" and never revisited it.
+- Corrected in three places that each carried the value independently: the §2.12 heading, the
+  header's release-verified stamp, and `version-verification.md`'s derived-ceilings block.
+- **The caveat is now stated for every line, not just 2.11**, with a one-pass command that
+  classifies all tags at once. Rule added: re-derive every line whenever the discriminator itself
+  changes.
+- **The Prime flip has an exact trigger, so ceilings need not be re-tested per sift.** A minor gets
+  community patches only while it is the newest minor; the first patch on or after the next minor's
+  GA is Prime and stays Prime. Confirmed on all 50 stable tags of 2.11–2.15: `v2.11.4` flipped on
+  2.12.0's GA date, `v2.12.4` one day before 2.13.0's, `v2.13.4` on 2.14.0's, `v2.14.4` on 2.15.0's.
+  A ceiling moves only when a new minor GAs.
+- **2.15 is a new community minor** — v2.15.0 (2026-07-30) and v2.15.1 (2026-08-28) both
+  self-declare Community. Recorded in the header; its own `## 2.15` compat block is still to be
+  sifted from the release notes.
+
 ## Resolved — 2026-09-15 (Harvester advisory floors)
 
 - **The registry named two vulnerable releases as upgrade targets.**
