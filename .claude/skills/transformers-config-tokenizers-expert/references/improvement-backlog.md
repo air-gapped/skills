@@ -3,6 +3,25 @@
 Tracks issues found during skill-improver passes that could not be resolved
 in a single atomic iteration, plus what each pass actually changed.
 
+## Resolved — 2026-09-15 (CI pin vs runtime floor: two numbers, one file apart)
+
+- **vLLM's v0.28.0 release note "Transformers bumped to 5.15.0 (#51668)" is not a
+  floor bump.** #51668 moved the **test** pin (`requirements/test/{cuda,cpu,rocm}.txt`
+  → `transformers==5.15.0`). The **runtime** requirement
+  (`requirements/common.txt`) stayed at `>= 5.5.3`, and is `>= 5.10.4` on v0.29.0.
+- **The gap is the finding.** vLLM validates 5.15.0 in CI and permits 5.5.3+ at
+  install, so the combination most installs actually get is *below* anything
+  anyone tested. Now recorded as a two-row table, because the two numbers live in
+  different files and only one binds an install.
+- **It also makes this file's existing recommendation non-arbitrary:** 5.15.0 is
+  simultaneously the floor clearing all three tokenizer-path fixes **and** the
+  version CI exercises. Two independent reasons, same pin.
+- **Self-check, worth recording:** the release note appeared to contradict the
+  requirements file cited in this skill earlier today. Grepping *every*
+  requirements file rather than trusting either source showed both were correct
+  about different things. A release note that names a version is not automatically
+  naming the version an install will resolve.
+
 ## Resolved — 2026-09-15 (the engine floor does not reach the security floor)
 
 - **Corrected: "≥ 5.15.0 … is also vLLM v0.28.0's floor".** It is not. Read from

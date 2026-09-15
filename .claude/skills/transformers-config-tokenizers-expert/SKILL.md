@@ -279,6 +279,23 @@ the arbitrary-file-read and the ReDoS open, and an install resolving
 `transformers` from vLLM's floor alone lands on 5.10.4. **Pin transformers
 explicitly at ≥ 5.15.0**; the engine will not raise it for you.
 
+**And 5.15.0 is not an arbitrary target — it is the version vLLM actually tests
+against.** The two numbers come from different files and only one of them binds
+an install:
+
+| File | v0.28.0 | What it governs |
+|---|---|---|
+| `requirements/common.txt` | `transformers >= 5.5.3` | what `pip install vllm` **enforces** |
+| `requirements/test/{cuda,cpu,rocm}.txt` | `transformers==5.15.0` | what **CI validates** |
+
+v0.28.0's release notes say "Transformers bumped to 5.15.0 (#51668)", which reads
+as a floor bump and is not one — #51668 moved the **test pin**. The practical
+shape: vLLM proves it works on 5.15.0 and permits anything from 5.5.3 (5.10.4 on
+v0.29.0), so the supported-and-tested version is *higher* than the installable
+one, and the gap is unverified by anyone. Pinning 5.15.0 therefore buys the
+security floor **and** the configuration CI actually exercises — the same number
+for two independent reasons.
+
 Two traps in the third fix's version numbers, both of which point the wrong way:
 
 - The advisory records `first_patched_version: 5.10.0`, and **5.10.0 is yanked
