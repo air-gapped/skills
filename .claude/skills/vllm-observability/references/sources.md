@@ -4,6 +4,12 @@ Tracks every external reference the `vllm-observability` skill depends on, when 
 
 All dates UTC.
 
+**Freshened: 2026-09-15 — every row probed.** All four PR merge-to-release attributions re-checked with `git tag --contains` rather than merge dates and all four hold (#42206, #39457, #44448 → v0.24.0; #46768 → v0.25.0). The `loggers.py` metric-name set is **identical at v0.27.0 and v0.29.0** — 37 names, no additions or removals — and `gpu_cache_usage_perc` is still absent at v0.29.0, so the rename guidance holds across two further releases.
+
+**The name-diff alone would have missed the real change.** `vllm/v1/kv_offload/tiering/base.py` went from 2 metric names at v0.27.0 to **15 at v0.28.0** — 13 new `kv_offload_tiering_*` metrics that `loggers.py` never mentions, now documented in `metrics-catalog.md`. The trigger below that warns a `loggers.py` diff is not sufficient was right.
+
+One evidence gap corrected: the `examples/observability/` row described `dashboards/grafana/` only. `dashboards/perses/` has been in that tree since v0.25.0 (PR #40123, 2026-07-11) — it already existed when the previous pass wrote that row. `SKILL.md` and `dashboards.md` both document it correctly; only this file's evidence trail was incomplete.
+
 ## Probe log
 
 | Ref | URL | Last verified | Result | Notes |
@@ -84,7 +90,7 @@ staleness risk.
 ## Next freshen triggers
 
 Re-probe when any of the following change:
-- vLLM release > v0.27.1 (current latest, 2026-08-11; this pass probed the v0.27.0 tree — v0.27.1 is a one-change patch touching only `vllm/model_executor/models/qwen3_dspark.py`, no metric surface). Run the loggers.py name diff **and** the kv_offload constant sweep — the diff alone was clean across two minors that did change the offload surface.
+- vLLM release > **v0.29.0** (current latest, 2026-09-09). This trigger fired since the last pass and was run: both prescribed checks were executed at v0.29.0 — the `loggers.py` name diff (clean) and the `kv_offload` constant sweep (found the 13 tiering additions). Historically: v0.27.1 (2026-08-11) was a one-change patch touching only `vllm/model_executor/models/qwen3_dspark.py`, no metric surface. Run the loggers.py name diff **and** the kv_offload constant sweep — the diff alone was clean across two minors that did change the offload surface.
 - Ray Serve integration changes (Ray 2.52+ behavior).
 - DCGM exporter 4.1+ (field-name drift).
 - `examples/observability/` directory restructure (watch for a `dashboards/v2/` or similar).
