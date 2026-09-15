@@ -2,6 +2,34 @@
 
 Work-not-done log from skill-improver passes. Open = attempted but not applicable in one atomic iteration.
 
+## Resolved — 2026-09-15 (the auth-bypass CVE has a floor; the advisory just never recorded it)
+
+- **CVE-2026-48746 is fixed in v0.22.0 (2026-05-29).** The entry was left reading
+  "unresolved or unrecorded" because the advisory's range is `>=0.3.0` with no
+  upper bound and `first_patched_version` null — read literally, every release
+  ever made is vulnerable and nothing can satisfy the floor.
+- **It is unrecorded, not unresolved.** `updated_at` still equals `published_at`
+  (2026-06-02), and the fix — PR #43426 — merged 2026-05-22, a week before
+  v0.22.0 shipped and eleven days before the advisory was published.
+- **Confirmed in the tree, not from the PR title.** Through v0.21 the middleware
+  took its path from `URL(scope=scope).path`, which starlette rebuilds from the
+  `Host:` header; from v0.22.0 it reads `scope["path"]`, the raw ASGI path that
+  no header can influence. That is the bypass and its removal.
+- **The mechanism is worth stating because it decides the mitigation.** A `Host:`
+  header containing `/` or `?` steers the reconstructed path, so the middleware
+  authorises against a different path than FastAPI routes on. The advisory notes
+  instances behind an RFC-conforming server such as nginx were never exposed —
+  a proxy that forwards `Host:` verbatim without validating it is not that.
+- **Technique recorded in the skill, since the record shape recurs:** an
+  unbounded range plus a null patched version is not a floor. Resolve it from
+  the References' fix PR — merge commit, then ask the repo which tag first
+  carried it — rather than reporting "no safe version". A *bounded* range is the
+  opposite case and its upper bound is the floor, which is what the upgrade
+  skills rely on.
+- The operational advice is unchanged: run v0.22.0+ **and** front vLLM with an
+  authenticating proxy. The v0.28.0 warning that `--api-key` does not gate all
+  endpoints (#51999) is independent of this CVE and still stands.
+
 ## Resolved — 2026-09-15 (vLLM advisory sweep, 2026-06-01 onward)
 
 35 advisories in that window: 1 critical, 5 high, 27 medium, 2 low. Two change
