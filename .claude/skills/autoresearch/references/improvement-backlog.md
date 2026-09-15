@@ -2,6 +2,31 @@
 
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated in Phase 6.
 
+## Resolved — 2026-09-15 (isolate web-derived text in the round-2 spawn tail)
+
+- **`PRIOR LEARNINGS` was interpolated unwrapped, and from round 2 it carries
+  web content.** The Mode 2 spawn tail is
+  `BROADER QUESTION / YOUR ANGLE / PRIOR LEARNINGS`. The first two come from the
+  operator. The third is `(first round)` on the first pass and, from round 2 on,
+  content summarised out of pages a previous researcher fetched off the open
+  internet — the one field in that prompt an outside party can influence. It now
+  sits in a nonce-delimited `<untrusted_data>` block with an explicit
+  data-not-instructions line.
+- **The delivery path is what makes it worth fixing.** Round 2's prompt is
+  assembled by the orchestrator, so an injected instruction inside a fetched
+  page would reach the next researcher looking exactly like orchestrator text
+  rather than like quoted material.
+- **Found by sweeping the fleet for a shape, not by reading this skill.** Five
+  skills spawn subagents: `patch`, `triage`, `vuln-scan`, `threat-model` and
+  this one. The first three embed attacker-influenceable text and now all
+  isolate it; `threat-model` turned out not to spawn at all. This skill was the
+  one outside the security family with the same structural exposure, which is
+  exactly the sort of thing a per-skill read misses and a "who else does this?"
+  pass catches.
+- Contract matches the security family verbatim: fresh `secrets.token_hex(16)`
+  per spawn, nonce on **both** tags, closing-tag lookalikes rewritten before
+  substitution. The closing tag carrying the nonce is the load-bearing part.
+
 ## Table of Contents
 
 Live sections first. Everything below them is append-only pass history, and it is
