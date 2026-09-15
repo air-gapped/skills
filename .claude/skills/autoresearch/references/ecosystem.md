@@ -149,9 +149,10 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   than the pattern is what's wanted (all verified 2026-08-20):
   [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
   (parallelized plan-and-solve: static planner decomposes, concurrent retrieval
-  agents execute; v3.6.0 2026-07-18) and
-  [langchain-ai/open_deep_research](https://github.com/langchain-ai/open_deep_research)
-  (continuous off `main`, no tagged releases). Both are outline-or-plan-driven
+  agents execute; **v3.6.1** 2026-08-24) and
+  [langchain-ai/open_deep_research](https://github.com/langchain-ai/open_deep_research),
+  which was **archived 2026-08-10 and is now read-only** — still worth reading for the
+  pattern, but do not adopt it as a live dependency. Both are outline-or-plan-driven
   like STORM; neither replaces the multi-perspective decomposition Mode 2
   borrows.
   **[bytedance/deer-flow](https://github.com/bytedance/deer-flow) no longer

@@ -1,6 +1,6 @@
 # Tokenizers — `tokenizer.json` (HuggingFace) vs `tiktoken.model` (BPE) vs unsupported
 
-The gateway loads a tokenizer via the **`llm-tokenizer` Rust crate, pinned `=1.3.2`** (crates.io is on 1.5.0 as of 2026-07-18 — everything below describes 1.3.2, which is what the gateway actually ships) — a separate package whose source lives at `github.com/lightseekorg/smg/crates/tokenizer/`, not in the SGLang repo. The gateway re-exports it as `crate::tokenizer` (`src/lib.rs:13: pub use llm_tokenizer as tokenizer;`).
+The gateway loads a tokenizer via the **`llm-tokenizer` Rust crate, pinned `=1.3.2`** (crates.io is on 1.5.0 as of 2026-07-18 — everything below describes 1.3.2, which is what the gateway actually ships) — a separate package whose source lives at `github.com/smg-project/smg/crates/tokenizer/`, not in the SGLang repo. The gateway re-exports it as `crate::tokenizer` (`src/lib.rs:13: pub use llm_tokenizer as tokenizer;`).
 
 This doc answers two questions operators repeatedly hit:
 
@@ -24,7 +24,7 @@ This is the most-misunderstood piece of the gateway. The four cases:
 
 ## What the loader accepts — full dispatch matrix
 
-Source: `crates/tokenizer/src/factory.rs` in `lightseekorg/smg`.
+Source: `crates/tokenizer/src/factory.rs` in `smg-project/smg` (renamed from `lightseekorg/smg` — the old path still redirects, so nothing looked broken).
 
 The loader function — `factory::create_tokenizer_async_with_chat_template(source, chat_template_path)` — branches on whether `source` is a path or a bare name:
 
@@ -176,6 +176,6 @@ For the typical 2026 deployment (HTTP + cache_aware), the answer almost always r
 - gRPC HuggingFace-only enforcement: `sgl-model-gateway/src/routers/grpc/utils.rs:398-505`.
 - cache_aware text-only tree: `sgl-model-gateway/src/policies/cache_aware.rs` (line 22 comment, lines 320-435 for tree ops).
 - prefix_hash token-based hash: `sgl-model-gateway/src/policies/prefix_hash.rs:107,217`.
-- Tokenizer factory: `lightseekorg/smg::crates/tokenizer/src/factory.rs`.
-- Tiktoken loader + cl100k_base regex caveat: `lightseekorg/smg::crates/tokenizer/src/tiktoken.rs:14-30, 216-275, 343-413`.
+- Tokenizer factory: `smg-project/smg::crates/tokenizer/src/factory.rs`.
+- Tiktoken loader + cl100k_base regex caveat: `smg-project/smg::crates/tokenizer/src/tiktoken.rs:14-30, 216-275, 343-413`.
 - Crate version: `Cargo.toml: llm-tokenizer = "=1.3.2"`.
