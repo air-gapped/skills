@@ -168,6 +168,10 @@ FGAP v2 lets you grant a delegated admin scoped permissions on Users, Groups, Cl
 
 Notes:
 - Server-level realm-admin and master-realm admin **bypass FGAP entirely** — audit who has those.
+- **Below 26.7.2, FGAP was bypassable in code** via the Role Groups endpoint
+  (CVE-2026-14613). Unlike the bypasses above, no privileged role is needed and
+  no configuration audit finds it — the permission model simply does not hold.
+  Check the version before treating an FGAP scoping as an enforced boundary.
 - Permissions don't transit: `manage` does NOT imply `view`. Grant both if you need both.
 - FGAP v1 still works but is deprecated; new realms should default to v2.
 
@@ -243,10 +247,29 @@ gh api repos/keycloak/keycloak/security-advisories \
 
 Cross-check the `vulnerabilities[].patched_versions` field against the deployed version to decide if an upgrade is required. Map each advisory to the relevant hardening section above (redirect-URI / SSRF findings → §9; flow/timing findings → §4; token/session findings → §3 and §6) when advising on remediation.
 
-**As of 2026-07-21, latest stable is 26.7.0 (2026-07-09).** The 26.6 line ran on
-to 26.6.4 (2026-06-26); 26.6.2, 26.6.3 and 26.6.4 are all security batches.
-Quote each version's CVE set from its own `gh release view <version>` body, not
-from memory.
+**As of 2026-09-15, latest stable is 26.7.3 (2026-08-31), and every 26.7 patch
+since .0 is a security batch** — 26.7.1 (2026-08-05), 26.7.2 (2026-08-19),
+26.7.3 (2026-08-31). The 26.6 line ran on to 26.6.4 (2026-06-26); 26.6.2, 26.6.3
+and 26.6.4 are also all security batches. Quote each version's CVE set from its
+own `gh release view <version>` body, not from memory.
+
+**Four of those CVEs bypass controls this file recommends**, which is why the
+floor is not a housekeeping detail here:
+
+| Fixed in | CVE | Control it defeats |
+|---|---|---|
+| 26.7.1 | CVE-2026-9793 | A **JWE request object bypasses `requestObjectSignatureAlg` enforcement** — the signature algorithm you pinned is not applied |
+| 26.7.1 | CVE-2026-4629 | Privilege escalation via hardcoded **role-mapper injection in `manage-clients`** — a delegated-admin scope becomes a path up |
+| 26.7.2 | CVE-2026-14613 | **Fine-Grained Admin Permissions bypass** via the Role Groups endpoint (§8) |
+| 26.7.3 | CVE-2026-16093 | A **signed-JWT assertion policy is bypassed by unsigned assertion headers** — `private_key_jwt` (§ client authenticator) stops being the guarantee the table above claims |
+
+26.7.3 also fixes CVE-2026-35563, where the bundled LDAP client did not verify
+that the server certificate matched the LDAP hostname — relevant to any realm
+using LDAP/AD federation over TLS.
+
+**Run ≥ 26.7.3.** Below it, several of the hardening recommendations in this file
+are configured correctly and enforced incorrectly, which is the failure mode an
+audit is least likely to catch: the setting reads right in the admin console.
 
 **The advisory feed will not tell you the fix version.** Every advisory probed
 on 2026-07-21 had an empty `first_patched_version`, and eight advisories share a

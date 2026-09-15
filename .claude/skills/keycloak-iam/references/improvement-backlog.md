@@ -2,6 +2,34 @@
 
 Skill-improver carries open ceiling findings forward across runs. Items here either could not be fixed in a single iteration (multi-file restructure, requires author judgment) or were proposed and discarded.
 
+## Resolved — 2026-09-15 (the "latest stable" was three security batches behind)
+
+- **26.7.0 → 26.7.3 (2026-08-31), and every 26.7 patch since .0 is a security
+  batch.** The old line was honestly dated ("as of 2026-07-21"), so it was not
+  wrong — but a dated version claim in a *hardening* file ages differently from
+  one in a feature file, because what lands in between is exactly the thing the
+  file is about.
+- **Four of the CVEs defeat controls this file recommends**, which is what turns
+  this from housekeeping into a correction:
+  - CVE-2026-9793 (26.7.1) — a JWE request object bypasses
+    `requestObjectSignatureAlg`; the pinned algorithm is not enforced.
+  - CVE-2026-4629 (26.7.1) — privilege escalation via role-mapper injection in
+    `manage-clients`; a delegated-admin scope becomes a path upward.
+  - CVE-2026-14613 (26.7.2) — **FGAP bypass** via the Role Groups endpoint,
+    against §8, which this file calls the right answer for scoping a team.
+  - CVE-2026-16093 (26.7.3) — a signed-JWT assertion policy is bypassed by
+    unsigned assertion headers, removing the guarantee behind the client
+    authenticator ranking.
+  - Also 26.7.3: CVE-2026-35563, the bundled LDAP client not verifying the
+    server certificate against the LDAP hostname.
+- **§8's bypass list was incomplete in kind, not just in count.** The bypasses it
+  already named are configuration-level and findable by auditing role holders.
+  The added one needs no privileged role and no audit finds it — the model does
+  not hold in code, while the console still renders the scoping as configured.
+- Found by sweeping present-tense "latest stable is X" claims across the fleet
+  against upstream. 26 claims, most either exactly right (KEDA v2.20.2) or
+  honestly dated source rows. This was the one where the gap had teeth.
+
 ## Open
 
 _None._ Nothing here is waiting on an absent ruling, credential, release, or
