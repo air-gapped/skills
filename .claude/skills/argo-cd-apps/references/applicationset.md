@@ -1,6 +1,6 @@
 # ApplicationSet reference
 
-Argo CD v3.3 / v3.4 (May 2026). Citations under
+Argo CD v3.4 / v3.5 (Sept 2026). Citations under
 `docs/operator-manual/applicationset/` of the `argoproj/argo-cd` repo.
 
 ## Contents

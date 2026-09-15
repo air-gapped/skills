@@ -349,8 +349,8 @@ migration is non-trivial.
   ([#25122](https://github.com/argoproj/argo-cd/pull/25122)). Still gated
   by `applicationsetcontroller.enable.progressive.syncs: "true"`.
 - **OCI source: still Beta** (no formal GA).
-- **Source Hydrator: still Alpha**.
-- **Service Account Impersonation: still Beta** (formal Beta in 3.4).
+- **Source Hydrator: Alpha here; promoted to Beta in v3.5.0** (#28229).
+- **Service Account Impersonation: Beta from v3.5.0** (#27576); it was not formally Beta in 3.4.
 
 ---
 
@@ -429,7 +429,7 @@ Read `docs/operator-manual/upgrading/3.3-3.4.md` and `3.4-3.5.md`.
   ([#27353](https://github.com/argoproj/argo-cd/pull/27353), doc commit
   `04fa70c4a` 2026-04-16). Multi-tenant deployments where each tenant
   owns their AppSet namespace are first-class.
-- **Source Hydrator: still Alpha**. Schema can still break in 3.5.
+- **Source Hydrator: Alpha here — promoted to Beta in v3.5.0** (#28229). Beta is not a stability guarantee: it stays on the feature-maturity table's unstable list.
 - **Impersonation extends to server operations** (logs, delete, list
   events, exec custom resource actions) per
   [#26898](https://github.com/argoproj/argo-cd/pull/26898) merged

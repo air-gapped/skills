@@ -1,6 +1,6 @@
 # Repo layout, tool selection, bootstrap
 
-GitOps-repo design choices for an Argo CD v3.3 / v3.4 consumer. Citations
+GitOps-repo design choices for an Argo CD v3.4 / v3.5 consumer. Citations
 are paths relative to the `argoproj/argo-cd` repo root.
 
 ## Contents

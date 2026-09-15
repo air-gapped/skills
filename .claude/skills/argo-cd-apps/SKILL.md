@@ -2,15 +2,15 @@
 name: argo-cd-apps
 description: >-
   Author and maintain Argo CD `Application` and `ApplicationSet` manifests as a
-  GitOps consumer (publisher), targeting Argo CD v3.3 / v3.4 (May 2026). Covers
+  GitOps consumer (publisher), targeting Argo CD v3.4 / v3.5 (Sept 2026). Covers
   source types (Helm, Kustomize, OCI, multi-source, plugin), sync policies +
   options + waves + hooks, ApplicationSet generators (List, Cluster, Git, Matrix,
   Merge, SCMProvider, PullRequest, Plugin, ClusterDecisionResource), Progressive
-  Sync (Beta), Source Hydrator (still Alpha), AppProjects, RBAC, sync
+  Sync (Beta), Source Hydrator (Beta since v3.5), AppProjects, RBAC, sync
   impersonation (`destinationServiceAccounts`), GPG/cosign signature
   verification, GitOps repo layout (mono vs poly, app-of-apps vs ApplicationSet
   — Argo recommends ApplicationSet first), troubleshooting drift / OutOfSync /
-  sync loops / stuck-deletion / hook failures, and v3.0→v3.4 changes (annotation
+  sync loops / stuck-deletion / hook failures, and v3.0→v3.5 changes (annotation
   tracking default, SSA-migration regression, CVE-2026-42880 Secret leak).
   NOT for installing or operating the Argo CD control plane (HA, Dex,
   repo-server tuning, UI customization).
@@ -115,12 +115,18 @@ When Argo CD manages itself, the meta-Application needs
 `ServerSideApply=true` in `syncOptions` because the ApplicationSet CRD
 exceeds the 262 144-byte client-side-apply annotation limit.
 
-### 4. Source Hydrator is still **Alpha** in v3.4
+### 4. Source Hydrator reached **Beta** in v3.5 — still not GA
 
-Despite three minor versions of feature work, schema can break in v3.5. Don't
-build long-lived automation on `spec.sourceHydrator` yet. Cosign-verified
-manifest signing still requires the GnuPG path (`signatureKeys`) — Argo CD
-doesn't ship a first-class cosign integration.
+Alpha through v3.4, promoted to Beta in v3.5.0. Beta is not a stability
+guarantee: `spec.sourceHydrator` remains on the feature-maturity table's
+unstable list, so treat long-lived automation against it as something you may
+have to migrate.
+
+**Manifest signing changed hands in v3.5.** The GnuPG path — `.spec.signatureKeys`
+on `AppProject`, plus `argocd proj add-signature-key` / `remove-signature-key` —
+is deprecated in favour of the new **Source Integrity** subsystem, and v3.5.0
+added opt-in dry-source integrity verification for the hydrator (Alpha, #19302).
+Argo CD still ships no first-class cosign integration.
 
 ### 5. The default `AppProject` is a footgun in any multi-tenant cluster
 

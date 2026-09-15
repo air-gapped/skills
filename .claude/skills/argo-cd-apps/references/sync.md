@@ -1,4 +1,4 @@
-# Sync mechanics — Argo CD v3.3 / v3.4 reference
+# Sync mechanics — Argo CD v3.4 / v3.5 reference
 
 Audience: app authors writing `Application` manifests. Covers sync policy,
 syncOptions, waves, hooks, health, diffing, selective sync, sync windows,

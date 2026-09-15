@@ -1,6 +1,6 @@
 # Argo CD app authoring — troubleshooting reference
 
-Field-medic guide for app authors. Symptom → cause → fix. Argo CD v3.3 / v3.4
+Field-medic guide for app authors. Symptom → cause → fix. Argo CD v3.4 / v3.5
 (May 2026). Operator-side ops (HA, sharding) out of scope. Cited paths are
 relative to `argoproj/argo-cd` repo root, mostly under `docs/`.
 
