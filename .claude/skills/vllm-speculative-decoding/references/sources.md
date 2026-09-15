@@ -1,6 +1,8 @@
 # External-reference provenance
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed. All merged-PR and issue states reproduce.
+
+**ArcticInference v0.3.0 (2026-08-28) rebased onto vLLM v0.26.0**, superseding the v0.2.0 note that pinned it to vLLM 0.14.1. The repo is active, not dormant. The version-lag caution still applies — v0.26.0 trails the current v0.29.0 — but the gap it warns about is much narrower than the rows below describe.
 
 Cited upstream sources for this skill, probed on the `Last verified` date. Used
 by skill-improver Dim 9 (staleness) and by anyone auditing whether a claim is

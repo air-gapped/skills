@@ -1,6 +1,8 @@
 # Source verification log
 
-Freshened: 2026-08-18
+Freshened: 2026-09-15 — every row probed. All nine issue/PR states reproduce exactly, and every claim pinned to tag `v0.27.0` was re-read at that tag and holds.
+
+**Two figures are correct at v0.27.0 and stale against the current release** (v0.29.0, two minors on). The runtime floor is now `transformers >= 5.10.4`, not `>= 5.5.3`; `tokenizers >= 0.21.1` is unchanged. `examples/tool_chat_template_*.jinja` is now 27 files, not 26 — a genuinely new template, not a recount. The `hf.py` line anchors below also all shifted at v0.29.0 (257→263, 558→626, 633→709, 665-699→753-787, 718→805); the rows are pinned to v0.27.0, so they are not wrong, but do not read them as current.
 
 Tracks external references cited by this skill and their last-verified dates.
 Lift Dim 9 staleness cap by keeping this table current: when adding a new

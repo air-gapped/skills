@@ -11,7 +11,7 @@
 | `CPU_to_GPU_total_bytes=0` consistently in vLLM logs | LMCache is reachable but never serving hits — wrong prefix-cache settings, low hit rate workload, or L1 too small |
 | Eviction stutter every few seconds in LMCache logs | L1 sized too small relative to working set — increase `--l1-size-gb`, lower `--eviction-trigger-watermark`, or raise `--eviction-ratio` |
 | Cryptic CUDA errors at startup | `/dev/shm` not host-mounted on both pods, or `--ipc host` missing in Docker |
-| Hybrid model garbled output / 0% prefix hit rate | On lmcache ≤ 0.4.x: hybrids are unsupported — upgrade to 0.5.x. On 0.5.x: wrong `--chunk-size` for the model's unified block size `N`, or a multi-object-group retrieve mismatch (try `--no-separate-object-groups`). See the hybrid-model section in SKILL.md. |
+| Hybrid model garbled output / 0% prefix hit rate | On lmcache ≤ 0.4.x: hybrids are unsupported — upgrade to 0.5.x. On 0.5.x: wrong `--chunk-size` for the model's unified block size `N`, or a multi-object-group retrieve mismatch (on ≤ 0.5.2 try `--no-separate-object-groups`; on 0.5.3+ that is already the default, so the opposite flag is the lever). See the hybrid-model section in SKILL.md. |
 | Multiple vLLM pods on the same node, only one sees the cache | DaemonSet not on the same node, or `hostNetwork` missing, or vLLM pods using `Pod IP` instead of `status.hostIP` |
 
 ## Open bugs and version hazards (2026-04-26)

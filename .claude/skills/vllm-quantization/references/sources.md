@@ -1,4 +1,6 @@
-# External sources — last verified 2026-08-11 (against vLLM v0.27.0)
+# External sources — last verified 2026-09-15 (rows pinned to vLLM v0.27.0; current release v0.29.0)
+
+**2026-09-15 pass:** every row re-probed and every v0.27.0-pinned claim reproduced exactly — no false rows found. Four counts have since moved upstream and are flagged at their rows: `bitsandbytes` left `QuantizationMethods` in v0.28.0 (31 → 30 values), `CacheDType` gained `nvfp4_4over6` (16 → 17), and LinearBackend/MoEBackend went 20/17 → 21/20. Two external projects also moved: ModelOpt shipped 0.46.0 and 0.46.1, and its repo is now canonically `NVIDIA/Model-Optimizer`.
 
 Freshness audit for externally-referenced material in SKILL.md. Probes were
 issued via the `gh` CLI and GitHub API. Re-run the freshen loop when the

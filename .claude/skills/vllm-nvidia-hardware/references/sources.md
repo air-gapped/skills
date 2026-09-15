@@ -3,7 +3,7 @@
 Grouped by topic. `foundational` tags mean the source pre-dates 2025 but is still the
 canonical reference on its claim.
 
-**Last freshen pass:** 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
+**Last freshen pass:** 2026-09-15; prior 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
 against the **v0.27.0 source tree** — `CMakeLists.txt`, `requirements/cuda.txt`,
 `docker/Dockerfile`, `vllm/platforms/cuda.py`, the attention-backend and KV-connector
 modules — plus the Rubin `sm_107` tracking issue); prior passes 2026-07-21 (vLLM
@@ -20,12 +20,12 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [arXiv 2512.01644 — Systematic roofline characterization (2025-12)](https://arxiv.org/html/2512.01644v1) [LV: 2026-08-18]
 - [arXiv 2402.16363 — LLM Inference Unveiled (foundational)](https://arxiv.org/pdf/2402.16363) [LV: 2026-08-18]
 - [Towards Data Science — Prefill/Decode](https://towardsdatascience.com/prefill-is-compute-bound-decode-is-memory-bound-why-your-gpu-shouldnt-do-both/) [LV: 2026-08-18]
-- [SemiAnalysis — Memory Wall (2024-09, foundational)](https://semianalysis.com/2024/09/03/the-memory-wall/) [LV: 2026-08-18]
+- [SemiAnalysis — Memory Wall (2024-09, foundational)](https://newsletter.semianalysis.com/p/the-memory-wall) [LV: 2026-09-15, URL moved to the `newsletter.` host — the old address still 200s by redirect]
 - [SemiAnalysis — HBM rise and roadmap](https://newsletter.semianalysis.com/p/scaling-the-memory-wall-the-rise-and-roadmap-of-hbm) [LV: 2026-08-18]
 - [SemiAnalysis — Tensor core evolution Volta→Blackwell](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell) [LV: 2026-08-18]
 - [NotebookCheck — SK hynix sold out 2026](https://www.notebookcheck.net/SK-hynix-sells-out-its-DRAM-NAND-and-HBM-chip-supply-to-Nvidia-through-2026-as-AI-demand-outpaces-Samsung-and-Micron-s-capacity.1151402.0.html) [LV: 2026-08-18]
 - [Astute — HBM market share](https://www.astutegroup.com/news/general/sk-hynix-holds-62-of-hbm-micron-overtakes-samsung-2026-battle-pivots-to-hbm4/) [LV: 2026-08-18]
-- [Network World — 2026 memory shortage](https://web.archive.org/web/2026/https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026) [LV: 2026-08-18, original 404 — swapped to archive.org snapshot]
+- [Network World — 2026 memory shortage](https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026.html) [LV: 2026-09-15, back on the primary host — the previous pass's archive.org fallback is itself dead now (404, and no snapshot indexed). The original only ever needed `.html` appending; the 404 that triggered the fallback was a truncated path, not a removed page]
 - [Introl — AI Memory Supercycle](https://introl.com/blog/ai-memory-supercycle-hbm-2026) [LV: 2026-08-18]
 - [Future of Computing — Breaking the Memory Wall pt 2](https://news.future-of-computing.com/p/breaking-the-memory-wall-pt-2-a-closer-look-at-hbm-high-bandwidth-memory) [LV: 2026-08-18]
 - [NVIDIA HPCA 2017 — Energy-efficient DRAM (foundational)](https://research.nvidia.com/sites/default/files/pubs/2017-02_Architecting-an-Energy-Efficient/chatterjee.hpca2017.pdf) [LV: 2026-08-18]
@@ -36,7 +36,7 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [H200 datasheet](https://nvdam.widen.net/s/nb5zzzsjdf/hpc-datasheet-sc-nvidia-h200-datasheet-nvidia-us) [LV: 2026-08-18]
 - [HGX product brief](https://www.nvidia.com/en-us/data-center/hgx/) [LV: 2026-08-18]
 - [Hopper in-depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/) [LV: 2026-08-18]
-- [AnandTech — H100 NVL](https://www.anandtech.com/show/18781/nvidia-announces-h100-nvl-max-memory-server-card-for-large-language-models) [LV: 2026-08-18]
+- [AnandTech — H100 NVL](https://www.anandtech.com/show/18781/nvidia-announces-h100-nvl-max-memory-server-card-for-large-language-models) [LV: 2026-09-15, **GONE** — AnandTech stopped publishing 2024-08-30 and the article archive was withdrawn 2025-08-01; the URL now 200s only because the whole site redirects to a forums bot-challenge page. Exception: a Wayback replacement could not be confirmed this pass (the availability API rate-limited), so no archive URL is asserted here. Do not cite this row without finding a live replacement]
 - [Blackwell architecture page](https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/) [LV: 2026-08-18]
 - [GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) [LV: 2026-08-18]
 - [GB300 NVL72](https://www.nvidia.com/en-us/data-center/gb300-nvl72/) **[LV: 2026-08-18]** — page live, status "Available Now"; NVIDIA markets 20 TB HBM (we report 20.7 TB detailed), 130 TB/s NVLink, 576 TB/s aggregate HBM BW. No per-rack power on the page itself.
@@ -45,13 +45,13 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [DGX SuperPOD B300 RA](https://docs.nvidia.com/pdf/dgx-spod-gb300-ra.pdf) [LV: 2026-08-18]
 - [Inside Blackwell Ultra blog](https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/) [LV: 2026-08-18]
 - [NVFP4 blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) [LV: 2026-08-18]
-- [Quantum-X800 docs](https://docs.nvidia.com/networking/nvidia-quantum-x800-xdr-clusters/index.html) [LV: 2026-08-18]
+- [Quantum-X800 docs](https://networking-docs.nvidia.com/nvidia-quantum-x800-xdr-clusters) [LV: 2026-09-15, NVIDIA moved networking docs off `docs.nvidia.com` to a dedicated host; old address 302s]
 - [Vera Rubin Pod dev blog](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/) **[LV: 2026-08-18]** — NVIDIA now officially names the first rack product "Vera Rubin NVL72" (not "VR200 NVL144"); blog states it is "in full production, on track to ship in the second half of 2026". Rubin-roadmap reference patched accordingly.
 - [SemiAnalysis — Rubin extreme co-design](https://newsletter.semianalysis.com/p/vera-rubin-extreme-co-design-an-evolution) [LV: 2026-08-18]
 - [SemiAnalysis — GTC 2025 Rubin/Kyber](https://newsletter.semianalysis.com/p/nvidia-gtc-2025-built-for-reasoning-vera-rubin-kyber-cpo-dynamo-inference-jensen-math-feynman) [LV: 2026-08-18]
 - [Glenn Lockwood — Kyber](https://www.glennklockwood.com/garden/Kyber) [LV: 2026-08-18]
 - [Tom's — B300 announcement](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4) [LV: 2026-08-18]
-- [Tom's — 1400 W B300 TDP](https://web.archive.org/web/2026/https://www.tomshardware.com/tech-industry/artificial-intelligence/nvidias-next-gen-b300-gpus-have-1400w-tdp-deliver-50-percent-more-ai-horsepower-report) [LV: 2026-08-18, original 404 — swapped to archive.org snapshot]
+- [Tom's — 1400 W B300 TDP](https://www.tomshardware.com/tech-industry/artificial-intelligence/nvidias-next-gen-b300-gpus-have-1-400w-tdp-deliver-50-percent-more-ai-horsepower-report) [LV: 2026-09-15, back on the primary host. The slug is `-1-400w-`, not `-1400w-`; a one-character transcription error caused the 404 that sent the previous pass to archive.org, and that snapshot is now dead too]
 - [Tom's — Rubin $8.8M](https://www.tomshardware.com/tech-industry/artificial-intelligence/price-of-nvidias-vera-rubin-nvl72-racks-skyrockets-to-as-much-as-usd8-8-million-apiece-but-server-makers-margins-will-be-tight-nvidia-is-moving-closer-to-shipping-entire-full-scale-systems) [LV: 2026-08-18]
 - [Tom's — $50k cooling BoM](https://www.tomshardware.com/pc-components/cooling/cooling-system-for-a-single-nvidia-blackwell-ultra-nvl72-rack-costs-a-staggering-usd50-000-set-to-increase-to-usd56-000-with-next-generation-nvl144-racks) [LV: 2026-08-18]
 - [Register — 600 kW racks](https://www.theregister.com/2025/03/19/nvidia_charts_course_for_600kw/) [LV: 2026-08-18]
@@ -67,9 +67,9 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [Lenovo GB300 NVL72 product guide lp2357](https://lenovopress.lenovo.com/lp2357-lenovo-nvidia-gb300-nvl72-rack-scale-ai) [LV: 2026-08-18]
 - [Lenovo GB300 NVL72 datasheet ds0207](https://lenovopress.lenovo.com/datasheet/en-us/ds0207-lenovo-nvidia-gb300-nvl72) [LV: 2026-08-18]
 - [Lenovo HGX B200 180 GB lp2226](https://lenovopress.lenovo.com/lp2226-thinksystem-nvidia-b200-180gb-1000w-gpu) [LV: 2026-08-18]
-- [Supermicro GB300 NVL72 product](https://www.supermicro.com/en/products/system/gpu/48u/srs-gb300-nvl72) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
-- [Supermicro GB200 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB200_NVL72.pdf) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
-- [Supermicro GB300 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB300_NVL72.pdf) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
+- [Supermicro GB300 NVL72 product](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) [LV: 2026-09-15, URL moved out of `/system/gpu/48u/` into `/rack/`; no longer bot-blocked, 200 to bare curl]
+- [Supermicro GB200 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB200_NVL72.pdf) [LV: 2026-09-15, now 200 to bare curl — the bot-block lifted]
+- [Supermicro GB300 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB300_NVL72.pdf) [LV: 2026-09-15, now 200 to bare curl — the bot-block lifted]
 - [HPE Store — GB300 NVL72 by HPE](https://buy.hpe.com/us/en/compute/rack-scale-system/nvidia-nvl-system/nvidia-gb300-nvl72-by-hpe/p/1014890105) [LV: 2026-08-18, 403 to curl — bot-blocked, verify in browser]
 - [Wiwynn GTC 2025](https://www.wiwynn.com/news/wiwynn-showcases-ai-servers-featuring-nvidia-gb300-nvl72-platform-and-liquid-cooling-innovations-at-gtc-2025) [LV: 2026-08-18]
 - [STH — first GB300 NVL72](https://www.servethehome.com/dell-and-coreweave-show-off-first-nvidia-gb300-nvl72-rack/) [LV: 2026-08-18]
@@ -140,7 +140,7 @@ The 2026-07-21 pass established **no Rubin support at v0.25.1** (empty
 `gh search issues --repo vllm-project/vllm "Rubin"`). **That is now out of date** —
 the negative held for three weeks. Current state, probed against v0.27.0:
 
-- [vLLM #49735 — `[Tracking Issue]: sm_107` enablement for Rubin GPUs and the Vera Rubin platform](https://github.com/vllm-project/vllm/issues/49735) **[LV: 2026-08-11]** — **state=OPEN**, last updated 2026-07-29. Goal: "Enable vLLM on Rubin (sm_107) with CUDA 13.4." Checklist items **all still unchecked**, including the CUDA 13.4 dev-preview build of vLLM and the FlashInfer sm_107 update.
+- [vLLM #49735 — `[Tracking Issue]: sm_107` enablement for Rubin GPUs and the Vera Rubin platform](https://github.com/vllm-project/vllm/issues/49735) **[LV: 2026-09-15]** — **state=OPEN**, last updated 2026-08-23. Goal: "Enable vLLM on Rubin (sm_107) with CUDA 13.4." **One checklist item is now ticked** — SM107 build support (#49387); the "all still unchecked" claim below was true when written and is not now. Still unticked: the CUDA 13.4 dev-preview build, #49647 NVLink all-reduce, and the FlashInfer sm_107 update — **but the last two are already merged upstream**, so the checklist under-reports progress. Read the linked PRs, not the boxes.
 - [vLLM #49387 — Add `sm_107` for Rubin](https://github.com/vllm-project/vllm/pull/49387) **[LV: 2026-08-11]** — MERGED 2026-07-24. Enables CUDA 13.4's native SM107 target and lets SM107 reuse compatible SM100-family kernels across the CUDA, DeepGEMM, FlashMLA and QuTLASS builds. Landed in **v0.27.0**, not v0.26.0 (v0.26.0's `CMakeLists.txt` has no 10.7 row).
 - [vLLM #49647 — [Rubin] Enable NVLink all-reduce paths on SM107](https://github.com/vllm-project/vllm/pull/49647) **[LV: 2026-08-11]** — MERGED 2026-07-29. Before it, sm_107 had no entries in the collective-communication selection tables and traffic silently fell back to NCCL. Adds custom all-reduce, PyTorch symmetric-memory multimem, and FlashInfer allreduce+RMSNorm fusion entries, reusing SM10.3's validated size thresholds.
 - [flashinfer-ai/flashinfer#4122 — Adds SM107 support](https://github.com/flashinfer-ai/flashinfer/pull/4122) **[LV: 2026-08-11]** — MERGED 2026-07-25.
