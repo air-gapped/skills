@@ -201,7 +201,7 @@ The PP+HiCache release-blocker (#22607, plus the new TP-only #30760) is detailed
 | Issue | Closed | Reality |
 |---|---|---|
 | [#21880](https://github.com/sgl-project/sglang/issues/21880) | 2026-06-18, inactivity | `file` backend slow in containers (`Pin budget: 0 tokens (ratio=0.000)`, prefetch dominates). Last substantive comment 2026-04-18 reproduced it. **Still don't use `file` in production** — though note the CP-aware LRU eviction added in v0.5.15 (#26670) touches this backend, so a fresh measurement is worth taking |
-| [#22757](https://github.com/sgl-project/sglang/issues/22757) | 2026-06-14, inactivity | GLM5/DSA L3 segfault on H20. A candidate fix (PR #22120) was suggested 2026-04-14 but never confirmed on the thread |
+| [#22757](https://github.com/sgl-project/sglang/issues/22757) | 2026-06-14, inactivity | Segfault in `cache_controller.backup_thread_func` on DSA + Mooncake L3. **Not an H20 erratum** — the report carries two reproductions at commit `e9d6b9e`: H20 + DeepSeek-V3.2-AWQ (TP/DP 8) and **B300** + GLM-5-NVFP4-MTP (TP/DP 4). GPU, model, TP/DP and quantization all differ; the HiCache config is identical (`--hicache-io-backend direct` + `--hicache-mem-layout page_first_direct` + `--hicache-storage-prefetch-policy timeout` + mooncake with `global_segment_size: "0"`, EAGLE spec-dec, `--page-size 64`) — the combination this skill's recipes recommend. PR #22120 from the thread is **closed unmerged** and is a CUDA-13 `cudaMemcpyBatchAsync` fix for #21869, not a fix for this |
 
 For symptom → diagnosis → fix flow, see `references/troubleshooting.md`.
 

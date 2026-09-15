@@ -124,11 +124,12 @@ Prior skill-improver runs and ceiling findings.
 ### Checked and still CORRECT — do not close these
 
 - **The two stale-bot issues remain genuinely unfixed.** #21880 (file backend
-  slow in containers) and #22757 (GLM5/DSA L3 crash on H20) were both closed by
-  the inactivity bot, and #22757's candidate fix **PR #22120 was closed
-  unmerged**. GitHub reports `stateReason: COMPLETED` for both, which does not
-  distinguish a fix from an autoclose. The skill's decision to keep recording
-  them as live risks was right and stays.
+  slow in containers) and #22757 (DSA + Mooncake L3 crash) were both closed by
+  the inactivity bot, and #22757's suggested **PR #22120 was closed unmerged** —
+  and is a CUDA-13 `cudaMemcpyBatchAsync` fix for #21869, not a fix for this.
+  Stale-bot state reads as `COMPLETED`, which does not distinguish a fix from an
+  autoclose. The skill's decision to keep recording them as live risks was right
+  and stays.
 
 ## Open
 
@@ -139,13 +140,17 @@ Prior skill-improver runs and ceiling findings.
 - **Dim:** 9
 - **Where:** `SKILL.md` "Open bugs" (the stale-bot sub-table) and the corresponding
   `sources.md` rows for #21880 (`file` backend slow in containers) and #22757
-  (GLM5/DSA L3 segfault on H20).
+  (DSA + Mooncake L3 segfault, reproduced on H20 and B300).
 - **Why ceiling-bound:** both were closed by the inactivity bot (2026-06-18 and
   2026-06-14) with no linked fix — #22757 has an unconfirmed candidate PR (#22120),
   #21880's last substantive comment reproduced the problem. Closed-state alone is not
   evidence of a fix, so the skill now records them as live risks. Actually resolving
   them needs a measurement, not a probe: v0.5.15's CP-aware LRU eviction on the file
-  backend (#26670) may have changed #21880's picture, and #22757 needs H20 hardware.
+  backend (#26670) may have changed #21880's picture. #22757 is **not** gated on
+  H20 access — it reproduces on H20 and B300 alike, so what is missing is a run
+  that isolates which of the shared HiCache flags (`direct` IO, `page_first_direct`,
+  `timeout` prefetch, mooncake `global_segment_size: "0"`, EAGLE, page-size 64) is
+  the trigger. Any DSA or NVFP4 box with an RDMA mooncake tier can do it.
 - **Score impact if resolved:** removes two hedged entries from the bug table.
 
 ## Resolved — 2026-09-15 (the three backends that had no recipe)

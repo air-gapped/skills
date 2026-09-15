@@ -88,10 +88,10 @@ Symptom → diagnosis → fix. Recheck via `gh issue view <N> --repo sgl-project
 - **Cause**: Issue [#23457](https://github.com/sgl-project/sglang/issues/23457). `local_hostname` falls back to `"localhost"` for all ranks; head node value broadcast to workers.
 - **Fix**: Inject `MOONCAKE_LOCAL_HOSTNAME=$(hostname)` per node before launch. Use static `--hicache-storage-backend mooncake` startup flag, not runtime attach, until #23457 is fixed.
 
-### `segfault in cache_controller.backup_thread_func` on H20 + GLM-5 DSA
+### `segfault in cache_controller.backup_thread_func` on DSA + Mooncake L3
 
-- **Cause**: Issue [#22757](https://github.com/sgl-project/sglang/issues/22757). DSA + Mooncake L3 on specific hardware.
-- **Fix**: No clean workaround. Disable hicache on GLM-5 DSA + H20 stack until fix.
+- **Cause**: Issue [#22757](https://github.com/sgl-project/sglang/issues/22757). Reproduced on H20 (DeepSeek-V3.2-AWQ) **and** B300 (GLM-5-NVFP4-MTP) at commit `e9d6b9e` — do not treat it as hardware-specific. Suspect the shared config, not the GPU: `--hicache-io-backend direct` + `--hicache-mem-layout page_first_direct` + `--hicache-storage-prefetch-policy timeout` + mooncake with `global_segment_size: "0"`, EAGLE spec-dec, `--page-size 64`.
+- **Fix**: None confirmed — PR #22120 from the thread is closed unmerged and fixes a different issue. The crash is in the host→L3 backup path, so dropping L3 (omit `--hicache-storage-backend`, keep L2) removes it. Narrowing the shared flags above is untested.
 
 ## File-backend specific
 
