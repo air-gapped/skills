@@ -152,6 +152,32 @@ target versions follow look-ahead (House Rule #4).
    the operator's *next* planned hop too, not the bare immediate minimum — a version sitting at its
    own support ceiling forces an avoidable second upgrade. (Same rule as k8s-components-checker
    House Rule #9.)
+
+   **And ground the patch floor on advisories, not just on "latest".** Rancher ships security
+   advisories in batches, and they set a *minimum* patch per minor that the latest-patch lookup does
+   not tell you. Enumerate them the same way you enumerate releases:
+
+   ```bash
+   gh api repos/rancher/rancher/security-advisories --paginate \
+     --jq '.[] | "\(.severity) \(.published_at[0:10]) \(.ghsa_id) \(.summary)"'
+   # then, for one advisory, the per-minor patched floors:
+   gh api repos/rancher/rancher/security-advisories --paginate \
+     --jq '.[] | select(.ghsa_id=="GHSA-...") | .vulnerabilities[]
+           | "\(.vulnerable_version_range) -> \(.first_patched_version)"'
+   ```
+
+   **Worked example, and a live one — CVE-2026-44945 / GHSA-v584-7w32-jwpq, CRITICAL, published
+   2026-07-31.** Privilege escalation in the local cluster via cross-cluster impersonation, a
+   confused-deputy problem. Its affected ranges give four different per-minor floors at once:
+   **< 2.14.2, < 2.13.8, < 2.12.12, < 2.11.16**. A ladder that targets, say, 2.11.14 because it is
+   "a recent 2.11" lands on a version that is still vulnerable. A further batch of **high**-severity
+   advisories landed 2026-08-28 (account takeover via principal rebind, cross-cluster Project Secret
+   disclosure, SAML assertion replay across HA replicas, cross-user token disclosure), so re-run the
+   enumeration at plan time rather than trusting these numbers.
+
+   **The advisory feed's `first_patched_version` is frequently null here** — as it is for the CVE
+   above. Derive the floor from `vulnerable_version_range` instead; "no patched version listed" does
+   not mean "no fix".
 5. **Management Rancher upgrades BEFORE downstream k8s minor bumps**, always. And **no minor
    skipping** on the Rancher axis. Violating either is the classic fleet-stranding / rebuild path.
 6. **Back up before every step.** An RKE2 etcd snapshot of the management cluster is the real

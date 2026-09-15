@@ -7,6 +7,22 @@ itself after the pre-commit gate flagged SKILL.md at 10,051 tokens against
 the 5,000 guidance.
 
 - **`scripts/scan-skills.sh`** — Find all SKILL.md files in profile and project scopes. Outputs paths sorted by modification time.
+- **`scripts/advisory-lag.py`** — Rank skills by the security advisories their
+  upstream published **since that skill was last verified**. Freshen priority is
+  normally read off a date, and that ordering is blind to the thing most worth
+  catching: a skill verified eight weeks ago whose upstream shipped a critical
+  auth bypass in week six is a worse liability than one verified six months ago
+  against a project that shipped nothing. Reads each `sources.md` for its
+  `Freshened:` stamp (falling back to the oldest row date on legacy files),
+  picks the GitHub repo that file references most, and counts advisories newer
+  than that date, sorting critical-first and marking rows with an unseen
+  CRITICAL. Found `traefik-hardening` sixteen advisories behind with two
+  criticals, one of them a complete authentication bypass in a middleware the
+  skill configures. **Read it as a lead, not a verdict** — repo attribution is
+  crude on multi-product skills, and an advisory against a project need not
+  touch a given skill's subject. A repo with no advisory feed, or a failed API
+  call, is skipped rather than reported as zero, because an unreachable feed is
+  not a clean one.
 - **`scripts/dedup-fleet.py`** — Fleet driver for intra-skill dedup, and the
   measurement behind Pattern 6.1. Runs `context-optimization-check` per skill,
   writing each result as it lands so a killed pass keeps what finished, and

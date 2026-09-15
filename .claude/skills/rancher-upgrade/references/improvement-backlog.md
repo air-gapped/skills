@@ -5,6 +5,30 @@ Cross-run memory for `skill-improver`: read at the start of each run, updated at
 (ceiling discards, multi-file restructures). Open is NOT a wishlist. **Resolved this pass** =
 changes that actually landed.
 
+## Resolved — 2026-09-15 (advisory-grounded patch floors)
+
+- **An upgrade skill with no advisory step was picking target patches blind.**
+  The skill had House Rules for grounding the latest patch via `gh` and for
+  look-ahead targeting, but **no mention of any GHSA or CVE anywhere** — and
+  security advisories are a primary reason to choose one patch over another.
+  Rancher has published 23 advisories since this skill's oldest source row,
+  16 of them high or critical.
+- **The mechanism, not just the list, is now in the skill.** Advisories set a
+  *minimum* patch **per minor**, which a latest-patch lookup cannot tell you.
+  Worked through the live example: CVE-2026-44945 / GHSA-v584-7w32-jwpq
+  (**critical**, 2026-07-31, local-cluster privilege escalation via
+  cross-cluster impersonation) carries four simultaneous floors — < 2.14.2,
+  < 2.13.8, < 2.12.12, < 2.11.16. A ladder aiming at "a recent 2.11" can land on
+  2.11.14 and still be vulnerable.
+- **Recorded a trap in the feed itself**: `first_patched_version` is null for
+  that advisory and many others here, so the floor has to be derived from
+  `vulnerable_version_range`. "No patched version listed" does not mean "no
+  fix", and reading it that way would silently drop the whole check.
+- Noted the 2026-08-28 high-severity batch (account takeover via principal
+  rebind, cross-cluster Project Secret disclosure, SAML assertion replay across
+  HA replicas, cross-user token disclosure) as a reason to re-run the
+  enumeration at plan time rather than trusting numbers written here.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **Version state re-grounded per House Rule #8** (enumerate-and-derive, no

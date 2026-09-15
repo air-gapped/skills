@@ -16,6 +16,30 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 - **Measure `delta_pass_rate`** — Dim 10 (capped at 8 unmeasured). Requires `evals/evals.json` + skill-creator's `aggregate_benchmark`. Flagged by the blind scorer as the binding cap.
 - **Organizations coverage is comparatively thin** — Dim 5 (blind-baseline finding). Deeper org-lifecycle content (v2 PATCH clear-token semantics beyond the one row, org-admin permission bugs) needs research-pass material, not a one-iteration edit.
 
+## Resolved — 2026-09-15 (freshen to v1.100.1)
+
+- **The skill's headline budget claim was reverted upstream on the same day the
+  skill last verified it.** The frontmatter description, a SKILL.md bullet, a
+  whole `budgets-spend.md` section and a numbered rule all taught that team-key
+  spend counts against members' personal budgets "since ~v1.94", with a broken
+  opt-out. PR **#35271** (`revert(proxy)!: stop enforcing user budget on team
+  keys`) merged **2026-07-30** and shipped in **v1.96.0**: team keys use team
+  budgets only, and `skip_user_budget_on_team_key` was **deleted outright**,
+  config field and UI toggle included. **v1.97.0** then added a deliberate
+  opt-*in*, `general_settings.apply_user_budget_to_team_keys`, default off
+  (PR #36102, 2026-08-07).
+- **The direction of the error is the part worth remembering.** The v1.94
+  behaviour was the surprising one, so the skill's advice — model personal
+  budgets as personal plus team spend — was written to warn about it. On v1.96.0
+  and later that advice **over-provisions**: the team key never touches the
+  personal budget unless someone opted back in. Guidance that is correct for
+  exactly one minor is a sharper hazard than guidance that is merely old, and
+  a date-based freshen would not have caught it because the skill's stamp and
+  the revert share a date.
+- Corrected in all four places, as a version table rather than a single rule,
+  since which behaviour applies is a version question and all three states are
+  still in the field.
+
 ## Resolved this pass — 2026-07-30
 
 Blind scores: baseline 84, final **88** (self final 87 — 1-point alignment, no bias flags). Post-final fix from the final blind's issue 2: added the verified `/spend/logs/v2` filter list + worked query recipe to `endpoint-map.md` (params read from `spend_management_endpoints.py:1595+`). Its issue 3 (6-char frontmatter headroom) recorded below as a guard; issue 1 (eval set) already in Open.
