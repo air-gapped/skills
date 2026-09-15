@@ -100,7 +100,7 @@ Upstream reference: `docs/features/kv_offloading_usage.md`.
 
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.3, 2026-08-05; the bundled `kv_connectors.txt` floor is `>=0.3.9`).
+Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.5, 2026-09-12; `vllm/vllm-openai:v0.29.0` bundles **0.5.4**, verified by container run 2026-09-15, so `-U` moves you one patch off the image's tested pair — pin deliberately. The bundled `kv_connectors.txt` floor is `>=0.3.9`).
 
 ```bash
 docker run ... \
