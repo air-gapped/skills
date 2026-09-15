@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.27.0** (2026-08-10); latest stable is **v0.27.1** (2026-08-11), a one-change patch that touches no perf surface. Last freshened 2026-08-11.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.27.0** (2026-08-10); **latest stable is v0.29.0** (2026-09-09), via v0.28.0. **v0.28.0 raised the `max_num_batched_tokens` default 8192 → 16384** (#51726), so the device-gated defaults documented here describe v0.27.x and not the current release. Last freshened 2026-09-15.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
