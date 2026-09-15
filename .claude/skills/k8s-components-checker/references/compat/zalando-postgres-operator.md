@@ -5,7 +5,10 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi`        # (operator version → bundled Spilo image → bundled PostgreSQL majors)
 - **min_tracked_version:** 1.13.0
-- **Last sifted:** 2026-07-29 (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
+- **Last sifted:** 2026-09-15
+- **CORRECTION — the "no published matrix" premise was false, and false from the start.** This file says in four places that the k8s floor is *"unstated by upstream"* and that Zalando *"does not publish a hard matrix"*. The repo README has carried a **"Supported Postgres & K8s versions"** table continuously since v1.11.0, with an explicit **K8s column reading `1.27+`** for every release listed, v1.11.0 through v2.0.2. It was there the whole time.
+  The inferred floor this file guessed (≥1.27) happens to match the published one, which is why the error survived: the answer was right, so nothing ever contradicted it. **Read the README table; stop inferring.** Probe: `gh api repos/zalando/postgres-operator/contents/README.md --header 'Accept: application/vnd.github.raw' | grep -A10 'Supported Postgres'`.
+- **k8s floor (published): `1.27+`, identical for every release v1.11.0 → v2.0.2.** Release ceiling **v2.0.2** (2026-08-20, `isLatest`); single release train, v1.15.1 (2025-12-18) is the last pre-2.0 tag. (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
 - **Last release-verified:** 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
   notes read in full; it supersedes v2.0.1 as the only deployable 2.0.** See the
   new §2.0.2 below. Prior verify 2026-07-29 (full release listing enumerated via
@@ -14,7 +17,7 @@
 The axis tuple `(operator, Spilo image, PG majors)` is the verdict-load-bearing
 unit. The operator has a loose k8s floor (works on any currently-supported
 upstream minor it has been built against — community CI runs against
-recent k8s minors but Zalando does not publish a hard matrix), so the
+recent k8s minors; **corrected 2026-09-15 — Zalando DOES publish one, `1.27+` in the README support table**), so the
 verdict turns on the **Spilo image** (which PG major) and on whether
 `kubernetes_use_configmaps` semantics have shifted under the operator.
 
@@ -57,7 +60,7 @@ older majors so `pg_upgrade` flows work.
 
 ## 2.0.1  (2026-07-29)
 
-- **k8s floor:** unstated by upstream (as before); the release exists because k8s is deprecating the bare Endpoints API — see the configmaps flip under 2.0.0.
+- **k8s floor: `1.27+` — published in the repo README's support table** (corrected 2026-09-15; previously recorded here as unstated by upstream) (as before); the release exists because k8s is deprecating the bare Endpoints API — see the configmaps flip under 2.0.0.
 - **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.1-p2` (default PG17)
 - **Bundled PostgreSQL majors:** 14 – 18 (PG13 dropped, PG18 added at 2.0.0)
 - **Breaking:** none beyond 2.0.0 — hotfix release.
@@ -66,7 +69,7 @@ older majors so `pg_upgrade` flows work.
 
 ## 2.0.0  (2026-07-27)
 
-- **k8s floor:** unstated by upstream; CI against currently-supported upstream minors at release (2026-07). The `kubernetes_use_configmaps` default flip (below) is explicitly motivated by the upstream Endpoints API deprecation.
+- **k8s floor: `1.27+` — published in the repo README's support table** (corrected 2026-09-15; previously recorded here as unstated by upstream); CI against currently-supported upstream minors at release (2026-07). The `kubernetes_use_configmaps` default flip (below) is explicitly motivated by the upstream Endpoints API deprecation.
 - **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.1-p2` (default PG17; bundle includes PG18)
 - **Bundled PostgreSQL majors:** 14 – 18 (**PG13 dropped**, **PG18 added**)
 - **Breaking:**
@@ -83,7 +86,7 @@ older majors so `pg_upgrade` flows work.
 
 ## 1.15.1  (2025-12-18)
 
-- **k8s floor:** unstated by upstream; verified by operator CI against currently-supported k8s minors (≈ 1.28 – 1.34 at release time). Treat as "works on any currently-supported k8s minor", not pinned.
+- **k8s floor: `1.27+` — published in the repo README's support table** (corrected 2026-09-15; previously recorded here as unstated by upstream); verified by operator CI against currently-supported k8s minors (≈ 1.28 – 1.34 at release time). Treat as "works on any currently-supported k8s minor", not pinned.
 - **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.0-p3`
 - **Bundled PostgreSQL majors:** 13 – 17 (PG12 dropped at 1.14.0)
 - **Breaking:** stopped pushing to `registry.opensource.zalan.do` — all images now ghcr.io-only. Air-gapped mirrors that pulled from the old registry must be repointed. 1.9.0 helm-chart releases removed.
@@ -132,7 +135,7 @@ older majors so `pg_upgrade` flows work.
 
 ## Cross-cutting (all in-scope versions)
 
-- **Operator k8s floor is loose.** Zalando does not publish a Kubernetes support matrix per release. The operator uses standard client-go and CRD v1; it has run cleanly on every supported upstream k8s minor in the 1.13 – 2.0 lifetime. Verdict against k8s ≥ 1.27 is "compatible barring CRD-conversion-webhook regressions". Below 1.25, treat as unverified.
+- **Operator k8s floor is published, not loose — corrected 2026-09-15.** The repo README carries a "Supported Postgres & K8s versions" table giving **`1.27+`** for every release from v1.11.0 to v2.0.2. The earlier text here said no such matrix exists; it has existed throughout. The operator uses standard client-go and CRD v1; it has run cleanly on every supported upstream k8s minor in the 1.13 – 2.0 lifetime. Verdict against k8s ≥ 1.27 is "compatible barring CRD-conversion-webhook regressions". Below 1.25, treat as unverified.
 - **Postgres 18 requires v2.** 1.15.x ships Spilo-17 4.0-p3 (PG 13–17, no PG18). PG18 landed at v2.0.0 (2026-07-27) via Spilo-17 4.1-p2 — the "Q1 2026" target slipped ~2 quarters and arrived as a major. Surveying for PG18 readiness: available on v2.0.1+ only.
 - **Connection pooler (pgBouncer):** coupled to the operator version via the `connection_pooler_image` config default. Each operator minor bumps the default pgBouncer image; manually pinned values stick across upgrades. Verify after operator bump that the pooler image still pulls and is on a supported pgBouncer line.
 - **logical-backup image:** versioned with the operator (`ghcr.io/zalando/postgres-operator/logical-backup:vX.Y.Z`). Bump in lockstep with the operator — mismatched logical-backup vs operator is unsupported.

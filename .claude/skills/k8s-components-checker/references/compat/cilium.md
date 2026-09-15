@@ -5,7 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 — line ceilings re-enumerated with `isLatest` read explicitly: **1.20.1** (2026-08-18, isLatest), **1.19.7**, **1.18.13** (both 2026-08-18), **1.17.18** (2026-07-16, unchanged). v1.21.0-pre.2 exists (2026-09-09) but is not GA.
+- **k8s windows re-read today, all unchanged:** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — so the in-scope set is **1.20/1.19/1.18** and 1.17 is out, confirming this file's own earlier correction.
 
 In-scope set **as sifted 2026-07-21**: current stable 1.19 + prior 2 (1.18, 1.17).
 1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest
@@ -26,7 +27,7 @@ patches as of sift: **1.19.6, 1.18.12, 1.17.18** (all 2026-07-16).
 > a date, written in the present tense. `v1.20.0-pre.4` was accurate on
 > 2026-07-03 and misleading eight days later.
 
-CRD schema versions per minor (from stable matrix page): 1.17.x → 1.30.8, 1.18.x → 1.31.11, 1.19.x → 1.32.6. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
+CRD schema versions per minor, **re-read 2026-09-15 off the per-minor pages rather than `/en/stable/`**: 1.17.x → 1.30.8 (unchanged all series), 1.18.x → **1.31.12** (bumped at v1.18.12, was 1.31.11), 1.19.x → **1.32.7** (bumped at v1.19.6, was 1.32.6), 1.20.x → **1.33.11**. **Cite the per-minor URL, not `/en/stable/`** — the `stable` alias follows whichever minor is current, so the same citation returns a different table over time; it currently resolves to 1.20 and shows only k8s 1.33–1.36. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
 
 **Benign kernel-noise (kernel 6.17, cross-Cilium-version) — do not escalate.** On
 Linux **6.17** (e.g. after an RKE2/OS bump pulls 6.17.0-35-generic) the agent emits

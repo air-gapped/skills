@@ -5,7 +5,7 @@
 - **Truth source type:** `enumerated_artifacts` (no published matrix exists — versions read from Chart.yaml/values.yaml per branch)
 - **Axis type:** `dual` (Rancher minor gate + kube-version gate, both from catalog annotations)
 - **min_tracked_version:** 106.x (Rancher 2.11)
-- **Last sifted:** 2026-07-22
+- **Last sifted:** 2026-09-15 — all four branches re-enumerated; **every newest chart is still `+up4.10.0`**, so the freeze this file exists to describe is intact. The CVE-2026-54680 backport search was re-run across `rancher/charts` and `rancher/ob-team-charts`: still zero hits, still no SUSE advisory, so Rancher's shipped 4.10.0 remains below the 6.6.0 fix floor. Component images unchanged (operator 4.10.0, fluentd v1.16-4.10-full, fluentbit 3.1.8, config-reloader v0.0.6). ob-team-charts #218 still open.
 - **Last release-verified:** 2026-09-15 — `assets/rancher-logging` enumerated on
   `release-v2.15`. **The `rancher.24` respin that was unreleased at sift has now
   shipped on every line**, and the 2.15 chart line is **released, not an rc**.
@@ -21,7 +21,7 @@ prefix↔Rancher mapping verified empirically via `catalog.cattle.io/rancher-ver
 template fixes) — the operator image is a stock upstream mirror.
 
 ⚠️ **The upstream base is FROZEN at 4.10.0 (released 2024-10-03) across every
-tracked line 106→110**, while upstream is at 6.7.0 (2026-06-16). Operator ≤6.5.2 —
+tracked line 106→110**, while upstream is at **6.8.0 (2026-08-11)** — one further release since, widening the gap again. Operator ≤6.5.2 —
 including 4.10.0 — is affected by **CVE-2026-54680** (CVSS 9.9 fluentd
 config-injection → RCE, GHSA-mjqf-28ph-426h); fix exists only in upstream 6.6.0+
 (use 6.7.0 — 6.6.0 has a newline-password regression). **No SUSE fix or advisory
@@ -51,7 +51,7 @@ the real gate**.
 | 2.12 | 107.0.0+up4.10.0-rancher.6 → **107.0.6+up4.10.0-rancher.24** | 4.10.0 | ≥1.31 <1.34 | ⚠ two artifacts share helm version `107.0.1` (+…rancher.10 vs rancher.13; `+` is build metadata to helm). Was 107.0.5/rancher.23 at sift |
 | 2.13 | 108.0.0+up4.10.0-rancher.15 → **108.0.5+up4.10.0-rancher.24** | 4.10.0 | ≥1.32 <1.35 | was 108.0.4/rancher.23 at sift |
 | 2.14 | 109.0.0+up4.10.0-rancher.23 → **109.0.1+up4.10.0-rancher.24** | 4.10.0 | ≥1.33 <1.36 | the `rancher.24` respin ("node info for rke2") **shipped** — it was an rc at sift |
-| 2.15 | **110.0.0+up4.10.0-rancher.24** (released) | **still 4.10.0** | not re-derived | Rancher 2.15 GA'd 2026-07-30 and this chart line released with it; the kube gate was **not** re-read — derive it before a 2.15 verdict. Freeze continues |
+| 2.15 | **110.0.0+up4.10.0-rancher.24** (released) | **still 4.10.0** | `>= 1.34.0-0 < 1.37.0-0` (derived 2026-09-15 from the chart's `catalog.cattle.io/kube-version` annotation) | Rancher 2.15 GA'd 2026-07-30 and this chart line released with it; the kube gate was **not** re-read — derive it before a 2.15 verdict. Freeze continues |
 
 Historical anchors: 102.x/2.7 bundled 3.17.10 (7 CRDs only — no fluentbitagents/
 syslogng*/loggingroutes); base hops on record: 3.17.10 → 4.4 → 4.8 → 4.10 (during

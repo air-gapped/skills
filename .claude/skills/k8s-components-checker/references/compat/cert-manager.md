@@ -5,7 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-07-21
+- **Last sifted:** 2026-09-15 — matrix re-read; **both k8s windows and the support policy are unchanged** (1.21 → k8s 1.33–1.36, 1.20 → 1.32–1.35, 1.21 EOLs at the release of 1.23). Only patch ceilings moved: **1.21 line is at v1.21.2** (2026-09-11) and **1.20 at v1.20.3** (2026-06-25). The supported set is still exactly 1.21 + 1.20, so nothing in the scope logic changes.
+- Policy verbatim: *"All cert-manager releases are supported at least until the release of a second subsequent version"*, and *"Only the last patch release of each branch is supported for bug fixes and security updates"* — which is why the patch ceilings above are the actionable figure, not the minor.
 
 Support policy: each release is supported until two subsequent minors ship, so
 exactly two minors are "current" at any time. Minors cadence ~4 months. Current
