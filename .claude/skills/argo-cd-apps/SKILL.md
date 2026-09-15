@@ -73,16 +73,40 @@ or read https://github.com/argoproj/argo-cd at the matching path.
 
 ## Critical gotchas (May 2026)
 
-### 1. CVE-2026-42880 — `IncludeMutationWebhook=true` leaks Secrets
+### 1. ServerSideDiff leaks Secrets — two CVEs, and the first fix was incomplete
 
-Patched **v3.3.9 / v3.2.11** (per GHSA-3v3m-wc6v-x4x3, advisory published
-2026-05-01). `ServerSideDiff` +
-`argocd.argoproj.io/compare-options: IncludeMutationWebhook=true` exfiltrates
-plaintext Secret data to anyone with `applications, get`. Clusters that handle
-Secrets at all MUST be on a patched build.
+**Floor: v3.4.2 / v3.3.10 / v3.2.12.** Anything at or below v3.4.1 / v3.3.9 /
+v3.2.11 is exposed. Verified 2026-09-15.
 
-When immediate upgrade isn't possible: strip `IncludeMutationWebhook=true` from
-every Application. Block the value in CI with `kubeconform`/conftest.
+| CVE | Published | Affected | Fixed in | Trigger |
+|-----|-----------|----------|----------|---------|
+| CVE-2026-42880 (**critical**) | 2026-05-01 | 3.2.0 – 3.3.8 | 3.3.9 / 3.2.11 | `ServerSideDiff` + the `IncludeMutationWebhook=true` compare-option |
+| CVE-2026-45737 (medium) | 2026-05-13 | 3.2.0 – 3.2.11, **3.3.9**, **3.4.1** | **3.4.2 / 3.3.10 / 3.2.12** | `argocd app diff --server-side-diff` — **no annotation needed** |
+
+**The trap: 3.3.9 and 3.2.11 are the remediation for the first CVE and are
+inside the second.** The advisory says so outright — "the original fix for
+GHSA-3v3m-wc6v-x4x3 is incomplete". Upgrading to the number the critical
+advisory names lands on a vulnerable build.
+
+The second is not a narrower rerun of the first. It needs **no compare-option**:
+the fix masked top-level Secret data but not the copy embedded in
+`kubectl.kubernetes.io/last-applied-configuration`, which any Secret previously
+written by *client-side* apply still carries. Server-side dry-run returns that
+annotation on `predictedLive`, and the masking only rewrote `live`. So a cluster
+that never set `IncludeMutationWebhook=true` is still exposed, and anyone who
+can run `argocd app diff --server-side-diff` sees the values.
+
+**Therefore stripping the annotation is not a mitigation for the second CVE** —
+it only closes the first. Below the floor, the containment is to restrict who
+holds `applications, get` and who can run `app diff`, and to re-apply affected
+Secrets server-side so the annotation stops carrying plaintext. Strip
+`IncludeMutationWebhook=true` anyway and block it in CI with
+`kubeconform`/conftest; it is a footgun independent of patch level.
+
+Also on this line: **CVE-2026-45738** (high, 2026-05-13) — stored XSS in
+application **link annotations**, escalating a developer who can edit an
+Application to admin. Affects `< 3.0.0` only, so any 3.x is clear; it matters
+when advising anyone still on 2.x.
 
 ### 2. Argo CD v3.0 flipped seven defaults — don't write apps as if on v2
 
@@ -380,7 +404,7 @@ The `argocd.argoproj.io/*` annotations app authors use most:
 | `hook-delete-policy: HookSucceeded\|HookFailed\|BeforeHookCreation` | hook resource | when to GC the hook |
 | `sync-options: <opt>=<val>,<opt>=<val>` | any resource | per-resource override of `syncPolicy.syncOptions` |
 | `compare-options: IgnoreExtraneous` | any resource | hide extraneous resources from diff |
-| `compare-options: IncludeMutationWebhook=true` | any resource | **DO NOT USE** unless on patched 3.x — see CVE-2026-42880 |
+| `compare-options: IncludeMutationWebhook=true` | any resource | **DO NOT USE** below v3.4.2 / v3.3.10 / v3.2.12 — see §1; note the second CVE needs no annotation |
 | `manifest-generate-paths: ".;../base"` | Application | only re-render if these git paths change (huge perf win) |
 | `refresh: "hard"` | Application | trigger one hard-refresh (Argo deletes the annotation after) |
 | `skip-reconcile: "true"` | Application | freeze reconcile (Alpha; intended for OCM) |

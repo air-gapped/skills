@@ -4,6 +4,38 @@ Carries open ceiling findings across skill-improver runs. Each entry: title,
 affected dim, file:line pointer (or file-set), why it couldn't be applied in
 one iteration this run, enough context for a future loop to act on.
 
+## Resolved — 2026-09-15 (the stated remediation was inside the follow-up advisory)
+
+- **The skill told operators to reach v3.3.9 / v3.2.11. Both are affected by
+  CVE-2026-45737.** That advisory says it outright — "the original fix for
+  GHSA-3v3m-wc6v-x4x3 is incomplete" — and lists `3.2.0 – 3.2.11`, `3.3.9` and
+  `3.4.1` as affected. Real floor: **v3.4.2 / v3.3.10 / v3.2.12**, confirmed by
+  the `fix(gitops-engine): apply HideSecretData to server-side diff results`
+  commit in the v3.3.10 and v3.4.2 release notes.
+- **The second CVE is not a narrower rerun of the first, and the old mitigation
+  does not cover it.** CVE-2026-42880 needs `IncludeMutationWebhook=true`;
+  CVE-2026-45737 needs no compare-option at all. The first fix masked top-level
+  Secret data but not the copy inside
+  `kubectl.kubernetes.io/last-applied-configuration`, which any Secret
+  previously written by client-side apply still carries — `HideSecretData`
+  rewrote only the `live` object while server-side dry-run returns the
+  annotation on `predictedLive` too. So "strip the annotation" closes the
+  critical and leaves the medium open, and a cluster that never set the
+  annotation was still exposed.
+- **The wrong floor had propagated into three more places**, each of which would
+  have re-asserted it: the knowledge claim ("patched in v3.3.9 and v3.2.11"),
+  and two eval assertions — one asserting "3.3.9 or later" as the expected
+  floor, the other stating "CVE-2026-42880 patched in 3.3.8+", where 3.3.8 is
+  inside the critical's own range. A skill that grades itself against a stale
+  floor will keep scoring the stale answer correct.
+- **CVE-2026-45738** (high, 2026-05-13) recorded alongside: stored XSS in
+  application link annotations escalating an Application editor to admin.
+  Affects `< 3.0.0` only, so every 3.x is clear — it matters only when advising
+  someone still on 2.x.
+- Third instance this pass of one defect class: a skill naming a remediation
+  target that a later advisory lists as affected. The other two were
+  `harvester-upgrade` and the Harvester entry in the components registry.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **Rebased the version picture.** Latest stable v3.4.3 → **v3.4.5**
