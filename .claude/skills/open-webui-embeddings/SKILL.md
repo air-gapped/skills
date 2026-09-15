@@ -126,6 +126,19 @@ just a confident answer with no retrieved context. If retrieval quality
 "mysteriously collapsed" after upgrading to 0.11.0 and the embedding service
 receives per-user details, this is it.
 
+**v0.11.1 is also the security floor**, so the same pin satisfies both — it is
+not a coincidence worth relying on, since the two move independently. Derivation
+in `open-webui-valkey-websocket` §"Security floor"; re-derive rather than reuse
+this number.
+
+**If LiteLLM is in the path, it has its own floor: v1.94.0.** Below it the proxy
+carries three critical authentication bypasses, and one advisory exfiltrates
+**provider credentials** — which on this path are the API keys for the embedding
+and rerank backends, so an exposed proxy means rotating those, not just
+upgrading. Floors and the full table: `litellm-api` §"Security floor". This
+matters here specifically because the TEI rerank path **requires** LiteLLM for
+shape translation, so it is not an optional component that can be dropped.
+
 **v0.11.1 also fixed a cross-tenant retrieval bug**: knowledge search applied
 the caller's allowed-collection list only in the application, and *"that
 restriction was handed to the vector store and silently discarded, so results

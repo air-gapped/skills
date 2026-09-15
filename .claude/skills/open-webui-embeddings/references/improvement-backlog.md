@@ -2,6 +2,24 @@
 
 Carries open quality findings across `/skill-improver` runs. Items here are ceiling-hit issues that require multi-file restructure, mode switching, online re-probing, or author judgment — not single-iteration `improve` mutations.
 
+## Resolved — 2026-09-15 (two floors the file already half-implied)
+
+- **v0.11.1 was already recommended, for a functional reason only.** The section
+  pins off 0.11.0 because of the silent empty-knowledge regression; it is also
+  the **security** floor. Both now stated, with the note that the two move
+  independently — the coincidence is not something to rely on next pass.
+- **LiteLLM had no floor here despite being load-bearing.** The TEI rerank path
+  *requires* LiteLLM for shape translation, so it is not droppable. Below
+  **v1.94.0** the proxy carries three critical authentication bypasses, and
+  CVE-2026-84377 exfiltrates **provider credentials** — on this path those are
+  the API keys for the embedding and rerank backends, so remediation is rotating
+  them, not only upgrading. That consequence is specific to this skill's
+  topology, which is why it is stated here rather than left to the pointer.
+- Derivations deliberately not copied: `open-webui-valkey-websocket` §"Security
+  floor" for the Open WebUI count and the all-null `first_patched_version`
+  problem, `litellm-api` §"Security floor" for the eight-advisory table. Both
+  say re-derive rather than reuse the number.
+
 ## Resolved — 2026-09-15 (the v0.11.0 RAG regression)
 
 - **v0.11.0 answers as though the knowledge base were empty, and v0.11.1 fixes
