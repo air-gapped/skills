@@ -5,10 +5,37 @@ iteration; "Resolved this pass" is changes the metric registered.
 
 ## Open
 
-- **Frontmatter `description` still advertises now-historical pitfall specifics** (Dim 1 / Dim 9, SKILL.md frontmatter `description`): the description ends with "release pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager)". The FLUX regression is fixed in v0.20.0 and the enforce-eager mandate is lifted, so these are no longer current *features* — but they remain valuable *trigger phrases* (an operator hitting the v0.19.0rc1 FLUX bug or searching "enforce-eager" should still match). Not applied: rewording risks lowering Trigger Precision (Dim 1=9) for a marginal Dim 9 gain, and it is a taste trade-off rather than a clean one-iteration win. Revisit on the next freshen once these symptoms are old enough that no operator searches them.
-- **GLM-Image `transformers>=5.0` requirement on v0.20.0 not definitively confirmed** (Dim 9, SKILL.md pitfall + references/models.md GLM-Image row): v0.20.0 release notes list "Transformers 5.x compatibility fixes", so the manual upgrade is *likely* unnecessary now, but this was not verified against the actual v0.20.0 wheel's `transformers` pin. Edited to "verify whether still needed" rather than deleted. Resolving needs a probe of the v0.20.0 wheel metadata (`pip download vllm-omni==0.20.0` → inspect `Requires-Dist`).
-- **v0.21.0rc1 contents not surveyed** (Dim 9, references/sources.md release row): added as the latest pre-release row but its release notes were not read, so any new models/endpoints/fixes it introduces are not reflected in models.md / endpoints.md. Survey on next freshen. **(2026-07-21: partly moot — no v0.21.0 stable was ever cut. Superseded by the larger model-roster gap below.)**
-- **Model roster is four minors behind** (Dim 5/9, `references/models.md`): v0.22.0 and v0.24.0 between them added Cosmos3, DreamZero, MiniCPM-o 4.5, MOSS-TTS, GLM-TTS, Higgs Audio v2 and V3, HiDream-I1-Full, SenseNova U1, IndexTTS2, Step-Audio2, SDXL, GR00T-N1.7, Lance, Covo-Audio-Chat, Ming-flash-omni-2.0, soulx-singer, Aura, Stable-Audio-Open and more. Not applied this pass: syncing the roster means re-reading `docs/models/supported_models.md` and rewriting a table across `models.md` — a multi-row content import, not a one-line freshen edit, and the release notes alone are not an authoritative capability list (they say "added or improved" without distinguishing). Should lead the next pass.
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Decided — do not re-propose
+
+- **Frontmatter `description` still advertises now-historical pitfall specifics** (Dim 1 / Dim 9, SKILL.md frontmatter `description`): the description ends with "release pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager)". These are no longer current *features* — but they remain valuable *trigger phrases* (an operator hitting the v0.19.0rc1 FLUX bug or searching "enforce-eager" should still match). Rewording risks lowering Trigger Precision (Dim 1=9) for a marginal Dim 9 gain; a taste trade-off rather than a clean win. Settle it with a `trigger`-mode run, not an `improve` iteration.
+
+## Resolved — 2026-09-15
+
+- **Version line moved v0.26.0 → v0.28.0.** v0.28.0 shipped 2026-08-31 and
+  v0.29.0rc1 on 2026-09-10; the skill still called v0.26.0 current. SKILL.md's
+  current-stable sentence, the stables-in-the-line row and the rc-only list all
+  updated (v0.27.0 is rc1-only, so the rc-only set is now v0.21/v0.23/v0.25/v0.27).
+- **`transformers` pin recorded as a range, not a floor.** Current
+  `requirements/common.txt` on main reads **`transformers >= 5.13.0, < 5.15`** —
+  the upper bound was missing from the skill entirely, and the floor had moved
+  well past the v0.26.0-era `>= 5.5.3` the table still shows. Both are now in
+  the facts table with the reasons upstream gives inline. This also closes the
+  older GLM-Image `transformers>=5.0` question: it is long superseded.
+- **Four models were being advertised as supported without upstream backing**
+  (Dim 9) — `references/models.md`. The roster banner listed Step-Audio2,
+  soulx-singer, Aura and Nemotron Audex as added in v0.22.0 → v0.26.0. None of
+  the four appears anywhere in upstream's current `docs/models/supported_models.md`
+  (grep-checked against the live document, 2026-09-15). They came from
+  release-note wording, and "added or improved" in a release note is not the
+  same as presence in the supported list. The banner now names them as
+  **not** supported and states which document is authoritative. The other
+  fifteen names on that list were confirmed present.
+- **v0.21.0-stable question closed.** It was never cut; only `v0.21.0rc1`
+  exists. The skill's existing rc-only note was correct and is now extended
+  to cover v0.27.0 as well.
 
 ## Resolved — 2026-08-11 (freshen, rebaseline v0.24.x → v0.26.0)
 

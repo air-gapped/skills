@@ -77,10 +77,14 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 (2026-06-19) — upgrade to ≥ v0.25 rather than working around it.
 
 **Open critical bugs:**
-- **#36435**: Non-Harmony models still emit tool XML as `output_text.delta`
-  when parser flags unset. Was reopened after an earlier close — still open
-  as of 2026-07-31; do not delete this warning on a state=CLOSED sighting
-  without a confirmed fix.
+- **#36435**: Non-Harmony models emit tool XML as `output_text.delta` instead
+  of `response.function_call_arguments.delta`. **Stock parsers are affected** —
+  the upstream repro runs `--tool-call-parser qwen3_coder`, and maintainers
+  place the cause in a parser-agnostic `if reasoning_parser: ... elif
+  tool_parser:` branch in `_process_simple_streaming_events`, so it fires for
+  any model configured with both a reasoning parser and a tool parser. Still
+  open as of 2026-09-15, reopened after an earlier close; do not delete this
+  warning on a state=CLOSED sighting without a confirmed fix.
 - **#38132**: `truncation: "auto"` returns 400 instead of truncating — issue
   still open, but **no longer reproduces on v0.25.1** (live test 2026-07-19
   returned HTTP 200 with `truncation: "auto"` echoed).

@@ -3,6 +3,30 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15
+
+- **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
+  frontmatter and in every body reference, across all four defending-code
+  skills in one pass. The entry's own blocker was "verify `Agent` is a valid
+  `allowed-tools`/spawn name in the target version" — that is now settled by
+  direct evidence rather than by documentation alone:
+  - The official tools reference lists **`Agent`** as the subagent tool and
+    shows `Agent(Explore)` as an `allowed-tools` entry. No current doc lists
+    `Task`.
+  - The installed Claude Code binary (2.1.271) contains a guard reading
+    `if (e !== "Agent" && e !== "Task") return;` on the subagent
+    permission path, so **both names are still handled** — the rename does not
+    strand the skills on this version, and `Task` was not silently dead before
+    it either.
+  - `allowed-tools` is validated only as "a string or array of strings" with
+    no per-name whitelist, so an unrecognised entry would be accepted and
+    simply match nothing. That is precisely why the undocumented spelling was
+    worth removing: the failure mode is silent.
+
+  The residual risk the entry named — "renaming risks a regression if `Agent`
+  isn't accepted" — is therefore inverted. `Agent` is the documented name and
+  is accepted; `Task` is the undocumented one.
+
 ## Resolved — 2026-08-19 (Visa §3.2: data-flow evidence fields)
 
 - **`source_ref` / `sink_ref` carried through to the fix.** Phase 1b
@@ -77,6 +101,8 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Open
 
+## Decided — do not re-propose
+
 - **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried
   2026-07-05; grew 529 → 549 with the fix_priority + asset/condition
   additions — blind final scored Dim 2 at 5 and repeats the fold-Design-
@@ -95,6 +121,9 @@ four; each skill's own delegated surface still needs its own check.
   skipped Read on a patch-generation workflow is a real risk. No extraction
   without a with/without measurement first. The Design-notes/Guard-rails
   consolidation above remains a separate, still-open question.)
+
+## Unblocked — actionable
+
 - **4 second-person slips in body prose (Dim 3).** SKILL.md:201, 224, 226, 408
   ("you need", "your conversation", "end your turn", "you find yourself") — in
   operational/async-recovery notes, not quoted prompts. Convertible to
@@ -102,10 +131,6 @@ four; each skill's own delegated surface still needs its own check.
 - **Add a `when_to_use` field (Dim 1).** 665/1536 chars of budget unused;
   symptom triggers ("draft a fix for", "remediate") would lift recall. Defer
   to a `trigger`-mode pass.
-- **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** Shared across all
-  four defending-code skills — see `threat-model/references/improvement-backlog.md`.
-  Deferred (regression risk + multi-location).
-
 ## Resolved — 2026-07-05 (improve, operator feedback)
 
 Applied FEEDBACK-impact-on-asset.md §4 in 2 kept iterations (self 80→82;

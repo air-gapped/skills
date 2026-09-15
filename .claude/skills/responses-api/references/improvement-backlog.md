@@ -12,29 +12,43 @@ applicable in a single iteration. Do not re-propose without new evidence.
   model-specific Responses fixes landed since (#31401 passthrough, #32757
   Kimi K3 reasoning leak) — no function-tool evidence either way. Both
   `backend-implementations.md` and `streaming-events.md` carry a "re-verify"
-  marker. Needs a live-backend test; not resolvable from PR metadata alone.
-- **vLLM #36435 (tool-XML leakage) unverified on stock parsers** (Dim 9,
-  carried 2026-07-19) — the 2026-07-19 live run showed no leakage but used a
-  custom Rust tool parser; stock-parser behavior on ≥ v0.25 remains
-  unverified. Issue re-probed 2026-07-31: OPEN with state=reopened — the
-  warning stands. Needs a live vLLM run with stock parsers.
-- **vLLM PR #48098 release inclusion unverified** (Dim 9, new 2026-07-31) —
-  `parallel_tool_calls=null` crash fix in Responses `from_request()` merged
-  on the responses path in July; whether it shipped in v0.26.0 or waits for
-  the next release was not determinable from the release notes. Verify on
-  the next freshen (or live test) before citing a fixed version.
+  marker. **Absent thing:** a live SGLang backend to send a custom function
+  tool to; not resolvable from PR metadata alone.
 - **GPT-5.6 Programmatic Tool Calling / multi-agent orchestration depth**
   (Dim 5, narrowed 2026-07-31) — the tool type (`programmatic_tool_calling`)
   and beta status are now in spec.md, but the API reference documents only
   the type discriminator; invocation semantics, output item shapes, and the
-  orchestration beta's params are still undocumented upstream. Re-probe the
-  API reference next freshen; expand only from official schema, not blogs.
+  orchestration beta's params are still undocumented upstream. **Absent
+  thing:** the upstream schema itself. Re-probe the API reference next
+  freshen; expand only from official schema, not blogs.
+
+## Decided — do not re-propose
+
 - **Dim 6 near ceiling** (carried 2026-07-19) — two simplification
   iterations (iters 8-9, 2026-07-19) removed duplicate stats with no score
   gain; remaining duplication (Critical Gotchas summary layer, per-file stat
   repetition) is deliberate progressive-disclosure layering — further cuts
   judged net-negative for standalone file utility. Do not re-attempt without
   a restructure plan spanning SKILL.md + spec.md + translation-mapping.md.
+
+## Resolved — 2026-09-15
+
+- **vLLM PR #48098 release inclusion established** (Dim 9) — merged
+  2026-07-15 as `c0302d94`; **first shipped in v0.26.0** (2026-07-27). Settled
+  by commit-ancestry comparison rather than release-note reading: the merge
+  commit is not an ancestor of v0.25.1 and is an ancestor of v0.26.0, and no
+  tag exists between them. `sources.md` row updated.
+- **vLLM #36435 stock-parser question answered — and the answer widens the
+  warning** (Dim 9). The upstream reproduction runs a stock parser
+  (`--tool-call-parser qwen3_coder`), not a custom one, and maintainers place
+  the cause in a parser-agnostic `if reasoning_parser: ... elif tool_parser:`
+  branch in `_process_simple_streaming_events`. So the leak is not
+  custom-parser-specific: any model configured with both a reasoning parser
+  and a tool parser is exposed. The skill previously implied the opposite by
+  noting only that its own 2026-07-19 local run had used a custom Rust parser.
+  Corrected in `backend-implementations.md`, `streaming-events.md` and
+  `sources.md`. Issue remains OPEN (reopened); no comment confirms or denies
+  it on v0.25+, so the warning stands rather than being narrowed to a version.
 
 ## Resolved this pass — 2026-07-31 (freshen)
 

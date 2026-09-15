@@ -2,6 +2,21 @@
 
 Organised by symptom. Look up the symptom, read the issue, apply the workaround. Many of these are *open* — treat memory as possibly stale; verify on [the issue tracker](https://github.com/vllm-project/vllm/issues).
 
+## Table of Contents
+
+- [Garbage / repetitive output](#garbage--repetitive-output)
+- [Load / init failures](#load--init-failures)
+- [OOM / memory](#oom--memory)
+- [CUDA errors](#cuda-errors)
+- [Kernel / backend not dispatched](#kernel--backend-not-dispatched)
+- [Performance regression](#performance-regression)
+- [Quant config / checkpoint semantics](#quant-config--checkpoint-semantics)
+- [Concurrent / multi-request](#concurrent--multi-request)
+- [Decision pattern for common "my quantized model X is broken" cases](#decision-pattern-for-common-my-quantized-model-x-is-broken-cases)
+- [Useful diagnostics](#useful-diagnostics)
+
+---
+
 ## Garbage / repetitive output
 
 | Symptom | Model / scenario | Issue | Fix |

@@ -24,7 +24,9 @@ command -v jq >/dev/null || { echo "jq required" >&2; exit 1; }
 
 auth=(-H "Authorization: Bearer ${KEY}")
 
-BODY="" STATUS="" CTYPE=""
+BODY=""
+STATUS=""
+CTYPE=""
 do_fetch() { # method path [json-body] -> sets BODY, STATUS, CTYPE (no subshell: globals survive)
   local method="$1" path="$2" data="${3:-}" resp
   local args=(-sS -w $'\n%{http_code}\t%{content_type}' -X "$method" "${auth[@]}")

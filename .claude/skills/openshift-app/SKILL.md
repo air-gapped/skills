@@ -86,16 +86,51 @@ securityContext:
     drop: ["ALL"]
 ```
 
+Confirm it took effect on a running pod — which SCC admitted it, and the UID
+actually assigned from the namespace range:
+```bash
+oc get pod NAME -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
+oc get pod NAME -o jsonpath='{.spec.containers[0].securityContext}{"\n"}'
+oc get pod NAME -o jsonpath='{.spec.securityContext.runAsUser}{"\n"}'
+```
+An empty `runAsUser` with a populated SCC annotation is the expected result: the
+range assignment lands on the pod spec at admission, not in the manifest.
+
 PSA runs **in parallel** with SCCs. A pod must pass both. OpenShift auto-labels
 namespaces with PSA levels matching the most privileged SCC available.
 
-### 3. Helm 4 Is NOT Usable with ArgoCD on OpenShift (2026)
+### 3. Helm 4 with Argo CD: it landed in 3.5, and the bump is not free (2026-09-15)
 
-- Helm 4.0.0 released November 2025 with Server-Side Apply as default
-- **OpenShift 4.19-4.21 still ships Helm 3** (web terminal bundles v3.17.1); 4.22's bundled version was not verified this pass
-- **ArgoCD (through v3.3 / GitOps 1.20) only supports Helm 3**
-- Helm 3 EOL: **no published date could be confirmed** (2026-07-21). Helm's version-skew and release-policy pages state only that the most recent minor gets fixes, with no Helm 3 sunset date — and Helm 3 is still shipping patches (**v3.21.4 on 2026-08-14**, alongside the 4.x line). Treat "Helm 3 is dead" as unsupported; plan on ArgoCD support, not on a calendar
-- **Recommendation**: use Helm 3 now, plan Helm 4 migration after ArgoCD adds support
+**Argo CD now bundles Helm 4.** PR #28076 ("feat: Migrate from Helm 3 to Helm 4")
+merged 2026-06-09 and first shipped in **v3.5.0** (2026-08-04). The pin, read
+from `hack/tool-versions.sh` at each tag:
+
+| Argo CD line | Helm pinned | Note |
+|---|---|---|
+| **3.5.x** (v3.5.3, 2026-09-14 — current latest) | `helm4_version=4.2.1` | Helm 4 |
+| **3.4.x** (v3.4.9, 2026-09-14 — parallel maintenance) | `helm3_version=3.19.4` | still Helm 3 |
+
+So "Argo CD only supports Helm 3" is no longer true, and the old "through v3.3"
+framing understated it: 3.4.x stayed on Helm 3 too, and only 3.5.x jumped.
+
+**Upgrading 3.4 → 3.5 can change your rendered manifests with no chart or values
+change.** Helm 4 altered null/nil value coalescing, so explicit `null` fields can
+start appearing. Tracked in **argoproj/argo-cd#29068, still OPEN** — diff a render
+before and after rather than assuming parity.
+
+- **OpenShift itself is still on Helm 3.** The web terminal bundles **v3.20.2**
+  for the 4.22 line (Web Terminal Operator 1.17, 2026-06-24, which also bumped
+  `oc` to v4.22.1); 4.19-4.21 bundled v3.17.1. Sourced from the
+  `redhat-developer/web-terminal-operator` CHANGELOG, because the Red Hat docs
+  page is a client-rendered shell with no version text in its HTML for any
+  OCP version.
+- Helm 3 EOL: **no published date could be confirmed**. Helm's version-skew and
+  release-policy pages state only that the most recent minor gets fixes, with no
+  Helm 3 sunset date, and Helm 3 is still shipping patches (**v3.21.4 on
+  2026-08-14**) alongside the 4.x line. Treat "Helm 3 is dead" as unsupported.
+- **Recommendation**: on Argo CD 3.4.x you are on Helm 3 and fine. Moving to
+  3.5.x is the Helm 4 migration — do it deliberately, with a render diff, not as
+  a side effect of taking the latest tag.
 
 ### 4. DeploymentConfig Is Deprecated (OCP 4.14)
 

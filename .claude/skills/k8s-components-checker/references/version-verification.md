@@ -154,7 +154,7 @@ Rancher patches advertise edition in **three** distinct shapes. The cheap
 
 | Format | First line | Edition signal | Edition |
 |---|---|---|---|
-| 1 — redirect | `Please refer to our [Prime Documentation](…)` | the redirect itself | **Prime** |
+| 1 — redirect | `Please refer to our Prime Documentation` — the phrase is a hyperlink in the real note | the redirect itself | **Prime** |
 | 2 — inline-but-Prime | `# Release vX.Y.Z` | body paragraph: `"This is a Prime version release"` | **Prime** *(first-line test MISSES this — looks community)* |
 | 3 — community / dual / legacy | `# Release vX.Y.Z` | `"This is a Community version release"`, `"This is a Community and Prime version release"`, or no self-declaration line at all (oldest) | **community** |
 

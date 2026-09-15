@@ -6,6 +6,8 @@ pass actually changed.
 
 ## Open
 
+## Decided — do not re-propose
+
 - **v0.20.0 PR-list redundancy across three files** (Dim 6) —
   `SKILL.md` "Landed in v0.20.0" section vs `references/sources.md`
   derived-updates vs `references/runner-flags.md` §3/§10. The PR-by-PR

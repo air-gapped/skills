@@ -11,14 +11,14 @@ Disables **all write operations regardless of `ENABLED_TOOLS`/`TOOLSETS`**. Use 
 
 ## 2. Toolsets (group-level)
 
-`TOOLSETS` enables whole groups. `TOOLSETS=default` ≈ 23 core tools across 6 core toolsets; add extras comma-separated; `TOOLSETS=all` = all 72.
+`TOOLSETS` enables whole groups. `TOOLSETS=default` = the 6 core toolsets; add extras comma-separated; `TOOLSETS=all` = all **24** toolsets. Counted from the toolset dicts in `src/mcp_atlassian/utils/toolsets.py` at tag **v0.23.1**: **16 Jira + 8 Confluence**. Tool totals drift between sources at the same tag — that file's docstring says 95, the generated `docs/tools-reference.mdx` says 96, and `main` says 98 — so treat any single number as approximate and the toolset names as authoritative.
 
 ```bash
 TOOLSETS=default,jira_agile,jira_attachments     # core + two extras
 TOOLSETS=all                                     # everything (current implicit default)
 ```
 
-**Jira toolsets (15)** — `core` marked ✔:
+**Jira toolsets (16)** — `core` marked ✔:
 | Toolset | Core | Representative tools |
 |---|:--:|---|
 | `jira_issues` | ✔ | get/search/create/update/delete/batch-create issues, batch changelogs |
@@ -36,8 +36,9 @@ TOOLSETS=all                                     # everything (current implicit 
 | `jira_forms` | | ProForma forms (Cloud-only) |
 | `jira_metrics` | | issue dates, SLA |
 | `jira_development` | | development info (commits/PRs) |
+| `jira_project_analysis` | | project analysis (absent from the generated docs table, present in the source dict) |
 
-**Confluence toolsets (6)** — core: `confluence_pages`, `confluence_comments`. Extras: `confluence_labels`, `confluence_users`, `confluence_analytics` (Cloud-only page views), `confluence_attachments`.
+**Confluence toolsets (8)** — core: `confluence_pages`, `confluence_comments`. Extras: `confluence_labels`, `confluence_users`, `confluence_analytics` (Cloud-only page views), `confluence_attachments`, `confluence_templates`, `confluence_permissions`.
 
 ## 3. Enabled-tools (individual allow-list)
 
@@ -56,16 +57,25 @@ When **both** `TOOLSETS` and `ENABLED_TOOLS` are set they **intersect** — a to
 day, v0.23.0 on 2026-07-18). If the server has been upgraded past v0.21.x, the
 flip has already happened.
 
-Previously (≤ v0.21.x), an **unset `TOOLSETS` enabled all tools**. **From v0.22.0 the default is the 6 core toolsets only.** Consequences:
-- An agent relying on `jira_agile`/`jira_links`/etc. without setting `TOOLSETS` will **lose those tools** on upgrade to 0.22.
-- To preserve current behavior across the upgrade, set **`TOOLSETS=all` explicitly**.
+**The flip was announced and never shipped.** Upstream has emitted "In v0.22.0, the default will change to 6 core toolsets only. Set `TOOLSETS=all` explicitly to preserve current behavior" since before v0.22.0, and at **v0.23.1** — two minors later — the code still reads:
+
+```python
+toolsets_str = os.getenv("TOOLSETS")
+if not toolsets_str:
+    logger.warning("... In v0.22.0, the default will change to 6 core toolsets only. ...")
+    return set(ALL_TOOLSETS.keys())        # still ALL
+```
+
+So an unset `TOOLSETS` still enables all 24 toolsets, and the upstream docs contradict themselves about it. Consequences:
+- Nobody lost `jira_agile`/`jira_links` by upgrading to 0.22 or 0.23. If tools went missing, look elsewhere — a `TOOLSETS` typo (see fail-closed below) or `READ_ONLY_MODE`.
+- Setting **`TOOLSETS=all` explicitly is still the right thing to do**: it is harmless today and survives the flip whenever it lands. Set it because it pins intent, not because the default changed.
 - **Unknown toolset names are silently ignored**; if *every* name is unknown, **zero tools** are enabled (fail-closed) — a typo in `TOOLSETS` can silently disable the server.
 
 ## Recommended baselines
 
 - **Read/report agent:** `READ_ONLY_MODE=true` (+ project filter).
 - **Scoped write agent (typical):** `TOOLSETS=default` (+ `jira_agile`/`jira_links` if needed) + `JIRA_PROJECTS_FILTER` + `ENABLED_TOOLS` if you want a tight allow-list.
-- **Full access (power use):** `TOOLSETS=all` — required from v0.22.0 onward, not merely advisable.
+- **Full access (power use):** `TOOLSETS=all` — advisable as an explicit statement of intent. It is *not* currently required: through v0.23.1 an unset `TOOLSETS` already enables everything.
 
 ## ⚠ v0.22.0 security hardening — two changes that alter behaviour
 

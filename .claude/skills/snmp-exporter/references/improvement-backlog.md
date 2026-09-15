@@ -5,6 +5,8 @@ items without new evidence.
 
 ## Open
 
+## Decided — do not re-propose
+
 - **Move the Backlog section out of SKILL.md body** (Dim 2/6) —
   SKILL.md:~190-215. Both blind scorers docked Dim 6 for author-facing
   maintenance state in the model-facing body, and relocating it is the main
@@ -13,6 +15,9 @@ items without new evidence.
   decision) so time-sensitive correctness guards (e.g. "don't deploy Redfish
   on iDRAC 10 until #202 ships") load with the skill. Requires author
   sign-off on moving guards elsewhere without losing their visibility.
+
+## Unblocked — actionable
+
 - **Cross-file fact dedup** (Dim 6) — timeout math and v3-auth guidance
   appear in SKILL.md golden rules, references/kubernetes.md, and example
   comments. Final blind scorer cited the repetition; deduping is a multi-file

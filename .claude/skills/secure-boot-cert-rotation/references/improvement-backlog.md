@@ -10,6 +10,24 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   its 2026-06-01 numbers and its "verify in KB 000402373" fence. **Do not update these from a scraped or
   AI-summarized read** — a wrong BIOS minimum sends someone to flash the wrong firmware. Needs an authenticated
   manual read of the live KB; also confirm whether 17G ships 2023 certs pre-installed (claimed, unconfirmed).
+- **Dim 6 (Simplicity) — House Rules ↔ routing/references overlap.** Unchanged judgement from the 2026-06-01
+  pass: both blind agents call these "standing instructions, not waste", and they carry the hard-won lessons
+  driving Dim 10. Lifting Dim 6 needs author judgment on which rules are genuinely redundant, not a mechanical
+  dedup. Note House Rule 7 grew this pass (forced-update damage) — re-check length if it grows again.
+
+## Decided — do not re-propose
+
+- **Watch item with a real trigger, not a vague one: the dbx signing cutover.** Microsoft still signs `dbx`
+  with the 2011 KEK (verified by parsing the June 2026 payload). When a dbx push appears signed by
+  `KEK 2K CA 2023`, the revocation-freeze section in `mechanism.md` and the timeline in
+  `gotchas-and-decisions.md` both flip from "not yet started" to live, and the skill's urgency changes. Re-probe
+  the signer on the next freshen.
+- **Second watch item: the first x86_64 2023-only shim.** aarch64 already crossed. No x86_64 distro has dropped
+  the 2011 signature and none has published a date; Ubuntu has not shipped a new shim at all. The next
+  CVE-driven shim respin is the event to catch.
+
+## Unblocked — actionable
+
 - **Dim 10 (Differentiation) hard-capped at 8 by the Negative-Transfer Gate.** No `evals/evals.json`, no
   `benchmark.json`, so net value over no-skill is unmeasured. Highest-value remaining action per two
   independent blind scorers. Needs an eval set (audit-triage cases across the three surfaces) and a
@@ -19,18 +37,6 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   A bundled `scripts/audit-secureboot.sh` emitting NEEDS UPDATE / GOOD per host would remove the duplication
   and raise actionability. Deferred: worth doing only if the shell stays genuinely portable across the
   Dell/whitebox/guest split rather than growing per-surface branches.
-- **Dim 6 (Simplicity) — House Rules ↔ routing/references overlap.** Unchanged judgement from the 2026-06-01
-  pass: both blind agents call these "standing instructions, not waste", and they carry the hard-won lessons
-  driving Dim 10. Lifting Dim 6 needs author judgment on which rules are genuinely redundant, not a mechanical
-  dedup. Note House Rule 7 grew this pass (forced-update damage) — re-check length if it grows again.
-- **Watch item with a real trigger, not a vague one: the dbx signing cutover.** Microsoft still signs `dbx`
-  with the 2011 KEK (verified by parsing the June 2026 payload). When a dbx push appears signed by
-  `KEK 2K CA 2023`, the revocation-freeze section in `mechanism.md` and the timeline in
-  `gotchas-and-decisions.md` both flip from "not yet started" to live, and the skill's urgency changes. Re-probe
-  the signer on the next freshen.
-- **Second watch item: the first x86_64 2023-only shim.** aarch64 already crossed. No x86_64 distro has dropped
-  the 2011 signature and none has published a date; Ubuntu has not shipped a new shim at all. The next
-  CVE-driven shim respin is the event to catch.
 
 ## Ceiling analysis (2026-08-18) — read this before starting another improve loop
 

@@ -16,10 +16,12 @@ This skill is a **reference**, not a tutorial. SKILL.md holds the mental model, 
 
 vllm-omni is **not a fork** — it layers on top of upstream vLLM, registers OmniModelConfig, and adds one CLI flag: `--omni`. Adding `--omni` to `vllm serve` routes the server through `vllm_omni.entrypoints`. As of v0.20.0 the old vLLM entrypoint-hijack / `patch.py` early-import mechanism was **removed** — the v0.20.0 release notes state "removal of the old vLLM entrypoint hijack, and runtime changes needed for the 0.20.0 integration path (#3232, #3082, #3352, #3393, #2306)". The omni runtime is rebased onto upstream vLLM rather than monkey-patching it — v0.20.0 via PR #3232, then forward through the v0.21/v0.22 rebases (#3530, #3891) and the v0.23.0/v0.24.0 rebases (#4286, #4709). The architectural claim is to decompose any-to-any models into a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) connected via `OmniConnector`, so each stage scales independently. The paper (arXiv:2602.02204) claims up to 91.4% JCT reduction vs an unspecified baseline — treat as an architectural argument, not a deployment benchmark.
 
-Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.26.0 (2026-08-03) is the current stable**, rebased on upstream vLLM 0.26.0 (#5443); first stable was v0.14.0 (2026-01-31). The v0.19.0rc1 FLUX.1-dev regression (#2730) is **fixed in v0.20.0 stable** (PR #2760) — no version pin needed anymore.
+Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor. **v0.28.0 (2026-08-31) is the current stable**; v0.29.0rc1 (2026-09-10) is the newest tag and has not been promoted. v0.26.0 (2026-08-03) was rebased on upstream vLLM 0.26.0 (#5443); first stable was v0.14.0 (2026-01-31). The v0.19.0rc1 FLUX.1-dev regression (#2730) is **fixed in v0.20.0 stable** (PR #2760) — no version pin needed anymore.
 
-**Not every minor gets a stable.** v0.21.0, v0.23.0 and v0.25.0 exist only as
-`rc1` — the stable line went v0.20.0 → v0.22.0 → v0.24.0 → v0.24.1 → v0.26.0.
+**Not every minor gets a stable.** v0.21.0, v0.23.0, v0.25.0 and v0.27.0 exist
+only as `rc1` — the stable line went v0.20.0 → v0.22.0 → v0.24.0 → v0.24.1 →
+v0.26.0 → v0.28.0. Check `prerelease` before pinning a minor; roughly half the
+tags in this repo are rc-only.
 Don't infer a missing release is a withdrawn one.
 
 ### The v0.24.1 channel mismatch is resolved — but keep checking channels
@@ -192,10 +194,11 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 | Current stable, all channels | **v0.26.0** (2026-08-03), rebased on vLLM 0.26.0 (#5443) |
 | Docker `latest` resolves to | the unversioned `vtest-nightly` build — matches no release, pin the exact tag |
 | Latest pre-release | v0.26.0rc1 (2026-07-28) |
-| Stables in the line | v0.14.0, v0.16.0, v0.18.0, v0.20.0, v0.22.0, v0.24.0, v0.24.1, v0.26.0 (v0.21/v0.23/v0.25 are rc1-only) |
+| Stables in the line | v0.14.0, v0.16.0, v0.18.0, v0.20.0, v0.22.0, v0.24.0, v0.24.1, v0.26.0, v0.28.0 (v0.21/v0.23/v0.25/v0.27 are rc1-only) |
 | First stable | v0.14.0 (2026-01-31) |
 | Minimum Python | 3.12 |
 | Runtime pins (via vLLM 0.26.0) | PyTorch 2.11.0, FlashInfer 0.6.14, transformers >= 5.5.3, diffusers 0.38.0 |
+| transformers pin on current main | **`transformers >= 5.13.0, < 5.15`** — an upper bound, not just a floor. `requirements/common.txt` gives the reasons inline: unified multimodal model classes below the floor, a `transformers_keys_to_ignore_compat` change in 5.9, and `hub_kernels.LayerRepository` needing 5.13.0 (read 2026-09-15) |
 | `/v1/realtime` input | PCM16 mono @ 16 kHz |
 | Qwen3-Omni audio output rate | 24 kHz |
 | Qwen3-TTS tokenizer rate | 12 Hz or 25 Hz |

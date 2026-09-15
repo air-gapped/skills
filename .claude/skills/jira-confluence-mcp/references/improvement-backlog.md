@@ -42,20 +42,53 @@ read off the advertised tool list rather than by invoking live Atlassian.
 
 ## Open
 
-- **Docs-site rows not re-probed (Dim 9)** — `references/sources.md` rows for
-  installation / authentication / configuration / compatibility /
-  tools-reference / troubleshooting still carry 2026-06-07 stamps. After
-  v0.22.0 + v0.23.0 the **tool count, the 15+6 toolset tables, and the env-var
-  catalog are very likely stale** (v0.23.0 alone added JSM, epic-hierarchy,
-  PAC/WPAD and mTLS surfaces). Re-probing them is a multi-page docs read rather
-  than a `gh` call, which is why this pass spent its budget on the release +
-  issue drift instead. Lead the next pass with it.
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-_None._ All three passes (trigger, improve, freshen) ran on 2026-06-07 with **zero mutations required** — the skill was authored with prior skill-improver lessons (split frontmatter under caps, per-row source dates, imperative voice, pointer-shaped body) already applied.
+(The earlier note that all three 2026-06-07 passes needed **zero mutations** is
+kept in the history below, but it should not be read as the skill being
+correct: the 2026-09-15 pass found a wrong central claim, two stale toolset
+tables and a missing critical advisory. Converging with no mutations means the
+pass proposed nothing, not that there was nothing to find.)
+
+## Decided — do not re-propose
 
 **Deliberate design decisions (do NOT re-propose — intentional, not work-not-done):**
 - **TLS/CA guidance appears in three places** (SKILL.md TLS section, `air-gapped.md` in-container CA, `troubleshooting.md` SSL row). This is intentional per-entry-point layering, and the add-CA-vs-`JIRA_SSL_VERIFY=false` both-ways content is a **user-stated requirement** ("info on how to either add ca certs or verify false"). Consolidating it would break the air-gap recipe's self-containment and drop user-requested prominence. The baseline blind scorer rated Dim 6 a 9 ("defensible, different entry points"). Leave as-is.
 - **`references/trigger-evals.json` is unreferenced from SKILL.md** — by design; it's the skill-improver trigger-mode artifact (the probe reads `<skill>/references/trigger-evals.json`), not user-facing reference content. Same convention as `jira-cli` and `jira-best-practices`.
+
+## Resolved — 2026-09-15
+
+- **Docs-site rows re-probed at tag v0.23.1, and the pass found the skill's
+  central version claim was wrong.** The skill taught that "v0.22.0 flipped the
+  default from all-tools → 6 core toolsets only" and that `TOOLSETS=all` was
+  "required from v0.22.0 onward". **The flip never shipped.** At tag v0.23.1,
+  `get_enabled_toolsets()` in `src/mcp_atlassian/utils/toolsets.py` still does
+  `if not toolsets_str: return set(ALL_TOOLSETS.keys())`, while emitting a
+  warning that still reads "In v0.22.0, the default will change". Upstream's own
+  docs contradict each other on this — a stale warning box beside prose saying
+  all toolsets are enabled when unset — which is why the source had to settle
+  it. Corrected in `SKILL.md` and `hardening.md`, including the reframing that
+  `TOOLSETS=all` is worth setting to pin intent rather than to preserve
+  behaviour.
+- **Toolset tables corrected 15+6 → 16+8 (24 total)**, counted from the source
+  dicts rather than the generated docs table, which omits `jira_project_analysis`
+  and is one behind on Jira. Added `confluence_templates` and
+  `confluence_permissions`. Tool totals disagree between sources at the same tag
+  (95 in the module docstring, 96 in the generated reference, 98 on `main`), so
+  the file now says to treat the number as approximate and the names as
+  authoritative.
+- **A critical advisory was missing entirely.** GHSA-5j8j-256g-vvp5, published
+  2026-08-19, affected range `<= 0.23.0`: `UserTokenMiddleware` never matched
+  SSE paths, so `--transport sse` executed tools **as the operator with no
+  per-request authentication**. The skill documented the v0.22.0
+  `streamable-http` fallback hole but not this one, and its air-gap example
+  pinned **v0.23.0** — the last vulnerable build. Example bumped to v0.23.1 and
+  the advisory written up next to the older transport hole, with the point that
+  closing one did not close the other.
+- **v0.23.1 dependency pin recorded**: `atlassian-python-api >=4.0.0,<5.0.0`,
+  because 5.0 removed `get_page_by_id` / `create_page` / `update_page` and broke
+  fresh installs with `AttributeError` on basic page operations.
 
 ## Resolved this pass
 

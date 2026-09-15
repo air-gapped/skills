@@ -28,6 +28,8 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
 
 ## Open
 
+## Decided — do not re-propose
+
 - **Dim 7 (Resource Quality, ~7 — neutral ceiling) — no bundled scripts, by design.** The skill points at the
   upstream `harvester/upgrade-helpers pre-check/v1.x/check.sh` rather than reinventing a pre-flight script, and
   the detection/gate commands are short kubectl one-liners. Adding a bespoke script to lift Dim 7 would

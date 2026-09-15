@@ -3,6 +3,30 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15
+
+- **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
+  frontmatter and in every body reference, across all four defending-code
+  skills in one pass. The entry's own blocker was "verify `Agent` is a valid
+  `allowed-tools`/spawn name in the target version" — that is now settled by
+  direct evidence rather than by documentation alone:
+  - The official tools reference lists **`Agent`** as the subagent tool and
+    shows `Agent(Explore)` as an `allowed-tools` entry. No current doc lists
+    `Task`.
+  - The installed Claude Code binary (2.1.271) contains a guard reading
+    `if (e !== "Agent" && e !== "Task") return;` on the subagent
+    permission path, so **both names are still handled** — the rename does not
+    strand the skills on this version, and `Task` was not silently dead before
+    it either.
+  - `allowed-tools` is validated only as "a string or array of strings" with
+    no per-name whitelist, so an unrecognised entry would be accepted and
+    simply match nothing. That is precisely why the undocumented spelling was
+    worth removing: the failure mode is silent.
+
+  The residual risk the entry named — "renaming risks a regression if `Agent`
+  isn't accepted" — is therefore inverted. `Agent` is the documented name and
+  is accepted; `Task` is the undocumented one.
+
 ## Resolved — 2026-08-19 (Visa §3.2 evidence, §1.4 threat tagging, §2.3 lenses)
 
 - **Six `--focus` specialist lenses (§2.3):** `crypto`, `logic-bug`,
@@ -113,17 +137,13 @@ four identically and told us nothing.
 
 ## Open
 
+## Unblocked — actionable
+
 - **Inline review briefs could move to `references/` (Dim 2).** (carried
   2026-07-05; body grew 294 → 319 lines with the asset/deployment-facts
   additions — blind final scored Dim 2 at 6 for it. Still under the ~350
   revisit threshold, but the margin is shrinking; next content addition
   should trigger the extraction to `references/prompts.md`.)
-- **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** (carried
-  2026-07-05) SKILL.md:17 lists `Task`; body uses `Task`/`subagent_type`.
-  Cross-cutting rename shared with the other three defending-code skills —
-  see threat-model backlog for the rationale and the one-pass plan.
-  Deferred (regression risk + multi-location).
-
 ## Resolved — 2026-07-05 (improve, operator feedback)
 
 Applied FEEDBACK-impact-on-asset.md §2 in 2 kept iterations plus one

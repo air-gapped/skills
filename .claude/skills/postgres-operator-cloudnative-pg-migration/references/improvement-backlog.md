@@ -4,6 +4,15 @@ Carries ceiling findings across skill-improver runs. Append-only history.
 
 ## Open
 
+## Decided — do not re-propose
+
+- **Dim 10 capped at 8 by design** (Dim 10). No `delta_pass_rate`: `evals/`
+  has 8 cases but no with_skill/without_skill benchmark pair. This is the
+  documented resting state, not a defect — clearing it costs a measured
+  benchmark run and should be a deliberate decision, not a reflex to a cap.
+
+## Unblocked — actionable
+
 - **SKILL.md <150 lines for Dim 2 = 10** (Dim 2). SKILL.md is 192 lines after
   the 2026-08-25 pass trimmed the why-migrate summary. The remaining 42 lines
   cannot come from the same place: what is left in SKILL.md is scan-layer —
@@ -20,10 +29,6 @@ Carries ceiling findings across skill-improver runs. Append-only history.
   shares a trigger space with the sibling `postgres-operator-best-practices`,
   so the run must test both directions of confusion, not just this skill's
   recall.
-- **Dim 10 capped at 8 by design** (Dim 10). No `delta_pass_rate`: `evals/`
-  has 8 cases but no with_skill/without_skill benchmark pair. This is the
-  documented resting state, not a defect — clearing it costs a measured
-  benchmark run and should be a deliberate decision, not a reflex to a cap.
 
 ## Resolved this pass — 2026-08-25 (freshen + improve)
 

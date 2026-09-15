@@ -58,28 +58,32 @@ NVIDIA ModelOpt releases. Budget went to the config-key defects.
 
 ## Open
 
-- **Add a 1-line TOC to each reference file over 100 lines** (Dim 2) —
-  `references/{formats.md (352L), modelopt.md (303L), llm-compressor.md (288L),
-  version-gates.md (192L), kv-cache.md (122L)}`. Not applied this pass: the
-  APPLY-stage tool-output channel intermittently returned empty for Read/Bash
-  on these four reference files (formats/modelopt/llm-compressor/kv-cache), so
-  no verified anchor text was available to insert a TOC without risking a
-  blind, possibly-corrupting edit. version-gates.md was editable (full content
-  verified) but its TOC was deferred to keep this a single coherent batch.
-  Re-run once tool output is stable; insert a `## Contents` block listing the
-  `##` headings at the top of each file.
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-- **Add a cross-skill eval-harness pointer** (Dim 4) — `SKILL.md` near
-  "Always eval on actual traffic" (L44-46). Recon hypothesis 5 (+1). Deferred:
-  the parent skill set has both `vllm-benchmarking` and `aiperf`; choosing the
-  right pointer and phrasing is a judgment call better made with the body fully
-  re-readable. One-line addition, no structural risk — pick up next pass.
+## Resolved — 2026-09-15
+- **v0.21.0 and v0.20.x quantization deltas itemised** (Dim 5/9) —
+  `references/version-gates.md`. Both sections were stubs reading "PR-level
+  quantization deltas not itemised"; they now carry the release bodies' own
+  quantization entries, grouped as new surface / correctness fixes / hardware
+  reach. Two findings change what an operator does: **Petit NVFP4 was removed
+  in v0.20.0** (a flag-catalog breaking change), and **the online-quantization
+  frontend was rebuilt in v0.20.0** (#38138/#39736/#38463/#40152), so anything
+  written against the older online schema is wrong rather than merely dated.
+  Also recorded that NVFP4 stopped being Blackwell-only in v0.20.0 via
+  emulation on MI300/MI355X and Hopper, and that DeepGEMM is compiled into the
+  wheel from v0.20.0 on.
 
-- **Populate v0.21.0 / v0.20.x PR-level quantization deltas** (Dim 5/9) —
-  `references/version-gates.md` new `## v0.21.0` and `## v0.20.x` sections.
-  Added as stubs this pass (window + ship-date facts only). Itemising the
-  per-release quantization PRs requires a `gh` release-body sweep that the
-  APPLY stage could not run (Bash output channel degraded). Fill on next freshen.
+- **Tables of contents added to all seven >100-line reference files** (Dim 2) —
+  `formats.md` (27 entries), `version-gates.md` (18), `troubleshooting.md` (10),
+  `kv-cache.md` (10), `llm-compressor.md` (9), `kernels.md` (9), `modelopt.md`
+  (4). The 2026-08-11 deferral blamed a degraded tool-output channel, a
+  transient environment failure that no longer applied. Every generated anchor
+  was checked against a real heading; no dangling links.
+- **Cross-skill eval-harness pointer added** (Dim 4) — `SKILL.md` "Quantized
+  models are not equivalent to the BF16 original" now names `vllm-benchmarking`
+  for vLLM's own serving-side harness and `aiperf` for vendor-neutral trace
+  replay, instead of leaving "always eval on actual traffic" without a route.
 
 ## Resolved — 2026-07-21 (freshen, v0.21.0 -> v0.25.1)
 

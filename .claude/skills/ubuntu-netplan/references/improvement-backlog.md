@@ -29,6 +29,8 @@ passes hadn't run.**
 
 ## Open
 
+## Decided — do not re-propose
+
 - **Dim 7 (Resource Quality) — no bundled scripts (by design).** netplan is a system
   command; the skill correctly relies on `netplan` invocations + copy-paste examples
   rather than bundling scripts. Reaching a 9/10 "exemplary resources" would mean

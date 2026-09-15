@@ -5,6 +5,17 @@ Carries findings across skill-improver runs. See skill-improver's
 
 ## Open
 
+## Discard rationales (anti-re-proposal guards)
+
+- **2026-07-29, iter 10, discarded:** "Universal discriminating probes" command
+  menu in `test-toolkit.md` (Dim 4). Δ0, +9 lines, and 3 of 5 example probes
+  (`ping -M do`, `dmidecode -t memory`, crash-boot journal) mirror the eval
+  scenarios — shipping the eval answer key inside the skill corrupts future
+  benchmark iterations. Do not re-propose command menus sourced from eval
+  content; a future Dim 4 lift must use probes independent of `evals/`.
+
+## Unblocked — actionable
+
 - **Harden the eval assertions for a future iteration-3** (eval quality, not
   skill quality). From the n=3 graders: eval-0's no-remediation assertion should
   read "no untested changes beyond instrumentation" (cheap shotgun fixes sit in
@@ -23,15 +34,6 @@ Carries findings across skill-improver runs. See skill-improver's
   clause (the tighten-not-relax loop rule at the point of failure; the
   severity≠ceremony maxim) — removing them needs author judgment on teaching
   value vs. lines. ~10 lines at stake.
-
-### Discard rationales (anti-re-proposal guards)
-
-- **2026-07-29, iter 10, discarded:** "Universal discriminating probes" command
-  menu in `test-toolkit.md` (Dim 4). Δ0, +9 lines, and 3 of 5 example probes
-  (`ping -M do`, `dmidecode -t memory`, crash-boot journal) mirror the eval
-  scenarios — shipping the eval answer key inside the skill corrupts future
-  benchmark iterations. Do not re-propose command menus sourced from eval
-  content; a future Dim 4 lift must use probes independent of `evals/`.
 
 ## Resolved this pass — 2026-07-29 (benchmark n=3)
 

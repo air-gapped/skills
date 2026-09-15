@@ -5,6 +5,10 @@ applicable in a single iteration.
 
 ## Open
 
+_None._
+
+## Decided — do not re-propose
+
 - **Divergence facts intentionally double-homed** (Dim 6) — the
   stop_sequence and thinking-signature values appear as matrix cells in
   `backend-implementations.md` AND as tables in `translation-mapping.md`

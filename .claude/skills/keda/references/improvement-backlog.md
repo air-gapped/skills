@@ -16,6 +16,8 @@ were read on 2026-08-21 and kept deliberately; leave them alone.
 
 ## Open
 
+## Unblocked — actionable
+
 - **Full three-file max-of consolidation** — Dim 6 — SKILL.md gotcha #4 +
   `references/crds.md` (multi-trigger semantics) + `references/patterns.md`
   ("Default: max of triggers"). This pass collapsed the crds.md restatement to

@@ -5,6 +5,21 @@ scales in the model checkpoint. Source of truth:
 [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (it was `18-34` at v0.20/v0.21 and holds 16 entries at v0.27.0) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
+## Table of Contents
+
+- [Dtype options](#dtype-options)
+- [Base method](#base-method)
+- [Calibrating scales (pre-compute)](#calibrating-scales-pre-compute)
+- [Dynamic (per-token-head) path](#dynamic-per-token-head-path)
+- [`--calculate-kv-scales` (DEPRECATED v0.19)](#--calculate-kv-scales-deprecated-v019)
+- [FNUZ adjustment (AMD)](#fnuz-adjustment-amd)
+- [Attention backend × KV dtype matrix](#attention-backend--kv-dtype-matrix)
+- [Known landmines](#known-landmines)
+- [Roadmap items (feature requests)](#roadmap-items-feature-requests)
+- [External](#external)
+
+---
+
 ## Dtype options
 
 | Dtype | Semantics | Hardware | Scales |

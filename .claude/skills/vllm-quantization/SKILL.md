@@ -46,6 +46,9 @@ Quantization trades weight precision for memory + compute:
 **Quantized models are not equivalent to the BF16 original.** Always eval on
 actual traffic. Stock NVFP4 checkpoints recover ~99 % at 70B+, ~95–98 % at
 7B–14B (Red Hat / NVIDIA numbers). Code / math / agentic workloads hit harder.
+For the eval itself use the `vllm-benchmarking` skill (vLLM's own harness,
+serving-side accuracy + latency) or `aiperf` (vendor-neutral, trace replay and
+accuracy benchmarks against any OpenAI-compatible endpoint).
 
 ## Format selection — pick once per hardware
 

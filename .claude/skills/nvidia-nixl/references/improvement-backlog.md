@@ -5,31 +5,49 @@ restructure or author judgment. Updated by skill-improver Phase 6.
 
 ## Open
 
-### Per-plugin READMEs predate the 1.2/1.3 line (new 2026-07-21)
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-Dim 9. File-set: `references/plugins.md` (all 13 documented plugin entries) + the
-`sources.md` plugin-README rows, which still carry `Last verified: 2026-04-25`.
+## Unblocked — actionable
 
-The 2026-07-21 freshen pass updated the plugin **count** (13 → 15, `infinia` and
-`tracing` added) and the release-level facts, but did not re-read the 13 individual
-`src/plugins/<name>/README.md` files. Three releases have landed since those stamps
-and at least two touch plugin internals: libfabric gained `FI_MORE` doorbell batching
-(v1.2.0 #1626), and POSIX / HF3FS / CUDA_GDS / GDS_MT all gained path-based file
-registration plus the v1.3.1 unique-`devId` constraint. Not a one-edit fix — it is
-13 fetches plus a rewrite of each entry's deps/params/gotchas. `infinia` has no
-entry at all yet.
+### Per-plugin README re-read for the 1.2-1.4 line (partial)
 
-### AMD ROCm/HIP path is undocumented in this skill (new 2026-07-21)
+Dim 9. File-set: `references/plugins.md`, the per-plugin entries other than
+`infinia`.
 
-Dim 5. File-set: `SKILL.md` audience/prereqs line + `references/deployment.md`
-(build + install sections).
+The 2026-09-15 pass re-read all 15 plugin READMEs at tag v1.4.1 and used the
+result to write the missing `infinia` entry and the ROCm build path. The
+remaining entries' deps/params/gotchas were **not** rewritten against that
+read. Worth doing; nothing external blocks it. Three upstream facts worth
+carrying in when it happens, all confirmed at v1.4.1: `gds_mt`, `tracing` and
+`ucx` have **no README of their own** (`gds_mt` is documented via the shared
+`src/utils/file/README.md`); several plugins state ProgThread as unsupported
+(`gusli`, `mooncake`) or unimplemented (`uccl`); and `obj` silently clamps
+`crtMinLimit` below S3's 5 MiB multipart minimum.
 
-v1.3.0 added AMD Instinct support (gfx942 MI300X/MI325X, gfx950 MI350X/MI355X)
-including `nixlbench`, but the skill's target-audience line still says
-"datacenter-class GPUs (H100/H200/B200/B300) with NVIDIA driver, CUDA 12.8+" and
-every build path assumes CUDA wheels. Documenting the ROCm path properly needs the
-upstream build instructions read end-to-end and ideally one real build — author work,
-not a stamp update.
+## Resolved — 2026-09-15
+
+- **`infinia` had no entry at all** (Dim 5/9) — now documented in
+  `references/plugins.md` from its upstream README at v1.4.1: deps, the
+  `-Dinfinia_path=` build, segment types, the full param table with defaults,
+  and the `RED_*` env vars. The load-bearing detail is the **precedence
+  order — env vars beat backend params** — which is the reverse of
+  `azure_blob` in the same tree, so a stale `RED_*` in a pod environment
+  silently overrides what the code passes to `createBackend`.
+- **AMD ROCm/HIP build path documented** (Dim 5) — `references/deployment.md`.
+  The skill named ROCm support in its facts table but carried no build
+  instructions and no per-plugin behaviour on a ROCm host.
+- **A stale upstream README was about to be trusted.** The `README.md` frozen
+  into tag **v1.4.1** still lists `nixlbench` under "Known gaps" as needing
+  CUDA-to-HIP translation work before it builds on ROCm, and recommends an
+  etcd-example workaround. v1.3.0's release notes say ROCm support was added
+  "including `nixlbench`" and list #1647 (merged 2026-06-05) doing exactly
+  that; the README was fixed on `main` only on 2026-08-27, which is not an
+  ancestor of v1.4.1. `deployment.md` now records the contradiction and which
+  side to believe. **The newest tag's own README is not automatically the
+  freshest statement in a repo.**
+- **Release and plugin count re-checked at v1.4.1** (2026-09-01, superseding
+  v1.4.0): `src/plugins/` still holds exactly 15 directories.
 
 ## Resolved this pass (2026-07-21)
 

@@ -141,7 +141,19 @@ appendonly yes
 appendfsync everysec
 ```
 
-Without `maxclients 10000` the deployment hits `max number of clients reached` after days of uptime — every login burst, every Socket.IO reconnect storm, every connection-pool growth event eats slots. The default of 10000 in newer Valkey versions is fine; older Redis versions defaulted to 4096 or even 256.
+Without enough client slots the deployment hits `max number of clients reached` after days of uptime — every login burst, every Socket.IO reconnect storm, every connection-pool growth event eats slots.
+
+**The shipped default is not the problem, and there is no version cliff here.** `maxclients` has defaulted to **10000 in every Redis release from 2.6.0 onward and in every Valkey release**, verified against `redis.conf` / `valkey.conf` and the `createUIntConfig("maxclients", ...)` literal in `src/config.c` at each major tag (2026-09-15). Setting it explicitly is belt-and-braces, not a fix for an old default.
+
+**What actually lowers it is the file-descriptor limit.** At startup `adjustOpenFilesLimit()` needs `maxclients + 32` descriptors, tries to raise `RLIMIT_NOFILE`, and if it cannot, silently reduces `maxclients` to `bestlimit - 32`. So a container with a low `ulimit -n` runs with a far smaller effective limit than the config file says. Check the log for:
+
+```
+Current maximum open files is <N>. maxclients has been reduced to <M> to compensate for low ulimit. If you need higher maxclients increase 'ulimit -n'.
+```
+
+If that line is present, raising `maxclients` changes nothing — raise the process `ulimit -n` instead. The logic and its constants are identical in Redis and Valkey, so a config file moves between them unchanged on this axis.
+
+Do not confuse `maxclients` with **`maxmemory-clients`** (Redis 7.0+), which caps client output-buffer *memory*, not connection count.
 
 `timeout 1800` only works if `REDIS_HEALTH_CHECK_INTERVAL` is set on the client side to less than that — otherwise long-idle pooled connections get killed by Valkey and the app sees them only when it tries to use them. The pair must be set together.
 

@@ -4,40 +4,6 @@ Ceiling findings from skill-improver runs.
 
 ## Open
 
-### Ceph patch-level drift in compat/ceph.md (Dim 9) (low-risk, in-minor) (carried 2026-05-28)
-
-- Compat file references Tentacle 20.2.1, Squid 19.2.3, Reef 18.2.8 as the
-  illustrative latest patches at sift time. Freshen probe (2026-05-28) found:
-  - Tentacle: latest stable is **20.3.0** (compat says 20.2.1)
-  - Squid: latest stable is **19.3.0** (compat says 19.2.3)
-  - Reef: latest stable is **18.2.8** ✓
-- Re-confirmed 2026-05-28 via `gh api repos/ceph/ceph/tags`: v20.3.0 and
-  v19.3.0 tags exist (Tentacle / Squid). Tag existence carries **no**
-  regression signal, so the bump still cannot be applied this pass.
-- Drift is in-minor (Tentacle stays Tentacle, Squid stays Squid). The compat
-  file's load-bearing structure — Tentacle/Squid/Reef series characteristics,
-  4 known-bad point releases (18.2.5, 18.2.6, 19.2.0, 19.2.1), EOL dates,
-  intra-cluster upgrade ordering — remains accurate.
-- Could NOT be applied in one iteration: freshen-patterns §3.2 requires
-  reading the docs.ceph.com prose release notes for the intervening patches
-  (20.2.2..20.3.0, 19.2.4..19.3.0) to extract any NEW known-bad point release
-  before bumping the headers. That is a multi-WebFetch sift against a non-`gh`
-  doc source, not a single atomic header edit — and stamping the bump on tag
-  existence alone would violate "do not apply a bump you cannot stand behind".
-- Action: WebFetch https://docs.ceph.com/en/tentacle/releases/ and
-  https://docs.ceph.com/en/squid/releases/ for the new patches; add any new
-  known-bad to the "Versions skipped" list (Sift notes); bump the
-  illustrative patch numbers in the version headers (20.2.1 → 20.3.0,
-  19.2.3 → 19.3.0).
-
-### Ceph drift evidence is itself unverified — re-flag (House Rule #8) (2026-05-30)
-
-- The carried Ceph item above cites `v20.3.0` / `v19.3.0` from `gh api .../tags`,
-  now known to be **confirmatory/contaminated** (rubber-stamps plausible-but-fake
-  tags), and `ceph/ceph` has **no `releases/latest`** scalar to anchor on. So the
-  drift is **UNVERIFIED, not merely un-applied** — do NOT bump on the tags
-  evidence. Ground via docs.ceph.com release pages first.
-
 ### Per-version "fixed-in vX.Y.Z" / CVE-patch claims not release-grounded (Dim 9) (new 2026-05-30)
 
 - Every `compat/*.md` carrying "fixed in" / "patched in" lines (keda
@@ -80,6 +46,42 @@ Ceiling findings from skill-improver runs.
 - Action: if an exact 8.8/8.14 EOL date is ever needed for a verdict, fetch
   Elastic's archived support-matrix snapshot (web.archive.org of
   elastic.co/support/eol at the relevant date) — not groundable via `gh`.
+
+## Resolved — 2026-09-15
+
+### Ceph patch drift and its unverified evidence — both closed
+
+Both Ceph items above are closed together, because the second one (the
+House Rule #8 re-flag: "the drift is UNVERIFIED, not merely un-applied — do
+NOT bump on the tags evidence") named exactly the right fix, and that fix
+has now been done. The prose release notes were read in full rather than the
+tag list:
+
+- **Tentacle latest is 20.2.4** (2026-08-19), not 20.2.1. Intervening:
+  20.2.2 (2026-06-16), 20.2.3 (2026-08-05). 20.2.4 is a **security release**
+  for CVE-2025-30156, CVE-2026-39944, CVE-2026-50152, CVE-2026-54330.
+- **Squid latest is 19.2.6** (2026-08-19), not 19.2.3. Intervening: 19.2.4
+  (2026-06-01), 19.2.5 (2026-07-14). 19.2.6 carries the same four-CVE hotfix.
+- **Reef is unchanged at 18.2.8** and the series is now **archived** upstream.
+- **No new known-bad point release** in either window. The skipped list is
+  still exactly 18.2.5 / 18.2.6 / 19.2.0 / 19.2.1, and the notes' own warning
+  text for each is now quoted in `compat/ceph.md` so a future pass can see
+  what the flag rests on.
+- **EOL dates replaced with upstream's own estimates**: Tentacle 2027-06-01
+  (was a ~2027-11 cadence guess), Squid **2026-10-31** — weeks away, which
+  makes Squid a migration source rather than a destination.
+
+One durable trap found and recorded in the file: **`docs.ceph.com/en/tentacle/releases/`
+is stale.** It lists only Squid and Reef as active, shows Squid at 19.2.2 and
+Reef at 18.2.6, and never mentions Tentacle at all. `/en/latest/`, `/en/squid/`
+and `/en/reef/` serve identical current content. Reading the release index
+from the branch you are asking about is the natural move and it silently
+returns old data.
+
+Also noted, unresolved and left as an upstream inconsistency rather than
+guessed at: the releases index gives Reef's end-of-life as 2025-03-20, while
+Reef's own page dates its final release 18.2.8 at 2026-03-20, a year later.
+Both figures are quoted verbatim; the docs do not explain the gap.
 
 ## Resolved — 2026-07-21 (freshen, operator-requested; driver = a live Mimir 5.7.0/2.16.0 air-gapped fleet)
 

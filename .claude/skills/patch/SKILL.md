@@ -20,7 +20,7 @@ allowed-tools:
   - Glob
   - Grep
   - Write
-  - Task
+  - Agent
   - Bash(python3 .claude/skills/patch/scripts/checkpoint.py:*)
   - Bash(vuln-pipeline patch:*)
   - Bash(rg:*)
@@ -60,7 +60,7 @@ Invoke with `/patch <findings-path> [--repo PATH] [--top N] [--id fNNN]
   mode. Ignored in static mode (subagents inherit the orchestrator's model).
 - `--fresh`: ignore `./.patch-state/` checkpoint and start over.
 
-**Tools.** Prefer Read, Glob, Grep, Write, Task. Some sessions do not
+**Tools.** Prefer Read, Glob, Grep, Write, Agent. Some sessions do not
 provision Glob or Grep; `allowed-tools` is a permission filter, not a loader.
 When they are unavailable, fall back to the read-only Bash commands
 whitelisted above: `rg`/`grep` for search, `ls` for enumeration,
@@ -253,7 +253,7 @@ After all findings, write the consolidated phase payload to `_chunk.tmp` then:
 
 ### 2B. Static mode — one patch subagent per finding
 
-One Task per finding, all in a SINGLE assistant message for parallel
+One Agent per finding, all in a SINGLE assistant message for parallel
 execution. `subagent_type: "patch-author"` (plugin installs:
 `defending-code:patch-author`). Never set `run_in_background` — you need
 the diff text, not an async handle.
@@ -275,7 +275,7 @@ tail.
 
 #### Spawn
 
-For each finding in `findings[]`, build a Task call with the tail above
+For each finding in `findings[]`, build a Agent call with the tail above
 (substituting `{REPO_PATH}`, `{id}`, `{file}`, `{line}`, `{category}`,
 `{severity}`, `{title}`, `{description}`, `{recommendation}`, and a fresh
 `{nonce}` per spawn — see the `references/prompts.md` preamble; it isolates the
@@ -284,20 +284,20 @@ attacker-influenced finding text). `description: "patch {id}"`.
 If `len(findings) > ~40`, shard into sequential batches of ~40 (each batch
 one message). Per-finding shard checkpoint after each result is parsed.
 
-If any Task call returns `status: "async_launched"` instead of the
+If any Agent call returns `status: "async_launched"` instead of the
 subagent's text, the runtime backgrounded it. Pick one recovery and use it
 for the whole batch:
   - If completion notifications arrive in your conversation: parse each
     subagent's tagged blocks from its notification `result` as it lands. Do
     not end your turn until every finding is accounted for.
   - If notifications do not arrive: do NOT poll transcript files. Re-spawn
-    the missing patch subagents in a fresh Task batch (smaller shard, e.g.
+    the missing patch subagents in a fresh Agent batch (smaller shard, e.g.
     10) and use the synchronous results.
 The same recovery applies to reviewer subagents in Phase 3.
 
 #### Parse
 
-From each Task result, extract the five tagged blocks. Tolerate leading/
+From each Agent result, extract the five tagged blocks. Tolerate leading/
 trailing whitespace, stray ``` fences, and HTML-escaped entities (`&lt;`
 `&gt;` `&amp;` — some runtimes escape angle brackets in notification
 payloads; unescape before writing the diff). If `<patch_diff>` is `NONE` or
@@ -338,7 +338,7 @@ the finding prose or author rationale.
 
 #### Spawn and parse
 
-One Task per finding with `status != "no_patch"`. Parse the trailing block.
+One Agent per finding with `status != "no_patch"`. Parse the trailing block.
 Attach `review`, `gates` (`{root_cause, instance_coverage, no_new_vulns,
 best_practices}`, each `pass|partial|fail`, instance_coverage also `skip`),
 `style_score`, `out_of_scope_hunks`, `review_reason` to the finding. An
@@ -510,7 +510,7 @@ End of the defending-code loop. No skill applies these; a human does.
   `rationale`.
 - **Always set `subagent_type`.** Forking would leak every finding's prose
   into every patch subagent.
-- **All Task calls for a phase in ONE message.** Serial spawning is correct
+- **All Agent calls for a phase in ONE message.** Serial spawning is correct
   but N× slower.
 - **Checkpoint before starting the next phase**, every time.
 - **Exec mode delegates, never reimplements.** The execution-verified ladder

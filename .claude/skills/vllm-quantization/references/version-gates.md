@@ -6,6 +6,29 @@ version N support".
 
 Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/vllm/releases](https://github.com/vllm-project/vllm/releases).
 
+## Table of Contents
+
+- [v0.27.1 — 2026-08-11 (current stable)](#v0271--2026-08-11-current-stable)
+- [v0.27.0 — 2026-08-10](#v0270--2026-08-10)
+- [v0.26.0 — 2026-07-27](#v0260--2026-07-27)
+- [v0.22–v0.25 — 2026-05-28 → 2026-07-14](#v022v025--2026-05-28--2026-07-14)
+- [v0.21.0 — 2026-05-15](#v0210--2026-05-15)
+- [v0.20.x — 2026-04-27 → 2026-05-10](#v020x--2026-04-27--2026-05-10)
+- [v0.19.1 — 2026-04-18 (patch)](#v0191--2026-04-18-patch)
+- [v0.19.0 — 2026-04-03](#v0190--2026-04-03)
+- [v0.18.1 — 2026-03-31 (patch)](#v0181--2026-03-31-patch)
+- [v0.18.0 — 2026-03-20](#v0180--2026-03-20)
+- [v0.17.0 — 2026-03-07](#v0170--2026-03-07)
+- [v0.16.0 — 2026-02-25 (branch cut 2026-02-08)](#v0160--2026-02-25-branch-cut-2026-02-08)
+- [v0.15.1 — 2026-02-04 (patch)](#v0151--2026-02-04-patch)
+- [v0.15.0 — 2026-01-29](#v0150--2026-01-29)
+- [v0.14.1 — 2026-01-24](#v0141--2026-01-24)
+- [v0.14.0](#v0140)
+- [Cross-release upgrade advice](#cross-release-upgrade-advice)
+- [Deprecation watch](#deprecation-watch)
+
+---
+
 ## v0.27.1 — 2026-08-11 (current stable)
 
 Single-change patch on v0.27.0:
@@ -64,14 +87,64 @@ output via the fused allreduce+RMSNorm+quant path on Gemma/Qwen-style RMSNorm
 
 ## v0.21.0 — 2026-05-15
 
-PR-level quantization deltas not itemised. Treat any v0.19-specific claim below
-as "verify on upgrade".
+New surface:
+- [PR #40177](https://github.com/vllm-project/vllm/pull/40177) — **NVFP4 KV cache support** — NVFP4 becomes a `--kv-cache-dtype` option, not weights-only.
+- [PR #41769](https://github.com/vllm-project/vllm/pull/41769) — **ModelOpt NVFP4 W4A16** — ModelOpt checkpoints usable on the W4A16 path.
+- [PR #41083](https://github.com/vllm-project/vllm/pull/41083) — Humming MXFP4 MoE backend.
+- [PR #39931](https://github.com/vllm-project/vllm/pull/39931) — TurboQuant gains hybrid-model and uniform-quantization support.
+- [PR #40033](https://github.com/vllm-project/vllm/pull/40033) — Triton dequant / QDQ emulation kernels for Hopper and AMD — NVFP4 where no native kernel exists.
+- [PR #41882](https://github.com/vllm-project/vllm/pull/41882) — NVFP4 all-gather GEMM fusion for AsyncTP.
+- [PR #42153](https://github.com/vllm-project/vllm/pull/42153) — 2D-grid W8W8 group-quant kernel.
+- [PR #39712](https://github.com/vllm-project/vllm/pull/39712) — FP8 on NVIDIA Thor / SM110.
+
+Correctness fixes — upgrade reasons, not features:
+- [PR #41424](https://github.com/vllm-project/vllm/pull/41424) — FP8 bias loading fix.
+- [PR #41755](https://github.com/vllm-project/vllm/pull/41755) — GLM4-MoE NVFP4 loading fix.
+- [PR #42089](https://github.com/vllm-project/vllm/pull/42089) — FlashInfer CUTLASS MXFP4-MXFP8 MoE fix.
+- [PR #41524](https://github.com/vllm-project/vllm/pull/41524) — FlashInfer autotune **temporarily disabled** for FP8 correctness — expect the perf back in a later release.
+- [PR #41965](https://github.com/vllm-project/vllm/pull/41965) — compressed-tensors: accept configs with non-explicit `ignore` lists.
+
+CPU quantization landed broadly this release: FP8 attention for AMX/AVX-512 ([#39445](https://github.com/vllm-project/vllm/pull/39445)), FP8 W8A16 linear ([#41186](https://github.com/vllm-project/vllm/pull/41186)) and MoE ([#41314](https://github.com/vllm-project/vllm/pull/41314)), DNNL AVX2 W8A8 INT8 ([#41318](https://github.com/vllm-project/vllm/pull/41318)).
 
 ## v0.20.x — 2026-04-27 → 2026-05-10
 
 v0.20.0 went **stable** 2026-04-27 (not a pre-release), followed by v0.20.1
 (2026-05-04) and v0.20.2 (2026-05-10). Run v0.21.0+ rather than pinning v0.19.1.
 
+**Breaking — flag catalog:**
+- [PR #32694](https://github.com/vllm-project/vllm/pull/32694) — **Petit NVFP4 removed.** Listed under the release's own Breaking Changes and V0 deprecation.
+
+**The online-quantization frontend was rebuilt here.** Anything written against the pre-v0.20 online schema is wrong:
+- [PR #38138](https://github.com/vllm-project/vllm/pull/38138) — new end-to-end online quantization frontend.
+- [PR #39736](https://github.com/vllm-project/vllm/pull/39736) — `experts_int8` consolidated into the FP8 online path.
+- [PR #38463](https://github.com/vllm-project/vllm/pull/38463) — MXFP8 online quant moved onto the new frontend.
+- [PR #40152](https://github.com/vllm-project/vllm/pull/40152) — follow-up to the same frontend work.
+- [PR #40109](https://github.com/vllm-project/vllm/pull/40109) — MoE Triton fix inside online FP8 quantization.
+
+**KV cache:**
+- [PR #38479](https://github.com/vllm-project/vllm/pull/38479) — TurboQuant 2-bit KV cache compression, with FA3/FA4 prefill support ([#40092](https://github.com/vllm-project/vllm/pull/40092)).
+- [PR #38378](https://github.com/vllm-project/vllm/pull/38378) — per-token-head INT8/FP8 KV cache quantization.
+- [PR #37332](https://github.com/vllm-project/vllm/pull/37332) — NVFP4 in `reshape_and_cache_flash`.
+- [PR #35792](https://github.com/vllm-project/vllm/pull/35792) — fused FP8/NVFP4 output quantization in MLA attention.
+
+**Wider hardware reach via emulation** — NVFP4 stops being Blackwell-only:
+- [PR #35733](https://github.com/vllm-project/vllm/pull/35733) — NVFP4 dense models on MI300 / MI355X and Hopper via emulation.
+- [PR #35737](https://github.com/vllm-project/vllm/pull/35737) — NVFP4 MoE emulation fallback for H100 / MI300 / MI350.
+- [PR #34664](https://github.com/vllm-project/vllm/pull/34664) — MXFP8 in Marlin GEMM/MoE with an `Mxfp8LinearOp` refactor.
+- [PR #37463](https://github.com/vllm-project/vllm/pull/37463) — MXFP4 W4A4 CUTLASS MoE for SM100.
+- [PR #38815](https://github.com/vllm-project/vllm/pull/38815) — W8A8 MXFP8 (`CompressedTensorsW8A8Mxfp8`).
+
+**Correctness fixes worth the upgrade:**
+- [PR #40310](https://github.com/vllm-project/vllm/pull/40310) — W4A8_FP8 MoE TP>1 correctness fix.
+- [PR #40351](https://github.com/vllm-project/vllm/pull/40351) — NVFP4 CUTLASS MoE out-of-bounds read on expert counts not a multiple of 4/16.
+- [PR #40552](https://github.com/vllm-project/vllm/pull/40552) — RMSNorm + quant fusion fix on the DeepGEMM UE8M0 path for B200.
+- [PR #40432](https://github.com/vllm-project/vllm/pull/40432) — quantized-model init failure with prefetch offloading.
+
+**Packaging:** DeepGEMM is compiled into the vLLM wheel via CMake ([#37980](https://github.com/vllm-project/vllm/pull/37980)) — no separate install from this release on.
+
+**CPU / ROCm / XPU:** CPU int8 compute mode in AWQ ([#35697](https://github.com/vllm-project/vllm/pull/35697)), W4A16 AutoRound on CPU ([#38192](https://github.com/vllm-project/vllm/pull/38192)), Quark W8A8 INT8 MoE ([#36320](https://github.com/vllm-project/vllm/pull/36320)), XPU MXFP8 and MXFP4 quant ops ([#38682](https://github.com/vllm-project/vllm/pull/38682), [#39857](https://github.com/vllm-project/vllm/pull/39857)).
+
+Patch releases: v0.20.1 fixed `input_ids` / `expert_map` args for ROCm Quark W4A8 GPT-OSS ([#41165](https://github.com/vllm-project/vllm/pull/41165)); v0.20.2 plumbed `hidden_dim_unpadded` so gpt-oss MXFP4 works under `torch.compile` ([#42002](https://github.com/vllm-project/vllm/pull/42002), backport of [#41646](https://github.com/vllm-project/vllm/pull/41646)).
 ## v0.19.1 — 2026-04-18 (patch)
 
 Transformers v5 upgrade + Gemma 4 fixes.

@@ -156,11 +156,27 @@ def check_etcd() -> None:
     if not eps:
         check("NIXL_ETCD_ENDPOINTS", True, "unset (side-channel mode)")
         return
+    import urllib.parse
+
     first = eps.split(",")[0].strip()
+    url = f"{first.rstrip('/')}/v2/keys/"
+    # NIXL_ETCD_ENDPOINTS is attacker-influenceable environment input. Without
+    # this guard urlopen would happily accept file:// or ftp:// and turn a
+    # reachability probe into a local-file read.
+    if urllib.parse.urlsplit(url).scheme not in ("http", "https"):
+        check(
+            "NIXL_ETCD_ENDPOINTS",
+            False,
+            f"{first} has a non-HTTP scheme; refusing to probe it",
+            "Set NIXL_ETCD_ENDPOINTS to http:// or https:// endpoints.",
+        )
+        return
     try:
         import urllib.request
 
-        urllib.request.urlopen(f"{first.rstrip('/')}/v2/keys/", timeout=3).read(64)
+        # B310 asks that the scheme be restricted before opening; the guard
+        # above does exactly that, so the blacklist hit is already answered.
+        urllib.request.urlopen(url, timeout=3).read(64)  # nosec B310  # noqa: S310
         check("NIXL_ETCD_ENDPOINTS", True, f"{first} reachable")
     except Exception as e:
         check(

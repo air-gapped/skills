@@ -26,7 +26,7 @@ allowed-tools:
   - Bash(ls:*)
   - Bash(cat:*)
   - AskUserQuestion
-  - Task
+  - Agent
 ---
 
 # threat-model

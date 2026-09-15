@@ -21,6 +21,20 @@ The **0.12.0 dataset-split API change removes legacy multi-stage logic**, so
 recipes written against ≤0.11 may need updating — check a recipe against the
 current docs before assuming it still parses.
 
+## Table of Contents
+
+- [Modifier classes (what you compose into recipes)](#modifier-classes-what-you-compose-into-recipes)
+- [Standard oneshot template](#standard-oneshot-template)
+- [Recipes — full catalog](#recipes--full-catalog)
+- [Output directory layout](#output-directory-layout)
+- [Pipeline modes](#pipeline-modes)
+- [Version gates (llm-compressor releases)](#version-gates-llm-compressor-releases)
+- [Known issues & operator gotchas](#known-issues--operator-gotchas)
+- [llm-compressor does NOT:](#llm-compressor-does-not)
+- [External](#external)
+
+---
+
 ## Modifier classes (what you compose into recipes)
 
 | Modifier | File | Use |

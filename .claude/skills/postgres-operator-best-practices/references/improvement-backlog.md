@@ -4,6 +4,8 @@ Carries ceiling findings across skill-improver runs. Append-only history.
 
 ## Open
 
+## Unblocked — actionable
+
 - **No trigger-mode measurement yet** (Dim 1, empirical). The description and
   `when_to_use` were written by hand and sized by inspection (1,515/1,536
   chars), never measured. Run

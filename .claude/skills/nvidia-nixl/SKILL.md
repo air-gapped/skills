@@ -24,7 +24,7 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 
 | Item | Value | Source |
 |---|---|---|
-| Latest release | **v1.4.0** (2026-08-14; v1.3.2 shipped 2026-07-24 in between) | `gh release list --repo ai-dynamo/nixl` |
+| Latest release | **v1.4.1** (2026-09-01); v1.4.0 2026-08-14, v1.3.2 2026-07-24 | `gh release list --repo ai-dynamo/nixl` |
 | Previous releases | **v1.3.0** (2026-06-15) — AMD ROCm/HIP, C++20, DDN Infinia backend, path-based file registration; **v1.2.0** (2026-05-30) — OS-assigned listener port, libfabric `FI_MORE` batching; **v1.1.0** (2026-05-12); **v1.0.1** (2026-04-14); **v1.0.0** (2026-03-13) — first stable | release notes |
 | HEAD pyproject version | **1.4.0** | `pyproject.toml` |
 | What vLLM pins | **`nixl == 1.3.1`** (exact) at vLLM v0.27.1; main pins `1.3.2` | `requirements/kv_connectors.txt` |
@@ -33,7 +33,7 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 | C++ standard | **C++20** since v1.3.0 (#1571) — building NIXL or a plugin from source now needs a C++20 toolchain | release notes |
 | UCX version | `1.20.x` tested; `UCX_MAX_HCA_PER_GPU=auto` set automatically on UCX ≥ 1.21 (1.2.0, #1637) | repo `README.md`, `src/plugins/ucx/ucx_utils.cpp` |
 | GPU vendors | NVIDIA; **AMD Instinct (MI300X/MI325X gfx942, MI350X/MI355X gfx950) via ROCm/HIP since v1.3.0** (#1642, #1647), `nixlbench` included | release notes |
-| Plugins | **15**: ucx, libfabric, mooncake, uccl, gpunetio, cuda_gds, gds_mt, posix, hf3fs, obj (S3), azure_blob, gusli, telemetry, **infinia** (DDN, new in 1.3.0), **tracing** | `src/plugins/` at tag v1.3.1 |
+| Plugins | **15**: ucx, libfabric, mooncake, uccl, gpunetio, cuda_gds, gds_mt, posix, hf3fs, obj (S3), azure_blob, gusli, telemetry, **infinia** (DDN, new in 1.3.0), **tracing** | `src/plugins/` re-listed at tag v1.4.1 — unchanged at 15 |
 | Memory types | `DRAM`, `VRAM`, `FILE`, `BLOCK`, `OBJ` | `src/api/python/_api.py` |
 | Operations | `READ`, `WRITE` | (no SEND/RECV — one-sided) |
 

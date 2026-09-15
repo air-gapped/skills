@@ -45,6 +45,8 @@ old, so a release-tag check would have reported nothing to do.
 
 ## Open
 
+## Decided — do not re-propose
+
 - **Dim 7 (Resource Quality) — no bundled scripts (by design).** cloud-init is a
   system command; the skill relies on `cloud-init` invocations + copy-paste examples.
   A bundled seed-builder helper is possible but likely over-engineering vs the

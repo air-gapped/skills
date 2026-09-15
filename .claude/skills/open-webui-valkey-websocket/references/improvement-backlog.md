@@ -26,17 +26,34 @@ Still open after this pass: the version floor stays at 0.9.5 because **0.9.6→0
    statement about what was *tested*, not about what is broken. Needs a
    staging cluster, so it cannot be closed from source alone.
 
-1. configuration.md `maxclients` Valkey/Redis-version cliff (Dim 9) —
-   stated as "newer Valkey versions / older Redis versions" without exact
-   version numbers. Pinning would lift Dim 9. **Why not applied this run:**
-   requires a separate Valkey/Redis-version probe (Redis 5/6? Valkey 7/8?)
-   to confirm the actual default-`maxclients` cliff; out of scope for a
-   single atomic iteration. (carried 2026-05-28)
-2. SKILL.md "verify on the deployment's target version" handwave for the
+## Decided — do not re-propose
+
+- SKILL.md "verify on the deployment's target version" handwave for the
    lagging admin endpoints (Dim 4) — lacks a concrete `curl` recipe.
    **Why not applied:** auth-token handling is environment-specific
    (cookie vs Bearer vs OAuth proxy); a one-size-fits-all snippet would
    mislead. (carried 2026-05-28)
+
+## Resolved — 2026-09-15
+
+- **The `maxclients` "version cliff" did not exist.** The item asked for exact
+  version numbers behind "newer Valkey versions / older Redis versions". There
+  are none to pin: `maxclients` has defaulted to **10000 in every Redis release
+  from 2.6.0 (2012) onward and in every Valkey release**, checked against
+  `redis.conf` / `valkey.conf` and the `createUIntConfig("maxclients", ...)`
+  literal in `src/config.c` at tags 2.6.0, 2.8.0, 3.0.0, 5.0.0, 6.0.0, 6.2.0,
+  7.0.0, 7.2.0, 7.4.0, 8.0.0, 8.2.0, 8.4.0 and Valkey 7.2.9, 8.0.0, 8.1.0,
+  9.0.0, 9.1.0. The claim that older Redis defaulted to 4096 or 256 is not
+  supported at any tag. **Asking for a sharper number would have produced a
+  fabricated one** — the honest answer was that the premise was wrong.
+- **Replaced with the mechanism that actually reduces the limit**:
+  `adjustOpenFilesLimit()` needs `maxclients + 32` file descriptors and
+  silently lowers `maxclients` to `bestlimit - 32` when `RLIMIT_NOFILE` cannot
+  be raised. `configuration.md` now carries the exact log line that says this
+  happened, so an operator can tell the two causes apart, plus the warning not
+  to confuse `maxclients` with `maxmemory-clients` (Redis 7.0+, an output-buffer
+  memory cap, not a connection count). The logic is identical in both projects,
+  so the setting is portable in either direction.
 
 ## Resolved — 2026-07-21 (freshen)
 

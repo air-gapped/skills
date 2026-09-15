@@ -90,6 +90,8 @@ training-data recipe survey, and the four long-merged original PRs.
 
 ## Open
 
+## Unblocked — actionable
+
 - **Deduplicate the BS>=32 / domain-mismatch caveat** — Dim 6 (Simplicity).
   Files: SKILL.md "wins/loses" L17-32 (canonical home), references/eagle3.md
   "When EAGLE-3 fails to pay off" L137-149, references/dflash.md "When DFlash is

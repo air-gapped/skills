@@ -36,19 +36,6 @@ would otherwise have required changing.
 
 ## Open
 
-- **Pitfalls ↔ troubleshooting.md overlap (Dim 6).** The 12-item "Critical pitfalls"
-  list in `SKILL.md` (the always-loaded layer) restates several points that also live,
-  symptom-keyed, in `references/troubleshooting.md`, and a few notes in the command-map
-  table. Both blind scorers flagged this as the sole drag on Simplicity (8 vs 9).
-  - File-set: `SKILL.md` "Critical pitfalls" section + `references/troubleshooting.md`.
-  - Why not applied: collapsing the inline pitfalls into one-line pointers to
-    troubleshooting.md would force a reference-open for the highest-value operational
-    gotchas (the `--no-input` hang, value-guessing, append-vs-replace) at the moment
-    they matter most. That trades hot-path, trigger-time value for a cosmetic +1 — a
-    progressive-disclosure layering decision that needs author judgment, not a
-    mechanical dedup. Left intentionally redundant. Revisit only if SKILL.md length
-    becomes a real budget problem.
-
 - **Live-verification gaps (residual from the 2026-06-07 completion pass).** Three
   commands could not be exercised on the test instance; verify on a suitable instance
   in a future run.
@@ -62,6 +49,21 @@ would otherwise have required changing.
     verified.)
   - `init`: not run — would overwrite the live config. Verify against a scratch config
     via `JIRA_CONFIG_FILE=/tmp/...` so the real `~/.config/.jira/.config.yml` is untouched.
+
+## Decided — do not re-propose
+
+- **Pitfalls ↔ troubleshooting.md overlap (Dim 6).** The 12-item "Critical pitfalls"
+  list in `SKILL.md` (the always-loaded layer) restates several points that also live,
+  symptom-keyed, in `references/troubleshooting.md`, and a few notes in the command-map
+  table. Both blind scorers flagged this as the sole drag on Simplicity (8 vs 9).
+  - File-set: `SKILL.md` "Critical pitfalls" section + `references/troubleshooting.md`.
+  - Why not applied: collapsing the inline pitfalls into one-line pointers to
+    troubleshooting.md would force a reference-open for the highest-value operational
+    gotchas (the `--no-input` hang, value-guessing, append-vs-replace) at the moment
+    they matter most. That trades hot-path, trigger-time value for a cosmetic +1 — a
+    progressive-disclosure layering decision that needs author judgment, not a
+    mechanical dedup. Left intentionally redundant. Revisit only if SKILL.md length
+    becomes a real budget problem.
 
 - **Trigger: two borderline over-triggers need `--runs-per-query 5` to resolve (Dim 1).**
   Baseline trigger probe (2026-06-07, fixed probe) was 13/15 — all 8 positives fire 2/2,

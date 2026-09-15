@@ -30,6 +30,17 @@ diffed directly.
 
 ## Open
 
+## Decided — do not re-propose
+
+- **Dim 7 (Resource Quality) capped at 8 — no bundled scripts.** Could add a
+  `scripts/build-seed.sh` (genisoimage/cloud-localds wrapper) or a validator-fetch
+  helper. Deliberately omitted: the authoritative validator ships upstream in
+  canonical/subiquity and `references/examples.md` already has copy-paste commands,
+  so a bundled script may be over-engineering. Author decides whether the
+  convenience justifies the maintenance surface. (dir: `scripts/`, absent by design)
+
+## Unblocked — actionable
+
 - **Dim 2 (Progressive Disclosure) capped at 8 by SKILL.md length.** SKILL.md is
   215 lines; reaching 9 needs <150 lines. The over-length comes from inline
   quick-reference blocks (the schema table ~110-133, the Air-gapped essentials YAML
@@ -37,12 +48,6 @@ diffed directly.
   actionability value, so cutting them to references/ is net-negative without a
   restructure that keeps the body equally useful. Needs author judgment, not a
   one-iteration mechanical move. (file: `SKILL.md`)
-- **Dim 7 (Resource Quality) capped at 8 — no bundled scripts.** Could add a
-  `scripts/build-seed.sh` (genisoimage/cloud-localds wrapper) or a validator-fetch
-  helper. Deliberately omitted: the authoritative validator ships upstream in
-  canonical/subiquity and `references/examples.md` already has copy-paste commands,
-  so a bundled script may be over-engineering. Author decides whether the
-  convenience justifies the maintenance surface. (dir: `scripts/`, absent by design)
 
 ## Resolved — 2026-06-14 (improve mode)
 

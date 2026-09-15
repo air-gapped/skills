@@ -6,13 +6,6 @@ not be re-proposed or re-researched. Design rationale lives in
 
 ## Open
 
-- **Build an eval set and measure `delta_pass_rate`** (Dim 10) — Dim 10 is
-  capped at 8 (Negative-Transfer Gate, unmeasured) until the skill has
-  `evals/evals.json` and a with/without-skill `benchmark.json` from the
-  skill-creator plugin's eval loop. Multi-session work: author eval cases
-  (e.g. the three smoke tests in `maintenance.md` §Testing as seeds), run
-  the benchmark, record the delta. Not applicable in one iteration.
-  (raised 2026-08-18)
 - **`scripts/static-sweep.sh`** (Dim 7) — bundle the static grep batteries
   into one script emitting a structured hit list. Attempted 2026-07-15,
   superseded by the redesign. Re-screened 2026-08-18 and NOT built: it
@@ -20,6 +13,16 @@ not be re-proposed or re-researched. Design rationale lives in
   surface the product-agnostic redesign deliberately removed. Needs an
   operator yes/no (either build it as the single source of truth with the
   pattern files pointing at it, or close this item). (carried 2026-08-18)
+
+## Unblocked — actionable
+
+- **Build an eval set and measure `delta_pass_rate`** (Dim 10) — Dim 10 is
+  capped at 8 (Negative-Transfer Gate, unmeasured) until the skill has
+  `evals/evals.json` and a with/without-skill `benchmark.json` from the
+  skill-creator plugin's eval loop. Multi-session work: author eval cases
+  (e.g. the three smoke tests in `maintenance.md` §Testing as seeds), run
+  the benchmark, record the delta. Not applicable in one iteration.
+  (raised 2026-08-18)
 
 ## Settled — do not re-propose
 

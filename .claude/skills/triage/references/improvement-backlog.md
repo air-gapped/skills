@@ -3,6 +3,30 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15
+
+- **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
+  frontmatter and in every body reference, across all four defending-code
+  skills in one pass. The entry's own blocker was "verify `Agent` is a valid
+  `allowed-tools`/spawn name in the target version" — that is now settled by
+  direct evidence rather than by documentation alone:
+  - The official tools reference lists **`Agent`** as the subagent tool and
+    shows `Agent(Explore)` as an `allowed-tools` entry. No current doc lists
+    `Task`.
+  - The installed Claude Code binary (2.1.271) contains a guard reading
+    `if (e !== "Agent" && e !== "Task") return;` on the subagent
+    permission path, so **both names are still handled** — the rename does not
+    strand the skills on this version, and `Task` was not silently dead before
+    it either.
+  - `allowed-tools` is validated only as "a string or array of strings" with
+    no per-name whitelist, so an unrecognised entry would be accepted and
+    simply match nothing. That is precisely why the undocumented spelling was
+    worth removing: the failure mode is silent.
+
+  The residual risk the entry named — "renaming risks a regression if `Agent`
+  isn't accepted" — is therefore inverted. `Agent` is the documented name and
+  is accepted; `Task` is the undocumented one.
+
 ## Resolved — 2026-08-19 (Visa §3.2 evidence, §1.4 threat tagging, §2.3 lenses)
 
 - **`threat_ids` carried through ingest** (§1.4 plumbing): `/vuln-scan`
@@ -110,6 +134,9 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   pass: needs a real target and a full multi-skill pipeline run, not a
   one-iteration mutation. The feedback's calibration table (rows 1-4) is
   the pass/fail oracle.
+
+## Decided — do not re-propose
+
 - **SKILL.md still 823+ lines (>500 guideline) — Dim 2 ceiling.** (carried 2026-07-05) This pass
   extracted the two ~1,200-word subagent prompts to `references/prompts.md`
   (1021 → 823). Reaching <500 would require also extracting the per-phase JSON
@@ -126,16 +153,15 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   regardless, so the token win mostly evaporates and a skipped Read on a
   security-verdict workflow is a real risk. No extraction without a
   with/without measurement first.)
+
+## Unblocked — actionable
+
 - **Add a `when_to_use` field (Dim 1).** The 447-char `description` carries the
   four primary triggers; secondary phrasings ("false positive review",
   "scanner noise", "dedupe vulns", "rank by exploitability") would lift Dim 1
   recall. NOT applied: additive change, low ROI against the current score; do
   it on a trigger-mode pass (`/skill-improver trigger triage`) which measures
   trigger rate empirically rather than guessing phrasings.
-- **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** Shared across all
-  four defending-code skills — see `threat-model/references/improvement-backlog.md`
-  for the rationale and the one-pass cross-skill rename plan. Deferred
-  (regression risk + multi-location).
 - **Adopt upstream `untrusted_data` isolation in the verifier/ranker prompts
   (Dim 5/7) — flagged by freshen 2026-06-15.** Harness PR #13 now wraps every
   attacker-influenced span embedded in its agent prompts in nonce-delimited

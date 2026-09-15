@@ -3,6 +3,30 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved — 2026-09-15
+
+- **`allowed-tools: Task` renamed to the canonical `Agent`** (Dim 8/9), in the
+  frontmatter and in every body reference, across all four defending-code
+  skills in one pass. The entry's own blocker was "verify `Agent` is a valid
+  `allowed-tools`/spawn name in the target version" — that is now settled by
+  direct evidence rather than by documentation alone:
+  - The official tools reference lists **`Agent`** as the subagent tool and
+    shows `Agent(Explore)` as an `allowed-tools` entry. No current doc lists
+    `Task`.
+  - The installed Claude Code binary (2.1.271) contains a guard reading
+    `if (e !== "Agent" && e !== "Task") return;` on the subagent
+    permission path, so **both names are still handled** — the rename does not
+    strand the skills on this version, and `Task` was not silently dead before
+    it either.
+  - `allowed-tools` is validated only as "a string or array of strings" with
+    no per-name whitelist, so an unrecognised entry would be accepted and
+    simply match nothing. That is precisely why the undocumented spelling was
+    worth removing: the failure mode is silent.
+
+  The residual risk the entry named — "renaming risks a regression if `Agent`
+  isn't accepted" — is therefore inverted. `Agent` is the documented name and
+  is accepted; `Task` is the undocumented one.
+
 ## Resolved — 2026-08-19 (Visa §1.2 baselines, §1.4 downstream contract)
 
 - **Repo-kind baseline table in interview Q2 (§1.2).** Five kinds — `web-api`,
@@ -65,17 +89,7 @@ a repo-level `pushed_at` check cannot.
 
 ## Open
 
-- **`allowed-tools: Task` vs canonical `Agent` (Dim 8/9).** SKILL.md:26
-  permits `Bash(... )` + `Task`; the body says "spawn a Task subagent" /
-  `subagent_type` throughout. Blind scorers flagged `Agent` as the canonical
-  tool name since Claude Code v2.1.63 (`Task` still works as an alias). NOT
-  applied this pass: it's a cross-cutting rename (frontmatter + ~every body
-  reference) shared across all four defending-code skills, and the source
-  (anthropics/defending-code-reference-harness, active) deliberately uses
-  `Task`, so renaming risks a regression if `Agent` isn't accepted in the
-  operator's CC version. Verify `Agent` is a valid `allowed-tools`/spawn name
-  in the target version, then rename consistently across all 4 skills in one
-  pass.
+## Unblocked — actionable
 
 ## Resolved — 2026-07-05 (improve, operator feedback)
 

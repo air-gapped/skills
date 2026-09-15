@@ -38,14 +38,6 @@ changes that actually landed.
 
 ## Open
 
-- **Dim 10 hard cap at 8 — the skill has never been measured against a no-skill baseline.**
-  (new 2026-07-25) The Negative-Transfer Gate caps Dim 10 at 8 while `delta_pass_rate` is
-  unmeasured, and it is currently the single binding constraint on the total. Not applicable in one
-  iteration: needs an author-written `evals/evals.json` (realistic upgrade-planning prompts with
-  assertions), then `python -m scripts.aggregate_benchmark` from the official skill-creator plugin.
-  Worth ~+2 if the delta is positive — and a genuine finding either way, given SkillLens measured
-  25% of skills as net-harmful.
-
 - **Dim 5 (Completeness) — failure remedies are named-but-unresolved for two watch items.**
   (new 2026-07-25) `per-minor-runbook.md` post-flight steps 10 and 12 tell the operator to *watch*
   for CrashLoop @2.14 and DiskPressure @2.12, but neither carries a remedy — unlike the RKE1 gate
@@ -62,6 +54,16 @@ changes that actually landed.
   (improvement-pattern 3.2) — so a one-line collapse loses force with no score gain (blind validator
   scored Dim 6 = 8, "non-repetitive"). Breaking past 8 needs an author decision on collapsing to one
   canonical statement + cross-refs across ≥3 locations — a restructure, not a single-iteration mutation.
+
+## Unblocked — actionable
+
+- **Dim 10 hard cap at 8 — the skill has never been measured against a no-skill baseline.**
+  (new 2026-07-25) The Negative-Transfer Gate caps Dim 10 at 8 while `delta_pass_rate` is
+  unmeasured, and it is currently the single binding constraint on the total. Not applicable in one
+  iteration: needs an author-written `evals/evals.json` (realistic upgrade-planning prompts with
+  assertions), then `python -m scripts.aggregate_benchmark` from the official skill-creator plugin.
+  Worth ~+2 if the delta is positive — and a genuine finding either way, given SkillLens measured
+  25% of skills as net-harmful.
 
 ## Resolved — 2026-07-25 (improve + freshen · blind 76 → 84 → re-scored after 2 further fixes · 14 iterations, 0 discards)
 

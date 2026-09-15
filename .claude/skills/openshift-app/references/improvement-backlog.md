@@ -4,25 +4,39 @@ Tracks improvement hypotheses attempted but not landed in one atomic iteration, 
 
 ## Open
 
-- **Per-file tables of contents for the 7 reference files** (Dim 7) — `references/{container-images,packaging-formats,security,cicd-gitops,operations,gotchas,disconnected}.md`. Each file exceeds the 100-line TOC threshold (226-454 lines) but none carries a top-of-file TOC. Not applied in one iteration: adding a TOC to each of 7 files requires reading each file's exact heading structure and is a 7-file change, exceeding the one-atomic-change-per-iteration rule. Do one file per iteration next pass.
-- **Merge the two top-of-file routing tables** (Dim 6) — `SKILL.md` Quick Decision Guide (~L18-30) and Additional References (~L223-233). The two tables overlap slightly in intent (task-routing vs file-contents). Merging into one canonical navigation surface is a structural rewrite of two sections that also risks dropping the distinct in-file anchors (#container-image-essentials, #packaging-decision-matrix) the Quick Decision Guide carries; deferred to avoid conflating relocation with prose rewrite in a single step.
-- **Inline SCC validation one-liner** (Dim 4) — `SKILL.md` next to the restricted-v2 securityContext block (~L76-85). Add a confirm-it-worked command (e.g. `oc get pod NAME -o jsonpath='{.spec.containers[0].securityContext}'` and the assigned UID via `oc get pod NAME -o jsonpath='{.spec.securityContext.runAsUser}'`). This is an additive content change; deferred this pass to keep the pass deletion-biased and because exact placement needs a fresh read of the surrounding block to avoid duplicating guidance already in references/security.md.
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-## Verify next freshen (recon flagged 'unverifiable' — live docs were blocked)
+## Unblocked — actionable
 
-**Three of the four original items were resolved on 2026-07-21** — see the
-Resolved section below. What remains:
+- **Merge the two top-of-file routing tables** (Dim 6) — `SKILL.md` Quick Decision Guide (~L18-30) and Additional References (~L223-233). The two tables overlap slightly in intent (task-routing vs file-contents). Merging into one canonical navigation surface is a structural rewrite of two sections that also risks dropping the distinct in-file anchors (#container-image-essentials, #packaging-decision-matrix) the Quick Decision Guide carries; deferred to avoid conflating relocation with prose rewrite in a single step. Nothing external blocks it — it needs two iterations, a move and then a rewrite.
 
-- **OCP 4.22's bundled Helm version** — `SKILL.md` §"Helm 4 Is NOT Usable with
-  ArgoCD on OpenShift", `references/packaging-formats.md`. The 4.19-4.21
-  "ships Helm 3 / web terminal v3.17.1" claim was carried forward unchanged;
-  4.22 is now GA but `docs.redhat.com/.../4.22/...` returns **403** to direct
-  fetch, so the bundled version could not be read. Both files now say 4.22 is
-  unverified rather than silently extending the range.
-- **"ArgoCD through v3.3 / GitOps 1.20 only supports Helm 3"** — not re-probed
-  this pass; the pass budget went to the version-span and EOL findings. Argo CD
-  is on GitHub, so this one is cheaply checkable next time via
-  `gh release list -R argoproj/argo-cd` plus its Helm-version dependency.
+## Resolved — 2026-09-15
+
+- **Per-file tables of contents** (Dim 7) — found already present in all seven reference files. The item was stale: the work had been done and never retired from Open. Verified every anchor resolves to a real heading.
+- **Inline SCC validation commands added** (Dim 4) — `SKILL.md`, immediately after the minimum-compliant securityContext block. Three `oc get pod -o jsonpath` one-liners: the admitting SCC from the `openshift.io/scc` annotation, the container securityContext, and the assigned UID. Notes that an empty `runAsUser` alongside a populated SCC annotation is the expected result, since the range assignment lands at admission rather than in the manifest.
+
+## Resolved — 2026-09-15 (both carried verify-next-freshen items)
+
+- **Argo CD moved to Helm 4 — the skill's headline claim was inverted.** The
+  gotcha was titled "Helm 4 Is NOT Usable with ArgoCD on OpenShift" and said
+  "ArgoCD through v3.3 / GitOps 1.20 only supports Helm 3". PR #28076 ("feat:
+  Migrate from Helm 3 to Helm 4") merged **2026-06-09** and shipped in
+  **v3.5.0** (2026-08-04). Read from `hack/tool-versions.sh` at each tag:
+  v3.5.3 pins `helm4_version=4.2.1`, v3.4.9 pins `helm3_version=3.19.4`. The
+  old "through v3.3" framing also understated it — 3.4.x stayed on Helm 3 too,
+  and only 3.5.x jumped. Section retitled and rewritten, with the upgrade
+  hazard added: Helm 4's null-coalescing change can alter rendered manifests
+  across 3.4 → 3.5 with no chart or values edit (argo-cd#29068, still OPEN).
+- **OCP 4.22's bundled Helm version established: v3.20.2.** The previous pass
+  could not read it because `docs.redhat.com` 403s. It is not a 403 problem —
+  the page is a client-rendered shell with **no version text in its HTML for
+  any OCP version**, so that source can never answer this. The answer lives in
+  the `redhat-developer/web-terminal-operator` CHANGELOG, which maps each Web
+  Terminal Operator release to the tool versions it ships: WTO 1.17
+  (2026-06-24) bumped `oc` v4.21.4 → v4.22.1 and helm v3.17.1 → v3.20.2.
+  Recorded in `SKILL.md` and `packaging-formats.md` along with where it came
+  from, so the next pass does not retry the docs page.
 
 ## Resolved — 2026-07-21 (freshen)
 

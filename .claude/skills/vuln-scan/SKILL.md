@@ -17,7 +17,7 @@ allowed-tools:
   - Glob
   - Grep
   - Write
-  - Task
+  - Agent
   - Bash(rg:*)
   - Bash(grep:*)
   - Bash(ls:*)
@@ -131,7 +131,7 @@ it is the one the operator did not ask for.
 ## Step 2 — Fan out
 
 Unless `--single`, spawn **one review subagent per focus area** in parallel
-— all Task calls in a SINGLE message, `subagent_type: "vuln-area-reviewer"`
+— all Agent calls in a SINGLE message, `subagent_type: "vuln-area-reviewer"`
 (plugin installs: `defending-code:vuln-area-reviewer`). Cap at 10
 concurrent. The full review brief is that agent definition's system prompt
 — shared and prompt-cached across every reviewer in the wave — so each
@@ -252,7 +252,7 @@ unproven-flow, W passed") — silent gating reads as "nothing was gated".
 A cheap second-opinion read that **ranks** findings by signal quality.
 **Nothing is dropped** — this pass calibrates `confidence` so humans and
 `/triage` see high-signal findings first. Spawn **one subagent per
-finding that passed the Step 3a pre-filter** in parallel — all Task calls
+finding that passed the Step 3a pre-filter** in parallel — all Agent calls
 in one message, `subagent_type:
 "vuln-confidence-scorer"` (plugin installs:
 `defending-code:vuln-confidence-scorer`). The scoring instructions are that

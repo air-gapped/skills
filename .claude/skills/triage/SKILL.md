@@ -17,7 +17,7 @@ allowed-tools:
   - Glob
   - Grep
   - Write
-  - Task
+  - Agent
   - AskUserQuestion
   - Bash(git:*)
   - Bash(jq:*)
@@ -63,7 +63,7 @@ not stable across runtimes):
   from Phase 0. Without this flag the skill resumes from the last completed
   phase if a checkpoint is present.
 
-**Tools:** Read, Glob, Grep, Write, Task, AskUserQuestion. Bash is
+**Tools:** Read, Glob, Grep, Write, Agent, AskUserQuestion. Bash is
 permitted only for `git`, `find`, `wc`, `ls`, `jq`,
 `codegraph explore` (read-only index query, Phase 3a), and
 `python3 .claude/skills/triage/scripts/checkpoint.py` (checkpoint I/O).
@@ -76,7 +76,7 @@ reading source. This applies to the orchestrator and every subagent: the
 `triage-verifier` / `triage-ranker` agent definitions carry it in their
 system prompts and read-only tool lists; for any `general-purpose` spawn
 (the 2b dedupe agent, or the fallback path), include the constraint in the
-Task prompt. For high-confidence HIGH findings, recommend a human-built
+Agent prompt. For high-confidence HIGH findings, recommend a human-built
 PoC as a follow-up instead.
 
 **Do not reach the network.** No package-registry lookups, CVE-database
@@ -399,7 +399,7 @@ not.
 
 ### 2b. Semantic pass (one subagent, only if >1 cluster survives)
 
-Spawn ONE Task with `subagent_type: "general-purpose"` and this prompt:
+Spawn ONE Agent with `subagent_type: "general-purpose"` and this prompt:
 
 ```
 You are deduplicating security findings before expensive verification. Two
@@ -503,7 +503,7 @@ this changes where it looks first, not what counts as evidence.
 
 ### 3b. Spawn N verifiers per candidate, all in one message
 
-For each finding in `candidates[]`, build N Task calls (N = `--votes`,
+For each finding in `candidates[]`, build N Agent calls (N = `--votes`,
 default 3) with `subagent_type: "triage-verifier"` (plugin installs:
 `defending-code:triage-verifier`) and `description:
 "verify {id} vote {k}/{N}"`. **Fallback:** if neither agent name resolves,
@@ -524,7 +524,7 @@ Each spawn's prompt is only the tail from **`references/prompts.md`
 ENVIRONMENT, org rules) plus the per-finding "FINDING UNDER REVIEW" block
 and the vote number.
 
-**Put all verifier Task calls in a single assistant message** so they run
+**Put all verifier Agent calls in a single assistant message** so they run
 concurrently. Do not set `run_in_background`; you need the final text, not
 an async handle. If `len(candidates) * N` exceeds ~40, shard into
 sequential batches of ~40, but keep each batch a single message.
@@ -578,7 +578,7 @@ Findings with a `file` but no `line` get **one** verifier vote regardless
 of `--votes` (a file-level sweep is expensive and doesn't benefit from
 voting).
 
-**If any Task call returns `status: "async_launched"` instead of the
+**If any Agent call returns `status: "async_launched"` instead of the
 verifier's text**, the runtime backgrounded it (some runtimes do this
 automatically for large parallel batches). Pick one recovery and use it for
 the whole batch:
@@ -586,7 +586,7 @@ the whole batch:
     verifier's VERDICT block from its notification `result` as it lands.
     Do not end your turn until every vote is accounted for.
   - If notifications do not arrive: do not poll transcript files. Re-spawn
-    the missing verifiers in a fresh Task batch (smaller shard size, e.g.
+    the missing verifiers in a fresh Agent batch (smaller shard size, e.g.
     10) and use the synchronous results.
 The same recovery applies to the dedupe subagent in 2b and the ranking
 subagents in 4a.
@@ -677,7 +677,7 @@ must not inflate an empty asset into a HIGH.
 
 ### 4a. Ranking spawn
 
-Spawn one Task per confirmed finding (`subagent_type: "triage-ranker"`;
+Spawn one Agent per confirmed finding (`subagent_type: "triage-ranker"`;
 plugin installs: `defending-code:triage-ranker`; all in one message). The
 full ranking instructions are that agent definition's cached system prompt;
 each spawn's prompt is only the tail in **`references/prompts.md` § Ranker
@@ -967,7 +967,7 @@ defensible).
   ASAN crashes with prose exploitability analysis rather than the
   file/line/category shape static verifiers expect. Expect more
   `needs_manual_test` verdicts on that input than on static-scanner JSON.
-- **Sharding at ~40 parallel Tasks** is a conservative ceiling for typical
+- **Sharding at ~40 parallel Agent calls** is a conservative ceiling for typical
   agent-spawn limits; tune up if your runtime allows.
 - **No network**, deliberately. CVE-database enrichment and upstream-fix
   checks would help ranking but break the air-gapped-review property.

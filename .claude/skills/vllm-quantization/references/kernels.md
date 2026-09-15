@@ -4,6 +4,20 @@ Who actually runs the matmul. Each kernel dispatches from a different file; the
 dispatch selection is the #1 reason for surprise regressions when switching
 vLLM versions.
 
+## Table of Contents
+
+- [Kernel registry files](#kernel-registry-files)
+- [Dispatch table (linear GEMM)](#dispatch-table-linear-gemm)
+- [Overriding the dispatch — `--linear-backend` / `--moe-backend`](#overriding-the-dispatch----linear-backend----moe-backend)
+- [MoE backend oracles](#moe-backend-oracles)
+- [Blackwell-specific dispatch](#blackwell-specific-dispatch)
+- [AMD / ROCm](#amd--rocm)
+- [Hopper-specific notes](#hopper-specific-notes)
+- [Marlin input dtype selection](#marlin-input-dtype-selection)
+- [Sanity checks at load time](#sanity-checks-at-load-time)
+
+---
+
 ## Kernel registry files
 
 - Linear scaled-mm: `vllm/model_executor/kernels/linear/scaled_mm.py`

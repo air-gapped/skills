@@ -5,18 +5,6 @@ changes the metric registered this pass. Append-only audit; not a wishlist.
 
 ## Open
 
-- **Trim kpis-frameworks.md §7 dashboard recipes** — Dim 2 / Dim 6 —
-  `references/kpis-frameworks.md:322-410`. The recon hypothesis assumed §7
-  contained per-recipe PromQL enumerations to collapse into one-line panel
-  lists. On read, §7 is *already* in one-line-per-panel form (numbered panel
-  names, no inline PromQL). There is no fat to cut without merging the
-  numbered lists into comma-joined prose, which would save ~50 lines of a
-  474-line **reference** file (under no cap — the 500-line limit applies to
-  SKILL.md, which is 189 lines) while degrading scan-readability of the
-  differentiated GPU/DCGM, Kafka, and Postgres catalogs (Dim 10 value). Net
-  total would not improve. Not applied. Revisit only if the file grows fat
-  PromQL blocks later.
-
 - **Reconcile `status` vs `status_code` label naming** — Dim 8 —
   `SKILL.md:89,157` use `status=~"5.."`; `references/agent-workflow.md:47-63`
   use `status_code=~"5.."` for the same concept. This is intentional
@@ -29,6 +17,20 @@ changes the metric registered this pass. Append-only audit; not a wishlist.
   example form to standardize on. That is an author-judgment edit touching
   three sites in two files; deferred rather than risk introducing a false
   determinism in one atomic step.
+
+## Decided — do not re-propose
+
+- **Trim kpis-frameworks.md §7 dashboard recipes** — Dim 2 / Dim 6 —
+  `references/kpis-frameworks.md:322-410`. The recon hypothesis assumed §7
+  contained per-recipe PromQL enumerations to collapse into one-line panel
+  lists. On read, §7 is *already* in one-line-per-panel form (numbered panel
+  names, no inline PromQL). There is no fat to cut without merging the
+  numbered lists into comma-joined prose, which would save ~50 lines of a
+  474-line **reference** file (under no cap — the 500-line limit applies to
+  SKILL.md, which is 189 lines) while degrading scan-readability of the
+  differentiated GPU/DCGM, Kafka, and Postgres catalogs (Dim 10 value). Net
+  total would not improve. Not applied. Revisit only if the file grows fat
+  PromQL blocks later.
 
 ## Resolved — 2026-07-21 (freshen)
 

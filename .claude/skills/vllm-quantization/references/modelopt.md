@@ -4,6 +4,15 @@ Canonical repo: [NVIDIA/TensorRT-Model-Optimizer](https://github.com/NVIDIA/Tens
 
 Produces vLLM-loadable checkpoints via `--quantization modelopt` / `modelopt_fp4` / `modelopt_mxfp8` / `modelopt_mixed`. Also produces TRT-LLM engines (not our concern).
 
+## Table of Contents
+
+- [Two distinct product lines in the same repo](#two-distinct-product-lines-in-the-same-repo)
+- [Part 1 — Quantization (PTQ)](#part-1--quantization-ptq)
+- [Part 2 — Speculative decoding training](#part-2--speculative-decoding-training)
+- [External references](#external-references)
+
+---
+
 ## Two distinct product lines in the same repo
 
 1. **`modelopt/torch/quantization/`** — PTQ (NVFP4, FP8, MXFP8, INT4). Exports HF-format checkpoint.

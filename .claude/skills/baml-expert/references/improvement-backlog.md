@@ -4,11 +4,43 @@ Tracks issues attempted but not fully resolvable in one keep/discard iteration, 
 
 ## Open
 
-- **Re-stamp the 6 remaining `docs.boundaryml.com` rows** — Dim 9 — `references/sources.md` (`/home`, `/guide/introduction/what-is-baml`, `/ref/baml/class`, `/ref/baml/attributes`, `/ref/baml/test`, `/guide/baml-advanced/prompt-caching` still `Last verified: 2026-04-19`). *Not* the blocker the 2026-05-28 entry described: WebFetch renders these Mintlify SPA pages fine — four rows were re-verified and stamped 2026-07-21 this pass. The rest were left only because the probe budget went to the version-drift findings. Straightforward next pass. (carried 2026-07-21, reduced in scope)
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
-- **`/ref/baml-cli` no longer documents the subcommand catalogue** — Dim 9 — `references/cli.md`. The public page now covers `init` and nothing else, so `cli.md`'s `generate/test/serve/dev/fmt/grep/describe/optimize/run` catalogue has no upstream page backing it. Not wrong — the commands are real, sourced from the repo and changelog — but the sources.md row's scope text ("baml-cli commands (init/generate/test/serve/dev/fmt)") now overstates what that URL proves. Fixing properly means re-sourcing `cli.md` against `baml-cli/` in the repo, which is a research pass, not a freshen mutation.
+## Unblocked — actionable
 
-- **Add evals coverage for the decision-table rows not yet exercised** — Dim 10 — `evals/evals.json` (3 cases exist: add-function, fix-broken-file, stream-to-fastapi). Uncovered intents: provider/client-block authoring (round-robin/fallback), ClientRegistry/TypeBuilder runtime override, multimodal (image/pdf) input, BAML_LOG debugging. Adding cases is additive content, not a one-line edit; deferred to a dedicated evals pass. (carried 2026-07-21)
+- **Add evals coverage for the decision-table rows not yet exercised** — Dim 10 — `evals/evals.json` (3 cases exist: add-function, fix-broken-file, stream-to-fastapi). Uncovered intents: provider/client-block authoring (round-robin/fallback), ClientRegistry/TypeBuilder runtime override, multimodal (image/pdf) input, BAML_LOG debugging. Adding cases is additive content, not a one-line edit; nothing external blocks it. (carried 2026-07-21)
+
+## Resolved — 2026-09-15
+
+- **The "re-stamp the 6 remaining `docs.boundaryml.com` rows" item was stale.**
+  `sources.md` carries no per-row `Last verified` dates at all — it moved to the
+  single header-stamp contract on 2026-08-18, so there is nothing to re-stamp.
+  The two URLs that item implied were fine are in fact dead, and the file had
+  **already** been corrected for both: `/ref/baml/attributes` and
+  `/guide/baml-advanced/prompt-caching` each return 404 (re-confirmed by bare
+  curl 2026-09-15), and the rows already point at `/ref/attributes/what-are-attributes`
+  and `/guide/baml-advanced/prompt-caching-message-role-metadata`.
+- **`/ref/baml-cli` catalogue claim refuted, not confirmed.** The item said the
+  page "now covers `init` and nothing else, so `cli.md`'s catalogue has no
+  upstream page backing". What is true is narrower: the bare URL 302s to
+  `/ref/baml-cli/init`, so a single shallow fetch sees only `init`. All six
+  documented subcommands have their own live pages — `/generate` and `/fmt`
+  spot-checked at HTTP 200 on 2026-09-15 — and the section sidebar links them.
+  `cli.md` was already right to separate those six from `optimize`/`grep`/
+  `describe`/`run`, which genuinely have no page and stay under Canary. The
+  `sources.md` row now records this shape so the next pass does not re-raise it.
+
+## Checked and NOT confirmed — do not add without new evidence
+
+- **A "BAML v0 is legacy, BAML v1 is a separate language in public beta"
+  banner on the docs site.** Reported by a research pass on 2026-09-15 and
+  checked directly the same day: `curl` of `docs.boundaryml.com/home` (370 KB
+  of served HTML) contains no occurrence of "legacy", "BAML v1", "public beta"
+  or "deprecat" in any text node. The only `v0` matches are SVG path data. If
+  such a banner exists it is not in the served markup. Do not write a v0/v1
+  split into this skill on the strength of a summarised read; confirm it in the
+  raw page or an official release note first.
 
 ## Resolved — 2026-07-21 (freshen)
 

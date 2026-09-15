@@ -5,14 +5,22 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 > **This roster is a floor, not a complete list.** The tables below were
 > compiled against v0.20.0 (2026-05-07) and have not been re-synced against
 > `supported_models.md` since. Only the LTX rows and the GLM-Image note were
-> re-verified against the v0.26.0 registry on 2026-08-11. v0.22.0 → v0.26.0
-> added at least: Cosmos3 (incl. Edge/Distilled), DreamZero, MiniCPM-o 4.5,
-> MOSS-TTS(-Local v1.5), GLM-TTS, Higgs Audio v2 and V3, HiDream-I1-Full,
-> SenseNova U1, IndexTTS2, Step-Audio2, SDXL, GR00T-N1.7, **MiniMax H3**
-> (joint video+audio, `MiniMaxH3Pipeline`), **Krea 2** (`Krea2Pipeline`),
-> **Boogu Image 0.1** (`BooguImagePipeline`), Nemotron Audex, LingBot Video
-> and MammothModa2-Dev. If a model is missing here, check the registry before
-> concluding it is unsupported.
+> re-verified against the v0.26.0 registry on 2026-08-11. Models added since
+> and present in upstream's list as of 2026-09-15: Cosmos3 (incl.
+> Edge/Distilled), DreamZero, MiniCPM-o 4.5, MOSS-TTS(-Local v1.5), GLM-TTS,
+> Higgs Audio v2 and V3, HiDream-I1-Full, SenseNova U1, IndexTTS2, SDXL,
+> GR00T-N1.7, **MiniMax H3** (joint video+audio, `MiniMaxH3Pipeline`),
+> **Krea 2** (`Krea2Pipeline`), **Boogu Image 0.1** (`BooguImagePipeline`),
+> LingBot Video and MammothModa2-Dev. If a model is missing here, check the
+> registry before concluding it is unsupported.
+>
+> **Four names previously listed here do NOT appear in upstream's
+> `supported_models.md`** (grep-checked against the live document on
+> 2026-09-15): **Step-Audio2, soulx-singer, Aura and Nemotron Audex**. They
+> were taken from release-note wording, and a release note saying a model was
+> "added or improved" is not the same as the model being in the supported
+> list. Treat all four as unsupported until the document says otherwise. The
+> supported-models document is the authority here, not the release notes.
 
 ## Any-to-any omni models
 

@@ -4,11 +4,17 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 
 ## Open
 
-- **Trim the SKILL.md budget section's overlap with `budgets-spend.md`** — Dim 6. The baseline blind scorer flagged that the budget bullets (SKILL.md §"Budget semantics") repeat #29066/#34492/#35076 at near-reference detail. Deliberately NOT applied this pass: budgets are the highest-risk area the skill covers, and the SKILL.md rules are the always-loaded operative layer — reducing them to pointers would make the most dangerous semantics load-on-demand only. Revisit only with evidence that the duplication misleads (e.g. the two copies drift).
 - **Run `scripts/litellm-key-audit.sh` against a real proxy** — Dim 7. Execution-tested against a mock paginated `/key/list` (all four flag categories verified, fields checked against `LiteLLM_VerificationToken` in schema.prisma), but never against a live deployment. Requires author environment.
+
+## Decided — do not re-propose
+
+- **Trim the SKILL.md budget section's overlap with `budgets-spend.md`** — Dim 6. The baseline blind scorer flagged that the budget bullets (SKILL.md §"Budget semantics") repeat #29066/#34492/#35076 at near-reference detail. Deliberately NOT applied this pass: budgets are the highest-risk area the skill covers, and the SKILL.md rules are the always-loaded operative layer — reducing them to pointers would make the most dangerous semantics load-on-demand only. Revisit only with evidence that the duplication misleads (e.g. the two copies drift).
+- **Frontmatter headroom is 6 chars** (1,530/1,536 combined) — any future trigger addition must trade an existing phrase out or the NOT-for clause silently truncates (blind-final issue 3). Guard for future edits.
+
+## Unblocked — actionable
+
 - **Measure `delta_pass_rate`** — Dim 10 (capped at 8 unmeasured). Requires `evals/evals.json` + skill-creator's `aggregate_benchmark`. Flagged by the blind scorer as the binding cap.
 - **Organizations coverage is comparatively thin** — Dim 5 (blind-baseline finding). Deeper org-lifecycle content (v2 PATCH clear-token semantics beyond the one row, org-admin permission bugs) needs research-pass material, not a one-iteration edit.
-- **Frontmatter headroom is 6 chars** (1,530/1,536 combined) — any future trigger addition must trade an existing phrase out or the NOT-for clause silently truncates (blind-final issue 3). Guard for future edits.
 
 ## Resolved this pass — 2026-07-30
 

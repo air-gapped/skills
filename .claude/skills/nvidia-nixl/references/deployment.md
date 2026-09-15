@@ -105,6 +105,42 @@ The pyproject specifies `mesonpy` as the build backend. `meson_options.txt` expo
 - **DOCA GPUNetIO**: Install DOCA SDK + GDRCopy.
 - **UCCL**: Build P2P engine via `make -j && sudo make install` in `uccl/p2p`.
 
+### AMD ROCm / HIP build
+
+Supported since **v1.3.0** on AMD Instinct: **gfx942** (MI300X, MI325X) and
+**gfx950** (MI350X, MI355X), added by #1642 with `nixlbench` following in
+#1647.
+
+```bash
+meson setup build -Drocm_path=/opt/rocm     # or a custom ROCm prefix
+# packaging a ROCm wheel (names it nixl_rocm):
+meson setup build -Dwheel_variant=rocm
+```
+
+Plugin behaviour on a ROCm host:
+
+| Plugin | On ROCm |
+|---|---|
+| UCX | primary transport for AMD GPU memory — **UCX must be built `--with-rocm`** |
+| POSIX, OBJ, AZURE_BLOB, HF3FS, MOONCAKE, GUSLI, UCCL | vendor-neutral, build unchanged |
+| GDS, GDS_MT, GPUNETIO | auto-skip; their cuFile / DOCA deps are absent |
+| LIBFABRIC | disabled on ROCm pending a header refactor |
+
+**Do not trust the shipped README on `nixlbench` here.** The `README.md`
+frozen into the **v1.4.1** tag still lists under "Known gaps": *"`nixlbench`
+needs CUDA-driver-API → HIP translation work before it builds on ROCm. Use
+`examples/cpp/nixl_etcd_example` for transfer validation in the meantime."*
+That is stale by three releases. v1.3.0's own release notes say ROCm support
+was added **"including `nixlbench`"** and list #1647 ("[nixlbench] AMD
+ROCm/HIP build support", merged 2026-06-05) — one day after #1642, which is
+why the README bullet was written and then never revised. It was corrected on
+`main` in 2026-08-27, a commit that is **not** an ancestor of v1.4.1. Treat
+the release notes and #1647 as authoritative: `nixlbench` builds on ROCm, and
+the etcd-example workaround is unnecessary.
+
+There is still no NVSHMEM-equivalent backend; a rocSHMEM analog is listed as a
+future candidate, not a shipped plugin.
+
 ## Docker images
 
 The repo's `Dockerfile`s under `contrib/` and `benchmark/nixlbench/contrib/` build the manylinux + benchmark images.

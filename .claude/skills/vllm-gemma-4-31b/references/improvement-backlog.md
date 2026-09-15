@@ -6,35 +6,9 @@ this pass" instead.
 
 ## Open
 
-_All four items below carried forward unchanged at the 2026-07-21 freshen._
-
-### 1. Narrow trigger surface (Dim 1 — locked by author mandate, carried 2026-05-28)
-
-**Pointer:** `SKILL.md:6-7` (`when_to_use`)
-
-**Finding:** Blind scoring agent (2026-04-30 final pass) flagged that
-`when_to_use` requires both "Gemma 4 31B" AND {vLLM, deployment, tuning,
-performance} to fire. Misses common operator shorthand: "AWQ-4bit gemma",
-"cyankiwi", "RedHatAI", "EAGLE3 speculator gemma", "serving gemma-4 on H100".
-
-**Why skill-improver couldn't apply it:** the author explicitly rejected
-broader trigger surfaces in this skill's authoring session (2026-04-30):
-
-> "no one writes like this... sorry but remove those triggers '31B
-> replacement for our 27B', 'long-document summarizer', 'why does
-> throughput plateau' — the only triggers are really gemma 4 31b"
-
-> "you do not need the exact words with or without dashes do you? you
-> would understand anyway would you not?"
-
-The score is by design, not by oversight. **Do not auto-fix in `improve`
-or `freshen` mode.** If trigger misses become a problem in practice, switch
-to `/skill-improver trigger vllm-gemma-4-31b --missed "<phrase>"` mode to
-measure empirically — that's the only mode the author has consented to.
-
-**2026-05-28:** RECON re-proposed enriching `when_to_use` with quoted
-trigger-phrase + model-id variants (its highest-leverage Dim 1 hypothesis).
-NOT applied — same author mandate above still binds. Left for `trigger` mode.
+_Items below carried forward unchanged at the 2026-07-21 freshen (see also
+"Decided — do not re-propose" for items 1 and 3, moved there during the
+2026-09-15 Open-section triage)._
 
 ### 2. "Why gemma-4 behaves differently" + "What was NOT measured" are speculative/backlog content inline in SKILL.md (Dim 2/6 — carried 2026-05-28)
 
@@ -65,17 +39,6 @@ vs AWQ). That's a multi-hour GPU-instance investigation.
 existing files) to land the relocation; and/or run a new Gemma 4 audit to
 attach data to each mechanism.
 
-### 3. PUSH recipe duplicates ~90% of LIGHT flags (Dim 6/2 — user-vetoed 2026-05-28)
-
-**Pointer:** `SKILL.md` PUSH recipe code block
-
-**Finding:** RECON proposed collapsing the PUSH recipe to a 5-flag diff
-against LIGHT to save ~12 lines toward the 150-line target.
-
-**Why it was NOT applied:** the user prioritises copy-paste-ability of BOTH
-full recipes over the line savings. This is a settled author-preference
-decision, not a pending task. Do NOT re-propose the collapse in `improve` mode.
-
 ### 4. "Reproduction artifacts" tree points to a private repo (Dim 6/8 — minor, carried 2026-05-28)
 
 **Pointer:** `SKILL.md:246-262`
@@ -92,6 +55,47 @@ gate behind a `<details>` block.
 
 **Trigger to revisit:** if the skill ever ships to a public skills index or
 gets shared with collaborators, drop the section then.
+
+## Decided — do not re-propose
+
+### 1. Narrow trigger surface (Dim 1 — locked by author mandate, carried 2026-05-28)
+
+**Pointer:** `SKILL.md:6-7` (`when_to_use`)
+
+**Finding:** Blind scoring agent (2026-04-30 final pass) flagged that
+`when_to_use` requires both "Gemma 4 31B" AND {vLLM, deployment, tuning,
+performance} to fire. Misses common operator shorthand: "AWQ-4bit gemma",
+"cyankiwi", "RedHatAI", "EAGLE3 speculator gemma", "serving gemma-4 on H100".
+
+**Why skill-improver couldn't apply it:** the author explicitly rejected
+broader trigger surfaces in this skill's authoring session (2026-04-30):
+
+> "no one writes like this... sorry but remove those triggers '31B
+> replacement for our 27B', 'long-document summarizer', 'why does
+> throughput plateau' — the only triggers are really gemma 4 31b"
+
+> "you do not need the exact words with or without dashes do you? you
+> would understand anyway would you not?"
+
+The score is by design, not by oversight. **Do not auto-fix in `improve`
+or `freshen` mode.** If trigger misses become a problem in practice, switch
+to `/skill-improver trigger vllm-gemma-4-31b --missed "<phrase>"` mode to
+measure empirically — that's the only mode the author has consented to.
+
+**2026-05-28:** RECON re-proposed enriching `when_to_use` with quoted
+trigger-phrase + model-id variants (its highest-leverage Dim 1 hypothesis).
+NOT applied — same author mandate above still binds. Left for `trigger` mode.
+
+### 3. PUSH recipe duplicates ~90% of LIGHT flags (Dim 6/2 — user-vetoed 2026-05-28)
+
+**Pointer:** `SKILL.md` PUSH recipe code block
+
+**Finding:** RECON proposed collapsing the PUSH recipe to a 5-flag diff
+against LIGHT to save ~12 lines toward the 150-line target.
+
+**Why it was NOT applied:** the user prioritises copy-paste-ability of BOTH
+full recipes over the line savings. This is a settled author-preference
+decision, not a pending task. Do NOT re-propose the collapse in `improve` mode.
 
 ## Resolved — 2026-08-11 (freshen)
 

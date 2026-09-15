@@ -4,7 +4,10 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 
 ## Open
 
-- **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
+_None._
+
+## Decided — do not re-propose
+
 - **Frontmatter headroom ~3 chars (1,533/1,536 combined; both scorers' nit).** Any trim/rewrite invalidates the trigger pass's validated 14/14 frontmatter, so the mutation requires a trigger-mode probe run (`probe-trigger.py`), not an improve iteration. If a trigger pass runs anyway, bank ~50–80 chars of headroom while it's measured.
 
 Anti-re-proposal guards (tried 2026-08-18, judged net-negative — do not re-propose the same shape):
@@ -14,6 +17,10 @@ Cosmetic-only notes (NOT attempted-and-blocked — future-cosmetic, content is c
 - Bold/em-dash density in the prime-directive and lean-levers sections (SKILL.md) — a marginal Dim 6 styling trim; flagged by the 2026-06-07 blind scorers as the only stylistic fat (SkillLens: format-only, low EV).
 - `hierarchy.md` (exactly 100 lines, at the rubric's >100-line TOC threshold) has no in-file TOC. Add one if it grows past 100 lines.
 - `sources.md` and `work-modeling.md` cite `autoresearch/results/...` provenance paths that exist only in the authoring repo (final 2026-08-18 blind docked Dim 8 for it). Harmless pointer on other installs; convert to plain-text provenance notes if it ever bites.
+
+## Unblocked — actionable
+
+- **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
 
 ## Resolved this pass — 2026-08-18 (`/skill-improver improve, freshen`)
 

@@ -4,6 +4,38 @@ Every entry: CLI flag, vLLM source file, config class + line, min SM capability,
 kernels dispatched to, status, key caveats. Source of truth is
 [`vllm/model_executor/layers/quantization/`](https://github.com/vllm-project/vllm/tree/main/vllm/model_executor/layers/quantization).
 
+## Table of Contents
+
+- [Dispatcher](#dispatcher)
+- [FP8 — `--quantization fp8`](#fp8----quantization-fp8)
+- [ModelOpt FP8 — `--quantization modelopt`](#modelopt-fp8----quantization-modelopt)
+- [ModelOpt NVFP4 — `--quantization modelopt_fp4`](#modelopt-nvfp4----quantization-modelopt_fp4)
+- [ModelOpt MXFP8 — `--quantization modelopt_mxfp8`](#modelopt-mxfp8----quantization-modelopt_mxfp8)
+- [ModelOpt mixed — `--quantization modelopt_mixed`](#modelopt-mixed----quantization-modelopt_mixed)
+- [compressed-tensors — `--quantization compressed-tensors`](#compressed-tensors----quantization-compressed-tensors)
+- [AWQ — `--quantization awq`](#awq----quantization-awq)
+- [AWQ-Marlin — `--quantization awq_marlin`](#awq-marlin----quantization-awq_marlin)
+- [GPTQ — `--quantization gptq`](#gptq----quantization-gptq)
+- [GPTQ-Marlin — `--quantization gptq_marlin`](#gptq-marlin----quantization-gptq_marlin)
+- [MXFP4 — `--quantization mxfp4` / `gpt_oss_mxfp4`](#mxfp4----quantization-mxfp4--gpt_oss_mxfp4)
+- [MXFP8 — `--quantization mxfp8`](#mxfp8----quantization-mxfp8)
+- [FBGEMM FP8 — `--quantization fbgemm_fp8` (DEPRECATED)](#fbgemm-fp8----quantization-fbgemm_fp8-deprecated)
+- [FP_Quant — `--quantization fp_quant` (DEPRECATED)](#fp_quant----quantization-fp_quant-deprecated)
+- [Quark — `--quantization quark`](#quark----quantization-quark)
+- [experts_int8 / `int8_per_channel_weight_only` (online)](#experts_int8--int8_per_channel_weight_only-online)
+- [moe_wna16 — `--quantization moe_wna16`](#moe_wna16----quantization-moe_wna16)
+- [torchao — `--quantization torchao`](#torchao----quantization-torchao)
+- [inc / auto-round — `--quantization inc` / `--quantization auto-round`](#inc--auto-round----quantization-inc----quantization-auto-round)
+- [bitsandbytes — `--quantization bitsandbytes`](#bitsandbytes----quantization-bitsandbytes)
+- [gguf — moved out-of-tree (plugin)](#gguf--moved-out-of-tree-plugin)
+- [cpu_awq — removed, folded into `awq_marlin`](#cpu_awq--removed-folded-into-awq_marlin)
+- [online — `--quantization online` (and shortcuts)](#online----quantization-online-and-shortcuts)
+- [TurboQuant (KV-only)](#turboquant-kv-only)
+- [Example config-JSON shapes](#example-config-json-shapes)
+- [Config-filename table per method](#config-filename-table-per-method)
+
+---
+
 ## Dispatcher
 
 [`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (192-line file at v0.27.0; line ranges drift every minor). Detection flow in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/model.py), `override_quantization_method()`.

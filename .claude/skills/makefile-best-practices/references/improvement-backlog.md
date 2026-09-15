@@ -2,16 +2,16 @@
 
 ## Open
 
-- **SKILL.md is 415 lines, still above the lean <300 band** (Dim 2). The
-  originally-named extraction (Color Output + Target-Specific Variables, plus
-  Non-Interactive Guards which sat between them) was done on 2026-08-26 into
-  `references/recipe-patterns.md`, taking 461 → 415. Two `##@`/heredoc additions
-  the same day account for the rest of the gap from the original 374.
-  Next concrete candidates, both pure lookup material with no decision content:
-  **§Debugging Makefile Issues** (~36 lines: flag table, diagnostic functions,
-  symptom table) and **§Portability Notes** (~30 lines: GNU-vs-BSD table, shell
-  portability). Either would land it near 350; both, near 320. Not blocked on
-  anything — it is a move plus a pointer plus a re-read.
+_None._ The one carried item — the SKILL.md length extraction — named no absent
+thing and was completed on 2026-09-15.
+
+## Resolved — 2026-09-15
+
+- **SKILL.md 412 → 350 lines** (Dim 2). Extracted §Debugging Makefile Issues and
+  §Portability Notes verbatim into `references/debugging-portability.md` (both
+  pure lookup material, no decision content), left a pointer section in their
+  place, and added the file to the Resources list. Prose unchanged; relocation
+  only.
 
 ## Resolved — 2026-08-26
 

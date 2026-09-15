@@ -4,6 +4,8 @@ Carries findings across skill-improver runs. Append-only history; do not drop pr
 
 ## Open
 
+## Unblocked — actionable
+
 - **Family-level-only coverage (carried, needs author judgement on scope).** Three admin families are named but not enumerated, so a script author cannot call them from the skill alone: the 11 `/api/v1/knowledge/external/*` endpoints (covered by the token `/external/*`), the 13 admin `functions` endpoints, and the 8 admin `pipelines` endpoints (both covered by "all admin" blankets). Enumerating all 32 with payload shapes is a multi-file expansion that would roughly double `endpoint-map.md`; it may belong in a separate layered reference rather than inline. Not attempted this pass.
 - **Trigger-mode measurement still has not run.** Unchanged from the 2026-07-22 note — use `/skill-improver trigger open-webui-api`, not description guessing. The frontmatter is at 1533/1536 chars, so any trigger-mode mutation must trim before it adds.
 

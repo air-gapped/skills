@@ -37,6 +37,8 @@ sources — they back durable principles rather than dated facts.
 
 _None._ The skill has been through trigger, improve, and freshen modes and converged cleanly (final blind **90/100**, self/blind aligned, no dimension below 8, no Boris caps). The 24 enumerated lines in the SKILL.md body are reference content (5 prime-directive principles, 6 lean levers, 11 anti-patterns) — not invocation-flow scaffolding — so no Dim 6 Boris cap; `name`/`description` pass spec validation; `sources.md` is fully per-row dated (no Dim 9 staleness cap).
 
+## Decided — do not re-propose
+
 Cosmetic-only note (deliberately NOT Open per the backlog rules — future-risk, not attempted-and-blocked work):
 - Combined `description` + `when_to_use` = **1,523 / 1,536** chars — ~13 chars of headroom against the listing cap. Not a current defect (trigger converged Opus 20/20 at this length); any *future* trigger-phrase addition must shorten the `description` half first.
 

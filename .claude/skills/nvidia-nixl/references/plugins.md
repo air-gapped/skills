@@ -36,6 +36,8 @@
 | **obj** | storage | yes | no | no | DRAM, OBJ | aws-sdk-cpp 1.11.x (s3 + s3-crt), optional cuobjclient-13.1 | stable |
 | **azure_blob** | storage | yes | no | no | DRAM, OBJ | azure-sdk-for-cpp (storage-blobs + identity) | stable |
 | **gusli** | storage | yes | no | no | DRAM, BLOCK | libgusli_clnt.so | stable |
+| **infinia** | storage | yes | no | no | DRAM, VRAM, OBJ | DDN Infinia `libred_client.so` + `libred_async.so`, C++20 compiler | added v1.3.0; bundled in wheels since v1.3.1 |
+| **tracing** | telemetry | n/a | n/a | n/a | n/a | NVTX | present since v1.3.x; no README upstream |
 | **telemetry** | telemetry | n/a | n/a | n/a | n/a | static (cyclic) or Prometheus exposer (dynamic) | stable; Prometheus is beta |
 
 "supportsLocal=partial" for libfabric: works for cross-process loopback on the same node but not as a substitute for in-process memory copy.
@@ -272,6 +274,40 @@ params["config_file"] = conf.get();
 ```
 
 Build GUSLI: `make all BUILD_RELEASE=1 BUILD_FOR_UNITEST=0 ALLOW_USE_URING=0`. Install before NIXL.
+
+### infinia (DDN Infinia)
+
+Object storage against DDN's Infinia system. Async API built on C++20
+coroutines, which is why the whole project moved to a C++20 toolchain.
+
+**Deps.** `libred_client.so` (core client) and `libred_async.so` (coroutine
+async API) from a DDN Infinia install, headers `<red/red_async.hpp>` and
+`<red/red_status.h>`, plus GCC 10+ or Clang 14+ for coroutine support.
+
+**Build.** `meson setup build -Dinfinia_path=/path/to/infinia/installation`,
+pointing at the directory holding `lib/` and `include/`.
+
+**Segment types.** DRAM_SEG, VRAM_SEG (pre-registered, zero-copy), OBJ_SEG.
+
+**Params** (`nixl_b_params_t`, all optional — defaults in brackets):
+`cluster` [`cluster1`], `tenant` [`red`], `subtenant` [`red`], `dataset`
+[`nixl`], `sthreads` [8], `num_buffers` [512], `num_ring_entries` [512],
+`coremasks` [`0x2`, hex CPU affinity], `max_retries` [library default],
+`config_file` (key=value file).
+
+**Env vars.** `RED_CLUSTER`, `RED_TENANT` (accepts `tenant/subtenant`),
+`RED_DATASET`.
+
+**Precedence — the trap.** Resolution runs **env vars > backend params >
+config file > built-in defaults**. Environment wins over the params you pass
+in code, which is the opposite of the `azure_blob` plugin in this same tree
+(there, params override env). A stale `RED_*` in the pod environment silently
+beats `createBackend("INFINIA", params)`.
+
+**Wheels.** manylinux wheels bundle `libplugin_INFINIA.so` by default since
+v1.3.1 (#1832). The proprietary `libred_*` runtime libraries are deliberately
+not vendored and load from the customer's DDN install.
+
 
 ## Telemetry plugins
 

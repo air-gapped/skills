@@ -1,11 +1,12 @@
 # Ceph (storage) — compat (sifted from release_notes)
 
 - **Primary source:** https://docs.ceph.com/en/latest/releases/
+- **Do NOT read `docs.ceph.com/en/tentacle/releases/`.** That build is stale (checked 2026-09-15): it lists only Squid and Reef as active, shows Squid at 19.2.2 and Reef at 18.2.6, and never mentions Tentacle. `/en/latest/`, `/en/squid/` and `/en/reef/` serve identical current content; the Tentacle per-release detail page lives at `/en/squid/releases/tentacle/`.
 - **Secondary sources:** per-release notes pages (https://docs.ceph.com/en/latest/releases/{tentacle,squid,reef}/); cross-reference `compat/rook.md` for the Rook↔Ceph pairing matrix (authoritative for k8s axis).
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 18.2
-- **Last sifted:** 2026-07-21 (k8s axis re-derived via `compat/rook.md`; Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
+- **Last sifted:** 2026-09-15 (point releases and EOL dates re-read from the prose release notes; k8s axis unchanged since 2026-07-21, where it was re-derived via `compat/rook.md` — Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
 
 **k8s axis collapses through Rook.** Ceph itself has no k8s version dependency
 — it is daemon software. The operator-axis is `Rook minor → Ceph minor` and
@@ -14,10 +15,11 @@ upgrade-ordering between daemon types, OSD encoding gates, RGW/RBD/CephFS
 protocol changes, removed modules, and EOL. For "can I run Ceph X on k8s Y",
 read `compat/rook.md`.
 
-Three lines active as of 2026-05-28: Tentacle (20.x — current), Squid (19.2.x
-— stable), Reef (18.2.x — final point release shipped, EOL'd at 18.2.8).
+Two lines active as of 2026-09-15: Tentacle (20.x — current) and Squid (19.2.x
+— stable, EOL estimated 2026-10-31). Reef (18.2.x) is **archived** upstream —
+no bug fixes, no backports.
 
-## 20.2.1 / Tentacle (GA 2025-11-18, latest 20.2.1 2026-04-06)
+## 20.2.4 / Tentacle (GA 2025-11-18, latest 20.2.4 2026-08-19)
 
 - **k8s floor:** N/A — see `compat/rook.md`. Tentacle requires Rook ≥ the
   minor that lists Tentacle in its supported-Ceph table.
@@ -75,10 +77,15 @@ Three lines active as of 2026-05-28: Tentacle (20.x — current), Squid (19.2.x
     `enable_availability_tracking`).
   - `cephadm` is the upstream tool for non-Rook deployments. Operator runs
     Rook; informational only — `cephadm` workflow does not apply.
-- **EOL:** ~2027-11 (estimated 2-year stable line). No formal upstream EOL
-  calendar; estimate from prior cadence.
+- **Point releases since 20.2.1:** 20.2.2 (2026-06-16), 20.2.3 (2026-08-05),
+  20.2.4 (2026-08-19). **20.2.4 is a security release** covering
+  CVE-2025-30156, CVE-2026-39944, CVE-2026-50152 and CVE-2026-54330. None of
+  the three carries an avoid-this-release warning; each opens with the routine
+  "We recommend that all users update to this release."
+- **EOL:** **2027-06-01** (upstream estimate, stated in the releases index —
+  supersedes this file's earlier ~2027-11 guess from cadence).
 
-## 19.2.3 / Squid (GA 2024-09-26, latest 19.2.3 2025-07-28)
+## 19.2.6 / Squid (GA 2024-09-26, latest 19.2.6 2026-08-19)
 
 - **k8s floor:** N/A — see `compat/rook.md`.
 - **Breaking:** none cluster-wide that block in-place upgrade from Reef.
@@ -105,8 +112,12 @@ Three lines active as of 2026-05-28: Tentacle (20.x — current), Squid (19.2.x
 - **Notable:** Hybrid btree2 allocator backported; BlueFS multi-label
   handling refined. No encoding-format incompatibility for Reef→Squid
   rolling upgrade.
-- **EOL:** ~2026-09 (estimated). Will be the prior-stable line once
-  Tentacle is broadly adopted.
+- **Point releases since 19.2.3:** 19.2.4 (2026-06-01), 19.2.5 (2026-07-14),
+  19.2.6 (2026-08-19). **19.2.6 carries the same four-CVE hotfix as 20.2.4.**
+  No avoid-this-release warning on any of the three.
+- **EOL:** **2026-10-31** (upstream estimate, stated in the releases index).
+  That is within weeks of this sift — treat Squid as a migration source, not a
+  destination.
 
 ## 18.2.8 / Reef (GA 2023-08-07, final point release 18.2.8 2026-03-20)
 
@@ -152,3 +163,17 @@ Three lines active as of 2026-05-28: Tentacle (20.x — current), Squid (19.2.x
 - Versions skipped due to known data-loss / BlueFS regressions: **18.2.5,
   18.2.6, 19.2.0, 19.2.1**. Verdicts touching any of these four point
   releases must flag the issue regardless of Rook's compat answer.
+  **Re-read in full 2026-09-15 and still exactly these four** — no new
+  known-bad point release appeared across Tentacle 20.2.2-20.2.4 or Squid
+  19.2.4-19.2.6. The upstream warnings that define the list: 19.2.1 carries
+  an explicit "Do not upgrade to Squid v19.2.1. Upgrade instead to Squid
+  v19.2.2."; 19.2.0 carries an iSCSI upgrade-bug and balancer-module
+  Attention box (tracker 68215, `ceph balancer off` as the workaround);
+  18.2.5/18.2.6 are flagged retroactively in the 18.2.7 notes as a critical
+  BlueStore regression.
+- **Tag existence is not a release signal here.** An earlier sift raised a
+  patch-level bump from `gh api repos/ceph/ceph/tags`, which cannot
+  distinguish a shipped point release from any other tag, and `ceph/ceph`
+  has no `releases/latest` to anchor on. The prose release notes are the
+  only source that carries the avoid-this-release warnings, so bump version
+  headers from those, never from tags.

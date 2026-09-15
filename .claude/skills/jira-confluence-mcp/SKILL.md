@@ -79,8 +79,8 @@ The container-CA step is the **most common air-gap surprise** — a self-contain
 ```bash
 # 1. resolve + mirror the prebuilt image, pinned by digest (supply-chain hygiene)
 skopeo copy --all \
-  docker://ghcr.io/sooperset/mcp-atlassian:v0.23.0 \
-  docker://harbor.internal/mirror/mcp-atlassian:v0.23.0
+  docker://ghcr.io/sooperset/mcp-atlassian:v0.23.1 \
+  docker://harbor.internal/mirror/mcp-atlassian:v0.23.1
 # 2. connect (stdio needs -i); mount the internal CA so TLS verifies
 claude mcp add mcp-atlassian \
   -e JIRA_URL=https://jira.internal.company.com \
@@ -99,8 +99,33 @@ The server exposes **72 write-capable tools**; scope it deliberately.
 - **`READ_ONLY_MODE=true`** — disables *all* write tools regardless of other settings. Use for read/report-only agents.
 - **`TOOLSETS`** — group-level control (16 Jira + 8 Confluence toolsets). `TOOLSETS=default` ≈ 23 core tools; add extras like `default,jira_agile`. **`ENABLED_TOOLS`** allow-lists individual tools; the two **intersect**.
 - **`JIRA_PROJECTS_FILTER` / `CONFLUENCE_SPACES_FILTER`** — limit blast radius to named projects/spaces.
-- **Version gotcha — now shipped:** **v0.22.0 (2026-07-10) flipped the default from all-tools → 6 core toolsets only.** On any build ≥ v0.22.0 you must set `TOOLSETS=all` explicitly to keep the old behaviour; unknown toolset names are silently ignored (all-unknown = fail-closed, zero tools).
+- **The advertised default-toolset flip never shipped. Do not plan around it.**
+  The upstream warning says "In v0.22.0, the default will change to 6 core
+  toolsets only" — that text is still emitted at **v0.23.1**, two minors later,
+  and the code beneath it still returns everything. In
+  `src/mcp_atlassian/utils/toolsets.py` at tag v0.23.1, `get_enabled_toolsets()`
+  does `if not toolsets_str: ... return set(ALL_TOOLSETS.keys())`. An unset
+  `TOOLSETS` enables **all 24 toolsets**. Setting `TOOLSETS=all` is harmless and
+  future-proof, but it is not required to keep today's behaviour, and an agent
+  that "lost tools on upgrade" did not lose them this way. The upstream docs
+  contradict themselves here — a stale warning box next to prose saying all
+  toolsets are enabled when unset — so read the source, not either one.
+- **What IS true:** unknown toolset names are silently dropped, and if *every*
+  name is unknown you get **zero tools** (fail-closed). A typo in `TOOLSETS`
+  disables the server quietly.
 - **⚠ v0.22.0 also closed a critical transport hole.** Before it, an unauthenticated `streamable-http` request **fell back to the operator's global credentials**; now such requests get **401**, with the old behaviour opt-in via `ALLOW_GLOBAL_CRED_FALLBACK` (default off). stdio deployments were never exposed. Do **not** set that variable to silence a post-upgrade 401 — it restores the vulnerability. v0.22.0 also confines attachment/`content_file` paths to the server's working directory (use the new `content_base64` input instead of absolute paths). See `references/hardening.md`.
+
+- **⚠⚠ `--transport sse` was unauthenticated up to and including v0.23.0 —
+  upgrade to v0.23.1.** GHSA-5j8j-256g-vvp5, **CRITICAL**, published
+  2026-08-19, affected range `<= 0.23.0`: `UserTokenMiddleware` never matched
+  the SSE paths, so `/sse` and `/messages` executed tools **as the operator
+  with no per-request authentication**. This is a second, separate transport
+  hole from the v0.22.0 `streamable-http` one above — closing that one did not
+  close this. v0.23.1 makes the SSE endpoints enforce the same per-request auth
+  as streamable-http. If you run SSE on any build at or below v0.23.0, treat it
+  as remotely exploitable, not as a hardening nicety. v0.23.1 also pins
+  `atlassian-python-api` to `>=4.0.0,<5.0.0`, because the 5.0 line removed
+  `get_page_by_id` / `create_page` / `update_page` and broke fresh installs.
 
 Toolset tables + the read-only/filter mechanics: **`references/hardening.md`**.
 
@@ -125,7 +150,7 @@ Toolset tables + the read-only/filter mechanics: **`references/hardening.md`**.
 |---|---|
 | `references/air-gapped.md` | Installing offline — the 3 artifact types, prebuilt-image mirror, build-from-source caveats, digest pinning, in-container CA |
 | `references/auth-config.md` | Choosing/setting auth (DC PAT, Cloud token, OAuth, BYOT, multi-cloud) + the full env-var catalog (SSL, proxy, headers, timeouts) |
-| `references/hardening.md` | Restricting tools — `READ_ONLY_MODE`, the 15+6 toolset tables, `ENABLED_TOOLS`, project/space filters, the v0.22 default change |
+| `references/hardening.md` | Restricting tools — `READ_ONLY_MODE`, the 16+8 toolset tables, `ENABLED_TOOLS`, project/space filters, and why the advertised default-toolset flip never shipped |
 | `references/troubleshooting.md` | A specific failure — 401/403, field-not-found, rate limits, SSL, timeouts, debug logging, MCP Inspector |
 | `references/sources.md` | Verifying/freshening a claim — per-row source + tier + verify date |
 

@@ -40,7 +40,7 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 | vLLM #23218 (sequence_number -1) | fixed — live-verified proper numbering on v0.25.1, 2026-07-19 |
 | vLLM #38132 (truncation auto 400) | open, but no longer reproduces on v0.25.1 (live test 2026-07-19) |
 | vLLM #39624 (DELETE endpoint) | open; absence openapi-confirmed on v0.25.1 |
-| vLLM #36435 (tool XML leakage) | OPEN (state: reopened, re-probed 2026-07-31); not reproduced 2026-07-19 but only tested with a custom rust tool parser, not stock |
+| vLLM #36435 (tool XML leakage) | OPEN (state: reopened; re-probed 2026-09-15). **The upstream repro uses a stock parser** (`--tool-call-parser qwen3_coder`), and the maintainers attribute it to a parser-agnostic `if reasoning_parser: ... elif tool_parser:` branch in `_process_simple_streaming_events` — so it is not custom-parser-specific. Filed against 0.17.0rc1.dev; no comment confirms or denies it on v0.25+. Local run 2026-07-19 did not reproduce it, but used a custom Rust parser. Stale-bot notice 2026-08-05; last human comment 2026-05-04 |
 | vLLM store gating | `VLLM_ENABLE_RESPONSES_API_STORE=1` env var, default off, silent ignore — read from `responses/serving.py` @ v0.25.1; env var code-confirmed still present at v0.26.0 (2026-07-31) |
 | LiteLLM `/v1/responses/compact` | pure passthrough route since PR #18697 (merged 2026-01-06) — no server-side compaction of its own; code-verified at v1.94.0. (PR #28868's `compact_20260112` polyfill is `context_management`-side; relation to this route unverified) |
 | Ollama PR #15404 (previous_response_id) | open (re-probed 2026-07-31) |
@@ -50,4 +50,4 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 | mistral.rs #1944 | closed 2026-07-07 (~v0.9.0) |
 | mistral.rs #1945, #1946 | open (re-probed 2026-07-31) |
 | llama.cpp #19173 (stream cancel) | open (re-probed 2026-07-31) |
-| vLLM PR #48098 (`parallel_tool_calls=null` crash in Responses `from_request()`) | merged ~2026-07 (post-v0.25.1 refactor tail); release inclusion unverified |
+| vLLM PR #48098 (`parallel_tool_calls=null` crash in Responses `from_request()`) | merged 2026-07-15 (`c0302d94`); **first shipped in v0.26.0** (2026-07-27) — merge commit is not an ancestor of v0.25.1 and is an ancestor of v0.26.0, with no tag between (2026-09-15) |

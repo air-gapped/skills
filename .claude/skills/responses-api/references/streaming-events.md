@@ -277,7 +277,7 @@ item/event types through untouched (e.g., `openai:web_search_call`,
 | vLLM | Omits `[DONE]` marker | Live-confirmed still omitted on v0.25.1 (2026-07-19) |
 | vLLM | `-1` placeholder for `sequence_number` (issue #23218) | **Fixed** — live-verified proper monotonic numbering on v0.25.1 (2026-07-19) |
 | vLLM | Item `id` differs between stream lifecycle events and the final `response.completed` output (`msg_...`) | Live-observed on v0.25.1 (2026-07-19) — match items by `output_index`, not `id` |
-| vLLM (non-Harmony models) | Leaks tool XML into `output_text.delta` (issue #36435) | Open |
+| vLLM (non-Harmony models) | Leaks tool XML into `output_text.delta` (issue #36435) | Open (2026-09-15). Affects stock parsers — upstream repro uses `qwen3_coder`; cause is a parser-agnostic reasoning-vs-tool branch, so any model with both parsers set is exposed |
 | vLLM | Parallel tool calls crash: AssertionError at `serving.py:1761` on Qwen3.5 (issue #39584) | Closed 2026-06-19 (Responses refactor PRs #46030/#47185); fix live-verified on v0.25.1, 2026-07-19 — two parallel `function_call` items stream cleanly |
 | vLLM | `truncation: "auto"` returns 400 instead of truncating (#38132) | Open |
 | vLLM | DELETE `/v1/responses/{id}` not implemented (#39624) | Open |
