@@ -21,8 +21,15 @@ Read the output as a LEAD, not a verdict:
     servers) gets attributed to one of them and its count means little.
   * An advisory against a project does not necessarily touch the subject of a
     given skill about that project. Confirm relevance before acting.
-  * A legacy sources.md with no `Freshened:` stamp falls back to its OLDEST row
-    date, which understates currency and inflates the count.
+  * A sources.md with no `Freshened:` stamp falls back to its OLDEST row date.
+    That is a proxy, not a verification date, and the `verified` column marks it
+    with a `~`. Measured over the fleet on 2026-09-15, 44 of 70 skills are
+    unstamped and the proxy understates currency by a median of 137 days (mean
+    304, max 2173). Often it is not a staleness signal at all: the oldest row is
+    frequently a permanently-old artifact — a 2020 language spec, a 2023 vendor
+    KB — whose date is when the source was published, not when anyone last
+    checked it. Confirm against the skill's own text before treating a `~` row
+    as behind; it may already carry the advisories this counts as unseen.
 
 Needs `gh` authenticated. Skills whose repo has no advisory feed, or where the
 API call fails, are skipped silently rather than reported as zero — an
@@ -160,18 +167,20 @@ def main():
         print(json.dumps(rows, indent=2))
         return
     print(
-        "%-34s %-30s %-12s %4s %4s %4s  %s"
+        "%-34s %-30s %-13s %4s %4s %4s  %s"
         % ("skill", "upstream", "verified", "new", "crit", "high", "note")
     )
     for r in rows:
         mark = "!" if r["critical"] else " "
+        # "~" = no Freshened: stamp, so this date is the oldest source row, a proxy.
+        when = r["verified"] + ("~" if r["verified_from"] == "oldest-row" else "")
         print(
-            "%s%-33s %-30s %-12s %4d %4d %4d  %s"
+            "%s%-33s %-30s %-13s %4d %4d %4d  %s"
             % (
                 mark,
                 r["skill"],
                 r["upstream"],
-                r["verified"],
+                when,
                 r["new"],
                 r["critical"],
                 r["high"],
@@ -190,6 +199,14 @@ def main():
             "token may lack repository_advisories=read. Check those by package against\n"
             '  gh api "/advisories?ecosystem=<eco>&affects=<package>&per_page=50"'
             % len(nofeed)
+        )
+    proxy = [r for r in rows if r["verified_from"] == "oldest-row"]
+    if proxy:
+        print(
+            "%d rows show `~`: no Freshened: stamp, so the date is the oldest source row "
+            "rather than a\n  verification date. It understates currency (fleet median 137d) "
+            "and can be a permanently\n  old citation, not a stale check. Read the skill before "
+            "trusting such a row's count." % len(proxy)
         )
     print(
         "Counts are leads: check that the advisory touches the skill's subject before acting."

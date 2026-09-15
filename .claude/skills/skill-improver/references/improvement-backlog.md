@@ -3,6 +3,32 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (the lag table could not distinguish a date from a guess)
+
+- **A proxy date rendered as a verification date, and it cost a whole
+  investigation.** `advisory-lag.py` falls back to the oldest `sources.md` row
+  when a skill has no `Freshened:` stamp. It has always computed which of the
+  two it used, and the docstring always warned about it — but the table printed
+  the bare date, so the reader could not tell. `traefik-hardening` showed as 16
+  advisories behind with two criticals; the skill already carried all of them,
+  having been fixed earlier the same session. The row was ranking a 2026-07-22
+  documentation-link date.
+- **Same defect class as the empty-feed fix, in the same script**: an absent
+  value silently rendered as a confident one. Fixed the same way — the date now
+  carries a `~`, and a footer line counts the proxy rows.
+- **Measured, because the size of the bias decides whether the ranking is
+  usable.** 44 of 70 skills are unstamped. The proxy understates currency by a
+  median of 137 days, mean 304, max 2173. On the live sweep 37 of 56 reported
+  rows are proxies, including every row with an unseen critical but two.
+- **Often it is not a staleness signal at all.** The oldest row is frequently a
+  permanently-old artifact — `jinja-expert` cites a 2020 language spec,
+  `ansible-idrac-9-10` a 2023 vendor KB. That date is when the source was
+  published, not when anyone last checked it, and it will never move however
+  often the skill is freshened.
+- `ages` mode reads the same stamp and inherits the same blind spot. Its table
+  is a fleet readout rather than a per-row decision aid, so the `~` matters less
+  there, but the ranking is built on the same proxy.
+
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
 - [Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)](#resolved-this-pass--2026-09-01-freshen--improve-fable-51-release-day)
