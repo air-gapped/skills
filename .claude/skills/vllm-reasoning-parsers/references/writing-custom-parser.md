@@ -49,7 +49,7 @@ curl -s http://localhost:8000/v1/chat/completions \
     | jq '.choices[0].message | {reasoning, content}'
 ```
 
-Both fields should be populated on a thinking-enabled request. (Field is `reasoning` on current main; older clients read `reasoning_content` — see note in SKILL.md.)
+Both fields should be populated on a thinking-enabled request. (Field is `reasoning` from v0.16.0 onward; older clients read `reasoning_content` — see note in SKILL.md.)
 
 ## Path B — in-tree
 

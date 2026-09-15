@@ -20,7 +20,7 @@ When a reasoning-trained model emits a single token stream like
 
 vLLM splits this into two fields on the chat-completion response: `reasoning` (the CoT) and `content` (the final answer). `--reasoning-parser NAME` selects the class that does the split. Without it, the whole stream lands in `content`.
 
-> **Field-name note.** On current `main` the field is `reasoning` (see `ChatMessage.reasoning` / `DeltaMessage.reasoning` in `vllm/entrypoints/openai/chat_completion/protocol.py`). Pre-v0.19 code and many third-party docs / clients call it `reasoning_content`. If a client is reading `reasoning_content` against a current-main server it will see `null` every time even when the parser ran correctly.
+> **Field-name note.** The response field is `reasoning` (see `ChatMessage.reasoning` / `DeltaMessage.reasoning` in `vllm/entrypoints/openai/chat_completion/protocol.py`). `reasoning_content` was **removed from the output in v0.16.0** ([#33402](https://github.com/vllm-project/vllm/pull/33402), merge `c5113f60`), and v0.28.0 documents the result as a breaking client change ([#50624](https://github.com/vllm-project/vllm/pull/50624)). Many third-party docs and clients still call it `reasoning_content`. **The asymmetry is the trap: input still accepts the old name and normalizes it, output never emits it.** So a request looks fine and a client reading `reasoning_content` off the response sees `null` every time, with no error, even when the parser ran correctly. Serving **v0.16.0 or newer, read `reasoning`**.
 
 The parser is also the gating authority for **xgrammar / structured output**: by default, grammar enforcement is held off until `is_reasoning_end(input_ids)` flips true, so the model thinks freely before being constrained to JSON. Flip that default with `--structured-outputs-config.enable_in_reasoning=true` — then the grammar applies from token 0 regardless of reasoning state (useful for structured CoT).
 
@@ -87,7 +87,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 14. **`--enable-reasoning` is gone** — older docs / Stack Overflow answers still reference it. Since roughly v0.8 the only flag is `--reasoning-parser NAME`; the enable/disable is implicit in whether one is passed.
 
-15. **`reasoning_content` is always null — but parser worked fine.** Current-main response field is `reasoning`, not `reasoning_content` (renamed in `protocol.py`). Client-side name mismatch that looks exactly like a parser failure. Before debugging parsers, `jq '.choices[0].message | keys'` to see what fields actually exist — if `reasoning` is there, it's just a client rename.
+15. **`reasoning_content` is always null — but parser worked fine.** The response field is `reasoning`, not `reasoning_content`, on every release from **v0.16.0** onward (#33402). Client-side name mismatch that looks exactly like a parser failure. Before debugging parsers, `jq '.choices[0].message | keys'` to see what fields actually exist — if `reasoning` is there, it's just a client rename.
 
 ## The per-model matrix
 
