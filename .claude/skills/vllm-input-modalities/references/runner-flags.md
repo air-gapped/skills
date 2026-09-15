@@ -177,12 +177,14 @@ MRV2 grew a pooling path across two releases: encoder-only attention
 `embed&token_classify` (#50661). Encoder-only pooling is complete for every
 in-tree pooling task as of #50661.
 
-**It is not the default for pooling.** `VLLM_USE_V2_MODEL_RUNNER` defaults to
-`None` ("use config defaults", `vllm/envs.py`), and
-`VllmConfig._is_default_v2_model_runner_model` returns `False` for any
-`runner_type != "generate"` at v0.27.0. The PR that would flip pooling models
-to V2 by default (#48290) is still **open**. So a pooling deployment behaves
-exactly as before unless the operator opts in.
+**Default for pooling from v0.29.0; opt-in at v0.28.0 and below.**
+`VLLM_USE_V2_MODEL_RUNNER` defaults to `None` ("use config defaults",
+`vllm/envs.py`), and `VllmConfig._is_default_v2_model_runner_model` returns
+`False` for any `runner_type != "generate"` **up to and including v0.28.0**.
+PR #48290 flips that; it merged 2026-08-19, after the v0.28.0 branch cut, and
+first ships in **v0.29.0**. At v0.28.0 and below a pooling deployment behaves
+exactly as before unless the operator opts in; at v0.29.0 the upgrade itself
+switches the runner, and `VLLM_USE_V2_MODEL_RUNNER=0` is the way back.
 
 If you do opt in with `VLLM_USE_V2_MODEL_RUNNER=1`:
 

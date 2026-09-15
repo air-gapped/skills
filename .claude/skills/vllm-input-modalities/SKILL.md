@@ -374,12 +374,14 @@ correct and the offline batch path happened not to chunk, which is why it hid
 so easily. **Any ranking a pre-v0.26.0 engine produced on long documents is
 suspect** — this is a re-score, not just an upgrade. `references/reranking.md` §2.
 
-**Model Runner V2 reached pooling — but pooling still defaults to V1.**
+**Model Runner V2 is the pooling default from v0.29.0. Opt-in at v0.28.0 and below.**
 v0.26.0/v0.27.0 landed encoder-only attention (#49331), sequence
 `embed`/`classify` pooling (#48791), `token_classify` (#50293), `token_embed`
 (#50574) and BGE-M3's `embed&token_classify` (#50661) on MRV2. The
-default-enable PR (#48290) is **still open**, so nothing changes unless
-`VLLM_USE_V2_MODEL_RUNNER=1` is set. Details and the escape hatch:
+default-enable PR ([#48290](https://github.com/vllm-project/vllm/pull/48290)) merged 2026-08-19 — after
+the v0.28.0 cut, so it first ships in **v0.29.0**. Upgrading a pooling
+deployment to v0.29.0 therefore changes its runner without a config change; pin
+`VLLM_USE_V2_MODEL_RUNNER=0` to keep V1. Details and the escape hatch:
 `references/runner-flags.md` §11.
 
 **STT request surface moved forward (v0.27.0):** `diarized_json` response
@@ -415,9 +417,9 @@ but image-bump relevant: `max_num_partial_prefills` and
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.28+ release, MRV2 becoming the pooling default
-  (#48290), a new Jina embeddings major version, or a new native-multimodal
-  reranker shipping. Note that three passes running have found the *runner*
+- Refresh triggers: any v0.30+ release, a new Jina embeddings major version, or
+  a new native-multimodal reranker shipping. (MRV2 becoming the pooling default
+  was a trigger; it fired — #48290 shipped in v0.29.0.) Note that three passes running have found the *runner*
   surface quiet while **request validation and pooling correctness** moved
   underneath it — grep release bodies for
   `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags.
