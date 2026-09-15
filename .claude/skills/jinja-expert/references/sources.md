@@ -7,7 +7,7 @@ that should be pinned to an archival version.
 
 **Freshened: 2026-09-15 — all 21 URLs probed.** Jinja2 is **still 3.1.6** (2025-03-05) on both PyPI and the Pallets release list, so every language-reference claim here stands unchanged for another pass. One URL moved: the Home Assistant templating page is now at `/docs/templating/`, repointed below. The bare `jinja.palletsprojects.com/` root row redirects to `/en/stable/` — that is a root pointer behaving correctly, not drift, and is deliberately left as the root.
 
-Six Ansible doc URLs return **429 to curl even when probed one at a time** — a persistent fetcher block, not evidence the pages are gone. They are recorded as browser-verified where confirmed, and are not to be written off as dead on the strength of a 429.
+Six Ansible doc URLs return **429 to curl even when probed one at a time**. All six were then opened in a browser and **all six load normally at their cited URLs with no redirect** — `kubernetes.core.helm`, `kubernetes.core.k8s`, "Using filters to manipulate data", "Templating (Jinja2)", "Lookup plugins" and the ansible-lint home. The filter reference has **not** been reorganised: the full `ansible.builtin` filter set is still on the `playbooks_filters` page, and `playbooks_templating` is short because it is an overview that links out, which is its existing structure rather than truncation. The 429 is a fetcher block and nothing more — do not record these as dead.
 
 | Source | Purpose | Last verified | Notes |
 |---|---|---|---|

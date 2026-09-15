@@ -3,7 +3,9 @@
 External references underpinning this skill's GNU Make claims. Re-verify the
 listed facts and stamp the date when you re-confirm a row online.
 
-**Freshened: 2026-09-15 — all 6 URLs probed.** GNU Make's own NEWS file at `cgit.git.savannah.gnu.org` returned **502** on repeated attempts; Savannah's cgit is intermittently unavailable and a 502 is a server fault, not a removed file, so the row is left standing with this note rather than deleted. Re-probe before relying on it; if it stays down, cite the GNU mirror instead.
+**Freshened: 2026-09-15 — all 6 URLs probed.** GNU Make's own NEWS file at `cgit.git.savannah.gnu.org` returns **502**, confirmed in a browser as well as by curl. Savannah's own error page gives the reason: *"The service is unavailable. This is due to the high rate of AI scraping proxies which are overwhelming the system."* **The URL is still canonical** — savannah.gnu.org's make project page links to exactly this path, and the rest of savannah.gnu.org serves fine — so the row stays as written; it is an outage, not a move.
+
+No live-browsable substitute exists: `gitweb.git.savannah.gnu.org` returns "No such project", and the findable GitHub mirrors are unofficial and stale, so none is cited here. If the NEWS text is needed while cgit is down, it ships inside the release tarball at `https://ftp.gnu.org/gnu/make/` (latest release 4.4.1, 2023-02-26) — the canonical GNU distribution, though not a changelog page.
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
