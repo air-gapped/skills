@@ -108,9 +108,9 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `inkling` | Inkling — **new at v0.27.0**; typed `<\|content_text\|>`/`<\|content_thinking\|>`/`<\|content_invoke_tool_json\|>` blocks | (HF default) |
 | `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash | (HF default) |
-| `dots` | Dots — **new at v0.29.0** (`DotsToolParser`); XML `<dots_function_call>` blocks | template not verified this pass |
-| `hy_v4` | Hunyuan V4 / Hy4-preview — **new at v0.29.0** (`HYV4ToolParser`); XML `<arg_key>` / `<arg_value>` pairs | template not verified this pass |
-| `muse_glimmer` | Muse Glimmer — **new at v0.29.0** (`MuseGlimmerToolParser`); `<\|eom\|>` / `<\|eot\|>` special tokens | template not verified this pass |
+| `dots` | Dots — **new at v0.29.0** (`DotsToolParser`); XML `<dots_function_call>` blocks | (HF default — no bundled `examples/` template at v0.29.0) |
+| `hy_v4` | Hunyuan V4 / Hy4-preview — **new at v0.29.0** (`HYV4ToolParser`); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
+| `muse_glimmer` | Muse Glimmer — **new at v0.29.0** (`MuseGlimmerToolParser`); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
 | `seed_oss` | Seed-OSS | (HF default) |
 | `hunyuan_a13b` | Hunyuan-A13B | (HF default) |
 | `ernie45` | ERNIE-4.5 thinking | (HF default) |
