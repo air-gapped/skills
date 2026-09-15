@@ -30,6 +30,16 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
 
 ## Open
 
+- **NetBox 4.7.0 is outside the covered range** (Dim 9, new 2026-09-15). The skill
+  states 4.2–4.6 and its deltas stop there; 4.7.0 published 2026-09-02, verified
+  against the release feed. SKILL.md now says so rather than implying 4.6.x is still
+  the head of the line, but the version-delta sheet, the chart pairing and the
+  source-verified auth claims have not been re-read against 4.7.
+  **What it needs:** a freshen pass over the 4.7 release notes and the chart's 4.7
+  pairing — the work is real research, not a range edit, and writing "4.2–4.7" without
+  it would claim coverage that does not exist.
+
+
 - **HA/replicas/media-persistence coverage** (Dim 5) — netbox-chart replicas >1
   requires RWX media storage (or S3-style media backend); chart issues track
   upgrade-path and securityContext recurrences. Needs researched, verified

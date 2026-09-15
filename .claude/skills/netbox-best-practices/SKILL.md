@@ -21,7 +21,7 @@ they do not (as of 2026-06):
 
 Evidence labels used throughout: `[source]` = verified against chart/NetBox
 source code (file:line cited); `[live]` = verified on a production install of
-chart 8.3.14 / NetBox v4.6.2 — upstream is now chart 8.3.37 / v4.6.5 (2026-07-21), still 4.6.x and still chart 8.x, so no delta invalidated; `[docs]` = official docs/release notes,
+chart 8.3.14 / NetBox v4.6.2. At the 2026-07-21 check upstream was chart 8.3.37 / v4.6.5 — still 4.6.x, so no delta was invalidated. **Since then NetBox 4.7.0 shipped (2026-09-02), a minor beyond this skill's 4.2–4.6 range.** Nothing here has been re-verified against it, so on a 4.7 target treat every delta below as unconfirmed rather than as covered; `[docs]` = official docs/release notes,
 adversarially verified (3-vote panel).
 
 ## The five rules that prevent the worst failures
