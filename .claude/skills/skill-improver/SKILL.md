@@ -171,6 +171,24 @@ same value is legal in block style, which is why it read as correct. Expect this
 one to be quiet — its value is the next edit, not the current run. Go/Jinja
 templating is reported separately, since a Helm chart is not YAML until rendered.
 
+### Content Scheduled to Become False
+
+`freshen` catches sources that drifted. It does not catch content that is correct
+today and wrong on a date already written into it. Run
+`python3 ${CLAUDE_SKILL_DIR}/scripts/check-expiring-claims.py [root] [--relative]`
+alongside a freshen pass.
+
+**The dates are not the interesting part — the phrases beside them are.** A
+lifecycle table full of future EOL dates is working as intended. What rots is a
+*relative descriptor*: "2.11 goes EOL 2026-10-24 — roughly three months out" had a
+correct date and a wrong description of it, 5½ weeks later, in a warning whose
+only job was conveying how short the runway was. `--relative` reports exactly
+those. Measured 2026-09-15: 37 future-dated claims, 2 worth acting on, and both
+`[rel]` hits were real.
+
+Fix them by deleting the relative phrase and instructing the reader to compute
+from the date. A replacement phrase rots identically.
+
 ### One File at a Time
 
 Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.

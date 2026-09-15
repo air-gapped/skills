@@ -3,6 +3,28 @@
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
 update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
 
+## Resolved — 2026-09-15 (content scheduled to become false)
+
+- **Shipped `scripts/check-expiring-claims.py`.** `freshen` re-probes sources that
+  may have drifted; nothing looked for content carrying its own expiry date. 37
+  future-dated claims across the fleet, none previously enumerated.
+- **The finding is that the date is rarely the problem — the phrase beside it is.**
+  A lifecycle table of future EOL dates is correct by design. What decays
+  independently is a *relative descriptor* sitting next to a date, so `--relative`
+  filters for those. Both `[rel]` hits were real:
+  - `rancher-upgrade`: "2.11 goes EOL 2026-10-24 — **roughly three months out**"
+    when it was 5½ weeks. The date never became wrong; the sentence around it did,
+    in a warning whose entire purpose was the length of the runway.
+  - `confluence-best-practices`: "9.2 → 2026-12-10 — **under 5 months away**",
+    written 2026-07-21, now ~2.8 months. Still literally true, and understating it.
+- **Both fixed by deleting the phrase, not updating it** — a replacement rots the
+  same way — and replacing it with an instruction to compute from the date.
+  `--relative` now returns **0** on the fleet.
+- The non-relative near-term hit was `openshift-app`'s FIPS 140-2 window, 6 days
+  from closing with no expiry marker; handled in that skill.
+- **Read the output as advisory.** Exit is always 0 and most hits are fine. The
+  two signals worth reading are proximity and the `[rel]` tag.
+
 ## Resolved — 2026-09-15 (the `no repo feed` follow-up, carried out to the end)
 
 `advisory-lag.py` reports rows whose repo feed returns `[]` as **`no repo feed`**
