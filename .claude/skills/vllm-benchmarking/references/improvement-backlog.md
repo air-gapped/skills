@@ -4,7 +4,16 @@ Work-not-done log from skill-improver passes. "Open" = issues attempted or ident
 
 ## Open
 
-- **Trim triple-stated warmup/tokenizer/random content** — Dim 6 (Simplicity). `SKILL.md` "Why this matters" (L14-22) restates the warmup / tokenizer / random-as-prod pitfalls that "Critical pitfalls" (L73-82) also enumerates. Not applied this pass: the keep/discard budget went to higher-magnitude wins (release framing, version-boundary unification, listing-cap trim, dataset/trace-replay coverage). Deletion-favoured candidate for next pass — collapse "Why this matters" to the three failure-mode *consequences* and let "Critical pitfalls" own the flag-level detail.
+## Resolved — 2026-09-15 (the intro stops restating the pitfalls)
+
+- **"Why this matters" collapsed to consequences and retitled.** It had been
+  enumerating the same `--request-rate inf`, `--dataset-name random`, warmup and
+  tokenizer detail that "Critical pitfalls" enumerates thirty lines later, at
+  flag level in both places. The intro now says only what each failure mode costs
+  and points down; the pitfalls section keeps every flag, default and version
+  boundary.
+- The entry called this a deletion-favoured candidate deferred for budget reasons,
+  which is a priority call rather than a blocker.
 
 ## Resolved — 2026-08-11 (freshen, v0.25.1 → v0.27.0)
 

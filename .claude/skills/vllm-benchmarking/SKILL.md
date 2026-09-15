@@ -19,15 +19,17 @@ verdict is "too slow", the knobs live elsewhere in the `vllm` plugin:
 re-measure with the same methodology; a tuning change compared against a
 differently-shaped benchmark run is not evidence.
 
-## Why this matters
+## What a bad benchmark costs
 
-Bad benchmarks are worse than no benchmarks — they drive the wrong decisions with false confidence. The three common failure modes:
+A wrong number is acted on with the same confidence as a right one. Three failure
+modes, by what they cause — the flags that produce each are in **Critical
+pitfalls** below:
 
-1. **Wrong methodology.** `--request-rate inf` answers "saturation throughput," not "TTFT my users see." Mixing those up leads to buying GPUs to solve a latency problem, or shipping a latency regression because total throughput looked fine.
-2. **Wrong workload.** `--dataset-name random` has zero prefix structure. Real coding-agent or RAG traffic has heavy prefix reuse. Benchmarking caching wins on random produces numbers that don't survive contact with prod.
-3. **No warmup / wrong tokenizer.** First N requests hit cold CUDA graphs. Token counts are fiction unless `--tokenizer` matches the served model exactly.
-
-The cost of getting this right is small; the cost of getting it wrong is buying the wrong hardware.
+1. **Wrong methodology** → GPUs bought to fix a latency problem, or a latency
+   regression shipped because total throughput looked fine.
+2. **Wrong workload** → caching wins that do not survive contact with production.
+3. **No warmup, or a mismatched tokenizer** → cold-start numbers, and token counts
+   that are fiction.
 
 ## Decision tree — which subcommand
 
