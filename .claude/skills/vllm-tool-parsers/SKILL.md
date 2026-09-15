@@ -48,6 +48,7 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `minimax_m2` | `MinimaxM2ToolParser` | `vllm/parser/minimax_m2.py` |
 | `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
 | `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
+| `ling3` | `Ling3Parser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
