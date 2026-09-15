@@ -53,6 +53,55 @@ below was read off upstream at that tag, not inferred.
 
 ## Open
 
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Resolved — 2026-09-15 (file registration, written once)
+
+- **Shared `## File registration: fd mode vs path mode` section added.** Filed hours
+  earlier the same day with "nothing external blocks this", which by this repo's own
+  rule means do it rather than file it. Written once for all four file-aware plugins
+  instead of a line repeated in each.
+- **The fallback is the part worth knowing.** Path-mode parsing is fail-loud on a bad
+  token, but a `metaInfo` that does not match the grammar at all is not an error — it
+  silently falls through to fd mode and the backend reads `devId`. So a typo in the
+  mode string does not raise; it fails later, further from the cause.
+- **`cuda_gds` batching params documented from source.** `batch_pool_size` (16),
+  `batch_limit` (128) and `max_request_size` (16 MiB) are read in `gds_backend.cpp`
+  and appear in no README.
+
+## Resolved — 2026-09-15 (per-plugin re-read finished)
+
+All 15 plugin entries checked against their upstream README at tag v1.4.1, and
+against the plugin source where the README is silent. Ten had findings; every claim
+below was read off upstream at that tag, not inferred.
+
+- **One entry was wrong, not merely thin: `uccl`.** The matrix said
+  `supportsLocal: no (yet)` and the section said "internode only, intra-node on the
+  roadmap". Upstream ships intranode (GPU↔GPU and GPU↔CPU over IPC) and ticks it off
+  its own roadmap; what remains open there is the progress thread and telemetry. A
+  reader would have ruled the backend out for a single-node topology it supports.
+- **The Prometheus telemetry endpoint binds publicly by default.**
+  `NIXL_TELEMETRY_PROMETHEUS_LOCAL` is what restricts it to localhost and is not set
+  by default. The skill documented the exporter without either that or the port
+  variable. A third exporter (DOCA) existed and was entirely absent, with the same
+  public-bind default.
+- **`libfabric` had no runtime-config surface at all** — `num_threads` (default 0,
+  serial), `split_batch_size` (default 1024, inert unless `num_threads` > 0), and
+  `max_bw_per_dram_seg` with its env-var override.
+- **The `posix` entry sent operators hunting for a package that is vendored.**
+  liburing is built from the Meson wrap when pkg-config finds no system copy.
+- Smaller gaps closed: `obj` `throughput_target_gbps` (default 10, sizes CRT
+  parallelism), `gpunetio` `cuda_streams` defaulting to `DOCA_POST_STREAM_NUM`, and
+  the `gusli` per-iteration request lifetime, which NIXLBench hides and a direct
+  caller does not.
+- **Not carried in: the file-registration path-mode surface** shared by `posix`,
+  `cuda_gds`, `gds_mt` and `hf3fs` (`src/utils/file/README.md`), and three
+  source-only `cuda_gds` params. Real, and a coherent block of its own rather than a
+  line per plugin — see Open.
+
+## Open
+
 ### File-registration path-mode surface, and cuda_gds's source-only params
 
 Dim 5. File-set: `references/plugins.md`, the four file-aware plugin entries.

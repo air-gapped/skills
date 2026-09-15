@@ -11,6 +11,7 @@
   - [uccl \[Preview\]](#uccl-preview)
   - [gpunetio (DOCA GPUNetIO)](#gpunetio-doca-gpunetio)
 - [Storage plugins](#storage-plugins)
+  - [File registration: fd mode vs path mode](#file-registration-fd-mode-vs-path-mode)
   - [cuda_gds (NVIDIA GPUDirect Storage)](#cuda_gds-nvidia-gpudirect-storage)
   - [gds_mt (multi-threaded GDS)](#gds_mt-multi-threaded-gds)
   - [posix](#posix)
@@ -167,9 +168,55 @@ CUDA_MODULE_LOADING=EAGER \
 
 ## Storage plugins
 
+### File registration: fd mode vs path mode
+
+Shared by all four file-aware plugins — **posix, hf3fs, cuda_gds, gds_mt**. A
+`FILE_SEG` descriptor can be registered two ways, and which one applies is decided
+purely by the shape of `nixlBlobDesc::metaInfo`:
+
+| `metaInfo` | Mode | Who owns the fd |
+|---|---|---|
+| `<modes>:<path>` | path mode — backend opens in `registerMem`, closes in `deregisterMem` | backend |
+| anything else | fd mode — fd passed in `devId` | caller |
+
+```text
+modes  := <access>[,<flag>]*
+access := ro          # O_RDONLY
+        | rw          # O_RDWR
+flag   := direct      # O_DIRECT
+        | sync        # O_SYNC
+        | noatime     # O_NOATIME
+        | create      # O_CREAT, mode 0644
+```
+
+`ro:/var/cache/x.bin`, `rw,direct:/var/cache/x.bin`, `rw,create:/var/cache/x.bin`.
+
+**Why it exists:** it collapses N Python `os.open()` GIL crossings into one. That is
+the reason to reach for it from Python, and the reason it buys little from C++.
+
+**Parsing is fail-loud and the fallback is silent.** An unknown or missing token
+yields `nullopt` — but a `metaInfo` that does not match the grammar at all is not an
+error, it falls through to fd mode and the backend then reads `devId`. A typo in the
+mode string (`read:/path`, `rw:/path ` with a trailing space) therefore does not
+raise: it is treated as a filename-ish blob and the transfer fails later, somewhere
+less obvious.
+
+**The GDS caches key on the opened fd, not the path.** Two path-mode registrations
+of the same file yield two cuFile handles with no dedup — so registering the same
+path twice costs twice, and the two handles are independent.
+
 ### cuda_gds (NVIDIA GPUDirect Storage)
 
 GPU-direct storage I/O via cuFile. Single-thread submission. For multi-thread, use `gds_mt`.
+
+**Three batching params exist only in source** (`gds_backend.cpp`) — no README
+documents them, so they are invisible unless you go looking:
+
+| Param | Default | Effect |
+|---|---|---|
+| `batch_pool_size` | `16` | Number of pre-allocated IO batches held in the pool |
+| `batch_limit` | `128` | Max descriptors per batch |
+| `max_request_size` | `16777216` (16 MiB) | Largest single request; larger transfers are split |
 
 **cufile.json — load-bearing config.** Without `allow_compat_mode=true`, cuFile fails on filesystems that don't support GDS natively. NVIDIA-recommended overrides for NIXL:
 
