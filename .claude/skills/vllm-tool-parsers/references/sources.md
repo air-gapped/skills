@@ -98,12 +98,17 @@ class Qwen3EngineToolParser(Qwen3ParserToolAdapter):
 **Cross-skill:** this is the same refactor found in `vllm-reasoning-parsers`
 this pass — `make_adapters(XParser)` yields both a reasoning and a tool adapter
 from one per-model class, per RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713). The RFC is **OPEN
-and stale-bot-marked** while the implementation ships. For the 7 names above,
+[#32713](https://github.com/vllm-project/vllm/issues/32713). The RFC is **CLOSED / NOT_PLANNED** — bot-closed 2026-07-24 under a `stale` label, not decided against; the implementation kept shipping after it closed. For the 7 names above,
 tool and reasoning behaviour are no longer independent surfaces.
 
 Probe: `gh api repos/vllm-project/vllm/contents/vllm/tool_parsers/__init__.py?ref=v0.25.1`
 plus a directory listing of `vllm/tool_parsers` and `vllm/parser`.
+
+## 2026-09-15 freshen — registry re-probe at v0.29.0
+
+**45 -> 49 CLI names.** Four additions, no removals, diffed name-by-name between the two tags: `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `ling3` (`Ling3Parser`) and `muse_glimmer` (`MuseGlimmerToolParser`). Only `ling3` is on the unified-adapter path — the other three do **not** import `registered_adapters`, so the 14-name unified list is unchanged. The bare `minimax` absence claim was re-tested at v0.29.0 and still holds.
+
+**RFC #32713 was already closed when the previous pass called it open.** It is `CLOSED / NOT_PLANNED`, closed by `github-actions[bot]` under a `stale` label on **2026-07-24** — eighteen days before the 2026-08-11 pass wrote "The RFC is OPEN and stale-bot-marked". A bot closure is not a decision: the unified-parser work it describes kept shipping afterwards, so the RFC's state says nothing about the design's status.
 
 ## 2026-08-11 freshen — registry re-probe at v0.27.0
 

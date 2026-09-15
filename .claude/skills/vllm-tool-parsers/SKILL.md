@@ -50,6 +50,8 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
 | `ling3` | `Ling3Parser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
 
+**Three more names arrived at v0.29.0 but are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`) and `muse_glimmer` (`MuseGlimmerToolParser`). None imports `registered_adapters`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **49 names at v0.29.0**, up from 45 at v0.27.0, no removals.
+
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
 have ordinary names and are still stubs. The test is whether the file imports

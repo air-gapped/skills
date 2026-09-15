@@ -1,5 +1,7 @@
 # Sources
 
+<!-- Freshened: 2026-09-15 — all 34 rows probed. Every GitHub project row is live and unarchived; both content-bearing pinned rows re-read against live page text rather than just status (Grafana's /api -> /apis deprecation, and remote-write 2.0 still "2.0-rc.4, Experimental"). **Five URLs 301 to a different final path and were repointed** — Grafana is mid docs-nav reorg: the Mimir config reference moved under `configure/`, three Grafana pages gained a `visualizations/` prefix, and the blog dropped its date segments. All five still returned 200 at the old address, so only comparing %{url_effective} found them. The cited `mimir-3.0.0` release is valid as a 3.0-specific citation, but current Mimir is 3.2.1 (2026-09-10) — do not read that row as "latest". -->
+
 Per-URL index of upstream documentation this skill sources from. Freshen mode stamps `Last verified:` on successful probes. `Pinned:` carries a version or path pin when the skill's guidance depends on a specific release.
 
 | # | Title | URL | Last verified | Pinned |
@@ -11,12 +13,12 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 5 | Prometheus — HTTP API | https://prometheus.io/docs/prometheus/latest/querying/api/ | 2026-07-21 | latest |
 | 6 | Grafana Mimir — HTTP API | https://grafana.com/docs/mimir/latest/references/http-api/ | 2026-07-21 | latest |
 | 7 | Grafana Mimir — Authentication & authorization | https://grafana.com/docs/mimir/latest/manage/secure/authentication-and-authorization/ | 2026-07-21 | latest |
-| 8 | Grafana Mimir — Configuration parameters | https://grafana.com/docs/mimir/latest/references/configuration-parameters/ | 2026-07-21 | latest |
-| 9 | Grafana — Dashboard JSON model | https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-07-21 | latest |
-| 10 | Grafana — Template variables | https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/ | 2026-07-21 | latest |
-| 11 | Grafana — Transformations | https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/ | 2026-07-21 | latest |
+| 8 | Grafana Mimir — Configuration parameters | https://grafana.com/docs/mimir/latest/configure/configuration-parameters/ | 2026-07-21 | latest |
+| 9 | Grafana — Dashboard JSON model | https://grafana.com/docs/grafana/latest/visualizations/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-07-21 | latest |
+| 10 | Grafana — Template variables | https://grafana.com/docs/grafana/latest/visualizations/dashboards/variables/add-template-variables/ | 2026-07-21 | latest |
+| 11 | Grafana — Transformations | https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/query-transform-data/transform-data/ | 2026-07-21 | latest |
 | 12 | Grafana — Dashboard HTTP API | https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/dashboard/ | 2026-07-21 | latest |
-| 13 | Grafana Labs — RED Method | https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/ | 2026-07-21 | — |
+| 13 | Grafana Labs — RED Method | https://grafana.com/blog/the-red-method-how-to-instrument-your-services/ | 2026-07-21 | — |
 | 14 | Brendan Gregg — USE Method | https://www.brendangregg.com/usemethod.html | 2026-07-21 | — |
 | 15 | Google SRE Book — Monitoring Distributed Systems (Ch. 6) | https://sre.google/sre-book/monitoring-distributed-systems/ | 2026-07-21 | — |
 | 16 | Google SRE Workbook — Alerting on SLOs (Ch. 5) | https://sre.google/workbook/alerting-on-slos/ | 2026-07-21 | — |
