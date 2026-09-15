@@ -51,10 +51,19 @@ exit_code = 0
 print("python:", sys.version.split()[0])
 print()
 print("--- pip metadata ---")
+# Mooncake's distribution name carries a CUDA suffix on newer images
+# (mooncake-transfer-engine-cuda13 on v0.29.0), while the importable module
+# stays `mooncake`. Querying only the unsuffixed name reports NOT INSTALLED for
+# a package that is present and imports fine.
 for pkg in ["vllm", "lmcache", "nixl", "mooncake-transfer-engine"]:
-    try:
-        print(f"{pkg:30s} {md.version(pkg)}")
-    except md.PackageNotFoundError:
+    names = [pkg] + [f"{pkg}-cuda{n}" for n in (13, 12)] if pkg.startswith("mooncake") else [pkg]
+    for name in names:
+        try:
+            print(f"{name:30s} {md.version(name)}")
+            break
+        except md.PackageNotFoundError:
+            continue
+    else:
         print(f"{pkg:30s} NOT INSTALLED")
         if pkg in ("vllm", "lmcache", "nixl"):
             exit_code = 1

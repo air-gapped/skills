@@ -57,11 +57,27 @@ Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 
 - **vLLM image-tag freshness rule**: always run `gh release list --repo vllm-project/vllm` AND `skopeo list-tags docker://vllm/vllm-openai` before picking a tag; don't default to a memorized known-good tag.
 - **Docker `-v /root/cache:/root/.cache` default**: cold restart H100 + Qwen3.6-27B-FP8 TP=2 ≈ 5 min (DeepGEMM SM_90A FP8 JIT + torch.compile inductor + CUDA graph capture); with persistent whole-`/root/.cache` mount ≈ 50 s. Mount the WHOLE cache, not just `/root/.cache/huggingface`.
 
-### Runtime bundling table never captured past v0.19.1 (new 2026-07-21)
+## Resolved — 2026-09-15 (the runtime-import half, finally run)
 
-Dim 9. File-set: SKILL.md "Two-step bundling verification" + `lmcache-mp/references/sources.md`.
+Ran `lmcache-mp/scripts/verify-bundling.sh` against `vllm/vllm-openai:v0.29.0`. The
+item had been carried since July as "needs a pull + container run"; that is effort,
+not a blocker, and the run takes minutes.
 
-The only image whose runtime imports have actually been verified is `vllm/vllm-openai:v0.19.1` (vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1), captured 2026-04-26 — seven vLLM minors ago. Not applied because it needs a pull + container run, not an edit: run `lmcache-mp/scripts/verify-bundling.sh v0.27.0` and replace the table. Expect nixl 1.3.1 (the exact pin) and lmcache ≥ 0.5.x. Step 1 (build flag) *was* re-run 2026-08-11 on `v0.27.0` — `INSTALL_KV_CONNECTORS=true`, CUDA 13.0.2 — so only the runtime-import half is outstanding.
+- **Measured:** vllm 0.29.0, lmcache **0.5.4**, nixl **1.3.2**, mooncake
+  **0.3.13.post1**. All import; MP adapter classes and `ParallelStrategy` present;
+  all four KV-offload connector classes load through the factory's own thunk. Exit 0.
+- **nixl is 1.3.2, not the 1.3.1 this entry predicted.** The prediction came from the
+  v0.26.0 pin commit; the image moved past it.
+- **The probe under-reported mooncake, and would have again.** Its distribution is
+  `mooncake-transfer-engine-cuda13` on this image, so querying the unsuffixed name
+  printed NOT INSTALLED for a package that imports fine. The script now tries the
+  CUDA-suffixed names before concluding absence — otherwise this measurement would
+  have written a false negative into the table it exists to fill.
+- **Sixteen connectors are registered at v0.29.0**, against the four this skill
+  checks. The four are the KV-offload set and remain the right ones to gate on; the
+  factory registry is the only place the other twelve are visible.
+- The `ParallelStrategy` import hazard is now historical for current images — 0.5.4
+  has the symbol. It still applies to anyone pinning a 0.4.3-era image.
 
 ## Resolved this pass (2026-08-11)
 

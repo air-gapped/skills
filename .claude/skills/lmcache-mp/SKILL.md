@@ -264,4 +264,4 @@ Ranked by likelihood:
 
 See `references/sources.md` for verification dates and the inspection ritual.
 
-Last verified: 2026-07-21 (freshen pass — hybrid-model support inverted, LMCache 0.5.x + operator-v0.5.0 versions, HMA pitfall reframed. Runtime bundling table still only captured for `vllm/vllm-openai:v0.19.1`; run `scripts/verify-bundling.sh v0.25.1` before pinning the current pair).
+Last verified: 2026-07-21 (freshen pass — hybrid-model support inverted, LMCache 0.5.x + operator-v0.5.0 versions, HMA pitfall reframed). Runtime bundling re-captured 2026-09-15 on `vllm/vllm-openai:v0.29.0`: vllm 0.29.0 / lmcache 0.5.4 / nixl 1.3.2 / mooncake 0.3.13.post1, all KV-offload connectors loading. Re-run `scripts/verify-bundling.sh <tag>` before pinning any other pair.

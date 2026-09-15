@@ -225,7 +225,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20260915.16",
+      "version": "0.20260915.17",
       "author": {
         "name": "Jörgen"
       },
@@ -557,7 +557,7 @@
       "name": "vllm",
       "source": "./",
       "description": "vLLM operator reference suite — deployment, configuration, quantization, caching, KV, tool parsers, reasoning parsers, chat templates, benchmarking, performance tuning, observability, omni, input modalities, speculative decoding, NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe.",
-      "version": "0.20260915.99",
+      "version": "0.20260915.100",
       "author": {
         "name": "Jörgen"
       },
