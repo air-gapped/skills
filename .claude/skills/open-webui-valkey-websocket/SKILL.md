@@ -194,7 +194,7 @@ Not every release changes the schema; check the release notes' "Database Migrati
 
 For deployments that ran multi-pod + WS in early 2026 and disabled it after performance died, custom model thumbnails are a strong suspect alongside #23733. Pre-0.6.37 (Nov 2025) the entire base64 image lived in `model.meta.profile_image_url` and was returned in `/api/models` for every model on every page load and every WS reconnect. With ~350 models and HD icons, the response payload exceeded 4 MB (issue #18950). On reconnect storms during rollouts: N pods × M users × 4 MB simultaneously, on top of the WS amplification.
 
-The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4 (current stable 0.11.0).** A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
+The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_image_url` Nov 21, PR #19519 Dec 2025 strips from "most endpoints", PR #24015 Apr 2026 default-avatar redirect, PR #23796 reuse DB session) lives in `references/icons-thumbnails.md`. **Most of the bloat is gone in ≥0.6.42, fully cleaned up by 0.9.4** — so any currently supported release is past it (the line is at 0.11.3 as of 2026-09-15). A couple of admin endpoints (`/api/v1/users`, `/api/v1/tools`, etc.) lagged behind the model-list fix — verify on the deployment's target version.
 
 ## Reference index
 
