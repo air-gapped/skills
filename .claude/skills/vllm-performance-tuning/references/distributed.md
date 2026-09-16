@@ -107,7 +107,37 @@ P and D register KV regions; P pushes directly via UCX; D polls readiness. Route
 - Short prompts (200 ISL / 200 OSL) — KV-transfer time > prefill-on-same-GPU time.
 - Small models (gpt-oss-20B, 8B-dense) — same.
 - Prefill units saturated — disagg becomes queueing bottleneck.
-- No RDMA / NVLink fabric between P-nodes and D-nodes.
+- No RDMA / NVLink fabric between P-nodes and D-nodes. On 25 GbE-only clusters keep P and D on the SAME node (one pod, two vLLM containers) so NIXL uses cuda_ipc/NVLink; see the single-node measurements below.
+
+### Single node, same 8 GPUs: 4P+4D vs 1×TP8 vs 2×TP4 — what has been measured
+
+The one published head-to-head (verified 2026-09-16): [vLLM blog 2026-04-07, AMD MORI-IO connector](https://vllm.ai/blog/2026-04-07-moriio-kv-connector),
+Qwen3-235B-A22B-FP8 on one 8× MI300X node, 2000 ISL / 1000 OSL at 8 req/s, SLO = TTFT + P99 ITL:
+
+| Layout | Requests meeting both SLOs |
+|---|---|
+| 1× TP8 | 26/100 |
+| 2× TP4 | 30/100 |
+| 1P+1D (TP4+TP4), MORI-IO Read | 70/100 |
+| 1P+1D (TP4+TP4), MORI-IO Write | 73/100 |
+
+Collocated layouts fail on ITL spikes; disagg removes them and pays in TTFT. The split's
+transport is intra-node (xGMI), so this is the "yes" case for large MoE + long-ish outputs.
+
+Negative reports, same question, smaller models:
+- [vllm#23144](https://github.com/vllm-project/vllm/issues/23144) (2025-08): Qwen3-8B on 8× A100, 1024 ISL / 6 OSL, PyNcclConnector 1P1D vs 2× TP2 chunked-prefill — disagg worse on TTFT and ITL at every QPS.
+- [kraghavan.ca 2026-04-21](https://kraghavan.ca/llm-infrastructure/inference/2026/04/21/llm-d-pd-disaggregation.html): llm-d + NIXL on a single GH200, Qwen3-0.6B — TTFT 3.7×, ITL 3.5×, E2E 6.5× worse than aggregated.
+
+Model-specific caveat: [vllm#55434](https://github.com/vllm-project/vllm/issues/55434) (open, 2026-09-05) — GLM-5.3
+(DeepSeek-V3.2 arch, MLA + DSA indexer; NOT GLM-5.3-Flash) P/D on GB200 issues 91k–120k NIXL descriptors per
+TP-rank transfer (~4.9 GB), and `cuda_ipc` spends 57% of transfer time posting them (4.07 µs/descriptor vs
+0.20 µs on IB `rc_x`), so the intra-node MNNVL path came out slower end-to-end than RDMA. Descriptor-heavy KV
+layouts can make the same-node transport the bottleneck; check the NIXL Prometheus `postDuration` histogram
+before assuming NVLink/cuda_ipc is free.
+
+No published single-node numbers exist (as of 2026-09-16) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
+Recipes (recipes.vllm.ai, NVIDIA Dynamo) document the 4+4 split without benchmarking it. Measure per model:
+`vllm bench serve --goodput ttft:… tpot:…` against the split vs 1× TP8 on the same node, cold prefix.
 
 ### Production deployment patterns
 
