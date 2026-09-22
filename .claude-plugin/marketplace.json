@@ -650,6 +650,20 @@
       "strict": false
     },
     {
+      "name": "ceph-troubleshooting",
+      "source": "./",
+      "description": "Diagnose and recover an unhealthy Ceph cluster, with Rook-on-Kubernetes specifics: slow or stuck recovery/backfill under the mClock scheduler (why osd_max_backfills \"does nothing\"),…",
+      "version": "0.20260922.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/ceph-troubleshooting"
+      ],
+      "strict": false
+    },
+    {
       "name": "confluence-best-practices",
       "source": "./",
       "description": "Advise on USING Confluence well, not operating it: make the structural call",
@@ -737,7 +751,7 @@
       "name": "rook-ceph-best-practices",
       "source": "./",
       "description": "Operate, configure and upgrade Rook-managed Ceph on Kubernetes (ceph.rook.io CephCluster, CephBlockPool, CephFilesystem, CephObjectStore; rook-ceph and rook-ceph-cluster Helm charts; ceph-csi and…",
-      "version": "0.20260922.9",
+      "version": "0.20260922.10",
       "author": {
         "name": "Jörgen"
       },
