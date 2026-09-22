@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15
+Freshened: 2026-09-22 — every row probed at v0.12.0, still the latest release. Two counts re-derived from the CLI source rather than carried forward: 12 custom dataset formats (baseten_trace and weka_trace landed in v0.12.0) and 42 public datasets, not "20+". The 18 endpoint types reproduce exactly.
 
 Per-row `Last verified:` dates for the external claims in this skill. `freshen` mode reads + updates this file. The header stamp is authoritative: every row above was probed on that date.
 

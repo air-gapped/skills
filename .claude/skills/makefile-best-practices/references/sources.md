@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 — every row probed. GNU Make 4.4.1 is still latest, NEWS still tops out at 4.4.90, and the `--shuffle` and grouped-target version gates reproduce.
+
 External references underpinning this skill's GNU Make claims. Re-verify the
 listed facts and stamp the date when you re-confirm a row online.
 

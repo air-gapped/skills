@@ -42,7 +42,7 @@ Don't reach for MP mode just because it's newest — it adds operational surface
 
 ## Version gates — check these FIRST
 
-Current stable pair (2026-09-15): **vLLM v0.29.0** (2026-09-09) + **LMCache v0.5.5** (2026-09-12). **The image lags the pair:** `vllm/vllm-openai:v0.29.0` bundles LMCache **0.5.4** (2026-08-20), verified by container run 2026-09-15 — so "latest vLLM image" and "latest LMCache" are not the same thing, and `pip install -U lmcache` inside that image moves you off the pair it was built against. v0.19.1 remains the verified-floor bundling example below.
+Current stable pair (2026-09-22): **vLLM v0.30.0** (2026-09-22) + **LMCache v0.5.5** (2026-09-12, still latest). v0.30.0 pins `nixl == 1.4.1` (up from `1.3.2`); `LMCacheMPConnector`/`SupportsHMA` and the `lmcache >= 0.3.9` floor are unchanged. Image bundling on v0.30.0 not yet captured — re-run `scripts/verify-bundling.sh v0.30.0`. **The image lags the pair:** `vllm/vllm-openai:v0.29.0` bundles LMCache **0.5.4** (2026-08-20), verified by container run 2026-09-15 — so "latest vLLM image" and "latest LMCache" are not the same thing, and `pip install -U lmcache` inside that image moves you off the pair it was built against. v0.19.1 remains the verified-floor bundling example below.
 
 | Component | What you need | Notes |
 |---|---|---|

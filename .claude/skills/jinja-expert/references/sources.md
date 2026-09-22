@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 — every row probed. The `apply_chat_template` environment contract is byte-for-byte unchanged; transformers is at 5.17.0 and ansible-core at 2.21.4. The docs.ansible.com CDN bot-block reproduces, as already noted inline.
+
 Per-URL index of external references cited in the skill. `Last verified:`
 is stamped by `freshen` mode; rows that fail to verify stay undated and
 are re-probed on the next pass. Add `<!-- ignore-freshen -->` to any row

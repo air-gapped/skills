@@ -1,5 +1,7 @@
 # Sources — postgres-operator-cloudnative-pg-migration
 
+Freshened: 2026-09-22 — every row probed. CNPG 1.30.0 and Zalando v2.0.2 are both still latest; the barman-cloud plugin moved to v0.15.0 / chart 0.8.0, which sources.md had recorded but three reference files had not picked up.
+
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
 row and rewrites the stamp below; rows it could not reach carry an inline
 exception note instead.

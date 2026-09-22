@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. All eight pinned CI-action SHAs and all four pre-commit tag pins still resolve.
+Freshened: 2026-09-22 — every row probed. Helm is at v4.3.0 (2026-09-09) with 3.x still patched in parallel at v3.22.0 — and the Helm 3 EOL dates in the body were superseded: the maintainers extended the timeline, so security-only patches now run to 2027-02-10.
 
 **Methodology note for the null-coalescing rows:** their release attributions are confirmable only from each release's own notes, **not** from git ancestry. This project backports, so a fix reaches an older patch release as a *different commit*; comparing the pull request's main-branch merge commit against that tag reports "diverged" even though the fix is in it. Measured here: #31644's merge commit is not an ancestor of v4.1.3, yet v4.1.3's notes credit #31644 — while v4.2.0, which does contain that commit, never mentions it.
 

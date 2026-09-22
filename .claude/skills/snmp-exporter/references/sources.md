@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. Two pins moved: the `prometheus-snmp-exporter` Helm chart is **9.18.0** (`appVersion v0.30.1`, read from `Chart.yaml` on `main`) and `idrac_exporter` is **v2.6.3** (2026-09-05). `snmp_exporter` itself is unchanged at **v0.30.1**.
+Freshened: 2026-09-22 — every row probed (exception: the Dell driver page 403s to every fetcher, as already noted). snmp_exporter v0.30.1 is unchanged, but idrac_exporter#202 closed 2026-08-04 with a real fix in v2.6.2 — the body still described it as open and unreleased, contradicting this file's own v2.6.3 pin.
 
 **Exception — 1 row:** the iDRAC10 SNMP defaults (AgentEnable, SHA/AES ciphers, passphrase length) come from a login-walled Dell Attribute Registry PDF and were not re-opened this pass. No contradicting source surfaced. — dated provenance index
 

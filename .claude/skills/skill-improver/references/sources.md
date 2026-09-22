@@ -1,5 +1,7 @@
 # Sources — Skill Design & Agent Skills Ecosystem
 
+Freshened: 2026-09-22 — every row probed; all 41 URLs 200. One version attribution corrected — `/skill-doctor` landed in v2.1.261, not v2.1.271 — and SkillEvaluator now has a real v0.3.0 release shipping what this file still listed as unreleased.
+
 **Freshened: 2026-09-15** — every row probed. All ~45 URLs resolve; every arXiv citation re-opened and its title, version pin and attributed finding confirmed on the page (SkillOpt still v2, SkillLens still v1, Bennett still v4 — no newer versions); all four X posts re-fetched unexpanded and their quoted text re-confirmed, including the two the file deliberately records as *misattributed* and *unverified-but-not-refuted*, both of which still hold.
 
 **Claude Code moved 15 releases (v2.1.257 → v2.1.272) and three changes land on this skill**, now folded into `SKILL.md`: **v2.1.271 lowered the medium workflow size guideline from 15 to 10 agents** and made **small** the default on Pro plans — the figure this file had published as `<15` since v2.1.219; **v2.1.269** added `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256), a per-run Workflow limit distinct from the unchanged 20-subagent cap; and **v2.1.271** added `/skill-doctor`. Re-checked as unaffected across that range: the 20-subagent cap, `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, `prompt-audit`, `disable-model-invocation`.

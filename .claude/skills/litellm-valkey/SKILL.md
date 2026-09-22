@@ -8,7 +8,7 @@ when_to_use: |-
 
 # LiteLLM proxy + Redis/Valkey multi-pod — operator reference
 
-Target: operating LiteLLM proxy with 2+ replicas (typically the in-repo Helm chart) where Redis or Valkey is supposed to make rate limits, spend/budget enforcement, cooldowns, and locks fleet-wide. Grounded in source at `4d543245` (v1.95.0-dev, 2026-07-29; latest stable **at that time** v1.94.0) plus a GitHub-issue sweep of the same date. **The line has moved six minors since: v1.100.1 as of 2026-09-15.** LiteLLM releases weekly and fixes land fast, so treat every claim here as stamped to that July source read and re-verify on the deployed tag — the gap is now wide enough that a behaviour described below may have been fixed, renamed, or replaced outright.
+Target: operating LiteLLM proxy with 2+ replicas (typically the in-repo Helm chart) where Redis or Valkey is supposed to make rate limits, spend/budget enforcement, cooldowns, and locks fleet-wide. Grounded in source at `4d543245` (v1.95.0-dev, 2026-07-29; latest stable **at that time** v1.94.0) plus a GitHub-issue sweep of the same date. **The line has moved since: **v1.102.0** is latest stable (2026-09-20), with v1.103.0-rc.1 in pre-release.** LiteLLM releases weekly and fixes land fast, so treat every claim here as stamped to that July source read and re-verify on the deployed tag — the gap is now wide enough that a behaviour described below may have been fixed, renamed, or replaced outright.
 
 Sibling skill: the proxy's management REST API (keys, teams, budgets semantics) is **`litellm-api`**. Migrating the Redis itself to Valkey is **`redis-to-valkey`**.
 

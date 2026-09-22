@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed.
+Freshened: 2026-09-22 — every row probed. GPU Operator is still v26.7.0, but the apt index moved under the file: nvidia-container-toolkit 1.19.1-1 -> 1.20.1-1 and the driver stack 610.43.02-1ubuntu1 -> 615.71.09-2ubuntu1. Two Ubuntu wiki Secure Boot pages now 404 outright — the wiki migrated off MoinMoin and the articles do not exist under any title; annotated inline rather than removed, since documentation.ubuntu.com is the surviving primary source. Dell 403s remain the known Akamai bot-block.
 
 **Three DOCA rows moved host this pass**: `docs.nvidia.com/doca/sdk/...` now permanently redirects to `networking-docs.nvidia.com/doca/archive/3-5-0/...`. The URLs below are the new ones.
 
@@ -74,8 +74,8 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://wiki.ubuntu.com/UEFI/SecureBoot | Boot chain, shim + Canonical CA model | 2026-08-18 | — |
-| https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS | `update-secureboot-policy`, MOK enrollment | 2026-08-18 | — |
+| https://wiki.ubuntu.com/UEFI/SecureBoot **[404 as of 2026-09-22 — Ubuntu wiki migrated MoinMoin→MediaWiki; page does not exist, no redirect. Use documentation.ubuntu.com/security/.../secure-boot/ instead]** | Boot chain, shim + Canonical CA model | 2026-08-18 | — |
+| https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS **[404 as of 2026-09-22 — Ubuntu wiki migrated MoinMoin→MediaWiki; page does not exist, no redirect. Use documentation.ubuntu.com/security/.../secure-boot/ instead]** | `update-secureboot-policy`, MOK enrollment | 2026-08-18 | — |
 | https://documentation.ubuntu.com/security/security-features/platform-protections/secure-boot/ | Canonical security-team SB docs | 2026-08-18 | — |
 | https://wiki.debian.org/SecureBoot | lockdown=integrity behaviours, `modinfo` verification | 2026-08-18 | — |
 | https://packages.ubuntu.com/noble/shim-signed | shim-signed 1.58+15.8-0ubuntu1 metadata | 2026-08-18 | 24.04 noble |

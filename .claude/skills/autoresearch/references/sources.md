@@ -1,6 +1,6 @@
 # Sources — Autoresearch Ecosystem
 
-Freshened: 2026-09-15 — all 60 URLs probed, every one 200. **All 21 arXiv citations were re-opened and checked against the live abstract for title, authors, date, and the specific number or finding attributed to them — no fabricated or misattributed citation was found**, including the verbatim figures (323/16% of 1,968 tasks; 12%–48% meta-eval F1; 82.8%→56.9%; 1,250 papers surveyed). Every absence claim re-confirmed true: the Liquid PR is still open and unmerged, the no-tagged-release rows still have none, and the dormancy dates still hold.
+Freshened: 2026-09-22 — every row probed; all 60 URLs 200 and all 27 tracked repos re-checked for archive state, push date and default branch. The pinned versions and the two Claude Code env-var version claims all reproduce; no misattributed citation found on re-check.
 
 Four rows drifted; all four are corrected below. The one that changes a reader's decision is **`langchain-ai/open_deep_research` being archived**.
 

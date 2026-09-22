@@ -1,5 +1,7 @@
 # Sources — Argo CD application authoring
 
+Freshened: 2026-09-22 — every row probed; all 172 URLs 200 and the four cited open issues are genuinely open, not stale-bot closes. v3.5 GA'd 2026-08-04 and v3.5.3 is latest — version-changes.md's currency note still described v3.5 as an RC, contradicting SKILL.md's own already-current figures.
+
 Dated index of authoritative URLs and the local clone the skill cites. Freshen
 Mode reads this file, probes each row, and stamps `Last verified` (and
 `Pinned` where applicable). The oldest `Last verified:` caps Dim 9 of the

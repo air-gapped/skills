@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 — every row probed; all 71 URLs 200 and all 13 cited vLLM paths resolve at v0.30.0. The runtime floor is unchanged, but vLLM's CI test-pin moved to transformers 5.16.1, so the "same number for two independent reasons" note no longer holds literally.
+
 Dated index of every external reference this skill cites. `Last verified:`
 stamps track when the ref was last checked against live content.
 `freshen` mode re-probes these and updates the stamp.

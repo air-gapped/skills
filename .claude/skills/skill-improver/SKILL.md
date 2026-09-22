@@ -312,7 +312,7 @@ When the user only wants a quality score without iterating:
 2026-07-24; bundled skill since v2.1.205). It is a one-shot simplification pass
 with no metric, no keep/discard, and no blind check — run it first for free
 hypotheses, then use this skill when the question is *did the change measurably
-help*. Do NOT report `/doctor` output as a score. **v2.1.271 added `/skill-doctor`**, which reports which loaded skills go unused and what they cost in context — a pruning signal, and still not a quality measurement.
+help*. Do NOT report `/doctor` output as a score. **v2.1.261 added `/skill-doctor`**, which reports which loaded skills go unused and what they cost in context — a pruning signal, and still not a quality measurement.
 
 **Dim 10 is capped until net value is measured** — apply the rubric's
 §"Negative-Transfer Gate" (8 unmeasured, 2 when the skill loses to no-skill;

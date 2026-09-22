@@ -1,5 +1,7 @@
 # Sources and verification log
 
+Freshened: 2026-09-22 — every row probed. LMCache v0.5.5 is still latest; the pairing moves to vLLM v0.30.0, which bumps the NIXL pin to 1.4.1 and adds a native KVCR tier that belongs to `vllm-caching`, not here. `SupportsHMA` and the lmcache floor are unchanged.
+
 This skill was authored against live source code, image inspection, and live GitHub issue state. Re-run probes when re-verifying.
 
 ## Last verified

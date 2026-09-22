@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. **NetBox 4.7.0 GA'd 2026-09-02** and the chart followed; the header figures below were a release behind and are corrected.
+Freshened: 2026-09-22 — every row probed; NetBox 4.7.1 and the social-auth pins reproduce. The chart line moved past the gap this file recorded: 8.3.78 (2026-09-16) is the first chart pinning 4.7.1, so the staging advice no longer has to stop at a 4.7.0 chart.
 
 **One cited source path is gone**: `netbox/api/authentication.py` no longer exists on `main`. Relocate it before trusting the row that reads token behaviour from it.
 

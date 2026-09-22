@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 — every row probed; all 34 URLs 200. No release in the window changes a cited claim, and Remote-Write 2.0 is still marked Experimental on the live spec.
+
 <!-- Freshened: 2026-09-15 — all 34 rows probed. Every GitHub project row is live and unarchived; both content-bearing pinned rows re-read against live page text rather than just status (Grafana's /api -> /apis deprecation, and remote-write 2.0 still "2.0-rc.4, Experimental"). **Five URLs 301 to a different final path and were repointed** — Grafana is mid docs-nav reorg: the Mimir config reference moved under `configure/`, three Grafana pages gained a `visualizations/` prefix, and the blog dropped its date segments. All five still returned 200 at the old address, so only comparing %{url_effective} found them. The cited `mimir-3.0.0` release is valid as a 3.0-specific citation, but current Mimir is 3.2.1 (2026-09-10) — do not read that row as "latest". -->
 
 Per-URL index of upstream documentation this skill sources from. Freshen mode stamps `Last verified:` on successful probes. `Pinned:` carries a version or path pin when the skill's guidance depends on a specific release.

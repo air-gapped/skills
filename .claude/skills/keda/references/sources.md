@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 — every row probed. The HTTP Add-on moved v0.15.0 → v0.16.0 (2026-09-16), adding static routes, direct-to-pod routing and bounded cold-start requests, and deprecating `KEDA_HTTP_PROXY_TLS_*` for `KEDA_HTTP_TLS_*`. Still beta.
+
 External references this skill's content is grounded in. Each row was verified
 on the date shown. When re-freshening, re-check the oldest row first and bump
 the date after confirming the cited fact still holds.

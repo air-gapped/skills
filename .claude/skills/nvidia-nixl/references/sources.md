@@ -1,6 +1,6 @@
 # External sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed. HEAD is 1.5.0 and vLLM v0.30.0 pins `nixl == 1.4.1`, up from 1.3.2 at v0.28.0/v0.29.0 — the SKILL.md table had lagged sources.md by a release.
 
 Load-bearing external references cited in this skill, with verification dates. Probed via `gh api` / `gh release list` / WebFetch / a local clone of `ai-dynamo/nixl`. Refresh via the `freshen` mode of the `skill-improver` skill.
 

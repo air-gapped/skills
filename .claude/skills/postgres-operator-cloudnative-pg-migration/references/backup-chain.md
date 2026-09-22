@@ -36,7 +36,7 @@ trackers). Therefore:
 ## Plugin install (air-gap-ready)
 
 Images (both required):
-- `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.14.0` (Deployment)
+- `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.15.0` (Deployment)
 - `ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.14.0` — the
   sidecar reference is **hidden base64-encoded in a Secret**
   (`SIDECAR_IMAGE`) inside the release-asset `manifest.yaml`. Mirror it

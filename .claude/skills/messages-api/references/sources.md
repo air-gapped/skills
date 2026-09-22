@@ -3,7 +3,7 @@
 Dated per-URL index. Freshen mode reads and stamps `Last verified:` here.
 "Commit examined" per repo is recorded in backend-implementations.md.
 
-Freshened: 2026-09-15 — every row probed. **Two upstreams changed identity since the last pass**: `sst/opencode` → `anomalyco/opencode`, and `llamastack/llama-stack` → `ogx-ai/ogx` (the project renamed itself OGX). Both old URLs still redirect, so nothing 404s, but neither is canonical any more.
+Freshened: 2026-09-22 — every row probed. One row corrected: it claimed an opencode v2.0.3 that has never existed — the newest tag is v1.18.32 (2026-09-21).
 
 The pinned versions below are **point-in-time examination snapshots, not latest-version claims** — every upstream here has released since, which is expected and not drift. `llama.cpp` also changed tag scheme, from `bNNNNN` nightly builds to semver.
 

@@ -1,6 +1,6 @@
 # Sources — responses-api skill
 
-Freshened: 2026-09-15 — every row probed.
+Freshened: 2026-09-22 — every row probed; the `phase` and `prompt_cache_breakpoint` fields and all three tracked issue states reproduce. Engine versions below have advanced as this file predicts — that is expected, not drift.
 
 **Three cited repositories were transferred or renamed** since the last pass. Every old URL still redirects, so none of them would ever have failed a liveness check.
 

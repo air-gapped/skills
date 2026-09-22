@@ -1,5 +1,7 @@
 # Sources — dated index for `freshen` mode
 
+Freshened: 2026-09-22 — every row probed; the BaseOS package counts, TuneD profile roster and repomd revision all reproduce exactly. One image tag was superseded: DCGM 3.3.6 → 4.5.2 for ubuntu22.04.
+
 Authoritative refs cited across this skill, with last-verified dates so
 `/skill-improver freshen gpu-host-tuning` can probe staleness.
 

@@ -1,6 +1,6 @@
 # Sources — keycloak-iam
 
-Freshened: 2026-09-15 — every row probed. Server stable moved 26.7.1 → **26.7.3**, and the operator-manifest repo tracked it. **Every absence claim here re-verified and still true**: the renamed operator/HA doc pages still 404 at their old paths, and `first_patched_version` is still null on all eight 2026-06-26 advisories — so the advisory feed still cannot be used to derive a patch floor for this project.
+Freshened: 2026-09-22 — every row probed. 26.7.4 shipped 2026-09-16 with 6 CVEs including CVE-2026-17526, an impersonation-role privilege escalation to realm admin — so the recommended floor moves to 26.7.4. Also corrected a citation to a 26.6.5 release that never existed.
 
 Authoritative external references the skill points at. `freshen` mode probes these and stamps `Last verified:` per row. Mark a row with `<!-- ignore-freshen -->` if the URL is intentionally pinned to a historical state.
 

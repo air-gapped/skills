@@ -1,6 +1,6 @@
 # Sources (primary / high-credibility)
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed. v1.9.0 GA'd 2026-09-16, ending the RC-only state this file recorded — but its own release notes warn against upgrading (QEMU-10/libvirt regression force-shuts-down VMs, harvester#11356 and #11615 both still open, fix planned for v1.9.1), so the ladder still tops out at 1.8.2 in practice.
 
 Grounded 2026-06-01; release/edition rows re-grounded **2026-07-21**. The ladder/pairing/ordering *mechanics* are durable methodology; the volatile leaf
 numbers — latest patch per minor, GA dates, "fixed in vX" claims, Node-Driver ranges — must be re-grounded via

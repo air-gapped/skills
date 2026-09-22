@@ -88,8 +88,8 @@ dcgmi diag --run 3 --fail-early
 In a container:
 
 ```bash
-apptainer pull docker://nvidia/dcgm:3.3.6-1-ubuntu22.04
-apptainer exec --nv dcgm_3.3.6-1-ubuntu22.04.sif /usr/bin/dcgmi diag --run 3 --fail-early
+apptainer pull docker://nvidia/dcgm:4.5.2-1-ubuntu22.04
+apptainer exec --nv dcgm_4.5.2-1-ubuntu22.04.sif /usr/bin/dcgmi diag --run 3 --fail-early
 ```
 
 ---

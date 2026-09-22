@@ -56,9 +56,9 @@ does value X do in chart Y" → that chart's own documentation.
 
 ### 1. Helm 4 Is Current (Released November 2025)
 
-Helm 4.0.0 released at KubeCon November 2025. Current: v4.2.4 (2026-08-13); the
-4.1 series stops at v4.1.4. Helm 3 has *not* been retired — the 3.x line is
-still patched in parallel (v3.21.4), so "still on Helm 3" is a supported
+Helm 4.0.0 released at KubeCon November 2025. Current: v4.3.0 (2026-09-09); the
+4.2 series stops at v4.2.4 and 4.1 at v4.1.4. Helm 3 has *not* been retired — the 3.x line is
+still patched in parallel (v3.22.0, 2026-09-10), so "still on Helm 3" is a supported
 position, not a lapsed one. Key changes:
 
 - **Server-Side Apply** is default for new installations (existing Helm 3 releases
@@ -73,7 +73,7 @@ position, not a lapsed one. Key changes:
   `helm.sh/readiness-success`, `helm.sh/readiness-failure`
 - **Chart API v2** (Helm 3 charts) works unmodified. v3 format planned but not
   yet available
-- **Helm 3 EOL**: bug fixes until July 8, 2026; security until November 11, 2026
+- **Helm 3 EOL**: final feature/bug-fix release was v3.22.0 (2026-09-10, Kubernetes client-library updates only); security-only patches on demand through Feb 10, 2027; nothing after that
 
 ### 2. Use `include`, Never `template`
 

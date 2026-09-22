@@ -34,7 +34,7 @@ Ubuntu 24.04 CUDA repo's `Packages` index today:
 | `nvidia-fabricmanager-<b>`, `cuda-drivers-fabricmanager-<b>`, `libnvidia-nscq-<b>`, `libnvsdm-<b>`, `nvidia-imex-<b>` | **575** | unsuffixed `nvidia-fabricmanager`, `libnvidia-nscq`, … |
 
 Branches **590, 595 and 610** are published — `nvidia-driver`, `nvidia-open`,
-`nvlink5` and `nvidia-fabricmanager` all reach `610.43.02-1ubuntu1` — but only
+`nvlink5` and `nvidia-fabricmanager` all reach `615.71.09-2ubuntu1` — but only
 through the **unsuffixed** package names, with the branch encoded in the
 *version*. There is no `nvidia-open-610`.
 
@@ -71,7 +71,7 @@ or never existed is not resolvable from the index alone — what is certain is w
 | `libnvidia-nscq-<branch>` | shared lib | 550–**575** + bare | NVSwitch Configuration and Query library. Same cliff |
 | `nvidia-modprobe` | binary | floating, branch-encoded in version | All driver minors back to 580.82.07 present |
 | `nvidia-persistenced` | binary | floating | Persistence daemon |
-| `nvidia-container-toolkit` | binary | floating | Container runtime, latest 1.19.1-1 |
+| `nvidia-container-toolkit` | binary | floating | Container runtime, latest 1.20.1-1 |
 | `nvidia-container-toolkit-base` | binary | floating | Base subset (no runtime hooks) |
 | `datacenter-gpu-manager-4-{core,cuda11,cuda12,cuda13,cuda-all}` | DCGM v4 | per CUDA major | Pick `cuda13` for current |
 | `datacenter-gpu-manager-4-{multinode,proprietary,proprietary-cuda12,proprietary-cuda13}` | DCGM v4 ext | per use case | Multi-node diagnostics and proprietary binaries |

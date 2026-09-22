@@ -1,6 +1,6 @@
 # Sources — code, docs, issues, verification log
 
-Freshened: 2026-09-15 — every row probed.
+Freshened: 2026-09-22 — every row probed. Two cited bugs are genuinely fixed (#16587 via PR #30770, #34299 via PR #35273) and one of the admission family (#33325) too; two others (#27736, #25447) are stale-bot closes with no fix PR, so they stay unresolved-but-untracked.
 
 Every claim traces to one of these groups. Load to verify a specific fact or run `freshen` mode.
 

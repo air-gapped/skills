@@ -1,11 +1,11 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed. SDK is 0.226.2 (2026-08-31) and the toolchain line reached baml-language-0.20.0 (2026-09-18); the 0.221/0.223 feature gates still hold, since 0.226.x added no syntax changes.
 
 Authoritative references this skill is derived from. A freshen pass verifies
 every row and updates the stamp above; rows that cannot be machine-verified
-carry an inline note. Latest BAML SDK release: **0.225.0** (PyPI + npm,
-published 2026-08-01; no breaking-change notes in the release body).
+carry an inline note. Latest BAML SDK release: **0.226.2** (PyPI + npm,
+published 2026-08-31; no breaking-change notes in the release body — 0.226.0/0.226.1/0.226.2 added connection-pooling config and OpenAI Responses-API/audio-transcription support, no syntax changes).
 
 **Two version lines — do not confuse them.** `baml-py` / `@boundaryml/baml` are the user-facing SDK, currently **0.225.0**. Since 2026-06 the repo ALSO cuts `baml-language-0.NN.N` releases (0.17.0, 2026-08-16) for the `baml_language` Rust workspace — the new compiler (`compiler2` / `sys_llm` renderer) and its VM. `gh release list` shows the language tags plus nightlies at the top because they are more *recent*, not because they supersede the SDK. Never "downgrade" a 0.22x SDK pin to a 0.1x language-toolchain number.
 
@@ -27,8 +27,8 @@ published 2026-08-01; no breaking-change notes in the release body).
 | https://github.com/boundaryml/baml/pull/1251 | optional lists + maps (`string[]?`, `map<..>?`) — contradicts public types.mdx | merged |
 | https://github.com/boundaryml/baml/blob/canary/fern/pages/changelog.mdx | canonical changelog for release-gated features | tops out at 0.226.0 (canary pre-release entry, 2026-08-17; 0.225.0 is the latest *released* SDK) |
 | https://github.com/boundaryml/baml/pull/3822 | `ctx.output_format(render_null_as=...)` — shipped in 0.223.0 | merged 2026-06-23 |
-| https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | latest 0.225.0 |
-| https://www.npmjs.com/package/@boundaryml/baml | npm package + `baml-cli`/`baml` binaries (TS/JS) | latest 0.225.0 |
+| https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | latest 0.226.2 |
+| https://www.npmjs.com/package/@boundaryml/baml | npm package + `baml-cli`/`baml` binaries (TS/JS) | latest 0.226.2 |
 | https://studio.boundaryml.com | Boundary Studio v2 (v1 at app.boundaryml.com deprecated end-of-March 2026) | deprecation: 2026-03-31 |
 | https://marketplace.visualstudio.com/items?itemName=Boundary.baml-extension | VSCode/Cursor playground extension | — |
 | https://promptfiddle.com | web playground, embeddable | — |

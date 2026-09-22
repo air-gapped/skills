@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. Issue-tracker rows were re-read through the public Jira REST API and all remain in the states recorded here.
+Freshened: 2026-09-22 — every row probed; 52 URLs swept and all eight cited Atlassian issues re-read through the public REST API with status and resolution intact. The v1-REST parity gate still has no announced removal date.
 
 External claims in this skill, with source, tier, and what they support. **Last verified: 2026-06-07** (research date); volatile rows re-probed **2026-07-21** — see the freshen note at the end. Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC feature splits, open-bug status) — these move.
 

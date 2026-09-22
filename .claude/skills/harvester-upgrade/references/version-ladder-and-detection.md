@@ -36,7 +36,7 @@ is what couples this to the external Rancher (`external-rancher-coupling.md`).
 |---|---|---|
 | **1.8** | **v1.8.2** | 2026-08-06 |
 | 1.7 | **v1.7.3** | 2026-08-07 |
-| 1.9 | *none — RC only* | through v1.9.0-rc5 (2026-08-12) |
+| 1.9 | **v1.9.0** — upgrading NOT recommended, see warning below | 2026-09-16 |
 
 **⚠ `releases/latest` on this repo currently points at v1.7.3, not the 1.8 line.**
 GitHub marks "latest" by *publish date*, and v1.7.3 (2026-08-07) shipped after

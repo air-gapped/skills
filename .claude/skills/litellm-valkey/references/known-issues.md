@@ -38,9 +38,9 @@ Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast
 | Issue | State | Impact |
 |---|---|---|
 | #34614 | OPEN (07-25) | v1.93.0 + redis-py 5.3.1: `ssl_check_hostname` TypeError kills cache and budget counters; reproduces on Valkey |
-| #16587 | OPEN | Presence-based check makes `ssl: False` force `SSLConnection` — breaks non-TLS Redis |
+| #16587 | FIXED (closed 2026-08-09, PR #30770) | Presence-based check makes `ssl: False` force `SSLConnection` — breaks non-TLS Redis |
 | #34727 | OPEN [Docs] | Caching docs still warn "don't use REDIS_URL in prod (perf)" — stale since ~v1.95 (measured url 650 vs host/port 690 req/s, both 50 conns); URL mode still silently drops kwargs set outside the URL string |
-| #34299 | OPEN | `RedisCache.async_set_cache` swallows exceptions → circuit breaker never learns from writes |
+| #34299 | FIXED (closed 2026-08-03, PR #35273) | `RedisCache.async_set_cache` swallows exceptions → circuit breaker never learns from writes |
 | #20231 / #19724 | closed | Socket-timeout override; init connection-storm race |
 
 ## Caching correctness (affects coordination only when client is shared)

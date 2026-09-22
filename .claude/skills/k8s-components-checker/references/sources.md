@@ -1,5 +1,7 @@
 # sources.md — URL index for freshen
 
+Freshened: 2026-09-22 — every row probed; all 39 URLs 200 and every pinned component version reproduces. Two anchors were wrong when written: RKE2 v1.37.0 and Harvester v1.9.0 were both already stable — not RC-only — at the moment the previous stamp was applied.
+
 One row per component. Each row carries the canonical source URL freshen
 probes, optional pin notes, and the `Last verified:` stamp.
 

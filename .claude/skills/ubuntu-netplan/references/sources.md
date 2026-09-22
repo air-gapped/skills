@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. `1.2.2` is still the latest release (no netplan release since 2026-07-20), and the `since`-marker sweep below was re-run end-to-end on current `main`: markers still top out at `since 1.1` with the same three occurrences, so the 24.04-vs-26.04 gating stands unchanged. — ubuntu-netplan
+Freshened: 2026-09-22 — every row probed. netplan 1.2.2 is still latest and the `since 1.1` marker sweep still tops out where it did; two line anchors moved as the files grew, with semantics unchanged.
 
 Authoritative references behind this skill's factual claims, with verification dates.
 Re-probe with `skill-improver freshen ubuntu-netplan`. Claims verified against the

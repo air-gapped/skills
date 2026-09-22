@@ -23,13 +23,13 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 
 ## Versions
 
-- **Stable**: v0.5.19 (2026-09-05, latest), v0.5.18 (2026-08-22), v0.5.17 (2026-08-08), v0.5.16, v0.5.15.post1 (2026-07-14), v0.5.15 (2026-07-10), v0.5.14 (2026-06-26), v0.5.13 (2026-06-13). Earlier: v0.5.12.post1 (2026-05-26), v0.5.11 (2026-05-05).
+- **Stable**: v0.5.20 (2026-09-18, latest), v0.5.19 (2026-09-05), v0.5.18 (2026-08-22), v0.5.17 (2026-08-08), v0.5.16, v0.5.15.post1 (2026-07-14), v0.5.15 (2026-07-10), v0.5.14 (2026-06-26), v0.5.13 (2026-06-13). Earlier: v0.5.12.post1 (2026-05-26), v0.5.11 (2026-05-05).
 - **v0.5.11 shipped the SWA/3FS hybrid milestones**: SWA HiCache (PR [#23391](https://github.com/sgl-project/sglang/pull/23391) merged 2026-05-06, day-0 Gemma 4), 3FS Mamba/DSA (PR #23241), hybrid CP.
 - **v0.5.13 made HiCache the default for hybrid models**: `HybridModel` (SWA/Mamba) launches HiCache via **UnifiedTree** by default (PR [#27759](https://github.com/sgl-project/sglang/pull/27759), merged 2026-06-11), so hierarchical offload reaches sliding-window and Mamba hybrids out of the box rather than through arch-specific opt-in. v0.5.13 also added decode-side HiCache for incremental KV transfer (#26227). Spec V2 became the default speculative-decoding path in the same release (Spec V1 deprecated).
 - **v0.5.14–v0.5.15** are HiCache-heavy: int8 checkpoint pool for linear-attention recurrent states in the Mamba radix cache (#28185), hybrid-pool staged H2D kernel (#28434), asymmetric pool direct-backend support (#28446), HiCache for MiMo-V2 (#27378), opt-in CP-aware LRU eviction on the `file` backend (#26670), bucketed multi-dir layout for NIXL file storage (#27672), a NIXL FILE cache cleaner (#28258), Mooncake group semantics (#26574), bulk-token-byte hash generation (#28287), and an AMD **UMBP** tiered DRAM + SSD L3 backend with a hugepage host allocator (#25377). A separate `--enable-hisparse` subsystem (hierarchical sparse attention) also landed and can target NIXL DRAM KV destinations (#27563) — distinct from HiCache, don't conflate the flags.
 - **Image**: `lmsysorg/sglang:v0.5.15.post1` (pip-installs `mooncake-transfer-engine`; install `nixl-cu13`, `aibrix-kvcache`, `simm` etc. as needed for that backend). Confirm the bundled versions with `scripts/inspect-sglang-image.sh v0.5.15.post1` — the 0.3.10.post1 Mooncake figure was captured on the v0.5.12 line.
 - **Source of truth for flags**: `python -m sglang.launch_server --help`. If this skill disagrees with `--help` on a flag spelling, trust `--help` and freshen the skill. Note `server_args.py` was refactored to annotated-dataclass form — flags are derived from field names, so old line-number citations into the argparse block no longer resolve.
-- **Flag surface at v0.5.15.post1** (verified 2026-07-21 against `python/sglang/srt/server_args.py`): `--hicache-write-policy` now takes `write_through` (default), `write_back`, **`write_through_selective`**. `--hicache-io-backend` defaults to **`kernel`** and adds `kernel_ascend` alongside `direct`. `--hicache-mem-layout` defaults to `page_first` and adds **`page_first_kv_split`** and **`page_head`** to the old three. `--hicache-storage-backend` at **v0.5.19** accepts eleven values — `file`, `sim`, `mooncake`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm` — with `npu_memcache` added on `main` after that tag. `--hicache-ratio` defaults to 2.0, `--hicache-size` to 0 (ratio wins unless size is set).
+- **Flag surface at v0.5.15.post1** (verified 2026-07-21 against `python/sglang/srt/server_args.py`): `--hicache-write-policy` now takes `write_through` (default), `write_back`, **`write_through_selective`**. `--hicache-io-backend` defaults to **`kernel`** and adds `kernel_ascend` alongside `direct`. `--hicache-mem-layout` defaults to `page_first` and adds **`page_first_kv_split`** and **`page_head`** to the old three. `--hicache-storage-backend` at **v0.5.20** accepts twelve values — `file`, `sim`, `mooncake`, `npu_memcache`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm`. `npu_memcache` shipped in v0.5.20; it was main-only at v0.5.19. `--hicache-ratio` defaults to 2.0, `--hicache-size` to 0 (ratio wins unless size is set).
 
 ## Security floor: v0.5.13, and the repo feed will not show you why
 
@@ -59,7 +59,7 @@ CVE-2025-32444 and CVE-2025-47277 in vLLM's KV-transfer pipes. Treat "which
 interface does this subsystem bind, and does it deserialize" as a standing
 question when wiring any of these transports, not a fact to look up once.
 
-## Upgrading past v0.5.15 (swept 2026-09-15, latest stable v0.5.19)
+## Upgrading past v0.5.15 (swept 2026-09-22, latest stable v0.5.20)
 
 Four releases landed since this skill's baseline: v0.5.16 (2026-07-25),
 v0.5.17 (08-08), v0.5.18 (08-22), v0.5.19 (09-05).

@@ -1,5 +1,7 @@
 # sources.md — external references for `patch` (freshen index)
 
+Freshened: 2026-09-22 — every row probed against local clones. The Visa harness advanced two releases, but the diff is a pure refactor to typed scoring dataclasses: the four gate names, the weights and both thresholds are unchanged in substance.
+
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 

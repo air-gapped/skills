@@ -45,8 +45,9 @@ success and hierarchy renames stop propagating
 "Repairing Hierarchical Paths" admin doc for already-stale values). Both are fixed
 in 4.7.1 (2026-09-15). On the helm chart, check which app version the chart pins
 (`helm search repo netbox/netbox --versions`): **8.3.66 is the last 4.6 chart
-(4.6.10)**, 8.3.70+ pin 4.7.0, and as of 2026-09-15 no chart pinned 4.7.1 — the
-safe staging point from 4.6.x is 8.3.66, then 4.7.x once a chart pins ≥ 4.7.1.
+(4.6.10)**, 8.3.70–8.3.77 pin 4.7.0, and **8.3.78+ (2026-09-16) pin 4.7.1** — the
+safe staging point from 4.6.x is 8.3.66, then straight to 8.3.78+ (latest 8.3.84, 2026-09-21)
+rather than any 4.7.0-pinned chart.
 
 The `ipam.Service` `protocol`/`ports` → `port_mappings` change also lands in 4.7,
 with the legacy pair still accepted by the REST API but read-only at the ORM

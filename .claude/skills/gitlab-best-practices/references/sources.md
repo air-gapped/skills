@@ -1,5 +1,7 @@
 # Sources — gitlab-best-practices
 
+Freshened: 2026-09-22 — every row probed; all 26 URLs 200. The chart line moved to 10.4.0 / v19.4.0 and issue #477791 slipped a milestone to 19.5. The required-stop cadence and the chart-major = app-major − 9 offset both still hold.
+
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
 row and rewrites the stamp below; rows it could not reach carry an inline
 exception note instead.

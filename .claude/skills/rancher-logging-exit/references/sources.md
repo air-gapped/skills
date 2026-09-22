@@ -1,5 +1,7 @@
 # Sources — rancher-logging-exit
 
+Freshened: 2026-09-22 — every row probed. One reversal: the SUSE page for CVE-2026-54680 was 404 at the last pass and is now published (created 2026-09-04, CVSS 9.9) — but it lists only `govulncheck-vulndb` as Released, so the negative evidence for the operator itself still stands.
+
 Dated per-URL index backing this skill's factual claims. Freshen Mode probes each
 row and stamps `Last verified`.
 
@@ -39,7 +41,7 @@ CVE.
 | StatefulSet/PVC naming | kube-logging/logging-operator pkg/resources/fluentd (4.10.0 vs 6.7.0) | `<logging>-fluentd` + `fluentd-buffer` stable ⇒ PVC preservation rule | 2026-09-15 | tags 4.10.0/6.7.0 |
 | Axoflow Rancher-migration blog | https://axoflow.com/blog/get-the-latest-logging-operator-in-rancher | maintainer-endorsed release-secret strategy; historical 3.17 freeze precedent | 2026-07-22 (content 2023-09) | — |
 | Rancher advisories page | https://ranchermanager.docs.rancher.com/reference-guides/rancher-security/security-advisories-and-cves | no logging CVE listed (negative evidence) | 2026-09-15 | — |
-| SUSE CVE page | https://www.suse.com/security/cve/CVE-2026-54680.html | 404 = unpublished (negative evidence) | 2026-09-15 | — |
+| SUSE CVE page | https://www.suse.com/security/cve/CVE-2026-54680.html | **now published** (created 2026-09-04, CVSS 9.9 critical). The "Released" status covers SUSE's `govulncheck-vulndb` tracking entry only — **no logging-operator/rancher-logging package backport is listed**, so the negative evidence for the operator itself still holds | 2026-09-22 | — |
 | rancher/rancher releases | https://github.com/rancher/rancher/releases (v2.12.0–v2.14.0) | no rancher-logging deprecation in release notes | 2026-09-15 | — |
 
 ## Community / secondary

@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 (exceptions: 5 bot-blocked rows, noted below) — all 126 URL rows probed. Both Data Center patch levels moved (11.3.11, 10.3.25) with every LTS EOL date unchanged and still no 11.4 line. **Two further rows are now bot-blocked** beyond the three already listed — `age-of-product.com` and `scrum.org` answer every fetcher with 403/202; both were corroborated live through search snippets and are not dead.
+Freshened: 2026-09-22 — every row probed; 125 of 126 URLs resolve, the rest being the already-documented bot-blocks. The DC EOL dates reproduce on atlassian.com; SKILL.md's patch figures had fallen behind sources.md's own already-corrected row.
 
 **Contents:** Execution layer · Hierarchy · Work modeling / decomposition · Lean configuration · Workflows, automation, reporting · Non-software · Platform state (2026-08 pass) · Multilingual & discovery · Dread / critique
 

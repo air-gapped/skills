@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed. Latest release is still v0.23.1 and the 98-tool / 16+8-toolset breakdown reproduces against that tag's source, so the skill's counts are correct — but the hosted docs now show a 25th `legacy` migration toolset that is not in the tagged source, i.e. unreleased main-only drift. Re-check after the next release.
 
 External claims in this skill, with source, tier, and verify date. Re-verify dated/volatile facts (latest image tag/digest, the v0.22 default change, env-var names) before relying on them — the project moves fast.
 

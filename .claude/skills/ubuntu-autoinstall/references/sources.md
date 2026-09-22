@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed (subiquity releases/tags via `gh`, schema and source anchors re-read on current `main`). — ubuntu-autoinstall
+Freshened: 2026-09-22 — every row probed. The autoinstall schema still has exactly 32 top-level keys with `version` pinned to 1, every key is present in schema.md, and the three cited code anchors re-confirm at their current line numbers.
 
 Authoritative references behind this skill's factual claims, with verification dates.
 Re-probe with `skill-improver freshen ubuntu-autoinstall`. All claims here were

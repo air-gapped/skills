@@ -1,5 +1,7 @@
 # sources.md — external references for `triage` (freshen index)
 
+Freshened: 2026-09-22 — every row probed. The Visa harness is at v1.4.0 (pushed 2026-09-11) and all four cited hardening mechanisms — VERIFY_ERROR, the call-graph context helper, the s6 anti-manipulation prologue — are still present verbatim.
+
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 

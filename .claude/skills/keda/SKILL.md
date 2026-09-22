@@ -420,7 +420,7 @@ full set):
 
 The main KEDA project does not scale HTTP workloads by RPS on its own. The
 HTTP Add-on (a separate deploy, API group `http.keda.sh/v1alpha1`, CRD
-`HTTPScaledObject`) does. As of v0.15.0 it's still beta — the README calls it
+`HTTPScaledObject`) does. As of v0.16.0 it's still beta — the README calls it
 stable and actively maintained with a v1.0 planned, but pre-1.0 breaking
 changes are still on the table. For an HTTP-scaling pattern today, either:
 - use the HTTP Add-on knowing its status, or

@@ -166,7 +166,7 @@ one-way.
 ### 26.6
 - `OFFLINE_CLIENT_SESSION` gains `REALM_ID`, backfilled by copy (~7500 rows/s on PG) — **requires downtime**, no mixed-version operation.
 - 26.6.0's migration wrongly injected the `Organization` sub-flow into *custom* browser flows (fixed in 26.6.1; remove manually after upgrading through it).
-- Operator CRDs gain `v2beta1`; token introspection validates `aud` (26.6.2); redirect-URI wildcards no longer match into hostnames (26.6.3); admin roles granted via protocol mappers no longer grant Admin API access (26.6.5).
+- Operator CRDs gain `v2beta1`; token introspection validates `aud` (26.6.2); redirect-URI wildcards no longer match into hostnames (26.6.3); admin roles granted via protocol mappers no longer grant Admin API access (26.7.1).
 
 ### 26.7
 - Silent export rewrites during migration: `is.dynamic.scope` → `is.parameterized.scope` (+ new required `parameterized.scope.type`), realm `displayName` promoted to a column (>255 chars truncated), *Configure OTP*/*Update password* required actions reordered in existing realms, LDAP binary mappers pinned to explicit `base64`, WebAuthn `RequireResidentKey` realm attributes renamed to `ResidentKey` variants.

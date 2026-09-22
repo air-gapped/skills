@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed (releases via `gh`, source anchors re-read on current `main`, URLs swept with `curl -L`). — ubuntu-cloud-init
+Freshened: 2026-09-22 — every row probed. 26.2 is still latest, breaking_changes.rst still tops out at 26.1, and the NoCloud optional list and netplan constant are unchanged.
 
 Authoritative references behind this skill's factual claims, with verification dates.
 Re-probe with `skill-improver freshen ubuntu-cloud-init`. Claims verified against the

@@ -49,7 +49,7 @@ As of August 2026, **every headline "new Jira" change is Cloud-only and is NOT i
 | Non-software views | native List / Calendar / Timeline | **Marketplace apps only** (Structure, BigPicture, Calendar for Jira) — not native |
 | Forms (intake) | native Forms / Proforma | not native on plain DC — use **field configurations + minimal screens** instead |
 
-DC status as of 2026-08: latest **11.3.10** (2026-08-07); supported LTS lines **11.3** (→Dec 2027) and **10.3** (→Dec 2026). DC is on a sunset path (sale to new customers ended 2026-03-30; read-only EOL 2029-03-28) — note it honestly if asked, but this skill is about using *today's* DC well, not migrating.
+DC status as of 2026-09: latest **11.3.11** (2026-09-02); supported LTS lines **11.3** (→Dec 2027) and **10.3** (latest **10.3.25**, 2026-09-01, →Dec 2026). DC is on a sunset path (sale to new customers ended 2026-03-30; read-only EOL 2029-03-28) — note it honestly if asked, but this skill is about using *today's* DC well, not migrating.
 
 If `jira serverinfo` (or the instance) shows **Cloud**, flag that the dialect differs and adapt; otherwise assume DC.
 

@@ -255,7 +255,7 @@ or `sum` to choose how multiple triggers' queue lengths combine.
 ## KEDA HTTP Add-on
 
 Separate project, separate CRD (`HTTPScaledObject`, `http.keda.sh/v1alpha1`).
-As of v0.15.0 (2026-06) it is still **beta**, but the README now calls it
+As of v0.16.0 (2026-09) it is still **beta**, but the README now calls it
 "stable" and actively maintained with a v1.0 planned — the caveat is that
 breaking changes (deprecated resources, manifest/config adjustments) may still
 land before v1.0, not that production use is discouraged.

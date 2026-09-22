@@ -1,5 +1,7 @@
 # Sources — mimir-upgrade
 
+Freshened: 2026-09-22 — every row probed; all 34 URLs 200 and every cited issue is still open as claimed. Mimir 3.2.1 and rollout-operator v0.40.0 are unchanged, chart 6.2.0 is still the newest stable, and the two CHANGELOG entries this skill quotes were re-read verbatim at that tag.
+
 Dated index of the authoritative URLs and artifacts behind this skill's claims. `skill-improver freshen` reads
 this file, probes each row, and stamps `Last verified`.
 

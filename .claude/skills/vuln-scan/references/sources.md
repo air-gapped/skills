@@ -1,5 +1,7 @@
 # sources.md — external references for `vuln-scan` (freshen index)
 
+Freshened: 2026-09-22 — every row probed; all URLs 200 and no cited repo is archived. The Visa harness advanced to v1.4.0 and every cited lineage — the prefilter regexes, the per-chunk threat_id stamp, the specialist hints — still holds verbatim, with call-graph context injection now in s6_verify.py.
+
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 

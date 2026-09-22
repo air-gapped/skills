@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. The collection is at **v10.0.3** (2026-06-23, Galaxy `highest_version` agrees) and the local clone still sits at v10.0.2; the module-behaviour claims are unchanged. Every cited issue and PR state was re-checked by `gh` (note #1054, the misleading-TLS-error report, has since closed as COMPLETED upstream).
+Freshened: 2026-09-22 — every row probed (exception: three docs.ansible.com pages 429 site-wide this pass, a transient rate-limit rather than link rot). Collection v10.0.3 is still latest, all twelve cited issue states reproduce, and every cited module path still exists at the pinned commit.
 
 **Exceptions — 2 rows, browser- or portal-only:** the iDRAC 10 Attribute Registry PDF (Dell support-portal search, no stable URL) and the internal Dell whitepaper (no URL). Dell manuals URLs need their `?guid=...` query parameter to resolve — a bare URL 404s because of SPA routing, which is not link rot. — ansible-idrac-9-10
 

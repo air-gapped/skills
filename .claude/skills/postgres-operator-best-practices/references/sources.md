@@ -1,5 +1,7 @@
 # Sources — postgres-operator-best-practices
 
+Freshened: 2026-09-22 — every row probed; all 26 URLs 200. v2.0.2 is still the unfiltered latest — no v2.0.3 or v2.1.x — and the readyz regression, the scram password-rewrite loop and the `workers >= cluster count` mitigation are all freshly reconfirmed in #3163's live thread, which remains open and undocumented upstream.
+
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
 row and rewrites the stamp below; rows it could not reach carry an inline
 exception note instead.

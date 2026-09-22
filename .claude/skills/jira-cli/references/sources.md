@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15
+Freshened: 2026-09-22 — every row probed; v1.7.0 is still the latest release and all ten tracked issue states reproduce exactly.
 
 Per-row `Last verified:` dates for the external claims in this skill. `freshen` mode reads + updates this file. The most authoritative reference for the installed build is always the binary's own `jira <cmd> <subcmd> --help`.
 

@@ -1,5 +1,7 @@
 # Sources — code, docs, issues, verification log
 
+Freshened: 2026-09-22 — every row probed. Latest GitHub release is v1.101.0. Six issues this skill cited as open are now stale-bot closed without fixes — the same pattern the file already documents for #25495 — so they are unfixed, not resolved.
+
 Every claim traces to one of these groups. Load to verify a specific fact or run `freshen` mode.
 
 ## Verification log

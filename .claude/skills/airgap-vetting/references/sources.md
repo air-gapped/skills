@@ -1,6 +1,6 @@
 # Sources — dated per-URL index
 
-Freshened: 2026-09-15 — all 27 rows probed, no dead sources. One path moved (Replicated's air-gap install page, corrected inline). Signing-tool pins re-checked and unchanged: cosign v3.1.3 and notation v1.3.2 are both still the latest stable.
+Freshened: 2026-09-22 — every row probed; all 27 rows plus every URL, issue and version across the skill. Cosign v3.1.3 and Notation v1.3.2 are still latest, every cited issue state reproduces, and the Docker notary.docker.io shutdown date (2026-12-08) reconfirms.
 
 Primary sources grounding the fingerprints, mechanisms, and pitfall classes
 in the pattern files. Verified 2026-07-14 unless restamped; freshen mode

@@ -63,7 +63,7 @@ No match at all = an unrecognized notes format; read the body before assuming co
 | 2.12 | 2025-07-31 | **2027-02-28** |
 | 2.13 | 2025-11-25 | **2027-06-17** |
 | 2.14 | 2026-03-26 | **2027-10-10** |
-| 2.15 | 2026-07-30 | **not yet published** |
+| 2.15 | 2026-07-30 | **2028-02-27** |
 
 EOL table re-verified 2026-09-15 against endoflife.date — the four published dates unchanged.
 **2.15 has no EOL date yet** (`eol: false` in the API). Do not compute one: the published dates

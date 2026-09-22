@@ -1,5 +1,7 @@
 # sources.md — external references for `threat-model` (freshen index)
 
+Freshened: 2026-09-22 — every row probed; all 6 URLs 200 and neither cited repo is archived. This skill cites no versioned framework, so no version drift applies.
+
 One row per external reference this skill depends on. `skill-improver freshen`
 probes each URL, classifies staleness, and re-stamps `Last verified:`.
 

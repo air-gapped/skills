@@ -1,5 +1,7 @@
 # Sources — logging-operator
 
+Freshened: 2026-09-22 — every row probed. 6.9.0 (2026-09-17) is one hop past the last pass and carries no breaking changes or CRD churn — the 6.8.0 parser-collision warning still applies unchanged.
+
 Dated per-URL index backing this skill's factual claims. Freshen Mode probes each
 row and stamps `Last verified` (and `Pinned` where applicable).
 

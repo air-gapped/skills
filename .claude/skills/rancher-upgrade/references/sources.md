@@ -1,5 +1,7 @@
 # sources.md — canonical sources + staleness index
 
+Freshened: 2026-09-22 — every row probed; all 15 URLs 200 and every advisory floor and community-ceiling figure matches live release tags. Two moved: Rancher 2.15's EOL is now published (2028-02-27), and Turtles is at v0.26.6 / v0.27.2 with v0.27 no longer tracking an unreleased 2.15.
+
 Per-source provenance for every version/matrix claim in this skill. `freshen` reads and re-stamps
 the **Last verified** column; at use time, treat any row older than ~90 days as suspect and
 re-ground per House Rule #3 (`lifecycle.md` § Grounding). All rows below were `gh`/doc-grounded in

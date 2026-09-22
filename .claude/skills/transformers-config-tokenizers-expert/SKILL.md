@@ -270,7 +270,7 @@ get you there** — vLLM's pin is lower, and the gap is where the exposure lives
 | vLLM | `requirements/common.txt` | Clears |
 |---|---|---|
 | v0.27.0, v0.28.0 | `transformers >= 5.5.3` | none of the three |
-| v0.29.0, `main` | `transformers >= 5.10.4` | #46191 only |
+| v0.29.0-v0.30.0, `main` | `transformers >= 5.10.4` | #46191 only |
 | — | `>= 5.13.0` | + #46279 |
 | — | **`>= 5.15.0`** | + #47498 — all three |
 

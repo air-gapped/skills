@@ -8,7 +8,7 @@ when_to_use: |-
 
 # LiteLLM proxy management API — operator reference
 
-Target: operators scripting a LiteLLM proxy's control plane — key/team/user/org lifecycle, model management, budgets, spend — instead of clicking the Admin UI. Grounded in source @ `4d543245` (v1.95.0-dev, 2026-07-29) + docs corpus + issue-tracker sweep of 2026-07-30. **Latest stable is v1.100.1 (2026-09-10)** — six minors past the grounding tag, so re-verify file:line claims against the deployed tag; LiteLLM ships weekly.
+Target: operators scripting a LiteLLM proxy's control plane — key/team/user/org lifecycle, model management, budgets, spend — instead of clicking the Admin UI. Grounded in source @ `4d543245` (v1.95.0-dev, 2026-07-29) + docs corpus + issue-tracker sweep of 2026-07-30. **Latest stable is v1.101.0 (2026-09-15)** — seven minors past the grounding tag, so re-verify file:line claims against the deployed tag; LiteLLM ships weekly.
 
 Siblings: multi-pod Redis/Valkey coordination is **`litellm-valkey`**; the inference protocols are `chat-completions-api` / `messages-api` / `responses-api`. BerriAI's official `litellm-skills` repo (add-key, add-team, …) is a set of thin curl templates — several of which emit exactly the dangerous values documented here (`"models": []`); treat them as UI sugar, not as a semantics reference.
 

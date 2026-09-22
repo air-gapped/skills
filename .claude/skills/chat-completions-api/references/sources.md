@@ -1,6 +1,6 @@
 # Sources — chat-completions-api skill
 
-Freshened: 2026-09-15 — every row probed; nothing dead, nothing blocked.
+Freshened: 2026-09-22 — every row probed; all 38 URLs live. The `seed` and `system_fingerprint` deprecations and the named model retirement dates all reproduce verbatim on the live API reference.
 
 **Five vendor doc URLs were renamed and every one still returns 200 through a redirect** — a liveness sweep can never catch this class, only a check of the final URL can. The rows below are the post-redirect locations.
 

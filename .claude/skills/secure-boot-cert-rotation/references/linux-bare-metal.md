@@ -32,11 +32,11 @@ append directly. db efivar GUID = `d719b2cb-3d3a-4596-a3bc-dad00e67656f`.
 ```bash
 cd /tmp
 # Microsoft UEFI CA 2023 — the Linux shim signer (the one that matters):
-curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/amd64/DBUpdate3P2023.bin
+curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/DBUpdate3P2023.bin
 # Windows UEFI CA 2023 — only if the box dual-boots / will run Windows:
-curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/amd64/DBUpdate2024.bin
+curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/DBUpdate2024.bin
 # Option ROM 2023 — optional (PCIe option ROMs):
-curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/amd64/DBUpdateOROM2023.bin
+curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/DBUpdateOROM2023.bin
 
 sudo chattr -i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f
 sudo efi-updatevar -a -f DBUpdate3P2023.bin db          # -a = append (never replace)
