@@ -18,7 +18,7 @@ when_to_use: >-
   "presigned URL fails", "restic ceph s3 broken", "aws sdk checksum error",
   "x-amz-checksum", "CRC64NVME", "InvalidRequest", "bucket index shards",
   "large omap objects", "reshard", "radosgw-admin", "lifecycle not running",
-  "rgw accounts", "IAM on ceph", "STS". NOT for generic S3 API usage against
+  "rgw accounts", "IAM on ceph". NOT for generic S3 API usage against
   AWS itself; cluster-wide upgrades and CephX rotation are
   rook-ceph-best-practices; RADOS-level health is ceph-troubleshooting.
 argument-hint: "[security|compat|sharding|multisite|rook] (optional focus area)"
