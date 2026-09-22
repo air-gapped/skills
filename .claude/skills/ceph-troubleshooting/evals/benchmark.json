@@ -1,0 +1,705 @@
+{
+  "metadata": {
+    "skill_name": "ceph-troubleshooting",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-22T23:37:46Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains that under the mClock scheduler osd_max_backfills / osd_recovery_max_active are overridden by the mClock profile",
+          "passed": true,
+          "evidence": "\"osd_op_queue defaults to mclock_scheduler on every current release ... Under mClock, osd_max_backfills and osd_recovery_max_active* are **locked**: ceph config set reports success, but the value gets silently reverted to whatever the active mClock profile dictates.\""
+        },
+        {
+          "text": "Offers osd_mclock_profile high_recovery_ops as a way to speed recovery",
+          "passed": true,
+          "evidence": "\"Option A \u2014 switch mClock profile (recommended, easiest to undo): `ceph config set osd osd_mclock_profile high_recovery_ops` This tells mClock itself to bias toward recovery/backfill ops\""
+        },
+        {
+          "text": "Offers osd_mclock_override_recovery_settings true as the way to make the classic knobs take effect",
+          "passed": true,
+          "evidence": "\"Option B \u2014 force the classic knobs back into effect: `ceph config set osd osd_mclock_override_recovery_settings true` `ceph config set osd osd_max_backfills 8` ...\""
+        },
+        {
+          "text": "Says to revert the profile or override after recovery finishes",
+          "passed": true,
+          "evidence": "\"Revert to `balanced` (and any overrides) once the host's data is fully backfilled \u2014 don't leave recovery-prioritized settings running against a live client workload.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States the default osd_mclock_profile is balanced",
+          "passed": true,
+          "evidence": "Default `osd_mclock_profile` on Squid (19.2.x) is **`balanced`**"
+        },
+        {
+          "text": "Does not claim the default is high_client_ops",
+          "passed": true,
+          "evidence": "Answer explicitly says balanced 'not `high_client_ops`, which is what older docs/posts often claim' \u2014 never claims high_client_ops is the default."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains backfill_toofull means the backfill target OSD is at or above the backfillfull ratio",
+          "passed": true,
+          "evidence": "\"`backfill_toofull` means a PG's backfill target OSD has crossed `mon_osd_backfillfull_ratio` (default 0.90). This is not a general cluster capacity emergency \u2014 it's a per-OSD brake: Ceph refuses to backfill more data *into* an OSD once that OSD is that full\""
+        },
+        {
+          "text": "States the default backfillfull ratio is 0.90 (90%)",
+          "passed": true,
+          "evidence": "\"crossed `mon_osd_backfillfull_ratio` (default 0.90)\""
+        },
+        {
+          "text": "Recommends reweighting / freeing space / adding capacity rather than only raising the ratio",
+          "passed": true,
+          "evidence": "\"Don't, as your first or main move... `ceph osd reweight-by-utilization` (or manually lowering the reweight on the 91% OSD) will bias backfill away from full OSDs\" and \"Add more capacity / rebalance weight, if the two new OSDs aren't enough to relieve the 91% OSD\""
+        },
+        {
+          "text": "If raising the ratio is mentioned, says it is temporary and must stay below the full ratio (0.95)",
+          "passed": true,
+          "evidence": "\"pushing it toward the 95% full_ratio and then the 97% failsafe\" and \"Only touch `mon_osd_backfillfull_ratio` ... as a short-term, deliberate release valve ... and set it back down once the rebalance clears... not a standing change.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains Rook derives osd_memory_target from the OSD pod memory request (or limit times osd_memory_target_cgroup_limit_ratio)",
+          "passed": true,
+          "evidence": "Y states: \"If spec.resources.osd.requests.memory is set on the CephCluster, that becomes osd_memory_target 1:1. Else if only a limit is set, the target is limit \u00d7 osd_memory_target_cgroup_limit_ratio (default 0.8).\" This matches the assertion precisely, including the correct parameter name."
+        },
+        {
+          "text": "Recommends setting spec.resources.osd memory requests (and limits) in the CephCluster",
+          "passed": true,
+          "evidence": "Y gives: \"spec:\\n  resources:\\n    osd:\\n      requests:\\n        cpu: \\\"1\\\"\\n        memory: \\\"4Gi\\\"\\n      limits:\\n        memory: \\\"6Gi\\\"\" under 'Add a resources block for osd under spec.resources in the CephCluster CR'."
+        },
+        {
+          "text": "Suggests verifying the effective value with ceph config show osd.N osd_memory_target",
+          "passed": true,
+          "evidence": "Y explicitly says: \"After applying, verify the actual in-force value per OSD (not just what you set): ceph config show osd.N osd_memory_target. Don't rely on ceph config get, which can show the configured-but-not-applied value.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends kubectl rook-ceph mons restore-quorum with the surviving healthy mon (c)",
+          "passed": true,
+          "evidence": "```\nkubectl rook-ceph mons restore-quorum mon-c\n```\nThis plugin command (kubectl-rook-ceph plugin v0.9.6): ... leaving mon-c as the sole voting member"
+        },
+        {
+          "text": "Warns against creating fresh/empty mon stores or rebuilding mons from scratch to force quorum",
+          "passed": true,
+          "evidence": "Do not manually recreate a mon store with `monmaptool --mkfs` or spin up a brand-new mon from scratch to force quorum on your own. A field report from an operator who did exactly this during a key-rotation incident on Ceph 20.2.4 ended with OSDs crash-looping in `PGLog::merge_log` with 278 unfound objects"
+        },
+        {
+          "text": "Mentions the operator is scaled down / Rook recreates the other mons after the restore (or the confirmation prompts)",
+          "passed": true,
+          "evidence": "1. Scales the Rook operator down (so it stops reconciling mons mid-repair). ... 3. Prompts for `yes-really-restore`, then `continue` before it lets Rook recreate the two missing mons against the new, smaller monmap."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Scales the rook-ceph-operator to 0 replicas before removal so it does not re-create the OSD",
+          "passed": true,
+          "evidence": "Step 1: \"kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=0\" ... \"Host-based clusters must do this first. If you skip it, Rook's discovery loop can re-create osd.4 on the same device ... while you're still working\""
+        },
+        {
+          "text": "Uses kubectl rook-ceph rook purge-osd 4 (or the osd-purge Job) to purge the OSD",
+          "passed": true,
+          "evidence": "Step 3: \"kubectl rook-ceph rook purge-osd 4 --force\" with note \"(Alternative: apply Rook's osd-purge.yaml Job if you don't have the kubectl-rook-ceph plugin installed.)\""
+        },
+        {
+          "text": "Scales the operator back up only after the disk is wiped or replaced",
+          "passed": true,
+          "evidence": "Step 5 says physically replace the disk and \"don't scale the operator back up until the disk is physically in and recognized by the OS (lsblk on the node)\"; Step 6 then scales back: \"kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1\""
+        },
+        {
+          "text": "Checks that no osd.4 auth entity remains (ceph auth ls / ceph auth rm)",
+          "passed": true,
+          "evidence": "Step 4: \"ceph auth ls | grep osd.4\" ... \"A leftover osd.4 auth entity is the classic thing that gets missed here ... purge-osd should have removed it; verify rather than assume.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends blocklisting the dead node's client/IP with ceph osd blocklist add",
+          "passed": true,
+          "evidence": "\"Blocklist the dead node's IP so Ceph forcibly invalidates its RBD client session instead of waiting out the timeout: `ceph osd blocklist add <NODE_IP>`\""
+        },
+        {
+          "text": "Checks rbd status <pool>/<image> for a lingering watcher",
+          "passed": true,
+          "evidence": "\"Verify the watcher is actually gone before retrying the attach: `rbd status <pool>/<image>` If the dead node's client is still listed as a watcher even after blocklisting...\""
+        },
+        {
+          "text": "Mentions removing the blocklist entry (ceph osd blocklist rm) once the node is permanently gone or recovered",
+          "passed": true,
+          "evidence": "\"Once you're sure the node is permanently gone (not coming back), clean up the blocklist entry: `ceph osd blocklist rm <NODE_IP>`\" and later \"remove it once the node returns\""
+        },
+        {
+          "text": "Mentions force-deleting the old pod / VolumeAttachment if still present",
+          "passed": true,
+          "evidence": "\"Force-delete the old pod if it's still lingering ... `kubectl delete pod <old-pod> --grace-period=0 --force`\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Distinguishes BLUESTORE_SLOW_OP_ALERT (BlueStore-internal) from SLOW_OPS (client ops)",
+          "passed": true,
+          "evidence": "'SLOW_OPS fires on client ops older than osd_op_complaint_time (default 30s)... BLUESTORE_SLOW_OP_ALERT fires when BlueStore's own internal I/O operations (writes to the block device itself, not client requests) are slow'."
+        },
+        {
+          "text": "States the warning window is bluestore_slow_ops_warn_lifetime (24h / 86400s) with threshold bluestore_slow_ops_warn_threshold (1)",
+          "passed": true,
+          "evidence": "'the count of such slow ops in the trailing bluestore_slow_ops_warn_lifetime window (default 86400s / 24h) reaches or exceeds bluestore_slow_ops_warn_threshold (default 1)'."
+        },
+        {
+          "text": "Points the investigation at the device / DB-WAL (device health, dump_historic_ops, BlueFS spillover) rather than the network",
+          "passed": true,
+          "evidence": "'ceph daemon osd.2 dump_historic_ops... Check the underlying device health for osd.2's data/DB/WAL devices... Check for BlueFS spillover \u2014 if osd.2's RocksDB metadata has spilled from a fast DB device onto the slower block device'. Network is not proposed as a cause."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends bringing the failed OSDs back first if at all possible",
+          "passed": true,
+          "evidence": "\"1. Get the two failed OSDs back online. This is the only option that restores full redundancy with no window of reduced protection.\""
+        },
+        {
+          "text": "Mentions temporarily lowering min_size (to k=4) to let the EC PG recover",
+          "passed": true,
+          "evidence": "\"2. If the OSDs are truly unrecoverable ... temporarily lower min_size to 4 (ceph osd pool set <pool> min_size 4) so the PG can go active with just the 4 remaining shards.\""
+        },
+        {
+          "text": "Says to restore min_size afterwards",
+          "passed": true,
+          "evidence": "\"then restore min_size to 5 as soon as the PG is active+clean again. Don't leave it lowered.\""
+        },
+        {
+          "text": "Warns against marking OSDs lost / objects lost while an OSD holding the data could still start",
+          "passed": true,
+          "evidence": "\"3. Do not run ceph osd lost on either OSD unless you've confirmed the underlying disks are physically gone \u2014 that entity may still hold a shard nothing else has.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains that under the mClock scheduler osd_max_backfills / osd_recovery_max_active are overridden by the mClock profile",
+          "passed": true,
+          "evidence": "\"the OSDs default to the **mclock** scheduler ... the scheduler computes its own QoS reservations/limits for recovery and backfill from the active `osd_mclock_profile` ... and it **actively overrides** manual values of `osd_max_backfills`, `osd_recovery_max_active`, and `osd_recovery_max_single_start`.\""
+        },
+        {
+          "text": "Offers osd_mclock_profile high_recovery_ops as a way to speed recovery",
+          "passed": true,
+          "evidence": "\"Preferred alternative \u2014 stay in the mclock model... `ceph config set osd osd_mclock_profile high_recovery_ops` ... This reallocates more of each OSD's IOPS budget to recovery/backfill\""
+        },
+        {
+          "text": "Offers osd_mclock_override_recovery_settings true as the way to make the classic knobs take effect",
+          "passed": true,
+          "evidence": "\"Unlock manual override ... `ceph config set osd osd_mclock_override_recovery_settings true` ... Then your original settings will actually stick\""
+        },
+        {
+          "text": "Says to revert the profile or override after recovery finishes",
+          "passed": true,
+          "evidence": "\"reverts cleanly by setting the profile back to `balanced` once backfill finishes.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States the default osd_mclock_profile is balanced",
+          "passed": true,
+          "evidence": "On Squid (19.2.x), the default `osd_mclock_profile` is **`balanced`**."
+        },
+        {
+          "text": "Does not claim the default is high_client_ops",
+          "passed": true,
+          "evidence": "No mention of high_client_ops anywhere in the answer; only balanced and high_recovery_ops are discussed."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains backfill_toofull means the backfill target OSD is at or above the backfillfull ratio",
+          "passed": true,
+          "evidence": "\"A PG in `backfill_toofull` state has a **backfill target OSD** ... that has crossed the `osd_backfillfull_ratio` threshold (default **0.90**, i.e. 90% raw usage). Ceph pauses backfill for that PG rather than let the operation push the target OSD toward `nearfull`/`full`.\""
+        },
+        {
+          "text": "States the default backfillfull ratio is 0.90 (90%)",
+          "passed": true,
+          "evidence": "\"crossed the `osd_backfillfull_ratio` threshold (default **0.90**, i.e. 90% raw usage)\""
+        },
+        {
+          "text": "Recommends reweighting / freeing space / adding capacity rather than only raising the ratio",
+          "passed": true,
+          "evidence": "\"Get data off the hot OSD instead of raising the ceiling for it. The direct lever is `ceph osd reweight <osdid> <0.0-1.0>` ... Or let Ceph do it automatically: ... `ceph osd reweight-by-utilization`\""
+        },
+        {
+          "text": "If raising the ratio is mentioned, says it is temporary and must stay below the full ratio (0.95)",
+          "passed": true,
+          "evidence": "\"`osd_backfillfull_ratio` exists specifically to leave headroom so backfill doesn't run an OSD into `osd_full_ratio` (default 0.95, where OSDs stop accepting writes cluster-wide)\" and \"a small, deliberate, temporary bump of `ceph osd set-backfillfull-ratio` ... combined with step 2, and dial it back down once the 91% OSD has dropped comfortably below 90%. Don't leave the ratio raised as a permanent setting.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333333333333333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains Rook derives osd_memory_target from the OSD pod memory request (or limit times osd_memory_target_cgroup_limit_ratio)",
+          "passed": false,
+          "evidence": "X states: \"Rook enables osd_memory_target_autotune by default, and by default it derives each OSD's osd_memory_target from the memory limit Rook sets on the OSD container (roughly limit * osd_memory_target_fraction, default fraction ~0.8...)\". This only describes a limit-based derivation (and misnames the parameter as 'osd_memory_target_fraction' rather than osd_memory_target_cgroup_limit_ratio); it never states that Rook derives the target directly (1:1) from the pod's memory *request* when set, which is the primary mechanism the assertion requires."
+        },
+        {
+          "text": "Recommends setting spec.resources.osd memory requests (and limits) in the CephCluster",
+          "passed": true,
+          "evidence": "X gives: \"spec:\\n  resources:\\n    osd:\\n      requests:\\n        cpu: \\\"1\\\"\\n        memory: \\\"4Gi\\\"\\n      limits:\\n        cpu: \\\"2\\\"\\n        memory: \\\"6Gi\\\"\" under 'Set explicit resources for osds in the CephCluster CR'."
+        },
+        {
+          "text": "Suggests verifying the effective value with ceph config show osd.N osd_memory_target",
+          "passed": false,
+          "evidence": "X only mentions setting the value via 'ceph config set osd osd_memory_target <bytes>' in a ConfigMap override section; there is no instruction anywhere in the answer to verify the effective/applied value with 'ceph config show osd.N osd_memory_target' or any equivalent per-OSD verification command."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends kubectl rook-ceph mons restore-quorum with the surviving healthy mon (c)",
+          "passed": false,
+          "evidence": "The answer never mentions the `kubectl rook-ceph mons restore-quorum` command anywhere. Instead it prescribes manual monmap surgery: 'ceph-mon --extract-monmap /tmp/monmap --mon-data $MON_DATA', 'monmaptool --rm a --rm b /tmp/monmap', 'ceph-mon --inject-monmap /tmp/monmap --mon-data $MON_DATA'. This is a different (manual, higher-risk) procedure than the assertion requires."
+        },
+        {
+          "text": "Warns against creating fresh/empty mon stores or rebuilding mons from scratch to force quorum",
+          "passed": true,
+          "evidence": "If you additionally delete/wipe mon-c or force a fresh mon-store init on all three, you get a mon quorum, but it's a *brand-new empty cluster*, with a new fsid and no memory of your existing OSDs, pools, or CRUSH map \u2014 this is destructive and only a last resort if the mon-c store itself is unrecoverable."
+        },
+        {
+          "text": "Mentions the operator is scaled down / Rook recreates the other mons after the restore (or the confirmation prompts)",
+          "passed": true,
+          "evidence": "Step 1: 'kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=0' ... Step 5: 'kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1 ... the operator will notice mon: 1 doesn't match the CephCluster spec's mon.count (usually 3) and will provision two brand-new mons'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Scales the rook-ceph-operator to 0 replicas before removal so it does not re-create the OSD",
+          "passed": false,
+          "evidence": "No step scales rook-ceph-operator to 0 anywhere in the answer. The closest related action is in step 6: \"kubectl -n rook-ceph delete pod -l app=rook-ceph-operator\" to force a reconcile AFTER replacement, not a replicas=0 scale-down before removal."
+        },
+        {
+          "text": "Uses kubectl rook-ceph rook purge-osd 4 (or the osd-purge Job) to purge the OSD",
+          "passed": true,
+          "evidence": "Step 4 describes using the osd-purge Job: \"grab osd-purge.yaml from the Rook release matching your operator version, set: env: - name: FAILED_OSD_IDS value: \\\"4\\\" then kubectl create -f osd-purge.yaml and check its logs.\""
+        },
+        {
+          "text": "Scales the operator back up only after the disk is wiped or replaced",
+          "passed": false,
+          "evidence": "The answer never scales the operator down in the first place, so there is no corresponding scale-back-up-after-replacement step; step 6 only mentions deleting the operator pod to force a reconcile if discovery doesn't trigger, unrelated to a scale-down/up gate."
+        },
+        {
+          "text": "Checks that no osd.4 auth entity remains (ceph auth ls / ceph auth rm)",
+          "passed": false,
+          "evidence": "\"ceph auth del osd.4\" appears only inside the fallback for \"Older clusters without osd purge: run ceph osd crush remove osd.4, ceph auth del osd.4, ceph osd rm osd.4 in that order\" as a removal command, not as a verification that no osd.4 auth entity remains; no ceph auth ls check is performed anywhere in the answer."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends blocklisting the dead node's client/IP with ceph osd blocklist add",
+          "passed": false,
+          "evidence": "Only vague language is given: \"the manual remedy is to have the *client* (watcher) that's holding the lock evicted/blacklisted so a new watch/lock can be established.\" No `ceph osd blocklist add` command, or even a specific command, is ever given anywhere in the answer."
+        },
+        {
+          "text": "Checks rbd status <pool>/<image> for a lingering watcher",
+          "passed": false,
+          "evidence": "The answer discusses watchers conceptually (\"The Ceph OSDs still see a live watcher on the RBD image from the old client\") but never mentions `rbd status` or any command to check for a lingering watcher."
+        },
+        {
+          "text": "Mentions removing the blocklist entry (ceph osd blocklist rm) once the node is permanently gone or recovered",
+          "passed": false,
+          "evidence": "No mention of removing/cleaning up a blocklist entry anywhere in the answer; blocklist cleanup is not discussed at all."
+        },
+        {
+          "text": "Mentions force-deleting the old pod / VolumeAttachment if still present",
+          "passed": true,
+          "evidence": "\"Confirm there's no stale `VolumeAttachment` object still pointing at the dead node for this PV. If one exists and the node is genuinely gone, deleting that `VolumeAttachment` object directly is the standard \\\"safe force-detach\\\" action\" (though it separately advises against force-deleting the Pod itself: \"Do not manually delete/re-force the Pod or PVC to 'unstick' it.\")"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Distinguishes BLUESTORE_SLOW_OP_ALERT (BlueStore-internal) from SLOW_OPS (client ops)",
+          "passed": true,
+          "evidence": "'SLOW_OPS comes from the OSD's client-facing op tracker: a client request sat in the OSD's op queue longer than osd_op_complaint_time (default 30s)... BLUESTORE_SLOW_OP_ALERT comes from BlueStore's internal instrumentation of the underlying block device / kv store.'"
+        },
+        {
+          "text": "States the warning window is bluestore_slow_ops_warn_lifetime (24h / 86400s) with threshold bluestore_slow_ops_warn_threshold (1)",
+          "passed": false,
+          "evidence": "Answer only says 'a count of slow-op events within a lifetime window (on the order of a day)' \u2014 never names the config parameters bluestore_slow_ops_warn_lifetime or bluestore_slow_ops_warn_threshold, nor gives the exact 86400s/1 values. This is a vague/hedged restatement, not the specific assertion required."
+        },
+        {
+          "text": "Points the investigation at the device / DB-WAL (device health, dump_historic_ops, BlueFS spillover) rather than the network",
+          "passed": true,
+          "evidence": "Step 4 'Check the underlying hardware... smartctl -a on osd.2's data device *and* its separate WAL/DB device', step 3 'ceph daemon osd.2 perf dump | grep -i bluestore' and 'perf dump bluefs... Look at BlueFS/RocksDB compaction stats too \u2014 a compaction stall on a colocated WAL/DB device is a very common cause'. Network/fabric is only raised as a caveat for virtualized storage, not as the primary suspect."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends bringing the failed OSDs back first if at all possible",
+          "passed": true,
+          "evidence": "\"Step 2 \u2014 Best option: get the dead OSDs (or their disks) back, even briefly ... This is the safest path and should be tried first if there's any chance\""
+        },
+        {
+          "text": "Mentions temporarily lowering min_size (to k=4) to let the EC PG recover",
+          "passed": true,
+          "evidence": "\"Temporarily lower min_size: ceph osd pool set <ec_pool> min_size 4 ... This lets the PG go active+undersized+degraded and serve I/O and recovery using the 4 healthy shards\""
+        },
+        {
+          "text": "Says to restore min_size afterwards",
+          "passed": true,
+          "evidence": "\"Restore min_size 5 as soon as the PG is healthy again.\""
+        },
+        {
+          "text": "Warns against marking OSDs lost / objects lost while an OSD holding the data could still start",
+          "passed": true,
+          "evidence": "\"Do not rush to ceph osd lost, ceph pg <pgid> mark_unfound_lost, or ceph osd force-create-pg \u2014 these explicitly discard data and are last-resort, data-losing operations. Only use them once you've confirmed via ceph-objectstore-tool inspection on each candidate OSD that the shard is genuinely unrecoverable.\""
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6852,
+        "stddev": 0.3354,
+        "min": 0.25,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.31",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

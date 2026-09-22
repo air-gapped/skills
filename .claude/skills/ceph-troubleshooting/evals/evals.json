@@ -1,0 +1,119 @@
+{
+  "skill_name": "ceph-troubleshooting",
+  "schema_version": 1,
+  "provenance": "Written 2026-09-23 from Ceph option defaults at v18.2.8/v19.2.6/v20.2.4, docs.ceph.com mclock and PG pages, Rook v1.20.7 troubleshooting docs, kubectl-rook-ceph v0.9.6, rook#18370, ceph-users 2026-09-11.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "backfills-setting-ignored",
+      "prompt": "Rook cluster on Ceph 19.2.6, lost a host yesterday and backfill is crawling. I ran `ceph config set osd osd_max_backfills 8` and `osd_recovery_max_active 8` but nothing changed and `ceph config show osd.3 osd_max_backfills` still says 1. What's going on and how do I speed recovery up?",
+      "expected_output": "mClock locks those knobs; either switch profile to high_recovery_ops or set osd_mclock_override_recovery_settings true; revert afterwards.",
+      "files": [],
+      "assertions": [
+        "Explains that under the mClock scheduler osd_max_backfills / osd_recovery_max_active are overridden by the mClock profile",
+        "Offers osd_mclock_profile high_recovery_ops as a way to speed recovery",
+        "Offers osd_mclock_override_recovery_settings true as the way to make the classic knobs take effect",
+        "Says to revert the profile or override after recovery finishes"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "default-mclock-profile",
+      "prompt": "Quick one: on Squid 19.2.x what is the default osd_mclock_profile, and what should I set it back to after I bumped it to high_recovery_ops for a rebuild?",
+      "expected_output": "balanced.",
+      "files": [],
+      "assertions": [
+        "States the default osd_mclock_profile is balanced",
+        "Does not claim the default is high_client_ops"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "backfill-toofull",
+      "prompt": "ceph health detail shows 14 PGs active+remapped+backfill_toofull after I added two new OSDs and rebalanced. One old OSD is at 91% used. Cluster is otherwise fine. What does this mean and what should I do — can I just raise the ratio?",
+      "expected_output": "backfillfull ratio default 0.90 on target OSD; reweight/add capacity; raising only moves the cliff; ordering constraint.",
+      "files": [],
+      "assertions": [
+        "Explains backfill_toofull means the backfill target OSD is at or above the backfillfull ratio",
+        "States the default backfillfull ratio is 0.90 (90%)",
+        "Recommends reweighting / freeing space / adding capacity rather than only raising the ratio",
+        "If raising the ratio is mentioned, says it is temporary and must stay below the full ratio (0.95)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "osd-oomkilled-rook",
+      "prompt": "Our Rook OSD pods keep getting OOMKilled on nodes with 64GB RAM that also run other workloads. The CephCluster has no resources section for osds. Why, and what do I change?",
+      "expected_output": "Rook derives osd_memory_target from request 1:1 or limit x 0.8; set spec.resources.osd requests/limits; verify with ceph config show.",
+      "files": [],
+      "assertions": [
+        "Explains Rook derives osd_memory_target from the OSD pod memory request (or limit times osd_memory_target_cgroup_limit_ratio)",
+        "Recommends setting spec.resources.osd memory requests (and limits) in the CephCluster",
+        "Suggests verifying the effective value with ceph config show osd.N osd_memory_target"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "mon-quorum-lost-rook",
+      "prompt": "Rook-Ceph: two of our three mons are gone after a storage failure on their nodes; mon-c is still running but there's no quorum and every ceph command hangs. How do I get the cluster back? Can I just redeploy fresh mons?",
+      "expected_output": "kubectl rook-ceph mons restore-quorum c; do not create fresh mon stores; disaster-recovery doc.",
+      "files": [],
+      "assertions": [
+        "Recommends kubectl rook-ceph mons restore-quorum with the surviving healthy mon (c)",
+        "Warns against creating fresh/empty mon stores or rebuilding mons from scratch to force quorum",
+        "Mentions the operator is scaled down / Rook recreates the other mons after the restore (or the confirmation prompts)"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "remove-failed-osd-host-cluster",
+      "prompt": "Host-based Rook cluster (useAllDevices on), osd.4's disk died and I want to remove that OSD permanently and later replace the disk. What's the procedure?",
+      "expected_output": "Scale operator to 0, scale osd deploy to 0, ceph osd down, kubectl rook-ceph rook purge-osd 4, wipe/replace, operator back to 1; check auth entry.",
+      "files": [],
+      "assertions": [
+        "Scales the rook-ceph-operator to 0 replicas before removal so it does not re-create the OSD",
+        "Uses kubectl rook-ceph rook purge-osd 4 (or the osd-purge Job) to purge the OSD",
+        "Scales the operator back up only after the disk is wiped or replaced",
+        "Checks that no osd.4 auth entity remains (ceph auth ls / ceph auth rm)"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "pvc-stuck-after-node-loss",
+      "prompt": "A worker node died hard (power supply). The StatefulSet pod moved to another node but its RBD PVC won't attach — events say the image is still in use. It's been 20 minutes. How do I get the volume attached safely?",
+      "expected_output": "force delete pod, blocklist node IP, check rbd status watchers, remove blocklist when node gone.",
+      "files": [],
+      "assertions": [
+        "Recommends blocklisting the dead node's client/IP with ceph osd blocklist add",
+        "Checks rbd status <pool>/<image> for a lingering watcher",
+        "Mentions removing the blocklist entry (ceph osd blocklist rm) once the node is permanently gone or recovered",
+        "Mentions force-deleting the old pod / VolumeAttachment if still present"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "bluestore-slow-op-alert",
+      "prompt": "After upgrading to Squid we see HEALTH_WARN BLUESTORE_SLOW_OP_ALERT on osd.2 but no SLOW_OPS. Clients seem fine. What is this and how do I investigate? It went away by itself yesterday then came back.",
+      "expected_output": "BlueStore-internal slow ops within 24h lifetime threshold 1; device/DB-focused investigation; distinct from SLOW_OPS.",
+      "files": [],
+      "assertions": [
+        "Distinguishes BLUESTORE_SLOW_OP_ALERT (BlueStore-internal) from SLOW_OPS (client ops)",
+        "States the warning window is bluestore_slow_ops_warn_lifetime (24h / 86400s) with threshold bluestore_slow_ops_warn_threshold (1)",
+        "Points the investigation at the device / DB-WAL (device health, dump_historic_ops, BlueFS spillover) rather than the network"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "incomplete-pg-ec",
+      "prompt": "EC 4+2 pool, two OSDs on different hosts died and one PG is now 'incomplete'. min_size is 5. What are my options without losing data?",
+      "expected_output": "Bring back failed OSDs first; temporarily lower min_size to k (4) to allow recovery, restore after; don't mark lost prematurely.",
+      "files": [],
+      "assertions": [
+        "Recommends bringing the failed OSDs back first if at all possible",
+        "Mentions temporarily lowering min_size (to k=4) to let the EC PG recover",
+        "Says to restore min_size afterwards",
+        "Warns against marking OSDs lost / objects lost while an OSD holding the data could still start"
+      ]
+    }
+  ]
+}
