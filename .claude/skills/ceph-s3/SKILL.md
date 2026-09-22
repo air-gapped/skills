@@ -89,9 +89,12 @@ pin the SDK/tool to a version before the change.
 
 ## Lifecycle and GC
 
-- Lifecycle runs only in `rgw_lifecycle_work_time` (00:00-06:00); GC frees
-  tail data after `rgw_gc_obj_min_wait` (2 h). `radosgw-admin lc list` /
-  `lc process`, `gc list --include-all`.
+- Lifecycle runs only in `rgw_lifecycle_work_time` (default `00:00-06:00`)
+  with `rgw_lc_max_worker` 3. "Lifecycle not running" at midday is usually
+  the window. Check `radosgw-admin lc list`; `radosgw-admin lc process` runs
+  it now.
+- Deleted objects' tail data waits `rgw_gc_obj_min_wait` (2 h) before GC;
+  pool usage drops late by design. `radosgw-admin gc list --include-all`.
 - Never `radosgw-admin bucket rm --bypass-gc` on buckets that received
   S3 CopyObject copies on affected releases: tracker 73348 (silent data
   corruption of shared tail objects; fixed in the dev tree, affected
