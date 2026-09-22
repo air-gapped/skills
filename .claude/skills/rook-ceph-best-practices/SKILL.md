@@ -211,6 +211,7 @@ chart field splits, S3 credential purge) are in `references/upgrade-path.md`.
 
 | Hazard | Source |
 |---|---|
+| OSDs with `encryptedDevice: true`: daemon key rotation can leave them in `Init:CrashLoopBackOff` with `Unable to retrieve dmcrypt secret` — ceph-volume's tmpfs remount discards the refreshed lockbox keyring; pod/operator restarts do not fix it (reporter fixed the lockbox LVM tag by hand). Open; rotate a single encrypted OSD's node first | rook#18282 |
 | 19.2.6 → Tentacle below 20.2.4 drops AES256K (20.2.0–20.2.3 predate it): go 19.2.6 → 20.2.4+ only | ceph-users 2026-09-03 |
 | After 19.2.6 → 20.2.4, re-check `ceph config get mon auth_allowed_ciphers`: a cephadm upgrade reset `aes256k` to `aes, aes256k` | tracker 80295 |
 | RGW SigV4 fix (19.2.6 / 20.2.4) rejects presigned PUTs with an unsigned Content-Type (restic, PHP clients); workaround `rgw_sigv4_insecure=true` until 19.2.7 / 20.2.5 | tracker 79674 |
