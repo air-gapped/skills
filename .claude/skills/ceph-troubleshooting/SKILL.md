@@ -56,9 +56,9 @@ changed" report.
 | Use the classic knobs anyway | `ceph config set osd osd_mclock_override_recovery_settings true`, then set `osd_max_backfills` / `osd_recovery_max_active` |
 | Check what is really in force | `ceph config show osd.N osd_max_backfills` (not `ceph config get`) |
 
-The default profile is **`balanced`** on 17.2 through 20.2 — not
-`high_client_ops`, which older docs and many posts name. Undo both settings
-when recovery finishes; leaving `high_recovery_ops` on starves clients.
+Default profile: `balanced` from 17.2.7 on (17.2.0–17.2.6 shipped
+`high_client_ops`). Undo both settings when recovery finishes; leaving
+`high_recovery_ops` on starves clients.
 
 An OSD whose measured IOPS exceed the sanity threshold (HDD 500, SSD 80 000)
 is not trusted by mClock and falls back to the default capacity

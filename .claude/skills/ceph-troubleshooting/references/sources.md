@@ -4,7 +4,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| Ceph OSD options | https://github.com/ceph/ceph/blob/v19.2.6/src/common/options/osd.yaml.in | 2026-09-23 | Same values at v17.2.8, v18.2.8, v20.2.4: `osd_op_queue` mclock_scheduler, `osd_mclock_profile` balanced, `osd_mclock_override_recovery_settings` false, `osd_max_backfills` 1, `osd_scrub_auto_repair` false, iops thresholds HDD 500 / SSD 80000, `osd_mclock_max_capacity_iops_ssd` 21500, `osd_op_complaint_time` 30. |
+| Ceph OSD options | https://github.com/ceph/ceph/blob/v19.2.6/src/common/options/osd.yaml.in | 2026-09-23 | Same values at v17.2.8, v18.2.8, v20.2.4: `osd_op_queue` mclock_scheduler, `osd_mclock_profile` balanced (high_client_ops at v17.2.0–v17.2.6, balanced from v17.2.7), `osd_mclock_override_recovery_settings` false, `osd_max_backfills` 1, `osd_scrub_auto_repair` false, iops thresholds HDD 500 / SSD 80000, `osd_mclock_max_capacity_iops_ssd` 21500, `osd_op_complaint_time` 30. |
 | Ceph global options | https://github.com/ceph/ceph/blob/v19.2.6/src/common/options/global.yaml.in | 2026-09-23 | nearfull 0.85, backfillfull 0.9, full 0.95, failsafe 0.97; `osd_memory_target` 4G; `osd_memory_target_cgroup_limit_ratio` 0.8; `bluestore_slow_ops_warn_lifetime` 86400, `_threshold` 1. |
 | mClock config reference | https://docs.ceph.com/en/squid/rados/configuration/mclock-config-ref/ | 2026-09-23 | Locked recovery knobs, override flag, capacity fallback when bench exceeds threshold. |
 | PG troubleshooting | https://docs.ceph.com/en/latest/rados/troubleshooting/troubleshooting-pg/ | 2026-09-23 | inconsistent, stuck peering, unfound / mark_unfound_lost. No sections for incomplete/unknown/down. |
