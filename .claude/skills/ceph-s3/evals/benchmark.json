@@ -1,0 +1,635 @@
+{
+  "metadata": {
+    "skill_name": "ceph-s3",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-22T23:48:47Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Attributes the failure to the SigV4 hardening fix for CVE-2026-54330 in 19.2.6",
+          "passed": true,
+          "evidence": "'19.2.6 (paired with 20.2.4) shipped the fix for **CVE-2026-54330**: SigV4 signature verification previously did not check that additional `x-amz-*` headers added to a **presigned** request were actually covered by the signature.'"
+        },
+        {
+          "text": "Gives the workaround ceph config set client.rgw rgw_sigv4_insecure true (or equivalent Rook config)",
+          "passed": true,
+          "evidence": "'ceph config set client.rgw rgw_sigv4_insecure true' given as a code block, plus 'Under Rook, set it in the CephObjectStore's `gateway` config (or via `rook-config-override`) rather than only ad hoc with `ceph config set`, so it survives operator reconciliation/restarts.'"
+        },
+        {
+          "text": "Says the workaround should be removed once a fixed release (19.2.7 / 20.2.5) is running, or that it weakens the CVE fix",
+          "passed": true,
+          "evidence": "'`rgw_sigv4_insecure true` **re-opens CVE-2026-54330**. Scope it to only the RGW(s)/zone(s) that actually need it, and remove it as soon as you upgrade to 19.2.7 / 20.2.5.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains RGW's own inter-zone forwarded requests are rejected by the hardened SigV4 validation",
+          "passed": true,
+          "evidence": "\"RGW forwards it internally to the master zone, and that forwarded request is itself SigV4-signed. The 20.2.4 fix now validates that forwarded signature more strictly, so the master zone rejects it with `403 AccessDenied`, independent of whatever the client sent.\""
+        },
+        {
+          "text": "States rgw_sigv4_insecure alone is not enough and rgw_s3_client_max_sig_ver must be set to 2 as well",
+          "passed": true,
+          "evidence": "\"`rgw_sigv4_insecure=true` alone does not fix this case... The forwarding path needs a second setting.\" followed by \"Set **both** of these on **every zone**... rgw_sigv4_insecure = true / rgw_s3_client_max_sig_ver = 2\""
+        },
+        {
+          "text": "Says to revert both settings (false / -1) once all zones run a fixed release",
+          "passed": true,
+          "evidence": "\"revert `rgw_sigv4_insecure` to `false` and `rgw_s3_client_max_sig_ver` to `-1` on all zones once every cluster in the zonegroup is confirmed on a release that includes the proper fix (19.2.7 / 20.2.5 per the tracker)\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Attributes it to the AWS SDK change that sends checksums by default on every supported request",
+          "passed": true,
+          "evidence": "\"Recent AWS SDK releases (boto3/botocore included) send a checksum on every supported request by default \u2014 `x-amz-sdk-checksum-algorithm` / `x-amz-checksum-*`\""
+        },
+        {
+          "text": "Recommends setting request checksum calculation to when_required (AWS_REQUEST_CHECKSUM_CALCULATION or botocore config) as the fix",
+          "passed": true,
+          "evidence": "\"export AWS_REQUEST_CHECKSUM_CALCULATION=when_required\" and \"config = Config(request_checksum_calculation=\\\"when_required\\\", response_checksum_validation=\\\"when_required\\\")\""
+        },
+        {
+          "text": "States CRC64NVME support arrived in Tentacle and is not available in Squid (no shipped backport)",
+          "passed": true,
+          "evidence": "\"Ceph RGW only learned to validate CRC64NVME in **Tentacle 20.2.0** (tracker 70040, fixed via ceph/ceph#61878). The Squid backport of that support is tracked separately at **tracker 70736 and is still not shipped**\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies a bucket index shard exceeding the large-omap key threshold (200000 keys)",
+          "passed": true,
+          "evidence": "\"one bucket index **shard** has grown past the omap key threshold \u2014 `osd_deep_scrub_large_omap_object_key_threshold`, default **200,000** keys.\""
+        },
+        {
+          "text": "Recommends radosgw-admin bucket limit check and resharding the bucket (radosgw-admin bucket reshard --num-shards)",
+          "passed": true,
+          "evidence": "\"radosgw-admin bucket limit check\" ... \"radosgw-admin bucket reshard --bucket <bucket> --num-shards <n>\""
+        },
+        {
+          "text": "Explains the warning only clears after the next deep scrub of the affected PG (or suggests triggering a deep scrub)",
+          "passed": true,
+          "evidence": "\"The warning **stays up** until the next deep scrub of the affected PG(s) runs on the normal scrub schedule\" and provides \"ceph pg deep-scrub <pgid>\" to force it sooner."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains lifecycle runs only during rgw_lifecycle_work_time (default 00:00-06:00)",
+          "passed": true,
+          "evidence": "RGW lifecycle processing only runs during a scheduled work window \u2014 `rgw_lifecycle_work_time`, which defaults to **`00:00-06:00`**"
+        },
+        {
+          "text": "Mentions radosgw-admin lc list and/or lc process to inspect or run it now",
+          "passed": true,
+          "evidence": "`radosgw-admin lc list` \u2014 shows each bucket's LC status ... `radosgw-admin lc process` (optionally `--bucket <name>`) runs the engine immediately"
+        },
+        {
+          "text": "Explains garbage collection delays freeing tail data (rgw_gc_obj_min_wait, 2h) so usage drops later",
+          "passed": true,
+          "evidence": "Deleted objects' tail data waits **`rgw_gc_obj_min_wait`** (default **2 hours**) before it becomes eligible for GC."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States CephObjectStoreAccount is experimental",
+          "passed": true,
+          "evidence": "RGW accounts via Rook's `CephObjectStoreAccount` CRD (and `accountRef` on `CephObjectStoreUser`) are **experimental in Rook v1.20.7**"
+        },
+        {
+          "text": "States it only works with the Ceph main/CI image (quay.ceph.io/ceph-ci/ceph:main), not with released Ceph like 19.2.6",
+          "passed": true,
+          "evidence": "Rook's implementation of it **only works against `quay.ceph.io/ceph-ci/ceph:main`** \u2014 a dev/CI image, not a released Ceph build. Your cluster runs Ceph 19.2.6 (a released Squid version), which does not have the support Rook's CRD depends on."
+        },
+        {
+          "text": "Does not recommend it for production on this stack",
+          "passed": true,
+          "evidence": "Treat AWS-style IAM accounts on this Rook/Ceph stack as **not production-ready yet**. ... Don't adopt `CephObjectStoreAccount` on this cluster"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Says not to run stale-instances rm in a multisite deployment",
+          "passed": true,
+          "evidence": "\"No. Do not run `radosgw-admin reshard stale-instances rm` on a multisite cluster.\""
+        },
+        {
+          "text": "Cites the Ceph documentation's warning against stale-instance cleanup in multisite",
+          "passed": true,
+          "evidence": "\"The upstream dynamic-resharding documentation states directly: \\\"Cleanup of stale instances should not be done in a multisite deployment\\\" (https://docs.ceph.com/en/squid/radosgw/dynamicresharding/).\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies that Tentacle truncates S3 LastModified timestamps to the second",
+          "passed": true,
+          "evidence": "\"RGW's `LastModified` timestamp is now truncated to the second**, to match AWS's own S3 semantics. Squid (and earlier) could return `LastModified` with sub-second precision. Tentacle truncates it.\""
+        },
+        {
+          "text": "Connects this to sync tools comparing modification times and suggests a mitigation (e.g. compare by size/checksum or a modify-window)",
+          "passed": true,
+          "evidence": "\"`rclone sync` (and any sync tool that treats mtime/`LastModified` as the primary change-detection signal...) sees a timestamp that doesn't match its prior record and treats the object as changed, triggering a re-upload... prefer checksum-based comparison for this sync pass instead of trusting mtime: `rclone sync --checksum`\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that --bypass-gc can corrupt/delete data of objects created by server-side CopyObject that share tail objects",
+          "passed": true,
+          "evidence": "Those copies share tail (rados) objects with the originals rather than duplicating the data. `radosgw-admin bucket rm --purge-objects --bypass-gc` deletes the source objects' tail data immediately instead of routing it through garbage collection ... Skipping it risks **silent corruption of the copied objects that live in your other buckets**"
+        },
+        {
+          "text": "Recommends not using --bypass-gc here (use normal GC deletion)",
+          "passed": true,
+          "evidence": "**Drop `--bypass-gc`.** Run `radosgw-admin bucket rm --bucket=big --purge-objects` without it. This queues the deletes through normal GC"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Attributes the failure to the SigV4 hardening fix for CVE-2026-54330 in 19.2.6",
+          "passed": false,
+          "evidence": "Answer attributes it instead to 'aws-chunked / streaming-signature handling in RGW' and minio-go chunked-trailer signing changes; CVE-2026-54330 is never mentioned anywhere in the document."
+        },
+        {
+          "text": "Gives the workaround ceph config set client.rgw rgw_sigv4_insecure true (or equivalent Rook config)",
+          "passed": false,
+          "evidence": "No mention of rgw_sigv4_insecure anywhere. The suggested workaround is 'Set AWS_REQUEST_CHECKSUM_CALCULATION=when_required ... in the environment restic runs under' or rolling back the RGW image to 19.2.5."
+        },
+        {
+          "text": "Says the workaround should be removed once a fixed release (19.2.7 / 20.2.5) is running, or that it weakens the CVE fix",
+          "passed": false,
+          "evidence": "No fixed release version (19.2.7/20.2.5) is named, and no mention that any workaround weakens a CVE fix (the doc doesn't identify a CVE at all)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains RGW's own inter-zone forwarded requests are rejected by the hardened SigV4 validation",
+          "passed": false,
+          "evidence": "Answer attributes the 403 to read-only zone flags, period/realm epoch mismatch, metadata sync lag, clock skew, or IAM deny (\"the single most common cause of ... bucket creation on the secondary gets 403 AccessDenied\" is zone read-only) and never mentions RGW forwarding the create request to the master zone or that forwarded request failing hardened SigV4 validation."
+        },
+        {
+          "text": "States rgw_sigv4_insecure alone is not enough and rgw_s3_client_max_sig_ver must be set to 2 as well",
+          "passed": false,
+          "evidence": "Answer only says \"`rgw_sigv4_insecure=true` only relaxes the requirement that SigV4 unsigned-payload ... requests be sent over TLS. It does nothing for clock skew, metadata-sync lag, or zone write permissions\" \u2014 it never mentions `rgw_s3_client_max_sig_ver` at all, so it does not state the required second setting."
+        },
+        {
+          "text": "Says to revert both settings (false / -1) once all zones run a fixed release",
+          "passed": false,
+          "evidence": "Answer explicitly says the opposite: \"Leave `rgw_sigv4_insecure=true` in place regardless \u2014 it's orthogonal to this 403 and won't need reverting once the actual cause above is fixed.\" No mention of reverting rgw_s3_client_max_sig_ver to -1 or gating reversion on a fixed release."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Attributes it to the AWS SDK change that sends checksums by default on every supported request",
+          "passed": true,
+          "evidence": "\"Starting with botocore 1.36.0 (released December 2024)... `request_checksum_calculation` default changed from `when_required` to **`when_supported`**... botocore now attaches a flexible checksum (CRC32 by default) to **every** S3 PutObject-family request\""
+        },
+        {
+          "text": "Recommends setting request checksum calculation to when_required (AWS_REQUEST_CHECKSUM_CALCULATION or botocore config) as the fix",
+          "passed": true,
+          "evidence": "\"export AWS_REQUEST_CHECKSUM_CALCULATION=when_required\" and \"config=Config(request_checksum_calculation=\\\"when_required\\\", response_checksum_validation=\\\"when_required\\\")\""
+        },
+        {
+          "text": "States CRC64NVME support arrived in Tentacle and is not available in Squid (no shipped backport)",
+          "passed": false,
+          "evidence": "The answer never mentions CRC64NVME at all; it only discusses the generic 'aws-chunked + trailer' checksum path and says 'full, reliable support lands in Tentacle / 20.x' without naming CRC64NVME or a Squid backport tracker."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies a bucket index shard exceeding the large-omap key threshold (200000 keys)",
+          "passed": true,
+          "evidence": "\"A 'large omap object' warning means a deep scrub found a single omap object (one shard) whose key count exceeds `osd_deep_scrub_large_omap_object_key_threshold` (default **200,000** keys)\""
+        },
+        {
+          "text": "Recommends radosgw-admin bucket limit check and resharding the bucket (radosgw-admin bucket reshard --num-shards)",
+          "passed": false,
+          "evidence": "Answer uses `radosgw-admin bucket stats --bucket=<bucket-name>` and `radosgw-admin metadata list bucket.instance` to identify the bucket, not `radosgw-admin bucket limit check`; it does correctly recommend `radosgw-admin bucket reshard --bucket=<bucket-name> --num-shards=<N>` but never mentions the 'bucket limit check' subcommand anywhere in the text."
+        },
+        {
+          "text": "Explains the warning only clears after the next deep scrub of the affected PG (or suggests triggering a deep scrub)",
+          "passed": true,
+          "evidence": "\"The flag only clears on the next deep scrub... Deep scrubs run on the normal schedule\" and \"deep-scrub the specific PG that held the flagged object... `ceph pg deep-scrub <pgid>`\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains lifecycle runs only during rgw_lifecycle_work_time (default 00:00-06:00)",
+          "passed": true,
+          "evidence": "The sweep runs once per configured daily window: `rgw_lifecycle_work_time` (default historically `00:00-06:00`, cluster-wide, server local time)."
+        },
+        {
+          "text": "Mentions radosgw-admin lc list and/or lc process to inspect or run it now",
+          "passed": true,
+          "evidence": "`radosgw-admin lc list` / `radosgw-admin lc get --bucket=<bucket>` ... Force an immediate pass ... `radosgw-admin lc process`"
+        },
+        {
+          "text": "Explains garbage collection delays freeing tail data (rgw_gc_obj_min_wait, 2h) so usage drops later",
+          "passed": true,
+          "evidence": "objects sit in the GC queue for a minimum wait, default historically 2 hours, before they're eligible for removal ... So even a lifecycle expiration that ran correctly can leave pool usage unchanged for hours until GC catches up."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333333333333333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States CephObjectStoreAccount is experimental",
+          "passed": false,
+          "evidence": "Answer denies the CRD's existence rather than confirming it as experimental: \"I don't believe that CRD is a real, shipped Rook resource. ... There is no `CephObjectStoreAccount` kind in that list to my knowledge.\" It only hedges: \"If it genuinely exists ... treat it as brand-new/alpha regardless\" \u2014 this is conditional speculation, not a clear statement that it is experimental."
+        },
+        {
+          "text": "States it only works with the Ceph main/CI image (quay.ceph.io/ceph-ci/ceph:main), not with released Ceph like 19.2.6",
+          "passed": false,
+          "evidence": "No mention anywhere of quay.ceph.io/ceph-ci/ceph:main or any CI/dev image requirement. The answer instead discusses radosgw-admin account create as a Reef/Squid tech-preview feature usable directly against 19.2.6, contradicting the assertion that the Rook mechanism only works on the CI image."
+        },
+        {
+          "text": "Does not recommend it for production on this stack",
+          "passed": true,
+          "evidence": "No \u2014 don't build this on `CephObjectStoreAccount`. ... don't put it in front of production tenants on a first release with no operational track record"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Says not to run stale-instances rm in a multisite deployment",
+          "passed": true,
+          "evidence": "\"Short answer: no, not blindly... If you're not confident sync is fully quiesced and caught up across every zone, don't run it at all yet\""
+        },
+        {
+          "text": "Cites the Ceph documentation's warning against stale-instance cleanup in multisite",
+          "passed": false,
+          "evidence": "The answer only makes general, unattributed claims (\"Manual resharding of a bucket in a multisite config has long been explicitly discouraged/unsupported by upstream Ceph docs\") without quoting or linking the specific Ceph documentation warning against stale-instance cleanup in multisite; no URL or direct citation is given anywhere in the answer."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies that Tentacle truncates S3 LastModified timestamps to the second",
+          "passed": false,
+          "evidence": "Answer only speculates: \"A change in how RGW rounds or truncates the stored timestamp (even by fractions of a second) is enough to fail rclone's default S3 modify-window\" and explicitly disclaims certainty: \"I don't have a pinned, verified Ceph release-note citation for the exact Tentacle change responsible... treat the specific mechanism above as the most plausible explanation to validate against your own before/after HEAD output, not as a confirmed changelog fact.\" It never clearly and correctly asserts the truncation-to-the-second behavior."
+        },
+        {
+          "text": "Connects this to sync tools comparing modification times and suggests a mitigation (e.g. compare by size/checksum or a modify-window)",
+          "passed": true,
+          "evidence": "\"Run the next sync with `--checksum` instead of relying on modtime. This forces rclone to compare actual content hashes... If you must keep modtime-based sync, widen `--modify-window` (e.g. `1s` or more) to absorb a small, consistent timestamp-precision shift.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that --bypass-gc can corrupt/delete data of objects created by server-side CopyObject that share tail objects",
+          "passed": true,
+          "evidence": "If any object in `big` was ever the **source** of a same-zone server-side copy ... bypassing GC can delete tail data that the copied-to objects in the other buckets still point to. Those objects then become corrupted or unreadable"
+        },
+        {
+          "text": "Recommends not using --bypass-gc here (use normal GC deletion)",
+          "passed": true,
+          "evidence": "**Do not use `--bypass-gc`.** Run: `radosgw-admin bucket rm --bucket=big --purge-objects`"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5185,
+        "stddev": 0.3675,
+        "min": 0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.48",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

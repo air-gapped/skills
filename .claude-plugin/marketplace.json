@@ -653,7 +653,7 @@
       "name": "ceph-performance",
       "source": "./",
       "description": "Tune and benchmark a healthy Ceph cluster, with Rook-on-Kubernetes specifics: mClock profiles and the NVMe capacity-fallback trap (osd_mclock_max_capacity_iops), osd_memory_target from pod requests,…",
-      "version": "0.20260922.3",
+      "version": "0.20260923.3",
       "author": {
         "name": "Jörgen"
       },

@@ -1,0 +1,112 @@
+{
+  "skill_name": "ceph-s3",
+  "schema_version": 1,
+  "provenance": "Written 2026-09-23 from RGW option defaults at v19.2.6/v20.2.4, Ceph CVE pages, trackers 79674/79698/70040/70736/73348, Rook docs at v1.20.7 and master, ceph-users 2026-08-31.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "restic-presigned-broke",
+      "prompt": "After upgrading our Rook RGW from Ceph 19.2.5 to 19.2.6, restic backups to the Ceph S3 endpoint started failing with 403 SignatureDoesNotMatch on uploads; other tools like s5cmd still work. What changed and what can I do right now?",
+      "expected_output": "CVE-2026-54330 SigV4 hardening; unsigned Content-Type on presigned PUT rejected (tracker 79674); workaround rgw_sigv4_insecure true until 19.2.7/20.2.5; it reopens the CVE, scope and remove later.",
+      "files": [],
+      "assertions": [
+        "Attributes the failure to the SigV4 hardening fix for CVE-2026-54330 in 19.2.6",
+        "Gives the workaround ceph config set client.rgw rgw_sigv4_insecure true (or equivalent Rook config)",
+        "Says the workaround should be removed once a fixed release (19.2.7 / 20.2.5) is running, or that it weakens the CVE fix"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "multisite-403-after-upgrade",
+      "prompt": "Rook multisite RGW, two zones in one zonegroup. After upgrading both clusters to Ceph 20.2.4, creating a bucket via the secondary zone endpoint returns 403 AccessDenied. We already set rgw_sigv4_insecure=true on both, still broken. Fix?",
+      "expected_output": "Tracker 79698: RGW's own forwarding rejected; need both rgw_sigv4_insecure true AND rgw_s3_client_max_sig_ver 2 in each zone; revert after fixed release.",
+      "files": [],
+      "assertions": [
+        "Explains RGW's own inter-zone forwarded requests are rejected by the hardened SigV4 validation",
+        "States rgw_sigv4_insecure alone is not enough and rgw_s3_client_max_sig_ver must be set to 2 as well",
+        "Says to revert both settings (false / -1) once all zones run a fixed release"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "aws-sdk-checksum-squid",
+      "prompt": "Our Python app upgraded boto3 to the latest and now PutObject to our Ceph RGW (Squid 19.2.6) sometimes fails with InvalidRequest / checksum errors. It worked with the old boto3. We can't upgrade Ceph to Tentacle this quarter. What's the fix?",
+      "expected_output": "New AWS SDK default checksums; RGW lacks CRC64NVME before Tentacle; set request/response checksum calculation to when_required; Squid backport not shipped.",
+      "files": [],
+      "assertions": [
+        "Attributes it to the AWS SDK change that sends checksums by default on every supported request",
+        "Recommends setting request checksum calculation to when_required (AWS_REQUEST_CHECKSUM_CALCULATION or botocore config) as the fix",
+        "States CRC64NVME support arrived in Tentacle and is not available in Squid (no shipped backport)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "large-omap-index",
+      "prompt": "HEALTH_WARN 1 large omap objects, and it's in the rgw buckets.index pool. One bucket has ~12 million objects. What do I do, and why doesn't the warning go away right after I fix it?",
+      "expected_output": "Index shard over 200000 key threshold; bucket limit check; reshard to more shards; warning clears after next deep scrub; dynamic resharding default 100000 objs/shard.",
+      "files": [],
+      "assertions": [
+        "Identifies a bucket index shard exceeding the large-omap key threshold (200000 keys)",
+        "Recommends radosgw-admin bucket limit check and resharding the bucket (radosgw-admin bucket reshard --num-shards)",
+        "Explains the warning only clears after the next deep scrub of the affected PG (or suggests triggering a deep scrub)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "lifecycle-not-running",
+      "prompt": "I set an S3 lifecycle rule on a Ceph RGW bucket to expire objects after 1 day. It's 2pm, objects are 3 days old, nothing got deleted. Is lifecycle broken? And after they do get deleted, why doesn't pool usage drop?",
+      "expected_output": "LC runs only in rgw_lifecycle_work_time 00:00-06:00; lc list / lc process; GC delays tail deletion 2h min wait.",
+      "files": [],
+      "assertions": [
+        "Explains lifecycle runs only during rgw_lifecycle_work_time (default 00:00-06:00)",
+        "Mentions radosgw-admin lc list and/or lc process to inspect or run it now",
+        "Explains garbage collection delays freeing tail data (rgw_gc_obj_min_wait, 2h) so usage drops later"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "rgw-accounts-rook",
+      "prompt": "We want AWS-style IAM accounts on our Rook Ceph object store (Rook v1.20.7, Ceph 19.2.6) so teams manage their own users and policies. I saw CephObjectStoreAccount in the docs — can we use it in production?",
+      "expected_output": "Experimental; only works with ceph-ci main image; not on released Ceph; alternatives.",
+      "files": [],
+      "assertions": [
+        "States CephObjectStoreAccount is experimental",
+        "States it only works with the Ceph main/CI image (quay.ceph.io/ceph-ci/ceph:main), not with released Ceph like 19.2.6",
+        "Does not recommend it for production on this stack"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "reshard-stale-multisite",
+      "prompt": "Multisite RGW. radosgw-admin reshard stale-instances list shows hundreds of stale bucket instances. Can I just run radosgw-admin reshard stale-instances rm to clean up?",
+      "expected_output": "No: docs say not in multisite.",
+      "files": [],
+      "assertions": [
+        "Says not to run stale-instances rm in a multisite deployment",
+        "Cites the Ceph documentation's warning against stale-instance cleanup in multisite"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "tentacle-lastmodified",
+      "prompt": "After upgrading RGW from Squid to Tentacle, our rclone sync job suddenly thinks thousands of objects changed and re-uploads them, even though nothing changed. Any known behaviour change?",
+      "expected_output": "Tentacle truncates LastModified to seconds for AWS parity; mtimes appear different; rclone compares modtime; use size/checksum or --modify-window.",
+      "files": [],
+      "assertions": [
+        "Identifies that Tentacle truncates S3 LastModified timestamps to the second",
+        "Connects this to sync tools comparing modification times and suggests a mitigation (e.g. compare by size/checksum or a modify-window)"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "bypass-gc-copyobject",
+      "prompt": "Need to delete a huge bucket fast on our Squid RGW. Planning radosgw-admin bucket rm --bucket=big --purge-objects --bypass-gc. Many objects in other buckets were created by server-side copy from this one. Any risk?",
+      "expected_output": "Tracker 73348: bypass-gc with server-side copies corrupts shared tail objects; avoid bypass-gc.",
+      "files": [],
+      "assertions": [
+        "Warns that --bypass-gc can corrupt/delete data of objects created by server-side CopyObject that share tail objects",
+        "Recommends not using --bypass-gc here (use normal GC deletion)"
+      ]
+    }
+  ]
+}
