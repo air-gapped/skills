@@ -60,10 +60,9 @@ Default profile: `balanced` from 17.2.7 on (17.2.0–17.2.6 shipped
 `high_client_ops`). Undo both settings when recovery finishes; leaving
 `high_recovery_ops` on starves clients.
 
-An OSD whose measured IOPS exceed the sanity threshold (HDD 500, SSD 80 000)
-is not trusted by mClock and falls back to the default capacity
-(`osd_mclock_max_capacity_iops_ssd` = 21 500). Fast NVMe is routinely
-under-driven this way; see ceph-performance.
+Recovery slow on fast NVMe even with `high_recovery_ops`: check for the
+mClock capacity fallback (`osd_mclock_max_capacity_iops_ssd` = 21500) —
+see ceph-performance.
 
 ## Capacity
 
