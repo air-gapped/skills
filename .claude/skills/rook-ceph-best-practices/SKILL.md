@@ -91,6 +91,14 @@ not copy it.
 
 ## CVE-2025-30156 and AES256K — the short path
 
+Unaided models get this wrong in three ways, so do not repeat them:
+`AUTH_INSECURE_*_KEY_TYPE` / `AUTH_INSECURE_SERVICE_TICKETS` are new in
+19.2.6 / 20.2.4 and are **not** the 2021 `AUTH_INSECURE_GLOBAL_ID_RECLAIM*`
+codes (CVE-2021-20288) — `auth_allow_insecure_global_id_reclaim` does
+nothing here; `aes256k` **is** a real CephX key type; and
+`spec.security.cephx.allowedCiphers` / `keyType` **are** real CephCluster
+fields (Rook ≥ v1.19.9 / v1.20.5).
+
 The image bump alone does **not** fix the CVE. The fix is Ceph ≥ 19.2.6 /
 20.2.4 **plus** rotating the core daemon keys (mon, mgr, osd, mds) to
 AES256K. Client kernels do not matter for this step: once daemon keys are
