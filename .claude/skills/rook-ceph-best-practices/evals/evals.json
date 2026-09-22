@@ -1,0 +1,124 @@
+{
+  "skill_name": "rook-ceph-best-practices",
+  "schema_version": 1,
+  "provenance": "Written 2026-09-23 from rook/rook v1.20.7 docs, rook#18203/#18240/#17644/#18124, the Ceph 19.2.6/20.2.4 release post, and a live Rook v1.19.6->v1.19.11 / Ceph 19.2.3->19.2.6 upgrade.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "cve-fix-plan-from-old-rook",
+      "prompt": "We run Rook v1.17.4 with Ceph 19.2.2 on a 5-node cluster. Security flagged CVE-2025-30156. Give me the upgrade plan to get this fixed, in order, with the exact versions for each hop.",
+      "expected_output": "A multi-hop plan: Rook to v1.18.11+, Ceph to 19.2.5 (not 19.2.6), Rook to v1.19.10+, Ceph to 19.2.6+ together with daemon key rotation; notes the image bump alone does not fix the CVE.",
+      "files": [],
+      "assertions": [
+        "The plan upgrades Rook before bumping Ceph to 19.2.6 or later, with Rook at v1.19.10 or higher (or v1.20.6+) before that bump",
+        "The plan does not jump from Rook v1.17 directly to Ceph 19.2.6; it passes through an intermediate Rook v1.18.x and Ceph 19.2.5 (or states Ceph 19.2.6 must wait for Rook v1.19.10+)",
+        "The plan includes rotating CephX daemon keys (keyRotationPolicy: KeyGeneration with a higher keyGeneration) as a required step, stating the image bump alone does not resolve the CVE",
+        "The plan names AES256K as the new key type"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "health-err-after-bump",
+      "prompt": "Just bumped our CephCluster image from v19.2.5 to v19.2.6 under Rook v1.19.11. Now ceph status says HEALTH_ERR: AUTH_INSECURE_SERVICE_KEY_TYPE and AUTH_INSECURE_SERVICE_TICKETS, plus four AUTH_INSECURE_* warnings. PGs are all active+clean. Is something broken? What do I do?",
+      "expected_output": "Explains these are expected after the bump until daemon keys rotate; gives the daemon rotation patch; explains which warnings remain and how to mute them; warns against skipUpgradeChecks.",
+      "files": [],
+      "assertions": [
+        "States the two errors are expected after upgrading to 19.2.6 and clear once core daemon keys are rotated to AES256K",
+        "Gives the CephCluster patch spec.security.cephx.daemon with keyRotationPolicy: KeyGeneration and a keyGeneration higher than the current one",
+        "Identifies at least two of the warnings (AUTH_INSECURE_CLIENT_KEY_TYPE, AUTH_INSECURE_KEYS_ALLOWED, AUTH_INSECURE_KEYS_CREATABLE, AUTH_INSECURE_ROTATING_SERVICE_KEY_TYPE) as expected to remain after rotation",
+        "Mentions muting via spec.healthCheck.muteHealthWarning",
+        "Does not recommend skipUpgradeChecks: true or restarting all Ceph pods as the fix"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "csi-keytype-mixed-kernels",
+      "prompt": "Our Kubernetes nodes are a mix: three workers on Ubuntu 24.04 (kernel 6.8) and four new ones on kernel 7.0. We're about to do the Ceph 20.2.4 upgrade with Rook v1.20.7 and rotate keys. Should I move the CSI keys to aes256k now? Write the cephx section of the CephCluster spec I should use.",
+      "expected_output": "Keep CSI keyType aes because some nodes are below 7.0; daemon keys rotate independently; spec with daemon rotation and csi keyType aes.",
+      "files": [],
+      "assertions": [
+        "Recommends keeping CSI keys on keyType: aes because at least one node runs a kernel older than 7.0",
+        "Explains CSI keys are shared cluster-wide per role (or equivalently that one old-kernel node blocks the migration for all nodes)",
+        "The YAML sets spec.security.cephx.csi.keyType: aes",
+        "The YAML rotates daemon keys via spec.security.cephx.daemon keyRotationPolicy: KeyGeneration",
+        "Does not set allowedCiphers to only aes256k"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "rook-120-csi-broken",
+      "prompt": "Upgraded the rook-ceph helm chart from v1.19.8 to v1.20.2 then rook-ceph-cluster. Now the rbd ctrlplugin deployment is 0/2, pods can't get created because of missing serviceaccount, and no PVC can attach or detach anywhere. What happened and how do I fix it?",
+      "expected_output": "Rook v1.20 moved CSI to ceph-csi-operator; the ceph-csi-drivers chart was skipped so CSI RBAC is missing; install it; chart order.",
+      "files": [],
+      "assertions": [
+        "Identifies that Rook v1.20 no longer deploys CSI itself and CSI is managed by ceph-csi-operator",
+        "Names the ceph-csi-drivers Helm chart as the missing step that creates the CSI ServiceAccounts/RBAC",
+        "Gives the chart order rook-ceph, then ceph-csi-drivers, then rook-ceph-cluster",
+        "Mentions that custom CSI settings from rook-ceph-operator-config must be migrated to ceph-csi-operator CRs (OperatorConfig/Driver)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "tentacle-prep",
+      "prompt": "Planning to take our Rook v1.20.7 cluster from Squid 19.2.6 to Tentacle. What do I need to do before changing the image, and which Tentacle version should I target?",
+      "expected_output": "Disable rook mgr module; avoid 20.2.0; target 20.2.4+; pin build tag+digest; HEALTH_OK precheck; RGW multipart window; multisite sigv4.",
+      "files": [],
+      "assertions": [
+        "Recommends disabling the rook mgr module (spec.mgr.modules name: rook enabled: false) before the upgrade",
+        "Advises against Ceph 20.2.0 and targets 20.2.4 or later",
+        "Recommends a full build tag (vX.Y.Z-YYYYMMDD) or digest rather than a floating major tag",
+        "Requires HEALTH_OK (or at least not HEALTH_ERR) before requesting the upgrade"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "toolbox-permission-denied-mid-rotation",
+      "prompt": "Rotation is running on our Rook cluster after the 19.2.6 bump. In the toolbox every ceph command now fails with 'handle_auth_bad_method server allowed_methods [2] but i only support [1]' and '[errno 13] RADOS permission denied'. Are we locked out? How do I track the rotation?",
+      "expected_output": "Toolbox keyring stale after admin rotation — restart/update toolbox; track via CephCluster status.cephx and pod readiness; do not change allowedCiphers.",
+      "files": [],
+      "assertions": [
+        "Explains the toolbox holds the old admin key after the admin key rotated and needs a restart (or updated manifest) to reload the keyring",
+        "Recommends tracking rotation through CephCluster status.cephx keyGeneration per daemon type rather than through the toolbox",
+        "Does not recommend changing allowedCiphers or daemon.keyType to fix the toolbox"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "leftover-err-after-rotation",
+      "prompt": "Key rotation finished: status.cephx shows keyGeneration 2 for admin, mon, mgr, osd. But ceph health detail still has HEALTH_ERR AUTH_INSECURE_SERVICE_KEY_TYPE: 'entity osd.7 using insecure key type: aes'. We only have osd.0 to osd.5. Why, and what's the safe fix?",
+      "expected_output": "Stale auth entity from a removed OSD; Rook rotates only live daemons; verify with ceph osd find/ls; back up with ceph auth get; ceph auth rm osd.7.",
+      "files": [],
+      "assertions": [
+        "Identifies osd.7 as a leftover auth entity of a removed OSD that Rook does not rotate because no daemon exists",
+        "Verifies the OSD is gone (ceph osd ls / ceph osd find 7 / ceph osd tree) before deleting anything",
+        "Backs up the entity (ceph auth get osd.7) before removing it",
+        "Removes it with ceph auth rm osd.7"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "monitoring-forbidden-helm",
+      "prompt": "I set spec.monitoring.enabled: true in the CephCluster (operator installed via the rook-ceph helm chart) but there are no ServiceMonitors and the operator log spams 'servicemonitors.monitoring.coreos.com \"rook-ceph-exporter\" is forbidden'. Fix?",
+      "expected_output": "Set chart value monitoring.enabled: true for RBAC; restart the operator; operator creates no PrometheusRules.",
+      "files": [],
+      "assertions": [
+        "Identifies the operator Helm chart value monitoring.enabled: true as required to create the ServiceMonitor RBAC",
+        "Recommends restarting the rook-ceph-operator after the RBAC is applied if ServiceMonitors still do not appear",
+        "Does not claim the operator creates PrometheusRules automatically"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "allowedciphers-lockout",
+      "prompt": "I added spec.security.cephx.allowedCiphers: [aes256k] to harden our Rook cluster and now the operator logs '[errno 13] RADOS permission denied (error connecting to the cluster)' and nothing reconciles. Help.",
+      "expected_output": "Some daemon key still aes; apply allowedCiphers [aes, aes256k] plus daemon.keyType aes workaround; wait for --mon-auth-emergency-allowed-ciphers; remove daemon.keyType; check ceph auth dump-keys.",
+      "files": [],
+      "assertions": [
+        "Explains that at least one daemon key is still aes so restricting ciphers to aes256k locked it out",
+        "Gives the workaround allowedCiphers: [aes, aes256k] together with daemon.keyType: aes",
+        "Says to remove daemon.keyType after mons show the --mon-auth-emergency-allowed-ciphers flag and reconcile resumes",
+        "Uses ceph auth dump-keys to confirm every key is aes256k before any future restriction"
+      ]
+    }
+  ]
+}

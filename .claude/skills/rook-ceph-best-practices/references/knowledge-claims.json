@@ -1,0 +1,162 @@
+{
+  "skill": "rook-ceph-best-practices",
+  "extracted": "2026-09-23",
+  "extractor_model": "session-default",
+  "extractor_model_resolved": [
+    "claude-opus-5-5[1m]"
+  ],
+  "skill_md_sha": "669c85d45ee2",
+  "extraction_cost_usd": 0.3394,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Which is the first Rook release line that dropped support for Ceph Reef?",
+      "skill_answer": "Rook v1.19 (minimum Ceph 19.2.0)"
+    },
+    {
+      "id": 1,
+      "question": "What Kubernetes version range does Rook v1.20.x support?",
+      "skill_answer": "1.31\u20131.36"
+    },
+    {
+      "id": 2,
+      "question": "What Kubernetes version range does Rook v1.19.x support?",
+      "skill_answer": "1.30\u20131.35"
+    },
+    {
+      "id": 3,
+      "question": "What is the minimum Tentacle version supported by Rook v1.20?",
+      "skill_answer": "Ceph 20.2.1"
+    },
+    {
+      "id": 4,
+      "question": "Which Rook v1.19 patch release first supports the AES256K CephX key type?",
+      "skill_answer": "v1.19.9"
+    },
+    {
+      "id": 5,
+      "question": "What is the minimum Rook v1.19 patch release that fixes CVE-2025-30156?",
+      "skill_answer": "v1.19.10"
+    },
+    {
+      "id": 6,
+      "question": "What is the minimum Rook v1.20 patch release that fixes CVE-2025-30156?",
+      "skill_answer": "v1.20.6"
+    },
+    {
+      "id": 7,
+      "question": "Which ceph-csi version ships with Rook v1.19.11?",
+      "skill_answer": "ceph-csi 3.16.3 (AES256K backport)"
+    },
+    {
+      "id": 8,
+      "question": "What minimum cephcsi version is needed for AES256K on the Rook 1.20 line?",
+      "skill_answer": "cephcsi 3.17.1"
+    },
+    {
+      "id": 9,
+      "question": "What was the last Ceph Reef release and when was it released?",
+      "skill_answer": "18.2.8, 2026-03-20"
+    },
+    {
+      "id": 10,
+      "question": "What is the latest Ceph Squid point release?",
+      "skill_answer": "19.2.6"
+    },
+    {
+      "id": 11,
+      "question": "What is the latest Ceph Tentacle point release?",
+      "skill_answer": "20.2.4"
+    },
+    {
+      "id": 12,
+      "question": "Which Ceph Tentacle release causes data corruption with CSI read affinity?",
+      "skill_answer": "20.2.0 (rook#16839)"
+    },
+    {
+      "id": 13,
+      "question": "Which Ceph Reef releases carry a BlueStore corruption regression?",
+      "skill_answer": "18.2.5 and 18.2.6, fixed in 18.2.7"
+    },
+    {
+      "id": 14,
+      "question": "Which Ceph versions contain the fix for CVE-2025-30156?",
+      "skill_answer": "Squid 19.2.6 and Tentacle 20.2.4, plus daemon key rotation to AES256K"
+    },
+    {
+      "id": 15,
+      "question": "What minimum Rook v1.19 patch is required before upgrading to Rook v1.20?",
+      "skill_answer": "v1.19.5"
+    },
+    {
+      "id": 16,
+      "question": "What minimum Linux kernel version is needed for AES256K CephX keys on CSI clients?",
+      "skill_answer": "7.0 (7.2 for FIPS)"
+    },
+    {
+      "id": 17,
+      "question": "Which CephCluster field pins the CSI CephX key type to aes?",
+      "skill_answer": "spec.security.cephx.csi.keyType: aes"
+    },
+    {
+      "id": 18,
+      "question": "What keyRotationPolicy value triggers generation-based rotation of Rook daemon CephX keys?",
+      "skill_answer": "KeyGeneration, with spec.security.cephx.daemon.keyGeneration set above the current value"
+    },
+    {
+      "id": 19,
+      "question": "Which two Ceph health codes appear as HEALTH_ERR when daemons first run the CVE-2025-30156-fixed version before key rotation?",
+      "skill_answer": "AUTH_INSECURE_SERVICE_KEY_TYPE and AUTH_INSECURE_SERVICE_TICKETS"
+    },
+    {
+      "id": 20,
+      "question": "What error does the Rook toolbox show after the admin key is rotated?",
+      "skill_answer": "handle_auth_bad_method \u2026 [errno 13] RADOS permission denied"
+    },
+    {
+      "id": 21,
+      "question": "From which Rook version can health warnings be muted via spec.healthCheck.muteHealthWarning?",
+      "skill_answer": "v1.19.10"
+    },
+    {
+      "id": 22,
+      "question": "In Rook v1.20, what is the required Helm install order for the charts?",
+      "skill_answer": "rook-ceph \u2192 ceph-csi-drivers \u2192 rook-ceph-cluster"
+    },
+    {
+      "id": 23,
+      "question": "What happens if the ceph-csi-drivers chart is skipped on Rook v1.20?",
+      "skill_answer": "CSI ctrlplugin Deployments stay 0/2; all attach/detach fails (rook#17644)"
+    },
+    {
+      "id": 24,
+      "question": "Which ceph-csi-drivers chart value is left unset, making ceph-csi-operator fall back to its hard-coded cephcsi image?",
+      "skill_answer": "operatorConfig.driverSpecDefaults.imageSet.name (ceph-csi-operator#605)"
+    },
+    {
+      "id": 25,
+      "question": "What error does the Ceph mgr crash-loop with on Tentacle when the rook mgr module is enabled?",
+      "skill_answer": "NotImplementedError from node_proxy_fullreport in the prometheus module (rook#18124)"
+    },
+    {
+      "id": 26,
+      "question": "Which environment variable disables Rook v1.20's deletion of unused CRUSH rules?",
+      "skill_answer": "ROOK_DELETE_UNUSED_CRUSH_RULES"
+    },
+    {
+      "id": 27,
+      "question": "What RGW settings must be set before upgrading an RGW multisite deployment to Ceph 19.2.6/20.2.4?",
+      "skill_answer": "rgw_sigv4_insecure=true and rgw_s3_client_max_sig_ver=2"
+    },
+    {
+      "id": 28,
+      "question": "Which Rook release starts purging CephObjectStoreUser S3 credentials that are not declared in the CR?",
+      "skill_answer": "Rook v1.17"
+    },
+    {
+      "id": 29,
+      "question": "Which Rook operator Helm chart value creates the RBAC needed for managing ServiceMonitors?",
+      "skill_answer": "monitoring.enabled: true"
+    }
+  ]
+}

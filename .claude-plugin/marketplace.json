@@ -734,6 +734,20 @@
       "strict": false
     },
     {
+      "name": "rook-ceph-best-practices",
+      "source": "./",
+      "description": "Operate, configure and upgrade Rook-managed Ceph on Kubernetes (ceph.rook.io CephCluster, CephBlockPool, CephFilesystem, CephObjectStore; rook-ceph and rook-ceph-cluster Helm charts; ceph-csi and…",
+      "version": "0.20260922.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/rook-ceph-best-practices"
+      ],
+      "strict": false
+    },
+    {
       "name": "secure-boot-cert-rotation",
       "source": "./",
       "description": "Secure Boot certificate-rotation suite — triage and remediate the Microsoft Secure Boot 2011→2023 UEFI CA rotation (CAs expiring 2026) across Dell PowerEdge / iDRAC9 bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs: the PK→KEK→db trust chain, per-platform fixes (iDRAC BIOS-staged keys applied on reboot, self-authenticating manual `db` append via the existing 2011 KEK, the Harvester OVMF v1.6.0 floor with ephemeral-vs-persistent NVRAM triage), and audit via mokutil / efi-readvar / racadm bioscert / Redfish.",
