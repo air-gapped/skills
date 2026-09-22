@@ -25,3 +25,7 @@ Freshened: 2026-09-23 — every row probed at creation. Rook releases enumerated
 | Ceph tags (Umbrella) | https://github.com/ceph/ceph/tags | 2026-09-23 | v21.1.1 → v21.3.0 dev tags, no v21.2.0. |
 | Linux libceph AES256K | https://github.com/torvalds/linux/blob/master/net/ceph/crypto.c | 2026-09-23 | `CEPH_CRYPTO_AES256KRB5`; commit "libceph: add support for CEPH_CRYPTO_AES256KRB5" (2025-12-22), Linux 7.0. |
 | ceph-users: rotation lockout / mon rebuild | https://lists.ceph.io/hyperkitty/list/ceph-users@ceph.io/ | 2026-09-23 | Threads 2026-08-27 (rotating-key warning persists), 2026-09-11 (mon `--mkfs` → PGLog crash, 278 unfound), 2026-09-14 (1500-OSD mon slow ops on 19.2.6). |
+| Tracker 80295 | https://tracker.ceph.com/issues/80295 | 2026-09-23 | "Upgrade 19.2.6 to 20.2.4 changes auth_allowed_ciphers config" (Orchestrator). |
+| Tracker 79674 | https://tracker.ceph.com/issues/79674 | 2026-09-23 | SigV4 rejects unsigned Content-Type, breaking presigned PUT; regression in 19.2.6 / 20.2.4. |
+| mon_auth_emergency_allowed_ciphers | https://github.com/ceph/ceph/blob/v19.2.6/src/common/options/mon.yaml.in | 2026-09-23 | `type: str`. |
+| CVE-2021-20288 (global_id reclaim) | https://docs.ceph.com/en/latest/security/CVE-2021-20288/ | 2026-09-23 | The older AUTH_INSECURE_GLOBAL_ID_RECLAIM* codes the new ones are confused with. |

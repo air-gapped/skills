@@ -737,7 +737,7 @@
       "name": "rook-ceph-best-practices",
       "source": "./",
       "description": "Operate, configure and upgrade Rook-managed Ceph on Kubernetes (ceph.rook.io CephCluster, CephBlockPool, CephFilesystem, CephObjectStore; rook-ceph and rook-ceph-cluster Helm charts; ceph-csi and…",
-      "version": "0.20260922.3",
+      "version": "0.20260922.4",
       "author": {
         "name": "Jörgen"
       },

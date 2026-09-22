@@ -209,6 +209,9 @@ operator never creates PrometheusRules; ship those yourself.
 
 | Hazard | Source |
 |---|---|
+| 19.2.6 → Tentacle below 20.2.4 drops AES256K (20.2.0–20.2.3 predate it): go 19.2.6 → 20.2.4+ only | ceph-users 2026-09-03 |
+| After 19.2.6 → 20.2.4, re-check `ceph config get mon auth_allowed_ciphers`: a cephadm upgrade reset `aes256k` to `aes, aes256k` | tracker 80295 |
+| RGW SigV4 fix (19.2.6 / 20.2.4) rejects presigned PUTs with an unsigned Content-Type (restic, PHP clients); workaround `rgw_sigv4_insecure=true` until 19.2.7 / 20.2.5 | tracker 79674 |
 | Squid→Tentacle: Rook rolls RGW/MDS before all OSDs are upgraded, breaking S3 multipart during the window | rook#18367 |
 | RGW multisite on 19.2.6/20.2.4: SigV4 hardening rejects RGW's own inter-zone forwarding; set `rgw_sigv4_insecure=true` (and `rgw_s3_client_max_sig_ver=2`) **before** upgrading | tracker 79698; Rook ceph-upgrade.md |
 | Fresh mon quorum never forms on kernel 7.0 cold bootstrap (existing quorums unaffected) — collides with the 7.0 AES256K kernel requirement | rook#18370, tracker 80470 |
