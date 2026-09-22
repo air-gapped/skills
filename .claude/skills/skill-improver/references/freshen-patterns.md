@@ -579,6 +579,40 @@ Classify on the *evidence of a fix*, not the state field:
 When a claim survives this check, say *why* in the skill ("shows closed, but
 stale-bot closed — no fix landed"), so the next pass does not re-litigate it.
 
+### 3.0b A tag is not a release, and "no release" is not "no version"
+
+**`gh release list` answers "what Release objects exist", never "what versions
+ship".** A project can tag, build, publish to a registry and document a whole
+major line without ever cutting a GitHub Release. Absence there is absence of
+*one artifact*, not evidence the version is unreal.
+
+Downgrading a version on that evidence is the worst outcome this mode
+produces: it replaces a true claim with a false one and reads as diligence.
+Observed 2026-09-22 — a `messages-api` row recording opencode **v2.0.3** was
+"corrected" to "has never existed" because `gh release list` topped out at
+v1.18.32. The operator's own machine was running **v2.0.8**. Tags `v2.0.0`
+through `v2.0.13`, a `2.0` branch, npm `@opencode/cli` at 2.0.13, a `/v2/`
+docs tree and a `/v2/install` script all existed; only a Release object did
+not.
+
+Before writing that a version does not exist, check **all** of these:
+
+```bash
+gh api repos/<o>/<r>/tags --paginate --jq '.[].name' | grep '^v2'   # tags
+gh api repos/<o>/<r>/branches --jq '.[].name'                        # release branch
+curl -sS https://registry.npmjs.org/<pkg> | jq '."dist-tags"'        # registry truth
+```
+
+Registry dist-tags beat everything for "what does an install give me". And
+check whether the project runs **parallel lines under different package
+names** — opencode's v1 is `opencode-ai`, its v2 is `@opencode/cli`; querying
+only the one the skill already names finds only the line it already knew.
+
+**The tell is the operator.** If a version is installed on the machine, or the
+user says it exists, it exists — go find the channel rather than concluding
+the user is wrong. This is [[the-skill-outranks-training-data]] applied to
+tooling: the probe was too narrow, not the claim too old.
+
 ### 3.1 Scope filter for `new-feature`
 
 Only produce a hypothesis when the feature maps to an existing trigger
