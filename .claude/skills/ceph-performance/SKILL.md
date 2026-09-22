@@ -58,7 +58,8 @@ maintenance window.
   `osd_memory_target`; with only a limit, target = limit ×
   `osd_memory_target_cgroup_limit_ratio` (0.8). Set requests and limits
   explicitly on `spec.resources.osd`; the limit needs headroom above the
-  request because the target is a cache-trim goal, not a cap.
+  request because the target is a cache-trim goal, not a cap. Confirm with
+  `ceph config show osd.N osd_memory_target` after the pods restart.
 - Rook's own minimums (warns below): osd 2048 MB, mon 1024 MB, mgr 512 MB.
   4 GiB+ per OSD is the Ceph default target; NVMe OSDs benefit from more.
 - `bluestore_cache_autotune` is on by default; `osd_memory_target_autotune`
