@@ -664,10 +664,24 @@
       "strict": false
     },
     {
+      "name": "ceph-s3",
+      "source": "./",
+      "description": "Run Ceph RGW as an S3 endpoint under Rook (CephObjectStore, CephObjectStoreUser, ObjectBucketClaim, COSI, CephBucketTopic, multisite realms/zones)",
+      "version": "0.20260922.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/ceph-s3"
+      ],
+      "strict": false
+    },
+    {
       "name": "ceph-troubleshooting",
       "source": "./",
       "description": "Diagnose and recover an unhealthy Ceph cluster, with Rook-on-Kubernetes specifics: slow or stuck recovery/backfill under the mClock scheduler (why osd_max_backfills \"does nothing\"),…",
-      "version": "0.20260922.5",
+      "version": "0.20260922.6",
       "author": {
         "name": "Jörgen"
       },
