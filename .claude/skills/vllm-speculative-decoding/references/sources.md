@@ -1,6 +1,6 @@
 # External-reference provenance
 
-Freshened: 2026-09-15 — every row probed. All merged-PR and issue states reproduce.
+Freshened: 2026-09-22 — every row probed at v0.30.0; all 30 URLs 200 and all ~45 PR/issue states reproduce. `MTPModelTypes` grew 22 -> 27 since v0.27.0. Four SKILL.md line anchors are wrong and three of them were already wrong at v0.27.0, the tag they were stamped against: the TP validation is at `speculative.py:1721-1723`, the n_predict warning at ~1360-1364, and the spec-decode metric definitions at `metrics.py:229-259` with the PromQL comments at ~178-195. Pitfall 3's DeepSeek-V3.2 `enforce_eager=True` forcing no longer exists anywhere in `config/speculative.py` or `config/model.py` — its own FIXME asked for this recheck.
 
 **ArcticInference v0.3.0 (2026-08-28) rebased onto vLLM v0.26.0**, superseding the v0.2.0 note that pinned it to vLLM 0.14.1. The repo is active, not dormant. The version-lag caution still applies — v0.26.0 trails the current v0.29.0 — but the gap it warns about is much narrower than the rows below describe.
 

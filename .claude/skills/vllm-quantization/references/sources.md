@@ -1,6 +1,8 @@
-# External sources — last verified 2026-09-15 (rows pinned to vLLM v0.27.0; current release v0.29.0)
+# External sources — last verified 2026-09-22 (rows pinned to vLLM v0.27.0; current release v0.30.0)
 
-**2026-09-15 pass:** every row re-probed and every v0.27.0-pinned claim reproduced exactly — no false rows found. Four counts have since moved upstream and are flagged at their rows: `bitsandbytes` left `QuantizationMethods` in v0.28.0 (31 → 30 values), `CacheDType` gained `nvfp4_4over6` (16 → 17), and LinearBackend/MoEBackend went 20/17 → 21/20. Two external projects also moved: ModelOpt shipped 0.46.0 and 0.46.1, and its repo is now canonically `NVIDIA/Model-Optimizer`.
+Freshened: 2026-09-22 — every row probed; all 232 URLs 200 and every issue/PR state reproduces, including the stale-bot closes correctly read as not-fixes. Counts re-derived from the tree rather than carried forward, which corrected two the previous pass had projected: CacheDType is 18 at v0.30.0 (not 17) and MoEBackend is 22 (not 20).
+
+**2026-09-22 pass:** every row re-probed at v0.30.0 and every v0.27.0-pinned claim reproduced exactly — no false rows. Counts re-derived from the tree rather than carried forward, which corrected two the previous pass had guessed: `QuantizationMethods` 31 → 30 (`bitsandbytes` left in v0.28.0); `CacheDType` **16 → 18**, gaining `nvfp4_4over6` *and* `nvfp4_ds_mla` (#51724), not 17; LinearBackend/MoEBackend **20/17 → 21/22**, not 21/20. Two behaviour changes at v0.30.0 are now recorded in the body: FlashInfer CuTeDSL NVFP4 W4A16 became the SM100/103 default over Marlin (#53014), and GPTQ `g_idx` activation ordering was removed (#54809). External projects: llm-compressor v0.13.0 (2026-08-11), ModelOpt 0.46.1, repo canonically `NVIDIA/Model-Optimizer`.
 
 Freshness audit for externally-referenced material in SKILL.md. Probes were
 issued via the `gh` CLI and GitHub API. Re-run the freshen loop when the

@@ -1,5 +1,7 @@
 # External sources — verification log
 
+Freshened: 2026-09-22 — every row probed at v0.30.0; all 14 URLs 200. The six `vllm bench` subcommands and the 14 `--dataset-name` values were re-derived from the argparse source and are unchanged. Two things moved: the runtime `transformers` floor is now >= 5.10.4 (was 5.5.3 at v0.27.0), and `serve.py` gained client-queue-time metrics and embed sequence-throughput fields not yet in output-schema.md. The v0.30.0 HF ShareGPT multi-turn work (#51104/#56915) landed in the **Rust** bench client only — the Python `vllm bench serve` this skill documents has no `--multi-turn` flag, so its silence is correct.
+
 **Freshened: 2026-09-15** — all 15 rows probed. Every URL 200s with no redirect drift, and every claim pinned to tag `v0.27.0` was re-read at that tag and holds exactly (`serve.py` 2363 lines, `BenchmarkMetrics` L321, `sonnet.txt` 22706 bytes, six bench subcommands, `transformers >= 5.5.3`). The docs still lag the tree on `VLLM_USE_RUST_BENCH` and still list `sonnet` as the only deprecated dataset. One row drifted: current stable is **v0.29.0** (2026-09-09) via v0.28.0, not v0.27.1.
 
 Tracks external references cited in this skill. `Last verified` indicates the most recent date an agent confirmed the URL resolves, the content still exists, and (where relevant) the claim the skill makes about it is still accurate. Stale dates mean: re-probe before trusting cited specifics.

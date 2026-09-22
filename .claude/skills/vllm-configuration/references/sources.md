@@ -1,10 +1,10 @@
 # Sources — external reference verification log
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed. All 18 PR/issue states reproduce. The env-var catalog was re-derived by diffing `envs.py` between tags rather than re-reading the docs page, which is what caught the v0.30.0 removals.
 
 Tracks external URLs, GitHub issues/PRs, and docs pages cited by this skill. Each row carries a verification date and a brief status note. Refresh via the `freshen` mode of the `skill-improver` skill.
 
-Last skill-wide verification pass: 2026-09-15. **Everything below was probed at tag `v0.27.0`** (published 2026-08-10) and re-probed at that same tag this pass — the rows are pinned, so they remain correct for what they assert. **Latest stable is now v0.29.0** (2026-09-09), two releases past the v0.27.1 this file used to call current; the version gate in the skill body reads v0.18–v0.27 and is behind by the same amount. Historically: v0.27.1 (published 2026-08-11, mid-pass) — a single-change patch ("Support quantized DSpark Markov heads", #50424) that touches no config surface, so the v0.27.0 probes stand and are stamped v0.27.0 deliberately rather than restamped to a tag nobody read. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, is what gates this stack.
+Last skill-wide verification pass: 2026-09-15. **Everything below was probed at tag `v0.27.0`** (published 2026-08-10) and re-probed at that same tag this pass — the rows are pinned, so they remain correct for what they assert. **Latest stable is now v0.30.0** (2026-09-22), via v0.29.0 (2026-09-09) and v0.28.0 (2026-08-26). The 2026-09-22 pass re-diffed `envs.py` v0.27.0 → v0.30.0 directly: 7 vars removed, 27 added; the version gate in the skill body now reads v0.18–v0.30. Historically: v0.27.1 (published 2026-08-11, mid-pass) — a single-change patch ("Support quantized DSpark Markov heads", #50424) that touches no config surface, so the v0.27.0 probes stand and are stamped v0.27.0 deliberately rather than restamped to a tag nobody read. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, is what gates this stack.
 
 > **Probe lesson from this pass:** a variable's presence in `vllm/envs.py` does
 > **not** prove anything reads it, and the published env-var docs page is

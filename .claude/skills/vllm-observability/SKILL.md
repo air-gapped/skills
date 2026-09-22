@@ -116,7 +116,7 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 
 ## Version notes
 
-Core metric surface re-verified against **v0.27.0** (2026-08-11): the emitted
+Core metric surface re-verified against **v0.30.0** (2026-09-22): the emitted
 `vllm:*` set in `vllm/v1/metrics/loggers.py` is unchanged from v0.25.1 — nothing
 removed, nothing renamed. The churn since then is all in the **KV offload**
 namespace, where the legacy `vllm:kv_offload_total_*` series are deprecated in

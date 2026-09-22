@@ -6,7 +6,7 @@ Status as of 2026-07-29 (stable was 0.11.0 then; the line is at 0.11.3 as of 202
 
 ### #23733 — Socket.IO frame amplification (THE BIG ONE)
 
-Opened 2026-04-14, OPEN (updated 2026-05-27). The structural bug — see `references/issue-23733.md` for the full story, mitigation, and PR history. Mitigation: `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.
+Opened 2026-04-14, **closed NOT_PLANNED 2026-08-11** — won't-fix, nothing landed, so the mitigation still applies. The structural bug — see `references/issue-23733.md` for the full story, mitigation, and PR history. Mitigation: `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.
 
 ### #15162 — direct-connection chat with `workers > 1`
 
@@ -156,7 +156,7 @@ Plus the Nov–Dec 2025 work:
 | Sentinel auth password | Fixed Nov 2025. |
 | Sentinel coroutine-not-awaited (0.9.1) | Fixed in 0.9.4 (#23987 closed 2026-05-08). Upgrade required for Sentinel users on 0.9.1–0.9.3. |
 | Direct-connection chat with `workers > 1` | Partial fix Mar 2026; **don't use multiple workers per pod**. |
-| Socket.IO frame amplification (#23733) | **Open. No ETA. Mitigate with `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** |
+| Socket.IO frame amplification (#23733) | **Closed won't-fix 2026-08-11; structurally unresolved. Mitigate with `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** |
 | Helm chart bundled Redis is no-PVC | Disable, use external Valkey. |
 | Helm chart no HPA/PDB/probes | Add yourself. |
 | Helm gateway-API WS appProtocol | Open #383, manual workaround. |

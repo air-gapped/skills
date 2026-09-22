@@ -52,7 +52,7 @@ vllm serve Qwen/Qwen3-4B \
 
 Since v0.22.0 the native path is no longer CPU-DRAM-only. `OffloadingConnector` selects a spec through `kv_connector_extra_config.spec_name`: `CPUOffloadingSpec` (default, single CPU tier) or `TieringOffloadingSpec` (CPU primary tier + an ordered `secondary_tiers` list). Only the CPU primary tier touches GPU memory; every GPU↔secondary transfer stages through it.
 
-Registered secondary tier types (`vllm/v1/kv_offload/tiering/factory.py`, verified at v0.27.0 — unchanged since v0.25.1): `fs`, `obj`, `p2p`, `example`.
+Registered secondary tier types (`vllm/v1/kv_offload/tiering/factory.py`): `fs`, `obj`, `p2p`, `example` — plus **`kvcr` from v0.30.0** ([#53624](https://github.com/vllm-project/vllm/pull/53624), module `vllm.v1.kv_offload.tiering.kvcr.manager`). The first four were unchanged v0.25.1 through v0.29.0.
 
 ```bash
 vllm serve <model> \

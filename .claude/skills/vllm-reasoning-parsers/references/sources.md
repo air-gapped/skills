@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed and every row holds. All 32 issue/PR states reproduce with the same reason AND closer; every line anchor, file length and registry count re-read at the tag it names. Registry re-probed at v0.29.0: **29 -> 32 names**, adding exactly `hy_v4`, `ling3` and `muse_glimmer`, no removals.
+Freshened: 2026-09-22 — every row probed at v0.30.0. All 32 issue/PR states reproduce with the same reason AND closer. Registry re-derived from the tree, not carried forward: **32 -> 34 names**, adding exactly `deepseek_v41` and `k2_horizon`, no removals. Two mechanism changes landed: `should_fill_bitmask` was replaced by `_get_constraint_start` (#55223/#56200), and `vllm/entrypoints/openai/api_server.py` became a deprecated shim at v0.29.0 — the CLI-path anchors moved to `vllm/entrypoints/launchers/`.
 
 One URL moved: the OpenAI Harmony spec now serves from `developers.openai.com/cookbook/...` — the cited `cookbook.openai.com` address still 200s by redirect and has been repointed below.
 

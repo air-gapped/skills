@@ -1,5 +1,7 @@
 # Sources — files, issues, docs
 
+Freshened: 2026-09-22 — every row probed against v0.11.4 (2026-09-21). Four status claims flipped: #23733 was bot-closed NOT_PLANNED 2026-08-11 (won't-fix, not fixed), #27622 and #27651 both closed COMPLETED, and #16074 now 404s. Every websocket/Sentinel env var the skill documents still exists at v0.11.4 with the same semantics. Chart line is 16.6.0 / appVersion 0.11.4.
+
 Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers with dates, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode.
 
 **Freshened: 2026-09-15 — every row probed.** The headline result is that **the RedisCluster `publish()` breakage is fixed from v0.11.2** (#19840 closed by PR #29165; ancestry `diverged` for v0.11.1, `behind` for v0.11.2) — see `known-issues.md`. Three other issues this file listed as OPEN have closed: #23733 as NOT_PLANNED (won't-fix, not fixed), #27622 and #27651 as COMPLETED.

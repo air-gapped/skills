@@ -88,7 +88,7 @@ Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_e
 | `modelopt_mixed` | 89 | Mixed-precision per-layer checkpoints |
 | `compressed-tensors` | varies per scheme | neuralmagic / Red Hat / llm-compressor output |
 | `awq_marlin` | 75 | AWQ W4A16 — accuracy-critical INT4 |
-| `gptq_marlin` | 75 | GPTQ W4A16 — classic INT4 |
+| `gptq_marlin` | 75 | GPTQ W4A16 — classic INT4. **v0.30.0 removed group/dynamic activation ordering** ([#54809](https://github.com/vllm-project/vllm/pull/54809)): `g_idx` is ignored and the Marlin/GPTQ/CPU/RDNA3 kernels for it are gone. A checkpoint relying on act-order loses that accuracy recovery silently — prefer `awq_marlin` or `compressed-tensors` there. |
 | `mxfp4` / `gpt_oss_mxfp4` | 80 (MoE only on 100) | GPT-OSS ships this |
 | `mxfp8` | 80 | Online MXFP8 (v0.19+) |
 | `quark` | varies | AMD ROCm path |

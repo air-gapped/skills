@@ -10,10 +10,10 @@ Goal: ship as a plugin, not an upstream PR — unless the format is broadly usef
    - JSON-in-tags → `vllm/tool_parsers/hermes_tool_parser.py`
    - JSON array in one sentinel → `vllm/tool_parsers/jamba_tool_parser.py`
    - Pythonic `[fn(a=1)]` → `vllm/tool_parsers/pythonic_tool_parser.py`
-   - XML grammar → `vllm/tool_parsers/qwen3xml_tool_parser.py` (expat, cleanest streaming)
-   - Harmony/channel-based → `vllm/tool_parsers/openai_tool_parser.py`
+   - XML grammar → `vllm/tool_parsers/step3p5_tool_parser.py` (expat, cleanest streaming)
+   - Harmony/channel-based → `vllm/tool_parsers/gptoss_tool_parser.py`
 4. `vllm/entrypoints/openai/chat_completion/serving.py` — the streaming loop. Grep `extract_tool_calls_streaming` to see how the parser gets called.
-5. `vllm/entrypoints/openai/api_server.py` — grep `import_tool_parser` to see how `--tool-parser-plugin` loads the file.
+5. `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` — grep `import_tool_parser` to see how `--tool-parser-plugin` loads the file. (`vllm/entrypoints/openai/api_server.py` became a deprecated re-export shim at v0.29.0.) Since v0.30.0 a plugin can also ship as an installed package: parsers are discovered from site-packages entry points ([#45241](https://github.com/vllm-project/vllm/pull/45241)).
 6. `tests/tool_parsers/common_tests.py` + `tests/tool_parsers/test_<name>_tool_parser.py` — the executable spec. Reviewers expect this harness.
 7. `AGENTS.md` at repo root — duplicate-work policy, PR-description requirements.
 

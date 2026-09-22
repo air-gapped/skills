@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-15 — every row probed. No dead links; every nuanced "closed but not actually fixed" reading re-confirmed against the actual comment text.
+Freshened: 2026-09-22 — every row probed; all 63 URLs 200 and every issue/PR state reproduces, including the eight closed-but-not-fixed readings re-confirmed against the actual comment text. The v0.28.0 breaking changes the body had not absorbed: `--stage-configs-path` and the legacy `stage_args` loader removed for `--deploy-config` + `--async-chunk`, `qwen3_omni_moe_async_chunk.yaml` gone, and DreamID-Omni, MagiHuman, SoulX-Singer and AudioX support removed outright. SKILL.md also still says v0.26.0 is current in its install section while its own opening line says v0.28.0.
 
 **A backport was mistaken for descent.** The Qwen-Image fix is in v0.26.0, but not by the route this file claimed — see the v0.24.1 row. **Stable is now v0.28.0** (2026-08-31), with v0.29.0rc1 (2026-09-10) as the current rc; the v0.27.0 line never got a stable cut, the same pattern as v0.21/v0.23/v0.25. Docker `latest` has moved again, now tracking an rc (v0.29.0rc1) rather than the nightly it tracked last pass — the parity caveat below is doing its job and should stay.
 

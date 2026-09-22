@@ -1,5 +1,7 @@
 # Sources — vllm-gemma-4-31b
 
+Freshened: 2026-09-22 — every row probed; the canonical chat template is byte-identical since 2026-08-11 and the AWQ quant's copy is still 114 lines behind it. Two rows moved: the P-EAGLE token check grew from three keys to five (`dspark_noise_token_id` added), and #49955's fix (PR #52430) first shipped in **v0.29.0**, not v0.28.0 — `enable_thinking` defaults to `False` in `vllm/parser/gemma4.py` from that tag. That makes the version ceiling 2-of-3 regressions open, not 3-of-3; #50477 and #50159 are still open through v0.30.0.
+
 External references cited by SKILL.md and `references/*.md`. Each row carries
 the upstream URL, classification, last verification date, and pinned version
 or git ref where applicable. Re-probe via `/skill-improver freshen vllm-gemma-4-31b`.

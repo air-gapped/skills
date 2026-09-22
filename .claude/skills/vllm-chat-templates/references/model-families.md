@@ -55,7 +55,7 @@ Default is `enable_thinking=True`. `False` inserts empty `<think>\n\n</think>\n\
 | Issue | Summary | Fix / status |
 |---|---|---|
 | [vLLM #18819](https://github.com/vllm-project/vllm/issues/18819) | Structured output / `guided_json` breaks when `enable_thinking=false` — model emits stray `{`, `[`, or triple-backtick leaders. | Keep thinking on; or post-process. |
-| [vLLM #19513](https://github.com/vllm-project/vllm/issues/19513) | Reasoning on → tool-call parsing fails (Hermes parser didn't skip `<think>` blocks). | Upgrade vLLM; combined Hermes+Qwen3 reasoning fixed. |
+| [vLLM #19513](https://github.com/vllm-project/vllm/issues/19513) | Reasoning on → tool-call parsing fails (Hermes parser didn't skip `<think>` blocks). | **Unconfirmed** — #19513 was stale-bot auto-closed NOT_PLANNED with no maintainer fix comment. Do not treat as resolved. |
 | [vLLM #20611](https://github.com/vllm-project/vllm/issues/20611) | Streaming + `enable_thinking=false` → `tool_calls` field missing, `finish_reason` wrong. | Upgrade. |
 | [vLLM #21711](https://github.com/vllm-project/vllm/issues/21711) | Qwen3 tool-call regressions across transformers versions. | Pin transformers version per model card. |
 | [ms-swift #5836](https://github.com/modelscope/ms-swift/issues/5836) | Downstream harness fails to forward `enable_thinking=False` through vLLM. | Client-side fix — ensure `extra_body.chat_template_kwargs` is passed. |

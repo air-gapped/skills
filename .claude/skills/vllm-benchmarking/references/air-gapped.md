@@ -67,7 +67,7 @@ vllm bench serve ...
 **Failure modes:**
 - `config.json` references a remote processor class not in the cache — fix by pre-downloading the full model directory, not just weights.
 - Code path calls `snapshot_download` without a specific revision — sometimes triggered by `trust_remote_code=True` loading custom model code. Prefer pinning a revision at launch.
-- Tokenizer library attempts to download its config — resolved by a `transformers` new enough to have proper offline semantics. Do not stage a 4.x wheel: vLLM **v0.27.0 requires `transformers >= 5.5.3`** (`requirements/common.txt`, verified 2026-08-11), so the enclave's pinned-wheel set must carry transformers 5.x or vLLM will not install at all.
+- Tokenizer library attempts to download its config — resolved by a `transformers` new enough to have proper offline semantics. Do not stage a 4.x wheel: vLLM **v0.27.0 required `transformers >= 5.5.3`; the current tree requires `>= 5.10.4`** (`requirements/common.txt`, verified 2026-08-11), so the enclave's pinned-wheel set must carry transformers 5.x or vLLM will not install at all.
 
 ## Dataset sourcing air-gapped
 

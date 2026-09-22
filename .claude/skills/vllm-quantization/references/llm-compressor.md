@@ -2,7 +2,7 @@
 
 [vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`.
 
-Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.12.0** (2026-06-15).
+Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.13.0** (2026-08-11).
 
 **Read the release list by rank, not by date — this project runs parallel
 maintenance lines.** As of 2026-07-21 the newest release *by publish date* is

@@ -93,12 +93,15 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 **Select a backend:**
 
 ```bash
-export VLLM_ALL2ALL_BACKEND={naive|pplx|deepep_high_throughput|deepep_low_latency}
+# --all2all-backend, NOT an env var. VLLM_ALL2ALL_BACKEND was deprecated in
+# v0.15.0 and removed in #33535 (2026-02-03) — setting it does nothing.
+--all2all-backend {allgather_reducescatter|naive|pplx|deepep_high_throughput|deepep_low_latency|deepep_v2|mori_high_throughput|mori_low_latency|nixl_ep|flashinfer_nvlink_two_sided|flashinfer_nvlink_one_sided}
 ```
 
 | Backend | Use when | Caveats |
 |---|---|---|
-| `naive` | default, works everywhere | broadcast + allreduce; slowest |
+| `allgather_reducescatter` | **the default** | |
+| `naive` | works everywhere | broadcast + allreduce; slowest |
 | `pplx` | Perplexity kernels | **incompatible with microbatching** ([#27513](https://github.com/vllm-project/vllm/issues/27513)) |
 | `deepep_high_throughput` | prefill, long ISL | needs compiled `deep_ep` package |
 | `deepep_low_latency` | decode, CUDA-graph-compatible | same |

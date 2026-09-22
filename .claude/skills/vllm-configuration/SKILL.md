@@ -102,8 +102,12 @@ swept 2026-09-15):**
   `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141). One was **added**:
   `VLLM_ALLREDUCE_USE_FLASHINFER=0`, the opt-out for FlashInfer all-reduce now
   being on by default.
-- `prefix_cache_retention_interval` is now a CLI argument and the env var form
-  is deprecated (#52216).
+- `prefix_cache_retention_interval` is now a CLI argument. The env var form
+  `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` was deprecated at v0.29.0 (#52216) and
+  **removed at v0.30.0** (#55353) — it is gone from `envs.py`, so on v0.30.0+ it
+  is silently inert. Same release removed `VLLM_MM_HASHER_ALGORITHM` (use the
+  config field), the `use_fp4_indexer_cache` alias (use `indexer_kv_dtype`), and
+  the ROCm `CUDA_VISIBLE_DEVICES` fallback (use `HIP_VISIBLE_DEVICES`).
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.

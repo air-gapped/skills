@@ -1,7 +1,7 @@
 ---
 name: vllm-reasoning-parsers
 description: |-
-  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 32 built-in parsers on current vLLM (29 through v0.27.x) with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
+  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 34 built-in parsers on current vLLM (32 at v0.29.0, 29 through v0.27.x) with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
 when_to_use: |-
   Trigger on `--reasoning-parser`, `reasoning_content`, `reasoning_parser_plugin`, `<think>`/`</think>` handling, `extract_reasoning`, `extract_reasoning_streaming`, `is_reasoning_end`, `ReasoningParser`, `ReasoningParserManager`, harmony channels (`<|channel|>analysis`/`final`), Qwen3 prompt-side `<think>`, DeepSeek-R1 missing start tag, Kimi K2 tool-section implicit end, Hunyuan state machine, Granite phrase markers, `enable_thinking=False`, `chat_template_kwargs={enable_thinking,thinking}`, reasoning-vs-content split, reasoning leaked into content, content empty while reasoning filled, structured output breaking with thinking disabled, tool calls not parsed when reasoning is on, adding a new reasoning model. Symptoms — "why is `reasoning_content` null on DeepSeek-R1", "Qwen3 JSON gibberish with `enable_thinking=False`". Applies without "parser" in prompt. Also implicit — "audit reasoning config", "deploy-memo reasoning", "thinking split wrong". NOT prompt-side Jinja (→ `vllm-chat-templates`) or tool-call JSON extraction (→ `vllm-tool-parsers`).
 ---
@@ -47,7 +47,7 @@ Optional:
 
 ## The CLI path (what `--reasoning-parser qwen3` actually triggers)
 
-`vllm/engine/arg_utils.py:985` (v0.27.1; grep for `--reasoning-parser` — line moves between releases) declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser`. `api_server.py` validates it against `ReasoningParserManager.list_registered()` at startup (invalid name = fast-fail with the list of registered names).
+`vllm/engine/arg_utils.py:985` (v0.27.1; grep for `--reasoning-parser` — line moves between releases) declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser`. Validation against `ReasoningParserManager.list_registered()` happens at startup (invalid name = fast-fail with the list of registered names) — **in `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` from v0.29.0 on**, not `vllm/entrypoints/openai/api_server.py`, which is now a ~59-line deprecated re-export shim.
 
 On request, `OpenAIServingChat` instantiates a **fresh parser per request** via `self.reasoning_parser_cls(tokenizer, chat_template_kwargs=chat_template_kwargs)` (`vllm/entrypoints/openai/chat_completion/serving.py:240`). "Fresh per request" is load-bearing for stateful parsers — see Hunyuan in the matrix.
 
@@ -91,7 +91,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 ## The per-model matrix
 
-`references/parser-matrix.md` — one row per registered name (**29** at v0.27.0: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `glm47`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `inkling`, `kimi_k2`, `kimi_k3`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
+`references/parser-matrix.md` — one row per registered name (**34** at v0.30.0; the 29 below are the v0.27.0 set, joined by `hy_v4`, `ling3` and `muse_glimmer` at v0.29.0 and by `deepseek_v41` and `k2_horizon` at v0.30.0: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `glm47`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `inkling`, `kimi_k2`, `kimi_k3`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
 Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. The non-obvious cases worth knowing before reading it: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` requires `MistralTokenizer`, `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
@@ -99,16 +99,20 @@ Routing (which family each name belongs to — `<think>` two-token, delegating w
 
 `references/writing-custom-parser.md` for the step-by-step. **This
 `ReasoningParser` subclass shape remains the supported path for out-of-tree
-parsers** — it is what `--reasoning-parser-plugin` loads, and 17 of the 29
-in-tree names still use it.
+parsers** — it is what `--reasoning-parser-plugin` loads, and it is still the majority
+shape — 17 of the 29 names at v0.27.0, and every name added since except
+`ling3` and `deepseek_v41`. From v0.30.0 a plugin can also be discovered from
+site-packages entry points ([#45241](https://github.com/vllm-project/vllm/pull/45241)).
 
 Be aware there is now a **second, in-tree-only shape**: `vllm/parser/<model>.py`
 defines one parser class per model, and
 `make_adapters(XParser)` in `vllm/parser/engine/registered_adapters.py` derives
 *both* `XParserReasoningAdapter` and `XParserToolAdapter` from it — the unified
 reasoning+tool design of RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713). **12 of the 29
-names are on it at v0.27.0**: `deepseek_v4`, `gemma4`, `glm45`, `glm47`,
+[#32713](https://github.com/vllm-project/vllm/issues/32713) — bot-closed
+NOT_PLANNED 2026-07-24 for inactivity while the code kept shipping, so read it
+as a stale close, not a rejection. **12 of the 29 names are on it at v0.27.0**
+(`ling3` joined at v0.29.0 and `deepseek_v41` at v0.30.0, spread over 11 files): `deepseek_v4`, `gemma4`, `glm45`, `glm47`,
 `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`,
 `seed_oss`. If you open one of those as a worked example you will find a
 three-line re-export and the logic elsewhere.

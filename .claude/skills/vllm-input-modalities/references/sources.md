@@ -1,6 +1,6 @@
 # External references — verification audit
 
-Freshened: 2026-09-15 — every row probed, and **every release placement re-derived from tag ancestry rather than merge dates**.
+Freshened: 2026-09-22 — every row probed; all 34 URLs 200 and every PR placement re-derived from tag ancestry rather than merge dates. Content claims hold; the drift is in source-code line anchors, several of which were already wrong at the v0.27.0 baseline they were stamped against. One real content error found: `SequencePoolingType` is `CLS|LAST|MEAN` and `ALL`/`STEP` belong to a separate `TokenPoolingType` (`vllm/config/pooler.py`), a split that predates this skill's own baseline. New at v0.30.0 and not yet covered: torchcodec `audio_backend` in `--media-io-kwargs` (#51826) and torchaudio as the default resampler (#52598).
 
 **Two placements were wrong**, both the same way: the release published *after* the PR merged while not containing it, because its branch was already cut. That is exactly what makes "merged before X, so it is in X" feel safe. One of the two had reached operator-facing guidance in `stt.md` as a version floor one release too low.
 

@@ -68,10 +68,16 @@ starves everything else.
 
 **Check the model is registered, not merely loadable.** vLLM's embedding registry
 (`vllm/model_executor/models/registry.py`, `_EMBEDDING_MODELS`) has explicit
-entries for `Qwen3Model`, `Gemma3TextModel`, `BgeM3EmbeddingModel`,
+entries for `Gemma3TextModel`, `BgeM3EmbeddingModel`,
 `XLMRobertaModel`, `LlamaBidirectionalModel` and others. An architecture that is
 **absent** falls through to generic auto-conversion, which defaults to last-token
 pooling — wrong for any mean-pooled model, and wrong silently.
+
+**`Qwen3Model` / `Qwen3ForCausalLM` are NOT in `_EMBEDDING_MODELS`** (checked at
+vLLM v0.30.0). Qwen3-Embedding goes through exactly that generic `--convert embed`
+auto-conversion — vLLM's own docs mark it `C` for converted. It works anyway only
+because Qwen3-Embedding genuinely wants last-token pooling, so the default lands
+right by coincidence, not by vetting. Do not cite it as a registered architecture.
 
 Known cases as of 2026-08-05:
 

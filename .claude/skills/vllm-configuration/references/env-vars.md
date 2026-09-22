@@ -1,6 +1,6 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.27**, re-checked var-by-var against `envs.py` at tag `v0.27.0` on 2026-08-11).
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.30**, re-diffed against `envs.py` at tag `v0.30.0` on 2026-09-22). The v0.27.0 → v0.30.0 diff removed 7 vars and added 27; the additions are model- and hardware-specific footguns outside this catalog's operator-facing scope, and of the removals only the three named in SKILL.md were ever catalogued here.
 
 **Do not assume vLLM minors leave operator env vars alone.** A prior pass
 concluded they only touch torch/C++/pooling; the v0.22–v0.25 window disproved

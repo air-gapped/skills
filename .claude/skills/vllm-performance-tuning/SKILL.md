@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.27.0** (2026-08-10); **latest stable is v0.29.0** (2026-09-09), via v0.28.0. **v0.28.0 added a new ≥160 GiB device tier** (#51726) whose `vllm serve` default is 16384 — it did **not** raise the H100/H200 server default, which is still 8192. See `references/scheduler-and-compile.md` for all three tiers. Last freshened 2026-09-15.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.30.0** (2026-09-22), the latest stable. **v0.28.0 added a new ≥160 GiB device tier** (#51726) whose `vllm serve` default is 16384 — it did **not** raise the H100/H200 server default, which is still 8192. See `references/scheduler-and-compile.md` for all three tiers. Last freshened 2026-09-22.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 

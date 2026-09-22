@@ -1,6 +1,6 @@
 # External sources
 
-Freshened: 2026-08-18
+Freshened: 2026-09-22 — every row probed at v0.30.0. All issue/PR states reproduce, including the two stale-bot closes that are still not fixes. Three rows moved: the retention-interval env var went from deprecated to removed, `kvcr` joined the secondary-tier registry, and the NIXL pin reached 1.4.1.
 
 Load-bearing external references cited in this skill, with verification dates. Probed via `gh api` / `gh release list` / WebFetch. Only refreshed when the skill-improver `freshen` mode runs — not meant to be exhaustive.
 

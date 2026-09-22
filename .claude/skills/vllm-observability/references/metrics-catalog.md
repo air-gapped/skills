@@ -44,6 +44,7 @@ Additional labels appear on specific series (`finished_reason`, `reason`, `sourc
 | `vllm:num_requests_waiting` | Gauge | count | — | Requests waiting for scheduling capacity (sum of waiting + deferred) |
 | `vllm:num_requests_waiting_by_reason` | Gauge | count | `reason={capacity,deferred}` | **V1**. `capacity` = blocked by KV/token limits; `deferred` = transient (LoRA budget, KV transfer, blocked) |
 | `vllm:num_preemptions_total` | Counter | count | — | Total scheduler preemptions (evictions). Alert on any sustained rate |
+| `vllm:request_num_preemptions` | Histogram | count | — | Per-request preemption count, buckets 1,2,3,4,5,10,20. **New in v0.30.0** ([#49984](https://github.com/vllm-project/vllm/pull/49984)) — use it to tell "a few requests preempted repeatedly" from "many preempted once", which the counter above cannot |
 | `vllm:engine_sleep_state` | Gauge | binary | `sleep_state={awake,weights_offloaded,discard_all}` | **V1**. 1 = current state, 0 = other states |
 
 Deprecated on V1: `vllm:num_requests_swapped` (always 0).

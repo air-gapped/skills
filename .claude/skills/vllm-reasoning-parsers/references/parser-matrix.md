@@ -1,6 +1,6 @@
 # Per-parser matrix
 
-One row per registered name. **29 registered names** at v0.27.0.
+One row per registered name. **34 registered names** at v0.30.0; the rows below are the 29-name v0.27.0 set. Added since, and not yet given rows here: `hy_v4`, `ling3`, `muse_glimmer` (v0.29.0), `deepseek_v41` (`DeepSeekV41ParserReasoningAdapter`, adapter path) and `k2_horizon` (`K2HorizonReasoningParser`, own file) at v0.30.0.
 
 **Two implementation paths now — check which one a name is on before reading its
 source.** A refactor has moved several parsers into a new top-level

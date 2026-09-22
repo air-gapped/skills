@@ -73,8 +73,10 @@ Both are first-class CLI flags; the authoritative value lists are the
 ignored `--linear-backend`** until [PR #50273](https://github.com/vllm-project/vllm/pull/50273)
 (merged 2026-07-30, v0.27.0). On v0.26.0 and earlier, setting a backend for a
 ModelOpt W4A16 checkpoint is a no-op — verify the kernel actually changed rather
-than trusting the flag. `auto` still resolves to Marlin post-fix; the PR only
-added the plumbing.
+than trusting the flag. `auto` resolved to Marlin post-fix on v0.27.x-v0.29.x;
+the PR only added the plumbing. **This flipped at v0.30.0**: FlashInfer CuTeDSL
+NVFP4 W4A16 is now the default over Marlin on SM100/103
+([#53014](https://github.com/vllm-project/vllm/pull/53014)).
 
 ## MoE backend oracles
 

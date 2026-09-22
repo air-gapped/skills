@@ -175,7 +175,7 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 | Flag | Purpose |
 |---|---|
 | `--omni` | Enable vllm-omni entrypoint (load-bearing) |
-| `--stage-configs-path` | Override default stage-config YAML |
+| `--deploy-config` | Stage-config YAML. **`--stage-configs-path` and the legacy `stage_args` loader were REMOVED at v0.28.0** — with them went `vllm_omni/deploy/qwen3_omni_moe_async_chunk.yaml`. Use `--deploy-config` plus the `--async-chunk` bool override. |
 | `--task-type` | Qwen3-TTS: `CustomVoice` \| `VoiceDesign` \| `Base` |
 | `--ulysses-degree` / `--usp` | Ulysses sequence parallelism for DiT |
 | `--ulysses-mode` | `strict` (divisibility) \| `advanced_uaa` (uneven shapes) |

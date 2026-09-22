@@ -33,7 +33,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
 
-**Except for the 14 names on the unified-parser path** (13 through v0.27.1, plus `ling3` at v0.29.0), where that file is a
+**Except for the 15 names on the unified-parser path** (13 through v0.27.1, `ling3` at v0.29.0, `deepseek_v41` at v0.30.0), where that file is a
 stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 
 | CLI name(s) | Registry class | Real implementation |
@@ -49,8 +49,9 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
 | `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
 | `ling3` | `Ling3Parser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
+| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` — **new at v0.30.0** (DeepSeek-V4.1-Flash) |
 
-**Three more names arrived at v0.29.0 but are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`) and `muse_glimmer` (`MuseGlimmerToolParser`). None imports `registered_adapters`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **49 names at v0.29.0**, up from 45 at v0.27.0, no removals.
+**Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) at v0.29.0, and `k2_horizon` (`K2HorizonToolParser`) at v0.30.0. None imports `registered_adapters`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0** (49 at v0.29.0, 45 at v0.27.0) — no removals in either hop.
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
@@ -59,8 +60,8 @@ the adapter: `grep -l "registered_adapters import" vllm/tool_parsers/*.py`.
 
 This is the same refactor described in `vllm-reasoning-parsers` — a single
 per-model parser now backs **both** the tool and reasoning adapters (RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713), still formally OPEN
-and stale-bot-marked while the code ships). Practical consequence: a grammar
+[#32713](https://github.com/vllm-project/vllm/issues/32713), bot-closed NOT_PLANNED
+2026-07-24 while the code kept shipping — a stale close, not a decision). Practical consequence: a grammar
 change to `vllm/parser/qwen3.py` moves tool *and* reasoning behaviour at once —
 they are no longer independent surfaces for those models.
 
@@ -263,4 +264,4 @@ Compact supplementary maps. Each points back at the source rather than duplicati
 
 ---
 
-**Last verified: 2026-08-11** against vLLM **v0.27.0**. See `references/sources.md` for per-reference probe details and timestamps.
+**Last verified: 2026-09-22** against vLLM **v0.30.0**. See `references/sources.md` for per-reference probe details and timestamps.

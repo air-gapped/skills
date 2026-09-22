@@ -1,5 +1,7 @@
 # Sources — code, docs, issues, live verification
 
+Freshened: 2026-09-22 — every row probed against v0.11.4 (2026-09-21), four releases past the v0.11.0 baseline. All four CVEs re-checked against the advisory feed: the v0.11.1 floor still holds, no advisory since reaches higher. Two API-surface changes: the `access_grants` update bug was fixed at v0.11.2 and its safe-value guidance inverted with it, and `DELETE /api/v1/auths/api_key` arrived at v0.11.1 (#28874) so a key can be revoked outright rather than only replaced.
+
 Every claim in this skill traces to one of these groups. Load to verify a specific fact or run `freshen` mode. Research provenance: `.claude/skills/autoresearch/results/open-webui-api-research-2026-07-21.md` (5-agent STORM pass, code-grounded).
 
 ## Verification log

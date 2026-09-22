@@ -355,7 +355,7 @@ one of `dflash_config.mask_token_id` / `pard_token` / `ptd_token_id` in
 the draft `config.json` (checked in that order at v0.25.1, re-verified
 2026-07-21; grep `parallel_drafting_token_id` rather than a line number).
 Don't pass `parallel_drafting:true` with the vanilla checkpoint — engine
-init will fail with exactly that three-name `ValueError`.
+init will fail with exactly that `ValueError` — **at v0.30.0 it names five keys**, `dflash_config.mask_token_id`, `mask_token_id`, `dspark_noise_token_id`, `pard_token`, `ptd_token_id` (`vllm/v1/spec_decode/llm_base_proposer.py:365-382`).
 
 ### MTP (`gemma-4-31B-it-assistant`) — 0% acceptance on quantized targets
 

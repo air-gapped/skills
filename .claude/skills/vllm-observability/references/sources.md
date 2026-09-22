@@ -1,5 +1,7 @@
 # External sources — last-verified inventory
 
+Freshened: 2026-09-22 — every row probed. The `loggers.py` name set was re-diffed v0.29.0 -> v0.30.0: **37 -> 38 names**, adding `vllm:request_num_preemptions`, no removals or renames. Sweeping past `loggers.py` also found three series the mechanical diff misses, from the new HiSparse connector (#56061): `vllm:hisparse_cache_hits_total`, `vllm:hisparse_cache_misses_total`, `vllm:hisparse_host_to_device_bytes_total` in `vllm/distributed/kv_transfer/kv_connector/v1/hisparse/stats.py`. Bucket boundaries moved to named constants in `vllm/v1/metrics/buckets.py` (#48866) with every numeric value byte-identical. Exceptions: 2 rows blocked (Medium 403 to bare curl; hud.pytorch.org 429).
+
 Tracks every external reference the `vllm-observability` skill depends on, when it was last probed, and the verification result. Keep this file current every time the skill is freshened. `skill-improver` Dim 9 staleness cap uses the most-recent date here.
 
 All dates UTC.

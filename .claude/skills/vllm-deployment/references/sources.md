@@ -1,5 +1,7 @@
 # Sources — external references probed during `freshen` passes
 
+Freshened: 2026-09-22 — every row probed; ~90 URLs swept. Three version rows moved: vLLM v0.30.0 (2026-09-22), NVIDIA Dynamo v1.5.0 (2026-09-21), GAIE v1.6.2 (2026-09-17). LWS, llm-d, AIBrix, production-stack, semantic-router and agent-router all unchanged. Exceptions: 3 dead doc URLs (KServe `/docs/` index, thenets Podman post moved under `/posts/`, the AWS ai-on-eks Dynamo blueprint 404s with no replacement found) and vllm-semantic-router.com serves a `*.dnspod.cn` certificate — a genuine misconfiguration, not a UA block.
+
 Records verification of ecosystem refs and versions. Verified via `gh api repos/<owner>/<repo>/releases/latest` and direct content probes.
 
 Last freshen pass: **2026-09-15** (prior: 2026-08-11, 2026-07-21, 2026-05-29, 2026-04-24)

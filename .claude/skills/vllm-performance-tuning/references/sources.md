@@ -1,5 +1,7 @@
 # Sources
 
+Freshened: 2026-09-22 (exceptions: 2 rows, noted inline) — every row probed at v0.30.0. 93 of 95 URLs 200; all 47 cited issue/PR states reproduce. The whole flag surface, the three-tier device-gated batching defaults, FULL_AND_PIECEWISE, --async-scheduling, EPLB and VLLM_USE_DEEP_GEMM were re-read at v0.30.0 and are unchanged. One long-dead instruction found: VLLM_ALL2ALL_BACKEND was removed by #33535 on 2026-02-03 and the default backend is allgather_reducescatter, not naive — wrong here for over seven months and missed by three prior passes because nothing re-read the config field. Exceptions: techcommunity.microsoft.com and hpcwire.com both 403 to bare curl.
+
 All citations backing the skill. Verify any claim via the linked source.
 
 ## vLLM source code + benchmarks (Last verified: 2026-08-11 against v0.27.0)

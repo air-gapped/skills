@@ -5,7 +5,7 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 Rows written `a.py → vllm/parser/b.py` are on the unified engine: `a.py` is a
 stub of a few lines and the real logic is in `b.py`. The filename does not tell
 you which — `grep -l "registered_adapters import" vllm/tool_parsers/*.py` does.
-Verified at v0.27.0.
+Verified at v0.30.0.
 
 ## JSON-in-sentinels family
 
