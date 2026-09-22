@@ -272,6 +272,30 @@ All fields from `vllm/config/speculative.py`:
 - `revision` / `code_revision` — HF hub revision pin
 - `draft_load_config: LoadConfig | None` — separate from target
 
+## Choosing `num_speculative_tokens`
+
+Sweep it; do not inherit it. The best N moves **within a single model family**
+— measured on Qwen3.6-27B peaking at N=4-5 while Qwen3.6-35B-A3B still climbed
+at N=6, and on Qwen3.5-27B peaking at N=5 for GSM8K/MATH500 but N=3 for
+MT-Bench. A model-card value is a starting point, not an answer.
+
+| Method | Start at | Then |
+|---|---|---|
+| `mtp` | **N=1** — least added sequential drafting, so correctness and stability are isolated first | sweep 2..7 |
+| `eagle3`, Gemma 4 MTP | checkpoint's recommended N | sweep up; throughput typically rises over the first few values, then plateaus |
+| `dflash` | the checkpoint's own value — **`block_size` caps N**, so a 16-block checkpoint tops out there | do not sweep past the cap |
+
+**Stop condition, read off a metric the skill already scrapes.** Raise N while
+`vllm:spec_decode_num_accepted_tokens_per_pos` stays healthy at the *late*
+positions. When acceptance decays there, the extra candidates add drafting and
+verification work while committing nothing — throughput flattens, then
+regresses. That per-position histogram, not the aggregate acceptance rate, is
+what tells you N is too high.
+
+Sweep against representative traffic, not random tokens: acceptance tracks the
+predictability of real output, so a reasoning workload and a chat workload
+select different N on the same model.
+
 **N-gram tuning:**
 - `prompt_lookup_min: int | None` (default 5)
 - `prompt_lookup_max: int | None` (default 5) — TODO in source

@@ -4,6 +4,8 @@ Freshened: 2026-09-22 — every row probed at v0.30.0; all 30 URLs 200 and all ~
 
 **ArcticInference v0.3.0 (2026-08-28) rebased onto vLLM v0.26.0**, superseding the v0.2.0 note that pinned it to vLLM 0.14.1. The repo is active, not dormant. The version-lag caution still applies — v0.26.0 trails the current v0.29.0 — but the gap it warns about is much narrower than the rows below describe.
 
+**Added 2026-09-22** — [Exploring Speculative Decoding in vLLM on AMD GPUs](https://vllm.ai/blog/2026-08-23-speculative-decoding-amd-gpus) (vLLM Blog, 2026-08-23, AMD + Embedded LLM). Source for `methods.md` §"Choosing `num_speculative_tokens`" and the DeepSpec publisher row in `eagle3.md`. **Despite the title it is not AMD-specific** — the drafting methods, memory overhead and N-tuning loop are hardware-neutral; AMD is only what the sweeps ran on. The per-model throughput ratios in its appendix are deliberately NOT imported: they are workload-specific and the post says so itself. (The site labels it "242 min read"; it is ~15.7k words, roughly 60-70 min — the estimator is counting 90 tables / 522 rows.)
+
 Cited upstream sources for this skill, probed on the `Last verified` date. Used
 by skill-improver Dim 9 (staleness) and by anyone auditing whether a claim is
 still current.

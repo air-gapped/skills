@@ -45,6 +45,8 @@ Stock checkpoints are chat-tuned. Domain mismatch matters.
 - `yuhuili/EAGLE-LLaMA3.1-Instruct-8B` — EAGLE-1 equivalent
 - `RedHatAI/*-speculator.eagle3` — vetted by Red Hat for production, same
   architecture family
+- `deepseek-ai` **DeepSpec** — matched EAGLE-3 / DFlash / DSpark checkpoints for
+  the same targets, so a method swap does not also change the draft lineage
 - Hugging Face `yuhuili/models` and `RedHatAI/speculator-models` collections
 - Per-target classes in `vllm/model_executor/models/`:
   `llama_eagle3.py`, `deepseek_eagle3.py`, and auto-wrapped variants for
