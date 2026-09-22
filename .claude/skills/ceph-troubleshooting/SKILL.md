@@ -70,7 +70,8 @@ Defaults nearfull 0.85 (warning) / backfillfull 0.90 (no backfill *into*
 that OSD) / full 0.95 (cluster stops client writes) / failsafe 0.97 (the OSD
 refuses writes regardless); keep them in that order.
 `backfill_toofull` means the *target* OSD is past backfillfull: reweight or
-add capacity; raise a ratio only by 0.01–0.02, briefly, and set it back.
+add capacity; raise a ratio (`ceph osd set-full-ratio` /
+`set-backfillfull-ratio`) only by 0.01–0.02, briefly, and set it back.
 
 ## PG states
 
