@@ -124,15 +124,10 @@ Do not recommend it for production.
 
 ## Benchmarking
 
-| Layer | Tool | Watch |
-|---|---|---|
-| RADOS | `rados bench -p <pool> 60 write --no-cleanup`, then `seq` / `rand`, then `rados -p <pool> cleanup` | Without `--no-cleanup` the read phases have nothing to read |
-| RBD | `rbd bench --io-type write --io-size 4K --io-pattern rand` | Bypasses the kernel; not what a krbd PVC sees |
-| PVC path | fio inside a pod on the PVC (`--direct=1`) | Matches krbd + filesystem, the real client path |
-| Cluster-wide | CBT (`ceph/cbt`) | Repeatable multi-client runs |
-
-Run several clients in parallel — one client cannot saturate a cluster —
-and use a dataset larger than the OSD caches.
+`rados bench` (with `--no-cleanup` before the read phases) and `rbd bench`
+measure librados/librbd, not what a PVC sees: a krbd PVC is only measured
+by fio inside a pod on that PVC (`--direct=1`). Use several clients and a
+dataset larger than the OSD caches; CBT (`ceph/cbt`) for repeatable runs.
 
 ## Field reports
 
