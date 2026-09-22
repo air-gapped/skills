@@ -1,0 +1,675 @@
+{
+  "metadata": {
+    "skill_name": "ceph-performance",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-22T23:46:58Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains that 21500 is the default fallback because the OSD bench result exceeded the SSD sanity threshold (80000 IOPS) and was discarded",
+          "passed": true,
+          "evidence": "\"If that measured value exceeds a sanity ceiling \u2014 500 IOPS for HDD, 80 000 IOPS for SSD \u2014 Ceph discards it as implausible and falls back to the default (21 500 for SSD)... Your Gen4 NVMe drives doing ~700k random 4K write IOPS raw blow straight through the 80k ceiling\""
+        },
+        {
+          "text": "Recommends measuring real device capacity (e.g. fio) and setting osd_mclock_max_capacity_iops_ssd explicitly per OSD",
+          "passed": true,
+          "evidence": "Gives an explicit fio command (\"fio --name=iops --filename=/dev/nvmeXnY --direct=1 --rw=randwrite --bs=4k ...\") then \"ceph config set osd.N osd_mclock_max_capacity_iops_ssd <measured_iops>. Do this for every OSD\""
+        },
+        {
+          "text": "Notes the value is per OSD / must be checked on every OSD",
+          "passed": true,
+          "evidence": "\"Check every OSD, not just osd.0\" (with a for-loop over `ceph osd ls`), and \"The value is per-OSD, not global \u2014 a single `ceph config set global ...` does not work here.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States a separate cluster network is optional, not required, especially at 25GbE or faster",
+          "passed": true,
+          "evidence": "'No. Your colleague is repeating pre-Nautilus-era advice. Current Ceph docs (Tentacle network-config-ref) say a single public network \"functions just fine ... especially with 25GE or faster\" links. At 2x25GbE bonded per node, you are squarely inside the case the docs call out as fine on one network.' and 'The recommendation to add a separate cluster network is now conditional: reach for it on \u226410GbE links...'"
+        },
+        {
+          "text": "Explains host networking avoids pod-network latency but provides no isolation",
+          "passed": true,
+          "evidence": "Table row: 'Host networking (`network.provider: host`) | None \u2014 OSDs bind to node IPs and traffic still traverses the same physical NICs/bond as everything else on the host | Removes pod-network (CNI overlay/VXLAN) latency and encapsulation overhead, but gives **no actual network isolation** \u2014 it's a latency optimization, not a segmentation one'"
+        },
+        {
+          "text": "Recommends Multus with the macvlan CNI (and whereabouts IPAM) if isolation is wanted",
+          "passed": true,
+          "evidence": "'Multus (`network.provider: multus`) | Real isolation ... Requires a CNI plugin (Rook's documented, recommended path is `macvlan` with `whereabouts` IPAM)...' and 'Multus is what actually gives isolation... (macvlan + whereabouts is Rook's supported combination...)'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names the pool flag allow_ec_optimizations",
+          "passed": true,
+          "evidence": "Line 7-8: '`allow_ec_optimizations` is a **per-pool, irreversible** switch (`ceph osd pool set <pool> allow_ec_optimizations true`).' Named clearly and confidently, repeated throughout."
+        },
+        {
+          "text": "States that enabling it is irreversible for the pool",
+          "passed": true,
+          "evidence": "Line 7-9: 'is a per-pool, irreversible switch... Once set, you can't turn it back off for that pool.' Stated as a direct, unhedged fact."
+        },
+        {
+          "text": "Explains stripe_unit is fixed at pool creation and that the old 4K default benefits less than 16K (so a new pool may be better)",
+          "passed": true,
+          "evidence": "Lines 29-34: 'Stripe unit is fixed at pool creation and can't be changed after the fact... a pool stuck at the old 4 KiB stripe_unit gains much less from Fast EC's partial-read/parity-delta write optimizations than a pool created with 16 KiB (general workloads) or up to 256 KiB (read-heavy). You cannot fix this by flipping the flag on the existing pool.'"
+        },
+        {
+          "text": "Recommends testing first / mentions the 20.2.0 OSD crash-loop report when enabling it on a pool with ec_overwrites",
+          "passed": true,
+          "evidence": "Lines 21-24: 'Turning on `allow_ec_optimizations` for a pool that already has `ec_overwrites` enabled crash-looped OSDs on 20.2.0 (`interval_set.h:365`...). You're on 20.2.4, and nothing in current reference material confirms this was fixed by that point \u2014 treat it as not verified safe... This is precisely your scenario.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States the current default bluestore_min_alloc_size_hdd is 4 KiB (4096)",
+          "passed": true,
+          "evidence": "\"On current Ceph (you're on Squid 19.2.x), bluestore_min_alloc_size_hdd and bluestore_min_alloc_size_ssd both default to 4 KiB.\""
+        },
+        {
+          "text": "Says the 64 KiB advice is obsolete / not recommended now",
+          "passed": true,
+          "evidence": "\"That runbook advice is obsolete.\" and \"that default was lowered to 4 KiB years ago, and the guidance was never updated in your runbook.\""
+        },
+        {
+          "text": "States the value is fixed at OSD creation and changing it requires redeploying (recreating) the OSD",
+          "passed": true,
+          "evidence": "\"The value is baked in at OSD creation (it's read once when the BlueStore volume is formatted, not re-read at runtime). Setting the config option after the fact does nothing to existing OSDs \u2014 you would have to destroy and redeploy each OSD (drain, remove, recreate) for a new value to take effect.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States osd_memory_target will be 4Gi because the request is used 1:1",
+          "passed": true,
+          "evidence": "'Under Rook, Ceph reads `POD_MEMORY_REQUEST` and uses it **1:1** as `osd_memory_target`. You set a request, so: **`osd_memory_target` = 4 GiB** (the request value, verbatim \u2014 not derived from the limit at all).'"
+        },
+        {
+          "text": "Explains the limit x 0.8 rule applies only when no request is set",
+          "passed": true,
+          "evidence": "'The `osd_memory_target_cgroup_limit_ratio` (0.8) fallback only applies when **no request** is set and Ceph has to derive the target from the limit instead (in that case it would be limit \u00d7 0.8). Since you set both, the request wins and the limit is not used for the target calculation.'"
+        },
+        {
+          "text": "Recommends verifying with ceph config show osd.N osd_memory_target",
+          "passed": false,
+          "evidence": "No occurrence of 'ceph config show' or any equivalent verification command anywhere in the file."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends setting the bulk flag on the large pool",
+          "passed": true,
+          "evidence": "'## 1. Set the `bulk` flag on the big pool' with command `ceph osd pool set <big-pool> bulk true` and explanation 'This is the single most important knob here'."
+        },
+        {
+          "text": "Recommends setting target_size_ratio on the large pool",
+          "passed": true,
+          "evidence": "'## 2. Set `target_size_ratio` on the big pool ... `ceph osd pool set <big-pool> target_size_ratio 0.9` ... Set it to the fraction of total cluster capacity you expect this pool to consume long-term (~0.9 here, matching your ~90% figure)'."
+        },
+        {
+          "text": "Mentions mon_target_pg_per_osd default 100 and that raising it (docs recommend 200) increases PGs per OSD",
+          "passed": true,
+          "evidence": "'## 3. Raise `mon_target_pg_per_osd` ... The default is 100 PGs/OSD; current docs recommend 200 for all but the smallest clusters. With 24 OSDs this changes the overall PG budget the autoscaler has to allocate across all pools ... at the default of 100 the autoscaler is working with a smaller total PG pool to divide up, which compounds the under-allocation to your big pool.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States ceph-csi mounts RBD PVCs with krbd (kernel RBD) by default",
+          "passed": true,
+          "evidence": "\"Rook's default ceph-csi RBD StorageClass mounts volumes with the **krbd** kernel client, not librbd.\""
+        },
+        {
+          "text": "States librbd cache/readahead settings do not apply to krbd-mounted PVCs",
+          "passed": true,
+          "evidence": "\"`rbd_cache`, `rbd_cache_policy` (writeback vs writearound), and `rbd_readahead_max_bytes` are all librbd-only settings ... The krbd kernel module has its own separate I/O path ... and none of the `rbd_*` config options reach it.\""
+        },
+        {
+          "text": "Notes rbd-nbd would use librbd but is alpha / not recommended for production",
+          "passed": true,
+          "evidence": "\"Rook/ceph-csi's `rbd-nbd` mounter is still Alpha and not recommended for production, so switching to it just to pick up librbd caching isn't a good trade.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States Crimson is still a tech preview / not suitable for production in Tentacle",
+          "passed": true,
+          "evidence": "\"Tentacle (20.2) is the release Ceph shipped Crimson/SeaStore in, and its own docs are explicit: Crimson is at **\\\"tech preview stage and is not suitable for production use\\\"** (docs.ceph.com/en/tentacle/dev/crimson/crimson/, verified 2026-09-23).\""
+        },
+        {
+          "text": "Does not recommend deploying production on crimson-osd or SeaStore",
+          "passed": true,
+          "evidence": "\"Do not deploy the new cluster on crimson-osd. Stay on classic OSD + BlueStore.\" and bottom line: \"Deploy on classic OSD/BlueStore ... and revisit Crimson only after a future release notes it as production-ready.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses rados bench ... write --no-cleanup before the seq/rand read phases",
+          "passed": true,
+          "evidence": "`rados bench -p <pool> 60 write --no-cleanup` followed by `rados bench -p <pool> 60 seq` and `rados bench -p <pool> 60 rand`"
+        },
+        {
+          "text": "Includes cleaning up the benchmark objects afterwards",
+          "passed": true,
+          "evidence": "`rados -p <pool> cleanup` command shown, plus pitfall: \"Leftover benchmark objects consume pool capacity and can confuse PG autoscaler sizing if you skip `rados -p <pool> cleanup`.\""
+        },
+        {
+          "text": "Recommends fio inside a pod on the PVC (direct I/O) to measure the real client path",
+          "passed": true,
+          "evidence": "\"run fio inside a pod, on the mounted PVC, with direct I/O\" with `fio --name=pvc-write --directory=/data --direct=1 ...` and `--direct=1 is required, or you're benchmarking the pod's page cache, not the storage.\""
+        },
+        {
+          "text": "Mentions running multiple clients in parallel or a dataset larger than caches",
+          "passed": true,
+          "evidence": "\"One client under-reports cluster capacity ... Run several clients in parallel\" and \"Dataset must exceed OSD/BlueStore cache. A short run against a small working set benchmarks RAM, not the devices\"; also \"Use several pods in parallel\" for the PVC section"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Explains that 21500 is the default fallback because the OSD bench result exceeded the SSD sanity threshold (80000 IOPS) and was discarded",
+          "passed": false,
+          "evidence": "Y never mentions the 80000 IOPS sanity ceiling or a discarded-because-too-high measurement. It instead claims the fallback appears because \"the mClock scheduler's self-benchmark either never ran or never wrote back a real result\" and attributes the cause to CPU-throttled benchmarking, benchmark timing, or `osd_mclock_skip_benchmark` \u2014 a different (and for this scenario incorrect) mechanism than the assertion describes."
+        },
+        {
+          "text": "Recommends measuring real device capacity (e.g. fio) and setting osd_mclock_max_capacity_iops_ssd explicitly per OSD",
+          "passed": true,
+          "evidence": "\"Use `ceph tell osd.N bench` (or your own `fio` run against the *raw* OSD device, 4K random write...) to get a trustworthy per-OSD number... Set it directly instead of hoping the internal benchmark recomputes correctly: `ceph config set osd.N osd_mclock_max_capacity_iops_ssd <measured_value>`\""
+        },
+        {
+          "text": "Notes the value is per OSD / must be checked on every OSD",
+          "passed": true,
+          "evidence": "\"Note the number is per-OSD (config store, not cluster-wide), so you may find it differs across `osd.0`..`osd.23` \u2014 check all of them, don't assume they're identical.\" plus the per-OSD confirmation loop over `ceph osd ls`."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States a separate cluster network is optional, not required, especially at 25GbE or faster",
+          "passed": true,
+          "evidence": "'Short answer: no, not for this hardware. For a 5-node cluster with 2x25GbE bonded per node (50Gbps aggregate...), a single flat/converged network for both client and replication traffic will be fine for the overwhelming majority of workloads.' and 'Ceph's own documentation has moved from \"you should always separate these\" toward describing the split as *optional*, useful mainly when you have bandwidth-constrained links or specific isolation/compliance requirements.'"
+        },
+        {
+          "text": "Explains host networking avoids pod-network latency but provides no isolation",
+          "passed": false,
+          "evidence": "Y does not frame host networking as latency-only/no-isolation. Instead it recommends 'Host networking with a VLAN sub-interface on the same bond \u2014 recommended' as the actual isolation mechanism ('Ceph daemons run in the host network namespace... behaves exactly like bare-metal Ceph'), i.e. it presents host networking (plus VLAN) as achieving isolation, contradicting the assertion that host networking provides no isolation. No statement that host networking alone avoids pod-network/CNI latency while giving no isolation."
+        },
+        {
+          "text": "Recommends Multus with the macvlan CNI (and whereabouts IPAM) if isolation is wanted",
+          "passed": false,
+          "evidence": "Y explicitly argues against Multus as the default isolation path: 'Multus \u2014 only if you have a specific reason beyond \"isolate the traffic\"' and 'For a 5-node Rook-Ceph cluster where the only goal is \"put replication traffic on its own logical network,\" Multus is disproportionate... VLAN + host networking gets you the same logical separation with none of that.' It mentions macvlan only as one example CNI option among several ('macvlan/ipvlan or SR-IOV'), and never mentions whereabouts IPAM at all, while its actual recommendation for isolation is host networking + VLAN, not Multus."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names the pool flag allow_ec_optimizations",
+          "passed": true,
+          "evidence": "Line 38-39: 'Also check `ceph osd pool get <pool> allow_ec_optimizations` (or whatever the actual key is called in your build's `pg_pool_t`...)' \u2014 names the flag, though heavily hedged as an unverified guess rather than a confident fact."
+        },
+        {
+          "text": "States that enabling it is irreversible for the pool",
+          "passed": false,
+          "evidence": "Point 7 only raises this as an open question: 'Confirm whether the flag, once set... can be safely turned back off... but if it's documented as one-way, that changes the risk calculus' \u2014 never asserts irreversibility as a fact."
+        },
+        {
+          "text": "Explains stripe_unit is fixed at pool creation and that the old 4K default benefits less than 16K (so a new pool may be better)",
+          "passed": false,
+          "evidence": "No mention of stripe_unit anywhere in the document. Point 2 discusses EC profile parameters (plugin, technique, k, m, crush-failure-domain) being immutable, but never stripe_unit or the 4K/16K distinction."
+        },
+        {
+          "text": "Recommends testing first / mentions the 20.2.0 OSD crash-loop report when enabling it on a pool with ec_overwrites",
+          "passed": true,
+          "evidence": "Section 'What I'd actually do' step 3: 'Build a disposable EC 4+2 pool with the same profile/crush rule, enable the feature there, and run: fio 4K/8K random write... scrub + deep-scrub full cycles, and at least one OSD restart/PG backfill cycle' \u2014 strong, explicit testing-first recommendation (does not mention the specific 20.2.0 crash-loop report)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States the current default bluestore_min_alloc_size_hdd is 4 KiB (4096)",
+          "passed": true,
+          "evidence": "\"Since Pacific, upstream moved the default bluestore_min_alloc_size_hdd down to 4KiB (matching the SSD default change)... Squid ships with that lower default unless someone has already overridden it on this cluster.\""
+        },
+        {
+          "text": "Says the 64 KiB advice is obsolete / not recommended now",
+          "passed": true,
+          "evidence": "\"The 64KiB default for HDD is the old BlueStore default (pre-Pacific).\" and later: \"So 'set it to 65536' is reintroducing pre-Pacific behavior on a Squid cluster, which is a real trade, not a free throughput win\" \u2014 frames it as a trade-off with real arguments for and against rather than unconditionally obsolete, but concludes it 'is not a strict upgrade over the modern default.' This satisfies the assertion, though less unambiguously flat-out 'obsolete' than a direct 'don't do this' statement."
+        },
+        {
+          "text": "States the value is fixed at OSD creation and changing it requires redeploying (recreating) the OSD",
+          "passed": true,
+          "evidence": "\"It is read once, when an OSD is built (ceph-volume/osd mkfs), and the chosen allocation unit is then baked into that OSD's on-disk allocator metadata permanently... The only way to change an existing OSD's minimum allocation size is to destroy and recreate it\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States osd_memory_target will be 4Gi because the request is used 1:1",
+          "passed": false,
+          "evidence": "Answer explicitly contradicts a 1:1 request mapping: 'Rook computes the target itself from `resources.requests.memory` and applies a safety-factor discount ... defaults to 0.8 ... osd_memory_target \u2248 4Gi * 0.8 \u2248 3.2 GiB'. It states the target is ~3.2Gi, not 4Gi, and attributes it to a request\u00d70.8 discount rather than a 1:1 use of the request."
+        },
+        {
+          "text": "Explains the limit x 0.8 rule applies only when no request is set",
+          "passed": false,
+          "evidence": "No mention of a limit\u00d70.8 fallback that applies only in the absence of a request. Instead the answer describes an always-applied request\u00d70.8 safety factor ('Rook's OSD memory-target safety factor defaults to 0.8' applied to the request), which is a different, unconditional mechanism, not the limit-only-when-no-request rule."
+        },
+        {
+          "text": "Recommends verifying with ceph config show osd.N osd_memory_target",
+          "passed": false,
+          "evidence": "No occurrence of 'ceph config show' or any equivalent verification command anywhere in the file."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6666666666666666,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends setting the bulk flag on the large pool",
+          "passed": true,
+          "evidence": "'1. **Mark the big pool as `bulk`.** This is the direct fix for your situation: `ceph osd pool set <big-pool> bulk true` ... This is the single change that most directly addresses \"autoscaler gave a huge pool too few PGs.\"'"
+        },
+        {
+          "text": "Recommends setting target_size_ratio on the large pool",
+          "passed": true,
+          "evidence": "'3. **Give the autoscaler an explicit weight for the big pool** ... `ceph osd pool set <big-pool> target_size_ratio 0.9` ... Set the small pools' ratios (or leave them unset) so the ratios reflect your real intended split.'"
+        },
+        {
+          "text": "Mentions mon_target_pg_per_osd default 100 and that raising it (docs recommend 200) increases PGs per OSD",
+          "passed": false,
+          "evidence": "Only mentions the default once, in passing, as part of the formula: '`mon_target_pg_per_osd` (default 100) \u00d7 OSD count'. It never recommends raising mon_target_pg_per_osd, never cites a docs-recommended value of 200, and never states that raising it increases PGs per OSD \u2014 the only later reference to reaching '~several hundred PGs' credits `bulk`+`scale-up`+target_size_ratio, not a mon_target_pg_per_osd change. The assertion's second half (raising it, 200, increases PGs/OSD) is entirely absent."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States ceph-csi mounts RBD PVCs with krbd (kernel RBD) by default",
+          "passed": true,
+          "evidence": "\"Rook's ceph-csi RBD provisioner/nodeplugin, with the **default StorageClass** (no `mounter` parameter set, or `mounter: krbd`), maps volumes using **`rbd map`**, i.e. the **in-kernel** `rbd` block driver (`krbd`).\""
+        },
+        {
+          "text": "States librbd cache/readahead settings do not apply to krbd-mounted PVCs",
+          "passed": true,
+          "evidence": "\"krbd never reads it, so `rbd_cache`, `rbd_cache_writethrough_until_flush`, `rbd_readahead_*`, etc. have zero effect on this volume.\" and \"krbd is a completely separate code path from librbd ... and does not link librbd or read `rbd_cache`/`rbd_readahead_*` options at all.\""
+        },
+        {
+          "text": "Notes rbd-nbd would use librbd but is alpha / not recommended for production",
+          "passed": false,
+          "evidence": "Answer states rbd-nbd routes I/O through librbd (\"Only `mounter: rbd-nbd` routes I/O through librbd via `rbd-nbd`\") but never mentions it being alpha status or not recommended for production; it instead frames it neutrally as a valid option (\"you'd need to set `mounter: rbd-nbd` on a (new) StorageClass \u2014 accepting rbd-nbd's added userspace-daemon overhead/failure-mode differences versus krbd\") with no alpha/production caveat."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States Crimson is still a tech preview / not suitable for production in Tentacle",
+          "passed": false,
+          "evidence": "Answer explicitly disclaims verification for Tentacle: \"This is a recommendation from general knowledge of the project's stated trajectory, not a verification against the actual Tentacle release notes \u2014 I did not fetch anything live for this answer.\" It only confirms tech-preview status for Squid (19.x): \"Squid (19.x) still described Crimson as experimental / tech-preview for a narrow slice of workloads.\" It never states, confirmed, that Crimson is tech preview specifically in Tentacle \u2014 it guesses from trajectory and tells the reader to go verify."
+        },
+        {
+          "text": "Does not recommend deploying production on crimson-osd or SeaStore",
+          "passed": true,
+          "evidence": "\"Don't put your new NVMe cluster on `crimson-osd` as the primary deployment target yet, and especially don't pair it with SeaStore for anything you care about. Deploy on classic `ceph-osd` + BlueStore\" \u2014 pilot use is scoped to \"a small side pool or a lab cluster ... against a representative workload\", not production."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses rados bench ... write --no-cleanup before the seq/rand read phases",
+          "passed": true,
+          "evidence": "`rados bench -p bench-pool 60 write --no-cleanup -t 16 -b 4M` followed by `rados bench -p bench-pool 60 seq -t 16` and `rados bench -p bench-pool 60 rand -t 16`"
+        },
+        {
+          "text": "Includes cleaning up the benchmark objects afterwards",
+          "passed": true,
+          "evidence": "`rados bench -p bench-pool 60 cleanup` (or deleting the throwaway pool), plus a pitfall note: \"`--no-cleanup` + forgetting `cleanup` afterward leaves the pool full of benchmark_data_... objects\""
+        },
+        {
+          "text": "Recommends fio inside a pod on the PVC (direct I/O) to measure the real client path",
+          "passed": true,
+          "evidence": "\"Run inside a pod that mounts the actual PVC\" with a pod manifest, then `fio ... --direct=1 ...` commands; states \"`--direct=1` is mandatory \u2014 otherwise you're benchmarking the pod's page cache, not the PVC.\""
+        },
+        {
+          "text": "Mentions running multiple clients in parallel or a dataset larger than caches",
+          "passed": true,
+          "evidence": "\"Run concurrently from multiple client hosts if you have them\" and \"size the benchmark (duration \u00d7 throughput, or explicit object count) to exceed aggregate OSD host RAM, or drop caches between phases\""
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9633,
+        "stddev": 0.11,
+        "min": 0.67,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5926,
+        "stddev": 0.3135,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.37",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

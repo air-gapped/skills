@@ -1,0 +1,116 @@
+{
+  "skill_name": "ceph-performance",
+  "schema_version": 1,
+  "provenance": "Written 2026-09-23 from Ceph option defaults at v20.2.4, docs.ceph.com tentacle pages (mclock, network, erasure-code, crimson), Rook v1.20.7 docs, ceph-csi docs and source.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "nvme-iops-low",
+      "prompt": "New Rook cluster on Squid 19.2.6, 6 nodes, each with 4 Gen4 NVMe drives that do ~700k random 4k write IOPS raw. fio on an RBD PVC tops out way lower than I'd expect and recovery also feels throttled. ceph config show osd.0 osd_mclock_max_capacity_iops_ssd returns 21500. What's going on and how do I fix it?",
+      "expected_output": "mClock bench exceeded the 80000 SSD threshold, fell back to 21500 default; measure per-OSD capacity with fio and set osd_mclock_max_capacity_iops_ssd per OSD.",
+      "files": [],
+      "assertions": [
+        "Explains that 21500 is the default fallback because the OSD bench result exceeded the SSD sanity threshold (80000 IOPS) and was discarded",
+        "Recommends measuring real device capacity (e.g. fio) and setting osd_mclock_max_capacity_iops_ssd explicitly per OSD",
+        "Notes the value is per OSD / must be checked on every OSD"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "separate-cluster-network",
+      "prompt": "Designing a new Rook-Ceph cluster: 5 nodes, 2x25GbE per node bonded. Colleague insists we MUST have a separate cluster network for replication or performance will be terrible. Is that true in 2026? And if we do want isolation, host networking or Multus?",
+      "expected_output": "Separate cluster network optional; docs say public-only works fine at 25GE+; Multus with macvlan+whereabouts for isolation; host network trades isolation for latency.",
+      "files": [],
+      "assertions": [
+        "States a separate cluster network is optional, not required, especially at 25GbE or faster",
+        "Explains host networking avoids pod-network latency but provides no isolation",
+        "Recommends Multus with the macvlan CNI (and whereabouts IPAM) if isolation is wanted"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "fast-ec-existing-pool",
+      "prompt": "We just upgraded to Tentacle 20.2.4. Our big RBD data pool is EC 4+2 with ec_overwrites, created on Reef with default settings. I read Tentacle has 'fast EC'. Should I just flip it on for the existing pool? Any gotchas?",
+      "expected_output": "allow_ec_optimizations is irreversible; stripe_unit fixed at creation, old 4K default gains less, recommend 16K; consider creating a new pool; 20.2.0 crash-loop report; test first.",
+      "files": [],
+      "assertions": [
+        "Names the pool flag allow_ec_optimizations",
+        "States that enabling it is irreversible for the pool",
+        "Explains stripe_unit is fixed at pool creation and that the old 4K default benefits less than 16K (so a new pool may be better)",
+        "Recommends testing first / mentions the 20.2.0 OSD crash-loop report when enabling it on a pool with ec_overwrites"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "min-alloc-size-hdd",
+      "prompt": "Old runbook says to set bluestore_min_alloc_size_hdd=65536 on our HDD OSDs for better throughput with RGW. We're on Squid under Rook. Should I set that before adding new HDD OSDs, and can I change it on existing ones?",
+      "expected_output": "Default is 4K for HDD and SSD; the 64K advice is obsolete (space amplification for small objects); value fixed at OSD creation, changing requires redeploying the OSD.",
+      "files": [],
+      "assertions": [
+        "States the current default bluestore_min_alloc_size_hdd is 4 KiB (4096)",
+        "Says the 64 KiB advice is obsolete / not recommended now",
+        "States the value is fixed at OSD creation and changing it requires redeploying (recreating) the OSD"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "osd-memory-request-sizing",
+      "prompt": "Rook CephCluster: I set spec.resources.osd.limits.memory: 8Gi and requests.memory: 4Gi. What osd_memory_target will each OSD actually get, and is this a good setup for NVMe OSDs?",
+      "expected_output": "Request used 1:1 -> 4Gi target; limit only default when no request; leave headroom; NVMe benefits from more; verify with ceph config show.",
+      "files": [],
+      "assertions": [
+        "States osd_memory_target will be 4Gi because the request is used 1:1",
+        "Explains the limit x 0.8 rule applies only when no request is set",
+        "Recommends verifying with ceph config show osd.N osd_memory_target"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "pg-autoscaler-target",
+      "prompt": "Rook cluster, 24 OSDs, one big RBD pool holding ~90% of data plus a few small pools. The autoscaler gave the big pool only 128 PGs and I see uneven OSD usage. How should I configure the autoscaler instead of hand-setting pg_num?",
+      "expected_output": "Mark big pool bulk, set target_size_ratio, consider mon_target_pg_per_osd 200 (default 100, docs recommend 200).",
+      "files": [],
+      "assertions": [
+        "Recommends setting the bulk flag on the large pool",
+        "Recommends setting target_size_ratio on the large pool",
+        "Mentions mon_target_pg_per_osd default 100 and that raising it (docs recommend 200) increases PGs per OSD"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "rbd-cache-krbd",
+      "prompt": "Database on an RBD PVC via ceph-csi (default StorageClass from Rook). I want to tune librbd caching: disable write-back and raise readahead with rbd config pool set. Will that affect my PVC?",
+      "expected_output": "ceph-csi default mounter is krbd; librbd cache options don't apply to krbd; only rbd-nbd (alpha) uses librbd.",
+      "files": [],
+      "assertions": [
+        "States ceph-csi mounts RBD PVCs with krbd (kernel RBD) by default",
+        "States librbd cache/readahead settings do not apply to krbd-mounted PVCs",
+        "Notes rbd-nbd would use librbd but is alpha / not recommended for production"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "crimson-production",
+      "prompt": "Tentacle is out; is Crimson / SeaStore ready so we can deploy our new NVMe cluster on crimson-osd for lower latency?",
+      "expected_output": "No: tech preview, not suitable for production.",
+      "files": [],
+      "assertions": [
+        "States Crimson is still a tech preview / not suitable for production in Tentacle",
+        "Does not recommend deploying production on crimson-osd or SeaStore"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "rados-bench-method",
+      "prompt": "I want to benchmark our Ceph cluster's raw RADOS write then read throughput with rados bench, and then see what a real PVC gets. Give me the commands and the pitfalls.",
+      "expected_output": "rados bench write with --no-cleanup, then seq/rand, then cleanup; rbd bench bypasses kernel; fio in a pod with direct=1; multiple clients; dataset larger than cache.",
+      "files": [],
+      "assertions": [
+        "Uses rados bench ... write --no-cleanup before the seq/rand read phases",
+        "Includes cleaning up the benchmark objects afterwards",
+        "Recommends fio inside a pod on the PVC (direct I/O) to measure the real client path",
+        "Mentions running multiple clients in parallel or a dataset larger than caches"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "skill": "ceph-performance",
+  "extracted": "2026-09-23",
+  "extractor_model": "session-default",
+  "extractor_model_resolved": [
+    "claude-opus-5-5[1m]"
+  ],
+  "skill_md_sha": "c1252ade201b",
+  "extraction_cost_usd": 0.186,
+  "claims": [
+    {
+      "id": 0,
+      "question": "Above what measured IOPS value does Ceph discard an SSD OSD's osd bench result for osd_mclock_max_capacity_iops_ssd?",
+      "skill_answer": "80 000 IOPS"
+    },
+    {
+      "id": 1,
+      "question": "Above what measured IOPS value does Ceph discard an HDD OSD's osd bench result for osd_mclock_max_capacity_iops_hdd?",
+      "skill_answer": "500 IOPS"
+    },
+    {
+      "id": 2,
+      "question": "What default osd_mclock_max_capacity_iops_ssd value does a Ceph SSD OSD fall back to when its bench result is discarded?",
+      "skill_answer": "21 500"
+    },
+    {
+      "id": 3,
+      "question": "What is the default mClock profile in Ceph Reef, Squid and Tentacle?",
+      "skill_answer": "balanced"
+    },
+    {
+      "id": 4,
+      "question": "Which mClock profile did Ceph 17.2.0 through 17.2.6 ship as the default?",
+      "skill_answer": "high_client_ops"
+    },
+    {
+      "id": 5,
+      "question": "From which Quincy point release did Ceph's default mClock profile become balanced?",
+      "skill_answer": "17.2.7"
+    },
+    {
+      "id": 6,
+      "question": "Under Rook, which environment variable does Ceph use 1:1 as osd_memory_target?",
+      "skill_answer": "POD_MEMORY_REQUEST"
+    },
+    {
+      "id": 7,
+      "question": "What is the default value of osd_memory_target_cgroup_limit_ratio in Ceph?",
+      "skill_answer": "0.8"
+    },
+    {
+      "id": 8,
+      "question": "Below what OSD memory value does Rook warn?",
+      "skill_answer": "2048 MB"
+    },
+    {
+      "id": 9,
+      "question": "Below what mon memory value does Rook warn?",
+      "skill_answer": "1024 MB"
+    },
+    {
+      "id": 10,
+      "question": "Below what mgr memory value does Rook warn?",
+      "skill_answer": "512 MB"
+    },
+    {
+      "id": 11,
+      "question": "What is Ceph's default osd_memory_target?",
+      "skill_answer": "4 GiB"
+    },
+    {
+      "id": 12,
+      "question": "What is the default of mds_cache_memory_limit in Ceph?",
+      "skill_answer": "4 GiB"
+    },
+    {
+      "id": 13,
+      "question": "What is the default bluestore_min_alloc_size_hdd in current Ceph (Squid/Tentacle)?",
+      "skill_answer": "4 KiB"
+    },
+    {
+      "id": 14,
+      "question": "Can bluestore_min_alloc_size be changed on an existing OSD without redeploying it?",
+      "skill_answer": "No; it is fixed at OSD creation, redeploy required"
+    },
+    {
+      "id": 15,
+      "question": "What is the default value of mon_target_pg_per_osd in Ceph Squid/Tentacle?",
+      "skill_answer": "100"
+    },
+    {
+      "id": 16,
+      "question": "What mon_target_pg_per_osd value do current Ceph docs recommend for all but the smallest clusters?",
+      "skill_answer": "200"
+    },
+    {
+      "id": 17,
+      "question": "What is the default msgr2 mode setting for Ceph cluster, service and client connections?",
+      "skill_answer": "crc secure"
+    },
+    {
+      "id": 18,
+      "question": "Which CNI plugin and IPAM does Rook document for Multus-based Ceph networking?",
+      "skill_answer": "macvlan with whereabouts IPAM"
+    },
+    {
+      "id": 19,
+      "question": "What command validates a Rook Multus network configuration?",
+      "skill_answer": "kubectl rook-ceph multus validation run"
+    },
+    {
+      "id": 20,
+      "question": "What is the default erasure-code plugin for new pools in Ceph Tentacle?",
+      "skill_answer": "ISA-L"
+    },
+    {
+      "id": 21,
+      "question": "Which pool setting enables Fast EC in Ceph Tentacle?",
+      "skill_answer": "allow_ec_optimizations true"
+    },
+    {
+      "id": 22,
+      "question": "Can allow_ec_optimizations be disabled on a Ceph pool once enabled?",
+      "skill_answer": "No, it is irreversible"
+    },
+    {
+      "id": 23,
+      "question": "What EC stripe_unit is recommended for general workloads with Tentacle Fast EC?",
+      "skill_answer": "16 KiB"
+    },
+    {
+      "id": 24,
+      "question": "In which Ceph release did enabling allow_ec_optimizations on an ec_overwrites pool crash-loop OSDs at interval_set.h:365?",
+      "skill_answer": "20.2.0"
+    },
+    {
+      "id": 25,
+      "question": "What is the production status of Crimson/SeaStore in Ceph Tentacle?",
+      "skill_answer": "Tech preview, not suitable for production"
+    },
+    {
+      "id": 26,
+      "question": "Which RBD mounter does ceph-csi use by default for RBD PVCs?",
+      "skill_answer": "krbd"
+    },
+    {
+      "id": 27,
+      "question": "What is the maturity status of the rbd-nbd mounter in ceph-csi?",
+      "skill_answer": "Alpha, not for production"
+    },
+    {
+      "id": 28,
+      "question": "What is the default rbd_cache_policy in librbd?",
+      "skill_answer": "writearound"
+    },
+    {
+      "id": 29,
+      "question": "What is the default rbd_readahead_max_bytes in librbd?",
+      "skill_answer": "512 KiB"
+    }
+  ]
+}
