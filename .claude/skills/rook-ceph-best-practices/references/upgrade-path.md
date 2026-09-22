@@ -1,7 +1,7 @@
 # Rook upgrade path and release-by-release breaking changes
 
 Enumerated unfiltered from `gh release list --repo rook/rook` on 2026-09-23.
-Read the notes of every hop you cross, not only the target.
+Read the notes of every crossed hop, not only the target.
 
 ## Multi-hop path to the CVE-2025-30156 fix (from rook#18203)
 
@@ -43,7 +43,7 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
    `rook-ceph-cluster`. Manifest installs: apply the operator.yaml defaults
    for the CSI CRs.
 4. Verify `kubectl -n <ns> get deploy | grep ctrlplugin` shows ready
-   replicas and the cephcsi image tag you expect (ceph-csi-operator#605).
+   replicas and the pinned cephcsi image tag (ceph-csi-operator#605).
 5. Mount a test PVC before declaring done.
 
 ## Ceph image tags
