@@ -126,7 +126,10 @@ alone afterwards. This recovery is for the `allowedCiphers` mistake only; it
 did not help the stuck-generation OSD outage in rook#18240.
 
 Outside Rook the same Ceph knobs are `ceph mon set auth_allowed_ciphers
-aes,aes256k` and `ceph mon set auth_preferred_cipher aes256k`. A cluster
+aes,aes256k` and `ceph mon set auth_preferred_cipher aes256k`. The rescue
+option `mon_auth_emergency_allowed_ciphers` takes a cipher **list**
+(e.g. `aes`), not a boolean — `= true` fails with
+`init: invalid cipher: true`. A cluster
 with `auth_allowed_ciphers=aes256k` but `auth_preferred_cipher=aes` locks
 restarted daemons out.
 
