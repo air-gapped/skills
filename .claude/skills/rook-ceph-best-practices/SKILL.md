@@ -195,15 +195,10 @@ CephCluster, not the chart.
 
 ## Monitoring with a Helm-installed operator
 
-`CephCluster.spec.monitoring.enabled: true` is not enough. The operator
-chart value `monitoring.enabled: true` creates the RBAC that lets the
-operator manage ServiceMonitors; without it the operator loops on
-`servicemonitors.monitoring.coreos.com … is forbidden: User
-"system:serviceaccount:<ns>:rook-ceph-system"` and never enables the mgr
-prometheus module. After the RBAC lands, restart the operator — it did not
-create the ServiceMonitors until restarted. `metricsDisabled: false` turns
-on both the mgr prometheus module and the per-node `ceph-exporter`. The
-operator never creates PrometheusRules; ship those yourself.
+Needs the operator chart value `monitoring.enabled: true` (ServiceMonitor
+RBAC) as well as `CephCluster.spec.monitoring.enabled`. After the RBAC
+lands, restart the operator — it did not create the ServiceMonitors until
+restarted. The operator never creates PrometheusRules.
 
 ## Other hazards worth checking before a hop
 
