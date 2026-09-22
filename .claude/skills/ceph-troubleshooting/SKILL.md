@@ -66,18 +66,9 @@ see ceph-performance.
 
 ## Capacity
 
-| Ratio | Default | Effect |
-|---|---|---|
-| `mon_osd_nearfull_ratio` | 0.85 | `OSD_NEARFULL` warning |
-| `mon_osd_backfillfull_ratio` | 0.90 | backfill *into* that OSD stops — PGs show `backfill_toofull` |
-| `mon_osd_full_ratio` | 0.95 | cluster stops accepting writes |
-| `osd_failsafe_full_ratio` | 0.97 | OSD refuses writes regardless |
-
-Keep nearfull < backfillfull < full < failsafe. To get out of `full`: raise
-`ceph osd set-full-ratio` by 0.01–0.02 only long enough to delete data or
-add capacity, then set it back. `backfill_toofull` during a rebalance means
-the *target* is full — reweight or add OSDs; raising backfillfull only moves
-the cliff.
+Defaults nearfull 0.85 / backfillfull 0.90 / full 0.95 / failsafe 0.97.
+`backfill_toofull` means the *target* OSD is past backfillfull: reweight or
+add capacity; raise a ratio only by 0.01–0.02, briefly, and set it back.
 
 ## PG states
 
