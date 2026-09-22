@@ -207,6 +207,9 @@ operator never creates PrometheusRules; ship those yourself.
 
 ## Other hazards worth checking before a hop
 
+Per-release breaking changes (CRUSH rule deletion, MDS standby removal,
+chart field splits, S3 credential purge) are in `references/upgrade-path.md`.
+
 | Hazard | Source |
 |---|---|
 | 19.2.6 → Tentacle below 20.2.4 drops AES256K (20.2.0–20.2.3 predate it): go 19.2.6 → 20.2.4+ only | ceph-users 2026-09-03 |
@@ -215,10 +218,6 @@ operator never creates PrometheusRules; ship those yourself.
 | Squid→Tentacle: Rook rolls RGW/MDS before all OSDs are upgraded, breaking S3 multipart during the window | rook#18367 |
 | RGW multisite on 19.2.6/20.2.4: SigV4 hardening rejects RGW's own inter-zone forwarding; set `rgw_sigv4_insecure=true` (and `rgw_s3_client_max_sig_ver=2`) **before** upgrading | tracker 79698; Rook ceph-upgrade.md |
 | Fresh mon quorum never forms on kernel 7.0 cold bootstrap (existing quorums unaffected) — collides with the 7.0 AES256K kernel requirement | rook#18370, tracker 80470 |
-| v1.20 deletes unused CRUSH rules after mgr start (`ROOK_DELETE_UNUSED_CRUSH_RULES` to disable) | v1.20.0 notes |
-| v1.19 `CephFilesystem.activeStandby: false` now removes the standby MDS deployment | v1.19.0 notes |
-| v1.19 `rook-ceph-cluster` chart splits Ceph image into repository/tag fields | v1.19.0 notes |
-| v1.17 purges CephObjectStoreUser S3 credentials not declared in the CR | v1.17.0 notes |
 | 1500-OSD-scale 18.2.8 → 19.2.6 upgrade: mon slow ops climbing into tens of thousands on each mon restart; did not reproduce in staging | ceph-users 2026-09-14 |
 | NFS-Ganesha per-export keys cannot be rotated (Ceph has no mechanism) | Rook cephx-key-rotation.md |
 
