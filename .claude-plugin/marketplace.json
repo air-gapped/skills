@@ -667,7 +667,7 @@
       "name": "ceph-s3",
       "source": "./",
       "description": "Run Ceph RGW as an S3 endpoint under Rook (CephObjectStore, CephObjectStoreUser, ObjectBucketClaim, COSI, CephBucketTopic, multisite realms/zones)",
-      "version": "0.20260922.3",
+      "version": "0.20260922.4",
       "author": {
         "name": "Jörgen"
       },

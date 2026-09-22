@@ -48,12 +48,12 @@ The SigV4 fix breaks two things:
    create): `403 AccessDenied` even with every cluster patched
    (tracker 79698). `rgw_sigv4_insecure` alone does **not** fix it. Set both
    `rgw_sigv4_insecure: "true"` and `rgw_s3_client_max_sig_ver: "2"` in every
-   zone **before** upgrading; revert to `"false"` / `"-1"` once all zones
-   run a fixed release. Under Rook, put them in the CephObjectStore
+   zone **before** upgrading. Under Rook, put them in the CephObjectStore
    `gateway` config or `rook-config-override`.
 
-`rgw_sigv4_insecure` re-opens CVE-2026-54330 — scope it to the affected
-zones and remove it after the fixed release.
+Both workarounds re-open CVE-2026-54330: scope them to the affected
+clients/zones and revert (`"false"` / `"-1"`) once everything runs a fixed
+release.
 
 ## AWS SDK checksums
 
