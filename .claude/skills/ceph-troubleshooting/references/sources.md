@@ -21,3 +21,4 @@ Freshened: 2026-09-23 — every row probed at creation.
 | 18.2.7 hotfix | https://ceph.io/en/news/blog/2025/v18-2-7-reef-released/ | 2026-09-23 | 18.2.5/18.2.6 BlueStore regression. |
 | 20.2.0 read affinity | https://github.com/rook/rook/issues/16839 | 2026-09-23 | Closed. |
 | ceph-users field reports | https://lists.ceph.io/hyperkitty/list/ceph-users@ceph.io/ | 2026-09-23 | 2026-07-09 Tentacle RGW latency; 2026-09-11 mon `--mkfs` → PGLog crash; 2026-09-14 1500-OSD mon slow ops. |
+| Pod memory → osd_memory_target | https://github.com/ceph/ceph/blob/v19.2.6/src/common/config.cc | 2026-09-23 | `POD_MEMORY_REQUEST` used as the target; `POD_MEMORY_LIMIT` × ratio only as the default when no request. Env vars set in rook `pkg/operator/k8sutil/pod.go`. |

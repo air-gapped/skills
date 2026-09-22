@@ -105,8 +105,10 @@ the cliff.
 
 ## OSD OOM kills under Rook
 
-Rook sets `osd_memory_target` from the OSD pod's memory **request** (1:1),
-else from **limit** × `osd_memory_target_cgroup_limit_ratio` (0.8). With neither
+Rook injects `POD_MEMORY_REQUEST` / `POD_MEMORY_LIMIT`; Ceph uses the
+**request 1:1** as `osd_memory_target`, else **limit** ×
+`osd_memory_target_cgroup_limit_ratio` (0.8). The 0.8 never applies to the
+request. With neither
 set, the target is not tied to the pod and OSDs get OOM-killed on busy
 nodes. Always set `spec.resources.osd.requests.memory` (and a limit with
 headroom) in the CephCluster; verify with

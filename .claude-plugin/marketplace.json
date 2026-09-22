@@ -667,7 +667,7 @@
       "name": "ceph-troubleshooting",
       "source": "./",
       "description": "Diagnose and recover an unhealthy Ceph cluster, with Rook-on-Kubernetes specifics: slow or stuck recovery/backfill under the mClock scheduler (why osd_max_backfills \"does nothing\"),…",
-      "version": "0.20260922.2",
+      "version": "0.20260922.3",
       "author": {
         "name": "Jörgen"
       },
