@@ -215,6 +215,7 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved — 2026-09-23d (Auto mode; philosophy removed)](#resolved--2026-09-23d-auto-mode-philosophy-removed)
 - [Resolved — 2026-09-23c (Δ0 defect ruling)](#resolved--2026-09-23c-δ0-defect-ruling)
 - [Resolved this pass — 2026-09-23b (trigger)](#resolved-this-pass--2026-09-23b-trigger)
 - [Resolved this pass — 2026-09-23 (improve, Opus 5.5)](#resolved-this-pass--2026-09-23-improve-opus-55)
@@ -251,6 +252,14 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   **Still open from this:** ranking stability was only shown on skills spanning
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
+
+## Resolved — 2026-09-23d (Auto mode; philosophy removed)
+
+Backtest on the 2026-09-22 fleet freshen (frozen clone at f3e4fc5, 10 skills, 5 changed / 5 quiet): history-only rules 5/10, with upstream version check 10/10.
+- Added Auto (no mode given): reads history + upstream versions, picks freshen / floor / improve / trigger.
+- Discard: judging freshen from history alone — every skill freshened a week earlier reads "not due"; misses all five real changes.
+- Discard: "releases since the last pass" — misses a pass that stamped a skill but left an old version in its body (helm v4.2.4, barman v0.14.0). Compare against the version the text states.
+- Removed philosophy mode (never run since 2026-05-04); its three checks stay in improve, freshen and trigger.
 
 ## Resolved — 2026-09-23c (Δ0 defect ruling)
 

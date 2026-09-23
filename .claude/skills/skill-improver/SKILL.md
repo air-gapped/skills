@@ -3,29 +3,30 @@ name: skill-improver
 description: >-
   Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing
   on a 10-dimension quality rubric, with blind subagent validation for
-  self-scoring bias. Modes: `score` rates a skill out of 100 without editing
-  it; `freshen` probes external references (release notes, docs, deprecation
-  signals) and applies verified updates; `trigger` measures and tunes the
-  frontmatter description until it fires when it should and stays silent
-  when it shouldn't (60/40 train/test, 7 runs/query); `ages` prints every
-  skill's verification age vs last content change; `floor` measures what a
-  bare model already knows about a skill's subject; `philosophy` checks for
-  scaffolding decay.
+  self-scoring bias. Given only a skill name, it reads that skill's history
+  and picks which modes to run. Modes: `score`
+  rates a skill out of 100 without editing it; `freshen` probes external
+  references (release notes, docs, deprecation signals) and applies verified
+  updates; `trigger` measures and tunes the frontmatter description until it
+  fires when it should and stays silent when it shouldn't (60/40 train/test,
+  7 runs/query); `ages` prints every skill's verification age vs last content
+  change; `floor` measures what a bare model already knows about a skill's
+  subject.
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",
   "score my skill", "audit a skill", "rate my skill", "refine skill
-  description", "iterate on a skill", "freshen skill", "freshen skills",
+  description", "iterate on a skill", "freshen skills",
   "update skill references", "check skill staleness", "is my skill out of
   date", "refresh skill sources", "skill ages", "how old are my skills",
   "list skills by date", "skill not triggering", "skill didn't
-  fire", "skill won't trigger", "skill not invoked", "tune skill
+  fire", "skill not invoked", "tune skill
   description", "fix skill triggers", "skill under-triggers",
-  "skill over-triggers", "false-positive skill", "make skill trigger",
+  "skill over-triggers", "false-positive skill",
   "Claude isn't using my skill", or mentions autonomous skill improvement,
   skill quality scoring, skill optimization loops, stale skill content,
   or skill activation problems.
-argument-hint: '[improve|score|freshen|trigger|philosophy|floor|ages|batch] [<skill-name>|--all|<glob>]'
+argument-hint: '[improve|score|freshen|trigger|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver — Autoresearch for SKILL.md
@@ -43,7 +44,7 @@ Argument grammar:
 /skill-improver <mode> <target> [--opts]
 ```
 
-- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `philosophy` | `floor` | `ages` | `batch`
+- `<mode>` — omitted = Auto | `improve` | `score` | `freshen` | `trigger` | `floor` | `ages` | `batch`
 - `<target>` — skill name (e.g. `gh-cli`), absolute SKILL.md path, `--all`, or glob (e.g. `vllm-*`)
 - `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`, `--runs-per-query 5`)
 
@@ -61,9 +62,43 @@ Examples:
 /skill-improver freshen --group 'vllm-*'
 ```
 
-If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, `trigger`, or `philosophy`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
+If `<mode>` is omitted, run **Auto** (below). If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, or `trigger`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
 
-## The Improvement Loop (default mode)
+## Auto (no mode given)
+
+`/skill-improver <skill>` decides which modes the skill needs, runs them, and
+reports. No fixed thresholds — the skill's own history sets its pace.
+
+1. **Read the evidence** (no edits):
+   - `references/sources.md` `Freshened:` line and its note — when the last
+     pass ran and whether it found anything.
+   - **Upstream versions** — for each project whose version the skill states,
+     one `gh release list --repo <owner>/<repo> --limit 5` (or the host's
+     equivalent), compared against the version the skill's text states — not
+     against the last-pass date; a pass can stamp a skill and still leave an old
+     version in its body. Never assume "no new release": history cannot show one.
+   - `git log --format='%ad %s' --date=short -- <skill-dir> | head -20` —
+     what past passes changed, and how often.
+   - `references/improvement-backlog.md` §Open — has a named blocker arrived?
+   - Frontmatter `disable-model-invocation`; `references/trigger-evals.json`.
+   - The subject's pace: a stable method (decades-old technique) changes
+     rarely; an AI product, inference engine, or Claude Code itself changes
+     every few weeks.
+2. **Decide each step:**
+
+   | Step | Run when |
+   |---|---|
+   | `freshen` | an upstream is newer than the version the skill states — whatever the pace; or the last pass is old *for this skill's pace*, judged from its history — recent passes that changed nothing mean it can wait months, a fast-moving subject cannot wait weeks; or a model or Claude Code release the skill depends on. |
+   | `floor` | fact-heavy skill with no floor run since the last model release |
+   | `improve` | content changed since the last improve pass, a backlog blocker has arrived, or no improve pass is on record |
+   | `trigger` | the description changed or trigger evals fail — never for a `disable-model-invocation` skill |
+
+3. **Print the plan first** — one line per step: run or skip, with the evidence.
+   Then run the chosen steps in table order (facts current before `improve`
+   judges them). Nothing due is a valid result: say so and stop.
+4. **Report** what ran, what changed, the commits, and what was skipped and why.
+
+## The Improvement Loop
 
 Greedy hill climbing on the 10-dimension rubric: score the skill, apply ONE
 change, re-score cold, keep +3 or more; keep +2 or +1 only when a second cold
@@ -419,38 +454,15 @@ its leaderboard.
 
 ---
 
-## Philosophy Mode
-
-Cheap weekly check that runs the three Boris-derived signals as one
-pass without spinning up the full 10-dim rubric or the trigger eval set.
-Sibling to `freshen` and `trigger`. All three signals are grounded in
-the first-party context-engineering blog (2026-07-24); the podcast
-origin the name comes from is **unverified** (`sources.md`). Output is a
-Boris score (0-3 anti-patterns flagged) plus the existing dim caps that
-fire as a side-effect.
-
-**Invocation:** `philosophy <skill-name>` · `batch philosophy --all`.
-Surfaces findings only — never auto-applies mutations; the operator decides.
-
-Full phase workflow (P0 Setup → P4 Persist), Boris score interpretation,
-batch leaderboard, and anti-patterns live in
-**`references/philosophy-patterns.md`**. Read it when running `philosophy`,
-along with the three check sections P0 uses: `quality-rubric.md` §"Boris
-Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
-`trigger-patterns.md` §"Minimalism test (Boris alignment)".
-
----
-
 ## Additional Resources
 
 ### Reference Files
 
-- **`references/improve-loop.md`** — The full **Improvement Loop workflow** (Phases 0–7): setup, cold scoring, hypothesis criteria, keep/discard decision rules, stop conditions, backlog persistence, landing the pass. Load when running `improve` (the default mode).
+- **`references/improve-loop.md`** — The full **Improvement Loop workflow** (Phases 0–7): setup, cold scoring, hypothesis criteria, keep/discard decision rules, stop conditions, backlog persistence, landing the pass. Load when running `improve`.
 - **`references/quality-rubric.md`** — Full scoring rubric with sub-criteria, examples of each score level, and common failure patterns. Load this before scoring.
 - **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
 - **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
 - **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
-- **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
 - **`references/floor-patterns.md`** — The full **Floor Mode** reference: the capability-uplift vs encoded-preference classification, the KNOWS / UNKNOWN / CONFLICTS bucket table, the two limits, and how floor evidence moves the Dim 10 cap. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading a floor leaderboard.
 - **`references/blind-validation.md`** — The blind-scorer agent, the `skill-comparator` A/B pass that decides the run verdict, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent, or the end-of-run comparator.
 - **`references/fleet-checks.md`** — The seven fleet checkers in detail: what each one
