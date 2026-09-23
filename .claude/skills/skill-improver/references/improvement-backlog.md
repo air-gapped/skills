@@ -215,6 +215,7 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved this pass — 2026-09-23b (trigger)](#resolved-this-pass--2026-09-23b-trigger)
 - [Resolved this pass — 2026-09-23 (improve, Opus 5.5)](#resolved-this-pass--2026-09-23-improve-opus-55)
 - [Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)](#resolved-this-pass--2026-09-01-freshen--improve-fable-51-release-day)
 - [Resolved — 2026-08-20b (improve + freshen)](#resolved-this-pass--2026-08-20b-improve--freshen-self-run)
@@ -250,25 +251,6 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
-- **(carried 2026-06-09, still Open) Dim 1 → 9: `philosophy` and `floor` mode
-  vocabulary absent from `when_to_use`.** "philosophy mode", "boris alignment
-  check", "scaffolding decay", "is my skill fighting the model's grain" — and,
-  added 2026-09-01, "knowledge floor", "floor mode", "what does the model
-  already know" — have no trigger phrases (only `argument-hint` + body).
-  Combined `description` + `when_to_use` measured **1486/1536 on 2026-09-01**
-  (50 chars free; the "1536/1536" recorded on 2026-08-20 no longer holds), so
-  at most one short phrase fits before an addition must be funded by a
-  deletion, per `trigger-patterns.md` §T4. Adding triggers blindly is a guess;
-  do it empirically:
-  `/skill-improver trigger skill-improver --missed "run a boris check on my skill"
-  --missed "check my skill for scaffolding decay" --missed "what does the model
-  already know about this skill's subject"`. Trigger-mode, not score-loop — the
-  2026-09-01 improve pass declined to add the floor phrases for this reason.
-  Both 2026-06-09 blind agents and the 2026-07-24 baseline blind also flagged a
-  T6-class cross-skill collision — the installed skill-creator plugin claims
-  "modify and improve existing skills" territory; the trigger run should include
-  sibling-territory negatives for it.
-
 - **(carried 2026-07-18, still Open) Rule-ceiling discard: cold-score-from-disk
   clause.** Adding "read from disk — never from the context-injected copy;
   `${CLAUDE_SKILL_DIR}` appears pre-expanded there and reads as a false
@@ -290,6 +272,44 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
     primary changelog refuted. Diff: "This binds every subagent too — … no
     subagent's 'wrong version' or 'changed in vX' finding is applied until the
     loop confirms it in the primary source (changelog, code, release page)."
+
+## Resolved this pass — 2026-09-23b (trigger)
+
+Sonnet 5 probe, N=7, holdout 0.4, seed 42. Eval set 14 → 26 queries (3
+explicit, 8 implicit, 4 contextual, 11 negative); the new ones cover `score`,
+`freshen`, `ages`, `floor` and mid-task requests the set never asked.
+
+| iter | train | test | desc+wtu chars | status | change |
+|---|---|---|---|---|---|
+| 0 | 12/16 | 7/10 | 1486 | baseline | — |
+| 1 | 14/16 | 6/10 | 1534 | **keep** | description names every mode: `score`, `floor`, `philosophy` added |
+
+Iter 1: positive mean 0.762 → 0.873, negative mean 0.367 → 0.306; "quality
+score out of 100" 0.29 → 0.71, "prettier hook" 0.57 → 0.29. The one test
+drop ("my skill didn't fire", 5/7 → 3/7) re-measured at N=14 as 10/14 vs
+12/14 — noise. Stopped: every attributable train failure fixed; the rest is
+test-only or cross-skill.
+
+- **Closed the carried 2026-06-09 Dim 1 vocabulary item.** `floor` and
+  `philosophy` are now in the description. The `floor` query ("what does the
+  model already know about this skill's subject?") fires 0/14 on both the old
+  and new text despite near-verbatim wording — a bare question the model
+  answers itself (§"Why skills under-trigger" cause 6). Not a description
+  problem; do not spend characters on it.
+- **skill-creator collision: won't fix here.** "create a brand new skill…"
+  (0.86) and "package this skill as a plugin…" (1.00) still fire solo — T6
+  inverse per `trigger-patterns.md` §T2 attribution note; in real sessions
+  the skill-creator plugin is installed to take them, and a "do NOT" clause
+  on this side was measured to backfire (2026-08-20). The plugin's own
+  description is not ours to edit.
+- **T7 step 3 told the loop to append a `last_run` block to
+  `trigger-evals.json`.** `probe-trigger.py` iterates every element as a
+  query, so that block would break the next run. T7 now records the run here.
+- Test-only contextual misses — "the keda skill never loaded… fix that" 0.14,
+  "release notes dropped, bring the skill's references up to date" 0.29 — were
+  not tuned against: they are the held-out set, and tuning on them overfits.
+  Three more contextual positives of that shape were added to the eval set
+  after the run (unprobed), so the next split has some on the train side.
 
 ## Resolved this pass — 2026-09-23 (improve, Opus 5.5)
 

@@ -3,13 +3,14 @@ name: skill-improver
 description: >-
   Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing
   on a 10-dimension quality rubric, with blind subagent validation for
-  self-scoring bias, plus a `freshen` mode that probes external references
-  (release notes, docs, deprecation signals) and applies verified updates,
-  plus a `trigger` mode that measures and tunes the skill's frontmatter
-  description until it reliably fires when it should and stays silent when
-  it shouldn't (60/40 train/test split, 7 runs/query, blinded test scores),
-  plus an `ages` mode that prints a fleet-wide table of every skill's
-  verification age vs last content change, no probes.
+  self-scoring bias. Modes: `score` rates a skill out of 100 without editing
+  it; `freshen` probes external references (release notes, docs, deprecation
+  signals) and applies verified updates; `trigger` measures and tunes the
+  frontmatter description until it fires when it should and stays silent
+  when it shouldn't (60/40 train/test, 7 runs/query); `ages` prints every
+  skill's verification age vs last content change; `floor` measures what a
+  bare model already knows about a skill's subject; `philosophy` checks for
+  scaffolding decay.
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",

@@ -68,5 +68,95 @@
     "query": "package this skill as a plugin and publish it to a marketplace",
     "should_trigger": false,
     "bucket": "negative"
+  },
+  {
+    "query": "what does the model already know about this skill's subject?",
+    "should_trigger": true,
+    "bucket": "implicit",
+    "source": "user-reported"
+  },
+  {
+    "query": "freshen the vllm-caching skill",
+    "should_trigger": true,
+    "bucket": "explicit",
+    "source": "description-mined"
+  },
+  {
+    "query": "which of my skills haven't had their sources re-checked in a while?",
+    "should_trigger": true,
+    "bucket": "implicit",
+    "source": "description-mined"
+  },
+  {
+    "query": "give the helm skill a quality score out of 100",
+    "should_trigger": true,
+    "bucket": "implicit",
+    "source": "description-mined"
+  },
+  {
+    "query": "I just rewrote the gotchas section in ~/.claude/skills/keda/SKILL.md — can you measure whether it actually got better than the last commit?",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
+  },
+  {
+    "query": "I asked about Kafka lag autoscaling earlier and the keda skill never loaded, even though that's exactly its job. Can you fix that?",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
+  },
+  {
+    "query": "vLLM 0.19 release notes just dropped and our vllm-caching skill still documents the old offload flags; bring its references up to date",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
+  },
+  {
+    "query": "my postgres trigger isn't firing on insert",
+    "should_trigger": false,
+    "bucket": "negative",
+    "source": "keyword-collision"
+  },
+  {
+    "query": "update the README for this repo with the new CLI flags",
+    "should_trigger": false,
+    "bucket": "negative",
+    "source": "adjacent-domain"
+  },
+  {
+    "query": "add a hook that runs prettier after every edit",
+    "should_trigger": false,
+    "bucket": "negative",
+    "source": "adjacent-domain"
+  },
+  {
+    "query": "hi, what can you do?",
+    "should_trigger": false,
+    "bucket": "negative",
+    "source": "generic"
+  },
+  {
+    "query": "score this essay for clarity on a 1-10 scale",
+    "should_trigger": false,
+    "bucket": "negative",
+    "source": "keyword-collision"
+  },
+  {
+    "query": "the helm skill loaded when I asked about kubectl apply, which it has nothing to do with — can you stop it grabbing that?",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
+  },
+  {
+    "query": "ages output says the litellm-api skill was last verified in June; go update whatever changed upstream since then",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
+  },
+  {
+    "query": "I made three edits to the gotchas file of my gh-cli skill today; score it again and tell me if it actually went up",
+    "should_trigger": true,
+    "bucket": "contextual",
+    "source": "body-mined"
   }
 ]

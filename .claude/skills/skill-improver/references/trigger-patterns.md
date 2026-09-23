@@ -232,8 +232,10 @@ than rubric scoring because each probe shells out to a model). Stop when:
 1. Pick the winner by **TEST** score (NOT train — overfit guard, same as
    Anthropic's loop).
 2. Write the winning frontmatter to `<skill>/SKILL.md`. Do NOT edit body.
-3. Update `<skill>/references/trigger-evals.json` — append a `last_run`
-   metadata block with date, baseline score, final score, iteration count.
+3. Save any queries added this run to `<skill>/references/trigger-evals.json`.
+   Keep it a bare list of query objects — `probe-trigger.py` treats every
+   element as a query, so a metadata block there breaks the next run. The
+   run's date, baseline, final, and iteration count go in the backlog entry.
 4. Update `<skill>/references/improvement-backlog.md`:
    - Move resolved trigger items to "Resolved this pass".
    - Add any T6 cross-skill conflicts as new "Open" items.
