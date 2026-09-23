@@ -76,6 +76,27 @@ became the skill's single worst dimension by doing nothing at all.
 One-line audit of what was fixed. Move items from
 "Open" to "Resolved" if a prior backlog listed them and this run closed them.
 
+**One line per fix; the story goes in the commit message.** Evidence, numbers,
+iteration tables and how a fix was found belong in the commit body, which git
+keeps. The backlog keeps only what a future loop acts on:
+
+| Kind | Length |
+|---|---|
+| Fixed item | one line |
+| Pass summary | one line — date, blind baseline → final, comparator verdict, commit |
+| Discard ("tried X, rejected because Y") | in full — it is the re-proposal guard |
+
+Shape to copy:
+
+```markdown
+## Resolved this pass (2026-09-23)
+
+Blind 84 → 86; comparators 2/3 REGRESSED on the lifecycle cut → reverted.
+- Discard: cutting symptom-to-cause sentences — they carry value even when the
+  model knows the defaults.
+- Kept: STS trigger dropped; single SigV4 revert caveat.
+```
+
 **What "Resolved" means:** the iteration applied a real mutation that the
 metric registered. Creating a placeholder file (e.g., empty `sources.md`
 with no `Last verified:` dates) does NOT resolve a Dim 9 staleness cap —
