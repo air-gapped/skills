@@ -354,6 +354,38 @@ GROUPS: dict[str, dict] = {
             "abuse-mitigation",
         ],
     },
+    "ceph": {
+        # Rook-managed Ceph. Order is operate-then-diagnose-then-tune,
+        # with RGW last.
+        "members": [
+            "rook-ceph-best-practices",
+            "ceph-troubleshooting",
+            "ceph-performance",
+            "ceph-s3",
+        ],
+        "description": (
+            "Rook-managed Ceph suite — Rook/Ceph upgrade order and version "
+            "gates, the CVE-2025-30156 AES256K CephX key rotation, the "
+            "Rook v1.20 ceph-csi-operator move; troubleshooting (mClock-"
+            "locked recovery, PG states, OSD OOM sizing, restore-quorum, "
+            "OSD removal, stuck RBD PVCs); performance (mClock NVMe "
+            "capacity trap, memory sizing, PG autoscaler, networking, "
+            "Tentacle Fast EC, krbd vs rbd-nbd); and RGW/S3 (SigV4 "
+            "hardening fallout, AWS SDK checksums, sharding, Rook object "
+            "CRDs). Squid 19.2 and Tentacle 20.2."
+        ),
+        "category": "infrastructure",
+        "tags": [
+            "ceph",
+            "rook",
+            "kubernetes",
+            "storage",
+            "rgw",
+            "s3",
+            "ceph-csi",
+            "cephx",
+        ],
+    },
     "harvester": {
         # Harvester HCI operator suite. Room for siblings: networking
         # (cluster-network / VLAN / storage-network), storage (Longhorn /
