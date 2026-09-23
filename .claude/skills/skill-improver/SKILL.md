@@ -303,13 +303,12 @@ When the user only wants a quality score without iterating:
 6. If step 2 reported fewer than 8 cases, recommend `scripts/grow-evals.py` — a corpus that small cannot resolve a delta and quietly defends the skill it tests. No eval set at all is a different finding: the cap is correct and needs no fix.
 7. Stop. Do not enter the improvement loop unless asked.
 
-**`/doctor` is the first-party sibling, not a substitute.** Anthropic ships
-`claude doctor` / `/doctor` to "rightsize your skills, and CLAUDE.md files"
-([context-engineering blog](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models),
-2026-07-24; bundled skill since v2.1.205). It is a one-shot simplification pass
-with no metric, no keep/discard, and no blind check — run it first for free
+**`/doctor` and `/skill-doctor` are first-party siblings, not substitutes.**
+`/doctor` "rightsize[s] your skills, and CLAUDE.md files" in one simplification
+pass with no metric, keep/discard, or blind check — run it first for free
 hypotheses, then use this skill when the question is *did the change measurably
-help*. Do NOT report `/doctor` output as a score. **v2.1.261 added `/skill-doctor`**, which reports which loaded skills go unused and what they cost in context — a pruning signal, and still not a quality measurement.
+help*. `/skill-doctor` reports unused skills and their context cost — a pruning
+signal. Report neither as a score.
 
 **Scope boundary — every metric here scores the skill's *text*, never its
 outputs.** SkillLens measured text-only judging at 46.4% accuracy against real
