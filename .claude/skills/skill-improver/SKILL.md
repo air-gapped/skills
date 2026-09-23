@@ -314,10 +314,6 @@ with no metric, no keep/discard, and no blind check — run it first for free
 hypotheses, then use this skill when the question is *did the change measurably
 help*. Do NOT report `/doctor` output as a score. **v2.1.261 added `/skill-doctor`**, which reports which loaded skills go unused and what they cost in context — a pruning signal, and still not a quality measurement.
 
-**Dim 10 is capped until net value is measured** — apply the rubric's
-§"Negative-Transfer Gate" (8 unmeasured, 2 when the skill loses to no-skill;
-measuring means `delta_pass_rate`, not a judgement about the text).
-
 **Scope boundary — every metric here scores the skill's *text*, never its
 outputs.** SkillLens measured text-only judging at 46.4% accuracy against real
 utility, so a rising rubric score is not evidence the skill's results improved.
