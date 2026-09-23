@@ -32,7 +32,7 @@ stay in `SKILL.md` and the references it names.
 
 Score the skill on 10 dimensions (each 0–10, summed to 0–100) using the detailed criteria and scoring template in `references/quality-rubric.md` (loaded in Phase 0).
 
-**Cold-score discipline.** When scoring at any phase, read the current file fresh and assign each dimension against the rubric criteria with no reference to prior iteration scores. Do NOT compute the new score by adding deltas to the old. Delta math hides regressions in dimensions not being watched.
+**Cold-score discipline.** When scoring at any phase, read the current file fresh from disk — never from the context-injected copy of a loaded skill, where `${CLAUDE_SKILL_DIR}` appears pre-expanded and reads as a false inconsistency — and assign each dimension against the rubric criteria with no reference to prior iteration scores. Do NOT compute the new score by adding deltas to the old. Delta math hides regressions in dimensions not being watched.
 
 ## Phase 2: Hypothesize (Pick One Improvement)
 
@@ -127,6 +127,11 @@ Growth past the ceiling is not a tidiness question.
   `discard (noise)`. Noise discards count toward the ceiling-mapped stop
   condition like any other discard.
 - **Score equal, but simpler** → KEEP. Log as `keep (simplification)`.
+- **Score equal, but fixes a verifiable defect** → KEEP. Log as `keep (defect)`.
+  Verifiable means checkable without judgement: a mode or command with no
+  dispatch, a reference to a section or script that does not exist, a rule
+  whose scope provably misses a case that already caused a wrong decision. A
+  wording or emphasis preference is not a defect — that stays a discard.
 - **Score equal or worse** → DISCARD. Revert via `git checkout -- <file>` ONLY if every prior keep is committed; with uncommitted keeps, restore the last kept snapshot instead — a whole-file checkout reverts to git HEAD and silently destroys them. (Not git-tracked: undo the edit.) Log as `discard`. The discard row must name WHAT was tried (change shape + target section) and WHY it failed — discard rows are the rejected-edit buffer Phase 2 consults.
 - **Change broke something** → REVERT. Log as `crash`. Fix and continue.
 

@@ -215,6 +215,7 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved — 2026-09-23c (Δ0 defect ruling)](#resolved--2026-09-23c-δ0-defect-ruling)
 - [Resolved this pass — 2026-09-23b (trigger)](#resolved-this-pass--2026-09-23b-trigger)
 - [Resolved this pass — 2026-09-23 (improve, Opus 5.5)](#resolved-this-pass--2026-09-23-improve-opus-55)
 - [Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)](#resolved-this-pass--2026-09-01-freshen--improve-fable-51-release-day)
@@ -251,27 +252,23 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
-- **(carried 2026-07-18, still Open) Rule-ceiling discard: cold-score-from-disk
-  clause.** Adding "read from disk — never from the context-injected copy;
-  `${CLAUDE_SKILL_DIR}` appears pre-expanded there and reads as a false
-  inconsistency" to Phase 1 §Cold-score discipline moved no dim (all affected
-  dims band-internal) yet has demonstrated value: this exact trap caused a
-  wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
-  judgment: accept as rubric-invisible operational hardening.
+## Resolved — 2026-09-23c (Δ0 defect ruling)
 
-  **Same class, two more discards 2026-09-23** — both real defects, both Δ0
-  and additive, so the loop's own rule reverted them. Blocked on the same
-  ruling (may a rubric-invisible hardening fix be kept at Δ0?):
-  - `floor` is a full SKILL.md section but absent from the `<mode>` grammar,
-    `argument-hint`, and the Floor Mode invocation line, so
-    `/skill-improver floor <skill>` has no defined dispatch. Diff: add `floor`
-    to both lists; invocation line reads "`floor <skill>` runs … · `floor
-    --all` runs …".
-  - §"The Skill Outranks Training Data" bullet 3 binds only *blind scorers*;
-    the 2026-08-20b freshen had a *probe* subagent report a version change the
-    primary changelog refuted. Diff: "This binds every subagent too — … no
-    subagent's 'wrong version' or 'changed in vX' finding is applied until the
-    loop confirms it in the primary source (changelog, code, release page)."
+**Ruling (operator, 2026-09-23): a Δ0 change that fixes a verifiable defect is
+kept.** Now a keep rule in `improve-loop.md` §Phase 4 (`keep (defect)`) and in
+the SKILL.md loop summary. Verifiable = checkable without judgement; wording or
+emphasis preferences still discard. Applied the three items the rule had been
+reverting:
+
+- `floor` added to the `<mode>` grammar and `argument-hint`; the Floor Mode
+  invocation line now maps `floor <skill>` / `floor --all` to the scripts.
+- §"The Skill Outranks Training Data": the no-memory-edits rule binds every
+  subagent (scorer, probe, research agent), not only blind scorers — the
+  2026-08-20b freshen had a probe agent report a version change the changelog
+  refuted.
+- improve-loop §Cold-score discipline: read from disk, never the
+  context-injected copy (pre-expanded `${CLAUDE_SKILL_DIR}` reads as a false
+  inconsistency; caused a wrong `discard (noise)` on 2026-07-18).
 
 ## Resolved this pass — 2026-09-23b (trigger)
 

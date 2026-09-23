@@ -25,7 +25,7 @@ when_to_use: >-
   "Claude isn't using my skill", or mentions autonomous skill improvement,
   skill quality scoring, skill optimization loops, stale skill content,
   or skill activation problems.
-argument-hint: '[improve|score|freshen|trigger|philosophy|ages|batch] [<skill-name>|--all|<glob>]'
+argument-hint: '[improve|score|freshen|trigger|philosophy|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver — Autoresearch for SKILL.md
@@ -43,7 +43,7 @@ Argument grammar:
 /skill-improver <mode> <target> [--opts]
 ```
 
-- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `philosophy` | `ages` | `batch`
+- `<mode>` — `improve` (default) | `score` | `freshen` | `trigger` | `philosophy` | `floor` | `ages` | `batch`
 - `<target>` — skill name (e.g. `gh-cli`), absolute SKILL.md path, `--all`, or glob (e.g. `vllm-*`)
 - `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`, `--runs-per-query 5`)
 
@@ -67,7 +67,8 @@ If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode 
 
 Greedy hill climbing on the 10-dimension rubric: score the skill, apply ONE
 change, re-score cold, keep +3 or more; keep +2 or +1 only when a second cold
-score confirms it or the change also simplifies; revert everything else. Stop
+score confirms it or the change also simplifies; keep a Δ0 change only when it
+fixes a verifiable defect (improve-loop §Phase 4); revert everything else. Stop
 at 90+ with no dim below 7, a mapped ceiling (5+ discards across 2+
 categories), or the 10-iteration cap. **+2 is inside the scorer's own noise** —
 re-scoring an unchanged skill moves the total by a median of 2-3 points, up to
@@ -212,9 +213,11 @@ the model's prior, never the reverse. This rule applies in EVERY mode, not just
   revert a claim to an older state is the signature of training-data staleness
   — the skill was probably freshened past the cutoff. Mandatory online check
   before touching it; expect to find the skill is right.
-- This binds blind scorers too — the validation prompt instructs them to check
-  `sources.md` stamps instead of scoring Dim 9 down from memory, and the loop
-  must not act on a blind agent's "wrong version" finding without its own probe.
+- This binds every subagent too — blind scorers are told to check `sources.md`
+  stamps instead of scoring Dim 9 down from memory, and no subagent's "wrong
+  version" or "changed in vX" finding — scorer, probe, or research agent — is
+  applied until the loop confirms it in the primary source (changelog, code,
+  release page).
 - **A new citation is a claim too — verify it before writing it down.** The rule
   above covers *altering* an existing claim; the recurring failure has been
   *adding* one. Before a paper, post, issue, or doc URL enters any file, open it
@@ -399,8 +402,8 @@ model does not hesitate — it proceeds, wrong. Read-only: surfaces candidates,
 never edits. Re-run on each model release — the movement in `KNOWS` is the
 delete list.
 
-**Invocation:** one skill — `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
-· whole fleet — `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`.
+**Invocation:** `floor <skill>` runs `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
+· `floor --all` runs `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`.
 
 Two rules bind without reading the reference. **Classify the skill first** —
 probe capability-uplift skills; on an encoded-preference skill (a house order
