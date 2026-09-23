@@ -48,6 +48,15 @@ Authoritative references underlying this skill. Read these when this skill is wr
 | TEI CLI defaults | `router/src/main.rs` (`max_concurrent_requests` default 512 line 60; `max_client_batch_size` default 32 line 82) | 2026-09-15 | re-resolved at tag **v1.9.3**: both still on lines 60 and 82, exactly as claimed |
 | TEI Blackwell image tags (`100-1.9`, `120-1.9`, `121-1.9`) | https://github.com/huggingface/text-embeddings-inference#docker-images — README image-tag table | 2026-08-18 | TEI README @ main — not re-probed 2026-07-21 |
 | BGE-Reranker-v2-m3 trained max_length=1024 | https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/9 — maintainer Shitao: "max length of this model is 8192, ... we fine-tune this model with a max length of 1024, so we recommend to set max_length=1024" | 2026-08-18 | discussion 9 (HF, not re-probed this pass) |
+| Slim image cuts local embedding/reranking models | https://github.com/open-webui/open-webui/commit/cb942bb94c8dc7941336088fb3392e2398ff56c1 — `Dockerfile`, `backend/requirements-slim.txt`, `backend/open_webui/routers/retrieval.py` (`USE_SLIM` guards at lines 155, 192, 540, 966, 1650) | 2026-09-24 | v0.11.4 |
+| pgvector multi-KB recall + connection-leak fix | https://github.com/open-webui/open-webui/pull/30142 — `retrieval/vector/dbs/pgvector.py`, adds `PGVECTOR_ITERATIVE_SCAN` (`config.py:744-746`) | 2026-09-24 | v0.11.4 |
+| pgvector index-built-too-early fix | https://github.com/open-webui/open-webui/pull/30143 — `retrieval/vector/dbs/pgvector.py` `_index_is_ready`/min_training_rows deferral | 2026-09-24 | v0.11.4 |
+| Knowledge folder deletion leaves stale index/blobs | https://github.com/open-webui/open-webui/commit/17dbc6f001aeea25ae1df528cb79bb272eca4a77 — `models/knowledge.py`, `routers/knowledge.py` | 2026-09-24 | v0.11.4 |
+| Docling failure/skip now fails the upload | https://github.com/open-webui/open-webui/pull/30107 — `retrieval/loaders/main.py:296-301` | 2026-09-24 | v0.11.4 |
+| ftfy no longer partially rewrites extracted text | https://github.com/open-webui/open-webui/commit/1bfa59acb — `retrieval/loaders/main.py`, `ftfy.fix_text(..., unescape_html=False)` | 2026-09-24 | v0.11.4 |
+| Duplicate vector-search tracebacks per outage | https://github.com/open-webui/open-webui/pull/29981 | 2026-09-24 | v0.11.4 |
+| `RAG_SOURCE_METADATA_KEYS` custom file metadata | https://github.com/open-webui/open-webui/pull/29499 — `backend/open_webui/env.py:375`, `retrieval/utils.py:1367` | 2026-09-24 | v0.11.4 |
+| `RAG_METADATA_MAX_VALUE_CHARS` / `ENABLE_KNOWLEDGE_FILE_RETENTION` | https://github.com/open-webui/open-webui/commit/278e97589e71d119b887d5bca9d6ae32912d1dff ; `backend/open_webui/config.py:985`, `env.py:844-846` | 2026-09-24 | v0.11.1 |
 
 **This file covers the open-webui / LiteLLM / TEI code and issue trail only.**
 Two other reference files carry their own dated Sources tables, because they cite

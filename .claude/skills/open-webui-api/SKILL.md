@@ -12,10 +12,14 @@ Target: operators who script Open WebUI (create users, reconcile model catalogs,
 
 ## Security floor: v0.11.1 — above this skill's own grounding tag
 
-**Run v0.11.1+ (v0.11.3 is the sensible target).** Note what that means here:
+**Run v0.11.1+ (v0.11.4 is the sensible target).** Note what that means here:
 this file is grounded in **v0.11.0 source**, which is *below* the floor. The
 file:line claims still describe 0.11.0 accurately; the instance you point them at
-should not be on it.
+should not be on it. Every published advisory (feed checked 2026-09-24, newest
+2026-09-09) is patched at 0.11.1. **But v0.11.2's release notes announce
+security and access-control fixes that are withheld from disclosure for now** —
+treat **v0.11.2 as the practical floor** and re-check the advisory feed when
+new GHSAs appear: expect them to raise the published floor to 0.11.2.
 
 Four of the advisories defeat things this skill teaches, so knowing the version
 comes before trusting the permission model:
@@ -69,8 +73,8 @@ Full endpoint inventory with per-route auth levels: `references/endpoint-map.md`
 
 ## Auth — the trap zone (read before first request)
 
-1. **API keys are off by default** since 0.6.37: `ENABLE_API_KEYS=true` required (the old `ENABLE_API_KEY` name is **silently ignored** — no fallback), plus admin role or `features.api_keys` permission (also default false). One unnamed, non-expiring `sk-` key per user; regenerate replaces it. Keys inherit the owner's full power — an admin's key can do everything, no scoping. Best practice: dedicated non-admin service accounts + `API_KEYS_ALLOWED_ENDPOINTS` allowlist (warning: restrictions on + empty list = keys can reach *nothing*).
-2. **JWTs expire after 4 weeks** by default since 0.6.34 (was: never). Long-lived automation on a captured session token dies silently mid-quarter. Signout only revokes JWTs when Redis is present.
+1. **API keys are off by default** since 0.6.37: `ENABLE_API_KEYS=true` required (the old `ENABLE_API_KEY` name is **silently ignored** — no fallback), plus admin role or `features.api_keys` permission (also default false). One unnamed, non-expiring `sk-` key per user; regenerate replaces it, and `DELETE /api/v1/auths/api_key` revokes it outright with no replacement (endpoint present since v0.11.0; v0.11.1 just added an account-settings button for it, #28874). Keys inherit the owner's full power — an admin's key can do everything, no scoping. Best practice: dedicated non-admin service accounts + `API_KEYS_ALLOWED_ENDPOINTS` allowlist (warning: restrictions on + empty list = keys can reach *nothing*).
+2. **JWTs expire after 4 weeks** by default since 0.6.34 (was: never). Long-lived automation on a captured session token dies silently mid-quarter. Signout only revokes JWTs when Redis is present — and **as of v0.11.4, a Redis error during that check fails open**: the token is accepted rather than the request failing, so a sign-out or password change may not actually cut access until Redis is reachable again (`utils/auth.py:is_valid_token`, commit `c1615bec`). Don't treat "signed out" as enforced during a Redis outage.
 3. **Headless bootstrap**: `WEBUI_ADMIN_EMAIL` + `WEBUI_ADMIN_PASSWORD` create the first admin at startup; or the first signup auto-promotes to admin and disables signup.
 4. SCIM is a separate universe: static `SCIM_TOKEN` bearer, not a JWT/API key.
 5. Behind proxies that eat `Authorization`: send the key in `x-api-key` (`CUSTOM_API_KEY_HEADER`).

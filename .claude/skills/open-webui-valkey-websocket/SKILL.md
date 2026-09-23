@@ -1,7 +1,7 @@
 ---
 name: open-webui-valkey-websocket
 description: |-
-  Deploy Open WebUI multi-pod with WebSockets and Valkey/Redis Sentinel at 1000+ user scale on Kubernetes. Centerpiece is the structural Socket.IO+Redis frame-amplification bug (#23733) that cripples multi-pod streaming, and the maintainer-endorsed mitigation (`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE`). Covers all multi-pod env vars, the custom-model-icon perf history (base64-in-/api/models, fixed late 2025–Apr 2026), the official helm chart's gaps (bundled Redis is unsuitable for production; no HPA/PDB/probes/sticky sessions), and the catalog of known multi-pod issues with current status.
+  Deploy Open WebUI multi-pod with WebSockets and Valkey/Redis Sentinel at 1000+ user scale on Kubernetes. Centerpiece is the structural Socket.IO+Redis frame-amplification bug (#23733) that crippled multi-pod streaming before v0.11.1, and the maintainer-endorsed mitigation (`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE`). Covers all multi-pod env vars, the custom-model-icon perf history (base64-in-/api/models, fixed late 2025–Apr 2026), the official helm chart's gaps (bundled Redis is unsuitable for production; no HPA/PDB/probes/sticky sessions), and the catalog of known multi-pod issues with current status.
 when_to_use: |-
   Trigger on "open-webui multi-pod", "open-webui replicas", "open-webui scaling", "open-webui websocket", "open-webui valkey", "open-webui redis", "WEBSOCKET_MANAGER", "WEBSOCKET_REDIS_URL", "ENABLE_WEBSOCKET_SUPPORT", "REDIS_KEY_PREFIX", "CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE", "open-webui 1000 users", "open-webui websocket disconnect", "open-webui model icon", "open-webui profile_image_url", "open-webui custom thumbnail", "issue 23733", "openwebui kubernetes", "openwebui helm", "open-webui rolling update", "openwebui sso avatar slow". Also trigger on symptom descriptions: "we had to disable multi-pod", "websocket caused performance problems", "had to drop replicas to 1", "thumbnail/icon caused slowness". NOT for Open WebUI's RAG/embedding/rerank pipeline (use `open-webui-embeddings`), tool/function development, or single-pod home-lab setups.
 ---
@@ -12,7 +12,7 @@ Target: deploying Open WebUI on Kubernetes with 3+ replicas, WebSocket support e
 
 Siblings in the `open-webui` plugin: driving configuration, users, and the model catalog through the REST API instead of the UI is **`open-webui-api`**; the RAG/embedding pipeline that multi-pod state has to keep consistent is **`open-webui-embeddings`**.
 
-The single most important thing to internalize before going multi-pod: **issue #23733 (Socket.IO frame amplification) is open and structural**. It is the most likely cause of "we had to turn off multi-pod and websockets" in production. The mitigation is one env var. Read `references/issue-23733.md` first.
+The single most important thing to internalize before going multi-pod: **issue #23733 (Socket.IO frame amplification) is the most likely cause of "we had to turn off multi-pod and websockets" in production on any release before v0.11.1** — it is fixed from v0.11.1 on, though the GitHub issue itself stayed closed won't-fix. The mitigation is one env var either way. Read `references/issue-23733.md` first.
 
 ## The big bug, in 60 seconds (#23733)
 
@@ -22,9 +22,11 @@ The single most important thing to internalize before going multi-pod: **issue #
 
 **Why it falls apart with `WEBSOCKET_MANAGER=redis` + multi-pod:** Each emit goes through `socketio.AsyncRedisManager`, which serializes the frame and broadcasts it to every pod via Valkey pub/sub. So a 4000-token response generates **4000 frames, each carrying the full accumulated message**. Total bandwidth is O(N²). With a 6-Valkey-node × 4-worker × 100-concurrent-stream setup, the issue author measured **~10,000× infrastructure-traffic amplification**. Reasoning models and tool-calling make it worse because the messages get longer and more structured.
 
-**Status (re-verified 2026-09-22):** **closed NOT_PLANNED 2026-08-11** — a won't-fix, not a fix. The closing thread is unrelated memory-usage chatter and no PR landed, so the amplification is structurally unchanged and every mitigation below still applies. Maintainer wants a Yjs-based redesign; the delta PR #23735, the replay PR #23736, and the Yjs PRs #24124, #24126, #24171 remain closed without merge. **No merge ETA.** 0.11.0 rewrote large parts of `socket/main.py` (+238 lines) and `utils/middleware.py` (+1074) but did **not** change the frame model — each emit still carries the full accumulated message, so the amplification is unchanged.
+**Status (re-verified 2026-09-22):** **closed NOT_PLANNED 2026-08-11** — a won't-fix, not a fix. The closing thread is unrelated memory-usage chatter and no PR landed, so the GitHub issue itself never got a linked resolution. Maintainer wants a Yjs-based redesign; the delta PR #23735, the replay PR #23736, and the Yjs PRs #24124, #24126, #24171 remain closed without merge. **No merge ETA.** 0.11.0 rewrote large parts of `socket/main.py` (+238 lines) and `utils/middleware.py` (+1074) but did **not** change the frame model — each emit still carried the full accumulated message.
 
-**Mitigation — set this env var:**
+**But v0.11.1 fixed the amplification anyway, outside the issue thread.** "Streaming rebuilt from the ground up" (commit `a1579a01f`) replaced the `{'output': full_output()}`-per-chunk emit in `utils/middleware.py::streaming_chat_response_handler` with per-token `response.output_text.delta` events carrying only `delta: <new text>` — verified by reading the diff against v0.11.0 and the resulting code at v0.11.4. `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` still batches N of these before emitting, but each emit is now O(chunk), not O(full message-so-far): the O(N²) growth this section describes **does not apply from v0.11.1 onward**. Full-message frames remain only at reasoning/solution/code-interpreter tag boundaries, tool-call steps and completion — a handful per reply, not one per token. A Redis-backed resume snapshot (`REDIS_RESPONSE_STREAM_TTL`, default 3600s) replaces the old full-resend-on-reconnect behavior. Everything below this point is accurate history for <v0.11.1 and still explains why the chunk-size knob exists.
+
+**Mitigation — set this env var (still the right default even post-fix; it also bounds emit frequency, not just legacy amplification):**
 
 ```bash
 CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10
@@ -38,7 +40,7 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 
 | Symptom | Probable cause | Where |
 |---|---|---|
-| Multi-pod + WS works at 10 users, melts at 100+ | #23733 amplification — every token re-broadcasts full message via Valkey pub/sub | `references/issue-23733.md` |
+| Multi-pod + WS works at 10 users, melts at 100+ on **<v0.11.1** | #23733 amplification — every token re-broadcast the full message via Valkey pub/sub; **fixed in v0.11.1** (streaming rebuild, commit `a1579a01f`) — frames now carry deltas | `references/issue-23733.md` |
 | `/api/models` response is multi-MB; reconnect storms during rollouts | Pre-0.6.37 base64 model icons in `model.meta.profile_image_url` | `references/icons-thumbnails.md` |
 | `POST /api/tasks/stop/{id}` does nothing across pods | Worker-local task tracking — fixed for Sentinel, and **fixed for RedisCluster too from v0.11.2** (#19840 / PR #29165); still broken on RedisCluster at v0.11.1 and earlier (#19840) | `references/known-issues.md` §RedisCluster |
 | "Model not found" intermittent under load | `RedisDict.set()` race (DELETE + HSET non-atomic) — fixed in 0.8.x (#22734) | `references/known-issues.md` §RedisDict-race |
@@ -51,8 +53,8 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 | Migration races on rolling restart | Multiple pods running migrations simultaneously — set `ENABLE_DB_MIGRATIONS=false` on all but one | `references/configuration.md` §Migrations |
 | Pods crash/500 mid-rollout on a version upgrade | **Rolling updates across a schema change are unsupported** — old and new pods cannot share a schema. Take the deployment down and replace all pods at once | this file, §Version upgrades |
 | Helm chart bundled Redis loses state on restart | Bundled Redis is a no-PVC Deployment; unsuitable for production | `references/helm-chart.md` §Bundled-redis |
-| Pods fail to start on 0.11.0 with a non-root securityContext | #27651 — `runAsNonRoot: true` breaks on 0.11.0 (open) | this file, §Version upgrades |
-| Idle cluster shows constant DB load after upgrading to 0.11.0 | #27622 — chat-timer polling scans the chat table every second while idle (open); scales with chat-table size, so it bites large multi-pod instances hardest | this file, §Version upgrades |
+| Pods fail to start on 0.11.0 with a non-root securityContext | #27651 — `runAsNonRoot: true` broke on 0.11.0; **fixed in v0.11.1** | this file, §Version upgrades |
+| Idle cluster showed constant DB load on 0.11.0 | #27622 — chat-timer polling scanned the chat table every second while idle; **fixed in v0.11.1** (PR #27663) | this file, §Version upgrades |
 
 ## Production env block (read before deploying)
 
@@ -190,6 +192,35 @@ Not every release changes the schema; check the release notes' "Database Migrati
   skipped Redis because it runs a single pod, that is a security gap, not a
   missing convenience.
 
+### What v0.11.4 changed for a multi-pod deployment
+
+- **Revocation fails open on a Redis error, not just when Redis is absent.**
+  `is_valid_token()` (`utils/auth.py`) now catches `RedisError` and accepts the
+  token anyway, logging a warning. A sign-out, password change, or ban issued
+  while Redis is flaky or failing over may not take effect until Redis
+  recovers — availability was chosen over strict revocation. Verified against
+  commit `c1615bec2` at v0.11.4.
+- **Sign-in rate limiting no longer blocks the whole worker.** The limiter's
+  Redis calls are async now (PR #29977); a slow Redis used to freeze every
+  request on that worker, not just the one signing in.
+- **The websocket session-pool reaper survives a Redis error** instead of
+  dying for the life of the process on the first `ConnectionError` (PR
+  #29976) — previously silent beyond one "Task exception was never
+  retrieved" log line at shutdown.
+- **`REDIS_TASK_TTL`** (default `300`, floored at `60`) expires a background
+  task's Redis bookkeeping once its owning worker stops renewing it, so a
+  killed worker no longer leaves orphaned task state behind permanently.
+- **The shared model registry (`MODELS`) is cached per worker** and only
+  refetched when its signature changes (PR #28176), and that signature no
+  longer flaps on every refresh from Ollama's `expires_at` countdown (commit
+  `649c012e`) — a chat request no longer pulls the whole model hash from
+  Redis just to answer about one or two models.
+- **Direct-connection replies stream across workers.** A reply over a user's
+  direct connection used to go quiet mid-stream when its events landed on
+  another worker; they now travel through the Redis manager like other chat
+  events (commit `0180efec`). Pre-v0.11.4 with direct connections enabled:
+  expect stalled replies on multi-pod.
+
 ## Custom model icons / thumbnails — was this our problem?
 
 For deployments that ran multi-pod + WS in early 2026 and disabled it after performance died, custom model thumbnails are a strong suspect alongside #23733. Pre-0.6.37 (Nov 2025) the entire base64 image lived in `model.meta.profile_image_url` and was returned in `/api/models` for every model on every page load and every WS reconnect. With ~350 models and HD icons, the response payload exceeded 4 MB (issue #18950). On reconnect storms during rollouts: N pods × M users × 4 MB simultaneously, on top of the WS amplification.
@@ -213,7 +244,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **0.11.0** (2026-07-27); the floor stays at 0.9.5 because 0.9.6→0.11.0 have not been load-tested for scaling regressions — treat them as un-vetted here, not as recommended. If you do move to 0.11.0, read §Version upgrades first: the rollout procedure changes, and two open k8s-relevant regressions ride along (#27622 idle timer polling, #27651 `runAsNonRoot`).
+- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **v0.11.4** (2026-09-24 pass); the floor stays at 0.9.5 because 0.9.6→0.11.0 have not been load-tested for scaling regressions — treat them as un-vetted here, not as recommended. If you do move past 0.9.5, read §Version upgrades first: the rollout procedure changes at 0.11.0, and the two regressions that rode along with it (#27622 idle timer polling, #27651 `runAsNonRoot`) are both **fixed in v0.11.1**.
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.

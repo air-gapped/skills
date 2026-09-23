@@ -15,7 +15,7 @@ Target: operators choosing and wiring open-weights embedding and reranker models
 - **Open WebUI's side is backend-agnostic.** `RAG_EMBEDDING_ENGINE=openai`, the `/v1/embeddings` payload, prefix handling, batching and concurrency are identical whether you serve with TEI, vLLM, OpenRouter, or OpenAI itself. That layer is this file plus `references/prefix-models.md`.
 - **The serving layer differs per backend** and lives in `references/backends.md` (+ the TEI-specific cliffs in `references/gotchas.md` §2-§6, §9).
 
-Verified against **v0.11.0** source (2026-07-29). The embed and rerank code paths are unchanged from 0.10.2 — 0.11.0's retrieval churn landed almost entirely in `retrieval/web/` (web search), not the embedding core — so every wire shape and env default below still holds. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
+Verified against **v0.11.0** source (2026-07-29), re-checked through **v0.11.4**. The embed and rerank wire calls (`generate_openai_batch_embeddings`, `ExternalReranker.predict`) still send and parse the exact payloads below at v0.11.4 — only logging format and an internal header helper changed. v0.11.1–v0.11.4 instead shipped real retrieval-correctness fixes, a mandatory-external-embedding "slim" image, and new ingestion env vars — see §Slim image, the environment variable tables, and §Do not pin at exactly v0.11.0. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
 
 ## Start here
 
@@ -59,6 +59,19 @@ The one hard constraint: **TEI rerank cannot be wired directly.** Its shape is
 `{query, texts}` → `[{index, score}]`; Open WebUI demands
 `{model, query, documents, top_n}` → `{results: [{index, relevance_score}]}`.
 Everything else is a preference. Details in `references/backends.md`.
+
+## Slim image (v0.11.4+) makes external embedding mandatory
+
+The `slim` container variant (`USE_SLIM_DOCKER=true`) ships with no local embedding or reranking model. It still starts and chats fine unconfigured — it only fails once knowledge search is actually used.
+
+| Slim requirement | What happens if unmet | Evidence |
+|---|---|---|
+| `RAG_EMBEDDING_ENGINE` must be `openai`, `ollama`, or `azure_openai` | Saving embedding settings 400s: `Slim requires an external embedding engine (openai, ollama, azure_openai).` | `backend/open_webui/routers/retrieval.py:540` |
+| No local reranker is ever loaded | Falls back to cosine scoring (Open WebUI's normal no-reranker behavior) unless `RAG_RERANKING_ENGINE=external` is set | `backend/open_webui/routers/retrieval.py:192-193` |
+| `VECTOR_DB` defaults to `pgvector`, not `chroma`; knowledge search works only through pgvector | Any other `VECTOR_DB` still starts — the failure arrives on the first search, not at boot. Test a search after deploying | `backend/open_webui/config.py:503,508` |
+| File storage must be local, not S3/GCS/Azure | Configuring a bucket backend fails at startup on slim | slim-image commit `cb942bb9` |
+
+Once the external embedder/reranker is wired, every rule elsewhere in this skill applies unchanged: prefixes (`references/prefix-models.md`), the strict Cohere rerank shape (§Wire shapes below), and the weak-reranker warning above.
 
 ## Wire shapes (exact)
 
@@ -113,6 +126,15 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_RERANKING_MODEL` | rerank | Sent in payload as `model`. Match the backend's served name. |
 | `RAG_EXTERNAL_RERANKER_TIMEOUT` | rerank | Seconds. Bump for very large `Top_K × Hybrid Search` candidate pools. |
 
+### Ingestion and knowledge-base env vars added since v0.11.0
+
+| Variable | Since | Notes |
+|---|---|---|
+| `RAG_SOURCE_METADATA_KEYS` | v0.11.4 | Comma-separated allowlist of per-chunk metadata keys forwarded to the model alongside retrieved text. Empty (default) means no custom metadata reaches the model even if it was attached at upload. `backend/open_webui/env.py:375`, applied in `retrieval/utils.py:1367`. |
+| `RAG_METADATA_MAX_VALUE_CHARS` | v0.11.1 | Caps any single stored chunk-metadata value; oversized values are dropped. Default: `RAG_FILE_MAX_SIZE` (MB) converted to characters; no cap only when both are unset. `backend/open_webui/env.py:844-846`. |
+| `ENABLE_KNOWLEDGE_FILE_RETENTION` | v0.11.1 | `false` by default. When `true`, removing a file from a knowledge base (or emptying one) keeps the stored file and its vector-search data instead of deleting them. `backend/open_webui/config.py:985`. |
+| `PGVECTOR_ITERATIVE_SCAN` | v0.11.4 | pgvector only: `relaxed_order` (default), `strict_order`, or `off`. Needs pgvector ≥0.8, silently ignored below that. Fixes multi-knowledge-base recall on a shared pgvector store — see next section. `backend/open_webui/config.py:744-746`. |
+
 ## Do not pin at exactly v0.11.0 — RAG was silently broken there
 
 **v0.11.0 shipped a regression that answers as though your knowledge base were
@@ -154,6 +176,40 @@ was sent a rejected empty `Authorization` header.
 §"Security floor" for why that number has to be derived by hand from affected
 ranges rather than read from the advisory feed.
 
+**v0.11.4 fixed a multi-knowledge-base recall bug on pgvector, independent of
+the v0.11.1 floor above.** All collections share one table under one vector
+index, and the `collection_name` filter is applied *after* the index walk —
+so a knowledge base holding a small share of the rows found only a small
+share of its matches, silently, and the shortfall grew as the store did. On
+v0.11.4 the fix is on by default (`PGVECTOR_ITERATIVE_SCAN=relaxed_order`) but
+needs the **pgvector extension ≥ 0.8** on the database — below that it silently
+does nothing, so check `SELECT extversion FROM pg_extension WHERE extname='vector'`. The same PR closes a connection leak on the same code
+path: an empty pgvector read returned before its rollback, so retrieval's
+per-thread sessions each pinned a pooled connection until "QueuePool limit of
+size 5 overflow 10 reached" took the instance down. `retrieval/vector/dbs/pgvector.py`, PR #30142.
+
+**v0.11.4 also fixed a pgvector install racing its own index build**: a
+fresh instance built its ivfflat index before any content existed to cluster
+it around, so every search after that returned the wrong passages until the
+index was rebuilt by hand. The index now waits for enough rows; below that
+threshold pgvector runs an exact scan instead. PR #30143.
+
+**Knowledge-base folder deletion left retrievable text behind.** Deleting a
+folder without moving its files up a level removed them from the listing but
+left their text in the search index and their blobs in storage, so the model
+kept citing pages from a folder no longer visible in the UI. Fixed in
+`17dbc6f0` (v0.11.4).
+
+**Two document-loader correctness fixes, also v0.11.4:** a Docling
+conversion that fails or is skipped inside an HTTP 200 response now fails
+the upload with Docling's own error, instead of being accepted and indexing
+a placeholder in its place (`retrieval/loaders/main.py:296-301`, PR #30107);
+and extracted text is no longer partially rewritten by `ftfy`'s "auto"
+HTML-unescape mode, which only unescaped entities up to the first literal
+`<` and left the rest of the document untouched — `unescape_html=False` is
+now passed explicitly (`retrieval/loaders/main.py`, commit `1bfa59acb`,
+PR #29736).
+
 ## Triage table
 
 | Symptom | First check | Where |
@@ -173,6 +229,7 @@ ranges rather than read from the advisory feed.
 | vLLM returns 200 but retrieval is nonsense | Architecture missing from vLLM's `_EMBEDDING_MODELS` → generic last-token pooling fallback | `references/backends.md` §vLLM |
 | vLLM 400s on long chunks where TEI was fine | vLLM errors on over-length pooling input; TEI auto-truncates | `references/backends.md` §vLLM |
 | OpenRouter rerank returns 200, ordering unchanged | Response shape must be `{results:[{index, relevance_score}]}` or `predict()` returns `None` | `references/backends.md` §OpenRouter |
+| A vector-store outage logs hundreds of near-identical tracebacks per message | Expected before v0.11.4 — one record now names every failed collection instead of one full traceback per collection | fixed v0.11.4, PR #29981 |
 
 ## Verifying ingestion (changed in 0.11.0)
 

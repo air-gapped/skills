@@ -1,12 +1,12 @@
 # Known issues, fixes shipped, and what to watch
 
-Status as of 2026-07-29 (stable was 0.11.0 then; the line is at 0.11.3 as of 2026-09-15; issue states re-probed — #23733, #19840, #15162 all still open. The 0.9.6→0.11.0 changelogs were NOT load-tested for scaling regressions, but the 0.11.0 release notes were read: see SKILL.md §Version upgrades, plus open #27622 idle timer polling and #27651 runAsNonRoot). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Status as of 2026-07-29 (stable was 0.11.0 then; the line is at **0.11.4** as of 2026-09-24; issue states re-probed — #19840, #15162 still open, #23733 closed won't-fix but its underlying amplification is fixed anyway from v0.11.1, see below. The 0.9.6→0.11.0 changelogs were NOT load-tested for scaling regressions, but the 0.11.0 release notes were read: see SKILL.md §Version upgrades. #27622 idle timer polling and #27651 runAsNonRoot, both open on 0.11.0, are **fixed in v0.11.1**). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
-### #23733 — Socket.IO frame amplification (THE BIG ONE)
+### #23733 — Socket.IO frame amplification (THE BIG ONE) — **fixed in v0.11.1, outside the issue thread**
 
-Opened 2026-04-14, **closed NOT_PLANNED 2026-08-11** — won't-fix, nothing landed, so the mitigation still applies. The structural bug — see `references/issue-23733.md` for the full story, mitigation, and PR history. Mitigation: `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.
+Opened 2026-04-14, **closed NOT_PLANNED 2026-08-11** — won't-fix on GitHub, no PR linked to the issue. But v0.11.1's "Streaming rebuilt from the ground up" (commit `a1579a01f`) independently replaced the full-message-per-emit path in `utils/middleware.py` with per-token delta events — verified by diffing v0.11.0 against v0.11.4. The O(N²) amplification this section describes applies only to **<v0.11.1**. Full story, evidence, and PR history in `references/issue-23733.md`. `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10` remains the right setting — it now bounds emit frequency rather than amplification.
 
 ### #15162 — direct-connection chat with `workers > 1`
 
@@ -44,6 +44,10 @@ Opened 2026-04. 39 comments. Includes a `KeyError` in socketio's `enter_room` (b
 Opened 2026-04-12. Stale Socket.IO rooms persist across pod restarts and access revocations. Not yet merged.
 
 ## Fixed issues — what shipped, when
+
+### #29976 / #29977 — Redis blips no longer take down auth or session cleanup (v0.11.4)
+
+Both fixed 2026-09-14, shipped v0.11.4. **#29977**: the sign-in rate limiter did synchronous, unbounded Redis round-trips inline on the event loop, so a slow (not even down) Redis froze the whole worker for every request, not just the one signing in — PR #29977 made it async against `request.app.state.redis`. **#29976**: the websocket session-pool reaper's lock-acquire sat outside its `try`, so the first `ConnectionError` ended the cleanup coroutine for the life of the process with only a swallowed "Task exception was never retrieved" at shutdown — PR #29976 wraps the whole loop body and retries. Both are Redis-only; the in-memory fallback path was never affected.
 
 ### #22734 — RedisDict.set() race condition
 
@@ -156,7 +160,7 @@ Plus the Nov–Dec 2025 work:
 | Sentinel auth password | Fixed Nov 2025. |
 | Sentinel coroutine-not-awaited (0.9.1) | Fixed in 0.9.4 (#23987 closed 2026-05-08). Upgrade required for Sentinel users on 0.9.1–0.9.3. |
 | Direct-connection chat with `workers > 1` | Partial fix Mar 2026; **don't use multiple workers per pod**. |
-| Socket.IO frame amplification (#23733) | **Closed won't-fix 2026-08-11; structurally unresolved. Mitigate with `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** |
+| Socket.IO frame amplification (#23733) | GitHub issue closed won't-fix 2026-08-11, but the amplification itself is **fixed in v0.11.1** (streaming rebuild emits deltas, not full messages). Still applies on <v0.11.1. Keep `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10` regardless. |
 | Helm chart bundled Redis is no-PVC | Disable, use external Valkey. |
 | Helm chart no HPA/PDB/probes | Add yourself. |
 | Helm gateway-API WS appProtocol | Open #383, manual workaround. |

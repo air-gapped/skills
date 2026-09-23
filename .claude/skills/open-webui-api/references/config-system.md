@@ -56,6 +56,8 @@ Tool servers (OpenAPI + MCP): `GET|POST /api/v1/configs/tool_servers` — entrie
 
 Open WebUI has **no native per-user rate limiting or quota** (only sign-in is throttled) — to attribute or cap usage per user, forward the authenticated identity to the upstream gateway and enforce there. `ENABLE_FORWARD_USER_INFO_HEADERS=True` (env) makes OWUI add `X-OpenWebUI-User-{Name,Id,Email,Role}` to every upstream call on the proxy paths (`openai`, `ollama`, anthropic, audio, images, tools, retrieval — `routers/openai.py:include_user_info_headers`); the chat path additionally sends `X-OpenWebUI-Chat-Id` when a chat is bound. Header names are overridable (`FORWARD_USER_INFO_HEADER_USER_*` in `env.py`). Note `user.id` is an OWUI-internal uuid4 (**not** the OIDC `sub`), so prefer the `…-Email` header for human-legible downstream records.
 
+**v0.11.4 adds `X-OpenWebUI-Auth-Type`** to the same header set on `openai`/`ollama` connections, carrying `"cookie"` or `"api_key"` depending on how the caller authenticated. Env override is `FORWARD_USER_INFO_HEADER_AUTH_TYPE` (default `X-OpenWebUI-Auth-Type`), and `{{AUTH_TYPE}}` is available in custom headers (`env.py:997`, `utils/headers.py`). Useful for a gateway that wants to rate-limit interactive browser traffic differently from scripted API-key callers.
+
 The upstream then reads that header as the request's end-user. Example — LiteLLM picks it up with one setting:
 
 ```yaml
@@ -98,6 +100,7 @@ With `api_type: "responses"` on the connection, Open WebUI converts chat request
 - vLLM/engine-level knobs (`chat_template_kwargs`, …) survive Open WebUI but are typically **dropped by the upstream's Responses route** (verified: LiteLLM `/v1/responses`). Use the OpenAI-standard Responses params instead — `reasoning: {"effort": ...}` reaches the engine and enables thinking.
 - `convert_responses_result()` rebuilds non-streaming answers from `message`/`output_text` items only — **reasoning items are silently discarded for non-streaming API callers**. Streaming callers (and the UI) receive the raw event stream (`response.reasoning_text.delta`, …). Always test reasoning with `stream: true`.
 - Usage accounting still proves thinking server-side: `output_tokens_details.reasoning_tokens > 0`.
+- **v0.11.4 fixes two Responses-conversion bugs (both `routers/openai.py`).** Before, a Chat-Completions tool with no explicit `strict` key defaulted to Responses' own `strict: true` instead of Chat-Completions' `false`, so the model filled every optional argument and search/filter tools got values meant to be omitted (#30046, `openai.py:1417-1424` — `converted_tool['strict'] = func.get('strict', False)`). And a forced `tool_choice` in Chat-Completions shape was forwarded unconverted (providers rejected it) and a **non-streaming** reply carrying a function call flattened to empty text with `finish_reason: "stop"`; both now convert (#30095, `openai.py:1428-1466` — forced choice becomes `{"type":"function","name":...}`, `function_call` output items become `tool_calls` with `finish_reason: "tool_calls"`).
 
 ## Defaults, ordering, task models
 
