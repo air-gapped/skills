@@ -30,6 +30,14 @@ Between commits `d83f3f7` and `5a84b76`, the DeepGEMM MoE M<128 restriction was 
 - **Issue closed 2026-04-21 by `github-actions[bot]`** under a `stale` label, `state_reason: not_planned`, with a comment thread consisting of exactly two bot messages and no linked PR. Re-probed 2026-09-15. **Nothing was fixed** — the earlier "FIXED" reading came from the closure alone.
 - **Keep the workaround**: `VLLM_MOE_USE_DEEP_GEMM=0` + FlashInfer FP8. Do not drop it on the strength of the closed state; measure TTFT at concurrency ≤8 on your own build first.
 
+### v0.30.0: DeepGEMM build source moved to the vLLM fork ([#56876](https://github.com/vllm-project/vllm/pull/56876))
+
+Building DeepGEMM from source (`tools/install_deepgemm.sh`, `cmake/external_projects/deepgemm.cmake`) now clones **`github.com/vllm-project/DeepGEMM.git`** at a pinned commit, not `deepseek-ai/DeepGEMM.git`. The fork carries upstream 2.8.0 plus vLLM's SM120 and SM90 paged-MQA ports, and the same PR changed the Mega MoE call convention. Vendoring upstream `deepseek-ai/DeepGEMM` directly (or an old `DEEPGEMM_SRC_DIR` checkout) after upgrading to v0.30.0 can build against the wrong ABI — rebuild from the vLLM fork.
+
+### v0.30.0: DCP now needs opt-in attention-backend support ([#55780](https://github.com/vllm-project/vllm/pull/55780))
+
+`AttentionImplBase.supports_dcp` default flipped `True` → `False` (`vllm/v1/attention/backend.py`). Only FlashAttention, FlashInfer, and the MLA backends (Cutlass/FlashAttn/FlashInfer/FlashMLA/FlashMLA-Sparse/ROCm-AITER/Tokenspeed/Triton-MLA) explicitly re-declare `supports_dcp = True`. **ROCm standard attention, plain Triton attention, FlexAttention and TurboQuant now fail at backend selection** under `--decode-context-parallel-size > 1` instead of silently running unsupported. Fix: switch to a declared-DCP backend, or drop DCP on those backends.
+
 ### v0.19.0rc1 FLUX.1-dev regression ([vllm-omni #2730](https://github.com/vllm-project/vllm-omni/issues/2730))
 
 Not vLLM core but documented here for operators running vllm-omni diffusion: FLUX.1-dev generates incorrect images. Pin v0.18.0. See `vllm-omni` skill.

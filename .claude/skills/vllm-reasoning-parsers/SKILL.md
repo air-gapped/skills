@@ -55,6 +55,8 @@ Registry: `vllm/reasoning/__init__.py` has a `_REASONING_PARSERS_TO_REGISTER` di
 
 Plugin path: `--reasoning-parser-plugin /path/to/my_parser.py` calls `ReasoningParserManager.import_reasoning_parser(path)`, which `importlib`-loads the file. The file registers itself via `@ReasoningParserManager.register_module(["my-name"])` at import time. Then `--reasoning-parser my-name` selects it.
 
+**Headless mode needs v0.30.0+ for a plugin to resolve at all.** `vllm serve --headless` used to call `AsyncEngineArgs.create_engine_config()` — which validates `--reasoning-parser` against the registry — before importing the plugin file, so a custom name fast-failed as unregistered even though the plugin was correct. Fixed in `vllm/entrypoints/cli/serve.py::run_headless` by importing the plugin first ([#53124](https://github.com/vllm-project/vllm/pull/53124)). On an older build, load the plugin through the non-headless path instead.
+
 ## The 15 things that go wrong
 
 See `references/pitfalls.md` for each with repros and fixes. Quick index:

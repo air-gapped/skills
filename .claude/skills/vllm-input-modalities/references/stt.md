@@ -127,14 +127,30 @@ print(r.text)
 
 Server-side:
 
-1. **Decoding** — librosa-based. WAV / FLAC / MP3 work out of the box.
-   MP4 / M4A / WebM decoding support landed in v0.18.
+1. **Decoding** — backend-selectable (`vllm/multimodal/media/audio.py`,
+   `AUDIO_BACKENDS = ("auto", "soundfile", "pyav", "torchcodec")`). `auto`
+   (default) tries soundfile, then torchcodec, then pyav (#51826, #55642,
+   v0.30.0). `torchcodec` needs the `torchcodec` package plus a system
+   ffmpeg install — falls through to the next backend if unavailable.
+   Force one: `--media-io-kwargs '{"audio": {"audio_backend": "torchcodec"}}'`.
+   WAV / FLAC / MP3 work out of the box; MP4 / M4A / WebM decoding support
+   landed in v0.18. (Not librosa — that claim predates this baseline and
+   was already wrong at v0.27.0.)
 2. **Resampling** — automatic to `SpeechToTextConfig.sample_rate` per model
-   (Whisper = 16 kHz, Voxtral = 16 kHz, etc.).
+   (Whisper = 16 kHz, Voxtral = 16 kHz, etc.). Default method switched from
+   PyAV to **torchaudio** in v0.30.0 (#52598, `MultiModalDataParser`'s
+   `audio_resample_method` default in `vllm/multimodal/parse.py`); torchaudio
+   ships in the standard CUDA/ROCm/CPU/XPU requirement files, no extra
+   install needed.
 3. **Chunking** — for audio longer than `max_audio_clip_s` (usually 30 s),
    vLLM splits with energy-aware detection at
    `min_energy_split_window_size`. Set `min_energy_split_window_size=None`
    if the model handles its own chunking.
+4. **Cache correctness (v0.30.0)** — `media_io_kwargs` (including
+   `audio_backend`) is now part of the multimodal cache hash, and hash
+   kwargs are scoped per modality instead of shared (#54241, #54918).
+   Before this, switching `audio_backend` between requests risked reusing a
+   stale cached decode taken with a different backend.
 
 Recent fix: **#39116** (merged 2026-04-09) fixed a spacing bug between
 chunks in multi-chunk transcription. **It ships in v0.20.0 (2026-04-27) and not
@@ -233,3 +249,10 @@ v0.27.0. Earlier: #42370/#42274 (v0.22.0) were internal consolidation,
 MOSS-Transcribe-Diarize joined the roster in **v0.26.0** (#47729 — merged 2026-07-08,
 three days before v0.25.0 published, but not an ancestor of it). PR #39116
 merged 2026-04-09, ships in **v0.20.0 only**.
+
+§6 updated 2026-09-23 against vLLM v0.30.0: audio decoding is now
+backend-selectable (soundfile/pyav/torchcodec, #51826/#55642) rather than
+the previously-claimed librosa (that claim was already wrong at the
+v0.27.0 baseline); default resampler switched PyAV → torchaudio (#52598);
+`media_io_kwargs` (incl. `audio_backend`) now included in and scoped
+within the multimodal cache hash (#54241, #54918).

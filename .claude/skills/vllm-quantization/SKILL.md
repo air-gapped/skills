@@ -94,7 +94,7 @@ Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_e
 | `quark` | varies | AMD ROCm path |
 | `fp8_per_tensor` / `fp8_per_block` / `int8_per_channel_weight_only` / `online` | 75 | **Online** quantization from BF16 checkpoint — no pre-quant step |
 
-**Deprecated / legacy / narrow:** `fbgemm_fp8` and `fp_quant` are the only two in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list. Also avoid for new work: `awq` (unfused Triton — use `awq_marlin`), `gptq` (unfused — use `gptq_marlin`), `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `inc` / `auto-round` (Intel), `torchao`. Aliases `auto_awq` / `auto_gptq` resolve to the same configs as `awq` / `gptq`.
+**Deprecated / legacy / narrow:** `fbgemm_fp8` and `fp_quant` are the only two in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list. Also avoid for new work: `awq` (unfused Triton — use `awq_marlin`), `gptq` (unfused — use `gptq_marlin`), `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `inc` (Intel Neural Compressor / AutoRound packing — no longer Intel-only compute: v0.30.0 added CUDA support for AutoRound's 2/3/5/6/7-bit widths via a Humming-kernel fallback, #52890), `torchao`. Aliases `auto_awq` / `auto_gptq` resolve to the same configs as `awq` / `gptq`.
 
 **`bitsandbytes` left the tree in v0.28.0** (#43529, listed under Breaking
 Changes). It is now an out-of-tree plugin, so on v0.28.0+ the value is not
@@ -108,6 +108,13 @@ resolves.
 `--moe-backend`, and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141). v0.28.0 also
 removed the deprecated `calculate_kv_scales` runtime KV-scale calculation
 (#49389) and `override_attention_dtype` (#48684).
+
+**v0.30.0 removed the `use_fp4_indexer_cache` alias** (#55353): set
+`indexer_kv_dtype` directly on `AttentionConfig` for the DSA sparse-attention
+indexer K cache (values `auto` / `bf16` / `fp8` / `mxfp4` / `nvfp4`) —
+`use_fp4_indexer_cache = True` used to map to `mxfp4`. The field is gone from
+`AttentionConfig`, not just ignored — a config that still sets it is no
+longer accepted.
 
 **Gone from the in-tree flag list — do not offer them:**
 
@@ -197,6 +204,30 @@ The advanced schema is `{linear: {weight, activation}, moe: {weight, activation}
 ignore: [...]}`; `linear` / `moe` also accept a bare shorthand string. Names come
 from `QUANT_KEY_NAMES` in `vllm/config/quantization.py`. There is no
 `--quantization-config-file` flag and no `global_scheme` key.
+
+**v0.30.0 added `targets`** for per-layer online overrides — a dict of
+`{pattern: shorthand}` (exact name, `re:`-prefixed regex, or fnmatch, mapping
+to `fp8_per_tensor` / `fp8_per_block` / `fp8_per_channel` / `mxfp8` /
+`int8_per_channel_weight_only` / `nvfp4_per_token`), mutually exclusive with
+`linear`/`moe`. A layer matching no pattern keeps its checkpoint dtype
+([#51285](https://github.com/vllm-project/vllm/pull/51285)):
+
+```bash
+vllm serve Qwen/Qwen3.5-35B-A3B --quantization online \
+  --quantization-config '{"targets":{"model.layers.0.self_attn.o_proj":"fp8_per_tensor","*mlp.experts*":"mxfp4"}}'
+```
+
+**v0.30.0 also let online quantization target the unquantized layers of an
+already partially pre-quantized checkpoint**, regardless of its own
+`quant_method` (modelopt, compressed-tensors, quark) — the checkpoint's own
+method still owns its already-quantized layers
+([#51392](https://github.com/vllm-project/vllm/pull/51392)):
+
+```bash
+# Adds MXFP8 to the dense linear layers of a Quark checkpoint that only
+# ships quantized MoE experts.
+vllm serve amd/Qwen3.5-35B-A3B-MXFP4 --quantization-config.linear mxfp8
+```
 
 **Known gotchas** — [#34129](https://github.com/vllm-project/vllm/issues/34129) (doesn't split MoE across EP, closed `NOT_PLANNED` — won't-fix), [#19020](https://github.com/vllm-project/vllm/issues/19020) / [#32029](https://github.com/vllm-project/vllm/issues/32029) / [#32412](https://github.com/vllm-project/vllm/issues/32412) (multiple active RFCs). Dropped bias weights ([#39663](https://github.com/vllm-project/vllm/issues/39663)) is **fixed in v0.21.0** and no longer a reason to avoid online FP8. For MoE models, still prefer a pre-quantized checkpoint.
 

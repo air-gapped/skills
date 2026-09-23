@@ -9,6 +9,7 @@ Detailed recipes for each vLLM KV caching backend. Load when selecting or config
 - [LMCache P2P — KV sharing across instances](#lmcache-p2p--kv-sharing-across-instances)
 - [GDS (GPUDirect Storage) for NVMe direct-DMA](#gds-gpudirect-storage-for-nvme-direct-dma)
 - [NixlConnector — disaggregated prefill](#nixlconnector-disaggregated-prefill)
+- [HiSparseConnector — host tier for sparse-MLA decode](#hisparseconnector-host-tier-for-sparse-mla-decode-v0300-experimental)
 - [MooncakeConnector — RDMA-backed disaggregated prefill](#mooncakeconnector-rdma-backed-disaggregated-prefill)
 - [MultiConnector — compose backends](#multiconnector-compose-backends)
 
@@ -517,6 +518,19 @@ The only thing that meaningfully lifts this ceiling on same-node K8s is getting 
 
 NIXL 1P1D on consumer hardware validates **the plumbing** — UCX handshake, side-channel port, proxy round-trip, `kv_transfer_params` threading through prefiller→decoder. It does **not** validate the performance envelope. Don't benchmark PD strategies on consumer HW and extrapolate to H100 — the per-descriptor overhead profile is totally different once `cuda_ipc` engages.
 
+## HiSparseConnector — host tier for sparse-MLA decode (v0.30.0+, experimental)
+
+Local KV connector for sparse-MLA decode models (DeepSeek-style). Spills cold KV pages from GPU to pinned host memory under GPU pressure and serves top-k misses back into a per-request GPU hot buffer; the attention backend config is inferred from the connector, not set separately (#57041). Introduced across four PRs: connector + kernels (#53781), Prometheus counters (#56061), one shared host cache across TP ranks instead of one copy per rank (#56629), and the attention wiring (#57041). Status is `experimental` per `docs/design/hisparse.md` at v0.30.0.
+
+```bash
+--kv-transfer-config '{"kv_connector":"HiSparseConnector","kv_connector_extra_config":{"host_pool_gib":200}}'
+```
+
+- `host_pool_gib` (required) is the usable host-cache capacity **per data-parallel replica**, not node-wide — `vllm/config/kv_transfer.py:41` raises `ValueError` if it's missing or non-positive.
+- It's a local connector: compose with NixlConnector/MooncakeConnector via `MultiConnector` for P/D on top of it, same pattern as OffloadingConnector.
+- `HiSparseConnector` declares `SupportsHMA` (`vllm/distributed/kv_transfer/kv_connector/v1/hisparse/connector.py:191`) — no `--disable-hybrid-kv-cache-manager` needed.
+- Narrow applicability: sparse-MLA attention only, not a general-purpose CPU offload replacement. For dense/MHA/GQA models keep using native `OffloadingConnector`.
+
 ## MooncakeConnector — RDMA-backed disaggregated prefill
 
 High-performance RDMA KV transfer between prefill and decode pods using `mooncake-transfer-engine`. Choose over NIXL when:
@@ -529,6 +543,14 @@ Example: `examples/online_serving/disaggregated_serving/mooncake_connector/run_m
 Docs: `docs/features/mooncake_connector_usage.md`
 
 Bundled in v0.14.0+ images via `mooncake-transfer-engine >= 0.3.8`.
+
+**Mooncake Store Connector heterogeneous TP sharing (v0.30.0+)** ([#53129](https://github.com/vllm-project/vllm/pull/53129), `docs/features/mooncake_store_connector_usage.md`). Before this, prefill and decode instances could only share a Mooncake Store KV cache if they ran the same TP size. Set a fixed `store_tp_size` (`store_tp_size >= local_tp_size` and `store_tp_size % local_tp_size == 0`) so a TP4 prefiller and a TP2 decoder can read/write the same Store keys:
+
+```json
+{"kv_connector_extra_config": {"store_tp_size": 4}}
+```
+
+With multiple prefill TP sizes, set `enable_store_tp_lcm: true` + `prefill_tp_sizes: [4, 2]` instead and let the connector derive `store_tp_size` as their LCM. This is Mooncake **Store** connector only (`kv_connector: "MooncakeStoreConnector"`), not the base RDMA `MooncakeConnector` above — same PP size and KV layout (LBHNC/LBNHC) still required on every sharing instance.
 
 ## MultiConnector — compose backends
 

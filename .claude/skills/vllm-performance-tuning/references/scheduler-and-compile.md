@@ -132,6 +132,7 @@ pin exact buckets.
 
 ### Capture gotchas
 
+- **`VLLM_USE_BREAKABLE_CUDAGRAPH=1` no longer overrides FULL graphs on MRV1** (v0.30.0, [#56312](https://github.com/vllm-project/vllm/pull/56312)). It now scopes capture to PIECEWISE dispatch only (`vllm/v1/worker/gpu_model_runner.py`); a separate `CUDAGraphWrapper` still owns FULL graphs unaffected. Do not assume this flag disables or replaces FULL-graph capture on v0.30.0+.
 - **FULL_AND_PIECEWISE garbage output** `!!!` on certain configs — [#29539](https://github.com/vllm-project/vllm/issues/29539).
 - **ROCm V1 piecewise capture size** much higher than CUDA's — [#19579](https://github.com/vllm-project/vllm/issues/19579).
 - **Capture time is dominant cold-start cost.** CI: use `--cudagraph-capture-sizes 1` or `-O0` ([PR #25951](https://github.com/vllm-project/vllm/pull/25951)).

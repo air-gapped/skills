@@ -130,6 +130,13 @@ kernel tuning*. Short summary:
 
 - Missing package: `pip install deep_gemm` (bundled with CUDA builds since
   v0.11).
+- **From v0.30.0, the vendored source moved from `deepseek-ai/DeepGEMM` to
+  the `vllm-project/DeepGEMM` fork** (release notes call the pin "2.8.0"; the
+  fork adds the SM120 port and an SM90 paged-MQA port, #56876). A build using
+  a local `DEEPGEMM_SRC_DIR` checkout of the old upstream repo is now stale
+  — repoint it at the fork. Source builds of v0.30.0 need **GCC 13+**: the pinned
+  DeepGEMM and DeepSelect revisions use C++20 `<format>`, although vLLM still
+  declares GCC ≥ 11.3 ([#58158](https://github.com/vllm-project/vllm/issues/58158), open).
 - Compute capability < 9.0: older cards (A100 SM80) use CUTLASS; DeepGEMM is
   Hopper+.
 - Shared-memory allocation refused: container limit too low. DeepGEMM
@@ -165,6 +172,14 @@ Kernel picture differs from Hopper:
   FlashInfer independently. See `vllm-platform-matrix.md` §5.
 - **SM120 (RTX PRO 6000 desktop)**: CUTLASS blockwise FP8 GEMM (v0.19 PR
   #37970); NVFP4 NaN fix v0.19 (#37725).
+- **SM12x on GB10/DGX Spark**: blockwise FP8 CUTLASS kernel swizzles the CTA
+  raster (`max_swizzle_size=8`) whenever the weight operand exceeds the GPU's
+  L2 (24 MiB on GB10) — up to 3.3× faster than the default raster order on
+  large weights, automatic, no flag (v0.30.0, #55180). RTX PRO 6000-class
+  parts whose L2 holds the weight keep the default order. W4A4 NVFP4 linear
+  kernels are also now preferred over weight-only kernels on SM120/SM121 by
+  default (v0.30.0, #55170) — pin `--linear-backend` if a deploy depended on
+  the weight-only kernel.
 - **FP4 KV cache** pairing: FP4-quantised KV cache (early-production) uses
   the same CUTLASS path; throughput gain comes from HBM BW reduction, not
   GEMM speed.

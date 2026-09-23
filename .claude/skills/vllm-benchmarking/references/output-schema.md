@@ -1,6 +1,6 @@
 # `--output-json` schema
 
-Last verified: 2026-08-11 (against `vllm/benchmarks/serve.py` at tag **v0.27.0**).
+Last verified: 2026-09-23 (against `vllm/benchmarks/serve.py` at tag **v0.30.0**).
 
 Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs.
 
@@ -31,7 +31,7 @@ Custom KV pairs from `--metadata KEY=VALUE` are inlined at the top level.
 | `output_throughput` | tok/s | **Decode tokens only** — excludes prefill |
 | `total_token_throughput` | tok/s | Input tokens + output tokens over wall time |
 
-Pooling/embedding runs (`EmbedBenchmarkMetrics`) emit only `request_throughput` and `total_token_throughput`.
+Pooling/embedding runs (`EmbedBenchmarkMetrics`) emit `completed`, `failed`, `total_input`, `total_input_sequences`, `request_throughput`, `input_sequence_throughput` (inputs/s), `total_token_throughput`, plus `mean_/median_/std_/p<N>_e2el_ms` (the only percentile metric pooling supports). **v0.30.0+ (#56760):** E2EL for pooling is now measured after the full response body is drained, not when headers arrive — binary (`bytes`) responses were previously never consumed, so their reported latency excluded transfer time and undercounted. A new `bytes_only` encoding format (server returns the embedding as a raw byte stream with no JSON/metadata wrapper) is also now handled — previously every `bytes_only` request failed because it was parsed as JSON.
 
 Also present in `bench serve` output (added since v0.19):
 - `request_goodput` — only when `--goodput` is set; otherwise `null`.
@@ -39,6 +39,7 @@ Also present in `bench serve` output (added since v0.19):
 - `max_concurrent_requests` — observed concurrency peak across the run.
 - `rtfx` — real-time factor for audio/streaming workloads.
 - `start_times` — per-request start timestamps (appears alongside `ttfts`/`itls`).
+- `latencies`, `queue_times` (v0.30.0+, #54136) — per-request `list[float]` seconds, present unconditionally (not just under `--save-detailed`) for both generative and pooling results. `latencies[i]` is total request latency; `queue_times[i]` is time spent waiting on the client's `--max-concurrency` semaphore before the request was sent (0.0 when `--max-concurrency` is unset).
 
 ## Percentile fields
 
@@ -62,6 +63,7 @@ Metrics:
 - `tpot` — mean time-per-output-token per request
 - `itl` — inter-token latency (per-step, finer than tpot)
 - `e2el` — end-to-end request latency
+- `client_queue_time`, `e2el_including_client_queue` (v0.30.0+, #54136) — client-side semaphore wait, and E2EL plus that wait. Unlike the metrics above these are computed directly from the `queue_times`/`latencies` per-request lists rather than read off the engine's `BenchmarkMetrics`/`EmbedBenchmarkMetrics` object. Both need `--max-concurrency` set; `e2el_including_client_queue` additionally needs `--request-rate` finite. Neither appears unless named explicitly in `--percentile-metrics`.
 
 ## Speculative decoding fields (if engine emits them)
 
@@ -106,6 +108,8 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 - `probe_completed`, `probe_failed`, `probe_median_e2el_ms`, `probe_p99_e2el_ms`, `probe_max_e2el_ms` — emitted only when `--probe-request-rate` > 0 (v0.27.0, PR #49611). Absent otherwise, including on the same server with probes disabled.
 - `rps_change_events` — emitted when ramp-up is used (v0.17+)
 - `spec_decode_*` suite — depends on engine spec-decode config
+- `latencies`, `queue_times` (v0.30.0+, #54136) — unconditional, both generative and pooling.
+- `mean_/median_/std_/p<N>_client_queue_time_ms`, `mean_/median_/std_/p<N>_e2el_including_client_queue_ms` (v0.30.0+, #54136) — only when `--max-concurrency` is set and the metric is named in `--percentile-metrics`; the latter also needs `--request-rate` finite.
 
 **When writing dashboards / CI comparators:** prefer the stable names. Defensively check for presence rather than assuming:
 
@@ -113,4 +117,4 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 rps = d.get("request_throughput", d.get("requests_per_second", 0))  # old name was requests_per_second pre-v0.10
 ```
 
-Source of truth: `vllm/benchmarks/serve.py` at v0.27.0 (2363 lines) — `BenchmarkMetrics` dataclass **L321** (`EmbedBenchmarkMetrics` L356), JSON assembly starting at `result_json["date"]` **~L2206-2217**. Line refs drift by hundreds of lines every couple of releases — **resolve by symbol, not by line.**
+Source of truth: `vllm/benchmarks/serve.py` at v0.30.0 (2425 lines) — `BenchmarkMetrics` dataclass **L327** (`EmbedBenchmarkMetrics` L362), JSON assembly starting at `result_json["date"]` **~L2273**. Line refs drift by hundreds of lines every couple of releases — **resolve by symbol, not by line.**

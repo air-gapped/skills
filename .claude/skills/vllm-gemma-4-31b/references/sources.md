@@ -44,6 +44,8 @@ or git ref where applicable. Re-probe via `/skill-improver freshen vllm-gemma-4-
 | r17 | https://github.com/vllm-project/vllm/pull/47216 | github-pr | **MERGED** 2026-07-16 | Gemma4-**12B** DSpark draft model (`deepseek-ai/dspark_gemma4_12b_block7`), shipped in v0.26.0. Different size and checkpoint from the 31B path — does not unblock r15. |
 | r18 | https://github.com/vllm-project/vllm/blob/v0.27.0/examples/tool_chat_template_gemma4.jinja | github-source | verified | Line 180: `{%- set enable_thinking = enable_thinking | default(false) -%}`. Half of the r11 root cause. |
 | r19 | https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/parser/gemma4.py | github-source | verified | Line 403: `self._thinking_enabled = chat_kwargs.get("enable_thinking", True)`. The other half — defaults disagree, so an unspecified `enable_thinking` puts template and parser in opposite states. |
+| r20 | https://github.com/vllm-project/vllm/pull/53147 | github-pr | **MERGED**, shipped v0.30.0 | `[Kernel][Gemma4] Prune Triton sliding-window tiles for multimodal prefixes`. Fixes a Triton sliding-window pruning regression that was disabled whenever a multimodal prefix range was present (`vllm/v1/attention/ops/triton_unified_attention.py`). Upstream benchmark: up to 3-4x E2E / ~4x prefill on a Gemma-4 multimodal workload. Applies to the TRITON_ATTN path this skill's fact #1 forces. |
+| r21 | https://github.com/vllm-project/vllm/pull/53444 | github-pr | **MERGED**, shipped v0.30.0 | `[Bugfix] Handle bare and malformed tool call openers in Gemma4 parser`. Adds a `(TOOL_PREAMBLE, "COLON") -> TOOL_NAME` transition to `gemma4_config()` (`vllm/parser/gemma4.py`) so a bare `<\|tool_call>:name{...}` opener (no `call` prefix) is parsed instead of silently dropped. |
 
 ## Notes
 

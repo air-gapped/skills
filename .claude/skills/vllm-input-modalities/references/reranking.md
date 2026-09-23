@@ -56,6 +56,11 @@ vllm serve Qwen/Qwen3-Reranker-0.6B \
 ```
 
 Skipping any of the three produces random-looking scores, not errors.
+**v0.30.0+ catches the missing-template case at startup**: serving a model
+with `is_original_qwen3_reranker=true` and no chat template now logs a
+warning naming `qwen3_reranker.jinja` (#56017,
+`vllm/entrypoints/pooling/scoring/io_processor.py`) instead of silently
+producing bad scores.
 
 **The other cause of "random-looking scores" — engine version, not config.**
 PR #48901 (merged 2026-07-17, shipped **v0.26.0**) fixed a bug in which any

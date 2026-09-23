@@ -59,6 +59,8 @@ The model's `config.json` says one thing; the request is for more. Two cases:
 1. **Rope scaling was applied post-training** but isn't declared in `config.json`. Fix: set `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` **if and only if** rope scaling has been verified to be baked into the checkpoint.
 2. **You're just asking for more context than the model supports.** Reduce `--max-model-len`.
 
+**v0.30.0+: derived `max_model_len` drops for YaRN-family checkpoints on upgrade** (#56446, `vllm/config/model.py`). vLLM's `_get_and_verify_max_len` no longer re-multiplies `max_position_embeddings` by `factor` for `rope_type` in `yarn`, `deepseek_yarn`, or `deepseek_llama_scaling` — Transformers already applies the scaling once, so vLLM was doubling it. If a deploy pinned `--max-model-len` to the old (inflated) derived value, upgrading to v0.30.0 without also re-checking that value now fails with this error instead of a silent over-count. Read the new derived length from a v0.30.0 startup log rather than reusing a pre-upgrade config.
+
 ### `Cannot load model with a custom module without trust_remote_code=True`
 
 The model's `config.json` has `auto_map` pointing at `modeling_*.py`. Two options:

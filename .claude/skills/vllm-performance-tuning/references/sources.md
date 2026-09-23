@@ -173,6 +173,13 @@ the release note's Dependencies section mixes runtime and CI pins.
 - [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — async-sched precision — Last verified: 2026-08-18 — **CLOSED 2026-03-13** (fixed)
 - [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857) — MI325X Qwen2.5-VL 100× slowdown
 
+### v0.30.0 release-note items (verified 2026-09-23 at tag v0.30.0)
+- [#52781](https://github.com/vllm-project/vllm/pull/52781) — DeepEP v2 async finalize combine overlap, default-on — **MERGED**; the PR's own claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP` disable env var is absent from the merged diff, confirmed by reading `deepep_v2.py` at the tag
+- [#53576](https://github.com/vllm-project/vllm/pull/53576) / [#54869](https://github.com/vllm-project/vllm/pull/54869) — opt-in FlashInfer PCIe IPC all-reduce, `VLLM_ALLREDUCE_USE_FLASHINFER_PCIE_IPC` (default `0`) — **MERGED**, confirmed in `vllm/envs.py`
+- [#56312](https://github.com/vllm-project/vllm/pull/56312) — `VLLM_USE_BREAKABLE_CUDAGRAPH` scoped to PIECEWISE only on MRV1 — **MERGED**, confirmed in `vllm/v1/worker/gpu_model_runner.py`
+- [#56876](https://github.com/vllm-project/vllm/pull/56876) — DeepGEMM build source moved to `vllm-project/DeepGEMM` fork — **MERGED**, confirmed in `cmake/external_projects/deepgemm.cmake` and `tools/install_deepgemm.sh`
+- [#55780](https://github.com/vllm-project/vllm/pull/55780) — `AttentionImplBase.supports_dcp` default flipped to `False` — **MERGED**, confirmed in `vllm/v1/attention/backend.py`
+
 ### Forum threads
 - [MoE config on GH200](https://discuss.vllm.ai/t/moe-config-on-gh200/1718)
 - [Ascend 910B hang](https://discuss.vllm.ai/t/on-8-card-ascend-910b-with-vllm-serving-qwen3-5-122b-a10b-the-client-freezes-at-8-progress-when-running-accuracy-test-as-the-server-stops-receiving-new-requests-after-running-reqs-and-kv-cache-fall-to-0/2538)

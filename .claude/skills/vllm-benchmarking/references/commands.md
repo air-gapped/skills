@@ -27,7 +27,7 @@ HTTP-level online serving benchmark. The one operators use most.
 **Load shape:**
 - `--num-prompts <N>` — total requests to send. ≥500 for steady-state; ≥2000 for health checks.
 - `--request-rate <rps|inf>` — Poisson-arrival rate. `inf` = fire-as-fast-as-possible.
-- `--max-concurrency <N>` — cap on in-flight requests. Combine with `--request-rate` for a bounded Poisson; use alone for closed-loop test.
+- `--max-concurrency <N>` — cap on in-flight requests. Combine with `--request-rate` for a bounded Poisson; use alone for closed-loop test. **v0.30.0+:** non-positive values (`0` or negative) raise `ValueError` before setup (#54887) — previously `0` was silently accepted and treated as unlimited concurrency while the run reported a limit of zero. Unset (`None`) still means unlimited.
 - `--burstiness <float>` — gamma-distribution shape for inter-arrival times. Default 1.0 = Poisson. <1 = bursty spikes, >1 = smoother-than-Poisson.
 - `--ramp-up-strategy linear|exponential` + `--ramp-up-start-rps <a>` + `--ramp-up-end-rps <b>` — gradually scale load over the run, useful for finding the breaking point.
 - `--num-warmups <N>` — pre-flight requests before measurement. Default 0. Honors `--max-concurrency` during warmup.
@@ -38,7 +38,8 @@ HTTP-level online serving benchmark. The one operators use most.
 - **Timed trace replay** (v0.21+, vLLM PR #39795 adding Moonshot/Alibaba trace support, merged 2026-05-28): replay a recorded production workload trace with its original inter-arrival timing instead of a synthetic Poisson rate. Highest-fidelity load shape when a real trace is available — preferable to `--request-rate` for reproducing observed traffic.
 
 **Metrics & output:**
-- `--percentile-metrics ttft,tpot,itl,e2el` — which metrics to compute percentiles over. Default `ttft,tpot,itl` for generative; `e2el` only for pooling/embedding.
+- `--percentile-metrics ttft,tpot,itl,e2el` — which metrics to compute percentiles over. Default `ttft,tpot,itl` for generative; `e2el` only for pooling/embedding. **v0.30.0+ (#54136):** also accepts `client_queue_time` and `e2el_including_client_queue`, computed straight from per-request samples rather than the engine metrics object. Both require `--max-concurrency` to be set (they measure semaphore wait — nothing to report otherwise); `e2el_including_client_queue` additionally requires `--request-rate` to be finite (omitted when `--request-rate inf`). Neither is in the default set — request them explicitly.
+- **v0.30.0+ credential redaction (#56662):** the printed argument namespace and the `--output-json` PyTorch-benchmark-format metadata now redact `--header` values to `***` before logging. Earlier versions printed `--header` (and, in the multi-turn benchmark, `--api-key`) in full — treat any pre-v0.30.0 CI log or saved JSON that used `--header` as a potential credential leak.
 - `--metric-percentiles 50,90,95,99` — which percentiles. Default is sensible.
 - `--goodput KEY:VALUE ...` — SLO budgets in ms (e.g. `ttft:500 itl:50`). Reports fraction of requests meeting all budgets.
 - `--save-result --output-json <file>` — dump structured output.

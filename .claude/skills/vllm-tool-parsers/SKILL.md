@@ -49,7 +49,7 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
 | `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
 | `ling3` | `Ling3Parser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
-| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` — **new at v0.30.0** (DeepSeek-V4.1-Flash) |
+| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` — **new at v0.30.0** (DeepSeek-V4.1-Flash). Strict (`strict=true`) tool-call parameter schemas are only grammar-constrained if the installed `xgrammar` exposes `builtin_structural_tag.get_deepseek_v4_1_structural_tag`; otherwise the fallback builder constrains tool names/DSML syntax only, not parameter schemas (`vllm/tool_parsers/structural_tag_registry.py`, PR #56408) |
 
 **Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) at v0.29.0, and `k2_horizon` (`K2HorizonToolParser`) at v0.30.0. None imports `registered_adapters`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0** (49 at v0.29.0, 45 at v0.27.0) — no removals in either hop.
 
@@ -57,6 +57,14 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
 have ordinary names and are still stubs. The test is whether the file imports
 the adapter: `grep -l "registered_adapters import" vllm/tool_parsers/*.py`.
+**Exception**: `cohere_command_tool_parser.py` (`cohere_command3`/`cohere_command4`)
+is a stub too but doesn't import `registered_adapters` — it's composed by
+name-check in `vllm/parser/parser_manager.py` instead, so this grep won't find
+it. Its parsing lives in `vllm/parser/cohere_command.py` via the external
+`cohere_melody` package (PR #56392) — not a vLLM runtime dependency: `pip
+install cohere-melody` into the image yourself (CI pins 0.14.0), or the parser
+raises `ImportError` at load. (`kimi_k3` goes through the same name-check but its
+`tool_parsers/` file is the real implementation, not a stub.)
 
 This is the same refactor described in `vllm-reasoning-parsers` — a single
 per-model parser now backs **both** the tool and reasoning adapters (RFC
@@ -76,7 +84,7 @@ vllm serve <model> --enable-auto-tool-choice --tool-call-parser <name> [--chat-t
 - `--enable-auto-tool-choice` alone → `TypeError: --enable-auto-tool-choice requires --tool-call-parser` (see `cli_args.py`).
 - `--tool-call-parser` alone → legal. Parser still runs for `tool_choice="required"` and named, and on Responses API.
 - **No `auto` sentinel.** Name a concrete parser.
-- `--tool-parser-plugin <path.py>` → third-party file that calls `@ToolParserManager.register_module("name")`.
+- `--tool-parser-plugin <path.py>` → third-party file that calls `@ToolParserManager.register_module("name")`. **v0.30.0+**: the value can also be a dotted module name importable from site-packages (e.g. an installed pip package) — `import_plugin()` tries `importlib.import_module(value)` first, falling back to file-path import only on `ModuleNotFoundError` (`vllm/utils/import_utils.py`, PR #45241). Same for `--reasoning-parser-plugin`.
 - `--reasoning-parser` is independent but several tool parsers assume a `</think>` has closed — match them (see "Reasoning pairing" below).
 - Chat template often matters. Each parser has a reference Jinja at `examples/tool_chat_template_<family>.jinja`. Wrong template → model never emits the sentinels the parser expects.
 

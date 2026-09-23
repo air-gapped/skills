@@ -44,6 +44,17 @@ bump unchecked. Still treat day-one serving as unevidenced — but the correct
 statement is now "in progress", not "absent". Re-probe #49735 before any Rubin
 purchase decision; this moved within three weeks last time.
 
+**v0.30.0 (2026-09-22) turned that gap into a documented recipe, not a
+shipped default.** `INSTALL_RUBIN_PRERELEASE=true` plus `CUDA_VERSION=13.4`
+build args against `docker/Dockerfile` now produce a working SM107 image —
+`docs/getting_started/installation/gpu.cuda.inc.md` has the exact build-arg
+set (#54640, #56545). It still depends on **PyTorch nightlies** pinned in
+`requirements/rubin-prerelease.txt`, not a stable release, and the public
+`vllm/vllm-openai:v0.30.0` image is unchanged at CUDA 13.0.3 with no SM107
+cubins. Read this as: a team with Rubin silicon in hand can now build a
+working image themselves; a team waiting on the default wheel/image still
+waits.
+
 **`sm_110` is Thor, not Rubin** — vLLM's own build comments group it with
 Blackwell. See `references/vllm-platform-matrix.md`.
 

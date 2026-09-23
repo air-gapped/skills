@@ -108,6 +108,8 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 
 **Known hang:** `dp=2, tp=8, ep=16` with DeepEP on v0.9.2 hangs during warm-up; `naive` works ([#21306](https://github.com/vllm-project/vllm/issues/21306)).
 
+**v0.30.0: DeepEP v2 combine overlaps the shared-expert FFN by default** ([#52781](https://github.com/vllm-project/vllm/pull/52781)). `finalize_async` now issues the combine on DeepEP's comm stream and joins via a device-side event instead of blocking the caller — DeepSeek-R1-class models with a shared expert saw 5-9% lower decode ITL in the PR's own A/B. **The release note's claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP=0` opt-out does not exist in the merged code** (verified: `vllm/model_executor/layers/fused_moe/prepare_finalize/deepep_v2.py` at v0.30.0 has no such env var read). Overlap is unconditional except under DBO (`dbo_enabled()`), which forces the synchronous path — that is currently the only way to disable it.
+
 **NVSHMEM + IB tuning** (Azure H100 400 Gb/s IB baseline, from [Microsoft blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)):
 
 ```bash

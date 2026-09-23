@@ -93,6 +93,12 @@ For KV-cache sizing (tiers, capacity math, offload distinction from disagg), see
 - **Blog**: https://vllm.ai/blog/moriio-kv-connector (2026-04-07)
 - AMD + Embedded LLM. Reports 2.5× goodput for single-node PD-disagg.
 - Narrower adoption than NIXL/Mooncake as of Apr 2026; worth watching.
+- **v0.30.0+: WRITE mode rejects hybrid KV cache groups** (sliding-window models
+  like Gemma) unless `--disable-hybrid-kv-cache-manager` is also passed — the
+  connector raises `NotImplementedError` at startup rather than transferring KV
+  incorrectly. Use READ mode for a hybrid model instead of disabling the hybrid
+  manager, unless the memory cost of uniform block sizing is acceptable
+  (#53721).
 
 ## The llm-d native path
 

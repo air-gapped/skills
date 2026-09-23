@@ -23,6 +23,10 @@ python3 -c "from transformers import AutoTokenizer; t=AutoTokenizer.from_pretrai
 
 If the server loaded a local path but the benchmark used the HF id (or vice versa), token counts silently diverge. Pass `--tokenizer` explicitly matching what's actually on the server.
 
+### New request failures after upgrading to v0.30.0 that weren't there before
+
+Not a regression. Before v0.30.0, a streaming request that never received a valid chunk was counted as **success with `ttft=0`** (silently skewing TTFT/E2EL percentiles down); v0.30.0 correctly marks it failed with `error: "Never received a valid chunk to calculate TTFT."` (#55508). Rising `failed` counts post-upgrade with unchanged traffic likely mean those requests were always failing and the old numbers were wrong, not that v0.30.0 introduced a regression.
+
 ### Results look suspiciously fast
 
 **Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.27; `--num-warmups` default still `0` at v0.27.0). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.

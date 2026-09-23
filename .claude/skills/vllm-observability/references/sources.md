@@ -89,10 +89,34 @@ page turned out to carry the concrete NIXL series that replaced another wildcard
 in the catalog — the deferred probe was hiding a content improvement, not just a
 staleness risk.
 
+## 2026-09-23 freshen — v0.30.0 release notes
+
+The prior 2026-09-22 pass diffed `loggers.py` and the KV-offload namespace
+mechanically but did not read the v0.30.0 release notes prose. This pass swept
+those notes for observability-relevant items and verified each against tag
+`v0.30.0` in the local clone.
+
+| Ref | URL | Last verified | Result | Notes |
+|---|---|---|---|---|
+| PR #55624 — MFU/MBU for SWA and hybrid layers | https://github.com/vllm-project/vllm/pull/55624 | 2026-09-23 | new-feature / **invalidates prior MFU on SWA/hybrid** | Merged 2026-09-14, v0.30.0. `vllm/v1/metrics/perf.py` `AttentionMetrics` previously summed `num_tokens * context_len` unclamped for every layer; now splits `num_swa_layers` and clamps their context length to `sliding_window`. Overestimated attn FLOPs/bytes on long-context SWA/hybrid requests (Mistral, Qwen2.5, Gemma 2/3n, Llama 4, hybrid Mamba) before this PR. Applied to `metrics-catalog.md` § MFU / performance. |
+| PR #56061 — HiSparse cache metrics via KV connector stats | https://github.com/vllm-project/vllm/pull/56061 | 2026-09-23 | new-feature | Merged 2026-09-12, v0.30.0. Found by the 2026-09-22 pass's `loggers.py` sweep but never applied to the catalog table until now. `vllm/distributed/kv_transfer/kv_connector/v1/hisparse/stats.py`: Counters `vllm:hisparse_cache_hits`, `vllm:hisparse_cache_misses`, `vllm:hisparse_host_to_device_bytes` (wire names get `_total`). Only emitted when `HiSparseConnector` is configured. Applied to `metrics-catalog.md` § KV connector / offload. |
+| PR #48866 — consolidate Prometheus bucket defaults | https://github.com/vllm-project/vllm/pull/48866 | 2026-09-23 | skip — pure refactor | Merged 2026-09-11, v0.30.0. Moved inline bucket lists to named constants in new `vllm/v1/metrics/buckets.py`. Diffed every constant against the pre-refactor inline lists in `loggers.py` at v0.29.0: byte-identical values for all 7 families (`request_latency`, `time_to_first_token`, `inter_token_latency`, `iteration_tokens`, `request_params_n`, `request_num_preemptions`, `kv_cache_residency`). No dashboard/alert impact — not applied. |
+| PR #52755 — Rust frontend Mooncake/NIXL KV-connector metrics | https://github.com/vllm-project/vllm/pull/52755 | 2026-09-23 | new-feature | Merged 2026-09-04, v0.30.0. `rust/src/metrics/src/scheduler.rs` registers `vllm:mooncake_store_operation_time_seconds` and the existing `vllm:nixl_*` names under the Rust frontend's own registry — same wire names as the Python engine. Applied to new `metrics-catalog.md` § Rust frontend. |
+| PR #56990 — Rust frontend iteration token histogram | https://github.com/vllm-project/vllm/pull/56990 | 2026-09-23 | new-feature | Merged 2026-09-15, v0.30.0. `rust/src/metrics/src/request.rs` registers `vllm:iteration_tokens_total` — previously Python-engine-only. Applied to new `metrics-catalog.md` § Rust frontend. |
+| PR #56058 — normalize HTTP method labels in Rust frontend metrics | https://github.com/vllm-project/vllm/pull/56058 | 2026-09-23 | security fix | Merged 2026-09-10, v0.30.0. `rust/src/server/src/middleware/metrics.rs`: `method` label on `http_requests_total`/`http_request_duration_seconds` (unprefixed, `PrometheusFastApiInstrumentator`-style names) now maps to a fixed set of HTTP verbs plus `other`; before this PR an arbitrary request method string became the label value directly (unbounded cardinality). Applied to new `metrics-catalog.md` § Rust frontend, cross-referenced from SKILL.md pitfall 6. |
+
+Also checked, not applied: PR #49984 (`vllm:request_num_preemptions` histogram)
+— already documented in `metrics-catalog.md` § Queue & scheduler state from the
+2026-09-22 pass; re-confirmed correct, no change needed. PR #52358
+(`CUDAGraphStat` support in Model Runner V2) and PR #55650 (backend-neutral
+KV-cache/MFU log lines, GPU→device-name in log text) are both real v0.30.0
+changes but log-only and out of this skill's H100/H200 GPU-fleet scope — not
+applied; named here so a future pass does not re-research them from scratch.
+
 ## Next freshen triggers
 
 Re-probe when any of the following change:
-- vLLM release > **v0.29.0** (current latest, 2026-09-09). This trigger fired since the last pass and was run: both prescribed checks were executed at v0.29.0 — the `loggers.py` name diff (clean) and the `kv_offload` constant sweep (found the 13 tiering additions). Historically: v0.27.1 (2026-08-11) was a one-change patch touching only `vllm/model_executor/models/qwen3_dspark.py`, no metric surface. Run the loggers.py name diff **and** the kv_offload constant sweep — the diff alone was clean across two minors that did change the offload surface.
+- vLLM release > **v0.30.0** (current latest, published 2026-09-22). This trigger fired since the last pass and was run: both prescribed checks were executed at v0.30.0 — the `loggers.py` name diff (clean apart from the new `request_num_preemptions` histogram) and the `kv_offload` constant sweep. Historically: v0.27.1 (2026-08-11) was a one-change patch touching only `vllm/model_executor/models/qwen3_dspark.py`, no metric surface. Run the loggers.py name diff **and** the kv_offload constant sweep — the diff alone was clean across two minors that did change the offload surface.
 - Ray Serve integration changes (Ray 2.52+ behavior).
 - DCGM exporter 4.1+ (field-name drift).
 - `examples/observability/` directory restructure (watch for a `dashboards/v2/` or similar).

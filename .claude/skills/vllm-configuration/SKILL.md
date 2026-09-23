@@ -105,9 +105,25 @@ swept 2026-09-15):**
 - `prefix_cache_retention_interval` is now a CLI argument. The env var form
   `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` was deprecated at v0.29.0 (#52216) and
   **removed at v0.30.0** (#55353) — it is gone from `envs.py`, so on v0.30.0+ it
-  is silently inert. Same release removed `VLLM_MM_HASHER_ALGORITHM` (use the
-  config field), the `use_fp4_indexer_cache` alias (use `indexer_kv_dtype`), and
+  is silently inert. Same release removed `VLLM_MM_HASHER_ALGORITHM` (use
+  `--mm-hasher-algorithm`), the `use_fp4_indexer_cache` alias (use `indexer_kv_dtype`), and
   the ROCm `CUDA_VISIBLE_DEVICES` fallback (use `HIP_VISIBLE_DEVICES`).
+- **`VLLM_ENABLE_SCALE_OUT_ENDPOINTS` removed at v0.30.0** (#54579, #55176) —
+  the `/render`, `/derender`, and `/inference/v1/generate` endpoints are no
+  longer registered on plain `vllm serve` unless the CLI flag
+  `--enable-scale-out` is passed (`vllm/entrypoints/launchers/cli_args.py`,
+  default `False`; no env var replaces it). `vllm launch render` and
+  `vllm serve --tokens-only` always register them regardless of the flag.
+- **`python -m vllm.entrypoints.grpc_server` deprecated at v0.30.0** (#56746)
+  — emits `DeprecationWarning` on import and again under `__main__`. Use
+  `vllm serve <model> --grpc` instead.
+- v0.30.0 also moves the air-gapped mirror floor: `huggingface_hub` in
+  `requirements/common.txt` reads `>= 1.31.0` (#56460, needed for the
+  `huggingface_hub.utils.httpx` re-export), up from `>= 1.28.0` at v0.29.0. The
+  `transformers` **CI** pin moved to 5.16.1 (#53905, `requirements/test/*`
+  only) — same CI-vs-runtime split as before: the runtime floor in
+  `requirements/common.txt` is still `>= 5.10.4`. Stage the mirror for the
+  `huggingface_hub` floor, not the CI transformers number.
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.

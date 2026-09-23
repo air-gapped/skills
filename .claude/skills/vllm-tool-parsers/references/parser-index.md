@@ -4,7 +4,9 @@ Each entry: `CLI name` → `vllm/tool_parsers/<file>.py` → one non-obvious fac
 
 Rows written `a.py → vllm/parser/b.py` are on the unified engine: `a.py` is a
 stub of a few lines and the real logic is in `b.py`. The filename does not tell
-you which — `grep -l "registered_adapters import" vllm/tool_parsers/*.py` does.
+you which — `grep -l "registered_adapters import" vllm/tool_parsers/*.py` does,
+**except** `cohere_command_tool_parser.py`, whose stub is composed via a
+name-check in `vllm/parser/parser_manager.py` instead (see its row below).
 Verified at v0.30.0.
 
 ## JSON-in-sentinels family
@@ -29,8 +31,8 @@ Verified at v0.30.0.
 | `hunyuan_a13b` | `hunyuan_a13b_tool_parser.py` | Regex-only, ONE level of nested JSON (TODO at line ~61). |
 | `hy_v3` | `hy_v3_tool_parser.py` | Hunyuan V3 parser (newer than `hunyuan_a13b`). Read the file — sentinel grammar + state-machine details live there. |
 | `deepseek_v4` | `deepseekv4_engine_tool_parser.py` → `vllm/parser/deepseek_v4.py` | DeepSeek-V4 successor to v3/v31/v32. Same full-width sentinels: `<｜tool▁calls▁begin｜>` (U+FF5C `｜` + U+2581 `▁`), NOT ASCII. |
-| `cohere_command3` | `cohere_command_tool_parser.py` (shared) | Command-A / Command-R7B. JSON array between `<\|START_ACTION\|>` / `<\|END_ACTION\|>`; keys are `tool_name` + `parameters` (not `name`/`arguments`). |
-| `cohere_command4` | `cohere_command_tool_parser.py` (shared) | Command-A-Reasoning / Command-A-Vision. Same `<\|START_ACTION\|>` grammar as `cohere_command3`. |
+| `cohere_command3` | `cohere_command_tool_parser.py` → `vllm/parser/cohere_command.py` | **Moved onto the unified engine at v0.30.0** ([#56392](https://github.com/vllm-project/vllm/pull/56392)) — but via a `parser_manager.py` name-check special-case, not `registered_adapters`; the `tool_parsers/` file is an 18-line `ClassVar` stub (`melody_preset`). Requires external `cohere-melody`, not a vLLM dependency — install it into the image (`ImportError` if absent). Command-A / Command-R7B. JSON array between `<\|START_ACTION\|>` / `<\|END_ACTION\|>`; keys are `tool_name` + `parameters` (not `name`/`arguments`). |
+| `cohere_command4` | `cohere_command_tool_parser.py` → `vllm/parser/cohere_command.py` | Same move as `cohere_command3`. Command-A-Reasoning / Command-A-Vision. Same `<\|START_ACTION\|>` grammar. |
 | `apertus` | `apertus_tool_parser.py` | JSON array `[{"name","arguments"}]` wrapped in `<tool_calls>` / `</tool_calls>`. Has streaming. |
 | `lfm2` | `lfm2_tool_parser.py` | Liquid LFM2. Pythonic `[func(arg=val)]` inside `<\|tool_call_start\|>` / `<\|tool_call_end\|>`. **Streaming not supported** — full responses only. |
 | `minicpm5` | `minicpm5xml_tool_parser.py` | XML `<function>` / `<parameter>` tags inside `<\|tool_call_start\|>` / `<\|tool_call_end\|>`. **No `tool_chat_template_minicpm5.jinja` ships** — use the HF default. Carries the `prev_tool_call_arr = [{"arguments": {}}]` plant in three places. |

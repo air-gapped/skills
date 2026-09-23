@@ -4,7 +4,10 @@ Freshened: 2026-09-22 — every row probed; all 34 URLs 200 and every PR placeme
 
 **Two placements were wrong**, both the same way: the release published *after* the PR merged while not containing it, because its branch was already cut. That is exactly what makes "merged before X, so it is in X" feel safe. One of the two had reached operator-facing guidance in `stt.md` as a version floor one release too low.
 
-Latest vLLM is now **v0.29.0** (2026-09-09); rows below that name a specific tag are point-in-time and remain correct for what they assert.
+Latest vLLM is now **v0.30.0** (tag date 2026-09-21) — v0.30.0's release
+notes were folded into SKILL.md/stt.md/reranking.md on 2026-09-23, see the
+row below; rows further down that name an earlier tag are point-in-time and
+remain correct for what they assert.
 
 Log of external citations probed during skill freshen passes. Each row
 records when the reference was last verified and its classification:
@@ -17,6 +20,21 @@ records when the reference was last verified and its classification:
 - **broken** — 404 / moved / unreachable; skill updated with replacement
   or "unverifiable" note.
 - **unverifiable** — reachable but couldn't confirm the claim.
+
+## 2026-09-23 release-note fold-in (v0.29.0 → v0.30.0)
+
+Scoped pass: worked the v0.30.0 release notes for items on this skill's
+surface (pooling/rerank/STT/OCR), not a full re-verification of every
+existing claim (that pass ran 2026-09-22, see the freshen note above).
+
+| Ref | URL | Last verified | Classification | Notes |
+|---|---|---|---|---|
+| vLLM v0.30.0 | <https://github.com/vllm-project/vllm/releases/tag/v0.30.0> | 2026-09-23 | new-feature | Tag date 2026-09-21. All source probes in this pass were made against the `v0.30.0` tag. |
+| PR #51826 / #55642 — torchcodec audio backend | <https://github.com/vllm-project/vllm/pull/51826> | 2026-09-23 | new-feature | `AUDIO_BACKENDS = ("auto","soundfile","pyav","torchcodec")` in `vllm/multimodal/media/audio.py`. `auto` tries soundfile, then torchcodec, then pyav. Select via `--media-io-kwargs '{"audio":{"audio_backend":"torchcodec"}}'`. Applied to SKILL.md STT cheat-sheet + v0.30.0 section, stt.md §6. |
+| PR #52598 — torchaudio default resampler | <https://github.com/vllm-project/vllm/pull/52598> | 2026-09-23 | deprecation / new-default | `MultiModalDataParser.__init__`'s `audio_resample_method` default is `"torchaudio"` at v0.30.0 (`vllm/multimodal/parse.py:609`), was `"pyav"`. torchaudio is already a standard dependency (`requirements/cuda.txt`, `cpu.txt`, `rocm.txt`, `xpu.txt`). Applied to SKILL.md + stt.md §6. |
+| PR #54241 / #54918 — media_io_kwargs in mm cache hash, scoped by modality | <https://github.com/vllm-project/vllm/pull/54241> | 2026-09-23 | **broken / correctness** | Before: `media_io_kwargs` (e.g. `audio_backend`) was not part of the multimodal cache hash and hash kwargs were shared across modalities, so switching backend/kwargs between requests could reuse a stale cached decode. Applied to SKILL.md v0.30.0 section, stt.md §6. |
+| PR #56017 — Qwen3 reranker missing-template warning | <https://github.com/vllm-project/vllm/pull/56017> | 2026-09-23 | new-feature (diagnostic) | `CrossEncoderIOProcessor` now `logger.warning`s naming the model id and `qwen3_reranker.jinja` when `is_original_qwen3_reranker=true` and no chat template is configured, instead of failing silently into random-looking scores. Applied to SKILL.md pitfall 5, reranking.md §2. |
+| Out of scope for this skill — video-only v0.30.0 items | release notes "Multimodal"/"Correctness"/"Security" bullets | 2026-09-23 | not applicable | Request-controlled video sampling caps for `GLMGAVideoBackend` (#54935) and Qwen-VL (#56729); pruned sliding-window tiles for Gemma 4 video prompts (#53147); empty video URLs with multimodal UUIDs (#54220); base64 video validation (#54323); `VLLM_MM_HASHER_ALGORITHM` removal (#55353, replaced by `MultiModalConfig.mm_hasher_algorithm` / `--mm-hasher-algorithm`, confirmed absent from `vllm/envs.py` at v0.30.0 and present at v0.29.0). None touch pooling/rerank/STT/OCR; the hasher env var belongs to `vllm-configuration`'s catalog. Recorded here so a future pass does not re-research the same "in scope?" question. |
 
 ## 2026-08-11 freshen (rebaseline v0.25.1 → v0.27.0)
 

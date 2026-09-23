@@ -78,6 +78,19 @@ the PR only added the plumbing. **This flipped at v0.30.0**: FlashInfer CuTeDSL
 NVFP4 W4A16 is now the default over Marlin on SM100/103
 ([#53014](https://github.com/vllm-project/vllm/pull/53014)).
 
+**v0.30.0** added `linear_backend_per_quant` — a `KernelConfig` field for
+mixed-precision checkpoints that use more than one linear quantization
+scheme, set via `--kernel-config`:
+
+```bash
+vllm serve <model> --linear-backend cutlass \
+  --kernel-config '{"linear_backend_per_quant":{"nvfp4_w4a16":"humming"}}'
+```
+
+Per-scheme overrides take precedence over `--linear-backend`; a scheme with
+no entry keeps using the global setting, including `auto`
+([#51204](https://github.com/vllm-project/vllm/pull/51204)).
+
 ## MoE backend oracles
 
 Each format has a selector function in `fused_moe/oracle/`:
@@ -94,6 +107,13 @@ Selection is platform-dependent; Blackwell prefers TRTLLM + FlashInfer CuteDSL, 
 - **SM103** (B300/GB300, Blackwell Ultra) — TRTLLM attention had hang bug fixed in [PR #38730](https://github.com/vllm-project/vllm/pull/38730) (v0.19). Run v0.19.1+ on GB300.
 - **SM120** (RTX 5090, RTX 6000 Pro) — *desktop* Blackwell. NVFP4 MoE kernel set NOT complete. Issues: [#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085). Partial path via [PR #33417](https://github.com/vllm-project/vllm/pull/33417). [PR #37725](https://github.com/vllm-project/vllm/pull/37725) preserves arch suffix. **Not a datacenter production target.**
 - **SM121** (DGX Spark, GB10) — similar kernel gaps: [#39761](https://github.com/vllm-project/vllm/issues/39761), [#37030](https://github.com/vllm-project/vllm/issues/37030).
+- **v0.30.0**: on SM120/121, W4A4 NVFP4 linear kernels are now preferred over
+  the weight-only (W4A16) FlashInfer CuteDSL kernel when a checkpoint supports
+  both — `FlashInferCuteDslNvFp4W4A16LinearKernel` moved from a preferred to a
+  fallback position in `_POSSIBLE_NVFP4_KERNELS`
+  ([#55170](https://github.com/vllm-project/vllm/pull/55170)). A W4A4-capable
+  checkpoint on desktop Blackwell now gets real W4A4 compute instead of a
+  silent weight-only downgrade.
 
 ## AMD / ROCm
 

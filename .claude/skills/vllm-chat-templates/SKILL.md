@@ -98,7 +98,7 @@ Per-family flag matrix lives in `references/flags-matrix.md`. Quick cheat-sheet 
 
 Commit-gated models (Kimi-K2) require minimum HF revision — check `references/model-families.md` before recommending.
 
-## Top 15 patterns that silently break production
+## Top 16 patterns that silently break production
 
 Consult this list for any "broken chat template" symptom. Most reports reduce to one of these.
 
@@ -132,6 +132,9 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 15. **API field name mismatch.** The **response** field on current vLLM is `reasoning`, *not* `reasoning_content` — verified at v0.27.0: `ChatMessage.reasoning` (`chat_completion/protocol.py:71`), `DeltaMessage.reasoning` (`engine/protocol.py:397`). The **request** side still accepts `reasoning_content` and normalizes it (RFC #27755). A client reading `reasoning_content` off a response sees `null` every time even when the parser ran perfectly — this looks exactly like a parser failure. Check with `jq '.choices[0].message | keys'` before debugging parsers. (An earlier revision of this skill claimed vLLM "settled on `reasoning_content`"; that was backwards.)
 
+16. **Content-format auto-detection blind to macros.** `_detect_content_format()` (`vllm/renderers/hf.py`) walks the Jinja AST for a `for item in message['content']`-shaped loop; before v0.30.0 it missed templates that only reach `message.content` through a macro parameter (e.g. `{% macro render(role, message_content) %}...{% endmacro %}`), and fell back to `string` — silently flattening structured multimodal content. Fixed in v0.30.0 (#53824): the detector now traces macro call sites back to `message['content']`. If a custom macro-based template still misdetects on your version, pass `--chat-template-content-format openai` explicitly rather than relying on `auto`.
+
+
 ## What `chat_template_kwargs` accepts
 
 Threaded as `extra_body={"chat_template_kwargs": {...}}` in OpenAI client. Source: `vllm/renderers/params.py:70-125`, `hf.py:407-435`.
@@ -139,7 +142,7 @@ Threaded as `extra_body={"chat_template_kwargs": {...}}` in OpenAI client. Sourc
 - **Any Jinja variable** referenced in the resolved template — detected via AST parse at `hf.py:429`.
 - **HF `apply_chat_template` params** auto-detected from tokenizer signature (`hf.py:387-404`).
   - `add_generation_prompt` (bool)
-  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py:964`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend you are on before editing the template.
+  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py:964`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend you are on before editing the template. **v0.30.0+:** the Rust frontend also parses `{% generation %}...{% endgeneration %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`, #56378) — needed for `return_assistant_tokens_mask` on templates that mark assistant spans this way; previously only the Python renderer honored them.
   - `documents` (list of `{title, contents}`) for RAG templates
   - `enable_thinking` (Qwen3 and some others)
 - **Reserved (will raise `ValueError`):** `chat_template`, `tokenize` (`hf.py:416-421`).
@@ -162,6 +165,7 @@ Models use model-specific placeholders (`<image>`, `<|image_start|>`, etc.) — 
 - If request has images but template has no placeholder, vLLM **prepends** them to final prompt (`chat_utils.py:1233-1240`). Some models tolerate this; others produce garbage.
 - If template has more placeholders than media items: `ValueError: "Found more '<image>' placeholders in input prompt than actual multimodal data items."` (`chat_utils.py:1226-1229`).
 - `interleave_strings=True` (via `multimodal_config.interleave_mm_strings`) enables in-order substitution; default is prepend-all.
+- **Double BOS in offline `LLM.chat()` for multimodal models — fixed v0.30.0 (#55288).** The multimodal processor's tokenization default is `add_special_tokens=True`; a template that emits `{{ bos_token }}` (Gemma-3, bundled `deepseek_vl2`/`deepseek_ocr` templates) then got a second BOS from the tokenizer. `LLM._preprocess_chat()` (`vllm/entrypoints/offline_utils.py`) now defaults `add_special_tokens=False` for chat, matching `ChatCompletionRequest` on the online server; pass `tokenization_kwargs={"add_special_tokens": True}` to opt back in. `LLM.generate()` on raw prompts is unaffected — the processor default still applies there.
 
 For Pixtral, Mistral-Small-3.1 multimodal, and other MM-tool-calling combinations, see `references/model-families.md`.
 

@@ -235,10 +235,18 @@ Fields: `linear_quant_method`, `weight_bits`, `group_size`, `has_zp`, `lm_head_q
 
 ## inc / auto-round — `--quantization inc` / `--quantization auto-round`
 
-- **File**: `vllm/model_executor/layers/quantization/inc.py`
-- **Config class**: `INCConfig` (line 40)
+- **File**: `vllm/model_executor/layers/quantization/inc/inc.py` (moved into an
+  `inc/` package)
+- **Config class**: `INCConfig`
 - **Min SM**: 60
-- Intel Neural Compressor + AutoRound path.
+- Intel Neural Compressor, including AutoRound-packed checkpoints
+  (`auto_round:auto_gptq` / `auto_round:auto_awq` / `auto_round:fp8` /
+  `auto_round:llm_compressor`). `auto-round` is not its own `--quantization`
+  value — it is a packing format loaded through `inc`.
+- **v0.30.0** added CUDA support for AutoRound's 2/3/5/6/7-bit widths: CUDA's
+  Marlin/GPTQ/AWQ kernels only cover 4/8-bit, so these widths now dispatch to
+  the Humming kernel instead of erroring
+  ([#52890](https://github.com/vllm-project/vllm/pull/52890)).
 
 ## bitsandbytes — `--quantization bitsandbytes`
 

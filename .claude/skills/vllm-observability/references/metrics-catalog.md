@@ -23,6 +23,7 @@ Source of truth: `vllm/v1/metrics/loggers.py` (primary), `vllm/v1/metrics/stats.
 - [Speculative decoding](#speculative-decoding)
 - [MFU / performance](#mfu--performance)
 - [Observability switches that never reach /metrics](#observability-switches-that-never-reach-metrics)
+- [Rust frontend](#rust-frontend)
 - [KV connector / offload](#kv-connector--offload)
 - [Bucket boundaries](#bucket-boundaries)
 - [V0 vs V1 deltas](#v0-vs-v1-deltas)
@@ -254,6 +255,18 @@ the GQA assumption — a ~57× overestimate of KV bandwidth. PR #39457 (merged
 Treat any MFU or bandwidth figure collected from a DeepSeek deployment on
 **< v0.24.0** as unusable, not merely imprecise.
 
+**MFU/MBU on sliding-window and hybrid-attention models was overestimated
+before v0.30.0.** The estimator summed `num_tokens * context_len` using the
+full, unclamped context length for every layer, including SWA layers that
+only ever attend to the last `sliding_window` tokens — inflating
+`attn_qk`/`attn_av` FLOPs and KV read/write bytes on long-context requests for
+Mistral, Qwen2.5, Gemma 2/3n, Llama 4, and hybrid Mamba models. PR #55624
+(merged 2026-09-14, **v0.30.0**) clamps per-layer context length to
+`sliding_window` via a new `num_swa_layers` split in `AttentionMetrics`.
+Discard MFU/MBU history from SWA/hybrid deployments on **< v0.30.0** for
+long-context workloads — short-context traffic was unaffected, since the
+clamp only changes anything once `context_len > sliding_window`.
+
 ## Observability switches that never reach `/metrics`
 
 `ObservabilityConfig` carries several operator-visible switches whose output is
@@ -277,6 +290,28 @@ Prometheus series (see § MFU / performance above).
 processor timings and its own docstring says it is for internal use, e.g.
 benchmarks. If a config-file or env approach appears to set it, that is not a
 supported operator surface.
+
+## Rust frontend
+
+Engine-core metrics registered by the Rust frontend (`vllm serve --grpc`, the
+render/derender path) reuse the **same `vllm:`-prefixed names** as the Python
+engine — `vllm:num_requests_running`, `vllm:kv_cache_usage_perc`,
+`vllm:iteration_tokens_total`, and (as of **v0.30.0**,
+[#52755](https://github.com/vllm-project/vllm/pull/52755)) the Mooncake/NIXL
+KV-connector histograms `vllm:mooncake_store_operation_time_seconds` and
+`vllm:nixl_xfer_time_seconds` — so the PromQL in this catalog applies
+unchanged regardless of frontend. `vllm:iteration_tokens_total` on the Rust
+frontend is new in v0.30.0 too
+([#56990](https://github.com/vllm-project/vllm/pull/56990)); before that PR it
+only existed on the Python engine.
+
+HTTP-layer metrics (`http_requests_total`, `http_request_duration_seconds`)
+are **not** `vllm:`-prefixed and mirror `PrometheusFastApiInstrumentator`
+naming. Their `method` label is bounded to known HTTP verbs plus `other`
+since v0.30.0 ([#56058](https://github.com/vllm-project/vllm/pull/56058),
+a security fix); before it, an arbitrary request method string on the wire
+became the label value directly — the same unbounded-cardinality failure
+mode as pitfall 6 above, just on the Rust frontend's own metric family.
 
 **Why this matters beyond the flags themselves:** "vLLM has a metric for X" and
 "vLLM can tell you X" are different claims. Three of the five above answer real
@@ -353,6 +388,17 @@ on them goes flat rather than erroring. Migrate to the load/store split.
 `vllm:nixl_num_failed_transfers`, `vllm:nixl_num_failed_notifications`,
 `vllm:nixl_num_kv_expired_reqs`. The two failure counters and the expired-request
 counter are the alertable ones on a disaggregated deployment.
+
+**HiSparse connector counters**, new in **v0.30.0**
+([#56061](https://github.com/vllm-project/vllm/pull/56061)), only emit when
+`HiSparseConnector` is the configured KV connector — the host-resident
+sparse-MLA decode tier introduced this release:
+
+| Metric | Type | Meaning |
+|---|---|---|
+| `vllm:hisparse_cache_hits_total` | Counter | Device hot-buffer hits |
+| `vllm:hisparse_cache_misses_total` | Counter | Device hot-buffer misses |
+| `vllm:hisparse_host_to_device_bytes_total` | Counter | Bytes moved from host KV storage into hot buffers |
 
 Other backends (`vllm:hf3fs_*`, LMCache, Mooncake) remain
 connector-version-dependent — grep `/metrics` on a running deployment to see what

@@ -30,6 +30,11 @@ vllm serve Qwen/Qwen3-Coder-480B-A35B-Instruct \
   --tool-call-parser qwen3_xml \
   --chat-template examples/tool_chat_template_qwen3coder.jinja \
   --enable-auto-tool-choice
+
+# Qwen3-Reranker (original checkpoint: override + scoring template; v0.30.0+ warns if template missing, #56017)
+vllm serve Qwen/Qwen3-Reranker-0.6B --runner pooling \
+  --hf_overrides '{"architectures": ["Qwen3ForSequenceClassification"],"classifier_from_token": ["no", "yes"],"is_original_qwen3_reranker": true}' \
+  --chat-template examples/pooling/score/template/qwen3_reranker.jinja
 ```
 
 ## DeepSeek

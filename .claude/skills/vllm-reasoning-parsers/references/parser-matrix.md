@@ -1,9 +1,9 @@
 # Per-parser matrix
 
-One row per registered name. **34 registered names** at v0.30.0; the rows below are the 29-name v0.27.0 set. Added since, and not yet given rows here: `hy_v4`, `ling3`, `muse_glimmer` (v0.29.0), `deepseek_v41` (`DeepSeekV41ParserReasoningAdapter`, adapter path) and `k2_horizon` (`K2HorizonReasoningParser`, own file) at v0.30.0.
+One row per registered name. **34 registered names** at v0.30.0; the rows below are the 29-name v0.27.0 set plus `k2_horizon` (added below). Added since, and not yet given rows here: `hy_v4`, `ling3`, `muse_glimmer` (v0.29.0), `deepseek_v41` (`DeepSeekV41ParserReasoningAdapter`, adapter path) at v0.30.0.
 
-**Two implementation paths now — check which one a name is on before reading its
-source.** A refactor has moved several parsers into a new top-level
+**Three implementation paths now — check which one a name is on before reading
+its source.** A refactor has moved several parsers into a new top-level
 **`vllm/parser/`** package, where one class per model (e.g. `Qwen3Parser`) is
 split by `make_adapters()` into *both* a reasoning adapter and a tool adapter:
 
@@ -21,8 +21,9 @@ a completion — even though the code has landed. Read the tree, not the tracker
 
 | Path | Names | Where the logic lives |
 |---|---|---|
-| **Adapter** | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`, `seed_oss`, plus `ling3` at v0.29.0 (13) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
-| **Legacy** (standalone) | the other 19 — 17 through v0.27.x, plus `hy_v4` and `muse_glimmer` at v0.29.0 | `vllm/reasoning/<file>.py` as before |
+| **Adapter** | `deepseek_v4`, `gemma4`, `glm45`, `glm47`, `inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`, `seed_oss`, plus `ling3` at v0.29.0 and `deepseek_v41` at v0.30.0 (14) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py` |
+| **Cohere-unified** (v0.30.0+) | `cohere_command3`, `cohere_command4` (2) | `vllm/parser/cohere_command.py::CohereCommandParser`, wired by name (not `make_adapters()`) in `vllm/parser/parser_manager.py`; the old `vllm/reasoning/cohere_command_reasoning_parser.py` keeps only `is_reasoning_end` for xgrammar ([#56392](https://github.com/vllm-project/vllm/pull/56392)) |
+| **Legacy** (standalone) | the other 18 — 17 through v0.27.x, plus `hy_v4`/`muse_glimmer` at v0.29.0 and `k2_horizon` at v0.30.0 | `vllm/reasoning/<file>.py` as before |
 
 **Membership is decided by the import, not the filename.** Only some shims are
 named `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
@@ -50,8 +51,9 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 | `deepseek_v3` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | Delegates → R1 or Identity | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default: **off**) | Inherits from delegate |
 | `deepseek_v4` | `DeepSeekV4ParserReasoningAdapter` | `deepseek_v4_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v4.py` | **No longer an alias of `deepseek_v3`** — as of v0.25.1 it has its own `DeepSeekV4Parser` on the adapter path | — | See `vllm/parser/deepseek_v4.py` | See file |
 | `poolside_v1` | `PoolsideV1ReasoningParser` | `poolside_v1_reasoning_parser.py` | Subclass of `DeepSeekV3ReasoningParser` (`<think>`/`</think>`); scopes the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't false-positive `prompt_is_reasoning_end` | — | Same as `deepseek_v3` | Inherits from delegate |
-| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (shared, 716 lines at v0.27.1) | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`); both classes derive from `BaseCohereCommandReasoningParser` | — | None — the subclass only selects a filter profile, `PyFilterOptions().cmd3()` streaming / `.cmd3().no_tools()` unary | Base class behaviour |
-| `cohere_command4` | `CohereCommand4ReasoningParser` | `cohere_command_reasoning_parser.py` (shared) | Same delimiters and base class as `cohere_command3` | — | None — differs from `cohere_command3` **only** by `PyFilterOptions().cmd4()` / `.cmd4().no_tools()` | Base class behaviour |
+| `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (60-line shim at v0.30.0, was 716 lines) → `vllm/parser/cohere_command.py::CohereCommandParser` | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`). At v0.30.0 the shim class keeps only `is_reasoning_end`; `extract_reasoning`, streaming and `count_reasoning_tokens` moved into the unified parser, which needs the external `cohere_melody` package — not a vLLM dependency, install it into the image (`ImportError` at load if missing) | — | None — `melody_preset = "cmd3"` selects the filter profile | `count_reasoning_tokens` is a depth counter, implemented since v0.30.0 ([#54982](https://github.com/vllm-project/vllm/pull/54982)) — before that it fell through to the ABC's `0` default |
+| `cohere_command4` | `CohereCommand4ReasoningParser` | same shim/adapter, `melody_preset = "cmd4"` | Same delimiters and unified parser as `cohere_command3` | — | None — differs from `cohere_command3` **only** by `melody_preset` | Same as `cohere_command3` |
+| `k2_horizon` | `K2HorizonReasoningParser` | `k2_horizon_reasoning_parser.py` (own file, subclasses `DeepSeekR1ReasoningParser`) — **new at v0.30.0** ([#55063](https://github.com/vllm-project/vllm/pull/55063)) | Effort-scaled delimiters, not a fixed pair: `high`→`<ifm\|think>`/`</ifm\|think>`, `medium`→`<ifm\|think_fast>`/`</ifm\|think_fast>`, `low`→`<ifm\|think_faster>`/`</ifm\|think_faster>`; implicit end at `<ifm\|tool_calls>` like `kimi_k2` | Always on | `chat_template_kwargs.reasoning_effort` selects the delimiter pair at parser construction (default `high`); an unsupported value raises `ValueError` there, not a request-level 400 | `(reasoning, content)` split at the effort's end token, or at `<ifm\|tool_calls>` if no end token seen |
 | `glm45` / `glm47` | `Glm47MoeParserReasoningAdapter` | `glm47_moe_reasoning_parser.py` (shim) → `vllm/parser/glm47_moe.py` | **`glm45` moved off the DeepSeek-V3 class onto the adapter path and now shares with the new `glm47` name** — it no longer behaves identically to `holo2` | — | See `vllm/parser/glm47_moe.py` | See file |
 | `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
 | `qwen3` / `mimo` | `Qwen3ParserReasoningAdapter` | `qwen3_engine_reasoning_parser.py` (shim) → `vllm/parser/qwen3.py` (`mimo` aliases the same class/file) | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |

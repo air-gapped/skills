@@ -43,7 +43,7 @@ across 466 published checkpoints.**
 
 | Situation | Pick | Why |
 |---|---|---|
-| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5, **Kimi K3**, **Inkling**, MiniMax-M3, Bailing-hybrid, Gemma 4) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL. Authoritative list: `MTPModelTypes` in `vllm/config/speculative.py` — 22 aliases at v0.27.0 |
+| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5, **Kimi K3**, **Inkling**, MiniMax-M3, Bailing-hybrid, Gemma 4) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL. Authoritative list: `MTPModelTypes` in `vllm/config/speculative.py` — 27 aliases at v0.30.0 |
 | Qwen3 / Llama / DeepSeek / gpt-oss / Kimi K2 / Minimax M2 / Gemma 4 / Nemotron-H target on B200 class | `dflash` | Block-diffusion parallel drafter, 2.5–4.6× at BS=1, v0.19+ |
 | Same list above, want mature / pre-trained head | `eagle3` | Current SOTA model-based method for listed families (v0.11.1+) |
 | Agentic / code-editing / RL-rollout workload with repetition | `suffix` | Model-free suffix trees, 1.8–4.5× on SWE-Bench. Requires `pip install arctic-inference` |
@@ -198,6 +198,10 @@ perf. If operating off a build older than these, upgrade before benchmarking.
 | **Block verification** for rejection sampling (#46781) | **v0.25.0** | `RejectionSampleMethod` gains `"block"` alongside `standard` / `synthetic` |
 | DFlash: **CPU support** (#44029), backend selection (#46770), FlashInfer (#43081), per-layer RMSNorm fusion (#46761) | **v0.24–v0.25** | DFlash matured well past its v0.19 debut |
 | EAGLE-3 for Qwen3 (#43132); reduced TP comms for large-vocab drafts (#39419) | **v0.24.0** | |
+| **EAGLE3 + pipeline parallelism** on MRV2 (#50514); MTP under PP for sparse-MLA targets (#46994) | **v0.30.0** | Before this, `eagle3` + `pipeline_parallel_size > 1` was a hard-rejected combination (`vllm/config/vllm.py`). The draft's own parallel config is now always `pipeline_parallel_size=1` regardless of the target's PP degree — the drafter itself is never split across pipeline stages |
+| Draft's own `moe_backend` (#54788) and `attention_backend` (#54826) **actually honored on MRV2** | **v0.30.0** | The v0.19.0/v0.21.0 rows above only ever took effect on the legacy V1 speculator (`vllm/v1/spec_decode/`); Model Runner V2 (`vllm/v1/worker/gpu/spec_decode/eagle/utils.py`) silently forced the draft to inherit the target's backend until this fix |
+| **Adaptive verification** opened to every draft-model speculator via an online acceptance estimator (#52228) | **v0.30.0** | `enable_adaptive_verification: true` in `--speculative-config` previously required a DSpark checkpoint with a trained confidence head; now any MRV2 draft-model-based method (eagle3, dflash, draft_model, or dspark without a head) gets per-position acceptance predicted online from the draft logits. Incompatible with `use_local_argmax_reduction: true` |
+| Dual-key Gumbel-max watermarking compatible with spec-dec (#56122) | **v0.30.0** | `--watermark-config '{"algorithm":"dual_key_gumbel",...}'` works with probabilistic-sampling, standard-rejection `eagle`/`eagle3`/`mtp`/`dspark`. Other algorithms need `"allow_target_only_watermarking": true` (dilutes the signal) |
 
 ## Critical pitfalls
 
@@ -250,7 +254,13 @@ v0.19.0 (#32951).
 `LoRA + spec-dec` → EAGLE + LoRA CUDA graph specialisation in v0.11.1 (#28318).
 Nemotron-H MTP LoRA in v0.16.0 (#32265).
 `Pipeline parallel + spec-dec` → MRV2 only, v0.17.0+ (#33960). **Not V1 on
-current engine runner**; if pinning PP on non-MRV2, spec-dec is off.
+current engine runner**; if pinning PP on non-MRV2, spec-dec is off. `eagle3`
+specifically stayed hard-blocked with PP until **v0.30.0** (#50514); MTP under
+PP for sparse-MLA targets fixed the same release (#46994).
+`Watermarking + spec-dec` → `dual_key_gumbel` supports spec-dec natively from
+**v0.30.0** (#56122); other algorithms need `allow_target_only_watermarking:
+true` in `--watermark-config`, and only with probabilistic draft sampling,
+standard rejection sampling, and `eagle`/`eagle3`/`mtp`/`dspark`.
 `FP8 KV + spec-dec` → supported. Sparse MLA + MTP full CUDA graphs v0.17.0
 (#34457). FP8 MLA KV specific fix #37054. From **v0.26.0** the drafter can carry
 its own `kv_cache_dtype` inside `--speculative-config` (#48787); unset means it

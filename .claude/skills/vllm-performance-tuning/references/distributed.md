@@ -15,6 +15,10 @@ below tune the NCCL path; on v0.29.0+ the collective may not be taking it. Bisec
 by setting the opt-out and re-running the same benchmark — if the delta closes,
 it is the new default, not fabric tuning.
 
+## v0.30.0: opt-in FlashInfer PCIe IPC all-reduce for NVLink-less boxes
+
+**`VLLM_ALLREDUCE_USE_FLASHINFER_PCIE_IPC=1`** (default `0`, opt-in — [#53576](https://github.com/vllm-project/vllm/pull/53576), lazy-imported in kernel warmup by [#54869](https://github.com/vllm-project/vllm/pull/54869)) — single-node, single-stream CUDA-IPC all-reduce over PCIe for TP groups with no NVLink. It is a separate code path from the NVLink `VLLM_ALLREDUCE_USE_FLASHINFER` default above; do not assume one covers the other's fabric. `vllm/envs.py` at v0.30.0.
+
 ## NCCL baseline
 
 **NVIDIA's explicit guidance:** "In general, users should not need to tune or set NCCL environment variables to achieve peak performance." ([GB200 multi-node tuning](https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/nccl.html)). NCCL ≥2.28 auto-detects GB200 NVLink domains and picks the algorithm.

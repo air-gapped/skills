@@ -68,6 +68,17 @@ Qwen3 template walks messages in reverse and preserves `<think>` blocks only for
 
 Qwen3 template checks `tool_call.arguments is string` before `| tojson` — avoids the double-escape bug that plagued earlier Hermes-style templates.
 
+### Qwen3-Reranker / Qwen3-VL-Reranker need a chat template too
+
+The *original* Qwen3 reranker checkpoints load as rerankers only with `--hf_overrides '{"architectures": ["Qwen3ForSequenceClassification"],"classifier_from_token": ["no", "yes"],"is_original_qwen3_reranker": true}'` (VL: `Qwen3VLForSequenceClassification`), and score correctly only with their scoring template. With the override set but no `--chat-template`, v0.30.0+ logs a warning naming the fix (#56017, `vllm/entrypoints/pooling/scoring/io_processor.py`):
+
+```
+--chat-template examples/pooling/score/template/qwen3_reranker.jinja       # text-only
+--chat-template examples/pooling/score/template/qwen3_vl_reranker.jinja    # Qwen3-VL-Reranker (multimodal)
+```
+
+No warning without the override — a missing override is silent.
+
 ---
 
 ## DeepSeek

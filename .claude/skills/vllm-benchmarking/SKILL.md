@@ -90,6 +90,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 6. **Conflating tok/s with req/s.** High total-tokens/sec can coexist with terrible TTFT. Always report both plus P99 ITL.
 7. **Noisy neighbor.** Shared GPU, unrelated container load, MIG partition changes mid-run — check `nvidia-smi dmon` for unrelated activity before trusting numbers.
 8. **`latency` subcommand disables prefix caching by default** (to keep numbers clean). If benchmarking prefix-cache behavior, use `serve` with the `prefix_repetition` dataset.
+9. **v0.30.0 fixed streaming TTFT/E2EL accounting — re-baseline across the boundary.** Before v0.30.0, `openai`/`openai-audio` streaming TTFT was read off a second `time.perf_counter()` call instead of the timestamp already captured for that chunk, and a response that streamed zero valid chunks was counted as **success with `ttft=0`** (skewing percentiles down) instead of failed (#55508). Both are fixed at v0.30.0. Do not compare streaming-endpoint TTFT/E2EL numbers across v0.29.0→v0.30.0. Also new at v0.30.0: with `--max-concurrency` set, add `client_queue_time,e2el_including_client_queue` to `--percentile-metrics` to see client-side semaphore wait separated from server latency (#54136) — see `commands.md`.
 
 For the full flag reference for each subcommand, see `references/commands.md`. For the dataset catalog and when to use each, see `references/datasets.md`.
 

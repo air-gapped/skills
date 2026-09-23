@@ -23,6 +23,11 @@ Tracks external references cited in this skill. `Last verified` indicates the mo
 | vLLM performance dashboard | https://docs.vllm.ai/en/latest/benchmarking/dashboard/ | 2026-09-15 | Live; documents the perf dashboard incl. manual benchmark triggers and continuous monitoring. |
 | Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05) | https://vllm.ai/blog/2025-09-05-anatomy-of-vllm | 2026-09-15 | Live. **blog.vllm.ai 301s to vllm.ai/blog/** — URL updated to the canonical target. |
 | Blog: Large Scale Serving — DeepSeek @ 2.2k tok/s/H200 (2025-12-17) | https://vllm.ai/blog/2025-12-17-large-scale-serving | 2026-09-15 | Live at the migrated vllm.ai/blog domain (301 from blog.vllm.ai). |
+| `vllm-project/vllm#54136` (client queue time) | https://github.com/vllm-project/vllm/pull/54136 | 2026-09-23 | Confirmed at v0.30.0 tag: `limited_request_func` in `serve.py` records `client_queue_time`; result dict gains unconditional `latencies`/`queue_times`; new `--percentile-metrics` values `client_queue_time`/`e2el_including_client_queue` (need `--max-concurrency` set; the latter also needs finite `--request-rate`). |
+| `vllm-project/vllm#55508` (streaming TTFT/E2EL accounting fix) | https://github.com/vllm-project/vllm/pull/55508 | 2026-09-23 | Confirmed at v0.30.0 tag in `endpoint_request_func.py`: TTFT now reads the already-captured chunk `timestamp` instead of a second `time.perf_counter()` call; a stream with zero valid chunks is now `success=False` instead of `ttft=0`+success. Re-baseline trigger for streaming-endpoint numbers across v0.29.0→v0.30.0. |
+| `vllm-project/vllm#54887` (reject non-positive `--max-concurrency`) | https://github.com/vllm-project/vllm/pull/54887 | 2026-09-23 | Confirmed at v0.30.0 tag: `main_async` raises `ValueError` when `args.max_concurrency <= 0`; `0` previously silently meant unlimited. |
+| `vllm-project/vllm#56760` (complete pooling responses measured) | https://github.com/vllm-project/vllm/pull/56760 | 2026-09-23 | Confirmed at v0.30.0 tag in `endpoint_request_func.py`: pooling E2EL now waits for the full response body before recording latency (binary bodies drained via `iter_any()`, JSON via `response.read()`); new `bytes_only` encoding format handled — previously parsed as JSON and always failed. |
+| `vllm-project/vllm#56662` (credentials redacted from benchmark logs) | https://github.com/vllm-project/vllm/pull/56662 | 2026-09-23 | Confirmed at v0.30.0 tag: new `redact_sensitive_namespace()` in `vllm/benchmarks/lib/utils.py`, applied to the printed CLI arg namespace and to `convert_to_pytorch_benchmark_format` args in `serve.py`; redacts `--header` only (`_SENSITIVE_ARG_FIELDS = ("header",)`). |
 
 ## Probe budget 2026-05-28 cycle: 8/8 used
 
@@ -118,4 +123,31 @@ Probes (12): `gh release list` (v0.27.0 latest, 2026-08-10) · `gh api contents/
 - **#32841 hedge kept for the third cycle** — see the row above for the reasoning.
 - **Still not probed:** the two blog rows and the performance-dashboard row. They keep
   their existing stamps rather than borrowing today's date.
+
+## Content updates applied 2026-09-23 (release-note sweep, v0.30.0)
+
+Verified against the local v0.29.0/v0.30.0 tags (`serve.py`, `endpoint_request_func.py`,
+`throughput.py`, `lib/utils.py`) plus `gh pr view` on each PR body.
+
+- **`SKILL.md`, `commands.md`, `output-schema.md`:** client-side queue time and
+  `e2el_including_client_queue` percentiles (#54136); streaming TTFT/E2EL accounting
+  fix, a re-baseline trigger (#55508); non-positive `--max-concurrency` now rejected
+  (#54887); credentials (`--header`) redacted from printed args and saved metadata
+  (#56662).
+- **`output-schema.md`:** corrected the pooling (`EmbedBenchmarkMetrics`) field list —
+  it was missing `completed`, `failed`, `total_input`, `total_input_sequences`,
+  `input_sequence_throughput`, and the `e2el` percentile fields (pre-existing gap, not
+  v0.30.0-specific). Also documented the v0.30.0 fix making pooling E2EL wait for the
+  full response body, including the new `bytes_only` encoding format (#56760).
+- **`troubleshooting.md`:** added a note that new post-upgrade failures on requests
+  that streamed no valid chunk are the v0.30.0 fix working correctly (#55508), not a
+  regression.
+- **Not applied (cap):** `mm-processor` crash on `--dataset-name random-mm` fixed via
+  `throughput.py`'s `_to_serve_args` reading legacy length/backend flags with `getattr`
+  instead of direct attribute access (#56300) — confirmed by diff, but the skill never
+  documented the crash, so there was nothing to fix and the 5-finding cap was already
+  spent on higher-priority items.
+- **Confirmed correctly silent:** HF ShareGPT multi-turn dataset loading (#51104,
+  #56915) is Rust-bench-client-only per both PR bodies — the Python `vllm bench serve`
+  this skill documents has no `--multi-turn` flag. No change needed.
 

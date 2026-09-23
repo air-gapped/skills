@@ -19,6 +19,7 @@ Backends gate on `DeviceCapability` in `vllm/v1/attention/backends/`:
 | `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (a *revert* of the Blackwell-Ultra optimization that caused the deadlock; closes #2939), shipped in 0.6.7.postN. If stuck on plain 0.6.7, disable TRTLLM on SM103 or upgrade. |
 | `TRITON_ATTN` / `FLEX_ATTENTION` / `TREE_ATTN` | ✅ | ✅ | Generic |
 | `xformers` | removed v0.11 | removed | V0 deprecation |
+| `B12X` | ❌ | SM120/121 only | Causal paged attention, v0.30.0 (#52017): `--attention-backend B12X` (registry key is `B12X`, not `B12X_ATTN` despite the release-note prose). Gates on `(capability.major, capability.minor) in ((12, 0), (12, 1))` exactly — SM100/SM103 don't qualify (`vllm/v1/attention/backends/b12x.py:212-215`) |
 
 **FlashAttention 4 (default MLA prefill on SM90+ paged-KV since v0.20.0) grew two
 Blackwell-only capabilities in v0.27.0:** FP8 KV cache on SM100 (#42569) and
@@ -164,7 +165,26 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashAttention-3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable
   FlashMLA build (#48174) — both reduce torch-upgrade breakage. FlashInfer
   **0.6.14** (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442).
-- **v0.29.0** (2026-09-09, **newest release, assessed 2026-09-15**) — **FlashInfer
+- **v0.30.0** (2026-09-22, **newest release**) — **B12X causal paged attention
+  backend for SM120/SM121** (#52017, table above). **FlashInfer XQA decode
+  extended from SM12x-only to SM90** (#50439) — Hopper now shares the same
+  decode kernel path Blackwell consumer parts already had. **W4A4 NVFP4 linear
+  kernels now preferred over weight-only kernels on SM120/SM121** — a default
+  flip, not just an available path (#55170). **Opt-in FlashInfer PCIe IPC
+  all-reduce for NVLink-less boxes** (#53576) — a communicator option for
+  PCIe-only multi-GPU servers that previously had no all-reduce path besides
+  NCCL. SM12x blockwise FP8 CTA-raster swizzle for weights that exceed L2,
+  named for **GB10/DGX Spark** (24 MiB L2) specifically, up to 3.3× faster
+  (#55180). **Public CUDA 13.4 Rubin build path**: `INSTALL_RUBIN_PRERELEASE=true`
+  build arg, documented in `docs/getting_started/installation/gpu.cuda.inc.md`,
+  pins CUDA 13.4 PyTorch/torchvision/torchaudio nightlies from
+  `requirements/rubin-prerelease.txt` (#54640, #56545) — still opt-in/preview,
+  not the default wheel or image, and tracking issue #49735 stays open; see
+  `rubin-roadmap.md`. DeepGEMM's upstream moved from `deepseek-ai/DeepGEMM` to
+  the `vllm-project/DeepGEMM` fork (release notes call it "2.8.0"), adding the
+  SM120 port and an SM90 paged-MQA port (#56876) — rebuild any vendored
+  `DEEPGEMM_SRC_DIR` checkout against the new remote.
+- **v0.29.0** (2026-09-09) — **FlashInfer
   all-reduce is now ON by default** for TP CUDA groups; opt out with
   `VLLM_ALLREDUCE_USE_FLASHINFER=0` (#52998). That is the one default flip in this
   release that changes behaviour on an existing deployment without a config change.
@@ -249,6 +269,18 @@ vLLM had no Rubin code path. Three caveats decide whether it means anything yet:
 - **Tracking issue #49735 is still open** (updated 2026-07-29) with the CUDA 13.4
   dev-preview build and the FlashInfer sm_107 bump unchecked; FlashInfer's own
   SM107 PR (flashinfer-ai/flashinfer#4122) merged 2026-07-25.
+
+**v0.30.0 adds a public, documented build path** (#54640, #56545): pass
+`--build-arg INSTALL_RUBIN_PRERELEASE=true --build-arg CUDA_VERSION=13.4` to
+`docker/Dockerfile` against a `pytorch/manylinux2_28-builder:cuda13.4` (or
+`manylinuxaarch64-builder:cuda13.4`) base and the
+`nvcr.io/nvidia/cuda-dl-base:26.08-cuda13.4-devel-ubuntu24.04` final image
+(`docs/getting_started/installation/gpu.cuda.inc.md`). It pulls CUDA 13.4
+PyTorch/torchvision/torchaudio **nightlies** from
+`requirements/rubin-prerelease.txt` and builds Triton from source (the shipped
+Triton's `ptxas-blackwell` 13.3 can't assemble SM107). This is a real, working
+build recipe — not the default wheel or image, and still pinned to PyTorch
+nightlies rather than a stable release; tracking issue #49735 is still open.
 
 Treat day-one Rubin serving as *in progress*, not shipped — see
 `references/rubin-roadmap.md` before sizing a purchase on it.

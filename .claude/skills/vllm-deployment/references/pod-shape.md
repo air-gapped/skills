@@ -195,6 +195,28 @@ arbitrary-UID images (`$HOME` ≠ `/root`, e.g. RHAIIS/OpenShift) set `VLLM_CACH
 explicitly to a mounted path instead. An emptyDir only survives container restarts —
 use a PVC when cold-boot reduction must survive pod rescheduling.
 
+### Fast Start weight-cache daemon (`--load-format ipc_cache`, v0.30.0+)
+
+A further cold-boot lever beyond compile-cache survival: a per-GPU daemon
+process (`python -m vllm.model_executor.model_loader.weight_cache.daemon`)
+holds post-quantized, TP-sharded weights resident in GPU memory and hands them
+to restarting engines over CUDA IPC via `vllm serve ... --load-format
+ipc_cache`, skipping the disk reload entirely (#54921). It now covers FP4
+checkpoints (#55465) and multi-node TP with a separate `--weight-cache-master-port`
+(#55468). Deploy-layer implications:
+
+- Daemon and engine must run on the same node as the **same UID**, see the
+  same GPUs, and share the temp dir: sockets are
+  `vllm_weight_cache_{uid}/vllm_weight_cache_{gpu_uuid}.sock`
+  (`weight_cache/protocol.py`). The GPU device plugin gives a GPU to one
+  container, so the default shape is both processes in the **one GPU
+  container** — weights survive engine-process restarts, not container or pod
+  restarts. A separate sidecar container needs GPU visibility arranged outside
+  the device plugin; test that before relying on it.
+- Only TP/EP are supported; PP and DP are rejected at daemon launch.
+- Errors clearly on non-CUDA/non-ROCm platforms rather than silently falling
+  back (#56010).
+
 ## The env-var surface worth tuning
 
 | Var | Default | When to change |

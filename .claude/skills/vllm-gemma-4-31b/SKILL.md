@@ -25,17 +25,18 @@ and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
 
-> **Version ceiling (re-verified 2026-08-11): hold at vLLM 0.25.1. Do not
-> take 0.26.0, 0.27.0 or 0.27.1.** All three gemma-4-relevant regressions are
-> still **OPEN**, and every fix PR for them is still **unmerged**, so neither
-> 0.27.0 (2026-08-10) nor the 0.27.1 patch (2026-08-11 — a single change,
-> #50424, scoped to `Qwen3DSparkModel`, nothing Gemma) clears any of them:
+> **Version ceiling (re-verified 2026-09-23 against v0.30.0): hold at vLLM
+> 0.25.1. Do not take 0.26.0 through 0.30.0.** Two of the three
+> gemma-4-relevant regressions are still **OPEN** through v0.30.0:
 > [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
 > `<turn|>` leaked into output — **not spec-decode-specific after all**, see
-> the pitfall below; fix PR
-> [#50964](https://github.com/vllm-project/vllm/pull/50964) open, and
-> [#50263](https://github.com/vllm-project/vllm/pull/50263) was tested by the
-> reporter and did *not* fix it),
+> the pitfall below) has its **root cause fixed but is unconfirmed**: PR
+> [#52430](https://github.com/vllm-project/vllm/pull/52430) (merged
+> 2026-08-18, first shipped in **v0.29.0**) aligns the parser's
+> `enable_thinking` default with the template
+> (`vllm/parser/gemma4.py:424` at v0.29.0). #49955 itself is still **open**
+> with no reporter confirmation on a release; #50964 closed unmerged. Verify
+> on your own traffic before counting it cleared.
 > [#50477](https://github.com/vllm-project/vllm/issues/50477) (gemma4
 > parser silently ignores named forced `tool_choice`; a second reporter
 > extends it to `tool_choice: "required"`, which returns
@@ -56,8 +57,8 @@ the upstream constraints that shape the answer.
 > `SupportsEncoderCudaGraph` for `Gemma4ForConditionalGeneration`, making the
 > vision encoder 100% statically compiled by replacing the pooler's
 > data-dependent slicing with a fixed-shape gather. Relevant only to
-> multimodal traffic, and not worth taking the three regressions for —
-> re-evaluate when #49955 and #50159 close.
+> multimodal traffic, and not worth taking the remaining two regressions for —
+> re-evaluate when #50477 and #50159 close.
 
 ## Three load-bearing facts
 
@@ -68,6 +69,13 @@ the upstream constraints that shape the answer.
    prevent mixed-backend numerical divergence`. Don't try to override
    with `--attention-backend FLASH_ATTN` — vLLM rejects it (`kv_cache_dtype
    not supported`, `partial multimodal token full attention not supported`).
+   **v0.30.0+**: this TRITON_ATTN path got a multimodal-prefill fix —
+   sliding-window tile pruning was previously disabled whenever a
+   multimodal prefix range was present, scanning the full KV range instead
+   of the windowed one (`vllm/v1/attention/ops/triton_unified_attention.py`,
+   #53147). Fixed automatically, no flag; upstream measured up to
+   3-4x E2E / ~4x prefill speedup on a Gemma-4 multimodal workload. No
+   action needed beyond taking v0.30.0+ for multimodal traffic.
 2. **Throughput plateaus at batch=64 on H100, batch=128 on H200.** This is
    *not* a hardcoded vLLM cap — it's HBM-bandwidth-bound saturation. H100
    SXM5 has ~3.35 TB/s HBM3, H200 has ~4.8 TB/s HBM3e (~43% more). The
@@ -266,6 +274,18 @@ shape is invisible to benchmark suites whose multi-turn fixtures always
 end on a *user* message — test the tool-terminated shape explicitly
 (render-probe the prompt tail, then diff bypass vs chat output).
 
+### Bare tool-call openers silently dropped on < v0.30.0 (fixed)
+
+Some checkpoints emit `<|tool_call>:name{...}` — colon directly after the
+opener, no `call` prefix. Before v0.30.0 the gemma4 parser state machine had
+no transition for a bare `COLON` token there, so the tool call was silently
+dropped instead of parsed. Fixed by
+[#53444](https://github.com/vllm-project/vllm/pull/53444)
+(`vllm/parser/gemma4.py`, `gemma4_config()`), which adds the
+`(TOOL_PREAMBLE, "COLON") -> TOOL_NAME` transition. No flag or config
+change needed — take v0.30.0+ if you serve a checkpoint that emits this
+opener shape.
+
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
 vLLM's xgrammar backend builds its stop-token set from the tokenizer
@@ -293,9 +313,16 @@ TP-capable EAGLE3 shapes. Check the engine's acceptance metric against
 the baseline (~43% on random, 50–72% on MT-Bench); a collapsed number
 means you're hit.
 
-### A trailing `<turn|>` can leak into streamed output — not only under spec-decode
+### A trailing `<turn|>` can leak into streamed output — root cause fixed in v0.29.0
 
-[#49955](https://github.com/vllm-project/vllm/issues/49955), still open.
+[#49955](https://github.com/vllm-project/vllm/issues/49955) is still open,
+but its root cause — the parser defaulting `enable_thinking` to `True` while
+the template defaults `false` — is fixed by
+[#52430](https://github.com/vllm-project/vllm/pull/52430), shipped in
+**v0.29.0** (`vllm/parser/gemma4.py:424`:
+`chat_kwargs.get("enable_thinking", False)`). No reporter has confirmed it on a
+release yet. Below applies in full to ≤ v0.28.x.
+
 The original report was MTP-only, and this skill previously recorded
 "not reproducible without spec-decode." **That is now contradicted by the
 same reporter's own matrix** (2026-07-31): reproduces on 0.25.1 and
@@ -319,11 +346,12 @@ under `skip_tool_parsing=True` — falls through as ordinary content. Model
 output that happens to emit a real channel block masks the bug by
 correcting the state mid-stream.
 
-**Mitigation on an affected engine: send `enable_thinking` explicitly on
-every request** rather than relying on either default. Fix PR
-[#50964](https://github.com/vllm-project/vllm/pull/50964) is open and
-unmerged; [#50263](https://github.com/vllm-project/vllm/pull/50263) was
-tested by the reporter and did not fix it.
+**Mitigation on an affected engine (≤ v0.28.x): send `enable_thinking`
+explicitly on every request** rather than relying on either default.
+[#50263](https://github.com/vllm-project/vllm/pull/50263) was tested by the
+reporter and did not fix it; PR #50964 was superseded by #52430, which did
+(see above) — on v0.29.0+ the default mismatch is gone; keep sending
+`enable_thinking` explicitly until #49955 is confirmed closed.
 
 Cheap test: temp-0 chat completions **with `stream=true`**, grep the tail
 for `<turn|>`. Non-streaming probes miss it. Strict clients like Copilot
@@ -365,10 +393,10 @@ activations* and shares its KV cache, so pairing the BF16 assistant with
 an AWQ-4bit target measured **0% acceptance at every position**
 (2026-05-06 head-to-head, ~37k drafted tokens all rejected) — throughput
 0.26–0.39× of EAGLE3, worse than no spec-decode at all. Also: gemma-4
-MTP support is still nightly-only — **no stable release through 0.27.0
-carries it** (neither the v0.26.0 nor the v0.27.0 release notes list a
-Gemma-4 MTP entry), and MTP is an amplifier of the trailing `<turn|>`
-leak above. The community DSpark speculator
+MTP support is still nightly-only — **no stable release through v0.30.0
+carries it** (no v0.26.0 through v0.30.0 release notes list a Gemma-4 MTP
+entry), and on any nightly build pre-dating the v0.29.0 fix, MTP is an
+amplifier of the trailing `<turn|>` leak above. The community DSpark speculator
 (`RedHatAI/gemma-4-31B-it-speculator.dspark`) still fails to load at all
 ([#49475](https://github.com/vllm-project/vllm/issues/49475), re-checked
 2026-08-11 — still OPEN). Note what *did* ship: v0.26.0 added a

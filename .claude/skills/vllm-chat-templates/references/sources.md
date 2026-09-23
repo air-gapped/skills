@@ -10,6 +10,19 @@ issue/PR/URL to the skill, probe it and add a row here.
 
 Probe pattern: `gh pr view <N> --repo vllm-project/vllm --json state,mergedAt,title,closedAt,stateReason`
 
+## 2026-09-23 — v0.30.0 release-note items added
+
+Not a full sweep; these are new citations pulled from the v0.30.0 release notes and probed against the `v0.29.0..v0.30.0` commit range and the `v0.30.0` tag tree.
+
+| Ref | URL | Last verified | Status | Notes |
+|---|---|---|---|---|
+| vLLM PR #53824 | https://github.com/vllm-project/vllm/pull/53824 | 2026-09-23 | MERGED 2026-09-10 | `_detect_content_format()` (`vllm/renderers/hf.py`) now traces macro parameters back to `message['content']`; previously macro-wrapped content mis-detected as `string`. |
+| vLLM PR #55288 | https://github.com/vllm-project/vllm/pull/55288 | 2026-09-23 | MERGED 2026-09-04 | Fixes double BOS in `LLM.chat()` for multimodal models; `_preprocess_chat()` (`vllm/entrypoints/offline_utils.py`) now defaults `add_special_tokens=False`, matching the online `ChatCompletionRequest` default. |
+| vLLM PR #56017 | https://github.com/vllm-project/vllm/pull/56017 | 2026-09-23 | MERGED 2026-09-11 | Warns when serving an original Qwen3/Qwen3-VL reranker without `--chat-template`; names `examples/pooling/score/template/qwen3_reranker.jinja` / `qwen3_vl_reranker.jinja` (`vllm/entrypoints/pooling/scoring/io_processor.py`). |
+| vLLM PR #56378 | https://github.com/vllm-project/vllm/pull/56378 | 2026-09-23 | MERGED 2026-09-12 | Rust frontend now parses `{% generation %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`), needed for `return_assistant_tokens_mask` on templates using that convention. |
+
+Not applied (cap): vLLM PR #53762 (packaging-only — bundled fallback `.jinja` files added to `setup.py` `package_data`; no operator-facing flag/config change) and vLLM PR #54539 / #54692 (`assistant_tokens_mask` and token-offset truncation alignment on the `/v1/chat/completions/render` endpoint — training-data-generation path, outside this skill's prompt-rendering-for-serving scope).
+
 ## Last sweep: 2026-08-11 against vLLM **v0.27.0** (prior sweeps 2026-07-21, 2026-05-28, 2026-04-24)
 
 Latest vLLM release at sweep time was v0.27.1 (2026-08-11), a one-change patch

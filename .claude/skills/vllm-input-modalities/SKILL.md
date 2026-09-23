@@ -190,6 +190,15 @@ curl -X POST http://localhost:8000/v1/audio/transcriptions \
 Chunking >30 s audio is server-side (energy-aware split at
 `min_energy_split_window_size`). Beam-search transcription arrived in v0.18.
 
+**Audio decode backend (v0.30.0+).** Selectable via
+`--media-io-kwargs '{"audio": {"audio_backend": "torchcodec"}}'` —
+`soundfile` (fast path), `pyav`, or `torchcodec` (needs the `torchcodec`
+package plus system ffmpeg). `auto` (default) tries soundfile, then
+torchcodec, then pyav (#51826, #55642). Default resampler switched from
+PyAV to torchaudio in the same release (#52598); torchaudio ships in the
+standard CUDA/ROCm/CPU/XPU requirement files, no extra install. Details:
+`references/stt.md` §6.
+
 **OOM on 24 GB with Whisper** (issue #15216) is a known sharp edge — Whisper
 allocates aggressively for its encoder KV, despite the 1.6 GB checkpoint.
 Production path is one of the RedHatAI quants above, or raising
@@ -255,6 +264,9 @@ no dedicated `/ocr` endpoint.
    LAST-pooling model returns wrong scores once a query+doc pair is long
    enough to be chunk-prefilled, under `torch.compile` (the default). Rule
    out the version before re-checking the overrides.
+   **v0.30.0+ warns at startup** if the original Qwen3 reranker
+   (`is_original_qwen3_reranker=true`) is served without a chat template —
+   check the logs before assuming silent wrong scores (#56017).
 
 6. **DeepSeek-OCR with prefix caching on.** It doesn't crash — it just
    wastes time and memory. Same for `--mm-processor-cache-gb > 0` for pure
@@ -360,9 +372,10 @@ reason.
 
 ### v0.26.0 + v0.27.0 (baseline v0.27.0, released 2026-08-10)
 
-*Latest release is v0.27.1 (2026-08-11), a one-change patch — "quantized
-DSpark Markov heads" (#50424) — with nothing on this skill's surface. The
-claims below were verified against the `v0.27.0` tag.*
+*As of this pass, latest release was v0.27.1 (2026-08-11), a one-change
+patch — "quantized DSpark Markov heads" (#50424) — with nothing on this
+skill's surface. The claims below were verified against the `v0.27.0` tag.
+Superseded — v0.30.0 is now latest, see the section below.*
 
 **A pooling correctness bug, fixed in v0.26.0 — the highest-value item on
 this page.** #48901: LAST-pooling models (the PR names
@@ -401,6 +414,27 @@ LongCat-Flash-Lite n-gram embedding (#47857), all v0.26.0.
 but image-bump relevant: `max_num_partial_prefills` and
 `max_long_partial_prefills` were removed in v0.27.0 (#49244).
 
+### v0.28.0 → v0.30.0 (baseline v0.30.0, released 2026-09-22)
+
+**Audio decoding gained a selectable backend and a new default resampler.**
+`torchcodec` joins `soundfile`/`pyav` as an `audio_backend` choice via
+`--media-io-kwargs`; `auto` tries soundfile first, then torchcodec, then
+pyav (#51826, #55642, `vllm/multimodal/media/audio.py`). Default resampler
+switched from PyAV to torchaudio (#52598, `vllm/multimodal/parse.py`). See
+the STT cheat-sheet above and `references/stt.md` §6.
+
+**Multimodal cache-hash correctness fix.** `media_io_kwargs` (including
+`audio_backend`) is now part of the multimodal cache hash, and cache-hash
+kwargs are scoped per modality instead of shared (#54241, #54918). On
+v0.29.x, requests differing only in `media_io_kwargs` could hit each other's
+cached multimodal entries — do not A/B decode settings on those versions with
+the processor cache on.
+
+**Qwen3 reranker startup warning.** Serving the original Qwen3 reranker
+(`is_original_qwen3_reranker=true`) without a chat template now logs a
+warning naming the missing `qwen3_reranker.jinja` template instead of
+silently producing random-looking scores (#56017). See pitfall 5.
+
 ## Paired skills
 
 - `vllm-configuration` → environment variables, cache paths, telemetry opt-out.
@@ -417,9 +451,11 @@ but image-bump relevant: `max_num_partial_prefills` and
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.30+ release, a new Jina embeddings major version, or
+- Refresh triggers: any v0.31+ release, a new Jina embeddings major version, or
   a new native-multimodal reranker shipping. (MRV2 becoming the pooling default
-  was a trigger; it fired — #48290 shipped in v0.29.0.) Note that three passes running have found the *runner*
+  was a trigger; it fired — #48290 shipped in v0.29.0. v0.30+ was a trigger too;
+  it fired — audio backend selection + torchaudio resampler, see the v0.30.0
+  section above.) Note that four passes running have found the *runner*
   surface quiet while **request validation and pooling correctness** moved
   underneath it — grep release bodies for
   `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags.

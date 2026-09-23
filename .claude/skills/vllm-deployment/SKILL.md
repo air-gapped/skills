@@ -141,11 +141,25 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments.
 10. **Assuming Gateway API is GA on every OCP.** It is GA on OCP 4.19+, dev-preview on 4.17. Check the cluster version.
 
-## Upgrading past v0.27.x (swept 2026-09-15)
+## Upgrading through v0.30.0 (swept 2026-09-15, refreshed 2026-09-23)
 
-Upstream is at **v0.29.0** (2026-09-09), with **v0.28.0** (2026-08-26) in
-between. Four changes affect a deployment manifest or its rollout plan:
+Upstream is at **v0.30.0** (2026-09-22), via v0.29.0 (2026-09-09) and v0.28.0
+(2026-08-26). Changes that affect a deployment manifest or its rollout plan:
 
+- **Scale-out endpoints (`/render`, `/derender`, `/inference/v1/generate`) are
+  opt-in on plain `vllm serve`.** Pass `--enable-scale-out`; the old
+  `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` env var is removed, so a manifest still
+  setting it silently does nothing (#54579, #55176, v0.30.0). `vllm launch
+  render` and `vllm serve --tokens-only` still register their endpoints
+  unconditionally.
+- **`python -m vllm.entrypoints.grpc_server` is deprecated** in favour of
+  `vllm serve --grpc` (#56746, v0.30.0) — same fix as the api_server line
+  below if a container `command:` still spells the module form.
+- **YaRN-scaled `max_model_len` can drop on upgrade.** vLLM stops
+  re-multiplying an already-scaled `max_position_embeddings` by `factor` for
+  yarn-family rope types (#56446, v0.30.0); a manifest with a hardcoded
+  `--max-model-len` derived from the old (inflated) value needs recomputing,
+  not carrying forward.
 - **`python -m vllm.entrypoints.openai.api_server` is deprecated** in favour of
   `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
   module form, change it now rather than on the release that removes it.
