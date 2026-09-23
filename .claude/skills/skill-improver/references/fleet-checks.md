@@ -1,6 +1,6 @@
 # Fleet checks — what each one catches, and how to read it
 
-Six checkers under `scripts/`, each testing something a parser can decide. Run
+Seven checkers under `scripts/`, each testing something a parser can decide. Run
 them over the whole tree, not just the skill being edited: every one of them found
 defects in skills nobody was touching.
 
@@ -230,7 +230,7 @@ Documentation tables write alternatives that way constantly, so a checker missin
 either reports a clean fleet as broken — an earlier draft of this one produced 13
 findings, all of them escaped pipes. Both cases are pinned by `--selfcheck`.
 
-## Which Fleet Sweeps Pay, and Three That Do Not
+## Which Fleet Sweeps Pay, and Four That Do Not
 
 Every checker in this directory tests something a parser can decide. That is not a
 coincidence, and it is the rule for proposing the next one.
@@ -257,6 +257,6 @@ a **decidable** definition. When it does not, the sweep's own false-positive rat
 becomes the finding, and a checker whose only demonstrated output is noise costs more
 than the defects it was meant to catch.
 
-**One real defect did come out of those three**, found by reading the hits rather
+**One real defect did come out of those four**, found by reading the hits rather
 than by the rule: a compatibility registry carrying a component its index never
 listed. Run a loose sweep once by hand if you like — just do not ship it.

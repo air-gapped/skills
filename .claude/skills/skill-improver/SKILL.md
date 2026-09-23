@@ -145,7 +145,7 @@ and `references/improvement-patterns.md` §Pattern 6.1 explains how to read it.
 
 ### Fleet Checks — Run These Over the Whole Tree
 
-Six checkers under `scripts/`, all testing something a parser can decide. **Run each
+Seven checkers under `scripts/`, all testing something a parser can decide. **Run each
 over the entire tree, not only the skill being edited** — every one found defects in
 skills nobody was touching. Each exits non-zero on findings and has `--selfcheck`.
 
@@ -463,8 +463,8 @@ Alignment Check", `freshen-patterns.md` §"4b. Scaffolding Decay Probes",
 - **`references/philosophy-patterns.md`** — The full **Philosophy Mode workflow** (P0–P4) plus Boris score interpretation, batch leaderboard, and anti-patterns. Load when running `philosophy`.
 - **`references/floor-patterns.md`** — The full **Floor Mode** reference: the capability-uplift vs encoded-preference classification, the KNOWS / UNKNOWN / CONFLICTS bucket table, the two limits, and how floor evidence moves the Dim 10 cap. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading a floor leaderboard.
 - **`references/blind-validation.md`** — The blind-scorer agent, the `skill-comparator` A/B pass that decides the run verdict, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent, or the end-of-run comparator.
-- **`references/fleet-checks.md`** — The six fleet checkers in detail: what each one
-  found when written, which of its hits are expected non-findings, and the three
+- **`references/fleet-checks.md`** — The seven fleet checkers in detail: what each one
+  found when written, which of its hits are expected non-findings, and the four
   sweep shapes already tried and abandoned. Load before running or proposing a sweep;
   the SKILL.md table is the index, this is how to read the output.
 - **`references/backlog-format.md`** — The `Open` / `Resolved this pass` section shapes, admission rules, and append-only history rule. Load when writing a target skill's `improvement-backlog.md` in Phase 6.
