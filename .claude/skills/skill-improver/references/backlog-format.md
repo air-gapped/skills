@@ -1,7 +1,7 @@
 # Backlog Format — What Goes in improvement-backlog.md
 
 The section shapes and admission rules for `<skill>/references/improvement-backlog.md`,
-written in Phase 6 of the improve loop (`SKILL.md` §"Phase 6: Persist the backlog").
+written in Phase 6 of the improve loop (`improve-loop.md` §"Phase 6: Persist the backlog").
 Load when writing or rewriting a target skill's backlog.
 
 ## Table of Contents

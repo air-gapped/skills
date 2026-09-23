@@ -1,7 +1,7 @@
 # Improvement Backlog — skill-improver
 
 Carries ceiling/judgment findings across skill-improver runs. Read in Phase 0;
-update in Phase 6. See SKILL.md §"Phase 6: Persist the backlog".
+update in Phase 6. See `improve-loop.md` §"Phase 6: Persist the backlog".
 
 ## Resolved — 2026-09-15 (tables that lose their last column)
 
@@ -215,6 +215,7 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
 
 ## Table of Contents
 - [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Resolved this pass — 2026-09-23 (improve, Opus 5.5)](#resolved-this-pass--2026-09-23-improve-opus-55)
 - [Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)](#resolved-this-pass--2026-09-01-freshen--improve-fable-51-release-day)
 - [Resolved — 2026-08-20b (improve + freshen)](#resolved-this-pass--2026-08-20b-improve--freshen-self-run)
 - [Discard guards — do not re-propose](#discard-guards--do-not-re-propose)
@@ -275,6 +276,50 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   dims band-internal) yet has demonstrated value: this exact trap caused a
   wrong `discard (noise)` at iter 4 of the 2026-07-18 self-run. Author
   judgment: accept as rubric-invisible operational hardening.
+
+  **Same class, two more discards 2026-09-23** — both real defects, both Δ0
+  and additive, so the loop's own rule reverted them. Blocked on the same
+  ruling (may a rubric-invisible hardening fix be kept at Δ0?):
+  - `floor` is a full SKILL.md section but absent from the `<mode>` grammar,
+    `argument-hint`, and the Floor Mode invocation line, so
+    `/skill-improver floor <skill>` has no defined dispatch. Diff: add `floor`
+    to both lists; invocation line reads "`floor <skill>` runs … · `floor
+    --all` runs …".
+  - §"The Skill Outranks Training Data" bullet 3 binds only *blind scorers*;
+    the 2026-08-20b freshen had a *probe* subagent report a version change the
+    primary changelog refuted. Diff: "This binds every subagent too — … no
+    subagent's 'wrong version' or 'changed in vX' finding is applied until the
+    loop confirms it in the primary source (changelog, code, release page)."
+
+## Resolved this pass — 2026-09-23 (improve, Opus 5.5)
+
+Baseline blind **87** → final blind **85** (both Sonnet 5, on snapshots;
+per-dim 9/9/9/9/9/7/9/9/9/8 → 9/7/9/9/9/7/9/9/9/8). The −2 is scorer noise
+and is all Dim 2: the baseline scorer gave a 479-line SKILL.md a 9 against the
+rubric's own 300–500 band of 5–6; the final applied the band to a shorter
+file. The baseline blind also scored Dim 8 at 9 while missing the three
+consistency defects fixed below. **Comparator: 3 of 3 for the final, high
+confidence, decisive** — bare `claude -p` with cwd = the blinded pair; final
+won from A twice, B once; `leakage_external: none` on all three; all three
+named the same fixes. Self 78 → 81. **Cap reached at 10** — 8 keeps, 2
+discards (not consecutive), so the ceiling is **not mapped**.
+
+| iter | Δ | status | change |
+|---|---|---|---|
+| 1 | +1 | keep | "six" checkers → seven (SKILL.md ×2, fleet-checks.md); "three" abandoned sweeps → four (heading, closing line, SKILL.md pointer) against a four-row table |
+| 2 | +1 | keep | improve-loop.md decision rule kept on +2 outright, contradicting SKILL.md's "+2 is undecided"; now +3 keep / +2 confirm-or-simplify / +1 noise |
+| 3 | 0 | keep (simplification) | Ages Mode column notes as directives, argument sentences cut |
+| 4 | 0 | keep (simplification) | Batch Mode "Native loops" keeps the live caps; v2.1.261/269/271 (verified against CHANGELOG + release dates) added to the version table, which had stopped at v2.1.257 |
+| 5 | 0 | keep (simplification) | Standalone Evaluation's restated Dim 10 cap deleted — DUPLICATE of step 2 + rubric gate |
+| 6 | 0 | **discard** | `floor` added to mode grammar/argument-hint — band-internal, additive (Open, above) |
+| 7 | +1 | keep (simplification) | loop summary said keep on +2 then qualified it a paragraph later; merged into the real thresholds |
+| 8 | 0 | keep (simplification) | `/doctor` note drops release history now in the version table |
+| 9 | 0 | **discard** | "binds blind scorers" → every subagent's version finding — band-internal, additive (Open, above) |
+| 10 | 0 | keep (simplification) | improve-loop.md "On stop" half-copied the comparator procedure without the evals/backlog removal, mtime equalisation, or gate — an unblinded verdict for anyone following it; now a pointer |
+
+After the final snapshot: `backlog-format.md:4` and this file's header pointed
+Phase 6 at `SKILL.md`; it lives in `improve-loop.md`. Fixed, unscored.
+SKILL.md 479 → 465 lines.
 
 ## Resolved this pass — 2026-09-01 (freshen + improve, Fable 5.1 release day)
 
