@@ -104,7 +104,7 @@ accuracy, and scaffolding that fights the model cost 7-11 accuracy points.
 Growth past the ceiling is not a tidiness question.
 
 **Decision rule:**
-- **Score improved by +2 or more** → KEEP. Log as `keep`. This is the new
+- **Score improved by +3 or more** → KEEP. Log as `keep`. This is the new
   baseline. On every keep: commit (per `SKILL.md` §Git as State Machine), or —
   when commits are not permitted — snapshot the kept file to the scratch
   directory.
@@ -115,6 +115,10 @@ Growth past the ceiling is not a tidiness question.
   delta-math total by 2 or more in either direction, the cold score wins.
   Most +5 jumps shrink to +3 under cold rescore — that is the finding, not a
   failure of the change. Log both totals in the iteration row.
+- **Score improved by exactly +2 (undecided)** → inside the scorer's measured
+  noise (`blind-validation.md` §Measured scorer behaviour). KEEP if the change
+  also simplifies (net lines removed), or if a second full cold score also
+  lands +2 or more; otherwise revert and log as `discard (noise)`.
 - **Score improved by exactly +1 (noise zone)** → a bare +1 is inside
   self-scoring noise — cold rescores routinely move a total by ±1–2, so the +1
   may be the scorer, not the change. If the change also simplifies (net lines
