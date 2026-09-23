@@ -65,16 +65,13 @@ If `<mode>` is omitted, default to `improve`. If `<target>` is omitted and mode 
 ## The Improvement Loop (default mode)
 
 Greedy hill climbing on the 10-dimension rubric: score the skill, apply ONE
-change, re-score cold, keep only what moves the metric (+2, or +1 with net
-simplification), revert everything else; stop at 90+ with no dim below 7, a
-mapped ceiling (5+ discards across 2+ categories), or the 10-iteration cap.
-
-**A +2 movement is inside the scorer's own noise** (measured 2026-08-20:
-re-scoring an unchanged skill moves the total by a median of 2-3 points and up
-to 6 on frontier models — `references/blind-validation.md` §Measured scorer
-behaviour). Treat a bare +2 as *undecided*, not as a keep: confirm it with a
-second cold score, or keep it only when the change also simplifies. Rankings
-between skills are stable under that noise; single-iteration totals are not.
+change, re-score cold, keep +3 or more; keep +2 or +1 only when a second cold
+score confirms it or the change also simplifies; revert everything else. Stop
+at 90+ with no dim below 7, a mapped ceiling (5+ discards across 2+
+categories), or the 10-iteration cap. **+2 is inside the scorer's own noise** —
+re-scoring an unchanged skill moves the total by a median of 2-3 points, up to
+6 (`references/blind-validation.md` §Measured scorer behaviour); rankings
+between skills are stable under that noise, single-iteration totals are not.
 
 The full phase workflow — **Phase 0 Setup → Phase 7 Land it**,
 including the cold-score discipline, the hypothesis criteria (simplicity,
