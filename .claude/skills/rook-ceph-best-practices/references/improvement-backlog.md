@@ -11,9 +11,6 @@
 - **Ceph Umbrella (v21).** Not released on 2026-09-23. Blocked on: the
   release. Then add it to the version-gate table and re-check the AES256K
   floor Rook documents (21.2.0).
-- **Trigger tuning against sibling Ceph skills.** Blocked on: ceph-performance
-  and ceph-s3 existing, so probe-trigger.py can measure boundary queries
-  (upgrade vs troubleshooting vs tuning) with all four descriptions loaded.
 
 ## Resolved this pass (2026-09-23)
 

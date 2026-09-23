@@ -653,7 +653,7 @@
       "name": "ceph-performance",
       "source": "./",
       "description": "Tune and benchmark a healthy Ceph cluster, with Rook-on-Kubernetes specifics: mClock profiles and the NVMe capacity-fallback trap (osd_mclock_max_capacity_iops), osd_memory_target from pod requests,…",
-      "version": "0.20260923.5",
+      "version": "0.20260923.6",
       "author": {
         "name": "Jörgen"
       },
@@ -667,7 +667,7 @@
       "name": "ceph-s3",
       "source": "./",
       "description": "Run Ceph RGW as an S3 endpoint under Rook (CephObjectStore, CephObjectStoreUser, ObjectBucketClaim, COSI, CephBucketTopic, multisite realms/zones)",
-      "version": "0.20260922.6",
+      "version": "0.20260923.7",
       "author": {
         "name": "Jörgen"
       },
@@ -681,7 +681,7 @@
       "name": "ceph-troubleshooting",
       "source": "./",
       "description": "Diagnose and recover an unhealthy Ceph cluster, with Rook-on-Kubernetes specifics: slow or stuck recovery/backfill under the mClock scheduler (why osd_max_backfills \"does nothing\"),…",
-      "version": "0.20260923.7",
+      "version": "0.20260923.8",
       "author": {
         "name": "Jörgen"
       },
@@ -778,8 +778,8 @@
     {
       "name": "rook-ceph-best-practices",
       "source": "./",
-      "description": "Operate, configure and upgrade Rook-managed Ceph on Kubernetes (ceph.rook.io CephCluster, CephBlockPool, CephFilesystem, CephObjectStore; rook-ceph and rook-ceph-cluster Helm charts; ceph-csi and…",
-      "version": "0.20260923.10",
+      "description": "Operate, configure and upgrade Rook-managed Ceph on Kubernetes (CephCluster CR; rook-ceph, rook-ceph-cluster and ceph-csi-drivers charts; ceph-csi-operator)",
+      "version": "0.20260923.11",
       "author": {
         "name": "Jörgen"
       },

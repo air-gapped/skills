@@ -18,9 +18,11 @@ when_to_use: >-
   "OSD OOMKilled", "osd_memory_target", "nearfull", "backfill_toofull",
   "OSD full", "mon quorum lost", "restore-quorum", "remove an OSD",
   "purge-osd", "kubectl rook-ceph", "RBD image has watchers", "PVC won't
-  attach after node died", "blocklist". NOT for planned Rook/Ceph upgrades
-  or the AES256K key rotation — that is rook-ceph-best-practices; tuning a
-  healthy cluster is ceph-performance; RGW/S3 behaviour is ceph-s3.
+  attach after node died", "blocklist". NOT for anything caused by an
+  upgrade or the AES256K key rotation — AUTH_INSECURE_* health codes,
+  toolbox handle_auth_bad_method, ServiceMonitor RBAC errors go to
+  rook-ceph-best-practices; sizing a healthy cluster is ceph-performance;
+  RGW/S3 including large omap in the index pool is ceph-s3.
 argument-hint: "[recovery|pg|osd|mon|csi] (optional focus area)"
 ---
 

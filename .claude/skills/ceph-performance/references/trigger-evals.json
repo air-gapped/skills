@@ -1,0 +1,194 @@
+[
+ {
+  "query": "we're on rook v1.19.6 and need to get to ceph 19.2.6 for the CVE, what order do I do the operator and the ceph image in",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "after bumping cephVersion.image to v20.2.4 ceph health says HEALTH_ERR AUTH_INSECURE_SERVICE_KEY_TYPE, what now",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "I'm editing rook_ceph/cluster.yaml, should I set spec.security.cephx.csi.keyType before or after the ceph bump? some nodes still run kernel 6.8",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "upgraded the rook-ceph helm chart to 1.20 and now csi-rbdplugin-ctrlplugin is 0/2 with serviceaccount not found",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "do I need to disable the rook mgr module before going to tentacle?",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "toolbox pod: every ceph command gives handle_auth_bad_method and errno 13 since the key rotation started",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "here's our CephCluster yaml diff for the upgrade, can you review it before I sync it in argocd: cephVersion image quay.io/ceph/ceph:v20 and security.cephx.daemon.keyGeneration 2",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "servicemonitors rook-ceph-exporter forbidden spam in rook operator logs, monitoring enabled in the cluster CR",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:rook-ceph-best-practices"
+ },
+ {
+  "query": "lost a node last night, backfill is crawling and raising osd_max_backfills doesn't seem to change anything",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "ceph health detail shows 3 pgs inconsistent after scrub, how do I repair safely",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "rook osd pods keep getting OOMKilled on our shared worker nodes",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "two of three mons died with their nodes, ceph commands hang, how do I get quorum back in rook",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "pasting ceph -s: HEALTH_WARN 12 pgs backfill_toofull, 1 nearfull osd(s). we added disks yesterday. what's going on",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "how do I permanently remove a dead OSD from a rook cluster and replace the disk",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "node died hard and the statefulset's rbd pvc won't attach on the new node, says image in use",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "getting BLUESTORE_SLOW_OP_ALERT on one osd but clients look fine",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-troubleshooting"
+ },
+ {
+  "query": "our nvme ceph cluster only does a fraction of the iops the drives are rated for, osd_mclock_max_capacity_iops_ssd shows 21500",
+  "should_trigger": true,
+  "bucket": "implicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "do we still need a separate cluster network for ceph with 25GbE, or is multus enough in rook",
+  "should_trigger": true,
+  "bucket": "explicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "should I turn on allow_ec_optimizations for our existing EC pool after the tentacle upgrade",
+  "should_trigger": true,
+  "bucket": "implicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "how many PGs per OSD should the autoscaler target, and should the big pool be bulk",
+  "should_trigger": true,
+  "bucket": "explicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "writing the CephCluster resources section: osd requests 4Gi limits 8Gi \u2014 what osd_memory_target will that give and is it enough for nvme",
+  "should_trigger": true,
+  "bucket": "contextual",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "is crimson production ready yet for a new nvme cluster",
+  "should_trigger": true,
+  "bucket": "implicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "does rbd_cache_policy matter for my ceph-csi pvc database volume",
+  "should_trigger": true,
+  "bucket": "implicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "best way to benchmark a ceph rbd pvc vs raw rados throughput",
+  "should_trigger": true,
+  "bucket": "explicit",
+  "source": "sibling:ceph-performance"
+ },
+ {
+  "query": "restic backups to our ceph s3 started failing with SignatureDoesNotMatch after upgrading to 19.2.6",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "multisite rgw: creating a bucket through the secondary zone returns 403 AccessDenied after the 20.2.4 upgrade",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "boto3 upgrade broke PutObject to radosgw with InvalidRequest checksum errors",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "large omap objects warning in the rgw buckets.index pool, one bucket has 12M objects",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "can we use CephObjectStoreAccount for IAM accounts in production on rook 1.20",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "s3 lifecycle rule on our ceph bucket isn't deleting anything, objects are days old",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "here's the ObjectBucketClaim and StorageClass for our app bucket, or should we move to COSI?",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ },
+ {
+  "query": "rclone re-uploads everything since we moved rgw to tentacle",
+  "should_trigger": false,
+  "bucket": "negative",
+  "source": "sibling:ceph-s3"
+ }
+]

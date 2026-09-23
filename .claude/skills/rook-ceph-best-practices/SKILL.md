@@ -1,9 +1,9 @@
 ---
 name: rook-ceph-best-practices
 description: >-
-  Operate, configure and upgrade Rook-managed Ceph on Kubernetes (ceph.rook.io
-  CephCluster, CephBlockPool, CephFilesystem, CephObjectStore; rook-ceph and
-  rook-ceph-cluster Helm charts; ceph-csi and ceph-csi-operator). Core
+  Operate, configure and upgrade Rook-managed Ceph on Kubernetes (CephCluster
+  CR; rook-ceph, rook-ceph-cluster and ceph-csi-drivers charts;
+  ceph-csi-operator). Core
   knowledge: the Rook -> Ceph -> key-rotation upgrade order and its version
   gates; the CVE-2025-30156 fix (new AES256K CephX key type, daemon key
   rotation, the six AUTH_INSECURE_* health codes, kernel 7.0 for CSI keys);
@@ -20,8 +20,10 @@ when_to_use: >-
   Symptoms: HEALTH_ERR after a Ceph point-release bump, CSI ctrlplugin 0/2
   after a Rook upgrade, toolbox `handle_auth_bad_method` / errno 13, mgr
   crash-looping on Tentacle, PVC mounts failing after key rotation.
-  NOT for generic Ceph triage (PG states, slow ops, OSD flapping) - that is
-  ceph-troubleshooting; tuning is ceph-performance; RGW/S3 behaviour is ceph-s3.
+  NOT for other Ceph questions just because the cluster runs under Rook:
+  PG states, slow ops, OSD OOM, stuck PVCs after node loss go to
+  ceph-troubleshooting; OSD memory sizing, Multus/network, EC pools go to
+  ceph-performance; RGW, S3 errors, CephObjectStoreAccount go to ceph-s3.
 argument-hint: "[upgrade|cephx|csi|monitoring] (optional focus area)"
 ---
 
