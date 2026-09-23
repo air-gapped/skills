@@ -326,6 +326,9 @@ Relevant Claude Code changes that affect skill authoring (chronological):
 | v2.1.248 | 2026-08-27 | Agent frontmatter `experimental.cacheTtl` (`"5m"` / `"1h"`) — per-agent prompt-cache TTL used when no subagent TTL setting is configured; a `1h` there is ignored while a subscription is on usage credits. Workflow tool description cut from ~5.7k to ~1k tokens, its script-writing reference moved into a bundled `workflow-authoring` skill. |
 | v2.1.251 | 2026-08-28 | `CLAUDE_CODE_SUBAGENT_MODEL` is now a **default, not an override** — an agent definition's `model:` and an explicit per-spawn model take precedence over it. |
 | v2.1.257 | 2026-09-01 | **Claude Fable 5.1 (`claude-fable-5-1`) ships — the default Fable model.** 1M context, $10/$50 per Mtok with **$0.25/Mtok cache reads** (0.025×, vs 0.1× on every other model), June 2026 cutoff, default effort `high`, all five effort levels; the platform models page moves Fable 5 to the legacy list and positions Fable 5.1 "for demanding reasoning and long-horizon agentic work" with Opus 5 the default "for most workloads". New `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` applies one model to **every** subagent, ignoring agent-definition and per-spawn overrides (see `blind-validation.md` §Model selection). The `fable` / `best` aliases keep resolving to Fable 5 in Claude-apps gateway sessions until the gateway supports 5.1. Latest release at the 2026-09-01 freshen. |
+| v2.1.261 | 2026-09-04 | `/skill-doctor` — shows which loaded skills go unused and what they cost in context. A pruning signal, not a quality measurement. |
+| v2.1.269 | 2026-09-11 | `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) raises the Workflow tool's per-run concurrent-agent limit — separate from the 20-subagent cap, which is unchanged. |
+| v2.1.271 | 2026-09-14 | Medium dynamic-workflow size guideline lowered from 15 to 10 agents (`workflowSizeGuideline`); Pro plans now default to **small**. |
 
 ### Key Settings
 
