@@ -27,6 +27,8 @@ GEN = (
 )
 
 # name -> release source. min = lowest tracked line (matches the compat/*.md min_tracked_version).
+# The floors are deliberate operator floors (RKE2 1.31 and the lines around it): do not raise
+# any `min` until the operator instructs it.
 COMPONENTS = {
     "rke2": {"gh": "rancher/rke2", "min": "1.31", "edition": "suse"},
     "rancher": {"gh": "rancher/rancher", "min": "2.11", "edition": "suse"},

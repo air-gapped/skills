@@ -7,7 +7,7 @@ Each entry carries:
 - **axis_type** — `single` (single k8s axis) or `multi` (two or more dimensions the operator picks independently)
 - **truth_source_type** — `published_matrix` | `release_notes` | `chart_metadata` | `enumerated_artifacts` (branches the lookup; see SKILL.md). `enumerated_artifacts` means no matrix and no usable release notes: versions are read out of the artifacts themselves, per branch.
 - **source** — canonical URL the freshen probe reads. Also indexed in `references/sources.md`.
-- **min_tracked_version** — registry floor. Default = current minor + prior 2 (~18 months). Operator overrides win; freshen leaves overridden rows alone.
+- **min_tracked_version** — registry floor. Default = current minor + prior 2 (~18 months). Operator overrides win; freshen leaves overridden rows alone. **Every floor below is currently a deliberate operator floor (RKE2 1.31 and the lines around it) — do not raise or trim any of them until the operator instructs it.**
 - **compat file** — `references/compat/<name>.md` carries per-version compatibility signal (sifted from matrix, docs, release notes, FAQ — whatever the truth_source_type dictates).
 
 Detection patterns (how a survey identifies a component as installed) live in `references/cluster-survey.md`.

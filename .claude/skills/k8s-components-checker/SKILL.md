@@ -165,7 +165,10 @@ These are non-negotiable; encode them into every verdict.
 3. **Min-tracked-version is overridable per component.** Default floor is
    "current + prior 2 minors" (~18 months). Operator overrides set per-component
    `min_tracked_version:` in `references/components.md`; `skill-improver
-   freshen` respects overrides and trims unset rows.
+   freshen` respects overrides and trims unset rows. **The current floors are
+   deliberate:** the registry starts at RKE2 1.31 and the component lines that run
+   alongside it. Never raise or trim any floor — in `components.md`, a compat file,
+   or `scripts/compat.py` — until the operator instructs it.
 4. **Apiserver metric is the truth source for deprecated APIs.** It reports
    what the cluster has actually served. Pluto's bundled rule set goes stale;
    use it for manifest-side static scans, never as primary. Kubent is dead
