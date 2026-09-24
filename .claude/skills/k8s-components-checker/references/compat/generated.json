@@ -1,0 +1,804 @@
+{
+ "components": {
+  "argo-cd": {
+   "lines": {
+    "3.0": {
+     "date": "2026-01-22",
+     "latest": "v3.0.23"
+    },
+    "3.1": {
+     "date": "2026-05-05",
+     "latest": "v3.1.16"
+    },
+    "3.2": {
+     "date": "2026-05-13",
+     "latest": "v3.2.12"
+    },
+    "3.3": {
+     "date": "2026-08-12",
+     "latest": "v3.3.14"
+    },
+    "3.4": {
+     "date": "2026-09-14",
+     "latest": "v3.4.9"
+    },
+    "3.5": {
+     "date": "2026-09-14",
+     "latest": "v3.5.3"
+    }
+   },
+   "upcoming": {
+    "3.6": "v3.6.0-rc1"
+   }
+  },
+  "ceph": {
+   "lines": {
+    "18": {
+     "date": null,
+     "latest": "v18.2.8"
+    },
+    "19": {
+     "date": null,
+     "latest": "v19.2.6"
+    },
+    "20": {
+     "date": null,
+     "latest": "v20.2.4"
+    }
+   },
+   "upcoming": {
+    "21": "v21.3.0"
+   }
+  },
+  "cert-manager": {
+   "lines": {
+    "1.17": {
+     "date": "2025-07-02",
+     "latest": "v1.17.4"
+    },
+    "1.18": {
+     "date": "2026-02-24",
+     "latest": "v1.18.6"
+    },
+    "1.19": {
+     "date": "2026-06-25",
+     "latest": "v1.19.6"
+    },
+    "1.20": {
+     "date": "2026-09-16",
+     "latest": "v1.20.4"
+    },
+    "1.21": {
+     "date": "2026-09-11",
+     "latest": "v1.21.2"
+    }
+   }
+  },
+  "cilium": {
+   "lines": {
+    "1.17": {
+     "date": "2026-07-16",
+     "latest": "v1.17.18"
+    },
+    "1.18": {
+     "date": "2026-09-16",
+     "latest": "v1.18.14"
+    },
+    "1.19": {
+     "date": "2026-09-16",
+     "latest": "v1.19.8"
+    },
+    "1.20": {
+     "date": "2026-09-16",
+     "latest": "v1.20.2"
+    }
+   },
+   "upcoming": {
+    "1.21": "v1.21.0-pre.2"
+   }
+  },
+  "eck": {
+   "lines": {
+    "2.16": {
+     "date": "2025-01-21",
+     "latest": "v2.16.1"
+    },
+    "3.0": {
+     "date": "2025-04-15",
+     "latest": "v3.0.0"
+    },
+    "3.1": {
+     "date": "2025-07-30",
+     "latest": "v3.1.0"
+    },
+    "3.2": {
+     "date": "2025-10-30",
+     "latest": "v3.2.0"
+    },
+    "3.3": {
+     "date": "2026-04-01",
+     "latest": "v3.3.2"
+    },
+    "3.4": {
+     "date": "2026-06-22",
+     "latest": "v3.4.1"
+    },
+    "3.5": {
+     "date": "2026-08-04",
+     "latest": "v3.5.0"
+    }
+   }
+  },
+  "gitlab-chart": {
+   "lines": {
+    "10.0": {
+     "date": "2026-09-22",
+     "latest": "v10.0.9"
+    },
+    "10.1": {
+     "date": "2026-09-10",
+     "latest": "v10.1.8"
+    },
+    "10.2": {
+     "date": "2026-09-22",
+     "latest": "v10.2.7"
+    },
+    "10.3": {
+     "date": "2026-09-24",
+     "latest": "v10.3.4"
+    },
+    "10.4": {
+     "date": "2026-09-22",
+     "latest": "v10.4.1"
+    },
+    "8.11": {
+     "date": "2025-08-14",
+     "latest": "v8.11.8"
+    },
+    "9.0": {
+     "date": "2025-08-12",
+     "latest": "v9.0.6"
+    },
+    "9.1": {
+     "date": "2025-09-09",
+     "latest": "v9.1.6"
+    },
+    "9.10": {
+     "date": "2026-06-10",
+     "latest": "v9.10.8"
+    },
+    "9.11": {
+     "date": "2026-09-22",
+     "latest": "v9.11.13"
+    },
+    "9.2": {
+     "date": "2025-10-08",
+     "latest": "v9.2.8"
+    },
+    "9.3": {
+     "date": "2025-11-11",
+     "latest": "v9.3.6"
+    },
+    "9.4": {
+     "date": "2025-12-10",
+     "latest": "v9.4.6"
+    },
+    "9.5": {
+     "date": "2026-05-26",
+     "latest": "v9.5.7"
+    },
+    "9.6": {
+     "date": "2026-05-26",
+     "latest": "v9.6.8"
+    },
+    "9.7": {
+     "date": "2026-05-25",
+     "latest": "v9.7.7"
+    },
+    "9.8": {
+     "date": "2026-06-29",
+     "latest": "v9.8.12"
+    },
+    "9.9": {
+     "date": "2026-05-25",
+     "latest": "v9.9.9"
+    }
+   }
+  },
+  "harbor": {
+   "lines": {
+    "2.11": {
+     "date": "2024-11-19",
+     "latest": "v2.11.2"
+    },
+    "2.12": {
+     "date": "2025-05-23",
+     "latest": "v2.12.4"
+    },
+    "2.13": {
+     "date": "2026-03-10",
+     "latest": "v2.13.5"
+    },
+    "2.14": {
+     "date": "2026-05-11",
+     "latest": "v2.14.4"
+    },
+    "2.15": {
+     "date": "2026-07-02",
+     "latest": "v2.15.2"
+    }
+   }
+  },
+  "harvester": {
+   "lines": {
+    "1.5": {
+     "date": "2025-09-18",
+     "latest": "v1.5.2"
+    },
+    "1.6": {
+     "date": "2025-10-16",
+     "latest": "v1.6.1"
+    },
+    "1.7": {
+     "date": "2026-08-07",
+     "latest": "v1.7.3"
+    },
+    "1.8": {
+     "date": "2026-08-06",
+     "latest": "v1.8.2"
+    },
+    "1.9": {
+     "date": "2026-09-16",
+     "latest": "v1.9.0"
+    }
+   }
+  },
+  "keda": {
+   "lines": {
+    "2.17": {
+     "date": "2025-12-22",
+     "latest": "v2.17.3"
+    },
+    "2.18": {
+     "date": "2025-12-22",
+     "latest": "v2.18.3"
+    },
+    "2.19": {
+     "date": "2026-02-02",
+     "latest": "v2.19.0"
+    },
+    "2.20": {
+     "date": "2026-07-31",
+     "latest": "v2.20.2"
+    },
+    "2.21": {
+     "date": "2026-09-23",
+     "latest": "v2.21.0"
+    }
+   }
+  },
+  "kyverno": {
+   "lines": {
+    "1.16": {
+     "date": "2026-04-23",
+     "latest": "v1.16.4"
+    },
+    "1.17": {
+     "date": "2026-04-23",
+     "latest": "v1.17.2"
+    },
+    "1.18": {
+     "date": "2026-07-10",
+     "latest": "v1.18.2"
+    },
+    "1.19": {
+     "date": "2026-09-10",
+     "latest": "v1.19.1"
+    }
+   }
+  },
+  "mimir-chart": {
+   "lines": {
+    "5.7": {
+     "date": null,
+     "latest": "5.7.0"
+    },
+    "5.8": {
+     "date": null,
+     "latest": "5.8.0"
+    },
+    "6.0": {
+     "date": null,
+     "latest": "6.0.6"
+    },
+    "6.1": {
+     "date": null,
+     "latest": "6.1.0"
+    },
+    "6.2": {
+     "date": null,
+     "latest": "6.2.0"
+    }
+   },
+   "upcoming": {
+    "6.3": "6.3.0-weekly.413"
+   }
+  },
+  "nvidia-gpu-operator": {
+   "lines": {
+    "25.10": {
+     "date": "2025-12-04",
+     "latest": "v25.10.1"
+    },
+    "25.3": {
+     "date": "2025-09-19",
+     "latest": "v25.3.4"
+    },
+    "26.3": {
+     "date": "2026-06-25",
+     "latest": "v26.3.3"
+    },
+    "26.7": {
+     "date": "2026-09-23",
+     "latest": "v26.7.1"
+    }
+   }
+  },
+  "openebs-lvm-localpv": {
+   "lines": {
+    "1.10": {
+     "date": "2026-09-09",
+     "latest": "v1.10.1"
+    },
+    "1.5": {
+     "date": "2024-03-21",
+     "latest": "v1.5.0"
+    },
+    "1.6": {
+     "date": "2024-09-16",
+     "latest": "v1.6.1"
+    },
+    "1.7": {
+     "date": "2025-06-03",
+     "latest": "v1.7.0"
+    },
+    "1.8": {
+     "date": "2026-02-04",
+     "latest": "v1.8.1"
+    },
+    "1.9": {
+     "date": "2026-06-10",
+     "latest": "v1.9.1"
+    }
+   }
+  },
+  "rancher": {
+   "lines": {
+    "2.11": {
+     "date": "2025-06-25",
+     "latest": "v2.11.3",
+     "top_tag": "v2.11.18",
+     "unclassified": [
+      "v2.11.18"
+     ]
+    },
+    "2.12": {
+     "date": "2025-10-22",
+     "latest": "v2.12.3",
+     "top_tag": "v2.12.14",
+     "unclassified": [
+      "v2.12.14"
+     ]
+    },
+    "2.13": {
+     "date": "2026-02-25",
+     "latest": "v2.13.3",
+     "top_tag": "v2.13.10",
+     "unclassified": [
+      "v2.13.10"
+     ]
+    },
+    "2.14": {
+     "date": "2026-06-29",
+     "latest": "v2.14.3",
+     "top_tag": "v2.14.6",
+     "unclassified": [
+      "v2.14.6"
+     ]
+    },
+    "2.15": {
+     "date": "2026-09-23",
+     "latest": "v2.15.2"
+    }
+   }
+  },
+  "rke2": {
+   "lines": {
+    "1.31": {
+     "date": "2026-03-18",
+     "latest": "v1.31.14+rke2r2"
+    },
+    "1.32": {
+     "date": "2026-05-27",
+     "latest": "v1.32.13+rke2r2"
+    },
+    "1.33": {
+     "date": "2026-08-04",
+     "latest": "v1.33.13+rke2r2"
+    },
+    "1.34": {
+     "date": "2026-08-28",
+     "latest": "v1.34.11+rke2r1"
+    },
+    "1.35": {
+     "date": "2026-08-28",
+     "latest": "v1.35.8+rke2r1"
+    },
+    "1.36": {
+     "date": "2026-08-28",
+     "latest": "v1.36.4+rke2r1"
+    },
+    "1.37": {
+     "date": "2026-09-14",
+     "latest": "v1.37.0+rke2r1"
+    }
+   }
+  },
+  "rook": {
+   "lines": {
+    "1.17": {
+     "date": "2025-11-13",
+     "latest": "v1.17.9"
+    },
+    "1.18": {
+     "date": "2026-05-27",
+     "latest": "v1.18.11"
+    },
+    "1.19": {
+     "date": "2026-09-02",
+     "latest": "v1.19.11"
+    },
+    "1.20": {
+     "date": "2026-09-02",
+     "latest": "v1.20.7"
+    }
+   }
+  },
+  "tetragon": {
+   "lines": {
+    "1.5": {
+     "date": "2025-07-29",
+     "latest": "v1.5.0"
+    },
+    "1.6": {
+     "date": "2026-03-31",
+     "latest": "v1.6.1"
+    },
+    "1.7": {
+     "date": "2026-08-25",
+     "latest": "v1.7.1"
+    }
+   }
+  },
+  "traefik": {
+   "lines": {
+    "2.11": {
+     "date": "2026-09-04",
+     "latest": "v2.11.57"
+    },
+    "3.0": {
+     "date": "2024-07-02",
+     "latest": "v3.0.4"
+    },
+    "3.1": {
+     "date": "2024-10-28",
+     "latest": "v3.1.7"
+    },
+    "3.2": {
+     "date": "2025-01-07",
+     "latest": "v3.2.5"
+    },
+    "3.3": {
+     "date": "2025-05-05",
+     "latest": "v3.3.7"
+    },
+    "3.4": {
+     "date": "2025-07-23",
+     "latest": "v3.4.5"
+    },
+    "3.5": {
+     "date": "2025-11-07",
+     "latest": "v3.5.6"
+    },
+    "3.6": {
+     "date": "2026-07-31",
+     "latest": "v3.6.25"
+    },
+    "3.7": {
+     "date": "2026-09-04",
+     "latest": "v3.7.13"
+    }
+   }
+  },
+  "zalando-postgres-operator": {
+   "lines": {
+    "1.13": {
+     "date": "2024-08-22",
+     "latest": "v1.13.0"
+    },
+    "1.14": {
+     "date": "2024-12-23",
+     "latest": "v1.14.0"
+    },
+    "1.15": {
+     "date": "2025-12-18",
+     "latest": "v1.15.1"
+    },
+    "2.0": {
+     "date": "2026-08-20",
+     "latest": "v2.0.2"
+    }
+   }
+  }
+ },
+ "edges": {
+  "harvester_embeds": {
+   "1.5": {
+    "harvester": "v1.5.2",
+    "rancher": "v2.11.3",
+    "rke2": "v1.32.7+rke2r1"
+   },
+   "1.6": {
+    "harvester": "v1.6.1",
+    "rancher": "v2.12.2",
+    "rke2": "v1.33.5+rke2r1"
+   },
+   "1.7": {
+    "harvester": "v1.7.3",
+    "rancher": "v2.13.3",
+    "rke2": "v1.34.10+rke2r1"
+   },
+   "1.8": {
+    "harvester": "v1.8.2",
+    "rancher": "v2.14.3",
+    "rke2": "v1.35.7+rke2r1"
+   },
+   "1.9": {
+    "harvester": "v1.9.0",
+    "rancher": "v2.14.2",
+    "rke2": "v1.35.6+rke2r1"
+   }
+  },
+  "rancher_logging": {
+   "2.11": {
+    "kube-version": ">= 1.30.0-0 < 1.33.0-0",
+    "rancher-version": ">= 2.11.0-0 < 2.12.0-0",
+    "version": "106.0.8+up4.10.0-rancher.24"
+   },
+   "2.12": {
+    "kube-version": ">= 1.31.0-0 < 1.34.0-0",
+    "rancher-version": ">= 2.12.0-0 < 2.13.0-0",
+    "version": "107.0.6+up4.10.0-rancher.24"
+   },
+   "2.13": {
+    "kube-version": ">= 1.32.0-0 < 1.35.0-0",
+    "rancher-version": ">= 2.13.0-0 < 2.14.0-0",
+    "version": "108.0.5+up4.10.0-rancher.24"
+   },
+   "2.14": {
+    "kube-version": ">= 1.33.0-0 < 1.36.0-0",
+    "rancher-version": ">= 2.14.0-0 < 2.15.0-0",
+    "version": "109.0.1+up4.10.0-rancher.24"
+   },
+   "2.15": {
+    "kube-version": ">= 1.34.0-0 < 1.37.0-0",
+    "rancher-version": ">= 2.15.0-0 < 2.16.0-0",
+    "version": "110.0.0+up4.10.0-rancher.24"
+   }
+  },
+  "rancher_mgmt_k8s": {
+   "2.11": {
+    "kubeVersion": "< 1.33.0-0",
+    "rancher": "v2.11.3"
+   },
+   "2.12": {
+    "kubeVersion": "< 1.34.0-0",
+    "rancher": "v2.12.3"
+   },
+   "2.13": {
+    "kubeVersion": "< 1.35.0-0",
+    "rancher": "v2.13.3"
+   },
+   "2.14": {
+    "kubeVersion": "< 1.36.0-0",
+    "rancher": "v2.14.3"
+   },
+   "2.15": {
+    "kubeVersion": "< 1.37.0-0",
+    "rancher": "v2.15.2"
+   }
+  },
+  "rancher_provisions_rke2": {
+   "2.11": {
+    "rancher": "v2.11.3",
+    "rke2": {
+     "1.30": "v1.30.14+rke2r2",
+     "1.31": "v1.31.14+rke2r1",
+     "1.32": "v1.32.13+rke2r1"
+    }
+   },
+   "2.12": {
+    "rancher": "v2.12.3",
+    "rke2": {
+     "1.31": "v1.31.14+rke2r1",
+     "1.32": "v1.32.13+rke2r1",
+     "1.33": "v1.33.13+rke2r2"
+    }
+   },
+   "2.13": {
+    "rancher": "v2.13.3",
+    "rke2": {
+     "1.32": "v1.32.13+rke2r1",
+     "1.33": "v1.33.13+rke2r2",
+     "1.34": "v1.34.11+rke2r1"
+    }
+   },
+   "2.14": {
+    "rancher": "v2.14.3",
+    "rke2": {
+     "1.33": "v1.33.13+rke2r2",
+     "1.34": "v1.34.11+rke2r1",
+     "1.35": "v1.35.8+rke2r1"
+    }
+   },
+   "2.15": {
+    "rancher": "v2.15.2",
+    "rke2": {
+     "1.34": "v1.34.11+rke2r1",
+     "1.35": "v1.35.8+rke2r1",
+     "1.36": "v1.36.4+rke2r1"
+    }
+   }
+  },
+  "rke2_bundles": {
+   "1.34": {
+    "components": {
+     "Calico": "v3.32.1",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
+     "Cilium": "v1.19.6",
+     "Containerd": "v2.2.7-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.6.14-k3s1",
+     "Helm-controller": "v0.16.26",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.34.11",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.0",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.11",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3100",
+     "rancher-vsphere-cpi": "1.15.300",
+     "rancher-vsphere-csi": "3.7.2-rancher700",
+     "rke2-calico": "v3.32.100",
+     "rke2-calico-crd": "v3.32.100",
+     "rke2-canal": "v3.32.1-build2026082700",
+     "rke2-cilium": "1.19.601",
+     "rke2-coredns": "1.47.003",
+     "rke2-ingress-nginx": "4.15.109",
+     "rke2-metrics-server": "3.14.000",
+     "rke2-multus": "v4.3.008",
+     "rke2-snapshot-controller": "5.2.003",
+     "rke2-snapshot-controller-crd": "5.2.003",
+     "rke2-traefik": "40.1.010",
+     "rke2-traefik-crd": "40.1.010"
+    },
+    "rke2": "v1.34.11+rke2r1"
+   },
+   "1.35": {
+    "components": {
+     "Calico": "v3.32.1",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
+     "Cilium": "v1.19.6",
+     "Containerd": "v2.2.7-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.6.14-k3s1",
+     "Helm-controller": "v0.17.7",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.35.8",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.0",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.11",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3100",
+     "rancher-vsphere-cpi": "1.15.300",
+     "rancher-vsphere-csi": "3.7.2-rancher700",
+     "rke2-calico": "v3.32.100",
+     "rke2-calico-crd": "v3.32.100",
+     "rke2-canal": "v3.32.1-build2026082700",
+     "rke2-cilium": "1.19.601",
+     "rke2-coredns": "1.47.003",
+     "rke2-ingress-nginx": "4.15.109",
+     "rke2-metrics-server": "3.14.000",
+     "rke2-multus": "v4.3.008",
+     "rke2-snapshot-controller": "5.2.003",
+     "rke2-snapshot-controller-crd": "5.2.003",
+     "rke2-traefik": "40.1.010",
+     "rke2-traefik-crd": "40.1.010"
+    },
+    "rke2": "v1.35.8+rke2r1"
+   },
+   "1.36": {
+    "components": {
+     "Calico": "v3.32.1",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
+     "Cilium": "v1.19.6",
+     "Containerd": "v2.3.4-k3s1.36",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.6.14-k3s1",
+     "Helm-controller": "v0.17.7",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.36.4",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.0",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.11",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3100",
+     "rancher-vsphere-cpi": "1.15.300",
+     "rancher-vsphere-csi": "3.7.2-rancher700",
+     "rke2-calico": "v3.32.100",
+     "rke2-calico-crd": "v3.32.100",
+     "rke2-canal": "v3.32.1-build2026082700",
+     "rke2-cilium": "1.19.601",
+     "rke2-coredns": "1.47.003",
+     "rke2-ingress-nginx": "4.15.109",
+     "rke2-metrics-server": "3.14.000",
+     "rke2-multus": "v4.3.008",
+     "rke2-snapshot-controller": "5.2.003",
+     "rke2-snapshot-controller-crd": "5.2.003",
+     "rke2-traefik": "40.1.010",
+     "rke2-traefik-crd": "40.1.010"
+    },
+    "rke2": "v1.36.4+rke2r1"
+   },
+   "1.37": {
+    "components": {
+     "Calico": "v3.32.2",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.2",
+     "Cilium": "v1.20.1",
+     "Containerd": "v2.3.4-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.7.1-k3s1",
+     "Helm-controller": "v0.17.7",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.37.0",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.1",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.13",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3100",
+     "rancher-vsphere-cpi": "1.16.100",
+     "rancher-vsphere-csi": "3.7.3-rancher300",
+     "rke2-calico": "v3.32.200",
+     "rke2-calico-crd": "v3.32.200",
+     "rke2-canal": "v3.32.2-build2026090900",
+     "rke2-cilium": "1.20.103",
+     "rke2-coredns": "1.47.100",
+     "rke2-ingress-nginx": "4.15.109",
+     "rke2-metrics-server": "3.14.001",
+     "rke2-multus": "v4.3.101",
+     "rke2-snapshot-controller": "5.2.004",
+     "rke2-snapshot-controller-crd": "5.2.004",
+     "rke2-traefik": "41.2.003",
+     "rke2-traefik-crd": "41.2.003"
+    },
+    "rke2": "v1.37.0+rke2r1"
+   }
+  }
+ },
+ "generated_by": "scripts/compat.py sync — do not edit by hand",
+ "schema": 1
+}

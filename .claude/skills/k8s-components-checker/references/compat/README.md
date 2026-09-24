@@ -16,7 +16,9 @@ The `truth_source_type` field in `references/components.md` says where the
 matrix page says one thing and a recent release note contradicts it, the file
 calls out the discrepancy with both citations rather than silently picking one.
 
-These files are **read at use time** during a survey. They are **maintained at
+Release ceilings and the Rancher/RKE2/Harvester pairings that can be read mechanically live in
+`generated.json`, written by `scripts/compat.py sync` — never hand-edit it; see SKILL.md
+§ Machine-owned data. These files are **read at use time** during a survey. They are **maintained at
 freshen time** by `skill-improver freshen`.
 
 ## File shape
