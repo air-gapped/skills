@@ -176,7 +176,7 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
   - Packaged at 1.32.13+rke2r2: etcd v3.5.26-k3s1 (still on etcd 3.5 — the 3.6 jump first lands at 1.33.11; the 3.5.26 here already satisfies the ≥3.5.26 prereq for that jump), containerd v2.2.2-k3s1, runc v1.4.1, CoreDNS v1.14.2, Traefik v3.6.12, helm-controller v0.16.17.
   - CNI floor at 1.32.13+rke2r2: Cilium 1.19.1, Calico 3.31.4, Flannel 0.28.2, Multus 4.2.4.
 
-## 1.31 (latest community patch v1.31.14+rke2r1, 2025-11-20; upstream k8s 1.31 EOL Oct 2025)
+## 1.31 (latest community patch v1.31.14+rke2r1, 2025-11-20; upstream k8s 1.31 EOL 2025-11-11)
 
 - **k8s floor:** 1.31.
 - **Breaking:** upstream Kubernetes 1.31 reached EOL **2025-11-11** (corrected 2026-09-15; previously recorded as "October 2025") — no further community CVE backports at the k8s layer. A `+rke2r2` rebuild (2026-03-18) exists upstream but is labeled Prime-only; manually installable if needed. Treat 1.31 as a freeze-in-place tier regardless — new deploys SHOULD target 1.32+.
