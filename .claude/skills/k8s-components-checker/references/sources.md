@@ -122,11 +122,72 @@ to probe, not just what the answer is:
 - **A row can be stale on the day it is written.** KEDA v2.20.2 shipped ten days
   before the previous pass stamped v2.20.1.
 
+## 2026-09-24 — `scripts/compat.py` sources + release-note sifts
+
+Machine-read by `compat.py sync` (drift = `sync --check`; no per-row stamp — the committed
+`generated.json` is the record):
+
+- GitHub releases (every stable tag, bodies for SUSE edition): all `gh` rows in `compat.py` `COMPONENTS`
+- `git ls-remote --tags` — ceph/ceph, grafana/mimir (`mimir-distributed-*`)
+- https://gitlab.com/api/v4/projects/gitlab-org%2Fcharts%2Fgitlab/repository/tags — GitLab chart tags (`v*` only)
+- `rancher/rancher` `chart/Chart.yaml@<tag>` — Rancher management-cluster `kubeVersion`
+- https://raw.githubusercontent.com/rancher/kontainer-driver-metadata/release-v2.X/data/data.json — RKE2 lines each Rancher line provisions
+- https://raw.githubusercontent.com/rancher/charts/release-v2.X/index.yaml — rancher-logging gates
+- https://www.suse.com/suse-harvester/support-matrix/all-supported-versions/harvester-vX-Y-x/ — Harvester ↔ Rancher + Node Driver RKE2 (per-line pages; the index page lags)
+- cilium/cilium `Documentation/network/kubernetes/compatibility.rst@<tag>` · argoproj/argo-cd `docs/operator-manual/tested-kubernetes-versions.md@<tag>` · rook/rook `Documentation/Getting-Started/Prerequisites/prerequisites.md@<tag>`
+- kedacore/keda-docs `content/docs/<line>/operate/cluster.md@main` · cert-manager/website `content/docs/releases/README.md@master` · kyverno/website `src/constants/version.ts@main` · elastic/docs-content `deploy-manage/deploy/cloud-on-k8s.md@main`
+- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/<line>/platform-support.html — version-pinned GPU Operator window
+- GitLab chart `doc/installation/cloud/_index.md` + `doc/installation/version_mappings.md` at the newest chart tag
+
+Grounding for the 2026-09-24 compat/*.md sifts:
+
+**mimir**
+- https://github.com/grafana/mimir/releases/tag/mimir-3.2.1 — Go-CVE patch for Mimir 3.2.x, not yet chart-packaged (§ 6.2.0)
+- https://github.com/grafana/mimir/releases/tag/mimir-3.1.6 — Go/x-crypto/grpc CVE patch for Mimir 3.1.x, not yet chart-packaged (§ 6.1.0)
+**gitlab**
+- https://gitlab.com/gitlab-org/charts/gitlab/-/raw/v10.4.1/doc/installation/cloud/_index.md — k8s support table with minimum GitLab per k8s minor (path moved from cloud/index.md, which 404s)
+- https://gitlab.com/gitlab-org/charts/gitlab/-/raw/master/CHANGELOG.md — chart patch contents
+**keda**
+- https://keda.sh/docs/2.21/operate/cluster/ — KEDA 2.21 k8s window 1.34–1.36
+- https://keda.sh/docs/2.21/migration/#upgrading-from-keda-220-to-221 — 2.21 breaking-change migration
+- https://github.com/kedacore/keda/security/advisories/GHSA-637c-6jxx-4rwm — CVE-2026-77524 CRITICAL, <= 2.20.2, fixed only in 2.21
+**openebs**
+- https://github.com/openebs/lvm-localpv/releases/tag/v1.10.0 — LVM 1.10.0
+- https://github.com/openebs/lvm-localpv/releases/tag/v1.10.1 — LVM 1.10.1 + formatOptions hazard
+- https://github.com/openebs/openebs/releases/tag/v4.6.0 — umbrella 4.6.0 pins LVM 1.10.0
+- https://github.com/openebs/openebs/releases/tag/v4.6.1 — umbrella 4.6.1 pins LVM 1.10.1
+**eck**
+- https://github.com/elastic/cloud-on-k8s/releases/tag/v3.5.0 — ECK 3.5.0 release notes (deprecations, mTLS scope, Fleet token fix)
+- https://github.com/elastic/cloud-on-k8s/pull/9346 — 3.5.0 spec.resources shorthand is additive, no CRD migration
+**kyverno**
+- https://github.com/kyverno/kyverno/releases/tag/v1.19.0 — 1.19.0 changelog
+- https://github.com/kyverno/kyverno/releases/tag/v1.19.1 — 1.19.1 security cherry-picks (the only line with the 2026-09-10 GHSA fixes)
+- https://github.com/kyverno/kyverno/pull/16868 — kyverno-policies policyType default flip + legacy policy deprecation warning
+- https://github.com/kyverno/kyverno/issues/15435 — kyverno-json removal (alpha-only)
+**nvidia-gpu-operator**
+- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/platform-support.html — 26.7.x k8s 1.33–1.37, containerd 2.0–2.3 (version-pinned)
+- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/platform-support.html — 26.3.x k8s 1.32–1.36, containerd 1.7–2.3 (version-pinned)
+**rke2**
+- https://github.com/rancher/rke2/releases/tag/v1.37.0+rke2r1 — RKE2 1.37 GA notes (ingress-nginx correction, etcd 3.6→3.7, new charts)
+- https://github.com/rancher/rke2/releases/tag/v1.36.3+rke2r1 — first Traefik v40.x provider-key rename warning
+- https://endoflife.date/api/v1/products/kubernetes/ — k8s minor EOL dates
+**harvester**
+- https://github.com/harvester/harvester/releases/tag/v1.9.0 — 1.9.0 Component Versions + upgrade warnings (#11356, #11615)
+- https://docs.harvesterhci.io/v1.9/rancher/rancher-integration — points at the SUSE matrix
+**rancher / rancher-logging**
+- https://github.com/rancher/rancher/releases/tag/v2.15.2 — 2.15 community ceiling, #57050 fixed, CVE batch, known issue #57506
+- https://github.com/kube-logging/logging-operator/releases — upstream base (6.9.0), rancher-logging freeze gap
+**cert-manager**
+- https://cert-manager.io/docs/releases/ — k8s/OpenShift windows, EOL triggers, support policy
+**cilium**
+- https://docs.cilium.io/en/v1.20/network/kubernetes/compatibility/ — Cilium 1.20 k8s window 1.33–1.36
+- https://docs.cilium.io/en/v1.20/operations/upgrade/ — Cilium 1.20 action-required notes
+
 ## RKE2 (anchor)
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-09-15 — v1.36.4+rke2r1 (2026-08-28) is `isLatest`; v1.35.8 and v1.34.11 published the SAME day on lower lines. v1.37 is in rc only.
+- Last verified: 2026-09-24 — **v1.37.0+rke2r1 GA 2026-09-14** (now `isLatest`); community ceilings per line in `compat/generated.json`. v1.31.14+rke2r2 and v1.32.13+rke2r2 are Prime-only (body: "is a Prime-only release").
 
 ## Rancher
 
@@ -140,7 +201,7 @@ to probe, not just what the answer is:
 - URL: https://github.com/harvester/harvester/wiki
 - Secondary URL: https://github.com/harvester/harvester/releases
 - Probe: WebFetch the per-version compatibility wiki page; filter to community columns.
-- Last verified: 2026-09-15 — v1.8.2 (2026-08-06) is `isLatest` — **v1.7.3 (2026-08-07) is one day newer and is NOT the ceiling.** Sorting this list by date picks the wrong answer. v1.9.0 is rc only.
+- Last verified: 2026-09-15 — v1.8.2 (2026-08-06) is `isLatest` — **v1.7.3 (2026-08-07) is one day newer and is NOT the ceiling.** Sorting this list by date picks the wrong answer. **v1.9.0 GA 2026-09-16** (checked 2026-09-24).
 
 ## Cilium
 

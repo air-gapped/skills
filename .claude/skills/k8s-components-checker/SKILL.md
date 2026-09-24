@@ -64,7 +64,7 @@ must not — record what's actually running where.
 | Which deprecated-API tools to trust and how | `references/tooling.md` |
 | Verify a version exists / find the real latest patch (online) | `references/version-verification.md` |
 | Source URLs + last-verified timestamps (read-only — `freshen` writes here) | `references/sources.md` |
-| Rancher ↔ RKE2 ↔ Harvester pairing verdict for a target stack (offline) | `python3 scripts/compat.py check --rancher 2.15 --mgmt-k8s 1.36 --downstream-rke2 1.37 --harvester 1.9` — § Machine-owned data |
+| Pairing + k8s-window verdict for a target stack (offline) | `python3 scripts/compat.py check --rancher 2.15 --mgmt-k8s 1.36 --downstream-rke2 1.37 --harvester 1.9 --with cilium=1.20 --with keda=2.21` — § Machine-owned data |
 | Is anything upstream newer than the registry? (online) | `python3 scripts/compat.py sync --check` — § Machine-owned data |
 
 ## Survey workflow
@@ -244,20 +244,25 @@ edit it by hand; regenerate it.
 
 | Key | Source read by `sync` |
 |---|---|
-| `components.<c>.lines` | Every stable release, newest patch per line. Rancher: community edition only; `top_tag` = newer Prime patch, `unclassified` = empty release body (edition unknown — never count it as community). `upcoming` = unreleased lines above the newest GA. |
+| `components.<c>.lines` | Every stable release, newest patch per line. Rancher and RKE2: community edition only; `top_tag` = newer Prime patch, `unclassified` = empty release body (edition unknown — never count it as community). `upcoming` = unreleased lines above the newest GA. |
 | `edges.rancher_mgmt_k8s` | `kubeVersion` in `chart/Chart.yaml` at the Rancher tag — the k8s the Rancher management cluster may run. |
 | `edges.rancher_provisions_rke2` | KDM `data.json` on `release-v2.X` — RKE2 versions that Rancher line can provision (min/max channel server version). |
 | `edges.rancher_logging` | `catalog.cattle.io/kube-version` + `rancher-version` annotations in `rancher/charts` `index.yaml`. |
 | `edges.rke2_bundles` | Component tables in the RKE2 release body (k8s, etcd, containerd, CNIs, ingress, charts). |
-| `edges.harvester_embeds` | `scripts/version-rke2` / `version-rancher` on the harvester-installer `v1.X` branch as of the release date. |
+| `edges.harvester_embeds` | "Component Versions" table in the Harvester release body (embedded RKE2, Rancher, KubeVirt, Longhorn). |
+| `edges.harvester_rancher` | SUSE per-line support matrix `…/harvester-vX-Y-x/` — the Rancher line that manages each Harvester line and the RKE2 versions its Node Driver provisions. The `all-supported-versions/` index lags the per-line pages. |
+| `edges.gitlab_k8s` | GitLab chart `doc/installation/cloud/_index.md` at the newest chart tag: status + minimum GitLab per k8s minor; chart→GitLab from `version_mappings.md`. |
+| `edges.k8s_windows.<c>.<line>` | Vendor k8s window, `[min, max]`: Cilium `compatibility.rst`, Argo CD `tested-kubernetes-versions.md`, Rook `prerequisites.md` (each at the line's tag); KEDA `keda-docs`, cert-manager `website` releases table, Kyverno `website` `version.ts`, ECK `docs-content` applies-blocks; NVIDIA version-pinned `platform-support.html`. `k8s: null` = not machine-readable for that line — the prose owns it. |
 
 - **Use time (offline):** `check` prints `OK`/`BLOCK`/`WARN`/`INFO` per pairing and exits 1
-  on any `BLOCK`. Cite its lines in the verdict. For facts it holds, it outranks the prose;
-  the prose owns breaking changes, upgrade order and vendor matrix pages.
+  on any `BLOCK`. `--with <component>=<line>` (repeatable) tests that line's k8s window against
+  `--k8s` (default `--downstream-rke2`). Cite its lines in the verdict. For facts it holds, it
+  outranks the prose; the prose owns breaking changes, upgrade order and CRD migrations.
 - **Freshen (online):** run `sync --check` first. Each drift line is a work item: update the
   matching `compat/<c>.md` section, then run `sync` and commit `generated.json` with the prose.
-- `check` does not evaluate external-Rancher ↔ Harvester support, or the k8s windows of
-  components whose truth is a vendor matrix page — read `compat/<c>.md` for those.
+- A `WARN … no machine-read k8s window` line means read `compat/<c>.md` for that line;
+  never treat it as supported. Traefik, Harbor, Tetragon, Zalando, OpenEBS, Mimir and Ceph
+  windows live only in the prose.
 - `python3 scripts/compat.py selfcheck` runs the parser assertions; run it after editing the script.
 
 ## References
@@ -266,7 +271,7 @@ edit it by hand; regenerate it.
 - `references/cluster-survey.md` — the canonical command set: kubectl/helm/pluto/apiserver-metric. Detection patterns for mapping running workloads onto registry entries.
 - `references/tooling.md` — apiserver `apiserver_requested_deprecated_apis` metric (primary), pluto (static manifest scan), kubent dead.
 - `references/compat/README.md` — file-format spec for per-component compat files.
-- `references/compat/generated.json` + `scripts/compat.py` — machine-owned release ceilings and Rancher/RKE2/Harvester pairings; § Machine-owned data.
+- `references/compat/generated.json` + `scripts/compat.py` — machine-owned release ceilings, Rancher/RKE2/Harvester pairings and vendor k8s windows; § Machine-owned data.
 - `references/compat/<comp>.md` — one per component. The load-bearing per-version compatibility signal. Air-gap-complete.
 - `references/version-verification.md` — anti-fabrication protocol (House Rule #8): how to ground every cited version against real releases via `gh` (the anti-confirmation method + component→repo map). Read whenever the workstation is online.
 - `references/sources.md` — URL index with `Last verified:` timestamps. Maintained by `skill-improver freshen`; read at use time only to surface staleness in the verdict if a row is past 90 days.

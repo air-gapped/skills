@@ -6,7 +6,7 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
-- **Last sifted:** 2026-09-15
+- **Last sifted:** 2026-09-24
 - **CORRECTION — the probe method was broken and the inferences it produced were wrong.** This file recorded that `support/matrix` "does NOT cover ECK — verified empty", and so fell back to probing per-minor guide pages and *inferring* windows from which ones 404. Both halves failed. The matrix does cover ECK (above). And the 404 rule no longer discriminates: probed today, **2.14, 3.1, 3.3, 3.4 and 3.5 all 404 while 2.16 and 3.0 still serve** — it is not an old-vs-new split, so a 404 carries no information at all.
 - **Four inferred values were wrong**, now replaced with published ones: 3.2.x k8s **1.30–1.34** (was inferred 1.29–1.34) and OpenShift **4.15–4.20** (was 4.14–4.19); 3.4.x k8s **1.31–1.36** (was 1.31–1.35) and OpenShift **4.16–4.22** (was 4.16–4.20). The 3.0.0 release date was also wrong: **2025-04-15**, not 2025-04-22. Unlike a stale number, a wrong inference never ages into correctness — it had to be read off the source to be caught.
 - **Published matrix, CSV dated 2026-08-04** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
@@ -20,15 +20,7 @@
   | 3.3.x | 2026-02-03 | 1.31–1.35 | 4.16–4.20 |
   | 3.4.x | 2026-05-05 | **1.31–1.36** | **4.16–4.22** |
   | 3.5.x | 2026-07-28 | 1.31–1.36 | 4.16–4.22 |
-- **Last release-verified (gh):** 2026-09-15 — **3.5.0 shipped 2026-08-04**, one
-  minor above the newest section below (3.4.0 / latest patch 3.4.1). Its k8s,
-  OpenShift, Helm and Stack ranges are **not recorded here** — the support
-  matrix was not re-read. Treat a 3.5 deployment as **unverified, not
-  unsupported**, and sift before issuing a verdict on it. Recorded rather than
-  guessed because this file's own header notes that per-minor rows are
-  reconstructed and some floors are already inferred; adding an invented 3.5
-  row would not be distinguishable from the grounded ones.
-- **Last release-verified:** 2026-07-21
+- **Last release-verified:** 2026-09-24 — 3.5.0 confirmed via `gh api repos/elastic/cloud-on-k8s/releases/tags/v3.5.0` (published 2026-08-04, matches `generated.json`); ranges and breaking-change signal now sifted into `## 3.5.0` below.
 
 Notes on sources:
 
@@ -36,6 +28,29 @@ Notes on sources:
 - The k8s/OpenShift/Helm floors for **3.1, 3.0, and 2.16 are matrix-grounded** off the still-reachable per-version pages: 2.16 / 3.0 versioned `…/cloud-on-k8s/<ver>/k8s-supported.html` resolve directly, and the *current* page still tabulates a per-minor row for 3.1/3.2 (3.1's Stack column is collapsed there, so 3.1's Stack range is carried from the 3.2 row — same pre-3.3 shape). Only the 3.2.0 floors remain inferred (its versioned page 404s). The 3.1 versioned URL also 404s but its row survives on the current page.
 - The Helm `Chart.yaml` `kubeVersion` is permissive (`>=1.21.0-0`) across all 3.x minors — **do not trust it**, it admits k8s minors the docs page excludes. Use the docs page.
 - ~~`support/matrix` is Stack-only and does not surface ECK at all~~ — **false, retracted 2026-09-15.** See the corrected primary-source note above; it has carried the full ECK history throughout.
+
+## 3.5.0 — 2026-08-04
+
+- **k8s floor:** 1.31 – 1.36 (same as 3.4.x — no window change; confirmed both on the matrix CSV row and the docs page's "3.4+" k8s tab, which now also covers 3.5)
+- **OpenShift floor:** 4.16 – 4.22 (same as 3.4.x)
+- **Helm floor:** 3.2.0+
+- **Elastic Stack range:** same as 3.3.0+ (current docs page's "3.3+" Stack tab covers 3.3/3.4/3.5 identically):
+  - Elasticsearch / Kibana / APM Server: 8.x, 9.x
+  - Beats / Elastic Agent (Fleet + standalone) / Elastic Maps Server: 8.x, 9.x
+  - Logstash: 8.12+, 9.x
+  - Enterprise Search: 8.x only (no 9.x — EOL'd at 9.0)
+- **Breaking:** none. `eck.k8s.elastic.co/managed: "false"` annotation is **deprecated** (still functional) in favor of the new `eck.k8s.elastic.co/pause-orchestration` annotation, which — unlike `managed: false` — keeps cert rotation, secret/user management and health monitoring running during the pause instead of stopping all reconciliation.
+- **CRD migrations:** none required. New optional `spec.resources` shorthand (top-level; `spec.nodeSets[].resources` for Elasticsearch) added to all 8 pod-owning CRDs (#9346) as a flattened alternative to `podTemplate.spec.containers[name=<main>].resources`. Additive and opt-in — existing manifests are unaffected, and an older (pre-3.5) operator silently ignores the field on rollback.
+- **Upgrade ordering:** standard rule applies (operator before k8s bump, see Cross-cutting notes below); no new ordering constraint introduced.
+- **Deprecations:** `eck.k8s.elastic.co/managed: "false"` annotation (superseded by `pause-orchestration`, not yet removed).
+- **Cross-component / notable:**
+  - Mutual TLS now covers every Stack component talking to Elasticsearch — APM Server, Beats, Enterprise Search, Elastic Maps Server, Logstash, Elastic Agent (standalone), Fleet Server — all auto-receive ECK-managed client certs. Fleet Server can additionally require client certs from connecting Agents (**Enterprise** feature); this path is version-gated to Fleet Server/Agent **≥ 8.13.0** (#9598) — older Agents fail mTLS enrollment when it's enabled.
+  - Dynamic namespaces: label-selector-based (`namespaceSelector`) namespace scoping as an alternative to the static managed-namespace list, applied live with no operator restart. **Enterprise feature.**
+  - Hot-reload of `spec.secureSettings` without pod restarts — opt-in via `eck.k8s.elastic.co/file-based-secure-settings: "true"` annotation, requires **Elasticsearch 9.5+**; older Elasticsearch still needs the rolling-restart path.
+  - Security-relevant fix: `FLEET_SERVER_SERVICE_TOKEN` moved from a plaintext pod env var to a Secret (#9626) — clusters running Fleet Server should bump to pick this up.
+  - Operator switched to Go native FIPS with a static binary (#9538), building on the FIPS wiring started in 3.3.2.
+  - Reduced operator memory footprint: controller-runtime cache auto-scoped to ECK-labelled core workload resources; new opt-in `--restrict-watched-resources` flag further narrows Secrets/Services/ConfigMaps caching to `eck.k8s.elastic.co/watched=true`-labelled objects.
+  - `controller-runtime` v0.24.1; k8s client-go v0.36.2 — consistent with the unchanged 1.36 ceiling.
 
 ## 3.4.0 — 2026-05-05  (latest patch **3.4.1**, 2026-06-22 — version-verified 2026-07-21, patch contents not sifted)
 
@@ -189,11 +204,11 @@ Notes on sources:
 
 ## Cross-cutting notes (apply to all tracked minors)
 
-- **License gating, CE clarity.** ECK operator binary is single-build; "Enterprise" features are runtime-gated by license CR. Operator runs fine without a license (Basic). Features that *require* Enterprise in 3.2–3.4: granular per-role PDBs (3.2+), `AutoOpsAgentPolicy` (Enterprise in 3.3.0, Basic from 3.3.1), Stack Config Policies composition (3.3+), client-certificate auth (3.4+). EE-as-CE pattern is **not applicable** to ECK — these are license-key gated, not binary-gated.
+- **License gating, CE clarity.** ECK operator binary is single-build; "Enterprise" features are runtime-gated by license CR. Operator runs fine without a license (Basic). Features that *require* Enterprise in 3.2–3.5: granular per-role PDBs (3.2+), `AutoOpsAgentPolicy` (Enterprise in 3.3.0, Basic from 3.3.1), Stack Config Policies composition (3.3+), client-certificate auth (3.4+), dynamic namespaces and Fleet Server client-cert enforcement (3.5+). EE-as-CE pattern is **not applicable** to ECK — these are license-key gated, not binary-gated.
 - **OpenShift caveat.** ECK runs as `runAsNonRoot` since long-ago. 3.4 sets `seccompProfile: RuntimeDefault` by default — verify OpenShift `SecurityContextConstraints` permit this (`restricted-v2` does, `restricted` v1 does not).
 - **k8s upgrade-ordering rule for ECK clusters.** Always upgrade the **ECK operator** to a release whose k8s support window includes the target k8s minor *before* bumping k8s. Then perform the k8s upgrade. Stack-version bumps are independent and rolling-restart safe; the master-upgrade-last change in 3.3.0 only matters during Stack-version upgrades, not k8s upgrades.
-- **CRD apiVersion stability — including across the 2.x → 3.x major.** No `elasticsearch.k8s.elastic.co` apiVersion bumps across 2.16 → 3.0 → 3.4. CRDs remain `v1` shape; the 2.x → 3.0 operator-major hop carries **no CRD conversion step**. Webhooks moved to controller-runtime `Validator` in 3.4 but the served apiVersion is unchanged.
-- **Fleet / Agent lifecycle.** ECK manages Agent CR lifecycle (Fleet-managed and standalone) across the whole 2.16–3.4 window. The Fleet config gating change in 3.2 (#8869) confines advanced Fleet config logic to Agent v8.13+ — running older Agents under a 3.2+ operator silently ignores some Fleet config fields.
+- **CRD apiVersion stability — including across the 2.x → 3.x major.** No `elasticsearch.k8s.elastic.co` apiVersion bumps across 2.16 → 3.0 → 3.5. CRDs remain `v1` shape; the 2.x → 3.0 operator-major hop carries **no CRD conversion step**. Webhooks moved to controller-runtime `Validator` in 3.4 but the served apiVersion is unchanged; 3.5's new `resources` shorthand field (all 8 pod-owning CRDs) is likewise additive, not an apiVersion bump.
+- **Fleet / Agent lifecycle.** ECK manages Agent CR lifecycle (Fleet-managed and standalone) across the whole 2.16–3.5 window. The Fleet config gating change in 3.2 (#8869) confines advanced Fleet config logic to Agent v8.13+ — running older Agents under a 3.2+ operator silently ignores some Fleet config fields. 3.5's Fleet Server→Agent mTLS enrollment (when enabled) is gated to the same floor (Fleet Server/Agent ≥ 8.13.0, #9598).
 
 ### Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17? (operator's question)
 
@@ -201,9 +216,9 @@ All three are **8.x**, so the 7.17-drop at ECK 3.3.0 does **not** affect any of 
 
 | Elasticsearch | GA | ECK minors that document support | ES EOL status (Elastic policy, below) |
 |---|---|---|---|
-| **8.8.x** | 2023-05-23 | ECK 2.16.1 → 3.4 (every tracked minor; 8.x is in-window throughout) | **EOL** — superseded by 8.9 (mid-2023); out of maintenance since ~late 2023. Long past support. |
-| **8.14.x** | 2024-06 (8.14.0) | ECK 2.16.1 → 3.4 (every tracked minor) | **EOL** — superseded by 8.15 (Aug 2024); out of maintenance since late 2024. |
-| **8.17.x** | 2024-12-11 | ECK 2.16.1 → 3.4 (every tracked minor) | **EOL 2025-08-05** (endoflife.date) — was the final 8.x before 8.18; maintenance ran to 8.19 GA. |
+| **8.8.x** | 2023-05-23 | ECK 2.16.1 → 3.5 (every tracked minor; 8.x is in-window throughout) | **EOL** — superseded by 8.9 (mid-2023); out of maintenance since ~late 2023. Long past support. |
+| **8.14.x** | 2024-06 (8.14.0) | ECK 2.16.1 → 3.5 (every tracked minor) | **EOL** — superseded by 8.15 (Aug 2024); out of maintenance since late 2024. |
+| **8.17.x** | 2024-12-11 | ECK 2.16.1 → 3.5 (every tracked minor) | **EOL 2025-08-05** (endoflife.date) — was the final 8.x before 8.18; maintenance ran to 8.19 GA. |
 
 **The policy, in Elastic's own words** ([elastic.co/support/eol](https://www.elastic.co/support/eol),
 read 2026-09-15): *"Elastic Stack version 8.17 will be maintained until the release date of
@@ -221,7 +236,7 @@ from the relevant period is the only route.
 
 Practical reading for an upgrade verdict:
 
-- **The ECK side is never the constraint for 8.8/8.14/8.17.** Any operator from 2.16.1 through 3.4 will reconcile them — ECK is forward-compatible down to its documented Stack floor, and that floor is well below 8.8 in every tracked minor (2.16 floors at 6.8/7.1; 3.0–3.2 at 7.17; 3.3+ at 8.x). The **8.x floor at 3.3+** is the only place to watch, and 8.8/8.14/8.17 all clear it.
+- **The ECK side is never the constraint for 8.8/8.14/8.17.** Any operator from 2.16.1 through 3.5 will reconcile them — ECK is forward-compatible down to its documented Stack floor, and that floor is well below 8.8 in every tracked minor (2.16 floors at 6.8/7.1; 3.0–3.2 at 7.17; 3.3+ at 8.x). The **8.x floor at 3.3+** is the only place to watch, and 8.8/8.14/8.17 all clear it.
 - **The constraint is Stack-side EOL, not ECK.** All three ES minors are out of Elastic maintenance/support today (2026-06). Running them under a current operator works, but they receive no security patches — treat them as migration *sources*, not targets. ECK does not block reconciling an EOL Stack; it just manages whatever you declare.
 - **9.0 interplay (only if these are migration sources toward 9.x):** moving any of them to 9.0 requires the operator at **3.0+** and the cluster staged at **8.18** first (3.0 validates 9.0 upgrades only through 8.18, #8559). 8.8/8.14/8.17 cannot jump straight to 9.0 — land on 8.18 under a 3.0+ operator, then go to 9.x.
 

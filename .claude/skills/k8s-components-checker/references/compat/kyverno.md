@@ -5,29 +5,29 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.16
-- **Last sifted:** 2026-09-15
-- **SECURITY — this file tracked no advisories at all, and the gap is load-bearing.** Kyverno published **five advisories on 2026-09-10, every one fixed only in v1.19.1**, including **GHSA-5qq8-67g6-4h2w (CRITICAL): privilege escalation to cluster admin via Policy `apiCall` urlPath**, vulnerable `<1.19.1`. The others: GHSA-c5qq-7g2q-cpqp (HIGH, namespace-isolation bypass), GHSA-q825-p383-r9v5 (HIGH, SSRF-blocklist bypass), GHSA-5cjf-wwfg-pj4c (HIGH, ImageValidatingPolicy exception bypass), GHSA-59v6-2x73-wfg4 (HIGH, cross-namespace GlobalContextEntry read).
-  **Consequence for this registry: every Kyverno line it tracks below 1.19 — 1.16.x, 1.17.x, 1.18.x — is currently vulnerable to a CRITICAL cluster-admin escalation with no patch on its own line.** There is no backport; 1.19.1 is the only fixed release. A survey that reports those lines as merely "older" understates it.
+- **Last sifted:** 2026-09-24
+- **Last release-verified:** 2026-09-24
+- **SECURITY — this file tracked no advisories at all, and the gap is load-bearing.** Kyverno published **five advisories on 2026-09-10, every one fixed only in v1.19.1**, including **GHSA-5qq8-67g6-4h2w (CRITICAL): privilege escalation to cluster admin via Policy `apiCall` urlPath**, vulnerable `<1.19.1`. The others: GHSA-c5qq-7g2q-cpqp (HIGH, namespace-isolation bypass), GHSA-q825-p383-r9v5 (HIGH, SSRF-blocklist bypass), GHSA-5cjf-wwfg-pj4c (HIGH, ImageValidatingPolicy exception bypass), GHSA-59v6-2x73-wfg4 (HIGH, cross-namespace GlobalContextEntry read). Re-verified 2026-09-24 via `gh api repos/kyverno/kyverno/security-advisories`: all five still show `patched_versions: 1.19.1` and no other line.
+  **Per tracked line, whether a fix exists:** 1.16.x — no; 1.17.x — no; 1.18.x — no; **1.19.0 itself ships vulnerable** — only 1.19.1 (2026-09-10, same day) carries the fix, via a batch of `apiCall`/`globalContext` hardening cherry-picks onto `release-1.19` (one explicit: GHSA-5cjf-wwfg-pj4c fixed by PR #17307). There is no backport to any EOL line; 1.19.1 is the only fixed release. A survey that reports the pre-1.19.1 lines as merely "older" understates it.
   Earlier, already fixed at the ceilings recorded below but never mentioned here: GHSA-79gf-7frw-68m9 (CRITICAL, cross-namespace generation, fixed 1.18.2), and a cluster of HIGHs fixed in 1.17.2 / 1.16.4 including ServiceAccount-token forwarding via `apiCall`.
-- **Release ceilings re-read with `isLatest`:** 1.19.x **v1.19.1** (2026-09-10, isLatest) · 1.18.x v1.18.2 · 1.17.x v1.17.2 · **1.16.x v1.16.4** (2026-04-23 — the 1.16 section never recorded a patch ceiling).
-- **k8s window for 1.19 (gap closed): v1.33–v1.35**, unchanged from 1.18. Verified against the `kyverno/website` commit that shipped the row, not only the rendered page — a frozen per-release doc mirror still shows a stale v1.32–v1.35 for 1.18, so the repo history is the primary source here.
-- **Last release-verified (gh):** 2026-09-15 — **1.19 has shipped** (1.19.0
-  2026-08-20, 1.19.1 2026-09-10), which by the support rule below puts **1.18
-  EOL as of 2026-08-20**. The matrices were not re-read, so the per-minor k8s
-  ranges below are unchanged and 1.19's range is **not yet recorded** — sift
-  before issuing a 1.19 verdict.
+- **Release ceilings — generated.json (compat.py sync 2026-09-24):** 1.19.x **v1.19.1** · 1.18.x v1.18.2 · 1.17.x v1.17.2 · 1.16.x v1.16.4.
 
 Docs publish only the **current minor's** support window — historical floors recovered from git history of the install page (pre-Astro path `content/en/docs/installation/_index.md`, commit `bcd1f63`). The chart's `kubeVersion: ">=1.25.0-0"` is permissive and **not authoritative**; the docs matrix below is the contract. Helm `kyverno-policies` chart (Pod Security Standards) is versioned separately and not on the matrix — pin to the same minor as the main chart.
 
 Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EOL.
 
-**Status as of 2026-09-15 (release-verified, matrices not re-sifted): 1.19 is
-current; 1.18 went EOL on 2026-08-20 when 1.19.0 shipped**; 1.17 / 1.16 remain
-EOL. The previous line here read "1.18 supported (no 1.19 yet)" as of
-2026-07-21 — a **1.18 cluster that verdicted as supported then is EOL now**, and
-that flip is the whole reason this component's status is re-checked on release
-rather than on sift: the rule is mechanical, so a single release date moves it.
-1.19's own k8s range is not in the table below yet.
+**Status: 1.19 is current** (GA 2026-08-20, k8s v1.33–v1.35, matrix re-read 2026-09-24 at kyverno.io/docs/installation/releases/); **1.18 went EOL the same day** under the community-patch rule above; 1.17 / 1.16 remain EOL.
+
+## 1.19.0 (2026-08-20, latest patch **1.19.1** 2026-09-10)
+
+- **k8s floor:** 1.33 – 1.35 — unchanged from 1.18 (kyverno.io/docs/installation/releases/, "Kubernetes Versions Supported: v1.33 - v1.35", re-read 2026-09-24). Estimated EOL for the 1.19 line: 1.20's release (~Nov 2026, same page).
+- **Breaking:** none at the API/CRD level. Operationally breaking on Helm upgrade: the `kyverno-policies` chart's PSS `policyType` default flips from `ClusterPolicy` to `ValidatingPolicy` (#16868, #16867) — a default `helm upgrade` re-renders the 11 baseline / 17 restricted PSS policies under a **different Kind** (`policies.kyverno.io/ValidatingPolicy` instead of `kyverno.io/ClusterPolicy`); the old `ClusterPolicy` objects are not deleted automatically and must be cleaned up manually. Set `policyType: ClusterPolicy` to keep prior behavior (now prints a deprecation warning in `NOTES.txt`).
+- **CRD migrations:** none — same CRD set as 1.18.2 (compared both releases' asset lists via `gh api repos/kyverno/kyverno/releases/tags/<tag>`, 2026-09-24).
+- **Upgrade ordering:** unchanged from 1.18/1.17: `kyverno-crds` chart → `kyverno` chart → `kyverno-policies` chart.
+- **Deprecations:** the legacy `kyverno.io` policy types — `ClusterPolicy`, `Policy`, `ClusterCleanupPolicy`, `CleanupPolicy` — are now flagged for removal (#16865, #16866, part of #16302). The admission webhook returns a deprecation warning (`.response.warnings`) on every create/update of one of these kinds, naming the CEL replacement (`ValidatingPolicy`/`MutatingPolicy`/`GeneratingPolicy`/`ImageValidatingPolicy`) and linking https://kyverno.io/docs/guides/migration-to-cel/; the `kyverno` Helm chart prints the same warning in `NOTES.txt` when any legacy policy CRD is installed. No removal version is committed in the PR text ("ahead of their removal" — not pinned to 1.20) — treat as **deprecated, not yet removed**.
+- **Notable:**
+  - `kyverno-json` support dropped from the CLI and API (#16792, closes #15435) — it was alpha-only and never reached GA, so this only affects clusters whose `kyverno test` suites still use the kyverno-json assertion format; migrate those to CEL `ValidatingPolicy` tests.
+  - `fix: limit intermediate certs to mitigate CVE-2026-32280` (#15858) — bounds certificate-chain depth during image/cosign verification.
 
 ## 1.18.0 (2026-04-29, latest patch **1.18.2** 2026-07-10)
 
@@ -45,7 +45,7 @@ rather than on sift: the rule is mechanical, so a single release date moves it.
   - `/metrics` endpoint supports TLS (#14232).
   - CLI: `kyverno apply` / `kyverno test` extended to cleanup policies, HTTP/Envoy authz policies, mutateExisting MPOLs.
 
-## 1.17.0 (2026-02-02)
+## 1.17.0 (2026-02-02, latest patch **1.17.2** 2026-04-23)
 
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:** none at the API level. Note `release-1.17` is **EOL** as of 1.18 GA (2026-04-29) — community patches stopped at 1.17.2 (2026-04-23).
@@ -57,7 +57,7 @@ rather than on sift: the rule is mechanical, so a single release date moves it.
   - CEL libraries: `quantity`, `resource.Get`/`resource.List`, `semver`. `params` supported in VAP/MAP CLI mode.
   - Performance: lazy dynamic watcher hash updates, restmapper optimization, histogram min/max tracking disabled by default.
 
-## 1.16.0 (2025-11-10)
+## 1.16.0 (2025-11-10, latest patch **1.16.4** 2026-04-23)
 
 - **k8s floor:** 1.31 – 1.34
 - **Breaking:** **deprecated webhook removed** (#13273) — clusters that pinned to the old webhook path will fail health checks until upgraded.

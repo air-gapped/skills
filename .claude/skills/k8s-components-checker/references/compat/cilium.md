@@ -1,33 +1,15 @@
 # cilium — compat (sifted from published_matrix)
 
 - **Primary source:** https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
-- **Secondary sources:** https://github.com/cilium/cilium/releases, https://docs.cilium.io/en/v1.19/operations/upgrade/, https://docs.cilium.io/en/v1.18/operations/upgrade/, https://docs.cilium.io/en/v1.17/operations/upgrade/
+- **Secondary sources:** https://github.com/cilium/cilium/releases, https://docs.cilium.io/en/v1.20/operations/upgrade/, https://docs.cilium.io/en/v1.19/operations/upgrade/, https://docs.cilium.io/en/v1.18/operations/upgrade/, https://docs.cilium.io/en/v1.17/operations/upgrade/
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-09-15 — line ceilings re-enumerated with `isLatest` read explicitly: **1.20.1** (2026-08-18, isLatest), **1.19.7**, **1.18.13** (both 2026-08-18), **1.17.18** (2026-07-16, unchanged). v1.21.0-pre.2 exists (2026-09-09) but is not GA.
-- **k8s windows re-read today, all unchanged:** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — so the in-scope set is **1.20/1.19/1.18** and 1.17 is out, confirming this file's own earlier correction.
+- **Last sifted:** 2026-09-24 — added `## 1.20.0` (was header-note-only since GA). Latest patch per line re-enumerated: **1.20.2**, **1.19.8**, **1.18.14** (all 2026-09-16), **1.17.18** (2026-07-16, unchanged). The 1.20.1→1.20.2, 1.19.7→1.19.8, 1.18.13→1.18.14 hops are bugfix/CI-only — no compat-verdict change. `v1.21.0-pre.2` (2026-09-09) remains pre-release only, not GA.
+- **Last release-verified:** 2026-09-24
+- **k8s windows (re-read 2026-09-24 off the per-minor pages, all unchanged):** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — in-scope set is **1.20/1.19/1.18**; 1.17 is out-of-window but kept below (equals `min_tracked_version`).
 
-In-scope set **as sifted 2026-07-21**: current stable 1.19 + prior 2 (1.18, 1.17).
-1.16 ships patches through Jan 2026 but is out of the 18-month window. Latest
-patches as of sift: **1.19.6, 1.18.12, 1.17.18** (all 2026-07-16).
-
-> **Release-verified 2026-09-15 — the line below this one used to say "1.20 is
-> still pre-release only … do not treat it as available". That is now wrong.**
-> **`v1.20.0` GA'd 2026-07-29** — eight days after the sift — and `v1.20.1`
-> followed 2026-08-18. Two consequences, and the second is easy to miss:
-> the instruction not to deploy 1.20 must not be followed; and by this file's
-> own "current + prior 2" rule the in-scope set **shifts to 1.20 / 1.19 / 1.18,
-> dropping 1.17**. The per-minor sections below still describe the old set, and
-> **1.20 has no section at all** — its k8s range is not recorded here, so sift
-> before issuing a 1.20 verdict. A 1.17 verdict is now out-of-window rather than
-> supported.
->
-> This is the shape a pre-release note always ages into: it is a statement about
-> a date, written in the present tense. `v1.20.0-pre.4` was accurate on
-> 2026-07-03 and misleading eight days later.
-
-CRD schema versions per minor, **re-read 2026-09-15 off the per-minor pages rather than `/en/stable/`**: 1.17.x → 1.30.8 (unchanged all series), 1.18.x → **1.31.12** (bumped at v1.18.12, was 1.31.11), 1.19.x → **1.32.7** (bumped at v1.19.6, was 1.32.6), 1.20.x → **1.33.11**. **Cite the per-minor URL, not `/en/stable/`** — the `stable` alias follows whichever minor is current, so the same citation returns a different table over time; it currently resolves to 1.20 and shows only k8s 1.33–1.36. CNP/CCNP API stays `cilium.io/v2` across all three minors; the schema bump is in-place, no resource rename required.
+CRD schema versions per minor, unchanged since the 2026-09-15 sift (no bump in the 2026-09-16 patches): 1.17.x → 1.30.8, 1.18.x → **1.31.12**, 1.19.x → **1.32.7**, 1.20.x → **1.33.11**. **Cite the per-minor URL, not `/en/stable/`** — the `stable` alias follows whichever minor is current. CNP/CCNP API stays `cilium.io/v2` across all four minors.
 
 **Benign kernel-noise (kernel 6.17, cross-Cilium-version) — do not escalate.** On
 Linux **6.17** (e.g. after an RKE2/OS bump pulls 6.17.0-35-generic) the agent emits
@@ -40,9 +22,29 @@ kernel bump; ignore operationally. (Cross-ref: this is **not** Tetragon — see
 `compat/tetragon.md` § Kernel axis for why a Tetragon trigger of the same verifier
 path is masked.) Field-observed 2026-05-30.
 
+## 1.20.0
+
+- **k8s floor:** 1.33 – 1.36 (e2e-tested, per `docs.cilium.io/en/v1.20/network/kubernetes/compatibility/`). 1.20.0 release highlights confirm the dependency bump to Kubernetes v1.36.
+- **Breaking:**
+  - Envoy Go Extensions (proxylib) **removed** (deprecated since 1.18). Any `CiliumNetworkPolicy`/`CiliumClusterwideNetworkPolicy` with `.spec.ingress[].toPorts[].rules` / `.spec.egress[].toPorts[].rules` sub-fields `kafka`, `l7`, or `l7proto` must have those rules stripped **before** upgrading.
+  - Gateway API support now requires **Gateway API ≥ v1.6.1** (TLSRoute moves v1alpha2 → v1). Clusters using `TLSRoute` must install the v1.6.1 Experimental CRD bundle (still carries v1alpha2) and back up existing `TLSRoute` objects before upgrading Cilium — installing the v1.6 Standard CRD instead makes existing `TLSRoute` objects unreadable from etcd.
+  - Default CNI config version moves to **1.0.0** (was 0.3.1). Custom CNI configs should request the new version.
+  - `CiliumNetworkPolicy`/`CiliumClusterwideNetworkPolicy` with neither `spec` nor `specs` are now **rejected at admission** (CEL validation) instead of silently accepted; pre-existing empty policies are grandfathered.
+  - Mutual Authentication (Beta) is now **deprecated** (already off-by-default since 1.19) — plan migration to Ztunnel Transparent Encryption.
+- **CRD migrations:**
+  - `CiliumNodeConfig`: `cilium.io/v2alpha1` → `cilium.io/v2` — update manifests/tooling that still reference the old API version.
+  - MCS-API CRDs move to `v1beta1`; `v1alpha1` remains fully supported, migrate `ServiceExport` resources when convenient.
+- **Upgrade ordering:** strip Kafka/L7/`l7proto` CNP rules and confirm Gateway API ≥ v1.6.1 (with the TLSRoute Experimental CRD if in use) **before** rolling agents to 1.20.
+- **Deprecations:**
+  - BGP peer/route/route-policy listing via the local REST API and `cilium-dbg bgp` — use `cilium shell -- bgp/*` instead.
+  - Azure IPAM `status.azure.interfaces[].addresses[].subnet` and flat `status.azure.interfaces[].cidr` — mirrored for one release, then removed; read `status.azure.interfaces[].subnet` instead.
+- **Cross-component:** RKE2 1.37.0 bundles Cilium **v1.20.1** (chart `rke2-cilium 1.20.103`) — generated.json (compat.py sync 2026-09-24).
+- **Notable:** Gateway API bumped to v1.6.1 (from v1.4). GoBGP moves to v4.6.1. `cilium-cni` binary shrunk ~77 MB → ~16 MB. CRD schema version 1.33.11.
+
 ## 1.19.0
 
 - **k8s floor:** 1.32 – 1.35 (e2e-tested, per `docs.cilium.io/en/v1.19/network/kubernetes/compatibility/`). Discrepancy: 1.19.0 release notes claim "Cilium dependencies were updated to Kubernetes v1.35" — the lower bound shifted to 1.32 vs 1.18's 1.30, so a cluster on k8s 1.30/1.31 falls outside the tested set on a 1.18 → 1.19 bump.
+- **Cross-component:** RKE2 1.34–1.36 bundle Cilium **v1.19.6** (chart `rke2-cilium 1.19.601`) — generated.json (compat.py sync 2026-09-24).
 - **Breaking:**
   - `CiliumBGPPeeringPolicy` (v1 BGP API) **removed**. Must migrate to v2 BGP CRDs (`CiliumBGPClusterConfig` et al.) **before** the agent rolls.
   - DNS NetworkPolicy `**.` wildcard now actually matches multilevel subdomains (was treated as `*.`). Audit any `matchPattern: "**.example.com"` — semantics widened.

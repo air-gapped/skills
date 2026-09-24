@@ -5,18 +5,14 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.31
-- **Last sifted:** 2026-09-15 — per-line ceilings re-read with `isLatest`: **1.36 → v1.36.4+rke2r1** (isLatest), 1.35 → v1.35.8+rke2r1, 1.34 → v1.34.11+rke2r1 (all three published 2026-08-28), 1.33 → v1.33.13+rke2r2. **No new GA minor** — v1.37.0+rke2r1 exists but is still `isPrerelease`.
-- **Upstream k8s EOL per line, which this file did not carry** (dates from endoflife.date): 1.31 → 2025-11-11 · 1.32 → 2026-02-28 · 1.33 → 2026-06-28 — **all three already past**; **1.34 → 2026-10-27, which is 42 days from 2026-09-15** and the next one to fall; 1.35 → 2027-02-28; 1.36 → 2027-06-28. A line whose upstream k8s is EOL gets no further community CVE backports regardless of RKE2 patch activity.
-- **Last release-verified (gh):** 2026-09-15 — **no new minor**, so the in-scope
-  set and every k8s window below are unchanged. All four tracked minors have
-  newer patches than the headings state: **1.36 → `v1.36.4+rke2r1`**,
-  **1.35 → `v1.35.8+rke2r1`**, **1.34 → `v1.34.11+rke2r1`** (all 2026-08-28),
-  **1.33 → `v1.33.13+rke2r2`** (2026-08-04). Patch contents not sifted.
-- **Watch the `+rke2rN` suffix on that last one.** 1.33 did not move Kubernetes
-  patch at all — `v1.33.13+rke2r1` → `v1.33.13+rke2r2` is a **second RKE2 build
-  of the same k8s release**. A currency check that compares only the `1.33.13`
-  part reports the node as current when a newer build exists. Compare the whole
-  tag, suffix included.
+- **Last sifted:** 2026-09-24 — added `## 1.37` (GA 2026-09-14, no longer a prerelease); bumped 1.33–1.36 headings to generated.json's latest patches and sifted the intervening changes (Traefik v40.x provider-key rename lands across all four lines); corrected the 1.36 entry's "ingress-nginx removed in v1.37" claim — v1.37.0 still ships it.
+- **Last release-verified:** 2026-09-24 — every tag/date below confirmed via `gh api repos/rancher/rke2/releases` and `gh release view`, cross-checked against `generated.json` (compat.py sync 2026-09-24): **1.37 → `v1.37.0+rke2r1`** (2026-09-14, GA), **1.36 → `v1.36.4+rke2r1`**, **1.35 → `v1.35.8+rke2r1`**, **1.34 → `v1.34.11+rke2r1`** (all three 2026-08-28), **1.33 → `v1.33.13+rke2r2`** (2026-08-04). k8s EOL dates re-checked against endoflife.date the same day.
+- **Upstream k8s EOL per line** (endoflife.date): 1.31 → 2025-11-11 · 1.32 → 2026-02-28 · 1.33 → 2026-06-28 — all three already past; **1.34 → 2026-10-27, 33 days from 2026-09-24** and the next one to fall; 1.35 → 2027-02-28; 1.36 → 2027-06-28; 1.37 not yet listed (GA'd 2026-09-14). A line whose upstream k8s is EOL gets no further community CVE backports regardless of RKE2 patch activity.
+- **Watch the `+rke2rN` suffix.** A currency check that compares only the `X.Y.Z`
+  part misses a same-k8s-patch rebuild carrying real changes: `v1.33.13+rke2r1` →
+  `v1.33.13+rke2r2` left Kubernetes at 1.33.13 but bumped the Traefik chart to
+  v40.x (provider-name breaking change, see § 1.33). Compare the whole tag,
+  suffix included.
 
 Versions tagged `vX.Y.Z+rke2rN`. Compat verdict is k8s-minor-driven (`X.Y`).
 Each `## <version>` block below covers the **latest patch of one k8s minor**
@@ -60,48 +56,66 @@ node and this object"` (NodeRestriction node→pod graph not yet repopulated aft
 clusterrole … not found` (bootstrap roles re-applied on apiserver startup); `InvalidDiskCapacity:
 invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populates imagefs).
 
-## 1.36 (latest patch v1.36.2+rke2r1, 2026-06-25)
+## 1.37 (latest patch v1.37.0+rke2r1, 2026-09-14 — GA)
+
+- **k8s floor:** 1.37 (binds the cluster's k8s minor to 1.37).
+- **Breaking:**
+  - **`ingress-controller: ingress-nginx` (standalone) removed** (PR #11156): "Users can no longer select `ingress-controller: ingress-nginx`. Only `traefik, ingress-nginx` is still supported to allow a last chance for migration." Community clusters still on bare `ingress-nginx` must switch to the combined `traefik,ingress-nginx` value before upgrading to 1.37.
+    **Corrects the § 1.36 entry below:** despite 1.36's release notes warning ingress-nginx would be "completely removed in v1.37 for community users," v1.37.0 still packages `Ingress-Nginx v1.14.5-hardened2` and the `rke2-ingress-nginx` chart (4.15.109) — what 1.37 actually removed is the standalone controller-selection option, not the chart or image.
+  - **etcd minor jump 3.6 → 3.7 at v1.37.0** (`v3.6.14-k3s1` → `v3.7.1-k3s1`, PR #11147). Unlike the 3.5→3.6 jump in 1.33 (which landed several patches into that line), this one lands at 1.37.0 itself — every 1.36→1.37 upgrade crosses an etcd minor on the first hop. Apply the same staged, quorum-checked rollout as § 1.33's etcd jump until later 1.37 patches establish this line's own floor/rollback guidance.
+- **CRD migrations:** new `GatewayAPI` CRD chart bundled (gateway-api CRDs v1.6.1, PR #11136) — additive, no existing-CRD conversion. rke2-traefik chart steps 40.1.x → 41.2.003 (Traefik v3.7.13); `rke2-traefik-crd` bumps in lockstep via helm-controller.
+- **Upgrade ordering:** standard RKE2 in-place upgrade order (servers first, then agents). Confirm every etcd member is healthy before starting, given the etcd 3.6→3.7 jump above.
+- **Deprecations:** `ingress-controller: ingress-nginx` standalone value (see Breaking).
+- **Notable:**
+  - New `rke2-security-responder` chart bundled (PR #10935, #11142) — an added component, not a replacement for anything tracked here.
+  - Packaged: etcd v3.7.1-k3s1, containerd v2.3.4-k3s1, runc v1.4.3, CoreDNS v1.14.7, Traefik v3.7.13, helm-controller v0.17.7.
+  - CNI floor: Cilium v1.20.1 (up from 1.19.6), Calico v3.32.2, Flannel v0.28.9, Multus v4.3.1 (up from v4.3.0).
+
+## 1.36 (latest patch v1.36.4+rke2r1, 2026-08-28)
 
 - **k8s floor:** 1.36 (binds the cluster's k8s minor to 1.36).
 - **Breaking:**
   - **Default ingress controller flips from `ingress-nginx` to Traefik for new clusters** (PR #10037). Existing clusters upgrading from 1.35 keep their currently-installed default — no silent flip on upgrade. New installs that need ingress-nginx as default must set it explicitly.
   - **Airgapped image tarball reshuffle:** `rke2-images-core` now bundles Traefik instead of ingress-nginx (PR #10269). The standalone `rke2-images-traefik` tarball is **removed**. Airgapped operators continuing on ingress-nginx must additionally stage the `rke2-images-ingress-nginx` tarball — a 1.35→1.36 airgap upgrade without this step leaves the ingress-nginx pods unable to pull.
-- **CRD migrations:** rke2-traefik chart steps 37.4.x → 39.0.7 (Traefik v3.6.16); `rke2-traefik-crd` chart bumps in lockstep. CRDs auto-apply via helm-controller; manual `kubectl apply -f` of older Traefik CRDs is not needed and will conflict.
+  - **Traefik chart bumped to v40.x (landed by 1.36.3):** renames the ingress-nginx-migration provider key `kubernetesIngressNginx` → `kubernetesIngressNGINX` — values files or GitOps manifests still setting the old key silently stop taking effect.
+- **CRD migrations:** rke2-traefik chart steps 37.4.x → 40.1.010 (Traefik v3.7.11 at the latest patch); `rke2-traefik-crd` chart bumps in lockstep. CRDs auto-apply via helm-controller; manual `kubectl apply -f` of older Traefik CRDs is not needed and will conflict.
 - **Upgrade ordering:** standard RKE2 in-place upgrade order (servers first, then agents). No ordering against other RKE2 components beyond the airgap-tarball staging above.
 - **Deprecations:**
-  - **`ingress-nginx` chart frozen** — no further updates, **scheduled for complete removal in v1.37 (community)**. Treat 1.36 as the last minor where ingress-nginx is still shipped for community users.
+  - **`ingress-nginx` chart frozen** — no further chart updates. **Correction (2026-09-24):** the "scheduled for complete removal in v1.37 (community)" claim previously here did not happen — see § 1.37 Breaking; ingress-nginx is still shipped, only the standalone selection option was removed.
 - **Notable:**
   - New cloud provider flag: `--cloud-provider-name=ovirt` (PR #10315) bundles ovirt CSI on amd64 only (skipped on arm64 per #10341).
-  - Packaged: etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16, helm-controller v0.17.1.
-  - CNI floor: Cilium 1.19.3, Calico 3.32.0, Flannel 0.28.4, Multus 4.2.4.
+  - Packaged: etcd v3.6.14-k3s1, containerd v2.3.4-k3s1.36, runc v1.4.3, CoreDNS v1.14.7, Traefik v3.7.11, helm-controller v0.17.7.
+  - CNI floor: Cilium v1.19.6, Calico v3.32.1, Flannel v0.28.9, Multus v4.3.0.
 
-## 1.35 (latest patch v1.35.6+rke2r1, 2026-06-25)
+## 1.35 (latest patch v1.35.8+rke2r1, 2026-08-28)
 
 - **k8s floor:** 1.35.
-- **Breaking:** none at the RKE2 layer beyond upstream k8s 1.35 API churn.
+- **Breaking:**
+  - **Traefik chart bumped to v40.x (landed by 1.35.7):** renames the ingress-nginx-migration provider key `kubernetesIngressNginx` → `kubernetesIngressNGINX` — same break as § 1.36; values files or GitOps manifests still setting the old key silently stop taking effect.
 - **CRD migrations:** snapshot-controller chart steps 4.0.x → 4.2.x across 1.35 patches (CRD bump from `rke2-snapshot-controller-crd` 4.0.003 → 4.2.003). helm-controller applies in place; no manual conversion needed.
 - **Upgrade ordering:** servers before agents; no cross-RKE2-component ordering.
 - **Deprecations:** none new at the RKE2 layer in 1.35.
 - **Notable:**
   - kine bumped to v0.14.9 (PR #9405). Kine is only on the path for non-etcd datastores (SQLite/PostgreSQL/MySQL) — etcd clusters unaffected.
   - `FlannelBackend` config reverted back in (PR #9420) after a prior removal attempt — config-file consumers that referenced it remain valid in 1.35.
-  - Packaged: etcd v3.6.7-k3s1, containerd v2.1.5-k3s1 → v2.2.3-k3s1 across patches, CoreDNS v1.13.1 → v1.14.3, Traefik v3.6.4 → v3.6.16, helm-controller v0.16.17 → v0.17.1.
-  - CNI floor at 1.35.0: Cilium 1.18.4, Calico 3.31.2. Latest 1.35.5 ships Cilium 1.19.3, Calico 3.32.0.
+  - Packaged at the latest patch: etcd v3.6.14-k3s1, containerd v2.2.7-k3s1, runc v1.4.3, CoreDNS v1.14.7, Traefik v3.7.11, helm-controller v0.17.7.
+  - CNI floor at the latest patch: Cilium v1.19.6, Calico v3.32.1, Flannel v0.28.9, Multus v4.3.0.
 
-## 1.34 (latest patch v1.34.9+rke2r1, 2026-06-25)
+## 1.34 (latest patch v1.34.11+rke2r1, 2026-08-28)
 
 - **k8s floor:** 1.34.
 - **Breaking:**
   - **`--cloud-config` arg removed from kubelet** (PR #8927). Out-of-tree cloud providers that previously injected a `cloud-config` file via kubelet-arg drop the flag silently — re-route the config to the CCM (cloud-controller-manager) deployment instead. Affects on-prem providers with custom `cloud-config` (e.g. vSphere with non-default zones, custom Harvester wiring); managed-cloud paths unaffected.
+  - **Traefik chart bumped to v40.x (landed by 1.34.10):** renames the ingress-nginx-migration provider key `kubernetesIngressNginx` → `kubernetesIngressNGINX` — same break as § 1.36; values files or GitOps manifests still setting the old key silently stop taking effect.
 - **CRD migrations:** none at the RKE2 layer at 1.34.0; later 1.34 patches pull the same snapshot-controller CRD bump that lands in 1.35.
 - **Upgrade ordering:** servers before agents.
-- **Deprecations:** none new at the RKE2 layer in 1.34 (see 1.36 for ingress-nginx).
+- **Deprecations:** none new at the RKE2 layer in 1.34 (see 1.36/1.37 for ingress-nginx).
 - **Notable:**
   - **Benign helm-install CrashLoopBackOff during a MIXED control plane.** The 1.34.8 bundled charts `rke2-runtimeclasses` and `rke2-snapshot-controller-crd` pin `kubeVersion: >= v1.34.8` in `Chart.yaml`. While some masters are still 1.33, the helm-install Job hits the apiserver LB (`kubernetes.default`) and may land on a not-yet-upgraded 1.33 apiserver → `helm upgrade` fails the kubeVersion check (`chart requires kubeVersion: >= v1.34.8 which is incompatible with v1.33.x`) and the Job pod CrashLoopBackOffs. **Benign + self-healing:** the charts are already `deployed`, only the upgrade *retry* fails (zero functional impact — runtimeclasses + snapshot CRDs keep working); the next retry Completes once the **last** master reaches 1.34.8. A signal to finish the rollout, not to stop. (Field-validated 2026-05-31.)
-  - Packaged at 1.34.1: etcd v3.6.4-k3s3, containerd v2.1.4-k3s2, runc v1.3.1, CoreDNS v1.12.3, helm-controller v0.16.13. By 1.34.8 these advance to etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16.
-  - CNI floor at 1.34.1: Cilium 1.18.1, Calico 3.30.3. Latest 1.34.8 ships Cilium 1.19.3, Calico 3.32.0 (same as 1.35/1.36).
+  - Packaged at 1.34.1: etcd v3.6.4-k3s3, containerd v2.1.4-k3s2, runc v1.3.1, CoreDNS v1.12.3, helm-controller v0.16.13. At the latest patch: etcd v3.6.14-k3s1, containerd v2.2.7-k3s1, runc v1.4.3, CoreDNS v1.14.7, Traefik v3.7.11, helm-controller v0.16.26.
+  - CNI floor at 1.34.1: Cilium 1.18.1, Calico 3.30.3. Latest patch ships Cilium v1.19.6, Calico v3.32.1, Flannel v0.28.9, Multus v4.3.0 (same as 1.35/1.36).
 
-## 1.33 (latest patch v1.33.13+rke2r1, 2026-06-25)
+## 1.33 (latest patch v1.33.13+rke2r2, 2026-08-04)
 
 - **k8s floor:** 1.33.
 - **Breaking:**
@@ -112,7 +126,8 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
     targets a patch ≥ .11 crosses the etcd minor; targeting ≤ .10 does not (and
     defers the jump to a later hop). This is the single highest-risk item in the
     1.32 → 1.33 window — see Upgrade ordering.
-- **CRD migrations:** snapshot-controller chart steps 4.0.x → 4.2.x within the 1.33 series (CRD bump to `rke2-snapshot-controller-crd` 4.2.003 lands the `VolumeGroupSnapshot v1beta2` CRDs, PR #9905). helm-controller applies in place; consumers of the v1beta1 group-snapshot API must re-cut manifests against v1beta2. rke2-traefik chart steps from the 27.0.x series (Traefik v2) up to 39.0.7 (Traefik v3.6.16) across 1.33 patches — workloads pinned to v1 Middleware/IngressRoute CRDs need to be re-validated against Traefik v3.
+  - **Traefik chart bumped to v40.x (landed at the +rke2r2 rebuild, same 1.33.13 k8s patch):** renames the ingress-nginx-migration provider key `kubernetesIngressNginx` → `kubernetesIngressNGINX` — same break as § 1.36. This is the content behind the `+rke2r1` → `+rke2r2` rebuild flagged in the file header; `1.33.13` alone does not change.
+- **CRD migrations:** snapshot-controller chart steps 4.0.x → 4.2.x within the 1.33 series (CRD bump to `rke2-snapshot-controller-crd` 4.2.003 lands the `VolumeGroupSnapshot v1beta2` CRDs, PR #9905). helm-controller applies in place; consumers of the v1beta1 group-snapshot API must re-cut manifests against v1beta2. rke2-traefik chart steps from the 27.0.x series (Traefik v2) up to 40.1.009 (Traefik v3.7.8) across 1.33 patches — workloads pinned to v1 Middleware/IngressRoute CRDs need to be re-validated against Traefik v3, and the v40.x provider-key rename above.
 - **Upgrade ordering:**
   - Servers before agents.
   - **etcd 3.5 → 3.6 hard prereq:** every etcd member MUST be on **≥ 3.5.26**
@@ -127,7 +142,7 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
     the prior RKE2 (etcd 3.5.26) on a node or snapshot-restore; once **all**
     members are 3.6, binary rollback is unsafe (3.6 storage can't be read by 3.5)
     — snapshot-restore / `etcdctl downgrade` only.
-- **Deprecations:** none new at the RKE2 layer in 1.33 (see 1.36 for ingress-nginx).
+- **Deprecations:** none new at the RKE2 layer in 1.33 (see 1.36/1.37 for ingress-nginx).
 - **Notable:**
   - 1.33 is the last RKE2 minor that ships in lockstep across community and Prime channels before the 1.36 ingress-nginx/Traefik default flip — community users on 1.33 still get ingress-nginx as the shipped default.
   - **Benign restart-storm during a rolling master reboot (do not escalate).** When
@@ -145,8 +160,8 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
   - **Server-version display lag** in a partially-upgraded control plane — see
     `references/cluster-survey.md` Phase 1 (trust per-node `kubectl get nodes`,
     not `kubectl version`).
-  - Packaged at 1.33.12: etcd v3.6.7-k3s1, containerd v2.2.3-k3s1, runc v1.4.2, CoreDNS v1.14.3, Traefik v3.6.16, helm-controller v0.17.1. (Within the line: 1.33.0–1.33.10 ship etcd v3.5.x, the latest being v3.5.26-k3s1 at 1.33.10.)
-  - CNI floor at 1.33.12: Cilium 1.19.3, Calico 3.32.0, Flannel 0.28.4, Multus 4.2.4 — converged with 1.34/1.35/1.36 latest patches.
+  - Packaged at 1.33.13+rke2r2: etcd v3.6.14-k3s1, containerd v2.2.6-k3s1, runc v1.4.3, CoreDNS v1.14.6, Traefik v3.7.8, helm-controller v0.16.26. (Within the line: 1.33.0–1.33.10 ship etcd v3.5.x, the latest being v3.5.26-k3s1 at 1.33.10.)
+  - CNI floor at 1.33.13+rke2r2: Cilium v1.19.6, Calico v3.32.1, Flannel v0.28.8, Multus v4.3.0 — converged with 1.34/1.35/1.36 latest patches.
 
 ## 1.32 (latest community patch v1.32.13+rke2r1, 2026-03-05)
 

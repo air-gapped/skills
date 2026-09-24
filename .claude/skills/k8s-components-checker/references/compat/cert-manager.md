@@ -5,8 +5,9 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-09-15 — matrix re-read; **both k8s windows and the support policy are unchanged** (1.21 → k8s 1.33–1.36, 1.20 → 1.32–1.35, 1.21 EOLs at the release of 1.23). Only patch ceilings moved: **1.21 line is at v1.21.2** (2026-09-11) and **1.20 at v1.20.3** (2026-06-25). The supported set is still exactly 1.21 + 1.20, so nothing in the scope logic changes.
-- Policy verbatim: *"All cert-manager releases are supported at least until the release of a second subsequent version"*, and *"Only the last patch release of each branch is supported for bug fixes and security updates"* — which is why the patch ceilings above are the actionable figure, not the minor.
+- **Last sifted:** 2026-09-24 — matrix unchanged (1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / OpenShift 4.19–4.21, EOL triggers unchanged). Patch ceilings moved to **1.21.2** (2026-09-11), **1.20.4** (2026-09-16), **1.19.6** (2026-06-25), **1.18.6** (2026-02-24). Upcoming: **1.22 ~Nov 2026** (EOL: release of 1.24; k8s window TBD).
+- **Last release-verified:** 2026-09-24
+- Policy verbatim: *"All cert-manager releases are supported at least until the release of a second subsequent version"*, and *"Only the last patch release of each branch is supported."* — the patch ceilings above are the actionable figure, not the minor.
 
 Support policy: each release is supported until two subsequent minors ship, so
 exactly two minors are "current" at any time. Minors cadence ~4 months. Current
@@ -24,16 +25,24 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 
 ## 1.21.0 (2026-07-08)
 
-- **k8s floor:** 1.33 – 1.36.
-- **⚠️ Known issue — controller crash-loop (#9031):** setting
-  `spec.renewal.policy: Disabled` on any Certificate causes a nil-pointer panic
-  in the trigger controller, crash-looping the controller process for the whole
-  cluster. Do not set that policy until fixed; remove it from any existing
-  Certificate and restart the controller if already looping.
-- **Known issue — Issuer stuck at `InvalidSolver` (#9036):** eager validation of
-  ACME solver Secrets means an Issuer referencing a not-yet-created Secret goes
-  `Ready: False` and does **not** self-correct when the Secret appears — it
-  recovers only on the 10-hour resync, a spec change, or a controller restart.
+- **k8s floor:** 1.33 – 1.36 (latest patch: v1.21.2, 2026-09-11; OpenShift 4.20 – 4.22).
+- **Known issue — controller crash-loop (#9031), fixed in v1.21.1 (#9038):** on
+  1.21.0, setting `spec.renewal.policy: Disabled` on any Certificate caused a
+  nil-pointer panic in the trigger controller, crash-looping the controller
+  process for the whole cluster. Resolved — upgrade to ≥1.21.1 (now 1.21.2)
+  rather than avoiding the field.
+- **Known issue — Issuer stuck at `InvalidSolver` (#9036), fixed in v1.21.1
+  (#9083):** on 1.21.0, eager validation of ACME solver Secrets meant an Issuer
+  referencing a not-yet-created Secret went `Ready: False` and did not
+  self-correct when the Secret appeared. Resolved in 1.21.1+.
+- **1.21.2 (2026-09-11):** a namespaced Vault `Issuer` no longer authenticates
+  to Vault using the controller's ambient AWS credentials for IAM auth unless
+  `--issuer-ambient-credentials` is set explicitly (`ClusterIssuer` and
+  explicit `serviceAccountRef`/IRSA are unaffected) — review namespaced Vault
+  Issuers relying on ambient creds before upgrading. The validating webhook now
+  also enforces identity/approval/resource checks on equivalent-converted
+  non-v1 API version requests, which previously could skip validation — a
+  request silently admitted before may now be denied.
 - **Breaking (Helm chart):**
   - Default `tokenrequest` RBAC removed — the chart no longer grants the
     controller `serviceaccounts/token: create` on its own ServiceAccount. If
@@ -56,7 +65,7 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 
 ## 1.20.0 (2026-03-10)
 
-- **k8s floor:** 1.32 – 1.35
+- **k8s floor:** 1.32 – 1.35 (latest patch: v1.20.4, 2026-09-16; OpenShift 4.19 – 4.21).
 - **Breaking:** Default container UID changed from 1000 → 65532, GID 0 → 65532
   (PR #8408). PodSecurityPolicy / SecurityContextConstraints / RunAsUser pinning
   in operator overlays will reject the new pod spec; review chart values
@@ -76,11 +85,16 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
   `extraContainers` Helm value for sidecars (e.g. AWS IAM Roles Anywhere).
   Security fix for a controller-panic-via-DNS-cache (CVE-class MODERATE,
   PR #8469) — bump 1.20.0 → 1.20.2 to also pick up CVE-2025-61727 /
-  CVE-2025-61729 Go fixes.
+  CVE-2025-61729 Go fixes. 1.20.4 fixes an ingress-shim applyset-label
+  regression (#9315); the 1.20 line will not patch three `golang.org/x/crypto`
+  scanner findings (CVE-2026-56855, CVE-2026-78662, GO-2026-5932) — vendor
+  confirms cert-manager's own use is unaffected (govulncheck-clean), but a
+  scanner-clean result needs 1.21 (ships `golang.org/x/crypto` v0.56.0).
 
 ## 1.19.0 (2025-10-07)
 
-- **k8s floor:** 1.31 – 1.35
+- **k8s floor:** 1.31 – 1.35 (latest patch: v1.19.6, 2026-06-25 — GHSA-8rvj-mm4h-c258
+  fix, same as 1.20.3/1.21.0's `cert-manager-edit` ClusterRole tightening).
 - **Breaking:** API defaults added for Certificate `issuerRef.kind` (`Issuer`)
   and `issuerRef.group` (`cert-manager.io`). Per release-note bug item #8160,
   Certificates created on ≤1.18 with omitted kind/group were unnecessarily
@@ -101,7 +115,9 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 
 ## 1.18.0 (2025-06-10, EOL 2026-03-10)
 
-- **k8s floor:** 1.29 – 1.33
+- **k8s floor:** 1.29 – 1.33 (latest patch: v1.18.6, 2026-02-24 — fixes
+  CVE-2025-68121; the same controller-panic-via-DNS-cache DoS fixed for 1.20 at
+  1.20.2 landed here at v1.18.5, GHSA-gx3x-vq4p-mhhv).
 - **Breaking:**
   - Default `Certificate.spec.privateKey.rotationPolicy` flipped `Never` →
     `Always` (#7723). Every renewal now rotates the private key by default;

@@ -5,7 +5,8 @@
 - **Truth source type:** `chart_metadata`
 - **Axis type:** `single`
 - **min_tracked_version:** 5.7
-- **Last sifted:** 2026-09-15 (chart axis re-read from `Chart.yaml` at chart-release tags; 6.2.0 added)
+- **Last sifted:** 2026-09-24 (checked mimir-3.2.1/3.1.6 app CVE patches against chart tags; not yet packaged — no new chart release)
+- **Last release-verified:** 2026-09-24
 
 In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.0` (appVersion 3.2.0), `6.1.0` (2026-07-16, appVersion 3.1.2), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
@@ -43,6 +44,12 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   previously applied only to Deployments (#15950).
 - Bugfix relevant to autoscaled installs: `ScaledObject` templates were broken
   when using `kedaAutoscaling.fallback` (#15793).
+- **Unpatched Go CVEs at this appVersion:** `mimir-3.2.1` (app release,
+  2026-09-10) bumps Go to 1.26 to fix 7 CVEs (GO-2026-5972, -5026, -5942,
+  -6089, -6091, -6088, -6218) — chart 6.2.0 still ships appVersion 3.2.0. No
+  chart release packages 3.2.1 as of this sift (newest chart tag remains
+  `mimir-distributed-6.2.0`, 2026-08-20; `6.3.0-weekly.*` pre-releases are not
+  a tracked line). Recheck at next freshen.
 
 ## 6.1.0
 
@@ -65,7 +72,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
 - **Ingest storage:** still the chart default in 6.1 — the config template ships `ingest_storage.enabled: true`. Kafka remains a required dependency of the default topology.
 - **CRD migrations:** N/A.
 - **Upgrade ordering:** rollout-operator drives ingester/store-gateway restarts. See § Rollout mechanics.
-- **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server.
+- **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server. **Unpatched Go/crypto/grpc CVEs at this appVersion:** `mimir-3.1.6` (app release, 2026-09-10) fixes Go 1.26.7 CVEs plus `golang.org/x/crypto` (GO-2026-6354, GO-2026-6355) and `google.golang.org/grpc` (CVE-2026-84304, CVE-2026-84445) — chart 6.1.0 ships appVersion 3.1.2, three patches behind. No chart release packages 3.1.6.
 
 ## 6.0.6
 

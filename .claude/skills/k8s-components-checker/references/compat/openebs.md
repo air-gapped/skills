@@ -5,17 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
-- **Last sifted:** 2026-09-15
-- **Ceilings moved:** lvm-localpv **v1.10.1** (2026-09-09, `isLatest`), umbrella **v4.6.1** (2026-09-10). New umbrella→LVM pins: **4.6.1 → 1.10.1**, **4.6.0 → 1.10.0** (read from `charts/Chart.yaml` `dependencies:` at each umbrella tag).
-- **New hazard at 1.10.1 — node-level `formatOptions`.** `mkfs.xfs` ≥6.5 enables `nrext64` by default, and a filesystem created with it is **unmountable on kernel <5.19** — which covers RHEL 8/9, Ubuntu 20.04/22.04 and SLES 15. Set `lvmNode.defaultFormatOptions.xfs="-i nrext64=0"` on any such node, or the volume formats fine and then fails to mount.
-- Re-confirmed absent: no `kubeVersion:` constraint in the LVM chart at 1.9.0/1.9.1/1.10.0/1.10.1, and **no published k8s support matrix for OpenEBS anywhere** — `openebs.io/docs/releases` carries no compatibility statement. The "verify the k8s minor manually" guidance stands, and this absence claim was re-tested rather than inherited.
-- **Last release-verified (gh):** 2026-09-15 — the umbrella has moved past the
-  newest pin recorded below: **v4.6.0 (2026-08-26)** and **v4.6.1 (2026-09-10)**
-  exist, while the sections below stop at the LocalPV-LVM versions pinned by
-  4.5.0 / 4.5.1. **Which LocalPV-LVM version 4.6.x pins is not recorded** —
-  that mapping is the sift, and this file's whole structure is keyed on it, so
-  it is left empty rather than inferred from the umbrella number.
-- **Last release-verified:** 2026-07-21
+- **Last sifted:** 2026-09-24 — added `## 1.10.x` (umbrella 4.6.0/4.6.1 pins + the 1.10.1 `formatOptions` hazard, moved out of header notes); 1.8.1/1.9.1 patches re-checked, no verdict change.
+- **Last release-verified:** 2026-09-24
 - **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
   LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).
 
@@ -35,6 +26,8 @@ engine version from the `lvm-localpv` chart version, the
 
 | OpenEBS umbrella | pins LocalPV-LVM |
 |---|---|
+| 4.6.1 | 1.10.1 |
+| 4.6.0 | 1.10.0 |
 | 4.5.1 | 1.9.1 |
 | 4.5.0 | 1.9.0 |
 | 4.4.x | 1.8.0 |
@@ -42,8 +35,40 @@ engine version from the `lvm-localpv` chart version, the
 | 4.2.x / 4.1.3 | 1.6.2 |
 | 4.0.x / 4.1.0 | 1.5.1 |
 
-(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.5.1;
+(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.6.1;
 LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
+
+## 1.10.0 — 2026-08-19  (pinned by umbrella 4.6.0; **1.10.1** 2026-09-09 pinned by umbrella 4.6.1)
+
+- **k8s floor:** chart declares **no `kubeVersion:`** at 1.10.0 or 1.10.1 (checked at both
+  tags) — installs on any minor; the docs' nominal "1.23+" remains uncertified. Verify the
+  target minor manually (see hazards section).
+- **New:** optional CSI snapshot controller — Helm flag to disable the bundled
+  snapshot-controller when one is already cluster-managed (#495); Helm `gaid`/`gakey`
+  analytics global overrides, matching the other OpenEBS local-engine charts (#480).
+- **Fixes worth having:** idempotent volume expansion — node expansion stays required
+  through resize so a repeated expand call doesn't double-apply (#481); image URLs in
+  rendered manifests are now quoted, for registries with YAML-special characters in the
+  path (#482); ServiceMonitor manifest namespace-indentation fix (#479).
+- **Dependency bump:** csi-snapshotter / snapshot-controller → v8.2.0.
+- **Breaking:** none identified in the release notes.
+- **CRD migrations:** none — the bundled `crds` subchart version ticked to
+  `1.10.1-prerelease` but no `local.openebs.io` CRD schema file changed between 1.9.1 and
+  1.10.1 (`gh api repos/openebs/lvm-localpv/compare/v1.9.1...v1.10.1` touches only the CRD
+  subchart's own `Chart.yaml`).
+- **1.10.1 — node-level `formatOptions` default (hazard).** New
+  `--default-format-options=<fstype>=<options>` node-agent flag, exposed as
+  `lvmNode.defaultFormatOptions` in the Helm chart (#506). `mkfs.xfs` ≥6.5 enables
+  `nrext64` by default, and a filesystem formatted with it is **unmountable on kernel
+  <5.19** — RHEL 8/9, Ubuntu 20.04/22.04, SLES 15 all qualify. Set
+  `lvmNode.defaultFormatOptions.xfs: "-i nrext64=0"` (or the equivalent per-StorageClass
+  `formatOptions`, which overrides the node default for that class) on any such node
+  *before* the first format on that node — the default only applies when a volume is
+  formatted, so existing volumes are unaffected and a cluster already on kernel ≥5.19
+  needs no change to move 1.10.0→1.10.1. No other functional or default-behaviour change
+  from 1.10.0.
+- **Not field-verified.** Release-note-grounded only (`gh release view v1.10.0` /
+  `v1.10.1`, both `--repo openebs/lvm-localpv`).
 
 ## 1.9.0 — 2026-05-21  (pinned by umbrella 4.5.0; **1.9.1** 2026-06-10 pinned by umbrella 4.5.1)
 
