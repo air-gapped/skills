@@ -9,9 +9,10 @@ description: >-
   references (release notes, docs, deprecation signals) and applies verified
   updates; `trigger` measures and tunes the frontmatter description until it
   fires when it should and stays silent when it shouldn't (60/40 train/test,
-  7 runs/query); `ages` prints every skill's verification age vs last content
-  change; `floor` measures what a bare model already knows about a skill's
-  subject.
+  7 runs/query); `outcome` runs the skill's eval cases with and without the
+  skill through `claude plugin eval`; `ages` prints every skill's verification
+  age vs last content change; `floor` measures what a bare model already knows
+  about a skill's subject.
 when_to_use: >-
   Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
   "run skill autoresearch", "self-improve skills", "evaluate skill quality",
@@ -23,472 +24,239 @@ when_to_use: >-
   fire", "skill not invoked", "tune skill
   description", "fix skill triggers", "skill under-triggers",
   "skill over-triggers", "false-positive skill",
-  "Claude isn't using my skill", or mentions autonomous skill improvement,
+  "Claude isn't using my skill", "does my skill help", "skill eval",
+  or mentions autonomous skill improvement,
   skill quality scoring, skill optimization loops, stale skill content,
   or skill activation problems.
-argument-hint: '[improve|score|freshen|trigger|floor|ages|batch] [<skill-name>|--all|<glob>]'
+argument-hint: '[improve|score|freshen|trigger|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
-# Skill Improver — Autoresearch for SKILL.md
+# Skill Improver
 
-> **Core Philosophy:** The human programs the researcher, not the research.
-> Apply Karpathy's autoresearch methodology — greedy hill climbing with
-> keep/discard against a scalar metric — to autonomously improve Claude Code
-> skills.
+`/skill-improver <mode> <target> [--opts]`. `<target>` is a skill name, a
+SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
+(except `ages`, `batch`) → ask.
 
-## Invocation
+| Mode | Does | Read first |
+|---|---|---|
+| Auto | Decides which modes the skill needs, runs them | §Auto |
+| `improve` | Keep/discard loop on the 10-dimension rubric | `references/improve-loop.md`, `references/quality-rubric.md` |
+| `score` | Rubric score, no edits | §Score |
+| `freshen` | Verifies every `sources.md` row online, applies verified updates | `references/freshen-patterns.md` |
+| `trigger` | Measures and tunes the description's trigger rate | `references/trigger-patterns.md` |
+| `outcome` | Runs the skill's eval cases with vs without it (`claude plugin eval`) | §Outcome |
+| `floor` | Measures what a bare model already knows about the subject | `references/floor-patterns.md` |
+| `ages` | Fleet table of verification age vs last change | §Ages |
+| `batch` | Runs `improve`, `freshen` or `trigger` over many skills | §Batch |
 
-Argument grammar:
+Flags are mode-specific: `--iterations N`, `--probe-budget N`,
+`--runs-per-query N`, `--missed "<query>"` (trigger; repeatable — seeds a
+user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
-```
-/skill-improver <mode> <target> [--opts]
-```
+## Auto
 
-- `<mode>` — omitted = Auto | `improve` | `score` | `freshen` | `trigger` | `floor` | `ages` | `batch`
-- `<target>` — skill name (e.g. `gh-cli`), absolute SKILL.md path, `--all`, or glob (e.g. `vllm-*`)
-- `[--opts]` — mode-specific flags (e.g. `--iterations 15`, `--probe-budget 30`, `--runs-per-query 5`)
-
-Examples:
-
-```
-/skill-improver ages
-/skill-improver ages 'vllm-*'
-/skill-improver freshen autoresearch
-/skill-improver score gh-cli
-/skill-improver improve ~/.claude/skills/helm
-/skill-improver trigger vllm-caching
-/skill-improver trigger gh-cli --missed "find issue with label X"
-/skill-improver batch freshen --all
-/skill-improver freshen --group 'vllm-*'
-```
-
-If `<mode>` is omitted, run **Auto** (below). If `<target>` is omitted and mode is not `batch`, prompt the user. For `batch`, the target after `batch` selects the sub-mode (`freshen`, `improve`, or `trigger`, default `improve`); the target list comes from `scripts/scan-skills.sh`. The `--missed "<phrase>"` flag (trigger mode only, repeatable) seeds the eval set with user-reported failures as gold should-trigger queries.
-
-## Auto (no mode given)
-
-`/skill-improver <skill>` decides which modes the skill needs, runs them, and
-reports. No fixed thresholds — the skill's own history sets its pace.
-
-1. **Read the evidence** (no edits):
-   - `references/sources.md` `Freshened:` line and its note — when the last
-     pass ran and whether it found anything.
-   - **Upstream versions** — for each project whose version the skill states,
-     one `gh release list --repo <owner>/<repo> --limit 5` (or the host's
-     equivalent), compared against the version the skill's text states — not
-     against the last-pass date; a pass can stamp a skill and still leave an old
-     version in its body. Never assume "no new release": history cannot show one.
-   - `git log --format='%ad %s' --date=short -- <skill-dir> | head -20` —
-     what past passes changed, and how often.
-   - `references/improvement-backlog.md` §Open — has a named blocker arrived?
-   - Frontmatter `disable-model-invocation`; `references/trigger-evals.json`.
-   - The subject's pace: a stable method (decades-old technique) changes
-     rarely; an AI product, inference engine, or Claude Code itself changes
-     every few weeks.
+1. **Read the evidence, no edits:** the `Freshened:` line in
+   `references/sources.md`; one `gh release list --repo <o>/<r> --limit 5` per
+   upstream whose version the skill states, compared against the version in the
+   skill's text (never assume "no new release"); `git log --format='%ad %s'
+   --date=short -- <skill-dir> | head -20`; `references/improvement-backlog.md`
+   §Open (has a named blocker arrived?); `disable-model-invocation` and
+   `references/trigger-evals.json`; how fast the subject moves.
 2. **Decide each step:**
 
    | Step | Run when |
    |---|---|
-   | `freshen` | an upstream is newer than the version the skill states — whatever the pace; or the last pass is old *for this skill's pace*, judged from its history — recent passes that changed nothing mean it can wait months, a fast-moving subject cannot wait weeks; or a model or Claude Code release the skill depends on. |
-   | `floor` | fact-heavy skill with no floor run since the last model release |
-   | `improve` | content changed since the last improve pass, a backlog blocker has arrived, or no improve pass is on record |
-   | `trigger` | the description changed or trigger evals fail — never for a `disable-model-invocation` skill |
+   | `freshen` | an upstream is newer than the skill states; or the last pass is old for this subject's pace; or a model or Claude Code release it depends on shipped |
+   | `floor` | fact-heavy skill, no floor run since the last model release |
+   | `improve` | content changed since the last improve pass, a backlog blocker arrived, or no improve pass on record |
+   | `trigger` | description changed or trigger evals fail; never for `disable-model-invocation` |
+   | `outcome` | the skill has `evals/evals.json` and its content changed since the last outcome run |
 
-3. **Print the plan first** — one line per step: run or skip, with the evidence.
-   Then run the chosen steps in table order (facts current before `improve`
-   judges them). Nothing due is a valid result: say so and stop.
-4. **Report** what ran, what changed, the commits, and what was skipped and why.
+3. **Print the plan** — one line per step: run or skip, with the evidence. Run in
+   table order. Nothing due is a valid result: say so and stop.
+4. **Report** what ran, what changed, the commits, what was skipped and why.
 
-## The Improvement Loop
+## Improve
 
-Greedy hill climbing on the 10-dimension rubric: score the skill, apply ONE
-change, re-score cold, keep +3 or more; keep +2 or +1 only when a second cold
-score confirms it or the change also simplifies; keep a Δ0 change only when it
-fixes a verifiable defect (improve-loop §Phase 4); revert everything else. Stop
-at 90+ with no dim below 7, a mapped ceiling (5+ discards across 2+
-categories), or the 10-iteration cap. **+2 is inside the scorer's own noise** —
-re-scoring an unchanged skill moves the total by a median of 2-3 points, up to
-6 (`references/blind-validation.md` §Measured scorer behaviour); rankings
-between skills are stable under that noise, single-iteration totals are not.
+Score, apply ONE change, re-score cold, keep +3 or more; keep +1/+2 only when a
+second cold score confirms it or the change also simplifies; keep Δ0 only when
+it fixes a verifiable defect; revert the rest. Stop at 90+ with no dimension
+below 7, at 5+ discards across 2+ categories, or after 10 iterations.
+Re-scoring an unchanged skill moves the total 2–3 points (up to 6), so +2 is
+noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
-The full phase workflow — **Phase 0 Setup → Phase 7 Land it**,
-including the cold-score discipline, the hypothesis criteria (simplicity,
-weakness, format-only), the keep/discard decision rules with the anomaly
-gate and noise zone, and the stop conditions — lives in
-**`references/improve-loop.md`**. Read it before starting a run; every rule
-that decides keeps and discards is there.
+- **One change per iteration.** State it in 10 words with one verb; an "and"
+  means two iterations. A move that starts rewording prose is two changes.
+- **The backlog records blockers only.** Every Open entry in
+  `<skill>/references/improvement-backlog.md` names the absent thing (a ruling,
+  a credential, an unreleased version, a measurement nobody can run now). Effort
+  is not a blocker: do it before the pass ends. Format:
+  `references/backlog-format.md`.
+- **A pass ends with work, not a report.** Done = every keep applied, blind
+  score at baseline (on a snapshot) and at stop, the A/B comparator verdict, an
+  `outcome` run when the skill has eval cases, committed with the backlog in the
+  same commit, resolved items deleted from Open. Zero discards = stopped early.
 
-Three rules that bind without reading it:
+## Rules for every mode
 
-- **One change per iteration, diff minimal.** Bundling attributes the score
-  lift to the wrong cause, so the next loop pivots to the wrong category.
-- **The backlog records blockers, not leftovers.** Persist ceiling findings to
-  `<skill>/references/improvement-backlog.md` (`references/backlog-format.md`)
-  — but every Open entry must **name the absent thing** that prevents the work:
-  a ruling, a credential, an unreleased version, a measurement nobody can run
-  now. Effort is not a blocker. If the honest answer is "nothing, it is just
-  work", do it before the pass ends; a pass may not end having added an
-  unblocked item under any heading.
-- **A pass ends with work, not a report of work.** Done = every keep applied +
-  **both** blind scores on record (baseline at setup on a snapshot, final on
-  stop — one alone is self-scored) + committed with the backlog in the same
-  commit + resolved items deleted from Open. Zero discards means no ceiling was
-  mapped: record that as stopped early, never as finished (Phase 7).
+- **Run without pausing** between iterations; print status lines.
+- **State the spend before any fan-out** of subagents or `claude -p` probes:
+  calls, model, rough dollars from `scripts/model-rates.json`. Pin a cheap model
+  on mechanical work (graders, row probes).
+- **Git is the state.** Commit each kept change; `git diff` before reverting.
+  Never `rm`: revert with git, put temp dirs and snapshots under a fresh
+  `mktemp -d` and leave them.
+- **Classify overlap before deleting.** Only `DUPLICATE` is deletable;
+  `INTENTIONAL_DETAIL` (summary in SKILL.md, detail in `references/`) and
+  `RELATED_BUT_DISTINCT` stay. `scripts/dedup-fleet.py` produces the table;
+  `references/improvement-patterns.md` §Pattern 6.1 reads it.
+- **Preserve the author's domain knowledge.** Change how the skill teaches, not
+  what it teaches.
+- **Write for the agent; history goes to `sources.md`.** `SKILL.md` and task
+  references state the current rule and the action. Where a fact came from, why
+  it changed and when it was checked go in `references/sources.md`; `SKILL.md`
+  carries one pointer to it. Keep a version or issue number in agent text only
+  where the agent acts on it ("on 0.7.0 every command fails — upgrade").
+  Existing history is not a defect by itself; move it when it is in the diff.
+- **A failed measurement is NO SCORE, never 0.** A timed-out probe, a dead
+  scorer, an errored eval run: exclude it from the denominator and say what is
+  missing. An incomplete run is never compared with a complete one; a pass that
+  could not measure its mode's evidence is stopped early.
+- **The skill outranks training data.** Never change an external claim
+  (version, date, flag, model name, SHA) from memory — verify online and cite,
+  or drop the change. Wanting to lower a version or move a date back is the
+  stale-prior alarm: check first, expect the skill to be right. A subagent's
+  "wrong version" finding is applied only after the primary source confirms
+  it. Open a new citation and confirm its title, date and the attributed figure
+  before writing it down.
 
----
+## Fleet checks
 
-## Operating Rules
-
-### Never Stop (Unless Asked)
-
-Run the loop continuously. Do not ask permission between iterations. The user may be away. Print status lines so they can review when they return.
-
-### State the Spend Before a Fan-out
-
-Any wave of subagents or `claude -p` probes — a batch pass, a freshen wave, a
-floor fleet, a trigger eval — gets a one-line estimate before it starts: how
-many calls, on which model, and the rough dollar size from
-`scripts/model-rates.json`. `scripts/run-cost.py` prices a run afterwards, which
-is too late to decide against it.
-
-Pin the cheap model on mechanical work — a grader that only checks text
-against assertions does not need the strongest model, and a probe that
-inherits the session model pays for one. **A cap is a resting state, not a
-task** — the unmeasured Dim 10 cap in particular is deliberate; clearing one
-is optional work that costs money, so price it first and say the number.
-
-### Git as State Machine
-
-When improving skills in a git-tracked directory:
-- Commit each kept improvement individually.
-- Use `git diff` to show what changed on discard before reverting.
-- The branch tip always represents the best-known version.
-- Never `rm`. Revert with git; put every temp dir or snapshot under a fresh
-  `mktemp -d` and leave it there. A fixed path that needs clearing first is
-  the bug — make the path unique instead.
-
-### Prioritize Deletion Over Addition
-
-In practice, removing redundant content produces the largest per-iteration score gains. When choosing between an additive improvement (+1 from adding content) and a subtractive one (+1 from deleting content), prefer deletion — it improves simplicity as a side effect.
-
-**But similar is not redundant, and this bias is exactly what gets that wrong.**
-Before deleting on the grounds that two passages overlap, classify the overlap:
-only `DUPLICATE` is actionable, while `INTENTIONAL_DETAIL` (an overview in
-SKILL.md developed in `references/`) and `RELATED_BUT_DISTINCT` (same topic,
-different purpose) must be kept — the first of those *is* progressive
-disclosure, the structure a good skill is meant to have. Measured across the
-whole fleet, **83% of similar-looking content was correct as written**; a
-deletion bias would have cut it. `scripts/dedup-fleet.py` produces the table
-and `references/improvement-patterns.md` §Pattern 6.1 explains how to read it.
-
-### Fleet Checks — Run These Over the Whole Tree
-
-Seven checkers under `scripts/`, all testing something a parser can decide. **Run each
-over the entire tree, not only the skill being edited** — every one found defects in
-skills nobody was touching. Each exits non-zero on findings and has `--selfcheck`.
+Run each over the whole tree, not only the skill being edited. Each exits
+non-zero on findings and has `--selfcheck`. Read the non-findings column before
+acting; detail in `references/fleet-checks.md`.
 
 | Script | Catches | Expected non-findings |
 |---|---|---|
-| `check-shell-fences.py` | bash fences that do not parse, plus the backslash-then-comment continuation `bash -n` cannot see | prompt transcriptions, placeholders |
+| `check-shell-fences.py` | bash fences that do not parse; backslash-then-comment continuations | prompt transcriptions, placeholders |
 | `check-yaml-fences.py` | YAML fences that do not parse | Go/Jinja templates, placeholders |
-| `check-tables.py` | rows whose cell count disagrees with the header, which drops the last column silently | none — a hit is a defect |
-| `check-links.py` | dead doc-host URLs and moved GitHub file paths | 403 (fetcher refused), 429 (own rate limit) |
-| `check-advisory-floors.py` | a CVE floor that is still vulnerable or outside the advisory's range (needs `--verify`) | per-minor backports, unbounded ranges, negative claims |
-| `check-expiring-claims.py` | content dated to become false, especially relative phrases beside a date | lifecycle tables of future EOL dates |
-| `check-issue-states.py` | prose calling a closed issue open, a closed-unmerged PR merged, or a merged PR unmerged | deliberate "stale bot closed it, still a live risk" wording, which is exempt |
-
-**Read the expected-non-findings column before acting on output.** Details, measured
-hit counts, and the four sweep shapes already tried and abandoned:
-`references/fleet-checks.md`.
-
-### One File at a Time
-
-Each iteration targets one file. If the improvement requires touching multiple files (e.g., moving content from SKILL.md to references/), that counts as one atomic change.
-
-**The split test for atomicity.** "Atomic" is not a word — it is a constraint. State the change in 10 words, present-tense, single verb. "Move gotchas section to references/gotchas.md." If the honest sentence needs an "and" — "move content to references/ AND fix second-person AND tighten terminology" — it is three iterations, not one. Pure relocation is allowed; relocation that quietly rewrites prose is not. If a structural move starts editing a sentence's wording, stop, finish the move with the prose unchanged, score, then propose the prose edit as the next iteration. The reason: bundled iterations attribute the score lift to the wrong cause, which means future loops will pick the wrong category to pivot to.
-
-### Preserve the Author's Intent
-
-The skill reflects the author's domain expertise. Improve structure, clarity, and adherence to best practices. Do NOT rewrite the author's domain knowledge or change what the skill teaches — only how it teaches it.
-
-### Write for the Agent; History Goes to `sources.md`
-
-`SKILL.md` and task references state the current rule and the action. Where a
-fact came from, why it changed, and when it was checked go in the skill's
-`references/sources.md`, next to the source row. `SKILL.md` carries one pointer:
-`Why a rule exists and when it changed: references/sources.md`. Keep a version
-or issue number in agent text only where the agent acts on it ("on 0.7.0 every
-command fails — upgrade"). Existing history in agent text is not a defect by
-itself; move it only when it is already in the diff.
-
-### A Measurement That Failed Is Not a Low Score
-
-Every mode here turns evidence into a number, and every one of them can fail to
-collect a piece of it — a `claude -p` probe that times out, a blind scorer that
-dies, an eval case that errors, a source row that cannot be reached. **Never let
-the gap become a value.** Report it as `NO SCORE`, exclude it from the
-denominator, and say what is missing.
-
-Coercing to zero is not the conservative choice; it is a fabricated
-measurement, and it biases in whichever direction the metric happens to run:
-
-- A timed-out trigger probe scored as "did not fire" deflates should-trigger
-  queries *and* inflates should-NOT-trigger ones, so a completely broken probe
-  reports a plausible mid-range number built out of nothing.
-- A floor run whose probes all failed reads as 0% known — the "every claim is
-  real transfer" row — so the failure *raises* the Dim 10 cap.
-- A missing blind score filled in from the self-score reinstates exactly the
-  bias the blind check exists to remove.
-
-The rule is the same in each case: an incomplete run must not be compared
-against a complete one, and a pass that could not measure its own mode's
-evidence is **stopped early**, never finished. `freshen` has always worked this
-way — "the stamp never lies", a partial pass keeps the old date. This is that
-rule everywhere else.
-
-### The Skill Outranks Training Data
-
-Target skills are freshened continuously — their factual claims (versions,
-release dates, model names, APIs, flags, pinned SHAs) are often NEWER than the
-model's knowledge cutoff. Treat the skill's existing text as more current than
-the model's prior, never the reverse. This rule applies in EVERY mode, not just
-`freshen`:
-
-- Never mutate an external-world claim from memory. If a hypothesis requires
-  changing one, verify online first (gh / WebFetch / WebSearch, freshen-style
-  probe) and cite the source in the iteration log — or drop the hypothesis.
-  "I know this is wrong" is not evidence; the probe is.
-- **Downgrade alarm:** wanting to lower a version, move a date backward, or
-  revert a claim to an older state is the signature of training-data staleness
-  — the skill was probably freshened past the cutoff. Mandatory online check
-  before touching it; expect to find the skill is right.
-- This binds every subagent too — blind scorers are told to check `sources.md`
-  stamps instead of scoring Dim 9 down from memory, and no subagent's "wrong
-  version" or "changed in vX" finding — scorer, probe, or research agent — is
-  applied until the loop confirms it in the primary source (changelog, code,
-  release page).
-- **A new citation is a claim too — verify it before writing it down.** The rule
-  above covers *altering* an existing claim; the recurring failure has been
-  *adding* one. Before a paper, post, issue, or doc URL enters any file, open it
-  and confirm the title, the author, the date, and that the specific number or
-  finding being attributed is actually there. A plausible-looking arXiv ID is not
-  a source. Where a research agent supplied the citation, the check is a separate
-  step from the research — an agent asked only "is this real?" catches what the
-  agent that found it will not. If a detail cannot be confirmed on the page,
-  cite the paper without it rather than repeating the unverified figure.
-
----
-
-## Blind Validation
-
-Self-evaluation bias is real — the agent that wrote improvements tends to score
-them generously. Blind validation uses independent subagents that have never seen
-the skill to score it objectively. Run it twice: at baseline (improve-loop
-Phase 0 step 6, in the background, parallel with the loop) and after the
-loop stops (improve-loop §"On stop") — the spawn points the loop itself
-already marks.
-
-### Scorer Agent, Model Rule, and Comparison Table
-
-The scorer is the **`blind-scorer` agent definition** (canonical instruction
-text; spawn it with a two-line path tail so every scorer in a run shares the
-cached prefix). The spawn mechanics, fallback chain, model rule, parallel-
-scoring variant, and bias-check table format live in
-**`references/blind-validation.md`**. Read it when spawning either agent.
-Three rules bind without reading it. **Omit `model` in the spawn call** — the
-agent definition pins it (`model: sonnet`), so baseline and final match by
-construction. **Omit effort too** — scorers inherit the session's, and effort
-was measured flat. **Print the bias-check table** after each agent returns,
-flagging every dimension where self and blind differ by 2 or more.
-
-### The A/B Comparator Decides the Pass
-
-The absolute score answers "how good is this?". It does not reliably answer
-"did this pass help?": re-scoring the same skill has a measured 2–4 point
-spread, and a pass that kept six correctness fixes came back with an
-unchanged blind total. **The pass verdict comes from a comparator, not from
-the delta between two absolute scores.**
-
-After the loop stops, materialise baseline and final as two blinded
-directories, assign them `DIR A` / `DIR B` by coin flip, and spawn **three
-`skill-comparator` agents**; majority vote gives `IMPROVED`, `NO CHANGE`, or
-`REGRESSED`. Omit `model` — the agent definition pins it.
-
-Three rules bind without opening the reference. **Blind the pair on disk** —
-`git archive` stamps each side with its own commit time, a 13-hour tell.
-**Spawn from outside the repo** — a subagent started in the repo inherits an
-environment block listing recent commit subjects, which describe the very
-diff it is judging; one comparator in three reported that leak having run no
-git command. **`REGRESSED` outranks a positive delta** — revert the
-responsible iteration rather than recording a lift, and record a `TIE`
-majority as `NO CHANGE`.
-
-Exact commands, the vote table, the order-bias check and the two leakage
-classes: **`references/blind-validation.md`** §"The A/B comparator".
-
----
-
-## Batch Mode
-
-To improve multiple skills:
-
-1. Run `scripts/scan-skills.sh` to find all SKILL.md files in scope.
-2. Score each skill (baseline only) and print a ranked table.
-3. Sort by score ascending (worst first).
-4. Run the improvement loop on each, starting from the worst. Cap at 5 iterations per skill in batch mode.
-5. Print a final summary table: skill name, baseline score, final score, delta, number of kept changes. The batch is done when **every skill from step 1 has a row** — including skills whose loop was skipped, crashed, or hit the cap (mark the status). A missing row is silent truncation, not a smaller batch.
-
-**Dynamic workflows (Fable 5 / Opus 5, Claude Code v2.1.154+).** Batch mode is multi-agent orchestration — when the user has opted into the `Workflow` tool, reuse the saved driver `scripts/batch-workflow.js` (a recon→apply→blind pipeline, median-of-3 final blind): `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: ["keda", "helm", ...]})`. `args` takes bare names, absolute dirs, or `{dir, hints}` objects. Per-skill loops keep one change per iteration so cause stays attributable; recon and apply agents inherit the session model and effort; blind scorers are pinned to Sonnet 5, same as a solo run, and no agent does git ops — commit per-skill after review. Without opt-in, run skills sequentially as above.
-
-**Native loops.** Drive scheduled passes with `/loop <interval> /skill-improver batch freshen --all`, or goal-driven ones with `/goal` and a checkable stop ("every skill scores ≥85, stop after N tries"). Size fan-outs against concurrency, not a total — there is no per-session agent cap: **20 concurrent subagents** (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) and the workflow size guideline, **10 agents at medium, small by default on Pro** (`workflowSizeGuideline`; `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` raises the per-run Workflow limit). A batch wider than these queues silently or trips a guideline warning mid-run. Version history: `references/anthropic-skill-design.md` version table.
-
----
-
-## Standalone Evaluation (No Loop)
-
-When the user only wants a quality score without iterating:
-
-1. Read the target skill and `references/quality-rubric.md` from the skill-improver directory.
-2. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>` and take Dim 10's cap from it — never judge the delta's sign by eye. It also prints the case count and noise floor.
-3. Score all 10 dimensions using the scoring template from the rubric.
-4. Print the results table. Highlight the lowest dimension and recommend the single highest-impact improvement.
-5. If Dim 9 is capped by sources.md staleness (see rubric §Dim 9), recommend running `freshen <skill>` as the single highest-impact next step.
-6. If step 2 reported fewer than 8 cases, recommend `scripts/grow-evals.py` — a corpus that small cannot resolve a delta and quietly defends the skill it tests. No eval set at all is a different finding: the cap is correct and needs no fix.
-7. Stop. Do not enter the improvement loop unless asked.
-
-**`/doctor` and `/skill-doctor` are first-party siblings, not substitutes.**
-`/doctor` "rightsize[s] your skills, and CLAUDE.md files" in one simplification
-pass with no metric, keep/discard, or blind check — run it first for free
-hypotheses, then use this skill when the question is *did the change measurably
-help*. `/skill-doctor` reports unused skills and their context cost — a pruning
-signal. Report neither as a score.
-
-**Scope boundary — every metric here scores the skill's *text*, never its
-outputs.** SkillLens measured text-only judging at 46.4% accuracy against real
-utility, so a rising rubric score is not evidence the skill's results improved.
-To measure that, run the official skill-creator plugin's eval loop (`/plugin
-install skill-creator@claude-plugins-official`): assertions in `evals/evals.json`,
-one clean-context subagent per case, with-skill vs without-skill `benchmark.json`,
-blind A/B between versions. Methodology:
-https://agentskills.io/skill-creation/evaluating-skills
-
----
-
-## Freshen Mode
-
-Probe a skill's external references for staleness and apply verified updates in
-place — same keep/discard loop as `improve`, but hypotheses come from online
-evidence (release notes, doc commits, deprecation signals), not rubric scores.
-A pass verifies **every** sources.md row (delegated to cheap subagents —
-`web-searcher` for web/gh rows, `Explore` for local-clone rows — in one
-background wave) and ends by writing the single `Freshened: <date>` header
-stamp; unverifiable rows get inline exception notes. No per-row dates.
-
-**Invocation:** `freshen <skill-path>` · `--all` · `--group <glob>`. Defaults to
-**apply**. For a read-only staleness readout — "how old are my skills?", which
-to freshen first — use `ages` mode instead (fleet-wide table in one command,
-no probes); Standalone Evaluation covers the single-skill case (Dim 9 tracks
-`sources.md`).
-
-Full phase workflow (F0→F6), batch mode, and anti-patterns live in
-**`references/freshen-patterns.md` §"Freshen Mode Workflow"** with the extraction
-heuristics, probe templates, and classification rules. Read it when running `freshen`.
-
----
-
-## Trigger Mode
-
-Measure and tune a skill's frontmatter `description` (and `when_to_use`) so it
-fires when it should and stays silent when it shouldn't. Same keep/discard
-hill-climbing as `improve`, but the metric is **trigger rate against an eval
-set** — the methodology Anthropic's `skill-creator` uses (60/40 train/test,
-7 runs/query for decisions, blinded test scores, ≤1024-char cap).
-
-**Use trigger mode when:** a user reports "the skill didn't fire" / "Claude isn't
-using my skill", or a description is too vague, narrow, or keyword-collision-y.
-Trigger-mode measures Dim 1 empirically via `claude -p` (`scripts/probe-trigger.py`).
-
-Full phase workflow (T0 Setup → T7 Apply/persist), batch mode, and anti-patterns
-live in **`references/trigger-patterns.md` §"Trigger Mode Workflow"** with the
-eval-set construction rules, probe mechanism, and mutation patterns. Read it when
-running `trigger`.
-
----
-
-## Ages Mode
-
-Read-only fleet readout — no probes, no scoring, no mutation. Run
-`scripts/staleness-report.py` and print its table verbatim, then one
-sentence naming the stalest bucket and the suggested next `freshen` target.
-That is the whole mode; do not start scoring or freshening from it.
-
-**Invocation:** `ages` (whole fleet) · `ages <glob>` (e.g. `ages 'vllm-*'`) ·
-`ages <root-dir>`. Two date tracks per skill: `oldest`/`age` = when the
-skill's external claims were last verified — the sources.md `Freshened:`
-header stamp (rows shows `full`), or for legacy files the oldest per-row
-date — vs `changed` = last content change on disk (newest file mtime). A
-skill can be freshly edited yet stale on verification — and vice versa; the
-`cap` column shows the Dim 9 staleness cap the verification age implies.
-
-The `cases` column counts outcome eval cases and marks `!` below 8 — one case
-flipping moves the pass rate by `1/n`, so a 3-case corpus resolves nothing under
-0.33. Act on `!` rows with `scripts/grow-evals.py`, then re-run the benchmark.
-
-The `open` column counts `## Open` items per `improvement-backlog.md`, fleet
-total in the footer. Read it as a deferral signal: Open items must name an
-external blocker, so a total that only rises means work is being parked. Report
-it in the summary sentence whenever the fleet total moved since the last run.
-
----
-
-## Floor Mode
-
-Measure what a **bare** model already knows about the skill's subject — no
-skills loaded, no tools, no web — and bucket each claim `KNOWS` / `UNKNOWN` /
-`CONFLICTS`. Whatever the model knows unaided does not need to be in the
-skill; `CONFLICTS` is worth more than a filled blank, because unaided the
-model does not hesitate — it proceeds, wrong. Read-only: surfaces candidates,
-never edits. Re-run on each model release — the movement in `KNOWS` is the
-delete list.
-
-**Invocation:** `floor <skill>` runs `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
-· `floor --all` runs `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>`.
-
-Two rules bind without reading the reference. **Classify the skill first** —
-probe capability-uplift skills; on an encoded-preference skill (a house order
-for things the model already knows how to do) a high floor is the expected
-reading, not a delete list. **`KNOWS` is a candidate, never a licence to cut**
-— recall is not application, and a conflict never means the skill is wrong
-(§"The Skill Outranks Training Data").
-
-The classification test, the bucket table, the two limits in full, and how
-floor results move the Dim 10 cap into one of three skill profiles live in
-**`references/floor-patterns.md`**. Read it when running the probe or reading
-its leaderboard.
-
----
-
-## Additional Resources
-
-### Reference Files
-
-- **`references/improve-loop.md`** — The full **Improvement Loop workflow** (Phases 0–7): setup, cold scoring, hypothesis criteria, keep/discard decision rules, stop conditions, backlog persistence, landing the pass. Load when running `improve`.
-- **`references/quality-rubric.md`** — Full scoring rubric with sub-criteria, examples of each score level, and common failure patterns. Load this before scoring.
-- **`references/improvement-patterns.md`** — Catalog of common improvements organized by dimension, with before/after examples.
-- **`references/freshen-patterns.md`** — The full **Freshen Mode workflow** (F0–F6) plus reference-extraction heuristics, probe templates (gh CLI / WebFetch / WebSearch), and classification rules. Load when running `freshen`.
-- **`references/trigger-patterns.md`** — The full **Trigger Mode workflow** (T0–T7) plus eval-set construction, mutation patterns by failure type, decision rules, and worked example. Load when running `trigger`.
-- **`references/floor-patterns.md`** — The full **Floor Mode** reference: the capability-uplift vs encoded-preference classification, the KNOWS / UNKNOWN / CONFLICTS bucket table, the two limits, and how floor evidence moves the Dim 10 cap. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading a floor leaderboard.
-- **`references/blind-validation.md`** — The blind-scorer agent, the `skill-comparator` A/B pass that decides the run verdict, model rule, fallback chain, parallel-scoring variant, and bias-check table format. Load when spawning a baseline or final blind agent, or the end-of-run comparator.
-- **`references/fleet-checks.md`** — The seven fleet checkers in detail: what each one
-  found when written, which of its hits are expected non-findings, and the four
-  sweep shapes already tried and abandoned. Load before running or proposing a sweep;
-  the SKILL.md table is the index, this is how to read the output.
-- **`references/backlog-format.md`** — The `Open` / `Resolved this pass` section shapes, admission rules, and append-only history rule. Load when writing a target skill's `improvement-backlog.md` in Phase 6.
-- **`references/anthropic-skill-design.md`** — Anthropic's skill design practices, complete frontmatter reference, Agent Skills standard, and platform constraints. Consult when scoring Dimensions 1, 2, 8, and 9.
-- **`references/sources.md`** — Index of official docs, specs, changelogs, and blog posts, one row per URL with an optional `Pinned:` version or git ref. Freshen Mode probes every row and writes the single `Freshened: <date>` header stamp; per-row dates are legacy.
-- **`<skill>/references/improvement-backlog.md`** (per-target, not in skill-improver's own dir) — Carries ceiling findings across skill-improver runs. Read in Phase 0 step 3; updated in Phase 6. Each target skill that has ever been through skill-improver should have one.
-- **`<skill>/references/trigger-evals.json`** (per-target) — Persistent eval set for Trigger Mode. Built on first `trigger` run; reused and extended on subsequent runs. Schema: `[{"query": str, "should_trigger": bool, "source": str, "bucket": "explicit"|"implicit"|"contextual"|"negative"}, ...]`. The bucket splits positives by how the user phrases the request — see `trigger-patterns.md` §Phase T1 for the target mix and why `contextual` is the one that goes missing.
-
-### Scripts
-
-Every script, what it measures, and the failure it prevents:
-**`references/scripts.md`**. Load it when choosing a tool for a phase.
+| `check-tables.py` | rows whose cell count disagrees with the header | none |
+| `check-links.py` | dead doc-host URLs, moved GitHub file paths | 403, 429 |
+| `check-advisory-floors.py` | a CVE floor still vulnerable or outside the advisory range (`--verify`) | per-minor backports, unbounded ranges, negative claims |
+| `check-expiring-claims.py` | content dated to become false, relative phrases beside a date | lifecycle tables of future EOL dates |
+| `check-issue-states.py` | closed issue called open, PR merge state misdescribed | deliberate "stale bot closed it, still live" wording |
+
+## Blind validation
+
+**Scorer** — the `blind-scorer` agent, spawned with a two-line path tail. Omit
+`model` and effort (the definition pins them). Run at baseline (on a snapshot,
+in the background) and at stop. Print the bias table: every dimension where
+self and blind differ by 2+.
+
+**A/B comparator — decides the pass.** Absolute scores cannot show whether a
+pass helped. Extract baseline and final with `git archive` into a `mktemp -d`,
+leaving out `evals/` and `improvement-backlog.md`; set every file to one
+timestamp; label them `DIR A` / `DIR B` by coin flip; spawn three
+`skill-comparator` agents **from outside the repo** (inside, they see recent
+commit subjects). Majority gives `IMPROVED` / `NO CHANGE` / `REGRESSED`; a tie
+is `NO CHANGE`; `REGRESSED` outranks any score gain — revert the responsible
+iteration. Commands and leakage classes: `references/blind-validation.md`.
+
+## Outcome
+
+Rubric and comparator judge the skill's text. `outcome` measures whether the
+skill makes the model's answers better:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/outcome-eval.py <skill-dir> [--against <git-ref>] [--write-benchmark]
+```
+
+It converts `<skill>/evals/evals.json` into `claude plugin eval` cases (one
+grader per assertion), runs each with and without the skill, and with
+`--against` the other version too. Prompts force invocation, so the number is
+about content; trigger mode measures triggering. Defaults: 3 runs, Sonnet,
+Sonnet judge, $20 cap.
+
+- **Price it first:** about $0.15 per with-skill run and $0.05 per without, times
+  cases × runs.
+- **Read failures before concluding.** Three runs and a 2-of-3 judge vote are
+  noisy: a per-case difference of one run, or a total gap under ~0.15, is noise
+  until the failed answers are read and found worse.
+- **A skill that does not beat the without arm on a case** carries nothing the
+  model lacks there — a deletion candidate, confirmed with `floor`.
+- `--write-benchmark` writes `evals/benchmark.plugin-eval.json`, which
+  `eval-evidence.py` reads for the Dim 10 gate.
+- Fewer than 8 cases cannot resolve a delta: grow them with
+  `scripts/grow-evals.py` first.
+
+## Score
+
+1. Read the target and `references/quality-rubric.md`.
+2. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>`; take
+   Dim 10's cap from it, never judge the delta by eye.
+3. Score all 10 dimensions with the rubric's template; print the table; name the
+   lowest dimension and the single highest-impact fix.
+4. Dim 9 capped by `sources.md` staleness → recommend `freshen`. Fewer than 8
+   eval cases → recommend `scripts/grow-evals.py`.
+5. Stop. Do not start the loop unless asked.
+
+## Freshen
+
+Verify **every** `sources.md` row — delegate rows to cheap subagents in one
+background wave (`web-searcher` for web/gh rows, `Explore` for local clones).
+Apply one verified finding at a time. End by writing the single
+`Freshened: <date>` header stamp; an unreachable row gets an inline exception
+note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
+classification: `references/freshen-patterns.md`.
+
+## Trigger
+
+Metric: trigger rate on an eval set of should- and should-not-trigger queries,
+60/40 train/test, 7 runs per query, test scores blinded, description ≤1024
+characters. Probe: `scripts/probe-trigger.py`. Eval set:
+`<skill>/references/trigger-evals.json`, `[{"query", "should_trigger",
+"source", "bucket"}]`, buckets `explicit` / `implicit` / `contextual` /
+`negative`. Workflow T0–T7: `references/trigger-patterns.md`.
+
+## Floor
+
+`python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`;
+fleet: `scripts/floor-fleet.py --root <dir>`. Read-only. Classify the skill
+first: on an encoded-preference skill a high floor is expected, not a delete
+list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
+the skill is wrong. `references/floor-patterns.md`.
+
+## Ages
+
+Run `scripts/staleness-report.py [<glob>|<root>]`, print its table verbatim,
+then one sentence naming the stalest bucket and the next `freshen` target. No
+probes, scoring or edits. `cases` marked `!` = fewer than 8 eval cases; `open`
+= backlog Open items — report it when the fleet total moved.
+
+## Batch
+
+`scripts/scan-skills.sh` lists targets. Baseline-score each, run worst first,
+cap 5 iterations per skill. The batch is done when every listed skill has a
+summary row (skipped, crashed and capped included). With the `Workflow` tool
+opted in, use `scripts/batch-workflow.js`
+(`args: ["keda", "helm", ...]`); no agent there does git — commit per skill
+after review. Size fan-outs to 20 concurrent subagents and the workflow size
+guideline.
+
+## Files
+
+| File | Load when |
+|---|---|
+| `references/improve-loop.md` | running `improve` |
+| `references/quality-rubric.md` | scoring |
+| `references/improvement-patterns.md` | choosing an improvement |
+| `references/freshen-patterns.md` | running `freshen` |
+| `references/trigger-patterns.md` | running `trigger` |
+| `references/floor-patterns.md` | running or reading `floor` |
+| `references/blind-validation.md` | spawning a scorer or comparator |
+| `references/fleet-checks.md` | running or proposing a sweep |
+| `references/backlog-format.md` | writing a target's `improvement-backlog.md` |
+| `references/anthropic-skill-design.md` | scoring Dims 1, 2, 8, 9; frontmatter questions |
+| `references/scripts.md` | choosing a script |
+
+Why a rule exists and when it changed: `references/sources.md`.

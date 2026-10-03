@@ -1,6 +1,6 @@
 # Improvement Patterns Catalog
 
-Common improvements organized by scoring dimension. Each pattern includes the problem, the fix, and a before/after example. Use this as a playbook when deciding what to improve in each iteration.
+Playbook of improvements by scoring dimension: problem, fix, and (where non-obvious) before/after.
 
 ## Table of Contents
 - [Dim 1 — Trigger Precision](#dimension-1-trigger-precision): 1.1 Add specific phrases · 1.2 Fix person · 1.3 Reduce false positives · 1.4 Front-load within listing cap · 1.5 Split description vs when-to-use
@@ -63,9 +63,7 @@ description: This skill should be used when the user asks to "lint Python code",
 
 ### Pattern 1.4: Front-Load Description Within the Listing Cap
 
-**Problem:** Key trigger phrases are buried past the truncation point. The skill listing
-truncates the combined `description` + `when_to_use` at **1,536 chars** on Claude Code
-v2.1.105+ (was 250 prior). If targeting older Claude Code, treat 250 as the cap.
+**Problem:** Key trigger phrases are buried past the truncation point. The listing truncates combined `description` + `when_to_use` at **1,536 chars** (250 on Claude Code before v2.1.105).
 
 **Before:**
 ```yaml
@@ -74,8 +72,6 @@ description: >-
   for managing, configuring, and troubleshooting Docker containers, images,
   Dockerfiles, multi-stage builds, docker-compose setups, and container orchestration.
 ```
-(Preamble delays the real keywords — scan-readability suffers even if characters fit.)
-
 **After:**
 ```yaml
 description: >-
@@ -85,18 +81,13 @@ when_to_use: >-
   "optimize Docker builds", or mentions container orchestration or image layers.
 ```
 
-**Check:** Count characters of combined `description` + `when_to_use`. Verify all critical
-keywords appear early — front-load even within the 1,536 cap, since the dynamic budget
-shrinks descriptions when many skills are installed.
+**Check:** Count combined `description` + `when_to_use` characters; put critical keywords early even within the cap (the dynamic budget shrinks descriptions when many skills are installed).
 
 ### Pattern 1.5: Split Description vs. When-to-Use
 
-**Problem:** The `description` field is stuffed with trigger phrases, example requests,
-and a summary — making the core purpose hard to scan.
+**Problem:** `description` is stuffed with trigger phrases and examples.
 
-**Fix:** Put the *what* in `description`, put trigger phrases and example requests in
-`when_to_use`. They concatenate in the listing, but separating them improves both
-scannability and reusability across skill catalogs.
+**Fix:** *What* in `description`; trigger phrases and example requests in `when_to_use`.
 
 **Before:**
 ```yaml
@@ -117,71 +108,27 @@ when_to_use: Triggers on "lint Python", "run flake8", "configure ruff", "fix lin
 
 **Problem:** SKILL.md exceeds 500 lines with detailed reference material inline.
 
-**Fix:** Move detailed sections to `references/` and replace with a pointer.
-
-**Before (in SKILL.md):**
-```markdown
-## Complete API Reference
-
-### Method: createUser(name, email, role)
-Parameters:
-- name (string, required): ...
-- email (string, required): ...
-[... 2,000 more words of API docs ...]
-```
-
-**After (in SKILL.md):**
+**Fix:** Move detailed sections to `references/`; leave a pointer plus a quick-reference table of the most common items:
 ```markdown
 ## API Reference
-
-For full API documentation including parameters, return types, and error codes, consult **`references/api-reference.md`**.
-
-Quick reference for the most common methods:
+Full docs: **`references/api-reference.md`**.
 
 | Method | Purpose |
 |---|---|
 | `createUser(name, email, role)` | Create a new user |
-| `deleteUser(id)` | Remove a user |
 ```
 
 ### Pattern 2.2: Add Missing Pointers
 
 **Problem:** Reference files exist but SKILL.md never mentions them.
 
-**Fix:** Add an "Additional Resources" section at the end of SKILL.md.
-
-```markdown
-## Additional Resources
-
-### Reference Files
-- **`references/patterns.md`** — Detailed patterns for common scenarios
-- **`references/troubleshooting.md`** — Error resolution guide
-
-### Scripts
-- **`scripts/validate.sh`** — Validate configuration before deployment
-```
+**Fix:** Add an "Additional Resources" section at the end of SKILL.md listing each reference file and script with a one-line purpose.
 
 ### Pattern 2.3: Flatten Nested References
 
-**Problem:** Reference files link to other reference files, creating chains that
-Claude may only partially read.
+**Problem:** Reference files link to other reference files; the agent may read only the head of a middle file and never reach the next.
 
-**Before:**
-```
-SKILL.md → references/overview.md → references/details.md → references/api.md
-```
-Claude may only `head -100` on `details.md` and never reach `api.md`.
-
-**After:**
-```
-SKILL.md → references/overview.md
-SKILL.md → references/details.md
-SKILL.md → references/api.md
-```
-All references linked directly from SKILL.md, one level deep.
-
-**Fix:** Audit reference chains. Move all deep links up to SKILL.md as direct
-references. For files over 100 lines, add a table of contents at the top.
+**Fix:** Link every reference directly from SKILL.md, one level deep (`SKILL.md → overview.md`, `SKILL.md → details.md`, `SKILL.md → api.md`). Add a table of contents to files over 100 lines.
 
 ---
 
@@ -191,27 +138,14 @@ references. For files over 100 lines, add a table of contents at the top.
 
 **Problem:** Body uses "you should", "you need to", "you can".
 
-**Before:**
-```markdown
-You should first read the configuration file. Then you need to validate
-the settings. You can use the grep tool to search for errors.
-```
-
-**After:**
-```markdown
-First, read the configuration file. Validate the settings against the
-schema. Use the grep tool to search for errors.
-```
+**Before:** "You should first read the configuration file. Then you need to validate the settings."
+**After:** "First, read the configuration file. Validate the settings against the schema."
 
 ### Pattern 3.2: Rewrite One-Time Steps as Standing Instructions
 
-**Problem:** Skill content is structured as a sequence of first-turn steps ("first do
-X, then Y") that have no force on later turns. SKILL.md loads once and is not re-read
-— compaction may also drop older invocations.
+**Problem:** Guidance written as first-turn steps ("first do X, then Y") has no force on later turns; SKILL.md loads once and compaction may drop it.
 
-**Fix:** Rewrite guidance that must apply throughout the session as *standing* rules.
-Keep true first-turn setup steps (initialization, fetch) separate from standing
-conventions.
+**Fix:** Write guidance that must apply throughout the session as *standing* rules; keep true first-turn setup (initialization, fetch) separate.
 
 **Before:**
 ```markdown
@@ -231,33 +165,18 @@ conventions.
 - Return type hints on all public functions
 ```
 
-**Why this matters:** After auto-compaction, re-attached skills keep only the first
-5,000 tokens with a combined 25K budget across all skills; older invocations can be
-dropped entirely. Standing-rule phrasing survives context shuffling; numbered-step
-phrasing reads as if the steps are already done.
+**Why:** after auto-compaction re-attached skills keep only the first 5,000 tokens (25K combined budget); standing-rule phrasing survives, numbered steps read as already done.
 
 ### Pattern 3.3: Remove Hedge Language
 
 **Problem:** Unnecessary qualifiers weaken instructions.
 
-**Before:**
-```markdown
-It might be a good idea to perhaps consider checking the logs before
-you try to make any changes to the configuration.
-```
-
-**After:**
-```markdown
-Check the logs before modifying the configuration.
-```
+**Before:** "It might be a good idea to perhaps consider checking the logs before you try to make any changes."
+**After:** "Check the logs before modifying the configuration."
 
 ### Pattern 3.4: Convert Steering-by-Prohibition to Positive Statements
 
-**Problem:** Guidance steers by naming the unwanted behavior ("don't write
-long comments", "avoid nested callbacks"). Negation drags the forbidden
-behavior into context and makes it MORE available, not less — the "don't"
-is a weak modifier on a strongly-activated concept, so the ban half-reads
-as an instruction to do the thing.
+**Problem:** Guidance steers by naming the unwanted behavior ("don't write long comments"); negation keeps the forbidden concept active.
 
 **Fix:** State the target behavior so the banned one is never named.
 
@@ -273,14 +192,7 @@ Write one-line comments that state only what the code cannot show — a
 constraint, an invariant, a non-obvious reason.
 ```
 
-**Guardrail exception:** hard prohibitions for destructive or irreversible
-actions stay — SkillLens found High-Risk Action Blacklists predictive of
-skill utility (rubric §SkillLens Utility Check), and rubric Dim 5 caps
-skills that omit them where risk exists. The two rules compose: keep "do
-NOT" for the blacklist (what must never run and when), and pair each entry
-with the positive alternative ("do NOT `git checkout -- <file>` with
-uncommitted keeps — restore the last kept snapshot instead"). What this
-pattern removes is prohibition as *style steering*, not as a safety rail.
+**Guardrail exception:** hard prohibitions for destructive or irreversible actions stay (rubric §SkillLens Utility Check; rubric Dim 5 caps skills that omit them where risk exists). Keep "do NOT" for the blacklist and pair each entry with the positive alternative ("do NOT `git checkout -- <file>` with uncommitted keeps — restore the last kept snapshot instead"). This pattern removes prohibition as *style steering* only.
 
 ---
 
@@ -323,14 +235,9 @@ Deploy the application to staging:
 
 ### Pattern 4.3: Raise Completion-Criterion Demand
 
-**Problem:** A step's done-condition checks that output exists, not that the
-work is covered. The agent ends the step as soon as anything is produced —
-premature completion — because nothing in the bound forces it to keep digging.
+**Problem:** A step's done-condition checks that output exists, not that the work is covered; the agent stops at the first output.
 
-**Fix:** Where the work has an enumerable scope, bind the step to exhaustive
-coverage: "every X accounted for", not "produce an X list". Demand is a
-separate axis from clarity — both criteria below are checkable; only the
-second forces legwork.
+**Fix:** Where scope is enumerable, bind the step to exhaustive coverage: "every X accounted for", not "produce an X list".
 
 **Before:**
 ```markdown
@@ -368,86 +275,39 @@ altered) — cross-check the list against `grep -c 'TABLE' migration.sql`.
 
 **Problem:** The same information appears in multiple places.
 
-**Two of the three kinds of overlap must NOT be deleted.** Similar text is not
-evidence of redundancy, and this skill's standing bias toward deletion is what
-makes the distinction load-bearing. Classify before cutting:
+**Two of the three overlap kinds must NOT be deleted.** Classify before cutting:
 
 | Verdict | What it looks like | Action |
 |---|---|---|
 | `DUPLICATE` | Repeats the same information with nothing added | Consolidate into one place. The only actionable verdict. |
-| `INTENTIONAL_DETAIL` | A short overview in `SKILL.md`, the development in `references/` | **Keep.** This is progressive disclosure — the structure the skill is supposed to have. |
-| `RELATED_BUT_DISTINCT` | Same topic, different purpose or angle | **Keep.** Both earn their place. |
+| `INTENTIONAL_DETAIL` | A short overview in `SKILL.md`, the development in `references/` | **Keep.** Progressive disclosure. |
+| `RELATED_BUT_DISTINCT` | Same topic, different purpose or angle | **Keep.** |
 
-**This is not a hypothetical guard.** Measured across the whole fleet —
-62 skills analysed (6 exceeded the tool's chunk ceiling), 520 clusters of
-similar content classified:
-
-| verdict | clusters | action |
-|---|---|---|
-| `INTENTIONAL_DETAIL` | 292 | keep |
-| `RELATED_BUT_DISTINCT` | 138 | keep |
-| `DUPLICATE` | **90** | consolidate |
-
-**83% of similar-looking content was correct as written.** Those 430 clusters
-are what a bare similarity score would flag and a deletion bias would cut —
-and cutting them destroys the progressive disclosure that makes a skill
-readable. 23 skills had no duplication at all.
-
-The 90 that are real are why this is a classifier and not a rubber stamp. Worst
-offenders: `autoresearch` (7), `jinja-expert` (6), `keda` (6), `sglang-hicache`
-(5). One was verified by hand: `keda` carries the same six-step triage block in
-`SKILL.md:295-313` and `references/troubleshooting.md:12-27`, differing only in
-placeholder style (`<name>` vs `"$NAME"`). Two independent models agreed on
-keda's count, through different gateways.
+Fleet base rate: 83% of similar-looking clusters were `INTENTIONAL_DETAIL` or `RELATED_BUT_DISTINCT`; a bare similarity score plus deletion bias would cut them.
 
 **Fix (for `DUPLICATE` only):** keep it in one place, prefer the more prominent
 location, delete the other. Pure relocation is one atomic change; relocation
-that rewrites prose is two (SKILL.md §"The split test for atomicity").
+that rewrites prose is two (SKILL.md §"Improve" (one change per iteration)).
 
-**To find candidates** rather than eyeballing them, SkillEvaluator's intra-skill
-pass does the clustering and the classification:
+**To find candidates:**
 
 ```bash
 skillevaluator context-optimization-check <skill-dir>
 ```
 
-It needs both an embeddings provider and a chat model. Two limits worth knowing:
-it bounds pairwise work at `n*(n-1)/2 * vector_dimension <= 25M`, which at
-bge-m3's 1024 dims refuses above ~221 chunks (`skill-improver` is 444), and the classification is one LLM's judgement —
-treat a `DUPLICATE` verdict as a candidate to read, not a mandate to cut.
+Needs an embeddings provider and a chat model. It bounds pairwise work at `n*(n-1)/2 * vector_dimension <= 25M`, which at bge-m3's 1024 dims refuses above ~221 chunks. Treat a `DUPLICATE` verdict as a candidate to read, not a mandate to cut.
 
 ### Pattern 6.2: Cut Defensive Boilerplate
 
-**Problem:** Sections like "Important Notes", "Please Remember", "Disclaimer" that add no instructional value.
+**Problem:** "Important Notes", "Please Remember", "Disclaimer" sections add no instruction.
 
-**Before:**
-```markdown
-## Important Notes
-
-Please note that this skill is provided as-is. Results may vary depending
-on your specific configuration. Always test in a non-production environment
-first. The authors are not responsible for any issues that may arise.
-```
-
-**After:** Delete the entire section.
+**Fix:** Delete the section.
 
 ### Pattern 6.3: Collapse Trivial Examples
 
-**Problem:** Examples that don't add value beyond the instruction.
+**Problem:** Examples that add nothing beyond the instruction.
 
-**Before:**
-```markdown
-Use the `--verbose` flag for detailed output.
-
-Example:
-```bash
-command --verbose
-```
-
-**After:**
-```markdown
-Use `--verbose` for detailed output.
-```
+**Fix:** Collapse ("Use the `--verbose` flag for detailed output." plus a bare `command --verbose` example becomes "Use `--verbose` for detailed output.").
 
 ---
 
@@ -473,52 +333,18 @@ Use `--verbose` for detailed output.
 
 ### Pattern 7.3: Fan-out Cache Discipline
 
-**Problem:** A skill that spawns many same-shape subagents (reviewers,
-scorers, scanners — sometimes hundreds) repeats its invariant instructions in
-every spawn's prompt string. Cross-subagent prompt-cache sharing covers only
-the prefix *before* the prompt string (tools + agent system prompt + project
-context) — there is no cache breakpoint inside the first user message — so
-every agent bills the full instruction block at full input price, when a
-shared prefix would bill it at ~10%.
+**Problem:** A skill spawning many same-shape subagents repeats invariant instructions in every prompt string. Cross-subagent cache sharing covers only the prefix *before* the prompt string, so each agent bills the instruction block at full price instead of ~10%.
 
-**Fix:** Restructure the fleet around the cached prefix
-(per the Claude Code prompt-caching and workflows docs):
+**Fix:**
 
-- Move the invariant instructions into a **custom agent definition**
-  (`.claude/agents/<name>.md`, or the plugin's `agents/` dir) — its body
-  becomes the system prompt, which sits inside the shared cached prefix.
-  Each spawn's prompt carries only the variable tail (target path, finding,
-  query).
-- Keep the fleet uniform on the **six prefix-identity dimensions**: agent
-  type, model, effort, tools, output schema (one schema constant, stable key
-  order), and working directory. Any mismatch forks the cache.
-- `isolation: "worktree"` gives every agent a unique working directory —
-  zero sharing. Reserve it for agents that mutate files; read-only fleets
-  run in the repo.
-- No per-agent decoration early in the prompt ("reviewer 7 of 100",
-  timestamps, run IDs).
-- Spawn same-type agents in one wave (in a **workflow** fan-out Claude Code
-  holds all-but-the-first until the first response begins, then releases the
-  rest onto the warm cache) and keep waves within the subagent cache TTL.
-- **Subagents default to the 5-minute TTL even on a subscription** — the
-  automatic 1-hour TTL applies only to the main conversation (Claude Code
-  prompt-caching docs, verified 2026-09-01). Raise the subagent bucket with
-  `subagentPromptCacheTtl: 1h` (setting or `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`,
-  v2.1.242+) or per agent with frontmatter `experimental.cacheTtl: "1h"`
-  (v2.1.248+; ignored while a subscription is on usage credits). At the
-  default this is the constraint that decides fan-out shape: agents spawned
-  minutes apart share nothing, however identical their prefixes. Two scorers
-  separated by a full improvement loop can never share a cache; the sharing
-  opportunity is *across skills within one wave*, never across phases of one
-  skill.
-- The system prompt embeds **working directory, platform, shell, OS version,
-  and auto-memory paths**, so cwd is part of the prefix by construction — and
-  each git worktree is its own working directory.
-- A **fork** (`context: fork`) is the exception to all of this: it inherits the
-  parent's system prompt, tools, and history exactly, so its first request
-  reads the *parent's* cache rather than warming its own.
-- Background vs foreground does **not** fork the prefix. `run_in_background`
-  changes when the result returns, not the system prompt or tool set.
+- Move invariant instructions into a **custom agent definition** (`.claude/agents/<name>.md`, or plugin `agents/`); its body is the system prompt, inside the shared prefix. Each spawn's prompt carries only the variable tail (target path, finding, query).
+- Keep the fleet uniform on the **six prefix-identity dimensions**: agent type, model, effort, tools, output schema (one schema constant, stable key order), working directory. Any mismatch forks the cache.
+- `isolation: "worktree"` gives each agent a unique cwd — zero sharing. Use only for agents that mutate files; read-only fleets run in the repo. Each git worktree is its own working directory.
+- No per-agent decoration early in the prompt ("reviewer 7 of 100", timestamps, run IDs).
+- Spawn same-type agents in one wave (a **workflow** fan-out holds all-but-the-first until the first response begins, then releases the rest onto the warm cache); keep waves within the subagent cache TTL.
+- **Subagents default to a 5-minute TTL even on a subscription**; the 1-hour TTL applies only to the main conversation. Raise it with `subagentPromptCacheTtl: 1h` (setting or `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`, v2.1.242+) or per agent with frontmatter `experimental.cacheTtl: "1h"` (v2.1.248+; ignored while a subscription is on usage credits). At the default, agents spawned minutes apart share nothing: scorers separated by a full improvement loop never share a cache; share *across skills within one wave*, never across phases of one skill.
+- A **fork** (`context: fork`) inherits the parent's system prompt, tools and history exactly, so its first request reads the *parent's* cache.
+- Background vs foreground does **not** fork the prefix.
 
 **Before (in a workflow script or skill body):**
 ```js
@@ -549,9 +375,7 @@ agent(`Review target: ${file}`, {agentType: 'reviewer'}) // rules live in agents
 ### Pattern 8.3: Co-locate Scattered Concept Material
 
 **Problem:** One concept's definition, rules, and caveats are fragmented
-across sections. Distinct from duplication (Pattern 6.1): duplication repeats
-one meaning in two places; scattering splits one meaning across many, so an
-agent that jumps to one fragment acts on a partial picture.
+across sections. Not duplication (Pattern 6.1): scattering splits one meaning across many places, so an agent that reads one fragment acts on a partial picture.
 
 **Before:**
 ```markdown
@@ -564,8 +388,6 @@ agent that jumps to one fragment acts on a partial picture.
 ## Troubleshooting
 `--foo` with TP>1 corrupts state.
 ```
-(An agent grepping to §Flags recommends `--foo` and never sees the caveats.)
-
 **After:**
 ```markdown
 ## Flags
@@ -573,36 +395,25 @@ agent that jumps to one fragment acts on a partial picture.
 (corrupts state) — use `--bar` there instead.
 ```
 
-**Fix:** For each load-bearing concept (flag, command, config key), gather
-its definition, version gates, and caveats under one heading. Grep the
-concept's name across the skill directory; more than one hit outside its
-home section is the smell.
+**Fix:** Gather each load-bearing concept's (flag, command, config key) definition, version gates and caveats under one heading. Grep its name across the skill directory; more than one hit outside its home section is the smell.
 
 ---
 
 ## Dimension 9: Domain Accuracy
 
-> **Guard:** every Dim 9 mutation needs an online or local-execution source —
-> training-data memory is NOT a source. The skill's claims may postdate the
-> model's knowledge cutoff: a version that "looks too new" is usually correct,
-> and lowering it from memory is the canonical staleness failure. See SKILL.md
-> §"The Skill Outranks Training Data".
+> **Guard:** every Dim 9 mutation needs an online or local-execution source; training-data memory is NOT a source. A version that "looks too new" is usually correct. See SKILL.md §"Rules for every mode" (the skill outranks training data).
 
 ### Pattern 9.1: Update Deprecated APIs
 
 **Problem:** Instructions reference outdated tool versions or deprecated flags.
 
-**Fix:** Verify commands against current documentation — via an online probe
-(`gh`, WebFetch, WebSearch), never from memory — and cite the source. If the
-"current syntax" remembered from training is OLDER than what the skill says,
-the skill is right; do not touch it.
+**Fix:** Verify commands against current documentation via an online probe (`gh`, WebFetch, WebSearch) and cite the source. If remembered syntax is OLDER than the skill's, the skill is right; do not touch it.
 
 ### Pattern 9.2: Fix Incorrect Defaults
 
 **Problem:** Stated default values don't match actual tool behavior.
 
-**Fix:** Test locally or verify online, then correct them. Never "correct" a
-value from memory.
+**Fix:** Test locally or verify online, then correct. Never correct from memory.
 
 ### Pattern 9.3: Add Missing Frontmatter Fields
 
@@ -623,8 +434,7 @@ value from memory.
 - Skill that would benefit from isolation missing `context: fork` (pair with `agent: Explore` or `agent: Plan` for specialized subagent behavior; since v2.1.218 a forked skill runs in the background under the narrower background-subagent tool set — set `background: false` to block the turn and keep the full set)
 - Windows-targeted skill using `` !`command` `` blocks but missing `shell: powershell`
 
-**Check:** Read `references/anthropic-skill-design.md` for the complete field reference.
-For each field, ask: would this skill work better with this field set?
+**Check:** `references/anthropic-skill-design.md` has the complete field reference; for each field ask whether the skill works better with it set.
 
 ### Pattern 9.4: Use ${CLAUDE_SKILL_DIR} for Portable Script References
 
@@ -640,7 +450,6 @@ Run: `python ~/.claude/skills/my-skill/scripts/validate.py`
 Run: `python ${CLAUDE_SKILL_DIR}/scripts/validate.py`
 ```
 
-This works regardless of where the skill is installed (personal, project, plugin).
 
 ### Pattern 9.5: Use Dynamic Context Injection
 
@@ -659,8 +468,7 @@ Recent commits: !`git log --oneline -5`
 Summarize the changes shown above.
 ```
 
-The `` !`command` `` syntax runs before Claude sees the content, injecting live data
-directly into the prompt. Claude receives the result, not the command.
+`` !`command` `` runs before Claude sees the content; Claude receives the result.
 
 ---
 
@@ -674,10 +482,7 @@ directly into the prompt. Claude receives the result, not the command.
 
 ### Pattern 10.1b: Convert Generic Advice into Mechanism + Remedy
 
-**Problem:** Guidance states a goal without the failure mechanism or an
-executable fix. SkillLens (arXiv:2605.23899) found this is the single
-strongest text-level predictor of skill utility — generic-advice skills
-*read* well but underperform (see rubric §SkillLens Utility Check).
+**Problem:** Guidance states a goal without the failure mechanism or an executable fix (rubric §SkillLens Utility Check).
 
 **Before:**
 ```markdown
@@ -692,9 +497,7 @@ result; only write `=FORMULA(...)` strings when the target app will reopen
 the file.
 ```
 
-Each converted claim should name: the failure mechanism (what breaks and
-why), the remedy (what to do instead, executable as written), and — where
-the operation is risky — the blacklisted action ("do NOT ...").
+Each converted claim names the failure mechanism, the executable remedy, and (where risky) the blacklisted action ("do NOT ...").
 
 ### Pattern 10.2: Add Decision Trees
 

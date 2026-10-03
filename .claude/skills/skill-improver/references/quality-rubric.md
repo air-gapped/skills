@@ -40,32 +40,19 @@ When scoring, consider:
 | 7–8 | Third-person, specific trigger phrases covering core use cases, few gaps |
 | 9–10 | Comprehensive trigger phrases, correct person, covers edge triggers, no false positives likely |
 
-**Platform constraint:** Claude Code truncates combined `description` + `when_to_use` at **1,536 characters** in the skill listing (raised from 250 in v2.1.105, 2026-04-13). The Agent Skills spec hard-caps `description` at 1024 chars. Descriptions shorten further when many skills are installed, via a dynamic budget (1% of context window, 8,000-char fallback; override with `SLASH_COMMAND_TOOL_CHAR_BUDGET`). Key trigger phrases MUST appear within the first 1,536 chars. For skills targeting older Claude Code (< v2.1.105), treat 250 as the cap.
+**Platform constraint:** Claude Code truncates combined `description` + `when_to_use` at **1,536 characters** in the skill listing (250 for Claude Code < v2.1.105). The Agent Skills spec hard-caps `description` at 1024 chars. Many installed skills shrink it further (budget: 1% of context window, 8,000-char fallback; override `SLASH_COMMAND_TOOL_CHAR_BUDGET`). Key trigger phrases MUST appear within the first 1,536 chars.
 
 **Common failures:**
-- Second person: "You can use this when..." instead of "This skill should be used
-  when..." (imperative "Use this skill when..." is acceptable — it is the form
-  Anthropic's own skill-creator description optimizer emits; see trigger-patterns.md)
+- Second person ("You can use this when...") instead of "This skill should be used when..." (imperative "Use this skill when..." is acceptable; see trigger-patterns.md)
 - Vague: "Provides guidance for X" with no trigger phrases
-- Over-broad: Triggers on common words that would cause false positives
-- Under-specified: Misses the most common ways users phrase the request
-- Key triggers buried past character 1,536 (lost to truncation)
+- Over-broad: triggers on common words (false positives)
+- Under-specified: misses the common ways users phrase the request
+- Key triggers buried past character 1,536
 - `description` stuffed with trigger phrases that belong in `when_to_use` (separate field, concatenated in the listing)
 
-**Check method:** Mentally test 5 realistic user prompts. Would this description trigger? Then test 3 unrelated prompts. Would it falsely trigger? Also verify the first 1,536 chars of combined `description` + `when_to_use` contain the most important trigger keywords. Use `head -c 1536` to check.
+**Check method:** Mentally test 5 realistic user prompts (would it trigger?), then 3 unrelated prompts (would it falsely trigger?). Verify the first 1,536 chars of combined `description` + `when_to_use` hold the most important trigger keywords. Use `head -c 1536`.
 
-**Invocation-fit check (run before scoring the wording):** A description is
-permanent context load — every installed skill's description sits in the
-context on every turn, fired or not. So the first question is not "is the
-description good?" but "should this skill model-trigger at all?" A skill the
-user only ever fires by hand (`/name` — task skills, personal pipelines,
-anything whose backlog or git history shows exclusively slash invocations)
-should carry `disable-model-invocation: true`: its description leaves the
-always-loaded listing entirely, and the trigger wording becomes moot. When
-that fits, recommend it as the single highest-impact Dim 1 improvement and
-score Dim 1 on the human-facing one-liner instead of trigger coverage. This
-check applies at creation time too, not only when retrofitting — the cheapest
-description is the one that never loads.
+**Invocation-fit check (run before scoring the wording):** Every installed skill's description loads into context on every turn. First ask whether the skill should model-trigger at all. A skill the user only fires by hand (`/name` — task skills, personal pipelines, anything whose backlog or git history shows exclusively slash invocations) should carry `disable-model-invocation: true`: its description leaves the always-loaded listing and the trigger wording becomes moot. When that fits, recommend it as the single highest-impact Dim 1 improvement and score Dim 1 on the human-facing one-liner instead of trigger coverage. Applies at creation time too.
 
 ---
 
@@ -81,23 +68,15 @@ description is the one that never loads.
 | 7–8 | SKILL.md is lean (150–300 lines), detailed content in references/, clear pointers |
 | 9–10 | SKILL.md is focused (<150 lines), excellent separation, every resource explicitly referenced with clear guidance on when to load |
 
-**Stated as an imperative, not enforced:** "Keep your main `SKILL.md` under 500
-lines" — agentskills.io/specification, echoed by Anthropic's best-practices page
-("under 500 lines for optimal performance") and the Claude Code skills docs. No
-validator checks it: `skills-ref validate` covers frontmatter only. The same page
-hedges the companion figure — "Instructions (< 5000 tokens *recommended*)". The 3-level loading system: metadata (~100 tokens at startup) →
-SKILL.md body (when triggered) → bundled files (on demand).
+The 500-line figure is a recommendation (agentskills.io, Anthropic best-practices), not validated by `skills-ref validate`. Loading levels: metadata (~100 tokens at startup) → SKILL.md body (when triggered) → bundled files (on demand).
 
-**Reference depth rule:** Keep file references **one level deep** from SKILL.md.
-Claude may partially read files referenced from other referenced files (using
-`head -100` previews). For reference files over 100 lines, include a table of
-contents at the top.
+**Reference depth rule:** Keep file references **one level deep** from SKILL.md (Claude may only partially read files referenced from other references). Reference files over 100 lines need a table of contents at the top.
 
 **Common failures:**
 - Entire API reference dumped into SKILL.md body
 - References exist but SKILL.md never mentions them
-- References are too granular (10 tiny files) or too monolithic (one 10k-word file)
-- Nested reference chains (SKILL.md → A.md → B.md) where Claude only partially reads B.md
+- References too granular (10 tiny files) or too monolithic (one 10k-word file)
+- Nested reference chains (SKILL.md → A.md → B.md)
 
 ---
 
@@ -133,13 +112,7 @@ contents at the top.
 | 7–8 | Clear step-by-step with specific commands, paths, and expected outcomes |
 | 9–10 | Every instruction is unambiguous, includes validation steps, handles decision points, and ends on completion criteria that are both checkable AND exhaustive |
 
-**Completion-criterion demand:** a step's done-condition has two properties —
-*clarity* (can the agent tell done from not-done?) and *demand* (how much the
-bound requires). "Produce a change list" is checkable but undemanding; "every
-modified flag accounted for" forces the agent to keep digging until the bound
-is met. Undemanding criteria invite premature completion — the agent ends the
-step as soon as any output exists. The 9–10 band requires exhaustive bounds
-("every X handled", "all Y verified") wherever the work has an enumerable scope.
+**Completion-criterion demand:** a done-condition needs *clarity* (agent can tell done from not-done) and *demand* (how much the bound requires). "Produce a change list" is checkable but undemanding and invites premature completion; "every modified flag accounted for" forces the agent to keep going. The 9–10 band requires exhaustive bounds ("every X handled", "all Y verified") wherever the work has an enumerable scope.
 
 **Common failures:**
 - "Configure the settings as needed" — which settings? What values?
@@ -167,7 +140,7 @@ step as soon as any output exists. The 9–10 band requires exhaustive bounds
 
 ## Dimension 6: Simplicity (0–10)
 
-**What:** Whether the skill achieves its goals with minimal complexity. Inspired by autoresearch: deleting code for equal results is a win.
+**What:** Whether the skill achieves its goals with minimal complexity. Deleting text for equal results is a win.
 
 | Score | Criteria |
 |---|---|
@@ -181,8 +154,8 @@ step as soon as any output exists. The 9–10 band requires exhaustive bounds
 
 **Common failures:**
 - Saying the same thing three different ways
-- Examples that don't add value beyond what the instructions already convey
-- Defensive caveats and disclaimers that Claude doesn't need
+- Examples that add nothing beyond the instructions
+- Defensive caveats and disclaimers Claude doesn't need
 - Metadata/boilerplate that serves no function
 
 ---
@@ -218,16 +191,11 @@ step as soon as any output exists. The 9–10 band requires exhaustive bounds
 
 **Check method:**
 - Every file mentioned in SKILL.md exists
-- Terminology is consistent (don't call it "config" in one place and "settings" in another)
+- Terminology is consistent ("config" vs "settings")
 - Instructions don't contradict each other
 - File references from SKILL.md are one level deep (no A→B→C chains)
 - All frontmatter fields are valid per the Agent Skills spec
-- Each concept's material is co-located: definition, rules, and caveats under
-  one heading. Scattering is distinct from duplication — duplication repeats
-  one meaning in two places; scattering fragments one meaning across many, so
-  an agent reading one fragment acts on a partial picture (e.g. a flag defined
-  in §Flags, version-gated in §Compatibility, and warned-about in
-  §Troubleshooting — an agent landing on §Flags recommends it blind)
+- Each concept's material is co-located: definition, rules, and caveats under one heading. Scattering (one meaning fragmented across many places, so an agent reading one fragment acts on a partial picture — e.g. a flag defined in §Flags, version-gated in §Compatibility, warned-about in §Troubleshooting) is distinct from duplication (one meaning repeated).
 
 ---
 
@@ -243,42 +211,15 @@ step as soon as any output exists. The 9–10 band requires exhaustive bounds
 | 7–8 | Accurate and current, reflects real APIs/tools/workflows |
 | 9–10 | Authoritative — could serve as reference documentation |
 
-**Check method:** Verify key claims against actual tool behavior, API docs, or current
-best practices. **Verification means online probes, local execution, or `sources.md`
-stamps — never the scorer's training-data memory.** Skills here are freshened
-continuously, so factual claims (versions, dates, model names, flags) often postdate
-the model's knowledge cutoff; a claim covered by a recent `Last verified:` stamp
-outranks the prior. Never score a claim down — and never recommend reverting it to
-an older value — from memory alone; flag it for an online probe (freshen mode)
-instead. A version that "looks too new" is usually correct; the urge to lower it is
-the canonical training-data-staleness failure.
-Also check: does the skill use appropriate frontmatter fields? A skill
-scoped to specific file types should use `paths:`. A task skill with side effects
-should use `disable-model-invocation: true`. Scripts referencing the skill directory
-should use `${CLAUDE_SKILL_DIR}`. See `references/anthropic-skill-design.md` for the
-complete frontmatter reference.
+**Check method:** Verify key claims against actual tool behavior, API docs, or current best practices. **Verification means online probes, local execution, or `sources.md` stamps — never the scorer's training-data memory.** Factual claims (versions, dates, model names, flags) often postdate the model's cutoff; a claim covered by a recent `Last verified:` stamp outranks the prior. Never score a claim down, and never recommend reverting it to an older value, from memory alone; flag it for an online probe (freshen mode). A version that "looks too new" is usually correct.
+
+Also check frontmatter fields: a skill scoped to specific file types should use `paths:`; a task skill with side effects should use `disable-model-invocation: true`; scripts referencing the skill directory should use `${CLAUDE_SKILL_DIR}`. See `references/anthropic-skill-design.md` for the frontmatter reference.
 
 **Hard-fail validation (spec violations cap Dim 9 at 3):**
 
-Verify the skill would pass `skills-ref validate`. Any of these failures is a
-spec violation that makes the skill non-conformant — `skills-ref` would reject it.
+Verify the skill would pass `skills-ref validate`. Any failure below is a spec violation.
 
-**The frontmatter block must first PARSE as YAML.** Check this before scoring
-any field, because a block that does not parse makes every other check
-meaningless: Claude Code loads the skill with **every field dropped** — `name`
-falls back to the directory name, `description` to the first line of the body,
-and `allowed-tools`, `model`, and `disable-model-invocation` silently stop
-applying. Nothing warns at normal verbosity, and the file still *reads*
-correctly, so a scorer eyeballing it sees a healthy description and scores Dim 1
-on text the loader already threw away.
-
-Regex extraction cannot see this — `rg '^description:'` matches a broken block
-exactly as well as a valid one. That is not hypothetical: this rubric's own
-quick-check snippet and `frontmatter-lengths.py` were both regex-only until
-2026-08-20, and printed clean, confident numbers for two skills whose
-frontmatter had not parsed for months. Run the script (it now parse-gates first)
-rather than grepping. The usual cause is an unquoted value containing `': '`;
-the fix is a block scalar (`description: >-` with the value indented beneath).
+**The frontmatter block must first PARSE as YAML.** Check this before scoring any field. A block that does not parse makes Claude Code load the skill with **every field dropped** (`name` falls back to the directory name, `description` to the first line of the body, `allowed-tools`, `model`, `disable-model-invocation` stop applying) with no warning, and the file still *reads* correctly. Regex extraction cannot see this (`rg '^description:'` matches a broken block as well as a valid one). Run the script, which parse-gates first, rather than grepping. Usual cause: an unquoted value containing `': '`; fix: a block scalar (`description: >-` with the value indented beneath).
 
 `name:` must:
 - Be 1–64 characters, only `[a-z0-9-]`
@@ -293,15 +234,13 @@ the fix is a block scalar (`description: >-` with the value indented beneath).
 - Be ≤ 1024 characters
 - NOT contain XML tags
 
-Quick check — `frontmatter-lengths.py` covers the parse gate and both length
-caps in one call, and exits non-zero on a violation:
+Quick check — `frontmatter-lengths.py` covers the parse gate and both length caps, and exits non-zero on a violation:
 
 ```bash
 python3 <skill-improver>/scripts/frontmatter-lengths.py <skill>/SKILL.md
 ```
 
-Name-rule check (regex is adequate here ONLY because the parse gate above has
-already passed):
+Name-rule check (regex is adequate here ONLY because the parse gate has already passed):
 
 ```bash
 # Extract name
@@ -314,19 +253,13 @@ name=$(rg '^name:\s*(.+)$' SKILL.md -o -r '$1' | tr -d '"' | tr -d "'" | xargs)
   && echo OK || echo FAIL
 ```
 
-Any hard fail → cap Dim 9 at 3 and surface the specific violation in the
-justification. `freshen` mode will not fix these — author must rename or
-edit the frontmatter.
+Any hard fail → cap Dim 9 at 3 and surface the specific violation in the justification. `freshen` mode will not fix these — the author must rename or edit the frontmatter.
 
 **Staleness cap (sources.md dates):**
 
-When `references/sources.md` exists, cap Dim 9 on the date it was last
-verified. Read that date in this order:
+When `references/sources.md` exists, cap Dim 9 on the date it was last verified. Read that date in this order:
 
-1. **`Freshened: YYYY-MM-DD` header stamp** — the current contract
-   (`freshen-patterns.md` §1.1b). One stamp asserting every row was verified
-   on that date, except rows carrying an inline exception note. Age it exactly
-   as you would a per-row date.
+1. **`Freshened: YYYY-MM-DD` header stamp** — the current contract (`freshen-patterns.md` §1.1b). One stamp asserts every row was verified on that date, except rows with an inline exception note. Age it as a per-row date.
 2. **Per-row `Last verified:` dates** — legacy. Use the **oldest**.
 
 | Age of that date | Max Dim 9 |
@@ -337,19 +270,9 @@ verified. Read that date in this order:
 | Neither a header stamp nor `Last verified:` markers | 6 |
 | `references/sources.md` absent | 6 |
 
-**A header stamp with no per-row column is on the current contract, not
-unmarked.** Do not read it as "no markers" — that caps a skill at 6 on the day
-it was freshened, which is the opposite of what the cap is for. Two blind
-scorers split on exactly this on 2026-08-22: one declined the cap and scored
-Dim 9 8, the other applied it and scored 6, on byte-identical input.
-`staleness-report.py` already resolves the stamp first and prints `full` in its
-`rows` column for these files; the rubric now matches it.
+**A header stamp with no per-row column is on the current contract, not unmarked.** Do not read it as "no markers" (that caps a freshly freshened skill at 6). `staleness-report.py` resolves the stamp first and prints `full` in its `rows` column for these files.
 
-Tolerance (legacy files only): if ≥ 80% of rows have `Last verified:` dates, use
-the oldest dated row; if < 80% have dates, treat the file as lacking markers. Rows marked
-`<!-- ignore-freshen -->` (historical/pinned sources the author keeps as-is,
-e.g. unfetchable social posts already quoted in the skill) are excluded from
-the cap computation entirely.
+Tolerance (legacy files only): if ≥ 80% of rows have `Last verified:` dates, use the oldest dated row; if < 80% have dates, treat the file as lacking markers. Rows marked `<!-- ignore-freshen -->` (historical/pinned sources the author keeps as-is) are excluded from the cap computation entirely.
 
 Quick check:
 
@@ -360,13 +283,9 @@ rg -m1 '^\*{0,2}Freshened:?\*{0,2}\s*(\d{4}-\d{2}-\d{2})' -o -r '$1' references/
      | rg '^\|.*\| (\d{4}-\d{2}-\d{2}) \|' -o -r '$1' | sort | head -1
 ```
 
-Running only the second command on a header-stamped file prints nothing, which
-reads as "no markers" and fires the 6-cap on a freshly verified skill.
+Running only the second command on a header-stamped file prints nothing, which reads as "no markers" and wrongly fires the 6-cap.
 
-When the cap triggers, record a justification like "Dim 9 capped at 7 —
-oldest sources.md date is 2025-12-02 (139 days old)" and recommend running
-`freshen <skill>` as the improvement path, since score-loop mutations cannot
-resolve staleness without online probes.
+When the cap triggers, record a justification like "Dim 9 capped at 7 — oldest sources.md date is 2025-12-02 (139 days old)" and recommend `freshen <skill>` as the improvement path; score-loop mutations cannot resolve staleness without online probes.
 
 ---
 
@@ -388,50 +307,15 @@ resolve staleness without online probes.
 
 ## Boris Alignment Check (cross-cutting caps)
 
-Diagnostic patterns originally drawn from Boris Cherny (creator of Claude Code,
-Anthropic; Lenny's podcast 2026) and since confirmed in first-party writing by
-Thariq Shihipar, *"The new rules of context engineering for Claude 5 generation
-models"* (2026-07-24) — which reports **over 80% of Claude Code's system prompt
-removed for Opus 5 / Fable 5 with no measurable loss on coding evals**, and names
-all three patterns below as superseded practice. **Cite the blog, never the
-podcast.** The X row that once carried the podcast attribution was read through
-a browser on 2026-08-20 — the `402` had been the fetcher, not the page — and it
-turned out to be a third-party post about token-waste patterns containing none
-of the claims attributed to it (`sources.md`, row marked MISATTRIBUTED). The
-blog is first-party and carries all three patterns plus the measured cost
-evidence below, so nothing here rests on the bad citation; but the podcast
-origin itself is now **unverified**, and no rule may be justified by it alone.
+Diagnostic patterns from Boris Cherny, confirmed first-party by Thariq Shihipar, *"The new rules of context engineering for Claude 5 generation models"* (2026-07-24), which names all three patterns below as superseded practice. **Cite the blog, never the podcast** (podcast origin unverified; no rule may be justified by it alone).
 
-The cost of *not* lifting these caps is measured, first-party, and stated to
-apply to skills. From *Optimizing for cost and intelligence* (Anthropic,
-re-read 2026-08-19), on a support-desk evaluation:
+Cost of *not* lifting these caps (from *Optimizing for cost and intelligence*, Anthropic; applies to skills too):
 
-- Prompts written for Opus 4.8 cost **36% more per ticket** on Opus 5 **for no
-  change in accuracy** — text that compensated for an older model is pure
-  overhead on a newer one, which is the decay these caps predict, priced.
-- Auditing the same prompts against the current model made Opus 5 both
-  **14% cheaper than unaudited and more accurate** (97% of tickets, up from
-  92%). The Sonnet 4.6 → Sonnet 5 migration: **14% off at equal accuracy**.
-- The two kinds of stale text fail differently. Over-obeyed instructions cost
-  **money**: removing "verify twice" cut cost per ticket **by a third**, and
-  "be maximally thorough" nearly as much. Broken or conflicting scaffolding
-  costs **accuracy**: a retired thinking setting, contradictory rules, and a
-  hand-rolled scratchpad that fights the model's own thinking each restored
-  **7-11 accuracy points** on Opus 5 when removed.
-- The page says the patterns "appear in tool descriptions and skills, and are
-  worth removing there too" — so this is evidence about this rubric's subject
-  matter, not an analogy borrowed from prompt engineering.
+- Prompts written for an older model cost **36% more per ticket** on the newer one with no accuracy change; auditing them made it **14% cheaper and more accurate**.
+- Over-obeyed instructions cost money ("verify twice", "be maximally thorough"); broken or conflicting scaffolding (retired thinking setting, contradictory rules, hand-rolled scratchpad) costs accuracy.
+- "Verify twice" is Dim 6 scaffolding; a prompt carrying an older model's workarounds is the compensation cap below.
 
-Read that against the cap table: "verify twice" is Dim 6 scaffolding, the
-hand-rolled scratchpad is scaffolding that fights the grain, and a prompt
-carrying an older model's workarounds is the compensation cap exactly. The
-caps are not a style preference — an uncapped skill of this shape is
-measurably slower, dearer, and less accurate on the model it runs on today.
-
-These do NOT add an 11th dimension — they cap existing dims when triggered, the
-same way the Dim 9 staleness cap works. The bitter lesson applied to skills:
-skills that fight the model's grain or compensate for current-model limits decay
-across releases.
+These do NOT add an 11th dimension — they cap existing dims when triggered, like the Dim 9 staleness cap. Skills that fight the model's grain or compensate for current-model limits decay across releases.
 
 | Pattern | Detection | Cap |
 |---|---|---|
@@ -439,66 +323,21 @@ across releases.
 | **Model-version compensation** — skill contains language like "Claude tends to X, always remind it Y" or version-specific workarounds for behaviour that may be fixed in newer releases | Compensation-language probe below finds 3+ matches. | **Dim 9 (Domain Accuracy) capped at 7** |
 | **Goal + tool pointer** (pro-pattern, no cap) | Skill body is short imperative goal + reference to a tool/file/script. Reward signal — flag in justification, no scoring impact beyond the dim its presence helps. | (none) |
 
-Compensation-language probe (kept outside the table — `|` inside a table cell
-must be written `\|`, and that escaped form is a valid regex that silently
-matches nothing, so a pasted-from-table command reports a clean skill):
+Compensation-language probe (kept outside the table — a `\|` pasted from a table cell is a valid regex that matches nothing):
 
 ```bash
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
 ```
 
-First-party tooling now targets the same pattern: Claude Code v2.1.221 added a
-`prompt-audit` subcommand to the bundled `claude-api` skill, which audits
-prompts **and tool descriptions** for "patterns written for older models".
-Run it alongside the regex — it is free hypothesis supply for this cap, and it
-reads the same text the cap scores.
+Also run the `prompt-audit` subcommand of the bundled `claude-api` skill (Claude Code v2.1.221+); it audits prompts and tool descriptions for patterns written for older models and supplies hypotheses for this cap.
 
-### Procedural steps — advisory signal, NO cap (withdrawn 2026-08-20)
+### Procedural steps — advisory signal, NO cap
 
-**There is no step-count cap.** A "≥ 8 scaffold items → Dim 6 capped at 6" rule
-was carried here and is withdrawn: it had no source, and it contradicted the
-evidence it cited.
+**There is no step-count cap. Do not re-introduce a count-based cap without a source that states one.** No source gives a numeric step threshold; Anthropic guidance recommends explicit sequential steps when operations are fragile, consistency matters, or order is load-bearing; SkillLens found surface format non-predictive.
 
-What the sources actually say, checked 2026-08-20:
+Judge procedure by fit, not count. A long sequence is correct where the operation is fragile, consistency matters, or order is load-bearing; it is waste where the model would reach the same steps unaided. Record that judgement in the Dim 6 justification, never as an automatic cap.
 
-- **No first-party or peer-reviewed source gives a numeric threshold** for
-  numbered or procedural steps in a skill. Not the platform best-practices doc,
-  not the two claude.com blog posts, not SkillLens, not agentskills.io. The 8
-  was inherited from a naive `rg -c '^\s*\d+\. '` detector and never
-  revisited when that detector was replaced.
-- **Anthropic's guidance points the other way.** *"Set appropriate degrees of
-  freedom. Match the level of specificity to the task's fragility and
-  variability."* Low freedom — explicit sequential steps — is the RECOMMENDED
-  shape when *"operations are fragile and error-prone / consistency is critical
-  / a specific sequence must be followed."* The same doc says *"Use workflows
-  for complex tasks. Break complex operations into clear, sequential steps"*,
-  with no ceiling, and its own worked examples run 4–6 steps.
-  [best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
-- **SkillLens measured this property as non-predictive.** Rewriting one skill
-  into different surface formats yielded *statistically indistinguishable*
-  downstream gains (p > 0.34). Its three validated predictors —
-  Failure Mechanism Encoding, Actionable Specificity, High-Risk Action
-  Blacklist — are content properties. **None is a count.**
-- Capping on a step count therefore contradicted this rubric's own
-  §"Format-only hypotheses are low expected value", which cites the same paper.
-
-**What replaces it.** Judge procedure by fit, not by count. A long sequence is
-correct where the operation is fragile, consistency matters, or order is
-load-bearing; it is waste where the model would reach the same steps unaided.
-That is a judgement, and the rubric records it as one — in the Dim 6
-justification, never as an automatic cap.
-
-`scripts/scaffold-probe.py` still classifies items (scaffold / criterion /
-branch) and remains useful for *finding* candidate bloat — read its list, then
-decide. It no longer sets a score. Its classification insight stands on its own:
-criteria and branches encode judgment the model cannot infer, and Delba de
-Oliveira's verification-loops post makes the case directly — *"Reject any
-migration that drops a column without a backfill step" is a deterministic rule
-no generic linter will catch but a project-specific one will.* Penalising a
-skill for writing those down was always the inversion; the fix is to stop
-penalising steps at all, not to count them more cleverly.
-
-**Do not re-introduce a count-based cap without a source that states one.**
+`scripts/scaffold-probe.py` classifies items (scaffold / criterion / branch) to *find* candidate bloat. Read its list, then decide; it sets no score. Criteria and branches encode judgment the model cannot infer; never penalise a skill for writing them down.
 
 When a Boris cap triggers, record the justification like:
 > "Dim 4 capped at 7 — §Background front-loads 60 lines of protocol facts
@@ -507,69 +346,32 @@ When a Boris cap triggers, record the justification like:
 
 ### Induced cost — what the skill costs to OBEY
 
-Every cap above measures the skill's **text**. Dim 2 counts lines, and a lean
-line count is satisfied by a 90-line skill that says "read every
-reference before starting", fans out subagents with no ceiling, and pins
-`effort: xhigh`. That skill is cheap to load and expensive to run, and nothing
-in this rubric currently sees the difference.
-
-`scripts/induced-cost-probe.py [SKILL.md] [--refs]` reports four triggers.
-All four are **structural** — none asks whether prose "feels wasteful," which
-is the judgment SkillLens clocked at 46.4%, worse than chance:
+The caps above measure the skill's **text**. A 90-line skill can still be expensive to run. `scripts/induced-cost-probe.py [SKILL.md] [--refs]` reports four **structural** triggers (never judge whether prose "feels wasteful"):
 
 | Trigger | Detection | Why it costs |
 |---|---|---|
 | `effort-pin` | frontmatter `effort:` at high/xhigh/max on a skill with 2+ modes | Overrides the session on *every* invocation, including the cheap modes the skill itself defines. |
 | `eager-read` | "read all/every/each reference" with no conditional scoping it | Pays for the whole reference set on a run that needed one file. Point-of-use phrasing ("read each reference at its question") is the fix, and the probe stays quiet on it. |
 | `uncapped-fanout` | a spawn imperative with no agent-count cap **anywhere in the skill** | An unbounded fan-out is unbounded spend. The cap is looked for skill-wide, so stating it once in SKILL.md covers the reference files carrying the spawn tails. |
-| `over-obedience` | "verify twice", "be maximally thorough", "investigate fully even when it looks simple" | The priced one: removing "verify twice" cut cost per ticket **by a third** with no accuracy change, and the source says these patterns apply to skills. |
+| `over-obedience` | "verify twice", "be maximally thorough", "investigate fully even when it looks simple" | Removing "verify twice" cut cost per ticket by a third with no accuracy change. |
 
-**Cap: Dim 6 (Simplicity) capped at 6** when any trigger fires. As with the
-other caps, a triggered skill may still be right — record the dismissal reason
-rather than silently ignoring it, the way the `effort: xhigh` ruling is
-dismissed in the backlog.
+**Cap: Dim 6 (Simplicity) capped at 6** when any trigger fires. A triggered skill may still be right: record the dismissal reason rather than silently ignoring it.
 
-**The cap is two-sided, and this half is not optional.** Leaner is not
-automatically cheaper. A skill trimmed until it is vague makes the agent flail,
-re-deriving from scratch what the text used to state, and that costs more than
-the lines saved. **Dim 5 (Completeness) is the brake**: an induced-cost hit
-never justifies a cut that drops scope the description promises. Fix the
-trigger — scope the read, state the cap, delete the over-obedience clause —
-not the length. The probe has no "too short" trigger by design.
-
-Measured on this fleet (68 skills, `--refs`): **3 fire**. An earlier, looser
-version fired on 4 of 6 skills it was tested against, mostly on prose that
-*quoted* these patterns while discussing them; it was narrowed until it
-separated mention from use. `--selftest` asserts each trigger fires on its own
-shape and stays quiet on the near-miss that shares its vocabulary — run it
-after any change to the patterns.
+**The cap is two-sided.** A skill trimmed until vague makes the agent flail, which costs more than the lines saved. **Dim 5 (Completeness) is the brake**: an induced-cost hit never justifies a cut that drops scope the description promises. Fix the trigger (scope the read, state the cap, delete the over-obedience clause), not the length. The probe has no "too short" trigger by design. Run `--selftest` after any change to the probe's patterns.
 
 ---
 
-The improvement loop should prefer hypotheses that lift Boris caps over
-those that lift uncapped dims of the same magnitude — capped dims are
-*structural* problems (rot fast across releases) while uncapped ones
-are usually *cosmetic*.
+Prefer hypotheses that lift Boris caps over those that lift uncapped dims of the same magnitude: capped dims are *structural* problems, uncapped ones usually *cosmetic*.
 
 ---
 
 ## SkillLens Utility Check (cross-cutting, evidence-based)
 
-From Microsoft's SkillLens study (arXiv:2605.23899, 2026-05): an LLM judge
-scoring skill *text* picked the higher-utility skill only 46.4% of the time
-(random), and on the largest-gap pairs only 15.8% — **the skill that reads
-better is often the one that performs worse**. Plausibility dimensions
-(clarity, conciseness, structure, formatting, tone) carried no predictive
-signal; skill *format* (list vs prose vs checklist) was statistically
-non-significant on every tested target. Only three text properties predicted
-downstream utility (better-rates 64–66%):
+An LLM judge scoring skill *text* picks the higher-utility skill only 46.4% of the time (random); **the skill that reads better is often the one that performs worse**. Clarity, conciseness, structure, formatting, tone and format (list vs prose vs checklist) carry no predictive signal. Only three text properties predict downstream utility:
 
-1. **Failure Mechanism Encoding** — names concrete failure mechanisms with
-   executable remedies, not generic advice.
+1. **Failure Mechanism Encoding** — names concrete failure mechanisms with executable remedies, not generic advice.
 2. **Actionable Specificity** — commands, values, decision points (≈ Dim 4).
 3. **High-Risk Action Blacklist** — names what NOT to do and when.
-
-Scoring consequences (same mechanism as the Boris caps):
 
 | Pattern | Detection | Effect |
 |---|---|---|
@@ -577,29 +379,15 @@ Scoring consequences (same mechanism as the Boris caps):
 | **No high-risk blacklist where risk exists** — skill covers an operation with known destructive/irreversible failure modes but never says what NOT to do | Check whether "do NOT", "never", or an anti-patterns section exists for the risky operations in scope | **Dim 5 capped at 8** |
 | **Mechanism + remedy density** (pro-pattern) | Failure modes named with executable fixes throughout | Reward signal — note in justification |
 
-Guard for scorers: do not reward fluency. A skill scoring high on Dims 3/6/8
-with a generic-advice body is the SkillLens inversion case — the caps above
-exist to catch it. Format-only differences (list vs prose) are noise;
-never justify a score delta on format alone.
+Do not reward fluency: a skill scoring high on Dims 3/6/8 with a generic-advice body is the inversion case these caps catch. Never justify a score delta on format alone.
 
 ---
 
 ## Negative-Transfer Gate (Dim 10 cap, evidence-based)
 
-SkillLens (arXiv:2605.23899) measured skills against a no-skill baseline and
-found they help in only **75% of extractor-target pairs — 25% are net-harmful**,
-with the worst domain at **47% negative** ("ALFWorld is the most fragile").
-A skill is not neutral-to-positive by default. Roughly one in four makes the
-agent *worse* at the task it was written for.
+Skills help in only 75% of extractor-target pairs; 25% are net-harmful. Dim 10's test ("if deleted, would Claude produce noticeably worse results?") is this measurement, so Dim 10 is capped by what has been measured, not intuition.
 
-Dim 10's own test — "if this skill were deleted, would Claude produce noticeably
-worse results?" — is precisely this measurement. Scorers currently answer it from
-intuition, which is the judgment SkillLens clocked at 46.4% (worse than chance).
-So Dim 10 is capped by what has actually been measured:
-
-Every row below is against a **noise floor of `1/n_cases`** — the delta produced
-by a single eval case flipping. Take the floor and the verdict from
-`scripts/eval-evidence.py`; do not eyeball the sign.
+Every row is against a **noise floor of `1/n_cases`** (the delta from one eval case flipping). Take the floor and verdict from `scripts/eval-evidence.py`; do not eyeball the sign.
 
 | Evidence | Max Dim 10 |
 |---|---|
@@ -609,31 +397,13 @@ by a single eval case flipping. Take the floor and the verdict from
 | `delta_pass_rate ≥ +floor` | no cap — score on the evidence |
 | Never measured | **8** — "essential" (9–10) is a claim about outcomes, not text |
 
-**Why the band is asymmetric.** Clearing the cap takes `+floor`; firing the
-harmful verdict takes twice that. Calling a skill harmful is the expensive
-error — it gets rewritten or deleted on the strength of that number — while a
-false "unresolved" only withholds a 9 or 10. NVIDIA's published Skill Lift band
-(+0.05 pass, −0.10 fail) is asymmetric in the same direction, for the same
-reason; the floor here is measured from the corpus instead of fixed, because a
-constant is too tight at 8 cases and far too loose at 3.
+The band is asymmetric because calling a skill harmful is the expensive error; clearing the cap takes `+floor`, the harmful verdict takes twice that.
 
-**"Inside the band" is not "roughly neutral."** It means the corpus cannot
-answer the question. At the fleet median of 3 cases the floor is 0.33 — almost
-nothing resolves. The fix is more cases (`scripts/grow-evals.py`, floor of 8),
-never a more generous reading of the same number.
+**"Inside the band" means the corpus cannot answer the question**, not "roughly neutral". At the fleet median of 3 cases the floor is 0.33. Fix: more cases (`scripts/grow-evals.py`, floor of 8), never a more generous reading.
 
-**Several measurements: the worst governs.** Per-model and per-case-subset runs
-are not replicates and cannot be averaged. The gate asks whether the skill is
-*shown* to be essential, so a measurement that fails to show it counts against
-the claim.
+**Several measurements: the worst governs.** Per-model and per-case-subset runs are not replicates; do not average them.
 
-The unmeasured cap is the one that binds most often, and it is deliberate: a
-9–10 on Dim 10 asserts the skill "fundamentally changes Claude's capability",
-which no amount of reading the text can establish.
-
-**How to measure it.** Do NOT build a harness — the official `skill-creator`
-plugin already runs each eval case with and without the skill and computes the
-delta:
+**How to measure it.** Do NOT build a harness — the official `skill-creator` plugin runs each eval case with and without the skill:
 
 ```bash
 # after skill-creator has produced with_skill/ and without_skill/ runs
@@ -642,76 +412,31 @@ python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name
 # -> benchmark.json carries delta_pass_rate, delta_time, delta_tokens
 ```
 
-Requires the target to have `evals/evals.json`. A skill with no eval set cannot
-clear the unmeasured cap — that is a finding, not an obstacle: log it as an Open
-backlog item with action "build an eval set, then measure delta_pass_rate".
+Requires the target to have `evals/evals.json`. A skill with no eval set cannot clear the unmeasured cap: log an Open backlog item with action "build an eval set, then measure delta_pass_rate".
 
-**An errored case is not a failed case.** Before reading any delta, check that
-every case in `benchmark.json` actually ran. A case that crashed, timed out, or
-came back ungraded measured nothing — counting it as a failure manufactures a
-negative delta, and silently dropping it changes the denominator between the
-with-skill and without-skill arms so the two are no longer comparable. Re-run
-the errored cases. If they cannot be made to run, the delta is **unmeasured**
-and the 8 cap applies: partial evidence does not clear a gate that exists
-precisely because unmeasured skills look fine. This bites hardest at small
-corpus sizes — at the fleet median of 3 cases, one errored case is a third of
-the evidence (`scripts/grow-evals.py`, floor of 8).
+**An errored case is not a failed case.** Before reading any delta, check every case in `benchmark.json` ran. A crashed, timed-out or ungraded case measured nothing: counting it as a failure manufactures a negative delta; dropping it changes the denominator between arms. Re-run errored cases. If they cannot be made to run, the delta is **unmeasured** and the 8 cap applies.
 
-**A negative delta is not automatically a delete.** Check the analyst pass first
-— a skill can lose on `pass_rate` while winning on tokens or time, and a single
-flaky eval can invert a small delta. Confirm the sign is stable across runs
-before acting on it. But do not round a negative delta up to "roughly neutral":
-the whole point of the gate is that this failure mode is common and invisible to
-text scoring.
+**A negative delta is not automatically a delete.** Check the analyst pass (a skill can lose on `pass_rate` while winning on tokens or time; a flaky eval can invert a small delta) and confirm the sign is stable across runs. Do not round a negative delta up to "roughly neutral".
 
 ### The cost side of the same benchmark
 
-`benchmark.json` carries `delta_tokens` next to `delta_pass_rate`. It is what
-splits the old flat `≈ 0` row: a skill that changes no outcome while adding
-context is not merely non-discriminating, it is a **pure tax** — a harder
-finding than the gate used to produce, and one grounded in measurement rather
-than a line count.
+`benchmark.json` carries `delta_tokens` next to `delta_pass_rate`. A skill that changes no outcome while adding context is a **pure tax** (the 3 row above).
 
-`≈ 0` means **inside run-to-run variance**, not literally zero: compare the
-delta against the per-config `pass_rate.stddev` that `benchmark.json` already
-reports. A delta smaller than the baseline's own spread is noise.
+`≈ 0` means **inside run-to-run variance**: compare the delta against the per-config `pass_rate.stddev` in `benchmark.json`; a delta smaller than the baseline's spread is noise.
 
-Three things about that number have to be checked before it is used, because
-all three are quiet:
+Check before using the number:
 
-- **Sign convention.** The delta is `configs[0] - configs[1]` over the config
-  directories in **alphabetical** order. `with_skill` sorts before
-  `without_skill` (`_` < `o`), so positive means *the skill costs more*. That
-  is an accident of naming, not a guarantee — confirm the two config
-  directory names before reading a sign.
-- **It may not be tokens.** `tokens` is read from `timing.json`, but only when
-  `grading.json` carries no timing of its own; otherwise it silently falls back
-  to `execution_metrics.output_chars`. In the common case the field is
-  characters. Both configs are measured the same way, so the **sign is sound**
-  — the magnitude is not tokens unless you have confirmed the source.
-- **The deltas are strings.** `"+0.12"`, `"+1840"` — formatted, not numeric.
-  Parse them; do not compare them as they come.
+- **Sign convention.** The delta is `configs[0] - configs[1]` over config directories in **alphabetical** order. `with_skill` sorts before `without_skill`, so positive means *the skill costs more*. Confirm the two directory names before reading a sign.
+- **It may not be tokens.** `tokens` comes from `timing.json` only when `grading.json` carries no timing; otherwise it falls back to `execution_metrics.output_chars`. Both configs are measured the same way, so the sign is sound; the magnitude is not tokens unless the source is confirmed.
+- **The deltas are strings** (`"+0.12"`, `"+1840"`). Parse them.
 
-A **positive** `delta_pass_rate` with a large positive `delta_tokens` is not a
-cap. The skill earned its cost; report the cost alongside the win and let the
-reader decide. Only the `≈ 0` case converts cost into a ceiling.
+A **positive** `delta_pass_rate` with a large positive `delta_tokens` is not a cap: report the cost alongside the win. Only the `≈ 0` case converts cost into a ceiling.
 
-**No cost dimension, ever.** The obvious move — an 11th dimension scoring
-cheapness — is wrong twice: the rubric total is a scalar sum, so a cost term
-makes the loop trade quality for cost at an exchange rate nobody chose, and an
-empty skill scores 10 on it. Cost enters as caps and gates only. Dim 5 remains
-the brake on length; this is the brake on length that bought nothing.
+**No cost dimension, ever.** No 11th dimension scoring cheapness (the scalar sum would trade quality for cost at an arbitrary rate; an empty skill scores 10). Cost enters as caps and gates only.
 
 ### Floor evidence moves the unmeasured cap
 
-`delta_pass_rate` is scarce — it needs an eval set, and most skills have none.
-Floor mode (`scripts/knowledge-floor.py`) supplies a cheaper measurement that
-needs no eval set: it asks a bare model, with no skills and no tools, what it
-already knows about the skill's subject, and buckets each claim KNOWS /
-UNKNOWN / CONFLICTS. That is still not an outcome measurement, but it is a
-measurement, and it beats the intuition the unmeasured cap exists to distrust.
-
-So when floor data exists for the skill, it replaces the flat `8`:
+Floor mode (`scripts/knowledge-floor.py`) asks a bare model (no skills, no tools) what it already knows about the skill's subject and buckets each claim KNOWS / UNKNOWN / CONFLICTS. When floor data exists for the skill, it replaces the flat `8`:
 
 | Floor evidence (strongest probed tier) | Max Dim 10 |
 |---|---|
@@ -720,32 +445,13 @@ So when floor data exists for the skill, it replaces the flat `8`:
 | Mixed (some KNOWS, no durable conflict) | 8 — unchanged |
 | Floor ≥80% KNOWS **and** zero CONFLICTS | **5** — the model already carries it; report as a deletion candidate |
 
-Rules for reading that table:
+- **`delta_pass_rate` still wins.** Floor only moves the *unmeasured* cap; a measured delta of any sign overrides every row.
+- **A partial floor run moves nothing.** Read `scored` / `unmeasured` before the share: a claim whose probe failed or came back `UNGRADED` was not measured. Compute the share over graded claims only. `NO SCORE` (nothing graded) leaves the flat `8`. Failure must never score better than success.
+- **10 is unreachable from floor alone.** Only a positive measured delta clears 9.
+- **Durable conflict beats high floor** when both apply (profile 3 below).
+- **No floor data → the flat `8` stands.** Do not infer a floor from reading the text.
 
-- **`delta_pass_rate` still wins.** Floor only moves the *unmeasured* cap. A
-  measured delta of any sign overrides every row here.
-- **A partial floor run moves nothing.** Read `scored` / `unmeasured` before
-  the share: a claim whose probe failed or came back `UNGRADED` was not
-  measured, and a share computed over the full claim set instead of the graded
-  one understates the floor. `NO SCORE` — nothing graded — leaves the flat `8`
-  in place. Note which row this protects: a totally failed run used to produce
-  a 0% floor, and 0% is the "every claim is real transfer" row, so the probe
-  breaking *raised* the cap to 9. Failure must never score better than success.
-- **10 is still unreachable from floor alone.** Recall is not application: a
-  model can state a flag correctly and never think to use it mid-task. Only a
-  positive measured delta clears 9.
-- **Durable conflict beats high floor** when both apply — that is profile 3
-  below, and it is the case a leanness number gets backwards.
-- **No floor data → the flat `8` stands.** Do not infer a floor from reading
-  the text; run the probe or take the cap.
-
-**Durable means it survives on a peer tier, not a weaker one.** Measured on
-this fleet: of 17 opus CONFLICTS on the 8 skills also probed on fable, 12
-conflicted on fable too. Of 31 opus CONFLICTS across all 68 skills probed on
-haiku, only 3 conflicted there — because 26 of them came back UNKNOWN. The
-weak tier has no confident wrong prior to override, so its silence is not
-evidence the conflict was transient. Check durability against a frontier-class
-sibling; a downgrade tier cannot falsify a conflict.
+**Durable means it survives on a peer tier, not a weaker one.** Check durability against a frontier-class sibling; a downgrade tier cannot falsify a conflict (it returns UNKNOWN where it has no confident prior).
 
 ### Three profiles — a floor number alone mis-ranks one of them
 
@@ -755,15 +461,7 @@ sibling; a downgrade tier cannot falsify a conflict.
 | low | any | **pure transfer** | nothing to trim; the skill is the only source |
 | high | durable | **correction skill** | make it **louder**, not leaner |
 
-Profile 3 is why leanness cannot be scored from the floor percentage. A skill
-whose subject the model mostly knows, but gets confidently wrong in a few
-places, looks like the leanest thing on the leaderboard and is the one whose
-corrections most need emphasis — front-loaded, stated as a contradiction of the
-common belief, not buried as one bullet among the parts the model already had
-right. Measured examples of profile 3 on this fleet: `ubuntu-netplan` (13/15
-known, 2 conflicts) and `keda` (10/12 known, 1 conflict). Both sit at the top
-of the floor leaderboard next to `makefile-best-practices` (10/10, zero
-conflicts) — which is profile 1 and the opposite recommendation.
+Leanness cannot be scored from the floor percentage: a correction skill (model mostly knows the subject, gets a few things confidently wrong) needs its corrections front-loaded and stated as a contradiction of the common belief, not buried among the parts the model already had right.
 
 ## Scoring Template
 

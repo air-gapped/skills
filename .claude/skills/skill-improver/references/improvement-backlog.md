@@ -253,6 +253,17 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   68–86. Whether it survives on skills closer together in quality — the case
   that actually matters for batch ranking — is untested, and n=3 is thin.
 
+- **(2026-10-03) Outcome evals cover Claude Code only.** `scripts/outcome-eval.py`
+  drives `claude plugin eval`, so every outcome number is Claude Code plus a
+  Claude model. Several skill users run other harnesses (Codex, OpenCode) and
+  other models, where skill loading, tool names and instruction-following
+  differ. **Blocked on:** an operator decision on which harnesses and models
+  must pass, and a runner that executes the same `evals/evals.json` cases
+  outside Claude Code (headless OpenCode against an OpenAI-compatible endpoint
+  is the nearest existing path — the `opencode-ci-harness` skill). Unblocks
+  when both exist: add a `--harness` option that reuses the case conversion and
+  scoring and reports one column per harness.
+
 ## Resolved — 2026-09-23d (Auto mode; philosophy removed)
 
 Backtest on the 2026-09-22 fleet freshen (frozen clone at f3e4fc5, 10 skills, 5 changed / 5 quiet): history-only rules 5/10, with upstream version check 10/10.

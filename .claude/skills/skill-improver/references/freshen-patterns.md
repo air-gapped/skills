@@ -1,8 +1,6 @@
 # Freshen Patterns — Reference Extraction & Staleness Probes
 
-Heuristics for the Freshen Mode in `SKILL.md`. Covers reference extraction
-from skill content, probe templates per reference type, classification
-rules, commit format, and rate-limit handling.
+Heuristics for Freshen Mode in `SKILL.md`: reference extraction, probe templates, classification, commit format, rate limits.
 
 ## Table of Contents
 - [Freshen Mode Workflow](#freshen-mode-workflow)
@@ -15,10 +13,7 @@ rules, commit format, and rate-limit handling.
 
 ## Freshen Mode Workflow
 
-Probe a skill's external references for staleness and apply verified updates
-in place. Shares the keep/discard loop with the improvement mode but sources
-hypotheses from online evidence (release notes, doc commits, deprecation
-signals) rather than rubric scores.
+Probe a skill's external references for staleness; apply verified updates in place. Same keep/discard loop as improvement mode, but hypotheses come from online evidence, not rubric scores.
 
 ### Invocation
 
@@ -26,97 +21,56 @@ signals) rather than rubric scores.
 - `freshen --all` — every skill returned by `scripts/scan-skills.sh`
 - `freshen --group <glob>` — subset, e.g., `vllm-*`
 
-Freshen defaults to **apply** — the loop commits verified updates. For a
-read-only staleness readout, use Standalone Evaluation (Dim 9 reflects
-`references/sources.md` freshness automatically).
+Freshen defaults to **apply**. For a read-only readout use Standalone Evaluation (Dim 9 reflects `references/sources.md` freshness).
 
 ### Phase F0: Setup
 
 1. Read the target skill directory (SKILL.md + `references/`).
-2. Review the ref-extraction heuristics (§1) and probe templates (§2) below.
+2. Review §1 and §2 below.
 3. Snapshot: `SNAP=$(mktemp -d -t <skill-name>-freshen-baseline.XXXX) && cp -a <skill-dir>/. "$SNAP"`.
 4. Open a findings log: `id | ref | skill-says | current | classification | action`.
 
 ### Phase F1: Extract References
 
-Precedence (extractors in §1 below):
+Precedence:
 
 1. `references/sources.md` rows — authoritative refs with prior `Last verified` / `Pinned` markers.
 2. SKILL.md + other reference-file scan — URLs, `owner/repo` patterns, CLI names with versions, semver strings, API paths, dated claims.
-3. **The frontmatter `description` and `when_to_use`** — scan these explicitly, not
-   as part of the step-2 body sweep. They are the most-read and least-reviewed
-   lines in a skill, load on every trigger check, and routinely carry bare
-   factual claims.
+3. **The frontmatter `description` and `when_to_use`** — scan explicitly, not as part of the step-2 sweep; they carry bare factual claims.
 4. Deduplicate (normalize URLs, collapse owner/repo variants).
 
-**A bare count in a description has nothing to age against.** "31 flag values",
-"29 built-in parsers", "98 tools" read as definitions rather than measurements,
-so nothing about them looks dated and no probe touches them — a freshen pass
-probes `sources.md` rows, and a number in the description is not one. Sweep for
-them directly: `\b[0-9]{2,3}\+? (flag|parser|tool|scaler|endpoint|model|metric|
-value)s?\b` over every description. Then either attach a version ("30 on current
-vLLM, 31 through v0.27.x") or make it an explicit lower bound ("40+"), which
-survives growth and fails only on removal.
+**Bare counts in a description have nothing to age against** ("31 flag values", "98 tools"): no probe touches them. Sweep: `\b[0-9]{2,3}\+? (flag|parser|tool|scaler|endpoint|model|metric|value)s?\b` over every description. Then attach a version ("30 on current vLLM, 31 through v0.27.x") or make it an explicit lower bound ("40+").
 
-(2026-09-15: a fleet sweep of 70 descriptions found five carrying counts. Two
-were wrong — both had been correct when written and had been superseded by
-upstream removals and additions the skill's own `sources.md` already recorded
-that same day. The bodies were right; only the descriptions were stale.)
-
-If the target skill has no `sources.md`, create one in Phase F6 from the extracted set so future freshens have a baseline.
+If the target has no `sources.md`, create one in Phase F6 from the extracted set.
 
 ### Phase F2: Probe — everything, batched
 
-A pass verifies **every ref**, so that the single stamp written in F6 is
-true. **Delegate the sweep to cheap subagents — do not run probes in the
-main context.** Spawn in one background wave, then spend main-context turns
-only on judgment and mutations when findings return:
+A pass verifies **every ref**, so the F6 stamp is true. **Delegate the sweep to cheap subagents — never run probes in the main context.** Spawn one background wave; spend main-context turns only on judgment and mutations:
 
-- **`web-searcher`** (cheap tier; has Bash/gh/WebFetch **and full browser control** — so it, not the main context, is what retries a bot-blocked row per §2.4) — one per skill:
+- **`web-searcher`** (cheap tier; has Bash/gh/WebFetch and full browser control, so it retries bot-blocked rows per §2.4) — one per skill:
   "Verify every row of `<skill>/references/sources.md`: bulk-curl the URLs,
   batch issue/PR states via one GraphQL query per repo, check latest
   releases against the versions the rows claim. Return ONLY a findings
   table: `ref | ok|drifted|gone|blocked | evidence`, nothing else."
-- **`Explore`** (read-only, has Bash) — local-clone checks: file paths,
-  tags, symbols cited by rows, against `~/projects/github.com/<org>/<repo>`.
+- **`Explore`** (read-only, has Bash) — local-clone checks: file paths, tags, symbols cited by rows, against `~/projects/github.com/<org>/<repo>`.
 
-The probes themselves batch, which is what makes full verification cheap:
+Batch the probes:
 
 - URL rows → ONE bulk liveness sweep (`xargs -P 8 curl -sL -w '%{http_code}'`)
 - issue/PR state rows → ONE GraphQL query per repo (aliased `issueOrPullRequest` fragments)
-- repo file/tag/symbol rows → local clone under `~/projects/github.com/` (`git cat-file -e`, `git grep`), free and unlimited
+- repo file/tag/symbol rows → local clone under `~/projects/github.com/` (`git cat-file -e`, `git grep`)
 - version rows → one release-API call per project
 
-Only rows the batch flags (non-200, state changed, path gone, version moved)
-get individual attention — that judgment work is the real cost, and it only
-scales with *drift*, not with row count. Per-ref, run the cheapest applicable
-probe first (templates in §2 below).
+Give individual attention only to rows the batch flags (non-200, state changed, path gone, version moved). Per ref, run the cheapest applicable probe first (§2).
 
-Stop early only on rate-limit (§5). A stopped pass does NOT update the stamp
-— the previous stamp stands, and the summary says why.
+Stop early only on rate-limit (§5). A stopped pass does NOT update the stamp; the summary says why.
 
-**Recency filter — when the last pass was under 7 days ago.** A full sweep of
-a file freshened three days ago mostly re-reads specs that change on a scale
-of quarters. Re-probe only the row kinds that can actually move in a week:
-changelogs, release tags and versions, pinned commits, package-registry
-rows, and launch/announcement pages. Leave documentation, specification,
-paper, and standards rows unprobed.
+**Recency filter — last pass under 7 days ago.** Re-probe only row kinds that move within a week: changelogs, release tags and versions, pinned commits, package-registry rows, launch/announcement pages. Leave documentation, specification, paper and standards rows unprobed. A filtered pass must **not stamp**:
 
-The filter buys cost, and it is paid for by **not stamping**: a filtered pass
-verified some rows, so it must not claim it verified all of them.
+- Header-stamp files (`Freshened: <date>`): the old stamp **stands**.
+- Legacy per-row files (`Last verified` column): restamp **only rows actually probed**. Never touch a skipped row.
 
-- Header-stamp files (`Freshened: <date>`): the old stamp **stands**. This is
-  the same rule a rate-limited pass follows, for the same reason — the stamp
-  means "every row, on this date", and a narrow pass did not do that.
-- Legacy per-row files (`Last verified` column): restamp **only rows actually
-  probed**. Never touch a row you skipped.
-
-Restamping an unprobed row is the one move that must never happen. Dim 9's
-staleness cap reads that date and trusts it, so a restamp on unverified
-content does not merely lose information — it silently disarms the cap that
-exists to catch exactly this, and the skill then scores as fresh forever.
-Say in the summary that the pass was filtered and which kinds were skipped;
-a filtered pass that reads as a full one is worse than no pass at all.
+Restamping an unprobed row disarms Dim 9's staleness cap. State in the summary that the pass was filtered and which kinds were skipped.
 
 ### Phase F3: Classify
 
@@ -129,139 +83,33 @@ a filtered pass that reads as a full one is worse than no pass at all.
 | `broken` | Hypothesis: update or remove the ref |
 | `unverifiable` | Leave unchanged; note the ambiguity in the log. **Gated — see below.** |
 
-Only drift, deprecation, new-feature, and broken produce mutation hypotheses.
+Only drift, deprecation, new-feature and broken produce mutation hypotheses.
 
-**Re-run every ABSENCE claim, and re-run it against the snapshot it names.** A row
-saying "zero hits for X", "not documented", "no such flag before vN" is the only
-kind that can be **false from birth and stay invisible**. A present claim that
-goes stale contradicts something checkable; an absence that was wrong reads
-exactly like an absence that is right, forever, until someone re-runs the exact
-check. Nothing else in the file degrades that way, which is what makes these the
-highest-value rows in a pass, not the version pins.
+**Re-run every ABSENCE claim ("zero hits for X", "not documented", "no such flag before vN") against the snapshot it names.** An absence that was wrong never contradicts anything checkable; only a re-run catches it. When a row names a snapshot, probe **the snapshot**, not the branch tip: current-`main` evidence cannot separate "wrong then" from "changed since", and those want different fixes.
 
-Measured 2026-09-15: a row recorded two doc-absence greps over a pinned docs
-snapshot. Re-grepping *that snapshot* — not current `main` — one term matched two
-files, and the commit introducing them was an ancestor of the pin. The claim had
-been false on the day it was written. It had survived because the row invited a
-re-grep and no pass had spent the thirty seconds.
+**Tag ancestry answers "did this COMMIT ship", not "did this FIX ship".** On a project that backports, the fix reaches an older patch release as a *different commit*, so `compare <tag>...<merge-sha>` reports `diverged` while the fix is in the tag. Ancestry is authoritative for a commit; release notes are authoritative for an attribution. When they disagree the project backports and both are true about different things — say which question you asked. Use the notes when the project maintains parallel stable lines.
 
-So: when a row names a snapshot, probe **the snapshot**, not the branch tip.
-Current-`main` evidence cannot distinguish "the claim was wrong then" from
-"the world changed since", and those want different fixes.
+**Gate on `unverifiable`: name the probe that failed.** The class means probes ran and came back ambiguous, not that two documents look like they disagree. Before logging it, state in the findings log which probe was run and what it returned. If that sentence cannot be written, the finding is **unverified** and the pass is not done. Two cheap probes:
+- **Sibling test** — for a claim about one item in a set that shipped together, check the siblings (a change that hit `/verify` but not `/run` localizes mechanically).
+- **Re-read the primary for scope** — an official doc vs official blog "conflict" is usually a scope mismatch (human workflow vs agent behaviour). Check both talk about the same actor.
 
-**Tag ancestry answers "did this COMMIT ship", not "did this FIX ship".** Use it
-against the merge-date trap — but know its blind spot: on a project that
-backports, the fix reaches an older patch release as a *different commit*, so
-`compare <tag>...<merge-sha>` reports `diverged` and the fix is in that tag
-anyway. A false negative, and a confident one.
+**A release note describing a default change is a summary, not the code.** "Raised X from A to B" flattens conditional logic (e.g. a new device tier added above an unchanged branch). Diff the defining branch across the tags on either side (`git show <tag>:<path>`) before writing the number down.
 
-Measured 2026-09-15 on a chart tool that maintains two major lines: a pull
-request's merge commit is not an ancestor of the patch release whose own notes
-credit that pull request by number — while the release that *does* contain the
-commit never mentions it. The two methods disagree in both directions at once.
+**A reported "current HEAD" is a different ref, not a fresher reading of the tag.** Delegated probes answer at whatever ref they checked out. Record the ref beside every line number and re-measure at the tag before writing it into a tag-pinned file: `git show <tag>:<path> | grep -n '^def <symbol>'`, or the contents API with `?ref=<tag>`. Put the file's line count next to the anchor.
 
-So: ancestry is authoritative for a commit, and the release notes are
-authoritative for an attribution. When they disagree, the project backports, and
-**both answers are true about different things**. Say which question you asked.
-Reach for the notes whenever the project maintains parallel stable lines.
+**An absence claim that licensed an inference is the expensive kind.** When a row says a source does not exist (e.g. "upstream publishes no support matrix"), check the source before trusting anything derived from it. Treat "we infer X because upstream publishes nothing" as a defect report, not a method; 404-pattern inference of version windows does not hold up.
 
-**Gate on `unverifiable`: name the probe that failed.** The class means *probes
-were run and came back ambiguous* — not *two documents look like they disagree*.
-Reading sources and finding tension is the trigger for probing, not a substitute
-for it. Before logging `unverifiable`, state in the findings log which probe was
-run and what it returned. If that sentence cannot be written, the finding is
-**unverified** and the pass is not done.
+**Read a published lifecycle date; never compute one.** Take support-window dates from the vendor's lifecycle page or endoflife.date, not from release-tag arithmetic (the vendor clock usually starts from a docs release date that trails the tag). When a date falls inside the next 60 days, say so in days.
 
-Two probes are nearly always available and cheap:
-- **Sibling test** — if a claim concerns one item in a set that shipped together,
-  check the siblings. A behaviour change that hit `/verify` but not `/run`
-  localizes the change mechanically. (2026-07-24: settled a `/verify` chaining
-  question in one command after it had been logged `unverifiable`.)
-- **Re-read the primary for scope** — apparent contradictions between an official
-  doc and an official blog are usually a scope mismatch, where one passage
-  describes human workflow and another describes agent behaviour. Check whether
-  the two are even talking about the same actor before declaring a conflict.
-
-**A release note describing a default change is a summary, not the code.** "Raised
-X from A to B" is written for humans reading a changelog, and it flattens
-conditional logic. Read the branch that sets the default before writing the
-number down.
-
-Measured 2026-09-15: a note read "raised `max_num_batched_tokens` from 8192 to
-16384". The code added a *new device tier* above the existing branch — the
-largest GPUs now default to 16384 while the previously-documented class still
-defaults to 8192, unchanged. Both readings of the note are actionable and wrong
-in opposite directions: an operator on the unchanged class re-plans a batch size
-that never moved, and one on the new tier misses that their default doubled
-without a flag change. Diff the defining branch across the tags on either side
-(`git show <tag>:<path>`), not the changelog entry.
-
-**A reported "current HEAD" is a different ref, not a fresher reading of the
-tag.** Delegated probes answer at whatever ref they checked out, and they
-usually say so — "at current tip", "on main", "at HEAD". Those numbers then land
-in a file whose other rows are tag-pinned, where they read as tag measurements
-and nothing marks them as otherwise. Record the ref beside every line number,
-and re-measure at the tag before writing it down.
-
-Measured 2026-09-15, twice in one pass, both times on numbers the reporting
-agent had labelled correctly and the *writer* mislabelled: one file gained
-anchors 60+ lines past their true position at the named tag, another 23 lines
-past. Both point a reader at unrelated code, which is worse than no anchor,
-and neither is detectable later — a wrong line number looks exactly like a
-right one. Cheap guard: `git show <tag>:<path> | grep -n '^def <symbol>'`, or
-the contents API with an explicit `?ref=<tag>`, and put the file's line count
-next to the anchor so the next reader can tell which ref they are holding.
-
-**An absence claim that licensed an inference is the expensive kind.** A plain
-absence claim ("no matrix is published") is wrong on its own. One that made the
-file *derive* values instead is wrong plus everything derived from it — and the
-derivations look like findings, so they attract no suspicion.
-
-Measured 2026-09-15 on two registry files that each said upstream published no
-Kubernetes support matrix. Both were false; both upstreams had published one all
-along. The difference was what each file did next. One guessed a floor and
-happened to guess right, so nothing ever contradicted it and every pass
-re-derived the same guess. The other inferred whole version windows from which
-documentation pages 404, and **four of those windows were wrong** — a floor, a
-ceiling and two OpenShift ranges. The 404 rule had also quietly stopped
-discriminating: recent minors 404 alongside old ones, so the signal it rested on
-was gone.
-
-So when a row says a source does not exist, check the source before trusting
-anything downstream of it, and treat "we infer X because upstream publishes
-nothing" as a defect report rather than a method. **A stale number eventually
-contradicts something; a wrong inference never does.**
-
-**Read a published lifecycle date; never compute one.** Support windows are
-quoted as a duration ("18 months from release"), which invites arithmetic on the
-release tag. The vendor's own clock usually starts from a *docs* release date
-that trails the tag. Measured 2026-09-15: a tag-derived table ran about a month
-early on every one of five minors, and on the oldest that turned a version with
-39 days of support left into one that read as already expired — retiring a live
-migration source. Take the date from the vendor's lifecycle page or
-endoflife.date, and when a date falls inside the next 60 days, say so in days.
-
-**Re-test an inherited `unverifiable` flag; never carry it forward.** A row
-annotated "blocked — read manually" or "verify in browser" stops being probed,
-so a wrong claim resting on it survives every later pass. Re-run the escalation
-each time: curl, then bare curl, then the browser. Delete the flag the moment
-one of them works, and say which did.
-
-A vendor bot-block is the common false positive. (2026-09-15: a row carrying
-"not re-verified — vendor blocks automated reads; read manually" opened first
-try in the browser, and every per-generation figure in the companion reference
-read back identically off the live page. The flag had made the row unfalsifiable
-rather than unverified.) The same pass found six documentation URLs returning
-`429` to curl even probed one at a time, all of which loaded normally in a
-browser at their cited addresses.
+**Re-test an inherited `unverifiable` flag; never carry it forward.** A row annotated "blocked — read manually" or "verify in browser" stops being probed. Re-run the escalation each pass: curl, then bare curl, then the browser. Delete the flag the moment one works, and say which did. Vendor bot-blocks and `429` to curl are common false positives that load fine in a browser.
 
 ### Phase F4: Mutate (One Finding at a Time)
 
-Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Write the finding into the skill as the current rule and action. The verifying source URL, issue numbers, version history and check date go in that finding's `references/sources.md` row; the reasoning goes in the commit message. See `SKILL.md` §"Write for the Agent".
+Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Write the finding into the skill as the current rule and action. The verifying source URL, issue numbers, version history and check date go in that finding's `references/sources.md` row; the reasoning goes in the commit message. See `SKILL.md` §"Rules for every mode" (write for the agent).
 
 ### Phase F5: Accept / Revert
 
-Decision rule (different from score-based loop — verification-based):
+Verification-based decision rule:
 
 - **Verified source + ≤ equal complexity** → KEEP (update `Pinned:`/notes if relevant). Commit per §4 below.
 - **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
@@ -273,67 +121,47 @@ Decision rule (different from score-based loop — verification-based):
 1. Write (or update) ONE line at the top of sources.md:
    `Freshened: <today>` — plus, only if something could not be verified,
    `(exceptions: <n> rows, noted inline)`. Unverifiable rows carry a short
-   inline note ("403 to curl — bot-blocked", "cookie-gated PDF"). That is
-   the entire bookkeeping. Per-row `Last verified` columns are legacy:
-   delete the column when convenient, or leave it — the header stamp is
-   authoritative either way.
-2. If sources.md was absent at Phase F1, create it now from the extracted
-   refs (§1.1b) with today's stamp.
+   inline note ("403 to curl — bot-blocked", "cookie-gated PDF"). Per-row
+   `Last verified` columns are legacy: delete the column or leave it; the
+   header stamp is authoritative.
+2. If sources.md was absent at Phase F1, create it from the extracted refs (§1.1b) with today's stamp.
 3. Print summary: total findings, kept, discarded, exceptions.
 4. Stop. Do not re-probe the same skill in the same session.
 
-**The stamp never lies.** It means "every row was verified on this date,
-except the ones that say otherwise inline." A pass that verified only part
-of the file keeps the old stamp.
+**The stamp never lies.** It means "every row was verified on this date, except the ones that say otherwise inline." A partial pass keeps the old stamp.
 
-**Restamp the table rows, not the file.** A blanket `s/<old date>/<today>/` over a
-sources file is the obvious way to move the per-row column and it is wrong: these
-files also carry dates that are *historical* and must not move —
+**Restamp the table rows, not the file.** No blanket `s/<old date>/<today>/` over a sources file. Never move historical dates:
 
-- the `<!-- Grounding note: authored <date> ... -->` comment, which records when
-  the skill was written, not when it was last checked; and
-- the `## <date> freshen — ...` heading of a previous pass, which titles a section
-  recording *that* pass's findings.
+- the `<!-- Grounding note: authored <date> ... -->` comment;
+- the `## <date> freshen — ...` heading of a previous pass.
 
-Rewriting either one silently backdates this pass's work onto an older record and
-erases when the skill was actually authored. Hit in three files in a single pass
-on 2026-09-15 before being caught and reverted. Anchor the substitution to the
-row shape (`| ... | <date> |`), or replace each row explicitly.
+Anchor the substitution to the row shape (`| ... | <date> |`), or replace each row explicitly.
 
 ### Batch Mode
 
 `freshen --all` iterates skills sequentially:
 
-1. Rank the fleet with `scripts/staleness-report.py` (stalest first; one
-   command, no probes).
-2. Spawn ONE verification subagent per skill (§F2 — `web-searcher` for
-   web/version/issue rows, `Explore` for local-clone rows), all in one
-   background wave. Main context stays free for judgment.
-3. As each agent's findings table returns: apply mutations for drifted rows
-   (cap 5 findings per skill), stamp the header, move on.
-4. Print ranked summary: skill, findings, kept, new stamp date — every
-   skill from step 1 gets a row.
+1. Rank the fleet with `scripts/staleness-report.py` (stalest first; no probes).
+2. Spawn ONE verification subagent per skill (§F2 — `web-searcher` for web/version/issue rows, `Explore` for local-clone rows), all in one background wave.
+3. As each findings table returns: apply mutations for drifted rows (cap 5 findings per skill), stamp the header, move on.
+4. Print ranked summary: skill, findings, kept, new stamp date — every skill from step 1 gets a row.
 
 ### Anti-Patterns
 
 - Do NOT replace concrete guidance with "see release notes" — extract the specific change.
-- Do NOT bump a pinned version without checking the breaking-change section — pins often exist for reasons a diff can't see.
+- Do NOT bump a pinned version without checking the breaking-change section.
 - Do NOT trust a single social-media post — require an authoritative source (official docs, release notes, merged PR, maintainer issue response).
-- Do NOT rewrite content unrelated to a finding — each mutation is scoped to its finding.
+- Do NOT rewrite content unrelated to a finding.
 
 ## 1. Reference Extraction
 
 ### 1.1 Primary: `references/sources.md` rows
 
-Each row carries the source (URL or repo path), what claim it supports, and
-optional `Pinned` (version or git ref). These are the authoritative refs —
-the pass verifies all of them (§F2) and the file's header stamp (§1.1b)
-records when.
+Each row carries the source (URL or repo path), the claim it supports, and optional `Pinned` (version or git ref). The pass verifies all of them (§F2); the header stamp (§1.1b) records when.
 
 ### 1.1b The sources.md contract — ONE stamp, full verification
 
-The whole freshness state of a skill is a single header line at the top of
-sources.md:
+The whole freshness state is a single header line at the top of sources.md:
 
 ```
 Freshened: 2026-08-18
@@ -341,25 +169,14 @@ Freshened: 2026-08-18
 
 (optionally `Freshened: 2026-08-18 (exceptions: 3 rows, noted inline)`).
 
-- The stamp asserts: *every row below was verified on this date*, except
-  rows carrying an inline exception note ("403 to curl — bot-blocked",
-  "cookie-gated PDF, needs a browser").
-- **There is no per-row date column.** Rows carry source, what it supports,
-  and notes — dates in notes are prose, never bookkeeping. Existing
-  `Last verified` columns and `[LV:]` markers are legacy: `ages` reads
-  them as a fallback until the file's next pass, which writes the header
-  stamp and may delete the column outright.
-- No `volatile` tiers, no coverage percentages, no `ignore-freshen`
-  markers needed: a full pass re-confirms immutable rows for free in the
-  batch sweep, and the only special state a row can have is an inline
-  exception note.
-- A partial pass does NOT update the stamp. The stamp never lies.
+- The stamp asserts: *every row below was verified on this date*, except rows carrying an inline exception note ("403 to curl — bot-blocked", "cookie-gated PDF, needs a browser").
+- **No per-row date column.** Rows carry source, what it supports, and notes; dates in notes are prose. Existing `Last verified` columns and `[LV:]` markers are legacy: `ages` reads them as a fallback until the next pass, which writes the header stamp and may delete the column.
+- No `volatile` tiers, coverage percentages or `ignore-freshen` markers: the only special row state is an inline exception note.
+- A partial pass does NOT update the stamp.
 
 ### 1.2 Secondary: SKILL.md and other reference files
 
-Extract from markdown body, code fences, and frontmatter using the
-ripgrep patterns below. Run each pattern against the skill directory and
-collect unique matches.
+Run each pattern against the skill directory; collect unique matches.
 
 | Pattern | ripgrep | Example match |
 |---------|---------|---------------|
@@ -376,14 +193,14 @@ collect unique matches.
 
 ### 1.3 Normalization and dedup
 
-- Strip trailing slashes, URL fragments, and tracking parameters.
-- Collapse GitHub `owner/repo` shorthand with full `https://github.com/owner/repo` URL.
-- Map common version-string variants to a single canonical form (`v2.1.105` ≡ `2.1.105`).
-- Skip refs inside `<!-- ignore-freshen -->` HTML comments — author opted out.
+- Strip trailing slashes, URL fragments, tracking parameters.
+- Collapse GitHub `owner/repo` shorthand with the full URL.
+- Map version-string variants to one canonical form (`v2.1.105` ≡ `2.1.105`).
+- Skip refs inside `<!-- ignore-freshen -->` HTML comments.
 
 ### 1.4 Output structure
 
-Produce a working set of this shape (in memory or scratch file):
+Working set shape:
 
 ```
 ref_id | kind       | location                | skill_says   | last_verified | pinned
@@ -395,8 +212,7 @@ r03    | cli-flag   | references/patterns.md  | --task embed | —             |
 
 ## 2. Probe Templates
 
-Run the cheapest applicable probe first. Stop probing a ref as soon as
-it produces a finding.
+Run the cheapest applicable probe first. Stop probing a ref once it produces a finding.
 
 ### 2.1 GitHub release tags
 
@@ -405,24 +221,11 @@ gh release list <owner>/<repo> --limit 5 --json tagName,publishedAt,isLatest
 gh api /repos/<owner>/<repo>/releases/latest --jq '{tag: .tag_name, published: .published_at}'
 ```
 
-Compare latest `tagName` against the `Pinned` field or skill body version
-strings.
+Compare latest `tagName` against `Pinned` or skill-body version strings.
 
-**Read `isLatest`; never sort by date and never take `[0]`.** Projects that
-maintain parallel lines publish a maintenance patch on an older line *after* a
-newer minor, so the newest-by-date release is routinely not the ceiling.
-(2026-09-15: a hypervisor's `isLatest` was `v1.8.2` while `v1.7.3`, one day
-newer, sat on the 1.7 line; a Kubernetes distro published three lines —
-`v1.34.11`, `v1.35.8`, `v1.36.4` — on a single day.) Report per-line ceilings,
-not one number.
+**Read `isLatest`; never sort by date and never take `[0]`.** Parallel-line projects publish maintenance patches on older lines after a newer minor. Report per-line ceilings, not one number.
 
-**An empty `gh release list` does not mean the project has no tags.** Releases
-and tags are different objects: a repo can tag every version and never create a
-GitHub Release. Check `gh api repos/O/R/tags` before writing any "no
-releases/tags" absence claim. (2026-09-15: a row read "No git tags/releases —
-the version lives in a header file"; `gh release list` was indeed empty, and the
-repo had tags for every version including one newer than the header the row
-quoted.)
+**An empty `gh release list` does not mean no tags.** Check `gh api repos/O/R/tags` before writing any "no releases/tags" absence claim.
 
 ### 2.2 GitHub doc / code churn
 
@@ -431,8 +234,7 @@ gh api "/repos/<owner>/<repo>/commits?path=<doc-path>&since=<last-verified>T00:0
   --jq '.[] | {sha: .sha[0:8], msg: .commit.message | split("\n")[0]}'
 ```
 
-Empty result = still fresh. Non-empty = semantic commit messages (e.g.,
-"docs: describe new --runner flag") flag for review.
+Empty = still fresh. Non-empty = flag semantic commit messages (e.g., "docs: describe new --runner flag") for review.
 
 ### 2.3 Deprecation / breaking-change signals
 
@@ -447,8 +249,7 @@ gh search prs "<api-or-flag-name>" --repo <owner>/<repo> \
 gh search issues "deprecate <api-or-flag-name>" --limit 5
 ```
 
-Require at least one merged PR or closed-with-resolution issue from the
-canonical repo before classifying as `deprecation`.
+Require at least one merged PR or closed-with-resolution issue from the canonical repo before classifying as `deprecation`.
 
 ### 2.4 Live URL check
 
@@ -456,52 +257,23 @@ canonical repo before classifying as `deprecation`.
 WebFetch <url>
 ```
 
-Treat `404`, `410`, or an unexpected redirect to an index / marketing
-page as `broken`. Non-canonical redirects (e.g., `https://` → `https://`
-with trailing slash) are fine.
+`404`, `410`, or an unexpected redirect to an index / marketing page = `broken`. Non-canonical redirects (e.g., trailing slash) are fine.
 
-**A bot-block is not an exception — escalate.** `402`, `403`, and login
-walls mean *this fetcher* was refused, not that the page is unverifiable.
-The block is usually keyed on the **User-Agent**, so escalate in cost order:
+**A bot-block is not an exception — escalate.** `402`, `403` and login walls mean *this fetcher* was refused (User-Agent block), not that the page is unverifiable. Escalate in cost order:
 
 ```bash
 curl -sS -L --max-time 30 "<url>"        # 1. bare curl — no UA flag
 ```
 
-Bare `curl` sends `curl/<version>` and is served normally by sites that
-refuse `Claude-User`. Measured 2026-08-22: `x.com` posts, theatlantic.com
-and newyorker.com all return `200` to bare `curl` and `402`/`403` when the
-same `curl` sends `-A "Claude-User/1.0"`. Do not add a `-A` flag — the
-default UA is the honest one and it is the one that works.
+Do not add a `-A` flag. If curl also fails, retry through the operator's logged-in Chrome session (`mcp__claude-in-chrome__*`: open a NEW tab, `get_page_text`, close it) — delegate to a `web-searcher`. Reserve the exception note for what survives the browser too: paywalls, deleted posts, cookie-gated PDFs.
 
-If curl also fails, retry through the operator's logged-in Chrome session
-(`mcp__claude-in-chrome__*`: open a NEW tab, `get_page_text`, close it) —
-delegate it to a `web-searcher`, which carries those tools. Reserve the
-exception note for what survives the browser too: paywalls, deleted posts,
-cookie-gated PDFs.
-
-**X/Twitter — read posts with the script, not WebFetch.** WebFetch returns
-`402` on every `x.com` URL; curl is served the real page.
+**X/Twitter — read posts with the script, not WebFetch** (WebFetch returns `402` on every `x.com` URL):
 
 ```bash
 scripts/read-x-post.py "https://x.com/<user>/status/<id>"
 ```
 
-Text to stdout, `[notes: N | expanded: N | unexpanded: N]` to stderr. The
-script exists because X truncates twice and both cuts are silent. The
-`og:description` meta tag is hard-capped at **278 chars**, and long posts
-render only their first 278 chars followed by a `Show more` button — so a
-naive tag-strip returns a partial post that *looks* complete. The full text
-is in the page either way: X ships it in a `<script>` payload as
-`__typename:"NoteTweet",text:"..."`, and the script splices it back over the
-truncated render.
-
-Verified 2026-08-22 against all six `x.com` rows in this repo's sources plus
-a `twitter.com` host (needs `-L`, which the script passes): **`unexpanded: 0`
-on every one.** Profile URLs (no `/status/`) work too and return the ~7 most
-recent posts. Escalate to the browser only when stderr reports a non-zero
-`unexpanded` count, or when the timeline you need is older than the profile
-page carries.
+Text to stdout, `[notes: N | expanded: N | unexpanded: N]` to stderr. The script splices the full text (`__typename:"NoteTweet",text:"..."` in a `<script>` payload) over X's silent 278-char truncation. `twitter.com` needs `-L` (the script passes it). Profile URLs (no `/status/`) work too and return the ~7 most recent posts. Escalate to the browser only when stderr reports non-zero `unexpanded`, or the timeline you need is older than the profile page carries.
 
 ### 2.5 Concept / blog post search
 
@@ -512,9 +284,7 @@ WebSearch "<api-name> migration guide"
 WebSearch "site:<official-domain> <topic>"
 ```
 
-Use only when gh probes don't apply (non-GitHub tools, cross-ecosystem
-comparisons). Triangulate — require two independent authoritative
-sources before producing a hypothesis.
+Use only when gh probes don't apply (non-GitHub tools, cross-ecosystem comparisons). Require two independent authoritative sources before producing a hypothesis.
 
 ### 2.6 Package registries
 
@@ -547,20 +317,7 @@ curl -sS https://registry.npmjs.org/<package>/latest | jq '.version'
 
 ### 3.0 A closed issue is not a fixed issue
 
-**`state: CLOSED` — even with `stateReason: COMPLETED` — does not mean the bug
-was fixed.** Inactivity bots close issues and GitHub records the result as
-COMPLETED. Observed 2026-07-21 in two unrelated repos on the same day:
-
-- `sgl-project/sglang` #20184 and #17623 — both CLOSED/COMPLETED, both closed by
-  *"This issue has been automatically closed due to inactivity."*
-- `huggingface/transformers` #45205 — CLOSED/COMPLETED 2026-06-10, closed by
-  *"automatically marked as stale because it has not had recent activity."*
-
-In all three cases a freshen that trusted the two status fields would have
-**deleted a live limitation from the skill** — the highest-damage error this mode
-can make, because it removes a true warning and looks like diligent cleanup.
-
-Always read the closing comment before acting on a state change:
+**`state: CLOSED` — even `stateReason: COMPLETED` — does not mean fixed.** Inactivity bots close issues as COMPLETED. Trusting the status fields would delete a live limitation from the skill, the highest-damage error this mode can make. Read the closing comment before acting on a state change:
 
 ```bash
 gh issue view <N> -R <owner>/<repo> \
@@ -568,7 +325,7 @@ gh issue view <N> -R <owner>/<repo> \
   --jq '"\(.state) \(.stateReason)\n\(.comments[-1].body[0:200])"'
 ```
 
-Classify on the *evidence of a fix*, not the state field:
+Classify on the *evidence of a fix*:
 
 | Closing evidence | Class |
 |---|---|
@@ -576,26 +333,11 @@ Classify on the *evidence of a fix*, not the state field:
 | "automatically closed due to inactivity" / "marked as stale" | **treat as still open** — re-affirm the claim, note it is stale-closed |
 | Closed as `NOT_PLANNED`, duplicate, or by the reporter with no fix | treat as still open unless the linked duplicate resolved it |
 
-When a claim survives this check, say *why* in the skill ("shows closed, but
-stale-bot closed — no fix landed"), so the next pass does not re-litigate it.
+When a claim survives this check, say *why* in the skill ("shows closed, but stale-bot closed — no fix landed").
 
 ### 3.0b A tag is not a release, and "no release" is not "no version"
 
-**`gh release list` answers "what Release objects exist", never "what versions
-ship".** A project can tag, build, publish to a registry and document a whole
-major line without ever cutting a GitHub Release. Absence there is absence of
-*one artifact*, not evidence the version is unreal.
-
-Downgrading a version on that evidence is the worst outcome this mode
-produces: it replaces a true claim with a false one and reads as diligence.
-Observed 2026-09-22 — a `messages-api` row recording opencode **v2.0.3** was
-"corrected" to "has never existed" because `gh release list` topped out at
-v1.18.32. The operator's own machine was running **v2.0.8**. Tags `v2.0.0`
-through `v2.0.13`, a `2.0` branch, npm `@opencode/cli` at 2.0.13, a `/v2/`
-docs tree and a `/v2/install` script all existed; only a Release object did
-not.
-
-Before writing that a version does not exist, check **all** of these:
+**`gh release list` answers "what Release objects exist", never "what versions ship".** A project can tag, publish to a registry and document a major line without a GitHub Release. Never downgrade or delete a version claim on that evidence. Before writing that a version does not exist, check **all** of:
 
 ```bash
 gh api repos/<o>/<r>/tags --paginate --jq '.[].name' | grep '^v2'   # tags
@@ -603,25 +345,15 @@ gh api repos/<o>/<r>/branches --jq '.[].name'                        # release b
 curl -sS https://registry.npmjs.org/<pkg> | jq '."dist-tags"'        # registry truth
 ```
 
-Registry dist-tags beat everything for "what does an install give me". And
-check whether the project runs **parallel lines under different package
-names** — opencode's v1 is `opencode-ai`, its v2 is `@opencode/cli`; querying
-only the one the skill already names finds only the line it already knew.
+Registry dist-tags beat everything for "what does an install give me". Check whether the project runs **parallel lines under different package names** (e.g. v1 `opencode-ai`, v2 `@opencode/cli`); querying only the known name finds only the known line.
 
-**The tell is the operator.** If a version is installed on the machine, or the
-user says it exists, it exists — go find the channel rather than concluding
-the user is wrong. This is [[the-skill-outranks-training-data]] applied to
-tooling: the probe was too narrow, not the claim too old.
+**If a version is installed on the machine, or the user says it exists, it exists** — find the channel rather than concluding the user is wrong. The probe was too narrow, not the claim too old.
 
 ### 3.1 Scope filter for `new-feature`
 
-Only produce a hypothesis when the feature maps to an existing trigger
-phrase in the skill's `description` or `when_to_use`. Out-of-scope features
-are logged but do NOT mutate the skill.
+Produce a hypothesis only when the feature maps to an existing trigger phrase in the skill's `description` or `when_to_use`. Out-of-scope features are logged, NOT applied.
 
-Example: a vLLM release adds a new benchmark mode. If the skill is
-`vllm-benchmarking`, add a ≤3-line note. If the skill is `vllm-caching`,
-log and skip.
+Example: a vLLM release adds a new benchmark mode. For `vllm-benchmarking`, add a ≤3-line note. For `vllm-caching`, log and skip.
 
 ### 3.2 Breaking-change discipline for `version-drift`
 
@@ -629,10 +361,8 @@ Before bumping a pinned version:
 
 1. Fetch the release notes / CHANGELOG since the pinned version.
 2. Search for "BREAKING", "breaking change", "removed", "renamed".
-3. For each hit, check whether the skill body references the affected
-   API / flag / behavior.
-4. If overlap exists, classify as `version-drift` (review required) and
-   add reviewer note in the findings log; do NOT auto-apply.
+3. For each hit, check whether the skill body references the affected API / flag / behavior.
+4. If overlap exists, classify as `version-drift` (review required), add a reviewer note to the findings log; do NOT auto-apply.
 
 ## 4. Commit Message Format
 
@@ -656,20 +386,11 @@ Before: SKILL.md L87 — "gh release view --json <fields>"
 After:  SKILL.md L87 — "gh release view <tag> --json <fields>" (tag now required)
 ```
 
-For multi-ref findings (e.g., a deprecation that appears in three
-places), list each location in a bullet list under `Before:` / `After:`.
+For multi-ref findings, list each location in a bullet list under `Before:` / `After:`.
 
 ## 4b. Scaffolding Decay Probes (Boris alignment)
 
-The standard freshen probes test whether *external* references (URLs,
-versions, deprecation claims) have rotted. Scaffolding decay probes
-test whether the skill's *internal* prose has rotted relative to the
-current model's behaviour.
-
-Boris Cherny (creator of Claude Code) on the bitter lesson: scaffolding
-gains "get wiped out by the next model. So it's almost better to just
-wait for the next one." Skills that compensate for old-model behaviour
-are the in-skill equivalent of stale external refs.
+Standard probes test external refs. These test whether the skill's *internal* prose compensates for old-model behaviour that current models no longer show.
 
 ### Detection patterns
 
@@ -695,125 +416,56 @@ awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{i
 |---|---|
 | Version-specific reference to an old Claude release (e.g. "Claude 3.5 tends to over-eagerly call tools") | Flag for author review. Verify against current model behaviour via a quick probe. If fixed → delete the compensation. |
 | Many **scaffold** items in SKILL.md body (probe's scaffold count, not its item count) | Advisory only — NO cap (rubric §"Procedural steps"). Read the list; a long sequence is correct where the operation is fragile or order is load-bearing |
-| Section >30 lines of context dump with no tool/file pointer | Flag for refactor — replace bulk with a one-line pointer to where the context lives ("see `tokenizer.json` for the full vocabulary"). |
+| Section >30 lines of context dump with no tool/file pointer | Flag for refactor — replace bulk with a one-line pointer to where the context lives |
 | All three patterns clean | Skill is Boris-aligned. Note in the freshen summary. |
 
 ### Apply via mutations
 
-Scaffolding decay findings get the same accept/revert treatment as URL
-findings (Phase F4-F5 of freshen mode), but the mutation is
-*deletion-favoured*: removing prescriptive content beats rewriting it.
-"Removing something and getting equal results is a great outcome."
+Same accept/revert treatment as URL findings (Phase F4-F5), but *deletion-favoured*: removing prescriptive content beats rewriting it; removing something with equal results is a great outcome.
 
 ## 5. Rate-Limit Handling
 
 - `gh` returns `HTTP 403` with `X-RateLimit-Remaining: 0` when throttled.
 - On first 403, pause 60 seconds and retry the same probe once.
-- On second 403, stop the probe loop for that run. Mark the skill
-  `partial-freshen` in the summary and list the refs that were not probed.
-- Do NOT retry in a tight loop. Do NOT fall through to unauthenticated
-  probes — the skill should honor the same quota.
-- For batch mode, track remaining quota via
-  `gh api /rate_limit --jq .resources.core.remaining` before starting a
-  new skill; skip to the next skill if < 50.
+- On second 403, stop the probe loop. Mark the skill `partial-freshen` in the summary and list the refs not probed.
+- Do NOT retry in a tight loop. Do NOT fall through to unauthenticated probes.
+- Batch mode: check `gh api /rate_limit --jq .resources.core.remaining` before each new skill; skip to the next skill if < 50.
 
 ## 6. Worked Examples
 
 ### 6.1 Version drift on a CLI-focused skill
 
-**Skill:** `gh-cli`
-**Claim in skill body:** "Use `gh 2.65` for `gh release view --json`."
-**sources.md row:** `gh CLI | https://github.com/cli/cli | ... | 2026-01-10 | 2.65`
-
-Probe:
+Skill `gh-cli` claims "Use `gh 2.65` for `gh release view --json`." Row: `gh CLI | https://github.com/cli/cli | ... | 2026-01-10 | 2.65`.
 
 ```bash
 $ gh api /repos/cli/cli/releases/latest --jq .tag_name
 v2.74.0
-```
-
-Breaking-change check:
-
-```bash
 $ gh release view v2.74.0 -R cli/cli --json body --jq .body | rg -iN 'breaking|removed'
 ```
 
-(No hits in overlap with skill usage.)
-
-Classification: `version-drift` (low-risk bump).
-Mutation: replace `gh 2.65` → `gh 2.74` in SKILL.md, update sources.md
-`Pinned: 2.74` and `Last verified: <today>`.
+No hits overlapping skill usage → `version-drift` (low-risk bump). Replace `gh 2.65` → `gh 2.74` in SKILL.md, update sources.md `Pinned: 2.74` and `Last verified: <today>`.
 
 ### 6.2 Deprecated API surfaced
 
-**Skill:** `vllm-input-modalities`
-**Claim:** "Use `--task embed` to serve embedding models."
-
-Probe:
+Skill `vllm-input-modalities` claims "Use `--task embed` to serve embedding models."
 
 ```bash
 $ gh search issues "--task embed deprecated" --repo vllm-project/vllm --limit 5
 #12345 Deprecate --task in favor of --runner pooling (closed, merged)
-```
-
-Verify:
-
-```bash
 $ gh pr view 12345 -R vllm-project/vllm --json state,mergedAt,title
 {"state":"MERGED","mergedAt":"2026-02-14T...","title":"Deprecate --task, add --runner pooling"}
 ```
 
-Classification: `deprecation`.
-Mutation: replace every `--task embed` with `--runner pooling` in SKILL.md
-+ reference files. Commit cites the merged PR URL.
+`deprecation`. Replace every `--task embed` with `--runner pooling` in SKILL.md + references. Commit cites the merged PR URL.
 
 ### 6.3 Broken reference
 
-**sources.md row:** `https://old-blog.example.com/post-about-skills`
-
-Probe:
-
-```
-WebFetch https://old-blog.example.com/post-about-skills
-```
-
-Returns `404 Not Found`.
-
-Classification: `broken`.
-Mutation: remove the row from sources.md, or replace with archive.org URL
-if an archive snapshot exists. Note the removal in the findings log so
-the author can decide whether to find a replacement source later.
+Row `https://old-blog.example.com/post-about-skills`; `WebFetch` returns `404 Not Found` → `broken`. Remove the row from sources.md or replace with an archive.org URL if a snapshot exists. Note the removal in the findings log.
 
 ### 6.4 New feature in scope
 
-**Skill:** `vllm-benchmarking`
-**Trigger phrase:** "vllm bench".
-
-Probe:
-
-```bash
-$ gh release list vllm-project/vllm --limit 3 --json tagName,publishedAt
-```
-
-Latest release introduces `vllm bench startup`. The skill currently lists
-`vllm bench serve|throughput|latency|sweep` but not `startup`.
-
-Classification: `new-feature` (in-scope — "vllm bench" is a trigger).
-Mutation: add a ≤3-line mention of `vllm bench startup` in the
-appropriate section. Release notes URL goes in `sources.md`, not the mention.
+Skill `vllm-benchmarking`, trigger "vllm bench". Latest release adds `vllm bench startup`; skill lists `vllm bench serve|throughput|latency|sweep` only → `new-feature` (in-scope). Add a ≤3-line mention; release notes URL goes in `sources.md`, not the mention.
 
 ### 6.5 Out-of-scope new feature
 
-**Skill:** `vllm-caching`
-**Trigger phrases:** all about KV cache, prefix caching, LMCache, etc.
-
-Probe surfaces: vLLM release adds new chat template kwargs for GPT-OSS
-harmony channels.
-
-Scope check: no trigger phrase in the skill matches chat templates or
-harmony channels.
-
-Classification: `new-feature` (out-of-scope).
-Action: log only — do NOT mutate. The finding belongs to the
-`vllm-chat-templates` skill; surface it in the batch-mode summary so the
-author can freshen that skill next.
+Skill `vllm-caching` (KV cache, prefix caching, LMCache). Release adds chat template kwargs for GPT-OSS harmony channels; no trigger phrase matches → `new-feature` (out-of-scope). Log only, do NOT mutate. Surface it in the batch-mode summary as belonging to `vllm-chat-templates`.

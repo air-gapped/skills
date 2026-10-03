@@ -1,8 +1,6 @@
 # Skill Design Guide — Anthropic Practices & Agent Skills Standard
 
-Sources: Thariq Shihipar (Anthropic), March 2026; official Claude Code docs
-(code.claude.com); Anthropic engineering blog; Agent Skills specification
-(agentskills.io). See `references/sources.md` for all URLs.
+URLs: `references/sources.md`.
 
 ## Table of Contents
 - [The Agent Skills Open Standard](#the-agent-skills-open-standard)
@@ -17,24 +15,18 @@ Sources: Thariq Shihipar (Anthropic), March 2026; official Claude Code docs
 - [Distributing Skills](#distributing-skills)
 - [Composing Skills](#composing-skills)
 - [Measuring Skills](#measuring-skills)
-- [Version Notes & Settings](#version-notes--settings) — changelog table, key settings, Task→Agent rename
+- [Version Notes & Settings](#version-notes--settings) — current facts, key settings, Task→Agent rename
 - [Related Tools](#related-tools)
 
 ## The Agent Skills Open Standard
 
-Claude Code skills follow the Agent Skills open standard (agentskills.io), created
-and maintained by Anthropic. The same SKILL.md format works across Claude Code,
-VS Code Copilot, Gemini CLI, Codex CLI, and other adopters. Claude Code extends the
-base standard with additional frontmatter fields for invocation control, subagent
-execution, and dynamic context injection.
+Claude Code skills follow the Agent Skills open standard (agentskills.io). The same SKILL.md format works across Claude Code, VS Code Copilot, Gemini CLI, Codex CLI and others. Claude Code adds frontmatter fields for invocation control, subagent execution and dynamic context injection.
 
-A `skills-ref validate ./my-skill` CLI tool validates skills against the spec.
+`skills-ref validate ./my-skill` validates a skill against the spec.
 
 ## Core Insight
 
-A skill is a **folder**, not just a markdown file. The entire file system is a form
-of context engineering and progressive disclosure. Tell Claude what files are in the
-skill and it will read them at appropriate times.
+A skill is a **folder**, not a markdown file. The file system is context engineering and progressive disclosure. Tell Claude what files the skill holds; it reads them when needed.
 
 ## Complete Frontmatter Reference
 
@@ -42,46 +34,48 @@ skill and it will read them at appropriate times.
 
 | Field | Required | Constraints |
 |-------|----------|-------------|
-| `name` | Yes (recommended) | Max 64 chars, lowercase alphanumeric + hyphens. Must match directory name. Must NOT start/end with a hyphen, contain consecutive hyphens (`--`), contain XML tags, or use the reserved words `anthropic` or `claude`. |
-| `description` | Recommended | Spec hard max 1024 chars, non-empty, cannot contain XML tags. Claude Code truncates combined `description` + `when_to_use` at **1,536 chars** in the skill listing (raised from 250 in v2.1.105, 2026-04-13). Front-load key trigger phrases. |
-| `when_to_use` | No | Additional trigger context appended to `description` in the skill listing. Counts toward the 1,536-char combined cap. Use for trigger phrases and example requests that don't belong in the core description. |
+| `name` | Yes (recommended) | Max 64 chars, lowercase alphanumeric + hyphens. Must match directory name. Must NOT start/end with a hyphen, contain `--`, contain XML tags, or use the reserved words `anthropic` or `claude`. |
+| `description` | Recommended | Spec hard max 1024 chars, non-empty, no XML tags. Claude Code truncates combined `description` + `when_to_use` at **1,536 chars** in the skill listing (older installs: 250). Front-load key trigger phrases. |
+| `when_to_use` | No | Extra trigger context appended to `description` in the listing. Counts toward the 1,536-char cap. Put trigger phrases and example requests here. |
 | `license` | No | License name or reference to bundled file |
 | `compatibility` | No | Max 500 chars. Environment requirements (product, packages, network) |
-| `metadata` | No | Key-value mapping for custom properties. Spec clarified 2026-08-09: keys AND values are strings — not arbitrary YAML |
-| `allowed-tools` | No | Space-delimited list or YAML list of pre-approved tools |
+| `metadata` | No | Key-value mapping; keys AND values are strings, not arbitrary YAML |
+| `allowed-tools` | No | Space-delimited or YAML list of pre-approved tools |
 
 ### Claude Code Extension Fields
 
 | Field | Description |
 |-------|-------------|
-| `effort` | Override model effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Availability per model (platform effort docs, 2026-09-01): `xhigh` on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Mythos Preview, Opus 4.6, Sonnet 4.6 (Opus 4.5 is no longer listed). **Fable 5.1, Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. Fable 5.1, Mythos 5.1 and Opus 5 accept a per-message effort change (beta) that keeps the prompt cache; on every other model a changed effort restarts the cache. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
-| `paths` | Glob patterns (comma-separated string or YAML list) limiting when skill activates based on files being worked on. |
-| `context` | Set to `fork` to run in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
-| `agent` | Subagent type when `context: fork` is set. Built-in: `Explore`, `Plan`, `general-purpose`. Or custom from `.claude/agents/`. Defaults to `general-purpose` if omitted. |
-| `background` | Only with `context: fork`. Default `true` since v2.1.218 — the fork runs in the background and its result arrives later, under the **narrower background-subagent tool set**. Set `false` to block the invoking turn and keep the full tool set. |
-| `arguments` | Named positional arguments for `$name` substitution in skill content. Space-separated string or YAML list; names map to argument positions in order. |
-| `model` | Override model: `opus`, `sonnet`, `haiku`, `fable`, or full model ID. An alias resolves to the current release of that family (`fable` → Fable 5.1 since v2.1.257, except in Claude-apps gateway sessions), so record the full id where a measurement must be reproducible. |
-| `hooks` | Hooks scoped to skill lifecycle. See hooks docs for format. |
+| `effort` | `low`, `medium`, `high`, `xhigh`, or `max`. `xhigh` on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Mythos Preview, Opus 4.6, Sonnet 4.6. **Fable 5.1, Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. Fable 5.1, Mythos 5.1 and Opus 5 accept a per-message effort change (beta) that keeps the prompt cache; on every other model a changed effort restarts the cache. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
+| `paths` | Glob patterns (comma-separated string or YAML list) limiting activation to matching files being worked on. |
+| `context` | `fork` runs in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
+| `agent` | Subagent type when `context: fork`. Built-in: `Explore`, `Plan`, `general-purpose`, or custom from `.claude/agents/`. Default `general-purpose`. |
+| `background` | Only with `context: fork`. Default `true`: the fork runs in the background, result arrives later, under the **narrower background-subagent tool set**. `false` blocks the invoking turn and keeps the full tool set. |
+| `arguments` | Named positional arguments for `$name` substitution. Space-separated string or YAML list, mapped to positions in order. |
+| `model` | `opus`, `sonnet`, `haiku`, `fable`, or full model ID. An alias resolves to the current release of that family (`fable` → Fable 5.1, except in Claude-apps gateway sessions); record the full id where a measurement must be reproducible. |
+| `hooks` | Hooks scoped to skill lifecycle. |
 | `shell` | `bash` (default) or `powershell` for `` !`command` `` and ```!``` blocks. `powershell` requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`. |
-| `argument-hint` | Hint shown during autocomplete, e.g. `[issue-number]`. |
-| `disable-model-invocation` | `true` = only user can invoke via `/name`. Removes description from Claude's context entirely. Also blocks preloading into subagents and (v2.1.196+) blocks the skill from running when a scheduled task fires with it as the prompt. |
-| `user-invocable` | `false` = hidden from `/` menu. Only Claude can invoke. Description stays in Claude's context. |
-| `disallowed-tools` | Space-delimited or YAML list of tools to remove from the model while the skill is active (v2.1.152). Inverse of `allowed-tools` — use to scope a skill away from tools it must not touch. |
+| `argument-hint` | Autocomplete hint, e.g. `[issue-number]`. |
+| `disable-model-invocation` | `true` = only the user can invoke via `/name`. Removes description from Claude's context. Also blocks preloading into subagents and blocks the skill running when a scheduled task fires with it as the prompt. |
+| `user-invocable` | `false` = hidden from `/` menu; only Claude can invoke. Description stays in context. |
+| `disallowed-tools` | Space-delimited or YAML list of tools removed while the skill is active. Inverse of `allowed-tools`. |
+
+Frontmatter booleans also accept `yes`/`no`/`on`/`off`/`1`/`0`.
 
 ### String Substitutions
 
 | Variable | Description |
 |----------|-------------|
-| `$ARGUMENTS` | All arguments passed when invoking. If absent, args appended as `ARGUMENTS: <value>`. |
-| `$ARGUMENTS[N]` / `$N` | Access specific argument by 0-based index. |
-| `${CLAUDE_SKILL_DIR}` | Path to the skill's own directory. Use for portable script references. |
-| `${CLAUDE_SESSION_ID}` | Current session ID for logging or session-specific files. |
+| `$ARGUMENTS` | All arguments. If absent from the body, args are appended as `ARGUMENTS: <value>`. |
+| `$ARGUMENTS[N]` / `$N` | Argument by 0-based index. |
+| `${CLAUDE_SKILL_DIR}` | The skill's own directory. Use for portable script references. |
+| `${CLAUDE_SESSION_ID}` | Current session ID. |
+
+`\$` writes a literal `$` before a digit in command bodies (prevents `$1` substitution).
 
 ### Dynamic Context Injection
 
-The `` !`command` `` syntax runs shell commands **before** the skill content is sent
-to Claude. The output replaces the placeholder. Claude sees the result, not the
-command. Example:
+`` !`command` `` runs the shell command **before** the skill content is sent; output replaces the placeholder. Claude sees the result, not the command.
 
 ```markdown
 ---
@@ -96,8 +90,7 @@ Summarize this pull request.
 
 ### Extended Thinking
 
-Include the word `ultrathink` anywhere in skill content to enable extended thinking
-(thinking mode) when the skill is active.
+The word `ultrathink` anywhere in skill content enables extended thinking while the skill is active.
 
 ## Invocation Control
 
@@ -107,87 +100,65 @@ Include the word `ultrathink` anywhere in skill content to enable extended think
 | `disable-model-invocation: true` | Yes | No | Description NOT in context |
 | `user-invocable: false` | No | Yes | Description always in context |
 
+When Claude tries to invoke a `disable-model-invocation` skill it is refused and told to ask the user to run it, so it does not re-derive the workflow inline.
+
 ## Description Field Constraints
 
 **Critical for trigger precision:**
-- Agent Skills open-standard spec hard max: **1024 chars** (agentskills.io)
-- Claude Code listing truncation: **1,536 chars** for combined `description` + `when_to_use` (raised from 250 in v2.1.105, 2026-04-13). Older installs still use 250 — verify target environment.
-- The per-entry budget fits inside a dynamic total budget that scales at **1% of the context window** (fallback: 8,000 chars). Descriptions get shortened further if many skills are installed.
-- Override the total budget with `SLASH_COMMAND_TOOL_CHAR_BUDGET` env var
-- Always write in **third person** — consistent POV avoids discovery problems
-- Front-load the key use case within the first 1,536 chars (or 250 if targeting older Claude Code versions)
-- Include both what the skill does AND when to use it
-- Split into `description` (what + core triggers) and `when_to_use` (extra trigger phrases, example requests). They concatenate in the listing.
+- Spec hard max: **1024 chars**.
+- Claude Code listing cap: **1,536 chars** for combined `description` + `when_to_use`; older installs use 250 — verify the target environment.
+- The per-entry cap sits inside a dynamic total budget of **1% of the context window** (fallback 8,000 chars); descriptions shrink further when many skills are installed. Override with `SLASH_COMMAND_TOOL_CHAR_BUDGET`.
+- Write in **third person**.
+- Front-load the key use case within the first 1,536 chars (250 for older versions); the earlier a keyword appears, the more robust the triggering.
+- State what the skill does AND when to use it.
+- Split into `description` (what + core triggers) and `when_to_use` (extra trigger phrases, example requests); they concatenate in the listing.
 
 ## Skill Content Lifecycle
 
-Once invoked, the rendered `SKILL.md` content enters the conversation as **a single
-message that stays for the rest of the session**. Claude Code does not re-read the
-skill file on later turns.
+Once invoked, the rendered `SKILL.md` enters the conversation as **a single message that stays for the session**. Claude Code does not re-read the file on later turns.
 
-**Implication for writing skills:** Write guidance that should apply throughout a
-task as *standing instructions*, not one-time steps. Instructions framed as "first
-do X, then Y" work in the first turn but have no force later. Instructions framed as
-"always prefer X over Y" or "when encountering Z, do W" remain effective.
+**Writing consequence:** write guidance that applies throughout a task as *standing instructions* ("always prefer X over Y", "when encountering Z, do W"), not one-time steps ("first do X, then Y"), which have no force after the first turn.
 
-**Compaction behavior:** When auto-compaction summarizes the conversation, Claude
-Code re-attaches only the most recent invocation of each skill after the summary,
-keeping the first **5,000 tokens per skill** with a combined budget of **25,000
-tokens across all skills**. The budget fills from most-recently-invoked backward, so
-skills invoked earlier in a long session can be **dropped entirely** after compaction.
+**Compaction:** auto-compaction re-attaches only the most recent invocation of each skill, keeping the first **5,000 tokens per skill** within a combined **25,000-token** budget. The budget fills from most-recently-invoked backward; earlier-invoked skills can be **dropped entirely**. The post-compaction reminder does not re-run a skill's original arguments.
 
-**Debugging "skill stopped working":** If a skill seems to stop influencing behavior
-after the first response, the content is usually still present — Claude is just
-choosing other tools or approaches. Fixes:
-- Strengthen the skill's `description` and instructions so Claude prefers it
+**Debugging "skill stopped working":** the content is usually still present; Claude is choosing other tools. Fixes:
+- Strengthen the `description` and instructions so Claude prefers it
 - Rewrite one-time steps as standing instructions
 - Use [hooks](https://code.claude.com/docs/en/hooks) to enforce behavior deterministically
 - For large skills or long sessions with many skills: re-invoke after compaction
 
 ## Skill Tool and Permissions
 
-Starting in Claude Code v2.1.105+, the model invokes skills via a `Skill` tool.
-Deny rules support glob patterns: `Skill(deploy *)`, `Skill(commit)`. Adding `Skill`
-to deny rules disables all skill invocations by the model. Built-in commands
-(`/compact`, `/init`, `/review`, `/security-review`) are not invokable through the
-Skill tool from the model side in older versions but became model-invokable in
-v2.1.108 (2026-04-14).
+The model invokes skills via a `Skill` tool. Deny rules take globs: `Skill(deploy *)`, `Skill(commit)`. Denying `Skill` disables all model skill invocations. `/init`, `/review`, `/security-review` are model-invokable through the Skill tool.
 
 ## Skill Taxonomy (9 Categories)
 
 ### 1. Library & API Reference
-How to correctly use a library, CLI, or SDK. Include reference code snippets and
-gotchas. Works for both internal and external libraries that Claude struggles with.
+How to use a library, CLI or SDK correctly. Include reference code snippets and gotchas.
 
 ### 2. Product Verification
-How to test/verify that code works. Pair with external tools (Playwright, tmux, etc.).
-**Worth investing a full week making verification skills excellent.** Techniques:
+How to test/verify that code works. Pair with external tools (Playwright, tmux). Techniques:
 - Record video of output for review
 - Enforce programmatic assertions on state at each step
-- Include scripts for driving the verification
+- Include scripts that drive the verification
 
 ### 3. Data Fetching & Analysis
-Connect to data/monitoring stacks. Include libraries to fetch data with credentials,
-specific dashboard IDs, query patterns. Store helper functions Claude can compose.
+Connect to data/monitoring stacks. Include fetch libraries with credentials, dashboard IDs, query patterns, composable helper functions.
 
 ### 4. Business Process & Team Automation
-Automate repetitive workflows into one command. Save previous results in log files
-so the model stays consistent and reflects on previous executions.
+Automate repetitive workflows into one command. Save previous results in log files so the model stays consistent across runs.
 
 ### 5. Code Scaffolding & Templates
-Generate framework boilerplate. Combine with composable scripts. Especially useful
-when scaffolding has natural language requirements beyond pure code templates.
+Framework boilerplate, combined with composable scripts; useful when scaffolding has natural-language requirements beyond code templates.
 
 ### 6. Code Quality & Review
-Enforce code quality. Can include deterministic scripts for maximum robustness.
-Run automatically via hooks or GitHub Actions.
+Enforce quality; include deterministic scripts. Run via hooks or GitHub Actions.
 
 ### 7. CI/CD & Deployment
 Fetch, push, deploy. May reference other skills to collect data.
 
 ### 8. Runbooks
-Take a symptom (Slack thread, alert, error) → multi-tool investigation → structured
-report. Map symptoms → tools → query patterns.
+Symptom (Slack thread, alert, error) → multi-tool investigation → structured report. Map symptoms → tools → query patterns.
 
 ### 9. Infrastructure Operations
 Routine maintenance and operational procedures with guardrails for destructive actions.
@@ -195,12 +166,10 @@ Routine maintenance and operational procedures with guardrails for destructive a
 ## Writing Effective Skills
 
 ### Don't State the Obvious
-Focus on information that pushes Claude out of its normal way of thinking.
-Claude already knows standard patterns — document what's DIFFERENT.
+Document what pushes Claude out of its normal way of thinking; Claude already knows standard patterns.
 
 ### Build a Gotchas Section
-Highest-signal content in any skill. Build up from real failure points over time.
-Update the skill whenever Claude hits a new edge case.
+Highest-signal content in any skill. Build it from real failure points; update it whenever Claude hits a new edge case.
 
 ### Use Progressive Disclosure
 - `references/` — detailed docs, API signatures, function specs
@@ -209,146 +178,102 @@ Update the skill whenever Claude hits a new edge case.
 - `assets/` — templates for output files, config scaffolds
 Tell Claude what files exist and when to use them.
 
-**Keep SKILL.md under 500 lines.** Move detailed reference material to separate
-files. Keep file references **one level deep** from SKILL.md — Claude may only
-partially read files referenced from other referenced files.
+**Keep SKILL.md under 500 lines.** Move reference material to separate files. Keep file references **one level deep** from SKILL.md — Claude may only partially read files referenced from other referenced files.
 
-For reference files over 100 lines, include a table of contents at the top so
-Claude can see the full scope even when previewing with partial reads.
+Reference files over 100 lines get a table of contents at the top.
 
 ### Match Freedom to Fragility
-- **High freedom** (text instructions): multiple approaches valid, context-dependent
-- **Medium freedom** (pseudocode/parameterized scripts): preferred pattern exists
+- **High freedom** (text instructions): multiple valid approaches, context-dependent
+- **Medium freedom** (pseudocode/parameterized scripts): a preferred pattern exists
 - **Low freedom** (specific scripts, exact commands): fragile operations, consistency critical
 
 ### Avoid Railroading
-Give Claude information it needs but flexibility to adapt. Don't be overly
-prescriptive in instructions — skills are reusable across situations.
+Give the information needed plus room to adapt; skills are reused across situations.
 
 ### The Description Field Is for the Model
-Not a summary — a description of **when to trigger**. Claude scans all descriptions
-at session start to decide "is there a skill for this request?" Front-load keywords
-within the first 1,536 chars (v2.1.105+; 250 on older Claude Code). Even within that
-cap, the dynamic budget can shrink descriptions further if many skills are installed,
-so the earlier a keyword appears, the more robust the triggering.
+Describe **when to trigger**, not a summary. Claude scans all descriptions at session start to decide "is there a skill for this request?". Front-load keywords (see Description Field Constraints).
 
 ### Think Through Setup
-Skills needing user context (Slack channel, API key) should store setup in a
-`config.json` in the skill directory. If not configured, prompt the user.
+Skills needing user context (Slack channel, API key) store setup in a `config.json` in the skill directory; prompt the user if unconfigured.
 
 ### Memory & Storing Data
-Skills can store data within them (log files, JSON, SQLite). Use
-`${CLAUDE_PLUGIN_DATA}` for stable storage that survives skill upgrades.
-Example: standup-post keeps standups.log for history.
+Skills can store data (log files, JSON, SQLite). Use `${CLAUDE_PLUGIN_DATA}` for storage that survives skill upgrades.
 
 ### Store Scripts & Generate Code
-Give Claude helper functions and libraries so it spends turns on composition,
-not reconstructing boilerplate. Claude generates scripts on the fly composing
-the provided functions. Use `${CLAUDE_SKILL_DIR}` in SKILL.md to reference
-bundled scripts portably regardless of working directory.
+Give Claude helper functions and libraries so turns go to composition, not rebuilding boilerplate. Reference bundled scripts via `${CLAUDE_SKILL_DIR}`.
 
 ### On-Demand Hooks
-Skills can register hooks that activate only when invoked and last for the session.
-Use for opinionated hooks that shouldn't run all the time:
+Skills can register hooks that activate only when invoked and last for the session — for opinionated hooks that should not always run:
 - `/careful` — blocks destructive commands via PreToolUse
 - `/freeze` — blocks edits outside a specific directory
 
-Hooks can also be embedded directly in skill frontmatter via the `hooks` field.
+Hooks can also be embedded in skill frontmatter via `hooks`.
 
 ## Distributing Skills
 
-Three approaches:
-1. **Check into repo** (`.claude/skills/`) — works for smaller teams, few repos
-2. **Plugin marketplace** — scales better, lets teams choose what to install
-3. **Managed settings** — deploy organization-wide for enterprise
+1. **Check into repo** (`.claude/skills/`) — small teams, few repos
+2. **Plugin marketplace** — scales; teams choose what to install
+3. **Managed settings** — organization-wide
 
-Every checked-in skill adds to model context. At scale, use a marketplace to
-let users opt in. Skills from `--add-dir` directories load automatically with
-live change detection.
-
-Nested `.claude/skills/` directories in subdirectories are auto-discovered,
-supporting monorepo setups where packages have their own skills.
+Every checked-in skill adds to model context; at scale use a marketplace. Skills from `--add-dir` directories load automatically with live change detection. Nested `.claude/skills/` directories are auto-discovered (monorepos); nested dirs give directory-qualified names (`apps/web:deploy`). Plugins in `.claude/skills` load without a marketplace; `claude plugin init <name>` scaffolds one. Custom commands are merged into skills (`.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`).
 
 ## Composing Skills
 
-Reference other skills by name. Claude will invoke them if installed. No native
-dependency management — just name references. Skills with `context: fork` can
-specify an `agent` type to run in specialized subagent contexts.
+Reference other skills by name; Claude invokes them if installed. No native dependency management. `context: fork` skills can set an `agent` type.
+
+**Chaining:** a SKILL.md body cannot chain to `/verify` or `/code-review` — Claude no longer self-invokes them, and they are absent from the model's Skill-tool listing. Chain only to model-invocable skills (e.g. `/simplify`, a custom verification skill).
 
 ## Measuring Skills
 
-Use a PreToolUse hook to log skill usage. Track popularity and undertriggering
-to find skills that need better descriptions.
+Use a PreToolUse hook to log skill usage; track popularity and undertriggering to find skills needing better descriptions. `/skill-doctor` shows which loaded skills go unused and their context cost — a pruning signal, not a quality measurement.
 
 ## Version Notes & Settings
 
-Relevant Claude Code changes that affect skill authoring (chronological):
+Current Claude Code facts that affect skill authoring and runs:
 
-| Version | Date | Change |
-|---------|------|--------|
-| v2.1.63 | 2026-03 | Task tool renamed to `Agent`. `Task(...)` kept as alias, but new `allowed-tools` rules should use `Agent(...)`. |
-| v2.1.71 | 2026-03 | `/loop` command: run a prompt or slash command on a recurring interval (e.g. `/loop 5m <task>`). Ships as a bundled prompt-based skill. (Backfilled 2026-07-18 — became loop-engineering-relevant.) |
-| v2.1.139 | 2026-05 | `/goal` command: set a completion condition and Claude keeps working across turns until an evaluator model judges it met; live elapsed/turns/tokens overlay. Agent view (`claude agents`) research preview. (Backfilled 2026-07-18.) |
-| v2.1.145 | 2026-05 | Bundled skills `/run`, `/verify`, `/run-skill-generator` — launch and verify the real app instead of tests-only; the generator records a per-project run recipe skill. |
-| v2.1.91 | 2026-04-02 | Plugin `bin/` auto-added to Bash `PATH` while plugin is enabled — Claude invokes executables there as bare commands. Also introduced `disableSkillShellExecution` setting. |
-| v2.1.94 | 2026-04-?? | Plugin skills can declare `"skills": ["./"]` and are invoked by the skill's frontmatter `name` (stable across install methods). |
-| v2.1.105 | 2026-04-13 | Description listing cap raised 250→**1,536 chars** for combined `description` + `when_to_use`. Startup warning when descriptions are truncated. `PreCompact` hooks can block compaction with exit code 2 or `{"decision":"block"}`. Plugin `monitors` manifest key auto-arms background monitors. |
-| v2.1.108 | 2026-04-14 | Built-in commands `/init`, `/review`, `/security-review` now discoverable and invokable through the Skill tool by the model. |
-| v2.1.110 | 2026-04-15 | Fixed skills with `disable-model-invocation: true` failing when invoked via `/<skill>` mid-message. `PreToolUse` hook `additionalContext` no longer dropped when the tool call fails. `PermissionRequest` hook `updatedInput` re-checked against `permissions.deny`. Hardened "Open in editor" against command injection. |
-| v2.1.111 | 2026-04-16 | Added `xhigh` effort level for Opus 4.7 (between `high` and `max`). New bundled skills `/less-permission-prompts` and `/ultrareview`. Windows PowerShell tool rolling out (`CLAUDE_CODE_USE_POWERSHELL_TOOL`). `/skills` menu supports sorting by estimated token count (press `t`). Read-only bash commands with glob patterns (e.g. `ls *.ts`) no longer trigger permission prompts. |
-| v2.1.113 | 2026-04-17 | Security: Bash deny rules now match commands wrapped in `env`/`sudo`/`watch`/`ionice`/`setsid`. `Bash(find:*)` allow rules no longer auto-approve `find -exec`/`-delete`. macOS `/private/{etc,var,tmp,home}` now treated as dangerous `Bash(rm:*)` targets. Fixed `Bash dangerouslyDisableSandbox` bypassing permission prompts. |
-| v2.1.114 | 2026-04-18 | Fixed crash in the permission dialog when an agent teams teammate requested tool permission. |
-| v2.1.152 | 2026-05 | Skills and slash commands can set `disallowed-tools` in frontmatter to remove tools while active. New `/reload-skills` command + `SessionStart` hook `reloadSkills: true` re-scan skill dirs without restart (skills installed by a hook become available in-session). New `MessageDisplay` hook event. |
-| v2.1.154 | 2026-05-28 | **Opus 4.8 (`claude-opus-4-8`) ships; defaults to `high` effort, `/effort xhigh` for hardest tasks.** **Dynamic workflows** research preview: ask Claude to create a workflow and it orchestrates tens-to-hundreds of subagents in the background (`/workflows` to view; Enterprise/Team/Max). Lean system prompt now default for all models except Haiku/Sonnet/Opus ≤4.7. Claude reserves multiple-choice prompts for decisions it genuinely can't make itself. Fast mode on 4.8 at 2× standard rate for 2.5× speed. |
-| v2.1.157 | 2026-06 | Plugins in `.claude/skills` directories load automatically, no marketplace required; `claude plugin init <name>` scaffolds a plugin there. |
-| v2.1.160 | 2026-06 | Dynamic-workflow trigger keyword renamed `workflow` → `ultracode` — the word "workflow" alone no longer triggers a run; asking for one in your own words still works. |
-| v2.1.163 | 2026-06 | Skills: `\$` escape syntax to include a literal `$` before a digit in command bodies (prevents unwanted `$1` argument substitution). |
-| v2.1.169 | 2026-06 | `--safe-mode` flag / `CLAUDE_CODE_SAFE_MODE` env var starts Claude Code with all customizations disabled (CLAUDE.md, plugins, skills, hooks, MCP) for troubleshooting. `disableBundledSkills` setting / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` hides bundled skills, workflows, and built-in slash commands from the model. |
-| v2.1.170 | 2026-06-09 | **Claude Fable 5 (`claude-fable-5`) ships — Mythos-class tier above Opus.** Supports `xhigh` effort and dynamic workflows. API $10/$50 per Mtok; included on Pro/Max/Team/seat-Enterprise Jun 9–22 2026, usage credits afterward. |
-| v2.1.205 | 2026-07 | `/doctor` becomes a bundled skill and stays typable even with `disableBundledSkills` on (hide via `DISABLE_DOCTOR_COMMAND` or a `skillOverrides` entry). Custom commands fully merged into skills — `.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`; nested `.claude/skills/` dirs give directory-qualified names (`apps/web:deploy`). |
-| v2.1.212 | 2026-07 | Session-wide loop guards: WebSearch capped at 200 calls (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), subagent spawns capped at 200 (`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`, `/clear` resets) — batch/blind fan-outs count against these. `/fork` copies the conversation to a background session; the old in-session fork is `/subtask`. |
-| v2.1.214 | 2026-07-17 | `EndConversation` tool; permission-check hardening (fail-closed Bash redirects, >10k-char commands always prompt). No skill-frontmatter or Skill-tool behavior changes v2.1.171→214 beyond rows above. |
-| v2.1.215 | 2026-07-19 | Claude no longer self-invokes the `/verify` and `/code-review` skills — user invocation only. Exact wording: *"Claude no longer runs the `/verify` and `/code-review` skills **on its own**; invoke them with `/verify` or `/code-review` when you want them."* **Confirmed 2026-07-24 by the sibling test:** `/verify` shipped in v2.1.145 alongside `/run` and `/run-skill-generator`; in a live v2.1.219 session `run` and `simplify` appear in the Skill-tool listing and `verify` does not. The removal is mechanical — the model has no `/verify` in its callable set. **Consequence for skill chaining:** a SKILL.md body cannot chain to `/verify` or `/code-review`. It CAN chain to any model-invocable skill, which is what the verification-loops blog's example actually does (`/simplify` → a custom `/verify-no-public-api-changes`). Chain to custom verification skills, never to these two. |
-| v2.1.217 | 2026-07-21 | Concurrent-subagent cap: default **20** in flight (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); nested subagent spawning off by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`); `--max-budget-usd` now halts running background subagents. `paths` frontmatter brace expansion budget-bounded (many brace groups previously OOM-killed startup). |
-| v2.1.218 | 2026-07-22 | **New skill frontmatter field `background`** — `context: fork` skills run in the background by default; `background: false` blocks the turn and restores the full tool set. Frontmatter booleans also accept `yes`/`no`/`on`/`off`/`1`/`0`. `/deep-research` and `/code-review` no longer self-launch. |
-| v2.1.219 | 2026-07-24 | **Claude Opus 5 (`claude-opus-5`) ships** — default Opus model, 1M context, $5/$25 per Mtok, knowledge cutoff May 2026. Platform docs still label Fable 5 "most capable widely released model", but the launch benchmarks put Opus 5 ahead of Fable 5 on knowledge work, agentic search, tool-using reasoning, and agentic terminal coding, with Fable 5 ahead only on sub-1-point coding/tool-free-reasoning margins and legal — **blind-validation pin moved to Opus 5** (see `blind-validation.md` §Model selection). Dynamic workflows default to a **medium size guideline (<15 agents)**, settable via `workflowSizeGuideline`; nested subagent depth raised to 3. |
-| v2.1.221 | 2026-08 | **`claude-api` skill gained a `prompt-audit` subcommand** — first-party auditing of prompts *and tool descriptions* for "patterns written for older models". Same target as this rubric's model-version-compensation cap (§Boris Alignment Check); run it as a free hypothesis source before a compensation-cap iteration. Also: `claude plugin validate` warns on marketplace/plugin names Claude Desktop would reject; plugins accept `"."` as a `skills` path. |
-| v2.1.222 | 2026-08 | A skill with `disable-model-invocation` that Claude tries to invoke now produces a refusal telling Claude to **ask the user to run it**, rather than replicating the workflow inline. Strengthens the Dim 1 invocation-fit check: opting a task skill out of model invocation no longer risks Claude re-deriving it badly. |
-| v2.1.224 | 2026-08 | **The 200-subagent-per-session spawn cap was removed** — *"long-running sessions no longer refuse new agents (concurrency and depth limits still apply)"*. Total agent count no longer bounds a `batch --all` pass; the 20-concurrent cap and the `<15` workflow size guideline are the live bounds. |
-| v2.1.228 | 2026-08 | Skills synced from claude.ai are hardened: they cannot shadow local commands or MCP prompts, descriptions are sanitized and labeled, and their bodies do not run `!` commands or expand `@` files locally. |
-| v2.1.232 | 2026-08 | **Subagent forking on by default** — a `subagent_type: "fork"` subagent inherits the full conversation *and prompt cache*; non-teammate agent spawns in interactive sessions run in the background by default. (Nesting depth 3 dates from v2.1.219, not this release.) |
-| v2.1.233 | 2026-08 | `claude plugin validate` now checks a **bare `.claude/skills` directory**, reporting SKILL.md files whose frontmatter fails to parse — a cheap pre-check before the Dim 9 hard-fail rules. Todo/task tools (TaskCreate/Get/Update/List, TodoWrite) are no longer available on Opus 4.8, Sonnet 5, Fable 5, Mythos 5 and newer (`CLAUDE_CODE_ENABLE_TODO_TOOLS=1` restores them). |
-| v2.1.236 | 2026-08-19 | Fixed skills hot-reload erroring on every change in SDK/VS Code sessions whose working directory had been deleted (regression from 2.1.229). |
-| v2.1.239 | 2026-08-21 | Agents, skills and commands whose `.md` starts with a UTF-8 BOM were silently ignored — fixed. The post-compaction skill reminder no longer re-runs a skill's original arguments as a new request. |
-| v2.1.243 | 2026-08-24 | `promptCacheTtl` / `subagentPromptCacheTtl` settings (`5m` or `1h`; env `CLAUDE_CODE_PROMPT_CACHE_TTL` / `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`; the docs say v2.1.242+) — API-key and cloud-provider users keep a 1-hour cache on the main conversation while subagents stay at 5 minutes unless the subagent bucket is set too. `/tasks` now shows the model and effort each subagent ran on. |
-| v2.1.246 | 2026-08-25 | A subagent that stops at `maxTurns` returns its output marked **partial** with a `SendMessage` continuation hint instead of appearing finished. A dynamic workflow asks before restarting finished subagents on `/background` or interrupt. |
-| v2.1.247 | 2026-08-26 | `/claude-api cost-optimize` — profiles a project's Claude API spend and walks the cost levers (caching, token hygiene, batch, effort, model choice) one measured change at a time; sibling of the v2.1.221 `prompt-audit`. |
-| v2.1.248 | 2026-08-27 | Agent frontmatter `experimental.cacheTtl` (`"5m"` / `"1h"`) — per-agent prompt-cache TTL used when no subagent TTL setting is configured; a `1h` there is ignored while a subscription is on usage credits. Workflow tool description cut from ~5.7k to ~1k tokens, its script-writing reference moved into a bundled `workflow-authoring` skill. |
-| v2.1.251 | 2026-08-28 | `CLAUDE_CODE_SUBAGENT_MODEL` is now a **default, not an override** — an agent definition's `model:` and an explicit per-spawn model take precedence over it. |
-| v2.1.257 | 2026-09-01 | **Claude Fable 5.1 (`claude-fable-5-1`) ships — the default Fable model.** 1M context, $10/$50 per Mtok with **$0.25/Mtok cache reads** (0.025×, vs 0.1× on every other model), June 2026 cutoff, default effort `high`, all five effort levels; the platform models page moves Fable 5 to the legacy list and positions Fable 5.1 "for demanding reasoning and long-horizon agentic work" with Opus 5 the default "for most workloads". New `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` applies one model to **every** subagent, ignoring agent-definition and per-spawn overrides (see `blind-validation.md` §Model selection). The `fable` / `best` aliases keep resolving to Fable 5 in Claude-apps gateway sessions until the gateway supports 5.1. Latest release at the 2026-09-01 freshen. |
-| v2.1.261 | 2026-09-04 | `/skill-doctor` — shows which loaded skills go unused and what they cost in context. A pruning signal, not a quality measurement. |
-| v2.1.269 | 2026-09-11 | `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) raises the Workflow tool's per-run concurrent-agent limit — separate from the 20-subagent cap, which is unchanged. |
-| v2.1.271 | 2026-09-14 | Medium dynamic-workflow size guideline lowered from 15 to 10 agents (`workflowSizeGuideline`); Pro plans now default to **small**. |
+| Since | Fact |
+|-------|------|
+| v2.1.63 | Task tool renamed `Agent`; `Task(...)` still works as alias. |
+| v2.1.91 | Plugin `bin/` auto-added to Bash `PATH` while the plugin is enabled. |
+| v2.1.94 | Plugin skills can declare `"skills": ["./"]` and are invoked by frontmatter `name`. |
+| v2.1.105 | Listing cap 1,536 chars. `PreCompact` hooks can block compaction (exit 2 or `{"decision":"block"}`). |
+| v2.1.145 | Bundled skills `/run`, `/verify`, `/run-skill-generator` (launch and verify the real app). |
+| v2.1.152 | `disallowed-tools` frontmatter; `/reload-skills` and `SessionStart` hook `reloadSkills: true` re-scan skill dirs without restart. |
+| v2.1.205 | `/doctor` is a bundled skill, typable even with `disableBundledSkills` on. |
+| v2.1.212 | `/fork` copies the conversation to a background session; the old in-session fork is `/subtask`. |
+| v2.1.217 | Default **20** concurrent subagents (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); nested spawning off by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; nested depth 3 since v2.1.219). `--max-budget-usd` halts running background subagents. |
+| v2.1.218 | `background` frontmatter field. |
+| v2.1.219 | Opus 5 (`claude-opus-5`) is the default Opus; blind-validation pin is Opus 5 (see `blind-validation.md` §Model selection). Dynamic workflows default to a medium size guideline, settable via `workflowSizeGuideline`. |
+| v2.1.221 | `claude-api` skill `prompt-audit` subcommand audits prompts and tool descriptions for "patterns written for older models" — same target as the model-version-compensation cap (§Boris Alignment Check); run it as a free hypothesis source before a compensation-cap iteration. `claude plugin validate` warns on names Claude Desktop would reject. |
+| v2.1.224 | No per-session subagent spawn cap (the 200 cap was removed). Live bounds: the 20-concurrent cap and the workflow size guideline. |
+| v2.1.228 | Skills synced from claude.ai cannot shadow local commands or MCP prompts; their bodies do not run `!` commands or expand `@` files locally. |
+| v2.1.232 | `subagent_type: "fork"` inherits the full conversation and prompt cache; non-teammate agent spawns in interactive sessions run in the background by default. |
+| v2.1.233 | `claude plugin validate` checks a bare `.claude/skills` directory and reports SKILL.md files whose frontmatter fails to parse — a cheap pre-check before the Dim 9 hard-fail rules. Todo/task tools (TaskCreate/Get/Update/List, TodoWrite) are unavailable on Opus 4.8, Sonnet 5, Fable 5, Mythos 5 and newer (`CLAUDE_CODE_ENABLE_TODO_TOOLS=1` restores them). |
+| v2.1.239 | `.md` agents/skills/commands that start with a UTF-8 BOM are loaded (previously ignored). |
+| v2.1.243 | `promptCacheTtl` / `subagentPromptCacheTtl` settings (`5m` or `1h`; env `CLAUDE_CODE_PROMPT_CACHE_TTL` / `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`). Subagents stay at 5 minutes unless the subagent bucket is set. |
+| v2.1.246 | A subagent that stops at `maxTurns` returns its output marked **partial** with a `SendMessage` continuation hint. |
+| v2.1.247 | `/claude-api cost-optimize` profiles API spend and walks the cost levers one measured change at a time. |
+| v2.1.248 | Agent frontmatter `experimental.cacheTtl` (`"5m"`/`"1h"`) sets per-agent cache TTL when no subagent TTL setting exists; `1h` is ignored while a subscription is on usage credits. |
+| v2.1.251 | `CLAUDE_CODE_SUBAGENT_MODEL` is a **default**: an agent definition's `model:` and an explicit per-spawn model override it. |
+| v2.1.257 | Fable 5.1 (`claude-fable-5-1`) is the default Fable: 1M context, $10/$50 per Mtok, **$0.25/Mtok cache reads**, default effort `high`, all five effort levels; Opus 5 is the default for most workloads. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` applies one model to **every** subagent, ignoring agent-definition and per-spawn overrides (see `blind-validation.md` §Model selection). |
+| v2.1.269 | `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) raises the Workflow tool's per-run concurrent-agent limit; the 20-subagent cap is unchanged. |
+| v2.1.271 | Medium dynamic-workflow size guideline is 10 agents (`workflowSizeGuideline`); Pro plans default to **small**. |
 
 ### Key Settings
 
 | Setting | Where | Purpose |
 |---------|-------|---------|
-| `disableSkillShellExecution` | `settings.json` | When `true`, blocks `` !`cmd` `` and ```!``` fenced blocks in non-bundled skills. Replacement text: `[shell command execution disabled by policy]`. Bundled and managed skills unaffected. Most useful in managed settings. |
-| `disableBundledSkills` | `settings.json` / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` | Hide bundled skills, workflows, and built-in slash commands from the model (v2.1.169). |
-| `CLAUDE_CODE_SAFE_MODE` | env var / `--safe-mode` flag | Start with ALL customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers — to isolate whether a problem comes from a skill (v2.1.169). |
-| `SLASH_COMMAND_TOOL_CHAR_BUDGET` | env var | Override the total budget for skill-description context (default: 1% of context window, 8,000-char fallback). |
-| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | env var | Required to be `1` for skills that set `shell: powershell`. |
-| `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | env var | Set to `1` to load `CLAUDE.md` from `--add-dir` directories. Skills from `--add-dir` load regardless. |
+| `disableSkillShellExecution` | `settings.json` | `true` blocks `` !`cmd` `` and ```!``` blocks in non-bundled skills (replacement text `[shell command execution disabled by policy]`). Bundled and managed skills unaffected. |
+| `disableBundledSkills` | `settings.json` / `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` | Hide bundled skills, workflows and built-in slash commands from the model. |
+| `CLAUDE_CODE_SAFE_MODE` | env var / `--safe-mode` | Start with ALL customizations disabled (CLAUDE.md, plugins, skills, hooks, MCP) to isolate whether a skill causes a problem. |
+| `SLASH_COMMAND_TOOL_CHAR_BUDGET` | env var | Override the total skill-description budget (default 1% of context window, 8,000-char fallback). |
+| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | env var | Must be `1` for skills with `shell: powershell`. |
+| `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | env var | `1` loads `CLAUDE.md` from `--add-dir` directories. Skills from `--add-dir` load regardless. |
 
 ### Tool Rename: Task → Agent
 
-When writing `allowed-tools` or deny rules for a skill, prefer `Agent(...)` over
-`Task(...)`. The alias still works but `Agent` is the canonical name from v2.1.63 onward.
+In `allowed-tools` and deny rules write `Agent(...)`, not `Task(...)`.
 
 ## Related Tools
 
-The official **skill-creator** skill from Anthropic (`anthropics/skills` on GitHub)
-provides a complementary workflow: create → evaluate → iterate, with quantitative
-assertion-based benchmarks and description optimization loops. It has known bugs but
-is actively maintained and useful alongside the skill-improver for new skill creation.
+Anthropic's **skill-creator** skill (`anthropics/skills`) offers create → evaluate → iterate with assertion-based benchmarks and description optimization loops; useful alongside skill-improver for new skills.
