@@ -27,7 +27,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29).
 ## The /config/* surface (13 paths, all hidden from openapi)
 
 - `POST /config/update` — admin-only, per-section merge (`proxy_server.py:14540-14562`). This is what the UI uses; it's how DB shadowing (incl. `coordination_redis`) gets written.
-- `GET /config/yaml` — **a mock returning `{"hello": "world"}`** (`proxy_server.py:15690`), and it's in `public_routes`. Never treat it as config export.
+- `GET /config/yaml` — **a mock returning `{"hello": "world"}`** (`proxy_server.py:15691`), and it's in `public_routes`. Never treat it as config export.
 - Guardrails duality mirror: `GET /guardrails/list` = config-file only; `GET /v2/guardrails/list` = config + DB merged (`guardrail_endpoints.py:125-137`).
 - Pass-through endpoint config lives under `/config/pass_through_endpoint*` (`pass_through_endpoints/pass_through_endpoints.py:3034-3319`); pass-through spend/limit gaps are real: no RPM/concurrency limits on custom pass-throughs (#29921), unbounded registry growth → 100% CPU (#26081), SSRF report open (#33000, CVSS 7.5), spend logs with `model=unknown` (#30932), vLLM passthrough logs nothing (#33210).
 

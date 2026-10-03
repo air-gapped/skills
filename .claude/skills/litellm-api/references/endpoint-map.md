@@ -14,7 +14,7 @@ Measured @ `4d543245` (v1.95.0-dev, 2026-07-29): 746 route decorators, 624 uniqu
 | `/model/*`, `/model_group/*`, `/model_hub/*` | `management_endpoints/model_management_endpoints.py` + `proxy_server.py:12095-13281` | `/model/info`, `/v2/model/info`, `/model/metrics*`, `/model/settings` live in proxy_server.py |
 | `/budget/*` (6) | `management_endpoints/budget_management_endpoints.py` | undocumented as a family |
 | `/spend/*` (9), `/global/*` (18) | `spend_tracking/spend_management_endpoints.py` (3300+ lines) | ALL `/global/*` hidden from schema; `/spend/logs` deprecated for `/spend/logs/v2` (`:2264-2265`) but docs still show v1 |
-| `/config/*` (13) | `proxy_server.py:14540-15668` + pass_through + cost_tracking_settings | ALL hidden from schema; `GET /config/yaml` is a mock returning `{"hello":"world"}` (`proxy_server.py:15690`) **and** a public route |
+| `/config/*` (13) | `proxy_server.py:14540-15668` + pass_through + cost_tracking_settings | ALL hidden from schema; `GET /config/yaml` is a mock returning `{"hello":"world"}` (`proxy_server.py:15691`) **and** a public route |
 | `/credentials/*` (6) | `credential_endpoints/endpoints.py` | |
 | `/guardrails/*` (18) | `guardrails/guardrail_endpoints.py` | `GET /guardrails/list` reads config-file only; `GET /v2/guardrails/list` merges config+DB (`:125-137`); `/guardrails/{id}` registers PUT and PATCH and GET and DELETE |
 | `/policies/*` (15) vs `/policy/*` (9) | **two different subsystems** (`policy_engine/` vs `management_endpoints/policy_endpoints/`) | lazy-load prefixes disambiguated by trailing slash (`_lazy_features.py:68-69`) |
