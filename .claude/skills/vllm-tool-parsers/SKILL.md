@@ -21,7 +21,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | Shared helpers (`partial_json_loads`, `find_common_prefix`, `make_valid_python`, `partial_tag_overlap`, `compute_tool_delta`, `handle_single_tool`) | `vllm/tool_parsers/utils.py` |
 | Built-in parser registry | `vllm/tool_parsers/__init__.py` — `_TOOL_PARSERS_TO_REGISTER` maps CLI name → module → class |
 | **Unified parser engine (new)** | `vllm/parser/` — one class per model (`qwen3.py`, `gemma4.py`, `deepseek_v4.py`, `deepseek_v32.py`, `seed_oss.py`, …), `abstract_parser.py`, and `engine/` (`parser_engine.py`, `streaming_parser_engine.py`, `incremental_lexer.py`, `token_id_scanner.py`) |
-| **Adapter construction** | `vllm/parser/engine/registered_adapters.py` — `make_adapters(XParser)` returns `(XParserReasoningAdapter, XParserToolAdapter)`; the tool side is then subclassed in `vllm/tool_parsers/*_engine_tool_parser.py` to attach `structural_tag_model` |
+| **Adapter construction** | `vllm/parser/engine/adapters.py` defines `make_adapters(XParser)` → `(XParserReasoningAdapter, XParserToolAdapter)`; most pairs are built in `vllm/parser/engine/registered_adapters.py`, a few in the model's own `vllm/parser/<model>.py` (`ling3`). The tool side is then subclassed in `vllm/tool_parsers/*.py` to attach `structural_tag_model` |
 | CLI flag definitions | `vllm/entrypoints/launchers/cli_args.py` — grep `tool_call_parser`, `enable_auto_tool_choice`, `tool_parser_plugin` |
 | Non-streaming serving invocation | `vllm/entrypoints/openai/chat_completion/serving.py` — grep `parser.parse(`; `DelegatingParser` in `vllm/parser/abstract_parser.py` calls the tool parser's `extract_tool_calls` |
 | Streaming serving loop | same file — grep `parse_delta`, `tools_streamed` |
@@ -49,17 +49,19 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `minimax_m2` | `MinimaxM2ToolParser` | `vllm/parser/minimax_m2.py` |
 | `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
 | `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
-| `ling3` | `Ling3Parser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
+| `ling3` | `Ling3ToolParser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
 | `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` — **new at v0.30.0** (DeepSeek-V4.1-Flash). Strict (`strict=true`) tool-call parameter schemas are only grammar-constrained if the installed `xgrammar` exposes `builtin_structural_tag.get_deepseek_v4_1_structural_tag`; otherwise the fallback builder constrains tool names/DSML syntax only, not parameter schemas (`vllm/tool_parsers/structural_tag_registry.py`, PR #56408) |
 
-**Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) at v0.29.0, and `k2_horizon` (`K2HorizonToolParser`) at v0.30.0. None imports `registered_adapters`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0** (49 at v0.29.0, 45 at v0.27.0) — no removals in either hop.
+**Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) at v0.29.0, and `k2_horizon` (`K2HorizonToolParser`) at v0.30.0. None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0** (49 at v0.29.0, 45 at v0.27.0) — no removals in either hop.
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
 have ordinary names and are still stubs. The test is whether the file imports
-the adapter: `grep -l "registered_adapters import" vllm/tool_parsers/*.py`.
+an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (12 files at v0.30.0;
+`ling3_tool_parser.py` imports its adapter from `vllm.parser.ling3`, so grepping
+`registered_adapters` misses it).
 **Exception**: `cohere_command_tool_parser.py` (`cohere_command3`/`cohere_command4`)
-is a stub too but doesn't import `registered_adapters` — it's composed by
+is a stub too but imports no adapter — it's composed by
 name-check in `vllm/parser/parser_manager.py` instead, so this grep won't find
 it. Its parsing lives in `vllm/parser/cohere_command.py` via the external
 `cohere_melody` package (PR #56392) — not a vLLM runtime dependency: `pip

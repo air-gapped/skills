@@ -1,6 +1,6 @@
 # External sources — verification log
 
-Freshened: 2026-09-22 — every row probed at v0.30.0. All ten issue/PR states reproduce; every cited URL 200. Registry re-derived from the source tree rather than carried forward: **49 -> 51 CLI names**, adding `deepseek_v41` (unified engine path) and `k2_horizon` (standalone), no removals; unified path is 11 files / 15 names. RFC #32713 is bot-closed NOT_PLANNED, which the body had as OPEN.
+Freshened: 2026-09-22 — every row probed at v0.30.0. All ten issue/PR states reproduce; every cited URL 200. Registry re-derived from the source tree rather than carried forward: **49 -> 51 CLI names**, adding `deepseek_v41` (unified engine path) and `k2_horizon` (standalone), no removals; unified path is 12 files / 15 names (corrected 2026-10-03: `ling3_tool_parser.py` imports `Ling3ParserToolAdapter` from `vllm.parser.ling3`, not via `registered_adapters`, so the earlier grep counted 11; its registry class is `Ling3ToolParser`, not `Ling3Parser`). RFC #32713 is bot-closed NOT_PLANNED, which the body had as OPEN.
 
 All external references cited by this skill, probed and timestamped. Use this table to decide when a claim needs re-verification before citing in a response.
 
