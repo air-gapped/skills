@@ -35,7 +35,7 @@ description: This skill should be used when the user asks to "write a SQL query"
 
 ### Pattern 1.2: Fix Person
 
-**Problem:** Description uses second person or imperative.
+**Problem:** Description uses second person ("you need to…"). Imperative "Use this skill when…" is acceptable (rubric Dim 1).
 
 **Before:**
 ```yaml

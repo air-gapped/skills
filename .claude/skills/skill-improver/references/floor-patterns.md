@@ -1,6 +1,6 @@
 # Floor Mode — Classification, Buckets, and What the Floor Moves
 
-Full Floor Mode reference; `SKILL.md` §"Floor Mode" carries the stub. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading their leaderboard.
+Full Floor Mode reference; `SKILL.md` §"Floor" carries the stub. Load when running `knowledge-floor.py` / `floor-fleet.py` or reading their leaderboard.
 
 ## Table of Contents
 - [Classify the skill before probing it](#classify-the-skill-before-probing-it)

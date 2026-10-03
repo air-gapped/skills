@@ -81,19 +81,22 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 Score, apply ONE change, re-score cold, keep +3 or more; keep +1/+2 only when a
 second cold score confirms it or the change also simplifies; keep Δ0 only when
 it fixes a verifiable defect; revert the rest. Stop at 90+ with no dimension
-below 7, at 5+ discards across 2+ categories, or after 10 iterations.
+below 7, when the ceiling is mapped (`improve-loop.md` Phase 5), or after 10
+iterations.
 Re-scoring an unchanged skill moves the total 2–3 points (up to 6), so +2 is
 noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
 - **One change per iteration.** State it in 10 words with one verb; an "and"
-  means two iterations. A move that starts rewording prose is two changes.
+  means two iterations. A move that starts rewording prose is two changes. A
+  change plus the pointer and source row it needs is one change.
 - **The backlog records blockers only.** Every Open entry in
   `<skill>/references/improvement-backlog.md` names the absent thing (a ruling,
   a credential, an unreleased version, a measurement nobody can run now). Effort
   is not a blocker: do it before the pass ends. Format:
   `references/backlog-format.md`.
 - **A pass ends with work, not a report.** Done = every keep applied, blind
-  score at baseline (on a snapshot) and at stop, the A/B comparator verdict, an
+  score at baseline (on a snapshot, with the baseline commit recorded) and at stop,
+  the A/B comparator verdict, an
   `outcome` run when the skill has eval cases, committed with the backlog in the
   same commit, resolved items deleted from Open. Zero discards = stopped early.
 

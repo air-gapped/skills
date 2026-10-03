@@ -137,8 +137,8 @@ dimensions has **not scored**. Treat the gap as absent:
   (a total over fewer than 10 dimensions is not comparable).
 - **Retry once.** If the second attempt fails, record `NO SCORE` and say which end.
 
-A pass is done only with **both** blind scores on record (SKILL.md §Improvement
-Loop, improve-loop Phase 7). With one end unscored the pass is **stopped
+A pass is done only with **both** blind scores on record (SKILL.md §"Improve",
+improve-loop Phase 7). With one end unscored the pass is **stopped
 early**: do not report it as finished or quote its delta.
 
 With median-of-3 scoring, report the count that returned: three is the median,
@@ -203,9 +203,17 @@ baseline/final:
 
 **Spawn the comparator from outside the repo.** A subagent spawned from a repo
 cwd inherits an environment block listing recent commit subjects, which
-describe the diff being judged. Run the comparison as a bare `claude -p` with
-cwd set to `$AB` (the empty-project trick `knowledge-floor.py` uses). An
-in-session subagent is a degraded fallback; record its verdict as semi-blind.
+describe the diff being judged. Run each comparator as a bare `claude -p` with
+cwd `$AB`, the agent passed inline (a project agent does not resolve from
+`/tmp`):
+
+```bash
+AGENTS=$(python3 -c 'import json,sys,re; t=open(sys.argv[1]).read(); fm,body=re.match(r"---\n(.*?)\n---\n(.*)",t,re.S).groups(); d=dict(l.split(": ",1) for l in fm.splitlines() if ": " in l); print(json.dumps({"skill-comparator":{"description":d["description"],"prompt":body,"model":d.get("model","sonnet")}}))' <repo>/.claude/agents/skill-comparator.md)
+(cd "$AB" && claude -p --agents "$AGENTS" --agent skill-comparator \
+  --add-dir <skill-improver-dir>/references "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: $AB/x. DIR B: $AB/y.")
+```
+
+An in-session subagent is a degraded fallback; record its verdict as semi-blind.
 
 | Field | What it means | Action |
 |---|---|---|

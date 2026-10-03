@@ -501,5 +501,5 @@ iteration | score | delta | status | description
 1         | 62    | +4    | keep     | rewrote description with specific trigger phrases
 2         | 62    | 0     | discard  | added examples/ directory (no score gain, added complexity)
 3         | 65    | +3    | keep     | moved API reference from SKILL.md to references/api.md
-4         | 67    | +2    | keep     | converted 12 second-person sentences to imperative form
+4         | 67    | +2    | keep (confirmed) | converted 12 second-person sentences to imperative form
 ```

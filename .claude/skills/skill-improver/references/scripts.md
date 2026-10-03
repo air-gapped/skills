@@ -28,7 +28,7 @@ Every executable in `scripts/`. Pick by the "when" column; `Read` a script's doc
 | `check-shell-fences.py` | Every ```` ```bash ````/```` ```sh ```` fence: pass 1 `bash -n`; pass 2 line-continuation regex (`cmd \   # note` does not continue the line; `bash -n` misses it) | Fleet check | Any finding is a copy-paste break |
 | `check-yaml-fences.py` | Parses every YAML fence | Fleet check | Parse failure = broken manifest (e.g. unquoted `[` `]` in a flow mapping) |
 | `check-tables.py` | Finds markdown table rows whose cell count differs from the header | Fleet check | Renderers drop cells past the header's column count, losing the last (payload) column |
-| `batch-workflow.js` | `Workflow`-tool driver for batch improve + freshen (recon, apply, blind pipeline, median-of-3 final blind). Skill list from `args` | Batch Mode: `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`; see Batch Mode § Dynamic workflows | |
+| `batch-workflow.js` | `Workflow`-tool driver for batch improve + freshen (recon, apply, blind pipeline, median-of-3 final blind). Skill list from `args` | Batch Mode: `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/scripts/batch-workflow.js", args: [...]})`; see `SKILL.md` §"Batch" | |
 
 #### Eval-corpus maintenance (fleet-wide, not per-run)
 
