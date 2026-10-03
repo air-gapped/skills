@@ -114,7 +114,10 @@ def run_scores(result: dict, arm: str) -> dict:
             gs = [
                 g
                 for g in r["graders"]
-                if g["name"].startswith("a") and g["name"][1:].isdigit()
+                if g["name"].startswith("a")
+                and g["name"][1:].isdigit()
+                # A grader whose judge call failed measured nothing: NO SCORE, not FAIL.
+                and not str(g.get("explanation") or "").startswith("grader threw")
             ]
             score = (
                 None
@@ -298,6 +301,31 @@ def selfcheck() -> int:
         ]
     }
     assert run_scores(fake, "with") == {"x": [(0.5, 0.1, True)]}
+    threw = {
+        "cases": [
+            {
+                "name": "x",
+                "arms": {
+                    "with": [
+                        {
+                            "error": None,
+                            "costUsd": 0.1,
+                            "graders": [
+                                {
+                                    "name": "a0",
+                                    "passed": False,
+                                    "explanation": "grader threw: judge call failed: API Error",
+                                }
+                            ],
+                        }
+                    ]
+                },
+            }
+        ]
+    }
+    assert run_scores(threw, "with") == {
+        "x": [(None, 0.1, False)]
+    }  # judge failure is NO SCORE
     weak_res = {
         "cases": [
             {

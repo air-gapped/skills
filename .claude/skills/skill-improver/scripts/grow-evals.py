@@ -64,6 +64,8 @@ domain genuinely cannot support it:
   decide     choose between defensible options and justify the choice
   guard      a request that is wrong or dangerous exactly as asked, where a
              correct answer pushes back rather than complying
+             (never a request to attack or exploit a live system: model safety
+             filters refuse those runs, so the case can never be scored)
 
 Each case needs:
 

@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "tool": "claude plugin eval via outcome-eval.py",
+    "date": "2026-10-04",
+    "model": "sonnet",
+    "judge_model": "sonnet",
+    "runs_per_case": 3,
+    "cases": 8,
+    "forced_invocation": true,
+    "note": "cases 0-6 from the full run, case 7 from its own run after the original case 7 was replaced; judge-call failures excluded as NO SCORE"
+  },
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9535
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8104
+      }
+    }
+  }
+}

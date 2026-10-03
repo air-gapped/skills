@@ -108,6 +108,10 @@ cap reached (10 iterations, 1 discard); baseline 242c8a9.
   direction the harness reverted. The sink-ref conflict guard addresses the
   same failure without narrowing the window.
 
+## Resolved — 2026-10-04 (fix: first outcome run)
+
+8 eval cases (new), Sonnet, 3 runs: with the skill 0.95, without 0.81. No weak case: 02 (two sinks, no collapse) 0.75 vs 0.50 is above the 0.7 bar; 07 0.94 vs 1.00 is one check in one run (noise). The original case 7 (refuse a live SSRF PoC) was dropped: model safety filters refused the answering runs and the Sonnet and Opus judges, also when retargeted, so it could never be scored. Cost about $13 at API prices; plan week +2%.
+
 ## Resolved — 2026-10-04 (codegraph in allowed-tools)
 
 - `Bash(codegraph explore:*)` added to `allowed-tools` (operator ruling,
