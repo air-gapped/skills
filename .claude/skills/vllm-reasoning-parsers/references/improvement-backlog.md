@@ -4,6 +4,27 @@
 
 _No open items._
 
+## Resolved this pass (2026-10-03, improve, v0.30.0)
+
+Blind 75 → 77; comparators 3/3 IMPROVED; outcome without 0.569 / baseline
+0.854 / final 0.826 (full run, before the pitfall-1 fix; case 00 re-run after
+it: without 0.94 / baseline 0.78 / final 1.00). Stop: cap reached (10).
+- Kept: serving-layer anchors (`prompt_is_reasoning_end_arr`, `serving.py:240`)
+  replaced with the v0.30.0 `reasoning_ended` gate and `Parser` construction.
+- Kept: matrix rows for `hy_v4`, `ling3`, `muse_glimmer`, `deepseek_v41`.
+- Kept: shim test is `grep -l "vllm\.parser"`; `registered_adapters import`
+  misses `ling3` and the Cohere pair.
+- Kept: three parser shapes with v0.30.0 counts (18 / 14 / 2).
+- Kept: description+when_to_use under the 1536 listing cap; mistral routing
+  contradiction; CLI validation site; pitfalls 10, 11, 15 de-historied.
+- Kept: pitfall 1 states that `</think>` in `content` is the signature of a
+  start-tag-requiring parser (deepseek_r1 ≤ v0.7.2, custom regex parsers).
+- Discard: test-harness completion criterion (`run_reasoning_extraction`
+  both paths) in §Testing — Dim 4 unchanged on a cold score, +2 lines.
+- Not cut on floor grounds: the `reasoning` field name and
+  `enable_in_reasoning` are known to opus but carry the input/output
+  asymmetry and gating mechanism; cut only if an eval shows no loss.
+
 ## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
 
 - **The prior pass's method was the bug.** 2026-07-21 detected unified-engine
