@@ -3,6 +3,24 @@
 Carries ceiling findings across `skill-improver` runs. Read in Phase 0;
 updated in Phase 6.
 
+## Resolved this pass (2026-10-04, improve — leanness)
+
+Blind 72 → 73; comparators 3/3 IMPROVED (slight); SKILL.md 988 → 743 lines;
+cap reached (10 iterations, 1 discard); baseline 242c8a9.
+- Kept: 2b dedupe prompt and the fallback compact verifier moved to
+  `prompts.md`; Phase 6 templates to `output-format.md`; smoke test to
+  `testing.md`; design notes to `design-notes.md`; provenance to
+  `sources.md` § Provenance; duplicate 3b tail pointer cut; stale
+  `SKILL.md:NN` citations in `sources.md` replaced with section names;
+  `prompts.md` contents list moved to the top.
+- Discard: moving the Phase 0b interview questions to a reference. Interactive
+  is the default mode, so the move saves nothing on most runs, adds a
+  mandatory Read, and separates the noise-tolerance options from their 0c
+  default and 3c mapping. Do not re-propose unless `--auto` becomes the default.
+- Scope held: every phase step, checkpoint schema and command stays inline —
+  only material used on some branches (fallback, >1 cluster, Phase 6
+  templates, testing, rationale, history) moved.
+
 ## Resolved — 2026-09-15 (untrusted_data isolation adopted)
 
 - **Scanner-derived text now reaches subagents inside nonce-delimited
@@ -169,6 +187,19 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   pass: needs a real target and a full multi-skill pipeline run, not a
   one-iteration mutation. The feedback's calibration table (rows 1-4) is
   the pass/fail oracle.
+- **Phase 2b dedupe prompt interpolates scanner text without isolation
+  (Dim 5/9).** `references/prompts.md` § Dedupe prompt fills `CANDIDATES`
+  with scanner `title` (attacker-influenced) unwrapped, unlike the verifier
+  and ranker tails. Fix: wrap the CANDIDATES lines in the § `{nonce}`
+  contract plus its data-not-instructions sentence. Blocker: operator
+  ruling — the 2026-10-04 pass was scoped to relocation only, with no
+  changes to security prose.
+- **`codegraph explore` permitted in prose but absent from `allowed-tools`
+  (Dim 8).** SKILL.md Tools paragraph and Phase 3a allow it; the frontmatter
+  has no matching `Bash(...)` entry, and Phase 3a runs it as
+  `cd <repo> && codegraph explore`, which a prefix rule would not match
+  anyway. Blocker: operator ruling on widening the skill's tool scope (same
+  2026-10-04 scope limit).
 
 ## Decided — do not re-propose
 
@@ -187,7 +218,10 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   precedent — but this skill is single-mode: the phases load every run
   regardless, so the token win mostly evaporates and a skipped Read on a
   security-verdict workflow is a real risk. No extraction without a
-  with/without measurement first.)
+  with/without measurement first.) **(2026-10-04: operator asked for a leaner
+  triage. Branch-only material moved — see the 2026-10-04 section; 988 → 743
+  lines. The hold still covers phase-core text: per-phase checkpoint
+  schemas and commands, and every phase procedure.)**
 
 ## Unblocked — actionable
 
