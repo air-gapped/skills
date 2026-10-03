@@ -5,10 +5,8 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 
 ## Open
 
-- **Re-measure outcome on the corrected eval set** (Dim 10) — `evals/evals.json` cases 1, 2, 7 were re-aligned to the v0.30.0 flush
-  contract after the 2026-10-03 outcome run, so `evals/benchmark.plugin-eval.json` (+0.253 over without) was graded against the old
-  assertions. Blocked on: spend — that pass's budget was exhausted by the run itself. Action: `outcome-eval.py <skill> --write-benchmark`
-  (~$11 for current + without at Sonnet, 3 runs).
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
 
 ## Decided — do not re-propose
 
@@ -17,6 +15,7 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 ## Resolved this pass (2026-10-03, improve)
 
 Blind 76 → 81; comparators 3/3 IMPROVED (decisive); cap reached (10 iterations, 1 discard); outcome (Sonnet, 8 cases × 3 runs) without 0.403 / baseline 0.701 / final 0.656, $17.55 — the −0.045 is inside noise; the final-arm losses on cases 02 and 07 are assertions that encoded the pre-v0.23.0 flush contract, re-aligned in evals.json this commit and not yet re-measured.
+- Re-measured on the corrected eval set (cases 1, 2, 7 re-aligned to v0.30.0): without 0.422 / baseline 0.654 / final 0.651, $17.19 — final equals baseline. Case 01 failed every assertion on both versions: the #30439 fact (pre-v0.25.1 `qwen3_coder` streams all args in one final delta; upgrade or go non-streaming) lived only in `sources.md`. Added to the SKILL.md qwen3_coder row; case 01 re-run 0.20 → 0.80 (without 0.27), $0.91.
 - Discard: front-loaded "Common wrong assumptions" table (qwen3 class, flush location, old package path) at the top of SKILL.md. Two of its three rows restated Where-things-live and Framework-contract text (Dim 6 down) and Dim 10 sits at its unmeasured cap, so nothing could register. The one new fact (old `vllm/entrypoints/openai/tool_parsers/` removed at v0.14.0) went into the existing table row instead.
 - Kept: flush contract rewritten to v0.23.0+ (`get_remaining_unstreamed_args`, `tools_streamed` decides `finish_reason`).
 - Kept: three dead entry-point paths repointed to `vllm/entrypoints/launchers/` and `responses/utils.py`.

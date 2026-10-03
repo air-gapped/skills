@@ -102,7 +102,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B, Gemma-3 | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja`, `tool_chat_template_gemma3_pythonic.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
-| `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** (`Qwen3EngineToolParser`) since v0.25.1; before that `qwen3coder_tool_parser.py` and `qwen3xml_tool_parser.py` were separate implementations |
+| `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** (`Qwen3EngineToolParser`) since v0.25.1; before that `qwen3coder_tool_parser.py` and `qwen3xml_tool_parser.py` were separate implementations. **Before v0.25.1, `qwen3_coder` streams all arguments in one final delta** (#30439, closed unfixed — not a flag or template problem): upgrade to ≥ v0.25.1 (unified parser); interim, use non-streaming |
 | `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseekv3.jinja`, `_deepseekv31.jinja`, `_deepseekr1.jinja` |
 | `deepseek_v41` | DeepSeek-V4.1-Flash (v0.30.0+; DSML, unified engine) | (HF default) |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |

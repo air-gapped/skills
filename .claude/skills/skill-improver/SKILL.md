@@ -120,6 +120,9 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
   it changed and when it was checked go in `references/sources.md`; `SKILL.md`
   carries one pointer to it. Keep a version or issue number in agent text only
   where the agent acts on it ("on 0.7.0 every command fails — upgrade").
+  **A known failure is agent text, never history:** the symptom, the affected
+  versions and the fix stay in `SKILL.md`/references even when the citation
+  lives in `sources.md` — an agent never loads `sources.md` mid-task.
   Existing history is not a defect by itself; move it when it is in the diff.
 - **A failed measurement is NO SCORE, never 0.** A timed-out probe, a dead
   scorer, an errored eval run: exclude it from the denominator and say what is
