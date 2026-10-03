@@ -489,45 +489,9 @@ agent type resolves, the ~1200-word instructions live in the shared cached
 system prompt and per-spawn cost stays flat at any batch size — never
 switch to the compact form there. On the `general-purpose` fallback, every
 spawn re-pays the full instructions inline; when `candidates * votes > ~50`
-on that path, use this compact form instead (same procedure and output
-contract, prose stripped):
-
-```
-Adversarially verify ONE scanner finding. Default: scanner is WRONG.
-Read-only access scoped to {REPO_PATH} ONLY. No exec, no network.
-ENVIRONMENT: {context.environment}
-
-Steps: (1) Read {file}:{line} yourself; don't trust the description.
-(2) Trace callers backwards; quote the first call-site file:line.
-(3) Hunt for protections: validation, escaping, type bounds, auth gates,
-dead/test code. (4) Stress-test each protection on every path.
-
-Exclusion rules (FALSE_POSITIVE if matched): 1 volumetric DoS;
-2 test/dead/fixture code; 3 intended design; 4 memory-safety in safe
-lang outside unsafe/FFI; 5 SSRF path-only; 6 LLM prompt input;
-7 object-storage traversal; 8 trusted operator env/CLI inputs;
-9 client code, server vuln class; 10 outdated deps; 11 weak random
-non-security; 12 low-impact nuisance (log spoof, open redirect, regex
-inject); 13 missing-hardening-only, no exploit path (reachability only —
-reachable-but-gains-nothing is still TRUE; impact is ranked later); 14 XSS in
-auto-escape framework w/o raw-HTML escape hatch; 15 unguessable
-UUID/token flagged predictable; 16 theoretical-only race/TOCTOU.
-{+ org rules from --fp-rules if any}
-
-End with EXACTLY:
-  VERDICT: TRUE_POSITIVE | FALSE_POSITIVE | CANNOT_VERIFY
-  CONFIDENCE: <0-10>
-  REFUTE_REASON: <doesnt_exist|already_handled|implausible_trigger|
-    intentional_behavior|misread_code|duplicate|not_actionable|n/a>
-  EXCLUSION_RULE: <1-16, org rule, or none>
-  FIRST_LINK: <file:line or "none found">
-  RATIONALE: <2-5 sentences, file:line cited>
-
-FINDING: {id} {file}:{line} {category} (claimed {severity})
-{title}
-{description}
-Vote {k}/{N}. Independent; do not seek other votes.
-```
+on that path, use the compact form in **`references/prompts.md` § Compact verifier
+(fallback path)** instead (same procedure and output contract, prose
+stripped).
 
 Findings with a `file` but no `line` get **one** verifier vote regardless
 of `--votes` (a file-level sweep is expensive and doesn't benefit from
