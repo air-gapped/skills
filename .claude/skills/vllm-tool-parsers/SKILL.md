@@ -99,14 +99,14 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `longcat` | LongCat-Flash-Chat | (inherits hermes) |
 | `mistral` | Mistral-Instruct (all), Mistral-Large-2506+ (v≥11 format auto-detected) | `tool_chat_template_mistral.jinja` (also `_mistral3.jinja`, `_mistral_parallel.jinja`) |
 | `llama3_json` / `llama4_json` | Llama 3.1/3.2/3.3/4 (JSON flavor) | `tool_chat_template_llama3.1_json.jinja`, `_llama3.2_json.jinja`, `_llama4_json.jinja` |
-| `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja` |
+| `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B, Gemma-3 | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja`, `tool_chat_template_gemma3_pythonic.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
 | `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** (`Qwen3EngineToolParser`); there is no separate coder vs XML implementation to choose between |
 | `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseekv3.jinja`, `_deepseekv31.jinja`, `_deepseekr1.jinja` |
 | `deepseek_v41` | DeepSeek-V4.1-Flash (v0.30.0+; DSML, unified engine) | (HF default) |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
-| `apertus` | Apertus | (HF default) |
+| `apertus` | Apertus | `tool_chat_template_apertus.jinja` — vLLM's docs say use it over the HF one (fixes OpenAI-compatibility issues) |
 | `lfm2` | LFM2 | (HF default) |
 | `minicpm5` | MiniCPM-5 | (HF default — no `tool_chat_template_minicpm5.jinja` ships) |
 | `poolside_v1` | Poolside (GLM-4-style grammar) | (HF default) |
@@ -127,7 +127,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `hy_v4` | Hunyuan V4 / Hy4-preview (v0.29.0+); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
 | `muse_glimmer` | Muse Glimmer (v0.29.0+); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
 | `seed_oss` | Seed-OSS | (HF default) |
-| `hunyuan_a13b` | Hunyuan-A13B | (HF default) |
+| `hunyuan_a13b` | Hunyuan-A13B | (HF default per vLLM docs; `tool_chat_template_hunyuan_a13b.jinja` also ships) |
 | `ernie45` | ERNIE-4.5 thinking | (HF default) |
 | `gemma4` / `functiongemma` | Gemma-4-IT / FunctionGemma-270m | `tool_chat_template_gemma4.jinja`, `_functiongemma.jinja` |
 | `gigachat3` | GigaChat-3 | (HF default) |
