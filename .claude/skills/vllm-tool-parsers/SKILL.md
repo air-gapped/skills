@@ -23,8 +23,9 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | **Unified parser engine (new)** | `vllm/parser/` — one class per model (`qwen3.py`, `gemma4.py`, `deepseek_v4.py`, `deepseek_v32.py`, `seed_oss.py`, …), `abstract_parser.py`, and `engine/` (`parser_engine.py`, `streaming_parser_engine.py`, `incremental_lexer.py`, `token_id_scanner.py`) |
 | **Adapter construction** | `vllm/parser/engine/registered_adapters.py` — `make_adapters(XParser)` returns `(XParserReasoningAdapter, XParserToolAdapter)`; the tool side is then subclassed in `vllm/tool_parsers/*_engine_tool_parser.py` to attach `structural_tag_model` |
 | CLI flag definitions | `vllm/entrypoints/openai/cli_args.py` — grep `tool_call_parser`, `enable_auto_tool_choice`, `tool_parser_plugin` |
-| Non-streaming serving invocation | `vllm/entrypoints/openai/chat_completion/serving.py` — grep `extract_tool_calls` |
-| Streaming serving loop + tail flush | same file — grep `extract_tool_calls_streaming`, `prev_tool_call_arr` |
+| Non-streaming serving invocation | `vllm/entrypoints/openai/chat_completion/serving.py` — grep `parser.parse(`; `DelegatingParser` in `vllm/parser/abstract_parser.py` calls the tool parser's `extract_tool_calls` |
+| Streaming serving loop | same file — grep `parse_delta`, `tools_streamed` |
+| Tail flush of unstreamed args | `vllm/parser/abstract_parser.py` — grep `_append_unstreamed_tool_args`; reads `ToolParser.get_remaining_unstreamed_args()` in `abstract_tool_parser.py` |
 | Plugin import wiring | `vllm/entrypoints/openai/api_server.py` — grep `import_tool_parser` |
 | Responses API tool handling | `vllm/entrypoints/openai/responses/serving.py` + `vllm/entrypoints/openai/parser/responses_parser.py` |
 | Per-parser Jinja chat templates | `examples/tool_chat_template_<family>.jinja` |
@@ -155,10 +156,11 @@ Worth carrying as mental model, because it's spread across multiple files and ea
   - `current_token_ids == previous_token_ids + delta_token_ids`
   - Deltas may span multiple tokens.
 - Four state fields the parser MUST maintain:
-  - `prev_tool_call_arr: list[dict]` — serving reads `[i]["arguments"]` at stream end to flush the tail. If empty at end, `finish_reason` becomes `stop` not `tool_calls`.
+  - `prev_tool_call_arr: list[dict]` — at stream end `get_remaining_unstreamed_args()` takes the **last** entry's `"arguments"`, subtracts what `streamed_args_for_tool` already sent, and appends the rest to the final delta's last tool call — only if that final delta carries `tool_calls`.
   - `current_tool_id: int` — starts `-1`, increments per call.
   - `current_tool_name_sent: bool` — flip True once name flushed for current tool.
-  - `streamed_args_for_tool: list[str]` — cumulative args already emitted per tool index. **Append on every flush or the tail double-streams.**
+  - `streamed_args_for_tool: list[str]` — cumulative args already emitted per tool index. **Append on every flush**: if it is not a prefix of the full args, the tail is silently dropped; if it lags, the tail re-sends text already streamed.
+- Streaming `finish_reason` is `tool_calls` iff at least one returned `DeltaMessage` carried `tool_calls` (serving's `tools_streamed[i]`) and the request did not name a tool. A parser that only buffers and never emits a `DeltaToolCall` ends on `stop`, whatever `prev_tool_call_arr` holds.
 - Optional: `adjust_request(request)` — set `skip_special_tokens=False`, inject grammar, etc. `supports_required_and_named: bool = True` — flip False if the output shape breaks guided JSON.
 - Return-value contract for streaming: `None` = "consumed, nothing to emit"; `DeltaMessage(content=...)` = pass-through; `DeltaMessage(tool_calls=[DeltaToolCall(...)])` = tool progress.
 
@@ -190,7 +192,7 @@ When a user reports a broken tool call, work down this list. Each step names whe
 3. **Chat template matches?** Inspect the actual template bytes — don't trust the filename. See step 7.
 4. **Reasoning parser paired?** If the model has `<think>` / `</seed:think>` / harmony channels, `--reasoning-parser` must match. Check `vllm/reasoning/` for the registry.
 5. **Streaming vs non-streaming?** Grep the parser file: if `extract_tool_calls_streaming` returns `None` unconditionally or raises `NotImplementedError`, streaming isn't supported (e.g. `phi4_mini_json`, `openai`).
-6. **`finish_reason` = `stop`?** Then `prev_tool_call_arr` is empty at stream end — parser failed to populate it. Enable vLLM debug logs and trace.
+6. **`finish_reason` = `stop` when a call was expected?** The parser never returned a `DeltaMessage` with `tool_calls` during the stream (or the request named a tool, where `stop` is correct). Compare with `"stream": false` on the same prompt: tool calls there but not in the stream = a streaming-path bug in that parser.
 7. **Raw model output vs what parser sees.** Bypass the parser: call `/v1/completions` (no tool parser) with the same prompt. Dump raw bytes:
    ```bash
    curl -sS $VLLM/v1/completions -H 'content-type: application/json' \
@@ -237,7 +239,7 @@ grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the classic "force finish_reason=tool_calls" workaround. At v0.27.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) When writing a new parser, prefer the `parse_delta` shape (RFC #11522).
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, so do not copy it into a new parser. At v0.30.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) When writing a new parser, prefer the `parse_delta` shape (RFC #11522).
 
 ## Writing a custom parser
 
@@ -264,7 +266,7 @@ Before upstreaming, read `AGENTS.md` at the repo root for the duplicate-work + P
 Compact supplementary maps. Each points back at the source rather than duplicating it.
 
 - `references/parser-index.md` — one-line-per-parser index with file path, wrapping tokens at a glance, and the things unique to that parser that aren't obvious from the filename (e.g. "full-width `｜` U+FF5C sentinels", "non-streaming only", "schema-aware type coercion").
-- `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, diagnostic flow. Points at `chat_completion/serving.py` for the flush contract.
+- `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, and the end-of-stream flush contract.
 - `references/custom-parser-plugin.md` — plugin scaffolding checklist with file:line anchors into the base class and the canonical examples.
 - `references/sources.md` — verification log of the external GitHub issues/PRs/source files cited by this skill, each with a `Last verified` date. Consult before re-citing a claim; re-probe if the entry is stale (>90 days).
 

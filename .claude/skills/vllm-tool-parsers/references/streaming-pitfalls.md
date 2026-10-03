@@ -4,13 +4,14 @@ Cross-parser footguns. For each, the remedy is to **go read the cited file or ru
 
 ## The `prev_tool_call_arr` flush contract
 
-**Read**: `vllm/entrypoints/openai/chat_completion/serving.py` — grep `prev_tool_call_arr` and `streamed_args_for_tool`.
+**Read**: `vllm/tool_parsers/abstract_tool_parser.py` — `get_remaining_unstreamed_args()`; its caller `vllm/parser/abstract_parser.py` — grep `_append_unstreamed_tool_args`. Serving (`chat_completion/serving.py`) no longer touches either field.
 
-Serving layer reads `prev_tool_call_arr[i]["arguments"]` at stream end and flushes anything not already in `streamed_args_for_tool[i]`. Implications for every custom parser:
+At stream end the parser layer takes `prev_tool_call_arr[-1]["arguments"]`, strips the prefix already in `streamed_args_for_tool[-1]`, and appends the remainder to the final delta's last tool call. Implications for every custom parser:
 
-- `prev_tool_call_arr[i]["arguments"]` must reflect full accumulated args at stream end.
-- `streamed_args_for_tool[i]` must be appended on every arg flush (else tail doubles).
-- `finish_reason="tool_calls"` fires iff `prev_tool_call_arr` non-empty. Hence the `= [{"arguments": {}}]` HACK several parsers carry.
+- `prev_tool_call_arr[-1]["arguments"]` must reflect the full accumulated args at stream end.
+- `streamed_args_for_tool[i]` must be appended on every arg flush. Not a prefix of the full args → the tail is dropped (no error); lagging → already-streamed text is re-sent.
+- The tail is appended only when the final delta itself carries `tool_calls`.
+- `finish_reason="tool_calls"` fires iff some streamed delta carried `tool_calls` (serving's `tools_streamed`). The `= [{"arguments": {}}]` HACK several parsers carry no longer affects it.
 
 ## Top production footguns
 
@@ -36,7 +37,7 @@ Serving layer reads `prev_tool_call_arr[i]["arguments"]` at stream end and flush
 
 7. **Apostrophe bug in `compute_tool_delta`.** Naive `'`→`"` substitution. Strings containing `'` (e.g. `"it's"`) corrupt. Check `vllm/tool_parsers/utils.py` before relying on this helper.
 
-8. **Non-streaming parsers.** `phi4_mini_json.extract_tool_calls_streaming` returns `None` unconditionally. `openai` raises `NotImplementedError` — Harmony streaming is hand-rolled in `chat_completion/serving.py`.
+8. **Non-streaming parsers.** `phi4_mini_json.extract_tool_calls_streaming` returns `None` unconditionally. `openai` raises `NotImplementedError` — Harmony goes through `HarmonyParser` (`vllm/parser/harmony.py`) instead.
 
 9. **Stream-interval > 1 regressions.** Several parsers have had fixes for `--stream-interval > 1`. If setting that flag, grep the merged PRs:
    ```bash

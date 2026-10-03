@@ -58,7 +58,7 @@ Verified at v0.30.0.
 | `gemma4` | `gemma4_engine_tool_parser.py` → `vllm/parser/gemma4.py` (helpers in `gemma4_utils.py`) | Bare keys + `<\|"\|>` string delim — NOT JSON. Accumulate-then-reparse-then-diff. |
 | `functiongemma` | `functiongemma_tool_parser.py` | Per-value `json.loads` fallback. Multi-token special absorbed via `buffered_delta_text`. |
 | `gigachat3` | `gigachat3_tool_parser.py` | Russian model; `<\|function_call\|>` / `<\|role_sep\|>`. |
-| `openai` | `gptoss_tool_parser.py` | **Harmony format** — operates on token IDs via `harmony_utils.parse_output_into_messages`. Streaming raises `NotImplementedError`; handled in `chat_completion/serving.py`. At v0.27.0 ([#45560](https://github.com/vllm-project/vllm/pull/45560)) `HarmonyParser.adjust_request` rewrites `json_object`/`json_schema` into a Harmony-aware structural tag that constrains the whole generation, not just the final channel. |
+| `openai` | `gptoss_tool_parser.py` | **Harmony format** — operates on token IDs via `harmony_utils.parse_output_into_messages`. Both `extract_tool_calls*` methods raise `NotImplementedError`; Harmony is handled by `HarmonyParser` (`vllm/parser/harmony.py`). At v0.27.0 ([#45560](https://github.com/vllm-project/vllm/pull/45560)) `HarmonyParser.adjust_request` rewrites `json_object`/`json_schema` into a Harmony-aware structural tag that constrains the whole generation, not just the final channel. |
 
 ## When to use this index
 

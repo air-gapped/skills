@@ -12,7 +12,7 @@ Goal: ship as a plugin, not an upstream PR — unless the format is broadly usef
    - Pythonic `[fn(a=1)]` → `vllm/tool_parsers/pythonic_tool_parser.py`
    - XML grammar → `vllm/tool_parsers/step3p5_tool_parser.py` (expat, cleanest streaming)
    - Harmony/channel-based → `vllm/tool_parsers/gptoss_tool_parser.py`
-4. `vllm/entrypoints/openai/chat_completion/serving.py` — the streaming loop. Grep `extract_tool_calls_streaming` to see how the parser gets called.
+4. `vllm/parser/abstract_parser.py` — `DelegatingParser`, which wraps a `ToolParser` and calls `extract_tool_calls_streaming` per delta plus the end-of-stream flush. Serving (`chat_completion/serving.py`) only calls `parser.parse_delta(...)` / `parser.parse(...)`.
 5. `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` — grep `import_tool_parser` to see how `--tool-parser-plugin` loads the file. (`vllm/entrypoints/openai/api_server.py` became a deprecated re-export shim at v0.29.0.) Since v0.30.0, `import_plugin()` (`vllm/utils/import_utils.py`) tries `importlib.import_module(value)` first — so the flag value can be a dotted module name from an installed package, not just a file path — and only falls back to `import_from_path` on `ModuleNotFoundError` ([#45241](https://github.com/vllm-project/vllm/pull/45241)). There is no separate entry-points registry.
 6. `tests/tool_parsers/common_tests.py` + `tests/tool_parsers/test_<name>_tool_parser.py` — the executable spec. Reviewers expect this harness.
 7. `AGENTS.md` at repo root — duplicate-work policy, PR-description requirements.
@@ -66,8 +66,9 @@ vllm serve <model> --enable-auto-tool-choice \
 
 - [ ] Respects `current_text == previous_text + delta_text` invariant.
 - [ ] Handles multi-token deltas (scheduler may coalesce).
-- [ ] `prev_tool_call_arr[i]["arguments"]` reflects full accumulated args at stream end.
-- [ ] `streamed_args_for_tool[i]` appended on every arg flush.
+- [ ] `prev_tool_call_arr[-1]["arguments"]` reflects full accumulated args at stream end.
+- [ ] `streamed_args_for_tool[i]` appended on every arg flush, so it stays a prefix of the full args.
+- [ ] At least one returned `DeltaMessage` carries `tool_calls` when a call is parsed — otherwise streaming `finish_reason` is `stop`.
 - [ ] `adjust_request` sets `skip_special_tokens=False` if sentinels are special tokens.
 - [ ] `supports_required_and_named = False` if the output shape breaks guided JSON.
 - [ ] Test file added at `tests/tool_parsers/test_<name>_tool_parser.py` using `common_tests.py` harness.
