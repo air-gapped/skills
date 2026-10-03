@@ -71,7 +71,7 @@ Each case needs:
 - `prompt`: the task, written as a real operator would ask it. Concrete and \
 specific — real names, real versions, real numbers, real constraints. Long \
 enough to be unambiguous. Never mention the skill, this evaluation, or that \
-a test is happening.
+a test is happening. Self-contained: the answer is written in an empty directory with read-only tools and no network, so put every input it needs (findings, code excerpts, configs, logs) inside the prompt, short enough to read in one go.
 - `expected_output`: two or three sentences on what a correct answer achieves
 - `assertions`: 4 to 6 checkable claims
 
@@ -117,13 +117,13 @@ def grow(kf, path: Path, target: int, model: str | None, timeout: int):
 
     skill_md = path.parents[1] / "SKILL.md"
     skill = skill_md.read_text() if skill_md.is_file() else ""
-    if len(skill) > 24000:
-        skill = skill[:24000] + "\n...[truncated]"
+    if len(skill) > 48000:
+        skill = skill[:48000] + "\n...[truncated]"
 
     existing = "\n".join(
         f"- {c.get('name', c['id'])}: {(c.get('prompt') or '')[:220]}" for c in cases
     )
-    text, cost, ok = kf.run_claude(
+    text, cost, ok, _ = kf.run_claude(
         PROMPT.format(n=need, skill=skill, existing=existing),
         model=model,
         timeout=timeout,

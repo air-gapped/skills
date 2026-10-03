@@ -105,7 +105,7 @@ def regrade_cell(kf, claims, answers, grader_model, timeout, chunk=10):
         )
         if not items:
             continue
-        text, c, ok = kf.run_claude(
+        text, c, ok, _ = kf.run_claude(
             GRADE_PROMPT.format(items=items), model=grader_model, timeout=timeout
         )
         cost += c

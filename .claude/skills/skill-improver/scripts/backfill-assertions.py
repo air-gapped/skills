@@ -118,7 +118,7 @@ def backfill(kf, path: Path, model: str | None, timeout: int, redo: bool):
         f"{c.get('expected_output', '(not recorded)')}"
         for c in todo
     )
-    text, cost, ok = kf.run_claude(
+    text, cost, ok, _ = kf.run_claude(
         PROMPT.format(skill=skill, cases=blob), model=model, timeout=timeout
     )
     if not ok:
