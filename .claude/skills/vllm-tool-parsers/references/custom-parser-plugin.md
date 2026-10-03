@@ -20,10 +20,12 @@ Goal: ship as a plugin, not an upstream PR — unless the format is broadly usef
 ## Minimum skeleton
 
 ```python
-from vllm.entrypoints.openai.protocol import (
-    ChatCompletionRequest, DeltaMessage,
-    ExtractedToolCallInformation, FunctionCall, ToolCall,
+# v0.30.0 module paths — copy the import block of the parser you started from
+# if these fail on your version (vllm.entrypoints.openai.protocol does not exist).
+from vllm.entrypoints.generate.base.protocol import (
+    DeltaMessage, ExtractedToolCallInformation, FunctionCall, ToolCall,
 )
+from vllm.entrypoints.openai.chat_completion.protocol import ChatCompletionRequest
 from vllm.tool_parsers.abstract_tool_parser import ToolParser, ToolParserManager
 
 
