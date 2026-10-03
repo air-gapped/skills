@@ -22,12 +22,12 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | Built-in parser registry | `vllm/tool_parsers/__init__.py` — `_TOOL_PARSERS_TO_REGISTER` maps CLI name → module → class |
 | **Unified parser engine (new)** | `vllm/parser/` — one class per model (`qwen3.py`, `gemma4.py`, `deepseek_v4.py`, `deepseek_v32.py`, `seed_oss.py`, …), `abstract_parser.py`, and `engine/` (`parser_engine.py`, `streaming_parser_engine.py`, `incremental_lexer.py`, `token_id_scanner.py`) |
 | **Adapter construction** | `vllm/parser/engine/registered_adapters.py` — `make_adapters(XParser)` returns `(XParserReasoningAdapter, XParserToolAdapter)`; the tool side is then subclassed in `vllm/tool_parsers/*_engine_tool_parser.py` to attach `structural_tag_model` |
-| CLI flag definitions | `vllm/entrypoints/openai/cli_args.py` — grep `tool_call_parser`, `enable_auto_tool_choice`, `tool_parser_plugin` |
+| CLI flag definitions | `vllm/entrypoints/launchers/cli_args.py` — grep `tool_call_parser`, `enable_auto_tool_choice`, `tool_parser_plugin` |
 | Non-streaming serving invocation | `vllm/entrypoints/openai/chat_completion/serving.py` — grep `parser.parse(`; `DelegatingParser` in `vllm/parser/abstract_parser.py` calls the tool parser's `extract_tool_calls` |
 | Streaming serving loop | same file — grep `parse_delta`, `tools_streamed` |
 | Tail flush of unstreamed args | `vllm/parser/abstract_parser.py` — grep `_append_unstreamed_tool_args`; reads `ToolParser.get_remaining_unstreamed_args()` in `abstract_tool_parser.py` |
-| Plugin import wiring | `vllm/entrypoints/openai/api_server.py` — grep `import_tool_parser` |
-| Responses API tool handling | `vllm/entrypoints/openai/responses/serving.py` + `vllm/entrypoints/openai/parser/responses_parser.py` |
+| Plugin import wiring | `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` — grep `import_tool_parser` (`vllm/entrypoints/openai/api_server.py` is a deprecated re-export shim) |
+| Responses API tool handling | `vllm/entrypoints/openai/responses/serving.py` + `vllm/entrypoints/openai/responses/utils.py` |
 | Per-parser Jinja chat templates | `examples/tool_chat_template_<family>.jinja` |
 | Per-parser tests (executable spec) | `tests/tool_parsers/test_<name>_tool_parser.py` + `tests/tool_parsers/common_tests.py` |
 | User-facing docs | `docs/features/tool_calling.md` |
