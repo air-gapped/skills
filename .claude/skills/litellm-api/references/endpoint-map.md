@@ -19,7 +19,7 @@ Measured @ `4d543245` (v1.95.0-dev, 2026-07-29): 746 route decorators, 624 uniqu
 | `/guardrails/*` (18) | `guardrails/guardrail_endpoints.py` | `GET /guardrails/list` reads config-file only; `GET /v2/guardrails/list` merges config+DB (`:125-137`); `/guardrails/{id}` registers PUT and PATCH and GET and DELETE |
 | `/policies/*` (15) vs `/policy/*` (9) | **two different subsystems** (`policy_engine/` vs `management_endpoints/policy_endpoints/`) | lazy-load prefixes disambiguated by trailing slash (`_lazy_features.py:68-69`) |
 | MCP mgmt (~25) | `management_endpoints/mcp_management_endpoints.py` | router prefix `/v1/mcp` (`:71`); whole prefix **bypasses central RBAC** (`route_checks.py:308-309`) — per-handler self-policing |
-| `/access_group/*` (5) | `model_access_group_management_endpoints.py` | undocumented family |
+| `/access_group/*` (5 @ snapshot) | `model_access_group_management_endpoints.py` | undocumented family, except `/access_group/{group}/budget` (v1.100.0+, `model_access_group_budgets.md`) |
 | `/tag/*` (12) | `tag_management_endpoints.py` + user_agent_analytics | |
 | `/scim/v2/*` (19) | `management_endpoints/scim/scim_v2.py` | lazy-loaded |
 | `/sso/*`, `/login`, `/v2/login`, `/v3/login(+/exchange)` | `ui_sso.py` (4400 lines), proxy_server.py | all `/sso/*` hidden from schema |

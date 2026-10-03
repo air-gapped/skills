@@ -2,10 +2,11 @@
 
 Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Issue states @ 2026-07-30. Maintainer context: #30484 "Stability Sprint Roadmap" (open) lists "P0: Virtual key spend limits are not being enforced" — this whole area is acknowledged unstable.
 
-## Two budget mechanisms, not one
+## Budget mechanisms: two per entity, plus access-group pools
 
 1. **`max_budget` + `budget_duration`** — classic columns. Setting `budget_duration` computes `budget_reset_at`; clearing nulls both (`key_management_endpoints.py:1925-1935`). The ResetBudgetJob resets on schedule — for *some* entity types (below).
 2. **`budget_limits`** — plural concurrent windows, a separate JSON column (`:1937-1951`). Its OpenAPI schema documents **wrong field names** (`budget_limit`/`time_period` vs actual `max_budget`/`budget_duration`, #32695 open).
+3. **Access-group pool (v1.100.0+)** — `PUT|GET|DELETE /access_group/{group}/budget`. Charged **only** when the caller was granted the group by name: `models: []`, `["*"]`, `all-proxy-models` or a wildcard skip the pool and are not capped by it. Every matching group is charged in full; any exhausted pool refuses (`docs/proxy/model_access_group_budgets.md`).
 
 ## The unset problem
 
