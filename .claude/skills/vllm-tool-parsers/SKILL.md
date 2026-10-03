@@ -85,6 +85,7 @@ vllm serve <model> --enable-auto-tool-choice --tool-call-parser <name> [--chat-t
 - `--enable-auto-tool-choice` alone → `TypeError: --enable-auto-tool-choice requires --tool-call-parser` (see `cli_args.py`).
 - `--tool-call-parser` alone → legal. Parser still runs for `tool_choice="required"` and named, and on Responses API.
 - **No `auto` sentinel.** Name a concrete parser.
+- Ship a parser change as a `--tool-parser-plugin` file or in a rebuilt image, never by editing site-packages inside running pods: the pod drifts from its image, the edit is lost on restart or reschedule, and there is no rollback.
 - `--tool-parser-plugin <path.py>` → third-party file that calls `@ToolParserManager.register_module("name")`. **v0.30.0+**: the value can also be a dotted module name importable from site-packages (e.g. an installed pip package) — `import_plugin()` tries `importlib.import_module(value)` first, falling back to file-path import only on `ModuleNotFoundError` (`vllm/utils/import_utils.py`). Same for `--reasoning-parser-plugin`.
 - `--reasoning-parser` is independent but several tool parsers assume a `</think>` has closed — match them (see "Reasoning pairing" below).
 - Chat template often matters. Each parser has a reference Jinja at `examples/tool_chat_template_<family>.jinja`. Wrong template → model never emits the sentinels the parser expects.
