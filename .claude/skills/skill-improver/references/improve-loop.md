@@ -115,7 +115,7 @@ A pass is done only when the work is applied, verified, committed, and the recor
 3. Committed through the repo's own hook sequence, with the backlog update in the **same** commit.
 4. Anything the pass resolved is **deleted** from Open, not ticked.
 5. Every unblocked item the pass surfaced is done, not filed (`backlog-format.md` §"The admission test"). Items still open when the iteration cap hits are applied after the loop, outside the score accounting, before landing.
-6. When the target skill has `evals/evals.json`: an `outcome` run (`scripts/outcome-eval.py <skill-dir> --against <baseline-ref>`) has been made. If the pass proved an assertion stale (verified against the primary source), correct the assertion first — both versions are graded against the same current `evals.json`, so a stale assertion scores the fix as a loss.
+6. When the target skill has `evals/evals.json`: an `outcome` run (`scripts/outcome-eval.py <skill-dir> --against <baseline-ref>`) has been made. If the pass proved an assertion stale (verified against the primary source), correct the assertion first — both versions are graded against the same current `evals.json`, so a stale assertion scores the fix as a loss. A fix made after the outcome run is checked by re-running only the affected cases (`--case`); `benchmark.plugin-eval.json` keeps the last full run, and the case re-run goes in the backlog entry.
 
 **A pass ends with work, not a report of work.** Put findings in the target's files or a commit message, not only the run summary. Prefer one more applied fix over one more paragraph of explanation.
 

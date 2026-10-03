@@ -154,7 +154,8 @@ many real passes. The score catches large regressions; the comparator resolves
 small diffs.
 
 **Materialise both sides as plain directories.** Do not hand it the live git
-working tree.
+working tree. If the shell refuses the `$AB` variables (some isolated
+sandboxes do), run the same commands with the literal `mktemp -d` path.
 
 ```bash
 AB=$(mktemp -d) && mkdir -p "$AB/x" "$AB/y"
@@ -218,7 +219,7 @@ An in-session subagent is a degraded fallback; record its verdict as semi-blind.
 
 | Field | What it means | Action |
 |---|---|---|
-| `leakage_external` | git metadata, mtimes, directory names, caller session context | Invalidates the run. Close that channel and re-spawn. |
+| `leakage_external` | git metadata, mtimes, directory names, caller session context | Invalidates the run. Close that channel and re-spawn. Exception: today's date is always in a `claude -p` environment and cannot be closed — record it, accept the verdict. |
 | `leakage_content` | a `Verified 2026-..-..` stamp or version line *inside the compared text* | Record it and accept the verdict. Do not redact in-text dates (freshness stamps are Dim 9 evidence). |
 
 ## Comparison Table

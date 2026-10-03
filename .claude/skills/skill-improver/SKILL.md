@@ -80,7 +80,7 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
 Score, apply ONE change, re-score cold, keep +3 or more; keep +1/+2 only when a
 second cold score confirms it or the change also simplifies; keep Δ0 only when
-it fixes a verifiable defect; revert the rest. Stop at 90+ with no dimension
+it fixes a verifiable defect or simplifies; revert the rest. Stop at 90+ with no dimension
 below 7, when the ceiling is mapped (`improve-loop.md` Phase 5), or after 10
 iterations.
 Re-scoring an unchanged skill moves the total 2–3 points (up to 6), so +2 is
