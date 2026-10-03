@@ -10,6 +10,19 @@ probes each URL, classifies staleness, and re-stamps `Last verified:`.
 Re-run `/skill-improver freshen triage` quarterly or when the scoring standards
 or upstream harness change.
 
+## Provenance
+
+Adapted (Apache-2.0) from the `triage` skill in
+[`anthropics/defending-code-reference-harness`](https://github.com/anthropics/defending-code-reference-harness).
+Class-agnostic: the verifier exclusion rules and impact x exploitability
+severity apply to web, cloud, crypto, and memory-safety findings alike. See
+`../../vuln-scan/HARNESS.md` for the autonomous pipeline whose output this skill
+can ingest. The Phase-2a range-overlap collapse and the `source_ref` /
+`sink_ref` data-flow evidence the dedup and verifier passes anchor on are
+adapted (Apache-2.0) from
+[`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
+s7 dedup stage and s4 finding schema.
+
 ## defending-code reference harness (provenance + ingestible pipeline output)
 
 - URL: https://github.com/anthropics/defending-code-reference-harness
