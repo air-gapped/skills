@@ -30,6 +30,12 @@ Defaults read from `src/common/options/rgw.yaml.in` at v19.2.6 and v20.2.4;
 Rook docs at v1.20.7 and master; tracker and ceph-users as cited. Verified
 **2026-09-23**.
 
+Focus argument → section: `security` → §19.2.6 / 20.2.4 fixes;
+`compat` → §AWS SDK checksums and §Tentacle S3 behaviour changes;
+`sharding` → §Bucket index and resharding; `multisite` → SigV4 item 2 and
+the Multisite row of §Rook object CRDs; `rook` → §Rook object CRDs. No
+argument: match the symptom to a section heading.
+
 ## 19.2.6 / 20.2.4 RGW security fixes and their fallout
 
 | CVE | What | Fixed |
