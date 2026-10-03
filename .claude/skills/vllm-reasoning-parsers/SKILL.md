@@ -47,7 +47,7 @@ Optional:
 
 ## The CLI path (what `--reasoning-parser qwen3` actually triggers)
 
-`vllm/engine/arg_utils.py:985` (v0.27.1; grep for `--reasoning-parser` — line moves between releases) declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser`. Validation against `ReasoningParserManager.list_registered()` happens at startup (invalid name = fast-fail with the list of registered names) — **in `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` from v0.29.0 on**, not `vllm/entrypoints/openai/api_server.py`, which is now a ~59-line deprecated re-export shim.
+`vllm/engine/arg_utils.py` declares `reasoning_parser: str = StructuredOutputsConfig.reasoning_parser` (grep `--reasoning-parser`; the line moves every release). At startup `setup_server` in `vllm/entrypoints/launchers/launcher.py` imports `--reasoning-parser-plugin` first, then `validate_api_server_args` checks the name against `ReasoningParserManager.list_registered()`; a bad name fails with `KeyError: invalid reasoning parser: X (chose from {...})`. `vllm/entrypoints/openai/api_server.py` is a deprecated re-export shim since v0.29.0 — do not patch it.
 
 On request, `OpenAIServingChat` builds a **fresh parser per request** (one per choice when streaming): `ParserManager.get_parser(...)` wraps the reasoning and tool parsers in one `Parser` class, and `self.parser_cls(tokenizer, request.tools, chat_template_kwargs=..., model_config=...)` constructs the `ReasoningParser` with `chat_template_kwargs` and `model_config` (`vllm/entrypoints/openai/chat_completion/serving.py`, `vllm/parser/abstract_parser.py`). "Fresh per request" is load-bearing for stateful parsers — see Hunyuan in the matrix.
 
