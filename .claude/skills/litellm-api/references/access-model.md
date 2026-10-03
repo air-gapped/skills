@@ -64,14 +64,14 @@ its team, or when the org's `max_budget` is unset or `<= 0`.
 
 ## Access groups are additive grants, NOT allow-lists (open #34296)
 
-A key with `access_group_ids: [g1]` and `models: []` can call **everything** — the group *adds* models; the empty `models` still means all. To scope a key to exactly its groups: `models: ["no-default-models"], access_group_ids: [...]`. Compounding: the model access check ignores key-level `access_group_ids` in some paths (#28464 open), and assigning access groups on a wildcard model is premium-gated (`key_management_endpoints.py:3565-3579`).
+A key with `access_group_ids: [g1]` and `models: []` can call **everything** — the group *adds* models; the empty `models` still means all. To scope a key to exactly its groups: `models: ["no-default-models"], access_group_ids: [...]`. Compounding: the model access check ignores key-level `access_group_ids` in some paths (#28464 closed unfixed), and assigning access groups on a wildcard model is premium-gated (`key_management_endpoints.py:3565-3579`).
 
 ## `/v1/models` is not an access oracle
 
-- Never resolves `access_group_ids` — grouped models don't appear for the key that can use them (#31966/#31438/#34998/#25222/#21102 open cluster).
-- Ignores user-level `models` restriction entirely (#26420 open).
-- Leaks access-group names as model entries (#25550 open).
-- `/team/info` leaks internal `model_name_{team_id}_{uuid}` routing keys, and `/team/update` round-trips them into persistent `team.models` corruption (#30798 open).
+- Never resolves `access_group_ids` — grouped models don't appear for the key that can use them (#31966/#31438/#34998/#25222/#21102 cluster).
+- Ignores user-level `models` restriction entirely (#26420 closed unfixed).
+- Leaks access-group names as model entries (#25550 closed unfixed).
+- `/team/info` leaks internal `model_name_{team_id}_{uuid}` routing keys, and `/team/update` round-trips them into persistent `team.models` corruption (#30798 closed unfixed).
 - v1.92.0 had a CPU-pegging regression listing wildcard routes (#33636, closed).
 
 Verify access with a live completion attempt per model, not by listing.
@@ -79,8 +79,8 @@ Verify access with a live completion attempt per model, not by listing.
 ## Wildcards
 
 - `bedrock/*` prefix-matches sloppily — also matches `bedrockz/*` (#33030 open).
-- Load-balancing can span deployments the key shouldn't access when wildcard model-groups mix (#21935 open).
-- JWT `role_permissions.models` doesn't honor wildcards (#27536 open).
+- Load-balancing can span deployments the key shouldn't access when wildcard model-groups mix (#21935 closed unfixed).
+- JWT `role_permissions.models` doesn't honor wildcards (#27536 closed unfixed).
 
 ## Key inheritance chain
 

@@ -10,9 +10,9 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Issue states @ 2026-07-30. 
 
 ## The unset problem
 
-- `budget_limits: []` → 200, **silently ignored**; `null` → 400; omission → ignored (open #28021). No removal path short of a new key (or absurd max_budget).
+- `budget_limits: []` → 200, **silently ignored**; `null` → 400; omission → ignored (#28021 closed unfixed). No removal path short of a new key (or absurd max_budget).
 - `budget_duration: null` doesn't clear it either (#27734 closed variant).
-- On `/team/member_update`, `max_budget_in_team: null` leaves a **null budget row → every subsequent request from that team's members fails 401/Pydantic** (#29066/#30437 open; #25508's orphaned-row variant closed). Never send it.
+- On `/team/member_update`, `max_budget_in_team: null` leaves a **null budget row → every subsequent request from that team's members fails 401/Pydantic** (#29066/#30437 closed unfixed; #25508's orphaned-row variant closed). Never send it.
 
 ## Update ≠ reset
 
@@ -22,10 +22,10 @@ Applying `budget_duration` to an existing key/user/team via update does **not** 
 
 | Aspect | Inconsistency |
 |---|---|
-| Limit boundary | team check uses `>` while key/org use `>=` (`_team_max_budget_check`, #28020 open) — teams admit at exact limit (#33321 open family: team/end-user/tag/model all admit at limit) |
-| Resets | organizations were simply omitted from ResetBudgetJob (#25495 — **closed as stale, not fixed-confirmed**); tag budgets never reset (#27481 open); `max_end_user_budget_id` ignores resets (#24675 open); auto-created end-users never get their budget_id persisted (#25386 open) |
-| Reset timing | `model_max_budget` shares one window start across models/durations (#33326 open); `litellm_settings.timezone` skews window resets (#34896 open); large s/m/h durations compute wrong reset times (#17993 open) |
-| Enforcement | `model_max_budget` for customers not enforced at all (#31842 open); project spend never tracked → project budgets never enforce (#33871 open); `max_budget_in_team` not enforced (#19105, open since Jan 2026) |
+| Limit boundary | team check uses `>` while key/org use `>=` (`_team_max_budget_check`, #28020 closed unfixed) — teams admit at exact limit (#33321 open family: team/end-user/tag/model all admit at limit) |
+| Resets | organizations were simply omitted from ResetBudgetJob (#25495 — **closed as stale, not fixed-confirmed**); tag budgets never reset (#27481 closed unfixed); `max_end_user_budget_id` ignores resets (#24675 closed unfixed); auto-created end-users never get their budget_id persisted (#25386 open) |
+| Reset timing | `model_max_budget` shares one window start across models/durations (#33326 open); `litellm_settings.timezone` skews window resets (#34896 open); large s/m/h durations compute wrong reset times (#17993 closed unfixed) |
+| Enforcement | `model_max_budget` for customers not enforced at all (#31842 open); project spend never tracked → project budgets never enforce (#33871 open); `max_budget_in_team` not enforced (#19105 closed unfixed) |
 | `soft_budget` | alerts only, never blocks (`utils.py:5773-5820`); on `/team/new` must be strictly `<` max_budget or 400 (`team_endpoints.py:1043-1050`) |
 
 ## Team spend vs personal budgets — changed twice; read your version first
@@ -52,11 +52,11 @@ for one minor became wrong advice for every minor after it.
 
 ## Scope composition: AND, not precedence
 
-`parallel_request_limiter_v3.py` builds an independent `RateLimitDescriptor` per scope — key, team, team-member, user, org, end-user/customer, `model_per_key`, `model_per_organization`, `tag_per_key`, `mcp` (`:790-830`, `:1580-1700`) — and enforces **all of them**. Effective limit = minimum across scopes; a 429 or BudgetExceededError does not name the tripping scope (read `x-ratelimit-*` headers — though they're dropped on streaming, #27748 open). Budgets likewise: key, team, member, user, org, customer, tag budgets are independent rows all checked.
+`parallel_request_limiter_v3.py` builds an independent `RateLimitDescriptor` per scope — key, team, team-member, user, org, end-user/customer, `model_per_key`, `model_per_organization`, `tag_per_key`, `mcp` (`:790-830`, `:1580-1700`) — and enforces **all of them**. Effective limit = minimum across scopes; a 429 or BudgetExceededError does not name the tripping scope (read `x-ratelimit-*` headers — though they're dropped on streaming, #27748 closed unfixed). Budgets likewise: key, team, member, user, org, customer, tag budgets are independent rows all checked.
 
 ## Spend numbers: eventually consistent, lossy, both directions
 
-- Enforcement uses cached counters that can exceed DB truth → false 429 while `/key/info` shows under-budget (#27735 open); or lag it → admission despite over-budget (#26672 open, fresh v1.82.3 deploys). Redis counter inflation on multi-pod: #30460 open (see litellm-valkey skill).
+- Enforcement uses cached counters that can exceed DB truth → false 429 while `/key/info` shows under-budget (#27735 open); or lag it → admission despite over-budget (#26672 open, fresh v1.82.3 deploys). Redis counter inflation on multi-pod: #30460 closed unfixed (see litellm-valkey skill).
 - **Silent spend-log loss** (all open): batches dropped on DB write failure (#33873), Redis buffer loses dequeued transactions on commit failure (#33872), rows lost on cancelled flush (#34820), in-memory buffers dropped on shutdown (#34805), GC race loses streaming Responses-API logs (#31059), success-logger crash → request uncharged (#32487), rows dropped on non-unique provider response IDs (#28376).
 - Attribution gaps: Azure Model Router logs the router model not the selected one (#27942), Vertex passthrough batch cost unattributed (#33316), **org-level `spend_logs_metadata` silently ignored** — only key/team merge (#33663), failed requests lose call_type/router metadata (#35068).
 - Privacy mismatches: `store_prompts_in_spend_logs: true` may still persist `messages` as `{}` (#34747) and UI viewers can't see request/response data anyway (#23636/#32564/#34099/#28859); `false` still stores full embedding **vectors** (#24928).

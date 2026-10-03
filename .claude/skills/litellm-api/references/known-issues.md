@@ -1,6 +1,6 @@
 # Known-issue catalog — management API, BerriAI/litellm
 
-Sweep 2026-07-30. ~1,566 open issues total; ~192 open mention "budget", ~267 "spend", ~38 "access group". Management-plane issues sit open for months with no maintainer comment (e.g. #28021 since May, #25951 since April, #15230 since Oct 2025/38 comments); the stale bot closes real bugs (#25495). "Closed" ≠ "fixed" without a linked PR. Maintainer roadmap: #30484 (open) acknowledges spend/budget as P0.
+Sweep 2026-07-30. ~1,566 open issues total; ~192 open mention "budget", ~267 "spend", ~38 "access group". Management-plane issues sit open for months with no maintainer comment (e.g. #25951 since April, #15230 since Oct 2025/38 comments); the stale bot closes real bugs (#25495). "Closed" ≠ "fixed" without a linked PR. **`closed unfixed`** below = closed `NOT_PLANNED` (stale bot or won't-fix) with no linked fix: the bug stands. Maintainer roadmap: #30484 (open) acknowledges spend/budget as P0.
 
 Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in `access-model.md`; config-DB in `config-db.md`. This file holds the rest + the cross-reference index.
 
@@ -18,9 +18,9 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 |---|---|---|
 | #33277 | OPEN (v1.92.0 regression) | non-admin `/key/update` 403s when body *includes* `allowed_routes`/`permissions` (presence-checked) — breaks team moves + UI round-trips |
 | #33246 | closed | dashboard always sent `budget_limits: []` → every non-admin self-service key edit 403'd |
-| #27005, #26555 | OPEN | related non-admin update failures |
+| #27005, #26555 | #27005 OPEN; #26555 closed unfixed | related non-admin update failures |
 | #33194 / #33212 | OPEN | non-admins can't set max_budget on personal keys |
-| #29305 | OPEN | `/key/update` 403 when a previously-assigned MCP server was deleted |
+| #29305 | closed unfixed | `/key/update` 403 when a previously-assigned MCP server was deleted |
 | #20962 | OPEN | UI requires team for non-admin key creation while API blocks team assignment — deadlock |
 | #29073 | closed | v1.86.0: UI session's $0.25 budget became the ceiling for keys generated via UI |
 
@@ -30,11 +30,11 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 |---|---|---|
 | #25951 | OPEN since April | `/team/member_add` read-modify-write race silently loses members under concurrency — serialize calls |
 | #34217 | OPEN (community fix PR #34218 closed unmerged — no fix in flight) | `/team/delete` leaves the team's keys **auth-valid in cache** until TTL (+ cache-key mismatch `team_id` vs `team_id:{id}` in invalidation) |
-| #30798 | OPEN | `/team/info` leaks internal `model_name_{team_id}_{uuid}` keys; `/team/update` round-trips them → persistent `team.models` corruption |
+| #30798 | closed unfixed | `/team/info` leaks internal `model_name_{team_id}_{uuid}` keys; `/team/update` round-trips them → persistent `team.models` corruption |
 | #31447 | OPEN | setting `team_member_budget` replaces the team's entire `metadata` object |
-| #27294 / #30843 | OPEN | org_admin 401 on `/team/update`; org admin can't add internal user |
+| #27294 / #30843 | #30843 OPEN; #27294 closed unfixed | org_admin 401 on `/team/update`; org admin can't add internal user |
 | #33941 | OPEN | `/customer/update` silently drops `budget_duration` |
-| #32062 / #30984 | OPEN | `/key/list` filters OR'd instead of AND'd for team-visibility callers; `size` cap 100 bites the UI |
+| #32062 / #30984 | #32062 OPEN; #30984 closed unfixed | `/key/list` filters OR'd instead of AND'd for team-visibility callers; `size` cap 100 bites the UI |
 | #31838 / #31839 | OPEN | `/customer/*` mutations don't invalidate Redis end-user caches/counters |
 
 ## API-doc / OpenAPI accuracy

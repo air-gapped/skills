@@ -10,7 +10,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Authoritative sources: `lit
 | **No master key configured** | `user_api_key_auth.py:1406-1417` | **any request → `INTERNAL_USER`, `common_checks` skipped entirely (`:2160-2165`) — the whole management API is open.** Undocumented. |
 | Virtual key (`sk-…`) | DB lookup | role from linked user row |
 | UI session token | `is_session_token=True`, team `litellm-dashboard` (`constants.py:1412`) | delegation ceiling on `/key/generate` (`key_management_endpoints.py:2810-2822`); v1.86.0 once used the $0.25 UI-session budget as the generated key's ceiling (#29073, fixed) |
-| JWT / OAuth2 / oauth2-proxy | `general_settings.enable_jwt_auth` etc. (`auth/handle_jwt.py`) | mapped roles; JWT `role_permissions.models` doesn't honor wildcards (#27536 open) |
+| JWT / OAuth2 / oauth2-proxy | `general_settings.enable_jwt_auth` etc. (`auth/handle_jwt.py`) | mapped roles; JWT `role_permissions.models` doesn't honor wildcards (#27536 closed unfixed) |
 | `"ui-token"` | `SPECIAL_LITELLM_AUTH_TOKEN` (`constants.py:1537`) | special-cased |
 
 ## Role → route access
@@ -21,7 +21,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Authoritative sources: `lit
 | `PROXY_ADMIN_VIEW_ONLY` | `route_checks.py:752-859` | **default-allow on ANY GET/HEAD/OPTIONS on any non-inference route** (`:811-812`); writes are blocklist-based. Every newly added GET endpoint is automatically viewer-readable. |
 | `INTERNAL_USER` | `internal_user_routes` (`_types.py:711-734`) | includes all key-management routes → an internal user can mint keys |
 | `INTERNAL_USER_VIEW_ONLY` | `_types.py:736-745` | spend + compliance + 2 tag routes |
-| Org admin | `org_admin_allowed_routes` (`_types.py:867`) | very broad (management + self-managed + viewer unions); yet org admins hit 401 on `/team/update` (#27294 open) and can't add internal users (#30843 open) |
+| Org admin | `org_admin_allowed_routes` (`_types.py:867`) | very broad (management + self-managed + viewer unions); yet org admins hit 401 on `/team/update` (#27294 closed unfixed) and can't add internal users (#30843 open) |
 | Team member | `team_member_permissions` (`management_helpers/team_member_permission_checks.py:19-47`) | baseline = `/key/info` + `/key/health` **only**; `[]` still gets baseline unioned in (`:41-45`) |
 | Any authenticated key | `self_managed_routes` (`_types.py:747-777`) | includes `/model/new`, `/model/update`, `/model/delete`, `/invitation/new`, `/health/test_connection` — endpoints self-police internally |
 | Unauthenticated | `public_routes` (`_types.py:654-671`) + `general_settings.public_routes` | `/routes`, `/config/yaml` (mock), `/`, `/health/{liveness,readiness,drain}`, `/public/*`, `/get/ui_settings`, `/get/ui_theme_settings`, `/onboarding/*` |

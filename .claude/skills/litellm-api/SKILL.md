@@ -85,16 +85,16 @@ Also: `litellm.default_key_generate_params` silently replaces `None`/`[]`/`{}` r
 
 Full detail in `references/budgets-spend.md`. The load-bearing rules:
 
-- **Budgets can't be cleanly unset**: `budget_limits: []` is silently ignored (200, no-op), `null` → 400, omission ignored (open #28021; `null`-clear family #27734). `max_budget`+`budget_duration` and `budget_limits` (concurrent windows) are two separate mechanisms.
+- **Budgets can't be cleanly unset**: `budget_limits: []` is silently ignored (200, no-op), `null` → 400, omission ignored (#28021 closed unfixed; `null`-clear family #27734). `max_budget`+`budget_duration` and `budget_limits` (concurrent windows) are two separate mechanisms.
 - **Adding `budget_duration` to an existing entity via update does NOT reset carried spend** — the entity 429s instantly on its "fresh" window (open #34492). Pre-zero spend explicitly (`/key/{key}/reset_spend`, enterprise-gated regenerate not required) or create anew.
 - **Team-key budgets: the ~v1.94 behaviour was REVERTED in v1.96.0. Check your version before planning budgets.**
   - **v1.94–v1.95:** team-key spend also counted against each member's personal budget (#32005), and the opt-out `skip_user_budget_on_team_key` was broken (#35076).
   - **v1.96.0+ (PR #35271, merged 2026-07-30, `revert(proxy)!:`):** team keys are governed by **team budgets only**. The opt-out flag was **deleted outright**, not deprecated — config referencing it is dead.
   - **v1.97.0+ (PR #36102, merged 2026-08-07):** a deliberate opt-*in*, `general_settings.apply_user_budget_to_team_keys`, **default off**, restores the old coupling if you actually wanted it.
   - Practical effect: on ≥1.96.0, modelling personal budgets as "personal + team spend" **over-provisions**. That advice was correct for one minor and is now wrong.
-- **Boundary inconsistency**: team check uses `>`, key/org use `>=` (`_team_max_budget_check`, open #28020) — budgets admit at exact limit for some entity types (#33321).
-- **Resets historically skip entity types**: org budgets never reset (#25495, stale-closed unfixed), tag budgets (#27481 open), auto-created end-users (#24675/#25386 open). `soft_budget` only alerts, never blocks; on `/team/new` it must be strictly < `max_budget` or 400.
-- **Never send `max_budget_in_team: null` on `/team/member_update`** — it leaves a null budget row that 401s every subsequent request from the whole team's members (open #29066/#30437). Member-budget edits are clone-on-write from the team default; per-member budget rows auto-disconnect when no meaningful limit remains.
+- **Boundary inconsistency**: team check uses `>`, key/org use `>=` (`_team_max_budget_check`, #28020 closed unfixed) — budgets admit at exact limit for some entity types (#33321).
+- **Resets historically skip entity types**: org budgets never reset (#25495, stale-closed unfixed), tag budgets (#27481 closed unfixed), auto-created end-users (#25386 open; #24675 closed unfixed). `soft_budget` only alerts, never blocks; on `/team/new` it must be strictly < `max_budget` or 400.
+- **Never send `max_budget_in_team: null` on `/team/member_update`** — it leaves a null budget row that 401s every subsequent request from the whole team's members (#29066/#30437 closed unfixed). Member-budget edits are clone-on-write from the team default; per-member budget rows auto-disconnect when no meaningful limit remains.
 - **Spend numbers are eventually consistent in both directions**: enforcement can 429 on stale-high spend while `/key/info` shows under-budget (#27735), or admit despite over-budget (#26672). Spend-log writes are silently lost on DB failure/shutdown/GC races (#33873/#34820/#34805/#31059). Rate limits and budgets across scopes are **AND-composition** — every applicable scope (key, team, member, user, org, customer, tag, model-within-key) enforces independently; effective limit = the minimum; a 429/BudgetExceeded doesn't say which scope tripped.
 
 ## Update calls: minimal-diff PATCH bodies only
@@ -109,7 +109,7 @@ The single most recurrent bug class (≥8 versions of duplicates): update endpoi
 
 ## Config-vs-DB duality (`STORE_MODEL_IN_DB`)
 
-With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_settings`/`litellm_settings` (DB wins; DB `None`/`[]` treated as no-value) — editing YAML and restarting won't change a UI-written key. `POST /model/new` can return 200 with `db_model: false` meaning **the write was skipped** (open #30771); a stale DB row `store_model_in_db: false` overrides the env var (open #31968); config-YAML models can't be edited via API at all ("Cannot edit config-based model"); with the flag off, model-management endpoints return **500** (not 400). There is no export of UI/DB state back to declarative config (#28168). `GET /config/yaml` is a **mock** returning `{"hello": "world"}` — and it's a public route. Details: `references/config-db.md`.
+With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_settings`/`litellm_settings` (DB wins; DB `None`/`[]` treated as no-value) — editing YAML and restarting won't change a UI-written key. `POST /model/new` can return 200 with `db_model: false` meaning **the write was skipped** (#30771 closed unfixed); a stale DB row `store_model_in_db: false` overrides the env var (open #31968); config-YAML models can't be edited via API at all ("Cannot edit config-based model"); with the flag off, model-management endpoints return **500** (not 400). There is no export of UI/DB state back to declarative config (#28168). `GET /config/yaml` is a **mock** returning `{"hello": "world"}` — and it's a public route. Details: `references/config-db.md`.
 
 ## Destructive ops don't propagate
 
