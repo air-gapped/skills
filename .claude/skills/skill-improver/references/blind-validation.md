@@ -154,19 +154,16 @@ many real passes. The score catches large regressions; the comparator resolves
 small diffs.
 
 **Materialise both sides as plain directories.** Do not hand it the live git
-working tree. If the shell refuses the `$AB` variables (some isolated
-sandboxes do), run the same commands with the literal `mktemp -d` path.
+working tree. Run:
 
 ```bash
-AB=$(mktemp -d) && mkdir -p "$AB/x" "$AB/y"
-# Never extract what would un-blind, rather than trusting the agent not to open it.
-X=(--exclude='*/evals' --exclude='*/references/improvement-backlog.md')
-git archive <baseline-ref> -- <skill-path> | tar -x -C "$AB/x" --strip-components=<n> "${X[@]}"
-git archive HEAD           -- <skill-path> | tar -x -C "$AB/y" --strip-components=<n> "${X[@]}"
-# git archive stamps every file with ITS OWN commit time, so the two sides
-# arrive with different mtimes. Equalise them or `stat` orders the pair.
-find "$AB" -exec touch -h -d '2000-01-01T00:00:00Z' {} +
+scripts/ab-setup.py <baseline-ref> <skill-dir>
 ```
+
+It extracts the baseline to `x/` and `HEAD` to `y/` with `git archive`, leaves
+out `evals/` and `improvement-backlog.md`, sets every mtime to one value, and
+writes the comparator agent as an `--agents` JSON file outside the pair. It
+prints `AB=<dir>` and `AGENTS=<file>`; use those literal paths below.
 
 `<baseline-ref>` is the commit the loop started from, the same ref Phase 0
 recorded.
@@ -205,14 +202,13 @@ baseline/final:
 **Spawn the comparator from outside the repo.** A subagent spawned from a repo
 cwd inherits an environment block listing recent commit subjects, which
 describe the diff being judged. Run each comparator as a bare `claude -p` with
-cwd `$AB`, the agent passed inline (a project agent does not resolve from
+cwd `<AB>`, the agent from the `<AGENTS>` file (a project agent does not resolve from
 `/tmp`):
 
 ```bash
-AGENTS=$(python3 -c 'import json,sys,re; t=open(sys.argv[1]).read(); fm,body=re.match(r"---\n(.*?)\n---\n(.*)",t,re.S).groups(); d=dict(l.split(": ",1) for l in fm.splitlines() if ": " in l); print(json.dumps({"skill-comparator":{"description":d["description"],"prompt":body,"model":d.get("model","sonnet")}}))' <repo>/.claude/agents/skill-comparator.md)
 # The prompt goes before --add-dir: --add-dir takes every following argument.
-(cd "$AB" && claude -p "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: $AB/x. DIR B: $AB/y." \
-  --agents "$AGENTS" --agent skill-comparator --add-dir <skill-improver-dir>/references)
+(cd <AB> && claude -p "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: <AB>/x. DIR B: <AB>/y." \
+  --agents <AGENTS> --agent skill-comparator --add-dir <skill-improver-dir>/references)
 ```
 
 An in-session subagent is a degraded fallback; record its verdict as semi-blind.

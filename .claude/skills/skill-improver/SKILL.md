@@ -170,9 +170,9 @@ in the background) and at stop. Print the bias table: every dimension where
 self and blind differ by 2+.
 
 **A/B comparator — decides the pass.** Absolute scores cannot show whether a
-pass helped. Extract baseline and final with `git archive` into a `mktemp -d`,
-leaving out `evals/` and `improvement-backlog.md`; set every file to one
-timestamp; label them `DIR A` / `DIR B` by coin flip; spawn three
+pass helped. `scripts/ab-setup.py <baseline-ref> <skill-dir>` extracts baseline
+and final into a `mktemp -d` without `evals/` or `improvement-backlog.md`, with
+one timestamp on every file; label them `DIR A` / `DIR B` by coin flip; spawn three
 `skill-comparator` agents **from outside the repo** (inside, they see recent
 commit subjects). Majority gives `IMPROVED` / `NO CHANGE` / `REGRESSED`; a tie
 is `NO CHANGE`; `REGRESSED` outranks any score gain — revert the responsible
