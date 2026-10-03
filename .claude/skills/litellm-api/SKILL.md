@@ -14,11 +14,12 @@ Siblings: multi-pod Redis/Valkey coordination is **`litellm-valkey`**; the infer
 
 **Neither the docs nor `/openapi.json` is ground truth.** Measured: 746 route decorators, 624 unique paths, 447 non-inference; **225 of 359 management paths appear nowhere in the docs**; **91 endpoints set `include_in_schema=False`** (all of `/config/*`, `/global/spend/*`, `/invitation/*`, `/sso/*`, most `/customer/*` …); the OpenAPI schema for `budget_limits` documents field names the API rejects (#32695). The only complete live inventory is **`GET /routes`** — which is unauthenticated (it's in `public_routes`, so its auth dependency short-circuits).
 
-## Security floor — run **≥ v1.94.0**, and know why before auditing auth
+## Security floor — run **≥ v1.100.4** (1.101.3 / 1.102.2 / 1.103.1 on those lines), and know why before auditing auth
 
 This skill's subject *is* the auth model, so the version matters before any of it
-is worth reasoning about: **below v1.94.0 the proxy is inside at least one
-published advisory, and three of them bypass authentication outright.** Auditing
+is worth reasoning about: **below the floor the proxy is inside at least one
+published advisory; three bypass authentication outright and one turns any
+`internal_user` into proxy admin.** Auditing
 `allowed_routes` on a build where auth can be skipped entirely is wasted work.
 
 | CVE | Sev | Affected | Floor | What it defeats |
@@ -31,10 +32,13 @@ published advisory, and three of them bypass authentication outright.** Auditing
 | CVE-2026-42271 | high | `>= 1.74.2, < 1.83.7` | 1.83.7 | Authenticated **command execution** via MCP stdio test endpoints |
 | CVE-2026-84377 | medium | `< 1.94.0` | **1.94.0** | Authenticated SSRF + **provider-credential exfiltration** via request-body routing params |
 | CVE-2026-59823 | medium | `<= 1.83.8` | 1.83.9 | SSRF via the `user_config` request parameter |
+| GHSA-7hp6-4w63-5g45 | **critical** | `>= 1.91.0, < 1.100.4`; 1.101.0–1.101.2; 1.102.0–1.102.1; 1.103.0 | **1.100.4** / 1.101.3 / 1.102.2 / 1.103.1 | `internal_user` → **proxy admin** + command execution: one key both seals secrets and mints session tokens (1.87–1.90 only with `EXPERIMENTAL_UI_LOGIN=true`) |
+| GHSA-g5ff-637f-6q2m | high | `< 1.95.0` | 1.95.0 | `internal_user_viewer` arbitrary local file read via `vertex_ai_credentials` |
+| GHSA-hhww-mrg2-969h | medium | `>= 1.65.5, < 1.85.0` | 1.85.0 | Reflected XSS in `/sso/debug/callback` |
 
-**All ranges are bounded, so each upper bound is the floor directly** — no
-`first_patched_version` is populated on any of them, which is normal for this
-feed and not a sign the fix is missing.
+**All ranges are bounded, so each upper bound is the floor directly.** The
+salt-key escalation (GHSA-7hp6) is fixed per release line: take the floor on the
+line you run, never "any 1.101+".
 
 Two of these compound documented behaviour rather than sitting beside it. The
 **MCP auth bypass** lands on the same surface as the `/v1/mcp/*` RBAC bypass
