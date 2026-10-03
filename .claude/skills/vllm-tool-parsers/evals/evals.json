@@ -7,7 +7,7 @@
     "assertions_source": "opus via backfill-assertions.py 2026-08-19",
     "harness": "skill-creator eval loop (aggregate_benchmark)",
     "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)",
-    "corrected": "2026-10-03: cases 1, 2, 7 re-aligned to the v0.30.0 flush contract and #30439's NOT_PLANNED close"
+    "corrected": "2026-10-03: cases 1, 2, 7 re-aligned to the v0.30.0 flush contract and #30439's NOT_PLANNED close; 2026-10-03 (fix mode): case 6 a3 no longer claims the pythonic placeholder forces the finish state (finish_reason keys on tools_streamed at v0.30.0); case 3 a4 drops the svc-e reasoning-pairing clause (vllm/parser/deepseek_v32.py: V3.2 format has no <think> tags, wait_for_reasoning=False)"
   },
   "evals": [
     {
@@ -65,7 +65,7 @@
         "The verdict for svc-c identifies `minimax` as a name that does not resolve in this version and directs the operator to the MiniMax-M2/M3 name instead",
         "The verdict for svc-b identifies that requests using automatic tool choice will not produce parsed tool calls, while making clear this arg-list does not itself fail at server startup (unlike the reverse case of enabling auto tool choice with no parser named)",
         "The script exits with a nonzero status when any service fails validation, so it works as a merge gate",
-        "The script checks something beyond the parser name alone — at minimum that each referenced --chat-template path exists and is readable — and the svc-e verdict raises the absent reasoning-parser pairing for a thinking model"
+        "The script checks something beyond the parser name alone — at minimum that each referenced --chat-template path exists and is readable"
       ],
       "shape": "build",
       "source": "grow-evals 2026-08-19"
@@ -112,7 +112,7 @@
         "Commits to one flavour as the recommendation instead of listing tradeoffs and leaving the choice open",
         "Grounds the recommendation in how each flavour reconstructs argument strings, identifying the embedded quotes, backslashes and newlines in the diff payload as the deciding fidelity risk",
         "States that the chat template must correspond to the chosen flavour, and that switching the parser flag without switching the template leaves the model emitting a shape the parser never matches",
-        "Warns that the pythonic family forces the tool-call finish state via a planted argument placeholder, so a failed argument parse can surface as a tool call with empty or truncated arguments rather than as a visible error",
+        "Warns that the pythonic family parses the whole call list as one Python expression, so a single malformed string literal (quotes, backslashes or newlines inside the diff) can drop every call in that turn to plain content rather than raise a visible error",
         "Specifies a concrete pre-commit verification: exercise the real apply_patch payload with parallel calls over a streaming request and byte-compare the reassembled arguments against what was sent, not just eyeball a smoke test"
       ],
       "shape": "decide",
