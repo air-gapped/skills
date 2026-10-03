@@ -34,7 +34,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
 
-**Except for the 15 names on the unified-parser path** (13 through v0.27.1, `ling3` at v0.29.0, `deepseek_v41` at v0.30.0), where that file is a
+**Except for the 15 names on the unified-parser path**, where that file is a
 stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 
 | CLI name(s) | Registry class | Real implementation |
@@ -47,12 +47,12 @@ stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
 | `glm45`, `glm47` | `Glm47MoeModelToolParser` | `vllm/parser/glm47_moe.py` |
 | `kimi_k2` | `KimiK2ToolParser` | `vllm/parser/kimi_k2.py` |
 | `minimax_m2` | `MinimaxM2ToolParser` | `vllm/parser/minimax_m2.py` |
-| `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` — **moved onto this path at v0.27.0** (PR #48947) |
-| `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` — new at v0.27.0 |
-| `ling3` | `Ling3ToolParser` | `vllm/parser/ling3.py` — **new at v0.29.0** (Ling 3.0 Flash); absent at v0.27.1 |
-| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` — **new at v0.30.0** (DeepSeek-V4.1-Flash). Strict (`strict=true`) tool-call parameter schemas are only grammar-constrained if the installed `xgrammar` exposes `builtin_structural_tag.get_deepseek_v4_1_structural_tag`; otherwise the fallback builder constrains tool names/DSML syntax only, not parameter schemas (`vllm/tool_parsers/structural_tag_registry.py`, PR #56408) |
+| `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` (v0.27.0+; a standalone parser before) |
+| `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` (v0.27.0+) |
+| `ling3` | `Ling3ToolParser` | `vllm/parser/ling3.py` (v0.29.0+) |
+| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` (v0.30.0+). Strict (`strict=true`) tool-call parameter schemas are only grammar-constrained if the installed `xgrammar` exposes `builtin_structural_tag.get_deepseek_v4_1_structural_tag`; otherwise the fallback builder constrains tool names/DSML syntax only, not parameter schemas (`vllm/tool_parsers/structural_tag_registry.py`) |
 
-**Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) at v0.29.0, and `k2_horizon` (`K2HorizonToolParser`) at v0.30.0. None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0** (49 at v0.29.0, 45 at v0.27.0) — no removals in either hop.
+**Four more names are NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) and `k2_horizon` (`K2HorizonToolParser`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Registry total: **51 names at v0.30.0**.
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
@@ -64,15 +64,13 @@ an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (12 files at v0
 is a stub too but imports no adapter — it's composed by
 name-check in `vllm/parser/parser_manager.py` instead, so this grep won't find
 it. Its parsing lives in `vllm/parser/cohere_command.py` via the external
-`cohere_melody` package (PR #56392) — not a vLLM runtime dependency: `pip
+`cohere_melody` package — not a vLLM runtime dependency: `pip
 install cohere-melody` into the image yourself (CI pins 0.14.0), or the parser
 raises `ImportError` at load. (`kimi_k3` goes through the same name-check but its
 `tool_parsers/` file is the real implementation, not a stub.)
 
 This is the same refactor described in `vllm-reasoning-parsers` — a single
-per-model parser now backs **both** the tool and reasoning adapters (RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713), bot-closed NOT_PLANNED
-2026-07-24 while the code kept shipping — a stale close, not a decision). Practical consequence: a grammar
+per-model parser now backs **both** the tool and reasoning adapters. Consequence: a grammar
 change to `vllm/parser/qwen3.py` moves tool *and* reasoning behaviour at once —
 they are no longer independent surfaces for those models.
 
@@ -87,7 +85,7 @@ vllm serve <model> --enable-auto-tool-choice --tool-call-parser <name> [--chat-t
 - `--enable-auto-tool-choice` alone → `TypeError: --enable-auto-tool-choice requires --tool-call-parser` (see `cli_args.py`).
 - `--tool-call-parser` alone → legal. Parser still runs for `tool_choice="required"` and named, and on Responses API.
 - **No `auto` sentinel.** Name a concrete parser.
-- `--tool-parser-plugin <path.py>` → third-party file that calls `@ToolParserManager.register_module("name")`. **v0.30.0+**: the value can also be a dotted module name importable from site-packages (e.g. an installed pip package) — `import_plugin()` tries `importlib.import_module(value)` first, falling back to file-path import only on `ModuleNotFoundError` (`vllm/utils/import_utils.py`, PR #45241). Same for `--reasoning-parser-plugin`.
+- `--tool-parser-plugin <path.py>` → third-party file that calls `@ToolParserManager.register_module("name")`. **v0.30.0+**: the value can also be a dotted module name importable from site-packages (e.g. an installed pip package) — `import_plugin()` tries `importlib.import_module(value)` first, falling back to file-path import only on `ModuleNotFoundError` (`vllm/utils/import_utils.py`). Same for `--reasoning-parser-plugin`.
 - `--reasoning-parser` is independent but several tool parsers assume a `</think>` has closed — match them (see "Reasoning pairing" below).
 - Chat template often matters. Each parser has a reference Jinja at `examples/tool_chat_template_<family>.jinja`. Wrong template → model never emits the sentinels the parser expects.
 
@@ -104,9 +102,9 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
-| `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** at v0.25.1 (`Qwen3EngineToolParser`); the separate coder/xml files were deleted |
+| `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** (`Qwen3EngineToolParser`); there is no separate coder vs XML implementation to choose between |
 | `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseekv3.jinja`, `_deepseekv31.jinja`, `_deepseekr1.jinja` |
-| `deepseek_v41` | DeepSeek-V4.1-Flash (DSML, unified engine) | (HF default) |
+| `deepseek_v41` | DeepSeek-V4.1-Flash (v0.30.0+; DSML, unified engine) | (HF default) |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
 | `apertus` | Apertus | (HF default) |
 | `lfm2` | LFM2 | (HF default) |
@@ -114,20 +112,20 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `poolside_v1` | Poolside (GLM-4-style grammar) | (HF default) |
 | `hy_v3` | Hunyuan V3 (newer than `hunyuan_a13b`) | (HF default) |
 | `glm45` / `glm47` | GLM-4.5/4.6, GLM-4.7 | `tool_chat_template_glm4.jinja` |
-| `ling3` | Ling 3.0 Flash (GLM-4.7 grammar: `Ling3Parser` subclasses `Glm47MoeParser`) | (HF default) |
+| `ling3` | Ling 3.0 Flash (v0.29.0+; GLM-4.7 grammar: `Ling3Parser` subclasses `Glm47MoeParser`) | (HF default) |
 | `granite` / `granite-20b-fc` / `granite4` | Granite-3.0/3.1, Granite-20B-FC, Granite-4.0 | `tool_chat_template_granite.jinja`, `_granite_20b_fc.jinja` |
 | `phi4_mini_json` | Phi-4-mini | `tool_chat_template_phi4_mini.jinja` |
 | `jamba` | Jamba-1.5 | (HF default, sentinel must be in vocab) |
 | `internlm` | InternLM-2.5 | `tool_chat_template_internlm2_tool.jinja` |
 | `kimi_k2` | Kimi-K2 Instruct / Thinking | (HF default) |
-| `kimi_k3` | Kimi-K3 (XTML `<\|open\|>tools<\|sep\|>` channels) — **new at v0.27.0** | (HF default) |
-| `inkling` | Inkling — **new at v0.27.0**; typed `<\|content_text\|>`/`<\|content_thinking\|>`/`<\|content_invoke_tool_json\|>` blocks | (HF default) |
+| `kimi_k3` | Kimi-K3 (XTML `<\|open\|>tools<\|sep\|>` channels) (v0.27.0+) | (HF default) |
+| `inkling` | Inkling (v0.27.0+); typed `<\|content_text\|>`/`<\|content_thinking\|>`/`<\|content_invoke_tool_json\|>` blocks | (HF default) |
 | `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash | (HF default) |
-| `dots` | Dots — **new at v0.29.0** (`DotsToolParser`); XML `<dots_function_call>` blocks | (HF default — no bundled `examples/` template at v0.29.0) |
-| `k2_horizon` | K2 Horizon — `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers, JSON or XML (`<ifm\|arg_key>`) bodies; `supports_required_and_named = False` | (HF default) |
-| `hy_v4` | Hunyuan V4 / Hy4-preview — **new at v0.29.0** (`HYV4ToolParser`); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
-| `muse_glimmer` | Muse Glimmer — **new at v0.29.0** (`MuseGlimmerToolParser`); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
+| `dots` | Dots (v0.29.0+); XML `<dots_function_call>` blocks | (HF default) |
+| `k2_horizon` | K2 Horizon (v0.30.0+) — `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers, JSON or XML (`<ifm\|arg_key>`) bodies; `supports_required_and_named = False` | (HF default) |
+| `hy_v4` | Hunyuan V4 / Hy4-preview (v0.29.0+); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
+| `muse_glimmer` | Muse Glimmer (v0.29.0+); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
 | `seed_oss` | Seed-OSS | (HF default) |
 | `hunyuan_a13b` | Hunyuan-A13B | (HF default) |
 | `ernie45` | ERNIE-4.5 thinking | (HF default) |
@@ -136,7 +134,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `xlam` | Salesforce xLAM Llama & Qwen | `tool_chat_template_xlam_llama.jinja`, `_xlam_qwen.jinja` |
 | `openai` | gpt-oss-20b/120b (Harmony channels) | (no Jinja — built-in renderer) |
 
-**gpt-oss/Harmony changed at v0.27.0 (PR #45560).** `json_object`/`json_schema`
+**gpt-oss/Harmony (v0.27.0+):** `json_object`/`json_schema`
 `response_format` is now rewritten into a Harmony-aware `structural_tag` in
 `HarmonyParser.adjust_request`, so constrained decoding governs the *whole*
 generation instead of only the post-`<|channel|>final<|message|>` region. Without
@@ -169,7 +167,7 @@ Worth carrying as mental model, because it's spread across multiple files and ea
 - Optional: `adjust_request(request)` — set `skip_special_tokens=False`, inject grammar, etc. `supports_required_and_named: bool = True` — flip False if the output shape breaks guided JSON.
 - Return-value contract for streaming: `None` = "consumed, nothing to emit"; `DeltaMessage(content=...)` = pass-through; `DeltaMessage(tool_calls=[DeltaToolCall(...)])` = tool progress.
 
-For the `parse_delta` refactor see RFC #11522 (closed 2025-09-05) and its follow-on PRs #38755 (merged 2026-04-08), #39728 (merged 2026-04-13), #39446 (merged 2026-04-14). Align new parsers with the `parse_delta` shape rather than copying older HACKs.
+Align new parsers with the `parse_delta` shape (RFC #11522 and its merged follow-on PRs #39446, #39728, #38755) rather than copying older HACKs.
 
 ## Reasoning-parser pairing
 
@@ -232,8 +230,6 @@ gh search issues --repo vllm-project/vllm "extract_tool_calls_streaming" --limit
 
 On finding a referenced issue/PR, read it directly (`gh issue view N --repo vllm-project/vllm --comments`). Never paraphrase from a cached memory — the fix may have landed since.
 
-Umbrella RFC to know about: **#11522** — "Refactor tool parsers to eliminate coding errors". Tracks the `parse_delta` refactor (PRs #39446, #39728, #38755). Any new parser work should align with it.
-
 ## In-tree HACKs to recognize
 
 Helpful to know what to look for when reading a parser. Grep the codebase for these:
@@ -274,8 +270,6 @@ Compact supplementary maps. Each points back at the source rather than duplicati
 - `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, and the end-of-stream flush contract.
 - `references/custom-parser-plugin.md` — plugin scaffolding checklist with file:line anchors into the base class and the canonical examples.
 - `references/sources.md` — verification log of the external GitHub issues/PRs/source files cited by this skill, each with a `Last verified` date. Consult before re-citing a claim; re-probe if the entry is stale (>90 days).
-
-(Older `references/json-family.md`, `pythonic-xml-family.md`, `known-bugs.md` removed — they duplicated source and rotted. Use `Grep`/`gh search` instead.)
 
 ---
 
