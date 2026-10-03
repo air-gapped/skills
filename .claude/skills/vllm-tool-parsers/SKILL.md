@@ -16,7 +16,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 | Target | Read |
 |---|---|
-| All tool parsers | `vllm/tool_parsers/` (one file per parser) |
+| All tool parsers | `vllm/tool_parsers/` (one file per parser). Not `vllm/entrypoints/openai/tool_parsers/` — removed at v0.14.0; imports from it fail |
 | Parser base class + `ToolParserManager` | `vllm/tool_parsers/abstract_tool_parser.py` |
 | Shared helpers (`partial_json_loads`, `find_common_prefix`, `make_valid_python`, `partial_tag_overlap`, `compute_tool_delta`, `handle_single_tool`) | `vllm/tool_parsers/utils.py` |
 | Built-in parser registry | `vllm/tool_parsers/__init__.py` — `_TOOL_PARSERS_TO_REGISTER` maps CLI name → module → class |

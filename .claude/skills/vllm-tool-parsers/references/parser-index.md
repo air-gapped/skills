@@ -25,12 +25,14 @@ Verified at v0.30.0.
 | `deepseek_v3` / `_v31` | `deepseekv3_tool_parser.py`, `deepseekv31_tool_parser.py` | Sentinels contain U+FF5C `｜` + U+2581 `▁`. NOT ASCII `\|` or `_`. V3 has \`\`\`json fence, V3.1 doesn't. |
 | `deepseek_v32` | `deepseekv32_engine_tool_parser.py` → `vllm/parser/deepseek_v32.py` | Uses DSML tokens. Engine path — the `tool_parsers/` file is a stub. |
 | `glm45` / `glm47` | `glm47_moe_tool_parser.py` → `vllm/parser/glm47_moe.py` | **Both names are one class** (`Glm47MoeModelToolParser`, an 11-line `Glm47MoeParserToolAdapter` subclass; `structural_tag_model = "glm_4_7"`, `supports_required_and_named = False`). `glm4_moe_tool_parser.py` no longer exists. XML inside `tool_call`, not JSON; needs `tools` for type coercion. |
+| `ling3` | `ling3_tool_parser.py` → `vllm/parser/ling3.py` | v0.29.0+. `Ling3Parser` subclasses `Glm47MoeParser` — GLM-4.7 XML tool format, thinking on by default. Stub imports `Ling3ParserToolAdapter` from `vllm.parser.ling3`, not `registered_adapters`. `structural_tag_model = "glm_4_7"`. |
 | `internlm` | `internlm2_tool_parser.py` | **No parallel calls** — second call returns empty delta. |
 | `ernie45` | `ernie45_tool_parser.py` | Buffers until `</tool_call>` — not true per-arg streaming. |
 | `seed_oss` | `seed_oss_engine_tool_parser.py` → `vllm/parser/seed_oss.py` | Gated on `</seed:think>` having been emitted. XML inner grammar. |
 | `hunyuan_a13b` | `hunyuan_a13b_tool_parser.py` | Regex-only, ONE level of nested JSON (TODO at line ~61). |
 | `hy_v3` | `hy_v3_tool_parser.py` | Hunyuan V3 parser (newer than `hunyuan_a13b`). Read the file — sentinel grammar + state-machine details live there. |
 | `deepseek_v4` | `deepseekv4_engine_tool_parser.py` → `vllm/parser/deepseek_v4.py` | DeepSeek-V4 successor to v3/v31/v32. Same full-width sentinels: `<｜tool▁calls▁begin｜>` (U+FF5C `｜` + U+2581 `▁`), NOT ASCII. |
+| `deepseek_v41` | `deepseekv41_engine_tool_parser.py` → `vllm/parser/deepseek_v41.py` | v0.30.0+. Spaced DSML calls (`<｜DSML｜ calls>`, `<｜DSML｜ invoke name="…">`) — full-width `｜` again. Strict-schema grammar only if the installed `xgrammar` has `builtin_structural_tag.get_deepseek_v4_1_structural_tag`; otherwise names/DSML syntax only (`structural_tag_registry.py`). |
 | `cohere_command3` | `cohere_command_tool_parser.py` → `vllm/parser/cohere_command.py` | **Moved onto the unified engine at v0.30.0** ([#56392](https://github.com/vllm-project/vllm/pull/56392)) — but via a `parser_manager.py` name-check special-case, not `registered_adapters`; the `tool_parsers/` file is an 18-line `ClassVar` stub (`melody_preset`). Requires external `cohere-melody`, not a vLLM dependency — install it into the image (`ImportError` if absent). Command-A / Command-R7B. JSON array between `<\|START_ACTION\|>` / `<\|END_ACTION\|>`; keys are `tool_name` + `parameters` (not `name`/`arguments`). |
 | `cohere_command4` | `cohere_command_tool_parser.py` → `vllm/parser/cohere_command.py` | Same move as `cohere_command3`. Command-A-Reasoning / Command-A-Vision. Same `<\|START_ACTION\|>` grammar. |
 | `apertus` | `apertus_tool_parser.py` | JSON array `[{"name","arguments"}]` wrapped in `<tool_calls>` / `</tool_calls>`. Has streaming. |
@@ -58,6 +60,10 @@ Verified at v0.30.0.
 | `gemma4` | `gemma4_engine_tool_parser.py` → `vllm/parser/gemma4.py` (helpers in `gemma4_utils.py`) | Bare keys + `<\|"\|>` string delim — NOT JSON. Accumulate-then-reparse-then-diff. |
 | `functiongemma` | `functiongemma_tool_parser.py` | Per-value `json.loads` fallback. Multi-token special absorbed via `buffered_delta_text`. |
 | `gigachat3` | `gigachat3_tool_parser.py` | Russian model; `<\|function_call\|>` / `<\|role_sep\|>`. |
+| `dots` | `dots_tool_parser.py` | v0.29.0+. `<dots_function_call>` wrapping `<invoke name=…>` / `<parameter name=…>` XML. `supports_required_and_named = False`. |
+| `hy_v4` | `hy_v4_tool_parser.py` | v0.29.0+. `<tool_calls>` / `<tool_call>` / `<arg_key>` / `<arg_value>` tags, each optionally namespaced (`<tag:suffix>`). Not the `hunyuan_a13b` grammar. `supports_required_and_named = False`. |
+| `muse_glimmer` | `muse_glimmer_tool_parser.py` | v0.29.0+. Harmony-like framing: `<\|start\|>assistant to=<tool><\|message\|>` headers, `<\|eom\|>` / `<\|eot\|>` boundaries, `<atem:function_calls>` blocks. Ships `tool_chat_template_muse_glimmer.jinja`. `supports_required_and_named = False`. |
+| `k2_horizon` | `k2_horizon_tool_parser.py` | v0.30.0+. `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers; body format `json`, `xml` or `xml_typed` (`<ifm\|arg_key>`, `<ifm\|arg_type>`). `supports_required_and_named = False`. |
 | `openai` | `gptoss_tool_parser.py` | **Harmony format** — operates on token IDs via `harmony_utils.parse_output_into_messages`. Both `extract_tool_calls*` methods raise `NotImplementedError`; Harmony is handled by `HarmonyParser` (`vllm/parser/harmony.py`). At v0.27.0 ([#45560](https://github.com/vllm-project/vllm/pull/45560)) `HarmonyParser.adjust_request` rewrites `json_object`/`json_schema` into a Harmony-aware structural tag that constrains the whole generation, not just the final channel. |
 
 ## When to use this index

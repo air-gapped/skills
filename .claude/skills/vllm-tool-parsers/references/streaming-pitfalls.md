@@ -44,7 +44,7 @@ At stream end the parser layer takes `prev_tool_call_arr[-1]["arguments"]`, stri
    gh search prs --repo vllm-project/vllm "stream-interval tool parser" --state merged --limit 20
    ```
 
-10. **The `parse_delta` refactor.** RFC #11522 is removing the HACK pattern. PRs #39446 / #39728 / #38755. Check current state before writing a new parser.
+10. **The `parse_delta` refactor.** RFC #11522 and PRs #39446 / #39728 / #38755 are merged: serving calls `parser.parse_delta(...)`. Write new parsers to that shape, not to the HACK pattern older parsers still carry.
 
 11. **Non-streaming now matches streaming on truncated tool-call markup (v0.30.0+).** For engine-based parsers, `DelegatingParser._extract_tool_calls` (`vllm/parser/abstract_parser.py`) drops incomplete tool-call markup (e.g. a `<tool_call>` opener truncated by `max_tokens` or a stop string) from the non-streaming response, same as streaming already did — instead of returning it as raw content ([#47562](https://github.com/vllm-project/vllm/pull/47562)). Legacy (non-engine) parsers are unchanged: they still return the raw truncated markup as content in non-streaming.
 
