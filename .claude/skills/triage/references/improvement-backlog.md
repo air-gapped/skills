@@ -108,6 +108,13 @@ cap reached (10 iterations, 1 discard); baseline 242c8a9.
   direction the harness reverted. The sink-ref conflict guard addresses the
   same failure without narrowing the window.
 
+## Resolved — 2026-10-04 (dedupe prompt isolation)
+
+- Phase 2b dedupe prompt now wraps `CANDIDATES` (scanner titles, attacker-
+  influenced) in the nonce-tagged `<untrusted_data>` block with the
+  data-not-instructions sentence, like the verifier and ranker tails; SKILL.md
+  2b names the § `{nonce}` contract at the fill step. Operator-approved.
+
 ## Resolved — 2026-08-16 (Visa-harness review adoptions)
 
 - **Anti-manipulation prologue** added to the `triage-verifier` agent body:
@@ -187,13 +194,6 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   pass: needs a real target and a full multi-skill pipeline run, not a
   one-iteration mutation. The feedback's calibration table (rows 1-4) is
   the pass/fail oracle.
-- **Phase 2b dedupe prompt interpolates scanner text without isolation
-  (Dim 5/9).** `references/prompts.md` § Dedupe prompt fills `CANDIDATES`
-  with scanner `title` (attacker-influenced) unwrapped, unlike the verifier
-  and ranker tails. Fix: wrap the CANDIDATES lines in the § `{nonce}`
-  contract plus its data-not-instructions sentence. Blocker: operator
-  ruling — the 2026-10-04 pass was scoped to relocation only, with no
-  changes to security prose.
 - **`codegraph explore` permitted in prose but absent from `allowed-tools`
   (Dim 8).** SKILL.md Tools paragraph and Phase 3a allow it; the frontmatter
   has no matching `Bash(...)` entry, and Phase 3a runs it as
@@ -218,7 +218,8 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   precedent — but this skill is single-mode: the phases load every run
   regardless, so the token win mostly evaporates and a skipped Read on a
   security-verdict workflow is a real risk. No extraction without a
-  with/without measurement first.) **(2026-10-04: operator asked for a leaner
+  with/without measurement first.) **(2026-10-04: operator approved landing the
+  extraction without the with/without measurement, which triage cannot run — it has no eval cases. Operator asked for a leaner
   triage. Branch-only material moved — see the 2026-10-04 section; 988 → 743
   lines. The hold still covers phase-core text: per-phase checkpoint
   schemas and commands, and every phase procedure.)**
