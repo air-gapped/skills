@@ -14,6 +14,19 @@ and spawn `general-purpose`. For verifier batches over ~50 spawns on the
 fallback path, use the [compact verifier](#compact-verifier-fallback-path)
 instead.
 
+## Contents
+
+- [`{nonce}` — how to fill it](#nonce--how-to-fill-it-and-why-the-closing-tag-carries-it-too)
+  — isolation contract for the verifier and ranker tails.
+- [Dedupe prompt (Phase 2b)](#dedupe-prompt-phase-2b) — full prompt for the
+  one `general-purpose` semantic-dedupe spawn.
+- [Verifier tail (Phase 3a)](#verifier-tail-phase-3a) — context header +
+  finding block; one spawn per vote.
+- [Compact verifier (fallback path)](#compact-verifier-fallback-path) —
+  replaces agent body + tail on `general-purpose` batches over ~50 spawns.
+- [Ranker tail (Phase 4a)](#ranker-tail-phase-4a) — deployment context +
+  finding fields; one spawn per confirmed finding.
+
 ## `{nonce}` — how to fill it, and why the closing tag carries it too
 
 Scanner-derived fields are **attacker-influenced**: a scanner reads the
@@ -39,15 +52,6 @@ the target's author chose. Both tails below wrap those fields in
 
 Pattern and rationale follow `harness/prompts/untrusted.py` in
 `anthropics/defending-code-reference-harness` (read 2026-09-15).
-
-- [Dedupe prompt (Phase 2b)](#dedupe-prompt-phase-2b) — full prompt for the
-  one `general-purpose` semantic-dedupe spawn.
-- [Verifier tail (Phase 3a)](#verifier-tail-phase-3a) — context header +
-  finding block; one spawn per vote.
-- [Compact verifier (fallback path)](#compact-verifier-fallback-path) —
-  replaces agent body + tail on `general-purpose` batches over ~50 spawns.
-- [Ranker tail (Phase 4a)](#ranker-tail-phase-4a) — deployment context +
-  finding fields; one spawn per confirmed finding.
 
 ---
 
