@@ -19,6 +19,13 @@ measures that). `--natural` drops the line.
         [--write-benchmark] [--natural]
     outcome-eval.py --selfcheck
 
+Runs keep their logs (`--keep-temp`, ~140 KB each under /tmp), and the script
+reads them for what the test cost: tokens per model for the answering runs
+(grader calls excluded), and the plan's 5-hour and weekly usage before the first
+run and after the last, from each log's `rate_limit_event`. Plan usage is whole
+percents, includes anything else using the plan meanwhile, and is absent for
+API-key logins.
+
 `--write-benchmark` writes `evals/benchmark.plugin-eval.json` with
 `with_skill` / `without_skill` pass rates, which `eval-evidence.py` reads for the
 Dim 10 gate.
@@ -89,6 +96,7 @@ def run(plugin: Path, out: Path, a, ablation: str) -> dict:
         str(a.runs),
         "--ablation",
         ablation,
+        "--keep-temp",
         "--json",
         str(out),
     ]
@@ -122,6 +130,83 @@ def run_scores(result: dict, arm: str) -> dict:
                 )
             )
     return out
+
+
+def run_usage(results: list) -> tuple[dict, list, int]:
+    """Read every run's kept log: ({model: [in, out, cache_read, cache_write]},
+    [(startedAt, unifiedWindows)], runs whose log is missing)."""
+    tokens: dict = {}
+    windows = []
+    missing = 0
+    for res in results:
+        for c in res["cases"]:
+            for runs in c["arms"].values():
+                for r in runs:
+                    p = Path(r.get("tracePath") or "")
+                    if not p.is_file():
+                        missing += 1
+                        continue
+                    last = None
+                    for line in p.read_text(errors="replace").splitlines():
+                        try:
+                            e = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if e.get("type") == "rate_limit_event":
+                            last = (e.get("rate_limit_info") or {}).get(
+                                "unifiedWindows"
+                            ) or last
+                        elif e.get("type") == "result":
+                            for m, u in (e.get("modelUsage") or {}).items():
+                                t = tokens.setdefault(m, [0, 0, 0, 0])
+                                for i, k in enumerate(
+                                    (
+                                        "inputTokens",
+                                        "outputTokens",
+                                        "cacheReadInputTokens",
+                                        "cacheCreationInputTokens",
+                                    )
+                                ):
+                                    t[i] += u.get(k) or 0
+                    if last:
+                        windows.append((r.get("startedAt") or "", last))
+    return tokens, windows, missing
+
+
+def usage_text(tokens: dict, windows: list, missing: int) -> str:
+    total = sum(sum(v) for v in tokens.values())
+    parts = ", ".join(
+        f"{m} {sum(v) / 1e6:.2f}M (out {v[1] / 1e3:.0f}K)"
+        for m, v in sorted(tokens.items(), key=lambda x: -sum(x[1]))
+    )
+    lines = [
+        f"tokens, answering runs only: {total / 1e6:.2f}M — {parts or 'none read'}"
+    ]
+    if missing:
+        lines.append(f"  {missing} run log(s) missing: their tokens are NOT counted")
+    if not windows:
+        lines.append("plan usage: not reported (API-key login, or no run logs)")
+        return "\n".join(lines)
+    windows.sort(key=lambda w: w[0])
+    first, last = windows[0][1], windows[-1][1]
+    cells = []
+    for key, label in (("seven_day", "week"), ("five_hour", "5-hour window")):
+        a, b = first.get(key) or {}, last.get(key) or {}
+        if "utilization" not in a or "utilization" not in b:
+            continue
+        u0, u1 = round(a["utilization"] * 100), round(b["utilization"] * 100)
+        note = (
+            " (window reset during the test; not comparable)"
+            if a.get("resetsAt") != b.get("resetsAt")
+            else ""
+        )
+        cells.append(f"{label} {u0}% -> {u1}% ({u1 - u0:+d}){note}")
+    lines.append(
+        "plan usage: "
+        + "; ".join(cells)
+        + " — whole percents, includes other use of the plan meanwhile"
+    )
+    return "\n".join(lines)
 
 
 def summarize(cols: dict) -> tuple[str, dict]:
@@ -177,6 +262,71 @@ def selfcheck() -> int:
         ]
     }
     assert run_scores(fake, "with") == {"x": [(0.5, 0.1, True)]}
+
+    d = Path(tempfile.mkdtemp(prefix="outcome-eval-selfcheck."))
+
+    def trace(name, util, resets, tok):
+        p = d / name
+        p.write_text(
+            "\n".join(
+                json.dumps(e)
+                for e in (
+                    {
+                        "type": "rate_limit_event",
+                        "rate_limit_info": {
+                            "unifiedWindows": {
+                                "seven_day": {"utilization": util, "resetsAt": 9},
+                                "five_hour": {"utilization": util, "resetsAt": resets},
+                            }
+                        },
+                    },
+                    {
+                        "type": "result",
+                        "modelUsage": {
+                            "claude-sonnet-5-5": {
+                                "inputTokens": tok,
+                                "outputTokens": 1,
+                                "cacheReadInputTokens": 0,
+                                "cacheCreationInputTokens": 0,
+                            }
+                        },
+                    },
+                )
+            )
+        )
+        return str(p)
+
+    res = {
+        "cases": [
+            {
+                "name": "x",
+                "arms": {
+                    "with": [
+                        {
+                            "tracePath": trace("b", 0.18, 2, 10),
+                            "startedAt": "2026-10-03T02",
+                        },
+                        {
+                            "tracePath": trace("a", 0.16, 1, 5),
+                            "startedAt": "2026-10-03T01",
+                        },
+                        {"tracePath": str(d / "gone"), "startedAt": "2026-10-03T03"},
+                    ]
+                },
+            }
+        ]
+    }
+    tokens, windows, missing = run_usage([res])
+    assert tokens == {"claude-sonnet-5-5": [15, 2, 0, 0]} and missing == 1, (
+        tokens,
+        missing,
+    )
+    text = usage_text(tokens, windows, missing)
+    assert (
+        "week 16% -> 18% (+2)" in text
+        and "not comparable" in text
+        and "1 run log(s) missing" in text
+    ), text
     print("selfcheck: all assertions passed")
     return 0
 
@@ -214,6 +364,7 @@ def main() -> int:
         "current": run_scores(main_res, "with"),
     }
     cost = main_res["costUsd"]
+    results = [main_res]
     if a.against:
         other = Path(a.against)
         if not other.is_dir():
@@ -242,10 +393,12 @@ def main() -> int:
             "none",
         )
         cols["against"] = run_scores(ref_res, "with")
+        results.append(ref_res)
         cost += ref_res["costUsd"]
     text, means = summarize(cols)
     print(text)
-    print(f"total cost ${cost:.2f}; raw results in {work}")
+    print(f"API-price estimate ${cost:.2f}; raw results in {work}")
+    print(usage_text(*run_usage(results)))
     if (
         a.write_benchmark
         and means["current"] is not None

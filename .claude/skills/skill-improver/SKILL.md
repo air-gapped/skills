@@ -185,6 +185,9 @@ Sonnet judge, \$20 cap.
 
 - **Price it first:** \$0.10–0.30 per with-skill run and \$0.05–0.20 per without
   (larger skills cost more), times cases × runs × arms; `--against` adds an arm.
+  The run ends by printing what it actually used: tokens per model (grader calls
+  excluded) and, on a subscription, the plan's 5-hour and weekly usage before and
+  after — read from the runs' own logs, whole percents.
 - **Read failures before concluding.** Three runs and a 2-of-3 judge vote are
   noisy: a per-case difference of one run, or a total gap under ~0.15, is noise
   until the failed answers are read and found worse.
