@@ -144,7 +144,7 @@ falls back to "some tool is called" only.
 Don't trust this table to be complete — verify with:
 
 ```bash
-grep -E "^\s+\"" vllm/tool_parsers/__init__.py    # lists registered names
+grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (51 at v0.30.0)
 ls examples/tool_chat_template_*.jinja            # lists shipped templates
 ls vllm/tool_parsers/*_tool_parser.py              # lists source files
 ```
