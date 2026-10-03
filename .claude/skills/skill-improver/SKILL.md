@@ -210,6 +210,16 @@ Each iteration targets one file. If the improvement requires touching multiple f
 
 The skill reflects the author's domain expertise. Improve structure, clarity, and adherence to best practices. Do NOT rewrite the author's domain knowledge or change what the skill teaches — only how it teaches it.
 
+### Write for the Agent; History Goes to `sources.md`
+
+`SKILL.md` and task references state the current rule and the action. Where a
+fact came from, why it changed, and when it was checked go in the skill's
+`references/sources.md`, next to the source row. `SKILL.md` carries one pointer:
+`Why a rule exists and when it changed: references/sources.md`. Keep a version
+or issue number in agent text only where the agent acts on it ("on 0.7.0 every
+command fails — upgrade"). Existing history in agent text is not a defect by
+itself; move it only when it is already in the diff.
+
 ### A Measurement That Failed Is Not a Low Score
 
 Every mode here turns evidence into a number, and every one of them can fail to

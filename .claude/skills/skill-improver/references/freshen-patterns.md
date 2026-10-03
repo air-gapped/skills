@@ -257,7 +257,7 @@ browser at their cited addresses.
 
 ### Phase F4: Mutate (One Finding at a Time)
 
-Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Always cite the verifying source URL.
+Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Write the finding into the skill as the current rule and action. The verifying source URL, issue numbers, version history and check date go in that finding's `references/sources.md` row; the reasoning goes in the commit message. See `SKILL.md` §"Write for the Agent".
 
 ### Phase F5: Accept / Revert
 
@@ -800,7 +800,7 @@ Latest release introduces `vllm bench startup`. The skill currently lists
 
 Classification: `new-feature` (in-scope — "vllm bench" is a trigger).
 Mutation: add a ≤3-line mention of `vllm bench startup` in the
-appropriate section. Cite release notes URL.
+appropriate section. Release notes URL goes in `sources.md`, not the mention.
 
 ### 6.5 Out-of-scope new feature
 
