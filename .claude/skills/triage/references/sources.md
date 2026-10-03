@@ -21,8 +21,8 @@ or upstream harness change.
   **The ingest contract this skill depends on is unchanged.** `docs/triage.md`
   still documents `results/<target>/<timestamp>/` as the pipeline input and
   `TRIAGE.md` + `TRIAGE.json` as the outputs — matching this skill's Phase 1
-  ingest (`SKILL.md:41`) and its `TRIAGE.json`/`TRIAGE.md` writers
-  (`SKILL.md:117`, `SKILL.md:649`).
+  ingest (`SKILL.md` §Phase 1a) and its `TRIAGE.json`/`TRIAGE.md` writers
+  (`SKILL.md` §Phase 6b–6c).
 
   Three triage paths moved upstream — `.claude/skills/triage/README.md`,
   `.claude/skills/triage/SKILL.md`, `docs/triage.md`. **Unlike the
