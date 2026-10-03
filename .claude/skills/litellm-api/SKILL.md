@@ -30,15 +30,16 @@ published advisory; three bypass authentication outright and one turns any
 | (no CVE id) | high | `< 1.83.0` | 1.83.0 | Password-hash exposure → **pass-the-hash** bypass |
 | CVE-2026-59822 | high | `< 1.84.0` | 1.84.0 | **MCP auth bypass** via OAuth2 passthrough fallback |
 | CVE-2026-42271 | high | `>= 1.74.2, < 1.83.7` | 1.83.7 | Authenticated **command execution** via MCP stdio test endpoints |
-| CVE-2026-84377 | medium | `< 1.94.0` | **1.94.0** | Authenticated SSRF + **provider-credential exfiltration** via request-body routing params |
+| CVE-2026-84377 | medium | `< 1.96.2` except the patched per-line releases | **1.96.2**; per line 1.88.6 / 1.89.7 / 1.90.7 / 1.91.5 / 1.92.2 / 1.93.2 / 1.94.3 / 1.95.1 | Authenticated SSRF + **provider-credential exfiltration** via request-body routing params |
 | CVE-2026-59823 | medium | `<= 1.83.8` | 1.83.9 | SSRF via the `user_config` request parameter |
 | GHSA-7hp6-4w63-5g45 | **critical** | `>= 1.91.0, < 1.100.4`; 1.101.0–1.101.2; 1.102.0–1.102.1; 1.103.0 | **1.100.4** / 1.101.3 / 1.102.2 / 1.103.1 | `internal_user` → **proxy admin** + command execution: one key both seals secrets and mints session tokens (1.87–1.90 only with `EXPERIMENTAL_UI_LOGIN=true`) |
 | GHSA-g5ff-637f-6q2m | high | `< 1.95.0` | 1.95.0 | `internal_user_viewer` arbitrary local file read via `vertex_ai_credentials` |
 | GHSA-hhww-mrg2-969h | medium | `>= 1.65.5, < 1.85.0` | 1.85.0 | Reflected XSS in `/sso/debug/callback` |
 
-**All ranges are bounded, so each upper bound is the floor directly.** The
-salt-key escalation (GHSA-7hp6) is fixed per release line: take the floor on the
-line you run, never "any 1.101+".
+**All ranges are bounded, so each upper bound is the floor directly.** Two are
+fixed per release line — the salt-key escalation (GHSA-7hp6) and the SSRF
+(CVE-2026-84377; 1.94.0 is still vulnerable): take the floor on the line you
+run, never "any newer minor".
 
 Two of these compound documented behaviour rather than sitting beside it. The
 **MCP auth bypass** lands on the same surface as the `/v1/mcp/*` RBAC bypass
