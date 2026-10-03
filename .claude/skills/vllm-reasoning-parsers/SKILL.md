@@ -89,7 +89,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 14. **`--enable-reasoning` is gone** — older docs / Stack Overflow answers still reference it. Since roughly v0.8 the only flag is `--reasoning-parser NAME`; the enable/disable is implicit in whether one is passed.
 
-15. **`reasoning_content` is always null — but parser worked fine.** The response field is `reasoning`, not `reasoning_content`, on every release from **v0.16.0** onward (#33402). Client-side name mismatch that looks exactly like a parser failure. Before debugging parsers, `jq '.choices[0].message | keys'` to see what fields actually exist — if `reasoning` is there, it's just a client rename.
+15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client.
 
 ## The per-model matrix
 
