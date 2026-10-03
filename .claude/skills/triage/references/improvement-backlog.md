@@ -108,6 +108,13 @@ cap reached (10 iterations, 1 discard); baseline 242c8a9.
   direction the harness reverted. The sink-ref conflict guard addresses the
   same failure without narrowing the window.
 
+## Resolved — 2026-10-04 (codegraph in allowed-tools)
+
+- `Bash(codegraph explore:*)` added to `allowed-tools` (operator ruling,
+  2026-10-04). Phase 3a now runs `codegraph explore --path <repo> "..."`,
+  which that prefix rule matches; the old `cd <repo> && codegraph explore`
+  form did not.
+
 ## Resolved — 2026-10-04 (dedupe prompt isolation)
 
 - Phase 2b dedupe prompt now wraps `CANDIDATES` (scanner titles, attacker-
@@ -194,12 +201,6 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   pass: needs a real target and a full multi-skill pipeline run, not a
   one-iteration mutation. The feedback's calibration table (rows 1-4) is
   the pass/fail oracle.
-- **`codegraph explore` permitted in prose but absent from `allowed-tools`
-  (Dim 8).** SKILL.md Tools paragraph and Phase 3a allow it; the frontmatter
-  has no matching `Bash(...)` entry, and Phase 3a runs it as
-  `cd <repo> && codegraph explore`, which a prefix rule would not match
-  anyway. Blocker: operator ruling on widening the skill's tool scope (same
-  2026-10-04 scope limit).
 
 ## Decided — do not re-propose
 

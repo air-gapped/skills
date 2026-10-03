@@ -24,6 +24,7 @@ allowed-tools:
   - Bash(find:*)
   - Bash(ls:*)
   - Bash(wc:*)
+  - Bash(codegraph explore:*)
   - Bash(python3 .claude/skills/triage/scripts/checkpoint.py:*)
 ---
 
@@ -447,8 +448,9 @@ finding block) lives in **`references/prompts.md` § Verifier tail (Phase
 **Call-graph context (only when the target is indexed).** If
 `<repo>/.codegraph/` exists, spare each verifier the from-scratch caller
 hunt: per candidate, run
-`codegraph explore "<cited function, or file:line>"` from inside the repo
-(e.g. `cd <repo> && codegraph explore "..."`), trim to a compact excerpt —
+`codegraph explore --path <repo> "<cited function, or file:line>"` (the
+`--path` form matches the allowed-tools rule; a `cd <repo> &&` prefix does
+not), trim to a compact excerpt —
 direct callers/callees of the cited function and any entry-point paths,
 ≤ ~40 lines, no verbatim source bodies — and add it to that candidate's
 tail as the optional `CALL GRAPH CONTEXT` block (template in
