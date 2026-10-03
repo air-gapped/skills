@@ -21,7 +21,7 @@ Probe a skill's external references for staleness; apply verified updates in pla
 - `freshen --all` — every skill returned by `scripts/scan-skills.sh`
 - `freshen --group <glob>` — subset, e.g., `vllm-*`
 
-Freshen defaults to **apply**. For a read-only readout use Standalone Evaluation (Dim 9 reflects `references/sources.md` freshness).
+Freshen defaults to **apply**. For a read-only readout use `ages` (fleet) or `score` (one skill; Dim 9 reflects `references/sources.md` freshness).
 
 ### Phase F0: Setup
 
@@ -39,15 +39,19 @@ Precedence:
 3. **The frontmatter `description` and `when_to_use`** — scan explicitly, not as part of the step-2 sweep; they carry bare factual claims.
 4. Deduplicate (normalize URLs, collapse owner/repo variants).
 
-**Bare counts in a description have nothing to age against** ("31 flag values", "98 tools"): no probe touches them. Sweep: `\b[0-9]{2,3}\+? (flag|parser|tool|scaler|endpoint|model|metric|value)s?\b` over every description. Then attach a version ("30 on current vLLM, 31 through v0.27.x") or make it an explicit lower bound ("40+").
+**Bare counts in a description have nothing to age against** ("31 flag values", "98 tools"): no probe touches them. Sweep: `\b[0-9]{2,3}\+?(?:-| )(flag|parser|tool|scaler|endpoint|model|metric|value|path|feature|famil(y|ie))s?\b` plus `\b[0-9]{2,3} (are|were) \w+` over every description. Then attach a version ("30 on current vLLM, 31 through v0.27.x") or make it an explicit lower bound ("40+").
 
 If the target has no `sources.md`, create one in Phase F6 from the extracted set.
+
+If `description` + `when_to_use` already exceed 1,536 chars (`scripts/frontmatter-lengths.py`), add nothing to them; correct in place and name `trigger` as the next step in the F6 summary.
+
+If the target's `sources.md` carries its own freshen protocol, follow its extra steps; where it conflicts with this file, this file wins. A row that covers a group (an issue list, a flag table) is verified member by member, batched — one query per repo.
 
 ### Phase F2: Probe — everything, batched
 
 A pass verifies **every ref**, so the F6 stamp is true. **Delegate the sweep to cheap subagents — never run probes in the main context.** Spawn one background wave; spend main-context turns only on judgment and mutations:
 
-- **`web-searcher`** (cheap tier; has Bash/gh/WebFetch and full browser control, so it retries bot-blocked rows per §2.4) — one per skill:
+- **`web-searcher`** (`model: sonnet` — Haiku row probes report false drifts; has Bash/gh/WebFetch and full browser control, so it retries bot-blocked rows per §2.4) — one per skill:
   "Verify every row of `<skill>/references/sources.md`: bulk-curl the URLs,
   batch issue/PR states via one GraphQL query per repo, check latest
   releases against the versions the rows claim. Return ONLY a findings
@@ -118,15 +122,16 @@ Verification-based decision rule:
 
 ### Phase F6: Stamp and Summarize
 
-1. Write (or update) ONE line at the top of sources.md:
+1. Before stamping, run on the target `check-links.py`, `check-issue-states.py`, `check-advisory-floors.py --verify` and `check-expiring-claims.py` (non-findings: `fleet-checks.md`), plus the §4b scaffolding decay probes. Fix each real hit as one more F4 finding.
+2. Write (or update) ONE line at the top of sources.md:
    `Freshened: <today>` — plus, only if something could not be verified,
    `(exceptions: <n> rows, noted inline)`. Unverifiable rows carry a short
    inline note ("403 to curl — bot-blocked", "cookie-gated PDF"). Per-row
    `Last verified` columns are legacy: delete the column or leave it; the
    header stamp is authoritative.
-2. If sources.md was absent at Phase F1, create it from the extracted refs (§1.1b) with today's stamp.
-3. Print summary: total findings, kept, discarded, exceptions.
-4. Stop. Do not re-probe the same skill in the same session.
+3. If sources.md was absent at Phase F1, create it from the extracted refs (§1.1b) with today's stamp.
+4. Print summary: total findings, kept, discarded, exceptions.
+5. Stop. Do not re-probe the same skill in the same session.
 
 **The stamp never lies.** It means "every row was verified on this date, except the ones that say otherwise inline." A partial pass keeps the old stamp.
 
@@ -217,7 +222,7 @@ Run the cheapest applicable probe first. Stop probing a ref once it produces a f
 ### 2.1 GitHub release tags
 
 ```bash
-gh release list <owner>/<repo> --limit 5 --json tagName,publishedAt,isLatest
+gh release list -R <owner>/<repo> --limit 5 --json tagName,publishedAt,isLatest
 gh api /repos/<owner>/<repo>/releases/latest --jq '{tag: .tag_name, published: .published_at}'
 ```
 
@@ -388,6 +393,14 @@ After:  SKILL.md L87 — "gh release view <tag> --json <fields>" (tag now requir
 
 For multi-ref findings, list each location in a bullet list under `Before:` / `After:`.
 
+Stamp commit (F6), last in the pass:
+
+```
+freshen(<skill-name>): stamp sources.md Freshened <date>
+
+Rows probed: <n>. Findings applied: <n> (one commit each). Exceptions: <n>, noted inline.
+```
+
 ## 4b. Scaffolding Decay Probes (Boris alignment)
 
 Standard probes test external refs. These test whether the skill's *internal* prose compensates for old-model behaviour that current models no longer show.
@@ -404,7 +417,7 @@ rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)
 # Counts scaffold items only — numbered items that carry a prohibition, named
 # failure, threshold, or branch condition are encoded judgment, not scaffolding.
 # See quality-rubric.md §"Procedural steps" — advisory only, no cap.
-python3 "$SKILL_IMPROVER/scripts/scaffold-probe.py" SKILL.md --verbose
+python3 "${CLAUDE_SKILL_DIR}/scripts/scaffold-probe.py" SKILL.md --verbose
 
 # 3. Up-front context dumps (sections >30 lines of pure facts, no tool/file pointer)
 awk '/^## /{if (sect) print lines, sect; sect=$0; lines=0; next} {lines++} END{if (sect) print lines, sect}' SKILL.md | sort -rn | head
@@ -443,7 +456,7 @@ v2.74.0
 $ gh release view v2.74.0 -R cli/cli --json body --jq .body | rg -iN 'breaking|removed'
 ```
 
-No hits overlapping skill usage → `version-drift` (low-risk bump). Replace `gh 2.65` → `gh 2.74` in SKILL.md, update sources.md `Pinned: 2.74` and `Last verified: <today>`.
+No hits overlapping skill usage → `version-drift` (low-risk bump). Replace `gh 2.65` → `gh 2.74` in SKILL.md, update the sources.md row's `Pinned: 2.74`; the F6 `Freshened:` stamp carries the date.
 
 ### 6.2 Deprecated API surfaced
 

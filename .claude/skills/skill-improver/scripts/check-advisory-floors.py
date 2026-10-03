@@ -119,6 +119,36 @@ def claim_versions(line: str) -> tuple[str, list[str]] | None:
     return (ident, versions) if versions else None
 
 
+TABLE_SEP = re.compile(r"^\s*\|[\s:|-]+\|?\s*$")
+
+
+def cells(row: str) -> list[str]:
+    return [c.strip() for c in row.strip().strip("|").split("|")]
+
+
+def fix_column(header: str) -> int | None:
+    """Index of an advisory table's fixed-in column ("Fixed", "Fixed in", "Floor")."""
+    for i, c in enumerate(cells(header)):
+        if re.search(
+            r"\b(?:fix\w*|floor|patched)\b", c, re.I
+        ) and not ASSERTS_RANGE.search(c):
+            return i
+    return None
+
+
+def table_claim(row: str, fixcol: int) -> tuple[str, list[str]] | None:
+    """A floor-table row asserts its fixed-in cell for the row's one advisory."""
+    ids = set(ADVISORY.findall(row))
+    cs = cells(row)
+    if len(ids) != 1 or fixcol >= len(cs) or NEGATED.search(cs[fixcol]):
+        return None
+    cell = NOISE.sub("", cs[fixcol])
+    versions = [
+        m.group(1) for m in VERSION.finditer(cell) if cell[m.end() : m.end() + 1] != "+"
+    ]
+    return (ids.pop(), versions) if versions else None
+
+
 def claims(root: Path) -> list[tuple[str, str, str, list[str]]]:
     """(advisory, skill, line, versions) for every line asserting a fix."""
     out = []
@@ -131,8 +161,16 @@ def claims(root: Path) -> list[tuple[str, str, str, list[str]]]:
         # re-reports every defect already fixed.
         if md.name == "improvement-backlog.md":
             continue
-        for line in md.read_text(encoding="utf-8", errors="replace").splitlines():
+        lines = md.read_text(encoding="utf-8", errors="replace").splitlines()
+        fixcol = None
+        for i, line in enumerate(lines):
             got = claim_versions(line)
+            if not line.lstrip().startswith("|"):
+                fixcol = None
+            elif i + 1 < len(lines) and TABLE_SEP.match(lines[i + 1]):
+                fixcol = fix_column(line)
+            elif fixcol is not None and not got:
+                got = table_claim(line, fixcol)
             if got:
                 out.append((got[0], skill, line.strip(), got[1]))
     return out
@@ -238,6 +276,13 @@ def selfcheck() -> int:
     assert claim_versions(
         "latest v3.3.11, CVE-2026-42880 patched in v3.3.9 / v3.2.11"
     ) == ("CVE-2026-42880", ["3.3.9", "3.2.11"])
+
+    # Floor tables state the fix in a column, with no fix verb on the row.
+    hdr = "| Advisory | Severity | Affected | Fixed in | What |"
+    assert fix_column(hdr) == 3 and fix_column("| CVE | Affected | What |") is None
+    row = "| GHSA-7hp6-4w63-5g45 | critical | `< 1.100.4` | **1.100.4** / 1.101.3 | escalation |"
+    assert table_claim(row, 3) == ("GHSA-7hp6-4w63-5g45", ["1.100.4", "1.101.3"])
+    assert table_claim("| (no CVE id) | high | `< 1.83.0` | 1.83.0 | x |", 3) is None
 
     # THE NEGATIVE ASSERTION. Every filter above can silence a true defect as
     # easily as a false one, and a tool tuned until it reports nothing looks
