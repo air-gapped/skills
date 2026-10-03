@@ -12,6 +12,12 @@ measurement nobody can run.
 
 - **Relocate framework-contract + reasoning-pairing tables out of SKILL.md** (Dim 2 Progressive Disclosure) — `SKILL.md` "Framework contract (mental model)" (~lines 89-106) and "Reasoning-parser pairing" (~lines 108-123). Both are reference content already cross-linked from the diagnostic playbook. Moving them to a reference file would trim the 222-line body toward the <150 lean band, but the diagnostic playbook's steps reference the four state fields and the reasoning pairing inline, so a pure relocation risks dangling those pointers — needs a coordinated multi-file edit (extract + repoint + add reference bullet) that exceeds one atomic iteration. Deferred: Dim 2 already at 9 and SKILL.md is comfortably under the 500-line limit, so this is low-ROI relative to its breakage risk.
 
+## Resolved this pass (2026-10-03, fix)
+
+Weak cases from the 2026-10-03 outcome run: 03, 06, 07 (01 fixed earlier the same day). Re-run of those three, Sonnet, 3 runs: 03 0.67 -> 0.87, 06 0.53 -> 0.80, 07 0.44 -> 0.89 (without: 0.27 / 0.60 / 0.39), $4.84, week +0%.
+- Skill text: parser and template are a pair (06); what a missing `--chat-template` path does at startup (03); the old placeholder hid failed parses (07); ship parser changes as a plugin or image, never a pod hot-patch (07).
+- Checks changed (part of the 03 and 06 gains is the check, not the answer): 06 a3 "pythonic family forces the finish state via a planted placeholder" -> "a malformed literal drops every call to plain content" (pythonic_tool_parser.py ast.parse + except -> content); 03 a4 dropped "svc-e lacks a reasoning-parser pairing" (deepseek_v32.py: no <think> tags, wait_for_reasoning=False). 07 had no check change.
+
 ## Resolved this pass (2026-10-03, improve)
 
 Blind 76 → 81; comparators 3/3 IMPROVED (decisive); cap reached (10 iterations, 1 discard); outcome (Sonnet, 8 cases × 3 runs) without 0.403 / baseline 0.701 / final 0.656, $17.55 — the −0.045 is inside noise; the final-arm losses on cases 02 and 07 are assertions that encoded the pre-v0.23.0 flush contract, re-aligned in evals.json this commit and not yet re-measured.

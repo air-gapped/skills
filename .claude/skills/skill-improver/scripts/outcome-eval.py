@@ -32,6 +32,7 @@ Dim 10 gate.
 """
 
 import argparse
+import fnmatch
 import json
 import shutil
 import statistics as st
@@ -100,8 +101,6 @@ def run(plugin: Path, out: Path, a, ablation: str) -> dict:
         "--json",
         str(out),
     ]
-    if a.case:
-        cmd += ["--case", a.case]
     print("running:", " ".join(cmd), flush=True)
     subprocess.run(cmd, check=False)
     return json.loads(out.read_text())
@@ -264,7 +263,7 @@ def summarize(cols: dict) -> tuple[str, dict]:
         means[lab] = st.mean(sc) if sc else None
         lines.append(
             f"{lab}: pass {means[lab] if means[lab] is None else round(means[lab], 3)}  "
-            f"runs {len(sc)}/{len(runs)} scored  cost/run ${st.mean(c for _, c, _ in runs):.3f}  "
+            f"runs {len(sc)}/{len(runs)} scored  cost/run ${st.mean(c for _, c, _ in runs) if runs else 0:.3f}  "
             f"skill fired {sum(f for _, _, f in runs)}/{len(runs)}"
         )
     return "\n".join(lines), means
@@ -409,7 +408,7 @@ def main() -> int:
     ap.add_argument("skill", nargs="?", type=Path)
     ap.add_argument("--against")
     ap.add_argument("--runs", type=int, default=3)
-    ap.add_argument("--case")
+    ap.add_argument("--case", help="comma-separated globs over NN-name, e.g. 03-*,06-*")
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--judge-model", default="sonnet")
     ap.add_argument("--max-cost-usd", type=float, default=20)
@@ -425,6 +424,17 @@ def main() -> int:
     skill = a.skill.resolve()
     name = skill.name
     evals = json.loads((skill / "evals" / "evals.json").read_text())["evals"]
+    if a.case:
+        # Selected here, not by plugin eval: its --case glob has no [..] classes
+        # and silently runs zero cases when nothing matches.
+        pats = [p.strip() for p in a.case.split(",") if p.strip()]
+        evals = [
+            e
+            for e in evals
+            if any(fnmatch.fnmatch(f"{e['id']:02d}-{e['name']}", p) for p in pats)
+        ]
+        if not evals:
+            ap.error(f"--case {a.case!r} matches no case in evals.json")
     work = Path(tempfile.mkdtemp(prefix=f"outcome-eval-{name}-results."))
     main_res = run(
         build_plugin(skill, evals, name, a.natural),

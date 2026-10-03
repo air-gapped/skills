@@ -77,8 +77,10 @@ eval cases.
    noise (the answer was right).
 3. One cause per commit. Verify every fact against the primary source; put a
    known failure and its fix where the agent reads it; correct an assertion
-   only with source evidence.
-4. Re-run just those cases: `--case '<NN>-*'`. Keep a fix when the case rises
+   only with source evidence, in its own commit that cites the source. The
+   report lists every changed assertion, before and after — a score that rose
+   because a check got easier is not a better answer.
+4. Re-run just those cases: `--case '03-*,06-*'` (comma-separated globs). Keep a fix when the case rises
    and stays above the without arm; revert otherwise.
 5. Done = every weak case fixed, shown to be noise, or recorded in the backlog
    with its blocker; committed. The step-1 run is the benchmark
