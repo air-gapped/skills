@@ -5,12 +5,28 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Re-measure outcome on the corrected eval set** (Dim 10) — `evals/evals.json` cases 1, 2, 7 were re-aligned to the v0.30.0 flush
+  contract after the 2026-10-03 outcome run, so `evals/benchmark.plugin-eval.json` (+0.253 over without) was graded against the old
+  assertions. Blocked on: spend — that pass's budget was exhausted by the run itself. Action: `outcome-eval.py <skill> --write-benchmark`
+  (~$11 for current + without at Sonnet, 3 runs).
 
 ## Decided — do not re-propose
 
 - **Relocate framework-contract + reasoning-pairing tables out of SKILL.md** (Dim 2 Progressive Disclosure) — `SKILL.md` "Framework contract (mental model)" (~lines 89-106) and "Reasoning-parser pairing" (~lines 108-123). Both are reference content already cross-linked from the diagnostic playbook. Moving them to a reference file would trim the 222-line body toward the <150 lean band, but the diagnostic playbook's steps reference the four state fields and the reasoning pairing inline, so a pure relocation risks dangling those pointers — needs a coordinated multi-file edit (extract + repoint + add reference bullet) that exceeds one atomic iteration. Deferred: Dim 2 already at 9 and SKILL.md is comfortably under the 500-line limit, so this is low-ROI relative to its breakage risk.
+
+## Resolved this pass (2026-10-03, improve)
+
+Blind 76 → 81; comparators 3/3 IMPROVED (decisive); cap reached (10 iterations, 1 discard); outcome (Sonnet, 8 cases × 3 runs) without 0.403 / baseline 0.701 / final 0.656, $17.55 — the −0.045 is inside noise; the final-arm losses on cases 02 and 07 are assertions that encoded the pre-v0.23.0 flush contract, re-aligned in evals.json this commit and not yet re-measured.
+- Discard: front-loaded "Common wrong assumptions" table (qwen3 class, flush location, old package path) at the top of SKILL.md. Two of its three rows restated Where-things-live and Framework-contract text (Dim 6 down) and Dim 10 sits at its unmeasured cap, so nothing could register. The one new fact (old `vllm/entrypoints/openai/tool_parsers/` removed at v0.14.0) went into the existing table row instead.
+- Kept: flush contract rewritten to v0.23.0+ (`get_remaining_unstreamed_args`, `tools_streamed` decides `finish_reason`).
+- Kept: three dead entry-point paths repointed to `vllm/entrypoints/launchers/` and `responses/utils.py`.
+- Kept: plugin skeleton imports fixed (`vllm.entrypoints.openai.protocol` does not exist).
+- Kept: engine-path grep is `ParserToolAdapter` (catches `ling3`); `Ling3ToolParser` class name.
+- Kept: family table covers all 51 names; apertus/hunyuan_a13b/gemma3_pythonic templates.
+- Kept: version-hop history out of SKILL.md, `(vX+)` markers instead.
+- Kept: registry grep prints CLI names only; raw-output recipe sends `skip_special_tokens: false`.
+- Kept (post-loop): parser-index rows for the six newest parsers; stale `Skill version` line in sources.md.
+- Kept (post-outcome): qwen3 family row keeps its v0.25.1 gate (iteration 6 had cut it; older deployments act on it); evals 1, 2, 7 re-aligned to the v0.30.0 flush contract and #30439's NOT_PLANNED close.
 
 ## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
 
