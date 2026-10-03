@@ -106,6 +106,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
 | `qwen3_coder` / `qwen3_xml` / `mimo` | Qwen3-Coder-480B/30B, Qwen3-XML family | `tool_chat_template_qwen3coder.jinja` — **all three names are one class** at v0.25.1 (`Qwen3EngineToolParser`); the separate coder/xml files were deleted |
 | `deepseek_v3` / `deepseek_v31` / `deepseek_v32` / `deepseek_v4` | DeepSeek-V3/R1, V3.1, V3.2, V4 | `tool_chat_template_deepseekv3.jinja`, `_deepseekv31.jinja`, `_deepseekr1.jinja` |
+| `deepseek_v41` | DeepSeek-V4.1-Flash (DSML, unified engine) | (HF default) |
 | `cohere_command3` / `cohere_command4` | Command-A, Command-R7B (3); Command-A-Reasoning/Vision (4) | `<\|START_ACTION\|>` grammar (HF default) |
 | `apertus` | Apertus | (HF default) |
 | `lfm2` | LFM2 | (HF default) |
@@ -113,6 +114,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `poolside_v1` | Poolside (GLM-4-style grammar) | (HF default) |
 | `hy_v3` | Hunyuan V3 (newer than `hunyuan_a13b`) | (HF default) |
 | `glm45` / `glm47` | GLM-4.5/4.6, GLM-4.7 | `tool_chat_template_glm4.jinja` |
+| `ling3` | Ling 3.0 Flash (GLM-4.7 grammar: `Ling3Parser` subclasses `Glm47MoeParser`) | (HF default) |
 | `granite` / `granite-20b-fc` / `granite4` | Granite-3.0/3.1, Granite-20B-FC, Granite-4.0 | `tool_chat_template_granite.jinja`, `_granite_20b_fc.jinja` |
 | `phi4_mini_json` | Phi-4-mini | `tool_chat_template_phi4_mini.jinja` |
 | `jamba` | Jamba-1.5 | (HF default, sentinel must be in vocab) |
@@ -123,6 +125,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash | (HF default) |
 | `dots` | Dots — **new at v0.29.0** (`DotsToolParser`); XML `<dots_function_call>` blocks | (HF default — no bundled `examples/` template at v0.29.0) |
+| `k2_horizon` | K2 Horizon — `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers, JSON or XML (`<ifm\|arg_key>`) bodies; `supports_required_and_named = False` | (HF default) |
 | `hy_v4` | Hunyuan V4 / Hy4-preview — **new at v0.29.0** (`HYV4ToolParser`); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
 | `muse_glimmer` | Muse Glimmer — **new at v0.29.0** (`MuseGlimmerToolParser`); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
 | `seed_oss` | Seed-OSS | (HF default) |
