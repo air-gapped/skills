@@ -1,59 +1,112 @@
 {
   "skill": "vllm-tool-parsers",
-  "extracted": "2026-08-19",
+  "extracted": "2026-10-03",
   "extractor_model": "session-default",
-  "skill_md_sha": "fc915509165f",
-  "extraction_cost_usd": 0.1558,
+  "extractor_model_resolved": [
+    "claude-opus-5-5"
+  ],
+  "skill_md_sha": "0678517735d5",
+  "extraction_cost_usd": 0.2651,
   "claims": [
     {
       "id": 0,
-      "question": "In vLLM, what happens if you pass --enable-auto-tool-choice without --tool-call-parser?",
-      "skill_answer": "TypeError: --enable-auto-tool-choice requires --tool-call-parser"
+      "question": "Which vLLM CLI flag must accompany --enable-auto-tool-choice, or startup raises a TypeError?",
+      "skill_answer": "--tool-call-parser"
     },
     {
       "id": 1,
-      "question": "Which vLLM release moved the mistral tool parser onto the unified parser engine path?",
-      "skill_answer": "v0.27.0, via PR #48947"
+      "question": "Does vLLM's --tool-call-parser accept an 'auto' value?",
+      "skill_answer": "No; you must name a concrete parser."
     },
     {
       "id": 2,
-      "question": "In vLLM, which state field being empty at stream end causes finish_reason to be 'stop' instead of 'tool_calls'?",
-      "skill_answer": "prev_tool_call_arr"
+      "question": "In vLLM, which file holds the _TOOL_PARSERS_TO_REGISTER mapping from CLI name to parser class?",
+      "skill_answer": "vllm/tool_parsers/__init__.py"
     },
     {
       "id": 3,
-      "question": "Which vLLM --tool-call-parser names all resolve to the single Qwen3EngineToolParser class as of v0.25.1?",
-      "skill_answer": "qwen3_coder, qwen3_xml, and mimo"
+      "question": "How many tool-call-parser names are registered in vLLM v0.30.0?",
+      "skill_answer": "51 (49 at v0.29.0, 45 at v0.27.0)"
     },
     {
       "id": 4,
-      "question": "Is there an 'auto' value accepted for vLLM's --tool-call-parser flag?",
-      "skill_answer": "No; a concrete parser name must be given"
+      "question": "Which class implements vLLM's qwen3_coder, qwen3_xml and mimo tool parsers?",
+      "skill_answer": "Qwen3EngineToolParser, with logic in vllm/parser/qwen3.py"
     },
     {
       "id": 5,
-      "question": "What happened to the bare `minimax` tool-call parser name in vLLM v0.25.1?",
-      "skill_answer": "It was removed; only minimax_m2/minimax_m3 resolve"
+      "question": "In which vLLM version did the mistral tool parser move onto the unified parser engine (vllm/parser/mistral.py)?",
+      "skill_answer": "v0.27.0 (PR #48947)"
     },
     {
       "id": 6,
-      "question": "What is the initial value of current_tool_id in a vLLM tool parser?",
-      "skill_answer": "-1, incrementing per tool call"
+      "question": "In which vLLM version was the deepseek_v41 tool parser added?",
+      "skill_answer": "v0.30.0"
     },
     {
       "id": 7,
-      "question": "Which vLLM parsers are new at v0.27.0 for Kimi-K3 and Inkling models?",
-      "skill_answer": "kimi_k3 and inkling"
+      "question": "What must the installed xgrammar expose for vLLM's deepseek_v41 parser to grammar-constrain strict tool parameter schemas?",
+      "skill_answer": "builtin_structural_tag.get_deepseek_v4_1_structural_tag"
     },
     {
       "id": 8,
-      "question": "How did gpt-oss/Harmony response_format handling change in vLLM v0.27.0 (PR #45560)?",
-      "skill_answer": "json_object/json_schema rewritten into Harmony-aware structural_tag governing the whole generation"
+      "question": "From which vLLM version can --tool-parser-plugin take a dotted, importable module name instead of a file path?",
+      "skill_answer": "v0.30.0 (PR #45241)"
     },
     {
       "id": 9,
-      "question": "Which five vLLM parsers plant `prev_tool_call_arr = [{\"arguments\": {}}]` as of v0.27.0?",
+      "question": "Which pip package must you install for vLLM's cohere_command3/cohere_command4 tool parsers, which otherwise raise ImportError?",
+      "skill_answer": "cohere-melody (CI pins 0.14.0)"
+    },
+    {
+      "id": 10,
+      "question": "Does `--tool-call-parser minimax` still resolve in vLLM v0.25.1 and later?",
+      "skill_answer": "No, the bare minimax name was removed at v0.25.1."
+    },
+    {
+      "id": 11,
+      "question": "In which vLLM version were the dots, hy_v4 and muse_glimmer tool parsers added?",
+      "skill_answer": "v0.29.0"
+    },
+    {
+      "id": 12,
+      "question": "In which vLLM version were the kimi_k3 and inkling tool parsers added?",
+      "skill_answer": "v0.27.0"
+    },
+    {
+      "id": 13,
+      "question": "Since vLLM v0.27.0, how does gpt-oss/Harmony handle json_schema response_format?",
+      "skill_answer": "Rewrites it into a Harmony-aware structural_tag that constrains the whole generation (PR #45560)."
+    },
+    {
+      "id": 14,
+      "question": "In vLLM streaming tool calls, what does finish_reason become if prev_tool_call_arr is empty when the stream ends?",
+      "skill_answer": "stop instead of tool_calls"
+    },
+    {
+      "id": 15,
+      "question": "What initial value does current_tool_id have in a vLLM ToolParser?",
+      "skill_answer": "-1"
+    },
+    {
+      "id": 16,
+      "question": "As of vLLM v0.27.0, which parsers set prev_tool_call_arr = [{\"arguments\": {}}] to force finish_reason=tool_calls?",
       "skill_answer": "pythonic, llama4_pythonic, olmo3, lfm2, minicpm5xml"
+    },
+    {
+      "id": 17,
+      "question": "Which Unicode codepoint is the full-width pipe used in DeepSeek tool-call sentinels?",
+      "skill_answer": "U+FF5C"
+    },
+    {
+      "id": 18,
+      "question": "Which vLLM reasoning parser should be paired with the seed_oss tool parser, and which end tag does it gate on?",
+      "skill_answer": "seed_oss; gates on </seed:think>"
+    },
+    {
+      "id": 19,
+      "question": "Which vLLM GitHub RFC tracks the tool-parser parse_delta refactor?",
+      "skill_answer": "RFC #11522, \"Refactor tool parsers to eliminate coding errors\""
     }
   ]
 }
