@@ -95,7 +95,7 @@ Full detail in `references/budgets-spend.md`. The load-bearing rules:
 - **Boundary inconsistency**: team check uses `>`, key/org use `>=` (`_team_max_budget_check`, #28020 closed unfixed) — budgets admit at exact limit for some entity types (#33321).
 - **Resets historically skip entity types**: org budgets never reset (#25495, stale-closed unfixed), tag budgets (#27481 closed unfixed), auto-created end-users (#25386 open; #24675 closed unfixed). `soft_budget` only alerts, never blocks; on `/team/new` it must be strictly < `max_budget` or 400.
 - **Never send `max_budget_in_team: null` on `/team/member_update`** — it leaves a null budget row that 401s every subsequent request from the whole team's members (#29066/#30437 closed unfixed). Member-budget edits are clone-on-write from the team default; per-member budget rows auto-disconnect when no meaningful limit remains.
-- **Spend numbers are eventually consistent in both directions**: enforcement can 429 on stale-high spend while `/key/info` shows under-budget (#27735), or admit despite over-budget (#26672). Spend-log writes are silently lost on DB failure/shutdown/GC races (#33873/#34820/#34805/#31059). Rate limits and budgets across scopes are **AND-composition** — every applicable scope (key, team, member, user, org, customer, tag, model-within-key) enforces independently; effective limit = the minimum; a 429/BudgetExceeded doesn't say which scope tripped.
+- **Spend numbers are eventually consistent in both directions**: enforcement can 429 on stale-high spend while `/key/info` shows under-budget (#27735), or admit despite over-budget (#26672). Spend-log writes are silently lost on shutdown/GC races (#34805 open, #31059 closed unfixed); DB-write-failure and cancelled-flush loss are fixed in v1.101.0 / v1.98.0 (#33873/#34820). Rate limits and budgets across scopes are **AND-composition** — every applicable scope (key, team, member, user, org, customer, tag, model-within-key) enforces independently; effective limit = the minimum; a 429/BudgetExceeded doesn't say which scope tripped.
 
 ## Update calls: minimal-diff PATCH bodies only
 
@@ -133,7 +133,7 @@ With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_sett
 
 ## Gotchas that cost hours
 
-- `/v1/models` **is not an access-policy oracle**: it never resolves `access_group_ids` (#31966 cluster), ignores user-level restrictions (#26420), and can show the literal string `no-default-models` as a model. Don't verify access policy by listing models; verify with a live completion attempt.
+- `/v1/models` **is not an access-policy oracle**: it does not reliably resolve `access_group_ids` (#31438 open; the #31966 case fixed in v1.97.0), ignores user-level restrictions (#26420), and can show the literal string `no-default-models` as a model. Don't verify access policy by listing models; verify with a live completion attempt.
 - Key identifiers differ per endpoint: `/key/info?key=` takes plaintext or hash (omitted = the caller's own key); `/key/delete` takes `keys` or `key_aliases` (never both); regenerate/reset_spend take the key **in the path**; `/key/list` filter `key_hash=` is hash-only, and its `size` caps at 100.
 - `/user/new` **auto-creates and returns a live key** unless `auto_create_key: false`; a keyless request with a `models`-bearing user record makes later empty-`models` keys inherit the user's list.
 - The three master-key-only routes (`/global/spend/reset`, 2 memory-usage routes) reject even proxy-admin virtual keys with a confusing error.

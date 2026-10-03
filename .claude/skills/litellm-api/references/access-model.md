@@ -60,7 +60,7 @@ its team, or when the org's `max_budget` is unset or `<= 0`.
 | `all-team-models` | inherit the team's list — **with no `team_id` it resolves to `[]` = unrestricted** (`auth_checks.py:3045-3060`) |
 | `no-default-models` | hard deny; applies to the **user list only** (`auth_checks.py:3366`) |
 
-`no-default-models` sharp edges: teams configured with `models: ["no-default-models"]` produce a `/v1/models` response containing the literal string `no-default-models` as a model entry (#31438/#34998 open family), and access-group names placed in `models` brick the key rather than resolving.
+`no-default-models` sharp edges: teams configured with `models: ["no-default-models"]` produce a `/v1/models` response containing the literal string `no-default-models` as a model entry (#31438 open; #34998 `/v2/model/info` variant fixed v1.98.0), and access-group names placed in `models` brick the key rather than resolving.
 
 ## Access groups are additive grants, NOT allow-lists (open #34296)
 
@@ -68,7 +68,7 @@ A key with `access_group_ids: [g1]` and `models: []` can call **everything** —
 
 ## `/v1/models` is not an access oracle
 
-- Never resolves `access_group_ids` — grouped models don't appear for the key that can use them (#31966/#31438/#34998/#25222/#21102 cluster).
+- Does not reliably resolve `access_group_ids` — grouped models don't appear for the key that can use them (#31438 open; #31966 fixed v1.97.0; #25222/#21102 closed unfixed).
 - Ignores user-level `models` restriction entirely (#26420 closed unfixed).
 - Leaks access-group names as model entries (#25550 closed unfixed).
 - `/team/info` leaks internal `model_name_{team_id}_{uuid}` routing keys, and `/team/update` round-trips them into persistent `team.models` corruption (#30798 closed unfixed).

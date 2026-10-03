@@ -49,7 +49,7 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 
 ## Pass-through endpoints
 
-#30932 (model=unknown in SpendLogs), #33210 (vLLM passthrough logs nothing), #30667 (mid-stream failures log no cost), #30725 (zeroed cost_breakdown), #29921 (no RPM/concurrency limits on custom pass-throughs), #26081 (registry grows unbounded → 100% CPU), #24500 (subpath + no-auth still 401s).
+#30932 (model=unknown in SpendLogs), #33210 (vLLM passthrough logs nothing), #30667 (mid-stream failures log no cost — fixed v1.101.0), #30725 (zeroed cost_breakdown), #29921 (no RPM/concurrency limits on custom pass-throughs), #26081 (registry grows unbounded → 100% CPU), #24500 (subpath + no-auth still 401s).
 
 ## Cross-reference index (issues detailed in sibling files)
 
