@@ -29,7 +29,7 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 | Issue | State | Impact |
 |---|---|---|
 | #25951 | OPEN since April | `/team/member_add` read-modify-write race silently loses members under concurrency — serialize calls |
-| #34217 | OPEN (community fix PR #34218 pending) | `/team/delete` leaves the team's keys **auth-valid in cache** until TTL (+ cache-key mismatch `team_id` vs `team_id:{id}` in invalidation) |
+| #34217 | OPEN (community fix PR #34218 closed unmerged — no fix in flight) | `/team/delete` leaves the team's keys **auth-valid in cache** until TTL (+ cache-key mismatch `team_id` vs `team_id:{id}` in invalidation) |
 | #30798 | OPEN | `/team/info` leaks internal `model_name_{team_id}_{uuid}` keys; `/team/update` round-trips them → persistent `team.models` corruption |
 | #31447 | OPEN | setting `team_member_budget` replaces the team's entire `metadata` object |
 | #27294 / #30843 | OPEN | org_admin 401 on `/team/update`; org admin can't add internal user |
