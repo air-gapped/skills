@@ -93,31 +93,33 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 ## The per-model matrix
 
-`references/parser-matrix.md` — one row per registered name (**34** at v0.30.0; the 29 below are the v0.27.0 set, joined by `hy_v4`, `ling3` and `muse_glimmer` at v0.29.0 and by `deepseek_v41` and `k2_horizon` at v0.30.0: `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `poolside_v1`, `cohere_command3`, `cohere_command4`, `ernie45`, `gemma4`, `glm45`, `glm47`, `openai_gptoss`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `inkling`, `kimi_k2`, `kimi_k3`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `nemotron_v3`, `olmo3`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
+`references/parser-matrix.md` — one row per registered name (**34** at v0.30.0: `cohere_command3`, `cohere_command4`, `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `deepseek_v41`, `ernie45`, `gemma4`, `glm45`, `glm47`, `granite`, `holo2`, `hunyuan_a13b`, `hy_v3`, `hy_v4`, `inkling`, `k2_horizon`, `kimi_k2`, `kimi_k3`, `ling3`, `mimo`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `muse_glimmer`, `nemotron_v3`, `olmo3`, `openai_gptoss`, `poolside_v1`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
 Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. The non-obvious cases worth knowing before reading it: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` runs without `MistralTokenizer` but needs `--tokenizer-mode mistral` for grammar-enforced `tool_choice` (pitfall 11), `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
 ## Writing a custom parser
 
-`references/writing-custom-parser.md` for the step-by-step. **This
-`ReasoningParser` subclass shape remains the supported path for out-of-tree
-parsers** — it is what `--reasoning-parser-plugin` loads, and it is still the majority
-shape — 17 of the 29 names at v0.27.0, and every name added since except
-`ling3` and `deepseek_v41`. From v0.30.0 a plugin can also be discovered from
-site-packages entry points ([#45241](https://github.com/vllm-project/vllm/pull/45241)).
+`references/writing-custom-parser.md` for the step-by-step. **A `ReasoningParser`
+subclass is the only shape an out-of-tree parser can take** — it is what
+`--reasoning-parser-plugin` loads (from v0.30.0 a plugin can also be discovered
+from site-packages entry points,
+[#45241](https://github.com/vllm-project/vllm/pull/45241)). 18 of the 34 names
+use it.
 
-Be aware there is now a **second, in-tree-only shape**: `vllm/parser/<model>.py`
-defines one parser class per model, and
-`make_adapters(XParser)` in `vllm/parser/engine/registered_adapters.py` derives
-*both* `XParserReasoningAdapter` and `XParserToolAdapter` from it — the unified
-reasoning+tool design of RFC
-[#32713](https://github.com/vllm-project/vllm/issues/32713) — bot-closed
-NOT_PLANNED 2026-07-24 for inactivity while the code kept shipping, so read it
-as a stale close, not a rejection. **12 of the 29 names are on it at v0.27.0**
-(`ling3` joined at v0.29.0 and `deepseek_v41` at v0.30.0, spread over 11 files): `deepseek_v4`, `gemma4`, `glm45`, `glm47`,
-`inkling`, `kimi_k2`, `mimo`, `minimax_m2`, `mistral`, `nemotron_v3`, `qwen3`,
-`seed_oss`. If you open one of those as a worked example you will find a
-three-line re-export and the logic elsewhere.
+The other two shapes are in-tree only (name lists: the matrix path table):
+
+- **Adapter** (14 names): `vllm/parser/<model>.py` defines one class per model,
+  and `make_adapters(XParser)` in `vllm/parser/engine/registered_adapters.py`
+  derives *both* `XParserReasoningAdapter` and `XParserToolAdapter` — the
+  unified reasoning+tool design of RFC
+  [#32713](https://github.com/vllm-project/vllm/issues/32713) (bot-closed for
+  inactivity while the code shipped; read the tree, not the tracker).
+- **Cohere-unified** (`cohere_command3`, `cohere_command4`, v0.30.0): the
+  `vllm/reasoning/` classes only expose `is_reasoning_end`; parsing runs in
+  `vllm/parser/cohere_command.py`.
+
+Opening one of these as a worked example finds a re-export or stub, with the
+logic elsewhere.
 
 **Do not infer membership from the filename.** Only some are named
 `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
