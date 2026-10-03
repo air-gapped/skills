@@ -15,6 +15,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 | CRC64NVME | https://tracker.ceph.com/issues/70040 | 2026-09-23 | Fixed via ceph/ceph#61878 in Tentacle 20.2.0. |
 | CRC64NVME Squid backport | https://tracker.ceph.com/issues/70736 | 2026-09-23 | Status New — not shipped. |
 | bypass-gc corruption | https://tracker.ceph.com/issues/73348 | 2026-09-23 | Server-side copy + `--bypass-gc`; affected 17.2.6, 17.2.8, 19.2.2 per tracker. |
+| Multisite sync status | https://github.com/ceph/ceph/blob/v20.2.4/doc/radosgw/multisite.rst | 2026-10-03 | §Checking the Sync Status (behind vs recovery shards); §Changing the Metadata Master Zone (wait for metadata sync before promoting, else changes lost); `sync error list` in `doc/man/8/radosgw-admin.rst`. |
 | Dynamic resharding doc | https://docs.ceph.com/en/squid/radosgw/dynamicresharding/ | 2026-09-23 | "Cleanup of stale instances should not be done in a multisite deployment." |
 | Resharding without pausing | https://ceph.io/en/news/blog/2026/rgw-improved-resharding/ | 2026-09-23 | Tentacle two-phase reshard. |
 | Tentacle release notes | https://docs.ceph.com/en/latest/releases/tentacle/ | 2026-09-23 | LastModified truncation; GetObjectAttributes; tenant IAM and STS Lite deprecated; ISA-L default. |

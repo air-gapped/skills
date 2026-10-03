@@ -32,7 +32,7 @@ Rook docs at v1.20.7 and master; tracker and ceph-users as cited. Verified
 
 Focus argument → section: `security` → §19.2.6 / 20.2.4 fixes;
 `compat` → §AWS SDK checksums and §Tentacle S3 behaviour changes;
-`sharding` → §Bucket index and resharding; `multisite` → SigV4 item 2 and
+`sharding` → §Bucket index and resharding; `multisite` → SigV4 item 2, §Multisite sync status and
 the Multisite row of §Rook object CRDs; `rook` → §Rook object CRDs. No
 argument: match the symptom to a section heading.
 
@@ -92,6 +92,17 @@ pin the SDK/tool to a version before the change.
   at creation.
 - Multisite: never run `radosgw-admin reshard stale-instances rm` — the
   docs forbid stale-instance cleanup in multisite deployments.
+
+## Multisite sync status
+
+- `radosgw-admin sync status` on the non-master zone. "behind on N shards"
+  still needs sync; "recovery" shards hit an error and are retried (usually
+  transient lock contention). Persisting errors: `radosgw-admin sync error
+  list`.
+- 403 on forwarded requests (bucket create from a secondary) is the SigV4
+  fallout above, not a sync fault.
+- Never promote a zone to metadata master while its `sync status` shows
+  metadata behind: the unsynced metadata changes are lost.
 
 ## Lifecycle and GC
 
