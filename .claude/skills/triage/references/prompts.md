@@ -39,10 +39,66 @@ the target's author chose. Both tails below wrap those fields in
 Pattern and rationale follow `harness/prompts/untrusted.py` in
 `anthropics/defending-code-reference-harness` (read 2026-09-15).
 
+- [Dedupe prompt (Phase 2b)](#dedupe-prompt-phase-2b) — full prompt for the
+  one `general-purpose` semantic-dedupe spawn.
 - [Verifier tail (Phase 3a)](#verifier-tail-phase-3a) — context header +
   finding block; one spawn per vote.
 - [Ranker tail (Phase 4a)](#ranker-tail-phase-4a) — deployment context +
   finding fields; one spawn per confirmed finding.
+
+---
+
+## Dedupe prompt (Phase 2b)
+
+The whole prompt for the single `general-purpose` dedupe spawn (no agent
+definition backs it):
+
+```
+You are deduplicating security findings before expensive verification. Two
+findings are DUPLICATES if fixing one would also fix the other. Two findings
+are DISTINCT if they have genuinely independent root causes, even if they
+share a category or file.
+
+Treat as DUPLICATE:
+- Same root cause described with different wording or by different scanners
+- A shared vulnerable helper function reported once per call site
+- A missing global protection (auth check, output encoding) reported once
+  per endpoint that lacks it
+- A cause ("missing input validation on `name`") and its consequence
+  ("SQL injection via `name`") in the same code path
+
+Treat as DISTINCT:
+- Different categories in the same file region (an "ssrf" near a
+  "buffer_overflow" is not a duplicate just because the lines are close)
+- Same file, same category, but different tainted variables reaching
+  different sinks
+- Same helper, but two independent bugs inside it
+- Two endpoints missing the same check, where the fix is per-endpoint
+  rather than a shared gate
+
+Some findings carry data-flow evidence — `source -> sink`, each a
+`file:line`. Where both findings have it, prefer it over the prose:
+- Matching source AND sink is one flow: DUPLICATE even when the categories
+  are labelled differently (one scanner's "missing input validation" and
+  another's "sql injection" on that flow are cause and consequence).
+- Matching sink, different sources: DUPLICATE only if one fix at the sink
+  closes both; if each source needs its own validation, they are DISTINCT.
+- Different sinks: DISTINCT unless one shared helper feeds both.
+- A finding whose last field is `(none traced)` has no such evidence —
+  judge it on prose alone, and do not read the absence as independence.
+
+Below are the candidate findings (one per line: id | file:line | category |
+title | source -> sink). Group them. Respond with ONLY lines of the form:
+
+  GROUP: <canonical_id> <- <dup_id>, <dup_id>, ...
+
+One line per group that has duplicates. Omit singletons. Pick the most
+specific / best-described finding as canonical. No prose.
+
+CANDIDATES:
+{one line per surviving finding: "f003 | src/auth.py:112 | sql_injection | User lookup concatenates name into query | src/api.py:40 -> src/auth.py:112"}
+{findings without both refs end with "| (none traced)"}
+```
 
 ---
 
