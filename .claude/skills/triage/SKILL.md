@@ -474,11 +474,6 @@ must start with a fresh, empty context and receive only the verifier
 instructions plus the single finding under review. The same applies to the
 ranking subagents in 4a.
 
-Each spawn's prompt is only the tail from **`references/prompts.md`
-§ Verifier tail (Phase 3a)**: the run-constant context header (REPO PATH,
-ENVIRONMENT, org rules) plus the per-finding "FINDING UNDER REVIEW" block
-and the vote number.
-
 **Put all verifier Agent calls in a single assistant message** so they run
 concurrently. Do not set `run_in_background`; you need the final text, not
 an async handle. If `len(candidates) * N` exceeds ~40, shard into
