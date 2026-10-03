@@ -200,6 +200,71 @@
           4
         ]
       }
+    },
+    {
+      "id": 8,
+      "name": "freshen-pass-plan",
+      "prompt": "Freshen our `pg-backup` skill. Its `references/sources.md` is:\n\n```markdown\n# Sources — pg-backup\n\nFreshened: 2026-04-02\n\n| Source | What it backs |\n|---|---|\n| https://www.postgresql.org/docs/current/app-pgdump.html | pg_dump flags, `--exclude-extension` |\n| https://www.postgresql.org/docs/release/ | latest PostgreSQL minor |\n| https://github.com/example/pgtools/issues/4610 | large-object dump bug, open |\n| https://blog.example.com/pg-backup-at-scale | parallel dump guidance |\n```\n\nYou have no tool access in this conversation, so describe exactly how you would run the pass from start to finish, and what you would write when it ends — including the case where the blog row cannot be reached.",
+      "expected_output": "A freshen-mode plan: every sources.md row verified against its live source, findings applied one verified change at a time with sources kept in sources.md, the single Freshened header stamp updated only on a complete pass or with an inline exception note for the unreachable row.",
+      "files": [],
+      "assertions": [
+        "Verifies every row of sources.md against its live source (online), not a sample and not from memory",
+        "Applies updates one verified finding at a time (or keeps each change small and attributable), each backed by the source that verified it",
+        "Treats the unreachable blog row honestly: either keeps the old Freshened date because the pass is partial, or writes the new date with an inline exception note on that row — it never silently marks the row as verified",
+        "Ends by updating the single `Freshened:` header date in sources.md, not by adding a per-row verification date to every row",
+        "Puts source URLs, issue numbers and check dates in sources.md (or the commit message), not into the skill's instruction text"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "blind-ab-setup",
+      "prompt": "I finished an improvement pass on our `helm` skill (git repo, the pass is 6 commits on main). I want independent judge agents to compare the old and the new version and tell me whether it got better. How do I set this up so the judges cannot tell which version is which?",
+      "expected_output": "A blinded A/B comparison: both versions extracted to plain directories, neutral labels by coin flip, timestamps equalised, giveaway files removed, judges spawned outside the repo, several judges with majority vote, REGRESSED outranking any score increase.",
+      "files": [],
+      "assertions": [
+        "Extracts both versions as plain directories with no git metadata (for example with git archive) and labels them neutrally, with the assignment randomised (coin flip)",
+        "Removes file modification times as a clue, for example by setting every file to the same timestamp",
+        "Removes files that reveal which version is newer or what changed, such as eval results, benchmark files or the improvement backlog",
+        "Starts the judges from outside the repository, or otherwise keeps recent commit messages out of their context",
+        "Uses more than one judge with a majority vote, and treats a REGRESSED verdict as overriding any score increase"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "failed-runs-are-not-zero",
+      "prompt": "Our trigger test ran 20 queries x 7 runs each. 9 of the 140 runs timed out, and the script counted every timeout as 'did not trigger'. The result: should-trigger rate 0.55, should-not-trigger rate 0.10. Can I compare this to last week's complete run, and what should I report?",
+      "expected_output": "Timeouts are missing measurements, not 'did not trigger': exclude them (NO SCORE), explain how counting them biases both rates, and treat the run as incomplete rather than comparing it to a complete one.",
+      "files": [],
+      "assertions": [
+        "Says the timed-out runs must not be counted as 'did not trigger' or as zero; they are missing data to exclude and report as such",
+        "Explains the bias: counting timeouts as no-trigger lowers the should-trigger rate and makes the should-not-trigger rate look better than it is",
+        "Does not compare the incomplete run to the complete one as is; recommends re-running the failed runs or reporting the run as incomplete"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "which-skills-are-stale",
+      "prompt": "Which of my skills are the most out of date, and which one should I freshen first? Don't change anything.",
+      "expected_output": "Ages mode: run the fleet staleness report and print its table, then name the stalest skill as the next freshen target; no probing, scoring or editing.",
+      "files": [],
+      "assertions": [
+        "Runs, or says it would run, a fleet-wide staleness report (a script that prints each skill's last verification date against its last content change) instead of reading the skills one by one",
+        "Names a single skill (or the stalest group) as the next freshen target",
+        "Does not start freshening, scoring or editing any skill"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "history-out-of-instructions",
+      "prompt": "Here is a skill I maintain:\n\n```markdown\n---\nname: pg-backup\ndescription: Back up and restore PostgreSQL with pg_dump/pg_restore.\n---\n\n# Postgres backups\n\nSince v16 (#4521, verified 2026-05-02) pg_dump supports --exclude-extension.\nAs of 2026-06 the open issue #4610 breaks dumps of large objects; check it before relying on -b.\nRun `pg_dump -Fc dbname > db.dump`; restore with `pg_restore -d dbname db.dump`.\n```\n\nRewrite it so the instruction text is right for the agent that uses it. Show the new SKILL.md and say where everything you removed goes.",
+      "expected_output": "The rule and the action stay in SKILL.md; the 'verified' date, 'as of' note and the issue number nobody acts on move to references/sources.md, with one pointer line; #4610 may stay only because the agent acts on its state.",
+      "files": [],
+      "assertions": [
+        "The rewritten SKILL.md no longer contains '#4521' or 'verified 2026-05-02'",
+        "The removed provenance (issue numbers, verified date, 'as of' note) is moved into references/sources.md (or an equivalent sources file in the skill), not simply deleted",
+        "The rewritten SKILL.md still tells the agent that pg_dump 16 or later supports --exclude-extension and still warns about the large-object problem before relying on -b",
+        "If '#4610' stays in SKILL.md, it is because the agent must act on that issue's state (for example 'check whether #4610 is closed before relying on -b'); otherwise it is moved too"
+      ]
     }
   ]
 }
