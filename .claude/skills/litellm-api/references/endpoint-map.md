@@ -36,7 +36,7 @@ Every `/global/spend/*` + `/global/activity/*`, every `/config/*`, every `/invit
 
 Additional spec distortions: `DOCS_FILTERED=True` + premium license reduces the whole spec to inference routes (`proxy_server.py:1357-1393`); lazy features get fake `GET <prefix>` placeholders unless a snapshot file exists (`_lazy_features.py:409-430`); `operationId`s are machine-rewritten and unstable across versions; Swagger UI can be off entirely (`NO_DOCS`).
 
-## Lazy loading (34 families)
+## Lazy loading (33 families)
 
 `litellm/proxy/_lazy_features.py` (`LAZY_FEATURES`, `:54-256`): guardrails, policies, policy_engine, vector_store_management (implemented **twice** — OSS + enterprise dirs), tools, search_tools, mcp_management, config_overrides, scim, cloudzero, vantage, prompts, jwt_mappings, compliance, access_groups, tag, …
 
