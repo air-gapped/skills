@@ -280,10 +280,10 @@ able to date either side, so do not hand it the live git working tree.
 
 ```bash
 AB=$(mktemp -d) && mkdir -p "$AB/x" "$AB/y"
-git archive <baseline-ref> -- <skill-path> | tar -x -C "$AB/x" --strip-components=<n>
-git archive HEAD           -- <skill-path> | tar -x -C "$AB/y" --strip-components=<n>
-# Delete what would un-blind rather than trusting the agent not to open it.
-rm -rf "$AB"/*/evals "$AB"/*/references/improvement-backlog.md
+# Never extract what would un-blind, rather than trusting the agent not to open it.
+X=(--exclude='*/evals' --exclude='*/references/improvement-backlog.md')
+git archive <baseline-ref> -- <skill-path> | tar -x -C "$AB/x" --strip-components=<n> "${X[@]}"
+git archive HEAD           -- <skill-path> | tar -x -C "$AB/y" --strip-components=<n> "${X[@]}"
 # git archive stamps every file with ITS OWN commit time, so the two sides
 # arrive with different mtimes. Equalise them or `stat` orders the pair.
 find "$AB" -exec touch -h -d '2000-01-01T00:00:00Z' {} +

@@ -34,7 +34,7 @@ read-only staleness readout, use Standalone Evaluation (Dim 9 reflects
 
 1. Read the target skill directory (SKILL.md + `references/`).
 2. Review the ref-extraction heuristics (§1) and probe templates (§2) below.
-3. Snapshot: `cp -a <skill-dir> /tmp/<skill-name>-freshen-baseline`.
+3. Snapshot: `SNAP=$(mktemp -d -t <skill-name>-freshen-baseline.XXXX) && cp -a <skill-dir>/. "$SNAP"`.
 4. Open a findings log: `id | ref | skill-says | current | classification | action`.
 
 ### Phase F1: Extract References

@@ -57,7 +57,7 @@ example are the sections that follow in this file.
 3. Read `<skill>/references/improvement-backlog.md` if present — open
    "trigger" findings carry forward.
 4. Review the mutation patterns and decision rules in the sections below.
-5. Snapshot the skill: `cp -a <skill-dir> /tmp/<skill-name>-trigger-baseline`.
+5. Snapshot the skill: `SNAP=$(mktemp -d -t <skill-name>-trigger-baseline.XXXX) && cp -a <skill-dir>/. "$SNAP"`.
 6. Initialize a results log: `iter | train | test | desc-chars | status | change`.
 
 ### Phase T1: Build (or load) the eval set
@@ -389,7 +389,7 @@ How it works (per query, repeated `runs_per_query` times):
 3. Scan the whole turn for a `Skill`/`Read` `tool_use` referencing the synthetic
    id — do NOT bail on the first other tool (Claude often plans first) or stop at
    `message_stop` (a tool-using turn spans messages). Hit = triggered.
-4. Remove the temp project dir.
+4. Leave the temp project dir; it lives under `mktemp -d`.
 5. `trigger_rate = triggers / runs`. Pass = `rate ≥ trigger_threshold` for
    should-trigger items, `rate < trigger_threshold` for should-not items.
    Threshold defaults to 0.5; runs default to 7.
@@ -735,7 +735,7 @@ User: "/skill-improver trigger vllm-caching — it didn't fire when I asked
 about prefix caching memory tuning"
 
 ### T0: setup
-Snapshot `vllm-caching` to `/tmp/vllm-caching-trigger-baseline`. Read its
+Snapshot `vllm-caching` to a fresh `mktemp -d` dir. Read its
 frontmatter: `description` mentions "tiered KV cache", "CPU offload", "LMCache",
 "NixlConnector". `when_to_use` lists "vllm kv cache", "kv offload", "prefix cache".
 

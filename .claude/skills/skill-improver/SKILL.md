@@ -162,6 +162,9 @@ When improving skills in a git-tracked directory:
 - Commit each kept improvement individually.
 - Use `git diff` to show what changed on discard before reverting.
 - The branch tip always represents the best-known version.
+- Never `rm`. Revert with git; put every temp dir or snapshot under a fresh
+  `mktemp -d` and leave it there. A fixed path that needs clearing first is
+  the bug — make the path unique instead.
 
 ### Prioritize Deletion Over Addition
 
