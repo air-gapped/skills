@@ -123,8 +123,11 @@ three-line re-export and the logic elsewhere.
 `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
 `minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
 `mistral_reasoning_parser.py` are ordinary names that are nonetheless shims. The
-test is the import:
-`grep -l "registered_adapters import" vllm/reasoning/*.py`.
+test is a reference to the `vllm.parser` package:
+`grep -l "vllm\.parser" vllm/reasoning/*.py`. Do NOT grep for
+`registered_adapters import` — `ling3` imports from `vllm.parser.ling3` and the
+cohere file only names `vllm.parser.cohere_command` in a docstring, so that
+pattern misses both.
 
 Copy a **legacy-path** parser when writing your own. Shape:
 

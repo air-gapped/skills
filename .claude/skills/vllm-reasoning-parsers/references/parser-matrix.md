@@ -29,11 +29,16 @@ a completion — even though the code has landed. Read the tree, not the tracker
 named `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
 `minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
 `mistral_reasoning_parser.py` are ordinary names that are nonetheless a few
-lines subclassing an adapter. The authoritative test:
+lines subclassing an adapter. The authoritative test — 13 files at v0.30.0
+(12 adapter files for 14 names, plus `cohere_command_reasoning_parser.py`):
 
 ```bash
-grep -l "registered_adapters import" vllm/reasoning/*.py
+grep -l "vllm\.parser" vllm/reasoning/*.py
 ```
+
+The older pattern `registered_adapters import` misses `ling3` (imports from
+`vllm.parser.ling3`) and the Cohere pair (behaviour in
+`vllm/parser/cohere_command.py`, named only in a docstring).
 
 An earlier revision of this file claimed `kimi_k2` and `minimax_m2` still had
 legacy *reasoning* implementations. **That was wrong** — both were already on
