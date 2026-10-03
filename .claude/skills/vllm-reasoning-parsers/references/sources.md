@@ -43,7 +43,7 @@ Upstream primary references for claims in this skill.
 
 - [#19222](https://github.com/vllm-project/vllm/issues/19222) — `deepseek_r1` wrong output with `enable_thinking=False`.
 - [#23429](https://github.com/vllm-project/vllm/issues/23429) — DeepSeek-V3.1 mis-routes `thinking: false`. State: CLOSED `COMPLETED` 2025-08-24 (a real fix). Last verified: 2026-07-21.
-- [#13125](https://github.com/vllm-project/vllm/issues/13125) — DeepSeek-R1-Distill-Qwen-32B missing start `<think>`.
+- [#13125](https://github.com/vllm-project/vllm/issues/13125) — DeepSeek-R1-Distill-Qwen-32B missing start `<think>`. CLOSED. At v0.7.2 `deepseek_r1_reasoning_parser.py::extract_reasoning_content` returns `(None, model_output)` when `<think>` is absent; v0.7.3 assumes reasoning starts at the output head and splits on `</think>` alone (`git show v0.7.2:` / `v0.7.3:vllm/entrypoints/openai/reasoning_parsers/deepseek_r1_reasoning_parser.py`). Last verified: 2026-10-03.
 - [HF discussion](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144) — chat template injects `<think>\n`, downstream `reasoning_content` null.
 - [Discussion #12708](https://github.com/vllm-project/vllm/discussions/12708) — nested `<think>` tags in DeepSeek-R1 output.
 - [#18819](https://github.com/vllm-project/vllm/issues/18819) — Qwen3 broken structured output with `enable_thinking=False`.
