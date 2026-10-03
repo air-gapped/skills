@@ -28,7 +28,7 @@ when_to_use: >-
   or mentions autonomous skill improvement,
   skill quality scoring, skill optimization loops, stale skill content,
   or skill activation problems.
-argument-hint: '[improve|score|freshen|trigger|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
+argument-hint: '[fix|improve|score|freshen|trigger|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver
@@ -40,6 +40,7 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | Mode | Does | Read first |
 |---|---|---|
 | Auto | Decides which modes the skill needs, runs them | §Auto |
+| `fix` | Runs the skill's eval cases, fixes what the failed answers show is missing | §Fix |
 | `improve` | Keep/discard loop on the 10-dimension rubric | `references/improve-loop.md`, `references/quality-rubric.md` |
 | `score` | Rubric score, no edits | §Score |
 | `freshen` | Verifies every `sources.md` row online, applies verified updates | `references/freshen-patterns.md` |
@@ -68,13 +69,35 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
    |---|---|
    | `freshen` | an upstream is newer than the skill states; or the last pass is old for this subject's pace; or a model or Claude Code release it depends on shipped |
    | `floor` | fact-heavy skill, no floor run since the last model release |
-   | `improve` | content changed since the last improve pass, a backlog blocker arrived, or no improve pass on record |
+   | `fix` | the skill has `evals/evals.json` and its content changed since the last outcome run |
+   | `improve` | the skill has no eval cases, or `fix` left weak cases that only restructuring can address, or the user asks for it; and content changed since the last improve pass, a backlog blocker arrived, or no improve pass is on record |
    | `trigger` | description changed or trigger evals fail; never for `disable-model-invocation` |
-   | `outcome` | the skill has `evals/evals.json` and its content changed since the last outcome run |
 
 3. **Print the plan** — one line per step: run or skip, with the evidence. Run in
    table order. Nothing due is a valid result: say so and stop.
 4. **Report** what ran, what changed, the commits, what was skipped and why.
+
+## Fix
+
+The cheapest change that measurably improves answers: find what the skill
+lacks, from the answers it produced. Prefer it over `improve` for a skill with
+eval cases.
+
+1. Run `outcome-eval.py <skill-dir>` (no `--against`). It ends by listing the
+   **weak cases** — the skill loses to the without arm or scores under 0.7 —
+   with each failed assertion and how many runs failed it.
+2. For each weak case, read the failed answers in the printed `current.json`
+   (grader `evidence`) and name the cause: fact missing from the skill; fact
+   only in `sources.md` or buried; skill text wrong; assertion stale; judge
+   noise (the answer was right).
+3. One cause per commit. Verify every fact against the primary source; put a
+   known failure and its fix where the agent reads it; correct an assertion
+   only with source evidence.
+4. Re-run just those cases: `--case '<NN>-*'`. Keep a fix when the case rises
+   and stays above the without arm; revert otherwise.
+5. Done = every weak case fixed, shown to be noise, or recorded in the backlog
+   with its blocker; committed. The step-1 run is the benchmark
+   (`--write-benchmark`); re-run in full only when several cases changed.
 
 ## Improve
 

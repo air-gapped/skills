@@ -209,6 +209,43 @@ def usage_text(tokens: dict, windows: list, missing: int) -> str:
     return "\n".join(lines)
 
 
+def weak_cases(result: dict, evals: list, floor: float = 0.7) -> list[str]:
+    """Cases where the skill loses to the without arm or scores under `floor`,
+    with each failing assertion and how many runs failed it."""
+    texts = {f"{e['id']:02d}-{e['name']}": e["assertions"] for e in evals}
+    out = []
+    for c in result["cases"]:
+
+        def mean(arm):
+            sc = [
+                s
+                for s, _, _ in run_scores({"cases": [c]}, arm).get(c["name"], [])
+                if s is not None
+            ]
+            return st.mean(sc) if sc else None
+
+        w, wo = mean("with"), mean("without")
+        if w is None or not (w < floor or (wo is not None and w < wo)):
+            continue
+        fails: dict = {}
+        for r in c["arms"].get("with", []):
+            for g in r["graders"]:
+                if (
+                    g["name"][1:].isdigit()
+                    and g["name"].startswith("a")
+                    and not g["passed"]
+                ):
+                    fails[int(g["name"][1:])] = fails.get(int(g["name"][1:]), 0) + 1
+        out.append(
+            f"{c['name']}: skill {w:.2f} vs without {'-' if wo is None else f'{wo:.2f}'}"
+        )
+        for i, n in sorted(fails.items()):
+            a = texts.get(c["name"], [""] * (i + 1))[i]
+            a = a if isinstance(a, str) else json.dumps(a)
+            out.append(f"  failed {n}x: {a[:160]}")
+    return out
+
+
 def summarize(cols: dict) -> tuple[str, dict]:
     """cols: {label: {case: [(score, cost, fired)]}} -> (table text, {label: mean pass rate})."""
     labels = list(cols)
@@ -262,6 +299,42 @@ def selfcheck() -> int:
         ]
     }
     assert run_scores(fake, "with") == {"x": [(0.5, 0.1, True)]}
+    weak_res = {
+        "cases": [
+            {
+                "name": "00-x",
+                "arms": {
+                    "with": [
+                        {
+                            "error": None,
+                            "costUsd": 0,
+                            "graders": [
+                                {"name": "a0", "passed": False},
+                                {"name": "a1", "passed": True},
+                            ],
+                        }
+                    ],
+                    "without": [
+                        {
+                            "error": None,
+                            "costUsd": 0,
+                            "graders": [
+                                {"name": "a0", "passed": True},
+                                {"name": "a1", "passed": True},
+                            ],
+                        }
+                    ],
+                },
+            }
+        ]
+    }
+    w = weak_cases(
+        weak_res, [{"id": 0, "name": "x", "assertions": ["names the flag", "ok"]}]
+    )
+    assert (
+        w[0].startswith("00-x: skill 0.50 vs without 1.00")
+        and "failed 1x: names the flag" in w[1]
+    ), w
 
     d = Path(tempfile.mkdtemp(prefix="outcome-eval-selfcheck."))
 
@@ -397,6 +470,10 @@ def main() -> int:
         cost += ref_res["costUsd"]
     text, means = summarize(cols)
     print(text)
+    weak = weak_cases(main_res, evals)
+    if weak:
+        print(f"\nweak cases (answers and grader evidence: {work}/current.json):")
+        print("\n".join(weak))
     print(f"API-price estimate ${cost:.2f}; raw results in {work}")
     print(usage_text(*run_usage(results)))
     if (
