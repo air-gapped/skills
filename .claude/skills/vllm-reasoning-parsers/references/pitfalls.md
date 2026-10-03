@@ -89,7 +89,7 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Root cause.** Instance state on `self`: `current_state`, `sequence_index`, `token_buffer`, `text_buffer`.
 
-**Fix.** Don't cache. vLLM's `OpenAIServingChat` already instantiates fresh per request (`serving.py:240`). If writing a custom parser with state, do the same: no class-level mutable state, no global caches.
+**Fix.** Don't cache. vLLM's `OpenAIServingChat` already instantiates fresh per request (`self.parser_cls(...)` in `chat_completion/serving.py`). If writing a custom parser with state, do the same: no class-level mutable state, no global caches.
 
 ## 8. Multi-token delimiter can't use `BaseThinkingReasoningParser`
 

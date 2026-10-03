@@ -111,12 +111,12 @@ Subclasses: DeepSeek-R1, Ernie45, OLMo3, Step3, Step3p5, and others — verify p
 
 ## Non-obvious fields the serving layer reads
 
-From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`):
+From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`) and the `Parser` wrapper it builds (`vllm/parser/abstract_parser.py`), at v0.30.0:
 
-- `prompt_is_reasoning_end_arr[i]` — cached result of `reasoning_parser.is_reasoning_end(prompt_token_ids)`. Only computed once per choice because prompts are immutable per request. If True at prompt time (e.g. Qwen3 chat template with `enable_thinking=False` injected `<think>\n\n</think>\n\n`), streaming skips the parser entirely and routes all deltas to content.
+- `reasoning_ended = parser.is_reasoning_end(prompt_token_ids)` — computed once per request and passed to `engine_client.generate(..., reasoning_ended=...)`; `StructuredOutputManager._get_constraint_start` reads it to decide where grammar enforcement starts. Forced `True` when `include_reasoning=false` (grammar applies from token 0). If True at prompt time (e.g. Qwen3 chat template with `enable_thinking=False` injected `<think>\n\n</think>\n\n`), streaming routes all deltas to content.
 
-- `reasoning_end_arr[i]` — per-delta latch: once set True, never calls `extract_reasoning_streaming` again for this choice. Set True either by `prompt_is_reasoning_end` or by `is_reasoning_end(previous_token_ids)` returning True.
+- `StreamState.reasoning_ended` — per-stream latch in `Parser.parse_delta`: checked against the prompt once (`prompt_reasoning_checked`), then set by `is_reasoning_end_streaming(current_ids, delta_ids)`; once True, `extract_reasoning_streaming` is never called again for that stream. When the prompt leaves reasoning open, `adjust_initial_state_from_prompt(prompt_token_ids)` (optional hook, default no-op) runs instead.
 
 - `request.include_reasoning` (default `True`) — suppresses `reasoning` from the response without changing inference. **No longer serving-layer-only**: [#44301](https://github.com/vllm-project/vllm/pull/44301) (v0.26.0) extended it to the Responses API and to the unified `Parser` interface, so at v0.27.0 the drop also happens inside `vllm/parser/abstract_parser.py`, `vllm/parser/engine/parser_engine.py` and `vllm/parser/harmony.py` (`if delta_message and not request.include_reasoning`). If you write an engine-path parser, `parse_delta` sees the flag; a legacy `ReasoningParser` still does not.
 
-- `reasoning_parser_cls(tokenizer, chat_template_kwargs=chat_template_kwargs)` — the *only* kwarg guaranteed to be passed on instantiation, besides `tokenizer`. Anything else your parser reads from `kwargs` (e.g. `model_config`) may be `None`.
+- Construction: `reasoning_parser_cls(tokenizer, chat_template_kwargs=..., model_config=...)` — those are the kwargs the `Parser` wrapper passes. Read both defensively (`kwargs.get(...)`): offline and test call sites construct with `tokenizer` alone.
