@@ -143,7 +143,7 @@ clean: ## Remove build artifacts
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $\$1, $\$2}'
 ```
 
 ### `##@ Section` Headers — Group the Targets
@@ -156,8 +156,8 @@ kubebuilder / operator-sdk convention:
 ```makefile
 help: ## Show this help
 	@awk 'BEGIN{FS=":.*?## "} \
-	     /^##@/{printf "\n\033[1m%s\033[0m\n", substr($$0,5); next} \
-	     /^[a-zA-Z_0-9-]+:.*?## /{printf "  \033[36m%-14s\033[0m %s\n",$$1,$$2}' $(MAKEFILE_LIST)
+	     /^##@/{printf "\n\033[1m%s\033[0m\n", substr($\$0,5); next} \
+	     /^[a-zA-Z_0-9-]+:.*?## /{printf "  \033[36m%-14s\033[0m %s\n",$\$1,$\$2}' $(MAKEFILE_LIST)
 
 ##@ 1 · Build
 build: ## Compile the binary
@@ -176,7 +176,7 @@ push:  ## Push the image
   push           Push the image
 ```
 
-- `substr($$0,5)` strips `##@ `; `next` stops the header line also matching the
+- `substr($\$0,5)` strips `##@ `; `next` stops the header line also matching the
   target rule.
 - **Numbering the sections makes the help output the procedure**, so a human
   reads top-to-bottom and an agent gets the same ordering with no separate

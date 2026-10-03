@@ -84,7 +84,7 @@ active
 active
 active
 
-$ lsmod | grep -E '^nvidia|^nvidia_uvm|^nvidia_peermem|^ib_umad' | awk '{print $1}'
+$ lsmod | grep -E '^nvidia|^nvidia_uvm|^nvidia_peermem|^ib_umad' | awk '{print \$1}'
 nvidia_peermem
 nvidia_uvm
 nvidia

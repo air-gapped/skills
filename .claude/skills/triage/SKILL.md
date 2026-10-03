@@ -43,7 +43,7 @@ ranked, owned list instead of a raw dump.
 
 Invoke with `/triage <findings-path> [--auto] [--votes N] [--repo PATH] [--fp-rules FILE]`.
 
-**Arguments** (parse from `$ARGUMENTS`; positional `$1`/`$2` expansion is
+**Arguments** (parse from `$ARGUMENTS`; positional `\$1`/`\$2` expansion is
 not stable across runtimes):
 - findings path (first positional, required): a JSON file, a directory of
   JSON files, a `VULN-FINDINGS.json`, a pipeline `results/<target>/<ts>/`

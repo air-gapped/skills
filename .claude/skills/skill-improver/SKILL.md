@@ -178,9 +178,9 @@ It converts `<skill>/evals/evals.json` into `claude plugin eval` cases (one
 grader per assertion), runs each with and without the skill, and with
 `--against` the other version too. Prompts force invocation, so the number is
 about content; trigger mode measures triggering. Defaults: 3 runs, Sonnet,
-Sonnet judge, $20 cap.
+Sonnet judge, \$20 cap.
 
-- **Price it first:** about $0.15 per with-skill run and $0.05 per without, times
+- **Price it first:** about \$0.15 per with-skill run and \$0.05 per without, times
   cases × runs.
 - **Read failures before concluding.** Three runs and a 2-of-3 judge vote are
   noisy: a per-case difference of one run, or a total gap under ~0.15, is noise
