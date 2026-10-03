@@ -209,8 +209,9 @@ cwd `$AB`, the agent passed inline (a project agent does not resolve from
 
 ```bash
 AGENTS=$(python3 -c 'import json,sys,re; t=open(sys.argv[1]).read(); fm,body=re.match(r"---\n(.*?)\n---\n(.*)",t,re.S).groups(); d=dict(l.split(": ",1) for l in fm.splitlines() if ": " in l); print(json.dumps({"skill-comparator":{"description":d["description"],"prompt":body,"model":d.get("model","sonnet")}}))' <repo>/.claude/agents/skill-comparator.md)
-(cd "$AB" && claude -p --agents "$AGENTS" --agent skill-comparator \
-  --add-dir <skill-improver-dir>/references "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: $AB/x. DIR B: $AB/y.")
+# The prompt goes before --add-dir: --add-dir takes every following argument.
+(cd "$AB" && claude -p "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: $AB/x. DIR B: $AB/y." \
+  --agents "$AGENTS" --agent skill-comparator --add-dir <skill-improver-dir>/references)
 ```
 
 An in-session subagent is a degraded fallback; record its verdict as semi-blind.

@@ -180,8 +180,8 @@ grader per assertion), runs each with and without the skill, and with
 about content; trigger mode measures triggering. Defaults: 3 runs, Sonnet,
 Sonnet judge, \$20 cap.
 
-- **Price it first:** about \$0.15 per with-skill run and \$0.05 per without, times
-  cases × runs.
+- **Price it first:** \$0.10–0.30 per with-skill run and \$0.05–0.20 per without
+  (larger skills cost more), times cases × runs × arms; `--against` adds an arm.
 - **Read failures before concluding.** Three runs and a 2-of-3 judge vote are
   noisy: a per-case difference of one run, or a total gap under ~0.15, is noise
   until the failed answers are read and found worse.
@@ -223,7 +223,8 @@ characters. Probe: `scripts/probe-trigger.py`. Eval set:
 
 ## Floor
 
-`python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`;
+`python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
+(about \$6 for 20 claims on haiku, sonnet and opus);
 fleet: `scripts/floor-fleet.py --root <dir>`. Read-only. Classify the skill
 first: on an encoded-preference skill a high floor is expected, not a delete
 list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
