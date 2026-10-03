@@ -196,12 +196,12 @@ When a user reports a broken tool call, work down this list. Each step names whe
 4. **Reasoning parser paired?** If the model has `<think>` / `</seed:think>` / harmony channels, `--reasoning-parser` must match. Check `vllm/reasoning/` for the registry.
 5. **Streaming vs non-streaming?** Grep the parser file: if `extract_tool_calls_streaming` returns `None` unconditionally or raises `NotImplementedError`, streaming isn't supported (e.g. `phi4_mini_json`, `openai`).
 6. **`finish_reason` = `stop` when a call was expected?** The parser never returned a `DeltaMessage` with `tool_calls` during the stream (or the request named a tool, where `stop` is correct). Compare with `"stream": false` on the same prompt: tool calls there but not in the stream = a streaming-path bug in that parser.
-7. **Raw model output vs what parser sees.** Bypass the parser: call `/v1/completions` (no tool parser) with the same prompt. Dump raw bytes:
+7. **Raw model output vs what parser sees.** Bypass the parser: call `/v1/completions` (no tool parser) with the chat-rendered prompt — `tokenizer.apply_chat_template(messages, tools=tools, tokenize=False, add_generation_prompt=True)` with the deployed template. Keep `"skip_special_tokens": false`: the default `true` strips special-token sentinels (`<|tool_call|>`, `[TOOL_CALLS]`, …) from `text`, which looks exactly like "model never emitted them". Dump raw text and non-ASCII codepoints:
    ```bash
    curl -sS $VLLM/v1/completions -H 'content-type: application/json' \
-     -d '{"model":"...","prompt":"...","max_tokens":200}' \
+     -d '{"model":"...","prompt":"...","max_tokens":200,"skip_special_tokens":false}' \
      | python3 -c "import sys,json,unicodedata; t=json.load(sys.stdin)['choices'][0]['text']; \
-         [print(hex(ord(ch)), unicodedata.name(ch,'?'), repr(ch)) for ch in t if ord(ch)>0x7E][:40]"
+         print(repr(t)); [print(hex(ord(ch)), unicodedata.name(ch,'?'), repr(ch)) for ch in t[:2000] if ord(ch)>0x7E]"
    ```
    This distinguishes "model not emitting sentinels" (template/training problem) from "parser not matching sentinels" (parser bug).
 8. **vLLM version vs known bugs.** See "Bug archaeology" below.
