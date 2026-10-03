@@ -1,33 +1,18 @@
 ---
 name: skill-improver
 description: >-
-  Autoresearch loop for Claude Code skills — greedy keep/discard hill climbing
-  on a 10-dimension quality rubric, with blind subagent validation for
-  self-scoring bias. Given only a skill name, it reads that skill's history
-  and picks which modes to run. Modes: `score`
-  rates a skill out of 100 without editing it; `freshen` probes external
-  references (release notes, docs, deprecation signals) and applies verified
-  updates; `trigger` measures and tunes the frontmatter description until it
-  fires when it should and stays silent when it shouldn't (60/40 train/test,
-  7 runs/query); `outcome` runs the skill's eval cases with and without the
-  skill through `claude plugin eval`; `ages` prints every skill's verification
-  age vs last content change; `floor` measures what a bare model already knows
-  about a skill's subject.
+  Improve, test and maintain Claude Code skills. Modes: `fix` runs a skill's
+  eval cases and fixes what the failed answers show is missing; `improve`
+  hill-climbs a 10-dimension quality rubric with blind scoring and an A/B
+  comparator; `score` rates a skill without editing it; `freshen` verifies the
+  skill's external references online and applies updates; `trigger` measures
+  and tunes how reliably the description fires; `outcome` runs eval cases with
+  and without the skill; `floor` measures what a bare model already knows;
+  `ages` lists each skill's verification age.
 when_to_use: >-
-  Triggers on "improve a skill", "optimize a SKILL.md", "make my skill better",
-  "run skill autoresearch", "self-improve skills", "evaluate skill quality",
-  "score my skill", "audit a skill", "rate my skill", "refine skill
-  description", "iterate on a skill", "freshen skills",
-  "update skill references", "check skill staleness", "is my skill out of
-  date", "refresh skill sources", "skill ages", "how old are my skills",
-  "list skills by date", "skill not triggering", "skill didn't
-  fire", "skill not invoked", "tune skill
-  description", "fix skill triggers", "skill under-triggers",
-  "skill over-triggers", "false-positive skill",
-  "Claude isn't using my skill", "does my skill help", "skill eval",
-  or mentions autonomous skill improvement,
-  skill quality scoring, skill optimization loops, stale skill content,
-  or skill activation problems.
+  Use when asked to improve, score, audit, test or freshen a skill, when a skill
+  is out of date, when a skill does not trigger or triggers wrongly, or when
+  asked whether a skill actually helps.
 argument-hint: '[fix|improve|score|freshen|trigger|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
