@@ -146,56 +146,15 @@ node_load5{instance=~"the-node.*"}
 ## 3. MCP servers worth knowing
 
 ### 3a. `grafana/mcp-grafana` — official Grafana MCP server
-- Repo: `https://github.com/grafana/mcp-grafana`. v2.0.0 (2026-10-01) renamed tools — call by the names below, not older ones (`get_datasource_by_uid`, `list_alert_rules`, `alerting_manage_rules` are gone).
-- Transport: stdio default; streamable HTTP via flag. Per-request org ID / credentials / URL overrides work **only over streamable HTTP**, not SSE. Usage stats on by default — `DO_NOT_TRACK=1` to opt out.
-- Auth: `GRAFANA_URL` + `GRAFANA_SERVICE_ACCOUNT_TOKEN`. RBAC = the SA's datasource and folder permissions. `user_info` shows the identity and its role.
-- Tools for this skill, in the order to reach for them:
-
-| Job | Tool | Rule |
-|---|---|---|
-| Find datasource UIDs | `list_datasources` (filter `type`), `check_datasources_health` | Health checks every datasource in one call; `UNKNOWN` = plugin has no backend, not broken. |
-| Metric catalog | `list_prometheus_metric_names` | **Always pass `startRfc3339`.** Without a window it lists metrics with zero live series. |
-| Labels / metadata | `list_prometheus_label_values`, `list_prometheus_label_names`, `list_prometheus_metric_metadata` | Use `matches` to scope to one metric. |
-| Query | `query_prometheus` | `queryType` `instant`/`range`; `stepSeconds` required for range. |
-| Percentile | `query_prometheus_histogram` | Emits `histogram_quantile(q, sum(rate(X_bucket[5m])) by (le))` — collapses every other dimension, fixed window, classic histograms only. For per-route/per-job percentiles write the PromQL and use `query_prometheus`. |
-| Dashboard overview | `get_dashboard_summary` | Call first. Cheap: panel IDs, titles, types, variables. |
-| Dashboard fragment | `get_dashboard_property` | Narrow JSONPath only. Never pull whole `$.panels` / `$.elements` — tens of KB. Path depends on schema, see below. |
-| Panel queries | `get_dashboard_panel_queries` | Works on v1 and v2. Pass `variables` to get `processedQuery`. |
-| Run a panel | `run_panel_query` | **Fails on v2 dashboards** with `dashboard has no panels` (mcp-grafana #1286, open 2026-10-02). Fallback: `get_dashboard_panel_queries` → substitute `$__rate_interval` yourself → `query_prometheus`. |
-| Edit dashboard | `update_dashboard` | Prefer patch mode (`uid` + `operations`). Numeric indices only — no `[*]`, no filters. Append with `/-`. Save `${var:regex}` for multi-select vars inside regex matchers. Verify with a query afterwards. |
-| Roll back | `list_dashboard_versions` → `get_dashboard_by_uid` with version | |
-| Alert rules | `alerting_rules_read` (`list`/`get`/`versions`) | Omit `datasource_uid` → Grafana-managed rules; set it → datasource (ruler) rules. Returns `null`, not `[]`, when none exist. |
-| Leave a trail | `create_annotation` | Events only; a saved annotation *query* goes into dashboard JSON `annotations.list`. |
-| Hand a link to a human | `generate_deeplink` | Dashboard, panel, or Explore with embedded query; `shorten: true` for `/goto/`. |
-| Anything else | `grafana_api_request` | Any Grafana endpoint, any method, extra `headers`, `jq` filter. Use for `/api/dashboards/uid/<uid>`, `/api/prometheus/<ds-uid>/api/v1/rules`, `/apis/...`. |
-
-- **Dashboard schema split.** The MCP returns a dashboard in the schema Grafana serves it in. On Grafana 13+ that is often v2 even when legacy `/api/dashboards/uid` returns classic `panels` for the same UID. Check before writing a JSONPath:
-
-| | Classic / v1 | v2 |
-|---|---|---|
-| Panels | `$.panels[i]` | `$.elements["panel-<id>"].spec` |
-| Queries | `$.panels[i].targets[j].expr` | `$.elements["panel-<id>"].spec.data.spec.queries[j].spec.query.spec.expr` |
-| Variables | `$.templating.list` | `$.variables` |
-| Viz / unit | `$.panels[i].fieldConfig` | `$.elements["panel-<id>"].spec.vizConfig.spec.fieldConfig` |
-| Layout | `gridPos` per panel | `$.layout` |
-
-  Bracket-quote v2 element keys: `$.elements["panel-25"]` works, `$.elements.panel-25` is a JSONPath parse error (the hyphen). `unknown key panels` from `get_dashboard_property` = v2. Need classic JSON anyway → `grafana_api_request` on `/api/dashboards/uid/<uid>` with a `jq` filter.
-- **Don't learn PromQL from the MCP.** `get_query_examples` ships `histogram_quantile(0.95, rate(..._bucket[5m]))` without `sum by (le)`. Empty results return a fixed `hints` list — boilerplate, not a diagnosis.
-- Config block:
-  ```json
-  {
-    "mcpServers": {
-      "grafana": {
-        "command": "mcp-grafana",
-        "env": {
-          "GRAFANA_URL": "https://grafana.example.com",
-          "GRAFANA_SERVICE_ACCOUNT_TOKEN": "glsa_..."
-        }
-      }
-    }
-  }
-  ```
-- Install: `go install github.com/grafana/mcp-grafana/v2/cmd/mcp-grafana@latest`, or a release binary.
+Tool names and parameters come from the server itself; this section is only what the tool descriptions do not say.
+- Transport: per-request org ID / credentials / URL overrides work **only over streamable HTTP**, not SSE. RBAC = the service account's datasource and folder permissions.
+- **Metric catalog lists dead metrics.** `list_prometheus_metric_names` without `startRfc3339` returns names with zero live series. Always pass a window, then confirm with a query.
+- **The histogram helper collapses dimensions.** `query_prometheus_histogram` emits `histogram_quantile(q, sum(rate(X_bucket[5m])) by (le))` — one line for the whole metric, fixed window, classic histograms only. Per-route/per-job percentiles: write the PromQL yourself.
+- **Don't learn PromQL from the MCP.** `get_query_examples` ships `histogram_quantile` without `sum by (le)`. Empty results carry a fixed `hints` list — boilerplate, not a diagnosis.
+- **Dashboards may come back in schema v2** even when `/api/dashboards/uid` returns classic `panels` for the same UID. `unknown key panels` = v2. v2 queries live at `$.elements["panel-<id>"].spec.data.spec.queries[j].spec.query.spec.expr`; bracket-quote the key — `$.elements.panel-25` is a JSONPath parse error. Never fetch whole `$.elements` (tens of KB); `get_dashboard_summary` first.
+- **`run_panel_query` fails on v2 dashboards** with `dashboard has no panels` (mcp-grafana #1286, open 2026-10-02) while `get_dashboard_panel_queries` works. Fallback: take the expr from `get_dashboard_panel_queries`, substitute `$__rate_interval` yourself, run `query_prometheus`.
+- **`alerting_rules_read` returns `null`, not `[]`,** when there are no rules. `null` = none, not an error.
+- **`grafana_api_request` reaches any Grafana endpoint** (any method, extra headers, `jq` filter) — classic dashboard JSON, `/api/prometheus/<ds-uid>/api/v1/rules`, `/apis/...` — so "no tool for it" is rarely a reason to leave the MCP.
 
 ### 3b. `pab1it0/prometheus-mcp-server` — community Prometheus MCP
 - Repo: `https://github.com/pab1it0/prometheus-mcp-server`
