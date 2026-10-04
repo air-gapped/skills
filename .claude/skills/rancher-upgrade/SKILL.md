@@ -91,6 +91,14 @@ The only supported path between minors is **latest-COMMUNITY-patch-of-current-mi
 COMMUNITY-patch-of-next-minor, one minor at a time** (2.11→2.12→2.13→2.14→2.15; never 2.11→2.14).
 Intra-minor patch jumps are fine.
 
+**Operator insists on a skip** ("one window", "I accept the risk"): never write the skipping
+`helm upgrade`, even when told not to lecture. A skip fails mechanically: the management-cluster
+k8s windows of minors three apart share no k8s minor (2.12 runs on 1.31–1.33, 2.15 on 1.34–1.36),
+and downstreams can only be lifted to minors the *current* Rancher's KDM offers, so they strand.
+Give the fewer-windows version instead: every hop chained in one window with a gate between hops
+(rollout complete, clusters Active, fresh etcd snapshot), and each required mgmt/downstream k8s
+bump placed before the hop that needs it.
+
 ⛔ **The rung is the community ceiling, not the newest tag.** Rancher ships both editions to one
 GitHub feed, so for every minor except the current one the newest tag is **Prime-only** and
 uninstallable here — `sort -V | tail -1` silently yields a target the operator cannot use. Derive
