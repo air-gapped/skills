@@ -156,6 +156,11 @@ and `allow.oidc.params.in.redirect.uris` allows per-client migration. Separately
 Authorization Services now reserve the **`kc.` claim prefix** for server-controlled
 attributes and filter user-supplied claims carrying it.
 
+**26.7.5** — the `client-updater-source-groups` client-policy condition matches
+the **full group path**. A value without a leading slash means a top-level group
+(`topGroup` → `/topGroup`, unchanged); a subgroup configured by simple name must
+become its full path (`/topGroup/level2group`).
+
 **Feature status moved too.** `step-up-authentication-saml` went preview →
 **supported**. SCIM is now **preview** (`--features=scim-api`). Identity
 Brokering API **V2** is supported but off by default while V1 is deprecated and
