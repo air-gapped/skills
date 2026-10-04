@@ -397,14 +397,15 @@ status:
       status: "False"
     - type: Paused      # True = paused annotation applied
       status: "False"
-    - type: HPAActive   # 2.21+: mirrors the HPA's ScalingActive
+    - type: HPAActive   # 2.20.2+: mirrors the HPA's ScalingActive
       status: "True"
   hpaName: keda-hpa-my-scaledobject
 ```
 
-On 2.20.x `Ready` also mirrored HPA health, so a transient metrics gap (pods
-warming after a rollout) flipped `Ready=False` and Argo CD reported Degraded.
-2.21 returns `Ready` to config validity and moves HPA health to `HPAActive` —
+On 2.20.0–2.20.1 `Ready` also mirrored HPA health, so a transient metrics gap
+(pods warming after a rollout) flipped `Ready=False` and Argo CD reported
+Degraded. 2.20.2+ returns `Ready` to config validity and moves HPA health to
+`HPAActive` —
 alert on `HPAActive`, not `Ready`, for "is the HPA scaling".
 
 Debug rule of thumb: if `Ready=False`, inspect `reason` — it's usually
