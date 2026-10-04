@@ -38,13 +38,13 @@ path is masked.) Field-observed 2026-05-30.
 - **Deprecations:**
   - BGP peer/route/route-policy listing via the local REST API and `cilium-dbg bgp` — use `cilium shell -- bgp/*` instead.
   - Azure IPAM `status.azure.interfaces[].addresses[].subnet` and flat `status.azure.interfaces[].cidr` — mirrored for one release, then removed; read `status.azure.interfaces[].subnet` instead.
-- **Cross-component:** RKE2 1.37.0 bundles Cilium **v1.20.1** (chart `rke2-cilium 1.20.103`) — generated.json (compat.py sync 2026-09-24).
+- **Cross-component:** RKE2 bundles Cilium **v1.20.2** (chart `rke2-cilium 1.20.200`) on 1.37.1, **and on the 1.34–1.36 patches `v1.34.12` / `v1.35.9` / `v1.36.5`** (2026-09-30) — those lines' earlier patches ship 1.19.6, so an RKE2 *patch* upgrade there is a Cilium 1.19 → 1.20 upgrade and the ordering above applies. RKE2 1.37.0 ships v1.20.1.
 - **Notable:** Gateway API bumped to v1.6.1 (from v1.4). GoBGP moves to v4.6.1. `cilium-cni` binary shrunk ~77 MB → ~16 MB. CRD schema version 1.33.11.
 
 ## 1.19.0
 
 - **k8s floor:** 1.32 – 1.35 (e2e-tested, per `docs.cilium.io/en/v1.19/network/kubernetes/compatibility/`). Discrepancy: 1.19.0 release notes claim "Cilium dependencies were updated to Kubernetes v1.35" — the lower bound shifted to 1.32 vs 1.18's 1.30, so a cluster on k8s 1.30/1.31 falls outside the tested set on a 1.18 → 1.19 bump.
-- **Cross-component:** RKE2 1.34–1.36 bundle Cilium **v1.19.6** (chart `rke2-cilium 1.19.601`) — generated.json (compat.py sync 2026-09-24).
+- **Cross-component:** RKE2 1.34–1.36 bundle Cilium **v1.19.6** (chart `rke2-cilium 1.19.601`) up to `v1.34.11` / `v1.35.8` / `v1.36.4`; later patches of those lines ship 1.20.2 — see § 1.20.0.
 - **Breaking:**
   - `CiliumBGPPeeringPolicy` (v1 BGP API) **removed**. Must migrate to v2 BGP CRDs (`CiliumBGPClusterConfig` et al.) **before** the agent rolls.
   - DNS NetworkPolicy `**.` wildcard now actually matches multilevel subdomains (was treated as `*.`). Audit any `matchPattern: "**.example.com"` — semantics widened.

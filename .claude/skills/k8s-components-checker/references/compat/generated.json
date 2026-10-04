@@ -94,7 +94,7 @@
     }
    },
    "upcoming": {
-    "1.21": "v1.21.0-pre.2"
+    "1.21": "v1.21.0-pre.3"
    }
   },
   "eck": {
@@ -251,6 +251,9 @@
      "date": "2026-09-16",
      "latest": "v1.9.0"
     }
+   },
+   "upcoming": {
+    "1.10": "v1.10.0-dev-20260927"
    }
   },
   "keda": {
@@ -429,20 +432,20 @@
      "latest": "v1.33.13+rke2r2"
     },
     "1.34": {
-     "date": "2026-08-28",
-     "latest": "v1.34.11+rke2r1"
+     "date": "2026-09-30",
+     "latest": "v1.34.12+rke2r1"
     },
     "1.35": {
-     "date": "2026-08-28",
-     "latest": "v1.35.8+rke2r1"
+     "date": "2026-09-30",
+     "latest": "v1.35.9+rke2r1"
     },
     "1.36": {
-     "date": "2026-08-28",
-     "latest": "v1.36.4+rke2r1"
+     "date": "2026-09-30",
+     "latest": "v1.36.5+rke2r1"
     },
     "1.37": {
-     "date": "2026-09-14",
-     "latest": "v1.37.0+rke2r1"
+     "date": "2026-09-30",
+     "latest": "v1.37.1+rke2r1"
     }
    }
   },
@@ -461,8 +464,8 @@
      "latest": "v1.19.11"
     },
     "1.20": {
-     "date": "2026-09-02",
-     "latest": "v1.20.7"
+     "date": "2026-09-29",
+     "latest": "v1.20.8"
     }
    }
   },
@@ -537,8 +540,8 @@
      "latest": "v1.15.1"
     },
     "2.0": {
-     "date": "2026-08-20",
-     "latest": "v2.0.2"
+     "date": "2026-10-02",
+     "latest": "v2.0.3"
     }
    }
   }
@@ -917,9 +920,9 @@
     "1.20": {
      "k8s": [
       "1.31",
-      "1.36"
+      "1.37"
      ],
-     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.20.7"
+     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.20.8"
     }
    }
   },
@@ -1017,139 +1020,139 @@
   "rke2_bundles": {
    "1.34": {
     "components": {
-     "Calico": "v3.32.1",
-     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
-     "Cilium": "v1.19.6",
-     "Containerd": "v2.2.7-k3s1",
-     "CoreDNS": "v1.14.7",
-     "Etcd": "v3.6.14-k3s1",
-     "Helm-controller": "v0.16.26",
-     "Ingress-Nginx": "v1.14.5-hardened2",
-     "Kubernetes": "v1.34.11",
-     "Metrics-server": "v0.9.0",
-     "Multus": "v4.3.0",
-     "Runc": "v1.4.3",
-     "Traefik": "v3.7.11",
-     "harvester-cloud-provider": "0.2.1500",
-     "harvester-csi-driver": "0.1.3100",
-     "rancher-vsphere-cpi": "1.15.300",
-     "rancher-vsphere-csi": "3.7.2-rancher700",
-     "rke2-calico": "v3.32.100",
-     "rke2-calico-crd": "v3.32.100",
-     "rke2-canal": "v3.32.1-build2026082700",
-     "rke2-cilium": "1.19.601",
-     "rke2-coredns": "1.47.003",
-     "rke2-ingress-nginx": "4.15.109",
-     "rke2-metrics-server": "3.14.000",
-     "rke2-multus": "v4.3.008",
-     "rke2-snapshot-controller": "5.2.003",
-     "rke2-snapshot-controller-crd": "5.2.003",
-     "rke2-traefik": "40.1.010",
-     "rke2-traefik-crd": "40.1.010"
-    },
-    "rke2": "v1.34.11+rke2r1"
-   },
-   "1.35": {
-    "components": {
-     "Calico": "v3.32.1",
-     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
-     "Cilium": "v1.19.6",
-     "Containerd": "v2.2.7-k3s1",
-     "CoreDNS": "v1.14.7",
-     "Etcd": "v3.6.14-k3s1",
-     "Helm-controller": "v0.17.7",
-     "Ingress-Nginx": "v1.14.5-hardened2",
-     "Kubernetes": "v1.35.8",
-     "Metrics-server": "v0.9.0",
-     "Multus": "v4.3.0",
-     "Runc": "v1.4.3",
-     "Traefik": "v3.7.11",
-     "harvester-cloud-provider": "0.2.1500",
-     "harvester-csi-driver": "0.1.3100",
-     "rancher-vsphere-cpi": "1.15.300",
-     "rancher-vsphere-csi": "3.7.2-rancher700",
-     "rke2-calico": "v3.32.100",
-     "rke2-calico-crd": "v3.32.100",
-     "rke2-canal": "v3.32.1-build2026082700",
-     "rke2-cilium": "1.19.601",
-     "rke2-coredns": "1.47.003",
-     "rke2-ingress-nginx": "4.15.109",
-     "rke2-metrics-server": "3.14.000",
-     "rke2-multus": "v4.3.008",
-     "rke2-snapshot-controller": "5.2.003",
-     "rke2-snapshot-controller-crd": "5.2.003",
-     "rke2-traefik": "40.1.010",
-     "rke2-traefik-crd": "40.1.010"
-    },
-    "rke2": "v1.35.8+rke2r1"
-   },
-   "1.36": {
-    "components": {
-     "Calico": "v3.32.1",
-     "Canal": "Flannel v0.28.9 / Calico v3.32.1",
-     "Cilium": "v1.19.6",
-     "Containerd": "v2.3.4-k3s1.36",
-     "CoreDNS": "v1.14.7",
-     "Etcd": "v3.6.14-k3s1",
-     "Helm-controller": "v0.17.7",
-     "Ingress-Nginx": "v1.14.5-hardened2",
-     "Kubernetes": "v1.36.4",
-     "Metrics-server": "v0.9.0",
-     "Multus": "v4.3.0",
-     "Runc": "v1.4.3",
-     "Traefik": "v3.7.11",
-     "harvester-cloud-provider": "0.2.1500",
-     "harvester-csi-driver": "0.1.3100",
-     "rancher-vsphere-cpi": "1.15.300",
-     "rancher-vsphere-csi": "3.7.2-rancher700",
-     "rke2-calico": "v3.32.100",
-     "rke2-calico-crd": "v3.32.100",
-     "rke2-canal": "v3.32.1-build2026082700",
-     "rke2-cilium": "1.19.601",
-     "rke2-coredns": "1.47.003",
-     "rke2-ingress-nginx": "4.15.109",
-     "rke2-metrics-server": "3.14.000",
-     "rke2-multus": "v4.3.008",
-     "rke2-snapshot-controller": "5.2.003",
-     "rke2-snapshot-controller-crd": "5.2.003",
-     "rke2-traefik": "40.1.010",
-     "rke2-traefik-crd": "40.1.010"
-    },
-    "rke2": "v1.36.4+rke2r1"
-   },
-   "1.37": {
-    "components": {
      "Calico": "v3.32.2",
      "Canal": "Flannel v0.28.9 / Calico v3.32.2",
-     "Cilium": "v1.20.1",
-     "Containerd": "v2.3.4-k3s1",
+     "Cilium": "v1.20.2",
+     "Containerd": "v2.2.7-k3s1",
      "CoreDNS": "v1.14.7",
-     "Etcd": "v3.7.1-k3s1",
-     "Helm-controller": "v0.17.7",
+     "Etcd": "v3.6.14-k3s3",
+     "Helm-controller": "v0.16.27",
      "Ingress-Nginx": "v1.14.5-hardened2",
-     "Kubernetes": "v1.37.0",
+     "Kubernetes": "v1.34.12",
      "Metrics-server": "v0.9.0",
      "Multus": "v4.3.1",
      "Runc": "v1.4.3",
      "Traefik": "v3.7.13",
      "harvester-cloud-provider": "0.2.1500",
-     "harvester-csi-driver": "0.1.3100",
-     "rancher-vsphere-cpi": "1.16.100",
+     "harvester-csi-driver": "0.1.3200",
+     "rancher-vsphere-cpi": "1.16.200",
      "rancher-vsphere-csi": "3.7.3-rancher300",
      "rke2-calico": "v3.32.200",
      "rke2-calico-crd": "v3.32.200",
      "rke2-canal": "v3.32.2-build2026090900",
-     "rke2-cilium": "1.20.103",
-     "rke2-coredns": "1.47.100",
-     "rke2-ingress-nginx": "4.15.109",
+     "rke2-cilium": "1.20.200",
+     "rke2-coredns": "1.47.102",
+     "rke2-ingress-nginx": "4.15.110",
      "rke2-metrics-server": "3.14.001",
-     "rke2-multus": "v4.3.101",
+     "rke2-multus": "v4.3.102",
+     "rke2-snapshot-controller": "5.2.004",
+     "rke2-snapshot-controller-crd": "5.2.004",
+     "rke2-traefik": "40.1.013",
+     "rke2-traefik-crd": "40.1.013"
+    },
+    "rke2": "v1.34.12+rke2r1"
+   },
+   "1.35": {
+    "components": {
+     "Calico": "v3.32.2",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.2",
+     "Cilium": "v1.20.2",
+     "Containerd": "v2.2.7-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.6.14-k3s3",
+     "Helm-controller": "v0.17.9",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.35.9",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.1",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.13",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3200",
+     "rancher-vsphere-cpi": "1.16.200",
+     "rancher-vsphere-csi": "3.7.3-rancher300",
+     "rke2-calico": "v3.32.200",
+     "rke2-calico-crd": "v3.32.200",
+     "rke2-canal": "v3.32.2-build2026090900",
+     "rke2-cilium": "1.20.200",
+     "rke2-coredns": "1.47.102",
+     "rke2-ingress-nginx": "4.15.110",
+     "rke2-metrics-server": "3.14.001",
+     "rke2-multus": "v4.3.102",
+     "rke2-snapshot-controller": "5.2.004",
+     "rke2-snapshot-controller-crd": "5.2.004",
+     "rke2-traefik": "40.1.013",
+     "rke2-traefik-crd": "40.1.013"
+    },
+    "rke2": "v1.35.9+rke2r1"
+   },
+   "1.36": {
+    "components": {
+     "Calico": "v3.32.2",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.2",
+     "Cilium": "v1.20.2",
+     "Containerd": "v2.3.4-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.6.14-k3s3",
+     "Helm-controller": "v0.17.9",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.36.5",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.1",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.13",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3200",
+     "rancher-vsphere-cpi": "1.16.200",
+     "rancher-vsphere-csi": "3.7.3-rancher300",
+     "rke2-calico": "v3.32.200",
+     "rke2-calico-crd": "v3.32.200",
+     "rke2-canal": "v3.32.2-build2026090900",
+     "rke2-cilium": "1.20.200",
+     "rke2-coredns": "1.47.102",
+     "rke2-ingress-nginx": "4.15.110",
+     "rke2-metrics-server": "3.14.001",
+     "rke2-multus": "v4.3.102",
+     "rke2-snapshot-controller": "5.2.004",
+     "rke2-snapshot-controller-crd": "5.2.004",
+     "rke2-traefik": "40.1.013",
+     "rke2-traefik-crd": "40.1.013"
+    },
+    "rke2": "v1.36.5+rke2r1"
+   },
+   "1.37": {
+    "components": {
+     "Calico": "v3.32.2",
+     "Canal": "Flannel v0.28.9 / Calico v3.32.2",
+     "Cilium": "v1.20.2",
+     "Containerd": "v2.3.4-k3s1",
+     "CoreDNS": "v1.14.7",
+     "Etcd": "v3.7.1-k3s3",
+     "Helm-controller": "v0.17.9",
+     "Ingress-Nginx": "v1.14.5-hardened2",
+     "Kubernetes": "v1.37.1",
+     "Metrics-server": "v0.9.0",
+     "Multus": "v4.3.1",
+     "Runc": "v1.4.3",
+     "Traefik": "v3.7.13",
+     "harvester-cloud-provider": "0.2.1500",
+     "harvester-csi-driver": "0.1.3200",
+     "rancher-vsphere-cpi": "1.16.100",
+     "rancher-vsphere-csi": "3.7.3-rancher500",
+     "rke2-calico": "v3.32.200",
+     "rke2-calico-crd": "v3.32.200",
+     "rke2-canal": "v3.32.2-build2026090900",
+     "rke2-cilium": "1.20.200",
+     "rke2-coredns": "1.47.102",
+     "rke2-ingress-nginx": "4.15.110",
+     "rke2-metrics-server": "3.14.001",
+     "rke2-multus": "v4.3.102",
      "rke2-snapshot-controller": "5.2.004",
      "rke2-snapshot-controller-crd": "5.2.004",
      "rke2-traefik": "41.2.003",
      "rke2-traefik-crd": "41.2.003"
     },
-    "rke2": "v1.37.0+rke2r1"
+    "rke2": "v1.37.1+rke2r1"
    }
   }
  },

@@ -187,7 +187,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-09-24 — **v1.37.0+rke2r1 GA 2026-09-14** (now `isLatest`); community ceilings per line in `compat/generated.json`. v1.31.14+rke2r2 and v1.32.13+rke2r2 are Prime-only (body: "is a Prime-only release").
+- Last verified: 2026-10-04 — **v1.37.1 / v1.36.5 / v1.35.9 / v1.34.12 (all 2026-09-30)**, v1.37.1 `isLatest`; the 1.34–1.36 patches move bundled Cilium 1.19.6 → 1.20.2 (rke2 PRs #11269 and siblings, "Update Cilium chart to 1.20.200"). v1.37.0+rke2r1 GA 2026-09-14; community ceilings per line in `compat/generated.json`. v1.31.14+rke2r2 and v1.32.13+rke2r2 are Prime-only (body: "is a Prime-only release").
 
 ## Rancher
 
