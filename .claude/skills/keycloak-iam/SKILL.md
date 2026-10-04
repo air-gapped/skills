@@ -208,7 +208,7 @@ When the user asks about something specific, prefer these sources over generic r
     - `keycloakrealmimports.k8s.keycloak.org-v1.yml` — the `KeycloakRealmImport` CRD
     - `keycloakoidcclients…`/`keycloaksamlclients….yml` (26.7+) — client CRDs, required by the operator even if unused
     - `kubernetes.yml` — Operator Deployment + RBAC + ServiceAccount (assumes install namespace `keycloak`; one hardcoded ClusterRoleBinding subject — use the docs' kustomize-overlay approach for other namespaces)
-    - `kustomization.yml`, `cluster-wide/` (26.7+)
+    - `kustomization.yml`, `cluster-wide/` (26.7+). **Don't copy `kustomization.yml` into a directory that has its own `kustomization.yaml`** — kustomize then fails with `Found multiple kustomization files`. Either apply upstream's directory as-is (`kubectl apply --server-side -k`), or vendor only the four CRD files plus `kubernetes.yml` into your own overlay; a `cp *.yml` loop picks up both.
   - The repo's `main` branch has only the README + LICENSE; the actual manifests live in tags. Use `git checkout <tag>` against a clone, or `gh api repos/keycloak/keycloak-k8s-resources/contents/kubernetes?ref=<tag>` to fetch raw. (Do NOT assume the repo is stale just because `main` looks empty.)
 
 - **Online docs**: `https://www.keycloak.org/`
