@@ -476,6 +476,9 @@ Signal source?
 │   ├─ MongoDB count                  → mongodb
 │   ├─ Elasticsearch count            → elasticsearch
 │   ├─ OpenSearch query (2.20+)       → opensearch
+│   ├─ ClickHouse query (2.21+)       → clickhouse (no docs page; fields in Go source)
+│   ├─ Spanner SQL query (2.21+)      → gcp-spanner
+│   ├─ Cosmos DB change-feed lag (2.21+) → azure-cosmosdb
 │   └─ InfluxDB series                → influxdb
 ├─ Metric store
 │   ├─ Prometheus (most flexible)     → prometheus
