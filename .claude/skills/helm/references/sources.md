@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed. Helm is at v4.3.0 (2026-09-09) with 3.x still patched in parallel at v3.22.0 — and the Helm 3 EOL dates in the body were superseded: the maintainers extended the timeline, so security-only patches now run to 2027-02-10.
+Freshened: 2026-10-05
 
 **Methodology note for the null-coalescing rows:** their release attributions are confirmable only from each release's own notes, **not** from git ancestry. This project backports, so a fix reaches an older patch release as a *different commit*; comparing the pull request's main-branch merge commit against that tag reports "diverged" even though the fix is in it. Measured here: #31644's merge commit is not an ancestor of v4.1.3, yet v4.1.3's notes credit #31644 — while v4.2.0, which does contain that commit, never mentions it.
 
@@ -22,28 +22,28 @@ not guessable: `norwoodj/helm-docs` tags `v1.14.2`, `dadav/helm-schema` tags
 
 | Source | URL | Last verified | Notes |
 |--------|-----|---------------|-------|
-| Helm releases | https://github.com/helm/helm/releases | 2026-09-15 | Latest stable **v4.3.0 (2026-09-09)**, up from v4.2.4 (2026-08-13); latest 4.1 patch v4.1.4 (2026-04-09), line quiet since. **Helm 3 is still maintained in parallel** — now at **v3.22.0 (2026-09-10)**, and note it was cut a day *after* the Helm 4 release. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
-| Helm docs | https://helm.sh/docs/ | 2026-05-28 | Chart API v2 current; v3 format planned, not released. SSA default on new installs in Helm 4. |
+| Helm releases | https://github.com/helm/helm/releases | 2026-10-05 | Latest stable **v4.3.0 (2026-09-09)**, up from v4.2.4 (2026-08-13); latest 4.1 patch v4.1.4 (2026-04-09), line quiet since. **Helm 3 is still maintained in parallel** — now at **v3.22.0 (2026-09-10)**, and note it was cut a day *after* the Helm 4 release. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
+| Helm docs | https://helm.sh/docs/ | 2026-10-05 | Chart API v2 current; v3 format planned, not released. SSA default on new installs in Helm 4. |
 | helm-unittest | https://github.com/helm-unittest/helm-unittest/releases | 2026-10-05 | Latest **v1.2.1** (2026-10-03): v1.2.0 (2026-10-01) "Full helm 4 support"; v1.2.1 fixes the install script on Helm >= 4.3.0 with OCI plugin installation. README: Helm 4 git install needs `--verify=false`; OCI install supported from plugin 1.1.0. |
-| helmfile | https://github.com/helmfile/helmfile/releases | 2026-09-15 | Latest **v1.8.0 (2026-09-13)**, up from v1.7.4. Declarative multi-release management; supports Helm 3+4. |
-| chart-testing (ct) action | https://github.com/helm/chart-testing-action/releases | 2026-08-26 | Still v2.8.0 (2025-11-05), SHA `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` — resolves, matches the skill pin. |
-| chart-releaser action | https://github.com/helm/chart-releaser-action/releases | 2026-08-26 | Still v1.7.0 (2025-01-20). **Skill SHA was wrong** and now reads `cae68fefc6b5f367a0275617c9f83181ba54714f`. |
-| helm-docs | https://github.com/norwoodj/helm-docs/releases | 2026-08-26 | Still v1.14.2 (2024-07-08) — no release in two years; matches skill pin. Tags here **are** `v`-prefixed. |
-| dadav/helm-schema | https://github.com/dadav/helm-schema/releases | 2026-08-26 | Latest **0.23.5** (2026-08-24), was 0.23.4. values.schema.json generator from `@schema` annotations; GPG-signed releases. Tags carry **no** `v` prefix — `v0.23.x` 404s. |
-| kubeconform | https://github.com/yannh/kubeconform | 2026-08-26 | Latest v0.8.0 (2026-06-04). Successor to deprecated kubeval; validates rendered manifests against K8s OpenAPI schemas. |
-| cosign / sigstore | https://github.com/sigstore/cosign | 2026-08-26 | Latest v3.1.3 (2026-08-06); v2 line still patched (v2.6.5). Keyless + key-based OCI artifact signing; sign Helm charts by digest, not tag. |
-| Bitnami common library chart | https://github.com/bitnami/charts/tree/main/bitnami/common | 2026-05-28 | Source of commonLabels/commonAnnotations/adaptSecurityContext patterns; Bitnami moved to OCI-only. |
-| ArgoCD OCI cosign verification | https://github.com/argoproj/argo-cd/issues/22609 | 2026-08-26 | Issue still OPEN (no activity since 2025-04-22) — ArgoCD has no built-in cosign signature verification for OCI yet. Flux is ahead. |
-| Flux Helm OCI verification | https://fluxcd.io/flux/components/source/helmrepositories/ | 2026-05-28 | Flux supports cosign signature verification of OCI Helm charts via `.spec.verify`. |
-| OpenShift SCCs / DeploymentConfig | https://docs.openshift.com/ | 2026-05-28 | DeploymentConfig deprecated in OCP 4.14; use apps/v1 Deployment. restricted-v2 SCC assigns arbitrary UIDs. |
-| Renovate Helm managers | https://docs.renovatebot.com/modules/manager/helmv3/ | 2026-05-28 | helmv3 + helm-values managers; updates Chart.yaml deps and image tags in values.yaml. |
-| release-please | https://github.com/googleapis/release-please | 2026-08-26 | Latest **v17.11.2** (2026-08-24), was v17.11.1. `helm` release-type understands Chart.yaml; config-file vs action-input trap and extra-files object-form trap apply. |
-| Helm null coalescing | https://github.com/helm/helm/issues/32093 | 2026-08-26 | **Measured locally** on v3.17.3 / v4.0.5 / v4.1.0 / v4.1.1 / v4.1.4 / v4.2.0 / v4.2.4. Whether a chart's own `foo: ~` default survives the merge (`hasKey`) flipped twice — PR #31644 in **v4.1.3**, PR #31979 in **v4.2.0**. At v4.2.4 `cleanNilValues` runs only on the no-user-values path, so a chart renders differently with and without any `-f`. helm#32093 OPEN, fix PR #32097 unmerged. Deleting a **non-null** default via a user `-f` null is unaffected on every version tested. Drives SKILL.md Gotcha #5. |
+| helmfile | https://github.com/helmfile/helmfile/releases | 2026-10-05 | Latest **v1.8.1 (2026-09-30)**. Declarative multi-release management; supports Helm 3+4. |
+| chart-testing (ct) action | https://github.com/helm/chart-testing-action/releases | 2026-10-05 | Still v2.8.0 (2025-11-05), SHA `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` — resolves, matches the skill pin. |
+| chart-releaser action | https://github.com/helm/chart-releaser-action/releases | 2026-10-05 | Still v1.7.0 (2025-01-20). **Skill SHA was wrong** and now reads `cae68fefc6b5f367a0275617c9f83181ba54714f`. |
+| helm-docs | https://github.com/norwoodj/helm-docs/releases | 2026-10-05 | Still v1.14.2 (2024-07-08) — no release in two years; matches skill pin. Tags here **are** `v`-prefixed. |
+| dadav/helm-schema | https://github.com/dadav/helm-schema/releases | 2026-10-05 | Latest **0.23.5** (2026-08-24), was 0.23.4. values.schema.json generator from `@schema` annotations; GPG-signed releases. Tags carry **no** `v` prefix — `v0.23.x` 404s. |
+| kubeconform | https://github.com/yannh/kubeconform | 2026-10-05 | Latest v0.8.0 (2026-06-04). Successor to deprecated kubeval; validates rendered manifests against K8s OpenAPI schemas. |
+| cosign / sigstore | https://github.com/sigstore/cosign | 2026-10-05 | Latest v3.1.3 (2026-08-06); v2 line still patched (v2.6.5). Keyless + key-based OCI artifact signing; sign Helm charts by digest, not tag. |
+| Bitnami common library chart | https://github.com/bitnami/charts/tree/main/bitnami/common | 2026-10-05 | Source of commonLabels/commonAnnotations/adaptSecurityContext patterns; Bitnami moved to OCI-only. |
+| ArgoCD OCI cosign verification | https://github.com/argoproj/argo-cd/issues/22609 | 2026-10-05 | Issue still OPEN (last activity 2026-09-11, no fix) — ArgoCD has no built-in cosign signature verification for OCI yet. Flux is ahead. |
+| Flux Helm OCI verification | https://fluxcd.io/flux/components/source/helmrepositories/ | 2026-10-05 | Flux supports cosign signature verification of OCI Helm charts via `.spec.verify`. |
+| OpenShift SCCs / DeploymentConfig | https://docs.openshift.com/ | 2026-10-05 | DeploymentConfig deprecated in OCP 4.14; use apps/v1 Deployment. restricted-v2 SCC assigns arbitrary UIDs. |
+| Renovate Helm managers | https://docs.renovatebot.com/modules/manager/helmv3/ | 2026-10-05 | helmv3 + helm-values managers; updates Chart.yaml deps and image tags in values.yaml. |
+| release-please | https://github.com/googleapis/release-please | 2026-10-05 | Latest **v17.11.2** (2026-08-24), was v17.11.1. `helm` release-type understands Chart.yaml; config-file vs action-input trap and extra-files object-form trap apply. |
+| Helm null coalescing | https://github.com/helm/helm/issues/32093 | 2026-10-05 | **Measured locally** on v3.17.3 / v4.0.5 / v4.1.0 / v4.1.1 / v4.1.4 / v4.2.0 / v4.2.4. Whether a chart's own `foo: ~` default survives the merge (`hasKey`) flipped twice — PR #31644 in **v4.1.3**, PR #31979 in **v4.2.0**. At v4.2.4 `cleanNilValues` runs only on the no-user-values path, so a chart renders differently with and without any `-f`. helm#32093 OPEN, fix PR #32097 unmerged. Deleting a **non-null** default via a user `-f` null is unaffected on every version tested. Drives SKILL.md Gotcha #5. |
 
-## CI action pins — verified 2026-08-26
+## CI action pins — verified 2026-10-05
 
 Every SHA below was re-confirmed to resolve via `gh api repos/<r>/commits/<sha>`
-on 2026-08-26 — all eight pass. Newer releases exist for several; bump those
+on 2026-10-05 — all eight pass. Newer releases exist for several; bump those
 deliberately, not via freshen.
 
 | Action | Version | SHA | Note |
@@ -52,12 +52,12 @@ deliberately, not via freshen.
 | actions/setup-python | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` | was v5.6.0 |
 | azure/setup-helm | v5.0.1 | `9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310` | was v4.3.0; v5.0.0 was node20→node24 only |
 | docker/login-action | v4.4.0 | `af1e73f918a031802d376d3c8bbc3fe56130a9b0` | was v3.4.0; latest is v4.6.0, pin still resolves — bump deliberately, not via freshen |
-| helm/kind-action | v1.15.0 | `06c1ae10762d3b9c1644e7fe69596ae519e015a2` | was v1.14.0; v1.15.0 (2026-09-02) bumps default kind and kubectl |
+| helm/kind-action | v1.14.0 | `ef37e7f390d99f746eb8b610417061a60e82a6cc` | was v1.12.0; v1.15.0 exists (2026-09-02, bumps default kind/kubectl) — bump deliberately |
 | sigstore/cosign-installer | v4.1.2 | `6f9f17788090df1f26f669e9d70d6ae9567deba6` | was v3.8.2 — **and that SHA did not exist**. v4 is required to install cosign v3+ |
 | helm/chart-testing-action | v2.8.0 | `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` | unchanged, verified |
 | helm/chart-releaser-action | v1.7.0 | `cae68fefc6b5f367a0275617c9f83181ba54714f` | version unchanged, **SHA corrected** |
 
-## pre-commit `rev:` pins — verified 2026-08-26
+## pre-commit `rev:` pins — verified 2026-10-05
 
 Every tag below was confirmed via `gh api repos/<o>/<r>/git/refs/tags/<tag>`.
 Note the inconsistent prefixing — copy the tag, do not construct it.
