@@ -22,7 +22,7 @@ For RHBK (Red Hat build of Keycloak): LTS lines have multi-year support; 26.0 LT
 | From      | To        | Path                                                               |
 |-----------|-----------|--------------------------------------------------------------------|
 | 26.y.z    | 26.y.(z+n) | Patch — Auto strategy, zero-downtime.                             |
-| 26.7.x    | 26.8.x    | Minor — read SKILL.md §26.8.0 breaking changes first (several need action before the upgrade). |
+| 26.7.x    | 26.8.x    | Minor — read SKILL.md §26.8.0 breaking changes first. `Auto` rolls it when the compatibility check passes (26.7.2 → 26.8.0 rolled one pod at a time); don't schedule downtime by default. |
 | 26.x      | 26.8.x    | One minor at a time. Confirm each interim version comes up clean.   |
 | 25.x      | 26.x      | Cross-major — `Recreate` strategy. Brief downtime. Read the migration guide carefully — the major has retired flags (e.g. `--proxy edge`, `KEYCLOAK_ADMIN`). |
 | 24.x      | 25.x → 26.x | Don't try to leap. Step through 25.x first.                       |
@@ -42,7 +42,7 @@ Promoted to supported in 26.6 (`spec.update.strategy: Auto`). The mechanism:
 
 **Patch upgrades within a minor stream** (26.6.0 → 26.6.1): always wire-compatible, always rolling. Use Auto.
 
-**Minor upgrades** (26.5.x → 26.6.x): usually wire-compatible. Test in staging with `Auto`; the operator will fall back if not.
+**Minor upgrades** (26.5.x → 26.6.x, 26.7.x → 26.8.x): usually wire-compatible. Test in staging with `Auto`; the operator will fall back if not. The verdict is in the operator log: `Compatible changes detected.` → rolling, `Incompatible changes detected. Check update job for details.` → recreate.
 
 **Major upgrades** (25.x → 26.x): generally not wire-compatible. Plan for downtime.
 

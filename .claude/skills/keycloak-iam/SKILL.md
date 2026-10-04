@@ -284,7 +284,7 @@ spec:
     user:
       secret: keycloak-bootstrap-admin   # keys: username, password
   update:
-    strategy: Auto                # zero-downtime patch updates (26.6+)
+    strategy: Auto                # rolling when the compatibility check passes: patches, and usually minors (26.6+)
   features:
     enabled: ["organizations", "admin-fine-grained-authz:v2"]
 ```

@@ -65,7 +65,7 @@ spec:
       secret: keycloak-bootstrap         # remove after creating a real admin via kcadm.sh
 
   update:
-    strategy: Auto                       # zero-downtime patch updates (26.6+)
+    strategy: Auto                       # rolling when the compatibility check passes: patches, and usually minors (26.6+)
 
   tracing:
     enabled: true
