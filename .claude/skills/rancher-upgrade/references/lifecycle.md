@@ -16,10 +16,11 @@ release?" does NOT establish whether a patch is community-supported. The reliabl
 
 | Body contains | Meaning |
 |------------|---------|
-| `"This is a Community version release"` | Community cadence — supported for community users. (Currently only the **2.14.x** line.) |
+| `"This is a Community version release"` | Community cadence — supported for community users. Only the newest minor. |
 | `"This is a Community and Prime version release"` | Patch on the then-newest minor; serves both. |
 | `"This is a Prime version release"` | Prime-cadence patch on an older minor; full notes still on GitHub but **not** community-supported. |
-| `"Please refer to our Prime Documentation…"` (stub, no notes) | Prime-only; community gets nothing here. (Currently **2.11.15 / 2.12.11 / 2.13.7**.) |
+| `"Please refer to our Prime Documentation…"` (stub, no notes) | Prime-only; community gets nothing here. |
+| *(empty body, no assets)* | Prime-only — the form every older-minor tag took from the 2026-09-23 batch on. |
 
 ⚠ **Do NOT read this off `head -1`.** Verified 2026-07-25: the classifier sentence is *not*
 the first line on a community release. Community bodies open with a `# Release vX.Y.Z`
@@ -42,7 +43,9 @@ gh api repos/rancher/rancher/releases/tags/<tag> --jq '.body' \
   | grep -iEm1 'this is a (community and prime|community|prime) version release|refer to our \[?Prime Documentation'
 ```
 
-No match at all = an unrecognized notes format; read the body before assuming community.
+Empty body = Prime. Any other non-match = an unrecognized notes format; read the body before
+assuming community. Settle doubt with the community chart index — a version absent from
+`releases.rancher.com/server-charts/{latest,stable}/index.yaml` is not installable by `helm upgrade`.
 
 ## Cadence & lifecycle
 
