@@ -1,0 +1,140 @@
+{
+  "skill_name": "rancher-upgrade",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-10-04",
+    "grown": "opus via grow-evals.py 2026-10-04 (+8 to 8)",
+    "grown_reviewed": "2026-10-04: cases 0, 2, 3 corrected before first run — KDM windows to the skill matrix (verified against live release-v2.13/14/15 data.json), v2.13.10 body is empty (gh api), first-line edition test replaced (skill: whole-body grep or chart index)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "airgap-ladder-2-12-to-2-15-with-trailing-downstreams",
+      "prompt": "I need a written upgrade plan for our air-gapped Rancher fleet. Facts:\n\n- Management cluster `mgmt-01`: RKE2 v1.32.8, Rancher installed via Helm, `helm list -n cattle-system` shows chart rancher-2.12.3, app version v2.12.3. cert-manager v1.17.2. The registry is `harbor.corp.internal` only, with no internet egress. Our workstation has `gh` with auth and internet access, so it can do the mirroring.\n- Downstream clusters provisioned by this Rancher (from `kubectl get clusters.provisioning.cattle.io -A`): `local`, `prod-a` (RKE2 v1.31.12), `prod-b` (RKE2 v1.33.4), `edge-k3s` (K3s v1.32.6).\n- `kubectl get clusters.cluster.x-k8s.io -A` returns 3 rows.\n- KDM windows for downstream RKE2/K3s, taken from the data.json we mirrored internally: Rancher 2.12 → 1.31–1.33, 2.13 → 1.32–1.34, 2.14 → 1.33–1.35, 2.15 → 1.34–1.36.\n- Community latest patches, from our release sweep yesterday: 2.13.3, 2.14.3, 2.15.2.\n- No backup-restore-operator is installed.\n\nGoal: get to Rancher 2.15 and end with every downstream on k8s 1.34. Give me the ordered plan: each step, what to mirror into Harbor before each hop, and where each downstream cluster bump goes.",
+      "expected_output": "An ordered plan that goes 2.12.3 → 2.13.3 → 2.14.3 → 2.15.2 one minor at a time. Each trailing downstream cluster is lifted into the next Rancher's KDM window before the host hop that would otherwise strand it. Each hop has its own air-gap mirroring of images, the chart and KDM data, plus an etcd snapshot of the management cluster as the rollback floor.",
+      "files": [],
+      "assertions": [
+        "The Rancher path visits 2.13 and 2.14 in order, with no minor skipped, and uses the community patches 2.13.3, 2.14.3 and 2.15.2 as the rungs",
+        "Each downstream is lifted into the next host minor's KDM window before that hop, one k8s minor at a time: prod-a 1.31 → 1.32 before 2.13, prod-a and edge-k3s to at least 1.33 before 2.14, and every downstream to at least 1.34 before 2.15",
+        "No downstream is bumped to a k8s minor the host Rancher of that moment cannot manage (e.g. no 1.34 bump while the host is still on 2.12)",
+        "Each hop includes mirroring that version's Rancher images, its Helm chart and updated KDM metadata into the internal registry before the helm upgrade",
+        "Each hop takes an RKE2 etcd snapshot of the management cluster before upgrading, and the plan does not block on installing backup-restore-operator",
+        "The plan flags the 2.13→2.14 hop (embedded CAPI / Turtles, CAPI v1beta2) as hard to roll back, since this fleet has real CAPI clusters"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 1,
+      "name": "helm-upgrade-severed-by-rancher-proxied-kubeconfig",
+      "prompt": "Our upgrade of Rancher 2.13.3 → 2.14.3 on the management cluster went badly. I ran:\n\n```\nhelm upgrade rancher rancher-latest/rancher -n cattle-system --version 2.14.3 -f values.yaml\n```\n\nAbout 40 seconds in, it died with:\n\n```\nError: UPGRADE FAILED: an error occurred while finding last successful release. original upgrade error: Get \"https://rancher.corp.example/k8s/clusters/local/apis/apps/v1/namespaces/cattle-system/deployments/rancher\": stream error: stream ID 5; INTERNAL_ERROR; received from peer\n```\n\nNow `helm list -n cattle-system` shows the release as `pending-upgrade`. For a couple of minutes every kubectl command returned 502 Bad Gateway, and now they work again. A colleague thinks cert-manager is broken (we're on v1.16.1) and wants to upgrade it and then re-run the upgrade. My kubeconfig was downloaded from the Rancher UI. What actually happened, and what should I do now?",
+      "expected_output": "The root cause is the Rancher-proxied kubeconfig (server URL under /k8s/clusters/local). The helm upgrade restarted the Rancher pods that serve that proxy, which cut off helm's own API connection mid-apply. The fix is to switch to a direct, Rancher-independent admin kubeconfig, resolve the pending-upgrade release, and re-run. cert-manager is not the cause.",
+      "files": [],
+      "assertions": [
+        "Identifies the kubeconfig whose server URL goes through Rancher's /k8s/clusters/local proxy as the root cause: restarting the Rancher pods cut off helm's connection",
+        "Does not name cert-manager as the cause of this failure, and does not make a cert-manager upgrade the fix",
+        "Recommends switching to a direct admin kubeconfig that does not depend on Rancher (e.g. RKE2's rke2.yaml on a server node) before retrying",
+        "Covers handling the pending-upgrade Helm release state (inspecting history, rolling back or clearing the pending revision) before re-running the upgrade",
+        "Does not recommend deleting the cattle-system namespace or uninstalling the Rancher release to recover"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 2,
+      "name": "downstream-stranded-after-host-bump",
+      "prompt": "Last week we upgraded our management Rancher from 2.13.3 to 2.14.3. The upgrade itself went fine. Now our downstream RKE2 cluster `factory-floor` (RKE2 v1.32.9+rke2r1) behaves strangely:\n\n- In Cluster Management it shows Active and workloads run.\n- When I click Edit Config, the Kubernetes Version dropdown is empty for this cluster. Other clusters list 1.33.x–1.35.x.\n- Saving any config change (like adding a node pool) fails with a validation error about the kubernetes version not being supported.\n- `kubectl -n cattle-system logs deploy/cattle-cluster-agent` on factory-floor looks healthy. The agent is connected.\n\nThe team thinks the cluster agent is out of date and wants to redeploy it with the `kubectl apply -f` registration command from the UI. The other clusters were all on 1.33 or 1.34 before the upgrade. What is wrong, and how do we get factory-floor manageable again?",
+      "expected_output": "factory-floor's k8s minor (1.31) is outside Rancher 2.14's KDM-managed window. The host upgrade outran this trailing downstream cluster and stranded it, and the agent is not the problem. The answer explains why the version dropdown is empty and lays out a recovery path, along with the ordering rule that would have prevented it.",
+      "files": [],
+      "assertions": [
+        "Identifies the cause as factory-floor's k8s 1.32 falling outside Rancher 2.14's downstream KDM window (1.33–1.35), not as a broken or stale cluster agent",
+        "Does not present re-registering or redeploying the cluster agent as the fix",
+        "Explains the ordering rule: trailing downstream clusters must be lifted into the target Rancher's KDM window before the host upgrade",
+        "Gives a concrete recovery path (e.g. an out-of-band RKE2 upgrade of factory-floor to a 1.33 patch, or another supported way to bring it into the window), and is clear that minor hops on the cluster go one at a time",
+        "Does not recommend downgrading the management Rancher with helm rollback as the casual fix"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 3,
+      "name": "sort-v-picked-prime-only-tag",
+      "prompt": "I scripted our target-version lookup for the 2.13 rung of our Rancher ladder like this:\n\n```\ngh api repos/rancher/rancher/releases --paginate --jq '.[].tag_name' \\\n  | grep '^v2\\.13\\.' | grep -v -- '-rc\\|-alpha' | sort -V | tail -1\n```\n\nIt returned `v2.13.10`. When I mirror images for it with rancher-save-images.sh, I get `manifest unknown` for `rancher/rancher:v2.13.10` on Docker Hub. The GitHub release page for v2.13.10 exists, but its release notes are empty. Is Docker Hub having an outage? My plan says 2.12.3 → 2.13.10 → 2.14.x.",
+      "expected_output": "Docker Hub is not having an outage. v2.13.10 is a Prime-only tag on the shared GitHub release feed, and community images are not published for it. The answer explains that the newest tag for any non-current minor is usually Prime-only, so sort -V | tail -1 gives a target that cannot be installed. It gives an edition-aware way to find the community ceiling and corrects the rung.",
+      "files": [],
+      "assertions": [
+        "Identifies v2.13.10 as a Prime-only release, not a registry outage or a mirroring-script bug",
+        "Explains that taking the newest tag per minor is unreliable because Prime and community releases share one GitHub feed",
+        "Gives an edition-aware method for finding the community rung — e.g. checking the version against the community Helm chart index (releases.rancher.com/server-charts) or grepping the whole release body for the edition sentence — rather than relying on sort -V",
+        "Corrects the 2.13 rung to the last community patch (v2.13.3) or tells the operator to derive it edition-aware, rather than keeping 2.13.10",
+        "Does not suggest pulling Prime images or using a Prime registry as a workaround"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 4,
+      "name": "cve-patch-in-place-vs-minor-hop",
+      "prompt": "Security just escalated two findings against our community Rancher 2.13.3 management cluster:\n\n1. GHSA advisory for CVE-2026-44945 (CRITICAL, cross-cluster impersonation), vulnerable ranges `< 2.14.2`, `< 2.13.8`, `< 2.12.12`, `< 2.11.16`. The `first_patched_version` field is null.\n2. CVE-2026-88808 (CRITICAL) in rancher/fleet, floors at Fleet 0.16.2 / 0.15.7 / 0.14.11.\n\nThe security lead's proposal: \"Just patch to 2.13.8 this weekend. It's a patch release, low risk, and we avoid the CAPI/Turtles migration that 2.14 brings.\" Our ops lead's counter-proposal: \"Hop to 2.14.3 and stop there for this quarter.\"\n\nCommunity release sweep from today: latest community patches are 2.13.3, 2.14.3 and 2.15.2. Community 2.14.3 ships Fleet 0.15.4, and 2.15.2 ships Fleet 0.16.2. Which proposal do we take?",
+      "expected_output": "Neither proposal clears both CVEs on community edition. 2.13.8 is not a community release, so patching in place is impossible. 2.14.3 is still below the 2.14.2-or-later Rancher floor's companion Fleet fix: its Fleet 0.15.4 is below the 0.15.7 floor. Only 2.15.2 clears both. The recommendation is the minor ladder 2.13.3 → 2.14.3 → 2.15.2, treated as the security remediation.",
+      "files": [],
+      "assertions": [
+        "States that 2.13.8 cannot be installed on community edition (it is beyond the community ceiling of 2.13.3), so the patch-in-place proposal is not viable",
+        "Notes that the null first_patched_version does not mean no fix exists, and derives the floors from the vulnerable ranges",
+        "Determines that 2.14.3 clears the Rancher CVE-2026-44945 floor (≥2.14.2) but leaves the Fleet CVE open, because Fleet 0.15.4 is below 0.15.7",
+        "Recommends ending on 2.15.2 through 2.14.3, with no skip from 2.13 to 2.15, as the only community path that clears both advisories",
+        "Acknowledges the CAPI/Turtles migration at the 2.14 hop as a cost to plan for (backup / etcd snapshot), and does not treat it as a reason to stay on 2.13"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 5,
+      "name": "no-bro-install-first-or-snapshot",
+      "prompt": "We're about to upgrade our community Rancher 2.13.3 → 2.14.3 on a 3-node RKE2 management cluster (RKE2 v1.33.5). We never installed rancher-backup (BRO). Two options are on the table:\n\nA) Delay the upgrade two weeks. Install BRO from the rancher-charts repo, configure S3 storage on our MinIO, run a backup, and test a restore on a scratch cluster first.\nB) Upgrade this Thursday. Take an RKE2 etcd snapshot right before (`rke2 etcd-snapshot save --name pre-2.14`), copy it off-node, and also export Rancher and Fleet custom resources plus our AuthConfig (Keycloak OIDC) and its secrets with kubectl.\n\nWe have 6 downstream RKE2 clusters provisioned through CAPI. Which do we pick, and what is the real rollback path if 2.14 goes bad?",
+      "expected_output": "Option B is sound: an RKE2 etcd snapshot of the management cluster is the real rollback floor, especially at the one-way 2.14 CAPI v1beta2 boundary, and BRO is not required. The answer explains that rollback means restoring the etcd snapshot, not running helm rollback, and adds what to verify about the snapshot before proceeding.",
+      "files": [],
+      "assertions": [
+        "Recommends option B, or says BRO is not a prerequisite, and does not block the upgrade on installing BRO",
+        "Names the management-cluster etcd snapshot as the primary rollback mechanism",
+        "Explains that the 2.13→2.14 hop crosses a CAPI v1beta2 / Turtles boundary that helm rollback cannot reverse, so restoring the snapshot is the real path back",
+        "Calls for the snapshot to be stored off the cluster nodes and checked as present and usable before the upgrade starts",
+        "Keeps the targeted exports (Rancher/Fleet objects, AuthConfig and secrets) as a supplement, not as a replacement for the etcd snapshot"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 6,
+      "name": "guard-skip-straight-to-2-15",
+      "prompt": "Our maintenance windows are painful. Each one needs a CAB approval and a 2am slot. We're on community Rancher 2.12.3 (Helm install on RKE2 v1.32.8, management cluster only plus 2 downstream RKE2 1.32 clusters). I want to go straight to 2.15.2 in ONE window instead of three. Please just give me the exact helm upgrade command for 2.15.2 with our values (hostname rancher.int.example, ingress.tls.source=secret, privateCA=true) and the pre-checks. Don't lecture me about the ladder, I've read it, and I'll accept the risk.",
+      "expected_output": "The answer declines to give a direct 2.12→2.15 upgrade command, because skipping minors is unsupported and crosses one-way migrations (embedded CAPI → Turtles at 2.14) that need the intermediate steps. It offers a practical alternative that reduces the number of windows, such as running all three hops 2.12.3→2.13.3→2.14.3→2.15.2 in one longer window with a snapshot and gates between them.",
+      "files": [],
+      "assertions": [
+        "Does NOT provide a helm upgrade command that moves 2.12.3 directly to 2.15.2",
+        "Explains that skipping minors is unsupported, with a concrete reason such as migrations at intermediate minors (embedded CAPI → Turtles at 2.14) that must run in sequence",
+        "Offers an alternative that meets the goal of fewer windows, e.g. chaining the sequential hops inside one window with gates between them",
+        "The proposed sequence goes 2.12.3 → 2.13.3 → 2.14.3 → 2.15.2 with no minor skipped",
+        "Includes an etcd snapshot before the hops (ideally between them too) as the rollback floor"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 7,
+      "name": "guard-helm-rollback-after-2-14",
+      "prompt": "We upgraded community Rancher 2.13.3 → 2.14.3 yesterday. Since then Fleet bundles on two of our 5 downstream clusters are stuck in `WaitApplied`, and our Keycloak SAML login intermittently loops. Management wants us back on 2.13.3 NOW. My plan:\n\n```\nhelm rollback rancher 14 -n cattle-system   # revision 14 = 2.13.3\n```\n\nand then let the downstream clusters sort themselves out. We took an etcd snapshot `pre-214` on all three mgmt nodes before upgrading. Can you confirm the rollback command and anything I should do before running it?",
+      "expected_output": "The answer refuses to confirm a plain helm rollback. The 2.14 upgrade migrated embedded CAPI to Turtles and CAPI v1beta2, which is one-way, so rolling back only the chart leaves the CRDs and objects in a state 2.13.3 cannot handle. The supported way back is restoring the pre-214 RKE2 etcd snapshot on the management cluster. The answer also suggests triaging the Fleet and auth symptoms first, since a forward fix may be less disruptive.",
+      "files": [],
+      "assertions": [
+        "Does NOT endorse running helm rollback to 2.13.3 as the recovery path",
+        "Explains that the 2.14 upgrade made one-way changes (CAPI v1beta2 / Turtles migration) that a chart-only rollback does not undo",
+        "Names the RKE2 etcd snapshot restore on the management cluster as the real rollback path, using the pre-214 snapshot the operator already has",
+        "Explains the cost of the snapshot restore: all management-cluster state since the snapshot is lost, and the cluster has to be stopped and restored per RKE2's procedure",
+        "Suggests diagnosing the Fleet WaitApplied and SAML symptoms as a forward fix before committing to the restore"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-10-04"
+    }
+  ]
+}
