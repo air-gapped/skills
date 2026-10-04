@@ -13,11 +13,11 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 | Minor | Final EOL | Note |
 |---|---|---|
-| 2.11 | **2026-10-24** | **39 days from 2026-09-15 — NOT already past.** The previous estimate "~Sep 2026" reads as expired and would wrongly retire a live migration-source minor five weeks early. |
+| 2.11 | **2026-10-24** | Live migration-source minor until that date — do not retire it early. |
 | 2.12 | 2027-02-28 | was estimated ~Jan 2027 |
 | 2.13 | 2027-06-17 | was estimated ~May 2027 |
 | 2.14 | 2027-10-10 | was estimated ~Sep 2027 |
-| 2.15 | not yet set | still current; the ~Jan 2028 estimate is unverifiable, not wrong |
+| 2.15 | 2028-02-27 | |
 
 **Why the estimates skewed early, so it is not re-introduced:** the 18-month clock runs from the *docs* release date, which trails the GitHub GA tag by roughly a month (2.12 was tagged 2025-07-31 but the docs list 29 Aug 2025). Deriving the window from the tag date loses that month every time. **Read the published date; do not compute it.** 2.11 is a common **migration source** minor; its community line ends at v2.11.3 (see §2.11).
 

@@ -193,6 +193,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/rancher/rancher/releases
 - Probe: `gh release list --repo rancher/rancher --limit 30`
+- EOL source: https://endoflife.date/api/v1/products/rancher/ — per-minor `eolFrom` (2.15 → 2028-02-27, published by 2026-10-04).
 - Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
 - Last verified: 2026-09-15 — floor -> 2.11; **community ceiling v2.11.3 re-confirmed** by reading every v2.11.x body up to v2.11.17 — .4 through .17 each self-declare "Prime version release"; only v2.11.3 says "Community and Prime". Overall latest line is v2.15.1, unrelated to this floor.
 
