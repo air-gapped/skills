@@ -308,7 +308,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-09-15 — v2.0.2 (2026-08-20), one patch past the v2.0.1 the last pass sifted.
+- Last verified: 2026-10-04 — v2.0.3 (2026-10-02, `isLatest`); notes + PRs #3177/#3193 read, `passwordEncryptionFromSpec` (`pkg/cluster/types.go@v2.0.3`) defaults the pooler to scram-sha-256. README support table at v2.0.3: K8s `1.27+`, PG 14→18.
 
 ## Grafana Mimir (chart_metadata)
 

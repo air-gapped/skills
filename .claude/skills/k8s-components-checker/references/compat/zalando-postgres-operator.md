@@ -8,8 +8,8 @@
 - **Last sifted:** 2026-09-15
 - **CORRECTION — the "no published matrix" premise was false, and false from the start.** This file says in four places that the k8s floor is *"unstated by upstream"* and that Zalando *"does not publish a hard matrix"*. The repo README has carried a **"Supported Postgres & K8s versions"** table continuously since v1.11.0, with an explicit **K8s column reading `1.27+`** for every release listed, v1.11.0 through v2.0.2. It was there the whole time.
   The inferred floor this file guessed (≥1.27) happens to match the published one, which is why the error survived: the answer was right, so nothing ever contradicted it. **Read the README table; stop inferring.** Probe: `gh api repos/zalando/postgres-operator/contents/README.md --header 'Accept: application/vnd.github.raw' | grep -A10 'Supported Postgres'`.
-- **k8s floor (published): `1.27+`, identical for every release v1.11.0 → v2.0.2.** Release ceiling **v2.0.2** (2026-08-20, `isLatest`); single release train, v1.15.1 (2025-12-18) is the last pre-2.0 tag. (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
-- **Last release-verified:** 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
+- **k8s floor (published): `1.27+`, identical for every release v1.11.0 → v2.0.3.** Release ceiling **v2.0.3** (2026-10-02, `isLatest`); single release train, v1.15.1 (2025-12-18) is the last pre-2.0 tag. (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
+- **Last release-verified:** 2026-10-04 — `v2.0.3` (2026-10-02) notes, PRs and `pooler/pgbouncer.ini.tmpl` read at both tags; see §2.0.3. Prior verify 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
   notes read in full; it supersedes v2.0.1 as the only deployable 2.0.** See the
   new §2.0.2 below. Prior verify 2026-07-29 (full release listing enumerated via
   `gh api`; v2.0.0/v2.0.1 notes read in full).
@@ -26,7 +26,20 @@ The PG major in the image tag is the **default** primary major Spilo will
 initdb with; the Patroni/Spilo bundle inside that image also ships several
 older majors so `pg_upgrade` flows work.
 
-## 2.0.2  (2026-08-20)  — **the deployable 2.0**
+## 2.0.3  (2026-10-02)
+
+- **k8s floor / Spilo image / PG majors:** unchanged — `1.27+`, `spilo-17:4.1-p2`, PG 14–18 (README table at v2.0.3).
+- **Breaking — pooler auth type now follows the cluster's `password_encryption` (#3177, #3193).**
+  2.0.2 and earlier rendered pgBouncer with md5 auth. 2.0.3 sets `CONNECTION_POOLER_AUTH_TYPE` from
+  `spec.postgresql.parameters.password_encryption` and falls back to **scram-sha-256** when unset.
+  A cluster whose roles still hold md5 hashes, or whose clients only speak md5, loses pooler logins
+  on the operator bump. **Before upgrading:** set `password_encryption: md5` in each such
+  `postgresql` manifest, or finish the scram migration first.
+- **Fixes:** retry loop when moving the primary off a node (#3179, #3190); no switchover after
+  migrating a single-pod cluster (#3187); IRSA passes `CLONE_AWS_REGION` / `STANDBY_AWS_REGION` (#3180).
+- **Verdict:** ≥ 2.0.2 stays the floor. 2.0.3 is the target once the md5 check above is done.
+
+## 2.0.2  (2026-08-20)  — **the first deployable 2.0**
 
 - **k8s floor / Spilo image / PG majors:** unchanged from 2.0.1.
 - **Breaking:** Go module path gained the `/v2` major suffix (#3156) — **only
