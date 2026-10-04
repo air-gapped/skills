@@ -1,6 +1,6 @@
 # Keycloak: upgrade strategy, backup, and disaster recovery
 
-For Keycloak 26.6.x. The official upgrade guide is at `https://www.keycloak.org/docs/latest/upgrading/index.html` — that's the source of truth for breaking changes per version.
+Written for 26.6.x; the matrix covers through 26.8.x. The official upgrade guide is at `https://www.keycloak.org/docs/latest/upgrading/index.html` — that's the source of truth for breaking changes per version.
 
 ## TOC
 1. [Upgrade matrix](#matrix)
@@ -21,9 +21,9 @@ For RHBK (Red Hat build of Keycloak): LTS lines have multi-year support; 26.0 LT
 
 | From      | To        | Path                                                               |
 |-----------|-----------|--------------------------------------------------------------------|
-| 26.6.0    | 26.6.1    | Patch — Auto strategy, zero-downtime.                              |
-| 26.5.x    | 26.6.x    | Minor — Auto strategy possible, but read the upgrade guide first.  |
-| 26.x      | 26.6.x    | One minor at a time. Confirm each interim version comes up clean.   |
+| 26.y.z    | 26.y.(z+n) | Patch — Auto strategy, zero-downtime.                             |
+| 26.7.x    | 26.8.x    | Minor — read SKILL.md §26.8.0 breaking changes first (several need action before the upgrade). |
+| 26.x      | 26.8.x    | One minor at a time. Confirm each interim version comes up clean.   |
 | 25.x      | 26.x      | Cross-major — `Recreate` strategy. Brief downtime. Read the migration guide carefully — the major has retired flags (e.g. `--proxy edge`, `KEYCLOAK_ADMIN`). |
 | 24.x      | 25.x → 26.x | Don't try to leap. Step through 25.x first.                       |
 | < 24.x    | 26.x       | These ran the legacy WildFly distribution. Migration is non-trivial: re-architect, don't migrate in place. |
