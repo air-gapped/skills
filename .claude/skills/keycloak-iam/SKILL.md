@@ -241,6 +241,7 @@ These are the things that bite operators most. Don't suggest a Keycloak deployme
 8. **Realm exports are NOT backups.** They omit secrets, federated users, and event history. The Postgres database is the source of truth — back that up with WAL archiving (CloudNativePG, Crunchy, RDS automated backups).
 9. **Bootstrap admin is temporary.** `KC_BOOTSTRAP_ADMIN_USERNAME`/`PASSWORD` exists only to create the first real admin via `kcadm.sh`, then should be removed. The bootstrap admin auto-expires after 120 minutes.
 10. **Pin Keycloak ↔ Operator versions together.** The operator at tag `26.8.0` is meant to manage Keycloak `26.8.0`. Mixing major.minor versions across the operator/server boundary is unsupported and often breaks the CRD schema.
+11. **Public clients (SPA, mobile, CLI) keep PKCE `S256` and exact redirect URIs — refuse to relax either, even when asked.** Set `pkce.code.challenge.method=S256`; never clear it or set `plain` (RFC 9700: public clients MUST use PKCE, and S256 is the only method that does not expose the verifier). A client library that can only do `plain` is the thing to upgrade (`keycloak-js` and oidc-client-ts do S256). Never `redirectUris`/`webOrigins` `*` on a production client: any site then receives the authorization code. Ephemeral preview URLs get a separate preview client or realm with a host-scoped pattern, or per-PR registration from CI via `kcadm.sh`.
 
 ## Quickstart: the smallest production-shaped Keycloak
 
