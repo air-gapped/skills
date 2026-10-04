@@ -1,6 +1,6 @@
 # Sources — keycloak-iam
 
-Freshened: 2026-09-22 — every row probed. 26.7.4 shipped 2026-09-16 with 6 CVEs including CVE-2026-17526, an impersonation-role privilege escalation to realm admin — so the recommended floor moves to 26.7.4. Also corrected a citation to a 26.6.5 release that never existed.
+Freshened: 2026-10-05
 
 Authoritative external references the skill points at. `freshen` mode probes these and stamps `Last verified:` per row. Mark a row with `<!-- ignore-freshen -->` if the URL is intentionally pinned to a historical state.
 
@@ -8,40 +8,40 @@ Authoritative external references the skill points at. `freshen` mode probes the
 
 | URL | Purpose | Last verified | Pinned |
 |-----|---------|---------------|--------|
-| https://www.keycloak.org/server/all-config | Full CLI option index | 2026-08-18 | — |
-| https://www.keycloak.org/server/configuration | Configuration concept overview, build vs runtime | 2026-08-18 | — |
-| https://www.keycloak.org/server/configuration-metrics | Metrics surface | 2026-08-18 | — |
-| https://www.keycloak.org/server/health | Health endpoints + probe semantics | 2026-08-18 | — |
-| https://www.keycloak.org/observability/tracing | OTLP tracing options (moved from /server/configuration-tracing; /server/tracing also resolves) | 2026-08-18 | — |
-| https://www.keycloak.org/server/logging | Structured logging, JSON output, redaction | 2026-08-18 | — |
-| https://www.keycloak.org/server/importExport | `kc.sh export`/`import` modes | 2026-08-18 | — |
-| https://www.keycloak.org/server/reverseproxy | Proxy headers, graceful shutdown, client cert lookup | 2026-08-18 | — |
-| https://www.keycloak.org/docs/latest/upgrading/index.html | Migration changes per version | 2026-08-18 | — |
-| https://www.keycloak.org/docs/latest/server_admin/ | Server admin guide (realms, clients, auth flows, FGAP, organizations, workflows) | 2026-08-18 | — |
-| https://www.keycloak.org/docs/latest/server_development/ | SPI guide, theme structure, custom providers | 2026-08-18 | — |
+| https://www.keycloak.org/server/all-config | Full CLI option index | 2026-10-05 | — |
+| https://www.keycloak.org/server/configuration | Configuration concept overview, build vs runtime | 2026-10-05 | — |
+| https://www.keycloak.org/server/configuration-metrics | Metrics surface | 2026-10-05 | — |
+| https://www.keycloak.org/server/health | Health endpoints + probe semantics | 2026-10-05 | — |
+| https://www.keycloak.org/observability/tracing | OTLP tracing options (moved from /server/configuration-tracing; /server/tracing also resolves) | 2026-10-05 | — |
+| https://www.keycloak.org/server/logging | Structured logging, JSON output, redaction | 2026-10-05 | — |
+| https://www.keycloak.org/server/importExport | `kc.sh export`/`import` modes | 2026-10-05 | — |
+| https://www.keycloak.org/server/reverseproxy | Proxy headers, graceful shutdown, client cert lookup | 2026-10-05 | — |
+| https://www.keycloak.org/docs/latest/upgrading/index.html | Migration changes per version | 2026-10-05 | — |
+| https://www.keycloak.org/docs/latest/server_admin/ | Server admin guide (realms, clients, auth flows, FGAP, organizations, workflows) | 2026-10-05 | — |
+| https://www.keycloak.org/docs/latest/server_development/ | SPI guide, theme structure, custom providers | 2026-10-05 | — |
 
 ## Operator + Kubernetes
 
 | URL | Purpose | Last verified | Pinned |
 |-----|---------|---------------|--------|
-| https://www.keycloak.org/operator/installation | OLM and non-OLM install paths | 2026-08-18 | — |
-| https://www.keycloak.org/operator/basic-deployment | Minimal `Keycloak` CR | 2026-08-18 | — |
-| https://www.keycloak.org/operator/advanced-configuration | Full CR field reference (additionalOptions, podTemplate, scheduling) | 2026-08-18 | — |
-| https://www.keycloak.org/operator/advanced-configuration | CR field-by-field reference — the standalone /operator/keycloak-cr page is gone (404, absent from sitemap); field reference now lives in advanced-configuration | 2026-08-18 | — |
-| https://www.keycloak.org/operator/realm-import | `KeycloakRealmImport` CR (page renamed from /operator/realm) | 2026-08-18 | — |
-| https://www.keycloak.org/operator/rolling-updates | Zero-downtime patch update strategy (26.6+) | 2026-08-18 | — |
-| https://www.keycloak.org/high-availability/introduction | HA topology guide (single + multi-cluster; landing moved from /high-availability/) | 2026-08-18 | — |
-| https://github.com/keycloak/keycloak-k8s-resources | Per-version-tag operator install manifests (CRDs + RBAC + Deployment); tags now run to **26.7.3** (26.7.1/26.7.2/26.7.3 all added since the last pass), and 26.6.3/26.6.4 exist too — the repo tracks server releases 1:1 | 2026-09-15 | — |
+| https://www.keycloak.org/operator/installation | OLM and non-OLM install paths | 2026-10-05 | — |
+| https://www.keycloak.org/operator/basic-deployment | Minimal `Keycloak` CR | 2026-10-05 | — |
+| https://www.keycloak.org/operator/advanced-configuration | Full CR field reference (additionalOptions, podTemplate, scheduling) | 2026-10-05 | — |
+| https://www.keycloak.org/operator/advanced-configuration | CR field-by-field reference — the standalone /operator/keycloak-cr page is gone (404, absent from sitemap); field reference now lives in advanced-configuration | 2026-10-05 | — |
+| https://www.keycloak.org/operator/realm-import | `KeycloakRealmImport` CR (page renamed from /operator/realm) | 2026-10-05 | — |
+| https://www.keycloak.org/operator/rolling-updates | Zero-downtime patch update strategy (26.6+) | 2026-10-05 | — |
+| https://www.keycloak.org/high-availability/introduction | HA topology guide (single + multi-cluster; landing moved from /high-availability/) | 2026-10-05 | — |
+| https://github.com/keycloak/keycloak-k8s-resources | Per-version-tag operator install manifests (CRDs + RBAC + Deployment); tags run to 26.8.0 (also 26.7.4, 26.7.5; none for 26.6.5+); 26.8.0 `kubernetes/` file list identical to 26.7.0 | 2026-10-05 | — |
 
 ## Securing applications (developer surface)
 
 | URL | Purpose | Last verified | Pinned |
 |-----|---------|---------------|--------|
-| https://www.keycloak.org/securing-apps/oidc-layers | OIDC integration patterns | 2026-08-18 | — |
-| https://www.keycloak.org/securing-apps/dpop | DPoP-bound tokens (RFC 9449) | 2026-08-18 | — |
-| https://www.keycloak.org/securing-apps/jwt-authorization-grant | RFC 7523 JWT-Authz-Grant (GA in 26.6) | 2026-08-18 | — |
-| https://www.keycloak.org/securing-apps/mcp-authz-server | MCP authorization server (CIMD experimental) | 2026-08-18 | — |
-| https://www.keycloak.org/securing-apps/token-exchange | RFC 8693 standard token exchange | 2026-08-18 | — |
+| https://www.keycloak.org/securing-apps/oidc-layers | OIDC integration patterns | 2026-10-05 | — |
+| https://www.keycloak.org/securing-apps/dpop | DPoP-bound tokens (RFC 9449) | 2026-10-05 | — |
+| https://www.keycloak.org/securing-apps/jwt-authorization-grant | RFC 7523 JWT-Authz-Grant (GA in 26.6) | 2026-10-05 | — |
+| https://www.keycloak.org/securing-apps/mcp-authz-server | MCP authorization server (CIMD experimental) | 2026-10-05 | — |
+| https://www.keycloak.org/securing-apps/token-exchange | RFC 8693 standard token exchange | 2026-10-05 | — |
 
 ## Source code + releases
 
@@ -49,14 +49,14 @@ Authoritative external references the skill points at. `freshen` mode probes the
 |-----|---------|---------------|--------|
 | https://github.com/keycloak/keycloak/releases/tag/26.8.0 | Keycloak 26.8.0 release + upgrading notes — (`docs/documentation/upgrading/topics/changes/changes-26_8_0.adoc` at tag 26.8.0). Latest, 2026-10-01. 7 CVEs (CVE-2026-12388 IdP-mapper admin-role escalation, CVE-2026-14781, CVE-2026-19608, CVE-2026-4633 + 3 dependency). Quarkus 3.33 → 3.40. | 2026-10-05 | |
 | https://github.com/keycloak/keycloak/releases/tag/26.7.5 | Keycloak 26.7.5 release. 2026-09-30, 15 CVEs (incl. CVE-2026-89298 client secret via Client Registration GET to `view-clients`, CVE-2026-93999). 26.7.4 (2026-09-16): 6 CVEs incl. CVE-2026-17526; advisory GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997 (high) `>= 26.7.0, < 26.7.4`. Git tags 26.6.5–26.6.7 (to 2026-09-07) exist with no GitHub Release and no quay.io image (quay tag API, 2026-10-05). | 2026-10-05 | |
-| https://github.com/keycloak/keycloak | Upstream source — option mappers, operator code, themes | 2026-09-15 | — |
-| https://github.com/keycloak/keycloak/releases/tag/26.7.0 | Latest minor (2026-07-09; **current stable is now 26.7.3**, 2026-08-31 — 26.7.1 (2026-08-05) and 26.7.2 (2026-08-19) came and went between). Highlights: SCIM user provisioning (preview), multi-cluster HA without external caches (preview), OpenID Shared Signals Framework (experimental), Identity Brokering API V2, SAML step-up auth, HAProxy/Traefik proxy blueprints | 2026-09-15 | 26.7.0 |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.4 | 26.6.4 (2026-06-26) — terminal 26.6 patch as of this probe; security fix for CVE-2026-9099 (group-admin → realm-admin escalation, HIGH) | 2026-09-15 | 26.6.4 |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.3 | 26.6.3 (2026-06-04) — security batch. **The release notes now credit 16 distinct CVE ids to this tag, not the 3 this row used to list** (counted from the release body 2026-09-15). The three named here — lodash template injection in account/ui, SSRF via the OIDC token endpoint, CORS reflection from an unverified `azp` — are a sample, not the set. Read the release body before scoping a patch window; a release's advisory list can grow after publication | 2026-09-15 | 26.6.3 |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.2 | 26.6.2 release notes (2026-05-19) — security-fix batch | 2026-09-15 | 26.6.2 |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.1 | 26.6.1 release notes (2026-04-15) | 2026-08-18 | 26.6.1 |
-| https://github.com/keycloak/keycloak/releases/tag/26.6.0 | 26.6.0 release notes (highlights: Workflows, JWT-Authz-Grant, zero-downtime updates) | 2026-08-18 | 26.6.0 |
-| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list (probe before quoting any CVE ID) | 2026-09-15 | — | 
+| https://github.com/keycloak/keycloak | Upstream source — option mappers, operator code, themes | 2026-10-05 | — |
+| https://github.com/keycloak/keycloak/releases/tag/26.7.0 | 26.7.0 (2026-07-09), first 26.7 release. Line ran to 26.7.5 (2026-09-30); every patch a security batch. Superseded by 26.8.0 (2026-10-01). | 2026-10-05 | 26.7.0 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.4 | 26.6.4 (2026-06-26) — last community 26.6 release (git tags 26.6.5–26.6.7 exist without a Release or quay image); 8 CVEs incl. security fix for CVE-2026-9099 (group-admin → realm-admin escalation, HIGH) | 2026-10-05 | 26.6.4 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.3 | 26.6.3 (2026-06-04) — security batch. **The release notes now credit 16 distinct CVE ids to this tag, not the 3 this row used to list** (counted from the release body 2026-09-15). The three named here — lodash template injection in account/ui, SSRF via the OIDC token endpoint, CORS reflection from an unverified `azp` — are a sample, not the set. Read the release body before scoping a patch window; a release's advisory list can grow after publication | 2026-10-05 | 26.6.3 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.2 | 26.6.2 release notes (2026-05-19) — security-fix batch | 2026-10-05 | 26.6.2 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.1 | 26.6.1 release notes (2026-04-15) | 2026-10-05 | 26.6.1 |
+| https://github.com/keycloak/keycloak/releases/tag/26.6.0 | 26.6.0 release notes (highlights: Workflows, JWT-Authz-Grant, zero-downtime updates) | 2026-10-05 | 26.6.0 |
+| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list (probe before quoting any CVE ID). 2026-10-05: one advisory since 2026-09-15 — GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997 (high) `>= 26.7.0, < 26.7.4`; the 26.7.5 and 26.8.0 CVEs are not in the feed yet, read the release notes | 2026-10-05 | — | 
 
 **Advisory-feed caveat, observed 2026-07-21.** Eight advisories carry
 `published_at: 2026-06-26`, but only one of them (CVE-2026-9099) is credited in
@@ -64,7 +64,7 @@ the 26.6.4 release notes published the same day. The feed's
 `first_patched_version` is **empty on every one of them**, so the feed alone
 cannot tell you which release closes a given CVE. Cross-read the release notes
 of each candidate version — do not infer a fix version from the disclosure date.
-| https://github.com/keycloak/keycloak-benchmark | Gatling-based load harness | 2026-08-18 | — |
+| https://github.com/keycloak/keycloak-benchmark | Gatling-based load harness | 2026-10-05 | — |
 
 ## Specs referenced
 
