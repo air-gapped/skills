@@ -119,12 +119,9 @@ Mar/Jul/Nov cadence, 2.15 GA is **due now** — but it is still a prerelease, so
   skill; between GA and this stamp the correct target changes.
 
 ⚠ **2.11 goes EOL 2026-10-24 — and community 2.11 is already frozen.**
-(As of 2026-09-15 that is **~5½ weeks**, not the "roughly three months" this
-line said when written. **Compute the runway from the date; never trust a
-relative phrase in this file** — the date stays correct while the phrase rots,
-and the runway is the whole point of the warning.) 2.11 is this skill's upgrade *floor*, so an operator arriving
+**Compute the runway from the date at plan time.** 2.11 is this skill's upgrade *floor*, so an operator arriving
 on 2.11 has a short runway: they are starting a one-minor-at-a-time ladder
-(2.11→2.12→2.13→2.14) from a version that leaves support before that ladder is
+(2.11→2.12→2.13→2.14→2.15) from a version that leaves support before that ladder is
 likely to finish. **Sharper than the EOL date alone:** the community ceiling
 v2.11.3 shipped **2025-06-25** — over a year ago. Every 2.11 patch since is
 Prime-only, so a community operator on 2.11 has been receiving *no fixes at all*
