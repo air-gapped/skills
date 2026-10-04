@@ -58,7 +58,7 @@ assuming community. Settle doubt with the community chart index — a version ab
 - **Support window ≈ 18 months** = ~12 months full support + ~6 months limited (critical-security
   only), for 2.9 onward.
 
-**EOL dates (suse.com/lifecycle + endoflife.date agree, GA+18mo):**
+**EOL dates (suse.com/lifecycle + endoflife.date agree):**
 
 | Minor | Community GA (.0) | EOL |
 |-------|-------------------|-----|
@@ -68,13 +68,12 @@ assuming community. Settle doubt with the community chart index — a version ab
 | 2.14 | 2026-03-26 | **2027-10-10** |
 | 2.15 | 2026-07-30 | **2028-02-27** |
 
-EOL table re-verified 2026-09-15 against endoflife.date — the four published dates unchanged.
-**2.15 has no EOL date yet** (`eol: false` in the API). Do not compute one: the published dates
-are not GA+18mo arithmetic (2.11 GA 2025-03-31 would give 2026-09-30, the published date is
-2026-10-24), because SUSE counts from the stabilized ~`.1` GA. State it as unannounced.
+Read EOL dates from endoflife.date or suse.com/lifecycle; never compute one. They are not
+GA+18mo arithmetic (2.11 GA 2025-03-31 would give 2026-09-30, the published date is 2026-10-24),
+because SUSE counts from the stabilized ~`.1` GA. A minor with no published date is unannounced.
 
 > **Trap — endoflife.date's `latest` column is the PRIME tag, not the community ceiling.** It
-> reports 2.14.5 / 2.13.9 / 2.12.13 / 2.11.17, every one of which is a Prime-docs redirect. It
+> reports Prime-only patches for every minor but the newest (2.14.6 / 2.13.10 / … on 2026-10-04). It
 > overshoots exactly the way `sort -V | tail -1` does, so use it for **dates only** and take
 > ceilings from the edition discriminator below. Its `releaseDate` column is the stabilized
 > date, not the GitHub `.0` — which is why it reads 2.14 as 2026-04-30 while the `.0` tag is
