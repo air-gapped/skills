@@ -20,8 +20,8 @@ time (`lifecycle.md` § Grounding).
 
 So: embedded CAPI through **2.12**; **2.13** runs both (Turtles v0.25 introduced alongside);
 **2.14** removes embedded CAPI entirely and runs Turtles **v0.26** with CAPI **v1beta2**. (Turtles
-v0.26.0 ≈ 2.14.0 GA; latest in the 0.26 line **v0.26.4**, 2026-07-21 — and **v0.27.0** now exists
-(2026-07-22), tracking the unreleased 2.15; do not pull it onto 2.14.) The
+v0.26.0 ≈ 2.14.0 GA; **2.15** runs Turtles **v0.27**. Each Rancher tag pins its Turtles in
+`build.yaml` `turtlesVersion` (v2.14.3 → 0.26.3, v2.15.2 → 0.27.2); do not pull a v0.27 onto 2.14.) The
 `rancher-provisioning-capi` chart being **404 on the
 release-v2.14 branch** is the hard confirmation embedded CAPI is gone at 2.14.
 

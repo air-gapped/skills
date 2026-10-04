@@ -96,8 +96,9 @@ Two layers, both taken **before every step**:
   cluster objects). Pair the BRO chart to the Rancher minor by the chart's
   `catalog.cattle.io/rancher-version` annotation — **not** the chart-version prefix. Grounded
   pairing (2026-05-30): 2.11→chart `106.x+up7.0.x`, 2.12→`107.x+up8.1.x`, 2.13→`108.x+up9.0.x`,
-  2.14→`109.x+up10.0.x` (latest BRO app **v10.0.7**, 2026-06-23 — grounded 2026-07-25). Re-ground via
-  `gh api 'repos/rancher/backup-restore-operator/releases?per_page=50'`. The operator auto-scales
+  2.14→`109.x+up10.0.x`, 2.15→`110.x+up11.0.x` (BRO v10.0.10 / v11.0.3 as of 2026-10-04). Re-ground via
+  `gh api 'repos/rancher/backup-restore-operator/releases?per_page=50'` — BRO cuts every line the same
+  day and GitHub's `Latest` badge lands on an arbitrary one (v9.0.8 on 2026-09-21); never read it. The operator auto-scales
   the Rancher deployment to 0 during a restore (no manual scale-down needed).
 - **RKE2 etcd snapshot of the management cluster** is the *real* rollback floor — it recovers from a
   failed CRD migration / CAPI bump that BRO can't. Take an on-demand snapshot immediately before the
