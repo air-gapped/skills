@@ -269,7 +269,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Primary URL: https://github.com/rook/rook/releases
 - Secondary URL: https://rook.io/docs/rook/latest-release/
 - Probe: `gh release list --repo rook/rook --limit 30`; for each in-scope release, `gh release view <tag>` and sift k8s floor + supported Ceph versions; WebFetch docs landing page as cross-reference.
-- Last verified: 2026-09-15 — v1.20.7 (2026-09-02) — new v1.20 minor line since last pass.
+- Last verified: 2026-10-04 — v1.20.8 (2026-09-29, `isLatest`); its `Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.20.8` reads "v1.31 through v1.37" (v1.20.7 read v1.36). v1.19.11 newest 1.19.
 
 ## Ceph (storage)
 

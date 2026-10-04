@@ -95,11 +95,11 @@ after a clean operator hop typically surfaces only:
 Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
 no CephFS).
 
-## 1.20 (latest: **1.20.7**, 2026-09-02 — release-verified 2026-09-15; was 1.20.2 at sift, patch contents not sifted. k8s **1.31–1.36**)
+## 1.20 (latest: **1.20.8**, 2026-09-29 — release-verified 2026-10-04. k8s **1.31–1.37** from 1.20.8; 1.31–1.36 through 1.20.7)
 
 **Cross-component (Ceph)** — this row was missing from the 1.20 section while every other line has one. Squid **v19.2.0+**; Tentacle **v20.2.1+**, and **v20.2.0 is not recommended**: it carries a read-affinity data-corruption bug, with upstream guidance to move to **v20.2.2+** if read affinity was ever enabled. Same caveat applies on 1.19.
 
-- **k8s floor:** **1.31 – 1.36** (stated in the 1.20.0 release notes).
+- **k8s floor:** **1.31 – 1.37 on ≥ 1.20.8**; 1.31 – 1.36 on 1.20.0–1.20.7 (each tag's `prerequisites.md`). On k8s 1.37, require Rook ≥ 1.20.8.
 - **Breaking:**
   - **The Ceph CSI operator is now REQUIRED.** CSI settings are removed from the
     `rook-ceph-operator-config` ConfigMap and from the `rook-ceph` Helm chart.
