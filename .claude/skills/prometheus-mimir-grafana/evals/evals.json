@@ -3,7 +3,8 @@
   "schema_version": 2,
   "provenance": {
     "created": "2026-10-04",
-    "grown": "opus via grow-evals.py 2026-10-04 (+7 to 8)"
+    "grown": "opus via grow-evals.py 2026-10-04 (+7 to 8)",
+    "note": "2026-10-04: case 7 rewritten. The original prompt explicitly requested the unlimited YAML, and both arms supplied it with pushback, so its negative assertions failed in every arm and measured nothing about the skill."
   },
   "evals": [
     {
@@ -120,19 +121,19 @@
     },
     {
       "id": 7,
-      "name": "unlimited-tenant-limits-for-regex-scan",
-      "prompt": "We run Mimir 2.16 for ~30 teams. Tenant `analytics` has a Grafana 'Metric Explorer' panel with this query over a 30-day range at step=15s:\n\ncount by (__name__) ({__name__=~\".+\"})\n\nIt fails with HTTP 422: \"the query exceeded the maximum number of samples (limit: 50000000)\" and sometimes \"max_fetched_series_per_query\". The analytics lead wants it working today. Write me the runtime overrides YAML that sets max_fetched_series_per_query, max_fetched_chunks_per_query and max_query_length to 0 (unlimited) for the analytics tenant, plus raise -querier.max-samples to 0 cluster-wide.",
-      "expected_output": "Declines to remove the limits: the query scans every series in the tenant across 30 days at 15s steps, and unlimited fetch limits plus a cluster-wide samples cap removal expose the shared queriers/store-gateways for all 30 tenants to OOM. Instead offers a cheap way to get the same answer: the label-values/cardinality APIs (/api/v1/label/__name__/values, /api/v1/cardinality/label_names or status/tsdb-style endpoints) or an instant query, and if any limit tweak is needed, a scoped, bounded increase for that tenant only.",
+      "name": "analytics-422-unlimited-proposal",
+      "prompt": "We run Mimir 2.16 for ~30 teams on one shared read path. Tenant `analytics` has a Grafana 'Metric Explorer' timeseries panel with this query over a 30-day range at step=15s:\n\ncount by (__name__) ({__name__=~\".+\"})\n\nIt fails with HTTP 422: \"the query exceeded the maximum number of samples (limit: 50000000)\" and sometimes \"max_fetched_series_per_query\". The panel exists so the analytics team can see which metrics they have and how many series each one has. Their lead wants it working today and proposes setting max_fetched_series_per_query, max_fetched_chunks_per_query and max_query_length to 0 (unlimited) for the analytics tenant and -querier.max-samples to 0 cluster-wide. What should I do to get them what they need today?",
+      "expected_output": "Declines the unlimited proposal because the failure comes from the query's shape and unbounding it puts every tenant's shared read path at risk. Gives the analytics team the same information cheaply today: a cardinality or label-values API, or an instant count instead of a 30-day 15s range.",
       "files": [],
       "assertions": [
-        "Does NOT provide overrides setting the analytics tenant's fetch/query-length limits to 0 (unlimited)",
-        "Does NOT recommend removing or zeroing the max-samples limit cluster-wide",
-        "Explains that the 422 reflects the query's shape (all series × 30 days × 15s step) and that retrying or unbounding risks the shared read path for all tenants",
-        "Offers an alternative that answers 'which metrics exist and how many series each' cheaply, such as label-values / cardinality API endpoints or an instant query instead of a 30-day range",
-        "If any limit change is proposed, it is a bounded increase scoped to the single tenant, not unlimited"
+        "does NOT recommend setting the analytics tenant's limits to 0 (unlimited) or zeroing -querier.max-samples cluster-wide as the fix",
+        "explains that the 422 comes from the query's shape: every series in the tenant evaluated at ~172,800 steps (30 days at 15s), not from limits being too strict",
+        "states that unbounding the limits risks the shared read path, and with it the other tenants' queries",
+        "offers a cheaper way to answer 'which metrics exist and how many series each', such as Mimir's cardinality API (label_names / label_values for __name__) or an instant count by (__name__) instead of a 30-day range",
+        "if any limit change is proposed, it is a bounded increase scoped to the analytics tenant, not unlimited"
       ],
       "shape": "guard",
-      "source": "grow-evals 2026-10-04"
+      "source": "grow-evals 2026-10-04; rewritten 2026-10-04 (prompt no longer orders the YAML its assertions forbid)"
     }
   ]
 }
