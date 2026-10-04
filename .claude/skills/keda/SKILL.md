@@ -278,14 +278,9 @@ minors: v2.21 covers **1.34–1.36**, v2.20 covers 1.33–1.35, v2.19 covers
 
 ### Open defects worth knowing before you rely on a feature
 
-- **`TriggerAuthentication` does not pick up rotated Secrets** (#7906). Auth
-  params are resolved once when the scaler is built and never re-read, so a
-  rotated token produces **silent 401s** from the target until the ScaledObject
-  is recreated or the operator restarts. Confirmed through 2.20.1. This is the
-  one to know if you rotate credentials on a schedule.
-- **Finalizers can wedge a namespace teardown** for 20–30 minutes (#7950): a
-  `resourceVersion` conflict between finalizer removal and the scale loop's
-  status writes drops into controller-runtime backoff. Manual `kubectl patch`
+- **Finalizers could wedge a namespace teardown** on ≤ 2.20.1 (#7950): bulk
+  deletes left ScaledObjects in `Terminating`. Not reproduced on 2.20.2, no fix
+  PR named. If it recurs, a manual `kubectl patch` removing the finalizer
   clears it.
 - **CloudEventSource can deadlock the operator** with two or more sources
   registered (#8039), while still passing its liveness probe. Open at time of
