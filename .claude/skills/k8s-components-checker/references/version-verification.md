@@ -4,10 +4,10 @@ The registry's **k8s support windows** (minor-level floors/ceilings) are durable
 methodology and are the registry's job to carry. **Specific version numbers** —
 "latest patch", "newest minor", "CVE fixed in vX.Y.Z" — are volatile and are the
 #1 source of fabrication: sifting release notes into prose invites
-plausible-but-nonexistent patch numbers. A real example this skill produced: a
-verdict cited **Argo CD `v3.2.10` / `v3.2.12`** and "CVE-2026-42880 fixed in
-3.2.10" — the 3.2 line actually ended at **v3.2.6**, unpatched (pure
-fabrication). The **opposite** error happened too: Harbor `## 2.15` was *struck*
+plausible-but-nonexistent patch numbers. Recall fails the other way as well: a
+pass declared **Argo CD `v3.2.10` / `v3.2.12`** fabricated and claimed the 3.2
+line ended at v3.2.6 — both releases are real and the line runs to **v3.2.12**
+(`compat/argo-cd.md`). Harbor `## 2.15` was *struck* the same way
 as "not released" because `releases/latest` was `v2.14.4` — but `v2.15.0` /
 `v2.15.1` are real, *higher* releases; `releases/latest` is **recency, not
 rank**. Two different failure modes, two different defenses — see § Three
@@ -51,7 +51,7 @@ Version grounding fails in three independent ways. Defending against one does
 
 | # | Failure mode | Looks like | Defense |
 |---|---|---|---|
-| 1 | **Fabrication** | a version that does not exist (`v3.2.10`, `v9.9.9`) asserted as real | derive from a no-candidate enumeration; a fake 404s on `gh release view <tag>` |
+| 1 | **Fabrication** | a version that does not exist (`v9.9.9`) asserted as real | derive from a no-candidate enumeration; a fake 404s on `gh release view <tag>` |
 | 2 | **`releases/latest` ≠ highest version** | `releases/latest` points at an *older* minor's patch while a higher minor exists | never treat it as a ceiling; enumerate + reason per minor line |
 | 3 | **Edition** | a real, older **Prime/EE** patch passes as community | release-notes edition discriminator (next subsection) |
 
@@ -60,8 +60,8 @@ Version grounding fails in three independent ways. Defending against one does
 A query that names your guess confirms your guess. Ask the listing *what exists*,
 never *whether your candidate exists*.
 
-- **Never put a candidate version in the command** (`releases/tags/v3.2.10`,
-  `| grep v3.2.10`). Only absurd fakes (`v9.9.9`) reliably 404; a plausible one you
+- **Never put a candidate version in the command** (`releases/tags/vX.Y.Z`,
+  `| grep vX.Y.Z`). Only absurd fakes (`v9.9.9`) reliably 404; a plausible one you
   name biases your reading of the output.
 - Fetch the full non-prerelease tag list with **no version named** — GitHub
   returns the repo's real tags (it does not invent releases), so **this
@@ -241,8 +241,8 @@ from an internet-accessible client.
 Same protocol, applied to authoring:
 
 - Only write version numbers that appear in a **freshly fetched, uncontaminated**
-  release listing (step 2–3 above). Never extrapolate a patch line ("…so 3.2.10
-  probably exists").
+  release listing (step 2–3 above). Never extrapolate a patch line ("…so X.Y.10
+  probably exists"), and never delete one the listing shows.
 - Derive each "latest patch of minor X" by enumeration + `sort -V | tail -1`.
 - Ground every "fixed-in vX.Y.Z" against that release's own notes
   (`gh release view <tag> --repo <r>`); if you cannot, **omit the claim** rather

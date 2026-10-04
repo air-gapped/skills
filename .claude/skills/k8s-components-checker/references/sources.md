@@ -70,7 +70,7 @@ This was a release-grounding overlay, **not** a full docs-matrix re-sift; per-ro
   cert-manager v1.20.2 · Kyverno v1.18.1 · KEDA v2.19.0 · Traefik v3.7.1 ·
   Rook v1.19.6 · OpenEBS v4.4.0 · Zalando v1.15.1 · ECK v3.4.0.
 - **Fixed fabrications:** Argo CD — removed invented `v3.2.10`/`v3.2.12` + "CVE
-  fixed in 3.2.10" (real latest `v3.4.3`); Harbor — flagged `§ 2.15`
+  fixed in 3.2.10" (real latest `v3.4.3`) **[RETRACTED 2026-09-15 in `compat/argo-cd.md`; the SKILL.md / version-verification.md / tooling.md examples followed on 2026-10-04 — v3.2.7–v3.2.12 are real, `gh api repos/argoproj/argo-cd/releases`]**; Harbor — flagged `§ 2.15`
   **[CORRECTED 2026-05-31 — this was wrong: 2.15.x is real; see correction below]**.
 - **Version-drift applied:** NVIDIA GPU Operator — latest `v26.3.2`, one patch
   ahead of documented `§ 26.3.1` (existence grounded; content sift deferred).

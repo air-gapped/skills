@@ -187,8 +187,9 @@ These are non-negotiable; encode them into every verdict.
 8. **Never invent versions; ground or abstain.** k8s support *windows* are
    registry methodology (cite the compat file). Specific version *numbers* —
    latest patch, newest minor, "CVE fixed in vX.Y.Z", a recommended target patch
-   — are volatile and the #1 fabrication risk (a past verdict cited an Argo CD
-   `v3.2.10` that never existed; the 3.2 line ended at `v3.2.6`). State a
+   — are volatile and recall gets them wrong in both directions (a past pass
+   declared Argo CD `v3.2.10`–`v3.2.12` fabricated and deleted them; all are real,
+   the 3.2 line runs to `v3.2.12`). State a
    specific release only if it is (a) cluster-reported, (b) grounded against a
    freshly fetched release listing, or (c) explicitly marked `UNVERIFIED`. When
    internet + `gh` are available, grounding is **mandatory** and uses the

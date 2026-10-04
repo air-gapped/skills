@@ -53,14 +53,14 @@ brand-new deprecations announced in the latest minor.
 
 `gh` is the truth source for **whether a specific release exists** and **what the
 real latest patch of a minor is**. The registry's compat files carry *sifted*
-version numbers that can be fabricated (a verdict once cited Argo CD `v3.2.10` /
-`v3.2.12` — the line ended at `v3.2.6`, unpatched); `gh` grounds them. Use it at
+version numbers that recall gets wrong in both directions (a pass once declared
+the real Argo CD `v3.2.10` / `v3.2.12` fabricated); `gh` grounds them. Use it at
 **survey time when the workstation is online** (House Rule #8 / cluster-survey
 Phase 4b) and at **freshen time** when writing the files. Full protocol +
 component→repo map: `references/version-verification.md`.
 
 **The gotcha that matters — two different traps.** (1) *Fabrication:* never name a
-candidate version in a query (`releases/tags/v3.2.10`, `| grep vX.Y.Z`) — a named
+candidate version in a query (`releases/tags/vX.Y.Z`, `| grep vX.Y.Z`) — a named
 guess biases you toward confirming it. Ask the listing what exists. (2)
 *`releases/latest` is recency, not rank:* it's the most-recently-published (or
 maintainer-pinned) release, **not** the highest version — a back-ported patch to an
