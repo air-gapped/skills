@@ -30,7 +30,9 @@ Grafana ≥ 12 introduced a **Kubernetes-style dashboard API** alongside the lon
   - `PUT/GET/DELETE /apis/dashboard.grafana.app/v1beta1/namespaces/{ns}/dashboards/{uid}`
   - `resourceVersion`-based optimistic concurrency
 
-Grafana 13 (current stable; 13.0 GA 2026-04-17, 13.1 2026-07-01) **formally deprecated** the legacy `/api` path (deprecation notice 2026-04-20) in favor of `/apis`: the `/api/` endpoints *remain fully accessible and operative*, with removal deferred to a future major. **Default to the legacy API unless the environment explicitly uses the new one** — most Helm charts, operator CRDs, dashboards-as-code tools still speak legacy.
+Grafana 13 (13.0 GA 2026-04-17; current stable line 13.2, 13.2.0 released 2026-08-18) **formally deprecated** the legacy `/api` path (deprecation notice 2026-04-20) in favor of `/apis`: the `/api/` endpoints *remain fully accessible and operative*, with removal deferred to a future major. **Default to the legacy API unless the environment explicitly uses the new one** — most Helm charts, operator CRDs, dashboards-as-code tools still speak legacy.
+
+**Three JSON schemas.** Classic (what `/api/dashboards/uid` returns, §2), V1 Resource (classic wrapped in a k8s object under `spec`), and **V2 Resource** — Grafana's current schema (`elements`, `variables`, `layout`; required for tabs and conditional rendering). 13.x serves `dashboard.grafana.app/v1` and `/v2` groups. The same UID can come back classic from `/api` and v2 from `/apis` or an MCP tool — check the shape before writing a JSONPath (path table: [agent-workflow.md §3a](agent-workflow.md#3a-grafanamcp-grafana--official-grafana-mcp-server)).
 
 ## 2. Dashboard JSON model (classic)
 
@@ -321,7 +323,7 @@ curl -X POST "$GRAFANA/apis/dashboard.grafana.app/v1beta1/namespaces/default/das
     }
   }'
 ```
-`resourceVersion` = optimistic concurrency (like k8s). Legacy `schemaVersion` still present inside `spec`.
+`resourceVersion` = optimistic concurrency (like k8s). Legacy `schemaVersion` still present inside `spec`. Use `/v1` for classic-shaped `spec`, `/v2` for the v2 schema; `GET /apis/dashboard.grafana.app/` lists the versions the server serves.
 
 ## 9. Common dashboard bugs + fixes
 

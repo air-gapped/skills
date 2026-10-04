@@ -34,7 +34,7 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 24 | NVIDIA DCGM Exporter | https://github.com/NVIDIA/dcgm-exporter | 2026-09-15 | — |
 | 25 | sloth — Prometheus SLO generator | https://github.com/slok/sloth | 2026-09-15 | — |
 | 26 | pyrra — Kubernetes-native SLO controller | https://github.com/pyrra-dev/pyrra | 2026-09-15 | — |
-| 27 | grafana/mcp-grafana — official MCP server | https://github.com/grafana/mcp-grafana | 2026-09-15 | — |
+| 27 | grafana/mcp-grafana — official MCP server | https://github.com/grafana/mcp-grafana | 2026-10-04 | v2 |
 | 28 | pab1it0/prometheus-mcp-server — community MCP server | https://github.com/pab1it0/prometheus-mcp-server | 2026-09-15 | — |
 | 29 | cortex-tenant — label → X-Scope-OrgID proxy | https://github.com/blind-oracle/cortex-tenant | 2026-09-15 | — |
 | 30 | Grafana Alloy — `mimir.rules.kubernetes` component | https://grafana.com/docs/alloy/latest/reference/components/mimir/mimir.rules.kubernetes/ | 2026-09-15 | latest |
@@ -42,3 +42,6 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 32 | Prometheus — Remote-Write 2.0 spec (EXPERIMENTAL) | https://prometheus.io/docs/specs/prw/remote_write_spec_2_0/ | 2026-09-15 | 2.0-experimental |
 | 33 | Grafana Mimir 3.0 release notes | https://github.com/grafana/mimir/releases/tag/mimir-3.0.0 | 2026-09-15 | 3.0 |
 | 34 | Prometheus — feature flags | https://prometheus.io/docs/prometheus/latest/feature_flags/ | 2026-09-15 | latest |
+| 35 | Grafana — Dashboard JSON model (Classic / V1 / V2 schemas) | https://grafana.com/docs/grafana/latest/visualizations/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-10-04 | latest |
+| 36 | mcp-grafana v2.0.0 release (tool renames, SSE header change) | https://github.com/grafana/mcp-grafana/releases/tag/v2.0.0 | 2026-10-04 | v2.0.0 |
+| 37 | mcp-grafana #1286 — `run_panel_query` fails on schema-v2 dashboards | https://github.com/grafana/mcp-grafana/issues/1286 | 2026-10-04 | open |
