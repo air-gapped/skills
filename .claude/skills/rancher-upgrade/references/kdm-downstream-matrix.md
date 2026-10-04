@@ -39,7 +39,7 @@ k8s window**:
 | 2.12 | **1.31, 1.32, 1.33** |
 | 2.13 | **1.32, 1.33, 1.34** |
 | 2.14 | **1.33, 1.34, 1.35** |
-| 2.15 *(GA 2026-07-30; plan onto **v2.15.1**, not the `.0` — see per-minor-runbook.md)* | **1.34, 1.35, 1.36** |
+| 2.15 *(GA 2026-07-30; plan onto **v2.15.2**, not the `.0` — see per-minor-runbook.md)* | **1.34, 1.35, 1.36** |
 
 Live channel windows confirming the new edge (release-v2.14 `data.json`): k8s 1.33 = `[v2.12.0,
 v2.14.99]`, 1.34 = `[v2.13.0, v2.14.99]`, 1.35 = `[v2.14.0, v2.14.99]`.

@@ -76,11 +76,12 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   `source:` key, so when porting an ingress `tls.source` customization, disambiguate by indent (the
   ingress `source` is shallower) or the edit lands in the wrong block.
 
-### 2.15 (GA 2026-07-30; current community line, latest **v2.15.1** — grounded 2026-09-15)
+### 2.15 (GA 2026-07-30; current community line, latest **v2.15.2**)
 - **k8s 1.34 – 1.36** (adds 1.36 #54303; removes 1.33 #55306). Only **1.34 and 1.35 overlap** with
   2.14's 1.33–1.35, so a mgmt cluster still on 1.33 must move k8s **before** this hop, not after —
   the narrowest overlap on the whole ladder.
-- **Target v2.15.1, never the 2.15.0 GA.** 2.15.0 carries two release-blocker regressions that the
+- **Target v2.15.2.** 2.15.1 is below the CVE-2026-88804 floor (SKILL.md House Rule #4), and
+  never the 2.15.0 GA: 2.15.0 carries two release-blocker regressions that the
   published notes do not mention: local principal search stopped matching `displayName`, making
   **OIDC/SAML-provisioned users unassignable** to projects and clusters (#56392, fixed pre-2.15.1),
   and Rancher **crashloops with "setting is read only"** when `--no-cacerts` has to clear an
@@ -100,16 +101,14 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   CVE-2026-71403 (medium). The same batch ships **CVE-2026-75036 against Fleet** (medium, floors
   `0.16.1 / 0.15.6 / 0.14.10 / 0.13.15 / 0.12.19`), which lives in the **`rancher/fleet` advisory
   feed** — a Rancher-only sweep does not see it.
-- **Open on this line as of 2026-09-15 — verify before committing to the hop:**
+- **Open on this line as of 2026-10-04 (#57078, #57196, #57240 re-checked) — verify before committing to the hop:**
   - **#57078 (OPEN)** — after 2.14.2 → 2.15.1, downstream clusters stuck `Provisioning` with
     "Failed to get token secret … crt-token-system not found". The reporter rolled back to 2.14.2
     and restored a pre-upgrade backup; even after re-upgrading, most clusters needed their
     registration command re-run by hand. **The single biggest reason to take a fresh etcd snapshot
     before this hop** on a fleet with many long-lived downstream clusters.
-  - **#57050 (fix milestoned v2.15.2, so in NO shipped release)** — `inheritedClusterRoles` /
-    `inheritedFleetWorkspacePermissions` drive an endless ClusterRole create/delete loop that
-    floods the logs, on **fresh installs as well as upgrades**. Using GlobalRole inheritance on
-    2.15.1 means living with it.
+  - **#57050 (fixed in v2.15.2)** — on 2.15.0–2.15.1, `inheritedFleetWorkspacePermissions` on a
+    GlobalRole drives an endless ClusterRole create/delete loop that floods the logs.
   - **#57196 (OPEN)** — downstream cluster stuck `Unavailable` after upgrade despite a working
     agent tunnel; Ready/Connected stops tracking session state once `cattle-credentials` is
     regenerated during the upgrade.
