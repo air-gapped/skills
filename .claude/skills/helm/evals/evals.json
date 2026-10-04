@@ -1,0 +1,139 @@
+{
+  "skill_name": "helm",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-10-05",
+    "grown": "opus via grow-evals.py 2026-10-05 (+8 to 8)",
+    "grown_reviewed": "2026-10-05: all 8 cases checked against SKILL.md + references before first run; no corrections needed (Helm 4 claims in case 6 match SKILL.md §1 and the v4.0.0 release notes)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "lb-service-template-with-passthrough",
+      "prompt": "I'm writing the Service template for our chart `ledgerd` (chart 0.4.0, app 2.1.3). The Service must default to type LoadBalancer because it's mostly deployed on EKS with the AWS Load Balancer Controller. Our platform team keeps complaining about two things: (1) every LB Service we ship grabs a NodePort in the 30000-32767 range that nobody uses and it collides with their firewall allowlists, and (2) whenever they need a Service field we didn't expose (last month `externalTrafficPolicy: Local`, this month `loadBalancerClass: service.k8s.aws/nlb`) they have to fork the chart. Our values.yaml already has top-level `commonLabels: {}` and `commonAnnotations: {}`, and `_helpers.tpl` already defines `ledgerd.fullname`, `ledgerd.labels` (which includes commonLabels) and `ledgerd.selectorLabels`. The Service needs its own `service.annotations` too, because the AWS controller is configured through annotations. Write the `service:` block for values.yaml and `templates/service.yaml`. Port is 8443 named `https`, targetPort `https`. Cluster minimum is Kubernetes 1.27.",
+      "expected_output": "A values block and service template that default LoadBalancer Services to not allocating NodePorts, expose a passthrough map rendered into the Service spec for arbitrary fields, and merge commonAnnotations with service-specific annotations. Selector uses only the stable selector labels.",
+      "files": [],
+      "assertions": [
+        "values.yaml defaults allocateLoadBalancerNodePorts to false and the template renders it into the spec when the type is LoadBalancer",
+        "provides a free-form passthrough map (e.g. service.extraSpec defaulting to {}) that is rendered into the Service spec via toYaml so fields like externalTrafficPolicy or loadBalancerClass can be set without forking",
+        "the Service metadata annotations combine commonAnnotations and service.annotations rather than using only one of them",
+        "the Service selector uses the selectorLabels helper (name/instance), not the full labels helper containing version or chart labels",
+        "named templates are invoked with include (pipeable with nindent), not template"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 1,
+      "name": "oci-push-then-cosign-sign-workflow",
+      "prompt": "Write a GitHub Actions workflow `.github/workflows/chart-release.yaml` for repo `acme-oss/charts` that, on push of a tag matching `ledgerd-v*`, packages `charts/ledgerd`, pushes it to `oci://ghcr.io/acme-oss/charts`, and keylessly signs the pushed artifact with cosign (GitHub OIDC). Use helm v3.22 or newer, whatever is fine. A teammate's draft did `helm registry login ghcr.io` once at the top and then ran `cosign sign` after the push, and in their fork the push succeeded but signing failed with `UNAUTHORIZED: authentication required`. Also our chart versions sometimes carry build metadata like `1.3.0+build.41`. Sign by digest, not tag. Give me the full workflow, including the permissions block.",
+      "expected_output": "A complete workflow that authenticates Helm and cosign separately to ghcr.io, pushes the packaged chart, captures the pushed digest and signs by digest with keyless OIDC. It accounts for SemVer build metadata turning `+` into `_` in the OCI tag.",
+      "files": [],
+      "assertions": [
+        "the workflow includes a cosign-specific registry authentication step (e.g. cosign login ghcr.io) separate from helm registry login / docker login",
+        "explains that Helm's registry login does not authenticate cosign as the cause of the teammate's UNAUTHORIZED failure",
+        "the permissions block grants id-token: write (for keyless OIDC) and packages: write",
+        "cosign signs the chart reference by its sha256 digest captured from the push, not by a mutable tag",
+        "addresses that a version containing `+` becomes `_` in the OCI tag, or avoids relying on the tag for that reason",
+        "does NOT push or tag the chart as `latest`"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 2,
+      "name": "port-values-across-major-with-renamed-key",
+      "prompt": "We consume the `ingest-gateway` chart and are moving from 3.4.0 to 4.0.0. Below are three files. Produce our new `values-prod.yaml` for 4.0.0 and tell me how you'd verify it before rollout. Last time someone did this with `diff -u old-defaults new-defaults | patch values-prod.yaml` and half the hunks landed in the wrong place.\n\nChart 3.4.0 defaults:\n```yaml\nreplicaCount: 1\nimage:\n  repository: ghcr.io/vendor/ingest-gateway\n  tag: \"3.4.0\"\nresources: {}\nmetrics:\n  enabled: false\nlogLevel: info\n```\n\nChart 4.0.0 defaults:\n```yaml\nreplicaCount: 1\nimage:\n  repository: ghcr.io/vendor/ingest-gateway\n  tag: \"4.0.0\"\ncontroller:\n  resources: {}\n  logLevel: info\nmetrics:\n  serviceMonitor:\n    enabled: false\n    interval: 30s\n```\n(4.0.0 changelog: `resources` and `logLevel` moved under `controller`; `metrics.enabled` replaced by `metrics.serviceMonitor.enabled`. No values.schema.json ships with 4.0.0.)\n\nOur current values-prod.yaml:\n```yaml\nreplicaCount: 3\nimage:\n  tag: \"3.4.0\"\nresources:\n  limits:\n    memory: 2Gi\n  requests:\n    cpu: 500m\n    memory: 1Gi\nmetrics:\n  enabled: true\nlogLevel: warn\n```",
+      "expected_output": "A ported values file that keeps the operator's real overrides (replicas, resources, metrics on, warn logging) relocated to the 4.0.0 key paths, drops stale top-level keys, and does not keep pinning the old image tag by accident. It explains why patch misapplies and verifies by comparing the values file's key paths against the new chart's defaults since lint will not catch dead keys.",
+      "files": [],
+      "assertions": [
+        "the result keeps replicaCount 3 and places the resource requests/limits under controller.resources",
+        "sets controller.logLevel to warn and metrics.serviceMonitor.enabled to true",
+        "does not leave top-level resources, logLevel, or metrics.enabled keys in the new file",
+        "flags the image.tag \"3.4.0\" pin, either removing it so the chart default 4.0.0 applies or explicitly asking whether the pin is intentional, rather than silently carrying it forward",
+        "proposes a verification that detects keys present in the values file but absent from the new chart's values (a key-path set difference or equivalent), noting helm lint/template will not reject unknown keys without a schema",
+        "uses a three-way approach with the old chart defaults as the common ancestor (or an equivalent manual mapping), not a patch-file replay"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 3,
+      "name": "selector-immutable-after-helper-edit",
+      "prompt": "`helm upgrade --install orders ./charts/orders -n shop` started failing in CI this morning:\n\n```\nError: UPGRADE FAILED: cannot patch \"orders\" with kind Deployment: Deployment.apps \"orders\" is invalid: spec.selector: Invalid value: v1.LabelSelector{MatchLabels:map[string]string{\"app.kubernetes.io/instance\":\"orders\", \"app.kubernetes.io/name\":\"orders\", \"app.kubernetes.io/version\":\"5.2.0\"}, MatchExpressions:[]v1.LabelSelectorRequirement(nil)}: field is immutable\n```\n\nThe same PR bumped `appVersion` from 5.1.4 to 5.2.0, bumped the Kubernetes cluster from 1.30 to 1.31 last week, and refactored `_helpers.tpl` so the label helpers share code:\n\n```\n{{- define \"orders.selectorLabels\" -}}\napp.kubernetes.io/name: {{ include \"orders.name\" . }}\napp.kubernetes.io/instance: {{ .Release.Name }}\napp.kubernetes.io/version: {{ .Chart.AppVersion | quote }}\n{{- end }}\n\n{{- define \"orders.labels\" -}}\nhelm.sh/chart: {{ include \"orders.chart\" . }}\n{{ include \"orders.selectorLabels\" . }}\napp.kubernetes.io/managed-by: {{ .Release.Service }}\n{{- end }}\n```\n\nMy teammate thinks the 1.31 upgrade tightened validation and wants to pin the API version. Another wants to just add `--force` to the CI command. What's actually wrong and what's the fix?",
+      "expected_output": "Identifies that the refactor moved app.kubernetes.io/version into selectorLabels, so the Deployment's matchLabels changes with every appVersion bump and Kubernetes rejects it as immutable. Fix is to keep version only in the general labels helper, and it rejects force-replace as the fix.",
+      "files": [],
+      "assertions": [
+        "identifies the app.kubernetes.io/version label inside the selectorLabels helper (hence in matchLabels) as the root cause, not the Kubernetes 1.31 upgrade",
+        "the fix restricts selectorLabels to name and instance and moves the version label to the general labels helper",
+        "notes that matchLabels on an existing Deployment cannot be changed, so the version label must not be present at all, not just held constant",
+        "does NOT recommend --force/--force-replace or deleting the Deployment as the fix for this upgrade"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 4,
+      "name": "crd-new-field-rejected-after-chart-upgrade",
+      "prompt": "We ship an operator chart `queue-operator`. Chart 1.8.0 added a `spec.retention.maxAgeHours` field to our `QueueCluster` CRD (`queueclusters.messaging.acme.io`). The CRD YAML lives in `charts/queue-operator/crds/queuecluster.yaml` and it is correct in the 1.8.0 package — I checked `helm pull` output. Customers who ran `helm upgrade queue-operator acme/queue-operator --version 1.8.0` on clusters that had 1.6.x report:\n\n```\nError from server (BadRequest): error when creating \"qc.yaml\": QueueCluster in version \"v1beta1\" cannot be handled as a QueueCluster: strict decoding error: unknown field \"spec.retention.maxAgeHours\"\n```\n\nFresh installs of 1.8.0 work fine. The operator pod itself is on the new image and healthy. Support thinks customers are running an old kubectl with client-side validation. What's going on, and how should the chart be changed so this doesn't recur on 1.9.0?",
+      "expected_output": "Explains that CRDs placed in the chart's crds/ directory are installed only on first install and never upgraded by helm upgrade, so upgraded clusters still have the 1.6 schema. Recommends an immediate remediation for existing customers and moving CRDs into templates/ behind a flag, as major charts do.",
+      "files": [],
+      "assertions": [
+        "identifies Helm's crds/ directory semantics (installed once, never upgraded) as the root cause, not the kubectl version",
+        "explains why fresh installs work while upgraded clusters fail",
+        "gives a remediation for already-upgraded clusters that applies the new CRD schema in place (e.g. kubectl apply / server-side apply of the CRD) without deleting it",
+        "recommends moving CRDs into templates/ guarded by a values flag (e.g. crds.enabled) so future chart upgrades update them",
+        "does NOT recommend deleting and recreating the CRD, which would delete every existing QueueCluster resource"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 5,
+      "name": "release-please-ignores-chart-extra-files",
+      "prompt": "Our monorepo has a Go service in `/` and its Helm chart in `charts/relay`. release-please creates release PRs fine and bumps `version.go`, but it never bumps `charts/relay/Chart.yaml` `version`/`appVersion`, and the CHANGELOG has `ci:` and `chore(deps):` commits sitting under a \"Breaking Changes\" heading even though none are breaking. Files:\n\n`.github/workflows/release.yaml`:\n```yaml\n- uses: googleapis/release-please-action@v4\n  with:\n    release-type: go\n    token: ${{ secrets.RELEASE_TOKEN }}\n```\n\n`release-please-config.json`:\n```json\n{\n  \"packages\": {\n    \".\": {\n      \"release-type\": \"go\",\n      \"extra-files\": [\n        {\"type\": \"generic\", \"path\": \"charts/relay/Chart.yaml\"}\n      ],\n      \"changelog-sections\": [\n        {\"type\": \"feat\", \"section\": \"Features\"},\n        {\"type\": \"fix\", \"section\": \"Bug Fixes\"},\n        {\"type\": \"ci\", \"section\": \"CI\", \"hidden\": true},\n        {\"type\": \"chore\", \"section\": \"Miscellaneous\", \"hidden\": true}\n      ]\n    }\n  }\n}\n```\n\n`Chart.yaml` has `version: 0.9.2 # x-release-please-version` and `appVersion: \"0.9.2\" # x-release-please-version`. The config looks right to me. Why are both problems happening?",
+      "expected_output": "Identifies that setting release-type as an action input makes release-please build its config from inputs and skip release-please-config.json entirely, which explains both the missing Chart.yaml bump and the ignored changelog-sections. Fix is to remove release-type from the workflow and point the action at the config/manifest files.",
+      "files": [],
+      "assertions": [
+        "identifies the release-type input in the workflow as causing release-please-config.json to be ignored entirely",
+        "attributes both symptoms (Chart.yaml not bumped and ci/chore commits in the wrong section) to that single cause rather than two separate bugs",
+        "the fix removes release-type from the action inputs and keeps it in the config file (optionally referencing config-file/manifest-file)",
+        "does not tell the user to switch extra-files to the string-path form, which would strip the x-release-please-version comments"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 6,
+      "name": "stay-on-helm3-or-move-to-helm4",
+      "prompt": "It's October 2026. Our platform team runs ~140 Helm releases across 6 clusters, all deployed from a Jenkins pipeline using Helm 3.18. The pipeline does `helm upgrade --install --atomic --wait --timeout 10m --post-renderer ./hack/kustomize-wrap.sh` (the shell script runs kustomize to inject sidecars and org labels). Our charts are all `apiVersion: v2`. Management wants a decision this quarter: migrate the pipeline to Helm 4 now, or stay on Helm 3 and revisit next year. Two engineers, ~3 weeks of capacity this quarter. Make a recommendation and tell me what concretely breaks or changes for us if we move.",
+      "expected_output": "A justified recommendation grounded in Helm 3's support window (security-only patches until early 2027, then nothing) versus the concrete migration work: the executable post-renderer must become a plugin, --atomic is renamed, readiness checking changes, and existing releases keep client-side apply unless opted into server-side. Charts themselves need no rewrite.",
+      "files": [],
+      "assertions": [
+        "states that Helm 3 is still supported but only with security fixes and reaches end of life in early 2027, so staying is a time-limited option rather than indefinite",
+        "identifies that the shell-script post-renderer cannot be passed as an arbitrary executable in Helm 4 and must be packaged as a plugin",
+        "identifies that --atomic is renamed (to --rollback-on-failure) and that --wait readiness behavior changes, affecting the pipeline",
+        "notes that the existing apiVersion v2 charts work unmodified, and that existing releases do not switch to server-side apply on upgrade unless explicitly requested",
+        "gives a single clear recommendation with a rationale tied to the team's capacity and the EOL date, not just a list of pros and cons"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-10-05"
+    },
+    {
+      "id": 7,
+      "name": "openshift-hardcoded-uid-anyuid-request",
+      "prompt": "Our chart `reportgen` runs fine on vanilla Kubernetes but on our customer's OpenShift 4.16 cluster the pods are rejected with:\n\n```\npods \"reportgen-7d9c-\" is forbidden: unable to validate against any security context constraint: [provider \"restricted-v2\": .spec.securityContext.runAsUser: Invalid value: 1001: must be in the ranges: [1000680000, 1000689999]]\n```\n\nThe container image runs as UID 1001 and writes to `/app/cache`. Please just add a ClusterRoleBinding in the chart template that grants the `system:openshift:scc:anyuid` ClusterRole to the chart's ServiceAccount, and make it unconditional so it works everywhere. Give me the template.",
+      "expected_output": "Pushes back on bundling an unconditional anyuid grant into the chart and instead fixes the chart to work under restricted-v2: omit the hardcoded UID/GID on OpenShift (e.g. an adaptSecurityContext auto mode) and make the writable path work for an arbitrary UID in group 0. Any SCC escalation is left as an explicit, opt-in decision by the cluster admin.",
+      "files": [],
+      "assertions": [
+        "does NOT provide an unconditional chart template that binds the anyuid SCC to the ServiceAccount",
+        "explains that OpenShift assigns a per-namespace UID range and that hardcoding runAsUser 1001 is what violates restricted-v2",
+        "the proposed chart change omits runAsUser/fsGroup (or strips them when OpenShift is detected, e.g. adaptSecurityContext: auto) instead of hardcoding UIDs",
+        "addresses making /app/cache writable for an arbitrary UID (e.g. group-0 writable directory in the image or an emptyDir volume)",
+        "if any SCC grant is mentioned at all, it is opt-in via a values flag defaulting off or left to the cluster admin, not installed by default"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-10-05"
+    }
+  ]
+}
