@@ -1,12 +1,12 @@
 ---
 name: keycloak-iam
-description: Operate, configure, deploy, secure, and integrate with Keycloak (open-source IAM) — the modern Quarkus distribution (24.x–26.7.x), the Keycloak Operator with `Keycloak` and `KeycloakRealmImport` CRDs, realm/client/identity-provider configuration, plus legacy 16.x–23.x instances (incl. WildFly "-legacy" builds) and verifying realm/client config survived a version migration.
+description: Operate, configure, deploy, secure, and integrate with Keycloak (open-source IAM) — the modern Quarkus distribution (24.x–26.8.x), the Keycloak Operator with `Keycloak` and `KeycloakRealmImport` CRDs, realm/client/identity-provider configuration, plus legacy 16.x–23.x instances (incl. WildFly "-legacy" builds) and verifying realm/client config survived a version migration.
 when_to_use: Use whenever the user mentions Keycloak, Red Hat build of Keycloak (RHBK), `kc.sh`, `kcadm.sh`, `keycloak.conf`, `KC_*` / `KCRAW_*` env vars, the Keycloak Operator, a `Keycloak` or `KeycloakRealmImport` custom resource, or asks about server tuning (hostname / proxy / db / cache flags, `--optimized` builds), Kubernetes deployment (HA topology, probes, zero-downtime upgrades), security hardening (FGAP v2, client policies, FAPI, DPoP, JWT-Authz-Grant, federated client auth, redirect URI safety, CVEs), OIDC/SAML/IdP brokering with Keycloak as the IdP, LDAP/AD federation, themes / custom SPIs, or operations (Prometheus metrics, OTLP tracing, realm export/import, backup, upgrade matrix). Also trigger on old/unknown Keycloak versions ("we run 17/18/19-legacy", `/auth` URL paths, `/opt/jboss/keycloak`, old AngularJS admin console), upgrade-ladder questions ("what breaks going 1x→26"), and migration verification ("compare realm before/after upgrade", "did the migration keep our client settings"). In a thread already established as Keycloak-focused, keep triggering on follow-up realm/client/IdP/SSO questions even when "Keycloak" isn't repeated in every message. Do NOT trigger on generic IAM/SSO/OIDC questions with no Keycloak context (e.g. Auth0, Okta, Entra ID, Cognito, or a from-scratch OAuth server).
 ---
 
 # Keycloak IAM — operator's reference skill
 
-This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.7.x as of July 2026); for instances still in the field on 16.x–23.x — including the WildFly **"-legacy"** builds that ended at 19.0.3 — and for verifying realm migrations off them, route to `legacy-and-migration.md`. Information is current as of **Keycloak 26.7.0** (released 2026-07-09); the body below is still written against the 26.6 feature set, so treat 26.7-only features as unresearched here and read the release notes directly.
+This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.8.x); for instances still in the field on 16.x–23.x — including the WildFly **"-legacy"** builds that ended at 19.0.3 — and for verifying realm migrations off them, route to `legacy-and-migration.md`. Information is current as of **Keycloak 26.7.0** (released 2026-07-09); the body below is still written against the 26.6 feature set, so treat 26.7-only features as unresearched here and read the release notes directly.
 
 The Red Hat build of Keycloak (RHBK) is downstream of upstream Keycloak with longer support windows and the same surface area; advice here applies to both unless explicitly noted.
 
@@ -65,16 +65,16 @@ references/
 
 **When in doubt about a CLI flag**, the source of truth is `https://www.keycloak.org/server/all-config` (full option index). When in doubt about a CR field, the source of truth is the CRD YAML in `keycloak-k8s-resources` at the version tag (see §"Authoritative sources" below).
 
-## Version map (verified 2026-09-15)
+## Version map
 
-Latest stable: **Keycloak 26.7.3** (2026-08-31). The 26.7 line ran 26.7.0
-(2026-07-09) → 26.7.1 (2026-08-05) → 26.7.2 (2026-08-19) → 26.7.3, and **every
-one of the three patches is a security batch** — 26.7.1 fixed 12 CVEs, 26.7.3
-fixed 20. Two in 26.7.2 are account-takeover class. Anything sitting on 26.7.0
-is missing all of it. The 26.6 line ended at **26.6.4** (2026-06-26).
+Latest stable: **Keycloak 26.8.0** (2026-10-01). **Minimum safe: 26.7.5 or 26.8.0.**
+Every 26.7 patch was a security batch — 26.7.1 (12 CVEs), 26.7.2 (two
+account-takeover class), 26.7.3 (20), 26.7.4 (6, incl. CVE-2026-17526: impersonation
+role → realm admin), 26.7.5 (15, 2026-09-30). Anything below 26.7.5 is missing
+some of them. The 26.6 line ended at **26.6.4** (2026-06-26) for community users —
+later `26.6.x` git tags ship no GitHub Release and no quay.io image.
 
-**There is no 27.x.** Milestones show 26.8 due 2026-09-30 and 27.0 not due until
-2027-03-31, so 26.x is the current line. Plan for one thing now though:
+**There is no 27.x**; 26.x is the current line. Plan for one thing now though:
 Keycloak has announced it **removes all uses of SHA1 in version 27**.
 
 **Support window is narrower than most people assume.** The project's security
@@ -87,6 +87,7 @@ Notable changes through the 26.x line:
 
 | Version  | Key changes (operator-relevant)                                                                |
 |----------|------------------------------------------------------------------------------------------------|
+| 26.8.x   | `stateless` (multi-cluster v2) **supported**; `multi-site` (v1) deprecated, `clusterless` to be removed; login failures stored in the DB; Client Secret Rotation and SCIM API on by default; Realm Operator EOL; Quarkus 3.40. Breaking changes: §26.8.0 below |
 | 26.7.x   | SCIM user provisioning (**preview**), multi-cluster HA **without external caches** (preview — supersedes the external-Infinispan topology this skill documents), OpenID Shared Signals Framework (experimental), Identity Brokering API **V2** (V1 deprecated, still default-on), step-up auth for SAML clients, HAProxy + Traefik reverse-proxy blueprints. *Not yet researched at reference depth — read the release notes* |
 | 26.6.x   | Workflows, JWT Authorization Grant, Federated client auth, **Zero-downtime patch updates**, KCRAW_ env prefix, automatic K8s truststore, graceful HTTP shutdown, configurable Service name/port in Operator, organization groups, sensitive-info redaction in HTTP access logs. **26.6.2, 26.6.3 and 26.6.4 are all security batches**; 26.6.4 (2026-06-26) is the last 26.6 patch seen — see the advisory feed for the CVE sets they close |
 | 26.5.x   | Token Exchange Standard (RFC 8693) GA, declarative-user-profile GA, FIPS via Bouncy Castle, ECC keys default for new realms, Java 25 added (server image still on JDK 21 for FIPS) |
