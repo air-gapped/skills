@@ -340,7 +340,10 @@ deployment flapping to `minReplicaCount`.
 
 **10. Don't poll aggressively against shared metric sources.**
 `pollingInterval: 5` across 50 ScaledObjects = 600 queries/min against one
-Prometheus. 30s is the sane default; drop below only with a reason.
+Prometheus. 30s is the sane default; drop below only with a reason. From
+2.21, with `minReplicaCount > 0`, no `idleReplicaCount` and no
+`useCachedMetrics`, the operator stops polling and the HPA's 15s cycle is the
+only querier — `pollingInterval` no longer adds load there.
 
 **11. HPA behavior stabilization windows must be multiples of the HPA sync
 period (15s).** Use `15s, 30s, 60s, 300s` — not `20s` or `100s`. Non-aligned

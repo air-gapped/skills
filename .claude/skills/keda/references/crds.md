@@ -81,7 +81,9 @@ spec:
 - **`pollingInterval`** — how often the KEDA operator polls each trigger during
   `0→1` evaluation. HPA polls external metrics on its own 15s cycle, so between
   1 and N the effective polling is MAX(pollingInterval, 15s). Use
-  `useCachedMetrics` to align.
+  `useCachedMetrics` to align. 2.21+: when `minReplicaCount > 0`, no
+  `idleReplicaCount` and no `useCachedMetrics`, the operator reads the HPA's
+  observations instead of polling — sources are queried once per HPA cycle.
 - **`cooldownPeriod`** — inactivity-required seconds before scaling `1→0`. Has
   **no effect** on `N→1` scale-down; that's HPA's
   `scaleDown.stabilizationWindowSeconds`.
