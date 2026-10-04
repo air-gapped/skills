@@ -20,12 +20,12 @@ Targets Keycloak 26.6.x on K8s 1.27+. The Keycloak Operator is the recommended p
 
 ## <a id="image"></a>1. Container image
 
-Official: `quay.io/keycloak/keycloak:26.7.0`. UBI 9 base, OpenJDK 21 (the 21 is intentional; the FIPS-certified Bouncy Castle path is on 21, not 25, so the image stays on 21 even though Keycloak supports running on JDK 25). Multi-arch (amd64, arm64).
+Official: `quay.io/keycloak/keycloak:26.8.0`. UBI 9 base, OpenJDK 21 (the 21 is intentional; the FIPS-certified Bouncy Castle path is on 21, not 25, so the image stays on 21 even though Keycloak supports running on JDK 25). Multi-arch (amd64, arm64).
 
 Custom image pattern (for `--optimized` + theme/provider bundling):
 
 ```dockerfile
-FROM quay.io/keycloak/keycloak:26.7.0 AS builder
+FROM quay.io/keycloak/keycloak:26.8.0 AS builder
 ENV KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true \
     KC_DB=postgres \
@@ -34,7 +34,7 @@ COPY my-custom-theme.jar /opt/keycloak/providers/
 COPY my-custom-spi.jar /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM quay.io/keycloak/keycloak:26.7.0
+FROM quay.io/keycloak/keycloak:26.8.0
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized"]
 ```
@@ -43,7 +43,7 @@ Then in the Keycloak CR:
 
 ```yaml
 spec:
-  image: registry.example.com/keycloak:26.7.0     # your rebuilt --optimized image
+  image: registry.example.com/keycloak:26.8.0     # your rebuilt --optimized image
   startOptimized: true       # tells the operator NOT to override your --optimized
 ```
 
@@ -60,7 +60,7 @@ If `startOptimized` is unset, the operator decides based on whether `image` is t
 The operator manifests live in `https://github.com/keycloak/keycloak-k8s-resources` — per version tag, under `kubernetes/` (three files through 26.6; 26.7+ adds two client CRDs the operator refuses to start without, plus a kustomization). The `Keycloak`/`KeycloakRealmImport` CRDs are ~0.5 MB each — **client-side `kubectl apply` fails on them** (last-applied annotation exceeds the 262 KB limit); use `kubectl apply --server-side`. When installing into a namespace other than upstream's assumed `keycloak`, use a kustomize overlay per the docs — and note the namespace transformer fills *unset* RoleBinding subject namespaces but leaves the ClusterRoleBinding's explicitly-set subject alone; patch that one or the operator silently lacks its cluster permissions. Apply to install:
 
 ```bash
-KC_VERSION=26.7.0
+KC_VERSION=26.8.0
 BASE=https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/$KC_VERSION/kubernetes
 
 # CRDs first (cluster-scoped)
@@ -80,7 +80,7 @@ The `kubernetes.yml` deploys the operator with namespace-scoped RBAC. To watch m
 
 ### Pin operator and Keycloak versions together
 
-The operator at tag `26.7.0` is built and tested against Keycloak `26.7.0`. When you upgrade, upgrade both — the CRD schema can change between minor versions. Mismatched pairs fail in confusing ways (CRD validation rejects `spec.update.strategy=Auto` if you forgot to upgrade the CRD).
+The operator at tag `26.8.0` is built and tested against Keycloak `26.8.0`. When you upgrade, upgrade both — the CRD schema can change between minor versions. Mismatched pairs fail in confusing ways (CRD validation rejects `spec.update.strategy=Auto` if you forgot to upgrade the CRD).
 
 ---
 
@@ -254,7 +254,7 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.7.0
+          image: quay.io/keycloak/keycloak:26.8.0
           args: ["start", "--optimized"]
           env:
             - name: KC_HOSTNAME

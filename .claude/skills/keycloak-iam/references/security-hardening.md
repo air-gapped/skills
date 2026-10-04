@@ -238,7 +238,7 @@ gh api repos/keycloak/keycloak/security-advisories \
   --jq '.[] | {cve: .cve_id, ghsa: .ghsa_id, sev: .severity, published: .published_at, summary: .summary}'
 
 # What a specific release closed (the release body lists its Security fixes section)
-gh release view 26.7.0 --repo keycloak/keycloak --json body --jq '.body'
+gh release view 26.8.0 --repo keycloak/keycloak --json body --jq '.body'
 
 # Confirm whether a given CVE applies and its patched range
 gh api repos/keycloak/keycloak/security-advisories \
