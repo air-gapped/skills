@@ -217,10 +217,26 @@ spec:
         name: aws-irsa
 ```
 
-## Upgrading to v2.20.x (verified 2026-09-15)
+## Upgrading to v2.21.x
 
-Latest stable is **v2.20.2** (2026-07-31). Two things must happen before the
-upgrade, not after.
+**Every release ≤ 2.20.2 is exposed to GHSA-637c-6jxx-4rwm (critical).** A
+tenant with `create` on TriggerAuthentication + ScaledObject in its own
+namespace sets `hashiCorpVault.address` to its own URL and receives the
+operator's ServiceAccount token: cluster-wide Secret read, namespace admin →
+cluster admin. Vault use is irrelevant. Fixed only in 2.21.0; no 2.20 backport.
+
+**The fix breaks Vault Kubernetes auth and all `boundServiceAccountToken`
+auth.** 2.21 defaults to `serviceAccountTokens.mode: enforce-audience`; a token
+without an approved audience fails per scaler while the operator stays healthy.
+Before upgrading: find TA/CTAs using `hashiCorpVault.authentication:
+kubernetes` or `boundServiceAccountToken`; give each an audience the API server
+rejects (chart: `hashiCorpVault.kubernetesAuth.audience` (default `vault`),
+`operator.serviceAccountTokens.additionalAllowedAudiences`,
+`permissions.operator.restrict.serviceAccountTokenCreationRoles[].audience`);
+make the receiver accept it; upgrade chart and operator together. `legacy` mode
+is the explicit insecure bypass. Steps: keda.sh/docs/2.21/migration/.
+
+### From 2.19 or older: the 2.20 steps, before the upgrade
 
 **1. Grant RBAC on `events.k8s.io` first.** v2.20.0 moved Kubernetes event
 recording from the legacy core `events` resource to the **`events.k8s.io`** API

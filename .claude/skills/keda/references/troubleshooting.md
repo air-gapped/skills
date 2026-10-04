@@ -209,8 +209,14 @@ If the chart's RBAC has been customized, confirm these.
 ## Known CVEs / advisories
 
 - **CVE-2025-68476** (Arbitrary File Read via HashiCorp Vault
-  `TriggerAuthentication`). Fixed in v2.17.3 / v2.18.3 / v2.19.0+. Upgrade
-  and restrict who can create/modify TriggerAuthentication.
+  `TriggerAuthentication`). Patched in v2.17.3 / v2.18.3 / v2.19.0+, but the
+  fix was incomplete — see the next entry.
+- **CVE-2026-77524 / GHSA-637c-6jxx-4rwm** (critical): tenant-set
+  `hashiCorpVault.address` exfiltrates the operator's ServiceAccount token
+  (namespace admin → cluster admin). All ≤ 2.20.2; fixed only in 2.21.0, which
+  breaks Vault Kubernetes / `boundServiceAccountToken` auth until audiences are
+  configured (SKILL.md § Upgrading). Until then, restrict who can
+  create/modify TriggerAuthentication.
 - Keep an eye on https://github.com/kedacore/keda/security/advisories for
   newer issues.
 

@@ -104,8 +104,9 @@ kubectl apply --server-side -f \
   changes in 2.x so far, but 2.20 added CRD-level validation markers (Minimum,
   MinLength, MinItems, Enum) and rejects ScaledObject names over 63 chars — a
   previously-accepted object can fail admission after the upgrade.
-- **CVE patches**: stay within 2 minor versions of latest. CVE-2025-68476 was
-  fixed in 2.17.3 / 2.18.3 / 2.19.0+.
+- **CVE patches**: stay within 2 minor versions of latest — but the critical
+  CVE-2026-77524 (≤ 2.20.2) is fixed only in 2.21.0; see SKILL.md § Upgrading
+  for the audience migration it forces.
 - **→ 2.20 events RBAC**: 2.20 records Kubernetes events via `events.k8s.io`
   instead of the core `events` resource. Custom/restricted RBAC must grant the
   operator `create`/`patch` on `events.k8s.io/events` *before* upgrading, or
