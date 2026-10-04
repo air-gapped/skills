@@ -239,6 +239,13 @@ rejects (chart: `hashiCorpVault.kubernetesAuth.audience` (default `vault`),
 make the receiver accept it; upgrade chart and operator together. `legacy` mode
 is the explicit insecure bypass. Steps: keda.sh/docs/2.21/migration/.
 
+Also breaking in 2.21: **Temporal** `buildId`, `selectAllActive`,
+`selectUnversioned` are removed — objects using them fail metadata parsing;
+move to `workerDeploymentName` / `workerDeploymentBuildId`. **Azure
+Pipelines** gains `scaleOnInFlight` (default `true`): queue length now counts
+assigned, unfinished jobs; set `false` for 2.20 behaviour (ScaledJob: with
+`scalingStrategy: accurate`).
+
 ### From 2.19 or older: the 2.20 steps, before the upgrade
 
 **1. Grant RBAC on `events.k8s.io` first.** v2.20.0 moved Kubernetes event
@@ -259,9 +266,6 @@ still using them breaks:
 | Huawei Cloudeye | `minMetricValue` | `activationTargetMetricValue` (#7436) |
 | InfluxDB | `authToken` in `triggerMetadata` | `authToken` via `resolvedEnv` or `authParams` (#7722) |
 | IBM MQ | the `tls` setting | removed outright (#6094) |
-
-Temporal's `buildId`, `selectAllActive` and `selectUnversioned` are newly
-deprecated in favour of `workerDeploymentName` / `workerDeploymentBuildId`.
 
 **Security:** GHSA-6w3m-4hhp-775q (medium, 2026-06-01) is a connection-string
 parameter injection in the **PostgreSQL scaler**, affecting **≤ 2.19.x** and
