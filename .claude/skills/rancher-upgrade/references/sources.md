@@ -1,6 +1,6 @@
 # sources.md — canonical sources + staleness index
 
-Freshened: 2026-09-22 — every row probed; all 15 URLs 200 and every advisory floor and community-ceiling figure matches live release tags. Two moved: Rancher 2.15's EOL is now published (2028-02-27), and Turtles is at v0.26.6 / v0.27.2 with v0.27 no longer tracking an unreleased 2.15.
+Freshened: 2026-10-04
 
 Per-source provenance for every version/matrix claim in this skill. `freshen` reads and re-stamps
 the **Last verified** column; at use time, treat any row older than ~90 days as suspect and
@@ -12,23 +12,23 @@ the primary for a community claim.
 
 | Source | URL | Last verified | Tier |
 |--------|-----|---------------|------|
-| Rancher releases + issues (versions, EOL, breaking changes, issue numbers) | https://github.com/rancher/rancher/releases | 2026-09-15 | community |
+| Rancher releases + issues (versions, EOL, breaking changes, issue numbers). 2026-09-23 batch: v2.15.2 community (`isLatest`); v2.14.6 / v2.13.10 / v2.12.14 / v2.11.18 empty body, 0 assets. #57078 / #57196 / #57240 open, #57050 fixed in v2.15.2 | https://github.com/rancher/rancher/releases | 2026-10-04 | community |
 | Rancher security advisories — per-minor floors (current top: CVE-2026-88804 / GHSA-992f-xh8r-jg2f, critical, 2026-09-23, `<v2.15.2 / <v2.14.6 / <v2.13.10 / <v2.12.14 / <v2.11.18`; CVE-2026-88805 high, 2.15 only) | https://github.com/rancher/rancher/security/advisories | 2026-10-04 | community |
 | Fleet security advisories (CVE-2026-88808 critical, floors `0.16.2 / 0.15.7 / 0.14.11`; CVE-2026-93537/93538/93540 high) + Rancher-pinned Fleet per tag (`build.yaml` `fleetVersion`: v2.14.3 → 0.15.4, v2.15.1 → 0.16.1, v2.15.2 → 0.16.2) | https://github.com/rancher/fleet/security/advisories | 2026-10-04 | community |
-| Rancher per-release assets — `rancher-data.json` (KDM bundle), `rancher-mirror-to-rancher-org.sh` (exact shipped image tags) | https://github.com/rancher/rancher/releases/tag/v2.14.3 | 2026-09-15 | community |
-| Kontainer Driver Metadata — live downstream channel windows (`release-v2.14` **and** `release-v2.15`) | https://releases.rancher.com/kontainer-driver-metadata/release-v2.14/data.json | 2026-09-15 | community |
-| KDM repo (branches `release-v2.X`, `data/data.json`) | https://github.com/rancher/kontainer-driver-metadata | 2026-09-15 | community |
-| rancher/charts — Fleet / Turtles / provisioning-capi / rancher-backup chart versions per `release-v2.X` | https://github.com/rancher/charts | 2026-07-25 *(branch list only; `assets/` not re-read)* | community |
-| Rancher Turtles releases (CAPI contract, v0.25/v0.26/v0.27 timeline) | https://github.com/rancher/turtles/releases | 2026-09-15 | community |
-| Fleet releases (per-minor app version, Helm v4 at 0.15) | https://github.com/rancher/fleet/releases | 2026-09-15 | community |
-| backup-restore-operator releases + restore-quirk issues (#844 open, #916 closed-with-workaround) | https://github.com/rancher/backup-restore-operator | 2026-09-15 | community |
-| CAPRKE2 `v1alpha1` deprecation (#797) | https://github.com/rancher/cluster-api-provider-rke2 | 2026-09-15 | community |
-| Community Helm chart index — **decisive test for the per-minor community ceiling** (`latest` + `stable`) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-09-15 | community |
-| Rancher Manager docs — upgrades, air-gapped-upgrades, publish-images, helm-chart-options, tls-settings, rollbacks, update-k8s-without-upgrading-rancher | https://ranchermanager.docs.rancher.com | 2026-07-25 *(rollbacks page only)* | community |
-| RKE2 docs — air-gap, etcd backup/restore, automated SUC upgrades | https://docs.rke2.io | 2026-09-15 | community |
-| Rancher EOL dates (cross-check) | https://endoflife.date/rancher | 2026-09-15 | community |
-| SUSE lifecycle / support matrix (corroborates EOL + downstream window) | https://www.suse.com/lifecycle | 2026-09-15 | Prime (corroboration only) |
-| Companion: mgmt-cluster k8s window (single source of truth — cited, not restated) | k8s-components-checker/references/compat/rancher.md | 2026-09-15 | community/local |
+| Rancher per-release assets — `rancher-data.json` (KDM bundle), `rancher-mirror-to-rancher-org.sh` (exact shipped image tags) | https://github.com/rancher/rancher/releases/tag/v2.14.3 | 2026-10-04 | community |
+| Kontainer Driver Metadata — live downstream channel windows (`release-v2.14`: RKE2 max v1.33.13 / v1.34.11 / v1.35.8; `release-v2.15`: same + v1.36.4) | https://releases.rancher.com/kontainer-driver-metadata/release-v2.14/data.json | 2026-10-04 | community |
+| KDM repo (branches `release-v2.X`, `data/data.json`; no `release-v2.16` yet) | https://github.com/rancher/kontainer-driver-metadata | 2026-10-04 | community |
+| rancher/charts — Fleet / Turtles / rancher-backup chart versions per `release-v2.X` (`index.yaml` read: v2.14 fleet 0.15.7, turtles 0.26.6, backup 10.0.10; v2.15 fleet 0.16.2, turtles 0.27.2, backup 110.0.2+up11.0.3; `release-v2.16` exists, same as v2.15; `rancher-provisioning-capi` last on v2.13) | https://github.com/rancher/charts | 2026-10-04 | community |
+| Rancher Turtles releases (v0.27.2 / v0.26.6 / v0.25.8, 2026-09-18; `-rc` tags still `isPrerelease=false`) | https://github.com/rancher/turtles/releases | 2026-10-04 | community |
+| Fleet releases (v0.16.2 / v0.15.7 / v0.14.11 / v0.13.16 / v0.12.20, 2026-09-18; Helm v4 at 0.15) | https://github.com/rancher/fleet/releases | 2026-10-04 | community |
+| backup-restore-operator releases + restore-quirk issues (#844 open, #916 closed-with-workaround; v11.0.3 / v10.0.10 / v9.0.8 / v8.1.9 / v7.0.11 all 2026-09-21, `Latest` badge on v9.0.8) | https://github.com/rancher/backup-restore-operator | 2026-10-04 | community |
+| CAPRKE2 `v1alpha1` deprecation (#797, closed completed 2026-01-16; latest release v0.26.0) | https://github.com/rancher/cluster-api-provider-rke2 | 2026-10-04 | community |
+| Community Helm chart index — **decisive test for the per-minor community ceiling** (`latest`: 2.15.2 / 2.15.1 / 2.15.0 / 2.14.3…; `stable`: 2.15.2 / 2.15.1 / 2.14.3…) | https://releases.rancher.com/server-charts/latest/index.yaml | 2026-10-04 | community |
+| Rancher Manager docs — upgrades, air-gapped-upgrades, rollbacks (all 200 under `/v2.15/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/`), publish-images, helm-chart-options, tls-settings, update-k8s-without-upgrading-rancher | https://ranchermanager.docs.rancher.com | 2026-10-04 | community |
+| RKE2 docs — air-gap, etcd backup/restore, automated SUC upgrades | https://docs.rke2.io | 2026-10-04 | community |
+| Rancher EOL dates (cross-check) | https://endoflife.date/rancher | 2026-10-04 | community |
+| SUSE lifecycle / support matrix (corroborates EOL + downstream window) | https://www.suse.com/lifecycle | 2026-10-04 | Prime (corroboration only) |
+| Companion: mgmt-cluster k8s window (single source of truth — cited, not restated); read 2026-10-04, agrees on the v2.15.2 ceiling | k8s-components-checker/references/compat/rancher.md | 2026-10-04 | community/local |
 
 ## Freshen history — observed state
 
@@ -66,7 +66,7 @@ ceilings, confirmed by **two independent sources** — the release-notes edition
 | 2.11 | v2.11.15 | **v2.11.3** | 2025-06-25 |
 | 2.12 | v2.12.11 | **v2.12.3** | 2025-10-22 |
 | 2.13 | v2.13.7 | **v2.13.3** | 2026-02-25 |
-| 2.14 | v2.14.3 | **v2.14.3** | 2026-09-15 |
+| 2.14 | v2.14.3 | **v2.14.3** | 2026-06-29 |
 
 Corroborated by the skill's own field reports (validated hops 2.12.3→2.13.3 and 2.13.3→2.14.2).
 `k8s-components-checker` § Edition discrimination owns the protocol and is now cited from
