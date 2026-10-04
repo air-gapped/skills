@@ -219,6 +219,9 @@ spec:
 
 ## Upgrading to v2.21.x
 
+Latest stable is **v2.21.0** (2026-09-23). Read the 2.21 breaking changes in
+full before choosing a target.
+
 **Every release ≤ 2.20.2 is exposed to GHSA-637c-6jxx-4rwm (critical).** A
 tenant with `create` on TriggerAuthentication + ScaledObject in its own
 namespace sets `hashiCorpVault.address` to its own URL and receives the
@@ -266,8 +269,8 @@ patched in 2.20. If you use that scaler and are below 2.20, that is the upgrade
 reason.
 
 **Kubernetes compatibility is a tested window, not a floor.** KEDA tests N-2
-minors: v2.20 covers **1.33–1.35**, v2.19 covers 1.32–1.34, v2.18 covers
-1.31–1.33. Kubernetes 1.36 was not yet in the tested matrix at this check.
+minors: v2.21 covers **1.34–1.36**, v2.20 covers 1.33–1.35, v2.19 covers
+1.32–1.34. Kubernetes 1.36 needs 2.21; 1.33 is out of 2.21's tested window.
 
 ### Open defects worth knowing before you rely on a feature
 

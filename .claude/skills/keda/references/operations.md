@@ -84,7 +84,7 @@ Pin `KEDA_VERSION` to the release being installed and reuse it in both URLs so
 the version never drifts between the full and core manifests:
 
 ```bash
-KEDA_VERSION=2.20.1   # latest release; check github.com/kedacore/keda/releases
+KEDA_VERSION=2.21.0   # latest release; check github.com/kedacore/keda/releases
 kubectl apply --server-side -f \
   "https://github.com/kedacore/keda/releases/download/v${KEDA_VERSION}/keda-${KEDA_VERSION}.yaml"
 ```
@@ -114,8 +114,8 @@ kubectl apply --server-side -f \
 
 ### Kubernetes version support
 
-KEDA follows an N-2 support window (2.20 supports k8s 1.33–1.35; 2.19 supports
-k8s 1.32–1.34). Check
+KEDA follows an N-2 support window (2.21 supports k8s 1.34–1.36; 2.20 supports
+k8s 1.33–1.35). Check
 `keda-docs/content/docs/<version>/deploy.md` for the exact matrix.
 
 ---
