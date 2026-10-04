@@ -98,6 +98,28 @@ Notable changes through the 26.x line:
 
 Always cross-check with the release-notes body via `gh release view <tag> --repo keycloak/keycloak --json body --jq '.body'`. Do not rely solely on this table — bump the date and verify.
 
+## 26.8.0 breaking changes (upgrading guide)
+
+Do these **before** the upgrade unless the row says otherwise:
+
+| Change | Action |
+|---|---|
+| `view-clients` no longer sees client secrets (masked `**********`) | Automation that reads secrets needs `manage-clients`. |
+| IdP mappers can no longer grant admin roles, directly or via group (CVE-2026-12388) | Default `allowAdminRoleMapping=false`, existing IdPs included; a `manage-realm` admin enables it per IdP. Earlier grants are not removed. |
+| Operator: Secrets behind `KeycloakOIDCClient` `spec.client.auth.secretRef` need label `operator.keycloak.org/kind=KeycloakOIDCClient` | Label them first, or the CR goes `HasErrors`. |
+| `--features=preview` no longer enables `stateless` | Set `--features=stateless` explicitly, plus `--cache-embedded-cluster-name=<unique>` (not `ISPN`) — without it the server refuses to start. |
+| Login failures stored in the DB by default (`login-failures` v2) | Expect more DB connections/CPU; `--features=login-failures:v1` restores in-memory (deprecated, incompatible with `stateless`). |
+| Token-exchange delegation needs FGAP v2; scope `delegation` → `delegation:user` | Update clients requesting the old scope. |
+| `initiating_idp` logout param ignored; upstream IdP always logged out | Temporary: `allow-initiating-idp-logout-param` (deprecated). |
+| X.509 *user* authenticators need "CA subject DN" | Set it per authenticator; old configs still work until the next major. |
+| Offline-session indexes rebuilt | Tables > 300 000 rows: index creation is skipped at migration and done in the background after startup (PostgreSQL, Oracle, MySQL/MariaDB, MSSQL Enterprise); otherwise run the logged SQL by hand. |
+| Async commit now also on MSSQL/Oracle (ephemeral tables) | MSSQL: DBA runs `ALTER DATABASE … SET DELAYED_DURABILITY = ALLOWED`, or opt out with `--spi-connections-jpa--quarkus--async-commit=false`. |
+| Disabled clients dropped from `aud`; Authorization Services resource URIs normalized | Review policies that relied on either. |
+
+Also: the Realm Operator (`KeycloakRealm`/`KeycloakClient`) reached end of life —
+use `KeycloakRealmImport` plus the preview `KeycloakOIDCClient`/`KeycloakSAMLClient`.
+Extensions using Quarkus internals or the Vert.x HTTP client need retesting (Quarkus 3.40).
+
 ## 26.7.x breaking changes (upgrading guide, verified 2026-09-15)
 
 These bite on upgrade and several are silent. Sourced from the upgrading guide,
