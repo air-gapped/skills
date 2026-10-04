@@ -204,7 +204,7 @@ When the user asks about something specific, prefer these sources over generic r
 
 - **Operator install manifests** (`keycloak/keycloak-k8s-resources`)
   - Each Keycloak version has a git tag (e.g. `26.7.0`) with the manifests under `kubernetes/`. Through 26.6 that was three files; **26.7+ has more, and the operator crash-loops (`Couldn't start informer for keycloaksamlclients...`) if the extra CRDs aren't applied** — vendor the whole directory listing, not a remembered file list:
-    - `keycloaks.k8s.keycloak.org-v1.yml` — the `Keycloak` CRD
+    - `keycloaks.k8s.keycloak.org-v1.yml` — the `Keycloak` CRD. Write CRs as **`k8s.keycloak.org/v2beta1`** (storage version since 26.6); `v2alpha1` is deprecated but served with an identical schema, so migrating is an `apiVersion` edit
     - `keycloakrealmimports.k8s.keycloak.org-v1.yml` — the `KeycloakRealmImport` CRD
     - `keycloakoidcclients…`/`keycloaksamlclients….yml` (26.7+) — client CRDs, required by the operator even if unused
     - `kubernetes.yml` — Operator Deployment + RBAC + ServiceAccount (assumes install namespace `keycloak`; one hardcoded ClusterRoleBinding subject — use the docs' kustomize-overlay approach for other namespaces)
@@ -258,7 +258,7 @@ When the user says "just stand one up so I can play," **don't** point them at `k
 # 2. Create a TLS secret (cert-manager / hand-roll / etc.)
 # 3. Create DB credentials secret (keys: username, password)
 # 4. Deploy Keycloak
-apiVersion: k8s.keycloak.org/v2alpha1
+apiVersion: k8s.keycloak.org/v2beta1
 kind: Keycloak
 metadata:
   name: keycloak

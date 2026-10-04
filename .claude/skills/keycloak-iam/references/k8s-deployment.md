@@ -169,7 +169,7 @@ These map to `--<option-name>=<value>` on the kc.sh start command. Use this for 
 ## <a id="realm-import"></a>4. `KeycloakRealmImport` CR
 
 ```yaml
-apiVersion: k8s.keycloak.org/v2alpha1
+apiVersion: k8s.keycloak.org/v2beta1
 kind: KeycloakRealmImport
 metadata:
   name: my-realm

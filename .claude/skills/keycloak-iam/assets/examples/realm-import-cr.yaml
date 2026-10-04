@@ -6,7 +6,7 @@
 # This CR is for one-shot bootstrap of a realm or for environments that own realm
 # config end-to-end via GitOps.
 
-apiVersion: k8s.keycloak.org/v2alpha1
+apiVersion: k8s.keycloak.org/v2beta1
 kind: KeycloakRealmImport
 metadata:
   name: tenants-realm

@@ -48,7 +48,7 @@
     {
       "id": 8,
       "question": "What apiVersion do the Keycloak Operator's `Keycloak` and `KeycloakRealmImport` custom resources use?",
-      "skill_answer": "k8s.keycloak.org/v2alpha1"
+      "skill_answer": "k8s.keycloak.org/v2beta1 (v2alpha1 deprecated since 26.6, same schema, still served)"
     },
     {
       "id": 9,
