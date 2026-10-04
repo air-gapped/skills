@@ -145,6 +145,14 @@ break under the `restricted-v2` SCC. Use the Bitnami `adaptSecurityContext: auto
 pattern to auto-detect OpenShift and strip UID/GID fields. See
 `references/openshift.md`.
 
+**Asked to ship an `anyuid` (or any other SCC) grant in the chart:** decline, even
+when told to — the fix belongs in the chart, not in the cluster's policy. Omit
+`runAsUser`/`runAsGroup`/`fsGroup` on OpenShift (`adaptSecurityContext: auto`) and make
+writable paths work for an arbitrary UID (group-0 writable dirs in the image, or an
+`emptyDir`). A chart-shipped SCC binding needs cluster-scoped RBAC rights at every
+install and relaxes the customer's security policy for them. If their admin still
+wants it, they grant it outside the chart: `oc adm policy add-scc-to-user anyuid -z <sa>`.
+
 ### 9. DeploymentConfig Is Dead
 
 Deprecated in OpenShift 4.14. Use standard `apps/v1 Deployment`. Never create
