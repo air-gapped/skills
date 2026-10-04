@@ -301,6 +301,7 @@ See `assets/examples/` for fuller examples (with HA tuning, `KeycloakRealmImport
 - **"Operator pod logs are flooded with warnings"** → On 26.6.0 exactly, that's `#47872`, fixed in 26.6.1. Upgrade to the latest 26.6.x.
 - **"Realm import keeps failing on existing realm"** → `KeycloakRealmImport` is *create-or-replace*; it won't merge. Use `kcadm.sh` for incremental edits, or accept the realm-as-config GitOps trade-off.
 - **"My JS admin client is broken on 26.6.0"** → 26.6.0 shipped a broken `@keycloak/keycloak-admin-client` package, fixed in 26.6.1. Use the latest 26.6.x.
+- **JGroups ERROR "closing inbound before receiving peer's close_notify" while a pod shuts down** (TCP + mTLS, 26.7.x–26.8.x, typically during a rolling update) → benign: the cluster still forms and maintainers report no production impact (#53482, open). Don't roll back over it; check the cluster view and `/health/ready` instead.
 - **"Liquibase changelock stuck"** → A previous migration crashed mid-flight. `DELETE FROM DATABASECHANGELOGLOCK WHERE ID=1` (after confirming no other instance is migrating). See `observability.md` §troubleshooting for the safe procedure.
 - **"I'm getting `KC_*` substitution surprises with `$` in passwords"** → Use the new `KCRAW_*` prefix (26.6+) instead of `KC_*` for any value that contains `$`.
 
