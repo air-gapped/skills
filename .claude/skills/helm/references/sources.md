@@ -52,7 +52,7 @@ deliberately, not via freshen.
 | actions/setup-python | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` | was v5.6.0 |
 | azure/setup-helm | v5.0.1 | `9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310` | was v4.3.0; v5.0.0 was node20→node24 only |
 | docker/login-action | v4.4.0 | `af1e73f918a031802d376d3c8bbc3fe56130a9b0` | was v3.4.0; latest is v4.6.0, pin still resolves — bump deliberately, not via freshen |
-| helm/kind-action | v1.14.0 | `ef37e7f390d99f746eb8b610417061a60e82a6cc` | was v1.12.0 |
+| helm/kind-action | v1.15.0 | `06c1ae10762d3b9c1644e7fe69596ae519e015a2` | was v1.14.0; v1.15.0 (2026-09-02) bumps default kind and kubectl |
 | sigstore/cosign-installer | v4.1.2 | `6f9f17788090df1f26f669e9d70d6ae9567deba6` | was v3.8.2 — **and that SHA did not exist**. v4 is required to install cosign v3+ |
 | helm/chart-testing-action | v2.8.0 | `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` | unchanged, verified |
 | helm/chart-releaser-action | v1.7.0 | `cae68fefc6b5f367a0275617c9f83181ba54714f` | version unchanged, **SHA corrected** |
