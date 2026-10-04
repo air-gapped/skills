@@ -13,6 +13,8 @@ the primary for a community claim.
 | Source | URL | Last verified | Tier |
 |--------|-----|---------------|------|
 | Rancher releases + issues (versions, EOL, breaking changes, issue numbers) | https://github.com/rancher/rancher/releases | 2026-09-15 | community |
+| Rancher security advisories — per-minor floors (current top: CVE-2026-88804 / GHSA-992f-xh8r-jg2f, critical, 2026-09-23, `<v2.15.2 / <v2.14.6 / <v2.13.10 / <v2.12.14 / <v2.11.18`; CVE-2026-88805 high, 2.15 only) | https://github.com/rancher/rancher/security/advisories | 2026-10-04 | community |
+| Fleet security advisories (CVE-2026-88808 critical, floors `0.16.2 / 0.15.7 / 0.14.11`; CVE-2026-93537/93538/93540 high) + Rancher-pinned Fleet per tag (`build.yaml` `fleetVersion`: v2.14.3 → 0.15.4, v2.15.1 → 0.16.1, v2.15.2 → 0.16.2) | https://github.com/rancher/fleet/security/advisories | 2026-10-04 | community |
 | Rancher per-release assets — `rancher-data.json` (KDM bundle), `rancher-mirror-to-rancher-org.sh` (exact shipped image tags) | https://github.com/rancher/rancher/releases/tag/v2.14.3 | 2026-09-15 | community |
 | Kontainer Driver Metadata — live downstream channel windows (`release-v2.14` **and** `release-v2.15`) | https://releases.rancher.com/kontainer-driver-metadata/release-v2.14/data.json | 2026-09-15 | community |
 | KDM repo (branches `release-v2.X`, `data/data.json`) | https://github.com/rancher/kontainer-driver-metadata | 2026-09-15 | community |
