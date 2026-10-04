@@ -181,7 +181,7 @@ target versions follow look-ahead (House Rule #4).
    | Minor | Community ceiling | Highest advisory floor | Reachable on community? |
    |-------|-------------------|------------------------|-------------------------|
    | 2.15  | v2.15.2           | 2.15.2                 | **yes** — 2.15.1 is below it |
-   | 2.14  | v2.14.3           | 2.14.6                 | no — 3 Prime-only patches |
+   | 2.14  | v2.14.3           | 2.14.6                 | no — 3 non-community patches |
    | 2.13  | v2.13.3           | 2.13.10                | no — 7 |
    | 2.12  | v2.12.3           | 2.12.14                | no — 11 |
    | 2.11  | v2.11.3           | 2.11.18                | no — 15 |
