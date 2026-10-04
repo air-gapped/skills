@@ -1,0 +1,138 @@
+{
+  "skill_name": "prometheus-mimir-grafana",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-10-04",
+    "grown": "opus via grow-evals.py 2026-10-04 (+7 to 8)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "mcp-v2-dashboard-panel-query",
+      "prompt": "I'm using the Grafana MCP server (mcp-grafana) from an agent against Grafana 13.2. For dashboard uid `svc-api` I called:\n\n1. get_dashboard_summary -> lists panel id 7, title \"p99 latency\", type timeseries\n2. run_panel_query {\"dashboardUid\":\"svc-api\",\"panelIds\":[7]} -> {\"results\":{},\"errors\":{\"7\":\"finding panel: dashboard has no panels\"}}\n3. get_dashboard_property {\"uid\":\"svc-api\",\"jsonPath\":\"$.panels[6].targets[0].expr\"} -> error: unknown key panels\n\nBut GET /api/dashboards/uid/svc-api in the browser shows a normal dashboard with a `panels` array and panel 7 in it. What is going on, and how do I get panel 7's p99 numbers for the last hour through the MCP? Give me the exact calls.",
+      "expected_output": "Explains the dashboard is being served to the MCP in Grafana's v2 schema (elements/variables/layout, no panels key) while the legacy API converts it to classic JSON, and that run_panel_query only understands the classic shape. Gives a working route: read the query via get_dashboard_panel_queries or a v2 JSONPath, substitute $__rate_interval, run it with query_prometheus as a range query.",
+      "files": [],
+      "assertions": [
+        "identifies that the MCP sees the dashboard in the v2 schema (panels under elements, not a panels array) while the legacy API returns the classic shape",
+        "states that run_panel_query cannot handle this dashboard shape, rather than blaming permissions, a wrong panel id, or an empty dashboard",
+        "gives a working alternative that extracts panel 7's query (get_dashboard_panel_queries, or a JSONPath under $.elements) and runs it through query_prometheus as a range query over the last hour",
+        "replaces Grafana macros such as $__rate_interval with a concrete window before running the query outside the panel",
+        "does NOT tell the user to re-save, re-import or convert the dashboard as the first step"
+      ],
+      "shape": "diagnose",
+      "source": "hand-written 2026-10-04 from live mcp-grafana behaviour"
+    },
+    {
+      "id": 1,
+      "name": "slo-burn-rate-alert-rules",
+      "prompt": "I need Prometheus alerting rules for our checkout-api availability SLO: 99.9% of requests over 30 days must be non-5xx. The metric we have is a counter, confirmed via /api/v1/series:\n\nhttp_server_requests_total{job=\"checkout-api\", namespace=\"shop\", pod=\"checkout-api-6c9d7-xk2lp\", route=\"/v1/cart\", method=\"POST\", code=\"200\"}\nhttp_server_requests_total{job=\"checkout-api\", namespace=\"shop\", pod=\"checkout-api-6c9d7-xk2lp\", route=\"/v1/cart\", method=\"POST\", code=\"503\"}\n\nNote the label is `code`, not `status`. Scrape interval is 30s. The rules get loaded into Mimir's ruler for tenant `shop-prod`. Our current alert is `rate(http_server_requests_total{code=~\"5..\"}[1m]) > 5` and it pages constantly on blips while missing slow burns. Give me a complete rule group YAML (recording rules for the error ratio plus the alerts) that pages on fast burns and tickets on slow burns.",
+      "expected_output": "A rule-group YAML with recording rules computing the 5xx ratio (sum of rates of 5xx over sum of rates of all, rate inside sum) at several windows, and multi-window multi-burn-rate alerts against an error budget of 0.001: 14.4× (1h with 5m) and 6× (6h with 30m) as page, 3× (1d with 2h) and 1× (3d with 6h) as ticket. Each alert requires both its long and short window to exceed the threshold.",
+      "files": [],
+      "assertions": [
+        "Error-ratio expressions filter on the `code` label (not `status`) and apply rate() to the counter before sum()",
+        "Burn-rate thresholds are expressed relative to a 0.001 error budget (e.g. 14.4 * 0.001), not as an absolute request rate",
+        "The page-severity alerts include the 14.4× burn over 1h paired with a 5m window and the 6× burn over 6h paired with a 30m window",
+        "Every alert combines a long window and a short window with `and`, so a single short blip cannot fire it",
+        "Slow-burn conditions (3× over 1d/2h and 1× over 3d/6h or equivalent) are routed as lower severity than the fast-burn page",
+        "No rate window shorter than roughly 4 scrape intervals (i.e. no [1m] at a 30s scrape) is used"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 2,
+      "name": "error-rate-by-version-join",
+      "prompt": "After a canary rollout of payments-svc I want a single PromQL query for a Grafana timeseries panel showing the 5xx ratio per deployed version. Series I have (from /api/v1/series on our Prometheus 3.4):\n\npayments_http_requests_total{job=\"payments-svc\", instance=\"10.42.3.17:8080\", pod=\"payments-svc-7b8f-abcde\", handler=\"/charge\", status_code=\"502\"}\npayments_http_requests_total{job=\"payments-svc\", instance=\"10.42.3.17:8080\", pod=\"payments-svc-7b8f-abcde\", handler=\"/charge\", status_code=\"200\"}\napp_build_info{job=\"payments-svc\", instance=\"10.42.3.17:8080\", pod=\"payments-svc-7b8f-abcde\", version=\"2.14.0\", git_sha=\"a1b2c3d\"}\napp_build_info{job=\"payments-svc\", instance=\"10.42.5.9:8080\", pod=\"payments-svc-9d1c-fghij\", version=\"2.15.0-rc1\", git_sha=\"e4f5a6b\"}\n\napp_build_info is a gauge always equal to 1. My colleague's attempt `sum by (version)(rate(payments_http_requests_total{status_code=~\"5..\"}[5m])) / sum by (version)(rate(payments_http_requests_total[5m]))` returns a single series with no version label. Write the working query and the panel settings (legend, unit, interval) to put on the dashboard.",
+      "expected_output": "Explains that the request counter carries no `version` label so it must be joined from app_build_info, and writes a ratio where both numerator and denominator are `rate(...)` multiplied `* on(instance) group_left(version) app_build_info` (or on pod) and then summed by version. Panel uses $__rate_interval, a percent/percentunit unit consistent with the expression, and a {{version}} legend.",
+      "files": [],
+      "assertions": [
+        "Identifies that the colleague's query fails because payments_http_requests_total has no version label, so `by (version)` collapses everything",
+        "The query joins version via a one-to-one-on-the-right match (on(instance) or on(pod)) with group_left(version) against app_build_info",
+        "rate() is applied to the counter before the join and before sum by (version), in both numerator and denominator",
+        "Filters 5xx using the `status_code` label as present in the series",
+        "The panel config uses $__rate_interval (or a window of at least 4 scrapes) and a unit that matches the expression's scale (percentunit for a 0–1 ratio, or ×100 with percent)"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 3,
+      "name": "multi-value-variable-empty-panel",
+      "prompt": "Grafana 12.3 dashboard, Mimir datasource. Variable definition:\n\n{\"name\":\"namespace\",\"type\":\"query\",\"query\":\"label_values(kube_pod_info, namespace)\",\"multi\":true,\"includeAll\":true}\n\nPanel query:\n\nsum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\"}[$__rate_interval]))\n\nWhen I pick exactly one namespace (e.g. `shop`) the panel works. When I pick `shop` and `billing`, or `All`, it says \"No data\". The on-call engineer thinks Mimir's query-frontend is dropping multi-series results because of a per-tenant limit, and wants to bump `max_fetched_series_per_query` for our tenant. Query inspector shows no error and an HTTP 200 with an empty result. What's actually wrong and what's the fix?",
+      "expected_output": "Identifies that a multi-value/All variable interpolates as a regex alternation like `(shop|billing)` and the panel uses the equality matcher `=`, so it matches a literal namespace string that doesn't exist. The fix is `namespace=~\"$namespace\"` (optionally with a custom All value such as `.*`), not a Mimir limit change.",
+      "files": [],
+      "assertions": [
+        "Identifies the equality matcher `=` combined with a multi-value variable as the root cause, not a Mimir limit",
+        "Explains that the multi-selected / All value is interpolated as an alternation (e.g. shop|billing) that matches no literal label value",
+        "The corrected query uses a regex matcher `=~` on namespace",
+        "Uses the HTTP 200 with empty result (no 422/limit error) as evidence against the tenant-limit theory",
+        "Does NOT recommend raising max_fetched_series_per_query or other Mimir tenant limits as the fix"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 4,
+      "name": "p99-pinned-at-top-bucket",
+      "prompt": "Our search-api p99 latency panel has been a perfectly flat line at exactly 2.5 seconds for three days, through a deploy and a traffic spike, while users complain searches take 6-10 seconds. Query:\n\nhistogram_quantile(0.99, sum by (le) (rate(search_request_duration_seconds_bucket{job=\"search-api\"}[$__rate_interval])))\n\nI pulled the bucket series for one pod:\n\nsearch_request_duration_seconds_bucket{le=\"0.005\"} ... {le=\"0.01\"} {le=\"0.025\"} {le=\"0.05\"} {le=\"0.1\"} {le=\"0.25\"} {le=\"0.5\"} {le=\"1\"} {le=\"2.5\"} {le=\"+Inf\"}\n\nAnd instant values of the 5m rate: le=\"1\" → 3.1/s, le=\"2.5\" → 3.4/s, le=\"+Inf\" → 11.8/s. The team lead thinks the Grafana panel has a max-Y or a 'clamp' transformation set, or that Mimir is downsampling. Where's the problem and how do we get a real p99?",
+      "expected_output": "Diagnoses that over 70% of requests fall into the +Inf bucket above the highest finite bound of 2.5s, so histogram_quantile can only return that upper finite bound; the histogram's bucket layout (client default buckets) is the cause, not Grafana or Mimir. Fix is re-instrumenting with buckets that extend past 10s+ (or a native histogram), and meanwhile reporting the fraction of requests over 2.5s.",
+      "files": [],
+      "assertions": [
+        "Identifies the bucket layout (highest finite bucket 2.5s with most observations in +Inf) as the root cause, not a Grafana panel setting or Mimir downsampling",
+        "Uses the given rates to show that roughly 70% of requests exceed 2.5s, so the true p99 is above 2.5s and unknowable from these buckets",
+        "Explains that histogram_quantile returns the highest finite bucket bound when the quantile lands in the +Inf bucket",
+        "Recommends changing instrumentation to buckets extending well beyond the observed 6-10s (or switching to native histograms)",
+        "Offers an interim measurable signal such as the ratio of requests above 2.5s (1 - le=\"2.5\"/le=\"+Inf\") rather than trusting the flat p99"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 5,
+      "name": "fleet-p99-aggregation-choice",
+      "prompt": "We run ingest-gateway as 40 pods behind a load balancer and need ONE fleet-wide p99 latency number for an SLO dashboard and an alert. Three proposals are on the table:\n\nA) Keep our Java client's Summary metric ingest_latency_seconds{quantile=\"0.99\"} and plot avg(ingest_latency_seconds{quantile=\"0.99\"}).\nB) Recording rule computing per-pod p99 via histogram_quantile on ingest_latency_hist_seconds_bucket by (pod, le), then avg() or max() of that across pods.\nC) histogram_quantile(0.99, sum by (le) (rate(ingest_latency_hist_seconds_bucket[5m]))).\n\nBoth the Summary and the classic Histogram are already exported (histogram buckets: 0.01,0.025,0.05,0.1,0.25,0.5,1,2.5,5,10). Traffic is uneven: 5 pods take 60% of requests. Which one do we pick for the SLO and why, and is there anything to change about the one we pick?",
+      "expected_output": "Picks C: summary quantiles and per-pod quantiles cannot be meaningfully averaged or maxed into a fleet quantile, especially with uneven traffic, whereas summing bucket rates by le before histogram_quantile yields a true request-weighted fleet p99. Notes accuracy is bounded by bucket resolution around the SLO threshold and that an SLO threshold aligned to a bucket boundary (or native histograms) is preferable.",
+      "files": [],
+      "assertions": [
+        "Chooses option C (histogram_quantile over bucket rates summed by le) for the fleet-wide SLO",
+        "Rejects option A because Summary quantiles are computed per pod and cannot be aggregated into a fleet quantile",
+        "Rejects option B because averaging or maxing per-pod quantiles is not a quantile of the combined distribution, and points out uneven traffic distorts it (quiet pods weigh as much as busy ones)",
+        "Notes that C's precision is limited by bucket boundaries and recommends aligning the SLO latency threshold with a bucket boundary or moving to native histograms"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 6,
+      "name": "dashboard-412-force-overwrite",
+      "prompt": "I've got an automation job that updates panel 12's query on our shared 'Platform Overview' dashboard (uid `plat-ov`, Grafana 12.2, folder owned by the SRE team). It does GET /api/dashboards/uid/plat-ov at 09:00, edits the JSON, then POSTs to /api/dashboards/db at 09:20 after a long test run. Today the POST returned:\n\nHTTP 412 {\"message\":\"The dashboard has been changed by someone else\",\"status\":\"version-mismatch\"}\n\nmeta.version at fetch time was 87. Just tell me how to set overwrite:true (and whatever else) so the job always succeeds — I don't want it failing like this again.",
+      "expected_output": "Pushes back on unconditional overwrite: a 412 means someone else saved version 88+ in between, and overwrite:true would silently discard their changes to a shared dashboard. Correct approach is to refetch the latest dashboard right before writing, reapply only the panel-12 change to that fresh copy, POST with the new version and overwrite:false, and retry that loop on 412.",
+      "files": [],
+      "assertions": [
+        "Explains that the 412 means another user saved the dashboard after the job's fetch, so the job's copy is stale",
+        "Does NOT recommend setting overwrite:true as the standing fix for the automation",
+        "Recommends refetching the current dashboard immediately before the write and reapplying only the targeted panel change to it",
+        "The write sends the freshly fetched version with overwrite:false and handles a further 412 by repeating fetch-patch-write rather than forcing",
+        "Suggests leaving a trail of the change (commit message on the save and/or a Grafana annotation)"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-10-04"
+    },
+    {
+      "id": 7,
+      "name": "unlimited-tenant-limits-for-regex-scan",
+      "prompt": "We run Mimir 2.16 for ~30 teams. Tenant `analytics` has a Grafana 'Metric Explorer' panel with this query over a 30-day range at step=15s:\n\ncount by (__name__) ({__name__=~\".+\"})\n\nIt fails with HTTP 422: \"the query exceeded the maximum number of samples (limit: 50000000)\" and sometimes \"max_fetched_series_per_query\". The analytics lead wants it working today. Write me the runtime overrides YAML that sets max_fetched_series_per_query, max_fetched_chunks_per_query and max_query_length to 0 (unlimited) for the analytics tenant, plus raise -querier.max-samples to 0 cluster-wide.",
+      "expected_output": "Declines to remove the limits: the query scans every series in the tenant across 30 days at 15s steps, and unlimited fetch limits plus a cluster-wide samples cap removal expose the shared queriers/store-gateways for all 30 tenants to OOM. Instead offers a cheap way to get the same answer: the label-values/cardinality APIs (/api/v1/label/__name__/values, /api/v1/cardinality/label_names or status/tsdb-style endpoints) or an instant query, and if any limit tweak is needed, a scoped, bounded increase for that tenant only.",
+      "files": [],
+      "assertions": [
+        "Does NOT provide overrides setting the analytics tenant's fetch/query-length limits to 0 (unlimited)",
+        "Does NOT recommend removing or zeroing the max-samples limit cluster-wide",
+        "Explains that the 422 reflects the query's shape (all series × 30 days × 15s step) and that retrying or unbounding risks the shared read path for all tenants",
+        "Offers an alternative that answers 'which metrics exist and how many series each' cheaply, such as label-values / cardinality API endpoints or an instant query instead of a 30-day range",
+        "If any limit change is proposed, it is a bounded increase scoped to the single tenant, not unlimited"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-10-04"
+    }
+  ]
+}
