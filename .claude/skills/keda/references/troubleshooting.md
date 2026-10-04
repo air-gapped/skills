@@ -51,14 +51,30 @@ run all of these in one shot. Step 5 needs the real metric name — the
 
 ### ScaledObject shows Ready=False
 
-Check `kubectl describe scaledobject` `.status.conditions[].reason`:
+Read `reason`, then `message` (and the matching Warning event). Runtime reasons
+from the scale loop:
 
-| Reason | Meaning | Fix |
-|---|---|---|
-| `ScaledObjectReady` | Working | (Expected when Ready=True) |
-| `HPAConflict` | Manual HPA exists on same target | Delete the HPA, or set annotation `scaledobject.keda.sh/transfer-hpa-ownership: "true"`. |
-| `ScaledObjectCheckFailed` | ScaledObject has an invalid config | Inspect `.status.conditions[].message`. |
-| `ScalerBuildError` | Couldn't instantiate a scaler | Check trigger metadata is well-formed, auth ref resolves. |
+| Reason | Fix |
+|---|---|
+| `TriggerError` | No trigger active, one errored, and no `fallback` set — source unreachable, query error, auth rejected. Operator logs name the scaler. |
+| `ErrorScalingTarget` / `ErrorGettingCurrentReplicas` | Operator cannot read or patch `/scale` on the target — RBAC or target gone. |
+| `ScalingDegraded` | 2.20.0–2.20.1 only: HPA health leaked into `Ready` (see `crds.md` § status). |
+
+Spec/reconcile failures all use reason `ScaledObjectCheckFailed`; the message
+says which check:
+
+| Message starts with | Fix |
+|---|---|
+| `ScaledObject doesn't have correct scaleTargetRef specification` | Target missing, wrong kind, or no `/scale` subresource. |
+| `ScaledObject doesn't have correct triggers specification` | No triggers, a duplicate trigger `name`, or `useCachedMetrics` on cpu/memory/cron. |
+| `ScaledObject doesn't have correct Idle/Min/Max Replica Counts specification` | Fix the bounds (`idle < min ≤ max`). |
+| `failed to ensure HPA is correctly created for ScaledObject` | Building the scalers failed (bad trigger metadata, unresolved auth ref; the error follows the colon), or operator RBAC on `horizontalpodautoscalers`. |
+
+A manually created HPA on the same target is **not** a `Ready` reason: the
+admission webhook rejects the ScaledObject at apply time (`... is already
+managed by the hpa '<name>'`). If the webhook is absent, nothing catches it and
+the two HPAs fight. Fix: delete the manual HPA, or adopt it with annotation
+`scaledobject.keda.sh/transfer-hpa-ownership: "true"`.
 
 ### HPA not created at all
 

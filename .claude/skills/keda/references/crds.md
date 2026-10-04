@@ -408,5 +408,6 @@ Degraded. 2.20.2+ returns `Ready` to config validity and moves HPA health to
 `HPAActive` —
 alert on `HPAActive`, not `Ready`, for "is the HPA scaling".
 
-Debug rule of thumb: if `Ready=False`, inspect `reason` — it's usually
-`HPAConflict`, `ScaledObjectDoesntExist`, or a scaler connection error.
+Debug rule of thumb: if `Ready=False`, `ScaledObjectCheckFailed` means a spec
+or reconcile check failed and `TriggerError` means a scaler is failing — read
+`message` (full table in `troubleshooting.md`).
