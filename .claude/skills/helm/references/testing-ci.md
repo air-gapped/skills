@@ -36,12 +36,17 @@ Five layers from fastest (no cluster) to slowest (real cluster):
 
 ## helm-unittest
 
-BDD-style unit testing. No cluster needed. v1.1.2.
+BDD-style unit testing. No cluster needed. v1.2.1; full Helm 4 support from v1.2.0.
 
 ### Installation
 
 ```bash
-helm plugin install https://github.com/helm-unittest/helm-unittest
+# Helm 3
+helm plugin install https://github.com/helm-unittest/helm-unittest.git
+# Helm 4 — a git install fails verification without the flag
+helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
+# Either — OCI artifact (plugin >= 1.1.0); on Helm 4 it can GPG-verify once public-key.asc is imported
+helm plugin install oci://ghcr.io/helm-unittest/helm-unittest/unittest:latest
 ```
 
 ### Test File Structure

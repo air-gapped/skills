@@ -24,7 +24,7 @@ not guessable: `norwoodj/helm-docs` tags `v1.14.2`, `dadav/helm-schema` tags
 |--------|-----|---------------|-------|
 | Helm releases | https://github.com/helm/helm/releases | 2026-09-15 | Latest stable **v4.3.0 (2026-09-09)**, up from v4.2.4 (2026-08-13); latest 4.1 patch v4.1.4 (2026-04-09), line quiet since. **Helm 3 is still maintained in parallel** — now at **v3.22.0 (2026-09-10)**, and note it was cut a day *after* the Helm 4 release. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
 | Helm docs | https://helm.sh/docs/ | 2026-05-28 | Chart API v2 current; v3 format planned, not released. SSA default on new installs in Helm 4. |
-| helm-unittest | https://github.com/helm-unittest/helm-unittest/releases | 2026-08-26 | Latest v1.1.2 (2026-07-24). BDD-style unit testing plugin, no cluster needed. |
+| helm-unittest | https://github.com/helm-unittest/helm-unittest/releases | 2026-10-05 | Latest **v1.2.1** (2026-10-03): v1.2.0 (2026-10-01) "Full helm 4 support"; v1.2.1 fixes the install script on Helm >= 4.3.0 with OCI plugin installation. README: Helm 4 git install needs `--verify=false`; OCI install supported from plugin 1.1.0. |
 | helmfile | https://github.com/helmfile/helmfile/releases | 2026-09-15 | Latest **v1.8.0 (2026-09-13)**, up from v1.7.4. Declarative multi-release management; supports Helm 3+4. |
 | chart-testing (ct) action | https://github.com/helm/chart-testing-action/releases | 2026-08-26 | Still v2.8.0 (2025-11-05), SHA `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` — resolves, matches the skill pin. |
 | chart-releaser action | https://github.com/helm/chart-releaser-action/releases | 2026-08-26 | Still v1.7.0 (2025-01-20). **Skill SHA was wrong** and now reads `cae68fefc6b5f367a0275617c9f83181ba54714f`. |
