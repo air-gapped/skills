@@ -4,7 +4,7 @@ Audience: an AI agent with network access to Prometheus/Mimir/Grafana that needs
 
 ## Contents
 - [1. The operational loop](#1-the-operational-loop) — discover → labels → alive → shape → aggregate → correlate → threshold
-- [2. Triage scripts](#2-triage-scripts) — 5xx / slow p99 / OOM / disk fill / HPA flap / node not ready
+- [2. Triage scripts](#2-triage-scripts) — 5xx / slow p99 / OOM / disk fill / HPA flap / node not ready; first 10 queries on an unfamiliar cluster
 - [3. MCP servers worth knowing](#3-mcp-servers-worth-knowing)
 - [4. When NOT to use an MCP server](#4-when-not-to-use-an-mcp-server)
 - [5. Query cost awareness](#5-query-cost-awareness)
@@ -142,6 +142,49 @@ up{job=~"kubelet|node-exporter",instance=~"the-node.*"}
 node_load5{instance=~"the-node.*"}
   / count by (instance) (node_cpu_seconds_total{mode="idle",instance=~"the-node.*"})
 ```
+
+### First 10 queries on an unfamiliar cluster
+
+When dropped into an unfamiliar cluster, start with these:
+
+```promql
+# 1. Scrape health across all jobs
+sum by (job) (up)
+
+# 2. Which scrape jobs have failing targets
+sum by (job) (up == 0)
+
+# 3. Top-10 metrics by cardinality (Mimir status)
+#    -> GET /api/v1/status/tsdb
+
+# 4. RPS per service (auto-discovers whatever exists)
+sum by (job) (rate({__name__=~".+_requests_total"}[5m]))
+
+# 5. Error rate per service
+sum by (job) (rate({__name__=~".+_requests_total", status=~"5.."}[5m]))
+  / sum by (job) (rate({__name__=~".+_requests_total"}[5m]))
+
+# 6. p99 latency per service (classic histograms)
+histogram_quantile(0.99,
+  sum by (job, le) (rate({__name__=~".+_duration_seconds_bucket"}[5m])))
+
+# 7. Pods crashlooping
+kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
+
+# 8. OOM-killed recently
+sum by (namespace, pod) (
+  kube_pod_container_status_last_terminated_reason{reason="OOMKilled"})
+
+# 9. Nodes with pressure
+kube_node_status_condition{status="true",
+  condition=~"MemoryPressure|DiskPressure|PIDPressure"}
+
+# 10. Anything going to fill its disk in 4 hours
+predict_linear(node_filesystem_avail_bytes{
+  fstype!~"tmpfs|overlay|squashfs"}[1h], 4*3600) < 0
+```
+
+Queries 4-6 use `__name__` wildcard — that's the "agent dropped into an unfamiliar cluster" shape. On production dashboards, prefer the actual metric name.
 
 ## 3. MCP servers worth knowing
 

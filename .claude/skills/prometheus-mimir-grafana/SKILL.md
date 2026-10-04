@@ -7,192 +7,52 @@ when_to_use: Triggers on "prometheus", "mimir", "grafana", "promql", "metrics", 
 
 # Prometheus, Mimir, and Grafana — for agents
 
-Target audience: an AI agent (or a human working through one) that has to *do things with metrics* — query, triage, alert, build and fix dashboards, and pick the right KPIs — against a stack that runs Prometheus, Grafana Mimir, and/or Grafana. Works whether the agent is given curl access to a Mimir gateway, an MCP server wrapper, or just a Grafana URL and a service-account token.
+**This skill uses the stack; it does not change it.** Version-laddering Mimir is
+**`mimir-upgrade`**; getting SNMP devices to emit metrics is **`snmp-exporter`**;
+logs are **`logging-operator`** (**`rancher-logging-exit`** for leaving the
+Rancher chart). Query returns nothing → start here; component broken or stale →
+wrong skill.
 
-**This skill uses the stack; it does not change it.** Siblings in the
-`observability` plugin own the lifecycle: version-laddering a Mimir install is
-**`mimir-upgrade`**, getting SNMP devices to produce metrics in the first place
-is **`snmp-exporter`**, and logs — a different pipeline entirely — are
-**`logging-operator`** (with **`rancher-logging-exit`** for migrating off the
-Rancher-bundled chart). If a query returns nothing, check here first; if the
-component itself is broken or stale, you are in the wrong skill.
+## Facts models get wrong — trust these over your prior
 
-## Why this matters
+| Claim | Correct |
+|---|---|
+| `=~"foo"` is a substring match | **Fully anchored** — means `^foo$`. Prefix match is `=~"foo.*"`. |
+| Mimir `/api/v1/status/config` returns the config YAML | Returns **empty** config (Prometheus-compat stub). Live config: `/config`; per-tenant overrides: `/runtime_config`. |
+| Grafana 12 deprecated the legacy dashboard `/api` | Grafana 12 **added** `/apis/dashboard.grafana.app/…`; Grafana **13** deprecated `/api`. Legacy `/api/dashboards/db` still works, removal deferred — default to it. Current stable line: 13.2. |
+| A dashboard JSON has `panels` | Grafana 13 may serve the **v2 schema**: `elements` / `variables` / `layout`, no `panels`. Same UID can be classic from `/api/dashboards/uid` and v2 from `/apis` or the Grafana MCP. Check the shape before any JSONPath. |
+| Mimir 422 is transient | A per-tenant limit tripped (`max_samples_per_query`, `max_query_length`, `max_fetched_series_per_query`). **Never retry unchanged** — raise `step`, shrink the window, tighten matchers. |
+| `/api/v1/query` returns every series | Prometheus 3+ accepts `limit=` to cap result cardinality — use it when exploring. |
 
-Metrics lie in three directions: (1) the agent queries the wrong metric or wrong label, (2) the query is syntactically fine but semantically broken (`rate` after aggregation, `histogram_quantile` of the mean, default histogram buckets sized for the wrong service), (3) the dashboard *looks* correct but the datasource variable is empty or the unit is off by 1000×. Each failure mode has an easy check. This skill is those checks, organized so the agent reaches for them before issuing the first query.
+## Non-negotiables
 
-## The one-paragraph rubric
+- **Confirm label names against the live series before filtering** (`/api/v1/series?match[]=<metric>` or `label_values()`). The 5xx label is exporter-dependent (`status`, `status_code`, `code`); a wrong name matches nothing and the panel reads zero errors.
+- **Catalog ≠ alive.** A name in `/label/__name__/values` or `/series` can have no samples now; confirm with an instant query and `up{job=…}`.
+- **Leave a trail.** Every automated intervention gets a Grafana annotation (`POST /api/annotations`, tags `["agent", …]`) and every dashboard save a `message`.
 
-Prometheus stores samples identified by `metric_name{label=value, ...}`. Mimir is a horizontally-scalable multi-tenant store that speaks Prometheus's wire protocol and API under a `/prometheus/api/v1/…` prefix, gated by `X-Scope-OrgID`. Grafana is the UI and the dashboards-as-JSON store. PromQL returns instant vectors, range vectors, scalars, or strings; `rate()` always wraps a counter before any `sum`; `histogram_quantile()` always consumes aggregated `_bucket` rates; and `$__rate_interval` is the only interval variable safe for counter rates. RED answers *is my service OK*, USE answers *is my resource OK*, and Golden Signals + SLO burn-rate answer *are my users OK*. Everything else is detail in the references.
-
-## Connect first — figure out what endpoint is in front of the agent
-
-Before the first query, identify the endpoint and auth shape. One of these five patterns will match:
+## Connect first
 
 | Shape | Base URL | Auth | Tenant |
 |---|---|---|---|
-| Prometheus direct | `http://prometheus:9090` | usually none / optional Basic | n/a |
-| Self-hosted Mimir via gateway | `https://mimir.example.com/prometheus` | `Authorization: Bearer …` | `X-Scope-OrgID: <tenant>` |
-| Grafana Cloud Mimir | `https://prometheus-prod-XX.grafana.net/api/prom` | Basic `instance_id:access_token` **or** `Bearer access_token` | encoded in token |
+| Prometheus direct | `http://prometheus:9090` | none / Basic | n/a |
+| Self-hosted Mimir gateway | `https://mimir.example.com/prometheus` | `Bearer` | `X-Scope-OrgID: <tenant>`; federate `a\|b\|c` |
+| Grafana Cloud Mimir | `https://prometheus-prod-XX.grafana.net/api/prom` | Basic `instance_id:access_token` **or** `Bearer access_token` | in token |
 | Grafana datasource proxy | `${GRAFANA}/api/datasources/proxy/uid/<ds-uid>` | Grafana SA token | datasource-configured |
-| In-cluster via k8s apiserver | `https://kubernetes.default.svc/…/services/prometheus-k8s:web/proxy` | mounted ServiceAccount token + CA | n/a |
+| In-cluster via apiserver | `https://kubernetes.default.svc/…/services/prometheus-k8s:web/proxy` | SA token + CA | n/a |
 
-Probe which one:
-```bash
-curl -sG "$URL/api/v1/status/buildinfo"          # Prom: full payload; Mimir: also full, product field distinguishes
-curl -s  "$URL/ready"                            # Mimir health
-curl -sG "$URL/api/v1/status/config"             # Mimir returns empty; Prom returns loaded YAML
-```
-Missing `X-Scope-OrgID` on Mimir → 401/403 with a message mentioning "org id" — the tell.
+Missing `X-Scope-OrgID` on Mimir → 401/403 mentioning "org id". Recipes: [references/mimir-api.md](references/mimir-api.md).
 
-Full connection and auth recipes in [references/mimir-api.md](references/mimir-api.md). MCP-server options, Grafana-side SA tokens, and the when-to-skip-MCP rule are in [references/agent-workflow.md](references/agent-workflow.md).
+## Grafana MCP
 
-## The discovery → query loop
-
-Do not start from `rate(http_requests_total[5m])` on faith. A metric *thought* to exist may actually be called `nginx_http_requests_total`, `istio_requests_total`, or `app_requests_total{job="api-server"}`. Always walk this ladder:
-
-1. **Catalog.** `GET /api/v1/label/__name__/values` — filter by prefix (`http_`, `kube_`, `node_`, `container_`, `grpc_`, `process_`, service name). Cache the result in the session.
-2. **Metadata.** `GET /api/v1/metadata?metric=<name>` — type, help, unit. Confirms what the metric *means* on this cluster.
-3. **Labels.** `GET /api/v1/series?match[]=<metric>` — enumerate label sets. For one dimension, `GET /api/v1/label/<label>/values?match[]=<metric>` is cheaper.
-4. **Aliveness.** `GET /api/v1/query?query=<metric>` — samples *right now*? A series present in `/series` can still be silent. Always pair with `up{job="…"}`.
-5. **Shape.** `GET /api/v1/query_range` at `step=60s` for an hour — eyeball the trajectory.
-6. **Aggregate.** `sum by(dim)(rate(<metric>[5m]))` — drop noise, keep the dimension that answers the question.
-7. **Correlate.** Join metadata via `* on(instance) group_left(version) app_build_info` — the canonical PromQL join.
-8. **Threshold.** Compare to a baseline: `offset 1w`, recording rule, alert rule (`/api/v1/rules`).
-
-Budget: `step` ≥ 30s for dashboards, ≥ 60s for exploration, ≥ 300s for multi-day windows. `limit=…` (Prom 3+) caps `/query` result cardinality. Don't scan with `{__name__=~".+"}`. Mimir 422 means the limit kicked in — **never retry unchanged**, change the query. Full cost and error-handling table in [references/agent-workflow.md](references/agent-workflow.md) §5, §9.
-
-## Triage scripts by symptom
-
-Full PromQL for each in [references/agent-workflow.md](references/agent-workflow.md) §2. The one-liner reminders:
-
-| Symptom | Start with |
-|---|---|
-| Service 5xx | rate of 5xx ÷ total, topk by handler, correlate by version via `group_left(version) app_build_info` |
-| Slow p99 | histogram_quantile on `_bucket` rates, top handler, then CPU saturation + GC + dependency latency |
-| OOM | `container_memory_working_set_bytes` / limits ratio, `deriv(...[1h])` for leak |
-| Disk fill | `predict_linear(node_filesystem_avail_bytes[1h], 4*3600) < 0` |
-| HPA flap | `changes(kube_hpa_status_current_replicas[1h]) > 6` |
-| Node not ready | `kube_node_status_condition{condition="Ready",status="true"} == 0`, `up{job=~"kubelet|node-exporter"}` |
-
-## PromQL — the things agents get wrong
-
-Full reference in [references/promql.md](references/promql.md). The trap list:
-
-- **`rate` before aggregation.** `sum(rate(x[5m]))` is correct; `rate(sum(x)[5m])` loses counter-reset detection. Agents invert this regularly.
-- **Histogram quantile of averages.** `histogram_quantile` must consume **rates of `_bucket` series**, aggregated **by `le`** plus any other dimensions needed. `avg(_bucket)` is wrong.
-- **`rate()` window too small.** `rate(x[1m])` with 15s scrape = 4 samples; a single missed scrape poisons it. Use `[5m]` as the floor, or `$__rate_interval` in Grafana.
-- **`irate` in alerts.** Non-deterministic over a window; use `rate`.
-- **`topk` in range queries.** Non-deterministic per step — `topk` ranks per evaluation point, so the *identity* of the top-K series flips. Fine for instant queries and tables; wrong for graphs.
-- **`up == 1` ≠ healthy.** Says scrape worked. The service can 500 every request.
-- **Mean latency.** `rate(_sum)/rate(_count)` hides the tail. Always `histogram_quantile`.
-- **Regex not anchored.** It is. `=~"foo"` means `^foo$` — write `=~"foo.*"` for prefix match.
-- **Counter on gauge.** `rate()` on a gauge produces garbage. `delta`/`deriv` are the gauge equivalents.
-- **`absent()` with matchers that don't really exist.** `absent(up{job="api", pod="abc"})` fires even if `pod="abc"` never existed. Keep deadman-switch queries minimal.
-- **`status` vs `status_code`.** The 5xx label name is exporter-dependent — some emit `status`, others `status_code`. Examples in this skill deliberately use both; neither is the right answer in general. **Confirm against the live label set** (`/api/v1/series`, or `label_values()` in Grafana) before filtering. A wrong label name is the worst failure shape here: it matches nothing, so the panel reads as zero errors rather than erroring.
-- **Staleness marker.** Default `--query.lookback-delta=5m`. Series absent >5m disappear from `/query` results even if in `/series` list.
-- **Mimir limits.** 422 after a tight query means `max_samples_per_query` or `max_query_length` tripped. Raise `step`, shrink window, tighten matchers.
-
-Canonical join (agents underuse this — write it down):
-```promql
-sum by (version) (
-  rate(http_requests_total{status=~"5.."}[5m])
-  * on(instance) group_left(version) app_build_info
-)
-```
-
-## Grafana — what the agent is actually doing
-
-Three workflows matter:
-
-### A. Query metrics *through* Grafana (agent has Grafana token but not Prom URL)
-```bash
-curl -sG -H "Authorization: Bearer $GF_TOKEN" \
-  "$GRAFANA/api/datasources/proxy/uid/$DS_UID/api/v1/query" \
-  --data-urlencode 'query=up'
-```
-Grafana enforces datasource RBAC. `/api/datasources` lists available datasources — find the Prometheus/Mimir one by `type`.
-
-### B. Build or fix a dashboard
-1. Fetch: `GET /api/dashboards/uid/<uid>` → `{dashboard, meta}`.
-2. Mutate the `panels[].targets[].expr`, `fieldConfig.defaults.unit`, `legendFormat`, `templating.list[]`, etc.
-3. Push back: `POST /api/dashboards/db` with the whole `dashboard` object (keep `version` from `meta.version`), `folderUid`, `overwrite: false`, `message` describing the agent's change.
-
-The legacy `/api/dashboards/db` endpoint is still the default in 2026 tooling (Helm charts, grafana-operator, most MCP servers). Grafana 12 added — and Grafana 13 (current stable line 13.2) formally deprecated the legacy `/api` path in favor of — a Kubernetes-style `/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>` API with `resourceVersion` concurrency. Legacy `/api/dashboards/db` remains fully functional; removal is deferred to a future major — keep using it unless the environment is already on the new API. Dashboards may also come back in the **v2 schema** (`elements`/`variables`/`layout`, no `panels`) from `/apis` or the Grafana MCP — classic JSONPaths fail on it.
-
-Full JSON schema, panel anatomy, transformation catalog, variable interpolation specifiers, and the full bug-fix list in [references/grafana-dashboards.md](references/grafana-dashboards.md).
-
-### C. Annotate what the agent did
-Every automated intervention should leave a trail:
-```bash
-curl -X POST -H "Authorization: Bearer $GF_TOKEN" \
-  -H 'Content-Type: application/json' \
-  "$GRAFANA/api/annotations" \
-  -d "{\"time\": $(date +%s%3N), \"tags\":[\"agent\",\"api\"], \"text\":\"scaled api 3→6 after 5xx spike\"}"
-```
-This is how post-mortems stay tractable when agents start acting on metrics.
-
-## KPIs — what to actually measure
-
-The judgment call the agent must make *before* picking metrics:
-
-| Target | Framework | What to graph |
-|---|---|---|
-| A service (HTTP / gRPC / queue handler) | **RED** | Rate, Errors, Duration (p50/p95/p99) |
-| A resource (CPU, mem, disk, GPU, pool) | **USE** | Utilization, Saturation, Errors |
-| User experience | **Golden Signals + SLO** | Latency, Traffic, Errors, Saturation — wrapped in an availability/latency SLI |
-| Alert trigger | **Multi-window multi-burn-rate** | 14.4× over 1h + 5m, 6× over 6h + 30m, 3× over 1d + 2h, 1× over 3d + 6h |
-
-Never alert on single thresholds, never average latency, never aggregate errors across every route — always decompose. `up == 1` is not a health signal; a synthetic probe from outside the cluster is. Framework reference, exporter catalogs, anti-patterns, and the "what should I measure for X?" decision tree in [references/kpis-frameworks.md](references/kpis-frameworks.md).
-
-## The top 10 diagnostic PromQL queries
-
-When dropped into an unfamiliar cluster, start with these:
-
-```promql
-# 1. Scrape health across all jobs
-sum by (job) (up)
-
-# 2. Which scrape jobs have failing targets
-sum by (job) (up == 0)
-
-# 3. Top-10 metrics by cardinality (Mimir status)
-#    -> GET /api/v1/status/tsdb
-
-# 4. RPS per service (auto-discovers whatever exists)
-sum by (job) (rate({__name__=~".+_requests_total"}[5m]))
-
-# 5. Error rate per service
-sum by (job) (rate({__name__=~".+_requests_total", status=~"5.."}[5m]))
-  / sum by (job) (rate({__name__=~".+_requests_total"}[5m]))
-
-# 6. p99 latency per service (classic histograms)
-histogram_quantile(0.99,
-  sum by (job, le) (rate({__name__=~".+_duration_seconds_bucket"}[5m])))
-
-# 7. Pods crashlooping
-kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
-
-# 8. OOM-killed recently
-sum by (namespace, pod) (
-  kube_pod_container_status_last_terminated_reason{reason="OOMKilled"})
-
-# 9. Nodes with pressure
-kube_node_status_condition{status="true",
-  condition=~"MemoryPressure|DiskPressure|PIDPressure"}
-
-# 10. Anything going to fill its disk in 4 hours
-predict_linear(node_filesystem_avail_bytes{
-  fstype!~"tmpfs|overlay|squashfs"}[1h], 4*3600) < 0
-```
-
-Queries 4-6 use `__name__` wildcard — that's the "agent dropped into an unfamiliar cluster" shape. On production dashboards, prefer the actual metric name.
+Its tools describe themselves. What they don't say — dead metrics without a time window, the histogram helper collapsing dimensions, `run_panel_query` failing on v2 dashboards, v2 JSONPaths and bracket quoting — is in [references/agent-workflow.md §3a](references/agent-workflow.md#3a-grafanamcp-grafana--official-grafana-mcp-server). Read it before the first MCP call.
 
 ## Reference map
 
-- [references/promql.md](references/promql.md) — full PromQL surface and the Prometheus HTTP API.
-- [references/mimir-api.md](references/mimir-api.md) — Mimir architecture, endpoints, auth, per-tenant limits, curl recipes.
-- [references/grafana-dashboards.md](references/grafana-dashboards.md) — dashboard JSON, variables, transformations, both dashboard APIs, provisioning, bug-fix catalog.
-- [references/kpis-frameworks.md](references/kpis-frameworks.md) — RED / USE / Golden Signals, SLO burn-rate, exporter metric catalogs, anti-patterns, dashboard recipes, decision tree.
-- [references/agent-workflow.md](references/agent-workflow.md) — runtime playbook, triage scripts, MCP servers, auth patterns, error-handling table, curl snippets.
-- [references/sources.md](references/sources.md) — dated upstream sources for freshen mode.
+| Need | File |
+|---|---|
+| Discovery loop, triage PromQL by symptom, first 10 queries on an unfamiliar cluster, MCP gotchas, query cost, auth | [references/agent-workflow.md](references/agent-workflow.md) |
+| PromQL surface, HTTP API, canonical `group_left` join, agent pitfall list | [references/promql.md](references/promql.md) |
+| Mimir architecture, endpoints, per-tenant limits, curl recipes | [references/mimir-api.md](references/mimir-api.md) |
+| Dashboard JSON (classic + v2), variables, transformations, both dashboard APIs, bug-fix catalog | [references/grafana-dashboards.md](references/grafana-dashboards.md) |
+| What to measure: RED / USE / Golden Signals, SLO burn-rate tiers, exporter catalogs, dashboard recipes | [references/kpis-frameworks.md](references/kpis-frameworks.md) |
+| Upstream sources and verification dates | [references/sources.md](references/sources.md) |

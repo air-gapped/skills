@@ -11,12 +11,12 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9062
+        "mean": 0.893
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.875
+        "mean": 0.858
       }
     }
   }

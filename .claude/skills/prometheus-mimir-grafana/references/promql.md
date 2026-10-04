@@ -319,6 +319,10 @@ absent(up{job="api"})
 8. **Staleness marker.** Default `--query.lookback-delta=5m`. Series absent >5m drops from results.
 9. **Counter resets on pod restart** already handled by `rate`; don't second-guess.
 10. **Instant queries with `@ end()`** for "value at window end" — useful for alerts.
+11. **Histogram quantile of averages.** `histogram_quantile` consumes `rate()` of `_bucket` series summed `by (le, …)`; never `avg(_bucket)`.
+12. **`rate()` on a gauge** produces garbage. Gauges take `delta` / `deriv`.
+13. **`absent()` with matchers that never existed** fires forever: `absent(up{job="api", pod="abc"})` is true if `pod="abc"` never existed. Keep deadman selectors minimal.
+14. **Wrong label name matches nothing silently.** The 5xx label is exporter-dependent (`status`, `status_code`, `code`). Confirm against `/api/v1/series` or `label_values()` before filtering — a wrong name reads as zero errors, not an error.
 
 ## 10. Engine limits
 
