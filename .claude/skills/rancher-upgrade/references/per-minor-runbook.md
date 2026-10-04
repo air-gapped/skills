@@ -97,6 +97,12 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
 - **Rancher chart-repo retention cut to the 7 most recent minors** (~2.5 years). Existing installs
   keep running, but re-deploying an app from a pinned older chart version may find it gone —
   confirm the pin still resolves, or upgrade the app first.
+- **2.15.2 can stop Fleet deployments that pin a ServiceAccount** (Fleet 0.16.2, CVE-2026-88808
+  fix). The agent now creates the target namespace and copies `downstreamResources` Secrets /
+  ConfigMaps with the pinned ServiceAccount's own RBAC, not its own. A pinned SA without those
+  rights leaves the deployment "not ready", retrying. Before the hop, list GitRepos/Bundles with
+  `serviceAccount` set; grant namespace create + Secret/ConfigMap write, or pre-create the namespace.
+  Unpinned deployments are unchanged.
 - **Security: v2.15.1 IS the batch** — CVE-2026-75033/75034/75035 and CVE-2026-71404 (high) plus
   CVE-2026-71403 (medium). The same batch ships **CVE-2026-75036 against Fleet** (medium, floors
   `0.16.1 / 0.15.6 / 0.14.10 / 0.13.15 / 0.12.19`), which lives in the **`rancher/fleet` advisory
