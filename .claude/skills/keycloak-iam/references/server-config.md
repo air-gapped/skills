@@ -193,6 +193,8 @@ If `kubernetes` doesn't work (stricter PSP, sidecars), fall back to `jdbc-ping` 
 
 ### External Infinispan ("remote-cache", for HA)
 
+On 26.8+ this is the deprecated multi-cluster v1 (`multi-site`) path; prefer `--features=stateless` for new deployments.
+
 For multi-cluster active-active or active-passive setups, Keycloak no longer relies on JGroups cross-site replication (deprecated). Instead, deploy an external Infinispan cluster and point Keycloak at it:
 
 ```

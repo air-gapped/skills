@@ -162,17 +162,22 @@ Brokering API **V2** is supported but off by default while V1 is deprecated and
 still on by default. The experimental `token-exchange-external-internal:v2` was
 removed.
 
-### Multi-cluster HA without external Infinispan: preview, and v1 is not deprecated
+### Multi-cluster HA without external Infinispan (`stateless`, multi-cluster v2)
 
-Enable with **`--features=stateless`**. It connects clusters through their
+**On 26.8+ it is supported and v1 is deprecated:** `multi-site` (v1, external
+Infinispan) is deprecated for removal in a future major, `clusterless` will be
+removed — migrate both to `stateless` (keycloak.org/high-availability/multi-cluster-v2/migrate-from-v1-to-v2).
+The bullets below describe **26.7**, where it was still preview.
+
+Enable with **`--features=stateless`** (26.8+: plus `--cache-embedded-cluster-name`). It connects clusters through their
 embedded Infinispan caches and propagates invalidation **through the database**
 using an outbox table that other sites poll, which is what removes the external
 Infinispan requirement and the Kubernetes/AWS-specific assumptions with it.
 
-Two things to hold onto before treating it as the new default:
+On 26.7:
 
 - **It is preview**, stated as such on the introduction and concepts pages.
-- **v1 is not deprecated.** The HA overview lists single-cluster, multi-cluster
+- **v1 is not deprecated** (it is from 26.8). The HA overview lists single-cluster, multi-cluster
   v1 and multi-cluster v2 side by side as current choices; only v2 carries the
   preview admonition. v1 remains the non-preview path.
 - The documented cost is roughly **twice the database CPU and write IOPS**,

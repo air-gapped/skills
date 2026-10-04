@@ -336,6 +336,8 @@ For non-K8s discovery (or stricter PSPs), `KC_CACHE_STACK=jdbc-ping` works witho
 
 ### Multi-cluster / cross-DC HA
 
+**New multi-cluster deployments on 26.8+: use `stateless` (multi-cluster v2)** — session data in the database, no external Infinispan; see SKILL.md §Multi-cluster HA. The external-Infinispan `multi-site` (v1) pattern below is deprecated from 26.8.
+
 Two patterns supported in 26.x:
 
 1. **Active-passive**: One cluster takes traffic, the other is warm. DB replicates between sites (CNPG cross-cluster, AWS RDS read replica, etc.). On failover, switch DNS + promote the replica.
