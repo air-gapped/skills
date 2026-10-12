@@ -6,7 +6,7 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
-- **Last sifted:** 2026-09-24
+- **Last sifted:** 2026-10-12 (breaking changes 3.4/3.5, upgrade path from 2.x, restart pacing)
 - **CORRECTION — the probe method was broken and the inferences it produced were wrong.** This file recorded that `support/matrix` "does NOT cover ECK — verified empty", and so fell back to probing per-minor guide pages and *inferring* windows from which ones 404. Both halves failed. The matrix does cover ECK (above). And the 404 rule no longer discriminates: probed today, **2.14, 3.1, 3.3, 3.4 and 3.5 all 404 while 2.16 and 3.0 still serve** — it is not an old-vs-new split, so a 404 carries no information at all.
 - **Four inferred values were wrong**, now replaced with published ones: 3.2.x k8s **1.30–1.34** (was inferred 1.29–1.34) and OpenShift **4.15–4.20** (was 4.14–4.19); 3.4.x k8s **1.31–1.36** (was 1.31–1.35) and OpenShift **4.16–4.22** (was 4.16–4.20). The 3.0.0 release date was also wrong: **2025-04-15**, not 2025-04-22. Unlike a stale number, a wrong inference never ages into correctness — it had to be read off the source to be caught.
 - **Published matrix, CSV dated 2026-08-04** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
@@ -39,7 +39,7 @@ Notes on sources:
   - Beats / Elastic Agent (Fleet + standalone) / Elastic Maps Server: 8.x, 9.x
   - Logstash: 8.12+, 9.x
   - Enterprise Search: 8.x only (no 9.x — EOL'd at 9.0)
-- **Breaking:** none. `eck.k8s.elastic.co/managed: "false"` annotation is **deprecated** (still functional) in favor of the new `eck.k8s.elastic.co/pause-orchestration` annotation, which — unlike `managed: false` — keeps cert rotation, secret/user management and health monitoring running during the pause instead of stopping all reconciliation.
+- **Breaking:** the operator upgrade restarts **every Fleet Server pod** (pod-spec change; breaking-changes.md § 3.5.0 — no action, plan for it). Otherwise none. `eck.k8s.elastic.co/managed: "false"` annotation is **deprecated** (still functional) in favor of the new `eck.k8s.elastic.co/pause-orchestration` annotation, which — unlike `managed: false` — keeps cert rotation, secret/user management and health monitoring running during the pause instead of stopping all reconciliation.
 - **CRD migrations:** none required. New optional `spec.resources` shorthand (top-level; `spec.nodeSets[].resources` for Elasticsearch) added to all 8 pod-owning CRDs (#9346) as a flattened alternative to `podTemplate.spec.containers[name=<main>].resources`. Additive and opt-in — existing manifests are unaffected, and an older (pre-3.5) operator silently ignores the field on rollback.
 - **Upgrade ordering:** standard rule applies (operator before k8s bump, see Cross-cutting notes below); no new ordering constraint introduced.
 - **Deprecations:** `eck.k8s.elastic.co/managed: "false"` annotation (superseded by `pause-orchestration`, not yet removed).
@@ -64,7 +64,12 @@ Notes on sources:
   - Elastic Maps Server: 8.x, 9.x
   - Logstash: 8.12+, 9.x
   - Enterprise Search: 8.x **only** (no 9.x — Enterprise Search EOL'd at 9.0)
-- **Breaking:** none operator-side. New Elasticsearch `xpack.security.fips_mode.enabled=true` now triggers operator-managed password-protected keystore (Elasticsearch 9.4.0+ only — earlier 9.x with FIPS still needs manual `podTemplate` override).
+- **Breaking (corrected 2026-10-12 — this row said "none operator-side"; Elastic's breaking-changes.md § 3.4.0 lists four):**
+  - **Rolling restart of every Elasticsearch pod** during the operator upgrade (`seccompProfile: RuntimeDefault`, new pre-stop hook and readiness-probe scripts).
+  - **Rolling restart of Kibana**, and its default memory limit rises **1Gi → 2Gi**. Pods with no explicit limit grow; an explicit limit below 2Gi risks OOM on Kibana 9.4.0+.
+  - **Rolling restart of APM Server, Logstash, Elastic Maps Server and Package Registry** wherever the security context is injected (`--set-default-security-context` `true`, or `auto-detect` on non-OpenShift). OpenShift `auto-detect` is unaffected.
+  - **Default PVC handling:** a custom PVC in `podTemplate.spec.volumes` named like a default volume (e.g. `elasticsearch-data`) is now *used* instead of ignored, which can make Kubernetes reject the StatefulSet update. Fix: remove the overlapping entry.
+  - New Elasticsearch `xpack.security.fips_mode.enabled=true` now triggers operator-managed password-protected keystore (Elasticsearch 9.4.0+ only — earlier 9.x with FIPS still needs manual `podTemplate` override).
 - **CRD migrations:** none.
 - **Upgrade ordering:** operator (3.3.x → 3.4.0) before any Stack rolling restart; new `eck.k8s.elastic.co/restart` annotation mechanism is operator-managed — old manual pod-deletion recipes still work but the annotation supersedes them.
 - **Deprecations:** none new.
@@ -171,7 +176,7 @@ Notes on sources:
   - APM Server reworked for 9.0.0 (#8448) — APM users moving to 9.x should re-test their APM Server spec.
 - **CRD migrations:** none — CRD apiVersions stay `v1`; no conversion step despite the operator-major bump.
 - **Upgrade ordering:**
-  - From 2.16.1: bump operator 2.16.1 → 3.0.0 (operator-major hop) **before** bumping k8s above 1.32. The 3.0 operator's k8s window is 1.28–1.32, so an in-place k8s already at 1.31/1.32 is fine; do not bump k8s to 1.33 until the operator is at 3.1+.
+  - From 2.16.1: the operator may go **directly** to any 3.x (see § 2.16.1 Upgrade ordering); pick one whose k8s window covers the cluster *before* bumping k8s above 1.32. The 3.0 operator's k8s window is 1.28–1.32, so an in-place k8s already at 1.31/1.32 is fine; do not bump k8s to 1.33 until the operator is at 3.1+.
   - Stack 9.0 adoption comes **after** the operator is at 3.0+ and any cluster is staged at 8.18 (see Breaking).
 - **Deprecations:** 6.x Stack support removed (was already legacy).
 - **Cross-component / notable:**
@@ -194,7 +199,7 @@ Notes on sources:
 - **Breaking:** none operator-side within 2.16.
 - **CRD migrations:** none.
 - **Upgrade ordering (forward-migration story — 2.16 as a migration SOURCE):**
-  - **2.16 → 3.0 is a MAJOR operator jump.** The operator-side path is 2.16.1 → 3.0.0 → 3.1.0 → … (operators upgrade one minor/major at a time; do not skip 3.0). CRDs stay `v1` across the boundary, so there is no CRD conversion — but the Stack-support window shifts: 9.x is unavailable until 3.0, and 6.x stops being managed at 3.0.
+  - **2.16 → 3.0 is a MAJOR operator jump.** A **direct hop to the newest 3.x is supported** — Elastic's upgrade page: *"There are no special instructions to follow if you upgrade from any 2.x version"* (corrected 2026-10-12; this row previously said "do not skip 3.0", which the source never said). Skipping is allowed, but read the release notes **and breaking changes of every skipped release** — they only list changes since the previous one. CRDs stay `v1` across the boundary, so there is no CRD conversion — but the Stack-support window shifts: 9.x is unavailable until 3.0, and 6.x stops being managed at 3.0.
   - **Stage Stacks before the operator-major hop.** Any managed 6.x cluster must reach 7.17+ before bumping to 3.0 (3.0 removed 6.x). Any cluster you intend to take to 9.0 must first reach 8.18 (3.0 validates 9.0 upgrades only through 8.18).
   - **k8s window widens forward, not backward.** 2.16.1 tops out at k8s 1.32; 3.0 also tops at 1.32 (window 1.28–1.32), 3.1 reaches 1.33. Bump the operator to a release whose window includes the target k8s minor *before* the k8s upgrade — the standard ECK ordering rule (see Cross-cutting notes).
 - **Deprecations:** none new in 2.16 itself; 6.x management is implicitly end-of-the-line here (removed next major).
@@ -207,6 +212,11 @@ Notes on sources:
 - **License gating, CE clarity.** ECK operator binary is single-build; "Enterprise" features are runtime-gated by license CR. Operator runs fine without a license (Basic). Features that *require* Enterprise in 3.2–3.5: granular per-role PDBs (3.2+), `AutoOpsAgentPolicy` (Enterprise in 3.3.0, Basic from 3.3.1), Stack Config Policies composition (3.3+), client-certificate auth (3.4+), dynamic namespaces and Fleet Server client-cert enforcement (3.5+). EE-as-CE pattern is **not applicable** to ECK — these are license-key gated, not binary-gated.
 - **OpenShift caveat.** ECK runs as `runAsNonRoot` since long-ago. 3.4 sets `seccompProfile: RuntimeDefault` by default — verify OpenShift `SecurityContextConstraints` permit this (`restricted-v2` does, `restricted` v1 does not).
 - **k8s upgrade-ordering rule for ECK clusters.** Always upgrade the **ECK operator** to a release whose k8s support window includes the target k8s minor *before* bumping k8s. Then perform the k8s upgrade. Stack-version bumps are independent and rolling-restart safe; the master-upgrade-last change in 3.3.0 only matters during Stack-version upgrades, not k8s upgrades.
+- **Operator upgrades restart managed pods — and the restarts can be paced.** Source: Elastic's [Upgrade ECK](https://www.elastic.co/docs/deploy-manage/upgrade/orchestrator/upgrade-cloud-on-k8s) § "Control rolling restarts during the upgrade" (read 2026-10-12). Operator versions that trigger a one-time rolling restart when installed: **1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4²** (¹ stack-monitoring users only; ² nearly every managed workload — see § 3.4.0). 3.5 adds a Fleet Server restart (§ 3.5.0). **Stepping over one of these versions still triggers its restart** — a 2.16 → 3.5 hop inherits 3.1, 3.2 and 3.4.
+  - **To pace the restarts** on a large cluster, annotate the resources *before* the operator upgrade, then remove the annotation per resource when convenient; each restart runs on removal.
+  - **Target 3.5+:** `eck.k8s.elastic.co/pause-orchestration=true` — pauses spec-driven changes (StatefulSet/Deployment updates, rolling upgrades, scaling, volume expansion) while cert rotation, services, users/roles, keystore, PDBs and health monitoring keep running. Sets an `OrchestrationPaused` status condition. Only the exact strings `"true"`/`"false"` pass the webhook. Doc: [Pause orchestration](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s/k8s-pause-orchestration).
+  - **Target 3.0–3.4:** `eck.k8s.elastic.co/managed=false` — stops **all** reconciliation, cert rotation included; remove it promptly. Deprecated in 3.5, still functional.
+  - Bulk form: `kubectl annotate --overwrite elastic --all <annotation>` per namespace; resume with the trailing-dash form (`eck.k8s.elastic.co/pause-orchestration-`). Upstream ships a helper at `hack/annotator` in `elastic/cloud-on-k8s`.
 - **CRD apiVersion stability — including across the 2.x → 3.x major.** No `elasticsearch.k8s.elastic.co` apiVersion bumps across 2.16 → 3.0 → 3.5. CRDs remain `v1` shape; the 2.x → 3.0 operator-major hop carries **no CRD conversion step**. Webhooks moved to controller-runtime `Validator` in 3.4 but the served apiVersion is unchanged; 3.5's new `resources` shorthand field (all 8 pod-owning CRDs) is likewise additive, not an apiVersion bump.
 - **Fleet / Agent lifecycle.** ECK manages Agent CR lifecycle (Fleet-managed and standalone) across the whole 2.16–3.5 window. The Fleet config gating change in 3.2 (#8869) confines advanced Fleet config logic to Agent v8.13+ — running older Agents under a 3.2+ operator silently ignores some Fleet config fields. 3.5's Fleet Server→Agent mTLS enrollment (when enabled) is gated to the same floor (Fleet Server/Agent ≥ 8.13.0, #9598).
 
