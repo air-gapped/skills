@@ -207,12 +207,63 @@ Notes on sources:
   - 2.16.1's only substantive change over 2.16.0 is the k8s window bump to 1.27–1.32 (#8403); functionally a compat/patch release. Run 2.16.1, not 2.16.0, on any cluster at k8s 1.31/1.32.
   - `controller-runtime` ~v0.19.x; k8s client-go ~v0.31/0.32 baked in (consistent with the 1.32 ceiling).
 
+## Operator-upgrade impact ledger (sifted 2026-10-13, through 3.5.0)
+
+**How to use.** For an operator hop *from* → *to*, take every row whose **Ver** satisfies *from* < Ver ≤ *to*. A skipped release still applies: its restarts, behaviour changes and known issues all land in the one hop (Elastic: "Stepping over one of these versions … still triggers a rolling restart"). Rows describe what the **operator upgrade** does to already-running workloads, plus behaviour that changes afterwards. Version support windows and new opt-in features live in the per-version sections above.
+
+**Kinds:** `restart` — pods roll when the new operator starts · `break` — may fail or need action · `behaviour` — changes silently, check your assumptions · `perms` — operator RBAC / CRD surface grows · `deprecation` · `known-issue` — note the fixed-in version · `rollback` — hazard when going back down · `removed`.
+
+| Ver | Kind | Change | What to do | Source |
+|---|---|---|---|---|
+| 3.0.0 | removed | Stack 6.x no longer reconciled | Move any 6.x to 7.17+ before the hop | breaking/index #8507 |
+| 3.0.0 | behaviour | 9.0 upgrades validated to go through 8.18 | 9.x only after the cluster reaches 8.18 (9.0) / 8.19 (9.1+) | index #8559 |
+| 3.0.0 | behaviour | 9.x images drop the `ubi` suffix; new Agent image path from 9.0 | Mirror the new 9.x image paths before any 9.x Stack | index #8509 #8518 |
+| 3.0.0 | break | Enterprise Search has no 9.x | Migrate off before any Stack 9.x | breaking 3.0.0 |
+| 3.1.0 | restart | Stack-monitoring sidecars roll (only when stack monitoring is used) | Plan the roll | upgrade page restart list |
+| 3.1.0 | behaviour | Labels/annotations on ES/Kibana/Agent CRs propagate to child Pods/Services | Re-check admission policies and selectors that key on child labels | index #8673 |
+| 3.1.0 | behaviour | Stack-monitoring Filebeat moves from the `container` input to `filestream` | Watch for changed monitoring-log ingestion | index #8679 |
+| 3.2.0 | restart | Stack-monitoring sidecars roll again (only when stack monitoring is used) | Plan the roll | upgrade page restart list |
+| 3.2.0 | behaviour | Advanced Fleet config gated to Agent ≥ 8.13; older Agents silently ignore those fields | Check Agent versions on older Stacks | index #8869 |
+| 3.2.0 | behaviour | Fleet-mode Agent CONFIG_PATH aligned to STATE_PATH | See the 3.2.0 rollback row | index #8856 |
+| 3.2.0 | behaviour | `GOMEMLIMIT` set automatically from the operator's cgroup memory limit | Revisit operator memory tuning | index #8814 |
+| 3.2.0 | rollback | Going below 3.2 and back up: Fleet-mode Agents fail with "cipher: message authentication failed" | Re-enroll with env `FLEET_FORCE=true` on the Agent podTemplate, remove afterwards | known-issues 3.2.0 |
+| 3.3.0 | behaviour | Elasticsearch version upgrades roll **master StatefulSets last** (previously first) | Update runbooks that watch masters first | index #8871 |
+| 3.3.0 | behaviour | Single-master-at-a-time upscale restriction removed | Expect parallel master scale-up | index #8940 |
+| 3.3.0 | behaviour | Operator pod uses standard Kubernetes/Helm labels | Re-check selectors on the operator pod (monitoring, NetworkPolicy) | index #8840 |
+| 3.3.0 | behaviour | Kibana `server.name` no longer set by the operator | Check anything relying on it | index #8930 |
+| 3.3.0 | perms | New CRDs `AutoOpsAgentPolicy`, `PackageRegistry` (+ RBAC; cluster-wide namespaces read) | Expect the RBAC diff | index #8941 #8800 |
+| 3.3.0 | deprecation | Stack 7.17 deprecated | Move off 7.17 | deprecations 3.3.0 |
+| 3.3.0 | known-issue | HTTP/transport cert AKI/SKI mismatch → ES nodes cannot join, Kibana/Fleet cannot connect. **Fixed in 3.4.0** | Skip 3.3.x as a target; if hit, delete `<cluster>-es-<nodeset>-es-transport-certs` and `<cluster>-es-http-certs-internal` | known-issues 3.3.0–3.3.2, #9197 |
+| 3.3.2 | known-issue | FIPS images 2.9.0–3.3.1 used standard Go crypto, not BoringCrypto. **Fixed in 3.3.2** | FIPS sites target ≥ 3.3.2 | known-issues, #9263 |
+| 3.4.0 | restart | **All Elasticsearch pods** roll (`seccompProfile: RuntimeDefault`, new pre-stop/readiness scripts) | Pace with the pause annotation (§ Cross-cutting) | breaking 3.4.0 |
+| 3.4.0 | restart | **Kibana** rolls; default memory limit **1Gi → 2Gi** | Check node headroom; explicit limits < 2Gi risk OOM on Kibana 9.4+ | breaking 3.4.0 |
+| 3.4.0 | restart | APM Server, Logstash, Maps, Package Registry roll where the security context is injected | Plan the roll | breaking 3.4.0 |
+| 3.4.0 | break | A custom PVC in `podTemplate.spec.volumes` named like a default volume is now *used*; Kubernetes may reject the StatefulSet update | Remove the overlapping volume entry | breaking 3.4.0 |
+| 3.4.0 | behaviour | Webhooks moved to controller-runtime `Validator`; warnings surfaced | Re-test custom webhooks layered on ECK | index #9235 |
+| 3.4.0 | known-issue | Logstash ignores `set-default-security-context` → rejected under an OpenShift `anyuid` SCC. **Fixed in 3.5.0** | Skip 3.4.x on OpenShift with Logstash | known-issues 3.4.x, #9550 |
+| 3.5.0 | restart | **Fleet Server** pods roll | Plan the roll | breaking 3.5.0 |
+| 3.5.0 | behaviour | Kibana readiness probe uses the status API | Pods may take longer to report Ready | index #9468 |
+| 3.5.0 | behaviour | `FLEET_SERVER_SERVICE_TOKEN` moves from a pod env var to a Secret | Nothing; security fix | index #9626 |
+| 3.5.0 | behaviour | Operator cache scoped to ECK-labelled workload resources; opt-in `--restrict-watched-resources` | Lower operator memory | index #9339 #9359 |
+| 3.5.0 | deprecation | `eck.k8s.elastic.co/managed` annotation → use `pause-orchestration` | Replace in runbooks/scripts | deprecations 3.5.0 |
+
+**Restart-trigger list** (Elastic's upgrade page, read 2026-10-12): 1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4², plus 3.5 (Fleet Server, from breaking-changes). ¹ stack monitoring only · ² nearly every workload.
+
+**Adding a release (freshen procedure).** For each new ECK version, read these four pages and append rows; never edit an old row except to fill in a **fixed-in** version:
+
+1. `elastic/cloud-on-k8s` `docs/release-notes/breaking-changes.md` → `restart` / `break` rows.
+2. `docs/release-notes/known-issues.md` → `known-issue` rows; when a later release fixes one, add **Fixed in X** to the existing row.
+3. `docs/release-notes/deprecations.md` → `deprecation` rows.
+4. `docs/release-notes/index.md` (features + fixes) → only items that change behaviour for **existing** workloads (`behaviour`, `perms`). Skip opt-in features and dependency bumps.
+
+Also re-read the restart-trigger list on `elastic/docs-content` `deploy-manage/upgrade/orchestrator/upgrade-cloud-on-k8s.md`; it is maintained separately from the release notes. Bump the date in this section's heading.
+
 ## Cross-cutting notes (apply to all tracked minors)
 
 - **License gating, CE clarity.** ECK operator binary is single-build; "Enterprise" features are runtime-gated by license CR. Operator runs fine without a license (Basic). Features that *require* Enterprise in 3.2–3.5: granular per-role PDBs (3.2+), `AutoOpsAgentPolicy` (Enterprise in 3.3.0, Basic from 3.3.1), Stack Config Policies composition (3.3+), client-certificate auth (3.4+), dynamic namespaces and Fleet Server client-cert enforcement (3.5+). EE-as-CE pattern is **not applicable** to ECK — these are license-key gated, not binary-gated.
 - **OpenShift caveat.** ECK runs as `runAsNonRoot` since long-ago. 3.4 sets `seccompProfile: RuntimeDefault` by default — verify OpenShift `SecurityContextConstraints` permit this (`restricted-v2` does, `restricted` v1 does not).
 - **k8s upgrade-ordering rule for ECK clusters.** Always upgrade the **ECK operator** to a release whose k8s support window includes the target k8s minor *before* bumping k8s. Then perform the k8s upgrade. Stack-version bumps are independent and rolling-restart safe; the master-upgrade-last change in 3.3.0 only matters during Stack-version upgrades, not k8s upgrades.
-- **Operator upgrades restart managed pods — and the restarts can be paced.** Source: Elastic's [Upgrade ECK](https://www.elastic.co/docs/deploy-manage/upgrade/orchestrator/upgrade-cloud-on-k8s) § "Control rolling restarts during the upgrade" (read 2026-10-12). Operator versions that trigger a one-time rolling restart when installed: **1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4²** (¹ stack-monitoring users only; ² nearly every managed workload — see § 3.4.0). 3.5 adds a Fleet Server restart (§ 3.5.0). **Stepping over one of these versions still triggers its restart** — a 2.16 → 3.5 hop inherits 3.1, 3.2 and 3.4.
+- **Operator upgrades restart managed pods — and the restarts can be paced.** (Per-release detail: § Operator-upgrade impact ledger.) Source: Elastic's [Upgrade ECK](https://www.elastic.co/docs/deploy-manage/upgrade/orchestrator/upgrade-cloud-on-k8s) § "Control rolling restarts during the upgrade" (read 2026-10-12). Operator versions that trigger a one-time rolling restart when installed: **1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4²** (¹ stack-monitoring users only; ² nearly every managed workload — see § 3.4.0). 3.5 adds a Fleet Server restart (§ 3.5.0). **Stepping over one of these versions still triggers its restart** — a 2.16 → 3.5 hop inherits 3.1, 3.2 and 3.4.
   - **To pace the restarts** on a large cluster, annotate the resources *before* the operator upgrade, then remove the annotation per resource when convenient; each restart runs on removal.
   - **Target 3.5+:** `eck.k8s.elastic.co/pause-orchestration=true` — pauses spec-driven changes (StatefulSet/Deployment updates, rolling upgrades, scaling, volume expansion) while cert rotation, services, users/roles, keystore, PDBs and health monitoring keep running. Sets an `OrchestrationPaused` status condition. Only the exact strings `"true"`/`"false"` pass the webhook. Doc: [Pause orchestration](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s/k8s-pause-orchestration).
   - **Target 3.0–3.4:** `eck.k8s.elastic.co/managed=false` — stops **all** reconciliation, cert rotation included; remove it promptly. Deprecated in 3.5, still functional.
