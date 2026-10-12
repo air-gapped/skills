@@ -114,7 +114,7 @@ Notes on sources:
 - **Upgrade ordering:** operator 3.2.x → 3.3.0 before bumping k8s above 1.34. Bump Stack off 7.17.x **before** upgrading ECK to 3.3.0 or the operator will reconcile clusters that are now out-of-support.
 - **Deprecations:** Stack 7.17.x (documented support removed).
 - **Cross-component / notable:**
-  - New `PackageRegistry` CRD (`packageregistry.k8s.elastic.co`) — first-class air-gapped EPR managed by the operator. Useful for Fleet/Agent + Kibana in air-gapped clusters.
+  - New `PackageRegistry` CRD (`packageregistry.k8s.elastic.co`) — first-class air-gapped EPR managed by the operator. Useful for Fleet/Agent + Kibana in air-gapped clusters. Details: § "Elastic Package Registry (EPR) in air-gapped clusters" below.
   - New `AutoOpsAgentPolicy` CRD — Enterprise-only in 3.3.0, opened to Basic in 3.3.1.
   - `controller-runtime` v0.22.x; k8s client-go v0.35.0 (drives the 1.35 ceiling).
 
@@ -219,6 +219,49 @@ Notes on sources:
   - Bulk form: `kubectl annotate --overwrite elastic --all <annotation>` per namespace; resume with the trailing-dash form (`eck.k8s.elastic.co/pause-orchestration-`). Upstream ships a helper at `hack/annotator` in `elastic/cloud-on-k8s`.
 - **CRD apiVersion stability — including across the 2.x → 3.x major.** No `elasticsearch.k8s.elastic.co` apiVersion bumps across 2.16 → 3.0 → 3.5. CRDs remain `v1` shape; the 2.x → 3.0 operator-major hop carries **no CRD conversion step**. Webhooks moved to controller-runtime `Validator` in 3.4 but the served apiVersion is unchanged; 3.5's new `resources` shorthand field (all 8 pod-owning CRDs) is likewise additive, not an apiVersion bump.
 - **Fleet / Agent lifecycle.** ECK manages Agent CR lifecycle (Fleet-managed and standalone) across the whole 2.16–3.5 window. The Fleet config gating change in 3.2 (#8869) confines advanced Fleet config logic to Agent v8.13+ — running older Agents under a 3.2+ operator silently ignores some Fleet config fields. 3.5's Fleet Server→Agent mTLS enrollment (when enabled) is gated to the same floor (Fleet Server/Agent ≥ 8.13.0, #9598).
+
+### Elastic Package Registry (EPR) in air-gapped clusters (sifted 2026-10-12)
+
+Fleet in Kibana downloads integration packages from EPR (`epr.elastic.co`). An air-gapped cluster must run its own copy from a mirrored `docker.elastic.co/package-registry/distribution` image.
+
+**Hosting — ECK 3.3+ (recommended):** a `PackageRegistry` resource (`packageregistry.k8s.elastic.co/v1alpha1`, still alpha), referenced from Kibana. ECK creates the Deployment, Service and TLS certs and wires Kibana's registry URL itself.
+
+```yaml
+apiVersion: packageregistry.k8s.elastic.co/v1alpha1
+kind: PackageRegistry
+metadata: { name: epr }
+spec:
+  version: 8.19.23            # Stack version; selects the default image tag
+  count: 1
+  # image: <mirror>/package-registry/distribution:<tag>   # override the default
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+spec:
+  packageRegistryRef: { name: epr }
+```
+
+- **Default image** (ECK v3.5.0 `pkg/controller/common/container/container.go`, `getPackageRegistryImage`): `<container-registry>/package-registry/distribution:lite-<spec.version>`. It goes through the operator's `--container-registry` setting, so a mirror configured there is used without `spec.image`.
+- For `spec.version` below **8.15.1** the default tag falls back to `lite-8.15.1` (no older lite builds exist).
+- With UBI images the suffix goes **in the tag** (`lite-X.Y.Z-ubi`), unlike other Stack images. That is a separate image to mirror.
+
+**Hosting — ECK below 3.3, or self-managed:** run the image yourself as a Deployment and Service on port 8080, and set the Kibana config key `xpack.fleet.registryUrl` (Kibana CR `spec.config`), e.g. `"http://<svc>.<ns>.svc:8080"`. Elastic's air-gapped Fleet docs, `reference/fleet/air-gapped.md` § "Connect Kibana to your hosted Package Registry". It is a config key, not an environment variable.
+
+**Choosing a tag — what crosses the air gap.** Measured 2026-10-12 on amd64 by pulling each image and counting the files inside every package zip:
+
+| Tag | Compressed | Package zips | Files inside zips | Changes |
+|---|---|---|---|---|
+| `production` | 22.8 GiB | not counted | not counted (size within 1 % of `8.19.23`) | on every package publish |
+| `8.19.23` (Elastic's "recommended", pinned to the Stack release) | 22.7 GiB | 15,398 | 3,932,057 | never |
+| `lite-8.19.23` (ECK's default) | 4.39 GiB | 1,988 | 3,068,088 | never |
+| `lite` | 4.39 GiB | — | — | on every package publish |
+
+- **No deep nesting:** layer tar.gz → package `.zip` → plain files. No zip holds another archive, detected by magic bytes. The load on a security scanner is file **count**, not depth.
+- **Why lite stays at 3 million files:** every tag ships **every version** of each package, betas included. `security_detection_engine` (Elastic's prebuilt detection rules) has **801 versions × up to ~12,600 rule files = 2.93 M files** — 95 % of lite and 75 % of the full image. A Stack-pinned tag (`8.19.23`) still includes packages built for later Stacks (9.5.x), which is why it is almost as large as `production`.
+- **Lite trades coverage for size:** it holds only the most commonly used integrations; anything outside that subset is missing, and the next step up is the full ~23 GiB image.
+- **To cut the file count, trim versions, not packages.** Keeping only the newest GA version of each package is roughly 8 k files (lite's package set) or 27 k files / 1 GiB unpacked (all 508 packages). Elastic's **distribution tool** (`elastic/package-registry`, `cmd/distribution`, technical preview) collects a chosen package set from EPR, filtered by Kibana version, with signatures verified; build a custom registry image from its output. Pick the newest version **compatible with the target Kibana**, not the newest overall.
+
+Sources: Elastic docs-content `deploy-manage/deploy/cloud-on-k8s/package-registry.md` (CRD, `packageRegistryRef`, lite default, `spec.image`); `reference/fleet/air-gapped.md` (tag meanings, `xpack.fleet.registryUrl`); ECK v3.5.0 `container.go`; `elastic/package-registry` `cmd/distribution/README.md`. Sizes and counts measured 2026-10-12 with `skopeo` plus a magic-byte nested-archive walk. They grow with every package release; re-measure before quoting.
 
 ### Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17? (operator's question)
 
