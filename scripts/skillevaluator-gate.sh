@@ -30,6 +30,12 @@ POLICY="$REPO_ROOT/.claude/skillevaluator-policy.yaml"
 # which would make the most important check in this gate a no-op.
 export SKILLEVALUATOR_SUBMITTER="${SKILLEVALUATOR_SUBMITTER:-$(git config user.name || echo "$USER")}"
 
+# semgrep-core's default io_uring backend dies with "Cannot allocate memory
+# io_uring_queue_init" once the per-user locked-memory limit (often 8 MiB, shared
+# by every io_uring user) is spent, and the gate then fails on "Failed to obtain
+# target files", not on a finding. The POSIX backend needs no locked memory.
+export EIO_BACKEND="${EIO_BACKEND:-posix}"
+
 # Staged skill directories, from any staged path under .claude/skills/<name>/.
 mapfile -t SKILLS < <(
   git diff --cached --name-only --diff-filter=ACMR \
