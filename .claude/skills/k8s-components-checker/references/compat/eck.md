@@ -228,7 +228,7 @@ All three are **8.x**, so the 7.17-drop at ECK 3.3.0 does **not** affect any of 
 |---|---|---|---|
 | **8.8.x** | 2023-05-23 | ECK 2.16.1 → 3.5 (every tracked minor; 8.x is in-window throughout) | **EOL** — superseded by 8.9 (mid-2023); out of maintenance since ~late 2023. Long past support. |
 | **8.14.x** | 2024-06 (8.14.0) | ECK 2.16.1 → 3.5 (every tracked minor) | **EOL** — superseded by 8.15 (Aug 2024); out of maintenance since late 2024. |
-| **8.17.x** | 2024-12-11 | ECK 2.16.1 → 3.5 (every tracked minor) | **EOL 2025-08-05** (endoflife.date) — was the final 8.x before 8.18; maintenance ran to 8.19 GA. |
+| **8.17.x** | 2024-12-11 | ECK 2.16.1 → 3.5 (every tracked minor) | **EOL 2025-08-05** (endoflife.date as read 2026-09-15; its API reads **2025-08-12** on 2026-10-12, while the policy date — 8.19 GA — is 2025-07-29) — was the final 8.x before 8.18; maintenance ran to 8.19 GA. |
 
 **The policy, in Elastic's own words** ([elastic.co/support/eol](https://www.elastic.co/support/eol),
 read 2026-09-15): *"Elastic Stack version 8.17 will be maintained until the release date of
@@ -248,6 +248,28 @@ Practical reading for an upgrade verdict:
 
 - **The ECK side is never the constraint for 8.8/8.14/8.17.** Any operator from 2.16.1 through 3.5 will reconcile them — ECK is forward-compatible down to its documented Stack floor, and that floor is well below 8.8 in every tracked minor (2.16 floors at 6.8/7.1; 3.0–3.2 at 7.17; 3.3+ at 8.x). The **8.x floor at 3.3+** is the only place to watch, and 8.8/8.14/8.17 all clear it.
 - **The constraint is Stack-side EOL, not ECK.** All three ES minors are out of Elastic maintenance/support today (2026-06). Running them under a current operator works, but they receive no security patches — treat them as migration *sources*, not targets. ECK does not block reconciling an EOL Stack; it just manages whatever you declare.
-- **9.0 interplay (only if these are migration sources toward 9.x):** moving any of them to 9.0 requires the operator at **3.0+** and the cluster staged at **8.18** first (3.0 validates 9.0 upgrades only through 8.18, #8559). 8.8/8.14/8.17 cannot jump straight to 9.0 — land on 8.18 under a 3.0+ operator, then go to 9.x.
+- **9.x interplay (only if these are migration sources toward 9.x):** the operator must be at **3.0+**. Elastic's path rule (corrected 2026-10-12 — this row said "stage at 8.18", which only reaches **9.0**): to reach **9.0.x** start from **8.18.x**; to reach **9.1 or later** start from **8.19.x**. 9.0 is past EOL, so in practice the staging minor is **8.19**. 8.8/8.14/8.17 cannot jump straight to 9.x.
 
-Sources: ECK supported-versions pages 2.16 / 3.0 / 3.1 / current (`elastic.co/guide/en/cloud-on-k8s/<ver>/k8s-supported.html`); ECK 3.0.0 release notes (#8507 6.x removal, #8559 9.0-through-8.18); endoflife.date/elasticsearch (8.17 EOL 2025-08-05); Elastic EOL policy `elastic.co/support/eol` (two-newest-minors maintenance rule). 8.8/8.14 per-minor EOL dates are no longer enumerated by endoflife.date (rolled off as long-superseded) — status derived from the published maintenance policy + successor-minor GA dates; mark the exact 8.8/8.14 end-of-maintenance day **UNVERIFIED** (only the policy-derived "EOL well before 2026" is certain).
+### Where to take them — supported targets and upgrade paths (sifted 2026-10-12)
+
+ECK 3.3+ manages Elasticsearch/Kibana **8.x and 9.x**, so the operator never limits the choice; Elastic's support window and upgrade-path rules do. Lines still in maintenance on 2026-10-12 (endoflife.date API, cross-checked with the 8.19 date on `elastic.co/support/eol`):
+
+| Line | Latest patch (2026-10-12) | End of maintenance |
+|---|---|---|
+| **8.19** (final 8.x) | 8.19.23 | **2027-07-15** — longer than the N+2 rule gives; it is the 8.x long-support line |
+| **9.4** | 9.4.8 | N+2 — when 9.6 GAs |
+| **9.5** (current) | 9.5.5 | N+2 — when 9.7 GAs |
+
+Every other minor is EOL (9.0–9.3, 8.18 and older). Re-derive the patch numbers before citing them (House Rule #8); they move monthly.
+
+Upgrade-path rules (Elastic `deploy-manage/upgrade.md` § Upgrade paths, `upgrade/prepare-to-upgrade.md`):
+
+- **Within 8.x, one rolling upgrade from any 8.x to a later one is allowed.** 8.8, 8.14 and 8.17 can each go straight to the latest 8.19 patch. The general rule is release *date*, not number: the target must have been released **after** the current version (e.g. 9.0.5 → 9.1.0 was not allowed because 9.1.0 shipped first).
+- **To 9.x:** 9.0.x from 8.18.x only; **9.1+ from 8.19.x only**. Elastic recommends the latest 8.19 patch before the major, so the newest Upgrade Assistant runs.
+- **Upgrade Assistant on 8.19 is the gate.** Indices created in **7.x or earlier** must be reindexed, deleted, or marked read-only (archived) before 9.x. The oldest cluster is the likeliest to carry them. Snapshot before reindexing.
+- **Clients decouple at 8.19:** 8.19 Elastic Agent, Beats and Logstash work with every 9.x Elasticsearch, so client fleets need not move in lockstep with the major.
+- **Enterprise Search has no 9.x.** Migrate App Search / Workplace Search / the web crawler off it before the major (ECK breaking-changes.md § 3.0.0).
+
+Default recommendation for 8.8 / 8.14 / 8.17: **one rolling upgrade each to the latest 8.19 patch** — supported into mid-2027 without a major. Treat 9.x as a separate later project; it needs new image coordinates (§ 3.0.0, `ubi` suffix and agent path changes), Upgrade Assistant cleanup, and no Enterprise Search.
+
+Sources: ECK supported-versions pages 2.16 / 3.0 / 3.1 / current (`elastic.co/guide/en/cloud-on-k8s/<ver>/k8s-supported.html`); ECK 3.0.0 release notes (#8507 6.x removal, #8559 9.0-through-8.18); endoflife.date/elasticsearch (8.17 EOL 2025-08-05, now 2025-08-12; 8.19 EOL 2027-07-15); Elastic `deploy-manage/upgrade.md` + `upgrade/prepare-to-upgrade.md` (upgrade paths, 8.19 staging, 7.x-index rule); Elastic EOL policy `elastic.co/support/eol` (two-newest-minors maintenance rule). 8.8/8.14 per-minor EOL dates are no longer enumerated by endoflife.date (rolled off as long-superseded) — status derived from the published maintenance policy + successor-minor GA dates; mark the exact 8.8/8.14 end-of-maintenance day **UNVERIFIED** (only the policy-derived "EOL well before 2026" is certain).
