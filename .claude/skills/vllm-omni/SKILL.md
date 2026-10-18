@@ -42,7 +42,7 @@ Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility p
 **Picking a model** → `references/models.md`
   - Full supported-architecture → HuggingFace-ID table
   - Per-model platform matrix (CUDA / ROCm / NPU / XPU / MUSA)
-  - Known-issue flags per family
+  - Known-issue flags per family, including the pre-v0.20 FLUX / GLM-Image / Qwen3-TTS `--enforce-eager` pitfalls (all fixed on v0.20.0+)
 
 **Writing / debugging stage configs** → `references/stage-config.md`
   - OmniModelConfig + StageConfig YAML grammar
@@ -75,12 +75,6 @@ Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility p
 - **Realtime clients parsing beta event names on v0.30.0+**. v0.30.0 emits the current OpenAI names (#7339, #7426): `response.output_audio.delta` / `response.output_audio.done` replace `response.audio.delta` / `response.audio.done`. A client keyed on the old names receives nothing and writes silence. Transcripts arrive as `transcription.delta` / `transcription.done`.
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
-
-- **Qwen3-TTS with CUDA graphs on (v0.18 only)**. Issue #2866: on v0.18 the code2wav stage crashed when `enforce_eager: false`, so `--enforce-eager` was mandatory. **#2866 is CLOSED (2026-04-29)** and v0.20.0 ships TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803), lifting the requirement. On v0.20.0+ keep `--trust-remote-code` but `--enforce-eager` is no longer forced — drop it to regain CUDA-graph throughput, and re-test latency.
-
-- **Running the v0.19.0rc1 FLUX artifacts**. Issue #2730: FLUX.1-dev generated incorrect images in v0.19.0rc1 (T5 text-encoder bug). **Fixed in v0.20.0 stable** (PR #2760, merged 2026-04-24). The v0.19.0rc1 tag artifacts are still broken, so do not deploy that specific tag — use v0.20.0+ for any FLUX deployment.
-
-- **GLM-Image on v0.18 without `transformers>=5.0`** — historical only, resolved. On v0.18 GLM-Image needed a manual `pip install 'transformers>=5.0'` because the wheel pinned transformers below 5.0 and the model silently failed to load. v0.20.0 shipped Transformers 5.x compat fixes, and **v0.30.0's own `requirements/common.txt` pins `transformers >= 5.13.0, < 5.15`**. No manual upgrade on any current build — and do not upgrade transformers past 5.14.x by hand.
 
 - **PCM format on `/v1/realtime`**. Qwen3-Omni realtime hard-expects **16-bit PCM mono @ 16 kHz input**, outputs PCM at 24 kHz. Stereo, 8 kHz, 24-bit, or WAV-with-header inputs produce garbage or silent failures. Use the reference client in `examples/online_serving/qwen3_omni/openai_realtime_client.py` as a template.
 
@@ -153,7 +147,7 @@ vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 # Same, with chunk-level stage overlap off (overrides the YAML):
 vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091 --no-async-chunk
 
-# Qwen3-TTS (trust-remote-code; --enforce-eager only required on v0.18, lifted by TTS CUDA-graph capture in v0.20.0+):
+# Qwen3-TTS (--trust-remote-code required; no --enforce-eager, CUDA graphs work):
 vllm serve Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice --omni \
   --trust-remote-code --task-type CustomVoice
 
