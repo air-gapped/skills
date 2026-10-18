@@ -1,62 +1,22 @@
 # Improvement backlog — vllm-gemma-4-31b
 
 Carries findings across `/skill-improver` runs. Skill-improver reads this in
-Phase 0 and updates it in Phase 6. Do NOT delete entries — move to "Resolved
-this pass" instead.
+Phase 0 and updates it in Phase 6. Open holds only items blocked on something
+absent; a resolved item is deleted from Open and recorded under its pass.
 
 ## Open
 
-_Items below carried forward unchanged at the 2026-07-21 freshen (see also
-"Decided — do not re-propose" for items 1 and 3, moved there during the
-2026-09-15 Open-section triage)._
+### Measured H200 141GB recipe (Dim 5 — added 2026-10-18)
 
-### 2. "Why gemma-4 behaves differently" + "What was NOT measured" are speculative/backlog content inline in SKILL.md (Dim 2/6 — carried 2026-05-28)
+**Pointer:** `SKILL.md` § "H200 141GB — start point, not a measured recipe".
 
-**Pointer:** `SKILL.md` "Why gemma-4-31B-AWQ behaves differently…" section
-and "What was NOT measured" section (both still inline).
+**Finding:** fact #2 states the H200 knee (~128) but no H200 run backs a
+copy-paste recipe; the section gives a start point and the sweep that finds
+the knee and the util cliff.
 
-**Finding:** The four numbered "likely reasons" (AWQ vs fp8 weight size,
-TRITON_ATTN scaling, EAGLE3 spec-dec topology, 31B vs 27B layer count) are
-plausible mechanisms but none carry a measurement or upstream-source citation;
-the "What was NOT measured" list is backlog content, not a deploy decision.
-RECON proposed relocating both to a new `references/analysis.md`.
-
-**Why it could not be applied this pass:** the relocation was attempted but
-the `Write` of `references/analysis.md` was rejected by the runtime subagent
-guard ("return findings as text, not write report files"). With no destination
-file creatable, shipping the SKILL.md pointer would have dangled and the
-content would have been lost, so the relocation was reverted. A net-neutral
-"plausible mechanisms, not measured attributions" framing line WAS added to
-the why-different section inline.
-
-**Why the citation gap also can't close in one edit:** confirming each
-mechanism needs a follow-up empirical run measuring TP=1 vs TP=2 on Gemma 4
-with one mechanism varied at a time (FLASH_ATTN forced, EAGLE3 disabled, fp8
-vs AWQ). That's a multi-hour GPU-instance investigation.
-
-**Trigger to revisit:** re-run APPLY in an environment that permits creating
-`references/*.md` (the guard here blocks subagent file writes outside edits to
-existing files) to land the relocation; and/or run a new Gemma 4 audit to
-attach data to each mechanism.
-
-### 4. "Reproduction artifacts" tree points to a private repo (Dim 6/8 — minor, carried 2026-05-28)
-
-**Pointer:** `SKILL.md` § "Reproduction artifacts" (the last section; lines
-466-482 as of 2026-09-15 — the previously recorded `246-262` had drifted about 220
-lines and now lands in an unrelated pitfall, so find it by heading, not by number)
-
-**Finding:** Block lists paths in the `model-preflight` repo
-(`findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/...`). Useful for the author's
-future reference but inert for any other skill consumer.
-
-**Why skill-improver couldn't apply it:** removing it might violate
-"Preserve the Author's Intent" — the author is the primary consumer of
-this skill (this is a personal-knowledge capture, not a public-facing
-artifact). Author should decide explicitly whether to keep, trim, or
-gate behind a `<details>` block.
-
-**Trigger to revisit:** if the skill ever ships to a public skills index or
-gets shared with collaborators, drop the section then.
+**Blocked on:** an H200 141GB measurement run (knee sweep plus util-cliff
+search). No H200 was available this pass. With the run, replace the start
+point with a LIGHT/PUSH-style recipe and add its rows to `bench-numbers.md`.
 
 ## Decided — do not re-propose
 
@@ -98,6 +58,29 @@ against LIGHT to save ~12 lines toward the 150-line target.
 **Why it was NOT applied:** the user prioritises copy-paste-ability of BOTH
 full recipes over the line savings. This is a settled author-preference
 decision, not a pending task. Do NOT re-propose the collapse in `improve` mode.
+
+**2026-10-18:** the blind scorer re-proposed adding user phrasings (OOM at
+startup, `<turn|>` leak, `tool_choice` ignored, AWQ chat template, EAGLE3
+acceptance) to the trigger text. Not applied — same author mandate. Use
+`trigger` mode to measure misses.
+
+## Resolved this pass (2026-10-18, improve)
+
+Blind baseline 63 (snapshot of 68dca10); self 63 → 71 over 5 kept iterations,
+72 after post-cap fixes; final blind score and A/B comparator are run by the
+operator. Stop: cap reached (5), zero discards — no ceiling mapped.
+- Kept: chat-template drift detail moved to `references/chat-template-drift.md`
+  (fact #3 now an 11-line directive with re-vet procedure in the reference).
+- Kept: `<turn|>` leak pitfall condensed to status table, mechanism, test.
+- Kept: unreachable external memo paths, reproduction-artifacts tree and
+  site-specific hardware/tool names removed (SKILL.md, bench-numbers.md) —
+  closes former Open #4.
+- Kept: unmeasured gemma-3-vs-gemma-4 mechanisms and bench questions moved to
+  `references/open-questions.md` — closes former Open #2.
+- Kept: second-person phrasing converted to imperative.
+- Post-cap: parser section decision-first; scope line reads 0.20+ held at
+  0.25.1; H200 start point with v0.32.0-checked sweep command; contents lists
+  on references over 100 lines. SKILL.md 503 → 385 lines.
 
 ## Resolved — 2026-08-11 (freshen)
 
