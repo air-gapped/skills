@@ -41,7 +41,7 @@ vLLM picks a chat template in this order. First hit wins. Source: `resolve_chat_
 
 If none resolves, **`ChatTemplateResolutionError`** raised by `safe_apply_chat_template()` with: *"As of transformers v4.44, default chat template is no longer allowed, so you must provide a chat template if the tokenizer does not define one."*
 
-> **Do not "modernize" that v4.44** — it is vLLM's verbatim error string, not a version requirement. The real `transformers` pin and the template-name security floor (pin it yourself below v0.32.0): `references/debugging.md` § Step 4.
+> **Do not "modernize" that v4.44** — it is vLLM's verbatim error string, not a version requirement. The real `transformers` pin and the template-name security floor (below v0.32.0, pin `transformers` explicitly): `references/debugging.md` § Step 4.
 
 ### Consequences operators miss
 
@@ -139,11 +139,11 @@ Threaded as `extra_body={"chat_template_kwargs": {...}}` in OpenAI client. Sourc
 - **Any Jinja variable** referenced in the resolved template — detected via AST parse (`_resolve_chat_template_kwargs()`).
 - **HF `apply_chat_template` params** auto-detected from the tokenizer signature plus HF's base `apply_chat_template` signature (`_get_hf_base_chat_template_params()`).
   - `add_generation_prompt` (bool)
-  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend you are on before editing the template. **v0.30.0+:** the Rust frontend also parses `{% generation %}...{% endgeneration %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`, #56378), rendering only their text — templates that mark assistant spans this way no longer fail there. `return_assistant_tokens_mask` on `/render` and the `assistant_tokens_mask` response field were **removed in v0.31.0** (#57520); do not send them.
+  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend serves the request before editing the template. **v0.30.0+:** the Rust frontend also parses `{% generation %}...{% endgeneration %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`, #56378), rendering only their text — templates that mark assistant spans this way no longer fail there. `return_assistant_tokens_mask` on `/render` and the `assistant_tokens_mask` response field were **removed in v0.31.0** (#57520); do not send them.
   - `documents` (list of `{title, contents}`) for RAG templates
   - `enable_thinking` (Qwen3 and some others)
 - **Reserved (will raise `ValueError`):** `chat_template`, `tokenize`.
-- **Unknown kwargs silently filtered** — if `enable_thinking` doesn't appear in the detected Jinja vars, it's dropped without warning. This is a confusing failure mode: operator sets it, sees no effect, can't find an error.
+- **Unknown kwargs silently filtered** — if `enable_thinking` doesn't appear in the detected Jinja vars, it is dropped with no warning and no error. Confirm the kwarg reached the template: `references/debugging.md` § Verifying the kwarg actually reached the template.
 
 Merging: server defaults (`--default-chat-template-kwargs`) ← request kwargs via `ChatParams.with_defaults()` / `merge_kwargs()` — request wins.
 
