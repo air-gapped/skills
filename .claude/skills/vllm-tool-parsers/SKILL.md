@@ -34,28 +34,10 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.**
 
-**Except for the 19 names on the unified-parser path** (v0.32.0), where that file is a
-stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
-
-| CLI name(s) | Registry class | Real implementation |
-|---|---|---|
-| `qwen3_coder`, `qwen3_xml` | `Qwen3EngineToolParser` | `vllm/parser/qwen3.py` (`mimo` was a third alias through v0.31.0) |
-| `mimo` | `MiMoToolParser` | `vllm/parser/mimo.py` (v0.32.0+; `MiMoParser` subclasses `Qwen3Parser`) |
-| `step3p5` | `Step3p5ToolParser` | `vllm/parser/step3p5.py` (v0.32.0+; Qwen3 XML grammar via `Qwen3Parser`; a standalone expat parser before) |
-| `minimax_m3` | `MinimaxM3ToolParser` | `vllm/parser/minimax_m3.py` (v0.32.0+; a standalone parser before) |
-| `plamo3` | `Plamo3EngineToolParser` | `vllm/parser/plamo3.py` (v0.32.0+) |
-| `granite` | `GraniteEngineToolParser` | `vllm/parser/granite.py` (v0.31.0+; `granite_tool_parser.py` deleted) |
-| `gemma4` | `Gemma4EngineToolParser` | `vllm/parser/gemma4.py` |
-| `deepseek_v4` | `DeepSeekV4EngineToolParser` | `vllm/parser/deepseek_v4.py` |
-| `deepseek_v32` | `DeepSeekV32EngineToolParser` | `vllm/parser/deepseek_v32.py` |
-| `seed_oss` | `SeedOssEngineToolParser` | `vllm/parser/seed_oss.py` |
-| `glm45`, `glm47` | `Glm47MoeModelToolParser` | `vllm/parser/glm47_moe.py` |
-| `kimi_k2` | `KimiK2ToolParser` | `vllm/parser/kimi_k2.py` |
-| `minimax_m2` | `MinimaxM2ToolParser` | `vllm/parser/minimax_m2.py` |
-| `mistral` | `MistralToolParser` | `vllm/parser/mistral.py` (v0.27.0+; a standalone parser before) |
-| `inkling` | `InklingEngineToolParser` | `vllm/parser/inkling.py` (v0.27.0+) |
-| `ling3` | `Ling3ToolParser` | `vllm/parser/ling3.py` (v0.29.0+) |
-| `deepseek_v41` | `DeepSeekV41EngineToolParser` | `vllm/parser/deepseek_v41.py` (v0.30.0+). v0.31.0+ pins `xgrammar` and uses its builtin `deepseek_v4_1` structural tag. On v0.30.0 only: strict parameter schemas are constrained only if the installed `xgrammar` exposes `builtin_structural_tag.get_deepseek_v4_1_structural_tag`, else names/DSML syntax only |
+**Except for the 19 names on the unified-parser path** (v0.32.0): there the
+`tool_parsers/` file is a stub of a few lines and the logic lives in
+`vllm/parser/<model>.py`. The CLI name → real file map, with the version each name
+moved, is in `references/parser-index.md` (rows written `a.py → vllm/parser/b.py`).
 
 **Recent names NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) and `k2_horizon` (`K2HorizonToolParser`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Also off-path at v0.32.0: `qwen3_json` (an alias of `hermes`'s `Hermes2ProToolParser`) and `hf` (`ResponseTemplateToolParser`, see the CLI contract). Registry total: **54 names at v0.32.0** (51 at v0.30.0 and v0.31.0).
 
