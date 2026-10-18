@@ -57,7 +57,8 @@ vllm serve --config prod.yaml
 ```
 
 **Gotchas:**
-- `list` args become YAML sequences (`allowed-origins: ["http://a", "http://b"]`).
+- `list` args become YAML sequences (`served-model-name: [a, b]` → `--served-model-name a b`). **Except** `allowed-origins` / `allowed-methods` / `allowed-headers`, which parse JSON: write `allowed-origins: '["https://app.example.com"]'` — a YAML sequence fails with `invalid loads value`.
+- `false` emits `--no-<key>` where that flag exists (`enable-prefix-caching: false` turns the default-on cache off); otherwise the key is dropped.
 - Dict args (`--kv-transfer-config`, `--speculative-config`, `--compilation-config`) can be written as YAML dicts; the parser serializes to JSON before handing to the CLI layer.
 - Older versions had a key-order bug (issue #8947) where `served-model-name` placed last could break parsing. Fixed in v0.10.1; only pre-v0.10.1 images are affected.
 - `trust_remote_code` in YAML: `trust-remote-code: true` (explicit boolean).
@@ -80,17 +81,20 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace. PR #13220 attempted the fix but was closed unmerged (2025-06-20); no upstream fix has landed. Workaround: download LoRA adapters manually, pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
-**Version floors and failure modes that matter to a mirror (v0.28.0 / v0.29.0,
-swept 2026-09-15):**
-- **The `transformers` runtime floor did NOT move to 5.15.0.** #51668 bumped only
-  `requirements/test/*`, a CI pin; `requirements/common.txt` reads
-  `transformers >= 5.5.3` at both v0.27.0 and v0.28.0, and **`>= 5.10.4` at
-  v0.29.0** (read from the tags 2026-09-15). Do not infer a security floor from
-  it — see the `transformers-config-tokenizers-expert` skill, where the CVE
-  fixes land at 5.10.1 / 5.13.0 / 5.15.0 and the engine's pin reaches none of
-  them. `huggingface-hub` moved to 1.27.0, then **1.28.0** in v0.29.0 (#52797). A mirror
-  seeded for a v0.27.x deployment does not satisfy v0.28+; stage the new floors
-  before the image bump, not after.
+**Version floors and failure modes that matter to a mirror (v0.28.0 – v0.32.0):**
+- **Read the `transformers` range from `requirements/common.txt`, never from a
+  release-note "bump"** — those (#51668 → 5.15.0, #53905 → 5.16.1) touch only
+  the CI pins in `requirements/test/*`. Runtime range: `>= 5.5.3` (v0.27–v0.28),
+  `>= 5.10.4` (v0.29–v0.30), `>= 5.10.4, < 5.18.0` (v0.31.0, new upper bound
+  #59614), **`>= 5.16.1, < 5.20.0` at v0.32.0** (#57387, #59762), plus
+  `tokenizers >= 0.23.2` (#59796). The upper bound is the new trap: a mirror
+  holding only the newest `transformers` no longer satisfies the engine. The
+  v0.32.0 floor clears the 5.10.1 / 5.13.0 / 5.15.0 CVE fixes listed in the
+  `transformers-config-tokenizers-expert` skill; earlier floors did not clear them all.
+  `huggingface-hub` moved to 1.27.0, then **1.28.0** in v0.29.0 (#52797). Stage the
+  new floors in the mirror before the image bump, not after.
+- **v0.32.0 requires Python `>= 3.11, < 3.15`** (#60402) — drop 3.10 wheels
+  from the mirror; a 3.10 base image cannot install it.
 - **The build now fails closed when the selected precompiled CUDA variant is
   unavailable** (#52545, v0.29.0). Previously this could fall back silently.
   Failing loudly is the better behaviour, but it turns a quiet degradation into
@@ -99,9 +103,13 @@ swept 2026-09-15):**
   (#51777). v0.28.0 also moved the runtime image to Ubuntu 24.04 (#51058).
 - Two env vars were **removed** in v0.29.0 — `VLLM_TEST_FORCE_FP8_MARLIN`
   (#52182, superseded by `--linear-backend` / `--moe-backend`) and
-  `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141). One was **added**:
+  `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141; **restored at v0.31.0**, default
+  off — #57055). One was **added**:
   `VLLM_ALLREDUCE_USE_FLASHINFER=0`, the opt-out for FlashInfer all-reduce now
   being on by default.
+- **`VLLM_ENGINE_ITERATION_TIMEOUT_S` removed at v0.32.0** (#59781). It had no
+  consumer at v0.30.0 either — setting it never did anything. Delete it from
+  manifests; there is no per-iteration timeout knob.
 - `prefix_cache_retention_interval` is now a CLI argument. The env var form
   `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` was deprecated at v0.29.0 (#52216) and
   **removed at v0.30.0** (#55353) — it is gone from `envs.py`, so on v0.30.0+ it
@@ -119,11 +127,8 @@ swept 2026-09-15):**
   `vllm serve <model> --grpc` instead.
 - v0.30.0 also moves the air-gapped mirror floor: `huggingface_hub` in
   `requirements/common.txt` reads `>= 1.31.0` (#56460, needed for the
-  `huggingface_hub.utils.httpx` re-export), up from `>= 1.28.0` at v0.29.0. The
-  `transformers` **CI** pin moved to 5.16.1 (#53905, `requirements/test/*`
-  only) — same CI-vs-runtime split as before: the runtime floor in
-  `requirements/common.txt` is still `>= 5.10.4`. Stage the mirror for the
-  `huggingface_hub` floor, not the CI transformers number.
+  `huggingface_hub.utils.httpx` re-export), up from `>= 1.28.0` at v0.29.0;
+  unchanged through v0.32.0.
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.
@@ -143,10 +148,10 @@ swept 2026-09-15):**
     `AuthenticationMiddleware` checks a different path than the one FastAPI
     routes on — the caller reaches a `/v1` endpoint **without** the configured
     `VLLM_API_KEY` or `--api-key`.
-  - **Fixed in v0.22.0 (2026-05-29), which the advisory does not say.** Its
-    range is `>=0.3.0` with no upper bound and `first_patched_version` null, so
-    read literally it condemns every release ever made. The record is
-    *unrecorded*, not unresolved: `updated_at` still equals `published_at`.
+  - **Fixed in v0.22.0 (2026-05-29).** The global advisory
+    (`gh api /advisories/GHSA-94f4-hr76-p5j6`) records `>= 0.3.0, < 0.22.0`,
+    first patched `0.22.0`. The repository advisory still shows the unbounded
+    `>=0.3.0` range — read the global record, not the repo one.
     The fix is PR #43426, merged 2026-05-22 — a week before v0.22.0 and eleven
     days before the advisory was published. Confirmed in the tree rather than
     from the PR title: through v0.21 the middleware derived its path from
@@ -169,7 +174,8 @@ swept 2026-09-15):**
     that is the usual shape, and the one the upgrade skills rely on.
   - v0.28.0 added documentation warning that **`--api-key` does not gate all
     endpoints** (#51999) — a separate statement from the CVE, and the same
-    conclusion.
+    conclusion. At v0.32.0 it covers only `/v1`, `/v2` and `/inference`;
+    `/invocations` stays open.
 
   **A pre-auth route exists, and it reaches RCE — CVE-2026-22778, CRITICAL,
   floor v0.14.1.** This is the concrete reason the two bullets above are not
@@ -197,12 +203,17 @@ swept 2026-09-15):**
   `Host:` header before vLLM sees it. A proxy that forwards `Host:` verbatim
   without validating it does not provide that.
 
+**CORS defaults to no origins from v0.32.0** (#61009; was `*`). Browser clients
+fail until `--allowed-origins '["https://app.example.com"]'` is set. Do not
+restore `["*"]` to make them work.
+
 **Long-context / safety overrides:**
 - `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` — bypasses the model's `max_position_embeddings` sanity check. Footgun — usually means the rope scaling config doesn't match the served weights.
 - `VLLM_ALLOW_INSECURE_SERIALIZATION=1` — permits unsafe serialization formats over the wire. Never enable on multi-tenant.
 
 **Logging:**
-- `VLLM_LOGGING_LEVEL=DEBUG|INFO|WARN|ERROR`, `VLLM_LOGGING_PREFIX="rank0: "`, `VLLM_CONFIGURE_LOGGING=0` (let the host app own config).
+- `VLLM_LOGGING_LEVEL=DEBUG|INFO|WARNING|ERROR`, `VLLM_LOGGING_PREFIX="rank0: "`, `VLLM_CONFIGURE_LOGGING=0` (let the host app own config).
+- v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated (removal v0.33.0) → `--logging-config.pylogging_config_file`.
 
 ## Air-gapped operation — the short recipe
 
@@ -271,7 +282,7 @@ Full recipe in `references/air-gapped.md`. The essentials:
 
 7. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
 
-8. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.2.2` + `libnuma-dev`; no env-var toggle exists in vLLM source).
+8. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.3.3` — the `vllm[fastsafetensors]` extra — + `libnuma-dev`; no env-var toggle exists in vLLM source).
 
 9. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
 

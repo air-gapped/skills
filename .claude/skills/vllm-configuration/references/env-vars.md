@@ -1,10 +1,11 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.30**, re-diffed against `envs.py` at tag `v0.30.0` on 2026-09-22). The v0.27.0 → v0.30.0 diff removed 7 vars and added 27; the additions are model- and hardware-specific footguns outside this catalog's operator-facing scope, and of the removals only the three named in SKILL.md were ever catalogued here.
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.32**, re-diffed against `envs.py` at tag `v0.32.0`). Additions since v0.30.0 are mostly model- and hardware-specific kernel knobs outside this catalog's scope; the operator-facing ones are listed below. Of the removals, only `VLLM_ENGINE_ITERATION_TIMEOUT_S` was catalogued here.
 
 **Do not assume vLLM minors leave operator env vars alone.** A prior pass
 concluded they only touch torch/C++/pooling; the v0.22–v0.25 window disproved
-that by deleting `VLLM_RPC_TIMEOUT`. Re-check by name, not by release-note skim.
+that by deleting `VLLM_RPC_TIMEOUT`, and v0.32.0 deleted `VLLM_ENGINE_ITERATION_TIMEOUT_S`.
+Re-check by name, not by release-note skim.
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
 
@@ -35,7 +36,6 @@ The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is liter
 |---|---|---|---|
 | `VLLM_HOST_IP` | `""` | **Internal** distributed bind IP (worker-to-worker TP/PP/DP) | Multi-node deployments where auto-detect picks the wrong interface |
 | `VLLM_PORT` | unset (auto) | **Internal** base port; each worker takes an incremented port | Port conflicts / firewall rules |
-| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | `60` | Per-iteration timeout; over this, worker is deemed stuck | Very large batches; long prefill |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | `600` | Max time to wait for engine startup | Large models (70B+) on slow storage |
 | `VLLM_HTTP_TIMEOUT_KEEP_ALIVE` | `5` (s) | API server keep-alive | Tuning |
 | `VLLM_WORKER_MULTIPROC_METHOD` | `fork` | `fork` or `spawn` | Windows/macOS, Ray-controlled containers |
@@ -63,14 +63,18 @@ Two consequences worth internalising:
   consumers, not just for the definition.
 
 If the actual need is a timeout on engine/worker plumbing, these exist and are
-live (defaults re-read from `envs.py` 2026-07-21):
+live (defaults and consumers re-read at `v0.32.0`):
 
 | Variable | Default | Controls |
 |---|---|---|
 | `VLLM_ENGINE_READY_TIMEOUT_S` | `600` | wait for engine startup |
-| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | `60` | per-iteration stuck-worker detection |
 | `VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS` | `300` | model-execution call |
 | `VLLM_WORKER_SHUTDOWN_TIMEOUT_SECONDS` | `5` | worker shutdown grace |
+| `VLLM_P2P_HANDSHAKE_TIMEOUT_S` / `VLLM_P2P_IDLE_TIMEOUT_S` / `VLLM_P2P_MAX_PEERS` | `30` / `300` / `128` | P2P ZMQ peer-session bounds (v0.32.0+, #51504 — bounds ZMQ socket exhaustion) |
+
+**`VLLM_ENGINE_ITERATION_TIMEOUT_S` is gone at v0.32.0** ([PR #59781](https://github.com/vllm-project/vllm/pull/59781)) and had
+no consumer at v0.30.0 either — same dead-knob shape as `VLLM_RPC_TIMEOUT`. Delete it
+from manifests; nothing replaces it.
 
 ## Distributed (DP-specific)
 
@@ -90,6 +94,7 @@ live (defaults re-read from `envs.py` 2026-07-21):
 | `VLLM_API_KEY` | unset | Bearer token the server requires; equivalent to CLI `--api-key` |
 | `VLLM_SERVER_DEV_MODE` | `0` | Enables dev-only endpoints (`/reset_prefix_cache`, etc.). **Never set in production.** |
 | `VLLM_ALLOW_RUNTIME_LORA_UPDATING` | `0` | Allows runtime `load_lora_adapter` via admin endpoint |
+| `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` | `30.0` (s) | v0.32.0+: chat-template render timeout (#50300 — template DoS fix); raise only for templates that legitimately render slowly |
 | `VLLM_USE_RUST_FRONTEND` | `0` | Serve the OpenAI-compat API from the `vllm-rs` binary instead of the Python API-server process(es) |
 | `VLLM_USE_RUST_BENCH` | `0` | Opt in to the Rust `vllm bench serve` client; Python remains the default |
 | `VLLM_RUST_FRONTEND_PATH` | `auto` | Path to the `vllm-rs` binary. `auto` looks for it next to the installed `vllm` package |
@@ -142,12 +147,12 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VLLM_LOGGING_LEVEL` | `INFO` | Verbosity |
+| `VLLM_LOGGING_LEVEL` | `INFO` | Verbosity; v0.31.0+ `--log-level` overrides it |
 | `VLLM_LOGGING_PREFIX` | `""` | Prepended to every line — useful for multi-replica log grep |
 | `VLLM_LOGGING_COLOR` | `auto` | Set `0` when piping to files |
 | `VLLM_LOGGING_STREAM` | `ext://sys.stdout` | Target stream |
-| `VLLM_LOGGING_CONFIG_PATH` | unset | Path to a JSON logging config |
-| `VLLM_CONFIGURE_LOGGING` | `1` | Set `0` if the embedding host app owns logging config |
+| `VLLM_LOGGING_CONFIG_PATH` | unset | Path to a JSON `dictConfig`; v0.31.0+ default for `--logging-config.pylogging_config_file` |
+| `VLLM_CONFIGURE_LOGGING` | `1` | Set `0` if the embedding host app owns logging config; v0.31.0+ default for `--logging-config.configure_logging` |
 | `VLLM_LOG_STATS_INTERVAL` | `10.0` (s) | Perf-stats cadence; `-1` to disable |
 | `VLLM_TRACE_FUNCTION` | `0` | Function-level tracing; very noisy, use only when debugging |
 

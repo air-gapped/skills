@@ -169,6 +169,10 @@ time instead of a later `SIGBUS` ([PR #48879](https://github.com/vllm-project/vl
 merged 2026-07-27). On older images the `EngineDeadError` is the only symptom, so
 size `/dev/shm` before believing the error message.
 
+`--enable-shm-tensor-arena` (v0.32.0) reserves more `/dev/shm` slots for multimodal
+tensors. It is **off** by default in the v0.32.0 code (`ParallelConfig`), although
+the release notes call it on. Size `/dev/shm` for it only when the flag is set.
+
 Docker: `--ipc=host` or `--shm-size=10g`
 Kubernetes:
 ```yaml

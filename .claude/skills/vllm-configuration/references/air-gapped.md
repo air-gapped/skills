@@ -118,7 +118,7 @@ Plus verify network egress is actually blocked (airtight networks do this at fir
 Separate from models — benchmark datasets have their own staging:
 
 - `sharegpt` — pre-stage JSON: `wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json` on connected host, rsync in
-- `sonnet` — **in-tree** at `vllm/benchmarks/sonnet.txt`, never downloads
+- `sonnet` — **removed at v0.32.0** (#60129); on older images it is in-tree at `vllm/benchmarks/sonnet.txt` and never downloads
 - `random` — synthetic, never downloads
 - `hf` — requires `HF_HUB_OFFLINE=1` + pre-cached dataset in `$HF_HOME/datasets/`
 
@@ -171,6 +171,7 @@ Usage stats opt-out wasn't applied. Set `VLLM_NO_USAGE_STATS=1` or the alternati
 
 - **vLLM official images** include `huggingface_hub` and `transformers`, so all HF env vars work out of the box
 - For `hf` CLI inside containers: `pip install -U huggingface_hub[cli]` (newer images ship this)
+- **Wheel installs lack FlashInfer's precompiled kernels** (the official CUDA image ships them). Without `flashinfer-cubin`, startup JIT-builds them (minutes, needs `nvcc` + `ninja`); with neither present, FlashInfer is **disabled** and only a warning says so. On v0.32.0+, run `vllm download-kernels` on the connected build host and bake the result into the image.
 - For full offline images, bake the model into the image or mount via PVC — see the sibling `vllm-caching` skill for image-inspection recipes
 
 ## References

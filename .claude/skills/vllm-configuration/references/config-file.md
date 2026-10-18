@@ -5,8 +5,9 @@ Load when building or debugging a `--config` file. vLLM parses YAML via `Flexibl
 ## How parsing works
 
 - **Scalar** (`port: 8000`) → appended as `--port 8000`
-- **Boolean** (`enable-prefix-caching: true`) → appended as `--enable-prefix-caching` (true) or omitted (false)
-- **List** (`allowed-origins: ["a", "b"]`) → `--allowed-origins a --allowed-origins b`
+- **Boolean** (`enable-prefix-caching: true`) → `--enable-prefix-caching`; `false` → `--no-enable-prefix-caching` when a `--no-` form exists, otherwise omitted
+- **List** (`served-model-name: ["a", "b"]`) → `--served-model-name a b` (one flag, items as separate argv)
+- **JSON-typed lists** — `allowed-origins`, `allowed-methods`, `allowed-headers` run `json.loads` on one argv, so a YAML sequence fails with `invalid loads value`. Write a quoted JSON string: `allowed-origins: '["https://app.example.com"]'`
 - **Dict / nested map** (`speculative-config: {model: ..., num_speculative_tokens: 3}`) → JSON-serialized: `--speculative-config '{"model":"...","num_speculative_tokens":3}'`
 
 Keys accept either `hyphen-case` or `snake_case` — matches whichever argparse exposes.
@@ -29,7 +30,7 @@ Config groups under the engine are:
 ```yaml
 model: meta-llama/Llama-3.1-70B-Instruct
 tokenizer: null                     # defaults to model
-tokenizer-mode: auto                # auto | slow | mistral
+tokenizer-mode: auto                # auto | hf | mistral | model-specific modes; `slow` removed at v0.31.0
 revision: null                      # or a commit SHA / tag
 tokenizer-revision: null
 code-revision: null                 # for trust-remote-code modules
@@ -48,7 +49,7 @@ allowed-local-media-path: null      # required for file:// image URIs
 ```yaml
 load-format: auto                   # auto | safetensors | pt | dummy | runai_streamer | tensorizer
 download-dir: null                  # where HF cache lands
-ignore-patterns: []                 # glob patterns to skip in snapshot_download
+ignore-patterns: ["original/**/*"]  # glob patterns to skip in snapshot_download
 model-loader-extra-config: null     # backend-specific dict (runai-streamer tuning)
 ```
 
@@ -77,6 +78,7 @@ ray-workers-use-nsight: false
 max-num-batched-tokens: null        # unset → usage-context default (see note)
 max-num-seqs: null                  # unset → usage-context default (see note)
 max-num-scheduled-tokens: null      # ≤ max-num-batched-tokens; spec-dec appends beyond it
+max-num-active-seqs: null           # v0.31.0+; ≤ max-num-seqs; caps RUNNING admission without shrinking CUDA-graph capacity
 long-prefill-token-threshold: 0     # 0 disables the long-prompt cap
 enable-chunked-prefill: null        # auto-enabled where the model supports it
 scheduler-reserve-full-isl: true    # admit only if the full ISL fits in KV — anti-thrash
@@ -87,9 +89,9 @@ scheduling-policy: fcfs             # fcfs | priority
 ```
 
 **Unset does not mean a fixed number.** `max-num-batched-tokens` / `max-num-seqs`
-are filled in by `EngineArgs` from the *usage context* and the device: on a GPU
-with ≥70 GiB that is not an A100, `vllm serve` defaults to **8192 / 1024**;
-below that threshold, **2048 / 256**. The `SchedulerConfig` class defaults
+are filled in by `EngineArgs` from the *usage context* and the device. For
+`vllm serve`: ≥160 GiB (B200/B300) → **16384 / 1024** (v0.28.0+); ≥70 GiB and
+not an A100 → **8192 / 1024**; anything else → **2048 / 256**. The `SchedulerConfig` class defaults
 (2048 / 128) are test conveniences and are not what a server runs with.
 
 ### LoRAConfig
@@ -113,8 +115,7 @@ speculative-config:
   model: nvidia/Llama-3.1-70B-Instruct-Eagle3
   num_speculative_tokens: 3
   draft_tensor_parallel_size: 1
-  speculative_model_quantization: null
-  disable_by_batch_size: null
+  quantization: null                # draft-model quantization
 ```
 
 ### ObservabilityConfig
@@ -123,6 +124,16 @@ otlp-traces-endpoint: null          # OTLP/HTTP endpoint for traces
 collect-detailed-traces: null       # model | worker | all
 disable-log-stats: false
 ```
+
+### LoggingConfig (v0.31.0+)
+```yaml
+logging-config:
+  log_level: INFO                   # default from VLLM_LOGGING_LEVEL
+  formatter: json                   # text | json
+log-level: INFO                     # shortcut; overrides logging-config.log_level
+```
+
+`log-config-file` is deprecated (removal v0.33.0); use `logging-config: {pylogging_config_file: /path.json}`.
 
 Request logging is opt-**in** now: use `enable-log-requests: true` on the
 frontend. The old `disable-log-requests` key no longer exists.
@@ -134,9 +145,9 @@ port: 8000
 uds: null                           # Unix domain socket path
 api-key: null                       # or a list
 allow-credentials: false
-allowed-origins: ["*"]
-allowed-methods: ["*"]
-allowed-headers: ["*"]
+allowed-origins: '[]'                # v0.32.0+ default: no cross-origin access (was ["*"])
+allowed-methods: '["*"]'
+allowed-headers: '["*"]'
 ssl-keyfile: null
 ssl-certfile: null
 ssl-ca-certs: null
@@ -205,7 +216,7 @@ enable-chunked-prefill: true
 host: 0.0.0.0
 port: 8000
 api-key: "${VLLM_API_KEY}"          # env var substitution NOT supported; see note
-allowed-origins: ["*"]
+allowed-origins: '["https://app.example.com"]'   # JSON string, not a YAML list
 uvicorn-log-level: info
 enable-auto-tool-choice: true
 tool-call-parser: llama3_json
@@ -219,11 +230,13 @@ tool-call-parser: llama3_json
 - **Kustomize / Helm charts** often generate the YAML into a ConfigMap, mount it read-only, and pass `--config /etc/vllm/config.yaml`.
 - **Precedence escape:** to override one YAML value at runtime, pass the corresponding CLI flag after `--config`: `vllm serve --config prod.yaml --max-num-seqs 1024`.
 
-## Keys that no longer exist (verified against the v0.27.0 tree)
+## Keys that no longer exist (verified against the v0.32.0 tree)
 
 A YAML key that vLLM no longer recognises is not ignored — argparse rejects it
 and the server refuses to start. Every row below was confirmed absent from
-`vllm/config/*.py` + `vllm/engine/arg_utils.py` at tag `v0.27.0`.
+`vllm/config/*.py` + `vllm/engine/arg_utils.py` at tag `v0.32.0`. Config
+dataclasses use `extra="forbid"`, so a stale key inside a nested dict
+(`speculative-config`, `kv-transfer-config`) fails validation the same way.
 
 | Removed key | Removed in | Do this instead |
 |---|---|---|
@@ -235,10 +248,13 @@ and the server refuses to start. Every row below was confirmed absent from
 | `lora-extra-vocab-size` | V0 removal | Nothing — LoRA vocab extension is gone. |
 | `disable-log-requests` | inverted | `enable-log-requests: true` |
 | `disable-frontend-multiprocessing` | V0 removal | Nothing — V1 always runs the frontend out-of-process. |
+| `enable-mamba-fine-grained-prefix-cache` | v0.31.0, renamed ([PR #57382](https://github.com/vllm-project/vllm/pull/57382)) | `enable-mamba-shared-prefix-checkpoint` |
+| `speculative-config.disable_by_batch_size`, `.speculative_model_quantization` | v0.17.0 / v0.8.3 | Drop the first; use `speculative-config.quantization` for the second. |
+| `kv-transfer-config.kv_buffer_size`, `.kv_rank`, `.kv_parallel_size`, `.kv_ip`; `ec-transfer-config.ec_rank`, `.ec_parallel_size` | v0.32.0 ([PR #59781](https://github.com/vllm-project/vllm/pull/59781)) | Delete them — old 1P1D connector fields; `kv_port` remains. |
 
 ## Version notes
 
-- Section catalog above re-read key-by-key against tag `v0.27.0` on 2026-08-11
+- Section catalog above re-read key-by-key against tag `v0.32.0`
 - YAML config support: stable since v0.5.0
 - Nested dict-to-JSON conversion: enhanced in v0.11 to handle `compilation-config`, `speculative-config`, `kv-transfer-config` reliably
 - Boolean handling: pre-v0.10 was inconsistent; current parser requires explicit `true`/`false`
