@@ -253,7 +253,9 @@ v0.31.0 removed Quark's silent online MXFP4 quantization
 ([#51800](https://github.com/vllm-project/vllm/pull/51800)): request it through
 `--quantization-config` instead.
 
-**Known gotchas** — [#34129](https://github.com/vllm-project/vllm/issues/34129) (doesn't split MoE across EP, closed `NOT_PLANNED` — won't-fix), [#19020](https://github.com/vllm-project/vllm/issues/19020) / [#32029](https://github.com/vllm-project/vllm/issues/32029) / [#32412](https://github.com/vllm-project/vllm/issues/32412) (multiple active RFCs). Dropped bias weights ([#39663](https://github.com/vllm-project/vllm/issues/39663)) is **fixed in v0.21.0** and no longer a reason to avoid online FP8. For MoE models, still prefer a pre-quantized checkpoint.
+**Known gotchas** — [#34129](https://github.com/vllm-project/vllm/issues/34129) (doesn't split MoE across EP, closed `NOT_PLANNED` — won't-fix), [#19020](https://github.com/vllm-project/vllm/issues/19020) / [#32029](https://github.com/vllm-project/vllm/issues/32029) / [#32412](https://github.com/vllm-project/vllm/issues/32412) (multiple active RFCs). Dropped bias weights ([#39663](https://github.com/vllm-project/vllm/issues/39663)) is **fixed in v0.21.0** — at or above it, never name bias loss as the cause of an online-FP8 quality drop. For MoE models, still prefer a pre-quantized checkpoint.
+
+**Online FP8 quality drop that switching granularity or `ignore` does not move:** granularity is not the cause (FP8 W8A8 on a dense model is near-lossless). Stop tuning online flags. A/B the online run against an offline FP8 checkpoint of the same model, same eval and TP — the publisher's `-FP8` build or llm-compressor `FP8_DYNAMIC` (data-free, minutes) — and serve the offline checkpoint if it recovers.
 
 ## The operator-pain-point shortlist
 
