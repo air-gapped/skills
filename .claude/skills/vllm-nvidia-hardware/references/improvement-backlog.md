@@ -3,6 +3,22 @@
 Work-not-done log from skill-improver passes. "Open" = attempted as a hypothesis
 but could not be applied in one atomic, score-improving iteration. Not a wishlist.
 
+## Open
+
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Resolved this pass (2026-10-18)
+
+Improve, cap reached at 5 iterations, 0 discards (no ceiling mapped). Blind baseline
+74 at 68dca10; self 73 → 81; final blind score and A/B comparator run by the operator.
+- Kept: pass-history prose and stale 2026-08-11 footer → four standing verification rules.
+- Kept: B300 DGX bin sized at the datasheet's 279 GB in SKILL.md, gpu-specs.md, dell-xe.md (was 288 / 20.7 TB); dangling `§2.2` pointer fixed.
+- Kept: inline version floors and Rubin paragraph → floor table + pointers; v0.32.0 floors moved into the matrix's v0.32.0 row.
+- Kept: duplicated key-number rows and audience/framing filler removed.
+- Kept: contents line on the five task references over 100 lines.
+- Post-cap fixes: SM103 FlashInfer hang scoped to independent pins; "audit hardware" trigger narrowed; Hopper "No FP4" scoped to compute (NVFP4 KV on SM90 since v0.32.0).
+
 ## Resolved — 2026-09-15 (a restructure its own entry priced at +0)
 
 - **`[LV:]` → dated-table conversion — CLOSED, decided against.** The entry
@@ -13,11 +29,6 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
   is a condition a future pass can observe rather than argue about.
 - The cookie-gated datasheet rows above stay open: those are genuinely
   unreachable by any fetcher available here.
-
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
 
 ## Resolved — 2026-09-15 (the gated datasheet was one grep away)
 
@@ -159,7 +170,7 @@ guidance. The two remaining Open items (cookie-gated Blackwell Ultra datasheet,
 binary-only Dell XE spec sheet) still need a browser session and were not
 attempted.
 
-## Resolved this pass (2026-05-28)
+## Resolved — 2026-05-28
 
 - **Removed dangling internal-artifact reference** "compiled from MEMORY_WALL_DEEP.md" from `SKILL.md` source-and-refresh section (Dim 6: 9→10).
 - **Refreshed vLLM release rows** in `references/sources.md`: relabeled v0.19.1 (no longer "latest stable"), marked v0.20.0 GA 2026-04-27, added v0.20.1 / v0.20.2 / v0.21.0 (current latest, `isLatest=true`), and dropped the stale "pin v0.19.1 until v0.20.0 leaves pre-release" guidance — the one stale load-bearing version claim recon surfaced via live `gh release list` (Dim 9: 8→9). All updated rows stamped `[LV: 2026-05-28]`.
