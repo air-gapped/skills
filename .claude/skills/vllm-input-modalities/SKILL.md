@@ -204,7 +204,8 @@ standard CUDA/ROCm/CPU/XPU requirement files, no extra install. Details:
 **OOM on 24 GB with Whisper** (issue #15216) is a known sharp edge — Whisper
 allocates aggressively for its encoder KV, despite the 1.6 GB checkpoint.
 Production path is one of the RedHatAI quants above, or raising
-`--gpu-memory-utilization` past 0.9 with eager mode if memory is truly tight.
+`--gpu-memory-utilization` past 0.9 with eager mode if memory is truly tight;
+unquantized large-v3 / large-v3-turbo wants ≥32 GB for comfortable batch sizes.
 
 ### OCR (DeepSeek-OCR)
 
@@ -248,18 +249,7 @@ no dedicated `/ocr` endpoint.
    `--enforce-eager` for production as older cheat sheets suggest — you lose
    the piecewise graph win without gaining anything.
 
-3. **Jina v4 base checkpoint is not vLLM-compatible.** Use
-   `jinaai/jina-embeddings-v4-vllm-retrieval` (pre-merged retrieval adapter).
-   Serve with `--pooler-config '{"pooling_type":"ALL"}' --dtype float16` and
-   normalize client-side — output is multi-vector per token.
-
-4. **Matryoshka without config.** If a model documents MRL support but
-   `config.json` lacks `is_matryoshka` / `matryoshka_dimensions`, the server
-   returns 400 for any `dimensions` param. Fix: `--hf-overrides
-   '{"is_matryoshka":true}'` at serve time. Don't confuse with BGE-M3, which
-   genuinely doesn't support MRL.
-
-5. **Qwen3-Reranker needs a score template AND hf-overrides.** It's an
+3. **Qwen3-Reranker needs a score template AND hf-overrides.** It's an
    instruction-tuned causal LM masquerading as a cross-encoder — skipping
    any of the three extras (see the reranking cheat-sheet command above)
    gives random-looking scores, not errors. Full recipe: `references/reranking.md` §2.
@@ -271,14 +261,7 @@ no dedicated `/ocr` endpoint.
    (`is_original_qwen3_reranker=true`) is served without a chat template —
    check the logs before assuming silent wrong scores (#56017).
 
-6. **DeepSeek-OCR with prefix caching on.** It doesn't crash — it just
-   wastes time and memory. Same for `--mm-processor-cache-gb > 0` for pure
-   OCR traffic. Both defaults are wrong for this workload.
-
-7. **Whisper OOM on 24 GB.** Not a bug. Use a Red Hat quant, or accept that
-   large-v3 / large-v3-turbo wants ≥32 GB for comfortable batch sizes.
-
-8. **Late-interaction kernel regression sniff test.** ColBERT / ColPali
+4. **Late-interaction kernel regression sniff test.** ColBERT / ColPali
    throughput jumped ~14% in v0.17–0.19 from MaxSim optimisations. If those
    models feel slow, check `--enable-flash-late-interaction` (default true)
    wasn't disabled by an old config. From v0.32.0 the same flag also gates the
