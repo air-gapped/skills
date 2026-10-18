@@ -11,15 +11,6 @@ when_to_use: |-
 
 Target audience: operators running production vLLM on H100/H200 fleets, usually containerized, usually on Kubernetes, on-call for latency and throughput SLOs.
 
-## Why this matters
-
-`nvidia-smi` can show a perfectly healthy GPU while TTFT is 11 seconds. Raw throughput in `tok/s` can be rising while user-visible P99 TTFT is cratering. Every production incident this skill exists to catch shares one structural problem: aggregate numbers and hardware counters lie, and only the vLLM-internal per-request distributions tell the truth.
-
-Two operator-facing outcomes matter:
-
-1. **Alerting that wakes the right person for the right reason** — TTFT/ITL tail, queue depth, preemption rate, corrupted logits.
-2. **Diagnosis from /metrics alone** — a small number of metric patterns distinguish "out of capacity" from "stuck scheduler" from "hot long-context outlier" without SSH'ing to the pod.
-
 ## The core diagnostic rule
 
 When something feels slow, read the ratio, not the absolute:
