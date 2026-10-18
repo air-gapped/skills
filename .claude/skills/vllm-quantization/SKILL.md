@@ -271,24 +271,17 @@ Internalize these before debugging accuracy / throughput regressions:
 
 The hardware-/version-gated traps (B300 TRTLLM hang, ModelOpt-vs-compressed-tensors export drift, MXFP4-linear-falls-back-to-BF16, A100 TurboQuant crash, Qwen3.5 v0.18 KV regression, MXFP8+DeepGEMM pre-v0.19 crash) live in the full triage playbook with symptoms → PR → workaround: `references/troubleshooting.md`.
 
-## Version-gate highlights
+## Version gates an upgrade acts on
 
-Full matrix in `references/version-gates.md`. Load-bearing ones:
+Before any upgrade, read every hop between the installed and target release in
+`references/version-gates.md`. Gates not covered elsewhere in this file:
 
-- **v0.32.0** — current, [2026-10-18](https://github.com/vllm-project/vllm/releases/tag/v0.32.0). **Fixes silent CUTLASS FP4 MoE corruption under EP** (#59042). Humming now outranks Marlin on SM90 in every linear and MoE kernel list (#56997) — `auto` on H100/H200 changes kernel; pin `marlin` to compare. NVFP4 KV on SM80/90/12x (#46963, #60620); `ultraquant_4bit` KV on ROCm (#57057); GLM-5.x `auto` KV → FP8 on SM100 (#60140, #60281); MXFP4 W4A4 checkpoints fall back to W4A16 with a warning when no W4A4 MoE kernel exists (#60079); linear re-quantization through the online API (#55684).
-- **v0.31.0** — [2026-10-05](https://github.com/vllm-project/vllm/releases/tag/v0.31.0). **Breaking:** `--quantization fp8` stops quantizing online (redirects to `fp8_per_tensor`, #53585); Quark silent online MXFP4 removed (#51800); AllSpark INT8 W8A16 backend removed (#58001); `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` restored, default off (#57055). Humming NVFP4/MXFP4/MXFP8 online quantization (#56685).
-- **v0.27.1** — [2026-08-11](https://github.com/vllm-project/vllm/releases/tag/v0.27.1). Quantized DSpark Markov heads (#50424): W4A16 `markov_w2` weights (incl. `weight_scale_2`) load through normal quantization dispatch. Container images were pushed *before* the GitHub release — "no release yet" never implies "no image yet"; air-gap staging mirrors the image, not a PyPI wheel.
-- **v0.27.0** — [2026-08-10](https://github.com/vllm-project/vllm/releases/tag/v0.27.0). `--linear-backend` now honored for ModelOpt W4A16 (#50273); FP4 Qutlass for compressed-tensors (#43229); ModelOpt FP8 emulation on SM80 (#50019); TurboQuant KV quant mode (#50533); compressed-tensors checkpoints for DeepSeek-V4 (#41276) and Kimi-K3 (#50500). **Breaking environment change:** PyTorch 2.13.0 / Triton 3.7.1 / Transformers 5.14.1 (#48155, #49223) — rebuild any custom kernel or plugin image.
-- **v0.26** — [v0.26.0](https://github.com/vllm-project/vllm/releases/tag/v0.26.0) (2026-07-27). `nvfp4_per_token` online MoE quantization (#48538); Humming w[2-7]a[4,8] weight-only for compressed-tensors (#46390); CuTe-DSL FlashInfer MXFP4 (#48417); MLA `kv_cache_dtype_skip_layers` (#47309); ROCm HybridW4A16 linear kernel (#40977).
-- **v0.25** — [v0.25.1](https://github.com/vllm-project/vllm/releases/tag/v0.25.1) (2026-07-14). **Run v0.25.1+, not v0.25.0**, if serving NVFP4 on multi-GPU: v0.25.0 and earlier corrupt output via the fused allreduce+RMSNorm+quant path on models with Gemma/Qwen-style RMSNorm (PR #48330 — see `vllm-performance-tuning` § garbage `!!!` output). v0.25.0 also removed PagedAttention entirely and made Model Runner V2 the default for all dense models.
-- **v0.22–v0.24** — NVFP4 fused MoE for DeepSeek-V4 (#42209), NVFP4 Cutlass linear on the batch-invariant path (#39912), padded NVFP4 quant kernel (#42774), ModelOpt W4A16 NVFP4 fused MoE with mixed-precision dispatch (#42566), FlashInfer cutedsl NVFP4 GEMM (#42235) and cute-dsl MXFP8 linear (#46393), FP8 weight layout canonicalized to `(K, N)` (#44735), `fp8_e5m2` KV cache allowed for non-fp8 checkpoints (#45040), W8A8 int-quant scheme-selection regression fixed (#46860), and an actionable error on group-size/TP mismatch (#46230) in place of an obscure failure.
-- **v0.21** — [v0.21.0](https://github.com/vllm-project/vllm/releases/tag/v0.21.0) (2026-05-15); v0.20.0 stable shipped 2026-04-27, followed by v0.20.1 / v0.20.2. Quantization-layer churn continues — re-verify any v0.19-specific claim on upgrade.
-- **v0.19** — online MXFP8, `CompressedTensorsW8A8Mxfp8`, ROCm AWQ Marlin, TurboQuant KV, DeepGemm E8M0 fix for Qwen3.5 FP8 on Blackwell, `--calculate-kv-scales` deprecation, Gemma 4 quantized MoE, B300 / GB300 fixes.
-- **v0.18** — FP8 KV in Triton MLA decode, FlashInfer Sparse MLA FP8, ModelOpt MXFP8 MoE, AMD Quark W4A8 MXFP4/FP8, MLA crash with AWQ/GPTQ fix.
-- **v0.17** — per-head KV scales, SM100 MXFP8 kernels, compressed-tensors as ground-truth, ModelOpt mixed precision, Llama-4 attention quant.
-- **v0.16** — NVFP4/FP8 on Turing via emulation, TP>4 for FP4 GEMM, ModelOpt MXFP8 dense.
-- **v0.15** — MXFP4 W4A16 for compressed-tensors MoE, FP4 kernel optimization (+65 % on SM100F via 256-bit loads).
-- **v0.14** — Online quantization redesign, MXFP4 W4A16 for dense.
+| Gate | Action |
+|---|---|
+| v0.32.0+ on SM90 | `auto` picks Humming over Marlin for linear and MoE (#56997). Pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput change |
+| v0.32.0+ MXFP4 W4A4 checkpoint, no W4A4 MoE kernel | falls back to W4A16 with a warning (#60079) — grep the load log before benchmarking |
+| v0.27.0+ | PyTorch 2.13.0 / Triton 3.7.1 / Transformers 5.14.1 (#48155, #49223) — rebuild any custom kernel or plugin image |
+| ≤ v0.25.0, NVFP4 multi-GPU, Gemma/Qwen-style RMSNorm | fused allreduce+RMSNorm+quant corrupts output (#48330) — run v0.25.1+ |
 
 ## What to read next
 

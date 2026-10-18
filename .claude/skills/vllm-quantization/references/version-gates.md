@@ -124,6 +124,16 @@ Removals that affect the flag catalog:
 NVFP4 multi-GPU: **run v0.25.1+, not v0.25.0** — v0.25.0 and earlier corrupt
 output via the fused allreduce+RMSNorm+quant path on Gemma/Qwen-style RMSNorm
 ([PR #48330](https://github.com/vllm-project/vllm/pull/48330)).
+v0.25.0 also removed PagedAttention entirely and made Model Runner V2 the
+default for all dense models.
+
+Quantization surface:
+- NVFP4 fused MoE for DeepSeek-V4 (#42209); NVFP4 Cutlass linear on the batch-invariant path (#39912); padded NVFP4 quant kernel (#42774).
+- ModelOpt W4A16 NVFP4 fused MoE with mixed-precision dispatch (#42566).
+- FlashInfer cutedsl NVFP4 GEMM (#42235) and cute-dsl MXFP8 linear (#46393).
+- FP8 weight layout canonicalized to `(K, N)` (#44735).
+- `fp8_e5m2` KV cache allowed for non-fp8 checkpoints (#45040).
+- W8A8 int-quant scheme-selection regression fixed (#46860); actionable error on group-size/TP mismatch (#46230) in place of an obscure failure.
 
 ## v0.21.0 — 2026-05-15
 
