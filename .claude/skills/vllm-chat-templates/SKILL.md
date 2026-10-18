@@ -81,7 +81,7 @@ Per-family flag matrix lives in `references/flags-matrix.md`. Quick cheat-sheet 
 | Model family | `--chat-template` | `--tool-call-parser` | `--reasoning-parser` |
 |---|---|---|---|
 | Qwen3 dense / MoE | tokenizer default | `hermes` | `qwen3` |
-| Qwen3-Coder | tokenizer default | `qwen3_xml` | — |
+| Qwen3-Coder (480B-A35B, 30B-A3B) | `examples/tool_chat_template_qwen3coder.jinja` | `qwen3_xml` — **not** `hermes`: emits XML `<function=…><parameter=…>`, hermes drops it → `tool_calls=[]` | — |
 | DeepSeek-R1 | `examples/tool_chat_template_deepseekr1.jinja` | `deepseek_v3` | `deepseek_r1` |
 | DeepSeek-V3-0324 | `examples/tool_chat_template_deepseekv3.jinja` | `deepseek_v3` | — |
 | DeepSeek-V3.1 | `examples/tool_chat_template_deepseekv31.jinja` | `deepseek_v31` | `deepseek_r1` |
