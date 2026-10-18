@@ -63,7 +63,7 @@
     {
       "id": 11,
       "question": "What version is vLLM's in-tree chart-helm and what is its stability status?",
-      "skill_answer": "v0.0.1, experimental \u2014 not for production"
+      "skill_answer": "chart-vllm 0.0.2 (examples/deployment/chart-helm, v0.32.0) \u2014 an example chart, not a supported release artifact; not for production"
     }
   ]
 }

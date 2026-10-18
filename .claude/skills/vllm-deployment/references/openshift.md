@@ -44,7 +44,7 @@ For OpenShift-only teams: also read `references/pod-shape.md`, `references/multi
 | 3.3.0 | v0.13.0 |
 | 3.2.3 | v0.12.x (see release notes) |
 
-Pin the exact RHAIIS tag; roll forward with release notes. Upstream vLLM is far ahead of the RHAIIS-pinned tag (v0.21.0 as of 2026-05-15) — RHAIIS deliberately trails upstream for build/lifecycle/support. Do not assume the RHAIIS tag tracks the latest upstream; read the RHAIIS release notes for the exact upstream commit each tag is built from.
+Pin the exact RHAIIS tag; roll forward with release notes. Upstream vLLM is far ahead of the RHAIIS-pinned tag (upstream v0.32.0 as of 2026-10-18) — RHAIIS deliberately trails upstream for build/lifecycle/support. Do not assume the RHAIIS tag tracks the latest upstream; read the RHAIIS release notes for the exact upstream commit each tag is built from.
 
 ## RHOAI — Red Hat OpenShift AI model serving
 
@@ -108,7 +108,7 @@ spec:
 ```
 
 Without the `timeout: 10m` annotation, SSE streaming cuts off at 60 s. This is the single most common OCP-specific failure.
-Annotation reference: https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html#nw-route-specific-annotations_route-configuration
+Annotation reference: https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html-single/ingress_and_load_balancing/index#nw-route-specific-annotations_configuring-routes
 
 ### Gateway API on OCP
 
@@ -126,7 +126,7 @@ On 4.19+, Gateway API + GAIE is viable. **OSSM v2 (Service Mesh) conflicts with 
 
 OCP has a built-in Prometheus stack. User-workload monitoring must be enabled separately:
 
-1. **Enable**: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/monitoring/enabling-monitoring-for-user-defined-projects
+1. **Enable**: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html-single/monitoring/index
 2. Create `PodMonitor` or `ServiceMonitor` in the workload namespace — prom-operator in `openshift-user-workload-monitoring` auto-scrapes.
 3. **Label rewrite**: `enforcedNamespaceLabel` rewrites any `namespace` label the pod emits to `exported_namespace`. Don't rely on vLLM's own `namespace` label; use the k8s one.
 4. Opt-out a pod with `openshift.io/user-monitoring: "false"`.

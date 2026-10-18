@@ -32,12 +32,17 @@ Each layer has multiple implementations. This reference is a pointer map.
 - **Launch blog**: https://kubernetes.io/blog/2025/06/05/introducing-gateway-api-inference-extension/
 - **Spec reference**: https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/
 
-### Two CRDs
+### CRDs (v1.6.x)
 
-| CRD | Owner | What it expresses |
+| CRD | Group | What it expresses |
 |---|---|---|
-| `InferencePool` | Platform admin | "These pods are on shared GPU nodes; they form a pool" |
-| `InferenceModel` | ML team | "The public model name `qwen3-235b` maps to this pool, with this criticality" |
+| `InferencePool` | `inference.networking.k8s.io/v1` | "These pods form a pool"; `spec.endpointPickerRef` (optional from v1.6.0) names the EPP |
+| `InferencePoolImport` | `inference.networking.x-k8s.io` (alpha) | Pool exported across clusters |
+
+`InferenceModel` no longer exists — v1.0 replaced it with the alpha `InferenceObjective`, and
+v1.6.0 removed `InferenceObjective`, `InferenceModelRewrite` and `EndpointPickerConfig` from
+GAIE (moved to llm-d). Delete those objects from manifests targeting GAIE ≥ v1.6. The
+full-featured EPP also moved to llm-d; GAIE ships only the conformance `lwepp`.
 
 The **Endpoint Picker (EPP)** is the ext_proc gRPC server that the gateway consults for each request: given a pool, pick the specific endpoint. EPP implementations embed the routing logic — prefix-aware, KV-aware, session-sticky, load-aware.
 
@@ -46,7 +51,7 @@ The **Endpoint Picker (EPP)** is the ext_proc gRPC server that the gateway consu
 | Gateway | URL | Notes |
 |---|---|---|
 | **llm-d** (bundled) | https://llm-d.ai/ | Ships its own EPP with P/D + KV-aware + SLA scheduling |
-| **Envoy AI Gateway** | https://aigateway.envoyproxy.io/ | Full GAIE + provider abstraction (Bedrock, Vertex, Anthropic) |
+| **Agent Router** (formerly Envoy AI Gateway) | https://theagentrouter.ai/ | Full GAIE (v1.6 from v1.2.0) + provider abstraction (Bedrock, Vertex, Anthropic) |
 | **kgateway** | https://kgateway.dev/ | Lightweight Envoy Gateway successor |
 | **Istio** | https://istio.io/latest/blog/2025/inference-extension-support/ | 1.28+ supports InferencePool; pair when a mesh is already in place |
 | **NGINX Gateway Fabric** | https://blog.nginx.org/blog/ngf-supports-gateway-api-inference-extension | NGINX-based GAIE |
@@ -66,7 +71,7 @@ Pre-v1 CRDs (`v1alpha1`, `v1alpha2`) will not work with current gateways. Conver
 
 ### vllm-semantic-router
 
-- Site: https://vllm-semantic-router.com/
+- Site: https://vllm-sr.ai/
 - Repo: https://github.com/vllm-project/semantic-router
 - Envoy `ext_proc` filter — semantic routing across *different* models by query intent.
 - v0.1 Iris launch: https://blog.vllm.ai/2026/01/05/vllm-sr-iris.html
@@ -116,7 +121,7 @@ Prefix-aware alone often beats KV-aware for chat workloads (conversation prefixe
 
 ## Autoscaler coordination
 
-The gateway/router publishes queue metrics. KEDA consumes them via Prometheus. On llm-d, the Workload Variance Autoscaler (WVA) replaces generic HPA/KEDA for inference-specific autoscaling.
+The gateway/router publishes queue metrics. KEDA consumes them via Prometheus. On llm-d, KEDA scales on the EPP's metrics; llm-d's WVA is deprecated (v0.10.0).
 
 See `references/autoscaling.md`.
 

@@ -26,12 +26,12 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 | k8s fleet, ByteDance-scale multi-tenant LoRA + heterogenous GPU | `AIBrix` — see `references/ecosystem.md` |
 | NVIDIA reference stack on prem / EKS / AKS with NIXL | `NVIDIA Dynamo` — see `references/ecosystem.md` |
 | OpenShift / RHOAI | `references/openshift.md` + RHAIIS images |
-| Routing / load balancing across pods | `references/routing.md` (GAIE, Envoy AI Gateway, Istio, production-stack router, semantic-router) |
+| Routing / load balancing across pods | `references/routing.md` (GAIE, Agent Router (formerly Envoy AI Gateway), Istio, production-stack router, semantic-router) |
 | Air-gapped k8s or OCP | `references/openshift.md` §air-gapped + `vllm-configuration` skill for HF mirror |
 
 ## The three load-bearing facts
 
-1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:209,289`. Since **v0.27.0 (#48879)** a pre-flight free-space check turns the *undersized* case into an actionable startup `RuntimeError` instead of a later crash — but the trap it replaces is worth knowing, because a 64 MiB `/dev/shm` is big enough to boot (see `references/pod-shape.md`).
+1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:210,290`. Since **v0.27.0 (#48879)** a pre-flight free-space check turns the *undersized* case into an actionable startup `RuntimeError` instead of a later crash — but the trap it replaces is worth knowing, because a 64 MiB `/dev/shm` is big enough to boot (see `references/pod-shape.md`).
 2. **Multi-node vLLM on k8s is Ray-on-LWS, not headless Service.** The `parallel-config` + pure headless-Service path exists but is not the vLLM-endorsed recipe. Use LeaderWorkerSet (`kubernetes-sigs/lws`) as the gang-scheduling primitive and `examples/ray_serving/multi-node-serving.sh` (which bootstraps Ray head/worker) as the entrypoint. Since Nov 2025 the `ray symmetric-run` pattern replaces the old head/worker split — see `https://blog.vllm.ai/2025/11/22/ray-symmetric-run.html`.
 3. **The upstream `vllm/vllm-openai` image runs as root.** On OpenShift (and any k8s cluster with `restricted-v2` PSA), that is a deploy-time failure. Either rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`, or use the Red Hat RHAIIS images (`registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0`), which are UID-agnostic by construction.
 
@@ -88,9 +88,9 @@ This skill owns the **pod/container/topology** layer. It does not own:
 
 - **`references/pod-shape.md`** — complete annotated Deployment manifest; env vars catalogue; probes; compile-cache survival; serve-args review; parser-plugin ConfigMap mount; nodeSelector per SM generation; PVC vs ModelCar trade-off; image tag discipline; `vllm-openai` entrypoint contract.
 - **`references/multi-node.md`** — LWS vs KubeRay; `ray symmetric-run`; NCCL on k8s (shm, SR-IOV, RoCE, InfiniBand, `NCCL_SOCKET_IFNAME`/`NCCL_IB_HCA`); the in-repo `multi-node-serving.sh`/`run_cluster.sh`; known issue list.
-- **`references/ecosystem.md`** — llm-d, vllm-production-stack, AIBrix, NVIDIA Dynamo, KServe vLLM runtime, vllm-semantic-router, Envoy AI Gateway — what each one is, current version, when to pick.
-- **`references/routing.md`** — Gateway API Inference Extension (`InferencePool`, `InferenceModel`, EPP), production-stack router, semantic-router, kgateway/Istio/NGF, OCP Route SSE timeout gotcha.
-- **`references/autoscaling.md`** — KEDA on `vllm:num_requests_waiting`, cooldown discipline (`cooldownPeriod: 360`), HPA with custom metrics, scale-to-zero, llm-d WVA.
+- **`references/ecosystem.md`** — llm-d, vllm-production-stack, AIBrix, NVIDIA Dynamo, KServe vLLM runtime, vllm-semantic-router, Agent Router (formerly Envoy AI Gateway) — what each one is, current version, when to pick.
+- **`references/routing.md`** — Gateway API Inference Extension (`InferencePool`, EPP), production-stack router, semantic-router, kgateway/Istio/NGF, OCP Route SSE timeout gotcha.
+- **`references/autoscaling.md`** — KEDA on `vllm:num_requests_waiting`, cooldown discipline (`cooldownPeriod: 360`), HPA with custom metrics, scale-to-zero, llm-d KEDA-on-EPP (WVA deprecated).
 - **`references/disagg.md`** — cross-pod PD with NixlConnector, Mooncake, LMCache, MORI-IO; Dynamo's relation to vLLM's own connectors; topology recipes.
 - **`references/openshift.md`** — RHAIIS, RHOAI ServingRuntime templates, SCC, arbitrary UID, Routes 60 s timeout, NVIDIA GPU Operator on OCP, user-workload monitoring, air-gapped (oc-mirror v2, IDMS, ModelCar).
 - **`references/docker-lab.md`** — `docker run` canonical flags, `--shm-size` vs `--ipc=host`, `--gpus`, MIG strings, Podman/podman-compose, rootless friction, 2-node disagg compose template.
@@ -104,17 +104,16 @@ This skill owns the **pod/container/topology** layer. It does not own:
 | `docs/deployment/nginx.md` | Multi-server LB with Nginx |
 | `docs/deployment/frameworks/lws.md` | LeaderWorkerSet recipe |
 | `docs/deployment/frameworks/helm.md` | Helm chart usage |
-| `docs/deployment/frameworks/kserve.md` | KServe runtime |
-| `docs/deployment/integrations/{llm-d,production-stack,aibrix,dynamo,kubeRay,kthena,kubeai,kaito,llama-stack,llmaz}.md` | Ecosystem landing pages |
-| `examples/online_serving/chart-helm/` | In-tree Helm chart (v0.0.1, experimental) |
+| `docs/deployment/integrations/{llm-d,production-stack,aibrix,dynamo,kserve,kuberay,kthena,kubeai,kaito,llamastack,llmaz}.md` | Ecosystem landing pages (KServe runtime is `integrations/kserve.md`) |
+| `examples/deployment/chart-helm/` | In-tree example Helm chart (`chart-vllm` 0.0.2) |
 | `examples/ray_serving/multi-node-serving.sh` | Ray leader/worker bootstrap |
-| `examples/online_serving/run_cluster.sh` | Docker-based Ray cluster (`--shm-size 10.24g --ipc=host --gpus all`) |
-| `examples/online_serving/disaggregated_serving/` | PD-split proxy demos (XpYd, KV events, Mooncake) |
-| `examples/online_serving/disaggregated_prefill.sh` | PD launcher |
+| `examples/ray_serving/run_cluster.sh` | Docker-based Ray cluster (`--network host --shm-size 10.24g --gpus all`) |
+| `examples/disaggregated/disaggregated_serving/` | PD-split proxy demos (XpYd, KV events, MoRI-IO proxy) |
+| `examples/disaggregated/{mooncake_connector,lmcache}/` | PD launchers (`run_mooncake_connector.sh`, `disagg_prefill_lmcache_v1/disagg_example_nixl.sh`) |
 | `vllm/envs.py` | Canonical env-var catalogue |
-| `vllm/distributed/kv_transfer/` | KV connector implementations (LMCache, Mooncake, MORI-IO, NIXL, P2P-NCCL, HF3FS) |
+| `vllm/distributed/kv_transfer/` | KV connector implementations (LMCache, Mooncake, MORI-IO, NIXL, HF3FS, Offloading, FlexKV) — P2P-NCCL was removed in v0.24.0 |
 | `vllm/entrypoints/serve/instrumentator/health.py` | `/health` endpoint (200 healthy, 503 EngineDeadError) |
-| `Dockerfile{,.rocm,.cpu,.tpu,.xpu,.nightly_torch,.ppc64le,.s390x}` | Image variants |
+| `docker/Dockerfile{,.rocm,.cpu,.xpu,.zen,.rock,.ppc64le,.s390x}` | Image variants |
 
 All paths relative to vLLM repo root (https://github.com/vllm-project/vllm).
 
@@ -137,14 +136,25 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 5. **KEDA threshold 1–2 on `num_requests_waiting`.** Thrashing. Use 5–10 per replica and `cooldownPeriod: 360`. See `references/autoscaling.md`.
 6. **OCP Route 60 s idle timeout.** Kills long SSE streams. Annotate `haproxy.router.openshift.io/timeout: 10m`.
 7. **Missing `NCCL_SOCKET_IFNAME` on multi-NIC hosts.** NCCL picks the wrong interface and hangs on bootstrap. Pin explicitly.
-8. **Using the in-tree `chart-helm` (v0.0.1) in production.** It is marked experimental. For production, use vllm-production-stack Helm or llm-d Helm.
+8. **Using the in-tree `chart-helm` (`chart-vllm` 0.0.2) in production.** It is an example under `examples/`, not a supported release artifact. For production, use vllm-production-stack Helm or llm-d Helm.
 9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments.
 10. **Assuming Gateway API is GA on every OCP.** It is GA on OCP 4.19+, dev-preview on 4.17. Check the cluster version.
 
-## Upgrading through v0.30.0 (swept 2026-09-15, refreshed 2026-09-23)
+## Upgrading through v0.32.0
 
-Upstream is at **v0.30.0** (2026-09-22), via v0.29.0 (2026-09-09) and v0.28.0
-(2026-08-26). Changes that affect a deployment manifest or its rollout plan:
+Upstream is at **v0.32.0** (2026-10-18), via v0.31.0 (2026-10-05), v0.30.0
+(2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
+its rollout plan:
+
+- **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
+  defaults to `[]`, so a browser front end calling vLLM directly gets CORS
+  errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;
+  server-to-server clients are unaffected.
+- **`--enforce-eager` also disables JIT kernel warmup** from v0.31.0 (#58197)
+  unless fault tolerance is on — the first requests pay the kernel JIT instead
+  of the boot. See `references/pod-shape.md` §Serve-args review.
+- **Fast Start daemon is launched with `vllm preload`** and supports DP and PP
+  from v0.31.0/v0.32.0 — `references/pod-shape.md` §Fast Start.
 
 - **Scale-out endpoints (`/render`, `/derender`, `/inference/v1/generate`) are
   opt-in on plain `vllm serve`.** Pass `--enable-scale-out`; the old
@@ -164,10 +174,13 @@ Upstream is at **v0.30.0** (2026-09-22), via v0.29.0 (2026-09-09) and v0.28.0
   `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
   module form, change it now rather than on the release that removes it.
 - **Model Runner V2 is the default for all models** (#53183, v0.29.0). MRV1 is
-  deprecated with **removal targeted at v0.32**, and upstream states it will not
-  accept further MRV1-specific work. It does still fall back to MRV1 for a few
-  ROCm models and for features MRV2 does not yet cover, so a fleet can be split
-  across both without anyone choosing that.
+  deprecated but **still ships in v0.32.0** despite the earlier v0.32 removal
+  target, and vLLM still falls back to it for features MRV2 does not cover yet
+  (log line: `Model Runner V2 does not yet support …; using the V1 model runner
+  instead`; e.g. `--enable-dbo` unless `VLLM_USE_V2_MODEL_RUNNER=1`). v0.32.0
+  removed the model-specific ROCm MRV1 exceptions (#56360). A fleet can be split
+  across both runners without anyone choosing that; pin `VLLM_USE_V2_MODEL_RUNNER`
+  if it matters.
 - **FlashInfer all-reduce is on by default** for TP CUDA groups (#52998,
   v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` if you are pinning
   collective behaviour.

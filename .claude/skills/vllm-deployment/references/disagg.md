@@ -32,7 +32,7 @@ Source: ``vllm` repo: vllm/distributed/kv_transfer/`
 | **MooncakeConnector** | `mooncake/mooncake_connector.py` | Moonshot-originated; KV-store-first; RDMA (RoCE/IB) |
 | **LMCacheConnector** | `lmcache_connector.py` | UChicago LMCache; tiered (GPU → CPU → NVMe → remote) |
 | **MORI-IOConnector** | `moriio/moriio_connector.py` | AMD + Embedded LLM; network KV transfer |
-| **P2PNcclConnector** | `p2p/p2p_nccl_connector.py` | Peer-to-peer via NCCL; simplest, no external dep |
+| ~~P2PNcclConnector~~ | removed in v0.24.0 (#44854) | Configs naming it fail at startup — move to NixlConnector |
 | **OffloadingConnector** | `offloading_connector.py` | CPU/GPU offload scheduler (not cross-pod) |
 | **HF3FSConnector** | `hf3fs/hf3fs_connector.py` | HuggingFace 3FS file-backed KV |
 
@@ -40,9 +40,9 @@ See also `vllm-caching` skill for connector tiers (CPU/NVMe offload) vs cross-po
 
 ## Example topologies in-repo
 
-- ``vllm` repo: examples/online_serving/disaggregated_serving/` — XpYd, KV events, Mooncake proxy demos
-- ``vllm` repo: examples/online_serving/disaggregated_prefill.sh` — one-node 2-engine launcher
-- ``vllm` repo: examples/online_serving/disaggregated_serving_p2p_nccl_xpyd/` — P2P NCCL xPyD pattern
+- ``vllm` repo: examples/disaggregated/disaggregated_serving/` — XpYd proxy, KV events, MoRI-IO proxy demos
+- ``vllm` repo: examples/disaggregated/mooncake_connector/run_mooncake_connector.sh` — Mooncake P/D launcher
+- ``vllm` repo: examples/disaggregated/lmcache/disagg_prefill_lmcache_v1/disagg_example_nixl.sh` — one-node LMCache + NIXL P/D launcher
 
 ## NixlConnector (the current reference)
 

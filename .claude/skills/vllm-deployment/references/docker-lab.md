@@ -41,7 +41,7 @@ docker run --rm -it \
 
 Canonical in-repo citation: ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:207,212,251,263,271-272` — *"You can either use the `ipc=host` flag or `--shm-size` flag to allow the container to access the host's shared memory. vLLM uses PyTorch, which uses shared memory to share data between processes."*
 
-Also: ``vllm` repo: docs/deployment/docker.md` · `docs/deployment/nginx.md:95,105` · `docs/serving/parallelism_scaling.md:175,181-182` · `examples/online_serving/run_cluster.sh:120,127`.
+Also: ``vllm` repo: docs/deployment/docker.md` · `docs/deployment/nginx.md:95,105` · `docs/serving/parallelism_scaling.md:175,181-182` · `examples/ray_serving/run_cluster.sh:120,127`.
 
 ## GPU selection: `--gpus` vs `--device` vs MIG
 
@@ -142,7 +142,7 @@ Notes:
 - `--security-opt=label=disable` is needed on SELinux hosts (Fedora, RHEL) unless proper SELinux types are configured. Acceptable in a lab; don't carry to production.
 - `nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml` produces the CDI spec that `nvidia.com/gpu=all` resolves against.
 - **Official RHAIIS podman recipe**: https://docs.redhat.com/en/documentation/red_hat_ai_inference_server/3.2/html/getting_started/inference-rhaiis-with-podman-nvidia-cuda_getting-started
-- **Community walk (RHEL/Fedora)**: https://thenets.org/how-to-use-nvidia-gpu-on-podman-rhel-fedora/
+- **Community walk (RHEL/Fedora)**: https://thenets.org/posts/how-to-use-nvidia-gpu-on-podman-rhel-fedora/
 - **Red Hat — profiling vLLM with podman**: https://developers.redhat.com/articles/2025/10/16/profiling-vllm-inference-server-gpu-acceleration-rhel
 
 ### podman-compose
@@ -168,8 +168,8 @@ services:
 
 The vLLM repo **does not ship** a docker-compose for disagg. Reference shell scripts:
 
-- ``vllm` repo: examples/online_serving/disaggregated_prefill.sh`
-- ``vllm` repo: examples/online_serving/disaggregated_serving_p2p_nccl_xpyd/disagg_example_p2p_nccl_xpyd.sh`
+- ``vllm` repo: examples/disaggregated/lmcache/disagg_prefill_lmcache_v1/disagg_example_nixl.sh`
+- ``vllm` repo: examples/disaggregated/mooncake_connector/run_mooncake_connector.sh`
 
 Single-host 2-engine PD compose template (lab-grade, NIXL over shared network):
 
@@ -260,4 +260,4 @@ Once the lab setup works, promoting it:
 1. Copy the env vars, not the `docker run` flags. `--shm-size` → `emptyDir {medium: Memory}`; `--ipc=host` → irrelevant on k8s (no equivalent); `--gpus` → `resources.limits.nvidia.com/gpu`.
 2. Replace the PVC ReadOnlyMany for `/models` and `/root/.cache`.
 3. `nodeSelector` for SKU (see `references/pod-shape.md`).
-4. Helm chart from `examples/online_serving/chart-helm/` is experimental — use **vllm-production-stack** Helm for anything beyond demo.
+4. Helm chart from `examples/deployment/chart-helm/` is an example, not a release artifact — use **vllm-production-stack** Helm for anything beyond demo.

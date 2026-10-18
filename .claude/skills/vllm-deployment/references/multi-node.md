@@ -32,9 +32,9 @@ The "pure headless Service + `parallel-config` + manual rank enumeration" path e
   LWS manifests, a stale copy does not fail at apply time — it fails when the
   pod starts, as a missing-file error from `bash`. Upstream's own
   `docs/deployment/frameworks/lws.md` uses the new path; match it.
-- **Docker-based Ray cluster helper**: ``vllm` repo: examples/online_serving/run_cluster.sh` (reference for what `--shm-size 10.24g --ipc=host --gpus all` should look like)
+- **Docker-based Ray cluster helper**: ``vllm` repo: examples/ray_serving/run_cluster.sh` (reference for what `--network host --shm-size 10.24g --gpus all` should look like)
 
-LWS status as of 2026-07-21: **v0.9.0** (2026-06-17), still **pre-GA**. Used in production by llm-d, vllm-production-stack, AIBrix. No v1.0 cut yet — watch [releases](https://github.com/kubernetes-sigs/lws/releases). Pre-1.0 API, but the core `LeaderWorkerSet` CRD has been stable since v0.3.
+LWS status: **v1.0.0** (2026-10-16) — GA; used by llm-d, vllm-production-stack, AIBrix. Upgrading to v1.0.0: a DisaggregatedSet created on v0.9.x must complete one template rollout on v0.10.x/v0.11.x first (v1.0.0 drops slice-less LWS support), and DisaggregatedSet roles without a `rollingUpdateConfiguration` now default to `maxSurge: 0, maxUnavailable: 1`. For crash-looping multi-node groups set `leaderWorkerTemplate.maxGroupRestarts` and `restartBackoff` (v1.0.0) so a bad model config stops recreating the group.
 
 ## Ray symmetric-run (November 2025 change)
 

@@ -127,8 +127,8 @@ spec:
 
 Kubernetes has no equivalent of Docker's `--ipc=host`. The in-cluster default `/dev/shm` is a tmpfs of 64 MiB (OpenShift's SCC enforces even smaller on some profiles). `torch.distributed` uses shared memory for the bootstrap + IPC; any TP>1 pod without a real-sized `/dev/shm` will segfault on the first all-reduce. The vLLM docs call this out directly at:
 
-- ``vllm` repo: docs/deployment/k8s.md:209,289`
-- ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:207,212,251,263,271-272`
+- ``vllm` repo: docs/deployment/k8s.md:210,290`
+- ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:242,247,286,298,306`
 - ``vllm` repo: docs/deployment/nginx.md:95,105`
 
 Size at 2–10 GiB. Backed by host memory (`medium: Memory`), capped at `sizeLimit` so a runaway process can't OOM the node.
@@ -144,6 +144,9 @@ default at TP ≥ 2 — already 3.75× the 64 MiB default. **vLLM ≥ v0.27.0 (#
 `check_shm_free_space()` in `vllm/distributed/device_communicators/shm_broadcast.py`,
 which fails fast with `Insufficient space in /dev/shm: N MiB required, M MiB free.` On
 older engines there is no such check — the delayed-SIGBUS shape above is what to expect.
+**`--enable-shm-tensor-arena` (v0.32.0, opt-in in the code despite the release note
+calling it default-on)** reserves a further 8 × 256 MiB = **2 GiB** of `/dev/shm`
+(`ShmTensorArena`, same fail-fast check) — size the emptyDir ≥ 4 GiB before enabling it.
 
 ### `resources.limits.memory` — only honoured from v0.27.0
 
@@ -172,7 +175,7 @@ Cleaner alternative: use `startupProbe` (k8s 1.20+) with `failureThreshold: 90, 
 
 ### `--disable-access-log-for-endpoints=/health,/metrics,/ping`
 
-Probes hit `/health` every 5–10 s, Prometheus hits `/metrics` every 15–30 s. Left enabled, the stdout log is 99% probe noise and the real signal drowns. Added in vLLM PR #30011 (`6ee7f18f3` in git log). See `examples/online_serving/chart-helm/values.yaml` for the default list.
+Probes hit `/health` every 5–10 s, Prometheus hits `/metrics` every 15–30 s. Left enabled, the stdout log is 99% probe noise and the real signal drowns. Added in vLLM PR #30011 (`6ee7f18f3` in git log). The in-tree chart does not set it — add it to `args:` yourself.
 
 ### `strategy: Recreate`
 
@@ -180,17 +183,19 @@ GPU pods bind the GPU exclusively. A `RollingUpdate` tries to stand up the new r
 
 ### Telemetry opt-out
 
-By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:35-37`.
+By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:37-38`.
 
 ### Compile-cache survival across restarts (`/root/.cache` mount)
 
 "Do we have caches saved?" — the `cache` emptyDir at `/root/.cache` is what makes
 restarts skip the 1–3 min JIT recompile. Mechanism: vLLM sets
 `TORCHINDUCTOR_CACHE_DIR` and `TRITON_CACHE_DIR` itself, redirecting both under
-`VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:477-480`,
+`VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:464-475`,
 `vllm/envs.py:34`). On the root-UID upstream image that resolves to `/root/.cache/vllm`,
-so mounting `/root/.cache` captures everything; do NOT set the two inner vars manually —
-vLLM overrides them per-model-hash and a manual pin breaks cache separation. On
+so mounting `/root/.cache` captures everything. Do NOT set `TORCHINDUCTOR_CACHE_DIR` —
+vLLM overrides it per model hash. An explicit `TRITON_CACHE_DIR` is honoured from
+v0.31.0 (#58474) and shared across models (intended reuse); before v0.31.0 vLLM
+overwrote it. On
 arbitrary-UID images (`$HOME` ≠ `/root`, e.g. RHAIIS/OpenShift) set `VLLM_CACHE_ROOT`
 explicitly to a mounted path instead. An emptyDir only survives container restarts —
 use a PVC when cold-boot reduction must survive pod rescheduling.
@@ -198,22 +203,28 @@ use a PVC when cold-boot reduction must survive pod rescheduling.
 ### Fast Start weight-cache daemon (`--load-format ipc_cache`, v0.30.0+)
 
 A further cold-boot lever beyond compile-cache survival: a per-GPU daemon
-process (`python -m vllm.model_executor.model_loader.weight_cache.daemon`)
 holds post-quantized, TP-sharded weights resident in GPU memory and hands them
-to restarting engines over CUDA IPC via `vllm serve ... --load-format
-ipc_cache`, skipping the disk reload entirely (#54921). It now covers FP4
-checkpoints (#55465) and multi-node TP with a separate `--weight-cache-master-port`
-(#55468). Deploy-layer implications:
+to restarting engines over CUDA IPC, skipping the disk reload entirely (#54921).
+Launch with `vllm preload --model <m> --tensor-parallel-size N` (v0.31.0+,
+#56680), then `vllm serve <m> ... --load-format ipc_cache`. Deploy-layer
+implications:
 
-- Daemon and engine must run on the same node as the **same UID**, see the
-  same GPUs, and share the temp dir: sockets are
-  `vllm_weight_cache_{uid}/vllm_weight_cache_{gpu_uuid}.sock`
-  (`weight_cache/protocol.py`). The GPU device plugin gives a GPU to one
-  container, so the default shape is both processes in the **one GPU
-  container** — weights survive engine-process restarts, not container or pod
-  restarts. A separate sidecar container needs GPU visibility arranged outside
-  the device plugin; test that before relying on it.
-- Only TP/EP are supported; PP and DP are rejected at daemon launch.
+- Daemon and engine must run on the same node as the **same UID** and see the
+  same GPUs. Sockets are `vllm_weight_cache_{uid}/vllm_weight_cache_{gpu_uuid}.sock`
+  in the temp dir (`weight_cache/protocol.py`); move them with
+  `--weight-cache-socket-dir` on `vllm preload` and
+  `--model-loader-extra-config '{"socket_dir": ...}'` on the engine. The GPU
+  device plugin gives a GPU to one container, so the default shape is both
+  processes in the **one GPU container** — weights survive engine-process
+  restarts, not container or pod restarts. A separate sidecar container needs GPU
+  visibility arranged outside the device plugin; test that before relying on it.
+- Supports TP, EP, DP (v0.31.0, #57386) and PP (v0.32.0, #55477); multi-node
+  needs `--weight-cache-master-port` distinct from the engine's `--master-port`.
+  On v0.30.x, PP and DP are rejected at daemon launch.
+- `--weight-cache-health-port <p>` exposes `/health` (200 once every daemon is
+  loaded, 503 otherwise; off by default) — gate the engine start on it (#58552).
+- From v0.32.0 the engine charges daemon-held weights against its
+  `--gpu-memory-utilization` budget (#57298): set it as for a normal engine.
 - Errors clearly on non-CUDA/non-ROCm platforms rather than silently falling
   back (#56010).
 
@@ -226,7 +237,7 @@ checkpoints (#55465) and multi-node TP with a separate `--weight-cache-master-po
 | `VLLM_NO_USAGE_STATS` | unset | Always in regulated/air-gapped |
 | `VLLM_DO_NOT_TRACK` | unset | Belt-and-braces with `VLLM_NO_USAGE_STATS` |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | 600 | Raise if cold load > 10 min (405B FP8 from slow PVC) |
-| `VLLM_RPC_TIMEOUT` | 10000 ms | Raise on very slow first-token with heavy structured-output setup |
+| `VLLM_RPC_TIMEOUT` | removed (v0.23.0, #44128) | Delete from manifests — it has no effect |
 | `VLLM_NCCL_SO_PATH` | auto | Only for custom NCCL builds |
 | `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` | `auto` | `nccl` on IB clusters, `shm` on single-node multi-GPU |
 | `VLLM_CACHE_ROOT` | `~/.cache/vllm` | Arbitrary-UID images only — point at a mounted path (see §Compile-cache survival) |
@@ -241,9 +252,10 @@ Full env-var surface: ``vllm` repo: vllm/envs.py`. Ensure `vllm-configuration` s
 
 The flags an operator most often asks about when cross-checking a manifest's `args:` against a deploy-memo:
 
-- **`--enforce-eager`** — disables CUDA-graph capture. Cold boot drops by the 30–120 s
-  graph-warmup and memory headroom frees up, but decode throughput suffers on every
-  request thereafter. Correct during bring-up/debug and OOM triage; remove it for
+- **`--enforce-eager`** — disables torch.compile and CUDA-graph capture, and from v0.31.0
+  also JIT kernel warmup unless fault tolerance is on (#58197, #58593). Cold boot drops by
+  the 30–120 s graph-warmup and memory headroom frees up, but the first requests pay the
+  kernel JIT and decode throughput suffers on every request thereafter. Correct during bring-up/debug and OOM triage; remove it for
   production serving. Deep capture-mode tuning (`FULL_AND_PIECEWISE` etc.) →
   `vllm-performance-tuning`.
 - **MoE models (`--enable-expert-parallel`)** — expert layers shard across GPUs (EP)
@@ -266,7 +278,7 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
 ## Custom tool/reasoning parser via ConfigMap
 
 Custom parser plugins ship as a single `.py` the server loads at boot — the pod-layer
-wiring is a ConfigMap mount plus one flag (`vllm/entrypoints/openai/cli_args.py:115`,
+wiring is a ConfigMap mount plus one flag (`--tool-parser-plugin`, `vllm/entrypoints/launchers/cli_args.py:127`,
 `docs/features/tool_calling.md`):
 
 ```yaml
@@ -345,6 +357,9 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 - Never `:latest` — every vLLM release is a breaking change in some dimension.
 - Use the SemVer tag (`v0.13.0`) and bump deliberately.
 - Pin by digest (`@sha256:...`) for reproducibility + image-signature gate (cosign verify).
+- Suffixes per release: none = CUDA 13.0; `-cu129` = CUDA 12.9 for hosts whose driver
+  predates CUDA 13; `-ubuntu2404` base variants of both; `-x86_64-zstd` = zstd layers
+  (≈7.3 GB vs 9.2 GB for `-x86_64` at v0.32.0; the runtime must support zstd).
 - RHAIIS tags are independently versioned; `rhaiis/vllm-cuda-rhel9:3.3.0` corresponds to upstream `v0.13.0`.
 
 ## Gotchas not yet covered

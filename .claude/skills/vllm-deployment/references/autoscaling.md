@@ -1,4 +1,4 @@
-# Autoscaling — KEDA, HPA, and llm-d WVA
+# Autoscaling — KEDA, HPA, and llm-d
 
 GPU pods are expensive and slow to start. Autoscaling a vLLM fleet is more about **cooldown discipline** than reactive scaling — scale signals that are too sensitive cause thrashing, and pods that take 10 minutes to cold-start punish reactive scaling anyway.
 
@@ -7,7 +7,7 @@ GPU pods are expensive and slow to start. Autoscaling a vLLM fleet is more about
 - [The signal to scale on](#the-signal-to-scale-on)
 - [KEDA — the recommended autoscaler](#keda--the-recommended-autoscaler)
 - [HPA with custom metrics (alternative)](#hpa-with-custom-metrics-alternative)
-- [llm-d Workload Variance Autoscaler (WVA)](#llm-d-workload-variance-autoscaler-wva)
+- [llm-d: KEDA on EPP metrics (WVA deprecated)](#llm-d-keda-on-epp-metrics-wva-deprecated)
 - [KServe / OpenShift AI autoscaling](#kserve--openshift-ai-autoscaling)
 - [Multi-node scale (LWS + autoscaler)](#multi-node-scale-lws--autoscaler)
 - [Scale-down gotcha: draining streams](#scale-down-gotcha-draining-streams)
@@ -115,16 +115,17 @@ spec:
 
 **Prefer KEDA** unless there is org-wide standardization on HPA. KEDA's cooldown semantics and scale-to-zero are worth the extra operator.
 
-## llm-d Workload Variance Autoscaler (WVA)
+## llm-d: KEDA on EPP metrics (WVA deprecated)
 
-llm-d v0.3 introduced WVA — inference-specific autoscaling that replaces generic HPA/KEDA:
+llm-d **deprecated its Workload Variant Autoscaler (WVA)** in v0.10.0 (repo renamed
+`llm-d/llm-d-autoscaling`; WVA guides marked for removal). The llm-d autoscaling path
+is now **KEDA scaling on the Endpoint Picker's Prometheus metrics** — queue depth, pool
+saturation, token backlog or estimated latency — with a KEDA-owned HPA, plus Kueue when
+replicas compete for an accelerator quota.
 
-- **Announcement**: https://llm-d.ai/blog/llm-d-v0.3-expanded-hardware-faster-perf-and-igw-ga
-- Aware of disagg topology (scales prefill and decode pools independently).
-- SLA-driven (scale on P99 TTFT SLO rather than queue depth).
-- Scale-to-zero native, with pre-warming.
-
-On llm-d, use WVA. Otherwise stick with KEDA.
+- On llm-d, write a KEDA `ScaledObject` on EPP metrics; do not adopt WVA for new deployments.
+- Existing WVA installs: follow llm-d's *Migrating off WVA* doc (`docs/architecture/advanced/autoscaling/wva.md`).
+- Off llm-d, KEDA on `vllm:num_requests_waiting` as above.
 
 ## KServe / OpenShift AI autoscaling
 
@@ -199,4 +200,4 @@ kubectl get deploy vllm -w
 - **Red Hat — KEDA + KServe autoscaling**: https://developers.redhat.com/articles/2025/09/23/how-set-kserve-autoscaling-vllm-keda
 - **Red Hat — Autoscaling RHOAI RawDeployments**: https://developers.redhat.com/articles/2025/10/02/autoscaling-vllm-openshift-ai
 - **Red Hat — SLI-driven autoscaling**: https://developers.redhat.com/articles/2025/11/26/autoscaling-vllm-openshift-ai-model-serving
-- **llm-d v0.3 WVA**: https://llm-d.ai/blog/llm-d-v0.3-expanded-hardware-faster-perf-and-igw-ga
+- **llm-d v0.10.0 (WVA deprecated, KEDA + EPP)**: https://github.com/llm-d/llm-d/releases/tag/v0.10.0
