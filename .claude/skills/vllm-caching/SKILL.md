@@ -78,7 +78,7 @@ For other diagnostics (LMCache logs, `gdscheck`, Prometheus metrics), see `refer
 Ask these in order:
 
 1. **Single node, CPU DRAM tier only, no disk?** → `--kv-offloading-backend native`. Zero extra deps, included since v0.11.1. Start here unless there is a concrete reason to add complexity.
-2. **Single node, want NVMe (or S3, or a peer's DRAM) as a third tier?** → **on v0.22.0+, prefer the native multi-tier framework** — `OffloadingConnector` with `spec_name: TieringOffloadingSpec` and a `secondary_tiers` list. Registered tier types are `fs` (local filesystem/NVMe), `obj` (object store), `p2p` (peer vLLM instances over NIXL), and `example`. Zero extra pods, no second cache implementation to keep in version-sync. LMCache in-process via `LMCacheConnectorV1` + `LMCACHE_LOCAL_DISK` remains the pre-v0.22 answer and is still the right call when you need LMCache-specific features (CacheBlend, its own controller, cross-engine sharing with SGLang).
+2. **Single node, want NVMe (or S3, or a peer's DRAM) as a third tier?** → **on v0.22.0+, prefer the native multi-tier framework** — `OffloadingConnector` with `spec_name: TieringOffloadingSpec` and a `secondary_tiers` list. Registered tier types are `fs` (local filesystem/NVMe), `obj` (object store), `p2p` (peer vLLM instances over NIXL), and `example`. Zero extra pods, no second cache implementation to keep in version-sync. LMCache in-process via `LMCacheConnectorV1` + `LMCACHE_LOCAL_DISK` remains the pre-v0.22 answer and is still the right call when a deploy needs LMCache-specific features (CacheBlend, its own controller, cross-engine sharing with SGLang).
 3. **Multiple vLLM pods on the same node want a SHARED KV cache, OR cache CPU work should not contend with the inference GIL, OR cache memory needs to scale independently of GPU pods?** → **LMCache MP mode** (separate-pod LMCache server, vLLM connects via ZMQ using `LMCacheMPConnector`). Defer to the **`lmcache-mp` skill** for the DaemonSet+Deployment pattern, image pair, ZMQ protocol, L2 adapter cascade.
 4. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
 5. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
@@ -111,7 +111,7 @@ When using LMCache as the backend, keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-o
 
 ### `--disable-hybrid-kv-cache-manager` — required only for connectors that lack HMA support
 
-**This changed in v0.23.0 (#41847) and the old advice is now actively harmful.** `disable_hybrid_kv_cache_manager` is tri-state, defaulting to `None` (auto): vLLM turns HMA off by itself, with a warning, only when the selected connector does not subclass `SupportsHMA`. Passing the flag by reflex on a modern build costs you hybrid-model support and sliding-window performance for nothing.
+**This changed in v0.23.0 (#41847) and the old advice is now actively harmful.** `disable_hybrid_kv_cache_manager` is tri-state, defaulting to `None` (auto): vLLM turns HMA off by itself, with a warning, only when the selected connector does not subclass `SupportsHMA`. Passing the flag by reflex on a modern build costs hybrid-model support and sliding-window performance for nothing.
 
 Which connectors declare `SupportsHMA` at v0.32.0 (re-verified 2026-10-18 against `kv_connector/v1/base.py` and the connector classes; `HiSparseConnector`, `MoRIIOConnector` and `SimpleCPUOffloadConnector` also declare it):
 
@@ -171,7 +171,7 @@ git -C <vllm-clone> grep -n "SupportsHMA)" v0.32.0 -- vllm/distributed/kv_transf
 | `--cpu-offload-gb` | **Model weights** | Per-GPU | Hurts prefill throughput; lets larger-than-HBM models fit |
 | `--kv-offloading-size` | **KV cache** | Total across TP | Helps TTFT on cache hits; no effect on compute throughput |
 
-Recommending `--cpu-offload-gb` when the user asked about KV tiering is a serious error. They are different subsystems with opposite throughput implications.
+Never recommend `--cpu-offload-gb` for a KV-tiering question. They are different subsystems with opposite throughput implications.
 
 ### FP8 KV cache without shipped scales
 
@@ -189,9 +189,9 @@ Operators new to tiered caching sometimes assume NVSwitch/NVLink helps. It doesn
 
 Loading a 100k-token BF16 context from NVMe takes ~5–7 seconds (Gen4 U.2, buffered) — still beats a ~10 second re-prefill, but DRAM beats NVMe by 20×. Size the DRAM tier to hold the hot working set; treat NVMe as overflow for sessions from "earlier today" that might come back.
 
-## When the user says "it doesn't help"
+## Offload "doesn't help" — root causes
 
-Most common root causes, in order:
+Check in order, most common first:
 
 1. **Concurrency is already at the memory wall, not the cache.** On an 8× H200 with a 300–500 GB weight footprint serving 200k+ contexts, 1–2 live slots is physics — compute jumped ~6× over the previous generation but memory bandwidth only ~1.6×. Adding offload doesn't raise live concurrency; it raises the *warm-set* size (sessions that skip re-prefill on return). Confirm the expectation is "more warm sessions," not "more simultaneous running."
 2. **Hit rate is low.** No prefix reuse in the workload → offload gains nothing. Check `prefix_cache_hits_total` / `prefix_cache_queries_total`. Non-agentic, non-RAG traffic often has low prefix locality.
