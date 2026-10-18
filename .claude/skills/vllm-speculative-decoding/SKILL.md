@@ -51,23 +51,13 @@ across 466 published checkpoints.**
 | Quick win, no drafter of any kind | `ngram_gpu` (v0.18+) or `ngram` | Prefix-matching only; fine for repetitive prompts, skip for open chat |
 | Locked into vendor checkpoint | `medusa` / `mlp_speculator` | Legacy; still works, do not adopt for new deployments |
 
-**EAGLE-3/DFlash aux-hidden-state support — no longer a hardcoded list.**
-
-Through ~v0.21 this was a 14-name allowlist in `vllm/config/speculative.py`
-(llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
-nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4).
-**At v0.32.0 that list is still gone from the file.** Support is now a *capability
-interface*: `SupportsEagle3` in `vllm/model_executor/models/interfaces.py`,
-checked by `supports_eagle3(model)` in
-`vllm/v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`, which raises
-`RuntimeError("Model does not support EAGLE3 interface")` when absent. Models
-declare their own layers via `get_eagle3_aux_hidden_state_layers()` /
-`set_aux_hidden_state_layers()`.
-
-So the question "is my model supported?" changed shape: **grep the model class
-for the `SupportsEagle3` interface**, don't look for a name in a config list.
-`speculative.py` now only records which *methods* consume aux hidden states —
-`eagle3`, `extract_hidden_states`, `dflash`, **`dspark`**.
+**EAGLE-3 / DFlash target support is a capability interface, not a name list.**
+To answer "is my model supported?", grep the target's model class for `SupportsEagle3`
+(`vllm/model_executor/models/interfaces.py`); do not look for the model name in
+`vllm/config/speculative.py`. Without the interface, load fails with
+`RuntimeError("Model does not support EAGLE3 interface")`
+(`vllm/v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`). Models pick their aux layers
+via `get_eagle3_default_aux_hidden_state_layers()` / `set_aux_hidden_state_layers()`.
 
 ## Canonical `--speculative-config` shapes
 
