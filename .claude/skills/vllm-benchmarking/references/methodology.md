@@ -19,7 +19,7 @@ vLLM with `torch.compile`, CUDA graphs, or prefix caching needs warmup. The firs
 
 1. **Pre-flight the server** before starting the benchmark. Send 20–50 requests, discard. Then launch `vllm bench serve`.
 2. **Make `--num-prompts` large enough to amortize.** At ≥500 prompts the startup bump barely affects aggregate percentiles. Still-biased for P99 ITL if the run is short.
-3. **Use `--num-warmups N`** (serve subcommand). Pre-loads N requests before measurement starts. Respects `--max-concurrency` during warmup. Defaults to 0 — set it explicitly.
+3. **Use `--num-warmups N`** (serve subcommand). Pre-loads N requests before measurement starts. Respects `--max-concurrency` during warmup. Defaults to 0 — set it explicitly. It repeats the first sampled prompt, so it warms one shape only; option 1 covers varied shapes.
 
 `bench latency` already warms via `--num-iters-warmup 10` by default.
 
