@@ -32,7 +32,7 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 | Per-parser tests (executable spec) | `tests/tool_parsers/test_<name>_tool_parser.py` + `tests/tool_parsers/common_tests.py` |
 | User-facing docs | `docs/features/tool_calling.md` |
 
-**If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.** Don't rely on this skill's paraphrase.
+**If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.**
 
 **Except for the 19 names on the unified-parser path** (v0.32.0), where that file is a
 stub of a few lines and the logic lives in `vllm/parser/<model>.py`:
@@ -70,7 +70,7 @@ is a stub too but imports no adapter — it's composed by
 name-check in `vllm/parser/parser_manager.py` instead, so this grep won't find
 it. Its parsing lives in `vllm/parser/cohere_command.py` via the external
 `cohere_melody` package — not a vLLM runtime dependency: `pip
-install cohere-melody` into the image yourself (CI pins 0.14.0), or the parser
+install cohere-melody` into the image (CI pins 0.14.0), or the parser
 raises `ImportError` at load. (`kimi_k3` goes through the same name-check but its
 `tool_parsers/` file is the real implementation, not a stub.)
 
@@ -153,7 +153,7 @@ generation instead of only the post-`<|channel|>final<|message|>` region. Withou
 builtin tools the grammar validates tool name + arguments; with builtin tools it
 falls back to "some tool is called" only.
 
-Don't trust this table to be complete — verify with:
+The table is not authoritative — verify against the deployed tree:
 
 ```bash
 grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (54 at v0.32.0)
@@ -162,8 +162,6 @@ ls vllm/tool_parsers/*_tool_parser.py              # lists source files
 ```
 
 ## Framework contract (mental model)
-
-Worth carrying as mental model, because it's spread across multiple files and easy to miss:
 
 - `ToolParser` subclass implements `extract_tool_calls` (non-streaming, stateless) and `extract_tool_calls_streaming` (stateful, per-delta). See `vllm/tool_parsers/abstract_tool_parser.py`.
 - Serving-layer invariants (guaranteed to the streaming method):
@@ -200,7 +198,7 @@ Sibling skill: `vllm-reasoning-parsers` — defer there for reasoning-side quest
 
 ## Diagnostic playbook
 
-When a user reports a broken tool call, work down this list. Each step names where to look.
+Work down this list in order on any broken tool call.
 
 1. **Both flags set?** Check serve command for `--enable-auto-tool-choice --tool-call-parser <name>`.
 2. **Right parser for the model?** Cross-check with the table above AND with `vllm/tool_parsers/__init__.py` registry.
@@ -220,8 +218,6 @@ When a user reports a broken tool call, work down this list. Each step names whe
 9. **Custom template?** Diff the deployed Jinja against `examples/tool_chat_template_<family>.jinja`. Character-level. Full-width vs ASCII Unicode gotchas bite here.
 
 ## Bug archaeology (don't trust static lists — search)
-
-Tool-parser bugs churn quickly. Teach yourself the pattern:
 
 ```bash
 # Open bugs affecting a specific parser
@@ -244,19 +240,17 @@ On finding a referenced issue/PR, read it directly (`gh issue view N --repo vllm
 
 ## In-tree HACKs to recognize
 
-Helpful to know what to look for when reading a parser. Grep the codebase for these:
-
 ```bash
 grep -rn "HACK" vllm/tool_parsers/
 grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.32.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) When writing a new parser, prefer the `parse_delta` shape (RFC #11522).
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.32.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.)
 
 ## Writing a custom parser
 
-Copy the existing parser closest in format. Don't reinvent.
+Copy the existing parser closest in format.
 
 ```bash
 # Match the target shape to an existing parser
@@ -275,8 +269,6 @@ For the skeleton + detailed checklist see `references/custom-parser-plugin.md`. 
 Before upstreaming, read `AGENTS.md` at the repo root for the duplicate-work + PR-description policy, and `vllm/tool_parsers/AGENTS.md` (v0.32.0+): new in-tree models go in `vllm/parser/` as a unified `Parser` plus a thin adapter; `ToolParser` is kept as legacy for plugins.
 
 ## References in this skill
-
-Compact supplementary maps. Each points back at the source rather than duplicating it.
 
 - `references/parser-index.md` — one-line-per-parser index with file path, wrapping tokens at a glance, and the things unique to that parser that aren't obvious from the filename (e.g. "full-width `｜` U+FF5C sentinels", "non-streaming only", "schema-aware type coercion").
 - `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, and the end-of-stream flush contract.
