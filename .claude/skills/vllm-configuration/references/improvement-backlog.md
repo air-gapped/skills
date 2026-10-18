@@ -2,6 +2,20 @@
 
 Work-not-done log from skill-improver passes. Open = attempted but not applicable in one atomic iteration.
 
+## Open
+
+- Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28, 2026-10-18)
+
+## Resolved this pass (2026-10-18)
+
+Improve pass from 22e99dd (v0.32.0 freshen). Blind baseline 72; self 72 → 80; final blind score and A/B comparator are run by the operator. Stopped at the 5-iteration batch cap with zero discards — not a mapped ceiling. SKILL.md 307 → 172 lines.
+- Kept: v0.28–v0.32 dependency floors → `air-gapped.md` §Mirror dependency floors; removed env vars → `env-vars.md` §Removed and renamed.
+- Kept: API-key CVE essay → new `references/security.md` (reason/affected/action table + advisory-range procedure); provenance → `sources.md`.
+- Kept: "Why this matters" deleted (duplicate of pitfalls and Networking bullets).
+- Kept: k8s Service pitfall corrected — the collision is `VLLM_PORT=tcp://…` raising `ValueError`; `vllm-api` still injects `VLLM_API_*` names.
+- Kept: air-gap short recipe → pattern table + pointer.
+- Post-loop: API key also guards `/cohere`; third copy of the gated-model `HF_TOKEN` pitfall removed; TOC in `air-gapped.md`.
+
 ## Resolved — 2026-09-15 (the doc-URL blocker cleared, and then reversed)
 
 - **The re-stamp item was already stale, and the situation has inverted.** It
@@ -117,9 +131,6 @@ what this skill tells an operator to rely on.
   GPU-side or decoder path without a bound check, killing the engine rather
   than the request.
 
-## Open
-
-- Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28)
 ## Resolved — 2026-09-15 (v0.28/v0.29 sweep)
 
 - **Dependency floors moved and an air-gapped mirror seeded for v0.27.x does not
