@@ -24,11 +24,8 @@ vLLM decides what a model *does* from the combination of three flags:
 --pooler-config '{...}'                     # override pool type, dimensions, etc.
 ```
 
-The pair `(runner, convert)` has replaced the old `--task {generate|embed|
-score|classify|reward|...}` flag. `--task` is **gone**, not deprecated —
-there is no `task` field in `ModelConfig` and no `--task` in
-`vllm/engine/arg_utils.py` at v0.32.0, so passing it is an
-unrecognized-argument error. Canonical today:
+The pair `(runner, convert)` replaced `--task`, which no longer parses
+(pitfall 1). Canonical today:
 
 | Workload | Command | Runner | Notes |
 |---|---|---|---|
@@ -237,8 +234,9 @@ no dedicated `/ocr` endpoint.
 
 ## Top pitfalls
 
-1. **`--task embed` is dead, not deprecated.** The flag no longer exists —
-   passing it fails argument parsing. Use `--runner pooling`. The `score`
+1. **`--task embed` is dead, not deprecated.** No `--task` in
+   `vllm/engine/arg_utils.py` and no `task` field in `ModelConfig` at v0.32.0 —
+   passing it is an unrecognized-argument error. Use `--runner pooling`. The `score`
    and `encode` *pooling task names* are removed too and raise
    `VLLMValidationError` (`vllm/tasks.py`): use `--convert classify` on a
    `num_labels==1` model to light up `/score` + `/rerank`, and
