@@ -126,14 +126,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `gemma4` / `functiongemma` | Gemma-4-IT / FunctionGemma-270m | `tool_chat_template_gemma4.jinja`, `_functiongemma.jinja` |
 | `gigachat3` | GigaChat-3 | (HF default) |
 | `xlam` | Salesforce xLAM Llama & Qwen | `tool_chat_template_xlam_llama.jinja`, `_xlam_qwen.jinja` |
-| `openai` | gpt-oss-20b/120b (Harmony channels) | (no Jinja — built-in renderer) |
-
-**gpt-oss/Harmony (v0.27.0+):** `json_object`/`json_schema`
-`response_format` is now rewritten into a Harmony-aware `structural_tag` in
-`HarmonyParser.adjust_request`, so constrained decoding governs the *whole*
-generation instead of only the post-`<|channel|>final<|message|>` region. Without
-builtin tools the grammar validates tool name + arguments; with builtin tools it
-falls back to "some tool is called" only.
+| `openai` | gpt-oss-20b/120b (Harmony channels; `response_format` constrains the whole generation, v0.27.0+) | (no Jinja — built-in renderer) |
 
 The table is not authoritative — verify against the deployed tree:
 
