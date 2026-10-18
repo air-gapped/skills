@@ -147,7 +147,7 @@ Two production paths exist:
 - **W4A16 INT4 (AWQ or GPTQ) with best accuracy** → llm-compressor, `AWQModifier` or `GPTQModifier` with 256–512 ultrachat samples.
 - **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.14.0**, and note the project ships parallel maintenance lines — see `references/llm-compressor.md`).
 - **MXFP4 MoE for GPT-OSS-style models** → use the vendor checkpoint as-is, or ModelOpt MXFP4.
-- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). The MLA multi-turn corruption once flagged here — [#38652](https://github.com/vllm-project/vllm/issues/38652) — was **fixed by PR #37054** and is no longer a reason to avoid FP8 KV on MLA.
+- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path).
 
 Both tools output a HF directory vLLM serves with `--quantization compressed-tensors` (llm-compressor) or `--quantization modelopt` / `--quantization modelopt_fp4` (ModelOpt).
 
@@ -261,8 +261,8 @@ v0.31.0 removed Quark's silent online MXFP4 quantization
 
 Internalize these before debugging accuracy / throughput regressions:
 
-1. **`--kv-cache-dtype fp8` on MLA models → garbage on multi-turn** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **FIXED, guidance reversed 2026-07-21.** Closed 2026-05-15 with *"Fixed by #37054"*, a PR that merged **2026-03-18** and was already recorded elsewhere in this skill as the v0.19 MLA KV-scale fix. The issue tracker lagged the fix by ~2 months, and this skill carried the blanket avoid-on-DeepSeek/GLM/Kimi warning for longer still. On a current release FP8 KV on MLA is usable — measure it instead of excluding it. See `references/kv-cache.md` items 1 and 5.
-2. **Gemma 4 FP8-block → logit saturation / repetitive garbage** ([#39407](https://github.com/vllm-project/vllm/issues/39407), [#39049](https://github.com/vllm-project/vllm/issues/39049)). Use non-block FP8 or FP16. Both issues were closed `NOT_PLANNED` by the inactivity bot on 2026-09-02 with no fix, and PR #40391 was stale-closed unmerged on 2026-09-28 — closed state here is not a fix.
+1. **`--kv-cache-dtype fp8` on MLA models → garbage on multi-turn** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **fixed in v0.19.0** (PR #37054, KV-scale inconsistency in FP8 MLA). On v0.19.0+ do not exclude FP8 KV for DeepSeek / GLM / Kimi; measure it. See `references/kv-cache.md` items 1 and 5.
+2. **Gemma 4 FP8-block → logit saturation / repetitive garbage** ([#39407](https://github.com/vllm-project/vllm/issues/39407), [#39049](https://github.com/vllm-project/vllm/issues/39049)). Use non-block FP8 or FP16. Both issues and the fix PR (#40391) were stale-closed unfixed — closed is not fixed here.
 3. **NVFP4 on Qwen3-Next / hybrid-attention models** silently corrupted output when `quantization_config.ignore` missed `linear_attn` layers ([#40252](https://github.com/vllm-project/vllm/issues/40252), fixed + closed 2026-04-20). The underlying pattern still applies to any new hybrid-attention model: always audit the `ignore` list when quantizing non-standard architectures.
 4. **Dynamic FP8 + LoRA-merged model on B200 → non-deterministic degenerate output** ([#39662](https://github.com/vllm-project/vllm/issues/39662)). Pin static FP8.
 5. **SM120 (RTX 5090, 6000 Pro) is not a datacenter NVFP4 MoE target** ([#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085)) — full kernel set is SM100 / SM103 only. Desktop Blackwell is production only for `fp8`.
