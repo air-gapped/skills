@@ -24,6 +24,12 @@ rendered through its chat template (instruction-prefixed embedders), this is
 the supported path; on an older engine the request fails validation outright
 rather than silently embedding the raw text.
 
+**Truncating long inputs.** `/v1/embeddings`, `/score` and `/rerank` take
+`truncate_prompt_tokens` (N) plus `truncation_side`: `"right"` keeps the first
+N tokens, `"left"` keeps the last N (`PoolingBasicRequestMixin` in
+`vllm/entrypoints/pooling/base/protocol.py`). `/v2/embed` uses its own
+`truncate=END|START|NONE`.
+
 ## 2. Pooling types
 
 Two enums in `vllm/config/pooler.py:16-20`: `SequencePoolingType` = `CLS`,
