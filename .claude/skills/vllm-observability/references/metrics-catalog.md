@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Last verified: 2026-08-11 against vLLM **v0.27.0** (see `references/sources.md`). Every metric name in this file was diffed against the `name="vllm:..."` declarations in `vllm/v1/metrics/loggers.py` at that tag — **the emitted set is identical to v0.25.1**: no name removed, none renamed, `gpu_cache_usage_perc` still absent by default (0 occurrences). Additions from v0.24.0/v0.25.0 remain folded in: `vllm:tool_call_parser_invocations_total`, the group-aware `cache_config_info` labels, `MLAAttentionMetrics`, and the per-request response-body `metrics` field. **The § KV connector / offload names were corrected on 2026-08-11** — they had been approximations, and two of the three were misspelled; they are now read from the v0.27.0 source.
+Last verified: 2026-10-18 against vLLM **v0.32.0** (see `references/sources.md`). Every `"vllm:…"` string in the v0.32.0 tree (Python and Rust, tests excluded) was diffed against v0.30.0: **additions only — no name removed or renamed**; `gpu_cache_usage_perc` still absent. Names added in v0.31.0/v0.32.0 are marked inline with their release.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
@@ -37,6 +37,8 @@ Every `vllm:*` series carries:
 
 Additional labels appear on specific series (`finished_reason`, `reason`, `source`, `sleep_state`, `position`). Callouts below where relevant.
 
+**Exceptions — no `engine` label:** `vllm:admission_rejections_total` (`model_name`, `reason` only) and the frontend operation metrics `vllm:sleep_mode_operation*` / `vllm:rl_weight_update_operation*` (`operation` only). Do not `sum by (engine)` or join them on `engine`.
+
 ## Queue & scheduler state
 
 | Metric | Type | Unit | Extra labels | Meaning |
@@ -47,6 +49,10 @@ Additional labels appear on specific series (`finished_reason`, `reason`, `sourc
 | `vllm:num_preemptions_total` | Counter | count | — | Total scheduler preemptions (evictions). Alert on any sustained rate |
 | `vllm:request_num_preemptions` | Histogram | count | — | Per-request preemption count, buckets 1,2,3,4,5,10,20. **New in v0.30.0** ([#49984](https://github.com/vllm-project/vllm/pull/49984)) — use it to tell "a few requests preempted repeatedly" from "many preempted once", which the counter above cannot |
 | `vllm:engine_sleep_state` | Gauge | binary | `sleep_state={awake,weights_offloaded,discard_all}` | **V1**. 1 = current state, 0 = other states |
+| `vllm:admission_rejections_total` | Counter | count | `reason={max_num_queued_reqs,max_num_queued_tokens}` | **v0.32.0+**. Requests refused at the frontend by `--max-num-queued-reqs` / `--max-num-queued-tokens`. These never reach `num_requests_waiting` — alert on any sustained rate as load shedding |
+| `vllm:num_requests_kv_fetch_by_stage` | Gauge | count | `stage={waiting_to_start,in_progress,completed_waiting}` | **v0.32.0+**, KV-consumer instances only (`kv_role` `kv_consumer`/`kv_both`). Waiting requests split by async KV-load stage — growth in `in_progress` = slow transfer; in `completed_waiting` = scheduler not admitting loaded requests |
+| `vllm:sleep_mode_operation_duration_seconds` / `vllm:sleep_mode_operations_in_flight` | Histogram / Gauge | s / count | `operation={sleep,release_kv_cache_memory,wake}` | **v0.32.0+**. Frontend sleep-mode call latency and concurrency |
+| `vllm:rl_weight_update_operation_duration_seconds` / `vllm:rl_weight_update_operations_in_flight` | Histogram / Gauge | s / count | `operation={init,shutdown,start,start_draft,update,finish}` | **v0.32.0+**. RL weight-transfer call latency and concurrency |
 
 Deprecated on V1: `vllm:num_requests_swapped` (always 0).
 
@@ -104,6 +110,7 @@ rate(vllm:prefix_cache_hits_total[5m]) / rate(vllm:prefix_cache_queries_total[5m
 | `vllm:prompt_tokens_total` | Counter | Prefill tokens actually **computed** (excludes cached/transferred). Use this for throughput math |
 | `vllm:prompt_tokens_by_source` | Counter | **V1**. Split by `source={local_compute,local_cache_hit,external_kv_transfer}` |
 | `vllm:prompt_tokens_cached_total` | Counter | Tokens reused from any cache. Complement to `prompt_tokens_total` |
+| `vllm:prompt_tokens_cached_by_source_total` | Counter | **v0.32.0+**. Cache-hit tokens by supplying tier, `source={device,host,disk,p2p,external_unspecified}`. Sums to `prefix_cache_hits_total + external_prefix_cache_hits_total`. `external_unspecified` = connector that does not report its tier |
 | `vllm:generation_tokens_total` | Counter | Decode tokens generated |
 
 **Invariant:** `prompt_tokens_total + prompt_tokens_cached_total = total prompt tokens processed`. For compute/throughput analysis, use `prompt_tokens_total` alone.
@@ -114,6 +121,7 @@ rate(vllm:prefix_cache_hits_total[5m]) / rate(vllm:prefix_cache_queries_total[5m
 |---|---|---|---|
 | `vllm:request_success_total` | Counter | `finished_reason={stop,length,abort}` | Completed requests per reason |
 | `vllm:corrupted_requests_total` | Counter | — | Requests with NaN logits. Only emitted when `VLLM_COMPUTE_NANS_IN_LOGITS=1`. **Page on any increment** |
+| `vllm:watermark_requests_total` | Counter | `status={watermarked,skipped,not_watermarked}` | **v0.32.0+**, only with `--watermark-config` (output watermarking — not the scheduler's `--watermark`). `skipped` = requested but incompatible with the request, so the output went out unmarked; `not_watermarked` = client opted out with `false`. Alert on `skipped` |
 
 ## Latency histograms
 
@@ -305,6 +313,16 @@ frontend is new in v0.30.0 too
 ([#56990](https://github.com/vllm-project/vllm/pull/56990)); before that PR it
 only existed on the Python engine.
 
+Rust-frontend parity by release — a panel built on a name missing here is empty
+on `--grpc` deployments:
+
+| Name | Rust frontend |
+|---|---|
+| `vllm:request_num_preemptions` | v0.31.0+ |
+| `vllm:corrupted_requests_total`, `vllm:prompt_tokens_cached_by_source_total` | v0.32.0+ |
+| `vllm:admission_rejections_total`, `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage` | **not registered** at v0.32.0 |
+| `--custom-histogram-buckets` | **not honoured** at v0.32.0 — Rust histograms keep default buckets |
+
 HTTP-layer metrics (`http_requests_total`, `http_request_duration_seconds`)
 are **not** `vllm:`-prefixed and mirror `PrometheusFastApiInstrumentator`
 naming. Their `method` label is bounded to known HTTP verbs plus `other`
@@ -389,6 +407,14 @@ on them goes flat rather than erroring. Migrate to the load/store split.
 `vllm:nixl_num_kv_expired_reqs`. The two failure counters and the expired-request
 counter are the alertable ones on a disaggregated deployment.
 
+**Since v0.31.0 `nixl_num_failed_transfers` already includes handshake and
+notification failures**; `nixl_num_failed_notifications` is a retained subset.
+Never add the two — that double-counts. KV expiry stays separate in
+`nixl_num_kv_expired_reqs`. v0.32.0 adds
+`vllm:nixl_num_notifications_after_expiry_total`: completion notifications that
+arrived after the request's KV lease expired, counted per remote rank. Page on
+any increase — the KV blocks may have been reused before the transfer finished.
+
 **HiSparse connector counters**, new in **v0.30.0**
 ([#56061](https://github.com/vllm-project/vllm/pull/56061)), only emit when
 `HiSparseConnector` is the configured KV connector — the host-resident
@@ -399,6 +425,26 @@ sparse-MLA decode tier introduced this release:
 | `vllm:hisparse_cache_hits_total` | Counter | Device hot-buffer hits |
 | `vllm:hisparse_cache_misses_total` | Counter | Device hot-buffer misses |
 | `vllm:hisparse_host_to_device_bytes_total` | Counter | Bytes moved from host KV storage into hot buffers |
+| `vllm:hisparse_host_cache_usage_perc` | Gauge | **v0.32.0+**. Host-pool usage [0,1]; evictable cached blocks count as free |
+| `vllm:hisparse_pending_page_transfers` | Gauge | **v0.32.0+**. Write-backs and restores not yet complete |
+| `vllm:hisparse_host_block_{lifetime,idle_before_evict,reuse_gap}_seconds` | Histogram | **v0.32.0+**, only with `--kv-cache-metrics`. Host-pool counterparts of `vllm:kv_block_*_seconds`, which cover the GPU pool only |
+
+**Tiering back-pressure** (v0.31.0+, `TieringOffloadingSpec`):
+`vllm:kv_offload_tiering_backpressure_store_latency_ema` (Gauge),
+`…_backpressure_stores_dropped` and `…_backpressure_blocks_dropped` (Counters).
+Non-zero drops mean the secondary tier cannot keep up and stores are being shed.
+
+**`SimpleCPUOffloadConnector`** (v0.31.0+), names as exported:
+
+| Metric | Type | Meaning |
+|---|---|---|
+| `vllm:simple_kv_offload_save_outcomes_total` | Counter | Store decisions by `outcome` (`stored`, `dropped_*`, `skipped_*`). Eager-mode stores only |
+| `vllm:simple_kv_offload_load_blocks_total` | Counter | Blocks restored to GPU — prefill avoided via offload hits |
+| `vllm:simple_kv_offload_used_blocks` | Gauge | Pool blocks pinned by transfers or hits; excludes evictable cached blocks |
+| `vllm:simple_kv_offload_pending_store_blocks` | Gauge | Blocks in pending stores. Persistent growth = stuck transfer |
+| `vllm:simple_kv_offload_info` | Gauge (info) | Labels `backend`, `page_cache`, `lazy_offload`, `capacity_blocks` — use `capacity_blocks` as the `used_blocks` denominator |
+
+A disk-backend "stored" block is not fsync-durable.
 
 Other backends (`vllm:hf3fs_*`, LMCache, Mooncake) remain
 connector-version-dependent — grep `/metrics` on a running deployment to see what
@@ -431,7 +477,7 @@ KV block residency:
 [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 30, 60, 120, 300, 600, 1200, 1800]
 ```
 
-**SLO calibration warning:** for a P99 TTFT SLO below 250ms, default buckets have coarse resolution there (next break is 0.5s). Adjust if tighter SLOs matter.
+**SLO calibration warning:** for a P99 TTFT SLO below 250ms, default buckets have coarse resolution there (next break is 0.5s); request-phase histograms start at 0.3s. On **v0.32.0+** override per family with `--custom-histogram-buckets '{"time_to_first_token": [0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 1, 5]}'`. Family keys: `request_latency`, `time_to_first_token`, `inter_token_latency`, `iteration_tokens`, `request_params_n`, `request_num_preemptions`, `request_tokens`, `kv_cache_residency`. A listed family's list replaces the defaults verbatim; unknown keys and non-increasing or non-positive bounds fail at startup. Each bucket adds one series per label set — keep lists short. Changing buckets breaks `histogram_quantile` continuity across the rollout. Python engine only; connector histograms (NIXL etc.) are unaffected.
 
 ## V0 vs V1 deltas
 
@@ -452,11 +498,14 @@ V0 metrics are hidden by default on V1. Re-enable during migration with `--show-
 
 For debugging, jumping into the source is fastest:
 
-- Prometheus setup & metric definitions: `vllm/v1/metrics/loggers.py:404-1057`
-- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py:18-200`
-- Spec decode counters: `vllm/v1/spec_decode/metrics.py:121-215`
-- MFU (perf.py): `vllm/v1/metrics/perf.py:1265-1333`
-- Tracing init: `vllm/tracing/__init__.py:66-87`, `vllm/tracing/otel.py:60-124`
-- ObservabilityConfig: `vllm/config/observability.py:17-153`
-- Programmatic metric reader (`llm.get_metrics()`): `vllm/v1/metrics/reader.py:70-143`
+Line ranges at tag v0.32.0 (file length in parentheses):
+
+- Prometheus setup & metric definitions: `vllm/v1/metrics/loggers.py:473-1137` (1453)
+- Bucket defaults: `vllm/v1/metrics/buckets.py`
+- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py:222-643` (700)
+- Spec decode counters: `vllm/v1/spec_decode/metrics.py:177-281` (281)
+- MFU (perf.py `PerfMetricsProm`): `vllm/v1/metrics/perf.py:1741-1827` (1827)
+- Tracing init: `vllm/tracing/__init__.py:66-89` (155), `vllm/tracing/otel.py:60-124` (260)
+- ObservabilityConfig: `vllm/config/observability.py:19-222` (222)
+- Programmatic metric reader (`llm.get_metrics()`): `vllm/v1/metrics/reader.py:70-146` (258)
 - Canonical design doc: `docs/design/metrics.md`

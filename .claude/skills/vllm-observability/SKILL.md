@@ -33,7 +33,7 @@ When something feels slow, read the ratio, not the absolute:
 
 ## The metric surface in one paragraph
 
-vLLM exposes a Prometheus text-format endpoint at `/metrics`. All series are prefixed `vllm:` and carry `{model_name, engine}` labels. Metrics fall into queue/scheduler state, KV cache pressure, per-request latency histograms (TTFT/ITL/queue/prefill/decode/e2e), throughput counters, and request outcomes (`finished_reason=stop|length|abort`, plus `corrupted_requests` for NaN-logit page-worthy events).
+vLLM exposes a Prometheus text-format endpoint at `/metrics`. All series are prefixed `vllm:`; engine series carry `{model_name, engine}` labels (frontend-side exceptions listed in the catalog). Metrics fall into queue/scheduler state, KV cache pressure, per-request latency histograms (TTFT/ITL/queue/prefill/decode/e2e), throughput counters, and request outcomes (`finished_reason=stop|length|abort`, plus `corrupted_requests` for NaN-logit page-worthy events).
 
 Full catalog with types, buckets, labels, and emission file:line anchors in `references/metrics-catalog.md`. The catalog is V1-first with V0 deltas noted.
 
@@ -73,6 +73,8 @@ vllm serve $MODEL \
   --otlp-traces-endpoint=grpc://otel-collector:4317 \
   --collect-detailed-traces=all   # or: model, or: worker — expensive, use per-incident
 ```
+
+Combine as `--collect-detailed-traces model worker`; the comma form `model,worker` fails startup since v0.31.0.
 
 Without `--collect-detailed-traces`, spans are emitted but the two most useful per-step metrics (`model_forward_time_milliseconds`, `model_execute_time_milliseconds`) are missing. Flag is designed to be enabled *during* an incident, not as baseline — docs explicitly warn about performance impact.
 
@@ -116,12 +118,17 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 
 ## Version notes
 
-Core metric surface re-verified against **v0.30.0** (2026-09-22): the emitted
-`vllm:*` set in `vllm/v1/metrics/loggers.py` is unchanged from v0.25.1 — nothing
-removed, nothing renamed. The churn since then is all in the **KV offload**
-namespace, where the legacy `vllm:kv_offload_total_*` series are deprecated in
-favour of a direction-split load/store set; see `references/metrics-catalog.md`
-§ KV connector / offload for the verified names.
+Core metric surface re-verified against **v0.32.0**: no `vllm:*` name removed
+or renamed since v0.25.1. In the **KV offload** namespace the legacy
+`vllm:kv_offload_total_*` series are deprecated in favour of a direction-split
+load/store set; see `references/metrics-catalog.md` § KV connector / offload.
+
+**v0.32.0 added** `vllm:admission_rejections_total{reason}` (frontend load
+shedding — invisible in `num_requests_waiting`), `vllm:prompt_tokens_cached_by_source_total{source}`,
+`vllm:num_requests_kv_fetch_by_stage` (P/D consumers), and
+`--custom-histogram-buckets` for SLO-aligned bucket boundaries. **v0.31.0 changed**
+`vllm:nixl_num_failed_transfers` to include notification failures — do not add
+`nixl_num_failed_notifications` to it.
 
 **v0.28.0 renamed two tiering series, and the rename is invisible in code
 review.** `vllm:kv_offload_tiering_block_queries` and `…_block_hits` became

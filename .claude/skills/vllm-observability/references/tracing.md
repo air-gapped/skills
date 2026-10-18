@@ -9,8 +9,10 @@ Load when configuring OTLP export, choosing a tracing backend, or diagnosing why
 ```bash
 vllm serve "$MODEL" \
   --otlp-traces-endpoint=grpc://otel-collector:4317 \
-  --collect-detailed-traces=all     # or: model, worker, or comma-combined subset
+  --collect-detailed-traces=all     # or: model, or: worker
 ```
+
+Combine modules space-separated: `--collect-detailed-traces model worker`. The comma form (`model,worker`) is rejected at startup since v0.31.0 — fix it in existing manifests before upgrading.
 
 Plus standard OTel environment:
 
