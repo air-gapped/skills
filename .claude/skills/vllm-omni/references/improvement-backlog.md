@@ -12,6 +12,16 @@ measurement nobody can run.
 
 - **Frontmatter `description` still advertises now-historical pitfall specifics** (Dim 1 / Dim 9, SKILL.md frontmatter `description`): the description ends with "release pitfalls (v0.19.0rc1 FLUX regression, GLM-Image transformers>=5.0, Qwen3-TTS enforce-eager)". These are no longer current *features* — but they remain valuable *trigger phrases* (an operator hitting the v0.19.0rc1 FLUX bug or searching "enforce-eager" should still match). Rewording risks lowering Trigger Precision (Dim 1=9) for a marginal Dim 9 gain; a taste trade-off rather than a clean win. Settle it with a `trigger`-mode run, not an `improve` iteration.
 
+## Resolved this pass (2026-10-18, improve)
+
+Blind baseline 72 (snapshot of the omni freshen); self 72 → 79 over 5 iterations, cap reached, zero discards (stopped by cap, ceiling not mapped). Final blind score and A/B comparator are run by the operator.
+- Kept: version/rebase-chain history and the channel table replaced by a 7-row version-pin rule table (Boris Dim 4 cap lifted).
+- Kept: pre-v0.20 pitfalls (Qwen3-TTS `--enforce-eager`, v0.19.0rc1 FLUX, GLM-Image transformers) dropped from the mistakes list; router points to models.md rows that keep them.
+- Kept: models.md regenerated row-for-row from upstream `supported_models.md` at v0.30.0 (93 rows, platform columns).
+- Kept: Install prose collapsed to the stack pins the version table lacks.
+- Kept: endpoints.md field tables re-verified against v0.30.0 `protocol/*.py` and `api_server.py`; fixes propagated to realtime-tts.md.
+- Post-loop: three pitfall bullets cut to symptom + fix; "fork" label corrected.
+
 ## Resolved — 2026-09-15
 
 - **Version line moved v0.26.0 → v0.28.0.** v0.28.0 shipped 2026-08-31 and
