@@ -34,8 +34,8 @@ This skill's job: given a symptom, identify whether it's a template, a parser, a
 
 vLLM picks a chat template in this order. First hit wins. Source: `resolve_chat_template()` in `vllm/renderers/hf.py`.
 
-1. **`--chat-template <path-or-name>` CLI flag** — highest. Path to a `.jinja` file, literal Jinja string, or a named template (`"tool_use"`) that the tokenizer knows.
-2. **AutoProcessor chat template** — only consulted when the request has `tools=None`. Multimodal models often expose their template via the processor, not the tokenizer.
+1. **Chat template silently ignored.** `--tokenizer-mode mistral` ignores `--chat-template` with a warning only (#25401); gpt-oss ignores it by design (#23015). Symptom: edit template, nothing changes. Fix: Mistral → HF tokenizer mode, or accept the built-in Mistral template as canonical; gpt-oss → `/v1/responses`.
+2. **`skip_special_tokens=true` strips control tokens before the reasoning parser.** Qwen3 reasoning, gpt-oss harmony. Fix: `extra_body={"skip_special_tokens": false}` per request. Gemma-4 (#38855) also needs a re-pulled HF template, not only a vLLM upgrade — §Gemma-4 in `model-families.md`.
 3. **AutoTokenizer `chat_template`** — the one shipped in `tokenizer_config.json`.
 4. **Bundled fallback in `vllm/transformers_utils/chat_templates/`** — at v0.32.0, **14 model types** mapping onto 7 shipped `.jinja` files: blip-2, clip, colpali, deepseek_ocr, deepseek_ocr2, unlimited-ocr, unlimited_ocr, deepseek_vl_v2, minicpmv, minicpmv4_6, minicpmv4_7, paligemma, siglip, siglip2. No `fuyu` (model dropped in v0.26.0) and no `qwen`/Qwen-VL entry — a Qwen checkpoint with its template stripped has no fallback. Source: `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK` in `chat_templates/registry.py`.
 
@@ -119,19 +119,19 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 9. **`tool_choice="auto"` vs `"required"` divergence.** `auto` = free-form generation + regex parse (schema-free, brittle). `required`/named = structured-outputs FSM (schema-valid). Many "tool calling is broken" reports vanish when switching to `required`.
 
-10. **Multi-turn whitespace accumulation.** DeepSeek V3.1 (#28804, closed NOT_PLANNED 2026-03-23) — leading whitespace grows each turn. Look for this when assistant replies get progressively indented. Upstream not planning a fix; apply client-side mitigation (strip leading whitespace on each turn) or use `deepseek_v31` parser commits post-issue report. Verified 2026-04-24.
+10. **Multi-turn whitespace accumulation.** DeepSeek V3.1 (#28804, won't fix): leading whitespace grows each turn, so assistant replies get progressively indented. Fix: strip leading whitespace from each assistant turn client-side.
 
 11. **`reasoning_effort="none"` silently breaks output.** gpt-oss #37909. Fix: omit or use `"low"`.
 
-12. **Parallel *tool-call* requests → `<pad>` tokens.** Gemma-4 #39392, **still open at v0.32.0 (2026-10-18); last reproduced on `vllm/vllm-openai:v0.25.1`** — so "fix: version bump" is no longer available advice. The reporter narrows the trigger: Gemma-4 is stable under load until *parallel tool-call* requests arrive; serialising those avoids it (Ampere, RTX 3090/A6000). Workaround `--max-num-seqs 1`, or serialise only the tool-calling path rather than throttling the whole server.
+12. **Parallel *tool-call* requests → `<pad>` tokens.** Gemma-4 #39392, open at v0.32.0 — no version bump fixes it. Plain load is stable; the trigger is parallel tool-call requests. Fix: serialise the tool-calling path; `--max-num-seqs 1` only as a last resort (it throttles the whole server).
 
-13. **`--chat-template-content-format auto` misroutes tool results.** GLM-5.1 #39614 (CLOSED/COMPLETED 2026-04-25): tool result as `{"type":"text","text":"..."}` hits an "else" branch in a template checking `.name` → renders `<tools></tools>` instead of result. Fixed upstream; the `--chat-template-content-format openai`/`string` workaround is only needed on vLLM before the fix.
+13. **`--chat-template-content-format auto` misroutes tool results.** A template that branches on `.name` sends a `{"type":"text",...}` tool result to its else branch and renders `<tools></tools>` instead of the result (GLM-5.1 #39614, fixed upstream). Fix: upgrade, or pass `--chat-template-content-format openai`/`string`.
 
-14. **`/v1/chat/completions` vs `/v1/responses` divergence.** gpt-oss tool calling works only on `/v1/responses` (#22578). GLM-5.1 (#39611, CLOSED/COMPLETED 2026-04-12) — tool results were ignored on chat-completions but work on completions; fixed upstream, so on patched vLLM tool results now render on `/v1/chat/completions`.
+14. **`/v1/chat/completions` vs `/v1/responses` divergence.** gpt-oss tool calling works only on `/v1/responses` (#22578, permanent). Tool results ignored on chat-completions but honoured on `/v1/completions` → the template drops the tool-result message (GLM-5.1 #39611, fixed upstream).
 
 15. **API field name mismatch.** The **response** field on current vLLM is `reasoning`, *not* `reasoning_content` — at v0.32.0: `ChatMessage.reasoning` (`chat_completion/protocol.py`), `DeltaMessage.reasoning` (`generate/base/protocol.py`). The **request** side still accepts `reasoning_content` and normalizes it (RFC #27755). A client reading `reasoning_content` off a response sees `null` every time even when the parser ran perfectly — this looks exactly like a parser failure. Check with `jq '.choices[0].message | keys'` before debugging parsers.
 
-16. **Content-format auto-detection blind to macros.** `_detect_content_format()` (`vllm/renderers/hf.py`) walks the Jinja AST for a `for item in message['content']`-shaped loop; before v0.30.0 it missed templates that only reach `message.content` through a macro parameter (e.g. `{% macro render(role, message_content) %}...{% endmacro %}`), and fell back to `string` — silently flattening structured multimodal content. Fixed in v0.30.0 (#53824): the detector now traces macro call sites back to `message['content']`. If a custom macro-based template still misdetects on your version, pass `--chat-template-content-format openai` explicitly rather than relying on `auto`.
+16. **Content-format auto-detection misses macro-only templates.** `_detect_content_format()` (`vllm/renderers/hf.py`) looks for a `for item in message['content']` loop; before v0.30.0 (#53824) a template that reaches `message.content` only through a macro parameter was detected as `string`, silently flattening multimodal content. Fix: v0.30.0+, or pass `--chat-template-content-format openai`.
 
 
 ## What `chat_template_kwargs` accepts
