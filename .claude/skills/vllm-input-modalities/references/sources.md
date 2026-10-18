@@ -219,4 +219,7 @@ DeepSeek-OCR recipes page, the `docs.vllm.ai` pooling docs, and every HF
 model ID the skill names.
 
 Next freshen triggers: v0.33+ release, MRV1 removal, new Jina embeddings
-major, or a new native-multimodal reranker shipping.
+major, or a new native-multimodal reranker shipping. The runner surface stays
+quiet while request validation and pooling correctness move underneath it:
+grep release bodies for `pooling|rerank|embedding|matryoshka|top_n`, not just
+for runner flags.

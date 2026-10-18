@@ -289,23 +289,8 @@ history and the PRs behind each row: `references/sources.md`.
 - `vllm-observability` → metrics exposition, Prometheus endpoints.
 - `vllm-nvidia-hardware` → SM-level platform support for pooling + FP8 paths.
 
-## Source and refresh policy
+## Sources
 
-- First-party: vLLM docs at
-  <https://docs.vllm.ai/en/stable/models/pooling_models/> (README + embed /
-  scoring / token_embed / specific_models subpages), and
-  `docs/contributing/model/transcription.md` in the repo.
-- Production STT canonical reference: Red Hat Developer blog for Whisper +
-  RHAIIS (link in `references/stt.md`).
-- DeepSeek-OCR canonical reference: vLLM recipes page (link in
-  `references/ocr.md`).
-- Refresh triggers: any v0.33+ release, MRV1 removal, a new Jina embeddings
-  major version, or a new native-multimodal reranker shipping. Note that the
-  passes keep finding the *runner*
-  surface quiet while **request validation and pooling correctness** moved
-  underneath it — grep release bodies for
-  `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags.
-- External-ref audit log: `references/sources.md`.
-
-Last verified: 2026-10-18 against the vLLM v0.32.0 source tree and the
-v0.31.0 + v0.32.0 release notes.
+First-party docs: <https://docs.vllm.ai/en/stable/models/pooling_models/>.
+Every citation, its verification date and the refresh triggers:
+`references/sources.md`.
