@@ -162,17 +162,7 @@ Re-benchmark after crossing any minor in this range; do not compare against numb
 
 ## Source policy
 
-All claims cite file:line, release-note PR refs, or issue IDs. Full anchor list + vendor-specific sources in `references/sources.md`. Last freshened 2026-10-18 against v0.32.0, by reading the config dataclasses, `envs.py` and `arg_utils.py` at the tag rather than skimming release notes.
+Citations and refresh triggers: `references/sources.md`. Two standing rules when checking any claim here against a live build:
 
-**Flags rot silently between minors, and release notes will not tell you.** This
-pass found four documented knobs that no longer exist — `--max-num-partial-prefills`
-and `--max-long-partial-prefills` (v0.27.0), `--preemption-mode` and `--swap-space`
-(removed **eleven and five months** before this pass, and missed by two prior
-freshens) — plus `--cuda-graph-sizes` renamed to `--cudagraph-capture-sizes`.
-Three prior passes verified *issues* diligently and never verified the *flag
-surface*. When freshening, read `vllm/config/*.py` + `vllm/engine/arg_utils.py`
-at the target tag and check each flag this skill names, by name.
-
-**Treat a `CLOSED` issue as unfixed until you read why it closed.** This pass found #31475 (MI300X FP8 slower than BF16), #25538 (preempt/resume thrashing) and #35048 (MiniMax latency regression) all closed `NOT_PLANNED` by the inactivity bot — none of them fixed. #35048 was merely stale-marked when last checked and was predicted to go this way; it did, on 2026-07-22. Only #29539 and #34249 closed against real fixes, and #38971 closed with a usable *answer* (`--moe-backend`).
-
-Next refresh when v0.33.0 ships, or when the Wide-EP GB200 Part II blog lands (still Part I only as of 2026-10-18).
+- **A `CLOSED` issue is unfixed until its closing comment names a fix PR.** Several regressions this skill tracks were closed `NOT_PLANNED` by the inactivity bot; their workarounds still apply.
+- **A flag named here may no longer exist on a newer tag.** Grep `vllm/config/*.py` and `vllm/engine/arg_utils.py` at the running tag before putting it in serve args; a removed flag is a startup failure.
