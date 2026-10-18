@@ -260,48 +260,23 @@ random, 50–72% on MT-Bench). A collapsed number has two known causes:
 - **TP ranks disagree.** [#50158](https://github.com/vllm-project/vllm/issues/50158)
   (open; fix PR #50280 open): embed_tokens sharing is decided per-rank.
 
-### A trailing `<turn|>` can leak into streamed output — root cause fixed in v0.29.0
+### A trailing `<turn|>` can leak into streamed output (≤ v0.28.x)
 
-[#49955](https://github.com/vllm-project/vllm/issues/49955) is still open,
-but its root cause — the parser defaulting `enable_thinking` to `True` while
-the template defaults `false` — is fixed by
-[#52430](https://github.com/vllm-project/vllm/pull/52430), shipped in
-**v0.29.0** (`vllm/parser/gemma4.py:425` at v0.32.0:
-`chat_kwargs.get("enable_thinking", False)`). No reporter has confirmed it on a
-release yet. Below applies in full to ≤ v0.28.x.
+| Engine | Status | Action |
+|---|---|---|
+| ≤ v0.28.x (includes the 0.25.1 ceiling) | affected — [#49955](https://github.com/vllm-project/vllm/issues/49955) | send `enable_thinking` explicitly on **every** request |
+| v0.29.0+ | root cause fixed by [#52430](https://github.com/vllm-project/vllm/pull/52430); #49955 still open, unconfirmed on a release | keep sending `enable_thinking` explicitly; run the test below |
 
-The original report was MTP-only, and this skill previously recorded
-"not reproducible without spec-decode." **That is now contradicted by the
-same reporter's own matrix** (2026-07-31): reproduces on 0.25.1 and
-0.26.0, clean on 0.24.0 — and reproduces on 0.26.0 with **MTP completely
-disabled**. The discriminating variable in that environment is
-**streaming**: `stream=true` leaks, `stream=false` does not. A vLLM
-contributor separately could not reproduce it at all on 0.26.0 without
-spec-decode, so the trigger is evidently config-sensitive; treat
-spec-decode as an amplifier, not the cause.
+Mechanism: the template defaults `enable_thinking` to `false` while the
+pre-fix `Gemma4Parser` defaulted it to `True`. With no explicit value the
+parser enters the reasoning phase, the tool parser is never dispatched, and
+token 106 (`<turn|>`) falls through as content. The discriminator is
+**streaming** (`stream=true` leaks, `stream=false` does not); spec-decode (MTP)
+amplifies it but is not required. [#50263](https://github.com/vllm-project/vllm/pull/50263)
+does not fix it.
 
-Instrumented root cause (community, unconfirmed by maintainers): an
-`enable_thinking` default mismatch. `examples/tool_chat_template_gemma4.jinja`
-renders `enable_thinking | default(false)` while `Gemma4Parser` reads
-`chat_kwargs.get("enable_thinking", True)` — **both verified verbatim in
-the v0.27.0 tree** (template line 180, `vllm/parser/gemma4.py` line 403).
-With no explicit value the template renders thinking *off* while the
-parser behaves as if it were *on*; the outer parser enters the reasoning
-phase, the inner engine stays in `CONTENT`, the tool parser is never
-dispatched, and token 106 — correctly mapped to `__DROP__` but preserved
-under `skip_tool_parsing=True` — falls through as ordinary content. Model
-output that happens to emit a real channel block masks the bug by
-correcting the state mid-stream.
-
-**Mitigation on an affected engine (≤ v0.28.x): send `enable_thinking`
-explicitly on every request** rather than relying on either default.
-[#50263](https://github.com/vllm-project/vllm/pull/50263) was tested by the
-reporter and did not fix it; PR #50964 was superseded by #52430, which did
-(see above) — on v0.29.0+ the default mismatch is gone; keep sending
-`enable_thinking` explicitly until #49955 is confirmed closed.
-
-Cheap test: temp-0 chat completions **with `stream=true`**, grep the tail
-for `<turn|>`. Non-streaming probes miss it. Strict clients like Copilot
+Test: temp-0 chat completions **with `stream=true`**, grep the tail for
+`<turn|>`. A non-streaming probe misses it. Strict clients (e.g. Copilot)
 hard-fail on the leaked token.
 
 ### `--max-model-len 262144` will refuse to boot if KV doesn't fit
