@@ -11,7 +11,7 @@ At stream end the parser layer takes `prev_tool_call_arr[-1]["arguments"]`, stri
 - `prev_tool_call_arr[-1]["arguments"]` must reflect the full accumulated args at stream end.
 - `streamed_args_for_tool[i]` must be appended on every arg flush. Not a prefix of the full args → the tail is dropped (no error); lagging → already-streamed text is re-sent.
 - The tail is appended only when the final delta itself carries `tool_calls`.
-- `finish_reason="tool_calls"` fires iff some streamed delta carried `tool_calls` (serving's `tools_streamed`). The `= [{"arguments": {}}]` HACK several parsers carry no longer affects it.
+- `finish_reason="tool_calls"` fires iff some streamed delta carried `tool_calls` (serving's `tools_streamed`) and, v0.31.0+, the engine stopped on `stop`; a `max_tokens` cut keeps `length`. The `= [{"arguments": {}}]` HACK several parsers carry no longer affects it.
 
 ## Top production footguns
 

@@ -10,18 +10,20 @@ Goal: ship as a plugin, not an upstream PR — unless the format is broadly usef
    - JSON-in-tags → `vllm/tool_parsers/hermes_tool_parser.py`
    - JSON array in one sentinel → `vllm/tool_parsers/jamba_tool_parser.py`
    - Pythonic `[fn(a=1)]` → `vllm/tool_parsers/pythonic_tool_parser.py`
-   - XML grammar → `vllm/tool_parsers/step3p5_tool_parser.py` (expat, cleanest streaming)
+   - XML grammar → `vllm/tool_parsers/dots_tool_parser.py` (standalone `<invoke>`/`<parameter>` streaming; `step3p5_tool_parser.py` is an engine stub at v0.32.0+)
    - Harmony/channel-based → `vllm/tool_parsers/gptoss_tool_parser.py`
 4. `vllm/parser/abstract_parser.py` — `DelegatingParser`, which wraps a `ToolParser` and calls `extract_tool_calls_streaming` per delta plus the end-of-stream flush. Serving (`chat_completion/serving.py`) only calls `parser.parse_delta(...)` / `parser.parse(...)`.
 5. `vllm/entrypoints/launchers/api_server/entry.py` and `vllm/entrypoints/launchers/launcher.py` — grep `import_tool_parser` to see how `--tool-parser-plugin` loads the file. (`vllm/entrypoints/openai/api_server.py` became a deprecated re-export shim at v0.29.0.) Since v0.30.0, `import_plugin()` (`vllm/utils/import_utils.py`) tries `importlib.import_module(value)` first — so the flag value can be a dotted module name from an installed package, not just a file path — and only falls back to `import_from_path` on `ModuleNotFoundError` ([#45241](https://github.com/vllm-project/vllm/pull/45241)). There is no separate entry-points registry.
 6. `tests/tool_parsers/common_tests.py` + `tests/tool_parsers/test_<name>_tool_parser.py` — the executable spec. Reviewers expect this harness.
-7. `AGENTS.md` at repo root — duplicate-work policy, PR-description requirements.
+7. `AGENTS.md` at repo root — duplicate-work policy, PR-description requirements. For in-tree work also `vllm/tool_parsers/AGENTS.md` and `vllm/parser/AGENTS.md` (v0.32.0+): new models go in `vllm/parser/` first; `ToolParser` stays for plugins.
 
 ## Minimum skeleton
 
 ```python
-# v0.30.0 module paths — copy the import block of the parser you started from
+# v0.32.0 module paths — copy the import block of the parser you started from
 # if these fail on your version (vllm.entrypoints.openai.protocol does not exist).
+# make_tool_call_id: vllm.renderers.chat_utils on v0.32.0+ (vllm.entrypoints.chat_utils
+# was removed with no shim -- a plugin copied from an older parser fails to import).
 from vllm.entrypoints.generate.base.protocol import (
     DeltaMessage, ExtractedToolCallInformation, FunctionCall, ToolCall,
 )
