@@ -73,6 +73,24 @@ The `initialDelaySeconds: 600` on the liveness probe is not excessive — cold m
 
 Full annotated manifest (all env vars, all probes, PVC vs ModelCar choice, nodeSelector per SM, RuntimeClass for `nvidia`), plus serve-args review (`--enforce-eager` trade-off, MoE `--enable-expert-parallel`/"ep2 dp2" layout checks) and compile-cache survival (`VLLM_CACHE_ROOT`), in `references/pod-shape.md`.
 
+## Reviewing a manifest — done when every row is marked
+
+For "review / audit this manifest", "cross-check flags", "caches saved?": mark every row pass, fail or n/a, citing the manifest line it rests on. Then run the smoke test below against the live pod for the runtime half.
+
+| Check | Passes when | Detail |
+|---|---|---|
+| `/dev/shm` | `emptyDir {medium: Memory}` mounted at `/dev/shm`, `sizeLimit` ≥ 10Gi on TP>1 | `references/pod-shape.md` §`/dev/shm` |
+| Image | pinned version tag, never `:latest`; weight format matches the tag (`vllm-quantization`) | pitfall 3 |
+| Caches | `HF_HOME` on a PVC or ModelCar; `/root/.cache` mounted (arbitrary-UID images: `VLLM_CACHE_ROOT` at a mounted path), PVC if it must survive rescheduling; `TORCHINDUCTOR_CACHE_DIR` not set | `references/pod-shape.md` §Compile-cache survival |
+| HF token | `HF_TOKEN` / `HUGGING_FACE_HUB_TOKEN` from `secretKeyRef`, never a literal `value:` | `references/pod-shape.md` template |
+| Probes | readiness and liveness on `/health`; cold-boot budget from a `startupProbe` or liveness `initialDelaySeconds: 600` | pitfalls 2, 11 |
+| Shutdown | `--shutdown-timeout N` set and `terminationGracePeriodSeconds` ≥ N + 30 | pitfall 12 |
+| Parallelism | TP × PP × DP equals the pod's `nvidia.com/gpu` limit; MoE EP flags agree with it | `references/pod-shape.md` §Serve-args review |
+| serve_args | no `--enforce-eager` in production; every flag exists at the pinned tag (`references/upgrading.md`) | `references/pod-shape.md` §Serve-args review |
+| Network | `VLLM_HOST_IP` from `status.podIP`; `NCCL_SOCKET_IFNAME` pinned on multi-NIC hosts | pitfall 7, `references/multi-node.md` |
+| Telemetry | `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` | pitfall 9 |
+| Platform | OpenShift: non-root image and Route timeout annotation; KEDA: threshold 5–10, `cooldownPeriod: 360` | pitfalls 4–6 |
+
 ## Sibling skill boundaries
 
 This skill owns the **pod/container/topology** layer. It does not own:
