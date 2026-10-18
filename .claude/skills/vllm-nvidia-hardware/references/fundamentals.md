@@ -1,5 +1,7 @@
 # Memory-wall fundamentals (late 2025 / 2026)
 
+**Contents:** [1. Roofline](#1-roofline--prefill-is-compute-bound-decode-is-memory-bound) · [2. The bandwidth-vs-FLOPs gap keeps widening](#2-the-bandwidth-vs-flops-gap-keeps-widening) · [3. HBM generations and roadmap](#3-hbm-generations-and-roadmap) · [4. HBM supply situation 2026](#4-hbm-supply-situation-2026--its-a-constraint) · [5. Energy economics](#5-energy-economics--data-movement-dominates)
+
 Read this when the operator is asking *why* — why FP4 matters, why NVL72 matters, why HBM supply is a constraint. The per-SKU numbers in `gpu-specs.md` only mean what they mean once you understand the roofline.
 
 ## 1. Roofline — prefill is compute-bound, decode is memory-bound

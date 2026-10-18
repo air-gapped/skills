@@ -1,5 +1,7 @@
 # vLLM on NVIDIA — attention backends, quantization, KV connectors, Blackwell readiness
 
+**Contents:** [1. Attention backend × SM compatibility](#1-attention-backend--sm-compatibility) · [2. Quantization support](#2-quantization-support) · [3. KV connectors](#3-kv-connectors-all-in-vllmdistributedkv_transferkv_connectorv1) · [4. Speculative decoding](#4-speculative-decoding--platform-angle-only) · [5. Blackwell readiness](#5-blackwell-readiness) · [6. Release-note highlights](#6-release-note-highlights-what-shipped-for-blackwell) · [7. NVL72 handling in vLLM](#7-nvl72-handling-in-vllm) · [Sources](#sources)
+
 Repo paths below reference the vLLM checkout. Cross-check against the running vLLM
 version; the support matrix changes materially between point releases.
 

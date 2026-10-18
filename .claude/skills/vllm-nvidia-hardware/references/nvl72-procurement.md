@@ -1,5 +1,7 @@
 # GB300 NVL72 — vendor landscape and facility prerequisites
 
+**Contents:** [1. Vendor SKUs](#1-vendor-skus-gb300-nvl72-rack-systems) · [2. Facility prerequisites](#2-facility-prerequisites--the-buy-or-not-checklist) · [3. Scale-out fabric](#3-scale-out-fabric) · [4. Public deployments](#4-public-deployments) · [5. Procurement pain points](#5-procurement-pain-points-ranked-by-observed-slippage) · [6. Buy-or-wait](#6-buy-or-wait) · [Sources](#sources)
+
 Read this when the operator is sizing a purchase, evaluating a data-center site for
 GB300 NVL72 deployment, or comparing vendor offerings. Facility prereqs and buy-or-wait
 are the hard parts; vendor selection is secondary.

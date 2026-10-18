@@ -1,5 +1,7 @@
 # Vera Rubin roadmap — buy-or-wait inputs
 
+**Contents:** [Shipping status](#shipping-status--checked-2026-10-18) · [Per-GPU specs](#per-gpu-specs) · [Rack products](#rack-products) · [Infrastructure delta vs GB300](#infrastructure-delta-vs-gb300--facilities-have-to-be-different) · [Pricing signals](#pricing-signals) · [Buy-or-wait](#buy-or-wait-rubin)
+
 NVIDIA's successor to Blackwell. First HBM4 silicon; first 800 VDC HVDC racks.
 Relevant to any 2026+ purchasing decision: facilities built now should be sized for
 Rubin, not Blackwell, to avoid retrofit.

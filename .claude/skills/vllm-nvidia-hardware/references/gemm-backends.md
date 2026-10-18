@@ -1,5 +1,7 @@
 # GEMM backends — DeepGEMM, CUTLASS, and FP8/FP4 paths
 
+**Contents:** [Two backends to know](#two-backends-to-know) · [When DeepGEMM pays off](#when-deepgemm-pays-off) · [When CUTLASS takes over](#when-cutlass-takes-over) · [E8M0 scaling](#e8m0-scaling--deepgemm-accuracy-knob-hopper-and-blackwell) · [JIT cache](#jit-cache--the-first-request-warm-up) · [Alignment check](#alignment-check--before-deployment) · [Verification at runtime](#verification-at-runtime) · [Env vars](#env-vars) · [Troubleshooting](#troubleshooting) · [Blackwell specifics](#blackwell-specifics-sm100--sm103--sm120) · [When GEMM backend choice doesn't matter](#when-gemm-backend-choice-doesnt-matter) · [References](#references)
+
 Load when picking / debugging the matmul kernel path for a vLLM deployment on
 Hopper or Blackwell. Companion to the attention-backend × SM matrix in
 `vllm-platform-matrix.md` — same kind of matrix, compute-kernel side.
