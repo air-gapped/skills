@@ -94,6 +94,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 - **`references/disagg.md`** — cross-pod PD with NixlConnector, Mooncake, LMCache, MORI-IO; Dynamo's relation to vLLM's own connectors; topology recipes.
 - **`references/openshift.md`** — RHAIIS, RHOAI ServingRuntime templates, SCC, arbitrary UID, Routes 60 s timeout, NVIDIA GPU Operator on OCP, user-workload monitoring, air-gapped (oc-mirror v2, IDMS, ModelCar).
 - **`references/docker-lab.md`** — `docker run` canonical flags, `--shm-size` vs `--ipc=host`, `--gpus`, MIG strings, Podman/podman-compose, rootless friction, 2-node disagg compose template.
+- **`references/upgrading.md`** — manifest- and rollout-affecting changes from v0.28.0 through v0.32.0; read before bumping the image tag.
 
 ## The vLLM in-repo deployment artifacts (cheat sheet)
 
@@ -142,57 +143,12 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 11. **Liveness that runs inference, or `failureThreshold: 1`.** Refuse it; give the `/health` probe set instead, not the requested YAML with caveats. A generation probe (`/v1/completions`, `/v1/chat/completions`) queues behind real traffic, misses a short timeout on a busy pod, and kubelet restarts healthy pods under load — each restart is a full cold boot. Keep liveness on `/health`: it returns 503 once the engine core is dead (`EngineDeadError`), and the API server exits by itself ~5 s after engine death unless `VLLM_KEEP_ALIVE_ON_ENGINE_DEATH=1`. A dead engine that stayed Ready means that env is set, readiness is not on `/health`, or the engine is hung but not dead. Readiness takes the pod out of Service endpoints; liveness only restarts it — keep them separate. Catch hung-but-alive with a `/metrics` alert (requests running > 0, generation-token rate flat), not a probe.
 12. **Short `terminationGracePeriodSeconds`, or a long one alone.** On SIGTERM vLLM aborts every in-flight request unless `--shutdown-timeout N` is set (default `0` = abort; `N>0` drains up to N s and rejects new requests). Set `--shutdown-timeout` to the longest generation you serve (60–120 s) and `terminationGracePeriodSeconds` to N + ~30 s for teardown. Never cut the pod grace to speed eviction: a terminating pod leaves Service endpoints at once, and the pod grace applies to every rollout, drain and scale-down. To kill fast only on a liveness failure, set `livenessProbe.terminationGracePeriodSeconds`.
 
-## Upgrading through v0.32.0
+## Upgrading the image tag
 
-Upstream is at **v0.32.0** (2026-10-18), via v0.31.0 (2026-10-05), v0.30.0
-(2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
-its rollout plan:
-
-- **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
-  defaults to `[]`, so a browser front end calling vLLM directly gets CORS
-  errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;
-  server-to-server clients are unaffected.
-- **`--enforce-eager` also disables JIT kernel warmup** from v0.31.0 (#58197)
-  unless fault tolerance is on — the first requests pay the kernel JIT instead
-  of the boot. See `references/pod-shape.md` §Serve-args review.
-- **Fast Start daemon is launched with `vllm preload`** and supports DP and PP
-  from v0.31.0/v0.32.0 — `references/pod-shape.md` §Fast Start.
-
-- **Scale-out endpoints (`/render`, `/derender`, `/inference/v1/generate`) are
-  opt-in on plain `vllm serve`.** Pass `--enable-scale-out`; the old
-  `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` env var is removed, so a manifest still
-  setting it silently does nothing (#54579, #55176, v0.30.0). `vllm launch
-  render` and `vllm serve --tokens-only` still register their endpoints
-  unconditionally.
-- **`python -m vllm.entrypoints.grpc_server` is deprecated** in favour of
-  `vllm serve --grpc` (#56746, v0.30.0) — same fix as the api_server line
-  below if a container `command:` still spells the module form.
-- **YaRN-scaled `max_model_len` can drop on upgrade.** vLLM stops
-  re-multiplying an already-scaled `max_position_embeddings` by `factor` for
-  yarn-family rope types (#56446, v0.30.0); a manifest with a hardcoded
-  `--max-model-len` derived from the old (inflated) value needs recomputing,
-  not carrying forward.
-- **`python -m vllm.entrypoints.openai.api_server` is deprecated** in favour of
-  `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
-  module form, change it now rather than on the release that removes it.
-- **Model Runner V2 is the default for all models** (#53183, v0.29.0). MRV1 is
-  deprecated but **still ships in v0.32.0** despite the earlier v0.32 removal
-  target, and vLLM still falls back to it for features MRV2 does not cover yet
-  (log line: `Model Runner V2 does not yet support …; using the V1 model runner
-  instead`; e.g. `--enable-dbo` unless `VLLM_USE_V2_MODEL_RUNNER=1`). v0.32.0
-  removed the model-specific ROCm MRV1 exceptions (#56360). A fleet can be split
-  across both runners without anyone choosing that; pin `VLLM_USE_V2_MODEL_RUNNER`
-  if it matters.
-- **FlashInfer all-reduce is on by default** for TP CUDA groups (#52998,
-  v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` if you are pinning
-  collective behaviour.
-- **New admission-control flags** `--max-num-queued-reqs` and
-  `--max-num-queued-tokens` (#49445, v0.29.0) give queue-depth limits that
-  previously had to be approximated with autoscaling thresholds.
-
-Do not read v0.28.0's "`max_num_batched_tokens` raised from 8192 to 16384" as a
-change to your serving default — it is not. See `vllm-performance-tuning` for
-the entrypoint-gated table; on H100/H200 `vllm serve` still starts at 8192.
+Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.32.0
+changes that alter a manifest or its rollout (CORS closed by default, a removed env
+var that now silently does nothing, deprecated `python -m` entrypoints, Model
+Runner V2 default, a YaRN `--max-model-len` that must be recomputed).
 
 ## External references
 
