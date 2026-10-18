@@ -200,7 +200,10 @@ vLLM 0.30.0 — **PyTorch 2.13.0 / FlashInfer 0.6.18.post1 / torchvision 0.28.0*
 (vLLM v0.30.0 `requirements/cuda.txt`) plus `transformers >= 5.13.0, < 5.15`
 and `diffusers==0.40.0` (vllm-omni v0.30.0 `requirements/common.txt`).
 
-`references/models.md` tables were spot-checked against v0.30.0
-`docs/models/supported_models.md` and `vllm_omni/diffusion/registry.py`
-(removed models, LTX rows, pending list, additions banner); the per-row
-platform columns were not re-synced.
+`references/models.md` tables were regenerated row-for-row (93 rows, platform
+columns included) from `docs/models/supported_models.md` at tag v0.30.0 on
+2026-10-18; LTX DMD2 rows from `vllm_omni/diffusion/registry.py:117-125` at
+v0.30.0; MUSA detection from `vllm_omni/platforms/__init__.py:107-120`; Qwen3-TTS
+Base size from `examples/online_serving/text_to_speech/README.md` (1.7B-Base;
+the 0.6B-Base checkpoint exists on HF but is not listed); #2562 title is
+"gaps during audio generation via Qwen TTS".

@@ -41,7 +41,7 @@ Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility p
 
 **Picking a model** → `references/models.md`
   - Full supported-architecture → HuggingFace-ID table
-  - Per-model platform matrix (CUDA / ROCm / NPU / XPU / MUSA)
+  - Per-model platform matrix (CUDA / ROCm / NPU / XPU), synced with upstream at v0.30.0
   - Known-issue flags per family, including the pre-v0.20 FLUX / GLM-Image / Qwen3-TTS `--enforce-eager` pitfalls (all fixed on v0.20.0+)
 
 **Writing / debugging stage configs** → `references/stage-config.md`
@@ -200,4 +200,4 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list, version history, community channels and third-party plugin catalog in `references/sources.md`.
 
-**Known gap:** the model tables in `references/models.md` are a floor, not a complete list — check `docs/models/supported_models.md` at the deployed tag before calling a model unsupported.
+`references/models.md` mirrors upstream's list at v0.30.0 only — on any other tag, read `docs/models/supported_models.md` at that tag before calling a model unsupported.
