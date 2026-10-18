@@ -59,7 +59,7 @@ Use this table first. Load `references/model-families.md` for the specific model
 
 | Symptom | First suspect | Second suspect |
 |---|---|---|
-| `reasoning_content` is `null` or missing from response | `--reasoning-parser` flag missing/wrong | Template strips opening `<think>` before model generates it (DeepSeek-R1) |
+| `reasoning_content` is `null` or missing from response | `--reasoning-parser` flag missing/wrong, or client reads `reasoning_content` off a response that names it `reasoning` (pattern #15) | Template prefills `<think>` (DeepSeek-R1) — a cause only on vLLM ≤ v0.7.2 (pattern #3) |
 | `tool_calls` empty array `[]` but model emitted text | `--tool-call-parser` wrong for model family | `tool_choice="auto"` (try `"required"` or a named tool) |
 | Tool calls have malformed JSON / `arguments` empty | Wrong tool-call parser (Hermes vs pythonic vs XML vs model-specific) | Template doesn't inject `tools` correctly |
 | `enable_thinking=False` has no effect | Kwarg dropped by vLLM allowlist (need PR #27622 or ≥v0.11.1) | Downstream harness not forwarding `chat_template_kwargs` |
@@ -107,7 +107,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 2. **`skip_special_tokens=true` strips control tokens before reasoning parser.** Qwen3 reasoning, gpt-oss harmony — and formerly Gemma-4 (#38855, **fixed; closed 2026-06-15**). Fix: `extra_body={"skip_special_tokens": false}` per request. For Gemma-4 the real fix is two-sided — see the §Gemma-4 note in `model-families.md` before assuming a vLLM upgrade is enough.
 
-3. **`<think>` opening tag prepended to prompt → never appears in output → `reasoning_content=null`.** DeepSeek-R1 (HF #144, vLLM #12999). Template forces thinking by inserting `<think>\n` in the prefill; parser sees only `</think>`. Fix: post-process prepend `<think>`, or use patched template.
+3. **`<think>` prefilled by the template → output carries only `</think>`.** DeepSeek-R1 / R1-Distill templates end the generation prompt with `<think>\n` (HF #144). This nulled `reasoning_content` only on vLLM ≤ v0.7.2 (#12999). **Since v0.7.3 (#13025) the `deepseek_r1` parser (and every `BaseThinkingReasoningParser`) treats all text before `</think>` as reasoning when `<think>` is absent**, so on current vLLM the prefill never empties the reasoning field. Reasoning null **and** chain-of-thought inside `content` on ≥ v0.7.3 means the parser did not split that response: confirm `--reasoning-parser` reached the server (startup log, wrapper/Helm args), capture raw output (debugging step 3), then work in `vllm-reasoning-parsers`. Do not swap `--chat-template` for this — the parser already tolerates the prefill either way. Only on ≤ v0.7.2: upgrade, or prepend `<think>` client-side before parsing.
 
 4. **Empty string `''` wrapped to `[{'type':'text','text':''}]`.** Broke Kimi-K2 templates expecting strings. Any template that doesn't type-check `message.content` is at risk. Fix: updated chat template or vLLM version.
 
@@ -154,7 +154,7 @@ Merging: server defaults (`--default-chat-template-kwargs`) ← request kwargs v
 ## Reasoning parser vs chat template (they're confused a lot)
 
 - **Chat template** (this skill) controls the *prompt* — where `<think>` tags go going *in* to the model, and how tool definitions get rendered.
-- **Reasoning parser** (`vllm-reasoning-parsers`) extracts `<think>` content from *output* into `reasoning_content`. Template-side causes of null `reasoning_content` are pattern #3 above (opening `<think>` prepended in prefill); all other root causes live in the parser skill.
+- **Reasoning parser** (`vllm-reasoning-parsers`) extracts `<think>` content from *output* into `reasoning_content`. On vLLM ≥ v0.7.3 no template prefill nulls `reasoning_content` (pattern #3); every current root cause lives in the parser skill.
 - **Tool-call parser** (`vllm-tool-parsers`) extracts `tool_calls[]` from *output*. Template-side causes of empty `tool_calls` are wrong tool template or `tool_choice="auto"` vs `"required"` (pattern #9); parser-selection and streaming state-machine debugging live in that skill.
 
 Raw-output capture (`--enable-log-requests` + no `--tool-call-parser`/`--reasoning-parser`) determines which layer is at fault: if the model emits the expected tags/JSON, the prompt is fine and the problem is parser-side; if not, the template is misrendering.

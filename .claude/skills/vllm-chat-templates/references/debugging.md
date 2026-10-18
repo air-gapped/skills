@@ -117,7 +117,7 @@ Order of checks:
 
 1. Is `--reasoning-parser <name>` set and matching the model family?
 2. Is the model emitting `<think>...</think>` in raw output (step 3 above)?
-3. Is the template **prepending** `<think>\n` before generation? → DeepSeek-R1 pattern. Opening tag never appears in output; parser sees only `</think>`.
+3. Is the template **prepending** `<think>\n` before generation? → DeepSeek-R1 pattern: output carries only `</think>`. Breaks the split only on vLLM ≤ v0.7.2; on v0.7.3+ the parser treats text before `</think>` as reasoning, so look elsewhere.
 4. Is `skip_special_tokens=true` stripping control tokens? Try `extra_body={"skip_special_tokens": false}`.
 
 If 3 applies: newer vLLM versions' `deepseek_r1` parser handles the missing open tag. Upgrade.

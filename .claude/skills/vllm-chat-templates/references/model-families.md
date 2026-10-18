@@ -96,8 +96,8 @@ No warning without the override — a missing override is silent.
 
 | Issue | Summary | Fix / status |
 |---|---|---|
-| [HF DeepSeek-R1 #144](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144) | Template hard-prepends `<think>\n` into prefill → opening `<think>` never appears in output → `reasoning_content` returns `null`. | Post-process prepend; or use updated template where parser sees only `</think>`. |
-| [vLLM #12999](https://github.com/vllm-project/vllm/issues/12999) | Same root cause — `reasoning_content` always None. | Same — fixed parser handles this now. |
+| [HF DeepSeek-R1 #144](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144) | Template hard-prepends `<think>\n` into prefill → opening `<think>` never appears in output → `reasoning_content` returns `null`. | Parser-side, fixed in v0.7.3 (#13025): `deepseek_r1` treats text before `</think>` as reasoning when `<think>` is absent. On ≤ v0.7.2 only: upgrade or prepend `<think>` client-side. A template swap is not the fix. |
+| [vLLM #12999](https://github.com/vllm-project/vllm/issues/12999) | Same root cause — `reasoning_content` always None. | Closed 2025-02-11 by #13025 (first in v0.7.3). |
 | [vLLM discussion #12708](https://github.com/vllm-project/vllm/discussions/12708) | Nested `<think>` / `</think>` confuses parser. | Switch to vLLM ≥0.11. |
 | [vLLM #28804](https://github.com/vllm-project/vllm/issues/28804) | V3.1 tool parser: leading whitespace progressively accumulates across multi-turn tool calls. | Closed NOT_PLANNED 2026-03-23 (verified 2026-04-24). Apply client-side mitigation (strip leading whitespace between turns); no upstream fix planned. |
 | [vLLM forum](https://discuss.vllm.ai/t/deepseek-v3-tool-choice-auto-not-working-but-tool-choice-required-is-working/1006/) | `tool_choice="auto"` fails, `"required"` works. | Use `required` or named tool. |
