@@ -5,7 +5,7 @@ Freshened: 2026-10-18 (exceptions: 1 row, noted inline) — probed at vLLM v0.32
 Grouped by topic. `foundational` tags mean the source pre-dates 2025 but is still the
 canonical reference on its claim.
 
-**Last freshen pass:** 2026-09-15; prior 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
+**Earlier passes:** 2026-09-15; prior 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
 against the **v0.27.0 source tree** — `CMakeLists.txt`, `requirements/cuda.txt`,
 `docker/Dockerfile`, `vllm/platforms/cuda.py`, the attention-backend and KV-connector
 modules — plus the Rubin `sm_107` tracking issue); prior passes 2026-07-21 (vLLM

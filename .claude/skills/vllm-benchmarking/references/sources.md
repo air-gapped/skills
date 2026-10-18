@@ -2,7 +2,7 @@
 
 Freshened: 2026-10-18 — every row probed at v0.32.0 (all URLs 200, 25 issue/PR states batched, serve.py flags/JSON keys diffed v0.30.0→v0.32.0: no change). Moved: `sonnet` dataset removed (13 `--dataset-name` values), `openai-responses` backend added (13 backends), sweep `--warmup-num-prompts`/`--continue-on-error`, `transformers >= 5.16.1, < 5.20.0` + `tokenizers >= 0.23.2`; corrected long-standing `--metric-percentiles`/`--percentile-metrics` defaults and sweep sub-mode names.
 
-**Freshened: 2026-09-15** — all 15 rows probed. Every URL 200s with no redirect drift, and every claim pinned to tag `v0.27.0` was re-read at that tag and holds exactly (`serve.py` 2363 lines, `BenchmarkMetrics` L321, `sonnet.txt` 22706 bytes, six bench subcommands, `transformers >= 5.5.3`). The docs still lag the tree on `VLLM_USE_RUST_BENCH` and still list `sonnet` as the only deprecated dataset. One row drifted: current stable is **v0.29.0** (2026-09-09) via v0.28.0, not v0.27.1.
+**Earlier pass, 2026-09-15:** all 15 rows probed. Every URL 200s with no redirect drift, and every claim pinned to tag `v0.27.0` was re-read at that tag and holds exactly (`serve.py` 2363 lines, `BenchmarkMetrics` L321, `sonnet.txt` 22706 bytes, six bench subcommands, `transformers >= 5.5.3`). The docs still lag the tree on `VLLM_USE_RUST_BENCH` and still list `sonnet` as the only deprecated dataset. One row drifted: current stable is **v0.29.0** (2026-09-09) via v0.28.0, not v0.27.1.
 
 Tracks external references cited in this skill. `Last verified` indicates the most recent date an agent confirmed the URL resolves, the content still exists, and (where relevant) the claim the skill makes about it is still accurate. Stale dates mean: re-probe before trusting cited specifics.
 

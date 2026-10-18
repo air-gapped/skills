@@ -15,7 +15,7 @@ repos/.../releases` / HF `/api/models/<id>`. URLs are the canonical upstream;
 for pinned line numbers in vLLM source, the skill cites the current file path
 (line numbers drift across refactors — re-verify on upgrade).
 
-**Version discipline for this pass:** claims are probed against **v0.27.0**
+**Version discipline of the 2026-08-11 pass:** claims are probed against **v0.27.0**
 (2026-08-10) except the DSpark Markov head, probed against **v0.27.1**
 (2026-08-11, current stable). v0.27.1 is a single-change patch, so v0.27.0
 probes remain valid for everything else and were deliberately **not**

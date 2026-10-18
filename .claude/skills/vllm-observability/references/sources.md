@@ -6,7 +6,7 @@ Tracks every external reference the `vllm-observability` skill depends on, when 
 
 All dates UTC.
 
-**Freshened: 2026-09-15 — every row probed.** All four PR merge-to-release attributions re-checked with `git tag --contains` rather than merge dates and all four hold (#42206, #39457, #44448 → v0.24.0; #46768 → v0.25.0). The `loggers.py` metric-name set is **identical at v0.27.0 and v0.29.0** — 37 names, no additions or removals — and `gpu_cache_usage_perc` is still absent at v0.29.0, so the rename guidance holds across two further releases.
+**Earlier pass, 2026-09-15:** every row probed. All four PR merge-to-release attributions re-checked with `git tag --contains` rather than merge dates and all four hold (#42206, #39457, #44448 → v0.24.0; #46768 → v0.25.0). The `loggers.py` metric-name set is **identical at v0.27.0 and v0.29.0** — 37 names, no additions or removals — and `gpu_cache_usage_perc` is still absent at v0.29.0, so the rename guidance holds across two further releases.
 
 **The name-diff alone would have missed the real change.** `vllm/v1/kv_offload/tiering/base.py` went from 2 metric names at v0.27.0 to **15 at v0.28.0** — 13 new `kv_offload_tiering_*` metrics that `loggers.py` never mentions, now documented in `metrics-catalog.md`. The trigger below that warns a `loggers.py` diff is not sufficient was right.
 
