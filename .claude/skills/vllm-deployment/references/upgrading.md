@@ -13,7 +13,6 @@ its rollout plan:
   of the boot. See `references/pod-shape.md` §Serve-args review.
 - **Fast Start daemon is launched with `vllm preload`** and supports DP and PP
   from v0.31.0/v0.32.0 — `references/pod-shape.md` §Fast Start.
-
 - **Scale-out endpoints (`/render`, `/derender`, `/inference/v1/generate`) are
   opt-in on plain `vllm serve`.** Pass `--enable-scale-out`; the old
   `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` env var is removed, so a manifest still
@@ -40,12 +39,12 @@ its rollout plan:
   across both runners without anyone choosing that; pin `VLLM_USE_V2_MODEL_RUNNER`
   if it matters.
 - **FlashInfer all-reduce is on by default** for TP CUDA groups (#52998,
-  v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` if you are pinning
-  collective behaviour.
+  v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` to keep collective
+  behaviour pinned across the upgrade.
 - **New admission-control flags** `--max-num-queued-reqs` and
   `--max-num-queued-tokens` (#49445, v0.29.0) give queue-depth limits that
   previously had to be approximated with autoscaling thresholds.
 
 Do not read v0.28.0's "`max_num_batched_tokens` raised from 8192 to 16384" as a
-change to your serving default — it is not. See `vllm-performance-tuning` for
+change to the `vllm serve` default — it is not. See `vllm-performance-tuning` for
 the entrypoint-gated table; on H100/H200 `vllm serve` still starts at 8192.
