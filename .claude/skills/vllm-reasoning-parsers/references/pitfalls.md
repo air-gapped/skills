@@ -123,7 +123,8 @@ All built-in parsers do this.
 **Symptom.** `RuntimeError: ... could not locate think start/end tokens in the tokenizer!` — at first request through v0.31.x, at startup (wrapped in `TypeError: --reasoning-parser deepseek_r1 cannot be used with the tokenizer of ...`) from v0.32.0. Harmony uses `<|channel|>analysis<|message|>` — no `<think>` token exists in GPT-OSS vocab.
 
 **Fix.** `--reasoning-parser openai_gptoss`. Note its quirks:
-- `extract_reasoning` (non-streaming) raises `NotImplementedError` — `HarmonyParser` (`vllm/parser/harmony.py`) does both streaming and non-streaming splits.
+- `extract_reasoning` (non-streaming) raises `NotImplementedError` — `HarmonyParser` (`vllm/parser/harmony.py`) does both streaming and non-streaming splits. Chat Completions and Responses serving select it when `hf_config.model_type == "gpt_oss"` and any reasoning or tool parser is set (`ParserManager._compose_parser`); `openai_gptoss` is filled in as the default for `gpt_oss` (`GptOssForCausalLMConfig.verify_and_update_config`), and `HarmonyParser.__init__` raises `ValueError` unless the reasoning parser is `GptOssReasoningParser` and the tool parser is `GptOssToolParser`.
+- The stub's `NotImplementedError` reaches a client only when the request bypasses `HarmonyParser` — the generic `DelegatingParser` calls `extract_reasoning` directly. Cause: `model_type` is not `gpt_oss` (edited or re-exported `config.json`), or out-of-tree code calls the stub.
 - `prepare_structured_tag` returns JSON for a `structural_tag` xgrammar directive that isolates the analysis channel for structured generation.
 - **At v0.27.0 (#45560) `is_reasoning_end` and `is_reasoning_end_streaming` simply `return True`**, and `extract_content_ids` also raises. The old backward scan for `<|channel|>final<|message|>` with up to `reasoning_max_num_between_tokens = 20` interposed special tokens is deleted. Boundary detection moved into `HarmonyParser` (`vllm/parser/harmony.py`).
 
