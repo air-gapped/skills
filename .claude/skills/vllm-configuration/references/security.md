@@ -12,7 +12,7 @@ reasons:
 | Reason | Affected | Action |
 |---|---|---|
 | **CVE-2026-48746 / GHSA-94f4-hr76-p5j6, CRITICAL** — a `Host:` header carrying `/` or `?` steers the path starlette rebuilds from the request scope, so `AuthenticationMiddleware` checks a different path than FastAPI routes; the caller reaches `/v1` without the key | `>= 0.3.0, < 0.22.0` | Run v0.22.0+. v0.22.0 authorises on the raw ASGI `scope["path"]`, which no header reaches |
-| **The key gates only `/v1`, `/v2` and `/inference`** (documented from v0.28.0, #51999) | v0.32.0 | `/invocations` stays open — block it at the proxy |
+| **The key gates only the prefixes in `GUARDED_PREFIX`** — `/v1`, `/v2`, `/inference`, `/cohere` at v0.32.0 (`vllm/entrypoints/serve/middleware/authenticate.py`); documented from v0.28.0, #51999 | v0.32.0 | `/invocations` stays open — block it at the proxy |
 | **CVE-2026-22778, CRITICAL** — a malicious video URL chains a PIL error-message address leak (ASLR bypass) with a JPEG2000 `cdef`-box heap overflow in the OpenCV/FFmpeg decoder; RCE **pre-auth** via `/invocations` even with `--api-key` set | `>= 0.8.3, < 0.14.1`, **only deployments serving a video model** | v0.22.0+ clears it. Do not raise a fleet-wide floor on it — check what the model consumes first |
 
 Instances behind an RFC-conforming server such as nginx were never exposed to

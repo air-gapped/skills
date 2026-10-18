@@ -84,7 +84,7 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 
 **Server auth — `VLLM_API_KEY` (= `--api-key`) is not an authentication boundary:**
 - Run v0.22.0+ — before it, a crafted `Host:` header bypasses the key on `/v1` (CVE-2026-48746, CRITICAL).
-- The key gates only `/v1`, `/v2` and `/inference`; `/invocations` stays open.
+- The key gates only `/v1`, `/v2`, `/inference` and `/cohere`; `/invocations` stays open.
 - Put an authenticating proxy that validates `Host:` in front; treat the key as client wiring.
 - Video models below v0.14.1 have a pre-auth RCE via `/invocations` even with the key set (CVE-2026-22778). Not a fleet-wide floor — check what the model consumes.
 - Advisory detail and how to read an unbounded affected range: `references/security.md`.
