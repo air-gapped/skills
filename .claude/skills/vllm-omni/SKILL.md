@@ -66,7 +66,7 @@ Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility p
   - PCM16 mono @ 16 kHz in / 24 kHz out, OpenAI realtime event shape (non-beta names since v0.30.0)
   - `async_chunk` no longer blocks realtime (v0.22.0+)
   - Qwen3-TTS CustomVoice / VoiceDesign / Base modes, 12 Hz / 25 Hz tokenizers
-  - Voice-upload surface (10 MB cap, consent/ref_text/speaker_description required)
+  - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; process-local)
 
 ## The top operator mistakes this skill exists to prevent
 

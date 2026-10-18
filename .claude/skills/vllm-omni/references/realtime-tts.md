@@ -84,8 +84,8 @@ CLI args:
 
 | Task | HF ID pattern | Behavior |
 |---|---|---|
-| `CustomVoice` | `Qwen/Qwen3-TTS-*-CustomVoice` | Fixed set of preset voices (ethan, chelsie, aiden, ...) |
-| `VoiceDesign` | `Qwen/Qwen3-TTS-*-VoiceDesign` | Instruction-guided voice via `speaker_description` |
+| `CustomVoice` | `Qwen/Qwen3-TTS-*-CustomVoice` | Fixed set of preset voices (`vivian`, `ryan`, `aiden`, ...) |
+| `VoiceDesign` | `Qwen/Qwen3-TTS-*-VoiceDesign` | Instruction-guided voice via the request `instructions` field |
 | `Base` | `Qwen/Qwen3-TTS-*-Base` | Voice cloning from `ref_audio` sample |
 
 ### Serve commands per task type
@@ -125,10 +125,9 @@ curl http://localhost:8091/v1/audio/speech \
   -d '{
     "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
     "input": "Hello from vllm-omni.",
-    "voice": "ethan",
+    "voice": "vivian",
     "response_format": "wav",
-    "speed": 1.0,
-    "temperature": 0.7
+    "speed": 1.0
   }' --output hello.wav
 
 # Voice cloning (Base)
@@ -146,13 +145,13 @@ curl http://localhost:8091/v1/audio/speech \
 ```bash
 curl http://localhost:8091/v1/audio/voices \
   -F "name=jane_narrator" \
-  -F "consent=true" \
+  -F "consent=rec-jane-0001" \
   -F "ref_text=Hello, my name is Jane, and this is a voice sample." \
   -F "speaker_description=warm mid-range female voice, narrating" \
   -F "audio_sample=@jane_voice_30s.wav"
 ```
 
-10 MB cap on `audio_sample`. Server computes a speaker embedding on upload — persist this across re-deploys. Metadata (consent, ref_text, speaker_description, embedding_dim, created_at, file_size, mime_type) is returned in `/v1/audio/voices` GET.
+Required: `name`, `consent` (consent-recording ID), and exactly one of `audio_sample` (≤10 MB) or `speaker_embedding` (JSON float list, 1024-dim for 0.6B, 2048-dim for 1.7B). `ref_text` and `speaker_description` are optional; `ref_text` enables the higher-quality ICL clone. From audio, the embedding is extracted on first use (Base models only). Uploads are process-local — re-upload after every restart, and expect 409 with `--api-server-count` > 1. Metadata comes back in `GET /v1/audio/voices`.
 
 ### Streaming TTS
 
@@ -164,15 +163,16 @@ client = OpenAI(base_url="http://localhost:8091/v1", api_key="dummy")
 with client.audio.speech.with_streaming_response.create(
     model="Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
     input="Long piece of text...",
-    voice="ethan",
+    voice="vivian",
     response_format="pcm",
+    extra_body={"stream": True, "stream_format": "audio"},  # raw bytes; stream alone = SSE events
 ) as response:
     with open("out.pcm", "wb") as f:
         for chunk in response.iter_bytes():
             f.write(chunk)
 ```
 
-v0.16 (#1438) made streaming first-class for Qwen3-TTS. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `response_format: pcm` on `/v1/audio/speech`.
+v0.16 (#1438) made streaming first-class for Qwen3-TTS. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `stream_format: "audio"` + `response_format` `pcm`/`wav` on `/v1/audio/speech` (`stream: true` alone sends OpenAI `speech.audio.*` SSE events).
 
 ### Batch TTS
 

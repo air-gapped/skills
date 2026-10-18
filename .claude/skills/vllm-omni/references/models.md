@@ -48,7 +48,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `QwenImagePipeline` | Qwen-Image-2512 | `Qwen/Qwen-Image-2512` | Y |  |  | Y |  |
 | `QwenImageEditPipeline` | Qwen-Image-Edit | `Qwen/Qwen-Image-Edit` | Y | Y | Y | Y |  |
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2509 | `Qwen/Qwen-Image-Edit-2509` | Y | Y | Y | Y |  |
-| `QwenImageLayeredPipeline` | Qwen-Image-Layered | `Qwen/Qwen-Image-Layered` | Y | Y | Y | Y | `layers` param 3–10. |
+| `QwenImageLayeredPipeline` | Qwen-Image-Layered | `Qwen/Qwen-Image-Layered` | Y | Y | Y | Y | `layers` param 2–10. |
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2511 | `Qwen/Qwen-Image-Edit-2511` | Y | Y | Y | Y |  |
 | `GlmImagePipeline` | GLM-Image | `zai-org/GLM-Image` | Y | Y |  |  | Current pins cover its transformers needs; do not hand-upgrade transformers past 5.14.x. |
 | `ZImagePipeline` | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Y | Y | Y | Y | Quickstart default; smallest footprint. INT8 supported. |

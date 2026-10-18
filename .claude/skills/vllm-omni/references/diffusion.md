@@ -29,7 +29,7 @@ Unlike AR generation, DiT runs a **fixed number of denoising steps** against a l
 | `cfg_branch_past_key_values` | `None` | Named multi-branch CFG (e.g. `{"text": tuple, "image": tuple}`) |
 | `need_kv_receive` | **True** | Block until KV arrives from upstream |
 | `vae_use_slicing`, `vae_use_tiling` | False | VAE memory optimizations |
-| `layers` | 4 | Layered image output count (3-10, Qwen-Image-Layered) |
+| `layers` | 4 | Layered image output count (2-10, Qwen-Image-Layered) |
 
 **Sentinel gotcha — fixed in v0.26.0 (#4999, fixes #4998).** Below v0.26.0, `guidance_scale=0.0` was the "unset" default, so an explicit `0` was indistinguishable from an omitted value and the **pipeline's own default was substituted instead** — HunyuanImage-3.0 substitutes `5.0`, which turns CFG *on* when the caller asked for it off. The collision was in the shared input layer (`vllm_omni/inputs/data.py`), so every pipeline that fills in a default was affected. v0.26.0 makes `None` the sentinel (matching `num_inference_steps`) and tests presence by identity in `OmniDiffusionRequest.__post_init__`, so `0` now means `0`. On older builds, omit the field to disable CFG — do not send `0`. The CFG gate is `guidance_scale > 1.0` on every version, so `0.5` disables CFG regardless.
 
