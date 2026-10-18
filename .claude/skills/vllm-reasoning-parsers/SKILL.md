@@ -63,7 +63,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 1. **Reasoning `null` on DeepSeek-R1, whole output — `</think>` included — in `content`** — the chat template put `<think>` in the prompt, so the output is only `…</think>answer`, and the parser that ran required a start tag, found none, and returned `(None, model_output)`. `</think>` inside `content` is the signature of this cause, not evidence against it. Parsers that do this: `deepseek_r1` through v0.7.2 (fixed v0.7.3) and custom or third-party regex parsers that match a `<think>…</think>` pair. Fix: split on the end marker alone — `BaseThinkingReasoningParser` (`vllm/reasoning/basic_parsers.py`) partitions on `</think>` and tolerates a missing start; upgrade vLLM or rebase the custom parser on it. Confirm by rendering the prompt with `add_generation_prompt=True` and checking it ends in `<think>`. If `content` is clean and only the reasoning field is null, it is pitfall 15 instead.
 
-2. **`content` is empty, CoT in `reasoning` with `enable_thinking=False`** — parser didn't branch on `chat_template_kwargs`. Qwen3 / DeepSeek-V3 / Kimi K2 route to `IdentityReasoningParser` (or internal flag) when thinking is off. DeepSeek-V3 has two thinking-default variants: `deepseek_v3` (default **off**) and `holo2` = `DeepSeekV3ReasoningWithThinkingParser` (default **on**). **`glm45` used to be in that second group and no longer is** — as of v0.25.1 it moved onto the new adapter path alongside `glm47`, so don't assume `glm45` and `holo2` still behave alike.
+2. **`content` is empty, CoT in `reasoning` with `enable_thinking=False`** — parser didn't branch on `chat_template_kwargs`. Qwen3 / DeepSeek-V3 / Kimi K2 route to `IdentityReasoningParser` (or internal flag) when thinking is off. DeepSeek-V3 has two thinking-default variants: `deepseek_v3` (default **off**) and `holo2` = `DeepSeekV3ReasoningWithThinkingParser` (default **on**). **`glm45` is not in that group**: it runs on the adapter path with `glm47` — read its matrix row instead of assuming `holo2` behaviour.
 
 3. **Gibberish JSON when `guided_json` + `enable_thinking=False`** — the reasoning parser's `is_reasoning_end` on the *prompt* must return True so xgrammar enforces from token 0. The serving layer computes it once per request (`request.resolve_reasoning_ended(parser, prompt_token_ids)` → `parser.is_reasoning_end(prompt_token_ids)`, forced `True` when `include_reasoning=false`) and hands it to the engine, where `StructuredOutputManager._get_constraint_bounds` reads it (`_get_constraint_start` through v0.31.x). If the parser only checks for `</think>` in input_ids and the thinking-disabled chat template emits `<think>\n\n</think>\n\n` in the prompt, this works; if it does something else, xgrammar silently stays gated.
 
@@ -87,7 +87,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 13. **Implicit reasoning-end** — Kimi K2 ends at `</think>` **or** `<|tool_calls_section_begin|>`. MiniMax M2 never emits `<think>`, only `</think>`. Custom `is_reasoning_end` must encode these facts or xgrammar gates at the wrong moment. Through v0.31.x the grammar also skipped an implicit end token that is content (`<tool_call>` with no `</think>`, GLM/Qwen3), forced a second `<tool_call>` and lost `required`/named tool calls; v0.32.0 fixes it for adapter-path parsers only.
 
-14. **`--enable-reasoning` is gone** — older docs / Stack Overflow answers still reference it. Since roughly v0.8 the only flag is `--reasoning-parser NAME`; the enable/disable is implicit in whether one is passed.
+14. **`--enable-reasoning` does not exist** — `vllm serve` exits with `unrecognized arguments: --enable-reasoning`. Drop it: passing `--reasoning-parser NAME` enables reasoning, omitting it disables it.
 
 15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client.
 
@@ -95,7 +95,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 `references/parser-matrix.md` — one row per registered name (**38** at v0.32.0: `cohere_command3`, `cohere_command4`, `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `deepseek_v41`, `ernie45`, `gemma4`, `glm45`, `glm47`, `granite`, `granite_thinking_parser`, `hf`, `holo2`, `hunyuan_a13b`, `hy_v3`, `hy_v4`, `inkling`, `k2_horizon`, `kimi_k2`, `kimi_k3`, `ling3`, `mimo`, `minicpmv`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `muse_glimmer`, `nemotron_v3`, `olmo3`, `openai_gptoss`, `plamo3`, `poolside_v1`, `qwen3`, `seed_oss`, `step3`, `step3p5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
-Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. The non-obvious cases worth knowing before reading it: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` runs without `MistralTokenizer` but needs `--tokenizer-mode mistral` for grammar-enforced `tool_choice` (pitfall 11), `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
+Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. Non-obvious cases: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` runs without `MistralTokenizer` but needs `--tokenizer-mode mistral` for grammar-enforced `tool_choice` (pitfall 11), `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
 ## Writing a custom parser
 
@@ -138,7 +138,7 @@ test is a reference to the `vllm.parser` package:
 cohere file only names `vllm.parser.cohere_command` in a docstring, so that
 pattern misses both.
 
-Copy a **legacy-path** parser when writing your own. Shape:
+Copy a **legacy-path** parser as the template for a custom one. Shape:
 
 ```python
 from vllm.reasoning import ReasoningParser, ReasoningParserManager
