@@ -39,7 +39,7 @@ spec:
         # Optional: prefer local SSD for model cache
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
-      terminationGracePeriodSeconds: 60   # give in-flight streams a chance to finish
+      terminationGracePeriodSeconds: 150  # > --shutdown-timeout + teardown
       runtimeClassName: nvidia            # if using nvidia-container-runtime via RuntimeClass
       nodeSelector:
         # Match the SKU; see vllm-nvidia-hardware skill for per-SM guidance
@@ -56,6 +56,7 @@ spec:
           - "--tensor-parallel-size=8"
           - "--served-model-name=$(SERVED_NAME)"
           - "--disable-access-log-for-endpoints=/health,/metrics,/ping"
+          - "--shutdown-timeout=120"          # drain in-flight on SIGTERM; default 0 aborts
         env:
           - {name: MODEL,        value: "Qwen/Qwen3-235B-A22B-Instruct"}
           - {name: SERVED_NAME,  value: "qwen3-235b"}
@@ -366,7 +367,7 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 
 - **Istio sidecar + streaming**: the Envoy sidecar buffers SSE by default; streaming replies show up all-at-once. Either disable sidecar on the vLLM pod, or set `proxy.istio.io/config: { ... holdApplicationUntilProxyStarts: true }` and ensure streaming is not buffered.
 - **Pod Security Admission**: the upstream image cannot satisfy `restricted-v2` or `nonroot-v2`. Either run under `baseline` profile, use RHAIIS, or rebuild.
-- **Termination grace period**: streaming requests need time to finish. 60–120 s is reasonable; shorter truncates user responses.
+- **Termination grace period**: the grace alone drains nothing — vLLM aborts in-flight requests on SIGTERM unless `--shutdown-timeout N` (default `0`) is set. Pass `--shutdown-timeout 120` and `terminationGracePeriodSeconds` ≥ N + 30.
 - **CPU requests**: 16+ is sane for TP=8. Low CPU requests starve the Python engine and show up as mystery TPOT spikes under high concurrency.
 
 ## Next
