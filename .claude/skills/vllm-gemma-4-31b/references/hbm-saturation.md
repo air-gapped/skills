@@ -1,5 +1,15 @@
 # HBM-bandwidth saturation on H100 vs H200 — vLLM source investigation
 
+## Contents
+
+- [Direct answer](#direct-answer)
+- [Evidence from vLLM source](#evidence-from-vllm-source)
+- [Evidence from upstream issues](#evidence-from-upstream-issues)
+- [Upstream docs](#upstream-docs)
+- [Likely root cause — the physics](#likely-root-cause--the-physics)
+- [Operator action](#operator-action)
+- [Source paths cited](#source-paths-cited)
+
 Background: when serving Gemma 4 31B AWQ (or similar dense models) on
 H100, throughput plateaus around batch=64 — adding more concurrent
 sequences just inflates TPOT and TTFT without moving aggregate

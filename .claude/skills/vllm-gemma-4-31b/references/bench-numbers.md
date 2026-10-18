@@ -1,5 +1,17 @@
 # Gemma 4 31B AWQ — full benchmark table from the 2026-04-30 2× H100 audit
 
+## Contents
+
+- [Phase 1 — TP=1 max_num_seqs sweep at fixed config](#phase-1--tp1-max_num_seqs-sweep-at-fixed-config)
+- [Phase 2 — TP=2 short-context concurrency sweep (LIGHT config)](#phase-2--tp2-short-context-concurrency-sweep-light-config)
+- [Phase 2 — TP=2 short-context PUSH config](#phase-2--tp2-short-context-push-config)
+- [Phase 2 — TP=2 long-context PUSH](#phase-2--tp2-long-context-push)
+- [Phase 3 — TP=1 long-context PUSH (per-H100)](#phase-3--tp1-long-context-push-per-h100)
+- [Cross-config aggregate comparison](#cross-config-aggregate-comparison)
+- [Cross-config TPOT and TTFT comparison](#cross-config-tpot-and-ttft-comparison)
+- [Stock vs out-of-tree Rust parser plugin (separate run)](#stock-vs-out-of-tree-rust-parser-plugin-separate-run)
+- [Notes on bench methodology](#notes-on-bench-methodology)
+
 Hardware: 2× H100 80GB SXM5 (NVLink), single VM
 Engine: vLLM 0.20.0, kv-cache-dtype fp8, EAGLE3 k=3 chain spec-dec
 Model: cyankiwi/gemma-4-31B-it-AWQ-4bit

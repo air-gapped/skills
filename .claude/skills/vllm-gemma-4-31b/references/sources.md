@@ -2,6 +2,14 @@
 
 Freshened: 2026-10-18 — every row probed at v0.32.0; both chat templates byte-identical to the last pass. Moved: fact #1 (Gemma 4 backend selection is per-platform, per-layer FA3/FA4 on SM90 + FP8 KV from v0.31.0, not forced Triton), #50477 is not version-gated (gemma4 parser skips grammar for named/`required` since v0.24.0), #50158's acceptance collapse was draft-vocab coverage, Gemma-4 MTP is in stable since v0.21.0, and SM90 WNA16 now prefers Humming over Marlin; #50159 still gates the 0.25.1 ceiling.
 
+## Contents
+
+- [Authoritative model + template sources](#authoritative-model--template-sources)
+- [vLLM engine sources](#vllm-engine-sources)
+- [vLLM issue / PR citations](#vllm-issue--pr-citations)
+- [Gemma-4 regression tracker (probed 2026-10-18 at v0.32.0)](#gemma-4-regression-tracker-probed-2026-10-18-at-v0320)
+- [Notes](#notes)
+
 External references cited by SKILL.md and `references/*.md`. Each row carries
 the upstream URL, classification, last verification date, and pinned version
 or git ref where applicable. Re-probe via `/skill-improver freshen vllm-gemma-4-31b`.
