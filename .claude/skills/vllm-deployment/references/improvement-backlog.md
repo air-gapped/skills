@@ -4,6 +4,39 @@ Work-not-done log for the skill-improver loop. `## Open` lists issues attempted 
 hypotheses that could not be applied (or safely verified) in a single iteration.
 `## Resolved this pass` lists changes the metric actually registered.
 
+## Open
+
+- **Trigger measurement for this skill and its vLLM siblings** (Dim 1) —
+  `SKILL.md` frontmatter `description` / `when_to_use`. Needs a batched
+  `trigger`-mode run (`probe-trigger.py`) across the whole vLLM family, because
+  the known case is cross-skill over-trigger ("without restarting" stealing from
+  spec-decode). Blocked on: an operator-run probe batch; improve passes on a
+  single skill are scoped to no spawned runs. (carried 2026-05-29)
+- **Outcome run for the 2026-10-18 improve pass** (Dim 10) —
+  `scripts/outcome-eval.py .claude/skills/vllm-deployment --against 41dec7b`.
+  Blocked on: operator-run measurement and its spend; this pass ran no eval
+  arms. Case 07 is the one to read: pitfalls 11-12 were reworded (every fact
+  kept).
+
+## Resolved this pass (2026-10-18 — improve, baseline 41dec7b)
+
+Blind baseline 79 (operator-run); self 79 → 83 over 5 iterations, 5 keeps, 0
+discards — cap reached, ceiling not mapped. Final blind score and A/B
+comparator: operator-run, pending.
+- Kept: per-release "Upgrading through v0.32.0" block moved verbatim to
+  `references/upgrading.md`; SKILL.md carries a 4-line pointer (207 → 163 lines).
+- Kept: `autoscaling.md` and `routing.md` no longer say the pod grace period
+  alone drains streams; both pair `--shutdown-timeout N` with grace ≥ N + 30.
+- Kept: `sources.md` "Last freshen pass: 2026-09-15" relabelled as the list of
+  earlier passes, under the 2026-10-18 stamp.
+- Kept: manifest review checklist (11 rows, done when every row is marked and
+  cited); first body coverage of `HF_TOKEN`. Drains the carried
+  operator-workflow item.
+- Kept: pitfalls 11-12 tightened, every fact and the refusal rule kept; no
+  second-person left in the SKILL.md body.
+- Post-cap: two second-person lines and a stray list break fixed in
+  `upgrading.md`.
+
 ## Resolved — 2026-09-15 (one Route timeout, one canonical treatment)
 
 - **`openshift.md` is now the single treatment; `routing.md` points at it.** The
@@ -119,25 +152,6 @@ a reason it didn't anticipate.
   wasn't re-probed, which preserved the staleness invisibly. Added a note to
   `sources.md`: when a pass declares a probe budget, spend it on the rows most
   likely to have moved rather than re-confirming recently-stamped ones.
-
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
-
-## Unblocked — actionable
-
-- **Body still feature-list / pointer-map shaped, not operator-workflow ordered**
-  (Dim 2) — `SKILL.md` top third (~L16-98). Lead with the operator workflow
-  (audit → cache mount → HF_TOKEN → probes → serve_args → autoscale) before the
-  vendor-named decision table. A structural rewrite that must preserve every
-  pointer, keep SKILL.md under 500 lines, and not disturb trigger-relevant
-  keyword placement — work, not a blocker. (carried 2026-05-29)
-- **Trigger measurement for this skill and its vLLM siblings** (Dim 1) — the
-  eval-set mining and the cross-skill over-trigger batch (e.g. "without
-  restarting" stealing from spec-decode) are both a `trigger`-mode run away. The
-  over-trigger case needs a batched run across the vLLM family, not an isolated
-  edit here.
 
 ## Resolved — 2026-09-15
 
