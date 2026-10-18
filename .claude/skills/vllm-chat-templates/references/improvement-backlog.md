@@ -3,6 +3,20 @@
 Tracks work attempted-but-not-completed and changes the metric registered.
 Append-only; carry open items forward with a `(carried <date>)` marker.
 
+## Open
+
+(none)
+
+## Resolved this pass (2026-10-18)
+
+Improve pass from 77e3c8f: blind baseline 77, self 77 → 82; final blind score and A/B comparator run by the operator. Cap reached (5 iterations, 0 discards — no ceiling mapped).
+- Kept: transformers pin and 5.15.0 security floor moved from SKILL.md to `debugging.md` Step 4 as a per-version action table.
+- Kept: SKILL.md cites source by file + symbol; line anchors stay in `sources.md`.
+- Kept: patterns 1, 2, 10, 12–14, 16 restated as symptom → mechanism → fix, issue history dropped; pattern 10's contradictory "parser commits post-issue" clause removed.
+- Kept: Consequences bullets for #25401 / #23015 dropped as duplicates of pattern 1.
+- Kept: three second-person slips replaced; kwarg-allowlist note points at the debugging.md verification step.
+- Closed (carried from 2026-09-15): DeepSeek-V3.1 #28804 client-side snippet — pattern 10 now names the exact operation (strip leading whitespace from each assistant turn); a code snippet would only restate `.lstrip()`.
+
 ## Resolved — 2026-09-15 (the transformers pin moved, and still is not a security floor)
 
 - **The `transformers >= 5.5.3` note is correct for v0.27.0 and now incomplete.**
@@ -18,15 +32,6 @@ Append-only; carry open items forward with a `(carried <date>)` marker.
 - Consequence stated plainly: satisfying vLLM's requirement is not the same as
   being patched — pin `transformers` explicitly. Per-fix detail is left in
   `transformers-config-tokenizers-expert`, which owns that surface.
-
-## Open
-
-- **DeepSeek-V3.1 #28804 won't-fix mitigation phrasing could be tightened** (Dim 4/6) —
-  SKILL.md pattern #10 + model-families.md DeepSeek bugs row. The whitespace-accumulation
-  workaround ("strip leading whitespace on each turn") is stated as guidance but lacks an
-  exact client-side snippet. Not applied this pass: adding a snippet is additive content,
-  not a one-line atomic edit, and risks Dim 6 regression — defer to an author-driven
-  decision on whether the snippet earns its place.
 
 ## Resolved — 2026-08-11 (freshen, v0.25.1 -> v0.27.0)
 
@@ -60,7 +65,7 @@ Append-only; carry open items forward with a `(carried <date>)` marker.
   runtime floor (`transformers >= 5.5.3`, unchanged since v0.25.1) in
   `debugging.md`, so the next pass does not "fix" a correct quotation.
 
-## Resolved this pass
+## Resolved — 2026-05-28
 
 - (2026-05-28) GLM #39614 reclassified OPEN → CLOSED/COMPLETED 2026-04-25 in SKILL.md
   pattern #13, sources.md, and model-families.md GLM bugs table — Dim 9 freshen.
