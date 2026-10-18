@@ -219,33 +219,22 @@ traps not captured by those.
    onward. On ≤ v0.27.0 it silently loads unquantized, so a W4A16 DSpark
    checkpoint uses more drafter VRAM than its card implies.
 
-## Composability (current, verified)
+## Composability
 
-`chunked_prefill + spec-dec` → supported since v0.11.1 (PR #26263 fix). No mutual
-exclusivity in code.
-`async_scheduling + spec-dec` → default since v0.14.0. Zero-bubble variant in
-v0.19.0 (#32951).
-`LoRA + spec-dec` → EAGLE + LoRA CUDA graph specialisation in v0.11.1 (#28318).
-Nemotron-H MTP LoRA in v0.16.0 (#32265).
-`Pipeline parallel + spec-dec` → MRV2 only, v0.17.0+ (#33960). **Not V1 on
-current engine runner**; if pinning PP on non-MRV2, spec-dec is off. `eagle3`
-specifically stayed hard-blocked with PP until **v0.30.0** (#50514); MTP under
-PP for sparse-MLA targets fixed the same release (#46994).
-`Watermarking + spec-dec` → `dual_key_gumbel` supports spec-dec natively from
-**v0.30.0** (#56122); other algorithms need `allow_target_only_watermarking:
-true` in `--watermark-config`, and only with probabilistic draft sampling,
-standard rejection sampling, and `eagle`/`eagle3`/`mtp`/`dspark`.
-`FP8 KV + spec-dec` → supported. Sparse MLA + MTP full CUDA graphs v0.17.0
-(#34457). FP8 MLA KV specific fix #37054. From **v0.26.0** the drafter can carry
-its own `kv_cache_dtype` inside `--speculative-config` (#48787); unset means it
-inherits the target's `--kv-cache-dtype`.
-`Structured outputs + spec-dec` → v0.16.0+ (#33374). Prior: incompatible.
-`Disaggregated serving + spec-dec` → v0.17.0+ (#34529). KV-transfer fix #35158
-in v0.18.0. KV connector + MTP scheduler deadlock under KV pressure fixed in
-v0.31.0 (#57104) — upgrade if a P/D deployment with MTP stalls.
-`Multimodal + spec-dec` → v0.11.1 EAGLE/EAGLE3 on Qwen2.5-VL (#22872); text-only
-drafters auto-disabled for MM when mismatch (#25667); v0.19 multimodal
-embeddings for spec decode (#36097). Broad but spotty; check target family.
+State on ≥ v0.31.0. Which release enabled each combination, with PR numbers:
+`references/version-gates.md` §"Composability history".
+
+| Combined with | Status | Constraint |
+|---|---|---|
+| Chunked prefill | Supported | — |
+| Async scheduling | Default ON | Zero-bubble variant included |
+| LoRA | Supported | EAGLE + LoRA CUDA graphs specialised; Nemotron-H MTP + LoRA supported |
+| Pipeline parallel | Model Runner V2 only | On the V1 runner, PP turns spec-dec off. The drafter itself always runs `pipeline_parallel_size=1` |
+| FP8 KV | Supported | Drafter KV dtype via `kv_cache_dtype` inside `--speculative-config`; unset inherits `--kv-cache-dtype` |
+| Structured outputs | Supported | — |
+| Disaggregated serving (P/D) | Supported (incl. NixlConnector + EAGLE-3) | — |
+| Watermarking | `dual_key_gumbel` native | Other algorithms need `"allow_target_only_watermarking": true` in `--watermark-config` (dilutes the signal), and only with probabilistic draft sampling, standard rejection sampling, and `eagle`/`eagle3`/`mtp`/`dspark` |
+| Multimodal | Spotty — check the target family | EAGLE/EAGLE3 on Qwen2.5-VL; text-only drafters auto-disabled for MM inputs on mismatch |
 
 ## Air-gapped operation
 
