@@ -93,6 +93,23 @@ training-data recipe survey, and the four long-merged original PRs.
 _None._ Nothing here is waiting on an absent ruling, credential, release, or
 measurement nobody can run.
 
+## Resolved this pass (2026-10-18, improve)
+
+Blind baseline 75 (snapshot of the v0.32.0 freshen); self cold 75 -> 81 over
+5 iterations, 4 kept; final blind score and A/B comparator run by the operator.
+- Kept: 38-row version-gate table moved to `version-gates.md`; SKILL.md keeps a
+  five-row "Version floors" table of the gates that still change a deploy.
+- Kept: aux-hidden-state allowlist history cut to the `SupportsEagle3` rule;
+  layer hook corrected to `get_eagle3_default_aux_hidden_state_layers()`.
+- Kept: Composability rewritten as a current-state table; per-PR history moved
+  to `version-gates.md` §"Composability history".
+- Kept: TLI pitfall 7 states the rule and points at the v0.31.x floors row.
+- Kept (after the cap, outside scoring): last second-person slip in §Method selection.
+- Discard: moving the user-phrased implicit triggers to the front of
+  `when_to_use` — Dim 1 unchanged on a cold re-score (the flag-heavy
+  `description` dominates), and it took the listing to 1512/1536 chars for no
+  measured gain. Do not re-propose without a `trigger`-mode measurement.
+
 ## Resolved — 2026-09-15 (the generic caveat now lives in one place)
 
 - **Collapsed to SKILL.md, method-specific deltas kept.** `eagle3.md` and
@@ -109,7 +126,7 @@ measurement nobody can run.
   "when to disable" checklist that is read as a list; replacing one line with a
   cross-reference would cost more tokens than it saves and break the scan.
 
-## Resolved this pass
+## Resolved — 2026-05-29
 
 - Fixed aux_hidden_states allowlist line-anchor drift 818-833 → 895-909 in
   references/eagle3.md L27 and references/dflash.md L41 (Dim 8 — matches
