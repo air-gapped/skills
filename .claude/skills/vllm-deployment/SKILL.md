@@ -163,6 +163,8 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 
 ## Upgrading the image tag
 
+Current release: **v0.32.0** (2026-10-18). Write `vllm/vllm-openai:v0.32.0` (or the tag the operator runs) into every command and manifest, never `:latest` or a `<tag>` placeholder.
+
 Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.32.0
 changes that alter a manifest or its rollout (CORS closed by default, a removed env
 var that now silently does nothing, deprecated `python -m` entrypoints, Model

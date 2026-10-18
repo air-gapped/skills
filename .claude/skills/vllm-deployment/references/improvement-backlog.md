@@ -12,13 +12,12 @@ hypotheses that could not be applied (or safely verified) in a single iteration.
   the known case is cross-skill over-trigger ("without restarting" stealing from
   spec-decode). Blocked on: an operator-run probe batch; improve passes on a
   single skill are scoped to no spawned runs. (carried 2026-05-29)
-- **Outcome run for the 2026-10-18 improve pass** (Dim 10) —
-  `scripts/outcome-eval.py .claude/skills/vllm-deployment --against 41dec7b`.
-  Blocked on: operator-run measurement and its spend; this pass ran no eval
-  arms. Case 07 is the one to read: pitfalls 11-12 were reworded (every fact
-  kept).
-
 ## Resolved this pass (2026-10-18 — improve, baseline 41dec7b)
+
+- Outcome `--against 41dec7b`: 0.924 vs 0.924 (without 0.828); case 07 0.94.
+  Case 04 fell 0.89 → 0.67 (answers wrote a `<pinned-tag>` placeholder once
+  the current-release line moved to upgrading.md); current tag restored in
+  SKILL.md, case 04 re-run 0.83.
 
 Blind baseline 79 (operator-run); self 79 → 83 over 5 iterations, 5 keeps, 0
 discards — cap reached, ceiling not mapped. Final blind score and A/B
