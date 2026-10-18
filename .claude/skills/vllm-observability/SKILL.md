@@ -116,46 +116,18 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 
 `${CLAUDE_SKILL_DIR}/scripts/metrics-smoke.sh` runs the full smoke check against a deployment: confirms endpoints, greps load-bearing series, warns on deprecated metric names, cross-checks DCGM availability if configured. Output is color-coded pass/warn/fail.
 
-## Version notes
+## Upgrade traps
 
-Core metric surface re-verified against **v0.32.0**: no `vllm:*` name removed
-or renamed since v0.25.1. In the **KV offload** namespace the legacy
-`vllm:kv_offload_total_*` series are deprecated in favour of a direction-split
-load/store set; see `references/metrics-catalog.md` § KV connector / offload.
+Every name, label and release gate below is in `references/metrics-catalog.md`; its § V0 vs V1 deltas maps each deprecated name to its replacement.
 
-**v0.32.0 added** `vllm:admission_rejections_total{reason}` (frontend load
-shedding — invisible in `num_requests_waiting`), `vllm:prompt_tokens_cached_by_source_total{source}`,
-`vllm:num_requests_kv_fetch_by_stage` (P/D consumers), and
-`--custom-histogram-buckets` for SLO-aligned bucket boundaries. **v0.31.0 changed**
-`vllm:nixl_num_failed_transfers` to include notification failures — do not add
-`nixl_num_failed_notifications` to it.
-
-**v0.28.0 renamed two tiering series, and the rename is invisible in code
-review.** `vllm:kv_offload_tiering_block_queries` and `…_block_hits` became
-`vllm:kv_offload_tiering_chunk_queries` and `…_chunk_hits` (#52812, listed under
-that release's Breaking Changes). The Python constants that hold them are
-**still called `BLOCK_QUERIES` and `BLOCK_HITS`** — only the exported strings
-changed — so a dashboard or alert keyed on the old names goes silently empty
-while nothing in the source looks renamed. Verified in
-`vllm/v1/kv_offload/tiering/base.py` at tag v0.29.0.
-
-The full tiering family at v0.29.0, all prefixed `vllm:kv_offload_tiering_`:
-`lookup_sync_delay_seconds`, `lookup_async_delay_seconds`, `read_bytes`,
-`read_time`, `write_bytes`, `write_time`, `chunk_queries`, `chunk_hits`,
-`promotion_job_failures`, `cascade_job_failures`, `promotion_allocation_failures`,
-`active_promotion_jobs`, `active_cascade_jobs`, `primary_write_usage_perc`,
-`primary_read_usage_perc`. These are emitted only when the offloading spec is a
-`TieringOffloadingSpec`.
-
-- V1 engine is default as of late 2025. V0 metrics hidden unless `--show-hidden-metrics-for-version=X.Y`.
-- Metric rename saga: `vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`. PR #24245 (merged 2025-09-16) hid the deprecated `gpu_*` names behind `--show-hidden-metrics-for-version`; the proposed revert PR #25392 was **closed without merging** (2025-09-23), so the hiding stuck. Current main emits only `kv_cache_usage_perc` by default.
-- Deprecated on V1: `num_requests_swapped`, `cpu_cache_usage_perc`, `cpu_prefix_cache_hit_rate`, `time_per_output_token_seconds` (replaced by `inter_token_latency_seconds`), the `model_forward_time_milliseconds` / `model_execute_time_milliseconds` pair (now behind `--collect-detailed-traces`).
-- New in V1: `num_requests_waiting_by_reason{reason=capacity|deferred}`, `engine_sleep_state`, `prompt_tokens_by_source{source=local_compute|local_cache_hit|external_kv_transfer}`, per-position spec-decode acceptance counters.
-- **v0.24.0 corrected two things you may already have graphed wrong:**
-  - `vllm:cache_config_info` gained group-aware `kv_cache_size_tokens` and `kv_cache_max_concurrency` (#42206). **Stop deriving capacity from `num_gpu_blocks * block_size`** — that product is wrong on hybrid models, where a request occupies blocks in several KV cache groups. The startup log was always right; Prometheus just couldn't agree with it.
-  - MFU on MLA models (DeepSeek-V2/V3/R1) was computed with GQA assumptions until `MLAAttentionMetrics` landed (#39457) — a ~57× KV-bandwidth overestimate on DeepSeek-V3. **Discard MFU history from MLA deployments on < v0.24.0.**
-- **v0.24.0 added** `vllm:tool_call_parser_invocations_total{mode,outcome}` (#44448) — the rollout signal for tool-calling regressions. Non-harmony path only.
-- **v0.25.0 added** an opt-in per-request `metrics` block in Chat/Completions **response bodies** (#46768) for billing/SLA attribution: `time_to_first_token_ms`, `generation_time_ms`, `queue_time_ms`, `mean_itl_ms`, `tokens_per_second`. Double-gated by `--enable-per-request-metrics` and the `include_metrics` request field; suppressed when `n > 1` or multi-prompt makes single-stream attribution meaningless.
+| Trap | Action |
+|---|---|
+| v0.28.0 renamed `vllm:kv_offload_tiering_block_{queries,hits}` → `…_chunk_{queries,hits}`; on v0.28.x–v0.29.x the constants kept their `BLOCK_*` names, so a source grep finds no rename | Rewrite dashboards and alerts on the old names — they go silently empty |
+| `vllm:kv_offload_total_*` deprecated, observed only under `CPUOffloadingSpec` | Switch to the direction-split `kv_offload_{load,store}_*` set |
+| v0.31.0+: `nixl_num_failed_transfers` already includes notification failures | Never add `nixl_num_failed_notifications` to it |
+| v0.32.0+: `vllm:admission_rejections_total{reason}` counts frontend load shedding, which never reaches `num_requests_waiting` | Alert on any sustained rate |
+| KV capacity as `num_gpu_blocks * block_size` overstates hybrid models | On v0.24.0+ read `kv_cache_size_tokens` from `vllm:cache_config_info` |
+| MFU on MLA models (DeepSeek-V2/V3/R1) before v0.24.0 overestimated KV bandwidth ~57× | Discard that MFU history |
 
 ## External references
 

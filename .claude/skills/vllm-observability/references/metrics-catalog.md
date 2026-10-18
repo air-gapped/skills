@@ -382,7 +382,7 @@ note these are a *different* pair from the connector-level lookup delays above:
 | `vllm:kv_offload_tiering_lookup_async_delay_seconds` | Total time a request's lookup stays deferred across a tier promotion — first RETRY until resolved (or the request finishes unresolved) |
 | `vllm:kv_offload_tiering_read_bytes` / `_read_time` | Bytes read from, and time spent reading from, the secondary tier |
 | `vllm:kv_offload_tiering_write_bytes` / `_write_time` | Same for writes to the secondary tier |
-| `vllm:kv_offload_tiering_chunk_queries` / `_chunk_hits` | Secondary-tier chunk lookups and hits — the tier's own hit rate, distinct from the engine's prefix-cache hit rate. **Renamed from `block_queries`/`block_hits`** |
+| `vllm:kv_offload_tiering_chunk_queries` / `_chunk_hits` | Secondary-tier chunk lookups and hits — the tier's own hit rate, distinct from the engine's prefix-cache hit rate. **Renamed from `block_queries`/`block_hits` in v0.28.0 (#52812).** On v0.28.x–v0.29.x the Python constants are still `BLOCK_QUERIES`/`BLOCK_HITS` (renamed `CHUNK_*` in v0.30.0), so a source grep there finds no rename |
 | `vllm:kv_offload_tiering_primary_read_usage_perc` / `_primary_write_usage_perc` | Occupancy of the primary tier's read and write paths |
 | `vllm:kv_offload_tiering_active_promotion_jobs` / `_active_cascade_jobs` | In-flight promotion and cascade jobs |
 | `vllm:kv_offload_tiering_promotion_job_failures` / `_cascade_job_failures` / `_promotion_allocation_failures` | Failure counters — watch these first when tiering silently stops helping |
