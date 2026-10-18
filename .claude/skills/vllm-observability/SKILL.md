@@ -71,12 +71,14 @@ Plus a working `docker-compose.yaml` + `prometheus.yaml` for local trials. Perse
 ```bash
 vllm serve $MODEL \
   --otlp-traces-endpoint=grpc://otel-collector:4317 \
-  --collect-detailed-traces=all   # or: model, or: worker — expensive, use per-incident
+  --collect-detailed-traces=all   # or: model, or: worker
 ```
 
-Combine as `--collect-detailed-traces model worker`; the comma form `model,worker` fails startup since v0.31.0.
+`--collect-detailed-traces`:
 
-Without `--collect-detailed-traces`, spans are emitted but the two most useful per-step metrics (`model_forward_time_milliseconds`, `model_execute_time_milliseconds`) are missing. Flag is designed to be enabled *during* an incident, not as baseline — docs explicitly warn about performance impact.
+- **Unlocks** `model_forward_time_milliseconds` and `model_execute_time_milliseconds`; without it spans are emitted but these two per-step metrics are missing.
+- **Costs 5–10% throughput.** Enable on one replica during an incident; leave unset as baseline.
+- **Combine modules space-separated** (`--collect-detailed-traces model worker`); the comma form `model,worker` fails startup since v0.31.0.
 
 Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf`. All OTel packages bundled with vLLM. Full stack choices (Jaeger all-in-one, OTel Collector → Tempo → Grafana, Langfuse), span catalog, and sampling patterns in `references/tracing.md`.
 
@@ -99,8 +101,6 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 8. **`GPU_UTIL` at 100% ≠ busy GPU.** The ebpfchirp "11-second TTFT" incident is canonical: util pinned high, SM occupancy was 18%, the scheduler was stalled on prefix-cache head-of-line blocking. Watch `SM_OCCUPANCY`.
 
 9. **Ray Serve deployments don't auto-expose `/metrics`.** `RayPrometheusStatLogger` must be wired explicitly, or Ray 2.51+ ingests vLLM metrics through Ray's own endpoint (disable with `log_engine_metrics: False` to avoid double-scraping).
-
-10. **`--collect-detailed-traces` as baseline.** 5–10% overhead. Toggle per-incident; leave unset by default.
 
 Full troubleshooting matrix (dashboard-empty, metric-gone-after-upgrade, P99 NaN, histogram buckets miscalibrated for SLO) in `references/alerting.md` under the "When metrics lie" section.
 
