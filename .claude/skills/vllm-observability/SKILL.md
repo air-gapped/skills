@@ -107,6 +107,19 @@ curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requ
 
 `${CLAUDE_SKILL_DIR}/scripts/metrics-smoke.sh` runs the full smoke check against a deployment: confirms endpoints, greps load-bearing series, warns on deprecated metric names, cross-checks DCGM availability if configured. Output is color-coded pass/warn/fail.
 
+**An observability audit is done when all three hold:**
+
+1. `metrics-smoke.sh` exits 0, or every WARN it prints is explained in the report.
+2. Every row of [Top signals](#top-signals-to-alert-on) has an alert rule or a written waiver.
+3. Every `vllm:*` name the dashboards and rules query exists on the live endpoint. Send one request first, then run:
+
+```bash
+names() { grep -oE 'vllm:[a-z0-9_]+' | sed -E 's/_(bucket|sum|count|created)$//' | sort -u; }
+grep -rh 'vllm:' <dashboards-and-rules-dir> | names > want.txt
+curl -s http://<endpoint>/metrics | grep '^vllm:' | names > have.txt
+comm -23 want.txt have.txt   # each line left: renamed, removed, or feature-gated per metrics-catalog.md
+```
+
 ## Upgrade traps
 
 Every name, label and release gate below is in `references/metrics-catalog.md`; its § V0 vs V1 deltas maps each deprecated name to its replacement.
