@@ -10,14 +10,14 @@ Backends gate on `DeviceCapability` in `vllm/v1/attention/backends/`:
 | Backend | Hopper (sm_90) | Blackwell (sm_100/103) | Notes |
 |---|---|---|---|
 | `FLASH_ATTN` (FA2/FA3) | ✅ | ✅ | CC ≥ 8.0; FA3 for ViT added v0.11 |
-| `FLASH_ATTN_MLA` | ✅ | ❌ | `capability.major == 9` (`flashattn_mla.py:80-81`) |
-| `FLASHINFER` | ✅ | ✅ | CC 7.5–12.1; FlashInfer 0.3.1+ default v0.11 |
-| `FLASHINFER_MLA` (dense) | ❌ | ✅ | Blackwell-only: `capability.major == 10` (`flashinfer_mla.py:157-158`). The gate is on the *major* only, so Rubin (10.7) passes it — that admits the backend, it does not prove the kernels exist there |
-| `FLASHINFER_MLA_SPARSE` (DeepSeek V3.2) | ❌ | ✅ | Blackwell-only; default for FP8 KV cache v0.19 (#37252) |
+| `FLASH_ATTN_MLA` | ✅ | ❌ | `capability.major == 9` (`flashattn_mla.py:70-71` at v0.32.0) |
+| `FLASHINFER` | ✅ | ✅ | CC 8.0–12.1 — SM75 (T4) temporarily excluded from auto-selection (`flashinfer.py:571-579` at v0.32.0); FlashInfer 0.3.1+ default v0.11 |
+| `FLASHINFER_MLA` (dense) | ❌ | ✅ | Blackwell-only: `capability.major == 10` (`flashinfer_mla.py:220-221` at v0.32.0). The gate is on the *major* only, so Rubin (10.7) passes it — that admits the backend, it does not prove the kernels exist there |
+| `FLASHINFER_MLA_SPARSE` (DeepSeek V3.2) | via `_SM90` key | ✅ | TRTLLM kernel, `major == 10`; default for FP8 KV cache v0.19 (#37252). Hopper and SM12x use the separate `FLASHINFER_MLA_SPARSE_SM90` / `FLASHINFER_MLA_SPARSE_SM120` registry keys |
 | `FLASHMLA` (dense & sparse) | ✅ | ✅ | `capability.major in [9, 10]`; disabled on Blackwell in v0.10.2 (#24521), restored |
 | `CUTLASS_MLA` | ❌ | ✅ | `sm100_cutlass_mla_decode`; FP8 MLA (#23289, v0.10.2) |
-| `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (a *revert* of the Blackwell-Ultra optimization that caused the deadlock; closes #2939), shipped in 0.6.7.postN. If stuck on plain 0.6.7, disable TRTLLM on SM103 or upgrade. |
-| `TRITON_ATTN` / `FLEX_ATTENTION` / `TREE_ATTN` | ✅ | ✅ | Generic |
+| `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (a *revert* of the Blackwell-Ultra optimization that caused the deadlock; closes #2939), first shipped in 0.6.7.post2 (post1 lacks it). If stuck on 0.6.7 or 0.6.7.post1, disable TRTLLM on SM103 or upgrade. |
+| `TRITON_ATTN` / `FLEX_ATTENTION` | ✅ | ✅ | Generic. `TREE_ATTN` was removed in v0.21.0 (#42121) |
 | `xformers` | removed v0.11 | removed | V0 deprecation |
 | `B12X` | ❌ | SM120/121 only | Causal paged attention, v0.30.0 (#52017): `--attention-backend B12X` (registry key is `B12X`, not `B12X_ATTN` despite the release-note prose). Gates on `(capability.major, capability.minor) in ((12, 0), (12, 1))` exactly — SM100/SM103 don't qualify (`vllm/v1/attention/backends/b12x.py:212-215`) |
 
@@ -51,7 +51,7 @@ previously polluted TTFT measurements on a cold replica are now warmed by the en
 | `NixlConnector` | Beta / early-production | UCX/NIXL disagg; heavy dev v0.10.2–v0.19 |
 | `MooncakeConnector` | 🧪 Limited | **PP is supported since v0.24.0** (#44528, merged 2026-06-16) — the old "no pipeline parallelism" limit is gone; the connector now carries `pp_size`/`pp_rank` and PP-rank address routing. Heterogeneous TP added v0.19 (#36869). Path moved to `v1/mooncake/mooncake_connector.py` |
 | `MultiConnector` | Production | Composition |
-| `hf3fs`, `moriio`, `p2p`, `flexkv`, `offloading`, `simple_cpu_offload` | Varies | Specialized transports |
+| `hf3fs`, `moriio`, `flexkv`, `offloading`, `simple_cpu_offload`, `hisparse` | Varies | Specialized transports. `P2pNcclConnector` was removed in v0.24.0 (#44854) |
 
 ## 4. Speculative decoding — platform angle only
 
@@ -68,7 +68,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 - **Target-model gating moved.** The flat EAGLE-3/DFlash allow-list is gone as of
   v0.27.0; supported draft methods and per-family MTP types are now `Literal`
   unions near the top of `config/speculative.py` (`MTPModelTypes`,
-  `EagleModelTypes`, `SpeculativeMethod`, ~lines 40-77) plus per-`model_type`
+  `EagleModelTypes`, `SpeculativeMethod`, ~lines 38-83 at v0.32.0) plus per-`model_type`
   coercion further down. Read the file, don't trust a cached list; the
   `vllm-speculative-decoding` skill owns the catalogue.
 - **BS ≥ 32 regime**: target becomes compute-bound, spec-dec hurts. On
@@ -80,16 +80,16 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 - **CUDA 13 support** landed in v0.11 (#24599); v0.12 on PyTorch 2.9.0 / CUDA 12.9;
   v0.19 ships `cu130` wheels.
 - **For B300/GB300: CUDA 13 recommended**, `torch_cuda_arch_list='9.0 10.0+PTX'`
-  (`docs/getting_started/installation/gpu.cuda.inc.md:369-400`; still the documented
-  arch list at v0.27.0 — `10.0` covers SM103 via the `10.0f` family target).
+  (`docs/getting_started/installation/gpu.cuda.inc.md:410-424`; still the documented
+  arch list at v0.32.0 — `10.0` covers SM103 via the `10.0f` family target).
 - **SM100 (B200)** broadly supported; **SM103 (GB300)** was recognized with known hang
   in TRTLLM/FlashInfer 0.6.7 — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956,
   which *reverts* the Blackwell-Ultra optimization that introduced the deadlock
-  (closes #2939), shipped in 0.6.7.postN. **This is now history for anyone on a
+  (closes #2939), first shipped in 0.6.7.post2. **This is now history for anyone on a
   current vLLM**: v0.22.0 ships FlashInfer 0.6.11.post2, v0.23.0 ships 0.6.12,
-  v0.25.0 ships 0.6.13 — all far past the fix. It only bites a deployment that
-  pins FlashInfer independently of vLLM. If pinned to plain 0.6.7 without the post
-  fix, disable TRTLLM on SM103 (`--attention-config.use_trtllm_attention=0`); 0.6.6
+  v0.25.0 ships 0.6.13, v0.32.0 ships 0.7.0.post1 — all far past the fix. It only bites a deployment that
+  pins FlashInfer independently of vLLM. If pinned to 0.6.7 or 0.6.7.post1,
+  disable TRTLLM on SM103 (`--attention-config.use_trtllm_attention=0`); 0.6.6
   works, and the FlashInfer default backend on SM103 actually benchmarks faster than
   the old 0.6.6 TRTLLM path (~56 vs ~35 req/s in the upstream repro).
 - **SM120 (RTX PRO 6000 desktop Blackwell):** specific CUTLASS optimizations (v0.19
@@ -107,7 +107,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   torch up to 2.11. **Fixed in v0.27.0 (#49904)**: vLLM now reads `code=sm_*` and
   hard-errors when no supported arch matches instead of shipping a kernel-less
   build. Pre-v0.27.0 workaround: set `TORCH_CUDA_ARCH_LIST` explicitly.
-- **Non-CDMM Grace-Blackwell NUMA handling:** `platforms/cuda.py:806-826`
+- **Non-CDMM Grace-Blackwell NUMA handling:** `platforms/cuda.py:837-872` (v0.32.0)
   (`get_device_numa_node`) — each GPU's HBM is a separate NUMA node with no CPUs;
   vLLM falls back to CPU-affinity-based detection to find the nearest CPU node.
 
@@ -165,7 +165,19 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashAttention-3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable
   FlashMLA build (#48174) — both reduce torch-upgrade breakage. FlashInfer
   **0.6.14** (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442).
-- **v0.30.0** (2026-09-22, **newest release**) — **B12X causal paged attention
+- **v0.32.0** (2026-10-18, **newest release**) — **NVFP4 KV cache on SM8x/SM12x**
+  (#46963), **SM90** (#60620) and with XQA decode on SM12x (#60452). **Fixes silent
+  CUTLASS NVFP4/MXFP4 MoE corruption under EP** (#59042, see SKILL.md). DeepEPv2
+  hybrid NVLink+RDMA mode now **on by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`,
+  was `0`; #57991). Humming preferred over Marlin on SM90 (#56997); native 64-head
+  FlashMLA sparse prefill on SM100 (#60029); SM120 split-K attention (#58482). Cascade
+  attention removed (#61126). NIXL 1.5.0 (#56907); CuTe DSL 4.8.0. Env floors
+  (Python 3.11, GCC 13, transformers, `vllm download-kernels`): SKILL.md cheat sheet.
+- **v0.31.0** (2026-10-05) — FlashInfer **0.7.0.post1** (#58069, #59323); Rubin
+  `cu134-nightly` images (#55953, see Rubin section below); low-SM multimem
+  reduce-scatter on SM100/SM103 (#55072); MoonEP all2all `--all2all-backend moonep`
+  (#52101); `--enforce-eager` now also disables JIT kernel warmup (#58197).
+- **v0.30.0** (2026-09-22) — **B12X causal paged attention
   backend for SM120/SM121** (#52017, table above). **FlashInfer XQA decode
   extended from SM12x-only to SM90** (#50439) — Hopper now shares the same
   decode kernel path Blackwell consumer parts already had. **W4A4 NVFP4 linear
@@ -196,7 +208,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashInfer **0.6.18** (#54313); **NIXL 1.3.2** (#51777) — the latter confirmed by
   running the published image. AMD: CPU offload on ROCm 7.13+ (#43018), fused KDA
   decode on MI325X (#52293). **Model Runner V2 is now the default for all models**
-  (#53183) and MRV1 is deprecated for removal in v0.32 — but vLLM still falls back to
+  (#53183) and MRV1 was deprecated for removal in v0.32 — it is still present at v0.32.0, and vLLM still falls back to
   MRV1 for a few ROCm models and for features MRV2 lacks, so a ROCm deployment can be
   silently on the deprecated runner. **PyAV video decoder removed** — use OpenCV or
   Torchcodec (#54231); ROCm's `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141).
@@ -264,21 +276,24 @@ vLLM had no Rubin code path. Three caveats decide whether it means anything yet:
   CUDA 13.0–13.3 the list is `7.5;8.0;8.6;8.7;8.9;9.0;10.0;11.0;12.0`.
 - **The shipped image does not carry it.** `docker/Dockerfile` defaults to
   `CUDA_VERSION=13.0.3` with `torch_cuda_arch_list='7.5 8.0 8.6 8.9 9.0 10.0 11.0 12.0'`
-  (lines 25, 288) — no native SM107 cubins. vLLM's own comment says "Rubin (10.7)
+  (lines 25, 273 at v0.32.0) — no native SM107 cubins. vLLM's own comment says "Rubin (10.7)
   can run SM100 family code", so a Rubin falls back to the `10.0f` family target.
-- **Tracking issue #49735 is still open** (updated 2026-07-29) with the CUDA 13.4
+- **Tracking issue #49735 is still open** (updated 2026-08-23) with the CUDA 13.4
   dev-preview build and the FlashInfer sm_107 bump unchecked; FlashInfer's own
   SM107 PR (flashinfer-ai/flashinfer#4122) merged 2026-07-25.
 
 **v0.30.0 adds a public, documented build path** (#54640, #56545): pass
 `--build-arg INSTALL_RUBIN_PRERELEASE=true --build-arg CUDA_VERSION=13.4` to
 `docker/Dockerfile` against a `pytorch/manylinux2_28-builder:cuda13.4` (or
-`manylinuxaarch64-builder:cuda13.4`) base and the
-`nvcr.io/nvidia/cuda-dl-base:26.08-cuda13.4-devel-ubuntu24.04` final image
+`manylinuxaarch64-builder:cuda13.4`) base
 (`docs/getting_started/installation/gpu.cuda.inc.md`). It pulls CUDA 13.4
 PyTorch/torchvision/torchaudio **nightlies** from
 `requirements/rubin-prerelease.txt` and builds Triton from source (the shipped
-Triton's `ptxas-blackwell` 13.3 can't assemble SM107). This is a real, working
+Triton's `ptxas-blackwell` 13.3 can't assemble SM107). **At v0.32.0 the final
+image is `nvidia/cuda:13.4.1-base-ubuntu24.04`** (v0.30.0 used
+`nvcr.io/nvidia/cuda-dl-base:26.08-cuda13.4-devel-ubuntu24.04`), and the recipe
+adds `NCCL_VERSION=2.32.3` (first NCCL with SM107), `TRITON_INSTALL_FROM_SOURCE_REPO`/`_REVISION`
+and `BUILD_NIXL=true`. Prebuilt nightlies: `vllm/vllm-openai:cu134-nightly` (v0.31.0, #55953). This is a real, working
 build recipe — not the default wheel or image, and still pinned to PyTorch
 nightlies rather than a stable release; tracking issue #49735 is still open.
 
@@ -288,7 +303,7 @@ Treat day-one Rubin serving as *in progress*, not shipped — see
 **`sm_110` is Thor, not Rubin.** vLLM's own build comments place `sm_110`
 in the Blackwell/Thor family alongside `sm_100`/`sm_103`
 (`.buildkite/image_build/image_build_arm64.sh`,
-`csrc/libtorch_stable/launch_bounds_utils.h`). Don't read a Rubin target into it.
+`csrc/launch_bounds_utils.h`). Don't read a Rubin target into it.
 
 **Thor + CUDA 13 + Triton gotcha.** `ptxas fatal: Value 'sm_110a' is not
 defined for option 'gpu-name'` means the ptxas bundled with Triton predates
@@ -299,7 +314,7 @@ toolkit's own ptxas. Documented in `docs/usage/troubleshooting.md`.
 ## 7. NVL72 handling in vLLM
 
 - No hardcoded 72-GPU logic; NVLink detected generically via NVML p2p
-  (`platforms/cuda.py:775-800`, `is_fully_connected`).
+  (`platforms/cuda.py:807-827` at v0.32.0, `is_fully_connected`).
 - Communicator layer has FlashInfer NVLink one-/two-sided all-reduce
   (`fused_moe/prepare_finalize/flashinfer_nvlink_*.py`) and NCCL symmetric memory
   default TP (v0.11 #24532, #25070, +3–4% throughput).

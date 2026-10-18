@@ -79,7 +79,7 @@ per-pin clocks higher. **B300 is HBM3E, not HBM4** — a common misread.
   Samsung. Samsung is adding ~50% HBM capacity in 2026
   ([Astute Group](https://www.astutegroup.com/news/general/sk-hynix-holds-62-of-hbm-micron-overtakes-samsung-2026-battle-pivots-to-hbm4/)).
 - **DRAM/HBM price surge** flagged by Samsung for 2026
-  ([Network World, 2025-12](https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026)).
+  ([Network World, 2025-12](https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026.html)).
 - **Operator implication:** HBM is the binding constraint on Blackwell delivery. Lead
   times on 33 kW PSU shelves and liquid-cooling plumbing compound this — see
   `nvl72-procurement.md`.

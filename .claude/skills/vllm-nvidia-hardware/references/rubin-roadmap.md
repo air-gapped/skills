@@ -12,12 +12,12 @@ reference. When quoting NVIDIA marketing verbatim, use "Vera Rubin NVL72". When
 discussing die-count (144 dies = 72 packages) in engineering context, VR200 NVL144
 is still the accurate description.
 
-## Shipping status — checked 2026-07-21, inside the claimed window
+## Shipping status — checked 2026-10-18
 
-The "ships H2 2026" line is now testable rather than forward-looking, and the
-honest answer is **silicon exists in a customer rack; general delivery has no
-date**. Keep those two facts apart — "in production" is a fab statement, not a
-delivery statement.
+**First racks are delivered and in production use (CoreWeave, 2026-09-30); NVIDIA
+still states no general-delivery date.** Keep those apart — one cloud's early
+allocation is not supply you can order against, and "in production" is a fab
+statement, not a delivery statement.
 
 | Evidence | Date | What it actually establishes |
 |---|---|---|
@@ -25,6 +25,9 @@ delivery statement.
 | Jensen Huang, Tokyo developer event: *"Vera Rubin is already in production. Giant amounts of production incoming."* | **2026-07-15** | NVIDIA denying press reports of a manufacturing delay. No public transcript; no fiscal-quarter or revenue-timing statement accompanied it. |
 | NVIDIA guidance | — | Still only "partner products in the second half of 2026". **No customer-delivery date has been given.** |
 | ~~First-cohort clouds named in coverage~~ **— does not survive a source check** | H2 2026 | The list (AWS, Azure, Google Cloud, Oracle, CoreWeave, Lambda, Nebius, Nscale; OEMs Dell, HPE, Lenovo, Supermicro) came from search-result summaries. The one article cited for it was fetched in full on 2026-09-15 and **contains none of those vendor names** — see `sources.md`. **Establishes nothing**; do not cite it as evidence of a customer roster. Broad availability reported as 2027 is likewise uncorroborated here. |
+| NVIDIA Q2 FY27 results: Rubin "ramping into full production with racks running at partners including CoreWeave, Google Cloud, Microsoft Azure, Oracle Cloud Infrastructure and Nebius" | **2026-08-26** | Vendor statement of racks at partners. No delivery date, GA date or volume. |
+| Supermicro IR release: "now shipping NVIDIA Vera Rubin NVL72 racks" | **2026-09-23** | First OEM shipping statement. No customers or volumes named. |
+| CoreWeave: Vera Rubin NVL72 "available", Cognition "the first customer anywhere running production workloads"; cluster stood up "in early September" | **2026-09-30** | **First customer delivery in production use.** Does not establish broad supply or hyperscaler GA. |
 | Reported risk | 2026-07 | A KeyBanc analyst flagged a possible **heat-lid qualification issue with SK hynix memory**. Unconfirmed; treat as rumour, not schedule. |
 
 **Reading it for a buy-or-wait call:** "in production" does not mean partners
@@ -54,6 +57,16 @@ set (#54640, #56545). It still depends on **PyTorch nightlies** pinned in
 cubins. Read this as: a team with Rubin silicon in hand can now build a
 working image themselves; a team waiting on the default wheel/image still
 waits.
+
+**v0.31.0–v0.32.0: prebuilt nightlies, release images unchanged.** Rubin images
+are published as `vllm/vllm-openai:cu134-nightly` (plus `-x86_64`/`-aarch64` and
+per-commit tags; #55953) — nightly only, no release-tagged cu134 image. At
+v0.32.0 the self-build recipe changed: `FINAL_BASE_IMAGE=nvidia/cuda:13.4.1-base-ubuntu24.04`,
+`NCCL_VERSION` ≥ **2.32.3** (first NCCL with SM107), Triton built from source via
+`TRITON_INSTALL_FROM_SOURCE_REPO`/`_REVISION`, `BUILD_NIXL=true` for the NIXL EP
+extension, torch `2.15.0.dev` nightlies in `requirements/rubin-prerelease.txt`.
+Keep the default `torch_cuda_arch_list` — R100/VR200 report CC 10.7 and use the
+`10.0` family kernels. #49735 is still open.
 
 **`sm_110` is Thor, not Rubin** — vLLM's own build comments group it with
 Blackwell. See `references/vllm-platform-matrix.md`.

@@ -26,8 +26,8 @@ bidi). Half-duplex is 450 GB/s; sources that quote 450 are counting one directio
 FP8/FP16/BF16/TF32/INT8 only.
 
 Primary sources:
-[NVIDIA H100 datasheet](https://resources.nvidia.com/en-us-tensor-core/nvidia-tensor-core-gpu-datasheet),
-[NVIDIA H200 datasheet](https://nvdam.widen.net/s/nb5zzzsjdf/hpc-datasheet-sc-nvidia-h200-datasheet-nvidia-us),
+[NVIDIA H100 product page](https://www.nvidia.com/en-us/data-center/h100/),
+[NVIDIA H200 product page](https://www.nvidia.com/en-us/data-center/h200/),
 [Hopper in-depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/).
 
 ## 2. Blackwell and Blackwell Ultra — CRITICAL: B300 has two shipping bins

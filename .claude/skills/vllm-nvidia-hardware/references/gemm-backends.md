@@ -41,19 +41,20 @@ on prefill matmuls (prefill is already compute-saturated).
 CUTLASS kernels are AOT-compiled and selected by a heuristic table. Less
 flexible than DeepGEMM's JIT, but no warm-up.
 
-## E8M0 scaling — Hopper-only accuracy knob
+## E8M0 scaling — DeepGEMM accuracy knob (Hopper and Blackwell)
 
 `VLLM_USE_DEEP_GEMM_E8M0=1` switches FP8 quantisation scale storage from
 FP32 to E8M0 (8-bit exponent, no mantissa). This is *faster* (single-byte
-scale per tile) but only lossless for FP8 E4M3. Default off.
+scale per tile) but only lossless for FP8 E4M3. **Default on** (`1`): whenever
+DeepGEMM is active, `is_deep_gemm_e8m0_used()` returns `True` unless you set `=0`.
 
-Turn on when:
+Keep on when:
 
 - Model is FP8 E4M3 on H100/H200.
 - Throughput > accuracy-bit-for-bit (the scale rounding error is <1 ULP per
   block, typically invisible in generation quality).
 
-Leave off (or default) when:
+Set `VLLM_USE_DEEP_GEMM_E8M0=0` when:
 
 - FP8 E5M2 weights (the exponent-wide format breaks E8M0 assumptions).
 - Accuracy-gated eval pipelines (any scale rounding is a confound).
@@ -74,11 +75,12 @@ Deployment implications:
 - **Mount the cache as a PVC** in Kubernetes — otherwise every pod restart
   pays the warm-up tax.
 - **Warm up explicitly**: send a few representative-shape requests before
-  flipping traffic to the new replica. See `vllm serve --warmup-requests`.
+  flipping traffic to the new replica — `vllm serve` has no warmup-request flag.
   From **v0.27.0** the engine does more of this itself — generic JIT warmup
   infrastructure (#47451) plus runner-owned Triton kernel warmup before the
   first request (#49903) — so the residual cold-start tax is smaller, but
   DeepGEMM still compiles per unseen `(shape, dtype)` and the PVC still pays.
+  From **v0.31.0** `--enforce-eager` also disables that engine warmup (#58197).
 - **Disk space**: typical cache is 50-200 MB per model. Free-tier PVCs
   (≤1 Gi) work; watch disk pressure in multi-model deployments.
 
@@ -119,10 +121,10 @@ kernel tuning*. Short summary:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VLLM_USE_DEEP_GEMM` | `1` on Hopper | Enable DeepGEMM kernel path for FP8 matmuls |
-| `VLLM_USE_DEEP_GEMM_E8M0` | `0` | Enable E8M0 scale packing (Hopper FP8 E4M3 only) |
+| `VLLM_USE_DEEP_GEMM` | `1` (takes effect on Hopper/Blackwell) | Enable DeepGEMM kernel path for FP8 matmuls |
+| `VLLM_USE_DEEP_GEMM_E8M0` | `1` | E8M0 scale packing when DeepGEMM is active (Hopper and Blackwell) |
 | `DG_JIT_CACHE_DIR` | `~/.cache/deep_gemm` | Kernel compile cache — mount as PVC |
-| `VLLM_ATTENTION_BACKEND` | auto | `FLASHINFER` / `FLASH_ATTN` / `TRITON` — orthogonal to GEMM backend |
+| `--attention-backend` (CLI flag) | auto | `FLASHINFER` / `FLASH_ATTN` / `TRITON_ATTN` — orthogonal to GEMM backend. The `VLLM_ATTENTION_BACKEND` env var was removed in v0.15.0 (#32812) |
 
 ## Troubleshooting
 
@@ -134,9 +136,10 @@ kernel tuning*. Short summary:
   the `vllm-project/DeepGEMM` fork** (release notes call the pin "2.8.0"; the
   fork adds the SM120 port and an SM90 paged-MQA port, #56876). A build using
   a local `DEEPGEMM_SRC_DIR` checkout of the old upstream repo is now stale
-  — repoint it at the fork. Source builds of v0.30.0 need **GCC 13+**: the pinned
-  DeepGEMM and DeepSelect revisions use C++20 `<format>`, although vLLM still
-  declares GCC ≥ 11.3 ([#58158](https://github.com/vllm-project/vllm/issues/58158), open).
+  — repoint it at the fork. CUDA source builds need **GCC 13+**: the pinned
+  DeepGEMM and DeepSelect revisions use C++20 `<format>`. v0.30.0–v0.31.0 still
+  declared GCC ≥ 11.3 and failed mid-build; v0.32.0 fails at CMake configure
+  ([#58158](https://github.com/vllm-project/vllm/issues/58158), fixed by #60259).
 - Compute capability < 9.0: older cards (A100 SM80) use CUTLASS; DeepGEMM is
   Hopper+.
 - Shared-memory allocation refused: container limit too low. DeepGEMM
@@ -168,7 +171,7 @@ Kernel picture differs from Hopper:
   MoE via CUTLASS (default from v0.10.2).
 - **SM103 (GB300)**: DeepGEMM partial. The TRTLLM hang was specific to plain
   FlashInfer **0.6.7** and was fixed by revert on 2026-04-07; vLLM has shipped
-  0.6.11.post2 → 0.6.16.post3 since, so this only bites a deployment that pins
+  0.6.11.post2 → 0.7.0.post1 since, so this only bites a deployment that pins
   FlashInfer independently. See `vllm-platform-matrix.md` §5.
 - **SM120 (RTX PRO 6000 desktop)**: CUTLASS blockwise FP8 GEMM (v0.19 PR
   #37970); NVFP4 NaN fix v0.19 (#37725).
