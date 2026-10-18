@@ -11,14 +11,27 @@ measurement nobody can run.
 
 ## Decided — do not re-propose
 
-- **v0.20.0 PR-list redundancy across three files** (Dim 6) —
-  `SKILL.md` "Landed in v0.20.0" section vs `references/sources.md`
-  derived-updates vs `references/runner-flags.md` §3/§10. The PR-by-PR
-  perf/breaking list is stated in all three. Not collapsed: SKILL.md needs
-  the breaking-change callouts inline (Completeness/Actionability), the
-  reference files are the deep audit trail, and sources.md is the dated
-  evidence log — deleting from any one harms a different dimension, so this
-  is a deliberate-tension item, not a one-edit win. (carried 2026-05-28)
+- **Keep the breaking-change callouts inline in SKILL.md** (Dim 4/5) — as
+  one row each in the "Version gates" table, pointing at the task reference
+  that holds the detail. Do not move them out entirely, and do not grow them
+  back into per-release prose: the PR-by-PR history belongs in
+  `references/sources.md`. (decided 2026-05-28, reshaped 2026-10-18)
+
+## Resolved this pass (2026-10-18, improve)
+
+Baseline blind 73 at 1785cdd (snapshot of the 8da99dc freshen); self 72 → 78
+over 5 iterations, cap reached, zero discards. Final blind score and A/B
+comparator verdict run by the operator.
+- Kept: per-release changelog (v0.20.0–v0.32.0) replaced by an 8-row
+  version-gates table; no-action PR history moved to `sources.md`
+  (SKILL.md 486 → 328).
+- Kept: four pitfalls that restated the cheat sheet deleted (→ 311).
+- Kept: refresh policy and `Last verified` footer moved to `sources.md` (→ 296).
+- Kept: `truncation_side` on `/v1/embeddings`, `/score`, `/rerank` documented
+  in `embedding.md` §1; the misleading "#43260 not applicable" claim and its
+  `sources.md` row corrected.
+- Kept: `--task` removal stated once, in pitfall 1 (→ 294).
+- After the cap: "Target audience" framing paragraph cut to one line (→ 291).
 
 ## Resolved — 2026-08-11 (freshen, rebaseline v0.25.1 → v0.27.0)
 
@@ -125,7 +138,7 @@ pending task.
 blog, and the `docs.vllm.ai` pooling doc tree — all still listed as
 "Non-probed references" in `sources.md`.
 
-## Resolved this pass (2026-05-28)
+## Resolved — 2026-05-28
 
 - Qwen3-Reranker three-extras recipe de-duplicated — `SKILL.md` pitfall #5
   now points to the cheat-sheet command above + `references/reranking.md`

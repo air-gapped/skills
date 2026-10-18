@@ -8,11 +8,8 @@ when_to_use: |-
 
 # vLLM — embeddings, reranking, speech-to-text, OCR
 
-Target audience: operators who need vLLM's non-chat-completion surfaces. Four
-capabilities bundled here because they share operator-facing concepts
-(`--runner` flag, pooling configuration, scoring API, multimodal preprocessing)
-even though two run on the pooling runner (embedding, reranking) and two run
-on the generate runner (STT, OCR).
+Embedding and reranking run on the pooling runner; STT and OCR run on the
+generate runner.
 
 ## The mental model — one flag rules the surface
 
