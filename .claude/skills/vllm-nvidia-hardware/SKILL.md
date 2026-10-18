@@ -60,28 +60,30 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 ### Running vLLM on Blackwell (B200/B300)
 - Switch to FP4 (NVFP4 via ModelOpt checkpoints) — 1.8–2× decode throughput on the same HBM budget.
 - NVL72 collapses disagg cost — keep prefill/decode inside one NVLink5 domain; use `NixlConnector`.
-- Pin vLLM **≥ v0.19** for first-class B300/GB300 (SM 10.3) support, and
-  **≥ v0.25.1 if serving NVFP4**: v0.25.0 and earlier can emit garbage
-  (repeated `!!!!!`) from the fused allreduce+RMSNorm+quant path on NVFP4
-  models with Gemma/Qwen-style RMSNorm. Silent wrong output, no crash — see
-  `references/vllm-platform-matrix.md` §6.
-- **≥ v0.32.0 for NVFP4/MXFP4 MoE with expert parallelism on the CUTLASS MoE
-  backend**: earlier releases ignored `expert_map`, routing tokens to the wrong
-  local experts — degenerate output (~0% GSM8K), no error (#59042).
+- Minimum vLLM by workload — the two NVFP4 rows fail silently (wrong text, no crash):
+
+  | Workload | Floor | Below the floor |
+  |---|---|---|
+  | B300/GB300 (SM 10.3) | v0.19 | no first-class SM103 support |
+  | NVFP4, multi-GPU, Gemma/Qwen-style RMSNorm | v0.25.1 | repeated `!!!!!` from the fused allreduce+RMSNorm+quant path |
+  | NVFP4/MXFP4 MoE + expert parallelism, CUTLASS MoE backend | v0.32.0 | `expert_map` ignored, wrong local experts, ~0% GSM8K (#59042) |
+
 - 270 GB (HGX bin) or 279 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
-- **Upgrading to v0.27.0 is an environment change, not a version bump:** `requirements/cuda.txt` pins `torch==2.13.0` / `torchvision==0.28.0` (#48155, flagged breaking upstream; Triton 3.7.1 rides along with torch rather than being pinned separately), and the image build sets `NCCL_VERSION=2.30.7` — the NCCL floor is what unlocks DeepEPv2 for Wide-EP (#45321). Rebuild the container; don't pip-upgrade in place.
-- **v0.32.0 floors:** Python ≥ 3.11 (#60402), `transformers>=5.16.1,<5.20.0` +
-  `tokenizers>=0.23.2`, GCC ≥ 13 for CUDA source builds (CMake fails early,
-  #60259). Unchanged since v0.27.0: `torch==2.13.0`, image `CUDA_VERSION=13.0.3`,
-  `NCCL_VERSION=2.30.7`. FlashInfer is 0.7.0.post1 and `flashinfer-cubin` is no
-  longer a pip dependency: after every pip install/upgrade run `vllm download-kernels`
-  (#58765), or startup JIT-compiles for minutes on Blackwell and a version-mismatched
-  kernel set makes FlashInfer refuse to import. The `vllm/vllm-openai` image does it at build.
+- **Crossing v0.27.0 or v0.32.0 is an environment change:** torch, NCCL, Python,
+  GCC and transformers floors moved — rebuild the container, never pip-upgrade in
+  place. Floors per release: `references/vllm-platform-matrix.md` §6.
+- **On v0.32.0+ pip installs, run `vllm download-kernels` after every install or
+  upgrade** (#58765): `flashinfer-cubin` is no longer a dependency, so without it
+  startup JIT-compiles for minutes on Blackwell, and a mismatched kernel set makes
+  FlashInfer refuse to import. The `vllm/vllm-openai` image does it at build.
 
 ### Buying NVIDIA hardware in 2026
 - **GB300 NVL72 is safe for 2026 capacity:** size the row for 135–155 kW, DLC @ 25 °C, 3φ 480 V. Vendors: NVIDIA DGX B300, Dell IR7000 + XE9780L / XE8712 sleds, Supermicro SRS-GB300-NVL72, Lenovo 7DJVCTO2WW, HPE.
 - **Greenfield rows should be spec'd for Rubin NVL144:** 180–220 kW, 45 °C W45 warm water, 800 VDC HVDC, new MGX rack. Retrofitting later is expensive.
-- **Rubin timing, as of 2026-10-18:** first deliveries are in production use — CoreWeave announced Vera Rubin NVL72 availability on 2026-09-30 with a first customer running production workloads (cluster stood up early September), and Supermicro announced it is shipping racks on 2026-09-23. NVIDIA (results, 2026-08-26) says racks are "running at partners including CoreWeave, Google Cloud, Microsoft Azure, Oracle Cloud Infrastructure and Nebius", but gives **no general-availability or customer-delivery date**, and only CoreWeave has announced customer availability. Early allocation is not broad supply: the signal to plan a purchase against is still an OEM quoting firm order dates. **vLLM Rubin (`sm_107`) support is preview-only** — native SM107 needs **CUDA ≥ 13.4**; release images stay CUDA 13.0.3 with no SM107 cubins (Rubin runs SM100-family `10.0f` code); prebuilt Rubin images exist only as `vllm/vllm-openai:cu134-nightly` (#55953, PyTorch nightlies); tracking issue #49735 is still open. Detail in `references/rubin-roadmap.md`.
+- **Rubin timing (2026-10-18):** first customer in production (CoreWeave, 2026-09-30);
+  NVIDIA states no GA or delivery date — plan purchases against an OEM quoting firm
+  order dates. vLLM `sm_107` is preview-only: CUDA ≥ 13.4, `cu134-nightly` images,
+  tracking issue #49735 open. Dated evidence and the build recipe: `references/rubin-roadmap.md`.
 - **Expect HBM allocation and PSU rectifier shelf lead times to dominate schedule risk.** SK hynix / Micron / Samsung HBM sold out through CY26.
 
 ### Key numbers to memorize

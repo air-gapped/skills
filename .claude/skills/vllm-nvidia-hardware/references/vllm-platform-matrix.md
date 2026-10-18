@@ -171,8 +171,12 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   hybrid NVLink+RDMA mode now **on by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`,
   was `0`; #57991). Humming preferred over Marlin on SM90 (#56997); native 64-head
   FlashMLA sparse prefill on SM100 (#60029); SM120 split-K attention (#58482). Cascade
-  attention removed (#61126). NIXL 1.5.0 (#56907); CuTe DSL 4.8.0. Env floors
-  (Python 3.11, GCC 13, transformers, `vllm download-kernels`): SKILL.md cheat sheet.
+  attention removed (#61126). NIXL 1.5.0 (#56907); CuTe DSL 4.8.0. **Env floors:**
+  Python ≥ 3.11 (#60402), `transformers>=5.16.1,<5.20.0` + `tokenizers>=0.23.2`,
+  GCC ≥ 13 for CUDA source builds (CMake fails early, #60259); unchanged since
+  v0.27.0: `torch==2.13.0`, image `CUDA_VERSION=13.0.3`, `NCCL_VERSION=2.30.7`.
+  FlashInfer 0.7.0.post1 with `flashinfer-cubin` dropped as a pip dependency — run
+  `vllm download-kernels` after every pip install/upgrade (#58765).
 - **v0.31.0** (2026-10-05) — FlashInfer **0.7.0.post1** (#58069, #59323); Rubin
   `cu134-nightly` images (#55953, see Rubin section below); low-SM multimem
   reduce-scatter on SM100/SM103 (#55072); MoonEP all2all `--all2all-backend moonep`
