@@ -101,47 +101,17 @@ restore `["*"]` to make them work.
 - `VLLM_LOGGING_LEVEL=DEBUG|INFO|WARNING|ERROR`, `VLLM_LOGGING_PREFIX="rank0: "`, `VLLM_CONFIGURE_LOGGING=0` (let the host app own config).
 - v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated (removal v0.33.0) → `--logging-config.pylogging_config_file`.
 
-## Air-gapped operation — the short recipe
+## Air-gapped operation
 
-Full recipe in `references/air-gapped.md`. The essentials:
+Stage on a connected host (`HF_HOME=/export/hf hf download <repo>`, or `snapshot_download(<repo>, local_dir=...)`), transfer the directory into the enclave, then pick one pattern. Full commands, the staged-file checklist and offline failure modes: `references/air-gapped.md`.
 
-1. **Pre-stage on a connected host:**
-   ```bash
-   # new hf CLI
-   HF_HOME=/export/hf hf download meta-llama/Llama-3.1-70B-Instruct
-   # or python
-   python -c "from huggingface_hub import snapshot_download; \
-     snapshot_download('meta-llama/Llama-3.1-70B-Instruct', local_dir='/export/models/llama-70b')"
-   ```
+| Pattern | Use when | Set |
+|---|---|---|
+| **A — fully offline, local path** (default) | zero egress | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `VLLM_NO_USAGE_STATS=1`; `vllm serve /mnt/models/<dir>` |
+| **B — internal HF mirror** | a reverse proxy or Artifactory HF repository exists | `HF_ENDPOINT=https://hf.internal.example.com` (no trailing slash), `HF_TOKEN` if the mirror gates; serve by repo id |
+| **C — ModelScope** | `modelscope.cn` reachable, `huggingface.co` not; Qwen / DeepSeek / Yi / GLM families | `VLLM_USE_MODELSCOPE=true`, usually `--trust-remote-code`; stage LoRA adapters locally |
 
-2. **Transfer** the directory into the enclave (rsync, physical media, MinIO, whatever the security posture allows).
-
-3. **Pick one of three patterns:**
-
-   **A. Fully offline with local path (simplest, recommended):**
-   ```bash
-   export HF_HOME=/mnt/hf-cache
-   export HF_HUB_OFFLINE=1
-   export TRANSFORMERS_OFFLINE=1
-   export VLLM_NO_USAGE_STATS=1
-   vllm serve /mnt/models/llama-70b --tensor-parallel-size 8
-   ```
-
-   **B. Internal HF mirror (reverse proxy):**
-   ```bash
-   export HF_ENDPOINT=https://hf.internal.example.com   # NO trailing slash
-   export HF_TOKEN=<internal-bot-token>                  # mirror may still gate
-   vllm serve meta-llama/Llama-3.1-70B-Instruct --tensor-parallel-size 8
-   ```
-
-   **C. ModelScope (Chinese / restricted networks):**
-   ```bash
-   export VLLM_USE_MODELSCOPE=true
-   vllm serve qwen/Qwen2-72B-Instruct --trust-remote-code --tensor-parallel-size 8
-   ```
-   Caveat: LoRA adapters historically still fetched from HF even with this flag.
-
-4. **For gated models**, `HF_TOKEN` must be in the pod environment even when weights are local — it gates the config-validation path.
+Gated repos need `HF_TOKEN` in the runtime env in every pattern, even with local weights.
 
 ## Critical pitfalls
 
