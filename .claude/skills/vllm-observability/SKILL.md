@@ -55,7 +55,7 @@ The repo ships three operator-ready Grafana dashboards at `examples/observabilit
 
 Plus a working `docker-compose.yaml` + `prometheus.yaml` for local trials. Perses YAML equivalents in `dashboards/perses/`. Pair with DCGM exporter (Grafana dashboard 15117) for hardware-side metrics.
 
-**Do not use `GPU_UTIL` as the saturation signal.** It hits 100% under severe starvation. Use `DCGM_FI_PROF_SM_OCCUPANCY`. Full DCGM pairing catalog and external-dashboard inventory in `references/dashboards.md`.
+Full DCGM pairing catalog and external-dashboard inventory in `references/dashboards.md`.
 
 ## Tracing
 
@@ -79,7 +79,7 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 
 2. **Forgetting `sum by (le)` before `histogram_quantile`.** Without it, per-instance quantiles mix with fleet quantiles — the most common Grafana mistake in the Prometheus world.
 
-3. **`gpu_cache_usage_perc` vs `kv_cache_usage_perc`.** The new name shipped first; PR #24245 (merged 2025-09-16) then hid the old `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. The attempted revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck — current main emits only `kv_cache_usage_perc` by default. Dashboards scraping pre-#24245 tags still see both; greenfield dashboards should use the new name only.
+3. **`gpu_cache_usage_perc` no longer exists.** It sat behind `--show-hidden-metrics-for-version=X.Y` on v0.11.x and is gone from the source from v0.12.0, so no flag restores it. Query `vllm:kv_cache_usage_perc`; only fleets still running ≤ v0.11.x need `vllm:kv_cache_usage_perc or vllm:gpu_cache_usage_perc`. PR history in `references/metrics-catalog.md` § KV cache & memory.
 
 4. **`num_requests_swapped` is deprecated on V1** and always zero. Use `num_preemptions_total` instead. Many copy-pasted dashboards still reference swap.
 
@@ -89,7 +89,7 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 
 7. **KEDA threshold too low on `num_requests_waiting`.** Thresholds of 1–2 per replica cause scale thrashing. Production Stack default is 5; OpenShift example is 2. Pair with `cooldownPeriod: 360` — GPU pods take ~10 min to reach ready, reactive scaling fails.
 
-8. **`GPU_UTIL` at 100% ≠ busy GPU.** The ebpfchirp "11-second TTFT" incident is canonical: util pinned high, SM occupancy was 18%, the scheduler was stalled on prefix-cache head-of-line blocking. Watch `SM_OCCUPANCY`.
+8. **`GPU_UTIL` is not a saturation signal.** It reads 100% while the GPU starves — in the ebpfchirp 11-second-TTFT incident util was pinned, SM occupancy was 18%, and the scheduler was stalled on prefix-cache head-of-line blocking. Use `DCGM_FI_PROF_SM_OCCUPANCY`.
 
 9. **Ray Serve deployments don't auto-expose `/metrics`.** `RayPrometheusStatLogger` must be wired explicitly, or Ray 2.51+ ingests vLLM metrics through Ray's own endpoint (disable with `log_engine_metrics: False` to avoid double-scraping).
 

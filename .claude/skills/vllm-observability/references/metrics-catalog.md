@@ -80,7 +80,7 @@ so the naive product overstates capacity. Prefer the labels; keep the product
 only as a fallback for pre-v0.24.0 engines, and expect the two to disagree
 there rather than assuming one is a bug.
 
-**Rename saga:** The new name `vllm:kv_cache_usage_perc` landed first; PR #24245 (merged 2025-09-16) then hid the deprecated `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. Proposed revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck. **Current main emits only `kv_cache_usage_perc` by default.** On fleets still running pre-#24245 tags, use `or` in PromQL; greenfield deployments can drop the fallback:
+**Rename saga:** The new name `vllm:kv_cache_usage_perc` landed first; PR #24245 (merged 2025-09-16) then hid the deprecated `gpu_*` counterparts behind `--show-hidden-metrics-for-version=X.Y`. Proposed revert #25392 was **closed without merging** (2025-09-23), so the hiding stuck. **The `gpu_*` name is gone from the source from v0.12.0 (last present in v0.11.1), so `--show-hidden-metrics-for-version` cannot restore it.** On fleets still running ≤ v0.11.x, use `or` in PromQL; greenfield deployments drop the fallback:
 ```promql
 vllm:kv_cache_usage_perc or vllm:gpu_cache_usage_perc
 ```
@@ -483,7 +483,7 @@ KV block residency:
 
 | V0 name | V1 name / fate |
 |---|---|
-| `vllm:gpu_cache_usage_perc` | → `vllm:kv_cache_usage_perc` (only new name on current main; see rename saga) |
+| `vllm:gpu_cache_usage_perc` | → `vllm:kv_cache_usage_perc` (old name removed from v0.12.0; see rename saga) |
 | `vllm:cpu_cache_usage_perc` | Removed (offload model changed) |
 | `vllm:cpu_prefix_cache_hit_rate` | Removed |
 | `vllm:num_requests_swapped` | Deprecated, always 0 — use `num_preemptions_total` |
