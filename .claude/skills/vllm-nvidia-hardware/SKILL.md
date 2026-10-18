@@ -102,41 +102,18 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 
 If this skill helps with *why* a hardware choice matters for KV-cache sizing, the companion skill `vllm-caching` covers *how* to configure tiered KV (`--kv-offloading-size`, LMCache, NixlConnector, MooncakeConnector). Both skills should trigger together on combined "we're buying GB300 and need to size LMCache" style questions.
 
-## Source and refresh policy
+## Before stating a version, pin or status
 
-All claims in the references are sourced inline — **prefer NVIDIA first-party datasheets, SemiAnalysis, Dell/Lenovo/Supermicro OEM datasheets**, then reputable news. When numbers disagree across sources, the references report the range with each citation. The full consolidated source list is in `references/sources.md`.
-
-Refresh when new NVIDIA products launch or when the HBM / rack-power / vLLM backend landscape shifts materially.
-
-**Separate vendor "in production" claims from delivery evidence.** The 2026-07-21
-pass found NVIDIA saying Vera Rubin was "already in production" while giving no
-customer-delivery date — the two are routinely conflated in coverage. Anchor
-timing claims to dated, checkable artifacts (a named customer completing
-qualification, an OEM quoting firm order dates), not to executive statements.
-
-**Check the current vLLM patch release for correctness fixes, not just features.**
-The same pass found v0.25.0 silently corrupting NVFP4 output, fixed one release
-later. A release-note sweep that only reads the feature sections will miss this
-class entirely.
-
-**A vLLM release note's "Dependencies" section mixes runtime pins with CI pins —
-read the requirements file, not the prose.** The v0.27.0 notes list
-"Transformers 5.14.1 (#49223)" among genuine bumps, but that PR touches only
-`requirements/test/*`; the runtime floor is `transformers >= 5.5.3` in
-`requirements/common.txt` and did not move. Triton 3.7.1 is the same shape — named
-in #48155's title, pinned in no runtime requirements file, arriving with torch.
-Before writing any dependency into a matrix operators will follow, read it out of
-`requirements/{cuda,common,rocm}.txt` at the release tag.
-
-**A "no support yet" finding has a shelf life — re-probe it, don't inherit it.**
-The 2026-07-21 pass correctly established that vLLM had no Rubin code path. Three
-weeks later `sm_107` was a build target. Negatives about a moving upstream decay
-faster than positives; re-run the probe rather than carrying the conclusion.
-
-Last verified: 2026-08-11 — vLLM release line rebaselined v0.25.1 → **v0.27.0**
-(2026-08-10) against the v0.27.0 source tree: Rubin `sm_107` enablement, the SM121
-kernel-less-build fix, FA4 SM100 capabilities, dependency pins, and every cited
-`repo/path:line` pointer in `references/vllm-platform-matrix.md`. The hardware spec
-tables (per-GPU HBM/TFLOPs, rack power, Dell SKUs) and the Rubin *shipping-status*
-evidence were **not** re-probed this pass and keep their earlier `[LV:]` dates in
-`references/sources.md`.
+- **Read dependency pins from `requirements/{cuda,common,rocm}.txt` at the release
+  tag, never from release-note prose** — the notes' "Dependencies" section mixes CI
+  pins (`requirements/test/*`) with runtime pins.
+- **Read the bug-fix sections of the current patch release, not only features** —
+  silent-corruption fixes (wrong text, no crash) land there.
+- **Anchor shipping claims to dated, checkable artifacts** — a named customer in
+  production, an OEM quoting firm order dates — never to "in production" statements,
+  which describe fab output, not delivery.
+- **Re-probe every "not supported yet" before repeating it** — negatives about a
+  moving upstream decay fastest.
+- Prefer NVIDIA first-party datasheets, then OEM datasheets (Dell/Lenovo/Supermicro),
+  SemiAnalysis, then news; where sources disagree, report the range with each citation.
+  Sources and the verification stamp: `references/sources.md`.
