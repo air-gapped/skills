@@ -2,6 +2,20 @@
 
 Work-not-done log from skill-improver passes. Open = attempted-but-not-applied or deferred verification; not a wishlist.
 
+## Open
+
+(none)
+
+## Resolved this pass (2026-10-18)
+
+Improve pass from 6a8d03c: blind baseline 76; self 76 → 83 over 5 keeps, 0 discards (batch cap of 5 reached, no ceiling mapped); final blind score and A/B verdict run by the operator.
+- Kept: Version notes history → 6-row Upgrade-traps table; the history already lives in metrics-catalog.md (173 → 145 lines).
+- Kept: `--collect-detailed-traces` unlock/cost/syntax co-located under Tracing; pitfall 10 merged in.
+- Kept: "Why this matters" persuasion section deleted.
+- Kept: exhaustive audit done-condition (smoke exit 0, every Top-signal alerted or waived, want/have `vllm:*` name diff).
+- Kept: description states use-when; implicit triggers gated on vLLM context; negative scope to benchmarking/perf-tuning.
+- Post-loop fixes: tiering constants are `CHUNK_*` from v0.30.0 (the "still `BLOCK_*`" claim held only for v0.28–v0.29); `gpu_cache_usage_perc` is removed from v0.12.0, not hidden; duplicate GPU_UTIL rule merged.
+
 ## Resolved — 2026-09-15 (the switches that never reach /metrics)
 
 - **Added the `ObservabilityConfig` switches the catalog never carried**, in a
@@ -22,11 +36,6 @@ Work-not-done log from skill-improver passes. Open = attempted-but-not-applied o
   later pass does not "fix" the catalog by adding it.
 - The entry was correct that this is a pre-existing gap rather than drift, and
   it was never blocked on anything: writing it down was the whole task.
-
-## Open
-
-
-- ~~**Re-probe non-GitHub sources online**~~ (Dim 9) — **CLOSED 2026-08-11.** All four rows (docs.vllm.ai metrics page, ebpfchirp article, DCGM dashboard 15117, canonical design doc) probed; all HTTP 200. Carried unprobed since 2026-04-24 through two passes — and the deferral was hiding content, not just staleness: the docs.vllm.ai page documents the concrete NIXL series that replaced a `vllm:nixl_*` wildcard in the catalog.
 
 ## Resolved — 2026-09-15
 
