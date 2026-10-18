@@ -114,7 +114,7 @@
         "Commits to one named control plane as the recommendation rather than presenting the options neutrally or deferring the choice back to the user",
         "Justifies the pick against the specific stated constraints (small platform team, KV/prefix-cache-aware routing requirement, existing Prometheus and Gateway API, disaggregation on the roadmap)",
         "Gives a constraint-based reason each rejected candidate loses, including why the absence of a multi-tenant LoRA requirement weakens the case for the ByteDance-style option",
-        "Explicitly rules out the in-tree experimental vLLM Helm chart plus a hand-written nginx as a production choice",
+        "Explicitly rules out the in-tree example vLLM Helm chart plus a hand-written nginx as a production choice",
         "Describes a concrete path to prefill/decode disaggregation from the recommended stack in ~2 quarters without requiring a rebuild of the whole platform",
         "Names at least one condition or future change that would flip the recommendation to a different candidate"
       ],
