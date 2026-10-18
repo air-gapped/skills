@@ -10,7 +10,7 @@ When the user's thinking model uses delimiters not covered by the shipped parser
 # /srv/vllm-plugins/my_reasoning.py
 from collections.abc import Sequence
 
-from vllm.entrypoints.openai.engine.protocol import DeltaMessage
+from vllm.entrypoints.generate.base.protocol import DeltaMessage  # v0.29.0+
 from vllm.reasoning import ReasoningParser, ReasoningParserManager
 from vllm.reasoning.basic_parsers import BaseThinkingReasoningParser
 
@@ -70,7 +70,7 @@ Add tests to `tests/reasoning/test_my_model_reasoning_parser.py`. Pattern matche
 - End token is the sole reasoning-end signal (no implicit ends at tool-call sentinels etc.).
 - Truncation policy: "everything before end token is reasoning" works for your model.
 
-Override only the `start_token` / `end_token` properties. Optionally override `extract_reasoning_streaming` to handle your model's oddities (see `deepseek_r1_reasoning_parser.py` which adds a start-token-absent branch, or `qwen3_reasoning_parser.py` which rewrites it entirely for the prompt-side-`<think>` pattern).
+Override only the `start_token` / `end_token` properties. Optionally override `extract_reasoning_streaming` to handle your model's oddities (see `deepseek_r1_reasoning_parser.py` which adds a start-token-absent branch, or `hy_v3_reasoning_parser.py`, which delegates to `IdentityReasoningParser` when thinking is off). `qwen3` is no longer a `ReasoningParser` example — its logic moved to `vllm/parser/qwen3.py` on the adapter path.
 
 ## When to inherit `ReasoningParser` directly
 
@@ -87,7 +87,7 @@ Implement all four required methods. Consider exposing `reasoning_start_str` / `
 from collections.abc import Iterable, Sequence
 from transformers import PreTrainedTokenizerBase
 
-from vllm.entrypoints.openai.engine.protocol import DeltaMessage
+from vllm.entrypoints.generate.base.protocol import DeltaMessage  # v0.29.0+
 from vllm.reasoning import ReasoningParser, ReasoningParserManager
 
 

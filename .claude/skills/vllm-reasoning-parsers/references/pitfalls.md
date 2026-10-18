@@ -10,7 +10,7 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Root cause.** The base `BaseThinkingReasoningParser.extract_reasoning` uses `partition`, which already tolerates missing start tokens. But several older/third-party parsers matched on a regex requiring both sides — those see no match and fall through to `(None, model_output)`.
 
-**Fix.** Use / inherit `BaseThinkingReasoningParser`. For custom parsers, always design for "start token may or may not appear; end token delimits". See `qwen3_reasoning_parser.py:75–87` for the canonical strip-if-present pattern.
+**Fix.** Use / inherit `BaseThinkingReasoningParser`. For custom parsers, always design for "start token may or may not appear; end token delimits". See `BaseThinkingReasoningParser.extract_reasoning` in `basic_parsers.py` for the canonical pattern: partition on the start token if present, then split on the end token.
 
 **Upstream.** [HF discussion](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144), [#13125](https://github.com/vllm-project/vllm/issues/13125).
 
@@ -35,7 +35,7 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 **Fixes (in order of preference).**
 
 1. **Fix the chat template** so it emits the `<think>…</think>` sandwich when `enable_thinking` is false. Render it locally with `tokenizer.apply_chat_template(..., enable_thinking=False)` and confirm the sandwich is present.
-2. **Bypass the gate**: `--structured-outputs-config.enable_in_reasoning=true`. Grammar then enforces from token 0 whether reasoning is "on" or not. **The mechanism changed at v0.30.0**: `should_fill_bitmask` no longer exists — [#55223](https://github.com/vllm-project/vllm/pull/55223) and [#56200](https://github.com/vllm-project/vllm/pull/56200) eliminated the full-history reasoning scan and derive `is_reasoning_end` from the grammar, replacing the boolean gate with `_get_constraint_start`, which returns an index. The `enable_in_reasoning` flag itself is unchanged (`vllm/config/structured_outputs.py:41`). Useful when you want structured output during CoT (emerging pattern) or when you can't control the chat template.
+2. **Bypass the gate**: `--structured-outputs-config.enable_in_reasoning=true`. Grammar then enforces from token 0 whether reasoning is "on" or not. **The mechanism changed at v0.30.0**: `should_fill_bitmask` no longer exists — [#55223](https://github.com/vllm-project/vllm/pull/55223) and [#56200](https://github.com/vllm-project/vllm/pull/56200) eliminated the full-history reasoning scan and derive `is_reasoning_end` from the grammar, replacing the boolean gate with `_get_constraint_start`, which returns an index; v0.32.0 renamed it `_get_constraint_bounds`, which returns `(grammar_start, constraint_start)`. The `enable_in_reasoning` flag itself is unchanged (`vllm/config/structured_outputs.py:40` at v0.32.0). Useful when you want structured output during CoT (emerging pattern) or when you can't control the chat template.
 3. **Drop `--reasoning-parser` entirely** if the model is a non-thinking SKU (e.g. `Qwen3-235B-A22B-Instruct-2507`). With no reasoner attached, xgrammar short-circuits to always-enabled.
 4. **Set a server-side default** `--default-chat-template-kwargs '{"enable_thinking": false}'` so every request gets the correct template rendering without relying on client cooperation.
 
@@ -95,9 +95,9 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Repro.** Model uses `<|analysis|>` as think-start, but the tokenizer encodes it as `["<|analysis", "|>"]` (two tokens).
 
-**Symptom.** `BaseThinkingReasoningParser.__init__` calls `self.vocab.get("<|analysis|>")` → `None` → `RuntimeError("could not locate think start/end tokens")`.
+**Symptom.** `BaseThinkingReasoningParser.__init__` calls `self.vocab.get("<|analysis|>")` → `None` → `RuntimeError("could not locate think start/end tokens")`. From v0.32.0 this stops `vllm serve` at startup (`TypeError: --reasoning-parser X cannot be used with the tokenizer of ...`); through v0.31.x it surfaced as a 500 on every chat request.
 
-**Fix.** Inherit `ReasoningParser` directly. Resolve IDs with `tokenizer.encode("<|analysis|>", add_special_tokens=False)` → list of IDs. Use sequence matching in `is_reasoning_end` (see `gptoss_reasoning_parser.py:86-113` for the pattern — backward scan for the prefix sequence, then forward bounded scan for the suffix).
+**Fix.** Inherit `ReasoningParser` directly. Resolve IDs with `tokenizer.encode("<|analysis|>", add_special_tokens=False)` → list of IDs. Use sequence matching in `is_reasoning_end` — `kimi_k3_reasoning_parser.py` (legacy shape) and `Plamo3Parser.is_reasoning_end` in `vllm/parser/plamo3.py` (backward subsequence scan for the end sequence, stopping at the start sequence) are the in-tree patterns.
 
 For `ReasoningConfig.initialize_token_ids` to work (which derives IDs automatically for structured-output lookahead), expose `reasoning_start_str` / `reasoning_end_str` properties; the config will call `tokenizer.encode(...)` itself.
 
@@ -120,10 +120,10 @@ All built-in parsers do this.
 
 **Repro.** Serve GPT-OSS with `--reasoning-parser deepseek_r1` (wrong parser selected).
 
-**Symptom.** `RuntimeError: ... could not locate think start/end tokens in the tokenizer!` at first request. Harmony uses `<|channel|>analysis<|message|>` — no `<think>` token exists in GPT-OSS vocab.
+**Symptom.** `RuntimeError: ... could not locate think start/end tokens in the tokenizer!` — at first request through v0.31.x, at startup (wrapped in `TypeError: --reasoning-parser deepseek_r1 cannot be used with the tokenizer of ...`) from v0.32.0. Harmony uses `<|channel|>analysis<|message|>` — no `<think>` token exists in GPT-OSS vocab.
 
 **Fix.** `--reasoning-parser openai_gptoss`. Note its quirks:
-- `extract_reasoning` (non-streaming) raises `NotImplementedError` — the harmony branch in `api_server` / `parser/harmony_utils.py` handles non-streaming via `parse_chat_output`.
+- `extract_reasoning` (non-streaming) raises `NotImplementedError` — `HarmonyParser` (`vllm/parser/harmony.py`) does both streaming and non-streaming splits.
 - `prepare_structured_tag` returns JSON for a `structural_tag` xgrammar directive that isolates the analysis channel for structured generation.
 - **At v0.27.0 (#45560) `is_reasoning_end` and `is_reasoning_end_streaming` simply `return True`**, and `extract_content_ids` also raises. The old backward scan for `<|channel|>final<|message|>` with up to `reasoning_max_num_between_tokens = 20` interposed special tokens is deleted. Boundary detection moved into `HarmonyParser` (`vllm/parser/harmony.py`).
 
@@ -151,6 +151,8 @@ All built-in parsers do this.
 
 **Behavior.** `KimiK2ReasoningParser.is_reasoning_end` explicitly checks `_tool_section_start_token_id`, so xgrammar correctly un-gates. Stream-side `is_reasoning_end_streaming` also checks the delta for that token.
 
+**Known failure through v0.31.x.** When the implicit end token is also content (`<tool_call>` with no `</think>` before it — GLM `glm47`, `qwen3` + `hermes`), structured output skipped that token, the grammar then forced a *second* `<tool_call>`, and `tool_choice="required"`/named calls were lost. v0.32.0 feeds the token to the grammar for adapter-path parsers ([#59627](https://github.com/vllm-project/vllm/pull/59627)); legacy `ReasoningParser` subclasses are unchanged — on those, make the model emit `</think>` before tool calls.
+
 **Takeaway.** If you're authoring a parser for a model that has implicit end markers (tool calls, answer sections, channel changes), encode them explicitly. Single-token `</think>` is the exception, not the rule.
 
 ## 14. `--enable-reasoning` is dead
@@ -176,8 +178,16 @@ All built-in parsers do this.
 
 ## Bonus: `include_reasoning=False` does not disable the parser
 
-Setting `include_reasoning: false` on the request null-ifies the `reasoning_content` field in the response, but `extract_reasoning` / `extract_reasoning_streaming` still run. This matters because:
+Setting `include_reasoning: false` on the request null-ifies the `reasoning` field in the response, but `extract_reasoning` / `extract_reasoning_streaming` still run. This matters because:
 - The tool parser still receives the *post-reasoning* content (not the full output).
-- Structured output still gates on `is_reasoning_end`.
+- Structured output does **not** wait for `is_reasoning_end`: `resolve_reasoning_ended` returns `True`, so the grammar applies from token 0 and constrains the reasoning too.
 
 So `include_reasoning: false` is a display-only toggle, not a performance win.
+
+## Bonus: streamed answer loses the text right after `</think>` (through v0.31.x)
+
+**Repro.** Adapter-path reasoning parser (e.g. `qwen3`) with **no** `--tool-call-parser`, streaming, and a delta that carries several tokens around `</think>` (`--stream-interval 2`, speculative decoding).
+
+**Symptom.** Non-streaming returns `"\n\n<b>hello</b>"`, streaming returns `"<b>hello</b>"` — text the engine held back at the reasoning boundary is dropped.
+
+**Fix.** Upgrade to v0.32.0 ([#58911](https://github.com/vllm-project/vllm/pull/58911) emits it as content), or configure a tool parser, which already received the held-back text.
