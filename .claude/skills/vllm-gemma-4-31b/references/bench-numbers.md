@@ -1,6 +1,6 @@
-# Gemma 4 31B AWQ — full benchmark table from 2026-04-30 Verda audit
+# Gemma 4 31B AWQ — full benchmark table from the 2026-04-30 2× H100 audit
 
-Hardware: Verda 2× H100 80GB SXM5 (NVLink), single VM
+Hardware: 2× H100 80GB SXM5 (NVLink), single VM
 Engine: vLLM 0.20.0, kv-cache-dtype fp8, EAGLE3 k=3 chain spec-dec
 Model: cyankiwi/gemma-4-31B-it-AWQ-4bit
 Chat template: canonical Google `gemma-4-31B-it/chat_template.jinja` (sha256 `94899c0f9...`)
@@ -115,24 +115,21 @@ Long-context (16K/1K) at peak concurrency:
 users wait for first token, this is a UX-defining difference. TPOT
 is similar (~5-15% TP=2 advantage at high concurrency).
 
-## Stock vs preflight parser comparison (separate run)
+## Stock vs out-of-tree Rust parser plugin (separate run)
 
 Same hardware, same model, same chat_template, same EAGLE3.
 Workload: MT-Bench (philschmid/mt-bench), c=20, N=80, --num-warmups 5.
 
-| Run | Config | Stock tok/s | Stock TPOT mean / P99 | Preflight tok/s | Preflight TPOT mean / P99 |
+| Run | Config | Stock tok/s | Stock TPOT mean / P99 | Plugin tok/s | Plugin TPOT mean / P99 |
 |---|---|---|---|---|---|
 | R1 | Parallel, no warmup | 1254.19 | 13.55 / 21.28 | 1263.51 | 13.52 / 18.87 |
 | R2 | Parallel, 5 warmup | 1378.11 | 12.63 / 21.02 | 1382.12 | 12.61 / 19.43 |
 | R3 | Serial GPU 0 only | 1382.47 | 12.83 / 23.67 | 1341.23 | 13.06 / 21.60 |
 
 **Mean throughput identical within noise** (≤1%). **P99 TPOT consistently
-~8-11% lower for preflight** in 3 of 3 runs (Rust avoids GIL pauses).
-Median TPOT identical. On real chat data, both stock and preflight
+~8-11% lower for the plugin** in 3 of 3 runs (Rust avoids GIL pauses).
+Median TPOT identical. On real chat data, both stock and the plugin
 hit acceptance ~50%, AL ~2.5.
-
-Memos: `comparison-memo.2026-04-30.md` for the full stock-vs-preflight
-write-up.
 
 ## Notes on bench methodology
 

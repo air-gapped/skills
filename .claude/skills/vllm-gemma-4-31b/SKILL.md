@@ -20,7 +20,7 @@ semantics in **`vllm-configuration`**, the K8s/container manifest in
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
 `RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20–0.25.1. Pulls together measurements
-from a Verda 2× H100 SXM5 80GB audit on 2026-04-30 — **taken on vLLM 0.20.0
+from a 2× H100 SXM5 80GB (NVLink) audit on 2026-04-30 — **taken on vLLM 0.20.0
 and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
@@ -285,7 +285,7 @@ vLLM enforces `KV_cache_size ≥ max_model_len ÷ engine_concurrency_factor`
 at startup. When the util/maxSeqs/spec-dec config leaves insufficient
 KV, the engine errors with the **estimated maximum**. Take that number
 minus 5% margin to avoid cliff-edge boot variance from CUDA fragmentation.
-Worked example: on Verda 2× H100, vLLM said 65120 was the ceiling at
+Worked example: on 2× H100 SXM5, vLLM said 65120 was the ceiling at
 TP=1 + util=0.94 + EAGLE3; first boot at 65120 failed (KV=2.44 GiB needed
 2.47), second boot succeeded by coincidence. Drop to ≤ 60000 for
 reproducible boots.
@@ -325,8 +325,7 @@ leak above. The community DSpark speculator
 `deepseek-ai/dspark_gemma4_12b_block7`) — a different model size and a
 different checkpoint, so it does not unblock the 31B path.
 **On quantized targets use EAGLE3; revisit MTP on BF16 hardware or if
-Google ships a quant-matched assistant.** Full memo:
-`findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/mtp-vs-eagle3/deploy-memo.2026-05-06.md`.
+Google ships a quant-matched assistant.**
 
 ### DFlash speculator unsupported on sm_89 (RTX 4060 Ti / Ada)
 
@@ -351,23 +350,23 @@ sizes ([1,2,4,8,...,256]) needs ~336 MiB and OOMs at 0.97. Stay at 0.94.
 
 ### Multimodal at high util OOMs at runtime
 
-util=0.94 on the 16 GB lab cards (RTX 4060 Ti) caused runtime CUDA OOM
+util=0.94 on 16 GB Ada cards (RTX 4060 Ti) caused runtime CUDA OOM
 on the first multimodal request — image batch all_gather needed 394 MiB,
 only 337 MiB free. On 80 GB H100 with TP=2, util=0.94 is fine for text;
 for multimodal traffic specifically, drop to 0.92 or 0.90.
 
-## Stock vs preflight parser plugin
+## Stock parsers vs an out-of-tree Rust parser plugin
 
 The 2026-04-30 audit measured stock vLLM 0.20.0 + the new Google
-chat_template against the preflight Rust parser plugin head-to-head on
+chat_template against an out-of-tree Rust parser plugin head-to-head on
 H100. Result:
 
 - **Correctness**: stock + new chat_template now passes everything
-  preflight passes (`xgrammar_schema_enforce`, `image_token_in_output`,
+  the plugin passes (`xgrammar_schema_enforce`, `image_token_in_output`,
   all 6 parser-suite + 9 multimodal-battery lanes).
 - **Throughput**: identical at noise floor (<1% delta).
 - **TPOT mean**: identical.
-- **TPOT P99**: preflight ~8-11% lower in 3 of 3 runs (Rust avoids
+- **TPOT P99**: plugin ~8-11% lower in 3 of 3 runs (Rust avoids
   Python GIL/GC pauses) — small but consistent.
 
 **Supersession note (2026-08-02, updated same day after live A/B):**
@@ -382,8 +381,6 @@ Pitfalls — happy-path probes don't stress this),
 and `reasoning_content` is empty on tool-turn continuations. **Stock
 parsers are the right call for tool-calling deployments on ≥ 0.24.0
 unless you need CoT visibility or hard forced-tool_choice guarantees.**
-Full memo:
-`findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/verda-stock-vs-preflight/comparison-memo.2026-04-30.md`.
 
 ## What was NOT measured
 
@@ -410,23 +407,5 @@ The following questions need a follow-up bench:
 
 - `references/hbm-saturation.md` — vLLM source-code investigation, GH issues, the bandwidth-bound saturation explanation
 - `references/chat-template-drift.md` — canonical vs bundled template: defect list, vetted pins, re-vet commands, hash chain
-- `references/bench-numbers.md` — full benchmark table from the 2026-04-30 Verda audit, all 12+ data points
+- `references/bench-numbers.md` — full benchmark table from the 2026-04-30 2× H100 audit, all 12+ data points
 - `references/sources.md` — dated index of upstream URLs (HF model + chat_template, vLLM source paths, GH issues / PRs) with `Last verified:` and `Pinned:` markers
-
-## Reproduction artifacts
-
-The benchmark logs + memos referenced in this skill live in the
-`model-preflight` repo at:
-
-```
-findings/cyankiwi/gemma-4-31B-it-AWQ-4bit/
-├── verda-tp1-tp2-search/
-│   ├── max-perf-tp1-vs-tp2-memo.2026-04-30.md
-│   ├── tp1-stock-eagle3-max-perf.md
-│   └── p{1,2,3}-*.log              # raw bench output
-├── verda-stock-vs-preflight/
-│   ├── comparison-memo.2026-04-30.md
-│   └── parser-suite-{stock,preflight}.jsonl
-└── eagle3-sweep/
-    └── deploy-memo.2026-04-29.md
-```
