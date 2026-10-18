@@ -2,18 +2,20 @@
 
 [vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`.
 
-Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.13.0** (2026-08-11).
+Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.14.0** (2026-09-22).
 
 **Read the release list by rank, not by date — this project runs parallel
-maintenance lines.** As of 2026-07-21 the newest release *by publish date* is
-**0.7.1.3 (2026-06-26)**, a backport on the long-lived 0.7.1 branch, while the
-newest *by version* is **0.12.0 (2026-06-15)** — and 0.12.0 is what GitHub flags
-`isLatest`. Active lines seen in the last six months: 0.7.1.x, 0.9.0.x,
-0.10.0.x, 0.11.0, 0.12.0. Sorting by date picks the wrong one.
+maintenance lines.** As of 2026-10-18 the newest releases *by publish date* are
+backports — **0.10.0.4 and 0.9.0.5 (2026-10-10)**, 0.12.0.2 (2026-10-09) — while
+the newest *by version* is **0.14.0 (2026-09-22)**, which GitHub flags
+`isLatest`. Active lines: 0.9.0.x, 0.10.0.x, 0.12.0.x, 0.13.0, 0.14.0. Sorting by
+date picks the wrong one; read `isLatest`.
 
 | Version | Date | What landed |
 |---|---|---|
-| **0.12.0** | 2026-06-15 | **Transformers v5** upgrade with refactored MoE linearization; simplified dataset-split API (legacy multi-stage logic removed); multi-GPU distribution for model-free PTQ |
+| **0.14.0** | 2026-09-22 | Triton GPTQ kernel (~15× faster) with same-shape layer batching; **Hessian offloading removed**; GPTQ group/dynamic activation ordering removed (#3038 — matches vLLM v0.30.0 dropping `g_idx`); expanded MSE/iMatrix observers for NVFP4; model-free PTQ unified under `ModelFreePtqConverter` with mixed-precision and KV-cache quantization |
+| 0.13.0 | 2026-08-11 | GPTQ sparsity-preserving logic removed (#2860); modifier hooks `calibration_epoch_start/end` renamed `calibration_start/end` |
+| 0.12.0 | 2026-06-15 | **Transformers v5** upgrade with refactored MoE linearization; simplified dataset-split API (legacy multi-stage logic removed); multi-GPU distribution for model-free PTQ |
 | 0.11.0 | 2026-06-02 | **DDP for AWQ and SmoothQuant, up to 3.2× speedup**; Compressed-Tensors API refactor; observer/lifecycle refactor; Qwen 3.5/3.6 and Gemma 4 support |
 | 0.10.0 | 2026-03-02 | NVFP4/MXFP4, DDP GPTQ, disk offloading, per-head KV (the previous baseline of this file) |
 
@@ -134,7 +136,8 @@ recipe = GPTQModifier(
 - **Calibration**: 512 samples
 - **Time on H100, 70B**: ~60 min
 - **Memory peak**: ~2× model size (Hessian same size as weights)
-- **OOM fix**: `offload_hessians=True` (+2× time, -30 % GPU peak) or sequential pipeline
+- **OOM fix**: sequential pipeline. `offload_hessians` is gone in 0.14.0 — drop it from older recipes
+- **`actorder`**: `"static"` (default) or `None`. `group` / `dynamic` were removed in 0.14.0 (#3038) and vLLM v0.30.0+ ignores `g_idx` — do not set them
 - **Output name**: `*-W4A16-G128`
 - **Example**: `examples/quantization_w4a16/llama3_example.py`
 - **DDP variant**: `llama3_ddp_example.py` (v0.10+)
@@ -296,7 +299,7 @@ Examples: `examples/model_free_ptq/`.
 
 ## Known issues & operator gotchas
 
-1. **OOM during GPTQ calibration (70B+)** — `offload_hessians=True`, or `pipeline="sequential"`.
+1. **OOM during GPTQ calibration (70B+)** — `pipeline="sequential"` (`offload_hessians` was removed in 0.14.0).
 2. **Calibration dataset mismatch** → perplexity degraded. Use ultrachat or your fine-tuning data with chat template applied. `add_special_tokens=False`.
 3. **vLLM fails to load compressed checkpoint** — vLLM < 0.5.5 or compressed-tensors < 0.5.0. Upgrade both.
 4. **Group-size divisibility** — `hidden_size % group_size == 0` required. Use 32/64/128/256.

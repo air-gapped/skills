@@ -1,6 +1,6 @@
 # NVIDIA ModelOpt — PTQ + speculative-decoding training
 
-Canonical repo: [NVIDIA/TensorRT-Model-Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer).
+Canonical repo: [NVIDIA/Model-Optimizer](https://github.com/NVIDIA/Model-Optimizer) (formerly TensorRT-Model-Optimizer; old URLs redirect). Current release **0.47.0** (2026-09-23).
 
 Produces vLLM-loadable checkpoints via `--quantization modelopt` / `modelopt_fp4` / `modelopt_mxfp8` / `modelopt_mixed`. Also produces TRT-LLM engines (not our concern).
 
@@ -22,16 +22,18 @@ Produces vLLM-loadable checkpoints via `--quantization modelopt` / `modelopt_fp4
 
 ### NVFP4 recipe (the Blackwell flagship)
 
-Example: `examples/llm_ptq/hf_ptq.py`.
+Example: `examples/hf_ptq/hf_ptq.py` (0.47.0 removed the `examples/llm_ptq` symlink and `examples/vlm_ptq`; pass `--vlm` for vision-language models).
 
 ```bash
-python examples/llm_ptq/hf_ptq.py \
-    --model_name_or_path meta-llama/Llama-3.1-70B-Instruct \
-    --quant_cfg NVFP4_DEFAULT_CFG \
-    --batch_size 1 \
+python examples/hf_ptq/hf_ptq.py \
+    --pyt_ckpt_path meta-llama/Llama-3.1-70B-Instruct \
+    --qformat nvfp4 \
+    --kv_cache_qformat fp8_cast \
     --calib_size 512 \
-    --export_dir export/llama-3.1-70b-nvfp4
+    --export_path export/llama-3.1-70b-nvfp4
 ```
+
+`--qformat` takes a preset basename from `modelopt_recipes/configs/ptq/presets/model/` (`nvfp4`, `nvfp4_mlp_only`, `fp8`, `w4a16_nvfp4`, `mxfp8`, …), or use `--recipe` (e.g. `general/ptq/nvfp4_default-kv_fp8_cast`). 0.47.0 removed the short aliases `nvfp4_awq`, `nvfp4_mse`, `int8_sq`, `int8_wo`, `w4a8_awq`, `fp8_pb_wo`, `fp8_pc_pt` — use `nvfp4_awq_lite`, `nvfp4_w4a4_weight_mse_fp8_sweep`, `int8_smoothquant`, `int8_weight_only`, `w4a8_awq_beta`, `fp8_2d_blockwise_weight_only`, `fp8_per_channel_per_token`. The `--auto_quantize_*` flags are gone too — use an AutoQuantize `--recipe`. `--batch_size 0` (default) sizes calibration batches automatically.
 
 Output:
 
@@ -47,20 +49,20 @@ vLLM: `vllm serve export/llama-3.1-70b-nvfp4 --quantization modelopt_fp4`.
 
 ### Named PTQ configs
 
-Source: `modelopt/torch/quantization/config.py`.
+Source: `modelopt/torch/quantization/config.py` (Python API; the CLI names are the lowercase presets above).
 
 | Config | Export algo | Blocks | Use |
 |---|---|---|---|
 | `NVFP4_DEFAULT_CFG` | NVFP4 | 16 elements, E4M3 scales | Blackwell primary |
 | `NVFP4_MLP_ONLY_CFG` | NVFP4 | — | Attention stays BF16 (accuracy-critical) |
-| `NVFP4_KV_CACHE_CFG` | NVFP4 + FP8 KV | — | Long-context Blackwell |
+| `NVFP4_KV_CFG` | NVFP4 KV cache | — | Long-context Blackwell (KV-only; combine with a weight config) |
 | `FP8_DEFAULT_CFG` | FP8 | per-tensor static | Hopper default |
 | `FP8_PER_CHANNEL_PER_TOKEN_CFG` | FP8 | per-channel W + per-token A dynamic | Compressed-tensors-flavor |
-| `FP8_PB_WO_CFG` | FP8 per-block weight-only | 128×128 | MoE-friendly |
+| `FP8_2D_BLOCKWISE_WEIGHT_ONLY_CFG` | FP8 per-block weight-only | 128×128 | MoE-friendly |
 | `MXFP8_DEFAULT_CFG` | MXFP8 | 32 elements, E8M0 scales | Ada+ MoE |
 | `INT4_AWQ_CFG` | INT4 AWQ | — | Legacy W4A16 |
 | `INT8_SMOOTHQUANT_CFG` | INT8 W8A8 + SmoothQuant | — | Cross-hardware |
-| `MIXED_PRECISION_CFG` | Per-layer mix | — | Experimental |
+| AutoQuantize recipe (`--recipe general/auto_quantize/nvfp4_fp8_at_5p4bits`) | Per-layer mix → `modelopt_mixed` | — | No `MIXED_PRECISION_CFG` constant exists; mixed precision comes from AutoQuantize |
 
 ### Calibration time benchmarks
 
@@ -290,10 +292,10 @@ No QAT hooks in `modelopt/torch/speculative/`. No example in `examples/chained_o
 **Workaround**: train drafter BF16 → PTQ drafter separately via `hf_ptq.py` with `NVFP4_MLP_ONLY_CFG`:
 
 ```bash
-python examples/llm_ptq/hf_ptq.py \
-    --model_name_or_path export/llama-3.1-8b-eagle3 \
-    --quant_cfg NVFP4_MLP_ONLY_CFG \
-    --export_dir export/llama-3.1-8b-eagle3-nvfp4
+python examples/hf_ptq/hf_ptq.py \
+    --pyt_ckpt_path export/llama-3.1-8b-eagle3 \
+    --qformat nvfp4_mlp_only \
+    --export_path export/llama-3.1-8b-eagle3-nvfp4
 ```
 
 Drafter PTQ has minimal accuracy cost (small model, learned features).
@@ -304,9 +306,9 @@ Not this skill. See `vllm-speculative-decoding` skill for AL metrics, method sel
 
 ## External references
 
-- ModelOpt docs: [nvidia.github.io/TensorRT-Model-Optimizer](https://nvidia.github.io/TensorRT-Model-Optimizer/)
+- ModelOpt docs: [nvidia.github.io/Model-Optimizer](https://nvidia.github.io/Model-Optimizer/)
 - Pre-trained HF collection: [huggingface.co/collections/nvidia/speculative-decoding-modules](https://huggingface.co/collections/nvidia/speculative-decoding-modules)
 - SafeAILab canonical EAGLE: [github.com/SafeAILab/EAGLE](https://github.com/SafeAILab/EAGLE) — ModelOpt's EAGLE-3 is adapted from this (utils.py line 1 attribution)
 - Red Hat speculators: `huggingface.co/RedHatAI/*-speculator.eagle3`
-- Example README: [`examples/speculative_decoding/README.md`](https://github.com/NVIDIA/TensorRT-Model-Optimizer/blob/main/examples/speculative_decoding/README.md)
+- Example README: [`examples/speculative_decoding/README.md`](https://github.com/NVIDIA/Model-Optimizer/blob/main/examples/speculative_decoding/README.md)
 - dflash doc: `examples/speculative_decoding/doc/dflash.md`

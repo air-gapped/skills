@@ -20,7 +20,7 @@ vLLM versions.
 
 ## Kernel registry files
 
-- Linear scaled-mm: `vllm/model_executor/kernels/linear/scaled_mm.py`
+- Linear kernels: `vllm/model_executor/kernels/linear/{scaled_mm,nvfp4,mxfp4,mxfp8,mixed_precision}/`; the per-platform priority lists (`_POSSIBLE_KERNELS`, `_POSSIBLE_NVFP4_KERNELS`) are in `kernels/linear/__init__.py`
 - W8A8 utils: `vllm/model_executor/layers/quantization/utils/w8a8_utils.py`
 - DeepGEMM wrapper: `vllm/utils/deep_gemm.py`
 - FlashInfer wrapper: `vllm/utils/flashinfer.py`
@@ -58,16 +58,21 @@ vLLM versions.
 
 Both are first-class CLI flags; the authoritative value lists are the
 `LinearBackend` and `MoEBackend` `Literal`s in
-[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/kernel.py).
+[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/kernel.py)
+(21 linear / 23 MoE values at v0.32.0).
 
 - `--linear-backend`: `auto` (default), `cutlass`, `flashinfer_cutlass`,
   `flashinfer_cutedsl`, `flashinfer_trtllm`, `flashinfer_cudnn`, `flashinfer_b12x`,
-  `marlin`, `humming`, `triton`, `deep_gemm`, `torch`, `aiter`, `machete`,
+  `b12x`, `marlin`, `humming`, `triton`, `deep_gemm`, `torch`, `aiter`, `machete`,
   `fbgemm`, `conch`, `exllama`, `emulation`, `xpu`, `xpu_woq`.
 - `--moe-backend`: `auto`, `triton`, `batched_triton`, `deep_gemm`,
   `deep_gemm_mega_moe`, `cutlass`, `flashinfer_trtllm`, `flashinfer_cutlass`,
-  `flashinfer_cutedsl`, `flashinfer_b12x`, `marlin`, `humming`, `triton_unfused`,
-  `aiter`, `flydsl`, `hpc`, `emulation`.
+  `flashinfer_cutedsl`, `flashinfer_moe_ep_cutedsl`, `flashinfer_b12x`, `b12x`,
+  `flashinfer_moe_ep_mega_deep_gemm`, `marlin`, `humming`, `triton_unfused`,
+  `aiter`, `aiter_mega_moe`, `aiter_triton_mxfp4_bf16`, `flydsl`, `hpc`,
+  `emulation`, `rdna3`. v0.32.0 renamed `flashinfer_moe_ep_mega_cutedsl` to
+  `flashinfer_moe_ep_cutedsl` (the old value no longer parses) and added
+  `aiter_mega_moe` (ROCm DeepSeek-V4 MegaMoE).
 
 **Gotcha:** `ModelOptNvFp4W4A16LinearMethod` **hardcoded Marlin and silently
 ignored `--linear-backend`** until [PR #50273](https://github.com/vllm-project/vllm/pull/50273)
@@ -101,11 +106,17 @@ Each format has a selector function in `fused_moe/oracle/`:
 
 Selection is platform-dependent; Blackwell prefers TRTLLM + FlashInfer CuteDSL, Hopper prefers CUTLASS + DeepGEMM block.
 
+**v0.32.0 MXFP4 MoE oracle** gained a CUTLASS W4A4 backend and a BF16-activation
+fallback ([#60079](https://github.com/vllm-project/vllm/pull/60079)): an MXFP4
+W4A4 checkpoint with no W4A4 kernel for the deployment now loads as W4A16 and
+logs `No Mxfp4 MoE backend supports activation=... Falling back to '<backend>'
+with BF16 activations.` Grep for it before benchmarking W4A4.
+
 ## Blackwell-specific dispatch
 
 - **SM100** (B100/B200/GB200) — FP4 Tensor Cores; TRTLLM + FlashInfer CuteDSL preferred. `ENABLE_NVFP4_SM100` gate controls `mxfp4_experts_quant` bindings ([PR #40191](https://github.com/vllm-project/vllm/pull/40191)).
 - **SM103** (B300/GB300, Blackwell Ultra) — TRTLLM attention had hang bug fixed in [PR #38730](https://github.com/vllm-project/vllm/pull/38730) (v0.19). Run v0.19.1+ on GB300.
-- **SM120** (RTX 5090, RTX 6000 Pro) — *desktop* Blackwell. NVFP4 MoE kernel set NOT complete. Issues: [#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085). Partial path via [PR #33417](https://github.com/vllm-project/vllm/pull/33417). [PR #37725](https://github.com/vllm-project/vllm/pull/37725) preserves arch suffix. **Not a datacenter production target.**
+- **SM120** (RTX 5090, RTX 6000 Pro) — *desktop* Blackwell. NVFP4 MoE kernel set NOT complete. Issues: [#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085). Partial path via [PR #33417](https://github.com/vllm-project/vllm/pull/33417). [PR #37725](https://github.com/vllm-project/vllm/pull/37725) preserves arch suffix. v0.29.0+ ships the optional `b12x` backend for SM120/121 (`uv pip install "vllm[b12x]"`, `--linear-backend b12x --moe-backend b12x`): NVFP4/MXFP4 MoE with tensor parallelism only — no expert parallelism or expert maps; v0.32.0 added ModelOpt IQ2_XS / IQ2_XXS / Q8_0 block codecs ([#59604](https://github.com/vllm-project/vllm/pull/59604)). **Not a datacenter production target.**
 - **SM121** (DGX Spark, GB10) — similar kernel gaps: [#39761](https://github.com/vllm-project/vllm/issues/39761), [#37030](https://github.com/vllm-project/vllm/issues/37030).
 - **v0.30.0**: on SM120/121, W4A4 NVFP4 linear kernels are now preferred over
   the weight-only (W4A16) FlashInfer CuteDSL kernel when a checkpoint supports
@@ -126,6 +137,7 @@ Selection is platform-dependent; Blackwell prefers TRTLLM + FlashInfer CuteDSL, 
 
 - **DeepGEMM** (`is_deep_gemm_supported`) — preferred for FP8 block MoE. SM80+ with FP8 native ops. Fused output quant in [PR #36518](https://github.com/vllm-project/vllm/pull/36518). E8M0 accuracy fix for Qwen3.5 FP8 on Blackwell: [PR #38083](https://github.com/vllm-project/vllm/pull/38083).
 - **swapAB default on SM90** — [PR #34924](https://github.com/vllm-project/vllm/pull/34924) (v0.17).
+- **Humming outranks Marlin on SM90 (v0.32.0)** — `prioritize_humming()` moves Humming directly ahead of Marlin in the linear lists and the FP8 / NVFP4 / MXFP4 / MXFP8 / INT-WNA16 MoE oracles, SM90 only ([#56997](https://github.com/vllm-project/vllm/pull/56997)). After upgrading, a Hopper deployment that resolved to Marlin under `auto` now runs Humming; pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput or accuracy shift.
 - **CUTLASS FP8 blockwise on SM103a** — [PR #32224](https://github.com/vllm-project/vllm/pull/32224).
 
 ## Marlin input dtype selection

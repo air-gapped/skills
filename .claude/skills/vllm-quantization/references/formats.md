@@ -13,10 +13,8 @@ kernels dispatched to, status, key caveats. Source of truth is
 - [ModelOpt MXFP8 — `--quantization modelopt_mxfp8`](#modelopt-mxfp8----quantization-modelopt_mxfp8)
 - [ModelOpt mixed — `--quantization modelopt_mixed`](#modelopt-mixed----quantization-modelopt_mixed)
 - [compressed-tensors — `--quantization compressed-tensors`](#compressed-tensors----quantization-compressed-tensors)
-- [AWQ — `--quantization awq`](#awq----quantization-awq)
-- [AWQ-Marlin — `--quantization awq_marlin`](#awq-marlin----quantization-awq_marlin)
-- [GPTQ — `--quantization gptq`](#gptq----quantization-gptq)
-- [GPTQ-Marlin — `--quantization gptq_marlin`](#gptq-marlin----quantization-gptq_marlin)
+- [AWQ — `--quantization awq` / `awq_marlin` / `auto_awq`](#awq----quantization-awq--awq_marlin--auto_awq)
+- [GPTQ — `--quantization gptq` / `gptq_marlin` / `auto_gptq`](#gptq----quantization-gptq--gptq_marlin--auto_gptq)
 - [MXFP4 — `--quantization mxfp4` / `gpt_oss_mxfp4`](#mxfp4----quantization-mxfp4--gpt_oss_mxfp4)
 - [MXFP8 — `--quantization mxfp8`](#mxfp8----quantization-mxfp8)
 - [FBGEMM FP8 — `--quantization fbgemm_fp8` (DEPRECATED)](#fbgemm-fp8----quantization-fbgemm_fp8-deprecated)
@@ -26,7 +24,7 @@ kernels dispatched to, status, key caveats. Source of truth is
 - [moe_wna16 — `--quantization moe_wna16`](#moe_wna16----quantization-moe_wna16)
 - [torchao — `--quantization torchao`](#torchao----quantization-torchao)
 - [inc / auto-round — `--quantization inc` / `--quantization auto-round`](#inc--auto-round----quantization-inc----quantization-auto-round)
-- [bitsandbytes — `--quantization bitsandbytes`](#bitsandbytes----quantization-bitsandbytes)
+- [bitsandbytes — moved out-of-tree (plugin)](#bitsandbytes--moved-out-of-tree-plugin)
 - [gguf — moved out-of-tree (plugin)](#gguf--moved-out-of-tree-plugin)
 - [cpu_awq — removed, folded into `awq_marlin`](#cpu_awq--removed-folded-into-awq_marlin)
 - [online — `--quantization online` (and shortcuts)](#online----quantization-online-and-shortcuts)
@@ -38,22 +36,22 @@ kernels dispatched to, status, key caveats. Source of truth is
 
 ## Dispatcher
 
-[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (192-line file at v0.27.0; line ranges drift every minor). Detection flow in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/model.py), `override_quantization_method()`.
+[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/model.py), `override_quantization_method()`.
 
-Full 31-flag catalog **verified against v0.27.0**: `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, bitsandbytes, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
+Full 30-flag catalog **verified against v0.32.0** (unchanged since v0.28.0 dropped `bitsandbytes`): `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
 
 `DEPRECATED_QUANTIZATION_METHODS` (same file) is exactly `["fbgemm_fp8", "fp_quant"]`. **`gguf` and `cpu_awq` are no longer in the list** — see their sections below.
 
 ## FP8 — `--quantization fp8`
 
 - **File**: `vllm/model_executor/layers/quantization/fp8.py`
-- **Config class**: `Fp8Config` (line 96)
+- **Config class**: `Fp8Config` (line 92 at v0.32.0)
 - **Min SM**: 75
 - **Activation schemes**: `static`, `dynamic`
 - **Kernels**: Marlin (`MarlinFP8ScaledMMLinearKernel`), CUTLASS (`cutlass_fp8_supported`), DeepGEMM (`use_deep_gemm`)
-- **KV support**: `Fp8KVCacheMethod` (line 203)
-- **MoE**: `Fp8MoEMethod` (line 198), `Fp8OnlineMoEMethod` (line 200)
-- **Block quant**: `weight_block_size` requires `is_checkpoint_fp8_serialized=True`
+- **KV support**: `Fp8KVCacheMethod` (class line 850)
+- **MoE**: `Fp8MoEMethod` (class line 464)
+- **Pre-quantized checkpoints only from v0.31.0** ([PR #53585](https://github.com/vllm-project/vllm/pull/53585)): `Fp8Config(is_checkpoint_fp8_serialized=False)` raises *"The `fp8` quantization method no longer supports online quantization"*; with no quant config in the checkpoint, `--quantization fp8` logs a deprecation warning and loads through the `fp8_per_tensor` online shorthand.
 
 Key config fields: `is_checkpoint_fp8_serialized`, `activation_scheme`, `ignored_layers`, `weight_block_size`.
 
@@ -133,38 +131,21 @@ Top-level `quantization_config` fields in HF `config.json`:
 
 Preset schemes: `UNQUANTIZED`, `W8A16`, `W4A16`, `W4A16_ASYM`, `W8A8`, `INT8`, `W4A8`, `W4AFP8`, `FP8`, `FP8_DYNAMIC`, `FP8_BLOCK`, `NVFP4A16`, `NVFP4`, `MXFP4A16`, `MXFP4`, `MXFP8A16`, `MXFP8`.
 
-## AWQ — `--quantization awq`
+## AWQ — `--quantization awq` / `awq_marlin` / `auto_awq`
 
-- **File**: `vllm/model_executor/layers/quantization/awq.py`
-- **Config class**: `AWQConfig` (line 26)
-- **Min SM**: 60
-- **Kernels**: Triton
-- Deprecated for production — use `awq_marlin`.
-
-## AWQ-Marlin — `--quantization awq_marlin`
-
-- **File**: `vllm/model_executor/layers/quantization/awq_marlin.py`
-- **Config class**: `AWQMarlinConfig` (line 152)
+- **File**: `vllm/model_executor/layers/quantization/auto_awq.py` — all three values map to `AutoAWQConfig` (line 174 at v0.32.0); the old `awq.py` / `awq_marlin.py` split is gone.
 - **Min SM**: 75
-- **Kernels**: Marlin
-- **Compat check**: `is_awq_marlin_compatible()` (line 153-170)
+- **Kernels**: Marlin on CUDA when `check_marlin_supported()` passes (not under `VLLM_BATCH_INVARIANT`), Triton otherwise; CPU/XPU take the Marlin method's mixed-precision kernel picker. The flag value does not select the kernel.
+- 4-bit only through this config (8-bit AWQ errors with a pointer to the Marlin backend).
 
 ROCm AWQ Marlin: [PR #36505](https://github.com/vllm-project/vllm/pull/36505), v0.19.
 
-## GPTQ — `--quantization gptq`
+## GPTQ — `--quantization gptq` / `gptq_marlin` / `auto_gptq`
 
-- **File**: `vllm/model_executor/layers/quantization/gptq.py`
-- **Config class**: `GPTQConfig` (line 40)
+- **File**: `vllm/model_executor/layers/quantization/auto_gptq.py` — all three values map to `AutoGPTQConfig` (line 95 at v0.32.0).
 - **Min SM**: 60
-- **Kernels**: Triton, Exllamav2
-- Consolidated with `gptq_marlin` in [PR #37768](https://github.com/vllm-project/vllm/pull/37768); slow-GEMM removed ([PR #36900](https://github.com/vllm-project/vllm/pull/36900)).
-
-## GPTQ-Marlin — `--quantization gptq_marlin`
-
-- **File**: `vllm/model_executor/layers/quantization/gptq_marlin.py`
-- **Config class**: `GPTQMarlinConfig` (line 95)
-- **Min SM**: 75
-- **Kernels**: Marlin
+- **Kernels**: Marlin (linear and MoE).
+- Consolidated in [PR #37768](https://github.com/vllm-project/vllm/pull/37768); slow-GEMM removed ([PR #36900](https://github.com/vllm-project/vllm/pull/36900)); group/dynamic activation ordering (`g_idx`) removed in v0.30.0 ([PR #54809](https://github.com/vllm-project/vllm/pull/54809)).
 
 ## MXFP4 — `--quantization mxfp4` / `gpt_oss_mxfp4`
 
@@ -178,11 +159,9 @@ Landmarks: [PR #31926](https://github.com/vllm-project/vllm/pull/31926) (dense W
 
 ## MXFP8 — `--quantization mxfp8`
 
-- **File**: `vllm/model_executor/layers/quantization/mxfp8.py`
-- **Config class**: `Mxfp8Config` (line 10)
+- **Dual role**: an online shorthand (`_ONLINE_SHORTHANDS`) *and* the checkpoint `quant_method: "mxfp8"` some exports carry, which loads through `ModelOptMxFp8Config` (`modelopt.py`). There is no `mxfp8.py`.
 - **Min SM**: 80
-- **Kernels**: Marlin
-- **Online path**: `Mxfp8OnlineLinearMethod`, `Mxfp8OnlineMoEMethod` (lines 101-109)
+- **Kernels**: Marlin, Humming (preferred on SM90 from v0.32.0), FlashInfer `mm_mxfp8` on SM100
 - Block params: `MXFP8_BLOCK_SIZE`, `MXFP8_SCALE_DTYPE`, `MXFP8_VALUE_DTYPE` in `utils/mxfp8_utils`.
 
 Landmarks: [PR #35448](https://github.com/vllm-project/vllm/pull/35448) (online v0.19), [PR #39205](https://github.com/vllm-project/vllm/pull/39205) (`MxFp8LinearKernel`).
@@ -205,7 +184,8 @@ Landmarks: [PR #35448](https://github.com/vllm-project/vllm/pull/35448) (online 
 
 - **File**: `vllm/model_executor/layers/quantization/quark/quark.py`
 - **Config class**: `QuarkConfig`
-- **Supported**: W8A8 INT8 (MoE), W4A8 MXFP4/FP8 ([PR #35316](https://github.com/vllm-project/vllm/pull/35316), v0.18)
+- **Supported**: W8A8 INT8 (MoE), W4A8 MXFP4/FP8 ([PR #35316](https://github.com/vllm-project/vllm/pull/35316), v0.18), native W4A16 INT4/UINT4 exports ([PR #48606](https://github.com/vllm-project/vllm/pull/48606), v0.31.0)
+- **v0.31.0 removed Quark's silent online MXFP4 quantization** ([PR #51800](https://github.com/vllm-project/vllm/pull/51800)) — request online MXFP4 through `--quantization-config` instead.
 - AMD's quantizer. Docs: [vllm.ai/.../quark](https://docs.vllm.ai/en/stable/features/quantization/quark/).
 
 ## experts_int8 / `int8_per_channel_weight_only` (online)
@@ -248,13 +228,12 @@ Fields: `linear_quant_method`, `weight_bits`, `group_size`, `has_zp`, `lm_head_q
   the Humming kernel instead of erroring
   ([#52890](https://github.com/vllm-project/vllm/pull/52890)).
 
-## bitsandbytes — `--quantization bitsandbytes`
+## bitsandbytes — moved out-of-tree (plugin)
 
-- **File**: `vllm/model_executor/layers/quantization/bitsandbytes.py`
-- **Config class**: `BitsAndBytesConfig` (line 28)
-- **Min SM**: 70
-- Formats: NF4, FP4, FP8
-- ROCm support: [PR #34688](https://github.com/vllm-project/vllm/pull/34688), v0.17.
+`bitsandbytes.py` left the tree in v0.28.0 (#43529) and `bitsandbytes` is not in
+`QuantizationMethods`. Install [`vllm-bnb-plugin`](https://github.com/vllm-project/vllm-bnb-plugin)
+(`uv pip install vllm-bnb-plugin`, `docs/features/quantization/bnb.md`); it
+handles both in-flight quantization and pre-quantized NF4/FP4 checkpoints.
 
 ## gguf — moved out-of-tree (plugin)
 
@@ -286,7 +265,8 @@ on CPU.
 - **Config class**: `OnlineQuantizationConfig` (line 44)
 - **Min SM**: 75
 - **Shortcuts** (`_ONLINE_SHORTHANDS`, `vllm/config/quantization.py`): `fp8_per_tensor`, `fp8_per_block`, `fp8_per_channel`, `int8_per_channel_weight_only`, `nvfp4_per_token`, `mxfp8`
-- **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), and `ignore`. Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `int8_per_channel_static`).
+- **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), `ignore`, and (v0.30.0+) `targets` (`{pattern: shorthand}`, mutually exclusive with `linear`/`moe`). Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `nvfp4_per_token`, `int8_per_channel_static`, `int4_per_group_32` — the last is the gfx942 load-time MXFP4-to-int4 path).
+- **Re-quantization (v0.32.0)**: an online target can re-quantize a checkpoint-quantized linear layer (dequantize, then quantize); only serialized ModelOpt MXFP8 linears are a supported source, other pairs raise ([PR #55684](https://github.com/vllm-project/vllm/pull/55684)).
 - Passed via **`--quantization-config`** (JSON or dotted keys). There is no `--quantization-config-file` flag, no `global_scheme` / `linear_scheme_override` / `moe_scheme_override` keys, and no `OnlineQuantScheme` enum — that was the pre-v0.25 shape.
 - XPU: non-block FP8 scaled-mm linear defaults to W8A16; `--linear-backend xpu` forces W8A8, `--linear-backend xpu_woq` pins weight-only.
 

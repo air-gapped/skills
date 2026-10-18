@@ -1,4 +1,4 @@
-# Version gates — v0.14 → v0.27
+# Version gates — v0.14 → v0.32
 
 Quantization churns fast enough that cached operator knowledge goes stale
 within a release cycle. This table is the ground-truth for "what does vLLM
@@ -8,7 +8,10 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ## Table of Contents
 
-- [v0.27.1 — 2026-08-11 (current stable)](#v0271--2026-08-11-current-stable)
+- [v0.32.0 — 2026-10-18 (current)](#v0320--2026-10-18-current)
+- [v0.31.0 — 2026-10-05](#v0310--2026-10-05)
+- [v0.28.0 – v0.30.0](#v0280--v0300)
+- [v0.27.1 — 2026-08-11](#v0271--2026-08-11)
 - [v0.27.0 — 2026-08-10](#v0270--2026-08-10)
 - [v0.26.0 — 2026-07-27](#v0260--2026-07-27)
 - [v0.22–v0.25 — 2026-05-28 → 2026-07-14](#v022v025--2026-05-28--2026-07-14)
@@ -29,7 +32,44 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ---
 
-## v0.27.1 — 2026-08-11 (current stable)
+## v0.32.0 — 2026-10-18 (current)
+
+Quantization:
+- [PR #59042](https://github.com/vllm-project/vllm/pull/59042) — **silent CUTLASS NVFP4/MXFP4 MoE corruption under expert parallelism fixed** (the CUTLASS FP4 MoE path ignored the EP `expert_map`). Any EP deployment on CUTLASS FP4 MoE at ≤ v0.31.x is suspect.
+- [PR #56997](https://github.com/vllm-project/vllm/pull/56997) — **default change:** Humming outranks Marlin on SM90 for linear and MoE kernel selection (`auto`).
+- [PR #60079](https://github.com/vllm-project/vllm/pull/60079) — MXFP4 MoE oracle: CUTLASS W4A4 backend; W4A4 checkpoints without a W4A4 kernel fall back to BF16 activations with a warning.
+- [PR #55684](https://github.com/vllm-project/vllm/pull/55684) — online re-quantization of linear layers (ModelOpt MXFP8 source only).
+- [PR #50030](https://github.com/vllm-project/vllm/pull/50030) / [#56740](https://github.com/vllm-project/vllm/pull/56740) — per-token NVFP4 CuTe-DSL MoE backend, with ReLU2.
+- [PR #59815](https://github.com/vllm-project/vllm/pull/59815) — compressed-tensors MXFP4 MoE with FP8 activations.
+- [PR #59604](https://github.com/vllm-project/vllm/pull/59604) — ModelOpt IQ2_XS / IQ2_XXS / Q8_0 via b12x on SM120/121.
+- Fixes: GPTQ checkpoints with non-default safetensors names ([#60411](https://github.com/vllm-project/vllm/pull/60411)), `moe_wna16` 8-bit asymmetric zero points ([#58950](https://github.com/vllm-project/vllm/pull/58950)), ModelOpt mixed-precision NVFP4 detection ([#56050](https://github.com/vllm-project/vllm/pull/56050)).
+
+KV cache:
+- [PR #46963](https://github.com/vllm-project/vllm/pull/46963) / [#60620](https://github.com/vllm-project/vllm/pull/60620) / [#60452](https://github.com/vllm-project/vllm/pull/60452) — NVFP4 KV on SM8x/SM12x and SM90 (FlashInfer FA2 path), XQA decode on SM12x.
+- [PR #57057](https://github.com/vllm-project/vllm/pull/57057) — `ultraquant_4bit` KV dtype (ROCm).
+- [PR #60140](https://github.com/vllm-project/vllm/pull/60140) / [#60281](https://github.com/vllm-project/vllm/pull/60281) — **default change:** `GlmMoeDsaForCausalLM` resolves `--kv-cache-dtype auto` to `fp8_e4m3` on SM100.
+- [PR #56198](https://github.com/vllm-project/vllm/pull/56198) — `int4_per_token_head` on non-power-of-two head sizes. [PR #57163](https://github.com/vllm-project/vllm/pull/57163) — `sleep(level=2)` no longer zeroes compressed-tensors KV scales.
+
+Kernel config: `--moe-backend flashinfer_moe_ep_mega_cutedsl` renamed `flashinfer_moe_ep_cutedsl`; `aiter_mega_moe` added ([#59685](https://github.com/vllm-project/vllm/pull/59685)).
+
+## v0.31.0 — 2026-10-05
+
+**Breaking:**
+- [PR #53585](https://github.com/vllm-project/vllm/pull/53585) — `fp8` no longer quantizes online: `Fp8Config` rejects non-serialized checkpoints; `--quantization fp8` on a checkpoint without a quant config warns and loads as `fp8_per_tensor`.
+- [PR #51800](https://github.com/vllm-project/vllm/pull/51800) — Quark silent online MXFP4 quantization removed.
+- [PR #58001](https://github.com/vllm-project/vllm/pull/58001) — AllSpark INT8 W8A16 GEMM backend removed.
+- [PR #57055](https://github.com/vllm-project/vllm/pull/57055) — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` restored (removed in v0.29.0); AITER W4A4 ASM GEMM default off.
+
+Quantization:
+- [PR #56685](https://github.com/vllm-project/vllm/pull/56685) — Humming Hadamard transforms and NVFP4/MXFP4/MXFP8 online quantization.
+- [PR #48606](https://github.com/vllm-project/vllm/pull/48606) — native Quark W4A16 INT4/UINT4 exports. [PR #50814](https://github.com/vllm-project/vllm/pull/50814) — opt-in load-time MXFP4 dequantization. [PR #57176](https://github.com/vllm-project/vllm/pull/57176) — explicit per-token NVFP4 MoE backends.
+- Fixes: MXFP8 on layers below `mm_mxfp8` shape limits ([#54223](https://github.com/vllm-project/vllm/pull/54223)), online NVFP4 scales on reload ([#57954](https://github.com/vllm-project/vllm/pull/57954)).
+
+## v0.28.0 – v0.30.0
+
+No per-release section; the load-bearing changes are inline where an agent acts on them: `bitsandbytes` out-of-tree, env-var and KV-scale removals (SKILL.md flag-values section), `use_fp4_indexer_cache` removal, GPTQ `g_idx` removal, `targets` and partially-pre-quantized online quantization (SKILL.md), CuTeDSL W4A16 default on SM100/103 and `linear_backend_per_quant` (`kernels.md`).
+
+## v0.27.1 — 2026-08-11
 
 Single-change patch on v0.27.0:
 
@@ -321,17 +361,19 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## Deprecation watch
 
-Re-verified against v0.27.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
+Re-verified against v0.32.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
 (`layers/quantization/__init__.py`) contains exactly two entries:
 
 - `fbgemm_fp8` — use `fp8`.
 - `fp_quant` — no replacement; avoid.
 
-**Already removed** (do not offer): `gguf` (out-of-tree plugin), `cpu_awq`
-(folded into `awq_marlin`, #43841), `--calculate-kv-scales` (#37201, v0.19),
+**Already removed** (do not offer): `gguf` and `bitsandbytes` (out-of-tree
+plugins), `cpu_awq` (folded into `awq_marlin`, #43841), online quantization
+through `fp8` (#53585, v0.31.0), AllSpark W8A16 (#58001, v0.31.0), `--calculate-kv-scales` (#37201, v0.19),
 per-tensor-per-channel FP8 (#32700), Sparse24 (#36799), BitBlas (#32683),
 Marlin 24 (#32688), DeepSpeedFp8 (#32679), RTN (#32697).
 
 **Still present but discouraged** (not upstream-deprecated — an editorial call):
-`experts_int8` (use `int8_per_channel_weight_only`), `awq` and `gptq` unfused
-(use the `_marlin` variants), `moe_wna16`, `bitsandbytes`, `torchao`.
+`experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `torchao`.
+`awq`/`awq_marlin` and `gptq`/`gptq_marlin` are the same config each
+(`AutoAWQConfig` / `AutoGPTQConfig`); the suffix no longer picks a kernel.

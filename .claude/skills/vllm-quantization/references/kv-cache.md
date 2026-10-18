@@ -2,7 +2,7 @@
 
 Separate CLI axis from weight quant. `--kv-cache-dtype` + optional pre-calibrated
 scales in the model checkpoint. Source of truth:
-[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.27.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (it was `18-34` at v0.20/v0.21 and holds 16 entries at v0.27.0) — and
+[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (19 entries at v0.32.0) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
 ## Table of Contents
@@ -24,21 +24,24 @@ scales in the model checkpoint. Source of truth:
 
 | Dtype | Semantics | Hardware | Scales |
 |---|---|---|---|
-| `auto` | Match weight dtype | All | — |
+| `auto` | Match weight dtype; DeepSeek-V3.2 and (v0.32.0+, SM100) GLM-5.x `GlmMoeDsaForCausalLM` resolve it to FP8 — set `bfloat16` to opt out | All | — |
 | `float16` / `bfloat16` | No quant | All | — |
 | `fp8` | Alias for `fp8_e4m3` | SM89+ | Loaded from checkpoint (`k_scale`, `v_scale`) |
 | `fp8_e4m3` | Standard E4M3 | SM89+ | Loaded |
 | `fp8_e5m2` | IEEE 754 E5M2 (ROCm-oriented) | SM89+ | Loaded |
 | `fp8_inc` | Intel path | HPU | — |
 | `fp8_ds_mla` | DeepSeek MLA-specific | SM89+ | — |
-| `int4_per_token_head` | Dynamic INT4 per (token, head) | FlashInfer / XPU | Computed in-kernel. Present in the enum at v0.27.0; verify kernel support for your backend before relying on it |
+| `nvfp4_ds_mla` | Sparse-MLA NVFP4 NoPE + FP8 RoPE (FlashMLA sparse) | SM100 only | — |
+| `int4_per_token_head` | Dynamic INT4 per (token, head) | FlashInfer / XPU | Computed in-kernel. Non-power-of-two head sizes work from v0.32.0 (#56198); verify kernel support for your backend before relying on it |
 | `int8_per_token_head` | Dynamic INT8 per (token, head) | FlashInfer / XPU | Computed in-kernel — no checkpoint scales needed |
 | `fp8_per_token_head` | Dynamic FP8 per (token, head) | FlashInfer / TRTLLM | Computed in-kernel |
 | `turboquant_k8v4` | FP8 K + 4-bit V | SM89+ | Hadamard rotation, no checkpoint scales |
 | `turboquant_4bit_nc` | 4-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_k3v4_nc` | 3-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_3bit_nc` | 3-bit K + 3-bit V + NC | SM89+ | Hadamard |
-| `nvfp4` | **Shipped — no longer roadmap** | SM100 | Feature request [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). Accepted value in `CacheDType` at v0.27.0; v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
+| `ultraquant_4bit` | FP4 E2M1 codes + UE8M0 per-32 scales, Hadamard-rotated K; ~2× FP8 density (v0.32.0, #57057) | ROCm only | No checkpoint scales |
+| `nvfp4` | **Shipped — no longer roadmap** | FlashInfer: SM100 (TRTLLM); SM80 / SM90 / SM12x via the FA2 path from v0.32.0 (#46963, #60620; XQA decode on SM12x, #60452) — rejected at head size 64 and with attention sinks | [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
+| `nvfp4_4over6` | NVFP4 layout; picks max/6 or max/4 scale per 16 values by squared reconstruction error | FlashInfer SM100 (TRTLLM) only — the FA2 path accepts plain `nvfp4` only | Computed at write time |
 
 ## Base method
 
@@ -109,11 +112,13 @@ MI300/MI355X CDNA3/4 required. Handled automatically when platform is detected.
 | XPU (Intel) | ✓ (incfp8) | ✗ | ✓ | ✗ | ✗ |
 | Vanilla (CPU) | ✗ | ✗ | ✗ | ✗ | ✓ |
 
+The FlashInfer `nvfp4` cell is SM100 only on ≤ v0.31.x; v0.32.0 extends it to SM80 / SM90 / SM12x (see the dtype table). Check `FlashInferBackend.supports_kv_cache_dtype()` for the release in hand.
+
 ## Known landmines
 
 1. **FP8 KV on MLA multi-turn → garbage** ([#38652](https://github.com/vllm-project/vllm/issues/38652)) — **RESOLVED.** Closed 2026-05-15 with *"Fixed by #37054"* — the same PR already credited in item 5 below. This entry and item 5 were two descriptions of one bug; the blanket "avoid FP8 KV on DeepSeek / GLM-4.5-4.7 / Kimi K2" advice was over-cautious from v0.19 onward. On a current release, FP8 KV on MLA is usable — benchmark it rather than ruling it out. Item 5 has the mechanism.
 2. **FP8 KV compile failure SM90 FlashInfer** ([#31843](https://github.com/vllm-project/vllm/issues/31843)) — upgrade FlashInfer to 0.6.6+ (bundled in v0.18+).
-3. **`_init_kv_cache_quant` overly broad** ([#39137](https://github.com/vllm-project/vllm/issues/39137)) — fp8_e5m2 gate fires on any quantized checkpoint, blocks legit INT4/NVFP4 loads. Patch in discussion.
+3. **`_init_kv_cache_quant` overly broad** ([#39137](https://github.com/vllm-project/vllm/issues/39137)) — fp8_e5m2 gate fired on any quantized checkpoint, blocking legit INT4/NVFP4 loads. Fixed by [PR #45040](https://github.com/vllm-project/vllm/pull/45040), v0.24.0 — upgrade.
 4. **Qwen3-MoE k_scale/v_scale load** — fixed in v0.17 ([PR #35656](https://github.com/vllm-project/vllm/pull/35656)).
 5. **MLA KV scale inconsistency FP8 → gibberish** — fixed v0.19 ([PR #37054](https://github.com/vllm-project/vllm/pull/37054), merged 2026-03-18). Title: *"Fix KV scales inconsistency in fp8 MLA & FlashInfer kv_cache_dtype 'auto' leading to gibberish."* Two causes in one PR: (a) FlashInfer applied `layer._[qkv]_scale` **unconditionally**, even when QKV values were unscaled BF16 — this hit both normal and MLA attention paths under `kv_cache_dtype=auto`; (b) MLA forces K and V to share one quantization scale (the KV latents are joint), so only one of `_k_scale` / `_v_scale` was being handled correctly. **This is also the fix for #38652** (item 1) — upstream confirmed the link on 2026-05-15, roughly two months after the PR merged.
 6. **Skip SWA layers with FP8 KV** — added v0.19 ([PR #33695](https://github.com/vllm-project/vllm/pull/33695)).
@@ -121,6 +126,7 @@ MI300/MI355X CDNA3/4 required. Handled automatically when platform is detected.
 8. **TurboQuant crash on A100 with BF16 + FP8 KV** ([#39992](https://github.com/vllm-project/vllm/issues/39992)) — A100 not a production TurboQuant target.
 9. **Per-head FP8 KV experimental for checkpointed scales** — use per-token-head dynamic path instead on MLA.
 10. **Qwen3.5 FP8 on B200 degraded-accuracy KV** v0.18 ([#37618](https://github.com/vllm-project/vllm/issues/37618)) — fixed v0.19 ([PR #38083](https://github.com/vllm-project/vllm/pull/38083)).
+11. **`sleep(level=2)` zeroed compressed-tensors KV-FP8 scales** → NaN logprobs and a wrong first token on the first request after a weights-only reload (the RL weight-sync shape) — fixed v0.32.0 ([PR #57163](https://github.com/vllm-project/vllm/pull/57163)). Other KV quant methods were unaffected. On older releases use `sleep(level=1)` for compressed-tensors FP8 KV checkpoints.
 
 ## Roadmap items (feature requests)
 

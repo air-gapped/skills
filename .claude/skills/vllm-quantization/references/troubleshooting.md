@@ -33,12 +33,14 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | GPTQ exclamation-point-only output | Qwen3.5 397B on ROCM | [#37996](https://github.com/vllm-project/vllm/issues/37996) | Open |
 | Marlin wrong first Harmony token | GPT-OSS-120B SM121 | [#37030](https://github.com/vllm-project/vllm/issues/37030) | Open; SM121 not production |
 | Non-deterministic degenerate output | Dynamic FP8 + LoRA-merged on B200 | [#39662](https://github.com/vllm-project/vllm/issues/39662) | Pin static FP8, or unmerge LoRA |
+| Wrong / degraded output only with `--enable-expert-parallel` | NVFP4 or MXFP4 MoE on the CUTLASS MoE backend, ≤ v0.31.x | Fixed [PR #59042](https://github.com/vllm-project/vllm/pull/59042) (CUTLASS FP4 MoE ignored the EP `expert_map`) | Upgrade to v0.32.0; on older releases pin a non-CUTLASS `--moe-backend` or drop EP |
 
 ## Load / init failures
 
 | Symptom | Model / scenario | Issue | Fix |
 |---|---|---|---|
 | `AttributeError: cannot deserialize quantization_config` | — | — | Upgrade: `vllm>=0.5.5`, `compressed-tensors>=0.5.0` |
+| `ValueError: The fp8 quantization method no longer supports online quantization` (message quotes `fp8` in backticks) | `Fp8Config` built with `is_checkpoint_fp8_serialized=False`, v0.31.0+ | [PR #53585](https://github.com/vllm-project/vllm/pull/53585) | Use `--quantization fp8_per_tensor` (or another online shorthand) for a BF16 checkpoint |
 | Unknown quantization method: mxfp4 | — | Closed [#22276](https://github.com/vllm-project/vllm/issues/22276) | Upgrade vLLM; mxfp4 needs v0.14+ |
 | NVFP4 weight missing `_double_scale` key | ModelOpt export on DGX Spark | [#38980](https://github.com/vllm-project/vllm/issues/38980) | Regenerate with ModelOpt ≥ current release |
 | Uninitialised `PerTensorScaleParameter` → NaN | Fused-QKV NVFP4 | [#39764](https://github.com/vllm-project/vllm/issues/39764) | Use split-QKV checkpoints |
