@@ -196,21 +196,17 @@ Most common root causes, in order:
 6. **Max context set higher than needed.** If `--max-model-len` is 200k but typical requests are 8k, the scheduler reserves capacity for 200k; effective concurrency is starved. Tune `--max-model-len` to the 95th or 99th percentile of real traffic, not the theoretical maximum.
 7. **Actually compute-bound.** Short prompts + many tokens out = decode-dominated. Offload can't help; more GPUs or a smaller model is the fix.
 
-## Open bugs to know before recommending offload
+## Known bugs to check before recommending offload
 
-Issue states verified 2026-10-18. All checked when authoring a new offload deploy.
+States verified 2026-10-18. Before authoring an offload deploy, recheck each row with `gh issue view <N> --repo <repo> --json state,stateReason`.
 
-| Issue | Repo | State | Affects | Avoidance |
-|---|---|---|---|---|
-| [#40259](https://github.com/vllm-project/vllm/issues/40259) | vllm-project/vllm | closed 2026-07-30 (completed) | Filed as KV offload + EAGLE3 + Expert Parallel cuMemcpyDtoHAsync segfault on 8× H20-3e; the thread isolated the real trigger as **`--decode-context-parallel-size` combined with offload** | Fixed by #41549, shipped in v0.21.0. The reporter re-ran 120/120 requests clean on v0.21.0 and closed it himself — a genuine fix, not a bot closure. Drop the "avoid EP+EAGLE3" rule |
-| [#2942](https://github.com/LMCache/LMCache/issues/2942) | LMCache/LMCache | **closed 2026-07-30 by the stale bot (not_planned) — NOT fixed** | `LocalCPUBackend.allocate()` deadlocks when `use_hot=False` and staging buffer fills. Repro confirmed 2026-04-23 even with `use_hot=True` on Llama-3.2-1B + ShareGPT | Always set `LMCACHE_LOCAL_CPU=True` (default) — never `use_hot=False`. The one candidate fix, LMCache PR #3006, was **closed unmerged**, so the deadlock is still live in 0.5.x. Treat the closure as bot noise, not a green light |
-| [#3106](https://github.com/LMCache/LMCache/issues/3106) | LMCache/LMCache | **open**, active 2026-10-03 | LMCacheConnectorV1 unusable on any hybrid-attention model (Gemma-4, Qwen3.5/3.6, DeepSeek-V4). `MemoryObj.tensor` materializes single-shape view, fails on multi-group buffer | Use native offload (v0.21.0+) or LMCache **MP** mode — both support HMA. Not the in-process connector |
-| [#40624](https://github.com/vllm-project/vllm/issues/40624) | vllm-project/vllm | closed 2026-05-26 (completed) | Gemma4 + spec-decode 0% prefix-cache hit rate under disabled HMA | Fixed. Drop the old "disable HMA + shrink max-model-len" workaround |
-| [#36463](https://github.com/vllm-project/vllm/issues/36463) | vllm-project/vllm | closed 2026-05-18 (duplicate) | Qwen3.5 family fail-to-start with `--kv-offloading-backend native` | Folded into the v0.21.0 HMA enablement |
-| [#39702](https://github.com/vllm-project/vllm/issues/39702) | vllm-project/vllm | closed 2026-05-19 (completed) | `SimpleCPUOffloadScheduler` AssertionError TOCTOU race during CPU LRU eviction | Fixed — no longer an avoidance concern on current releases |
-| [#2502](https://github.com/LMCache/LMCache/issues/2502) | LMCache/LMCache | closed 2026-05-04 (not planned) | LocalDiskBackend benchmark crashes vLLM | Disk tier still carries some caution under burst alloc-pressure, but the crash is not being tracked as a fix — DRAM-only remains the simpler default |
+| Issue | State | Affects | Avoidance |
+|---|---|---|---|
+| [LMCache#2942](https://github.com/LMCache/LMCache/issues/2942) | closed by the stale bot — **NOT fixed** (fix PR #3006 closed unmerged) | `LocalCPUBackend.allocate()` deadlocks when the staging buffer fills; reproduced with `use_hot=False` and with `use_hot=True` | Keep `LMCACHE_LOCAL_CPU=True` (default); never `use_hot=False`. Treat the closure as live in 0.5.x |
+| [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) | **open** | `LMCacheConnectorV1` unusable on hybrid-attention models (Gemma-4, Qwen3.5/3.6, DeepSeek-V4): single-shape `MemoryObj.tensor` fails on a multi-group buffer | Use native offload or LMCache **MP** mode; never the in-process connector |
+| [LMCache#2502](https://github.com/LMCache/LMCache/issues/2502) | closed not_planned — not being fixed | `LocalDiskBackend` crashes vLLM under burst allocation pressure | Keep `LMCACHE_ENABLE_ASYNC_LOADING=False` on a disk tier; DRAM-only stays the simpler default |
 
-When auditing a new offload deploy, recheck the still-open rows — `gh issue view <N>` confirms current state cheaply.
+Fixed at or below the v0.22.0 security floor: segfault with `--decode-context-parallel-size` + offload (#40259, v0.21.0), Qwen3.5 native-offload start failure (#36463, v0.21.0), `SimpleCPUOffloadScheduler` TOCTOU `AssertionError: Expected N hit tokens` (#39702, v0.22.0). On an older tag, upgrade rather than work around them.
 
 ## Other long-context knobs worth tuning alongside offload
 
