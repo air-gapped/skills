@@ -2,9 +2,9 @@
 
 Every item has a repro condition, observed symptom, root cause, and fix.
 
-## 1. `reasoning_content: null` on DeepSeek-R1 (start token eaten by template)
+## 1. `reasoning: null` on DeepSeek-R1 (start token eaten by template)
 
-**Repro.** Serve DeepSeek-R1 with `--reasoning-parser deepseek_r1`, call `/v1/chat/completions` non-streaming. Response has filled `content` but `reasoning_content` is null.
+**Repro.** Serve DeepSeek-R1 with `--reasoning-parser deepseek_r1`, call `/v1/chat/completions` non-streaming. Response has filled `content` (with `</think>` in it) but `reasoning` is null. If `content` is clean and `</think>` is stripped, it is §15 instead.
 
 **Symptom.** Chat template appends `<think>\n` to the prompt after `add_generation_prompt`. The model therefore only emits `...</think>answer` — no `<think>` in its output. A naive parser that requires a matched `<think>...</think>` pair fails.
 
@@ -14,9 +14,9 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Upstream.** [HF discussion](https://huggingface.co/deepseek-ai/DeepSeek-R1/discussions/144), [#13125](https://github.com/vllm-project/vllm/issues/13125).
 
-## 2. CoT leaks into `reasoning_content` with `enable_thinking=False`
+## 2. CoT leaks into `reasoning` with `enable_thinking=False`
 
-**Repro.** Qwen3 with `chat_template_kwargs={"enable_thinking": False}`. Expected: all output in `content`, `reasoning_content` null. Actual: `content` empty, everything in `reasoning_content`.
+**Repro.** Qwen3 with `chat_template_kwargs={"enable_thinking": False}`. Expected: all output in `content`, `reasoning` null. Actual: `content` empty, everything in `reasoning`.
 
 **Root cause.** The Qwen3 chat template (thinking-disabled path) injects `<think>\n\n</think>\n\n` into the prompt itself, so the model's output never emits `</think>`. The parser sees no `</think>` in generated tokens and — with `thinking_enabled=True` (its default) — returns `(model_output, None)`.
 
@@ -166,14 +166,14 @@ All built-in parsers do this.
 
 ## 15. `reasoning_content` is always null — but parser worked
 
-**Repro.** Current-main vLLM. Client reads `response.choices[0].message.reasoning_content`, always null. `content` looks correct, `</think>` is already stripped from it.
+**Repro.** vLLM v0.16.0 or newer. Client reads `response.choices[0].message.reasoning_content`, always null. `content` looks correct, `</think>` is already stripped from it.
 
 **Root cause.** The response field was renamed from `reasoning_content` to `reasoning` (RFC [vllm#27755](https://github.com/vllm-project/vllm/issues/27755)) — `vllm/entrypoints/openai/chat_completion/protocol.py` now declares `ChatMessage.reasoning: str | None = None`, same for `DeltaMessage.reasoning`. The rename is **response-only**: `reasoning_content` is still accepted on the *request* side via backward-compat normalization (the request validator maps a deprecated `reasoning_content` key to `reasoning`), so only clients *reading* the response field see null. Clients (including many OpenAI-SDK-compatible libraries, many tutorials, and older vLLM docs) still read `reasoning_content` off the response, so they see null.
 
 **Fix.**
 - Update client to read `.reasoning`. `curl ... | jq '.choices[0].message.reasoning'`.
-- If you can't change the client, pin to a pre-rename vLLM version (check `git log --oneline protocol.py` for the rename).
-- Confusingly, `--include-reasoning-content` / `include_reasoning` request flag is still spelled with `reasoning` (truncated), so don't confuse the request-side and response-side naming.
+- If you can't change the client, pin vLLM below v0.16.0, where the response still carried `reasoning_content`.
+- There is no `--include-reasoning-content` flag. The request field `include_reasoning` (default `true`) controls whether `reasoning` is returned at all.
 
 **Takeaway.** When someone asks "why is reasoning_content null" — before diving into parser debugging, first run `jq '.choices[0].message | keys'` to see what fields actually exist. If `reasoning` is there, the parser ran fine and this is purely a client-side name mismatch.
 
