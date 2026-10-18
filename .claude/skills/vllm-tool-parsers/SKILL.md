@@ -260,10 +260,12 @@ Before upstreaming, read `AGENTS.md` at the repo root for the duplicate-work + P
 
 ## References in this skill
 
-- `references/parser-index.md` — one-line-per-parser index with file path, wrapping tokens at a glance, and the things unique to that parser that aren't obvious from the filename (e.g. "full-width `｜` U+FF5C sentinels", "non-streaming only", "schema-aware type coercion").
-- `references/streaming-pitfalls.md` — the things that bite across parsers: full-width pipes, special-token stripping, empty-args stalls, HACKs, and the end-of-stream flush contract.
-- `references/custom-parser-plugin.md` — plugin scaffolding checklist with file:line anchors into the base class and the canonical examples.
-- `references/sources.md` — verification log of the external GitHub issues/PRs/source files cited by this skill; the `Freshened:` header dates the last full probe. Consult before re-citing a claim; re-probe if it is stale (>90 days).
+| Load | When |
+|---|---|
+| `references/parser-index.md` | before reading a parser's source — per-name file path (including the `→ vllm/parser/` real file), wrapping tokens, and the one non-obvious fact (full-width `｜` sentinels, non-streaming only, schema-aware coercion) |
+| `references/streaming-pitfalls.md` | a streaming-only failure (playbook steps 5–6): full-width pipes, special-token stripping, empty-args stalls, O(n²) pythonic re-parse, truncated markup |
+| `references/custom-parser-plugin.md` | writing or reviewing a `--tool-parser-plugin`: read order, v0.32.0 import skeleton, ship checklist |
+| `references/sources.md` | before citing an issue/PR state or a version gate; re-probe a row whose `Freshened:` date is >90 days old |
 
 ---
 
