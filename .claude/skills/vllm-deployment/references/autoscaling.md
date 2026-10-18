@@ -153,11 +153,11 @@ Raise `cooldownPeriod` to 600–900 for multi-node.
 
 Reducing replicas triggers pod termination. In-flight streams die unless:
 
-1. `terminationGracePeriodSeconds: 60+` on the pod.
+1. `--shutdown-timeout N` in the serve args (default `0` aborts every in-flight request on SIGTERM) and `terminationGracePeriodSeconds` ≥ N + 30 on the pod — the grace period alone drains nothing.
 2. `lifecycle.preStop: exec: ["sleep", "10"]` gives the LB time to stop sending new requests.
 3. Gateway/router is aware of termination and stops selecting the pod immediately (GAIE EPP, production-stack router, llm-d EPP all do this).
 
-Plain nginx round-robin will happily send new requests to a pod mid-termination. On nginx, pair with a longer grace period and accept some truncated streams, or upgrade the router.
+Plain nginx round-robin will happily send new requests to a pod mid-termination. On nginx, pair a longer `--shutdown-timeout` and grace period with the `preStop` sleep and accept some truncated streams, or upgrade the router.
 
 ## SLO-driven autoscaling (advanced)
 

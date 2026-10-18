@@ -116,7 +116,7 @@ Prefix-aware alone often beats KV-aware for chat workloads (conversation prefixe
 ## Load balancing across replicas — health & draining
 
 - **Readiness probe** (see `references/pod-shape.md`) is what the LB uses to decide readiness. Keep it fast (`/health`) and don't hit `/v1/models` (slower).
-- **`terminationGracePeriodSeconds: 60`**: lets in-flight streams finish. Gateways that honour `preStop` can drain cleanly.
+- **`--shutdown-timeout N` + `terminationGracePeriodSeconds` ≥ N + 30**: vLLM aborts in-flight streams on SIGTERM unless `--shutdown-timeout` is set (default `0`); the grace period alone drains nothing. Gateways that honour `preStop` can drain cleanly.
 - **`lifecycle.preStop`**: sleep 5–10 s to let the LB stop sending before the process dies.
 
 ## Autoscaler coordination
