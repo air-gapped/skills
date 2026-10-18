@@ -39,22 +39,15 @@ Operators constantly ask "is this available?" when it either isn't in their vers
 | `P2pNcclConnector` removed | **v0.24.0** (2026-06-29) | #44854. Migrate to NixlConnector or the `p2p` secondary tier. |
 | `p2p` secondary tier gets env-var defaults + hard `PYTHONHASHSEED` check | **v0.26.0** (2026-07-27) | #47636. `host`/`port` now default to `VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) / `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`), not the old literal `7777`, and the tier raised at startup if `PYTHONHASHSEED` was unset — **lifted in v0.29.0** (#51875), which gives `NONE_HASH` a fixed default seed so cross-instance prefix sharing works unpinned. See `references/connectors.md`. |
 
-Latest stable is **v0.32.0** (2026-10-18), checked 2026-10-18. The version gates, the `SupportsHMA` table, the backend pins and the hybrid/Mamba/MoRI-IO/HiSparse notes below were re-read against the **v0.32.0** tree on 2026-10-18. Recent line: v0.28.0 (08-26), v0.29.0 (09-09), v0.30.0 (09-22), v0.31.0 (10-05), v0.32.0 (10-18). Container images can appear before the GitHub release — image availability, not a PyPI wheel, is what gates this stack.
+Latest stable: **v0.32.0** (2026-10-18). Confirm the deployed tag before recommending a config; per-tag evidence lives in `references/sources.md`.
 
-Known-good tags: `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x` through `v0.27.x`, **`v0.29.0`**, **`v0.32.0`** / **`v0.32.0-cu129`**, and model-specific tags like `glm51-cu130` all ship with `INSTALL_KV_CONNECTORS=true` baked in — LMCache, NIXL, and Mooncake pre-installed. Build flag confirmed on `v0.27.0` and `v0.32.0` (amd64, CUDA 13.0.2) and `v0.32.0-cu129` (CUDA 12.9.1); runtime imports confirmed on `v0.29.0` (amd64) 2026-09-15 — all three import, all four KV-offload connectors load. **`v0.28.x`, `v0.30.x`, `v0.31.x` are unverified either way**, not known-bad, and `v0.32.0` has not had the runtime-import step. Confirm bundling on a specific tag with the two-step check below before trusting it.
-
-**`-cu129` (CUDA 12) tags bundle an older LMCache from v0.31.0 on**: `requirements/kv_connectors_cu12.txt` pins `lmcache == 0.4.4` and `nixl == 1.4.1` (#57945). `LMCacheMPConnector` declares `SupportsHMA` only with lmcache ≥ 0.5.0, so LMCache MP on a hybrid model needs the CUDA 13 tag.
-
-**"Known-good" above means the connectors are bundled — not that the tag is safe to run.**
-Those are different questions and the security floor is higher than the oldest tags listed:
-**v0.22.0** clears CVE-2026-48746, a critical bypass of `--api-key` / `VLLM_API_KEY` via URL
-characters in the `Host:` header (the advisory records no patched version, so that floor is
-derived from the fix PR, not read off the feed). **v0.14.1** clears CVE-2026-22778, a critical
-pre-auth RCE reachable by sending a malicious video URL — *only* on deployments serving a video
-model. So `v0.14.0`, `v0.19.0` and `v0.19.0-cu130` bundle the connectors correctly **and** sit
-below the auth floor. Full detail: `vllm-configuration` § Server auth.
-
-Backend pins in `requirements/kv_connectors.txt` at **v0.32.0**: `lmcache >= 0.3.9`, **`nixl == 1.5.0`** (an exact pin, #56907), `mooncake-transfer-engine >= 0.3.12`, `cupy-cuda13x != 14.1.0`. The NIXL pin per tag: `1.3.1` at v0.27.0, `1.4.1` at v0.30.0 and v0.31.0, `1.5.0` at v0.32.0 — the CUDA 12 file stays on `1.4.1`. If a deploy installs its own NIXL wheel, match the pin for the tag and CUDA major you run exactly — v0.22.1 (#44266) also fixed image builds keeping both CUDA-major NIXL wheels, which surfaced as `ImportError: libcudart.so.12` when importing `nixl_ep` on CUDA 13 images.
+| Question | Answer at v0.32.0 | Action |
+|---|---|---|
+| Does the image bundle LMCache / NIXL / Mooncake? | Build flag `INSTALL_KV_CONNECTORS=true` confirmed on `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x`–`v0.27.x`, `v0.29.0`, `v0.32.0`, `v0.32.0-cu129`, model tags like `glm51-cu130`. Runtime imports confirmed only on `v0.29.0`. | Run the two-step check below on the exact tag before production. `v0.28.x`–`v0.31.x` are unverified, not known-bad. |
+| Is the tag safe to run? | Bundled ≠ safe. Floor **v0.22.0** (CVE-2026-48746, `--api-key` bypass via `Host:` header). **v0.14.1** (CVE-2026-22778, pre-auth RCE, video models only). | Run ≥ v0.22.0. `v0.14.0`, `v0.19.0`, `v0.19.0-cu130` bundle correctly but sit below the floor. Detail: `vllm-configuration` § Server auth. |
+| CUDA 12 (`-cu129`) tag? | From v0.31.0, `requirements/kv_connectors_cu12.txt` pins `lmcache == 0.4.4`, `nixl == 1.4.1`. | LMCache MP on a hybrid model needs lmcache ≥ 0.5.0 — use the CUDA 13 tag. |
+| Installing a NIXL wheel by hand? | `requirements/kv_connectors.txt` pins `nixl == 1.5.0` exactly (CUDA 13; `1.4.1` on CUDA 12), `lmcache >= 0.3.9`, `mooncake-transfer-engine >= 0.3.12`, `cupy-cuda13x != 14.1.0`. | Match the pin of the tag and CUDA major in use: read `requirements/kv_connectors*.txt` at that tag. `ImportError: libcudart.so.12` importing `nixl_ep` on a CUDA 13 image = dual-wheel build bug, fixed in v0.22.1. |
+| Is the tag out yet? | Container images can appear before the GitHub release. | Gate on image availability (Docker Hub tag list), not on PyPI. |
 
 ### Two-step bundling verification (build flag + runtime import)
 
