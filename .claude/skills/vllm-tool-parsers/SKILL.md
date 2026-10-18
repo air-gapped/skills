@@ -229,7 +229,7 @@ grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.32.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.)
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.32.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) Write a new parser to the `parse_delta` shape (RFC #11522) instead.
 
 ## Writing a custom parser
 
