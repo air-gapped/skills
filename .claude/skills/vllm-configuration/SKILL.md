@@ -11,16 +11,6 @@ when_to_use: |-
 
 Target audience: operators deploying vLLM in production — datacenter GPUs, containerized, often inside networks that can't reach `huggingface.co` directly and need to use internal mirrors or fully offline caches.
 
-## Why this matters
-
-vLLM's config surface is deceptively layered: CLI flags, a YAML `--config` file, `VLLM_*` env vars, and the HuggingFace / Transformers env vars it inherits transparently. The same setting can exist in three places, and the precedence ordering is not intuitive. Getting this wrong produces three classic failure modes:
-
-1. **First-boot network errors** — operator pre-downloaded weights to a local path, but vLLM still hits `huggingface.co` for a revision check, a missing tokenizer file, or usage stats. The "local path" illusion is incomplete.
-2. **Env-var namespace collisions** — a Kubernetes Service named `vllm` injects `VLLM_SERVICE_HOST` / `VLLM_SERVICE_PORT` into every pod, which silently overrides `VLLM_HOST_IP` / `VLLM_PORT`. vLLM's *internal distributed* init then uses the k8s cluster IP and breaks.
-3. **`VLLM_HOST_IP` as an API host** — operators alias `--host $VLLM_HOST_IP` assuming symmetry with the API server. `VLLM_HOST_IP` is the **internal inter-worker bind address**, not the OpenAI-compat server host. Using it as the API host breaks TP/PP distributed init.
-
-The fix in every case is understanding the layering. This skill teaches that layering, then gives the operator-facing knobs, then the air-gapped recipe.
-
 ## Precedence, in one sentence
 
 **CLI arg > `--config FILE.yaml` > `VLLM_*` env var > library default.**
