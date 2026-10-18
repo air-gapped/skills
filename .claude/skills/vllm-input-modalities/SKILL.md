@@ -284,179 +284,21 @@ no dedicated `/ocr` endpoint.
    wasn't disabled by an old config. From v0.32.0 the same flag also gates the
    engine-side flash-maxsim Triton kernel (#40337).
 
-## Landed in v0.20.0 (released 2026-04-27) — verify your deployment
+## Version gates — check the running version first
 
-The deprecations previously flagged as "scheduled for v0.20" have now shipped.
-Callouts from the v0.20.0 release notes (Breaking Changes + API sections):
+Each row changes what a request returns or whether it is accepted. Release
+history and the PRs behind each row: `references/sources.md`.
 
-- **`logit_bias` / `logit_scale` → `logit_mean` / `logit_sigma`** in
-  `PoolerConfig` — explicit breaking change, PR #39530. Old names still
-  accepted with deprecation warning.
-- **Async scheduling default OFF for pooling models** (PR #39592) — explicit
-  breaking change. Pooling throughput should be marginally lower but
-  stability improves; re-enable case-by-case if you measured a win on v0.19.
-- `--task` flag — removed (absent from the CLI by v0.22.0, see pitfall 1);
-  `--runner` + `--convert` is canonical.
-- `score` pooling task — replaced by `classify` + `num_labels==1`.
-- Pooling **multitask** — pick a task explicitly via `PoolerConfig(task=...)`
-  or `--pooler-config.task <task>`; automatic multitasking is gone.
-- `encode` task — split into `token_embed` and `token_classify`.
-- `normalize` in `PoolingParams` — removed; use `use_activation`.
-
-Two performance wins also landed in v0.20.0 for pooling:
-
-- **#38559** — mean-pooling optimisation via `index_add` (+5.9% on mean-pool models).
-- **#39113** — redundant-sync removal for pooling (+3.7% throughput).
-
-Also landed: `jina-reranker-v3` (#38800), **Jina Embeddings v5** (#39575),
-`max_tokens_per_doc` in `/rerank` (#38827), **Generative Scoring** (#34539),
-ASR multi-chunk spacing fix (#39116).
-
-### v0.21.0 → v0.25.1
-
-**The v0.20.0 migration above is still the canonical runner surface** —
-nothing in v0.21–v0.25 changed `--runner` / `--convert` / `PoolerConfig`.
-But two request-validation changes in v0.24.0 will turn requests that used
-to succeed into 400s, so they are the ones to check before upgrading.
-
-**Two silent-success → hard-error changes (v0.24.0):**
-
-- **#46313 — matryoshka `dimensions` above `hidden_size` is now rejected.**
-  For an MRL model with no explicit `matryoshka_dimensions` list, the old
-  code only checked `dimensions >= 1` and then sliced `[..., :d]`, so an
-  oversized request *silently returned a `hidden_size`-length vector*. It
-  now raises. A client that has been asking for e.g. `dimensions=2048`
-  against a 1024-hidden model was already getting 1024 floats back and will
-  now get an error instead — the error is the fix, but it surfaces at
-  upgrade time.
-- **#46119 — rerank `top_n` must be non-negative.** `top_n=-1` was silently
-  treated as `top_n=0`. `top_n=0` still means "return all results", and
-  values larger than the document count are still accepted.
-
-**New capability worth adopting (v0.24.0):**
-
-- **#45173 — `/v1/embeddings` accepts message-shaped input and
-  `chat_template_kwargs`.** Previously message-shaped input to
-  `/v1/embeddings` was rejected at validation and `chat_template_kwargs`
-  never reached the renderer; only the top-level messages extension worked.
-  This is the supported path for instruction-style embedding prompts.
-- **#45640** Cohere `/v2/embed` input-exclusivity validation;
-  **#44999 / #45210** ColBERT `AutoWeightsLoader` plus a query/document
-  embedding io-processor.
-
-**Not applicable despite the release-note wording:** v0.22.0 #43260 "add
-truncation side to OpenAI endpoints" covers `/v1/completions` and
-`/v1/chat/completions` only — it does **not** add `truncation_side` to
-`/v1/embeddings`.
-
-**Perf / internals, no action required:** #41163 `AllPool.forward` +51% and
-#41433 GPU↔CPU pooling sync elimination (v0.21.0); #42267 pooling offline
-API split into `PoolingOfflineMixin`, #42370/#42274 Speech-to-Text
-entrypoint + test consolidation (refactor, no endpoint change) (v0.22.0);
-#44593 proper pooling exceptions, #44410 LoRA-adapter-name pooling fix
-(v0.23.0); #44612 ASR CPU preprocessing 2.5× faster (v0.24.0); #46762
-realtime embeddings under Model Runner V2 and #47071/#47437 pooled-Whisper
-sliding-window KV sizing — the latter had been over-reserving encoder KV
-blocks by roughly `block_pool_size`× (v0.25.0).
-
-**New architectures since v0.21.0:** Qianfan-OCR (#40136, v0.21.0),
-Unlimited OCR (#46564 + Triton R-SWA backend #47102, v0.25.0),
-MOSS-Transcribe-Diarize (#47729, v0.26.0 — long-form transcription with
-timestamped *speaker labels*, Whisper-style encoder into a Qwen3 decoder),
-LLaVA-OneVision-2 (#44785). See `references/ocr.md` §2 and
-`references/stt.md`.
-
-**Ecosystem removals that can strand a deployment:** v0.25.0 deleted
-PagedAttention entirely (#47361); v0.24.0 deprecated Transformers v4
-support (#45161) and removed several model families outright (ERNIE,
-Xverse, Dots1, Bamba, Mono-InternVL); v0.25.0 removed Baichuan, Aquila,
-Grok, Tarsier/Tarsier2, AyaVision/MusicFlamingo, Mantis. None are pooling
-or STT models, but check before pinning a newer image for an unrelated
-reason.
-
-### v0.26.0 + v0.27.0 (baseline v0.27.0, released 2026-08-10)
-
-*As of this pass, latest release was v0.27.1 (2026-08-11), a one-change
-patch — "quantized DSpark Markov heads" (#50424) — with nothing on this
-skill's surface. The claims below were verified against the `v0.27.0` tag.
-Superseded — v0.32.0 is now latest, see the sections below.*
-
-**A pooling correctness bug, fixed in v0.26.0 — the highest-value item on
-this page.** #48901: LAST-pooling models (the PR names
-`Qwen/Qwen3-Reranker-0.6B`) returned **wrong relevance scores** whenever a
-query+document pair was long enough for its prefill to be split into chunks,
-but only under `torch.compile` (the default). A pair scoring ~0.83 unchunked
-collapsed to ~0.01–0.36 and varied run to run. `--enforce-eager` was always
-correct and the offline batch path happened not to chunk, which is why it hid
-so easily. **Any ranking a pre-v0.26.0 engine produced on long documents is
-suspect** — this is a re-score, not just an upgrade. `references/reranking.md` §2.
-
-**Model Runner V2 is the pooling default from v0.29.0. Opt-in at v0.28.0 and below.**
-v0.27.0 landed encoder-only attention (#49331), sequence
-`embed`/`classify` pooling (#48791), `token_classify` (#50293), `token_embed`
-(#50574) and BGE-M3's `embed&token_classify` (#50661) on MRV2. The
-default-enable PR ([#48290](https://github.com/vllm-project/vllm/pull/48290)) merged 2026-08-19 — after
-the v0.28.0 cut, so it first ships in **v0.29.0**. Upgrading a pooling
-deployment to v0.29.0 therefore changes its runner without a config change; pin
-`VLLM_USE_V2_MODEL_RUNNER=0` to keep V1. Details and the escape hatch:
-`references/runner-flags.md` §11.
-
-**STT request surface moved forward (v0.27.0):** `diarized_json` response
-format (#48543), cumulative long-form chunk timestamps (#41131), extra
-sampling params on the *translation* API (#45839), MOSS-TD max audio duration
-raised to 90 minutes (#49403). The STT entrypoint package also moved on disk —
-`references/stt.md` §2.
-
-**New pooling architectures:** `jina-embeddings-v5-text-nano` (#50688,
-v0.27.0 — EuroBERT *encoder* backbone under the existing
-`JinaEmbeddingsV5Model`); `BertForMaskedLM` (#48463),
-`RobertaForTokenClassification` / `XLMRobertaForTokenClassification` (#47991),
-LongCat-Flash-Lite n-gram embedding (#47857), all v0.26.0.
-
-**More removals, none on this surface:** TeleChat (#47989), Persimmon and Fuyu
-(#48096) in v0.26.0; Plamo2 (#49729) and Ouro (#49786) in v0.27.0. Unrelated
-but image-bump relevant: `max_num_partial_prefills` and
-`max_long_partial_prefills` were removed in v0.27.0 (#49244).
-
-### v0.28.0 → v0.30.0 (baseline v0.30.0, released 2026-09-22)
-
-**Audio decoding gained a selectable backend and a new default resampler.**
-`torchcodec` joins `soundfile`/`pyav` as an `audio_backend` choice via
-`--media-io-kwargs`; `auto` tries soundfile first, then torchcodec, then
-pyav (#51826, #55642, `vllm/multimodal/media/audio.py`). Default resampler
-switched from PyAV to torchaudio (#52598, `vllm/multimodal/parse.py`). See
-the STT cheat-sheet above and `references/stt.md` §6.
-
-**Multimodal cache-hash correctness fix.** `media_io_kwargs` (including
-`audio_backend`) is now part of the multimodal cache hash, and cache-hash
-kwargs are scoped per modality instead of shared (#54241, #54918). On
-v0.29.x, requests differing only in `media_io_kwargs` could hit each other's
-cached multimodal entries — do not A/B decode settings on those versions with
-the processor cache on.
-
-**Qwen3 reranker startup warning.** Serving the original Qwen3 reranker
-(`is_original_qwen3_reranker=true`) without a chat template now logs a
-warning naming the missing `qwen3_reranker.jinja` template instead of
-silently producing random-looking scores (#56017). See pitfall 5.
-
-### v0.31.0 + v0.32.0 (baseline v0.32.0, released 2026-10-18)
-
-**Per-request multimodal kwargs are rejected by default from v0.31.0**
-(#58830). A request carrying `mm_processor_kwargs` or `media_io_kwargs` errors
-unless the server runs with `--trust-request-mm-kwargs` — chat/completions and
-pooling/scoring alike. Server-level `--media-io-kwargs` and offline `LLM` are
-unchanged; set per-deployment decode options there.
-
-**Two silent wrong-result fixes (v0.31.0) — re-embed / re-score older output:**
-chunked long-text embeddings (`enable_chunked_processing`) came back non-unit
-length (#57498, `references/embedding.md` §7); a non-truncating
-`max_tokens_per_doc` still changed scores on non-separator rerankers such as
-Qwen3-Reranker (#57666, `references/reranking.md` §3).
-
-**Roster (v0.32.0):** EmbeddingGemma 2 omni-modal embeddings (#60254),
-zerank-2 score template (#60415), Nemotron 3.5 ASR as an out-of-tree plugin
-only (#59827, `references/stt.md` §3). MRV1 was **not** removed in v0.32.0 —
-`VLLM_USE_V2_MODEL_RUNNER=0` still works (`references/runner-flags.md` §11).
+| Running version | What happens | Action | Detail |
+|---|---|---|---|
+| below v0.26.0 | LAST-pooling models (Qwen3-Reranker, Qwen3-Embedding) return wrong scores when chunked prefill splits a long query+doc pair under `torch.compile` (the default); `--enforce-eager` is correct | Upgrade; **re-score** rankings produced on long documents | `references/reranking.md` §2 |
+| below v0.31.0 | Chunked long-text embeddings (`enable_chunked_processing`) come back non-unit length; a non-truncating `max_tokens_per_doc` still changes scores on Qwen3-Reranker-style models | Upgrade; **re-embed / re-score** affected output | `references/embedding.md` §7, `references/reranking.md` §3 |
+| v0.31.0+ | A request carrying `mm_processor_kwargs` or `media_io_kwargs` is rejected unless the server runs `--trust-request-mm-kwargs` (chat and pooling/scoring alike) | Set decode options server-side with `--media-io-kwargs`, or add the flag | `references/stt.md` §6 |
+| v0.29.x | `media_io_kwargs` is not part of the multimodal cache hash — requests differing only in it hit each other's cache entries | Do not A/B decode settings with the processor cache on | `references/stt.md` §6 |
+| v0.29.0+ | Pooling runs on Model Runner V2 by default | `VLLM_USE_V2_MODEL_RUNNER=0` restores V1 (still accepted at v0.32.0) | `references/runner-flags.md` §11 |
+| v0.24.0+ | Rerank `top_n` below 0 is a 400 (`-1` used to mean `0`); `top_n=0` still returns all | Send `0` for "all" | `references/reranking.md` §3 |
+| v0.24.0+ | `/v1/embeddings` accepts message-shaped input and `chat_template_kwargs` | Use it for instruction-style embedding prompts | `references/embedding.md` §1 |
+| v0.20.0+ | `PoolerConfig` `logit_bias`/`logit_scale` renamed `logit_mean`/`logit_sigma` (old names warn); `normalize` → `use_activation`; no automatic multitask pooling — pick one with `--pooler-config.task`; async scheduling off by default for pooling | Rename keys; set the task explicitly | `references/runner-flags.md` §3 |
 
 ## Paired skills
 

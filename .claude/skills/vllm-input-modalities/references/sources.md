@@ -193,6 +193,25 @@ verified against the skill's own dated rows below, not online.
 - scripts/probe-endpoint.sh: unchanged — endpoints and probe semantics
   did not move in v0.20.0.
 
+## Release history with no operator action (moved out of SKILL.md 2026-10-18)
+
+Not re-probed when moved; numbers as last verified in the pass that added them.
+
+- v0.21.0–v0.25.0 internals: #42267 offline pooling API split into
+  `PoolingOfflineMixin`; #44593 proper pooling exceptions; #44410
+  LoRA-adapter-name pooling fix; #44612 ASR CPU preprocessing 2.5× faster;
+  #44999 / #45210 ColBERT `AutoWeightsLoader` plus query/document
+  io-processor; #45640 Cohere `/v2/embed` input-exclusivity validation;
+  #46762 realtime embeddings under MRV2; #47071 / #47437 pooled-Whisper
+  sliding-window KV sizing.
+- Architectures added: LLaVA-OneVision-2 (#44785).
+- Removals off this surface: PagedAttention (#47361, v0.25.0); Transformers v4
+  deprecated (#45161, v0.24.0); ERNIE, Xverse, Dots1, Bamba, Mono-InternVL
+  (v0.24.0); Baichuan, Aquila, Grok, Tarsier/Tarsier2, AyaVision/MusicFlamingo,
+  Mantis (v0.25.0); TeleChat (#47989), Persimmon and Fuyu (#48096) (v0.26.0);
+  Plamo2 (#49729), Ouro (#49786), `max_num_partial_prefills` /
+  `max_long_partial_prefills` (#49244) (v0.27.0).
+
 ## Previously non-probed references
 
 Probed 2026-10-18 (see the 2026-10-18 rows above): Red Hat STT posts, the
