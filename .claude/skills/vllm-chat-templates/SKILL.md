@@ -32,14 +32,14 @@ This skill's job: given a symptom, identify whether it's a template, a parser, a
 
 ## Template resolution precedence (memorize this)
 
-vLLM picks a chat template in this order. First hit wins. Source: `vllm/renderers/hf.py:265` (`resolve_chat_template()`, v0.32.0).
+vLLM picks a chat template in this order. First hit wins. Source: `resolve_chat_template()` in `vllm/renderers/hf.py`.
 
 1. **`--chat-template <path-or-name>` CLI flag** — highest. Path to a `.jinja` file, literal Jinja string, or a named template (`"tool_use"`) that the tokenizer knows.
 2. **AutoProcessor chat template** — only consulted when the request has `tools=None`. Multimodal models often expose their template via the processor, not the tokenizer.
 3. **AutoTokenizer `chat_template`** — the one shipped in `tokenizer_config.json`.
-4. **Bundled fallback in `vllm/transformers_utils/chat_templates/`** — at v0.32.0, **14 model types** mapping onto 7 shipped `.jinja` files: blip-2, clip, colpali, deepseek_ocr, deepseek_ocr2, unlimited-ocr, unlimited_ocr, deepseek_vl_v2, minicpmv, minicpmv4_6, minicpmv4_7, paligemma, siglip, siglip2. No `fuyu` (model dropped in v0.26.0) and no `qwen`/Qwen-VL entry — a Qwen checkpoint with its template stripped has no fallback. Source: `registry.py:25-40` (`_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK`).
+4. **Bundled fallback in `vllm/transformers_utils/chat_templates/`** — at v0.32.0, **14 model types** mapping onto 7 shipped `.jinja` files: blip-2, clip, colpali, deepseek_ocr, deepseek_ocr2, unlimited-ocr, unlimited_ocr, deepseek_vl_v2, minicpmv, minicpmv4_6, minicpmv4_7, paligemma, siglip, siglip2. No `fuyu` (model dropped in v0.26.0) and no `qwen`/Qwen-VL entry — a Qwen checkpoint with its template stripped has no fallback. Source: `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK` in `chat_templates/registry.py`.
 
-If none resolves, **`ChatTemplateResolutionError`** raised at `hf.py:797` (v0.32.0) with: *"As of transformers v4.44, default chat template is no longer allowed, so you must provide a chat template if the tokenizer does not define one."*
+If none resolves, **`ChatTemplateResolutionError`** raised by `safe_apply_chat_template()` with: *"As of transformers v4.44, default chat template is no longer allowed, so you must provide a chat template if the tokenizer does not define one."*
 
 > **Do not "modernize" that v4.44** — it is vLLM's verbatim error string, not a version requirement. The real `transformers` pin and the template-name security floor (pin it yourself below v0.32.0): `references/debugging.md` § Step 4.
 
@@ -129,25 +129,25 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 14. **`/v1/chat/completions` vs `/v1/responses` divergence.** gpt-oss tool calling works only on `/v1/responses` (#22578). GLM-5.1 (#39611, CLOSED/COMPLETED 2026-04-12) — tool results were ignored on chat-completions but work on completions; fixed upstream, so on patched vLLM tool results now render on `/v1/chat/completions`.
 
-15. **API field name mismatch.** The **response** field on current vLLM is `reasoning`, *not* `reasoning_content` — at v0.32.0: `ChatMessage.reasoning` (`chat_completion/protocol.py:79`), `DeltaMessage.reasoning` (`generate/base/protocol.py:359`). The **request** side still accepts `reasoning_content` and normalizes it (RFC #27755). A client reading `reasoning_content` off a response sees `null` every time even when the parser ran perfectly — this looks exactly like a parser failure. Check with `jq '.choices[0].message | keys'` before debugging parsers.
+15. **API field name mismatch.** The **response** field on current vLLM is `reasoning`, *not* `reasoning_content` — at v0.32.0: `ChatMessage.reasoning` (`chat_completion/protocol.py`), `DeltaMessage.reasoning` (`generate/base/protocol.py`). The **request** side still accepts `reasoning_content` and normalizes it (RFC #27755). A client reading `reasoning_content` off a response sees `null` every time even when the parser ran perfectly — this looks exactly like a parser failure. Check with `jq '.choices[0].message | keys'` before debugging parsers.
 
 16. **Content-format auto-detection blind to macros.** `_detect_content_format()` (`vllm/renderers/hf.py`) walks the Jinja AST for a `for item in message['content']`-shaped loop; before v0.30.0 it missed templates that only reach `message.content` through a macro parameter (e.g. `{% macro render(role, message_content) %}...{% endmacro %}`), and fell back to `string` — silently flattening structured multimodal content. Fixed in v0.30.0 (#53824): the detector now traces macro call sites back to `message['content']`. If a custom macro-based template still misdetects on your version, pass `--chat-template-content-format openai` explicitly rather than relying on `auto`.
 
 
 ## What `chat_template_kwargs` accepts
 
-Threaded as `extra_body={"chat_template_kwargs": {...}}` in OpenAI client. Source (v0.32.0): `ChatParams` (`vllm/renderers/params.py:80`), `resolve_chat_template_kwargs()` (`hf.py:715`).
+Threaded as `extra_body={"chat_template_kwargs": {...}}` in OpenAI client. Source: `ChatParams` (`vllm/renderers/params.py`), `resolve_chat_template_kwargs()` (`hf.py`).
 
-- **Any Jinja variable** referenced in the resolved template — detected via AST parse (`_resolve_chat_template_kwargs()`, `hf.py:680`).
-- **HF `apply_chat_template` params** auto-detected from the tokenizer signature plus HF's base `apply_chat_template` signature (`_get_hf_base_chat_template_params()`, `hf.py:695`).
+- **Any Jinja variable** referenced in the resolved template — detected via AST parse (`_resolve_chat_template_kwargs()`).
+- **HF `apply_chat_template` params** auto-detected from the tokenizer signature plus HF's base `apply_chat_template` signature (`_get_hf_base_chat_template_params()`).
   - `add_generation_prompt` (bool)
-  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py:1026`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend you are on before editing the template. **v0.30.0+:** the Rust frontend also parses `{% generation %}...{% endgeneration %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`, #56378), rendering only their text — templates that mark assistant spans this way no longer fail there. `return_assistant_tokens_mask` on `/render` and the `assistant_tokens_mask` response field were **removed in v0.31.0** (#57520); do not send them.
+  - `continue_final_message` (bool) — mutually exclusive with `add_generation_prompt=True` (enforced in `chat_completion/protocol.py`). **Frontend-dependent:** almost no HF chat template actually reads this variable, so on the Python renderer it is close to a no-op. The **Rust frontend** implements Transformers-v5 semantics properly ([#47844](https://github.com/vllm-project/vllm/pull/47844), v0.26.0) — it appends a sentinel to the last message and strips it from the rendered output, so the template never needs to know. The Rust Harmony renderer rejects it outright ("Harmony renderer does not support continue_final_message"). If it silently does nothing, check which frontend you are on before editing the template. **v0.30.0+:** the Rust frontend also parses `{% generation %}...{% endgeneration %}` blocks (`rust/src/chat/src/renderer/hf/generation.rs`, #56378), rendering only their text — templates that mark assistant spans this way no longer fail there. `return_assistant_tokens_mask` on `/render` and the `assistant_tokens_mask` response field were **removed in v0.31.0** (#57520); do not send them.
   - `documents` (list of `{title, contents}`) for RAG templates
   - `enable_thinking` (Qwen3 and some others)
-- **Reserved (will raise `ValueError`):** `chat_template`, `tokenize` (`hf.py:723`).
-- **Unknown kwargs silently filtered** (`hf.py:742-743`) — if `enable_thinking` doesn't appear in the detected Jinja vars, it's dropped without warning. This is a confusing failure mode: operator sets it, sees no effect, can't find an error.
+- **Reserved (will raise `ValueError`):** `chat_template`, `tokenize`.
+- **Unknown kwargs silently filtered** — if `enable_thinking` doesn't appear in the detected Jinja vars, it's dropped without warning. This is a confusing failure mode: operator sets it, sees no effect, can't find an error.
 
-Merging: server defaults (`--default-chat-template-kwargs`) ← request kwargs via `ChatParams.with_defaults()` / `merge_kwargs()` (`params.py:104`, `:36`) — request wins.
+Merging: server defaults (`--default-chat-template-kwargs`) ← request kwargs via `ChatParams.with_defaults()` / `merge_kwargs()` — request wins.
 
 ## Reasoning parser vs chat template (they're confused a lot)
 
@@ -159,7 +159,7 @@ Raw-output capture (`--enable-log-requests` + no `--tool-call-parser`/`--reasoni
 
 ## Multimodal template notes
 
-Models use model-specific placeholders (`<image>`, `<|image_start|>`, etc.) — vLLM's internal placeholder is `<##IMAGE##>` / `<##AUDIO##>` / `<##VIDEO##>` (`renderers/chat_utils.py:99-101`).
+Models use model-specific placeholders (`<image>`, `<|image_start|>`, etc.) — vLLM's internal placeholder is `<##IMAGE##>` / `<##AUDIO##>` / `<##VIDEO##>` (`renderers/chat_utils.py`).
 
 - If request has images but template has no placeholder, vLLM **prepends** them to final prompt (`_get_full_multimodal_text_prompt()`). Some models tolerate this; others produce garbage.
 - If template has more placeholders than media items: `ValueError: "Found more '<image>' placeholders in input prompt than actual multimodal data items."`
@@ -179,17 +179,13 @@ Load `references/debugging.md`. The short version:
 
 ## Code locations (for reading vLLM source)
 
-Line numbers measured at **v0.32.0** (`hf.py` is 1389 lines); they drift every release, so treat them as hints and grep the symbol.
+Grep the symbol; line anchors per release are in `references/sources.md`.
 
 - `vllm/renderers/chat_utils.py` — message parsing, multimodal placeholder injection, `ChatTemplateResolutionError`, `validate_chat_template()`. **Moved from `vllm/entrypoints/chat_utils.py` in v0.32.0** (#60522).
-- `vllm/renderers/hf.py:265` — `resolve_chat_template()` precedence.
-- `vllm/renderers/hf.py:759-842` — `safe_apply_chat_template()` overloads + error surface; the `ChatTemplateResolutionError` raise is at **797**.
-- `vllm/renderers/hf.py:715` — `resolve_chat_template_kwargs()` allowlist.
-- `vllm/renderers/hf.py:632` — `resolve_chat_template_content_format()`.
-- `vllm/renderers/hf.py:992` — `_render_with_timeout()` (`VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`).
+- `vllm/renderers/hf.py` — `resolve_chat_template()` (precedence), `safe_apply_chat_template()` (error surface), `resolve_chat_template_kwargs()` (allowlist), `resolve_chat_template_content_format()`, `_render_with_timeout()` (`VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`).
 - `vllm/renderers/params.py` — `ChatParams` dataclass.
 - `vllm/reasoning/__init__.py` — registered reasoning parsers (38 names at v0.32.0).
-- `vllm/transformers_utils/chat_templates/registry.py:25-40` — the `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK` dict; `get_chat_template_fallback_path()` at 58-69.
+- `vllm/transformers_utils/chat_templates/registry.py` — `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK`, `get_chat_template_fallback_path()`.
 - `vllm/entrypoints/openai/chat_completion/serving.py` — parser instantiation (`serving_chat.py` no longer exists).
 - `examples/tool_chat_template_*.jinja` (**27** files at v0.30.0–v0.32.0) — ready-made tool templates per model family.
 
