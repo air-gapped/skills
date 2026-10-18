@@ -12,37 +12,23 @@ Target: operators who serve image / video / audio / any-to-any generation models
 
 This skill is a **reference**, not a tutorial. SKILL.md holds the mental model, quick-answer router, top pitfalls, and operator cheat sheet. The `references/` files hold endpoint catalogs, supported-model tables, stage-config grammar, and the diffusion/DiT details. Read only the reference file that matches the question.
 
-## The one thing to know before anything else
+## How it plugs into vLLM
 
-vllm-omni is **not a fork** — it layers on top of upstream vLLM, registers OmniModelConfig, and adds one CLI flag: `--omni`. Adding `--omni` to `vllm serve` routes the server through `vllm_omni.entrypoints`. As of v0.20.0 the old vLLM entrypoint-hijack / `patch.py` early-import mechanism was **removed** — the v0.20.0 release notes state "removal of the old vLLM entrypoint hijack, and runtime changes needed for the 0.20.0 integration path (#3232, #3082, #3352, #3393, #2306)". The omni runtime is rebased onto upstream vLLM rather than monkey-patching it — v0.20.0 via PR #3232, then forward through the v0.21/v0.22 rebases (#3530, #3891) and the v0.23.0/v0.24.0 rebases (#4286, #4709), up to the vLLM 0.30.0 rebase (#7820). Omni model registrations reach vLLM worker subprocesses through the `vllm.general_plugins` entry point (`pyproject.toml`). The architectural claim is to decompose any-to-any models into a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) connected via `OmniConnector`, so each stage scales independently. The paper (arXiv:2602.02204) claims up to 91.4% JCT reduction vs an unspecified baseline — treat as an architectural argument, not a deployment benchmark.
+vllm-omni layers on upstream vLLM: `vllm serve <model> --omni` routes the server through `vllm_omni.entrypoints`, and omni model registrations reach worker subprocesses through the `vllm.general_plugins` entry point. There is no `patch.py` / early-import hijack on any current build. Any-to-any models run as a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) joined by `OmniConnector`, so each stage is configured and scaled on its own (`references/stage-config.md`).
 
-Version alignment is strict: vllm-omni major.minor must match upstream vLLM major.minor (`vllm_omni/version.py` warns on any mismatch). **v0.30.0 (2026-09-25) is the current stable**, rebased on vLLM **0.30.0** (#7820, #8027). v0.31.0rc1 (2026-10-06, aligned to vLLM 0.31.0) is the newest tag — a pre-release whose own notes record a not-fully-passing nightly; do not deploy it as current. First stable was v0.14.0 (2026-01-31). The v0.19.0rc1 FLUX.1-dev regression (#2730) is **fixed in v0.20.0 stable** (PR #2760) — no version pin needed anymore.
+## Version pins — check before installing anything
 
-**vLLM v0.32.0 has no matching vllm-omni.** Do not install omni v0.30.0 into a
-vLLM 0.32.0 environment: omni v0.30.0 requires `transformers >= 5.13.0, < 5.15`,
-vLLM v0.32.0 requires `transformers >= 5.16.1, < 5.20.0` — the resolver cannot
-satisfy both, and the major.minor check fails anyway. Run omni in its own
-venv/image on vLLM 0.30.0, separate from any vLLM 0.32.0 deployment, and wait for an
-omni release aligned to 0.32 (none exists, not even an rc).
+| Rule | Action |
+|---|---|
+| omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.30.0** (current stable) with vLLM **0.30.0** |
+| v0.31.0rc1 is the newest tag but a pre-release with a not-fully-passing nightly | Do not deploy it as current |
+| **No omni release, not even an rc, matches vLLM 0.32**: omni v0.30.0 pins `transformers >= 5.13.0, < 5.15`, vLLM v0.32.0 needs `>= 5.16.1, < 5.20.0` | Never install omni into a vLLM 0.32.0 env. Run omni in its own venv/image on vLLM 0.30.0 |
+| Odd minors (v0.21, v0.23, v0.25, v0.27, v0.29) exist only as `rc1` | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
+| Docker `vllm/vllm-omni:latest` tracks the newest tag, rc included (today v0.31.0rc1) | Pin `vllm/vllm-omni:v0.30.0` (`-x86_64` / `-aarch64` variants) in every manifest |
+| ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.28.0** | For ROCm on v0.30.0 use the wheel path (Install below) |
+| A tag is not a wheel and not an image | Check GitHub releases, PyPI and both Docker repos before quoting a version |
 
-**Not every minor gets a stable.** v0.21.0, v0.23.0, v0.25.0, v0.27.0 and
-v0.29.0 exist only as `rc1` — the stable line went v0.20.0 → v0.22.0 → v0.24.0
-→ v0.24.1 → v0.26.0 → v0.28.0 → v0.30.0. Check `prerelease` before pinning a
-minor. Don't infer a missing release is a withdrawn one.
-
-### Check all distribution channels before quoting a version
-
-| Channel | Newest stable | Newest overall |
-|---|---|---|
-| GitHub releases | **v0.30.0** (2026-09-25), marked Latest | v0.31.0rc1 (2026-10-06) |
-| PyPI | **0.30.0** — `requires_python >=3.10,<3.14` | 0.31.0rc1 (pre-release; not the default install) |
-| Docker `vllm/vllm-omni` | **v0.30.0** (`-x86_64` / `-aarch64` variants) | **`latest` = v0.31.0rc1** (same digests) |
-| Docker `vllm/vllm-omni-rocm` | **v0.28.0** — no v0.29/v0.30 ROCm image | — |
-
-**`latest` on Docker Hub tracks the newest tag, rc included** — today it is an
-rc. Pin the exact version tag in every manifest. A tag is not a wheel and not
-an image: check all channels (GitHub, PyPI, both Docker repos) before quoting a
-version; the ROCm image repo can trail the CUDA one by releases.
+Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility probe: `references/sources.md` §Releases.
 
 ## Quick-answer router
 
@@ -198,12 +184,6 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 | Metric | Value |
 |---|---|
-| Current stable | **v0.30.0** (2026-09-25), rebased on vLLM 0.30.0 (#7820) — GitHub, PyPI, CUDA image |
-| Docker `latest` resolves to | **v0.31.0rc1** — an rc; pin the exact tag |
-| Latest pre-release | v0.31.0rc1 (2026-10-06), aligned to vLLM 0.31.0 |
-| Matching omni for vLLM 0.32.0 | **none** — transformers ranges are disjoint (omni `<5.15`, vLLM 0.32.0 `>=5.16.1`) |
-| Stables in the line | v0.14.0, v0.16.0, v0.18.0, v0.20.0, v0.22.0, v0.24.0, v0.24.1, v0.26.0, v0.28.0, v0.30.0 (v0.21/v0.23/v0.25/v0.27/v0.29 are rc1-only) |
-| First stable | v0.14.0 (2026-01-31) |
 | Python | 3.10–3.13 declared; use 3.12 (ROCm wheel is cp312-only) |
 | Runtime pins (via vLLM 0.30.0) | PyTorch 2.13.0, FlashInfer 0.6.18.post1, `transformers >= 5.13.0, < 5.15`, diffusers 0.40.0 |
 | `/v1/realtime` input | PCM16 mono @ 16 kHz |
