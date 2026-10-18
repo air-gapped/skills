@@ -139,6 +139,7 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 8. **Using the in-tree `chart-helm` (`chart-vllm` 0.0.2) in production.** It is an example under `examples/`, not a supported release artifact. For production, use vllm-production-stack Helm or llm-d Helm.
 9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments.
 10. **Assuming Gateway API is GA on every OCP.** It is GA on OCP 4.19+, dev-preview on 4.17. Check the cluster version.
+11. **Liveness that runs inference, or `failureThreshold: 1`.** Refuse it; give the `/health` probe set instead, not the requested YAML with caveats. A generation probe (`/v1/completions`, `/v1/chat/completions`) queues behind real traffic, misses a short timeout on a busy pod, and kubelet restarts healthy pods under load — each restart is a full cold boot. Keep liveness on `/health`: it returns 503 once the engine core is dead (`EngineDeadError`), and the API server exits by itself ~5 s after engine death unless `VLLM_KEEP_ALIVE_ON_ENGINE_DEATH=1`. A dead engine that stayed Ready means that env is set, readiness is not on `/health`, or the engine is hung but not dead. Readiness takes the pod out of Service endpoints; liveness only restarts it — keep them separate. Catch hung-but-alive with a `/metrics` alert (requests running > 0, generation-token rate flat), not a probe.
 
 ## Upgrading through v0.32.0
 
