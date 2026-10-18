@@ -1,15 +1,35 @@
 # Sources
 
-Freshened: 2026-09-22 (exceptions: 2 rows, noted inline) — every row probed at v0.30.0. 93 of 95 URLs 200; all 47 cited issue/PR states reproduce. The whole flag surface, the three-tier device-gated batching defaults, FULL_AND_PIECEWISE, --async-scheduling, EPLB and VLLM_USE_DEEP_GEMM were re-read at v0.30.0 and are unchanged. One long-dead instruction found: VLLM_ALL2ALL_BACKEND was removed by #33535 on 2026-02-03 and the default backend is allgather_reducescatter, not naive — wrong here for over seven months and missed by three prior passes because nothing re-read the config field. Exceptions: techcommunity.microsoft.com and hpcwire.com both 403 to bare curl.
+Freshened: 2026-10-18 (exceptions: 1 row, noted inline) — every row probed at v0.32.0 (60 non-GitHub URLs live, 58 return 200 to curl; all 87 issue/PR states batched; config/env/arg_utils diffed v0.30.0→v0.32.0). Moved: compile-pass SP+AsyncTP removed (#60517), DeepEP v2 hybrid default on (#57991), --max-num-active-seqs (#56758), VLLM_ENGINE_ITERATION_TIMEOUT_S removed (#59781). Stale since earlier tags: graph-capture cap is 1024 on SM100 since v0.28.0 (#49390); pplx/naive all2all removed in v0.17.0/v0.19.0; nixlRole and --disagg-split were never vLLM surface.
 
 All citations backing the skill. Verify any claim via the linked source.
 
-## vLLM source code + benchmarks (Last verified: 2026-08-11 against v0.27.0)
+## vLLM source code + benchmarks (read at tag v0.32.0)
 
 Read at tag via `gh api "repos/vllm-project/vllm/contents/<path>?ref=v0.27.0" --header 'Accept: application/vnd.github.raw'`.
 This is the probe that answers "does this flag still exist", and it is what the
 2026-08-11 pass used. `requirements/cuda.txt` is the authority on runtime pins —
 the release note's Dependencies section mixes runtime and CI pins.
+
+### Flag-surface deltas found 2026-10-18 (v0.30.0 → v0.32.0, read at tag)
+
+| Item | Status at v0.32.0 | Source |
+|---|---|---|
+| `PassConfig.enable_sp` / `fuse_gemm_comms` / `sp_min_token_num` | **removed** — `PassConfig` is `extra="forbid"`, so setting them fails validation. At v0.30.0 O2/O3 set both to `IS_DENSE` | [PR #60517](https://github.com/vllm-project/vllm/pull/60517), merged 2026-10-08; `vllm/config/compilation.py`, `vllm/config/vllm.py` OPTIMIZATION_LEVEL_02/03 |
+| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | **removed** (dead env) | [PR #59781](https://github.com/vllm-project/vllm/pull/59781), merged 2026-10-02; first tag v0.32.0 |
+| `VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE` | default `0` → **`1`** | [PR #57991](https://github.com/vllm-project/vllm/pull/57991), merged 2026-09-29; `vllm/envs.py` at v0.30.0 vs v0.32.0 |
+| `--max-num-active-seqs` | **new**, `None`, must be ≤ `max_num_seqs` | [PR #56758](https://github.com/vllm-project/vllm/pull/56758), merged 2026-09-17; `vllm/config/scheduler.py` |
+| `--long-prefill-token-threshold` | cap skipped for a lone request; `--long-prefill-token-threshold-adaptive` **new, default `False`** — the release note's "now adapts" is opt-in in code | [PR #57951](https://github.com/vllm-project/vllm/pull/57951), [PR #58459](https://github.com/vllm-project/vllm/pull/58459); `vllm/config/scheduler.py` |
+| `--enforce-eager` | also sets `kernel_config.enable_jit_warmup=False` unless fault tolerance is on; `-O0` does not | [PR #58197](https://github.com/vllm-project/vllm/pull/58197), [PR #58593](https://github.com/vllm-project/vllm/pull/58593); `vllm/config/vllm.py` |
+| async scheduling auto-resolution | off for pooling, unsupported spec methods, `disable_padded_drafter_batch`, unsupported executor, ROCm DeepEP-HT+DBO, MRV1+PP>1; MRV1+PP>1+async+structured output rejected | [PR #56250](https://github.com/vllm-project/vllm/pull/56250), merged 2026-09-22; `vllm/config/vllm.py` |
+| `--all2all-backend moonep` | **new** | [PR #52101](https://github.com/vllm-project/vllm/pull/52101), merged 2026-09-18; `vllm/config/parallel.py` `All2AllBackend` |
+| `pplx`, `naive` all2all | **removed long ago** — parse, warn, fall back to `allgather_reducescatter` | `eb19955c37` (#33724, first tag v0.17.0) and `91be5f9be3` (#36294, first tag v0.19.0); `vllm/config/parallel.py` `__post_init__` |
+| `EPLBConfig.enable_migration_batching` | **new**, `False`, async EPLB only | [PR #52641](https://github.com/vllm-project/vllm/pull/52641), merged 2026-10-03 |
+| default `max_cudagraph_capture_size` | `min(max_num_seqs*(1+spec)*2, 1024 if SM100 else 512)` — skill had `min(max_num_seqs*2, 512)` | [PR #49390](https://github.com/vllm-project/vllm/pull/49390) (first tag v0.28.0), [PR #50488](https://github.com/vllm-project/vllm/pull/50488); `vllm/config/vllm.py` |
+| `max_num_seqs` not a multiple of 8 throughput cliff | **fixed** | [PR #57355](https://github.com/vllm-project/vllm/pull/57355), merged 2026-09-17 (v0.31.0) |
+| batching defaults (three tiers + TPU), `FULL_AND_PIECEWISE` at O2/O3, `-O3 == -O2`, `allgather_reducescatter` default, EPLB defaults, `--watermark`, `--scheduler-reserve-full-isl`, `--performance-mode`, `stream_interval`, AOT/mega-artifact gates, `VLLM_USE_BREAKABLE_CUDAGRAPH` PIECEWISE scoping, DeepEP v2 DBO-only sync combine, DeepGEMM `vllm-project/DeepGEMM` source, `supports_dcp=False`, `benchmark_moe.py` flags | **unchanged** | read at v0.32.0 |
+| runtime pins | torch 2.13.0, torchvision 0.28.0 unchanged; flashinfer-python 0.7.0.post1 (flashinfer-cubin pin dropped) | `requirements/cuda.txt@v0.32.0` |
+| `nixlRole`, `vllm bench serve --disagg-split` | **never vLLM surface** — `kv_role` ∈ `kv_producer`/`kv_consumer`/`kv_both`; `nixl_role` is an LMCache YAML key; no `disagg-split` anywhere in the tree | tree-wide grep at v0.32.0; `vllm/config/kv_transfer.py` |
 
 ### Flag-surface deltas found 2026-08-11
 
@@ -85,7 +105,7 @@ the release note's Dependencies section mixes runtime and CI pins.
 ## Cloud + partner posts
 
 - [LMSYS DeepSeek 96× H100 — 2025-05-05](https://www.lmsys.org/blog/2025-05-05-large-scale-ep/) — PD-disagg production numbers
-- [Microsoft Azure DeepEP — 2025](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699) — NVSHMEM tuning
+- [Microsoft Azure DeepEP — 2025](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699) — NVSHMEM tuning (403 to bare curl; title confirmed in the browser 2026-10-18)
 - [Google Cloud xPU tuning guide](https://cloud.google.com/blog/topics/developers-practitioners/vllm-performance-tuning-the-ultimate-guide-to-xpu-inference-configuration) — `auto_tune.sh`
 - [Anyscale Ray Serve LLM](https://www.anyscale.com/blog/ray-serve-llm-anyscale-apis-wide-ep-disaggregated-serving-vllm) — Wide-EP + PD as Pythonic builder
 - [LMCache NIXL — 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1) — PD-disagg in vLLM V1
@@ -104,7 +124,8 @@ the release note's Dependencies section mixes runtime and CI pins.
 ## MLCommons / MLPerf
 
 - [MLPerf v5.0 announcement](https://mlcommons.org/2025/04/llm-inference-v5/) — Llama 3.1 405B added
-- [MLPerf v5.1 results](https://www.hpcwire.com/2025/09/10/mlperf-inference-v5-1-results-land-with-new-benchmarks-and-record-participation/)
+- [MLPerf v5.1 results](https://www.hpcwire.com/2025/09/10/mlperf-inference-v5-1-results-land-with-new-benchmarks-and-record-participation/) — **exception:** 403 to bare curl; the browser loads the site but returned only the generic site title, article body not confirmed
+- Newer rounds exist, not yet used by the skill: MLPerf Inference v6.0 (2026-04-01) and v6.1 (2026-09-16, [MLCommons datacenter results](https://mlcommons.org/benchmarks/inference-datacenter/))
 
 ## Goodput / SLO / inference perf research
 
@@ -115,19 +136,19 @@ the release note's Dependencies section mixes runtime and CI pins.
 
 ## Key issues / PRs referenced
 
-### Version-specific regressions (all re-probed 2026-07-21)
+### Version-specific regressions (states re-probed 2026-10-18)
 
 **Closure-reason column matters more than state** — see the §3.0 note at the end of this section.
 
 - [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24% — **CLOSED `NOT_PLANNED` 2026-07-22 by the inactivity bot, no linked fix.** The prediction recorded here when it was only stale-marked held: this is abandonment, not a fix.
-- [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2 — not re-probed this pass
+- [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2 — **bot-closed `NOT_PLANNED` 2026-07-22, no fix PR**
 - [#28882](https://github.com/vllm-project/vllm/issues/28882) — H200 DeepSeek-R1 EP 1.5× TTFT regression (DeepGEMM M<128) — **CLOSED 2026-04-21 by the inactivity bot, NOT fixed.** Re-probed 2026-09-15: `state_reason: not_planned`, `closed_by: github-actions[bot]`, label `stale`, and the entire comment thread is two bot messages — no human confirmation and no linked PR. The earlier "genuinely fixed" reading came from `stateReason` alone. **Treat this regression as open on H200 + DeepSeek-R1 + EP** until a fix is found
 - [#29539](https://github.com/vllm-project/vllm/issues/29539) — CUDA-graph NaN → `!!!` output — **CLOSED 2026-01-07, genuinely fixed** (*"NaN issue fixed, closing now"*). **But the `!!!` symptom recurred from an unrelated cause** — see [#48324](https://github.com/vllm-project/vllm/issues/48324) / [PR #48330](https://github.com/vllm-project/vllm/pull/48330), the mixed-dtype allreduce+RMSNorm+quant fusion on NVFP4, fixed only in **v0.25.1**. Two root causes, one symptom.
 - [#48324](https://github.com/vllm-project/vllm/issues/48324) — NVFP4 garbage `!!!!!` via fused allreduce+RMSNorm+static-quant on mixed-dtype graphs — **fixed v0.25.1** (PR #48330, merged 2026-07-12). Reproducer `nvidia/Qwen3.6-27B-NVFP4`.
 - [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing — **CLOSED `NOT_PLANNED` 2026-02-26 by the inactivity bot.** Not fixed; mitigations still apply.
-- [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size — not re-probed this pass
+- [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size — **bot-closed `NOT_PLANNED` 2025-10-17, no fix PR**
 
-### Async-scheduling status (Last verified: 2026-08-18 — tracker states re-confirmed closed)
+### Async-scheduling status (states re-probed 2026-10-18)
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
 - [#27614](https://github.com/vllm-project/vllm/issues) — default-on landing
 - [#28250](https://github.com/vllm-project/vllm/issues) — follow-up
@@ -142,8 +163,8 @@ the release note's Dependencies section mixes runtime and CI pins.
 - [#24112](https://github.com/vllm-project/vllm/issues/24112) — RFC improve MoE tuning
 - [#28456](https://github.com/vllm-project/vllm/issues/28456) — config discovery improvements
 - [#12408](https://github.com/vllm-project/vllm/pull/12408) — MI300 Mixtral 8x7B/8x22B configs
-- [#27513](https://github.com/vllm-project/vllm/issues/27513) — pplx + microbatching incompat
-- [#21306](https://github.com/vllm-project/vllm/issues/21306) — DeepEP dp=2,tp=8,ep=16 hang
+- [#27513](https://github.com/vllm-project/vllm/issues/27513) — pplx + microbatching incompat — bot-closed 2026-02-23; moot, pplx itself was removed (#33724, v0.17.0)
+- [#21306](https://github.com/vllm-project/vllm/issues/21306) — DeepEP dp=2,tp=8,ep=16 hang — closed `COMPLETED` 2025-10-09 by the reporter after switching container environment; root cause never located, no fix PR
 - [#18343](https://github.com/vllm-project/vllm/pull/18343) — EPLB
 
 ### Scheduler
@@ -167,11 +188,16 @@ the release note's Dependencies section mixes runtime and CI pins.
 - [#34249](https://github.com/vllm-project/vllm/issues/34249) — Hopper FP8 MoE FlashInfer auto-select — Last verified: 2026-07-21 — **CLOSED `COMPLETED` 2026-02-20** against a real PR (closed in favour of an equivalent change)
 - [#38971](https://github.com/vllm-project/vllm/issues/38971) — NVFP4 MoE on SM120 backend override — Last verified: 2026-07-21 — **CLOSED `COMPLETED` 2026-04-05 with an answer, not a patch**: *"`--moe-backend` is what you looking for"*. That flag is the resolution.
 - [#30758](https://github.com/vllm-project/vllm/issues/30758) — gpt-oss B200/GB200 perf tracker — Last verified: 2026-07-21 — **CLOSED 2026-05-28**, but as a tracker wind-down: *"remaining low-priority follow-up has been deferred indefinitely"*. Not "all work done".
-- [#20069](https://github.com/vllm-project/vllm/issues/20069) — MI300X Whisper inaccurate
-- [#28362](https://github.com/vllm-project/vllm/issues/28362) — Intel 125H Arc fail
+- [#20069](https://github.com/vllm-project/vllm/issues/20069) — MI300X Whisper inaccurate — closed by the reporter 2025-07-23 ("the issue is with our image"); not a vLLM bug, row removed from `regressions.md`
+- [#28362](https://github.com/vllm-project/vllm/issues/28362) — Intel 125H Arc fail — closed `NOT_PLANNED` 2026-03-12, no fix PR
 - [#30758](https://github.com/vllm-project/vllm/issues/30758) — gpt-oss B200/GB200 tracker
 - [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — async-sched precision — Last verified: 2026-08-18 — **CLOSED 2026-03-13** (fixed)
-- [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857) — MI325X Qwen2.5-VL 100× slowdown
+- [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857) — MI325X Qwen2.5-VL 100× slowdown — **closed `COMPLETED` 2026-07-23**: AMD states the naive-solver fix is in ROCm 7.12.0 and the GEMM search cutoff lands in ROCm 7.13.0 (`MIOPEN_SEARCH_CUTOFF=ON`)
+- [vllm-omni #2730](https://github.com/vllm-project/vllm-omni/issues/2730) — FLUX.1-dev wrong images — **fixed** by [vllm-omni PR #2760](https://github.com/vllm-project/vllm-omni/pull/2760), merged 2026-04-24
+- [vllm-omni #2898](https://github.com/vllm-project/vllm-omni/issues/2898) — 910B start failure — closed 2026-04-20 as configuration (`ASCEND_RT_VISIBLE_DEVICES`, stage-YAML args)
+- [vllm-omni #2880](https://github.com/vllm-project/vllm-omni/issues/2880) — HunyuanVideo 1.5 `mindiesd` shape — closed 2026-06-02, no fix named in the thread
+- [InferenceX #293](https://github.com/SemiAnalysisAI/InferenceX/issues/293) — tokens-per-MW wording — closed 2025-12-07, corrected in the article
+- [InferenceX #299](https://github.com/SemiAnalysisAI/InferenceX/issues/299) — disagg per-GPU normalisation — closed 2026-03-23, maintainers declined to change it
 
 ### v0.30.0 release-note items (verified 2026-09-23 at tag v0.30.0)
 - [#52781](https://github.com/vllm-project/vllm/pull/52781) — DeepEP v2 async finalize combine overlap, default-on — **MERGED**; the PR's own claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP` disable env var is absent from the merged diff, confirmed by reading `deepep_v2.py` at the tag
@@ -199,7 +225,7 @@ the release note's Dependencies section mixes runtime and CI pins.
 
 ## Refresh policy
 
-Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0), 2026-07-21 (v0.25.1). **Last freshened 2026-08-11 against v0.27.0 — flag surface only; the issue tracker was not re-probed, so every issue state in `regressions.md` is as of 2026-07-21.**
+Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0), 2026-07-21 (v0.25.1), 2026-08-11 (v0.27.0), 2026-09-22 (v0.30.0), 2026-10-18 (v0.32.0 — flag surface and issue tracker both re-probed).
 
 **Do not treat "issue closed" as "regression fixed".** Of the issues re-probed on 2026-07-21, more closed for inactivity than for a fix. Read the closing comment every time — the previous pass's refresh policy listed #31475 as "still-open" and it is now `CLOSED`, which would read as resolved and is not.
 
@@ -212,8 +238,7 @@ issue state. Every pass should diff `vllm/config/*.py` + `vllm/engine/arg_utils.
 between the old and new tags and grep this skill's flags against it.
 
 Refresh when:
-- v0.28.x stable lands. Latest stable is **v0.27.1** (2026-08-11), a single-change patch on v0.27.0 ("Support quantized DSpark Markov heads", #50424) that touches no config or scheduler surface. **Everything in this file was probed at tag `v0.27.0`** and is stamped that way deliberately — do not restamp to a tag nobody read. The `v0.27.1` container images were pushed 10:24-10:42Z, *before* the 10:47Z release — image availability, not the PyPI wheel, is what gates this stack.
-- The issue tracker re-probe deferred by the 2026-08-11 pass: #35048, #32547, #19579, #31475, #25538 all carry 2026-07-21 states.
+- v0.33.0 lands. Latest stable is **v0.32.0** (2026-10-18); v0.31.0 shipped 2026-10-05 with no v0.31.x patch release. Code claims were read at tag `v0.32.0` — do not restamp to a tag nobody read.
 - A referenced issue closes **against a named fix PR** — genuinely fixed so far: #29539 (2026-01-07), #34249 (2026-02-20), #27679 (2025-12-29), #31679 (2026-01-07), #34641 (2026-05-28), vllm-ascend #4649 (2026-03-13). Closed *without* a fix: **#28882** (moved here 2026-09-15 — bot-closed, two bot comments, no PR), #31475, #25538, and now [#35048](https://github.com/vllm-project/vllm/issues/35048) (autoclosed 2026-07-22).
 - Wide-EP GB200 Part II ships — currently Part I only.
-- New MLPerf round with vLLM submission.
+- An MLPerf round is re-sourced: v6.0 and v6.1 are out; the skill still quotes v5.1.

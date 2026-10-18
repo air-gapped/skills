@@ -95,7 +95,7 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 
 ### NIXL flow (from [LMCache blog 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1))
 
-P and D register KV regions; P pushes directly via UCX; D polls readiness. Router decides P-node or D-node. vLLM v1 NIXL role selected via `--kv-transfer-config` with `nixlRole={sender,receiver}`.
+P and D register KV regions; P pushes directly via UCX; D polls readiness. Router decides P-node or D-node. vLLM sets the role in `--kv-transfer-config` via `kv_role` ∈ `kv_producer` | `kv_consumer` | `kv_both` (e.g. `'{"kv_connector":"NixlConnector","kv_role":"kv_both"}'`). `nixl_role: sender|receiver` is an LMCache YAML key, not a vLLM field.
 
 **NCCL vars don't apply to NixlConnector** — it uses UCX, not NCCL. Configure UCX: `UCX_TLS=all` OR `rc,ud,sm,^cuda_ipc`.
 
@@ -148,10 +148,6 @@ Recipes (recipes.vllm.ai, NVIDIA Dynamo) document the 4+4 split without benchmar
 - **vLLM production-stack + llm-d** — LeaderWorkerSet K8s orchestration. Configs at tag `2025-05-27-v1`.
 - **LMSYS DeepSeek-V3 at 96× H100** — canonical case study ([LMSYS blog](https://www.lmsys.org/blog/2025-05-05-large-scale-ep/)). 4 nodes prefill EP32, 9 nodes decode EP72.
 - **Anyscale Ray Serve LLM** — Python builder pattern for wide-EP + disagg ([anyscale.com/blog/ray-serve-llm-anyscale-apis-wide-ep-disaggregated-serving-vllm](https://www.anyscale.com/blog/ray-serve-llm-anyscale-apis-wide-ep-disaggregated-serving-vllm)).
-
-### Benchmark mode
-
-`vllm bench serve --disagg-split …` to measure P and D separately.
 
 ## Goodput — the SLO-gated throughput metric
 

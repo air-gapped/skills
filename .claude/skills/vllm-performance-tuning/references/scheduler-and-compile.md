@@ -11,18 +11,18 @@ Chunked prefill is on by default wherever the model supports it. `--num-schedule
 | Flag | Default | Purpose / tuning rule |
 |---|---|---|
 | `--max-num-batched-tokens` | **device-gated, see below** | Tokens per engine step. Lower (1024) → better ITL for decode-heavy. Higher (4096-16384) → better TTFT for prefill-heavy / long-context |
-| `--max-num-seqs` | **device-gated, see below** | Concurrent sequences. Higher → more concurrency but deeper queue; cap by KV-cache size |
-| `--long-prefill-token-threshold` | 0 (= no cap) | Requests with prompt > threshold are treated as "long" by the chunked-prefill scheduler |
+| `--max-num-seqs` | **device-gated, see below** | Concurrent sequences. Higher → more concurrency but deeper queue; cap by KV-cache size. Also sizes runner buffers + graph capture |
+| `--max-num-active-seqs` | unset (= `max_num_seqs`) | v0.31.0+. Caps RUNNING admission only, so decode batches shrink without shrinking runner/graph capacity. Must be ≤ `max_num_seqs` |
+| `--long-prefill-token-threshold` | 0 (= no cap) | Requests with prompt > threshold are treated as "long" by the chunked-prefill scheduler. v0.31.0+: the cap is skipped when the request is alone in the batch; `--long-prefill-token-threshold-adaptive` (opt-in, default off) floors it at `max_num_batched_tokens / (queued+running)` |
 | `--async-scheduling` | auto (default-on recent) | Overlap CPU scheduling with GPU compute. Resolves [v0.10.0 regression](https://discuss.vllm.ai/t/performance-degradation-report-0-9-0-1-vs-0-10-0/1368) |
 | `--stream-interval N` | 1 | Token batching for SSE streaming. N=1 smooth, N≥10 less host overhead at high concurrency ([PR #27869](https://github.com/vllm-project/vllm/pull/27869)). Also settable **per request** as a sampling param ([#49754](https://github.com/vllm-project/vllm/pull/49754)) — one interactive client no longer forces N=1 server-wide |
 | `--watermark` | 0.0 | Fraction of KV blocks held free when admitting waiting/preempted requests. Raise to buy anti-thrash headroom |
 | `--scheduler-reserve-full-isl` | `true` | Admit only if the **whole** input length fits in KV, not just the first chunk. The default that prevents over-admission |
 | `--performance-mode` | `balanced` | `balanced` \| `interactivity` \| `throughput`. One flag for the whole latency-vs-throughput posture; `throughput` doubles the *defaulted* `max_num_batched_tokens` / `max_num_seqs` (explicit values are left alone) and picks larger graphs + throughput kernels; `interactivity` picks fine-grained graphs + latency kernels. Try this **before** hand-tuning the table below |
-| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | 60 | Per-iter timeout; over this, worker deemed stuck |
 
 **Neither batching default is a constant — both are device-gated, and this is the
 single most common source of "my numbers don't match the docs".** `EngineArgs`
-picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, verified at v0.29.0):
+picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, verified at v0.32.0):
 
 | Device memory | `vllm serve` (OPENAI_API_SERVER) | `LLM`-class (offline) |
 |---|---|---|
@@ -52,7 +52,9 @@ allocated even when the flag was accepted.
 Incompatible-or-fragile paths:
 - Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/issues/26866)
 - Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/issues/24799), [#29821](https://github.com/vllm-project/vllm/issues/29821)
-- Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged; verify on the running version
+- Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged. Model Runner V1 + PP>1 still auto-disables async scheduling; forcing it on there with structured output is rejected at startup (v0.31.0+)
+- Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on)
+- Pooling models default it off
 - Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679) closed 2026-01-07
 - vllm-ascend v0.11.0rc2 — precision regression **fixed**, [ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) closed 2026-03-13; upgrade rather than disabling
 
@@ -119,11 +121,14 @@ The flag is **`--cudagraph-capture-sizes`** (plus `--max-cudagraph-capture-size`
 `v0.27.0`, and a repo-wide code search for the old symbol returns nothing. Older
 recipes and blog posts still use the old spelling; they will fail to parse.
 
-If `--cudagraph-capture-sizes` is unset, vLLM generates:
+If `--cudagraph-capture-sizes` is unset, vLLM generates (`vllm/config/vllm.py` at v0.32.0):
 ```
 [1, 2, 4] + range(8, 256, 8) + range(256, max_cudagraph_capture_size+1, 16)
-max_cudagraph_capture_size = min(max_num_seqs*2, 512)
+max_cudagraph_capture_size = min(max_num_seqs * (1 + num_speculative_tokens) * 2,
+                                 1024 if SM100 (B200/B300/GB200) else 512)
 ```
+`max_num_batched_tokens` is appended when it fits under the cap; with spec-dec the
+uniform-decode sizes are appended too.
 
 Setting `--cudagraph-capture-sizes` explicitly pins `max_cudagraph_capture_size`
 to the largest entry in the list. Rule: raising `--max-num-seqs` raises the
@@ -134,9 +139,9 @@ pin exact buckets.
 
 - **`VLLM_USE_BREAKABLE_CUDAGRAPH=1` no longer overrides FULL graphs on MRV1** (v0.30.0, [#56312](https://github.com/vllm-project/vllm/pull/56312)). It now scopes capture to PIECEWISE dispatch only (`vllm/v1/worker/gpu_model_runner.py`); a separate `CUDAGraphWrapper` still owns FULL graphs unaffected. Do not assume this flag disables or replaces FULL-graph capture on v0.30.0+.
 - **FULL_AND_PIECEWISE garbage output** `!!!` on certain configs — [#29539](https://github.com/vllm-project/vllm/issues/29539).
-- **ROCm V1 piecewise capture size** much higher than CUDA's — [#19579](https://github.com/vllm-project/vllm/issues/19579).
-- **Capture time is dominant cold-start cost.** CI: use `--cudagraph-capture-sizes 1` or `-O0` ([PR #25951](https://github.com/vllm-project/vllm/pull/25951)).
-- **AMD MLPerf v5.1 tuning note:** `max_model_len` and `max_seq_len_to_capture` were "crucial for Hip graph capture to minimize GPU idle time" ([AMD MLPerf v5.1 blog](https://rocm.blogs.amd.com/artificial-intelligence/mlperf-inference-v5.1/README.html)).
+- **ROCm V1 piecewise capture size** much higher than CUDA's — [#19579](https://github.com/vllm-project/vllm/issues/19579) (bot-closed, no fix).
+- **Capture time is dominant cold-start cost.** CI: use `--cudagraph-capture-sizes 1` or `-O0` ([PR #25951](https://github.com/vllm-project/vllm/pull/25951)). Prefer `-O0` over `--enforce-eager` when first-request latency matters: v0.31.0+ `--enforce-eager` also skips JIT kernel warmup.
+- **AMD MLPerf v5.1 tuning note:** `max_model_len` and `max_seq_len_to_capture` were "crucial for Hip graph capture to minimize GPU idle time" ([AMD MLPerf v5.1 blog](https://rocm.blogs.amd.com/artificial-intelligence/mlperf-inference-v5.1/README.html)). `max_seq_len_to_capture` no longer exists; the capture bound is now `--max-cudagraph-capture-size`.
 
 ## torch.compile in vLLM
 
@@ -146,7 +151,7 @@ Source: [torch.compile blog](https://vllm.ai/blog/torch-compile), [Red Hat deep-
 
 | Level | What it does |
 |---|---|
-| `-O0` | No compile, no CUDA graphs. Equivalent to `--enforce-eager` |
+| `-O0` | No compile, no CUDA graphs, no FlashInfer autotune. `--enforce-eager` is the same **plus** no JIT kernel warmup (v0.31.0+, unless fault tolerance is on) |
 | `-O1` | Simple compile + fast fusions + PIECEWISE graphs |
 | **`-O2`** | **default** — full compile + `FULL_AND_PIECEWISE` + fusions |
 | `-O3` | reserved, currently equals `-O2` |
@@ -156,7 +161,7 @@ Source: [torch.compile blog](https://vllm.ai/blog/torch-compile), [Red Hat deep-
 | Fusion | Gain |
 |---|---|
 | AllReduce + RMSNorm | +15% |
-| Sequence-Parallel + Async TP | +10% |
+| ~~Sequence-Parallel + Async TP~~ | **removed in v0.32.0** (#60517) — `pass_config.enable_sp` / `fuse_gemm_comms` / `sp_min_token_num` now fail validation |
 | Attention + Quant (FP8) | +7% |
 | FP4 fusions | upcoming |
 
@@ -197,6 +202,6 @@ Autoscaling: "generate the cache directory once and share it among instances" �
 ### Common mistakes
 
 - **Stale compile cache after vLLM upgrade** — symptoms range from silent perf regression to crash. Fix: clear `$VLLM_CACHE_ROOT/torch_compile_cache` after version bump.
-- **Attributing the first request's latency to the model.** v0.27.0 warms JIT'd kernels *before* serving: FA4 gained JIT warmup infrastructure ([#47451](https://github.com/vllm-project/vllm/pull/47451)) and the model runner now warms its own Triton kernels ahead of the first request ([#49903](https://github.com/vllm-project/vllm/pull/49903)). A first-request stall that used to be normal is now a signal — and a pre-v0.27.0 TTFT baseline that included it is not comparable.
+- **Attributing the first request's latency to the model.** v0.27.0 warms JIT'd kernels *before* serving: FA4 gained JIT warmup infrastructure ([#47451](https://github.com/vllm-project/vllm/pull/47451)) and the model runner now warms its own Triton kernels ahead of the first request ([#49903](https://github.com/vllm-project/vllm/pull/49903)). A first-request stall that used to be normal is now a signal — and a pre-v0.27.0 TTFT baseline that included it is not comparable. Exception: `--enforce-eager` skips this warmup on v0.31.0+, so the stall is expected there.
 - **CUDA graphs left enabled during debugging** — shape mismatch → crash/hang. Use `-O0` during iteration.
 - **`--max-num-batched-tokens < max_model_len`** — scheduler can't fit even one sequence. Fix: raise batched-tokens OR use chunked prefill (default on V1).

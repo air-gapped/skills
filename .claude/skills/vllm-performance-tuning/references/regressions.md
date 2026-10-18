@@ -1,6 +1,6 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Version stamps below carry **2026-07-21 / v0.25.1** — the 2026-08-11 pass freshened the flag surface, not the issue tracker, so every issue state here is as of 2026-07-21 and is due a re-probe.
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below were re-probed on 2026-10-18 (vLLM v0.32.0).
 
 ## Version regressions
 
@@ -17,6 +17,7 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 
 - 96 tps → 87 tps
 - Only affects MTP (speculative decoding) path
+- **Bot-closed `NOT_PLANNED` 2026-07-22, no fix** — re-measure MTP throughput on your build
 
 ### v0.9.0.1 → v0.10.0 scheduler regression ([forum](https://discuss.vllm.ai/t/performance-degradation-report-0-9-0-1-vs-0-10-0/1368))
 
@@ -40,7 +41,7 @@ Building DeepGEMM from source (`tools/install_deepgemm.sh`, `cmake/external_proj
 
 ### v0.19.0rc1 FLUX.1-dev regression ([vllm-omni #2730](https://github.com/vllm-project/vllm-omni/issues/2730))
 
-Not vLLM core but documented here for operators running vllm-omni diffusion: FLUX.1-dev generates incorrect images. Pin v0.18.0. See `vllm-omni` skill.
+Not vLLM core but documented here for operators running vllm-omni diffusion: FLUX.1-dev generated incorrect images (T5 text encoder). **Fixed by vllm-omni PR #2760 (merged 2026-04-24)** — upgrade vllm-omni rather than pinning v0.18.0. See `vllm-omni` skill.
 
 ### Preempt/resume thrashing ([#25538](https://github.com/vllm-project/vllm/issues/25538))
 
@@ -76,17 +77,16 @@ allreduce-fusion detail.
 |---|---|
 | `VLLM_ROCM_USE_AITER_FP4BMM=True` default crash | MI300X gfx942 has no FP4 hardware. Regression from Jan 15 2026 commit `8c11001`. [#34641](https://github.com/vllm-project/vllm/issues/34641) — **closed 2026-05-28**. Legacy workaround for pre-fix builds: `VLLM_ROCM_USE_AITER_FP4BMM=False`; upgrade clears it |
 | FP8 **slower** than BF16 in steady-state decode | Large MoE (GLM-4.7, MiniMax-M2.1). Counter-intuitive but reproducible. [#31475](https://github.com/vllm-project/vllm/issues/31475) — **now `CLOSED` / `NOT_PLANNED` (2026-06-09), closed by the inactivity bot with no fix.** Still benchmark FP8 against BF16 on MI300X rather than assuming FP8 wins |
-| Whisper response inaccurate | [#20069](https://github.com/vllm-project/vllm/issues/20069) |
 
 ### AMD MI325X
 
-- Qwen2.5-VL silent 100× slowdown: MIOpen 3D conv "invalid configuration argument". [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857). Need MIOpen patch.
+- Qwen2.5-VL silent 100× slowdown: MIOpen 3D conv "invalid configuration argument". [pytorch #169857](https://github.com/pytorch/pytorch/issues/169857) — **closed 2026-07-23**: naive-solver fix ships in ROCm 7.12.0; the GEMM search-cutoff fix ships in ROCm 7.13.0 behind `MIOPEN_SEARCH_CUTOFF=ON`. Upgrade ROCm instead of patching MIOpen.
 
 ### Huawei Ascend 910B (vllm-ascend)
 
 | Issue | Details |
 |---|---|
-| Fresh install regression on NPU 910B | [vllm-omni #2898](https://github.com/vllm-project/vllm-omni/issues/2898) |
+| vllm-omni fails to start on NPU 910B | [vllm-omni #2898](https://github.com/vllm-project/vllm-omni/issues/2898) — config, not a regression: use `ASCEND_RT_VISIBLE_DEVICES` (plural), give Qwen3-Omni ≥3× 64 GB NPUs, and set `--dtype`/`--max-model-len`/`-tp` in the stage YAML — multi-stage omni ignores them on the CLI |
 | 8× 910B serving Qwen3.5-122B-A10B hangs at 8% | running_reqs peaks at ~60 (below configured concurrency), KV drops to 0. [forum](https://discuss.vllm.ai/t/on-8-card-ascend-910b-with-vllm-serving-qwen3-5-122b-a10b-the-client-freezes-at-8-progress-when-running-accuracy-test-as-the-server-stops-receiving-new-requests-after-running-reqs-and-kv-cache-fall-to-0/2538) |
 | Async scheduling precision bug on v0.11.0rc2 | [vllm-ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) — **fixed, closed 2026-03-13**. Upgrade vllm-ascend rather than disabling async-sched |
 | HunyuanVideo 1.5 `mindiesd` flash-attn shape | [vllm-omni #2880](https://github.com/vllm-project/vllm-omni/issues/2880) |
@@ -94,7 +94,7 @@ allreduce-fusion detail.
 ### Intel XPU
 
 - torch-xpu 2.6 / ipex-xpu 2.6 oneapi dep conflict — fixed in ipex-xpu 2.7.
-- [#28362](https://github.com/vllm-project/vllm/issues/28362): vLLM won't start on Intel 125H Arc.
+- [#28362](https://github.com/vllm-project/vllm/issues/28362): vLLM won't start on Intel 125H Arc — closed `NOT_PLANNED` 2026-03-12 with no fix.
 
 ### FlashInfer backend auto-select bugs
 
@@ -106,8 +106,8 @@ allreduce-fusion detail.
 
 ### SemiAnalysis InferenceMAX / InferenceX
 
-- "tokens-per-MW" metric reported as "generated tokens" but includes processed+generated. [InferenceX #293](https://github.com/SemiAnalysisAI/InferenceX/issues/293).
-- Per-GPU disagg throughput comparisons are not apples-to-apples with standard multi-GPU. [#299](https://github.com/SemiAnalysisAI/InferenceX/issues/299).
+- "tokens-per-MW" metric reported as "generated tokens" but includes processed+generated. [InferenceX #293](https://github.com/SemiAnalysisAI/InferenceX/issues/293) — corrected in the article (2025-12-07); check which revision a quoted number came from.
+- Per-GPU disagg throughput comparisons are not apples-to-apples with standard multi-GPU. [#299](https://github.com/SemiAnalysisAI/InferenceX/issues/299) — maintainers declined (2026-03-23): they keep averaging prefill/decode over the GPUs doing each phase. Normalise yourself before comparing.
 
 ### Wide-EP throughput numbers
 
@@ -133,7 +133,10 @@ Before bumping vLLM version:
    hard startup failure, and the notes rarely mention a knob that died three
    minors ago. `git diff v<current>..v<target> -- vllm/config/ vllm/engine/arg_utils.py`
    and grep your own serve args against it. v0.27.0 alone removed
-   `--max-num-partial-prefills` / `--max-long-partial-prefills`.
+   `--max-num-partial-prefills` / `--max-long-partial-prefills`; v0.32.0 removed
+   `pass_config.enable_sp` / `fuse_gemm_comms` / `sp_min_token_num` and
+   `VLLM_ENGINE_ITERATION_TIMEOUT_S`. Also diff `vllm/envs.py` — removed env vars
+   are silently ignored, not rejected.
 1. `git log v<current>..v<target> -- benchmarks/` in the vLLM repo — any new benchmark_moe.py changes?
 2. Check release notes for the deployed model family — DeepSeek-V3.2 / Qwen3-MoE / Kimi-K2 / Llama-4 all have fresh-release recipes that may change.
 3. Clear `$VLLM_CACHE_ROOT/torch_compile_cache` — stale cache is the single most common upgrade-break.

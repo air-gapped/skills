@@ -95,20 +95,22 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 ```bash
 # --all2all-backend, NOT an env var. VLLM_ALL2ALL_BACKEND was deprecated in
 # v0.15.0 and removed in #33535 (2026-02-03) — setting it does nothing.
---all2all-backend {allgather_reducescatter|naive|pplx|deepep_high_throughput|deepep_low_latency|deepep_v2|mori_high_throughput|mori_low_latency|nixl_ep|flashinfer_nvlink_two_sided|flashinfer_nvlink_one_sided}
+--all2all-backend {allgather_reducescatter|deepep_high_throughput|deepep_low_latency|deepep_v2|mori_high_throughput|mori_low_latency|moonep|nixl_ep|flashinfer_nvlink_two_sided|flashinfer_nvlink_one_sided}
 ```
 
 | Backend | Use when | Caveats |
 |---|---|---|
 | `allgather_reducescatter` | **the default** | |
-| `naive` | works everywhere | broadcast + allreduce; slowest |
-| `pplx` | Perplexity kernels | **incompatible with microbatching** ([#27513](https://github.com/vllm-project/vllm/issues/27513)) |
+| `naive`, `pplx` | **removed** — still parse, but log a warning and fall back to `allgather_reducescatter` | pplx removed v0.17.0 (#33724), naive v0.19.0 (#36294). Delete them from recipes |
+| `moonep` | v0.31.0+. Balanced EP with dynamic redundant experts over NVLink | |
 | `deepep_high_throughput` | prefill, long ISL | needs compiled `deep_ep` package |
 | `deepep_low_latency` | decode, CUDA-graph-compatible | same |
 
-**Known hang:** `dp=2, tp=8, ep=16` with DeepEP on v0.9.2 hangs during warm-up; `naive` works ([#21306](https://github.com/vllm-project/vllm/issues/21306)).
+**Known hang (v0.9.2 only):** `dp=2, tp=8, ep=16` with DeepEP hung during warm-up ([#21306](https://github.com/vllm-project/vllm/issues/21306)); the reporter cleared it by changing the container environment, root cause never found. The old `naive` workaround no longer exists.
 
 **v0.30.0: DeepEP v2 combine overlaps the shared-expert FFN by default** ([#52781](https://github.com/vllm-project/vllm/pull/52781)). `finalize_async` now issues the combine on DeepEP's comm stream and joins via a device-side event instead of blocking the caller — DeepSeek-R1-class models with a shared expert saw 5-9% lower decode ITL in the PR's own A/B. **The release note's claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP=0` opt-out does not exist in the merged code** (verified: `vllm/model_executor/layers/fused_moe/prepare_finalize/deepep_v2.py` at v0.30.0 has no such env var read). Overlap is unconditional except under DBO (`dbo_enabled()`), which forces the synchronous path — that is currently the only way to disable it.
+
+**v0.32.0: DeepEP v2 auto-selects hybrid NVLink+RDMA mode by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`, was `0`; #57991). Set `=0` to force NVLink-only when a multi-node regression appears after the upgrade.
 
 **NVSHMEM + IB tuning** (Azure H100 400 Gb/s IB baseline, from [Microsoft blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)):
 
@@ -134,7 +136,7 @@ vllm serve <model> --enable-expert-parallel \
   --eplb-config '{"window_size":1000,"step_interval":3000,"num_redundant_experts":32,"log_balancedness":true}'
 ```
 
-Recommended **32 redundant experts at scale** — hot experts get replicated across multiple ranks.
+Recommended **32 redundant experts at scale** — hot experts get replicated across multiple ranks. Async EPLB (the default) also accepts `"enable_migration_batching": true` (v0.32.0+, off by default): each rank migrates with at most one peer per step — less network contention, more sequential steps.
 
 ## Published Wide-EP numbers
 
