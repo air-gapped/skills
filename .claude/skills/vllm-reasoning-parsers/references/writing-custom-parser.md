@@ -74,7 +74,7 @@ Override only the `start_token` / `end_token` properties. Optionally override `e
 
 ## When to inherit `ReasoningParser` directly
 
-- Multi-token delimiters (harmony, `<|channel|>analysis<|message|>`).
+- Multi-token delimiters (harmony-style `<|channel|>analysis<|message|>`). Template: `kimi_k3_reasoning_parser.py` subsequence search. A parser copied from gpt-oss lands here, never on `BaseThinkingReasoningParser`.
 - Text-phrase delimiters (Granite "Here is my thought process:").
 - Stateful parsing (Hunyuan token-ID state machine).
 - Thinking-disabled short-circuit needed (delegate to `IdentityReasoningParser` — see DeepSeekV3 or KimiK2 patterns).
