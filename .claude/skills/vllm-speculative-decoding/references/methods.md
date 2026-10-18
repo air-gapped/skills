@@ -338,7 +338,7 @@ select different N on the same model.
   a testing tool not a prod knob (v0.19+, PR #38045)
 
 **Covered elsewhere in this skill:** `use_heterogeneous_vocab` (TLI),
-`kv_cache_dtype`, `attention_backend`, `enable_adaptive_verification` (SKILL.md
+`kv_cache_dtype`, `attention_backend`, `enable_adaptive_verification` (`version-gates.md`
 version gates). Also present at v0.32.0: `dspark_draft_topk`, `num_speculative_tokens_per_batch_size`,
 `disable_eagle_block_drop`, `index_share_for_mtp_iteration` — read their
 docstrings in `config/speculative.py` before setting.

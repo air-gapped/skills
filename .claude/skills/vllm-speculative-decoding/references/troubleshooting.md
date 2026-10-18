@@ -146,7 +146,7 @@ subset) when:
 
 Spec-dec has shipped a flurry of bugfixes through v0.19. On a build older
 than v0.18.x, upgrade is usually the answer to an unexpected bug before
-deeper debugging. See SKILL.md "Critical version gates" for
+deeper debugging. See `references/version-gates.md` for
 the minimum-version-per-feature table.
 
 If a new bug appears on the latest release, reproduce with
