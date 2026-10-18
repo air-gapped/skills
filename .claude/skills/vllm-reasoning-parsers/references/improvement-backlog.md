@@ -2,9 +2,28 @@
 
 ## Open
 
-_No open items._
+- **Trim `when_to_use` keyword list** (Dim 1/6) — `SKILL.md:6`, 1061 chars,
+  combined with `description` near the 1536 listing cap. Blocked on a `trigger`
+  run (`probe-trigger.py` on a `references/trigger-evals.json` set, none exists
+  yet): a cut cannot be shown not to lose recall without it.
 
-## Resolved this pass (2026-10-03, improve, v0.30.0)
+## Resolved this pass (2026-10-18, improve, v0.32.0)
+
+Blind baseline 79 at a8a15f7; final blind score and A/B comparator run by the
+operator. Self 79 → 81. Stop: cap reached (5).
+- Kept: pitfalls 1, 2, 15 name the response field `reasoning`; nonexistent
+  `--include-reasoning-content` flag removed.
+- Kept: SKILL.md pitfall 4 cut to policy + `thinking_token_budget` remedy; MRV2
+  history moved to pitfalls.md §4.
+- Kept: pitfalls 2 and 14 stated as current rules, not version history.
+- Discard: pitfall 13 rewritten as rule + legacy-parser remedy — came out longer
+  than the original and still version-heavy; no dimension moved.
+- Discard: pitfall 10 split into three sub-bullets — format-only, 40 chars
+  saved for +3 lines; every fact must stay in SKILL.md (eval case 05 rests on it).
+- Not cut: the SKILL.md pitfall index vs `references/pitfalls.md` is
+  INTENTIONAL_DETAIL (summary + repro/fix), not DUPLICATE.
+
+## Resolved — 2026-10-03 (improve, v0.30.0)
 
 Blind 75 → 77; comparators 3/3 IMPROVED; outcome without 0.569 / baseline
 0.854 / final 0.826 (full run, before the pitfall-1 fix; case 00 re-run after
