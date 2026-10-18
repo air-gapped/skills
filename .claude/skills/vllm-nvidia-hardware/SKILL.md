@@ -1,7 +1,7 @@
 ---
 name: vllm-nvidia-hardware
 description: |-
-  NVIDIA AI-hardware + vLLM-platform reference covering Hopper (H100/H200), Blackwell (B100/B200/B300) and Blackwell Ultra, Grace-Blackwell superchips and NVL72 racks (GB200, GB300), Vera Rubin (R100/R300) with VR200 NVL144 and Kyber NVL576, Dell PowerEdge XE family and IR5000/IR7000/IR9048 racks. Per-SKU HBM, FP4/FP8/FP16 TFLOPs, NVLink5, TDP, rack power/cooling (135 kW GB300, 180-220 kW NVL144, 600 kW Kyber), DLC vs RDHx, 800 VDC HVDC. Memory-wall roofline, HBM3E→HBM4 supply 2026. vLLM attention-backend × SM matrix, FP4/FP8 paths, KV connectors, Blackwell gotchas (SM103 TRTLLM hang, 270 vs 288 GB B300 bin split).
+  NVIDIA AI-hardware + vLLM-platform reference covering Hopper (H100/H200), Blackwell (B100/B200/B300) and Blackwell Ultra, Grace-Blackwell superchips and NVL72 racks (GB200, GB300), Vera Rubin (R100/R300) with VR200 NVL144 and Kyber NVL576, Dell PowerEdge XE family and IR5000/IR7000/IR9048 racks. Per-SKU HBM, FP4/FP8/FP16 TFLOPs, NVLink5, TDP, rack power/cooling (135 kW GB300, 180-220 kW NVL144, 600 kW Kyber), DLC vs RDHx, 800 VDC HVDC. Memory-wall roofline, HBM3E→HBM4 supply 2026. vLLM attention-backend × SM matrix, FP4/FP8 paths, KV connectors, Blackwell gotchas (SM103 TRTLLM hang, 270 vs 279 GB B300 bin split).
 when_to_use: |-
   Trigger on NVIDIA-AI hardware sizing, procurement, facility, or vLLM-deployment questions. Triggers — HBM capacity/bandwidth, TDP, NVLink, GB300 NVL72 power/cooling, Vera Rubin timing, Dell PowerEdge XE, IR7000 racks, ORv3 power shelves, DLC flow rate, warm-water 45 °C, 800 VDC HVDC, rack weight, floor load, HBM supply 2026, FlashAttention/FlashInfer/FlashMLA/CUTLASS MLA/TRTLLM per SM, NVFP4, MXFP4, NixlConnector, MooncakeConnector, LMCache, CUDA 13 arch list, SM100/SM103/SM120 gotchas, memory-wall roofline, prefill-vs-decode. Narrow phrasings — "HBM on our XE9780", "wait for Rubin", "which GPU for {model}", "B200 vs H200 choice". Also implicit — "sizing for {model}", "audit hardware", "rack power budget", "can this GPU run {model}", "GPU recommendation", "deploy-memo hardware", "spec-study hardware".
 ---
@@ -39,9 +39,9 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 
 ## The five most common operator mistakes this skill exists to prevent
 
-1. **Conflating the two B300 bins.** NVIDIA ships B300 in two bins: **DGX / GB300 Superchip = 288 GB HBM3E / 1,400 W**, and **HGX B300 NVL8 SXM6 (OEM baseboards) = 270 GB / 1,100 W**. Dell PowerEdge XE9780/XE9780L/XE9780LAP/XE9785/XE9785L all carry the **HGX NVL8 bin** (270 GB / 1,100 W). Getting this wrong puts the 8-GPU TDP budget off by 2.4 kW and the per-GPU HBM off by 18 GB. `references/gpu-specs.md` §2.2 has both rows.
+1. **Conflating the two B300 bins.** NVIDIA ships B300 in two bins: **DGX / GB300 Superchip = 279 GB HBM3E / 8 TB/s / 1,400 W** (launch coverage says 288 GB; size against the datasheet's 279), and **HGX B300 NVL8 SXM6 (OEM baseboards) = 270 GB / 7.7 TB/s / 1,100 W**. Dell PowerEdge XE9780/XE9780L/XE9780LAP/XE9785/XE9785L all carry the **HGX NVL8 bin** (270 GB / 1,100 W). Getting this wrong puts the 8-GPU TDP budget off by 2.4 kW and the per-GPU HBM off by 9 GB. `references/gpu-specs.md` §2 has both rows.
 
-2. **Assuming B300 is HBM4.** It isn't. B300 uses HBM3E (12-Hi stacks, 288 GB at the top bin). HBM4 first ships in **Vera Rubin R100** (H2 2026) with ~20 TB/s per GPU. This matters for roadmap planning.
+2. **Assuming B300 is HBM4.** It isn't. B300 uses HBM3E (12-Hi stacks, 279 GB at the top bin). HBM4 first ships in **Vera Rubin R100** (H2 2026) with ~20 TB/s per GPU. This matters for roadmap planning.
 
 3. **Assuming GB300 NVL72 can use rear-door heat exchangers.** It can't — at 135 kW nominal / 155 kW peak per rack, direct liquid cooling is mandatory on GPUs + CPUs + NVSwitch + CX-8 NICs. Facility work (row-level CDU, 3φ 480V feeds, 1500 kg/m² floor) routinely takes 6–9 months. See `references/nvl72-procurement.md`.
 
@@ -55,7 +55,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 - Default to FP8 weights + FP8 KV cache on H200 for long context.
 - Use FlashMLA for DeepSeek models; FlashAttention-3 elsewhere.
 - Disagg prefill across nodes needs XDR IB + GPUDirect-RDMA — use CPU/NVMe offload (LMCache) first.
-- **No FP4. No NVL72. No 288 GB single-GPU.**
+- **No FP4. No NVL72. No 270+ GB single-GPU.**
 
 ### Running vLLM on Blackwell (B200/B300)
 - Switch to FP4 (NVFP4 via ModelOpt checkpoints) — 1.8–2× decode throughput on the same HBM budget.
@@ -68,7 +68,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 - **≥ v0.32.0 for NVFP4/MXFP4 MoE with expert parallelism on the CUTLASS MoE
   backend**: earlier releases ignored `expert_map`, routing tokens to the wrong
   local experts — degenerate output (~0% GSM8K), no error (#59042).
-- 270 GB (HGX bin) or 288 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
+- 270 GB (HGX bin) or 279 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
 - **Upgrading to v0.27.0 is an environment change, not a version bump:** `requirements/cuda.txt` pins `torch==2.13.0` / `torchvision==0.28.0` (#48155, flagged breaking upstream; Triton 3.7.1 rides along with torch rather than being pinned separately), and the image build sets `NCCL_VERSION=2.30.7` — the NCCL floor is what unlocks DeepEPv2 for Wide-EP (#45321). Rebuild the container; don't pip-upgrade in place.
 - **v0.32.0 floors:** Python ≥ 3.11 (#60402), `transformers>=5.16.1,<5.20.0` +
   `tokenizers>=0.23.2`, GCC ≥ 13 for CUDA source builds (CMake fails early,
@@ -88,11 +88,11 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 | Metric | Value |
 |---|---|
 | GB300 NVL72 rack power | 135 kW nominal / 155 kW peak |
-| GB300 NVL72 aggregate HBM | 20.7 TB HBM3E |
+| GB300 NVL72 aggregate HBM | 20.1 TB HBM3E (72 × 279 GB; NVIDIA: "> 20 TB") |
 | GB300 NVL72 aggregate HBM BW | ~576 TB/s |
 | GB300 NVL72 NVLink domain | 72 GPUs flat, 130 TB/s |
 | B300 (HGX NVL8, Dell fleet) | 270 GB / 1,100 W |
-| B300 (DGX / GB300 Superchip) | 288 GB / 1,400 W |
+| B300 (DGX / GB300 Superchip) | 279 GB / 1,400 W |
 | H200 SXM5 | 141 GB HBM3E / 4.8 TB/s / 700 W |
 | Rubin R100 (H2 2026) | ~288 GB HBM4 / ~20 TB/s |
 | Rubin NVL144 rack power | 180–220 kW (800 VDC HVDC) |

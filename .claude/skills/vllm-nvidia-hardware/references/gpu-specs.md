@@ -37,7 +37,7 @@ Primary sources:
 | B100 | 2 chiplets | 192 GB HBM3E | 8 TB/s | ~1,750 TF | ~3,500 TF | ~7,000 TF | 1.8 TB/s | 700 W | **Effectively cancelled for HGX volume**; replaced by B200A/B102 |
 | B200 SXM | 2 chiplets | 180–192 GB HBM3E (SKU-dependent) | 8 TB/s | 2,250 TF | 4,500 TF | 9,000 TF | 1.8 TB/s | 1,000 W | Standard HGX Blackwell |
 | **B300 — DGX / GB300 Superchip bin** | 2 chiplets (160 SMs, 208B transistors) | **279 GB HBM3E** (12-Hi; see note) | 8 TB/s | 2,500 TF | 5,000 TF | **15,000 TF** | 1.8 TB/s | **1,400 W** | NVIDIA reference, DGX B300, GB300 Superchip. +67% FP4 vs B200 |
-| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | **7.7 TB/s** | 2,250 TF | 4,500 TF | **14,000 TF** | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **18 GB less HBM and 300 W less TDP than the DGX-bin** |
+| **B300 — HGX NVL8 SXM6 (OEM bin)** | 2 chiplets | **270 GB HBM3E** | **7.7 TB/s** | 2,250 TF | 4,500 TF | **14,000 TF** | 1.8 TB/s | **1,100 W** | Lower-TDP HGX 8-way SKU shipped by Dell (XE9780/XE9780L/XE9785/XE9785L), Supermicro, Lenovo. **9 GB less HBM, 0.3 TB/s less bandwidth and 300 W less TDP than the DGX-bin** |
 
 **The bin split matters.** Without it, 8-GPU TDP math is off by 2.4 kW. When the
 operator refers to B300 in a Dell / Supermicro / Lenovo HGX box, default to the
@@ -74,10 +74,10 @@ derive the others.
 | Product | GPUs | CPUs | Aggregate HBM | Agg HBM BW | NVLink domain | Rack power | Cooling | Status |
 |---|---:|---:|---:|---:|---|---:|---|---|
 | **GB200 Superchip** | 2× B200 | 1× Grace (72-core V2, 480 GB LPDDR5X) | 384 GB HBM3E + 480 GB LPDDR5X | 16 TB/s HBM | 1.8 TB/s/GPU; 900 GB/s NVLink-C2C | ~2.7 kW module | Liquid required | Shipping |
-| **GB300 Superchip** | 2× B300 (DGX bin, 288 GB) | 1× Grace | **576 GB HBM3E** + LPDDR5X | 16 TB/s HBM | 1.8 TB/s/GPU | ~3+ kW module | Liquid | 2025 H2 → 2026 |
+| **GB300 Superchip** | 2× B300 (DGX bin, 279 GB) | 1× Grace | **558 GB HBM3E** (2 × 279) + LPDDR5X | 16 TB/s HBM | 1.8 TB/s/GPU | ~3+ kW module | Liquid | 2025 H2 → 2026 |
 | **GB200 NVL72** | 72× B200 | 36× Grace | 13.5 TB HBM3E | 576 TB/s | 72 GPUs flat, 130 TB/s all-to-all | **~120 kW/rack** | DLC mandatory | Shipping |
 | **GB200 NVL36×2** | 36 + 36 (paired racks) | 18 + 18 | 6.75 TB/rack | 288 TB/s/rack | 72 across pair | ~66 kW/rack | DLC | Shipping |
-| **GB300 NVL72** | 72× B300 | 36× Grace | **20.7 TB HBM3E** | 576 TB/s | 72 GPUs, 130 TB/s | **135 kW nom / 155 kW peak** | DLC mandatory | Ramping late-2025/2026 |
+| **GB300 NVL72** | 72× B300 | 36× Grace | **20.1 TB HBM3E** (72 × 279; NVIDIA: "> 20 TB") | 576 TB/s | 72 GPUs, 130 TB/s | **135 kW nom / 155 kW peak** | DLC mandatory | Ramping late-2025/2026 |
 
 **FP4 is a memory-wall mitigation on Blackwell.** Halving weight size vs FP8 is a
 direct 2× relief on decode's bandwidth bottleneck. NVIDIA claims ~2× decode throughput
