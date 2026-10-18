@@ -1,33 +1,18 @@
 # Improvement Backlog — vllm-caching
 
-> **Local-only file. NOT committed yet** — captures live-lab findings staged
-> for SKILL.md / sources.md. Reapply when ready to publish.
+## Open
 
-## Resolved — 2026-09-15 ("known-good tag" meant two different things)
+### v0.32.0 LMCache MP adapter import — re-run step 2 on a GPU node (added 2026-10-18)
 
-- **The known-good tag list is a *bundling* claim and reads as a safety one.**
-  `v0.14.0`+, `v0.19.0` and `v0.19.0-cu130` are listed because they ship
-  `INSTALL_KV_CONNECTORS=true`. All three are **below the security floor**, so an
-  operator picking the oldest listed tag gets working connectors and a vLLM with
-  a critical authentication bypass. The two questions are now separated in place.
-- **Floors named with their derivation**: **v0.22.0** for CVE-2026-48746 (critical
-  `--api-key` / `VLLM_API_KEY` bypass via URL characters in the `Host:` header) —
-  derived from the fix PR, because the advisory records *no* patched version and
-  an unbounded range; and **v0.14.1** for CVE-2026-22778, the pre-auth video RCE,
-  which applies **only** to deployments serving a video model. Detail lives in
-  `vllm-configuration` § Server auth rather than being duplicated here.
-- **The `v0.19.0-cu130` recipe tag in `connectors.md` is deliberately NOT bumped.**
-  The recipe's numbers were measured on that image; silently changing the tag
-  would invalidate the measurement it documents. It now carries a note saying the
-  tag is below the floor, that it is kept for reproducing those numbers, and that
-  anything else should run ≥ v0.22.0 and re-run the two-step bundling check —
-  bundling is verified per tag, so a security bump is not free.
+Dim 9. File-set: SKILL.md § Version gates (bundling row) + § Two-step bundling verification, sources.md row "v0.32.0 runtime imports".
 
-## Open — pending publish
+**Blocked on:** a host with the NVIDIA driver and container runtime. `verify-bundling.sh v0.32.0` ran on a GPU-less host: every package imports and all four KV-offload connectors load, but the MP adapter classes fail with `ImportError: libcuda.so.1`. Re-run with the GPU visible. If it passes, change the bundling row to "full pass on v0.32.0". If it still fails, the image is broken for `LMCacheMPConnector`; say so in the row.
 
-### Hybrid-attention live-lab matrix — re-run needed on v0.25.1 (carried 2026-05-28, re-scoped 2026-07-21)
+### Hybrid-attention live-lab matrix — runtime re-run on a current image (carried 2026-10-18)
 
-Dim 5 / Dim 9. File-set: improvement-backlog.md (this section) → SKILL.md + sources.md.
+Dim 5 / Dim 9. File-set: SKILL.md § Hybrid models + sources.md.
+
+**Blocked on:** datacenter GPU time — a 2× H100-class session serving a hybrid model (Qwen3.6-27B-FP8 or Gemma-4). Not available on the local lab; needs an operator-approved rental. The static `SupportsHMA` matrix is current at v0.32.0; only the runtime verdicts are missing.
 
 **Partially closed by the 2026-07-21 freshen pass.** The *static* half of this item is done: a `SupportsHMA` connector matrix verified against vLLM tag **v0.25.1** source now lives in SKILL.md "Critical pitfalls", and the decision-tree/Hybrid-models sections were rewritten around it. What remains is **author-only live-lab work**: the v0.19.1-era runtime verdicts below (fail-to-start, TOCTOU `AssertionError`, symmetric-mode no-discovery) have not been re-run on a modern image. Static `SupportsHMA` declarations tell you what vLLM *intends*; only a run tells you what happens. Needs a 2× H100 session on `vllm/vllm-openai:v0.25.1` with a hybrid model (Qwen3.6-27B-FP8 or Gemma-4).
 
@@ -52,10 +37,38 @@ Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 
 - `Qwen/Qwen3.6-27B-FP8` TP=1 H100 SXM5 80GB: GPU KV 174,048 tokens; 2.6× concurrency at 262K; CUDA graphs c=10 ISL=4k OSL=200 → ITL 17.9 ms p50 / 22.5 ms p99, 393 tok/s aggregate, 56 tok/s/user.
 - TP=2: GPU KV 447,664 tokens; 6.7× concurrency at 262K; ITL 14.3 ms, 2.42 req/s. Eager mode collapses ITL ~20× (358 ms vs 17.9 ms) — never `--enforce-eager` on datacenter HW.
 
-#### Carried operator-pushback notes (still useful, not yet in SKILL.md)
+## Resolved this pass (2026-10-18)
 
-- **vLLM image-tag freshness rule**: always run `gh release list --repo vllm-project/vllm` AND `skopeo list-tags docker://vllm/vllm-openai` before picking a tag; don't default to a memorized known-good tag.
-- **Docker `-v /root/cache:/root/.cache` default**: cold restart H100 + Qwen3.6-27B-FP8 TP=2 ≈ 5 min (DeepGEMM SM_90A FP8 JIT + torch.compile inductor + CUDA graph capture); with persistent whole-`/root/.cache` mount ≈ 50 s. Mount the WHOLE cache, not just `/root/.cache/huggingface`.
+Improve pass on 6a8d03c (the v0.32.0 freshen): blind baseline 74; self 74 → 80 across 5 iterations, 5 keeps, 0 discards (batch cap of 5 reached, ceiling not mapped). Final blind score and A/B comparator: run by the operator.
+- Kept: version-status narrative → Question/Answer/Action table (bundling vs runtime-import vs security floor separated; removes the "known-good yet not runtime-verified" contradiction).
+- Kept: bugs table pruned to the three live hazards; fixed issues collapsed to one line with fix versions (#39702 is fixed in v0.22.0, not v0.21.0).
+- Kept: hybrid-models narrative → per-path decision table (lifted the Dim 4 context-dump cap).
+- Kept: second-person and "the user" framing removed.
+- Kept: exhaustive done-when checklist for authoring/auditing a KV-cache config.
+- Post-loop: "doesn't help" cause #3 corrected (prefix caching defaults on at v0.32.0; look for `--no-enable-prefix-caching`); rationale section, narrative opener, duplicate `Last verified` footer and the v0.29.0 run log removed.
+- Post-loop: decision-tree tier list gained `kvcr` (registered at v0.32.0, already in connectors.md).
+- Post-loop: v0.32.0 runtime-import run recorded (lmcache 0.5.6, nixl 1.5.0); the GPU requirement of step 2 is now in SKILL.md.
+- Dropped from Open: image-tag freshness note (now the "Is the tag out yet?" row); whole-`/root/.cache` mount note (owned by `vllm-deployment`).
+
+## Resolved — 2026-09-15 ("known-good tag" meant two different things)
+
+- **The known-good tag list is a *bundling* claim and reads as a safety one.**
+  `v0.14.0`+, `v0.19.0` and `v0.19.0-cu130` are listed because they ship
+  `INSTALL_KV_CONNECTORS=true`. All three are **below the security floor**, so an
+  operator picking the oldest listed tag gets working connectors and a vLLM with
+  a critical authentication bypass. The two questions are now separated in place.
+- **Floors named with their derivation**: **v0.22.0** for CVE-2026-48746 (critical
+  `--api-key` / `VLLM_API_KEY` bypass via URL characters in the `Host:` header) —
+  derived from the fix PR, because the advisory records *no* patched version and
+  an unbounded range; and **v0.14.1** for CVE-2026-22778, the pre-auth video RCE,
+  which applies **only** to deployments serving a video model. Detail lives in
+  `vllm-configuration` § Server auth rather than being duplicated here.
+- **The `v0.19.0-cu130` recipe tag in `connectors.md` is deliberately NOT bumped.**
+  The recipe's numbers were measured on that image; silently changing the tag
+  would invalidate the measurement it documents. It now carries a note saying the
+  tag is below the floor, that it is kept for reproducing those numbers, and that
+  anything else should run ≥ v0.22.0 and re-run the two-step bundling check —
+  bundling is verified per tag, so a security bump is not free.
 
 ## Resolved — 2026-09-15 (the runtime-import half, finally run)
 
