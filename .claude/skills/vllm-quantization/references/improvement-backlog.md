@@ -3,6 +3,28 @@
 Tracks improvement attempts that could not be applied in a single atomic
 iteration, plus changes the metric registered this pass.
 
+## Open
+
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Resolved this pass (2026-10-18, improve)
+
+Baseline blind 72 (commit 41dec7b); self 72 → 79 over 5 keeps, 0 discards —
+iteration cap reached, ceiling not mapped. Final blind score and A/B comparator
+are operator-run.
+- Kept: description + when_to_use 1616 → 1303 chars (under the 1536 listing
+  cap) by dropping trigger terms repeated across the two fields.
+- Kept: per-release changelog in SKILL.md replaced by a four-row action-gate
+  table + pointer; v0.22–v0.24 items that lived only in SKILL.md moved to
+  `version-gates.md`.
+- Kept: online-FP8 bias rule stated once (online-quantization section);
+  shortlist item deleted.
+- Kept: MLA FP8-KV and Gemma-4 shortlist items cut to rule + version; #38652
+  provenance moved to a `sources.md` row.
+- Kept: `modelopt.md` drafter step 3 skips target PTQ when a quantized
+  checkpoint of the same base exists (matches SKILL.md).
+
 ## Resolved — 2026-09-15 (v0.28/v0.29 breaking-change sweep)
 
 - **`bitsandbytes` left the tree in v0.28.0** (#43529) and is now an out-of-tree
@@ -69,11 +91,6 @@ anything that commits, verify edits are on disk before reporting.
 
 **Not re-probed, declared rather than assumed:** llm-compressor releases and
 NVIDIA ModelOpt releases. Budget went to the config-key defects.
-
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
 
 ## Resolved — 2026-09-15
 - **v0.21.0 and v0.20.x quantization deltas itemised** (Dim 5/9) —
@@ -157,7 +174,7 @@ measurement nobody can run.
 cross-skill eval-harness pointer (Dim 4) were not attempted — this pass's budget
 went to the factual inversion, which was the higher-value item.
 
-## Resolved this pass
+## Resolved — 2026-05-28
 
 - Bumped production-pin / version-window from "pin v0.19.1 / v0.20.0 pre-release"
   to "v0.21.0 stable (2026-05-15), run v0.21.0+" (Dim 9) — `SKILL.md` L191.
