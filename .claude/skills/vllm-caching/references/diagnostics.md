@@ -67,7 +67,7 @@ vllm:external_prefix_cache_hits_total
 
 ### `vllm:kv_offload_*` — the offload tier's own gauges (v0.26.0+)
 
-The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Verified at tag v0.27.0 in `vllm/v1/kv_offload/cpu/common.py` and `tiering/base.py`:
+The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Names verified at tag v0.32.0 in `vllm/v1/kv_offload/cpu/common.py`, `tiering/base.py` and `vllm/v1/metrics/loggers.py`; the family has more members than listed (load/store bytes and times, promotion/cascade job counters) — `grep vllm:kv_offload_` on `/metrics` for the full set:
 
 ```
 vllm:kv_offload_stores_skipped                     # v0.25.x and earlier too
@@ -77,9 +77,12 @@ vllm:kv_offload_cpu_cache_write_usage_perc         # new in v0.26.0 (#47666)
 vllm:kv_offload_cpu_cache_read_usage_perc          # new in v0.26.0 (#47666)
 vllm:kv_offload_tiering_lookup_sync_delay_seconds  # histogram, new in v0.26.0 (#47679)
 vllm:kv_offload_tiering_lookup_async_delay_seconds # histogram, new in v0.26.0 (#47679)
+vllm:kv_offload_tiering_chunk_queries / _chunk_hits          # secondary-tier hit rate (present at v0.30.0)
+vllm:kv_offload_tiering_backpressure_stores_dropped / _blocks_dropped  # v0.31.0+ (#50045)
+vllm:prompt_tokens_cached_by_source{source=device|host|disk|p2p|external_unspecified}  # v0.32.0+ (#56318)
 ```
 
-`cpu_cache_usage_perc` pinned near 1.0 with a rising `stores_skipped` is the DRAM tier being too small — the same condition the bench section calls thrashing. The two `tiering_lookup_*_delay` histograms only appear under `TieringOffloadingSpec` and are the cost of consulting a secondary tier; a fat sync-delay tail means secondary lookups are blocking scheduling.
+`cpu_cache_usage_perc` pinned near 1.0 with a rising `stores_skipped` is the DRAM tier being too small — the same condition the bench section calls thrashing. The two `tiering_lookup_*_delay` histograms only appear under `TieringOffloadingSpec` and are the cost of consulting a secondary tier; a fat sync-delay tail means secondary lookups are blocking scheduling. A rising `backpressure_stores_dropped` means a secondary tier is too slow to absorb writes and stores are being shed — size or speed up that tier before reading its hit rate. On v0.32.0+, `prompt_tokens_cached_by_source` splits prefix hits by the tier that served them and sums to `prefix_cache_hits` + `external_prefix_cache_hits` — use it to tell an HBM hit from a DRAM, disk or peer hit. `SimpleCPUOffloadConnector` publishes its own `vllm:simple_kv_offload_*` family (v0.31.0+, #57251).
 
 Monitor `prefix_cache_hits_total / prefix_cache_queries_total` — the GPU-level hit rate. The `external_prefix_cache_*` pair is the **offload-tier** counterpart: queries count tokens looked up in the CPU tier; hits count tokens recovered from there. Note that on `cache_config_info`, `num_cpu_blocks="None"` is normal for the native backend even when CPU offload is allocated and active — the label is populated by older offload paths only. Trust the engine startup log + `external_prefix_cache_queries_total` to confirm allocation.
 

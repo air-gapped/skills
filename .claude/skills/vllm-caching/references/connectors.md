@@ -27,7 +27,7 @@ vllm serve <model> \
   --enable-prefix-caching
 ```
 
-**Do not add `--disable-hybrid-kv-cache-manager` on v0.23.0+.** `OffloadingConnector` subclasses `SupportsHMA` (verified at v0.27.0), and since #41847 vLLM auto-disables HMA only for connectors that don't — passing the flag anyway forfeits hybrid-model support and sliding-window performance for nothing. On v0.22.x and earlier the flag *is* mandatory here, and the startup `ValueError: Connector OffloadingConnector does not support HMA but HMA is enabled.` names it. See SKILL.md "Critical pitfalls" for the per-connector table.
+**Do not add `--disable-hybrid-kv-cache-manager` on v0.23.0+.** `OffloadingConnector` subclasses `SupportsHMA` (verified at v0.32.0), and since #41847 vLLM auto-disables HMA only for connectors that don't — passing the flag anyway forfeits hybrid-model support and sliding-window performance for nothing. On v0.22.x and earlier the flag *is* mandatory here, and the startup `ValueError: Connector OffloadingConnector does not support HMA but HMA is enabled.` names it. See SKILL.md "Critical pitfalls" for the per-connector table.
 
 Under the hood: pinned host memory (`cudaHostRegister`-backed mmap), LRU eviction policy by default, ARC also available. Code paths live in `vllm/v1/kv_offload/` with `vllm/v1/kv_offload/cpu/policies/` for eviction strategies.
 
@@ -53,7 +53,7 @@ vllm serve Qwen/Qwen3-4B \
 
 Since v0.22.0 the native path is no longer CPU-DRAM-only. `OffloadingConnector` selects a spec through `kv_connector_extra_config.spec_name`: `CPUOffloadingSpec` (default, single CPU tier) or `TieringOffloadingSpec` (CPU primary tier + an ordered `secondary_tiers` list). Only the CPU primary tier touches GPU memory; every GPU↔secondary transfer stages through it.
 
-Registered secondary tier types (`vllm/v1/kv_offload/tiering/factory.py`): `fs`, `obj`, `p2p`, `example` — plus **`kvcr` from v0.30.0** ([#53624](https://github.com/vllm-project/vllm/pull/53624), module `vllm.v1.kv_offload.tiering.kvcr.manager`). The first four were unchanged v0.25.1 through v0.29.0.
+Registered secondary tier types (`vllm/v1/kv_offload/tiering/factory.py`): `fs`, `obj`, `p2p`, `example` — plus **`kvcr` from v0.30.0** ([#53624](https://github.com/vllm-project/vllm/pull/53624), module `vllm.v1.kv_offload.tiering.kvcr.manager`). The registry is unchanged at v0.32.0.
 
 ```bash
 vllm serve <model> \
@@ -79,8 +79,8 @@ Config keys that bite:
 - **`cpu_bytes_to_use` is in bytes and is the total across all workers**, not per-worker — same total-not-per-rank convention as `--kv-offloading-size`, different unit (bytes vs GiB). This is the multi-tier equivalent of the sizing flag; `--kv-offloading-size` drives the CLI shorthand path instead.
 - `block_size` is the offloaded block size in tokens and must be a multiple of the GPU block size.
 - `offload_prompt_only` defaults to `true` — decode-phase blocks are skipped. Flip it only with a measured reason.
-- `store_threshold` is single-tier only — `TieringOffloadingSpec` raises `ValueError: store_threshold is not supported for TieringOffloadingSpec` (still true at v0.27.0). `self_describing_kv_events` **used** to be rejected the same way; since v0.26.0 (#48679) it works with `TieringOffloadingSpec`, including full payloads on blocks promoted back up from a secondary tier.
-- Per-request cap: a request may set `kv_transfer_params.max_offload_tokens` to bound how much of it is eligible for offload (`0` disables offload for that request). Marked experimental upstream.
+- `store_threshold` is single-tier only — `TieringOffloadingSpec` raises `ValueError: store_threshold is not supported for TieringOffloadingSpec` (still true at v0.32.0). `self_describing_kv_events` **used** to be rejected the same way; since v0.26.0 (#48679) it works with `TieringOffloadingSpec`, including full payloads on blocks promoted back up from a secondary tier.
+- Per-request cap: a request may set `kv_transfer_params.max_offload_tokens` to bound how much of it is eligible for offload (`0` disables offload for that request). From v0.31.0, `kv_transfer_params.max_load_tokens` separately caps how many tokens are loaded back from the offload tier (`0` = no loads; stores stay on) (#55885). Both are marked experimental upstream.
 
 **fs tier layout and cross-instance sharing.** Blocks land under `<root_dir>/<model>_<digest>_r<rank>/<hhh>/<hh>_g<group>/<hash>.bin`, with `<digest>` derived from model + block size + parallelism + dtype, so differently-configured runs coexist under one `root_dir` without colliding. To share one `root_dir` across vLLM instances (e.g. a shared PVC), **whether you must pin `PYTHONHASHSEED` depends on the version**:
 
@@ -91,17 +91,18 @@ Config keys that bite:
 
 Setting it remains harmless and is still the safe choice for a mixed-version fleet.
 
-**p2p tier** shares blocks between vLLM instances over NIXL. It replaces the `P2pNcclConnector` removed in v0.24.0 (#44854). Keys (verified at v0.27.0, `tiering/p2p/manager.py`): `backends` default `["UCX"]` (also `MOONCAKE`, `LIBFABRIC`), `num_threads` default 4 on the UCX-only path, plus `host` / `port` which since v0.26.0 (#47636) default to the env vars **`VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) and `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`)** — the old literal `7777` default is gone. Two traps:
+**p2p tier** shares blocks between vLLM instances over NIXL. It replaces the `P2pNcclConnector` removed in v0.24.0 (#44854). Keys (verified at v0.32.0, `tiering/p2p/manager.py`): `backends` default `["UCX"]` (also `MOONCAKE`, `LIBFABRIC`), `num_threads` default 4 on the UCX-only path, plus `host` / `port` which since v0.26.0 (#47636) default to the env vars **`VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) and `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`)** — the old literal `7777` default is gone. Two traps:
 
 - `host` is used verbatim as both the bind address and the identity peers dial back, with no auto-detection — same shape as `VLLM_NIXL_SIDE_CHANNEL_HOST`, so in K8s feed it the pod IP via the downward API. `localhost` silently confines the tier to one host.
 - The bound port is `port + data_parallel_index`, one socket per DP replica.
-- **`PYTHONHASHSEED` is mandatory, not advisory, for this tier** — unset, the manager raises at startup (`PYTHONHASHSEED must be set for P2P KV offload so that block hashes match across instances`), and the value is re-checked against each peer on handshake. Same fixed value on every peer.
+- **Hash seed must match on every peer.** On v0.26.0–v0.28.x an unset `PYTHONHASHSEED` raises at startup (`PYTHONHASHSEED must be set for P2P KV offload...`). On v0.29.0+ the tier starts without it, but each handshake compares the effective seed and rejects a peer with `hash seed mismatch ... Ensure PYTHONHASHSEED (if set) matches on all P2P peers` — set it on all peers or on none.
+- **Run v0.32.0+ when peers are not all trusted.** Earlier versions let unique peer addresses exhaust the tier's ZMQ sockets (#51504). v0.32.0 bounds sessions with `VLLM_P2P_MAX_PEERS` (default 128), `VLLM_P2P_HANDSHAKE_TIMEOUT_S` (30) and `VLLM_P2P_IDLE_TIMEOUT_S` (300) — raise `VLLM_P2P_MAX_PEERS` for a fleet larger than 128 instances.
 
 Upstream reference: `docs/features/kv_offloading_usage.md`.
 
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.5, 2026-09-12; `vllm/vllm-openai:v0.29.0` bundles **0.5.4**, verified by container run 2026-09-15, so `-U` moves you one patch off the image's tested pair — pin deliberately. The bundled `kv_connectors.txt` floor is `>=0.3.9`).
+Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.6, 2026-10-14; `vllm/vllm-openai:v0.29.0` bundles **0.5.4**, verified by container run 2026-09-15, so `-U` moves you off the image's tested pair — pin deliberately. The bundled `kv_connectors.txt` floor is `>=0.3.9`; `-cu129` tags from v0.31.0 pin `lmcache == 0.4.4` instead).
 
 ```bash
 docker run ... \
@@ -129,7 +130,7 @@ docker run ... \
 > SKILL.md against whichever tag you pick, since bundling is verified per tag.
 
 
-The in-process `LMCacheConnectorV1` does **not** declare `SupportsHMA` at v0.27.0, so on v0.23.0+ vLLM auto-disables HMA for it and logs a warning — you don't pass the flag yourself, but you do inherit the consequence: hybrid-attention models stay unsupported on this path (LMCache #3106, still open 2026-07-17).
+The in-process `LMCacheConnectorV1` does **not** declare `SupportsHMA` at v0.32.0, so on v0.23.0+ vLLM auto-disables HMA for it and logs a warning — you don't pass the flag yourself, but you do inherit the consequence: hybrid-attention models stay unsupported on this path (LMCache #3106, still open 2026-10-18).
 
 Key env vars:
 - `LMCACHE_MAX_LOCAL_CPU_SIZE` and `LMCACHE_MAX_LOCAL_DISK_SIZE` are **GiB as floats** (e.g. `5.0`, `1600`)
@@ -474,7 +475,7 @@ Why 1P1D lost on this workload: short prompts mean prefill cost is cheap, so the
 
 **Do not trust `KV Transfer metrics Throughput (MB/s)` at face value.** Two known issues affect the number:
 
-- **vllm-project/vllm#33170 (open)** — telemetry sums per-rank `xfer_time` as if serial, so overlapping transfers (which is the normal concurrent case) are counted as longer-than-reality. With TP>1 it also multiplies per-rank. Effect: reported throughput is **lower than actual** when requests overlap or TP>1.
+- **vllm-project/vllm#33170 (closed by the stale bot 2026-06-05, `not_planned` — no fix landed; treat as live)** — telemetry sums per-rank `xfer_time` as if serial, so overlapping transfers (which is the normal concurrent case) are counted as longer-than-reality. With TP>1 it also multiplies per-rank. Effect: reported throughput is **lower than actual** when requests overlap or TP>1.
 - **vllm-project/vllm#34054 + PR #36475 (merged 2026-03-09, in v0.19+)** — before this PR, NIXL+UCX silently fell back to host-buffer `cuda_copy` instead of `cuda_ipc` (NVLink) on same-host setups because a spawned thread had no CUDA context, disabling `cuda_ipc`. Post-fix, run with `UCX_PROTO_INFO=y` and grep the decoder log for `ucp.*cuda.*cuda` — `cuda_ipc/cuda` means NVLink is actually being used, otherwise host-staged.
 
 Measured on consumer 2× 4060 Ti same-node K8s pods (`cuda_copy,sm,tcp`, sm unavailable across pods with per-pod emptyDir `/dev/shm`, no NVLink/P2P/RDMA):
@@ -528,7 +529,8 @@ Local KV connector for sparse-MLA decode models (DeepSeek-style). Spills cold KV
 
 - `host_pool_gib` (required) is the usable host-cache capacity **per data-parallel replica**, not node-wide — `vllm/config/kv_transfer.py:41` raises `ValueError` if it's missing or non-positive.
 - It's a local connector: compose with NixlConnector/MooncakeConnector via `MultiConnector` for P/D on top of it, same pattern as OffloadingConnector.
-- `HiSparseConnector` declares `SupportsHMA` (`vllm/distributed/kv_transfer/kv_connector/v1/hisparse/connector.py:191`) — no `--disable-hybrid-kv-cache-manager` needed.
+- `HiSparseConnector` declares `SupportsHMA` (`vllm/distributed/kv_transfer/kv_connector/v1/hisparse/connector.py:221` at v0.32.0) and **requires** HMA — passing `--disable-hybrid-kv-cache-manager` is a startup error.
+- Startup rejects (v0.32.0, `vllm/config/vllm.py`): non-CUDA platforms, `VLLM_USE_V2_MODEL_RUNNER=0`, pipeline or decode context parallelism, `--no-scheduler-reserve-full-isl`, models without `index_topk`, and `cudagraph_mode=FULL` (#59688) — keep the default `FULL_AND_PIECEWISE`.
 - Narrow applicability: sparse-MLA attention only, not a general-purpose CPU offload replacement. For dense/MHA/GQA models keep using native `OffloadingConnector`.
 
 ## MooncakeConnector — RDMA-backed disaggregated prefill
@@ -539,7 +541,7 @@ High-performance RDMA KV transfer between prefill and decode pods using `mooncak
 - Predictable, ultra-low-latency KV handoff is required at scale
 - Mooncake-based KV store infrastructure is already deployed
 
-Example: `examples/online_serving/disaggregated_serving/mooncake_connector/run_mooncake_connector.sh`
+Example: `examples/disaggregated/mooncake_connector/run_mooncake_connector.sh`
 Docs: `docs/features/mooncake_connector_usage.md`
 
 Bundled in v0.14.0+ images via `mooncake-transfer-engine >= 0.3.8`.
