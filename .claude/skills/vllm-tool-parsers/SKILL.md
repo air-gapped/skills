@@ -213,9 +213,17 @@ Work down this list in order on any broken tool call.
      | python3 -c "import sys,json,unicodedata; t=json.load(sys.stdin)['choices'][0]['text']; \
          print(repr(t)); [print(hex(ord(ch)), unicodedata.name(ch,'?'), repr(ch)) for ch in t[:2000] if ord(ch)>0x7E]"
    ```
-   This distinguishes "model not emitting sentinels" (template/training problem) from "parser not matching sentinels" (parser bug).
+   Read the result with the table below.
 8. **vLLM version vs known bugs.** See "Bug archaeology" below.
 9. **Custom template?** Diff the deployed Jinja against `examples/tool_chat_template_<family>.jinja`. Character-level. Full-width vs ASCII Unicode gotchas bite here.
+
+**Done when** steps 1–7 each have a pass/fail answer backed by evidence (serve args, registry name, template bytes, raw `/v1/completions` text), and every failing step has a fix named:
+
+| Step 7 raw text shows | Cause | Fix |
+|---|---|---|
+| no sentinels, or a different shape | template / parser-flavour mismatch, or the model was never trained on that shape | switch `--chat-template` or `--tool-call-parser` so the pair matches |
+| the exact sentinels the parser greps for | parser bug | search for an issue/PR (step 8) → upgrade; else ship a `--tool-parser-plugin` |
+| lookalike sentinels (`\|` where `｜` is expected) | template bytes differ from the trained ones | step 9 diff, restore the reference bytes |
 
 ## Bug archaeology (don't trust static lists — search)
 
