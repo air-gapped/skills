@@ -17,15 +17,9 @@ that justify either are **`vllm-benchmarking`** — all in the `vllm` plugin. Fo
 the same problem on other stacks, see **`sglang-hicache`** (SGLang's tiering) and
 **`lmcache-mp`** (LMCache as a standalone server rather than in-process).
 
-## Why this matters
-
-Long-context workloads (coding agents, RAG, research agents averaging 50k–200k tokens) are almost always **KV-cache bound**, not compute bound. The GPU sits idle waiting for free KV slots. Tiered caching — HBM → CPU DRAM → local NVMe → remote — extends effective capacity without adding GPUs and converts repeated sessions from "re-prefill every turn" to "reload in milliseconds."
-
-The single biggest throughput lever for long-context serving, once the model fits, is a well-sized DRAM tier. It routinely delivers 50–100× speedups on cache hits vs re-prefill, and coding-agent traffic has strong prefix locality that makes hits nearly universal after the first turn.
-
 ## Version gates — check these FIRST
 
-Operators constantly ask "is this available?" when it either isn't in their version, or has been for a while and they missed it. Always confirm the vLLM version before recommending a config.
+Confirm the vLLM version before recommending any config.
 
 | Feature | First release | Notes |
 |---|---|---|
@@ -67,7 +61,7 @@ Prints `LMCache/NIXL/Mooncake: YES (built with INSTALL_KV_CONNECTORS=true)` if t
 ~/.claude/skills/lmcache-mp/scripts/verify-bundling.sh <tag>
 ```
 
-Starts a sleep-overridden container, exec's a Python probe that confirms `lmcache`, `nixl`, `mooncake` import cleanly; checks the LMCache MP adapter classes and the `ParallelStrategy` version-hazard symbol; lists all registered KV connectors; loads each connector class through the factory's own thunk. Run this against any tag before trusting it in production. Verified `vllm/vllm-openai:v0.29.0` 2026-09-15: vllm 0.29.0, lmcache 0.5.4, nixl 1.3.2, mooncake 0.3.13.post1, all imports clean, all four KV-offload connectors load. Sixteen connectors are registered at that tag, not four — the four checked are the KV-offload set, and the factory list is the only place the rest appear.
+Starts a sleep-overridden container, exec's a Python probe that confirms `lmcache`, `nixl`, `mooncake` import cleanly; checks the LMCache MP adapter classes and the `ParallelStrategy` version-hazard symbol; lists all registered KV connectors; loads each connector class through the factory's own thunk. Exit 0 = the connectors are usable on that tag (bundling only; the security floor is separate). The four connectors it loads are the KV-offload set; the factory registers more (16 at v0.29.0), and its list is the only place the rest appear.
 
 **lmcache version compatibility:** vLLM main imports `ParallelStrategy` from the lmcache MP adapter. The symbol was added in lmcache 0.4.4 and is absent in 0.4.3 (verified against the v0.4.3 tag), so images built around that era raise `ImportError: cannot import name 'ParallelStrategy'` when their bundled lmcache is mixed with vLLM main. The v0.29.0 image ships 0.5.4 and the symbol is present — the hazard is now confined to pinning an older image, not to the current one. Fix by pinning the pair or `pip install -U lmcache>=0.4.4` inside the container.
 
@@ -195,7 +189,7 @@ Check in order, most common first:
 
 1. **Concurrency is already at the memory wall, not the cache.** On an 8× H200 with a 300–500 GB weight footprint serving 200k+ contexts, 1–2 live slots is physics — compute jumped ~6× over the previous generation but memory bandwidth only ~1.6×. Adding offload doesn't raise live concurrency; it raises the *warm-set* size (sessions that skip re-prefill on return). Confirm the expectation is "more warm sessions," not "more simultaneous running."
 2. **Hit rate is low.** No prefix reuse in the workload → offload gains nothing. Check `prefix_cache_hits_total` / `prefix_cache_queries_total`. Non-agentic, non-RAG traffic often has low prefix locality.
-3. **`--enable-prefix-caching` is missing.** Without it, vLLM doesn't try to reuse prefixes in the first place; offload has nothing to hit against.
+3. **Prefix caching is off.** It is on by default (`enable_prefix_caching: bool = True` in `vllm/config/cache.py` at v0.32.0); check the serve args for `--no-enable-prefix-caching`. With it off, offload has nothing to hit against.
 4. **Flag sized as per-GPU (SGLang habit).** Check `vllm:cache_config_info` — the number reported is what vLLM actually allocated. If it's 1/TP of what was expected, this is the cause.
 5. **Cold cache.** First N requests pay full prefill cost while filling the cache. Measure steady-state, not ramp-up.
 6. **Max context set higher than needed.** If `--max-model-len` is 200k but typical requests are 8k, the scheduler reserves capacity for 200k; effective concurrency is starved. Tune `--max-model-len` to the 95th or 99th percentile of real traffic, not the theoretical maximum.
@@ -215,7 +209,7 @@ Fixed at or below the v0.22.0 security floor: segfault with `--decode-context-pa
 
 ## Other long-context knobs worth tuning alongside offload
 
-Offload is necessary but not sufficient for stable long-context serving. Two flags compound the effect:
+Offload is necessary but not sufficient for stable long-context serving. Tune these alongside it:
 
 - **`--block-size 32`** (default 16) — larger KV blocks reduce internal fragmentation at very long contexts. Meaningful win past ~128k; usually neutral or slight loss below 32k.
 - **`--max-num-batched-tokens <N>`** — caps how many prefill tokens vLLM will batch in one step. Without it, a burst of long-prompt arrivals can starve decode and spike tail TTFT. Good starting value: 4096–8192 on H200-class.
@@ -289,5 +283,3 @@ The recipe is finished only when every item holds for the exact tag deployed:
 - NVIDIA GPU Operator GDS: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-rdma.html
 
 See `references/sources.md` for verification dates and probe notes.
-
-Last verified: 2026-10-18
