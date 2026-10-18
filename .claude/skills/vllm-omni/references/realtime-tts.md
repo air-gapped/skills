@@ -6,36 +6,38 @@ Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/aud
 
 ### Hard constraints
 
-1. **`async_chunk: false`** in the stage config. Default `qwen3_omni_moe.yaml` has this right; **never** pass `--stage-configs-path qwen3_omni_moe_async_chunk.yaml` for realtime. The server rejects at WebSocket handshake (api_server.py:1208) with `"unsupported"` code.
+1. **`async_chunk` is allowed on v0.22.0+.** The default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; PR #3614 removed the handshake rejection. Only on v0.20.x and older does realtime need a stage config with `async_chunk` off (the server then answers `"unsupported"` at handshake).
 
-2. **Input audio format: PCM16 mono @ 16 kHz**. Anything else (stereo, 8 kHz, 24-bit, WAV-with-header) → garbage or silence. Hardcoded in `openai_realtime_client.py:43`.
+2. **Input audio format: PCM16 mono @ 16 kHz**. Anything else (stereo, 8 kHz, 24-bit, WAV-with-header) → garbage or silence. The reference client rejects other rates (`openai_realtime_client.py:60` at v0.30.0).
 
-3. **Output audio rate: 24 kHz** PCM. Concatenate `response.audio.delta` events and write a 24 kHz WAV.
+3. **Output audio rate: 24 kHz** PCM. Concatenate `response.output_audio.delta` events and write a 24 kHz WAV (honour `sample_rate_hz` if an event carries it). Before v0.30.0 the event was `response.audio.delta`.
+
+4. **Turn vs duplex.** Plain `/v1/realtime` on `qwen3_omni_moe.yaml` is turn mode. `?duplex=1` needs a duplex deployment (`qwen3_omni_duplex.yaml`, `session_mode: duplex`); against a turn deployment it returns `unsupported` and closes with 1008.
 
 ### Serve command
 
 ```bash
-vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni \
-  --tensor-parallel-size 2 \
-  --gpu-memory-utilization 0.9 \
-  --trust-remote-code \
-  --port 8091
+# Default deploy YAML: stage 0 on cuda:0, stages 1+2 share cuda:1.
+# Do not pass global --gpu-memory-utilization / --tensor-parallel-size —
+# they apply to every stage; use --stage-overrides per stage instead.
+vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 ```
 
 Published production numbers (v0.16 release): TTFP reduced 90%, RTF 0.22-0.45 on H100 TP2.
 
 ### Protocol — OpenAI realtime shape
 
-Client sends:
-1. `session.update` — `{"model": "Qwen/Qwen3-Omni-30B-A3B-Instruct"}`
+Client sends (v0.30.0 reference client):
+1. `session.update` — `{"model": "Qwen/Qwen3-Omni-30B-A3B-Instruct"}` (with `--server-vad`: a `session` object carrying `audio.input.format` `{"type":"audio/pcm","rate":16000}` and `turn_detection: server_vad`)
 2. `input_audio_buffer.append` — base64-encoded PCM chunk (default 200 ms chunks)
-3. `input_audio_buffer.commit` — signals input complete
+3. `input_audio_buffer.commit` — `"final": true` on the last one; omitted with server VAD
+4. `session.close`
 
 Server sends:
-- `response.audio.delta` — PCM audio chunks at 24 kHz
-- `transcription.delta` — streaming ASR transcription text
-- `transcription.final` — final transcription
-- `response.audio.done` — end-of-utterance
+- `response.output_audio.delta` — PCM audio chunks at 24 kHz (was `response.audio.delta` before v0.30.0)
+- `transcription.delta` — streaming transcript text
+- `transcription.done` — final transcript + usage
+- `response.output_audio.done` — end of audio (`has_audio` flag)
 
 ### Client template (from `examples/online_serving/qwen3_omni/openai_realtime_client.py`)
 
@@ -56,7 +58,9 @@ CLI args:
 | `--input-wav` | 16-bit PCM mono @ 16 kHz WAV file (required) |
 | `--output-wav` | Output WAV path (default `realtime_output.wav`) |
 | `--chunk-ms` | Input chunk size ms (default 200) |
-| `--send-delay-ms` | Simulated realtime send delay |
+| `--send-delay-ms` | Simulated realtime send delay (default 0) |
+| `--server-vad` | Let the server detect speech end and commit the turn |
+| `--model`, `--output-text` | Model name for `session.update`; transcript output path |
 | `--delta-dump-dir` | Save per-delta WAV for debugging |
 | `--num-requests`, `--concurrency` | Sequential or parallel sessions |
 
@@ -74,6 +78,7 @@ CLI args:
 1. **`--trust-remote-code`** required — custom model code lives in the HF repo.
 2. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
 3. **`--enforce-eager`** was mandatory on v0.18 (issue #2866: code2wav crashed with CUDA graphs enabled). **#2866 is CLOSED (2026-04-29)** and v0.20.0 adds TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803) — drop `--enforce-eager` on v0.20.0+ to regain throughput.
+4. **v0.30.0 default CUDA profile runs experimental Model Runner V2** with event-driven orchestration (#7930, #7088). On a regression, set `model_runner: v1` in the deploy YAML (or `VLLM_OMNI_EVENT_DRIVEN_ORCH` to change orchestration); non-CUDA platforms already use V1.
 
 ### Three task types
 

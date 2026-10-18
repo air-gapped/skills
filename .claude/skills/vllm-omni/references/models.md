@@ -11,29 +11,32 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 > Higgs Audio v2 and V3, HiDream-I1-Full, SenseNova U1, IndexTTS2, SDXL,
 > GR00T-N1.7, **MiniMax H3** (joint video+audio, `MiniMaxH3Pipeline`),
 > **Krea 2** (`Krea2Pipeline`), **Boogu Image 0.1** (`BooguImagePipeline`),
-> LingBot Video and MammothModa2-Dev. If a model is missing here, check the
-> registry before concluding it is unsupported.
+> LingBot Video and MammothModa2-Dev. In the v0.30.0 list as well: MAGI-2
+> Preview (`Magi2Pipeline`, T2VA/I2VA), SANA-Video 2B, Wan2.2-S2V
+> (`Wan22S2VPipeline`), VoxCPM2, AuK / AuK-Flash, Audio8 TTS Preview,
+> Breeze-TTS-2, Gepard-1.0, SenseNova-U1.5. If a model is missing here, check
+> the registry before concluding it is unsupported.
 >
-> **Four names previously listed here do NOT appear in upstream's
-> `supported_models.md`** (grep-checked against the live document on
-> 2026-09-15): **Step-Audio2, soulx-singer, Aura and Nemotron Audex**. They
-> were taken from release-note wording, and a release note saying a model was
-> "added or improved" is not the same as the model being in the supported
-> list. Treat all four as unsupported until the document says otherwise. The
-> supported-models document is the authority here, not the release notes.
+> **Removed — a deploy naming these fails to resolve:** DreamID-Omni,
+> MagiHuman, SoulX-Singer and AudioX (v0.28.0); Dynin-Omni and dots.tts
+> (v0.30.0, #7655).
+>
+> **Not in upstream's `supported_models.md` at v0.30.0:** Step-Audio2,
+> soulx-singer, Aura and Nemotron Audex — even where a deploy YAML ships
+> (`aura_omni.yaml`, `audex_*.yaml`). A release note saying a model was
+> "added or improved" is not the same as presence in the supported list.
+> Treat all four as unsupported until the document says otherwise.
 
 ## Any-to-any omni models
 
 | Architecture | HuggingFace ID | CUDA | ROCm | NPU | XPU | Notes |
 |---|---|:-:|:-:|:-:|:-:|---|
-| `Qwen3OmniMoeForConditionalGeneration` | `Qwen/Qwen3-Omni-30B-A3B-Instruct` | Y | Y | Y | Y | 30B MoE (~3B active). Thinker/Talker/Code2Wav stages. TP2 on H100 production. Realtime via `/v1/realtime` (requires `async_chunk: false`). Audio gaps issue #2562. |
+| `Qwen3OmniMoeForConditionalGeneration` | `Qwen/Qwen3-Omni-30B-A3B-Instruct` | Y | Y | Y | Y | 30B MoE (~3B active). Thinker/Talker/Code2Wav stages. Default deploy: 2 GPUs (stage 0 on cuda:0, stages 1+2 on cuda:1). Realtime via `/v1/realtime` with the default `async_chunk: true` (v0.22.0+); duplex via `qwen3_omni_duplex.yaml`. Audio gaps issue #2562. |
 | `Qwen2_5OmniForConditionalGeneration` | `Qwen/Qwen2.5-Omni-7B`, `-3B` | Y | Y | Y | Y | Predecessor family, no realtime streaming path. |
 | `MiMoAudioForConditionalGeneration` | `XiaomiMiMo/MiMo-Audio-7B-Instruct` | Y | Y | | | Production RTF ~0.2 per v0.16 notes. Issue #2683 (serving bug). Wrong attention backend → noise. |
 | `MammothModa2ForConditionalGeneration` | `bytedance-research/MammothModa2-Preview` | Y | Y | | | Preview model. |
 | `FishSpeechSlowARForConditionalGeneration` | `fishaudio/s2-pro` | Y | Y | | | v0.18. |
-| `DyninOmniForConditionalGeneration` | `snu-aidas/Dynin-Omni` | Y | | | | CUDA-only. |
 | `MingFlashOmniForConditionalGeneration` | Ming Flash Omni family | Y | Y | | | |
-| `DreamIDOmniPipeline` | `XuGuo699/DreamID-Omni` | Y | Y | | | |
 
 ## Diffusion image generation
 
@@ -66,11 +69,11 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `WanImageToVideoPipeline` | `Wan-AI/Wan2.2-I2V-A14B-Diffusers` | Y | Y | Y | Y | I2V. |
 | `Wan22VACEPipeline` | `Wan-AI/Wan2.1-VACE-{1.3B,14B}-diffusers` | Y | Y | Y | Y | VACE control variant. |
 | `LTX2Pipeline` | `Lightricks/LTX-2`, LTX-2.3 checkpoints | Y | Y | | | **Renamed surface in v0.26.0 (#5148).** Now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata selects the version, passing `image=` selects I2V. |
-| `LTX2DistilledPipeline` | `rootonchair/LTX-2-19b-distilled` | Y | Y | | | Distilled two-stage path, renamed in v0.26.0 (#5148). A plain `LTX2TwoStagePipeline` name is reserved for a follow-up PR and does not exist yet. |
+| `LTX2TwoStagePipeline` | `Lightricks/LTX-2`, `diffusers/LTX-2.3-Diffusers` (+ LoRA and upsampler) | Y | Y | | | Ordinary two-stage T2V/I2V (v0.30.0 supported list). LTX-2.5 rows are CUDA-only. |
+| `LTX2DistilledOneStagePipeline` / `LTX2DistilledTwoStagePipeline` | `rootonchair/LTX-2-19b-distilled`, `diffusers/LTX-2.3-Distilled-Diffusers` | Y | Y | | | Merged-distilled one-/two-stage (v0.30.0). `LTX2DistilledPipeline` (v0.26.0 name, #5148) is still registered. |
 | `LTX2T2VDMD2Pipeline` / `LTX2I2VDMD2Pipeline` | LTX-2 DMD2 checkpoints | Y | Y | | | DMD2 variants, registered in v0.26.0. |
 | ~~`LTX2ImageToVideoPipeline`~~, ~~`LTX23Pipeline`~~, ~~`LTX23ImageToVideoPipeline`~~, ~~`LTX2TwoStagesPipeline`~~, ~~`LTX2ImageToVideoTwoStagesPipeline`~~ | — | | | | | **Removed in v0.26.0** (#5148). A stage config naming any of these will fail to resolve. |
 | `HeliosPipeline`, `HeliosPyramidPipeline` | `BestWishYsh/Helios-{Base,Mid,Distilled}` | Y | Y | Y | | |
-| `MagiHumanPipeline` | `SII-GAIR/daVinci-MagiHuman-Base-1080p` | Y | Y | | | |
 | `HunyuanVideo15Pipeline` | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-{480p,720p}_t2v` | Y | Y | | | T2V. Flash-attn shape issue on NPU mindiesd #2880. |
 | `HunyuanVideo15ImageToVideoPipeline` | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-{480p,720p}_i2v` | Y | Y | | | I2V. |
 
@@ -89,7 +92,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 ## Platform legend
 
 - **CUDA** — NVIDIA H100/A100/H200/Blackwell.
-- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.26.0 uses `vllm==0.26.0+rocm723` from `https://wheels.vllm.ai/rocm/0.26.0/rocm723` (v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo.
+- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only; v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.28.0.
 - **NPU** — Huawei Ascend 910B. Fresh-install regression on main for some models #2898.
 - **XPU** — Intel Arc / Ponte Vecchio. Backend: XCCL / oneccl_bindings_for_pytorch.
 - **MUSA** — Tencent GPU (not shown in this table). Auto-detected via `torchada`.
@@ -99,10 +102,10 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | Operator goal | Recommended model |
 |---|---|
 | Smallest image-gen footprint | `Tongyi-MAI/Z-Image-Turbo` (quickstart default) |
-| Best-quality open text-to-image | `black-forest-labs/FLUX.2-dev` (FP8) or `Qwen/Qwen-Image` (GGUF) |
+| Best-quality open text-to-image | `black-forest-labs/FLUX.2-dev` (FP8) or `Qwen/Qwen-Image` (GGUF needs `vllm-gguf-plugin` on v0.26.0+) |
 | Image edit / inpaint | Qwen-Image-Edit-2511 or FLUX.1-Kontext-dev |
 | Short video (5-15s) | Wan2.2-T2V-A14B (A14B MoE) or LTX-2-distilled |
-| Long video / talking head | MagiHuman, HunyuanVideo-1.5 |
+| Long video / talking head | HunyuanVideo-1.5, Wan2.2-S2V (speech-to-video) |
 | Full any-to-any with audio | Qwen3-Omni-30B-A3B-Instruct |
 | TTS with custom voice upload | Qwen3-TTS-12Hz-0.6B-Base (cloning mode) |
 | Cheap TTS | Fun-CosyVoice3-0.5B |
@@ -112,7 +115,8 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 
 From open issues (2026-04):
 
-- VoxCPM2 (#2594), Ovi 1.1 (#2593), LongCat-AudioDiT (#2462), VibeVoice (#2319), AudioX (#2003), OmniWeaving (#2664), 3D World Models / VGGT (#2727), Wan2.2-S2V-14B (#2612).
+- Ovi 1.1 (#2593), LongCat-AudioDiT (#2462), VibeVoice (#2319), OmniWeaving (#2664), 3D World Models / VGGT (#2727) — all absent from the v0.30.0 supported list.
+- Landed since: VoxCPM2 and Wan2.2-S2V-14B are in the v0.30.0 list (the S2V issue #2612 still reads open). AudioX shipped and was removed again at v0.28.0.
 
 If a model is not in the tables above, check `gh api /repos/vllm-project/vllm-omni/contents/vllm_omni/model_executor/models` and the open issues before concluding unsupported.
 

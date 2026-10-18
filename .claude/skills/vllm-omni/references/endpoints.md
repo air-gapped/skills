@@ -4,11 +4,11 @@ Load when operator asks about a specific API endpoint's shape, streaming, auth, 
 
 **Contents:** Endpoint map · `/v1/images/generations` · `/v1/images/edits` · `/v1/audio/speech` · `/v1/audio/voices` · `/v1/audio/speech/stream` · `/v1/videos` (async vs sync) · `/v1/realtime` · `/v1/chat/completions` with diffusion.
 
-## Endpoint map (compiled v0.20.0; not re-verified since)
+## Endpoint map (paths verified at v0.30.0; field tables below compiled at v0.20.0)
 
-> Not re-probed in the 2026-08-11 pass. Known addition from v0.26.0 that is
-> **missing below**: the experimental full-duplex pair `/v1/duplex` and
-> `/v1/realtime?duplex=1` for MiniCPM-o 4.5 (#3907).
+Also registered at v0.30.0, not detailed here: `/v1/audio/generate` (POST),
+`/v1/realtime/video` and `/v1/video/chat/stream` (WebSocket), `/v1/omni/sleep` /
+`/v1/omni/wakeup` (POST), RL rollout `/v1/realtime/sessions…` (POST/GET).
 
 | Path | Method | Purpose |
 |---|---|---|
@@ -21,13 +21,14 @@ Load when operator asks about a specific API endpoint's shape, streaming, auth, 
 | `/v1/audio/voices` | GET | List speakers (built-in + uploaded) |
 | `/v1/audio/voices` | POST | Upload custom voice (multipart, 10 MB cap) |
 | `/v1/videos` | POST | **Async** video job (returns job metadata) |
-| `/v1/videos/sync` | POST | **Sync** video (raw MP4 bytes; ~1200s timeout) |
+| `/v1/videos/sync` | POST | **Sync** video (raw MP4 bytes; 600 s default timeout) |
 | `/v1/videos` | GET | List video jobs (query: `after`, `limit`, `order`) |
 | `/v1/videos/{id}` | GET | Job metadata |
 | `/v1/videos/{id}/content` | GET | Raw MP4 bytes |
 | `/v1/videos/{id}` | DELETE | Delete job + artifacts |
-| `/v1/realtime` | WebSocket | PCM16 realtime (Qwen3-Omni only) |
-| `/health` | GET | `{"status":"ok"}` |
+| `/v1/realtime` | WebSocket | PCM16 realtime (Qwen3-Omni turn mode) |
+| `/v1/realtime?duplex=1`, `/v1/duplex` | WebSocket | Full-duplex session (duplex deployments only; `/v1/duplex` is an alias) |
+| `/health` | GET | `{"status":"healthy"}`; 503 `unhealthy` when no engine |
 | `/v1/models` | GET | List loaded models (diffusion too, since v0.14 #454) |
 
 ## `/v1/images/generations`
@@ -56,7 +57,7 @@ Non-OpenAI extensions:
 |---|---|---|
 | `negative_prompt` | string | CFG negative branch |
 | `num_inference_steps` | int 1-200 | Diffusion steps |
-| `guidance_scale` | float 0-20 | CFG scale (>1.0 to enable; **0.0 is sentinel "not provided"**) |
+| `guidance_scale` | float 0-20 | CFG scale (>1.0 to enable). v0.26.0+: omitted = model default, `0` = off. Below v0.26.0 `0` was the "not provided" sentinel — omit the field instead |
 | `true_cfg_scale` | float | Qwen-Image variant |
 | `seed` | int | Reproducibility |
 | `generator_device` | `"cpu"\|"cuda"` | Seeded generator device |
@@ -128,7 +129,7 @@ Not OpenAI-compatible. Client sends text messages incrementally; server splits a
 
 ## `/v1/videos` (async) vs `/v1/videos/sync`
 
-**Use async** (`POST /v1/videos`) for anything likely > 1 min. Sync has `VIDEO_SYNC_TIMEOUT_S` (~1200s hardcoded) and returns 504 past that.
+**Use async** (`POST /v1/videos`) for anything likely > 1 min. Sync waits `VIDEO_SYNC_TIMEOUT_S` — 600 s default, `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` overrides it (v0.24.0+) — and returns 504 past that.
 
 ### Async (recommended)
 
@@ -178,7 +179,7 @@ Non-OpenAI video extensions:
 
 ## `/v1/realtime` (WebSocket, Qwen3-Omni)
 
-Full recipe in `references/realtime-tts.md`. Key constraint: **server must be started with `async_chunk: false`** — the default `qwen3_omni_moe.yaml` stage config is correct; do not use `qwen3_omni_moe_async_chunk.yaml` for realtime.
+Full recipe in `references/realtime-tts.md`. On v0.22.0+ the default `qwen3_omni_moe.yaml` (`async_chunk: true`) serves realtime; only v0.20.x and older reject realtime under `async_chunk`. Since v0.30.0 audio arrives as `response.output_audio.delta` (formerly `response.audio.delta`).
 
 ## `/v1/chat/completions` with diffusion via `extra_body`
 

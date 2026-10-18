@@ -6,30 +6,30 @@ Load when the operator is tuning a diffusion model — CFG weights, schedulers, 
 
 ## The shape of a diffusion request
 
-Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:174-300`:
+Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:204-422` at v0.30.0 (last class in the module). `None` below means "use the pipeline default":
 
 | Field | Default | Purpose |
 |---|---|---|
-| `num_inference_steps` | model-specific (20-50) | Total denoising steps |
+| `num_inference_steps` | `None` (pipeline default, typically 20-50) | Total denoising steps |
 | `guidance_scale` | **`None`** from v0.26.0 (was `0.0` as an "unset" sentinel) | CFG scale; set > 1.0 to enable |
-| `guidance_scale_2` | 0.0 | **Dual CFG** high-noise branch (Wan2.2) |
+| `guidance_scale_2` | `None` | **Dual CFG** high-noise branch (Wan2.2) |
 | `guidance_rescale` | 0.0 | Pixel-space rescale after CFG |
-| `true_cfg_scale` | 1.0 | Qwen-Image variant of CFG |
+| `true_cfg_scale` | `None` | Qwen-Image variant of CFG |
 | `seed` | None | Reproducibility |
-| `generator_device` | `"cuda"` | Device for seeded generator |
+| `generator_device` | `None` | Device for seeded generator |
 | `num_outputs_per_prompt` | 1 | Batch per prompt |
-| `height`, `width` | model-default | Image/frame resolution |
-| `num_frames`, `fps` | n/a for images | Video generation |
-| `strength` | 1.0 | I2I denoising fraction (Z-Image) |
+| `height`, `width` | `None` (model default) | Image/frame resolution |
+| `num_frames`, `fps` | 1, `None` | Video generation (`num_frames=1` for images; fractional fps allowed) |
+| `strength` | `None` | I2I denoising fraction (Z-Image) |
 | `negative_prompt` | "" | CFG negative branch |
-| `do_classifier_free_guidance` | auto | Toggle CFG; auto-true when `guidance_scale>1` + negative prompt exists |
+| `do_classifier_free_guidance` | False | Toggle CFG; set when `guidance_scale>1` + negative prompt exists |
 | `latents` | None | Pre-seeded latent input |
 | `past_key_values`, `kv_metadata` | None | Incoming KV from prior AR stage |
 | `cfg_text_past_key_values`, `cfg_img_past_key_values` | None | CFG companion KV branches |
-| `cfg_branch_past_key_values` | dict | Named multi-branch CFG (e.g. `{"text": tuple, "image": tuple}`) |
-| `need_kv_receive` | False | Block until KV arrives from upstream |
+| `cfg_branch_past_key_values` | `None` | Named multi-branch CFG (e.g. `{"text": tuple, "image": tuple}`) |
+| `need_kv_receive` | **True** | Block until KV arrives from upstream |
 | `vae_use_slicing`, `vae_use_tiling` | False | VAE memory optimizations |
-| `layers` | None | Layered image output count (3-10, Qwen-Image-Layered) |
+| `layers` | 4 | Layered image output count (3-10, Qwen-Image-Layered) |
 
 **Sentinel gotcha — fixed in v0.26.0 (#4999, fixes #4998).** Below v0.26.0, `guidance_scale=0.0` was the "unset" default, so an explicit `0` was indistinguishable from an omitted value and the **pipeline's own default was substituted instead** — HunyuanImage-3.0 substitutes `5.0`, which turns CFG *on* when the caller asked for it off. The collision was in the shared input layer (`vllm_omni/inputs/data.py`), so every pipeline that fills in a default was affected. v0.26.0 makes `None` the sentinel (matching `num_inference_steps`) and tests presence by identity in `OmniDiffusionRequest.__post_init__`, so `0` now means `0`. On older builds, omit the field to disable CFG — do not send `0`. The CFG gate is `guidance_scale > 1.0` on every version, so `0.5` disables CFG regardless.
 
@@ -49,10 +49,11 @@ DiT has no KV cache (no autoregression). Instead, vllm-omni ships several latent
 | **Cache-DiT** | `vllm_omni/diffusion/cache/cachedit/` | Block-level activations across steps. **Directory renamed from `cache_dit/` (no underscore) by PR #5226, 2026-07-24.** |
 | **MagCache** | `vllm_omni/diffusion/cache/magcache/` | Added in the same 2026-07-24 cache refactor |
 | **StepCache** | `vllm_omni/diffusion/cache/stepcache/` | Added in the same 2026-07-24 cache refactor |
+| **SeaCache** | `vllm_omni/diffusion/cache/seacache/` | New in v0.30.0 (Cosmos3, #6922) |
 | Latent cache | `latents` field | Pre-seeded initial latent |
 | Noise-pred cache | `noise_pred` field | Output cache for duplicate prompts |
 
-Enable via stage-config extras or per-request `OmniDiffusionSamplingParams`. TeaCache is the most-used — gives 1.5-2× speedup on Wan2.2 / FLUX / Qwen-Image at marginal quality cost.
+Enable with `--cache-backend tea_cache|cache_dit|mag_cache|sea_cache|step_cache` (default `none`) plus `--cache-config`, or the per-stage `cache_backend` / `cache_config` YAML keys. TeaCache is the most-used — gives 1.5-2× speedup on Wan2.2 / FLUX / Qwen-Image at marginal quality cost.
 
 ## CFG plumbing (unique to vllm-omni)
 
@@ -107,7 +108,7 @@ engine_args:
     default: "int8"       # Anything else
 ```
 
-Supported formats (factory `vllm_omni/quantization/factory.py:138-178`):
+Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/factory.py:389` at v0.30.0):
 
 | Format | Targeted at | Source PR |
 |---|---|---|
@@ -189,8 +190,8 @@ If DiT latency looks wrong:
 4. Wan2.2 specifically: `guidance_scale_2` + `boundary_ratio` must both be set or dual-CFG no-ops.
 5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS.
    **Do not pin `flashinfer<0.6.7`** — that advice is obsolete *and*
-   unsatisfiable on v0.26.0, which inherits vLLM 0.26.0's hard
-   `flashinfer-python==0.6.14`. Provenance, since the pin looked load-bearing:
+   unsatisfiable on v0.30.0, which inherits vLLM 0.30.0's hard
+   `flashinfer-python==0.6.18.post1`. Provenance, since the pin looked load-bearing:
    upstream vLLM issue #38729 reported all models hanging on **GB300 (SM103)
    only** with FlashInfer 0.6.7 — 99% SM utilisation, 0% memory bandwidth, at
    large batch — because TRTLLM attention kernels stopped being
