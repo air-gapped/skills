@@ -80,7 +80,18 @@ python -c "import vllm; from vllm.model_executor.models import registry as r; pr
 # HF model revision — from .cache/huggingface/hub/... or huggingface-cli scan-cache
 ```
 
-vLLM v0.32.0 requires **`transformers >= 5.16.1, < 5.20.0`** and `tokenizers >= 0.23.2` (`requirements/common.txt`); v0.31.0 required `>= 5.10.4, < 5.18.0` and `tokenizers >= 0.21.1`. Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim.
+vLLM v0.32.0 requires **`transformers >= 5.16.1, < 5.20.0`** and `tokenizers >= 0.23.2` (`requirements/common.txt`); v0.31.0 required `>= 5.10.4, < 5.18.0` and `tokenizers >= 0.21.1`. Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim. Do not edit it.
+
+**Security floor: `transformers >= 5.15.0`.** It clears all three 2026 fixes in the tokenizer-loading path — including one where a hostile repo's **chat-template names** become filenames and `save_pretrained` writes outside the target directory.
+
+| vLLM | Pin | Action |
+|---|---|---|
+| v0.27.0–v0.28.0 | `>= 5.5.3` | below the floor — pin `transformers >= 5.15.0` explicitly |
+| v0.29.0–v0.30.0 | `>= 5.10.4` | below the floor — pin explicitly |
+| v0.31.0 | `>= 5.10.4, < 5.18.0` | below the floor — pin `>= 5.15.0, < 5.18.0` |
+| v0.32.0 | `>= 5.16.1, < 5.20.0` | clears it; the `< 5.20.0` cap blocks any later transformers fix until a vLLM bump |
+
+Per-fix detail: `transformers-config-tokenizers-expert` § "Loading a tokenizer is a trust decision".
 
 Many template bugs track a specific `tokenizer_config.json` commit. Mention revision SHA in issues.
 
