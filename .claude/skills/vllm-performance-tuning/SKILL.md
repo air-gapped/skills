@@ -147,19 +147,6 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 
 Re-benchmark after crossing any minor in this range; do not compare against numbers taken before it. Per-minor execution-path changes and the config keys that now fail validation → `references/regressions.md` §"Execution-path changes by minor".
 
-### Key numbers to memorize
-
-| Metric | Value |
-|---|---|
-| Default `max_num_batched_tokens` / `max_num_seqs`, `vllm serve` on ≥70 GiB non-A100 GPU | **8192 / 1024** |
-| Same, on <70 GiB or any A100 | 2048 / 256 (the PR #10544 figure — small-GPU branch only) |
-| Default CUDA-graph sizes (`--cudagraph-capture-sizes`) | `[1,2,4] + range(8,256,8) + range(256,max,16)`, cap `min(max_num_seqs × (1+spec_tokens) × 2, 1024 on SM100 / 512 elsewhere)` |
-| H200 Wide-EP DeepSeek-R1 throughput | 2.2k tok/s/GPU vs ~1.5k baseline ([vllm.ai/blog/large-scale-serving](https://vllm.ai/blog/large-scale-serving)) |
-| GB200 Wide-EP DeepSeek-R1 | 26.2K TPGS prefill, 10.1K TPGS decode, 3-5× H200 ([vllm.ai/blog/dsr1-gb200-part1](https://vllm.ai/blog/dsr1-gb200-part1)) |
-| MLPerf v5.1 Blackwell Ultra | 5,842 tok/s/GPU offline, 2,907 server ([NVIDIA blog](https://developer.nvidia.com/blog/nvidia-blackwell-ultra-sets-new-inference-records-in-mlperf-debut/)) |
-| DeepEP dispatch (FP8, Azure H100 IB400) | 45.9 GB/s RDMA, 149.8 GB/s NVLink ([Azure blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)) |
-| Activation density cutoff for EP win | > 2% (below: TP wins) |
-
 ## Source policy
 
 Citations and refresh triggers: `references/sources.md`. Two standing rules when checking any claim here against a live build:
