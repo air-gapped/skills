@@ -12,6 +12,16 @@ measurement nobody can run.
 
 - **Relocate framework-contract + reasoning-pairing tables out of SKILL.md** (Dim 2 Progressive Disclosure) — `SKILL.md` "Framework contract (mental model)" (~lines 89-106) and "Reasoning-parser pairing" (~lines 108-123). Both are reference content already cross-linked from the diagnostic playbook. Moving them to a reference file would trim the 222-line body toward the <150 lean band, but the diagnostic playbook's steps reference the four state fields and the reasoning pairing inline, so a pure relocation risks dangling those pointers — needs a coordinated multi-file edit (extract + repoint + add reference bullet) that exceeds one atomic iteration. Deferred: Dim 2 already at 9 and SKILL.md is comfortably under the 500-line limit, so this is low-ROI relative to its breakage risk.
 
+## Resolved this pass (2026-10-18, improve)
+
+Self 77 → 82, cap reached (5 iterations, 0 discards — no ceiling mapped); baseline 6e49468; final blind score and A/B comparator run by the operator. SKILL.md 288 → 265 lines.
+- Kept: framing filler and repeated don't-paraphrase lines cut.
+- Kept: diagnostic playbook done-condition plus step-7 raw-text → cause → fix table.
+- Kept: unified-path 19-row name map replaced by a pointer to parser-index (every row and version note already there).
+- Kept: references list rewritten as Load/When; false "file:line anchors" claim dropped.
+- Kept: gpt-oss Harmony paragraph folded into the parser-index `openai` row.
+- Kept (post-loop): dangling "Reasoning pairing" section name; `--chat-template` literal-string fallback stated and made imperative (verified `vllm/renderers/chat_utils.py` `_load_chat_template` at v0.32.0).
+
 ## Resolved this pass (2026-10-03, fix)
 
 Weak cases from the 2026-10-03 outcome run: 03, 06, 07 (01 fixed earlier the same day). Re-run of those three, Sonnet, 3 runs: 03 0.67 -> 0.87, 06 0.53 -> 0.80, 07 0.44 -> 0.89 (without: 0.27 / 0.60 / 0.39), $4.84, week +0%.
