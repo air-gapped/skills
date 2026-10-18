@@ -201,16 +201,14 @@ traps not captured by those.
 6. **Logprob stability is not guaranteed** with spec-dec. If downstream eval
    requires reproducible logprobs, disable spec-dec. Lossless *token*
    guarantee holds "up to hardware numerics."
-7. **Tokenizer mismatch between draft and target destroys acceptance.** The
-   `draft_model` validator does a vocab-size check, but not token-id
-   alignment. Verify with a shared-tokenizer family — **unless you are on
-   v0.25.0+ and opt in to TLI**. TLI is *not* automatic: set
-   `"use_heterogeneous_vocab": true` in `--speculative-config`, or the
-   equal-vocab check still rejects the pair. It requires
-   `method: "draft_model"` and `draft_sample_method: "greedy"` (the default);
-   both are hard `ValueError`s. TLI runs only on the V1 runner: on v0.31.x
-   it crashes (device-side assert) unless `VLLM_USE_V2_MODEL_RUNNER=0`; v0.32.0
-   falls back to V1 automatically. See `references/methods.md`.
+7. **Draft/target tokenizer mismatch destroys acceptance.** The `draft_model`
+   validator checks vocab size, not token-id alignment: pick a drafter from the
+   target's tokenizer family. For different but overlapping vocabularies, opt in
+   to TLI (v0.25.0+) with `"use_heterogeneous_vocab": true` in
+   `--speculative-config`; without the flag the equal-vocab check rejects the
+   pair. TLI needs `method: "draft_model"` and `draft_sample_method: "greedy"`
+   (the default), else hard `ValueError`, and runs on the V1 runner only (v0.31.x
+   crash: §Version floors). Detail: `references/methods.md`.
 8. **Quantization mismatch**: drafter in FP16 + target in FP8 is fine;
    drafter in INT4 + target in FP8 causes AL collapse. Align where possible,
    or measure before adopting. **DSpark exception (v0.27.1+):** the Markov head
