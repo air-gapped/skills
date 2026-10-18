@@ -1,6 +1,6 @@
 # `--output-json` schema
 
-Last verified: 2026-09-23 (against `vllm/benchmarks/serve.py` at tag **v0.30.0**).
+Last verified: 2026-10-18 (against `vllm/benchmarks/serve.py` at tag **v0.32.0**; JSON keys unchanged from v0.30.0).
 
 Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs.
 
@@ -97,7 +97,7 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 
 ## Stable vs version-sensitive fields
 
-**Stable across v0.11 → v0.27:**
+**Stable across v0.11 → v0.32:**
 - `request_throughput`, `output_throughput`, `total_token_throughput`
 - `mean_<metric>_ms`, `median_<metric>_ms`, `std_<metric>_ms`, `p<N>_<metric>_ms`
 - `num_prompts`, `request_rate`, `max_concurrency`
@@ -117,4 +117,4 @@ Large file — use for forensic analysis after a failed run, not for routine rep
 rps = d.get("request_throughput", d.get("requests_per_second", 0))  # old name was requests_per_second pre-v0.10
 ```
 
-Source of truth: `vllm/benchmarks/serve.py` at v0.30.0 (2425 lines) — `BenchmarkMetrics` dataclass **L327** (`EmbedBenchmarkMetrics` L362), JSON assembly starting at `result_json["date"]` **~L2273**. Line refs drift by hundreds of lines every couple of releases — **resolve by symbol, not by line.**
+Source of truth: `vllm/benchmarks/serve.py` at v0.32.0 (2410 lines) — `BenchmarkMetrics` dataclass **L328** (`EmbedBenchmarkMetrics` L363), JSON assembly starting at `result_json["date"]` **~L2258**. Line refs drift by hundreds of lines every couple of releases — **resolve by symbol, not by line.**

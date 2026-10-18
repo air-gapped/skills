@@ -67,14 +67,13 @@ vllm bench serve ...
 **Failure modes:**
 - `config.json` references a remote processor class not in the cache — fix by pre-downloading the full model directory, not just weights.
 - Code path calls `snapshot_download` without a specific revision — sometimes triggered by `trust_remote_code=True` loading custom model code. Prefer pinning a revision at launch.
-- Tokenizer library attempts to download its config — resolved by a `transformers` new enough to have proper offline semantics. Do not stage a 4.x wheel: vLLM **v0.27.0 required `transformers >= 5.5.3`; the current tree requires `>= 5.10.4`** (`requirements/common.txt`, verified 2026-08-11), so the enclave's pinned-wheel set must carry transformers 5.x or vLLM will not install at all.
+- Tokenizer library attempts to download its config — resolved by a `transformers` new enough to have proper offline semantics. Do not stage a 4.x wheel: vLLM **v0.32.0 requires `transformers >= 5.16.1, < 5.20.0` and `tokenizers >= 0.23.2`** (v0.30.0: `transformers >= 5.10.4`, no upper bound; v0.31.0: `>= 5.10.4, < 5.18.0`), so the enclave's pinned-wheel set must carry a transformers inside that window or vLLM will not install at all.
 
 ## Dataset sourcing air-gapped
 
 | Dataset | Air-gapped availability | Action |
 |---|---|---|
 | `random` | Always works | No action — synthetic |
-| `sonnet` | Always works | Shipped in-tree at `vllm/benchmarks/sonnet.txt` |
 | `prefix_repetition` | Always works | Synthetic |
 | `random-mm`, `random-rerank` | Always works | Synthetic |
 | `sharegpt` | Requires staging | `wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json` on a connected host, transfer, use `--dataset-path` |

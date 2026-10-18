@@ -8,11 +8,11 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 `create_txt_slices_dataset.py`. Any tooling or citation pointing at the old flat
 path will 404.
 
-**The complete `--dataset-name` value set at v0.27.0** (argparse `choices` in
-`vllm/benchmarks/serve.py`, matches the rendered docs table, verified
-2026-08-11): `sharegpt`, `burstgpt`, `sonnet`, `random`, `random-mm`,
-`random-rerank`, `hf`, `custom`, `custom_audio`, `custom_image`,
-`prefix_repetition`, `spec_bench`, `speed_bench`, `timed_trace`.
+**The complete `--dataset-name` value set at v0.32.0** (argparse `choices` in
+`add_dataset_parser`, `vllm/benchmarks/datasets/datasets.py`, matches the rendered
+docs table): `sharegpt`, `burstgpt`, `random`, `random-mm`, `random-rerank`, `hf`,
+`custom`, `custom_audio`, `custom_image`, `prefix_repetition`, `spec_bench`,
+`speed_bench`, `timed_trace`. `vllm bench serve` defaults to `random`.
 
 **`bfcl` is not one of them** — a previous revision listed it as a dataset name.
 The BFCL tool-calling dataset is selected instead by pointing `--dataset-path`
@@ -23,7 +23,7 @@ is via `--bfcl-categories`.
 ## In-tree, no network required
 
 - **`random`** — synthetic uniform tokens. Flags: `--random-input-len`, `--random-output-len`, `--random-num-prompts`. Use for: isolating engine throughput from prefix effects. **Avoid for: caching claims** — zero prefix structure makes cached workloads look flat.
-- **`sonnet`** — synthetic from Claude prompt patterns. Ships at `vllm/benchmarks/sonnet.txt`. Flags: `--sonnet-input-len`, `--sonnet-output-len`. **Marked deprecated in docs.vllm.ai/en/latest/benchmarking/cli/ as of 2026-04-24** — still works but will be removed. For new benchmarks prefer `random` (engine isolation), `prefix_repetition` (caching), or `custom` (prod replay). Use `sonnet` only to reproduce older baseline runs.
+- **`sonnet`** — **removed in v0.32.0** with `benchmarks/sonnet.txt` and the `--sonnet-input-len`/`--sonnet-output-len`/`--sonnet-prefix-len` flags; `--dataset-name sonnet` is an invalid choice. Rewrite scripts to `random` (engine isolation), `prefix_repetition` (caching) or `custom` (prod replay). Reproduce an old `sonnet` baseline only on the ≤v0.31 version that produced it, and re-baseline before comparing across the switch.
 - **`prefix_repetition`** — synthetic with shared prefix across prompts. Flags: `--prefix-repetition-prefix-len`, `--prefix-repetition-suffix-len`, `--prefix-repetition-num-prefixes`, `--prefix-repetition-output-len`. **Use this** to benchmark prefix-cache hit rate and DRAM/NVMe offload wins.
 - **`spec_bench`** — Spec-Bench, the dataset for **speculative-decoding** benchmarking (in docs dataset table, verified 2026-05-28). Use when measuring EAGLE / Medusa / MTP draft-acceptance behavior; pair with the `spec_decode_*` output fields in `output-schema.md`. Sourced from `raw.githubusercontent.com/hemingkx/Spec-Bench/.../question.jsonl` — stage the JSONL for air-gapped.
 - **`speed_bench`** — SPEED-Bench, a unified speculative-decoding workload from NeMo-Skills (in docs dataset table, verified 2026-05-28). Same use case as `spec_bench`; prepared via the NeMo-Skills `speed-bench/prepare.py` script — stage the output for air-gapped.
@@ -49,7 +49,7 @@ is via `--bfcl-categories`.
 | "Engine throughput regression?" | `random` | Isolates engine from prefix effects |
 | "Does prefix caching help?" | `prefix_repetition` | Controlled prefix overlap, measurable hit rate |
 | "Does change X help prod traffic?" | `custom` (replay) | Only prod-shaped data gives trustworthy A/B |
-| "Rough serving baseline" | `sonnet` or `sharegpt` | Natural structure, no prod data needed |
+| "Rough serving baseline" | `sharegpt` | Natural structure, no prod data needed |
 | "Burst load handling" | `burstgpt` | Variable lengths match real spiky traffic |
 | "VLM performance" | `random-mm` or HF VisionArena | Exercises MM preprocessor + decode |
 | "Cold-start / single-request" | `random` with `--num-prompts 1` | Isolates latency from queueing |

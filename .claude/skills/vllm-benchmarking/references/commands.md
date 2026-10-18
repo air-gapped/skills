@@ -14,13 +14,14 @@ Load when configuring or debugging a specific bench subcommand. Covers flags, de
 
 HTTP-level online serving benchmark. The one operators use most.
 
-**Which implementation runs (v0.27.0).** A native Rust port of the benchmark client shipped in the `vllm-rs` binary (#48107, #48930), but **the Python implementation is still the default** — #50081 made Rust delegation opt-in after the two diverged on accepted arguments, underscore aliases, defaults, and help output (Python accepts `--result_filename`; Rust only `--result-filename`). Set `VLLM_USE_RUST_BENCH=1` to opt in; `vllm bench serve` then `execv`s the `vllm-rs` binary resolved from `VLLM_RUST_FRONTEND_PATH` (default `auto` = the binary packaged with vllm). Only `bench serve` delegates — the other five subcommands are Python either way. Treat the switch as a **re-baseline trigger**: do not compare Rust-client numbers against Python-client numbers in the same series.
+**Which implementation runs (v0.27.0+).** A native Rust port of the benchmark client shipped in the `vllm-rs` binary (#48107, #48930), but **the Python implementation is still the default** — #50081 made Rust delegation opt-in after the two diverged on accepted arguments, underscore aliases, defaults, and help output (Python accepts `--result_filename`; Rust only `--result-filename`). Set `VLLM_USE_RUST_BENCH=1` to opt in; `vllm bench serve` then `execv`s the `vllm-rs` binary resolved from `VLLM_RUST_FRONTEND_PATH` (default `auto` = the binary packaged with vllm). Only `bench serve` delegates — the other five subcommands are Python either way. Treat the switch as a **re-baseline trigger**: do not compare Rust-client numbers against Python-client numbers in the same series.
 
 **Connection:**
 - `--base-url <url>` — full URL to the vLLM server. Overrides host/port.
 - `--host 127.0.0.1 --port 8000` — fallback when `--base-url` isn't set.
 - `--endpoint /v1/completions` — default. Use `/v1/chat/completions` for chat-tuned flows.
-- `--backend openai` — default. Other values (read off `ASYNC_REQUEST_FUNCS` at v0.27.0, matches docs.vllm.ai/en/latest/cli/bench/serve/, verified 2026-08-11): `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. `vllm-chat` is **not** among them — that value belongs to `bench throughput`. **`--endpoint-type` is removed as of v0.11.0 and still absent at v0.27.0 — use `--backend` instead.**
+- `--backend openai` — default. Other values (read off `ASYNC_REQUEST_FUNCS` at v0.32.0, matches docs.vllm.ai/en/latest/cli/bench/serve/): `openai-chat`, `openai-responses`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. `vllm-chat` is **not** among them — that value belongs to `bench throughput`. **`--endpoint-type` is removed as of v0.11.0 and still absent at v0.32.0 — use `--backend` instead.**
+- `--backend openai-responses --endpoint /v1/responses` (v0.31.0+) — benchmarks the Responses API, one streamed text request per prompt (no built-in tools, MCP or `previous_response_id`). Reasoning deltas count toward TTFT/ITL; a stream without `response.completed` counts as failed. Do not pass `--extra-body '{"include_reasoning": false}'` on a reasoning model — the hidden reasoning phase lands in TTFT. `--min-p` raises `ValueError` with this backend on v0.31.x; accepted from v0.32.0.
 - `--header KEY=VALUE` — arbitrary HTTP headers. Repeatable.
 - Auth: `OPENAI_API_KEY` env var auto-injects as Bearer token.
 
@@ -40,7 +41,7 @@ HTTP-level online serving benchmark. The one operators use most.
 **Metrics & output:**
 - `--percentile-metrics ttft,tpot,itl,e2el` — which metrics to compute percentiles over. Default `ttft,tpot,itl` for generative; `e2el` only for pooling/embedding. **v0.30.0+ (#54136):** also accepts `client_queue_time` and `e2el_including_client_queue`, computed straight from per-request samples rather than the engine metrics object. Both require `--max-concurrency` to be set (they measure semaphore wait — nothing to report otherwise); `e2el_including_client_queue` additionally requires `--request-rate` to be finite (omitted when `--request-rate inf`). Neither is in the default set — request them explicitly.
 - **v0.30.0+ credential redaction (#56662):** the printed argument namespace and the `--output-json` PyTorch-benchmark-format metadata now redact `--header` values to `***` before logging. Earlier versions printed `--header` (and, in the multi-turn benchmark, `--api-key`) in full — treat any pre-v0.30.0 CI log or saved JSON that used `--header` as a potential credential leak.
-- `--metric-percentiles 50,90,95,99` — which percentiles. Default is sensible.
+- `--metric-percentiles 50,95,99` — which percentiles. **Default is `99` only** — always pass the list explicitly.
 - `--goodput KEY:VALUE ...` — SLO budgets in ms (e.g. `ttft:500 itl:50`). Reports fraction of requests meeting all budgets.
 - `--save-result --output-json <file>` — dump structured output.
 - `--save-detailed` — include per-request records. Large files; use for forensic analysis.
@@ -56,13 +57,13 @@ Offline batch throughput. No HTTP — spins up the engine in-process and submits
 **Key flags:**
 - `--model <name-or-path>` — required; model to load.
 - `--num-prompts 1000` — batch size submitted.
-- `--dataset-name sharegpt` — default. See `datasets.md`.
+- `--dataset-name sharegpt` — default. See `datasets.md`. The old `--dataset <path>` alias was removed in v0.32.0 — use `--dataset-path`.
 - `--input-len`, `--output-len` — force fixed lengths (overrides dataset).
 - `--backend vllm` — default. `hf` / `mii` / `vllm-chat` also available.
 - `--async-engine` — use the async engine path for measurement.
 - `--lora-path <path>` — measure throughput with a LoRA adapter loaded.
 - `--disable-detokenize` — skip detokenization cost, isolates raw generate throughput.
-- `--output-json <file>` — structured output.
+- `--output-json <file>` — structured output. Includes `model_id` from v0.31.0 (same for `bench latency`).
 
 ## `vllm bench latency`
 
@@ -81,12 +82,14 @@ Single-batch repeated-measurement latency. Used for kernel-level regression dete
 Parameter sweep + SLO-constrained auto-tune. Five sub-modes:
 
 - `sweep serve` — run `bench serve` repeatedly across a parameter grid.
-- `sweep serve-workload` — sweep across workload variants (different datasets / lengths).
+- `sweep serve_workload` — sweep across workload variants (different datasets / lengths).
 - `sweep startup` — startup time across configurations.
 - `sweep plot` — render results to plots.
-- `sweep plot-pareto` — find the Pareto frontier (throughput vs latency).
+- `sweep plot_pareto` — find the Pareto frontier (throughput vs latency).
 
 Typical use: "find the max `--max-concurrency` such that P99 TTFT < 500 ms."
+
+Sub-mode names use underscores — `serve-workload` / `plot-pareto` are rejected. **v0.32.0+:** `sweep serve` and `sweep serve_workload` take `--warmup-num-prompts N` (default `0`: one unmeasured warmup run per parameter combination, saved as `warmup.json`, excluded from the summary — set it) and `--continue-on-error` (record a failed combination in a `.failure.json` and keep sweeping).
 
 ## `vllm bench startup`
 

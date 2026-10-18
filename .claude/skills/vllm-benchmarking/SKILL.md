@@ -82,11 +82,11 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 
 ## Critical pitfalls
 
-1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (v0.11–v0.27; `--num-warmups` default re-read as `0` on 2026-08-11) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
+1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (v0.11–v0.32; `--num-warmups` default re-read as `0` at v0.32.0) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
 2. **Wrong tokenizer.** `--tokenizer` defaults to `--model`, but if they differ (e.g., served via a local path while benching with a HF ID), every token count in the output is fiction. Always specify explicitly.
 3. **`--dataset-name random` as a proxy for production traffic.** Random has zero prefix structure, overstates prefill work, understates prefix-cache hit rate, makes chunked prefill look worse than reality. For anything involving caching claims, use `custom` with a real-traffic JSONL, or `prefix_repetition` for synthetic prefix-heavy tests.
 4. **`--request-rate inf` alone.** Measures saturation throughput, not the latency regime users experience. Always include a concurrency sweep for serving comparisons.
-5. **`--endpoint-type` is removed.** Deprecated in v0.11.0, still absent from the v0.27.0 parser. Use `--backend`. Current full value set (`ASYNC_REQUEST_FUNCS` in `vllm/benchmarks/lib/endpoint_request_func.py` at v0.27.0, matches docs.vllm.ai, verified 2026-08-11): `openai`, `openai-chat`, `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. (`vllm-chat` is a `bench throughput` backend only — it is not accepted by `serve`.) The *flag* is gone but the output JSON still emits an `endpoint_type` key as a backward-compat alias of `backend` — see `output-schema.md`.
+5. **`--endpoint-type` is removed.** Deprecated in v0.11.0, still absent from the v0.32.0 parser. Use `--backend`. Current full value set (`ASYNC_REQUEST_FUNCS` in `vllm/benchmarks/lib/endpoint_request_func.py` at v0.32.0, matches docs.vllm.ai): `openai`, `openai-chat`, `openai-responses` (v0.31.0+), `openai-audio`, `openai-embeddings`, `openai-embeddings-chat`, `openai-embeddings-clip`, `openai-embeddings-vlm2vec`, `vllm`, `vllm-pooling`, `vllm-rerank`, `infinity-embeddings`, `infinity-embeddings-clip`. (`vllm-chat` is a `bench throughput` backend only — it is not accepted by `serve`.) The *flag* is gone but the output JSON still emits an `endpoint_type` key as a backward-compat alias of `backend` — see `output-schema.md`.
 6. **Conflating tok/s with req/s.** High total-tokens/sec can coexist with terrible TTFT. Always report both plus P99 ITL.
 7. **Noisy neighbor.** Shared GPU, unrelated container load, MIG partition changes mid-run — check `nvidia-smi dmon` for unrelated activity before trusting numbers.
 8. **`latency` subcommand disables prefix caching by default** (to keep numbers clean). If benchmarking prefix-cache behavior, use `serve` with the `prefix_repetition` dataset.
@@ -102,20 +102,20 @@ Operators who can't reach `huggingface.co` have three working patterns:
 2. **ModelScope** — set `VLLM_USE_MODELSCOPE=True` plus `trust_remote_code=True`. Historical gap: LoRA adapter loading through ModelScope (vLLM issue #32841, closed 2026-01-23). Re-verify on your vLLM version before relying on LoRA-via-ModelScope; issue closure without a linked PR means status is unclear — test first.
 3. **Fully offline with pre-seeded cache** — `HF_HUB_OFFLINE=1` + `TRANSFORMERS_OFFLINE=1`, `HF_HOME` pointing at a pre-populated directory (NFS, PVC, or JuiceFS/S3).
 
-For benchmark datasets specifically: `sonnet` is **in-tree** at `vllm/benchmarks/sonnet.txt` — never downloads. `random` is synthetic — never downloads. `sharegpt` must be pre-staged: `wget` the JSON on a connected host, `rsync` into the enclave, point `--dataset-path` at it.
+For benchmark datasets specifically: `random` and `prefix_repetition` are synthetic — never download. `sonnet` was removed in v0.32.0 (`--dataset-name sonnet` is rejected); use it only on the ≤v0.31 version that produced an old baseline. `sharegpt` must be pre-staged: `wget` the JSON on a connected host, `rsync` into the enclave, point `--dataset-path` at it.
 
 For the full air-gapped recipe (HF proxy setup, gated model tokens, MinIO-as-HF-cache, transformer cache warming), see `references/air-gapped.md`.
 
 ## Measuring the outcomes that matter
 
-Default metrics (`--percentile-metrics ttft,tpot,itl,e2el`):
+Metrics (default `--percentile-metrics` is `ttft,tpot,itl` for generative models, `e2el` for pooling; add `e2el` explicitly):
 
 - **TTFT** — time-to-first-token. User-facing responsiveness. Dominated by prefill.
 - **TPOT** — time-per-output-token (averaged across decode). Steady-state perceived speed.
 - **ITL** — inter-token latency (per-step). Catches stalls that TPOT averages away.
 - **E2EL** — end-to-end request latency. Only one that matters for pooling/embedding models.
 
-Reporting guideline: **always P50 and P99 together**. Either in isolation is misleading. Add P95 if ITL has a long tail.
+Reporting guideline: **always P50 and P99 together**. Either in isolation is misleading. Add P95 if ITL has a long tail. `--metric-percentiles` defaults to `99` only — pass `50,95,99` explicitly.
 
 **Goodput SLO** — `--goodput KEY:VALUE` (milliseconds) tracks requests that completed within an SLO budget. Example: `--goodput ttft:500 itl:50`. Goodput is what actually matters in production; raw throughput that violates SLO is useless.
 
@@ -137,5 +137,5 @@ See `references/output-schema.md` for the field layout in `--output-json` — to
 - In-tree benchmarks dir: https://github.com/vllm-project/vllm/tree/main/benchmarks
 - Air-gapped discussion thread: https://discuss.vllm.ai/t/setting-up-vllm-in-an-airgapped-environment/916
 - vLLM env vars (including `VLLM_USE_MODELSCOPE`): https://docs.vllm.ai/en/stable/configuration/env_vars/
-- Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05): https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html
-- Blog: Large Scale Serving — DeepSeek @ 2.2k tok/s/H200 (2025-12-17): https://blog.vllm.ai/2025/12/17/large-scale-serving.html
+- Blog: Anatomy of a High-Throughput LLM Inference System (2025-09-05): https://vllm.ai/blog/2025-09-05-anatomy-of-vllm
+- Blog: Large Scale Serving — DeepSeek @ 2.2k tok/s/H200 (2025-12-17): https://vllm.ai/blog/2025-12-17-large-scale-serving
