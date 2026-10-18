@@ -119,9 +119,7 @@ Gated repos need `HF_TOKEN` in the runtime env in every pattern, even with local
 
 2. **`HF_HUB_OFFLINE=1` needs the cache fully populated or first-request fails.** Include `config.json`, `tokenizer*`, `special_tokens_map.json`, `generation_config.json`, and any `modeling_*.py` referenced by `auto_map` — not just weights.
 
-3. **Gated models offline still need `HF_TOKEN`.** The token is consulted during hub-config validation before weight load. Putting it only on the staging host isn't enough; bake it into the runtime env.
-
-4. **`trust_remote_code` executes arbitrary Python from the model repo.** Any model not in vLLM's hard-coded architecture registry falls through to `AutoConfig` + `auto_map`, which only runs with the flag. In air-gap this runs pre-staged code — treat model directory provenance as equivalent to running arbitrary binaries. Verify checksums.
+3. **`trust_remote_code` executes arbitrary Python from the model repo.** Any model not in vLLM's hard-coded architecture registry falls through to `AutoConfig` + `auto_map`, which only runs with the flag. In air-gap this runs pre-staged code — treat model directory provenance as equivalent to running arbitrary binaries. Verify checksums.
 
    **And `trust_remote_code=False` is not a guarantee.** GHSA-3c86-2m5g-59q7
    (**HIGH**, 2026-08-28, affected `< 0.28.0`): the LlavaOnevision2 processor
@@ -132,15 +130,15 @@ Gated repos need `HF_TOKEN` in the runtime env in every pattern, even with local
    of the model directory is the real boundary; the flag is a second line, not
    the first.
 
-5. **`TRANSFORMERS_CACHE` is deprecated.** Rename legacy scripts to use `HF_HOME` (and let `HF_HUB_CACHE` default). Setting the old var still works but emits `FutureWarning`.
+4. **`TRANSFORMERS_CACHE` is deprecated.** Rename legacy scripts to use `HF_HOME` (and let `HF_HUB_CACHE` default). Setting the old var still works but emits `FutureWarning`.
 
-6. **YAML CLI positional beats config `model:`.** `vllm serve /local/path --config prod.yaml` uses `/local/path` regardless of what `prod.yaml` says. Intentional but surprising.
+5. **YAML CLI positional beats config `model:`.** `vllm serve /local/path --config prod.yaml` uses `/local/path` regardless of what `prod.yaml` says. Intentional but surprising.
 
-7. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
+6. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
 
-8. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.3.3` — the `vllm[fastsafetensors]` extra — + `libnuma-dev`; no env-var toggle exists in vLLM source).
+7. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.3.3` — the `vllm[fastsafetensors]` extra — + `libnuma-dev`; no env-var toggle exists in vLLM source).
 
-9. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
+8. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
 
 For more failure modes and the fuller troubleshooting flow (first-boot hang, revision-check failure detection, tokenizer mismatch diagnosis), see `references/troubleshooting.md`.
 

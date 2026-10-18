@@ -2,6 +2,18 @@
 
 Load when the deployment can't reach `huggingface.co` directly. Covers the three working patterns (fully offline, internal mirror, ModelScope), the staging workflow, gated-model handling, and the failure modes specific to offline operation.
 
+## Contents
+
+- [The three patterns](#the-three-patterns)
+- [Staging workflow — what files must be in the cache](#staging-workflow--what-files-must-be-in-the-cache)
+- [Gated models offline](#gated-models-offline)
+- [Disabling every phone-home](#disabling-every-phone-home)
+- [Benchmark datasets offline](#benchmark-datasets-offline)
+- [Common failure modes](#common-failure-modes)
+- [Mirror dependency floors (v0.27 – v0.32)](#mirror-dependency-floors-v027--v032)
+- [Container image considerations](#container-image-considerations)
+- [References](#references)
+
 ## The three patterns
 
 ### Pattern A — fully offline with pre-seeded cache
