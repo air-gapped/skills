@@ -34,8 +34,8 @@ This skill's job: given a symptom, identify whether it's a template, a parser, a
 
 vLLM picks a chat template in this order. First hit wins. Source: `resolve_chat_template()` in `vllm/renderers/hf.py`.
 
-1. **Chat template silently ignored.** `--tokenizer-mode mistral` ignores `--chat-template` with a warning only (#25401); gpt-oss ignores it by design (#23015). Symptom: edit template, nothing changes. Fix: Mistral → HF tokenizer mode, or accept the built-in Mistral template as canonical; gpt-oss → `/v1/responses`.
-2. **`skip_special_tokens=true` strips control tokens before the reasoning parser.** Qwen3 reasoning, gpt-oss harmony. Fix: `extra_body={"skip_special_tokens": false}` per request. Gemma-4 (#38855) also needs a re-pulled HF template, not only a vLLM upgrade — §Gemma-4 in `model-families.md`.
+1. **`--chat-template <path-or-name>` CLI flag** — highest. Path to a `.jinja` file, literal Jinja string, or a named template (`"tool_use"`) that the tokenizer knows.
+2. **AutoProcessor chat template** — only consulted when the request has `tools=None`. Multimodal models often expose their template via the processor, not the tokenizer.
 3. **AutoTokenizer `chat_template`** — the one shipped in `tokenizer_config.json`.
 4. **Bundled fallback in `vllm/transformers_utils/chat_templates/`** — at v0.32.0, **14 model types** mapping onto 7 shipped `.jinja` files: blip-2, clip, colpali, deepseek_ocr, deepseek_ocr2, unlimited-ocr, unlimited_ocr, deepseek_vl_v2, minicpmv, minicpmv4_6, minicpmv4_7, paligemma, siglip, siglip2. No `fuyu` (model dropped in v0.26.0) and no `qwen`/Qwen-VL entry — a Qwen checkpoint with its template stripped has no fallback. Source: `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK` in `chat_templates/registry.py`.
 
@@ -99,9 +99,9 @@ Commit-gated models (Kimi-K2) require minimum HF revision — check `references/
 
 Consult this list for any "broken chat template" symptom. Most reports reduce to one of these.
 
-1. **Chat template silently ignored.** Mistral in `--tokenizer-mode mistral` (#25401), reportedly gpt-oss (#23015). Warning-only. Symptom: edit template, nothing changes. Fix: switch to HF tokenizer mode, or accept that the built-in Mistral template is canonical.
+1. **Chat template silently ignored.** `--tokenizer-mode mistral` ignores `--chat-template` with a warning only (#25401); gpt-oss ignores it by design (#23015). Symptom: edit template, nothing changes. Fix: Mistral → HF tokenizer mode, or accept the built-in Mistral template as canonical; gpt-oss → `/v1/responses`.
 
-2. **`skip_special_tokens=true` strips control tokens before reasoning parser.** Qwen3 reasoning, gpt-oss harmony — and formerly Gemma-4 (#38855, **fixed; closed 2026-06-15**). Fix: `extra_body={"skip_special_tokens": false}` per request. For Gemma-4 the real fix is two-sided — see the §Gemma-4 note in `model-families.md` before assuming a vLLM upgrade is enough.
+2. **`skip_special_tokens=true` strips control tokens before the reasoning parser.** Qwen3 reasoning, gpt-oss harmony. Fix: `extra_body={"skip_special_tokens": false}` per request. Gemma-4 (#38855) also needs a re-pulled HF template, not only a vLLM upgrade — §Gemma-4 in `model-families.md`.
 
 3. **`<think>` prefilled by the template → output carries only `</think>`.** DeepSeek-R1 / R1-Distill templates end the generation prompt with `<think>\n` (HF #144). This nulled `reasoning_content` only on vLLM ≤ v0.7.2 (#12999). **Since v0.7.3 (#13025) the `deepseek_r1` parser (and every `BaseThinkingReasoningParser`) treats all text before `</think>` as reasoning when `<think>` is absent**, so on current vLLM the prefill never empties the reasoning field. Reasoning null **and** chain-of-thought inside `content` on ≥ v0.7.3 means the parser did not split that response: confirm `--reasoning-parser` reached the server (startup log, wrapper/Helm args), capture raw output (debugging step 3), then work in `vllm-reasoning-parsers`. Do not swap `--chat-template` for this — the parser already tolerates the prefill either way. Only on ≤ v0.7.2: upgrade, or prepend `<think>` client-side before parsing.
 
