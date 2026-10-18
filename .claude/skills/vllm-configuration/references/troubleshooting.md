@@ -129,13 +129,12 @@ Check `max-num-batched-tokens` — it's often the actual constraint. If `max-num
 
 ### Service name collision
 
-Kubernetes injects `<SVC>_SERVICE_HOST` / `<SVC>_SERVICE_PORT` env vars into every pod in the namespace. A Service named `vllm` can collide with vLLM's `VLLM_` env var namespace in some versions. Rename to `vllm-api`, `inference`, etc.
+Symptom: startup fails with `ValueError: VLLM_PORT 'tcp://10.x.x.x:8000' appears to be a URI`. A Service named `vllm` makes Kubernetes inject `VLLM_PORT=tcp://<cluster-ip>:<port>` (plus `VLLM_SERVICE_HOST`, `VLLM_SERVICE_PORT`, `VLLM_PORT_<n>_TCP*`) into every pod started in the namespace after it. Rename the Service without a `vllm` prefix (`inference`, `llm-api`), or set `enableServiceLinks: false` in the pod spec. `vllm-api` still injects `VLLM_API_*` names: vLLM logs `Unknown vLLM environment variable detected` and raises under `--fail-on-environ-validation`.
 
 Verify in the pod:
 ```bash
 kubectl exec <pod> -- env | grep VLLM_ | sort
 ```
-Anything surprising (like `VLLM_SERVICE_HOST` or `VLLM_PORT` pointing at a cluster IP) is probably k8s injection.
 
 ### Torch compile cache cold on every pod restart
 

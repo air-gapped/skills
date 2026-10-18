@@ -145,7 +145,7 @@ Full recipe in `references/air-gapped.md`. The essentials:
 
 ## Critical pitfalls
 
-1. **Kubernetes Service named `vllm` poisons env vars.** Kubernetes injects `<SERVICE>_SERVICE_HOST` / `<SERVICE>_SERVICE_PORT` into every pod in the namespace. A Service named `vllm` collides with vLLM's `VLLM_` namespace and in some versions interferes. The vLLM docs explicitly warn against naming the service `vllm`. Name it `vllm-api` or `inference` instead.
+1. **Kubernetes Service named `vllm` poisons `VLLM_PORT`.** Kubernetes injects service-link env vars into every pod started in the namespace after the Service exists, including `VLLM_PORT=tcp://<cluster-ip>:<port>`. vLLM parses `VLLM_PORT` as an integer and fails startup with `ValueError: VLLM_PORT 'tcp://…' appears to be a URI`. Name the Service without a `vllm` prefix (`inference`, `llm-api`) or set `enableServiceLinks: false` in the pod spec. `vllm-api` still injects `VLLM_API_*` names, which vLLM warns about as unknown and rejects under `--fail-on-environ-validation`.
 
 2. **`HF_HUB_OFFLINE=1` needs the cache fully populated or first-request fails.** Include `config.json`, `tokenizer*`, `special_tokens_map.json`, `generation_config.json`, and any `modeling_*.py` referenced by `auto_map` — not just weights.
 
