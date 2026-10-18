@@ -56,6 +56,8 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Takeaway.** There is no universal policy. Document the policy choice in the parser docstring and test it explicitly.
 
+**Fix.** Bound the reasoning segment, not the response: set `thinking_token_budget` in the request body to cap reasoning tokens, so the run leaves reasoning through the parser's normal path instead of being cut mid-CoT ([#46727](https://github.com/vllm-project/vllm/pull/46727)). It is a port to Model Runner V2 from v0.28.0; MRV2 is the default for all models from v0.29.0, so on an older build confirm which runner is live before relying on it. It matters most on quantized checkpoints, whose long reasoning traces are the PR's stated motivation.
+
 ## 5. Nested `<think>` in output splits wrong
 
 **Repro.** Some distilled DeepSeek-R1 variants occasionally emit `<think>outer <think>inner</think> outer</think>` in certain edge cases (prompt bleed-through).
