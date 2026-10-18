@@ -4,9 +4,9 @@ Freshened: 2026-10-18 — every row probed at vLLM v0.32.0; 138 URLs swept, ever
 
 Records verification of ecosystem refs and versions. Verified via `gh api repos/<owner>/<repo>/releases/latest` and direct content probes.
 
-Last freshen pass: **2026-09-15** (prior: 2026-08-11, 2026-07-21, 2026-05-29, 2026-04-24)
+Earlier freshen passes: 2026-09-15, 2026-08-11, 2026-07-21, 2026-05-29, 2026-04-24.
 
-**Two structural changes, not version bumps.** GAIE v1.6.0 moved the full-featured EPP, Body-Based Routing and the latency predictor *out* of the gateway repo and into llm-d, and dropped the alpha `InferenceObjective` / `InferenceModelRewrite` / `EndpointPickerConfig` APIs — while llm-d v0.9.0 still pins GAIE v1.5.0, so the two sides of that split are not yet aligned in any released pair. Separately, `envoyproxy/ai-gateway` is now `theagentrouter/agent-router`: a different owner as well as a different name, so the old URL's 200 is a redirect, not continuity.
+**2026-09-15 pass — two structural changes, not version bumps.** GAIE v1.6.0 moved the full-featured EPP, Body-Based Routing and the latency predictor *out* of the gateway repo and into llm-d, and dropped the alpha `InferenceObjective` / `InferenceModelRewrite` / `EndpointPickerConfig` APIs — while llm-d v0.9.0 still pins GAIE v1.5.0, so the two sides of that split are not yet aligned in any released pair. Separately, `envoyproxy/ai-gateway` is now `theagentrouter/agent-router`: a different owner as well as a different name, so the old URL's 200 is a redirect, not continuity.
 
 ## Verified table (2026-10-18 pass)
 
