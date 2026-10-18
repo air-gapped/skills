@@ -7,6 +7,23 @@ Work-not-done log from skill-improver passes. "Open" = issues attempted or ident
 _None._ Nothing here is waiting on an absent ruling, credential, release, or
 measurement nobody can run.
 
+## Resolved this pass (2026-10-18, improve)
+
+Blind baseline 80 (snapshot of 84b81cd); self 79 → 85 over 5 keeps, 0 discards
+(cap reached, stopped early — no ceiling mapped). Final blind score and A/B
+comparator verdict: run by the operator.
+- Kept: pitfalls 5 and 9 cut to the action; detail stays in `commands.md` /
+  `troubleshooting.md`.
+- Kept: pitfall 4 points at the request-rate sweep, not a "concurrency sweep".
+- Kept: `bench-sweep.sh` resets prefix/MM/encoder caches before each rate
+  (needs `VLLM_SERVER_DEV_MODE=1` on the server).
+- Kept: Methodology B has an exhaustive done-condition (`failed == 0` per rate,
+  knee named per side).
+- Kept: `when_to_use` defers knob selection to `vllm-performance-tuning` /
+  `vllm-caching` and non-vLLM servers to `aiperf`.
+- Not done, on purpose: switching the sweep warmup to `--num-warmups` — it
+  replays the first sampled prompt only (`commands.md`).
+
 ## Resolved — 2026-09-15 (the intro stops restating the pitfalls)
 
 - **"Why this matters" collapsed to consequences and retitled.** It had been
