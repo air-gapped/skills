@@ -125,6 +125,72 @@ PRs to know:
 
 For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/issues/24799) and [#29821](https://github.com/vllm-project/vllm/issues/29821) fixes landed in the running version.
 
+## Execution-path changes by minor, v0.22.0 → v0.32.0
+
+Execution-path changes across these minors. These move the baseline a re-tune is
+measured against — re-benchmark across any of these boundaries rather than
+comparing to numbers taken before them.
+
+**v0.30.0 → v0.32.0:**
+
+- **Compile-pass sequence parallelism + AsyncTP removed** (#60517, v0.32.0). They were on by default at `-O2` for dense models with TP>1 (above a hidden-size threshold), so dense TP throughput can move across this upgrade with nothing changed. `pass_config` keys `enable_sp`, `fuse_gemm_comms`, `sp_min_token_num` now fail config validation — delete them. Model-level MoE SP is unaffected.
+- **DeepEP v2 auto-selects hybrid NVLink+RDMA by default** (#57991, v0.32.0); `VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=0` forces NVLink-only.
+- **`--max-num-active-seqs`** (#56758, v0.31.0) caps RUNNING admission without shrinking `max_num_seqs`-sized runner buffers and graphs.
+- **`max_num_seqs` not a multiple of 8 hit a max-load throughput cliff before v0.31.0** (#57355) — on older builds round it to a multiple of 8.
+- **`VLLM_ENGINE_ITERATION_TIMEOUT_S` removed** (#59781, v0.32.0) — it was already dead; drop it from manifests.
+
+**v0.26.0 → v0.27.0 (the flag-surface window — these break configs, not just numbers):**
+
+- **`--max-num-partial-prefills` / `--max-long-partial-prefills` removed**
+  (#49244, v0.27.0). A recipe carrying them no longer starts. They were V0
+  fields the V1 oracle already rejected, so nothing was lost.
+- **First-request compilation stalls are gone.** FA4 JIT warmup infrastructure
+  (#47451) plus runner-owned Triton kernel warmup before the first request
+  (#49903). A pre-v0.27.0 TTFT baseline that swallowed a cold JIT is not
+  comparable to one taken after.
+- **torch 2.13.0 / torchvision 0.28.0** (#48155, upstream-flagged as a breaking
+  environment change). Both AOT-compile gates are now satisfied by default, so
+  AOT and the mega-artifact are on unless explicitly disabled.
+- **Startup validation got stricter** and now fails fast instead of dying later:
+  `/dev/shm` too small for the shm ring buffer (#48879), cgroup memory limits
+  respected on all platforms (#49966), incompatible nested runtime overrides
+  rejected (#49247), DCP topology validation (#49777), better data-parallel
+  launch validation (#49124). Configs that "worked" by accident will now refuse
+  to boot — that is the fix, not a regression.
+- **`stream_interval` is a per-request sampling param** (#49754), so one
+  interactive client no longer forces `N=1` server-wide.
+- **`FusedMoE` renamed `FusedMoEFactory`** (#44941) — matters only if you import
+  it; no operator-facing flag changed.
+
+**v0.22.0 → v0.25.1:**
+
+- **Model Runner V2 became the default execution path, in three steps.**
+  Qwen3 (v0.22.0) → **+ Llama and Mistral dense models** (#43458, v0.23.0) →
+  **all dense models** (#44443, v0.25.0). MRv2 also gained a FlashInfer sampler
+  (#42472), breakable CUDA graphs (#44050), pipeline-parallel bubble
+  elimination (#42187), and full-CUDA-graph-compatible dynamic speculative
+  decoding (#45953). A throughput figure measured on a pre-MRv2 build is not
+  comparable to one taken after the switch for the same model.
+- **DeepEP v2 replaced v1** (#41183, v0.24.0), with follow-on token-bound and
+  topk-index fixes (#46404, #46432).
+- **Async EPLB is on by default** (#43219, v0.23.0). v0.24.0 then made
+  NCCL-based EPLB **rejected** in combination with async EPLB (#44978) — a
+  config that used to start will now fail fast.
+- **Sequence parallelism no longer requires DP** (#47070, v0.25.0),
+  +1.9–5.0% E2E throughput — a lever that was previously unavailable in
+  non-DP deployments.
+- **`CUDA_VISIBLE_DEVICES` is no longer set internally**; use the new
+  `device_ids` argument (#45026, v0.24.0). Device-pinning wrappers need review.
+- **PagedAttention was removed entirely** (#47361, v0.25.0).
+- **The Transformers modeling backend is now as fast as native vLLM**
+  (#47187, v0.25.0) — the historical "always convert to a native
+  implementation for speed" reflex is worth re-testing.
+- Notable kernel wins if hunting single-digit percentages: batch-invariant
+  Cutlass FP8 **+28.9% E2E** (#40408, v0.22.0), CutlassFP8 padding
+  pre-processing **+13.5% TTFT** (#42651), SM90 CUTLASS FP8 odd-M `swap_ab`
+  **180–290% kernel** (#44572, v0.24.0), reduce-scatter MoE all-reduce
+  +3.1–3.2% E2E (#46635, v0.25.0).
+
 ## Defensive upgrade checklist
 
 Before bumping vLLM version:
