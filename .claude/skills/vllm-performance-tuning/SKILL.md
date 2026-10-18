@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.32.0** (2026-10-18), the latest stable. **v0.28.0 added a new ≥160 GiB device tier** (#51726) whose `vllm serve` default is 16384 — it did **not** raise the H100/H200 server default, which is still 8192. See `references/scheduler-and-compile.md` for all three tiers.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.32.0** (2026-10-18), the latest stable.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
@@ -24,7 +24,7 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 **Throughput / batching:**
 - **`auto_tune.sh`** (`benchmarks/auto_tune/`) sweeps `max_num_seqs × max_num_batched_tokens`.
 - **`--gpu-memory-utilization`** — raise from 0.90 toward 0.95 until steady OOM margin, then back off. MoE: cap at 0.85 (all-to-all buffers not in accounting).
-- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. **Know your starting point: the default is gated on BOTH device memory and entrypoint**, not a single number. Read from `vllm/engine/arg_utils.py` at tag v0.32.0:
+- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. The default is gated on **both** device memory and entrypoint (`vllm/engine/arg_utils.py`, v0.32.0):
 
   | Device | `vllm serve` (OpenAI API) | Offline `LLM(...)` |
   |---|---|---|
@@ -32,7 +32,7 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
   | ≥70 GiB non-A100 (H100/H200) | **8192** / seqs 1024 | 16384 / seqs 1024 |
   | everything else, incl. A100 | 2048 / seqs 256 | 8192 / seqs 256 |
 
-  **v0.28.0's "max_num_batched_tokens raised from 8192 to 16384" (#51726) did not change the serving default on H100/H200.** It raised the offline `LLM_CLASS` value and the big-memory tier. Taking that release note at face value and assuming your `vllm serve` default moved is the mistake to avoid — it is still 8192 there. TPU chips have their own smaller table (V6E 1024, V5E 512, V5P lower still, on the serving path).
+  **On H100/H200 the `vllm serve` default is still 8192.** v0.28.0's "raised from 8192 to 16384" note (#51726) applies only to the offline path and the new ≥160 GiB tier. TPU chips have their own smaller table (V6E 1024, V5E 512, V5P lower still, on the serving path).
 - **`--performance-mode {balanced,interactivity,throughput}`** — one flag for the whole posture; try it before hand-tuning the batching pair.
 
 **Latency / graph + compile:**
