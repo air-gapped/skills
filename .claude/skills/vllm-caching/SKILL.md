@@ -270,6 +270,17 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 - LMCache repo `benchmarks/multi_round_qa/multi-round-qa.py` — stateful multi-turn chat, closer to agentic pattern
 - LMCache CLI `lmcache bench engine --workload long-doc-permutator` — 5-axis stress (blended context boundaries, eviction, vocab, prefix domination, concurrency). Requires `lmcache` CLI on PATH (bundled in v0.14.0+ images but check — on CUDA 13 images the CLI may fail to import c_ops if built against CUDA 12, see LMCache #2843).
 
+## Done when — authoring or auditing a KV-cache config
+
+The recipe is finished only when every item holds for the exact tag deployed:
+
+1. Every cache-related flag and env var in the serve args is accounted for: available at that tag (version gates), not removed (`--calculate-kv-scales`, `--mamba-cache-mode all`, `VLLM_PREFIX_CACHE_RETENTION_INTERVAL`), and not the weights flag `--cpu-offload-gb` standing in for KV offload.
+2. `--kv-offloading-size` is the TP-wide total in GiB; with LMCache, `LMCACHE_MAX_LOCAL_CPU_SIZE` agrees with it.
+3. `--disable-hybrid-kv-cache-manager` appears only for a connector without `SupportsHMA` or MoRI-IO WRITE mode on a hybrid.
+4. The image tag passed both bundling steps and is ≥ v0.22.0.
+5. Every row of "Known bugs" was rechecked and its avoidance applied.
+6. A validation run shows `external_prefix_cache_hits_total` rising and a non-zero `CPU_to_GPU_total_bytes`.
+
 ## External references
 
 - vLLM source: `vllm/v1/kv_offload/` (native), `vllm/distributed/kv_transfer/kv_connector/v1/` (all connectors), `requirements/kv_connectors.txt` (bundled backend pins)
