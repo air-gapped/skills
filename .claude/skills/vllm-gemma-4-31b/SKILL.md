@@ -19,39 +19,34 @@ semantics in **`vllm-configuration`**, the K8s/container manifest in
 
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
-`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20+, held at the 0.25.1 ceiling below.
+`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.29.0+ (version floor below).
 Pulls together measurements from a 2× H100 SXM5 80GB (NVLink) audit on
 2026-04-30 — **taken on vLLM 0.20.0
 and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
 
-> **Version ceiling (re-verified 2026-10-18 against v0.32.0): hold at vLLM
-> 0.25.1. Do not take 0.26.0 through 0.32.0.** The gating regression is
-> [#50159](https://github.com/vllm-project/vllm/issues/50159), still **OPEN**
-> with no fix PR: Model Runner V2 over-reports available KV → CUDA OOM under
-> saturating load; crashes earlier with EAGLE. Two independent A/B runs
-> localise it to **CUDA-graph capture headroom**, not KV capacity — MRv1
-> reserves ~0.65 GiB for capture where MRv2 reserves ~0.12 GiB, and the gap
-> disappears under `--enforce-eager`. Severity scales with model size and
-> inversely with card size. `VLLM_USE_V2_MODEL_RUNNER=0` (present at v0.32.0)
-> forces MRv1; a ceiling lift on that basis needs its own soak test.
+> **Version floor: run vLLM 0.29.0 or newer; 0.30.0+ is the production line.**
+> Do not pin 0.25.1 or older: they carry the `<turn|>` / `enable_thinking`
+> bug ([#49955](https://github.com/vllm-project/vllm/issues/49955)) that
+> [#52430](https://github.com/vllm-project/vllm/pull/52430) fixed in v0.29.0,
+> and miss the 0.27.0+ ViT CUDA graph (#46837) and the 0.30.0+
+> multimodal-prefix Triton fix (#53147, fact #1).
 >
-> - [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
->   `<turn|>` leak, see the pitfall below): root cause fixed by
->   [#52430](https://github.com/vllm-project/vllm/pull/52430), first shipped in
->   **v0.29.0** (`vllm/parser/gemma4.py:425` at v0.32.0). The issue is still
->   open with no reporter confirmation on a release — verify on the target traffic.
-> - [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
->   `required` `tool_choice` unenforced; fix PR
->   [#51524](https://github.com/vllm-project/vllm/pull/51524) open) is **not**
->   a reason to stay on 0.25.1: the code path is identical from v0.24.0
->   through v0.32.0 (see the pitfall below), so 0.25.1 carries it too.
+> Known open issue on 0.26.0+, a headroom problem rather than a reason to
+> downgrade: [#50159](https://github.com/vllm-project/vllm/issues/50159).
+> Under saturating load, Model Runner V2 can run out of CUDA memory, and with
+> EAGLE it fails sooner. The cause is CUDA-graph capture headroom: MRv2
+> reserves ~0.12 GiB for capture where MRv1 reserves ~0.65 GiB. It is worst
+> on large models on small cards. Pick one mitigation:
+> - leave ≥0.5 GiB/GPU more margin than MRv1 needed (lower
+>   `--gpu-memory-utilization` by ~0.01 on 80 GB cards);
+> - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (present through v0.32.0);
+> - `--enforce-eager` (removes the gap, costs decode speed).
 >
-> 0.27.0+ adds the **ViT CUDA graph** for `Gemma4ForConditionalGeneration`
-> ([#46837](https://github.com/vllm-project/vllm/pull/46837)); v0.30.0+ the
-> multimodal-prefix Triton fix (#53147, fact #1). Both are multimodal-only
-> and not worth taking #50159 for — re-evaluate when it closes.
+> [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
+> `required` `tool_choice` unenforced, fix PR #51524 open) affects every
+> version from v0.24.0 on (see the pitfall below).
 
 ## Three load-bearing facts
 
@@ -268,7 +263,7 @@ random, 50–72% on MT-Bench). A collapsed number has two known causes:
 
 | Engine | Status | Action |
 |---|---|---|
-| ≤ v0.28.x (includes the 0.25.1 ceiling) | affected — [#49955](https://github.com/vllm-project/vllm/issues/49955) | send `enable_thinking` explicitly on **every** request |
+| ≤ v0.28.x | affected — [#49955](https://github.com/vllm-project/vllm/issues/49955) | send `enable_thinking` explicitly on **every** request |
 | v0.29.0+ | root cause fixed by [#52430](https://github.com/vllm-project/vllm/pull/52430); #49955 still open, unconfirmed on a release | keep sending `enable_thinking` explicitly; run the test below |
 
 Mechanism: the template defaults `enable_thinking` to `false` while the

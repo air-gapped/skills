@@ -32,8 +32,8 @@
     },
     {
       "id": 5,
-      "question": "Which vLLM release is the last safe version for Gemma 4 31B, and which releases are known-bad?",
-      "skill_answer": "Hold at 0.25.1; avoid 0.26.0, 0.27.0, 0.27.1"
+      "question": "Which vLLM version floor does the skill set for Gemma 4 31B, and why not 0.25.1?",
+      "skill_answer": "0.29.0+ (0.30.0+ production); 0.25.1 and older carry the #49955 <turn|>/enable_thinking bug fixed in v0.29.0"
     },
     {
       "id": 6,

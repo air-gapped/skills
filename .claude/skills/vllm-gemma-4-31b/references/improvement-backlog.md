@@ -64,6 +64,16 @@ startup, `<turn|>` leak, `tool_choice` ignored, AWQ chat template, EAGLE3
 acceptance) to the trigger text. Not applied — same author mandate. Use
 `trigger` mode to measure misses.
 
+### 4. No "hold at 0.25.1" version ceiling (operator decision 2026-10-18)
+
+**Pointer:** `SKILL.md` "Version floor" callout
+
+**Decision:** the operator runs Gemma 4 31B on vLLM 0.30.0 in production and
+has ruled the 0.25.1 ceiling out. The skill states a floor (0.29.0+, the
+#49955 fix) and treats #50159 as a headroom mitigation, not a downgrade
+reason. Do NOT reintroduce a ceiling from an open upstream issue; record new
+regressions as known issues with mitigations.
+
 ## Resolved this pass (2026-10-18, improve)
 
 Blind baseline 63 (snapshot of 68dca10); self 63 → 71 over 5 kept iterations,
