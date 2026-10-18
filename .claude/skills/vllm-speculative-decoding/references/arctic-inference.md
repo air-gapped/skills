@@ -27,7 +27,7 @@ Repo: <https://github.com/snowflakedb/ArcticInference>
 
 Suffix decoding was upstreamed via PR #25784 (v0.12, 2025-11-03) as
 `method: "suffix"`. vLLM's proposer is a thin wrapper around Arctic's
-`SuffixDecodingCache` (`vllm/v1/spec_decode/suffix_decoding.py:9-85`), so the
+`SuffixDecodingCache` (`vllm/v1/spec_decode/suffix_decoding.py:9-102`), so the
 plugin is still required at runtime (lazy imported; engine throws if missing).
 
 Paper: arXiv 2411.04975 (NeurIPS 2025). Project site:
@@ -113,9 +113,12 @@ based on `suffix_decoding_max_spec_factor × prefix_match_length`.
 
 ## Troubleshooting
 
-- `ImportError: arctic-inference is required for suffix decoding` — install
-  `pip install arctic-inference`; the error is raised in
-  `config/speculative.py:644-649` at engine start.
+- `ImportError: Arctic Inference is required for suffix decoding. Install via
+  pip install arctic-inference==0.1.1` — raised at engine start by
+  `SpeculativeConfig._validate_suffix_decoding` (`config/speculative.py:1596-1601`
+  at v0.32.0). vLLM only checks that `arctic_inference` imports; the `==0.1.1`
+  pin is message text. Pick the ArcticInference release whose notes name your
+  vLLM base.
 - Low AL on suffix method for a workload expected to benefit → inspect
   `suffix_decoding_max_cached_requests` (default 10000, but workloads with
   rare prompt repetition need it higher; 0 disables global cache entirely and

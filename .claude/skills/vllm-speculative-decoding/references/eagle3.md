@@ -22,20 +22,15 @@ Llama-3.1-8B-Instruct, BS=4, 80 MT-Bench prompts, H100.
 **Operator takeaway**: any EAGLE-3 vs EAGLE-1 comparison on vLLM < v0.11.1 is
 wrong. Upgrade before benchmarking.
 
-## Target-model allow-list
+## Target-model support
 
-Hard-coded in `vllm/config/speculative.py:895-909` (as of 2026-04-24; line
-numbers drift — grep `aux_hidden_states_supported` on upgrade). Only these
-target `model_type`s accept EAGLE-3 (and DFlash):
-
-```
-llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
-nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4
-```
-
-If the target isn't on this list, EAGLE-3 fails validation at engine
-start. Use `draft_model` (any target), `ngram_gpu` (any), or stick with
-`eagle` (v1/v2, no aux hidden states, laxer target requirements).
+No name allow-list (none in `vllm/config/speculative.py` at v0.32.0). A target
+accepts EAGLE-3 (and DFlash) when its model class implements
+`SupportsEagle3` (`vllm/model_executor/models/interfaces.py`); grep the model
+file for it. Without it, startup raises `RuntimeError("Model does not support
+EAGLE3 interface")` (`v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`). Then
+use `draft_model` (any target), `ngram_gpu` (any), or `eagle` (no aux hidden
+states).
 
 ## Checkpoint sources
 
@@ -50,7 +45,7 @@ Stock checkpoints are chat-tuned. Domain mismatch matters.
 - Hugging Face `yuhuili/models` and `RedHatAI/speculator-models` collections
 - Per-target classes in `vllm/model_executor/models/`:
   `llama_eagle3.py`, `deepseek_eagle3.py`, and auto-wrapped variants for
-  other allowed families
+  other `SupportsEagle3` families
 
 For **training your own** EAGLE-3 head — recipe families (Magpie+UltraChat,
 Open-PerfectBlend, ShareGPT/UC/PB mix, UltraChat-only, Nemotron, EagleChat),
@@ -59,10 +54,10 @@ sample sizes, and target-family guidance — see
 
 ## Auto-detection mechanics
 
-vLLM sets `method="eagle3"` automatically if:
-1. `"eagle3"` substring appears in the `model` field of `--speculative-config`
-   (`config/speculative.py:519`), OR
-2. The HF config has `eagle_aux_hidden_state_layer_ids` set
+vLLM sets `method="eagle3"` automatically only when `method` is unset and
+`"eagle3"` is a substring of the lower-cased `model` field of
+`--speculative-config` (`config/speculative.py:1335-1336` at v0.32.0). Setting
+`eagle_aux_hidden_state_layer_ids` in the HF config does **not** select it.
 
 **Gotcha**: mirroring a checkpoint locally and renaming the directory to
 drop the `eagle3` substring breaks auto-detection. Either keep the upstream
@@ -70,13 +65,14 @@ name or set `method: "eagle3"` explicitly.
 
 Aux-layer IDs live in `eagle_aux_hidden_state_layer_ids` (tuple of ints) in
 the drafter's HF config. vLLM reads them via
-`v1/worker/gpu/spec_decode/eagle/eagle3_utils.py:35-46`. Cache hashing
-(`config/speculative.py:221-229`) includes these IDs.
+`v1/worker/gpu/spec_decode/eagle/eagle3_utils.py::get_eagle3_aux_layers_from_config`.
+Cache hashing (`SpeculativeConfig.compute_hash`) includes these IDs.
 
 ## Tree vs chain
 
-The EAGLE proposer supports tree speculation via `speculative_token_tree`
-(string literal describing branch structure). Chain is the default.
+Tree speculation is gone: tree attention was removed in v0.21.0 (#42121) and
+a `speculative_token_tree` key now fails config validation. Chain is the only
+mode; the guidance below applies to builds before v0.21.0.
 
 Red Hat's "Fly Eagle(3) Fly" dev blog: "tree decoding underperforms greedy
 decoding in most deployment scenarios." The extra verification pass over

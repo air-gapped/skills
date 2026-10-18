@@ -14,15 +14,15 @@ drafter.
 
 This is the structural difference vs EAGLE. EAGLE is a *post-hoc distilled*
 drafter trained against a frozen target; MTP is *native* to the target. Both
-route through `EagleProposer` in vLLM (method="mtp" sets `use_eagle()` True at
-`config/speculative.py:883`), but their failure modes differ:
+route through the EAGLE path in vLLM (`SpeculativeConfig.use_eagle()` is True
+for `eagle`/`eagle3`/`mtp`/`dflash`/`dspark`), but their failure modes differ:
 EAGLE-3 fails on domain mismatch (chat-tuned head on code traffic); MTP
 inherits the target's domain coverage.
 
 ## Models in vLLM main today
 
 Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
-(line numbers drift). **22 aliases at v0.27.0**:
+(line numbers drift). **27 entries at v0.32.0** (26 model types + `mtp`):
 
 | Family | Model types | vLLM model file |
 |---|---|---|
@@ -43,6 +43,11 @@ Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
 | MiniMax-M3 | `minimax_m3_mtp` | `models/minimax_m3/*/mtp.py` |
 | **Kimi K3** (new, v0.26–v0.27) | `kimi_k3_mtp` | `models/kimi_k3/*/mtp.py` |
 | **Inkling** (new, v0.26–v0.27) | `inkling_mtp` | `models/inkling/*/mtp.py` |
+| dots3-note | `dots3_note_mtp` | arch `Dots3NoteMTPModel` |
+| Qwen4-Exp | `qwen4_exp_mtp` | remapped from `qwen4_exp` / `qwen4_exp_text` |
+| Bailing hybrid v3 | `bailing_hybrid_v3_mtp` | `bailing_moe_v3_mtp.py` (`BailingMoeV3MTPModel`) |
+| Hunyuan v4 | `hy_v4_mtp` | arch `HYV4MTPModel` |
+| GLM-5 Next | `glm5_next_mtp` | arch `Glm5NextMTPModel` |
 
 **All of these are deprecated aliases.** Users should set `method: "mtp"`;
 vLLM detects the target type and dispatches (PR #25232, v0.11.1).
@@ -54,13 +59,14 @@ The target's MTP head has a fixed width: `n_predict` (or
 ships `n_predict=1` by default; the V3 paper describes 4 heads but the public
 release uses 1. Qwen3-Next ships `n_predict=1`. Nemotron-H varies.
 
-Rule from `config/speculative.py:591-600`:
-`num_speculative_tokens` must be `None` OR a multiple of `n_predict`. If it
-exceeds `n_predict`, vLLM re-runs the MTP layer sequentially that many times.
-This is logged as:
+Rule from `config/speculative.py:1489-1501` (v0.32.0): unset defaults to
+`n_predict`; a value above `n_predict` must be divisible by it, else
+`ValueError: num_speculative_tokens:N must be divisible by n_predict=M`. Above
+`n_predict`, vLLM re-runs the MTP layer sequentially. Any value > 1 also logs
+(L1377-1385, skipped for `step3p5_mtp` / `inkling_mtp`):
 
-> method `mtp` with `num_speculative_tokens=%d` exceeds native `n_predict=%d`
-> and may result in lower acceptance rate.
+> Enabling num_speculative_tokens > 1 will run multiple times of forward on
+> same MTP layer,which may result in lower acceptance rate
 
 Practical implications:
 
@@ -77,16 +83,9 @@ Practical implications:
 
 ## Known rough edges (April 2026)
 
-**DeepSeek-V3.2 MTP + CUDA graphs** — `config/speculative.py:397-398`:
-
-```python
-# FIXME: V3.2 + MTP currently requires eager mode.
-if self.model_type == "deepseek_v32_mtp":
-    self.enforce_eager = True
-```
-
-No CUDA graphs means ~10-20% throughput hit on that path. Recheck on each vLLM
-upgrade; FIXME is tracked upstream.
+**DeepSeek-V3.2 MTP + CUDA graphs** — the old `deepseek_v32_mtp` →
+`enforce_eager = True` FIXME is gone (absent at v0.30.0 and v0.32.0). Remove
+any `--enforce-eager` a runbook added for it.
 
 **Active MTP bug cluster through v0.19** — release-notes scan shows these all
 landed in v0.11.x through v0.19.x:
@@ -118,7 +117,7 @@ DeepSeek-V3 tech report §4.5.2 reports 60–85% token-2 acceptance on their
 evaluation mix.
 
 No vLLM-team published benchmark post exists specifically for MTP as of April
-2026. Measure yourself with `examples/offline_inference/spec_decode.py`.
+2026. Measure yourself with `examples/features/speculative_decoding/spec_decode_offline.py`.
 
 ## Canonical invocation
 
@@ -143,8 +142,7 @@ Note: `model` field is not set — target model is the drafter.
 
 ## What about Kimi K2?
 
-Kimi K2 and K2.5 are in the EAGLE-3/DFlash aux-hidden-states allow-list
-(`config/speculative.py:829-830`) but there is no `kimi_k2_mtp` model file in
-`model_executor/models/` as of v0.19.1. Operators running K2/K2.5 can do
-EAGLE-3 speculation if a checkpoint exists, but not native MTP. Verify before
-assuming either capability.
+Kimi K2 / K2.5 have no MTP type (no `kimi_k2_mtp` in `MTPModelTypes` at
+v0.32.0); **Kimi K3** does (`kimi_k3_mtp`). For K2/K2.5 use EAGLE-3 if a
+checkpoint exists and the model class implements `SupportsEagle3`. Verify
+before assuming either capability.

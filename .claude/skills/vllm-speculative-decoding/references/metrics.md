@@ -5,8 +5,8 @@ diagnosing why measured throughput gain doesn't match expected AL.
 
 ## Metric surface
 
-Source of truth: `vllm/v1/spec_decode/metrics.py:154-198` (V1 engine). Four
-counters, one of them labeled.
+Source of truth: `vllm/v1/spec_decode/metrics.py`, class `SpecDecodingProm`
+(counters defined at L229-259 at v0.32.0). Four counters, one of them labeled.
 
 | Metric (base) | Type | Labels | Exported as |
 |---|---|---|---|
@@ -19,17 +19,18 @@ counters, one of them labeled.
 suffix on export (prometheus_client convention) — so PromQL must reference
 `vllm:spec_decode_num_drafts_total`, not `vllm:spec_decode_num_drafts`.
 
-In-memory aggregator (`SpecDecodingStats` at lines 17-46) is what feeds the
-engine log-line every `log-stats-interval`:
+In-memory aggregator (`SpecDecodingStats`, L18-50) feeds `SpecDecodingLogging`,
+which writes the engine log-line every `log-stats-interval` (format at v0.32.0):
 
 ```
-SpecDecoding metrics: Mean acceptance length: 2.73, Accepted: 12.4 tok/s,
-Drafted: 15.1 tok/s, Per-position acceptance rate: [0.89, 0.76, 0.61]
+SpecDecoding metrics: Mean acceptance length: 2.73, Accepted throughput: 12.40 tokens/s,
+Drafted throughput: 15.10 tokens/s, Accepted: 744 tokens, Drafted: 906 tokens,
+Per-position acceptance rate: 0.890, 0.760, 0.610, Avg Draft acceptance rate: 82.1%
 ```
 
 ## PromQL recipes
 
-The source comments in `metrics.py:122-139` are the canonical forms.
+The `SpecDecodingProm` docstring (`metrics.py:177-196`) holds the canonical forms.
 
 **Overall acceptance rate (0–1):**
 ```promql

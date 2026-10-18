@@ -43,7 +43,7 @@ across 466 published checkpoints.**
 
 | Situation | Pick | Why |
 |---|---|---|
-| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5, **Kimi K3**, **Inkling**, MiniMax-M3, Bailing-hybrid, Gemma 4) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL. Authoritative list: `MTPModelTypes` in `vllm/config/speculative.py` — 27 aliases at v0.30.0 |
+| Target ships MTP heads (DeepSeek V3/R1/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next, Qwen3.5, Nemotron-H, MiMo, ERNIE 4.5, EXAONE-MoE, LongCat-Flash, Pangu-Ultra-MoE, Step-3.5, **Kimi K3**, **Inkling**, MiniMax-M3, Bailing-hybrid, Gemma 4) | `mtp` | Heads trained during pretraining, no second checkpoint, best AL. Authoritative list: `MTPModelTypes` in `vllm/config/speculative.py` — 27 entries (incl. `mtp`) at v0.32.0 |
 | Qwen3 / Llama / DeepSeek / gpt-oss / Kimi K2 / Minimax M2 / Gemma 4 / Nemotron-H target on B200 class | `dflash` | Block-diffusion parallel drafter, 2.5–4.6× at BS=1, v0.19+ |
 | Same list above, want mature / pre-trained head | `eagle3` | Current SOTA model-based method for listed families (v0.11.1+) |
 | Agentic / code-editing / RL-rollout workload with repetition | `suffix` | Model-free suffix trees, 1.8–4.5× on SWE-Bench. Requires `pip install arctic-inference` |
@@ -56,7 +56,7 @@ across 466 published checkpoints.**
 Through ~v0.21 this was a 14-name allowlist in `vllm/config/speculative.py`
 (llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe,
 nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4).
-**At v0.27.0 that list is still gone from the file** (re-verified 2026-08-11). Support is now a *capability
+**At v0.32.0 that list is still gone from the file.** Support is now a *capability
 interface*: `SupportsEagle3` in `vllm/model_executor/models/interfaces.py`,
 checked by `supports_eagle3(model)` in
 `vllm/v1/worker/gpu/spec_decode/eagle/eagle3_utils.py`, which raises
@@ -108,7 +108,7 @@ interaction for MTP (multiples-of-N rule) in `references/mtp.md`.
 ## Acceptance-rate metric surface
 
 vLLM V1 emits four spec-dec metrics on `/metrics`
-(`vllm/v1/spec_decode/metrics.py:154-198`). Every production spec-dec deployment
+(`vllm/v1/spec_decode/metrics.py:229-259` at v0.32.0). Every production spec-dec deployment
 should scrape and dashboard all four:
 
 | Metric | Type | Purpose |
@@ -126,12 +126,14 @@ question low acceptance raises. From **v0.29.0**
 ([#48915](https://github.com/vllm-project/vllm/pull/48915), not in v0.28.0), start the server with
 `--per-request-spec-decode-metrics summary` (or `detailed`) and each response
 carries its own stats in the top-level `metrics` object under
-`speculative_decoding`, including `mean_acceptance_length`. **Off by default and
+`speculative_decoding`, including `mean_acceptance_length` — on the OpenAI
+endpoints, and from v0.31.0 also on `/inference/v1/generate` (#43310; streaming:
+final usage chunk only, with `stream_options.include_usage`). **Off by default and
 the response is byte-identical when off**, so turning it on is safe to trial and
 has to be turned on deliberately — it is a server-start flag, not per-request.
 Use it to attribute acceptance before tuning anything global.
 
-**PromQL recipes (from source comments in `metrics.py:122-139`):**
+**PromQL recipes (from the `SpecDecodingProm` docstring, `metrics.py:177-196`):**
 
 ```promql
 # Acceptance rate
@@ -200,8 +202,12 @@ perf. If operating off a build older than these, upgrade before benchmarking.
 | EAGLE-3 for Qwen3 (#43132); reduced TP comms for large-vocab drafts (#39419) | **v0.24.0** | |
 | **EAGLE3 + pipeline parallelism** on MRV2 (#50514); MTP under PP for sparse-MLA targets (#46994) | **v0.30.0** | Before this, `eagle3` + `pipeline_parallel_size > 1` was a hard-rejected combination (`vllm/config/vllm.py`). The draft's own parallel config is now always `pipeline_parallel_size=1` regardless of the target's PP degree — the drafter itself is never split across pipeline stages |
 | Draft's own `moe_backend` (#54788) and `attention_backend` (#54826) **actually honored on MRV2** | **v0.30.0** | The v0.19.0/v0.21.0 rows above only ever took effect on the legacy V1 speculator (`vllm/v1/spec_decode/`); Model Runner V2 (`vllm/v1/worker/gpu/spec_decode/eagle/utils.py`) silently forced the draft to inherit the target's backend until this fix |
-| **Adaptive verification** opened to every draft-model speculator via an online acceptance estimator (#52228) | **v0.30.0** | `enable_adaptive_verification: true` in `--speculative-config` previously required a DSpark checkpoint with a trained confidence head; now any MRV2 draft-model-based method (eagle3, dflash, draft_model, or dspark without a head) gets per-position acceptance predicted online from the draft logits. Incompatible with `use_local_argmax_reduction: true` |
+| **Adaptive verification** opened to every draft-model speculator via an online acceptance estimator (#52228) | **v0.30.0** | `enable_adaptive_verification: true` in `--speculative-config` previously required a DSpark checkpoint with a trained confidence head; now any MRV2 draft-model-based method (eagle3, dflash, dspark without a head; `draft_model` only from v0.31.0, when it moved to MRV2) gets per-position acceptance predicted online from the draft logits. Hard `ValueError` with `use_local_argmax_reduction: true`, LoRA, `pipeline_parallel_size > 1`, or a cudagraph mode without full graphs |
 | Dual-key Gumbel-max watermarking compatible with spec-dec (#56122) | **v0.30.0** | `--watermark-config '{"algorithm":"dual_key_gumbel",...}'` works with probabilistic-sampling, standard-rejection `eagle`/`eagle3`/`mtp`/`dspark`. Other algorithms need `"allow_target_only_watermarking": true` (dilutes the signal) |
+| **`draft_model` on Model Runner V2** (#43091) | **v0.31.0** | Default runner for `draft_model` now; at v0.32.0 the MRV2 standalone drafter still captures no CUDA graphs. ⚠ On v0.31.x, `use_heterogeneous_vocab: true` (TLI) also lands on MRV2, which has no vocab mapping → device-side assert at startup. Fix: v0.32.0 (#59541) falls back to V1; on v0.31.x set `VLLM_USE_V2_MODEL_RUNNER=0` |
+| Dense drafter (EAGLE/EAGLE3/`draft_model`) with an EP-enabled MoE target (#56930) | **v0.31.0** | On v0.30.x startup fails with *"Number of experts in the model must be greater than 0 when expert parallelism is enabled"*; the dense draft no longer inherits target EP |
+| **LiLiCorr** drafter (#57934) | **v0.31.0** | Not a new method: a `LiLiCorrDraftModel` checkpoint under `method: "dflash"`, MRV2 only. See `references/dflash.md` |
+| **`ngram` / `ngram_gpu` on Model Runner V2** (#40704) | **v0.32.0** | GPU n-gram speculator with variable-length drafts; before this, n-gram forced the V1 runner |
 
 ## Critical pitfalls
 
@@ -210,17 +216,23 @@ method-selection matrix covers TP constraints and the Arctic plugin
 requirement. The items below are the silent-behaviour and version-specific
 traps not captured by those.
 
-1. **Draft-model TP must equal target TP** — hard error at
-   `vllm/config/speculative.py:46-51`, root cause is torch.compile cache
-   corruption. Medusa and `mlp_speculator` instead silently force TP=1
-   (validation at line 731), so a TP=8 target with a Medusa drafter runs the
-   drafter serially. Undocumented.
+1. **Draft-model TP must equal target TP** — hard `ValueError` in
+   `vllm/v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch` (L63-77
+   at v0.32.0), root cause is torch.compile cache corruption. Keep them equal
+   on MRV2 too. `mlp_speculator` instead forces draft TP=1 when
+   `draft_tensor_parallel_size` is unset (`speculative.py::_verify_and_get_draft_tp`,
+   logs a warning), so a TP=8 target runs that drafter on one GPU. Medusa
+   inherits the target TP.
 2. **MTP `num_speculative_tokens` > model's native `n_predict`** must be a
-   *multiple* of `n_predict`; vLLM re-runs the MTP layer. Logged warning at
-   speculative.py:531-536 ("may result in lower acceptance rate"). DeepSeek-V3
-   ships `n_predict=1` so asking for 5 runs the layer 5× sequentially.
-3. **DeepSeek-V3.2 MTP forces `enforce_eager=True`** (speculative.py:397-398).
-   No CUDA graphs → ~10-20% throughput hit. Marked FIXME; recheck on upgrade.
+   *multiple* of `n_predict` — hard `ValueError` *"must be divisible by
+   n_predict"* (`speculative.py:1493-1501` at v0.32.0); vLLM re-runs the MTP
+   layer. Any value > 1 also logs *"will run multiple times of forward on same
+   MTP layer, which may result in lower acceptance rate"* (L1377-1385; not for
+   `step3p5_mtp`/`inkling_mtp`). DeepSeek-V3 ships `n_predict=1` so asking for
+   5 runs the layer 5× sequentially.
+3. **DeepSeek-V3.2 MTP no longer forces `enforce_eager=True`** (gone from
+   `config/speculative.py` by v0.30.0, still gone at v0.32.0). Remove any
+   `--enforce-eager` a runbook added for V3.2 MTP; it now only costs CUDA graphs.
 4. **DFlash requires `--attention-backend flash_attn`** — Triton and
    FlashInfer-TRTLLM don't support the non-causal cross-attention path.
 5. **MTP model-specific method names are deprecated.** `deepseek_mtp`,
@@ -236,7 +248,9 @@ traps not captured by those.
    `"use_heterogeneous_vocab": true` in `--speculative-config`, or the
    equal-vocab check still rejects the pair. It requires
    `method: "draft_model"` and `draft_sample_method: "greedy"` (the default);
-   both are hard `ValueError`s. See `references/methods.md`.
+   both are hard `ValueError`s. TLI runs only on the V1 runner: on v0.31.x
+   it crashes (device-side assert) unless `VLLM_USE_V2_MODEL_RUNNER=0`; v0.32.0
+   falls back to V1 automatically. See `references/methods.md`.
 8. **Quantization mismatch**: drafter in FP16 + target in FP8 is fine;
    drafter in INT4 + target in FP8 causes AL collapse. Align where possible,
    or measure before adopting. **DSpark exception (v0.27.1+):** the Markov head
@@ -267,7 +281,8 @@ its own `kv_cache_dtype` inside `--speculative-config` (#48787); unset means it
 inherits the target's `--kv-cache-dtype`.
 `Structured outputs + spec-dec` → v0.16.0+ (#33374). Prior: incompatible.
 `Disaggregated serving + spec-dec` → v0.17.0+ (#34529). KV-transfer fix #35158
-in v0.18.0.
+in v0.18.0. KV connector + MTP scheduler deadlock under KV pressure fixed in
+v0.31.0 (#57104) — upgrade if a P/D deployment with MTP stalls.
 `Multimodal + spec-dec` → v0.11.1 EAGLE/EAGLE3 on Qwen2.5-VL (#22872); text-only
 drafters auto-disabled for MM when mismatch (#25667); v0.19 multimodal
 embeddings for spec decode (#36097). Broad but spotty; check target family.
@@ -302,13 +317,8 @@ silent regressions after upgrade, and metric-interpretation pitfalls.
 
 ## External references
 
-Last verified: **2026-08-11**. Source claims are probed against **v0.27.0**
-(2026-08-10) except the DSpark Markov head, probed against **v0.27.1**
-(2026-08-11, current stable). vLLM source and PRs probed via `gh`;
-HF-checkpoint and Arctic-Inference rows carry older stamps — see
-`references/sources.md` for the per-row provenance table, classifications, and
-re-verification recipe. The **v0.27.1 container images** were pushed 2026-08-11 10:24-10:42Z, before the GitHub release at 10:47Z;
-pull `vllm/vllm-openai:v0.27.1` rather than waiting on a PyPI wheel.
+Source claims are probed against **v0.32.0**. Per-row provenance, check dates
+and the re-verification recipe: `references/sources.md`.
 
 - Main docs: <https://docs.vllm.ai/en/latest/features/speculative_decoding/>
 - Per-method docs: `/features/speculative_decoding/{eagle,mtp,draft_model,mlp,n_gram,suffix}/`
