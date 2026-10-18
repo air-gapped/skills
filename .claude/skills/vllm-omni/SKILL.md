@@ -112,22 +112,7 @@ uv pip install vllm-omni==0.30.0
 # OR: git clone -b v0.30.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 ```
 
-**Do not reach for upstream vLLM 0.31.x / 0.32.x here.** vllm-omni v0.30.0 is
-rebased on vLLM **0.30.0** and the minor must match, so this stack is on
-**PyTorch 2.13.0, FlashInfer 0.6.18.post1, torchvision 0.28.0** (vLLM v0.30.0
-`requirements/cuda.txt`) — vLLM v0.31.0/v0.32.0 moved to FlashInfer 0.7.0.post1.
-vllm-omni `requirements/common.txt` pins `transformers >= 5.13.0, < 5.15` (an
-upper bound: 5.15 has a reported model-construction regression) and
-`diffusers==0.40.0`.
-
-Python: the package declares **3.10–3.13** (`requires-python >=3.10,<3.14`);
-the quickstart uses 3.12 and the ROCm vLLM wheel is cp312-only, so default to
-3.12. Docker image: `vllm/vllm-omni:v0.30.0` (`-x86_64` / `-aarch64` variants
-per tag). ROCm images live in a **separate** repo, `vllm/vllm-omni-rocm`, whose
-newest stable is **v0.28.0** — a ROCm container on v0.30.0 does not exist; use
-the wheel path. Pin the exact tag: `latest` tracks the newest tag, rc included.
-Model-specific tags (`minimax-h3`, `qwen-image21`, `flux-3-image-klein`, …) and
-rolling `nightly` / `nightly-<commit>` tags are not releases.
+Resulting stack (vLLM v0.30.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.6.18.post1, torchvision 0.28.0, `transformers >= 5.13.0, < 5.15`, `diffusers==0.40.0`. Do not upgrade transformers to 5.15+ by hand (reported model-construction regression). Python 3.10–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). Docker model tags (`minimax-h3`, `qwen-image21`, …) and `nightly*` tags are not releases.
 
 ### Serving canonical forms
 
@@ -178,8 +163,6 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 | Metric | Value |
 |---|---|
-| Python | 3.10–3.13 declared; use 3.12 (ROCm wheel is cp312-only) |
-| Runtime pins (via vLLM 0.30.0) | PyTorch 2.13.0, FlashInfer 0.6.18.post1, `transformers >= 5.13.0, < 5.15`, diffusers 0.40.0 |
 | `/v1/realtime` input | PCM16 mono @ 16 kHz |
 | Qwen3-Omni audio output rate | 24 kHz |
 | Qwen3-TTS tokenizer rate | 12 Hz or 25 Hz |
