@@ -133,28 +133,33 @@ Please set `--disable-hybrid-kv-cache-manager`.
 
 If a deploy still hits that error on v0.23.0+, the cause is a connector genuinely lacking HMA support, not a missing flag — read the warning line vLLM emits, which names the connector.
 
-### Hybrid models (Qwen3.5, Gemma4, Mamba+attention) are a moving target
+### Hybrid models (Qwen3.5, Gemma-4, Mamba+attention)
 
-The blanket "HMA is mutually exclusive with KV offload" era ended with v0.21.0 (native offload gained HMA support) and v0.23.0 (HMA on by default for capable connectors). What remains is a per-path split:
+Pick in this order: native offload → native multi-tier (disk/object tier) → LMCache MP → never the in-process `LMCacheConnectorV1`.
 
-- **Native offload on hybrid models works** as of v0.21.0 (#41445 full HMA enablement, #41228 sliding-window groups, #39571 multi-connector HMA, #35520 Qwen3.5/Mamba support), and v0.23.0 made HMA the default for it. Serve Qwen3.5 / Gemma-4 / Mamba hybrids with `--kv-offloading-size` and no HMA flag.
-- **Gemma4 + spec-decode 0% prefix-cache hit rate is fixed** — [vLLM#40624](https://github.com/vllm-project/vllm/issues/40624) closed COMPLETED 2026-05-26. The old workaround (disable HMA + shrink `--max-model-len`) is no longer needed and now costs performance.
-- **LMCacheConnectorV1 (in-process) is still blocked on hybrids** — [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) remains open (last comment 2026-10-03). It doesn't declare `SupportsHMA`, so vLLM auto-disables HMA for it; the storage path then materializes a single-shape `MemoryObj.tensor` and fails on mixed attention groups. A community report on that thread (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) works around it by collapsing object groups; treat it as unverified-by-this-skill and see the `lmcache-mp` skill, where the flag is documented upstream.
-- **LMCache MP mode now supports hybrids officially** — LMCache 0.5.x ships a `LMCacheMPConnector` that declares `SupportsHMA`, with upstream recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6, DeepSeek-V4-Flash, GLM 5.1/5.2 and MiniMax-M3. If a hybrid model needs a tier LMCache provides, use MP mode, not the in-process connector. Details in the `lmcache-mp` skill.
-- **`MoRIIOConnector` (ROCm) gained sliding-window-hybrid support in v0.30.0, but WRITE mode still needs the flag** ([#53721](https://github.com/vllm-project/vllm/pull/53721), breaking change). READ mode now runs Gemma-4-style SWA+HMA hybrids with no flag; WRITE mode raises `NotImplementedError: MoRIIO WRITE mode does not support hybrid KV cache groups... Use READ mode, or pass --disable-hybrid-kv-cache-manager` (`vllm/distributed/kv_transfer/kv_connector/v1/moriio/moriio_connector.py:573` at v0.32.0). **Mamba/KDA hybrids gained READ-mode transfer in v0.31.0** ([#51052](https://github.com/vllm-project/vllm/pull/51052)) with startup-checked limits: exactly one transferable attention group, two Mamba states (conv + SSM), and DSpark as the only spec-decode method. WRITE mode on a Mamba hybrid fails with `set kv_connector_extra_config.read_mode=true`.
+| Path | Status at v0.32.0 | Action |
+|---|---|---|
+| Native offload (`OffloadingConnector`) | Works from v0.21.0; HMA on by default from v0.23.0 | Serve with `--kv-offloading-size` and no HMA flag. Do NOT apply the old Gemma-4 + spec-decode workaround (disable HMA + shrink `--max-model-len`): the 0% hit-rate bug (vLLM#40624) is fixed and the workaround now costs performance. |
+| LMCache MP (`LMCacheMPConnector`, lmcache ≥ 0.5.0) | Supported; upstream recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6, DeepSeek-V4-Flash, GLM 5.1/5.2, MiniMax-M3 | Use when a hybrid needs an LMCache tier. Needs a CUDA 13 image (`-cu129` bundles lmcache 0.4.4). Detail: `lmcache-mp`. |
+| LMCache in-process (`LMCacheConnectorV1`) | **Blocked**, LMCache#3106 open: no `SupportsHMA`, so HMA auto-disables and the single-shape `MemoryObj.tensor` fails on mixed attention groups | Never use on a hybrid. The object-group-collapsing workaround posted on #3106 is unverified; see `lmcache-mp`. |
+| `MoRIIOConnector` (ROCm), SWA hybrids | READ mode works from v0.30.0. WRITE raises `NotImplementedError: MoRIIO WRITE mode does not support hybrid KV cache groups` | Use READ mode, or pass `--disable-hybrid-kv-cache-manager` with WRITE. |
+| `MoRIIOConnector`, Mamba/KDA hybrids | READ mode from v0.31.0, startup-checked: one transferable attention group, two Mamba states (conv + SSM), DSpark the only spec-decode method. WRITE fails with `set kv_connector_extra_config.read_mode=true` | Set `kv_connector_extra_config.read_mode=true` and stay inside the checked limits. |
 
-- **`prefix_cache_retention_interval` defaults to 0 from v0.29.0** ([#52216](https://github.com/vllm-project/vllm/pull/52216), not in v0.28.0). This knob governs how often blocks are cached **for SWA and SSM models only** — `0` retains just the latest replayable prompt boundary, a positive `N` retains every `N` tokens. The default moved from unset to `0` to stop caching blocks that never get reused; Marconi-style retention still keeps the system prompt. It is also now a **CLI argument**; the `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` env var was deprecated at v0.29.0 and **removed outright at v0.30.0** ([#55353](https://github.com/vllm-project/vllm/pull/55353)) — on v0.30.0+ setting it does nothing, only `--prefix-cache-retention-interval` works. **Exception, in the same release: hybrid models running EAGLE or MTP get dense retention back automatically** ([#55760](https://github.com/vllm-project/vllm/pull/55760), [#55861](https://github.com/vllm-project/vllm/pull/55861)) — a spec-dec hybrid deployment sees no change and needs no flag. **Agentic workloads without spec-dec are where this bites** — long multi-turn prompts with a stable prefix. If hit rate drops there after a v0.29.0 upgrade, set a positive interval and re-measure before touching anything else. **v0.30.0 wires the same knob into `OffloadingConnector`'s scheduler** ([#51886](https://github.com/vllm-project/vllm/pull/51886), `vllm/distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py`) — a positive `--prefix-cache-retention-interval` now also gates which SWA/SSM chunks are offloaded to a native or multi-tier CPU/NVMe/p2p tier, not just in-GPU prefix caching, and vLLM now raises `ValueError` at startup if the interval isn't a multiple of the SWA group's `tokens_per_chunk`.
+**`--prefix-cache-retention-interval` (SWA and SSM models only).** From v0.29.0 the default is `0`: only the latest replayable prompt boundary is retained (the system prompt is still kept); a positive `N` retains every `N` tokens.
 
-- **v0.29.0 speeds up Mamba prefix caching by 9–25% TTFT, with no flag to set** ([#52789](https://github.com/vllm-project/vllm/pull/52789)). Prefills were being split at the last block boundary, costing a second forward pass over the tail; internal checkpoints remove the split. It is transparent, so it will not show up in a config diff — count it when deciding whether the upgrade is worth it for a Mamba or hybrid deployment.
+- Set it as the CLI flag. `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` is removed from v0.30.0 and does nothing.
+- Hybrids running EAGLE or MTP get dense retention automatically; they need no flag.
+- Agentic multi-turn traffic without spec-decode is where `0` bites. If prefix hit rate drops after an upgrade to v0.29.0+, set a positive interval and re-measure before changing anything else.
+- From v0.30.0 the interval also gates which SWA/SSM chunks `OffloadingConnector` offloads (native and multi-tier). It must be a multiple of the SWA group's `tokens_per_chunk`, or startup raises `ValueError`.
 
-**Today's recommendation for hybrid-model + offload:** native offload first (no HMA flag), native multi-tier if a disk/object tier is needed, LMCache MP if you specifically need LMCache, and never the in-process `LMCacheConnectorV1`.
+v0.29.0+ also cuts Mamba prefix-caching TTFT by 9–25% with no flag; count it when weighing an upgrade for a Mamba or hybrid deploy.
 
-Pure-transformer models (Qwen3-14B, Llama-3, Mistral-7B) are unaffected by this section — the standard offload recipes work on any v0.14.0+ tag.
+Pure-transformer models (Qwen3-14B, Llama-3, Mistral-7B) are unaffected; the standard offload recipes work on any v0.14.0+ tag.
 
-When rechecking, the canonical probe is:
+Recheck the hybrid state at a new tag:
 
 ```bash
-gh issue view 3106 --repo LMCache/LMCache --json state,updatedAt   # LMCacheConnectorV1 hybrid block — open 2026-10-18
+gh issue view 3106 --repo LMCache/LMCache --json state,updatedAt   # LMCacheConnectorV1 hybrid block
 # which connectors declare HMA support at a given tag:
 git -C <vllm-clone> grep -n "SupportsHMA)" v0.32.0 -- vllm/distributed/kv_transfer/kv_connector/v1/
 ```
