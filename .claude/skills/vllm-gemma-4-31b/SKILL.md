@@ -19,8 +19,9 @@ semantics in **`vllm-configuration`**, the K8s/container manifest in
 
 For platform engineers deploying `google/gemma-4-31B-it` (BF16, FP8) or its
 community quants (e.g. `cyankiwi/gemma-4-31B-it-AWQ-4bit`,
-`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20–0.25.1. Pulls together measurements
-from a 2× H100 SXM5 80GB (NVLink) audit on 2026-04-30 — **taken on vLLM 0.20.0
+`RedHatAI/*-Gemma-4-31B-*`) on vLLM 0.20+, held at the 0.25.1 ceiling below.
+Pulls together measurements from a 2× H100 SXM5 80GB (NVLink) audit on
+2026-04-30 — **taken on vLLM 0.20.0
 and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
@@ -169,6 +170,25 @@ Headline numbers (TP=2 PUSH):
 - Long ctx (16K/1K): **284 tok/s output @ c=128, ~193 ms TPOT, ~137s TTFT**
 - KV cache: 244K tokens at fp8 / 0.94 util
 - Saturation point: c=128 (engine self-caps in-flight at ~100)
+
+### H200 141GB — start point, not a measured recipe
+
+No H200 run backs a recipe here. Start from the H100 recipe for the workload,
+set `--max-num-seqs 128` (the H200 knee, fact #2), then find the knee and the
+util cliff on the target box — do not reuse the H100 values:
+
+```bash
+for c in 64 96 128 192; do
+  vllm bench serve --backend openai-chat --endpoint /v1/chat/completions \
+    --model cyankiwi/gemma-4-31B-it-AWQ-4bit --dataset-name random \
+    --random-input-len 4096 --random-output-len 512 \
+    --num-prompts 400 --num-warmups 5 --max-concurrency "$c"
+done
+```
+
+Keep the smallest `max_num_seqs` past which output tok/s stays flat while TPOT
+keeps rising. Raise `--gpu-memory-utilization` in 0.01 steps from 0.90 and stop
+at the first boot or capture OOM minus 0.01 (pitfalls below).
 
 ## Coming from gemma-3-27B-fp8
 
@@ -341,30 +361,20 @@ for multimodal traffic specifically, drop to 0.92 or 0.90.
 
 ## Stock parsers vs an out-of-tree Rust parser plugin
 
-The 2026-04-30 audit measured stock vLLM 0.20.0 + the new Google
-chat_template against an out-of-tree Rust parser plugin head-to-head on
-H100. Result:
+**Use the stock `gemma4` reasoning and tool parsers on vLLM ≥ 0.24.0** unless
+the client needs CoT visibility or hard forced-`tool_choice` guarantees. Stock
+caveats, both under Pitfalls: CoT is silently dropped on tool-turn
+continuations (no leak), and named/`required` `tool_choice` is parsed as
+`auto` with no grammar.
 
-- **Correctness**: stock + new chat_template now passes everything
-  the plugin passes (`xgrammar_schema_enforce`, `image_token_in_output`,
-  all 6 parser-suite + 9 multimodal-battery lanes).
-- **Throughput**: identical at noise floor (<1% delta).
-- **TPOT mean**: identical.
-- **TPOT P99**: plugin ~8-11% lower in 3 of 3 runs (Rust avoids
-  Python GIL/GC pauses) — small but consistent.
+Head-to-head on 2× H100 (vLLM 0.20.0, canonical template; thinking + tools and
+happy-path forced `tool_choice` re-checked on v0.25.1):
 
-**Supersession note (2026-08-02, updated same day after live A/B):**
-the 04-30 "stock passes everything" conclusion extends further than
-first thought. Verified on v0.25.1: stock handles the template-≥
-`68abe480` thinking+tools prefill with no CoT leak (see Pitfalls; the
-caveat is silent CoT drop, not leakage), and happy-path forced
-tool_choice (named + `required`) produced correct calls. Remaining
-stock caveats: forced tool_choice is parsed as `auto` with no grammar,
-so the model can answer in prose when it prefers ending its turn (see
-Pitfalls — happy-path probes don't stress this),
-and `reasoning_content` is empty on tool-turn continuations. **Stock
-parsers are the right call for tool-calling deployments on ≥ 0.24.0
-unless the client needs CoT visibility or hard forced-tool_choice guarantees.**
+| Measure | Result |
+|---|---|
+| Correctness | stock passes every lane the plugin passes (`xgrammar_schema_enforce`, `image_token_in_output`, 6 parser-suite + 9 multimodal lanes) |
+| Throughput, TPOT mean | identical within noise (<1%) |
+| TPOT P99 | plugin ~8-11% lower in 3 of 3 runs (no Python GIL/GC pauses) |
 
 ## References
 
