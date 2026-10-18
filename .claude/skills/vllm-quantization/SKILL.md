@@ -157,17 +157,33 @@ Both tools output a HF directory vLLM serves with `--quantization compressed-ten
 `modelopt/torch/speculative/{eagle,dflash,medusa,plugins}/`, examples in
 `examples/speculative_decoding/`. Recipes: `modelopt_recipes/general/speculative_decoding/{eagle3,dflash}.yaml`.
 
-**Critical constraint:** ModelOpt recipes assume **BF16 target** — not
-validated with an already-NVFP4 target (base wrapped in `torch.no_grad()`,
-so quantized target is theoretically workable but unvalidated). The order is:
+**Train the drafter against the BF16 base, never the quantized checkpoint.**
+ModelOpt recipes are BF16-target only; an NVFP4 target is untested (the base
+runs under `torch.no_grad()`) — treat it as unsupported. An existing
+NVFP4/FP8 checkpoint of that same base is kept and served as-is — spec-dec
+never requires re-quantizing or discarding it. Verdict on "you can't train
+speculators on a quantized model, so re-quantize everything": the first half
+is right, the second is wrong. The order is:
 
 ```
-1. Train drafter on BF16 target   (ModelOpt, ~4-12h on 8×H100)
+1. Train drafter on the BF16 base (ModelOpt, ~4-12h on 8×H100)
 2. Export drafter HF dir          (scripts/export_hf_checkpoint.py)
-3. PTQ target to NVFP4 or FP8     (ModelOpt or llm-compressor)
+3. PTQ target from that BF16 base (ModelOpt or llm-compressor) — skip if a
+   quantized checkpoint of that same base already exists
 4. (Optional) PTQ drafter too     (small, minimal accuracy cost)
-5. Serve both in vLLM             (--quantization modelopt_fp4 --speculative-config '{...}')
+5. Serve both in vLLM:
+   vllm serve <nvfp4-target> --quantization modelopt_fp4 \
+     --speculative-config '{"method":"dflash","model":"<drafter-dir>","num_speculative_tokens":7}'
+   # EAGLE-3: '{"method":"eagle3","model":"<drafter-dir>"}'
 ```
+
+**Pick the drafter — state the pick, don't leave it to the user:**
+
+| Target | Pick | Reason |
+|---|---|---|
+| Dense Qwen3 / Qwen3.5 (ModelOpt-validated), online training | **dflash** | ModelOpt ships a Qwen3-8B dflash example; its vLLM results reach acceptance length 3.0–5.1 per MT-Bench category at block size 8 (2.8× at TP=8 on H100) vs EAGLE-3's typical 2.5–3.5 at k=3 |
+| MoE (Qwen3-MoE), MLA (DeepSeek-V3, Kimi-K2), offline hidden-state training, or any family without a validated dflash recipe | **EAGLE-3** | ModelOpt dflash has no MoE draft, no MLA KV injection, no offline training |
+| Checkpoint ships MTP heads | **mtp** | no training needed |
 
 Medusa / MTP cannot be trained post-hoc — MTP heads are part of the
 pretraining (DeepSeek V3, Qwen3-Next, GLM-4.5 MoE, etc.). Full details +
