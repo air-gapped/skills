@@ -79,64 +79,17 @@ the upstream constraints that shape the answer.
    *same* code path — re-verified at v0.32.0). **Don't set
    `max_num_seqs` above the bandwidth knee** — it just inflates TPOT and
    TTFT without moving throughput.
-3. **The chat_template shipped with the cyankiwi quant is frozen, and the
-   gap is now measured — not assumed.** (The RedHatAI speculator ships no
-   `chat_template.jinja` at all, so it inherits whatever the base model
-   supplies.) On 2026-08-11
-   `cyankiwi/gemma-4-31B-it-AWQ-4bit/chat_template.jinja` still hashed
-   `94899c0f…25bff413` — **byte-identical to the canonical template as it
-   stood on 2026-04-30**. Canonical has moved twice in that window:
-
-   > **Revision-pin hazard (2026-07-21):** both cyankiwi repos
-   > (`gemma-4-31B-it-AWQ-4bit`, `gemma-4-31B-it-qat-AWQ-INT4`)
-   > **squashed their git history** — every pre-squash revision SHA now
-   > returns 404, so any `--revision` pin from before that date
-   > crash-loops on a cold boot with an empty HF cache. Current HEADs:
-   > `6f1b616c` (AWQ-4bit), `e0814036` (qat-AWQ-INT4). All config,
-   > tokenizer, and template files were verified byte-identical across
-   > the squash, so re-pinning needs no re-audit.
-
-   | Pulled | sha256 | Bytes |
-   |---|---|---|
-   | 2026-04-30 | `94899c0f…25bff413` | 16934 |
-   | 2026-05-28 | `36e3a42e…bead3f0` | 17466 |
-   | 2026-07-21 | `ae53464b…8de4c6d4` | 18683 |
-   | 2026-08-11 | `ae53464b…8de4c6d4` | 18683 (**held** — first pass with no drift) |
-
-   The current file opens with a Google-authored header: *"Published:
-   2026-07-09 — Fixed tool-calling loops, turn closures, and thinking
-   content-ordering."* 114 lines differ from the frozen copy. Serving the
-   quant's bundled template therefore silently gives up:
-
-   - `preserve_thinking` — new kwarg gating whether thinking content
-     survives past the last user turn on tool-call messages (absent
-     entirely in the frozen copy)
-   - the `continues_into_next` turn-closure fix — the frozen copy emits
-     duplicate `<|turn>model` markers on model→assistant continuations
-   - `<|channel>thought` re-opened after a `tool_response` when thinking
-     is on
-   - `argument is none` → renders `null`; the frozen copy falls straight
-     into the string branch
-   - `messages and messages[0]` guards against an empty message list
-
-   Serve the canonical template via `--chat-template`, but **pin the
-   vetted revision rather than blind-pulling `main` per deploy** —
-   currently google revision `68abe480` (2026-07-15, sha256
-   `ae53464b…8de4c6d4`, unchanged on `main` through at least 2026-08-11;
-   the one later commit `842da379` only added `response_template`
-   metadata to tokenizer_config.json). Template updates change
-   parser-facing behavior (see the thinking + tools pitfall below), so
-   re-hash `main` periodically and treat a hash change as a re-vet
-   trigger, not an auto-adopt. Unmerged upstream template PRs worth
-   watching before the next adoption:
-   [#137](https://huggingface.co/google/gemma-4-31B-it/discussions/137)
-   (keep tool-call reasoning across later user turns — prefix-cache win
-   on agent loops) and
-   [#140](https://huggingface.co/google/gemma-4-31B-it/discussions/140)
-   (multimodal placeholders emitted outside the tool_response block).
-   Do NOT strip the `\n` before `<channel|>` in local candidates —
-   Google measured 7%+ tool-calling regressions without it
-   ([#135](https://huggingface.co/google/gemma-4-31B-it/discussions/135)).
+3. **Serve Google's canonical chat template via `--chat-template`; never the
+   one bundled in the cyankiwi quant.** That bundled file is frozen at the
+   2026-04-30 canonical (`94899c0f…`), 114 lines behind, and silently drops
+   `preserve_thinking`, the turn-closure fix and the thought re-open after
+   `tool_response`. Pin google revision `68abe480` (sha256 `ae53464b…8de4c6d4`);
+   treat a hash change on `main` as a re-vet trigger, not an auto-adopt. Do NOT
+   strip the `\n` before `<channel|>` (7%+ tool-calling regression). A
+   pre-2026-07-21 `--revision` pin of a cyankiwi repo 404s (history squashed) —
+   re-pin to `6f1b616c` (AWQ-4bit) / `e0814036` (qat-AWQ-INT4). Defect list,
+   hash chain, re-vet commands and watched template PRs:
+   `references/chat-template-drift.md`.
 
 ## Decision guide — which TP for which workload
 
@@ -481,6 +434,7 @@ The following questions need a follow-up bench:
 ## References
 
 - `references/hbm-saturation.md` — vLLM source-code investigation, GH issues, the bandwidth-bound saturation explanation
+- `references/chat-template-drift.md` — canonical vs bundled template: defect list, vetted pins, re-vet commands, hash chain
 - `references/bench-numbers.md` — full benchmark table from the 2026-04-30 Verda audit, all 12+ data points
 - `references/sources.md` — dated index of upstream URLs (HF model + chat_template, vLLM source paths, GH issues / PRs) with `Last verified:` and `Pinned:` markers
 
