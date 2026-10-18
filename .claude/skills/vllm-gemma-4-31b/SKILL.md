@@ -25,57 +25,50 @@ and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
 
-> **Version ceiling (re-verified 2026-09-23 against v0.30.0): hold at vLLM
-> 0.25.1. Do not take 0.26.0 through 0.30.0.** Two of the three
-> gemma-4-relevant regressions are still **OPEN** through v0.30.0:
-> [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
-> `<turn|>` leaked into output — **not spec-decode-specific after all**, see
-> the pitfall below) has its **root cause fixed but is unconfirmed**: PR
-> [#52430](https://github.com/vllm-project/vllm/pull/52430) (merged
-> 2026-08-18, first shipped in **v0.29.0**) aligns the parser's
-> `enable_thinking` default with the template
-> (`vllm/parser/gemma4.py:424` at v0.29.0). #49955 itself is still **open**
-> with no reporter confirmation on a release; #50964 closed unmerged. Verify
-> on your own traffic before counting it cleared.
-> [#50477](https://github.com/vllm-project/vllm/issues/50477) (gemma4
-> parser silently ignores named forced `tool_choice`; a second reporter
-> extends it to `tool_choice: "required"`, which returns
-> `finish_reason: "tool_calls"` with prose in `content` and `tool_calls:
-> null` — fix PR [#51524](https://github.com/vllm-project/vllm/pull/51524)
-> open),
-> [#50159](https://github.com/vllm-project/vllm/issues/50159) (Model
-> Runner V2 over-reports available KV → CUDA OOM under saturating load;
-> crashes earlier with EAGLE — no fix PR at all). Two independent A/B runs
-> on #50159 now localise it: the gap is **CUDA-graph capture headroom**, not
-> KV capacity. MRv1 reserves ~0.65 GiB for capture where MRv2 reserves
-> ~0.12 GiB, and the whole discrepancy disappears under `--enforce-eager`.
-> Severity scales with model size and inversely with card size.
+> **Version ceiling (re-verified 2026-10-18 against v0.32.0): hold at vLLM
+> 0.25.1. Do not take 0.26.0 through 0.32.0.** The gating regression is
+> [#50159](https://github.com/vllm-project/vllm/issues/50159), still **OPEN**
+> with no fix PR: Model Runner V2 over-reports available KV → CUDA OOM under
+> saturating load; crashes earlier with EAGLE. Two independent A/B runs
+> localise it to **CUDA-graph capture headroom**, not KV capacity — MRv1
+> reserves ~0.65 GiB for capture where MRv2 reserves ~0.12 GiB, and the gap
+> disappears under `--enforce-eager`. Severity scales with model size and
+> inversely with card size. `VLLM_USE_V2_MODEL_RUNNER=0` (present at v0.32.0)
+> forces MRv1; a ceiling lift on that basis needs its own soak test.
 >
-> The one thing 0.27.0 does add for this model is the **ViT CUDA graph**
-> ([#46837](https://github.com/vllm-project/vllm/pull/46837), merged
-> 2026-07-25, listed in the v0.27.0 release notes): full
-> `SupportsEncoderCudaGraph` for `Gemma4ForConditionalGeneration`, making the
-> vision encoder 100% statically compiled by replacing the pooler's
-> data-dependent slicing with a fixed-shape gather. Relevant only to
-> multimodal traffic, and not worth taking the remaining two regressions for —
-> re-evaluate when #50477 and #50159 close.
+> - [#49955](https://github.com/vllm-project/vllm/issues/49955) (trailing
+>   `<turn|>` leak, see the pitfall below): root cause fixed by
+>   [#52430](https://github.com/vllm-project/vllm/pull/52430), first shipped in
+>   **v0.29.0** (`vllm/parser/gemma4.py:425` at v0.32.0). The issue is still
+>   open with no reporter confirmation on a release — verify on your traffic.
+> - [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
+>   `required` `tool_choice` unenforced; fix PR
+>   [#51524](https://github.com/vllm-project/vllm/pull/51524) open) is **not**
+>   a reason to stay on 0.25.1: the code path is identical from v0.24.0
+>   through v0.32.0 (see the pitfall below), so 0.25.1 carries it too.
+>
+> 0.27.0+ adds the **ViT CUDA graph** for `Gemma4ForConditionalGeneration`
+> ([#46837](https://github.com/vllm-project/vllm/pull/46837)); v0.30.0+ the
+> multimodal-prefix Triton fix (#53147, fact #1). Both are multimodal-only
+> and not worth taking #50159 for — re-evaluate when it closes.
 
 ## Three load-bearing facts
 
-1. **Gemma 4 has heterogeneous head_dim (256 dense / 512 attention)**, which
-   forces vLLM to use `TRITON_ATTN` backend, not FLASH_ATTN. This is
-   automatic — vLLM logs `Gemma4 model has heterogeneous head dimensions
-   (head_dim=256, global_head_dim=512). Forcing TRITON_ATTN backend to
-   prevent mixed-backend numerical divergence`. Don't try to override
-   with `--attention-backend FLASH_ATTN` — vLLM rejects it (`kv_cache_dtype
-   not supported`, `partial multimodal token full attention not supported`).
-   **v0.30.0+**: this TRITON_ATTN path got a multimodal-prefill fix —
-   sliding-window tile pruning was previously disabled whenever a
-   multimodal prefix range was present, scanning the full KV range instead
-   of the windowed one (`vllm/v1/attention/ops/triton_unified_attention.py`,
-   #53147). Fixed automatically, no flag; upstream measured up to
-   3-4x E2E / ~4x prefill speedup on a Gemma-4 multimodal workload. No
-   action needed beyond taking v0.30.0+ for multimodal traffic.
+1. **Gemma 4 has heterogeneous head_dim (256 sliding / 512 global)**, so
+   vLLM picks the attention backend itself (`Gemma4Config` in
+   `vllm/model_executor/models/config.py`). Leave `--attention-backend`
+   unset and read the startup log line `Gemma4 model has heterogeneous head
+   dimensions …`:
+   - `FA4 not available, forcing TRITON_ATTN backend` — every layer on
+     Triton. This is the path the v0.20.0 audit and its numbers ran on.
+   - `Using FA4 for all layers …` — FA4 available, not the SM90 + FP8-KV case.
+   - **v0.31.0+, H100/H200 with `--kv-cache-dtype fp8`** (both recipes):
+     `Using per-layer FA3/FA4 selection for FP8 KV cache on SM90` — causal
+     text runs FA3 (256) / FA4 (512); multimodal-prefix requests run
+     TRITON_ATTN (#53175). A different kernel path: re-bench, do not reuse
+     these numbers. The Triton path gained the multimodal-prefix
+     sliding-window fix in v0.30.0 (#53147, up to 3-4x E2E) and the FP8-KV
+     softmax-underflow fix in v0.32.0 (#60156) — automatic, no flag.
 2. **Throughput plateaus at batch=64 on H100, batch=128 on H200.** This is
    *not* a hardcoded vLLM cap — it's HBM-bandwidth-bound saturation. H100
    SXM5 has ~3.35 TB/s HBM3, H200 has ~4.8 TB/s HBM3e (~43% more). The
@@ -83,7 +76,7 @@ the upstream constraints that shape the answer.
    `references/hbm-saturation.md` for the source-code investigation
    (`get_batch_defaults()` in vllm/engine/arg_utils.py is the only
    hardware-aware batch default in the engine; H100 and H200 take the
-   *same* code path — re-verified at v0.25.1). **Don't set
+   *same* code path — re-verified at v0.32.0). **Don't set
    `max_num_seqs` above the bandwidth knee** — it just inflates TPOT and
    TTFT without moving throughput.
 3. **The chat_template shipped with the cyankiwi quant is frozen, and the
@@ -237,8 +230,8 @@ bench (see "What was NOT measured" below).
    ~27 GB). Less benefit from TP weight-splitting since weights already
    fit comfortably on one H100 with KV headroom.
 2. **TRITON_ATTN backend has different TP scaling than FLASH_ATTN**.
-   gemma-3 uses FLASH_ATTN (homogeneous head_dim); Gemma 4 forces
-   TRITON_ATTN — different per-rank communication characteristics.
+   gemma-3 uses FLASH_ATTN (homogeneous head_dim); Gemma 4 ran TRITON_ATTN
+   on the 0.20.0 audit — different per-rank communication characteristics.
 3. **EAGLE3 spec-dec compute scales asymmetrically with TP**. The drafter
    weights are also sharded across TP ranks; for a small drafter (4.5 GB
    BF16 split across 2 cards) the per-rank compute is small, but the
@@ -288,30 +281,31 @@ opener shape.
 
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
-vLLM's xgrammar backend builds its stop-token set from the tokenizer
-`<eos>` only — generation_config's extra eos ids 106 (`<turn|>`) and 50
-(`<|tool_response>`) are ordinary tokens to the grammar, so their texts
-are matchable through any region admitting `<` and the constraint can
-terminate without a conforming tool call. Root-caused 2026-07-18
-(request-level bisect); the same failure class is reported upstream as
-[#50477](https://github.com/vllm-project/vllm/issues/50477). Treat
-forced `tool_choice` output as unvalidated on stock — check the tool
-call actually materialized before acting on it. Auto tool choice is
-unaffected. (2026-08-02 live probes on v0.25.1: named + `required` both
-produced correct calls on a happy-path prompt — but that shape doesn't
-stress the failure mode, which needs the model *preferring* to end its
-turn; keep validating.)
+From v0.24.0 through v0.32.0 the gemma4 tool parser sets
+`supports_required_and_named = False`
+(`vllm/tool_parsers/gemma4_engine_tool_parser.py`): named and `required`
+`tool_choice` get **no grammar** and are parsed as `auto`. A model that
+prefers prose answers in prose — HTTP 200, `finish_reason: "tool_calls"`,
+`tool_calls: null` ([#50477](https://github.com/vllm-project/vllm/issues/50477);
+fix PR #51524 open). Upstream: task-description system prompts trigger it.
+Where a grammar *is* applied, xgrammar's stop set is tokenizer `<eos>`
+only — eos ids 106 (`<turn|>`) and 50 (`<|tool_response>`) stay matchable,
+so it can still end without a call. Treat forced `tool_choice` output as
+unvalidated: check the tool call materialized before acting on it.
+(2026-08-02 v0.25.1 happy-path probes produced correct calls; that shape
+does not stress the failure — keep validating.)
 
-### EAGLE3 + TP=2: verify acceptance rate after every engine upgrade
+### EAGLE3: verify acceptance rate after every engine upgrade or traffic change
 
-[#50158](https://github.com/vllm-project/vllm/issues/50158) (open,
-2026-08): the EAGLE drafter's embed_tokens-sharing decision is made
-per-rank without cross-rank agreement, so TP ranks can build *different*
-drafters and acceptance collapses to ~0.45/draft — spec-decode still
-"works" but silently loses most of its win. Both recipes below are
-TP-capable EAGLE3 shapes. Check the engine's acceptance metric against
-the baseline (~43% on random, 50–72% on MT-Bench); a collapsed number
-means you're hit.
+Check the engine's acceptance metric against the baseline (~43% on
+random, 50–72% on MT-Bench). A collapsed number has two known causes:
+- **Non-English traffic.** `RedHatAI/gemma-4-31B-it-speculator.eagle3`
+  has `draft_vocab_size: 32000` drawn from English data; it cannot emit
+  most non-English tokens, so acceptance collapses by construction
+  (~0.45/draft at K=3 on Russian). Run without spec-decode or use a
+  drafter trained on your language.
+- **TP ranks disagree.** [#50158](https://github.com/vllm-project/vllm/issues/50158)
+  (open; fix PR #50280 open): embed_tokens sharing is decided per-rank.
 
 ### A trailing `<turn|>` can leak into streamed output — root cause fixed in v0.29.0
 
@@ -319,7 +313,7 @@ means you're hit.
 but its root cause — the parser defaulting `enable_thinking` to `True` while
 the template defaults `false` — is fixed by
 [#52430](https://github.com/vllm-project/vllm/pull/52430), shipped in
-**v0.29.0** (`vllm/parser/gemma4.py:424`:
+**v0.29.0** (`vllm/parser/gemma4.py:425` at v0.32.0:
 `chat_kwargs.get("enable_thinking", False)`). No reporter has confirmed it on a
 release yet. Below applies in full to ≤ v0.28.x.
 
@@ -383,7 +377,7 @@ one of `dflash_config.mask_token_id` / `pard_token` / `ptd_token_id` in
 the draft `config.json` (checked in that order at v0.25.1, re-verified
 2026-07-21; grep `parallel_drafting_token_id` rather than a line number).
 Don't pass `parallel_drafting:true` with the vanilla checkpoint — engine
-init will fail with exactly that `ValueError` — **at v0.30.0 it names five keys**, `dflash_config.mask_token_id`, `mask_token_id`, `dspark_noise_token_id`, `pard_token`, `ptd_token_id` (`vllm/v1/spec_decode/llm_base_proposer.py:365-382`).
+init will fail with exactly that `ValueError` — **at v0.32.0 it names five keys**, `dflash_config.mask_token_id`, `mask_token_id`, `dspark_noise_token_id`, `pard_token`, `ptd_token_id`.
 
 ### MTP (`gemma-4-31B-it-assistant`) — 0% acceptance on quantized targets
 
@@ -392,14 +386,13 @@ number is **BF16-target**: the drafter reads the *target model's
 activations* and shares its KV cache, so pairing the BF16 assistant with
 an AWQ-4bit target measured **0% acceptance at every position**
 (2026-05-06 head-to-head, ~37k drafted tokens all rejected) — throughput
-0.26–0.39× of EAGLE3, worse than no spec-decode at all. Also: gemma-4
-MTP support is still nightly-only — **no stable release through v0.30.0
-carries it** (no v0.26.0 through v0.30.0 release notes list a Gemma-4 MTP
-entry), and on any nightly build pre-dating the v0.29.0 fix, MTP is an
-amplifier of the trailing `<turn|>` leak above. The community DSpark speculator
+0.26–0.39× of EAGLE3, worse than no spec-decode at all. Gemma-4 MTP
+ships in stable releases since **v0.21.0** (#41745; MRv2 since v0.23.0,
+#43241). On builds before v0.29.0, MTP amplifies the trailing `<turn|>`
+leak above. The community DSpark speculator
 (`RedHatAI/gemma-4-31B-it-speculator.dspark`) still fails to load at all
 ([#49475](https://github.com/vllm-project/vllm/issues/49475), re-checked
-2026-08-11 — still OPEN). Note what *did* ship: v0.26.0 added a
+2026-10-18 — still OPEN). Note what *did* ship: v0.26.0 added a
 **Gemma4-12B** DSpark draft model (#47216, for
 `deepseek-ai/dspark_gemma4_12b_block7`) — a different model size and a
 different checkpoint, so it does not unblock the 31B path.
@@ -455,9 +448,9 @@ first thought. Verified on v0.25.1: stock handles the template-≥
 `68abe480` thinking+tools prefill with no CoT leak (see Pitfalls; the
 caveat is silent CoT drop, not leakage), and happy-path forced
 tool_choice (named + `required`) produced correct calls. Remaining
-stock caveats: the xgrammar stop-token-set gap means forced tool_choice
-can still terminate through stop-token *text* when the model prefers
-ending its turn (see Pitfalls — happy-path probes don't stress this),
+stock caveats: forced tool_choice is parsed as `auto` with no grammar,
+so the model can answer in prose when it prefers ending its turn (see
+Pitfalls — happy-path probes don't stress this),
 and `reasoning_content` is empty on tool-turn continuations. **Stock
 parsers are the right call for tool-calling deployments on ≥ 0.24.0
 unless you need CoT visibility or hard forced-tool_choice guarantees.**
@@ -474,10 +467,10 @@ The following questions need a follow-up bench:
 2. **No-spec-dec baseline**. Operator brief was EAGLE3-only; if real
    acceptance drops below ~30% on prod traffic, no-spec might be
    competitive on aggregate throughput at high concurrency.
-3. **AWQ-Marlin kernel** vs vanilla AWQ. Marlin is faster mid-batch on
-   H100; cyankiwi quant uses compressed-tensors format which dispatches
-   to Marlin automatically when available, but worth confirming via the
-   `[compressed_tensors_wNa16] Using MarlinLinearKernel` log line.
+3. **Which WNA16 kernel ran.** The cyankiwi quant is compressed-tensors;
+   read the `Using <Kernel> for CompressedTensorsWNA16` startup line. On
+   SM90, v0.32.0 ranks Humming ahead of Marlin (#56997; order Machete →
+   Humming → Marlin), so the kernel can differ from the 0.20.0 audit's.
 4. **TP=4 hypothetical**. Would need a 4-H100 SKU. The bandwidth-bound
    knee should shift again, but TP communication overhead grows
    non-linearly past TP=2.

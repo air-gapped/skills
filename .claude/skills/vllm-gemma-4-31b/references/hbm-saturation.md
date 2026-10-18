@@ -17,10 +17,11 @@ HBM bandwidth = different saturation point.
 ## Evidence from vLLM source
 
 The only hardware-aware default-batch logic is `get_batch_defaults()` in
-`vllm/engine/arg_utils.py` (v0.25.1: lines 2397-2478; v0.20.0: 2207-2288 —
-**cite the symbol, not the line range**, it has moved ~190 lines in five
-minors). Its GPU branch tests `device_memory >= 70 GiB AND "a100" not in
-device_name` — H100 80GB **and** H200 141GB take the *same* code path:
+`vllm/engine/arg_utils.py` (**cite the symbol, not the line range** — it
+moves every minor). v0.28.0+ adds a `device_memory >= 160 GiB` tier above it
+(B200/B300: 16384 tokens, 1024 seqs). The next branch tests
+`device_memory >= 70 GiB AND "a100" not in device_name` — H100 80GB **and**
+H200 141GB still take the *same* code path at v0.32.0:
 - `default_max_num_batched_tokens[OPENAI_API_SERVER] = 8192`
 - `default_max_num_seqs[OPENAI_API_SERVER] = 1024`
 
@@ -32,7 +33,7 @@ Other key files checked, no H100/H200 switch found:
   `max_cudagraph_capture_size = min(max_num_seqs*2, 512)`; capture
   pattern `[1, 2, 4] + range(8, 256, 8) + range(256, max+1, 16)`.
   Identical for H100 and H200.
-- `vllm/platforms/cuda.py` — zero hits (**re-tested 2026-09-15 at both v0.27.0 and v0.29.0: still 0**) on `max_num_seqs`, `H100`,
+- `vllm/platforms/cuda.py` — zero hits (**re-tested 2026-10-18 at v0.32.0: still 0**) on `max_num_seqs`, `H100`,
   `H200`, `sm_90`, or `sm_100`.
 - `vllm/v1/spec_decode/{eagle,llm_base_proposer,extract_hidden_states,dflash}.py`
   — `max_batch_size` is just `scheduler_config.max_num_seqs`
@@ -113,8 +114,8 @@ Line numbers below were true at the v0.20.0 audit and are **stale by
 construction** — vLLM renumbers these files every minor. Grep the symbol.
 
 - `vllm/engine/arg_utils.py` → `get_batch_defaults()` (the only hardware-aware
-  batch default in vLLM; v0.20.0: 2207-2288, v0.25.1: 2397-2478 — re-verified
-  2026-07-21, GPU branch logic unchanged)
+  batch default in vLLM; H100/H200 branch unchanged at v0.32.0, ≥160 GiB
+  tier added in v0.28.0)
 - `vllm/config/scheduler.py:42-44` (flat batch defaults)
 - `vllm/config/compilation.py:666-680` (cudagraph capture pattern)
 - `vllm/v1/spec_decode/llm_base_proposer.py:116` (v0.20.0)
