@@ -2,8 +2,18 @@
 
 ## Open
 
-- **PD-disagg connector wiring is thin** (Dim 5) — `references/distributed.md` + SKILL.md router. Nixl/Mooncake/LMCache are named but the actual connector-config recipe (KVTransferConfig fields, proxy wiring) is shallow. Adding it is author-domain content + a multi-section write, not a one-iteration atomic edit; also overlaps `vllm-caching`, so the split needs a deliberate boundary decision.
-- **No bundled scripts** (Dim 7, ceiling) — skill points at vLLM's `benchmark_moe.py` / `auto_tune.sh` rather than shipping a wrapper. Scoring this past 7 would require authoring and testing a real bundled script (e.g. a tuned-config-presence checker); cannot be fabricated in one iteration without a tested artifact.
+- **PD-disagg connector wiring is thin** (Dim 5) (carried 2026-10-18) — `references/distributed.md` + SKILL.md router. Nixl/Mooncake/LMCache are named but the connector-config recipe (KVTransferConfig fields, proxy wiring) is shallow. Blocked on an operator ruling: where the boundary with `vllm-caching` (which also covers NixlConnector/MooncakeConnector) sits, so the recipe is written once.
+- **No bundled scripts** (Dim 7, ceiling) (carried 2026-10-18) — skill points at vLLM's `benchmark_moe.py` / `auto_tune.sh` rather than shipping a wrapper. Blocked on a GPU host with vLLM installed: a tuned-config-presence checker must resolve `device_name` and the fused-MoE config dir on real hardware before it can ship tested.
+
+## Resolved this pass (2026-10-18)
+
+Improve pass from 68dca10; blind baseline 73; self 73 → 80 over 5 keeps, 0 discards (cap reached, ceiling not mapped); final blind score and A/B comparator run by the operator.
+- Kept: frontmatter 1601 → 1513 chars by dropping when_to_use keywords duplicated in description (NOT-for exclusions no longer truncated).
+- Kept: "What changed under you, v0.22.0 → v0.32.0" moved verbatim to `regressions.md` §"Execution-path changes by minor"; SKILL.md keeps the re-benchmark rule + pointer.
+- Kept: "Source policy" reduced to the two standing rules (CLOSED ≠ fixed; check flags at the running tag); pass history already in `sources.md` §Refresh policy.
+- Kept: "Key numbers to memorize" deleted — every row duplicated in the body or a reference; MLPerf row moved to `moe-and-ep.md`.
+- Kept: H100/H200 batching-default trap stated once (intro duplicate removed).
+- After the cap: last second-person slips; contents list for `regressions.md`.
 
 ## Resolved — 2026-09-15
 
@@ -134,7 +144,7 @@ claim — an operator searching for it should land here and be told it is retire
 **Not attempted:** Wide-EP GB200 Part II (still Part I only; not re-probed),
 #32547 and #19579 (not re-probed), and the two structural Open items below.
 
-## Resolved this pass (2026-05-28)
+## Resolved — 2026-05-28
 
 - Converted the 12-step numbered "tuning workflow" (SKILL.md) into a goal-grouped lever list — lifts the Boris strict-workflow cap on Dim 6 (6→8).
 - Updated SKILL.md version header from v0.19.1/v0.20.0-prerelease to v0.21.0 stable (2026-05-15); v0.20.x stable since 2026-04-27 — Dim 9.
