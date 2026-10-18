@@ -13,14 +13,14 @@
       "id": 0,
       "name": "just-redeployed-deepseek-r1-0528",
       "prompt": "I just redeployed DeepSeek-R1-0528 on our 8xH200 node using vllm 0.14.0 with --reasoning-parser deepseek_r1 --enable-auto-tool-choice. Requests come back with reasoning_content: null and all the chain-of-thought stuck in the content field mixed with the final answer. I tried setting --chat-template examples/tool_chat_template_deepseekr1.jinja but no change. What's going on? Our monitoring is tagging this as a regression vs our old vllm 0.11.1 deployment.",
-      "expected_output": "Should identify: DeepSeek-R1 template hard-prepends <think>\\n into prefill, so opening tag never appears in output; vLLM reasoning parser sees only </think>. Either upgrade vLLM for fixed parser, or post-process prepend <think> on client side. Should cite issue #12999 or HF discussion #144. Should explain the layer split (template vs parser) and that changing --chat-template won't fix this because the problem is the parser's expectation vs the emitted output, NOT the prompt.",
+      "expected_output": "Should explain: the DeepSeek-R1 template prefills <think>\\n so the output carries only </think> (HF discussion #144, vLLM #12999), but since v0.7.3 (#13025) the deepseek_r1 parser treats text before </think> as reasoning, so on 0.14.0 the prefill is not the cause. Reasoning null with chain-of-thought in content means the parser did not split the response; changing --chat-template cannot fix that. Next steps: confirm the parser flag reached the server, capture raw output. Should keep the template vs parser layer split explicit and not call deepseek_r1 the wrong parser.",
       "files": [],
       "assertions": [
-        "Attributes the null reasoning_content to the DeepSeek-R1 chat template injecting the opening <think> tag into the prompt/prefill, so the model only emits the closing </think> tag",
+        "Explains that the DeepSeek-R1 template prefills the opening <think> so the output carries only </think>, and that the deepseek_r1 parser on vLLM v0.7.3+ (including the user's 0.14.0) already treats text before </think> as reasoning, so the prefill alone does not explain the symptom",
         "States that supplying or changing --chat-template will not resolve this symptom, since the prompt rendering is not the failing layer",
         "Cites a specific upstream tracking reference for this behavior (vLLM issue #12999 and/or the HuggingFace DeepSeek-R1 discussion #144)",
-        "Gives at least one actionable remedy: client-side prepending of the opening <think> tag to the output before parsing, using a patched template that omits the forced prefill, or a vLLM version whose parser handles the missing opening tag",
-        "Distinguishes the prompt-rendering (Jinja template) layer from the output-parsing (--reasoning-parser) layer and assigns this failure to the interaction between them rather than to a wrong parser name",
+        "Gives at least one actionable next step that isolates the parser layer: confirming --reasoning-parser actually reached the running server (startup log, wrapper/Helm args), or capturing raw model output to see whether </think> is emitted and where",
+        "Distinguishes the prompt-rendering (Jinja template) layer from the output-parsing (--reasoning-parser) layer and assigns this failure to the output-parsing side rather than to the template or to a wrong parser name",
         "Does NOT tell the user that --reasoning-parser deepseek_r1 is the wrong parser choice for DeepSeek-R1"
       ]
     },
