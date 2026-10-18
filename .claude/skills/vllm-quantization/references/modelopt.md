@@ -124,7 +124,8 @@ Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) —
 ```
 1. Train drafter on BF16 target       (this section)
 2. Export drafter HF dir              (scripts/export_hf_checkpoint.py)
-3. PTQ target to NVFP4/FP8            (Part 1 above)
+3. PTQ target to NVFP4/FP8            (Part 1 above) — skip if a quantized
+   checkpoint of the same base already exists; serve that one as-is
 4. (Optional) PTQ drafter separately
 5. Serve both                         (see vLLM command below)
 ```
