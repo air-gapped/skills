@@ -92,71 +92,12 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `VLLM_HOST_IP` — **internal inter-worker bind IP for distributed (TP/PP/DP) init**. NOT the API server host. Use `--host` on the CLI for the API server.
 - `VLLM_PORT` — internal base port for distributed; auto-increments for each worker. NOT the API server port. Use `--port`.
 
-**Server auth:**
-- `VLLM_API_KEY` — Bearer token for the OpenAI-compat server. Equivalent to
-  `--api-key` on the CLI. **Do not treat it as an authentication boundary.** Two
-  independent upstream reasons — a critical bypass (with its floor, and the
-  technique needed to find it) and a separate documented limit:
-  - **CVE-2026-48746 / GHSA-94f4-hr76-p5j6, CRITICAL** (published 2026-06-02,
-    not withdrawn): a `Host:` header carrying URL characters (`/`, `?`) steers
-    the path starlette reconstructs from the request scope, so the OpenAI API
-    `AuthenticationMiddleware` checks a different path than the one FastAPI
-    routes on — the caller reaches a `/v1` endpoint **without** the configured
-    `VLLM_API_KEY` or `--api-key`.
-  - **Fixed in v0.22.0 (2026-05-29).** The global advisory
-    (`gh api /advisories/GHSA-94f4-hr76-p5j6`) records `>= 0.3.0, < 0.22.0`,
-    first patched `0.22.0`. The repository advisory still shows the unbounded
-    `>=0.3.0` range — read the global record, not the repo one.
-    The fix is PR #43426, merged 2026-05-22 — a week before v0.22.0 and eleven
-    days before the advisory was published. Confirmed in the tree rather than
-    from the PR title: through v0.21 the middleware derived its path from
-    `URL(scope=scope).path`, which is rebuilt from the `Host:` header; from
-    v0.22.0 it reads `scope["path"]`, the raw ASGI path, which no header can
-    reach.
-  - **Technique, because this record shape recurs.** An *unbounded*
-    `vulnerable_version_range` plus a null `first_patched_version` is not a
-    floor — nothing can satisfy it. Do not report "no safe version". Take the
-    fix PR from the advisory's References, get its merge commit, and ask the
-    repo which tag first carried it:
-
-    ```bash
-    gh pr view <N> --repo <org>/<repo> --json mergeCommit --jq '.mergeCommit.oid'
-    git -C <clone> fetch --tags --quiet
-    git -C <clone> tag --contains <sha> | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | head -1
-    ```
-
-    A *bounded* range is the opposite case and the upper bound is the floor —
-    that is the usual shape, and the one the upgrade skills rely on.
-  - v0.28.0 added documentation warning that **`--api-key` does not gate all
-    endpoints** (#51999) — a separate statement from the CVE, and the same
-    conclusion. At v0.32.0 it covers only `/v1`, `/v2` and `/inference`;
-    `/invocations` stays open.
-
-  **A pre-auth route exists, and it reaches RCE — CVE-2026-22778, CRITICAL,
-  floor v0.14.1.** This is the concrete reason the two bullets above are not
-  merely tidy-minded. A malicious **video URL** sent to a deployment serving a
-  **video model** chains a PIL error-message address leak (ASLR bypass) with a
-  JPEG2000 `cdef`-box heap overflow in the OpenCV/FFmpeg decoder to execute
-  commands on the server. Affected `>= 0.8.3, < 0.14.1`.
-
-  Two scoping facts decide whether it applies, and both cut the other way from
-  the usual assumptions:
-
-  - **`--api-key` does not stop it.** The advisory states the payload executes
-    **pre-auth** via the `/invocations` route even on an api-key-enabled
-    configuration. So this is not "unauthenticated instances only" — it is the
-    worked example of `--api-key` not being an authentication boundary.
-  - **Deployments not serving a video model are not affected.** Do not raise a
-    floor across a fleet on this one; check what the model consumes first.
-
-  **The floor does not change the advice.** Run v0.22.0+ (which also clears
-  v0.14.1), and still put a real authenticating proxy in front of vLLM, treating
-  the API key as a convenience for client wiring rather than as access control — the v0.28.0 warning about
-  ungated endpoints is independent of the CVE and still stands. The advisory
-  says instances behind an RFC-conforming server such as nginx were never
-  exposed to this one at all, because such a server rejects the malformed
-  `Host:` header before vLLM sees it. A proxy that forwards `Host:` verbatim
-  without validating it does not provide that.
+**Server auth — `VLLM_API_KEY` (= `--api-key`) is not an authentication boundary:**
+- Run v0.22.0+ — before it, a crafted `Host:` header bypasses the key on `/v1` (CVE-2026-48746, CRITICAL).
+- The key gates only `/v1`, `/v2` and `/inference`; `/invocations` stays open.
+- Put an authenticating proxy that validates `Host:` in front; treat the key as client wiring.
+- Video models below v0.14.1 have a pre-auth RCE via `/invocations` even with the key set (CVE-2026-22778). Not a fleet-wide floor — check what the model consumes.
+- Advisory detail and how to read an unbounded affected range: `references/security.md`.
 
 **CORS defaults to no origins from v0.32.0** (#61009; was `*`). Browser clients
 fail until `--allowed-origins '["https://app.example.com"]'` is set. Do not
