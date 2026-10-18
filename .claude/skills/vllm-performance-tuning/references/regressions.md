@@ -2,6 +2,14 @@
 
 Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below were re-probed on 2026-10-18 (vLLM v0.32.0).
 
+## Contents
+
+- [Version regressions](#version-regressions)
+- [Vendor quirks](#vendor-quirks)
+- [Published benchmark discrepancies](#published-benchmark-discrepancies)
+- [Execution-path changes by minor, v0.22.0 → v0.32.0](#execution-path-changes-by-minor-v0220--v0320)
+- [Defensive upgrade checklist](#defensive-upgrade-checklist)
+
 ## Version regressions
 
 ### v0.14.0 → v0.15.1 MiniMax latency regression ([#35048](https://github.com/vllm-project/vllm/issues/35048))
@@ -159,8 +167,8 @@ comparing to numbers taken before them.
   to boot — that is the fix, not a regression.
 - **`stream_interval` is a per-request sampling param** (#49754), so one
   interactive client no longer forces `N=1` server-wide.
-- **`FusedMoE` renamed `FusedMoEFactory`** (#44941) — matters only if you import
-  it; no operator-facing flag changed.
+- **`FusedMoE` renamed `FusedMoEFactory`** (#44941) — matters only to code that
+  imports it; no operator-facing flag changed.
 
 **v0.22.0 → v0.25.1:**
 
