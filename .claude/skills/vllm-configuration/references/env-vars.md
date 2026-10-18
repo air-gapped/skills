@@ -72,9 +72,27 @@ live (defaults and consumers re-read at `v0.32.0`):
 | `VLLM_WORKER_SHUTDOWN_TIMEOUT_SECONDS` | `5` | worker shutdown grace |
 | `VLLM_P2P_HANDSHAKE_TIMEOUT_S` / `VLLM_P2P_IDLE_TIMEOUT_S` / `VLLM_P2P_MAX_PEERS` | `30` / `300` / `128` | P2P ZMQ peer-session bounds (v0.32.0+, #51504 — bounds ZMQ socket exhaustion) |
 
-**`VLLM_ENGINE_ITERATION_TIMEOUT_S` is gone at v0.32.0** ([PR #59781](https://github.com/vllm-project/vllm/pull/59781)) and had
-no consumer at v0.30.0 either — same dead-knob shape as `VLLM_RPC_TIMEOUT`. Delete it
-from manifests; nothing replaces it.
+`VLLM_ENGINE_ITERATION_TIMEOUT_S` is gone too — see §Removed and renamed.
+
+## Removed and renamed (v0.29 – v0.32)
+
+Delete these from manifests on upgrade. A removed env var is read by nothing, so
+setting it is silently inert.
+
+| Name | Status | Use instead |
+|---|---|---|
+| `VLLM_TEST_FORCE_FP8_MARLIN` | removed v0.29.0 (#52182) | `--linear-backend` / `--moe-backend` |
+| `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` | removed v0.29.0 (#53141), **restored v0.31.0** (#57055), default off | — |
+| `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` | deprecated v0.29.0 (#52216), removed v0.30.0 (#55353) | `--prefix-cache-retention-interval` |
+| `VLLM_MM_HASHER_ALGORITHM` | removed v0.30.0 | `--mm-hasher-algorithm` |
+| `use_fp4_indexer_cache` (config alias) | removed v0.30.0 | `indexer_kv_dtype` |
+| ROCm `CUDA_VISIBLE_DEVICES` fallback | removed v0.30.0 | `HIP_VISIBLE_DEVICES` |
+| `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` | removed v0.30.0 (#54579, #55176) | `--enable-scale-out` (default `False`) — without it plain `vllm serve` does not register `/render`, `/derender`, `/inference/v1/generate`; `vllm launch render` and `vllm serve --tokens-only` always register them |
+| `VLLM_ENGINE_ITERATION_TIMEOUT_S` | removed v0.32.0 (#59781); had no consumer at v0.30.0 either | nothing — no per-iteration timeout knob exists |
+| `python -m vllm.entrypoints.grpc_server` | deprecated v0.30.0 (#56746), `DeprecationWarning` | `vllm serve <model> --grpc` |
+
+Added in v0.29.0: `VLLM_ALLREDUCE_USE_FLASHINFER` (default on) — set `0` to opt
+out of FlashInfer all-reduce.
 
 ## Distributed (DP-specific)
 

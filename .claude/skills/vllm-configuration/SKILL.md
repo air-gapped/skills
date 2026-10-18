@@ -81,54 +81,9 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace. PR #13220 attempted the fix but was closed unmerged (2025-06-20); no upstream fix has landed. Workaround: download LoRA adapters manually, pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
-**Version floors and failure modes that matter to a mirror (v0.28.0 – v0.32.0):**
-- **Read the `transformers` range from `requirements/common.txt`, never from a
-  release-note "bump"** — those (#51668 → 5.15.0, #53905 → 5.16.1) touch only
-  the CI pins in `requirements/test/*`. Runtime range: `>= 5.5.3` (v0.27–v0.28),
-  `>= 5.10.4` (v0.29–v0.30), `>= 5.10.4, < 5.18.0` (v0.31.0, new upper bound
-  #59614), **`>= 5.16.1, < 5.20.0` at v0.32.0** (#57387, #59762), plus
-  `tokenizers >= 0.23.2` (#59796). The upper bound is the new trap: a mirror
-  holding only the newest `transformers` no longer satisfies the engine. The
-  v0.32.0 floor clears the 5.10.1 / 5.13.0 / 5.15.0 CVE fixes listed in the
-  `transformers-config-tokenizers-expert` skill; earlier floors did not clear them all.
-  `huggingface-hub` moved to 1.27.0, then **1.28.0** in v0.29.0 (#52797). Stage the
-  new floors in the mirror before the image bump, not after.
-- **v0.32.0 requires Python `>= 3.11, < 3.15`** (#60402) — drop 3.10 wheels
-  from the mirror; a 3.10 base image cannot install it.
-- **The build now fails closed when the selected precompiled CUDA variant is
-  unavailable** (#52545, v0.29.0). Previously this could fall back silently.
-  Failing loudly is the better behaviour, but it turns a quiet degradation into
-  a hard stop on the first air-gapped build that is missing a variant.
-- Other v0.29.0 dependency floors: FlashInfer 0.6.18 (#54313), NIXL 1.3.2
-  (#51777). v0.28.0 also moved the runtime image to Ubuntu 24.04 (#51058).
-- Two env vars were **removed** in v0.29.0 — `VLLM_TEST_FORCE_FP8_MARLIN`
-  (#52182, superseded by `--linear-backend` / `--moe-backend`) and
-  `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141; **restored at v0.31.0**, default
-  off — #57055). One was **added**:
-  `VLLM_ALLREDUCE_USE_FLASHINFER=0`, the opt-out for FlashInfer all-reduce now
-  being on by default.
-- **`VLLM_ENGINE_ITERATION_TIMEOUT_S` removed at v0.32.0** (#59781). It had no
-  consumer at v0.30.0 either — setting it never did anything. Delete it from
-  manifests; there is no per-iteration timeout knob.
-- `prefix_cache_retention_interval` is now a CLI argument. The env var form
-  `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` was deprecated at v0.29.0 (#52216) and
-  **removed at v0.30.0** (#55353) — it is gone from `envs.py`, so on v0.30.0+ it
-  is silently inert. Same release removed `VLLM_MM_HASHER_ALGORITHM` (use
-  `--mm-hasher-algorithm`), the `use_fp4_indexer_cache` alias (use `indexer_kv_dtype`), and
-  the ROCm `CUDA_VISIBLE_DEVICES` fallback (use `HIP_VISIBLE_DEVICES`).
-- **`VLLM_ENABLE_SCALE_OUT_ENDPOINTS` removed at v0.30.0** (#54579, #55176) —
-  the `/render`, `/derender`, and `/inference/v1/generate` endpoints are no
-  longer registered on plain `vllm serve` unless the CLI flag
-  `--enable-scale-out` is passed (`vllm/entrypoints/launchers/cli_args.py`,
-  default `False`; no env var replaces it). `vllm launch render` and
-  `vllm serve --tokens-only` always register them regardless of the flag.
-- **`python -m vllm.entrypoints.grpc_server` deprecated at v0.30.0** (#56746)
-  — emits `DeprecationWarning` on import and again under `__main__`. Use
-  `vllm serve <model> --grpc` instead.
-- v0.30.0 also moves the air-gapped mirror floor: `huggingface_hub` in
-  `requirements/common.txt` reads `>= 1.31.0` (#56460, needed for the
-  `huggingface_hub.utils.httpx` re-export), up from `>= 1.28.0` at v0.29.0;
-  unchanged through v0.32.0.
+**Upgrades (v0.28.0 – v0.32.0):**
+- Stage the new dependency floors in the mirror **before** the image bump. v0.32.0 needs Python `>= 3.11, < 3.15` and `transformers >= 5.16.1, < 5.20.0` — an upper bound, so a mirror holding only the newest `transformers` fails. Read ranges from `requirements/common.txt`, never from release-note "bumps". Full table: `references/air-gapped.md` §Mirror dependency floors.
+- Delete removed env vars from manifests — vLLM ignores them silently, so the feature they controlled is simply off. Table with replacements: `references/env-vars.md` §Removed and renamed.
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.

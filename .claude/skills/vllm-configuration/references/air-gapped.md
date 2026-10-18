@@ -167,6 +167,31 @@ Usage stats opt-out wasn't applied. Set `VLLM_NO_USAGE_STATS=1` or the alternati
 - Token expired (refresh on https://huggingface.co/settings/tokens)
 - Offline mode is caching the failure — clear `$HF_HOME/hub/.locks`
 
+## Mirror dependency floors (v0.27 – v0.32)
+
+Stage these in the mirror before the image bump, not after. Read every range
+from `requirements/common.txt` at the target tag — release-note "bumps" (#51668
+→ 5.15.0, #53905 → 5.16.1) touch only the CI pins in `requirements/test/*`.
+
+| Dependency | v0.32.0 | Earlier |
+|---|---|---|
+| Python | `>= 3.11, < 3.15` (#60402) — drop 3.10 wheels; a 3.10 base image cannot install it | 3.10 allowed |
+| `transformers` | `>= 5.16.1, < 5.20.0` (#57387, #59762) | `>= 5.10.4, < 5.18.0` v0.31.0 (upper bound new, #59614); `>= 5.10.4` v0.29–v0.30; `>= 5.5.3` v0.27–v0.28 |
+| `tokenizers` | `>= 0.23.2` (#59796) | `>= 0.21.1` v0.31.0 |
+| `huggingface_hub` | `>= 1.31.0` (#56460, from v0.30.0) | `>= 1.28.0` v0.29.0 (#52797) |
+| FlashInfer / NIXL | — | v0.29.0 floors 0.6.18 (#54313) / 1.3.2 (#51777) |
+| Runtime image | Ubuntu 24.04 (#51058, from v0.28.0) | — |
+
+- **The `transformers` upper bound is the trap:** a mirror holding only the
+  newest release no longer satisfies the engine.
+- **Only the v0.32.0 floor clears the 5.10.1 / 5.13.0 / 5.15.0 CVE fixes** the
+  `transformers-config-tokenizers-expert` skill lists; earlier floors did not
+  clear them all. Do not record a CI pin as the runtime floor — it reads those
+  exposures as patched.
+- **The build fails closed when the selected precompiled CUDA variant is
+  missing** (#52545, v0.29.0), where it used to fall back silently. Expect a
+  hard stop on the first air-gapped build that lacks a variant.
+
 ## Container image considerations
 
 - **vLLM official images** include `huggingface_hub` and `transformers`, so all HF env vars work out of the box
