@@ -14,7 +14,7 @@ late-interaction, ColBERT / ColPali / ColQwen, Qwen3-Reranker, or any
 | `/score` | bi-encoder cosine or cross-encoder logit | primary |
 | `/v1/score` | deprecated alias | emits warning |
 
-Code: `vllm/entrypoints/pooling/scoring/api_router.py:28-99`.
+Code: `vllm/entrypoints/pooling/scoring/api_router.py:37-111`.
 
 **The scoring API turns on automatically** whenever the model's
 `Pooler.get_supported_tasks()` contains:
@@ -22,13 +22,13 @@ Code: `vllm/entrypoints/pooling/scoring/api_router.py:28-99`.
 - `embed` → bi-encoder (cosine)
 - `token_embed` → late-interaction (MaxSim)
 
-Gate logic: `vllm/entrypoints/pooling/utils.py:140-154`. There is no flag
+Gate logic: `vllm/entrypoints/pooling/utils.py:232-250`. There is no flag
 to enable or disable this.
 
 ## 2. Three score types — pick the model, the engine picks the mode
 
 `ScoreType = Literal["bi-encoder", "cross-encoder", "late-interaction"]`
-— defined in `vllm/tasks.py:18`.
+— defined in `vllm/tasks.py:33`.
 
 ### Cross-encoder (joint forward, one logit)
 
@@ -37,8 +37,9 @@ to enable or disable this.
 | `BAAI/bge-reranker-v2-m3` | `--runner pooling`. Native classify head. |
 | `BAAI/bge-reranker-v2-gemma` | `--runner pooling`. |
 | `Qwen/Qwen3-Reranker-0.6B/4B/8B` | **three extras required** — see below |
-| `mxbai/mxbai-rerank-large-v2` | `--runner pooling`. |
+| `mixedbread-ai/mxbai-rerank-large-v2` | `--runner pooling`. |
 | `nvidia/llama-nemotron-rerank-1b-v2` | `--runner pooling`. |
+| `polaria-tech/zerank-2-reranker-vllm` | v0.32.0+ (#60415): `--runner pooling --chat-template examples/pooling/score/template/zerank2.jinja`. A `Qwen3ForSequenceClassification` conversion of `zeroentropy/zerank-2-reranker`. |
 
 **Qwen3-Reranker** is an instruction-tuned causal LM that expects a specific
 prompt format — vLLM needs to be told about the classifier head and score
@@ -47,7 +48,7 @@ template:
 ```bash
 vllm serve Qwen/Qwen3-Reranker-0.6B \
   --runner pooling --convert classify \
-  --chat-template examples/templates/qwen3_reranker.jinja \
+  --chat-template examples/pooling/score/template/qwen3_reranker.jinja \
   --hf-overrides '{
     "architectures":["Qwen3ForSequenceClassification"],
     "classifier_from_token":["no","yes"],
@@ -104,13 +105,18 @@ vector on retrieval tasks, at the cost of 10–100× storage per document.
 Serve: `vllm serve jinaai/jina-colbert-v2 --runner pooling --trust-remote-code`.
 Runner pick is auto for most; `--runner pooling` is the safe explicit form.
 
-Flash MaxSim is on by default (v0.17–0.19 gave ~14% throughput win). Env
-flag `enable_flash_late_interaction: true` — only flip off for debugging.
+Flash MaxSim is on by default (v0.17–0.19 gave ~14% throughput win). It is a
+server CLI flag, not an env var: `--no-enable-flash-late-interaction` turns it
+off — only for debugging. From v0.32.0 the flag is mirrored into
+`PoolerConfig.enable_flash_late_interaction` and also selects the engine-side
+flash-maxsim Triton kernel (#40337).
 
 **Multimodal rerankers** (ColPali, ColQwen, jina-reranker-m0): image input
 follows the standard multimodal chat format (`image_url` blocks) but the
 endpoint is still `/rerank`. vLLM routes the images through the
-multimodal preprocessor.
+multimodal preprocessor. If `jinaai/jina-reranker-m0` fails to load its
+checkpoint weights, upgrade to ≥v0.31.0 (#57347, JinaVL text-config
+`num_labels` fix).
 
 ### Bi-encoder (cosine)
 
@@ -147,6 +153,12 @@ document count are accepted and clamped. **Negative values are rejected as of
 v0.24.0** (PR #46119, merged 2026-06-22) — `top_n=-1` used to be silently
 treated as `0`, i.e. it also returned everything, so a client sentinel of `-1`
 "worked" by accident and now 400s.
+
+**`max_tokens_per_doc` changed scores even when it did not truncate — below
+v0.31.0** (#57666). For non-separator rerankers (e.g. Qwen3-Reranker and its
+`-seq-cls` conversions) any positive limit re-tokenized the prompt differently.
+Separator-based cross-encoders (BGE-reranker) were unaffected. Re-score if an
+older engine ranked with this field set.
 
 ### `/score`
 
@@ -212,16 +224,17 @@ token) but scoring is cheap once indexed.
 - `vllm/entrypoints/pooling/scoring/api_router.py` — routes
 - `vllm/entrypoints/pooling/scoring/serving.py` — dispatch + flash
   late-interaction selector
-- `vllm/entrypoints/pooling/scoring/io_processor.py:259-300` — per-model
-  score-type configuration
-- `vllm/entrypoints/pooling/utils.py:140-154` — scoring API auto-enable
-- `vllm/tasks.py:18` — `ScoreType` enum
+- `vllm/entrypoints/pooling/scoring/io_processor.py` — per-score-type IO
+  processors (`BiEncoder…`, `LateInteraction…`, `FlashLateInteraction…`,
+  `CrossEncoder…`, `JinaRanking…IOProcessor`)
+- `vllm/entrypoints/pooling/utils.py:232-250` — scoring API auto-enable
+- `vllm/tasks.py:33` — `ScoreType` enum
 - `vllm/model_executor/models/colbert.py`, `colpali.py`, `colqwen3*.py` —
   late-interaction models
-- `vllm/model_executor/models/jina.py:33-83` — `JinaForRanking`
+- `vllm/model_executor/models/jina.py:44-96` — `JinaForRanking`
 - Docs: `docs/models/pooling_models/scoring.md`
 
-## 8. Recent PRs worth knowing (all merged; all shipped in v0.20.0, 2026-04-27)
+## 8. Recent PRs worth knowing (all merged; v0.20.0 unless marked)
 
 - **#38800** (merged 2026-04-10) — jina-reranker-v3 (listwise).
 - **#38827** (merged 2026-04-13) — `max_tokens_per_doc` in `/rerank` body.
@@ -231,7 +244,10 @@ token) but scoring is cheap once indexed.
   renamed to `logit_mean`/`logit_sigma` in `PoolerConfig`. Old names still
   accepted with a deprecation warning. Update any calibration YAML using
   the old keys.
-- **#36818** — ColPali.
-- **#33686** — ColBERT.
+- **#36818** — ColPali (v0.18.0).
+- **#33686** — ColBERT (v0.18.0).
 
-Last verified: 2026-08-11 against vLLM v0.27.0. Two behaviour changes since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, previously silently treated as `top_n=0` (= return all); and **#48901 (v0.26.0) fixed wrong scores from LAST-pooling models under chunked prefill + `torch.compile`** — see §2, the one item on this page that invalidates *past* results rather than changing future ones. The endpoint surface (`/rerank`, `/score` and their aliases) is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.
+Last verified: 2026-10-18 against vLLM v0.32.0 source (routes, anchors,
+template paths). Since v0.27.0: #57666 `max_tokens_per_doc` scoring fix and
+#57347 jina-reranker-m0 load fix (v0.31.0); zerank-2 template (#60415) and
+flash-maxsim kernel (#40337) in v0.32.0. Earlier, two behaviour changes since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, previously silently treated as `top_n=0` (= return all); and **#48901 (v0.26.0) fixed wrong scores from LAST-pooling models under chunked prefill + `torch.compile`** — see §2, the one item on this page that invalidates *past* results rather than changing future ones. The endpoint surface (`/rerank`, `/score` and their aliases) is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.

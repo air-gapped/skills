@@ -20,15 +20,15 @@ biases them hard toward transcription of document images.
 
 | Model | vLLM class | File | Notes |
 |---|---|---|---|
-| `deepseek-ai/DeepSeek-OCR` | `DeepseekOCRForCausalLM` | `vllm/model_executor/models/deepseek_ocr.py:358` | 3B, the reference OCR model since Oct 2025 |
-| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py:240` | v2, wider layout support. TTFT optimisation in v0.27.0 (#49531) |
-| `THUDM/glm-ocr-*` | `GlmOcrForCausalLM` | `glm_ocr.py` | `model_type=glm_ocr` inside glm4_1v family |
-| `glm-ocr-mtp-*` | `GlmOcrForCausalLM` (MTP head) | `glm_ocr_mtp.py` | multi-token prediction variant |
+| `deepseek-ai/DeepSeek-OCR` | `DeepseekOCRForCausalLM` | `vllm/model_executor/models/deepseek_ocr.py:362` | 3B, the reference OCR model since Oct 2025 |
+| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py:234` | v2, wider layout support. TTFT optimisation in v0.27.0 (#49531) |
+| `THUDM/glm-ocr-*` | `GlmOcrForConditionalGeneration` | `glm_ocr.py` | `model_type=glm_ocr` inside glm4_1v family |
+| `glm-ocr-mtp-*` | `GlmOcrMTP` (arch `GlmOcrMTPModel`) | `glm_ocr_mtp.py` | multi-token prediction variant |
 | `rednote-hilab/dots.ocr` (family) | `DotsOCRForCausalLM` | `dots_ocr.py` | dense layout + table handling |
-| `nvidia/Nemotron-Parse-*` | VLM path | `nemotron_*` | layout parsing + structure |
-| `Lighton/Ocr-*` | `LightOnOCR*` | `lightonocr.py` | lightweight |
-| Qianfan-OCR | VLM path | — | added v0.21.0 (#40136) |
-| `baidu/Unlimited-OCR` | VLM path | — | added v0.25.0 (#46564); Triton R-SWA backend #47102. Benchmarked on OmniDocBench |
+| `nvidia/Nemotron-Parse-*` | `NemotronParseForConditionalGeneration` | `nemotron_parse.py` | layout parsing + structure |
+| `Lighton/Ocr-*` | `LightOnOCRForConditionalGeneration` | `lightonocr.py` | lightweight |
+| Qianfan-OCR | `QianfanOCRForConditionalGeneration` | `qianfan_ocr.py` | added v0.21.0 (#40136) |
+| `baidu/Unlimited-OCR` | `UnlimitedOCRForCausalLM` | `unlimited_ocr.py` | added v0.25.0 (#46564); Triton R-SWA backend #47102. Benchmarked on OmniDocBench |
 
 Plus: any general VLM (Qwen2.5-VL, InternVL, GLM-4.1V, MiniCPM-V) handles
 OCR reasonably well via chat completion — just not as efficiently or
@@ -110,6 +110,9 @@ templates.
 - **Base64 data URLs** work out of the box. Large images (>1 MB base64)
   add request-parsing cost; prefer URL references for scanned documents
   when possible.
+- **Raster formats only from v0.32.0** (#60022). Request images are opened
+  against `ALLOWED_IMAGE_FORMATS`; EPS/PostScript and WMF are refused.
+  Rasterize vector scans (PDF/EPS/WMF) to PNG client-side.
 - **Multi-page documents** — split client-side into one image per page.
   vLLM handles one image per message cleanly; some VLMs accept multiple
   images per message (see per-model docs for limit).
@@ -138,6 +141,10 @@ templates.
    family. If auto-detection picks the plain `glm4_1v` class, the model
    runs but without OCR-specific preprocessing; pin via
    `--hf-overrides '{"model_type": "glm_ocr"}'` if needed.
+6. **EngineCore dies on a half-black / half-white page (DeepSeek-OCR, OCR-2,
+   Unlimited-OCR, below v0.32.0).** A normalized pixel tensor summing to
+   exactly zero was treated as "no image" and tripped the encoder-output
+   check (#59417). Upgrade to ≥v0.32.0 for any public-facing OCR endpoint.
 
 ## 7. Pairing OCR + a language model
 
@@ -153,24 +160,24 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-Last verified: 2026-08-11 against vLLM v0.27.0 **source** (not the recipes
-page). Confirmed still present: `NGramPerReqLogitsProcessor` in
+Last verified: 2026-10-18 against vLLM v0.32.0 source and the recipes page
+(all three recipe flags plus `ngram_size=30` / `window_size=90` /
+whitelist `128821` present). GUNDAM constants re-read: `BASE_SIZE=1024`,
+`IMAGE_SIZE=640`, `CROP_MODE=True` in
+`vllm/transformers_utils/processors/deepseek_ocr.py`, still not switchable.
+Class names in §2 corrected from `registry.py`. As of v0.27.0: `NGramPerReqLogitsProcessor` in
 `vllm/model_executor/models/deepseek_ocr.py`, and `mm_processor_cache_gb` in
 `vllm/config/model.py` — so all three recipe flags remain valid. Roster gained
 `baidu/Unlimited-OCR` (#46564, v0.25.0) on top of Qianfan-OCR (#40136,
-v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531). The
-recipes page URL was confirmed live on 2026-05-28 and was **not** re-fetched
-in this pass or the previous one; the GUNDAM-mode resolution numbers are
-imported constants (`BASE_SIZE` / `IMAGE_SIZE` / `CROP_MODE`) and were not
-re-read against upstream this pass.
+v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531).
 
 ## 8. Source anchors
 
-- `vllm/model_executor/models/deepseek_ocr.py:358-` — `DeepseekOCRForCausalLM`,
-  `NGramPerReqLogitsProcessor`
-- `vllm/model_executor/models/deepseek_ocr2.py:240-` — v2
+- `vllm/model_executor/models/deepseek_ocr.py:362-` — `DeepseekOCRForCausalLM`;
+  `:140-195` — `NGramPerReqLogitsProcessor`
+- `vllm/model_executor/models/deepseek_ocr2.py:234-` — v2
 - `vllm/model_executor/models/glm_ocr.py`, `glm_ocr_mtp.py`
-- `vllm/model_executor/models/dots_ocr.py` — 793 LOC
+- `vllm/model_executor/models/dots_ocr.py` — 770 LOC
 - `vllm/model_executor/models/lightonocr.py`
 - `vllm/multimodal/parse.py` — image-input parsing
 - Recipe: <https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html>

@@ -12,7 +12,7 @@ model, Matryoshka / dimension reduction, pool-type overrides, or the
 | `/v2/embed` | Cohere v2 compatible | client expects `input_type`, `embedding_types`, per-request `truncate` |
 
 Both endpoints are live whenever the loaded model's supported tasks include
-`embed`. No flag to toggle. Code: `vllm/entrypoints/pooling/embed/api_router.py:23-61`.
+`embed`. No flag to toggle. Code: `vllm/entrypoints/pooling/embed/api_router.py:28-61`.
 
 **Instruction-style embedding prompts — v0.24.0 and later.** `/v1/embeddings`
 now accepts chat-message-shaped input and honours `chat_template_kwargs`
@@ -26,8 +26,10 @@ rather than silently embedding the raw text.
 
 ## 2. Pooling types
 
-`SequencePoolingType` enum: `CLS`, `LAST`, `MEAN`, `ALL` (token-wise), `STEP`
-(with `returned_token_ids`). Defined in `vllm/config/pooler.py:13`.
+Two enums in `vllm/config/pooler.py:16-20`: `SequencePoolingType` = `CLS`,
+`LAST`, `MEAN`; `TokenPoolingType` = `ALL` (token-wise), `STEP` (with
+`returned_token_ids`). `pooling_type` accepts either and fills
+`seq_pooling_type` / `tok_pooling_type`.
 
 Default is picked per-model from:
 
@@ -54,7 +56,7 @@ vllm serve <model> --runner pooling \
 ## 3. Matryoshka / MRL
 
 Native: model config must have `is_matryoshka: true` **or**
-`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py:1591-1598`.
+`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py:2066-2073`.
 
 Forcing on for a model that supports MRL but lacks config:
 
@@ -79,7 +81,9 @@ true` but no explicit `matryoshka_dimensions` list. A value above the model's
 `hidden_size` then sliced `[..., :d]` and returned a `hidden_size`-length
 vector — the request succeeded with the *wrong width*, silently. PR #46313
 (merged 2026-06-22) adds the upper-bound check and raises instead, mirroring
-sglang's `_validate_for_matryoshka_dim`.
+sglang's `_validate_for_matryoshka_dim`. The bound is
+`ModelConfig.embedding_size`: `hf_config.embedding_size` if set, else the
+Sentence-Transformers Dense output width, else `hidden_size`.
 
 Practical consequence: an index built on a pre-v0.24 engine with an oversized
 `dimensions` value contains `hidden_size`-width vectors, not the width the
@@ -129,14 +133,17 @@ Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
   the checkpoint's `is_decoder` (#50688, v0.27.0): `-text-small` keeps the
   Qwen3 *decoder* path, `-text-nano` uses a bidirectional **EuroBERT
   encoder** with `EncoderOnlyAttention`. Both reuse the same task-adapter and
-  pooling logic, so the serve command is identical — but the nano variant is
-  encoder-only, which is what makes it eligible for the MRV2 token-wise
-  pooling path (see `references/runner-flags.md` §11).
+  pooling logic, so the serve command is identical.
   Select adapter at serve time:
   ```bash
   --hf-overrides '{"jina_task":"retrieval"}'     # or text-matching,
                                                  # classification, clustering
   ```
+
+### EmbeddingGemma 2 (Google, v0.32.0+)
+
+- `google/embeddinggemma-2` (`EmbeddingGemma2Model`, #60254): text/image/audio/video into one 768-dim normalized space. `vllm serve google/embeddinggemma-2 --runner pooling --max-model-len 8192`.
+- Text-only deployment: add `--limit-mm-per-prompt '{"image":0,"audio":0,"video":0}'` — unused modality encoders are not loaded (#60289).
 
 ## 5. Generative-model adaptation (`--convert embed`)
 
@@ -170,7 +177,7 @@ r = client.embeddings.create(
 # Cohere v2 shape
 import requests
 r = requests.post("http://localhost:8000/v2/embed", json={
-    "model": "jinaai/jina-embeddings-v5",
+    "model": "jinaai/jina-embeddings-v5-text-small",
     "texts": ["hello"],
     "input_type": "search_document",
     "output_dimension": 256,
@@ -186,8 +193,13 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 - vLLM docs explicitly note pooling is "primarily for convenience" and not
   always faster than Sentence-Transformers; benchmark against your alt path
   before committing.
-- v0.16+ shipped mean-pooling optimisation via `index_add` — ~5.9% throughput
-  win on mean-pool models.
+- v0.20.0 shipped mean-pooling optimisation via `index_add` (#38559) — ~5.9%
+  throughput win on mean-pool models.
+- **Long-text chunked processing** (`--pooler-config
+  '{"enable_chunked_processing": true}'`) returned **non-unit-length**
+  embeddings for multi-chunk inputs below v0.31.0 — averaged normalized chunks
+  were not re-normalized (#57498). Re-embed long documents indexed on an older
+  engine if the index assumes unit vectors (dot product as cosine).
 - Chunked prefill + prefix caching: both work on embedding models; leave
   defaults on — **but only from v0.26.0**. Below that, chunked prefill plus
   `torch.compile` (the default pair) silently produced *wrong* vectors and
@@ -213,15 +225,18 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 ## 9. Source anchors
 
 - `vllm/entrypoints/pooling/embed/api_router.py` — route definitions
-- `vllm/entrypoints/pooling/factories.py:38-100` — IO processor registration
-- `vllm/config/pooler.py:41-150` — `PoolerConfig` schema (pool type,
+- `vllm/entrypoints/pooling/factories.py:38-109` — IO processor registration
+- `vllm/config/pooler.py:30-201` — `PoolerConfig` schema (pool type,
   dimensions, chunked processing, Platt scaling)
-- `vllm/config/model.py:1591-1598` — `is_matryoshka` detection
+- `vllm/config/model.py:2066-2073` — `is_matryoshka` detection
 - `vllm/model_executor/models/bert.py`, `jina.py` — embedding model
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
 
-Last verified: 2026-08-11 against vLLM v0.27.0. Changes since v0.21.0:
+Last verified: 2026-10-18 against vLLM v0.32.0 source (anchors, pooling
+enums, matryoshka bound, roster). Since v0.27.0: #57498 (v0.31.0) chunked
+long-text normalization (§7); EmbeddingGemma 2 (#60254, v0.32.0, §4).
+Changes v0.21.0 → v0.27.0:
 **#46313** (v0.24.0) rejects matryoshka `dimensions` above `hidden_size`
 (previously a silent wrong-width result — see §3); **#45173** (v0.24.0) makes
 `/v1/embeddings` accept message-shaped input plus `chat_template_kwargs`

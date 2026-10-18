@@ -38,7 +38,7 @@ OpenAI-shaped speaker-attributed segments, preserving the model's own labels
 `json` / `text` / `verbose_json` behave exactly as before.
 `OpenMOSS-Team/MOSS-Transcribe-Diarize` is the first supported model.
 
-Task types (from `vllm/tasks.py:5-6`):
+Task types (from `vllm/tasks.py:7`):
 `GenerationTask = Literal["generate", "transcription", "realtime"]`.
 
 ## 3. Supported models
@@ -52,16 +52,19 @@ Task types (from `vllm/tasks.py:5-6`):
 | Whisper (RedHatAI) | `whisper-large-v3-turbo-quantized.w4a16` | same | smallest, some quality drop |
 | Whisper-causal | (internal variant) | `WhisperCausal*` | for causal decoders on Whisper features |
 | Voxtral | `mistralai/Voxtral-Mini-3B-2507` | `VoxtralForConditionalGeneration` | Mistral's speech model; Small variant also exists |
-| Qwen2-Audio | `Qwen/Qwen2-Audio-*` | `Qwen2AudioForConditionalGeneration` | also does audio understanding |
+| Qwen2-Audio | `Qwen/Qwen2-Audio-*` | `Qwen2AudioForConditionalGeneration` | **audio chat only** — no `SupportsTranscription`, so no `/v1/audio/*`; use `/v1/chat/completions` |
 | Qwen3-Omni | `Qwen/Qwen3-Omni-MoE-Thinker-*` | `Qwen3OmniMoeThinkerForConditionalGeneration` | unified audio+vision |
-| Qwen3-ASR | — | `qwen3_asr_realtime`, `qwen3_asr_forced_aligner` | dedicated ASR variants |
-| Ultravox | `fixie-ai/ultravox-v0_*` | `UltravoxModel` | LLaMA 3 + Whisper encoder |
-| Kimi-Audio | `moonshotai/Kimi-Audio-7B-Instruct` | `KimiAudioWhisperEncoder` | long-form audio understanding |
+| Qwen3-ASR | `Qwen/Qwen3-ASR-*` | `Qwen3ASRForConditionalGeneration` | dedicated ASR; realtime variant `Qwen3ASRRealtimeGeneration`, forced aligner `Qwen3ASRForcedAlignerForTokenClassification` |
+| Ultravox | `fixie-ai/ultravox-v0_*` | `UltravoxModel` | **audio chat only** — no `/v1/audio/*`. LLaMA 3 + Whisper encoder |
+| Kimi-Audio | `moonshotai/Kimi-Audio-7B-Instruct` | `KimiAudioForConditionalGeneration` | long-form audio understanding |
 | FunASR | `funasr/*` | family | Chinese-first ASR |
 | FireRedASR2 | `FireRedASR2-*` | family | Chinese-first ASR, v2 |
-| MiniCPM-O | `openbmb/MiniCPM-o-2_6` | `MiniCPMWhisperEncoder` | on-device scale |
-| Cohere ASR | `cohere/*` | `CohereASRForCausalLM` | newer addition |
-| MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | — | added v0.25.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper. Ask for it via `response_format=diarized_json` (#48543, v0.27.0). Max audio duration is **90 minutes** as of #49403 (v0.27.0) — before that it inherited Whisper's 30 s assumption, sized the encoder cache from `max_num_batched_tokens`, and **rejected long audio at request time** |
+| MiniCPM-O | `openbmb/MiniCPM-o-2_6` | `MiniCPMO` | **audio chat only** — no `/v1/audio/*`. On-device scale |
+| Cohere ASR | `cohere/*` | `CohereAsrForConditionalGeneration` | newer addition |
+| GLM-ASR | — | `GlmAsrForConditionalGeneration` | |
+| Granite Speech | — | `GraniteSpeechForConditionalGeneration` | |
+| Nemotron 3.5 ASR | `nvidia/nemotron-3.5-asr-streaming-0.6b` | `Nemotron3_5AsrForRNNT` | v0.32.0 (#59827). **Out-of-tree** — install `vllm-nemotron-asr-plugin` first; in-tree vLLM only points at it. Complete-audio transcription only, no realtime streaming |
+| MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | `MossTranscribeDiarizeForConditionalGeneration` | added v0.26.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper. Ask for it via `response_format=diarized_json` (#48543, v0.27.0). Max audio duration is **90 minutes** as of #49403 (v0.27.0) — before that it inherited Whisper's 30 s assumption, sized the encoder cache from `max_num_batched_tokens`, and **rejected long audio at request time** |
 | Gemma 3n | `Gemma3nForConditionalGeneration` | family | multimodal, audio optional |
 
 Model files live under `vllm/model_executor/models/` — grep for
@@ -129,10 +132,13 @@ Server-side:
 
 1. **Decoding** — backend-selectable (`vllm/multimodal/media/audio.py`,
    `AUDIO_BACKENDS = ("auto", "soundfile", "pyav", "torchcodec")`). `auto`
-   (default) tries soundfile, then torchcodec, then pyav (#51826, #55642,
-   v0.30.0). `torchcodec` needs the `torchcodec` package plus a system
-   ffmpeg install — falls through to the next backend if unavailable.
-   Force one: `--media-io-kwargs '{"audio": {"audio_backend": "torchcodec"}}'`.
+   (default) order is **torchcodec → soundfile → PyAV from v0.32.0** (#58364,
+   which also trims Vorbis tail padding on FFmpeg < 5); on v0.30.x–v0.31.x it
+   was soundfile → torchcodec → PyAV (#51826, #55642). Only an import failure
+   (or a container soundfile cannot read) falls through; any other decode
+   error raises. `torchcodec` ships in the CUDA/CPU/XPU requirement files, not
+   ROCm's, and needs FFmpeg libraries at runtime.
+   Force one: `--media-io-kwargs '{"audio": {"audio_backend": "soundfile"}}'`.
    WAV / FLAC / MP3 work out of the box; MP4 / M4A / WebM decoding support
    landed in v0.18. (Not librosa — that claim predates this baseline and
    was already wrong at v0.27.0.)
@@ -150,7 +156,10 @@ Server-side:
    `audio_backend`) is now part of the multimodal cache hash, and hash
    kwargs are scoped per modality instead of shared (#54241, #54918).
    Before this, switching `audio_backend` between requests risked reusing a
-   stale cached decode taken with a different backend.
+   stale cached decode taken with a different backend. From v0.31.0
+   per-request `media_io_kwargs` / `mm_processor_kwargs` are rejected unless
+   the server runs with `--trust-request-mm-kwargs` (#58830); the server-level
+   `--media-io-kwargs` is the normal place for decode settings.
 
 Recent fix: **#39116** (merged 2026-04-09) fixed a spacing bug between
 chunks in multi-chunk transcription. **It ships in v0.20.0 (2026-04-27) and not
@@ -186,8 +195,6 @@ deployment guide for vLLM STT. Key artefacts:
 - Container: `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0` — hardened
   vLLM distribution.
 - Pre-validated quants under `RedHatAI/` namespace on HF.
-- Performance target: Whisper-large-v3-turbo-FP8-dynamic delivers real-time
-  factor ≫1 on a single L40S.
 
 Source URL: <https://developers.redhat.com/articles/2026/03/06/private-transcription-whisper-red-hat-ai>
 
@@ -207,7 +214,13 @@ Source URL: <https://developers.redhat.com/articles/2026/03/06/private-transcrip
 4. **Language hint wrong** — `language="zh"` on an English audio tanks WER.
    Leave blank to let Whisper auto-detect on the first chunk, then pin for
    the rest of the file if using long-form.
-5. **`/v1/audio/speech` (TTS)** — **not** currently supported. That's a
+5. **Engine dies on a >30 s clip outside `/v1/audio/*` (v0.29.0–v0.30.x).**
+   Whisper or Qwen2-Audio audio longer than 30 s through offline
+   `LLM.generate` or chat-style multimodal input crashed the engine
+   (tensor-size `RuntimeError`, then `EngineDeadError` on every request).
+   Fixed in v0.31.0 (#57769, #56912). The transcription/translation
+   endpoints chunk server-side and were not affected.
+6. **`/v1/audio/speech` (TTS)** — **not** currently supported. That's a
    request-output shape nobody in vLLM serves; use a dedicated TTS engine.
 
 ## 10. Metrics
@@ -232,13 +245,17 @@ the request client with your own timing instrumentation.
 - `vllm/model_executor/models/interfaces.py` — which models may diarize
 - `vllm/config/speech_to_text.py` — `SpeechToTextConfig` (sample rate,
   chunking params)
-- `vllm/tasks.py:5-6` — `GenerationTask`
+- `vllm/tasks.py:7` — `GenerationTask`
 - `docs/contributing/model/transcription.md` — interface spec for
   `SupportsTranscription`
 - Red Hat STT blog: <https://developers.redhat.com/articles/2025/06/10/speech-text-whisper-and-red-hat-ai-inference-server>
 
-Last verified: 2026-08-11 against vLLM v0.27.0. The request surface **did move
-this time**, after being frozen through v0.25.1: `diarized_json` on
+Last verified: 2026-10-18 against vLLM v0.32.0 source (roster classes from
+`registry.py` and `SupportsTranscription` implementers, entrypoint paths,
+audio backend chain). Since v0.30.0: `auto` decode order now torchcodec-first
+(#58364), per-request `media_io_kwargs` gated (#58830), >30 s offline/chat
+crash fixed (#57769), Nemotron 3.5 ASR via plugin (#59827).
+As of v0.27.0 the request surface had moved, after being frozen through v0.25.1: `diarized_json` on
 transcriptions (#48543), cumulative long-form chunk timestamps (#41131),
 `top_p` / `top_k` / `min_p` / frequency, repetition and presence penalties and
 `vllm_xargs` on the **translation** endpoint (#45839), and MOSS-TD's max audio

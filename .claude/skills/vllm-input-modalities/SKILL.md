@@ -27,7 +27,7 @@ vLLM decides what a model *does* from the combination of three flags:
 The pair `(runner, convert)` has replaced the old `--task {generate|embed|
 score|classify|reward|...}` flag. `--task` is **gone**, not deprecated —
 there is no `task` field in `ModelConfig` and no `--task` in
-`vllm/engine/arg_utils.py` at v0.27.0, so passing it is an
+`vllm/engine/arg_utils.py` at v0.32.0, so passing it is an
 unrecognized-argument error. Canonical today:
 
 | Workload | Command | Runner | Notes |
@@ -104,7 +104,7 @@ design — not a bug.
 list validated only `dimensions >= 1` and then sliced `[..., :d]` — so an
 oversized value **silently returned a `hidden_size`-length vector** instead
 of erroring. If a client has been over-asking, it was never getting the
-width it requested; upgrading turns that into a visible `ValueError`. Pin
+width it requested; upgrading turns that into a visible 400. Pin
 the list explicitly via `--hf-overrides` to make the valid set unambiguous.
 
 **`/v2/embed` (Cohere v2 compat)** adds `input_type` prompt prefixing,
@@ -122,7 +122,7 @@ vllm serve BAAI/bge-reranker-v2-m3 --runner pooling
 
 # Cross-encoder with instruction-aware score template
 vllm serve Qwen/Qwen3-Reranker-0.6B --runner pooling --convert classify \
-  --chat-template examples/templates/qwen3_reranker.jinja \
+  --chat-template examples/pooling/score/template/qwen3_reranker.jinja \
   --hf-overrides '{"architectures":["Qwen3ForSequenceClassification"],
                     "classifier_from_token":["no","yes"],
                     "is_original_qwen3_reranker":true}'
@@ -192,9 +192,11 @@ Chunking >30 s audio is server-side (energy-aware split at
 
 **Audio decode backend (v0.30.0+).** Selectable via
 `--media-io-kwargs '{"audio": {"audio_backend": "torchcodec"}}'` —
-`soundfile` (fast path), `pyav`, or `torchcodec` (needs the `torchcodec`
-package plus system ffmpeg). `auto` (default) tries soundfile, then
-torchcodec, then pyav (#51826, #55642). Default resampler switched from
+`soundfile`, `pyav`, or `torchcodec`. `auto` (default) tries **torchcodec
+first from v0.32.0** (#58364), then soundfile, then pyav; on v0.30.x–v0.31.x
+it was soundfile → torchcodec → pyav (#51826, #55642). Only a missing
+backend (or a container soundfile cannot read) falls through — other decode
+errors raise. Default resampler switched from
 PyAV to torchaudio in the same release (#52598); torchaudio ships in the
 standard CUDA/ROCm/CPU/XPU requirement files, no extra install. Details:
 `references/stt.md` §6.
@@ -217,8 +219,9 @@ vllm serve deepseek-ai/DeepSeek-OCR \
 
 Three non-obvious flags:
 - `NGramPerReqLogitsProcessor` is required — without it, table-token
-  generation degrades. Enforces `whitelist_token_ids={128821,128822}`,
-  `ngram_size=30`, `window_size=90`.
+  generation degrades. Send `whitelist_token_ids={128821,128822}`,
+  `ngram_size=30`, `window_size=90` per request in `extra_args` — the
+  processor reads them from there (`references/ocr.md` §3).
 - **Disable prefix caching.** OCR per-request inputs don't share prefixes;
   the cache bookkeeping is pure overhead.
 - **`--mm-processor-cache-gb 0`** — the multimodal processor cache isn't
@@ -226,7 +229,7 @@ Three non-obvious flags:
 
 DeepSeek reports ~2500 tok/s per A100-40 GB, ~200 k pages/day per GPU. Mode
 is hard-coded to GUNDAM (base=1024, image=640, crop=True); Tiny/Small/Base/
-Large aren't exposed via env vars yet (tracked issue, as of early 2026).
+Large are not selectable (still hard-coded at v0.32.0).
 
 Invocation is still plain `/v1/chat/completions` with image URLs — there is
 no dedicated `/ocr` endpoint.
@@ -278,7 +281,8 @@ no dedicated `/ocr` endpoint.
 8. **Late-interaction kernel regression sniff test.** ColBERT / ColPali
    throughput jumped ~14% in v0.17–0.19 from MaxSim optimisations. If those
    models feel slow, check `--enable-flash-late-interaction` (default true)
-   wasn't disabled by an old config.
+   wasn't disabled by an old config. From v0.32.0 the same flag also gates the
+   engine-side flash-maxsim Triton kernel (#40337).
 
 ## Landed in v0.20.0 (released 2026-04-27) — verify your deployment
 
@@ -291,8 +295,8 @@ Callouts from the v0.20.0 release notes (Breaking Changes + API sections):
 - **Async scheduling default OFF for pooling models** (PR #39592) — explicit
   breaking change. Pooling throughput should be marginally lower but
   stability improves; re-enable case-by-case if you measured a win on v0.19.
-- `--task` flag — still accepted with deprecation warning; `--runner` +
-  `--convert` is canonical.
+- `--task` flag — removed (absent from the CLI by v0.22.0, see pitfall 1);
+  `--runner` + `--convert` is canonical.
 - `score` pooling task — replaced by `classify` + `num_labels==1`.
 - Pooling **multitask** — pick a task explicitly via `PoolerConfig(task=...)`
   or `--pooler-config.task <task>`; automatic multitasking is gone.
@@ -357,7 +361,7 @@ blocks by roughly `block_pool_size`× (v0.25.0).
 
 **New architectures since v0.21.0:** Qianfan-OCR (#40136, v0.21.0),
 Unlimited OCR (#46564 + Triton R-SWA backend #47102, v0.25.0),
-MOSS-Transcribe-Diarize (#47729, v0.25.0 — long-form transcription with
+MOSS-Transcribe-Diarize (#47729, v0.26.0 — long-form transcription with
 timestamped *speaker labels*, Whisper-style encoder into a Qwen3 decoder),
 LLaVA-OneVision-2 (#44785). See `references/ocr.md` §2 and
 `references/stt.md`.
@@ -375,7 +379,7 @@ reason.
 *As of this pass, latest release was v0.27.1 (2026-08-11), a one-change
 patch — "quantized DSpark Markov heads" (#50424) — with nothing on this
 skill's surface. The claims below were verified against the `v0.27.0` tag.
-Superseded — v0.30.0 is now latest, see the section below.*
+Superseded — v0.32.0 is now latest, see the sections below.*
 
 **A pooling correctness bug, fixed in v0.26.0 — the highest-value item on
 this page.** #48901: LAST-pooling models (the PR names
@@ -388,7 +392,7 @@ so easily. **Any ranking a pre-v0.26.0 engine produced on long documents is
 suspect** — this is a re-score, not just an upgrade. `references/reranking.md` §2.
 
 **Model Runner V2 is the pooling default from v0.29.0. Opt-in at v0.28.0 and below.**
-v0.26.0/v0.27.0 landed encoder-only attention (#49331), sequence
+v0.27.0 landed encoder-only attention (#49331), sequence
 `embed`/`classify` pooling (#48791), `token_classify` (#50293), `token_embed`
 (#50574) and BGE-M3's `embed&token_classify` (#50661) on MRV2. The
 default-enable PR ([#48290](https://github.com/vllm-project/vllm/pull/48290)) merged 2026-08-19 — after
@@ -435,6 +439,25 @@ the processor cache on.
 warning naming the missing `qwen3_reranker.jinja` template instead of
 silently producing random-looking scores (#56017). See pitfall 5.
 
+### v0.31.0 + v0.32.0 (baseline v0.32.0, released 2026-10-18)
+
+**Per-request multimodal kwargs are rejected by default from v0.31.0**
+(#58830). A request carrying `mm_processor_kwargs` or `media_io_kwargs` errors
+unless the server runs with `--trust-request-mm-kwargs` — chat/completions and
+pooling/scoring alike. Server-level `--media-io-kwargs` and offline `LLM` are
+unchanged; set per-deployment decode options there.
+
+**Two silent wrong-result fixes (v0.31.0) — re-embed / re-score older output:**
+chunked long-text embeddings (`enable_chunked_processing`) came back non-unit
+length (#57498, `references/embedding.md` §7); a non-truncating
+`max_tokens_per_doc` still changed scores on non-separator rerankers such as
+Qwen3-Reranker (#57666, `references/reranking.md` §3).
+
+**Roster (v0.32.0):** EmbeddingGemma 2 omni-modal embeddings (#60254),
+zerank-2 score template (#60415), Nemotron 3.5 ASR as an out-of-tree plugin
+only (#59827, `references/stt.md` §3). MRV1 was **not** removed in v0.32.0 —
+`VLLM_USE_V2_MODEL_RUNNER=0` still works (`references/runner-flags.md` §11).
+
 ## Paired skills
 
 - `vllm-configuration` → environment variables, cache paths, telemetry opt-out.
@@ -451,18 +474,13 @@ silently producing random-looking scores (#56017). See pitfall 5.
   RHAIIS (link in `references/stt.md`).
 - DeepSeek-OCR canonical reference: vLLM recipes page (link in
   `references/ocr.md`).
-- Refresh triggers: any v0.31+ release, a new Jina embeddings major version, or
-  a new native-multimodal reranker shipping. (MRV2 becoming the pooling default
-  was a trigger; it fired — #48290 shipped in v0.29.0. v0.30+ was a trigger too;
-  it fired — audio backend selection + torchaudio resampler, see the v0.30.0
-  section above.) Note that four passes running have found the *runner*
+- Refresh triggers: any v0.33+ release, MRV1 removal, a new Jina embeddings
+  major version, or a new native-multimodal reranker shipping. Note that the
+  passes keep finding the *runner*
   surface quiet while **request validation and pooling correctness** moved
   underneath it — grep release bodies for
   `pooling|rerank|embedding|matryoshka|top_n`, not just for runner flags.
 - External-ref audit log: `references/sources.md`.
 
-Last verified: 2026-08-11 (against vLLM v0.26.0 + v0.27.0 release notes, the
-PRs behind each pooling/rerank/STT/OCR hit, and the v0.27.0 source tree for
-the runner flags, task enums and MRV2 pooling gate). Headline: #48901 made
-pre-v0.26.0 LAST-pooling scores untrustworthy on chunk-prefilled pairs, and
-`--task` is now absent from the CLI entirely rather than deprecated.
+Last verified: 2026-10-18 against the vLLM v0.32.0 source tree and the
+v0.31.0 + v0.32.0 release notes.
