@@ -72,7 +72,7 @@ concurrency knee.**
 
 ## Likely root cause — the physics
 
-You are **HBM-bandwidth-bound on decode**. Decode time per layer ≈
+Decode is **HBM-bandwidth-bound**. Decode time per layer ≈
 `weight_bytes / HBM_bw`. Once batch is large enough that the compute
 (Tensor Core flops) hides the weight read, throughput plateaus. Higher
 HBM bandwidth = the knee shifts to a larger batch.
@@ -90,7 +90,7 @@ layer also play in.
 
 The AWQ-INT4 weights + EAGLE3 k=3 (which accepts ~2-3× more tokens per
 forward, magnifying decode pressure) + `kv-cache-fp8` (halves KV
-bandwidth) all anchor you in the bandwidth-bound regime where this
+bandwidth) all anchor the deploy in the bandwidth-bound regime where this
 scales linearly with HBM bandwidth.
 
 ## Operator action

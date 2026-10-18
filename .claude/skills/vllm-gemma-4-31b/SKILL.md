@@ -40,7 +40,7 @@ the upstream constraints that shape the answer.
 >   `<turn|>` leak, see the pitfall below): root cause fixed by
 >   [#52430](https://github.com/vllm-project/vllm/pull/52430), first shipped in
 >   **v0.29.0** (`vllm/parser/gemma4.py:425` at v0.32.0). The issue is still
->   open with no reporter confirmation on a release — verify on your traffic.
+>   open with no reporter confirmation on a release — verify on the target traffic.
 > - [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
 >   `required` `tool_choice` unenforced; fix PR
 >   [#51524](https://github.com/vllm-project/vllm/pull/51524) open) is **not**
@@ -197,7 +197,7 @@ The remaining defect is the opposite one: the generated CoT is
 **silently dropped** — a raw-completions bypass of the same prompt shows
 real thought text before `<channel|>`, while the chat path returns
 `reasoning_content: ""`. Tokens are generated and billed but never
-surfaced. Harmless for most tool workloads; a problem if your client
+surfaced. Harmless for most tool workloads; a problem when the client
 needs CoT visibility. On vLLM ≤ 0.23 the original leak applies —
 mitigate there by running tool deployments thinking-off. Either way this
 shape is invisible to benchmark suites whose multi-turn fixtures always
@@ -213,7 +213,7 @@ dropped instead of parsed. Fixed by
 [#53444](https://github.com/vllm-project/vllm/pull/53444)
 (`vllm/parser/gemma4.py`, `gemma4_config()`), which adds the
 `(TOOL_PREAMBLE, "COLON") -> TOOL_NAME` transition. No flag or config
-change needed — take v0.30.0+ if you serve a checkpoint that emits this
+change needed — take v0.30.0+ when serving a checkpoint that emits this
 opener shape.
 
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
@@ -240,7 +240,7 @@ random, 50–72% on MT-Bench). A collapsed number has two known causes:
   has `draft_vocab_size: 32000` drawn from English data; it cannot emit
   most non-English tokens, so acceptance collapses by construction
   (~0.45/draft at K=3 on Russian). Run without spec-decode or use a
-  drafter trained on your language.
+  drafter trained on the traffic's language.
 - **TP ranks disagree.** [#50158](https://github.com/vllm-project/vllm/issues/50158)
   (open; fix PR #50280 open): embed_tokens sharing is decided per-rank.
 
@@ -364,7 +364,7 @@ so the model can answer in prose when it prefers ending its turn (see
 Pitfalls — happy-path probes don't stress this),
 and `reasoning_content` is empty on tool-turn continuations. **Stock
 parsers are the right call for tool-calling deployments on ≥ 0.24.0
-unless you need CoT visibility or hard forced-tool_choice guarantees.**
+unless the client needs CoT visibility or hard forced-tool_choice guarantees.**
 
 ## References
 
