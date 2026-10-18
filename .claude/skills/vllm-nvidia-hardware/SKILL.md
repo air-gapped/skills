@@ -8,9 +8,7 @@ when_to_use: |-
 
 # vLLM on NVIDIA hardware — Hopper through Rubin
 
-Target audience: operators who run vLLM on NVIDIA datacenter GPUs, sizing from single H100 nodes up to GB300 NVL72 racks, and evaluating Vera Rubin for 2026–2027 purchases.
-
-This skill is a **reference**, not a walkthrough — most of the content is SKU tables, facility prerequisites, and platform compatibility matrices. The SKILL.md body holds the quick-answer shortcuts; the `references/` directory has the full tables. Read the reference file that matches the question.
+Answer from the shortcuts below; for full tables, read the one reference file the router names for the question.
 
 ## The one thing to know before anything else
 
@@ -89,20 +87,16 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 ### Key numbers to memorize
 | Metric | Value |
 |---|---|
-| GB300 NVL72 rack power | 135 kW nominal / 155 kW peak |
 | GB300 NVL72 aggregate HBM | 20.1 TB HBM3E (72 × 279 GB; NVIDIA: "> 20 TB") |
 | GB300 NVL72 aggregate HBM BW | ~576 TB/s |
 | GB300 NVL72 NVLink domain | 72 GPUs flat, 130 TB/s |
-| B300 (HGX NVL8, Dell fleet) | 270 GB / 1,100 W |
-| B300 (DGX / GB300 Superchip) | 279 GB / 1,400 W |
 | H200 SXM5 | 141 GB HBM3E / 4.8 TB/s / 700 W |
 | Rubin R100 (H2 2026) | ~288 GB HBM4 / ~20 TB/s |
-| Rubin NVL144 rack power | 180–220 kW (800 VDC HVDC) |
 | Rubin Ultra Kyber NVL576 rack | 600 kW |
 
-## Paired reference
+## Paired skill
 
-If this skill helps with *why* a hardware choice matters for KV-cache sizing, the companion skill `vllm-caching` covers *how* to configure tiered KV (`--kv-offloading-size`, LMCache, NixlConnector, MooncakeConnector). Both skills should trigger together on combined "we're buying GB300 and need to size LMCache" style questions.
+Configuring tiered KV (`--kv-offloading-size`, LMCache, NixlConnector, MooncakeConnector) for the hardware chosen here: load `vllm-caching` alongside.
 
 ## Before stating a version, pin or status
 
