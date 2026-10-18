@@ -78,7 +78,7 @@ vllm bench serve \
 - Same seeds, same `--num-prompts` (≥500), same dataset on both sides.
 - Run A and B back-to-back on the same hardware in the same session to avoid thermal/neighbor noise.
 
-See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON file per rate for plotting.
+See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON file per rate for plotting. Every rate replays the same seeded prompts, so it resets the server's prefix/MM/encoder caches before each rate; start the server with `VLLM_SERVER_DEV_MODE=1` or every rate after the first runs on a warm prefix cache.
 
 ## Critical pitfalls
 

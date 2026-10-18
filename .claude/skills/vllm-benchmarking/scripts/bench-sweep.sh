@@ -12,6 +12,11 @@
 #   rates:        space-separated rates (default: 1 2 4 8 16 32 inf)
 #
 # Output: sweep-<tag>-<rate>.json in the current directory.
+#
+# Every rate replays the same seeded prompts, so a warm prefix cache from the
+# previous run would inflate the next one. The script resets the server's caches
+# before each measured run; that needs VLLM_SERVER_DEV_MODE=1 on the server. Without
+# it the script warns and the numbers after the first rate are cache-assisted.
 
 set -euo pipefail
 
@@ -33,6 +38,16 @@ else
   DATASET_NAME=sharegpt
 fi
 
+reset_caches() {
+  local ep
+  for ep in reset_prefix_cache reset_mm_cache reset_encoder_cache; do
+    if ! curl -sf -X POST "${BASE_URL}/${ep}" >/dev/null; then
+      echo "WARN: POST ${BASE_URL}/${ep} failed (server lacks VLLM_SERVER_DEV_MODE=1?); this run reuses a warm cache" >&2
+      return 0
+    fi
+  done
+}
+
 # Pre-flight warmup — 50 requests at a modest rate
 echo "=== Warmup ==="
 vllm bench serve \
@@ -50,6 +65,7 @@ echo
 for RATE in "${RATES[@]}"; do
   OUT="sweep-${TAG}-${RATE}.json"
   echo "=== rate=${RATE} -> ${OUT} ==="
+  reset_caches
   vllm bench serve \
     --model "$MODEL" \
     --base-url "$BASE_URL" \
