@@ -54,9 +54,9 @@ Default is `enable_thinking=True`. `False` inserts empty `<think>\n\n</think>\n\
 
 | Issue | Summary | Fix / status |
 |---|---|---|
-| [vLLM #18819](https://github.com/vllm-project/vllm/issues/18819) | Structured output / `guided_json` breaks when `enable_thinking=false` — model emits stray `{`, `[`, or triple-backtick leaders. | Keep thinking on; or post-process. |
+| [vLLM #18819](https://github.com/vllm-project/vllm/issues/18819) | Structured output / `guided_json` breaks when `enable_thinking=false` — model emits stray `{`, `[`, or triple-backtick leaders. | Fixed in v0.9.1 (PR #18879). On older vLLM: keep thinking on, or post-process. |
 | [vLLM #19513](https://github.com/vllm-project/vllm/issues/19513) | Reasoning on → tool-call parsing fails (Hermes parser didn't skip `<think>` blocks). | **Unconfirmed** — #19513 was stale-bot auto-closed NOT_PLANNED with no maintainer fix comment. Do not treat as resolved. |
-| [vLLM #20611](https://github.com/vllm-project/vllm/issues/20611) | Streaming + `enable_thinking=false` → `tool_calls` field missing, `finish_reason` wrong. | Upgrade. |
+| [vLLM #20611](https://github.com/vllm-project/vllm/issues/20611) | Streaming + `enable_thinking=false` → `tool_calls` field missing, `finish_reason` wrong. | **Unconfirmed** — stale-bot closed NOT_PLANNED, no fix PR named. Test streaming with thinking off before relying on it; non-streaming is the fallback. |
 | [vLLM #21711](https://github.com/vllm-project/vllm/issues/21711) | Qwen3 tool-call regressions across transformers versions. | Pin transformers version per model card. |
 | [ms-swift #5836](https://github.com/modelscope/ms-swift/issues/5836) | Downstream harness fails to forward `enable_thinking=False` through vLLM. | Client-side fix — ensure `extra_body.chat_template_kwargs` is passed. |
 
@@ -107,7 +107,7 @@ No warning without the override — a missing override is silent.
 | Concern | vLLM | DeepSeek official API |
 |---|---|---|
 | Thinking toggle | `extra_body={"chat_template_kwargs": {"thinking": true}}` | `extra_body={"thinking": {"type": "enabled"}}` |
-| Reasoning field (response) | **`reasoning`** — verified `ChatMessage.reasoning` at v0.27.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
+| Reasoning field (response) | **`reasoning`** — `ChatMessage.reasoning` at v0.32.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
 | Empty tool calls | `tool_calls: []` | `null` |
 
 Clients that hard-code one fail on the other.
@@ -122,7 +122,7 @@ Clients that hard-code one fail on the other.
 
 ```
 --tool-call-parser openai
---reasoning-parser gpt_oss   # harmony-native
+--reasoning-parser openai_gptoss   # harmony-native; "gpt_oss" is not a registered name
 ```
 
 **Endpoint guidance:** Prefer `/v1/responses` over `/v1/chat/completions` for tool calling until chat-completions parity lands.
@@ -138,7 +138,7 @@ Clients that hard-code one fail on the other.
 | [HF gpt-oss-120b #69](https://huggingface.co/openai/gpt-oss-120b/discussions/69) | Errors in 120b chat template vs spec. | Same. |
 | [vLLM #22403](https://github.com/vllm-project/vllm/issues/22403) | "Expected 2 output messages (reasoning and final), got 7." Harmony parser confused by multi-segment output. | Upgrade vLLM; retry. |
 | [vLLM #37909](https://github.com/vllm-project/vllm/issues/37909) | `reasoning_effort="none"` doesn't disable reasoning and can break output. | Omit or use `"low"`. |
-| `openai_harmony` offline vocab | Raises `HarmonyError` when loading tiktoken vocab offline. | Pre-download tiktoken encodings, set `TIKTOKEN_ENCODINGS_BASE`. |
+| `openai_harmony` offline vocab | Raises `HarmonyError` when loading tiktoken vocab offline. | v0.31.0+ ships `oss-harmony` (same `openai_harmony` module, vocab embedded). If it still fails, `pip install gpt-oss` pulled `openai-harmony` over it — uninstall `openai-harmony`, reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken encodings, set `TIKTOKEN_ENCODINGS_BASE`. |
 
 ---
 
@@ -180,7 +180,7 @@ Result: internal benchmark success rate went from ~18% → 99.925%.
 | Issue | Summary |
 |---|---|
 | [vLLM #22718](https://github.com/vllm-project/vllm/issues/22718) | `tool_call_regex` fails when whitespace follows the colon. |
-| [vLLM #33654](https://github.com/vllm-project/vllm/issues/33654) | Kimi-K2.5 empty content responses. |
+| [vLLM #33654](https://github.com/vllm-project/vllm/issues/33654) | Kimi-K2.5 empty content responses. Fixed by PR #38579 (Kimi-K2 tool-parser streaming), first in v0.20.0 — upgrade. |
 | [MoonshotAI/Kimi-K2 #41](https://github.com/MoonshotAI/Kimi-K2/issues/41) | Complex tool calls → empty output / FSM advance failure. |
 
 ---
@@ -288,7 +288,7 @@ No native JSON tool calling in tokenizer template — use community pythonic.
 |---|---|---|
 | [vLLM #39392](https://github.com/vllm-project/vllm/issues/39392) | `<pad>` tokens under **parallel tool-call** load; sequential requests succeed. **Still open, confirmed on `vllm/vllm-openai:v0.25.1` 2026-07-20** (Ampere: RTX 3090, A6000). Reporter notes Gemma-4 is otherwise stable under load — it is the parallelism *of tool calls* that triggers it. | `--max-num-seqs 1` (performance hit), or serialise only the tool-calling path. No upstream fix yet. |
 | [vLLM #38855](https://github.com/vllm-project/vllm/issues/38855) | Reasoning parser fails — `<|channel>` tokens stripped before parser sees them. **FIXED — closed 2026-06-15.** | **The fix is two-sided and that is the trap:** it needed *both* a new vLLM gemma4 container image *and* an updated `chat_template` published on the HuggingFace model repo (~2026-04-10). Upgrading vLLM alone does **not** fix it if the local model snapshot predates that date — which is the normal state of affairs for mirrored or air-gapped weights. **Re-pull the model**, then drop the workaround. Until both halves are current, keep `extra_body={"skip_special_tokens": false}`. |
-| [vLLM #39043](https://github.com/vllm-project/vllm/issues/39043) | Tool calling broken with Claude Code client. | — |
+| [vLLM #39043](https://github.com/vllm-project/vllm/issues/39043) | Tool calling broken with Claude Code client. | Resolved on v0.24.0+ (maintainer, closed 2026-07-03). If it reproduces, confirm the running image tag is really current — a stale cached `:latest` was the reporter's last cause. |
 | [HF gemma-4-31B #28](https://huggingface.co/google/gemma-4-31B-it/discussions/28) | Missing `reasoning` field in response. | Upstream. |
 
 ---
@@ -337,7 +337,9 @@ These all live in `examples/tool_chat_template_<name>.jinja`:
 - `hermes` — Hermes-family (NousResearch)
 - `hunyuan_a13b` — Tencent Hunyuan
 - `internlm2_tool` — InternLM2
-- `minimax_m1`, `mistral_parallel` — MiniMax
+- `mistral_parallel` — Mistral (HF format) with parallel-tool system prompt
+- `apertus` — Apertus
+- `muse_glimmer` — Muse Glimmer (v0.28.0+)
 - `toolace` — ToolACE
 - `xlam_llama`, `xlam_qwen` — Salesforce xLAM
 - `functiongemma` — Gemma function-calling variant
@@ -348,10 +350,10 @@ Pair each with the matching `--tool-call-parser`. If unsure, check the vLLM docs
 
 ## Complete list of shipped tool templates
 
-27 files in `examples/`:
+27 files in `examples/` at v0.30.0–v0.32.0 (`tool_chat_template_` prefix omitted after the first). `minimax_m1.jinja` was removed in v0.24.0 with the MiniMax-Text-01/VL-01 models (#45993) — do not point `--chat-template` at it.
 
 **JSON-based:** `tool_chat_template_llama3.1_json.jinja`, `llama3.2_json.jinja`, `llama4_json.jinja`, `deepseekv3.jinja`, `deepseekv31.jinja`, `deepseekr1.jinja`, `mistral.jinja`, `mistral3.jinja`, `glm4.jinja`, `gemma4.jinja`
 
 **Pythonic:** `llama3.2_pythonic.jinja`, `llama4_pythonic.jinja`, `gemma3_pythonic.jinja`
 
-**Model-specific:** `granite.jinja`, `granite_20b_fc.jinja`, `hermes.jinja`, `hunyuan_a13b.jinja`, `internlm2_tool.jinja`, `minimax_m1.jinja`, `mistral_parallel.jinja`, `qwen3coder.jinja`, `toolace.jinja`, `xlam_llama.jinja`, `xlam_qwen.jinja`, `phi4_mini.jinja`, `functiongemma.jinja`
+**Model-specific:** `apertus.jinja`, `granite.jinja`, `granite_20b_fc.jinja`, `hermes.jinja`, `hunyuan_a13b.jinja`, `internlm2_tool.jinja`, `mistral_parallel.jinja`, `muse_glimmer.jinja`, `qwen3coder.jinja`, `toolace.jinja`, `xlam_llama.jinja`, `xlam_qwen.jinja`, `phi4_mini.jinja`, `functiongemma.jinja`

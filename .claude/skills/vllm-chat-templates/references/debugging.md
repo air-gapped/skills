@@ -25,8 +25,11 @@ Load when nothing in the triage table fits, or when verifying before changing fl
 Enable prompt logging and compare byte-for-byte against the model card's example:
 
 ```
-vllm serve --disable-log-requests=False --log-level DEBUG ...
+VLLM_LOGGING_LEVEL=DEBUG vllm serve --enable-log-requests ...
+# v0.31.0+ also accepts: vllm serve --enable-log-requests --log-level DEBUG ...
 ```
+
+`--disable-log-requests` was removed in v0.17.0; passing it fails argument parsing. Prompt text and token IDs are logged only at DEBUG.
 
 In the OpenAI client, send a minimal request and `grep "prompt_token_ids\|prompt:"` the server log. If the rendered prompt lacks expected tokens (`<|im_start|>`, `<tool_call>`, `<think>`, chat-role delimiters), the chat template is the problem.
 
@@ -73,11 +76,11 @@ Before filing a bug, record:
 ```bash
 vllm --version
 python -c "import transformers; print(transformers.__version__)"
-python -c "import vllm; from vllm.model_executor.models import registry as r; print(r.ModelRegistry.get_supported_archs()[:3])"
+python -c "import vllm; from vllm.model_executor.models import registry as r; print(sorted(r.ModelRegistry.get_supported_archs())[:3])"
 # HF model revision — from .cache/huggingface/hub/... or huggingface-cli scan-cache
 ```
 
-vLLM v0.27.0 requires **`transformers >= 5.5.3`** and `tokenizers >= 0.21.1` (`requirements/common.txt`; same floor as v0.25.1). Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim.
+vLLM v0.32.0 requires **`transformers >= 5.16.1, < 5.20.0`** and `tokenizers >= 0.23.2` (`requirements/common.txt`); v0.31.0 required `>= 5.10.4, < 5.18.0` and `tokenizers >= 0.21.1`. Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim.
 
 Many template bugs track a specific `tokenizer_config.json` commit. Mention revision SHA in issues.
 
@@ -92,7 +95,9 @@ Exact strings operators see, with meaning:
 | Error | Meaning | Fix |
 |---|---|---|
 | `ChatTemplateResolutionError: "As of transformers v4.44, default chat template is no longer allowed..."` | Neither `--chat-template`, processor, nor tokenizer provided a template. | Supply `--chat-template <path>`. |
-| `ValueError: "The supplied chat template ... appears path-like, but doesn't exist!"` | `--chat-template` path invalid. | `ls` the path; or use relative `examples/tool_chat_template_X.jinja`. |
+| `ValueError: "The supplied chat template ... appears path-like, but doesn't exist! Tried: ..."` | `--chat-template` path invalid (also not found in the bundled `chat_templates/` dir). | `ls` the path; or use relative `examples/tool_chat_template_X.jinja`. |
+| `TimeoutError: "Chat template rendering timed out after 30.0s..."` (v0.32.0+) | Python renderer hit `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`; the render pool is replaced and the stuck thread keeps burning CPU. | Pathological template loop → fix the template. Legitimately huge prompt → raise `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` (seconds; `<= 0` disables). |
+| `"Chat template is passed with request, but --trust-request-chat-template is not set."` | Request carried `chat_template` (top-level or in `chat_template_kwargs`); `/v1/responses` enforces this from v0.32.0. | Move the template to `--chat-template`, or set `--trust-request-chat-template` on trusted deployments only. |
 | `ValueError: "Found unexpected chat template kwargs from request: {...}"` | Request passed reserved kwargs (`chat_template`, `tokenize`). | Remove from `extra_body`. |
 | `ValueError: "Found more '<##IMAGE##>' placeholders in input prompt than actual multimodal data items."` | Template has more image placeholders than images in request. | Reduce placeholders or include more images. |
 | `ValueError: "Missing 'type' field in multimodal part."` | Malformed content part. | Every `content` item needs `{"type": "..."}`. |
@@ -100,7 +105,7 @@ Exact strings operators see, with meaning:
 | `ValueError: "You must set \`--enable-mm-embeds\` to input \`image_embeds\`"` | Embeddings provided but flag missing. | Add `--enable-mm-embeds`. |
 | `ValueError: "Cannot put tools in the first user message when there's no first user message!"` | Tool template injects into first user msg; none exists. | Prepend a user message. |
 | `ValueError: "This model only supports single tool-calls at once!"` | Multiple tool calls in message but template is single-call. | Switch to parallel-tool template or send one at a time. |
-| `HarmonyError: ...` (on gpt-oss) | `openai_harmony` vocab load failed. | Pre-download tiktoken; set `TIKTOKEN_ENCODINGS_BASE`. |
+| `HarmonyError: ...` (on gpt-oss) | `openai_harmony` vocab load failed. | v0.31.0+: `oss-harmony` embeds the vocab — check `pip show openai-harmony`; if present it overwrote the module, uninstall it and reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken, set `TIKTOKEN_ENCODINGS_BASE`. |
 | Template renders `<tools>\n</tools>` instead of tool result | `--chat-template-content-format auto` misrouting. | Set content-format to `openai` or `string` explicitly; see GLM #39614. |
 | Jinja `_try_extract_ast()` exception | `\n` escape double-converted. | Pass template file path, don't shell-interpolate string. |
 
@@ -184,7 +189,7 @@ Save as `/tmp/debug.jinja`, pass `--chat-template /tmp/debug.jinja`, fire a requ
 Use `scripts/render_template.py` (if present in the vLLM checkout) or run directly in Python:
 
 ```python
-from vllm.transformers_utils.tokenizer import get_tokenizer
+from vllm.tokenizers import get_tokenizer   # old vllm.transformers_utils.tokenizer path removed in v0.22.0
 t = get_tokenizer("Qwen/Qwen3-30B", trust_remote_code=True)
 print(t.apply_chat_template(
     [{"role":"user","content":"hi"}],

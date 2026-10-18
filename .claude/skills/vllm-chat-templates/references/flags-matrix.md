@@ -76,7 +76,8 @@ vllm serve openai/gpt-oss-120b \
   --tool-call-parser openai \
   --reasoning-parser openai_gptoss   # NOT "gpt_oss" — that name is not registered
 
-# Offline harmony vocab:
+# Offline harmony vocab — v0.30.0 and older only (openai-harmony downloads it).
+# v0.31.0+ depends on oss-harmony, which embeds the vocab; nothing to set.
 export TIKTOKEN_ENCODINGS_BASE=/path/to/tiktoken-cache
 ```
 
