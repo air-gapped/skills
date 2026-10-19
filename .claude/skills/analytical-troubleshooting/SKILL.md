@@ -155,7 +155,9 @@ Rules that make the table work:
   "only on weekdays" IS NOT weekends; a change already reverted with the
   fault still present IS NOT that change. Mark the rest "unknown — check:
   <the check>", never a bare `?`. A skipped cell is a hole the favorite
-  theory will hide in. Unknown cells are the data-collection shopping list.
+  theory will hide in. Emit the unknown cells as one explicit "facts to
+  collect" list beside the table, each with who or what fetches it; a test
+  plan does not replace that list.
 - **Tag provenance** per hard rule 1.
 - **Then mine it:** for each IS/IS-NOT pair ask *what is distinctive about
   the IS side?* — and for each distinction, *what changed in, on, or around
