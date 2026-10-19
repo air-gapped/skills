@@ -13,15 +13,11 @@ Target audience: an operator or agent driving Jira non-interactively — creatin
 
 `jira` is [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli), a single static Go binary inspired by GitHub's `gh`. It is **not** an official Atlassian tool.
 
-## Why this matters
+## Three rules
 
-Three things make jira-cli easy to get wrong, and all three are what this skill exists to prevent:
-
-1. **It is interactive by default.** `create`, `edit`, `assign`, `move`, `comment add`, and `worklog add` open a TUI or prompt for missing fields. A script (or an agent) that forgets `--no-input` — or omits a required flag — **hangs forever** waiting on a prompt that no one will answer. Reads (`list`, `view`, `epic list`, `sprint list`) default to an interactive pager/table UI; without `--plain`/`--raw`/`--csv` the output is terminal-control gibberish, not parseable data. **The automation contract is non-negotiable: writes get `--no-input` + every required flag; reads get a plain/raw/csv format flag.**
-
-2. **Almost every value is instance-defined and case-sensitive.** Issue types, statuses, priorities, resolutions, link types, components, and custom fields are configured per-project on the Jira side — the CLI invents none of them. `-tBug` fails on a project that calls it `Defect`; `move ISSUE-1 "Done"` fails if the workflow's state is `Closed` or `done` (lowercase). **Discover before acting** (see below). Hardcoding values from memory is the most common cause of confusing failures.
-
-3. **Descriptions/comments are converted to Atlassian Document Format (ADF).** Markdown is not stored verbatim — it's translated. Some constructs (Jira `{code}` blocks, strikethrough, `@mentions`, emoji shortcodes, raw HTML) translate imperfectly or are dropped. See `references/markdown-adf.md`.
+1. **Writes:** `--no-input` + every required flag + `</dev/null`. **Reads:** `--plain`, `--raw` or `--csv`. Without these, `create`/`edit`/`assign`/`move`/`comment add`/`worklog add` wait on a prompt forever, and `list`/`view`/`epic list`/`sprint list` print a TUI instead of data.
+2. **Never guess instance values.** Issue types, statuses, priorities, resolutions, link types, components and custom fields are per-project and case-sensitive (`-tBug` fails where the type is `Defect`). Discover them first (Step 0).
+3. **Bodies are converted, lossily** — GFM → ADF on Cloud, → wiki markup on Server/DC. Pitfall 8 and `references/markdown-adf.md`.
 
 ## Version & source of truth
 
