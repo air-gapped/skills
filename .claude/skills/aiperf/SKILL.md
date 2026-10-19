@@ -120,13 +120,13 @@ for c in 10 50 100 200 500; do
     --tokenizer Qwen/Qwen3-0.6B \
     --concurrency $c --request-count 1000 \
     --isl 1000 --osl 500 \
-    --random-seed 42 \
+    --num-dataset-entries 1000 --random-seed $c \
     --artifact-dir artifacts/pareto-c$c
 done
 aiperf plot --paths artifacts/pareto-c* --dashboard
 ```
 
-Same seed, same dataset, back-to-back runs, same hardware. Multi-run confidence (`--num-profile-runs 3 --confidence-level 0.95`) yields CI bands when each run is short enough that re-running 3× is feasible.
+Same seed list, same hardware, same tokenizer for config A and config B. **Synthetic prompts are a 100-entry pool by default (`--num-dataset-entries`), reused across requests, and a given `--random-seed` regenerates the identical pool.** Against a prefix-caching server (vLLM APC, SGLang radix) a 1000-request run with the default pool, or a second run with the same seed, is served from cache — TTFT and throughput become cache measurements. So: size `--num-dataset-entries` ≥ requests + warmup, use a distinct seed per sweep point, and restart the server (or `--reset-kv-cache`, v0.13.0+) before switching config. Multi-run confidence (`--num-profile-runs 3 --confidence-level 0.95`) yields CI bands when each run is short enough that re-running 3× is feasible; its trials share one seed by default, so on a prefix-caching server add `--vary-seed-per-trial` or trials 2..N measure a warm cache.
 
 ## Critical pitfalls
 
@@ -221,6 +221,7 @@ aiperf profile --model my-model --url http://endpoint:8000 \
 aiperf profile --model my-model --url http://endpoint:8000 \
   --endpoint-type chat --streaming --tokenizer my-tokenizer \
   --concurrency 100 --request-count 2000 --isl 1000 --osl 500 \
+  --num-dataset-entries 2000 --vary-seed-per-trial \
   --num-profile-runs 5 --confidence-level 0.95 \
   --profile-run-cooldown-seconds 30 \
   --goodput "time_to_first_token:300 inter_token_latency:8"

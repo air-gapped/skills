@@ -22,6 +22,7 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | Endpoint registry (`plugins.yaml`) | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/src/aiperf/plugin/plugins.yaml | 2026-10-20 | `audio_transcription`: `/v1/audio/transcriptions`, non-streaming, multipart (PR #1247) |
 | Synthetic audio vs real speech | https://github.com/ai-dynamo/aiperf/issues/1524 | 2026-10-20 | open — white-noise default audio gives unrealistic latency/RTFx for ASR |
 | TraceLab tutorial | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/tutorials/tracelab-trace.md | 2026-10-20 | `tracelab` type (PR #1262); corpus at uw-syfi/TraceLab release v0.0.2; auto fixed-schedule, `--no-fixed-schedule` for capped pauses |
+| Synthetic prompt reuse across runs | https://github.com/ai-dynamo/aiperf/issues/1579 | 2026-10-20 | open (filed against 0.13.0) — default `--num-dataset-entries 100` + fixed seed → prefix-cache hits (SGLang 1024/1024 cached tokens, vLLM 91% hit rate). Mechanism confirmed in `docs/cli-options.md` v0.13.0 (`--num-dataset-entries` default 100, reused; `--set-consistent-seed` default True; `--vary-seed-per-trial` default False) |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-09-15 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-09-15 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-09-15 | |

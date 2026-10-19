@@ -199,7 +199,7 @@ Video:
 | Flag | Notes |
 |---|---|
 | `--conversation-num`, `--num-sessions <int>` | Sessions to run. |
-| `--num-dataset-entries <int>` | Total unique entries. |
+| `--num-dataset-entries <int>` | Unique prompts in the pool. **Default 100**, reused across requests; the same `--random-seed` regenerates the same pool. Set ≥ requests + warmup on prefix-caching servers or repeats are served from cache. |
 | `--conversation-turn-mean <int>` | Turns per conversation. Default 1. User-centric requires ≥2. |
 | `--conversation-turn-stddev <int>` | |
 | `--conversation-turn-delay-mean <ms>` | Inter-turn delay. |
@@ -233,7 +233,8 @@ Video:
 | `--profile-run-cooldown-seconds <sec>` | Cooldown between runs. |
 | `--confidence-level <float>` | Default 0.95. |
 | `--profile-run-disable-warmup-after-first` | Skip warmup on runs 2–N. |
-| `--set-consistent-seed` | Auto-set a seed so workloads match across runs. |
+| `--set-consistent-seed` | Default on: sets seed 42 when none given, so every trial replays identical prompts. |
+| `--vary-seed-per-trial` | Distinct seed per trial. Use on prefix-caching servers, where identical trials 2..N hit a warm cache. |
 
 Outputs: `aggregate/profile_export_aiperf_aggregate.{csv,json}` with mean, std, cv, se, ci_low, ci_high, t_critical.
 
