@@ -156,8 +156,10 @@ per-module detail (keys, snippets, stage, frequency) in `references/modules.md`.
 
 ## NoCloud seeding (the air-gapped core)
 
-cloud-init finds NoCloud config from (in precedence order) SMBIOS serial → kernel
-cmdline → seed dirs → labeled block device. The common methods:
+NoCloud checks, in order: SMBIOS serial → kernel cmdline → seed dirs → labeled
+block device, then fetches any `seedfrom` URI. A `meta-data` key from an earlier
+source wins; `user-data` comes from the last source that supplies it. The common
+methods:
 
 - **Seed directory:** drop `meta-data` + `user-data` (and optionally `vendor-data`,
   `network-config`) into `/var/lib/cloud/seed/nocloud/`.

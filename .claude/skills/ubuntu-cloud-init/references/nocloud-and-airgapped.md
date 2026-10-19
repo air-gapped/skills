@@ -20,7 +20,7 @@ The dsname **`nocloud-net` is deprecated since 24.1** — use `nocloud`; the *sc
 of the `seedfrom` URI decides whether the Local or Network class handles it. The old
 name still works (with a deprecation log).
 
-## Seeding methods (probed low → high precedence)
+## Seeding methods (checked in this order)
 
 1. **SMBIOS / DMI system-serial-number** — the serial string is parsed as a line
    config (same grammar as the kernel cmdline). The QEMU/libvirt favourite for
@@ -36,8 +36,12 @@ name still works (with a deprecation log).
 
 If a `seedfrom` is produced by any of the above, cloud-init then fetches
 `user-data`, `meta-data`, `vendor-data` (and `network-config`, except on 24.04) from it. The scheme must
-match the class's supported schemes or the datasource declines. Cmdline values
-override seed values.
+match the class's supported schemes or the datasource declines.
+
+Merge rule (`_merge_new_seed` → `util.mergemanydict`, first source wins): a
+`meta-data` key from an earlier source (SMBIOS, cmdline) beats the same key from a
+seed dir, device or `seedfrom` fetch. `user-data` and `vendor-data` are replaced
+wholesale by each later source that has them; a `seedfrom` fetch replaces both.
 
 ## Required / optional files
 
