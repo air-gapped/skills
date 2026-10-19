@@ -48,7 +48,7 @@ Most "new Confluence" coverage describes **Cloud**, and the DC gap is wide enoug
 | User identifier | **`accountId`** | **`username` / `userKey`** |
 | **Bundled on BOTH** (don't mis-flag): Team Calendars, collaborative editing (≤12 editors), Analytics for Confluence (DC: "limited") | — | — |
 
-DC status: LTS lines **10.2** (→2027-12-02, Java 21 only) and **9.2** (→**2026-12-10** — compute the runway from today's date and plan the 10.2 hop). **11.0** (2026-10-08) is a non-LTS feature release (Java 25 minimum, reachable only from the latest 10.2.x). Server EOL'd 2024-02-15. Patches ship monthly — read the instance's version rather than quoting one. DC is on a sunset path (sale-end 2026-03-30, read-only EOL 2029-03-28) — note it honestly if asked, but this skill is about using *today's* Confluence well, not migrating.
+DC versions, Java floors, EOL dates and the DC sunset live in `references/cloud-vs-dc.md` — read the instance's version before any version-gated advice; this skill is about using *today's* Confluence well, not migrating.
 
 To tell which applies, check the REST base path: `/wiki/api/v2/...` works → Cloud; only `/rest/api/content` → DC. Full feature-split matrix in **`references/cloud-vs-dc.md`**.
 
