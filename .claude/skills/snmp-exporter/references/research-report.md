@@ -16,8 +16,8 @@ provenance record for the planned `snmp-exporter` best-practices skill.
   (mirror them into a local `mibs/` tree).
 - **The #1 anti-pattern is walking whole enterprise subtrees.** Full `10892.5` walks
   take 2–5 min on real iDRACs (helm-charts#3572); walking all of `9.6.1.101` generated
-  5223 metrics and hung the scrape (snmp_exporter#1229); Cisco warns excessive queries
-  can crash the CBS SNMP process; Onyx serves everything through one `mgmtd` daemon
+  5223 metrics (snmp_exporter#1229) and hung the scrape here; Cisco documents high CBS
+  CPU from excessive SNMP polling; Onyx serves everything through one `mgmtd` daemon
   that can be overloaded. Curated per-table walk lists are the core of a good module.
 - **Timeouts are the #1 operational trap**: default module `timeout: 5s` ×
   `(retries: 3 + 1)` = 20 s worst case per request, vs Prometheus's default 10 s
@@ -210,7 +210,7 @@ provenance record for the planned `snmp-exporter` best-practices skill.
 - SNMP is **disabled by default**; enable via web UI (Advanced → SNMP) or CLI
   (`snmp-server server`, `snmp-server community X ro`); ensure the community's view
   includes the private tree. v3 fully supported (kmgmt3636 lists common OIDs).
-  Cisco warns excessive queries can crash the SNMP process; community reports of
+  Cisco documents high CPU from excessive SNMP polling; community reports of
   SNMP going deaf until reboot.
 - EOL: rolling select-model EOS/EOL notices for CBS250/350 (last-order dates 2024);
   successors Catalyst 1200/1300 share the CISCOSB SNMP surface (joint Cisco OID doc)
