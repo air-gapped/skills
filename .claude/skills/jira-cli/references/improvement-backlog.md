@@ -34,6 +34,13 @@ workaround in rather than deferring to a fix, which is what the cadence finding
 would otherwise have required changing.
 
 
+## Resolved this pass — 2026-10-20 (freshen + fix + improve)
+
+- `init` and `epic add`/`remove` live-verified; Open item narrowed to `sprint add`/`close`.
+- Freshen: `--component` appends (help text wrong), `move` lists valid states, #1020, #959, #1029, #1033, `--debug` prints the auth header; known-issues cadence prose → unreleased-on-`main` table.
+- Fix: case 07 (bulk delete) 0.28 → 0.94 — live-query delete loops blacklisted, reversible option first; case 02 assertion corrected to `--component` appends.
+- Improve (cap reached, 9 keep / 1 discard; blind 83 → 83; A/B IMPROVED 3/3): `</dev/null` on every create example, CSV recipe states the 100 cap, contents lines on 4 references, three-rule intro, pitfall 12 folded into the backend table, bulk idiom with done condition, redundant pointers/recipes cut. Discarded: output-format decision table (repeated the bullets, ragged row).
+
 ## Open
 
 - **`sprint add` / `sprint close` not live-verified (Dim 9).** Blocked on: a Jira
@@ -104,7 +111,7 @@ would otherwise have required changing.
 - **Source review (2026-06-07) — retraction + refinements.** Reading the local clone
   caught a self-inflicted error: the earlier "`epic create` prompts `Epic Key` / fails
   on next-gen" claim was wrong. `epic create -n -s [-b] --no-input` works on next-gen
-  (verified live, CPG-20/21); the `? Epic Key` EOF in the original run came from a
+  (verified live on throwaway issues); the `? Epic Key` EOF in the original run came from a
   downstream `epic add` with an empty key (the real `epic create` issue was just that it
   has no `--raw` flag). Corrected SKILL.md pitfall 5, commands.md, troubleshooting.md,
   known-issues.md, sources.md. Also from source: #935 is an `edit`-only asymmetry
