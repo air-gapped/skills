@@ -38,7 +38,7 @@ and the test plan. When a human partner is involved, they are the sensors
 and hands — ask sharp questions rather than assume their system's state.
 Why each mechanism is here: `references/evidence.md`.
 
-## Hard rules (they exist because models measurably break them)
+## Hard rules
 
 1. **Never invent evidence.** Every fact in the analysis carries a provenance
    tag: `[observed]` (directly seen this session by agent or user),
@@ -57,9 +57,8 @@ Why each mechanism is here: `references/evidence.md`.
    containment, not diagnosis.)
 3. **Every planned test names its targets.** Before running or requesting any
    test, list each possible result and the candidates that result kills
-   ("counter flat → H2 dead; counter climbs → H1, H4 dead"). A test that can
-   only confirm the favorite hypothesis is close to worthless; forcing the
-   refutation question measurably improves diagnosis.
+   ("counter flat → H2 dead; counter climbs → H1, H4 dead"). A test no
+   result of which kills a candidate is not worth running.
 4. **The spec table is the analysis.** Maintain it continuously and re-emit
    the current table whenever it changes materially or the conversation grows
    long. Long sessions silently lose mid-context evidence; the re-emitted
