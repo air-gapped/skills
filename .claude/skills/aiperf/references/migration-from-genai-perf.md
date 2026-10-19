@@ -8,8 +8,10 @@ AIPerf is a near-drop-in replacement. Most flags transfer 1-to-1. The few except
 |---|---|---|
 | `--max-threads N` | `--workers-max N` | Finer-grained worker control. AIPerf auto-sizes via `0.75 * cpu_count - 1` capped at `AIPERF_WORKER_MAX_WORKERS_CAP` (32). |
 | `-- <passthrough args>` | _(removed)_ | All args are first-class now. |
-| `analyze` subcommand | _(not yet)_ | Planned; not in v0.7.0. |
-| `config` / `create-template` / `process-export-files` | _(not yet)_ | Planned. |
+| `analyze` (sweep scenarios) | `aiperf profile` with a list flag (`--concurrency 10,50,100`), `--variant`, or a YAML `sweep:` block | Sweeps are folded into `profile`. `aiperf analyze` is a different command (run inspection: swim-lane, turn-messages). |
+| `config <yaml>` | `aiperf profile -f config.yaml` | CLI flags override file values. No `aiperf config <yaml>` run shortcut. |
+| `create-template` | `aiperf config init -t <template>` | `--list` / `--search` / `--category` for discovery; `config validate` pre-flights a file. |
+| `process-export-files` | _(not needed)_ | Results are aggregated during the run. |
 | `generate-plots` | `aiperf plot` | More plot types, `--dashboard` for interactive. |
 
 For everything else, the same flag names work.
