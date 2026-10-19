@@ -117,6 +117,12 @@ modules:
   `docker run --rm -v "$PWD:/opt/" quay.io/prometheus/snmp-generator:v0.30.1
   generate -m /opt/mibs -g /opt/generator.yml -o /opt/snmp.yml`
 
+**A module is done when**, for every device model it targets: each expected
+metric name is in the generated snmp.yml, `--dry-run` loads every
+`--config.file` together, a curl scrape of a real device returns those metrics
+non-empty, and the job's `scrape_timeout` exceeds that scrape's
+`snmp_scrape_walk_duration_seconds` and the module's `timeout×(retries+1)`.
+
 ## Running it
 
 ```
