@@ -38,7 +38,7 @@
     {
       "id": 6,
       "question": "In `jira issue edit`, which field flags append versus replace?",
-      "skill_answer": "--label and --fix-version append; --component replaces"
+      "skill_answer": "--label, --component and --fix-version all append (--component's help text says replace, but it appends); a minus prefix removes"
     },
     {
       "id": 7,

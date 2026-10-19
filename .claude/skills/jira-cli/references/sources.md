@@ -80,3 +80,4 @@ behind an auth wall to any non-browser client — bot-block, not a dead page.
 Throwaway issues and components were created and deleted in the same run; `init` wrote only to a scratch `-c` file.
 
 - **`jira init` non-interactive** — every flag given → config written, exit 0; any flag omitted → prompt → `EOF`, exit 1; existing file without `--force` → `Skipping config generation`, exit 1; `--force` keeps `<file>.bkp`. Flags from `jira init --help` (v1.7.0).
+- **`issue edit --component` appends** — `internal/cmd/issue/edit/edit.go` @v1.7.0 builds existing + new components and `pkg/jira/edit.go` sends `add`/`remove` ops, same as labels; `--help` text "Replace components" is wrong. Live: `create -C A` → `[A]`; `edit -C B` → `[A,B]`; `edit -C -A` → `[B]`.

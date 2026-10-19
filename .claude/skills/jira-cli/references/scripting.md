@@ -70,7 +70,7 @@ jira issue list -q'parent = PROJ-123 AND assignee = currentUser()' --raw \
 ### Bulk-edit safety
 
 `edit` field semantics bite in loops:
-- `--label` **appends**, `--component` **replaces**, `--fix-version` **appends**. To set-not-add a label, remove the old one in the same call: `--label -old --label new`.
+- `--label`, `--component` and `--fix-version` all **append**. To set-not-add, remove the old value in the same call: `--label -old --label new`, `--component -Old --component New`.
 - Test the edit on **one** issue and `view` the result before looping over hundreds.
 - For destructive loops (`delete`), print the keys first and require explicit confirmation — there is no undo, and `--cascade` also deletes sub-tasks.
 

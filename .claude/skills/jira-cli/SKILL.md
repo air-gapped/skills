@@ -26,7 +26,7 @@ Three things make jira-cli easy to get wrong, and all three are what this skill 
 ## Version & source of truth
 
 - **Pinned at v1.7.0** (released 2025-08-31, the current latest). Verify locally: `jira version`.
-- **`--help` is the authoritative flag reference**, always. `jira <cmd> <subcmd> --help` prints flags, arguments, aliases, and examples. If this skill ever disagrees with `--help` on a flag, trust `--help` (and update the skill). Generate full man pages with `jira man --generate --output <dir>`.
+- **`--help` is the authoritative flag reference.** `jira <cmd> <subcmd> --help` prints flags, arguments, aliases, and examples. If this skill disagrees with `--help` on a flag's name or arguments, trust `--help` (and update the skill); where this skill flags a help text as wrong (`--component`), trust the skill. Generate full man pages with `jira man --generate --output <dir>`.
 - This skill's exhaustive flag/argument tables live in `references/commands.md`, captured from the v1.7.0 binary.
 
 ## Cloud vs Server / Data Center — know which backend you're on
@@ -69,7 +69,7 @@ For transitions specifically, the **valid target states depend on the issue's cu
 | List/search issues | `jira issue list` (aliases `ls`, `search`) | Filters + JQL; see `references/jql-and-filters.md` |
 | View one issue | `jira issue view KEY` | `--comments N`, `--raw` for JSON |
 | Create issue | `jira issue create -t<Type> -s"..." --no-input` | `-P` parent (epic link / required for sub-task) |
-| Edit issue | `jira issue edit KEY ... --no-input` | `--label` **appends**, `--component` **replaces** (asymmetric!) |
+| Edit issue | `jira issue edit KEY ... --no-input` | `--label`/`--component`/`--fix-version` **append**; `-value` removes |
 | Transition | `jira issue move KEY "State"` (aliases `transition`, `mv`) | `--comment`/`-a`/`-R` inline; state is workflow-defined |
 | Assign | `jira issue assign KEY <user|$(jira me)|default|x>` | `x` = unassign; user must be exact email/display name |
 | Comment | `jira issue comment add KEY "body"` | `--internal` for service-desk-internal; markdown→ADF |
@@ -124,7 +124,7 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 
 2. **Guessing field values.** `-tBug`, `-sDone`, `-yHigh`, `link ... Blocks` all reference *instance-defined, case-sensitive* strings. Run Step-0 discovery first. A failed write with "specify a valid issue type" / "field cannot be set" almost always means the value doesn't exist on that project.
 
-3. **`edit` append-vs-replace asymmetry.** `--label` and `--fix-version` **append/add**; `--component` **replaces**. Remove an existing value by prefixing minus: `jira issue edit KEY --label -stale --label fresh --component -OldComp --component NewComp --no-input`. Expecting `--label new` to *replace* the label set is a classic mistake — it only adds.
+3. **`edit` list flags append, never replace.** `--label`, `--component` and `--fix-version` add to the existing set. `--help` says `--component` "Replace components" — wrong on v1.7.0, it appends too. To swap a value, remove it with a minus prefix in the same call: `jira issue edit KEY --label -stale --label fresh --component -OldComp --component NewComp --no-input`.
 
 4. **`-b/--body` and the positional comment body beat `--template`.** If both are passed, the flag/positional wins and the template is silently ignored. Use one or the other.
 

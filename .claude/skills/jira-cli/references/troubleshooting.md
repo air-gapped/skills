@@ -54,7 +54,7 @@ The STATE string isn't a valid transition from the issue's *current* status in t
 - `x` unassigns; `default` uses the project default assignee.
 
 ## `edit` didn't replace what I expected
-Field semantics are asymmetric: `--label` and `--fix-version` **append**, `--component` **replaces**. To remove a value, prefix `-`: `--label -old`. To swap, remove + add in one call.
+`--label`, `--component` and `--fix-version` all **append** — including `--component`, whose `--help` text wrongly says "Replace". To remove a value, prefix `-`: `--label -old`, `--component -API`. To swap, remove + add in one call.
 
 ## Body/template ignored
 `-b/--body` (create/edit) and the positional comment body **take precedence** over `--template`. Pass only one source.

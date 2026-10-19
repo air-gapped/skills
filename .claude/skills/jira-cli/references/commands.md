@@ -124,7 +124,7 @@ Output: `--raw` prints the created issue as JSON (use `jq -r '.key'`).
 | `-y, --priority <P>` | Replace priority. |
 | `-a, --assignee <user>` | Replace assignee. |
 | `-l, --label <L>` | **Appends** a label (repeatable). Prefix `-` to remove: `--label -old`. |
-| `-C, --component <C>` | **Replaces** components (repeatable). Prefix `-` to remove. |
+| `-C, --component <C>` | **Appends** components (repeatable) — `--help` says "Replace", but v1.7.0 adds to the existing set. Prefix `-` to remove. |
 | `--fix-version <V>` | **Adds/appends** fixVersions. Prefix `-` to remove. |
 | `--affects-version <V>` | Adds/appends affectsVersions. |
 | `--custom <k=v>` | Edit custom field(s). |
