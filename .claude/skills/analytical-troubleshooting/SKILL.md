@@ -107,7 +107,9 @@ but under discipline, with a strict exit.
   splits the possibility space (a half-split beats ten one-at-a-time checks
   in a chain of components; see `references/test-toolkit.md`).
 - **One change per test.** Vary one thing, observe, record. Shotgun changes
-  destroy the evidence Stage 2 will need.
+  destroy the evidence Stage 2 will need. Cleaning, reseating, reconnecting
+  and rebooting are changes too: inspect and record first, then alter one
+  element per step.
 - **Exit condition (count honestly):** after **~3 failed hypotheses**, or when
   the candidate space is clearly large/opaque, or when any single test is
   expensive, slow, risky, or the fault won't reproduce on demand — stop
