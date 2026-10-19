@@ -4,6 +4,7 @@ The gotchas that bite when Anthropic-format clients talk to non-Anthropic
 backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 
 ## Contents
+- [Symptom → fix](#symptom--fix)
 - [Canonical field mapping](#canonical-field-mapping)
 - [stop_reason divergence table](#stop_reason-divergence-table)
 - [The thinking-signature seam](#the-thinking-signature-seam)
@@ -11,6 +12,19 @@ backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 - [count_tokens approaches](#count_tokens-approaches)
 - [Client-side requirements (what servers must tolerate)](#client-side-requirements)
 - [Claude Code-specific hacks in the wild](#claude-code-specific-hacks)
+
+## Symptom → fix
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Claude Code's first turn rejected for length on a <52k-context backend | 32000-token output reservation + ~18k prompt | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192` |
+| 400 `Unexpected value(s)` on `anthropic-beta`, or `Extra inputs are not permitted` | backend validates beta headers / beta tool-schema fields | `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` |
+| Prefix-cache hits near zero under Claude Code | attribution block fingerprint at the start of `system` | `CLAUDE_CODE_ATTRIBUTION_HEADER=0` (vLLM and llama.cpp handle it already) |
+| Real Anthropic API rejects replayed history | thinking from a local backend or bridge carries a fake or empty signature | strip thinking blocks before crossing to the real API |
+| vLLM or SGLang validation error | `document` block (vLLM), or `thinking.type: "between_tools"` | send documents as text; rewrite the type to `adaptive` |
+| vLLM usage has null cache fields | `--enable-prompt-tokens-details` off | add the flag |
+| 404 on `/v1/v1/messages` or `/messages` | base-URL convention mismatch | SDKs: `http://host/v1`; Claude Code: origin only; Bifrost: `/anthropic` prefix |
+| Thinking budget has no effect | vLLM <0.31 ignores `thinking`; vLLM, llama.cpp and Lemonade ignore `adaptive`; SGLang does not enforce `budget_tokens` | send `enabled` + `budget_tokens` to vLLM 0.31+ / llama.cpp; cap length with `max_tokens` elsewhere |
 
 ## Canonical field mapping
 

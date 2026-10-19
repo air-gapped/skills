@@ -61,16 +61,17 @@ Responses API's server-side state; see the responses-api skill).
 When invoked with a topic argument (`backends`, `gateways`, `translation`,
 `clients`), load that reference file first and answer from it. Without an
 argument, pick by question shape: which-server-supports-what → backends;
-routing/proxy behavior → gateways; wrong output/mapping bugs → translation;
+routing/proxy behavior → gateways; an error or wrong output → translation
+(start at its symptom → fix table);
 client config → clients.
 
 - **Backends**: `references/backend-implementations.md` — support matrix and
   per-server notes for the 7 native implementations
 - **Gateways**: `references/gateways.md` — LiteLLM routing cascade, Bifrost,
   Superagent Gateway
-- **Translation**: `references/translation-mapping.md` — field mapping,
-  stop_reason divergence table, thinking-signature seam, streaming
-  divergences, client-side requirements, Claude Code hacks
+- **Translation**: `references/translation-mapping.md` — symptom → fix
+  table, field mapping, stop_reason divergence table, thinking-signature
+  seam, streaming divergences, client-side requirements, Claude Code hacks
 - **Clients**: `references/clients.md` — opencode deep-dive, Claude Code
   behaviors, ecosystem launchers
 - **Sources**: `references/sources.md` — dated per-URL index with commits
