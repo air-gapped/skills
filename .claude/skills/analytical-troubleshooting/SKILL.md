@@ -221,11 +221,8 @@ explain each IS — **and** each IS-NOT?"*
   to refute.
 - A candidate that fits only with extra assumptions survives *provisionally*;
   write the assumptions down. Rank survivors **weakest first**: the candidate
-  that commits to the least beyond what the table forces. Assumptions and
-  unforced detail are the same currency — specificity must be purchased by an
-  IS or IS-NOT cell, and every unpurchased commitment is another way to be
-  wrong when the next cell fills in. The weakest survivor is the one most
-  likely to still fit the evidence you haven't collected yet.
+  that commits to the least beyond what the table forces, counting each
+  written-down assumption as one more unforced commitment.
 - The top survivor is the **most probable cause** — a rank, not a verdict.
   Paper never proves; it only prunes.
 
