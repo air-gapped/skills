@@ -12,8 +12,9 @@
 # confirmed supported by iDRAC 9/10, CBS250/350 (Cisco CLI guide: SHA256 +
 # AES-128 users), and Onyx (v3.10.4606 manual: sha/sha224-512 + aes-128/192/256).
 # Secrets never land in git: credentials use ${ENV} placeholders — run the
-# exporter with --config.expand-environment-variables and provide the six
-# *_SNMP_* vars from a Kubernetes Secret.
+# exporter with --config.expand-environment-variables and provide the nine
+# *_SNMP_* vars (user, auth and priv password for switch, iDRAC 9, iDRAC 10)
+# from a Kubernetes Secret.
 # SHA256/AES is the switch pair (switch_v3); the iDRAC auths use their own
 # generation-specific pairs (see below). If a CBS runs old firmware that only
 # offers MD5/SHA, create the device user with SHA and mirror it here.
