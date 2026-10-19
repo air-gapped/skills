@@ -43,6 +43,10 @@ CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" \
   --timeout 0 --transcript "$transcript" --prompt 'offline test' >/dev/null
 
 "$assert_events" "$transcript" --expect-tools Glob --expect-model offline-model --max-turns 1 >/dev/null
+if "$assert_events" "$transcript" --min-parallel 2 >/dev/null 2>&1; then
+  printf 'assert test failed: one tool call passed --min-parallel 2\n' >&2
+  exit 1
+fi
 case "$(<"$record")" in
   *"config=/tmp/claude-code-ci."* ) ;;
   *) printf 'isolation test failed: config path was not temporary\n' >&2; exit 1 ;;

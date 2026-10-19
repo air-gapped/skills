@@ -13,6 +13,7 @@ expected=''
 expected_model=''
 min_turns=''
 max_turns=''
+min_parallel=''
 
 while (($# > 0)); do
   case "$1" in
@@ -38,9 +39,15 @@ while (($# > 0)); do
       max_turns=$2
       shift 2
       ;;
+    --min-parallel)
+      (($# >= 2)) || die "--min-parallel requires a value"
+      [[ "$2" =~ ^[0-9]+$ ]] || die "--min-parallel must be an integer"
+      min_parallel=$2
+      shift 2
+      ;;
     --help|-h)
       printf 'usage: assert-events.sh TRANSCRIPT [EXPECTED_TOOL,...]\n'
-      printf '       assert-events.sh TRANSCRIPT [--expect-tools CSV] [--expect-model MODEL] [--min-turns N] [--max-turns N]\n'
+      printf '       assert-events.sh TRANSCRIPT [--expect-tools CSV] [--expect-model MODEL] [--min-turns N] [--max-turns N] [--min-parallel N]\n'
       exit 0
       ;;
     --*)
@@ -86,6 +93,12 @@ fi
 if [[ -n "$expected" ]]; then
   actual=$(jq -s -r '[.[] | select(type == "object" and .type == "assistant") | (.message.content // [])[]? | select(type == "object" and .type == "tool_use") | .name] | join(",")' "$transcript")
   [[ "$actual" == "$expected" ]] || die "tool sequence was ${actual:-none}, expected $expected"
+fi
+
+# stream-json emits one assistant event per content block; parallel calls share message.id.
+if [[ -n "$min_parallel" ]]; then
+  parallel=$(jq -s -r '[.[] | select(type == "object" and .type == "assistant") | {id: .message.id, n: ([(.message.content // [])[]? | select(type == "object" and .type == "tool_use")] | length)}] | group_by(.id) | map(map(.n) | add) | max // 0' "$transcript")
+  ((parallel >= min_parallel)) || die "at most $parallel tool calls in one assistant message, expected at least $min_parallel"
 fi
 
 printf 'pass: result=success'

@@ -48,7 +48,8 @@ Read fixture-a.txt and fixture-b.txt in the same turn. Do not modify anything.
 ```
 
 Expected: two `Read` tool calls in one assistant message, then a successful
-result.
+result. Assert with `--expect-tools Read,Read --min-parallel 2`; the tool
+sequence alone also passes two sequential reads.
 
 ### Nested JSON arguments
 
