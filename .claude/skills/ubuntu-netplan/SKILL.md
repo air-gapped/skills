@@ -199,7 +199,11 @@ renderer mismatch. Full playbook in `references/cli-and-debugging.md`.
 - Point `nameservers.addresses` at internal resolvers and set `search:` to the
   local domain. Set `search: []` on bridges that should not inherit domains.
 - Mark disconnected/optional NICs `optional: true` (networkd) so boot doesn't wait
-  ~2 minutes for carrier.
+  ~2 minutes for carrier. Every non-optional link must reach carrier — **bond
+  members included**, even with no IP. Find the blocker:
+  `systemctl cat systemd-networkd-wait-online.service` (netplan 1.1+ lists each
+  awaited link as `-i <name>`) and `networkctl list` (stuck in
+  `no-carrier`/`configuring`).
 - Pin predictable names with `match: {macaddress: ...}` + `set-name:`. **Match by
   MAC** (not name) whenever setting `mtu`, `wakeonlan`, `macaddress`, or offloads —
   name-only matching races udev renaming on networkd.
