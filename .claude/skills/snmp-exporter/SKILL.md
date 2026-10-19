@@ -32,7 +32,7 @@ them to long-term storage is **`mimir-upgrade`** territory.
 
 1. **Never walk a whole vendor enterprise subtree.** Full-tree walks are the #1
    cause of multi-minute scrapes, device-CPU exhaustion, and even crashed SNMP
-   agents (Cisco documents this for CBS; iDRAC full walks take 2–5 min;
+   agents (Cisco documents the CPU load on CBS; iDRAC full walks take 2–5 min;
    Onyx serves all management through one easily-overloaded daemon). Walk the
    specific tables worth alerting on — a curated module is typically 10–100×
    smaller. Measured here: Cisco CBS full-tree = 4034 metrics vs curated = 63.
