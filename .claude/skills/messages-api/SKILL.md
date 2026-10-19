@@ -51,8 +51,8 @@ provenance in `references/sources.md`).
   Messages-native backends — full fidelity, no bridge. Without it,
   `hosted_vllm/` etc. take the chat-completions bridge (works, but unsigned
   thinking + no ping + 64-char tool-name truncation).
-- **`ping` events**: only mistral.rs emits them locally; Anthropic's real API
-  does — clients must not require pings, proxies must not choke on them.
+- **`ping` events**: only mistral.rs and OGX's translation path emit them
+  locally; Anthropic's real API does — clients must not require pings, proxies must not choke on them.
 - **count_tokens is inconsistent**: real tokenization (vLLM) vs approximation
   (LiteLLM, Superagent chars/4) vs absent (Ollama, Lemonade). opencode never
   calls it; Claude Code uses it when present.

@@ -21,10 +21,10 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `/v1/messages` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
-| `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | enabled/disabled→`enable_thinking`; other types warned + ignored |
-| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (v0.9.3+ replays assistant thinking; earlier drops it) | Via provider | No (shim); verbatim on cloud relay |
-| `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
-| `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
+| `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Passthrough: native; translation: enabled→`reasoning_effort` by budget, adaptive→none, errors on non-reasoning models | enabled/disabled→`enable_thinking`; other types warned + ignored |
+| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (v0.9.3+ replays assistant thinking; earlier drops it) | Passthrough: provider's; translation: empty signature | No (shim); verbatim on cloud relay |
+| `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Passthrough only; translation never | **Never** (always null) |
+| `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; **generates** on translation | Never |
 | Server tools (web_search etc.) | No | Filtered out (400 if tool_choice names one) | No | **Executes web_search + re-invokes** | Maps to agentic options | Via provider | No |
 | Claude Code affordance | billing-header strip | — | billing-header strip | `relax_thinking` + launch cmd | container skills → shell refs | CC-CLI integration tests | launcher sets ANTHROPIC_BASE_URL |
 
@@ -141,6 +141,11 @@ bodies.
   `AnthropicMixin` (vllm, ollama, meta, anthropic, deepseek, fireworks) —
   the only path that keeps extended thinking, cache_control and tool search.
   On deepseek/fireworks count_tokens falls back to a `max_tokens=1` call.
+- Translation path: `thinking.enabled` → `reasoning_effort` (budget ≤2048
+  low, ≤8192 medium, else high), `adaptive` → no effort, any thinking on a
+  non-reasoning model → error; reasoning returned as a leading thinking block
+  with empty signature; stop→end_turn, content_filter→end_turn, **never
+  stop_sequence**; emits `ping` after message_start and every block stop.
 - Conformance: `scripts/anthropic_coverage.py` diffs OGX's OpenAPI against
   Anthropic's Stainless spec; **integration tests drive the real Claude Code
   CLI and Claude Agent SDK**.

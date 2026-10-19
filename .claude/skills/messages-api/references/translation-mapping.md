@@ -45,6 +45,7 @@ pause_turn, refusal). What implementations actually emit:
 | llama.cpp | **Yes** (carries matched stop word) | — (default max_tokens) | never |
 | Ollama | Yes (any other non-empty reason) | stop_sequence | never |
 | mistral.rs | **Yes (proper)** | end_turn | never |
+| OGX translation path | Never (passthrough forwards upstream's) | end_turn | never |
 | LiteLLM bridge | Never | end_turn | never |
 | Superagent Gateway | Never | end_turn | never |
 | Bifrost | stop_sequence→stop (outbound) | pass through | compaction mapped |
@@ -67,7 +68,7 @@ Third-party implementations fabricate or omit signatures:
 | SGLang | omitted (signature_delta only when the backend supplies a real one) |
 | Ollama | omitted (no signature_delta) |
 | LiteLLM bridge | `None` |
-| Superagent Gateway | empty string |
+| Superagent Gateway, OGX translation path | empty string |
 | Bifrost (Claude passthrough) | **real** (bytes forwarded) |
 
 Consequences:
@@ -86,7 +87,8 @@ Consequences:
 All examined servers emit correct `event: X\ndata: {json}` framing (LiteLLM
 bridge synthesizes it too). Differences that matter:
 
-- **ping**: only mistral.rs emits keep-alive pings. Anthropic's real API
+- **ping**: only mistral.rs (keep-alive) and OGX's translation path emit
+  pings. Anthropic's real API
   sends ping — clients must not require it; proxies must not choke on it.
 - **tool_use argument streaming**: mistral.rs emits one complete
   start/delta/stop triple per call (args arrive at once); others stream
