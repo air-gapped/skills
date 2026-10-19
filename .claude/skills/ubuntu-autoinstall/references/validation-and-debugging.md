@@ -101,5 +101,6 @@ and `main`):
   version — not yet enforced.
 
 > Caveat to pass on: the reference doc states two different defaults for `apt.fallback`
-> (`offline-install` in the field doc vs `abort` in the default block). Always set
-> `apt.fallback` explicitly rather than relying on the default.
+> (`offline-install` in the field doc vs `abort` in the default block). The installer
+> itself defaults to `offline-install`. Always set `apt.fallback` explicitly rather
+> than relying on the default.

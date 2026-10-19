@@ -160,8 +160,9 @@ updates: security
   it as soon as the network is up, bypassing `proxy`. Offline it fails harmlessly;
   block it at the firewall if no request may leave the segment.
 - `apt.fallback` ∈ `abort` | `offline-install` | `continue-anyway`. The docs disagree
-  on the default — **always set it explicitly.** `offline-install` falls back to the
-  ISO's seed; `continue-anyway` is not recommended.
+  on the default, but the installer's effective default is `offline-install`: with the
+  key unset, an unreachable mirror silently yields an ISO-only install — **always set
+  it explicitly.** `continue-anyway` is not recommended.
 - Snaps requiring the store fail offline — only ship snaps seeded on the ISO, or omit
   `snaps:`. `source.id: ubuntu-server-minimal` reduces footprint.
 
