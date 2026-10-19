@@ -61,8 +61,9 @@ precisely because it resists the expert's urge to assume.
    genuine safety/stop-the-bleeding containment — say explicitly that it is
    containment, not diagnosis.)
 3. **Every planned test names its targets.** Before running or requesting any
-   test, state which candidate causes it could *refute*. A test that can only
-   confirm the favorite hypothesis is close to worthless; forcing the
+   test, list each possible result and the candidates that result kills
+   ("counter flat → H2 dead; counter climbs → H1, H4 dead"). A test that can
+   only confirm the favorite hypothesis is close to worthless; forcing the
    refutation question measurably improves diagnosis.
 4. **The spec table is the analysis.** Maintain it continuously and re-emit
    the current table whenever it changes materially or the conversation grows
