@@ -34,11 +34,7 @@ Multimodal:
 | Speculative-decoding acceptance length | `spec_al_gsm8k`, `spec_al_math500`, `spec_al_humaneval`, `spec_al_mbpp`, `spec_al_mtbench` (v0.11.0) |
 | Speech / ASR | `librispeech`, `voxpopuli`, `gigaspeech`, `ami`, `spgispeech` |
 
-**SPEED-Bench is NOT a `--public-dataset` value.** Verified against
-`docs/cli-options.md` at `v0.11.0`: the `speed_bench_*` names are
-`--custom-dataset-type` choices, not `--public-dataset` choices. Passing
-`--public-dataset speed_bench_math` is rejected. See the custom-format section
-below.
+**SPEED-Bench is NOT a `--public-dataset` value.** The `speed_bench_*` names are `--custom-dataset-type` choices; `--public-dataset speed_bench_math` is rejected. See the custom-format section below.
 
 `aiperf plugins public_dataset_loader` lists what's installed (the registry is plugin-driven since v0.7.0 — see `plugins.md`).
 
@@ -111,7 +107,7 @@ prompts/
 
 When using `random_pool`, `--conversation-num` defaults to 100 if not specified.
 
-### Added since v0.9.0 — verified against `docs/cli-options.md` @ `v0.11.0`
+### Other custom formats
 
 | `--custom-dataset-type` | Added | What it is |
 |---|---|---|
@@ -121,15 +117,9 @@ When using `random_pool`, `--conversation-num` defaults to 100 if not specified.
 | `sagemaker_data_capture` | ≤v0.11.0 | Replay AWS SageMaker Data Capture records. |
 | `speed_bench_*` | ≤v0.11.0 | The full SPEED-Bench family — 12 by category (`_qualitative`, `_coding`, `_humanities`, `_math`, `_multilingual`, `_qa`, `_rag`, `_reasoning`, `_roleplay`, `_stem`, `_summarization`, `_writing`) and by length `speed_bench_throughput_{1k,2k,8k,16k,32k}` each with `_low_entropy` / `_mixed` / `_high_entropy` variants. **These are custom-dataset-type values, not public datasets.** |
 
-"Added ≤v0.11.0" means the value is present in the v0.11.0 CLI reference; the
-exact introducing release was not pinned down this pass.
+### Agentic and trace replay (v0.12.0+)
 
-### New at v0.12.0 — agentic and trace replay
-
-`exgentic`, `exgentic_v2`, `baseten_trace` and the WEKA types (`weka_hf`,
-`semianalysis_cc_traces_weka`) arrive with AgentX v1.0 (PR #1165, PR #1064, PR #1078,
-PR #1129). Verified present in `docs/cli-options.md` at `v0.12.0` and absent at `v0.11.0`.
-Nothing was removed — every type below still resolves at v0.12.0.
+`baseten_trace` and `weka_trace` are `--custom-dataset-type` values. `exgentic`, `exgentic_v2`, `weka_hf` and the `semianalysis_cc_traces_weka*` family are `--public-dataset` values. All need v0.12.0 or later.
 
 ### `tracelab` (v0.13.0+)
 

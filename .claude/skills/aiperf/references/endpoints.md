@@ -17,7 +17,7 @@ Pick `--endpoint-type <name>` to match the inference target's wire format. AIPer
 | `cohere_rankings` | `/v1/rerank` | no | Cohere Reranking API. |
 | `hf_tei_rankings` | `/rerank` | no | HuggingFace TEI Reranker. |
 | `nim_rankings` | `/v1/ranking` | no | NVIDIA NIM Rankings. |
-| `image_retrieval` | `/v1/retrieval` | no | NVIDIA NIM image search. v0.7.0 (PR #725). **Renamed** — the enum value is `image_retrieval`, not `nim_image_retrieval` (verified against `docs/cli-options.md` @ `v0.11.0`). |
+| `image_retrieval` | `/v1/retrieval` | no | NVIDIA NIM image search. v0.7.0 (PR #725). The enum value is `image_retrieval`, not `nim_image_retrieval`. |
 | `image_generation` | `/v1/images/generations` | no | OpenAI Image Generation. Returns URLs or base64. |
 | `image_edit` | *(not in the CLI reference — OpenAI's convention is `/v1/images/edits`; confirm with `--help`)* | no | OpenAI-compatible image-to-image editing (targets FLUX.2). Added v0.9.0 (PR #906). |
 | `video_generation` | varies | async polling | Async job API. AIPerf polls `/v1/videos/{job_id}` (interval `AIPERF_HTTP_VIDEO_POLL_INTERVAL`, default 0.1 s). With `--download-video-content`, latency includes the bytes. |
