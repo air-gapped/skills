@@ -21,7 +21,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `/v1/messages` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
-| `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | No (basic) |
+| `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | enabled/disabled→`enable_thinking`; other types warned + ignored |
 | thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (drops input thinking) | Via provider | No |
 | `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
@@ -145,9 +145,14 @@ bodies.
 
 `src/cpp/server/anthropic_api.cpp` — Anthropic→OpenAI chat shim.
 
-- Coverage: model/messages/system/max_tokens/temperature/stream + basic
-  tools; unsupported fields ignored **with warnings**; `?beta=true` accepted.
+- Coverage: model/messages/system/max_tokens/temperature/stream, tools +
+  `tool_choice`, `stop_sequences`, images, `tool_result`,
+  `output_config.format`; unsupported fields ignored **with warnings**
+  (`X-Lemonade-Warning` header); `?beta=true` accepted.
+- `thinking`: `enabled`/`disabled` → `enable_thinking` true/false; any other
+  type (incl. `adaptive`) warned and ignored. The shim emits no thinking
+  blocks and `stop_sequence` is always null.
 - **No count_tokens.** `/v1/messages` exempt from its quad-prefix rule (bare
   path only).
-- Claude Code launcher (`agent_launcher.cpp:116`) sets `ANTHROPIC_BASE_URL`
+- Claude Code launcher (`agent_launcher.cpp`) sets `ANTHROPIC_BASE_URL`
   origin-only.
