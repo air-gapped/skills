@@ -16,7 +16,7 @@ What `scripts/isolated-run.sh` enforces. Keep all of it when editing the runner.
 
 | Mode | Env set in the child |
 |---|---|
-| Endpoint (`--base-url`) | `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN=<token>` and `ANTHROPIC_API_KEY=` (empty; the token goes here instead with `--x-api-key`). `ANTHROPIC_MODEL` and `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL` are all set to `--model`. |
+| Endpoint (`--base-url`) | `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN=<token>` and `ANTHROPIC_API_KEY=` (empty; the token goes here instead with `--x-api-key`). `ANTHROPIC_MODEL` and `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL` are all set to `--model`. `ENABLE_TOOL_SEARCH=false`, so no tool is sent with `defer_loading`. |
 | Subscription (no `--base-url`) | `CLAUDE_CODE_OAUTH_TOKEN=<token>` and `ANTHROPIC_API_KEY=` (empty). Nothing else. |
 
 ## Secrets file

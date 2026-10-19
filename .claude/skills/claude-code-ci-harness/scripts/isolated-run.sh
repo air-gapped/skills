@@ -188,6 +188,8 @@ if [[ -n "$base_url" ]]; then
     "ANTHROPIC_DEFAULT_OPUS_MODEL=$model"
     "ANTHROPIC_DEFAULT_SONNET_MODEL=$model"
     "ANTHROPIC_DEFAULT_HAIKU_MODEL=$model"
+    # Deferred tools (defer_loading) 400 on endpoints that do not implement them.
+    "ENABLE_TOOL_SEARCH=false"
   )
 else
   auth_env=(

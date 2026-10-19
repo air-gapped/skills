@@ -681,7 +681,7 @@
       "name": "claude-code-ci-harness",
       "source": "./",
       "description": "Run Claude Code headlessly as an isolated CI harness against any Anthropic Messages-compatible endpoint (local engine, gateway or hosted API) or a Claude subscription token",
-      "version": "0.20261014.1",
+      "version": "0.20261019.2",
       "author": {
         "name": "Jörgen"
       },

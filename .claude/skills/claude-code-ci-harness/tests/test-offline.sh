@@ -26,6 +26,7 @@ set -Eeuo pipefail
   printf 'api_key_empty=%s\n' "\$([[ -z "\${ANTHROPIC_API_KEY:-}" ]] && printf yes || printf no)"
   printf 'oauth_set=%s\n' "\$([[ -n "\${CLAUDE_CODE_OAUTH_TOKEN:-}" ]] && printf yes || printf no)"
   printf 'base_url_set=%s\n' "\$([[ -n "\${ANTHROPIC_BASE_URL:-}" ]] && printf yes || printf no)"
+  printf 'tool_search=%s\n' "\${ENABLE_TOOL_SEARCH:-unset}"
   printf '%s\n' "\$@"
 } > "$record"
 printf '%s\n' '{"type":"system","subtype":"init","tools":["Read","Glob"],"model":"offline-model"}'
@@ -62,6 +63,7 @@ CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" \
 
 grep -q 'auth_token_set=yes' "$record" || { printf 'auth test failed: token not passed\n' >&2; exit 1; }
 grep -q 'api_key_empty=yes' "$record" || { printf 'auth test failed: ANTHROPIC_API_KEY not empty\n' >&2; exit 1; }
+grep -q 'tool_search=false' "$record" || { printf 'endpoint test failed: tool search not disabled\n' >&2; exit 1; }
 
 # Run 3: subscription mode -- no base URL; OAuth token only, no gateway vars.
 printf '%s\n' 'CLAUDE_CODE_OAUTH_TOKEN=offline-oauth' >> "$secrets_file"
@@ -73,6 +75,7 @@ CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" \
 grep -q 'oauth_set=yes' "$record" || { printf 'subscription test failed: OAuth token not passed\n' >&2; exit 1; }
 grep -q 'base_url_set=no' "$record" || { printf 'subscription test failed: ANTHROPIC_BASE_URL set\n' >&2; exit 1; }
 grep -q 'auth_token_set=no' "$record" || { printf 'subscription test failed: ANTHROPIC_AUTH_TOKEN set\n' >&2; exit 1; }
+grep -q 'tool_search=unset' "$record" || { printf 'subscription test failed: ENABLE_TOOL_SEARCH set\n' >&2; exit 1; }
 grep -q 'api_key_empty=yes' "$record" || { printf 'subscription test failed: ANTHROPIC_API_KEY not empty\n' >&2; exit 1; }
 
 printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions\n'
