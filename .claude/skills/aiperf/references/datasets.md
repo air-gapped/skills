@@ -87,7 +87,7 @@ Alibaba Bailian production trace. v0.7.0 added support (PR #723). Same family as
 
 ### `burst_gpt_trace`
 
-[BurstGPT](https://arxiv.org/abs/2401.17286) production trace. Captures bursty, real conversational LLM service traffic. Added v0.7.0 (PR #786).
+[BurstGPT](https://arxiv.org/abs/2401.17644) production trace. Captures bursty, real conversational LLM service traffic. Added v0.7.0 (PR #786).
 
 ### `random_pool`
 

@@ -32,7 +32,7 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | Working with profile exports | https://github.com/ai-dynamo/aiperf/blob/main/docs/tutorials/working-with-profile-exports.md | 2026-09-15 | |
 | Mooncake KV-cache traces | https://github.com/kvcache-ai/Mooncake | 2026-09-15 | FAST25-release |
 | Mooncake arxiv trace JSONL | https://raw.githubusercontent.com/kvcache-ai/Mooncake/refs/heads/main/FAST25-release/arxiv-trace/mooncake_trace.jsonl | 2026-09-15 | |
-| BurstGPT trace paper | https://arxiv.org/abs/2401.17286 | 2026-09-15 | |
+| BurstGPT trace paper | https://arxiv.org/abs/2401.17644 | 2026-10-20 | "BurstGPT: A Real-world Workload Dataset to Optimize LLM Serving Systems" (title confirmed on the abs page). The ID previously cited here, 2401.17286, is an unrelated astrophysics paper. |
 | DistServe / goodput paper | https://arxiv.org/pdf/2401.09670 | 2026-09-15 | |
 | Hao-AI DistServe blog | https://hao-ai-lab.github.io/blogs/distserve | 2026-09-15 | |
 | GenAI-Perf (predecessor) | https://github.com/triton-inference-server/perf_analyzer/tree/main/genai-perf | 2026-09-15 | |
