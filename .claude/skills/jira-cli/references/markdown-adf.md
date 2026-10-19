@@ -1,5 +1,7 @@
 # Markdown → ADF: writing descriptions & comments
 
+Contents: [Use GitHub-flavored markdown (recommended)](#use-github-flavored-markdown-recommended) · [Conversion gotchas (what does NOT round-trip)](#conversion-gotchas-what-does-not-round-trip) · [Jira wiki markup (Server/DC)](#jira-wiki-markup-serverdc) · [Getting multi-line text in safely](#getting-multi-line-text-in-safely) · [Precedence: body/positional beats template](#precedence-bodypositional-beats-template) · [Template file example](#template-file-example)
+
 > **ADF conversion is Jira Cloud only.** On **Jira Cloud** (REST v3), text passed as a description (`-b/--body`, `--template`) or comment is converted to **Atlassian Document Format (ADF)** — Jira's structured JSON document model — before storage. On **Server/Data Center** (REST v2) there is no ADF: the field stores **Jira wiki markup** (rendered from Markdown by a Confluence-markup library, so it's the shared Jira-Server/Confluence wiki dialect). Conversion is **command-dependent** there: `create` and `comment add` render Markdown → wiki markup, but **`edit` sends the body verbatim** (it converts only when the existing description is ADF, i.e. Cloud) — so an *edited* description can show raw `## H2` (#935). The sections below describe Cloud/ADF behavior; for Server/DC use the **Jira wiki markup (Server/DC)** section below and write wiki markup directly.
 
 **Which to use:**

@@ -1,5 +1,7 @@
 # Config, authentication & instance discovery
 
+Contents: [Install](#install) · [The token lives in an env var, not the config](#the-token-lives-in-an-env-var-not-the-config) · [`jira init` — bootstrap](#jira-init--bootstrap) · [Config file & multiple instances](#config-file--multiple-instances) · [Instance discovery recipes (run these first, they're read-only)](#instance-discovery-recipes-run-these-first-theyre-read-only) · [Config sanity checks](#config-sanity-checks)
+
 ## Install
 
 `jira` is a single Go binary. Download from [releases](https://github.com/ankitpokhrel/jira-cli/releases), or:

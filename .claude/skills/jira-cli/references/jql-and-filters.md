@@ -1,5 +1,7 @@
 # Filtering & JQL with jira-cli
 
+Contents: [Filter flags](#filter-flags) · [Date filtering](#date-filtering) · [Raw JQL (`-q` / `--jql`)](#raw-jql--q----jql) · [Ordering & pagination](#ordering--pagination) · [Worked examples](#worked-examples)
+
 Two ways to narrow a `list` (also `epic list` / `sprint list`): **filter flags** (composable, POSIX-style) and **raw JQL** (`-q/--jql`). They combine — flags AND a `-q` clause both apply.
 
 ## Filter flags

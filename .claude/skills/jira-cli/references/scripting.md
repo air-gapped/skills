@@ -1,5 +1,7 @@
 # Scripting & automation with jira-cli
 
+Contents: [The non-interactive contract](#the-non-interactive-contract) · [Output shapes](#output-shapes) · [Capture a created key and chain](#capture-a-created-key-and-chain) · [Bulk operations (loop over keys)](#bulk-operations-loop-over-keys) · [Reporting snippets](#reporting-snippets) · [Multi-instance in one script](#multi-instance-in-one-script) · [CI checklist](#ci-checklist)
+
 The interactive UI is the default; scripting requires turning it off. This file is the recipe book for unattended, parseable, safe automation — in CI, cron, or an agent loop.
 
 ## The non-interactive contract
