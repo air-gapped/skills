@@ -44,6 +44,12 @@ none. Check the host before assuming behaviour: `dpkg -s cloud-init | grep Versi
 6. **Test on a throwaway boot**, then `cloud-init clean --logs` to re-run as if
    first boot.
 
+**Done when** all hold on the test boot: `cloud-init schema --system --annotate`
+reports no errors; `cloud-init status --long --wait` exits **0** (exit 2 → read
+`recoverable_errors`; on 26.04 any deprecated key triggers it); and every top-level
+key in the user-data has its effect checked on the host (user exists, file written,
+apt source points at the mirror, `runcmd` output in `/var/log/cloud-init-output.log`).
+
 ## user-data formats
 
 First line determines the format:
