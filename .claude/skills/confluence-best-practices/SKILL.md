@@ -9,11 +9,9 @@ when_to_use: |-
 
 # confluence-best-practices — use Confluence leanly, structure content sensibly, write it readably
 
-Primary reader: an **agent helping a user** — one that *acts on* Confluence (creating, organising, and governing content) and advises the user on **how to use Confluence well**: what a piece of content *is*, where it *goes*, how to keep the wiki lean and findable, and how to make pages people can actually read. This is the **judgment layer** above the execution mechanics — it decides *what* should change and *how content should be structured*; the tools do the *how*.
+Judgment layer for an **agent that acts on Confluence** (creates, organises, governs content) and, second, for a **human authoring pages** — the same structure serves both: what makes a page scannable makes it retrievable.
 
-Two audiences, in priority order: **(1) an agent acting automatically** on Confluence (the main case), and **(2) a human authoring content** who wants it readable. The good news is these converge — the structure that makes a page scannable for a person is the same structure that makes it retrievable for an agent.
-
-This skill is **instance-agnostic and organisation-adaptive**. It never assumes a team's space taxonomy, conventions, or working language — it shows how to *discover* the org's actual conventions and reason within them. It is **self-hosted-first**: defaults are for **Confluence Data Center 10.2 / 9.2 LTS**, but everything has a **Cloud** counterpart noted inline (see the Cloud-vs-DC guard).
+Instance-agnostic: discover the org's space taxonomy, conventions and working language; never assume them. Defaults are **Confluence Data Center 10.2 / 9.2 LTS**, with the **Cloud** counterpart noted inline.
 
 ## How the work gets done (execution layer)
 
