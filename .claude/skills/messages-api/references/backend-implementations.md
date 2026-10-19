@@ -7,8 +7,6 @@ version gate. **Every major local inference server now serves the Messages
 API natively** — all translate internally to their own chat-completion
 pipeline (except OGX, which passes through to Messages-native providers).
 
-**Last refreshed**: 2026-10-20 (provenance: `references/sources.md`).
-
 ## Contents
 - [Support Matrix](#support-matrix)
 - [vLLM](#vllm) · [SGLang](#sglang) · [llama.cpp](#llamacpp) · [Ollama](#ollama)
@@ -57,8 +55,6 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
   prefix-caching preservation hack); inline system role auto-merged when the
   chat template requires system-first.
 - Usage cache fields require `--enable-prompt-tokens-details`.
-- Live-verified 2026-07-19 (v0.25.1, local deployment): multi-step tool
-  calling via opencode anthropic provider, clean token-leakage scan.
 
 ## SGLang
 

@@ -7,10 +7,6 @@
 
 ## opencode (anthropic provider)
 
-Examined at v1.18.3-era source (2026-07-18).
-Live-verified 2026-07-19: full multi-step tool loops against vLLM
-`/v1/messages` direct AND via LiteLLM.
-
 - SDK (v1 line): `@ai-sdk/anthropic`; optional native runtime
   (`packages/llm/src/protocols/anthropic-messages.ts`) behind
   `OPENCODE_EXPERIMENTAL_NATIVE_LLM` (or `OPENCODE_EXPERIMENTAL=true`).

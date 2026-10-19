@@ -1,8 +1,7 @@
 # Messages ↔ Chat Completions Translation & Cross-Backend Divergences
 
 The gotchas that bite when Anthropic-format clients talk to non-Anthropic
-backends. Compiled from source examination of 7 servers + 3 gateways
-(2026-07-19; commits in `sources.md`).
+backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 
 ## Contents
 - [Canonical field mapping](#canonical-field-mapping)
@@ -102,11 +101,9 @@ bridge synthesizes it too). Differences that matter:
   signature; Ollama never.
 - **usage in message_start**: Ollama estimates input tokens; vLLM computes;
   cache-token fields only appear where the server supports them (vLLM needs
-  `--enable-prompt-tokens-details`; mistral.rs before v0.9.3 has none). Live-verified on
-  vLLM v0.25.1 with the flag: cache fields populate in aggregate usage
-  (Claude Code warm run: `input_tokens: 304`, `cache_read: 59168` — ~99.5%
-  prefix-cache hit), but per-turn `message_start` usage still reports null
-  cache fields.
+  `--enable-prompt-tokens-details`; mistral.rs before v0.9.3 has none).
+  With the vLLM flag, cache fields populate in aggregate usage but per-turn
+  `message_start` usage reports null cache fields (observed on v0.25.1).
 - LiteLLM's bridge holds/merges the final `message_delta` to attach usage and
   splits fake-streamed single chunks.
 
@@ -126,7 +123,7 @@ otherwise falls back to a character-based estimate of context usage.
 ## Client-side requirements
 
 What a third-party `/v1/messages` server must tolerate from real clients
-(from opencode v1.18.3-era source; Claude Code behaves similarly):
+(opencode source; Claude Code behaves similarly):
 
 - `anthropic-beta: interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14`
   **always sent** by opencode v1's anthropic provider (v2: interleaved-thinking

@@ -1,7 +1,7 @@
 # Messages API Gateways & Adapters
 
 Gateways that accept Anthropic-format clients and route to arbitrary
-backends. Source-examined 2026-07-19 (commits in `sources.md`).
+backends. Provenance and commits: `sources.md`.
 
 ## Contents
 - [LiteLLM](#litellm) — 4-step routing cascade, bridge fidelity, thinking seam
@@ -11,7 +11,6 @@ backends. Source-examined 2026-07-19 (commits in `sources.md`).
 ## LiteLLM
 
 Proxy route `POST /v1/messages` (also `/v1/messages/count_tokens`).
-`/v1/messages` adapter → vLLM live-verified 2026-07-19 on proxy v1.92.0.
 
 **Routing cascade** (`llms/anthropic/pass_through/messages/handler.py`;
 `experimental_pass_through/` on older releases). Web-search short-circuit,
