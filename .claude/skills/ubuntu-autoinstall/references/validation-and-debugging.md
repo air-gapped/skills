@@ -3,6 +3,15 @@
 Grounded in `canonical/subiquity` `doc/howto/autoinstall-validation.rst`,
 `scripts/validate-autoinstall-user-data.py`, and `subiquity/server/`.
 
+## Contents
+
+1. Validating before you boot (cloud-config body, JSON schema)
+2. Validator limitations
+3. Runtime validation order
+4. Logs
+5. Common pitfalls
+6. Version notes (24.04 LTS vs 26.04 LTS)
+
 ## Validating before you boot
 
 The canonical pre-flight tool ships in the subiquity repo:

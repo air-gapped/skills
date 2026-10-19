@@ -1,5 +1,12 @@
 # autoinstall examples
 
+## Contents
+
+1. Minimal valid config
+2. Complete air-gapped server install
+3. Matching `meta-data`
+4. Serving it for an unattended boot
+
 ## Minimal valid config
 
 Only `version` is schema-required, but `identity` is required at runtime (unless

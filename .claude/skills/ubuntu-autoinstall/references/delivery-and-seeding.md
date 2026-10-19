@@ -6,6 +6,15 @@ Grounded in `canonical/subiquity` `doc/tutorial/providing-autoinstall.rst`,
 For full NoCloud datasource detail, see the **ubuntu-cloud-init** skill's
 `nocloud-and-airgapped.md`.
 
+## Contents
+
+1. Two delivery families
+2. Precedence
+3. The cloud-init ⇄ autoinstall interaction
+4. NoCloud seeding methods (HTTP, volume, baked into ISO, PXE)
+5. Zero-touch: the bare `autoinstall` keyword
+6. Quoting & escaping gotchas
+
 ## Two delivery families
 
 1. **Via cloud-init `#cloud-config` user-data** — the file MUST start with
