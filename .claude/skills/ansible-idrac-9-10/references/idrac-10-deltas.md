@@ -21,14 +21,16 @@ playbooks need to migrate.
 
 ## 1. Module support matrix — what works on which generation
 
-(From `docs/README.md` lines 13-73 of dellemc.openmanage 10.0.2.)
+(From `docs/README.md` of dellemc.openmanage 11.0.0.)
 
-### iDRAC 9 only (do NOT use on iDRAC 10)
+### Removed in collection 11.0.0 (iDRAC 9-only on ≤ 10.0.3)
 
-| Module | What to use instead on iDRAC 10 |
+On 11.0.0+ these fail on every generation. On ≤ 10.0.3 they work on iDRAC 9 only.
+
+| Module | Replacement (both generations) |
 |---|---|
 | `idrac_network` | `idrac_network_attributes` (preferred) or `idrac_attributes` with Redfish names (`Network.1.DNSRacName`, `IPv4.1.StaticDNS1`, …) |
-| `idrac_syslog` | `idrac_attributes` — `idrac_syslog` deprecated in 9.12.1, hard removal scheduled 2027-05-27 |
+| `idrac_syslog` | `idrac_attributes` |
 | `idrac_timezone_ntp` | `idrac_attributes` |
 | `dellemc_configure_idrac_eventing` | `idrac_attributes` |
 | `dellemc_configure_idrac_services` | `idrac_attributes` |
@@ -55,7 +57,9 @@ All other `idrac_*` and `redfish_*` modules:
   `redfish_storage_volume`, `redfish_firmware`,
   `redfish_firmware_rollback`
 - Info / virtual: `idrac_system_info`, `idrac_virtual_media`,
-  `redfish_powerstate`, `redfish_event_subscription`
+  `redfish_powerstate`, `redfish_event_subscription`; new in 11.0.0:
+  `idrac_bios_registry_info`, `idrac_network_info`,
+  `idrac_network_attributes_info`, `idrac_session_info`
 - License / OS / SCP / support: `idrac_license`, `idrac_os_deployment`,
   `idrac_server_config_profile` (SCP — not yet qualified on iDRAC 10
   per upstream #959), `idrac_support_assist`

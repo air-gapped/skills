@@ -35,7 +35,8 @@ fail with the misleading error:
 > unreachable iDRAC IP or a failure in TLS/SSL handshake.
 
 **Cause.** The module hit a Redfish endpoint that's not present on
-iDRAC 10 / 17G. `idrac_network` is iDRAC 9-only. The collection wraps
+iDRAC 10 / 17G. `idrac_network` is iDRAC 9-only (and removed in
+collection 11.0.0). The collection wraps
 the underlying 404/405 in the generic auth-error message.
 
 **Fix.**
@@ -266,7 +267,7 @@ branch:
 | Concern | iDRAC 9 | iDRAC 10 |
 |---|---|---|
 | `idrac_user.authentication_protocol` | `SHA` | `SHA-512` |
-| Network module | `idrac_network` | `idrac_network_attributes` |
+| Network module | `idrac_network` (≤ 10.0.3; 11.0.0 removed it — use `idrac_network_attributes`) | `idrac_network_attributes` |
 | Static IP attr names | `iDRAC.IPv4Static.Address` | `iDRAC.IPv4.StaticAddress` |
 | Network DNS attr names | `iDRAC.NIC.DNSRacName` | `iDRAC.Network.DNSRacName` |
 | BIOS power recovery | `BIOS.SysSecurity.AcPwrRcvry` | `System.ServerPwr.AcPwrRcvry` |

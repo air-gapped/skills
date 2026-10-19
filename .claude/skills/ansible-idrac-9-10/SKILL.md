@@ -11,9 +11,9 @@ description: >-
   `idrac_server_config_profile`) that cannot use tokens, iDRAC 10
   attribute deltas (`iDRAC.IPv4Static.*` → `iDRAC.IPv4.Static*`,
   `iDRAC.NIC.*` → `iDRAC.Network.*`, ACME+SCEP → `iDRAC.ACE`,
-  `BIOS.SysSecurity.AcPwrRcvry*` → `System.ServerPwr.*`), iDRAC 9-only
-  modules (`idrac_network` → `idrac_network_attributes`, `idrac_syslog`,
-  `idrac_timezone_ntp`), iDRAC 10 Redfish Jobs URI under
+  `BIOS.SysSecurity.AcPwrRcvry*` → `System.ServerPwr.*`), modules
+  removed in 11.0.0 (`idrac_network` → `idrac_network_attributes`,
+  `idrac_syslog`, `idrac_timezone_ntp`), iDRAC 10 Redfish Jobs URI under
   `/Oem/Dell/Jobs/`, WS-MAN removed on 17G, and version pins
   (collection ≥9.12.3 broad / ≥10.0.2 full; 9.12.1 for iDRAC 8).
 when_to_use: >-
@@ -33,8 +33,8 @@ when_to_use: >-
 Operator skill for the `dellemc.openmanage` Ansible collection across both
 generations of Dell's BMC. Targets collection **≥ 9.12.3** (broad iDRAC 10
 support) and **10.0.2** (full coverage incl. SCP / storage / OS deployment,
-Ansible Core 2.19+). Information current as of **July 2026** (collection
-10.0.3, iDRAC 10 firmware 1.30.x, iDRAC 9 firmware 7.30.10.50).
+Ansible Core 2.19+). Information current as of **October 2026** (collection
+11.0.0, iDRAC 10 firmware 1.30.x, iDRAC 9 firmware 7.30.10.50).
 
 The skill exists because most iDRAC 9 playbooks **silently break on first
 contact with a 17G server** for two reasons that look unrelated but stack on
@@ -170,10 +170,10 @@ the collection isn't available, and the OMSDK-token gotcha.
    `force_basic_auth: true` to the `uri` call. Dell KB 000437501.
 
 2. **`idrac_network` fails with "Unable to communicate with iDRAC … TLS/SSL
-   handshake".** Misleading error. `idrac_network` is iDRAC 9-only. On
-   iDRAC 10 use `idrac_network_attributes` (preferred) or `idrac_attributes`
-   with the Redfish attribute names (`Network.1.DNSRacName`,
-   `IPv4.1.StaticDNS1`, etc.). See [#1054], [#1038] in
+   handshake".** Misleading error. `idrac_network` is iDRAC 9-only, and
+   collection 11.0.0 removed it outright. Use `idrac_network_attributes`
+   (preferred) or `idrac_attributes` with the Redfish attribute names
+   (`Network.1.DNSRacName`, `IPv4.1.StaticDNS1`, etc.). See [#1054], [#1038] in
    `references/troubleshooting.md`.
 
 3. **Attribute names silently no-op.** Many iDRAC 9 attributes moved to new
@@ -244,14 +244,14 @@ Two options today:
 
 Then branch:
 - `idrac_user.authentication_protocol`: `SHA` on iDRAC 9, `SHA-512` on iDRAC 10
-- `idrac_network` vs `idrac_network_attributes`
+- `idrac_network` vs `idrac_network_attributes` — collection ≤ 10.0.3 only; on 11.0.0+ `idrac_network` is gone, use `idrac_network_attributes` on both
 - attribute names per the rename table in `references/idrac-10-deltas.md`
 
 ## Minimum versions cheat-sheet
 
 | Component | Minimum | Notes |
 |---|---|---|
-| `dellemc.openmanage` | **9.12.3** broad, **10.0.2** full | 10.0.0 dropped iDRAC 8 — pin 9.12.1 for iDRAC 8 fleets |
+| `dellemc.openmanage` | **9.12.3** broad, **10.0.2** full | 10.0.0 dropped iDRAC 8 — pin 9.12.1 for iDRAC 8 fleets. 11.0.0 removed `idrac_network`, `idrac_syslog`, `idrac_timezone_ntp` and every `dellemc_*` module — port those calls before upgrading |
 | iDRAC 10 firmware | **1.20.50.50** | 1.30.10.50 (Mar 2026) is the BasicAuthState cutover. Newer 1.30.x builds are per-platform (e.g. 1.30.30.50, 1.30.31.10, Jun 2026) — read KB 000305325 for the Recommended build for *your* model, don't assume one number fleet-wide |
 | iDRAC 9 firmware | 7.10.90.00 | BasicAuthState=Unadvertised default starts at **7.30.10.50** |
 | Ansible Core | 2.18.8 (iDRAC modules), 2.19+ (also OME modules), 2.20 (latest) | 2.18.6 + older collection triggers `TypeError: bytes-like object` in `urls.py:_configure_auth` (#1046) |
