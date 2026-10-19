@@ -138,6 +138,17 @@ Same seed list, same hardware, same tokenizer for config A and config B. **Synth
 
 10. **`--goodput` is per-request, not per-percentile.** The flag asks "is this individual request below the threshold?" and reports `good_request_count / benchmark_duration` as `goodput`. There is no built-in `p99_time_to_first_token:400` syntax. To express "p99 TTFT must be ≤ 400 ms", set `--goodput "time_to_first_token:400"` and check `goodput / request_throughput ≥ 0.99` post-run — that ratio is the fraction of requests meeting all SLOs, which for a single threshold is exactly the "X% under the budget" measure operators usually want. Combine multiple thresholds and the same ratio still works as joint compliance.
 
+## Done = every row checked before a number leaves the run
+
+| Check | Evidence in `profile_export_aiperf.json` / the run |
+|---|---|
+| All requests ran | `request_count` equals the requested count (or sessions × turns); `error_request_count` is 0 or each error is explained. Exit 1 with only `RequiredServiceReaped` on v0.13.0 is pitfall 8, not a failed run |
+| The workload is the intended one | mean `input_sequence_length` / `output_sequence_length` match `--isl`/`--osl`, or the trace's `analyze-trace` figures (pitfall 5) |
+| Cache state is known | pool ≥ requests, distinct seed per point and trial, server cache reset or restarted between configs (Methodology B) |
+| Reasoning split works (reasoning models) | `reasoning_token_count` > 0, TTFO ≠ TTFT (pitfall 2) |
+| Run is reproducible | `--tokenizer` explicit and `--tokenizer-revision` pinned; `aiperf --version`, server image and flags recorded beside the artifact dir |
+| SLO verdict is per-percentile where the SLO says so | goodput ratio or exported p95/p99 values, not the raw `goodput` number (pitfall 10) |
+
 ## What to read next — and when
 
 | File | Read when... |
