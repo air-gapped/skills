@@ -42,7 +42,11 @@ netplan v2. See **Boundaries** at the end.
 4. **Validate** without applying: `netplan generate` (fails loudly on errors).
 5. **Apply safely.** On a remote/SSH host use `netplan try` (auto-rollback), never
    a blind `netplan apply` — see "Apply safely".
-6. **Verify:** `netplan status --all`, `ip addr`, `ip route`, and reachability.
+6. **Verify.** Done only when `netplan status --diff-only` prints nothing, every
+   interface in the YAML shows its addresses and routes in `netplan status --all`,
+   the gateway answers `ping -c1`, and each nameserver resolves an internal name
+   (`resolvectl query <host>`). Under `netplan try`, check this from a **second**
+   SSH session before confirming.
 
 ## The envelope
 
