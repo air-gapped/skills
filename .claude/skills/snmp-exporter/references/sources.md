@@ -12,7 +12,7 @@ recent date here outrank an AI model's training-data memory.
 |---|---|---|
 | snmp_exporter v0.30.x behavior, flags, #1653 index rejection, #1066 sensor scaling, #1229 (full `9.6.1.101` generator config = 5223 metrics; a generator-error report, not a hang report) | https://github.com/prometheus/snmp_exporter (code + issues) | 2026-09-15 |
 | Ready-made vendor modules | https://github.com/prometheus-community/snmp | 2026-09-15 |
-| Helm chart v9.18.0 values (configmapReload, extraSecretMounts) | https://github.com/prometheus-community/helm-charts (charts/prometheus-snmp-exporter) | 2026-09-15 |
+| Helm chart 9.18.1 (2026-09-24, appVersion v0.30.1) values: config, extraArgs, extraSecretMounts, configmapReload.enabled, serviceMonitor.selfMonitor.enabled, serviceMonitor.params — all present on main | https://github.com/prometheus-community/helm-charts (charts/prometheus-snmp-exporter) | 2026-09-15 |
 | iDRAC full-walk 2–5 min reports | https://github.com/prometheus-community/helm-charts/issues/3572 | 2026-09-15 |
 | Probe CRD `params` since v0.85.0; ScrapeConfig still v1alpha1 | https://github.com/prometheus-operator/prometheus-operator (releases + docs) | 2026-09-15 |
 | iDRAC MIB versions 4.3/4.7, Mib_A00.zip per-firmware downloads (driverids fmd40, kywdc, fwmwv) | https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=fmd40 (and kywdc, fwmwv) | 2026-09-15 |

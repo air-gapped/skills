@@ -1,7 +1,7 @@
 # Running snmp_exporter on Kubernetes
 
-Verified against helm chart prometheus-snmp-exporter v9.16.1 (appVersion
-v0.30.1) and prometheus-operator ≥ v0.85.0, 2026-07.
+Values match helm chart prometheus-snmp-exporter 9.18.1 (appVersion v0.30.1)
+and prometheus-operator ≥ v0.85.0.
 
 **Contents:** [Topology](#topology) · [Prometheus Operator wiring](#prometheus-operator-wiring) · [Secrets](#secrets) · [Network](#network) · [Alerting on the pipeline itself](#alerting-on-the-pipeline-itself)
 
