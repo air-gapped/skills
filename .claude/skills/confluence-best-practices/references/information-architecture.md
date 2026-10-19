@@ -67,9 +67,11 @@ Different roles legitimately want different *shapes* — reference content wants
 
 Label discipline (controlled vocabulary, singular, lowercase-no-spaces, template-seeded) lives in `findability-and-search.md`.
 
-## Folders (version-gated; verify before recommending)
+## Folders (Cloud-only)
 
-Newer Confluence has **folders** — a lighter container than a parent page (*"a parent page is a container with a 'Read Me'; a folder is a container without one"*). Rule of thumb: *if you'd have created a blank parent page (or one holding only a Child Pages macro) just to group things, a folder fits better.* Folders are excluded from search results and any page can be converted to one. **Caveat:** folders launched on **Cloud** (GA late 2024) and DC support is more recent — **verify folder availability on the specific DC version before recommending the convert-empty-parent move.** The always-available, portable equivalent is a thin index page (or a Children Display macro), so prefer that when unsure.
+Confluence **Cloud** has **folders** — a lighter container than a parent page (Atlassian: *"a parent page is a container with a 'Read Me'; a folder is a container without one"*). Rule of thumb: *if you'd have created a blank parent page (or one holding only a Child Pages macro) just to group things, a folder fits better.* Folders are excluded from search results and any page can be converted to one.
+
+**Data Center has no folders** — no DC release through 11.0 documents them. On DC, group with a thin index page (a one-line purpose + Children Display macro); never recommend the convert-empty-parent move there.
 
 ## IA anti-patterns → lean fix
 
@@ -77,7 +79,7 @@ Newer Confluence has **folders** — a lighter container than a parent page (*"a
 |---|---|
 | A space per tiny project/team | A page (or child page); reserve spaces for real audience/permission boundaries |
 | Page nested 5+ levels deep | Cap at 3–4; promote subtrees to siblings or a new space |
-| Empty placeholder parent pages used only to group | Folder (where available) or a thin index page |
+| Empty placeholder parent pages used only to group | Cloud: a folder · DC: a thin index page with Children Display |
 | Same page duplicated under two parents | Single home + labels |
 | Orphan pages (no parent, no inbound link) | Re-parent or link from a homepage |
 | Folksonomy label sprawl (`API`/`api`/`apis`) | Controlled, singular vocabulary seeded via template labels |

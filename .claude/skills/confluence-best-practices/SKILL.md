@@ -44,7 +44,7 @@ Most "new Confluence" coverage describes **Cloud**, and the DC gap is wide enoug
 | Page archiving | native, **per-page** (`… > Archive`) | **space-level only** — no native page archive (CONFSERVER-31010); use the move-to-archive-space workaround |
 | AI | **Rovo / Atlassian Intelligence** built in | **none native** — DC reaches Cloud AI only via connectors. Don't depend on AI. |
 | Automation | native **Confluence automation** rule-builder | **not native** — use Jira automation, an app, or the agent itself |
-| Whiteboards / Databases / Smart Links / Guests / public links / page status | available | **none on DC** |
+| Whiteboards / Databases / Folders / Smart Links / Guests / public links / page status | available | **none on DC** (group with a thin index page instead of a folder) |
 | REST API | v1 **and v2** (`/wiki/api/v2`, cursor paging) | **v1 only** (`/rest/api/content`, `start/limit`) |
 | User identifier | **`accountId`** | **`username` / `userKey`** |
 | **Bundled on BOTH** (don't mis-flag): Team Calendars, collaborative editing (≤12 editors), Analytics for Confluence (DC: "limited") | — | — |

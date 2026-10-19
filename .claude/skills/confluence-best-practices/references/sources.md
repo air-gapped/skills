@@ -19,7 +19,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | community.atlassian.com/.../Spaces-vs-Pages-best-practices (1008538); .../space-types (413510) | B | Space-vs-page tie-breaker = restrictions vs space; space types are starter templates | 2026-06-07 |
 | k15t.com/rock-the-docs/.../structure-for-long-term-success | B | Consistency-by-type; flat-vs-nested by role; labels-on-templates | 2026-06-07 |
 | covectors.io/blog/10-tips-...-page-tree; .../a-practical-guide-to-confluence-labels | B | Depth cap 3–4; tree=containment vs labels=cross-cutting; single-parent | 2026-06-07 |
-| support.atlassian.com/confluence-cloud/docs/use-folders-...; k15t folders article | A/B | Folders (Cloud GA late-2024; DC version-gated) — verify before recommending | 2026-06-07 |
+| support.atlassian.com/confluence-cloud/docs/use-folders-to-organize-your-work/; k15t.com/rock-the-docs/news/2024/11/48-why-folders-in-confluence-are-a-big-deal | A/B | Folders are Cloud-only: the 'container with a Read Me' wording is Atlassian's Cloud doc, not k15t's. Absence on DC checked 2026-10-20: DC 10.0/10.1/10.2/11.0 release notes have no content-folder feature, the DOC-space search finds no folders page, and the DC-vs-Cloud differences page names folders only as Cloud content | 2026-10-20 |
 
 ## Lean content & lifecycle
 

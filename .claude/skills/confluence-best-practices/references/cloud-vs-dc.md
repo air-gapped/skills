@@ -33,6 +33,7 @@ Through 2029-03-28 Atlassian provides support, critical-vuln fixes, and cloud-to
 | **Rovo / Atlassian Intelligence (ALL AI)** | Cloud-only — AI summaries, AI definitions, generate/transform content, related pages, AI translation. DC reaches it only via the **Teamwork Graph connector** (Atlassian's rename of what it previously called the Rovo connector) that syncs DC content to Cloud. |
 | **Confluence automation (rule builder)** | Cloud-only (Premium/Enterprise); **not native on DC and not on the DC roadmap** |
 | **Native per-page archiving** | Cloud-only; DC archives at *space* level only |
+| **Folders** (content-tree containers without a body) | Cloud-only; on DC use a thin index page + Children Display |
 | **Page status, page emojis, schedule-publish, inline pre-publish comments** | Cloud-only |
 | **Company Hub, Guests, modern anonymous/public links** | Cloud-only |
 | **New navigation / Spaces sidebar redesign** | Cloud-only (GA from Mar 2025) |
