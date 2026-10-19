@@ -162,6 +162,10 @@ or single string) auto-proceeds past the named error kinds; errors whose fix is 
 `1G`/`512M`/`50%`/`-1` (fill). **When `layout` is present, `config` is ignored.** RAID
 0/1/5/6/10 supported.
 
+From the 26.10 installer, on signed-GRUB (Secure Boot) platforms, `/boot` must be
+`ext4` on a plain disk, partition or RAID 1. A `config:` list that puts `/boot` on
+LVM, LUKS, ZFS or another RAID level fails, so give `/boot` its own ext4 partition.
+
 ## 6. packages / snaps / kernel / drivers / source
 
 ```yaml
