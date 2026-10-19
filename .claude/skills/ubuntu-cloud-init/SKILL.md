@@ -251,6 +251,7 @@ Also recorded, lower operational impact for this skill's use cases:
 | **24.4** | `cloud-final.service` ordering standardized — changed the systemd boot order on some distributions |
 | **24.3** | `cloud-init.service` → `cloud-init-network.service`, single process (reverted on 24.04 — unit stays `cloud-init.service`) |
 | **24.1** | `ds-identify` no longer auto-appends `None` to a single-entry `datasource_list` (already covered above) |
+| **24.1** | cloud-init no longer waits for snapd seeding — a `runcmd` that uses a snap must first run `[snap, wait, system, seed.loaded]` |
 
 ## Boundaries (sibling skills)
 
