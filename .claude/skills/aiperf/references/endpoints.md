@@ -2,7 +2,7 @@
 
 Pick `--endpoint-type <name>` to match the inference target's wire format. AIPerf appends the canonical path to `--url` automatically; override via `--custom-endpoint` for non-standard paths.
 
-## Built-in endpoints (16)
+## Built-in endpoints (19)
 
 | `--endpoint-type` | Default path | Streaming | Wire format / target |
 |---|---|---|---|
@@ -11,6 +11,7 @@ Pick `--endpoint-type <name>` to match the inference target's wire format. AIPer
 | `completions` | `/v1/completions` | yes | OpenAI legacy text completion. |
 | `responses` | `/v1/responses` | yes | OpenAI Responses API. v0.7.0 added support (PR #695). |
 | `messages` | `/v1/messages` | yes | Anthropic Messages API. **New at v0.12.0** (PR #731) — absent from `docs/cli-options.md` at v0.11.0. |
+| `audio_transcription` | `/v1/audio/transcriptions` | no | v0.13.0+. Whisper-style ASR (OpenAI, NIM, SGLang): uploads audio as multipart, returns text. Pair with an ASR public dataset (`--public-dataset librispeech` / `voxpopuli` / `gigaspeech` / `ami` / `spgispeech`) — the default synthetic white-noise audio gives unrealistic latency and RTFx versus real speech of the same duration. Extra form fields via `--extra-inputs`. |
 | `embeddings` | `/v1/embeddings` | no | OpenAI Embeddings. Returns vectors. Use `--prompt-batch-size` to batch. |
 | `nim_embeddings` | `/v1/embeddings` (NIM) | no | NVIDIA NIM Embeddings. |
 | `cohere_rankings` | `/v1/rerank` | no | Cohere Reranking API. |

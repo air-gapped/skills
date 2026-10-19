@@ -19,6 +19,9 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | CLI options doc | https://github.com/ai-dynamo/aiperf/blob/main/docs/cli-options.md | 2026-10-20 | read at tag `v0.13.0` — authoritative for subcommands (adds `kube *`, `proxy`) and the `--endpoint-type` (19, `audio_transcription` added), `--custom-dataset-type` (13 core + SPEED-Bench, `tracelab` added) and `--public-dataset` (42) enum values |
 | `synthesize` command source | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/src/aiperf/cli_commands/synthesize.py | 2026-10-20 | `target: Literal["agentic-code"]` — the only target; no trace input |
 | Prefix-synthesis tutorial | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/tutorials/prefix-synthesis.md | 2026-10-20 | trace scaling runs inside `aiperf profile` with `--synthesis-*` flags |
+| Endpoint registry (`plugins.yaml`) | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/src/aiperf/plugin/plugins.yaml | 2026-10-20 | `audio_transcription`: `/v1/audio/transcriptions`, non-streaming, multipart (PR #1247) |
+| Synthetic audio vs real speech | https://github.com/ai-dynamo/aiperf/issues/1524 | 2026-10-20 | open — white-noise default audio gives unrealistic latency/RTFx for ASR |
+| TraceLab tutorial | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/tutorials/tracelab-trace.md | 2026-10-20 | `tracelab` type (PR #1262); corpus at uw-syfi/TraceLab release v0.0.2; auto fixed-schedule, `--no-fixed-schedule` for capped pauses |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-09-15 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-09-15 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-09-15 | |

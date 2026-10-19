@@ -122,6 +122,21 @@ exact introducing release was not pinned down this pass.
 PR #1129). Verified present in `docs/cli-options.md` at `v0.12.0` and absent at `v0.11.0`.
 Nothing was removed — every type below still resolves at v0.12.0.
 
+### `tracelab` (v0.13.0+)
+
+Real agentic-coding sessions (Claude Code / Codex) from the public TraceLab corpus; JSONL or gzipped JSONL, read without decompressing. Long sessions, deep prefix reuse, multi-minute human pauses.
+
+```bash
+curl -L -o syfi_coding_trace.jsonl.gz \
+  https://github.com/uw-syfi/TraceLab/releases/download/v0.0.2/syfi_coding_trace.jsonl.gz
+aiperf profile ... --custom-dataset-type tracelab --input-file syfi_coding_trace.jsonl.gz \
+  --num-dataset-entries 50 --concurrency 4 \
+  --no-fixed-schedule --inter-turn-delay-cap-seconds 5
+```
+
+- Per-round timestamps auto-promote it to fixed-schedule replay, where `--inter-turn-delay-cap-seconds` has no effect. Pass `--no-fixed-schedule` to run under concurrency with capped pauses; keep fixed-schedule for the faithful (slow) replay.
+- Uncapped, the run sleeps through every recorded human pause. Set the cap deliberately.
+
 ## `--input-file` is the single switch
 
 Same flag for all custom types — the parser is selected by `--custom-dataset-type`. Files for `single_turn` / `multi_turn` / `mooncake_trace` / `bailian_trace` / `burst_gpt_trace` are JSONL; `random_pool` accepts a directory or a JSONL with one prompt per line.

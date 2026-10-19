@@ -1,6 +1,6 @@
 # AIPerf CLI Reference
 
-Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aiperf v0.11.0 (stable). Trust `aiperf <subcommand> --help` if anything here disagrees.
+Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aiperf v0.13.0 (stable). Trust `aiperf <subcommand> --help` if anything here disagrees.
 
 ## Table of Contents
 
@@ -49,7 +49,7 @@ Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aip
 | Flag | Type | Default | Notes |
 |---|---|---|---|
 | `-m`, `--model-names`, `--model` | list | **required** | Comma-separated or repeat. With multiple, `--model-selection-strategy {round_robin,random}`. |
-| `--endpoint-type` | enum | `chat` | `chat`, `chat_embeddings`, `completions`, `responses`, `cohere_rankings`, `embeddings`, `hf_tei_rankings`, `huggingface_generate`, `image_generation`, `video_generation`, `image_retrieval`, `nim_embeddings`, `nim_rankings`, `solido_rag`, `template`. See `endpoints.md`. |
+| `--endpoint-type` | enum | `chat` | 19 values: `chat`, `chat_embeddings`, `completions`, `responses`, `messages`, `audio_transcription`, `embeddings`, `nim_embeddings`, `cohere_rankings`, `hf_tei_rankings`, `nim_rankings`, `image_retrieval`, `image_generation`, `image_edit`, `video_generation`, `huggingface_generate`, `solido_rag`, `raw`, `template`. See `endpoints.md`. |
 | `--custom-endpoint`, `--endpoint` | str | `/v1/...` | Override the default API path (e.g. `/my-api/chat`). |
 | `-u`, `--url` | list | `localhost:8000` | One or more base URLs. Multiple URLs enable load balancing (`--url-strategy round_robin`). |
 | `--streaming` | flag | off | Enable SSE streaming. Required for TTFT/ITL/ICL metrics. Auto-disabled on non-streaming endpoints. |
@@ -58,6 +58,10 @@ Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aip
 | `--transport`, `--transport-type` | enum | auto | Currently only `http` (aiohttp). |
 | `--use-legacy-max-tokens` | flag | off | Use `max_tokens` instead of `max_completion_tokens`. For older OpenAI-compat servers. |
 | `--use-server-token-count` | flag | off | Trust server's `usage` field instead of client tokenizing. Auto-sets `stream_options.include_usage=true`. |
+| `--per-chunk-usage` | flag | off | v0.13.0+. Sets `stream_options.continuous_usage_stats` so ITL subtracts the real first-chunk token count. Use when the server bundles tokens into the first chunk (e.g. TRT-LLM `stream-interval`). Requires `--use-server-token-count`; vLLM / TRT-LLM accept it, strict OpenAI rejects it. |
+| `--reset-kv-cache` | flag | off | v0.13.0+. POST a KV-cache reset once per cell. `--reset-kv-cache-path` (default `/reset_prefix_cache`), `--reset-kv-cache-timeout-seconds`. |
+| `--server-profiler` | flag | off | v0.13.0+. Start/stop the server profiler around profiling phases. `--server-profiler-start-path` (default `/start_profile`), `--server-profiler-stop-path` (default `/stop_profile`). |
+| `--session-header` | str | `X-Correlation-ID` | Renames the per-session correlation header. v0.13.0+ also sends `X-Session-Affinity` with the same value by default (see SKILL.md). |
 | `--connection-reuse-strategy` | enum | `pooled` | `pooled` / `never` / `sticky-user-sessions` (last keeps a user's connection across turns — enables sticky LB). |
 | `--download-video-content` | flag | off | For `video_generation`: download bytes after job completes; latency includes download time. |
 | `--request-content-type` | enum | `application/json` | `multipart/form-data` for vLLM video-gen. |
@@ -67,8 +71,8 @@ Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aip
 | Flag | Notes |
 |---|---|
 | `--input-file <path>` | File or directory; required with `--custom-dataset-type`. |
-| `--custom-dataset-type` | `single_turn` / `multi_turn` / `mooncake_trace` / `bailian_trace` / `burst_gpt_trace` / `random_pool`. See `datasets.md`. |
-| `--public-dataset` | One of 40+ values: `sharegpt`, `aimo`, `mmstar`, `mmvu`, `vision_arena`, `llava_onevision`, `aimo_aime`, `aimo_numina_cot`, `aimo_numina_1_5`, `spec_bench`, `instruct_coder`, `blazedit_5k`, `blazedit_10k`, plus 24 `speed_bench_*` variants. Mutually exclusive with `--custom-dataset-type`. |
+| `--custom-dataset-type` | 13 formats: `single_turn`, `multi_turn`, `mooncake_trace`, `bailian_trace`, `burst_gpt_trace`, `baseten_trace`, `weka_trace`, `tracelab`, `random_pool`, `dag_jsonl`, `raw_payload`, `inputs_json`, `sagemaker_data_capture` — plus the `speed_bench_*` family. See `datasets.md`. |
+| `--public-dataset` | 42 values: `sharegpt`, `aimo*`, vision (`mmstar`, `mmvu`, `vision_arena`, `llava_onevision`), coding (`instruct_coder`, `spec_bench`, `blazedit_*`), `spec_al_*`, speech (`librispeech`, `voxpopuli`, `gigaspeech`, `ami`, `spgispeech`), agentic (`exgentic`, `exgentic_v2`, `weka_hf`, `semianalysis_cc_traces_weka*`). `speed_bench_*` is NOT a public dataset — it is a `--custom-dataset-type` value. Mutually exclusive with `--custom-dataset-type`. |
 | `--hf-subset <name>` | Override the HF subset for HF-backed loaders (e.g. `sharegpt4o`). |
 | `--dataset-sampling-strategy` | `sequential` / `random` / `shuffle`. Default depends on dataset; not compatible with `--fixed-schedule`. |
 | `--fixed-schedule` | Replay timestamps from dataset metadata. Auto-enabled for trace types. |
@@ -176,6 +180,7 @@ Video:
 | `--osl`, `--prompt-output-tokens-mean <int>` | Mean output tokens (target). |
 | `--osl-stddev`, `--prompt-output-tokens-stddev <int>` | Stddev. |
 | `-b`, `--prompt-batch-size <int>` | Batch inputs per request (embeddings/rankings). |
+| `--random-range-ratio <float\|json>` | v0.13.0+. Sample ISL/OSL uniformly in a window around `--isl`/`--osl` (both required). `--random-corpus-style vllm` (default; `[mean*(1-r), mean*(1+r)]`, matches `vllm bench serve`) or `sglang` (`[mean*r, mean]`). Mutually exclusive with `--seq-dist`. |
 | `--seq-dist`, `--sequence-distribution "ISL,OSL:WEIGHT;ISL,OSL:WEIGHT"` | Mixed ISL/OSL distribution, e.g. `256,128:25;512,256:50;1024,512:25`. |
 
 ## profile — prefix / system / context
@@ -186,6 +191,8 @@ Video:
 | `--prefix-prompt-length <int>` | Tokens per prefix. |
 | `--shared-system-prompt-length <int>` | Tokens in a shared system prompt across all sessions. Cache-friendly. |
 | `--user-context-prompt-length <int>` | Per-session unique padding (cache-hostile). |
+| `--system-prompt <text>` / `--system-prompt-file <path>` | v0.13.0+. Verbatim system prompt on every conversation (prepended to a dataset's own system message). Tokens are additive to `--isl`. Use the file form for real production prompts. Mutually exclusive with each other, `--shared-system-prompt-length` and `--num-prefix-prompts`. |
+| `--cache-bust <target>` | `none` (default); `system_prefix` / `system_suffix` / `first_turn_prefix` / `first_turn_suffix` inject a per-trajectory unique marker (warmup KV work still transfers to profiling, no cross-trajectory sharing); `warmup_isolation_system` / `warmup_isolation_first_turn` mark warmup only. All structured workloads since v0.13.0. Not with agentic replay. |
 
 ## profile — multi-turn / conversation
 
