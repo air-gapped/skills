@@ -101,20 +101,20 @@ The operator reports goodput-req/s and the offending tail percentiles. Goodput=0
 Run a **concurrency or request-rate sweep**, not a single point. The knee of the throughput-vs-tail-latency curve is the usable operating point. A change that moves the knee right is a win.
 
 ```bash
-for c in 10 50 100 200 500; do
-  aiperf profile \
-    --model Qwen/Qwen3-0.6B --url http://endpoint:8000 \
-    --endpoint-type chat --streaming \
-    --tokenizer Qwen/Qwen3-0.6B \
-    --concurrency $c --request-count 1000 \
-    --isl 1000 --osl 500 \
-    --num-dataset-entries 1000 --random-seed $c \
-    --artifact-dir artifacts/pareto-c$c
-done
-aiperf plot --paths artifacts/pareto-c* --dashboard
+aiperf profile \
+  --model Qwen/Qwen3-0.6B --url http://endpoint:8000 \
+  --endpoint-type chat --streaming \
+  --tokenizer Qwen/Qwen3-0.6B \
+  --concurrency 10,50,100,200,500 --request-count 1000 \
+  --isl 1000 --osl 500 \
+  --num-dataset-entries 1000 --random-seed 42 \
+  --artifact-dir artifacts/pareto
+aiperf plot --paths artifacts/pareto --dashboard   # finds every point's run dir recursively
 ```
 
-Same seed list, same hardware, same tokenizer for config A and config B. **Synthetic prompts are a 100-entry pool by default (`--num-dataset-entries`), reused across requests, and a given `--random-seed` regenerates the identical pool.** Against a prefix-caching server (vLLM APC, SGLang radix) a 1000-request run with the default pool, or a second run with the same seed, is served from cache — TTFT and throughput become cache measurements. So: size `--num-dataset-entries` ≥ requests + warmup, use a distinct seed per sweep point, and restart the server (or `--reset-kv-cache`, v0.13.0+) before switching config. Multi-run confidence (`--num-profile-runs 3 --confidence-level 0.95`) yields CI bands when each run is short enough that re-running 3× is feasible; its trials share one seed by default, so on a prefix-caching server add `--vary-seed-per-trial` or trials 2..N measure a warm cache.
+A comma-separated `--concurrency` (also `--request-rate`, `--isl`, `--osl`; `--sweep-type grid|zip`) runs the sweep natively and gives each point its own seed (`base + index`) by default — do not write a shell loop with one fixed seed. To answer "highest throughput that still meets the SLA" directly, use a recipe instead of a grid: `--search-recipe max-throughput-ttft-sla --ttft-sla-ms 200` (others: `max-goodput-under-slo`, `concurrency-ramp`, `pareto-sweep`; `aiperf plugins search_recipe` lists them).
+
+Same seed list, same hardware, same tokenizer for config A and config B. **Synthetic prompts are a 100-entry pool by default (`--num-dataset-entries`), reused across requests, and a given `--random-seed` regenerates the identical pool.** Against a prefix-caching server (vLLM APC, SGLang radix) a 1000-request run with the default pool, or a second run with the same seed, is served from cache — TTFT and throughput become cache measurements. So: size `--num-dataset-entries` ≥ requests + warmup, keep a distinct seed per sweep point (the native sweep does; `--parameter-sweep-same-seed` turns it off), and restart the server (or `--reset-kv-cache`, v0.13.0+) before switching config. Multi-run confidence (`--num-profile-runs 3 --confidence-level 0.95`) yields CI bands when each run is short enough that re-running 3× is feasible; its trials share one seed by default, so on a prefix-caching server add `--vary-seed-per-trial` or trials 2..N measure a warm cache.
 
 ## Critical pitfalls
 
