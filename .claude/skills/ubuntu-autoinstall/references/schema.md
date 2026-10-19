@@ -73,7 +73,8 @@ install** (vs first-boot for `user-data` users).
 `groups` (**26.04+; absent from the 24.04 schema**): `{append: [docker]}` adds to the
 installer's built-in groups (`sudo`, `admin`, ...); `{override: [...]}` or a bare list
 replaces them — an override list without `sudo` leaves the user without sudo. On 24.04
-add groups in `user-data:` or `late-commands` instead.
+`identity` allows no extra keys, so `groups` fails validation: add groups in
+`user-data:` or `late-commands` instead.
 
 ## 3. ssh
 
