@@ -24,7 +24,7 @@ release a property first appeared in (24.04 is 1.0 at release, 1.1.2 with
 
 ## 1. Top-level device types
 
-Under `network:` you may declare any of these maps (id → config):
+Under `network:`, declare any of these maps (id → config):
 `ethernets`, `bonds`, `bridges`, `vlans`, `vrfs`, `tunnels`, `dummy-devices`,
 `virtual-ethernets`, `wifis`, `modems`, `nm-devices`.
 
@@ -76,7 +76,7 @@ ethernets:
 Ethernet-only extras (SR-IOV / InfiniBand): `link:` (VF→PF, 0.99),
 `virtual-function-count` (0.99), `embedded-switch-mode` (`switchdev`/`legacy`,
 0.104), `delay-virtual-functions-rebind` (0.104), `infiniband-mode`
-(`datagram`/`connected`, 0.105). You can also override loopback (`lo` with extra
+(`datagram`/`connected`, 0.105). Loopback can be overridden too (`lo` with extra
 addresses).
 
 ## 4. bonds

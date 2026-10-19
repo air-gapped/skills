@@ -122,7 +122,7 @@ network:
 
 ## Pin a predictable name by MAC (and set MTU safely)
 
-Match by MAC — not interface name — whenever you also set `mtu`/`wakeonlan`/MAC,
+Match by MAC — not interface name — whenever the device also sets `mtu`/`wakeonlan`/MAC,
 because name-only matching races udev renaming on networkd.
 
 ```yaml

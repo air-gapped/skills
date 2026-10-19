@@ -10,7 +10,7 @@ subcommand.
 
 ### generate
 `netplan generate [--root-dir DIR] [--mapping MAP]` — render YAML → backend files.
-Does not apply. **This is your validator** when run from the CLI (it fails loudly on
+Does not apply. **This is the validator** when run from the CLI (it fails loudly on
 parse/schema errors with a location). Note: as a *boot-time systemd generator* it
 silently ignores errors, so an invalid file can yield partial config and lost
 connectivity — always validate via the CLI before rebooting.
@@ -20,7 +20,7 @@ connectivity — always validate via the CLI before rebooting.
 bring interfaces up via the backend, unbind/rebind down NICs (lets udev rename rules
 run), re-invoke backends if anything rebound.
 
-**Stale virtual devices are not removed.** A bond/bridge/vlan you deleted from YAML
+**Stale virtual devices are not removed.** A bond/bridge/vlan deleted from YAML
 persists until reboot or `ip link delete dev <name>`. To make netplan diff and delete
 removed virtual links: keep a backup of the *previous* `/etc/netplan`, then
 `netplan apply --state /path/to/backup`.
@@ -61,8 +61,8 @@ interfaces; `+`/green = system-only, `-`/red = YAML-only). `--format json` for t
 1. **Validate:** `netplan generate` (and `netplan --debug generate`) — rule out
    syntax/schema errors.
 2. **Confirm the merged config:** `netplan get`. Watch for sequence-merge surprises —
-   the same `addresses:`/`routes:` key in two files *concatenates*, so you may have
-   accumulated an extra address or a duplicate default route.
+   the same `addresses:`/`routes:` key in two files *concatenates*, which can leave
+   an extra address or a duplicate default route.
 3. **Watch the apply:** `netplan --debug apply` shows backend invocation.
 4. **Inspect emitted backend files** (under `/run`, ephemeral):
    - networkd: `/run/systemd/network/10-netplan-*.{network,netdev,link}`
