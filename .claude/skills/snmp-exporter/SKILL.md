@@ -198,8 +198,8 @@ rebuild them.
 
 Time-sensitive or hardware-gated items; resolve and update the relevant
 reference file when done. Dated provenance for every external claim lives in
-[references/sources.md](references/sources.md) — bump its `Last verified:`
-dates when re-checking; the full research narrative behind these modules is
+[references/sources.md](references/sources.md) — restamp its `Freshened:`
+line only after re-probing every row; the full research narrative behind these modules is
 [references/research-report.md](references/research-report.md) (background
 only — never needed to apply the skill):
 
