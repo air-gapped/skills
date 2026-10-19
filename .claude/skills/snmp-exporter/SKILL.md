@@ -204,12 +204,9 @@ rebuild them.
 
 ## Backlog — open items to re-check
 
-Time-sensitive or hardware-gated items; resolve and update the relevant
-reference file when done. Dated provenance for every external claim lives in
-[references/sources.md](references/sources.md) — restamp its `Freshened:`
-line only after re-probing every row; the full research narrative behind these modules is
-[references/research-report.md](references/research-report.md) (background
-only — never needed to apply the skill):
+Unverified or release-gated claims — treat them as open, and update the
+relevant reference file when one resolves. Provenance: [references/sources.md](references/sources.md);
+background narrative (not needed to apply the skill): [references/research-report.md](references/research-report.md).
 
 1. **Hardware snmpwalks** (one session with real gear settles all):
    Onyx SN2010 — hrProcessorLoad/hrStorageTable answer? EtherLike dot3Stats?
