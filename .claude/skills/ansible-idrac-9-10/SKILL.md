@@ -254,7 +254,7 @@ Then branch:
 | `dellemc.openmanage` | **9.12.3** broad, **10.0.2** full | 10.0.0 dropped iDRAC 8 — pin 9.12.1 for iDRAC 8 fleets. 11.0.0 removed `idrac_network`, `idrac_syslog`, `idrac_timezone_ntp` and every `dellemc_*` module — port those calls before upgrading |
 | iDRAC 10 firmware | **1.20.50.50** | 1.30.10.50 (Mar 2026) is the BasicAuthState cutover. Newer 1.30.x builds are per-platform (e.g. 1.30.30.50, 1.30.31.10, Jun 2026) — read KB 000305325 for the Recommended build for *your* model, don't assume one number fleet-wide |
 | iDRAC 9 firmware | 7.10.90.00 | BasicAuthState=Unadvertised default starts at **7.30.10.50** |
-| Ansible Core | 2.18.8 (iDRAC modules), 2.19+ (also OME modules), 2.20 (latest) | 2.18.6 + older collection triggers `TypeError: bytes-like object` in `urls.py:_configure_auth` (#1046) |
+| Ansible Core | 2.18.8 or ≥ 2.19 (iDRAC modules); 2.19 / 2.20 (OME modules) | Collection README's tested set. 2.18.6 + older collection triggers `TypeError: bytes-like object` in `urls.py:_configure_auth` (#1046) |
 | Python | 3.11+ | |
 
 ## Connection mode
