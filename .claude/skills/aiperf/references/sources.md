@@ -17,6 +17,8 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | AIPerf on PyPI | https://pypi.org/project/aiperf/ | 2026-10-20 | latest **0.13.0** (2026-09-24), `requires-python` **>=3.11**,<3.14 — the floor moved 3.10 → 3.11 at v0.12.0 (PR #1107), a breaking install gate; `aiperf-nightly` 0.13.0.dev20261019 |
 | AIPerf docs index (Fern) | https://github.com/ai-dynamo/aiperf/blob/main/docs/index.md | 2026-09-15 | |
 | CLI options doc | https://github.com/ai-dynamo/aiperf/blob/main/docs/cli-options.md | 2026-10-20 | read at tag `v0.13.0` — authoritative for subcommands (adds `kube *`, `proxy`) and the `--endpoint-type` (19, `audio_transcription` added), `--custom-dataset-type` (13 core + SPEED-Bench, `tracelab` added) and `--public-dataset` (42) enum values |
+| `synthesize` command source | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/src/aiperf/cli_commands/synthesize.py | 2026-10-20 | `target: Literal["agentic-code"]` — the only target; no trace input |
+| Prefix-synthesis tutorial | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/tutorials/prefix-synthesis.md | 2026-10-20 | trace scaling runs inside `aiperf profile` with `--synthesis-*` flags |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-09-15 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-09-15 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-09-15 | |

@@ -62,9 +62,13 @@ The changes that alter how AIPerf is driven:
 | "Plot the result" | `aiperf plot` | Pareto, latency histograms, time-series, side-by-side runs. `--dashboard` for interactive. |
 | "What plugins are installed?" | `aiperf plugins [<category> [<name>]]` | Inspect + validate the plugin registry. |
 | "Inspect a Mooncake trace before benchmarking" | `aiperf analyze-trace <file.jsonl>` | ISL/OSL distribution + cache-hit-rate stats. Use to size the benchmark. |
-| "Make a synthetic trace from a real one" | `aiperf synthesize` | Scale prefix length, speedup ratio, prefix tree count for KV-cache stress. |
-| "Run as a single Kubernetes service" | `aiperf service` | One service per pod, ZMQ + FastAPI control. K8s-native deployments. |
-| "Validate an artifact dir" | `aiperf validate` | Sanity check that exports are well-formed. |
+| "Scale a real trace for KV-cache stress" | `aiperf profile ... --custom-dataset-type mooncake_trace --synthesis-*` | Prefix length / root count / speedup / ISL-OSL caps are `profile` flags, applied in memory at load. `aiperf synthesize` does not take a trace. |
+| "Generate a synthetic agentic-coding dataset" | `aiperf synthesize agentic-code [--num-sessions N --output DIR]` | The only `synthesize` target. |
+| "Sanity-check an endpoint by hand before a run" | `aiperf chat --model M --url U [--quick "hi"]` | Per-reply TTFT / TPS / latency. Not a benchmark. |
+| "Why did this run behave like that?" | `aiperf analyze swim-lane --run-dirs <dir>` / `analyze turn-messages` | Per-session timeline PNG (+ `--html` viewer); per-turn input-message HTML viewer (needs `--export-level raw`). |
+| "Start from a YAML config instead of flags" | `aiperf config init --list` → `config init -t <name> -o run.yaml` → `config validate --config-file run.yaml` → `aiperf profile -f run.yaml` | Bundled templates (e.g. `minimal`, `goodput_slo`). |
+| "Run the benchmark inside Kubernetes" | `aiperf kube init` (starter config) → `kube profile` / `kube sweep` → `kube results` | v0.13.0+, beta. `kube preflight` / `kube debug` when it fails. `aiperf service` and `aiperf proxy` are pod internals — do not call them directly. |
+| "Validate an export file" | `aiperf validate --target <format> --input <file>` | Sanity check that one export file is well-formed. |
 | "Combine SPEED-Bench category runs" | `aiperf speed-bench-report` | Per-category → matrix report. |
 
 ## The four scheduling modes — pick exactly one

@@ -138,10 +138,11 @@ Not compatible with `--fixed-schedule` (timestamps drive order).
 
 ## Synthesizing scaled traces
 
-`aiperf synthesize` builds a synthetic trace by scaling an existing one — useful for stress-testing prefix caches at controlled scale.
+Scale an existing trace with the `--synthesis-*` flags on `aiperf profile` — the trace is transformed in memory before the run, no intermediate file. `aiperf synthesize` does not do this; its only target is `agentic-code` (a generated agentic-coding session dataset).
 
 ```bash
-aiperf synthesize \
+aiperf profile --model my-model --url http://endpoint:8000 \
+  --endpoint-type chat --streaming --tokenizer my-tokenizer \
   --input-file mooncake_trace.jsonl --custom-dataset-type mooncake_trace \
   --synthesis-speedup-ratio 2.0 \
   --synthesis-prefix-len-multiplier 1.5 \

@@ -23,20 +23,25 @@ Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aip
 - [analyze-trace](#analyze-trace)
 - [plot](#plot)
 - [plugins](#plugins)
-- [synthesize / service / validate / speed-bench-report](#synthesize--service--validate--speed-bench-report)
+- [synthesize / validate / speed-bench-report](#synthesize--validate--speed-bench-report)
 
 ## Subcommands
 
 | Subcommand | Purpose |
 |---|---|
-| `aiperf profile` | Run a benchmark. The main command. |
-| `aiperf analyze-trace <file.jsonl>` | Stats on a Mooncake trace (ISL/OSL distributions, cache-hit rates, block-size). |
+| `aiperf profile` | Run a benchmark. The main command. `-f run.yaml` runs a YAML config. |
+| `aiperf analyze-trace --input-file <file.jsonl>` | Stats on a Mooncake trace (ISL/OSL distributions, cache-hit rates, block-size). |
+| `aiperf analyze swim-lane --run-dirs <dir>` | Per-session swim-lane PNG with the concurrency curve; `--html` adds an interactive viewer. |
+| `aiperf analyze turn-messages --run-dirs <dir>` | HTML viewer of per-turn input messages. Needs a run made with `--export-level raw`. |
+| `aiperf chat --model M --url U` | Interactive chat with per-reply TTFT / TPS / latency. `--quick "<msg>"` = one request; `--no-history` = stateless turns. Sanity check, not a benchmark. |
+| `aiperf config init / expand / validate` | Bundled YAML templates (`init --list`, `init -t <name> -o run.yaml`), expand a sweep config, validate a config through the `profile` pipeline (exit 1 on fatal errors). |
+| `aiperf kube <init\|validate\|preflight\|profile\|sweep\|attach\|logs\|results\|list\|show\|debug\|dashboard\|cancel\|delete\|cleanup\|shutdown\|generate>` | v0.13.0+, beta. Run benchmarks as Kubernetes jobs through the AIPerf operator. `kube preflight` checks the cluster; `kube results` downloads artifacts. |
 | `aiperf plot` | Generate plots (latency dist, throughput, Pareto, time-series, comparison) from one or more artifact dirs; `--dashboard` launches an interactive Dash app. |
 | `aiperf plugins [<category> [<name>]]` | List installed plugin packages, browse categories, inspect an entry, `--validate` against import. |
-| `aiperf synthesize` | Generate a synthetic trace by scaling an existing trace's prefix length, root-prefix tree count, speedup ratio, ISL/OSL caps. |
-| `aiperf service` | Run a single AIPerf service in a single process (used in K8s deployments — one service per pod). |
-| `aiperf validate` | Sanity-check a benchmark artifact dir. |
-| `aiperf speed-bench-report` | Combine per-category SPEED-Bench artifact dirs into a single matrix report. |
+| `aiperf synthesize agentic-code` | Generate a synthetic agentic-coding session dataset. Trace scaling is NOT here — it is `aiperf profile --synthesis-*`. |
+| `aiperf validate --target <format> --input <file>` | Validate one export file. |
+| `aiperf speed-bench-report --paths <dirs>` | Combine per-category SPEED-Bench artifact dirs into a single matrix report. |
+| `aiperf service`, `aiperf proxy` | Pod internals of the Kubernetes path. Do not call directly; single-node runs use `aiperf profile`. |
 | `aiperf --install-completion [--shell {bash,zsh,fish}]` | Install shell completion. |
 
 ## profile — endpoint
@@ -272,7 +277,7 @@ Reports ISL/OSL distribution, request-rate histogram, and KV-cache block-reuse s
 aiperf plot [--paths DIR ...] [--dashboard] [--port 8050] [--theme dark|light] [--output OUT]
 ```
 
-Plot types: latency distribution histograms, throughput curves, Pareto (TPS/GPU vs TPS/User), time-series, request-level scatter, side-by-side multi-run comparison. `--dashboard` runs an interactive Dash server (default port 8050).
+Plot types: latency distribution histograms, throughput curves, Pareto (TPS/GPU vs TPS/User), time-series, request-level scatter, side-by-side multi-run comparison. `--dashboard` runs an interactive Dash server (default port 8050). `plot` finds runs by the default export filenames only — a run made with `--profile-export-prefix` / `--profile-export-file` is not detected. PNG export needs Chrome or Chromium installed.
 
 ## plugins
 
@@ -286,10 +291,11 @@ aiperf plugins --validate             # validate class paths and existence
 
 See `plugins.md` for authoring custom plugins.
 
-## synthesize / service / validate / speed-bench-report
+## synthesize / validate / speed-bench-report
 
 ```
-aiperf synthesize \
+# Trace scaling is a profile-time transform (in memory, before the run):
+aiperf profile ... \
   --input-file mooncake_trace.jsonl --custom-dataset-type mooncake_trace \
   --synthesis-speedup-ratio 2.0 \
   --synthesis-prefix-len-multiplier 1.5 \
@@ -297,9 +303,9 @@ aiperf synthesize \
   --synthesis-prompt-len-multiplier 1.0 \
   --synthesis-max-isl 32000 --synthesis-max-osl 2000
 
-aiperf service --service-type <name>            # K8s pattern: one service per pod
+aiperf synthesize agentic-code --num-sessions 1000 --output out/ [--seed 42 --max-isl N --max-osl N]
 
-aiperf validate <artifact-dir>
+aiperf validate --target <format> --input <export-file>
 
-aiperf speed-bench-report --input-dirs artifacts/sb-* --output report.csv
+aiperf speed-bench-report --paths artifacts/ [--metric accept_rate] [--output report] [--format ...]
 ```
