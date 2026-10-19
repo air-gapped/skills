@@ -58,6 +58,7 @@ sudo cloud-init single --name set_hostname --frequency always   # re-run one mod
 
 # Build helpers
 cloud-init devel make-mime -a config.yaml:cloud-config -a setup.sh:x-shellscript
+cloud-init devel net-convert -p network-config -k yaml -d /tmp/out -D ubuntu -O netplan   # render as cloud-init would
 cloud-init-per once mkswap mkswap /dev/vdb             # runs once ever, keyed by name (also: instance, always)
 ```
 

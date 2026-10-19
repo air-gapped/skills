@@ -3,6 +3,22 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Resolved this pass (2026-10-20)
+
+Freshen (14/14 rows) + improve (cap reached, 8 kept / 2 discarded). Blind 79 → 84
+(Sonnet, baseline 562248f); comparators 3/3 IMPROVED (two decisive, one slight). Dim 10 stays at the
+unmeasured cap (no eval set).
+- Freshen: 24.04 runs 26.1 via SRU; its noble build reverts single-process,
+  seedfrom `network-config`, deprecation exit-2, bond names; 24.1 snapd seeding.
+- Kept: by-version change table moved to cli reference; 25.1.4 as rule/fix/diagnosis;
+  every-key done condition; in-service re-run blacklist; reference contents lines;
+  no second person; NoCloud check order + merge rule; runnable CLI cheat-sheet
+  (`net-convert` restored as a runnable line after a comparator noted its loss).
+- Discard: rewording the Boundaries `network:` bullet to point at Network config —
+  wording preference, no line or score change.
+- Discard: a symptom → cause → fix table in SKILL.md § Validation — every row
+  restated a rule already in SKILL.md (Dim 6 −1, +9 lines).
+
 ## Resolved — 2026-07-21 (freshen)
 
 **Five undocumented upstream breaking changes found — the pass's real output.**
