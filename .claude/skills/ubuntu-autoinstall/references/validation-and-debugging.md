@@ -92,6 +92,7 @@ and `main`):
   disabled by default.
 - **26.04 == current `main` for top-level schema purposes** (verified empty diff). The
   24.04 key set is a strict subset of 26.04's (only the two added keys differ).
+- **`identity.groups`** is in the 26.04 schema and absent from every 24.04.x schema.
 - **Ordered storage match-spec lists** added in 24.08.1.
 - **On-media `autoinstall:` wrapper** acceptance introduced in 24.04 (pre-24.04 ISOs
   need an installer refresh).
