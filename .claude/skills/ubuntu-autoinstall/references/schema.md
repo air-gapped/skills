@@ -2,8 +2,10 @@
 
 Grounded in `canonical/subiquity` `autoinstall-schema.json`,
 `doc/reference/autoinstall-reference.rst`, and `doc/reference/autoinstall-schema.rst`.
-Only `version` is schema-required; `additionalProperties: true`, so unknown keys are a
-*warning* in v1 (documented to become fatal in a future version).
+Only `version` is schema-required. Unknown **top-level** keys are a *warning* in v1
+(`additionalProperties: true`; documented to become fatal in a future version).
+Unknown **sub-keys** of `identity`, `refresh-installer`, `keyboard`,
+`active-directory` and (24.10+) `kernel-crash-dumps` fail validation now.
 
 ## Contents
 

@@ -106,9 +106,10 @@ and `main`):
 - **On-media `autoinstall:` wrapper** acceptance introduced in 24.04 (pre-24.04 ISOs
   need an installer refresh).
 - **`ubuntu-advantage`** is the deprecated alias of `ubuntu-pro` (still accepted).
-- **Unknown-key handling** remains a *warning* in v1 across all these releases
+- **Unknown top-level keys** remain a *warning* in v1 across all these releases
   (`additionalProperties: true`); documented to become fatal in a future schema
-  version — not yet enforced.
+  version — not yet enforced. `identity`, `refresh-installer`, `keyboard`,
+  `active-directory` (and 24.10+ `kernel-crash-dumps`) already reject unknown sub-keys.
 
 > Caveat to pass on: the reference doc states two different defaults for `apt.fallback`
 > (`offline-install` in the field doc vs `abort` in the default block). The installer
