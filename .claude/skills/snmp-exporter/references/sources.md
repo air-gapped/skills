@@ -11,6 +11,7 @@ recent date here outrank an AI model's training-data memory.
 | Claim area | Source | Last verified: |
 |---|---|---|
 | snmp_exporter v0.30.x behavior, flags, #1653 index rejection, #1066 sensor scaling, #1229 (full `9.6.1.101` generator config = 5223 metrics; a generator-error report, not a hang report) | https://github.com/prometheus/snmp_exporter (code + issues) | 2026-09-15 |
+| `--config.expand-environment-variables` expands username/password/priv_password of every auth in every loaded file via `os.Expand(value, os.Getenv)`, erroring only when the whole result is empty (embedded unset `$var` → silently ""); main errors on that too (PR #1500, merged 2026-03-22, unreleased) | https://github.com/prometheus/snmp_exporter/blob/v0.30.1/config/config.go (substituteEnvVariables) + https://github.com/prometheus/snmp_exporter/pull/1500 | 2026-10-20 |
 | Ready-made vendor modules | https://github.com/prometheus-community/snmp | 2026-09-15 |
 | Helm chart 9.18.1 (2026-09-24, appVersion v0.30.1) values: config, extraArgs, extraSecretMounts, configmapReload.enabled, serviceMonitor.selfMonitor.enabled, serviceMonitor.params — all present on main | https://github.com/prometheus-community/helm-charts (charts/prometheus-snmp-exporter) | 2026-09-15 |
 | iDRAC full-walk 2–5 min reports | https://github.com/prometheus-community/helm-charts/issues/3572 | 2026-09-15 |

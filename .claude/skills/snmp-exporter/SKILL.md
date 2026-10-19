@@ -59,7 +59,10 @@ them to long-term storage is **`mimir-upgrade`** territory.
    with `--config.expand-environment-variables` (only those three fields), or
    split an auths-only yml into a Secret and load it as an extra `--config.file`
    (repeatable + glob since v0.24; duplicate auth/module names across files are
-   rejected — never reuse the stock names like `public_v2`).
+   rejected — never reuse the stock names like `public_v2`). The flag expands
+   those fields in every loaded file: a literal `$` in a password is read as a
+   variable (v0.30.1 silently drops an unset one) — put such secrets in the
+   env var, never inline.
 6. **Protect port 9116.** Anyone who can reach `/snmp` can walk arbitrary
    targets *with the configured credentials* (SSRF + credential relay).
    Firewall/NetworkPolicy it to Prometheus, optionally add exporter-toolkit TLS
