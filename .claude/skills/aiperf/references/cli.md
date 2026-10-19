@@ -217,6 +217,20 @@ Video:
 | `--export-http-trace` | Include HTTP trace timings in the export. |
 | `--show-trace-timing` | Print HTTP timing breakdown to console. |
 
+External exporters — each needs its extra: `pip install "aiperf[mlflow]"` / `"aiperf[wandb]"` / `"aiperf[otel]"`.
+
+| Flag | Notes |
+|---|---|
+| `--mlflow-tracking-uri <uri>` | Enables MLflow upload of the run's results. |
+| `--mlflow-experiment <name>`, `--mlflow-run-name <name>` | Experiment and run name. |
+| `--mlflow-tag key:value` | Repeatable run tags (e.g. `--mlflow-tag revision:<sha>`). |
+| `--mlflow-parent-run-id <id>` | Nest the run under a parent run. |
+| `--mlflow-artifact-glob <glob>` | Override which artifact files are uploaded. |
+| `--wandb-project <name>` | Enables W&B export. `--wandb-entity`, `--wandb-run-name`, `--wandb-tag`. |
+| `--otel-url <otlp-http-url>` | Live OTLP/HTTP streaming. `--stream metrics\|timing\|default`, `--otel-resource-attributes key=value`. |
+
+`aiperf plot --paths <run> --mlflow-upload` attaches the plots to the MLflow run recorded in `mlflow_export.json`.
+
 ## profile — tokenizer
 
 | Flag | Notes |

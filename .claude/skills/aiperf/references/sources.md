@@ -27,6 +27,7 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | Truncated raw export with exit 0 | https://github.com/ai-dynamo/aiperf/issues/1532 | 2026-10-20 | open; observed 0.12.0, force-kill path still in 0.13.0; reporter's 0.13.0 run with `AIPERF_SERVICE_HEARTBEAT_MISSED_THRESHOLD=24` exited 0 with a complete file. Env var documented in docs/environment-variables.md at v0.13.0 (default 3, range 1–100) |
 | Throughput denominator | https://github.com/ai-dynamo/aiperf/issues/1492 | 2026-10-20 | open; reproduced on main by a second reporter (200 req: 7.89 s phase window vs 7.79 s benchmark_duration) |
 | GenAI-Perf feature comparison | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/genai-perf-feature-comparison.md | 2026-10-20 | analyze → profile sweeps; config → `profile -f`; create-template → `config init`; process-export-files N/A |
+| Exporter flags + extras | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/pyproject.toml | 2026-10-20 | `[project.optional-dependencies]` mlflow / wandb / otel; flags from docs/cli-options.md at v0.13.0 |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-10-20 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-10-20 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-10-20 | |

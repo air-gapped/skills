@@ -30,7 +30,7 @@ The changes that alter how AIPerf is driven:
 - **Adaptive sweep orchestrator + YAML-native v2 config** (v0.10.0, PR #912) — Bayesian Optimization and reusable search recipes, instead of hand-rolled concurrency sweeps.
 - **Multi-tier SLO search** (v0.11.0, PR #1035) — resolve N tier boundaries in a single job rather than one job per tier.
 - **Accuracy suite went from a curiosity to a platform** — AIME (v0.9.0), then HellaSwag, BigBench-Hard, AIME 2024/2025 (v0.10.0, DeepEval/lighteval-backed), then MATH-500, GPQA-Diamond, LCB CodeGen (with a `code_execution` grader) and GSM8K (v0.11.0).
-- **Exporters:** live OpenTelemetry streaming + MLflow (v0.9.0, PR #900); Weights & Biases (v0.11.0, PR #1049).
+- **Exporters:** live OpenTelemetry streaming + MLflow (v0.9.0, PR #900); Weights & Biases (v0.11.0, PR #1049). Flags (`--mlflow-tracking-uri`, `--mlflow-experiment`, `--wandb-project`, `--otel-url`, …) and the pip extras they need: `references/cli.md` → External exporters.
 - **Telemetry beyond NVIDIA:** AMD ROCm collector via `amdsmi` (v0.9.0, PR #908).
 - **`network_adjusted_*` latency metrics** (v0.11.0, PR #1066) — subtract network RTT so numbers reflect the server, not the path to it.
 - **Power metrics** — initial implementation (v0.10.0, PR #803).
