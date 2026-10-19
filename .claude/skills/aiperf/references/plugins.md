@@ -45,12 +45,13 @@ Subclass the protocol's base class. Endpoints extend `BaseEndpoint`; dataset loa
 
 **Pick the most-specific endpoint base class.** AIPerf ships category-specific bases that already implement the boilerplate:
 
-| Base class | Use for | What it provides |
+| Base class (import) | Use for | What it provides |
 |---|---|---|
-| `BaseEndpoint` | Truly novel APIs that don't fit a category | The two abstract methods: `format_payload(request_info) -> dict` and `parse_response(response) -> ParsedResponse \| None` |
-| `BaseRankingsEndpoint` | Rerank / passage-scoring services | Pre-implements `format_payload` + `parse_response`; subclass overrides `build_payload(query_text, passages, model_name)` and `extract_rankings(json_obj) -> list[dict]` (returns objects with `index` and `score` keys). Handles `--extra-inputs` merging, turn validation, and wrapping into `RankingsResponseData` |
-| `BaseEmbeddingsEndpoint` | Vector-embedding services | Pre-implements payload/response with subclass hooks for the wire format |
-| `OpenAIChatEndpoint`, `OpenAICompletionsEndpoint`, etc. | Variants of OpenAI APIs | Inherit and override only what differs |
+| `BaseEndpoint` (`aiperf.endpoints.base_endpoint`) | Truly novel APIs that don't fit a category | The two abstract methods: `format_payload(request_info) -> dict` and `parse_response(response) -> ParsedResponse \| None` |
+| `BaseRankingsEndpoint` (`aiperf.endpoints.base_rankings_endpoint`) | Rerank / passage-scoring services | Pre-implements `format_payload` + `parse_response`; subclass overrides `build_payload(query_text, passages, model_name)` and `extract_rankings(json_obj) -> list[dict]` (returns objects with `index` and `score` keys). Merges `--extra-inputs` and per-turn extra body into the payload, validates turns, wraps into `RankingsResponseData` |
+| `EmbeddingsEndpoint` (`aiperf.endpoints.openai_embeddings`), `ChatEndpoint` (`aiperf.endpoints.openai_chat`), `CompletionsEndpoint` (`aiperf.endpoints.openai_completions`) | Variants of OpenAI APIs | Concrete built-ins — inherit and override only what differs. There is no `BaseEmbeddingsEndpoint` |
+
+A body field the service always requires (e.g. a rerank `top_k`) belongs in `build_payload` / `format_payload` with a default, not only in `--extra-inputs` — a run that omits the flag sends an invalid request.
 
 For rerank in particular: a `BaseRankingsEndpoint` subclass is ~10 lines of code; a `BaseEndpoint` subclass is ~50. Start at the most-specific base.
 
