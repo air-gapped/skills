@@ -106,6 +106,9 @@ but under discipline, with a strict exit.
   test that is most likely to hit, cheapest to run, and — best of all —
   splits the possibility space (a half-split beats ten one-at-a-time checks
   in a chain of components; see `references/test-toolkit.md`).
+- **Fixed windows get a cut line.** When tests must fit a bounded outage,
+  put the restore deadline in the plan and state which steps are dropped or
+  deferred, in order, if time runs short.
 - **One change per test.** Vary one thing, observe, record. Shotgun changes
   destroy the evidence Stage 2 will need. Cleaning, reseating, reconnecting
   and rebooting are changes too: inspect and record first, then alter one
