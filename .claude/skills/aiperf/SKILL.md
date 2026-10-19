@@ -153,7 +153,7 @@ Same seed list, same hardware, same tokenizer for config A and config B. **Synth
 
 | File | Read when... |
 |---|---|
-| `references/cli.md` | Looking up a specific flag or composing a command. ~350 lines, table-of-contents at top. |
+| `references/cli.md` | Looking up a specific flag or composing a command. Table of contents at top — read the section, not the file. |
 | `references/timing-modes.md` | Picking concurrency vs rate vs fixed-schedule vs user-centric. Compatibility matrix + every validation error message. |
 | `references/metrics.md` | Defining what a metric means, its unit, its formula, or which streaming/endpoint types it applies to. Goodput SLO syntax. |
 | `references/datasets.md` | Choosing or building an input dataset (synthetic, public, custom JSONL, trace formats). Multi-modal payload shapes. |
@@ -162,7 +162,7 @@ Same seed list, same hardware, same tokenizer for config A and config B. **Synth
 | `references/plugins.md` | Adding a custom endpoint, dataset loader, exporter, accuracy grader, or plot type. Plugin manifest schema, conflict resolution rules. |
 | `references/troubleshooting.md` | A specific error message, a wrong-looking number, or an exporter that produced nothing. |
 | `references/migration-from-genai-perf.md` | Porting a genai-perf workflow. Flag mapping + the reasoning-token metric semantics that subtly change the numbers. |
-| `references/sources.md` | Verifying or freshening external claims. Per-row `Last verified:` dates. |
+| `references/sources.md` | Checking where a version, flag or issue claim comes from, or freshening the skill. The `Freshened:` header stamp dates the last full verification. |
 
 The upstream repo at https://github.com/ai-dynamo/aiperf is the most authoritative reference — `docs/cli-options.md`, `docs/metrics-reference.md`, `docs/environment-variables.md`, and `docs/tutorials/*.md` are all auto-generated or hand-curated from the same code. When this skill disagrees with the repo, trust the repo (and update this skill).
 
