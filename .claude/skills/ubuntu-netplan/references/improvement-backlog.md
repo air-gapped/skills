@@ -3,6 +3,22 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Resolved this pass (2026-10-20 — freshen + improve)
+
+Freshen: every row probed, 3 findings applied. Improve: blind 82 → 83,
+comparators 3/3 IMPROVED; stop = cap reached (10 iterations, 1 discard);
+baseline ref b974f04.
+- Kept: exhaustive step-6 done condition; `try` refusal on bond/bridge
+  `parameters:` with armed-rollback fallback (SKILL.md, CLI table, reference);
+  wait-online blocker diagnosis incl. bond members; TOCs on the two long
+  references; second-person slips removed; duplicate Pitfalls list and the
+  netplan-definition intro cut.
+- Discard: adding the literal "A start job is running for Wait for Network to
+  be Configured" message to `when_to_use` — "boot hangs on a NIC" already
+  covers it; a description change needs `trigger` mode numbers to keep.
+- Blind final top issue, not re-proposed: trim Quick patterns to a pointer
+  (declined in the 2026-06-14 improve pass below).
+
 ## Resolved — 2026-07-21 (freshen)
 
 **Version bump with no schema impact, plus a completeness check the previous
