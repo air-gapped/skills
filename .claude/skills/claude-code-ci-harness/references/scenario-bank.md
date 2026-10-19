@@ -38,8 +38,7 @@ response, and the process terminates without a hang.
 
 ## Escalation
 
-Keep the same prompt and workdir when comparing endpoints. Run
-`scripts/scan-token-leakage.sh` against every transcript.
+Keep the same prompt and workdir when comparing endpoints.
 
 ### Parallel intent
 
