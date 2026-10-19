@@ -150,30 +150,32 @@ The consolidated "Dell OpenManage MIBs" package is **discontinued** (final
 v11.1.0, Dell KB 000312092). Current MIBs are a separate small download on each
 iDRAC firmware's driver-details page: look for `iDRAC_<ver>_Mib_A00.zip`
 (~113 KB; contains iDRAC-SMIv2.mib, iDRAC-SMIv1.mib, dellrac.mib,
-DcAsfSrv.mib). Worked path (2026-07): any 17G product page →
+DcAsfSrv.mib). Worked path: any 16G/17G product page →
 Drivers & Downloads → "iDRAC <ver>" row → details
 (`dell.com/support/home/en-us/drivers/driversdetails?driverid=<dup-id>`, e.g.
-`fmd40` for iDRAC10 1.30.31.10, `kywdc` for iDRAC9 7.20.80.50, `fwmwv` for
-7.00.00.184) → the Mib zip's dl.dell.com URL downloads without the Akamai
-wall. Note dell.com support pages 403 curl/headless browsers — use a headed
-browser or WebFetch; dl.dell.com itself is open. Dell KB 000178115 is the
-canonical iDRAC9 firmware version index (with per-version driverids).
+`fmd40` for iDRAC10 1.30.31.10, `P3PPC` for iDRAC9 7.30.30.54, `fwmwv` for
+7.00.00.184) → click the Mib zip. Both dell.com support pages and the
+dl.dell.com zip URLs 403 bare curl (Akamai): WebFetch reads the details page
+and yields the dl.dell.com URL, but the zip itself downloads only from a headed
+browser. Dell KB 000178115 is the canonical iDRAC9 firmware version index.
 
-MIB version map (verified 2026-07):
+MIB version map (header comment `-- Version:` / `-- Date:` in iDRAC-SMIv2.mib;
+the MODULE-IDENTITY `LAST-UPDATED` is stale at 2018 in every build):
 
 | Source | MIB version | Notes |
 |---|---|---|
-| iDRAC9 14G branch (7.00.00.184, Apr 2026) | 4.3 (12 Dec 2024) | identical file to the 15/16G branch |
-| iDRAC9 15/16G branch (7.20.80.50, Dec 2025) | 4.3 (12 Dec 2024) | **superset**: includes SD-card/IDSDM status objects |
-| iDRAC10 (1.30.31.10, Jun 2026) | 4.7 (15 May 2026) | drops SD/IDSDM objects, fixes enum-0 definitions; no new tables |
+| iDRAC9 14G branch (7.00.00.184, Apr 2026) | 4.3 (12 Dec 2024) | same file as 15/16G 7.20.x |
+| iDRAC9 15/16G 7.20.x (7.20.80.50, Dec 2025) | 4.3 (12 Dec 2024) | includes SD-card/IDSDM status objects |
+| iDRAC9 15/16G 7.30.x (7.30.30.54, Aug 2026) | 4.7 (06 Aug 2026) | **superset**: every iDRAC10 4.7 object + SD/IDSDM status objects + extra alert traps |
+| iDRAC10 (1.30.31.10, Jun 2026) | 4.7 (15 May 2026) | drops SD/IDSDM objects, fixes enum-0 definitions; no new tables vs 4.3 |
 | Discontinued OM bundle / upstream pinned zip | 4.3 (21 May 2024) | stale build of 4.3 |
 
-For one module serving both generations, **generate from iDRAC9's 4.3
-(Dec 2024)** — it's the superset; iDRAC10 targets simply return nothing for
+For one module serving both generations, **generate from iDRAC9 7.30.x's
+4.7 (Aug 2026)** — it's the superset; iDRAC10 targets simply return nothing for
 the SD/IDSDM OIDs. The firmware release-notes files bundled on download pages
 are pointer stubs; real per-version fix lists live at dell.com/idracmanuals
 under each series' Manuals section. iDRAC9 firmware branches: 14G stays on
-7.00.00.x maintenance; 15/16G track 7.20.x.
+7.00.00.x maintenance; 15/16G track 7.30.x (7.20.x before it).
 
 ## Alternatives / complement: idrac_exporter
 

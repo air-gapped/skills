@@ -17,8 +17,8 @@ recent date here outrank an AI model's training-data memory.
 | Helm chart 9.18.1 (2026-09-24, appVersion v0.30.1) values: config, extraArgs, extraSecretMounts, configmapReload.enabled, serviceMonitor.selfMonitor.enabled, serviceMonitor.params — all present on main | https://github.com/prometheus-community/helm-charts (charts/prometheus-snmp-exporter) | 2026-09-15 |
 | iDRAC full-walk 2–5 min reports | https://github.com/prometheus-community/helm-charts/issues/3572 | 2026-09-15 |
 | Probe CRD `params` since v0.85.0; ScrapeConfig still v1alpha1 | https://github.com/prometheus-operator/prometheus-operator (releases + docs) | 2026-09-15 |
-| iDRAC MIB versions 4.3/4.7, Mib_A00.zip per-firmware downloads (driverids fmd40, kywdc, fwmwv) | https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=fmd40 (and kywdc, fwmwv) | 2026-09-15 |
-| iDRAC9 firmware version index | Dell KB 000178115 | 2026-09-15 |
+| iDRAC MIB versions: iDRAC10 1.30.31.10 zip = 4.7 / 15 May 2026, no SD/IDSDM objects; iDRAC9 7.30.30.54 zip (P3PPC, 21 Aug 2026, R650/R660/R750/R760) = 4.7 / 06 Aug 2026, a strict superset by object name (+8 SD/IDSDM systemState objects, +9 alert traps) — both zips opened 2026-10-20; 7.20.80.50 (kywdc) and 7.00.00.184 (fwmwv) driver pages list their Mib zips; dl.dell.com 403s bare curl (Akamai), browser download works | https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=fmd40 (and P3PPC, kywdc, fwmwv) | 2026-09-15 |
+| iDRAC9 firmware version index (7.30.30.51 Jun 2026 newest listed; R760 driver page already serves 7.30.30.54) | Dell KB 000178115 | 2026-09-15 |
 | OpenManage MIB bundle discontinued | Dell KB 000312092 | 2026-09-15 |
 | iDRAC v3 breaks after firmware update | Dell KB 000321856 | 2026-09-15 |
 | iDRAC10 SNMP defaults (AgentEnable=0, SHA-384/512 + AES-256 only, ProtocolEnable=0, 40-char passphrases) | iDRAC10 Attribute Registry 1.10.05.00 (dell.com support downloads) | 2026-09-15 |
