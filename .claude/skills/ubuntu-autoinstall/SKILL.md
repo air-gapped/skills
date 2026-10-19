@@ -19,12 +19,6 @@ when_to_use: >-
 
 # ubuntu-autoinstall
 
-Autoinstall is the configuration format for Ubuntu Server's **Subiquity** installer.
-A `version: 1` document tells the installer how to partition, install, and configure
-the system unattended. This skill is authoring-led (produce a correct
-autoinstall config from a description) with a strong validation/debug path, aimed at
-**unattended on-prem / air-gapped Ubuntu Server LTS** installs.
-
 Autoinstall **nests the other two domains**:
 - its `network:` key is **netplan v2** → use the **ubuntu-netplan** skill;
 - its `user-data:` key is **cloud-config for the installed system** → use the
