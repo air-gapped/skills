@@ -21,7 +21,7 @@ recent date here outrank an AI model's training-data memory.
 | iDRAC v3 breaks after firmware update | Dell KB 000321856 | 2026-09-15 |
 | iDRAC10 SNMP defaults (AgentEnable=0, SHA-384/512 + AES-256 only, ProtocolEnable=0, 40-char passphrases) | iDRAC10 Attribute Registry 1.10.05.00 (dell.com support downloads) | 2026-09-15 |
 | idrac_exporter metric list, config groups, Helm chart, no-PSU-firmware/no-Connection-View | https://github.com/mrlhansen/idrac_exporter (source, code-verified) | 2026-09-15 |
-| idrac_exporter iDRAC10 breakage / 401s | https://github.com/mrlhansen/idrac_exporter/issues/202 and /issues/191 (**v2.6.3 current**, 2026-09-05) | 2026-09-15 |
+| idrac_exporter iDRAC10 empty power/fan/network fixed in v2.6.2 (#202 closed 2026-08-04, release note "Select the correct primary chassis"); 401s | https://github.com/mrlhansen/idrac_exporter/issues/202 , https://github.com/mrlhansen/idrac_exporter/releases/tag/v2.6.2 and /issues/191 (**v2.6.3 current**, 2026-09-05) | 2026-10-20 |
 | CBS health OIDs, no-memory-OID, CBS220 fallback | https://github.com/librenms/librenms (mibs/cisco CISCOSB-*, poller includes) + Centreon plugin source | 2026-09-15 |
 | CBS SNMPv3 support, common-OID doc, SNMP-crash warning | Cisco CBS 250/350 admin + CLI guides, cisco.com kmgmt3636 | 2026-09-15 |
 | Onyx SNMP surface: EFM trap-only, entity-state PSU-only, 60 s cache, engineID reset, v3 protocol set, LTS to April 2029 | NVIDIA Onyx v3.10.4606 LTS User Manual (PDF; login-walled) <!-- ignore-freshen --> | 2026-09-15 |

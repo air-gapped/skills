@@ -192,17 +192,12 @@ Caveats: on-demand Redfish collection can take minutes with all metric groups
 on — enable only needed groups and raise scrape_timeout; needs a dedicated
 read-only iDRAC user.
 
-**Known idrac_exporter issues (checked 2026-07-23, v2.6.1):**
-- **iDRAC 10 / 17G largely broken** (issue #202, open): on R470-R7725-class
-  boxes `/redfish/v1/Chassis/` returns two members (an internal RAID enclosure
-  + System.Embedded.1) and the exporter picks the first — power supply, power
-  control, fan, and network metrics come back empty on iDRAC 10. Dell also
-  moved PSU metrics to the modern Sensors collection
-  (`.../Sensors/PSU.Slot.1_OutputPower`) and deprecated old chassis endpoints.
-  A fix is in progress (commit "potential fix for #202", unreleased) — until a
-  release ships, the Redfish enrichment layer is effectively
-  **iDRAC 9-only for power/fan/network**; the SNMP module is unaffected on
-  iDRAC 10 and remains the source of truth there.
+**Known idrac_exporter issues:**
+- **iDRAC 10 / 17G needs v2.6.2 or later.** On R470-R7725-class boxes
+  `/redfish/v1/Chassis/` returns two members (an internal RAID enclosure +
+  System.Embedded.1); before v2.6.2 the exporter picks the first, so power
+  supply, power control, fan, and network metrics come back empty. Empty
+  power/fan/network series on iDRAC 10 = upgrade the exporter.
 - Sporadic **401 Unauthorized on iDRAC 9** since v2.3.2 (issue #191, open,
   cause unknown, maintainer can't reproduce) — if hit, set
   `use_basic_auth: true` for the affected hosts as a workaround.

@@ -95,5 +95,5 @@ This also permanently settles the "does device X answer OID Y" questions.
 
 This skill embeds dated claims (versions, open issues, CRD maturity). Run a
 freshen pass periodically (or on the Backlog triggers in SKILL.md): check
-snmp_exporter and idrac_exporter releases, idrac_exporter#202, and
+snmp_exporter and idrac_exporter releases and the
 prometheus-operator CHANGELOG, then update the affected reference files.

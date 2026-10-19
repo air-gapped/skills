@@ -200,23 +200,19 @@ dates when re-checking; the full research narrative behind these modules is
 [references/research-report.md](references/research-report.md) (background
 only — never needed to apply the skill):
 
-1. **idrac_exporter iDRAC 10 fix** — watch mrlhansen/idrac_exporter#202
-   (power/fan/network metrics empty on 17G; fix committed but unreleased as of
-   v2.6.1). Until a release ships, don't deploy the Redfish layer against
-   iDRAC 10. Re-check: `gh release list -R mrlhansen/idrac_exporter`.
-2. **Hardware snmpwalks** (one session with real gear settles all):
+1. **Hardware snmpwalks** (one session with real gear settles all):
    Onyx SN2010 — hrProcessorLoad/hrStorageTable answer? EtherLike dot3Stats?
    DAC rows in entPhysicalSerialNum? CBS — which env table answers
    (.101.83 vs .101.53.15) on owned models; confirm DAC serial absence; do
    pethMainPseTable + etherStats* answer, and does etherStatsIndex == ifIndex;
    EtherLike dot3Stats? iDRAC 10 — v2c gets work once enabled? AES256 vs
    AES256C pairing? Walk bugs (virtualDiskTable skip) on current firmware?
-3. **Next snmp_exporter release** (>0.30.1) ships the non-renderable-index
+2. **Next snmp_exporter release** (>0.30.1) ships the non-renderable-index
    rejection (#1653) — re-validate hand-written configs on upgrade; regenerate
    with the matching generator.
-4. **prometheus-operator ScrapeConfig v1beta1 graduation** — update
+3. **prometheus-operator ScrapeConfig v1beta1 graduation** — update
    references/kubernetes.md examples when it ships.
-5. **Contribute the cisco_cbs module** to prometheus-community/snmp — no
+4. **Contribute the cisco_cbs module** to prometheus-community/snmp — no
    public CBS module existed as of 2026-07; ours is novel.
 
 ## When NOT to use snmp_exporter
