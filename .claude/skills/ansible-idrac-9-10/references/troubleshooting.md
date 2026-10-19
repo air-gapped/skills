@@ -316,6 +316,11 @@ reaps them (default 30 min).
 - Always use `block: … always: <state: absent>` around session work.
 - Lower `serial:` and `max_fail_percentage:` on per-host fan-out plays
   so partial failures don't accumulate orphans.
+- Collection ≥ 11.0.0, while a slot is still free (the module opens one
+  session itself): run `idrac_session_info` with `session_type: Redfish`
+  and `stale_threshold_minutes:`, then delete each `sessions[]` entry with
+  `is_stale: true` via `idrac_session` `state: absent`, `session_id: <id>`.
+  `idrac_session_info` takes `idrac_user`/`idrac_password`, not a token.
 - As a last resort to clear the pool: SSH into the iDRAC and
   `racadm getssninfo` then `racadm closessn -i <session>`. Or wait.
 
