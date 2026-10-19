@@ -15,8 +15,8 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | confluence.atlassian.com/doc/spaces-139459.html | A | Space = container ("different folders"); global vs personal; blueprints; Space Directory | 2026-06-07 |
 | confluence.atlassian.com/enterprise/confluence-spaces-with-too-many-nesting-levels-1489809653.html | A | Official health check: deep page trees degrade *performance*; remediation moves | 2026-06-07 |
 | confluence.atlassian.com/doc/use-labels-to-categorize-spaces-136647.html | A | Space categories = labels on spaces; Space Directory grouping | 2026-06-07 |
-| confluence.atlassian.com/doc/undefined-page-links-139580.html; orphaned-pages KB | A | Undefined/wanted + orphaned pages (space-level; no site-wide UI) | 2026-06-07 |
-| community.atlassian.com/.../Spaces-vs-Pages-best-practices (1008538); .../space-types (413510) | B | Space-vs-page tie-breaker = restrictions vs space; space types are starter templates | 2026-06-07 |
+| confluence.atlassian.com/doc/undefined-page-links-139580.html; confluence.atlassian.com/conf59/orphaned-pages-792498978.html | A | Undefined/wanted + orphaned pages (space-level, Space tools > Content Tools; orphan = no incoming links; no site-wide UI) | 2026-10-20 |
+| community.atlassian.com/forums/discussion/1008538; community.atlassian.com/forums/discussion/413510 | B | 413510: space types "more as templates… once created, they don't really have much effect". 1008538 does NOT state the restrictions-over-space tie-breaker (its answer favours a space per client); that rule rests on the page-restrictions doc mechanics (restrictions narrow per page; space permissions are space-wide) | 2026-10-20 |
 | k15t.com/rock-the-docs/.../structure-for-long-term-success | B | Consistency-by-type; flat-vs-nested by role; labels-on-templates | 2026-06-07 |
 | covectors.io/blog/10-tips-...-page-tree; .../a-practical-guide-to-confluence-labels | B | Depth cap 3–4; tree=containment vs labels=cross-cutting; single-parent | 2026-06-07 |
 | support.atlassian.com/confluence-cloud/docs/use-folders-to-organize-your-work/; k15t.com/rock-the-docs/news/2024/11/48-why-folders-in-confluence-are-a-big-deal | A/B | Folders are Cloud-only: the 'container with a Read Me' wording is Atlassian's Cloud doc, not k15t's. Absence on DC checked 2026-10-20: DC 10.0/10.1/10.2/11.0 release notes have no content-folder feature, the DOC-space search finds no folders page, and the DC-vs-Cloud differences page names folders only as Cloud content | 2026-10-20 |
@@ -48,7 +48,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | confluence.atlassian.com/doc/configuring-search-175210673.html; configuring-indexing-language-150130.html | A | Exact-search dark feature; CJK exact-off; Indexing Language list; reindex-on-change | 2026-06-07 |
 | confluence.atlassian.com/enterprise/opensearch-for-confluence-data-center-1653834676.html | A | OpenSearch DC-only, since 9.0, ~4.5× faster, "same experience" (perf-not-relevance) | 2026-06-07 |
 | jira.atlassian.com/browse/CONFSERVER-17138 / -22495 / -5142 | A | Umlaut+wildcard broken (open); accent folding shipped 6.10.0; wildcards don't stem | 2026-06-07 |
-| confluence.atlassian.com/confkb/...a-page-with-this-name-already-exists...; CONFSERVER-2524/5926 | A | Unique-title-per-space; restricted/draft collision; won't-fix | 2026-06-07 |
+| support.atlassian.com/confluence/kb/the-error-a-page-with-this-name-already-exists-in-this-space-displays-when-renaming-a-page-title/ (old confkb URL 301s here); CONFSERVER-2524 (Won't Fix) / -5926 (Duplicate) | A | Unique title per space; restricted pages the user can't see still block the title. The KB does not mention drafts — that claim was dropped | 2026-10-20 |
 | community.atlassian.com/.../search complaints; news.ycombinator.com 36926680 | B/C | "Can't find anything" = content-not-engine | 2026-06-07 |
 
 ## Authoring & readability
@@ -60,7 +60,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | confluence.atlassian.com/doc/info-tip-note-and-warning-macros...; excerpt/expand macro docs | A | Panels, Expand, Excerpt — readability macros + storage format | 2026-06-07 |
 | jira.atlassian.com/browse/CONFCLOUD-67594 (+ -69740) | A | New-editor table copy/paste regressions; editor latency on heavy pages. **Both closed** — 67594 Won't Do 2025-10-28 (behaviour stands, won't be changed), 69740 Fixed 2026-02-13. Cite as documented behaviour, not as live bugs | 2026-08-18 |
 | WCAG 2.x; siteimprove + university Confluence accessibility KBs | A/B | Alt text, descriptive links, no skipped headings, 4.5:1/3:1 contrast, no colour-only | 2026-06-07 |
-| k15t.com/rock-the-docs/...make-beautiful-pages; refined.com; covectors.io headings | B | BLUF, chunking, 60-char lines, title=H1, "less is more", one-page-one-purpose, vague-title warning | 2026-06-07 |
+| k15t.com/rock-the-docs/misc/how-to-make-beautiful-pages-in-confluence (has "less is more"; does not contain "walls of text are your worst enemy" — quote dropped); refined.com; covectors.io headings | B | BLUF, chunking, 60-char lines, title=H1, "less is more", one-page-one-purpose, vague-title warning | 2026-06-07 |
 | thoughtworks / RAG practitioner posts | B | Confluence rarely AI-ready; retrieval needs text not screenshots | 2026-06-07 |
 | NN/g "How users read on the web" (behind the 79%/74% scan stats) | A | Scanning behaviour grounding (cite original, not blog restatements) | 2026-06-07 |
 
@@ -99,16 +99,16 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | atlassian.com/migration/assess/compare-cloud-data-center/confluence; support.atlassian.com/migration/docs/differences-... | A | Cloud-only list (Whiteboards, Databases, Rovo/AI, automation, page-archive, guests, smart links); Not-in-Cloud: RTL, Companion editing, attachments from other pages, copy-without-attachments; nested body macros and custom table widths are 'works differently in Cloud', not DC-only (differences page re-read 2026-10-20). Compare page lists 'Bulk archive pages' as Premium/Enterprise | 2026-10-20 |
 | confluence.atlassian.com/doc/the-editor-251006017.html; migration-from-wiki-markup-...-255363895.html | A | DC TinyMCE editor; wiki-markup deprecated-as-storage; unmigrated-wiki-markup macro | 2026-06-07 |
 | support.atlassian.com/organization-administration/docs/connect-confluence-data-center-to-**teamwork-graph** | A | Rovo AI Cloud-only; DC via connectors. **Atlassian renamed this connector doc from "Rovo" to "Teamwork Graph"** — the old URL 301s to the new one. The mechanism is unchanged; the branding in prose may not be. | 2026-09-15 |
-| Team Calendars / Analytics-for-Confluence bundling KBs | A | Bundled on DC (Team Calendars since 1 Feb 2021 / 7.11+) | 2026-06-07 |
+| support.atlassian.com/confluence/kb/how-to-get-team-calendars-bundled-with-an-existing-data-center-instance/ | A | Team Calendars "bundled with Confluence Data Center since February 1, 2021"; integrated from 7.11 | 2026-10-20 |
 
 ## Dread / critique (use for principles, read skeptically)
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| dev.to/niklasbegley/confluence-is-where-documentation-goes-to-die; dev.to/pabloportugues | B | "Goes to die"; staleness→trust; "the tool is not the problem… we use it wrong" | 2026-06-07 |
+| dev.to/niklasbegley/confluence-is-where-documentation-goes-to-die-3ank (old slug 404s); dev.to/pabloportugues/confluence-is-where-information-goes-to-die-25n | B | "Goes to die"; staleness→trust; "the tool is not the problem… we use it wrong" | 2026-06-07 |
 | news.ycombinator.com 39375258; austinkucera.com | B | Sharpest search/duplication complaints; the genuine tool-limit side (proprietary storage, no VCS) | 2026-06-07 |
 | newsletter.pragmaticengineer.com/.../2025-survey; atlassian.com/blog/developer/developer-experience-report-2025 | B/C | Jira most-disliked (Confluence rides along); "finding information" = #1 time-waster (vendor self-report) | 2026-06-07 |
-| ResearchGate "Design principles of wiki" (Cunningham); PMC8896816 + link-rot studies | A | Gardening/organic principles ("easier for authors, harder for readers"); reference half-lives 1.6–15 yrs | 2026-06-07 |
+| researchgate.net/publication/221367717 (Cunningham, WikiSym 2006); pmc.ncbi.nlm.nih.gov/articles/PMC8896816 | A | Cunningham: wiki design principles (abstract only; the "organic" framing is secondary-source). PMC8896816: cited references 27% unavailable at 3 years, 45–78% at 5. It gives no "half-life 1.6–15 yrs" figure — dropped | 2026-10-20 |
 | Notion/Slite/GitBook/Coda comparisons; midori-global; gocapable; technicalwriterhq | C | Competitor design principles (templates-by-default, "what happens after content is created"); review-cadence playbooks | 2026-06-07 |
 
 

@@ -8,7 +8,7 @@ The "Confluence is where documentation goes to die" dread is a **content-lifecyc
 
 Docs decay from the moment of publishing, and Confluence has **no native staleness signal** — nothing goes red when a runbook references a dead service. Over time a wiki accumulates orphaned pages nobody owns, contradictory duplicates, and spaces untouched for years. This is the Confluence analogue of Jira's field/workflow bloat: in Jira the tax is on every issue; in Confluence the tax is on every search and every reader's *trust* — and once trust collapses, people stop maintaining the wiki, which accelerates the rot. The lean thesis transfers directly: **value is in restraint and removal, not accumulation.**
 
-(Treat vivid "X% of pages are stale" figures as motivation, not fact — they're practitioner colour. The sound grounding is information-rot research: web-reference half-lives of 1.6–15 years; scheduled review dates are the only real defence against silent drift.)
+(Treat vivid "X% of pages are stale" figures as motivation, not fact — they're practitioner colour. The sound grounding is information-rot research: about 27% of cited web references are unavailable after three years and 45–78% after five; scheduled review dates are the only real defence against silent drift.)
 
 ## Lever 1 (highest leverage) — make ownership + staleness VISIBLE
 

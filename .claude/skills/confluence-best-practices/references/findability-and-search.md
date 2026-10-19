@@ -4,7 +4,7 @@
 
 ## Titles — the cheapest findability lever (and a hard constraint)
 
-- **Page titles must be unique within a space.** `(space key + title)` is assumed to uniquely identify a page across macros, APIs, and the UI. A rename/create that collides throws *"A page with this name already exists in this space"* — and the check spans **restricted pages the user can't even see** (and duplicate drafts), so a rename can fail against an invisible conflict.
+- **Page titles must be unique within a space.** `(space key + title)` is assumed to uniquely identify a page across macros, APIs, and the UI. A rename/create that collides throws *"A page with this name already exists in this space"* — and the check spans **restricted pages the user can't even see**, so a rename can fail against an invisible conflict.
 - Because `title` is a first-class CQL field and must be unique, **distinctive, descriptive, consistently-prefixed titles are the single cheapest findability win** — e.g. `RUNBOOK – Payments – Failover`, `ADR-014 – Adopt OpenSearch`. Avoid generic titles ("Notes", "Meeting", "Untitled") that collide and rank poorly.
 
 ## Labels — a small controlled vocabulary

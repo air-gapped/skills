@@ -6,7 +6,7 @@ The second pillar of this skill. The governing insight: **readability and machin
 
 - **The page title is the H1.** So body content starts at **H2 for main sections, H3 for sub-sections.** Don't skip levels, and **don't go past ~H3/H4** — deeper headings clutter the Table of Contents and signal the page should be split. For tiny subsections use lists, not H5/H6.
 - **Answer first (BLUF / inverted pyramid).** Most readers *scan* (≈79% scan rather than read word-for-word; many stop above the fold), so **front-load the conclusion**: open with a one-line summary (an Info panel works well), then detail. Write **topic-sentence-first** paragraphs so someone reading only first sentences still gets the gist.
-- **Chunk.** Short paragraphs, whitespace between sections, ~60-char line widths. *"Walls of text are your worst enemy"* — they give the reader no direction.
+- **Chunk.** Short paragraphs, whitespace between sections, ~60-char line widths. A wall of text gives the reader no direction.
 - **Table of Contents macro on LONG pages only.** It auto-builds from heading levels (H2 nested under H1…), so disciplined headings *are* the TOC. On short pages it's needless clutter. Keep heading text short (long headings render badly in the TOC).
 - **Too long → split by purpose** into child pages (also a performance win), then stitch with Children Display / Excerpt-Include so the set stays coherent rather than scattered. Keep the tree shallow.
 
