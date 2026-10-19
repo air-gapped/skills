@@ -153,8 +153,12 @@ concurrent-session table is small and orphaned sessions lock fleets out.
 The `when:` guard on cleanup is so the always-block doesn't crash when the
 session-open task itself was the thing that failed. The
 `IDRAC_X_AUTH_TOKEN` env var is also accepted as a fallback for
-`x_auth_token` on every module that takes `x_auth_token` — useful when chaining outside-ansible
-session minting into a play.
+`x_auth_token` on every module that takes `x_auth_token` — useful when
+chaining outside-ansible session minting into a play.
+
+On collection ≥ 11.0.0 the cleanup task warns `Self-session protection
+not available when using x_auth_token` and still deletes the session.
+Expected — keep the token-based cleanup; do not "fix" the warning.
 
 See `references/auth-and-session.md` for the BasicAuthState backstory,
 diagnostic curl/racadm commands, the `ansible.builtin.uri` fallback when
