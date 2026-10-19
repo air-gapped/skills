@@ -78,7 +78,8 @@ Consequences:
 - Clients must tolerate absent/empty signatures (opencode does).
 - Input-side handling also diverges: vLLM maps thinking→`reasoning` field and
   drops redacted_thinking; SGLang 400s on redacted_thinking in history;
-  mistral.rs silently drops ALL input thinking blocks.
+  mistral.rs drops ALL input thinking before v0.9.3, then keeps assistant
+  thinking (as `reasoning_content`) and drops redacted_thinking.
 
 ## Streaming divergences
 
@@ -97,7 +98,7 @@ bridge synthesizes it too). Differences that matter:
   signature; Ollama never.
 - **usage in message_start**: Ollama estimates input tokens; vLLM computes;
   cache-token fields only appear where the server supports them (vLLM needs
-  `--enable-prompt-tokens-details`; mistral.rs has none). Live-verified on
+  `--enable-prompt-tokens-details`; mistral.rs before v0.9.3 has none). Live-verified on
   vLLM v0.25.1 with the flag: cache fields populate in aggregate usage
   (Claude Code warm run: `input_tokens: 304`, `cache_read: 59168` — ~99.5%
   prefix-cache hit), but per-turn `message_start` usage still reports null

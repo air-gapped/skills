@@ -22,7 +22,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
 | `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | enabled/disabled→`enable_thinking`; other types warned + ignored |
-| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (drops input thinking) | Via provider | No (shim); verbatim on cloud relay |
+| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (v0.9.3+ replays assistant thinking; earlier drops it) | Via provider | No (shim); verbatim on cloud relay |
 | `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
 | Server tools (web_search etc.) | No | Filtered out (400 if tool_choice names one) | No | **Executes web_search + re-invokes** | Maps to agentic options | Via provider | No |
@@ -115,14 +115,18 @@ ChatHandler. Sets `relax_thinking` "to connect to tools like claude code".
 
 - Rich request surface incl. `container` (skills→shell refs), web_search
   options, many sampling extensions.
-- **Input thinking/redacted_thinking/server_tool_use blocks silently
-  dropped**; unknown block types → error.
+- Input blocks: v0.9.3+ replays assistant `thinking` as `reasoning_content`;
+  `redacted_thinking`, `server_tool_use`, and thinking/tool-result blocks on
+  user turns are **silently dropped** (before v0.9.3 all input thinking was
+  dropped); unknown block types → error.
 - stop_reason mapping is the most correct of the set (proper stop_sequence).
 - Streaming: full set + **keep-alive pings** (only backend emitting ping);
   **tool_use streamed as one complete start/delta/stop triple per call, not
   incremental input_json_delta** — progressive-arg-parsing clients see args
   arrive at once.
-- Usage: input/output only — no cache token fields.
+- Usage: v0.9.3+ reports `cache_read_input_tokens` (from cached prompt
+  tokens) and `cache_creation_input_tokens` hardcoded 0; earlier input/output
+  only.
 
 ## Llama Stack / OGX
 
