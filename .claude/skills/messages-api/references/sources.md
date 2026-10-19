@@ -30,6 +30,7 @@ on 2026-07-19 at the listed commit.
 | Finding | Source (ref checked) |
 |---|---|
 | OGX: `gh repo view llamastack/llama-stack` resolves to `ogx-ai/ogx`; passthrough moved into `AnthropicMixin(OpenAIMixin)` used by vllm/ollama/meta/anthropic/deepseek/fireworks adapters; skills/containers routes are `/v1alpha` | ogx-ai/ogx v1.5.0 `src/ogx/providers/utils/inference/anthropic_mixin.py:44,159`; `src/ogx_api/skills/fastapi_routes.py:41` |
+| `ANTHROPIC_SMALL_FAST_MODEL` is "[DEPRECATED]", replaced by `ANTHROPIC_DEFAULT_HAIKU_MODEL` ("The model to use for `haiku`, or background functionality") | https://code.claude.com/docs/en/env-vars ; https://code.claude.com/docs/en/model-config |
 | opencode npm default: `modelsDev[providerID]?.npm ?? "@ai-sdk/openai-compatible"` and `model.provider?.npm ?? provider.npm ?? "@ai-sdk/openai-compatible"` — default when unset, not a catalog-outage fallback | anomalyco/opencode v1.19.3 `packages/opencode/src/provider/provider.ts:1329-1332,1555-1557` |
 | opencode thinking gate is `anthropicUsesModernAdaptiveThinking` — regex major/minor ≥4.7, unparseable `claude-*` → modern; 4.6 adaptive without display | anomalyco/opencode v1.19.3 `packages/opencode/src/provider/transform.ts:657-682,1062-1090` |
 | opencode retries cap at 5 (`RETRY_MAX_RETRIES = 5`); 30s cap applies only without response headers | anomalyco/opencode v1.19.3 `packages/opencode/src/session/retry.ts:26-33,47-97` |

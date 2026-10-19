@@ -97,7 +97,8 @@ client config → clients.
    `npm: "@ai-sdk/anthropic"`. Claude Code: `ANTHROPIC_BASE_URL` (origin, no
    /v1 — the client appends it) + `ANTHROPIC_API_KEY`; isolate all state
    non-destructively with `CLAUDE_CONFIG_DIR=<scratch-dir>`; pin
-   `ANTHROPIC_SMALL_FAST_MODEL` to the served model.
+   `ANTHROPIC_DEFAULT_HAIKU_MODEL` (background tasks) to the served model —
+   `ANTHROPIC_SMALL_FAST_MODEL` is deprecated.
    **Context budget**: Claude Code's prompt is ~18k tokens (system + 17 tool
    schemas) and it reserves 32k output tokens by default — backends under
    ~52k `max_model_len` reject turn 1. Fix:
