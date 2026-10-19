@@ -1,7 +1,7 @@
 # Troubleshooting — bug patterns from upstream
 
 Cataloged from `dell/dellemc-openmanage-ansible-modules` open + closed
-issues and merged PRs through May 2026. Each pattern names the symptom,
+issues and merged PRs, checked against collection 11.0.0. Each pattern names the symptom,
 the cause, and the workaround the maintainers (or community contributors
 that maintainers accepted) recommend.
 

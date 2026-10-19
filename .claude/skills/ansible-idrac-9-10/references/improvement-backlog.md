@@ -7,7 +7,27 @@ deliberately left for evidence reasons, are listed under Open.
 
 ## Open
 
-*(none — both carried items closed on the 2026-07-21 freshen; see below.)*
+- **Build an eval set, then measure `delta_pass_rate`** — Dim 10 (capped at
+  8 unmeasured, both blind scorers 2026-10-20). Files: new `evals/evals.json`
+  (≥ 8 cases via `skill-improver/scripts/grow-evals.py`), then
+  `outcome-eval.py --write-benchmark`. Blocked on: an outcome run's model
+  spend, which this pass was not scoped to make (fix mode was skipped for
+  want of evals). Good case seeds: x_auth_token passed to `idrac_bios` /
+  `idrac_system_info`; 401 with no `WWW-Authenticate` on `ansible.builtin.uri`;
+  porting `idrac_network` to 11.0.0; renamed `iDRAC.IPv4Static.*` keys.
+
+## Resolved this pass (2026-10-20)
+
+Freshen (9 findings, stamp 2026-10-20) + improve: blind 76 → 83; A/B
+comparators 3/3 IMPROVED (minor regression named: dropped upstream source-file
+list). Cap reached (10 iterations, 8 kept, 2 discarded).
+- Discard (iter 8): moving "The three things that break…" behind a pointer —
+  PD +1 but Actionability −1; the inline remedies for the three commonest
+  failures are the skill's correction payload and belong in SKILL.md.
+- Discard (iter 9): rewording "whole skill is built around this 30-line shape"
+  / "the right way" — wording preference, no content removed.
+- Kept: routing table, done-condition, lint-playbook.py, auth-and-session TOC,
+  four simplification cuts; token-rejection table and 11.0.0 removals (freshen).
 
 ## Resolved — 2026-07-21 (freshen)
 

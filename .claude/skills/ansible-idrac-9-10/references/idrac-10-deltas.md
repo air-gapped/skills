@@ -3,7 +3,7 @@
 Verbatim extracts from the **iDRAC 10 Version 1.30.xx Series Attribute
 Registry** (March 2026 / Rev A01), the upstream `dellemc.openmanage`
 CHANGELOG, and the support matrix in `docs/README.md` of
-`dell/dellemc-openmanage-ansible-modules` @ 10.0.2. Treat as paste-quality
+`dell/dellemc-openmanage-ansible-modules` @ 11.0.0. Treat as paste-quality
 reference — the rename tables in particular are what `idrac_attributes`
 playbooks need to migrate.
 
