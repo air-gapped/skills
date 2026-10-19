@@ -138,7 +138,7 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 
 9. **Assignee/watcher must match exactly.** Pass an exact email or display name. On many Jira Cloud instances, GDPR strict mode means assignment resolves by accountId — if `assign KEY "Jane Doe"` fails, try the email, or look up the accountId via `jira issue view ... --raw`. `x` unassigns; `default` uses the project's default assignee.
 
-10. **`-q/--jql` runs *within the configured project's context*.** To query across all projects, add a project clause yourself: `-q'project IS NOT EMPTY'` or name projects in the JQL. Plain filter flags (`-s`, `-y`, `-l`, …) and a `-q` JQL can combine.
+10. **`-q/--jql` runs *within the configured project's context*.** To query across all projects, add a project clause yourself: `-q'project IS NOT EMPTY'` or name projects in the JQL. Plain filter flags (`-s`, `-y`, `-l`, …) and a `-q` JQL can combine. **The word `project` anywhere in the JQL — even inside a text search like `summary ~ "project kickoff"` — drops the automatic project scope and searches every project (#1020).** When the JQL contains that word, add `project = PROJ` explicitly.
 
 11. **Auth is via the `JIRA_API_TOKEN` environment variable, not the config file.** The token never lives in `.config.yml`. Cloud wants an **API token** (not the account password); on-prem basic wants the **password**; PAT wants the token **plus** `JIRA_AUTH_TYPE=bearer`. A 401 is nearly always a missing/wrong `JIRA_API_TOKEN` or the wrong auth type. See `references/config-auth.md`.
 

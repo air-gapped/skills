@@ -52,6 +52,8 @@ jira issue list --created -1h --updated -30m     # very recent activity
 
 `-q` runs JQL **inside the configured project's context** by default — so a bare query is scoped to that project. To go cross-project, add a project clause.
 
+The scope check is a loose regex for the word `project`: `summary ~ "project kickoff"` also counts, so the query silently runs across **all** projects (#1020). Add `project = PROJ` yourself whenever the JQL text contains that word. `--debug` prints the final `JQL:` line to confirm.
+
 ```bash
 jira issue list -q'assignee = currentUser()'
 jira issue list -q'updated >= -1w AND status != Done'
