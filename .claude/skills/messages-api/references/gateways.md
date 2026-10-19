@@ -32,7 +32,8 @@ Examined at upstream main b83c60b (2026-07-18, newer than v1.92.0 stable);
 restore mapping; thinking history → `thinking_blocks`; output
 reasoning_content → thinking block with **signature: None** — **replaying
 synthesized thinking to a real Anthropic backend fails signature validation**.
-stop_reason never `stop_sequence`/`refusal`. Streaming synthesizes proper
+stop_reason never `stop_sequence`; upstream `content_filter`/`refusal` →
+`refusal` with `stop_details`. Streaming synthesizes proper
 `event:`+`data:` frames; **never emits `ping`**; single-chunk fake streams
 split by `_CombinedChunkSplitter`.
 

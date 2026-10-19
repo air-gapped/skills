@@ -46,14 +46,14 @@ pause_turn, refusal). What implementations actually emit:
 | Ollama | Yes (any other non-empty reason) | stop_sequence | never |
 | mistral.rs | **Yes (proper)** | end_turn | never |
 | OGX translation path | Never (passthrough forwards upstream's) | end_turn | never |
-| LiteLLM bridge | Never | end_turn | never |
+| LiteLLM bridge | Never | end_turn | refusal (from content_filter); never pause_turn |
 | Superagent Gateway | Never | end_turn | never |
 | Bifrost | stop_sequence→stop (outbound) | pass through | compaction mapped |
 
 **Rule for clients**: never key logic on `stop_sequence` against third-party
 backends; treat end_turn/max_tokens/tool_use as the reliable subset.
 (opencode maps pause_turn/refusal and surfaces refusal as a session error —
-third-party backends never emit them, so that path is dead against local
+only the LiteLLM bridge produces refusal, so that path is dead against local
 serving.)
 
 ## The thinking-signature seam
