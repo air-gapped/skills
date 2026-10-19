@@ -1,12 +1,13 @@
 # Messages API Backend Implementations
 
-Servers that natively serve `POST /v1/messages`. All findings from direct
-source examination of local clones (codegraph-indexed), commits of 2026-07-16
-to 2026-07-18. **Every major local inference server now serves the Messages
+Servers that natively serve `POST /v1/messages`. Findings from source
+examination at the commits in the matrix's first row, re-checked at each
+project's latest tag; behaviour that changed between them carries an inline
+version gate. **Every major local inference server now serves the Messages
 API natively** — all translate internally to their own chat-completion
 pipeline (except OGX, which passes through to Messages-native providers).
 
-**Last refreshed**: 2026-07-19 (provenance: `references/sources.md`).
+**Last refreshed**: 2026-10-20 (provenance: `references/sources.md`).
 
 ## Contents
 - [Support Matrix](#support-matrix)

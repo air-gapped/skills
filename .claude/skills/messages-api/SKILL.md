@@ -25,7 +25,7 @@ equivalent exists — full history is resent every turn, so load-balanced
 same-model fleets cannot hit wrong-replica session errors (contrast the
 Responses API's server-side state; see the responses-api skill).
 
-**Last refreshed**: 2026-07-19 (source-examined at commits of 2026-07-16..18;
+**Last refreshed**: 2026-10-20 (re-verified at each upstream's latest tag;
 provenance in `references/sources.md`).
 
 ## Critical Gotchas

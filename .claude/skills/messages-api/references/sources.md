@@ -1,11 +1,11 @@
 # Sources — messages-api skill
 
-Dated per-URL index. Freshen mode reads and stamps `Last verified:` here.
+Dated per-URL index. The `Freshened:` header stamp is authoritative; the per-row `Last verified` column is legacy.
 "Commit examined" per repo is recorded in backend-implementations.md.
 
-Freshened: 2026-09-22 — every row probed. The opencode row's v2 claim was briefly "corrected" this pass on the strength of `gh release list`, which reports v1.18.32 as latest; that was wrong. opencode runs two parallel lines, and the v2 one publishes **git tags and npm `@opencode/cli` but no GitHub Release object**, so the releases API cannot see it. Row now records both lines (v1 1.18.32, v2 2.0.13) and where to look for each.
+Freshened: 2026-10-20 — every row probed (each repo re-read at its latest tag: vLLM v0.32.0, SGLang v0.5.22, llama.cpp b11742 / v0.7.0, Ollama v0.40.6, mistral.rs v0.9.5, OGX v1.5.0, Lemonade v2026.42.1, LiteLLM v1.106.0, Bifrost main 4de5eafcc, Superagent v0.1.1, opencode v1.19.3 / v2.0.32; official docs on platform.claude.com and code.claude.com). Findings are in the 2026-10-20 table below.
 
-The pinned versions below are **point-in-time examination snapshots, not latest-version claims** — every upstream here has released since, which is expected and not drift. `llama.cpp` also changed tag scheme, from `bNNNNN` nightly builds to semver.
+The pinned versions below are **point-in-time examination snapshots, not latest-version claims**. llama.cpp publishes both `bNNNNN` builds and semver releases (`gh release view --latest` = v0.7.0). opencode runs two lines: v1 on GitHub Releases / npm `opencode-ai`, v2 on git tags + npm `@opencode/cli` with **no GitHub Release object** — check `…/tags` and the npm dist-tag, not `gh release list`.
 
 All repo rows were examined by source (local clones of the upstream repos)
 on 2026-07-19 at the listed commit.
@@ -18,7 +18,7 @@ on 2026-07-19 at the listed commit.
 | LiteLLM | https://github.com/BerriAI/litellm | 2026-07-19 | v1.92.0 (live) / main | b83c60b |
 | Bifrost | https://github.com/maximhq/bifrost | 2026-07-19 | — | 7a1543e85 |
 | Superagent Gateway | https://github.com/superagent-ai/gateway | 2026-07-19 | — | d182a5b |
-| opencode (anthropic provider) | https://github.com/anomalyco/opencode | 2026-09-22 | v1.18.3 examined; **two live lines — v1 at 1.18.32, v2 at 2.0.13** | 127bdb307 (v1.18.3 tag) — **repo moved `sst/` → `anomalyco/`**; the old URL redirects but is no longer canonical. **v2 ships on a separate channel and is invisible to `gh release list`**: npm `@opencode/cli` (not `opencode-ai`), `https://opencode.ai/v2/install`, brew `anomalyco/tap/opencode-v2`, AUR `opencode-beta`, docs `https://opencode.ai/v2/docs`. Git tags `v2.0.0`–`v2.0.13` and a `2.0` branch exist; **no GitHub Release object does**, so the releases API reports v1.18.32 as latest. Check `…/tags` and the npm dist-tag, not `gh release list`. |
+| opencode (anthropic provider) | https://github.com/anomalyco/opencode | 2026-09-22 | v1.18.3 examined; two live lines — v1 at 1.19.3, v2 at 2.0.32 (2026-10-20) | 127bdb307 (v1.18.3 tag) — **repo moved `sst/` → `anomalyco/`**; the old URL redirects but is no longer canonical. **v2 ships on a separate channel and is invisible to `gh release list`**: npm `@opencode/cli` (not `opencode-ai`), `https://opencode.ai/v2/install`, brew `anomalyco/tap/opencode-v2`, AUR `opencode-beta`, docs `https://opencode.ai/v2/docs`. Git tags `v2.0.0`–`v2.0.13` and a `2.0` branch exist; **no GitHub Release object does**, so the releases API reports v1.18.32 as latest. Check `…/tags` and the npm dist-tag, not `gh release list`. |
 | llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-07-19 | b10068 | 571d0d5 |
 | Ollama | https://github.com/ollama/ollama | 2026-07-19 | v0.32.1 | 573386c |
 | mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-07-19 | v0.9.0 | 0ae0476 |
