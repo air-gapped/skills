@@ -36,12 +36,6 @@ support) and **10.0.2** (full coverage incl. SCP / storage / OS deployment,
 Ansible Core 2.19+). Information current as of **October 2026** (collection
 11.0.0, iDRAC 10 firmware 1.30.x, iDRAC 9 firmware 7.30.10.50).
 
-The skill exists because most iDRAC 9 playbooks **silently break on first
-contact with a 17G server** for two reasons that look unrelated but stack on
-top of each other: a firmware-level Basic-auth default change, and a
-collection-level module rename. Knowing both stops the bleed in one
-playbook edit instead of three days of firefighting.
-
 ## Reference routing
 
 Load only the file the question needs:
