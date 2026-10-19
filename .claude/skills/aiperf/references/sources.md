@@ -29,6 +29,7 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | GenAI-Perf feature comparison | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/genai-perf-feature-comparison.md | 2026-10-20 | analyze → profile sweeps; config → `profile -f`; create-template → `config init`; process-export-files N/A |
 | Exporter flags + extras | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/pyproject.toml | 2026-10-20 | `[project.optional-dependencies]` mlflow / wandb / otel; flags from docs/cli-options.md at v0.13.0 |
 | Endpoint base classes | https://github.com/ai-dynamo/aiperf/tree/v0.13.0/src/aiperf/endpoints | 2026-10-20 | `BaseEndpoint`, `BaseRankingsEndpoint` (abstract `build_payload`, `extract_rankings`); concrete `EmbeddingsEndpoint` / `ChatEndpoint` / `CompletionsEndpoint`; no `BaseEmbeddingsEndpoint` (code search empty) |
+| `--isl-block-size` semantics | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/cli-options.md | 2026-10-20 | overrides loader `default_block_size` (16 `bailian_trace`, 512 `mooncake_trace`); no effect on `baseten_trace`; set for traces recorded at another size |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-10-20 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-10-20 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-10-20 | |

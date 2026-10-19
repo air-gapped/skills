@@ -26,11 +26,11 @@ If `AIPERF_METRICS_USAGE_PCT_DIFF_THRESHOLD` (default 10%) is exceeded, AIPerf l
 
 **Fix:** Compare AIPerf **TTFO** (`time_to_first_output_token`) to genai-perf TTFT. See `migration-from-genai-perf.md`.
 
-## "Cache hit rate is zero on a Mooncake replay"
+## "Mooncake replay: ISL far below the trace, TTFT too good, cache hit rate near zero"
 
-**Cause:** `--isl-block-size` doesn't match the server's KV-cache block size. Mooncake hashes by 512-token blocks by default. vLLM's `--block-size` defaults to 16 (some envs), SGLang to 64. Hash IDs in the trace then point to blocks that don't exist server-side.
+**Cause:** `--isl-block-size` set below the block size the trace was recorded at — usually lowered to "match" the server's page/block size. The FAST25 Mooncake trace's `hash_ids` are 512-token blocks; a smaller value rebuilds every prompt proportionally shorter (64 → ~8× short) and breaks the prefix structure.
 
-**Fix:** Pass `--isl-block-size <N>` matching the server's block size. Pre-flight: `aiperf analyze-trace --input-file trace.jsonl` to see what block size the trace expects.
+**Fix:** drop `--isl-block-size` (loader defaults: 512 for `mooncake_trace`, 16 for `bailian_trace`; set it only when a trace was recorded at another size) and re-run; the server needs no change when its block size divides 512 (vLLM 16, SGLang 64). Confirm the expected ISL and hit-rate first with `aiperf analyze-trace --input-file trace.jsonl --block-size 512`. Discard every run made with the lowered value — it measured a different workload and is not a baseline. See SKILL.md pitfall 5.
 
 ## "No streaming metrics"
 

@@ -176,7 +176,7 @@ Video:
 |---|---|
 | `--isl`, `--prompt-input-tokens-mean <int>` | Mean input tokens. Default 550. |
 | `--isl-stddev`, `--prompt-input-tokens-stddev <int>` | Stddev. |
-| `--isl-block-size`, `--prompt-input-tokens-block-size <int>` | KV-cache block size. Mooncake default 512. Mooncake `hash_ids` are encoded at 512-token granularity by design — keep 512; verify the server's block size divides 512 (see SKILL.md pitfall 5). |
+| `--isl-block-size`, `--prompt-input-tokens-block-size <int>` | Tokens per trace `hash_id`. Loader defaults: 512 `mooncake_trace`, 16 `bailian_trace`; ignored by `baseten_trace`. Set only for a trace recorded at another size. Mooncake `hash_ids` are encoded at 512-token granularity by design — keep 512; verify the server's block size divides 512 (see SKILL.md pitfall 5). |
 | `--osl`, `--prompt-output-tokens-mean <int>` | Mean output tokens (target). |
 | `--osl-stddev`, `--prompt-output-tokens-stddev <int>` | Stddev. |
 | `-b`, `--prompt-batch-size <int>` | Batch inputs per request (embeddings/rankings). |
