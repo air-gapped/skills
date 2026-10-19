@@ -29,9 +29,10 @@ Live-verified 2026-07-19: full multi-step tool loops against vLLM
   `anthropic-beta` — v1: interleaved-thinking + fine-grained-tool-streaming;
   v2: interleaved-thinking plus conditional betas (`compact-2026-01-12`,
   `mid-conversation-output-config-2026-07-01`, thinking-binding),
-  `cache_control` ephemeral blocks, `thinking` param (adaptive for
-  opus-4.7+/sonnet-5+/fable-5; enabled+budgetTokens for older Claude), always
-  `stream: true`.
+  `cache_control` ephemeral blocks, `thinking` param chosen by a version
+  regex on the `claude-*` id: ≥4.7 (and any unparseable `claude-*` id) →
+  `adaptive` + `display:"summarized"` + effort; 4.6 → `adaptive` without
+  display; older → `enabled` + `budgetTokens`. Always `stream: true`.
 - Tolerates: absent thinking signatures, missing cache-usage fields, proxies
   dropping optional event fields. Maps pause_turn/refusal (refusal → session
   error). Never calls count_tokens.
