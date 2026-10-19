@@ -22,9 +22,9 @@ Live-verified 2026-07-19: full multi-step tool loops against vLLM
   `sdk.responses()` discovery and hangs at init on non-catalog model IDs —
   the bug class documented in the responses-api skill.)
 - Custom backends: declare under `provider.anthropic.models` with
-  `options.baseURL: "http://host/v1"` (SDK appends `/messages`). Caveat: if
-  the models.dev catalog is unavailable, the npm fallback flips to
-  `@ai-sdk/openai-compatible` — set `npm: "@ai-sdk/anthropic"` explicitly.
+  `options.baseURL: "http://host/v1"` (SDK appends `/messages`). Always set
+  `npm: "@ai-sdk/anthropic"` explicitly: a config-defined model with no `npm`
+  and no models.dev entry defaults to `@ai-sdk/openai-compatible`.
 - Sends: `anthropic-version: 2023-06-01`, `x-api-key`, always-on
   `anthropic-beta` — v1: interleaved-thinking + fine-grained-tool-streaming;
   v2: interleaved-thinking plus conditional betas (`compact-2026-01-12`,
