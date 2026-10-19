@@ -84,7 +84,7 @@ A recommendation that hardcodes a space *name*, a page *title*, or an English la
 
 | To learn… | How (tool-agnostic) | Language-safe anchor |
 |---|---|---|
-| Spaces + keys + categories | `GET /rest/api/space?expand=metadata.labels` (DC); v2 `/spaces` (Cloud, but categories need a v1 call) | space **`key`** (immutable, a-z/0-9, forms the URL) |
+| Spaces + keys + categories | `GET /rest/api/space?expand=metadata.labels` (DC); v2 `/spaces` + `/spaces/{id}/labels?prefix=team` (Cloud; *setting* a category still needs v1) | space **`key`** (immutable, a-z/0-9, forms the URL) |
 | Page tree / ancestors | `/content/{id}/child\|descendant/page`, `?expand=ancestors`; DC `/content/scan` | numeric **content `id`** |
 | Labels actually in use | per page `/content/{id}/label`; instance-wide → CQL-facet | **label text** (lowercase, no spaces, only `_`/`-`) |
 | Available templates | `/rest/api/template/page\|blueprint` | template id |

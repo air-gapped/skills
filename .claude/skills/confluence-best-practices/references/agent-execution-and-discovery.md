@@ -8,7 +8,7 @@ Map each thing you need to learn to the primitive that fetches it. **Anchor logi
 
 | To learn… | DC (REST v1) | Cloud (REST v2) | Language-safe anchor |
 |---|---|---|---|
-| Spaces + keys + categories | `GET /rest/api/space?expand=metadata.labels` | `GET /wiki/api/v2/spaces` (**categories still need a v1 call**) | space **`key`** |
+| Spaces + keys + categories | `GET /rest/api/space?expand=metadata.labels` | `GET /wiki/api/v2/spaces`; categories = `GET /spaces/{id}/labels?prefix=team` (read-only — add/remove via v1 `/space/{key}/label`) | space **`key`** |
 | Page tree / ancestors | `/content/{id}/child\|descendant/page`, `?expand=ancestors`; `/content/scan` (7.18+) | `/pages/{id}/children`, `/ancestors`, `/spaces/{id}/pages` | content **`id`** |
 | Labels in use | per page `/content/{id}/label`; instance-wide → CQL-facet | `/pages/{id}/labels` | **label text** |
 | Templates | `/rest/api/template/page\|blueprint` | v1 `/template/...` | template id |
@@ -88,7 +88,7 @@ Use `<th>` for the left (key) column so the Page Properties Report keys on it. *
 | REST | **v1 only** (`/rest/api/content`, `start/limit`) | v1 **and v2** (`/wiki/api/v2`, cursor `Link: rel=next`) |
 | Write target | **storage** | **storage** (also `atlas_doc_format`, but storage is portable) |
 | User id | **`username` / `userKey`** | **`accountId`** (never hardcode usernames in Cloud CQL) |
-| Space categories | v1 expand | **v1 fallback** (no v2 endpoint) |
+| Space categories (`team`-prefix space labels) | v1 expand / `/space/{key}/label` | read: v2 `/spaces/{id}/labels?prefix=team`; write: **v1 only** |
 | Convert wiki→storage | v1 sync convert | sync deprecated; async lacks it → generate storage |
 | Page archive | none (space-archive workaround) | native per-page |
 
