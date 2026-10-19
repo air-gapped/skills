@@ -69,7 +69,7 @@ Third-party implementations fabricate or omit signatures:
 | Ollama | omitted (no signature_delta) |
 | LiteLLM bridge | `None` |
 | Superagent Gateway, OGX translation path | empty string |
-| Bifrost (Claude passthrough) | **real** (bytes forwarded) |
+| Bifrost (Claude Code → Claude model passthrough) | **real** (bytes forwarded) |
 
 Consequences:
 - **Mixed-backend replay breaks**: thinking synthesized by a bridge/local

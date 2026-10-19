@@ -64,9 +64,12 @@ First-class bidirectional Anthropic support (commit 7a1543e85).
   then to any backend; replies converted back with full Anthropic SSE
   synthesis (message_start with `content: []`, thinking_delta,
   input_json_delta, deduped message_delta).
-- **Claude-model passthrough fast path**: raw upstream bytes forwarded
-  verbatim (renumbering only where strict clients need it) — preserves wire
-  fidelity including real thinking signatures.
+- **Claude-model passthrough fast path** — only when the request comes from
+  Claude Code (user agent) AND targets a Claude model: raw upstream bytes
+  forwarded verbatim (renumbering only where strict clients need it),
+  preserving real thinking signatures. Other clients take the Responses-schema
+  path. For raw forwarding regardless of client use
+  `/anthropic_passthrough/v1/messages` (also count_tokens, /v1/complete).
 - stop_reason table: end_turn↔stop, max_tokens↔length, stop_sequence→stop,
   tool_use↔tool_calls, compaction↔compaction; unknown pass through.
 - Thinking: enabled|adaptive ↔ Reasoning{Effort,MaxTokens} with
