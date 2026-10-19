@@ -259,13 +259,3 @@ Ansible controller. Use `connection: local` (or `delegate_to: localhost`
 on a per-task basis). There is **no `httpapi` connection plugin in this
 collection** — `connection: httpapi` will fail. The canonical reference
 playbook is at `playbooks/idrac/idrac_session.yml` in the upstream repo.
-
-## Source files in the upstream collection (for cross-reference)
-
-- `plugins/modules/idrac_session.py` — token mint module (`version_added: 9.2.0`)
-- `plugins/module_utils/idrac_redfish.py` — auth layer, `IdracAnsibleModule.__init__` arg-spec, `_args_without_session` sets `force_basic_auth=True` for no-token path, `get_server_generation()`, `validate_idrac10_and_above()`
-- `plugins/module_utils/session_utils.py` — lower-level `SessionAPI`, `create_session`, `delete_session`
-- `plugins/module_utils/dellemc_idrac.py` — `idrac_auth_params` (username/password only, no `x_auth_token`)
-- `playbooks/idrac/idrac_session.yml` — canonical session-lifecycle example
-- `tests/integration/targets/idrac_session_auth/tests/idrac_redfish_auth_valid-11786.yaml` — canonical token-handoff test
-- `docs/README.md` — definitive iDRAC 9 / iDRAC 10 per-module support matrix
