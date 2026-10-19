@@ -86,16 +86,9 @@ Frequent root causes:
   `Permission denied` and drops the links. Unfixed in released netplan through
   1.2.2: check `ls -l /run/systemd/network/`, then re-run as
   `(umask 022; netplan apply)`.
-
-## Pitfalls (quick list)
-
-- **YAML forbids tabs** — spaces only, consistent 2-space nesting.
-- **`gateway4`/`gateway6` are deprecated** — use `routes: [{to: default, via: ...}]`.
-- **Secrets are world-readable unless you `chmod 600`** — netplan only warns.
-- **`apply` doesn't tear down old virtual devices.**
-- **`match` + `set-name` must match uniquely** — non-unique match renames only the
-  first device, the rest keep their kernel name and log a dmesg error.
-- **Apply over SSH = lockout risk** — use `netplan try`.
+- Interface kept its kernel name: a `match` + `set-name` that matches more than
+  one device renames only the first; the rest keep their kernel names and log a
+  dmesg error. Make the `match` unique (MAC).
 
 ## Version notes (24.04 LTS vs 26.04 LTS)
 
