@@ -23,29 +23,29 @@ Target audience: operators producing defensible latency/throughput/goodput numbe
 
 If the target is exclusively vLLM and the operator wants the in-tree `vllm bench` toolchain (sweep, latency-only, startup, mm-processor), defer to the `vllm-benchmarking` skill. AIPerf is the right answer when (a) the target is non-vLLM or (b) the workload is trace-driven, multi-modal, multi-server, or needs goodput.
 
-## What landed in v0.9.0 – v0.13.0
+## Version-gated capabilities — check `aiperf --version` before using
 
-The changes that alter how AIPerf is driven:
+| Need | Use | Needs |
+|---|---|---|
+| Sweep or search instead of a shell loop | List flags (`--concurrency 10,50,100`), `--search-recipe <name>`, YAML `sweep:` / Bayesian search; multi-tier SLO search `--search-sla-tier` | recipes/BO v0.10.0; tiers v0.11.0 |
+| Several warmup/profiling phases, or adaptive scaling, in one run | Phases and scale variables in the YAML config | v0.12.0 |
+| Accuracy alongside perf | `--accuracy-benchmark` (see `references/cli.md`) | AIME v0.9.0; HellaSwag/BBH/AIME24-25 v0.10.0; MATH-500/GPQA/LCB/GSM8K v0.11.0 |
+| Export to MLflow / W&B / OTel | `--mlflow-*`, `--wandb-*`, `--otel-url` + pip extra (`references/cli.md` → External exporters) | MLflow/OTel v0.9.0; W&B v0.11.0 |
+| AMD GPU telemetry | `amdsmi` collector | v0.9.0 |
+| Latency without the network path | `network_adjusted_*` metrics | v0.11.0 |
+| Anthropic Messages API | `--endpoint-type messages` (`/v1/messages`); wire format: `messages-api` skill | v0.12.0 |
+| Per-request spec-decode acceptance | vLLM adapter; pair with vLLM `--per-request-spec-decode-metrics` (`vllm-speculative-decoding`) | v0.12.0 |
+| Agentic / DAG replay | `exgentic*`, `baseten_trace`, `weka_*`, `dag_jsonl`, `tracelab` (v0.13.0) | v0.12.0 |
+| Inspect a run | `aiperf analyze swim-lane` / `turn-messages`; `aiperf chat` for a hand check | v0.12.0 |
+| Run inside Kubernetes | `aiperf kube …` (beta) | v0.13.0 |
+| Correct ITL when the first chunk bundles tokens | `--per-chunk-usage` (with `--use-server-token-count`; vLLM / TRT-LLM only) | v0.13.0 |
+| Reset prefix cache / profile the server per run | `--reset-kv-cache` (`/reset_prefix_cache`), `--server-profiler` (`/start_profile`, `/stop_profile`) | v0.13.0 |
+| Production system prompt, `vllm bench`/sglang-style random lengths, cache-bust markers, ASR | `--system-prompt-file`, `--random-range-ratio` + `--random-corpus-style`, `--cache-bust`, `--endpoint-type audio_transcription` | v0.13.0 |
 
-- **Adaptive sweep orchestrator + YAML-native v2 config** (v0.10.0, PR #912) — Bayesian Optimization and reusable search recipes, instead of hand-rolled concurrency sweeps.
-- **Multi-tier SLO search** (v0.11.0, PR #1035) — resolve N tier boundaries in a single job rather than one job per tier.
-- **Accuracy suite went from a curiosity to a platform** — AIME (v0.9.0), then HellaSwag, BigBench-Hard, AIME 2024/2025 (v0.10.0, DeepEval/lighteval-backed), then MATH-500, GPQA-Diamond, LCB CodeGen (with a `code_execution` grader) and GSM8K (v0.11.0).
-- **Exporters:** live OpenTelemetry streaming + MLflow (v0.9.0, PR #900); Weights & Biases (v0.11.0, PR #1049). Flags (`--mlflow-tracking-uri`, `--mlflow-experiment`, `--wandb-project`, `--otel-url`, …) and the pip extras they need: `references/cli.md` → External exporters.
-- **Telemetry beyond NVIDIA:** AMD ROCm collector via `amdsmi` (v0.9.0, PR #908).
-- **`network_adjusted_*` latency metrics** (v0.11.0, PR #1066) — subtract network RTT so numbers reflect the server, not the path to it.
-- **Power metrics** — initial implementation (v0.10.0, PR #803).
-- **Warmup fix** (v0.11.0) preventing prefix-cache reuse from skewing results — if you have baselines from ≤v0.10.x with warmup enabled, they may not be comparable.
-- **v0.12.0 drops Python 3.10** (PR #1107) — the floor is **3.11**. A 3.10 host that installed v0.11.0 fine gets no candidate for v0.12.0; this is the one change that stops an upgrade rather than altering a result.
-- **New endpoint `messages`** (v0.12.0, PR #731) — Anthropic Messages API at `/v1/messages`. Benchmark an Anthropic-protocol server without the `template` escape hatch. See the `messages-api` skill for what the wire format costs.
-- **Multiple warmup and profiling phases in one run** (v0.12.0, PR #1150) and **single-run adaptive scaling** (PR #1058, plus scale variables for controls and SLA metrics in PR #1074) — replaces the run-per-phase and run-per-scale-point loops.
-- **Per-request spec-decode acceptance + vLLM adapter** (v0.12.0, PR #1167) — acceptance per request rather than a server-wide average. Pairs with vLLM's own `--per-request-spec-decode-metrics`; see `vllm-speculative-decoding`.
-- **AgentX v1.0** (v0.12.0, PR #1165) — agentic replay and DAG-shaped workloads, with new `exgentic` / `exgentic_v2` / `baseten_trace` / WEKA dataset types.
-- **`aiperf analyze` + swim-lane viewer** (PR #1116) and **`aiperf chat`** (PR #1076) — inspect a run interactively instead of post-processing the export by hand.
-- **v0.13.0 — `aiperf kube` (beta)**: native Kubernetes execution (`kube init/profile/sweep/results/logs/...`) with an operator and CRDs. `aiperf service` / `aiperf proxy` are its internals, not entry points.
-- **v0.13.0 — `--per-chunk-usage`** (requires `--use-server-token-count`): fixes ITL / per-user TPS inflation when the server bundles several tokens into the first streamed chunk. vLLM and TRT-LLM support it; strict OpenAI rejects it.
-- **v0.13.0 — control hooks**: `--reset-kv-cache` POSTs `/reset_prefix_cache` once per cell; `--server-profiler` wraps profiling phases in `/start_profile` / `/stop_profile`.
-- **v0.13.0 — workload shaping**: `--system-prompt` / `--system-prompt-file` (verbatim production prompt), `--random-range-ratio` + `--random-corpus-style vllm|sglang` (reproduce `vllm bench serve` / sglang random workloads), `--cache-bust` targets, `tracelab` dataset type, `audio_transcription` endpoint.
-- **v0.13.0 adds `X-Session-Affinity` to every request by default** (the session's stable `X-Correlation-ID` value). A router that honours it pins a session's turns to one replica, so multi-turn results against such a router are not comparable with v0.12.0 runs. Disable: `AIPERF_HTTP_X_SESSION_AFFINITY_FROM_CORRELATION_ID=false`. Router-specific affinity is opt-in: `AIPERF_HTTP_X_DYNAMO_SESSION_ID_FROM_CORRELATION_ID=true` (Dynamo `--router-session-affinity-ttl-secs`), `AIPERF_HTTP_X_SMG_ROUTING_KEY_FROM_CORRELATION_ID=true` (SGLang Model Gateway manual routing).
+Behaviour changes that make results non-comparable across versions:
+
+- **v0.11.0 warmup fix** — warmup no longer leaks prefix-cache reuse into profiling. Baselines from ≤v0.10.x with warmup on are not comparable; re-run them.
+- **v0.13.0 sends `X-Session-Affinity`** (the session's `X-Correlation-ID` value) on every request. A router that honours it pins a session's turns to one replica, so multi-turn results against such a router differ from v0.12.0. Disable: `AIPERF_HTTP_X_SESSION_AFFINITY_FROM_CORRELATION_ID=false`. Router-specific affinity is opt-in: `AIPERF_HTTP_X_DYNAMO_SESSION_ID_FROM_CORRELATION_ID=true` (Dynamo `--router-session-affinity-ttl-secs`), `AIPERF_HTTP_X_SMG_ROUTING_KEY_FROM_CORRELATION_ID=true` (SGLang Model Gateway manual routing).
 
 ## Versions
 
