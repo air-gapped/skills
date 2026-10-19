@@ -23,7 +23,6 @@ Drive any Jira (Cloud, Server, Data Center) non-interactively. Assume nothing ab
 
 - **Pinned at v1.7.0** (released 2025-08-31, the current latest). Verify locally: `jira version`.
 - **`--help` is the authoritative flag reference.** `jira <cmd> <subcmd> --help` prints flags, arguments, aliases, and examples. If this skill disagrees with `--help` on a flag's name or arguments, trust `--help` (and update the skill); where this skill flags a help text as wrong (`--component`), trust the skill. Generate full man pages with `jira man --generate --output <dir>`.
-- This skill's exhaustive flag/argument tables live in `references/commands.md`, captured from the v1.7.0 binary.
 
 ## Cloud vs Server / Data Center — know which backend you're on
 
@@ -182,5 +181,3 @@ jira issue list -p PROJ --csv --paginate 100 > issues.csv
 # Add a sub-task under a story
 jira issue create -t"Sub-task" -P PROJ-100 -s"Write tests" --no-input </dev/null
 ```
-
-For anything beyond these, drill into the `references/` files — they carry the exhaustive flag tables, JQL grammar, ADF rules, and auth matrix.
