@@ -222,6 +222,26 @@ Then branch:
 - `idrac_network` vs `idrac_network_attributes` — collection ≤ 10.0.3 only; on 11.0.0+ `idrac_network` is gone, use `idrac_network_attributes` on both
 - attribute names per the rename table in `references/idrac-10-deltas.md`
 
+## Done when (porting or reviewing a play)
+
+Every item holds, for every task in the play:
+
+- Each `dellemc.openmanage` task passes `x_auth_token` only to a module
+  that accepts it; the rejecting modules (anti-patterns above) get
+  `idrac_user`/`idrac_password` with `no_log: true`.
+- Each `ansible.builtin.uri` call to the BMC sends `X-Auth-Token` or
+  `force_basic_auth: true`.
+- No call to a module removed in 11.0.0 remains:
+  `grep -rnE 'idrac_network:|idrac_syslog|idrac_timezone_ntp|dellemc_(configure|idrac|system)' <playbook-dir>`
+  returns nothing.
+- Each attribute key is checked against `references/idrac-10-deltas.md`
+  §3–§4 for the target generation. Verify by reading the value back
+  (GET the DellAttributes URI above, compare to the desired value):
+  a renamed key reports `changed: false` without applying, so task
+  status proves nothing.
+- `Members@odata.count` of `GET /redfish/v1/SessionService/Sessions` is
+  the same after the run as before it.
+
 ## Minimum versions cheat-sheet
 
 | Component | Minimum | Notes |
