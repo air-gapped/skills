@@ -3,6 +3,26 @@
 Carries ceiling findings and run history across skill-improver passes. Read in
 Phase 0; update in Phase 6. Append-only history — do not drop prior dated sections.
 
+## Open
+
+_None._ Nothing here is waiting on an absent ruling, credential, release, or
+measurement nobody can run.
+
+## Resolved this pass (2026-10-20)
+
+Freshen: all 12 prior rows probed + 9 rows added (21), stamp 2026-10-20; improve blind 82 → 82 (Sonnet scorer,
+both ends), A/B comparator IMPROVED 3/3; 10 iterations, 8 kept, 2 discarded (cap).
+- Fixed: `geoip: false` does not stop the geoip request; effective `apt.fallback`
+  default; `identity.groups` (26.04+, hard failure on 24.04); 26.10 `accepted-errors`
+  and `/boot` rule; sub-key strictness; done-condition; wrong-disk blacklist; TOCs;
+  sources pointer; second-person slips; public sample hash warning.
+- Discard: condensing the SKILL.md precedence list to a rule + pointer — it dropped
+  the non-obvious "ISO-baked `cdrom/autoinstall.yaml` loses to a cloud-config seed"
+  and the rewording added an unverified claim.
+- Discard: rewording the "quote the password hash and `-append`" pitfall to drop the
+  `-append` repeat — same shape as the 2026-06-14 declined gotcha consolidation; Δ0,
+  no lines saved.
+
 ## Resolved — 2026-07-21 (freshen)
 
 **Verified unchanged — mechanically, not by re-stamping.**
@@ -28,11 +48,6 @@ diffed directly.
   two-command job next time rather than a manual read.
 
 
-## Open
-
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
-
 ## Decided — do not re-propose
 
 - **Dim 7 (Resource Quality) capped at 8 — no bundled scripts.** Could add a
@@ -42,15 +57,11 @@ measurement nobody can run.
   so a bundled script may be over-engineering. Author decides whether the
   convenience justifies the maintenance surface. (dir: `scripts/`, absent by design)
 
-## Unblocked — actionable
-
-- **Dim 2 (Progressive Disclosure) capped at 8 by SKILL.md length.** SKILL.md is
-  215 lines; reaching 9 needs <150 lines. The over-length comes from inline
-  quick-reference blocks (the schema table ~110-133, the Air-gapped essentials YAML
-  ~140-161, and storage-quick ~163-174). These carry high always-loaded
-  actionability value, so cutting them to references/ is net-negative without a
-  restructure that keeps the body equally useful. Needs author judgment, not a
-  one-iteration mechanical move. (file: `SKILL.md`)
+- **SKILL.md stays ~200 lines; Dim 2 sits at 8–9.** Worked 2026-10-20: the key table
+  and intro paragraph were cut (219 → 206). What remains above 150 lines (delivery,
+  air-gapped YAML, storage quick, validation commands, pitfalls) is INTENTIONAL_DETAIL
+  overview of the references, which Pattern 6.1 keeps. Condensing the precedence list
+  was tried and discarded (see Resolved this pass, 2026-10-20).
 
 ## Resolved — 2026-06-14 (improve mode)
 
