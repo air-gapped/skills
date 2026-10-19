@@ -41,8 +41,9 @@
 Uses the Messages API natively (its home protocol). Behaviors third-party
 servers/gateways specifically accommodate (from their source):
 
-- Injects an `x-anthropic-billing-header` system prefix — vLLM and llama.cpp
-  strip/normalize it to preserve prefix caching.
+- Injects an `x-anthropic-billing-header` system prefix whose fingerprint
+  differs per conversation — vLLM and llama.cpp strip/normalize it so
+  sessions share the system+tools prefix cache.
 - Keys retry behavior off error message wording — Superagent Gateway
   forwards upstream errors byte-for-byte for this reason.
 - /model picker lists models via `/v1/models` — Superagent fabricates

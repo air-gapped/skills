@@ -19,7 +19,7 @@ backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 |---|---|---|
 | Claude Code's first turn rejected for length on a <52k-context backend | 32000-token output reservation + ~18k prompt | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192` |
 | 400 `Unexpected value(s)` on `anthropic-beta`, or `Extra inputs are not permitted` | backend validates beta headers / beta tool-schema fields | `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` |
-| Prefix-cache hits near zero under Claude Code | attribution block fingerprint at the start of `system` | `CLAUDE_CODE_ATTRIBUTION_HEADER=0` (vLLM and llama.cpp handle it already) |
+| A new Claude Code session misses the warm system+tools prefix on turn 1 | attribution-block fingerprint at the start of `system` differs per conversation | `CLAUDE_CODE_ATTRIBUTION_HEADER=0` (vLLM and llama.cpp handle it already) |
 | Real Anthropic API rejects replayed history | thinking from a local backend or bridge carries a fake or empty signature | strip thinking blocks before crossing to the real API |
 | vLLM or SGLang validation error | `document` block (vLLM), or `thinking.type: "between_tools"` | send documents as text; rewrite the type to `adaptive` |
 | vLLM usage has no cache fields | `message_start` never carries them; absent from `message_delta` too means `--enable-prompt-tokens-details` is off | read cache usage from `message_delta`; add the flag |
@@ -169,13 +169,15 @@ What a third-party `/v1/messages` server must tolerate from real clients
 
 - **Attribution block (billing header)**: Claude Code's FIRST `system[]` text
   block, no `cache_control`, of the form
-  `x-anthropic-billing-header: cc_version=…; cc_entrypoint=…;` plus a prompt
-  fingerprint (`cch`). The fingerprint changes the system prefix between
-  requests, so any backend that renders the block loses prefix caching.
-  vLLM strips it; llama.cpp normalizes its `cch` section; api.anthropic.com
-  strips it itself. Every other backend or gateway, and any gateway that
-  reshapes system content: set `CLAUDE_CODE_ATTRIBUTION_HEADER=0` — it
-  removes the block and leaves the rest of the body unchanged.
+  `x-anthropic-billing-header: cc_version=<version>.<fingerprint>; cc_entrypoint=…;`
+  — the fingerprint is the 3-character suffix of `cc_version` (llama.cpp also
+  normalizes a `cch` section). It stays constant across one conversation's
+  requests and differs between conversations, so a backend that renders the
+  block still caches within a session but loses the system+tools prefix
+  shared across sessions. vLLM strips it; llama.cpp normalizes it;
+  api.anthropic.com strips it itself. Every other backend or gateway, and any
+  gateway that reshapes system content: set `CLAUDE_CODE_ATTRIBUTION_HEADER=0`
+  — it removes the block and leaves the rest of the body unchanged.
 - **Error-wording preservation**: Superagent forwards non-retryable upstream
   errors byte-for-byte because Claude Code keys retry behavior off message
   wording.

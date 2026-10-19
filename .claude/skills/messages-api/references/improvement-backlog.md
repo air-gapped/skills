@@ -5,17 +5,6 @@ applicable in a single iteration.
 
 ## Open
 
-- **Re-run the live Claude Code → vLLM loop on a current vLLM** (Dim 9) —
-  `references/translation-mapping.md` §Streaming divergences ("per-turn
-  `message_start` usage reports null cache fields (observed on v0.25.1)")
-  and the attribution-block bullet (fingerprint makes the system prefix
-  vary — docs-sourced, no wire capture since v2.1.214). Blocked on: a live
-  vLLM ≥0.31 deployment with Claude Code pointed at it, which an unattended
-  pass does not have. Action when available: mitmdump one Claude Code session,
-  record whether per-turn cache fields populate and whether the billing-header
-  text differs between two requests; update both bullets and the
-  sources.md live-verification log.
-
 ## Decided — do not re-propose
 
 - **Divergence facts intentionally double-homed** (Dim 6) — the
