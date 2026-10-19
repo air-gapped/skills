@@ -115,33 +115,13 @@ full NoCloud detail):
 Full delivery/seeding detail (precedence source, ISO remastering, the on-media
 "only the autoinstall key" rule) is in `references/delivery-and-seeding.md`.
 
-## Top-level schema (version 1) — quick reference
+## Top-level schema (version 1)
 
-Only `version` is schema-required; unknown keys produce a *warning* in v1 (will be
-fatal in a future version). Common keys:
-
-| Key | Purpose |
-|---|---|
-| `version` | Must be `1`. **Required.** |
-| `identity` | Initial user `{realname, username, hostname, password}`. Required at runtime unless `user-data:` present. |
-| `storage` | Disk layout — `layout: {name: lvm\|direct\|zfs\|hybrid}` or a curtin action list. |
-| `network` | **netplan v2** (→ ubuntu-netplan skill). |
-| `ssh` | `{install-server, authorized-keys, allow-pw}`. |
-| `apt` | Mirror selection, proxy, components, fallback (air-gapped core). |
-| `proxy` | HTTP proxy for install + target apt/snapd. |
-| `packages` / `snaps` | Extra packages / snaps to install. |
-| `user-data` | cloud-config for the installed system (→ ubuntu-cloud-init skill). |
-| `late-commands` | Commands after install (**target mounted at `/target`**). |
-| `early-commands` | Commands before probing (config is re-read after). |
-| `interactive-sections` | Sections to still prompt for; must be a **list** (`['*']`, not `'*'`). |
-| `updates` | `security` (default) or `all`. |
-| `refresh-installer` | `{update: bool, channel}` — installer self-update (set `false` air-gapped). |
-| `kernel` | `{package}` or `{flavor}`. |
-| `timezone`, `locale`, `keyboard`, `source`, `drivers`, `codecs`, `oem`, `reporting`, `error-commands` | see `references/schema.md`. |
-| `kernel-crash-dumps`, `zdevs` | **24.10+ only — not in 24.04.** |
-
-Full per-key reference (storage layouts, apt mirror-selection details, identity, ssh,
-command timing) is in `references/schema.md`.
+Only `version` is schema-required. An unknown or misspelled **top-level** key only
+*warns* in v1 and the key is ignored; an unknown sub-key of `identity`,
+`refresh-installer`, `keyboard` or `active-directory` fails validation. Every key, with
+sub-keys, defaults and release gating, is in `references/schema.md` §1 — read it
+before using any key this file does not show.
 
 ## Air-gapped essentials
 
