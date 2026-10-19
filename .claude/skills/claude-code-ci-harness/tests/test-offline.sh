@@ -5,6 +5,7 @@ umask 077
 skill_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 runner="$skill_dir/scripts/isolated-run.sh"
 assert_events="$skill_dir/scripts/assert-events.sh"
+scan_leakage="$skill_dir/scripts/scan-token-leakage.sh"
 tmp_dir=$(mktemp -d /tmp/claude-code-ci-test.XXXXXX)
 trap 'rm -rf -- "$tmp_dir"' EXIT
 
@@ -87,4 +88,13 @@ if "$assert_events" "$api_error" >/dev/null 2>&1; then
   exit 1
 fi
 
-printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions\n'
+# The leak scanner must find a planted special token and pass a clean transcript.
+printf '%s\n' '<|im_end|>' > "$tmp_dir/tokens.txt"
+printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"done <|im_end|>"}]}}' > "$tmp_dir/leaky.ndjson"
+if "$scan_leakage" "$tmp_dir/leaky.ndjson" "$tmp_dir/tokens.txt" >/dev/null 2>&1; then
+  printf 'leak test failed: planted token not detected\n' >&2
+  exit 1
+fi
+"$scan_leakage" "$transcript" "$tmp_dir/tokens.txt" >/dev/null || { printf 'leak test failed: clean transcript flagged\n' >&2; exit 1; }
+
+printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions, leak scan\n'

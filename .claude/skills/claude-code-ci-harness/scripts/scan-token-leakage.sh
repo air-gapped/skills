@@ -62,7 +62,7 @@ while IFS= read -r token || [[ -n "$token" ]]; do
     printf 'leak token=%s fields=%s\n' "$token" "$count"
     leaks=1
   fi
-done
+done < "$token_file"
 
 if ((leaks)); then
   exit 1
