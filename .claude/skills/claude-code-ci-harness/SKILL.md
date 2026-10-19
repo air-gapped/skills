@@ -56,7 +56,7 @@ The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is
 | Keep | Reason |
 |---|---|
 | `--safe-mode` | Disables CLAUDE.md, skills, plugins and hooks. |
-| `--permission-mode dontAsk` | Without it, `-p` starts in auto mode. |
+| `--permission-mode dontAsk` | Denies every tool not in `--allowed-tools`. The `-p` default mode changes between releases. |
 | `--strict-mcp-config` with an empty config | Blocks the caller's MCP servers. |
 | Empty `ANTHROPIC_API_KEY` | Stops an inherited key from overriding the intended token. |
 | No `--bare` | It disables OAuth and has dropped `Glob` from `--tools`. |
