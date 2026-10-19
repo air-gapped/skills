@@ -37,6 +37,12 @@ automatic rollback. Default timeout is **120 s** (60 s is too short for STP to
 settle). Confirm at the prompt to keep, or let it roll back. Send `SIGUSR1` to
 accept / `SIGINT` to reject programmatically.
 
+Exits without applying when any bond or bridge sets `parameters:` (custom
+parameters are not revertable) — use the console or an armed `systemd-run`
+rollback plus `netplan apply` instead. After a timeout or reject, confirm the
+revert happened (`netplan status --diff-only`); the man page lists it as a
+known bug.
+
 ### get / set
 - `netplan get [--root-dir DIR] [KEY]` — merged view across `/{etc,lib,run}/netplan`.
   `KEY` defaults to `all`; use a path: `netplan get ethernets.enp1s0.addresses`.
