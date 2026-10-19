@@ -21,7 +21,7 @@ expect `fresh` on re-probe; content drift is unlikely short of retraction.
 | https://journals.sagepub.com/doi/10.1518/001872000779656570 | Schaafstal et al. 2000: structured troubleshooting training ≈2× solve rate | 2026-07-29 |
 | https://files.eric.ed.gov/fulltext/ED389948.pdf | Johnson et al. 1995: theory ≠ skill; strategy-switching; brittle expertise | 2026-07-29 |
 | https://nyudatascience.medium.com/llms-fall-for-confirmation-bias-and-a-fix-designed-for-humans-helps-a1e3b9215b00 | LLM confirmation bias; complement-tracking gain (~42%→56%) | 2026-07-29 |
-| https://arxiv.org/pdf/2605.01771 | Compliance gap: artifact gates over prose exhortation | 2026-07-29 |
+| https://arxiv.org/pdf/2605.01771 | Shin 2026, "The Compliance Gap": process-instruction compliance 0% under default framing and undetectable from text; 97% where an audit trail rewards it, 75% with delegation tools removed. Grounds checkable artifacts over prose rules (an inference; the paper tests no tables) | 2026-10-20 |
 | https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2021.629354/full | Korteling, Gerritsma & Toet 2021 systematic review (12 studies): retention/transfer evidence scarce; effects seen up to 12 weeks; transfer tested once; decision support as the stronger route is the authors' conjecture, not a finding | 2026-10-20 |
 | https://uwaterloo.ca/business-and-industrial-statistics-research-group/sites/default/files/uploads/documents/rr-06-03.pdf | Shainin critique: families of variation, dominant-cause quadrature argument | 2026-07-29 |
 | https://firetrucksandequipment.tpub.com/TM-9-254/css/TM-9-254_231.htm | US Army TM 9-254: half-split doctrine (public domain) | 2026-07-29 |
