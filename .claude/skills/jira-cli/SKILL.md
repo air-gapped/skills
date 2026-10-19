@@ -38,6 +38,7 @@ The CLI talks to two different Jira APIs and the behavior diverges in ways that 
 | `--paginate <from>:` offset | **ignored** — can't page past the first 100 (#898) | **works** — old search API still honors `startAt` |
 | SSO in front of the instance | rare | API must be reachable directly with a **PAT**; basic-auth/email hits the SSO HTML login → `401` / `invalid character '<'` (#477, #822) |
 | Releases/Versions, sprints | feature-gated | same, plus older Agile API quirks |
+| Non-English instance | — | `epic`/`issue create` can fail on translated type names: hand-fill `epic.name`, `epic.link`, `issue.types.*.handle` in the config (`references/config-auth.md`) |
 
 When a recipe below assumes Cloud (ADF markdown, accountId, the pagination cap), the Server/DC equivalent is in the right-hand column. Auth/SSO specifics: `references/config-auth.md`. Markdown specifics: `references/markdown-adf.md`.
 
@@ -140,8 +141,6 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 10. **`-q/--jql` runs *within the configured project's context*.** To query across all projects, add a project clause yourself: `-q'project IS NOT EMPTY'` or name projects in the JQL. Plain filter flags (`-s`, `-y`, `-l`, …) and a `-q` JQL can combine. **The word `project` anywhere in the JQL — even inside a text search like `summary ~ "project kickoff"` — drops the automatic project scope and searches every project (#1020).** When the JQL contains that word, add `project = PROJ` explicitly.
 
 11. **Auth is via the `JIRA_API_TOKEN` environment variable, not the config file.** The token never lives in `.config.yml`. Cloud wants an **API token** (not the account password); on-prem basic wants the **password**; PAT wants the token **plus** `JIRA_AUTH_TYPE=bearer`. A 401 is nearly always a missing/wrong `JIRA_API_TOKEN` or the wrong auth type. See `references/config-auth.md`.
-
-12. **Cloud vs Server/Data Center differ.** Some features and `--raw` JSON fields vary by backend; non-English on-prem instances may need manual `epic.name`/`epic.link`/`issue.types.*.handle` entries in the config. Don't assume Cloud behavior on Server.
 
 ## What to read next
 
