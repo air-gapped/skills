@@ -174,6 +174,19 @@ netplan generate            # validate first
 netplan try --timeout 120   # applies, then rolls back unless confirmed at the prompt
 ```
 
+**`netplan try` refuses** ("reverting custom parameters for bridges and bonds is
+not supported") when any bond or bridge in the merged config sets `parameters:` —
+most LACP/STP hosts. There, work from the BMC/console, or arm a rollback before
+applying and cancel it once verified from a second session:
+
+```bash
+cp -aT /etc/netplan /root/netplan.bak
+systemd-run --on-active=5min --unit=netplan-rollback sh -c \
+  'rm -f /etc/netplan/*.yaml && cp -a /root/netplan.bak/. /etc/netplan/ && netplan apply'
+netplan apply
+systemctl stop netplan-rollback.timer   # only after verification passes
+```
+
 `netplan apply` also **does not remove stale virtual devices** (a bond/bridge removed
 from YAML lingers until `ip link delete dev <name>` or reboot). See
 `references/cli-and-debugging.md` for the `--state` backup-diff workaround.
