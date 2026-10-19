@@ -91,6 +91,5 @@ serial, service tag, model), stack, PoE (vendor mW + RFC 3621 budget/status),
 RMON error taxonomy; fan/PSU Descr lookups; dry-run validated. Hardware-verify:
 whether peth* and etherStats* answer on owned models, and the
 etherStatsIndex↔ifIndex mapping.
-No published snmp_exporter CBS module or Grafana dashboard existed as of
-2026-07 — this is genuinely novel; consider contributing to
-prometheus-community/snmp.
+prometheus-community/snmp ships no CBS module and no public CBS Grafana
+dashboard exists — build on this module rather than searching for one.

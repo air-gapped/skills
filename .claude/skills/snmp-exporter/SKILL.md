@@ -216,8 +216,6 @@ only — never needed to apply the skill):
    upgrade; regenerate with the matching generator.
 3. **prometheus-operator ScrapeConfig v1beta1 graduation** — update
    references/kubernetes.md examples when it ships.
-4. **Contribute the cisco_cbs module** to prometheus-community/snmp — no
-   public CBS module existed as of 2026-07; ours is novel.
 
 ## When NOT to use snmp_exporter
 
