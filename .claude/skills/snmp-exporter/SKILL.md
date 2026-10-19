@@ -167,6 +167,7 @@ Failure-mode table — check these before blaming the exporter:
 | Symptom | Likely cause / fix |
 |---|---|
 | "request timeout (after N retries)" | Wrong community/ACL/unreachable — SNMP silently drops bad-community requests, so auth errors LOOK like timeouts. Verify with `snmpbulkwalk -v2c -c <comm> <ip> system` from the same host/pod. |
+| v3: `unknown username` / `wrong digest` / `decryption error` | The device rejected the user, the auth key, or the priv key — fix `username`, `auth_protocol`+`password`, or `priv_protocol`+`priv_password` respectively (iDRAC pairs: rule 4; iDRAC 10 `AES256` → try `AES256C`). iDRAC blocks all v3 for 10 min after >6 failures in 2 min — stop the scrape while fixing. |
 | Scrape works but empty/few metrics | Wrong module for the device (it doesn't implement those OIDs), or the community's SNMP view excludes the private tree. |
 | "OID not increasing" | Buggy agent — set `allow_nonincreasing_oids: true`. |
 | Replies ignored on multi-homed device | Device answers from a different source IP — `use_unconnected_udp_socket: true`. |
