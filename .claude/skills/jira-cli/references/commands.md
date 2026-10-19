@@ -198,7 +198,7 @@ Multi-line: `jira issue comment add KEY $'Line 1\n\nLine 2'`, or pipe: `echo "..
 | `-y, --priority <P>` | New priority. |
 | `-a, --assignee <user>` | New assignee. |
 | `-l, --label <L>` / `-C, --component <C>` | Labels/components (repeatable). |
-| `-H, --replace <search>:<replace>` | Replace text (case-sensitive) in summary + body; repeatable. |
+| `-H, --replace <search>:<replace>` | Replace text (case-sensitive) in summary + body; repeatable. Split on **every** `:` — a value with a colon (URL, time) prints `Invalid replace string… Skipping replacement` and the clone is **still created, exit 0, unmodified** (#1029). Never pass an empty `<search>` (`-H":x"` inserts `x` between every character). For colon values, clone without `-H`, then `issue edit CLONE -s… -b…`. |
 | `--web` | Open clone in browser. |
 
 ## issue delete

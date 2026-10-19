@@ -75,7 +75,7 @@ For transitions specifically, the **valid target states depend on the issue's cu
 | Comment | `jira issue comment add KEY "body"` | `--internal` for service-desk-internal; markdown→ADF |
 | Worklog | `jira issue worklog add KEY "2d 1h 30m" --no-input` | `--started`, `--timezone`, `--new-estimate` |
 | Link / unlink | `jira issue link IN OUT <Type>` / `unlink` / `link remote` | `<Type>` is instance-defined (`Blocks`, `Duplicates`, …) |
-| Clone | `jira issue clone KEY -H"find:replace"` | copy + tweak fields |
+| Clone | `jira issue clone KEY -H"find:replace"` | copy + tweak fields; a `:` inside find/replace skips the replacement but still clones |
 | Delete (permanent) | `jira issue delete KEY [--cascade]` | irreversible; `--cascade` also deletes subtasks |
 | Epics | `jira epic list [KEY]` / `create -n"Name"` / `add` / `remove` | `create` needs `-n/--name`; `add`/`remove` ≤50 at once, and need admin on next-gen — else `issue edit KEY -P EPIC` |
 | Sprints | `jira sprint list [ID]` / `add` / `close` | `--current`/`--prev`/`--next`/`--state`; get IDs from `--table` |
