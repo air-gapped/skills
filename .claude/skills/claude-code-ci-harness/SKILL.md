@@ -72,6 +72,8 @@ The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is
 6. When an endpoint fails, record it as an endpoint/model compatibility finding. Never change the scenario to make it pass.
 7. Afterwards, `${CLAUDE_SKILL_DIR}/scripts/cleanup.sh --run-dirs` removes run directories that a killed run left in `/tmp`.
 
+Done when every endpoint has a result row: `claude --version`, base URL, model, and for every scenario run either `pass` or the first failing assertion or error event.
+
 ## References
 
 - `references/scenario-bank.md`: scenarios and pass criteria
