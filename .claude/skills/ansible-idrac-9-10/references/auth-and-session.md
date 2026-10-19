@@ -102,7 +102,8 @@ Fix the playbooks once; don't fight the firmware.
 The full `block:`/`always:` session play lives in SKILL.md under "Canonical
 session pattern" — lift it from there. The shape: `idrac_session state:
 present` (registers `idrac_auth`) → middle tasks pass `x_auth_token:` and
-NOT username/password (the arg-spec marks them mutually exclusive) →
+NOT username/password (the arg-spec marks them mutually exclusive), except
+the modules that reject tokens (§6), which take username/password only →
 `always:` closes with `state: absent` guarded by `when: idrac_auth.x_auth_token
 is defined` so the cleanup doesn't itself crash when the open task failed.
 

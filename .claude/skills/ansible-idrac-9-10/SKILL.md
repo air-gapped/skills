@@ -92,9 +92,9 @@ concurrent-session table is small and orphaned sessions lock fleets out.
           register: idrac_auth
           no_log: true
 
-        # Subsequent tasks use x_auth_token, NOT idrac_user/idrac_password.
-        # The collection's arg-spec makes them mutually exclusive
-        # (idrac_redfish.py:_init_), so passing both is a hard error.
+        # Subsequent tasks use x_auth_token, NOT idrac_user/idrac_password —
+        # passing both is a hard error (mutually exclusive). Exception: modules
+        # that reject tokens (anti-patterns below) take user/password only.
 
         - name: Set iDRAC attributes
           dellemc.openmanage.idrac_attributes:
