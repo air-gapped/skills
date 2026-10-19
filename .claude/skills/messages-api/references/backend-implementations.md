@@ -22,7 +22,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
 | `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | enabled/disabled→`enable_thinking`; other types warned + ignored |
-| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (drops input thinking) | Via provider | No |
+| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (drops input thinking) | Via provider | No (shim); verbatim on cloud relay |
 | `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
 | Server tools (web_search etc.) | No | Filtered out (400 if tool_choice names one) | No | **Executes web_search + re-invokes** | Maps to agentic options | Via provider | No |
@@ -143,7 +143,9 @@ bodies.
 
 ## Lemonade (AMD)
 
-`src/cpp/server/anthropic_api.cpp` — Anthropic→OpenAI chat shim.
+`src/cpp/server/anthropic_api.cpp` — Anthropic→OpenAI chat shim for local
+models; **Anthropic-wire cloud providers are relayed verbatim** (thinking
+blocks, tool use, cache_control preserved).
 
 - Coverage: model/messages/system/max_tokens/temperature/stream, tools +
   `tool_choice`, `stop_sequences`, images, `tool_result`,
