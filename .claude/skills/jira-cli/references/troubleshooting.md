@@ -7,6 +7,7 @@ A write hit an interactive prompt. The process is waiting for keyboard input tha
 - **Fix:** add `--no-input` and supply every required field as a flag/positional.
 - A read without a format flag drops into the pager/TUI — looks like a hang in a non-TTY. Add `--plain`/`--raw`/`--csv`.
 - **Known bug — `--no-input` is not always enough.** jira-cli decides to read the body from stdin via `StdinHasData()`, which is really just "stdin is **not a TTY**" — not an actual data check. So when stdin is a Unix socket or subprocess pipe (common when an agent shells out), the body-reading writes (`create`, `edit`, `comment add`, `epic create`) call `io.ReadAll(os.Stdin)` and block until the pipe closes — even with `--no-input` (#948/#984). Redirect stdin to give immediate EOF: append `</dev/null` (`jira issue create … --no-input </dev/null`).
+- **`issue view` never returns and memory climbs fast (Server/DC).** The wiki-markup description's **last line** holds an inline `{code}` span; the jirawiki parser loops forever (#1033). Kill it and use `jira issue view KEY --raw` — `--raw` skips the markup conversion. Put a `timeout` on `issue view` in unattended loops over on-prem issues.
 
 ## `401 Unauthorized`
 - `JIRA_API_TOKEN` unset, wrong, or expired. `echo ${JIRA_API_TOKEN:+set}` to confirm it's exported in *this* shell.

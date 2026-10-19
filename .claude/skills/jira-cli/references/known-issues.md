@@ -16,6 +16,7 @@ Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around.
 | #974 | open | ADF: code block containing a URL with query params can be mangled | markdown-adf.md |
 | #959 | closed — fix on `main` only (#1013, unreleased) | next-gen: `epic add`/`remove` hardcode `notifyUsers=false` → non-admins fail with "To discard the user notification…". Use `issue edit KEY -P EPIC` | troubleshooting.md, commands.md, SKILL.md command map |
 | #1029 | open | `issue clone -H` splits on every `:` — colon in a value → replacement skipped, clone still created (exit 0); empty search string corrupts the text | commands.md |
+| #1033 | open | Server/DC: `issue view` loops forever, unbounded memory, when the description's last line has an inline `{code}` span (`pkg/md/jirawiki/parser.go` `handleFencedCodeBlock`). `--raw` unaffected | troubleshooting.md |
 | #1020 | open | `-q` JQL containing the word `project` anywhere (even in a text search) drops the automatic `project="X"` scope → searches all projects | SKILL.md pitfall 10, jql-and-filters.md |
 
 How-to references (stable behavior, not bugs — essence inlined, kept here for provenance):
