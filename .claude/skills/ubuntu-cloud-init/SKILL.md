@@ -217,27 +217,19 @@ stages, and re-run/golden-image notes in `references/cli-and-debugging.md`.
 - Use `vendor-data` for site-wide defaults (mirror, CA, NTP, base users); per-host
   `user-data` overrides it.
 
-## Upstream breaking changes worth knowing (`doc/rtd/reference/breaking_changes.rst`)
+## Strict datasource identity (25.1.4, both LTS releases)
 
-25.1.4 is **not** reverted by the 24.04 package — it applies on both LTS releases.
+`ds-identify` enables cloud-init only when DMI data, the kernel cmdline
+(`ds=...`), or a `datasource_list:` in `/etc/cloud/cloud.cfg.d/` identifies the
+datasource. The old fallback (bring up networking, probe link-local metadata IPs)
+is gone. With nothing identified, **cloud-init stays disabled and configures
+nothing** — the host boots unconfigured.
 
-**25.1.4 — strict datasource identity before network. The one most likely to
-bite an on-prem/ARM fleet.** `ds-identify` now requires strict identification
-from **DMI platform data, the kernel command line, or an explicit
-`datasource_list:`** in `/etc/cloud/cloud.cfg.d`. Previously, a platform without
-clear identifying data fell into a *late discovery mode* that brought networking
-up and reached out to well-known link-local IPs to fetch config — the hardening
-exists to stop a bad actor on the local network answering those requests.
-
-- **Most affected: Ec2, OpenStack and AltCloud on non-x86**, where the kernel
-  may not expose DMI data.
-- **Failure mode is silent-ish:** if no datasource is identified, cloud-init
-  **stays disabled and performs no configuration at all during boot** — the
-  machine simply comes up unconfigured.
-- **Mitigations:** launch with `openstack server create … --config-drive true`,
-  or pin `datasource_list:` explicitly. This is a second, stronger reason for
-  the `datasource_list: [NoCloud]` pin already recommended in the air-gapped
-  checklist — it is no longer only about avoiding probe timeouts.
+- Hits Ec2 / OpenStack / AltCloud images on non-x86 hardware without DMI.
+- Fix: pin `datasource_list:` (the air-gapped checklist pin covers NoCloud), pass
+  `ds=` on the cmdline, or for OpenStack boot with `--config-drive true`.
+- Diagnose: `cloud-init status --long` reports `disabled` (boot status
+  `disabled-by-generator`); `/run/cloud-init/ds-identify.log` shows why.
 
 Every other upstream change by version (24.1 snapd seeding, 24.3 service rename,
 25.x packaging) is in `references/cli-and-debugging.md` § Version notes.
