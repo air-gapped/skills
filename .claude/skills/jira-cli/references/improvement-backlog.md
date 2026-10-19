@@ -43,10 +43,7 @@ would otherwise have required changing.
 
 ## Open
 
-- **`sprint add` / `sprint close` not live-verified (Dim 9).** Blocked on: a Jira
-  instance with a scrum board and an active sprint — the only test instance has one
-  team-managed project with a `simple` board, and the CLI cannot create a sprint.
-  File-set: `references/commands.md` §sprint. (`sprint list` flags are verified.)
+(none)
 
 ## Decided — do not re-propose
 

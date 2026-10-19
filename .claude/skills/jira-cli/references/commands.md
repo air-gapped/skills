@@ -230,8 +230,9 @@ Multi-line: `jira issue comment add KEY $'Line 1\n\nLine 2'`, or pipe: `echo "..
   - `--table` — table view.
   - `--columns` for sprint list: `ID, NAME, START, END, COMPLETE, STATE`. For sprint *issues*: same set as `issue list`.
   - Plus the standard output flags (`--plain`, `--raw`, `--csv`, …) and `--order-by`/`--paginate`.
-- **`sprint add SPRINT_ID ISSUE-1 [...ISSUE-N]`** (alias `assign`) — add up to 50 issues to a sprint. Get the ID from `sprint list --table`.
-- **`sprint close SPRINT_ID`** — close a sprint.
+- **`sprint add SPRINT_ID ISSUE-1 [...ISSUE-N]`** (alias `assign`) — add issues to a sprint in one request. Get the ID from `sprint list --table`. No chunking: more than 50 keys fails at the Agile API — split into batches of ≤50. Bare numbers get the configured project prefix.
+- **`sprint close SPRINT_ID`** (alias `complete`) — close a sprint. Exits non-zero with "sprint N is already closed" on a closed sprint.
+- Neither has `--no-input`: a missing `SPRINT_ID` or issue list opens a prompt. Always pass every argument and `</dev/null`.
 
 ## release
 `jira release list` (alias `ls`) — list project versions. Requires the **Releases/Versions** feature enabled on the instance. Use the global `-p/--project <KEY|id>` to target a specific project: `jira release list -p PROJ`. **No output flags** (`--plain`/`--raw`/etc. error with `unknown flag`) — prints a table directly.
