@@ -171,8 +171,7 @@ Full question set, worked example, and table-maintenance guidance:
 provenance.
 
 **With a human partner:** request facts one dimension at a time — a focused
-question set they can actually answer — never a 20-question dump. You keep
-the table; they fetch the facts.
+question set they can actually answer — never a 20-question dump.
 
 ## Stage 3 — Hypothesize
 
@@ -251,9 +250,8 @@ real-world check available:
 
 Physical/production actions belong to the human partner when one is present;
 the agent specifies exactly what to do and what result each outcome would
-imply; the human executes and reports. "If you didn't verify it, it isn't fixed" — a fix
-that happens to coincide with recovery, unverified, is how the same incident
-returns next month.
+imply; the human executes and reports. A fix that merely coincides with
+recovery is unverified, not done.
 
 Close the loop: state the verified cause, the fix, and update the spec table
 one last time showing the cause explaining every row. If the analysis
