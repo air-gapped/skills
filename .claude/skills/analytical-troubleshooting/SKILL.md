@@ -245,10 +245,9 @@ real-world check available:
 - When the evidence is destroyed or unreachable, verify the *assumptions*
   the candidate depends on instead.
 
-Physical/production actions belong to the human partner when one is present;
-the agent specifies exactly what to do and what result each outcome would
-imply; the human executes and reports. A fix that merely coincides with
-recovery is unverified, not done.
+With a human partner present, they execute physical and production actions
+from an exact procedure with its outcomes stated in advance (hard rule 3).
+A fix that merely coincides with recovery is unverified, not done.
 
 Close the loop: state the verified cause, the fix, and update the spec table
 one last time showing the cause explaining every row. If the analysis
