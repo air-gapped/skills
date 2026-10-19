@@ -18,15 +18,8 @@ when_to_use: >-
 
 # ubuntu-netplan
 
-Netplan is Ubuntu's network-configuration abstraction: declarative YAML under
-`/etc/netplan/` that netplan renders to a backend — **systemd-networkd** (servers,
-the default) or **NetworkManager** (desktop) — and uses to bring the network up.
-This skill is authoring-led (produce correct YAML from a description) with a strong
-validation/debug path, aimed at **on-prem / air-gapped Ubuntu Server LTS**.
-
-Netplan is also the shared network substrate for the sibling skills: cloud-init's
-network-config **v2 is netplan format**, and an autoinstall `network:` block **is**
-netplan v2. See **Boundaries** at the end.
+Cloud-init network-config **v2 is netplan format**, and an autoinstall `network:`
+block **is** netplan v2 — see **Boundaries** at the end.
 
 ## Authoring workflow
 
