@@ -82,8 +82,7 @@ validation pass.
 - **Air-gapped mirror/proxy:** keeping the default `country-mirror` candidate with
   `geoip: true` → up to 10 s wait on the geoip result before mirror probing. `geoip:
   false` only drops the country-mirror swap — the `geoip.ubuntu.com` request still goes
-  out on network-up and ignores `proxy`. Relying on the ambiguous `apt.fallback`
-  default — set it explicitly.
+  out on network-up and ignores `proxy`. For `apt.fallback`, see the caveat below.
 - **`late-commands` run in the installer env**, target at `/target` — use
   `curtin in-target -- <cmd>` to run inside the installed system.
 - **OEM + kernel conflict:** `oem.install: true` plus a pinned `kernel:` can fail.
