@@ -1,29 +1,25 @@
 # Sources — messages-api skill
 
-Dated per-URL index. The `Freshened:` header stamp is authoritative; the per-row `Last verified` column is legacy.
-"Commit examined" per repo is recorded in backend-implementations.md.
+Dated per-URL index. The `Freshened:` header stamp is authoritative.
 
-Freshened: 2026-10-20 — every row probed (each repo re-read at its latest tag: vLLM v0.32.0, SGLang v0.5.22, llama.cpp b11742 / v0.7.0, Ollama v0.40.6, mistral.rs v0.9.5, OGX v1.5.0, Lemonade v2026.42.1, LiteLLM v1.106.0, Bifrost main 4de5eafcc, Superagent v0.1.1, opencode v1.19.3 / v2.0.32; official docs on platform.claude.com and code.claude.com). Findings are in the 2026-10-20 table below.
+Freshened: 2026-10-20 — every row probed; findings in the 2026-10-20 table below. Official docs read on platform.claude.com and code.claude.com.
 
-The pinned versions below are **point-in-time examination snapshots, not latest-version claims**. llama.cpp publishes both `bNNNNN` builds and semver releases (`gh release view --latest` = v0.7.0). opencode runs two lines: v1 on GitHub Releases / npm `opencode-ai`, v2 on git tags + npm `@opencode/cli` with **no GitHub Release object** — check `…/tags` and the npm dist-tag, not `gh release list`.
+Each repo was first examined by source at the "Snapshot" commit (2026-07-19, opencode/OGX later), then every skill claim about it was re-checked at the "Latest at stamp" release; behaviour that differs between the two carries an inline version gate in the skill. llama.cpp publishes both `bNNNNN` builds and semver releases (`gh release view --latest` = v0.7.0). opencode runs two lines: v1 on GitHub Releases / npm `opencode-ai`, v2 on git tags + npm `@opencode/cli` with **no GitHub Release object** — check `…/tags` and the npm dist-tag, not `gh release list`.
 
-All repo rows were examined by source (local clones of the upstream repos)
-on 2026-07-19 at the listed commit.
-
-| Ref | URL | Last verified | Pinned | Commit examined |
-|-----|-----|---------------|--------|-----------------|
-| Anthropic Messages API spec | https://platform.claude.com/docs/en/api/messages (docs.anthropic.com 301s here) | 2026-07-19 | — | — |
-| vLLM (anthropic entrypoint) | https://github.com/vllm-project/vllm | 2026-07-19 | v0.25.1 | 9243e0124e |
-| SGLang | https://github.com/sgl-project/sglang | 2026-07-19 | v0.5.15.post1 | 99f5a6f46b |
-| LiteLLM | https://github.com/BerriAI/litellm | 2026-07-19 | v1.92.0 (live) / main | b83c60b |
-| Bifrost | https://github.com/maximhq/bifrost | 2026-07-19 | — | 7a1543e85 |
-| Superagent Gateway | https://github.com/superagent-ai/gateway | 2026-07-19 | — | d182a5b |
-| opencode (anthropic provider) | https://github.com/anomalyco/opencode | 2026-09-22 | v1.18.3 examined; two live lines — v1 at 1.19.3, v2 at 2.0.32 (2026-10-20) | 127bdb307 (v1.18.3 tag) — **repo moved `sst/` → `anomalyco/`**; the old URL redirects but is no longer canonical. **v2 ships on a separate channel and is invisible to `gh release list`**: npm `@opencode/cli` (not `opencode-ai`), `https://opencode.ai/v2/install`, brew `anomalyco/tap/opencode-v2`, AUR `opencode-beta`, docs `https://opencode.ai/v2/docs`. Git tags `v2.0.0`–`v2.0.13` and a `2.0` branch exist; **no GitHub Release object does**, so the releases API reports v1.18.32 as latest. Check `…/tags` and the npm dist-tag, not `gh release list`. |
-| llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-07-19 | b10068 | 571d0d5 |
-| Ollama | https://github.com/ollama/ollama | 2026-07-19 | v0.32.1 | 573386c |
-| mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-07-19 | v0.9.0 | 0ae0476 |
-| Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.1 examined; v1.5.0 `isLatest` on 2026-10-20 | f05b98f — **repo moved and the project renamed**: its README now reads "Llama Stack is now OGX" |
-| Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-07-19 | v11.0.0 | b09a0e9 |
+| Ref | URL | Snapshot (version @ commit) | Latest at stamp | Notes |
+|-----|-----|-----------------------------|-----------------|-------|
+| Anthropic Messages API spec | https://platform.claude.com/docs/en/api/messages | — | live docs | docs.anthropic.com 301s here |
+| vLLM (anthropic entrypoint) | https://github.com/vllm-project/vllm | v0.25.1 @ 9243e0124e | v0.32.0 | |
+| SGLang | https://github.com/sgl-project/sglang | v0.5.15.post1 @ 99f5a6f46b | v0.5.22 | |
+| LiteLLM | https://github.com/BerriAI/litellm | main @ b83c60b (v1.92.0 live-tested) | v1.106.0 | |
+| Bifrost | https://github.com/maximhq/bifrost | main @ 7a1543e85 | main @ 4de5eafcc (transports/v2.3.1) | |
+| Superagent Gateway | https://github.com/superagent-ai/gateway | main @ d182a5b | v0.1.1 | main 5 commits ahead of v0.1.1 |
+| opencode (anthropic provider) | https://github.com/anomalyco/opencode | v1.18.3 @ 127bdb307 | v1 1.19.3, v2 2.0.32 | repo moved `sst/` → `anomalyco/` (old URL redirects). v2 channel: npm `@opencode/cli`, `https://opencode.ai/v2/install`, brew `anomalyco/tap/opencode-v2`, AUR `opencode-beta`, docs `https://opencode.ai/v2/docs` |
+| llama.cpp | https://github.com/ggml-org/llama.cpp | b10068 @ 571d0d5 | b11742 / v0.7.0 | |
+| Ollama | https://github.com/ollama/ollama | v0.32.1 @ 573386c | v0.40.6 | |
+| mistral.rs | https://github.com/EricLBuehler/mistral.rs | v0.9.0 @ 0ae0476 | v0.9.5 | |
+| Llama Stack / OGX | https://github.com/ogx-ai/ogx | v1.2.1 @ f05b98f | v1.5.0 | renamed; `llamastack/llama-stack` redirects |
+| Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | v11.0.0 @ b09a0e9 | v2026.42.1 | |
 
 ## 2026-10-20 freshen — claims re-checked at latest tags
 

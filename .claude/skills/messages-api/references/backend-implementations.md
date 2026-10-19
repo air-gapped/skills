@@ -19,6 +19,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | Feature | vLLM | SGLang | llama.cpp | Ollama | mistral.rs | OGX (Llama Stack) | Lemonade |
 |---|---|---|---|---|---|---|---|
 | Commit examined | 9243e0124e | 99f5a6f46b | 571d0d5 | 573386c | 0ae0476 | f05b98f | b09a0e9 |
+| Re-checked at | v0.32.0 | v0.5.22 | b11742 | v0.40.6 | v0.9.5 | v1.5.0 | v2026.42.1 |
 | `/v1/messages` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
