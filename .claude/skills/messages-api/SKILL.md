@@ -94,7 +94,10 @@ client config → clients.
    ~52k `max_model_len` reject turn 1. Fix:
    `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192`.
 4. If reasoning models misbehave, check the backend's thinking handling in
-   the matrix (param ignored? blocks dropped on input?).
+   the matrix (param ignored? blocks dropped on input?). A 400 naming a
+   reasoning effort (`Unexpected reasoning effort high`) on turn 1: set
+   `CLAUDE_CODE_EFFORT_LEVEL` (or `--effort`) to a level the model's chat
+   template accepts.
 5. Done when the client completes one tool round trip (`tool_use` →
    `tool_result` → `end_turn`) against the backend.
 

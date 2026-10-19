@@ -24,6 +24,7 @@ backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 | vLLM or SGLang validation error | `document` block (vLLM), or `thinking.type: "between_tools"` | send documents as text; rewrite the type to `adaptive` |
 | vLLM usage has no cache fields | `message_start` never carries them; absent from `message_delta` too means `--enable-prompt-tokens-details` is off | read cache usage from `message_delta`; add the flag |
 | 404 on `/v1/v1/messages` or `/messages` | base-URL convention mismatch | SDKs: `http://host/v1`; Claude Code: origin only; Bifrost: `/anthropic` prefix |
+| Claude Code turn 1 → vLLM 400 `Unexpected reasoning effort high` | Claude Code sends `output_config.effort` (default `high`); vLLM passes it verbatim as the chat template's `reasoning_effort`, and the template's effort set excludes it | `CLAUDE_CODE_EFFORT_LEVEL` or `--effort` set to a level the template accepts |
 | Thinking budget has no effect | vLLM <0.31 ignores `thinking`; vLLM, llama.cpp and Lemonade ignore `adaptive`; SGLang does not enforce `budget_tokens` | send `enabled` + `budget_tokens` to vLLM 0.31+ / llama.cpp; cap length with `max_tokens` elsewhere |
 
 ## Canonical field mapping
@@ -152,7 +153,9 @@ What a third-party `/v1/messages` server must tolerate from real clients
 - A `thinking` body param — `{type:"adaptive", display:"summarized"}` +
   `effort` for newer Claude models, `{type:"enabled", budgetTokens: …}` for
   older → vLLM ignores `adaptive` (and everything before v0.31.0); SGLang
-  accepts-not-enforces.
+  accepts-not-enforces. Claude Code v2.1.304 sends
+  `{type:"adaptive", display:"updates"}` plus `output_config.effort`
+  (default `high`) to custom model ids too.
 - The official `thinking.type` set is `enabled` / `adaptive` / `disabled` /
   `between_tools`; Claude 4.7+ reject `enabled` with 400. vLLM and SGLang
   validate `type` against enabled/disabled/adaptive only, so a gateway

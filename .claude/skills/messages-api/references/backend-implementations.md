@@ -40,6 +40,9 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
   `budget_tokens >= max_tokens`), `disabled` → reasoning off, `adaptive`
   accepted and ignored, `display` ignored; count_tokens applies `thinking` and
   `output_config` too.
+- `output_config.effort` → chat-template `reasoning_effort`, verbatim (any of
+  low/medium/high/xhigh/max). A template that validates its own effort set
+  raises on the rest → HTTP 400 `Unexpected reasoning effort …`.
 - `metadata` accepted but never read; `document` blocks → pydantic 422;
   `tool_reference` / `tool_addition` / `tool_removal` blocks accepted.
 - Output thinking blocks carry **fabricated uuid4 signatures**; input
