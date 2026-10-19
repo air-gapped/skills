@@ -47,6 +47,7 @@ ${CLAUDE_SKILL_DIR}/scripts/isolated-run.sh MODE_FLAGS \
 
 The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is `KEY=value`. The file must be mode 0600, owned by the user, not a symlink, and outside Git. The runner rejects any other file.
 
+- CI job: write the file from the CI secret store with `umask 077` to a path outside the checkout (for example `$RUNNER_TEMP/targets.env`). Pass it with `CLAUDE_CODE_CI_SECRETS_FILE=PATH`, which `run-matrix.sh` also honours, or `--secrets-file PATH`. A file inside the checkout is rejected as inside Git.
 - Subscription token: the user runs `claude setup-token` in a separate terminal and adds `CLAUDE_CODE_OAUTH_TOKEN=<token>` to the file. Never run `setup-token` inside an agent session, because the token would land in the transcript.
 - Never copy `~/.claude/.credentials.json` into a run. Its refresh token rotates, and a rotated copy logs out the user.
 - Never put a token in a flag, a transcript or the skill directory.
