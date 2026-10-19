@@ -10,8 +10,8 @@ MIB: **IDRAC-MIB-SMIv2**, enterprise root `1.3.6.1.4.1.674.10892.5`
 
 Upstream snmp_exporter ships a **`dell`** module (walks `10892.5.2` status,
 `.5.4` system details, `.5.5` storage — 512 metrics). It works for iDRAC 9 but
-walks bulky subtrees (SEL event log, FRU) and misses identity. The upstream
-**`dell_rac` module is NOT for iDRAC** — it's DELL-RAC-MIB (`10892.2`), the old
+walks bulky subtrees (SEL event log, FRU) and misses identity. The
+**`dell_rac` module (on main, first release after v0.30.1) is NOT for iDRAC** — it's DELL-RAC-MIB (`10892.2`), the old
 CMC chassis controller (M1000e/VRTX/FX2).
 
 ## Subtree map (what to walk)
