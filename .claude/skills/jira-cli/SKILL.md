@@ -155,7 +155,7 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 | `references/config-auth.md` | First-time setup, multi-instance configs, every auth type (Cloud/basic/PAT/mTLS), env vars, and the full instance-discovery recipes. |
 | `references/troubleshooting.md` | A specific error or symptom — hangs, 401s, "valid issue type", parent-hierarchy errors, empty output, pager weirdness. |
 | `references/known-issues.md` | Tracking an upstream bug the skill works around — `(#NNN)` tags in the body map to this table (status, what it affects). |
-| `references/sources.md` | Verifying or freshening external claims; per-row `Last verified` dates. |
+| `references/sources.md` | Verifying or freshening external claims; the `Freshened:` stamp dates the last full check. |
 
 ## Quick recipes
 

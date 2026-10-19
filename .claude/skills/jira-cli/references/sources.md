@@ -1,32 +1,33 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed; v1.7.0 is still the latest release and all ten tracked issue states reproduce exactly.
+Freshened: 2026-10-20 (exceptions: 1 row, noted inline)
 
-Per-row `Last verified:` dates for the external claims in this skill. `freshen` mode reads + updates this file. The most authoritative reference for the installed build is always the binary's own `jira <cmd> <subcmd> --help`.
+External claims behind this skill. `freshen` re-verifies every row and rewrites the stamp above. For the installed build, the binary's own `jira <cmd> <subcmd> --help` outranks this file — except where the skill flags a help text as wrong.
 
-| Source | URL | Last verified | Pinned |
-|---|---|---|---|
-| jira-cli repo | https://github.com/ankitpokhrel/jira-cli | 2026-07-21 | |
-| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | 2026-08-18 | **README↔binary sync has broken.** `main` moved 2026-07-30 → 2026-08-12 (PRs #1008–#1014) while the release stayed at v1.7.0, so README-on-main now documents unreleased behaviour |
-| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | 2026-08-18 | **Still v1.7.0 (2025-08-31)** — no new release in ~12 months, but development resumed: repo last pushed 2026-08-17, **10 commits on `main` in the trailing 90 days**; 163 open issues; not archived. See `known-issues.md` § Upstream cadence. |
-| jira-cli v1.7.0 tag | https://github.com/ankitpokhrel/jira-cli/releases/tag/v1.7.0 | 2026-06-07 | v1.7.0 |
-| Installation guide (wiki) | https://github.com/ankitpokhrel/jira-cli/wiki/Installation | 2026-06-07 | |
-| Token storage (.netrc/keychain) discussion #356 | https://github.com/ankitpokhrel/jira-cli/discussions/356 | 2026-06-07 | |
-| Custom fields discussion #346 | https://github.com/ankitpokhrel/jira-cli/discussions/346 | 2026-06-07 | `--custom` usage |
-| Pager configuration discussion #569 | https://github.com/ankitpokhrel/jira-cli/discussions/569 | 2026-06-07 | |
-| FAQs (discussions) | https://github.com/ankitpokhrel/jira-cli/discussions/categories/faqs | 2026-06-07 | |
-| Atlassian API tokens (Cloud) | https://id.atlassian.com/manage-profile/security/api-tokens | 2026-06-07 | |
-| Atlassian Document Format (ADF) | https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/ | 2026-06-07 | nodes that may not round-trip |
-| Add comment during a transition | https://confluence.atlassian.com/jirakb/how-to-add-a-comment-during-a-transition-779160682.html | 2026-06-07 | workflow setup for `move --comment` |
-| Enable Releases & Versions | https://support.atlassian.com/jira-software-cloud/docs/enable-releases-and-versions/ | 2026-06-07 | needed for `release list` |
-| GitHub-flavored markdown spec | https://github.github.com/gfm/ | 2026-06-07 | |
-| Jira wiki markup help | https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all | 2026-06-07 | |
+| Source | URL | Notes |
+|---|---|---|
+| jira-cli repo | https://github.com/ankitpokhrel/jira-cli | not archived; last push 2026-10-17 |
+| jira-cli README (main) | https://github.com/ankitpokhrel/jira-cli/blob/main/README.md | documents unreleased `main` behaviour — see `known-issues.md` § `main` is ahead |
+| jira-cli releases | https://github.com/ankitpokhrel/jira-cli/releases | **v1.7.0 (2025-08-31) is still latest**; no tag newer. 15 commits on `main` since 2026-07-22 (PRs #971, #981, #982, #990, #1003, #1008–#1011, #1013, #1014, #1017, #1034, #1039) |
+| jira-cli v1.7.0 tag | https://github.com/ankitpokhrel/jira-cli/releases/tag/v1.7.0 | Pinned: v1.7.0 |
+| Upstream agent skill (PR #1039) | https://github.com/ankitpokhrel/jira-cli/pull/1039 | `skills/jira-cli/SKILL.md` on `main`; source for the move-lists-states and `--debug` header warnings |
+| Installation guide (wiki) | https://github.com/ankitpokhrel/jira-cli/wiki/Installation | |
+| Token storage (.netrc/keychain) discussion #356 | https://github.com/ankitpokhrel/jira-cli/discussions/356 | |
+| Custom fields discussion #346 | https://github.com/ankitpokhrel/jira-cli/discussions/346 | `--custom` usage |
+| Pager configuration discussion #569 | https://github.com/ankitpokhrel/jira-cli/discussions/569 | |
+| FAQs (discussions) | https://github.com/ankitpokhrel/jira-cli/discussions/categories/faqs | |
+| Atlassian API tokens (Cloud) | https://id.atlassian.com/manage-profile/security/api-tokens | login-gated SPA; 202 |
+| Atlassian Document Format (ADF) | https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/ | nodes that may not round-trip |
+| Add comment during a transition | https://support.atlassian.com/jira/kb/how-to-add-a-comment-during-a-workflow-transition-and-make-it-mandatory/ | workflow setup for `move --comment` (old confluence.atlassian.com/jirakb URL 301s here) |
+| Enable Releases & Versions | https://support.atlassian.com/jira-software-cloud/docs/enable-releases-and-versions/ | needed for `release list` |
+| GitHub-flavored markdown spec | https://github.github.com/gfm/ | |
+| Jira wiki markup help | https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all | **exception:** 401 to curl; the browser redirects to the Atlassian login page — login-gated, content not re-read |
 
 ## Local ground truth
 - Installed build at time of authoring: `jira version` → `1.7.0` (GitCommit 79067e2, CommitDate 2025-08-30, go1.24.1, linux/amd64). v1.7.0 is the current latest release, so the README on `main` and the binary's `--help` are in sync — no version drift.
 - All flag/argument tables in `commands.md` were captured from this binary's `--help`.
 - **Upstream issue sweep (2026-06-07)** — searched `ankitpokhrel/jira-cli` issues for known bugs/gotchas and folded in the verified, in-scope ones: **#898** (Cloud v1.7.0 dropped `startAt`, so `--paginate` offset is dead / no paging past 100 — also confirmed live), **#621** (older: `epic create --no-input -b` dropped the description; **fixed on v1.7.0** — body lands, verified live), **#948/#984** (`create`/`edit`/`comment`/`epic create` can block on socket/subprocess stdin even with `--no-input`; use `</dev/null`), **#941** (`___` mis-parsed as emphasis) and **#974** (URL-with-params in code blocks) ADF rendering bugs. Open feature requests / non-reproducible reports were not folded in.
-- **Source-confirmed (2026-06-07)** against a local clone (v1.7.0+6, HEAD 396933d): **pagination** — `pkg/jira/search.go`: Cloud `Search(jql, limit)` takes no offset and the v3 `/search/jql` endpoint returns `nextPageToken` (jira-cli doesn't follow it); `SearchV2(jql, from, limit)` keeps `startAt` for Server/DC — so the offset works on DC, not Cloud. **Markdown** — `md.ToJiraMD` (the `blackfriday-confluence` renderer, i.e. Confluence/Jira-Server wiki markup) is applied by `create` (`create.go:140`) and `comment add` (`issue.go:314,349`) but by `edit` only when the existing field is ADF/Cloud (`edit.go:142`), confirming the #935 edit asymmetry. **Epic** — `epic/create` reads `epic.name` from config and skips `cr.Name` on next-gen (so `-n` is ignored there but still required by `isMandatoryParamsMissing`); `getQuestions` returns before any prompt under `--no-input`; there is **no `--raw`** flag. This corrects an earlier mis-attributed "epic create prompts on next-gen" note — the `? Epic Key` EOF came from a downstream `epic add` with an empty key. **Custom fields** — `--custom` keys are validated against `issue.fields.custom` in the config (`cmdcommon/create.go:244`); the key is the field `name` lowercased with spaces→hyphens, and an unconfigured key is warned and dropped.
+- **Source-confirmed (2026-06-07)** against a local clone (v1.7.0+6, HEAD 396933d): **pagination** — `pkg/jira/search.go`: Cloud `Search(jql, limit)` takes no offset and the v3 `/search/jql` endpoint returns `nextPageToken` (jira-cli doesn't follow it); `SearchV2(jql, from, limit)` keeps `startAt` for Server/DC — so the offset works on DC, not Cloud. **Markdown** — `md.ToJiraMD` (the `blackfriday-confluence` renderer, i.e. Confluence/Jira-Server wiki markup) is applied by `create` (`pkg/jira/create.go:140`) and `comment add` (`pkg/jira/issue.go:314`) but by `edit` only when the existing field is ADF/Cloud (`internal/cmd/issue/edit/edit.go:141-143`; paths re-checked at the v1.7.0 tag 2026-10-20), confirming the #935 edit asymmetry. **Epic** — `epic/create` reads `epic.name` from config and skips `cr.Name` on next-gen (so `-n` is ignored there but still required by `isMandatoryParamsMissing`); `getQuestions` returns before any prompt under `--no-input`; there is **no `--raw`** flag. This corrects an earlier mis-attributed "epic create prompts on next-gen" note — the `? Epic Key` EOF came from a downstream `epic add` with an empty key. **Custom fields** — `--custom` keys are validated against `issue.fields.custom` in the config (`cmdcommon/create.go:244`); the key is the field `name` lowercased with spaces→hyphens, and an unconfigured key is warned and dropped.
 - **Behavior live-verified against a real Jira Cloud (team-managed) instance on 2026-06-07** — full read + write round-trip on throwaway issues, all artifacts deleted afterward. Confirmed working as documented: `me`, `serverinfo`, `project list`, `board list`, `release list`, `issue list` (`--plain`/`--raw`/`--columns`/`--paginate`), `issue view --raw` field paths (`.fields.issuetype.name`/`.status.name`/`.priority.name`/`.resolution.name`, `customfield_*`), `issue create --no-input --raw`, `issue edit` `--label` append + `--label -x` removal, `assign` (self / `x` / `default`), `comment add` (+ `--internal`), `worklog add`, `watch`, `link`/`unlink` (`Blocks`), `clone -H`, `move`, `delete`, `open --no-browser`, `man`, `completion`. Two authoring errors the live run **corrected**: (1) `project list`, `board list`, and `release list` take **no output flags** — `--plain`/`--raw`/`--csv`/`--columns` error with `unknown flag`; they print a tab-separated table directly; (2) `epic create` takes **no `--raw`** flag (unlike `issue create`). **[Note: a claim here that `epic create` "prompts `Epic Key` and fails on next-gen" was retracted on 2026-06-07 after source review — `epic create` works non-interactively on next-gen; the `? Epic Key` EOF in the original run came from a downstream `epic add` with an empty key, not from create.]** Not exercised on this instance: `sprint add`/`close` (board has no sprint and the CLI can't create one) and `init` (would overwrite the config).
 
 
