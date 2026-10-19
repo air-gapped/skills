@@ -11,20 +11,24 @@ backends. Source-examined 2026-07-19 (commits in `sources.md`).
 ## LiteLLM
 
 Proxy route `POST /v1/messages` (also `/v1/messages/count_tokens`).
-Examined at upstream main b83c60b (2026-07-18, newer than v1.92.0 stable);
 `/v1/messages` adapter → vLLM live-verified 2026-07-19 on proxy v1.92.0.
 
-**Routing cascade** (`llms/anthropic/experimental_pass_through/messages/handler.py:488-535`):
-1. **Native passthrough** — providers with `AnthropicMessagesConfig`:
-   anthropic, bedrock (Claude), vertex_ai (Claude), azure_ai, minimax,
-   deepseek, tencent, github_copilot.
+**Routing cascade** (`llms/anthropic/pass_through/messages/handler.py`;
+`experimental_pass_through/` on older releases). Web-search short-circuit,
+interceptors and MCP-gateway expansion run first.
+1. **Native passthrough** — providers with an Anthropic Messages config
+   (`litellm/utils.py` `_get_provider_anthropic_messages_config_cached`):
+   anthropic, bedrock, minimax, deepseek, tencent, edenai; vertex_ai,
+   azure_ai, github_copilot, bedrock_mantle only when the model name
+   contains `claude`; any JSON-registry provider listing `/v1/messages`.
 2. **Per-deployment opt-in passthrough** for OpenAI-compat backends:
    `model_info.supported_endpoints: ["/v1/messages"]` in config.yaml forwards
    the Anthropic body **untranslated** to the backend. Since vLLM/SGLang/
    llama.cpp/Ollama now serve `/v1/messages` natively, this is the
    full-fidelity fleet configuration — no bridge, no thinking-signature loss.
 3. **Responses-API bridge** for `custom_llm_provider=="openai"` (opt-out via
-   `litellm.use_chat_completions_url_for_anthropic_messages=True`).
+   `litellm.use_chat_completions_url_for_anthropic_messages=True`); skipped
+   when the request carries `compaction`.
 4. **Chat-completions bridge** for everything else (`hosted_vllm/` etc.) —
    the default path live-verified against vLLM.
 
