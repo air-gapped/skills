@@ -22,7 +22,7 @@ backends, across 7 servers and 3 gateways (provenance: `sources.md`).
 | Prefix-cache hits near zero under Claude Code | attribution block fingerprint at the start of `system` | `CLAUDE_CODE_ATTRIBUTION_HEADER=0` (vLLM and llama.cpp handle it already) |
 | Real Anthropic API rejects replayed history | thinking from a local backend or bridge carries a fake or empty signature | strip thinking blocks before crossing to the real API |
 | vLLM or SGLang validation error | `document` block (vLLM), or `thinking.type: "between_tools"` | send documents as text; rewrite the type to `adaptive` |
-| vLLM usage has null cache fields | `--enable-prompt-tokens-details` off | add the flag |
+| vLLM usage has no cache fields | `message_start` never carries them; absent from `message_delta` too means `--enable-prompt-tokens-details` is off | read cache usage from `message_delta`; add the flag |
 | 404 on `/v1/v1/messages` or `/messages` | base-URL convention mismatch | SDKs: `http://host/v1`; Claude Code: origin only; Bifrost: `/anthropic` prefix |
 | Thinking budget has no effect | vLLM <0.31 ignores `thinking`; vLLM, llama.cpp and Lemonade ignore `adaptive`; SGLang does not enforce `budget_tokens` | send `enabled` + `budget_tokens` to vLLM 0.31+ / llama.cpp; cap length with `max_tokens` elsewhere |
 
@@ -116,8 +116,12 @@ bridge synthesizes it too). Differences that matter:
 - **usage in message_start**: Ollama estimates input tokens; vLLM computes;
   cache-token fields only appear where the server supports them (vLLM needs
   `--enable-prompt-tokens-details`; mistral.rs before v0.9.3 has none).
-  With the vLLM flag, cache fields populate in aggregate usage but per-turn
-  `message_start` usage reports null cache fields (observed on v0.25.1).
+  vLLM's `message_start` usage omits the cache fields and counts the whole
+  prompt as `input_tokens`; each turn's `message_delta` carries
+  `cache_read_input_tokens` and `cache_creation_input_tokens`, with
+  `input_tokens` reduced to the uncached remainder. Read per-turn cache usage
+  from `message_delta`. Counts are whole KV blocks: a prompt shorter than one
+  block reports 0 even with prefix caching on.
 - LiteLLM's bridge holds/merges the final `message_delta` to attach usage and
   splits fake-streamed single chunks.
 

@@ -54,7 +54,9 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
 - Strips `x-anthropic-billing-header` system text blocks (Claude Code
   prefix-caching preservation hack); inline system role auto-merged when the
   chat template requires system-first.
-- Usage cache fields require `--enable-prompt-tokens-details`.
+- Usage cache fields require `--enable-prompt-tokens-details` and arrive only
+  in `message_delta`; `message_start` omits them and counts the whole prompt
+  as `input_tokens`.
 
 ## SGLang
 
