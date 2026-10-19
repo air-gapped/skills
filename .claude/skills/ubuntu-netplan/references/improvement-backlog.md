@@ -29,8 +29,17 @@ passes hadn't run.**
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **`critical` scalar values** (Dim 9) — `references/schema.md` §2 `critical`
+  row. `main` accepts `static`/`dynamic`/`dynamic-on-stop` (aliases `dhcp`/`dhcp-on-stop`; canonical/netplan#599);
+  **blocked on a netplan release that contains it**. When it ships: add the
+  values with a "since <ver>" gate, and in the same pass re-check whether the
+  umask fix (#614) shipped — update the "Unfixed … through 1.2.2" line in
+  `cli-and-debugging.md` Frequent root causes.
+- **DHCP overrides ignored on systemd 259** (Dim 4) — LP #2167907, fix PR
+  canonical/netplan#617. **Blocked on confirmation**: maintainer could not
+  reproduce on 26.04. If #617 merges or the bug is confirmed, add a root-cause
+  bullet (`dhcp4-overrides`, `dhcp-identifier: mac` lost when another drop-in
+  defines `[DHCPv4]`) to `cli-and-debugging.md`.
 
 ## Decided — do not re-propose
 

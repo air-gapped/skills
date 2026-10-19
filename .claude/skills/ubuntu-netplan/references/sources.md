@@ -1,23 +1,46 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed. netplan 1.2.2 is still latest and the `since 1.1` marker sweep still tops out where it did; two line anchors moved as the files grew, with semantics unchanged.
+Freshened: 2026-10-20
 
-Authoritative references behind this skill's factual claims, with verification dates.
-Re-probe with `skill-improver freshen ubuntu-netplan`. Claims verified against the
-**canonical/netplan** source repo (authoritative implementation) + GitHub releases.
+Authoritative references behind this skill's factual claims. Re-probe with
+`skill-improver freshen ubuntu-netplan`. Claims verified against the
+**canonical/netplan** source repo (authoritative implementation), its GitHub
+releases, and the Ubuntu archive (Launchpad).
 
-| Ref | URL / location | Pinned | Last verified | Verified claim |
-|---|---|---|---|---|
-| netplan repo | https://github.com/canonical/netplan | `main` | 2026-09-15 | Live (**pushed 2026-09-07**), not archived, default branch `main`. |
-| Latest release | https://github.com/canonical/netplan/releases | `1.2.2` | 2026-09-15 | **`1.2.2` is latest (2026-07-20)**, up from 1.2.1. **Bug fixes only** — SR-IOV udev ordering before the apply service (#569), terminal `BlockingIOError` handling (#572), CI/doc chores. **No new YAML surface, no breaking change.** "26.04 tracks 1.2.x" unchanged. |
-| Release tags | https://github.com/canonical/netplan/tags | — | 2026-09-15 | `1.0`, `1.0.1` (2024-07-04, in the 24.04 window → "24.04 ships ~1.0.x"), `1.1` (2024-08-14, *after* 24.04), `1.1.1`, `1.1.2`, `1.2`, `1.2.1` all exist. |
-| Ubuntu `netplan.io` packages | https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=netplan.io&exact_match=true | — | 2026-10-20 | noble Release `1.0-2ubuntu1` (Security `1.0-2ubuntu1.2`); **noble-updates `1.1.2-8ubuntu1~24.04.3`** (2026-09-15; 1.1.x SRU'd since `1.1.1-1~ubuntu24.04.1`, 2025-01-08). resolute Release `1.2-1ubuntu5`, Updates `1.2-1ubuntu5.1`. → updated 24.04 has `ra-overrides`/`advertised-mss`; 26.04 is 1.2, not 1.2.2. |
-| umask 0077 generate bug | https://bugs.launchpad.net/ubuntu/+source/netplan.io/+bug/2164636 ; fix https://github.com/canonical/netplan/pull/614 | — | 2026-10-20 | Under `umask 0077`, `/run/systemd/network/10-netplan-*` are written `0600` instead of `0640`; networkd "Permission denied". Fix merged to `main` 2026-09-18 (after 1.2.2); LP tasks: netplan Fix Committed, netplan.io (Ubuntu) Triaged — not in any release or Ubuntu package yet. |
-| YAML version | `src/parse.c` **L38-39**, reject at **L3155** | `main` | 2026-09-15 | Re-read: `NETPLAN_VERSION_MIN 2` / `NETPLAN_VERSION_MAX 3`, rejecting `< MIN \|\| >= MAX` → only `network.version: 2` accepted. Unchanged. |
-| `ra-overrides` / `advertised-mss` gating | `doc/netplan-yaml.md` **L406, L709, L845** | `main` | 2026-09-15 | Both still marked "since 1.1" → present on 26.04 (1.2.x), NOT on 24.04 (1.0.x). **These are the only three `since 1.1` markers in the file** — see the sweep below. |
-| `netplan try` timeout | `netplan_cli/cli/commands/try_command.py` **L36** | `main` | 2026-09-15 | Re-read: `DEFAULT_INPUT_TIMEOUT = 120` (also the `--timeout` default at L75). Unchanged. |
-| `hairpin` / `port-mac-learning` | `doc/netplan-yaml.md` | `main` | 2026-09-15 | Bridge-port props "since 1.0" → available on both 24.04 and 26.04. |
-| netplan docs | https://netplan.readthedocs.io/en/stable/netplan-yaml/ | — | 2026-09-15 | Authoritative YAML reference; repo `doc/netplan-yaml.md` (~2200 lines) is the source. |
+| Ref | URL / location | Pinned | Verified claim |
+|---|---|---|---|
+| netplan repo | https://github.com/canonical/netplan | `main` | Live (pushed 2026-10-15), not archived, default branch `main`. Bugs are tracked on Launchpad, not GitHub issues. |
+| Latest release | https://github.com/canonical/netplan/releases | `1.2.2` | **`1.2.2` is latest (2026-07-20)**, bug fixes only — no new YAML surface, no breaking change. Unfiltered release list: 1.2.2, 1.2.1, 1.2, 1.1.2, 1.1.1, 1.1, 1.0.1, 1.0, 0.107.1 … 0.99. |
+| Release tags | https://github.com/canonical/netplan/tags | — | `1.0` (2024-02-29), `1.0.1` (2024-07-04), `1.1` (2024-08-14), `1.1.1` (2024-10-15), `1.1.2` (2025-01-21), `1.2` (2025-12-16), `1.2.1` (2026-01-27), `1.2.2` (2026-07-20). No tag above 1.2.2. |
+| Ubuntu `netplan.io` packages | https://api.launchpad.net/1.0/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=netplan.io&exact_match=true | — | noble Release `1.0-2ubuntu1` (Security `1.0-2ubuntu1.2`); **noble-updates `1.1.2-8ubuntu1~24.04.3`** (2026-09-15; 1.1.x SRU'd since `1.1.1-1~ubuntu24.04.1`, 2025-01-08). resolute Release `1.2-1ubuntu5`, Updates `1.2-1ubuntu5.1`. → updated 24.04 has `ra-overrides`/`advertised-mss`; 26.04 is 1.2, not 1.2.2. |
+| umask 0077 generate bug | https://bugs.launchpad.net/ubuntu/+source/netplan.io/+bug/2164636 ; fix https://github.com/canonical/netplan/pull/614 | — | Under `umask 0077`, `/run/systemd/network/10-netplan-*` are written `0600` instead of `0640`; networkd "Permission denied". Fix merged to `main` 2026-09-18 (after 1.2.2); LP tasks: netplan Fix Committed, netplan.io (Ubuntu) Triaged — not in any release or Ubuntu package yet. |
+| YAML version | `src/parse.c` **L38-39**, reject at **L3191** (4048 lines) | `main` | `NETPLAN_VERSION_MIN 2` / `NETPLAN_VERSION_MAX 3`, rejecting `< MIN \|\| >= MAX` → only `network.version: 2` accepted. |
+| `ra-overrides` / `advertised-mss` gating | `doc/netplan-yaml.md` **L418, L721, L857** (2211 lines) | `main` | The only three "since 1.1" markers. Full marker sweep (bold-tolerant one-liner below): newest is 1.1; `since 1.0` ×2 (`hairpin` L614, `port-mac-learning` L621); no 1.2+ marker. |
+| `netplan try` timeout | `netplan_cli/cli/commands/try_command.py` **L36** | `main` | `DEFAULT_INPUT_TIMEOUT = 120` (also the `--timeout` default at L75). |
+| `hairpin` / `port-mac-learning` | `doc/netplan-yaml.md` L614, L621 | `main` | Bridge-port props "since **1.0**" → available on both 24.04 and 26.04; `port-mac-learning` networkd-only. |
+| CLI flags | `netplan_cli/cli/commands/{status,try_command,apply,info,migrate,sriov_rebind,ip}.py` | local clone `1.2.1-12-g12ff34c` | `status --all/--diff/--diff-only/--format`; `try --config-file/--timeout/--state`, SIGUSR1 accepts; `info --json/--yaml`; `migrate --dry-run`; `rebind`; `ip leases`. Feature flags include `sriov`, `eswitch-mode`, `infiniband`, `openvswitch`, `regdom`, `vrf`, `vxlan`, `virtual-ethernet`. |
+| Schema details | `doc/netplan-yaml.md`, `doc/netplan-generate.md`, `doc/generator.md`, `src/parse.c` | local clone `1.2.1-12-g12ff34c` | stp default true; lacp-rate default slow; miimon no-suffix = ms; bridge times = s; `gratuitious-arp` alias; since-markers for activation-mode 0.103, ignore-carrier 0.104, vrf/vxlan/neigh-suppress 0.105, packets-per-member 0.106, dummy/veth 0.107, wireguard/address lifetime+label 0.100; file precedence + sequence concatenation; warn-only on open permissions (parse.c); `set` writes 0600; generator ignores parse errors at boot. |
+| netplan docs | https://netplan.readthedocs.io/en/stable/netplan-yaml/ | — | 200; authoritative YAML reference rendered from repo `doc/netplan-yaml.md`. |
+
+Marker sweep (markers are sometimes bolded — `since **1.0**` — so the pattern
+tolerates `*`):
+
+```bash
+gh api repos/canonical/netplan/contents/doc/netplan-yaml.md \
+  --header "Accept: application/vnd.github.raw" \
+  | grep -oiE 'since[ *]*(netplan )?[0-9]+\.[0-9]+(\.[0-9]+)?' | tr -d '*' \
+  | sed 's/netplan //I' | sort | uniq -c | sort -k3 -V
+```
+
+Watched, not applied (2026-10-20):
+
+- `critical` accepting `KeepConfiguration=` scalars (`static`, `dynamic`,
+  `dynamic-on-stop`; aliases `dhcp`, `dhcp-on-stop`) — merged to `main` in canonical/netplan#599 (2026-09-17), in
+  no release yet.
+- LP #2167907 — `dhcp4-overrides`/`dhcp-identifier: mac` reportedly ignored on
+  systemd 259 because netplan emits a legacy `[DHCP]` section; fix PR
+  canonical/netplan#617 open. Contested: a maintainer could not reproduce on
+  resolute (2026-10-07). Not applied until the PR merges or the bug is confirmed.
 
 <!-- Grounding note: authored 2026-07-21 against a local checkout of canonical/netplan
 @ main (June 2026, post-1.2.1). netplan v2 is the shared substrate: cloud-init
