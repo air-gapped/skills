@@ -36,7 +36,9 @@ vLLM); assistant-side tool_result blocks get flattened to text (SGLang, vLLM).
 ## stop_reason divergence table
 
 Anthropic defines end_turn / max_tokens / stop_sequence / tool_use (+
-pause_turn, refusal). What implementations actually emit:
+pause_turn, refusal, model_context_window_exceeded — treat the last as
+truncated output). Clients must accept unknown values. What implementations
+actually emit:
 
 | Implementation | stop_sequence emitted? | Unknown finish_reason → | refusal/pause_turn |
 |---|---|---|---|

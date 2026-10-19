@@ -37,9 +37,9 @@ provenance in `references/sources.md`).
   table: `references/translation-mapping.md`.
 - **Never rely on `stop_sequence`**: roughly half the implementations never
   emit it. end_turn/max_tokens/tool_use is the reliable subset;
-  pause_turn never comes from third-party backends; refusal only from the
-  LiteLLM bridge (upstream content_filter). Divergence table:
-  `references/translation-mapping.md`.
+  pause_turn and model_context_window_exceeded never come from third-party
+  backends; refusal only from the LiteLLM bridge (upstream content_filter).
+  Divergence table: `references/translation-mapping.md`.
 - **`anthropic-beta` headers arrive whether supported or not** — opencode
   always sends interleaved-thinking + fine-grained-tool-streaming betas.
   Servers must no-op unknown betas, never 400.
