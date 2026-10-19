@@ -215,8 +215,9 @@ stages, and re-run/golden-image notes in `references/cli-and-debugging.md`.
 
 ## Upstream breaking changes worth knowing (`doc/rtd/reference/breaking_changes.rst`)
 
-Verified against `main` on 2026-07-21. Ubuntu vendors patch some of these out —
-the doc says so itself — so confirm against the image before assuming.
+The 24.04 package reverts some of these (marked below; full list in
+`references/cli-and-debugging.md` § Version notes). 25.1.4 is **not** reverted —
+it applies on both LTS releases.
 
 **25.1.4 — strict datasource identity before network. The one most likely to
 bite an on-prem/ARM fleet.** `ds-identify` now requires strict identification
@@ -240,11 +241,11 @@ Also recorded, lower operational impact for this skill's use cases:
 
 | Version | Change |
 |---|---|
-| **26.1** | OpenStack bond names are no longer hard-coded to `bond0`/`bond1`… — they now take whatever `network_data.json` provides |
+| **26.1** | OpenStack bond names are no longer hard-coded to `bond0`/`bond1`… — they now take whatever `network_data.json` provides (reverted on 24.04) |
 | **25.3** | Systemd **socket protocol changed** for compatibility with `openbsd-netcat` alternatives (e.g. `nmap`'s `ncat -U`) — **downstreams shipping a custom `ExecStart=` must update**. Build backend moved **setuptools/distutils → meson** (PEP-0632); packagers should diff the generated package |
 | **25.1** | `/usr` merge — packaging installs nothing to `/lib` any more, everything to `/usr/lib`. Affects non-systemd / older / non-Linux distros |
 | **24.4** | `cloud-final.service` ordering standardized — changed the systemd boot order on some distributions |
-| **24.3** | `cloud-init.service` → `cloud-init-network.service` (already covered above) |
+| **24.3** | `cloud-init.service` → `cloud-init-network.service`, single process (reverted on 24.04 — unit stays `cloud-init.service`) |
 | **24.1** | `ds-identify` no longer auto-appends `None` to a single-entry `datasource_list` (already covered above) |
 
 ## Boundaries (sibling skills)

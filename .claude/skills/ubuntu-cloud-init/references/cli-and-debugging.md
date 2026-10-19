@@ -9,15 +9,15 @@ Grounded in `canonical/cloud-init` `doc/rtd/reference/cli.rst`,
 |---|---|---|---|
 | Detect | ds-identify (generator) | none | — enables/disables cloud-init |
 | **Local** | `cloud-init-local.service` | blocks net | datasource find + render network |
-| **Network** | `cloud-init-network.service` | up | `cloud_init_modules` |
+| **Network** | `cloud-init-network.service` (24.04: `cloud-init.service`) | up | `cloud_init_modules` |
 | **Config** | `cloud-config.service` | online | `cloud_config_modules` |
 | **Final** | `cloud-final.service` | online | `cloud_final_modules` |
 
 > **24.3 architecture change:** the four stages now run as one process talking to the
 > init system over a Unix socket, and `cloud-init.service` was **renamed to
 > `cloud-init-network.service`**. External units should order after
-> `cloud-config.target`. 25.3 changed the socket protocol. (24.04 and 26.1 both have
-> the single-process model.)
+> `cloud-config.target`. 25.3 changed the socket protocol. 26.04 runs the
+> single-process model; the 24.04 build reverts it (see Version notes).
 
 Ubuntu module ordering (abridged, from `config/cloud.cfg.tmpl`):
 - **Network:** seed_random, bootcmd, write_files, growpart, resizefs, disk_setup,
@@ -85,9 +85,17 @@ cloud-init-per once <name> <cmd>                       # frequency-guarded comma
 
 ## Version notes (24.04 patched build vs 26.04)
 
-Both LTS releases receive the same upstream version through SRUs (`-updates`);
-the differences below come from the version deltas and from 24.04's
-`debian/patches`, not from the release a host was installed with.
+Both LTS releases receive the same upstream version through SRUs (`-updates`).
+Behaviour differs where 24.04's `debian/patches` revert an upstream change; 26.04
+ships upstream behaviour:
+
+| Upstream change | 26.04 | 24.04 build |
+|---|---|---|
+| 24.3 single process, `cloud-init-network.service` | yes | reverted — four processes, unit is `cloud-init.service`; order external units after `cloud-config.target` on both |
+| 24.3 NoCloud `network-config` fetched from a `seedfrom` URI | yes | reverted — see `nocloud-and-airgapped.md` |
+| Deprecated keys → DEPRECATED log → `cloud-init status` exit **2** | every deprecation | only deprecations dated ≤ 24.1; newer ones log at INFO, exit 0 |
+| Network stage waits for network-online manually | yes | reverted — systemd ordering after `systemd-networkd-wait-online` |
+| 26.1 OpenStack bond names from `network_data.json` | yes | reverted — `bond0`, `bond1`, … |
 
 - **NoCloud:** `nocloud-net` dsname deprecated 24.1; ENI `network-interfaces` in
   meta-data deprecated 24.3; NoCloud `network-config` support added 24.3 (missing file
@@ -95,11 +103,9 @@ the differences below come from the version deltas and from 24.04's
   `ds=nocloud;s=<uri>/`. All present on both 24.04 and 26.1.
 - **datasource_list:** 24.1 stopped auto-appending `None` to single-entry lists — add
   it explicitly if wanted.
-- **Architecture:** 24.3 single-process + service rename; 25.1 `/usr` merge; 25.3
-  socket-protocol change; 25.3 build system moved to meson.
-- **26.1 specifics:** ntp client moved `ntp`→`ntpsec`; dropped Python 3.8; OpenStack
-  bond-name change (cloud-only, irrelevant to NoCloud). None affect the NoCloud
-  authoring path.
+- **Architecture:** 25.1 `/usr` merge; 25.3 socket-protocol change; 25.3 build
+  system moved to meson.
+- **26.1 specifics:** ntp client moved `ntp`→`ntpsec`; dropped Python 3.8.
 - **deb822 apt sources** (since 23.4): deb822 `sources_list` content is written to
   `/etc/apt/sources.list.d/ubuntu.sources` on both releases.
 
