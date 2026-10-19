@@ -1,8 +1,8 @@
-# Ubiquiti UniFi (live-tested 2026-07-23)
+# Ubiquiti UniFi (live-tested 2026-07-23, re-verified 2026-10-20)
 
-Tested against real gear (USW Pro HD 24, USW-16-PoE, UAP-nanoHD, fw 6.x/7.x)
-with the stock exporter modules — the only vendor in this skill verified on
-hardware so far.
+Tested against real gear (USW Pro HD 24 and USW-16-PoE on fw 7.5.15, UAP-nanoHD
+on fw 6.7.58) with the stock exporter modules — the only vendor in this skill
+verified on hardware so far.
 
 ## What works
 

@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-10-20 (exceptions: 1 row, noted inline)
+Freshened: 2026-10-20
 
 External sources backing this skill's factual claims. Claims covered here
 outrank an AI model's training-data memory.
@@ -32,4 +32,4 @@ outrank an AI model's training-data memory.
 | Mellanox MIB mirrors | https://github.com/netdisco/netdisco-mibs (mellanox/, ciscosb/) |
 | Trap pipeline: telegraf snmp_trap input (inbound); maxwo/snmp_notifier is outbound-only (Alertmanager→traps) | https://github.com/influxdata/telegraf (plugins/inputs/snmp_trap) + https://github.com/maxwo/snmp_notifier |
 | iDRAC SNMP Grafana dashboard 14395 | https://grafana.com/grafana/dashboards/14395 + https://github.com/zorrzoor/grafana-idrac-dashboard |
-| UniFi SNMP surface (no LLDP-MIB/RMON/POWER-ETHERNET; ubiquiti_unifi module works) | Live hardware test against USW Pro HD 24 / USW-16-PoE / UAP-nanoHD — **exception:** a live snmpwalk, not re-runnable without the hardware; no contradicting source |
+| UniFi SNMP surface (no LLDP-MIB/RMON/POWER-ETHERNET; ubiquiti_unifi module works) | Live snmpwalk 2026-10-20, USW Pro HD 24 + USW-16-PoE fw 7.5.15 and UAP-nanoHD fw 6.7.58, via snmp_exporter v0.29.0: LLDP/RMON/POWER-ETHERNET/UBNT subtrees `noSuchObject` on both switches; nanoHD `ubiquiti_unifi` = 194 PDUs / 0.20 s; 28-port switch `if_mib` = 1121 PDUs / 0.46 s |
