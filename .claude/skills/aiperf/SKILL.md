@@ -9,19 +9,7 @@ when_to_use: |-
 
 # AIPerf — NVIDIA generative-AI inference benchmarking
 
-Target audience: operators producing defensible latency/throughput/goodput numbers against any OpenAI-compatible inference server (vLLM, SGLang, TensorRT-LLM, NVIDIA Dynamo, NIM, Triton, HF TGI, Ollama), and developers extending AIPerf with custom endpoints, datasets, exporters, or metrics.
-
-## Why this matters
-
-`aiperf` is the open-source successor to `genai-perf`, written by NVIDIA's AI-Dynamo team. It is **the** vendor-neutral way to:
-
-1. **Replay production traces** (Mooncake / Bailian / BurstGPT) at exact timestamps — synthetic load lies about cache reuse and tail behavior.
-2. **Measure goodput**, not just throughput — the percentage of requests that meet **all** SLOs simultaneously. A system at 1000 req/s throughput and 28% goodput is mis-provisioned by ~3.5×.
-3. **Account for reasoning tokens correctly.** GPT-OSS / DeepSeek-R1 / Qwen3 emit `reasoning_content` before the answer. genai-perf ignored those; aiperf splits **TTFT** (any first token) from **TTFO** (first non-reasoning token). Numbers are not directly comparable across the two tools — see migration notes.
-4. **Collect server + GPU telemetry alongside client-side timings** in one run — DCGM / pynvml GPU metrics + Prometheus `/metrics` scrape, all aligned in the same artifact dir.
-5. **Extend cleanly** — 25 plugin categories with a YAML manifest + entry-point system. New endpoints, dataset formats, exporters, accuracy graders, plot types all go through the same registry.
-
-If the target is exclusively vLLM and the operator wants the in-tree `vllm bench` toolchain (sweep, latency-only, startup, mm-processor), defer to the `vllm-benchmarking` skill. AIPerf is the right answer when (a) the target is non-vLLM or (b) the workload is trace-driven, multi-modal, multi-server, or needs goodput.
+Use for defensible latency / throughput / goodput numbers against any OpenAI-compatible server (vLLM, SGLang, TensorRT-LLM, NVIDIA Dynamo, NIM, Triton, HF TGI, Ollama), and for extending AIPerf with plugins. AIPerf is the `genai-perf` successor; its numbers differ for reasoning models (pitfall 2). For a vLLM-only target driven by the in-tree `vllm bench` toolchain, use the `vllm-benchmarking` skill; use AIPerf when the target is non-vLLM or the workload is trace-driven, multi-modal, multi-server, or needs goodput.
 
 ## Version-gated capabilities — check `aiperf --version` before using
 
