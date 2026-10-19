@@ -43,7 +43,7 @@
       "id": 2,
       "name": "create-with-markdown-and-edit-semantics",
       "prompt": "Two things in our PLAT project. First, create a bug from the command line with a real formatted description — a short summary paragraph, a bulleted 'Steps to reproduce', and a fenced code block showing the stack trace — set priority high and label it 'regression'. I keep getting the newlines mangled or the code block showing weird backslashes. Second, on an existing ticket PLAT-204 I need to drop the stale label 'p3' and add 'p1', and swap the component from 'API' to 'Gateway' — but when I tried `jira issue edit PLAT-204 --label p1` it kept the old p3 label too. What am I doing wrong?",
-      "expected_output": "Part 1: a correct `jira issue create -tBug -s\"...\" -yHigh -lregression -b$'...' --no-input` (or a `--template file.md` / stdin approach), explaining the newline problem is shell quoting — use `$'...'` for inline newlines or a template file — and that the 'weird backslashes' come from Jira `{code}` blocks; GFM ```` ``` ```` fences convert to ADF cleanly and should be used instead. May note priority/type values are instance-defined/case-sensitive. Part 2: explains the edit asymmetry — `--label` APPENDS (so p3 stayed), while `--component` REPLACES. Correct command removes with a minus prefix: `jira issue edit PLAT-204 --label -p3 --label p1 --component Gateway --no-input` (component can be replaced directly or `--component -API --component Gateway`). Must get the minus-prefix removal idiom right.",
+      "expected_output": "Part 1: a correct `jira issue create -tBug -s\"...\" -yHigh -lregression -b$'...' --no-input` (or a `--template file.md` / stdin approach), explaining the newline problem is shell quoting — use `$'...'` for inline newlines or a template file — and that the 'weird backslashes' come from Jira `{code}` blocks; GFM ```` ``` ```` fences convert to ADF cleanly and should be used instead. May note priority/type values are instance-defined/case-sensitive. Part 2: explains that `--label` APPENDS (so p3 stayed) and that `--component` appends too (its --help text says replace, but v1.7.0 adds). Correct command removes with a minus prefix: `jira issue edit PLAT-204 --label -p3 --label p1 --component -API --component Gateway --no-input`. Must get the minus-prefix removal idiom right.",
       "files": [],
       "assertions": [
         "The create command sets issue type Bug, a summary, high priority, and the 'regression' label, and runs non-interactively via --no-input",
@@ -51,7 +51,7 @@
         "States that the stray backslashes come from using Jira {code} markup and that a GitHub-style triple-backtick fenced block should be used instead",
         "Explains that --label adds to the existing labels rather than replacing them, which is why p3 survived",
         "The edit command removes the stale label using the minus-prefix form (e.g. --label -p3) while adding p1",
-        "Correctly conveys that --component replaces the existing components rather than appending, and the given edit command results in Gateway being the component and API no longer set"
+        "The given edit command removes the API component with the minus-prefix form (e.g. --component -API) while adding Gateway, so API is no longer set; it does not rely on --component Gateway alone replacing API"
       ]
     },
     {
