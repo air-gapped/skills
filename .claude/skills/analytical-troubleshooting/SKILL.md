@@ -200,6 +200,12 @@ explain each IS — **and** each IS-NOT?"*
 
 - A candidate that requires the IS-NOT side to be false is refuted by
   evidence already in hand. Kill it. This is free — no lab time spent.
+- A change dated after onset cannot be the originating cause, and a change
+  applied everywhere cannot alone explain a fault seen only somewhere: mark
+  it refuted, not "ranked last". If the refuting date or location is
+  doubtful, verifying it goes on the data-collection list; the candidate
+  stays dead until that check reverses it. Only an `[assumed]` cell fails
+  to refute.
 - A candidate that fits only with extra assumptions survives *provisionally*;
   write the assumptions down. Rank survivors **weakest first**: the candidate
   that commits to the least beyond what the table forces. Assumptions and
