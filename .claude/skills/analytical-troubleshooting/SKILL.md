@@ -49,7 +49,11 @@ precisely because it resists the expert's urge to assume.
    tag: `[observed]` (directly seen this session by agent or user),
    `[reported]` (someone said so), or `[assumed]`. Evidence not obtained from
    the world must not be recorded as observed. When a test hasn't run yet,
-   its result is unknown — not "probably fine".
+   its result is unknown — not "probably fine". Tag what the user did not
+   say as `[assumed]`, never `[reported]`. Output from a shell that is not
+   on the affected system (the agent's own sandbox or workstation) is not
+   evidence about it: confirm the probe ran on the faulty object before
+   recording anything, and never mix the two in the analysis.
 2. **No fix before a surviving cause.** Do not propose remediation until at
    least one candidate cause has survived the paper test (Stage 4). Quick
    *diagnostic* actions are always fine; "let's just reinstall/replace/reboot
