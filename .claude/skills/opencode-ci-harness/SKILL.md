@@ -96,7 +96,7 @@ Read the served context length from the engine (`GET /v1/models` `max_model_len`
 
 ## Scenario tiers
 
-Run in order; stop at the first break; the break class is the diagnosis. Prompts and pass criteria: `references/scenario-bank.md`.
+Run in order; stop at the first confirmed break; the break class is the diagnosis. A break is confirmed when it repeats in 2 or 3 of 3 runs of that tier, or when one run's events show the mechanism (name the event where it diverges); 1 of 3 with no visible mechanism is noise. Prompts and pass criteria: `references/scenario-bank.md`.
 
 | Tier | Scenario | Stresses |
 |---|---|---|
@@ -138,6 +138,8 @@ Tool names: `shell` (not `bash`), `read`, `glob`, `grep`, `edit`. Turn count = `
 | `error` event but the run finished with a correct answer | A transient provider error was retried | Treat as pass if the final step completed; exit code is 1 regardless |
 | Run hangs, zero events, `/v1/models` still answers | Wedged tunnel or proxy that serves short requests but stalls streams | Connect to the engine directly; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text | Raise `--timeout` |
+
+A run that delivers nothing (no events, or no final text after the last tool call) outranks every other result: a template, parser or flag change after which any run delivers nothing is unsafe — revert it, even if other tiers improved.
 
 Wrong tool, wrong path, wrong arithmetic with correct tool outputs, or a hallucinated call on tier 4 = model behavior, not a pipeline bug. Separate the two by running the same scenario on two models with the same parser: one passes → model; both fail and another parser passes → parser.
 
