@@ -44,7 +44,7 @@ The `Epic Key` prompt belongs to **`jira epic add`**, shown when its `EPIC-KEY` 
 
 ## Transition fails / "state not found"
 The STATE string isn't a valid transition from the issue's *current* status in the workflow. Valid targets are status- and workflow-dependent.
-- Run `jira issue move PROJ-123` interactively once to see the allowed states, then script the exact string.
+- The error itself lists the valid targets: `Available states for issue PROJ-123: 'To Do', 'In Progress', …`. Re-run with one of those exact strings. To get the list without attempting a real move: `jira issue move PROJ-123 "__list__" </dev/null`.
 - `--comment`/`-R`/`-a` during a move only work if the workflow's transition screen allows those fields.
 
 ## Assignment fails for a real user

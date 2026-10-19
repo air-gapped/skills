@@ -124,7 +124,15 @@ jira issue list -p PROJ --raw \
 ```
 
 ### Transitions are workflow-specific
-There is **no global list** of valid target states — they depend on the issue's current status and the project's workflow. To learn the allowed transitions for an issue, run `jira issue move PROJ-123` once **interactively**: it presents exactly the states the workflow permits from the current status. Then script the chosen state string. (Or read the workflow in the Jira admin UI.)
+There is **no global list** of valid target states — they depend on the issue's current status and the project's workflow. To list the transitions the workflow allows from the issue's current status, request a state that cannot exist — the error prints the valid ones, nothing changes:
+
+```bash
+jira issue move PROJ-123 "__list__" </dev/null
+# ✗ Error: invalid transition state "__list__"
+# Available states for issue PROJ-123: 'To Do', 'In Progress', 'In Review', 'Done'   (exit 1)
+```
+
+Then script the exact string.
 
 ## Config sanity checks
 

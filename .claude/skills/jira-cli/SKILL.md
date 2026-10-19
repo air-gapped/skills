@@ -59,7 +59,7 @@ jira issue view PROJ-123 --raw | jq '.fields | {type:.issuetype.name, status:.st
 jira issue view PROJ-123 --raw | jq '.fields | keys'         # custom field IDs (customfield_XXXXX)
 ```
 
-For transitions specifically, the **valid target states depend on the issue's current status and the project workflow** — there is no global list. The reliable move is: read the issue, see its status, and use the exact target-state string the workflow allows (often surfaced in the Jira UI's transition buttons). When unsure, run `jira issue move <KEY>` interactively *once* to see the offered states, then script the exact string with `--no-input`-style full args. Full discovery recipes: `references/config-auth.md`.
+For transitions specifically, the **valid target states depend on the issue's current status and the project workflow** — there is no global list. List the valid targets non-interactively by asking for a state that cannot exist: `jira issue move KEY "__list__" </dev/null` exits 1 with `Available states for issue KEY: 'To Do', 'In Progress', …`. Script the exact string from that list. Full discovery recipes: `references/config-auth.md`.
 
 ## Command map
 
