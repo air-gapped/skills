@@ -7,13 +7,16 @@ Per-row `Last verified:` dates for the external claims in this skill. `freshen` 
 | Source | URL | Last verified | Pinned |
 |---|---|---|---|
 | AIPerf repo | https://github.com/ai-dynamo/aiperf | 2026-09-15 | |
-| AIPerf releases | https://github.com/ai-dynamo/aiperf/releases | 2026-09-15 | latest stable **v0.12.0 (2026-08-06)**, up from v0.11.0 |
+| AIPerf releases | https://github.com/ai-dynamo/aiperf/releases | 2026-10-20 | latest stable **v0.13.0 (2026-09-24)**, up from v0.12.0; no newer tag on 2026-10-20 |
 | AIPerf v0.9.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.9.0 | 2026-09-15 | v0.9.0 |
 | AIPerf v0.10.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.10.0 | 2026-09-15 | v0.10.0 |
 | AIPerf v0.11.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.11.0 | 2026-09-15 | v0.11.0 |
-| AIPerf on PyPI | https://pypi.org/project/aiperf/ | 2026-09-15 | latest **0.12.0** (2026-08-06), `requires-python` **>=3.11**,<3.14 — the floor moved 3.10 → 3.11 at v0.12.0 (PR #1107), a breaking install gate |
+| AIPerf v0.12.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.12.0 | 2026-10-20 | v0.12.0 |
+| AIPerf v0.13.0 release notes | https://github.com/ai-dynamo/aiperf/releases/tag/v0.13.0 | 2026-10-20 | v0.13.0 — kube (beta, PR #1379), `--per-chunk-usage` (#1279), `--reset-kv-cache` / `--server-profiler` (#1163), `--system-prompt[-file]` (#1268), `--random-range-ratio` (#850), `tracelab` (#1262), `audio_transcription` (#1247), session-affinity header default (#1312) |
+| Session-affinity env vars | https://github.com/ai-dynamo/aiperf/blob/v0.13.0/docs/environment-variables.md | 2026-10-20 | `AIPERF_HTTP_X_SESSION_AFFINITY_FROM_CORRELATION_ID` default `True`; Dynamo / SMG / X-Session-ID variants default `False` (PR #1312 sends `X-Session-Affinity`) |
+| AIPerf on PyPI | https://pypi.org/project/aiperf/ | 2026-10-20 | latest **0.13.0** (2026-09-24), `requires-python` **>=3.11**,<3.14 — the floor moved 3.10 → 3.11 at v0.12.0 (PR #1107), a breaking install gate; `aiperf-nightly` 0.13.0.dev20261019 |
 | AIPerf docs index (Fern) | https://github.com/ai-dynamo/aiperf/blob/main/docs/index.md | 2026-09-15 | |
-| CLI options doc | https://github.com/ai-dynamo/aiperf/blob/main/docs/cli-options.md | 2026-09-15 | read at tag `v0.12.0` — authoritative for the `--endpoint-type` (18, `messages` added at v0.12.0) and `--custom-dataset-type` / `--public-dataset` enum values |
+| CLI options doc | https://github.com/ai-dynamo/aiperf/blob/main/docs/cli-options.md | 2026-10-20 | read at tag `v0.13.0` — authoritative for subcommands (adds `kube *`, `proxy`) and the `--endpoint-type` (19, `audio_transcription` added), `--custom-dataset-type` (13 core + SPEED-Bench, `tracelab` added) and `--public-dataset` (42) enum values |
 | Metrics reference | https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md | 2026-09-15 | |
 | Architecture | https://github.com/ai-dynamo/aiperf/blob/main/docs/architecture.md | 2026-09-15 | |
 | Migrating from GenAI-Perf | https://github.com/ai-dynamo/aiperf/blob/main/docs/migrating.md | 2026-09-15 | |

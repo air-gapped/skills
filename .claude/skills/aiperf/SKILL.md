@@ -2,7 +2,7 @@
 name: aiperf
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). Covers `aiperf profile` with concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 18 endpoint types (chat, completions, embeddings, rankings, responses, image-gen, image-edit, video-gen, NIM, HF-TGI, raw, template, etc.), 12 custom dataset formats (single_turn, multi_turn, mooncake_trace, bailian_trace, burst_gpt_trace, baseten_trace, weka_trace, random_pool, dag_jsonl, raw_payload, inputs_json, sagemaker_data_capture) plus the SPEED-Bench family, 40+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze-trace/synthesize/service subcommands, plugin extensibility, and reasoning-token TTFT/TTFO split.
+  NVIDIA AIPerf — vendor-neutral generative-AI inference benchmarking (genai-perf successor). `aiperf profile`: concurrency / request-rate / fixed-schedule trace replay / user-centric / multi-run confidence, 19 endpoint types (chat, completions, embeddings, rankings, responses, messages, audio transcription, image-gen/edit, video-gen, NIM, HF-TGI, raw, template), 13 custom dataset formats (single/multi-turn; mooncake, bailian, burst_gpt, baseten, weka, tracelab traces; random_pool, dag_jsonl, raw_payload, inputs_json, sagemaker_data_capture) plus SPEED-Bench, 40+ public datasets, goodput SLOs, GPU + Prometheus telemetry, plot/analyze/synthesize/kube subcommands, plugins, reasoning TTFT/TTFO split.
 when_to_use: |-
   Trigger on "aiperf", "ai-dynamo/aiperf", "genai-perf migration", or "benchmark vllm / sglang / trt-llm / dynamo / nim / triton / ollama" — vendor-neutral, prefer over `vllm bench` when target is non-vLLM or trace-driven. Also `aiperf profile / plot / plugins / analyze-trace / synthesize / service`, "mooncake / bailian / burstgpt trace", "sharegpt", "speed-bench", "MMLU / AIME accuracy benchmark", "TTFO / time-to-first-output-token", "reasoning-token TTFT split", "goodput SLO", "DistServe goodput", "fixed-schedule replay", "user-centric rate", "prefill concurrency", "multi-run confidence", "DCGM / pynvml telemetry", "profile_export.jsonl", "NIM embeddings/rankings", "HF TEI rerank", "image / video generation benchmark", "register custom endpoint / dataset plugin". Defer to `vllm-benchmarking` for `vllm bench` workflows.
 ---
@@ -23,9 +23,9 @@ Target audience: operators producing defensible latency/throughput/goodput numbe
 
 If the target is exclusively vLLM and the operator wants the in-tree `vllm bench` toolchain (sweep, latency-only, startup, mm-processor), defer to the `vllm-benchmarking` skill. AIPerf is the right answer when (a) the target is non-vLLM or (b) the workload is trace-driven, multi-modal, multi-server, or needs goodput.
 
-## What landed in v0.9.0 – v0.12.0
+## What landed in v0.9.0 – v0.13.0
 
-Four minors shipped between 2026-05-30 and 2026-08-06. The ones that change how you drive AIPerf:
+The changes that alter how AIPerf is driven:
 
 - **Adaptive sweep orchestrator + YAML-native v2 config** (v0.10.0, PR #912) — Bayesian Optimization and reusable search recipes, instead of hand-rolled concurrency sweeps.
 - **Multi-tier SLO search** (v0.11.0, PR #1035) — resolve N tier boundaries in a single job rather than one job per tier.
@@ -41,11 +41,16 @@ Four minors shipped between 2026-05-30 and 2026-08-06. The ones that change how 
 - **Per-request spec-decode acceptance + vLLM adapter** (v0.12.0, PR #1167) — acceptance per request rather than a server-wide average. Pairs with vLLM's own `--per-request-spec-decode-metrics`; see `vllm-speculative-decoding`.
 - **AgentX v1.0** (v0.12.0, PR #1165) — agentic replay and DAG-shaped workloads, with new `exgentic` / `exgentic_v2` / `baseten_trace` / WEKA dataset types.
 - **`aiperf analyze` + swim-lane viewer** (PR #1116) and **`aiperf chat`** (PR #1076) — inspect a run interactively instead of post-processing the export by hand.
+- **v0.13.0 — `aiperf kube` (beta)**: native Kubernetes execution (`kube init/profile/sweep/results/logs/...`) with an operator and CRDs. `aiperf service` / `aiperf proxy` are its internals, not entry points.
+- **v0.13.0 — `--per-chunk-usage`** (requires `--use-server-token-count`): fixes ITL / per-user TPS inflation when the server bundles several tokens into the first streamed chunk. vLLM and TRT-LLM support it; strict OpenAI rejects it.
+- **v0.13.0 — control hooks**: `--reset-kv-cache` POSTs `/reset_prefix_cache` once per cell; `--server-profiler` wraps profiling phases in `/start_profile` / `/stop_profile`.
+- **v0.13.0 — workload shaping**: `--system-prompt` / `--system-prompt-file` (verbatim production prompt), `--random-range-ratio` + `--random-corpus-style vllm|sglang` (reproduce `vllm bench serve` / sglang random workloads), `--cache-bust` targets, `tracelab` dataset type, `audio_transcription` endpoint.
+- **v0.13.0 adds `X-Session-Affinity` to every request by default** (the session's stable `X-Correlation-ID` value). A router that honours it pins a session's turns to one replica, so multi-turn results against such a router are not comparable with v0.12.0 runs. Disable: `AIPERF_HTTP_X_SESSION_AFFINITY_FROM_CORRELATION_ID=false`. Router-specific affinity is opt-in: `AIPERF_HTTP_X_DYNAMO_SESSION_ID_FROM_CORRELATION_ID=true` (Dynamo `--router-session-affinity-ttl-secs`), `AIPERF_HTTP_X_SMG_ROUTING_KEY_FROM_CORRELATION_ID=true` (SGLang Model Gateway manual routing).
 
 ## Versions
 
-- **Stable on PyPI:** v0.12.0 (2026-08-06), `requires-python >=3.11,<3.14`. `pip install aiperf`. A nightly wheel is published alongside as `aiperf-nightly` (v0.10.0+).
-- **Repo `main`** at https://github.com/ai-dynamo/aiperf: post-v0.12.0.
+- **Stable on PyPI:** v0.13.0 (2026-09-24), `requires-python >=3.11,<3.14`. `pip install aiperf`. A nightly wheel is published alongside as `aiperf-nightly` (v0.10.0+).
+- **Repo `main`** at https://github.com/ai-dynamo/aiperf: post-v0.13.0.
 - **Python:** **≥3.11**, <3.14 — the floor moved at v0.12.0 (PR #1107); v0.11.0 and earlier accept 3.10. Pin to v0.11.0 if the runner is stuck on 3.10. Uses `uvloop` on Linux/macOS, falls back to default asyncio on Windows — Windows is a first-class port with blocking CI since v0.11.0 (PR #1007), and Windows-on-ARM install/run was added at v0.12.0 (PR #1068).
 - **Source of truth for flags:** `aiperf profile --help`. CLI options doc is auto-generated via `make generate-cli-docs`. If the doc disagrees with `--help` on a flag spelling, trust `--help`.
 
