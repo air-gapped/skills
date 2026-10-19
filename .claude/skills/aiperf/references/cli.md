@@ -58,7 +58,7 @@ Comprehensive reference for `aiperf` subcommands and `aiperf profile` flags. Aip
 | `--transport`, `--transport-type` | enum | auto | Currently only `http` (aiohttp). |
 | `--use-legacy-max-tokens` | flag | off | Use `max_tokens` instead of `max_completion_tokens`. For older OpenAI-compat servers. |
 | `--use-server-token-count` | flag | off | Trust server's `usage` field instead of client tokenizing. Auto-sets `stream_options.include_usage=true`. |
-| `--per-chunk-usage` | flag | off | v0.13.0+. Sets `stream_options.continuous_usage_stats` so ITL subtracts the real first-chunk token count. Use when the server bundles tokens into the first chunk (e.g. TRT-LLM `stream-interval`). Requires `--use-server-token-count`; vLLM / TRT-LLM accept it, strict OpenAI rejects it. |
+| `--per-chunk-usage` | flag | off | v0.13.0+. Sets `stream_options.continuous_usage_stats` so ITL subtracts the real first-chunk token count. Use when the server bundles tokens into the first chunk (e.g. TRT-LLM `stream-interval`). Requires `chat`, `--streaming` and `--use-server-token-count`; vLLM / TRT-LLM accept it, strict OpenAI rejects it. |
 | `--reset-kv-cache` | flag | off | v0.13.0+. POST a KV-cache reset once per cell. `--reset-kv-cache-path` (default `/reset_prefix_cache`), `--reset-kv-cache-timeout-seconds`. |
 | `--server-profiler` | flag | off | v0.13.0+. Start/stop the server profiler around profiling phases. `--server-profiler-start-path` (default `/start_profile`), `--server-profiler-stop-path` (default `/stop_profile`). |
 | `--session-header` | str | `X-Correlation-ID` | Renames the per-session correlation header. v0.13.0+ also sends `X-Session-Affinity` with the same value by default (see SKILL.md). |

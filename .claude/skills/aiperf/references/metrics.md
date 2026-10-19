@@ -26,7 +26,7 @@ These metrics require `--streaming` and an SSE-capable endpoint.
 | `time_to_first_token` (TTFT) | First response chunk including reasoning tokens. | ms |
 | `time_to_second_token` (TTST) | Gap between chunk 1 and chunk 2. | ms |
 | `time_to_first_output_token` (TTFO) | First **non-reasoning** output token. Equivalent to genai-perf TTFT for reasoning models. | ms |
-| `inter_token_latency` (ITL) | Mean time between successive output tokens (excludes TTFT). | ms |
+| `inter_token_latency` (ITL) | `(request_latency − TTFT) / (OSL − 1)`. The `− 1` assumes one token in the first chunk; a server that bundles several (TRT-LLM `stream-interval`) inflates per-user TPS. v0.13.0+: `--per-chunk-usage` (needs `chat`, `--streaming`, `--use-server-token-count`, a server honouring `continuous_usage_stats`) divides by `OSL − first-chunk tokens` instead. | ms |
 | `inter_chunk_latency` (ICL) | Distribution of inter-chunk gaps (per-request list). | ms |
 | `output_token_throughput_per_user` | `1 / ITL`. | tokens/sec/user |
 | `prefill_throughput_per_user` | `ISL / TTFT`. | tokens/sec/user |
