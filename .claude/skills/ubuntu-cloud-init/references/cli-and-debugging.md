@@ -43,22 +43,22 @@ in place before apt hits an internal HTTPS mirror.
 cloud-init schema -c user-data --annotate              # a file; errors inline
 cloud-init schema -c netcfg.yaml -t network-config     # validate network-config
 sudo cloud-init schema --system --annotate             # the live system's user-data
-cloud-init schema --docs all|<cc_name>                 # module documentation
+cloud-init schema --docs cc_apt_configure             # one module's docs (or: all)
 
 # Status & introspection
 cloud-init status --long --wait                        # exit 0=ok 1=error 2=recoverable
-cloud-init query --all | --list-keys | <key> | --format '{{ v1.instance_id }}'
-cloud-init analyze blame|show|dump|boot                # timing
+cloud-init query --list-keys                           # instance-data keys
+cloud-init query --format '{{ v1.instance_id }}'       # render one value
+cloud-init analyze blame                               # per-module timing (also: show, dump, boot)
 cloud-id                                               # detected cloud/datasource
 
 # Re-run / golden image
-sudo cloud-init clean [--logs] [--reboot] [--machine-id] [--seed] [--configs all]
+sudo cloud-init clean --logs --machine-id --seed --configs all   # golden image: strip everything
 sudo cloud-init single --name set_hostname --frequency always   # re-run one module
 
 # Build helpers
 cloud-init devel make-mime -a config.yaml:cloud-config -a setup.sh:x-shellscript
-cloud-init devel net-convert ...
-cloud-init-per once <name> <cmd>                       # frequency-guarded command
+cloud-init-per once mkswap mkswap /dev/vdb             # runs once ever, keyed by name (also: instance, always)
 ```
 
 - `cloud-init clean` wipes `/var/lib/cloud` so the next boot is treated as first boot.
