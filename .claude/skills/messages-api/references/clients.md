@@ -35,7 +35,9 @@ Live-verified 2026-07-19: full multi-step tool loops against vLLM
 - Tolerates: absent thinking signatures, missing cache-usage fields, proxies
   dropping optional event fields. Maps pause_turn/refusal (refusal → session
   error). Never calls count_tokens.
-- Retries: session-level 429+5xx with retry-after, 2s→30s backoff.
+- Retries: session level, **max 5**; 5xx by status, 429 via the retryable
+  flag/message match; honors `retry-after-ms` / `retry-after`; otherwise
+  2s × 2ⁿ + ≤25% jitter, capped at 30s only when the response had no headers.
 
 ## Claude Code
 

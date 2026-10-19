@@ -148,7 +148,7 @@ What a third-party `/v1/messages` server must tolerate from real clients
 - baseURL convention: the SDK appends only `/messages` — **configure
   `http://host/v1` as base**, server must serve `POST /v1/messages`.
 - opencode retry: SDK maxRetries=0; session layer retries 429+5xx honoring
-  `retry-after`, exponential 2s→30s, effectively unbounded.
+  `retry-after`, exponential from 2s, max 5 retries.
 
 ## Claude Code-specific hacks
 
