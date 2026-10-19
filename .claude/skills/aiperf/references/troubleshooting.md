@@ -2,6 +2,30 @@
 
 Common AIPerf failures, what they mean, and how to fix them.
 
+## Table of Contents
+
+- ["Token counts look wrong"](#token-counts-look-wrong)
+- ["TTFT lower than expected"](#ttft-lower-than-expected)
+- ["Mooncake replay: ISL far below the trace, TTFT too good, cache hit rate near zero"](#mooncake-replay-isl-far-below-the-trace-ttft-too-good-cache-hit-rate-near-zero)
+- ["No streaming metrics"](#no-streaming-metrics)
+- ["--request-rate curve looks like the system melts"](#--request-rate-curve-looks-like-the-system-melts)
+- ["Validation error: --user-centric-rate requires multi-turn conversations"](#validation-error---user-centric-rate-requires-multi-turn-conversations)
+- ["Validation error: --fixed-schedule-* can only be used with --fixed-schedule"](#validation-error---fixed-schedule--can-only-be-used-with---fixed-schedule)
+- ["Workers OOM / event-loop warnings"](#workers-oom--event-loop-warnings)
+- ["Run exits 1 with RequiredServiceReaped after it finished"](#run-exits-1-with-requiredservicereaped-after-it-finished)
+- ["Raw export has fewer lines than the request count"](#raw-export-has-fewer-lines-than-the-request-count)
+- ["Macos: semaphore leak warning / None stdio"](#macos-semaphore-leak-warning--none-stdio)
+- ["SSE corrupted / data field truncates on a literal newline"](#sse-corrupted--data-field-truncates-on-a-literal-newline)
+- ["Absolute path with --profile-export-prefix produces empty files"](#absolute-path-with---profile-export-prefix-produces-empty-files)
+- ["GPU telemetry empty"](#gpu-telemetry-empty)
+- ["Server metrics empty"](#server-metrics-empty)
+- ["202 Accepted requests counted as failures"](#202-accepted-requests-counted-as-failures)
+- ["Error: --prefill-concurrency requires --streaming to be enabled"](#error---prefill-concurrency-requires---streaming-to-be-enabled)
+- ["Random pool: paired modalities not preserved"](#random-pool-paired-modalities-not-preserved)
+- ["Convergence early stop never triggers"](#convergence-early-stop-never-triggers)
+- [Diagnostic env-var quick set](#diagnostic-env-var-quick-set)
+- [When the docs disagree with --help](#when-the-docs-disagree-with---help)
+
 ## "Token counts look wrong"
 
 **Symptom:** ISL or OSL totals diverge from the server's `usage` counts.

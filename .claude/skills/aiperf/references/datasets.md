@@ -2,6 +2,15 @@
 
 Three input modes: synthetic generation (default), `--public-dataset <name>`, or `--custom-dataset-type <type> --input-file <path>`. Public and custom are mutually exclusive.
 
+## Table of Contents
+
+- [Synthetic (default)](#synthetic-default)
+- [Public datasets](#public-datasets)
+- [Custom JSONL formats](#custom-jsonl-formats)
+- [--input-file is the single switch](#--input-file-is-the-single-switch)
+- [Sampling](#sampling)
+- [Synthesizing scaled traces](#synthesizing-scaled-traces)
+
 ## Synthetic (default)
 
 When neither `--public-dataset` nor `--custom-dataset-type` is set, AIPerf generates synthetic prompts from a Shakespeare corpus, sampled to match `--isl-mean ± --isl-stddev`. Output length is requested via `--osl-mean ± --osl-stddev`.

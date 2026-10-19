@@ -21,6 +21,13 @@ artifacts/
 
 `--profile-export-prefix` overrides the file-name stem (`profile_export_aiperf` → user-chosen).
 
+## Table of Contents
+
+- [Export levels](#export-levels)
+- [inputs.json schema](#inputsjson-schema)
+- [profile_export.jsonl per-request record](#profile_exportjsonl-per-request-record)
+- [Pydantic models for parsing](#pydantic-models-for-parsing)
+
 ## Export levels
 
 | `--export-level` | What's written |

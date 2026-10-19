@@ -2,6 +2,14 @@
 
 The single most error-prone area in `aiperf profile` is picking a scheduling mode that's incompatible with the rest of the configuration. This file is the compatibility matrix and the validation-error decoder.
 
+## Table of Contents
+
+- [Decision](#decision)
+- [Compatibility matrix](#compatibility-matrix)
+- [Warmup](#warmup)
+- [Validation errors → fixes](#validation-errors-→-fixes)
+- [Worked examples](#worked-examples)
+
 ## Decision
 
 | Goal | Mode | Trigger flag |

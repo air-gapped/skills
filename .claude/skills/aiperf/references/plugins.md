@@ -2,6 +2,17 @@
 
 AIPerf is a plugin host. Every endpoint, dataset loader, exporter, accuracy grader, plot type, timing strategy, etc. is registered via a YAML manifest and resolved through a singleton registry. Custom plugins ship in a separate Python package, no AIPerf-source modifications required.
 
+## Table of Contents
+
+- [25 plugin categories](#25-plugin-categories)
+- [Registry usage](#registry-usage)
+- [Authoring a custom plugin (4-step recipe)](#authoring-a-custom-plugin-4-step-recipe)
+- [Metadata schemas](#metadata-schemas)
+- [Conflict resolution](#conflict-resolution)
+- [Runtime / testing helpers](#runtime--testing-helpers)
+- [Common errors](#common-errors)
+- [Built-in plugin highlights](#built-in-plugin-highlights)
+
 ## 25 plugin categories
 
 | Group | Categories |
