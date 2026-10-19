@@ -45,7 +45,8 @@ Through 2029-03-28 Atlassian provides support, critical-vuln fixes, and cloud-to
 - **Analytics for Confluence** — bundled in DC (limited); Cloud has its own richer version.
 - **Collaborative/real-time editing** — DC supports up to **12 simultaneous editors** per page; Cloud "live editing" is a richer variant.
 - **Templates** — both (Cloud ships a much larger gallery; DC = build your own).
-- **DC-only (not in Cloud):** nested macros, custom table widths, right-to-left language support, the Atlassian Companion app.
+- **Not in Cloud:** right-to-left language editing/search, editing attachments via the Companion app, adding attachments from other pages, copying a page without its attachments.
+- **Works differently in Cloud (stricter):** a body macro cannot nest inside another (a code macro inside a panel) — on page conversion Cloud wraps nested macros in a *legacy content* macro; tables get three preset widths, no custom width, no nested tables. Storage written for DC with nested body macros will not edit natively on Cloud.
 
 ## The editor & content format (the biggest trap)
 
