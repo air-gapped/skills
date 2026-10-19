@@ -9,7 +9,7 @@ when_to_use: |-
 
 # jira-cli — Atlassian Jira from the terminal
 
-Target audience: an operator or agent driving Jira non-interactively — creating and transitioning tickets, running JQL, exporting issues, and scripting bulk changes — against any Jira deployment (Cloud, Server, or Data Center). This skill is **instance-agnostic**: it never assumes the target's project keys, workflows, or field schemes — it shows how to *discover* them and then act safely.
+Drive any Jira (Cloud, Server, Data Center) non-interactively. Assume nothing about the target's project keys, workflows or field schemes — discover them, then act.
 
 `jira` is [ankitpokhrel/jira-cli](https://github.com/ankitpokhrel/jira-cli), a single static Go binary inspired by GitHub's `gh`. It is **not** an official Atlassian tool.
 
