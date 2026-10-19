@@ -11,8 +11,9 @@ The whole reason this skill exists. Two things stack on top of each other:
 
 2. **Collection-level recommendation.** Dell's official guidance is to
    stop relying on Basic and switch to session-token auth via
-   `dellemc.openmanage.idrac_session`. Every other `dellemc.openmanage`
-   module accepts `x_auth_token:` in place of `idrac_user`/`idrac_password`.
+   `dellemc.openmanage.idrac_session`. Most `dellemc.openmanage` modules
+   accept `x_auth_token:` in place of `idrac_user`/`idrac_password` —
+   not all; see "Modules that reject `x_auth_token`" below.
 
 ## The BasicAuth tri-state
 
@@ -115,8 +116,10 @@ identifier used by the DELETE.
 
 ### Env-var fallbacks
 
-All iDRAC modules check these env vars when the matching parameter is
-omitted (defined in `module_utils/idrac_redfish.py:488-499`):
+Modules check these env vars when the matching parameter is omitted
+(`IdracAnsibleModule` in `module_utils/idrac_redfish.py`; `RedfishAnsibleModule`
+in `module_utils/redfish.py`). `IDRAC_X_AUTH_TOKEN` applies only to modules
+that accept `x_auth_token`:
 
 | Param           | Env var             |
 |-----------------|---------------------|
@@ -139,24 +142,24 @@ Always wrap real plays in `block: … always:`. For parallel per-host
 plays, keep `max_fail_percentage` and `serial:` low to avoid hitting
 the cap.
 
-## OMSDK modules can't use tokens
+## Modules that reject `x_auth_token`
 
-A subset of the collection still goes through the legacy OMSDK Python
-library (`plugins/module_utils/dellemc_idrac.py`):
+Token support depends on how the module builds its arg-spec, not on
+the generation:
 
-- `idrac_firmware` (legacy SCP/share path; `redfish_firmware` /
-  `redfish_firmware_rollback` are the modern Redfish-native equivalents)
-- `idrac_server_config_profile` (SCP — not yet qualified on iDRAC 10
-  per upstream issue #959; use per-attribute modules until qualification
-  ships)
-- All `dellemc_*` legacy modules (deprecated; replaced by modern
-  equivalents)
+| Arg-spec base | `x_auth_token` | Modules |
+|---|---|---|
+| `IdracAnsibleModule` / `RedfishAnsibleModule` | accepted (mutually exclusive with user/password) | `idrac_attributes`, `idrac_boot`, `idrac_certificates`, `idrac_diagnostics`, `idrac_license`, `idrac_network_attributes`, `idrac_os_deployment`, `idrac_reset`, `idrac_secure_boot`, `idrac_server_config_profile`, `idrac_storage_volume`, `idrac_support_assist`, `idrac_system_erase`, `idrac_user`, `idrac_user_info`, `idrac_virtual_media`, `idrac_redfish_storage_controller`, all `redfish_*` |
+| `AnsibleModule` + `idrac_auth_params` | **rejected** — `Unsupported parameters`; `idrac_user` + `idrac_password` required | `idrac_bios`, `idrac_firmware`, `idrac_firmware_info`, `idrac_system_info`, `idrac_lifecycle_controller_jobs`, `idrac_lifecycle_controller_job_status_info`, `idrac_lifecycle_controller_logs`, `idrac_lifecycle_controller_status_info`; 11.0.0+: `idrac_bios_registry_info`, `idrac_network_info`, `idrac_network_attributes_info`, `idrac_session_info` |
 
-The OMSDK path strictly requires `idrac_user` + `idrac_password`. On an
-iDRAC with `BasicAuthState: Disabled` these may simply not work. On
-`Unadvertised` they should still succeed because OMSDK sends Basic
-unconditionally, not in response to a challenge — but confirm against the
-target firmware before relying on it.
+- The rejecting modules send Basic pre-emptively (`force_basic_auth`), so
+  they work on `Unadvertised` and fail on `Disabled`. On a `Disabled`
+  iDRAC, replace `idrac_firmware` with `redfish_firmware` and read
+  inventory via `ansible.builtin.uri` + `X-Auth-Token`.
+- In a session play, pass these modules `idrac_user`/`idrac_password`
+  (with `no_log: true`) while the rest use the token.
+- For a module not in the table, check
+  `ansible-doc dellemc.openmanage.<module> | grep x_auth_token` first.
 
 ## Fallback for `ansible.builtin.uri` / raw Redfish
 

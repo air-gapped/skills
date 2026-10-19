@@ -284,20 +284,25 @@ branch:
 **Fix.** Maintainer @gokul-srivathsan in #1072:
 
 ```yaml
+# idrac_bios takes idrac_user/idrac_password only — x_auth_token is rejected
 - name: Step 1 — make SysProfile custom
   dellemc.openmanage.idrac_bios:
-    idrac_ip:     "{{ idrac_ip }}"
-    x_auth_token: "{{ idrac_auth.x_auth_token }}"
+    idrac_ip:       "{{ idrac_ip }}"
+    idrac_user:     "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
     attributes:
       SysProfile: Custom
+  no_log: true
 
 - name: Step 2 — apply workload profile (separate PATCH)
   dellemc.openmanage.idrac_bios:
-    idrac_ip:     "{{ idrac_ip }}"
-    x_auth_token: "{{ idrac_auth.x_auth_token }}"
+    idrac_ip:       "{{ idrac_ip }}"
+    idrac_user:     "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
     attributes:
       WorkloadProfile: VirtualizationMaxPerformanceProfile
       SysProfile:      Custom
+  no_log: true
 ```
 
 ## 13. `WS-MAN` calls fail wholesale on 17G

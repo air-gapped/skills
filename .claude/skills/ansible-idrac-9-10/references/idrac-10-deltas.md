@@ -47,7 +47,7 @@ All other `idrac_*` and `redfish_*` modules:
   `idrac_secure_boot`
 - BIOS / boot / reset: `idrac_bios`, `idrac_boot`, `idrac_reset`,
   `idrac_diagnostics`, `idrac_system_erase`
-- Firmware / lifecycle: `idrac_firmware` (OMSDK, no tokens),
+- Firmware / lifecycle: `idrac_firmware` (no tokens),
   `idrac_firmware_info`, `idrac_lifecycle_controller_jobs`,
   `idrac_lifecycle_controller_job_status_info`,
   `idrac_lifecycle_controller_logs`,

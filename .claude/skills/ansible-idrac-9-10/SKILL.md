@@ -7,8 +7,8 @@ description: >-
   7.30.10.50 `BasicAuthState: Unadvertised` default that silently 401s
   `ansible.builtin.uri` (Dell KB 000437501), the `idrac_session` +
   `x_auth_token` lifecycle with `block:/always:`, `force_basic_auth:
-  true` fallback for raw Redfish, OMSDK modules (`idrac_firmware`,
-  `idrac_server_config_profile`) that cannot use tokens, iDRAC 10
+  true` fallback for raw Redfish, modules that reject tokens
+  (`idrac_bios`, `idrac_firmware`, `idrac_system_info`), iDRAC 10
   attribute deltas (`iDRAC.IPv4Static.*` → `iDRAC.IPv4.Static*`,
   `iDRAC.NIC.*` → `iDRAC.Network.*`, ACME+SCEP → `iDRAC.ACE`,
   `BIOS.SysSecurity.AcPwrRcvry*` → `System.ServerPwr.*`), modules
@@ -51,8 +51,8 @@ load everything.
 references/
 ├── auth-and-session.md    → BasicAuthState=Unadvertised, idrac_session +
 │                            x_auth_token lifecycle (block/always), env
-│                            fallback IDRAC_X_AUTH_TOKEN, OMSDK modules
-│                            that CAN'T use tokens, force_basic_auth
+│                            fallback IDRAC_X_AUTH_TOKEN, modules
+│                            that reject x_auth_token, force_basic_auth
 │                            fallback for ansible.builtin.uri / raw
 │                            Redfish, racadm BasicAuthState toggle,
 │                            session-pool exhaustion, no_log/no-secret
@@ -84,8 +84,8 @@ references/
    Is the target an iDRAC 10 / 17G box?  ──┐
    (R670/R770/R870/R970, R6715/R7715,      │ yes → token-only mindset:
     C6715/C7715, M7725, XE9780/XE9785,     │       always use idrac_session +
-    XE7740 — also any server identifying   │       x_auth_token; avoid the
-    as ServerGen=6 or HWModel="iDRAC 10")  │       OMSDK modules below
+    XE7740 — also any server identifying   │       x_auth_token where the module
+    as ServerGen=6 or HWModel="iDRAC 10")  │       accepts it (list below)
                                            │
    no → iDRAC 9 (14G-16G)?                 │
    ┌───────────────────────────────────────┘
@@ -153,12 +153,12 @@ concurrent-session table is small and orphaned sessions lock fleets out.
 The `when:` guard on cleanup is so the always-block doesn't crash when the
 session-open task itself was the thing that failed. The
 `IDRAC_X_AUTH_TOKEN` env var is also accepted as a fallback for
-`x_auth_token` on every module — useful when chaining outside-ansible
+`x_auth_token` on every module that takes `x_auth_token` — useful when chaining outside-ansible
 session minting into a play.
 
 See `references/auth-and-session.md` for the BasicAuthState backstory,
 diagnostic curl/racadm commands, the `ansible.builtin.uri` fallback when
-the collection isn't available, and the OMSDK-token gotcha.
+the collection isn't available, and the modules that reject tokens.
 
 ## The three things that break iDRAC 9 playbooks on first 17G contact
 
@@ -198,13 +198,17 @@ the collection isn't available, and the OMSDK-token gotcha.
   against a small pool (~8). A skipped cleanup orphans tokens until idle
   timeout; rapid CI runs will lock the iDRAC out. Always wrap in
   `block: … always: <state: absent>`.
-- **Calling `idrac_firmware` or `idrac_server_config_profile` with
-  `x_auth_token`.** These modules go through OMSDK
-  (`module_utils/dellemc_idrac.py`), which strictly requires
-  `idrac_user`+`idrac_password`. On a `Disabled`-BasicAuth iDRAC they may
-  simply not work. Use Redfish-native modules
-  (`idrac_attributes`, `redfish_firmware`, `redfish_firmware_rollback`)
-  where possible.
+- **Passing `x_auth_token` to a username/password-only module.** These
+  build their arg-spec from `idrac_auth_params`, which has no
+  `x_auth_token`, so the task fails with `Unsupported parameters`:
+  `idrac_bios`, `idrac_firmware`, `idrac_firmware_info`,
+  `idrac_system_info`, the four `idrac_lifecycle_controller_*` modules,
+  and (11.0.0+) `idrac_bios_registry_info`, `idrac_network_info`,
+  `idrac_network_attributes_info`, `idrac_session_info`. Give them
+  `idrac_user`+`idrac_password` (no_log). They send Basic pre-emptively:
+  fine on `Unadvertised`, broken on `Disabled`. For firmware on a
+  `Disabled` iDRAC use `redfish_firmware`. Any other module: confirm
+  `ansible-doc dellemc.openmanage.<module> | grep x_auth_token` first.
 - **Calling `idrac_user` to rotate a password without `privilege:`.** On
   iDRAC 10, omitted privilege silently defaults to `ReadOnly` — a
   password rotate can demote root. Always pass the explicit privilege.
@@ -270,7 +274,7 @@ playbook is at `playbooks/idrac/idrac_session.yml` in the upstream repo.
 - `plugins/modules/idrac_session.py` — token mint module (`version_added: 9.2.0`)
 - `plugins/module_utils/idrac_redfish.py` — auth layer, `IdracAnsibleModule.__init__` arg-spec, `_args_without_session` sets `force_basic_auth=True` for no-token path, `get_server_generation()`, `validate_idrac10_and_above()`
 - `plugins/module_utils/session_utils.py` — lower-level `SessionAPI`, `create_session`, `delete_session`
-- `plugins/module_utils/dellemc_idrac.py` — OMSDK path (no token support)
+- `plugins/module_utils/dellemc_idrac.py` — `idrac_auth_params` (username/password only, no `x_auth_token`)
 - `playbooks/idrac/idrac_session.yml` — canonical session-lifecycle example
 - `tests/integration/targets/idrac_session_auth/tests/idrac_redfish_auth_valid-11786.yaml` — canonical token-handoff test
 - `docs/README.md` — definitive iDRAC 9 / iDRAC 10 per-module support matrix
