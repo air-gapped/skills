@@ -96,9 +96,11 @@ Excluded, and why:
   scraping faster than the refresh interval reads the same cached values —
   set Prometheus `interval` ≥ the auto-refresh interval (60 s), and expect
   counters to advance in refresh-interval steps (use rate() windows ≥ 5×).
-- All management (CLI, API, SNMP) runs through one **mgmtd** daemon; NVIDIA KB
-  documents overloaded mgmtd making the whole switch unresponsive. Narrow
-  walks, moderate intervals (small boxes like SN2010 with 22 ports are cheap).
+- A wedged **mgmtd** (management daemon) leaves the CLI and web UI
+  unmanageable until reboot — field report on SN2010 / Onyx 3.9.3220: mgmtd
+  `Too many open files` while snmpd logged repeated `send_trap: Failure in
+  sendto (No route to host)`. Keep trap destinations reachable; narrow walks,
+  moderate intervals (small boxes like SN2010 with 22 ports are cheap).
 - Config: `snmp-server enable`, `snmp-server community <c> ro`; v3:
   `snmp-server user admin v3 prompt auth <md5|sha|sha224|sha256|sha384|sha512>
   priv <des|3des|aes-128|aes-192|aes-256|aes-192-cfb|aes-256-cfb>` — the full

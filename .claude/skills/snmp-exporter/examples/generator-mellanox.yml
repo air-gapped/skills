@@ -6,7 +6,7 @@
 # actually carry Onyx health — the same OIDs the official Zabbix "Mellanox by
 # SNMP" template polls. The 33049 private tree is mostly traps (asicOverTemp,
 # insufficientFans/Power, procCrash...) plus product identity; not worth walking.
-# All Onyx management runs through one mgmtd daemon that can be overloaded —
+# A wedged Onyx mgmtd leaves the switch unmanageable until reboot —
 # keep walks narrow. Onyx is LTS until April 2029; this MIB surface is frozen.
 # See ../references/research-report.md
 #

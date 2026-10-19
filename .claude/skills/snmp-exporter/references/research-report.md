@@ -17,8 +17,8 @@ provenance record for the planned `snmp-exporter` best-practices skill.
 - **The #1 anti-pattern is walking whole enterprise subtrees.** Full `10892.5` walks
   take 2–5 min on real iDRACs (helm-charts#3572); walking all of `9.6.1.101` generated
   5223 metrics (snmp_exporter#1229) and hung the scrape here; Cisco documents high CBS
-  CPU from excessive SNMP polling; Onyx serves everything through one `mgmtd` daemon
-  that can be overloaded. Curated per-table walk lists are the core of a good module.
+  CPU from excessive SNMP polling; a wedged Onyx `mgmtd` leaves the switch
+  unmanageable until reboot. Curated per-table walk lists are the core of a good module.
 - **Timeouts are the #1 operational trap**: default module `timeout: 5s` ×
   `(retries: 3 + 1)` = 20 s worst case per request, vs Prometheus's default 10 s
   `scrape_timeout`. The exporter does NOT honor the scrape-timeout header; it just
@@ -235,8 +235,8 @@ provenance record for the planned `snmp-exporter` best-practices skill.
   cpuUtilHigh, diskSpaceLow, unexpectedShutdown, PSU insert/extract).
 - Product status: Onyx LTS since 2023-11-01, supported to **April 2029**, latest
   train 3.10.47xx; NVIDIA direction = Cumulus/SONiC. MIBs frozen — stable target.
-- All management incl. SNMP goes through single `mgmtd` daemon; overload makes the
-  whole box unresponsive (NVIDIA KB) → narrow walks, moderate intervals.
+- A wedged `mgmtd` leaves CLI and web UI unmanageable until reboot (NetApp KB field
+  report, SN2010 / Onyx 3.9.3220) → narrow walks, moderate intervals.
 - Config: `snmp-server enable`, `snmp-server community X ro`, v3 user with
   sha/aes-128. JSON API exists (x86 models, ≥3.9.0300) but no Prometheus exporter
   uses it; ska-sa/switch_exporter (SSH scraping) is the alternative.
