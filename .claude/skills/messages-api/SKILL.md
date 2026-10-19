@@ -7,18 +7,11 @@ argument-hint: "[topic: backends, gateways, translation, clients]"
 
 # Messages API Compatibility Reference
 
-Sibling protocols in the `inference-apis` plugin: **`chat-completions-api`** is
-the baseline surface every server implements and the target this one is most
-often translated to or from; **`responses-api`** is the third, with the
-thinnest backend coverage of the three.
-
-The Anthropic Messages API (`POST /v1/messages`) is now the second open
-compatibility surface after Chat Completions: **every major local inference
-server serves it natively** (vLLM, SGLang, llama.cpp, Ollama, mistral.rs,
-Llama Stack/OGX, Lemonade), and
-gateways (LiteLLM, Bifrost, Superagent Gateway) adapt it to everything else.
-Claude Code is the driving client; Ollama, Lemonade, and Superagent all ship
-Claude Code-specific affordances.
+`POST /v1/messages` is served natively by vLLM, SGLang, llama.cpp, Ollama,
+mistral.rs, Llama Stack/OGX and Lemonade, and adapted by LiteLLM, Bifrost and
+Superagent Gateway; Claude Code is the driving client. Sibling skills:
+**`chat-completions-api`** (the surface this one is translated to or from) and
+**`responses-api`**.
 
 **Fleet property: stateless by protocol.** No `previous_response_id`
 equivalent exists — full history is resent every turn, so load-balanced
