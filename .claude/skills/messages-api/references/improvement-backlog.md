@@ -5,7 +5,16 @@ applicable in a single iteration.
 
 ## Open
 
-_None._
+- **Re-run the live Claude Code → vLLM loop on a current vLLM** (Dim 9) —
+  `references/translation-mapping.md` §Streaming divergences ("per-turn
+  `message_start` usage reports null cache fields (observed on v0.25.1)")
+  and the attribution-block bullet (fingerprint makes the system prefix
+  vary — docs-sourced, no wire capture since v2.1.214). Blocked on: a live
+  vLLM ≥0.31 deployment with Claude Code pointed at it, which an unattended
+  pass does not have. Action when available: mitmdump one Claude Code session,
+  record whether per-turn cache fields populate and whether the billing-header
+  text differs between two requests; update both bullets and the
+  sources.md live-verification log.
 
 ## Decided — do not re-propose
 
@@ -24,7 +33,23 @@ _None._
   prefix, opencode /v1). Both are correct at their altitude; a unification
   would lose per-tool precision. Left as-is with this rationale.
 
-## Resolved this pass — 2026-07-19 (improve+freshen, baseline 87 self / 89 blind)
+## Resolved this pass — 2026-10-20 (freshen + improve, cap reached at 10 iterations)
+
+Blind 83 → 84 (n=1 each); A/B comparator 3/3 IMPROVED (slight, medium confidence).
+- Freshen: 24 findings applied across all 12 sources.md rows; stamp 2026-10-20.
+- Kept: provenance asides out of SKILL.md and references; sources table split
+  into snapshot vs latest-checked; done-conditions on all three procedures;
+  LiteLLM passthrough rule single-homed in its procedure; intro condensed;
+  symptom → fix table in translation-mapping.md behind a Quick Reference
+  route; four stale knowledge-claims answers corrected; ping gotcha untangled.
+- Discard: a symptom → fix table inside SKILL.md (iter 3) — Δ0, the Dim 5
+  gain was cancelled by overlap with Critical Gotchas; the same table in
+  translation-mapping.md (iter 8) kept.
+- Discard: rewording the ping and count_tokens gotchas as imperative rules
+  (iter 5) — Δ0, and "trust count_tokens only on vLLM" implied an
+  unverified claim about llama.cpp/SGLang/mistral.rs/OGX tokenization.
+
+## Resolved — 2026-07-19 (improve+freshen, baseline 87 self / 89 blind)
 
 - Iter 1 (freshen/probe): resolved 5 unknown matrix cells from local source —
   llama.cpp thinking param (enabled→thinking_budget_tokens, adaptive
