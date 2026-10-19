@@ -1,6 +1,6 @@
 # Known upstream issues — jira-cli
 
-Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around. The **essence** (behavior + workaround) lives inline in the skill body; this table is the **reference** so the bug is trackable and `freshen` can re-check status. Status re-checked **2026-07-21** (still v1.7.0) — **every `open` row below is still open; nothing closed, nothing shipped**. See the upstream-cadence note at the bottom for why that is unlikely to change soon. URLs: `https://github.com/ankitpokhrel/jira-cli/issues/<N>` (discussions under `/discussions/<N>`).
+Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around. The **essence** (behavior + workaround) lives inline in the skill body; this table is the **reference** so the bug is trackable and `freshen` can re-check status. Every row applies to v1.7.0, the latest release. URLs: `https://github.com/ankitpokhrel/jira-cli/issues/<N>` (discussions under `/discussions/<N>`).
 
 | Ref | Status | Affects / symptom | Skill location |
 |---|---|---|---|
@@ -27,45 +27,19 @@ How-to references (stable behavior, not bugs — essence inlined, kept here for 
 | #356 (discussion) | `.netrc` / OS-keychain token storage | config-auth.md |
 | #569 (discussion) | pager configuration (`PAGER` env var) | troubleshooting.md |
 
-## Upstream cadence — measured 2026-07-21
+## `main` is ahead of v1.7.0 — unreleased changes
 
-The workarounds in this skill are still the answer today, but **the repo
-resumed development in late July 2026** after six quiet months — so this is no
-longer a "nothing will ever change" situation. Measured, not inferred:
+v1.7.0 is still the latest release. These merged changes exist only on `main`; the README on `main` already describes them. Do not apply them to a v1.7.0 binary. When `jira version` reports a newer release, re-verify these surfaces first and drop the matching workarounds above.
 
-| Signal | Value |
-|---|---|
-| Latest release | **v1.7.0, 2025-08-31** — ~12 months old, still `isLatest` |
-| Last push to the repo | **2026-08-17** (was 2026-01-20 at the previous pass) |
-| Commits on `main` in the trailing 90 days | **10** (2026-07-30 → 2026-08-12) |
-| Open issues | 163 |
-| Archived? | **No** — 5.9k stars, live and active again |
+| PR | Change on `main` | Skill text it would change |
+|---|---|---|
+| #1013 | `epic add`/`remove` stop forcing `notifyUsers=false`; new opt-in `--skip-notify` → no admin needed | #959 workaround (troubleshooting.md, commands.md) |
+| #971, #1011 | `--plain` implies `--table` for `sprint list`; `epic list` follows the same rule | commands.md sprint/epic list |
+| #1014 | `sprint list --show-all-issues` keeps the `-q` JQL filter | jql-and-filters.md |
+| #1003 | jirawiki parser keeps multibyte UTF-8 text | markdown-adf.md |
+| #1008 | new `cf-access` auth type (Cloudflare Access JWT) | config-auth.md auth table |
+| #981 | token pre-check accepts an `api_token` set in the config file | config-auth.md ("token never in config") |
 
-**`main` is now ahead of the released binary.** Six of the seven PRs #1008–#1014 merged (**#1012, `feat: globalId for remote links`, is still open** — re-checked 2026-09-15); those that landed changed
-`epic add`/`epic remove` (no longer requires admin), `--plain` behaviour for
-`epic list` / `sprint list`, `--show-all-issues` JQL retention, and multibyte
-UTF-8 in the jirawiki parser — all areas this skill documents. None of it is in
-v1.7.0. Read the README on `main` as a description of unreleased behaviour, not
-of the binary you have installed.
+Every workaround in this skill is the answer for v1.7.0. Never write guidance that defers to a future fix ("page past 100 once #898 lands").
 
-Every tracked bug row above (#898 pagination, #948/#984 stdin hangs, #935 edit
-asymmetry, #941/#974 ADF rendering, #477 SSO, #342 GDPR accountId) is unchanged
-since the 2026-06-07 pass. With no commits in a quarter and no release in
-eleven months, **do not write guidance that defers to a future fix** — e.g.
-"page past 100 once #898 lands". Build the workaround in.
-
-This is a *cadence* observation, not an abandonment claim: the repo is not
-archived and maintainers can return at any time. Re-measure rather than assume
-in either direction.
-
-**Note on #621 — an open issue is not a live bug.** #621 is still `OPEN`
-upstream, but the behaviour it describes (`epic create --no-input -b` dropping
-the description) **does not reproduce on v1.7.0** — verified live on
-2026-06-07. The table records it as fixed-in-practice for exactly this reason.
-Issue state is a poor proxy for behaviour in both directions; the live check is
-what settles it.
-
-**Freshen note:** re-check the `open` rows against the tracker on each `freshen`
-run — when one closes / ships a fix in a new release, update the inline
-workaround and flip the status here. Also re-measure the cadence table: a new
-release is the signal that the "permanent workaround" framing needs revisiting.
+Issue state is a poor proxy for behaviour in both directions: #621 is `OPEN` but fixed on v1.7.0; #959 is `CLOSED` but unfixed in any release. On each `freshen`, re-check the `open` rows and this table against the latest release, not against issue state.
