@@ -130,20 +130,22 @@ ChatHandler. Sets `relax_thinking` "to connect to tools like claude code".
 
 ## Llama Stack / OGX
 
-**Rebranded "OGX"** (blog 2026-04-28; `src/ogx*`, repo still
-llamastack/llama-stack). Deepest Anthropic surface of any backend:
+**Rebranded "OGX"** (`src/ogx*`; repo `ogx-ai/ogx` — `llamastack/llama-stack`
+redirects there). Deepest Anthropic surface of any backend:
 `/v1/messages`, `count_tokens`, **full Message Batches** (create/list/get/
 cancel/results), `anthropic-version` response header, Anthropic-format error
 bodies.
 
 - Generic path translates via `OpenAIMixin.anthropic_messages`; **providers
-  whose backends natively serve /v1/messages get direct passthrough (vLLM,
-  meta, ollama)**.
+  whose backends natively serve /v1/messages get direct passthrough** via
+  `AnthropicMixin` (vllm, ollama, meta, anthropic, deepseek, fireworks) —
+  the only path that keeps extended thinking, cache_control and tool search.
+  On deepseek/fireworks count_tokens falls back to a `max_tokens=1` call.
 - Conformance: `scripts/anthropic_coverage.py` diffs OGX's OpenAPI against
   Anthropic's Stainless spec; **integration tests drive the real Claude Code
   CLI and Claude Agent SDK**.
 - Also serves OpenAI chat/completions, `/v1/responses` (POST+GET+WebSocket),
-  files, conversations, skills, containers.
+  files, conversations; skills and containers under `/v1alpha`.
 
 ## Lemonade (AMD)
 

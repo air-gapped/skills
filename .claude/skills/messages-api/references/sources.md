@@ -22,13 +22,14 @@ on 2026-07-19 at the listed commit.
 | llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-07-19 | b10068 | 571d0d5 |
 | Ollama | https://github.com/ollama/ollama | 2026-07-19 | v0.32.1 | 573386c |
 | mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-07-19 | v0.9.0 | 0ae0476 |
-| Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.1 examined; **latest is now v1.4.0** | f05b98f — **repo moved and the project renamed**: its README now reads "Llama Stack is now OGX" |
+| Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.1 examined; v1.5.0 `isLatest` on 2026-10-20 | f05b98f — **repo moved and the project renamed**: its README now reads "Llama Stack is now OGX" |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-07-19 | v11.0.0 | b09a0e9 |
 
 ## 2026-10-20 freshen — claims re-checked at latest tags
 
 | Finding | Source (ref checked) |
 |---|---|
+| OGX: `gh repo view llamastack/llama-stack` resolves to `ogx-ai/ogx`; passthrough moved into `AnthropicMixin(OpenAIMixin)` used by vllm/ollama/meta/anthropic/deepseek/fireworks adapters; skills/containers routes are `/v1alpha` | ogx-ai/ogx v1.5.0 `src/ogx/providers/utils/inference/anthropic_mixin.py:44,159`; `src/ogx_api/skills/fastapi_routes.py:41` |
 | mistral.rs v0.9.3+ (#2400, 9e53d6f) replays assistant thinking as `reasoning_content` and reports `cache_read_input_tokens`; v0.9.2 still drops thinking and has no cache fields | EricLBuehler/mistral.rs v0.9.5 `mistralrs-server-core/src/anthropic.rs:395-398,881-896,1112-1120`; v0.9.2 `:746` drops `"thinking"` |
 | Lemonade handles `thinking` enabled/disabled→`enable_thinking` (already at snapshot b09a0e9, `anthropic_api.cpp:427-434` — the "No (basic)" cell was wrong); verbatim relay for Anthropic-wire cloud providers (#3223, f174a054) | lemonade-sdk/lemonade v2026.42.1 `src/cpp/server/anthropic_api.cpp:190,281-285,678-685,1155-1174` |
 | Signatures: Ollama never emits signature_delta (true at snapshot 573386c too — only an unused struct field); SGLang emits it only when a real signature was captured (same at 99f5a6f46b); llama.cpp sends an empty string | ollama v0.40.6 `anthropic/anthropic.go:272-276,843`; sglang v0.5.22 `anthropic/serving.py:888-896,1271`; llama.cpp b11742 `tools/server/server-task.cpp:910-918` |
