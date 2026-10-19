@@ -4,11 +4,11 @@ Prior skill-improver runs and ceiling findings.
 
 ## Open
 
-### Bundle helper scripts to lift Dim 7 (Resource Quality) (carried 2026-10-20)
-- **Dim:** 7
-- **Where:** new `scripts/` directory, plus pointer rows in `SKILL.md` "What to read next" and `references/output-artifacts.md`.
-- **Blocked on:** an operator ruling on which workflow to standardise — operator-side analysis helpers (export percentile / correlation) or developer-side plugin scaffolds (rerank shim, dataset loader). Upstream already ships Pydantic models for export parsing, so a script without a chosen use case duplicates them.
-- **Score impact if resolved:** Dim 7 7→9.
+(none)
+
+## Decided
+
+- **No bundled helper scripts (2026-10-20).** Analysis helpers would duplicate upstream's Pydantic export models; plugin scaffolds have no recurring use case that the `plugins.md` examples don't already cover. A script added only to lift Dim 7 is padding. Re-open only if a concrete repeated task needs one.
 
 ## Resolved this pass (2026-10-20)
 
