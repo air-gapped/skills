@@ -77,6 +77,18 @@ If `AIPERF_METRICS_USAGE_PCT_DIFF_THRESHOLD` (default 10%) is exceeded, AIPerf l
 - Tune `AIPERF_WORKER_CPU_UTILIZATION_FACTOR` (default 0.75), `AIPERF_WORKER_MAX_WORKERS_CAP` (default 32).
 - Watch `AIPERF_SERVICE_EVENT_LOOP_HEALTH_WARN_THRESHOLD_MS` (default 25 ms) — if breached frequently, the loop is under-provisioned.
 
+## "Run exits 1 with `RequiredServiceReaped` after it finished"
+
+**Cause (v0.13.0):** the heartbeat watchdog keeps running after services are stopped for the post-run raw export. An export longer than ~20 s (large `--export-level raw` runs) gets required services reaped. Results are valid.
+
+**Fix:** `AIPERF_SERVICE_HEARTBEAT_MISSED_THRESHOLD=24` (default 3). Or drop to `--export-level records`.
+
+## "Raw export has fewer lines than the request count"
+
+**Cause:** record processors still writing at shutdown are force-killed after the bus grace period; the file is cut, sometimes mid-record, and the run can still exit 0.
+
+**Fix:** compare `wc -l profile_export_raw.jsonl` with `request_count` in `profile_export_aiperf.json` before using the raw file; re-run if short. `--export-level records` avoids the raw aggregation entirely.
+
 ## "Macos: `semaphore leak` warning / `None stdio`"
 
 Pre-v0.7.0 issue, fixed in v0.7.0 (PRs #686, #690, #706, #709). Upgrade to v0.7.0+.

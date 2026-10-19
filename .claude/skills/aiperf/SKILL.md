@@ -144,7 +144,7 @@ Same seed list, same hardware, same tokenizer for config A and config B. **Synth
 
 7. **Ignoring `--use-server-token-count` for OpenAI-compat servers.** When set, AIPerf reads token counts from the server's `usage` field instead of re-tokenizing client-side. Auto-enables `stream_options.include_usage` for streaming. This avoids client/server tokenizer drift entirely. Use this whenever the server is trustworthy. The `--tokenizer` flag is still required (for input-shape generation) but `tokenizer.encode()` is not called for metrics.
 
-8. **`--export-level raw` on a long run.** Writes every request/response payload to disk. Fine for 1k requests, catastrophic for 1M. Default is `records` (per-request metrics, no payloads); only escalate when actually debugging.
+8. **`--export-level raw` on a long run.** Writes every request/response payload to disk. Fine for 1k requests, catastrophic for 1M. Default is `records` (per-request metrics, no payloads); only escalate when actually debugging. On v0.13.0 a raw export that takes more than ~20 s ends in exit 1 with `RequiredServiceReaped` although every request completed — the heartbeat watchdog reaps services during export; set `AIPERF_SERVICE_HEARTBEAT_MISSED_THRESHOLD=24`. Exit 0 does not prove the raw file is complete: a record processor force-killed at shutdown truncates it. Check `wc -l profile_export_raw.jsonl` against the request count before recomputing metrics from it.
 
 9. **CSV export prefix conflict.** `--profile-export-prefix /abs/path/run1` was broken pre-v0.7.0 (PR #801 fixed it). On v0.7.0+ this works; on older builds use a relative prefix and `--artifact-dir`.
 
