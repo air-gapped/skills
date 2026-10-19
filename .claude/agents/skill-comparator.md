@@ -85,6 +85,7 @@ Weigh dimensions by what the rubric says matters, and hold to these:
 Return exactly these fields:
 
 - `winner` — `A`, `B`, or `TIE`
+- `winner_dir` — the full path of the winning directory exactly as the spawn prompt gave it, or `TIE`. Cite `reasons` with that same path prefix, so the letter, the path and the reasons all name one side
 - `confidence` — `high`, `medium`, or `low`
 - `margin` — `decisive`, `slight`, or `none`
 - `reasons` — 2–5 bullets, each naming a concrete difference with

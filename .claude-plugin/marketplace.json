@@ -11,7 +11,7 @@
       "name": "agent",
       "source": "./",
       "description": "Agent workflow suite — Karpathy-pattern autoresearch (hill-climbing, multi-agent research) and skill-improver (Claude Code skill optimization loop).",
-      "version": "0.20261020.217",
+      "version": "0.20261019.218",
       "author": {
         "name": "Jörgen"
       },
@@ -765,7 +765,7 @@
       "name": "opencode-ci-harness",
       "source": "./",
       "description": "Run opencode (v2) CLI as a headless, fully-isolated test harness against any OpenAI-, Responses- or Messages-compatible endpoint (local inference engine or remote API), or against any provider…",
-      "version": "0.20261019.2",
+      "version": "0.20261020.2",
       "author": {
         "name": "Jörgen"
       },

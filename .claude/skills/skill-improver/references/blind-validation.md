@@ -185,8 +185,11 @@ on the per-directory numbers.
 `mktemp -d` names; do not rename them.
 
 **Spawn three `skill-comparator` agents, majority vote.** Omit `model` (the
-agent definition pins it). Vote over `winner` after mapping A/B back to
-baseline/final:
+agent definition pins it). Vote over `winner_dir` mapped back to
+baseline/final, not over the letter: comparators mislabel the letter while
+their reasons cite the other side. When `winner` and `winner_dir` disagree,
+the side the `reasons` file:line citations favour decides; record the run as
+mislabelled.
 
 | Votes for final | Verdict | Action |
 |---|---|---|
