@@ -74,16 +74,21 @@ eval cases.
 2. For each weak case, read the failed answers in the printed `current.json`
    (grader `evidence`) and name the cause: fact missing from the skill; fact
    only in `sources.md` or buried; skill text wrong; assertion stale; judge
-   noise (the answer was right).
+   noise (the answer was right). Cite the moment: case, run, and the quoted
+   answer line where it goes wrong. A failure in 1 of 3 runs is noise until
+   that moment shows the mechanism; no cited moment, no fix.
 3. One cause per commit. Verify every fact against the primary source; put a
    known failure and its fix where the agent reads it; correct an assertion
    only with source evidence, in its own commit that cites the source. The
    report lists every changed assertion, before and after — a score that rose
    because a check got easier is not a better answer.
-4. Re-run just those cases: `--case '03-*,06-*'` (comma-separated globs). Keep a fix when the case rises
-   and stays above the without arm; revert otherwise.
+4. Re-run just those cases: `--case '03-*,06-*'` (comma-separated globs). Keep a fix when the case rises,
+   stays above the without arm, and the re-run answers no longer show the
+   cited moment; revert otherwise. A rise with the moment still present is
+   noise.
 5. Done = every weak case fixed, shown to be noise, or recorded in the backlog
-   with its blocker; committed. The step-1 run is the benchmark
+   with its blocker; committed; `references/lessons.md` read first and given
+   its end-of-pass entry (or none). The step-1 run is the benchmark
    (`--write-benchmark`); re-run in full only when several cases changed.
 
 ## Improve
@@ -99,11 +104,17 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **One change per iteration.** State it in 10 words with one verb; an "and"
   means two iterations. A move that starts rewording prose is two changes. A
   change plus the pointer and source row it needs is one change.
+- **Two lenses, never mixed in one hypothesis.** INV = how the agent works
+  (procedure, tool use, done conditions, scripts). DOM = what a practitioner
+  knows (facts, failure mechanisms, decision rules). `improve-loop.md` Phase 2.
 - **The backlog records blockers only.** Every Open entry in
   `<skill>/references/improvement-backlog.md` names the absent thing (a ruling,
-  a credential, an unreleased version, a measurement nobody can run now). Effort
-  is not a blocker: do it before the pass ends. Format:
-  `references/backlog-format.md`.
+  a credential, an unreleased version, a measurement nobody can run now) and
+  passes the absence checks in `references/backlog-format.md`. Effort is not a
+  blocker: do it before the pass ends.
+- **Read `references/lessons.md` in Phase 0; write at most one entry at the
+  end.** Each kept change gets an attribution verdict in the landing commit
+  (`improve-loop.md` Phase 7).
 - **A pass ends with work, not a report.** Done = every keep applied, blind
   score at baseline (on a snapshot, with the baseline commit recorded) and at stop,
   the A/B comparator verdict, an
@@ -276,6 +287,7 @@ guideline.
 | `references/blind-validation.md` | spawning a scorer or comparator |
 | `references/fleet-checks.md` | running or proposing a sweep |
 | `references/backlog-format.md` | writing a target's `improvement-backlog.md` |
+| `references/lessons.md` | Phase 0 of any `fix` or `improve` pass; writing its end-of-pass entry |
 | `references/anthropic-skill-design.md` | scoring Dims 1, 2, 8, 9; frontmatter questions |
 | `references/scripts.md` | choosing a script |
 

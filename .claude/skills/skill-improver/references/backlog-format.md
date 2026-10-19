@@ -34,6 +34,16 @@ upstream version, a live system to test against, a measurement run nobody can do
 Invalid: "larger than one iteration", "a lot of edits", "didn't fit the rule I was applying", "ran
 out of scope" — these describe effort, not a blocker.
 
+**Check the absence before naming it.** Two blockers are usually not absent:
+
+| Claimed blocker | Required check | If the check finds it |
+|---|---|---|
+| "a live endpoint / real hardware / a test instance" | probe the operator's environment: forwarded services and hosts entries, the device inventory, what monitoring already scrapes | run the test this pass |
+| "live-verify CLI subcommand X" | read X's source at the pinned tag; a thin wrapper (one API call, no branch on instance state) is settled by the code | apply what the code shows, delete the item |
+| "an operator ruling" | is the decision about the skill's own content — what it says, which scripts or files it ships, its layout? | that is the pass's decision: decide, record it under `## Decided` with the reason |
+
+An operator ruling is a valid blocker only for spend, an outward-facing action (writes to a third-party system, creating resources in the operator's accounts), or private policy.
+
 **Honest answer "nothing, it is just work": do it in this pass, before the pass ends.** Mechanical
 volume is not a reason to defer; the one-change-per-iteration rule keeps score movement
 attributable, not a cap on how much a pass may fix.
@@ -78,8 +88,9 @@ Log such cases as Open with action "run freshen mode".
 
 ## File shape and carry-forward
 
-Plain markdown; `## Open` and `## Resolved this pass` as top-level sections. Keep the shape uniform
-across runs so loops can diff.
+Plain markdown; `## Open` and `## Resolved this pass` as top-level sections, plus `## Decided` for
+content choices the pass made instead of filing (one line each: decision, reason, re-open condition).
+Keep the shape uniform across runs so loops can diff.
 
 Existing backlog with items skill-improver chose not to fix this run: carry them into the new
 "Open" section with a `(carried YYYY-MM-DD)` marker.

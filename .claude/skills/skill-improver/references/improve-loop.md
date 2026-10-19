@@ -18,11 +18,12 @@ Full phase workflow for `improve` mode (the default). Cross-cutting rules (rules
 1. Identify the target skill. Accept a path, or run `scripts/scan-skills.sh` (or Glob `**/SKILL.md` under `~/.claude/skills/` and `.claude/skills/`). Do NOT search `~/.claude/plugins/` — managed externally.
 2. Read `SKILL.md`, then list the directory. Open a `references/`, `scripts/`, `examples/` or `assets/` file only when a phase needs it (Phase 1 needs the reference files, Phase 2 whichever the hypothesis targets). Do not read the whole tree up front.
 3. **Read `<skill>/references/improvement-backlog.md` if it exists.** It carries open ceiling-hit items from prior runs. Do NOT re-propose a listed item unless new evidence shows the ceiling is now breakable in one iteration. Items resolved mid-loop move to the backlog's "Resolved this pass" section in Phase 6.
-4. Read **both** `references/quality-rubric.md` and `references/improvement-patterns.md` from the skill-improver directory. Both are mandatory; skipping the patterns file misses documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). Feeling unsure what to try next is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") to the baseline: up-front context dumps and model-version compensation cap Dims 4 and 9; procedural scaffolding is advisory only (no cap). Lift caps ahead of cosmetic dim improvements of the same magnitude.
-5. Establish a baseline score against the rubric. **Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>` first** and take Dim 10's cap from it; do not judge it yourself. It also reports case count and noise floor. A new skill usually has **no** eval set (cap 8, correct, nothing to fix); one with 3 cases resolves nothing under 0.33 and is worse than none. State which of the two it is in the baseline; when the corpus is thin, name `scripts/grow-evals.py` as the fix. Applies on every scoring run.
-6. Spawn a blind scoring agent on the baseline (`SKILL.md` §"Blind Validation", `references/blind-validation.md`). First record the baseline commit, `BASE=$(git rev-parse HEAD)` (the `<baseline-ref>` for the A/B comparator and `outcome --against`), then snapshot: `SNAP=$(mktemp -d -t <skill-name>-baseline.XXXX) && cp -a <skill-dir>/. "$SNAP"`. Run the agent in the background while the loop proceeds. **Mandatory** — it is the only check on Phase 1's self-score. If the runtime cannot spawn agents, run the same prompt in a fresh session and paste the result back before Phase 2. Do NOT proceed to Phase 6 without both a baseline AND a final blind score on record.
-7. Initialize a results log (in-memory or scratch file), header: `iteration | score | delta | status | description`.
-8. Log iteration 0 as `baseline`.
+4. Read `references/lessons.md` (skill-improver's). Apply every entry whose `cue` matches this target or this pass; name the entry in the hypothesis it shapes.
+5. Read **both** `references/quality-rubric.md` and `references/improvement-patterns.md` from the skill-improver directory. Both are mandatory; skipping the patterns file misses documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). Feeling unsure what to try next is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") to the baseline: up-front context dumps and model-version compensation cap Dims 4 and 9; procedural scaffolding is advisory only (no cap). Lift caps ahead of cosmetic dim improvements of the same magnitude.
+6. Establish a baseline score against the rubric. **Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>` first** and take Dim 10's cap from it; do not judge it yourself. It also reports case count and noise floor. A new skill usually has **no** eval set (cap 8, correct, nothing to fix); one with 3 cases resolves nothing under 0.33 and is worse than none. State which of the two it is in the baseline; when the corpus is thin, name `scripts/grow-evals.py` as the fix. Applies on every scoring run.
+7. Spawn a blind scoring agent on the baseline (`SKILL.md` §"Blind Validation", `references/blind-validation.md`). First record the baseline commit, `BASE=$(git rev-parse HEAD)` (the `<baseline-ref>` for the A/B comparator and `outcome --against`), then snapshot: `SNAP=$(mktemp -d -t <skill-name>-baseline.XXXX) && cp -a <skill-dir>/. "$SNAP"`. Run the agent in the background while the loop proceeds. **Mandatory** — it is the only check on Phase 1's self-score. If the runtime cannot spawn agents, run the same prompt in a fresh session and paste the result back before Phase 2. Do NOT proceed to Phase 6 without both a baseline AND a final blind score on record.
+8. Initialize a results log (in-memory or scratch file), header: `iteration | score | delta | status | lens | description`.
+9. Log iteration 0 as `baseline`.
 
 ## Phase 1: Evaluate (Score the Skill)
 
@@ -39,6 +40,15 @@ Identify the **single lowest-scoring dimension** (highest-impact if tied). If th
 - Complexity cost (lines added/removed, new files)
 
 Consult `references/improvement-patterns.md` for before/after patterns by dimension.
+
+**Pick the lens before the change.** Every hypothesis belongs to exactly one lens; tag it in the log row.
+
+| Lens | Owns | Never touches |
+|---|---|---|
+| **INV** — how the agent works | workflow order, tool and command use, stop and done conditions, error handling, scripts, structure, pointers | domain facts, version claims, failure mechanisms |
+| **DOM** — what a practitioner knows | facts, failure mechanism + remedy, decision rules, blacklists, artifact contracts, coverage gaps | step order, file layout, formatting |
+
+A change that needs both is two iterations. When Dims tie, take the lens the last 3 iterations did not use — restructuring otherwise crowds out domain fixes for the whole pass.
 
 **Check the rejected-edit buffer first.** The run log's discard rows (Phase 5) are this run's rejected-edit buffer. Do NOT re-propose an edit of the same shape against the same section that a prior iteration discarded — change the dimension, section, or mechanism. Exemption: a change kept since the discard has plausibly removed the reason it failed; then name the kept iteration and the removed reason in the hypothesis.
 
@@ -74,17 +84,17 @@ Apply exactly one change per iteration, diff minimal. Do NOT bundle improvements
 
 ## Phase 5: Log and Loop
 
-1. Append to the log: `iteration | score | delta | status | description`. Pick ONE declared score column (`self` OR `blind`) for trend math and keep it across iterations. Never mix self- and blind-scores in one delta column; if both are tracked, log separate columns and compute deltas within each.
+1. Append to the log: `iteration | score | delta | status | lens | description`. Pick ONE declared score column (`self` OR `blind`) for trend math and keep it across iterations. Never mix self- and blind-scores in one delta column; if both are tracked, log separate columns and compute deltas within each.
 2. Print a one-line status, e.g. `[iter 3] score: 74 (+2) — keep — moved API docs to references/api.md`.
 3. Go to Phase 2.
 
-**Reflect (every 5 iterations):** categorize all iterations by type (simplification, style fix, restructuring, content addition, trigger tuning). If the last 5 were one category, force the next hypothesis into a different one. Print: `[reflect] N kept from <category>, pivoting to <new category>`
+**Reflect (every 5 iterations):** categorize all iterations by type (simplification, style fix, restructuring, content addition, trigger tuning) and by lens (INV/DOM). If the last 5 were one category, force the next hypothesis into a different one; if they were one lens, force the other lens. Print: `[reflect] N kept from <category>/<lens>, pivoting to <new category>/<lens>`
 
 **Stop conditions:**
 - Score reaches 90+ AND no dimension is below 7.
 - **Ceiling mapped:** 5+ consecutive discards spanning at least 2 different improvement categories, **and** one widened pass has been tried since the last keep. Report as a positive finding: categories tried, what the ceiling is, what would need the author's input to break through.
 
-  **Widen before declaring the ceiling.** On hitting the discard run, do one pass that generates 3-4 candidate edits across *different* dimensions, compares them against each other and the discard rows, and applies the most promising one. If that pass also discards, the ceiling claim is earned. Then return to one-at-a-time.
+  **Widen before declaring the ceiling.** On hitting the discard run, do one pass that generates 3-4 candidate edits across *different* dimensions, at least one per lens, compares them against each other and the discard rows, and applies the most promising one. If that pass also discards, the ceiling claim is earned. Then return to one-at-a-time.
 - **Structural ceiling claim requires evidence.** It requires at least 2 logged discards naming the patterns attempted and why each failed. A run with zero discards has not mapped a ceiling — it stopped early. Do not reason "the next iteration would just be a discard"; try it.
 - User interrupts.
 - 10 iterations completed (default cap; user can override).
@@ -115,7 +125,9 @@ A pass is done only when the work is applied, verified, committed, and the recor
 3. Committed through the repo's own hook sequence, with the backlog update in the **same** commit.
 4. Anything the pass resolved is **deleted** from Open, not ticked.
 5. Every unblocked item the pass surfaced is done, not filed (`backlog-format.md` §"The admission test"). Items still open when the iteration cap hits are applied after the loop, outside the score accounting, before landing.
-6. When the target skill has `evals/evals.json`: an `outcome` run (`scripts/outcome-eval.py <skill-dir> --against <baseline-ref>`) has been made. If the pass proved an assertion stale (verified against the primary source), correct the assertion first — both versions are graded against the same current `evals.json`, so a stale assertion scores the fix as a loss. A fix made after the outcome run is checked by re-running only the affected cases (`--case`); `benchmark.plugin-eval.json` keeps the last full run, and the case re-run goes in the backlog entry.
+6. **Attribution table in the landing commit body**, one row per kept change: `change | lens | evidence | verdict`. Verdict is `helped`, `hurt`, `no observed effect` or `confounded`. `helped`/`hurt` need an isolated measurement: that iteration's own score delta outside noise, a `--case` re-run, a comparator reason naming that change, or an eval-answer moment that changed. A whole-pass `outcome --against` or comparator verdict isolates no single change: default `confounded`. Never upgrade a row from the pass-level verdict.
+7. **One lesson or none** in skill-improver's `references/lessons.md` (format there). Write it only when a non-`confounded` row, or a blocker that turned out absent, supports it; otherwise write nothing.
+8. When the target skill has `evals/evals.json`: an `outcome` run (`scripts/outcome-eval.py <skill-dir> --against <baseline-ref>`) has been made. If the pass proved an assertion stale (verified against the primary source), correct the assertion first — both versions are graded against the same current `evals.json`, so a stale assertion scores the fix as a loss. A fix made after the outcome run is checked by re-running only the affected cases (`--case`); `benchmark.plugin-eval.json` keeps the last full run, and the case re-run goes in the backlog entry.
 
 **A pass ends with work, not a report of work.** Put findings in the target's files or a commit message, not only the run summary. Prefer one more applied fix over one more paragraph of explanation.
 
