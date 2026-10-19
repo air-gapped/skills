@@ -24,7 +24,11 @@ it through **modules** across four boot stages. This skill is authoring-led (pro
 correct cloud-config from a description) with a strong validation/debug path, aimed
 at **on-prem / air-gapped Ubuntu Server LTS** using the **NoCloud** datasource.
 
-Mapping: 24.04 LTS ≈ cloud-init 24.x; 26.04 LTS ≈ 26.1.
+Versions: Ubuntu SRUs new upstream releases to every supported LTS, so an
+updated 24.04 and an updated 26.04 run the same cloud-init (26.1 in `-updates`).
+24.04's package patches out several upstream breaking changes; 26.04's carries
+none. Check the host before assuming behaviour: `dpkg -s cloud-init | grep Version`
+(`~24.04` suffix = patched noble build).
 
 ## Authoring workflow
 
@@ -259,6 +263,6 @@ Also recorded, lower operational impact for this skill's use cases:
 - `references/modules.md` — full cloud-config module reference (on-prem modules in
   depth; the rest listed by stage). Has a TOC.
 - `references/cli-and-debugging.md` — CLI, boot stages & module ordering, re-run /
-  golden-image, version notes (24.x vs 26.1).
+  golden-image, version notes (24.04 patched build vs 26.04).
 - `references/examples.md` — minimal and realistic air-gapped configs with matching
   `meta-data`.

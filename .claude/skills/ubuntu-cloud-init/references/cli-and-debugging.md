@@ -83,7 +83,11 @@ cloud-init-per once <name> <cmd>                       # frequency-guarded comma
 7. Air-gapped boot is slow/hangs → check `ds-identify.log`; you almost certainly need
    to pin `datasource_list: [NoCloud]` (see `nocloud-and-airgapped.md`).
 
-## Version notes (24.04 / 24.x vs 26.04 / 26.1)
+## Version notes (24.04 patched build vs 26.04)
+
+Both LTS releases receive the same upstream version through SRUs (`-updates`);
+the differences below come from the version deltas and from 24.04's
+`debian/patches`, not from the release a host was installed with.
 
 - **NoCloud:** `nocloud-net` dsname deprecated 24.1; ENI `network-interfaces` in
   meta-data deprecated 24.3; NoCloud `network-config` support added 24.3 (missing file
