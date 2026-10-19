@@ -177,8 +177,8 @@ jira issue create -tBug -s"Login 500 on submit" -yHigh -lregression \
 # Transition with a comment and resolution
 jira issue move PROJ-42 "Done" -RFixed --comment "Shipped in 1.2.3"
 
-# Export everything in a project to CSV
-jira issue list -p PROJ --csv --paginate 0:100 > issues.csv
+# Export to CSV — at most 100 rows per query on Cloud (#898); for more, run narrower JQL windows and concatenate
+jira issue list -p PROJ --csv --paginate 100 > issues.csv
 
 # Add a sub-task under a story
 jira issue create -t"Sub-task" -P PROJ-100 -s"Write tests" --no-input </dev/null
