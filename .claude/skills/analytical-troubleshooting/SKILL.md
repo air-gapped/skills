@@ -92,7 +92,9 @@ Before analyzing anything, make sure there is *one* analyzable problem.
   1. There is a real deviation (a stateable SHOULD vs ACTUAL gap).
   2. The cause is unknown.
   3. Knowing the cause matters for acting well (if a rebuild is cheap and
-     acceptable, do that — say so honestly).
+     acceptable, do that — say so honestly). Severity does not decide this:
+     a minor fault that keeps eating debugging sessions qualifies; a severe
+     one with an obvious verified cause does not.
 - **Route non-deviations elsewhere.** Choosing between options is a decision,
   not a problem. Learning from a resolved incident is a retrospective (hand
   off to `understanding-human-error`). Process variation ("yield wobbles
@@ -270,9 +272,6 @@ to a proper retrospective — don't do it here.
   likes, three swaps in a row with no new table entries, a hypothesis more
   specific than any cell forces (the vivid detailed story is the anchor-trap
   wearing its best clothes).
-- **Proportionality, restated:** severity does not dictate ceremony. A severe
-  problem with an obvious verified cause needs no table; a "minor" recurring
-  annoyance that has eaten four debugging sessions deserves the full method.
 
 ## References
 
