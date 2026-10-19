@@ -37,7 +37,7 @@ Through 2029-03-28 Atlassian provides support, critical-vuln fixes, and cloud-to
 | **Page status, page emojis, schedule-publish, inline pre-publish comments** | Cloud-only |
 | **Company Hub, Guests, modern anonymous/public links** | Cloud-only |
 | **New navigation / Spaces sidebar redesign** | Cloud-only (GA from Mar 2025) |
-| **Rich page/space analytics** (views, read-time) | Cloud-richer; DC has bundled "Analytics for Confluence" but it's *limited* and not actively developed |
+| **Rich page/space analytics** (views, read-time) | Cloud-richer; DC has bundled "Analytics for Confluence" (7.11+), rated *limited functionality* by Atlassian's compare page |
 
 ## Available on BOTH (don't mis-flag as Cloud-only)
 
