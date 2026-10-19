@@ -14,7 +14,8 @@
 # Secrets never land in git: credentials use ${ENV} placeholders — run the
 # exporter with --config.expand-environment-variables and provide the six
 # *_SNMP_* vars from a Kubernetes Secret.
-# SHA256/AES chosen as the common pair; if a CBS runs old firmware that only
+# SHA256/AES is the switch pair (switch_v3); the iDRAC auths use their own
+# generation-specific pairs (see below). If a CBS runs old firmware that only
 # offers MD5/SHA, create the device user with SHA and mirror it here.
 # Onyx gotcha: units shipped pre-3.6.6102 share one SNMPv3 engine ID — check
 # `show snmp engineID` and reset before enrolling multiple switches.
