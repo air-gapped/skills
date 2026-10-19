@@ -30,9 +30,8 @@ used to be acceptable (or should be) no longer is, and nobody knows why.
 The core discipline: track what the problem **IS** and, with equal care, what
 it plausibly **could be but IS NOT**. A cause that explains only the failures
 is a guess; a cause that explains the failures *and* the survivals is a
-diagnosis. Most troubleshooting failure — human and model alike — comes from
-anchoring on the first plausible cause and collecting only confirming
-evidence. This method makes that structurally hard to do.
+diagnosis. Never anchor on the first plausible cause or collect only
+confirming evidence.
 
 Act as process leader and bookkeeper: keep the table, the hypothesis list
 and the test plan. When a human partner is involved, they are the sensors
