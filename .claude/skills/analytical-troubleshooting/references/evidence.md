@@ -57,10 +57,12 @@ per-candidate opposing evidence (clinical diagnosis practice).
   documented failure mode the `[observed]`-only rule exists to block.
 - **Structured method at all:** the best independent trial of structured
   troubleshooting training (navy technicians, Human Factors 2000) roughly
-  doubled solve rates in less time vs. conventional training; debiasing
-  research finds *scaffolding* (checklists, tables, decision support)
-  outperforms trained judgment, which decays in weeks. A skill is
-  scaffolding.
+  doubled solve rates in less time vs. conventional training. Evidence that
+  trained debiasing is retained and transfers is scarce (a 2021 systematic
+  review kept 12 studies; effects seen up to 12 weeks; transfer tested in
+  one), and its authors conjecture decision support is the stronger route.
+  A skill is decision support applied inside the task, so it does not
+  depend on transfer.
 - **Two-regime honesty:** cause-hunting is legitimate during live diagnosis
   and misleading as a theory of accidents; resilience-engineering critiques
   of "root cause" apply to post-incident learning, which is why the skill
