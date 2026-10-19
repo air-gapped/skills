@@ -41,8 +41,12 @@ provenance in `references/sources.md`).
   backends; refusal only from the LiteLLM bridge (upstream content_filter).
   Divergence table: `references/translation-mapping.md`.
 - **`anthropic-beta` headers arrive whether supported or not** — opencode
-  always sends interleaved-thinking + fine-grained-tool-streaming betas.
-  Servers must no-op unknown betas, never 400.
+  always sends interleaved-thinking + fine-grained-tool-streaming betas;
+  Claude Code adds beta tool-schema fields (`defer_loading`,
+  `eager_input_streaming`). Servers must no-op unknown betas and fields, never
+  400. A backend that rejects them (`Unexpected value(s)` on the header,
+  `Extra inputs are not permitted`): set
+  `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` on the Claude Code side.
 - **`thinking` request param**: vLLM before v0.31.0 silently ignores it;
   v0.31.0+ maps `enabled`→thinking budget and `disabled`→reasoning off, but
   still ignores `adaptive` (what current clients send). SGLang accepts
