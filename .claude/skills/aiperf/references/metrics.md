@@ -54,6 +54,8 @@ For non-reasoning models TTFT == TTFO. For reasoning models (DeepSeek-R1, Qwen3 
 | `total_token_throughput` | `(total_ISL + total_OSL) / benchmark_duration`. | tokens/sec |
 | `request_throughput` | `request_count / benchmark_duration`. | requests/sec |
 
+The exported throughput metrics (and `goodput`) actually divide by the phase window — phase start to last credit return — not by the exported `benchmark_duration`, so `request_throughput × benchmark_duration` comes out slightly below `request_count` (~1% on short runs). When recomputing throughput from the export, use `end_time − start_time`, or recompute every number from one denominator; never mix exported throughput with a hand-computed `request_count / benchmark_duration`.
+
 ## Goodput
 
 Goodput = the fraction of requests that meet **all** specified SLOs simultaneously. Throughput says capacity; goodput says how much of that capacity delivers acceptable UX.
