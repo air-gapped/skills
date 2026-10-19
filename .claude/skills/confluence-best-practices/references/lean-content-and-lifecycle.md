@@ -65,7 +65,7 @@ Review cadences to recommend: policies/HR/security every 6–12 months; project 
 
 - **< 8,000 spaces = optimal · 8,000–10,000 = approaching · > 10,000 = exceeding.** Root cause is **permission checks**; symptoms are slower dashboards and macro rendering. This is the Confluence analogue of Jira's "<800 custom fields" — the one hard numeric guardrail. Consolidate sprawling/duplicate spaces to stay under it.
 - **Pages are NOT a primary perf axis** — 80,000 pages can run in <512 MB; Atlassian publishes **no max pages-per-space for DC** (the ~50,000 figure is *Cloud*, don't cite it for DC).
-- **Attachments:** 2 GB max per file; they live on the filesystem, so volume drives disk, not heap.
+- **Attachments:** upload limit defaults to **100 MB** per file (admin: *Attachment Maximum Size*); files live on the filesystem, so volume drives disk, not heap. Search indexes only the first **1 MB** of text from .xlsx/.pptx, **8 MB** from PDF, **16 MB** from .docx — text past that is unfindable, another reason to put the answer in page text.
 - **The real per-page ceiling is the editor.** There is **no documented hard limit** for page byte-size, macros/page, or attachments/page — the first failure mode is the editor. The **12-concurrent-editor cap** on Synchrony is a documented product limit and still stands. **Split very long or macro-heavy pages.**
 
   **Large-page Synchrony bugs are fixed — split pages for readability, not as a defect workaround.**
