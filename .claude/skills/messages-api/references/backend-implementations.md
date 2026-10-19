@@ -40,7 +40,8 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
   `budget_tokens >= max_tokens`), `disabled` → reasoning off, `adaptive`
   accepted and ignored, `display` ignored; count_tokens applies `thinking` and
   `output_config` too.
-- `metadata` accepted but never read; `document` blocks → pydantic 422.
+- `metadata` accepted but never read; `document` blocks → pydantic 422;
+  `tool_reference` / `tool_addition` / `tool_removal` blocks accepted.
 - Output thinking blocks carry **fabricated uuid4 signatures**; input
   `redacted_thinking` accepted-and-dropped.
 - Streaming: correct `event:`+`data:` wire format; message_start /
