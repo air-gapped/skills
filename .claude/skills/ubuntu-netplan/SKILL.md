@@ -157,7 +157,7 @@ tables, and a complete bonded-VLAN-bridge virtualization-host config, read
 |---|---|
 | `netplan generate` | Render YAML → backend files. **Doubles as the validator.** |
 | `netplan apply` | Generate, then apply to the running system. |
-| `netplan try [--timeout 120]` | Apply with **auto-rollback** if not confirmed. Use over SSH. |
+| `netplan try [--timeout 120]` | Apply with **auto-rollback** if not confirmed. Use over SSH; refuses bonds/bridges with `parameters:`. |
 | `netplan get [path]` | Show the merged config (e.g. `netplan get ethernets.enp1s0.addresses`). |
 | `netplan set k=v` | Write a key into `/etc/netplan/` (validated; new files `0600`). |
 | `netplan status [--all] [--diff]` | Show running state; `--diff` compares system vs YAML. |
