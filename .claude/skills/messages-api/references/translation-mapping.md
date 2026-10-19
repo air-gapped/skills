@@ -127,7 +127,8 @@ What a third-party `/v1/messages` server must tolerate from real clients
   non-system messages → must be ignored gracefully if unsupported.
 - A `thinking` body param — `{type:"adaptive", display:"summarized"}` +
   `effort` for newer Claude models, `{type:"enabled", budgetTokens: …}` for
-  older → vLLM ignores silently; SGLang accepts-not-enforces.
+  older → vLLM ignores `adaptive` (and everything before v0.31.0); SGLang
+  accepts-not-enforces.
 - Always `stream: true`; SSE parser tolerates missing optional event fields.
 - `cache_creation_input_tokens`/`cache_read_input_tokens` may be absent/null.
 - baseURL convention: the SDK appends only `/messages` — **configure

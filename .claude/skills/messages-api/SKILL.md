@@ -42,8 +42,10 @@ provenance in `references/sources.md`).
 - **`anthropic-beta` headers arrive whether supported or not** — opencode
   always sends interleaved-thinking + fine-grained-tool-streaming betas.
   Servers must no-op unknown betas, never 400.
-- **vLLM silently ignores the `thinking` request param** (not in its pydantic
-  model); SGLang accepts `budget_tokens` but does not enforce it.
+- **`thinking` request param**: vLLM before v0.31.0 silently ignores it;
+  v0.31.0+ maps `enabled`→thinking budget and `disabled`→reasoning off, but
+  still ignores `adaptive` (what current clients send). SGLang accepts
+  `budget_tokens` but does not enforce it.
 - **LiteLLM fleet configuration**: `model_info.supported_endpoints:
   ["/v1/messages"]` on a deployment forwards Anthropic bodies UNTRANSLATED to
   Messages-native backends — full fidelity, no bridge. Without it,

@@ -21,7 +21,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `/v1/messages` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
-| `thinking` request param | **Silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | No (basic) |
+| `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | No (basic) |
 | thinking blocks out | Yes (uuid4 fake signature) | Yes | Yes (thinking first, signature_delta) | Yes | Yes (drops input thinking) | Via provider | No |
 | `stop_sequence` stop_reason | **Never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
@@ -35,8 +35,12 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
 `count_tokens` does **real chat-template tokenization** (adds non-standard
 `context_management.original_input_tokens`).
 
-- `thinking` request param **not in the pydantic model — silently ignored**;
-  `metadata` accepted but never read; `document` blocks → pydantic 422.
+- `thinking` request param: **silently ignored before v0.31.0** (not in the
+  pydantic model). v0.31.0+: `enabled` → `thinking_token_budget` (rejects
+  `budget_tokens >= max_tokens`), `disabled` → reasoning off, `adaptive`
+  accepted and ignored, `display` ignored; count_tokens applies `thinking` and
+  `output_config` too.
+- `metadata` accepted but never read; `document` blocks → pydantic 422.
 - Output thinking blocks carry **fabricated uuid4 signatures**; input
   `redacted_thinking` accepted-and-dropped.
 - Streaming: correct `event:`+`data:` wire format; message_start /

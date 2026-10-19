@@ -25,6 +25,12 @@ on 2026-07-19 at the listed commit.
 | Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.1 examined; **latest is now v1.4.0** | f05b98f — **repo moved and the project renamed**: its README now reads "Llama Stack is now OGX" |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-07-19 | v11.0.0 | b09a0e9 |
 
+## 2026-10-20 freshen — claims re-checked at latest tags
+
+| Finding | Source (ref checked) |
+|---|---|
+| vLLM `thinking` param modeled since v0.31.0 (#58613): enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored | vllm-project/vllm v0.32.0 `vllm/entrypoints/anthropic/protocol.py:223`, `serving.py:644-649`; first stable tag containing 5a2ed2e7ee = v0.31.0 |
+
 ## Live-verification log
 
 | Date | What | Result |
