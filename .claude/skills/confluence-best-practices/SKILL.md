@@ -128,7 +128,7 @@ The second pillar. The same structure serves human scanning and machine retrieva
 - **The page title is the H1**, so body content starts at **H2 → H3** (don't skip levels; cap ~H3/H4). A **Table of Contents** macro pays off on *long* pages only.
 - **Answer first** (BLUF / inverted pyramid — most readers scan, not read). Open with a one-line summary (an Info panel), write topic-sentence-first paragraphs, **chunk** into short sections.
 - **One page = one purpose** (Diátaxis: *tutorial / how-to / reference / explanation* — mixing types is the root of most doc problems). Plus ADRs, runbooks, meeting notes.
-- **Macros earn their place.** Info/note/warning panels, Expand, Excerpt, Children Display *help*; **macro/table overload clutters and degrades the editor.** Keep tables small (the new editor has table regressions).
+- **Macros earn their place.** Info/note/warning panels, Expand, Excerpt, Children Display *help*; **macro/table overload clutters and degrades the editor.** Keep tables small (on Cloud, the new editor also limits table copy/paste — CONFCLOUD tickets do not apply to DC).
 - **Author for retrieval too:** put the answer **in text, not only in a screenshot/attachment**; descriptive link text (no "click here"); labels + Page Properties for structure.
 - **Accessibility:** alt text, descriptive links, real heading semantics, don't rely on colour alone.
 
