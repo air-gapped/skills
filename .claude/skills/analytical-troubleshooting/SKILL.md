@@ -34,14 +34,10 @@ diagnosis. Most troubleshooting failure — human and model alike — comes from
 anchoring on the first plausible cause and collecting only confirming
 evidence. This method makes that structurally hard to do.
 
-Why structure instead of intuition: the evidence says procedural scaffolding
-(tables, gates, checklists) outperforms both raw expertise and good
-intentions. Domain-theory knowledge does not predict troubleshooting success;
-maintaining evidence discipline and switching strategies does. Your job is to
-be the process leader and bookkeeper. When a human partner is involved, they
-are the sensors and hands; deliberately keep the roles that way — a
-process-leading non-expert asking sharp questions is a proven pattern
-precisely because it resists the expert's urge to assume.
+Act as process leader and bookkeeper: keep the table, the hypothesis list
+and the test plan. When a human partner is involved, they are the sensors
+and hands — ask sharp questions rather than assume their system's state.
+Why each mechanism is here: `references/evidence.md`.
 
 ## Hard rules (they exist because models measurably break them)
 
