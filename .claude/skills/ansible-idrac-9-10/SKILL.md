@@ -46,6 +46,7 @@ Load only the file the question needs:
 | Attribute renamed / deprecated / changed default on iDRAC 10, module support matrix, Jobs URI, WS-MAN, 17G platform list | `references/idrac-10-deltas.md` |
 | A specific error or misbehaviour (17 catalogued upstream bugs with symptom → cause → fix) | `references/troubleshooting.md` |
 | Where a claim comes from, when it was verified | `references/sources.md` |
+| Static check of a playbook/role against everything below | `scripts/lint-playbook.py` (`--selfcheck` verifies it) |
 
 ## Decision tree (start here)
 
@@ -218,18 +219,27 @@ Then branch:
 
 ## Done when (porting or reviewing a play)
 
-Every item holds, for every task in the play:
+Every item holds, for every task in the play. Run the static checks first:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/scripts/lint-playbook.py" <playbook-or-role-dir> --idrac10   # omit --idrac10 for iDRAC 9-only plays
+```
+
+It exits 1 on removed modules, tokens passed to rejecting modules,
+token + password together, credentialed Redfish `uri` without
+`force_basic_auth`, `/` in `iso_image`, and (with `--idrac10`) password
+changes without `privilege` and attribute keys renamed or deprecated on
+iDRAC 10. A clean run covers the first three items below; the last two
+need the live iDRAC.
 
 - Each `dellemc.openmanage` task passes `x_auth_token` only to a module
   that accepts it; the rejecting modules (anti-patterns above) get
   `idrac_user`/`idrac_password` with `no_log: true`.
 - Each `ansible.builtin.uri` call to the BMC sends `X-Auth-Token` or
   `force_basic_auth: true`.
-- No call to a module removed in 11.0.0 remains:
-  `grep -rnE 'idrac_network:|idrac_syslog|idrac_timezone_ntp|dellemc_(configure|idrac|system)' <playbook-dir>`
-  returns nothing.
-- Each attribute key is checked against `references/idrac-10-deltas.md`
-  §3–§4 for the target generation. Verify by reading the value back
+- No call to a module removed in 11.0.0 remains.
+- Each attribute key is valid for the target generation
+  (`references/idrac-10-deltas.md` §3–§4). Verify by reading the value back
   (GET the DellAttributes URI above, compare to the desired value):
   a renamed key reports `changed: false` without applying, so task
   status proves nothing.
