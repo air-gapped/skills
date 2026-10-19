@@ -162,6 +162,11 @@ Rules that make the table work:
   the IS side?* — and for each distinction, *what changed in, on, or around
   it, and when?* Dated changes that line up with the WHEN row are prime
   cause material.
+- **Read the WHEN row for the edge case** (`references/edge-cases.md`):
+  first seen ≈ commissioned is a Day One deviation — no change to find,
+  hunt distinctions against a working sibling only; a gradual decline is
+  drift — do not seize the most visible recent change; an intermittent
+  fault is specified as occurrences vs. non-occurrences over time.
 
 Full question set, worked example, and table-maintenance guidance:
 `references/specification.md`. When facts are in logs, compress them first
@@ -198,12 +203,6 @@ makes the hypothesis strictly less probable while making the story *feel*
 more explanatory (the conjunction fallacy). "Something in the upgraded DB
 version raises peak memory" beats "the v16 parallel-dump default doubles
 work_mem" until a cell forces the narrower claim.
-
-**Edge cases change the move** (see `references/edge-cases.md`): if the thing
-*never* worked ("Day One" deviation), there is no change to find — hunt
-distinctions against a working sibling only. If the decline was gradual,
-suspect drift and don't seize the most visible recent change. If the fault is
-intermittent, specify occurrences vs. non-occurrences over time.
 
 ## Stage 4 — Paper test (kill candidates before spending on tests)
 
