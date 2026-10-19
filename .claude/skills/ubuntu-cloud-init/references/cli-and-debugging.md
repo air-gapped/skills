@@ -97,16 +97,24 @@ ships upstream behaviour:
 | Network stage waits for network-online manually | yes | reverted — systemd ordering after `systemd-networkd-wait-online` |
 | 26.1 OpenStack bond names from `network_data.json` | yes | reverted — `bond0`, `bond1`, … |
 
-- **NoCloud:** `nocloud-net` dsname deprecated 24.1; ENI `network-interfaces` in
-  meta-data deprecated 24.3; `network-config` from a `seedfrom` URI added 24.3 (26.04
-  only; table above). Canonical cmdline is `ds=nocloud;s=<uri>/`.
-- **datasource_list:** 24.1 stopped auto-appending `None` to single-entry lists — add
-  it explicitly if wanted.
-- **Architecture:** 25.1 `/usr` merge; 25.3 socket-protocol change; 25.3 build
-  system moved to meson.
-- **26.1 specifics:** ntp client moved `ntp`→`ntpsec`; dropped Python 3.8.
-- **deb822 apt sources** (since 23.4): deb822 `sources_list` content is written to
-  `/etc/apt/sources.list.d/ubuntu.sources` on both releases.
+Upstream changes by version (`doc/rtd/reference/breaking_changes.rst` plus
+deprecations); "24.04" marks the ones its build reverts:
+
+| Version | Change | Action |
+|---|---|---|
+| 26.1 | ntp client package `ntp` → `ntpsec`; Python 3.8 dropped | none for `ntp_client: auto`/`chrony` |
+| 26.1 | OpenStack bond names come from `network_data.json`, not `bond0`/`bond1` (24.04: reverted) | cloud-only |
+| 25.3 | systemd socket protocol changed; build moved to meson | update any custom `ExecStart=` for cloud-init units |
+| 25.1.4 | strict datasource identity (SKILL.md) — **not** reverted on 24.04 | pin `datasource_list` |
+| 25.1 | `/usr` merge — nothing installed to `/lib` | none on Ubuntu |
+| 24.4 | `cloud-final.service` ordering standardized | re-check custom units ordered against it |
+| 24.3 | single process; `cloud-init.service` → `cloud-init-network.service` (24.04: reverted) | order external units after `cloud-config.target` |
+| 24.3 | NoCloud `network-config` fetched from a `seedfrom` URI (24.04: reverted) | see `nocloud-and-airgapped.md` |
+| 24.3 | ENI `network-interfaces` in NoCloud `meta-data` deprecated | use network v1/v2 |
+| 24.1 | no wait for snapd seeding | a `runcmd` using a snap first runs `[snap, wait, system, seed.loaded]` |
+| 24.1 | ds-identify no longer appends `None` to a single-entry `datasource_list` | add `None` explicitly if wanted |
+| 24.1 | `nocloud-net` dsname deprecated | use `nocloud`; the `seedfrom` scheme picks Local vs Network |
+| 23.4 | deb822 `sources_list` → `/etc/apt/sources.list.d/ubuntu.sources`, and `sources.list` becomes a stub comment | one-line `sources_list` content still goes to `sources.list`; look in both files when debugging apt |
 
 > Where the repo and prior knowledge disagree, trust the repo. In particular, the
 > `99-disable-network-config.cfg` filename is a *documented convention*, not a
