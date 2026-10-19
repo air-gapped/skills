@@ -132,7 +132,10 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 
 6. **Sub-tasks require `-P/--parent`,** and the parent must be a type that allows sub-tasks. "Given parent work item does not belong to appropriate hierarchy" means `-P` points at something (e.g. an epic, or another sub-task) that can't hold sub-tasks.
 
-7. **`delete` is irreversible and `--cascade` deletes subtasks too.** Never run it speculatively on someone's behalf — confirm the key and intent first. There is no undo.
+7. **`delete` is irreversible and `--cascade` deletes every subtask of each match.** For bulk cleanup:
+   - **Never write a delete loop fed by live `issue list` output** — not even when asked for a paste-and-go one-liner. Never "re-query until empty" around the 100-row cap for a delete.
+   - **Recommend the reversible option as the default, first in the answer:** bulk `move` to the workflow's closed state with `-R<resolution>` (find the exact strings first), or add a label — it can be undone; deletion cannot. Offer deletion second.
+   - **If deletion stays:** freeze keys to a file (`--plain --no-headers --columns key > keys.txt`), have the user review that file and pin the JQL's status names to real ones, then delete only from the file — after the user confirms. Cloud returns ≤100 per query (#898), so build the file from narrower JQL windows, de-duplicated.
 
 8. **Markdown → ADF is lossy.** Prefer GitHub fenced code blocks (```` ``` ````) over Jira `{code}` (which can leak escape characters). `~~strike~~` renders as `-text-`; `@user` mentions need Jira's `[~accountid]` form; emoji shortcodes (`:rocket:`) and raw HTML are dropped. For anything structured, use `--template file.md` and test on one issue first. Details: `references/markdown-adf.md`.
 

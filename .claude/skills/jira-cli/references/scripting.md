@@ -72,7 +72,7 @@ jira issue list -q'parent = PROJ-123 AND assignee = currentUser()' --raw \
 `edit` field semantics bite in loops:
 - `--label`, `--component` and `--fix-version` all **append**. To set-not-add, remove the old value in the same call: `--label -old --label new`, `--component -Old --component New`.
 - Test the edit on **one** issue and `view` the result before looping over hundreds.
-- For destructive loops (`delete`), print the keys first and require explicit confirmation — there is no undo, and `--cascade` also deletes sub-tasks.
+- For destructive loops (`delete`): never feed the loop from live `list` output. Freeze keys to a file, have a human review it, delete only from the file after explicit confirmation — there is no undo, and `--cascade` also deletes sub-tasks. Offer a reversible bulk `move` to a closed state (or a label) first.
 
 ## Reporting snippets
 
