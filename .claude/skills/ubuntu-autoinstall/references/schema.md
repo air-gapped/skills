@@ -89,7 +89,7 @@ apt config passes through. Default uses `mirror-selection` with country mirrors 
 ```yaml
 apt:
   preserve_sources_list: false
-  geoip: false                       # air-gapped: kill the geoip.ubuntu.com lookup
+  geoip: false                       # no country-mirror swap; the geoip.ubuntu.com request still runs
   mirror-selection:
     primary:
       - uri: "http://mirror.internal/ubuntu"

@@ -34,7 +34,7 @@ autoinstall:
   proxy: http://proxy.internal:3128
 
   apt:
-    geoip: false                       # no geoip.ubuntu.com lookup
+    geoip: false                       # no country-mirror swap (lookup still runs, fails offline)
     preserve_sources_list: false
     mirror-selection:
       primary:

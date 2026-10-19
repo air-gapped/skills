@@ -144,7 +144,7 @@ refresh-installer:
   update: false                      # don't try to self-update from the snap store
 proxy: http://proxy.internal:3128    # NOT applied to the geoip lookup
 apt:
-  geoip: false                       # disable geoip.ubuntu.com lookup (10s hang otherwise)
+  geoip: false                       # no country-mirror swap (the lookup itself still runs)
   preserve_sources_list: false
   mirror-selection:
     primary:
@@ -156,6 +156,9 @@ updates: security
 
 - Wrapping `primary` inside `mirror-selection` enables Subiquity's mirror probing
   (picks the first usable). A bare `primary:` list uses legacy curtin behavior.
+- `geoip: false` does **not** stop the request to `geoip.ubuntu.com`: Subiquity sends
+  it as soon as the network is up, bypassing `proxy`. Offline it fails harmlessly;
+  block it at the firewall if no request may leave the segment.
 - `apt.fallback` ∈ `abort` | `offline-install` | `continue-anyway`. The docs disagree
   on the default — **always set it explicitly.** `offline-install` falls back to the
   ISO's seed; `continue-anyway` is not recommended.

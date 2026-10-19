@@ -70,9 +70,11 @@ validation pass.
   ensure a login path exists.
 - **`network:` must be netplan v2** (`version: 2`); v1/ifupdown fails. `match:` accepts
   only name/macaddress/driver.
-- **Air-gapped mirror/proxy:** forgetting `apt.geoip: false` → ~10 s hang on the geoip
-  lookup; relying on the ambiguous `apt.fallback` default — set it explicitly. `proxy`
-  is **not** applied to the geoip lookup.
+- **Air-gapped mirror/proxy:** keeping the default `country-mirror` candidate with
+  `geoip: true` → up to 10 s wait on the geoip result before mirror probing. `geoip:
+  false` only drops the country-mirror swap — the `geoip.ubuntu.com` request still goes
+  out on network-up and ignores `proxy`. Relying on the ambiguous `apt.fallback`
+  default — set it explicitly.
 - **`late-commands` run in the installer env**, target at `/target` — use
   `curtin in-target -- <cmd>` to run inside the installed system.
 - **OEM + kernel conflict:** `oem.install: true` plus a pinned `kernel:` can fail.
