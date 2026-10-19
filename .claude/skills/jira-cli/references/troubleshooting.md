@@ -1,6 +1,6 @@
 # jira-cli troubleshooting
 
-Add `--debug` to any failing command first — it prints the HTTP request/response and is usually decisive.
+Add `--debug` to any failing command first — it prints the HTTP request/response and is usually decisive. **The trace includes the `Authorization:` header** (basic = base64 of login:token, i.e. the token). Never paste raw `--debug` output into a ticket, comment, CI log or chat; filter it first: `jira … --debug 2>&1 | grep -v -i '^authorization'`.
 
 ## The command hangs / "froze" (no output, never returns)
 A write hit an interactive prompt. The process is waiting for keyboard input that won't come (CI, agent, backgrounded shell).

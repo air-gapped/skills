@@ -106,4 +106,4 @@ Each config carries its own server URL + auth; the `JIRA_API_TOKEN` env var must
 2. A config file committed or generated for the runner (non-interactive — `jira init` prompts, so prefer copying a known-good `.config.yml` and setting `JIRA_CONFIG_FILE`).
 3. Every write has `--no-input`; no `--web`.
 4. Reads use `--plain`/`--raw`/`--csv`.
-5. Add `--debug` temporarily when a step misbehaves.
+5. Add `--debug` temporarily when a step misbehaves — never in a CI log that others can read: it prints the `Authorization:` header.

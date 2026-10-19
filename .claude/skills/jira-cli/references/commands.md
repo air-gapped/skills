@@ -31,7 +31,7 @@ Inherited by every command:
 |---|---|
 | `-c, --config <file>` | Config file. Default `~/.config/.jira/.config.yml`; override with `JIRA_CONFIG_FILE`. |
 | `-p, --project <KEY>` | Project to operate in. Defaults to the project in the config file. |
-| `--debug` | Verbose debug output (HTTP traces etc.). Add this to diagnose anything. |
+| `--debug` | Verbose debug output (HTTP traces etc.). Add this to diagnose anything. Prints the `Authorization:` header — strip it before sharing output. |
 | `-h, --help` | Help for the command. |
 
 Environment variables:
