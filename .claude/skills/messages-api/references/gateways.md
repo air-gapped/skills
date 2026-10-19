@@ -41,8 +41,10 @@ split by `_CombinedChunkSplitter`.
 else local tokenizer approximation; returns only `{"input_tokens": N}`.
 
 **Quirks**: non-Anthropic `usage.total_tokens` included non-stream (strip via
-`litellm.strip_anthropic_total_tokens=True`); `output_config` dropped on the
-bridge (avoids 400); `metadata` restricted to `user_id` (use
+`litellm.strip_anthropic_total_tokens=True`); on the bridge
+`output_config.effort` → `reasoning_effort` and `output_config.format` →
+`response_format`, then the raw key is stripped (avoids 400); `metadata`
+restricted to `user_id` (use
 `litellm_metadata` for LiteLLM's own); tool_use ids sanitized.
 
 ## Bifrost
