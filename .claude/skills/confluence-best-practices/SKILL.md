@@ -54,7 +54,7 @@ To tell which applies, check the REST base path: `/wiki/api/v2/...` works → Cl
 
 ## Information architecture — space, page, or child? (by role, not by name)
 
-The single most common Confluence question is *"where do I put this?"* — the analogue of Jira's "is this an epic or a story?" Internalise the primitives and the decision:
+The primitives and the placement decision:
 
 ```
    Space            CONTAINER + permission/ownership boundary — its own homepage, sidebar, admin
