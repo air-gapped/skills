@@ -62,6 +62,9 @@ jq -s -e 'any(.[]; type == "object" and .type == "system" and .subtype == "init"
 
 result=$(jq -s -r '[.[] | select(type == "object" and .type == "result") | .subtype] | .[-1] // empty' "$transcript")
 [[ "$result" == success ]] || die "result subtype is ${result:-missing}, expected success"
+# An API error ends with subtype=success and is_error=true.
+result_error=$(jq -s -r '[.[] | select(type == "object" and .type == "result") | .is_error] | .[-1] // false' "$transcript")
+[[ "$result_error" == false ]] || die "result is_error=$result_error: $(jq -s -r '[.[] | select(type == "object" and .type == "result") | .result] | .[-1] // empty' "$transcript" | head -c 300)"
 
 if [[ -n "$expected_model" ]]; then
   actual_model=$(jq -s -r '[.[] | select(type == "object" and .type == "system" and .subtype == "init") | .model] | .[-1] // empty' "$transcript")

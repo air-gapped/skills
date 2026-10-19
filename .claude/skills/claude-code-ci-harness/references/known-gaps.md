@@ -15,6 +15,6 @@
 
 ## Limits
 
-- Exit status is not evidence. Assert on `result.subtype` and the error events.
+- Exit status is not evidence. Assert on `result.subtype`, `result.is_error` and the error events. An API error ends with `subtype=success` and `is_error=true`.
 - The runner does not capture raw HTTP bodies. For wire-level evidence, use the endpoint's server log.
 - Record `claude --version` with every CI result. The `stream-json` fields change between releases.

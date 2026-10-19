@@ -78,4 +78,13 @@ grep -q 'auth_token_set=no' "$record" || { printf 'subscription test failed: ANT
 grep -q 'tool_search=unset' "$record" || { printf 'subscription test failed: ENABLE_TOOL_SEARCH set\n' >&2; exit 1; }
 grep -q 'api_key_empty=yes' "$record" || { printf 'subscription test failed: ANTHROPIC_API_KEY not empty\n' >&2; exit 1; }
 
+# An API error is reported as subtype=success with is_error=true; it must fail.
+api_error="$tmp_dir/api-error.ndjson"
+printf '%s\n' '{"type":"system","subtype":"init","tools":["Read","Glob"],"model":"offline-model"}' \
+  '{"type":"result","subtype":"success","is_error":true,"num_turns":1,"result":"API Error: 400"}' > "$api_error"
+if "$assert_events" "$api_error" >/dev/null 2>&1; then
+  printf 'assert test failed: is_error=true passed\n' >&2
+  exit 1
+fi
+
 printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions\n'

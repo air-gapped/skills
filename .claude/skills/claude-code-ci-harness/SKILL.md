@@ -65,7 +65,7 @@ The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is
 
 1. Run `scripts/make-fixtures.sh DIR` to build the workdir.
 2. Run the smoke scenario. Then escalate through `references/scenario-bank.md`, and stop at the first failure.
-3. Assert on events with `scripts/assert-events.sh` (result success, tool sequence, model, turn bounds). Exit status is not evidence.
+3. Assert on events with `scripts/assert-events.sh` (result success without `is_error`, tool sequence, model, turn bounds). Exit status is not evidence.
 4. For more than one endpoint, use `scripts/run-matrix.sh --run 'label|base-url|model[|token-var]'`. An empty base-url means subscription mode.
 5. Scan every transcript with `scripts/scan-token-leakage.sh`.
 6. When an endpoint fails, record it as an endpoint/model compatibility finding. Never change the scenario to make it pass.
