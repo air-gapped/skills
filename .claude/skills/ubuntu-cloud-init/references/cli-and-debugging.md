@@ -98,9 +98,8 @@ ships upstream behaviour:
 | 26.1 OpenStack bond names from `network_data.json` | yes | reverted — `bond0`, `bond1`, … |
 
 - **NoCloud:** `nocloud-net` dsname deprecated 24.1; ENI `network-interfaces` in
-  meta-data deprecated 24.3; NoCloud `network-config` support added 24.3 (missing file
-  on an HTTP seed → boot retry/timeout, so ship an empty one). Canonical cmdline is
-  `ds=nocloud;s=<uri>/`. All present on both 24.04 and 26.1.
+  meta-data deprecated 24.3; `network-config` from a `seedfrom` URI added 24.3 (26.04
+  only; table above). Canonical cmdline is `ds=nocloud;s=<uri>/`.
 - **datasource_list:** 24.1 stopped auto-appending `None` to single-entry lists — add
   it explicitly if wanted.
 - **Architecture:** 25.1 `/usr` merge; 25.3 socket-protocol change; 25.3 build

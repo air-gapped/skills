@@ -165,9 +165,13 @@ cmdline → seed dirs → labeled block device. The common methods:
 - **SMBIOS serial** (QEMU/libvirt): `-smbios type=1,serial=ds=nocloud;s=http://10.0.0.1:8000/`.
 
 **Required files:** `meta-data` and `user-data`. **Optional:** `vendor-data`,
-`network-config`. Since cloud-init 24.3, an HTTP/seed source that *omits*
-`network-config` triggers a boot retry/timeout — ship an **empty `network-config`**
-for back-compat, or a real netplan-v2 one.
+`network-config`. Where `network-config` is read depends on the seed:
+
+| Seed | `network-config` |
+|---|---|
+| seed dir, `cidata` ISO/USB | read on both LTS releases |
+| `seedfrom` URI (`s=http://…`, `s=file://…`) on 26.04 | fetched; a missing file costs a boot retry/timeout — ship an **empty** one if there is no network config |
+| `seedfrom` URI on 24.04 | **never fetched** (patched out) — the host falls back to DHCP on the first NIC. Ship network config on seed media, or as a `network:` key in `/etc/cloud/cloud.cfg.d/` |
 
 **`instance-id` re-run rule:** cloud-init only re-applies user-data when the
 `instance-id` in `meta-data` *changes* (or after `cloud-init clean`). Bump it

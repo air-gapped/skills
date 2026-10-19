@@ -74,8 +74,8 @@ instance-id: app01-2026-06-14-01      # bump to force a re-run
 local-hostname: app01
 ```
 
-`/var/lib/cloud/seed/nocloud/network-config` (empty file, or netplan v2 — present to
-avoid the 24.3 HTTP-seed retry/timeout). A real one, in netplan v2 (see the
+`/var/lib/cloud/seed/nocloud/network-config` (empty file, or netplan v2; a seed dir
+or `cidata` ISO reads it on both LTS releases). A real one, in netplan v2 (see the
 **ubuntu-netplan** skill):
 
 ```yaml

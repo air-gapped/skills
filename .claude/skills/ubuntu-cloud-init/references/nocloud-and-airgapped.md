@@ -30,7 +30,7 @@ name still works (with a deprecation log).
    Files live in the filesystem root.
 
 If a `seedfrom` is produced by any of the above, cloud-init then fetches
-`user-data`, `meta-data`, `vendor-data`, `network-config` from it. The scheme must
+`user-data`, `meta-data`, `vendor-data` (and `network-config`, except on 24.04) from it. The scheme must
 match the class's supported schemes or the datasource declines. Cmdline values
 override seed values.
 
@@ -39,9 +39,15 @@ override seed values.
 - **Required:** `meta-data`, `user-data`.
 - **Optional:** `vendor-data`, `network-config`.
 
-> **Breaking change (24.3):** NoCloud gained `network-config` support, and an
-> HTTP/seed source that *omits* it now causes a boot retry/timeout. Ship an **empty**
-> `network-config` file for back-compat, or a real netplan-v2 document.
+Seed dirs and `cidata` media read `network-config` on every release. The 24.3
+change is about a `seedfrom` URI (`s=http://…`, `ftp://…`, `file://…`):
+
+- **26.04:** `network-config` is fetched from the `seedfrom`; a missing file costs a
+  boot retry/timeout. Ship an **empty** `network-config`, or a real netplan-v2 one.
+- **24.04:** the Ubuntu build patches the fetch out. A `network-config` next to the
+  `seedfrom` files is ignored and the host gets fallback DHCP. Put network config on
+  seed media / the seed dir, in a `network:` key under `/etc/cloud/cloud.cfg.d/`, or
+  on the kernel cmdline (`network-config=<base64 YAML>`).
 
 ## Line-config grammar (cmdline / SMBIOS serial)
 
