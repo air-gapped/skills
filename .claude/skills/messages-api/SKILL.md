@@ -14,8 +14,8 @@ thinnest backend coverage of the three.
 
 The Anthropic Messages API (`POST /v1/messages`) is now the second open
 compatibility surface after Chat Completions: **every major local inference
-server serves it natively** (verified by source examination 2026-07-19 —
-vLLM, SGLang, llama.cpp, Ollama, mistral.rs, Llama Stack/OGX, Lemonade), and
+server serves it natively** (vLLM, SGLang, llama.cpp, Ollama, mistral.rs,
+Llama Stack/OGX, Lemonade), and
 gateways (LiteLLM, Bifrost, Superagent Gateway) adapt it to everything else.
 Claude Code is the driving client; Ollama, Lemonade, and Superagent all ship
 Claude Code-specific affordances.
@@ -24,9 +24,6 @@ Claude Code-specific affordances.
 equivalent exists — full history is resent every turn, so load-balanced
 same-model fleets cannot hit wrong-replica session errors (contrast the
 Responses API's server-side state; see the responses-api skill).
-
-**Last refreshed**: 2026-10-20 (re-verified at each upstream's latest tag;
-provenance in `references/sources.md`).
 
 ## Critical Gotchas
 
@@ -103,9 +100,7 @@ client config → clients.
    schemas) and for a model id it cannot resolve (any local model name) it
    reserves 32000 output tokens — backends under
    ~52k `max_model_len` reject turn 1. Fix:
-   `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192`. Live-verified 2026-07-19
-   (v2.1.214 → vLLM v0.25.1, 50k ctx: failed by exactly 1 token until
-   capped, then 3-turn tool loop passed).
+   `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192`.
 4. If reasoning models misbehave, check the backend's thinking handling in
    the matrix (param ignored? blocks dropped on input?).
 
