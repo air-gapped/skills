@@ -22,7 +22,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | `count_tokens` | Yes (real tokenization) | Yes | Yes | **No** | Yes | Yes | **No** |
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
 | `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | No (basic) |
-| thinking blocks out | Yes (uuid4 fake signature) | Yes | Yes (thinking first, signature_delta) | Yes | Yes (drops input thinking) | Via provider | No |
+| thinking blocks out | Yes (uuid4 fake signature) | Yes (unsigned) | Yes (thinking first, empty signature_delta) | Yes (no signature_delta) | Yes (drops input thinking) | Via provider | No |
 | `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
 | Server tools (web_search etc.) | No | Filtered out (400 if tool_choice names one) | No | **Executes web_search + re-invokes** | Maps to agentic options | Via provider | No |
@@ -64,7 +64,9 @@ chat-completion stack. Protocol models mirror anthropic-sdk-python closely
 (incl. Claude 4.7 `adaptive` thinking, `display`, `output_config`
 effort/task_budget, `betas`).
 
-- Full Anthropic SSE set incl. thinking_delta + signature_delta.
+- Full Anthropic SSE set incl. thinking_delta; signature_delta only when the
+  backend supplies a real signature — local models never do, so thinking is
+  unsigned.
 - stop_reason: stop→end_turn, length→max_tokens, tool_calls→tool_use;
   unmapped→end_turn + WARNING; **never stop_sequence**.
 - `thinking.budget_tokens` accepted but NOT enforced; `display:"omitted"`
@@ -84,7 +86,8 @@ pipeline→`TASK_RESPONSE_TYPE_ANTHROPIC`.
 - `thinking` request param: `type:"enabled"` maps `budget_tokens` (default
   10000) → `thinking_budget_tokens`; `adaptive` not handled. `metadata.user_id`
   forwarded as `__metadata_user_id` (server-chat.cpp:577-594).
-- Full SSE set; thinking block emitted first; signature_delta before closing.
+- Full SSE set; thinking block emitted first; empty-string signature_delta
+  before closing.
 - stop_reason: default max_tokens; natural stop → tool_use if tool calls else
   end_turn; **stop_sequence field carries the matched stop word**.
 - 1090-line test file `test_compat_anthropic.py`; documented in server README.
@@ -97,7 +100,8 @@ ChatHandler. Sets `relax_thinking` "to connect to tools like claude code".
 - **No count_tokens route.**
 - **Actually executes `web_search` server-tool calls** (WebSearchAnthropicWriter
   re-invokes the model) — unique among local backends.
-- Full SSE set incl. signature_delta; input tokens estimated for
+- SSE set has thinking_delta but **no signature_delta** (thinking unsigned);
+  input tokens estimated for
   message_start.
 - stop_reason: tool calls→tool_use, stop→end_turn, length→max_tokens,
   **other non-empty→stop_sequence**.

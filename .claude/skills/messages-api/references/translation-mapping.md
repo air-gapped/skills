@@ -63,7 +63,9 @@ Third-party implementations fabricate or omit signatures:
 | Implementation | Signature on emitted thinking |
 |---|---|
 | vLLM | **fabricated uuid4** (not verifiable) |
-| SGLang / llama.cpp / Ollama | emit signature_delta (parser-derived/synthetic) |
+| llama.cpp | empty-string signature_delta |
+| SGLang | omitted (signature_delta only when the backend supplies a real one) |
+| Ollama | omitted (no signature_delta) |
 | LiteLLM bridge | `None` |
 | Superagent Gateway | empty string |
 | Bifrost (Claude passthrough) | **real** (bytes forwarded) |
@@ -90,8 +92,9 @@ bridge synthesizes it too). Differences that matter:
   incremental `input_json_delta`.
 - **message_start id**: vLLM uses `chatcmpl-…`, not `msg_…`. Bifrost emits
   `content: []` in message_start (strict-SDK compatible).
-- **signature_delta**: emitted before thinking block close by llama.cpp,
-  SGLang, Ollama, vLLM; empty from Superagent.
+- **signature_delta** before thinking-block close: vLLM (uuid4), llama.cpp
+  and Superagent (empty string); SGLang only when the backend supplied a real
+  signature; Ollama never.
 - **usage in message_start**: Ollama estimates input tokens; vLLM computes;
   cache-token fields only appear where the server supports them (vLLM needs
   `--enable-prompt-tokens-details`; mistral.rs has none). Live-verified on
