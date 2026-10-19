@@ -26,7 +26,7 @@ Review cadences to recommend: policies/HR/security every 6–12 months; project 
 
 ## Lever 2 — find rot with CQL (agent-actionable)
 
-- **Stale:** `type=page AND lastModified < startOfYear()` (or `< now("-12M")`); add `AND space=KEY` to scope. Prefer the documented camelCase `lastModified`; results depend on the index and the server timezone — verify on the instance.
+- **Stale:** `type=page AND lastmodified < startOfYear()` (or `< now("-12M")`); add `AND space=KEY` to scope. `lastmodified` is the documented spelling; results depend on the index and the server timezone — verify on the instance.
 - **No labels:** CQL has **no `label IS EMPTY`** — enumerate `type=page AND space=KEY` with `?expand=metadata.labels` and filter client-side for empty labels.
 - **By owner / contributor:** `creator = "..."` / `contributor = currentUser()`.
 - **Duplicate titles:** fetch all titles in scope and group client-side (`title ~ "X"` finds near-matches but won't dedupe).

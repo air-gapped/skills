@@ -31,10 +31,10 @@ Confluence Query Language: `field operator value`, boolean `AND/OR/NOT`, `ORDER 
 | `space = KEY` / `space.category` / `space.type` | scope |
 | `type IN (page, blogpost, comment, attachment)` | content type |
 | `ancestor = ID` (all descendants) vs `parent = ID` (direct children) | hierarchy |
-| `created` / `lastModified` + `startOfDay()`/`now()` | recency (date format `"yyyy/MM/dd HH:mm"`) |
+| `created` / `lastmodified` + `startOfDay()`/`now()` | recency (date format `"yyyy/MM/dd HH:mm"`) |
 | `creator` / `contributor` / `mention` / `watcher` + `currentUser()` | people |
 
-Governance examples: stale = `type=page AND lastModified < startOfYear()`; by space = `space = "OPS" AND type = page`. Full agent recipes (no-label, duplicates, orphans) are in `agent-execution-and-discovery.md`.
+Governance examples: stale = `type=page AND lastmodified < startOfYear()`; by space = `space = "OPS" AND type = page`. Full agent recipes (no-label, duplicates, orphans) are in `agent-execution-and-discovery.md`.
 
 ## Search & indexing internals — set expectations, don't over-promise
 

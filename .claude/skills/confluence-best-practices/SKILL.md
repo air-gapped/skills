@@ -102,7 +102,7 @@ The full discovery recipe, the act-vs-advise mapping, programmatic-write safety 
 The named dread is *"Confluence is where documentation goes to die."* The mechanism is structural: creation is free, retirement is manual, so content rots silently (there's no test that goes red when a runbook references a dead service). De-bloat with these levers, highest-leverage first:
 
 1. **Make ownership + staleness visible — the agent-buildable governance dashboard.** Put a **Page Properties** macro (Owner / Review-Date / Status) on content pages + a shared label, then a **Page Properties Report** index page keyed on that label. This is the single highest-leverage *no-admin* pattern — the agent can build it entirely at content level. (Caps: 3,000 pages / 60 labels, tunable.)
-2. **Find rot with CQL.** `type=page AND lastModified < startOfYear()` (scope by space/owner), plus "no labels" and duplicate-title sweeps. Agent-actionable.
+2. **Find rot with CQL.** `type=page AND lastmodified < startOfYear()` (scope by space/owner), plus "no labels" and duplicate-title sweeps. Agent-actionable.
 3. **Kill duplication with transclusion, not copy-paste.** **Excerpt + Excerpt Include** (a snippet) and **Include Page** (a whole page) keep one canonical source; edit once, every reference updates.
 4. **Prune in the right order:** trash + version-retention rules → **move obsolete pages to an archive space** → archive that space → delete (with an XML export) only to reclaim index/DB.
 5. **The DC lifecycle gotcha:** **DC has NO native page-level archiving** (Cloud does). Space archiving excludes a space from search/Directory but **keeps it in the index** (a relevance lever, not a perf one). To "archive a page" on DC, move it into a dedicated archive space — and note that **pages cannot be moved into an already-archived space** (flip it to Current first).
@@ -117,7 +117,7 @@ Mechanics (retention rules, archive workaround, the dashboard storage format, pe
 - **Titles are the cheapest lever** — and **page titles must be unique within a space**, so make them distinctive and consistently prefixed (`RUNBOOK – Payments – Failover`), never generic ("Notes", "Meeting").
 - **Labels as a small controlled vocabulary** (lowercase, no spaces, singular), **pre-loaded into templates** so pages are born tagged.
 - **Navigation beats search** for known content: shallow well-named trees + a curated **homepage** (Children Display / label indexes) + the Space Directory.
-- **CQL** is the agent's discovery surface (`text`, `title`, `label`, `space`, `type`, `ancestor`/`parent`, `lastModified`, `creator`).
+- **CQL** is the agent's discovery surface (`text`, `title`, `label`, `space`, `type`, `ancestor`/`parent`, `lastmodified`, `creator`).
 - **Search caveats to set expectations:** whole-word/stemmed by default; stop-words stripped even in quotes; **special chars stripped** (`DOC-8510` → `doc AND 8510`); **no leading wildcard**; **CJK** uses bigram tokenization with exact-search off; umlaut+wildcard is broken (but plain-term accent folding works). OpenSearch (DC, opt-in since 9.0) is *faster, not more relevant*.
 
 Full CQL field reference, label governance, and the indexing/language caveats: **`references/findability-and-search.md`**.

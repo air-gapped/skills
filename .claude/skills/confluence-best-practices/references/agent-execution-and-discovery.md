@@ -22,7 +22,7 @@ Map each thing you need to learn to the primitive that fetches it. **Anchor logi
 
 - **Durable:** space **KEY** (immutable, a-z/0-9 ≤255, forms the URL), numeric **content ID** (stable across rename/move), **label text** (lowercase, no spaces, only `_`/`-`), **CQL field names**, **content-type tokens** (`page`/`blogpost`/`comment`/`attachment`).
 - **NOT durable — never use as a lookup key:** space **display name**, page **title** (gets renamed; blueprint titles differ per instance language), any UI string.
-- **CQL field name nuance:** prefer documented camelCase **`lastModified`**; the lowercase `lastmodified` has worked historically but practitioners report it intermittently failing — emit camelCase and verify on the instance. Date results are index- and timezone-dependent.
+- **CQL field names:** emit the spelling the CQL field reference documents — lowercase **`lastmodified`** (DC and Cloud). Date results are index- and server-timezone-dependent: run one bounded query and spot-check a hit's last-modified date before acting on the result set.
 
 ## The act-on-content vs advise-the-human boundary
 
@@ -74,7 +74,7 @@ Use `<th>` for the left (key) column so the Page Properties Report keys on it. *
 
 ## CQL governance recipes (run autonomously)
 
-- **Stale:** `type=page AND lastModified < startOfYear()` (+ `AND space=KEY`).
+- **Stale:** `type=page AND lastmodified < startOfYear()` (+ `AND space=KEY`).
 - **No labels:** enumerate `type=page AND space=KEY` with `?expand=metadata.labels`, filter client-side (no `label IS EMPTY` in CQL).
 - **By owner:** `creator = "<accountId-or-username>"` / `contributor = currentUser()`.
 - **Duplicate titles:** fetch titles in scope, group client-side.

@@ -43,7 +43,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| developer.atlassian.com/server/confluence/cql-field-reference; advanced-searching-using-cql | A | CQL fields/operators/functions (label, title, space, type, ancestor/parent, lastModified, creator, currentUser()) | 2026-06-07 |
+| developer.atlassian.com/server/confluence/cql-field-reference; advanced-searching-using-cql | A | CQL fields/operators/functions (label, title, space, type, ancestor/parent, `lastmodified` — documented lowercase in both the DC and Cloud field references, re-read 2026-10-20 — creator, currentUser(); date formats `yyyy/MM/dd HH:mm` and `yyyy-MM-dd HH:mm`) | 2026-10-20 |
 | confluence.atlassian.com/doc/confluence-search-syntax-158720.html | A | Whole-word/stemming; stop-words in quotes; special-chars stripped (`DOC-8510`); no leading wildcard | 2026-06-07 |
 | confluence.atlassian.com/doc/configuring-search-175210673.html; configuring-indexing-language-150130.html | A | Exact-search dark feature; CJK exact-off; Indexing Language list; reindex-on-change | 2026-06-07 |
 | confluence.atlassian.com/enterprise/opensearch-for-confluence-data-center-1653834676.html | A | OpenSearch DC-only, since 9.0, ~4.5× faster, "same experience" (perf-not-relevance) | 2026-06-07 |
@@ -85,7 +85,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | developer.atlassian.com/cloud/confluence/deprecation-notice-user-privacy-api-migration-guide | A | `accountId` replaces username/userKey on Cloud | 2026-06-07 |
 | developer.atlassian.com/cloud/confluence/rest/v1/api-group-space-permissions | A | Space-perms need space-admin; apps blocked from resource on Cloud | 2026-06-07 |
 | community.developer.atlassian.com (v1-deprecation-timeline; async-convert; 409/OptimisticLock; v2 space-labels) | A* | v1 still operational (parity-gated); async convert dropped wiki→storage; 409 mechanics; v2 has no space-categories | 2026-06-07 |
-| community.atlassian.com CQL `lastmodified` reliability thread | B | Prefer documented camelCase `lastModified`; verify on instance | 2026-06-07 |
+| community.atlassian.com/forums/discussion/1430592 (CQL `lastmodified` thread) | B | One 2020 report of `lastmodified` returning out-of-window pages, suspected timezone; Atlassian could not reproduce. Supports "verify on the instance" only — it does not show camelCase is safer, and the field reference documents lowercase | 2026-10-20 |
 
 ## Cloud-vs-DC / June-2026 state
 
