@@ -129,7 +129,8 @@ What a third-party `/v1/messages` server must tolerate from real clients
 (from opencode v1.18.3-era source; Claude Code behaves similarly):
 
 - `anthropic-beta: interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14`
-  **always sent** by opencode's anthropic provider → unknown betas must be
+  **always sent** by opencode v1's anthropic provider (v2: interleaved-thinking
+  plus conditional betas) → unknown betas must be
   no-ops (SGLang no-ops; Lemonade accepts `?beta=true`), never 400s.
 - `cache_control: {type: "ephemeral"}` blocks on up to 2 system + last 2
   non-system messages → must be ignored gracefully if unsupported.

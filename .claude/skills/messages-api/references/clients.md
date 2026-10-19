@@ -11,9 +11,11 @@ Examined at v1.18.3-era source (2026-07-18).
 Live-verified 2026-07-19: full multi-step tool loops against vLLM
 `/v1/messages` direct AND via LiteLLM.
 
-- SDK: `@ai-sdk/anthropic` (3.0.82); optional native runtime
-  (`@opencode-ai/llm`, `protocols/anthropic-messages.ts`) behind
-  `experimentalNativeLlm` flag.
+- SDK (v1 line): `@ai-sdk/anthropic`; optional native runtime
+  (`packages/llm/src/protocols/anthropic-messages.ts`) behind
+  `OPENCODE_EXPERIMENTAL_NATIVE_LLM` (or `OPENCODE_EXPERIMENTAL=true`).
+  v2 line (`@opencode/cli`): `@ai-sdk/anthropic` is aliased to its own
+  `@opencode/ai` Messages client.
 - **Loader is fully static — fails fast, never hangs**: model resolution is
   an in-memory lookup; unknown IDs → `ModelNotFoundError` with fuzzy
   suggestions. (Contrast: the openai provider loader routes through
@@ -24,7 +26,9 @@ Live-verified 2026-07-19: full multi-step tool loops against vLLM
   the models.dev catalog is unavailable, the npm fallback flips to
   `@ai-sdk/openai-compatible` — set `npm: "@ai-sdk/anthropic"` explicitly.
 - Sends: `anthropic-version: 2023-06-01`, `x-api-key`, always-on
-  `anthropic-beta` (interleaved-thinking + fine-grained-tool-streaming),
+  `anthropic-beta` — v1: interleaved-thinking + fine-grained-tool-streaming;
+  v2: interleaved-thinking plus conditional betas (`compact-2026-01-12`,
+  `mid-conversation-output-config-2026-07-01`, thinking-binding),
   `cache_control` ephemeral blocks, `thinking` param (adaptive for
   opus-4.7+/sonnet-5+/fable-5; enabled+budgetTokens for older Claude), always
   `stream: true`.

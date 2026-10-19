@@ -41,7 +41,7 @@ provenance in `references/sources.md`).
   backends; refusal only from the LiteLLM bridge (upstream content_filter).
   Divergence table: `references/translation-mapping.md`.
 - **`anthropic-beta` headers arrive whether supported or not** — opencode
-  always sends interleaved-thinking + fine-grained-tool-streaming betas;
+  always sends interleaved-thinking (v1 adds fine-grained-tool-streaming);
   Claude Code adds beta tool-schema fields (`defer_loading`,
   `eager_input_streaming`). Servers must no-op unknown betas and fields, never
   400. A backend that rejects them (`Unexpected value(s)` on the header,
