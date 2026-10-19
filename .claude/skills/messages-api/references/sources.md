@@ -29,6 +29,7 @@ on 2026-07-19 at the listed commit.
 
 | Finding | Source (ref checked) |
 |---|---|
+| vLLM reports `stop_sequence` since v0.29.0 (#45807, e85dd21497); streaming `message_delta` sets it since v0.30.0 (#55325) | vllm-project/vllm v0.32.0 `serving.py:102-131` `_to_anthropic_stop_reason`, `:1053` |
 | vLLM `thinking` param modeled since v0.31.0 (#58613): enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored | vllm-project/vllm v0.32.0 `vllm/entrypoints/anthropic/protocol.py:223`, `serving.py:644-649`; first stable tag containing 5a2ed2e7ee = v0.31.0 |
 
 ## Live-verification log

@@ -40,7 +40,7 @@ pause_turn, refusal). What implementations actually emit:
 
 | Implementation | stop_sequence emitted? | Unknown finish_reason → | refusal/pause_turn |
 |---|---|---|---|
-| vLLM | Never (field always null) | null | never |
+| vLLM | v0.29.0+ yes (matched string); earlier never | null | never |
 | SGLang | Never | end_turn + WARNING | never |
 | llama.cpp | **Yes** (carries matched stop word) | — (default max_tokens) | never |
 | Ollama | Yes (any other non-empty reason) | stop_sequence | never |

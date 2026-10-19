@@ -23,7 +23,7 @@ pipeline (except OGX, which passes through to Messages-native providers).
 | Message Batches | No | No | No | No | No | **Yes (full)** | No |
 | `thinking` request param | v0.31.0+: enabled→`thinking_token_budget`, disabled→reasoning off, adaptive ignored; earlier: **silently ignored** | Yes (adaptive+display; budget unenforced) | Yes (enabled→`thinking_budget_tokens`, default 10000; adaptive ignored) | Yes | Yes | Translated | No (basic) |
 | thinking blocks out | Yes (uuid4 fake signature) | Yes | Yes (thinking first, signature_delta) | Yes | Yes (drops input thinking) | Via provider | No |
-| `stop_sequence` stop_reason | **Never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
+| `stop_sequence` stop_reason | v0.29.0+: Yes (carries matched string); earlier **never** | **Never** | Yes (carries matched word) | Yes (other→stop_sequence) | Yes (proper) | Via provider | **Never** (always null) |
 | `ping` events | Never | Never (defined unused) | Never | Never | **Yes (keep-alive)** | Forwards on passthrough; doesn't generate | Never |
 | Server tools (web_search etc.) | No | Filtered out (400 if tool_choice names one) | No | **Executes web_search + re-invokes** | Maps to agentic options | Via provider | No |
 | Claude Code affordance | billing-header strip | — | billing-header strip | `relax_thinking` + launch cmd | container skills → shell refs | CC-CLI integration tests | launcher sets ANTHROPIC_BASE_URL |
@@ -46,8 +46,10 @@ OpenAIServingChat`; full translation to ChatCompletionRequest and back.
 - Streaming: correct `event:`+`data:` wire format; message_start /
   content_block_* / message_delta / message_stop / error; `ping` defined but
   never emitted. `message_start` id is `chatcmpl-…`, not `msg_…`.
-- stop_reason: stop→end_turn, length→max_tokens, tool_calls→tool_use; **no
-  stop_sequence mapping** (field always null); unknown→null.
+- stop_reason: stop→end_turn, length→max_tokens, tool_calls→tool_use (named
+  `tool_choice` calls too); unknown→null. `stop_sequence` emitted with the
+  matched string since v0.29.0 (streaming `message_delta` since v0.30.0);
+  **never before v0.29.0** (field always null).
 - Strips `x-anthropic-billing-header` system text blocks (Claude Code
   prefix-caching preservation hack); inline system role auto-merged when the
   chat template requires system-first.
