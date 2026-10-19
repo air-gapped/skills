@@ -80,8 +80,8 @@ concurrent-session table is small and orphaned sessions lock fleets out.
 - name: Configure iDRAC over a session
   hosts: idracs
   gather_facts: false
-  connection: local       # collection has no httpapi plugin; modules run
-                          # locally and POST Redfish to the BMC
+  connection: local       # no httpapi plugin exists (connection: httpapi fails);
+                          # modules run locally and POST Redfish to the BMC
 
   tasks:
     - block:
@@ -255,11 +255,3 @@ need the live iDRAC.
 | iDRAC 9 firmware | 7.10.90.00 | BasicAuthState=Unadvertised default starts at **7.30.10.50** |
 | Ansible Core | 2.18.8 or ≥ 2.19 (iDRAC modules); 2.19 / 2.20 (OME modules) | Collection README's tested set. 2.18.6 + older collection triggers `TypeError: bytes-like object` in `urls.py:_configure_auth` (#1046) |
 | Python | 3.11+ | |
-
-## Connection mode
-
-All `dellemc.openmanage` modules run over HTTPS to the BMC from the
-Ansible controller. Use `connection: local` (or `delegate_to: localhost`
-on a per-task basis). There is **no `httpapi` connection plugin in this
-collection** — `connection: httpapi` will fail. The canonical reference
-playbook is at `playbooks/idrac/idrac_session.yml` in the upstream repo.
