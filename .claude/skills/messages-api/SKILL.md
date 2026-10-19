@@ -41,8 +41,9 @@ Responses API's server-side state; see the responses-api skill).
   v0.31.0+ maps `enabled`→thinking budget and `disabled`→reasoning off, but
   still ignores `adaptive` (what current clients send). SGLang accepts
   `budget_tokens` but does not enforce it.
-- **`ping` events**: only mistral.rs and OGX's translation path emit them
-  locally; Anthropic's real API does — clients must not require pings, proxies must not choke on them.
+- **`ping` events**: clients must not require them (among local backends
+  only mistral.rs and OGX's translation path send them); proxies must pass
+  them through (Anthropic's real API sends them).
 - **count_tokens is inconsistent**: real tokenization (vLLM) vs approximation
   (LiteLLM, Superagent chars/4) vs absent (Ollama, Lemonade). opencode never
   calls it; Claude Code uses it when present.
