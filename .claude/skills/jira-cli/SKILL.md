@@ -161,9 +161,6 @@ More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/s
 ## Quick recipes
 
 ```bash
-# Smoke test: am I connected and what can I see?
-jira me && jira project list
-
 # List my open issues, parseable
 jira issue list -q'assignee = currentUser() AND statusCategory != Done' \
   --plain --no-headers --columns key,status,summary
@@ -177,7 +174,4 @@ jira issue move PROJ-42 "Done" -RFixed --comment "Shipped in 1.2.3"
 
 # Export to CSV — at most 100 rows per query on Cloud (#898); for more, run narrower JQL windows and concatenate
 jira issue list -p PROJ --csv --paginate 100 > issues.csv
-
-# Add a sub-task under a story
-jira issue create -t"Sub-task" -P PROJ-100 -s"Write tests" --no-input </dev/null
 ```
