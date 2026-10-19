@@ -362,7 +362,8 @@ The target is a 17G box (R6715/R6725) running current firmware.
 (`7.00.60`). iDRAC 10 numbers its firmware `1.xx.xx.xx`, so the comparison
 always fails and no 17G system can pass the gate. Open upstream:
 [#1103](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1103)
-(filed 2026-06-09, no maintainer response as of 2026-07-21).
+— the `7.00.60` gate is still in `redfish_powerstate.py` at collection
+11.0.0, so no released version fixes it.
 
 **Workaround.** Drive the Redfish reset directly with `ansible.builtin.uri`
 and a session token — the same pattern used elsewhere in this skill:
