@@ -24,3 +24,6 @@ inline exception.
 | https://surfingcomplexity.blog/2020/05/13/making-peace-with-root-cause-during-anomaly-response/ | Two-regime split: live diagnosis vs post-incident learning |
 | https://trademarks.justia.com/owners/kepner-tregoe-inc-2560359 | KT trademark registrations (naming/IP boundary for this skill) — **exception:** 403 to curl, Cloudflare challenge in the browser, USPTO TSDR 429 without an API key; mark status not re-read 2026-10-20 |
 | https://arxiv.org/abs/2301.12987 | Bennett v4 2024: weakest (largest-extension) hypothesis maximises P(generalisation); grounds weakest-survivor ranking |
+| https://arxiv.org/abs/2307.03172 | Liu et al. 2023, "Lost in the Middle: How Language Models Use Long Contexts": accuracy highest with relevant facts at the start or end of the context, degrades significantly in the middle; grounds the re-emitted table |
+| https://openlibrary.org/works/OL8509036W | Agans 2002, *Debugging* (the nine indispensable rules): one-variable changes, audit trail, fix verification |
+| https://openlibrary.org/works/OL5848374W | Zeller 2005, *Why Programs Fail*: scientific debugging and delta debugging (minimise the failing case) |

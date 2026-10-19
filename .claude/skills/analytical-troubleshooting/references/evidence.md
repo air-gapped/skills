@@ -45,9 +45,10 @@ per-candidate opposing evidence (clinical diagnosis practice).
   compliance and then skip steps; verifiable artifacts (a table with every
   cell answered, a numbered hypothesis list, named refutation targets)
   close that gap where prose rules don't.
-- **The re-emitted table:** long-context evidence degrades (mid-context
-  facts effectively vanish); a maintained, re-printed specification keeps
-  live evidence where attention actually lands.
+- **The re-emitted table:** models use facts in the middle of a long context
+  markedly worse than facts at its start or end (Liu et al. 2023); a
+  maintained, re-printed specification keeps live evidence at the end,
+  where it is used.
 - **Human as sensor / agent as process leader:** the tradition's own
   facilitation doctrine — a non-expert process leader asking the questions
   keeps experts from drowning the analysis in assumptions — maps exactly
