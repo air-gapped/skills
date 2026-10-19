@@ -10,6 +10,10 @@ measurement nobody can run.
 
 ## Discard rationales (anti-re-proposal guards)
 
+- **2026-10-20, iter 6, discarded:** explicit "Exit Stage 2 when / Exit Stage
+  4 when" lines (Dim 4). Δ0, +7 lines: both restate "Ask every cell" and
+  "walk the full table" a few lines above them. Do not re-propose per-stage
+  exit lines unless they add a bound the stage text lacks.
 - **2026-07-29, iter 10, discarded:** "Universal discriminating probes" command
   menu in `test-toolkit.md` (Dim 4). Δ0, +9 lines, and 3 of 5 example probes
   (`ping -M do`, `dmidecode -t memory`, crash-boot journal) mirror the eval
@@ -17,17 +21,19 @@ measurement nobody can run.
   benchmark iterations. Do not re-propose command menus sourced from eval
   content; a future Dim 4 lift must use probes independent of `evals/`.
 
-## Unblocked — actionable
+## Resolved this pass (2026-10-20)
 
-- **Remaining restatements** (Dim 6; hard rule 5 vs `SKILL.md` Stage 4 loop
-  rule; "Proportionality, restated" vs Stage 1). Deliberate-redundancy judgment
-  call: hard rules act as standing summary (SKILL.md loads alone; references
-  load on demand), so cross-file "duplication" flagged by the final blind
-  (rules 4/5 vs reference content) is load-order-driven and should stay. The
-  two *intra-file* repeats are genuine candidates but each carries a unique
-  clause (the tighten-not-relax loop rule at the point of failure; the
-  severity≠ceremony maxim) — removing them needs author judgment on teaching
-  value vs. lines. ~10 lines at stake.
+Freshen 15/15 rows (1 inline exception) → fix (9 fixes, 3 eval assertions
+hardened) → improve. Blind 81 at pass start; improve 75 → 72 (both under the
+Dim 10 cap 3 the closing run then lifted); comparators 3/3 IMPROVED. Outcome:
+with 0.811 vs without 0.681 vs pass-start skill 0.697.
+- Kept: proportionality restatement folded into entry-gate item 3; Stage 4's
+  weakest-level restatement cut. Stage 4's `hard rule 5` line stays: it is a
+  pointer carrying the bundled-problems clause, not a repeat.
+- Cases 03 and 04 end above the without arm but under 0.7. The skill now
+  states every rule their failed assertions check; the misses left are
+  application (outcome lists on some steps only, cleaning bundled), not
+  missing content.
 
 ## Resolved this pass — 2026-07-29 (benchmark n=3)
 
