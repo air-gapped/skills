@@ -90,6 +90,8 @@ client config → clients.
    Sanity-check: `curl -sS http://host:port/v1/messages -H "Content-Type:
    application/json" -H "x-api-key: x" -H "anthropic-version: 2023-06-01"
    -d '{"model":"<name>","max_tokens":32,"messages":[{"role":"user","content":"Say OK."}]}'`
+   Expect 200 with `"type":"message"` and a `stop_reason`; 404 means the
+   path prefix is wrong.
 3. opencode: declare under `provider.anthropic.models` with explicit
    `npm: "@ai-sdk/anthropic"`. Claude Code: `ANTHROPIC_BASE_URL` (origin, no
    /v1 — the client appends it) + `ANTHROPIC_API_KEY`; isolate all state
@@ -103,6 +105,8 @@ client config → clients.
    `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192`.
 4. If reasoning models misbehave, check the backend's thinking handling in
    the matrix (param ignored? blocks dropped on input?).
+5. Done when the client completes one tool round trip (`tool_use` →
+   `tool_result` → `end_turn`) against the backend.
 
 ### Serving Messages through LiteLLM to a fleet
 1. Prefer per-deployment native passthrough: add `model_info:
@@ -111,6 +115,9 @@ client config → clients.
    no ping, tool-name truncation at 64 chars; see `references/gateways.md`.
 3. Statelessness makes any replica valid — no affinity needed (unlike
    Responses `previous_response_id`; see responses-api skill).
+4. Verify per deployment: the backend's access log shows `POST /v1/messages`
+   (passthrough), not `POST /v1/chat/completions` (bridge). Done when every
+   Messages-native deployment logs the former.
 
 ### Debugging a Messages streaming issue against a third-party backend
 1. Capture raw SSE:
@@ -124,4 +131,6 @@ client config → clients.
    `event: X\ndata: {json}`.
 3. Check the streaming-divergences section in
    `references/translation-mapping.md` for the backend's known deviations
-   (id formats, ping, tool_use triple vs incremental args).
+   (id formats, ping, tool_use triple vs incremental args). Done when every
+   deviation in the capture is matched to a listed divergence or recorded as
+   a new one with the backend version.
