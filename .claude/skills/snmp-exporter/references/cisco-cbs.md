@@ -24,8 +24,8 @@ Verified against MIB source + LibreNMS/Centreon pollers, 2026-07.
 - Cisco itself warns that excessive/complex SNMP queries can **crash the CBS
   SNMP process** (community reports: SNMP goes deaf until reboot). Never walk
   the full `9.6.1.101` tree (measured here: 4034 generated metric definitions,
-  hung scrapes; the full-walk report in snmp_exporter#1229 counted 5223 — same
-  failure, different counting method); scrape at moderate intervals (60 s+).
+  hung scrapes; the full-tree generator config in snmp_exporter#1229 produced
+  5223); scrape at moderate intervals (60 s+).
 - EOL: rolling end-of-sale notices through 2024; successors **Catalyst
   1200/1300 share the CISCOSB SNMP surface** (Cisco publishes a joint OID doc,
   kmgmt3636) — a CBS module carries over.

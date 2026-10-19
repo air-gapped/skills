@@ -10,7 +10,7 @@ recent date here outrank an AI model's training-data memory.
 
 | Claim area | Source | Last verified: |
 |---|---|---|
-| snmp_exporter v0.30.x behavior, flags, #1653 index rejection, #1066 sensor scaling, #1229 CBS hang | https://github.com/prometheus/snmp_exporter (code + issues) | 2026-09-15 |
+| snmp_exporter v0.30.x behavior, flags, #1653 index rejection, #1066 sensor scaling, #1229 (full `9.6.1.101` generator config = 5223 metrics; a generator-error report, not a hang report) | https://github.com/prometheus/snmp_exporter (code + issues) | 2026-09-15 |
 | Ready-made vendor modules | https://github.com/prometheus-community/snmp | 2026-09-15 |
 | Helm chart v9.18.0 values (configmapReload, extraSecretMounts) | https://github.com/prometheus-community/helm-charts (charts/prometheus-snmp-exporter) | 2026-09-15 |
 | iDRAC full-walk 2–5 min reports | https://github.com/prometheus-community/helm-charts/issues/3572 | 2026-09-15 |

@@ -3,7 +3,7 @@
 #
 # autoresearch 2026-07-23: replaced full 1.3.6.1.4.1.9.6.1 walk (4034 metrics;
 # full CISCOSB-tree walks are known to hang scrapes and can crash the switch's
-# SNMP process — prometheus/snmp_exporter#1229, Cisco kmgmt2884) with the
+# SNMP process — Cisco kmgmt2884) with the
 # specific CISCOSB health OIDs that LibreNMS/Centreon poll in production.
 # See ../references/research-report.md
 #
