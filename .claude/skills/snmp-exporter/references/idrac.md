@@ -198,9 +198,10 @@ read-only iDRAC user.
   System.Embedded.1); before v2.6.2 the exporter picks the first, so power
   supply, power control, fan, and network metrics come back empty. Empty
   power/fan/network series on iDRAC 10 = upgrade the exporter.
-- Sporadic **401 Unauthorized on iDRAC 9** since v2.3.2 (issue #191, open,
-  cause unknown, maintainer can't reproduce) — if hit, set
-  `use_basic_auth: true` for the affected hosts as a workaround.
+- **401 Unauthorized when the password contains `$`** (v2.3.2–v2.6.2: the
+  config file's env expansion ate it). Run v2.6.3+, where expansion is off
+  unless `--config-expand-env` is passed; with that flag on, base64 the
+  credentials and set `encoded: true` on the host.
 
 Deployment conveniences (from the repo): every config option has a
 CONFIG_* env var — in k8s, set CONFIG_DEFAULT_USERNAME/PASSWORD from a Secret
