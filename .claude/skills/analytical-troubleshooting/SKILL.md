@@ -57,8 +57,8 @@ Why each mechanism is here: `references/evidence.md`.
    containment, not diagnosis.)
 3. **Every planned test names its targets.** Before running or requesting any
    test, list each possible result and the candidates that result kills
-   ("counter flat → H2 dead; counter climbs → H1, H4 dead"). A test no
-   result of which kills a candidate is not worth running.
+   ("counter flat → H2 dead; counter climbs → H1, H4 dead"). Skip any
+   test whose every result leaves all candidates alive.
 4. **The spec table is the analysis.** Maintain it continuously and re-emit
    the current table whenever it changes materially or the conversation grows
    long. Long sessions silently lose mid-context evidence; the re-emitted
