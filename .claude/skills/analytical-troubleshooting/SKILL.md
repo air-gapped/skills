@@ -138,9 +138,12 @@ Rules that make the table work:
   sibling VM that *didn't* fail, the identical node that stayed up, the time
   window when it *didn't* happen. The closer the comparison, the sharper the
   boundary around the cause.
-- **Ask every cell.** An honestly-empty cell ("N/A" or "unknown — need to
-  check") is fine; a skipped cell is a hole the favorite theory will hide in.
-  Unknown cells are the data-collection shopping list.
+- **Ask every cell.** First fill every IS-NOT the facts in hand already
+  imply — "the job gets OOM-killed" IS NOT a crash in the job's own code;
+  "only on weekdays" IS NOT weekends; a change already reverted with the
+  fault still present IS NOT that change. Mark the rest "unknown — check:
+  <the check>", never a bare `?`. A skipped cell is a hole the favorite
+  theory will hide in. Unknown cells are the data-collection shopping list.
 - **Tag provenance** per hard rule 1.
 - **Then mine it:** for each IS/IS-NOT pair ask *what is distinctive about
   the IS side?* — and for each distinction, *what changed in, on, or around
