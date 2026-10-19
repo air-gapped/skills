@@ -142,7 +142,14 @@ storage:
 
 # TPM-backed
 storage: {layout: {name: hybrid, encrypted: yes}}
+
+# TPM-backed in a VM / with failing pre-install checks — 26.10+ installer only
+storage: {layout: {name: hybrid, encrypted: yes, accepted-errors: [running-in-vm]}}
 ```
+
+Unattended TPM/FDE fails on any snapd pre-install check error. `accepted-errors` (list
+or single string) auto-proceeds past the named error kinds; errors whose fix is not
+`proceed` (`reboot`, `clear-tpm`, ...) still fail. Not available on 26.04.x installers.
 
 - `ptable: msdos` forces MBR (default GPT, except s390x).
 - `reset-partition: true|<size>` and `reset-partition-only: true` for OEM provisioning.
