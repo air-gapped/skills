@@ -137,6 +137,11 @@ What a third-party `/v1/messages` server must tolerate from real clients
   `effort` for newer Claude models, `{type:"enabled", budgetTokens: …}` for
   older → vLLM ignores `adaptive` (and everything before v0.31.0); SGLang
   accepts-not-enforces.
+- The official `thinking.type` set is `enabled` / `adaptive` / `disabled` /
+  `between_tools`; Claude 4.7+ reject `enabled` with 400. vLLM and SGLang
+  validate `type` against enabled/disabled/adaptive only, so a gateway
+  relaying `between_tools` to them gets a validation error — rewrite it to
+  `adaptive` or drop it.
 - Always `stream: true`; SSE parser tolerates missing optional event fields.
 - `cache_creation_input_tokens`/`cache_read_input_tokens` may be absent/null.
 - baseURL convention: the SDK appends only `/messages` — **configure
