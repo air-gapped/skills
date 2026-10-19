@@ -36,17 +36,10 @@ would otherwise have required changing.
 
 ## Open
 
-- **Live-verification gaps (residual from the 2026-06-07 completion pass).** Three
-  commands could not be exercised on the test instance; verify on a suitable instance
-  in a future run.
-  - `epic add` / `epic remove` (the `epic` subcommand): not cleanly run — `epic create`
-    fails non-interactively on the test instance (next-gen), so there was no valid epic
-    to add to *via that subcommand*. The underlying `-P/--parent` linking IS verified.
-    Retest on a classic (company-managed) project, or against an epic made with
-    `issue create -tEpic`.
-  - `sprint add` / `sprint close`: the test board has no sprint and the CLI can't create
-    one. Retest on a project/board with an active sprint. (`sprint list` flags are
-    verified.)
+- **`sprint add` / `sprint close` not live-verified (Dim 9).** Blocked on: a Jira
+  instance with a scrum board and an active sprint — the only test instance has one
+  team-managed project with a `simple` board, and the CLI cannot create a sprint.
+  File-set: `references/commands.md` §sprint. (`sprint list` flags are verified.)
 
 ## Decided — do not re-propose
 

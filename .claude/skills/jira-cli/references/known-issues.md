@@ -14,6 +14,7 @@ Tracker for upstream `ankitpokhrel/jira-cli` bugs/quirks the skill works around.
 | #342 | open | Cloud GDPR strict mode: assign/reporter resolves by `accountId`, not email | troubleshooting.md |
 | #941 | open | ADF: `___triple___` mis-parsed as emphasis | markdown-adf.md |
 | #974 | open | ADF: code block containing a URL with query params can be mangled | markdown-adf.md |
+| #959 | closed — fix on `main` only (#1013, unreleased) | next-gen: `epic add`/`remove` hardcode `notifyUsers=false` → non-admins fail with "To discard the user notification…". Use `issue edit KEY -P EPIC` | troubleshooting.md, commands.md, SKILL.md command map |
 | #1020 | open | `-q` JQL containing the word `project` anywhere (even in a text search) drops the automatic `project="X"` scope → searches all projects | SKILL.md pitfall 10, jql-and-filters.md |
 
 How-to references (stable behavior, not bugs — essence inlined, kept here for provenance):

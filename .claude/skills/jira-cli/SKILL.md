@@ -77,7 +77,7 @@ For transitions specifically, the **valid target states depend on the issue's cu
 | Link / unlink | `jira issue link IN OUT <Type>` / `unlink` / `link remote` | `<Type>` is instance-defined (`Blocks`, `Duplicates`, …) |
 | Clone | `jira issue clone KEY -H"find:replace"` | copy + tweak fields |
 | Delete (permanent) | `jira issue delete KEY [--cascade]` | irreversible; `--cascade` also deletes subtasks |
-| Epics | `jira epic list [KEY]` / `create -n"Name"` / `add` / `remove` | `create` needs `-n/--name`; `add`/`remove` ≤50 at once |
+| Epics | `jira epic list [KEY]` / `create -n"Name"` / `add` / `remove` | `create` needs `-n/--name`; `add`/`remove` ≤50 at once, and need admin on next-gen — else `issue edit KEY -P EPIC` |
 | Sprints | `jira sprint list [ID]` / `add` / `close` | `--current`/`--prev`/`--next`/`--state`; get IDs from `--table` |
 | Releases (versions) | `jira release list [-p PROJ]` | requires Releases/Versions enabled on the instance |
 | Open in browser | `jira open [KEY]` | `--no-browser` prints the URL instead |

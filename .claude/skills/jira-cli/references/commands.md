@@ -216,8 +216,9 @@ Multi-line: `jira issue comment add KEY $'Line 1\n\nLine 2'`, or pipe: `echo "..
 
 - **`epic list [EPIC-KEY]`** — no KEY lists epics; with KEY lists issues *in* that epic. Accepts every `issue list` filter flag **except** `-t/--type`, plus `--table`.
 - **`epic create -n"Name" -s"Summary" [...] --no-input`** — same flags as `issue create` **plus required `-n/--name`** (the epic name, distinct from summary). No `-t` (type is fixed to Epic). **Notes:** `-n/--name` is **required even on next-gen** (value ignored there, but the non-interactive mandatory check still demands it); works non-interactively on both project types and the `-b` body lands. **No `--raw` flag** — to capture the new key as JSON use `jira issue create -tEpic … --no-input --raw` instead. The `? Epic Key` prompt is from `epic add` (missing `EPIC-KEY` arg), not create.
-- **`epic add EPIC-KEY ISSUE-1 [...ISSUE-N]`** (alias `assign`) — add up to 50 issues to an epic.
+- **`epic add EPIC-KEY ISSUE-1 [...ISSUE-N]`** (alias `assign`) — add up to 50 issues to an epic. Missing/empty `EPIC-KEY` → `? Epic Key` prompt → `Error: EOF` in a non-TTY.
 - **`epic remove ISSUE-1 [...ISSUE-N]`** — remove up to 50 issues from their epic.
+- **Next-gen (team-managed), v1.7.0:** `epic add`/`remove` always suppress notifications, which Jira allows only for admins — a non-admin gets `To discard the user notification either admin or project admin permissions are required` and nothing is added. Attach without admin: `jira issue edit ISSUE-1 -P EPIC-KEY --no-input`.
 
 ## sprint
 `jira sprint` (alias `sprints`). Explorer view by default; `--table` for table. Shows up to ~25–50 recent sprints.

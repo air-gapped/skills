@@ -39,6 +39,9 @@ The `Epic Key` prompt belongs to **`jira epic add`**, shown when its `EPIC-KEY` 
 
 (`jira init` writes `epic.name`/`epic.link` to the config from the project's "Epic Name" field; on non-English or unusual instances those may need hand-fixing for epic features to work — but a standard `-n -s --no-input` create succeeds, body and all.)
 
+## `epic add` / `epic remove`: "To discard the user notification either admin or project admin permissions are required"
+Next-gen (team-managed) project, non-admin user, v1.7.0: these commands always send `notifyUsers=false`, which only admins may do; the whole request fails. Attach per issue instead — `jira issue edit ISSUE-1 -P EPIC-KEY --no-input` (no notification suppression, no admin needed).
+
 ## `--custom` field ignored / "custom fields are not configured"
 `--custom` only works for fields declared under `issue.fields.custom` in `~/.config/.jira/.config.yml`. A key that isn't configured triggers the warning *"Some custom fields are not configured and will be ignored"* and is **dropped from the request** (currently a warning; slated to become a hard error). Fix: add the field to the config — re-run `jira init`, or add an entry with its `name` (and `key`/`schema`) under `issue.fields.custom` — then reference it as that `name` lowercased with spaces→hyphens. Seeing the `customfield_*` in `issue view KEY --raw` confirms it exists, but it still must be in the config to be settable.
 
