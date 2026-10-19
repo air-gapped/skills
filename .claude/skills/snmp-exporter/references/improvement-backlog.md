@@ -19,14 +19,26 @@ measurement nobody can run.
   on iDRAC 10 until #202 ships") load with the skill. Requires author
   sign-off on moving guards elsewhere without losing their visibility.
 
-## Unblocked — actionable
-
 - **Cross-file fact dedup** (Dim 6) — timeout math and v3-auth guidance
-  appear in SKILL.md golden rules, references/kubernetes.md, and example
-  comments. Final blind scorer cited the repetition; deduping is a multi-file
-  restructure that risks removing point-of-use context (each restatement is
-  where a reader acts on it). Attempt only with a utility test, not for
-  score.
+  restated in SKILL.md golden rules, references/kubernetes.md and example
+  comments. Classified INTENTIONAL_DETAIL / RELATED_BUT_DISTINCT: each
+  restatement sits where the agent acts on it (rule, CRD timeout hierarchy,
+  auth block). Not deletable; do not re-propose without a DUPLICATE verdict.
+
+## Resolved this pass (2026-10-20)
+
+Freshen (stamp 2026-10-20, 1 exception) then improve: blind 82 → 80 (inside
+scorer noise), self 83 → 85; A/B comparators 3/3 for the final (one run
+mislabeled its winner field; its reasons all describe the final), margin
+slight–decisive → IMPROVED. Cap reached (10 iterations), 8 kept, 2 discarded.
+- Kept: contribute-upstream backlog item dropped; rule 4 per-iDRAC crypto
+  pairs; module done-condition; backlog intro shortened; v3 rejection errors
+  row; generator-custom.yml switch-pair and nine-env-var comments;
+  "community-reported" wedged-agent wording.
+- Discard: rewording rule 1's "Measured here: 4034 vs 63" into a parenthetical
+  — same line count, no score change; the number is decision data, leave it.
+- Discard: adding the generator's `cannot use index … of type …` string to the
+  index-type failure row — Δ0 and no wrong decision traced to its absence.
 
 ## Resolved — 2026-07-24 (freshen-style correction, post-run)
 
