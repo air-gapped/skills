@@ -100,7 +100,8 @@ client config → clients.
    `ANTHROPIC_DEFAULT_HAIKU_MODEL` (background tasks) to the served model —
    `ANTHROPIC_SMALL_FAST_MODEL` is deprecated.
    **Context budget**: Claude Code's prompt is ~18k tokens (system + 17 tool
-   schemas) and it reserves 32k output tokens by default — backends under
+   schemas) and for a model id it cannot resolve (any local model name) it
+   reserves 32000 output tokens — backends under
    ~52k `max_model_len` reject turn 1. Fix:
    `CLAUDE_CODE_MAX_OUTPUT_TOKENS=8192`. Live-verified 2026-07-19
    (v2.1.214 → vLLM v0.25.1, 50k ctx: failed by exactly 1 token until
