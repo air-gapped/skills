@@ -223,20 +223,12 @@ the collection isn't available, and the modules that reject tokens.
 ## Generation handling in mixed inventories
 
 The Dell collection doesn't expose iDRAC generation as a first-class
-fact (open feature request: dell/dellemc-openmanage-ansible-modules#1007).
-Two options today:
+fact (open feature request: dell/dellemc-openmanage-ansible-modules#1007),
+and `idrac_system_info` returns no `HWModel`. Read `Info.1.HWModel` from
+the Redfish DellAttributes (the collection's own `get_idrac_hw_model()`
+reads the same key):
 
 ```yaml
-# Option A: detect from System info (works on both)
-- dellemc.openmanage.idrac_system_info:
-    idrac_ip: "{{ idrac_ip }}"
-    x_auth_token: "{{ idrac_auth.x_auth_token }}"
-  register: sys_info
-
-- set_fact:
-    is_idrac10: "{{ sys_info.system_info.idrac.HWModel | default('') == 'iDRAC 10' }}"
-
-# Option B: get from Redfish DellAttributes directly via uri
 - ansible.builtin.uri:
     url: "https://{{ idrac_ip }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
     headers: { X-Auth-Token: "{{ idrac_auth.x_auth_token }}" }

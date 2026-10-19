@@ -232,21 +232,8 @@ Python 3.12.3.
 There's no first-class "give me the iDRAC generation" call yet —
 upstream feature request **#1007** is open.
 
-Two viable patterns today:
-
-**A. Use `idrac_system_info`:**
-
-```yaml
-- dellemc.openmanage.idrac_system_info:
-    idrac_ip:     "{{ idrac_ip }}"
-    x_auth_token: "{{ idrac_auth.x_auth_token }}"
-  register: sys_info
-
-- set_fact:
-    is_idrac10: "{{ (sys_info.system_info.idrac.HWModel | default('')) == 'iDRAC 10' }}"
-```
-
-**B. Hit DellAttributes directly:**
+Read DellAttributes directly. Do not use `idrac_system_info`: it rejects
+`x_auth_token` and its `iDRAC` section has no `HWModel` field.
 
 ```yaml
 - ansible.builtin.uri:
