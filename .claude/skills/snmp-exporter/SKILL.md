@@ -50,9 +50,11 @@ them to long-term storage is **`mimir-upgrade`** territory.
 4. **Prefer v3 authPriv everywhere; v2c only as fallback.** SNMP v1 forces
    GETNEXT (one row per round trip) and can't read 64-bit counters — never use
    it. v2c community strings are plaintext on the wire: acceptable only on an
-   access-controlled management network. Modern gear (iDRAC 9/10, Cisco CBS,
-   Onyx) all support v3 with SHA-2 + AES — use SHA256 + AES-128 as the default
-   pair, and match `auth_protocol` exactly to how the device user was created.
+   access-controlled management network. Switches (Cisco CBS 3.x, Onyx)
+   support SHA-2 + AES — use SHA256 + AES-128 as the default pair. iDRACs
+   differ: iDRAC 9 tops out at SHA-1 + AES-128 (`SHA`/`AES`), iDRAC 10 offers only
+   SHA-384/512 + AES-256 (`SHA384`/`AES256`). Match `auth_protocol` exactly to
+   how the device user was created.
    BMCs also gate some data (e.g. iDRAC lifecycle logs) behind v3.
 5. **Keep credentials out of git.** Generated snmp.yml embeds secrets in
    cleartext. Either use `${ENV_VAR}` in v3 `username`/`password`/`priv_password`
