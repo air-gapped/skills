@@ -188,5 +188,3 @@ Match the symptom, name the cause, apply the smallest fix:
 | `references/agent-execution-and-discovery.md` | Acting on Confluence as an agent — discovery, act-vs-advise, storage-format writes + idempotency/version safety, CQL recipes, language-safe anchors, Cloud-vs-DC branches |
 | `references/cloud-vs-dc.md` | Versions/EOL/sunset; the Cloud-only / DC-only / both feature matrix; the editor & storage-format situation |
 | `references/sources.md` | Verifying or freshening a claim — per-row source + tier + what it supports |
-
-**Execution:** to *carry out* any of this (creating pages at the right place, moving/labelling, restrictions, CQL, the dashboard), act through content-level REST/CQL — directly or via an MCP server. This skill decides *what* and *how to structure content*; the tool does the *how*. Anything needing admin (spaces, permissions, templates, indexing, retention) → hand the user the exact steps.
