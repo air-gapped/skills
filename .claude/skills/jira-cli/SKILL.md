@@ -107,11 +107,15 @@ KEY=$(jira issue create -tTask -s"Automated task" --no-input --raw </dev/null | 
 jira issue assign "$KEY" "$ME"
 jira issue move "$KEY" "In Progress"
 
-# Bulk: list keys, then loop
-for k in $(jira issue list -q'assignee = currentUser() AND status = "To Do"' --plain --columns key --no-headers); do
-  jira issue move "$k" "In Progress" --comment "Picking up"
-done
+# Bulk: freeze keys, loop, record failures
+jira issue list -q'assignee = currentUser() AND status = "To Do"' --plain --columns key --no-headers </dev/null > keys.txt
+: > failed.txt
+while read -r k; do
+  jira issue move "$k" "In Progress" --comment "Picking up" </dev/null || echo "$k" >> failed.txt
+done < keys.txt
 ```
+
+A bulk run is done when every key in `keys.txt` was attempted and `failed.txt` is empty — re-run the loop over `failed.txt` after fixing the cause. On Cloud, `keys.txt` holding exactly 100 lines means the query was truncated (#898): split the JQL.
 
 More patterns (CSV/JSON pipelines, dashboards, safe bulk edits): **`references/scripting.md`**.
 
