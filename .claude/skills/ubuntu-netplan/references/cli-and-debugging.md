@@ -100,8 +100,7 @@ Frequent root causes:
 ## Version notes (24.04 LTS vs 26.04 LTS)
 
 - The YAML schema version is always `2`; this is unrelated to the netplan package
-  version. (`meson.build` declaring `1.1` is stale — trust git tags / `netplan info`
-  / `dpkg -l netplan.io`.)
+  version. Read the package version on the target with `dpkg -l netplan.io`.
 - **24.04 LTS (Noble):** the release pocket ships **1.0**; `noble-updates`
   carries **1.1.2**. Which one a host has depends on whether it (or the mirror
   it installs from) pulled updates. 1.0 has `hairpin`, `port-mac-learning`
