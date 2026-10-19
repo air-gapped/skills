@@ -182,6 +182,11 @@ workflow, the JSON schema location, and common pitfalls are in
 
 ## Common pitfalls
 
+- **Wrong-disk wipe.** A `layout:` without `match:` installs to the **largest** disk,
+  which on a server is often the data disk, and the `autoinstall` keyword removes the
+  only confirmation. On any multi-disk host, pin the target (`match: {serial: ...}`,
+  `{ssd: true}`, `{size: smallest}`). Never make an `autoinstall` PXE entry the
+  default boot item on a shared network: every host that netboots gets wiped.
 - Missing `#cloud-config` header, or a misspelled `autoinstall:` key → the installer
   goes interactive instead of crashing.
 - In the **on-media** `autoinstall.yaml`, no other top-level keys may sit beside
