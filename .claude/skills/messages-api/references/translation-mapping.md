@@ -152,22 +152,15 @@ What a third-party `/v1/messages` server must tolerate from real clients
 
 ## Claude Code-specific hacks
 
-- **Billing-header stripping**: vLLM and llama.cpp both strip/normalize the
-  `x-anthropic-billing-header` system-prompt prefix Claude Code injects, to
-  keep prefix caching effective. Captured on the wire (mitmdump, Claude Code
-  v2.1.214, 2026-07-19) — it is the FIRST `system[]` text block, with no
-  `cache_control`:
-  ```json
-  {"type":"text","text":"x-anthropic-billing-header: cc_version=2.1.214.a12; cc_entrypoint=sdk-cli;"}
-  ```
-  `CLAUDE_CODE_ATTRIBUTION_HEADER=0` removes the block entirely (the rest of
-  the body is byte-identical). In v2.1.214 headless the content is
-  version+entrypoint only — constant across requests and sessions on the same
-  install; the cache-busting risk documented in the SGLang cookbook (per-
-  request divergence on GLM-5.2, whose template renders tools before system)
-  depends on version/entrypoint variation and template ordering. Backends
-  without the strip hack, or with tools-before-system templates, should set
-  the env var; backends with the hack (vLLM, llama.cpp) are safe either way.
+- **Attribution block (billing header)**: Claude Code's FIRST `system[]` text
+  block, no `cache_control`, of the form
+  `x-anthropic-billing-header: cc_version=…; cc_entrypoint=…;` plus a prompt
+  fingerprint (`cch`). The fingerprint changes the system prefix between
+  requests, so any backend that renders the block loses prefix caching.
+  vLLM strips it; llama.cpp normalizes its `cch` section; api.anthropic.com
+  strips it itself. Every other backend or gateway, and any gateway that
+  reshapes system content: set `CLAUDE_CODE_ATTRIBUTION_HEADER=0` — it
+  removes the block and leaves the rest of the body unchanged.
 - **Error-wording preservation**: Superagent forwards non-retryable upstream
   errors byte-for-byte because Claude Code keys retry behavior off message
   wording.
