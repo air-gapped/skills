@@ -72,6 +72,12 @@ precisely because it resists the expert's urge to assume.
 5. **If nothing survives, tighten the spec — not the story.** When every
    candidate fails testing, the specification is missing data. Go get more
    facts. Do not relax the standard until a pet theory passes.
+6. **Never spend the recovery point or the evidence on a theory.** While a
+   cause is untested, refuse any step that destroys the only good copy or
+   the fault's evidence (deleting snapshots, logs or data; wiping or
+   rebuilding over the original), and say so in one sentence. A backup or
+   replica is `[assumed]` until a restore from it has been tested; making it
+   good is data protection — label it that way, not as the fix.
 
 ## Stage 0 — Triage
 
