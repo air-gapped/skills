@@ -181,7 +181,15 @@ cmdline → seed dirs → labeled block device. The common methods:
 
 **`instance-id` re-run rule:** cloud-init only re-applies user-data when the
 `instance-id` in `meta-data` *changes* (or after `cloud-init clean`). Bump it
-whenever the config changes.
+whenever the config changes on a host that is being (re)provisioned.
+
+**Never bump `instance-id` or `cloud-init clean` an in-service host** to push a
+config change: every per-instance module re-runs. SSH host keys are regenerated
+(`ssh_deletekeys` defaults true → clients hit a host-key mismatch), `chpasswd`
+passwords expire again (`expire` defaults true), `runcmd` repeats, and
+`disk_setup`/`fs_setup` entries with `overwrite: true` wipe disks. Apply day-2
+changes with `cloud-init single --name <module> --frequency always`, or with
+config management.
 
 Full seeding detail (cmdline grammar + aliases, DMI variable expansion, FTP, GRUB
 escaping, `seedfrom`, dsname deprecations) is in `references/nocloud-and-airgapped.md`.
