@@ -65,14 +65,16 @@ The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is
 ## Test
 
 1. Build the workdir: `${CLAUDE_SKILL_DIR}/scripts/make-fixtures.sh DIR`.
-2. Run the smoke scenario. Then escalate through `references/scenario-bank.md`, and stop at the first failure.
+2. Run the smoke scenario. Then escalate through `references/scenario-bank.md`, and stop at the first failure confirmed per step 6.
 3. Assert on every transcript: `${CLAUDE_SKILL_DIR}/scripts/assert-events.sh OUT.ndjson [--expect-tools Glob,Read] [--expect-model NAME] [--min-turns N] [--max-turns N] [--min-parallel N]`. It checks result success without `is_error`, tool sequence, model, turn bounds and tool calls per assistant message. Exit status is not evidence.
 4. For more than one endpoint: `${CLAUDE_SKILL_DIR}/scripts/run-matrix.sh --prompt-file PROMPT.txt --workdir DIR --output-dir OUT --run 'label|base-url|model[|token-var]' [--run ...]`. An empty base-url means subscription mode. A run passes only if its transcript passes `assert-events.sh`; add scenario assertions per step 3.
 5. For an open-weights model, scan every transcript for leaked special tokens: `${CLAUDE_SKILL_DIR}/scripts/scan-token-leakage.sh OUT.ndjson MODEL_DIR`. `MODEL_DIR` holds the served model's `tokenizer_config.json`, `tokenizer.json` or `*.jinja`; a file with one token per line also works. Exit 1 means a leak.
-6. When an endpoint fails, record it as an endpoint/model compatibility finding. Never change the scenario to make it pass.
-7. Afterwards, `${CLAUDE_SKILL_DIR}/scripts/cleanup.sh --run-dirs` removes run directories that a killed run left in `/tmp`.
+6. A single failing run is not a finding. Re-run that scenario until it has 3 transcripts and read them as a set: failing in 2 or 3 of 3 is an endpoint/model property; failing in 1 of 3 is noise unless its transcript shows the mechanism (name the event where it diverges).
+7. A run that delivers nothing (no `result` event, or an empty final answer) outranks every other result. A runner or setting change after which any run delivers nothing is unsafe: revert it, even if other runs improved.
+8. When an endpoint fails, record it as an endpoint/model compatibility finding. Never change the scenario to make it pass.
+9. Afterwards, `${CLAUDE_SKILL_DIR}/scripts/cleanup.sh --run-dirs` removes run directories that a killed run left in `/tmp`.
 
-Done when every endpoint has a result row: `claude --version`, base URL, model, and for every scenario run either `pass` or the first failing assertion or error event.
+Done when every endpoint has a result row: `claude --version`, base URL, model, and for every scenario either `pass` or the first failing assertion or error event, with the pass count when it was re-run (`2/3`).
 
 ## References
 
