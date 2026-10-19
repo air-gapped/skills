@@ -10,7 +10,8 @@
 ## Minimal valid config
 
 Only `version` is schema-required, but `identity` is required at runtime (unless
-`user-data:` is present). The password hash below is `ubuntu`.
+`user-data:` is present). The password hash below is for `ubuntu`, which is public:
+replace it (`mkpasswd --method=SHA-512`) before any real install.
 
 ```yaml
 #cloud-config
