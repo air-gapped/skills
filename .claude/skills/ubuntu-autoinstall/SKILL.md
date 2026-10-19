@@ -197,9 +197,11 @@ workflow, the JSON schema location, and common pitfalls are in
 ## Reference files
 
 - `references/schema.md` — full top-level key reference: storage layouts & curtin
-  actions, apt mirror-selection, identity/ssh, command timing, all keys. (Has a TOC.)
+  actions, apt mirror-selection, identity/ssh, command timing, all keys.
 - `references/delivery-and-seeding.md` — delivery precedence, NoCloud seeds, ISO/USB,
   HTTP serving, zero-touch, the on-media rules.
 - `references/validation-and-debugging.md` — the validator script, JSON schema, logs,
   pitfalls, and 24.04-vs-26.04 version notes.
 - `references/examples.md` — minimal config + a complete air-gapped server install.
+- `references/sources.md` — the upstream file, tag and line behind each version or
+  behaviour claim; read it only to re-check a claim before changing it.
