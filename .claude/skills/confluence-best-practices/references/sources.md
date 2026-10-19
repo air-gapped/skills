@@ -71,7 +71,7 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 | confluence.atlassian.com/doc/page-restrictions-139414.html; permissions-and-restrictions-139557.html | A | View-cascades/edit-doesn't; restriction-narrows-never-grants; admin override; self-restriction; blog-conversion strip | 2026-06-07 |
 | confluence.atlassian.com/doc/global-permissions-overview-138709.html; permissions-best-practices-992678945.html | A | Five global perms; Create-Space(s) lever; confluence-administrators; groups>individuals; open-by-default | 2026-06-07 |
 | support.atlassian.com/confluence/kb/understanding-permission-in-confluence | A | Evaluation order; additive accumulation; cluster cache note | 2026-06-07 |
-| jira.atlassian.com/browse/CONFSERVER-5095 / -25189 / -87720 | A | Edit-restrictions not inherited; CONFANCESTORS/template inheritance desync | 2026-06-07 |
+| jira.atlassian.com/browse/CONFSERVER-5095 / -25189 / -87720 | A | 5095 Closed **Won't Do** 2020-06-29 (edit restrictions not inherited, by design). 25189 Closed **Fixed 6.5.0**; 87720 Closed **Fixed 8.5.0 / 7.19.11 / 7.13.19** — the CONFANCESTORS desync causes are fixed on current LTS (REST re-read 2026-10-20) | 2026-10-20 |
 | confluence.atlassian.com/doc/jira-issues-macro-139380.html; use-jira-applications-and-confluence-together-427623543.html | A | Jira Issues macro (3 modes, permission-aware); app-link prereq; create-issue-from-page | 2026-06-07 |
 | jira.atlassian.com/browse/CONFSERVER-87786 | A | **Smart Links Cloud-only** (DC request open) | 2026-06-07 |
 

@@ -32,7 +32,7 @@ Other traps:
 - **Request-access fails** if there's no SMTP server, or the user lacks space permission, or an ancestor is restricted.
 - **Converting a page-with-children to a blog post** strips the children's inherited restrictions (blogs have no parent) → silent over-exposure.
 - **Cluster cache lag** — permission changes can take time to propagate across DC nodes.
-- **`CONFANCESTORS` desync** (after some upgrades, or template-created children — CONFSERVER-25189/87720) makes inheritance *look* applied but unenforced; fix = rebuild ancestors, flush the Inherited-Content-Permissions cache, rebuild the index.
+- **`CONFANCESTORS` desync** makes inheritance *look* applied but unenforced; fix = rebuild ancestors, flush the Inherited-Content-Permissions cache, rebuild the index. The two known causes are fixed — out-of-sync ancestors table in **6.5.0** (CONFSERVER-25189), template-created children not inheriting in **8.5.0 / 7.19.11 / 7.13.19** (CONFSERVER-87720) — so on 9.2/10.2 LTS treat a desync as a new bug, not these.
 
 ## Governance — keep it open, keep it lean
 
