@@ -16,7 +16,7 @@ groups:
           description: >-
             Pair with blackbox ICMP to discriminate: if BlackboxIcmpUp is
             firing too the device is down; if ping works, the SNMP agent is
-            wedged (documented CBS failure mode - bounce SNMP or reboot).
+            wedged (community-reported CBS failure mode - bounce SNMP or reboot).
       - alert: SnmpAgentWedged
         # Requires a blackbox_exporter ICMP job probing the same targets with
         # matching instance labels (see references/companions.md).

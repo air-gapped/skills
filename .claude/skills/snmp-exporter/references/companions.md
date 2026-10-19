@@ -51,7 +51,7 @@ Probe every SNMP target with a blackbox ICMP module under a `blackbox-icmp`
 job whose `instance` labels match the SNMP job's. This turns "SNMP down" into
 two distinct alerts (see examples/alerts.yml): device down (ping+SNMP both
 dead) vs **SNMP agent wedged** (ping OK, SNMP dead) — the latter is a
-documented CBS failure mode requiring an agent bounce, not an RMA.
+community-reported CBS failure mode requiring an agent bounce, not an RMA.
 
 ## Targets from NetBox (source of truth)
 
