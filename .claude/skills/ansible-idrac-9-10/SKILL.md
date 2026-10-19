@@ -42,41 +42,16 @@ top of each other: a firmware-level Basic-auth default change, and a
 collection-level module rename. Knowing both stops the bleed in one
 playbook edit instead of three days of firefighting.
 
-## How to use this skill
+## Reference routing
 
-Route to one or two reference files based on the question. Don't try to
-load everything.
+Load only the file the question needs:
 
-```
-references/
-├── auth-and-session.md    → BasicAuthState=Unadvertised, idrac_session +
-│                            x_auth_token lifecycle (block/always), env
-│                            fallback IDRAC_X_AUTH_TOKEN, modules
-│                            that reject x_auth_token, force_basic_auth
-│                            fallback for ansible.builtin.uri / raw
-│                            Redfish, racadm BasicAuthState toggle,
-│                            session-pool exhaustion, no_log/no-secret
-│                            hygiene
-├── idrac-10-deltas.md     → Verbatim attribute registry tables from the
-│                            iDRAC 10 1.30.xx Attribute Registry —
-│                            deprecated groups & attributes (Table 1),
-│                            reorganized renames (Table 2), changed values
-│                            and defaults (Table 3); module support
-│                            matrix iDRAC 9 vs iDRAC 10; iDRAC 10 Redfish
-│                            Jobs URI; WS-MAN removal; iDRAC 8 dropped in
-│                            10.0.0
-├── troubleshooting.md     → 16-pattern bug catalog from upstream GitHub
-│                            issues — sensor URI rename, misleading
-│                            "TLS/credentials" error on writes, idrac_user
-│                            privilege regression, custom_privilege
-│                            collapse, SCP on collection < 10.0.0, iso_image path
-│                            rejection, NIC-info duplication, Ansible
-│                            Core 2.18+ TypeError, generation-detection
-│                            (`authentication_protocol` SHA vs SHA-512)
-└── sources.md             → Dated index of Dell KBs, Ansible module
-                             docs, GitHub PRs, attribute-registry PDF
-                             for freshen mode
-```
+| Question | File |
+|---|---|
+| 401s, BasicAuthState, session/token lifecycle, which modules reject `x_auth_token`, `force_basic_auth`, raw-Redfish token minting, secret hygiene | `references/auth-and-session.md` |
+| Attribute renamed / deprecated / changed default on iDRAC 10, module support matrix, Jobs URI, WS-MAN, 17G platform list | `references/idrac-10-deltas.md` |
+| A specific error or misbehaviour (17 catalogued upstream bugs with symptom → cause → fix) | `references/troubleshooting.md` |
+| Where a claim comes from, when it was verified | `references/sources.md` |
 
 ## Decision tree (start here)
 
