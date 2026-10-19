@@ -211,8 +211,9 @@ only — never needed to apply the skill):
    EtherLike dot3Stats? iDRAC 10 — v2c gets work once enabled? AES256 vs
    AES256C pairing? Walk bugs (virtualDiskTable skip) on current firmware?
 2. **Next snmp_exporter release** (>0.30.1) ships the non-renderable-index
-   rejection (#1653) — re-validate hand-written configs on upgrade; regenerate
-   with the matching generator.
+   rejection (#1653), a load error for an unset `$var` inside a password
+   (#1500), and the `dell_rac` module — re-validate hand-written configs on
+   upgrade; regenerate with the matching generator.
 3. **prometheus-operator ScrapeConfig v1beta1 graduation** — update
    references/kubernetes.md examples when it ships.
 4. **Contribute the cisco_cbs module** to prometheus-community/snmp — no
