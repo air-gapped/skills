@@ -15,6 +15,18 @@ The whole reason this skill exists. Two things stack on top of each other:
    accept `x_auth_token:` in place of `idrac_user`/`idrac_password` —
    not all; see "Modules that reject `x_auth_token`" below.
 
+## Contents
+
+1. The BasicAuth tri-state (`Enabled` / `Unadvertised` / `Disabled`, GUI paths)
+2. How to spot it (curl, racadm, Redfish checks)
+3. Why not flip it back to Enabled?
+4. Canonical session lifecycle (return shape, aliases, env-var fallbacks)
+5. Session-pool exhaustion
+6. Modules that reject `x_auth_token` (per arg-spec table)
+7. Fallback for `ansible.builtin.uri` / raw Redfish (force_basic_auth, hand-minted token)
+8. Secret hygiene
+9. Connection mode
+
 ## The BasicAuth tri-state
 
 The Redfish OEM attribute is `iDRAC.Redfish.BasicAuthState` (also
