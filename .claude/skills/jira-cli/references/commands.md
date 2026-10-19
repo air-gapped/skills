@@ -243,7 +243,7 @@ Multi-line: `jira issue comment add KEY $'Line 1\n\nLine 2'`, or pipe: `echo "..
 - **`jira open [ISSUE-KEY]`** — open the project (no arg) or an issue in the browser. `--no-browser` prints the URL instead of opening.
 
 ## init / me / serverinfo / completion / man / version
-- **`jira init`** — interactive config bootstrap. Prompts installation type (`Cloud` / `Local`), server URL, login, and (for Local) auth type (`basic` / `bearer`-PAT-via-env / `mtls`). Writes `~/.config/.jira/.config.yml`.
+- **`jira init`** — config bootstrap. Prompts installation type (`Cloud` / `Local`), server URL, login, and (for Local) auth type (`basic` / `bearer`-PAT-via-env / `mtls`) for any value not passed as a flag: `--installation cloud|local`, `--server`, `--login`, `--auth-type basic|bearer|mtls`, `--project`, `--board <name>`, `--force` (overwrite; old file kept as `.bkp`), `--insecure` (skip TLS verify). Writes `~/.config/.jira/.config.yml` (or `-c`/`JIRA_CONFIG_FILE`). Non-interactive recipe and exit codes: `config-auth.md`.
 - **`jira me`** — prints the configured user (the self-reference for `-a$(jira me)`).
 - **`jira serverinfo`** — instance metadata; quick connectivity check.
 - **`jira completion bash|zsh`** — shell completion script (`jira completion --help`).

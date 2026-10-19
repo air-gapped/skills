@@ -74,3 +74,9 @@ Also re-verified this pass: the Atlassian "comment during a transition" URL now
 redirects from `confluence.atlassian.com` to `support.atlassian.com/jira/kb/…`
 (benign, content intact). `jira.atlassian.com` wiki-markup help returns 401
 behind an auth wall to any non-browser client — bot-block, not a dead page.
+
+## 2026-10-20 freshen — live-verified on v1.7.0 against a team-managed Cloud project
+
+Throwaway issues and components were created and deleted in the same run; `init` wrote only to a scratch `-c` file.
+
+- **`jira init` non-interactive** — every flag given → config written, exit 0; any flag omitted → prompt → `EOF`, exit 1; existing file without `--force` → `Skipping config generation`, exit 1; `--force` keeps `<file>.bkp`. Flags from `jira init --help` (v1.7.0).

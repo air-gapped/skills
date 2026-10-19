@@ -47,8 +47,6 @@ would otherwise have required changing.
   - `sprint add` / `sprint close`: the test board has no sprint and the CLI can't create
     one. Retest on a project/board with an active sprint. (`sprint list` flags are
     verified.)
-  - `init`: not run — would overwrite the live config. Verify against a scratch config
-    via `JIRA_CONFIG_FILE=/tmp/...` so the real `~/.config/.jira/.config.yml` is untouched.
 
 ## Decided — do not re-propose
 

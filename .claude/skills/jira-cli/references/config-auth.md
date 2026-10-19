@@ -20,9 +20,25 @@ The single most important auth fact: **`JIRA_API_TOKEN` is read from the environ
 export JIRA_API_TOKEN="<token-or-password>"   # add to ~/.bashrc / ~/.zshrc
 ```
 
-## `jira init` — interactive bootstrap
+## `jira init` — bootstrap
 
-`jira init` writes `~/.config/.jira/.config.yml`. It asks for installation type and connection details:
+`jira init` writes `~/.config/.jira/.config.yml`. It asks for installation type and connection details unless every value is passed as a flag.
+
+### Non-interactive init (scripts, agents)
+```bash
+jira init --installation cloud --server https://your-org.atlassian.net \
+  --login you@example.com --auth-type basic --project PROJ --board "PROJ board" </dev/null
+```
+
+| Situation | Result |
+|---|---|
+| Every flag given | writes the config, exit 0, no prompt |
+| Any flag omitted (e.g. `--board`) | prompts for it → `Unable to generate configuration: EOF`, exit 1 |
+| Target file exists, no `--force` | `Config already exist. Do you want to overwrite?` → non-TTY answers No → `Skipping config generation`, exit 1 |
+| `--force` | overwrites; the previous file is kept as `<file>.bkp` |
+| `-c <file>` or `JIRA_CONFIG_FILE=<file>` | writes there; the default config is untouched — use this to test init without clobbering a working setup |
+
+`--installation` takes `cloud` or `local`; `--auth-type` takes `basic`, `bearer` or `mtls`. `--board` takes the board **name** from `jira board list`, not its ID.
 
 ### Cloud
 1. Create an API token at <https://id.atlassian.com/manage-profile/security/api-tokens> and export it as `JIRA_API_TOKEN`.
