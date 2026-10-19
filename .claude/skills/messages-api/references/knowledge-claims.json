@@ -38,7 +38,7 @@
     {
       "id": 6,
       "question": "How does vLLM handle the `thinking` request parameter on /v1/messages?",
-      "skill_answer": "Silently ignores it \u2014 absent from its pydantic model"
+      "skill_answer": "Silently ignored before v0.31.0; v0.31.0+ maps enabled to thinking_token_budget and disabled to reasoning off, but ignores adaptive"
     },
     {
       "id": 7,
@@ -48,7 +48,7 @@
     {
       "id": 8,
       "question": "Which stop_reason values never come from third-party Messages backends?",
-      "skill_answer": "refusal and pause_turn; stop_sequence is unreliable (~half never emit it)"
+      "skill_answer": "pause_turn and model_context_window_exceeded never; refusal only from the LiteLLM bridge (upstream content_filter); stop_sequence is unreliable (~half never emit it)"
     },
     {
       "id": 9,
@@ -63,7 +63,7 @@
     {
       "id": 11,
       "question": "How many output tokens does Claude Code reserve by default, and what minimum context does that imply?",
-      "skill_answer": "32k reserved; backends under ~52k max_model_len reject turn 1"
+      "skill_answer": "32000 for model ids Claude Code cannot resolve (any local model name); backends under ~52k max_model_len reject turn 1"
     },
     {
       "id": 12,
@@ -78,7 +78,7 @@
     {
       "id": 14,
       "question": "Which anthropic-beta headers does opencode always send?",
-      "skill_answer": "interleaved-thinking and fine-grained-tool-streaming"
+      "skill_answer": "v1: interleaved-thinking and fine-grained-tool-streaming; v2: interleaved-thinking plus conditional betas"
     },
     {
       "id": 15,
