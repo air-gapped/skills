@@ -48,11 +48,6 @@ Responses API's server-side state; see the responses-api skill).
   v0.31.0+ maps `enabled`→thinking budget and `disabled`→reasoning off, but
   still ignores `adaptive` (what current clients send). SGLang accepts
   `budget_tokens` but does not enforce it.
-- **LiteLLM fleet configuration**: `model_info.supported_endpoints:
-  ["/v1/messages"]` on a deployment forwards Anthropic bodies UNTRANSLATED to
-  Messages-native backends — full fidelity, no bridge. Without it,
-  `hosted_vllm/` etc. take the chat-completions bridge (works, but unsigned
-  thinking + no ping + 64-char tool-name truncation).
 - **`ping` events**: only mistral.rs and OGX's translation path emit them
   locally; Anthropic's real API does — clients must not require pings, proxies must not choke on them.
 - **count_tokens is inconsistent**: real tokenization (vLLM) vs approximation
@@ -109,10 +104,12 @@ client config → clients.
    `tool_result` → `end_turn`) against the backend.
 
 ### Serving Messages through LiteLLM to a fleet
-1. Prefer per-deployment native passthrough: add `model_info:
-   {supported_endpoints: ["/v1/messages"]}` to Messages-native backends.
-2. Otherwise the chat-completions bridge applies — expect unsigned thinking,
-   no ping, tool-name truncation at 64 chars; see `references/gateways.md`.
+1. Add `model_info: {supported_endpoints: ["/v1/messages"]}` to every
+   Messages-native deployment: LiteLLM then forwards the Anthropic body
+   **untranslated** — full fidelity, no bridge.
+2. Without it, `hosted_vllm/` etc. take the chat-completions bridge — expect
+   unsigned thinking, no ping, tool-name truncation at 64 chars; see
+   `references/gateways.md`.
 3. Statelessness makes any replica valid — no affinity needed (unlike
    Responses `previous_response_id`; see responses-api skill).
 4. Verify per deployment: the backend's access log shows `POST /v1/messages`
