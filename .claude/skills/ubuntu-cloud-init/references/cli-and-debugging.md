@@ -3,6 +3,9 @@
 Grounded in `canonical/cloud-init` `doc/rtd/reference/cli.rst`,
 `explanation/boot.rst`, `first_boot.rst`, and `breaking_changes.rst`.
 
+Contents: Boot stages (units, module order) · CLI reference · Logs & paths ·
+Debugging playbook · Version notes (24.04 reverts, changes by version)
+
 ## Boot stages
 
 | Stage | systemd unit | Network | Module list |

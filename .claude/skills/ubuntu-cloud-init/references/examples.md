@@ -1,5 +1,9 @@
 # cloud-init examples (air-gapped first boot)
 
+Contents: Minimal · Realistic air-gapped first boot (user-data, meta-data,
+network-config, seed ISO) · MIME multipart · Jinja template · Datasource pin ·
+Site-wide vendor-data
+
 ## Minimal `#cloud-config`
 
 ```yaml

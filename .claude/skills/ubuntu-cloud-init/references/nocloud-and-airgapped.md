@@ -4,6 +4,11 @@ Grounded in `canonical/cloud-init` `cloudinit/sources/DataSourceNoCloud.py`,
 `doc/rtd/reference/datasources/nocloud.rst`, `base_config_reference.rst`, and
 `breaking_changes.rst`.
 
+Contents: Two NoCloud classes · Seeding methods · Required / optional files
+(`network-config` per seed kind) · Line-config grammar · `instance-id` semantics ·
+`datasource_list` pinning · DataSourceNone · vendor-data · Building seed media ·
+Deprecations
+
 ## Two NoCloud classes
 
 - **`DataSourceNoCloud`** — runs in the **Local** stage (no network). Seeds from
