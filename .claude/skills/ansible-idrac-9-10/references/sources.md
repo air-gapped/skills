@@ -27,7 +27,6 @@ collection version `10.0.2`. All sources verified at authoring time.
 |--------|------|------------------|---------------|--------|
 | dell/dellemc-openmanage-ansible-modules | `~/projects/github.com/dell/dellemc-openmanage-ansible-modules` (typical local clone) | Full collection source — modules, module_utils, roles, docs, CHANGELOG. Cited paths in `references/*.md` are relative to repo root; access via local clone or `gh api repos/dell/dellemc-openmanage-ansible-modules/contents/<path>`. | 2026-09-15 | collections @ 50215ac9 (v10.0.2) |
 | iDRAC 10 Attribute Registry PDF (1.30.xx) | Dell support portal (search "iDRAC10 Attribute Registry 1.30") | Official Dell registry, March 2026 / Rev A01. Source of truth for Chapter 2 (Deprecated), Chapter 3 (Reorganized), Chapter 4 (Changed). | 2026-09-15 | March 2026 / Rev A01 |
-| Dell whitepaper "iDRAC Redfish BasicAuth change" | Internal — referenced from Dell KB 000437501 in the Official Documentation section below | Whitepaper covering BasicAuthState change + idrac_session pattern. Source of canonical session example in `auth-and-session.md`. | 2026-09-15 | — |
 
 ## Official Dell documentation
 

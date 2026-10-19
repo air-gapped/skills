@@ -244,10 +244,3 @@ latter).
 `gather_facts: false` is also conventional — the collection's modules
 don't need controller facts to run, and `setup` against a BMC inventory
 adds latency for nothing.
-
-## Sources cited (see `sources.md` for full dated list)
-
-- Dell KB 000437501 — iDRAC HTTP Basic authentication changes
-- `dellemc.openmanage.idrac_session` module docs (`version_added: 9.2.0`)
-- `plugins/module_utils/idrac_redfish.py` in dell/dellemc-openmanage-ansible-modules
-- The user's local whitepaper `idrac-redfish-basicauth-ansible.md`
