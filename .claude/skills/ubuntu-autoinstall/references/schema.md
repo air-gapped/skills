@@ -208,7 +208,7 @@ a flavor with no kernel for that release (or a typo) builds a non-existent
 
 ## 7. command hooks & timing
 
-- `early-commands` — before probing; the config is re-read afterward (you can rewrite
+- `early-commands` — before probing; the config is re-read afterward (so an early command may rewrite
   `/autoinstall.yaml`).
 - `late-commands` — after the install, **in the installer environment**; the target
   filesystem is mounted at **`/target`**. To run inside the installed system use

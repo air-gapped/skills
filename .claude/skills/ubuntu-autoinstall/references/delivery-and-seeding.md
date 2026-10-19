@@ -99,7 +99,7 @@ No media is involved, so there is no disk-wipe prompt to suppress beyond the bar
 
 The bare `autoinstall` kernel keyword is **separate** from `ds=...`. It suppresses the
 interactive "Continue with autoinstall? (yes|no)" disk-wipe confirmation. For true
-zero-touch you need **both**:
+zero-touch, supply **both**:
 - the config delivery (a `ds=` seed, on-media file, or cmdline path), **and**
 - `autoinstall` on the kernel cmdline.
 
