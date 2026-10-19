@@ -19,15 +19,6 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
-- **Harden the eval assertions for a future iteration-3** (eval quality, not
-  skill quality). From the n=3 graders: eval-0's no-remediation assertion should
-  read "no untested changes beyond instrumentation" (cheap shotgun fixes sit in
-  a gray zone); eval-2 assertion 1 should require an explicit
-  change-hunting-is-inapplicable statement (baselines pass by being
-  diff-oriented without the reframe — day-one eval still weakly discriminating:
-  baseline 6/6, 6/6, 5/6); eval-1 could add an intermittency-signature
-  assertion (~1-in-3 = per-flow hashing). Requires editing evals.json +
-  re-running the benchmark; do together, not per-assertion.
 - **Remaining restatements** (Dim 6; hard rule 5 vs `SKILL.md` Stage 4 loop
   rule; "Proportionality, restated" vs Stage 1). Deliberate-redundancy judgment
   call: hard rules act as standing summary (SKILL.md loads alone; references

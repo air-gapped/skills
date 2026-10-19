@@ -20,7 +20,7 @@
         "Requests missing facts as a focused batch (roughly 8 questions or fewer) with a stated reason for what each answer would discriminate — not an exhaustive question dump",
         "Records the RAM reseat and its failure to help as elimination evidence (referenced in the analysis, not ignored)",
         "Proposes at least two cheap discriminating next steps (e.g. persistent journal after a freeze, temperature/workload correlation, memtest) and names what each result would rule in or out",
-        "Proposes no remediation (OS reinstall, PSU/GPU replacement, part purchases) before any cause has been tested — diagnostic actions only",
+        "Proposes no untested fix: no reinstall, part replacement or purchase, or settings change presented as the remedy before a cause has been tested; any state-changing step is framed as a one-variable test with its expected outcomes",
         "Enumerates 3 or more candidate causes stated as mechanisms (how the cause produces exactly this freeze pattern), not a single committed favorite",
         "States no fabricated facts — no invented log contents, temperatures, or test results presented as observed"
       ]
@@ -37,7 +37,8 @@
         "Identifies a rack-B / switch-B network path cause of the MTU-mismatch / large-frame-loss class as most probable, consistent with the size signature (big layers fail, small pulls and plain pings succeed)",
         "Proposes a cheap discriminating verification before any action: large-packet ping with DF bit / packet-size sweep, iperf across switch-B, or checking the new switch's MTU/port config",
         "Organizes the evidence as an explicit affected-vs-unaffected comparison (nodes, image sizes, timing, registry source) that a reader can verify at a glance",
-        "For at least one proposed test, states what each possible outcome would imply for the competing hypotheses (which candidate dies on which result)"
+        "For at least one proposed test, states what each possible outcome would imply for the competing hypotheses (which candidate dies on which result)",
+        "Accounts for the partial failure rate (~1 in 3 pulls) rather than ignoring it: explains how the leading candidate fails only some large transfers, or lists that as a fact the candidate still has to explain"
       ]
     },
     {
@@ -47,7 +48,7 @@
       "expected_output": "Recognizes a never-worked-right (Day One) deviation: stops hunting for 'what changed' and drives a systematic distinctions hunt against the working twin instead. Treats 'bad cpu' as a weak candidate (no mechanism; uniform 35% deficit atypical for silicon defects). Records the failed swap/playbook/BIOS attempts as elimination evidence. Proposes cheap side-by-side comparisons before RMA: DIMM population/channel config (dmidecode), memory bandwidth (STREAM/mlc), BIOS settings beyond version (NUMA, power/perf profile, cTDP), CPU frequency behavior under load, PCIe link width — each tied to what it would rule in/out.",
       "files": [],
       "assertions": [
-        "Recognizes this as a never-worked-right (Day One) deviation and explicitly redirects the investigation from 'what changed' to 'what differs between srv-b and srv-a'",
+        "Recognizes this as a never-worked-right (Day One) deviation and explicitly states that hunting for what changed does not apply (srv-b was never fast), redirecting the investigation to what differs between srv-b and srv-a",
         "Treats 'bad CPU, RMA it' as a weak hypothesis with a stated reason (no mechanism offered; a uniform ~35% deficit is atypical of defective silicon) and does not endorse filing the RMA yet",
         "Proposes side-by-side comparison of physical memory configuration — DIMM population / active channels (dmidecode or equivalent) — as a candidate class",
         "Proposes at least three concrete cheap comparisons before RMA (e.g. memory bandwidth benchmark, BIOS settings beyond version parity such as NUMA/power profile/cTDP, CPU frequency under load, PCIe link width), each tied to what it would rule in or out",
