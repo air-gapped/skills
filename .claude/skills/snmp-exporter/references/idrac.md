@@ -185,8 +185,8 @@ metric list 2026-07): `idrac_storage_drive_life_left_percent` (SSD wear),
 storage-controller firmware label + cache health, PSU input watts/efficiency,
 min/max/avg power stats, SEL entries as metrics, memory serials, airflow CFM.
 It does NOT export Connection View or PSU firmware (code-verified against https://github.com/mrlhansen/idrac_exporter source, 2026-07: no
-LLDP/SwitchConnection code; FirmwareVersion only for storage controllers,
-manager, PDUs) — and it lacks PSU make/serial labels, redundancy rollups,
+LLDP/SwitchConnection code; firmware labels only for storage controllers,
+network adapters, manager, PDUs) — and it lacks PSU make/serial labels, redundancy rollups,
 intrusion, and enclosure health, so it cannot replace the SNMP module.
 Caveats: on-demand Redfish collection can take minutes with all metric groups
 on — enable only needed groups and raise scrape_timeout; needs a dedicated
