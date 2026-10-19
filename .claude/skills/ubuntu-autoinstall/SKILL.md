@@ -48,6 +48,12 @@ See **The two delegation boundaries** and **Delivery**.
 6. **Boot with the `autoinstall` kernel keyword** to skip the disk-wipe confirmation
    for true zero-touch.
 
+**Done when every check holds:** the validator exits 0 on the exact file being
+delivered; `cloud-init schema -c` passes on every `#cloud-config` file; every key
+exists in the target release's schema (24.04 lacks `kernel-crash-dumps` and `zdevs`,
+which only warn, and `identity.groups`, which fails validation); the seed has
+`meta-data`; and the boot line carries both `autoinstall` and the config source.
+
 ## The two delegation boundaries (critical)
 
 ```yaml
