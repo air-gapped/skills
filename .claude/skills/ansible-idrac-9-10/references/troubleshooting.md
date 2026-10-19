@@ -11,7 +11,7 @@ that maintainers accepted) recommend.
 2. `idrac_system_info` 404s on sensors after firmware bump
 3. `idrac_user` password change demotes user to ReadOnly
 4. `custom_privilege:` bitmap collapses to Operator
-5. `idrac_server_config_profile` (SCP) not qualified on iDRAC 10
+5. `idrac_server_config_profile` (SCP) fails on iDRAC 10 (collection < 10.0.0)
 6. `idrac_os_deployment` rejects `/` inside `iso_image:`
 7. iDRAC 8 dropped in collection 10.0.0
 8. `idrac_system_info` no longer returns VirtualDisk on iDRAC 10
@@ -122,22 +122,24 @@ named `privilege:` enum (`Administrator`, `Operator`, `ReadOnly`,
 
 **Refs:** #1059, PR #1069.
 
-## 5. `idrac_server_config_profile` (SCP) not qualified on iDRAC 10
+## 5. `idrac_server_config_profile` (SCP) fails on iDRAC 10 (collection < 10.0.0)
 
 **Symptom.** `AttributeError: 'NoneType' object has no attribute 'get'`
-from the SCP module. Or simply a hard failure on export.
+from the SCP module, or a hard failure on export, against an iDRAC 10.
 
-**Cause.** Maintainer @gokul-srivathsan in #959: *"SCP module is yet to
-be qualified for iDRAC 10."* The module's allowable-values validator
-assumes a static list that isn't exposed on iDRAC 10 yet.
+**Cause.** Collection < 10.0.0 predates iDRAC 10 support in this module.
+10.0.0 added it and fixed the export failure (#959).
 
-**Fix.** Until SCP qualification ships:
-- Use the per-attribute modules (`idrac_attributes`, `idrac_bios`,
-  `idrac_storage_volume`, `idrac_network_attributes`).
-- Or call Redfish PATCH directly via `ansible.builtin.uri` against
-  `/redfish/v1/Managers/iDRAC.Embedded.1/Attributes` etc.
+**Fix.** Upgrade `dellemc.openmanage` to ≥ 10.0.0 (≥ 10.0.2 recommended).
+SCP then works on iDRAC 10 and accepts `x_auth_token`.
 
-**Refs:** #959.
+**Known issue (listed through 10.0.3).** Importing an SCP exported
+*before* a user was created completes with errors and does not remove
+that user. Do not use an SCP re-import as a rollback for user changes;
+delete such users with `idrac_user state: absent`.
+
+**Refs:** #959; CHANGELOG v10.0.0 (major change + bugfix), v10.0.2/v10.0.3
+known issues.
 
 ## 6. `idrac_os_deployment` rejects `/` inside `iso_image:`
 

@@ -61,8 +61,8 @@ All other `idrac_*` and `redfish_*` modules:
   `idrac_bios_registry_info`, `idrac_network_info`,
   `idrac_network_attributes_info`, `idrac_session_info`
 - License / OS / SCP / support: `idrac_license`, `idrac_os_deployment`,
-  `idrac_server_config_profile` (SCP — not yet qualified on iDRAC 10
-  per upstream #959), `idrac_support_assist`
+  `idrac_server_config_profile` (iDRAC 10 from collection 10.0.0),
+  `idrac_support_assist`
 
 ### iDRAC 8 (legacy)
 Dropped in collection 10.0.0. Pin `dellemc.openmanage` 9.12.1 for
@@ -275,7 +275,7 @@ These persist through 10.0.2:
 | `idrac_redfish_storage_controller` | `PatrolReadRatePercent` cannot be set |
 | `redfish_storage_volume` | `encryption_type` and `block_io_size_bytes` are read-only (both 9 and 10 — module ignores them) |
 | `idrac_license` | Different error wording across generations for invalid share name |
-| `idrac_server_config_profile` | SCP not yet qualified on iDRAC 10 (#959) — use per-attribute modules until then |
+| `idrac_server_config_profile` | Re-importing an SCP exported before a user was created completes with errors and leaves the user in place (known issue through 10.0.3) |
 
 ## 8. PowerEdge 17G platform map (iDRAC 10 hardware)
 

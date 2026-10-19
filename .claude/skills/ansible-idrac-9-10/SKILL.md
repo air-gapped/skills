@@ -69,7 +69,7 @@ references/
 │                            issues — sensor URI rename, misleading
 │                            "TLS/credentials" error on writes, idrac_user
 │                            privilege regression, custom_privilege
-│                            collapse, SCP not qualified, iso_image path
+│                            collapse, SCP on collection < 10.0.0, iso_image path
 │                            rejection, NIC-info duplication, Ansible
 │                            Core 2.18+ TypeError, generation-detection
 │                            (`authentication_protocol` SHA vs SHA-512)
