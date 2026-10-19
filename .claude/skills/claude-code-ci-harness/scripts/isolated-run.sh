@@ -215,6 +215,8 @@ fi
 if [[ -n "$transcript" ]]; then
   transcript_parent=$(dirname -- "$transcript")
   [[ -d "$transcript_parent" ]] || die "transcript parent does not exist: $transcript_parent"
+  # Absolute, because claude runs after cd into the workdir.
+  transcript="$(realpath -e -- "$transcript_parent")/$(basename -- "$transcript")"
   stderr_file="$transcript.stderr"
 fi
 

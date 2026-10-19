@@ -89,6 +89,12 @@ if "$assert_events" "$api_error" >/dev/null 2>&1; then
   exit 1
 fi
 
+# A relative --transcript lands relative to the caller's cwd, not the workdir.
+mkdir -p "$tmp_dir/rel"
+(cd "$tmp_dir/rel" && CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" "$runner" --base-url http://offline.invalid:8000 \
+  --model offline-model --timeout 0 --transcript rel.ndjson --prompt 'offline test' >/dev/null 2>&1)
+[[ -s "$tmp_dir/rel/rel.ndjson" ]] || { printf 'transcript test failed: relative path not written\n' >&2; exit 1; }
+
 # run-matrix passes a clean run and fails one whose transcript reports is_error.
 printf '%s\n' 'offline test' > "$tmp_dir/prompt.txt"
 CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" "$run_matrix" --prompt-file "$tmp_dir/prompt.txt" \
