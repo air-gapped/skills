@@ -92,7 +92,8 @@ Excluded, and why:
 - **SNMP data is cached on-box.** `snmp-server auto-refresh` is enabled by
   default with a **60 s interval** (range 20–500 s; <60 s warns about CPU
   cost), and even with auto-refresh disabled, cached tables refresh at most
-  once per 60 s (disable `snmp-server cache` to force live reads). Consequence:
+  once per 60 s (`no snmp-server cache enable` forces live reads, only while
+  auto-refresh is disabled). Consequence:
   scraping faster than the refresh interval reads the same cached values —
   set Prometheus `interval` ≥ the auto-refresh interval (60 s), and expect
   counters to advance in refresh-interval steps (use rate() windows ≥ 5×).
