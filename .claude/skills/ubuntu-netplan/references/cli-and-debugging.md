@@ -81,6 +81,11 @@ Frequent root causes:
 - `dhcp4-overrides` ≠ `dhcp6-overrides` when both DHCP families are on (networkd) →
   apply error.
 - Tabs in YAML (illegal) or mis-indentation silently re-scoping keys.
+- `netplan generate`/`apply` run under `umask 0077` (automation, guest agents)
+  writes `/run/systemd/network/10-netplan-*` as `0600`; networkd logs
+  `Permission denied` and drops the links. Unfixed in released netplan through
+  1.2.2: check `ls -l /run/systemd/network/`, then re-run as
+  `(umask 022; netplan apply)`.
 
 ## Pitfalls (quick list)
 
