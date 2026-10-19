@@ -256,11 +256,11 @@ Outputs: `aggregate/profile_export_aiperf_aggregate.{csv,json}` with mean, std, 
 
 | Flag | Notes |
 |---|---|
-| `--accuracy-benchmark` | `mmlu` / `aime` / `aime24` / `aime25` / `hellaswag` / `bigbench` / `gpqa_diamond` / `math_500` / `lcb_codegeneration`. |
+| `--accuracy-benchmark` | `mmlu` / `mmlu_pro` / `aime` / `aime24` / `aime25` / `hellaswag` / `bigbench` / `math_500` / `gsm8k` / `gpqa_diamond` / `lcb_codegeneration`. |
 | `--accuracy-tasks <list>` | Subtask filter. |
 | `--accuracy-n-shots <0–8>` | Few-shot examples. |
 | `--accuracy-enable-cot` | Chain-of-thought prompting. |
-| `--accuracy-grader` | `exact_match` / `math` / `multiple_choice` / `code_execution`. |
+| `--accuracy-grader` | Override the benchmark's default grader: `exact_match` / `math` / `multiple_choice` / `code_execution` (runs generated code — LCB) / `lighteval_expr` / `lighteval_latex` / `lighteval_gpqa` / `lighteval_gsm8k` / `mmlu_pro`. |
 | `--accuracy-system-prompt <str>` | Override default. |
 | `--accuracy-verbose` | Detailed grading output. |
 
