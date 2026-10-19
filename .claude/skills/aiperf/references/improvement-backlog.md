@@ -4,7 +4,19 @@ Prior skill-improver runs and ceiling findings.
 
 ## Open
 
-*(the carried v0.8.0 audit item below is now closed — see the 2026-07-21 section)*
+### Bundle helper scripts to lift Dim 7 (Resource Quality) (carried 2026-10-20)
+- **Dim:** 7
+- **Where:** new `scripts/` directory, plus pointer rows in `SKILL.md` "What to read next" and `references/output-artifacts.md`.
+- **Blocked on:** an operator ruling on which workflow to standardise — operator-side analysis helpers (export percentile / correlation) or developer-side plugin scaffolds (rerank shim, dataset loader). Upstream already ships Pydantic models for export parsing, so a script without a chosen use case duplicates them.
+- **Score impact if resolved:** Dim 7 7→9.
+
+## Resolved this pass (2026-10-20)
+
+Freshen v0.12.0 → v0.13.0 (all rows probed); fix: cases 02/04/05 0.89/0.83/0.89 → 0.94/1.00/1.00; improve blind 79 → 80, comparator 3/3 IMPROVED (outcome vs pre-improve ref: 0.958 vs 0.979, inside noise; per-case gaps are single runs).
+- Kept: version-gated capability table replaces the release changelog; routing rule replaces the pitch; native `--concurrency a,b,c` sweep + search recipes in Methodology B; every-row done-condition; pitfall 9 (pre-v0.7.0) dropped; pointer-table fixes; TOCs on five references; accuracy enums completed; verification narration stripped from datasets/endpoints; post-loop: pitfall 5 compressed (cases 01/05 re-run 1.00/1.00), upstream-filing instruction removed from troubleshooting.
+- Discard: moving the capability table to `references/versions.md` — SKILL.md stays in the same 150–300-line band, the need→flag→version map goes one hop away, and the new file was a further pointer to maintain. Net ≤0.
+- Closed: the 2026-05-28 "audit v0.8.0 release notes" item — superseded by flag-by-flag diffs of the v0.12.0 and v0.13.0 CLI references.
+- Not a backlog item: the Quick-recipe / timing-modes.md overlap is intentional (entry-point recipes vs per-mode compatibility examples) — keep both.
 
 ## Resolved — 2026-07-21 (freshen)
 
@@ -44,22 +56,6 @@ v0.9/v0.10/v0.11 against the `v0.11.0` CLI reference rather than release prose.
 paths are absent from the CLI reference — both rows now say so explicitly and
 tell the reader to confirm with `--help`, rather than asserting OpenAI's
 conventional path as fact.
-
-### Bundle helper scripts to lift Dim 7 (Resource Quality)
-- **Dim:** 7
-- **Where:** new `scripts/` directory; would also require pointer table additions in `SKILL.md` "What to read next" and `references/output-artifacts.md`.
-- **Why ceiling-bound:** plugin authoring (rerank shim, custom dataset loader) and `profile_export.jsonl` percentile/correlation analysis are scriptable. But: (a) which scripts are most valuable depends on author intent — operator-side (analysis helpers) vs developer-side (plugin scaffolds); (b) the official aiperf repo already provides Pydantic models for output parsing, so a script would be duplicative without a focused use case the author wants to standardize on. Skip until the author signals the workflow.
-- **Score impact if resolved:** Dim 7 7→9 (~+2 total).
-
-### Quick-recipe / timing-modes overlap (intentional design)
-- **Dim:** 6
-- **Where:** `SKILL.md` "Quick recipes" overlaps with `references/timing-modes.md` "Worked examples".
-- **Why not fixed:** different audiences. SKILL.md recipes are entry-points (smoke test, ShareGPT, Mooncake+goodput, NIM, multi-turn KV-cache, multi-run CI, accuracy) — pattern-by-task. timing-modes.md examples are scheduling-mode-by-scheduling-mode, intentionally illustrating compatibility-matrix rules. Removing either degrades the corresponding navigation path. Carrying as a known-non-issue rather than open work.
-
-### Audit v0.8.0 release notes for new flags / endpoints / dataset types (carried 2026-05-28)
-- **Dim:** 9
-- **Where:** `SKILL.md` Decision-tree + scheduling-mode tables; `references/{cli,endpoints,datasets,metrics}.md`.
-- **Why not fixed this pass:** the version pin was bumped v0.7.0 → v0.8.0 (verified), but the v0.8.0 release-notes body was not diffed flag-by-flag against the skill within this pass's budget. Pull https://github.com/ai-dynamo/aiperf/releases/tag/v0.8.0 and reconcile any new/renamed flags, endpoint types, or dataset formats. The per-feature PR attributions already in endpoints.md/datasets.md ("v0.7.0 added X via PR #Y") are historical and correct — do not bump those.
 
 ## Resolved this pass (2026-05-28)
 
