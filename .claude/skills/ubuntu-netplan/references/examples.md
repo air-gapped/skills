@@ -4,6 +4,16 @@ All examples are `network: version 2`, `renderer: networkd` unless noted. Mirror
 the patterns in `canonical/netplan/examples/*.yaml` and the `doc/*-vm-host*.md`
 how-tos.
 
+## Contents
+
+1. Static single NIC
+2. Off-subnet / point-to-point gateway
+3. Two NICs, two default routes
+4. Bonded + VLAN + bridge virtualization host
+5. Source/policy routing (two uplinks)
+6. Pin a predictable name by MAC (and set MTU)
+7. Single-NIC bridge (simple VM host)
+
 ## Static single NIC
 
 ```yaml

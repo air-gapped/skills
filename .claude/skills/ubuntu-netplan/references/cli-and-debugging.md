@@ -3,6 +3,12 @@
 Grounded in `canonical/netplan` `doc/netplan-*.md` man pages and
 `netplan_cli/cli/commands/*`.
 
+## Contents
+
+1. CLI reference — generate, apply, try, get/set, status, others
+2. Debugging playbook — "applied but no connectivity", frequent root causes
+3. Version notes — 24.04 vs 26.04 feature gating
+
 ## CLI reference
 
 `netplan [--debug] <command>` — `--debug` is global and goes **before** the
