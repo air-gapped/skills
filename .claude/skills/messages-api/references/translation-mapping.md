@@ -120,8 +120,8 @@ bridge synthesizes it too). Differences that matter:
 | LiteLLM | Provider counting API else tokenizer approximation; `{"input_tokens": N}` only |
 | Superagent Gateway | Native on Anthropic routes; **chars/4 estimate** on OpenAI routes |
 
-opencode never calls count_tokens — its absence only affects clients that
-pre-flight token budgets (Claude Code uses it when available).
+opencode never calls count_tokens. Claude Code uses it when served and
+otherwise falls back to a character-based estimate of context usage.
 
 ## Client-side requirements
 

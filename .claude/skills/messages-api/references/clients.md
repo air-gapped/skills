@@ -51,7 +51,12 @@ servers/gateways specifically accommodate (from their source):
   forwards upstream errors byte-for-byte for this reason.
 - /model picker lists models via `/v1/models` — Superagent fabricates
   `claude-<name>` discovery twins for custom models.
-- Uses count_tokens when available; sends `anthropic-beta` headers;
+- **Gateway contract** (Claude Code's published requirements): serve
+  `/v1/messages` (count_tokens optional); forward `anthropic-version` and
+  `anthropic-beta` verbatim — never allowlist beta values; do not buffer SSE
+  and pass every event incl. `ping`; optional `GET /v1/models?limit=1000`
+  feeds the /model picker (3s timeout, no redirects).
+- Uses count_tokens when available, else a character-based estimate;
   `ANTHROPIC_BASE_URL` env is the standard redirect knob (origin or /v1
   conventions vary by tool — Lemonade sets origin-only; Bifrost requires the
   `/anthropic` prefix path).
