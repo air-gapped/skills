@@ -32,7 +32,8 @@ netplan v2. See **Boundaries** at the end.
 
 1. **Confirm target & renderer.** Server → `renderer: networkd` (the default).
    Desktop/Wi-Fi → `renderer: NetworkManager`. Check the running version with
-   `netplan info` (24.04 ships ~1.0.x, 26.04 tracks 1.2.x — see version notes).
+   `dpkg -l netplan.io` (24.04 is 1.0 or 1.1.2 depending on updates, 26.04 is
+   1.2 — `ra-overrides`/`advertised-mss` need 1.1+; see version notes).
 2. **Pick the device type(s):** `ethernets`, `bonds`, `bridges`, `vlans`, `vrfs`,
    `tunnels`, `dummy-devices`, `virtual-ethernets`, `wifis`, `modems`. Stack them
    bottom-up: ethernets → bond → vlans-on-bond → bridges-on-bond/vlan.

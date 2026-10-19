@@ -97,14 +97,16 @@ Frequent root causes:
 - The YAML schema version is always `2`; this is unrelated to the netplan package
   version. (`meson.build` declaring `1.1` is stale — trust git tags / `netplan info`
   / `dpkg -l netplan.io`.)
-- **24.04 LTS (Noble)** ships netplan **~1.0 / 1.0.1**. Has `hairpin`,
-  `port-mac-learning` (since 1.0), `netplan status --diff`, veth/dummy (0.107),
-  vrf/vxlan (0.105). **Does NOT have** `ra-overrides` or route `advertised-mss`
-  (both since 1.1).
-- **26.04 LTS** tracks the **1.2.x** line (latest **1.2.2**, 2026-07-20 — bug fixes only, no new YAML). Adds `ra-overrides`
-  and `advertised-mss` (1.1) plus later fixes.
-- **Authoring rule of thumb:** for 24.04 targets avoid `ra-overrides` and
-  `routes[].advertised-mss`; both are safe on 26.04. Everything else in
+- **24.04 LTS (Noble):** the release pocket ships **1.0**; `noble-updates`
+  carries **1.1.2**. Which one a host has depends on whether it (or the mirror
+  it installs from) pulled updates. 1.0 has `hairpin`, `port-mac-learning`
+  (since 1.0), `netplan status --diff`, veth/dummy (0.107), vrf/vxlan (0.105),
+  and **lacks** `ra-overrides` and route `advertised-mss` (both since 1.1).
+- **26.04 LTS (Resolute)** ships **1.2** (upstream 1.2.x line added no YAML
+  keys). Has everything in `schema.md`.
+- **Authoring rule:** use `ra-overrides` or `routes[].advertised-mss` only when
+  `dpkg -l netplan.io` on the target reports **1.1 or later**; on a 24.04 host
+  still at 1.0.x leave them out. Everything else in
   `schema.md` works on both. Run `netplan info` on the target to confirm feature
   flags (`sriov`, `eswitch-mode`, `infiniband`, `openvswitch`, `regdom`, `vrf`,
   `vxlan`, `virtual-ethernet`) before relying on edge features.

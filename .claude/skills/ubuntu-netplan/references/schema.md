@@ -3,7 +3,8 @@
 Grounded in `canonical/netplan` `doc/netplan-yaml.md` (~2200 lines, the
 authoritative property list) and source (`src/parse.c`, `src/networkd.c`). Only
 `network.version: 2` is accepted. `– since X.Y` markers indicate the netplan
-release a property first appeared in (relevant to 24.04 ≈ 1.0.x vs 26.04 ≈ 1.2.x).
+release a property first appeared in (24.04 is 1.0 at release, 1.1.2 with
+`noble-updates`; 26.04 is 1.2).
 
 ## Contents
 
@@ -40,7 +41,7 @@ These apply to (almost) every device type.
 | `dhcp4` / `dhcp6` | booleans, both **default false**. `dhcp6: true` also does stateless DHCPv6. |
 | `dhcp4-overrides` / `dhcp6-overrides` | mapping: `use-dns`, `use-ntp`, `send-hostname`, `use-hostname`, `use-mtu`, `hostname`, `use-routes`, `route-metric`, `use-domains`. Mostly networkd-only; **`use-routes` + `route-metric` work on NM too.** If both dhcp4 & dhcp6 are on (networkd), the two override blocks must be identical. |
 | `accept-ra` | accept IPv6 Router Advertisements. |
-| `ra-overrides` | **since 1.1** (NOT on 24.04), networkd-only: `use-dns`, `use-domains`, `table`. |
+| `ra-overrides` | **since 1.1** (NOT on a 24.04 host still at 1.0), networkd-only: `use-dns`, `use-domains`, `table`. |
 | `addresses` | list of `addr/prefixlen` (CIDR). Entries may be mappings with `lifetime: forever\|0` and `label:` (both networkd-only, since 0.100). |
 | `routes` | list of `{to, via, from, metric, on-link, table, scope, type, mtu, advertised-mss}`. `to: default` replaces `gateway4/6`. `on-link: true` for an off-subnet gateway. `type` ∈ `unicast`(default), `blackhole`, `unreachable`, `prohibit`, `local`, `nat`, `throw`. `advertised-mss` is **since 1.1**. |
 | `routing-policy` | policy routing (networkd): `{from, to, table, priority, mark, type-of-service}`. On NM `priority` is mandatory + unique. |
