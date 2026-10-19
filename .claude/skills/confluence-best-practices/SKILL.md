@@ -174,6 +174,7 @@ Match the symptom, name the cause, apply the smallest fix:
 9. **Answers locked in screenshots/attachments** — unreadable to search and to agents; put the answer in text.
 10. **Auto-translating or "correcting" non-English content** — never; it's normal, preserve it, anchor on keys.
 11. **Treating ADF as the Confluence write format** — it's Jira-Cloud; Confluence writes are **storage format** on both Cloud and DC.
+12. **Bulk-deleting a CQL result set** (e.g. every `lastmodified` hit) — old ≠ unused: date-stale pages include homepages, templates, policies, Include/Excerpt sources and parents of fresh pages, and a retention rule can purge the trash for good. Do not write the unattended delete loop. Deliver instead: read-only inventory CSV → per-space owner review → move approved pages to an archive space. Deletion is a separate, later run — only after an XML export of the affected spaces exists and the owner signs off.
 
 ## What to read next
 
