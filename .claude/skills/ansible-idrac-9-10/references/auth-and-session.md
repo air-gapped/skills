@@ -29,6 +29,8 @@ surfaced on the standard Redfish `AccountService.HTTPBasicAuth` property):
 GUI path on **iDRAC 10**: `iDRAC Settings → Connectivity → Services →
 Redfish → HTTP Basic Authentication`. Dell KB 000437501 still documents
 the iDRAC 9 path (`iDRAC Settings → Services → Redfish`) — wrong for 17G.
+On 14G (iDRAC 9 7.00.00.184) the Web UI cannot change it at all — use
+`racadm set iDRAC.Redfish.BasicAuthState` or a Redfish PATCH.
 
 XE-platform-specific firmware branches (1.20.55.x for XE9780, 1.20.95.x
 for XE9785) appear to have flipped the default ahead of the mainline
