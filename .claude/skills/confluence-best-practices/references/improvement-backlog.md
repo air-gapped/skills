@@ -2,6 +2,26 @@
 
 Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (trigger) / F0 (freshen); update on completion.
 
+## Open
+
+_None._ Nothing found this pass is blocked on an absent ruling, credential, release or measurement.
+
+## Decided — do not re-propose
+
+Cosmetic-only note (deliberately NOT Open per the backlog rules — future-risk, not attempted-and-blocked work):
+- Combined `description` + `when_to_use` = **1,534 / 1,536** chars (measured 2026-10-20) — 2 chars of headroom against the listing cap. Not a current defect (trigger converged Opus 20/20 at this length); any *future* trigger-phrase addition must shorten the `description` half first.
+- SKILL.md section summaries of their reference files are `INTENTIONAL_DETAIL`, not duplicates (blind 2026-10-20 named them as Dim 6 redundancy). Outcome evals force-load SKILL.md and the with-skill arm wins on facts that live in those summaries (search caveats, Cloud-vs-DC table). Trim only a summary line that restates its reference word for word.
+
+## Resolved this pass (2026-10-20)
+
+Freshen (63/63 rows, 11 findings) + fix + improve (10 iterations, cap reached). Blind 72 → 77; comparators 3/3 IMPROVED; outcome (8 cases × 3, sonnet) final 0.914 vs baseline d292452 0.796 vs without 0.626.
+- Noise: case 04 final 0.94 vs without 1.00 — one run judged down for placeholder label names that the answer discovered from a sibling page instead of inventing; the skill's discover-first rule is behaving as written.
+- Fix: case 07 (bulk delete) 0.50 → 0.78 via anti-pattern 12; no assertion changed.
+- Kept: done = every write read back; preamble cut; Execution footer dropped; DC status moved behind a pointer; directive 4 points at discovery rules; IA opener dropped; new-editor table regressions scoped to Cloud.
+- Discard: a dashboard done-condition "Report rows = CQL count for the label" — the Report caps at 3,000 pages, so the check is false on large sets, and the per-write read-back already covers verification.
+- Discard: "break the editor" → "slow the editor" in lean lever 6 — wording only, self delta 0.
+- Discard: "permission cache lag up to ~5 minutes" in permissions-and-governance.md — sourced (understanding-permission KB), but the old wording was not wrong and the cold score did not move.
+
 ## Resolved — 2026-07-21 (freshen)
 
 - **Two cited bugs were already fixed when the research was done.**
@@ -33,16 +53,7 @@ Carries findings across skill-improver runs. Read in Phase 0 (improve) / T0 (tri
 sources — they back durable principles rather than dated facts.
 
 
-## Open
-
-_None._ The skill has been through trigger, improve, and freshen modes and converged cleanly (final blind **90/100**, self/blind aligned, no dimension below 8, no Boris caps). The 24 enumerated lines in the SKILL.md body are reference content (5 prime-directive principles, 6 lean levers, 11 anti-patterns) — not invocation-flow scaffolding — so no Dim 6 Boris cap; `name`/`description` pass spec validation; `sources.md` is fully per-row dated (no Dim 9 staleness cap).
-
-## Decided — do not re-propose
-
-Cosmetic-only note (deliberately NOT Open per the backlog rules — future-risk, not attempted-and-blocked work):
-- Combined `description` + `when_to_use` = **1,523 / 1,536** chars — ~13 chars of headroom against the listing cap. Not a current defect (trigger converged Opus 20/20 at this length); any *future* trigger-phrase addition must shorten the `description` half first.
-
-## Resolved this pass
+## Resolved — 2026-06-07
 
 ### 2026-06-07 — Improve + Freshen (`/skill-improver improve and freshen`)
 
