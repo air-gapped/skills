@@ -1,18 +1,15 @@
 # Cloud vs Data Center — versions, sunset, and the feature split
 
-This skill is **self-hosted Data Center first, Cloud-compatible.** Get the dialect wrong and advice is unusable — most blog/marketing content describes Cloud. This file is the reference for what's true on each, as of mid-2026 (verified 2026-06-07; re-verify dated facts).
+This skill is **self-hosted Data Center first, Cloud-compatible.** Get the dialect wrong and advice is unusable — most blog/marketing content describes Cloud. This file is the reference for what's true on each, with dated facts checked against `sources.md`.
 
 ## Version & EOL state (DC)
 
-- **Latest release: 10.2.15 (2026-08-04).** The 10.2 LTS line ships monthly patches.
-- **Active LTS lines:** **10.2** (first released 2025-12-02 → EOL **2027-12-02**; **Java 21 only**, drops Java 17) and **9.2** (2024-12-09 → EOL **2026-12-10**). **8.5** LTS is already **EOL (2025-12-15)**.
-- ⚠ **As of 2026-07-21, 9.2 has under five months of support left.** An instance
+- **Latest feature release: 11.0.0 (2026-10-08)** — **not LTS**, **Java 25 minimum**, and upgradeable **only from the latest 10.2.x** (10.2.13+). Treat it as a feature release, not a new default.
+- **Active LTS lines:** **10.2** (first released 2025-12-02 → EOL **2027-12-02**; **Java 21 only**, drops Java 17; latest patch 10.2.19, 2026-10-05) and **9.2** (2024-12-09 → EOL **2026-12-10**; latest patch 9.2.26). **8.5** LTS is already **EOL (2025-12-15)**.
+- ⚠ **9.2 support ends 2026-12-10 — compute the runway from today's date.** An instance
   still on 9.2 should be planning the 10.2 hop now — and note 10.2 is **Java 21
   only**, so the JVM upgrade is part of that hop, not a separate later task.
-- **Latest patch: 10.2.15 (2026-08-04)**, read off the 10.2 release-notes page
-  on 2026-08-18 — the gap the 2026-07-21 pass left open (it could only get as
-  far as 10.2.13) is now closed. Patches ship monthly, so for anything newer
-  read the instance footer or that page rather than quoting this file.
+- **Patches ship monthly.** Read the instance footer or the release-notes page for the current patch rather than quoting this file.
 - **Confluence Server is dead** — support ended **2024-02-15**; **8.5.x was the last Server-capable line; 8.6+ is Data-Center-only.** (Cite 8.5 / Feb-2024 as "last Server," not the older 7.19.)
 - Policy: ~one LTS per year, ~2 years of bug+security fixes each; non-LTS feature releases get ~6 months of critical-security fixes only.
 

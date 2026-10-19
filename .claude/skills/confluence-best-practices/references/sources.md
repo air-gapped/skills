@@ -90,7 +90,9 @@ Full research provenance: `autoresearch/results/confluence-best-practices-resear
 
 | Source | Tier | Supports | Verified |
 |---|---|---|---|
-| endoflife.date/confluence | A | Latest **10.2.18 (2026-09-08)**, up from 10.2.15; LTS 10.2→Dec 2027 / 9.2→Dec 2026 (**both EOL dates unchanged**); 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-09-15 |
+| endoflife.date/confluence (+ `/api/confluence.json`) | A | 2026-10-20: **11.0.0 released 2026-10-08, `lts: false`**; 10.2 LTS latest **10.2.19 (2026-10-05)** →2027-12-02; 9.2 LTS latest **9.2.26** →2026-12-10 (51 days from 2026-10-20); 8.5 EOL; Server EOL Feb 2024; 8.6+ DC-only | 2026-10-20 |
+| confluence.atlassian.com/doc/confluence-11-0-release-notes-1875247238.html | A | 11.0 (8 Oct 2026): Java 25 minimum; upgrade only from latest 10.2.x (10.2.13+); rate limiting on by default, per-endpoint REST limits answer **429 + `Retry-After`** | 2026-10-20 |
+| atlassian.com/trust/security/bug-fix-policy | A | Critical security fixes: latest feature release, all supported LTS, and feature versions released within 6 months of the fix | 2026-10-20 |
 | atlassian.com/licensing/data-center-end-of-life | A | DC sunset (announced 8 Sep 2025): sale-stop 30 Mar 2026, renewal 30 Mar 2028, read-only 28 Mar 2029; Bitbucket exception | 2026-06-07 |
 | confluence.atlassian.com/doc/confluence-10-2-release-notes-1652924013.html | A | 10.2 LTS, Java 21, TinyMCE 7.9.1 editor, Storage Format Source Editor in 10.2.3 | 2026-06-07 |
 | atlassian.com/migration/assess/compare-cloud-data-center/confluence; support.atlassian.com/migration/docs/differences-... | A | Cloud-only list (Whiteboards, Databases, Rovo/AI, automation, page-archive, guests, smart links); DC-only (nested macros, RTL) | 2026-06-07 |
