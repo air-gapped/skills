@@ -55,7 +55,7 @@ On Server/Data Center, write **Jira wiki markup** directly — it is stored as-i
 ```bash
 # Server/DC issue with wiki markup
 jira issue create -tBug -s"Title" \
-  -b$'h2. Steps\n\n# do x\n# do y\n\n{code:bash}\nmake test\n{code}' --no-input
+  -b$'h2. Steps\n\n# do x\n# do y\n\n{code:bash}\nmake test\n{code}' --no-input </dev/null
 ```
 
 GFM passed to a Server/DC instance tends to render literally (`## H2` shows the hashes) — convert to wiki markup first, or author in wiki markup from the start.
@@ -67,10 +67,10 @@ Shell quoting is the usual source of mangled descriptions. Three reliable patter
 ```bash
 # 1) $'...' for inline newlines (bash)
 jira issue create -tTask -s"Title" \
-  -b$'## Summary\n\nDetails here\n\n```python\nprint("x")\n```' --no-input
+  -b$'## Summary\n\nDetails here\n\n```python\nprint("x")\n```' --no-input </dev/null
 
 # 2) Template file — best for anything structured
-jira issue create -tTask -s"Title" --template ./issue.md --no-input
+jira issue create -tTask -s"Title" --template ./issue.md --no-input </dev/null
 
 # 3) Pipe from stdin (template -)
 cat issue.md | jira issue create -tTask -s"Title" --template -
@@ -120,5 +120,5 @@ const example = "test";
 ```
 
 ```bash
-jira issue create -tStory -s"New feature" --template ./template.md --no-input
+jira issue create -tStory -s"New feature" --template ./template.md --no-input </dev/null
 ```

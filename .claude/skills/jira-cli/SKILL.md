@@ -106,7 +106,7 @@ Idioms:
 ME=$(jira me)
 
 # Create → capture key → act on it
-KEY=$(jira issue create -tTask -s"Automated task" --no-input --raw | jq -r '.key')
+KEY=$(jira issue create -tTask -s"Automated task" --no-input --raw </dev/null | jq -r '.key')
 jira issue assign "$KEY" "$ME"
 jira issue move "$KEY" "In Progress"
 
@@ -172,7 +172,7 @@ jira issue list -q'assignee = currentUser() AND statusCategory != Done' \
 
 # Create a bug, non-interactively, and print its key
 jira issue create -tBug -s"Login 500 on submit" -yHigh -lregression \
-  -b$'## Steps\n1. ...\n\n## Expected\n...' --no-input --raw | jq -r '.key'
+  -b$'## Steps\n1. ...\n\n## Expected\n...' --no-input --raw </dev/null | jq -r '.key'
 
 # Transition with a comment and resolution
 jira issue move PROJ-42 "Done" -RFixed --comment "Shipped in 1.2.3"
@@ -181,7 +181,7 @@ jira issue move PROJ-42 "Done" -RFixed --comment "Shipped in 1.2.3"
 jira issue list -p PROJ --csv --paginate 0:100 > issues.csv
 
 # Add a sub-task under a story
-jira issue create -t"Sub-task" -P PROJ-100 -s"Write tests" --no-input
+jira issue create -t"Sub-task" -P PROJ-100 -s"Write tests" --no-input </dev/null
 ```
 
 For anything beyond these, drill into the `references/` files — they carry the exhaustive flag tables, JQL grammar, ADF rules, and auth matrix.

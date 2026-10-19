@@ -38,7 +38,7 @@ jira issue list --csv > issues.csv
 `issue create --raw` prints the new issue JSON; pull `.key`:
 
 ```bash
-KEY=$(jira issue create -tTask -s"Automated task" --no-input --raw | jq -r '.key')
+KEY=$(jira issue create -tTask -s"Automated task" --no-input --raw </dev/null | jq -r '.key')
 jira issue assign "$KEY" "$(jira me)"
 jira issue move   "$KEY" "In Progress" --comment "Auto-started"
 echo "created $KEY"
