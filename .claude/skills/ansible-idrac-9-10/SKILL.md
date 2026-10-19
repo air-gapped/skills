@@ -30,11 +30,8 @@ when_to_use: >-
 
 # Ansible against iDRAC 9 and iDRAC 10
 
-Operator skill for the `dellemc.openmanage` Ansible collection across both
-generations of Dell's BMC. Targets collection **≥ 9.12.3** (broad iDRAC 10
-support) and **10.0.2** (full coverage incl. SCP / storage / OS deployment,
-Ansible Core 2.19+). Information current as of **October 2026** (collection
-11.0.0, iDRAC 10 firmware 1.30.x, iDRAC 9 firmware 7.30.10.50).
+Covers `dellemc.openmanage` 9.12.3 through 11.0.0 against iDRAC 9 and
+iDRAC 10. Version floors: cheat-sheet at the end.
 
 ## Reference routing
 
