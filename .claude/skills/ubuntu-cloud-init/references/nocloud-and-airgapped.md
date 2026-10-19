@@ -106,9 +106,8 @@ datasource_list: [ NoCloud ]
 ```
 
 - A **single-entry** list skips availability checks entirely (fastest).
-- Add `None` only if you want the DataSourceNone fallback: `[ NoCloud, None ]`.
-- **24.1 change:** ds-identify no longer auto-appends `None` to a single-entry list —
-  add it explicitly if you want it.
+- Add `None` only for the DataSourceNone fallback: `[ NoCloud, None ]`. Since 24.1
+  ds-identify no longer appends it to a single-entry list.
 
 ## DataSourceNone fallback
 

@@ -81,10 +81,10 @@ cloud-init-per once <name> <cmd>                       # frequency-guarded comma
    e.g. `cc_apt_configure`).
 4. `cloud-init query --all` — confirm the instance-data the templates/modules saw.
 5. Reproduce a single module: `cloud-init single --name <mod> --frequency always`.
-6. Full re-run on a test box: `cloud-init clean --logs && reboot` (remember to also
-   bump `instance-id` if you only changed user-data, or `clean` handles it).
-7. Air-gapped boot is slow/hangs → check `ds-identify.log`; you almost certainly need
-   to pin `datasource_list: [NoCloud]` (see `nocloud-and-airgapped.md`).
+6. Full re-run on a **test** box: `cloud-init clean --logs && reboot` (`clean`
+   alone makes the next boot a first boot; no `instance-id` bump needed).
+7. Air-gapped boot is slow/hangs → check `ds-identify.log`, then pin
+   `datasource_list: [NoCloud]` (see `nocloud-and-airgapped.md`).
 
 ## Version notes (24.04 patched build vs 26.04)
 
