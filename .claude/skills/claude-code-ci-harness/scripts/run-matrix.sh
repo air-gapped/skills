@@ -98,6 +98,9 @@ for spec in "${runs[@]}"; do
   if ! "$script_dir/isolated-run.sh" "${args[@]}"; then
     status=1
     printf 'run=%s status=failed transcript=%s\n' "$label" "$transcript" >&2
+  elif ! "$script_dir/assert-events.sh" "$transcript" >&2; then
+    status=1
+    printf 'run=%s status=failed-assertions transcript=%s\n' "$label" "$transcript" >&2
   else
     printf 'run=%s status=passed transcript=%s\n' "$label" "$transcript" >&2
   fi

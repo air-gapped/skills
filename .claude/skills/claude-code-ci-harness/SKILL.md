@@ -66,7 +66,7 @@ The secrets file is `~/.config/claude-code-ci-harness/targets.env`. Each line is
 1. Build the workdir: `${CLAUDE_SKILL_DIR}/scripts/make-fixtures.sh DIR`.
 2. Run the smoke scenario. Then escalate through `references/scenario-bank.md`, and stop at the first failure.
 3. Assert on every transcript: `${CLAUDE_SKILL_DIR}/scripts/assert-events.sh OUT.ndjson [--expect-tools Glob,Read] [--expect-model NAME] [--min-turns N] [--max-turns N]`. It checks result success without `is_error`, tool sequence, model and turn bounds. Exit status is not evidence.
-4. For more than one endpoint: `${CLAUDE_SKILL_DIR}/scripts/run-matrix.sh --prompt-file PROMPT.txt --workdir DIR --output-dir OUT --run 'label|base-url|model[|token-var]' [--run ...]`. An empty base-url means subscription mode. Assert each `OUT/<label>.ndjson`.
+4. For more than one endpoint: `${CLAUDE_SKILL_DIR}/scripts/run-matrix.sh --prompt-file PROMPT.txt --workdir DIR --output-dir OUT --run 'label|base-url|model[|token-var]' [--run ...]`. An empty base-url means subscription mode. A run passes only if its transcript passes `assert-events.sh`; add scenario assertions per step 3.
 5. For an open-weights model, scan every transcript for leaked special tokens: `${CLAUDE_SKILL_DIR}/scripts/scan-token-leakage.sh OUT.ndjson MODEL_DIR`. `MODEL_DIR` holds the served model's `tokenizer_config.json`, `tokenizer.json` or `*.jinja`; a file with one token per line also works. Exit 1 means a leak.
 6. When an endpoint fails, record it as an endpoint/model compatibility finding. Never change the scenario to make it pass.
 7. Afterwards, `${CLAUDE_SKILL_DIR}/scripts/cleanup.sh --run-dirs` removes run directories that a killed run left in `/tmp`.

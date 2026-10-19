@@ -6,6 +6,7 @@ skill_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 runner="$skill_dir/scripts/isolated-run.sh"
 assert_events="$skill_dir/scripts/assert-events.sh"
 scan_leakage="$skill_dir/scripts/scan-token-leakage.sh"
+run_matrix="$skill_dir/scripts/run-matrix.sh"
 tmp_dir=$(mktemp -d /tmp/claude-code-ci-test.XXXXXX)
 trap 'rm -rf -- "$tmp_dir"' EXIT
 
@@ -88,6 +89,22 @@ if "$assert_events" "$api_error" >/dev/null 2>&1; then
   exit 1
 fi
 
+# run-matrix passes a clean run and fails one whose transcript reports is_error.
+printf '%s\n' 'offline test' > "$tmp_dir/prompt.txt"
+CLAUDE_CODE_CI_CLAUDE_BIN="$fake_cli" "$run_matrix" --prompt-file "$tmp_dir/prompt.txt" \
+  --output-dir "$tmp_dir/matrix" --timeout 0 --run 'ok|http://offline.invalid:8000|offline-model' \
+  >/dev/null 2>&1 || { printf 'matrix test failed: clean run reported failure\n' >&2; exit 1; }
+error_cli="$tmp_dir/fake-claude-error"
+printf '%s\n' '#!/usr/bin/env bash' \
+  "printf '%s\\n' '{\"type\":\"system\",\"subtype\":\"init\",\"tools\":[\"Read\"],\"model\":\"m\"}'" \
+  "printf '%s\\n' '{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":true,\"num_turns\":1}'" > "$error_cli"
+chmod 700 "$error_cli"
+if CLAUDE_CODE_CI_CLAUDE_BIN="$error_cli" "$run_matrix" --prompt-file "$tmp_dir/prompt.txt" \
+  --output-dir "$tmp_dir/matrix" --timeout 0 --run 'bad|http://offline.invalid:8000|m' >/dev/null 2>&1; then
+  printf 'matrix test failed: is_error run reported passed\n' >&2
+  exit 1
+fi
+
 # The leak scanner must find a planted special token and pass a clean transcript.
 printf '%s\n' '<|im_end|>' > "$tmp_dir/tokens.txt"
 printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"done <|im_end|>"}]}}' > "$tmp_dir/leaky.ndjson"
@@ -97,4 +114,4 @@ if "$scan_leakage" "$tmp_dir/leaky.ndjson" "$tmp_dir/tokens.txt" >/dev/null 2>&1
 fi
 "$scan_leakage" "$transcript" "$tmp_dir/tokens.txt" >/dev/null || { printf 'leak test failed: clean transcript flagged\n' >&2; exit 1; }
 
-printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions, leak scan\n'
+printf 'pass: offline isolation, no-budget-cap, generic auth contract, subscription mode, event assertions, leak scan, matrix\n'
