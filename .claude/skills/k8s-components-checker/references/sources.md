@@ -156,6 +156,11 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - https://github.com/openebs/lvm-localpv/releases/tag/v1.10.1 — LVM 1.10.1 + formatOptions hazard
 - https://github.com/openebs/openebs/releases/tag/v4.6.0 — umbrella 4.6.0 pins LVM 1.10.0
 - https://github.com/openebs/openebs/releases/tag/v4.6.1 — umbrella 4.6.1 pins LVM 1.10.1
+- https://github.com/openebs/openebs/releases/tag/v4.6.2 — umbrella 4.6.2 pins LVM 1.10.1
+- https://github.com/openebs/lvm-localpv/blob/v1.9.0/deploy/helm/charts/values.yaml — LVM 1.9.0 ships csi-provisioner v6.1.0 + csi-resizer v2.0.0 (v1.8.1: v5.2.0 / v1.11.2)
+- https://github.com/kubernetes-csi/external-provisioner/releases/tag/v6.0.0 — csi-provisioner v6 minimum Kubernetes 1.34 (v6.1.0 same)
+- https://github.com/kubernetes-csi/external-resizer/releases/tag/v2.0.0 — csi-resizer v2 needs 1.34 for VolumeAttributesClass modification
+- https://github.com/openebs/lvm-localpv/issues/492 — maintainer: CI tests against k8s v1.34.3
 **eck**
 - https://github.com/elastic/cloud-on-k8s/releases/tag/v3.5.0 — ECK 3.5.0 release notes (deprecations, mTLS scope, Fleet token fix)
 - https://github.com/elastic/cloud-on-k8s/pull/9346 — 3.5.0 spec.resources shorthand is additive, no CRD migration
@@ -285,7 +290,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/openebs/openebs (umbrella → LVM pin map only — `charts/Chart.yaml` `dependencies:` at the umbrella tag)
 - Probe: `gh api --paginate 'repos/openebs/lvm-localpv/releases?per_page=100'` (two tag schemes — `vX.Y.Z` app tags + `lvm-localpv-X.Y.Z` chart tags; enumerate both, no candidate named). Cross-check the umbrella pin via `gh api repos/openebs/openebs/contents/charts/Chart.yaml?ref=<umbrella-tag>`.
 - Scope: **LocalPV-LVM only** (operator runs no other OpenEBS engine). Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva are out of registry scope — do NOT probe or sift them.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — lvm-localpv **v1.10.1** (2026-09-09). The umbrella `openebs/openebs` is now v4.6.1 and pins `lvm-localpv: 1.10.1`, so the "umbrella 4.0.1 pins LVM 1.5" mapping recorded earlier is stale as a *ceiling*. The LVM **floor** claim is unaffected — it describes an older umbrella.
+- Last verified: 2026-10-27 — lvm-localpv **v1.10.1** (2026-09-09) still newest. The umbrella `openebs/openebs` is now v4.6.2 (2026-10-07) and pins `lvm-localpv: 1.10.1`, so the "umbrella 4.0.1 pins LVM 1.5" mapping recorded earlier is stale as a *ceiling*. The LVM **floor** claim is unaffected — it describes an older umbrella.
 
 ## GitLab
 

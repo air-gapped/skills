@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
-- **Last sifted:** 2026-09-24 — added `## 1.10.x` (umbrella 4.6.0/4.6.1 pins + the 1.10.1 `formatOptions` hazard, moved out of header notes); 1.8.1/1.9.1 patches re-checked, no verdict change.
-- **Last release-verified:** 2026-09-24
+- **Last sifted:** 2026-10-27 — **k8s floor 1.34 from LVM 1.9.0** (bundled csi-provisioner v6.1.0 / csi-resizer v2.0.0, read from `values.yaml` at each tag; the release notes never mention the sidecar bump); corrected the VolumeAttributesClass "1.31+" claim to 1.34; umbrella 4.6.2 row. Earlier: 2026-09-24 added `## 1.10.x`.
+- **Last release-verified:** 2026-10-27
 - **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
   LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).
 
@@ -26,6 +26,7 @@ engine version from the `lvm-localpv` chart version, the
 
 | OpenEBS umbrella | pins LocalPV-LVM |
 |---|---|
+| 4.6.2 | 1.10.1 |
 | 4.6.1 | 1.10.1 |
 | 4.6.0 | 1.10.0 |
 | 4.5.1 | 1.9.1 |
@@ -35,14 +36,17 @@ engine version from the `lvm-localpv` chart version, the
 | 4.2.x / 4.1.3 | 1.6.2 |
 | 4.0.x / 4.1.0 | 1.5.1 |
 
-(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.6.1;
+(Grounded from umbrella `charts/Chart.yaml` `dependencies:` at tags v4.0.1 … v4.6.2;
 LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
 
-## 1.10.0 — 2026-08-19  (pinned by umbrella 4.6.0; **1.10.1** 2026-09-09 pinned by umbrella 4.6.1)
+## 1.10.0 — 2026-08-19  (pinned by umbrella 4.6.0; **1.10.1** 2026-09-09 pinned by umbrella 4.6.1 / 4.6.2)
 
-- **k8s floor:** chart declares **no `kubeVersion:`** at 1.10.0 or 1.10.1 (checked at both
-  tags) — installs on any minor; the docs' nominal "1.23+" remains uncertified. Verify the
-  target minor manually (see hazards section).
+- **k8s floor:** **1.34** — unchanged from 1.9.0 (§ 1.9.0): the chart still ships
+  csi-provisioner v6.1.0 and csi-resizer v2.0.0. Chart declares **no `kubeVersion:`** at
+  1.10.0 or 1.10.1, so Helm will not enforce it, and the README at v1.10.1 still states
+  "K8S 1.23+" — that line predates the sidecar bump and is contradicted by the shipped
+  csi-provisioner's own minimum. Upstream CI runs against k8s v1.34.3 (maintainer
+  comment on openebs/lvm-localpv#492, opened 2026-07-13).
 - **New:** optional CSI snapshot controller — Helm flag to disable the bundled
   snapshot-controller when one is already cluster-managed (#495); Helm `gaid`/`gakey`
   analytics global overrides, matching the other OpenEBS local-engine charts (#480).
@@ -50,7 +54,9 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
   through resize so a repeated expand call doesn't double-apply (#481); image URLs in
   rendered manifests are now quoted, for registries with YAML-special characters in the
   path (#482); ServiceMonitor manifest namespace-indentation fix (#479).
-- **Dependency bump:** csi-snapshotter / snapshot-controller → v8.2.0.
+- **Dependency bump:** csi-snapshotter / snapshot-controller v7.0.0 → v8.2.0
+  (external-snapshotter v8 moved VolumeSnapshot validation from the webhook into CEL
+  rules in the CRDs).
 - **Breaking:** none identified in the release notes.
 - **CRD migrations:** none — the bundled `crds` subchart version ticked to
   `1.10.1-prerelease` but no `local.openebs.io` CRD schema file changed between 1.9.1 and
@@ -72,6 +78,12 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
 
 ## 1.9.0 — 2026-05-21  (pinned by umbrella 4.5.0; **1.9.1** 2026-06-10 pinned by umbrella 4.5.1)
 
+- **k8s floor:** **1.34** — the floor jumps here, and the release notes do not say so.
+  `values.yaml` at v1.9.0 moves csi-provisioner v5.2.0 → **v6.1.0** and csi-resizer
+  v1.11.2 → **v2.0.0** (v1.8.1 still ships v5.2.0 / v1.11.2). external-provisioner v6
+  states "Minimum Kubernetes version 1.34" (the storage/v1 VolumeAttributesClass API);
+  external-resizer v2 needs 1.34 for volume modification. Below 1.34, stay on LVM 1.8.x.
+  No `kubeVersion:` in the chart, so Helm will not refuse an older cluster.
 - **New:** `VolumeAttributesClass` support (#444) — QoS policies and IOPS
   profiles become updatable on an existing volume instead of requiring a new
   StorageClass. This is the headline reason to move off 1.8.x.
@@ -119,10 +131,9 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
     rescheduled cleanly). The umbrella's `preUpgradeHook` is gated `IsUpgrade &&
     hostpath_is_v3` → **no-op on a v4→v4 hop** (only fires migrating off a v3 hostpath
     install). Existing CRs + bound PVCs survived; fresh provision/mount on the LVM SC passed.
-- **Patches / forward (standalone — NOT yet umbrella-pinned):** **1.8.1** (2026-02-04,
-  bug-fix); **1.9.0** (2026-05-21) adds **VolumeAttributesClass support** + a QoS/IOPS
-  profile update — **requires k8s ≥ 1.31** and the `VolumeAttributesClass` feature gate.
-  Pull 1.9.0 standalone if VAC is needed; no umbrella pins it yet.
+- **Patches / forward:** **1.8.1** (2026-02-04, bug-fix, standalone only — no umbrella
+  pins it). 1.8.x is the **last line for k8s < 1.34**: 1.9.0 raises the floor to 1.34
+  (§ 1.9.0).
 
 ## 1.7.0 — 2025-06-03  (pinned by umbrella 4.3)
 
@@ -161,14 +172,19 @@ LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
 ## LocalPV-LVM compat hazards (apply across the tracked line)
 
 - **No `kubeVersion:` in the LVM chart.** Helm installs on any minor it renders
-  against; it will not refuse an incompatible k8s. Verify the minor manually.
+  against; it will not refuse an incompatible k8s. Verify the minor manually. The
+  real floor is set by the bundled CSI sidecars, not by the LVM docs: read the
+  sidecar tags in `values.yaml` at the target tag and check each sidecar's own
+  minimum (that is how the 1.9.0 jump to 1.34 was found).
 - **Node host prerequisite.** Every node hosting LVM volumes needs the **LVM2
   userspace** (`lvm2`) installed and a **Volume Group pre-created**; the StorageClass
   references that VG by name. The `openebs-lvm-localpv-node` DaemonSet provisions
   *within* an existing VG — it does not create the VG. Bake `lvm2` + the VG into the
   node image; a node missing either silently fails to provision LVM volumes.
-- **VolumeAttributesClass (LVM 1.9.0).** Requires k8s **1.31+** and the
-  `VolumeAttributesClass` feature gate. Not pinned by any umbrella — standalone bump only.
+- **VolumeAttributesClass (LVM 1.9.0+).** Uses the storage/v1 API, GA in k8s **1.34**,
+  which the bundled csi-provisioner v6 requires anyway (§ 1.9.0). An earlier note here
+  said 1.31+ with a feature gate; that matched the older v1beta1 API, not the sidecars
+  1.9.0 ships.
 - **Single-node controller scheduling.** Controller-as-Deployment affinity can block
   the controller Pod on single-node clusters after an upgrade — delete the old Pod.
   (Confirmed **moot on multi-node**: the 2026-06-03 4.3→4.4 hop rescheduled the
