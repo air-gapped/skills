@@ -323,7 +323,7 @@ curl -X POST "$GRAFANA/apis/dashboard.grafana.app/v1beta1/namespaces/default/das
     }
   }'
 ```
-`resourceVersion` = optimistic concurrency (like k8s). Legacy `schemaVersion` still present inside `spec`. Use `/v1` for classic-shaped `spec`, `/v2` for the v2 schema; `GET /apis/dashboard.grafana.app/` lists the versions the server serves.
+`resourceVersion` = optimistic concurrency (like k8s). Legacy `schemaVersion` still present inside `spec`. On 13.x use `/v1` (classic-shaped `spec`) or `/v2` (v2 schema); 12.x serves only `v1beta1`/`v2beta1`, and `v1beta1` works on both. `GET /apis/dashboard.grafana.app/` lists the versions the server serves.
 
 ## 9. Common dashboard bugs + fixes
 

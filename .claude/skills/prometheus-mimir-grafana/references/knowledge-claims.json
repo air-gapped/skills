@@ -66,7 +66,7 @@
     {
       "id": 11,
       "question": "What API version appears in the Grafana Kubernetes-style dashboard API path?",
-      "skill_answer": "v1beta1 (/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>)"
+      "skill_answer": "v1beta1 on 12.x and 13.x (/apis/dashboard.grafana.app/v1beta1/namespaces/<ns>/dashboards/<uid>); 13.x also serves GA v1 and v2"
     },
     {
       "id": 12,

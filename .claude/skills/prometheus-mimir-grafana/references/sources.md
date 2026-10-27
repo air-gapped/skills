@@ -19,7 +19,7 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 9 | Grafana — Dashboard JSON model | https://grafana.com/docs/grafana/latest/visualizations/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-09-15 | latest |
 | 10 | Grafana — Template variables | https://grafana.com/docs/grafana/latest/visualizations/dashboards/variables/add-template-variables/ | 2026-09-15 | latest |
 | 11 | Grafana — Transformations | https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/query-transform-data/transform-data/ | 2026-09-15 | latest |
-| 12 | Grafana — Dashboard HTTP API | https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/dashboard/ | 2026-09-15 | latest |
+| 12 | Grafana — Dashboard HTTP API (now documents the `/apis` API at `v1`; grafana/grafana `apps/dashboard/pkg/apis/dashboard/` has only `v1beta1`/`v2alpha1`/`v2beta1` through v12.4.0, adds `v1`/`v2` at v13.0.0, still registers `v1beta1` in 13.2) | https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/dashboard/ | 2026-10-27 | latest |
 | 13 | Grafana Labs — RED Method | https://grafana.com/blog/the-red-method-how-to-instrument-your-services/ | 2026-09-15 | — |
 | 14 | Brendan Gregg — USE Method | https://www.brendangregg.com/usemethod.html | 2026-09-15 | — |
 | 15 | Google SRE Book — Monitoring Distributed Systems (Ch. 6) | https://sre.google/sre-book/monitoring-distributed-systems/ | 2026-09-15 | — |
