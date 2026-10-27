@@ -4,9 +4,8 @@ Contents: [The WAL-G wall](#the-wal-g-wall-recap--plan) · [Plugin install](#plu
 [Wiring a Cluster](#wiring-a-cluster) · [In-tree→plugin migration](#if-migrating-an-existing-cnpg-in-tree-cluster-not-the-zalando-case) ·
 [Monitoring](#monitoring-the-new-chain) · [Snapshot-only alternative](#snapshot-only-alternative-no-object-store)
 
-Verified 2026-07-24; plugin pin re-verified 2026-07-29. Version anchor:
-plugin-barman-cloud v0.14.0 (2026-07-29, pre-1.0, ~monthly cadence,
-no breaking changes since v0.13.0), CNPG 1.30.0. In-tree
+Version anchor: plugin-barman-cloud v0.15.1 (pre-1.0, ~monthly cadence,
+no breaking changes since v0.13.0), CNPG 1.30.1. In-tree
 `barmanObjectStore` is deprecated since 1.26; removal is scheduled for
 **1.31.0** after slipping four times (1.28→1.29→1.30→1.31) — treat the
 removal version as volatile, but build new clusters plugin-first
@@ -36,15 +35,15 @@ trackers). Therefore:
 ## Plugin install (air-gap-ready)
 
 Images (both required):
-- `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.15.0` (Deployment)
-- `ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.14.0` — the
+- `ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.15.1` (Deployment)
+- `ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.15.1` — the
   sidecar reference is **hidden base64-encoded in a Secret**
   (`SIDECAR_IMAGE`) inside the release-asset `manifest.yaml`. Mirror it
   too or every instance pod fails to start the sidecar.
 - Use the **release asset** manifest, never the repo-root manifest.yaml
   (that one points at `-testing:main`).
 
-The sidecar (distroless, embeds barman 3.19.1) runs in **every**
+The sidecar (distroless, embeds barman 3.20.1) runs in **every**
 Postgres pod; sidecar upgrades require pod restarts.
 
 Install constraints: same namespace as the CNPG operator (typically
@@ -52,8 +51,8 @@ Install constraints: same namespace as the CNPG operator (typically
 (certificate SAN — chart values warn "DO NOT CHANGE").
 
 Helm chart exists despite stale docs claiming manifest/Kustomize-only:
-`cloudnative-pg/charts` → `plugin-barman-cloud` (chart 0.7.1, appVersion
-v0.14.0, kubeVersion ≥1.29).
+`cloudnative-pg/charts` → `plugin-barman-cloud` (chart 0.8.1, appVersion
+v0.15.1, kubeVersion ≥1.29).
 
 **cert-manager**: the kubectl manifest hardcodes a selfsigned Issuer +
 two Certificates for the CNPG-I mTLS. It is avoidable — CNPG-I only
@@ -65,7 +64,7 @@ createIssuer: false` + `issuerName` for BYO certs. The BYO path is
 documented but not verified end-to-end — lab-test before fleet rollout.
 
 Compatibility: documented floor CNPG ≥1.26, "strongly recommend
-≥1.27"; v0.14.0 is built against CNPG 1.30.0 modules. No formal
+≥1.27"; v0.15.1 is built against CNPG 1.30.1 modules. No formal
 per-minor matrix — at execution time check for a plugin release built
 against the running CNPG minor.
 
