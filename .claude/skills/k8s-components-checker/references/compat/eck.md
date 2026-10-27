@@ -31,7 +31,7 @@ Notes on sources:
 
 ## 3.5.0 — 2026-08-04
 
-- **k8s floor:** 1.32 – 1.36 — 3.5 drops k8s 1.31 (matrix CSV; the v3.5.0 e2e kind matrix tests 1.32–1.36). The docs page's "3.4+" tab still reads 1.31–1.36 and `compat.py` reads that tab, so `check --with eck=3.5` passes k8s 1.31: override it — ECK 3.5 on 1.31 is `⚠ needs bump` (k8s first).
+- **k8s floor:** 1.32 – 1.36 — 3.5 drops k8s 1.31 (matrix CSV; the v3.5.0 e2e kind matrix tests 1.32–1.36). The docs page's "3.4+" tab still reads 1.31–1.36 — trust the matrix.
 - **OpenShift floor:** 4.16 – 4.22 (same as 3.4.x)
 - **Helm floor:** 3.2.0+
 - **Elastic Stack range:** same as 3.3.0+ (current docs page's "3.3+" Stack tab covers 3.3/3.4/3.5 identically):

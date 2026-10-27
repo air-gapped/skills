@@ -23,6 +23,8 @@ changes, upgrade order, vendor matrix pages — stays in the compat/*.md prose.
 
 import argparse
 import base64
+import csv
+import io
 import json
 import re
 import subprocess
@@ -475,6 +477,23 @@ def windows_per_tag(lines, repo, path, extract):
     return out
 
 
+ECK_MATRIX = "https://www.elastic.co/support/matrix"
+ECK_CSV = "support-matrix-product-and-kubernetes-elastic-cloud-on-kubernetes-and-kubernetes-distro.csv"
+
+
+def eck_matrix_rows(text):
+    """'Elastic Cloud on Kubernetes 3.5.x,<date>,1.32-1.36,<openshift>' -> {'3.5': ['1.32', '1.36']}"""
+    out = {}
+    for row in csv.reader(io.StringIO(text)):
+        if len(row) < 3:
+            continue
+        m = re.fullmatch(r"Elastic Cloud on Kubernetes (\d+\.\d+)\.x", row[0].strip())
+        k = re.fullmatch(r"(1\.\d+)\s*-\s*(1\.\d+)", row[2].strip())
+        if m and k:
+            out[m.group(1)] = [k.group(1), k.group(2)]
+    return out
+
+
 def k8s_windows(comps):
     L = {n: c["lines"] for n, c in comps.items()}
     W = {}
@@ -555,29 +574,18 @@ def k8s_windows(comps):
         for ln in L["kyverno"]
     }
 
-    et = raw_gh("elastic/docs-content", "deploy-manage/deploy/cloud-on-k8s.md", "main")
-    blocks = re.findall(
-        r"applies-item\}\s*eck:\s*ga\s*(=?)(\d+\.\d+)(\+?)(.*?):::", et, re.S
-    )
-    ek = {}
-    for ln in L["eck"]:
-        best = None
-        for eq, ver, plus, body in blocks:
-            m = re.search(r"\{\{k8s\}\}\s*(1\.\d+)-(1\.\d+)", body)
-            if not m:
-                continue
-            if (eq and ver == ln) or (plus and vkey(ver + ".0") <= vkey(ln + ".0")):
-                if best is None or eq:
-                    best = [m.group(1), m.group(2)]
-        ek[ln] = (
-            {
-                "k8s": best,
-                "source": "elastic/docs-content/deploy-manage/deploy/cloud-on-k8s.md@main",
-            }
-            if best
-            else {"k8s": None}
-        )
-    W["eck"] = ek
+    # ECK: the support-matrix CSV carries every line. The docs-content "3.4+" tab lags
+    # it (still 1.31-1.36 after the matrix moved 3.5 to 1.32-1.36), so it is not read.
+    try:
+        page = http(ECK_MATRIX)
+        m = re.search(r"https://[^\"\\\s]+/" + re.escape(ECK_CSV), page)
+        ek = eck_matrix_rows(http(m.group(0))) if m else {}
+    except OSError:
+        ek = {}
+    W["eck"] = {
+        ln: ({"k8s": ek[ln], "source": ECK_MATRIX} if ln in ek else {"k8s": None})
+        for ln in L["eck"]
+    }
 
     nv = {}
     for ln in L["nvidia-gpu-operator"]:
@@ -959,6 +967,17 @@ def selfcheck():
         "| Component | Version |\n| Longhorn | [v1.12.1](u) |\n\n| Longhorn | GitHub issue |\n"
     )
     assert t["Longhorn"] == "v1.12.1"  # first table wins
+    csv_text = (
+        "ELASTIC CLOUD ON KUBERNETES AND KUBERNETES DISTRO,,,\n"
+        ",Release Date,Kubernetes Compatible Versions,OpenShift Compatible Versions\n"
+        "Elastic Cloud on Kubernetes 1.0.x,2020-01-15,1.11-1.21,3.11/COMMA/ 4.1-4.8\n"
+        "Elastic Cloud on Kubernetes 3.5.x,2026-07-28,1.32-1.36,4.16-4.22\n"
+        "Elastic Cloud on Kubernetes 3.6.x,TBD,,\n"
+    )
+    assert eck_matrix_rows(csv_text) == {
+        "1.0": ["1.11", "1.21"],
+        "3.5": ["1.32", "1.36"],
+    }
     # check: unknown or unparseable input exits 3, never 0 (planted cases)
     import contextlib
     import io

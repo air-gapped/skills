@@ -256,7 +256,7 @@ edit it by hand; regenerate it.
 | `edges.harvester_embeds` | "Component Versions" table in the Harvester release body (embedded RKE2, Rancher, KubeVirt, Longhorn). |
 | `edges.harvester_rancher` | SUSE per-line support matrix `…/harvester-vX-Y-x/` — the Rancher line that manages each Harvester line and the RKE2 versions its Node Driver provisions. The `all-supported-versions/` index lags the per-line pages. |
 | `edges.gitlab_k8s` | GitLab chart `doc/installation/cloud/_index.md` at the newest chart tag: status + minimum GitLab per k8s minor; chart→GitLab from `version_mappings.md`. |
-| `edges.k8s_windows.<c>.<line>` | Vendor k8s window, `[min, max]`: Cilium `compatibility.rst`, Argo CD `tested-kubernetes-versions.md`, Rook `prerequisites.md` (each at the line's tag); KEDA `keda-docs`, cert-manager `website` releases table, Kyverno `website` `version.ts`, ECK `docs-content` applies-blocks; NVIDIA version-pinned `platform-support.html`. `k8s: null` = not machine-readable for that line — the prose owns it. |
+| `edges.k8s_windows.<c>.<line>` | Vendor k8s window, `[min, max]`: Cilium `compatibility.rst`, Argo CD `tested-kubernetes-versions.md`, Rook `prerequisites.md` (each at the line's tag); KEDA `keda-docs`, cert-manager `website` releases table, Kyverno `website` `version.ts`, ECK support-matrix CSV (`elastic.co/support/matrix`); NVIDIA version-pinned `platform-support.html`. `k8s: null` = not machine-readable for that line — the prose owns it. |
 
 - **Use time (offline):** `check` prints `OK`/`BLOCK`/`WARN`/`INFO` per pairing. Exit 0 = no
   `BLOCK` (a `WARN` still needs the prose), 1 = any `BLOCK`, 3 = `UNKNOWN` input — a component,
