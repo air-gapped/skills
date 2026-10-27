@@ -35,7 +35,7 @@ External references underpinning this skill's OpenShift-specific claims. Re-veri
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| Red Hat Universal Base Images (UBI) | https://catalog.redhat.com/software/base-images | 2026-05-28 | ubi9/ubi, ubi-minimal, ubi-micro, ubi-init at registry.access.redhat.com/ubi9/*; microdnf is the ubi-minimal package manager; ubi-micro ships no package manager. |
+| Red Hat Universal Base Images (UBI) | https://catalog.redhat.com/software/base-images | 2026-10-27 | ubi9/ubi, ubi-minimal, ubi-micro, ubi-init at registry.access.redhat.com/ubi9/*; microdnf is the ubi-minimal package manager; ubi-micro ships no package manager. **UBI 10**: `registry.access.redhat.com/v2/ubi10/{ubi,ubi-minimal,ubi-micro,ubi-init}/tags/list` all return 10.x tags (10.2 current for minimal/micro/init); catalog page `ubi10/ubi-minimal/66f1504a379b9c2cf23e145c` 200; RHEL 10 GA 2025-05-20 (lifecycle API). |
 | UBI documentation | https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image | 2026-05-28 | Background on UBI variants and redistribution terms. |
 
 ## Security (SCC / PSA)

@@ -171,6 +171,10 @@ compliance scanners classify `scratch` images as unrecognizable.
 
 UBI is freely redistributable without a Red Hat subscription.
 
+**UBI 10** ships the same four variants under `registry.access.redhat.com/ubi10/`.
+Keep FIPS workloads on `ubi9`: no RHEL 10 crypto module is FIPS-validated yet
+(`references/container-images.md`, FIPS section).
+
 ### Multi-Stage Build Pattern
 
 ```dockerfile
