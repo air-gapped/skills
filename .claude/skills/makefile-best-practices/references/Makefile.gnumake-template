@@ -60,12 +60,12 @@ ifdef NO_COLOR
   CLR_RED :=
   CLR_BOLD :=
 else
-  CLR_RESET := \033[0m
-  CLR_CYAN := \033[36m
-  CLR_GREEN := \033[32m
-  CLR_YELLOW := \033[33m
-  CLR_RED := \033[31m
-  CLR_BOLD := \033[1m
+  CLR_RESET := $(shell printf '\033[0m')
+  CLR_CYAN := $(shell printf '\033[36m')
+  CLR_GREEN := $(shell printf '\033[32m')
+  CLR_YELLOW := $(shell printf '\033[33m')
+  CLR_RED := $(shell printf '\033[31m')
+  CLR_BOLD := $(shell printf '\033[1m')
 endif
 
 # =============================================================================

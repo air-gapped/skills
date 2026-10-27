@@ -56,9 +56,9 @@ ifdef NO_COLOR
   GREEN :=
   RESET :=
 else
-  CYAN := \033[36m
-  GREEN := \033[32m
-  RESET := \033[0m
+  CYAN := $(shell printf '\033[36m')
+  GREEN := $(shell printf '\033[32m')
+  RESET := $(shell printf '\033[0m')
 endif
 
 .PHONY: build
@@ -67,3 +67,6 @@ build:
 	$(MAKE) all
 	@echo "$(GREEN)Done$(RESET)"
 ```
+
+Store the escape bytes, not the text `\033[36m`: bash's `echo` prints that
+text literally, so it only colours where `/bin/sh` is dash.
