@@ -194,6 +194,8 @@ xfer = agent.make_prepped_xfer(
 )
 ```
 
+**Strided lists (v1.5.0+, #1978).** For `count` equal blocks spaced `stride` bytes apart (paged KV), pass an `N×5` NumPy array of `(addr, len, devId, stride, count)` rows instead of a descriptor list, with `mem_type="VRAM"` (or `"DRAM"`) — mandatory, else `ValueError`. `make_prepped_xfer` indices then address the flattened blocks.
+
 ## Posting + checking transfers
 
 ```python
