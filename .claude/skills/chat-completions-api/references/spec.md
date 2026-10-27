@@ -164,6 +164,13 @@ field, WebSocket mode, background mode/webhooks, reusable prompts
 Calling** and pro reasoning mode (GPT-5.6), persisted reasoning, and most
 codex-model launches.
 
+**Tool calling on the GPT-6 line** (GPT-6 guide, Migration → Tool calling):
+GPT-6 Astra, GPT-6.1 Sol and GPT-6.1 Terra serve CC but "tool calling
+requires Responses"; GPT-6 Sol and GPT-6 Luna call functions on CC only with
+`reasoning_effort:"none"`. With effort ≠ `none`, CC requests must also drop
+`temperature`, `top_p`, `top_logprobs` and `logprobs`. GPT-6 Astra and
+GPT-6.1 Sol do not support `reasoning_effort:"none"` (use `low`).
+
 CC-only relic: **audio output** — `modalities`/`audio` params and
 gpt-audio-1.5 live on Chat Completions. CC also got moderation scores and
 explicit prompt caching at parity with Responses.

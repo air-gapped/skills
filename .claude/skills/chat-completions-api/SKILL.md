@@ -30,6 +30,10 @@ provenance in `references/sources.md`).
 
 ## Critical Gotchas
 
+- **OpenAI's GPT-6 line does not run CC tool loops**: GPT-6 Astra, GPT-6.1
+  Sol and GPT-6.1 Terra accept CC but tool calling requires Responses;
+  GPT-6 Sol/Luna call functions on CC only with `reasoning_effort:"none"`.
+  Route an agent client on these models to Responses (responses-api skill).
 - **The reasoning-field schism**: `reasoning_content` (SGLang, llama.cpp,
   mistral.rs, DeepSeek, xAI) vs `reasoning` (vLLM, Ollama, Together, Groq,
   OpenRouter) vs inline `<think>` — and vLLM silently RENAMES incoming

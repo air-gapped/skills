@@ -18,7 +18,8 @@ the listed commit on 2026-07-19.
 | Stored completions (list/retrieve/update/delete/messages) | https://developers.openai.com/api/reference/chat-completions/overview | 2026-09-15 | — | — |
 | Legacy completions create | https://developers.openai.com/api/reference/resources/completions/methods/create | 2026-09-15 | — | — |
 | Deprecations (.md twin works) | https://developers.openai.com/api/docs/deprecations | 2026-10-27 | 2025-09-26 section: completions models "shut down on September 28, 2026" → `gpt-5.6-terra`; 2026-04-22 section: `-completions` aliases shut down October 23, 2026. The page carries no `ft-babbage-002`/`ft-davinci-002` line | — |
-| Changelog | https://developers.openai.com/api/docs/changelog | 2026-09-15 | — | — |
+| Changelog | https://developers.openai.com/api/docs/changelog | 2026-10-27 | read through 2026-10-26 (GPT-6.1 Terra on v1/chat/completions); GPT-6 Astra entry 2026-09-03: "Tool calling requires the Responses API" | — |
+| GPT-6 guide (Migration → Tool calling, Unsupported parameters) | https://developers.openai.com/api/docs/guides/latest-model | 2026-10-27 | "GPT-6 Astra, GPT-6.1 Sol, and GPT-6.1 Terra support Chat Completions, but tool calling requires Responses. GPT-6 Sol and GPT-6 Luna support function calling in Chat Completions only with `reasoning_effort: "none"`" | — |
 | Reasoning guide (effort values) | https://developers.openai.com/api/docs/guides/reasoning | 2026-09-15 | — | — |
 | Prompt caching guide (breakpoints, cache_write_tokens) | https://developers.openai.com/api/docs/guides/prompt-caching | 2026-09-15 | — | — |
 | vLLM | https://github.com/vllm-project/vllm | 2026-09-15 | v0.25.1 (live-tested) / main | 9243e0124e |
