@@ -199,7 +199,7 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
 
 ## Open bugs to know before recommending
 
-Issue states verified 2026-07-21. Recheck via `gh issue view <N> --repo sgl-project/sglang` before quoting.
+Issue states verified 2026-10-27. Recheck via `gh issue view <N> --repo sgl-project/sglang` before quoting.
 
 PP+HiCache (#22607) is fixed in v0.5.19; the TP-only #30760 is not. Both are detailed with root-cause in "Critical pitfalls" #6 above — not repeated here. Still open:
 
