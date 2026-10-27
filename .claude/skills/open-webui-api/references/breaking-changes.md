@@ -82,12 +82,12 @@ This is the dangerous shape for GitOps: a read-only service account exports, get
 - API keys break after upgrade: #20673 (`ENABLE_API_KEYS=true` "doesn't work" — check permission gate too), #20942 (keys → 500), the 0.6.37 rename+default-flip itself
 - Migration failures on upgrade: #19797 (missing user.api_key), #21843/#21851 (0.7→0.8), #24253 (Alembic multiple heads)
 - Postgres-specific: #21467 (groups 500 on GROUP BY); `utils/db/download` 400s by design
-- SCIM: #17964/#18039 (filter case-sensitivity), #21280 (externalId, fixed 0.8.1), #24501 (deprovisioning, open)
+- SCIM: #17964/#18039 (filter case-sensitivity), #21280 (externalId, fixed 0.8.1), #24501 (deactivate-on-deprovision request, closed with no fix — DELETE still hard-deletes)
 - Streaming behind buffering proxies (IIS/ARR): #24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
 
 ## Open issues on 0.11.0 (checked 2026-07-29 — re-probe on freshen)
 
-- **#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. See `events-scim.md`.
+- **#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. Scoped to directory-sourced accounts in v0.11.1; admin deletes refused in v0.12.2. See `events-scim.md`.
 - **#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT` at `main.py:1839`). *Did not reproduce* on a 0.11.0 instance probed 2026-07-29 — the request reached the upstream and failed on upstream connectivity instead, so treat this as conditional, not universal.
 - **#27607 — "Open Sharing" cannot be enabled from the admin panel** — the `sharing.open_chats` model gap documented above; independently confirmed live.
 - **#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation). DB surgery only. Sanitise ids on create.
