@@ -19,11 +19,10 @@ NIXL is a transport library, not a serving framework. The frameworks below consu
 - KV cache produced by prefill workers is transferred to decode workers via a NIXL agent on each side.
 - For MoE models, NIXL-EP handles the expert-parallel all-to-all dispatch.
 
-**Backends Dynamo's TRT-LLM connector supports** (from `ai-dynamo/dynamo` `docs/backends/trtllm/trtllm-kv-cache-transfer.md`; see [TensorRT-LLM](#tensorrt-llm-trt-llm)):
-- UCX (default) — RDMA/IB/RoCE.
-- Libfabric — AWS EFA.
-- Mooncake — multi-protocol KVCache-centric.
-- (Object/storage backends for KV-extender / spillover patterns.)
+**KV-transfer methods Dynamo's TRT-LLM backend supports** (see [TensorRT-LLM](#tensorrt-llm-trt-llm)):
+- NIXL with UCX (default) — RDMA/IB/RoCE.
+- NIXL with Libfabric — AWS EFA.
+- UCX directly, without NIXL.
 
 **Operational pattern:**
 - Both prefill and decode pods run with `NIXL_ETCD_ENDPOINTS` set to a shared ETCD.
@@ -95,7 +94,9 @@ NIXL plugin selection is implicit (UCX-default); per-deploy tuning via `UCX_TLS`
 
 ## TensorRT-LLM (TRT-LLM)
 
-The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. The doc was renamed: the old `docs.nvidia.com/dynamo/latest/backends/trtllm/kv-cache-transfer.html` returns 404 (re-probed 2026-05-28); the current source lives at `https://github.com/ai-dynamo/dynamo/blob/main/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/tensorrt-llm/reference-guide.md` (rendered under the Dynamo docs root `https://docs.nvidia.com/dynamo/`).
+The Dynamo TRT-LLM backend uses NIXL for KV-cache transfer between prefill and decode engines. Current doc: `docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/tensorrt-llm/reference-guide.md` in `ai-dynamo/dynamo` (rendered under `https://docs.nvidia.com/dynamo/`).
+
+**LIBFABRIC with TRT-LLM KV cache V2 needs NIXL ≥ 1.5.1.** KV cache V2 allocates through CUDA VMM (`cuMemCreate`), whose pointers carry no CUDA context; below 1.5.1 the LIBFABRIC backend fails to post transfers on them (#2425).
 
 Config patterns are framed inside Dynamo's deploy spec (Helm values for TRT-LLM workers), not directly inside TRT-LLM. NIXL agent comes up with the worker container, ETCD endpoints come from the Dynamo control plane.
 
