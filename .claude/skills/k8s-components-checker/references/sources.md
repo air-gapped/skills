@@ -282,7 +282,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://docs.ceph.com/en/latest/releases/ (upstream Ceph EOL line + standalone breaking changes — Reef / Squid / Tentacle).
 - Probe: Read `compat/rook.md` for Rook↔Ceph pairings; WebFetch ceph.io releases page for upstream EOL signal + OSD encoding / cluster-wide breaking changes.
 - Note: Ceph's k8s axis collapses through Rook — the cluster doesn't see Ceph version against k8s directly; it sees Rook version against k8s, and Rook bounds Ceph.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — unchanged. Current named line is still Tentacle (20.2.4); no new named release (the `v21.*` tags are dev/RC; docs.ceph.com releases index still lists Tentacle 20.2.4 and Squid 19.2.6 as active), so this row's claims are untouched.
+- Last verified: 2026-10-27 — Squid **19.2.7** (2026-10-12, `ceph/ceph` `doc/releases/squid.rst` on main); Tentacle still 20.2.4; no Umbrella (v21) GA yet — Rook 1.21 pre-announces support for v21.2.0.
 
 ## OpenEBS (LocalPV-LVM only)
 

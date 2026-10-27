@@ -6,7 +6,7 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 18.2
-- **Last sifted:** 2026-09-15 (point releases and EOL dates re-read from the prose release notes; k8s axis unchanged since 2026-07-21, where it was re-derived via `compat/rook.md` — Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
+- **Last sifted:** 2026-10-27 (Squid 19.2.7 added from `doc/releases/squid.rst`; Tentacle still 20.2.4). Previous: 2026-09-15 (point releases and EOL dates re-read from the prose release notes; k8s axis unchanged since 2026-07-21, where it was re-derived via `compat/rook.md` — Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
 
 **k8s axis collapses through Rook.** Ceph itself has no k8s version dependency
 — it is daemon software. The operator-axis is `Rook minor → Ceph minor` and
@@ -85,7 +85,9 @@ no bug fixes, no backports.
 - **EOL:** **2027-06-01** (upstream estimate, stated in the releases index —
   supersedes this file's earlier ~2027-11 guess from cadence).
 
-## 19.2.6 / Squid (GA 2024-09-26, latest 19.2.6 2026-08-19)
+## 19.2.7 / Squid (GA 2024-09-26, latest 19.2.7 2026-10-12)
+
+- **19.2.7 (2026-10-12, `doc/releases/squid.rst`):** backport release, upstream recommends all users update. No new upgrade gate. RGW: `rgw_gc_max_objs` becomes startup-only (runtime changes ignored until restart); multisite now syncs bucket `obj_lock` settings. Rook pairing unchanged (Squid v19.2.0+ on Rook 1.19–1.21). The 19.2.6 multisite RGW-settings-before-upgrade caveat (`compat/rook.md`) still applies when coming from below 19.2.6.
 
 - **k8s floor:** N/A — see `compat/rook.md`.
 - **Breaking:** none cluster-wide that block in-place upgrade from Reef.
