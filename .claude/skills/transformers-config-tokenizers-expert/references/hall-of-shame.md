@@ -150,8 +150,8 @@ literal string `"None"` into the prompt.
 
 ## Gemma-4-26B-A4B-it — multi-ID EOS {#gemma-4-ap-45}
 
-**Repo:** `google/gemma-4-26B-A4B-it` (verified), not `gemma-4-31B-it`
-(SKU not found on HF Hub as of 2026-04-21).
+**Repo:** `google/gemma-4-26B-A4B-it` (verified; check sibling SKUs such as
+`gemma-4-31B-it` separately).
 **Tokenizer class:** `GemmaTokenizer` + `Gemma4Processor` (multimodal)
 **Files involved:** `tokenizer_config.json`, `generation_config.json`,
 separate `chat_template.jinja`
