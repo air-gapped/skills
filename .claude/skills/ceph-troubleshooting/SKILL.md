@@ -165,7 +165,10 @@ OSD pods.
    timeout or evict the watcher before retrying.
 4. When the node is gone for good: `ceph osd blocklist rm <NODE_IP>`.
 
-Rook's `NetworkFence` CR automates the blocklist step.
+With CSI-Addons network fencing enabled (off by default), tainting the dead
+node `node.kubernetes.io/out-of-service=nodeshutdown:NoExecute` and
+`:NoSchedule` does the blocklist step; remove the taints only after the node
+has completed a full power cycle.
 
 ## kubectl-rook-ceph commands models tend not to know
 
