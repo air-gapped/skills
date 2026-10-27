@@ -33,21 +33,22 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 
 ## Security floor: v0.5.13, and the repo feed will not show you why
 
-**Run ≥ v0.5.13.** Two **critical** advisories cover `>= 0.5.5, <= 0.5.12`, both
+**Run ≥ v0.5.13.** Three **critical** advisories reach `<= 0.5.12`, all
 published 2026-05-18, and `sgl-project/sglang`'s repo advisory feed returns
 nothing — they are only in the **ecosystem** database
 (`gh api "/advisories?ecosystem=pip&affects=sglang"`). Every version this skill
 recommends is already above the floor; the entry is here for anyone arriving on
-an older build, and because one of the two is a deployment-shape problem rather
+an older build, and because one of them is a deployment-shape problem rather
 than a patch-and-forget one.
 
 | CVE | What it is |
 |---|---|
 | **CVE-2026-7301** (GHSA-gwv6-pq6m-p3rq) | The multimodal generation runtime scheduler's **ROUTER socket binds to `0.0.0.0` by default** and calls `pickle.loads()` on incoming messages — **RCE** for anyone who can reach the port |
 | **CVE-2026-7302** (GHSA-qwrp-wghp-94q2) | Unauthenticated **path traversal**: `../` in an upload filename on certain endpoints writes arbitrary files anywhere the server process can write |
+| **CVE-2026-7304** (GHSA-36m8-w8qf-g76p) | `>= 0.4.1.post7`: with `--enable-custom-logit-processor` on, objects go through `dill.loads()` unvalidated — **unauthenticated RCE**. Check for that flag before ruling a server out |
 
-**Both are scoped to the multimodal generation runtime**, so a text-only
-deployment is not exposed to either — do not raise a fleet-wide floor on this
+**All three are scoped to the multimodal generation runtime** (7304 only with
+its flag on), so a text-only deployment is not exposed to any of them — do not raise a fleet-wide floor on this
 without checking what each server actually serves.
 
 **Do not confuse that ROUTER socket with HiCache's ZMQ.** They are different
