@@ -283,8 +283,8 @@ minors: v2.21 covers **1.34–1.36**, v2.20 covers 1.33–1.35, v2.19 covers
   PR named. If it recurs, a manual `kubectl patch` removing the finalizer
   clears it.
 - **CloudEventSource can deadlock the operator** with two or more sources
-  registered (#8039), while still passing its liveness probe. Open at time of
-  check.
+  registered (#8039), while still passing its liveness probe. Unfixed through
+  2.21.0: the stale bot closed the issue, the fix PR (#8040) is unmerged.
 
 ## Gotchas that bite in production
 
