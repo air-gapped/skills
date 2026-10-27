@@ -46,6 +46,10 @@ import sys
 from pathlib import Path
 
 RE_URL = re.compile(r"github\.com/([\w.-]+)/([\w.-]+)/(issues|pull)/(\d+)")
+# owner/repo#N — the short form; not preceded by a path or URL character.
+RE_SHORT = re.compile(r"(?<![\w/.#-])([A-Za-z0-9][\w.-]*)/([\w.-]+?)#(\d+)\b")
+# #N with no repo: cannot be resolved, so it is counted, never passed as clean.
+RE_BARE = re.compile(r"(?<![\w/#&])#(\d{2,6})\b")
 
 SAYS_OPEN = re.compile(
     r"\b(still open|remains open|is still open|currently open|still unfixed|"
@@ -91,13 +95,15 @@ def resolve(refs, batch=40):
         p = subprocess.run(
             ["gh", "api", "graphql", "-f", "query=" + q], capture_output=True, text=True
         )
+        try:  # a NOT_FOUND alias (e.g. a GitLab owner/repo#N) fails the call but keeps the rest
+            data = json.loads(p.stdout).get("data") or {}
+        except ValueError:
+            data = {}
         if p.returncode != 0:
             print(
-                f"  ! batch {i // batch} failed: {p.stderr.strip()[:200]}",
+                f"  ! batch {i // batch}: {p.stderr.strip()[:200]}",
                 file=sys.stderr,
             )
-            continue
-        data = json.loads(p.stdout).get("data") or {}
         for j, ref in enumerate(chunk):
             node = (data.get(f"a{j}") or {}).get("issueOrPullRequest")
             if not node:
@@ -128,8 +134,16 @@ def classify(text, kind, state):
     return None
 
 
+def short_refs(text):
+    return {
+        (m.group(1), m.group(2), int(m.group(3)))
+        for m in RE_SHORT.finditer(text)
+        if not m.group(2).endswith((".md", ".html"))
+    }
+
+
 def scan(roots):
-    lines, refs = [], set()
+    lines, refs, bare = [], set(), 0
     for root in roots:
         for f in sorted(Path(root).rglob("*.md")):
             for ln, text in enumerate(
@@ -138,11 +152,18 @@ def scan(roots):
                 hits = {
                     (m.group(1), m.group(2), int(m.group(4)))
                     for m in RE_URL.finditer(text)
-                }
+                } | short_refs(text)
+                bare += len(RE_BARE.findall(RE_SHORT.sub("", RE_URL.sub("", text))))
                 if hits:
                     lines.append((f, ln, text, hits))
                     refs |= hits
     if not refs:
+        if bare:
+            print(
+                f"NO RESULT — {bare} bare #N citation(s) name no repo and were NOT checked. "
+                "Write them as owner/repo#N or a github.com URL."
+            )
+            return 2
         print("no issue/PR citations found.")
         return 0
 
@@ -184,6 +205,8 @@ def scan(roots):
     unresolved = len(refs) - len(state)
     if unresolved:
         print(f"\n{unresolved} citation(s) did not resolve and were NOT checked.")
+    if bare:
+        print(f"{bare} bare #N citation(s) name no repo and were NOT checked.")
     return 1 if findings else 0
 
 
@@ -259,6 +282,11 @@ def selfcheck():
         for m in RE_URL.finditer(u)
     } == {("o", "r", "pull", 12), ("a", "b", "issues", 7)}
     assert not RE_URL.search("https://" + "github.com/o/r/commit/abc123")
+    assert short_refs("fixed in open-webui/open-webui#1234 (see docs/a.md#12)") == {
+        ("open-webui", "open-webui", 1234)
+    }
+    assert not short_refs("https://" + "github.com/o/r/issues/7#issuecomment-1")
+    assert RE_BARE.findall("#30760 is open; color &#123; a/b#9") == ["30760"]
 
     print("selfcheck OK — 6 real defects caught, 4 deliberate phrasings exempt")
     return 0
