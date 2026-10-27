@@ -90,6 +90,17 @@ security-review tooling changes.
   verification, triage, patching). "Seven stages" and "reference, not a
   product" are the harness README's words, not the article's.
 
+## Claude Code skills docs (`allowed-tools` semantics, § Tool fallbacks)
+
+- URL: https://code.claude.com/docs/en/skills
+- Probe: bare `curl -sS -L https://code.claude.com/docs/en/skills.md`, read
+  "Pre-approve tools for a skill".
+- Supports SKILL.md § Tool fallbacks: `allowed-tools` "grants permission for
+  the listed tools during the turn that invokes the skill"; "The grant clears
+  when you send your next message"; "It does not restrict which tools are
+  available: every tool remains callable". Restricting tools is the separate
+  `disallowed-tools` field.
+
 ## Claude Security (managed alternative named in HARNESS.md)
 
 - URL: https://claude.com/product/claude-security

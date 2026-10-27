@@ -42,14 +42,15 @@ directory for the reference C/C++ + AddressSanitizer pipeline this group was
 extracted from.
 
 **Tool fallbacks.** Prefer the dedicated Glob and Grep tools. Some sessions
-do not provision them — `allowed-tools` is a permission filter, not a loader,
-so listing them here does not make them appear. When Glob/Grep are
-unavailable, fall back to the read-only Bash commands whitelisted above:
+do not provision them — `allowed-tools` only pre-approves the listed tools
+for the invoking turn; it neither loads a tool nor blocks one. When Glob/Grep
+are unavailable, fall back to the read-only Bash commands listed above:
 `rg --files <scope>` / `ls -R` for enumeration, `rg -n` / `grep -rn` for
 search, `wc` / `head` / `file` for sniffing, and `codegraph explore`
-(read-only index query, Step 2). These are the ONLY permitted
-Bash commands; do not write helper scripts or pipe target content into a
-shell interpreter.
+(read-only index query, Step 2). These are the ONLY Bash commands this skill
+runs. Nothing enforces that limit — every other tool stays callable — so hold
+to it yourself: no helper scripts, no piping target content into a shell
+interpreter.
 
 ## Arguments
 
@@ -379,7 +380,7 @@ Tell the user:
 ## Constraints
 
 - **Never execute target code.** No builds, no `docker`, no network, and no
-  Bash beyond the read-only whitelist in § Tool fallbacks.
+  Bash beyond the read-only list in § Tool fallbacks.
   If the user asks you to "reproduce" or "confirm with a PoC," decline and
   point at an autonomous execution harness (HARNESS.md).
 - **Don't fabricate line numbers.** Every `file:line` you emit must be
