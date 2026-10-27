@@ -45,8 +45,8 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
 - **k8s floor:** 1.34 – 1.36 (adds 1.36 — #54303; removes 1.33 — #55306). Narrower than it looks
   next to 2.14's 1.33–1.35: only **1.34 and 1.35 overlap**, so a management cluster on 1.33 must
   move k8s before Rancher, not after.
-- **Provisioning (KDM):** 2.15 pairs with RKE2 `v1.34.11+rke2r1` / `v1.35.8+rke2r1` /
-  `v1.36.4+rke2r1` — no 1.37 pairing yet, even though RKE2 upstream already shipped `v1.37.0+rke2r1`
+- **Provisioning (KDM, re-read 2026-10-27):** 2.15 pairs with RKE2 `v1.34.12+rke2r1` / `v1.35.9+rke2r1` /
+  `v1.36.5+rke2r1` (RKE2 community patches of 2026-09-30) — no 1.37 pairing yet, even though RKE2 upstream already shipped `v1.37.0+rke2r1`
   (source: `generated.json` `edges.rancher_provisions_rke2`, corroborated by the v2.15.2 release
   notes' own "Kubernetes Versions for RKE2/K3s" list). Downstream cluster management itself remains
   out of scope; this is only which lines Rancher's KDM channel currently offers.
@@ -109,8 +109,8 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
 ## 2.14 (latest community: v2.14.3, 2026-06-29)
 
 - **k8s floor:** 1.33 – 1.35 (adds 1.35; removes 1.32 — issues #52957, #53764).
-- **Provisioning (KDM):** 2.14 pairs with RKE2 `v1.33.13+rke2r2` / `v1.34.11+rke2r1` /
-  `v1.35.8+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
+- **Provisioning (KDM, re-read 2026-10-27):** 2.14 pairs with RKE2 `v1.33.13+rke2r2` / `v1.34.12+rke2r1` /
+  `v1.35.9+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
 - **Breaking:**
   - **Embedded Cluster API removed** (#53291). `rancher-provisioning-capi` chart, `embedded-cluster-api` feature flag, and the associated webhooks/controllers are gone. Rancher Turtles becomes the only CAPI integration. Auto-migrates on upgrade *unless* Turtles was previously disabled — re-enable manually or v2prov breaks.
   - **Cluster API bumped to v1beta2 (`cluster-api v1.12.2`, was v1.10.6)** (#52034, #53334). One-way rollback hazard: downgrading to 2.13.x (which carries v1beta1) requires the special rollback procedure documented under `rancher-documentation/v2.14/.../rollbacks`. Skipping it leaves CAPI CRDs in a state 2.13 cannot reconcile.
@@ -137,8 +137,8 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
 ## 2.13 (latest community: v2.13.3, 2026-02-25 — patches 2.13.4+ are Prime-only)
 
 - **k8s floor:** 1.32 – 1.34 (adds 1.34; removes 1.31 — issues #51252, #51253).
-- **Provisioning (KDM):** 2.13 pairs with RKE2 `v1.32.13+rke2r1` / `v1.33.13+rke2r2` /
-  `v1.34.11+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
+- **Provisioning (KDM, re-read 2026-10-27):** 2.13 pairs with RKE2 `v1.32.13+rke2r1` / `v1.33.13+rke2r2` /
+  `v1.34.12+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
 - **Breaking:**
   - **Rancher Provisioning chart auto-replaced by Rancher Turtles** on upgrade (#52254). `rancher-provisioning-capi` is uninstalled, Rancher Turtles is installed. Pre-upgrade backups of any `clusters.provisioning.cattle.io` resources are advisable — they survive the migration but the controller path changes.
   - **OIDC Auth Provider settings may be lost on 2.12.x → 2.13.x upgrade** (#53995). Cleanup of unused OIDC secrets can partially overwrite the AuthConfig and drop endpoints / client IDs. Fix is in **2.14**; on 2.13 itself, back up the OIDC AuthConfig before upgrading.
