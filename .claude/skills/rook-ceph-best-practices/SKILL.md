@@ -43,7 +43,7 @@ relying on it for a newer release.
 | v1.18.x | 1.29–1.34 | Reef 18.2, Squid 19.2 | Last line that runs Reef. ceph-csi-operator becomes the default CSI config path. Key rotation experimental. |
 | v1.19.x | 1.30–1.35 | Squid 19.2.0+, Tentacle | **Reef dropped** (min Ceph 19.2.0). AES256K from **v1.19.9**; CVE floor **v1.19.10**. v1.19.11 ships ceph-csi 3.16.3 (AES256K backport). |
 | v1.20.x | 1.31–1.37 (1.36 before v1.20.8) | Squid 19.2.0+, Tentacle 20.2.1+ | **Rook no longer deploys CSI** — ceph-csi-operator + new `ceph-csi-drivers` chart required. AES256K from v1.20.5; CVE floor **v1.20.6**. v1.20.7 ships ceph-csi 3.17.1. |
-| v1.21.x | 1.32–1.37 | Squid 19.2.0+, Tentacle 20.2.1+, Umbrella 21.2.0+ | **msgr2 required by default**: kernel clients need 5.11+, else set `network.connections.requireMsgr2: false` before the hop. Rook pins no CSI images. Toolbox reloads its keyring after rotation. |
+| v1.21.x | 1.32–1.37 | Squid 19.2.0+, Tentacle 20.2.1+, Umbrella 21.2.0+ | **msgr2 required by default**: kernel clients need 5.11+, else set `network.connections.requireMsgr2: false` before the hop. Rook pins no CSI images. |
 
 Ceph lines: Reef 18.2.x is EOL (last 18.2.8, 2026-03-20). Squid 19.2.x
 latest 19.2.7, estimated EOL **2026-10-31** — plan the Tentacle hop.
@@ -59,7 +59,9 @@ release; a `v19.3.0`-style tag is a development tag, never deploy it.
    when `crds.enabled`, so `helm upgrade` applies them).
 2. **Ceph image** (`CephCluster.spec.cephVersion.image`).
 3. **CephX key rotation** (can ride on step 2's restart — same patch).
-4. **Toolbox image**, by hand. Nothing manages it.
+4. **Toolbox.** The `rook-ceph-cluster` chart toolbox follows `cephImage`
+   unless `toolbox.image` / `repository` / `tag` is set. Rook never touches a
+   manifest toolbox: re-apply `deploy/examples/toolbox.yaml` from the new tag.
 
 A Rook minor hop must start from a supported patch: v1.19 → v1.20 requires
 **v1.19.5+** first; v1.20 → v1.21 accepts any v1.20 patch (checklist in
@@ -124,7 +126,9 @@ Before the Ceph bump:
    (backup) → `ceph auth rm osd.N`.
 4. Save a baseline: CephCluster YAML (`status.cephx`), `ceph auth ls`,
    `ceph osd tree`, pods, full operator log. Take `ceph auth ls` now — after
-   the admin key rotates the toolbox cannot authenticate until restarted.
+   the admin key rotates the toolbox cannot authenticate until it reloads
+   the keyring (~60 s; manifest toolbox from v1.19.9 / v1.20.5, chart
+   toolbox from v1.20.7) or, if older, is restarted.
 
 Then apply image + rotation in one patch:
 
@@ -143,7 +147,8 @@ Expect, in order: HEALTH_ERR `AUTH_INSECURE_SERVICE_KEY_TYPE` +
 `AUTH_INSECURE_SERVICE_TICKETS` as soon as the first daemons run the new
 version; rotation admin → mon → mgr → OSDs one at a time → RGW/MDS/others;
 OSD pods briefly 1/2 or Init (normal); the toolbox failing with
-`handle_auth_bad_method … [errno 13] RADOS permission denied` (restart it).
+`handle_auth_bad_method … [errno 13] RADOS permission denied` (an older
+toolbox needs a restart; a current one recovers by itself).
 The two errors clear when the core daemons are rotated. Remaining warnings
 are expected — see the health-code table in `references/cephx-aes256k.md`
 and mute them with `spec.healthCheck.muteHealthWarning.<CODE>.policy: mute`

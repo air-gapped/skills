@@ -35,7 +35,7 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
 | v1.20.7 | 2026-09-02 | ceph-csi 3.17.1 (AES256K). Mgr module unset properly when disabled. Toolbox restart note in the CVE guide. |
 | v1.20.8 | 2026-09-29 | K8s up to 1.37. Same RGW gate as v1.19.12. CephX doc quick-fix image corrected to `v20.2.4-20260818`. |
 | v1.20.9 | 2026-10-14 | With `network.connections.encryption.enabled`, mon connections are also forced to `secure` (`ms_mon_*_mode`); a client forcing `crc` to a mon is refused. |
-| v1.21.0 | 2026-10-06 | K8s 1.32–1.37. **msgr2 required by default** (kernel clients 5.11+, else `network.connections.requireMsgr2: false`; existing mounts stay on msgr1 until remounted). Helm OCI chart tags drop the `v` prefix (`1.21.0`). New NFS installs must create the `.nfs` CephBlockPool. Rook sets no CSI images: `rook-csi-operator-image-set-configmap` is empty, so custom CSI images must be re-added there. Toolbox reloads keyring/`ceph.conf` after rotation. Umbrella supported once 21.2.0 ships. |
+| v1.21.0 | 2026-10-06 | K8s 1.32–1.37. **msgr2 required by default** (kernel clients 5.11+, else `network.connections.requireMsgr2: false`; existing mounts stay on msgr1 until remounted). Helm OCI chart tags drop the `v` prefix (`1.21.0`). New NFS installs must create the `.nfs` CephBlockPool. Rook sets no CSI images: `rook-csi-operator-image-set-configmap` is empty, so custom CSI images must be re-added there. Umbrella supported once 21.2.0 ships. |
 | v1.21.1 | 2026-10-26 | Docs: delete the chart's `ceph-block` StorageClass before upgrading `rook-ceph-cluster` to v1.21 (new immutable CSI secret parameters; PVs unaffected). With no legacy clients, sets `auth_allow_insecure_global_id_reclaim=false` instead of muting the warning. |
 
 ## v1.19 → v1.20 checklist
