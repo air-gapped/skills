@@ -123,12 +123,11 @@ local implementation of this sub-surface (see backend-implementations.md).
 ## Legacy /v1/completions
 
 - Documented models: `gpt-3.5-turbo-instruct`, `davinci-002`, `babbage-002` —
-  **all shut down 2026-09-28** (with `gpt-3.5-turbo-1106`; replacements
-  gpt-5.4-mini/gpt-5-mini). The 2026-10-23 sweep line-items the
-  `-completions` endpoint variants of chat models (`gpt-3.5-turbo-completions`,
-  `gpt-4-completions`, `gpt-4-turbo-completions`). After October 2026 OpenAI
-  serves no first-party model on this endpoint — it survives only as a
-  third-party/local surface.
+  **all shut down 2026-09-28** (with `gpt-3.5-turbo-1106`; replacement
+  `gpt-5.6-terra` for all four). The `-completions` aliases of chat models
+  (`gpt-3.5-turbo-completions`, `gpt-4-completions`, `gpt-4-0613-completions`,
+  `gpt-4-turbo-completions`) shut down 2026-10-23. The endpoint survives only
+  as a third-party/local surface.
 - Param quirks vs chat: `prompt` accepts string | string[] | token int[] |
   token int[][]; **`logprobs` is an INTEGER 0..5** (not bool+top_logprobs);
   `suffix` (insertion) is gpt-3.5-turbo-instruct-only; `echo`; `best_of`

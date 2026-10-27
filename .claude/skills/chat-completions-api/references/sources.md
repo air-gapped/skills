@@ -17,7 +17,7 @@ the listed commit on 2026-07-19.
 | CC streaming events (full chunk schema; .md twin) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events | 2026-09-15 | — | — |
 | Stored completions (list/retrieve/update/delete/messages) | https://developers.openai.com/api/reference/chat-completions/overview | 2026-09-15 | — | — |
 | Legacy completions create | https://developers.openai.com/api/reference/resources/completions/methods/create | 2026-09-15 | — | — |
-| Deprecations (.md twin works) | https://developers.openai.com/api/docs/deprecations | 2026-09-15 | — | — |
+| Deprecations (.md twin works) | https://developers.openai.com/api/docs/deprecations | 2026-10-27 | 2025-09-26 section: completions models "shut down on September 28, 2026" → `gpt-5.6-terra`; 2026-04-22 section: `-completions` aliases shut down October 23, 2026. The page carries no `ft-babbage-002`/`ft-davinci-002` line | — |
 | Changelog | https://developers.openai.com/api/docs/changelog | 2026-09-15 | — | — |
 | Reasoning guide (effort values) | https://developers.openai.com/api/docs/guides/reasoning | 2026-09-15 | — | — |
 | Prompt caching guide (breakpoints, cache_write_tokens) | https://developers.openai.com/api/docs/guides/prompt-caching | 2026-09-15 | — | — |
