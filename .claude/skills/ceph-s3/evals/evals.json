@@ -7,12 +7,13 @@
       "id": 0,
       "name": "restic-presigned-broke",
       "prompt": "After upgrading our Rook RGW from Ceph 19.2.5 to 19.2.6, restic backups to the Ceph S3 endpoint started failing with 403 SignatureDoesNotMatch on uploads; other tools like s5cmd still work. What changed and what can I do right now?",
-      "expected_output": "CVE-2026-54330 SigV4 hardening; unsigned Content-Type on presigned PUT rejected (tracker 79674); workaround rgw_sigv4_insecure true until 19.2.7/20.2.5; it reopens the CVE, scope and remove later.",
+      "expected_output": "CVE-2026-54330 SigV4 hardening; restic (minio-go) sends an unsigned Content-Type / x-amz-content-sha256, rejected on 19.2.6 (trackers 79674/79803); fixed in 19.2.7 - upgrade; until then rgw_sigv4_insecure true, which reopens the CVE, scope and remove later.",
       "files": [],
       "assertions": [
         "Attributes the failure to the SigV4 hardening fix for CVE-2026-54330 in 19.2.6",
-        "Gives the workaround ceph config set client.rgw rgw_sigv4_insecure true (or equivalent Rook config)",
-        "Says the workaround should be removed once a fixed release (19.2.7 / 20.2.5) is running, or that it weakens the CVE fix"
+        "Recommends upgrading to 19.2.7, which fixes the regression",
+        "Gives the interim workaround ceph config set client.rgw rgw_sigv4_insecure true (or equivalent Rook config)",
+        "Says the workaround should be removed once 19.2.7 is running, or that it weakens the CVE fix"
       ]
     },
     {
