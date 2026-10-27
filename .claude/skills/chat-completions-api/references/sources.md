@@ -13,7 +13,7 @@ the listed commit on 2026-07-19.
 | Ref | URL | Last verified | Pinned | Commit examined |
 |-----|-----|---------------|--------|-----------------|
 | OpenAI ARC-AGI-3 publication ("legacy Chat Completions" wording) | https://openai.com/index/how-two-settings-tripled-our-arc-agi-3-scores/ | 2026-07-30 | published 2026-07-29 | — (openai.com 403s non-browser fetchers; use a real browser) |
-| CC create (request/response) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create | 2026-09-15 | — | — |
+| CC create (request/response) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create | 2026-10-27 | `service_tier` enum adds `fast` ("The response will show service_tier=priority"); `prompt_cache_options.ttl` "30m" — "currently the only supported value"; still "latest 80 breakpoints"; `seed`/`system_fingerprint` Deprecated | — |
 | CC streaming events (full chunk schema; .md twin) | https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events | 2026-09-15 | — | — |
 | Stored completions (list/retrieve/update/delete/messages) | https://developers.openai.com/api/reference/chat-completions/overview | 2026-09-15 | — | — |
 | Legacy completions create | https://developers.openai.com/api/reference/resources/completions/methods/create | 2026-09-15 | — | — |
@@ -21,7 +21,7 @@ the listed commit on 2026-07-19.
 | Changelog | https://developers.openai.com/api/docs/changelog | 2026-10-27 | read through 2026-10-26 (GPT-6.1 Terra on v1/chat/completions); GPT-6 Astra entry 2026-09-03: "Tool calling requires the Responses API" | — |
 | GPT-6 guide (Migration → Tool calling, Unsupported parameters) | https://developers.openai.com/api/docs/guides/latest-model | 2026-10-27 | "GPT-6 Astra, GPT-6.1 Sol, and GPT-6.1 Terra support Chat Completions, but tool calling requires Responses. GPT-6 Sol and GPT-6 Luna support function calling in Chat Completions only with `reasoning_effort: "none"`" | — |
 | Reasoning guide (effort values) | https://developers.openai.com/api/docs/guides/reasoning | 2026-09-15 | — | — |
-| Prompt caching guide (breakpoints, cache_write_tokens) | https://developers.openai.com/api/docs/guides/prompt-caching | 2026-09-15 | — | — |
+| Prompt caching guide (breakpoints, cache_write_tokens) | https://developers.openai.com/api/docs/guides/prompt-caching | 2026-10-27 | `"12h"` lifetime (2.5× write) "in the Responses API" only; 30m writes 1.25×; "latest 50 explicit breakpoints". No longer names Chat Completions at all — the CC caching claims rest on the CC create page | — |
 | vLLM | https://github.com/vllm-project/vllm | 2026-09-15 | v0.25.1 (live-tested) / main | 9243e0124e |
 | SGLang | https://github.com/sgl-project/sglang | 2026-09-15 | v0.5.15.post1 | 99f5a6f46b |
 | llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-09-15 | b10068 | 571d0d5 |

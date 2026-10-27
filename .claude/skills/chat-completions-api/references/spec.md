@@ -1,9 +1,8 @@
 # Official Chat Completions + Legacy Completions Spec
 
-The OpenAI-side ground truth, verified 2026-07-19 against developers.openai.com
-(platform.openai.com 301s there and 403s scripted fetches; `llms.txt` indexes
-and `.md` twins exist for docs pages — Stainless reference method pages have
-stub `.md` twins, use the HTML). URL-per-section index in `sources.md`.
+The OpenAI-side ground truth, verified 2026-10-27 against developers.openai.com
+(platform.openai.com 301s there and 403s scripted fetches; fetch mechanics
+and the URL-per-section index are in `sources.md`).
 
 Status: **fully supported, not deprecated, but second-choice** — the create
 page banners "Starting a new project? We recommend trying Responses". No
@@ -50,8 +49,8 @@ page, see sources.md):
 - **verbosity**: `low|medium|high` (GPT-5+). **prediction**: predicted
   outputs (`{type:"content", content}`); rejected prediction tokens ARE
   billed. **web_search_options**: `{search_context_size, user_location}` —
-  CC's only built-in tool. **service_tier**: `auto|default|flex|scale|priority`
-  (response echoes the tier actually used).
+  CC's only built-in tool. **service_tier**: `auto|default|flex|scale|priority|fast`
+  (response echoes the tier actually used — `fast` comes back as `priority`).
 - **store**: enables the stored-completions surface (below); image inputs
   >8MB are dropped from storage. `metadata`: ≤16 pairs, key ≤64 / value ≤512
   chars, filterable in list calls.
@@ -60,13 +59,15 @@ page, see sources.md):
 
 ## Prompt caching
 
-CC gained Anthropic-style explicit caching in the GPT-5.6 era — both APIs,
-per the caching guide ("Breakpoints are available in both the Responses API
-and Chat Completions API"):
+CC gained Anthropic-style explicit caching in the GPT-5.6 era (documented on
+the CC create page):
 
 - Request-level `prompt_cache_options: {mode:"implicit"(default)|"explicit",
   ttl:"30m"}` + per-content-block `prompt_cache_breakpoint:
-  {mode:"explicit"}` on text/image_url/input_audio/file/refusal parts.
+  {mode:"explicit", ttl?}` on text/image_url/input_audio/file/refusal parts.
+  **On CC `ttl` is `"30m"` only** ("currently the only supported value"); the
+  `"12h"` lifetime (2.5× write rate) is Responses-only per the caching guide,
+  even though the CC per-block schema lists it.
 - Implicit mode: 1 implicit + up to latest 3 explicit breakpoints written;
   explicit mode: up to 4 explicit, and NO caching if none set. Max 4 cache
   writes per request. (Doc inconsistency: create page says matching considers
@@ -173,4 +174,4 @@ GPT-6.1 Sol do not support `reasoning_effort:"none"` (use `low`).
 
 CC-only relic: **audio output** — `modalities`/`audio` params and
 gpt-audio-1.5 live on Chat Completions. CC also got moderation scores and
-explicit prompt caching at parity with Responses.
+explicit prompt caching (30-minute lifetime only; 12-hour is Responses-only).
