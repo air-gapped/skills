@@ -60,10 +60,12 @@ for every entry point that leaves it unset**, because the header-managing
 middlewares depend on it to not be spoofed. Treat an unset entry point as an
 open identity-spoofing path, not a default.
 
-**Two more v3.7.13 breaking changes worth knowing before you upgrade**: `Upgrade:
-h2c` and `HTTP2-Settings` request headers are no longer forwarded (declare the
-backend with the `h2c` scheme instead), and a rootless request target is rejected
-with 400, **not configurable**.
+**Breaking changes on the way to the floor**: v3.7.13 stops forwarding `Upgrade:
+h2c` and `HTTP2-Settings` request headers (declare the backend with the `h2c`
+scheme instead) and rejects a rootless request target with 400, **not
+configurable**; v3.7.15 / v2.11.59 answer every `CONNECT` with 501 over any HTTP
+version (tunnel through a TCP router instead). These rejections happen before
+routing, so they never reach the access log — only `DEBUG` logs show them.
 
 ## Decision flow
 

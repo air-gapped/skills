@@ -17,6 +17,7 @@ Traefik ships security advisories faster than its docs change — **62** in 2026
 | Buffering (`maxRequestBodyBytes`→413; do not cap response on SSE) | https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/buffering/ | 2026-09-15 |
 | ForwardAuth (per-request, no caching; v3 `maxBodySize` default -1 unbounded) | https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/ | 2026-09-15 |
 | Retry v2→v3 delta (network-only → HTTP `status`, non-idempotent opt-in) | https://github.com/traefik/traefik/releases (3.7 line) | 2026-09-15 |
+| Pre-routing rejections (v3.7.13 rootless target 400, v3.7.15 / v2.11.59 CONNECT 501) are absent from access logs | traefik/traefik `docs/content/migrate/v3.md` §v3.7.13 / §v3.7.15 and `docs/content/migration/v2.md` §v2.11.59 at v3.7.16 / v2.11.60; `pkg/server/server_entrypoint_tcp.go` (`http.MethodConnect` → 501) | 2026-10-27 |
 | JA3/JA4 not exposed to plugin API (declined/open) | https://github.com/traefik/traefik/issues/8627 · https://github.com/traefik/traefik/issues/12421 | 2026-09-15 |
 | Catalog-mode plugin startup network call regression (localPlugins immune) | https://github.com/traefik/traefik/issues/13005 | 2026-09-15 |
 | `localPlugins` layout + `.traefik.yml` required; zero network calls (source-verified) | https://doc.traefik.io/traefik/reference/install-configuration/experimental/plugins/ + traefik/traefik `pkg/plugins/` | 2026-09-15 |
