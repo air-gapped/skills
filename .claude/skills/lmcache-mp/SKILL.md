@@ -145,9 +145,13 @@ Upstream ships per-model recipes (`docs/source/mp/hybrid_models.rst`, published 
 | Model | Attention layout |
 |---|---|
 | Gemma 2 / 3 / 4, gpt-oss | Interleaved sliding-window + full |
-| Qwen3.5 / Qwen3.6, Qwen3-Next and other GDN hybrids | Mamba / Gated-DeltaNet + full |
+| Qwen3.5 / 3.6 / 3.8 series, Qwen3-Next and other GDN hybrids | Mamba / Gated-DeltaNet + full |
+| Qwen3.8-Flash-Next (0.5.6+) | GDN + QSA sparse full; per-request scratch ring is recomputed, not cached |
+| Kimi-Linear, Kimi K3 | KDA linear attention + MLA full |
 | DeepSeek-V4-Flash | Sparse-MLA, multiple KV groups |
+| DeepSeek-V4.1-Flash (0.5.6+) | Sparse-MLA + per-layer sliding window, 9 KV groups; scratch ring recomputed |
 | GLM 5.1 / 5.2 | Dynamic Sparse Attention, multiple KV groups |
+| GLM-5.3 (0.5.6+) | Dynamic Sparse Attention, single KV group; `--chunk-size` a multiple of 64, well below typical prompt length |
 | MiniMax-M3 | Sparse attention + lightning indexer (mixed KV formats in one group) |
 
 Sliding-window + full-attention hybrids need no special configuration — LMCache detects the model's KV cache groups at registration time.
@@ -159,9 +163,9 @@ INFO ... interface.py:670] Setting attention block size to 784 tokens to
 ensure that attention page size is >= mamba page size.
 ```
 
-Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode align --enable-prefix-caching`), read `N`, then stop. The per-model recipe pages carry the rest.
+Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode align --enable-prefix-caching`), read `N`, then stop. Start the LMCache server with `--separate-object-groups` as well (see below). The per-model recipe pages carry the rest.
 
-**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream documents the flag as transparent to correctness. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its `False` default are confirmed in `lmcache/v1/multiprocess/config.py:61` at tag v0.5.6.
+**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream marks `--separate-object-groups` **required for Mamba / linear-attention hybrids** (GDN, KDA) and a no-op for non-hybrid models; the recipes for those models, DeepSeek-V4.1-Flash and GLM-5.3 all pass it. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its `False` default are confirmed in `lmcache/v1/multiprocess/config.py:61` at tag v0.5.6.
 
 [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (the original hybrid tracker) was closed by the stale bot with no fix or maintainer answer, so its state says nothing either way; [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner) is still open. Neither blocks the documented path: the recipe pages are the authority, and verify the specific model against its recipe before production.
 
