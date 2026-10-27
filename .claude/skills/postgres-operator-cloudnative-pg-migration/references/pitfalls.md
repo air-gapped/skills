@@ -177,7 +177,9 @@ lagged replica).
 
 22. **PG ≤13 sources have no CNPG landing image** (operand images PG
     14–18; PG13 support ended 2025-11-13) — import/logical must jump
-    majors in one hop; pg_basebackup is impossible.
+    majors in one hop; pg_basebackup is impossible. PG14 reaches
+    upstream EOL on 2026-11-12: land PG14 sources on 15+ in the same
+    hop rather than on a major leaving support.
 23. **`wal_level: logical` needs a Patroni rolling restart** — schedule
     it; don't bundle with other parameter changes.
 24. **Zalando images are ghcr.io-only since 1.15.x** — resurrection
