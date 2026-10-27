@@ -47,12 +47,11 @@ The SigV4 fix breaks two things:
 
 1. **Clients sending an unsigned `Content-Type` or `x-amz-content-sha256`**
    (boto3 presigned PUTs with a content type, aws-sdk-php, minio-go — so
-   restic, Thanos, Loki, Mimir): bare `403 AccessDenied`; `debug_rgw` 5
-   logs `Signature rejected` (trackers 79674, 79803). Fixed in 19.2.7 —
-   upgrade Squid straight to 19.2.7. Tentacle: no fixed release after
-   20.2.4 yet — until one, `ceph config set client.rgw rgw_sigv4_insecure true`
-   (runtime, no restart). Any other unsigned `x-amz-*` header: AWS rejects
-   it too — fix the client, no workaround.
+   restic, Thanos, Loki, Mimir): bare `403 AccessDenied`, `debug_rgw` 5 logs
+   `Signature rejected` (trackers 79674, 79803). Fixed in 19.2.7: upgrade
+   Squid straight to it. Tentacle (no fixed release after 20.2.4 yet):
+   `ceph config set client.rgw rgw_sigv4_insecure true`, runtime, no restart.
+   Other unsigned `x-amz-*` headers fail on AWS too: fix the client.
 2. **Multisite.** Pre-fix zones sign forwarded requests improperly: set
    `rgw_sigv4_insecure: "true"` in every zone **before** upgrading. If
    forwarded requests (non-master → master, e.g. bucket create) still get
