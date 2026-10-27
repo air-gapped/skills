@@ -93,7 +93,7 @@ while agent.check_xfer_state(xfer) == "PROC":
 
 End-to-end working programs in `examples/python/basic_two_peers.py`, `expanded_two_peers.py`, `partial_md_example.py`. Full surface in `references/python-api.md`.
 
-## Metadata exchange — choose ONE of two modes
+## Metadata exchange — side-channel or ONE central store
 
 **Side-channel (default).** Each agent runs a TCP listener (`enable_listen_thread=True`, `listen_port=N`). One agent calls `fetch_remote_metadata(remote_name, ip, port)` to pull, or `send_local_metadata(ip, port)` to push. Good for fixed-pair setups, lab environments. Defaults to port 5555.
 
@@ -101,7 +101,9 @@ Since v1.2.0 (#1439) you can pass **`listen_port=0` to let the OS assign a free 
 
 **ETCD.** Set `NIXL_ETCD_ENDPOINTS=http://etcd:2379` (comma-separated for HA). Each agent calls `sendLocalMD()` / `fetchRemoteMD(remote_name)` (no IP/port args). Required for elastic / dynamic-scaling clusters where peers are not known upfront. ETCD is also how `nixlbench` discovers workers.
 
-Both modes support `send_partial_agent_metadata(descs, inc_conn_info, backends, label=...)` — only register-then-send the metadata for specific descriptor lists, useful when memory regions are dynamic or to avoid advertising everything. Example: `examples/python/partial_md_example.py`.
+**TCPStore (v1.5.0+, #1930).** Set `NIXL_TCPSTORE_ENDPOINT=host:port` — a single endpoint speaking the c10d protocol, so an existing `torch.distributed.TCPStore` server works and no ETCD is needed. Same name-addressed calls as ETCD. Setting both `NIXL_ETCD_ENDPOINTS` and `NIXL_TCPSTORE_ENDPOINT` makes agent creation throw. A fetch for a peer that has not published yet waits up to `NIXL_TCPSTORE_TIMEOUT_MS` (30000).
+
+All modes support `send_partial_agent_metadata(descs, inc_conn_info, backends, label=...)` — only register-then-send the metadata for specific descriptor lists, useful when memory regions are dynamic or to avoid advertising everything. Example: `examples/python/partial_md_example.py`.
 
 ## Plugin Manager + plugin search path
 

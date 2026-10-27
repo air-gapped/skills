@@ -210,6 +210,8 @@ When a peer leaves, call `agent.invalidate_local_metadata()` (no IP/port) to evi
 |---|---|---|---|
 | `NIXL_PLUGIN_DIR` | Search path for dynamic plugins | wheel-managed | `ls $NIXL_PLUGIN_DIR/libplugin_*.so` to verify |
 | `NIXL_ETCD_ENDPOINTS` | ETCD client endpoints (comma-sep) | unset | Required for ETCD-mode metadata exchange |
+| `NIXL_TCPSTORE_ENDPOINT` | c10d TCPStore `host:port` (v1.5.0+) | unset | Central store without ETCD; mutually exclusive with `NIXL_ETCD_ENDPOINTS` |
+| `NIXL_TCPSTORE_TIMEOUT_MS` / `NIXL_TCPSTORE_OP_TIMEOUT_MS` | Bring-up wait for connect and unpublished peers / per-operation bound | `30000` / `5000` | Raise the first for slow bring-up |
 | `NIXL_TELEMETRY_ENABLE` | Master telemetry switch | `false` | `y/yes/on/true/enable/1` (case-insensitive) |
 | `NIXL_TELEMETRY_EXPORTER` | Exporter plugin name | unset | `prometheus` for beta exporter; empty + `NIXL_TELEMETRY_DIR` set → cyclic buffer |
 | `NIXL_TELEMETRY_DIR` | Cyclic-buffer output directory | unset | Required for cyclic-buffer mode |
