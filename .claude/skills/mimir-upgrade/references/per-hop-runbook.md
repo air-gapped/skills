@@ -100,7 +100,7 @@ backend pointing at the old name breaks simultaneously.
    Only then delete the `nginx` block.
 
 **Archive the mapping guide now.** It resolves only at the **`v5.8.x`** docs path — `latest` 404s and `v5.6.x`
-502s, because the guide was removed when `nginx` was. [UG]
+redirect-loops between grafana.com and archive.grafana.com, because the guide was removed when `nginx` was. [UG]
 
 ## 4. Hop 2 — 5.8.0 → 6.0.6
 
