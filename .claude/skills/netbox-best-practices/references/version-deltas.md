@@ -136,7 +136,9 @@ copying 4.7.3 between two PostgreSQL operators.
   legacy pair and still returns it on read; read-only at the
   ORM.
 - Config context is pre-rendered into every device/VM REST representation;
-  `?exclude=config_context` is silently ignored.
+  `?exclude=config_context` is silently ignored. Drop it with
+  `?omit=config_context` (or `?fields=` / `?brief=1`); from 4.7.3 that also
+  skips loading it.
 - REST token plaintexts are server-generated only; running custom scripts
   needs a write-enabled token.
 - social-auth-core 4.8.7 → 5.1.0 (4.7.0) → **5.2.0** (4.7.3);
