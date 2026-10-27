@@ -79,6 +79,7 @@ Consequences:
    exactly 16383, 2097151 or 268435455 encoded bytes (a 16378-byte stream
    value suffices) makes the RDB load fail or misparse, and a full sync abort
    and restart forever (valkey-io/valkey#4818). Logical replay is unaffected.
+   Chart defaults still ship 9.1.0/9.1.2 — set the image tag explicitly.
 4. **Valkey 9 is a one-way door.** Its v80 snapshots load on nothing else —
    not Redis, not Valkey 8. The final pre-cutover Redis RDB is the only
    rollback artifact; archive it before decommissioning.

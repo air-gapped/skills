@@ -10,7 +10,7 @@ gates verified 2026-08-26.
    *before* discovering the incoming RDB (Redis 7.4+/v12) is unparseable —
    the replica ends up empty AND unsynced. **Fixed by PR #2600 (validate
    before `emptyData`), contained in 9.1.0+ only** — verified absent from
-   tags 8.1.9 and 9.0.5 by compare. On 8.x/9.0.x the hazard is live; on
+   tags 8.1.11 and 9.0.7 by compare. On 8.x/9.0.x the hazard is live; on
    9.1.0+ the replica keeps its data and the sync merely fails. Never point a
    Valkey that holds data at a >7.2 source on any version.
    **Even a ≤7.2 source fails into 9.1.0–9.1.2** (valkey-io/valkey#4818):
@@ -40,7 +40,7 @@ gates verified 2026-08-26.
    `replica-announce-ip`, the RDB channel connects from the pod's ephemeral
    IP; Sentinel records a phantom second replica and can elect a
    self-replicating "master". Fix (PR #2846, merged 2026-02-23) shipped in
-   **Valkey 9.1.0 only** — not in 8.1.8 or 9.0.4. Upstream default is `no`;
+   **Valkey 9.1.0 only** — not in 8.1.11 or 9.0.7. Upstream default is `no`;
    keep it off below 9.1.0. (Managed services may enable it by default.)
 6. **`failoverWait` vs `downAfterMilliseconds` cross-unit trap**
    (groundhog2k): failoverWait is seconds, downAfter is milliseconds; the

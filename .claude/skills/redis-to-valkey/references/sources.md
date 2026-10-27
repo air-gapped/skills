@@ -20,13 +20,13 @@ proves containment, and a release-notes read would have gotten both wrong.
 | Ref | URL | Grounds | Pinned |
 |---|---|---|---|
 | valkey migration doc | https://valkey.io/topics/migration/ | Redis ≤7.2.x source bound; AOF-masks-RDB caveat; redis_version rationale; Lua namespaces | — |
-| valkey rdb.h | https://github.com/valkey-io/valkey/blob/9.1.1/src/rdb.h | RDB_VERSION 11 (8.x) / 80 (9.x); RDB_FOREIGN_VERSION_MIN 12 | tags 8.1.9/9.0.5/9.1.1 |
-| valkey version.h | https://github.com/valkey-io/valkey/blob/9.1.1/src/version.h | redis_version frozen at "7.2.4" (comment: "should never exceed 7.2.x") | tags 8.1.9/9.1.1 |
-| valkey #2588 + **PR #2600** | https://github.com/valkey-io/valkey/pull/2600 | replica flushed before rejecting a foreign RDB; fix "validate before emptyData" merged 2025-11-19, **contained in 9.1.0+ only** — `compare` says `diverged` from 8.1.9 and 9.0.5 | fix ∈ 9.1.0, 9.1.1 |
-| valkey #2338 / PR #2846 | https://github.com/valkey-io/valkey/issues/2338 | dual-channel + Sentinel phantom replica; merged 2026-02-23, **9.1 line only** — `diverged` from 9.0 and 8.1 | fix ∈ 9.1.0+ |
+| valkey rdb.h | https://github.com/valkey-io/valkey/blob/9.1.3/src/rdb.h | RDB_VERSION 11 (8.x) / 80 (9.x); RDB_FOREIGN_VERSION_MIN 12; pre-release 9.2.0-rc1 has RDB_VERSION 81 | tags 8.1.11/9.0.7/9.1.3 |
+| valkey version.h | https://github.com/valkey-io/valkey/blob/9.1.3/src/version.h | redis_version frozen at "7.2.4" (comment: "should never exceed 7.2.x") | tags 9.1.3/9.2.0-rc1 |
+| valkey #2588 + **PR #2600** | https://github.com/valkey-io/valkey/pull/2600 | replica flushed before rejecting a foreign RDB; fix "validate before emptyData" merged 2025-11-19, **contained in 9.1.0+ only** — `compare` says `diverged` from 8.1.11 and 9.0.7, `behind` for 9.1.3; neither line's notes name a backport | fix ∈ 9.1.0–9.1.3 |
+| valkey #2338 / PR #2846 | https://github.com/valkey-io/valkey/issues/2338 | dual-channel + Sentinel phantom replica; merged 2026-02-23, **9.1 line only** — `diverged` from 9.0.7 and 8.1.11, `behind` for 9.1.3 | fix ∈ 9.1.0+ |
 | valkey #4818 / PR #4819 | https://github.com/valkey-io/valkey/issues/4818 | 9.1.0–9.1.2 read listpack backlen narrower than Redis/Valkey ≤9.0 write (from PR #3601) → RDB load rejected / full sync loops at entry lengths 16383, 2097151, 268435455; fixed in 9.1.3 (release notes 2026-10-26). Source-confirmed: `lpEncodeBacklen` uses `< 16383` at redis 7.2.4, valkey 9.0.7 and 9.1.3, `<= 16383` at 9.1.0 | fix ∈ 9.1.3 |
 | valkey #845 | https://github.com/valkey-io/valkey/issues/845 | "Can't handle RDB format version 12" failure mode; still OPEN, no upstream fix — third-party tools are the only answer | — |
-| valkey releases | https://github.com/valkey-io/valkey/releases | current lines **9.1.2 / 9.0.6** (both 2026-09-01), **8.1.10 / 8.0.11** (both 2026-08-31), 7.2.14 (2026-07-21, unchanged); **still no 9.2 or 10.x** | 9.1.2 (2026-09-01) |
+| valkey releases | https://github.com/valkey-io/valkey/releases | current lines **9.1.3 / 8.1.11 / 8.0.12 / 7.2.15** (2026-10-26) and **9.0.7** (2026-10-27), all SECURITY urgency (GHSA-f4q9-j22m-xqq9, cluster Pub/Sub); 9.2 exists only as 9.2.0-rc1 (2026-09-16, pre-release); no 10.x | 9.1.3 (2026-10-26) |
 | RedisShake | https://github.com/tair-opensource/RedisShake | v4.7.0 (2026-10-20; adds slot filters, multi-part AOF fix — no resume, no support-range change); README still Redis 2.8–8.4.x → Valkey 8–9; sync/scan/rdb readers; topology-panic caveat; linux amd64/arm64 tarballs still published | v4.7.0 |
 | RedisShake #1016 | https://github.com/tair-opensource/RedisShake/issues/1016 | resume/checkpoint **declined by maintainers** as out of scope for a sync tool — the "restart = full recopy" caveat is permanent, not pending | open |
 | librdb / rdb-cli | https://github.com/redis/librdb | rdb-cli replay recipe; release v2.4.0 (2026-10-05) has **no binary assets** (build via make) | tag v2.4.0 |
@@ -45,9 +45,9 @@ proves containment, and a release-notes read would have gotten both wrong.
 
 | Ref | URL | Grounds | Pinned |
 |---|---|---|---|
-| Harbor valkey decision | https://github.com/goharbor/harbor/issues/22935 | Redis→Valkey replacement; **closed**, shipped in v2.15.2 (no 2.16.0 exists) | closed 2026-04-28 |
+| Harbor valkey decision | https://github.com/goharbor/harbor/issues/22935 | Redis→Valkey replacement; **closed**, shipped in v2.15.2; 2.16.0 exists only as v2.16.0-rc1 (pre-release, 2026-10-27) | closed 2026-04-28 |
 | Harbor 2.15.2 notes | https://github.com/goharbor/harbor/releases/tag/v2.15.2 | valkey cache backend cherry-pick #23157 (PR #23261) | v2.15.2 |
-| harbor-helm values | https://github.com/goharbor/harbor-helm/blob/v1.19.2/values.yaml | **released chart now defaults `redis.internal.image.repository` to `goharbor/valkey-photon`**; external config keeps legacy `addr`/`sentinelMasterSet` names | chart 1.19.2 (2026-08-03) |
+| harbor-helm values | https://github.com/goharbor/harbor-helm/blob/v1.19.4/values.yaml | **released chart now defaults `redis.internal.image.repository` to `goharbor/valkey-photon`**; external config keeps legacy `addr`/`sentinelMasterSet` names | chart 1.19.4 (2026-10-16) |
 | GitLab redis admin doc | https://docs.gitlab.com/administration/redis/ | Valkey beta 18.9 / GA 19.0; admin-area version display cosmetic (known issue 589642) | — |
 | **GitLab bundled-chart removal** | https://docs.gitlab.com/charts/development/external-dependencies/ | "The bundled PostgreSQL, Redis, and MinIO charts have been deprecated and **were removed in GitLab 19.0**" — no replacement; Valkey is the suggested external substitute | 19.0 |
 | GitLab external-redis chart doc | https://docs.gitlab.com/charts/advanced/external-redis/ | global.redis sentinel keys; `sentinelAuth.*` is documented on the globals page (next row) | — |
@@ -78,6 +78,7 @@ Answered this pass, kept because the answer can flip:
 
 Still open:
 
-- Does the #2600 flush fix get backported to 9.0.x or 8.1.x? Today both lines
-  carry the live hazard, which is the main argument for landing on 9.1.x.
-- `valkey 9.2 / 10.x` — a new RDB version would extend the wall table.
+- Does the #2600 flush fix get backported to 9.0.x or 8.1.x? Not as of 9.0.7 /
+  8.1.11; both lines carry the live hazard, which is the main argument for landing on 9.1.x.
+- `valkey 9.2 GA` — rc1 writes RDB_VERSION 81; extend the wall table when it
+  ships, after checking what 9.2 still loads.
