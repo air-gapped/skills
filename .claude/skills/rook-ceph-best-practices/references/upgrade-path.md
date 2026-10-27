@@ -44,7 +44,8 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
 2. Export every CSI setting from `rook-ceph-operator-config` and the
    `rook-ceph` chart values; re-express them as ceph-csi-operator
    `OperatorConfig` / `Driver` CR values.
-3. Helm: upgrade `rook-ceph`, then install/upgrade `ceph-csi-drivers`, then
+3. Helm: upgrade `rook-ceph`, then install/upgrade `ceph-csi-drivers` with
+   `-f` Rook's `deploy/charts/ceph-csi-drivers/values.yaml`, then
    `rook-ceph-cluster`. Manifest installs: apply the operator.yaml defaults
    for the CSI CRs.
 4. Verify `kubectl -n <ns> get deploy | grep ctrlplugin` shows ready

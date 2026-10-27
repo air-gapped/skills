@@ -172,11 +172,16 @@ ctrlplugin Deployments sit at 0/2 and every attach/detach in the cluster
 fails (rook#17644). Migrate custom CSI settings to ceph-csi-operator
 `OperatorConfig` / `Driver` CRs by hand before the hop.
 
-The `ceph-csi-drivers` chart does not set
-`operatorConfig.driverSpecDefaults.imageSet.name`, so ceph-csi-operator
-falls back to its own hard-coded cephcsi image instead of the version
-Rook pins (ceph-csi-operator#605). Verify the running cephcsi image after
-the hop; AES256K needs cephcsi ≥ 3.17.1 on the 1.20 line.
+Install `ceph-csi-drivers` with Rook's values file
+(`deploy/charts/ceph-csi-drivers/values.yaml` at the Rook tag). The chart's
+own defaults lack the Rook-prefixed driver names and
+`operatorConfig.driverSpecDefaults.imageSet.name:
+rook-csi-operator-image-set-configmap`; without the image set
+ceph-csi-operator runs its built-in cephcsi — 3.17.0 in the operator
+versions Rook v1.20.x bundles, below the AES256K floor
+(ceph-csi-operator#605). From v1.21 Rook leaves that configmap empty and
+the bundled operator's default (cephcsi 3.18.1) applies. Verify the running
+cephcsi image after the hop; AES256K needs cephcsi ≥ 3.17.1.
 
 ## Tentacle: disable the rook mgr module first
 
