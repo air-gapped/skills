@@ -24,11 +24,10 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   manual read of the live KB; also confirm whether 17G ships 2023 certs pre-installed (claimed, unconfirmed).
 ## Decided — do not re-propose
 
-- **Watch item with a real trigger, not a vague one: the dbx signing cutover.** Microsoft still signs `dbx`
-  with the 2011 KEK (verified by parsing the June 2026 payload). When a dbx push appears signed by
-  `KEK 2K CA 2023`, the revocation-freeze section in `mechanism.md` and the timeline in
-  `gotchas-and-decisions.md` both flip from "not yet started" to live, and the skill's urgency changes. Re-probe
-  the signer on the next freshen.
+- **Watch item: the end of 2011-KEK-signed dbx.** The dbx cutover trigger fired (2023-KEK tree from
+  2026-09-01); the 2011 tree still gets new hashes and the bootmgr SVN. When a dbx release ships with no
+  2011-signed counterpart, `mechanism.md` and `gotchas-and-decisions.md` move from "partial" to "full freeze".
+  Re-probe both trees' commit history on the next freshen.
 - **Second watch item: the first x86_64 2023-only shim.** aarch64 already crossed. No x86_64 distro has dropped
   the 2011 signature and none has published a date; Ubuntu has not shipped a new shim at all. The next
   CVE-driven shim respin is the event to catch.

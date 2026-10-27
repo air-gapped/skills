@@ -51,18 +51,20 @@ running systems.
    LP#2156479 and BitLocker/TPM-FDE dual-boot LP#2156480, completed 06-23), pre-staging firmware trust so a
    future shim update won't strand systems. Ubuntu 26.04 point releases and new cloud images are stated to
    require the 2023 CA *later* — planned, not shipped.
-2. **Revocation freeze — real, but *not yet started* (verified 2026-08-18).** The eventual risk: no valid 2023
-   KEK → the machine can never enroll new `dbx` entries, so known-vulnerable bootloaders stay trusted. But
-   Microsoft is **still signing dbx with the 2011 KEK**, so machines that never got the 2023 KEK are *not*
-   currently missing revocations. Proof (House Rule #4 — parse the artifact, don't infer): the June 2026 dbx
-   push — `PostSignedObjects/DBX/amd64/DBXUpdate.bin`, commit `a728996` (2026-06-09), 12 new x64 hashes,
-   bootmgfw SVN → v9, **CVE-2026-45654** — parses as a PKCS#7 `EFI_VARIABLE_AUTHENTICATION_2` blob whose
-   SignerInfo is `CN=Microsoft Windows UEFI Key Exchange Key`, **issuer `CN=Microsoft Corporation KEK CA 2011`**.
-   No cert chaining to `KEK 2K CA 2023` appears in it. The freeze begins only when Microsoft cuts dbx signing
-   over to the 2023 KEK — **no cutover date is published**, so treat this as the trigger to watch, not a
-   present-day gap. On **Linux** the risk is lower regardless: revocation rides **SBAT** (generation-number,
-   self-healing in shim), not `dbx`. The 2023 cert transition does **not** change dbx/SBAT handling — it's an
-   orthogonal axis (trust/expiry of signing CAs, not revocation).
+2. **Revocation freeze — partial, and widening (verified 2026-10-27).** No valid 2023 KEK → the machine can
+   only enroll `dbx` content Microsoft still signs with the 2011 KEK. `microsoft/secureboot_objects` now
+   publishes two trees (parse the signer before applying — House Rule #4):
+
+   | Path under `PostSignedObjects/` | Signed by | Carries |
+   |---|---|---|
+   | `SignedByKEK2023/dbx_<arch>.efiauth2`, `dbx_SVN.efiauth2` (`SignedByKEKLatest` points here) | KEK 2K CA 2023 | full consolidated dbx + **all** SVNs (bootmgr, cdboot, wdsmgfw) |
+   | `SignedByKEK2011/dbx_<arch>_Legacy/` (legacy list + one file per new hash), `dbx_SVN_Legacy/dbx_SVN_bootmgfw_v<N>.efiauth2` | KEK CA 2011 | new hashes + **bootmgr SVN only** |
+   | `DBX/<arch>/DBXUpdate.bin` | KEK CA 2011 | frozen, no longer updated; **deleted in 2027** — don't reference it |
+
+   So a 2011-KEK-only machine is already missing the cdboot/wdsmgfw SVN revocations — enroll the 2023 KEK
+   wherever the platform offers a path. On **Linux** the risk is lower regardless: revocation rides **SBAT**
+   (generation-number, self-healing in shim), not `dbx`. The 2023 cert transition does **not** change SBAT
+   handling — it's an orthogonal axis (trust/expiry of signing CAs, not revocation).
 
 ## The PK → KEK → db trust chain (why the fix needs no fwupd and no new KEK)
 

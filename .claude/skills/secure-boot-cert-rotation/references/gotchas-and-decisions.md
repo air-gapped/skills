@@ -116,10 +116,10 @@ this never happens.
 - **Forward-compat, when it comes:** new install/PXE media and post-cutover bootloader updates signed only
   with 2023 keys; a `db` lacking the 2023 CA can't validate them. On Linux this stalls the boot-stack update
   chain ("can't install updates"); installers fail rather than producing an unbootable machine.
-- **Revocation freeze: not yet in effect.** Microsoft is still signing `dbx` with the **2011** KEK (verified by
-  parsing the June 2026 payload — `mechanism.md`), so machines lacking the 2023 KEK are not currently missing
-  revocations. The freeze starts at the un-announced dbx signing cutover. On Linux it is softened anyway by
-  SBAT (self-healing).
+- **Revocation freeze: partial, already in effect.** Microsoft signs `dbx` with both KEKs, but the cdboot and
+  wdsmgfw SVN revocations ship 2023-KEK-signed only (`mechanism.md`), so a machine lacking the 2023 KEK is
+  already missing some revocations, and the gap widens whenever a revocation ships 2023-signed only.
+  On Linux it is softened by SBAT (self-healing).
 
 So: **low immediate risk, real *compounding* risk.** It's a scheduled hygiene task, not a fire drill. The
 dominant practitioner framing: "real but probably won't hurt you — do it before the forward-compat and

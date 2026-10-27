@@ -48,11 +48,10 @@ Consequences, and the entire reason this is a *hygiene* task and not a *fire*:
   1. **Forward-compat** — once a distro ships a shim/bootloader signed *only* by the **Microsoft UEFI CA 2023**,
      a machine whose firmware `db` lacks that 2023 cert can't validate the new binary. On Linux this surfaces
      as "package-management failures / can't install updates"; on new installs/PXE as a failed deploy.
-  2. **Revocation freeze — now live, not theoretical.** A machine stuck on the expired **2011 KEK** can't receive new
-     `dbx` revocations, so known-vulnerable bootloaders stay trusted. As of 2026-09-15 Microsoft **is** shipping
-     KEK2023-signed `dbx` updates (`SignedByKEK2023/` in `microsoft/secureboot_objects`, and its README says the
-     KEK-2011 folder is deleted in 2027), so the freeze has started rather than merely being predicted.
-     (Lower on Linux, which revokes via **SBAT**, not `dbx`.)
+  2. **Revocation freeze — partial, and widening.** Microsoft now signs `dbx` with **both** KEKs. A machine
+     stuck on the expired **2011 KEK** still gets new hash revocations and the bootmgr SVN, but the cdboot and
+     wdsmgfw SVN revocations ship **2023-KEK-signed only** — those known-vulnerable binaries stay trusted there.
+     Details: `references/mechanism.md`. (Lower on Linux, which revokes via **SBAT**, not `dbx`.)
 - **So the fix everywhere is: get the Microsoft 2023 `db` cert into the firmware/varstore** (and the 2023 KEK
   where the platform offers a path). Mechanism + dates + the 2011→2023 map: `references/mechanism.md`.
 
