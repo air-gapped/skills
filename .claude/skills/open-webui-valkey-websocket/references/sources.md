@@ -1,32 +1,14 @@
 # Sources — files, issues, docs
 
-Freshened: 2026-09-22 — every row probed against v0.11.4 (2026-09-21). Four status claims flipped: #23733 was bot-closed NOT_PLANNED 2026-08-11 (won't-fix, not fixed), #27622 and #27651 both closed COMPLETED, and #16074 now 404s. Every websocket/Sentinel env var the skill documents still exists at v0.11.4 with the same semantics. Chart line is 16.6.0 / appVersion 0.11.4.
+Freshened: 2026-10-27 — every row probed against v0.12.4 (2026-10-25) and chart 17.0.0; the v0.12.x line moved the security floor, Sentinel behaviour, room-channel delivery and revocation, and six PRs the skill called merged were closed unmerged.
 
-Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers with dates, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode.
-
-**Freshened: 2026-09-15 — every row probed.** The headline result is that **the RedisCluster `publish()` breakage is fixed from v0.11.2** (#19840 closed by PR #29165; ancestry `diverged` for v0.11.1, `behind` for v0.11.2) — see `known-issues.md`. Three other issues this file listed as OPEN have closed: #23733 as NOT_PLANNED (won't-fix, not fixed), #27622 and #27651 as COMPLETED.
-
-**Two rows need rediscovery, not a line bump.** `PersistentConfig` no longer exists anywhere in the tree, so the cache-through-Redis mechanism this file documents is gone or renamed; and `profile_image_url`'s default changed from `/static/favicon.png` to `None`, which is a behaviour change rather than drift. `validate_profile_image_url` moved to `utils/validate.py`, and the in-tree `helm-charts-temp/` directory is gone entirely — the chart lives in its own repo now. Line anchors throughout have shifted; re-resolve by symbol. Issue **#16074 is a 404** and should be dropped. Several entries labelled PR are issues and vice versa, so `gh pr view` fails on them.
-
-Versions referenced span 0.5.x (Dec 2024) through **v0.11.3 (current stable, 2026-08-31)**, via v0.11.1 and v0.11.2; the chart line is now 16.5.0 / appVersion 0.11.3. Historically this file topped out at 0.11.0 (2026-07-27). Multi-pod story starts maturing around 0.6.18 (July 2025) and is still actively patched. **Caveat as of the 2026-07-29 freshen:** the 0.11.0 release notes WERE read this pass (hence §Version upgrades and the two new triage rows), and the multi-pod env block was re-verified against 0.11.0 `env.py`/`config.py`. Still NOT done: load-testing 0.9.6→0.11.0 for scaling regressions, and re-resolving the line-number map below, which remains resolved against 0.9.4.
+Authoritative source files in the Open WebUI codebase, GitHub issue/PR numbers, and `docs.openwebui.com` URLs underlying every claim in this skill. Load this file to verify a specific fact or run `freshen` mode. Code anchors are file + symbol at tag `v0.12.4`; line numbers drift every release, so resolve by symbol (`git show v0.12.4:<path> | grep -n '<symbol>'`).
 
 ## Verification log
 
-Per-source-group last-verified dates. `freshen` mode probes each row and stamps the date on success. The skill's `Last verified:` cap (Dim 9 rubric) reads from the oldest row.
-
-| Source group | Last verified | Notes |
-|---|---|---|
-| open-webui/open-webui latest stable **v0.11.0** (released 2026-07-27) | 2026-09-15 | 0.11.0 verified: every env var in the SKILL.md production block still exists and is read; `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` still defaults to `1` (`env.py:996`); the per-model/request twin `stream_delta_chunk_size` resolves as `max(env, per_request or 1)` (`utils/middleware.py:4181-4183`, `utils/payload.py:93`) and predates 0.11.0; new `REDIS_SOCKET_TIMEOUT` (`env.py:398-402`). `socket/main.py` (+238) and `utils/middleware.py` (+1074) were heavily rewritten but the full-message-per-frame model is UNCHANGED. Release notes declare rolling updates unsupported across the 0.11.0 schema change. |
-| open-webui/open-webui v0.10.2 (2026-07-01) | 2026-09-15 | v0.9.5 → v0.9.6 (2026-06-01) → v0.10.0/v0.10.1 (both 2026-06-29) → **v0.10.2** (2026-07-01). File paths/line numbers below are still resolved against the v0.9.4 clone HEAD `f51d2b026` and were **not** re-resolved this pass — the sibling `open-webui-embeddings` skill found that `config.py` was restructured by ~2000 lines between 0.9.x and 0.10.2, so assume this map has drifted and re-resolve by symbol name. |
-| docs.openwebui.com (scaling, redis tutorial, multi-replica troubleshooting, env-config, hardening) | 2026-09-15 | Pulled raw from `open-webui/docs` repo on this date. |
-| open-webui/helm-charts at **v15.2.0** (0.11.0 chart UNRELEASED — v15.2.1/appVersion 0.11.0 sits on unmerged branch `automation/open-webui-0.11.0`, committed 2026-07-27; running 0.11.0 via the chart needs a manual `image.tag` override) | 2026-09-15 | Latest stable `open-webui-15.2.0` (2026-07-01), appVersion **0.10.2** — a **14 → 15 major bump**, with 15.0.0 and 15.1.0 both cut 2026-06-29 and 14.11.0 the last 14.x. Breaking changes NOT reviewed. Structure spot-checked and intact: `websocket:` top-level block at line 66, `replicaCount: 1` at 183. **Filter `dev` tags** — the repo publishes many `15.2.1-dev.N.1` prereleases that dominate an unfiltered `gh release list`. |
-| GitHub issues #23733, #15162, #19840 re-probed OPEN 2026-07-29; new 0.11.0: **#27622** (idle chat-timer polling) and **#27651** (`runAsNonRoot` breaks) both OPEN. Older: #23650 open; **#23939 CLOSED** | 2026-09-15 | #23733 still OPEN (updated 2026-06-17 — but the recent thread is off-topic memory-usage chatter, not movement on frame amplification). #15162 open (upd 2026-06-10), #19840 open (upd 2026-04-21), #23650 open (upd 2026-04-12). **#23939 has been CLOSED since 2026-04-22** and was wrongly carried as open through the 2026-05-10 and 2026-05-28 passes — it was already closed two weeks before the earlier of those. |
-| GitHub issue #23987 (Sentinel coroutine regression) | 2026-09-15 | Confirmed CLOSED 2026-05-08 by tjbck via `gh issue view`; fix shipped in 0.9.4 (released 2026-05-09). |
-| GitHub PRs #23735, #23736, #24124, #24126, #24171 (Yjs/streaming attempts) | 2026-09-15 | All confirmed CLOSED, not merged, via `gh pr view`: #23735 delta emission, #23736 resumable replay, #24124/#24126/#24171 Ydoc streaming. |
-| GitHub PRs in April–May 2026 batch (#22507, #22980, #22734, #23571–3, #23642, #23649, #23709, #23829, #23896, #24015, #24412, #24420) | 2026-09-15 | Verified merged. |
-| GitHub PRs in Nov–Dec 2025 batch (#18996, #19097, #19395, #19488, #19519, #19871, #19959, #20076, #20145) | 2026-09-15 | Verified merged. |
-| Earlier closed issues (#11934, #12325, #14340, #16074, #16157, #16693, #16979, #17223, #18073, #18223, #18366, #18950, #19401, #20142, #21410, #22734) | 2026-09-15 | Verified closed; resolutions referenced in `known-issues.md`. |
-| Helm chart issues #338, #341, #383 | 2026-09-15 | #338 closed (maintainer confirms support), #341 closed (fixed v13.2.0), **#383 now CLOSED 2026-06-28** (gateway-API `appProtocol` hint). |
+| Source | Notes |
+|---|---|
+| open-webui/open-webui releases (`gh release list`, `isLatest`) | Latest stable **v0.12.4** (2026-10-25). v0.12.0 2026-10-10, v0.12.1 and v0.12.2 2026-10-14, v0.12.3 2026-10-16. Previous line ended at v0.11.4 (2026-09-21). |
 | Security floor v0.12.4 — `gh api repos/open-webui/open-webui/security-advisories` (166 published) vs `gh api 'advisories?ecosystem=pip&affects=open-webui'` | Highest published ceiling `< 0.12.2` (advisory published 2026-10-18, patched 0.12.2); 17 advisories published 2026-09-27/28 patched 0.11.4. The global database's newest open-webui entry was 2026-09-10 on 2026-10-27, so it lagged the repo list by 6+ weeks. v0.12.4 notes (CHANGELOG.md at tag `v0.12.4`): security fixes "not listed in this changelog". The 2026-09-15 "all 69 have `first_patched_version` null" no longer held: 73 of 74 in that window had it set on 2026-10-27. |
 | v0.12.0–v0.12.4 schema changes and mixed-version delivery — CHANGELOG.md at tag `v0.12.4`, `git diff --diff-filter=A <tag>..<tag> -- backend/open_webui/migrations/versions/` | Migrations added: 6 in v0.12.0 (incl. `a7d3e9f2b641_add_mfa_and_session_stamp`), 2 in v0.12.1, none v0.12.2–v0.12.4. CHANGELOG.md carries the "rolling updates are not supported" warning for v0.12.0 and v0.12.1; the GitHub release body for v0.12.0 does not. v0.12.0 "Update Redis-backed instances together" (#28818): updates from an upgraded instance do not reach an older one unless `WEBSOCKET_REDIS_ROOM_CHANNELS=false`. |
 | `WEBSOCKET_REDIS_ROOM_CHANNELS` — `backend/open_webui/env.py` and `backend/open_webui/socket/redis_room_channels.py::AsyncRedisRoomChannelManager` at tag `v0.12.4`; CHANGELOG.md 0.12.0 (#28818) and 0.12.3 (commit `362b01d0`) | Default `True`. Room channel = `f'{self.channel}#{namespace}#{room}'`, base channel is python-socketio's default `socketio` (the skill's earlier `flask-socketio` was Flask-SocketIO's default, never this one). 0.12.3: needs PUBLISH, SUBSCRIBE, UNSUBSCRIBE, PING and `&socketio`, `&socketio#*`; PSUBSCRIBE no longer used (0.12.0 required it). |
@@ -35,96 +17,58 @@ Per-source-group last-verified dates. `freshen` mode probes each row and stamps 
 | Valkey key layout at v0.12.4 — `backend/open_webui/tasks.py::save_response_stream` / `append_response_stream`; `git grep` for `PersistentConfig` and `:config` keys over `backend/open_webui` at `v0.12.4`; CHANGELOG.md 0.12.3 "Much lighter streaming with Redis" | Snapshot key `f'{REDIS_RESPONSE_STREAMS_KEY}:{task_id}'`, `redis.set(..., ex=REDIS_RESPONSE_STREAM_TTL)`, append via `redis.eval` with `strlen`/`append`/`expire`. No `PersistentConfig` class and no Redis `config` keys anywhere in the backend at v0.12.4, so the `open-webui:config:*` row was removed. |
 | open-webui/helm-charts at `open-webui-17.0.0` (local clone, tags filtered for `dev`) | 17.0.0 2026-10-10 appVersion 0.12.0; only commit 16.6.0..17.0.0 under `charts/open-webui` is `795edda` "upgrade open-webui to v0.12.0". Branches `automation/open-webui-0.12.1`…`0.12.4` unmerged. `service.appProtocol` added by `1b055bb` (2026-05-22), first stable tag containing it `open-webui-14.11.0`; #383 CLOSED 2026-06-28. `websocket-redis.yaml` still `kind: Deployment`, no PVC. Handle `westbrook-ai` now 404s on GitHub, so the maintainer handle was dropped. |
 | Issue/PR states re-probed 2026-10-27 (one GraphQL query, open-webui/open-webui) | #15162 CLOSED COMPLETED 2026-09-22, maintainer: "Fixed in v0.11.4" (commit `0180efec`). Closed **unmerged** PRs the skill had called merged: #22402, #24099, #24100, #16693, #23896, #19799. #23650 is a PR, closed unmerged 2026-09-22. #16074 returns NOT_FOUND (dropped; the 0.6.41 fix is cited by commit `70948f880`). Issues, not PRs: #19395, #19519, #24412. #17223 is a merged PR. |
-| v0.11.1–v0.11.4 release notes, read item by item | 2026-09-24 | **Biggest find: #23733's amplification is fixed in v0.11.1** (commit `a1579a01f` — `utils/middleware.py::streaming_chat_response_handler` now emits `response.output_text.delta` events, not `{'output': full_output()}`), even though the GitHub issue stayed closed won't-fix. Also confirmed: #27622 and #27651 fixed in v0.11.1 (release notes match the earlier issue-state probe); `REDIS_RESPONSE_STREAM_TTL`, `WEBSOCKET_HEARTBEAT_INTERVAL`, `UVICORN_WS_PER_MESSAGE_DEFLATE` added v0.11.1; `REDIS_TASK_TTL`, `ENABLE_CHAT_RESPONSE_STREAM_INPLACE_APPEND` added v0.11.4; revocation fails open on `RedisError` since v0.11.4 (commit `c1615bec2`, `utils/auth.py::is_valid_token`); sign-in rate limiter (PR #29977) and session-pool reaper (PR #29976) no longer break on a Redis blip, both v0.11.4; per-worker model-registry cache (PR #28176) and Ollama-`expires_at` signature fix (commit `649c012e`), both v0.11.4. |
+| v0.11.1–v0.11.4 release notes, read item by item | **Biggest find: #23733's amplification is fixed in v0.11.1** (commit `a1579a01f` — `utils/middleware.py::streaming_chat_response_handler` now emits `response.output_text.delta` events, not `{'output': full_output()}`), even though the GitHub issue stayed closed won't-fix. Also confirmed: #27622 and #27651 fixed in v0.11.1 (release notes match the earlier issue-state probe); `REDIS_RESPONSE_STREAM_TTL`, `WEBSOCKET_HEARTBEAT_INTERVAL`, `UVICORN_WS_PER_MESSAGE_DEFLATE` added v0.11.1; `REDIS_TASK_TTL`, `ENABLE_CHAT_RESPONSE_STREAM_INPLACE_APPEND` added v0.11.4; revocation fails open on `RedisError` since v0.11.4 (commit `c1615bec2`, `utils/auth.py::is_valid_token`); sign-in rate limiter (PR #29977) and session-pool reaper (PR #29976) no longer break on a Redis blip, both v0.11.4; per-worker model-registry cache (PR #28176) and Ollama-`expires_at` signature fix (commit `649c012e`), both v0.11.4. |
+| GitHub issue #23987 (Sentinel coroutine regression) | CLOSED COMPLETED 2026-05-08; fix shipped in 0.9.4 (2026-05-09). |
+| Yjs/streaming PRs #23735, #23736, #24124, #24126, #24171 | All CLOSED, not merged. |
+| April–May 2026 batch | Merged PRs: #22507, #22980, #23571, #23572, #23573, #23642, #23649, #23709, #23829, #24015, #24420 (mergedAt 2026-03-15 … 2026-05-08). #22734 and #24412 are issues, CLOSED COMPLETED. #23896 is a PR CLOSED unmerged (dropped from the merged table). |
+| Nov–Dec 2025 batch | Merged PRs: #18996, #19097, #19488, #19871, #19959, #20076, #20145. #19395 and #19519 are issues, CLOSED COMPLETED. |
+| Earlier closed issues #11934, #12325, #14340, #16157, #16979, #18073, #18223, #18366, #18950, #19401, #20142, #21410, #10278, #10365, #16219, #22734, #27622, #27651, #19840, #23939, #23733 (NOT_PLANNED) | CLOSED. #17223 is a merged PR (2025-09-25). #23796, #27663, #28176, #28177, #29165, #29976, #29977 merged PRs. |
+| Helm chart issues #326, #338, #341, #383 | All CLOSED COMPLETED (#383 on 2026-06-28). |
+| docs.openwebui.com scaling, redis, multi-replica, env-configuration, hardening | All HTTP 200 on 2026-10-27. Raw source: `open-webui/docs` repo; the Redis tutorial is now `redis.md` (was `.mdx`). |
+| GitHub handles tjbck, Classic298, Ithanil, adam-skalicky, luke-wren, HANIHALILI | Resolve. `westbrook-ai` 404s (dropped). |
 
-## Local source files (`open-webui/open-webui` at v0.9.4)
-
-These paths are stable across recent versions. Line numbers may drift in clones past 0.9.4, but structure should hold.
+## Local source files (`open-webui/open-webui`, anchors at tag `v0.12.4`)
 
 ### Configuration / env vars
 
-- `backend/open_webui/env.py` — primary env-var registry.
-  - Lines 442–500: Redis / Valkey core (`REDIS_URL`, `REDIS_KEY_PREFIX`, `REDIS_CLUSTER`, `REDIS_SENTINEL_*`, `REDIS_SOCKET_*`, `REDIS_HEALTH_CHECK_INTERVAL`).
-  - Lines 744–809: WebSocket-specific (`ENABLE_WEBSOCKET_SUPPORT`, `WEBSOCKET_MANAGER`, `WEBSOCKET_REDIS_*`, `WEBSOCKET_SENTINEL_*`, `WEBSOCKET_SERVER_*`).
-  - Lines 247–261: `ENABLE_PROFILE_IMAGE_URL_FORWARDING`.
-  - Line 160: `ENABLE_DB_MIGRATIONS`.
-- `backend/open_webui/config.py`:
-  - Lines 279–361: `PersistentConfig` cache through Redis.
-  - Lines 1187–1191: `ENABLE_BASE_MODELS_CACHE`.
-  - Line 74: `ENABLE_DB_MIGRATIONS` consumer.
+- `backend/open_webui/env.py` — Redis core (`REDIS_URL`, `REDIS_KEY_PREFIX`, `REDIS_SENTINEL_*`, `REDIS_SOCKET_*`, `REDIS_RESPONSE_STREAM_TTL`, `REDIS_TASK_TTL`), websocket (`WEBSOCKET_*` incl. `WEBSOCKET_REDIS_ROOM_CHANNELS`, `WEBSOCKET_HEARTBEAT_INTERVAL`), `UVICORN_WS_PER_MESSAGE_DEFLATE`, `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE`, `ENABLE_DB_MIGRATIONS`, `ENABLE_STAR_SESSIONS_MIDDLEWARE`.
+- `backend/open_webui/config.py` — `ENABLE_BASE_MODELS_CACHE`. No `PersistentConfig` and no Redis config cache.
 
 ### WebSocket / Socket.IO
 
-- `backend/open_webui/socket/main.py`:
-  - Lines 65–164: Socket.IO + Redis manager boot.
-  - Lines 173–193: `periodic_session_pool_cleanup`.
-  - Lines 196–237: `periodic_usage_pool_cleanup`.
-  - Lines 294–312: User-specific rooms (`enter_room(sid, f'user:{user.id}')`).
-  - Lines 315–330: `disconnect_user_sessions(user_id)`.
-  - Lines 347–369: `connect` handler — JWT auth, `SESSION_POOL` populate.
-  - Lines 357–365: **profile-image fields excluded from SESSION_POOL** (`profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, `gender`).
-  - Lines 411–416: `heartbeat` handler.
-- `backend/open_webui/socket/utils.py`:
-  - Lines 9–42: `RedisLock` (SET-NX + UUID lock_id pattern).
-  - Lines 84–100: `RedisDict` (post-#22734 race-fix HSET-then-HDEL).
-  - Lines 124–263: `YdocManager` (CRDT state for collaborative notes).
-  - Line 232: `scan_iter` for Redis Cluster compat (#19871 fix).
-- `backend/open_webui/utils/redis.py`:
-  - Lines 30, 193–194: `_CONNECTION_CACHE` shared connection pool.
-  - Lines 33–149: `SentinelRedisProxy` (async-aware retry wrapper).
+- `backend/open_webui/socket/main.py` — manager boot (`manager_class = AsyncRedisRoomChannelManager if WEBSOCKET_REDIS_ROOM_CHANNELS else socketio.AsyncRedisManager`), `periodic_session_pool_cleanup`, `periodic_usage_pool_cleanup`, `disconnect_user_sessions`, `connect` (excludes `profile_image_url`, `profile_banner_image_url` etc. from the session pool), `heartbeat`.
+- `backend/open_webui/socket/redis_room_channels.py` — `AsyncRedisRoomChannelManager` (room channel `f'{self.channel}#{namespace}#{room}'`, ACL error messages).
+- `backend/open_webui/socket/utils.py` — `RedisLock`, `RedisDict`, `CachedRedisDict`, `YdocManager`.
+- `backend/open_webui/utils/redis.py` — `parse_redis_url`, `build_sentinel_url`, `build_sentinel_kwargs` (v0.12.1+), `_build_sentinel`, `SentinelRedisProxy`, `_CONNECTION_POOL`.
 
-### Tasks (cross-pod cancellation)
+### Tasks, streaming snapshot, auth
 
-- `backend/open_webui/tasks.py`:
-  - Lines 25–86: distributed task tracking.
-  - Lines 49–86: `{prefix}:tasks` hash, `{prefix}:tasks:item:{id}` sets, `{prefix}:tasks:commands` pubsub channel. Uses `execute_command('PUBLISH', ...)` for RedisCluster paths. **No longer fails from v0.11.2** — #19840 closed by PR #29165; see `known-issues.md`. Line anchors in this file have all shifted and `tasks.py` gained a `REDIS_RESPONSE_STREAMS_KEY` not recorded here.
+- `backend/open_webui/tasks.py` — `REDIS_TASKS_KEY`, `REDIS_PUBSUB_CHANNEL` (`{prefix}:tasks:commands`), `save_response_stream` / `append_response_stream` (`{prefix}:tasks:response_streams:<task_id>`).
+- `backend/open_webui/utils/auth.py::is_valid_token` — DB `session_stamp` check, then Redis revocation inside `except RedisError` fail-open.
+- `backend/open_webui/utils/rate_limit.py::RateLimiter.is_limited` — Redis-backed sign-in limiter.
 
 ### Model icons / profile images
 
-- `backend/open_webui/models/models.py:38` — `profile_image_url: Optional[str] = '/static/favicon.png'` default.
-- `backend/open_webui/routers/models.py`:
-  - Lines 142–148: Model list filter.
-  - Lines 458–525: `/api/v1/models/model/profile/image` endpoint (the new dedicated path).
-- `backend/open_webui/main.py`:
-  - Lines 1497–1499: strip `profile_image_url` from `/api/models` response.
-  - Line 1384: `MODELS` state initialization.
-  - Lines 2585–2600: `ENABLE_STAR_SESSIONS_MIDDLEWARE` (OAuth Redis sessions).
-  - Lines 2853–2890: `/ready` endpoint (#22507).
+- `backend/open_webui/models/models.py` — `profile_image_url: str | None = None` (was `'/static/favicon.png'` at 0.9.x).
+- `backend/open_webui/routers/models.py::get_model_profile_image` — `GET /model/profile/image`.
+- `backend/open_webui/utils/validate.py::validate_image_url` (was `validate_profile_image_url` in `routers/auths.py`).
+- `backend/open_webui/main.py` — `@app.get('/ready')`, `ENABLE_STAR_SESSIONS_MIDDLEWARE` wiring.
 
-### Rate limit / auth
+### Helm chart (`open-webui/helm-charts`, tag `open-webui-17.0.0`)
 
-- `backend/open_webui/utils/rate_limit.py` — Redis-backed sign-in rate limiter, in-memory fallback.
-- `backend/open_webui/routers/auths.py:97` — `validate_profile_image_url` (#24420 safe-scheme validation).
-- `backend/open_webui/models/auths.py:9` — `validate_profile_image_url` import.
-
-### Helm chart (in-tree copy at this point in history)
-
-- `helm-charts-temp/charts/open-webui/values.yaml`:
-  - Lines 51–140: WebSocket + Redis subchart.
-  - Line 184: `replicaCount: 1`.
-  - Lines 296–331: Ingress.
-- `helm-charts-temp/charts/open-webui/templates/workload-manager.yaml`:
-  - Lines 248–255 / 301–323: env wiring for `ENABLE_WEBSOCKET_SUPPORT` / `WEBSOCKET_MANAGER` / `REDIS_URL` / `WEBSOCKET_REDIS_URL`.
+- `charts/open-webui/values.yaml` — `websocket:` block (bundled `redis:` sub-block, `existingSecret`), `replicaCount`, `service.appProtocol`, probes default `{}`.
+- `charts/open-webui/templates/workload-manager.yaml` — `$kind` selection, env wiring for `ENABLE_WEBSOCKET_SUPPORT` / `WEBSOCKET_MANAGER` / `REDIS_URL` / `WEBSOCKET_REDIS_URL`.
+- `charts/open-webui/templates/websocket-redis.yaml` — bundled Redis `kind: Deployment`, no PVC.
 
 ### CHANGELOG
 
-- `CHANGELOG.md` — release-by-release history. Approximately 800 KB; grep by version (`#### \[0\.9\.0\]`) or by keyword (`websocket`, `redis`, `valkey`, `scaling`, `multi-pod`, `replica`, `thumbnail`, `profile_image`).
-  - Line ~41: 0.9.3 arena model profile images.
-  - Line ~87: 0.9.3 forwarding control.
-  - Line ~122: 0.9.2 model list performance.
-  - Line ~475: 0.9.0 RedisDict race fix.
-  - Line ~1295: 0.6.42 model avatar Cache-Control.
-  - Line ~1384: 0.6.41 Redis MODELS state.
-  - Line ~1392: base64 strip.
-  - Line ~1463: 0.6.37 user-specific rooms.
-  - Line ~1480: 0.6.37 WS env vars.
-  - Line ~2152: 0.7.x Redis connection pool cache.
+- `CHANGELOG.md` — grep by version (`## \[0\.12\.1\]`) or keyword (`redis`, `sentinel`, `websocket`, `Database Migrations`, `Security Advisory`). It carries migration warnings the GitHub release body can omit.
 
-## GitHub issues — states re-probed 2026-07-21
+## GitHub issues
 
 ```
 gh issue view 23733 --repo open-webui/open-webui     # Socket.IO frame amplification (THE BIG ONE)
-gh issue view 15162 --repo open-webui/open-webui     # direct-connection multi-worker routing
+gh issue view 15162 --repo open-webui/open-webui     # direct-connection multi-worker routing — FIXED v0.11.4
 gh issue view 19840 --repo open-webui/open-webui     # RedisCluster publish — FIXED, ships v0.11.2 (PR #29165)
 gh issue view 23987 --repo open-webui/open-webui     # Sentinel coroutine regression in 0.9.1
 gh issue view 23939 --repo open-webui/open-webui     # 0.9.0/0.9.1 loading and login issues — CLOSED 2026-04-22
@@ -145,7 +89,7 @@ gh pr view 24171 --repo open-webui/open-webui        # Yjs streaming attempt 3
 ```
 gh pr view 22507 --repo open-webui/open-webui        # /ready endpoint
 gh pr view 22980 --repo open-webui/open-webui        # WS heartbeat non-blocking
-gh pr view 22734 --repo open-webui/open-webui        # RedisDict race fix
+gh issue view 22734 --repo open-webui/open-webui     # RedisDict race fix (issue)
 gh pr view 23571 --repo open-webui/open-webui        # TCP keepalive
 gh pr view 23572 --repo open-webui/open-webui        # REDIS_SOCKET_CONNECT_TIMEOUT
 gh pr view 23573 --repo open-webui/open-webui        # REDIS_HEALTH_CHECK_INTERVAL
@@ -153,9 +97,8 @@ gh pr view 23642 --repo open-webui/open-webui        # invalidate stale Socket.I
 gh pr view 23649 --repo open-webui/open-webui        # REDIS_KEY_PREFIX for tool/terminal caches
 gh pr view 23709 --repo open-webui/open-webui        # BaseHTTPMiddleware → pure ASGI
 gh pr view 23829 --repo open-webui/open-webui        # chat:outlet stale write-back
-gh pr view 23896 --repo open-webui/open-webui        # cross-worker tool/function cache invalidation
 gh pr view 24015 --repo open-webui/open-webui        # default avatar 302 redirect
-gh pr view 24412 --repo open-webui/open-webui        # arena model profile images
+gh issue view 24412 --repo open-webui/open-webui     # arena model profile images (issue)
 gh pr view 24420 --repo open-webui/open-webui        # profile_image_url safe-scheme validation
 ```
 
@@ -164,9 +107,9 @@ gh pr view 24420 --repo open-webui/open-webui        # profile_image_url safe-sc
 ```
 gh pr view 18996 --repo open-webui/open-webui        # user-specific Socket.IO rooms
 gh pr view 19097 --repo open-webui/open-webui        # /api/models perf + drop profile_image_url
-gh pr view 19395 --repo open-webui/open-webui        # Redis-shared MODELS state
+gh issue view 19395 --repo open-webui/open-webui     # Redis-shared MODELS state (issue)
 gh pr view 19488 --repo open-webui/open-webui        # rediss:// TLS via python-socketio 5.15.0
-gh pr view 19519 --repo open-webui/open-webui        # base64 stripped from most endpoints
+gh issue view 19519 --repo open-webui/open-webui     # base64 stripped from most endpoints (issue)
 gh pr view 19871 --repo open-webui/open-webui        # SCAN instead of KEYS
 gh pr view 19959 --repo open-webui/open-webui        # model avatar Cache-Control
 gh pr view 20076 --repo open-webui/open-webui        # MCP OAuth multi-node
@@ -203,7 +146,7 @@ Pull pages directly via `gh`:
 gh api repos/open-webui/docs/contents/docs/getting-started/advanced-topics/scaling.md \
   --header "Accept: application/vnd.github.raw"
 
-gh api repos/open-webui/docs/contents/docs/tutorials/integrations/redis.mdx \
+gh api repos/open-webui/docs/contents/docs/tutorials/integrations/redis.md \
   --header "Accept: application/vnd.github.raw"
 
 gh api repos/open-webui/docs/contents/docs/troubleshooting/multi-replica.mdx \
@@ -226,7 +169,6 @@ https://helm.openwebui.com/                             # helm repository URL
 
 - `tjbck` — primary maintainer. Authoritative on architecture decisions (#23733).
 - `Classic298` — collaborator. Authoritative on Postgres-vs-SQLite at scale.
-- `westbrook-ai` — helm chart maintainer.
 - `Ithanil` — operator who reported #23733 with measurements.
 - `adam-skalicky` — author of #19097 (group-IDs preload + profile_image_url strip).
 - `luke-wren` — auditor of remaining icon-bloated endpoints (#18950 thread).
@@ -236,7 +178,7 @@ https://helm.openwebui.com/                             # helm repository URL
 
 To refresh this skill against current upstream state:
 
-1. `cd open-webui/open-webui && git pull origin main`
+1. `git -C <open-webui clone> fetch --tags` and read files at the release tag (`git show <tag>:<path>`)
 2. Read CHANGELOG entries since the last skill update for `websocket`, `redis`, `valkey`, `scaling`, `multi-pod`, `replica`, `thumbnail`, `profile_image`.
 3. `gh issue view 23733 --repo open-webui/open-webui` — check status.
 4. `gh issue list --repo open-webui/open-webui --state open --label scaling` (or `multi-pod`, etc.)
