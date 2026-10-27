@@ -214,9 +214,10 @@ for tuned to work) vs "Static High" (BIOS-only).
 
 ```ini
 # Add to bootloader:
-cmdline_amd=amd_iommu=on
-# AMD's `amd-pstate-epp` (kernel 6.5+) handles governor + EPP correctly.
-# No need to override [cpu] beyond the generic; Genoa+ supports HWP-equivalent.
+cmdline_amd=amd_iommu=on amd_pstate=active
+# amd_pstate=active is required on Genoa/Bergamo (family 0x19): server kernels
+# load amd-pstate by default only on family >= 0x1A (Turin, kernel 6.13+).
+# With `amd-pstate-epp` loaded, no [cpu] override beyond the generic is needed.
 ```
 
 NPS (NUMA per Socket) setting is in BIOS, not the kernel — see

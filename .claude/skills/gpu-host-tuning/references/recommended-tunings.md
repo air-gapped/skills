@@ -67,8 +67,15 @@ done
 `balance_power`. EPP is a hint to HWP/CPPC about power-vs-perf bias *within*
 the governor's frequency choice.
 
+**AMD EPYC before Zen 5** (Genoa, Bergamo, Milan — CPU family ≤ 0x19): the
+kernel does not load `amd_pstate` on server platforms by default, so
+`/sys/devices/system/cpu/amd_pstate/` is absent and `scaling_driver` reads
+`acpi-cpufreq`. Add `amd_pstate=active` to the kernel cmdline (§B) and reboot
+before the commands above. Zen 5 (family 0x1A, Turin) defaults to `active` on
+kernel 6.13+.
+
 **Tradeoff**: same as governor — slightly higher idle power. On AMD, `guided`
-EPP mode (kernel 6.3+) is a useful compromise for boxes that idle heavily; for
+mode (kernel 6.4+) is a useful compromise for boxes that idle heavily; for
 production inference, `active` + `performance` is the standard.
 
 ### A.3 Disable C-states deeper than C1
@@ -140,7 +147,7 @@ then reboot.
 ```
 mitigations=off                  # 5-15% Spectre/L1TF mitigation tax — only off if your security posture allows
 intel_iommu=on iommu=pt          # passthrough mode — DMA without IOMMU translation overhead
-                                 # (AMD: amd_iommu=on iommu=pt)
+                                 # (AMD: amd_iommu=on iommu=pt; plus amd_pstate=active on pre-Zen-5 EPYC — §A.2)
 default_hugepagesz=1G hugepagesz=1G hugepages=N    # N depends on workload; 16-64 typical for KV cache
 transparent_hugepage=madvise     # 6.x default; explicit-via-madvise() rather than always (avoids khugepaged stalls)
 init_on_alloc=0                  # NVIDIA recommends — saves 1-3% on alloc

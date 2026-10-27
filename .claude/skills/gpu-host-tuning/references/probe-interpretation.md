@@ -71,7 +71,9 @@ First-stanza of `/proc/cpuinfo`. Check **`flags`** for:
 Output is empty + `WARNING: cpufreq sysfs not exposed` ⇒ virtualized guest.
 On bare metal, expect:
 - **`scaling_driver`**: `intel_pstate` (Intel HWP-capable), `amd-pstate-epp`
-  (Genoa+ Linux 6.5+), `acpi-cpufreq` (older AMD or Intel without HWP)
+  (default on Zen 5 / Turin servers from kernel 6.13; Genoa, Bergamo and older
+  EPYC servers need `amd_pstate=active` on the cmdline), `acpi-cpufreq` (older
+  AMD or Intel without HWP — or a pre-Zen-5 EPYC booted without `amd_pstate=`)
 - **`scaling_governor`**: `performance` ✓ — fix per `recommended-tunings.md` §A.1
   if `schedutil` / `powersave` / `ondemand`
 - **EPP**: `performance` ✓ — fix per §A.2 if `balance_performance` / `default`
@@ -85,9 +87,11 @@ On bare metal, expect:
 - `intel_pstate.no_turbo = 0` ✓
 - `hwp_dynamic_boost = 1` (when supported)
 - `amd_pstate.status = active` or `guided`; `active` (EPP) landed in kernel
-  6.1 and became default in 6.3, `guided` arrived in 6.3 — the base
-  `amd_pstate` driver itself shipped in 5.17. `passive` is the old behavior,
-  equivalent to acpi-cpufreq
+  6.3, `guided` in 6.4 — the base `amd_pstate` driver itself shipped in 5.17.
+  `passive` is the old behavior, equivalent to acpi-cpufreq. On server
+  platforms the driver loads by default only for CPU family ≥ 0x1A (Zen 5,
+  kernel 6.13+); on Genoa/Bergamo `amd_pstate: not present` means the cmdline
+  lacks `amd_pstate=active` — fix per `recommended-tunings.md` §A.2
 - Old hardware: `acpi-cpufreq boost = 1`
 
 ### `24_cstates.txt`

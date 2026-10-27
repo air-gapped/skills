@@ -51,6 +51,12 @@ future freshen that "corrects" 8 → 33 has miscounted, not found drift.
 |-----|-------|---------------|--------|-------|
 | https://documentation.suse.com/sles/15-SP7/html/SLES-all/cha-tuning-tuned.html | SLES 15 SP7 — TuneD chapter | 2026-09-15 | SLES 15 SP7 | live (200). **SP7 is still the newest SLES carrying this chapter.** SLES 16.0 is GA (docs portal live; `documentation.suse.com/sles/` now redirects there) but publishes no System Analysis and Tuning Guide — `16.0/html/SLES-all/cha-tuning-tuned.html` and `book-tuning.html` both 404, and there is no 15-SP8. Do not "upgrade" this citation to a 16.0 URL; it does not exist. |
 
+## Linux kernel
+
+| URL | Topic | Last verified | Pinned | Notes |
+|-----|-------|---------------|--------|-------|
+| https://github.com/torvalds/linux/blob/master/drivers/cpufreq/amd-pstate.c | amd-pstate mode timeline + server default | 2026-10-27 | v6.13 | Read at tags: base driver v5.17; `amd_pstate_epp_driver` first in v6.3; `AMD_PSTATE_GUIDED` first in v6.4; `X86_AMD_PSTATE_DEFAULT_MODE` (default 3 = active) first in v6.5, but `amd_pstate_init` skips server ACPI PM profiles. Commit 54ab7d7c59c9 ("Switch to amd-pstate by default on some Server platforms") adds the `boot_cpu_data.x86 < 0x1A` exception — absent at v6.12, present at v6.13 and on master. Pre-Zen-5 EPYC servers therefore stay on acpi-cpufreq unless booted with `amd_pstate=`. |
+
 ## Dell PowerEdge XE chassis docs
 
 | URL | Topic | Last verified | Pinned | Notes |
