@@ -66,6 +66,11 @@ Recovery slow on fast NVMe even with `high_recovery_ops`: check for the
 mClock capacity fallback (`osd_mclock_max_capacity_iops_ssd` = 21500) —
 see ceph-performance.
 
+Large EC cluster with slow ops during recovery/backfill (e.g. draining an
+OSD), Squid/Tentacle: mClock sends EC recovery sub-reads through the
+unthrottled high-priority queue. Interim fix:
+`ceph config set osd osd_op_queue wpq`, then restart each OSD.
+
 ## Capacity
 
 Defaults nearfull 0.85 (warning) / backfillfull 0.90 (no backfill *into*
