@@ -1,6 +1,6 @@
 # Silent degradation to per-pod enforcement — the headline failure mode
 
-LiteLLM's coordination paths are written fail-open: catch any Redis/Lua exception, log at `warning`/`debug`, fall back to in-memory per-pod state, return 200. There is **no metric, no health-endpoint signal, and no fail-closed option for rate limits** (`grep fail_closed parallel_request_limiter_v3.py` → empty; budgets have `fail_closed_budget_enforcement`, `proxy_server.py:2138-2139`, documented at `config_settings.md:149`).
+LiteLLM's coordination paths are written fail-open: catch any Redis/Lua exception, log at `warning`/`debug`, fall back to in-memory per-pod state, return 200. There is **no metric and no health-endpoint signal**. Rate limits got a fail-closed option only in **v1.105.0**: `general_settings.fail_closed_rate_limit_enforcement: true` makes the v3 limiter's batch read/check, parallel count/acquire and check-and-increment paths raise 503 `RateLimitUnverifiableError` instead of falling back (slot release and the routing/budget queue flushes still degrade silently; with no Redis wired at all it does nothing). Older images: rate limits always fail open. Budgets have `fail_closed_budget_enforcement`, `proxy_server.py:2138-2139`, documented at `config_settings.md:149`).
 
 Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29).
 

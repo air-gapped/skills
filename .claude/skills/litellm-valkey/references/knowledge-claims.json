@@ -33,7 +33,7 @@
     {
       "id": 5,
       "question": "Which LiteLLM setting makes budgets reject requests when Redis fails, and is there a rate-limit equivalent?",
-      "skill_answer": "fail_closed_budget_enforcement: true; no rate-limit equivalent exists"
+      "skill_answer": "fail_closed_budget_enforcement: true; rate limits have fail_closed_rate_limit_enforcement only from v1.105.0"
     },
     {
       "id": 6,

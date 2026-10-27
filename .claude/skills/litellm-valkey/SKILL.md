@@ -74,7 +74,8 @@ general_settings:
     service_name: "mymaster"
     password: os.environ/REDIS_PASSWORD          # data-node auth
     # sentinel_password: os.environ/SENTINEL_PW  # only if sentinels themselves require auth
-  fail_closed_budget_enforcement: true   # budgets reject on Redis failure — no rate-limit equivalent exists
+  fail_closed_budget_enforcement: true   # budgets reject on Redis failure
+  fail_closed_rate_limit_enforcement: true  # v1.105.0+: 503 on Redis errors instead of per-pod counters
 litellm_settings:
   cache: true                  # optional response cache; independent of coordination since v1.93.0
   cache_params: {type: redis, host: ..., port: ...}
@@ -113,7 +114,7 @@ Helm chart wiring (`redis.sentinel.enabled` renders the coordination block from 
 
 - **Prove coordination is wired**: `GET /coordination_redis/settings` must name a source. On <v1.101.0, env vars alone without `cache: true` or a `coordination_redis` block = per-pod everything.
 - **≥ v1.93.0** for Sentinel on the core path and for independent coordination config at all. On v1.93.0 specifically, check #34614 (redis-py 5.3.1 `ssl_check_hostname`) before rolling out.
-- **`fail_closed_budget_enforcement: true`** if budget overrun costs real money — the default fails open, and rate limits *always* fail open (no closed mode exists).
+- **`fail_closed_budget_enforcement: true`** if budget overrun costs real money — the default fails open. Rate limits fail open too; on ≥v1.105.0 set `fail_closed_rate_limit_enforcement: true` to get 503s on Redis errors (no effect when no Redis is wired — prove wiring first). Older images have no closed mode for rate limits.
 - **Alert on the degradation log strings** (`references/silent-degradation.md` has the exact list) — they are the only signal that the fleet has stopped coordinating.
 - **One Redis logical DB per LiteLLM deployment** — coordination keys are unprefixed; sharing a DB across deployments collides locks and counters.
 - Load-test the actual limit: run > limit RPM across all pods and confirm 429s at ~1× (not ~N×) the configured value. This is the only end-to-end proof.
