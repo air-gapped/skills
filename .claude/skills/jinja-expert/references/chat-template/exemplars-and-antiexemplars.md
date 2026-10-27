@@ -170,7 +170,9 @@ upstream lab's version is the fastest way to see what they fixed.
 
 Academic-style catalog. One `.jinja` per model family under
 `chat_templates/`, paired with `generation_configs/`. Good for side-by-side
-comparison across families, not authoritative on correctness.
+comparison across families, not authoritative on correctness. **Archived
+(read-only) since late 2024** — it has no template for any later model
+family; take those from the model repo.
 
 ### axolotl-ai-cloud/axolotl
 

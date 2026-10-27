@@ -34,7 +34,7 @@ Six Ansible doc URLs return **429 to curl even when probed one at a time**. All 
 | https://kluctl.io | kluctl — Jinja-native Kubernetes deployment tool | 2026-08-18 | Confirmed Jinja2 integration on homepage |
 | https://www.home-assistant.io/docs/templating/ | Home Assistant Jinja templating (mentioned as "out of scope" pointer) | 2026-08-18 | |
 | https://github.com/unslothai/unsloth | Unsloth — community chat-template patches | 2026-08-18 | Mentioned in exemplars |
-| https://github.com/chujiezheng/chat_templates | chujiezheng/chat_templates community collection | 2026-08-18 | Mentioned in exemplars |
+| https://github.com/chujiezheng/chat_templates | chujiezheng/chat_templates community collection | 2026-10-27 | Mentioned in exemplars. Repo `archived: true`, last push 2024-12-13 (gh api, 2026-10-27) |
 | https://github.com/axolotl-ai-cloud/axolotl | Axolotl training framework — ships chat templates | 2026-08-18 | Mentioned in exemplars |
 
 ## The transformers compile-function name trap — 2026-07-21
