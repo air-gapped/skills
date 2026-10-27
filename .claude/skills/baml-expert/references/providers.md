@@ -17,6 +17,7 @@ Every `function` has a `client`. Either inline shorthand (`client "openai/gpt-5-
 ### First-class (dedicated adapters with per-model knowledge)
 
 - **`openai`** — `/v1/chat/completions`. Default when no provider.
+- **`openai-transcriptions`** — `/v1/audio/transcriptions` (0.226.0+).
 - **`openai-responses`** — `/v1/responses`. OpenAI's newer endpoint; recommended by OpenAI for new integrations. **Does NOT support `o1-mini`** (use `openai`). Supports reasoning models' server-side state.
 - **`anthropic`** — Messages API. Auto-sets `anthropic-version: 2023-06-01`. Default support for `cache_control` metadata.
 - **`google-ai`** — Gemini via `generativelanguage.googleapis.com`.
@@ -26,7 +27,8 @@ Every `function` has a `client`. Either inline shorthand (`client "openai/gpt-5-
 
 ### OpenAI-compatible
 
-- **`openai-generic`** — base for any OpenAI-compatible endpoint. Thin wrappers for readability: `cerebras`, `groq`, `huggingface`, `keywordsai`, `llama-api`, `litellm`, `lmstudio`, `microsoft-foundry`, `ollama`, `openrouter`, `tinfoil`, `together`, `unify`, `vercel-ai-gateway`, `vllm`.
+- **`openai-generic`** — any OpenAI-compatible endpoint; set `base_url`. The docs' Groq, Together, vLLM, LiteLLM, LM Studio, Cerebras, Hugging Face and similar pages all configure `provider openai-generic`; those names are not provider strings and fail with `Invalid client provider`.
+- **`ollama`**, **`openrouter`** — the only OpenAI-compatible services with their own provider string.
 
 ### Strategy (composite)
 
