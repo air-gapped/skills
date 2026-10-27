@@ -67,6 +67,18 @@ patch ladder changes.
   therefore skill rules, not runtime-enforced (corrected 2026-10-27 from
   "permission filter, not a loader").
 
+## Claude Code subagent docs (Phase 2B/3 spawn + async recovery)
+
+- URLs: https://code.claude.com/docs/en/sub-agents ("Which subagents run in
+  the background", "Tools, permissions, and results of background subagents",
+  "Available tools"); https://code.claude.com/docs/en/tools-reference
+  ("Agent tool behavior")
+- Note: `Agent` is the subagent tool (`Agent(Explore)` permission form).
+  "With nothing configured, a subagent that Claude spawns from your main
+  conversation starts in the background"; its "results reach Claude as a
+  completion notification in a later turn". Background subagents keep `Read`,
+  `Grep`, `Glob`, so the read-only author/reviewer tool sets survive.
+
 ---
 
 ## Markers

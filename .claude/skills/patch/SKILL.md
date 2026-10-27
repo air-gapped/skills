@@ -261,8 +261,10 @@ After all findings, write the consolidated phase payload to `_chunk.tmp` then:
 
 One Agent per finding, all in a SINGLE assistant message for parallel
 execution. `subagent_type: "patch-author"` (plugin installs:
-`defending-code:patch-author`). Never set `run_in_background` — this needs
-the diff text, not an async handle.
+`defending-code:patch-author`). Never set `run_in_background: true` — this
+needs the diff text. Interactive sessions background subagents by default
+anyway (fork mode on): expect `async_launched` there and use the recovery
+below.
 
 Each subagent is restricted to read-only tools and cannot modify the
 target; it emits the diff as text in its response. The orchestrator writes
@@ -294,8 +296,10 @@ If any Agent call returns `status: "async_launched"` instead of the
 subagent's text, the runtime backgrounded it. Pick one recovery and use it
 for the whole batch:
   - If completion notifications arrive in the conversation: parse each
-    subagent's tagged blocks from its notification `result` as it lands. Do
-    not end the turn until every finding is accounted for.
+    subagent's tagged blocks from its notification `result` as it lands.
+    Notifications arrive in later turns, so ending a turn to wait is fine;
+    do not save the phase checkpoint or start the next phase until every
+    finding is accounted for.
   - If notifications do not arrive: do NOT poll transcript files. Re-spawn
     the missing patch subagents in a fresh Agent batch (smaller shard, e.g.
     10) and use the synchronous results.
