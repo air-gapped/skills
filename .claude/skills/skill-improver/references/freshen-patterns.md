@@ -124,6 +124,7 @@ Verification-based decision rule:
 ### Phase F6: Stamp and Summarize
 
 1. Before stamping, run on the target `check-links.py`, `check-issue-states.py`, `check-advisory-floors.py --verify` and `check-expiring-claims.py` (non-findings: `fleet-checks.md`), plus the §4b scaffolding decay probes. Fix each real hit as one more F4 finding.
+   Run every detector script the target ships (audit, preflight, leak scan, asserter) on a planted positive case and on an error-shaped input; a "clean" or exit 0 on either is a finding. Keep the plant in the skill's test step.
 2. Write (or update) ONE line at the top of sources.md:
    `Freshened: <today>` — plus, only if something could not be verified,
    `(exceptions: <n> rows, noted inline)`. Unverifiable rows carry a short

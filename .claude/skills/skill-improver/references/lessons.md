@@ -33,13 +33,6 @@ reference file it concerns and delete the entry here. An entry whose cue fired a
 - **evidence:** ubuntu-netplan and ubuntu-cloud-init, 2026-10-20 freshen — both mapped 24.04 to an upstream version that updates had moved (netplan 1.1.x, cloud-init 26.1), and the 24.04 cloud-init build reverts five upstream changes; each fix verified against Launchpad and the packaging branch (`helped`)
 - **confidence:** high — two independent skills, same mechanism
 
-### Bundled check scripts can pass vacuously (2026-10-20)
-- **cue:** a skill ships a script whose job is to detect a failure (assertion runner, leak scanner, linter)
-- **lesson:** run each detector on a planted positive case and on an error-shaped input before trusting its "clean"/"pass"; add the planted case to the skill's test step
-- **evidence:** claude-code-ci-harness, 2026-10-20 — the token-leak scanner never read its token list (always "clean"; a planted leak reproduced it) and the event asserter passed a run whose result was an API error (`is_error=true` with `subtype=success`); both fixed and re-run (`helped`)
-- **evidence:** litellm-valkey, 2026-10-27 — the preflight script printed "ping healthy" and exited 0 on any non-200 ping; a mock returning 500 reproduced it, the first live run exposed it (`helped`)
-- **confidence:** high — two skills, three scripts
-
 ### Universal capability claims break per item (2026-10-20)
 - **cue:** a skill states that every member of a set supports something ("all modules accept the token", "the flag replaces the list"), or relies on a tool's `--help` for semantics
 - **lesson:** verify the claim per member in the source at the pinned tag; list the exceptions in the reference table the agent reads
