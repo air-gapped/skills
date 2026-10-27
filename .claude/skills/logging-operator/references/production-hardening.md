@@ -130,5 +130,6 @@ can't stay under the `timekey + timekey_wait` flush window.
 - The aggregator's own errors: `Logging.spec.errorOutputRef` → ClusterOutput
   (no filters allowed on that flow). Fluentd/fluent-bit own stdout is excluded from
   collection since 4.4 (`fluentbit.io/exclude: "true"`).
-- Watch for: eventrouter memory growth if EventTailer is used pre-6.7.0 (#1993);
+- Watch for: eventrouter memory growth with EventTailer on any version (#1993,
+  open — set a memory limit, see recipes.md § Events);
   `logging_buffer_files` climbing = destination trouble; retry-rate spikes.

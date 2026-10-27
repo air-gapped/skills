@@ -166,8 +166,10 @@ spec:
   localOutputRefs: [dest]
 ```
 
-eventrouter 1.0.0 ships with operator 6.7.0 (earlier eventrouter had a memory-leak
-history, #1993 — another reason for the 6.7.0 floor).
+The eventrouter can grow memory until it silently stops emitting (#1993, still open:
+reported again on eventrouter 0.5.0; no fix confirmed for the 1.0.x that ships from
+operator 6.7.0). Cap it — `spec.containerOverrides.resources.limits.memory` on the
+EventTailer — so it is OOM-killed and restarts (resuming from `positionVolume` if set).
 
 **Host files / systemd** — HostTailer (namespaced):
 

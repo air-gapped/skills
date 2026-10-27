@@ -42,6 +42,6 @@ skill was authored.
 | #674 / #661 | …/issues/674, 661 | Loki ordering, uneven forward LB across replicas | 2026-09-15 |
 | #2153 / #2145 / #2254 | …/issues/2153 etc. | 6.2.1 ES 8.x break; bufferVolumeMetrics nil; 6.6.0 newline-password regression | 2026-09-15 |
 | #1251 / #1716 | …/issues/1251, 1716 | gem-conflict history → forked es + syslog_rfc5424 gems | 2026-09-15 |
-| #1908 / #1954 / #1993 / #2191 / #1556 | assorted | non-root PVC ownership; fluentbit disk full; eventrouter leak; protected-for-Flows ask; missing runbooks | 2026-09-15 |
+| #1908 / #1954 / #1993 / #2191 / #1556 | assorted | non-root PVC ownership; fluentbit disk full; eventrouter leak; protected-for-Flows ask; missing runbooks | 2026-10-27 — #1993 OPEN (reopened): maintainer suggested eventrouter 0.5.0 (2026-01-05), a user reported the same growth on 0.5.0 (2026-05-19); eventrouter 1.0.0/1.0.1 notes name no leak fix (1.0.0 dropped the unbounded `involved_object_name` metric label). #2191, #1556 OPEN; #1908, #1954 closed. |
 | Axoflow TC blog | https://axoflow.com/blog/kubernetes-logging-telemetry-controller-logging-operator | TC+operator architecture guidance (2024-07, still canonical) | 2026-09-15 |
 | CNCF listing | https://www.cncf.io/projects/logging-operator-kube-logging/ | Sandbox since 2023-09 | 2026-09-15 |
