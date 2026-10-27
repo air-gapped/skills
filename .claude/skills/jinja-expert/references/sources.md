@@ -21,7 +21,7 @@ The six docs.ansible.com rows have intermittently returned **429 to curl**; they
 | https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_filters.html | Ansible built-in + collection filters | 2026-10-27 | |
 | https://docs.ansible.com/projects/ansible/latest/plugins/lookup.html | Ansible lookups | 2026-10-27 | |
 | https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/k8s_module.html | `kubernetes.core.k8s` module reference | 2026-10-27 | |
-| https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/helm_module.html | `kubernetes.core.helm` module reference | 2026-10-27 | |
+| https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/helm_module.html | `kubernetes.core.helm` module reference | 2026-10-27 | kubernetes.core 6.6.0 on Galaxy (2026-10-27); `plain_http` added in 6.1.0 (ansible-collections/kubernetes.core#934, CHANGELOG.rst), OCI chart installs fixed for Helm 4.2.1 output in 6.6.0 (#1223). ansible-collections/community.kubernetes: `archived: true` (last push 2021-11-08), Galaxy highest 2.0.1; `meta/runtime.yml` redirects `helm` → `kubernetes.core.helm`, `k8s_info` → `kubernetes.core.k8s_info` with deprecation (removal_version 3.0.0) — no 3.x exists |
 | https://docs.ansible.com/projects/lint/ | ansible-lint documentation | 2026-10-27 | |
 | https://pypi.org/project/j2lint/ | j2lint PyPI page | 2026-10-27 | Latest release 2026-07-30 (PyPI, 2026-10-27). Use latest stable; do not pin inline (see freshness rules) |
 | https://github.com/ansible-actions/j2lint-action | j2lint GitHub Action for CI | 2026-10-27 | Not archived; only release v0.0.1 (2023-10-20), last push 2024-10-25 |

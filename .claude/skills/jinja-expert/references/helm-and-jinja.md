@@ -79,7 +79,7 @@ real codebases:
 
 | Pattern | Who uses it | What Jinja does |
 |---|---|---|
-| **A. Ansible wraps Helm** | Shops with an Ansible-first infra team. IDPs. | Templates `values.yaml.j2`; `community.kubernetes.helm` task does the install. |
+| **A. Ansible wraps Helm** | Shops with an Ansible-first infra team. IDPs. | Templates `values.yaml.j2`; `kubernetes.core.helm` task does the install. |
 | **B. Standalone `jinja2-cli` preprocessor** | Build pipelines, GitOps workflows that don't want Ansible. | Pipes `values.yaml.j2` → `values.yaml` in a Makefile / CI step. |
 | **C. Raw Jinja manifests, no Helm** | Smaller teams, one-app clusters, air-gapped sites without Helm tooling. | Renders `Deployment.yaml.j2` etc. directly from CI or Ansible. |
 | **D. Helm post-renderer chained with Jinja** | Large charts with last-mile env-specific tweaks. | Pre-renders vars into a patch, then `helm install --post-renderer`. |
@@ -94,7 +94,7 @@ knowing about only to avoid it.
 
 ## 3. Pattern A: Ansible wraps Helm
 
-The most common "Jinja + Helm" shape. Ansible's `community.kubernetes.helm`
+The most common "Jinja + Helm" shape. Ansible's `kubernetes.core.helm`
 module runs `helm install` / `helm upgrade`; the values file it consumes
 is a Jinja-templated `values.yaml.j2`:
 
@@ -178,8 +178,12 @@ Things to know:
 - **Use `atomic: true`.** On failure, `helm rollback` runs automatically.
   Saves a minute of triage on every flaky deploy.
 - **`chart_ref` accepts OCI URLs** (`oci://registry.internal/charts/foo`)
-  since `community.kubernetes` 3.x — the 2026 default for private
-  registries.
+  — the 2026 default for private registries. Add `plain_http: true`
+  (kubernetes.core ≥ 6.1.0) for a registry without TLS.
+- **Write `kubernetes.core.*`, never `community.kubernetes.*`.** The
+  `community.kubernetes` collection is archived; its last release only
+  redirects to `kubernetes.core` with a deprecation warning. Rewrite old
+  FQCNs when touching a playbook.
 
 ---
 
@@ -463,7 +467,7 @@ Need to deploy to Kubernetes.
    emits a `.j2` file), use Go's `{{"{{"}}` escape pair.
 7. **Helm's `lookup` doesn't exist in Jinja.** Sprig's `lookup` queries
    the live cluster from a chart. Jinja has no such function. For
-   runtime cluster state, use Ansible (`community.kubernetes.k8s_info`)
+   runtime cluster state, use Ansible (`kubernetes.core.k8s_info`)
    and pass the result in as a variable.
 8. **CRDs can't be templated the same way.** Helm handles CRDs via a
    dedicated `crds/` dir. Pure Jinja (Pattern C) requires applying CRDs

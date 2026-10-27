@@ -23,7 +23,7 @@ when_to_use: >-
   bifurcation (`message.content` list vs string), `when:` conditional
   delimiters, `hostvars`, `lookup('template', ...)`, `jinja2_native`
   types, `ansible_managed`, custom filter plugins, `kubernetes.core.k8s`,
-  `community.kubernetes.helm`, "render a jinja template", "fix chat
+  `kubernetes.core.helm` / legacy `community.kubernetes.helm`, "render a jinja template", "fix chat
   template", and Helm questions that turn out to be Go/Jinja mix-ups.
 ---
 
@@ -54,7 +54,7 @@ points to the next file to read.
 |---|---|---|
 | File named `chat_template.jinja`; `apply_chat_template`, `tokenizer_config.json`, vLLM/sglang in play; messages/tools/`add_generation_prompt` in scope | **HF chat template** (sandboxed, `loopcontrols`, `tojson ensure_ascii=False`) | `references/chat-template/` |
 | File ends in `.j2`; inside an Ansible playbook/role/collection; `{{ ansible_managed }}`, `hostvars`, `lookup(...)`, `| default(omit)`; `when:` bare expressions | **Ansible Jinja** (recursive templating, native-types flag, `!unsafe`) | `references/ansible-dialect.md` |
-| `values.yaml.j2` / `deployment.yaml.j2` feeding Helm or `kubectl`; `jinja2-cli`; `community.kubernetes.helm` / `kubernetes.core.k8s`; ArgoCD config management plugin | **Helm-adjacent Jinja** (Jinja *around* Helm, not inside) | `references/helm-and-jinja.md` |
+| `values.yaml.j2` / `deployment.yaml.j2` feeding Helm or `kubectl`; `jinja2-cli`; `kubernetes.core.helm` / `kubernetes.core.k8s`; ArgoCD config management plugin | **Helm-adjacent Jinja** (Jinja *around* Helm, not inside) | `references/helm-and-jinja.md` |
 | File inside a Helm chart (`templates/*.yaml`, `_helpers.tpl`, `Chart.yaml`); `{{ .Values.x }}`, `{{ toYaml ... }}`, `{{ include "mychart.name" . }}`, Sprig functions | **Go `text/template` + Sprig** — *not Jinja* | Reach for the **`helm` skill** instead |
 | Syntax looks like `{{ }}` but something else — `.gotmpl`, `helmfile.yaml`, Flask, Saltstack state, dbt model, Home Assistant config | Not covered here; use the core-language cheatsheet | `references/language-surface.md` + upstream docs |
 
@@ -171,7 +171,7 @@ pipe argument shape (`default 3` vs `default(3)`), Sprig's `toYaml` /
 Where Jinja *does* show up in Kubernetes workflows:
 
 1. **Ansible wraps Helm** — `values.yaml.j2` rendered by Ansible,
-   installed via `community.kubernetes.helm`. Most common pattern.
+   installed via `kubernetes.core.helm`. Most common pattern.
 2. **`jinja2-cli` preprocessor** — same shape without Ansible. Makefile
    or CI step renders `values.yaml.j2` → `values.yaml`, then
    `helm upgrade --install`.
