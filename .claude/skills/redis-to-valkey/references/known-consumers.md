@@ -15,6 +15,8 @@ version-gated at use time.
   liveness kills under load) and did not retry against the new primary after
   a failover. Upgrade to ≥0.12.1 before repointing; if that must wait, keep
   the sentinels unauthenticated and the master-set name lowercase.
+- **GitLab — `global.redis.sentinelAuth.*` arrived in 17.1**, not the 17.2
+  recorded below. The Valkey floor (≥18.9) clears it either way.
 
 ## 2026-08-26 — freshen delta (supersedes the dated entries below where noted)
 
