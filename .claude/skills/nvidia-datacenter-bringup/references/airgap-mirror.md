@@ -7,7 +7,7 @@ How to stand up the two apt mirrors a B300 host needs (NVIDIA CUDA repo + DOCA r
 | Repo | URL | Approx size | Mirror filter |
 |---|---|---|---|
 | NVIDIA CUDA | `https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/` (`ubuntu2404` no dot) | Full ≈ several GB; driver+FM+NVLSM+toolkit filtered subset ≈ 1.5–2 GB | Allowlist `nvidia-open*`, `nvidia-driver-pinning-*`, `nvidia-driver-*-open`, `nvlink5*`, `nvlsm*`, `libnvsdm*`, `nvidia-fabricmanager*`, `cuda-drivers-fabricmanager-*`, `libnvidia-nscq*`, `nvidia-imex*`, `collectx-bringup`, `mft*`, `libnvidia-compute-*`, `libnvidia-cfg1-*`, `nvidia-dkms*`, `nvidia-kernel-*`, `nvidia-utils-*`, `nvidia-modprobe`, `nvidia-persistenced`, `cuda-keyring`, `nvidia-container-toolkit*`, `libnvidia-container*`, `datacenter-gpu-manager-4-*` |
-| DOCA | `https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/` (`ubuntu24.04` WITH dot) | Flat repo, ~600–700 MB, 227 .debs | Full mirror is fine — small enough |
+| DOCA | `https://linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/` (`ubuntu24.04` WITH dot; version dir, not `latest-3.2-LTS/` — see §Snapshot pinning) | Flat repo, ~600–700 MB, ~200 .debs | Full mirror is fine — small enough |
 | Ubuntu archive | Usually already mirrored fleet-wide via Landscape or local mirror | — | Subset needed: kernel-headers, libibumad3 (also in DOCA repo), infiniband-diags, build-essential, dkms |
 
 **`nvidia-container-toolkit` lives in the NVIDIA CUDA repo** — verified 2026-05-21 (`apt-cache policy nvidia-container-toolkit` shows `developer.download.nvidia.com` as the source). No need for the separate `nvidia.github.io/libnvidia-container/stable/deb/` repo. One less mirror to maintain.
@@ -16,7 +16,7 @@ How to stand up the two apt mirrors a B300 host needs (NVIDIA CUDA repo + DOCA r
 
 This catches everyone:
 
-- DOCA: `linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/` — **with the dot**
+- DOCA: `linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/` — **with the dot**
 - CUDA: `developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/` — **no dot**
 
 Verified live: `ubuntu2404` returns 404 on the DOCA host; `ubuntu24.04` returns 404 on the CUDA host.
@@ -29,13 +29,14 @@ public/repo/doca/
 ├── public_keys/                            ← Tier 2: current split keys (2026-02-24)
 │   ├── nvidia-doca-debian-gpg-public-key.gpg   (1.2 KB, for apt)
 │   └── nvidia-doca-rpm-gpg-public-key.asc      (1.6 KB, for dnf/yum)
-└── latest-3.2-LTS/ubuntu24.04/x86_64/
-    ├── GPG-KEY-Mellanox.pub                ← Tier 3: per-repo copy (~1.7 KB, subset of Tier 1)
+└── <version>/ubuntu24.04/x86_64/
+    ├── GPG-KEY-Mellanox.pub                ← Tier 3 up to 3.2.2: per-repo copy (~1.7 KB, subset of Tier 1)
+    ├── doca_keyring.gpg                    ← Tier 3 from 3.2.3: identical to the Tier 2 debian key
     ├── Release, Release.gpg, Packages.gz
     └── *.deb
 ```
 
-NVIDIA is mid-rotation. Belt-and-braces keyring concatenates Tier 1 and Tier 2 into one file so apt accepts packages signed by either:
+NVIDIA is mid-rotation. 3.2.3 is signed **only** by the Tier 2 key (`70454E6BF5D9C2D3B78709E8DC726C5E41B9CC50`), which Tier 1 does not contain — a Tier-1-only keyring fails `apt update` with `NO_PUBKEY DC726C5E41B9CC50`. Belt-and-braces keyring concatenates Tier 1 and Tier 2 into one file so apt accepts packages signed by either:
 
 ```bash
 sudo install -d -m 0755 /etc/apt/keyrings
@@ -71,9 +72,9 @@ For the DOCA repo (flat repo — easiest):
 ```bash
 mkdir -p /srv/nvidia-mirror && cd /srv/nvidia-mirror
 wget -e robots=off -r -np -nH --cut-dirs=3 -R "index.html*" \
-  https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/
+  https://linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/
 
-# Result: /srv/nvidia-mirror/latest-3.2-LTS/ubuntu24.04/x86_64/{*.deb,Packages,Packages.gz,Release,Release.gpg}
+# Result: /srv/nvidia-mirror/3.2.3/ubuntu24.04/x86_64/{*.deb,Packages,Packages.gz,Release,Release.gpg}
 ```
 
 The `--cut-dirs=3` strips `public/repo/doca/` so the local layout matches the URL.
@@ -91,7 +92,7 @@ rsync -a /srv/nvidia-mirror/ root@b300-host:/srv/nvidia-mirror/
 # On the B300, set up the apt sources
 sudo tee /etc/apt/sources.list.d/nvidia-doca-local.sources <<'EOF'
 Types: deb
-URIs: file:///srv/nvidia-mirror/latest-3.2-LTS/ubuntu24.04/x86_64
+URIs: file:///srv/nvidia-mirror/3.2.3/ubuntu24.04/x86_64
 Suites: ./
 Signed-By: /etc/apt/keyrings/nvidia-doca.gpg
 EOF
@@ -149,14 +150,18 @@ Both support apt remote-mirror with allowlist filtering and immutable snapshots.
 
 ## Snapshot pinning
 
-The DOCA repo URL `latest-3.2-LTS/` is a symlink that follows the LTS line. For reproducible installs, mirror to a version-specific path:
+`latest-3.2-LTS/` does **not** track LTS patch releases — it has stayed on 3.2.2 after 3.2.3 shipped under `3.2.3/`. Never mirror a `latest-*` path; mirror the version directory, and confirm the version before syncing:
+
+```bash
+curl -fsSL https://linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/Packages | grep -A1 '^Package: doca-all$'
+```
 
 ```
-/srv/nvidia-mirror/doca/3.2.2/ubuntu24.04/x86_64/   ← snapshot taken 2026-04-15
-/srv/nvidia-mirror/doca/3.2.3/ubuntu24.04/x86_64/   ← snapshot taken 2026-06-01
+/srv/nvidia-mirror/doca/3.2.2/ubuntu24.04/x86_64/
+/srv/nvidia-mirror/doca/3.2.3/ubuntu24.04/x86_64/
 ```
 
-Bring-up scripts pin to `3.2.2` (or whatever). The LTS line still gets refreshed on a cadence, but installed hosts don't change underfoot.
+Bring-up scripts pin to `3.2.3` (or whatever). The LTS line still gets refreshed on a cadence, but installed hosts don't change underfoot.
 
 For CUDA repo, the directory is monolithic (no per-version subdir), but snapshot by date — `cuda-2026-05-21/` — and pin source-lists to that.
 
@@ -164,7 +169,7 @@ For CUDA repo, the directory is monolithic (no per-version subdir), but snapshot
 
 | Repo | Cadence | Source |
 |---|---|---|
-| DOCA LTS minor | 1–3 months (3.2.0 Oct 2025 → 3.2.1 Nov 2025 → 3.2.2 Feb 2026) | https://developer.nvidia.com/doca-archive |
+| DOCA LTS minor | irregular (3.2.0 Oct 2025 → 3.2.1 Nov 2025 → 3.2.2 Feb 2026 → 3.2.3 Jun 2026); newest LTS is listed on the archive page, not by `latest-*-LTS/` | https://developer.nvidia.com/doca-archive |
 | NVIDIA driver branch | ~6 months production branch, ~3 months new branch | https://docs.nvidia.com/datacenter/tesla/drivers/index.html |
 | nvidia-container-toolkit | ~monthly | https://github.com/NVIDIA/nvidia-container-toolkit/releases |
 | gpu-operator | ~quarterly minor, monthly patch | https://github.com/NVIDIA/gpu-operator/releases |

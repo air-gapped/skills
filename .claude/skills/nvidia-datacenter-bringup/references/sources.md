@@ -38,7 +38,8 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 | https://networking-docs.nvidia.com/doca/archive/3-5-0 | MLNX_OFED end-of-life, DOCA-OFED forward path | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/ | DOCA repo root (umbrella GPG key) | 2026-08-18 | — |
 | https://linux.mellanox.com/public/repo/doca/public_keys/ | Current split GPG keys (deb + rpm) | 2026-08-18 | rotated 2026-02-24 |
-| https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/ | DOCA 3.2 LTS Ubuntu 24.04 flat repo | 2026-08-18 | LTS line — path note: `ubuntu24.04` with dot |
+| https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/ | Evidence that `latest-*-LTS/` lags | 2026-08-18 | 2026-10-27: dir dated 2026-03-22, `doca-all` 3.2.2-035000 while 3.2.3 is published — do not mirror it |
+| https://linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/ | DOCA 3.2.3 LTS (LTS25-U3, June 2026 per the DOCA archive page) Ubuntu 24.04 flat repo — the mirror target | 2026-10-27 | `doca-all` 3.2.3-019000; `Release.gpg` signed by key `DC726C5E41B9CC50` (2026-01-20, the `public_keys/` debian key); per-repo `doca_keyring.gpg` byte-identical to it; umbrella `GPG-KEY-Mellanox.pub` holds only 2013/2014/2018 keys |
 | https://developer.nvidia.com/doca-archive | DOCA LTS release calendar | 2026-08-18 | — |
 
 ## NVIDIA — CUDA driver repo

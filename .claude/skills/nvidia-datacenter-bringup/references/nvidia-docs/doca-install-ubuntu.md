@@ -35,7 +35,7 @@ Download the DOCA host repository package from the [NVIDIA DOCA Downloads](https
 sudo dpkg -i doca-repo-ubuntu2404-*.deb
 ```
 
-> **Skill-author note**: For air-gapped sites, mirror the DOCA repo directly from `https://linux.mellanox.com/public/repo/doca/latest-3.2-LTS/ubuntu24.04/x86_64/` (note: `ubuntu24.04` with dot) — the `doca-repo-ubuntu2404-*.deb` package just installs a sources.list pointing at that URL anyway. See [[airgap-mirror]].
+> **Skill-author note**: For air-gapped sites, mirror the DOCA repo directly from the version directory, e.g. `https://linux.mellanox.com/public/repo/doca/3.2.3/ubuntu24.04/x86_64/` (note: `ubuntu24.04` with dot; `latest-*-LTS/` lags) — the `doca-repo-ubuntu2404-*.deb` package just installs a sources.list pointing at that URL anyway. See [[airgap-mirror]].
 
 ### 2. Update Package Lists
 

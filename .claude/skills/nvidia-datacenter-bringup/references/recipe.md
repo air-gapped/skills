@@ -86,7 +86,7 @@ EOF
 
 sudo tee /etc/apt/sources.list.d/nvidia-doca.sources <<'EOF'
 Types: deb
-URIs: file:///srv/nvidia-mirror/doca/latest-3.2-LTS/ubuntu24.04/x86_64
+URIs: file:///srv/nvidia-mirror/doca/3.2.3/ubuntu24.04/x86_64
 Suites: ./
 Signed-By: /etc/apt/keyrings/nvidia-doca.gpg
 EOF
