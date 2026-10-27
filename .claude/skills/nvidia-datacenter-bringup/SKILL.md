@@ -19,7 +19,7 @@ ACS, persistence mode, the pinned-host↔GPU memcpy ceiling — belongs to the
 |---|---|---|
 | Has Blackwell silicon (B300/B200/B100)? | Yes | Open kernel modules **mandatory** — proprietary is unsupported [[open-modules-transition]] |
 | Grace Hopper (GH200)? | Yes | Open kernel modules **mandatory** (same as Blackwell). Otherwise 8-GPU SXM path [[hopper-recipe]] |
-| HGX 8-GPU SXM with 3rd-gen NVSwitch (H100/H200/H800 in XE9680 or similar)? | Yes | Open recommended (not mandatory). Use `cuda-drivers-fabricmanager-<branch>` meta; **skip** `nvlink5-<branch>`, NVLSM, DOCA-OFED entirely. Min driver 525+ for H100, 535+ for H200 [[hopper-recipe]] |
+| HGX 8-GPU SXM with 3rd-gen NVSwitch (H100/H200/H800 in XE9680 or similar)? | Yes | Open recommended (not mandatory). Install unsuffixed `nvidia-fabricmanager` under `nvidia-driver-pinning-<branch>` (no `cuda-drivers-fabricmanager-<branch>` above 575); **skip** `nvlink5-<branch>`, NVLSM, DOCA-OFED entirely. Min driver 525+ for H100, 535+ for H200 [[hopper-recipe]] |
 | HGX 4-GPU SXM (H100 in XE8640, A100 4-GPU)? | Yes | **No NVSwitch on this baseboard** — direct NVLink mesh between 4 GPUs. **Skip fabricmanager entirely** + DOCA + NVLSM. Three-package install: driver + container-toolkit [[hopper-recipe]] |
 | HGX A100 8-GPU (2nd-gen NVSwitch)? | Yes | Same as 8-GPU SXM H100 path. Min driver 450.xx. ALI not available — FM trains NVLinks at boot |
 | L40S, L40, L4, H200 NVL, or other PCIe-only? | Yes | Driver + container-toolkit only. **Skip** DOCA-OFED, fabricmanager, NVLSM entirely. Validation reduces to `nvidia-smi` clean — no fabric registration to check |

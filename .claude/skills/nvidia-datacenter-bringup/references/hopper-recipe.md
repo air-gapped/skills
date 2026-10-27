@@ -33,8 +33,9 @@ sudo apt install nvidia-driver-pinning-580
 sudo apt install nvidia-open-580                  # driver + persistenced + utils + open kernel modules
 sudo apt install nvidia-container-toolkit
 
-# Optional but recommended for NVLink GPU-to-GPU memory mapping workloads:
-sudo apt install nvidia-imex-580
+# Optional but recommended for NVLink GPU-to-GPU memory mapping workloads.
+# Unsuffixed: no nvidia-imex-<branch> exists above 575; the 580 pin resolves it to 580.*
+sudo apt install nvidia-imex
 ```
 
 Skip everything else from the B300 recipe — no DOCA, no MOK-for-OFED, no fabricmanager service, no NVLSM.
@@ -62,7 +63,7 @@ nvidia-smi nvlink --status -i 0
 
 ## XE9680 — H100/H200 8-GPU install
 
-H200 needs minimum driver 535+; the user's 580 branch is well past that. Hopper VBIOS gate applies — see [[troubleshooting]] §"R580 fails to init on Hopper subrev 3".
+H200 needs minimum driver 535+; the 580 branch is well past that. Hopper VBIOS gate applies — see [[troubleshooting]] §"R580 fails to init on Hopper subrev 3".
 
 ```bash
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
@@ -70,17 +71,17 @@ sudo apt update
 
 sudo apt install nvidia-driver-pinning-580
 sudo apt install nvidia-open-580                  # Hopper supports both; open is recommended
-sudo apt install cuda-drivers-fabricmanager-580   # meta → nvidia-fabricmanager-580 + libnvidia-nscq-580
+sudo apt install nvidia-fabricmanager libnvidia-nscq   # unsuffixed — the 580 pin resolves both to 580.*
 sudo apt install nvidia-container-toolkit
 
 # Optional:
-sudo apt install nvidia-imex-580
+sudo apt install nvidia-imex
 
 # Enable + start FM
 sudo systemctl enable --now nvidia-fabricmanager
 ```
 
-`cuda-drivers-fabricmanager-580` Depends (apt-cache-verified): just `nvidia-fabricmanager-580`. That in turn depends on `nvidia-kernel-common-580-server`. Total install: ~8 packages incl. transitive.
+There is **no** `cuda-drivers-fabricmanager-580`, `nvidia-fabricmanager-580` or `nvidia-imex-580` — those suffixed families stop at 575 (see [[packages]] §branch-suffix cliff), and `apt install` of them fails with "Unable to locate package". `nvidia-driver-pinning-580` pins `src:nvidia-fabricmanager`, `src:libnvidia-nscq` and `src:nvidia-imex` to `580*` at priority 1000, so the unsuffixed names install the 580 build. Confirm FM matches the driver before starting it: `dpkg -l nvidia-fabricmanager nvidia-open | awk '/^ii/{print $2, $3}'`.
 
 **Validation on XE9680:**
 
@@ -122,7 +123,7 @@ XE9680 supports SXM5 H200; H200 NVL is a different SKU (PCIe form factor, 2× ca
 
 ```bash
 sudo apt install nvidia-driver-pinning-580 nvidia-open-580 nvidia-container-toolkit
-# Optional: nvidia-imex-580 for cross-bridge mem mapping
+# Optional: nvidia-imex (unsuffixed, pinned to 580.*) for cross-bridge mem mapping
 ```
 
 `nvidia-smi nvlink --status` shows the bridge link, but there's no fabric to register.
@@ -138,7 +139,7 @@ The DellOemChassis.ExtendedReset Redfish recipe in [[dell-firmware]] applies ide
 ## What the skill's other references say about Hopper
 
 - [[recipe]] — primary recipe is B300-centric; treat Hopper as the "skip steps 4 (DOCA), 7 (fabric-stack), 2 (MOK)" simplification
-- [[packages]] — `cuda-drivers-fabricmanager-XXX` is the Hopper FM meta; `nvlink5-XXX` is Blackwell-only
+- [[packages]] — Hopper FM is unsuffixed `nvidia-fabricmanager` under `nvidia-driver-pinning-<branch>` (`cuda-drivers-fabricmanager-<branch>` stops at 575); `nvlink5-XXX` is Blackwell-only
 - [[troubleshooting]] — `cudaErrorSystemNotReady` still applies on XE9680 (FM not running); not relevant on XE8640 (no FM)
 - [[gpu-operator]] — pre-installed-driver-mode helm values are the same across Hopper and Blackwell
 - [[secure-boot]] — MOK enrollment same; on Hopper only the NVIDIA driver DKMS modules need signing (no DOCA modules)
