@@ -1,3 +1,4 @@
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
 repos:
   - repo: local
     hooks:
@@ -18,6 +19,21 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]
+      - id: gitleaks-commit-msg
+        name: gitleaks over the commit message (default + custom rules)
+        entry: bash scripts/leak-gate.sh commit-msg
+        language: system
+        always_run: true
+        stages: [commit-msg]
+      - id: gitleaks-pre-push
+        name: gitleaks over every outgoing commit, diff and message
+        # Last gate before the public remote: also catches commits that were
+        # made with --no-verify and so never met the two hooks above.
+        entry: bash scripts/leak-gate.sh pre-push
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
       - id: ruff
         name: ruff check
         entry: ruff check
