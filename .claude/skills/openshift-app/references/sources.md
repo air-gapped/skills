@@ -42,6 +42,8 @@ External references underpinning this skill's OpenShift-specific claims. Re-veri
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | Managing SCCs | https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/authentication_and_authorization/managing-pod-security-policies | 2026-05-28 | restricted-v2 is the default SCC since 4.11; arbitrary UID + GID 0 group requirement. |
+| Red Hat FIPS compliance page | https://access.redhat.com/compliance/fips | 2026-10-27 | Per-RHEL-minor FIPS 140-3 certificate table with the OCP version each minor maps to. OpenSSL #4857 Active for RHEL 9.0-9.8 (9.2→OCP 4.15, 9.4→4.18, 9.6→4.20, 9.8→4.22); libgcrypt #5366, kernel #5034/#5445, GnuTLS #4846, NSS #5022 cover 9.2/9.4 only; 9.6+ lists only OpenSSL validated; RHEL 10.0 OpenSSL pending. |
+| NIST FIPS 140-3 transition | https://csrc.nist.gov/projects/fips-140-3-transition-effort | 2026-10-27 | "September 22, 2026 — All FIPS 140-2 certificates are placed on the Historical List." Replaced the skill's expired "140-2 active through 2026-09-21" block. |
 | Pod Security Admission in OpenShift | https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/authentication_and_authorization/understanding-and-managing-pod-security-admission | 2026-05-28 | PSA enforcement labels and the restricted-v2-vs-PSS-restricted relationship. |
 
 ## Packaging (Helm / Operators / OLM v1)

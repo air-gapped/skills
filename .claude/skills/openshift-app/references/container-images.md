@@ -338,19 +338,21 @@ which is not FIPS-validated.
 
 ### FIPS Validation Status
 
-- **FIPS 140-2 validations remain active through September 21, 2026 — this
-  sentence expires on that date**, and as of 2026-09-15 it is **6 days away**.
-- RHEL 9.0/9.2 modules submitted for FIPS 140-3 validation (pending CMVP review)
-- Validated modules: OpenSSL, kernel crypto API, NSS, GnuTLS, libgcrypt
+- **Every FIPS 140-2 certificate is Historical since 2026-09-22.** An attestation
+  needs FIPS 140-3 certificates.
+- **RHEL 9 OpenSSL holds FIPS 140-3 cert #4857 (Active)** on RHEL 9.0 through
+  9.8. Go apps built per the rules above inherit it.
+- The rest of the module set (libgcrypt, kernel crypto API, GnuTLS, NSS) is
+  validated per RHEL minor, and coverage shrinks on newer minors: all five on
+  RHEL 9.2 (OCP 4.15); GnuTLS and NSS under test on 9.4 (OCP 4.18); only OpenSSL
+  on 9.6+ (OCP 4.20, 4.22). An app that does its crypto through GnuTLS or NSS on
+  OCP 4.20+ has no validated module.
+- RHEL 10.0 OpenSSL is pending; no RHEL 10 module is validated yet.
 
-> **Do not answer a compliance question from this block after 2026-09-21.** The
-> 140-2 window closes while the 140-3 submissions above are still recorded here
-> as *pending CMVP review*, so the interesting case is the gap: modules
-> submitted but not yet validated. Whether that gap is real, and what it means
-> for an attestation, has to come from the **CMVP validated-modules search and
-> Red Hat's current compliance page** at the time of asking — not from this
-> file, and not from memory. The dates and module list here are a starting
-> point for that lookup, nothing more.
+> Certificate status moves per RHEL minor. For a compliance answer, find the RHEL
+> minor your OCP version runs on in **Red Hat's FIPS compliance page** (it maps
+> RHEL minors to OCP versions), then confirm the certificate in the **CMVP
+> validated-modules search** — not from this file, and not from memory.
 
 ### Gotchas
 
