@@ -42,7 +42,8 @@ archive and is gitignored, so it is empty in a fresh checkout.*
   competitions). Now positioned as the OSS research root of the commercial Weco
   product; the technical claim is unaffected.
 - [gepa-ai/gepa](https://github.com/gepa-ai/gepa) — Pareto-aware evolutionary search.
-  ICLR 2026 Oral. Multi-objective, reads full execution traces. 35x fewer rollouts.
+  ICLR 2026 Oral. Multi-objective, reads full execution traces. Up to 35x fewer
+  rollouts than GRPO.
 - [SakanaAI/ShinkaEvolve](https://github.com/SakanaAI/ShinkaEvolve) — Island evolution
   with UCB bandit model selection. Dynamic islands, code embedding novelty tracking.
 - [OpenEvolve](https://huggingface.co/blog/codelion/openevolve) — Open-source
@@ -71,21 +72,25 @@ the strongest result says a loop should switch strategy rather than pick one.
   optimum. The counter-case to the two above.
 - [SwarmResearch](https://arxiv.org/abs/2607.02807) (Yuvraj Virk, 2026-07-02) —
   a single long-running optimizer narrows onto one high-level approach as
-  context accumulates; a coordinator plus parallel search agents on separate git
-  branches beat both single-agent and standard evolutionary search on 13/15
-  tasks. Read alongside REFLECT (Mode 1 step 9), which exists to counteract the
-  same narrowing inside one agent.
+  context accumulates; a coordinator steering parallel search agents on separate
+  git branches found better or comparable solutions to state-of-the-art
+  LLM-guided evolution and multi-agent methods on 13/15 tasks. Read alongside
+  REFLECT (Mode 1 step 9), which exists to counteract the same narrowing inside
+  one agent.
 
 ## Meta / Self-Improving Agents
 
 - [facebookresearch/HyperAgents](https://github.com/facebookresearch/HyperAgents) —
   Recursive self-improvement. Meta-agent modifies task agents AND itself.
 - [metauto-ai/HGM](https://github.com/metauto-ai/HGM) — Huxley-Godel Machine. Tree
-  search over agent codebases. ICLR 2026 Oral. Human-level on SWE-bench Verified.
+  search over agent codebases. ICLR 2026 Oral. Optimized on SWE-bench Verified, it
+  reached human-level on SWE-bench Lite.
 - [SakanaAI/AI-Scientist-v2](https://github.com/SakanaAI/AI-Scientist-v2) — Full
-  scientific discovery loop. Agentic tree search. First AI paper through peer review.
+  scientific discovery loop. Agentic tree search. First fully AI-written workshop
+  paper accepted through peer review.
 - [Meta-Harness](https://yoonholee.com/meta-harness/) — Agentic outer-loop. Reads
-  10M+ tokens of execution traces. 10x fewer evaluations than program-search baselines.
+  up to 10M tokens of diagnostic context per step. 10x fewer evaluations than
+  program-search baselines.
 
 ## Mechanisms Worth Borrowing
 
