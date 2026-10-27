@@ -63,7 +63,7 @@ Cluster mode changes semantics, not just topology: the v3 rate limiter's all-or-
 
 ## Per-pod vs shared — the numbers that matter
 
-Full table in `references/shared-vs-perpod.md`. The staleness bounds to memorize: **1s** (usage-based-routing/budget-router increments flush to Redis on `DEFAULT_REDIS_SYNC_INTERVAL`), **10s** (`DualCache` batch reads throttled per key by undocumented `default_redis_batch_cache_expiry` — this is why routing and cooldown reads lag), **60s** (in-memory tiers for budgets/auth/config; `user_api_key_cache` is per-pod-only unless `enable_redis_auth_cache: true`), **3600s** (leaked parallel-request slots self-heal). The spend→DB pipeline is **at-most-once**: the code's own log admits "Data already popped from Redis may be lost".
+Full table in `references/shared-vs-perpod.md`. The staleness bounds to memorize: **1s** (usage-based-routing/budget-router increments flush to Redis on `DEFAULT_REDIS_SYNC_INTERVAL`), **10s** (`DualCache` batch reads throttled per key by undocumented `default_redis_batch_cache_expiry` — this is why routing and cooldown reads lag), **60s** (in-memory tiers for budgets/auth/config; `user_api_key_cache` is per-pod-only unless `enable_redis_auth_cache: true`), **3600s** (leaked parallel-request slots self-heal). The spend→DB pipeline is **at-most-once before v1.98.0** (log: "Data already popped from Redis may be lost"); v1.98.0+ restores drained transactions to in-memory queues when the DB commit fails, so a pod crash before the retry still loses them.
 
 ## Production config that actually coordinates
 

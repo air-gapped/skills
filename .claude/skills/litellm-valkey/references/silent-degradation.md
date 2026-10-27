@@ -37,7 +37,7 @@ There is no metric; alert on logs. Watch for (exact substrings, `verbose_proxy_l
 - `Redis increment failed` / the queue-drop paths in `base_routing_strategy.py:142-146`, `budget_limiter.py:543-545`
 - `Circuit breaker` open/half-open transitions (`redis_cache.py:99-190`)
 - `Got exception from REDIS` (connection pool exhaustion — see `config-reference.md` §connection-churn)
-- `Data already popped from Redis may be lost` (`db_spend_update_writer.py:899`, `:1067`) — spend rows silently dropped
+- `Data already popped from Redis may be lost` (<v1.98.0) — spend rows silently dropped; on v1.98.0+ `Restoring N transaction sets to in-memory queues` repeating means the DB commit keeps failing (a Redis ACL denying unprefixed keys is one cause)
 
 Cheap black-box canary: from outside, drive one virtual key past its RPM limit across all pods simultaneously; if observed throughput at 429-onset ≈ `limit × N_pods`, the fleet is per-pod. Repeat after any Redis failover.
 
