@@ -35,6 +35,8 @@ Ask in order:
 3. **Multiple vLLM pods on the same node should share a KV cache, OR you want to isolate cache CPU work from inference (no GIL contention), OR you want to scale cache CPU memory independently of GPU pods?**
    → **MP mode. This skill.**
 
+   One node, one vLLM instance, and MP wanted only for isolation or hybrid-model support (lmcache 0.5.6+)? Skip the second container: `"lmcache.mp.autostart": true` plus `"lmcache.mp.autostart.server_args": "--l1-size-gb N --eviction-policy LRU"` in `kv_connector_extra_config` makes vLLM worker 0 start a localhost server as its child. Its lifetime is tied to vLLM: never count on a warm cache across vLLM restarts, and stop a leftover server yourself. Keep autostart off (the default) for the DaemonSet pattern, several vLLM instances, or multi-node TP/PP. `server_args` must not set `--host`, `--port` or `--http-host`; give each auto-started server on one host its own `--http-port`.
+
 4. **Disaggregated prefill across nodes (separate prefill and decode pods, KV transferred between them)?**
    → NixlConnector or MooncakeConnector. See `vllm-caching` (and `nvidia-nixl` for transport-level tuning). MP can layer on top of these via MultiConnector.
 
