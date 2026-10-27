@@ -28,7 +28,7 @@ patch ladder changes.
 
 ### Delta worth knowing (2026-06-15 → 2026-07-21)
 
-- **Outbound agent API requests now carry a declared usage marker** (PR #22,
+- **Outbound agent API requests now carry a declared usage marker** (anthropics/defending-code-reference-harness#22,
   2026-07-11; header renamed the same day). `harness/auth.py` stamps
   `anthropic-cyber-runbook: pipeline` plus
   `User-Agent: cyber-runbook/<version> (claude-cli/<CLAUDE_CODE_VERSION>)` onto
