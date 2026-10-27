@@ -16,7 +16,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 | kubectl-rook-ceph | https://github.com/rook/kubectl-rook-ceph | 2026-09-23 | v0.9.6 (2026-03-31); command list from README. |
 | Rook osd-memory derivation | https://lists.ceph.io/hyperkitty/list/dev@ceph.io/thread/2JVNE27TOJCJFQ76OEOUV3OTDTRRAYZ2/ | 2026-09-23 | Request 1:1, else limit × ratio. |
 | Kernel 7.0 mon cold bootstrap | https://github.com/rook/rook/issues/18370 | 2026-09-23 | Closed upstream as Ceph-side; tracker https://tracker.ceph.com/issues/80470. |
-| osd lvs hang | https://github.com/rook/rook/issues/18402 | 2026-09-23 | Open. |
+| osd lvs hang | https://github.com/rook/rook/issues/18402 | 2026-09-23 | Open; its fix PR rook#18413 (LVM filter for host-based OSDs) open. Workaround `lvm.conf` filter from the issue body. Raw-mode activate filter rook#18489 merged 2026-10-02, in v1.20.9 (backports #18493, #18508) and v1.21.0. Related rook#18483 (raw activate runs `lvs` from Ceph v20.2.3) and #18303 stay open: the LUKS2 header probe in raw activate is not governed by the LVM filter. |
 | Tentacle EC optimizations crash | https://github.com/ceph/ceph.io/issues/1009 | 2026-09-23 | Website repo; no tracker id linked. |
 | 18.2.7 hotfix | https://ceph.io/en/news/blog/2025/v18-2-7-reef-released/ | 2026-09-23 | 18.2.5/18.2.6 BlueStore regression. |
 | 20.2.0 read affinity | https://github.com/rook/rook/issues/16839 | 2026-09-23 | Closed. |

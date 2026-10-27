@@ -142,8 +142,12 @@ Rook `Documentation/Troubleshooting/disaster-recovery.md`.
 5. Confirm `ceph auth ls` has no `osd.<ID>` left — a leftover auth entity
    shows up later as an insecure-key HEALTH_ERR after the AES256K rotation.
 
-`osd`/`osd-prepare` pods hanging on `lvs` while other OSDs on the node are
-down: rook#18402 (open).
+`osd`/`osd-prepare` pods stuck in `lvs` (D state; the node then needs a hard
+reset) on a node that maps `/dev/rbd*` whose OSDs are down: LVM scans the RBD
+devices. Rook 1.20.9 / 1.21.0 filter them in raw-mode activation only;
+host-based osd-prepare is unfixed (rook#18402) — the reporter's workaround
+mounts an `lvm.conf` with `filter = [ "r|/dev/rbd.*|", "a|.*|" ]` into the
+OSD pods.
 
 ## PVC will not attach after a node died
 
