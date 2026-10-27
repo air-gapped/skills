@@ -1,6 +1,6 @@
 # Sources — dated URL index for freshen mode
 
-Freshened: 2026-09-22 — every row probed at v0.5.20 (2026-09-18), one release past the last pass. `--hicache-storage-backend` re-derived from the source tree rather than carried forward: twelve values now, `npu_memcache` having shipped from main.
+Freshened: 2026-10-27 — every row probed at v0.5.22 (2026-10-19), two releases past the last pass; `HiRadixCache` is gone and the flag surface was re-read from `arg_groups/` at the tag.
 
 Each row records the authoritative source for a claim in this skill. Freshen mode probes these and updates `Last verified:` dates.
 
