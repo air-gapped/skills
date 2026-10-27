@@ -21,6 +21,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 
 | Source | Last verified | Note |
 |---|---|---|
+| `PreSignedObjects/*/Certificates/*.der` (cert bytes) | 2026-10-27 | `openssl x509 -enddate` on Microsoft's published certs: KEK CA 2011 2026-06-24, UEFI CA 2011 2026-06-27, Windows Production PCA 2011 2026-10-19 18:51:42 GMT; KEK 2K CA 2023 2038-03-02, Microsoft UEFI CA 2023 2038-06-13, Option ROM UEFI CA 2023 2038-10-26, **Windows UEFI CA 2023 2035-06-13** |
 | Microsoft cert-rotation topic `7ff40d33…` | 2026-09-15 | all three expiry dates unchanged; page last edited 2026-05-18 |
 | Microsoft IT-pro guidance `e2b43f9f…` | 2026-09-15 | db→KEK deployment order unchanged |
 | Microsoft known issues `5813673d…` | 2026-09-15 | Hyper-V 1795 resolved; Azure Trusted Launch 1795 still open |
