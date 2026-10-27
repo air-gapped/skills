@@ -163,13 +163,14 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
 
 2. **`--hicache-ratio` must be > 1.** Host pool must exceed device pool. The L2 capacity used for prefetch is `0.8 * (mem_pool_host.size − mem_pool_device.size)`, so `--hicache-ratio 1.2` leaves only ~16% of L1 for prefetched-but-not-yet-used pages — enough for spec-decode tests but chokes under multi-turn workloads. Production deployments use ratio ≥ 2.
 
-3. **Layout × IO × storage are silently auto-rewritten at boot.** Three normalisation rules, now in `arg_groups/hicache_hook.py::handle_hicache()` — `_handle_hicache()` in `server_args.py` was removed by PR #38047 (2026-09-06, post-v0.5.19), so grep the symbol rather than a line range:
+3. **Layout × IO × storage are silently auto-rewritten at boot.** Four normalisation rules, now in `arg_groups/hicache_hook.py::handle_hicache()` — `_handle_hicache()` in `server_args.py` was removed by PR #38047 (2026-09-06, post-v0.5.19), so grep the symbol rather than a line range:
    - `page_first_direct` + `kernel` IO → forces IO to `direct`
    - `page_first` + `direct` IO → forces layout to `page_first_direct`
-   - Mooncake + `layer_first` → forces `page_first` or `page_first_direct`
+   - Mooncake (or `npu_memcache`) + `layer_first` → forces `page_first` or `page_first_direct`
+   - v0.5.22+: `--hicache-host-memory-mode buffer_only` + `write_back` → forces `write_through`, logged at **INFO** as `... resolves --hicache-write-policy write_back to write_through` (v0.5.19–v0.5.21 refuse to start instead)
    - Builds before v0.5.14 only: explicit FA3 decode backend + `kernel` IO → forces IO to `direct` ("FlashAttention3 decode backend is not compatible" warning). Gone from v0.5.14 on — do not blame FA3 for a layout/IO mismatch on a current build.
    
-   If benchmark numbers don't match the recipe, **scan the boot-time WARNING log** for the substitution — no error, just a log line. Verify the effective layout/IO with `journalctl -u sglang | grep -iE 'switching to|Hierarchical cache enabled'` (or `docker logs <id> 2>&1 | grep ...`).
+   If benchmark numbers don't match the recipe, **scan the boot-time WARNING log** for the substitution — no error, just a log line. Verify the effective layout/IO with `journalctl -u sglang | grep -iE 'switching to|resolves --hicache|Hierarchical cache enabled'` (or `docker logs <id> 2>&1 | grep ...`).
 
 4. **Hybrid-attention model support is version-gated, and the gate moved twice.** As of v0.5.13+ hybrids are the *default* path, not an opt-in:
    - **v0.5.13 (#27759)**: `HybridModel` (SWA/Mamba) launches HiCache through **UnifiedTree by default**. This supersedes the per-arch opt-in story below and is the single most important version line for hybrid deploys — a config tuned on v0.5.11/v0.5.12 may take a different code path after upgrade, so re-benchmark rather than assuming continuity.
@@ -229,7 +230,7 @@ For symptom → diagnosis → fix flow, see `references/troubleshooting.md`.
 | `references/troubleshooting.md` | A specific error message, a wrong-looking number, or "TTFT regressed when I added hicache". Open bug list with symptoms + workarounds. |
 | `references/migration-from-vllm-caching.md` | Operators with a vLLM/LMCache deploy hitting the hybrid-attention wall. What's equivalent, what's better, what's worse. |
 | `references/sources.md` | Verifying or freshening external claims. Per-row `Last verified:` dates. |
-| `scripts/hicache-doctor.sh` | Surfacing the boot-time auto-rewrites. Auto-detects systemd / docker / kubectl (or `--file` / `--stdin`), prints the resolved HiCache configuration and every `switching to ...` line. Exit 1 when a rewrite fired, so it works as a post-deploy gate. Run it before trusting any benchmark. |
+| `scripts/hicache-doctor.sh` | Surfacing the boot-time auto-rewrites. Auto-detects systemd / docker / kubectl (or `--file` / `--stdin`), prints the resolved HiCache configuration and every rewrite line (`switching to ...`, plus v0.5.22's INFO-level `resolves --hicache-...`). Exit 1 when a rewrite fired, so it works as a post-deploy gate. Run it before trusting any benchmark. |
 | `scripts/inspect-sglang-image.sh <tag>` | Confirm which `mooncake-transfer-engine` / `nixl-cu*` / `aibrix-kvcache` / `lmcache` versions an `lmsysorg/sglang:<tag>` image bundles, without pulling. Reads the image config blob from Docker Hub. |
 
 The upstream repo at https://github.com/sgl-project/sglang is the most authoritative reference — `docs/advanced_features/hicache*.md`, `python/sglang/srt/server_args.py:5635-5733` for flag definitions, and `docs/advanced_features/hicache_storage_runtime_attach_detach.md` for the admin HTTP API. When this skill disagrees with the repo, trust the repo (and update this skill).

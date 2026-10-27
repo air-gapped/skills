@@ -21,10 +21,10 @@
 
 set -uo pipefail
 
-# Exact strings from arg_groups/hicache_hook.py at upstream main, read
-# 2026-09-15. "switching to" is the invariant across all three rewrite sites;
-# the longer patterns are kept so the output names which rule fired.
-REWRITE='switching to'
+# Exact strings from arg_groups/hicache_hook.py. "switching to" marks the three
+# layout/IO/storage rewrites (WARNING); "resolves --hicache" marks the
+# buffer_only write-policy rewrite added in v0.5.22, logged at INFO.
+REWRITE='switching to|resolves --hicache'
 CONTEXT='Hierarchical cache|HiCache|hicache|storage backend|mem layout|io backend|prefetch'
 
 usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }

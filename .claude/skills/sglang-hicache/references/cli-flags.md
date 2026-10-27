@@ -16,7 +16,7 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 | `--hicache-ratio` | float | unset → `2.0` (`cache` mode), `1.2` (`buffer_only`) | L2 size = `ratio × L1 size`. **Must be > 1** in `cache` mode (host pool must exceed device pool) |
 | `--hicache-size` | int | `0` | L2 size in **GB per rank**. When > 0, overrides `--hicache-ratio`. **NOT total** — `--hicache-size 30 --tp 8` allocates 240 GB total |
 | `--hicache-host-memory-fraction` | float | `0.8` | v0.5.21+. Only when neither ratio nor size is passed: shrinks the default ratio until all ranks' host pools fit this fraction of host/cgroup memory (after a 10 GiB reserve). **An explicit `--hicache-ratio` or `--hicache-size` turns auto-sizing off** |
-| `--hicache-host-memory-mode` | enum | `cache` | v0.5.19+. `buffer_only` = L2 is a staging buffer, not a cache tier; requires a storage backend, rewrites `write_back` to `write_through` (INFO log), rejected on PD decode |
+| `--hicache-host-memory-mode` | enum | `cache` | v0.5.19+. `buffer_only` = L2 is a staging buffer, not a cache tier; requires a storage backend, rejected on PD decode. With `write_back`: v0.5.22+ rewrites it to `write_through` (INFO log), v0.5.19–v0.5.21 raise `ValueError` |
 
 ## Write / IO / layout
 
