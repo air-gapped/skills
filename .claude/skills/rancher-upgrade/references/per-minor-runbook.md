@@ -107,17 +107,21 @@ mgmt-cluster k8s window per minor is NOT restated — cite `compat/rancher.md`.
   CVE-2026-71403 (medium). The same batch ships **CVE-2026-75036 against Fleet** (medium, floors
   `0.16.1 / 0.15.6 / 0.14.10 / 0.13.15 / 0.12.19`), which lives in the **`rancher/fleet` advisory
   feed** — a Rancher-only sweep does not see it.
-- **Open on this line as of 2026-10-04 (#57078, #57196, #57240 re-checked) — verify before committing to the hop:**
+- **Open on this line — re-check state before committing to the hop:**
   - **#57078 (OPEN)** — after 2.14.2 → 2.15.1, downstream clusters stuck `Provisioning` with
     "Failed to get token secret … crt-token-system not found". The reporter rolled back to 2.14.2
     and restored a pre-upgrade backup; even after re-upgrading, most clusters needed their
     registration command re-run by hand. **The single biggest reason to take a fresh etcd snapshot
-    before this hop** on a fleet with many long-lived downstream clusters.
+    before this hop** on a fleet with many long-lived downstream clusters. One cause — the cluster
+    agent redeployed with an empty registration token (#58028) — is fixed on the v2.15 branch for
+    **2.15.3** (#58029); the rest is backported to the 2.15 line under #57913. If 2.15.3 is out as a
+    community release, target it over 2.15.2 for such fleets; either way keep each downstream's
+    registration command at hand.
   - **#57050 (fixed in v2.15.2)** — on 2.15.0–2.15.1, `inheritedFleetWorkspacePermissions` on a
     GlobalRole drives an endless ClusterRole create/delete loop that floods the logs.
-  - **#57196 (OPEN)** — downstream cluster stuck `Unavailable` after upgrade despite a working
-    agent tunnel; Ready/Connected stops tracking session state once `cattle-credentials` is
-    regenerated during the upgrade.
+  - **#57196 (OPEN, backlog — no fix scheduled)** — downstream cluster stuck `Unavailable` after
+    upgrade despite a working agent tunnel; Ready/Connected stops tracking session state once
+    `cattle-credentials` is regenerated during the upgrade.
   - **#57240 (OPEN)** — `CATTLE_SYSTEM_DEFAULT_REGISTRY` ignored on the 2.15.1 single-node Docker
     install, CoreDNS falling back to `docker.io`. **Air-gap relevant.**
 - **No minimum source version is stated** for upgrading to 2.15. That is an absence in the notes,
