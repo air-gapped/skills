@@ -284,8 +284,8 @@ object storage.
 
 The strategic replacement ("Unified Backup") is real and actively worked, but
 **undocumented and not GA**. `gitlab#477791` — an issue that merely restores the
-documentation link — carries `missed:` labels for **every release from 17.7
-through 19.3**.
+documentation link — slipped **every milestone from 17.7 on** and now sits in
+**Backlog**. Do not plan a backup design around it.
 
 **Generalisable maturity signal: read the `missed:` label chain, not the
 milestone.** A milestone says where something is aimed; twenty consecutive

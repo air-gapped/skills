@@ -66,7 +66,7 @@ re-verified.
 | `backup-utility` | `gitlab-org/build/CNG` → `gitlab-toolbox/scripts/bin/backup-utility` @ master | `--repositories-server-side`, `--s3tool` / `--s3tool-backup` / `--s3tool-data`; **no `--incremental`, no `PREVIOUS_BACKUP`** (verified by absence) |
 | Gitaly backup sink | `gitlab-org/gitaly` → `internal/backup/sink.go` @ master | `endpoint` supported for third-party S3; `withS3DefaultChecksumCalculation` forces `request_checksum_calculation=when_required` whenever a custom endpoint is set — the **Object Lock** trap, named in the code comment |
 | charts#3421 / #3338 / #5151 | https://gitlab.com/gitlab-org/charts/gitlab/-/issues/3421 | incremental (closed unimplemented); s3cmd 404 `NoSuchKey` on artifacts; large-backup guidance |
-| gitlab#477791 | https://gitlab.com/gitlab-org/gitlab/-/issues/477791 | `gitlab-backup-cli` docs — `missed:` labels for every release 17.7 → 19.3 |
+| gitlab#477791 | https://gitlab.com/gitlab-org/gitlab/-/issues/477791 | `gitlab-backup-cli` docs — slipped every milestone from 17.7 (`missed:` labels 17.7 → 19.3 as of 2026-08-29, milestone 19.5 on 2026-09-22); **milestone Backlog, `missed:` labels removed** as of 2026-10-27. No `doc/` file on master mentions `gitlab-backup-cli` |
 | MCP server | https://docs.gitlab.com/user/model_context_protocol/mcp_server/ | `Tier: Free, Premium, Ultimate` |
 | gitlab#587846 | https://gitlab.com/gitlab-org/gitlab/-/work_items/587846 | MCP server decoupled from Duo and the cloud AI Gateway in **19.2**; the admin toggle path. The issue closed 2026-08-04; the feature shipped in the 19.2 release notes ("Turn on MCP server independently from the Agent Platform", released 2026-07-16) — the close date is not a release date |
 | Chart deployment doc | `charts/gitlab` → `doc/installation/deployment.md` @ master | `global.edition=ce` opt-in; EE is the default |
@@ -93,7 +93,7 @@ the claims resting on these issues are cited in the reference files above.
 | Issue | State | Note |
 |---|---|---|
 | `gitlab#594569` | **open** | paused background migrations after 18.10; no fix version |
-| `gitlab#477791` | **open**, milestone 19.4 | backup-cli docs link; `missed:` 17.7 → 19.3 |
+| `gitlab#477791` | **open**, milestone Backlog | backup-cli docs link; slipped every milestone from 17.7 |
 | `charts#4918` | **open** | mirror chart images to an external registry |
 | `charts#5151` | **open** | best practice for very large backups |
 | `gitaly#6934` | **open** | independent Gitaly rollout without Rails ordering; tableflip removal |
