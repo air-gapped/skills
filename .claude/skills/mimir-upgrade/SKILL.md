@@ -161,7 +161,10 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 2. **Prefer the chart's shipped `classic-architecture.yaml` over the migration guide's snippet.** [RFC] The doc
    snippet omits `distributor.remote_timeout: null` and silently leaves the Kafka-tuned 5s in place.
 3. **Land on the patch the compat registry names, never on `x.y.0`** when a known-bad `.0` is recorded (6.0.0 /
-   6.0.1 carry a rollout-operator cert bug needing manual secret deletion).
+   6.0.1 carry a rollout-operator cert bug needing manual secret deletion). 6.1.1 (app 3.1.8) and 6.2.2 (app
+   3.2.3) are security patches that differ from their `.0` only in appVersion and the MinIO image, so this
+   skill's 6.1.0 guidance applies to 6.1.1 unchanged. With `image.tag` pinned, bump the pin to the new
+   appVersion in the same change — otherwise the chart patch ships no fix. [UG]
 4. **One change per `helm upgrade`.** The proxy migration, the engine flip, and the chart bump are three
    changes. Bundling them makes a regression un-bisectable — which is the same reason the ladder itself has no
    skips.
