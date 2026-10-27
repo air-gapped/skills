@@ -14,8 +14,8 @@ before quoting in a later year.
 | Human commits | 89 | 626 |
 | Unique authors | 29 | 81 |
 | Sustained (full-time-pace) contributors | 1 (Felix Kunde, 35% of commits) | 7 (all EDB) |
-| Releases 2025 / 2026 YTD | 2 / 2 (v2.0.0 + v2.0.1, both 2026-07) | patch trains every 5–12 weeks, 2–3 concurrent minors |
-| Latest release | v2.0.2 (2026-08-20) | 1.30.1 + 1.29.3 (2026-09-23); 1.29 EOL 2026-09-29 |
+| Releases 2025 / 2026 YTD | 2 / 4 (v2.0.0 → v2.0.3, 2026-07 to 2026-10) | patch trains every 5–12 weeks, 2–3 concurrent minors |
+| Latest release | v2.0.3 (2026-10-02) | 1.30.1 + 1.29.3 (2026-09-23); 1.29 EOL 2026-09-29 |
 | New issues opened 2026 YTD | 21 | 516 |
 | Go LOC / test LOC | 40k / 15k | 205k / 97k |
 
@@ -94,9 +94,9 @@ before quoting a cadence.
    changes for stayers: PG13 dropped, scram-sha-256 default (forces a
    rolling update), kubectl-pg plugin dropped, deprecated manifest
    fields removed (`useLoadBalancer`, `replicaLoadBalancer`,
-   `init_containers`). **Deploy v2.0.2, not v2.0.0 or v2.0.1 — both are
-   defective** (see the release-testing row above); the v2 upgrade is a
-   staged operation, not a chart bump. Sibling skill
+   `init_containers`). **Deploy v2.0.2 or later, never v2.0.0 or v2.0.1 —
+   both are defective** (see the release-testing row above); the v2
+   upgrade is a staged operation, not a chart bump. Sibling skill
    `postgres-operator-best-practices` carries the path.
 2. **CNPG churn tax.** Each minor is supported only ~3 months past N+1
    (≈6-month life) → 2–4 operator upgrades/yr forever, and each operator
