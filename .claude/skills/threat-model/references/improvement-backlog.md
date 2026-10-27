@@ -145,8 +145,8 @@ The Open item below is carried (2026-07-05).
   live (Shostack PDF, OWASP threat-modeling cheat sheet, GitHub
   security-advisories API docs — HTTP 200; harness repo active); `Last verified`
   advanced 2026-05-31 → 2026-06-15. Harness pushed 2026-05-30 → 2026-06-15 —
-  reviewed delta = `untrusted_data` prompt-isolation (PR #13, find/grade/judge/
-  patch/report prompts) + sandbox cgroup-probe fix (PR #2). Neither overlaps
+  reviewed delta = `untrusted_data` prompt-isolation (anthropics/defending-code-reference-harness#13, find/grade/judge/
+  patch/report prompts) + sandbox fix (anthropics/defending-code-reference-harness#2). Neither overlaps
   this skill's adapted bootstrap/interview content; no mutation beyond the
   re-stamp. No new Open item.
 
