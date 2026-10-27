@@ -36,7 +36,22 @@
 
 ## Open
 
-- **Dim 6 — single-leader / fan-out topology caveat repeats across 4 files.** Appears in `SKILL.md` (decision-flow step 4 + quick-map), `references/middleware-primitives.md` (InFlightReq), `references/deployment.md` (counting-trap section), and `references/known-products/open-webui-api-abuse.md`. Partly intentional (each file needs the caveat in its own context), but a canonical treatment in `deployment.md` + one-line pointers elsewhere would cut ~15 lines. Multi-file restructure; author call on whether the reinforcement earns its place.
+_None._
+
+## Decided — 2026-10-27
+
+- **Dim 6 topology-caveat repetition across 4 files — KEEP, not a duplicate.**
+  `deployment.md` already holds the canonical treatment (counting-trap section
+  with the check command); every other mention is a one- or two-line consequence
+  in a different role: SKILL.md decision step 4 (the branch to take), the quick
+  map (the per-middleware gotcha), the cannot-do list (where the cap must move),
+  `middleware-primitives.md` (the `amount` sizing rule next to the config), and
+  the dated known-products instance facts. References load independently, so an
+  agent that reads only `middleware-primitives.md` must still meet the caveat.
+  Classified `INTENTIONAL_DETAIL` / `RELATED_BUT_DISTINCT`; cutting to pointers
+  would save under 10 lines and lose the per-context action. Re-open only if a
+  mention grows past two lines or starts restating the check command.
+
 ## Resolved — 2026-09-15 (the frontmatter already fits)
 
 - **Dim 1 listing-cutoff item closed: nothing is truncated.** The entry described a
