@@ -18,7 +18,8 @@ claimed somewhere but contradicted or unsupported when checked.
 **There is no generally-available HA path for Git data on Kubernetes today.**
 Standalone Gitaly on Kubernetes went GA in 18.11 and is *by design a single
 point of failure*. The replicated option — Gitaly Cluster (Praefect) — is
-**beta** on Kubernetes as of 19.1. Everything else in the chart (webservice,
+**beta** on Kubernetes as of 19.1, for non-production evaluation only, and its
+GA is deprioritized. Everything else in the chart (webservice,
 sidekiq, KAS, shell, registry, pages) scales horizontally and ships a PDB, so
 the stateless tier is genuinely HA-capable. Plan HA around **a restore plan for
 Git data**, not around replication.
@@ -63,31 +64,35 @@ The whole mitigation set is written for **RWO, one-PVC-per-pod** StatefulSet
 semantics. Nothing in the docs suggests RWX is required or supported. A
 single-replica Gitaly on RWO is the documented, expected shape.
 
-### The Raft direction — intent, not a schedulable plan
+### Raft is dropped; the replacement is a proposal
 
-Epic 8903 goals, unchanged since `gitaly#4436` (2022): *"1. Solve the variety of
-inconsistency issues Gitaly Cluster has. 2. Remove Praefect. 3. Remove Postgres.
-4. Through an upgrade, make every Gitaly a cluster of one."*
+Epic 8903 (Raft-based Gitaly Cluster — remove Praefect, remove its Postgres) is
+**closed as "won't do"**. GitLab's stated direction is now a new Gitaly storage
+backend — MVCC on object storage, epic 21711 — whose design document is *"a
+proposal and not yet a committed design"*. Any plan that waits on Praefect's
+Postgres disappearing, or on Raft, waits on nothing.
 
-### Planning rule: Praefect-on-Kubernetes GA has no credible date
+### Planning rule: Praefect-on-Kubernetes GA is not planned
 
 **Do not put it in a roadmap, a migration plan, or a commitment to anyone.**
-Design the HA posture for what exists today.
+Design the HA posture for what exists today. Epic 6127's own status update:
+Gitaly Cluster on Kubernetes is beta *"for non-production evaluation only.
+GitLab has deprioritized the work to take it to general availability, in favor
+of a new Gitaly storage backend."* Do not run it in production.
 
 Grounding, enough that this is not re-litigated every planning cycle:
 
 | Signal | State |
 |---|---|
+| Epic 6127, Gitaly on Kubernetes | Praefect-on-K8s GA **deprioritized**; Raft reference called stale |
 | Epic 20405, make Gitaly Cluster first-class | open; public weekly status **"No progress"**, ~5 contributor h/week (Jul 2026) |
-| Epic 8903, Raft — removes Praefect *and* its Postgres | no status update since **2024-06-18** |
+| Epic 8903, Raft — removes Praefect *and* its Postgres | **closed, "won't do"** |
 | `gitaly#4616`, retire Praefect's Postgres ahead of Raft | **closed — "Final decision: NO-GO"** |
 | Published GA target FY26Q4 (Dec 2025–Jan 2026) | landed **18.11, 2026-04-16**, standalone only |
-| Requirement age on epic 6127 | live and unmet **2023 → 2026** |
 
-`gitaly#4616` matters most: the incremental route off Praefect's PostgreSQL was
-evaluated and explicitly declined (*"k8s will still not work due to Git I/O
-needs"*), so the only path is the full Raft rewrite — which has no visible
-investment. Treat "Praefect's Postgres goes away" as having no path and no date.
+Treat "Praefect's Postgres goes away" as having no path and no date: the
+incremental route was declined in `gitaly#4616` (*"k8s will still not work due
+to Git I/O needs"*) and the Raft rewrite is closed.
 
 Open Praefect bugs named in epic 20405, worth checking against any Praefect
 deployment: sticky-TCP imbalance requiring client-side DNS load balancing,

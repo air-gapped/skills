@@ -43,9 +43,10 @@ re-verified.
 | Zero-downtime (Omnibus) | `doc/update/zero_downtime.md` @ master | scoped to the Linux package only |
 | **Chart upgrade doc** | `charts/gitlab` → `doc/installation/upgrade.md` @ master | the chart's **own** zero-downtime procedure: requirements, rollout settings, the pause → upgrade (`SKIP_POST_DEPLOYMENT_MIGRATIONS=true`) → resume sidekiq → resume webservice → post-migration upgrade sequence. The 18.9 release notes (https://docs.gitlab.com/releases/18/gitlab-18-9-released/, "Zero Downtime Upgrades now supported for Cloud Native Hybrid deployments") link to this section |
 | Chart source @ master | `gitlab-org/charts/gitlab` (shallow clone) | per-component PDB templates and replica defaults; `edition: ee` default |
-| Epic 8903 | https://gitlab.com/groups/gitlab-org/-/work_items/8903 | Raft goals: remove Praefect, remove Postgres. **Now CLOSED** (activity 2026-09-15), where the last recorded status update here was 2024-06-18. **Closed is not shipped** — this file's own method rule — so read the closing note before narrating the Raft architecture as delivered or as abandoned; neither reading is established yet |
+| Epic 8903 | https://gitlab.com/groups/gitlab-org/-/work_items/8903 | Raft goals: remove Praefect, remove Postgres. **Closed 2026-08-17 as "won't do"** (closing note: *"Closing this epic as won't do"*). Follow-up notes 2026-09-02/04: replacement is epic 21711, *"a MVCC based gitaly/git with Object Storage as its backend"*; child items being closed |
+| Epic 21711 | https://gitlab.com/groups/gitlab-org/-/work_items/21711 | the replacement Gitaly storage backend (MVCC on object storage); epic 6127 calls its Scaling Git design document *"a proposal and not yet a committed design"* |
 | Epic 20405 | https://gitlab.com/groups/gitlab-org/-/work_items/20405 | "Make Gitaly Cluster a first-class solution"; open Praefect bugs; public weekly "No progress" notes at ~5 h/week |
-| Epic 6127 | https://gitlab.com/groups/gitlab-org/-/epics/6127 | "Gitaly should run well in Kubernetes"; customer notes incl. a paused evaluation over Praefect-on-VMs |
+| Epic 6127 | https://gitlab.com/groups/gitlab-org/-/epics/6127 | "Gitaly should run well in Kubernetes"; customer notes incl. a paused evaluation over Praefect-on-VMs. **Status update 2026-10-21** in the description: Praefect on Kubernetes beta *"for non-production evaluation only"*, GA deprioritized for a new storage backend; the Raft reference "is stale: that direction was dropped and the epic is closed" |
 | cloud-native#52 | https://gitlab.com/groups/gitlab-org/cloud-native/-/work_items/52 | **closed** 2024-11-13, and about the Operator — the citation the reference architectures used for "not supported" until MR !255834 removed both. **URL corrected 2026-09-15:** `cloud-native` is a **group**, so the work item needs the `/groups/` prefix; the project-form URL previously cited here **403s**. Do not file that 403 under this skill's bot-block convention — it was a wrong path shape, not a refused fetcher, and GitLab's own reference-architectures page cites the group form |
 | **gitaly#6934** | https://gitlab.com/gitlab-org/gitaly/-/issues/6934 | **open**, retitled "Enable independent Gitaly deployments without Rails rollout order dependency" (last activity 2026-07-01). Gitaly must be upgraded before Rails (2025-11-13 summary note); `tableflip` removal and its Kubernetes incompatibility; the sequencing argument. Its 2025 "No documented or publicly supported approach to ZDU in Cloud Hybrid" status predates the 18.9 support announcement |
 | gitaly#4616 | https://gitlab.com/gitlab-org/gitaly/-/issues/4616 | **closed** decision record — **"Final decision: NO-GO"** on retiring Praefect's PostgreSQL ahead of Raft |
@@ -140,9 +141,10 @@ housekeeping closes and fix closes look identical in the state field.
   GitLab 19.5" notice (checked 2026-10-27). Re-check at the next chart minor.
 - Issue states for every number above — several are open and may be fixed,
   documented, or closed as stale.
-- **Gitaly Cluster (Praefect) on Kubernetes leaving beta.** Check epic 20405's
-  status notes and whether `praefect/_index.md` still says beta. This is the
-  single fact that would change the HA answer.
+- **Gitaly Cluster (Praefect) on Kubernetes leaving beta**, or the new storage
+  backend (epic 21711) becoming a committed design. Check epic 6127's status
+  update, epic 20405's status notes and whether `praefect/_index.md` still says
+  beta. These are the facts that would change the HA answer.
 - **The chart's zero-downtime procedure** in `doc/installation/upgrade.md` —
   the reference architectures and the chart doc agree since 2026-09-18; re-read
   the sequence and rollout settings each pass.

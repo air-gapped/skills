@@ -128,9 +128,10 @@ zero-downtime procedure *requires* multiple replicas.
 
 **7. There is no GA high-availability path for Git data on Kubernetes.**
 Standalone Gitaly went GA at 18.11 and is *by design a single point of
-failure*; Gitaly Cluster (Praefect) on Kubernetes is **beta**, and its
-first-class-solution epic publicly reports "No progress" at ~5 contributor
-hours a week. The stateless tier is genuinely HA-capable. Plan around a
+failure*; Gitaly Cluster (Praefect) on Kubernetes is **beta, for
+non-production evaluation only**, and GitLab has deprioritized its GA (Raft is
+dropped; the replacement backend is a proposal). The stateless tier is
+genuinely HA-capable. Plan around a
 **restore plan for Git data**, not replication.
 → `references/ha-and-topology.md`
 
