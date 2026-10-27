@@ -166,9 +166,9 @@ Native (sparse) histograms — stable since Prometheus 3.8, but scraped only wit
 
 ### info() join (experimental)
 ```promql
-info(rate(http_requests_total[5m]), {"version"})
+info(rate(http_requests_total[5m]), {version=~".+"})
 ```
-Sugar for `group_left(version) target_info`. Limited to `instance`/`job` labels. Requires feature flag.
+Sugar for `* on(instance, job) group_left(version) target_info`. The second argument holds label **matchers** — `{"version"}` is a metric-name selector, not a label list. Only `target_info` by default (others: `{__name__=~"(target|build)_info"}`); identifying labels are always `instance`/`job`. Requires `--enable-feature=promql-experimental-functions`.
 
 ### Math
 `abs`, `ceil`, `floor`, `round(v, to_nearest)`, `sqrt`, `exp`, `ln`, `log2`, `log10`, `sgn`, `deg`, `rad`, `pi`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`.
