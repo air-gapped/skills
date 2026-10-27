@@ -237,7 +237,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://kyverno.io/docs/installation/
 - Secondary URL: https://github.com/kyverno/kyverno/releases
 - Probe: WebFetch installation page for compatibility table; `gh release list --repo kyverno/kyverno`.
-- Last verified: 2026-10-27 — v1.19.2 (2026-10-20, 24 GHSAs; advisory ranges `<= v1.19.1`, patched only in 1.19.2). The installation URL redirects to `/docs/installation/installation/`.
+- Last verified: 2026-10-27 — v1.19.2 (2026-10-20, `isLatest`); v1.18.2, v1.17.2 newest of their lines. `gh api repos/kyverno/kyverno/security-advisories`: 26 GHSAs patched only in 1.19.2 — 24 published 2026-10-21 plus GHSA-vjfx-fp68-rh4v and GHSA-39w8-hv5g-f73w (both critical, 2026-10-23). The installation URL redirects to `/docs/installation/installation/`.
 
 ## KEDA
 
