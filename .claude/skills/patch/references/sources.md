@@ -52,6 +52,15 @@ patch ladder changes.
   personas (`vvaharness/validation/subagents/`, `constants/scoring.py`).
 - Last verified: 2026-08-16  (read from a local clone at the current commit)
 
+## Claude Code skills docs (`allowed-tools` semantics, SKILL.md "Tools")
+
+- URL: https://code.claude.com/docs/en/skills (section "Pre-approve tools for a skill")
+- Note: `allowed-tools` "grants permission for the listed tools during the
+  turn that invokes the skill ... It does not restrict which tools are
+  available: every tool remains callable". SKILL.md's Bash limits are
+  therefore skill rules, not runtime-enforced (corrected 2026-10-27 from
+  "permission filter, not a loader").
+
 ---
 
 ## Markers

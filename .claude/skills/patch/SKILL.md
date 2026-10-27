@@ -61,9 +61,11 @@ Invoke with `/patch <findings-path> [--repo PATH] [--top N] [--id fNNN]
 - `--fresh`: ignore `./.patch-state/` checkpoint and start over.
 
 **Tools.** Prefer Read, Glob, Grep, Write, Agent. Some sessions do not
-provision Glob or Grep; `allowed-tools` is a permission filter, not a loader.
-When they are unavailable, fall back to the read-only Bash commands
-whitelisted above: `rg`/`grep` for search, `ls` for enumeration,
+provision Glob or Grep. `allowed-tools` only pre-approves the listed tools for
+the invoking turn; it neither loads nor blocks any tool, so the Bash limits
+below are this skill's rules to follow, not limits the runtime enforces.
+When Glob/Grep are unavailable, fall back to the read-only Bash commands
+pre-approved above: `rg`/`grep` for search, `ls` for enumeration,
 `head`/`file`/`wc` for sniffing, `jq` for JSON ingest. Bash is otherwise
 permitted only for `python3 .claude/skills/patch/scripts/checkpoint.py` (state I/O)
 and `vuln-pipeline patch` (execution-verified delegate). `find` is NOT
