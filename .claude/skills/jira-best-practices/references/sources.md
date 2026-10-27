@@ -142,7 +142,7 @@ Full provenance for `references/work-modeling.md`: `autoresearch/results/jira-wo
 | https://atlassian.com/blog/jira-core/how-to-set-up-business-workflows-in-jira-core | A | Non-software workflow examples; conditions/validators/post-functions | 2026-06-07 |
 | https://atlassian.com/blog/announcements/introducing-jira-work-management | A | 23 Cloud business templates; business vocabulary | 2026-06-07 |
 | https://titanapps.io/blog/jira-kanban-scrum + https://www.atlassian.com/agile/tutorials/how-to-do-kanban-with-jira | A/B | Kanban over Scrum; WIP limits; recurring work | 2026-06-07 |
-| https://marketplace.atlassian.com/apps/1218390/calendar-for-jira | A | Calendar is a DC add-on (DC 10.3–11.3 support) | 2026-06-07 |
+| https://marketplace.atlassian.com/apps/1218390/calendar-for-jira | A | Calendar is a DC add-on; the current listing supports **Jira DC 11.0.0–11.3.12** (Server 8.0.0–9.13.1) — 10.3 is no longer in its range | 2026-10-27 |
 | https://www.scrum.org/resources/blog/jira-anti-patterns-and-how-overcome-them | B | "team serving Jira" anti-pattern | 2026-06-07 |
 | https://atlassian.com/agile/project-management/lean-process-improvement | A | Minimum Viable Process Change rollout | 2026-06-07 |
 
