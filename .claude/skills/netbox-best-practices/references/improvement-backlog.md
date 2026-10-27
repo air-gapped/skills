@@ -5,7 +5,7 @@
 - **4.7 coverage** (Open since 2026-09-15) — closed from the 4.7.3 release
   notes and source at v4.7.3. `version-deltas.md` §4.7
   rewritten (post-roll steps, trigger-checked dump/restore, API and
-  dependency changes); gates re-targeted to 4.7.2+ (#23196); chart pin map
+  dependency changes); gates re-targeted to 4.7.2+ (netbox-community/netbox#23196); chart pin map
   rebuilt (4.7.0 starts at 8.3.67, not 8.3.70); auth `[source]` claims
   re-checked by symbol name at v4.7.3.
 - **Wrong on 4.7, corrected:** "keep the housekeeping CronJob" (§6), the
@@ -26,8 +26,8 @@ login via the generic `OpenIdConnectAuth`, mounted pipeline module,
   prefix on purpose (operator `spec.hostname` with `/auth`) has
   `/auth/realms/<realm>` as its issuer; the rule is now "copy the discovery
   `issuer`", not "Quarkus has no `/auth`".
-- **Fifth 4.7 gate.** 4.7.0 breaks the SSO login button (#23112) and its
-  `pg_dump` loses cascade triggers (#23130); 4.7.1 fixes both, no chart pins
+- **Fifth 4.7 gate.** 4.7.0 breaks the SSO login button (netbox-community/netbox#23112) and its
+  `pg_dump` loses cascade triggers (netbox-community/netbox#23130); 4.7.1 fixes both, no chart pins
   it yet. Recorded in `SKILL.md` and `version-deltas.md`; 8.3.66 named as the
   last 4.6 chart.
 - **Worked example** appended to `sso-hardening.md`: Keycloak client JSON +

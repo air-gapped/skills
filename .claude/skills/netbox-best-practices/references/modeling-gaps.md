@@ -6,7 +6,7 @@ seeding gotcha. For general hierarchy/tenancy/IPAM modeling, use the official
 
 ## Module Type Profiles {#module-type-profiles}
 
-Introduced 4.3.0 (#19002). Lets module types carry **typed, schema-validated
+Introduced 4.3.0 (netbox-community/netbox#19002). Lets module types carry **typed, schema-validated
 attributes by functional classification** — the supported way to inventory
 server internals (CPU, RAM, PSU, disks, GPU) without custom fields.
 

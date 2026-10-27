@@ -302,7 +302,7 @@ section is the corrections and deltas. Group→role mapping and hardening live i
 
 Maintainers explicitly declined adding `remoteAuth.oidc.*` preset values
 ("to keep the chart as simple as possible… as soon as one is implemented,
-others must as well") [source: netbox-chart issue #987, closed 2026-01]. The
+others must as well") [source: netbox-community/netbox-chart#987, closed 2026-01]. The
 wiring is:
 
 - `remoteAuth.enabled` + `remoteAuth.backends` render
@@ -358,7 +358,7 @@ the last path segment is the backend's `name` (`oidc` for OpenIdConnectAuth,
 ### 9.2 Prefer OpenIdConnectAuth over the chart docs' KeycloakOAuth2 example
 
 The `docs/auth.md` Keycloak example (unchanged since chart-docs restructure
-PR #661) is dated in four ways:
+netbox-community/netbox-chart#661) is dated in four ways:
 
 - It uses `social_core.backends.keycloak.KeycloakOAuth2`, which requires the
   realm's RS256 public key pasted into config
@@ -460,7 +460,7 @@ roll cannot tell a migration failure from a pipeline failure.
 Values pass YAML → helm render → YAML → Python. Pasting a Python literal as a
 string does not evaluate — `SOCIAL_AUTH_BACKEND_ATTRS: '{"keycloak": ("Name",
 "login")}'` arrives as a *string* where a dict is expected and crashes the pod
-[source: netbox-chart issue #945, closed 2026-01]. Express it as plain YAML; a
+[source: netbox-community/netbox-chart#945, closed 2026-01]. Express it as plain YAML; a
 two-element list unpacks the same as the tuple NetBox expects
 [source: netbox/netbox/authentication/__init__.py:56,65 @v4.7.3]:
 

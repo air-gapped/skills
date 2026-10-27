@@ -101,7 +101,7 @@ rules. [source-verified against netbox 4.6 and 4.7.3 authentication code]
 example at the end of `references/sso-hardening.md`** — the complete Keycloak
 wiring that ran live on 2026-09-15 (client, mapper, values, pipeline module,
 self-check, verification) — and read `references/helm-chart-gotchas.md` §9 — there are no dedicated OIDC chart
-values (maintainers declined, #987); everything rides in `extraConfig`, custom
+values (maintainers declined, netbox-community/netbox-chart#987); everything rides in `extraConfig`, custom
 pipeline code must be volume-mounted as a `netbox.*` module, and the chart's
 own `docs/auth.md` examples carry a dated KeycloakOAuth2 config (legacy /auth
 URLs, pasted realm key) and a risky `associate_by_email` pipeline step.
