@@ -392,4 +392,3 @@ and runs is only meaningful with stable sampling.
 
 - `seven-failure-categories.md` (sibling) — what the bugs look like
 - `transformers-dialect.md` (sibling) — the canonical env to match
-- `openspec/specs/template-render-harness/spec.md` — formal spec
