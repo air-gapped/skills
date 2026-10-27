@@ -1,7 +1,7 @@
 # CR model — the 16 CRDs and how routing actually works
 
-Verified against operator 6.7.0 (CRD set unchanged since 6.1.0; only additive field
-changes 6.1→6.7).
+Verified against operator 6.9.0 (CRD set unchanged since 6.1.0; only additive field
+changes 6.1→6.9).
 
 ## Inventory
 
@@ -48,7 +48,7 @@ works (they're namespaced) but only control-namespace ones are honored;
 - **A namespaced Flow can `exclude` by `namespace_labels` but cannot `select` by
   it.** Not a doc omission: `Select` carries only `labels`/`hosts`/`container_names`
   while `Exclude` also carries `namespace_labels` (`api/v1beta1/flow_types.go`,
-  verified 2026-09-15). To route *into* a Flow by namespace label, use a ClusterFlow
+  verified 2026-10-27 at 6.9.0). To route *into* a Flow by namespace label, use a ClusterFlow
   — or select broadly and exclude everything else.
 - Multiple criteria **inside one statement = AND**; **separate statements = OR**;
   evaluated in order.

@@ -1,6 +1,6 @@
 # Fluentd outputs — all 31 plugin types, buffers, image variants
 
-Field names verified from `output_types.go` at 6.7.0 (set unchanged since 6.1.0).
+Field names verified from `output_types.go` at 6.9.0 (set unchanged since 6.1.0).
 
 ## The 31 Output/ClusterOutput plugin fields
 

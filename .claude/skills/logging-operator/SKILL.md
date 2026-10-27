@@ -31,7 +31,7 @@ argument-hint: "[recipes|cr-model|outputs|modes|hardening|upgrade|debug] (option
 # logging-operator — CRD-driven log pipelines on Kubernetes
 
 Reference for the kube-logging **logging-operator** (CNCF Sandbox, Axoflow-backed).
-Verified against operator **6.7.0** (2026-06-16). Version floor: **6.7.0** —
+Verified against operator **6.9.0** (2026-09-17). Version floor: **6.7.0** —
 CVE-2026-54680 (CVSS 9.9, fluentd config injection → RCE in the aggregator) is fixed
 in 6.6.0, but 6.6.0's escaping broke newline-containing passwords (#2254); 6.7.0 has
 the corrected fix. Never recommend ≤6.5.2 for multi-tenant clusters.
