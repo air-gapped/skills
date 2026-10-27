@@ -197,19 +197,19 @@ rolling update is safe.
   hardcoded at 30s, so a large deployment can cut background traffic) and
   `REDIS_RESPONSE_STREAM_TTL` (expires the saved state of a reply that never
   finished, so a server killed mid-answer stops leaking that state permanently).
-- **Password change revokes other sessions only when Redis is configured.**
-  Without Redis nothing is revoked and a warning is logged. On a deployment that
-  skipped Redis because it runs a single pod, that is a security gap, not a
-  missing convenience.
+- **Password change revokes other sessions only when Redis is configured**
+  (v0.11.1–v0.11.4). Without Redis nothing is revoked and a warning is logged.
+  From v0.12.0 a password change rotates a database `session_stamp` and signs
+  the account out everywhere, Redis or not.
 
 ### What v0.11.4 changed for a multi-pod deployment
 
-- **Revocation fails open on a Redis error, not just when Redis is absent.**
-  `is_valid_token()` (`utils/auth.py`) now catches `RedisError` and accepts the
-  token anyway, logging a warning. A sign-out, password change, or ban issued
-  while Redis is flaky or failing over may not take effect until Redis
-  recovers — availability was chosen over strict revocation. Verified against
-  commit `c1615bec2` at v0.11.4.
+- **Redis-held revocation fails open on a Redis error.** `is_valid_token()`
+  (`utils/auth.py`) catches `RedisError` and accepts the token, logging a
+  warning. On v0.11.4 that covers every revocation; from v0.12.0 the
+  account-wide check (password change) reads the database `session_stamp`
+  first and fails closed, so only per-token sign-out and per-user `revoked_at`
+  (OIDC back-channel logout) still lapse while Redis is failing over.
 - **Sign-in rate limiting no longer blocks the whole worker.** The limiter's
   Redis calls are async now (PR #29977); a slow Redis used to freeze every
   request on that worker, not just the one signing in.
