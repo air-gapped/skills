@@ -1,0 +1,137 @@
+{
+  "skill_name": "openshell-best-practices",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-10-28",
+    "harness": "skill-creator eval loop (aggregate_benchmark)",
+    "revised": "2026-10-28: grader feedback from iteration-1 (tls: terminate, MCP rules, base image)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "rpm-upgrade-from-0-0-116",
+      "prompt": "My Fedora 44 workstation has openshell 0.0.116 from the RPM (CLI + openshell-gateway user service, podman driver, one old demo sandbox). I want to get to the current 0.1.6 release. I already downloaded openshell-0.1.6-1.fc44.x86_64.rpm and tried `dnf install` on it but it failed on a dependency. What's the right way to do this upgrade? Give me the steps.",
+      "expected_output": "Explains that 0.0.x to 0.1.x is not an in-place upgrade; the gateway RPM pins the exact CLI version so both packages move together; delete sandboxes, stop the user service, remove both packages, wipe ~/.local/state/openshell, migrate or remove gateway.toml (schema v2), reinstall both 0.1.6 RPMs, re-register the local gateway, export/import provider profiles, recreate sandboxes.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "States that upgrading 0.0.x to 0.1.x is not an in-place upgrade (clean reinstall / uninstall first)"
+        },
+        {
+          "text": "Explains the dependency failure: openshell-gateway pins the same openshell CLI version, so both packages must be removed/installed together"
+        },
+        {
+          "text": "Says existing sandboxes must be deleted/recreated (they are incompatible with 0.1.x)"
+        },
+        {
+          "text": "Says to remove the old gateway state (~/.local/state/openshell or equivalent DB/certs)"
+        },
+        {
+          "text": "Mentions gateway.toml must be schema version 2 (version = 2, singular compute_driver) or removed if it is the old default"
+        },
+        {
+          "text": "Mentions provider profiles are no longer built in and must be exported/imported (or re-imported)"
+        },
+        {
+          "text": "Includes re-registering the local gateway (openshell gateway add https://127.0.0.1:17670 --local)"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "k8s-airgap-keycloak-traefik",
+      "prompt": "We want to run the OpenShell gateway (chart 0.1.6) on our RKE2 cluster at an air-gapped site. Ingress is Traefik (no Gateway API controller), SSO is our Keycloak, and our internal services use certs from a private CA. Agents in the sandboxes need to call our internal GitLab over HTTPS. What do we need to prepare and configure? Be concrete about values and the Keycloak client.",
+      "expected_output": "Agent Sandbox controller + CRD as a prerequisite (pinned, server-side apply, restart gateway after upgrades); NetworkPolicy-enforcing CNI; telemetry off; mirror gateway/supervisor/sandbox runtime/default image/agent-sandbox controller images, noting the sandbox runtime image is not in the render; OIDC via gatewayConfig (server.oidc is a deprecated alias) with roles; Keycloak public client with PKCE and loopback redirect http://127.0.0.1/callback without port plus audience mapper; Traefik IngressRoute with ServersTransport trusting the chart CA and long read timeout; server.oidc.caConfigMapName replaces trust roots; private CA for agent egress must go in the supervisor image (0.1.6) or the post-0.1.6 ConfigMap.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Names the Agent Sandbox controller/CRD (kubernetes-sigs/agent-sandbox, agents.x-k8s.io) as a prerequisite the chart does not install"
+        },
+        {
+          "text": "Says to turn off telemetry (server.telemetryEnabled=false) because it is on by default"
+        },
+        {
+          "text": "Image list includes the sandbox runtime image (openshell/sandbox) in addition to gateway and supervisor, and the default workload image and agent-sandbox controller"
+        },
+        {
+          "text": "Keycloak client is public with PKCE S256 and a loopback redirect on 127.0.0.1 /callback (any port)"
+        },
+        {
+          "text": "Mentions an audience mapper (or equivalent) so the token's aud matches the gateway audience"
+        },
+        {
+          "text": "Gives a Traefik route that re-encrypts to the gateway (scheme https / ServersTransport trusting the chart-generated CA) or TLS passthrough"
+        },
+        {
+          "text": "States the private CA for agents calling internal HTTPS must be trusted by the supervisor (supervisor image in 0.1.6, or the newer additional CA ConfigMap), not just the agent image"
+        },
+        {
+          "text": "Mentions server.oidc.caConfigMapName for a Keycloak issuer behind the private CA"
+        },
+        {
+          "text": "Does not use or recommend the removed `tls: terminate` / `tls: passthrough` policy fields"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "claude-code-subscription-mcp",
+      "prompt": "I want to run Claude Code inside an OpenShell 0.1.6 sandbox on our team gateway. I have a Claude Max subscription, not an API key. Claude Code should also use a remote MCP server at https://mcp.internal.example.com/mcp. Which image do I use, how do I give it credentials without leaking them, and how do I let it reach the MCP server safely?",
+      "expected_output": "No official Claude image; community base image archived/broken; build own image (non-root, real binary path). claude-code provider profile needs a Console API key; subscription works only via in-sandbox login which leaves the token readable in the sandbox. Profile must be imported, binaries real path. MCP: protocol: mcp rule with method/tool allows, enforce, binaries; tool args not matched; approval manual.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Says OpenShell ships no Claude Code image / the default image has no agent, so you build your own image"
+        },
+        {
+          "text": "Warns that the OpenShell-Community base image is archived or broken on 0.1.x, or otherwise steers away from it"
+        },
+        {
+          "text": "States the claude-code provider profile needs an Anthropic Console API key; a subscription login only works inside the sandbox and leaves the token readable there"
+        },
+        {
+          "text": "Says provider profiles must be imported (0.1.x has no built-in profiles); showing `profile import` as a required step counts"
+        },
+        {
+          "text": "Says profile/policy binaries must be the real executable path (not a symlink)"
+        },
+        {
+          "text": "Shows a network policy for the MCP endpoint using protocol: mcp (method/tool rules) with enforce"
+        },
+        {
+          "text": "Mentions MCP tool arguments are not matched or that approval should stay manual / agent must not self-approve"
+        },
+        {
+          "text": "Does not use or recommend the removed `tls: terminate` / `tls: passthrough` policy fields"
+        },
+        {
+          "text": "MCP rules list concrete allowed methods/tools as policy (not only as comments)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "community-base-configurationinvalid",
+      "prompt": "openshell 0.1.5 on macOS (brew). `openshell sandbox create --name dev --from ghcr.io/nvidia/openshell-community/sandboxes/base:latest -- claude` sits in ConfigurationInvalid and then fails with ProvisioningTimedOut after 5 minutes. `openshell policy set dev --policy my.yaml` just says the policy is unchanged. What's going on?",
+      "expected_output": "Community repo archived 2026-10-07; base image bakes /etc/openshell/policy.yaml using removed tls: terminate; invalid baked policy blocks provisioning; recreate with explicit --policy; build own image; also claude-code needs protocol: rest or allow_uninspected_credentials; issue #4467.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Identifies the image-baked policy (/etc/openshell/policy.yaml) as invalid on 0.1.x, e.g. because it uses the removed tls: terminate"
+        },
+        {
+          "text": "Says the OpenShell-Community images are archived/unmaintained"
+        },
+        {
+          "text": "Recommends recreating the sandbox with an explicit --policy (policy set on the stuck sandbox doesn't help) or building a new image"
+        },
+        {
+          "text": "Does not claim the fix is upgrading/downgrading OpenShell alone"
+        },
+        {
+          "text": "Does not recommend continuing to use the community base image (e.g. `--from base` or the archived image) as the fix"
+        }
+      ]
+    }
+  ]
+}

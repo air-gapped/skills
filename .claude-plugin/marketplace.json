@@ -776,6 +776,20 @@
       "strict": false
     },
     {
+      "name": "openshell-best-practices",
+      "source": "./",
+      "description": "Run NVIDIA OpenShell 0.1.x",
+      "version": "0.20261027.1",
+      "author": {
+        "name": "Jörgen"
+      },
+      "license": "MIT",
+      "skills": [
+        "./.claude/skills/openshell-best-practices"
+      ],
+      "strict": false
+    },
+    {
       "name": "postgres-operator-best-practices",
       "source": "./",
       "description": "Run, configure, upgrade and troubleshoot the Zalando postgres-operator (acid.zalan.do `postgresql` CRs, Spilo, Patroni, WAL-G) on Kubernetes",
