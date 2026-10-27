@@ -133,7 +133,7 @@ Cyclic buffer = static plugin, shared-memory ring; readers in `examples/python/t
 
 ## Common gotchas — read before deploying
 
-1. **`UCX_TLS` is the #1 source of segfaults in vLLM+NIXL deploys.** `UCX_TLS=tcp` alone segfaults `nixlUcxSharedThread::run()` after prefill on CUDA-capable images that haven't been told the GPU is reachable. Use `UCX_TLS=cuda_copy,sm,tcp` (or full `cuda_copy,cuda_ipc,sm,tcp,rc` for cross-node). Symptom: `W ucx_utils.cpp:581: memory is detected as host`. (Verified in `vllm-caching` skill 2026-04-25.)
+1. **`UCX_TLS` without `cuda_copy` is the #1 vLLM+NIXL failure.** Below v1.5.0, `UCX_TLS=tcp` alone segfaults `nixlUcxSharedThread::run()` after prefill (`W ucx_utils.cpp:581: memory is detected as host`). From v1.5.0 (#1617), on a host with NVIDIA GPUs, UCX backend creation fails instead: `Invalid UCX_TLS=<value> for NIXL UCX backend: NVIDIA GPU(s) are present, but this setting does not enable CUDA memory support`. Either way, use `UCX_TLS=cuda_copy,sm,tcp` (or full `cuda_copy,cuda_ipc,sm,tcp,rc` for cross-node).
 2. **First transfer after pod-ready may fail with `NIXL_ERR_REMOTE_DISCONNECT`** — handshake race. Retry the second request. Side-channel listener takes a few seconds to bind.
 3. **Side-channel host MUST be a real interface, not a service VIP.** In Kubernetes, set `VLLM_NIXL_SIDE_CHANNEL_HOST=$(POD_IP)` via downward API and use a **headless** Service (`clusterIP: None`, `publishNotReadyAddresses: true`). Same applies to ETCD-mode if pods advertise their own addr.
 4. **`NIXL_PLUGIN_DIR` defaults aren't reliable in non-pip installs.** If `agent.getAvailPlugins()` returns `[]` and an exception fires (`No plugins available for NIXL`), the env var is wrong. Verify with `ls $NIXL_PLUGIN_DIR/libplugin_*.so`.

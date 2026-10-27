@@ -14,7 +14,8 @@ Real failure modes, ranked by frequency. Reference numbers in parens are PRs in 
 ## Top 10 production gotchas
 
 ### 1. `UCX_TLS=tcp` segfaults `nixlUcxSharedThread::run()` on CUDA hosts
-Symptom: prefill completes, then segv during the KV transfer with `W ucx_utils.cpp:581: memory is detected as host`.
+Symptom below v1.5.0: prefill completes, then segv during the KV transfer with `W ucx_utils.cpp:581: memory is detected as host`.
+Symptom from v1.5.0: UCX backend creation throws `Invalid UCX_TLS=... NVIDIA GPU(s) are present, but this setting does not enable CUDA memory support`. The check runs only when `UCX_TLS` is set explicitly; it accepts `cuda`, `cuda_copy` or `all`, and a `^` deny-list passes only if it does not exclude them.
 Fix: `UCX_TLS=cuda_copy,sm,tcp` (single-node) or `cuda_copy,cuda_ipc,sm,tcp,rc` (cross-node IB). Image's UCX is CUDA-capable; default TLS doesn't enable cuda_copy.
 
 ### 2. `NIXL_ERR_REMOTE_DISCONNECT` on first request after pod-ready
@@ -72,6 +73,7 @@ Fix: Keep `enable_prog_thread=True` (default) unless you're using Mooncake-only 
 | `NIXL_ERR_REMOTE_DISCONNECT` | First-request handshake race; or peer crashed; or `UCX_TLS` misconfig; or kube ACL |
 | `Posting transfer failed.` (state == "ERR" from `agent.transfer`) | Descriptor not in registered region, peer metadata not loaded, no common backend, or backend internal error |
 | `W ucx_utils.cpp:581: memory is detected as host` | `UCX_TLS` doesn't include `cuda_copy` on a CUDA tensor |
+| `Invalid UCX_TLS=... for NIXL UCX backend` (v1.5.0+) | Same cause, caught at backend creation — add `cuda_copy` |
 | `Failed to register memory.` | Memory not aligned (storage backends), region overlap, backend not supporting that mem type |
 | `Failed to fetch metadata of remote agent <name>` | Peer hasn't `sendLocalMD()`'d yet (ETCD), or socket listener not up, or IP/port wrong |
 | `nixl_status_t = NIXL_ERR_BACKEND_NOT_SUPPORTED` | Asked for a backend that isn't loaded; check `agent.get_plugin_list()` |
