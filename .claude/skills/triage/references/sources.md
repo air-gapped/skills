@@ -28,7 +28,7 @@ s7 dedup stage and s4 finding schema.
 - URL: https://github.com/anthropics/defending-code-reference-harness
 - Probe: `gh repo view anthropics/defending-code-reference-harness --json pushedAt,isArchived`
 - Note: adapted (Apache-2.0) from that repo's `triage` skill; Phase 1 ingests
-  its pipeline `results/<target>/<ts>/` output. `../vuln-scan/HARNESS.md` points here.
+  its pipeline `results/<target>/<ts>/` output. `../../vuln-scan/HARNESS.md` points here.
 - Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
 
   **The ingest contract this skill depends on is unchanged.** `docs/triage.md`
@@ -54,7 +54,7 @@ s7 dedup stage and s4 finding schema.
 
   **Harness-wide deltas that apply here too** (shared upstream with `patch`,
   `threat-model`, `vuln-scan` — full detail in
-  `../patch/references/sources.md`): a declared usage marker is now stamped on
+  `../../patch/references/sources.md`): a declared usage marker is now stamped on
   outbound agent API requests (`anthropic-cyber-runbook: pipeline`, first-party
   callers only); and the harness gained a **detection & response track**
   (`dnr-pipeline`, `dnrcanary`), so it is no longer only scan→triage→patch.
