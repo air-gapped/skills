@@ -15,7 +15,7 @@ Freshened: 2026-09-23 — every row probed at creation. Rook releases enumerated
 | Tentacle mgr crash loop | https://github.com/rook/rook/issues/18124 | 2026-09-23 | Open. Ceph tracker 79106 (fix), 79357 (crash module EIO). |
 | mgr OOM after v1.20.1 / 20.2.2 | https://github.com/rook/rook/issues/17786 | 2026-09-23 | Open. Rook-module logging + tracker 77724 refcount leak. |
 | Squid→Tentacle RGW/MDS rolled before OSDs | https://github.com/rook/rook/issues/18367 | 2026-09-23 | Closed. Breaks S3 multipart during the window. |
-| Kernel 7.0 mon cold-bootstrap | https://github.com/rook/rook/issues/18370 | 2026-09-23 | Closed upstream as a Ceph msgr issue; tracker https://tracker.ceph.com/issues/80470. |
+| Mon quorum on fresh install (nofile) | https://github.com/rook/rook/issues/18370 | 2026-10-27 | Closed 2026-09-21. Reporter's root cause: Docker 27 on Ubuntu 26.04 gave containers an unbounded nofile limit; `ceph` CLI hangs, mon probe (5 s) times out. Fix: Docker `default-ulimits` nofile 1048576. Maintainer asked to close tracker 80470, which is still New. |
 | 20.2.0 read-affinity corruption | https://github.com/rook/rook/issues/16839 | 2026-09-23 | Closed. |
 | ceph-csi-operator image fallback | https://github.com/ceph/ceph-csi-operator/issues/605 | 2026-09-23 | Closed. `imageSet.name` not set by `ceph-csi-drivers` chart. |
 | Ceph 19.2.6 / 20.2.4 combo release | https://ceph.io/en/news/blog/2026/v20-2-4-v19-2-6-combo-released/ | 2026-09-23 | 2026-08-19. CVE-2025-30156, CVE-2026-39944, CVE-2026-50152, CVE-2026-54330; AES256K; six health codes; multisite `rgw_sigv4_insecure`. |

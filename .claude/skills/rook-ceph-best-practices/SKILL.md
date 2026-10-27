@@ -223,7 +223,7 @@ chart field splits, S3 credential purge) are in `references/upgrade-path.md`.
 | RGW SigV4 fix (19.2.6 / 20.2.4) rejects presigned PUTs with an unsigned Content-Type (restic, PHP clients). Squid: go to 19.2.7 (fixed). Tentacle: `rgw_sigv4_insecure=true` until a release after 20.2.4 ships the merged backport | tracker 79674 |
 | Squid→Tentacle: Rook rolls RGW/MDS before all OSDs are upgraded, breaking S3 multipart during the window | rook#18367 |
 | RGW multisite on 19.2.6: SigV4 rejects RGW's own forwarded requests (`403 AccessDenied`, e.g. bucket creation on a non-master zone); `rgw_sigv4_insecure` alone does not help. Upgrade Squid to 19.2.7 (fixed). A zone that must run 19.2.6 needs `rgw_sigv4_insecure: "true"` **and** `rgw_s3_client_max_sig_ver: "2"` in each store's `gateway.rgwConfig` **before** upgrading; revert to `"false"` / `"-1"` once every zone is fixed. Tentacle has the fix since 20.2.2, though Rook docs also list 20.2.4 | tracker 79698 → 74579; Rook ceph-object-multisite.md |
-| Fresh mon quorum never forms on kernel 7.0 cold bootstrap (existing quorums unaffected) — collides with the 7.0 AES256K kernel requirement | rook#18370, tracker 80470 |
+| Mons of a fresh cluster never hold quorum when the container runtime passes an unbounded open-files limit into pods (`Max open files 2147483584`): every `ceph` CLI spawn hangs, the admin-socket probe times out, kubelet kills healthy mons. Cap the runtime's default nofile (e.g. 1048576). Not a kernel 7.0 regression | rook#18370 |
 | 1500-OSD-scale 18.2.8 → 19.2.6 upgrade: mon slow ops climbing into tens of thousands on each mon restart; did not reproduce in staging | ceph-users 2026-09-14 |
 | NFS-Ganesha per-export keys cannot be rotated (Ceph has no mechanism) | Rook cephx-key-rotation.md |
 
