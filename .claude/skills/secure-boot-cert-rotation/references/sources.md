@@ -1,6 +1,6 @@
 # Sources (primary / high-credibility)
 
-Freshened: 2026-10-27 (exceptions: 5 rows, noted inline) — every other row probed. Windows Production PCA 2011 expired 2026-10-19 with no reported failures, the dbx freeze is partial (both KEK trees parsed), Harvester 1.9.0's SLES 16.0 guest OVMF still carries the 2023 certs.
+Freshened: 2026-10-27 — every row probed. Windows Production PCA 2011 expired 2026-10-19 with no reported failures, the dbx freeze is partial (both KEK trees parsed), Harvester 1.9.0's SLES 16.0 guest OVMF still carries the 2023 certs.
 
 Grounded 2026-06-01; re-probed 2026-08-18 (first freshen, ~8 weeks after the June expiries). Re-verify volatile
 leaf numbers (Dell BIOS minimums, Ubuntu fwupd pockets, Harvester release dates / virt-launcher OVMF) against
