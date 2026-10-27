@@ -116,7 +116,15 @@ The DOCA install triggers DKMS builds of the CX-8 modules. On a Secure Boot host
 sudo apt install -y nvidia-driver-pinning-580
 ```
 
-Pick 580 (LTSB, gpu-operator 26.3.x default), 590, or 595 (latest). For B300 production, 580 LTSB is the conservative choice. See [[packages]] for the full branch matrix.
+Pick from NVIDIA's datacenter support table only:
+
+| Branch | Designation | EOL |
+|---|---|---|
+| 580 | Long Term Support Branch | June 2028 |
+| 595 | Production Branch (gpu-operator 26.7.x default) | March 2027 |
+| 610, 615 | New Feature Branch — not for production | 610: August 2026 |
+
+590 is not in the table. For B300 production, 580 is the conservative choice. Above 580 there is no `nvidia-open-<branch>` / `nvlink5-<branch>`: install `nvidia-driver-pinning-595`, then the unsuffixed metas (`nvidia-open`, `nvlink5`) in Steps 6–7. See [[packages]] for the full branch matrix.
 
 ## Step 6 — Install the driver
 
