@@ -518,8 +518,9 @@ End of the defending-code loop. No skill applies these; a human does.
   category, diff}` and nothing else from the finding. Do not pass it
   `description`, `recommendation`, `exploit_scenario`, or the patch author's
   `rationale`.
-- **Always set `subagent_type`.** Forking would leak every finding's prose
-  into every patch subagent.
+- **Always set `subagent_type`; never fork.** An omitted type falls back to
+  `general-purpose`, losing the read-only agent definition; a fork inherits
+  the whole conversation, leaking every finding's prose into every subagent.
 - **All Agent calls for a phase in ONE message.** Serial spawning is correct
   but N× slower.
 - **Checkpoint before starting the next phase**, every time.

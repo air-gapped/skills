@@ -78,6 +78,10 @@ patch ladder changes.
   conversation starts in the background"; its "results reach Claude as a
   completion notification in a later turn". Background subagents keep `Read`,
   `Grep`, `Glob`, so the read-only author/reviewer tool sets survive.
+- Guard rail "Always set `subagent_type`; never fork": an Agent call that
+  omits `subagent_type` falls back to `general-purpose` (errors.md, "subagent_type
+  is required"); a fork "inherits the entire conversation so far" (sub-agents,
+  "Fork the current conversation"). Omission does not fork.
 
 ---
 
