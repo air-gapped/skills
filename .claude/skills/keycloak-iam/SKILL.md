@@ -214,9 +214,9 @@ When the user asks about something specific, prefer these sources over generic r
 - **Online docs**: `https://www.keycloak.org/`
   - `/server/all-config` — every CLI option, every default
   - `/server/configuration` — concept overview, build-time vs runtime
-  - `/operator/installation`, `/operator/basic-deployment`, `/operator/advanced-configuration`, `/operator/realm`, `/operator/keycloak-cr`, `/operator/rolling-updates`
-  - `/high-availability/` — multi-cluster, external Infinispan, CloudNativePG recipe
-  - `/securing-apps/` — OIDC layers, SAML, DPoP, JWT-Authz-Grant, MCP authorization server (CIMD)
+  - `/operator/installation`, `/operator/basic-deployment`, `/operator/advanced-configuration` (also the CR field reference), `/operator/realm-import`, `/operator/rolling-updates`
+  - `/high-availability/introduction` — multi-cluster, external Infinispan, CloudNativePG recipe
+  - `/securing-apps/overview` — OIDC layers, SAML, DPoP, JWT-Authz-Grant, MCP authorization server (CIMD)
   - `/docs/<version>/server_admin/` and `/docs/<version>/server_development/` — admin and SPI guides
 
 - **gh CLI** (per the user's `gh-cli-preferred` rule):
