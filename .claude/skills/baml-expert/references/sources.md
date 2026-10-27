@@ -24,6 +24,9 @@ published 2026-08-31; no breaking-change notes in the release body — 0.226.0/0
 | https://www.boundaryml.com/blog/schema-aligned-parsing | SAP motivation and behavior | — |
 | https://www.boundaryml.com/blog/type-definition-prompting-baml | why ctx.output_format uses type-def syntax over JSON Schema | — |
 | https://github.com/boundaryml/baml | source of truth — compiler, clients, changelog | SDK 0.225.0 (2026-08-01); toolchain baml-language-0.17.0 (2026-08-16) |
+| https://github.com/boundaryml/baml/pull/4297 | "brand legacy releases as BAML v0" — PyPI, npm, VS Code, CLI and GitHub Release surfaces of the `baml-py` line are labelled BAML v0; the root README describes the new language (old one kept as `README.v0.md`). `baml-cli` 0.226.2's own `--help` reads "A CLI tool for working with BAML v0" | merged 2026-07-31 |
+| https://boundaryml.com/quickstart | BAML v1 install (`brew install baml`, install script), `baml init` (creates `baml.toml` + `baml_src/`), `baml agent install`, `baml describe`/`run`/`test` | — |
+| https://github.com/boundaryml/baml/blob/canary/skills/baml-core/SKILL.md | upstream's v1 agent skill (compiled into the v1 CLI, installed by `baml agent install`): `client<llm>` blocks and `#"..."#` strings are removed in v1, fields are `name: type,`, Python bridge imports `baml_sdk` after `baml generate` from `baml.toml`. Same text at tags baml-language-0.19.0 through 0.23.0 | — |
 | https://github.com/boundaryml/baml/pull/1251 | optional lists + maps (`string[]?`, `map<..>?`) — contradicts public types.mdx | merged |
 | https://github.com/boundaryml/baml/blob/canary/fern/pages/changelog.mdx | canonical changelog for release-gated features | tops out at 0.226.0 (canary pre-release entry, 2026-08-17; 0.225.0 is the latest *released* SDK) |
 | https://github.com/boundaryml/baml/pull/3822 | `ctx.output_format(render_null_as=...)` — shipped in 0.223.0 | merged 2026-06-23 |

@@ -45,17 +45,6 @@ measurement nobody can run.
   `describe`/`run`, which genuinely have no page and stay under Canary. The
   `sources.md` row now records this shape so the next pass does not re-raise it.
 
-## Checked and NOT confirmed — do not add without new evidence
-
-- **A "BAML v0 is legacy, BAML v1 is a separate language in public beta"
-  banner on the docs site.** Reported by a research pass on 2026-09-15 and
-  checked directly the same day: `curl` of `docs.boundaryml.com/home` (370 KB
-  of served HTML) contains no occurrence of "legacy", "BAML v1", "public beta"
-  or "deprecat" in any text node. The only `v0` matches are SVG path data. If
-  such a banner exists it is not in the served markup. Do not write a v0/v1
-  split into this skill on the strength of a summarised read; confirm it in the
-  raw page or an official release note first.
-
 ## Resolved — 2026-07-21 (freshen)
 
 - **Version drift 0.222.0 → 0.223.0** (published 2026-06-23; verified against PyPI, npm, and the repo changelog, which tops out at 0.223.0). Header, GitHub row, PyPI row, and npm row updated and re-stamped.

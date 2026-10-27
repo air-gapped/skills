@@ -9,6 +9,17 @@ BAML = small DSL for typed LLM calls. Author `.baml` files in `baml_src/`, run `
 
 Use this skill for any task touching `.baml` files, `baml_client`, or calls into it. Read the full repo layout first if unclear: the convention is `baml_src/*.baml` + generated `baml_client/` (gitignored; regenerated on every change).
 
+## First: BAML v0 or BAML v1?
+
+This skill covers **BAML v0**: the `baml-py` / `@boundaryml/baml` SDK (0.2xx) and its `baml-cli`. Upstream also ships **BAML v1**, a separate language and toolchain (`brew install baml`, `baml-language-0.NN` releases) whose syntax is incompatible. Decide from the repo, not the binary name — the v0 npm package also installs a `baml` command.
+
+| Marker | Line |
+|---|---|
+| `generator` block in `baml_src/`, `baml_client/`, `client<llm>` blocks, `#"..."#` prompts, class fields without colons | v0 — this skill applies |
+| `baml.toml` at the project root, `name: type,` class fields, backtick prompts with `${ctx.output_format()}`, `baml_sdk` imports | v1 — do not apply this skill's syntax |
+
+On v1: run `baml agent install` (installs upstream's version-matched skill) and use `baml describe <name>`, `baml check`, `baml test`, `baml run` as the reference. In a v0 project never write v1-only constructs — `?.` / `??`, `ns_*` namespace folders, `void` returns, `testset` — and never reach for `baml run` / `describe` / `grep`; v0 `baml-cli` has none of them.
+
 ## Mental model (critical)
 
 ```
