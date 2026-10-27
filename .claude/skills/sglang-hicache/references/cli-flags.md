@@ -55,7 +55,7 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 | `--disable-radix-cache` | Mutually exclusive with `--enable-hierarchical-cache` — asserts at startup |
 | `--disaggregation-decode-enable-offload-kvcache` | Only valid when `--hicache-storage-backend` is set (server_args.py:3836) |
 | `--enable-cache-report --enable-metrics` | Required to see per-tier cache-hit metrics |
-| `--admin-api-key <KEY>` | Required for `/clear_hicache_storage_backend` and recommended for `/hicache/storage-backend` PUT/DELETE (server_args.py:4890) |
+| `--admin-api-key <KEY>` | Required for `POST /hicache/storage-backend/clear` (≤ v0.5.20: `/clear_hicache_storage_backend`) and recommended for `/hicache/storage-backend` PUT/DELETE (server_args.py:4890) |
 | `--mamba-scheduler-strategy {extra_buffer, no_buffer}` | Required for SSM hybrid models with hicache. `extra_buffer` is the production choice |
 | `--max-mamba-cache-size N` | Required for SSM hybrid models with hicache; sizes the Mamba state pool |
 

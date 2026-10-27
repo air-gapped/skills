@@ -23,7 +23,7 @@ Long-context inference is almost always KV-cache bound, not compute bound. HiCac
 
 ## Versions
 
-- **Stable**: v0.5.20 (2026-09-18, latest), v0.5.19 (2026-09-05), v0.5.18 (2026-08-22), v0.5.17 (2026-08-08), v0.5.16, v0.5.15.post1 (2026-07-14), v0.5.15 (2026-07-10), v0.5.14 (2026-06-26), v0.5.13 (2026-06-13). Earlier: v0.5.12.post1 (2026-05-26), v0.5.11 (2026-05-05).
+- **Stable**: v0.5.22 (2026-10-19, latest), v0.5.21 (2026-10-02), v0.5.20 (2026-09-18), v0.5.19 (2026-09-05), v0.5.18 (2026-08-22), v0.5.17 (2026-08-08), v0.5.16, v0.5.15.post1 (2026-07-14), v0.5.15 (2026-07-10), v0.5.14 (2026-06-26), v0.5.13 (2026-06-13). Earlier: v0.5.12.post1 (2026-05-26), v0.5.11 (2026-05-05).
 - **v0.5.11 shipped the SWA/3FS hybrid milestones**: SWA HiCache (PR [#23391](https://github.com/sgl-project/sglang/pull/23391) merged 2026-05-06, day-0 Gemma 4), 3FS Mamba/DSA (PR #23241), hybrid CP.
 - **v0.5.13 made HiCache the default for hybrid models**: `HybridModel` (SWA/Mamba) launches HiCache via **UnifiedTree** by default (PR [#27759](https://github.com/sgl-project/sglang/pull/27759), merged 2026-06-11), so hierarchical offload reaches sliding-window and Mamba hybrids out of the box rather than through arch-specific opt-in. v0.5.13 also added decode-side HiCache for incremental KV transfer (#26227). Spec V2 became the default speculative-decoding path in the same release (Spec V1 deprecated).
 - **v0.5.14–v0.5.15** are HiCache-heavy: int8 checkpoint pool for linear-attention recurrent states in the Mamba radix cache (#28185), hybrid-pool staged H2D kernel (#28434), asymmetric pool direct-backend support (#28446), HiCache for MiMo-V2 (#27378), opt-in CP-aware LRU eviction on the `file` backend (#26670), bucketed multi-dir layout for NIXL file storage (#27672), a NIXL FILE cache cleaner (#28258), Mooncake group semantics (#26574), bulk-token-byte hash generation (#28287), and an AMD **UMBP** tiered DRAM + SSD L3 backend with a hugepage host allocator (#25377). A separate `--enable-hisparse` subsystem (hierarchical sparse attention) also landed and can target NIXL DRAM KV destinations (#27563) — distinct from HiCache, don't conflate the flags.
@@ -59,10 +59,22 @@ CVE-2025-32444 and CVE-2025-47277 in vLLM's KV-transfer pipes. Treat "which
 interface does this subsystem bind, and does it deserialize" as a standing
 question when wiring any of these transports, not a fact to look up once.
 
-## Upgrading past v0.5.15 (swept 2026-09-22, latest stable v0.5.20)
+## Upgrading past v0.5.15 (latest stable v0.5.22)
 
-Four releases landed since this skill's baseline: v0.5.16 (2026-07-25),
-v0.5.17 (08-08), v0.5.18 (08-22), v0.5.19 (09-05).
+Seven releases landed since this skill's baseline: v0.5.16 (2026-07-25)
+through v0.5.22 (2026-10-19).
+
+**v0.5.21–v0.5.22 remove things an existing HiCache setup may still call:**
+
+- `/clear_hicache_storage_backend` is gone (v0.5.21) — use
+  `POST /hicache/storage-backend/clear`.
+- `HiRadixCache`, `MambaRadixCache` and `SWARadixCache` are deleted (v0.5.21).
+  Plugins or patches importing them fail; port them to `UnifiedRadixCache`.
+- The unified radix tree runs on a Rust core by default (v0.5.21). Set
+  `SGLANG_UNIFIED_RADIX_TREE_CORE_BACKEND=python` to rule it out of a regression.
+- v0.5.22 needs Python ≥ 3.11 — on 3.10, `pip install sglang` silently resolves
+  to an older release. `--enable-dp-attention` is deprecated for
+  `--attn-dp-size N`; `--dp-size` now counts model replicas only.
 
 **Two flags were renamed with no deprecated alias, so an existing launch command
 dies with `unrecognized arguments`** (both v0.5.16):
