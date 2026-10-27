@@ -24,19 +24,19 @@ Flows/Outputs render exclusively into aggregator config — no aggregator, no ro
 A Logging CAN be collector-less (aggregator-only, fed by another Logging's collector
 via LoggingRoute) — that's the multi-tenant pattern, not a lighter mode.
 
-## Telemetry Controller — watch, don't adopt (as of 2026-07)
+## Telemetry Controller — watch, don't adopt (as of 2026-10)
 
 The separate kube-logging project (OTel-Collector-based DaemonSet) positioned as
 NodeAgent's successor and the collector-only story:
 
-- 0.5.6 (2026-05-19), **v1alpha1**, pre-1.0. CRDs: Collector (cluster),
+- 0.6.0 (2026-09-17, dependency bumps only), **v1alpha1**, pre-1.0. CRDs: Collector (cluster),
   Tenant (cluster), Subscription (ns), Output (ns), Bridge.
 - **Only 6 output types**: otlp, otlphttp, fluentforward, file, elasticsearch,
   awss3 — everything else needs an aggregator behind it or a custom otelcol image.
 - Hard-depends on the OpenTelemetry Operator; runs Axoflow's otelcol distribution.
 - The operator integration (`Logging.spec.routeConfig.enableTelemetryControllerRoute`
   + operator flag `-enable-telemetry-controller-route`) is **still experimental** in
-  6.7.0 and hardwired: it creates one Tenant+Subscription+Output per Logging,
+  6.9.0 and hardwired: it creates one Tenant+Subscription+Output per Logging,
   Output fixed to fluentforward → that Logging's fluentd. TC replaces fluent-bit as
   collector; fluentd stays. Admin must deploy the Collector CR and install TC
   (`telemetry-controller.install` chart conditional) separately.
