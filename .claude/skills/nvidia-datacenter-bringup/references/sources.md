@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed. GPU Operator is still v26.7.0, but the apt index moved under the file: nvidia-container-toolkit 1.19.1-1 -> 1.20.1-1 and the driver stack 610.43.02-1ubuntu1 -> 615.71.09-2ubuntu1. Two Ubuntu wiki Secure Boot pages now 404 outright — the wiki migrated off MoinMoin and the articles do not exist under any title; annotated inline rather than removed, since documentation.ubuntu.com is the surviving primary source. Dell 403s remain the known Akamai bot-block.
+Freshened: 2026-10-27 (exceptions: 4 rows, noted inline) — every row probed; gpu-operator moved to v26.7.2, the CUDA repo to 615.71.10, and DOCA 3.2.3 now lives outside `latest-3.2-LTS/`.
 
 **Three DOCA rows moved host this pass**: `docs.nvidia.com/doca/sdk/...` now permanently redirects to `networking-docs.nvidia.com/doca/archive/3-5-0/...`. The URLs below are the new ones.
 
@@ -80,7 +80,7 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 | https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS **[2026-10-27: 404 to curl; the browser shows an empty "no text in this page" placeholder — dropped from [[secure-boot]]]** | (formerly) `update-secureboot-policy`, MOK enrollment | 2026-08-18 | — |
 | https://documentation.ubuntu.com/security/security-features/platform-protections/secure-boot/ | Canonical security-team SB docs | 2026-08-18 | — |
 | https://wiki.debian.org/SecureBoot | lockdown=integrity behaviours, `modinfo` verification | 2026-08-18 | — |
-| https://packages.ubuntu.com/noble/shim-signed | shim-signed 1.58+15.8-0ubuntu1 metadata | 2026-08-18 | 24.04 noble |
+| https://packages.ubuntu.com/noble/shim-signed **[packages.ubuntu.com returns 500 to curl and a browser on 2026-10-27 — claim verified against the noble/noble-updates/noble-security `Packages.xz` indexes instead]** | shim-signed 1.58+15.8-0ubuntu1 metadata | 2026-08-18 | 24.04 noble |
 
 ## Dell — chassis (B300 + Hopper)
 
@@ -104,10 +104,10 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://packages.ubuntu.com/search?keywords=nvidia-driver-pinning | Confirms NO `nvidia-driver-pinning-*` in Ubuntu archive | 2026-08-18 | — |
-| https://packages.ubuntu.com/search?keywords=nvlink5 | Confirms NO `nvlink5-*` in Ubuntu archive | 2026-08-18 | — |
-| https://packages.ubuntu.com/noble-updates/linux-modules-nvidia-595-open-generic-hwe-24.04 | Canonical-signed precompiled 595-open HWE module | 2026-08-18 | kernel ABI 7.0.0-38-generic (meta `7.0.0-38.38~24.04.4+1`; `linux-generic-hwe-24.04` `7.0.0-38.38~24.04.4`, read from the noble-updates `Packages.xz` 2026-10-27 — packages.ubuntu.com returned 500) |
+| https://packages.ubuntu.com/search?keywords=nvidia-driver-pinning **[packages.ubuntu.com returns 500 to curl and a browser on 2026-10-27 — claim verified against the noble/noble-updates/noble-security `Packages.xz` indexes instead]** | Confirms NO `nvidia-driver-pinning-*` in Ubuntu archive | 2026-08-18 | — |
+| https://packages.ubuntu.com/search?keywords=nvlink5 **[packages.ubuntu.com returns 500 to curl and a browser on 2026-10-27 — claim verified against the noble/noble-updates/noble-security `Packages.xz` indexes instead]** | Confirms NO `nvlink5-*` in Ubuntu archive | 2026-08-18 | — |
+| https://packages.ubuntu.com/noble-updates/linux-modules-nvidia-595-open-generic-hwe-24.04 **[packages.ubuntu.com returns 500 to curl and a browser on 2026-10-27 — claim verified against the noble/noble-updates/noble-security `Packages.xz` indexes instead]** | Canonical-signed precompiled 595-open HWE module | 2026-08-18 | kernel ABI 7.0.0-38-generic (meta `7.0.0-38.38~24.04.4+1`; `linux-generic-hwe-24.04` `7.0.0-38.38~24.04.4`, read from the noble-updates `Packages.xz` 2026-10-27 — packages.ubuntu.com returned 500) |
 
 ## Live apt-cache reality
 
-Re-probed 2026-07-21 against the repo's `Packages.gz` index (see the branch-suffix correction above). Originally captured 2026-05-21 from a clean `ubuntu:24.04` docker container with the NVIDIA CUDA repo added via `cuda-keyring_1.1-1_all.deb`. The apt-cache output backing the [[packages]] reference is the authoritative source for package names — if NVIDIA's user-guide text drifts from the apt index, trust the apt index. Re-run the inspect script during freshen passes.
+Re-probed 2026-10-27 against the repo's `Packages.gz` index (see the branch-suffix correction above). Originally captured 2026-05-21 from a clean `ubuntu:24.04` docker container with the NVIDIA CUDA repo added via `cuda-keyring_1.1-1_all.deb`. The apt-cache output backing the [[packages]] reference is the authoritative source for package names — if NVIDIA's user-guide text drifts from the apt index, trust the apt index. Re-run the inspect script during freshen passes.
