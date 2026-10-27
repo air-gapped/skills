@@ -55,7 +55,7 @@ authoritative.
 | plugin #652 | https://github.com/cloudnative-pg/plugin-barman-cloud/issues/652 | first backup unrestorable on idle DBs | 2026-07-29 | open |
 | CNPG #3788 / PR #11337 | https://github.com/cloudnative-pg/cloudnative-pg/pull/11337 | no password generation for extra roles through 1.30; `DatabaseRole` `password` stanza (generate, optional rotation) on main for 1.31; field lives in `DatabaseRoleSpec` only, so `managed.roles` stays without it | 2026-10-27 | #3788 closed 2026-10-23 by PR #11337 (merged to main, "do not backport"; not in v1.30.1) |
 | CNPG disc #3723 | https://github.com/cloudnative-pg/cloudnative-pg/discussions/3723 | import fails on Spilo extension deps | 2026-07-24 | — |
-| HA bugs #10430 #10287 #11202 #10547 #11110 | github.com/cloudnative-pg/cloudnative-pg/issues/… | open HA-adjacent bugs listed in pitfalls | 2026-07-29 | all open |
+| HA bugs #10430 #10287 #11202 #10547 #11110 | github.com/cloudnative-pg/cloudnative-pg/issues/… | unfixed HA-adjacent bugs listed in pitfalls | 2026-10-27 | #11202 #10547 #11110 open; #10430 (2026-10-20) and #10287 (2026-09-29) closed NOT_PLANNED by github-actions stale bot, last comment the stale notice, no linked fix — still live |
 | PR #11148 | https://github.com/cloudnative-pg/cloudnative-pg/pull/11148 | multi-instance-no-sync warning is 1.31 material ("do not backport") | 2026-07-24 | merged, unreleased |
 | CNCF incubation | https://github.com/cncf/toc/issues/1961 | CNPG incubation application (2025-11-12) | 2026-07-29 | open |
 | Crunchy #3601 | https://github.com/CrunchyData/postgres-operator/issues/3601 | Developer Program image revocation incident (alternatives assessment) | 2026-08-25 | **open** — filed 2023-03-08, never closed; prior passes recorded "closed", which was wrong |

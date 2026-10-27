@@ -158,12 +158,14 @@ failoverQuorum: true}` → durability-equivalent to Spilo
 `synchronous_mode` + `failsafe_mode`. (The multi-instance-without-sync
 warning webhook is 1.31 material, PR #11148 — not in 1.30.)
 
-Open HA-adjacent bugs to re-check at execution time: #10430 (failover
-skipped on instance-manager HTTP false-negative), #10287
-(false-positive fencing when a sync replica is slow during API blips),
-#11202 (no switchover on drain when primary isn't lowest-index pod),
-#10547 (`dataDurability: preferred` + failoverQuorum never-ready),
-#11110 (restart proceeds with unpromotable lagged replica).
+Unfixed HA-adjacent bugs to re-check at execution time (#10430 and
+#10287 show closed, but the stale bot closed them — no fix landed;
+treat them as live): #10430 (failover skipped on instance-manager HTTP
+false-negative), #10287 (false-positive fencing when a sync replica is
+slow during API blips), #11202 (no switchover on drain when primary
+isn't lowest-index pod), #10547 (`dataDurability: preferred` +
+failoverQuorum never-ready), #11110 (restart proceeds with unpromotable
+lagged replica).
 
 ## Zalando-side pre-migration traps
 
