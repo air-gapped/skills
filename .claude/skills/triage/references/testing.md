@@ -6,7 +6,7 @@ reference harness (see `../../vuln-scan/HARNESS.md`); to run the smoke test, clo
 that harness and point `--repo` at it:
 
 ```
-/triage <skill-dir>/fixtures/canary-findings.json --auto --repo <harness>/targets/canary
+/triage <skill-dir>/fixtures/canary-findings.json --auto --repo <harness>
 ```
 
 Expected: f001 and f003 confirmed; f002 duplicate of f001; f004 dropped
