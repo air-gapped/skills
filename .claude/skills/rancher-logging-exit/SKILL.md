@@ -62,7 +62,7 @@ pipeline: the **logging-operator** skill.
   Rancher's 2019 CVE-2019-12303.
 - Also stale: fluent-bit 3.1.8 (in-range for the Nov-2025 five-CVE set — though
   NOT exploitable in the default tail→k8s-filter→forward pipeline; frame as
-  "outdated", not "default RCE"), fluentd v1.16 (upstream at 1.19).
+  "outdated", not "default RCE"), fluentd v1.16 (upstream at 1.20).
 - Not formally deprecated — Rancher docs still describe it. The story is
   "abandonware with an open critical", not EOL notice.
 

@@ -44,6 +44,7 @@ CVE.
 | Axoflow Rancher-migration blog | https://axoflow.com/blog/get-the-latest-logging-operator-in-rancher | maintainer-endorsed release-secret strategy; historical 3.17 freeze precedent | 2026-07-22 (content 2023-09) | — |
 | Rancher advisories page | https://ranchermanager.docs.rancher.com/reference-guides/rancher-security/security-advisories-and-cves | no logging CVE listed (negative evidence) | 2026-09-15 | — |
 | SUSE CVE page | https://www.suse.com/security/cve/CVE-2026-54680.html | **now published** (created 2026-09-04, CVSS 9.9 critical). The "Released" status covers SUSE's `govulncheck-vulndb` tracking entry only — **no logging-operator/rancher-logging package backport is listed**, so the negative evidence for the operator itself still holds | 2026-09-22 | — |
+| fluentd releases | https://github.com/fluent/fluentd/releases | "upstream at 1.20" staleness contrast with the bundled v1.16 | 2026-10-27 | v1.20.1 (2026-10-26) latest |
 | NVD CVE-2026-54680 | https://nvd.nist.gov/vuln/detail/CVE-2026-54680 (API `services.nvd.nist.gov/rest/json/cves/2.0?cveId=`) | published 2026-07-29 from the GitHub CNA, `vulnStatus` Deferred, description names 6.6.0 as the fix | 2026-10-27 | — |
 | rancher/rancher releases | https://github.com/rancher/rancher/releases (v2.12.0–v2.15.2; v2.15.0 GA 2026-07-30, latest v2.15.2 2026-09-23) | no rancher-logging deprecation in release notes | 2026-09-15 | — |
 
