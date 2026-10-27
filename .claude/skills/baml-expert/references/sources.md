@@ -32,7 +32,7 @@ published 2026-08-31; no breaking-change notes in the release body — 0.226.0/0
 | https://github.com/boundaryml/baml/pull/3822 | `ctx.output_format(render_null_as=...)` — shipped in 0.223.0 | merged 2026-06-23 |
 | https://pypi.org/project/baml-py/ | Python SDK package (pip install baml-py) | latest 0.226.2 |
 | https://www.npmjs.com/package/@boundaryml/baml | npm package + `baml-cli`/`baml` binaries (TS/JS) | latest 0.226.2 |
-| https://studio.boundaryml.com | Boundary Studio v2 (v1 at app.boundaryml.com deprecated end-of-March 2026) | deprecation: 2026-03-31 |
+| https://studio.boundaryml.com | Boundary Studio v2 (redirects to the auth login). v1 at app.boundaryml.com was deprecated for 2026-03-31 and now redirects to `/dashboard`, which 404s | v1 gone |
 | https://marketplace.visualstudio.com/items?itemName=Boundary.baml-extension | VSCode/Cursor playground extension | — |
 | https://promptfiddle.com | web playground, embeddable | — |
 | https://github.com/BoundaryML/baml-examples | starter repos (Python FastAPI, Next.js, Rails) | — |

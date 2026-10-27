@@ -83,7 +83,7 @@ Tags merge with parent `@trace` tags when wrapped.
 
 Set `BOUNDARY_API_KEY=...` and traces ship automatically. Web UI: `studio.boundaryml.com`. `@trace` decorator wraps arbitrary Python functions for Studio visibility.
 
-Note: Studio v1 at `app.boundaryml.com` deprecates end-of-March 2026 — migrate to v2.
+Studio v1 at `app.boundaryml.com` is shut down (404); point dashboards and docs links at `studio.boundaryml.com`.
 
 ## LLM-fixup pattern (retry with a cheaper model)
 

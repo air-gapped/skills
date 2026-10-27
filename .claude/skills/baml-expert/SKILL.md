@@ -299,7 +299,7 @@ See `references/testing.md` for multimodal inputs, `type_builder` in tests, temp
 2. **`BOUNDARY_MAX_LOG_CHUNK_CHARS=3000`** — truncate noisy payloads.
 3. **VSCode playground** — Cursor/VSCode with Boundary extension shows rendered prompt and raw cURL for every test. Single most useful debug view. CodeLens "Open Playground" above each function.
 4. **Collector** — inspect programmatically (see above). `.calls[-1].http_request` is the exact bytes sent.
-5. **Boundary Studio** — `BOUNDARY_API_KEY` ships traces. Web UI at studio.boundaryml.com (v1 at app.boundaryml.com is deprecated end-of-March 2026).
+5. **Boundary Studio** — `BOUNDARY_API_KEY` ships traces. Web UI at studio.boundaryml.com; the v1 UI at app.boundaryml.com is shut down (404) — rewrite any link to it.
 
 When parse fails: read `BamlValidationError.detailed_message` — it includes the parse attempt chain with reasons, not just the final error.
 
