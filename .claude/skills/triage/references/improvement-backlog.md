@@ -34,7 +34,7 @@ cap reached (10 iterations, 1 discard); baseline 242c8a9.
   `<untrusted_data id="{nonce}">` … `</untrusted_data id="{nonce}">` — the
   **closing** tag carries the nonce too. A bare `</untrusted_data>` appearing in
   scanner text therefore cannot terminate the block. That was the exact defect
-  PR #13 fixed; an earlier version used a bare closing tag. Anyone
+  anthropics/defending-code-reference-harness#13 fixed; an earlier version used a bare closing tag. Anyone
   re-implementing this from memory will write the bare form and silently lose
   the protection, so the contract is documented rather than left to the example.
 - Added the full filling contract: fresh `secrets.token_hex(16)` per prompt,
@@ -282,9 +282,9 @@ blind to impact-on-asset.
 - **sources.md re-stamped; harness delta reviewed.** All three refs re-probed
   live (harness repo active; CVSS first.org + OWASP Risk Rating HTTP 200);
   `Last verified` advanced 2026-05-31 → 2026-06-15. Harness pushed 2026-05-30 →
-  2026-06-15 — reviewed delta = `untrusted_data` prompt-isolation (PR #13) +
-  sandbox cgroup-probe fix (PR #2). PR #13 produced the new Open item above
-  (flagged, not auto-applied); PR #2 touches only `setup_sandbox.sh` internals
+  2026-06-15 — reviewed delta = `untrusted_data` prompt-isolation (anthropics/defending-code-reference-harness#13) +
+  sandbox cgroup-probe fix (anthropics/defending-code-reference-harness#2). The isolation PR produced the new Open item
+  above (flagged, not auto-applied); the sandbox PR touches only `setup_sandbox.sh` internals
   this skill does not document.
 
 ## Resolved this pass (2026-05-31)
