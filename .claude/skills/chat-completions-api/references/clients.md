@@ -153,22 +153,22 @@ Distilled requirements for a third-party CC server to survive real clients:
    reason).
 6. Whole-blob tool arguments in one delta are safe for all surveyed parsers.
 7. Send `data: [DONE]` anyway — AI SDK ignores it, but official-openai-SDK
-   clients (e.g. Cline's classic extension path) expect it.
+   clients expect it.
 8. Error bodies `{"error":{message, type?, param?, code?}}`; send
    `retry-after` on 429 — opencode honors it exactly; 5xx/429 are retried
    unbounded, 400 is not.
 9. Require nothing beyond `Authorization: Bearer`; tolerate its absence.
 
 Other clients:
-- **Cline** (source-verified 2026-07-19 via gh api, repo cline/cline@main):
-  the modern `llms` SDK path builds on `@ai-sdk/openai-compatible` with
-  `includeUsage: true` — the same loose parser documented above — wrapped in
-  a middleware that splits image parts OUT of `role:"tool"` messages into a
-  synthetic user message, because the CC wire format cannot carry multimodal
-  tool messages (`sdk/packages/llms/src/providers/vendors/openai-compatible.ts`).
-  The classic extension path used the official openai SDK
-  (`src/core/api/transform/openai-format.ts`); changelog confirms
-  `reasoning_content` handling for OpenAI-compatible providers.
+- **Cline** (source-verified 2026-10-27 via gh api, repo cline/cline@main):
+  the VS Code extension now routes inference through the `@cline/llms` SDK
+  (`apps/vscode/src/sdk/sdk-api-handler.ts`), whose OpenAI-compatible
+  provider builds on `@ai-sdk/openai-compatible` with `includeUsage: true` — the same loose
+  parser documented above — wrapped in a middleware that splits image parts
+  OUT of `role:"tool"` messages into a synthetic user message, because the CC
+  wire format cannot carry multimodal tool messages
+  (`sdk/packages/llms/src/providers/vendors/openai-compatible.ts`). The old
+  official-openai-SDK extension path is gone.
 - aider (training knowledge, NOT source-verified): routes through LiteLLM —
   its drop rules apply. Codex CLI: partially verified via opencode's
   explicit "Codex parity" mirrors (strict:false + the schema-whitelist

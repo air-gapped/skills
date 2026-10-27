@@ -33,7 +33,7 @@ the listed commit on 2026-07-19.
 | Bifrost | https://github.com/maximhq/bifrost | 2026-09-15 | — | 7a1543e85 |
 | Superagent Gateway | https://github.com/superagent-ai/gateway | 2026-09-15 | — | d182a5b |
 | opencode + pinned AI SDK tarballs | https://github.com/sst/opencode | 2026-09-15 | v1.18.3; @ai-sdk/openai@3.0.84, openai-compatible@2.0.41 | 127bdb307 (v1.18.3 tag) |
-| Cline (llms SDK provider) | https://github.com/cline/cline | 2026-09-15 | main (gh api) | — |
+| Cline (llms SDK provider) | https://github.com/cline/cline | 2026-10-27 | main (gh api): `sdk/packages/llms/src/providers/vendors/openai-compatible.ts` present (`createOpenAICompatible`, `includeUsage: true`, `splitToolImagesMiddleware`); `src/core/api/transform/openai-format.ts` gone (vscode moved to `apps/` in cline/cline#10961; no `openai-format*` file remains); extension inference routes through `apps/vscode/src/sdk/sdk-api-handler.ts` | — |
 | Anthropic OpenAI-compat layer | https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk | 2026-09-15 | — | — |
 | Gemini OpenAI-compat | https://ai.google.dev/gemini-api/docs/openai | 2026-09-15 | — | — |
 | DeepSeek API docs (+thinking/prefix/FIM guides) | https://api-docs.deepseek.com/ | 2026-10-27 | root: "Use deepseek-flash as the model name"; legacy `deepseek-v4-flash` "still accepted"; /updates: `deepseek-chat`/`deepseek-reasoner` "discontinued … (2026-07-24)"; guides/thinking_mode: with `tools`, "the reasoning_content must be fully passed back … the API will return a 400 error"; the "automatically max for complex agent requests" wording is gone | — |
