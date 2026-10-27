@@ -14,8 +14,8 @@ Dated index of every external source backing this skill's claims.
 
 The `netbox-community/netbox-chart` repo publishes **two products into one
 release stream**: `netbox-<chart>` and `netbox-operator-<chart>`. As of
-2026-10-27 the `isLatest` release is **`netbox-operator-1.2.199`**, while the
-newest NetBox chart is **`netbox-8.3.96`** (2026-10-27).
+2026-10-27 the `isLatest` release is **`netbox-operator-1.2.200`**, while the
+newest NetBox chart is **`netbox-8.3.97`** (2026-10-27).
 
 So `gh release view --repo netbox-community/netbox-chart` reports an *operator*
 version that looks nothing like a chart version, and enumerating without
@@ -25,7 +25,7 @@ cleanly and carries `appVersion`:
 ```bash
 curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
   | yq '.entries.netbox[0] | {version, appVersion, created}'
-# chart 8.3.96 / app v4.7.3 / 2026-10-27
+# chart 8.3.97 / app v4.7.3 / 2026-10-27
 ```
 
 | Source | What it backs | Last verified |
@@ -56,7 +56,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | github.com/netbox-community/netbox `netbox/netbox/authentication/__init__.py` | sso-hardening: REMOTE_AUTH_SUPERUSER/STAFF/GROUP_SYNC are RemoteUserBackend-only (`_is_superuser`/`_is_staff`/`configure_groups` L163-262); `user_default_groups_handler` assigns flat REMOTE_AUTH_DEFAULT_GROUPS, no flag mapping (L383-401) | 2026-06-14 (main @ gh api) |
 | github.com/netbox-community/netbox `netbox/netbox/settings.py` | sso-hardening: default SOCIAL_AUTH_PIPELINE (L716-726), only NetBox step is user_default_groups_handler | 2026-06-14 (main @ gh api) |
 | netboxlabs.com/docs/.../authentication/overview, hull.au/blog/netbox-authentik-oidc-sso, docs.goauthentik.io/integrations/services/netbox | sso-hardening: SOCIAL_AUTH_PROTECTED_USER_FIELDS=['groups'] sign-in workaround, SOCIAL_AUTH_REDIRECT_IS_HTTPS, groups-claim prerequisite, usersocialauth linking | 2026-06-14 |
-| helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.96 / app v4.7.3** (2026-10-27) — still 8.x (no major) | 2026-10-27 |
+| helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.97 / app v4.7.3** (2026-10-27) — still 8.x (no major) | 2026-10-27 |
 | github.com/netbox-community/netbox releases | **NetBox v4.7.3** (2026-10-13) is latest; 4.7.x is GA, no 5.0 yet, so the v1-token-removal-at-v5.0 claim stands | 2026-10-27 |
 | netbox-chart `charts/netbox/docs/auth.md` + `docs/extra.md` | §9 chart SSO docs exist (Keycloak/GitLab examples, pipeline-mount pattern, extraConfig `*.yaml`-key mechanics); dated-example findings (legacy /auth URLs, KeycloakOAuth2 pasted key, associate_by_email) | 2026-07-30 (clone @ HEAD, post-8.3.57) |
 | netbox-chart `files/configuration.py` + `templates/configmap.yaml` | §9.1 extraConfig deep-merge loader (`/run/config/extra/*/*.yaml` → module globals), remoteAuth → REMOTE_AUTH_* rendering (configmap.yaml:107-108) | 2026-07-30 (clone @ HEAD) |
@@ -69,7 +69,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | netbox v4.7.1 release notes + issues #23112, #23130 | 4.7.0 SSO login button broken under `form-action` CSP; 4.7.0 `pg_dump` cannot restore the ltree cascade triggers; both fixed 4.7.1 (2026-09-15) | 2026-09-15 |
 | netbox `docs/release-notes/version-4.5.md` @v4.7.3 (#16137) + commit c0e4d1c1e (PR #20306) | `User.is_staff` removed in 4.5.0, together with `REMOTE_AUTH_STAFF_GROUPS`/`_STAFF_USERS` (settings.py, remote-authentication.md); `RemoteUserBackend._is_staff` returns `is_superuser` @v4.7.3; `User(AbstractUser)` still has it @v4.4.0 | 2026-10-27 |
 | netbox issue #23196 (milestone v4.7.2, closed 2026-09-24) | async bulk API writes stored plaintext v2 tokens in `Job.data` on 4.7.0–4.7.1 | 2026-10-27 |
-| netbox-chart Helm index (`index.yaml`, `.entries.netbox[]`) | chart→app pins: 8.3.66 → 4.6.10 (last 4.6), 8.3.67–8.3.77 → 4.7.0, 8.3.78–8.3.90 → 4.7.1, 8.3.91 → 4.7.2, 8.3.92–8.3.96 → 4.7.3 | 2026-10-27 |
+| netbox-chart Helm index (`index.yaml`, `.entries.netbox[]`) | chart→app pins: 8.3.66 → 4.6.10 (last 4.6), 8.3.67–8.3.77 → 4.7.0, 8.3.78–8.3.90 → 4.7.1, 8.3.91 → 4.7.2, 8.3.92–8.3.97 → 4.7.3 | 2026-10-27 |
 
 Refresh cadence: run `/skill-improver freshen netbox-best-practices` when a new
 NetBox minor (4.7/5.0) or netbox-chart major lands — the v1-token removal
