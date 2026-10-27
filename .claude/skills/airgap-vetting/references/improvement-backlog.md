@@ -6,13 +6,7 @@ not be re-proposed or re-researched. Design rationale lives in
 
 ## Open
 
-- **`scripts/static-sweep.sh`** (Dim 7) — bundle the static grep batteries
-  into one script emitting a structured hit list. Attempted 2026-07-15,
-  superseded by the redesign. Re-screened 2026-08-18 and NOT built: it
-  would duplicate every grep from the pattern files, recreating the drift
-  surface the product-agnostic redesign deliberately removed. Needs an
-  operator yes/no (either build it as the single source of truth with the
-  pattern files pointing at it, or close this item). (carried 2026-08-18)
+(none)
 
 ## Unblocked — actionable
 
@@ -26,6 +20,10 @@ not be re-proposed or re-researched. Design rationale lives in
 
 ## Settled — do not re-propose
 
+- **No `scripts/static-sweep.sh`** (2026-10-27). A bundled grep battery would
+  duplicate every pattern in the Q-files and drift from them — the drift the
+  product-agnostic redesign removed. Re-open only if the pattern files are
+  restructured so the script becomes their single source.
 - **Pattern files stay product-agnostic** (author, 2026-07-15). No
   candidate-product examples in Q1–Q7 references; known-products.md is the
   only product log. Full redesign applied 2026-07-15.
