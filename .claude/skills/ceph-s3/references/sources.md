@@ -4,7 +4,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| RGW options | https://github.com/ceph/ceph/blob/v20.2.4/src/common/options/rgw.yaml.in | 2026-09-23 | Same at v19.2.6: `rgw_dynamic_resharding` true, `rgw_max_objs_per_shard` 100000, `rgw_max_dynamic_shards` 1999, `rgw_sigv4_insecure` false, `rgw_s3_client_max_sig_ver` -1, `rgw_lifecycle_work_time` 00:00-06:00, `rgw_lc_max_worker` 3, `rgw_gc_obj_min_wait` 2h. |
+| RGW options | https://github.com/ceph/ceph/blob/v20.2.4/src/common/options/rgw.yaml.in | 2026-10-27 | Same at v19.2.6 and v19.2.7: `rgw_dynamic_resharding` true, `rgw_max_objs_per_shard` 100000, `rgw_max_dynamic_shards` 1999, `rgw_sigv4_insecure` false, `rgw_s3_client_max_sig_ver` -1, `rgw_lifecycle_work_time` 00:00-06:00, `rgw_lc_max_worker` 3, `rgw_gc_obj_min_wait` 2h. |
 | Large omap threshold | https://github.com/ceph/ceph/blob/v19.2.6/src/common/options/osd.yaml.in | 2026-09-23 | `osd_deep_scrub_large_omap_object_key_threshold` 200000. |
 | CVE-2026-54330 | https://docs.ceph.com/en/latest/security/CVE-2026-54330/ | 2026-09-23 | SigV4 unsigned `x-amz-*` headers; fixed 19.2.6 / 20.2.4. |
 | CVE-2026-39944 | https://docs.ceph.com/en/latest/security/CVE-2026-39944/ | 2026-09-23 | STS token CBC bit-flip → admin; fixed 19.2.6 / 20.2.4. |
@@ -21,8 +21,8 @@ Freshened: 2026-09-23 — every row probed at creation.
 | Dynamic resharding doc | https://docs.ceph.com/en/squid/radosgw/dynamicresharding/ | 2026-09-23 | "Cleanup of stale instances should not be done in a multisite deployment." |
 | Resharding without pausing | https://ceph.io/en/news/blog/2026/rgw-improved-resharding/ | 2026-09-23 | Tentacle two-phase reshard. |
 | Tentacle release notes | https://docs.ceph.com/en/latest/releases/tentacle/ | 2026-09-23 | LastModified truncation; GetObjectAttributes; tenant IAM and STS Lite deprecated; ISA-L default. |
-| Rook object accounts | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-accounts.md | 2026-09-23 | Experimental; only `quay.ceph.io/ceph-ci/ceph:main`. |
-| Rook COSI | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Object-Storage-RGW/cosi.md | 2026-09-23 | Experimental. |
-| Rook notifications | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-notifications.md | 2026-09-23 | Kafka `mechanism`, secret refs. |
+| Rook object accounts | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-accounts.md | 2026-10-27 | Experimental; only `quay.ceph.io/ceph-ci/ceph:main`. Same text at v1.20.7, v1.20.9, v1.21.1. |
+| Rook COSI | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Object-Storage-RGW/cosi.md | 2026-10-27 | Experimental; controller from `kubernetes-sigs/container-object-storage-interface` at v0.2.2. |
+| Rook notifications | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-notifications.md | 2026-10-27 | Kafka `mechanism`, `userSecretRef` / `passwordSecretRef`. |
 | Rook v1.17.0 notes | https://github.com/rook/rook/releases/tag/v1.17.0 | 2026-09-23 | Undeclared CephObjectStoreUser S3 credentials purged. |
 | Rook Squid→Tentacle RGW early roll | https://github.com/rook/rook/issues/18367 | 2026-10-27 | Closed by rook/rook#18369 "object: wait for the osd upgrade before reconciling" (merged 2026-09-10); in v1.20.8 and v1.19.12 release notes; v1.21.0 contains the merge commit. |

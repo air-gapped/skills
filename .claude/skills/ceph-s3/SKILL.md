@@ -26,9 +26,8 @@ argument-hint: "[security|compat|sharding|multisite|rook] (optional focus area)"
 
 # ceph-s3
 
-Defaults read from `src/common/options/rgw.yaml.in` at v19.2.6 and v20.2.4;
-Rook docs at v1.20.7 and master; tracker and ceph-users as cited. Verified
-**2026-09-23**.
+Defaults read from `src/common/options/rgw.yaml.in` at v19.2.7 and v20.2.4;
+Rook docs at v1.21.1; tracker as cited. Check dates: `references/sources.md`.
 
 Focus argument → section: `security` → §19.2.6 / 20.2.4 fixes;
 `compat` → §AWS SDK checksums and §Tentacle S3 behaviour changes;
@@ -137,7 +136,7 @@ pin the SDK/tool to a version before the change.
 
 ## Rook object CRDs
 
-| Need | Use | Status (v1.20.7) |
+| Need | Use | Status (v1.21.1) |
 |---|---|---|
 | Bucket for an app | `ObjectBucketClaim` + StorageClass | Stable, documented default |
 | Kubernetes-native buckets | COSI (`CephCOSIDriver`, `BucketClaim`) | **Experimental**; the COSI controller repo has moved — take the URL from the current Rook `cosi.md` |
