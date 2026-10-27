@@ -17,7 +17,7 @@ phrasing is deliberate):
 3. **What are we going to do about it?**
 4. **Did we do a good job?**
 
-Reference: Shostack, *The Four Question Framework for Threat Modeling* (2024).
+Reference: Shostack, *Understanding The Four-Question Framework for Threat Modeling* (white paper, November 2024).
 
 ---
 

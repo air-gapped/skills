@@ -14,7 +14,9 @@ frameworks or upstream harness change.
 
 - URL: https://shostack.org/files/papers/The_Four_Question_Framework.pdf
 - Probe: `WebFetch` — expect HTTP 200. Interview mode walks the four questions.
-- Last verified: 2026-09-15  (HTTP 200, re-probed)
+- Cover (pdftotext, 2026-10-27): "Understanding The Four-Question Framework for
+  Threat Modeling", Shostack + Associates White Paper 5, November 2024, by Adam
+  Shostack. The four questions match interview.md word for word.
 
 ## OWASP Threat Modeling Cheat Sheet
 

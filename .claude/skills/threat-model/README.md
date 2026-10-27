@@ -118,7 +118,7 @@ contract.
 
 ## References
 
-- Shostack, *The Four Question Framework for Threat Modeling* (2024) —
+- Shostack, *Understanding The Four-Question Framework for Threat Modeling* (white paper, November 2024) —
   https://shostack.org/files/papers/The_Four_Question_Framework.pdf
 - OWASP Threat Modeling Cheat Sheet —
   https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html
