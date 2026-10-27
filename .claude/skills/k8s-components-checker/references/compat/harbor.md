@@ -6,7 +6,7 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
 - **Last sifted:** 2026-09-15 — release lines, chart matrix and the no-1.35 absence claim all re-verified; **the `releases/latest` pointer has since moved**, see below
-- **Last release-verified:** 2026-07-21 — 2.15.2 (2026-07-02) carries a security fix (blob-mount source-project validation, reject tokens missing `iat`), swaps the cache backend Redis → **Valkey**, and moves the portal to Angular 21 / Clarity 18 / Node 22.
+- **Last release-verified:** 2026-10-27 — v2.15.4 / v2.14.6 / v2.13.6; 2026-10-06 security batch read (see §2.15). Previous: 2026-07-21 — 2.15.2 (2026-07-02) carries a security fix (blob-mount source-project validation, reject tokens missing `iat`), swaps the cache backend Redis → **Valkey**, and moves the portal to Angular 21 / Clarity 18 / Node 22.
 - **2026-05-31 release-verified (gh):** enumerating `goharbor/harbor`
   non-prerelease tags (no version named) returns **`v2.15.2` / `v2.15.1` / `v2.15.0` as real,
   higher releases** alongside the maintained **2.14 line (`v2.14.4`)**.
@@ -103,7 +103,9 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   core `find: '/etc/harbor/ssl': No such file or directory` + `init global
   config instance failed ... app.conf` = normal when `internalTLS` is disabled.
 
-## 2.15 — chart 1.19.x  (RELEASED; latest patch **v2.15.2** 2026-07-02 — re-verified 2026-09-15 as `isLatest`. `releases/latest` now points here, no longer at v2.14.4. Tested k8s **1.32.8 / 1.33.4 / 1.34.0** off `integration.yaml` at chart tag v1.19.2 — **still does NOT add 1.35**, absence claim re-tested and holds.)
+## 2.15 — chart 1.19.x  (RELEASED; latest patch **v2.15.4** 2026-10-09 — re-verified 2026-09-15 as `isLatest`. `releases/latest` now points here, no longer at v2.14.4. Tested k8s **1.32.8 / 1.33.4 / 1.34.0** off `integration.yaml` at chart tag v1.19.2 — **still does NOT add 1.35**, absence claim re-tested and holds.)
+
+- **Security floor (2026-10-06 batch): v2.15.3 / v2.14.5 / v2.13.6.** Fixes GHSA-qj39-pjf2-wmrc (path traversal in distribution endpoints), GHSA-w5fq-xrhj-j7g2 (system robot with `user:update` escalates to admin; ranges `< 2.13.6`, `>= 2.14.0, < 2.14.5`, `>= 2.15.0, < 2.15.3`), GHSA-xq2m-cj8w-56v5, GHSA-xvh7-74g6-29xw (all high) and GHSA-27f2-qg57-2gwg. Nothing below 2.13 is patched. **Breaking in the same batch:** webhook/Slack delivery to private, loopback and link-local addresses is blocked by default (GHSA-2phj-cp9f-qq6w) — in-cluster webhook receivers stop firing; and cosign/notation no longer pull unsigned images in content-trust-enforced projects (GHSA-wrw5-gmvj-gf23). **Known issue:** push replication to AWS ECR fails (GHSA-wjpm-hv5w-gxr6 regression). Newer patches: v2.15.4 (2026-10-09), v2.14.6 (2026-10-23, Go dependency CVE bumps). `v2.16.0-rc1` is pre-release only.
 
 - **k8s floor:** **tested on 1.32 – 1.34** (chart 1.19 integration matrix:
   `v1.32.8, v1.33.4, v1.34.0`). README still claims "Kubernetes v1.20+"
@@ -237,7 +239,7 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   - `pprof` endpoint exposed on core (PR #22005) — NetworkPolicy should
     block external access if cluster ingress is permissive.
 
-## 2.14 — chart 1.18.x (1.18.0 → 1.18.4)
+## 2.14 — chart 1.18.x (1.18.0 → 1.18.4; latest app patch **v2.14.6** 2026-10-23 — security floor v2.14.5, see §2.15)
 
 - **k8s floor:** **tested on 1.32 – 1.34** (matrix bumped from `1.29/1.30/1.31`
   to `1.32/1.33/1.34` in harbor-helm PR #2238, cherry-picked into 1.18 line).
@@ -270,7 +272,7 @@ For operators still on 2.11.x planning the jump to the 2.15 line.
   - CNAI raw model format support (PR #22040) — only matters if Harbor is
     being used as an AI model registry; otherwise no compat impact.
 
-## 2.13 — chart 1.17.x (1.17.0 → 1.17.4)
+## 2.13 — chart 1.17.x (1.17.0 → 1.17.4; latest app patch **v2.13.6** 2026-10-06 — security floor, see §2.15)
 
 - **k8s floor:** **tested on 1.29 – 1.31** (chart 1.17 integration matrix:
   `v1.29.8, v1.30.4, v1.31.1`).
