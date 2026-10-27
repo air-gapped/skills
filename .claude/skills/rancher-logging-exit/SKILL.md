@@ -81,8 +81,9 @@ CRs + rendered config → scale down the rancher operator → back up then **del
 (releases vanish from Helm/Rancher UI; CRDs, CRs, and the running fluentd/fluent-bit
 keep working) → server-side-apply 6.7.0 CRDs → helm-install upstream operator
 reusing the Logging name `rancher-logging-root` + controlNamespace
-`cattle-logging-system` (preserves buffer PVCs) → validate → clean up Rancher
-extras. Near-zero collection gap.
+`cattle-logging-system` (preserves buffer PVCs) → unpin the images Rancher set on
+the root Logging/FluentbitAgent (the operator only defaults unset ones) →
+validate → clean up Rancher extras. Near-zero collection gap.
 
 **Never run `helm uninstall rancher-logging-crd` on a live install**: the CRD chart
 has **no `helm.sh/resource-policy: keep`** — uninstall deletes the CRDs, the API

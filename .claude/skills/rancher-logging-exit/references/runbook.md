@@ -75,8 +75,15 @@ helm install logging-operator oci://<registry>/kube-logging/helm-charts/logging-
   --set logging-operator-crds.install=false \
   -f upstream-values.yaml        # air-gap image overrides from airgap-prep.md
 
-# 6. The operator adopts the existing Logging (name rancher-logging-root) and
-#    reconciles fluentd/fluent-bit to 6.7.0 images. Watch:
+# 6. The operator adopts the existing Logging (name rancher-logging-root) but
+#    fills only UNSET image fields, and the Rancher chart pinned its own on the
+#    CRs (fluentd v1.16-4.10-full, config-reloader v0.0.6, fluent-bit 3.1.8) —
+#    left alone, the data plane keeps them. Air-gapped: set them to the mirror
+#    (airgap-prep.md §3). Connected: drop them to take the 6.7.0 defaults. Same
+#    for any other Logging/FluentbitAgent in the step-0 backup that sets them.
+kubectl patch logging rancher-logging-root --type=merge \
+  -p '{"spec":{"fluentd":{"image":null,"configReloaderImage":null}}}'
+kubectl patch fluentbitagent rancher-logging-root --type=merge -p '{"spec":{"image":null}}'
 kubectl get pods -n $NS -w
 kubectl get logging rancher-logging-root -o yaml   # status.problems, configCheckResults
 ```
@@ -107,6 +114,8 @@ helm install logging-operator oci://<registry>/.../logging-operator \
   --version 6.7.0 -n $NS -f upstream-values.yaml
 # 5. Restore CRs: outputs → clusteroutputs → loggings → fluentbitagents →
 #    flows → clusterflows (refs before referrers). Pruning diff first (cr-compat.md).
+#    Strip or repoint the Rancher image pins in loggings.yaml/fluentbitagents.yaml
+#    first (Strategy A step 6) or the restore brings back the 4.10-era images.
 kubectl apply -f outputs.yaml ... etc
 ```
 
