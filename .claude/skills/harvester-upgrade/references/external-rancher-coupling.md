@@ -19,15 +19,19 @@ only the **order** is mandatory.
 
 ## The required pairing
 
-`harvester-ui-extension.md` support matrix + `compat/harvester.md`:
+`harvester-ui-extension.md` support matrix + the SUSE per-line support matrix (`harvester-v1-<minor>-x`):
 
 | Harvester | needs Rancher ≥ | needs harvester-ui-extension | air-gap `ui-plugin-catalog` image |
 |---|---|---|---|
 | 1.5.x | 2.11.0 | 1.5.x | 4.0.5 |
 | 1.6.x | 2.12.0 | 1.6.x | 4.1.0 |
-| 1.7.x | 2.13.0 | 1.7.x | 4.32.0 |
-| 1.8.x | 2.14.0 | 1.8.x | 4.30.0 |
-| 1.9.x | 2.15.0 | 1.9.x | 4.45.0 (row is in the v1.10 dev docs only) |
+| 1.7.x | 2.13.0 | 1.7.x | 4.34.0 (carries ext 1.7.0–1.7.3) |
+| 1.8.x | 2.14.0 | 1.8.x | 4.34.0 (carries ext 1.8.0–1.8.2) |
+| 1.9.x | 2.15.0 | 1.9.x | 4.45.0 (ext 1.9.0) |
+
+Each image tag carries a range of extension patches; mirror the tag whose range includes the extension patch
+being installed. The Harvester docs' `airgap.md` lists older tags (1.7 → 4.32.0, 1.8 → 4.30.0) that lack the
+newest extension patch — take the tag from the SUSE per-line matrix.
 
 - The **UI extension is the join of both axes** — its minor must match the Harvester minor *and* be supported
   by the Rancher minor. An external Rancher requires **installing/upgrading it manually** (the embedded path
