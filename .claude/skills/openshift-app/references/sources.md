@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed; all URLs 200. OCP 4.20/4.21/4.22 GA dates, the OVN, cgroup-v2, restricted-v2 and OLM v1 claims all reproduce against Red Hat's own lifecycle and docs pages. No 4.23 yet.
+Freshened: 2026-10-27 — every row probed; all URLs 200 (docs.redhat.com was down mid-pass and re-probed after). OCP 5.0 still RC-only; GitOps 1.22 ships Helm 4; FIPS 140-2 certificates are Historical.
 
 External references underpinning this skill's OpenShift-specific claims. Re-verify the dated rows when running `freshen`. Stamp the row's "Last verified" with the date you re-confirmed the claim against the live source.
 
