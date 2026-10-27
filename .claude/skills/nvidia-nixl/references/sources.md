@@ -1,6 +1,6 @@
 # External sources
 
-Freshened: 2026-09-22 — every row probed. HEAD is 1.5.0 and vLLM v0.30.0 pins `nixl == 1.4.1`, up from 1.3.2 at v0.28.0/v0.29.0 — the SKILL.md table had lagged sources.md by a release.
+Freshened: 2026-10-27 (exceptions: 1 row, noted inline) — every row probed. v1.5.1 is latest, vLLM v0.32.0 pins `nixl == 1.5.0`, and the v1.5.0 git tag points at `main`, not the shipped release branch.
 
 Load-bearing external references cited in this skill, with verification dates. Probed via `gh api` / `gh release list` / WebFetch / a local clone of `ai-dynamo/nixl`. Refresh via the `freshen` mode of the `skill-improver` skill.
 
@@ -18,7 +18,7 @@ Load-bearing external references cited in this skill, with verification dates. P
 | `docs/BackendGuide.md` (SB API) | https://github.com/ai-dynamo/nixl/blob/main/docs/BackendGuide.md | 2026-08-18 | Fresh — canonical SB API spec, plugin manager API, descriptor list abstraction, capability flags. Headers in `src/api/cpp/backend`. |
 | `docs/python_api.md` | https://github.com/ai-dynamo/nixl/blob/main/docs/python_api.md | 2026-08-18 | Fresh — points at `src/api/python/_api.py` (~1220 lines) for full surface; covers QueryMem, GDS, basic_two_peers, partial_md examples. |
 | `docs/telemetry.md` | https://github.com/ai-dynamo/nixl/blob/main/docs/telemetry.md | 2026-08-18 | Fresh — env-var matrix, event categories, cyclic buffer + Prometheus exporter modes. |
-| `src/api/python/_api.py` | https://github.com/ai-dynamo/nixl/blob/main/src/api/python/_api.py | 2026-08-18 | 1221 lines. `nixl_agent`, `nixl_agent_config`, `nixl_xfer_handle`, `nixl_prepped_dlist_handle`, all transfer/metadata methods. |
+| `src/api/python/_api.py` | https://github.com/ai-dynamo/nixl/blob/main/src/api/python/_api.py | 2026-08-18 | 1234 lines at v1.5.1. `nixl_agent`, `nixl_agent_config`, `nixl_xfer_handle`, `nixl_prepped_dlist_handle`, all transfer/metadata methods. |
 | `pyproject.toml` (NIXL Python pkg) | https://github.com/ai-dynamo/nixl/blob/main/pyproject.toml | 2026-07-21 | Package name `nixl-cu12` / `nixl-cu13`, version **1.6.0** at HEAD — a dev version ahead of the v1.5.1 release (a `release/1.6.0` branch exists, unreleased), so it names no shipped artifact, torch==2.11.* build pin, Python ≥ 3.10. |
 | `src/plugins/` directory | https://github.com/ai-dynamo/nixl/tree/main/src/plugins | 2026-07-21 | **15 plugins** at tag v1.5.1 (same set as v1.3.1): azure_blob, cuda_gds, gds_mt, gpunetio, gusli, hf3fs, **infinia**, libfabric, mooncake, obj, posix, telemetry, **tracing**, uccl, ucx. `infinia` added in v1.3.0 (#1569). On `main` and `release/1.6.0`: `gds_mt` removed as a directory — merged into `cuda_gds` by #1856 (merged 2026-09-23; `GDS` takes `mode=batch|mt`, `GDS_MT` kept as a compatibility backend name) — and `redis` added (#1791). Still 15. |
 | UCX plugin source | https://github.com/ai-dynamo/nixl/tree/main/src/plugins/ucx | 2026-08-18 | Source-of-truth for UCX backend behavior. v1.0.1 PRs #1565 (progress+notif), #1573 (remove indirection), #1527 (EFA-only config). |
@@ -57,6 +57,8 @@ Load-bearing external references cited in this skill, with verification dates. P
 | Cross-reference: `vllm-caching` skill | sibling skill: `.claude/skills/vllm-caching/` (`references/connectors.md` § "NixlConnector — disaggregated prefill") | 2026-08-18 | Hands-on-verified NIXL recipes for vLLM disagg-prefill on consumer hardware (UCX_TLS, downward API, headless Service, the six P2P env vars, NIXL_ERR_REMOTE_DISCONNECT race). NIXL skill refers to it for vLLM-side connector glue. |
 
 ## Notes on probe budget
+
+Probes used (2026-10-27 freshen): bulk curl of every URL row; `gh release list/view` (v1.5.0, v1.5.1) and `gh api` on `release/1.5.0` / `release/1.6.0` branches; local `ai-dynamo/nixl` clone at tag v1.5.1 for plugins, README, `_api.py`, UCX/TCPStore source; local vLLM clone for `kv_connectors.txt` at v0.30.0–v0.32.0 and main; PyPI JSON for nixl, nixl-cu12, nixl-cu13.
 
 Probes used (2026-07-21 freshen): `gh release list` (v1.3.1 latest), `gh release view` on v1.2.0 / v1.3.0 / v1.3.1, `gh api contents/pyproject.toml` on main (1.4.0), `gh api contents/src/plugins` on main and at `?ref=v1.3.1` (15 entries), `git show v0.25.1:requirements/kv_connectors.txt` in the local vLLM clone (`nixl == 1.3.0`), plus vLLM v0.22.1–v0.25.0 release notes for NIXL-side integration changes. Not re-probed: PyPI wheel pages, the per-plugin READMEs (2026-04-25 stamps stand), the third-party blog rows.
 
