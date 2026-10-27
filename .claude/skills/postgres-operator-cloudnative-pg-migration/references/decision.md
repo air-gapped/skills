@@ -76,10 +76,11 @@ before quoting a cadence.
   2025-11-12, still open (watch for maintainer-diversity conditions —
   all 5 maintainers are EDB employees; governance is vendor-neutral on
   paper only, so far).
-- 9,029 stars vs Zalando 5,208 (crossed during 2024–25); 132M+ image
-  pulls; KubeCon NA 2025 + EU 2026 talks (incl. GEICO); IBM Instana
-  replaced its embedded Zalando operator with CNPG and publishes an
-  official migration runbook; pgEdge integrates with CNPG.
+- 9,490 stars vs Zalando 5,265 at 2026-10-27 (crossed during
+  2024–25); 132M+ image pulls; KubeCon NA 2025 + EU 2026 talks (incl.
+  GEICO); IBM Instana replaced its embedded Zalando operator with CNPG
+  and publishes an official migration runbook; pgEdge integrates with
+  CNPG.
 - 2023 Timescale survey: CNPG 27.6% (1st), Zalando 7.9%. Caveat:
   EDB-published; no neutral 2025/26 survey exists.
 
