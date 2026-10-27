@@ -354,10 +354,12 @@ helm install --verify mychart-0.1.0.tgz
 
 ### Flux Verification
 
-Flux natively verifies cosign signatures on Helm OCI charts:
+Flux natively verifies cosign signatures on Helm OCI charts. Put `spec.verify` on
+an `OCIRepository` (referenced from the HelmRelease's `spec.chartRef`) or a
+`HelmChart` — not on a `HelmRepository`, whose `type: oci` is in maintenance mode:
 
 ```yaml
-# Key-based
+# Key-based (kind: OCIRepository, source.toolkit.fluxcd.io/v1)
 spec:
   verify:
     provider: cosign
