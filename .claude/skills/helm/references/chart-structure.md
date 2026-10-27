@@ -704,7 +704,7 @@ Create `README.md.gotmpl` in chart root for custom layout. Available sub-templat
 Helm's native `crds/` directory installs CRDs once but **never upgrades or deletes**
 them. Not templated (no conditional logic). `--dry-run` doesn't work with CRDs.
 
-Every major chart avoids it. Three approaches used in production:
+Three approaches used in production:
 
 ### Approach 1: Templates with Conditional Flags (cert-manager)
 
@@ -730,18 +730,23 @@ spec: ...
 {{- end }}
 ```
 
-### Approach 2: Separate CRD Chart (kube-prometheus-stack)
+### Approach 2: `crds/` in a Subchart + Upgrade Job (kube-prometheus-stack)
 
-Separate `prometheus-operator-crds` sub-chart dependency. CRD updates trigger
-major version bumps. Cluster operators manage CRDs independently.
+CRDs sit in the native `crds/` directory of a local `crds` subchart (dependency
+`condition: crds.enabled`), so `helm upgrade` does not update them. Users apply
+them by hand (`kubectl apply --server-side`) before a major bump, or opt into the
+`crds.upgradeJob.enabled` pre-upgrade hook Job (preview, off by default). CRD
+changes bump the chart's major version.
 
-### Approach 3: CRDs Inline (Cilium)
+### Approach 3: Operator Registers Its Own CRDs (Cilium)
 
-CRDs included directly in chart templates. Simple but tightly couples CRD lifecycle
-to chart releases.
+The chart ships no CRD manifests; cilium-operator creates and updates them at
+startup (`--skip-crd-creation` disables it). Only possible when you own the
+operator code.
 
-**Recommendation**: Approach 1 for most charts. Approach 2 for complex CRD sets
-shared across multiple charts.
+**Recommendation**: Approach 1 for most charts. Approach 3 when your operator can
+register its CRDs. Approach 2 keeps the `crds/` upgrade gap — ship it only with the
+upgrade Job or a documented manual apply.
 
 ---
 

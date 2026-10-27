@@ -128,8 +128,9 @@ failures because `matchLabels` cannot be changed after creation.
 ### 6. CRDs in `crds/` Directory Are Never Upgraded
 
 Helm's native `crds/` directory installs CRDs once but never upgrades or deletes
-them. Every major chart (cert-manager, Cilium, kube-prometheus-stack) avoids this
-by putting CRDs in `templates/` with conditional flags. See
+them. Put CRDs in `templates/` behind a `crds.enabled` flag (cert-manager's
+pattern). A chart that keeps `crds/` must ship an upgrade path — a manual
+`kubectl apply --server-side` step or a pre-upgrade hook Job. See
 `references/chart-structure.md` § CRDs.
 
 ### 7. OCI Is the Primary Distribution Method
