@@ -2,6 +2,8 @@
 
 Three-tier hierarchical KV prefix cache addressed through one radix tree.
 
+> **v0.5.21+:** `hiradix_cache.py` is deleted (`hi_mamba_radix_cache.py` already was, in v0.5.18); the tree is `UnifiedRadixCache` (`mem_cache/unified_radix_cache.py`, per-attention-type components under `mem_cache/unified_cache/`). `HiCacheController` and the L2/L3 mechanics below still apply. Class names, file paths and line numbers in the call paths below describe ≤ v0.5.20 — grep the symbol at the deployed tag.
+
 ## Tiers
 
 | Tier | Substrate | Scope | Class |
