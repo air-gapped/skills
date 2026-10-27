@@ -5,15 +5,17 @@ minimum (Dell KB 000402373). PowerEdge firmware is managed through **iDRAC / Lif
 OpenManage** — **not LVFS**, which is why `fwupd` has nothing to offer these nodes.
 
 > Ground the per-generation BIOS minimum against **Dell KB 000402373** at use time (numbers below are a
-> starting reference, not gospel — Dell revises them). 17G ships with the 2023 certs pre-installed.
+> starting reference, not gospel — Dell revises them). The KB covers 14G–16G only; on 17G confirm the 2023
+> certs with the §Runbook step 1 audit.
 
 | Gen | Example models | Min BIOS carrying 2023 certs (verify in KB 000402373) |
 |---|---|---|
-| 14G | R740/R640/R840/R940/T640/R540/R440 | `2.25.0` |
-| 14G | R750/R650/R550/R450 | `1.19.2` · R350/R250 → `1.13.0` · R340/R240 → `2.21.0` |
-| 15G | R6515/R7515/R6525/R7525 | `2.22.0` |
+| 14G | R740/R640/R840/R940/T640/R540/R440 | `2.25.0` · R340/R240 → `2.21.0` |
+| 15G | R750/R650/R550/R450 | `1.19.2` · R350/R250 → `1.13.0` |
+| 15G AMD | R6515/R7515/R6525/R7525 | `2.22.0` |
 | 16G | R660/R760/R860 family | `2.8.2` · R260/R360/T160/T360 → `2.4.0` |
-| 17G | all | ships with 2023 certs pre-installed |
+| 14G/16G AMD, dense, edge | R7425/R7415/R6415 → `1.23.0` · R6625/R7625/R6615/R7615 → `1.15.3` · C6615 → `1.10.3` · XR4510c/XR4520c → `1.21.1` | |
+| 17G | all | not in the KB — audit (`bioscert view`) |
 
 ## The staged-until-reboot mechanism (this is the whole point)
 
@@ -21,8 +23,8 @@ A BIOS DUP applied via iDRAC/Lifecycle Controller is **staged ("Scheduled")** an
 into firmware at the **next host reboot / Lifecycle Controller pass**. So a server that *"pulled a BIOS update
 months ago but hasn't rebooted in a long time"* almost certainly has the **2023 keys staged but not applied** —
 **a single controlled reboot applies them.** Expect a benign `UEFI0074` POST warning ("The Secure Boot policy
-has been modified since the last time the system was started"). KB 000402373 mandates: update → reboot (applies
-during POST/LC) → a second reboot completes it.
+has been modified since the last time the system was started"). Follow KB 000402373's own step list: it ships
+per-generation (14G/15G/16G) script packages and requires a reboot when prompted — no second reboot.
 
 ## Runbook
 
@@ -40,7 +42,7 @@ during POST/LC) → a second reboot completes it.
    Look for `Microsoft Corporation KEK 2K CA 2023` (KEK) and `Windows UEFI CA 2023` / `Microsoft UEFI CA 2023`
    / `Microsoft Option ROM UEFI CA 2023` (db).
 2. **If BIOS < minimum:** stage the BIOS update (iDRAC firmware update / DSU / OME).
-3. **Reboot in a maintenance window.** BIOS applies during POST/LC; a second reboot completes it.
+3. **Reboot in a maintenance window.** BIOS applies during POST/LC.
 4. **Or enroll without a flash on a new-enough BIOS** — set `SecureBootPolicy=Custom`, then:
    ```
    POST /redfish/v1/Systems/System.Embedded.1/SecureBoot/Actions/SecureBoot.ResetKeys

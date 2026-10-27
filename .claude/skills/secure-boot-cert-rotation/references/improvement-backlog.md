@@ -9,19 +9,11 @@ Carries ceiling findings across `skill-improver` runs. Read in Phase 0; updated 
   blind agents call these "standing instructions, not waste", and that they carry
   the lessons driving Dim 10. Two independent blind reads endorsing the current
   structure is a settled question, not a ceiling waiting on an author.
-- The Dell KB item above stays open and is genuinely blocked: the vendor serves
-  403 to automated fetches, the one summarised read obtained was internally
-  inconsistent, and a wrong BIOS minimum sends someone to flash the wrong
-  firmware. That one needs a human with a login, which is an absent thing.
 
 ## Open
 
-- **Dell KB 000402373 per-generation BIOS minimums — unverifiable by agent, needs a human read.** Dell serves
-  403 to automated fetches, and the one summarized read obtained on 2026-08-18 was internally inconsistent
-  (labelled R260/R360/T160/T360 as 14G; they are 16G). The table in `dell-poweredge.md` therefore still carries
-  its 2026-06-01 numbers and its "verify in KB 000402373" fence. **Do not update these from a scraped or
-  AI-summarized read** — a wrong BIOS minimum sends someone to flash the wrong firmware. Needs an authenticated
-  manual read of the live KB; also confirm whether 17G ships 2023 certs pre-installed (claimed, unconfirmed).
+None.
+
 ## Decided — do not re-propose
 
 - **Watch item: the end of 2011-KEK-signed dbx.** The dbx cutover trigger fired (2023-KEK tree from
