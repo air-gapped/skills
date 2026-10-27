@@ -14,8 +14,8 @@ before quoting in a later year.
 | Human commits | 89 | 626 |
 | Unique authors | 29 | 81 |
 | Sustained (full-time-pace) contributors | 1 (Felix Kunde, 35% of commits) | 7 (all EDB) |
-| Releases 2025 / 2026 YTD | 2 / 2 (v2.0.0 + v2.0.1, both 2026-07) | ~monthly patch trains, 3 concurrent minors |
-| Latest release | v2.0.2 (2026-08-20) | 1.30.0 + 1.29.2 + 1.28.4 (2026-06-29) |
+| Releases 2025 / 2026 YTD | 2 / 2 (v2.0.0 + v2.0.1, both 2026-07) | patch trains every 5–12 weeks, 2–3 concurrent minors |
+| Latest release | v2.0.2 (2026-08-20) | 1.30.1 + 1.29.3 (2026-09-23); 1.29 EOL 2026-09-29 |
 | New issues opened 2026 YTD | 21 | 516 |
 | Go LOC / test LOC | 40k / 15k | 205k / 97k |
 
@@ -28,11 +28,11 @@ CNPG has held ~550–650 human commits/yr for five straight years. Note
 CNPG's raw GitHub graphs are ~32–36% renovate-bot — the human-only gap
 is still ~7×.
 
-CNPG cadence check, 2026-08-25: the 1.30.0/1.29.2/1.28.4 train is ~8
-weeks old against a historical 5–7 week interval (2026-02-05, 04-01,
-05-08, 06-29). Development is plainly alive — ~30 commits in the last 30
-days, most recent 2026-08-24. Read that as a release gap at the edge of
-normal, not a slowdown signal; re-check before quoting a cadence.
+CNPG cadence: patch trains landed 2026-02-05, 04-01, 05-08, 06-29 and
+09-23 — the last gap ran 12 weeks against a prior 5–8. Development did
+not slow (87 non-merge commits on main in the month to 2026-10-26).
+Read it as a longer release interval, not a slowdown signal; re-check
+before quoting a cadence.
 
 ## On-the-record statements
 

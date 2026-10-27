@@ -38,8 +38,9 @@ artifacts. Facts below were verified 2026-07-24 against primary sources
 (both operator repos at HEAD, release manifests, maintainer statements);
 re-verify anything version-gated before relying on it in a later year.
 Version anchor (2026-08-25): Zalando v2.0.2 (Spilo-18 4.1-p2, PG 14–18;
-v2.0.0 and v2.0.1 are both defective), CNPG 1.30.0 / 1.29.2 / 1.28.4
-(2026-06-29; PG 14–18; 1.31 unreleased), plugin-barman-cloud v0.15.1.
+v2.0.0 and v2.0.1 are both defective), CNPG 1.30.1 (2026-09-23; PG
+14–18; 1.29 EOL 2026-09-29, 1.31 due ~Dec 2026 — target 1.30.x),
+plugin-barman-cloud v0.15.1.
 
 ## Why this migration exists
 

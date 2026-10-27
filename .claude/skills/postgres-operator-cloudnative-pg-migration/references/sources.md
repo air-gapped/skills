@@ -26,11 +26,11 @@ authoritative.
 
 | Ref | URL | Grounds | Last verified | Pinned |
 |---|---|---|---|---|
-| CNPG repo/docs | https://github.com/cloudnative-pg/cloudnative-pg | all CNPG field/version claims (API ref, bootstrap, database_import, logical_replication, failover, instance_manager, replication, backup, postgres_upgrades, supported_releases, operator_conf, cnpg_i) | 2026-07-24 | clone @ 0552b9caa (v1.30.0+51) |
+| CNPG repo/docs | https://github.com/cloudnative-pg/cloudnative-pg | all CNPG field/version claims (API ref, bootstrap, database_import, logical_replication, failover, instance_manager, replication, backup, postgres_upgrades, supported_releases, operator_conf, cnpg_i) | 2026-10-27 | field claims authored @ 0552b9caa (v1.30.0+51); release state re-read @ 7adba6a4a (main, 2026-10-26) and tag v1.30.1 |
 | CNPG lease source | internal/cmd/manager/instance/run/lease/runnable.go | isolated-primary lease behavior (retry vs self-stop) | 2026-07-24 | same clone |
 | Zalando repo/docs | https://github.com/zalando/postgres-operator | manifest reference, CRD Go types, admin docs, service/secret naming, scram default; release state (**v2.0.2 latest, 2026-08-20**; v2.0.0 and v2.0.1 both defective — see the sibling skill `postgres-operator-best-practices`) | 2026-08-25 | clone @ 86d3027e (pre-v2; re-clone before deep CRD work) |
 | Spilo repo | https://github.com/zalando/spilo | USE_OLD_LOCALES / Ubuntu 18.04 locale archive (Dockerfile, launch.sh), WAL-G-only (ENVIRONMENT.rst), wal_level default (configure_spilo.py) | 2026-07-24 | — |
-| CNPG supported releases | https://cloudnative-pg.io/docs/devel/supported_releases | 3-month cadence, ~6-month minor life, K8s/PG windows | 2026-07-24 | 1.30.x: K8s 1.34–1.36, PG 14–18 |
+| CNPG supported releases | https://cloudnative-pg.io/docs/devel/supported_releases | 3-month cadence, ~6-month minor life, K8s/PG windows; 1.29 EOL 2026-09-29, 1.28 EOL 2026-06-30; upcoming 1.31.0 ~Dec 2026, 1.32.0 ~Mar 2027 | 2026-10-27 | 1.30.x: K8s 1.34–1.36, PG 14–18 |
 | CNPG installation_upgrade | https://cloudnative-pg.io/docs/devel/installation_upgrade | operator upgrade → fleet rolling restart; in-place update flag | 2026-07-24 | — |
 | plugin-barman-cloud | https://github.com/cloudnative-pg/plugin-barman-cloud | v0.15.1 images (sidecar still base64 in the release-asset manifest Secret `SIDECAR_IMAGE`, decoded 2026-10-27), ObjectStore CRD shape, migration.md, cert-manager avoidance, CNPG ≥1.26 floor + "strongly recommend ≥1.27" (installation.mdx / intro.md at v0.15.1); go.mod targets CNPG v1.30.1; sidecar pins barman 3.20.1 (`containers/sidecar-requirements.txt`); no breaking entries in CHANGELOG since v0.13.0 | 2026-10-27 | v0.15.1 (2026-09-30) |
 | plugin Helm chart | https://github.com/cloudnative-pg/charts/tree/main/charts/plugin-barman-cloud | chart **0.8.1** / appVersion **v0.15.1** (2026-09-30), kubeVersion ≥1.29; certificate.create* toggles + `issuerName` | 2026-10-27 | chart 0.8.1 |
@@ -73,7 +73,7 @@ authoritative.
 - In-tree barmanObjectStore removal version: **1.32.0**, 1.31 the last minor shipping it (slipped 5×) — announced in docs by PR #11702 (merged 2026-10-21, backported to release-1.30); the 1.30.1 admission warning still says 1.31.0. Upcoming-releases table: 1.31.0 ~Dec 2026, 1.32.0 ~Mar 2027, both marked uncertain.
 - Latest plugin-barman-cloud release and its CNPG module target: **v0.15.1** (2026-09-30, CNPG v1.30.1 modules, barman 3.20.1); chart **0.8.1** / appVersion **v0.15.1** (2026-09-30).
 - Zalando release state (**v2.0.2 latest, 2026-08-20**, re-probed 2026-08-25; Spilo-18 4.1-p2 is the v2 default; PG 14–18).
-- CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4, all 2026-06-29 — unchanged at **2026-08-25**, ~8 weeks against a 5–7 week train).
+- CNPG latest minors + K8s window; PG major support floor: **1.30.1 / 1.29.3** (both 2026-09-23, 12 weeks after the 2026-06-29 train against a prior 5–8); 1.28.4 was the last 1.28; no 1.31 tag or rc at 2026-10-27.
 - **Enumerate release lists unfiltered.** A `test()` pattern built from expected versions hid an entire release line during the 2026-08-25 probe; list everything, then narrow by reading.
 - CNCF incubation outcome (cncf/toc#1961 — still open at 2026-08-25; cncf.io still lists the project at **Sandbox** maturity, so the application has not landed).
 - Open-bug states listed above (esp. #3788, #8902, #652, HA set).
