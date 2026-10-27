@@ -58,7 +58,8 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   certificate-changes-2026-guidance-rhel-environments: keeps-booting-after-2026, reinstall-doesn't-fix-firmware,
   NVRAM independence, HP/Fujitsu block, mokutil audit, edk2-ovmf package versions.
 - fwupd/LVFS — fwupd.github.io/libfwupdplugin/uefi-db.html; plugins/uefi-db,uefi-kek,uefi-sbat READMEs; HSI
-  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware.
+  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware. The "signed by the old KEK…
+  now it can apply on many more systems" quote in `mechanism.md` is hughsie in fwupd/fwupd#9056 (2025-07-24), not LWN.
 - LWN — lwn.net/Articles/1029767/: maintainer commentary (Jones, Hoffmann, Hughes), EDK2 `NO_CHECK_TIME`,
   success rates, FUD-vs-reality framing.
 - LWN — lwn.net/Articles/1079808/ **"Secure Boot certificate expiration is here"** (2026-07-01, Brian

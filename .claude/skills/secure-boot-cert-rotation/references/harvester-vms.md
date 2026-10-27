@@ -14,7 +14,7 @@ is the #1 source of wrong advice here.
 A Harvester VM's virtual UEFI firmware does **NOT** come from the node OS. It ships inside the SUSE-built
 **KubeVirt `virt-launcher` container** that Harvester pins per release (`harvester-images-list-amd64.txt`); the
 node SL Micro image doesn't even contain `qemu-ovmf-x86_64`. So the SUSE *node-OS* OVMF backport
-(bsc#1257019 / SUSE-RU-2026:1157-1, SLE Micro 5.5, 2026-03-10) is a **separate code path** (host firmware
+(bsc#1257019 / SUSE-RU-2026:1157-1, SLE Micro 5.5, 2026-03-31) is a **separate code path** (host firmware
 tooling) and is **irrelevant to guest VMs**. What governs guest certs is:
 **Harvester version → its virt-launcher → its `qemu-ovmf-x86_64`.**
 

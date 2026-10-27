@@ -27,7 +27,7 @@
   hardware against it before any force-push, and prefer the vendor firmware path over forcing a db write.
 
 - **HP & Fujitsu block standalone db updates** (observed post-update boot failures) → use a **full firmware
-  update** on those, not a standalone db push. Red Hat: *"Do not force install db updates. Always follow vendor
+  update** on those, not a standalone db push. Red Hat: *"Do not force install DB updates. Always follow vendor
   guidance."*
 - **NVRAM exhaustion** → `failed to write efivarfs`. Fix: reboot + BIOS "restore Secure Boot keys to factory
   defaults" to defragment EFI variable space. Pre-check free space before any write on old firmware.
