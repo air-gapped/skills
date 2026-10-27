@@ -29,6 +29,21 @@ latest **v3.5.3**, 2026-09-14) and the v3.4 line continues in parallel (latest
 **v3.4.9**, also 2026-09-14). Note there is no `v3.4.0` tag — that line's first
 stable release is **v3.4.1**, as its own notes say.
 
+**Security floor: v3.5.4 / v3.4.10 / v3.3.15** (v3.6.0-rc2 on the RC line).
+Eight advisories published 2026-10-07, four critical, cover every 3.x below it.
+3.0–3.2 are out of support and get no patch: move them to a patched 3.3+. Below
+the floor, the paths an app author can reach:
+
+| Advisory | Path | Containment until upgraded |
+|---|---|---|
+| CVE-2026-77459 (critical) | `PreDelete`/`PostDelete` hooks skip the AppProject check; deleting the Application creates them with controller credentials (e.g. a `ClusterRoleBinding`) | Limit who can delete Applications and push to their repos |
+| CVE-2026-113708 (critical) | Kustomize remote base whose `ref`/`version` starts with `-` (`--upload-pack=…`) runs commands in repo-server | Pin Kustomize 4.5.7 (`kustomize.path.<v>` + `spec.source.kustomize.version`) |
+| CVE-2026-113709 (critical) | Kustomize `--enable-helm` + `helmGlobals.configHome` loads a Helm plugin from the repo | Drop `--enable-helm` from `kustomize.buildOptions` |
+| CVE-2026-113672 (critical) | Jsonnet `import`/`importstr` of an absolute or `../` path reads repo-server files | `jsonnet.enable: "false"` in `argocd-cm` |
+
+The three repo-server paths also accept uploads via `argocd app diff --local
+--server-side-generate`, which needs only `applications, get`.
+
 **Before upgrading to 3.5, read these three.** All verified 2026-09-15:
 
 - **A Secret data-loss regression is open.** `RespectIgnoreDifferences=true`
@@ -75,8 +90,8 @@ or read https://github.com/argoproj/argo-cd at the matching path.
 
 ### 1. ServerSideDiff leaks Secrets — two CVEs, and the first fix was incomplete
 
-**Floor: v3.4.2 / v3.3.10 / v3.2.12.** Anything at or below v3.4.1 / v3.3.9 /
-v3.2.11 is exposed. Verified 2026-09-15.
+**Floor for these two CVEs: v3.4.2 / v3.3.10 / v3.2.12.** Anything at or below
+v3.4.1 / v3.3.9 / v3.2.11 is exposed. The overall floor is higher — see the top.
 
 | CVE | Published | Affected | Fixed in | Trigger |
 |-----|-----------|----------|----------|---------|

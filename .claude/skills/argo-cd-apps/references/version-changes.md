@@ -555,15 +555,21 @@ No feature was demoted in 3.0 → 3.4.
 
 ## CVE callouts (app-author-relevant)
 
+- **2026-10-07 batch — overall floor v3.5.4 / v3.4.10 / v3.3.15.** Four
+  critical: CVE-2026-77459 (delete hooks bypass AppProject), CVE-2026-113708 and
+  CVE-2026-113709 (Kustomize remote ref / `--enable-helm` RCE in repo-server),
+  CVE-2026-113672 (Jsonnet import file read). Also CVE-2026-55797 (high, SSH repo
+  proxy-URL command injection), CVE-2025-61560 (high, login rate-limit bypass)
+  and two mediums (oversized OCI manifest OOM; extension-proxy RBAC ignoring app
+  namespace). 3.0–3.2 get no patch. Containment table: SKILL.md top.
 - **CVE-2026-42880** (critical, advisory published 2026-05-01). `ServerSideDiff`
   combined with `IncludeMutationWebhook=true` leaks Secrets in the rendered diff.
-  **Patched in v3.3.9 / v3.2.11** (GHSA-3v3m-wc6v-x4x3). Upgrade before enabling
-  SSD with mutation-webhook inclusion.
+  Patched in v3.3.9 / v3.2.11 (GHSA-3v3m-wc6v-x4x3), but **those builds are
+  inside CVE-2026-45737** — the fix was incomplete.
 - **CVE-2026-45737** (medium, advisory published 2026-05-13,
-  GHSA-rg3g-4rw9-gqrp). Further `ServerSideDiff` Kubernetes-Secret extraction
-  via sensitive annotations — same exposure class as CVE-2026-42880. Confirm
-  the running build post-dates the 2026-05-13 batch before relying on SSD
-  near Secret-bearing resources.
+  GHSA-rg3g-4rw9-gqrp). `argocd app diff --server-side-diff` returns Secret
+  values from `last-applied-configuration`, no compare-option needed. Fixed
+  **v3.4.2 / v3.3.10 / v3.2.12**.
 - **CVE-2026-45738** (high, advisory published 2026-05-13,
   GHSA-h98r-wv3h-fr38). Stored XSS via application link annotations
   (the `info[].value` / link annotations rendered in the UI) enables a

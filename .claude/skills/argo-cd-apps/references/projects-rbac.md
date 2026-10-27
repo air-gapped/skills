@@ -402,8 +402,9 @@ Source: `docs/operator-manual/secret-management.md`.
 
 **Why.** The repo-server caches generated manifests in **Redis in plaintext**. Anything Argo CD's manifest-generation step sees, Redis sees. Recent advisories exploit exactly this surface:
 
-- **CVE-2026-42880** (critical, advisory published 2026-05-01). `ServerSideDiff` + `IncludeMutationWebhook=true` annotation leaks unmasked Secret data via the project API to any auth user with `applications, get` (which everyone has by default). Patched **v3.3.9 / v3.2.11** (GHSA-3v3m-wc6v-x4x3) — upgrade to those if you handle secrets.
-- **CVE-2026-45737** (medium, advisory published 2026-05-13, GHSA-rg3g-4rw9-gqrp). Further `ServerSideDiff` Kubernetes-Secret extraction via sensitive annotations — same exposure class as CVE-2026-42880. Confirm the build post-dates the 2026-05-13 batch before relying on SSD near Secrets.
+- **CVE-2026-42880** (critical, advisory published 2026-05-01). `ServerSideDiff` + `IncludeMutationWebhook=true` annotation leaks unmasked Secret data via the project API to any auth user with `applications, get` (which everyone has by default). Patched v3.3.9 / v3.2.11 (GHSA-3v3m-wc6v-x4x3), but that fix is incomplete — **v3.3.9 and v3.2.11 are inside CVE-2026-45737**; do not stop there.
+- **CVE-2026-45737** (medium, advisory published 2026-05-13, GHSA-rg3g-4rw9-gqrp). `argocd app diff --server-side-diff` returns Secret values from `last-applied-configuration` — **no annotation needed**. Fixed **v3.4.2 / v3.3.10 / v3.2.12**.
+- **2026-10-07 batch** — eight advisories, overall floor **v3.5.4 / v3.4.10 / v3.3.15**. CVE-2026-113672 lets a committed `.jsonnet` file read repo-server files, including repo credentials. See SKILL.md for the containment table.
 - **CVE-2026-45738** (high, advisory published 2026-05-13, GHSA-h98r-wv3h-fr38). Stored XSS via Application link annotations enables a developer who can edit Application annotations to escalate to admin. Treat user-settable Application annotations as an untrusted UI-injection surface.
 - **CVE-2025-55190** (Sept 2025, critical). Project API token with basic project RBAC could pull repository credentials from `/api/v1/projects/{p}/detailed`. Patched late-Sep 2025.
 
@@ -460,7 +461,7 @@ Sources: `docs/operator-manual/security.md` lines 43-89, `docs/user-guide/kustom
 2. **No charts from museums you don't own.** A public Helm/OCI registry can publish a poisoned chart at any time; your Argo CD reconciles it next sync.
 3. **`kustomize.buildOptions: --enable-alpha-plugins` is dangerous.** Lets Kustomize invoke arbitrary external binaries from the repo-server pod. Attacker who can write a trusted repo gets RCE on `argocd-repo-server`. Don't enable; if you must, run Argo CD on a dedicated cluster.
 4. **`kustomize.buildOptions: --load-restrictor LoadRestrictionsNone` weakens path-traversal defence.** History of path-traversal CVEs: **CVE-2022-24904**, **CVE-2023-40026**, **CVE-2022-31036** — all "out-of-bound files leaked from repo-server". Don't add unless needed for one specific trusted app.
-5. **`kustomize.buildOptions: --enable-helm`** lets Kustomize render embedded Helm charts at build. Chart-trust concerns now apply through Kustomize too.
+5. **`kustomize.buildOptions: --enable-helm`** lets Kustomize render embedded Helm charts at build. Chart-trust concerns now apply through Kustomize too. Below v3.5.4 / v3.4.10 / v3.3.15 it is repo-server RCE (CVE-2026-113709) — remove it there.
 6. **CMPs + secret injection put plaintext in Redis.** If you must run `argocd-vault-plugin` or similar, NetworkPolicy-isolate repo-server and Redis. Accept that Redis compromise = secrets compromise.
 7. **Disable tools you don't use.** `docs/user-guide/tool_detection.md` covers tool detection. Pure-Kustomize shop? Disable Helm rendering. Smaller blast radius.
 
