@@ -1,11 +1,9 @@
 # sources.md — external references for `triage` (freshen index)
 
-Freshened: 2026-09-22 — every row probed. The Visa harness is at v1.4.0 (pushed 2026-09-11) and all four cited hardening mechanisms — VERIFY_ERROR, the call-graph context helper, the s6 anti-manipulation prologue — are still present verbatim.
+Freshened: 2026-10-27 — every row probed; the Visa harness moved to v1.5.1 and dropped its call-graph helper (lineage pinned to v1.4.0).
 
 One row per external reference this skill depends on. `skill-improver freshen`
-probes each URL, classifies staleness, and re-stamps `Last verified:`.
-
-**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it.
+probes each row, classifies staleness, and rewrites the header stamp.
 
 Re-run `/skill-improver freshen triage` quarterly or when the scoring standards
 or upstream harness change.
@@ -29,7 +27,8 @@ s7 dedup stage and s4 finding schema.
 - Probe: `gh repo view anthropics/defending-code-reference-harness --json pushedAt,isArchived`
 - Note: adapted (Apache-2.0) from that repo's `triage` skill; Phase 1 ingests
   its pipeline `results/<target>/<ts>/` output. `../../vuln-scan/HARNESS.md` points here.
-- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
+- State: active, not archived, no releases or tags; last push 2026-08-06
+  (no commits since).
 
   **The ingest contract this skill depends on is unchanged.** `docs/triage.md`
   still documents `results/<target>/<timestamp>/` as the pipeline input and
@@ -64,13 +63,15 @@ s7 dedup stage and s4 finding schema.
 - URL: https://www.first.org/cvss/   (v3.1 and v4.0 specifications)
 - Probe: `WebFetch` — expect HTTP 200. The Phase-0 interview offers CVSS v3.1 / v4.0
   `severity_label` output; the impact x exploitability HIGH/MEDIUM/LOW is always computed.
-- Last verified: 2026-09-15  (HTTP 200; v3.1 and v4.0 both still published)
+- State: both specification documents published; nothing newer than v4.0
+  on the landing page.
 
 ## OWASP Risk Rating Methodology (Phase 0 scoring-standard option)
 
 - URL: https://community.owasp.org/OWASP_Risk_Rating_Methodology
 - Probe: `WebFetch` — expect HTTP 200. Likelihood × impact label option.
-- Last verified: 2026-07-21  (HTTP 200)
+- State: the old `owasp.org/www-community/OWASP_Risk_Rating_Methodology`
+  address redirects here.
 
 ## visa-vulnerability-agentic-harness (verifier hardening lineage)
 
