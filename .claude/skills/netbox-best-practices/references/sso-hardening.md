@@ -21,7 +21,7 @@ misconfiguration.
 Why: those `REMOTE_AUTH_SUPERUSER_GROUPS` (and ≤4.4 `_STAFF`) settings are consumed inside
 `RemoteUserBackend._is_superuser()` / `._is_staff()` / `.configure_groups()`,
 which only the header backend calls. The social-auth login path never touches
-them. [source: netbox/netbox/authentication/__init__.py:163-262]
+them. [source: netbox/netbox/authentication/__init__.py:170-265 @v4.7.3]
 
 ### What native OIDC/SAML actually does out of the box
 
@@ -40,13 +40,13 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 ```
-[source: netbox/netbox/settings.py:716-726]
+[source: netbox/netbox/settings.py:739-749 @v4.7.3]
 
 `user_default_groups_handler` assigns **one flat list** —
 `REMOTE_AUTH_DEFAULT_GROUPS` — to *every* SSO user, regardless of their IdP
 groups, and never sets `is_staff`/`is_superuser`. It looks groups up by name
 and logs an error if a named group doesn't exist (so pre-create them).
-[source: authentication/__init__.py:383-401]
+[source: authentication/__init__.py:385-403 @v4.7.3]
 
 So with stock config, **every OIDC user lands in the same groups with the same
 (non-admin) privileges**. Dynamic per-user role mapping from IdP claims does
@@ -118,7 +118,7 @@ Notes:
 ## OIDC backend gotchas (social-core `OpenIdConnectAuth`; NetBox 4.6 pins social-auth-core 4.8.7, 4.7.3 pins 5.2.0 — same defaults, anchors below @4.8.7)
 
 - **Redirect URI must match exactly**: `https://<host>/oauth/complete/oidc/` —
-  social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:23],
+  social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:24 @v4.7.3],
   the last segment is the backend's `name` attribute (`oidc`; `keycloak` for
   KeycloakOAuth2), trailing slash required. Wrong scheme (http behind a TLS
   proxy — see rule 3) and missing slash are the two common IdP rejections.
@@ -151,7 +151,7 @@ REMOTE_AUTH_GROUP_SEPARATOR = '|'
 REMOTE_AUTH_SUPERUSER_GROUPS = ['netbox-admins']
 REMOTE_AUTH_STAFF_GROUPS     = ['netbox-staff']   # 4.4 and earlier only; gone in 4.5
 ```
-[source: authentication/__init__.py:202-262]
+[source: authentication/__init__.py:209-265 @v4.7.3]
 
 But this backend trusts HTTP headers blindly — see hardening rule 2.
 

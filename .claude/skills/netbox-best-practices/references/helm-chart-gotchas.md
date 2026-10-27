@@ -115,7 +115,7 @@ kubectl -n <ns> create secret generic netbox-api-token --from-literal=token="$CR
 - Failure signature worth knowing: a bare 40-char token WITHOUT the `nbt_`
   prefix is parsed as a v1 token and rejected with `Invalid v1 token` — the
   prefix, not the auth keyword, selects the version.
-  [source: netbox/api/authentication.py]
+  [source: netbox/netbox/api/authentication.py @v4.7.3]
 - Read-only tokens for MCP/automation: authenticated
   `POST /api/users/tokens/` with `"write_enabled": false`.
 
@@ -312,7 +312,7 @@ wiring is:
   every extraConfig mount's `*.yaml` files into the config module's globals
   [source: files/configuration.py `_load_yaml`], and NetBox imports every
   `SOCIAL_AUTH_*` name from the configuration module
-  [source: netbox/netbox/settings.py:748-751].
+  [source: netbox/netbox/settings.py:759-761 @v4.7.3].
 - Secrets/ConfigMaps referenced by `extraConfig` must expose their data under
   keys ending in `.yaml` (the loader globs `*/*.yaml`); the filename itself is
   arbitrary. The `values:` entry renders into the release's
@@ -351,7 +351,7 @@ stringData:
 ```
 
 Redirect URI registered at the IdP: `https://<host>/oauth/complete/oidc/` —
-social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:23],
+social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:24 @v4.7.3],
 the last path segment is the backend's `name` (`oidc` for OpenIdConnectAuth,
 `keycloak` for KeycloakOAuth2), and the trailing slash is required.
 
@@ -375,12 +375,12 @@ PR #661) is dated in four ways:
   prefix from the version: fetch `<candidate>/.well-known/openid-configuration`
   and copy its `issuer` into `SOCIAL_AUTH_OIDC_OIDC_ENDPOINT` verbatim.
 - It sets `SOCIAL_AUTH_JSONFIELD_ENABLED: true` — redundant; NetBox always
-  sets it [source: netbox/netbox/settings.py:754].
+  sets it [source: netbox/netbox/settings.py:764 @v4.7.3].
 - Its pipeline inserts `social_core.pipeline.social_auth.associate_by_email` —
   an account-linking risk; see sso-hardening.md hardening rule 7.
 
 PKCE and JWT algorithms both need explicit opt-in on social-auth-core 4.8.7
-(NetBox 4.6) and 5.2.0 (NetBox 4.7.3) [source: requirements.txt:39] — set
+(NetBox 4.6) and 5.2.0 (NetBox 4.7.3) [source: requirements.txt:39 @v4.7.3] — set
 `SOCIAL_AUTH_OIDC_USE_PKCE: true` and, for an IdP signing with ES256/EdDSA,
 `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`. Both defaults, the
 source lines behind them, and why "no PKCE support" and "PKCE out of the box"
@@ -462,7 +462,7 @@ string does not evaluate — `SOCIAL_AUTH_BACKEND_ATTRS: '{"keycloak": ("Name",
 "login")}'` arrives as a *string* where a dict is expected and crashes the pod
 [source: netbox-chart issue #945, closed 2026-01]. Express it as plain YAML; a
 two-element list unpacks the same as the tuple NetBox expects
-[source: netbox/authentication/__init__.py:56,65]:
+[source: netbox/netbox/authentication/__init__.py:56,65 @v4.7.3]:
 
 ```yaml
 extraConfig:
