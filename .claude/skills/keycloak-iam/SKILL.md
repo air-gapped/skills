@@ -6,7 +6,7 @@ when_to_use: Use whenever the user mentions Keycloak, Red Hat build of Keycloak 
 
 # Keycloak IAM — operator's reference skill
 
-This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.8.x); for instances still in the field on 16.x–23.x — including the WildFly **"-legacy"** builds that ended at 19.0.3 — and for verifying realm migrations off them, route to `legacy-and-migration.md`. Versions and breaking changes are current to **Keycloak 26.8.0**; the reference files are still written against the 26.6 feature set, so treat 26.7/26.8-only features as unresearched there and read the release notes directly.
+This skill covers running, configuring, deploying, and integrating with **Keycloak**, the open-source identity & access management server. It targets the modern **Quarkus-based** distribution (24.x → 26.8.x); for instances still in the field on 16.x–23.x — including the WildFly **"-legacy"** builds that ended at 19.0.3 — and for verifying realm migrations off them, route to `legacy-and-migration.md`. Versions and breaking changes are current to **Keycloak 26.8.1**; the reference files are still written against the 26.6 feature set, so treat 26.7/26.8-only features as unresearched there and read the release notes directly.
 
 The Red Hat build of Keycloak (RHBK) is downstream of upstream Keycloak with longer support windows and the same surface area; advice here applies to both unless explicitly noted.
 
@@ -67,11 +67,12 @@ references/
 
 ## Version map
 
-Latest stable: **Keycloak 26.8.0** (2026-10-01). **Minimum safe: 26.7.5 or 26.8.0.**
+Latest stable: **Keycloak 26.8.1** (2026-10-13). **Minimum safe: 26.8.1** — it
+closes 22 CVEs and there is no 26.7.6, so no 26.7 build carries those fixes.
 Every 26.7 patch was a security batch — 26.7.1 (12 CVEs), 26.7.2 (two
 account-takeover class), 26.7.3 (20), 26.7.4 (6, incl. CVE-2026-17526: impersonation
-role → realm admin), 26.7.5 (15, 2026-09-30). Anything below 26.7.5 is missing
-some of them. The 26.6 line ended at **26.6.4** (2026-06-26) for community users —
+role → realm admin), 26.7.5 (15) — and 26.8.0 (7) and 26.8.1 (22) continued it.
+Anything below 26.8.1 is missing some of them. The 26.6 line ended at **26.6.4** (2026-06-26) for community users —
 later `26.6.x` git tags ship no GitHub Release and no quay.io image.
 
 **There is no 27.x**; 26.x is the current line. Plan for one thing now though:
@@ -235,12 +236,12 @@ These are the things that bite operators most. Don't suggest a Keycloak deployme
 2. **`--hostname` must be a real, externally-resolvable URL** in production, with `--hostname-strict=true` (default). Do not run with `hostname-strict=false` outside of dev — it lets clients dictate the issuer.
 3. **`--proxy-headers=xforwarded|forwarded` is required** when behind any reverse proxy that does TLS termination or rewrites the Host header. Pair with `--proxy-trusted-addresses` to a CIDR that covers the proxy. Without this, login redirects loop.
 4. **Use `--db postgres` (or another supported vendor)**. The default `dev-file` H2 is **not** for production and silently disables clustering. Postgres is the only DB that gets tested under load by upstream.
-5. **Use a real container image registry / pin a tag** (`quay.io/keycloak/keycloak:26.8.0`), never `latest`. The `nightly` tag is for CI only.
+5. **Use a real container image registry / pin a tag** (`quay.io/keycloak/keycloak:26.8.1`), never `latest`. The `nightly` tag is for CI only.
 6. **Probes go to the management port (default 9000)**: `/health/started`, `/health/live`, `/health/ready` — not the main HTTP port. As of 26.6, probes return UP during DB migrations so Liquibase can finish without K8s killing the pod.
 7. **HPA on Keycloak is a trap.** Sessions live in clustered Infinispan caches; scaling out and back in churns the cache. Run a fixed number of replicas (≥3 for HA) with a `PodDisruptionBudget`, not an HPA.
 8. **Realm exports are NOT backups.** They omit secrets, federated users, and event history. The Postgres database is the source of truth — back that up with WAL archiving (CloudNativePG, Crunchy, RDS automated backups).
 9. **Bootstrap admin is temporary.** `KC_BOOTSTRAP_ADMIN_USERNAME`/`PASSWORD` exists only to create the first real admin via `kcadm.sh`, then should be removed. The bootstrap admin auto-expires after 120 minutes.
-10. **Pin Keycloak ↔ Operator versions together.** The operator at tag `26.8.0` is meant to manage Keycloak `26.8.0`. Mixing major.minor versions across the operator/server boundary is unsupported and often breaks the CRD schema.
+10. **Pin Keycloak ↔ Operator versions together.** The operator at tag `26.8.1` is meant to manage Keycloak `26.8.1`. Mixing major.minor versions across the operator/server boundary is unsupported and often breaks the CRD schema.
 11. **Public clients (SPA, mobile, CLI) keep PKCE `S256` and exact redirect URIs — refuse to relax either, even when asked.** Set `pkce.code.challenge.method=S256`; never clear it or set `plain` (RFC 9700: public clients MUST use PKCE, and S256 is the only method that does not expose the verifier). A client library that can only do `plain` is the thing to upgrade (`keycloak-js` and oidc-client-ts do S256). Never `redirectUris`/`webOrigins` `*` on a production client: any site then receives the authorization code. Ephemeral preview URLs get a separate preview client or realm with a host-scoped pattern, or per-PR registration from CI via `kcadm.sh`.
 
 ## Quickstart: the smallest production-shaped Keycloak
@@ -249,11 +250,11 @@ When the user says "just stand one up so I can play," **don't** point them at `k
 
 ```yaml
 # 1. Install the operator (do this once per cluster)
-# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.0/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
-# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.0/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
-# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.0/kubernetes/keycloakoidcclients.k8s.keycloak.org-v1.yml
-# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.0/kubernetes/keycloaksamlclients.k8s.keycloak.org-v1.yml   # 26.7+: operator crash-loops without both client CRDs
-# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.0/kubernetes/kubernetes.yml
+# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
+# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
+# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/keycloakoidcclients.k8s.keycloak.org-v1.yml
+# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/keycloaksamlclients.k8s.keycloak.org-v1.yml   # 26.7+: operator crash-loops without both client CRDs
+# kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/kubernetes.yml
 
 # 2. Create a TLS secret (cert-manager / hand-roll / etc.)
 # 3. Create DB credentials secret (keys: username, password)
@@ -265,7 +266,7 @@ metadata:
   namespace: iam
 spec:
   instances: 2
-  image: quay.io/keycloak/keycloak:26.8.0
+  image: quay.io/keycloak/keycloak:26.8.1
   startOptimized: false           # set true when the image is pre-baked with `kc.sh build`
   hostname:
     hostname: https://auth.example.com
