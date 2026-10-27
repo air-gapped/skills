@@ -2,16 +2,16 @@
 name: harvester-upgrade
 description: >-
   Plan and run a controlled, COMMUNITY-edition Harvester HCI upgrade off an EOL line up to latest stable — the
-  no-skip minor ladder (1.5→1.6→1.7→1.8; embedded RKE2/KubeVirt/Longhorn/SLE-Micro ride along), gated at each
+  no-skip minor ladder (1.5→1.6→1.7→1.8→1.9; embedded RKE2/KubeVirt/Longhorn/SLE-Micro ride along), gated at each
   hop on first upgrading the EXTERNAL Rancher + a matching Harvester UI-extension (1.6↔Rancher 2.12, 1.7↔2.13,
-  1.8↔2.14). Covers air-gapped version detection, why node-upgrade order is NOT operator-choosable (forced
+  1.8↔2.14, 1.9↔2.15). Covers air-gapped version detection, why node-upgrade order is NOT operator-choosable (forced
   serial; the pause knob is v1.7.0+ only) and how to protect VM-hosted control planes anyway via anti-affinity
   spread + N+1 live-migration, making self-managed RKE2 guests Harvester-aware (cloud-provider, CSI,
   qemu-guest-agent), per-hop breaking changes (wicked→NetworkManager, Intel NIC rename, DHCP IP churn), the
   enforced pre-flight health gates, and the no-downgrade backup/rollback reality. Companion to
   k8s-components-checker and rancher-upgrade.
 when_to_use: >-
-  Use when the user mentions a Harvester upgrade, "upgrade Harvester", Harvester 1.5/1.6/1.7/1.8, Harvester
+  Use when the user mentions a Harvester upgrade, "upgrade Harvester", Harvester 1.5/1.6/1.7/1.8/1.9, Harvester
   stuck on EOL, the Harvester↔Rancher↔RKE2 pairing, the Harvester UI extension, a controlled/staged HCI upgrade,
   live-migrating VMs during a host upgrade, keeping VM-hosted control planes quorate across a host upgrade, or
   making RKE2 guests Harvester-aware (cloud provider, CSI). Also symptom prompts: upgrade stuck / "Pre-drained",
@@ -46,7 +46,7 @@ explicitly defers Harvester host→guest coordination here). Respect the boundar
 ## The load-bearing facts — read these before anything else
 
 1. **No minor skipping, ever.** The only supported path is one minor at a time: `1.5.x → 1.6.x → 1.7.x →
-   1.8.x` (each Harvester minor bumps embedded RKE2 exactly one k8s minor; skipping a k8s minor is unsupported
+   1.8.x → 1.9.x` (each Harvester minor bumps embedded RKE2 exactly one k8s minor; skipping a k8s minor is unsupported
    upstream). Intermediate **patches** within a jump *may* be skipped — land on each
    minor's latest patch. **Never hand-edit embedded RKE2** — it is locked to the Harvester version.
 
@@ -62,10 +62,12 @@ explicitly defers Harvester host→guest coordination here). Respect the boundar
    The obvious patch-skipping example — `1.5.2 → 1.6.1` — lands on a release inside
    **both** ranges. Aim each hop at that minor's latest patch and check it against the
    two ranges above, rather than at whatever patch was current when a runbook was
-   written. Latest stables at this check: **1.8.2** (2026-08-06), **1.7.3** (2026-08-07).
+   written. Latest stables at this check (2026-10-27): **1.8.2** (2026-08-06), **1.7.3** (2026-08-07);
+   **1.9.0** (2026-09-16) is GA but upstream advises against upgrading to it until 1.9.1 ships
+   (`references/per-hop-runbook.md` § Hop 1.8.x → 1.9.x).
 2. **External Rancher leads every hop.** When Harvester is imported into an external Rancher, each hop is a
    three-step sequence in order: **upgrade Rancher → upgrade the Harvester UI extension → upgrade Harvester.**
-   The pairing is required (1.6↔Rancher 2.12, 1.7↔2.13, 1.8↔2.14); a mismatch yields "VM tab missing" /
+   The pairing is required (1.6↔Rancher 2.12, 1.7↔2.13, 1.8↔2.14, 1.9↔2.15); a mismatch yields "VM tab missing" /
    unmanageable cluster. The external Rancher's own multi-minor walk is its own gated project — defer to
    `rancher-upgrade`. `references/external-rancher-coupling.md`.
 3. **The node-upgrade order is not operator-choosable.** Order is delegated to RKE2/Rancher and forced
@@ -97,15 +99,16 @@ often also avoids the newest Rancher minor's churn. Ground the actual latest pat
 
 **Do not use `releases/latest` to find the newest version here.** Harvester
 patches several minors in parallel, so GitHub's date-ranked "latest" regularly
-points at a *lower* minor. Verified 2026-07-21: `releases/latest` resolved to
-**v1.7.3** (2026-08-07) while **v1.8.2** (2026-08-06) was the highest GA.
-Enumerate the tag list, drop prereleases, and derive the top patch **per minor
-line**:
+points at a *lower* minor (from 2026-08-07 until v1.9.0 shipped it resolved to
+**v1.7.3** while **v1.8.2** was the highest GA). Even when it names the top
+minor it can name a release upstream warns against (v1.9.0, verified
+2026-10-27). Enumerate the tag list, drop prereleases and non-`v` build tags
+(`prime-v…`), and derive the top patch **per minor line**:
 
 ```bash
 gh release list -R harvester/harvester --limit 40 \
   --json tagName,publishedAt,isPrerelease \
-  --jq '.[] | select(.isPrerelease==false) | "\(.tagName)\t\(.publishedAt[0:10])"'
+  --jq '.[] | select(.isPrerelease==false and (.tagName|startswith("v"))) | "\(.tagName)\t\(.publishedAt[0:10])"'
 ```
 
 ### 3. For each hop: external Rancher → UI-extension → pre-flight → Harvester → verify guests
@@ -169,7 +172,7 @@ Full gate table with thresholds + sources: `references/landmines-and-rollback.md
 - `references/guest-rke2-survivability.md` — making self-managed RKE2 guests Harvester-aware and survivable:
   anti-affinity spread (the #1 lever), N+1 capacity, live-migration prerequisites, qemu-guest-agent, the
   Harvester cloud-provider (CCM) + CSI standalone install, etcd-during-migration reality, MAC-pinned IPs.
-- `references/per-hop-runbook.md` — per-hop (1.5→1.6, 1.6→1.7, 1.7→1.8) breaking changes, manual pre-steps, and
+- `references/per-hop-runbook.md` — per-hop (1.5→1.6, 1.6→1.7, 1.7→1.8, 1.8→1.9) breaking changes, manual pre-steps, and
   the ordered runbook (wicked→NetworkManager, Intel NIC rename, DHCP client-ID, secondary-VLAN strip, etc.).
 - `references/landmines-and-rollback.md` — the enforced pre-flight gate table, the landmine quick-reference
   (with issue numbers), Longhorn-as-#1-blocker, and the no-downgrade backup/rollback reality.

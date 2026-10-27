@@ -6,10 +6,10 @@ Authoritative: Harvester docs `upgrade/index.md` (**was `upgrade/automatic.md`, 
 version-skew note). The only supported paths are one minor at a time:
 
 ```
-1.5.x → 1.6.x → 1.7.x → 1.8.x
+1.5.x → 1.6.x → 1.7.x → 1.8.x → 1.9.x
 ```
 
-- No `1.5→1.7` or `1.6→1.8` row exists. Each Harvester minor bumps embedded RKE2 exactly one k8s minor, and
+- No `1.5→1.7`, `1.6→1.8` or `1.7→1.9` row exists. Each Harvester minor bumps embedded RKE2 exactly one k8s minor, and
   skipping a k8s minor is unsupported upstream (version-skew policy).
 - Intermediate **patches** within a jump **may** be skipped: `1.5.2 → 1.6.1` directly is supported and is the
   recommended way (land on each minor's latest patch). Any `1.5.x` goes to `1.6.x` — no need to install
@@ -19,35 +19,30 @@ version-skew note). The only supported paths are one minor at a time:
 
 ### Per-minor bundled stack (`automatic.md` component table)
 
-| Component | 1.5.x | 1.6.x | 1.7.x | 1.8.x |
-|---|---|---|---|---|
-| KubeVirt | v1.4 | v1.5 | v1.6 | v1.7 |
-| Longhorn | v1.8 | v1.9 | v1.10 | v1.11 |
-| **Rancher (pair)** | **v2.11** | **v2.12** | **v2.13** | **v2.14** |
-| RKE2 (embedded) | v1.32 | v1.33 | v1.34 | v1.35 |
-| **SUSE Linux Micro** | 5.5 | **5.5** | **6.1** | **6.2** |
+| Component | 1.5.x | 1.6.x | 1.7.x | 1.8.x | 1.9.x |
+|---|---|---|---|---|---|
+| KubeVirt | v1.4 | v1.5 | v1.6 | v1.7 | v1.8 |
+| Longhorn | v1.8 | v1.9 | v1.10 | v1.11 | v1.12 |
+| **Rancher (pair)** | **v2.11** | **v2.12** | **v2.13** | **v2.14** | **v2.15** |
+| RKE2 (embedded) | v1.32 | v1.33 | v1.34 | v1.35 | v1.36 |
+| **SUSE Linux Micro** | 5.5 | **5.5** | **6.1** | **6.2** | 6.2 |
 
-The OS base bump lands at **1.7 (5.5→6.1)** and again at **1.8 (6.1→6.2)** — none at 1.5→1.6. The Rancher pair
+The OS base bump lands at **1.7 (5.5→6.1)** and again at **1.8 (6.1→6.2)** — none at 1.5→1.6 or 1.8→1.9. The Rancher pair
 is what couples this to the external Rancher (`external-rancher-coupling.md`).
 
-## Release state — verified 2026-07-21
+## Release state — verified 2026-10-27
 
 | Line | Latest GA | Published |
 |---|---|---|
+| 1.9 | **v1.9.0** — upgrading NOT recommended until v1.9.1 (`per-hop-runbook.md` § Hop 1.8.x → 1.9.x); v1.9.1 is at rc4 (2026-10-21) | 2026-09-16 |
 | **1.8** | **v1.8.2** | 2026-08-06 |
 | 1.7 | **v1.7.3** | 2026-08-07 |
-| 1.9 | **v1.9.0** — upgrading NOT recommended, see warning below | 2026-09-16 |
 
-**⚠ `releases/latest` on this repo currently points at v1.7.3, not the 1.8 line.**
-GitHub marks "latest" by *publish date*, and v1.7.3 (2026-08-07) shipped after
-v1.8.2 (2026-08-06) because Harvester patches multiple minors in parallel. An
-`releases/latest` query therefore reports a **lower minor** as newest. This is
-live in this repo today — enumerate and reason per minor line; never take
-`latest` as the highest version.
-
-**v1.9.0 is in RC, not GA** (through rc5, 2026-08-12, plus a stream of
-`v1.9.0-dev-<date>` tags). The ladder tops out at 1.8 for now; do not plan a
-1.9 hop against an RC.
+**⚠ `releases/latest` ranks by publish date, not version.** Harvester patches
+several minors in parallel, so it can name a **lower minor** (v1.7.3 shipped a
+day after v1.8.2 and held "latest" until v1.9.0) or a release upstream warns
+against (v1.9.0 now). Enumerate and reason per minor line; never take `latest`
+as the target. Never plan a hop against an RC or a `prime-v…` build tag.
 
 ## Editions — community vs Prime (corrected; House Rule #1)
 
@@ -98,7 +93,7 @@ kubectl get managedchart harvester -n fleet-local -o jsonpath='{.spec.version}';
 # --- embedded RKE2 / Kubernetes (maps to the Harvester minor) ---
 kubectl get nodes -o wide
 kubectl get nodes -o jsonpath='{range .items[*]}{.status.nodeInfo.kubeletVersion}{"\n"}{end}'
-#   v1.32.x → Harvester 1.5.x · 1.33 → 1.6.x · 1.34 → 1.7.x · 1.35 → 1.8.0
+#   v1.32.x → Harvester 1.5.x · 1.33 → 1.6.x · 1.34 → 1.7.x · 1.35 → 1.8.x · 1.36 → 1.9.x
 
 # --- bundled stack (sanity vs the component table above) ---
 kubectl get kubevirt -n harvester-system -o jsonpath='{.items[*].status.observedKubeVirtVersion}'; echo

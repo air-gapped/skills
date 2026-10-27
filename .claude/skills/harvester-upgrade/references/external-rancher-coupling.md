@@ -27,6 +27,7 @@ only the **order** is mandatory.
 | 1.6.x | 2.12.0 | 1.6.x | 4.1.0 |
 | 1.7.x | 2.13.0 | 1.7.x | 4.13.0 |
 | 1.8.x | 2.14.0 | 1.8.x | 4.23.0 |
+| 1.9.x | 2.15.0 | 1.9.x | 4.45.0 (row is in the v1.10 dev docs only) |
 
 - The **UI extension is the join of both axes** — its minor must match the Harvester minor *and* be supported
   by the Rancher minor. An external Rancher requires **installing/upgrading it manually** (the embedded path
@@ -52,6 +53,7 @@ Debug a stuck extension: `kubectl get uiplugins -A` and check `ui-plugin-catalog
 Rancher 2.11→2.12  →  UI-ext →1.6.x  →  Harvester 1.5.x→1.6.x
 Rancher 2.12→2.13  →  UI-ext →1.7.x  →  Harvester 1.6.x→1.7.x
 ( + Rancher 2.13→2.14 → UI-ext →1.8.x → Harvester 1.7.x→1.8.x  — only if going to 1.8 )
+( + Rancher 2.14→2.15 → UI-ext →1.9.x → Harvester 1.8.x→1.9.x  — only if going to 1.9; hold for 1.9.1 )
 ```
 
 Each Harvester step is gated on the external Rancher *already being at* the paired minor. Neither axis may skip
@@ -59,7 +61,7 @@ a minor.
 
 ## The external Rancher's own chain is the real prerequisite — defer to `rancher-upgrade`
 
-To reach the pairs above, the external Rancher must itself walk 2.11→2.12→2.13(→2.14), no minor skipping. The
+To reach the pairs above, the external Rancher must itself walk 2.11→2.12→2.13(→2.14→2.15), no minor skipping. The
 gates that can block the campaign live in the **`rancher-upgrade`** skill — cite it, don't re-derive:
 
 - **cert-manager** must be in the chart-supported window before each Rancher bump (hard at 2.14: the version-

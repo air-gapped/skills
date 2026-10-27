@@ -44,7 +44,7 @@ minor jump. Ground exact patch numbers / fix versions via `gh` at run time (Hous
 - Same live-migration-storm workaround as the prior hop.
 - **Still no pause control** (must already be on 1.7+ to use it) — structural protection only.
 
-## Hop 1.7.x → 1.8.0 (optional; defer until a 1.8 patch ships / a real need)
+## Hop 1.7.x → 1.8.x
 
 - **Rancher first → 2.14.1+** (not 2.14.0 — Google OAuth broken), **UI-ext → 1.8.x**; the external Rancher
   inherits 2.14's CAPI-v1beta2 one-way boundary + Turtles + Fleet Helm-v4 (defer to `rancher-upgrade`). **OS
@@ -61,6 +61,27 @@ minor jump. Ground exact patch numbers / fix versions via `gh` at run time (Hous
   `nodeAddressAutodetectionV4: skipInterface: vip.*`. (harvester#10188, fixed)
 - **Legacy BIOS boot removed** — confirm nodes boot **UEFI** before 1.8 (future upgrades may need UEFI
   reinstall). Built-in air-gap path only (the upgrade-manager has no air-gap).
+
+## Hop 1.8.x → 1.9.x (hold until v1.9.1 is GA)
+
+- **Do not upgrade to v1.9.0** — its own release notes advise against it. VMs are shut down instead of
+  live-migrated (harvester#11356) and VMs with `cores * threads > 1` fail migration with `extra features: ht`
+  and are shut down (harvester#11615); fixes are slated for v1.9.1. If 1.9.0 is unavoidable: before the
+  upgrade, in a planned window, set a common CPU model (restarts running VMs; mitigates #11356 only) —
+  `kubectl patch kubevirt kubevirt -n harvester-system --type merge -p '{"spec":{"configuration":{"cpuModel":"IvyBridge"}}}'`
+  — and gracefully shut down every `cores*threads>1` VM (the pre-check's `VMI-CPU-Topology` test lists
+  them), starting it again after the upgrade.
+- **Rancher first → 2.15, UI-ext → 1.9.x** (target patch per `rancher-upgrade`; the guest-cluster
+  load-balancer-on-non-mgmt-interface UI needs Rancher ≥ 2.15.1). **No OS base bump** (SL Micro stays 6.2);
+  RKE2 1.35 → 1.36, KubeVirt 1.7 → 1.8, Longhorn 1.11 → 1.12.
+- **Start from 1.8.1+** — on 1.8.0 the CDI importer's 600M limit OOM-kills the upgrade-repo ISO import
+  (`importer-prime-*` CrashLoopBackOff; slow storage can do it on 2G too). Recover: stop the upgrade, raise
+  `cdi.spec.config.podResourceRequirements.limits.memory` in the `harvester` ManagedChart `spec.values`,
+  restart, and remove the override afterwards.
+- **Stuck at "Images preloaded"** (harvester#11543, open, rare): an upgraded node shows `Succeeded` while
+  its `harvesterhci.io/pendingOSImage` annotation equals its current `osImage`. Only then, patch that node's
+  `/status/nodeStatuses/<node>/state` in the `Upgrade` CR back to `Waiting Reboot`.
+- **Parallel live migration** arrives (UI batch-migrate) — never put two guest etcd members in one batch.
 
 ## Mechanism note (how the upgrade runs, per version)
 

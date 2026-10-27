@@ -47,6 +47,8 @@ instance-manager PDB (harvester#7366, #8977, longhorn#11605).
 | 1.7→1.8 | RWX storage-net race | stuck Post-draining | re-patch setting + share-mgr | #10532 |
 | 1.7→1.8 | CP node won't rejoin | upgrade wedged | no clean fix (open) | #10513 |
 | 1.7→1.8 | guest RKE2 1.35 CNI | guest provisioning stuck | RKE2 ≥1.35.4 / Rancher 2.14.1 | #10188 |
+| 1.8→1.9 | QEMU-10 migration regression | VMs shut down, not migrated | hold for 1.9.1; else common `cpuModel` + pre-shutdown `cores*threads>1` VMs | #11356, #11615 |
+| 1.8→1.9 | `pendingOSImage` race | stuck "Images preloaded" | reset node state to `Waiting Reboot` | #11543 |
 | any | single-replica/degraded volume | drain blocked | raise replicas, heal first | check.sh |
 | any | orphan Longhorn IM PDB | stuck "Pre-drained" | delete the IM PDB | #7366 |
 | any (air-gap, 1.7+) | manual pause/unpause stuck | upgrade halts at 0% | have job logs; lean on structural safety | #10099 |
