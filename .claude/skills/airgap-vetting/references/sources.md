@@ -18,7 +18,7 @@ at re-vet time, not tracked here.
 | github.com/qdrant/fastembed #615; tiktoken #369 | offline-flag fallback-download class; ML first-run fetch env vars (downloads-and-proxy.md) | 2026-07-14 |
 | kube-prometheus-stack values (admission-webhook Job image) | Helm secondary-image trap (downloads-and-proxy.md) | 2026-07-14 |
 | aiohttp #3180; electron #41590 (fixed in Electron 30, PR #41689); undici #2200 (still open); rustls/webpki-roots; distroless #582 | CA-injection failure modes per ecosystem (ca-trust.md) — Node/undici row volatile | 2026-08-18 |
-| pip 24.2 changelog (system trust via truststore) | Python OS-trust note (ca-trust.md) | 2026-07-14 |
+| https://pip.pypa.io/en/stable/news/ §24.2 (2024-07-28, pip#11647: system + certifi certificates on Python 3.10+, certifi only on ≤3.9, revert with `--use-deprecated=legacy-certs`) | Python OS-trust note (ca-trust.md) | 2026-07-14 |
 | secure.gravatar.com URL format; gravatar toggle-ignored issue reports | gravatar email-hash class + verify-with-trace caveat (content-egress.md) | 2026-07-14 |
 | elastic.co maps/geoip docs + kibana kill-switch-breakage issues | maps/GeoIP class; kill-switch ≠ degradation lesson (content-egress.md) | 2026-07-14 |
 | synapse url_preview config docs | link-preview off-by-default + SSRF-blacklist good pattern (content-egress.md) | 2026-07-14 |
