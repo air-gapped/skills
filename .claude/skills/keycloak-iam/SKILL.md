@@ -88,7 +88,7 @@ Notable changes through the 26.x line:
 
 | Version  | Key changes (operator-relevant)                                                                |
 |----------|------------------------------------------------------------------------------------------------|
-| 26.8.x   | `stateless` (multi-cluster v2) **supported**; `multi-site` (v1) deprecated, `clusterless` to be removed; login failures stored in the DB; Client Secret Rotation and SCIM API on by default; Realm Operator EOL; Quarkus 3.40. Breaking changes: §26.8.0 below |
+| 26.8.x   | `stateless` (multi-cluster v2) **supported**; `multi-site` (v1) deprecated, `clusterless` to be removed; login failures stored in the DB; Client Secret Rotation and SCIM API on by default; Realm Operator EOL; Quarkus 3.40. Breaking changes: §26.8.0 and §26.8.1 below |
 | 26.7.x   | SCIM user provisioning (**preview**), multi-cluster HA **without external caches** (preview — supersedes the external-Infinispan topology this skill documents), OpenID Shared Signals Framework (experimental), Identity Brokering API **V2** (V1 deprecated, still default-on), step-up auth for SAML clients, HAProxy + Traefik reverse-proxy blueprints. *Not yet researched at reference depth — read the release notes* |
 | 26.6.x   | Workflows, JWT Authorization Grant, Federated client auth, **Zero-downtime patch updates**, KCRAW_ env prefix, automatic K8s truststore, graceful HTTP shutdown, configurable Service name/port in Operator, organization groups, sensitive-info redaction in HTTP access logs. **26.6.2, 26.6.3 and 26.6.4 are all security batches**; 26.6.4 (2026-06-26) is the last 26.6 patch seen — see the advisory feed for the CVE sets they close |
 | 26.5.x   | Token Exchange Standard (RFC 8693) GA, declarative-user-profile GA, FIPS via Bouncy Castle, ECC keys default for new realms, Java 25 added (server image still on JDK 21 for FIPS) |
@@ -120,6 +120,21 @@ Do these **before** the upgrade unless the row says otherwise:
 Also: the Realm Operator (`KeycloakRealm`/`KeycloakClient`) reached end of life —
 use `KeycloakRealmImport` plus the preview `KeycloakOIDCClient`/`KeycloakSAMLClient`.
 Extensions using Quarkus internals or the Vert.x HTTP client need retesting (Quarkus 3.40).
+
+## 26.8.1 breaking changes (upgrading guide)
+
+A patch release that changes behaviour automation and federation depend on:
+
+| Change | Action |
+|---|---|
+| IdP update that changes `clientId`, `clientAuthMethod`, `tokenUrl`, `tokenIntrospectionUrl`, `baseUrl`, `tenantId` or `sandbox` while sending the masked secret → `400`; `providerId` is immutable | Scripts must send the real secret with such changes: `kcadm.sh update identity-provider/instances/<alias> -s config.tokenUrl=… -s config.clientSecret=…`. A `${vault.…}` secret is exempt. |
+| OIDC IdP backchannel logout tokens are always signature-checked, even with *Validate Signatures* off | Before upgrading, give such IdPs a `JWKS URL` or `Validating Public Key`, or their backchannel logouts fail. |
+| Realm SMTP with *Enable StartTLS* requires a successful STARTTLS — no plaintext fallback | Mail failing after upgrade means the SMTP server lacks STARTTLS: fix it, or turn StartTLS off on purpose. |
+| X.509 user authenticators check key usage / extended key usage even on non-critical extensions; CRL files load only from inside `conf/`; CRL/OCSP responses capped at 10 MB | Move CRL files under `conf/` and use a path relative to it. Old KU behaviour: `--spi-authenticator--auth-x509-client-username-form--legacy-critical-behavior true` (and `--spi-authenticator--direct-grant-auth-x509-username--…`). Larger CRLs: `--spi-connections-http-client-default-max-consumed-response-size=<bytes>`. |
+| Conditional OTP *Skip OTP for Header* is ignored unless `--proxy-headers` is set and the request came through a trusted proxy | Set `--proxy-headers`; also set `--proxy-trusted-addresses`, since with it unset every peer counts as trusted. |
+| `;` is no longer a query-parameter delimiter | Clients sending `a=1;b=2` must switch to `&`. |
+| Kerberos username/password login adds a service-ticket round trip against the local keytab | Revert with `--spi-storage--ldap--disable-kerberos-authentication-round-trip true` / `--spi-storage--kerberos--…`. |
+| Client-registration update/delete with another protocol's registration token → `400 invalid_client` | Use `clients-registrations/default` or the Admin REST API. |
 
 ## 26.7.x breaking changes (upgrading guide, verified 2026-09-15)
 
