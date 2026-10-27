@@ -130,7 +130,7 @@ New in 26.6 (now supported). Strategies:
 | `Auto`                    | Operator picks: rolling update if it detects a compatible image change, recreate otherwise.               |
 | `Explicit`                | You bump `spec.update.revision` to signal "I've verified this is a rolling-update-compatible change."     |
 
-`Auto` runs a small probe to detect whether the new image's protocol/serialization formats are wire-compatible with the running ones. Across patch versions (26.6.0 → 26.6.1) this is always true. Across minor versions (26.5.x → 26.6.x) it's usually true. Across major (25.x → 26.x) it's often not.
+`Auto` runs a small probe to detect whether the new image's protocol/serialization formats are wire-compatible with the running ones. The version passes only for the same version or a newer patch in the same major.minor (26.6.0 → 26.6.1); across minor (26.5.x → 26.6.x) and major versions it always fails, so `Auto` recreates.
 
 The probe is a Job named `keycloak-<cr-name>-update-job` that boots the new
 config and runs a compatibility check. **Exit code 3 / Job status `Failed` is

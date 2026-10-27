@@ -300,7 +300,7 @@ spec:
     user:
       secret: keycloak-bootstrap-admin   # keys: username, password
   update:
-    strategy: Auto                # rolling when the compatibility check passes: patches, and usually minors (26.6+)
+    strategy: Auto                # rolling for config changes and patch upgrades in the same major.minor; a minor upgrade recreates (downtime)
   features:
     enabled: ["organizations", "admin-fine-grained-authz:v2"]
 ```
