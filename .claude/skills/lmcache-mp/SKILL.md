@@ -53,6 +53,7 @@ Current stable pair (2026-09-22): **vLLM v0.30.0** (2026-09-22) + **LMCache v0.5
 | LMCache | **0.4.4+** for vLLM v0.20+/main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified against tags v0.4.3 (no class) vs v0.4.4 (has class); still present at v0.5.1. |
 | LMCache | **0.5.4** is what the current image ships; **0.5.5** (2026-09-12) is the newest release — the 0.5.2 → 0.5.5 changes are not yet sifted here | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
 | LMCache | **0.5.x required** for hybrid-attention models | The `SupportsHMA`-declaring connector lives in `lmcache/integration/vllm/lmcache_mp_connector.py`. See the hybrid-model section. |
+| LMCache | **0.5.6+ on both sides** — the server image AND the lmcache inside the vLLM image | Security floor: 0.3.9–0.5.5 unpickle data from the MP transport, so one unauthenticated message to the ZMQ port runs code as the LMCache user (critical RCE, CVE-2026-105192). 0.5.6 also changed the wire format: upgrade the server and every vLLM-side lmcache together, never one side alone. |
 
 **Renames in 0.5.0 that break old greps and docs:** `MPCacheEngine` → `MPCacheServer`, `GPUKVFormat` → `EngineKVFormat` (`gpu_kv_*` → `engine_kv_*`), `GPUTransferModule` → `LMCacheDrivenTransferModule`, `NonGPUTransferModule` → `EngineDrivenTransferModule`. The CLI was also refactored into multi-subcommand form (#3678).
 
@@ -82,14 +83,14 @@ Two containers. The LMCache server is a separate process; vLLM connects over ZMQ
 # Terminal 1 — LMCache server
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/standalone:nightly \
+    lmcache/standalone:v0.5.6 \
     /opt/venv/bin/lmcache server \
     --l1-size-gb 60 --eviction-policy LRU --max-workers 4 --port 6555
 
 # Terminal 2 — vLLM (connects to LMCache via ZMQ)
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/vllm-openai:latest-nightly \
+    lmcache/vllm-openai:v0.5.6 \
     Qwen/Qwen3-14B \
     --no-enable-prefix-caching \
     --kv-transfer-config '{"kv_connector":"LMCacheMPConnector",

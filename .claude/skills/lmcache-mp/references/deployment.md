@@ -14,7 +14,7 @@
 ```bash
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/standalone:nightly \
+    lmcache/standalone:v0.5.6 \
     /opt/venv/bin/lmcache server \
     --l1-size-gb 60 --eviction-policy LRU --max-workers 4 --port 6555
 ```
@@ -32,7 +32,7 @@ Default ZMQ port: **5555**. Default HTTP frontend port (when using `lmcache serv
 ```bash
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/vllm-openai:latest-nightly \
+    lmcache/vllm-openai:v0.5.6 \
     Qwen/Qwen3-14B \
     --no-enable-prefix-caching \
     --kv-transfer-config '{"kv_connector":"LMCacheMPConnector",
@@ -93,7 +93,7 @@ spec:
           hostPath: { path: /dev/shm, type: Directory }
       containers:
         - name: lmcache-server
-          image: lmcache/standalone:nightly
+          image: lmcache/standalone:v0.5.6
           command:
             - /opt/venv/bin/python3
             - -m
@@ -140,7 +140,7 @@ spec:
           hostPath: { path: /dev/shm, type: Directory }
       containers:
         - name: vllm
-          image: lmcache/vllm-openai:latest-nightly
+          image: lmcache/vllm-openai:v0.5.6
           volumeMounts:
             - { name: dshm, mountPath: /dev/shm }
           command:
