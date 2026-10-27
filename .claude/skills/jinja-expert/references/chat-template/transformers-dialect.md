@@ -59,7 +59,7 @@ is the *uncached* builder shown above; the `@lru_cache` sits on its thin wrapper
 So an edited template that keeps rendering its old output is cached on the
 function *without* `cached` in the name — clear
 `_compile_jinja_template.cache_clear()`, not the other one. (Verified against
-transformers 5.14.1, 2026-07-21.)
+transformers 5.21, 2026-10-27.)
 
 ---
 
