@@ -21,11 +21,12 @@ Every instinct to *detect* the abuser fails on inspection:
 
 So the durable controls are the ones that apply **per identity, regardless of client**: cap how much of the scarce resource any one identity may consume, on the *expensive* paths only. Detection (§ below) then exists to decide *whom to throttle or ban*, not to gate requests in real time.
 
-## Patch first, tune second (verified 2026-09-15)
+## Patch first, tune second (verified 2026-10-27)
 
-**Latest stable is v3.7.13 (2026-09-04); v2.11.57 is the legacy line's patch.**
-Traefik published **30 security advisories in 2026, 16 of them since 2026-07-22**,
-and two are **critical**:
+**Latest stable is v3.7.16 (2026-10-20); v2.11.60 is the legacy line's patch.**
+v3.6 has had no release since v3.6.25 (2026-07-31) while later advisories still
+cover it — move v3.6 to v3.7. Traefik published **62 security advisories in
+2026, 14 of them since 2026-09-15**, and two are **critical**:
 
 | Advisory | Severity | Published | What it is |
 |---|---|---|---|
@@ -37,10 +38,13 @@ this year's advisories are **auth bypasses in the very middlewares this skill
 configures**. Beyond the two criticals, the recurring classes are path
 normalization defeating route-scoped auth (`StripPrefix` GHSA-xf64-8mw2-4gr2,
 `ReplacePathRegex` GHSA-cxjq-mrr5-89rv), TLS-option confusion bypassing mTLS
-(GHSA-g55h-rg46-x9c5, GHSA-5r4w-85f3-pw66, GHSA-9cr8-q42q-g8m7), and Kubernetes
+(GHSA-g55h-rg46-x9c5, GHSA-5r4w-85f3-pw66, GHSA-9cr8-q42q-g8m7), Kubernetes
 cross-namespace reference checks failing open (GHSA-m6wx-622r-48r9,
-GHSA-62fc-8686-hfmq, GHSA-42cj-m3vj-89wv). **Check the running version before
-recommending any middleware change.**
+GHSA-62fc-8686-hfmq, GHSA-42cj-m3vj-89wv), and NTLM/Negotiate-authenticated
+connections reused across clients — in `ForwardAuth` an unauthenticated client
+could inherit another user's identity until v3.7.16 / v2.11.60
+(GHSA-hrpp-p4fc-wwf8). **Check the running version before recommending any
+middleware change.**
 
 ### Header aliasing is now a first-class control — configure it explicitly
 
