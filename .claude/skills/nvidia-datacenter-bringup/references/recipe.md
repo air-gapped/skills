@@ -24,7 +24,7 @@ EOF
 sudo update-initramfs -u
 ```
 
-Optional but recommended for new Blackwell silicon: switch to HWE kernel. The 24.04 HWE kernel (currently 6.17.x via `linux-image-generic-hwe-24.04`) tracks newer kernels which often have fixes Blackwell needs:
+Optional but recommended for new Blackwell silicon: switch to HWE kernel. The 24.04 HWE kernel (currently 7.0.x via `linux-image-generic-hwe-24.04`) tracks newer kernels which often have fixes Blackwell needs:
 
 ```bash
 sudo apt install -y linux-generic-hwe-24.04

@@ -106,7 +106,7 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 |---|---|---|---|
 | https://packages.ubuntu.com/search?keywords=nvidia-driver-pinning | Confirms NO `nvidia-driver-pinning-*` in Ubuntu archive | 2026-08-18 | — |
 | https://packages.ubuntu.com/search?keywords=nvlink5 | Confirms NO `nvlink5-*` in Ubuntu archive | 2026-08-18 | — |
-| https://packages.ubuntu.com/noble-updates/linux-modules-nvidia-595-open-generic-hwe-24.04 | Canonical-signed precompiled 595-open HWE module | 2026-08-18 | kernel ABI 6.17.0-29-generic |
+| https://packages.ubuntu.com/noble-updates/linux-modules-nvidia-595-open-generic-hwe-24.04 | Canonical-signed precompiled 595-open HWE module | 2026-08-18 | kernel ABI 7.0.0-38-generic (meta `7.0.0-38.38~24.04.4+1`; `linux-generic-hwe-24.04` `7.0.0-38.38~24.04.4`, read from the noble-updates `Packages.xz` 2026-10-27 — packages.ubuntu.com returned 500) |
 
 ## Live apt-cache reality
 
