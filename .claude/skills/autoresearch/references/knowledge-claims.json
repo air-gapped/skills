@@ -43,7 +43,7 @@
     {
       "id": 7,
       "question": "What per-session limits bound a research fan-out, and which cap no longer applies?",
-      "skill_answer": "200 web searches per session and 20 subagents in flight; the per-session cap on total subagents was removed in v2.1.224, so agent count no longer bounds a run"
+      "skill_answer": "200 WebSearch calls shared by the main conversation and all subagents (refills ~100/hour in an interactive session from v2.1.290; per turn under claude -p) and 20 subagents in flight; total subagents per session are not capped"
     },
     {
       "id": 8,

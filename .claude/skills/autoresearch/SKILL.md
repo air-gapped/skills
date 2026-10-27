@@ -285,15 +285,19 @@ The user can specify: `/autoresearch research --depth deep "topic"`
 
 **Budget the fan-out before dispatching it.** Sum the agents across levels, not
 just the first round — Standard is ~6+3+2 ≈ 11 agents, Exhaustive reaches ~23.
-Each agent runs several searches, so web searches, not agents, is the binding
-constraint: a session allows 200 web searches total
-(`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`, Claude Code v2.1.212) and 20
-subagents in flight at once (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, v2.1.217).
-The per-session cap on *total* subagents was removed in v2.1.224, so agent count
-no longer bounds a run — searches and concurrency do. An Exhaustive run at 5
-searches per agent consumes over half the session's search budget, and a run
-that exhausts it fails mid-synthesis with partial findings and no report.
-State the agent count when proposing a depth above Standard.
+Each agent runs several searches, so web searches, not agents, are the binding
+constraint. The WebSearch limit is 200 calls, shared by the main conversation and
+every subagent; `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION` raises it, nothing
+turns it off. From Claude Code v2.1.290 an interactive session refills it at ~100
+calls/hour (`CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR`); under `claude -p` and the
+Agent SDK it applies per turn and does not refill unless that variable is set.
+Concurrency caps at 20 subagents in flight
+(`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); total subagents per session are not
+capped. An Exhaustive run at 5 searches per agent uses over half the limit. Past
+it, searches do nothing and agents are told to continue with what they have, so
+the recursion and Audit rounds run without new evidence — raise the cap before
+an Exhaustive run rather than waiting on the refill. State the agent count when
+proposing a depth above Standard.
 
 ---
 
