@@ -14,7 +14,6 @@ these at use time — methodology is durable, version numbers are not.
 - [Ubuntu / Linux](#ubuntu-linux)
 - [Harvester / KubeVirt](#harvester-kubevirt-guest-ovmf-floor-v160)
 - [Recovery / rollback](#recovery-rollback-the-backup-and-back-out-path)
-- [Full research provenance](#full-research-provenance)
 
 ## Freshness ledger
 
@@ -131,8 +130,3 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 - Dell — Lifecycle Controller firmware-rollback docs, and KB 000115696 (corrupt/interrupted BIOS flash
   recovery — a *different* path from key rollback). Whether a BIOS rollback reverts key databases is
   **undocumented**; the skill says so rather than guessing.
-
-## Full research provenance
-- The deep-research report this skill was distilled from:
-  `~/.claude/skills/autoresearch/results/secure-boot-2026-cert-expiry-2026-06-01.md` (autoresearch Research
-  mode, 2 levels, with the two operator corrections that pinned the SUSE backport and the Harvester v1.6.0 floor).
