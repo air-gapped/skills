@@ -189,7 +189,7 @@ All responses wrap:
 ```
 
 ### /api/v1/query (instant)
-Params: `query`, `time` (RFC3339 or unix), `timeout`, `limit` (cap result cardinality; Prom 3+), `lookback_delta`, `stats=all`.
+Params: `query`, `time` (RFC3339 or unix), `timeout`, `limit` (cap result cardinality; Prom 3.2+), `lookback_delta`, `stats=all`.
 Result shape: `{resultType: "matrix"|"vector"|"scalar"|"string", result: ...}`.
 
 ### /api/v1/query_range (range)

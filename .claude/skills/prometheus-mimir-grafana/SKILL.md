@@ -22,7 +22,7 @@ wrong skill.
 | Grafana 12 deprecated the legacy dashboard `/api` | Grafana 12 **added** `/apis/dashboard.grafana.app/…`; Grafana **13** deprecated `/api`. Legacy `/api/dashboards/db` still works, removal deferred — default to it. Current stable line: 13.2. |
 | A dashboard JSON has `panels` | Grafana 13 may serve the **v2 schema**: `elements` / `variables` / `layout`, no `panels`. Same UID can be classic from `/api/dashboards/uid` and v2 from `/apis` or the Grafana MCP. Check the shape before any JSONPath. |
 | Mimir 422 is transient | A per-tenant limit tripped (`max_samples_per_query`, `max_query_length`, `max_fetched_series_per_query`). **Never retry unchanged** — raise `step`, shrink the window, tighten matchers. |
-| `/api/v1/query` returns every series | Prometheus 3+ accepts `limit=` to cap result cardinality — use it when exploring. |
+| `/api/v1/query` returns every series | Prometheus 3.2+ accepts `limit=` on `query` and `query_range` to cap result cardinality — use it when exploring; older servers ignore it. |
 
 ## Non-negotiables
 

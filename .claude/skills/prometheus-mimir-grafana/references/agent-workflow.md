@@ -226,7 +226,7 @@ Use an MCP server when:
 ## 5. Query cost awareness
 
 - **`step` floors:** ≥30s dashboards, ≥60s exploration, ≥300s multi-day. `step=15s` over 30d pulls 173k points per series × N series = millions of samples.
-- **`limit` on instant query** (Prometheus 3.0+): `/api/v1/query?query=...&limit=1000` caps result cardinality. Use it.
+- **`limit` on `query` and `query_range`** (Prometheus 3.2+; older servers ignore it): `/api/v1/query?query=...&limit=1000` caps result cardinality. Use it.
 - **`match[]` on `/api/v1/series` and `/api/v1/labels`** — avoid full-catalog scans. Bare `/api/v1/series` on large tenants returns hundreds of MB.
 - **Avoid `topk(1000, ...)`** — ranks the full vector. `topk(10, ...)` is what you want.
 - **Avoid `{__name__=~".+"}`** and similar catch-alls.
