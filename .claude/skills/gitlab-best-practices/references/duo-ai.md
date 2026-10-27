@@ -203,7 +203,7 @@ documented, not independently audited.
 
 **This is the actionable answer for a Free-tier install, and it is new.**
 
-GitLab 19.2 (GA 2026-08-04) **decoupled the MCP server from Duo entirely**. From
+GitLab 19.2 **decoupled the MCP server from Duo entirely**. From
 the resolving comment on the upstream issue:
 
 > "The MCP server now has its own independent availability toggle, completely

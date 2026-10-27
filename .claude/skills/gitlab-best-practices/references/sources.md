@@ -67,7 +67,7 @@ re-verified.
 | charts#3421 / #3338 / #5151 | https://gitlab.com/gitlab-org/charts/gitlab/-/issues/3421 | incremental (closed unimplemented); s3cmd 404 `NoSuchKey` on artifacts; large-backup guidance |
 | gitlab#477791 | https://gitlab.com/gitlab-org/gitlab/-/issues/477791 | `gitlab-backup-cli` docs — `missed:` labels for every release 17.7 → 19.3 |
 | MCP server | https://docs.gitlab.com/user/model_context_protocol/mcp_server/ | `Tier: Free, Premium, Ultimate` |
-| gitlab#587846 | https://gitlab.com/gitlab-org/gitlab/-/work_items/587846 | MCP server decoupled from Duo and the cloud AI Gateway in **19.2**; the admin toggle path |
+| gitlab#587846 | https://gitlab.com/gitlab-org/gitlab/-/work_items/587846 | MCP server decoupled from Duo and the cloud AI Gateway in **19.2**; the admin toggle path. The issue closed 2026-08-04; the feature shipped in the 19.2 release notes ("Turn on MCP server independently from the Agent Platform", released 2026-07-16) — the close date is not a release date |
 | Chart deployment doc | `charts/gitlab` → `doc/installation/deployment.md` @ master | `global.edition=ce` opt-in; EE is the default |
 
 ## Agent-sourced — fetched but not independently re-verified (**[A]**)
