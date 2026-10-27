@@ -86,6 +86,18 @@ security-review tooling changes.
   verification, triage, patching). "Seven stages" and "reference, not a
   product" are the harness README's words, not the article's.
 
+## Claude Security (managed alternative named in HARNESS.md)
+
+- URL: https://claude.com/product/claude-security
+- Probe: bare `curl -sS -L` — expect HTTP 200 and the product still named
+  "Claude Security".
+- Supports HARNESS.md "Managed alternative": the page says Claude "scans your
+  codebase for vulnerabilities, validates findings, and recommends patches";
+  "Every finding passes adversarial verification before it reaches your
+  team"; projects connect repositories; Claude "marks it fixed once the fix
+  ships". The write-up calls it "Anthropic's managed product for agentic
+  vulnerability detection and patching."
+
 ---
 
 ## Markers

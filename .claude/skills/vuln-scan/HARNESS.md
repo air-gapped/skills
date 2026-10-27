@@ -77,9 +77,10 @@ Its output `results/<target>/<ts>/` directory is directly ingestible by the
 ## Managed alternative
 
 Anthropic also offers **Claude Security**
-(https://claude.com/product/claude-security) — a hosted product that scans,
-multi-stage-verifies, and manages findings across projects. The harness above
-is the open reference; Claude Security is the managed version.
+(https://claude.com/product/claude-security) — a hosted product that scans
+connected repositories, puts every finding through adversarial verification,
+suggests patches for review, and marks a finding fixed once the fix ships. The
+harness above is the open reference; Claude Security is the managed version.
 
 ## Attribution
 
