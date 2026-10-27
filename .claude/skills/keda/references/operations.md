@@ -116,7 +116,7 @@ kubectl apply --server-side -f \
 
 KEDA follows an N-2 support window (2.21 supports k8s 1.34–1.36; 2.20 supports
 k8s 1.33–1.35). Check
-`keda-docs/content/docs/<version>/deploy.md` for the exact matrix.
+`keda-docs/content/docs/<version>/operate/cluster.md` for the exact matrix.
 
 ---
 
