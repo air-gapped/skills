@@ -173,6 +173,10 @@ no API to pin a specific pod as "in use".
   QPS (`--kube-api-qps=50 --kube-api-burst=75`).
 - **OOM**. Operator default limits are 1GiB; raise to 2-4Gi for large
   clusters (100+ ScaledObjects).
+- **OpenTelemetry metrics enabled** (seen on 2.21.0, unfixed — #8282): racy OTel
+  metric buffers crash the operator about daily with a nil deref in an OTel
+  callback or `fatal error: runtime: name offset base pointer out of range`.
+  Set `opentelemetry.operator.enabled=false`; Prometheus metrics are unaffected.
 
 ### Metrics apiserver intermittently unresponsive
 

@@ -320,7 +320,9 @@ Example alert rules:
 KEDA 2.12+ emits OTel traces/metrics. Enable with Helm
 `opentelemetry.operator.enabled=true` and point
 `opentelemetry.collector.uri=<collector-endpoint>` at the collector. Useful for
-tying KEDA decisions to downstream scaling latency.
+tying KEDA decisions to downstream scaling latency. On 2.21.0 OTel metrics crash
+the operator about daily (#8282, unfixed) — see `troubleshooting.md` § Operator
+CrashLoopBackOff.
 
 ### Probing the external metrics API
 
