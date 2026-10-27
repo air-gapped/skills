@@ -352,8 +352,11 @@ alongside `previous_response_id`). Internally both expand to full history.
 Difference: Conversations have no 30-day TTL; `store: true` responses default
 to 30-day TTL.
 
-**Assistants API migration mapping** (sunset 2026-08-26):
-- Assistants → Prompts (dashboard objects, stable ID in source control)
+**Assistants API migration mapping** (Assistants API shut down 2026-08-26):
+- Assistants → instructions/system messages kept in application code. Do NOT
+  target Prompt objects (`prompt: {id: "pmpt_..."}`): reusable prompts are
+  deprecated and `v1/prompts` shuts down 2026-11-30 — the official Assistants
+  migration samples still pass `prompt.id`, so strip it when porting them.
 - Threads → Conversations
 - Runs → Responses
 
@@ -421,8 +424,11 @@ GET /v1/responses/{id}?stream=true&starting_after=<sequence_number>
 - **2026-03-25**: `InputAudio` removed from `ResponseInputContent`.
 - **Ongoing, gpt-5.3-codex+**: `phase` field required on assistant messages.
   Dropping it silently degrades preamble quality.
-- **2026-08-26**: Assistants API sunsets. Migrate to Prompts + Conversations +
-  Responses.
+- **2026-08-26**: Assistants API shut down. Migrate to Conversations +
+  Responses, prompt content in application code.
+- **2026-11-30**: `v1/prompts` and the reusable prompt objects that the
+  `prompt` request field (`{id, version, variables}`) points at shut down. Move
+  the prompt text into `instructions`/`input` built by application code.
 
 ## OpenResponses Specification
 

@@ -15,6 +15,7 @@ Freshen mode reads and stamps `Last verified:` / `Pinned:` here.
 |-----|-----|---------------|--------|
 | OpenAI API changelog | https://developers.openai.com/api/docs/changelog | 2026-07-31 | — |
 | OpenAI Responses API reference | https://developers.openai.com/api/reference/resources/responses | 2026-09-15 | path moved; old URL redirects |
+| OpenAI deprecations (Assistants shutdown 2026-08-26; reusable prompts deprecated 2026-06-03, `v1/prompts` shutdown 2026-11-30) + [prompt-object migration guide](https://developers.openai.com/api/docs/guides/prompting/migrate-from-prompt-object) | https://developers.openai.com/api/docs/deprecations | 2026-10-27 | the Assistants migration guide's samples still pass `prompt.id` |
 | OpenAI ARC-AGI-3 publication (retained reasoning + compaction evidence; "legacy Chat Completions" wording) | https://openai.com/index/how-two-settings-tripled-our-arc-agi-3-scores/ | 2026-07-30 | published 2026-07-29 |
 | openai-python SDK (ResponseUsage, ResponseStreamEvent) | https://github.com/openai/openai-python | 2026-07-19 | — |
 | OpenResponses spec | https://www.openresponses.org/ | 2026-07-19 | release 2026-04-24 |
