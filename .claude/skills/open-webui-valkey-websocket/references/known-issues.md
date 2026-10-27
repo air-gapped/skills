@@ -163,7 +163,7 @@ Plus the Nov–Dec 2025 work:
 | Socket.IO frame amplification (#23733) | GitHub issue closed won't-fix 2026-08-11, but the amplification itself is **fixed in v0.11.1** (streaming rebuild emits deltas, not full messages). Still applies on <v0.11.1. Keep `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10` regardless. |
 | Helm chart bundled Redis is no-PVC | Disable, use external Valkey. |
 | Helm chart no HPA/PDB/probes | Add yourself. |
-| Helm gateway-API WS appProtocol | Open #383, manual workaround. |
+| Helm gateway-API WS appProtocol | Fixed: `service.appProtocol: kubernetes.io/ws` (chart ≥14.11.0, #383). |
 
 ## See also
 

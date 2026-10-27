@@ -1,6 +1,6 @@
 # Helm chart reference (`open-webui/helm-charts`)
 
-Chart **v15.2.0 → appVersion 0.10.2**, released 2026-07-01 (was v14.6.0/0.9.5). **The chart has not caught up to app 0.11.0** (checked 2026-07-29): v15.2.1/appVersion 0.11.0 exists only on the unmerged branch `automation/open-webui-0.11.0` (committed 2026-07-27), so deploying 0.11.0 via the released chart means overriding `image.tag` yourself — and doing so lands you on a chart whose defaults were validated against 0.10.2. See SKILL.md §Version upgrades before attempting it; 0.11.0 changes the schema and forbids rolling updates. The 14→15 major bump was **not** audited for breaking changes this pass; what was checked is that the structures this file depends on survived — `websocket:` is still a top-level block (line 66) and `replicaCount: 1` still present (line 183). Released 2026-05-20 for the prior pin. Repo URL: `https://helm.openwebui.com/`. Maintainer (`westbrook-ai`) explicitly volunteer-maintained: *"this repo is maintained by volunteers and is admittedly not always perfect."*
+Chart **v17.0.0 → appVersion 0.12.0** (2026-10-10). **The chart trails the app:** 0.12.1–0.12.4 sit on unmerged `automation/open-webui-0.12.N` branches, so reaching the v0.12.4 floor through the chart means setting `image.tag` yourself, on chart defaults written for 0.12.0. 0.12.1 changes the schema — see SKILL.md §Version upgrades before overriding. The 16→17 bump is the 0.12.0 appVersion bump only (one commit); the `websocket:` block, `replicaCount: 1`, `workload.kind` auto-selection, the env wiring and the no-PVC bundled Redis below are unchanged at 17.0.0. Repo URL: `https://helm.openwebui.com/`. The maintainers describe the repo as volunteer-run: *"this repo is maintained by volunteers and is admittedly not always perfect."*
 
 This is the supported Kubernetes deployment path (per the maintainer's own confirmation on issue #338, 2026-02-01) but it ships sparse defaults. The list below is what to override and what the chart doesn't cover.
 
@@ -28,7 +28,7 @@ Default `replicaCount: 1` — bump to 3 minimum for HA at 1000+ users.
 ## Bundled Redis is not for production
 
 ```yaml
-# values.yaml lines 51-140 (default)
+# values.yaml `websocket:` block (default)
 websocket:
   enabled: true
   manager: redis
@@ -74,7 +74,7 @@ stringData:
 
 ## Env wiring
 
-`templates/workload-manager.yaml` lines 301–323 inject:
+`templates/workload-manager.yaml` injects:
 
 ```yaml
 - name: "ENABLE_WEBSOCKET_SUPPORT"
@@ -138,7 +138,7 @@ extraEnvVars:
 
 ## Ingress / sticky sessions — chart ships nothing
 
-`values.yaml` lines 296–331 set up a basic `Ingress`, but **no built-in sticky-session annotation, no service `sessionAffinity: ClientIP`**.
+The `ingress:` block sets up a basic `Ingress`, but **no built-in sticky-session annotation, no service `sessionAffinity: ClientIP`**.
 
 The multi-replica troubleshooting docs page recommends:
 
@@ -200,8 +200,11 @@ startupProbe:
 
 | Version | Change |
 |---|---|
-| v15.2.0 | appVersion 0.10.2. **Current as of 2026-07-01.** Majors 15.0.0/15.1.0 both landed 2026-06-29 — breaking changes unreviewed. |
-| v14.11.0 | appVersion 0.10.x line. 2026-06-28. Last 14.x. |
+| v17.0.0 | appVersion 0.12.0. 2026-10-10. **Current stable as of 2026-10-27.** |
+| v16.6.0 | appVersion 0.11.4. 2026-09-21. |
+| v16.0.0 | appVersion 0.11.0. 2026-07-31. |
+| v15.2.0 | appVersion 0.10.2. 2026-07-01. |
+| v14.11.0 | appVersion 0.9.6. 2026-06-28. Last 14.x. Adds `service.appProtocol` (#383). |
 | v14.6.0 | appVersion 0.9.5. 2026-05-20. |
 | v14.5.0 | appVersion 0.9.5. 2026-05-11. |
 | v14.4.0 | appVersion 0.9.4. 2026-05-09. |
@@ -209,9 +212,9 @@ startupProbe:
 | v13.2.0 | Added `websocket.existingSecret` so `REDIS_URL`/`WEBSOCKET_REDIS_URL` can come from K8s Secrets (#341 fix). |
 | (earlier) | Added `workload.kind` override so operators can force Deployment regardless of persistence settings (#326). |
 
-## Open chart issues
+## Gateway API controllers need `appProtocol`
 
-- **#383 (open, 2026-04-21)** — gateway-API users (e.g. `kgateway`) need `service.appProtocol: kubernetes.io/ws` on the Service for some controllers to recognize WebSocket traffic. Unfixed. Workaround: patch the Service post-deploy.
+Some Gateway API controllers (e.g. `kgateway`) only route WebSocket traffic when the Service port declares it. Set `service.appProtocol: kubernetes.io/ws` (chart ≥14.11.0, #383); on older charts patch the Service after deploy.
 
 ## A worked-out values block
 
