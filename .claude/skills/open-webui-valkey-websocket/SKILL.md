@@ -121,24 +121,23 @@ Every variable in that block still exists and is still read in 0.11.0 (verified 
 
 Practical use: keep the global at `10`, and set `stream_delta_chunk_size: 20` (or higher) in `params` on the reasoning and long-output models specifically — those are the ones whose O(N²) constant hurts most — without coarsening streaming for short chat models. This predates 0.11.0 (present in 0.10.2) but is absent from most deployment guides.
 
-## Security floor: v0.11.1, and the feed will not tell you that
+## Security floor: v0.12.4, and the advisory feeds trail the release
 
-**Run v0.11.1 or later.** Open WebUI published **69 security advisories between
-2026-06-01 and 2026-09-15** (checked that day). Deriving the floor takes work
-that the tooling normally does for you:
+**Run v0.12.4 or later.** Open WebUI ships security fixes before it publishes
+the advisories, so no advisory feed gives you the floor on its own:
 
-- **Every one of those 69 has `first_patched_version` set to `null`.** Not most
-  — all of them. A script that reads that field concludes there is no fix for
-  anything. The floor has to come from `vulnerable_version_range` ceilings
-  instead, and the highest are `< 0.11.1` and `<= 0.11.0`, which is where
-  **v0.11.1** comes from.
-- Upstream also states in the v0.11.1 notes: *"Not all security fixes in this
-  version may be enumerated in the fixed section. Some may be withheld for a
-  short time to give administrators time to upgrade."* The enumerated list is a
-  lower bound.
-- v0.11.2 and v0.11.3 are not additional security releases (a migration-crash
-  fix and a bug-fix release), so **v0.11.1 is the security floor and v0.11.3 the
-  sensible target**.
+- **v0.12.4's notes say it contains security fixes that are "not listed in this
+  changelog"**; the advisories follow CVE assignment. v0.12.0 and v0.11.1 carry
+  the same "some may be withheld" warning. The newest release is the floor until
+  its advisories appear.
+- **Read the repository's advisory list, not the global database.** `gh api
+  repos/open-webui/open-webui/security-advisories` carries advisories weeks
+  before they reach the global GitHub Advisory Database (what Dependabot alerts
+  read). Take the floor from the highest `vulnerable_version_range`
+  ceiling / `patched_versions` there, then raise it to the newest release if
+  that release announced unlisted fixes.
+- Releases that changed the floor so far: v0.11.1, v0.11.4, v0.12.2 (published
+  ceilings) and v0.12.4 (unlisted fixes).
 
 **Do not assume an internal-only deployment behind an authenticating proxy is
 covered.** The proxy removes one narrow slice — advisories needing an
@@ -147,7 +146,7 @@ callback and `/api/v1/` rather than just `/`. It does nothing for the rest:
 
 | Class | Why the proxy does not help |
 |---|---|
-| **Cross-tenant / privilege** (~30 advisories, the largest cluster) | Needs only "any authenticated user". An endpoint trusting a client-supplied `knowledge_id`, folder parent or model metadata is exactly the multi-tenant case an internal instance exists to serve. |
+| **Cross-tenant / privilege** (~30 of the 69 advisories published 2026-06-01 to 09-15, the largest cluster) | Needs only "any authenticated user". An endpoint trusting a client-supplied `knowledge_id`, folder parent or model metadata is exactly the multi-tenant case an internal instance exists to serve. |
 | **XSS to account takeover** | One authenticated user attacking another's browser through a profile image, message or shared terminal link. Never crosses the network boundary. |
 | **Code execution** (terminal, Pyodide) | Reached through legitimate features by an authenticated user. |
 | **Denial of service** | Any authenticated user can hang a shared worker with a pathological input. |
