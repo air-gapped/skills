@@ -60,7 +60,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 | https://atlassian.com/agile/project-management/epics-stories-themes | A | Initiative/Epic/Story/Theme; Theme = goal/label, not a level; sizing | 2026-06-07 |
 | https://confluence.atlassian.com/jiraportfolioserver/configuring-hierarchy-levels-802170489.html | A | DC custom hierarchy levels; issue-type mapping; system-wide effect | 2026-06-07 |
 | https://jira.atlassian.com/browse/JPOSERVER-4430 | A | DC Epic Link/Parent Link **not** unified (closed Not-a-bug); workaround. Re-probed via public REST: still Closed/Not-a-bug, untouched since 2023-09 | 2026-08-18 |
-| https://support.atlassian.com/jira-software-cloud/docs/upcoming-changes-epic-link-replaced-with-parent/ | A | Cloud Parent unification; DC "not affected" | 2026-06-07 |
+| https://community.atlassian.com/forums/discussion/2377758/introducing-the-new-parent-field-in-company-managed-projects | A | Cloud Parent unification (Atlassian's announcement; the old `support.atlassian.com/.../upcoming-changes-epic-link-replaced-with-parent/` URL now redirects here). Cloud-only; it says nothing about DC — the DC two-field claim rests on JPOSERVER-4430 | 2026-10-27 |
 | https://products.seibert.group/blog/jira-story-vs-task-vs-epic | B | Misconceptions; Story=value/Task=operational; sub-task constraints; non-software examples | 2026-06-07 |
 | https://tempo.io/blog/which-safe-hierarchy-should-you-choose | B | Two valid SAFe mappings; "depends on your situation" | 2026-06-07 |
 
