@@ -29,14 +29,11 @@ argument-hint: "[upgrade|cephx|csi|monitoring] (optional focus area)"
 
 # rook-ceph-best-practices
 
-Facts verified **2026-09-23** against rook/rook releases v1.16.0–v1.20.7
-(unfiltered), the Rook docs at tag v1.20.7, the ceph.io release posts,
-the rook/rook and ceph/ceph-csi issue trackers, and one live upgrade
-(Rook v1.19.6 → v1.19.11, Ceph 19.2.3 → 19.2.6 with daemon key rotation).
+Facts cover Rook through v1.21.1 and Ceph through 19.2.7 / 20.2.4.
 Everything here is version-gated: re-check `references/sources.md` before
 relying on it for a newer release.
 
-## Version gates (2026-09-23)
+## Version gates
 
 | Rook | Kubernetes | Ceph supported | Notes |
 |---|---|---|---|
