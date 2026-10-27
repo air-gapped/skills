@@ -22,8 +22,12 @@
 | **4.18** | 1.31 | **OLM v1 GA** (ClusterExtension; registry+v1 bundles, AllNamespaces install mode, no webhooks). **Last OpenShift planned to ship the Operator SDK CLI** — 4.19+ does not. oc-mirror v2 GA. Builds 1.6 (Buildpacks GA). UDN GA. ESO GA (4.20 operator). |
 | **4.19** | 1.32 | **cgroup v1 removed.** RHCOS built as layered image. Image mode for OpenShift GA. Gateway API CRDs ship by default. |
 | **4.20** | 1.33 | Pipelines 1.20. GitOps 1.18. In-place VPA beta (k8s 1.33). |
-| **4.21** | 1.34 | **ClusterImagePolicy GA** (sigstore verification enforced by default for OCP releases). Needs Pipelines 1.22+, GitOps 1.20+ (Argo CD 3.3), RHTAS 1.4+ (earlier minors do not list 4.21 support). RHADS-SSC 1.8. GA ~Feb 2026. |
-| **4.22** | 1.35 | GA 2026-06-09 (RHEA-2026:0449), CRI-O 1.35. JobSet controller GA for multi-Job orchestration. **Lazy image pulling** via a plug-in CRI-O architecture — containers start before the image is fully pulled, aimed at large AI/ML images. Dev Spaces 3.26–3.28. Only headline items captured this pass; the release notes were 403 to direct fetch, so treat this row as incomplete. |
+| **4.21** | 1.34 | **ClusterImagePolicy GA** (sigstore verification enforced by default for OCP releases). Needs Pipelines 1.22+, GitOps 1.20+ (Argo CD 3.3), RHTAS 1.4+ (earlier minors do not list 4.21 support). RHADS-SSC 1.8. GA 2026-02-03. |
+| **4.22** | 1.35 | GA 2026-06-09 (RHEA-2026:0449), CRI-O 1.35. JobSet controller GA for multi-Job orchestration. **Lazy image pulling** via a plug-in CRI-O architecture — containers start before the image is fully pulled, aimed at large AI/ML images. Dev Spaces 3.26–3.28. Headline items only — read the 4.22 release notes for the full list. |
+
+**OCP 5.0 is not GA** (2026-10-27): the update graph has release candidates in
+`candidate-5.0` and no `stable-5.0` versions. OKD 5.0 release tags exist but OKD
+leads OCP — check `stable-5.0` in the update graph before treating 5.0 as shipped.
 
 ---
 
