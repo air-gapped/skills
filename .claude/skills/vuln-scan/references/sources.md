@@ -18,16 +18,20 @@ security-review tooling changes.
 - Note: the skill is adapted (Apache-2.0) from this repo's `vuln-scan` skill and
   its autonomous `find`/`recon` pipeline prompts. `HARNESS.md` points operators
   here for execution-verified scanning.
-- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
+- State 2026-10-27: active, not archived, no releases or tags; last push
+  2026-08-06 (`d3bea6b`, merge of anthropics/defending-code-reference-harness#44) and no commits since 2026-09-16. Next
+  pass: sweep commits `--since=2026-10-28`.
+- HARNESS.md facts re-read in a local clone at `d3bea6b`: README "reference,
+  not a product" (L36), "seven stages" (L192), the setup block (L169-176),
+  the gVisor refusal (L187-188); `harness/auth.py` usage marker (L211-218);
+  `harness/prompts/untrusted.py` closing-tag sanitiser; `.claude/skills/`
+  carries `customize`, `quickstart`, `verify`, `dnr-hunt`, `dnr-respond`.
 
   **The prompts this skill lifts are unchanged.** `harness/prompts/find_prompt.py`
-  appears in a `--since=2026-06-15` commit sweep, but **only** via anthropics/defending-code-reference-harness#13 dated
-  2026-06-15 itself — the inclusive-boundary artifact of that filter, and the
-  same PR the prior pass already reviewed. `recon_prompt.py` does not appear at
-  all, and neither does `.claude/skills/vuln-scan/`. The recon pattern and
-  memory-safety tiers are intact (10 tier/recon markers still present in
-  `find_prompt.py`). *Use `--since=2026-06-16` next pass to avoid re-reviewing
-  the boundary commit.*
+  last changed in anthropics/defending-code-reference-harness#13
+  (2026-06-15); `recon_prompt.py` and `.claude/skills/vuln-scan/` have no
+  commits since the initial release. The recon pattern and memory-safety tiers
+  are intact.
 
   **Changed, and reflected in `HARNESS.md`:**
   - **Declared usage marker on outbound agent API requests** (anthropics/defending-code-reference-harness#22,
@@ -50,7 +54,10 @@ security-review tooling changes.
 - Note: the review-brief category menu, DO-NOT-REPORT exclusions, per-finding
   confidence pass, and `exploit_scenario`/`recommendation` fields originate in
   this action's `/security-review` command.
-- Last verified: 2026-09-15  (active; not archived; **still last pushed 2026-02-11** — now unchanged for ~7 months, so the category menu, DO-NOT-REPORT exclusions, confidence pass and `exploit_scenario`/`recommendation` fields are stable)
+- State 2026-10-27: active, not archived, no releases or tags, last push
+  still 2026-02-11. `.claude/commands/security-review.md` still carries the
+  "EXCLUSIONS: Do NOT report" list and "HARD EXCLUSIONS", a 1-10 confidence
+  score, and the exploit-scenario and recommendation output fields.
 
 ## visa-vulnerability-agentic-harness (Step 3a pre-filter lineage)
 

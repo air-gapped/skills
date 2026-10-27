@@ -25,7 +25,7 @@ agent isolation (egress locked to the model API). Seven stages: build → recon
 → find → verify → dedupe → report → patch. It is a *reference, not a product* —
 it will not run on every codebase out of the box.
 
-**Two things worth knowing before you run it** (both verified 2026-07-21):
+**Two things worth knowing before you run it** (both verified 2026-10-27):
 
 - **It tags its own API traffic.** `harness/auth.py` stamps a declared usage
   marker on outbound agent requests — `anthropic-cyber-runbook: pipeline` plus
