@@ -48,8 +48,9 @@ middleware change.**
 
 ### Header aliasing is now a first-class control — configure it explicitly
 
-v3.7.12 added the entry-point option **`aliasHeadersStrategy`**, deprecating
-`underscoreHeadersStrategy` (v3.6.20). Underscores were only one case: HTTP
+v3.7.12 / v2.11.56 added the entry-point option **`aliasHeadersStrategy`**,
+deprecating `underscoreHeadersStrategy` (v3.6.22 / v3.7.6 / v2.11.51); v3.6 only
+has the underscore option. Underscores were only one case: HTTP
 permits `!  #  $  %  &  '  *  +  .  ^  _  \`  |  ~` in header names, and every
 one of them can build an alias for a header your middleware trusts. That is the
 mechanism behind GHSA-rf44-j88r-hh8c (ForwardAuth dot-form spoofing) and
