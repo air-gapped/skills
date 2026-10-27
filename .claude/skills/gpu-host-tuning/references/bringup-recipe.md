@@ -12,8 +12,11 @@ command for each step.
 
 ## Phase 0 — Baseline OS (one-time, by the OEM or your provisioning automation)
 
-- NVIDIA drivers (open module on Hopper+, proprietary on older). Driver
-  series 550+ is the 2025/2026 baseline; 555+ for Blackwell.
+- NVIDIA drivers (open module on Hopper+, proprietary on older; open is
+  mandatory on Blackwell). Run a supported datacenter branch: R580 LTSB (EOL
+  June 2028) or R595 PB (EOL March 2027); R610/R615 are new-feature branches;
+  R570, R550 and R535 are EOL. CUDA 13 needs R580+. Install: the
+  `nvidia-datacenter-bringup` skill.
 - OFED / DOCA drivers (Mellanox/NVIDIA Networking). Check version against
   ConnectX firmware. `mlnx_tune` should be on PATH.
 - CUDA toolkit (12.4+ for Hopper, 12.8+ for Blackwell, 13.0+ for production
