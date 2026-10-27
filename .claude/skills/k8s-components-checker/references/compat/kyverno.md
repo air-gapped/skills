@@ -5,8 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.16
-- **Last sifted:** 2026-09-24
-- **Last release-verified:** 2026-09-24
+- **Last sifted:** 2026-10-27
+- **Last release-verified:** 2026-10-27
 - **SECURITY — this file tracked no advisories at all, and the gap is load-bearing.** Kyverno published **five advisories on 2026-09-10, every one fixed only in v1.19.1**, including **GHSA-5qq8-67g6-4h2w (CRITICAL): privilege escalation to cluster admin via Policy `apiCall` urlPath**, vulnerable `<1.19.1`. The others: GHSA-c5qq-7g2q-cpqp (HIGH, namespace-isolation bypass), GHSA-q825-p383-r9v5 (HIGH, SSRF-blocklist bypass), GHSA-5cjf-wwfg-pj4c (HIGH, ImageValidatingPolicy exception bypass), GHSA-59v6-2x73-wfg4 (HIGH, cross-namespace GlobalContextEntry read). Re-verified 2026-09-24 via `gh api repos/kyverno/kyverno/security-advisories`: all five still show `patched_versions: 1.19.1` and no other line.
   **Per tracked line, whether a fix exists:** 1.16.x — no; 1.17.x — no; 1.18.x — no; **1.19.0 itself ships vulnerable** — only 1.19.1 (2026-09-10, same day) carries the fix, via a batch of `apiCall`/`globalContext` hardening cherry-picks onto `release-1.19` (one explicit: GHSA-5cjf-wwfg-pj4c fixed by PR #17307). There is no backport to any EOL line; 1.19.1 is the only fixed release. A survey that reports the pre-1.19.1 lines as merely "older" understates it.
   Earlier, already fixed at the ceilings recorded below but never mentioned here: GHSA-79gf-7frw-68m9 (CRITICAL, cross-namespace generation, fixed 1.18.2), and a cluster of HIGHs fixed in 1.17.2 / 1.16.4 including ServiceAccount-token forwarding via `apiCall`.
@@ -18,7 +18,9 @@ Community patch window is ~3 months per minor. When `x.(y+1)` ships, `x.y` is EO
 
 **Status: 1.19 is current** (GA 2026-08-20, k8s v1.33–v1.35, matrix re-read 2026-09-24 at kyverno.io/docs/installation/releases/); **1.18 went EOL the same day** under the community-patch rule above; 1.17 / 1.16 remain EOL.
 
-## 1.19.0 (2026-08-20, latest patch **1.19.1** 2026-09-10)
+## 1.19.0 (2026-08-20, latest patch **1.19.2** 2026-10-20)
+
+- **Security floor: v1.19.2.** Fixes 24 GHSAs (9 critical, 14 high, 1 moderate) — API-call path validation and namespace confinement, NamespacedMutatingPolicy target confinement, PolicyException enforcement in generated admission policies, image-verification/attestation hardening, generate/clone confinement. Affected range `<= v1.19.1` (e.g. GHSA-3xfv-vq8x-qhg4, critical); no 1.18.x or older patch shipped — any line below 1.19 is `✗ blocker` until upgraded to ≥ v1.19.2.
 
 - **k8s floor:** 1.33 – 1.35 — unchanged from 1.18 (kyverno.io/docs/installation/releases/, "Kubernetes Versions Supported: v1.33 - v1.35", re-read 2026-09-24). Estimated EOL for the 1.19 line: 1.20's release (~Nov 2026, same page).
 - **Breaking:** none at the API/CRD level. Operationally breaking on Helm upgrade: the `kyverno-policies` chart's PSS `policyType` default flips from `ClusterPolicy` to `ValidatingPolicy` (#16868, #16867) — a default `helm upgrade` re-renders the 11 baseline / 17 restricted PSS policies under a **different Kind** (`policies.kyverno.io/ValidatingPolicy` instead of `kyverno.io/ClusterPolicy`); the old `ClusterPolicy` objects are not deleted automatically and must be cleaned up manually. Set `policyType: ClusterPolicy` to keep prior behavior (now prints a deprecation warning in `NOTES.txt`).
