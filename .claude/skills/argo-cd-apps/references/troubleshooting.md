@@ -137,7 +137,7 @@ Sources: `user-guide/diffing.md`, `diff-strategies.md`, `sync-options.md`,
 kyverno-injected labels, operator-patched `imagePullSecrets`. Resync doesn't
 help; webhook re-mutates.
 
-**Fix A — `ServerSideDiff=true` (preferred, stable v3.1+).** SSA dry-run, so
+**Fix A — `ServerSideDiff=true` (preferred, stable v3.2+).** SSA dry-run, so
 mutation isn't drift. Default *excludes* mutation webhooks from diff.
 
 ```yaml

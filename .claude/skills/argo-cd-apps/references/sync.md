@@ -159,7 +159,7 @@ Source: `docs/user-guide/sync-options.md`. Set at app level
 | `ApplyOutOfSyncOnly=true` | `false` | Apply only resources that diff `OutOfSync`. **Hooks still run** (unlike selective sync) | Apps with thousands of resources; K8s API pressure. v3.3 fix: cluster-scoped resources now honored (#765); composes with waves (#251) |
 | `RespectIgnoreDifferences=true` | `false` | Pre-patches desired state to remove ignored fields from apply, so live value persists | Whenever `ignoreDifferences` is set. Without this, ignoreDifferences only affects the diff display. **Caveat:** only effective when the resource exists; on creation, git wins for the ignored field on first reconcile |
 | `ServerSideApply=true` | `false` | `kubectl apply --server-side --force-conflicts` | Manifest > 256 KB (no `last-applied-configuration` annotation); partial-spec patches; adopting an existing resource. **`Replace=true` takes precedence** — mutually exclusive |
-| `ServerSideDiff=true` | off | (Compare-option, NOT a syncOption.) SSA dry-run, diff predicted live vs actual. Stable since v3.1.0 but **not default** | Want admission webhooks to participate in diff. Set via `argocd.argoproj.io/compare-options` annotation on the Application, or globally via `argocd-cmd-params-cm` `controller.diff.server.side: "true"` |
+| `ServerSideDiff=true` | off | (Compare-option, NOT a syncOption.) SSA dry-run, diff predicted live vs actual. Stable since v3.2.0 (Beta through 3.1) but **not default** | Want admission webhooks to participate in diff. Set via `argocd.argoproj.io/compare-options` annotation on the Application, or globally via `argocd-cmd-params-cm` `controller.diff.server.side: "true"` |
 | `FailOnSharedResource=true` | `false` | Sync **fails** rather than overwriting a resource also managed by another App | Multiple Apps could converge on the same namespace and you want loud failure |
 | `Replace=true` | `false` | `kubectl replace` (or create) instead of `apply`. **Destructive** — may recreate the resource | Manifest exceeds the 256 KB annotation limit and SSA isn't an option; CRDs whose schema changed unmergeably. Almost always combined with `Force=true`. v3.3 fix #321 brought back from regression |
 | `Force=true` | `false` | Delete and recreate. Use with `Replace=true` for re-running Jobs every sync | Resource must be recreated each sync. Per-resource only |
@@ -503,7 +503,7 @@ Source: `docs/user-guide/diffing.md`, `diff-strategies.md`,
 | Strategy | Status | How it computes |
 |---|---|---|
 | **Legacy 3-way merge** | Default for non-SSA apps | live ⊕ desired ⊕ `last-applied-configuration` annotation |
-| **Server-Side Diff (SSD)** | **Stable since v3.1.0; not default.** Recommended path | SSA dry-run, compare predicted live to actual live |
+| **Server-Side Diff (SSD)** | **Stable since v3.2.0 (Beta through 3.1); not default.** Recommended path | SSA dry-run, compare predicted live to actual live |
 | **Structured-merge-diff** | **Discontinued** | Field-ownership via structured-merge-diff library |
 
 Per `diff-strategies.md` line 22: structured-merge-diff is **discontinued**
