@@ -3,10 +3,7 @@
 Freshened: 2026-09-22 — every row probed; all URLs 200 and no cited repo is archived. The Visa harness advanced to v1.4.0 and every cited lineage — the prefilter regexes, the per-chunk threat_id stamp, the specialist hints — still holds verbatim, with call-graph context injection now in s6_verify.py.
 
 One row per external reference this skill depends on. `skill-improver freshen`
-probes each URL, classifies staleness, and re-stamps `Last verified:`.
-
-**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it. Surveys
-at use time read this only to surface staleness.
+probes every row and writes the single `Freshened:` stamp above.
 
 Re-run `/skill-improver freshen vuln-scan` quarterly or when the upstream
 security-review tooling changes.
@@ -104,10 +101,3 @@ security-review tooling changes.
   team"; projects connect repositories; Claude "marks it fixed once the fix
   ships". The write-up calls it "Anthropic's managed product for agentic
   vulnerability detection and patching."
-
----
-
-## Markers
-
-- `<!-- ignore-freshen -->` on a row excludes it from `freshen` probes.
-- `Pinned: <ref>` under a row tells freshen not to advance past that ref.
