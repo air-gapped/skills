@@ -681,7 +681,7 @@ Renovate is significantly more capable than Dependabot for Helm chart management
 | Feature | Renovate | Dependabot |
 |---------|----------|-----------|
 | Chart.yaml dependency versions | Yes | Yes (April 2025) |
-| Image tags in values.yaml | Yes (`helm-values` manager) | No |
+| Image tags in values.yaml | Yes (`helm-values` manager) | Yes |
 | Auto-bump chart version | Yes (`bumpVersion`) | No |
 | Regex for arbitrary files | Yes | No |
 | Self-hostable (air-gapped) | Yes | No |

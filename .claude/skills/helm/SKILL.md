@@ -221,11 +221,11 @@ signs with cosign, you need both:
 Without the cosign login, signing fails with auth errors even though the push
 succeeded. See the OCI Push workflow in `references/testing-ci.md`.
 
-### 14. Renovate Is Significantly Better Than Dependabot for Helm
+### 14. Prefer Renovate Over Dependabot for Helm
 
-Dependabot added Helm support April 2025 but only handles Chart.yaml dependency
-versions. Renovate also updates image tags in values.yaml, auto-bumps chart
-versions, supports regex managers, and is self-hostable for air-gapped setups.
+Dependabot (Helm support since April 2025) updates Chart.yaml dependencies,
+Chart.lock, and image tags in values files. Renovate also auto-bumps the chart's
+own version, supports regex managers, and is self-hostable for air-gapped setups.
 
 ## Chart Scaffold
 
