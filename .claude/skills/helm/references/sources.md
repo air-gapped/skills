@@ -29,7 +29,7 @@ not guessable: `norwoodj/helm-docs` tags `v1.14.2`, `dadav/helm-schema` tags
 | chart-testing (ct) action | https://github.com/helm/chart-testing-action/releases | 2026-10-05 | Still v2.8.0 (2025-11-05), SHA `6ec842c01de15ebb84c8627d2744a0c2f2755c9f` — resolves, matches the skill pin. |
 | chart-releaser action | https://github.com/helm/chart-releaser-action/releases | 2026-10-05 | Still v1.7.0 (2025-01-20). **Skill SHA was wrong** and now reads `cae68fefc6b5f367a0275617c9f83181ba54714f`. |
 | helm-docs | https://github.com/norwoodj/helm-docs/releases | 2026-10-05 | Still v1.14.2 (2024-07-08) — no release in two years; matches skill pin. Tags here **are** `v`-prefixed. |
-| dadav/helm-schema | https://github.com/dadav/helm-schema/releases | 2026-10-05 | Latest **0.23.5** (2026-08-24), was 0.23.4. values.schema.json generator from `@schema` annotations; GPG-signed releases. Tags carry **no** `v` prefix — `v0.23.x` 404s. |
+| dadav/helm-schema | https://github.com/dadav/helm-schema/releases | 2026-10-27 | Latest **0.24.0** (2026-10-18), was 0.23.5: bug fixes (subchart schema references, import-values), no breaking changes; `additionalProperties` still defaults to `false` for non-empty maps; hook id `helm-schema` unchanged. values.schema.json generator from `@schema` annotations; GPG-signed releases. Tags carry **no** `v` prefix — `v0.23.x` 404s. |
 | kubeconform | https://github.com/yannh/kubeconform | 2026-10-05 | Latest v0.8.0 (2026-06-04). Successor to deprecated kubeval; validates rendered manifests against K8s OpenAPI schemas. |
 | cosign / sigstore | https://github.com/sigstore/cosign | 2026-10-05 | Latest v3.1.3 (2026-08-06); v2 line still patched (v2.6.5). Keyless + key-based OCI artifact signing; sign Helm charts by digest, not tag. |
 | Bitnami common library chart | https://github.com/bitnami/charts/tree/main/bitnami/common | 2026-10-05 | Source of commonLabels/commonAnnotations/adaptSecurityContext patterns; Bitnami moved to OCI-only. |
@@ -70,7 +70,7 @@ Note the inconsistent prefixing — copy the tag, do not construct it.
 | pre-commit/pre-commit-hooks | `v6.0.0` | yes | v6.0.0 (2025-08-09) | `testing-ci.md` — was v5.0.0, a year stale |
 | adrienverge/yamllint | `v1.38.0` | yes | v1.38.0 (2026-01-13) | `testing-ci.md` |
 | norwoodj/helm-docs | `v1.14.2` | yes | v1.14.2 (2024-07-08) | `testing-ci.md`, `chart-structure.md` |
-| dadav/helm-schema | `0.23.5` | yes | 0.23.5 (2026-08-24) | `testing-ci.md` — **was `v0.23.3`, a 404** |
+| dadav/helm-schema | `0.24.0` | yes | 0.24.0 (2026-10-18) | `testing-ci.md` — **was `v0.23.3`, a 404** |
 
 **cosign-installer v4 breaking change does not bite this skill.** v4 is required
 for cosign v3+, and cosign v3 makes `--bundle` mandatory on `cosign sign-blob`.

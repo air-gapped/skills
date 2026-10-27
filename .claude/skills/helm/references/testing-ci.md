@@ -716,7 +716,7 @@ repos:
         args: [--chart-search-root=charts]
 
   - repo: https://github.com/dadav/helm-schema
-    rev: 0.23.5   # tags carry no `v` prefix; `v0.23.5` does not resolve
+    rev: 0.24.0   # tags carry no `v` prefix; `v0.24.0` does not resolve
     hooks:
       - id: helm-schema
 ```
