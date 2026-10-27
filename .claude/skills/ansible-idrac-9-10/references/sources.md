@@ -25,7 +25,7 @@ collection version `10.0.2`. All sources verified at authoring time.
 
 | Source | Path | What it contains | Last verified | Pinned |
 |--------|------|------------------|---------------|--------|
-| dell/dellemc-openmanage-ansible-modules | `~/projects/github.com/dell/dellemc-openmanage-ansible-modules` (typical local clone) | Full collection source — modules, module_utils, roles, docs, CHANGELOG. Cited paths in `references/*.md` are relative to repo root; access via local clone or `gh api repos/dell/dellemc-openmanage-ansible-modules/contents/<path>`. | 2026-10-20 | collections @ 50215ac9 (v10.0.2); the clone is behind v11.0.0 — v11.0.0 paths were read from the release tarball (0047b49) |
+| dell/dellemc-openmanage-ansible-modules | `dell/dellemc-openmanage-ansible-modules` (typical local clone) | Full collection source — modules, module_utils, roles, docs, CHANGELOG. Cited paths in `references/*.md` are relative to repo root; access via local clone or `gh api repos/dell/dellemc-openmanage-ansible-modules/contents/<path>`. | 2026-10-20 | collections @ 50215ac9 (v10.0.2); the clone is behind v11.0.0 — v11.0.0 paths were read from the release tarball (0047b49) |
 | iDRAC 10 Attribute Registry PDF (1.30.xx) | Dell support portal (search "iDRAC10 Attribute Registry 1.30") | Official Dell registry, March 2026 / Rev A01. Source of truth for Chapter 2 (Deprecated), Chapter 3 (Reorganized), Chapter 4 (Changed). **Exception:** portal-search only, no stable URL; a 2026-10-20 web search found no 1.30.xx-or-later registry URL. | 2026-09-15 | March 2026 / Rev A01 |
 
 ## Official Dell documentation

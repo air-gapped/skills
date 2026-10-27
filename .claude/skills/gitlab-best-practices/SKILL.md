@@ -34,8 +34,7 @@ configuration the site does not run, and removed its own bundled databases in a
 release that breaks the *tooling* before it breaks the deployment.
 
 Facts here were verified **2026-08-29** against machine-readable upstream
-sources, the unpacked chart, and a live install taken through a multi-hop
-18.x → 19.x campaign. Re-verify anything version-bearing.
+sources, the unpacked chart, and hands-on upgrade tests. Re-verify anything version-bearing.
 
 **Version anchor (2026-08-29):** latest chart **10.3.1** / app **19.3.1**.
 Chart major = app major − 9. Required stops through 19.x: **18.2 · 18.5 ·

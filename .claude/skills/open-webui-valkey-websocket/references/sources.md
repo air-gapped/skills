@@ -29,7 +29,7 @@ Per-source-group last-verified dates. `freshen` mode probes each row and stamps 
 | Helm chart issues #338, #341, #383 | 2026-09-15 | #338 closed (maintainer confirms support), #341 closed (fixed v13.2.0), **#383 now CLOSED 2026-06-28** (gateway-API `appProtocol` hint). |
 | v0.11.1–v0.11.4 release notes, read item by item | 2026-09-24 | **Biggest find: #23733's amplification is fixed in v0.11.1** (commit `a1579a01f` — `utils/middleware.py::streaming_chat_response_handler` now emits `response.output_text.delta` events, not `{'output': full_output()}`), even though the GitHub issue stayed closed won't-fix. Also confirmed: #27622 and #27651 fixed in v0.11.1 (release notes match the earlier issue-state probe); `REDIS_RESPONSE_STREAM_TTL`, `WEBSOCKET_HEARTBEAT_INTERVAL`, `UVICORN_WS_PER_MESSAGE_DEFLATE` added v0.11.1; `REDIS_TASK_TTL`, `ENABLE_CHAT_RESPONSE_STREAM_INPLACE_APPEND` added v0.11.4; revocation fails open on `RedisError` since v0.11.4 (commit `c1615bec2`, `utils/auth.py::is_valid_token`); sign-in rate limiter (PR #29977) and session-pool reaper (PR #29976) no longer break on a Redis blip, both v0.11.4; per-worker model-registry cache (PR #28176) and Ollama-`expires_at` signature fix (commit `649c012e`), both v0.11.4. |
 
-## Local source files (`~/projects/github.com/open-webui/open-webui` at v0.9.4)
+## Local source files (`open-webui/open-webui` at v0.9.4)
 
 These paths are stable across recent versions. Line numbers may drift in clones past 0.9.4, but structure should hold.
 
@@ -228,7 +228,7 @@ https://helm.openwebui.com/                             # helm repository URL
 
 To refresh this skill against current upstream state:
 
-1. `cd ~/projects/github.com/open-webui/open-webui && git pull origin main`
+1. `cd open-webui/open-webui && git pull origin main`
 2. Read CHANGELOG entries since the last skill update for `websocket`, `redis`, `valkey`, `scaling`, `multi-pod`, `replica`, `thumbnail`, `profile_image`.
 3. `gh issue view 23733 --repo open-webui/open-webui` — check status.
 4. `gh issue list --repo open-webui/open-webui --state open --label scaling` (or `multi-pod`, etc.)

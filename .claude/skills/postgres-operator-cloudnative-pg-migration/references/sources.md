@@ -11,7 +11,7 @@ exception note instead.
 Full pass. URL liveness swept in bulk; issue and PR states batched per repo
 through the GitHub API; release lists for CNPG, Zalando and
 plugin-barman-cloud enumerated **unfiltered**; local-clone rows checked
-against `~/projects/github.com/cloudnative-pg/cloudnative-pg` at the pinned
+against `cloudnative-pg/cloudnative-pg` at the pinned
 commit and against `origin/main`. Four drifts found and applied: Zalando
 release state (and a Spilo major that was wrong when written), Crunchy #3601
 open not closed, the Instana deep link retired, and a PG19 beta in the

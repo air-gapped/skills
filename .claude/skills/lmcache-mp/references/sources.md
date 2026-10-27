@@ -44,7 +44,7 @@ Not yet re-run on the current stable pair: no bundling table exists for `vllm/vl
 
 ### LMCache repo probes
 
-Local clone at `~/projects/github.com/LMCache/LMCache`, dev branch.
+Local clone of `LMCache/LMCache`, dev branch.
 
 - `docs/source/mp/` — full MP architecture, deployment, L2 storage, observability, HTTP API documentation.
 - `examples/multi_process/lmcache-daemonset.yaml` and `vllm-deployment.yaml` — canonical K8s manifests.
@@ -53,7 +53,7 @@ Local clone at `~/projects/github.com/LMCache/LMCache`, dev branch.
 
 ### vLLM repo probes
 
-Local clone at `~/projects/github.com/vllm-project/vllm`, main branch.
+Local clone of `vllm-project/vllm`, main branch.
 
 - `vllm/distributed/kv_transfer/kv_connector/factory.py` — registers `LMCacheConnectorV1` (line 168) and `LMCacheMPConnector` (line 174) side-by-side.
 - `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:80` (was :78 at v0.19.1) — `RuntimeError("LMCacheMPConnector only works without hybrid kv cache manager. Please pass --disable-hybrid-kv-cache-manager when starting vllm")`. Still present at v0.25.1, but only on the repo-local **fallback** class `LMCacheMPConnectorUpstream`; the external lmcache 0.5.x connector declares `SupportsHMA` and never raises it.
@@ -84,7 +84,7 @@ gh pr view 2879 --repo LMCache/LMCache --json title,state,mergedAt,updatedAt
 ### Recent history of native KV offload
 
 ```bash
-git -C ~/projects/github.com/vllm-project/vllm log --oneline --all -50 \
+git -C <vllm clone> log --oneline --all -50 \
   -- vllm/v1/kv_offload/ vllm/distributed/kv_transfer/kv_connector/v1/offloading/
 ```
 

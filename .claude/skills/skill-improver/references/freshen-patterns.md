@@ -56,13 +56,14 @@ A pass verifies **every ref**, so the F6 stamp is true. **Delegate the sweep to 
   batch issue/PR states via one GraphQL query per repo, check latest
   releases against the versions the rows claim. Return ONLY a findings
   table: `ref | ok|drifted|gone|blocked | evidence`, nothing else."
-- **`Explore`** (read-only, has Bash) — local-clone checks: file paths, tags, symbols cited by rows, against `~/projects/github.com/<org>/<repo>`.
+- **`Explore`** (read-only, has Bash) — local-clone checks: file paths, tags, symbols cited by rows, against a local clone of `<org>/<repo>`.
 
 Batch the probes:
 
 - URL rows → ONE bulk liveness sweep (`xargs -P 8 curl -sL -w '%{http_code}'`)
 - issue/PR state rows → ONE GraphQL query per repo (aliased `issueOrPullRequest` fragments)
-- repo file/tag/symbol rows → local clone under `~/projects/github.com/` (`git cat-file -e`, `git grep`)
+- repo file/tag/symbol rows → local clone of the repo (`git cat-file -e`, `git grep`)
+- in `sources.md`, cite the repo as `<org>/<repo>` at a tag or SHA, never a local clone path
 - version rows → one release-API call per project
 
 Give individual attention only to rows the batch flags (non-200, state changed, path gone, version moved). Per ref, run the cheapest applicable probe first (§2).

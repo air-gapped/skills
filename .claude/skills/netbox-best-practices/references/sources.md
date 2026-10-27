@@ -8,10 +8,7 @@ Freshened: 2026-09-22 — every row probed; NetBox 4.7.1 and the social-auth pin
 
 Line anchors into `netbox/netbox/authentication/__init__.py` and `settings.py` have drifted substantially — find those symbols by name, not by line.
 
-Dated index of every external source backing this skill's claims. `[live]`
-claims were additionally verified on a production install: undated labels on
-chart 8.3.14 / NetBox v4.6.2 (2026-06-12), `[live 2026-09-15]` on 8.3.66 /
-v4.6.10, `[live 2026-10-27]` on 8.3.96 / v4.7.3.
+Dated index of every external source backing this skill's claims.
 
 ## ⚠ Version-lookup trap — `releases/latest` on `netbox-chart` returns the *operator*
 
@@ -59,7 +56,6 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | netboxlabs.com/docs/.../authentication/overview, hull.au/blog/netbox-authentik-oidc-sso, docs.goauthentik.io/integrations/services/netbox | sso-hardening: SOCIAL_AUTH_PROTECTED_USER_FIELDS=['groups'] sign-in workaround, SOCIAL_AUTH_REDIRECT_IS_HTTPS, groups-claim prerequisite, usersocialauth linking | 2026-06-14 |
 | helm repo charts.netbox.oss.netboxlabs.com | **latest chart 8.3.96 / app v4.7.3** (2026-10-27) — still 8.x (no major) | 2026-10-27 |
 | github.com/netbox-community/netbox releases | **NetBox v4.7.3** (2026-10-13) is latest; 4.7.x is GA, no 5.0 yet, so the v1-token-removal-at-v5.0 claim stands | 2026-10-27 |
-| Production install (chart 8.3.14 / v4.6.2) | all `[live]` labels: token provision flow, PG name collision, sentinel wiring, first-boot timing, template-API legacy shape, module-type slug absence, enum case validation | 2026-06-12 |
 | netbox-chart `charts/netbox/docs/auth.md` + `docs/extra.md` | §9 chart SSO docs exist (Keycloak/GitLab examples, pipeline-mount pattern, extraConfig `*.yaml`-key mechanics); dated-example findings (legacy /auth URLs, KeycloakOAuth2 pasted key, associate_by_email) | 2026-07-30 (clone @ HEAD, post-8.3.57) |
 | netbox-chart `files/configuration.py` + `templates/configmap.yaml` | §9.1 extraConfig deep-merge loader (`/run/config/extra/*/*.yaml` → module globals), remoteAuth → REMOTE_AUTH_* rendering (configmap.yaml:107-108) | 2026-07-30 (clone @ HEAD) |
 | netbox-chart issue #987 (closed 2026-01) | §9.1 maintainers declined dedicated OIDC values — extraConfig is the supported path | 2026-07-30 (gh) |
@@ -71,8 +67,6 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | netbox v4.7.1 release notes + issues #23112, #23130 | 4.7.0 SSO login button broken under `form-action` CSP; 4.7.0 `pg_dump` cannot restore the ltree cascade triggers; both fixed 4.7.1 (2026-09-15) | 2026-09-15 |
 | netbox issue #23196 (milestone v4.7.2, closed 2026-09-24) | async bulk API writes stored plaintext v2 tokens in `Job.data` on 4.7.0–4.7.1 | 2026-10-27 |
 | netbox-chart Helm index (`index.yaml`, `.entries.netbox[]`) | chart→app pins: 8.3.66 → 4.6.10 (last 4.6), 8.3.67–8.3.77 → 4.7.0, 8.3.78–8.3.90 → 4.7.1, 8.3.91 → 4.7.2, 8.3.92–8.3.96 → 4.7.3 | 2026-10-27 |
-| Production install (chart 8.3.66 / 4.6.10 / Keycloak 26.7.2) | every `[live 2026-09-15]` label: mount paths, `/auth` issuer, PKCE redirect shape, pipeline stdin/exec behaviour, two-revision roll | 2026-09-15 |
-| Production install (chart 8.3.66 → 8.3.96 / 4.6.10 → 4.7.3, database copied Zalando → CloudNativePG 1.30) | every `[live 2026-10-27]` label: one-hop upgrade, `ltree` created by the owner role, trigger parity after dump/restore, `rebuild_ltree_paths --check`, `rebuild_config_context_cache` by hand, POST-only login start (405 on GET), legacy Service fields on read, CNPG `-app` Secret wiring, CNPG ServiceAccount/Role/RoleBinding names | 2026-10-27 |
 
 Refresh cadence: run `/skill-improver freshen netbox-best-practices` when a new
 NetBox minor (4.7/5.0) or netbox-chart major lands — the v1-token removal
@@ -82,8 +76,6 @@ claims most likely to change.
 **2026-07-21 pass: the trigger did not fire.** NetBox is still on **4.6.x**
 (v4.6.8) and the chart is still **8.x** (8.3.57, 2026-08-18), so no
 version-delta claim was invalidated and the v5.0-token-removal schedule stands.
-What did change: 23 chart patches and 3 NetBox patches since the live
-verification, which is why the `[live]` labels are now scoped to
-"observed on 4.6.2" rather than left implying currency. Also documented the
+What did change: 23 chart patches and 3 NetBox patches. Also documented the
 `netbox-chart` two-products-one-release-stream trap above — `releases/latest`
 there returns `netbox-operator`, not the chart.

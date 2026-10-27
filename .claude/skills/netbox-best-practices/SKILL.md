@@ -20,10 +20,7 @@ they do not (as of 2026-06):
 4. **SSO/OIDC group→role mapping + hardening** → `references/sso-hardening.md`
 
 Evidence labels used throughout: `[source]` = verified against chart/NetBox
-source code (file:line cited); `[live]` = verified on a production install —
-undated labels on chart 8.3.14 / NetBox v4.6.2, `[live 2026-09-15]` on chart
-8.3.66 / v4.6.10 with Keycloak 26.7.2, `[live 2026-10-27]` on chart 8.3.96 /
-v4.7.3. Undated `[live]` chart observations were not re-run on 4.7. `[docs]` =
+source code (file:line cited); `[docs]` =
 official docs/release notes (4.2–4.6: adversarially verified, 3-vote panel).
 
 ## Upgrading to 4.7 — gates [docs + live 2026-10-27]
@@ -32,9 +29,9 @@ From the 4.7.0–4.7.3 release notes, plus one live 4.6.10 → 4.7.3 hop.
 
 | Gate | What it means for a Kubernetes install |
 |---|---|
-| **Target 4.7.2 or later** | 4.7.0 breaks the SSO button under a restrictive `form-action` CSP ([#23112](https://github.com/netbox-community/netbox/issues/23112)) and its `pg_dump` restores without the hierarchy cascade triggers ([#23130](https://github.com/netbox-community/netbox/issues/23130)). 4.7.0–4.7.1 write the plaintext of tokens created by background bulk API requests into job results, readable by anyone who can view jobs ([#23196](https://github.com/netbox-community/netbox/issues/23196)) — replace any token created that way. Chart pins: **8.3.66 = 4.6.10** (last 4.6), 8.3.67–8.3.77 = 4.7.0, 8.3.78–8.3.90 = 4.7.1, 8.3.91 = 4.7.2, **8.3.92+ = 4.7.3** (latest 8.3.96, 2026-10-27). 8.3.66 → 8.3.96 in one hop works [live]. |
+| **Target 4.7.2 or later** | 4.7.0 breaks the SSO button under a restrictive `form-action` CSP ([#23112](https://github.com/netbox-community/netbox/issues/23112)) and its `pg_dump` restores without the hierarchy cascade triggers ([#23130](https://github.com/netbox-community/netbox/issues/23130)). 4.7.0–4.7.1 write the plaintext of tokens created by background bulk API requests into job results, readable by anyone who can view jobs ([#23196](https://github.com/netbox-community/netbox/issues/23196)) — replace any token created that way. Chart pins: **8.3.66 = 4.6.10** (last 4.6), 8.3.67–8.3.77 = 4.7.0, 8.3.78–8.3.90 = 4.7.1, 8.3.91 = 4.7.2, **8.3.92+ = 4.7.3** (latest 8.3.96, 2026-10-27). 8.3.66 → 8.3.96 in one hop works. |
 | **PostgreSQL 15+ required; 14 dropped** | The upgrade script **aborts** on 14 — 4.6 only warned, so a cluster that upgraded cleanly to 4.6 can hard-fail here. Check the external DB's major version before bumping the image tag. |
-| **The `ltree` extension must be available** | Trusted: the migration creates it as the NetBox DB user, which needs `CREATE` on the database (owning it is enough) — no superuser [live]. A managed DB that restricts extension creation blocks it. |
+| **The `ltree` extension must be available** | Trusted: the migration creates it as the NetBox DB user, which needs `CREATE` on the database (owning it is enough) — no superuser. A managed DB that restricts extension creation blocks it. |
 | **Redis 6.0+ required; 5.x dropped** | Applies to the external valkey/Redis wiring. Valkey is 7.x-derived and unaffected; a pinned legacy Redis 5 sidecar is not. |
 | **Selection custom fields change shape on read** | REST *and* GraphQL now return `{"value": "...", "label": "..."}` instead of the bare value. Writes still accept the raw value. Any seeding or reconciliation script that reads a selection custom field back breaks silently — it gets a dict where it expected a string. |
 | **The mptt → ltree migration locks hierarchical tables** | `ACCESS EXCLUSIVE` on each hierarchical table (reads block too) while it backfills; minutes on a large install. Plan a window. |
@@ -56,10 +53,9 @@ moving or restoring a 4.7 database, read §4.7 "Moving or restoring".
 2. **Name external Postgres clusters differently from the helm release.**
    Zalando names a Service after the cluster CR, so a CR named like the
    release fullname makes `helm install` fail with "invalid ownership
-   metadata" [live]. CloudNativePG suffixes its Services (`-rw`/`-ro`/`-r`)
+   metadata". CloudNativePG suffixes its Services (`-rw`/`-ro`/`-r`)
    but names its ServiceAccount, Role and RoleBinding after the cluster, and
-   the chart creates all three under the release name [live 2026-10-27:
-   object names]. Use `<release>-postgres-cluster` or `<release>-pg`.
+   the chart creates all three under the release name. Use `<release>-postgres-cluster` or `<release>-pg`.
 
 3. **Don't trust the chart's superuser `api_token`.** The chart generates one
    and mounts it, but NetBox 4.6's entrypoint never seeds it (v2 peppered
@@ -82,7 +78,7 @@ moving or restoring a 4.7 database, read §4.7 "Moving or restoring".
 Read `references/helm-chart-gotchas.md` end-to-end first — it is ordered as a
 pre-flight checklist (external DB, valkey sentinel wiring, secrets layout,
 first-boot expectations, metrics). First boot runs all Django migrations and
-takes several minutes before the pod goes Ready; that is normal. [live]
+takes several minutes before the pod goes Ready; that is normal.
 
 ## When upgrading NetBox or writing automation against it
 

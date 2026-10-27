@@ -27,8 +27,8 @@ export const meta = {
 // workflow, args. There is no `process`, no env, no filesystem, and `eval` is
 // disabled — so the script cannot read CLAUDE_SKILL_DIR, $PWD, or its own path
 // (measured 2026-08-19; do not re-open this without re-probing). DEFAULT_BASE
-// below is therefore a convenience for one machine's layout, not a discovered
-// value: on any other checkout, pass baseDir. Bare names are resolved against
+// below is therefore relative to the session's working directory (the repo
+// root); from anywhere else, pass baseDir. Bare names are resolved against
 // it, absolute dirs bypass it entirely.
 //
 // All agents inherit the main-loop model (the role the session model plays in
@@ -46,7 +46,7 @@ const REF = '~/.claude/skills/skill-improver/references'
 // be derived, the sandbox has no env or filesystem access). Note this is NOT
 // the same root as REF: skill-improver itself is installed under
 // ~/.claude/skills, while the skills it improves live in the plugin repo.
-const DEFAULT_BASE = '~/projects/skills/.claude/skills'
+const DEFAULT_BASE = '.claude/skills'
 const HOME_NOTE = 'NOTE: paths below starting with ~ are under your home directory — expand ~ to an absolute path (run `echo $HOME` if unsure) before reading or editing.'
 
 // The Workflow tool sometimes delivers `args` as a JSON-encoded string instead

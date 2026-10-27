@@ -45,7 +45,7 @@ before upgrading NetBox or writing automation that must span versions.
   `positions` integer + `rear_ports` list through an intermediary
   `PortMapping` model (supports bidirectional/many-to-many mappings, e.g.
   inline fiber-pair swaps). `RearPort` gained `front_ports`.
-  - Nuance [live on 4.6.2]: the **template** endpoints
+  - Nuance (4.6.2): the **template** endpoints
     (`/api/dcim/front-port-templates/`) still accepted the legacy
     `rear_port` + `rear_port_position` shape — the rework hit the
     device-level FrontPort model. Don't assume either way; probe the version.
@@ -90,7 +90,7 @@ Defects in early 4.7 [docs]:
   record the plaintext in job results, readable by anyone who can view jobs.
   4.7.2 rejects such requests; replace any token created that way.
 
-### After the roll [live 2026-10-27]
+### After the roll
 
 The image entrypoint runs `migrate` and its usual cleanup, not the extra steps
 NetBox's own `upgrade.sh` adds. Run these in the web pod:
@@ -106,7 +106,7 @@ NetBox's own `upgrade.sh` adds. Run these in the web pod:
 4. Check the SSO login start with a POST (`helm-chart-gotchas.md` §9.5): a GET
    returns 405 on 4.7.
 
-### Moving or restoring a 4.7 database [live 2026-10-27]
+### Moving or restoring a 4.7 database
 
 A `pg_dump | pg_restore` of a 4.7.1+ database keeps every trigger, verified
 copying 4.7.3 between two PostgreSQL operators.
@@ -130,7 +130,7 @@ copying 4.7.3 between two PostgreSQL operators.
 ### API and dependency changes
 
 - `ipam.Service` `protocol`/`ports` → `port_mappings`. REST still accepts the
-  legacy pair and still returns it on read [live 2026-10-27]; read-only at the
+  legacy pair and still returns it on read; read-only at the
   ORM.
 - Config context is pre-rendered into every device/VM REST representation;
   `?exclude=config_context` is silently ignored.

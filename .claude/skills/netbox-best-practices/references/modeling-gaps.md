@@ -19,9 +19,9 @@ server internals (CPU, RAM, PSU, disks, GPU) without custom fields.
   descriptions.
 - Attribute values are set on the module type via the `attributes` field and
   are validated against the profile's schema at write time — enum case
-  matters (e.g. a schema with `"enum": ["AC", "DC"]` rejects `"ac"`). [live]
+  matters (e.g. a schema with `"enum": ["AC", "DC"]` rejects `"ac"`).
 - Discover instance profiles + schemas: `GET /api/dcim/module-type-profiles/`.
-- **API gotcha** [live on 4.6.2]: module types have NO slug field — idempotent
+- **API gotcha** (4.6.2): module types have NO slug field — idempotent
   lookups must filter on `manufacturer_id` + `model`, not a slug. A wrong
   filter param can be silently ignored and match everything; verify the
   get-or-create actually discriminates.

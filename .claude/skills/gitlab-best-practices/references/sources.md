@@ -10,8 +10,7 @@ exception note instead.
 
 Chart and app versions enumerated unfiltered from the Helm repo index; the
 required-stop list read from its machine-readable source; deployment-level
-claims checked against a live install taken through a multi-hop 18.x → 19.x
-campaign, and against the unpacked chart at 10.3.1 (the chart has since moved to 10.3.2; the unpacked-chart facts below were not re-diffed against it). Claims tagged **[A]** in
+claims checked in hands-on upgrade tests and against the unpacked chart at 10.3.1 (the chart has since moved to 10.3.2; the unpacked-chart facts below were not re-diffed against it). Claims tagged **[A]** in
 the reference files were reported by a source but not independently
 re-verified.
 
@@ -36,7 +35,7 @@ re-verified.
 | Chart 10.0 release notes | https://docs.gitlab.com/charts/releases/10_0/ | bundled PostgreSQL / Redis / MinIO removed; external deps become required |
 | PostgreSQL extensions | https://docs.gitlab.com/administration/postgresql/extensions/ | defers to requirements.md — the page itself carries no table (a null result worth recording) |
 | Registry S3 driver | `registry/storage/driver/s3-aws/s3.go` @ `v4.40.2-gitlab` | legacy `s3` name registered onto the v2 factory — `s3_v2` is not a breaking change |
-| Live install | a multi-hop 18.x → 19.x campaign, chart 9.x → 10.x | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal |
+| Hands-on upgrade tests | multi-hop upgrades across a chart major | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal |
 | Unpacked chart | `helm pull gitlab/gitlab --version 10.3.1 --untar` | per-component PDBs and replica defaults; the `praefect` and `ai-gateway` subcharts; optional-subchart image sources |
 | Gitaly on Kubernetes | `doc/administration/gitaly/kubernetes.md` @ master | GA at 18.11 standalone-only; the "single point of failure by design" quote; the SPoF mitigation set |
 | Praefect index | `doc/administration/gitaly/praefect/_index.md` @ master | Gitaly Cluster on Kubernetes **beta**, introduced 19.1; snapshot backups unsupported for Cluster |

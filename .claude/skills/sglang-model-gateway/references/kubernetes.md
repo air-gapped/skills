@@ -4,7 +4,7 @@ Deep-dive on K8s manifests, RBAC, label selectors, probes, ServiceMonitor, and H
 
 ## The pattern: one Deployment+RBAC per model
 
-The shape that works in production (and matches the user's `k8s-homelab/`) is **one Deployment + Service + ServiceAccount + Role + RoleBinding + ServiceMonitor + PDB per model**, keyed by a `model_id` label. Reasons:
+The shape that works is **one Deployment + Service + ServiceAccount + Role + RoleBinding + ServiceMonitor + PDB per model**, keyed by a `model_id` label. Reasons:
 
 - Per-model RBAC bounds the gateway's pod-watching to the namespace it cares about.
 - Per-model PDB protects the gateway during node drains without affecting other models.
@@ -53,7 +53,7 @@ rules:
     verbs: ["get", "list", "watch"]
 ```
 
-The user's `k8s-homelab` adds `endpoints` and `services` defensively (gateway code may eventually consult them, but as of v0.3.x it does not):
+Add `endpoints` and `services` defensively (gateway code may eventually consult them, but as of v0.3.x it does not):
 
 ```yaml
 rules:
@@ -83,7 +83,7 @@ For **cluster-wide** discovery (gateway in one namespace, workers in others), us
 
 ## Labels you should put on workers
 
-Convention used in the user's homelab (and the recommended pattern):
+Recommended convention:
 
 ```yaml
 metadata:
@@ -127,7 +127,7 @@ readinessProbe:
   periodSeconds: 5
 ```
 
-If you use a named port, kubelet rejects the probe at admission. The user's homelab README captures this gotcha for SGLang gRPC mode.
+If you use a named port, kubelet rejects the probe at admission.
 
 ## Worker probes
 
@@ -137,7 +137,7 @@ vLLM and SGLang both expose `/health`. Critically, vLLM's FastAPI app only binds
 - `200` OK → ready (live AND ready, single endpoint).
 - `503` → engine crashed.
 
-Configure `failureThreshold * periodSeconds > cold-load time`. For 8B models on a single GPU, ~2-5 min cold load. For 70B+ models, 8-12 min. SGLang worker example (homelab):
+Configure `failureThreshold * periodSeconds > cold-load time`. For 8B models on a single GPU, ~2-5 min cold load. For 70B+ models, 8-12 min. SGLang worker example:
 
 ```yaml
 livenessProbe:
@@ -469,7 +469,7 @@ For a 1-replica gateway, set `minAvailable: 0` and accept brief unavailability d
 
 ## Resource requests/limits
 
-The gateway is light — a few hundred MB of RAM, low CPU. Real numbers from the homelab:
+The gateway is light — a few hundred MB of RAM, low CPU. Measured on a small deployment:
 
 ```yaml
 resources:
@@ -517,4 +517,4 @@ The kube-apiserver egress is essential — service discovery does `watch Pods` a
 - **No Kustomize base** for the gateway (only worker-only `docker/k8s-sglang-distributed-sts.yaml` and `docker/k8s-sglang-service.yaml` for distributed inference).
 - **No example ServingRuntime / KServe / Inference Gateway integration**.
 
-The user's `k8s-homelab/` is the closest production-shaped reference visible. Treat upstream as having a manifest gap and roll your own (or use the assets in this skill).
+Treat upstream as having a manifest gap and roll your own (or use the assets in this skill).

@@ -199,13 +199,12 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
    the default pipeline's create/associate steps; for one-time linking of
    existing local users, use `/admin/social_django/usersocialauth/` instead.
 
-## Worked example — Keycloak on the helm chart [live 2026-09-15]
+## Worked example — Keycloak on the helm chart
 
-Ran end to end on chart 8.3.66 / NetBox 4.6.10 / Keycloak 26.7.2 (issuer with
-a deliberate `/auth` prefix). Everything below was verified against the
-running pods and the IdP redirect, not just rendered. The same client, values
-and module carry over unchanged to chart 8.3.96 / NetBox 4.7.3 [live
-2026-10-27: login start only].
+Verified end to end on NetBox 4.6 with Keycloak 26 (issuer with a deliberate
+`/auth` prefix) against the running pods and the IdP redirect, not just
+rendered. On NetBox 4.7 the same client, values and module start the login;
+the rest was not re-run there.
 
 **Keycloak client** (created over the admin REST API with a realm-scoped
 service account; no admin console login needed):
@@ -287,7 +286,7 @@ Compile and stub-test it before applying (`helm-chart-gotchas.md` §9.3) — and
 note the stub test does NOT catch model-field mistakes: the first live login
 failed with `ValueError: ... non-concrete fields: is_staff` because a stub user
 happily accepts any attribute. `is_staff` does not exist on NetBox 4.x's
-`users.User` [live 2026-09-15]; `REMOTE_AUTH_STAFF_GROUPS` is a header-backend
+`users.User`; `REMOTE_AUTH_STAFF_GROUPS` is a header-backend
 setting that survives from 3.x. A failed pipeline step still leaves the user
 created with the default groups (steps before it committed), so the retry
 after the fix only has to flip the flag.

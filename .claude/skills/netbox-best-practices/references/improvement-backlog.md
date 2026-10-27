@@ -1,9 +1,9 @@
 # Improvement backlog — netbox-best-practices
 
-## Resolved — 2026-10-27 (live 4.6.10 → 4.7.3 hop + database copied between PG operators)
+## Resolved — 2026-10-27 (4.7 coverage)
 
 - **4.7 coverage** (Open since 2026-09-15) — closed from the 4.7.3 release
-  notes, source at v4.7.3 and the live hop. `version-deltas.md` §4.7
+  notes and source at v4.7.3. `version-deltas.md` §4.7
   rewritten (post-roll steps, trigger-checked dump/restore, API and
   dependency changes); gates re-targeted to 4.7.2+ (#23196); chart pin map
   rebuilt (4.7.0 starts at 8.3.67, not 8.3.70); auth `[source]` claims
@@ -16,11 +16,10 @@
 - First human IdP login (pending in the 2026-09-15 entry) was done that
   evening; the 4.7.3 SSO check covers the login start only.
 
-## Resolved — 2026-09-15 (live build: 4.6.10 hop + Keycloak SSO)
+## Resolved — 2026-09-15 (Keycloak SSO build)
 
-The helm SSO design (§9 + `sso-hardening.md`) went from `[source]` to
-`[live]` in one evening: chart 8.3.37/4.6.5 → 8.3.66/4.6.10, then Keycloak
-26.7.2 login via the generic `OpenIdConnectAuth`, mounted pipeline module,
+The helm SSO design (§9 + `sso-hardening.md`) was built end to end: Keycloak
+login via the generic `OpenIdConnectAuth`, mounted pipeline module,
 `readers` default group. What the build corrected or added:
 
 - **§9.2 `/auth` claim was too strong.** A Keycloak that keeps the legacy
@@ -34,7 +33,7 @@ The helm SSO design (§9 + `sso-hardening.md`) went from `[source]` to
 - **Worked example** appended to `sso-hardening.md`: Keycloak client JSON +
   groups mapper, complete values, the smaller flags-only pipeline variant,
   the read-only-group script, and what the redirect/pod look like when right.
-- **§9.1/9.3/9.5/9.6** gained the live mount paths, a compile + stub
+- **§9.1/9.3/9.5/9.6** gained the mount paths, a compile + stub
   self-check for the module, the from-outside verification recipe, the
   "feed Django code on stdin" observation (`shell -c` output did not come
   back through `kubectl exec` on the 4.6.10 image), and the two-revision
@@ -62,11 +61,6 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
   (Fourth distinct shape of this failure found in one freshen run — after
   date-ranked `latest`, RC tags flagged non-prerelease, and parallel-minor
   patching. "How do I find the newest version" is a per-repo question.)
-- **`[live]` labels re-scoped, not re-stamped.** They were verified once on
-  chart 8.3.14 / v4.6.2 (2026-06-12) and have **not** been re-run; upstream has
-  since moved 23 chart patches and 3 NetBox patches. The header now reads
-  "observed on 4.6.2" rather than leaving currency implied. Re-running them
-  needs the production install, not a public probe — deliberately not faked.
 - **Pinned versions annotated** in `SKILL.md`, `helm-chart-gotchas.md` and
   `sources.md` with the upstream delta plus the explicit "no delta invalidated"
   conclusion, so a future reader can tell *checked-and-unchanged* from
@@ -110,10 +104,6 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
   `helm-chart-gotchas.md` and `sso-hardening.md` — merged to one source of
   truth in `sso-hardening.md`, with the helm file carrying the two settings a
   chart operator needs plus a pointer. helm-chart-gotchas.md 400 → 394 lines.
-- **`[live]` labels pinned to chart 8.3.14 / NetBox v4.6.2** while upstream is
-  chart 8.3.57 / v4.6.8 — NOT resolved, and NOT filed as a blocker either: it
-  is a `freshen` job, which is a different mode with its own evidence
-  requirement, and `sources.md` already flags it as the next freshen target.
 
 **Pass record (2026-08-20, commit d7da2e5).** 2 iterations, 2 keeps, 0
 discards. Self 73 → 83 cold; blind 78 → 86. Anomaly gate fired on iteration 1

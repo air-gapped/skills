@@ -176,7 +176,7 @@ For the full flag list, snapshot directory layout, ModelScope alternative, and g
 
 ## Kubernetes — minimal working pattern
 
-The pattern in production (matches the user's `k8s-homelab/` reference) is **one Deployment+Service+RBAC per model**, keyed by a `model_id` label:
+The pattern that works is **one Deployment+Service+RBAC per model**, keyed by a `model_id` label:
 
 - Worker Deployment: `model_id=<name>`, port 30000 (SGLang) or 8000 (vLLM), `httpGet /health` probes, hostPath/PVC for `/models`.
 - Worker Service: `clusterIP: ClusterIP` (or headless), selects on `model_id`.
@@ -270,6 +270,5 @@ For the extended troubleshooting list, see `references/pitfalls.md`. For tokeniz
 
 - Upstream docs: https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md
 - Source: https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway
-- Local clone: `~/projects/github.com/sgl-project/sglang/sgl-model-gateway/`
-- Reference homelab manifests (untracked, repo-local): `~/projects/github.com/sgl-project/sglang/k8s-homelab/`
+- Local clone: `sgl-project/sglang/sgl-model-gateway/`
 - Verify a flag with `--help`: `docker run --rm lmsysorg/sgl-model-gateway:v0.3.2 --help`. If this skill disagrees with `--help`, trust `--help` and freshen the skill.

@@ -52,7 +52,7 @@ Load-bearing external references cited in this skill, with verification dates. P
 | WEKA + Dynamo + NIXL blog | https://www.weka.io/blog/ai-ml/weka-accelerates-ai-inference-with-nvidia-dynamo-and-nvidia-nixl/ | 2026-08-18 | Storage vendor integration pattern. |
 | UCCL KV-transfer deep-dive | https://uccl-project.github.io/posts/kv-transfer-engine/ | 2026-08-18 | UCCL team's blog on KV transfer engines. |
 | BARD AI NIXL blog | https://bardai.ai/2026/03/10/enhancing-distributed-inference-performance-with-the-nvidia-inference-transfer-library/ | 2026-08-18 | Third-party overview. Exception: site's TLS certificate expired at the 2026-08-18 probe (loads only with cert validation off) — unreliable to cite until fixed. |
-| Cross-reference: `vllm-caching` skill | local: `~/.claude/skills/vllm-caching/` | 2026-08-18 | Live-lab-verified NIXL recipes for vLLM disagg-prefill on consumer hardware (UCX_TLS, downward API, headless Service, the six P2P env vars, NIXL_ERR_REMOTE_DISCONNECT race). NIXL skill refers to it for vLLM-side connector glue. |
+| Cross-reference: `vllm-caching` skill | local: `~/.claude/skills/vllm-caching/` | 2026-08-18 | Hands-on-verified NIXL recipes for vLLM disagg-prefill on consumer hardware (UCX_TLS, downward API, headless Service, the six P2P env vars, NIXL_ERR_REMOTE_DISCONNECT race). NIXL skill refers to it for vLLM-side connector glue. |
 
 ## Notes on probe budget
 

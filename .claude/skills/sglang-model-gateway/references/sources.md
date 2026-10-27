@@ -8,7 +8,7 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone at `~/projects/github.com/sgl-project/sglang/`. | 2026-09-15 | **No new gateway release** — `gateway-v0.3.1` (2026-01-09) is still the newest `gateway-*` tag, 6+ months on, and the crate is still v0.3.2 |
+| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone of `sgl-project/sglang/`. | 2026-09-15 | **No new gateway release** — `gateway-v0.3.1` (2026-01-09) is still the newest `gateway-*` tag, 6+ months on, and the crate is still v0.3.2 |
 | https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway | Gateway crate root. | 2026-08-18 | |
 | https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md | Upstream operator docs. "Load Balancing Policies" table documents `random`, `round_robin`, `power_of_two`, `cache_aware` (default), `bucket` as `--policy` values; the skill's six `--policy`-selectable + two factory-only split is sourced from `src/policies/factory.rs:77-91` (see cli-flags.md). | 2026-08-18 | |
 | https://github.com/sgl-project/sglang/pull/14283 | Crate rename `sglang-router` → `sgl-model-gateway`. | 2026-08-18 | merged 2025-12-02 |

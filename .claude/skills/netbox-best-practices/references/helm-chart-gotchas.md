@@ -1,9 +1,6 @@
 # netbox-chart (helm) deployment gotchas
 
-Verified against netbox-chart 8.3.x source (`charts/netbox/templates/`) and
-production installs: undated `[live]` on chart 8.3.14 / v4.6.2, dated labels
-as stamped. §1, §6 and §9.5 were re-run on chart 8.3.96 / v4.7.3
-(2026-10-27); the rest was not re-run on 4.7. Chart repo:
+Verified against netbox-chart 8.3.x source (`charts/netbox/templates/`). Chart repo:
 `netbox-community/netbox-chart`; chart museum: `charts.netbox.oss.netboxlabs.com`.
 
 Ordered as a pre-flight checklist for a fresh install.
@@ -25,10 +22,10 @@ metrics, first boot, distroless preflight) · §7 Upgrade workflow ·
   fullname (e.g. release `netbox` ↔ cluster `netbox`).
   - Zalando emits a Service named after the CR → `helm install` fails:
     `Service "netbox" ... cannot be imported into the current release: invalid
-    ownership metadata` [live].
+    ownership metadata`.
   - CloudNativePG suffixes its Services (`-rw`/`-ro`/`-r`) but names its
     ServiceAccount, Role and RoleBinding after the CR; the chart creates all
-    three under the release name [live 2026-10-27: object names].
+    three under the release name.
   - Name the CR `<release>-postgres-cluster` or `<release>-pg`.
 - Operator credential secrets can be consumed directly:
   `externalDatabase.existingSecretName: <operator-secret>` with
@@ -36,7 +33,7 @@ metrics, first boot, distroless preflight) · §7 Upgrade workflow ·
   `db_password` path the config reads — no key renaming needed. [source]
   CloudNativePG's `<cluster>-app` Secret works as-is; keep the database name
   and owner when moving the database to a new cluster, and only
-  `externalDatabase.host` and `existingSecretName` change [live 2026-10-27].
+  `externalDatabase.host` and `existingSecretName` change.
 - Moving or restoring a 4.7 database: trigger checks in `version-deltas.md`
   §4.7 "Moving or restoring".
 - The Django schema migration runs at pod startup inside `helm upgrade`.
@@ -59,7 +56,7 @@ tasksDatabase:
   existingSecretKey: tasks-password
 ```
 
-- `host`/`port` are fallback only; the sentinels list drives master discovery. [live]
+- `host`/`port` are fallback only; the sentinels list drives master discovery.
 - Secret keys with hyphens are fine: the chart mounts them at underscore paths
   (`tasks-password` → `tasks_password`) matching what `configuration.py`
   reads — do not "fix" the key names. [source: deployment volumes]
@@ -90,7 +87,7 @@ The chart's `netbox-superuser` secret contains an `api_token` key
 **NetBox 4.6's entrypoint never seeds it into the database**. Boot log says so
 explicitly: `No API token was created for the superuser as SUPERUSER_API_TOKEN
 and SUPERUSER_API_KEY are not set`. v2 peppered tokens cannot be pre-seeded
-(the server stores only an HMAC). [live]
+(the server stores only an HMAC).
 
 For the generic v2 token mechanics (peppers, rotation, client libraries),
 defer to the official `netbox-labs:netbox-api-integration` skill if installed;
@@ -217,11 +214,11 @@ pull-once.
   prometheus-operator stacks; note there is a SECOND ServiceMonitor block
   under `metrics.granian.*` for the app-server's own metrics. [source]
 - First boot runs every Django migration before readiness — expect several
-  minutes and startup-probe noise on a fresh install; it is not a crashloop. [live]
+  minutes and startup-probe noise on a fresh install; it is not a crashloop.
 - The release's image set includes `docker.io/rancher/kubectl` (hook) — it is
   DISTROLESS (no shell/sleep). When pre-pulling images with an idle-container
   DaemonSet, gate on every container having a non-empty `.imageID` instead of
-  pod Ready; the kubectl container can never idle and crashloops by design. [live]
+  pod Ready; the kubectl container can never idle and crashloops by design.
 
 ## 7. Upgrade workflow notes
 
@@ -244,7 +241,7 @@ deadlocks — RWO can't multi-attach, so the pod on the node without the volume
 hangs in `Init:0/1` forever (volumes mount before init containers, so even a
 trivial `mkdir` init never starts). "Pods should just recover" does NOT hold
 here; there is no co-scheduling rule by default. The chart's own values comment
-admits it: *"ReadWriteMany PVC(s) are required if replicaCount > 1."* [live]
+admits it: *"ReadWriteMany PVC(s) are required if replicaCount > 1."*
 
 What's actually on that PVC: **only uploaded files** (`image-attachments/`,
 `devicetype-images/`, regenerable `cache/`) — a few MB. ALL real data
@@ -269,7 +266,7 @@ worker:      { extraEnvVarsSecret: "netbox-media" }
 housekeeping:{ extraEnvVarsSecret: "netbox-media" }   # only while the housekeeping CronJob is enabled (§6)
 persistence: { enabled: false }     # drops the shared RWO PVC; media volume falls back to per-pod emptyDir
 ```
-Gotchas learned the hard way [live]:
+Gotchas learned the hard way:
 - **Don't bother with an ObjectBucketClaim if the RGW cert is Let's Encrypt.**
   The rook operator provisions OBC buckets via the RGW admin API over the
   internal `*.svc` name; an LE cert only covers public names and can't carry an
@@ -310,7 +307,7 @@ wiring is:
   [source: netbox/netbox/settings.py:748-751].
 - Secrets/ConfigMaps referenced by `extraConfig` must expose their data under
   keys ending in `.yaml` (the loader globs `*/*.yaml`); the filename itself is
-  arbitrary. [live 2026-09-15] The `values:` entry renders into the release's
+  arbitrary. The `values:` entry renders into the release's
   own ConfigMap as key `extra-0.yaml`, mounted at `/run/config/extra/0`; each
   `secret:`/`configMap:` entry mounts as the next index (`/run/config/extra/1`
   …) on the web and worker pods (and the housekeeping CronJob when enabled) —
@@ -366,7 +363,7 @@ PR #661) is dated in four ways:
   (Quarkus) serves `/realms/...` with no `/auth` by default. But an install
   can keep `/auth` deliberately (the operator's `spec.hostname.hostname:
   https://kc.example/auth`, or `KC_HTTP_RELATIVE_PATH`), and then
-  `/auth/realms/<realm>` IS the issuer [live 2026-09-15]. Never guess the
+  `/auth/realms/<realm>` IS the issuer. Never guess the
   prefix from the version: fetch `<candidate>/.well-known/openid-configuration`
   and copy its `issuer` into `SOCIAL_AUTH_OIDC_OIDC_ENDPOINT` verbatim.
 - It sets `SOCIAL_AUTH_JSONFIELD_ENABLED: true` — redundant; NetBox always
@@ -396,7 +393,7 @@ Only the web Deployment needs the mount (the pipeline imports lazily at login),
 but adding it to `worker` too is harmless and avoids surprises.
 
 Self-check the module BEFORE `helm upgrade` — a syntax error only surfaces as
-a 500 on `/oauth/complete/oidc/` after the roll [live 2026-09-15]:
+a 500 on `/oauth/complete/oidc/` after the roll:
 
 ```bash
 python3 -c "import yaml; src=yaml.safe_load(open('configmap-netbox-sso-pipeline.yaml'))['data']['sso_pipeline.py']; compile(src,'sso_pipeline.py','exec'); print('ok')"
@@ -411,7 +408,7 @@ inherit the mapping by accident.
 
 On NetBox ≥4.7 the login start is POST-only (social-auth-app-django 6): a GET
 on `/oauth/login/oidc/` returns **405 by design**, not a fault. POST it with
-the CSRF cookie and token from `/login/` [live 2026-10-27]:
+the CSRF cookie and token from `/login/`:
 
 ```bash
 J=$(mktemp -d); H=https://<host>
@@ -426,8 +423,7 @@ rm -rf $J
 On ≤4.6, `curl -sI $H/oauth/login/oidc/ | grep -i ^location` does the same.
 Either way the answer must be a 302 to the IdP's `/protocol/openid-connect/auth` carrying
 `client_id=<yours>`, `redirect_uri=https://<host>/oauth/complete/oidc/`
-(https, trailing slash) and, if PKCE is on, `code_challenge_method=S256`
-[live 2026-09-15]. Then confirm the running pod loaded the backend — the
+(https, trailing slash) and, if PKCE is on, `code_challenge_method=S256`. Then confirm the running pod loaded the backend — the
 values file is not the truth, the process is:
 
 ```bash
@@ -440,7 +436,7 @@ EOF
 Feed Django code to the pod **on stdin** like this. On the 4.6.10 image,
 `manage.py shell -c "..."` and `manage.py nbshell --command "..."` ran but
 their `print()` output never came back through `kubectl exec`; a script on
-stdin (and `manage.py dumpdata`) did [live 2026-09-15].
+stdin (and `manage.py dumpdata`) did.
 
 ### 9.6 Two revisions, not one
 
@@ -448,7 +444,7 @@ Land the version hop as one values revision and the SSO switch as the next
 (`-a` = hop, `-b` = hop + SSO), each with its own `kubectl diff` and DB
 snapshot. The hop's diff must be labels + image tag only; the SSO diff must be
 the auth ConfigMap keys plus the mounts and nothing else. A single combined
-roll cannot tell a migration failure from a pipeline failure [live 2026-09-15].
+roll cannot tell a migration failure from a pipeline failure.
 
 
 ### 9.4 extraConfig type trap: YAML in, Python literals never

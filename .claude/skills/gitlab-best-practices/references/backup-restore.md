@@ -3,7 +3,7 @@
 The half of an upgrade plan that `helm rollback` cannot cover.
 
 **Tag convention.** Untagged claims were verified against a primary source or a
-live install on 2026-08-29. **[A]** = reported but not independently
+hands-on test on 2026-08-29. **[A]** = reported but not independently
 re-verified — re-check before acting.
 
 ## Table of contents

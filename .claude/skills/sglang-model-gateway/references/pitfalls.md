@@ -16,7 +16,7 @@ Beyond the top-10 in SKILL.md. Each entry: symptom → diagnosis → fix.
 
 **Diagnosis:** Selector too loose, e.g. `--selector app.kubernetes.io/name=sglang-worker` matches all SGLang workers in the namespace, regardless of model.
 
-**Fix:** Always include the `model_id` discriminator: `--selector model_id=<the-one-model>`. Per the user's homelab pattern, `model_id` is the only label that uniquely identifies a worker pool.
+**Fix:** Always include the `model_id` discriminator: `--selector model_id=<the-one-model>`. `model_id` is the only label that uniquely identifies a worker pool.
 
 ## 3. Cache-aware policy gives worse hit rate than round-robin
 

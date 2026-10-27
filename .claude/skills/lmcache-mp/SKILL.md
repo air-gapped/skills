@@ -259,9 +259,9 @@ Ranked by likelihood:
 
 ## External references
 
-- LMCache repo: https://github.com/LMCache/LMCache (clone at `~/projects/github.com/LMCache/LMCache`)
+- LMCache repo: https://github.com/LMCache/LMCache
 - LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `quickstart.rst`, `deployment.rst`, `l2_storage.rst`, `architecture.rst`, `http_api.rst`, `observability.rst`, `tracing_and_debugging.rst`)
-- vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py` (clone at `~/projects/github.com/vllm-project/vllm`)
+- vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py`
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
 - LMCache K8s Operator: [operator-v0.1.1 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1) (CRD-based DaemonSet+Service+ConfigMap reconciler)
 - Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (open), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)

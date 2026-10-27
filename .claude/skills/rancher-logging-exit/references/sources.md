@@ -54,7 +54,3 @@ CVE.
 | fluent-bit CVE set | https://kb.cert.org/vuls/id/761751 + New Relic NR25-02 + Oligo writeup | five-CVE plugin mapping → default-config non-exploitability analysis | 2026-09-15 |
 | CVE-2019-12303 | historical Rancher advisory record | same-class precedent (project-owner fluentd config injection) | 2026-09-15 |
 | upstream #2254/#2255, #1522 | github.com/kube-logging/logging-operator issues/PRs | 6.6.0 newline-password regression + fix; ghcr OCI 403s | 2026-09-15 |
-
-Related local artifact: the user's pre-skill draft
-`~/projects/github.com/kube-logging/LOGGING_OPERATOR_MIGRATION.md` (2025-10-23) —
-superseded by this skill (six corrections applied; see research report §T9).

@@ -75,7 +75,7 @@ docs and behavior disagree.
    candidate (or its direct dependency) already has a row, say so up front
    — the row may answer the whole request, or at least pin expectations.
 2. **Resolve the target.** Get a local source checkout (clone if needed;
-   prefer an existing clone under `~/projects/github.com/<org>/<repo>`) and,
+   prefer an existing local clone of `<org>/<repo>`) and,
    when a container distribution exists, the image ref. Record versions:
    git tag/commit and image tag@digest. **The verdict is version-specific**
    — pin what was actually vetted.
