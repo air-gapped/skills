@@ -161,8 +161,8 @@ Embedding is deterministic, so a numerical check settles it:
 2. Compare against the model card's own published reference scores where they
    exist — that catches a missing Dense projector, which a same-dimension wrong
    vector will not.
-3. Confirm prefixes survive the new path using the `ENV=dev`
-   `/api/v1/retrieval/ef/{text}` recipe in `prefix-models.md` §Verifying.
+3. Confirm prefixes survive the new path with the recipe in `prefix-models.md`
+   §Verifying.
 
 Step 2 is the one people skip, and it is the only one that catches "returns 200,
 right shape, wrong numbers".

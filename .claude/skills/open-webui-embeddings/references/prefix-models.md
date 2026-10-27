@@ -249,34 +249,29 @@ collection recreation regardless.
 
 ## Verifying the prefix is actually applied
 
-The `ENV=dev` debug endpoint (`retrieval.py:2987-2991`) embeds a string through
-Open WebUI's own function with `RAG_EMBEDDING_QUERY_PREFIX` applied. Compare it
-against two direct backend calls:
+The prefix variables are plain `os.getenv` reads, so the pod environment is
+exactly what the code uses:
 
 ```bash
-# 1. what Open WebUI computes
-curl -s -H "Authorization: Bearer $JWT" \
-  "$OWUI/api/v1/retrieval/ef/hello" | jq -c '.result[:5]'
+# 1. The mode switch must be ABSENT: printenv exits 1. Exit 0 with no output
+#    means it is set to "" — trap 1, prefixes silently dropped.
+kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_PREFIX_FIELD_NAME; echo "exit=$?"
 
-# 2. the prefixed string, straight from the backend
-curl -s -X POST http://litellm:4000/v1/embeddings \
-  -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"model":"embeddinggemma","input":["task: search result | query: hello"]}' \
-  | jq -c '.data[0].embedding[:5]'
-
-# 3. the bare string, for contrast
-curl -s -X POST http://litellm:4000/v1/embeddings \
-  -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"model":"embeddinggemma","input":["hello"]}' \
-  | jq -c '.data[0].embedding[:5]'
+# 2. The exact bytes of each label. od -c prints a trailing space as an empty
+#    cell before the final \n, and a real newline as one \n cell mid-string.
+#    "\" and "n" in two separate cells is a literal backslash-n — trap 3.
+kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_QUERY_PREFIX | od -c
+kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_CONTENT_PREFIX | od -c
 ```
 
-(1) must match (2). If (1) matches (3), the prefix is not reaching the model —
-check that `RAG_EMBEDDING_PREFIX_FIELD_NAME` is genuinely absent from the pod env
-rather than set to `""` (trap 1).
+The pod must have been restarted since the last env change (trap 5).
 
-This is the same cross-engine numerical-identity idiom as
-`references/performance.md`; it works because embedding is deterministic.
+On v0.12.3 and earlier with `ENV=dev`, `GET /api/v1/retrieval/ef/{text}` returns
+the vector Open WebUI itself computes with `RAG_EMBEDDING_QUERY_PREFIX` applied.
+Compare its first values with a direct backend call on the prefixed string: a match
+proves the label reaches the model. v0.12.4 removed that route. This is the same
+numerical-identity idiom as `references/performance.md`; it works because
+embedding is deterministic.
 
 ## Reranking is unaffected
 

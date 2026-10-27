@@ -57,6 +57,7 @@ Authoritative references underlying this skill. Read these when this skill is wr
 | Duplicate vector-search tracebacks per outage | https://github.com/open-webui/open-webui/pull/29981 | 2026-09-24 | v0.11.4 |
 | `RAG_SOURCE_METADATA_KEYS` custom file metadata | https://github.com/open-webui/open-webui/pull/29499 — `backend/open_webui/env.py:375`, `retrieval/utils.py:1367` | 2026-09-24 | v0.11.4 |
 | `RAG_METADATA_MAX_VALUE_CHARS` / `ENABLE_KNOWLEDGE_FILE_RETENTION` | https://github.com/open-webui/open-webui/commit/278e97589e71d119b887d5bca9d6ae32912d1dff ; `backend/open_webui/config.py:985`, `env.py:844-846` | 2026-09-24 | v0.11.1 |
+| Dev-only `/api/v1/retrieval/ef/{text}` route removed | https://github.com/open-webui/open-webui/pull/32869 — `refactor: remove unused development route`, MERGED 2026-10-21 (merge `d1e31cbb81`). Route present at v0.12.3 (`routers/retrieval.py:2993-2995`, under `if ENV == 'dev'`), absent at v0.12.4 | 2026-10-27 | v0.12.4 |
 
 **This file covers the open-webui / LiteLLM / TEI code and issue trail only.**
 Two other reference files carry their own dated Sources tables, because they cite
