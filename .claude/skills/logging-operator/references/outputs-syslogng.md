@@ -1,7 +1,7 @@
 # syslog-ng mode — outputs, matching, worked chains
 
-The aggregator runs AxoSyslog (`ghcr.io/axoflow/axosyslog`, 4.24.0 at operator
-6.5+) with syslog-ng-reloader + axosyslog-metrics-exporter sidecars. Fluent Bit
+The aggregator runs AxoSyslog (`ghcr.io/axoflow/axosyslog`, 4.28.0 at operator
+6.9.0) with syslog-ng-reloader + axosyslog-metrics-exporter sidecars. Fluent Bit
 remains the collector (TCP via its `syslogng_output`). Field names verified from
 `syslogng_output_types.go` at 6.7.0 (set unchanged since 6.1.0).
 

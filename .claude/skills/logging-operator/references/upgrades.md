@@ -46,7 +46,7 @@ Supported upgrade invocation:
 
 ```bash
 helm upgrade logging-operator oci://ghcr.io/kube-logging/helm-charts/logging-operator \
-  --version 6.7.0 -n logging \
+  --version 6.9.0 -n logging \
   --set logging-operator-crds.install=true --skip-crds
 ```
 
@@ -54,7 +54,7 @@ helm upgrade logging-operator oci://ghcr.io/kube-logging/helm-charts/logging-ope
 verbatim.) Alternative: apply CRDs manually each upgrade:
 
 ```bash
-helm show crds oci://ghcr.io/kube-logging/helm-charts/logging-operator --version 6.7.0 \
+helm show crds oci://ghcr.io/kube-logging/helm-charts/logging-operator --version 6.9.0 \
   | kubectl apply --server-side --force-conflicts -f -
 ```
 
@@ -70,7 +70,7 @@ Chart extras: `logging.enabled` renders a full Logging CR from values
 (`logging.fluentd`, `logging.fluentbit`, `logging.controlNamespace`, eventTailer/
 hostTailer sub-blocks…); `telemetry-controller.install` conditional subchart.
 
-## Big-jump playbook (e.g. 4.10 → 6.7.0, the Rancher-exit hop)
+## Big-jump playbook (e.g. 4.10 → 6.9.0, the Rancher-exit hop)
 
 1. Inventory deprecated usage: `kubectl get nodeagents -A` (must be empty —
    CRD gone in 6.0); chart-level hostTailer config → HostTailer CRs;
@@ -94,15 +94,17 @@ cattle-logging-system specifics, air-gap mirroring), use the
 ## Air-gap install/upgrade
 
 Chart: `helm pull oci://ghcr.io/kube-logging/helm-charts/logging-operator
---version 6.7.0` → push to the internal OCI registry (or install from the tarball).
+--version 6.9.0` → push to the internal OCI registry (or install from the tarball).
 No `systemDefaultRegistry`-style global rewrite exists — set every image override
 explicitly in values / CR specs.
 
-Image list for 6.7.0 (mirror these):
-`ghcr.io/kube-logging/logging-operator:6.7.0` ·
-`ghcr.io/kube-logging/logging-operator/fluentd:6.7.0-full` ·
-`.../config-reloader:6.7.0` · `.../fluentd-drain-watch:6.7.0` ·
-`.../node-exporter:6.7.0` (buffer metrics) · `ghcr.io/fluent/fluent-bit:5.0.5` ·
-`registry.k8s.io/pause:3.9` (drain placeholder) · `busybox` (volume init).
-Optional: `.../syslog-ng-reloader:6.7.0` · `ghcr.io/kube-logging/eventrouter:1.0.0`
-· `ghcr.io/axoflow/axosyslog:4.24.0` + `axosyslog-metrics-exporter:0.0.15`.
+Image list for 6.9.0 (mirror these):
+`ghcr.io/kube-logging/logging-operator:6.9.0` ·
+`ghcr.io/kube-logging/logging-operator/fluentd:6.9.0-full` ·
+`.../config-reloader:6.9.0` · `.../fluentd-drain-watch:6.9.0` ·
+`.../node-exporter:6.9.0` (buffer metrics) · `ghcr.io/fluent/fluent-bit:5.1.2` ·
+`registry.k8s.io/pause:3.10.2` (drain placeholder) · `busybox` (volume init).
+Optional: `.../syslog-ng-reloader:6.9.0` · `ghcr.io/kube-logging/eventrouter:1.0.1`
+· `ghcr.io/axoflow/axosyslog:4.28.0` + `axosyslog-metrics-exporter:0.0.16`.
+From 6.8.0 a syslog-ng image override that sets only `repository` pulls the pinned
+tag above — the mirror must carry that tag.
