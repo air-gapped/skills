@@ -32,6 +32,8 @@ Both are env-only. Confusing them costs real state.
 
 If the intent is "no plugin code executes", `ENABLE_PLUGINS=false` is the correct mechanism in 0.11.0; `SAFE_MODE` additionally destroys activation state.
 
+**v0.12.0+: `ENABLE_PLUGINS` is a master over three finer env switches** — `ENABLE_TOOLS`, `ENABLE_FUNCTIONS`, `ENABLE_TOOL_SERVERS` (each default true, each forced false when `ENABLE_PLUGINS=false`; `env.py:1206-1210`). The master now also cuts external OpenAPI/MCP/Open Terminal servers and personal direct connections; to stop in-process Python while keeping tool servers, set `ENABLE_TOOLS=false ENABLE_FUNCTIONS=false` instead. All four need a restart.
+
 **`AUDIT_EXCLUDED_PATHS=""` flipped meaning in 0.11.0.** Empty entries are now filtered out (`env.py:1167-1180`). In 0.10.2 an empty value compiled to `^/api(?:/v1)?/()\b`, which matched *every* `/api/...` path — auditing was silently off. In 0.11.0 it compiles to `None` and nothing is excluded, so the same config audits everything. Expect a step change in audit-log volume on upgrade; use a sentinel like `__NONE__` if the intent is "exclude nothing" and you want it to read explicitly.
 
 ## Provider connections
