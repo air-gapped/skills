@@ -37,7 +37,8 @@ reference file it concerns and delete the entry here. An entry whose cue fired a
 - **cue:** a skill ships a script whose job is to detect a failure (assertion runner, leak scanner, linter)
 - **lesson:** run each detector on a planted positive case and on an error-shaped input before trusting its "clean"/"pass"; add the planted case to the skill's test step
 - **evidence:** claude-code-ci-harness, 2026-10-20 — the token-leak scanner never read its token list (always "clean"; a planted leak reproduced it) and the event asserter passed a run whose result was an API error (`is_error=true` with `subtype=success`); both fixed and re-run (`helped`)
-- **confidence:** medium — one skill, two independent scripts
+- **evidence:** litellm-valkey, 2026-10-27 — the preflight script printed "ping healthy" and exited 0 on any non-200 ping; a mock returning 500 reproduced it, the first live run exposed it (`helped`)
+- **confidence:** high — two skills, three scripts
 
 ### Universal capability claims break per item (2026-10-20)
 - **cue:** a skill states that every member of a set supports something ("all modules accept the token", "the flag replaces the list"), or relies on a tool's `--help` for semantics
