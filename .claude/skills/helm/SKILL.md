@@ -71,8 +71,9 @@ position, not a lapsed one. Key changes:
 - **Multi-document values** files supported (`---` separator)
 - **kstatus** replaces `--wait` readiness checks. Annotations:
   `helm.sh/readiness-success`, `helm.sh/readiness-failure`
-- **Chart API v2** (Helm 3 charts) works unmodified. v3 format planned but not
-  yet available
+- **Chart API v2** (Helm 3 charts) works unmodified. Chart API v3 is experimental
+  only (`HELM_EXPERIMENTAL_CHART_V3=1`, `helm create --chart-api-version=v3`) —
+  never publish a v3 chart
 - **Helm 3 EOL**: v3.22.0 (2026-09-10, Kubernetes client-library updates only) was the last minor and the last bug-fix release; 3.22.x security patches continue through Feb 10, 2027; nothing after that
 
 ### 2. Use `include`, Never `template`
