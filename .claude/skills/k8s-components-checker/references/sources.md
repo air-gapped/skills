@@ -327,7 +327,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/NVIDIA/gpu-operator/releases
 - Probe: WebFetch platform-support page; `gh release list --repo NVIDIA/gpu-operator`.
 - Note: driver-version-per-release is captured in the compat file, not here.
-- Last verified: 2026-10-04 — v26.7.1 (2026-09-23, `isLatest`); v26.3.3 newest 26.3. No platform-support page for any later line.
+- Last verified: 2026-10-27 — v26.7.2 (2026-10-14, `isLatest`; notes at `/26.7/release-notes.html#v26-7-2`); v26.3.3 newest 26.3. No platform-support page for any later line.
 
 ---
 

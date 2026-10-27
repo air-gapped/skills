@@ -7,15 +7,15 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
-- **Last sifted:** 2026-09-24 (added § 26.7.1, § 26.7.0, § 26.3.3; k8s window 1.33–1.37 and containerd floor 2.0 confirmed for the 26.7 line; support-status table updated)
-- **Last release-verified:** 2026-09-24 (`gh` release listing + NVIDIA platform-support/release-notes pages, `NVIDIA/gpu-operator`)
+- **Last sifted:** 2026-10-27 (added § 26.7.2 from the 26.7 release notes). Previous: 2026-09-24 (added § 26.7.1, § 26.7.0, § 26.3.3; k8s window 1.33–1.37 and containerd floor 2.0 confirmed for the 26.7 line; support-status table updated)
+- **Last release-verified:** 2026-10-27 — v26.7.2 (2026-10-14). Previous: 2026-09-24 (`gh` release listing + NVIDIA platform-support/release-notes pages, `NVIDIA/gpu-operator`)
 - **2026-05-31 matrix-grounded (platform-support page):** the 26.3 k8s window is **1.32 – 1.36** —
   **26.3.2 added k8s 1.36** (earlier entries said 1.32–1.35; the prior "presumed unchanged" caveat is
   now lifted and § 26.3.2 is sifted below). The floor is **1.32** across the whole 26.3 line — **not
   1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.3** (2026-06-25; 26.3.2 was the prior)
   (gh, 2026-05-30). (House Rule #8 · `references/version-verification.md`)
 
-26.7.x is current (26.7.0 2026-08-21, 26.7.1 2026-09-23) — see § 26.7.0 for the containerd-floor raise and CRD migration change, § 26.7.1 for the latest patch.
+26.7.x is current (26.7.0 2026-08-21, 26.7.1 2026-09-23, 26.7.2 2026-10-14) — see § 26.7.0 for the containerd-floor raise and CRD migration change, § 26.7.2 for the latest patch.
 
 26.3.3 (2026-06-25) fixed the RDMA/NCCL device-node-leak regression — see § 26.3.3.
 
@@ -60,6 +60,13 @@ only *new* allocations + health reporting pause briefly; a live inference pod ri
 *counts* are usually historical, not a live storm: the toolkit SIGHUPs containerd on its own restart →
 a runc-init mount race (`open /run/nvidia-persistenced/socket: no such file`, `exit 128`) fans out many
 device-plugin restarts per toolkit cycle, accrued over pod age. Triage the restart *rate*, not the count.
+
+## 26.7.2
+
+- **Released:** 2026-10-14 (`gh release view v26.7.2 --repo NVIDIA/gpu-operator` → `/26.7/release-notes.html#v26-7-2`). Bugfix release — k8s window, containerd floor and driver branches unchanged from 26.7.1.
+- **Breaking-adjacent:** DCGM / DCGM Exporter daemonsets, pods and services now carry `app.kubernetes.io/component=nvidia-dcgm` / `nvidia-dcgm-exporter`. A `daemonsets.labels` value for `app.kubernetes.io/component` is no longer applied to operands that already carry the label — ServiceMonitors or selectors keyed on a custom value for that label stop matching.
+- **Fixed:** OLM upgrades failing `spec.default: Required value` on existing `NVIDIADriver` CRs (`spec.default` / `spec.driverType` now optional, defaults `false` / `gpu`); driver ownership not reassigned when an `NVIDIADriver` node-selector label changes; MPS control daemon not reloading on config change; event `patch` RBAC. DRA Driver v0.5.1.
+- **Known issue:** with the Network Operator managing DOCA-OFED on the same NVLink-5 nodes (HGX B200/B300), GPU driver pods hold `ib_umad` via `nvlsm` and block the OFED update.
 
 ## 26.7.1
 
