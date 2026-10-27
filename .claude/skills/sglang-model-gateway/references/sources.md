@@ -8,9 +8,9 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone of `sgl-project/sglang/`. | 2026-09-15 | **No new gateway release** — `gateway-v0.3.1` (2026-01-09) is still the newest `gateway-*` tag, 6+ months on, and the crate is still v0.3.2 |
-| https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway | Gateway crate root. | 2026-08-18 | |
-| https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md | Upstream operator docs. "Load Balancing Policies" table documents `random`, `round_robin`, `power_of_two`, `cache_aware` (default), `bucket` as `--policy` values; the skill's six `--policy`-selectable + two factory-only split is sourced from `src/policies/factory.rs:77-91` (see cli-flags.md). | 2026-08-18 | |
+| https://github.com/sgl-project/sglang | Project home (was `sgl-router`, renamed to `sgl-model-gateway` Dec 2025). Local clone of `sgl-project/sglang/`. | 2026-10-27 | **No new gateway release** — `gateway-v0.3.1` (2026-01-09) is still the newest `gateway-*` tag and GitHub release; crate still v0.3.2; PyPI `sglang-router` newest 0.3.2 (2026-01-15). `sgl-model-gateway/` still active on main (commits through 2026-10-20, e.g. `--decode-dispatch-limit` #44689, power_of_two `--dp-aware` fixes #42027/#43483) — none of it in a published image. |
+| https://github.com/sgl-project/sglang/tree/main/sgl-model-gateway | Gateway crate root. | 2026-10-27 | Exists on main, no "moved" notice in README. |
+| https://docs.sglang.io/docs/advanced_features/sgl_model_gateway.md | Upstream operator docs. "Load Balancing Policies" table documents `random`, `round_robin`, `power_of_two`, `cache_aware` (default), `bucket`; still carries "Cache hits may decrease by 10-20%" and no mesh section. The binary's six-value `--policy` vs the launcher's eight comes from `src/policies/factory.rs:77-91`, `main.rs` value_parser and the v0.3.2 image `--help`. | 2026-10-27 | |
 | https://github.com/sgl-project/sglang/pull/14283 | Crate rename `sglang-router` → `sgl-model-gateway`. | 2026-08-18 | merged 2025-12-02 |
 | https://github.com/sgl-project/sglang/pull/14312 | Source dir rename `sgl-router/` → `sgl-model-gateway/`. | 2026-08-18 | merged 2025-12-05 |
 | https://github.com/sgl-project/sglang/pull/13120 | First-class vLLM gRPC backend (`RuntimeType::Vllm`). PD with vLLM not supported per limitation matrix. | 2026-08-18 | merged 2025-11-12 |
@@ -23,10 +23,10 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| https://crates.io/crates/llm-tokenizer | `llm-tokenizer = "=1.3.2"` in gateway Cargo.toml (re-read on `main` 2026-07-21 — **pin unchanged**); repository = `smg-project/smg`. **Repo renamed 2026-09-15: `lightseekorg/smg` -> `smg-project/smg`** (owner change; the old URL still 200s via GitHub's redirect, and crates.io's own `repository` field now points at the new name). Every file-path citation below was repointed accordingly — the content at each path was re-read and is unchanged. **crates.io newest is now 1.7.0** (via 1.6.0, 1.5.0, 1.4.x); the gateway's `=1.3.2` pin is unchanged, so the pin/newest gap has widened to four releases. Historically, crates.io newest is now 1.5.0** (2026-07-18), via 1.4.0/1.4.1/1.4.2 — so the gateway is four releases behind its own tokenizer crate. The "not yet supported" format claims in `tokenizers.md` are scoped to **1.3.2** and may be stale relative to 1.5.0; they remain correct for what the gateway actually ships. | 2026-09-15 | gateway pins 1.3.2; crate latest 1.5.0 |
-| https://github.com/smg-project/smg | Source repo for `llm-tokenizer` crate (and the broader sgl-model-gateway alternate distribution). | 2026-08-18 | pushed_at 2026-05-07 |
-| `smg-project/smg::crates/tokenizer/src/factory.rs` | `create_tokenizer_async_with_chat_template` dispatch matrix: directory scan picks `tokenizer.json` first, falls back to `tiktoken.model`/`*.tiktoken`; SentencePiece `.model` returns "not yet supported"; GGUF returns "not yet supported"; `is_likely_openai_model` triggers built-in tiktoken; otherwise HF Hub download. | 2026-08-18 | |
-| `smg-project/smg::crates/tokenizer/src/tiktoken.rs` | `CL100K_BASE_PATTERN` hardcoded for ALL tiktoken-loaded models incl. Kimi K2 / DeepSeek; comment acknowledges Kimi K2's native `\p{Han}` regex differs but BPE roundtrip-safe. `find_tiktoken_file` / `has_tiktoken_file` / `is_tiktoken_file` semantics. | 2026-08-18 | |
+| https://crates.io/crates/llm-tokenizer | `llm-tokenizer = "=1.3.2"` pin in the gateway Cargo.toml (unchanged on main 2026-10-27); repository = `smg-project/smg` (renamed from `lightseekorg/smg` 2026-09-15). Newest is **1.10.0** (sparse index `index.crates.io` and `crates/tokenizer/Cargo.toml` on smg main). 1.10.0 adds a Kimi-K2 pattern (`kimi_k2_tokenizer::KIMI_K2_PATTERN`) and a `vocab.json` + `merges.txt` loader; `tokenizers.md` stays scoped to 1.3.2. | 2026-10-27 | crates.io API and web page 403 to bare curl — version read from the sparse index instead, which carries no dates. |
+| https://github.com/smg-project/smg | Source repo for `llm-tokenizer` and the standalone SMG gateway (own release line: v1.13.0 2026-10-15, v1.12.0, v1.11.0, ...). | 2026-10-27 | Active, pushed 2026-10-27, not archived. |
+| `smg-project/smg::crates/tokenizer/src/factory.rs` | `create_tokenizer_async_with_chat_template` dispatch matrix at 1.3.2: directory scan picks `tokenizer.json` first, falls back to `tiktoken.model`/`*.tiktoken`; SentencePiece `.model` and GGUF return "not yet supported"; `is_likely_openai_model` triggers built-in tiktoken; otherwise HF Hub download. | 2026-10-27 | Holds at 1.3.2. Main (1.10.0) inserts a `vocab.json` + `merges.txt` priority between the two; SentencePiece/GGUF errors still present. |
+| `smg-project/smg::crates/tokenizer/src/tiktoken.rs` | `CL100K_BASE_PATTERN` hardcoded for ALL tiktoken-loaded models incl. Kimi K2 / DeepSeek at 1.3.2; `find_tiktoken_file` / `has_tiktoken_file` / `is_tiktoken_file` semantics. | 2026-10-27 | Holds at 1.3.2. Main (1.10.0) selects `KIMI_K2_PATTERN` for Kimi directories and cl100k for the rest. |
 
 ## Gateway source (cited file:line refs in SKILL.md / references/)
 
@@ -34,21 +34,21 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 |---|---|---|---|
 | `sgl-model-gateway/src/lib.rs:13` | `pub use llm_tokenizer as tokenizer;` re-export. | 2026-08-18 | |
 | `sgl-model-gateway/src/policies/cache_aware.rs:22` | "The tree stores raw text characters" — cache_aware is text-based, not token-based. | 2026-08-18 | |
-| `sgl-model-gateway/src/policies/cache_aware.rs:67,324,428,453` | Tree insert/remove ops sync via mesh CRDT. | 2026-08-18 | |
+| `sgl-model-gateway/src/policies/cache_aware.rs` (`sync_tree_operation`, `smg_mesh` import) | Tree insert/remove ops sync via mesh CRDT. | 2026-10-27 | Line anchors drift every few weeks (67,324,428,453 → ~357-505 on 2026-10-27); cite the symbol. |
 | `sgl-model-gateway/src/policies/prefix_hash.rs:107,217` | xxh3 over first N (default 256) token IDs against consistent-hash ring. | 2026-08-18 | |
 | `sgl-model-gateway/src/routers/grpc/utils.rs:398-505` | gRPC path requires `HuggingFaceTokenizer` via `downcast_ref`; tiktoken-only models error with *"gRPC router requires HuggingFace tokenizer with chat template support"*. | 2026-08-18 | |
 | `sgl-model-gateway/src/core/steps/worker/local/discover_metadata.rs` (`execute`, `get_model_name_from_v1_models`) + `create_worker.rs` | HTTP discovery reads `/server_info` and `/model_info` independently, then falls back to `/v1/models` for `served_model_name`; `model_id` = config > `served_model_name` > `model_path` > `unknown`. | 2026-10-27 | Fallback added by PR #25293 (merged 2026-05-18). The 2026-05-27 image build ran the release-docker-gateway workflow on `83d5f4604c`, which contains it. The earlier "registers with empty labels" claim predates #25293. |
 | `sgl-model-gateway/src/server.rs:753-759` | Rate-limit window counters synced via mesh CRDT. | 2026-08-18 | |
-| `sgl-model-gateway/src/main.rs:941` (was :903) | Default mesh peer-discovery annotation `sglang.ai/ha-port` (NOT `sglang.ai/mesh-port`). | 2026-08-18 | |
-| `sgl-model-gateway/src/main.rs:1099-1102` | `--mesh-peer-urls` parsed as `IP:port` SocketAddr; only `first()` used as bootstrap peer. | 2026-08-18 | |
+| `sgl-model-gateway/src/main.rs` `to_router_config` (`router_mesh_port_annotation`, line 945 on 2026-10-27) + `src/config/types.rs` | Annotation default `sglang.ai/ha-port` (CLI path; `sglang.ai/mesh-port` is the config-type default). `router_selector` is hard-coded empty since PR #14108 — no `--router-selector` / `--router-mesh-port-annotation` flag in `main.rs` or `router_args.py`, and none in the v0.3.2 image `--help`. | 2026-10-27 | |
+| `sgl-model-gateway/src/main.rs` (`mesh_peer_urls.first()`, ~1152 on 2026-10-27) | `--mesh-peer-urls` parsed as `IP:port` SocketAddr; only `first()` used as bootstrap peer. Mesh flags (`--enable-mesh`, `--mesh-*`) exist only in this Rust binary: the image entrypoint `python3 -m sglang_router.launch_router` and its Python `smg`/`amg` scripts have none. | 2026-10-27 | |
 | `sgl-model-gateway/Cargo.toml` | `crdts = "7.3"` for CRDT mesh sync; `llm-tokenizer = "=1.3.2"`. Crate version v0.3.2. | 2026-09-15 | all three re-read on `main`: unchanged |
 
 ## vLLM cross-references
 
 | Source | Claim in skill | Last verified | Pinned |
 |---|---|---|---|
-| `vllm/entrypoints/cli/serve.py:64-104` | DP load-balancer modes: internal (default), external (`--data-parallel-external-lb`), hybrid. | 2026-08-18 | |
-| `vllm/config/parallel.py:135-146` | "useful for a 'one-pod-per-rank' wide-EP setup in Kubernetes". | 2026-08-18 | |
+| `vllm/entrypoints/cli/serve.py` (`is_external_lb`, `is_hybrid_lb`; ~80-95 on 2026-10-27) | DP load-balancer modes: internal (default), external (`--data-parallel-external-lb`), hybrid. | 2026-08-18 | |
+| `vllm/config/parallel.py` (`data_parallel_external_lb` docstring, ~169-172 on 2026-10-27) | "useful for a 'one-pod-per-rank' wide-EP setup in Kubernetes". | 2026-08-18 | |
 
 ## Container images
 

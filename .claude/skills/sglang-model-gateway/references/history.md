@@ -64,7 +64,7 @@ This is the common case. Don't pay for Redis you don't need.
 
 ## Backend catalog
 
-From `src/main.rs:437`: `value_parser = ["memory", "none", "oracle", "postgres", "redis"]`.
+From `src/main.rs` (`history_backend`): `value_parser = ["memory", "none", "oracle", "postgres", "redis"]`.
 
 | Backend | When to pick it | Notes |
 |---|---|---|

@@ -248,7 +248,7 @@ Conflict-free Replicated Data Type. Data structures designed so multiple replica
 
 - **OR-Set** (observed-remove set) — fits the worker registry: gateway-A registers `worker-3`, gateway-B registers `worker-7`, after gossip both see `{worker-3, worker-7}`.
 - **PN-Counter** — increment/decrement counters. Fits the rate-limit window counter (`GLOBAL_RATE_LIMIT_COUNTER_KEY` in `routers/mesh/handlers.rs:18`).
-- **Map of LWW-registers** — last-writer-wins keyed map. Fits the cache_aware radix tree where ops are `TreeInsertOp` / `TreeRemoveOp` (`src/policies/cache_aware.rs:324,428,453`).
+- **Map of LWW-registers** — last-writer-wins keyed map. Fits the cache_aware radix tree where ops are `TreeInsertOp` / `TreeRemoveOp` (`src/policies/cache_aware.rs`, `sync_tree_operation`).
 
 Trade-off vs Redis: no central server, no SPOF, gateway pods just gossip with each other. The cost is **eventual consistency** — there's a brief propagation lag where two replicas may see different state. For routing and cache-locality decisions this is fine. For exactly-once or strict-ordering semantics it is not.
 
@@ -257,7 +257,7 @@ Trade-off vs Redis: no central server, no SPOF, gateway pods just gossip with ea
 | Component | Synced via mesh? | Source |
 |---|---|---|
 | Worker registry (`OR-Set`-shaped) | **Yes** | `src/core/worker_registry.rs:17` uses `OptionalMeshSyncManager` |
-| `cache_aware` radix tree (insert/remove ops) | **Yes** | `src/policies/cache_aware.rs:67,324,428,453` |
+| `cache_aware` radix tree (insert/remove ops) | **Yes** | `src/policies/cache_aware.rs` (`sync_tree_operation`) |
 | Rate-limit window counters | **Yes** | `src/server.rs:753-759`, `update_rate_limit_membership`, 1-second reset task |
 | Partition detection state | **Yes** | `src/server.rs:750`, `PartitionDetector::default()` |
 | Circuit-breaker state | **No, per-replica** | No `OptionalMeshSyncManager` reference in circuit-breaker code |
@@ -281,7 +281,7 @@ Important: the "10-20% cache reduction" warning in upstream docs **predates this
 
 #### Gotcha — `--mesh-peer-urls` parsing
 
-From `src/main.rs:1099-1102`:
+From `src/main.rs` (mesh server config):
 
 ```rust
 let peer = self.mesh_peer_urls

@@ -68,7 +68,7 @@ When enabled, responses carry `usage.prompt_tokens_details.cached_tokens` per Op
 
 ## vLLM data-parallel modes — pick one or the other, never both
 
-From `vllm/entrypoints/cli/serve.py:64-104`:
+From `vllm/entrypoints/cli/serve.py` (`is_external_lb` / `is_hybrid_lb`):
 
 ```python
 is_external_lb = (
@@ -91,7 +91,7 @@ if args.api_server_count is None:
 | **External LB** | `vllm serve --data-parallel-external-lb --data-parallel-rank=<i>` per Pod | One Pod per rank, each exposing its own port | **Recommended for gateway-fronted setups.** `api_server_count=1` per Pod. Gateway makes routing decisions per replica. |
 | **Hybrid LB** | `vllm serve --data-parallel-hybrid-lb --data-parallel-start-rank=<i>` | One Pod per node, internal-LB local ranks, external-LB across nodes | For multi-node-per-replica wide-EP setups. Gateway sees per-node, vLLM handles per-rank within node. |
 
-The docstring at `vllm/config/parallel.py:136-139` for external LB:
+The `data_parallel_external_lb` docstring in `vllm/config/parallel.py`:
 
 > "Whether to use 'external' DP LB mode... useful for a 'one-pod-per-rank' wide-EP setup in Kubernetes."
 
