@@ -86,7 +86,7 @@ state into conversation context; PR #47185 (2026-06-30) refactored Harmony
 handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 (2026-06-19) — upgrade to ≥ v0.25 rather than working around it.
 
-**Open critical bugs:**
+**Known bugs (state per item):**
 - **#36435**: Non-Harmony models emit tool XML as `output_text.delta` instead
   of `response.function_call_arguments.delta`. **Stock parsers are affected** —
   the upstream repro runs `--tool-call-parser qwen3_coder`, and maintainers
@@ -95,11 +95,11 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
   any model configured with both a reasoning parser and a tool parser. Still
   open as of 2026-09-15, reopened after an earlier close; do not delete this
   warning on a state=CLOSED sighting without a confirmed fix.
-- **#38132**: `truncation: "auto"` returns 400 instead of truncating — issue
-  still open, but **no longer reproduces on v0.25.1** (live test 2026-07-19
+- **#38132**: `truncation: "auto"` returns 400 instead of truncating — closed
+  `NOT_PLANNED` without a fix, but **no longer reproduces on v0.25.1** (live test 2026-07-19
   returned HTTP 200 with `truncation: "auto"` echoed).
-- **#39624**: `DELETE /v1/responses/{id}` not implemented (openapi-confirmed
-  still absent on v0.25.1 — only GET and POST `/cancel`).
+- **#39624**: `DELETE /v1/responses/{id}` not implemented — closed
+  `NOT_PLANNED`; the router at v0.32.0 still has only GET and POST `/cancel`.
 - **#39221**: Tool-calling divergence between Chat Completions and Responses
   when parser flags unset.
 
@@ -224,8 +224,8 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
 - **Triton embedding cost estimation** (PR #25345)
 
 **Bug status (2026-07-19):**
-- **#20975 (OPEN)**: Setup events stripped on Azure passthrough. PR #24445 only
-  fixed the non-OpenAI bridge path.
+- **#20975** (stale-closed `NOT_PLANNED`, no fix — treat as broken): Setup events
+  stripped on Azure passthrough. PR #24445 only fixed the non-OpenAI bridge path.
 - **#22102**: gpt-5.3-codex skipping `response.output_item.added` (OpenAI-upstream
   quirk, not LiteLLM-specific, but clients see it via LiteLLM). Stale-closed
   2026-06-27 without a confirmed fix — stay resilient.

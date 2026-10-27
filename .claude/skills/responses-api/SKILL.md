@@ -99,7 +99,7 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
    (LiteLLM #22102, stale-closed 2026-06-27 without a confirmed fix).
 4. Verify `response.content_part.added` precedes any `output_text.delta` for
    that `content_index`. Azure passthrough via LiteLLM still strips these
-   setup events (#20975 still OPEN).
+   setup events (#20975 stale-closed `NOT_PLANNED`, no fix — treat as broken).
 5. Check Known Backend Quirks table in `references/streaming-events.md` for
    per-backend deviations (vLLM omits `[DONE]`, llama.cpp emits all
    `output_item.done` at stream end, mistral.rs has stream+store bugs, etc.).

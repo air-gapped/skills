@@ -52,7 +52,8 @@ treat first `*.delta` as implicit `output_item.added`.
 **Related bug**: LiteLLM #20975 — Azure passthrough strips
 `response.created` / `response.in_progress` / `response.output_item.added` /
 `response.content_part.added` setup events. PR #24445 fixed the non-OpenAI
-bridge path but the Azure passthrough remains broken. Still OPEN.
+bridge path but the Azure passthrough remains broken. Stale-closed
+`NOT_PLANNED` 2026-08-13 with no fix — treat as broken.
 
 ## Event Categories
 
@@ -279,8 +280,8 @@ item/event types through untouched (e.g., `openai:web_search_call`,
 | vLLM | Item `id` differs between stream lifecycle events and the final `response.completed` output (`msg_...`) | Live-observed on v0.25.1 (2026-07-19) — match items by `output_index`, not `id` |
 | vLLM (non-Harmony models) | Leaks tool XML into `output_text.delta` (issue #36435) | Open (2026-09-15). Affects stock parsers — upstream repro uses `qwen3_coder`; cause is a parser-agnostic reasoning-vs-tool branch, so any model with both parsers set is exposed |
 | vLLM | Parallel tool calls crash: AssertionError at `serving.py:1761` on Qwen3.5 (issue #39584) | Closed 2026-06-19 (Responses refactor PRs #46030/#47185); fix live-verified on v0.25.1, 2026-07-19 — two parallel `function_call` items stream cleanly |
-| vLLM | `truncation: "auto"` returns 400 instead of truncating (#38132) | Open |
-| vLLM | DELETE `/v1/responses/{id}` not implemented (#39624) | Open |
+| vLLM | `truncation: "auto"` returns 400 instead of truncating (#38132) | Closed `NOT_PLANNED` without a fix; no longer reproduced on v0.25.1 (HTTP 200) |
+| vLLM | DELETE `/v1/responses/{id}` not implemented (#39624) | Closed `NOT_PLANNED`; route still absent at v0.32.0 (GET + POST `/cancel` only) |
 | llama.cpp | Emits all `output_item.done` at stream end, not inline; no session support | Known quirk |
 | llama.cpp | Omits `[DONE]` | Known quirk |
 | mistral.rs | `parallel_tool_calls=false` returns error | Known quirk |
@@ -288,7 +289,7 @@ item/event types through untouched (e.g., `openai:web_search_call`,
 | mistral.rs | `background=true + stream=true` fails "Unexpected response type" (#1945) | Open |
 | mistral.rs | `store=true + stream=true` not persisted (#1946) | Open |
 | Ollama | No `previous_response_id` (PR #15404 open, not merged) | Open |
-| LiteLLM | Setup events stripped on Azure passthrough (#20975) | Open |
+| LiteLLM | Setup events stripped on Azure passthrough (#20975) | Stale-closed `NOT_PLANNED`, no fix — treat as broken |
 | LiteLLM | Splits large argument deltas into 10-char chunks | By design |
 | SGLang | Custom tools on `/v1/responses` return no call; `tool_choice="required"` gives HTTP 400 | **Broken in every release through v0.5.19.** Fixed by #38690 (merged 2026-09-12), which is **not in any tag yet** — build from main or wait for the next release. Cause, from that PR: non-`function` tools were skipped during conversion |
 | OpenAI gpt-5.3-codex | Sometimes skips `output_item.added` (LiteLLM #22102) | Stale-closed 2026-06-27, no confirmed fix — stay resilient |
