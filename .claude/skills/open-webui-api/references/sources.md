@@ -21,6 +21,8 @@ Every claim in this skill traces to one of these groups. Load to verify a specif
 
 | SCIM delete + scope, read at tags v0.10.2 / v0.11.0 / v0.11.1 / v0.12.2 / v0.12.4 (`routers/scim.py` `delete_user`, `models/users.py` `get_scim_users` / `get_scim_user_by_id`) | 2026-10-27 | DELETE calls `Users.delete_user_by_id` (removes group memberships, chats, user row) at v0.10.2 and v0.11.0 — never a role→pending deactivation. Scope filter `oauth != null OR scim != null` from v0.11.1 (commit `fb4f4763`); admin 403 guard from v0.12.2 (PR #32415, closes #27662). #24501 (deactivate-on-deprovision request) closed 2026-08-11 with only bot comments, no fix. |
 
+| Grant writes, read at tags v0.12.3 / v0.12.4 (`models/models.py` `_write_model`, `routers/models.py` `update_model_by_id` + `update_model_access_by_id`, `utils/access_control/__init__.py` `filter_allowed_access_grants` / `validate_access_grants` / `_SHARING_PERMISSION_KEYS`) | 2026-10-27 | v0.12.3 `_write_model` replaces grants `if form.access_grants is not None`; v0.12.4 (commit `5f95008a`) writes them only on create and excludes the field from the update dump. `validate_access_grants` (403 on any filtered grant) is called by one `…/access/update` handler in each of calendar, channels, chats, folders, knowledge, models, notes, prompts, skills, tools. Release notes v0.12.4 "Sharing changed only in Access" / "Sharing permissions enforced everywhere". |
+
 ## Key code files (`open-webui/open-webui`, v0.11.0)
 
 Line numbers below were resolved against **v0.10.2** unless a citation elsewhere in the skill says otherwise; v0.11.0 shifted most of them (e.g. the `main.py` mount block moved 728–775 → 785–829). Re-resolve by symbol name, not line number.

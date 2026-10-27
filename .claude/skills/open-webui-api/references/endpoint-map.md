@@ -59,8 +59,8 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 
 ### models (workspace presets)
 - `GET /models/list` [user] (NOT bare `/models` — OpenAI-compat alias)
-- `POST /models/create`, `GET /model?id=`, `POST /model/update` (**must include `access_grants`** — omitting it 500s; see SKILL.md gotchas), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
-- `POST /models/model/access/update` `{id, access_grants:[...]}` [user+perm]
+- `POST /models/create`, `GET /model?id=`, `POST /model/update` (grant handling is version-dependent; v0.12.4+ ignores `access_grants` — see SKILL.md gotchas), `POST /model/toggle?id=`, `POST /model/delete` [user+ACL]
+- `POST /models/model/access/update` `{id, access_grants:[...]}` [user+perm] — the only grant writer on v0.12.4+; replace-all; 403 for a disallowed audience. Siblings: `/knowledge/{id}/access/update`, `/prompts/id/{id}/access/update`, `/tools/id/{id}/access/update`, `/skills/id/{id}/access/update`, `/notes/{id}/access/update`, `/folders/{id}/access/update`, `/channels/{id}/access/update`, `/calendars/{calendar_id}/access/update`, `/chats/shared/{id}/access/update`
 - GitOps: `GET /models/export` → `POST /models/import` (additive) → `POST /models/sync` — **only `/sync` is [admin]** (`models.py:488`); export/import are [user] plus an in-body `workspace.models_export` / `models_import` permission check (`models.py:315,347`), so a non-admin service account holding those permissions can dump and load the catalog. `/sync` is **declarative — it deletes models absent from the payload**.
 - app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `GET /models/base/tags` [admin] — sorted distinct tags; the `tag` filter on `/models/base` is unusable without it, `POST /api/models/unload` [admin]
 

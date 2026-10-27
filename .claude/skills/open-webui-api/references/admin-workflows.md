@@ -78,7 +78,7 @@ curl -X POST $B/api/v1/models/sync -H "Authorization: Bearer $T" -H "Content-Typ
 ModelForm essentials: `{id, base_model_id?, name, meta:{description?, capabilities?, knowledge:[<kb objects>]}, params:{...}, access_grants:[...], is_active}`.
 - Customize an upstream/base model: create a row whose `id` equals the upstream id (e.g. `litellm.gemma4-31b`); create a *preset* by using a new id + `base_model_id`.
 - Params merge at completion time: `models.default_params` config < per-model params < request params — presets don't lock anything.
-- ⚡ `model/update` 500s **only when `access_grants` is omitted** — always include it (`[]` keeps the model private). Verified both ways live on 0.11.0; the old delete+create workaround is no longer needed. Root cause in SKILL.md gotchas.
+- `model/update` grant handling changed twice (500 on omission ≤0.11.1, replace-when-present 0.11.2–0.12.3, ignored 0.12.4+) — set grants with `POST /models/model/access/update` on every version that has it. Details in SKILL.md gotchas.
 - Per-model backend extras go in `params.custom_params` with **JSON-string values** (see config-system.md).
 
 Access example — make a model group-visible:
@@ -89,7 +89,7 @@ Access example — make a model group-visible:
 ]}
 ```
 
-Public = `{"principal_type":"user","principal_id":"*","permission":"read"}`. Empty list = owner/admin-only. Grants are replace-all on write.
+Send it to `POST /api/v1/models/model/access/update`. Public = `{"principal_type":"user","principal_id":"*","permission":"read"}`. Empty list = owner/admin-only. Grants are replace-all on write.
 
 ## Knowledge pipeline (upload → process → attach) ⚡ shape-verified
 

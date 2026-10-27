@@ -125,4 +125,4 @@ Six sections, boolean leaves; each leaf seeded by `USER_PERMISSIONS_<SECTION>_<K
  "settings": {"interface": true}}
 ```
 
-Effective = defaults OR-merged with every group (True wins; groups only grant). Admins bypass. Non-admin sharing is server-filtered: public (`user:*`) grants stripped without `sharing.public_<type>`; user-targeted grants stripped without `access_grants.allow_users`. `BYPASS_ADMIN_ACCESS_CONTROL` (default true) exempts admins from resource ACLs.
+Effective = defaults OR-merged with every group (True wins; groups only grant). Admins bypass. Non-admin sharing is policy-checked: any grant needs `sharing.<type>` where that key exists (models, knowledge, prompts, tools, skills, notes, folders), public (`user:*`) grants `sharing.public_<type>`, user-targeted `access_grants.allow_users`, group-targeted `access_grants.allow_groups`. On create a disallowed grant is silently stripped; on `…/access/update` (v0.12.4+) the whole request is refused with 403. `BYPASS_ADMIN_ACCESS_CONTROL` (default true) exempts admins from resource ACLs.
