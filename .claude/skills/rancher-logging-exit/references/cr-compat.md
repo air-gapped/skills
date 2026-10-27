@@ -88,9 +88,13 @@ Either way, decide BEFORE deleting the old DaemonSet in runbook step 4.
 - `disablePvc: true` is Rancher's DEFAULT (fluentd buffers on emptyDir!). Check
   `helm get values` — many Rancher installs never had durable buffers to
   preserve; the upstream default is a 20Gi PVC. Decide deliberately.
-- SELinux option (`rke_logreader_t`), Windows path prefixes, `logging-admin`/
-  `logging-view` aggregated ClusterRoles (recreate if user-facing RBAC on
-  flows/outputs is still wanted — see security-urgency.md before granting).
+- SELinux option (`rke_logreader_t`), Windows path prefixes.
+- **§RBAC**: Rancher's `logging-admin`/`logging-view` ClusterRoles go away, but
+  the upstream chart creates its own `<release>-edit` role (write on
+  flows/outputs/syslogngflows/syslogngoutputs) aggregated into `admin` **and**
+  `edit` by default (`rbac.createAggregatedEditClusterRole: true`; Rancher's
+  chart had it false). Install with it false to keep Flow/Output authorship at
+  project-owner; leave it true only if project-members should author them.
 - Chart annotation `catalog.cattle.io/auto-install: rancher-logging-crd=match` —
   why the CRD chart appeared automatically in Rancher Apps.
 

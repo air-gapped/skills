@@ -67,7 +67,8 @@ supporting evidence of staleness.
 
 - Audit who holds project-owner (⇒ Flow/Output authorship) per cluster; treat
   Flow/Output create rights as sensitive.
-- Ensure `rbac.createAggregatedEditClusterRole` stays false.
+- Ensure `rbac.createAggregatedEditClusterRole` stays false — and set it false
+  on the upstream install too, where it defaults true (cr-compat.md §RBAC).
 - Alert on Flow/Output/ClusterFlow/ClusterOutput mutations
   (audit log: group `logging.banzaicloud.io`) and on fluentd pod exec/spawn
   anomalies (Falco/Tetragon: `@type exec` children of fluentd).

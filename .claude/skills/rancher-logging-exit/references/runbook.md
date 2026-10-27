@@ -73,6 +73,7 @@ kubectl get ds -n $NS | grep journald
 helm install logging-operator oci://<registry>/kube-logging/helm-charts/logging-operator \
   --version 6.7.0 -n $NS \
   --set logging-operator-crds.install=false \
+  --set rbac.createAggregatedEditClusterRole=false \
   -f upstream-values.yaml        # air-gap image overrides from airgap-prep.md
 
 # 6. The operator adopts the existing Logging (name rancher-logging-root) but
@@ -111,7 +112,8 @@ kubectl get crd | grep banzaicloud   # should be empty; hand-delete stragglers
 # 3. DO NOT delete the namespace if you want the buffer PVCs.
 # 4. Install upstream WITH CRDs (none exist now, crds/ dir applies cleanly)
 helm install logging-operator oci://<registry>/.../logging-operator \
-  --version 6.7.0 -n $NS -f upstream-values.yaml
+  --version 6.7.0 -n $NS -f upstream-values.yaml \
+  --set rbac.createAggregatedEditClusterRole=false   # see cr-compat.md §RBAC
 # 5. Restore CRs: outputs → clusteroutputs → loggings → fluentbitagents →
 #    flows → clusterflows (refs before referrers). Pruning diff first (cr-compat.md).
 #    Strip or repoint the Rancher image pins in loggings.yaml/fluentbitagents.yaml

@@ -42,7 +42,8 @@ helm uninstall rancher-logging-crd -n $NS
 kubectl get crd | grep banzaicloud          # hand-delete stragglers
 # 3. Fresh upstream install WITH CRDs:
 helm install logging-operator oci://<registry>/.../logging-operator \
-  --version 6.7.0 -n <ns> --create-namespace -f upstream-values.yaml
+  --version 6.7.0 -n <ns> --create-namespace -f upstream-values.yaml \
+  --set rbac.createAggregatedEditClusterRole=false   # see cr-compat.md §RBAC
 # 4. Re-author salvaged config as 6.7-era CRs (decoupled pattern — see the
 #    logging-operator skill) rather than re-applying 3.17-era YAML verbatim.
 ```
