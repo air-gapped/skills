@@ -82,6 +82,9 @@ minor jump. Ground exact patch numbers / fix versions via `gh` at run time (Hous
 - **Stuck at "Images preloaded"** (harvester#11543, open, rare): an upgraded node shows `Succeeded` while
   its `harvesterhci.io/pendingOSImage` annotation equals its current `osImage`. Only then, patch that node's
   `/status/nodeStatuses/<node>/state` in the `Upgrade` CR back to `Waiting Reboot`.
+- **Ingress controller ingress-nginx → Traefik** (harvester#10067): port any `ssl-parameters` customization to
+  `traefik-default-tls-options`; re-check nginx-specific annotations on Ingresses in the Harvester cluster.
+- **Guest RKE2 Node-Driver range moves to v1.34–1.36** (`guest-rke2-survivability.md` §4).
 - **Parallel live migration** arrives (UI batch-migrate) — never put two guest etcd members in one batch.
 
 ## Mechanism note (how the upgrade runs, per version)
