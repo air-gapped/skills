@@ -159,7 +159,7 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
 
 1. **Keep a local break-glass superuser.** SSO misconfig, a pipeline typo, or
    an IdP outage will otherwise lock everyone out. The local
-   `/admin`-capable account is the recovery path — never delete it, store its
+   superuser is the recovery path — never delete it, store its
    password in the vault. (NetBox tries backends in `REMOTE_AUTH_BACKEND` order
    and falls through to local `ModelBackend`.)
 
@@ -196,8 +196,11 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
    SSO identity to any existing local account with a matching email. With an
    IdP that doesn't verify email addresses this is account pre-hijack of local
    users — including the break-glass superuser if its email is guessable. Keep
-   the default pipeline's create/associate steps; for one-time linking of
-   existing local users, use `/admin/social_django/usersocialauth/` instead.
+   the default pipeline's create/associate steps. To link an existing local
+   user once, create its row on the pod's stdin (§9.5 of
+   `helm-chart-gotchas.md`) — NetBox 4.2+ has no Django admin UI:
+   `from social_django.models import UserSocialAuth; from users.models import User;
+   UserSocialAuth.objects.create(user=User.objects.get(username='<local>'), provider='oidc', uid='<IdP sub>')`.
 
 ## Worked example — Keycloak on the helm chart
 
@@ -320,5 +323,5 @@ unaffected; object counts identical before and after.
   is no `is_staff` on 4.5+ — do not look for it).
 - Remove a user from the admin IdP group, re-login → confirm demotion (and that
   any issued API token of theirs still works — expected, revoke manually).
-- Existing local users can be linked to an OIDC identity at
-  `/admin/social_django/usersocialauth/`.
+- Link an existing local user to its OIDC identity with a `UserSocialAuth`
+  row (rule 7); there is no admin page for it.
