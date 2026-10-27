@@ -1,6 +1,6 @@
 # Upgrades — release history, breaking boundaries, CRD mechanics, air-gap
 
-Latest verified: **6.7.0** (2026-06-16). Cadence ~6–10 weeks. Support: previous
+Latest verified: **6.9.0** (2026-09-17). Cadence ~6–10 weeks. Support: previous
 minor ≈3 months after a new major; **4.x EOL since Dec 2024** (4.10.4/4.11.4 last).
 K8s ≥1.22, Helm ≥3.8.1 (OCI). No documented minor-skip restriction — the operator
 regenerates the data plane from CRs; cross the breaking boundaries deliberately.
@@ -22,6 +22,8 @@ regenerates the data plane from CRs; cross the breaking boundaries deliberately.
 | 6.5.x | 2026-04→05 | fluent-bit 5.0.x; drain-watch hang fixes land across 6.4–6.5 |
 | **6.6.0** | 2026-06-08 | **CVE-2026-54680 hardening** (config-injection RCE, ≤6.5.2 affected); ⚠ escaping broke newline passwords (#2254) |
 | **6.7.0** | 2026-06-16 | regression fix (#2255); eventrouter 1.0.0. **← recommended floor** |
+| **6.8.0** | 2026-08-11 | fluent-bit 5.1.0: **duplicate parser name is fatal** (DaemonSet crash-loops); config-reloader/buffer-metrics sidecars need custom-runner ≥1.0.0 (older pins exit `flag provided but not defined`); syslog-ng image override with only `repository` now pulls the pinned tag, not `:latest`; syslog-ng `metricsService`/`bufferVolumeMetricsService` now applied; `enabledIPv6` reworked — an existing Service keeps its IPv4 primary (delete it for IPv6 primary); gated `raw` Flow filter |
+| 6.9.0 | 2026-09-17 | additive: K8s 1.37, `enableServiceLinks`, fluent-bit 5.1.2, eventrouter 1.0.1. **← latest** |
 
 Docs site lags GitHub (whats-new stops ~6.5) — release notes on GitHub are the
 authoritative current source.
@@ -79,6 +81,11 @@ hostTailer sub-blocks…); `telemetry-controller.install` conditional subchart.
 4. Crossing 6.6: diff the rendered `<logging>-fluentd-app` secret before/after —
    escaping changes rendering of values with quotes/backslashes/newlines.
 5. ES 8.x users: skip 6.2.1's fluentd image (#2153) — moot at 6.7.0.
+6. Crossing 6.8: rename any `customParsers` entry named `json`, `docker`, `cri` or
+   `kube-custom` (or pin fluent-bit `5.0.5`); move `configReloadImage` /
+   `bufferVolumeMetricsImage` pins to ≥6.8.0 or drop them; set `tag` on syslog-ng
+   image overrides that set only `repository`; re-read `metricsService` /
+   `bufferVolumeMetricsService` on syslog-ng specs — they take effect now.
 
 For the Rancher-bundled variant of this jump (helm release surgery,
 cattle-logging-system specifics, air-gap mirroring), use the
