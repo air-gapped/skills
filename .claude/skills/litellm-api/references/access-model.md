@@ -78,7 +78,7 @@ Verify access with a live completion attempt per model, not by listing.
 
 ## Wildcards
 
-- `bedrock/*` prefix-matches sloppily — also matches `bedrockz/*` (#33030 open).
+- `bedrock/*` prefix-matches sloppily — also matches `bedrockz/*` (#33030 closed unfixed).
 - Load-balancing can span deployments the key shouldn't access when wildcard model-groups mix (#21935 closed unfixed).
 - JWT `role_permissions.models` doesn't honor wildcards (#27536 closed unfixed).
 

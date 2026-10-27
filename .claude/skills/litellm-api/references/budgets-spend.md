@@ -5,7 +5,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Issue states @ 2026-07-30. 
 ## Budget mechanisms: two per entity, plus access-group pools
 
 1. **`max_budget` + `budget_duration`** — classic columns. Setting `budget_duration` computes `budget_reset_at`; clearing nulls both (`key_management_endpoints.py:1925-1935`). The ResetBudgetJob resets on schedule — for *some* entity types (below).
-2. **`budget_limits`** — plural concurrent windows, a separate JSON column (`:1937-1951`). Its OpenAPI schema documents **wrong field names** (`budget_limit`/`time_period` vs actual `max_budget`/`budget_duration`, #32695 open).
+2. **`budget_limits`** — plural concurrent windows, a separate JSON column (`:1937-1951`). Its OpenAPI schema documents **wrong field names** (`budget_limit`/`time_period` vs actual `max_budget`/`budget_duration`, #32695 closed unfixed).
 3. **Access-group pool (v1.100.0+)** — `PUT|GET|DELETE /access_group/{group}/budget`. Charged **only** when the caller was granted the group by name: `models: []`, `["*"]`, `all-proxy-models` or a wildcard skip the pool and are not capped by it. Every matching group is charged in full; any exhausted pool refuses (`docs/proxy/model_access_group_budgets.md`).
 
 ## The unset problem
@@ -25,7 +25,7 @@ Applying `budget_duration` to an existing key/user/team via update does **not** 
 | Limit boundary | team check uses `>` while key/org use `>=` (`_team_max_budget_check`, #28020 closed unfixed) — teams admit at exact limit (#33321 open family: team/end-user/tag/model all admit at limit) |
 | Resets | organizations were simply omitted from ResetBudgetJob (#25495 — **closed as stale, not fixed-confirmed**); tag budgets never reset (#27481 closed unfixed); `max_end_user_budget_id` ignores resets (#24675 closed unfixed); auto-created end-users never get their budget_id persisted (#25386 open) |
 | Reset timing | `model_max_budget` shares one window start across models/durations (#33326, fixed v1.99.0); `litellm_settings.timezone` skews window resets (#34896 open); large s/m/h durations compute wrong reset times (#17993 closed unfixed) |
-| Enforcement | `model_max_budget` for customers not enforced at all (#31842 open); project spend never tracked → project budgets never enforce below v1.103.0 (#33871, fixed by PR #41354); `max_budget_in_team` not enforced (#19105 closed unfixed) |
+| Enforcement | `model_max_budget` for customers not enforced at all (#31842 closed unfixed); project spend never tracked → project budgets never enforce below v1.103.0 (#33871, fixed by PR #41354); `max_budget_in_team` not enforced (#19105 closed unfixed) |
 | `soft_budget` | alerts only, never blocks (`utils.py:5773-5820`); on `/team/new` must be strictly `<` max_budget or 400 (`team_endpoints.py:1043-1050`) |
 
 ## Team spend vs personal budgets — changed twice; read your version first
@@ -57,7 +57,7 @@ for one release became wrong advice for every release after it.
 ## Spend numbers: eventually consistent, lossy, both directions
 
 - Enforcement uses cached counters that can exceed DB truth → false 429 while `/key/info` shows under-budget (#27735 open); or lag it → admission despite over-budget (#26672 open, fresh v1.82.3 deploys). Redis counter inflation on multi-pod: #30460 closed unfixed (see litellm-valkey skill).
-- **Silent spend-log loss** (open unless marked): batches dropped on DB write failure (#33873, fixed v1.101.0), Redis buffer loses dequeued transactions on commit failure (#33872, fixed v1.98.0), rows lost on cancelled flush (#34820, fixed v1.98.0), in-memory buffers dropped on shutdown (#34805), GC race loses streaming Responses-API logs (#31059), success-logger crash → request uncharged (#32487), rows dropped on non-unique provider response IDs (#28376).
+- **Silent spend-log loss** (open unless marked): batches dropped on DB write failure (#33873, fixed v1.101.0), Redis buffer loses dequeued transactions on commit failure (#33872, fixed v1.98.0), rows lost on cancelled flush (#34820, fixed v1.98.0), in-memory buffers dropped on shutdown (#34805), GC race loses streaming Responses-API logs (#31059), success-logger crash → request uncharged (#32487 closed unfixed), rows dropped on non-unique provider response IDs (#28376).
 - Attribution gaps: Azure Model Router logs the router model not the selected one (#27942), Vertex passthrough batch cost unattributed (#33316), **org-level `spend_logs_metadata` silently ignored** — only key/team merge (#33663), failed requests lose call_type/router metadata (#35068).
 - Privacy mismatches: `store_prompts_in_spend_logs: true` may still persist `messages` as `{}` (#34747) and UI viewers can't see request/response data anyway (#23636/#32564/#34099/#28859); `false` still stores full embedding **vectors** (#24928).
 - `fail_closed_budget_enforcement: true` (documented, `users.md:737-746`) only became trustworthy after #33923 (closed 2026-07-23) — before that it failed open despite the flag.

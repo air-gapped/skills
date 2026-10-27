@@ -102,7 +102,7 @@ Full detail in `references/budgets-spend.md`. The load-bearing rules:
 
 The single most recurrent bug class (≥8 versions of duplicates): update endpoints are **presence-sensitive, not diff-sensitive**. Round-tripping a full object — as the Admin UI does — breaks:
 
-- Including enterprise-only fields (`guardrails`, `policies`, `tags`, …) **even as empty arrays** triggers "This feature is only available for LiteLLM Enterprise users" 403s (#15230 open since 2025-10 with 38 comments; closed dupes #11552 #14934 #20304 #20476 #20534 #21037 #21570 #22201 #30285). Workaround: **omit every field not being deliberately changed**.
+- Including enterprise-only fields (`guardrails`, `policies`, `tags`, …) **even as empty arrays** triggers "This feature is only available for LiteLLM Enterprise users" 403s (#15230, stale-closed unfixed after a year and 39 comments — fix PR #37620 unmerged; closed dupes #11552 #14934 #20304 #20476 #20534 #21037 #21570 #22201 #30285). Workaround: **omit every field not being deliberately changed**.
 - Non-admin `/key/update` 403s if the body merely *includes* `allowed_routes` or `permissions` — presence-checked, not change-checked (v1.92.0 regression, open #33277; dashboard's `budget_limits: []` variant #33246).
 - `key_type: "management"` silently **overwrites** any caller-supplied `allowed_routes` (`key_management_endpoints.py:470-485`).
 - Unknown fields are **silently dropped** (`extra="ignore"`) on every management model except `PATCH /v2/organization/{id}` (`extra="forbid"` → 422) — a typo'd field name is a 200 that did nothing. Verify with a follow-up GET, not the status code.

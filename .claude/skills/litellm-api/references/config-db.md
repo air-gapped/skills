@@ -12,7 +12,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29).
 - Only the 14 keys in `LITELLM_SETTINGS_SAFE_DB_OVERRIDES` (`constants.py:1519-1536`) are pushed onto the live `litellm` module; other DB `litellm_settings` land in the config dict but not the runtime attribute (`proxy_server.py:6045-6048`) — a DB write can "succeed" and change nothing observable.
 - `general_settings.supported_db_objects` filters which object types load from DB at all (`proxy_server.py:6108-6135`) — an easy way to make `/model/new` writes appear to vanish on restart.
 - DB-sourced remote module loads (`s3://…`) are scrubbed from the overlay (`proxy_server.py:6027-6031`) — a value that works in YAML silently doesn't from DB.
-- DB-backed `router_settings` JSON strings are skipped on reload (#31836 open); DB router rebuild drops `cache_responses` (#32106 open).
+- DB-backed `router_settings` JSON strings are skipped on reload (#31836 closed unfixed); DB router rebuild drops `cache_responses` (#32106 closed unfixed).
 
 ## Model management failure shapes
 
