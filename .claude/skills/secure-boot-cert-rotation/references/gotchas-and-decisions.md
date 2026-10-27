@@ -96,10 +96,11 @@ alongside the LWN note under Failure modes: permanent damage *has* been observed
 certain (largely client/OEM) firmware. Both are true; the fleet-relevant read is "recoverable, but needs hands
 or iDRAC, so pilot first."
 
-A concrete recoverable case worth recognizing: HP's April 2026 BIOS (v01.04.05 Rev A) staged the 2023 certs
-and threw affected machines into a **BitLocker recovery loop** — PCR7 no longer matched the sealed value. Fix
-was firmware setup: enable the three 2023 CA options, save, reboot. Suspend BitLocker *before* the write and
-this never happens.
+A concrete recoverable case worth recognizing: HP's early-April-2026 BIOS updates (commercial notebooks,
+desktops, workstations) could fail to apply the 2023 certs properly and leave the machine in a **BitLocker
+recovery loop**. HP's fix: in firmware setup enable **all four** certificate settings, save, reboot — and on a
+Linux host keep the UEFI CA 2023 settings enabled afterwards (HP's optional disable step is for machines with
+no third-party loaders). Suspend BitLocker before any firmware cert change.
 
 ## The do-nothing risk timeline (what to tell a worried operator)
 
