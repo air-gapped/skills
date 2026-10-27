@@ -31,7 +31,7 @@ NIXL is a thin abstraction over heterogeneous transport backends. A `nixlAgent` 
 | PyPI wheels | `nixl-cu12`, `nixl-cu13` (auto-selects at runtime via PyTorch CUDA version since 1.0.1) | `pip install nixl` |
 | Torch dep pin | `torch==2.11.*`; `nixl_ep` wheels build against 2.11–2.14 and select by installed Torch at import; NIXL-EP needs PyTorch ≥ 2.10 since v1.5.0 (#2136) | `pyproject.toml`, `contrib/Dockerfile` |
 | C++ standard | **C++20** since v1.3.0 (#1571) — building NIXL or a plugin from source now needs a C++20 toolchain | release notes |
-| UCX version | `1.20.x` tested; `UCX_MAX_HCA_PER_GPU=auto` set automatically on UCX ≥ 1.21 (1.2.0, #1637) | repo `README.md`, `src/plugins/ucx/ucx_utils.cpp` |
+| UCX version | `1.23.x` tested and bundled in wheels since v1.5.0 (#2163); `UCX_MAX_HCA_PER_GPU=auto` set automatically on UCX ≥ 1.21 (1.2.0, #1637) | repo `README.md`, `src/plugins/ucx/ucx_utils.cpp` |
 | GPU vendors | NVIDIA; **AMD Instinct (MI300X/MI325X gfx942, MI350X/MI355X gfx950) via ROCm/HIP since v1.3.0** (#1642, #1647), `nixlbench` included | release notes |
 | Plugins | **15**: ucx, libfabric, mooncake, uccl, gpunetio, cuda_gds, gds_mt, posix, hf3fs, obj (S3), azure_blob, gusli, telemetry, **infinia** (DDN, new in 1.3.0), **tracing** | `src/plugins/` at tag v1.5.1. On `main` (1.6.0) `gds_mt` folds into `cuda_gds` (`GDS` with `mode=mt`; `GDS_MT` stays as an alias) and `redis` is added |
 | Memory types | `DRAM`, `VRAM`, `FILE`, `BLOCK`, `OBJ` | `src/api/python/_api.py` |

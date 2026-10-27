@@ -50,15 +50,15 @@ sudo dnf install gcc-c++ cmake pkg-config
 pip3 install meson ninja pybind11 tomlkit
 ```
 
-UCX 1.20.x:
+UCX 1.23.x:
 
 ```bash
 git clone https://github.com/openucx/ucx.git
-cd ucx && git checkout v1.20.x
+cd ucx && git checkout v1.23.x
 ./autogen.sh
 ./contrib/configure-release-mt \
     --enable-shared --disable-static \
-    --disable-doxygen-doc --enable-optimizations \
+    --disable-doxygen-doc --enable-optimizations --without-avx \
     --enable-cma --enable-devel-headers \
     --with-cuda=<cuda install> \
     --with-verbs --with-dm \

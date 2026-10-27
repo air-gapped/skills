@@ -158,7 +158,7 @@ gdb backtrace shows ucp_*?                UCX-internal — UCX_LOG_LEVEL=trace, 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `meson setup` fails on UCX detect | UCX 1.20.x not installed / not in pkg-config path | `pkg-config --modversion ucx` should print 1.20.x |
+| `meson setup` fails on UCX detect | UCX 1.23.x not installed / not in pkg-config path | `pkg-config --modversion ucx` should print 1.23.x |
 | `ninja` fails with abseil errors | abseil version conflict (NIXL ≤1.0.0 issue, fixed v1.0.1 #1432) | Bump NIXL or pin abseil |
 | Mooncake build OOM | Default ninja parallelism too high | NIXL v1.0.1 PR #1485 added memory-aware build; or set `NINJA_FLAGS="-j2"` |
 | Plugin not built despite source present | meson option `disable_<name>_backend=true` | Read `meson_options.txt`, override `-Ddisable_<name>_backend=false` |

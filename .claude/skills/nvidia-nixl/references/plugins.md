@@ -25,7 +25,7 @@
 
 | Plugin | Class | supportsLocal | supportsRemote | supportsNotif | Memory types | External deps | Status |
 |---|---|---|---|---|---|---|---|
-| **UCX** | network | yes | yes | yes | DRAM, VRAM | UCX 1.20.x, optional GDRCopy, CUDA | stable, default |
+| **UCX** | network | yes | yes | yes | DRAM, VRAM | UCX 1.23.x, optional GDRCopy, CUDA | stable, default |
 | **libfabric** | network | partial | yes | yes | DRAM, VRAM | libfabric ≥1.21.0, hwloc 2.10+, libnuma | stable; thread-safe in v1.0.1 |
 | **mooncake** | network | yes | yes | yes | DRAM, VRAM | Mooncake (BUILD_SHARED_LIBS=ON) | preview; own metadata path |
 | **uccl** | network | yes | yes | yes | DRAM, VRAM | UCCL P2P engine, RDMA NIC | preview; progress thread still open |
