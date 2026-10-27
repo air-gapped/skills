@@ -2,8 +2,8 @@
 name: secure-boot-cert-rotation
 description: >-
   Triage and fix the Microsoft Secure Boot 2011→2023 UEFI certificate rotation across Dell PowerEdge / iDRAC9
-  bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs. Two 2011 CAs expired June 2026 and
-  Windows Production PCA 2011 expires 2026-10-19 — but UEFI firmware ignores certificate expiry, so nothing
+  bare metal, Ubuntu/Linux servers, and Harvester HCI / KubeVirt guest VMs. All three 2011 CAs expired (two in June 2026,
+  Windows Production PCA 2011 on 2026-10-19) — but UEFI firmware ignores certificate expiry, so nothing
   stopped booting; the real risks are forward-compat once a 2023-only-signed shim arrives (already true on
   aarch64) plus a dbx/revocation freeze. Routes to the per-platform fix: iDRAC BIOS-staged keys applied on
   reboot (Dell), fwupd-free manual `db` append self-authenticating via the existing 2011 KEK (Linux), and the
@@ -42,8 +42,8 @@ Consequences, and the entire reason this is a *hygiene* task and not a *fire*:
 
 - **Every machine that boots today keeps booting after the expiry dates.** Nothing breaks on the deadline —
   and this is now **observed, not predicted**: the **2011 KEK CA expired 2026-06-24 and the 2011 UEFI CA on
-  2026-06-27**, with no resulting fleet incident (LWN retrospective, 2026-07-01). **Windows Production PCA
-  2011 expires 2026-10-19** and is expected to pass the same way. Say this plainly to a worried operator.
+  2026-06-27**, with no resulting fleet incident (LWN retrospective, 2026-07-01), and **Windows Production PCA
+  2011 expired 2026-10-19** with no reported boot failures either. Say this plainly to a worried operator.
 - The **real** risks are forward-looking:
   1. **Forward-compat** — once a distro ships a shim/bootloader signed *only* by the **Microsoft UEFI CA 2023**,
      a machine whose firmware `db` lacks that 2023 cert can't validate the new binary. On Linux this surfaces
@@ -107,8 +107,8 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
 
 ## House rules (the hard-won ones — encode these into every answer)
 
-1. **Don't fearmonger.** Lead with the strongest available form: *two of the three CAs already expired, in June
-   2026, and nothing stopped booting* — that is a record, not a reassurance. Expiry ≠ revocation; firmware
+1. **Don't fearmonger.** Lead with the strongest available form: *all three 2011 CAs have expired — 2026-06-24,
+   06-27 and 10-19 — and nothing stopped booting* — that is a record, not a reassurance. Expiry ≠ revocation; firmware
    ignores `notAfter`. The honest framing is forward-compat + revocation-freeze on a slow fuse, not a brick
    event. Getting this wrong sends operators into needless emergency reinstalls.
 2. **`db`-first works without the 2023 KEK.** The Microsoft 2023 `db` payloads are signed by the *old 2011 KEK*

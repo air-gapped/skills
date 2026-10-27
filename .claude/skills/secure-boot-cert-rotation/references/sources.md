@@ -22,7 +22,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 | Source | Last verified | Note |
 |---|---|---|
 | `PreSignedObjects/*/Certificates/*.der` (cert bytes) | 2026-10-27 | `openssl x509 -enddate` on Microsoft's published certs: KEK CA 2011 2026-06-24, UEFI CA 2011 2026-06-27, Windows Production PCA 2011 2026-10-19 18:51:42 GMT; KEK 2K CA 2023 2038-03-02, Microsoft UEFI CA 2023 2038-06-13, Option ROM UEFI CA 2023 2038-10-26, **Windows UEFI CA 2023 2035-06-13** |
-| Microsoft cert-rotation topic `7ff40d33…` | 2026-09-15 | all three expiry dates unchanged; page last edited 2026-05-18 |
+| Microsoft cert-rotation topic `7ff40d33…` | 2026-10-27 | all three expiry dates unchanged; page last edited 2026-05-18. **PCA 2011 expiry has passed (2026-10-19):** no Microsoft or LWN post-expiry statement yet; no boot failure reported anywhere searched. Pre-expiry, Microsoft (quoted by Windows Latest, 2026-10-17): a PC without the new certs "will still start and operate normally" — windowslatest.com/2026/10/17/windows-11s-last-secure-boot-deadline-hits-monday-microsoft-reveals-what-happens-to-your-pc/; KB 5079373 (`c83b6afd…`) says the same. |
 | Microsoft IT-pro guidance `e2b43f9f…` | 2026-09-15 | db→KEK deployment order unchanged |
 | Microsoft known issues `5813673d…` | 2026-09-15 | Hyper-V 1795 resolved; Azure Trusted Launch 1795 still open |
 | Microsoft DB/DBX update events `37e47cf8…` | 2026-09-15 | **the** source for event IDs 1795/1796 (not the known-issues page) |

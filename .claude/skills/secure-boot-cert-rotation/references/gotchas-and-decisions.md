@@ -103,11 +103,11 @@ this never happens.
 
 ## The do-nothing risk timeline (what to tell a worried operator)
 
-- **The deadline: settled, not predicted.** Two of the three 2011 CAs have now expired — KEK CA 2011 on
-  **2026-06-24**, UEFI CA 2011 on **2026-06-27** — and **nothing happened**. No fleet incident, no boot
-  failures attributable to expiry; the post-expiry retrospective (LWN 2026-07-01) confirms it outright. Use
-  this as observed fact when reassuring an operator, not as a forecast. **Windows Production PCA 2011 expires
-  2026-10-19** and there is no reason to expect it to behave differently. What *has* hurt people is the
+- **The deadline: settled, not predicted.** All three 2011 CAs have now expired — KEK CA 2011 on
+  **2026-06-24**, UEFI CA 2011 on **2026-06-27**, Windows Production PCA 2011 on **2026-10-19** — and
+  **nothing happened**. No fleet incident, no boot failures attributable to expiry; the post-expiry
+  retrospective (LWN 2026-07-01) confirms it for June, and no failure was reported after October 19. Use
+  this as observed fact when reassuring an operator, not as a forecast. What *has* hurt people is the
   remediation (see Failure modes above), not the expiry.
 - **The real trigger to watch is not a date.** Per the same retrospective, the event that actually bites is
   **the next CVE-driven shim respin** — the first security update that forces a distro to ship a 2023-only

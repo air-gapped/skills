@@ -3,8 +3,8 @@
 ## Exact expiry dates (staggered — not one cliff)
 
 Three Microsoft 2011 CAs expire; the 2023 replacements are valid to **2038**, except **Windows UEFI CA 2023:
-2035-06-13**. **Two have already passed**
-(2026-06-24, 2026-06-27) with no operational effect — only the October one is still ahead.
+2035-06-13**. **All three have passed**
+(2026-06-24, 2026-06-27, 2026-10-19) with no reported boot failures.
 
 | 2011 cert | UEFI store | Signs | Expiry | → 2023 replacement(s) |
 |---|---|---|---|---|
