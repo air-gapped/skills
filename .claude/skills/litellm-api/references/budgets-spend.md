@@ -30,20 +30,20 @@ Applying `budget_duration` to an existing key/user/team via update does **not** 
 
 ## Team spend vs personal budgets — changed twice; read your version first
 
-This behaviour flipped on, broke, and was reverted inside three minors. Which
+This behaviour flipped on, broke, and was reverted within one stable release. Which
 rule applies is a version question, not a configuration question.
 
 | Version | Rule |
 |---|---|
-| **v1.94 – v1.95** | Team-key spend **also** increments each member's personal user spend (#32005, maintainer-confirmed intentional after #26239: "we changed the default in 1.94 rc"). Members with personal budgets get `BudgetExceededError` on their *personal* keys because of team usage. The opt-out `skip_user_budget_on_team_key: true` **does not work** (#35076). |
-| **v1.96.0+** | **Reverted.** Team keys are governed by team and team-member budgets **only** (PR #35271, `revert(proxy)!:`, merged 2026-07-30). The `skip_user_budget_on_team_key` flag was **removed entirely** — config, `ConfigGeneralSettings` field and Admin UI toggle — so a config still setting it is referencing something that no longer exists. |
+| **v1.94.0 only** (also v1.95.0-rc.1 and dev builds) | Team-key spend **also** increments each member's personal user spend (#32005, maintainer-confirmed intentional after #26239: "we changed the default in 1.94 rc"). Members with personal budgets get `BudgetExceededError` on their *personal* keys because of team usage. The opt-out `skip_user_budget_on_team_key: true` **does not work** (#35076). |
+| **v1.94.1+, every stable v1.95+** | **Reverted.** Team keys are governed by team and team-member budgets **only** (PR #35271, `revert(proxy)!:`, backported to v1.94.1 and v1.95.0). The `skip_user_budget_on_team_key` flag was **removed entirely** — config, `ConfigGeneralSettings` field and Admin UI toggle — so a config still setting it is referencing something that no longer exists. |
 | **v1.97.0+** | A deliberate opt-**in** returns: `general_settings.apply_user_budget_to_team_keys`, **default off** (PR #36102, merged 2026-08-07). Set it only if you actually want personal budgets to cap team keys. |
 
 **Why this matters more than a normal version note.** The v1.94 behaviour was
 the surprising one, so guidance written against it says "model personal budgets
-as personal + team spend". On v1.96.0 and later that **over-provisions** — the
+as personal + team spend". On v1.94.1 and later that **over-provisions** — the
 team key never touches the personal budget unless you opted in. Correct advice
-for one minor became wrong advice for every minor after it.
+for one release became wrong advice for every release after it.
 
 ## Member budgets: clone-on-write + auto-disconnect
 
@@ -68,4 +68,4 @@ for one minor became wrong advice for every minor after it.
 2. To *raise* a budget: update `max_budget` only, minimal body. To *remove* one: recreate the entity — don't fight the unset bugs.
 3. Reconcile spend against `/spend/logs/v2` + the DB, not the enforcement counters; expect the counters to disagree.
 4. Alert on `BudgetExceededError` rates, not just occurrences — a step change fleet-wide usually means counter drift, not user behavior.
-5. Model personal budgets against the version: on v1.94–v1.95 assume personal spend includes team-key spend; on **≥v1.96.0 do not**, unless `apply_user_budget_to_team_keys` is explicitly on (v1.97.0+, default off).
+5. Model personal budgets against the version: on v1.94.0 assume personal spend includes team-key spend; on **≥v1.94.1 do not**, unless `apply_user_budget_to_team_keys` is explicitly on (v1.97.0+, default off).
