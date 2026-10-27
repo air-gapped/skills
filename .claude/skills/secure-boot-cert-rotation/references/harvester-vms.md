@@ -4,7 +4,7 @@
 - [Minimum Harvester version = v1.6.0](#minimum-harvester-version-with-2023-certs-in-guest-ovmf-v160)
 - [Layer 1 — Dell host firmware](#layer-1-the-dell-host-firmware-only-if-the-host-runs-secure-boot-on)
 - [Layer 2 — the guest VMs](#layer-2-the-guest-vms-idrac-never-touches-these)
-- [Bottom line for a 1.5.0 fleet](#bottom-line-for-a-150-fleet)
+- [Bottom line for a 1.5.x fleet](#bottom-line-for-a-15x-fleet)
 
 A Harvester-on-Dell deployment has **two independent firmware surfaces**. Keep them separate — conflating them
 is the #1 source of wrong advice here.
@@ -21,7 +21,7 @@ tooling) and is **irrelevant to guest VMs**. What governs guest certs is:
 > **Proof method (apply House Rule #4 — verify the artifact, not upstream tags).** The floor below was pinned by
 > pulling each release's virt-launcher and reading the actual varstore bytes:
 > ```bash
-> docker run --rm registry.suse.com/suse/sles/15.7/virt-launcher:<ver> rpm -q qemu-ovmf-x86_64
+> docker run --rm registry.suse.com/suse/sles/<15.7|16.0>/virt-launcher:<ver> rpm -q qemu-ovmf-x86_64   # path+tag from harvester-images-list-amd64.txt
 > # extract ovmf-x86_64-smm-ms-vars.bin from the image and:
 > openssl ... # parse X.509 subjects → look for "KEK 2K CA 2023" / "Microsoft UEFI CA 2023"
 > ```
@@ -29,14 +29,16 @@ tooling) and is **irrelevant to guest VMs**. What governs guest certs is:
 ## Minimum Harvester version with 2023 certs in guest OVMF = `v1.6.0`
 
 At 1.6.0 Harvester moved virt-launcher to the **SLES-15.7 / `qemu-ovmf-x86_64-202408`** base, whose `-ms`
-varstore has had the 2023 KEK + UEFI CA 2023 baked in (via `virt-fw-vars`) since mid-2024.
+varstore has had the 2023 KEK + UEFI CA 2023 baked in (via `virt-fw-vars`) since mid-2024. 1.9.0 moved it again,
+to SLES 16.0 / `ovmf-202502`; its `-ms` varstores still carry the 2023 certs.
 
 | Harvester line | virt-launcher base | 2023 certs in guest OVMF? |
 |---|---|---|
 | **1.5.x** (incl. 1.5.2, last GA; EOL) | SLES 15.6 / `ovmf-202308` | ❌ **No — 2011-only** |
 | **1.6.0 / 1.6.1** | SLES 15.7 / `ovmf-202408` | ✅ Yes |
 | **1.7.x** (maintenance line; latest 1.7.3, 2026-08-07) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
-| **1.8.x** (1.8.0 GA 2026-04-24 → **1.8.2, 2026-08-06 = latest GA**) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
+| **1.8.x** (1.8.0 GA 2026-04-24 → 1.8.2, 2026-08-06) | SLES 15.7 / `ovmf-202408` | ✅ Yes |
+| **1.9.x** (**1.9.0, 2026-09-16 = latest GA**) | **SLES 16.0** / `ovmf-202502` | ✅ Yes |
 
 → **No 1.5.x release contains the 2023 certs**, and there is no node patch that adds them to guests — a 1.5.x
 cluster must **upgrade to ≥ 1.6.0.** The template only re-seeds **new/ephemeral** VMs; a pre-existing
@@ -113,10 +115,10 @@ NS=$(kubectl get pod -A -l kubevirt.io=virt-launcher -o jsonpath='{.items[0].met
 kubectl exec -n "$NS" "$POD" -- sh -c 'strings /usr/share/qemu/ovmf-x86_64-smm-ms-vars.bin | grep -i 2023'
 ```
 
-## Bottom line for a 1.5.0 fleet
+## Bottom line for a 1.5.x fleet
 
 No 1.5.x has the 2023 certs and no node patch adds them to guests. The durable, clean fix is **upgrade
-1.5.0 → ≥ 1.6.0** (sequential: 1.5.0 → 1.5.2 → 1.6.x → … → 1.8.2 — and EOL 1.5.x has to be left anyway), then
+1.5.x → ≥ 1.6.0** (sequential: 1.5.x → 1.5.2 → 1.6.x → … → latest GA — and EOL 1.5.x has to be left anyway), then
 **cold stop/start each Secure-Boot Linux VM** (ephemeral → re-templates and picks up 2023). Low urgency: VMs
 keep booting regardless; the 2023 db cert only bites once a guest's shim updates to a 2023-only-signed build,
 and distros dual-sign shim meanwhile — so fold this into the (already-needed) Harvester upgrade rather than

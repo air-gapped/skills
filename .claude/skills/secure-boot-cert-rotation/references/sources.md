@@ -35,7 +35,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 | Ubuntu Discourse 82652 + archive `shim-signed` pool | 2026-09-15 | no new shim; certs delivered via fwupd instead |
 | fwupd releases (`uefi-db`/`uefi-kek`) | 2026-09-15 | floor still ≥ 2.0.8; latest 2.1.7; snap ≥ 2.1.6 for KEK |
 | Ubuntu fwupd pockets (Launchpad / Snap) | 2026-09-15 | **2.0.20 now in jammy/noble `-updates`** — floor cleared by apt |
-| Harvester releases (`gh release list harvester/harvester`) | 2026-09-15 | v1.8.2 latest GA (2026-08-06); v1.6.0 guest-OVMF floor unchanged |
+| Harvester releases (`gh release list harvester/harvester`) | 2026-10-27 | v1.9.0 latest GA (2026-09-16; v1.9.1 at rc4); 1.7.3 still newest 1.7.x. **v1.9.0 moved virt-launcher to `sles/16.0/virt-launcher:1.8.4-9.1` = `qemu-ovmf-x86_64-202502-160000.6.1`**; every `-ms` varstore in it parsed for cert CNs — KEK 2K CA 2023 + UEFI CA 2023 + Windows UEFI CA 2023 present. v1.6.0 floor unchanged |
 | harvester#7343 (installer SBAT) | 2026-09-15 | fixed in v1.8.0 GA; close is a real QA verification, not stale-bot |
 | `microsoft/secureboot_objects` payloads | 2026-09-15 | three DB payloads unchanged; KEK still per-OEM; **release now v1.7.0 (2026-09-03)**, up from v1.6.5 — its changelog reads "New DBX hashes and new pk-signed keks" |
 | `secureboot_objects` DBX payload signer | 2026-09-15 | **REVERSED: the freeze HAS started.** The repo now carries `PostSignedObjects/.../SignedByKEK2023/` alongside the `SignedByKEK2011` tree plus a `SignedByKEKLatest` pointer, and the DBX README states newer DBX binaries are signed with **KEK 2023** and that the KEK-2011 folder **"will be deleted in 2027"**. Landed via PR #448 (2026-09-01), after the previous stamp. **Scope: DBX (revocation) only** — the DB payload signer is untouched, 2011 KEK still signs DBUpdate3P2023/2024/OROM2023, re-checked this pass. Anything that assumed "all Microsoft payloads are still 2011-signed" is now wrong for revocation updates. |
@@ -106,7 +106,8 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 - `gh release list/view -R harvester/harvester` (GA dates) + per-release `harvester-images-list-amd64.txt`
   (pinned virt-launcher image); `docker run registry.suse.com/suse/sles/15.X/virt-launcher:<ver> rpm -q
   qemu-ovmf-x86_64`; **direct `openssl x509` parse of `ovmf-x86_64-smm-ms-vars.bin`** from each virt-launcher
-  (1.6.0/1.7.x/1.8.0 = ovmf-202408, 2023 present; 1.5.2 = ovmf-202308, 2011-only) — the artifact-level proof.
+  (1.6.0/1.7.x/1.8.x = ovmf-202408, 2023 present; 1.9.0 = SLES 16.0 `ovmf-202502`, 2023 present; 1.5.2 =
+  ovmf-202308, 2011-only) — the artifact-level proof. The image path moves with the base (`sles/15.7/` → `sles/16.0/`).
 - Harvester wiki Base-Operating-System (Harvester→SL Micro mapping); `github.com/harvester/harvester/issues/7343`
   (host ISO SBAT bug, install SB-off workaround); SUSE support matrix (1.5.x EOM 2025-12-30 / EOL 2026-12-30);
   suse.com/c/uefi-secure-boot-details/ (SUSE shim chain).
