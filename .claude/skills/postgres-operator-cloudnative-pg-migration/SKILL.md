@@ -136,11 +136,12 @@ official CNPG image; `timescale/timescaledb-ha` is incompatible).
 
 CNPG closed most of the Patroni gap: default-on primary isolation
 self-fencing (1.27), quorum-gated failover (1.28), primary lease (1.30).
-The honest residual: under *partial* partition (primary loses the API
-server but reaches ≥1 peer) CNPG never fences where Patroni's failsafe
-demotes — with async replication that is a real acknowledged-write
-split-brain window. For Patroni-equivalent durability, migrated
-production clusters get 3 instances +
+The honest residual: a primary that loses the API server but still
+reaches **every** peer is never fenced, even after a replica is promoted
+— Patroni replicas pinged by the leader's failsafe refuse the leader
+race, CNPG peers do not. With async replication that is a real
+acknowledged-write split-brain window. For Patroni-equivalent
+durability, migrated production clusters get 3 instances +
 `postgresql.synchronous: {method: any, number: 1, dataDurability:
 required, failoverQuorum: true}`. Details, defaults, and open HA bugs to
 watch: `references/pitfalls.md` §HA.

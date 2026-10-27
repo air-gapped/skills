@@ -122,10 +122,13 @@ gates verified 2026-07-24.
 CNPG's split-brain story, post-2025 (history: #7407 → discussion #7462,
 closed 2025-12-31):
 
-- **Primary isolation check** (default ON since 1.27): primary's
-  liveness probe fails iff it reaches neither the K8s API **nor any
-  other instance**; kubelet kills it in ~30 s. This is the fence — but
-  only for *total* isolation.
+- **Primary isolation check** (default ON since 1.27): once the
+  primary cannot reach the K8s API, its liveness probe fails if **any
+  one** instance in `InstancesReportedState` does not answer — the code
+  returns on the first failed ping; the docs' "cannot reach any other
+  instance" reads as all-peers and is wrong (#11641). The kubelet
+  restarts it after ~30 s through a **smart** shutdown: open sessions
+  keep committing for up to `.spec.smartShutdownTimeout` (180 s).
 - **Failover quorum** (stable 1.28, `synchronous.failoverQuorum`):
   R+W>N check before promotion; refuses to promote a possibly-stale
   replica (waits; `kubectl cnpg promote` is the manual override).
@@ -136,13 +139,17 @@ closed 2025-12-31):
   API-partitioned primary retries forever (relies on the isolation
   check); it self-stops only when it *observes* preemption.
 
-Residual vs Patroni: under **partial partition** (primary loses the API
-but reaches ≥1 peer — the freshly promoted primary counts!) CNPG never
-fences, where Patroni failsafe demotes unless ALL members are
-reachable. With `dataDurability: required` divergence is limited to
-unacknowledged writes; **async clusters have a real acknowledged-write
-split-brain window**, plus a ~15 s promote-before-fence overlap (lease
-15 s < fence 30 s). Patroni is conversely *less* available during plain
+Residual vs Patroni: a primary that loses the API but still reaches
+**every** peer is never fenced — even after a replica is promoted (the
+new primary answers the ping; the ping checks reachability only).
+Patroni failsafe uses the same all-members rule, but replicas receiving
+the leader's `POST /failsafe` refuse the leader race; CNPG peers do not
+block a promotion. With `dataDurability: required` divergence is limited
+to unacknowledged writes; **async clusters have a real
+acknowledged-write split-brain window**, and a fenced primary keeps
+committing open sessions for ~30 s + up to 180 s against a 15 s lease —
+set `.spec.smartShutdownTimeout: 0` on async clusters to cut that to a
+fast shutdown. Patroni is conversely *less* available during plain
 API-server outages (non-failsafe demotes; CNPG keeps serving).
 
 Prescription: production clusters = 3 instances +
