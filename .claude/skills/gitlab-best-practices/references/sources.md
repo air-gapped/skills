@@ -30,7 +30,7 @@ re-verified.
 |---|---|---|
 | `config/upgrade_path.yml` | https://gitlab.com/gitlab-org/gitlab/-/raw/master/config/upgrade_path.yml | required stops, minor-level only; **no 19.0 entry**; the "x.2/x.5/x.8/x.11 from 17.5" comment. **Re-verified 2026-08-29** |
 | Helm repo index | https://charts.gitlab.io/index.yaml | chart↔app mapping and the chart-major = app-major − 9 offset. **Pinned: chart 10.3.2 / app v19.3.2 latest, 2026-09-10** (up from 10.3.1 / v19.3.1; the chart-major = app-major − 9 offset still holds) |
-| `doc/install/requirements.md` | https://gitlab.com/gitlab-org/gitlab/-/raw/master/doc/install/requirements.md | PG min/max per GitLab major (19.x is 17.x/17.x); the required-extensions table incl. `amcheck` at 18.4 |
+| `doc/install/requirements.md` | https://gitlab.com/gitlab-org/gitlab/-/raw/master/doc/install/requirements.md | PG min/max per GitLab major — 19.x is **17.x min / 18.x max** since commit `4dc318dd` (MR !257817, merged 2026-10-01, milestone 19.5; a docs-only change citing nightly PG 18 test coverage since 18.7 via MR !209519). Before that the row read 17.x/17.x. 18.x max is 17.x. The required-extensions table incl. `amcheck` at 18.4 |
 | GitLab 19 changes | https://docs.gitlab.com/update/versions/gitlab_19_changes/ | PG 17 mandatory "Affects: All installation methods"; Redis 6 removed; Spamcheck removed; registry `s3_v2`; NGINX → Gateway API |
 | Chart 10.0 release notes | https://docs.gitlab.com/charts/releases/10_0/ | bundled PostgreSQL / Redis / MinIO removed; external deps become required. "Upgrade to 10.3": bundled Envoy Gateway 1.8.3 → 1.9.x, apply its CRDs **plus the Gateway API 1.6 CRDs** (chart `Chart.yaml` pins `envoy-gateway` 1.9.0 at `v10.3.0`, 1.9.2 at master). "Upgrade to 10.4.0": KAS advertised as `grpcs://` under Gateway API or the NGINX provider; KAS gRPC Ingress rendered by default under NGINX; opt-outs `global.appConfig.gitlab_kas.externalUrl`, `global.kas.ingress.grpc.enabled` |
 | PostgreSQL extensions | https://docs.gitlab.com/administration/postgresql/extensions/ | defers to requirements.md — the page itself carries no table (a null result worth recording) |
@@ -123,8 +123,12 @@ housekeeping closes and fix closes look identical in the state field.
   Never pattern-match on expected versions.
 - **The required-stop list.** Re-read `upgrade_path.yml`; stops are appended as
   new minors ship, and a conditional stop has precedent (17.1).
-- **The PG support window.** 19.x is 17-only today; PG 18 is opt-in from 19.3,
-  default from 19.10, minimum at 20.0 — all three are future-dated claims.
+- **The PG support window.** `requirements.md` raised the 19.x maximum from
+  17.x to 18.x on 2026-10-01. The PG 18 plan is read from epic 22099's own
+  rollout table (https://gitlab.com/groups/gitlab-org/-/work_items/22099, open):
+  opt-in for fresh Linux-package installs at 19.3, default for fresh installs
+  "%19.10 or earlier", PG 18 minimum and PG 17 dropped at 20.0. The last two
+  are plans; re-read the table each pass.
 - **Chart default flips** at every hop. The mechanical stock-values diff is the
   only reliable detector; a hand-built breaking-change list has already been
   measured missing one of five.

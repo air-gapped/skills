@@ -228,7 +228,8 @@ Nothing in a values delta predicts it.
 
 ### The rest of the 19.0 wall
 
-- **PostgreSQL 17 is minimum *and* maximum** for 19.x → `references/external-deps.md`.
+- **PostgreSQL 17 is the 19.x minimum and the 18.x maximum** — move the
+  database first → `references/external-deps.md`.
 - **NGINX Ingress replaced by Gateway API with Envoy Gateway** as the chart
   default; NGINX stays opt-in until removal in GitLab 20.0. Sites on a
   third-party ingress with the chart's nginx disabled are largely insulated.

@@ -3,8 +3,8 @@ name: gitlab-best-practices
 description: >-
   Operate self-managed GitLab on the official Helm chart — multi-hop upgrade
   campaigns across required stops, the chart-10 wall (bundled PostgreSQL,
-  Redis and MinIO removed and now mandatory), PostgreSQL 17 being both the
-  minimum and the maximum for GitLab 19.x, default flips invisible to a values
+  Redis and MinIO removed and now mandatory), PostgreSQL 17 being the only
+  major both GitLab 18.x and 19.x accept, default flips invisible to a values
   diff, air-gapped image sets the chart will not reveal, backup/restore with
   external dependencies and the secrets that are deliberately not in the
   backup, Sidekiq migration-loss and HPA-flap traps, and what high
@@ -80,10 +80,11 @@ in every artifact.
 
 ## The nine facts that cause unplanned downtime
 
-**1. PostgreSQL 17 is both the minimum and the maximum for 19.x.** There is no
-running ahead to PG 18. Because 18.x already tolerates PG 17, that overlap is
-the only ordering with a supported resting point on both sides: **move the
-database to 17 while still on 18.x, then upgrade GitLab.** Extensions are the
+**1. PostgreSQL 17 is the only major both 18.x and 19.x accept.** 18.x tops out
+at 17 and 19.x starts there, so that overlap is the only ordering with a
+supported resting point on both sides: **move the database to 17 while still on
+18.x, then upgrade GitLab.** 19.x also accepts PG 18, planned as the 20.0
+minimum — make that move on 19.x as a separate change. Extensions are the
 quiet half — `amcheck` became required at 18.4, migrations do not install
 extensions, and the extensions docs page does not carry the table.
 → `references/external-deps.md`

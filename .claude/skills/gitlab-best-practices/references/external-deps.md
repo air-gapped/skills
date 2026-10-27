@@ -19,13 +19,15 @@ re-verified — re-check before acting.
 
 | GitLab | Chart | PG minimum | PG maximum |
 |---|---|---|---|
-| 19.x | 10.x | **17.x** | **17.x** |
-| 18.x | 9.x | 16.5 | 17.x |
+| 19.x | 10.x | **17.x** | 18.x |
+| 18.x | 9.x | 16.5 | **17.x** |
 | 17.x | 8.x | 14.14 | 16.x |
 
-Read the 19.x row carefully: minimum *and* maximum are 17.x. There is no
-running ahead to PG 18 to get it out of the way — PG 18 is opt-in from 19.3,
-default from 19.10, minimum at 20.0. **[A]**
+Read the 19.x and 18.x rows together: **17 is the only major both accept.** PG
+18 is no shortcut — 18.x cannot run on it. It belongs on 19.x as its own change:
+GitLab plans PG 18 as the **minimum at 20.0** (opt-in for fresh Linux-package
+installs from 19.3, their default by 19.10), so 19.x is the window for the
+17 → 18 move, the same overlap pattern one major later.
 
 **18.x already tolerates PG 17, and that overlap is the entire safe path:
 upgrade PostgreSQL to 17 while still on 18.x, then upgrade GitLab.** Doing the
