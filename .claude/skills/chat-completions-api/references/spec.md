@@ -139,7 +139,8 @@ local implementation of this sub-surface (see backend-implementations.md).
   `tool_calls`. Docs note: streamed and non-streamed objects share the same
   shape (unlike chat).
 - Local-server fidelity varies widely — see the legacy row in
-  `backend-implementations.md` (vLLM 400s on suffix; Ollama is string-prompt
+  `backend-implementations.md` (vLLM 400s on suffix except FIM-capable
+  renderers — DeepSeek-V4 since v0.31.0; Ollama is string-prompt
   only but suffix=FIM; llama.cpp's OAI validation is dead code at HEAD).
 
 ## Deprecation archaeology

@@ -31,7 +31,7 @@ the three protocols (contrast messages-api / responses-api skills).
 | `data: [DONE]` | yes | yes | yes | yes | yes | **never** | backend's (llama-server: yes) |
 | system_fingerprint | config hash, terminal chunk only | never (field absent) | build string (`b6xxx-sha`) | constant `"fp_ollama"` | constant `"local"` | provider's | backend's |
 | Error envelope | OpenAI-ish, `code`=int status | OpenAI-ish | `code`=int status, no `param`, extra types | full OpenAI shape (param/code null) | **`{"message"}`**, 422 for validation | OpenAI envelope | mixed: object AND bare-string forms; unknown model→404 |
-| Legacy /v1/completions | full prompt forms; `suffix`→400; max_tokens=0 echo-scoring OK | `suffix`/`best_of` silently ignored; max_tokens≤0 rejected | validation is **dead code** (echo/best_of/suffix silently ignored); logprobs use CHAT shape | **string prompt only**; `suffix`=FIM; response never carries logprobs | string prompt only; tools extension; no usage in stream chunks | full surface; anthropic/bedrock providers raise | verbatim proxy |
+| Legacy /v1/completions | full prompt forms; `suffix`→400 unless the model's renderer does FIM (DeepSeek-V4, v0.31.0+); max_tokens=0 echo-scoring OK | `suffix`/`best_of` silently ignored; max_tokens≤0 rejected | validation is **dead code** (echo/best_of/suffix silently ignored); logprobs use CHAT shape | **string prompt only**; `suffix`=FIM; response never carries logprobs | string prompt only; tools extension; no usage in stream chunks | full surface; anthropic/bedrock providers raise | verbatim proxy |
 
 ## vLLM
 
