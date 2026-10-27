@@ -22,7 +22,7 @@ Optional by feature:
 
 ```
 ghcr.io/kube-logging/logging-operator/syslog-ng-reloader:6.7.0   # syslog-ng mode
-ghcr.io/axoflow/axosyslog:4.24.0                                 # syslog-ng mode
+ghcr.io/axoflow/axosyslog:4.25.0                                 # syslog-ng mode
 ghcr.io/axoflow/axosyslog-metrics-exporter:0.0.15                # syslog-ng mode
 ghcr.io/kube-logging/eventrouter:1.0.0                           # EventTailer
 ```
