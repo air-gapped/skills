@@ -59,7 +59,9 @@ GHSA-x677-9fxg-v5c5 (underscore variants in BasicAuth/DigestAuth/ForwardAuth).
 Values are `keep` (default), `delete`, `reject`. **Traefik logs a startup warning
 for every entry point that leaves it unset**, because the header-managing
 middlewares depend on it to not be spoofed. Treat an unset entry point as an
-open identity-spoofing path, not a default.
+open identity-spoofing path, not a default. Set it per entry point:
+`entryPoints.<ep>.http.aliasHeadersStrategy`, or `ports.<ep>.http.aliasHeadersStrategy`
+in the Helm chart (v41.6.0+).
 
 **Breaking changes on the way to the floor**: v3.7.13 stops forwarding `Upgrade:
 h2c` and `HTTP2-Settings` request headers (declare the backend with the `h2c`
