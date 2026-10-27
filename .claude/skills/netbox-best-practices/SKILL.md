@@ -12,10 +12,11 @@ This skill COMPLEMENTS the official `netboxlabs/skills` marketplace
 (`/plugin marketplace add netboxlabs/skills`). For data modeling, IPAM design,
 API patterns, Diode ingestion, or validation, consult those skills first —
 they are maintained upstream and authoritative. This skill covers four areas
-they do not (as of 2026-06):
+they do not (as of 2026-10):
 
 1. **netbox-chart (helm) deployment gotchas** → `references/helm-chart-gotchas.md`
 2. **NetBox 4.2→4.7 version-delta cheat sheet** → `references/version-deltas.md`
+   (the official `netbox` skill's version matrix covers 4.5–4.7 at API level)
 3. **Modeling gaps**: module type profiles (4.3+), port-mapping rework (4.5) → `references/modeling-gaps.md`
 4. **SSO/OIDC group→role mapping + hardening** → `references/sso-hardening.md`
 

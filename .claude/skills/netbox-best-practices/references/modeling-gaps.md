@@ -1,4 +1,4 @@
-# Modeling gaps not covered by the official netboxlabs/skills (as of 2026-06)
+# Modeling gaps not covered by the official netboxlabs/skills (as of 2026-10)
 
 Two features the official skill library doesn't document yet, plus one
 seeding gotcha. For general hierarchy/tenancy/IPAM modeling, use the official

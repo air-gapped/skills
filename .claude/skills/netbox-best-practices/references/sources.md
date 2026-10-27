@@ -36,6 +36,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | python-social-auth/social-app-django `social_django/views.py:36` @ tag 6.1.0 + CHANGELOG 6.0.0 | `auth` view is `@require_POST`; "Login views now always require POST requests" (6.0.0) → GET login start = 405 | 2026-10-27 |
 | netbox-community/netbox-docker `docker/docker-entrypoint.sh` @ main | entrypoint runs `migrate`, `trace_paths`, `remove_stale_contenttypes`, `clearsessions`, `reindex --lazy` — no `rebuild_config_context_cache` | 2026-10-27 |
 | netbox-chart `values.yaml` @netbox-8.3.77 / @netbox-8.3.96, `templates/configmap.yaml:87` | `housekeeping.enabled: false` default from 8.3.77, CronJob command `manage.py housekeeping`; `LOGIN_REQUIRED: {{ toJson .Values.loginRequired }}`, `loginRequired: false` default | 2026-10-27 |
+| github.com/netboxlabs/skills @ main (2026-10-16) | official coverage: `netbox/references/netbox-version-matrix.md` covers 4.5–4.7 API changes; module type profiles only as a `profile` field in `netbox-data-modeling` model-map, port mappings only in the Diode catalog; no helm chart and no OIDC group→role pipeline in `netbox-administration` | 2026-10-27 |
 | https://netboxlabs.com/docs/netbox/getting-started/planning/ | SoT definition, 16-step order | 2026-06-12 |
 | https://netboxlabs.com/docs/netbox/release-notes/version-4.2 | MACAddress objects | 2026-06-12 |
 | https://netboxlabs.com/docs/netbox/release-notes/version-4.3 | module profiles, Service API break | 2026-06-12 |
