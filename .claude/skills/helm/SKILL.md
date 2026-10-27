@@ -118,12 +118,13 @@ failures because `matchLabels` cannot be changed after creation.
 - Prefer maps over arrays for `--set` ergonomics
 - Large integers can become scientific notation; store as strings if needed
 - **Never pair a null default (`foo: ~`) with a `hasKey` guard.** Give the key a
-  real sentinel value, or omit it from defaults. At v4.2.4 a chart's own null
-  defaults survive only when the user passes some `-f`, so the chart renders
-  differently with and without a values file and a checksum annotation rolls pods
-  on upgrade ([helm#32093](https://github.com/helm/helm/issues/32093), open).
-  Whether they survive has changed twice inside the 4.x line — do not generalise
-  from whichever binary is on your PATH. Deleting a *non-null* default with a
+  real sentinel value, or omit it from defaults. Whether a null default survives
+  the merge differs across Helm 3 and 4 releases and between a chart and its
+  subcharts. On Helm v4.2.4–v4.3.1 a subchart's null nested in a map survives
+  only when the parent sets some other key under that subchart, so an unrelated
+  value changes the render and a checksum annotation rolls pods on upgrade
+  ([helm#32093](https://github.com/helm/helm/issues/32093), open). Do not
+  generalise from whichever binary is on your PATH. Deleting a *non-null* default with a
   user `-f` null is unaffected; that idiom still works.
 
 ### 6. CRDs in `crds/` Directory Are Never Upgraded
