@@ -88,9 +88,9 @@ deploy:
   stage: deploy
   script:
     - make deploy CONFIRM=1
-  only:
-    - main
-  when: manual
+  rules:  # `only:`/`except:` are deprecated
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
 ```
 
 ## Makefile CI Targets
