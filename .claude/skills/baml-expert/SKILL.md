@@ -132,7 +132,7 @@ Class/enum-level (`@@`): `@@alias`, `@@description`, `@@dynamic`, `@@assert`, `@
 
 ### Client
 
-Minimal shorthand (OpenAI defaults): `client "openai/gpt-5-mini"`. Named `client<llm> X { provider ... options { model ... api_key env.FOO ... } }` when you need retry policies, timeouts, headers, fallback, or round-robin. Providers: `openai`, `openai-responses`, `anthropic`, `google-ai`, `vertex-ai`, `aws-bedrock`, `azure`, `openai-generic` (vLLM/Ollama/OpenRouter/Together/Groq/LiteLLM/LMStudio), plus composite `fallback` and `round-robin`. Full syntax, retry policies, timeout MIN-wins composition, provider quirks → `references/providers.md`.
+Minimal shorthand (OpenAI defaults): `client "openai/gpt-5-mini"`. Named `client<llm> X { provider ... options { model ... api_key env.FOO ... } }` when you need retry policies, timeouts, headers, fallback, or round-robin. Providers: `openai`, `openai-responses`, `anthropic`, `google-ai`, `vertex-ai`, `aws-bedrock`, `azure-openai`, `openai-generic` (vLLM/Ollama/OpenRouter/Together/Groq/LiteLLM/LMStudio), plus composite `fallback` and `round-robin`. Full syntax, retry policies, timeout MIN-wins composition, provider quirks → `references/providers.md`.
 
 ### Test
 

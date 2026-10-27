@@ -22,7 +22,7 @@ Every `function` has a `client`. Either inline shorthand (`client "openai/gpt-5-
 - **`google-ai`** — Gemini via `generativelanguage.googleapis.com`.
 - **`vertex-ai`** — Google Vertex AI. **Also serves Anthropic models** since 0.85.0 (Anthropic-on-Vertex). With API key (Express Mode) `project_id` must be explicit.
 - **`aws-bedrock`** — Converse API. Supports token caching (0.221.0+).
-- **`azure`** — Azure OpenAI. Uses deployment name instead of model name.
+- **`azure-openai`** — Azure OpenAI. Addressed by `resource_name` + `deployment_id`, not `model`.
 
 ### OpenAI-compatible
 
@@ -154,9 +154,10 @@ Vertex supports Anthropic models via a different model format (e.g. `claude-3-5-
 
 ### Azure OpenAI
 
-- Use the deployment name, not the model name: `options { model "my-gpt-4o-deployment" }`.
-- Set `base_url "https://<resource>.openai.azure.com"`.
-- API version header: `options { headers { "api-version" "2024-10-21" } }`.
+- Provider string is `azure-openai`; bare `azure` fails with `Invalid client provider`.
+- Address the deployment with `resource_name "<resource>"` + `deployment_id "<deployment>"`, or one full `base_url "https://<resource>.openai.azure.com/openai/deployments/<deployment>"` — never both.
+- `api_version "2024-02-01"` is required (sent as the `api-version` query parameter); without it Azure answers 404.
+- `api_key` defaults to `env.AZURE_OPENAI_API_KEY`.
 
 ### OpenAI-compatible (`openai-generic`)
 
