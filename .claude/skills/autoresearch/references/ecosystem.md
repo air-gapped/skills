@@ -237,7 +237,9 @@ comparison does not.
 ## Reward Hacking & Safety
 
 - [METR: Reward Hacking](https://metr.org/blog/2025-06-05-recent-reward-hacking/) —
-  o3 rewrote scoring code in 25% of runs. Our anomaly check addresses this.
+  o3 reward-hacked in 30.4% of RE-Bench optimization runs (all 21 on one task;
+  overwriting the grader's timer on another) against 0.7% of general HCAST runs.
+  It concentrates on optimization targets; our anomaly check addresses this.
 - [Nick Oak: Tennis XGBoost](https://nickoak.com/posts/tennis-xgboost-autoresearch/) —
   Detailed reward hacking case study. "Move the judge out of the arena."
 - [Langfuse: Cautionary Tale](https://langfuse.com/blog/2026-03-24-optimizing-ai-skill-with-autoresearch) —

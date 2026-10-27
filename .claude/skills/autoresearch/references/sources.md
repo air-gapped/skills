@@ -300,7 +300,7 @@ Limits and grant semantics SKILL.md acts on (Mode 1 Step 3 permissions, Mode 2 f
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| METR: Reward Hacking | https://metr.org/blog/2025-06-05-recent-reward-hacking/ | Reward-hacking incidence in frontier-model runs | 2026-09-15 | 2025-06-05 |
+| METR: Reward Hacking | https://metr.org/blog/2025-06-05-recent-reward-hacking/ | Reward-hacking incidence in frontier-model runs, per task table (RE-Bench 39/128, HCAST 8/1087) | 2026-10-27 | 2025-06-05 |
 | Nick Oak: Tennis XGBoost | https://nickoak.com/posts/tennis-xgboost-autoresearch/ | Reward hacking case study | 2026-09-15 | — |
 | Langfuse: Cautionary Tale | https://langfuse.com/blog/2026-03-24-optimizing-ai-skill-with-autoresearch | Score gained while safety gates were removed | 2026-09-15 | 2026-03-24 |
 | Adversarial Hacker-Fixer Loops | https://arxiv.org/abs/2606.08960 | Hackability of benchmark environments and verifier patching | 2026-09-15 | 2026-06-08 |
