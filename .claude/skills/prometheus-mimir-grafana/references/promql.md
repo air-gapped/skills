@@ -133,7 +133,7 @@ histogram_quantile(0.95,
 - Always `rate()` the buckets before `sum`, before `histogram_quantile`
 - Aggregate by `le` + the grouping dimensions
 
-Native (sparse) histograms (Prometheus 3.x default):
+Native (sparse) histograms — stable since Prometheus 3.8, but scraped only with `scrape_native_histograms: true` (default `false`); otherwise only the classic `_bucket` series exist, so confirm the series shape first:
 - `histogram_quantile(0.95, rate(latency[5m]))` works directly
 - `histogram_count(v)`, `histogram_sum(v)`, `histogram_avg(v)`
 - `histogram_fraction(lo, hi, v)` — fraction of observations in bounds
