@@ -29,7 +29,7 @@ gh api repos/zalando/postgres-operator/releases \
 | v2.0.0 | 2026-07-27 | **fatals on startup**, see below |
 | v2.0.1 | 2026-07-29 | carries the full v2 changelog; **three defects**, not deployable |
 | v2.0.2 | 2026-08-20 | first viable v2 |
-| v2.0.3 | 2026-10-02 | current; bugfix patch over v2.0.2, no default flips beyond image tags |
+| v2.0.3 | 2026-10-02 | current; no default flips beyond image tags, but pgbouncer `auth_type` now follows `password_encryption` — md5-only pooler clients break (`operations.md` §"Connection pooler") |
 
 **Never filter a release list by a pattern built from the versions expected
 to be there.** A `test("v2|v1.14")` filter on the API call above hides the entire

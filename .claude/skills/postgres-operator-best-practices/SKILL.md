@@ -126,7 +126,9 @@ The scram change is the widest blast radius and the easiest to miss: unless a
 cluster sets `password_encryption: md5` under `spec.postgresql.parameters`,
 v2 re-encrypts existing passwords and alters them. Every client driver must
 speak scram before the first cluster rolls. Spilo's `pg_hba.conf` still
-permits md5 for now, but the next tagged Spilo drops md5 entirely.
+permits md5 for now, but the next tagged Spilo drops md5 entirely. Changing
+`password_encryption` on a running cluster's manifest reaches the database
+passwords only after an operator restart.
 
 Also dropped in v2: Postgres 13 support; config options
 `enable_ebs_gp3_migration(_max_size)`, `enable_spilo_wal_path_compat`,
@@ -150,6 +152,10 @@ v2.0.3 is the current patch.
   `ALTER ROLE`-every-sync loop (#3170), global `sidecars` rejected by the
   apiserver (#3159), and the missing chart `strategy.type: Recreate` that
   lets two operators run at once (#3164).
+- **v2.0.3** — pgbouncer `auth_type` follows the cluster's
+  `password_encryption` (default `scram-sha-256`) instead of a hard-coded
+  `md5`. Pooler clients that only speak md5 fail unless the manifest sets
+  `password_encryption: md5`.
 
 **#3170 reproduces on v1.15.1 too — it is a scram bug, not a v2 bug.** On
 v1.15.1 the default is still md5, so it bites only on opt-in. When staging

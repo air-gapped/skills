@@ -164,6 +164,12 @@ Note the pooler interacts with the scram bug in `upgrade-v1-v2.md` (#3170):
 pgbouncer doing SCRAM pass-through with `auth_query` breaks when the operator
 rewrites role passwords every sync cycle.
 
+From v2.0.3 the pooler's pgbouncer `auth_type` is the cluster's
+`password_encryption` (unset or unrecognised -> `scram-sha-256`); earlier
+releases hard-code `md5`. To keep md5-only clients working behind the pooler,
+set `password_encryption: md5` under `spec.postgresql.parameters`, then
+restart the operator so the database passwords follow.
+
 ## Configuration hygiene worth auditing
 
 Four defaults that commonly sit wrong in long-lived deployments:

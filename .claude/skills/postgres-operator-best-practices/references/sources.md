@@ -50,6 +50,7 @@ inferred from release notes alone.
 | #2946 | https://github.com/zalando/postgres-operator/issues/2946 | the Endpoints deprecation warning, filed against v1.14.0; @FxKu on EndpointSlice not being usable | — |
 | #2955 / #2961 | https://github.com/zalando/postgres-operator/pull/2955 | ConfigMap-switch prerequisites landing in v1.15.x (`compareServices`; configmap RBAC) | merged |
 | #2893 | https://github.com/zalando/postgres-operator/pull/2893 | operator CPU limit removed | merged |
+| #3177 / #3193 | https://github.com/zalando/postgres-operator/pull/3193 | v2.0.3: pgbouncer `auth_type` from `md5` to `$CONNECTION_POOLER_AUTH_TYPE` = `password_encryption` (`passwordEncryptionFromSpec`, scram fallback); md5-only pooler clients must pin `password_encryption: md5`. Operator restart needed for a manifest `password_encryption` change: `docs/migrate.md` + `docs/user.md` at v2.0.3; code reads it once in `cluster.New` | merged (2026-09-01 / 2026-09-30), both in v2.0.3 |
 | #3004 / #3102 / #3117 | https://github.com/zalando/postgres-operator/pull/3102 | CRDs generated from Go structs (cause of the ~7× CRD size growth and #3159) | merged |
 
 ## Volatile facts to re-verify on every freshen
