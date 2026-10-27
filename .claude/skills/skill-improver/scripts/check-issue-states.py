@@ -49,7 +49,9 @@ RE_URL = re.compile(r"github\.com/([\w.-]+)/([\w.-]+)/(issues|pull)/(\d+)")
 # owner/repo#N — the short form; not preceded by a path or URL character.
 RE_SHORT = re.compile(r"(?<![\w/.#-])([A-Za-z0-9][\w.-]*)/([\w.-]+?)#(\d+)\b")
 # #N with no repo: cannot be resolved, so it is counted, never passed as clean.
-RE_BARE = re.compile(r"(?<![\w/#&])#(\d{2,6})\b")
+RE_BARE = re.compile(
+    r"(?<![\w/#&\[])#(\d{2,6})\b"
+)  # [#N](url) is link text; the URL is checked
 
 SAYS_OPEN = re.compile(
     r"\b(still open|remains open|is still open|currently open|still unfixed|"
@@ -286,7 +288,7 @@ def selfcheck():
         ("open-webui", "open-webui", 1234)
     }
     assert not short_refs("https://" + "github.com/o/r/issues/7#issuecomment-1")
-    assert RE_BARE.findall("#30760 is open; color &#123; a/b#9") == ["30760"]
+    assert RE_BARE.findall("#30760 is open; color &#123; a/b#9; [#77](u)") == ["30760"]
 
     print("selfcheck OK — 6 real defects caught, 4 deliberate phrasings exempt")
     return 0
