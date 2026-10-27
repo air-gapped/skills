@@ -28,7 +28,7 @@ older majors so `pg_upgrade` flows work.
 
 ## 2.0.3  (2026-10-02)
 
-- **k8s floor / Spilo image / PG majors:** unchanged — `1.27+`, `spilo-17:4.1-p2`, PG 14–18 (README table at v2.0.3).
+- **k8s floor / Spilo image / PG majors:** unchanged — `1.27+`, `spilo-18:4.1-p2`, PG 14–18 (README table at v2.0.3).
 - **Breaking — pooler auth type now follows the cluster's `password_encryption` (#3177, #3193).**
   2.0.2 and earlier rendered pgBouncer with md5 auth. 2.0.3 sets `CONNECTION_POOLER_AUTH_TYPE` from
   `spec.postgresql.parameters.password_encryption` and falls back to **scram-sha-256** when unset.
@@ -74,7 +74,7 @@ older majors so `pg_upgrade` flows work.
 ## 2.0.1  (2026-07-29)
 
 - **k8s floor: `1.27+` — published in the repo README's support table** (corrected 2026-09-15; previously recorded here as unstated by upstream) (as before); the release exists because k8s is deprecating the bare Endpoints API — see the configmaps flip under 2.0.0.
-- **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.1-p2` (default PG17)
+- **Bundled Spilo image:** `ghcr.io/zalando/spilo-18:4.1-p2` (default PG18)
 - **Bundled PostgreSQL majors:** 14 – 18 (PG13 dropped, PG18 added at 2.0.0)
 - **Breaking:** none beyond 2.0.0 — hotfix release.
 - **CRD migrations:** fixes the 2.0.0 OperatorConfiguration CRD type mismatch that broke GitOps pipelines (diff/apply loops). Never 2.0.0. **But 2.0.1 is also superseded — use ≥ 2.0.2**: it still carries the scram `ALTER ROLE` write-loop and a second CRD schema gap on `sidecars`. See §2.0.2.
@@ -83,7 +83,7 @@ older majors so `pg_upgrade` flows work.
 ## 2.0.0  (2026-07-27)
 
 - **k8s floor: `1.27+` — published in the repo README's support table** (corrected 2026-09-15; previously recorded here as unstated by upstream); CI against currently-supported upstream minors at release (2026-07). The `kubernetes_use_configmaps` default flip (below) is explicitly motivated by the upstream Endpoints API deprecation.
-- **Bundled Spilo image:** `ghcr.io/zalando/spilo-17:4.1-p2` (default PG17; bundle includes PG18)
+- **Bundled Spilo image:** `ghcr.io/zalando/spilo-18:4.1-p2` (default PG18). The v2.0.x release notes say `spilo-17`; the chart, the CRD default and `config.go` all say `spilo-18` — trust the code.
 - **Bundled PostgreSQL majors:** 14 – 18 (**PG13 dropped**, **PG18 added**)
 - **Breaking:**
   - **`kubernetes_use_configmaps` is now `true` by default** ("because endpoints will disappear", #3102/#3116) — the flip foreshadowed at 1.15.0 landed here. Fleets that never migrated their DCS off Endpoints get flipped by the operator bump; the 1.15.0 split-brain warning applies at upgrade time. To defer, explicitly set `kubernetes_use_configmaps: false` before bumping and plan the migration window separately (§1.15.0 for the two supported paths).
@@ -149,7 +149,7 @@ older majors so `pg_upgrade` flows work.
 ## Cross-cutting (all in-scope versions)
 
 - **Operator k8s floor is published, not loose — corrected 2026-09-15.** The repo README carries a "Supported Postgres & K8s versions" table giving **`1.27+`** for every release from v1.11.0 to v2.0.2. The earlier text here said no such matrix exists; it has existed throughout. The operator uses standard client-go and CRD v1; it has run cleanly on every supported upstream k8s minor in the 1.13 – 2.0 lifetime. Verdict against k8s ≥ 1.27 is "compatible barring CRD-conversion-webhook regressions". Below 1.25, treat as unverified.
-- **Postgres 18 requires v2.** 1.15.x ships Spilo-17 4.0-p3 (PG 13–17, no PG18). PG18 landed at v2.0.0 (2026-07-27) via Spilo-17 4.1-p2 — the "Q1 2026" target slipped ~2 quarters and arrived as a major. Surveying for PG18 readiness: available on v2.0.1+ only.
+- **Postgres 18 requires v2.** 1.15.x ships Spilo-17 4.0-p3 (PG 13–17, no PG18). PG18 landed at v2.0.0 (2026-07-27) via Spilo-18 4.1-p2 — the "Q1 2026" target slipped ~2 quarters and arrived as a major. Surveying for PG18 readiness: available on v2.0.1+ only.
 - **Connection pooler (pgBouncer):** coupled to the operator version via the `connection_pooler_image` config default. Each operator minor bumps the default pgBouncer image; manually pinned values stick across upgrades. Verify after operator bump that the pooler image still pulls and is on a supported pgBouncer line.
 - **logical-backup image:** versioned with the operator (`ghcr.io/zalando/postgres-operator/logical-backup:vX.Y.Z`). Bump in lockstep with the operator — mismatched logical-backup vs operator is unsupported.
 - **standby cluster behavior:** unchanged through 1.13 – 1.15. The 1.15.0 release notes use standby clusters as a migration aid for the configmaps flip but introduce no semantic changes.
