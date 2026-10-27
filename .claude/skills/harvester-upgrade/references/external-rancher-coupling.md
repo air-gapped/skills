@@ -25,8 +25,8 @@ only the **order** is mandatory.
 |---|---|---|---|
 | 1.5.x | 2.11.0 | 1.5.x | 4.0.5 |
 | 1.6.x | 2.12.0 | 1.6.x | 4.1.0 |
-| 1.7.x | 2.13.0 | 1.7.x | 4.13.0 |
-| 1.8.x | 2.14.0 | 1.8.x | 4.23.0 |
+| 1.7.x | 2.13.0 | 1.7.x | 4.32.0 |
+| 1.8.x | 2.14.0 | 1.8.x | 4.30.0 |
 | 1.9.x | 2.15.0 | 1.9.x | 4.45.0 (row is in the v1.10 dev docs only) |
 
 - The **UI extension is the join of both axes** — its minor must match the Harvester minor *and* be supported
