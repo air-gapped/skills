@@ -114,9 +114,11 @@ MTEB-R, and 58.36 vs 64.64 on MMTEB-R — it actively reorders good results into
 worse ones. `jina-v2-base` does the same. This skill previously used
 bge-reranker-v2-m3 as its worked example; treat it as **superseded**.
 
-⚠️ **These are Qwen's numbers for Qwen's models.** A third-party comparison
-([aimultiple](https://aimultiple.com/rerankers)) reports the reverse ordering on
-an 18-language BEIR-style eval (BGE 67.64 vs Qwen3-0.6B 59.59). The protocols
+⚠️ **These are Qwen's numbers for Qwen's models.** A third-party benchmark
+([aimultiple](https://aimultiple.com/rerankers): English Amazon reviews,
+multilingual-e5-base top-100, 300 queries) puts Qwen3-Reranker-4B fourth at
+77.67% Hit@1 — behind nemotron-rerank-1b and gte-reranker-modernbert-base (both
+83.00%) and jina-reranker-v3 (81.33%) — at over a second per query. The protocols
 don't reconcile. Build a 100–500 query golden set from the real corpus and A/B
 before committing.
 
@@ -328,7 +330,8 @@ and any harrier number you have not reproduced yourself.
 | All MTEB(Multilingual, v2) scores, ZS column, Nemotron's `—` aggregate | <https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual,%20v2)> | 2026-08-05 |
 | RTEB(beta) field size and Nemotron-3-Embed-8B at #1 | <https://mteb-leaderboard.hf.space/benchmark/RTEB(beta)> | 2026-08-05 |
 | MTEB publishes no speed metric | leaderboard MODELS page enumerates its own fields | 2026-08-05 |
-| Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-08-05 |
+| Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-10-27 |
+| Third-party reranker ranking | <https://aimultiple.com/rerankers> §Key findings (page "Last updated: October 15, 2026"); the earlier 18-language BGE 67.64 vs Qwen3-0.6B 59.59 figures are no longer on the page | 2026-10-27 |
 | Nemotron self-reported RTEB / MMTEB-Retrieval | `nvidia/Nemotron-3-Embed-1B-BF16` → `README.md` | 2026-08-05 |
 | OpenRouter model lists | `GET https://openrouter.ai/api/v1/models?output_modalities={embeddings,rerank}` | 2026-08-05 |
 | OpenRouter real prices | openrouter.ai/models model cards (API pricing metadata is wrong for rerank) | 2026-08-05 |
