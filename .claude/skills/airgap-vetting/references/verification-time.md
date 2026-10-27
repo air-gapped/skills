@@ -47,7 +47,7 @@ trust);
 sigstore policy-controller `TrustRoot` CR accepts a serialized TUF repo for
 air-gap; OpenShift `ClusterImagePolicy` embeds Fulcio CA + Rekor key with
 no callout, and oc-mirror v2 mirrors sigstore signatures alongside images
-(OCP 4.19+).
+(OCP 4.19+; off by default before 4.21 — pass `--remove-signatures=false`).
 
 ## Other signers
 
