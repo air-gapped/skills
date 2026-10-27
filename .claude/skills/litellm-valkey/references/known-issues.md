@@ -53,7 +53,7 @@ See `cluster-sentinel.md` for the full lists: #25447 (cross-user cross-talk, OPE
 
 ## Valkey
 
-#29121 (feature, closed 06-20) drove valkey-search semantic cache; #32324 (OPEN but reportedly fixed on main via PR #32295, ≥v1.92) `_get_async_embedding` kwargs bug; #16207 (closed) ElastiCache-Valkey float version parse; #11243 (closed 2025-09) Redis/Valkey backend didn't initialize in v1.71.x; #34614 reproduces on Valkey. Docs: zero mentions.
+#29121 (feature, closed 06-20) drove valkey-search semantic cache; #32324 (OPEN but reportedly fixed on main via PR #32295, ≥v1.92) `_get_async_embedding` kwargs bug; #16207 (closed) ElastiCache-Valkey float version parse; #11243 (closed 2025-09) Redis/Valkey backend didn't initialize in v1.71.x; #34614 reproduces on Valkey. Docs: `valkey-semantic` backend and IAM-auth pages only.
 
 ## Reading the tracker
 

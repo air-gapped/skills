@@ -63,4 +63,4 @@ A `RedisClusterCache` is built iff `startup_nodes` is present (config `cache_par
 - `valkey_semantic_cache.py` is a dedicated backend (valkey-search module, direct `FT.*`, builds its own `Redis.from_url` clients bypassing `_redis.py`); it **rejects cluster-mode-enabled endpoints with an explicit error** (`valkey_semantic_cache.py:69-76`) — one of the few well-documented corners (`docs/caching/all_caches.md:334-399`).
 - #32324 OPEN at sweep — Valkey semantic cache broken by `**kwargs` vs `metadata` in `_get_async_embedding`; commenters report fixed on main by PR #32295 (2026-07-06), landing ≥v1.92; issue left open.
 - #34614 (redis-py 5.3.1 `ssl_check_hostname` TypeError) reproduces against Valkey.
-- `grep -ri valkey` across the docs corpus: **zero hits** — the support exists only in code and the dashboard UI.
+- Docs mention Valkey only for the `valkey-semantic` backend and IAM-auth pages; Valkey as a plain Redis target is undocumented.
