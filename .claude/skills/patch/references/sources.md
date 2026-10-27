@@ -56,7 +56,12 @@ patch ladder changes.
   abstention, qualified accepts surfaced) and its anti-manipulation
   prologue are adapted (Apache-2.0) from this repo's s11 validation
   personas (`vvaharness/validation/subagents/`, `constants/scoring.py`).
-- Last verified: 2026-08-16  (read from a local clone at the current commit)
+- Latest release v1.5.1 (2026-10-22; v1.5.0 2026-10-09). Read at `0e6f00d`:
+  `vvaharness/validation/constants/scoring.py` `GATE_WEIGHTS` still keys
+  `root_cause` / `instance_coverage` / `no_new_vulnerabilities` /
+  `security_best_practices`, `SKIP` weight-neutral, root-cause and
+  no-new-vulns the critical gates. v1.4.0→v1.5.1 touched that file's comments
+  only; of the persona files only `cross-repo-analyzer.md` changed.
 
 ## Claude Code skills docs (`allowed-tools` semantics, SKILL.md "Tools")
 
