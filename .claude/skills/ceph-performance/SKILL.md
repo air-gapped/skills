@@ -69,11 +69,16 @@ maintenance window.
 - `mds_cache_memory_limit` defaults to 4 GiB; the MDS uses more than this —
   size its pod limit well above it.
 
-## BlueStore allocation
+## BlueStore allocation and WAL
 
 `bluestore_min_alloc_size_hdd` and `_ssd` are both **4 KiB**. The "64 KiB
 on HDD" advice is obsolete. The value is baked in at OSD creation; changing
 it needs the OSD redeployed.
+
+Tentacle turns on `bluefs_wal_envelope_mode` (default true; absent in
+Squid). It cuts RocksDB-WAL `fdatasync` calls by about half, so
+DB/WAL-device IOPS fall after the upgrade. Expected — do not chase that
+drop as a fault.
 
 ## PG autoscaler
 
