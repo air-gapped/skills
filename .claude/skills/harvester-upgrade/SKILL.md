@@ -124,8 +124,9 @@ use the v1.7.0+ pause-map only where available. `references/controlled-flow-and-
 Harvester **blocks** an upgrade that fails these. Run the official pre-check (`bash pre-check/v1.x/check.sh -v`
 from `harvester/upgrade-helpers`) on a control-plane node and clear every failure. The high-value gates:
 
-- **Free system space** ≥ 30 GiB on `/usr/local` **and** projected post-image-load usage < 85% (kubelet
-  imageGC). Fix with `crictl rmi --prune`.
+- **Free system space:** the webhook blocks when (used + 13 GiB) exceeds 85% (kubelet
+  `imageGCHighThresholdPercent`) of the node filesystem — free ≥ 15% of capacity + 13 GiB, which is more than
+  the docs' "30 GiB" on any disk over ~113 GiB. Fix with `crictl rmi --prune`.
 - **All Longhorn volumes `healthy`** — no degraded/faulted, **no single-replica volumes** (they block drain),
   no stale attachments.
 - **All nodes Ready** (none cordoned); **CAPI `local` Provisioned**, machine-count == node-count, all `Running`.

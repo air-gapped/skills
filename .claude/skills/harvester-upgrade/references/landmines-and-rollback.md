@@ -8,8 +8,8 @@ it on a control-plane node and clear every failure).
 
 | Gate | Condition | Source |
 |---|---|---|
-| **Free system space** | ≥ **30 GiB** on `/usr/local` **AND** projected post-image-load usage < **85%** (kubelet imageGC). Fix: `crictl rmi --prune`. Override (avoid): `harvesterhci.io/skipGarbageCollectionThresholdCheck`. | controller; check.sh |
-| **Cert expiry** | No node cert expiring within **7 days**. Override: `harvesterhci.io/minCertsExpirationInDay`. | controller |
+| **Free system space** | (used + **13 GiB**) / capacity of the kubelet node filesystem ≤ **85%** (kubelet `imageGCHighThresholdPercent`) → free ≥ 15% of capacity + 13 GiB. The docs' "≥ 30 GiB on `/usr/local`" is not enforced in code and binds only on disks under ~113 GiB. Fix: `crictl rmi --prune`. Override (avoid): `harvesterhci.io/skipGarbageCollectionThresholdCheck`. | webhook; check.sh |
+| **Cert expiry** | No node cert expiring within **7 days** (check.sh already warns at 10). Override: `harvesterhci.io/minCertsExpirationInDay`. | webhook |
 | **Nodes Ready** | All `Ready`, none cordoned/unschedulable. | check.sh |
 | **Witness (if any)** | ≤1 witness; must carry `node-role.kubernetes.io/etcd=true:NoExecute`. | check.sh |
 | **CAPI healthy** | `clusters.cluster.x-k8s.io/local` = `Provisioned`; machine-count == node-count; all machines `Running`. | check.sh |
