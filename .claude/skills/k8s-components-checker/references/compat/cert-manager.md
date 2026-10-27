@@ -83,9 +83,11 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 - **Notable:** Adds Azure Private DNS support, Gateway-API `parentRef` no
   longer required for ACME, `OtherNames` SAN type promoted to Beta. New
   `extraContainers` Helm value for sidecars (e.g. AWS IAM Roles Anywhere).
-  Security fix for a controller-panic-via-DNS-cache (CVE-class MODERATE,
-  PR #8469) — bump 1.20.0 → 1.20.2 to also pick up CVE-2025-61727 /
-  CVE-2025-61729 Go fixes. 1.20.4 fixes an ingress-shim applyset-label
+  1.20.0 already carries the DNS-response DoS fix (CVE-2026-25518, PR #8469)
+  and the Go 1.25.5 fix for CVE-2025-61727 / CVE-2025-61729. **Security
+  floor: 1.20.3** — CVE-2026-62290 (GHSA-8rvj-mm4h-c258, high: a direct ACME
+  Challenge bypasses the Issuer's DNS01 solver policy) affects ≤ 1.20.2.
+  1.20.4 fixes an ingress-shim applyset-label
   regression (#9315); the 1.20 line will not patch three `golang.org/x/crypto`
   scanner findings (CVE-2026-56855, CVE-2026-78662, GO-2026-5932) — vendor
   confirms cert-manager's own use is unaffected (govulncheck-clean), but a

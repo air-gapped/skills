@@ -285,16 +285,6 @@ Ceiling findings from skill-improver runs.
 
 ## Open
 
-### Per-version "fixed-in vX.Y.Z" / CVE-patch claims not release-grounded (Dim 9) (new 2026-05-30)
-
-- Every `compat/*.md` carrying "fixed in" / "patched in" lines (keda
-  CVE-2025-68476→2.18.3, cert-manager CVE-2025-617xx, argo CVE-2026-42880, ceph
-  data-loss point releases). The release-grounding pass confirmed version
-  *existence* via `releases/latest`, but the gh release-**body** endpoint is
-  confirmatory/contaminated here, so a patch's *changelog contents* can't be
-  trusted from it. Action: author verifies the "fixed-in" patches against real
-  changelogs on a trusted network, then stamp `Last release-verified:`.
-
 ### ES 8.8 / 8.14 exact end-of-maintenance dates UNVERIFIED (new 2026-06-02)
 
 - `compat/eck.md` § "Which ECK minors manage Elasticsearch 8.8 / 8.14 / 8.17?".

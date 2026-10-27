@@ -230,7 +230,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://cert-manager.io/docs/releases/
 - Secondary URL: https://github.com/cert-manager/cert-manager/releases
 - Probe: WebFetch releases page; `gh release list --repo cert-manager/cert-manager`.
-- Last verified: 2026-10-27 — v1.21.3 (2026-10-23, `isLatest`, eMudhra root removed + Go 1.26.10); no new 1.20 patch (sync shows 1.20 unchanged).
+- Last verified: 2026-10-27 — v1.21.3 (2026-10-23, `isLatest`, eMudhra root removed + Go 1.26.10); no new 1.20 patch (sync shows 1.20 unchanged). Security advisories (`gh api repos/cert-manager/cert-manager/security-advisories`): GHSA-8rvj-mm4h-c258 / CVE-2026-62290 `>= 1.18.0, <= 1.20.2` → 1.19.6, 1.20.3; GHSA-gx3x-vq4p-mhhv / CVE-2026-25518 hits ≤ 1.19.2 only (master fix PR #8469 merged 2026-02-02, before v1.20.0); v1.20.0 notes carry the Go 1.25.5 bump for CVE-2025-61727 / CVE-2025-61729 (#8290).
 
 ## Kyverno
 
