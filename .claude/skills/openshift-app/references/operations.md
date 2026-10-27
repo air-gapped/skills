@@ -71,10 +71,12 @@ to terminating pods.
 - TCPRoute, TLSRoute, UDPRoute are alpha and NOT supported
 - Routes and Gateway API coexist
 
-### Service Mesh 3.2
+### Service Mesh 3.x
 
-- Uses Istio 1.27, Kiali 2.17, requires OCP 4.18+
-- **OSSM 2.6 EOL: June 30, 2026** -- migration to 3.x is urgent
+- Current: **OSSM 3.4** (GA 2026-07-09, OCP 4.20-4.22). 3.2 and 3.3 run on OCP 4.18-4.22.
+- OSSM 3.2 uses Istio 1.27, Kiali 2.17
+- **OSSM 2.6 is end of life since 2026-06-30** -- no more fixes; migrate to 3.x
+  first. OSSM 3.0 support ends 2026-10-31 -- target 3.2+.
 - **Ambient mode** (OSSM 3.2+): eliminates sidecar proxies, uses node-level ztunnel
   for L4 mTLS and optional Waypoint proxies for L7. Recommended for new installations.
 
