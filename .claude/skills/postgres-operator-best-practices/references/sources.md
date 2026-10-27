@@ -32,6 +32,8 @@ inferred from release notes alone.
 | v1.15.0 notes | https://github.com/zalando/postgres-operator/releases/tag/v1.15.0 | the fuller DCS migration guide (CONTROLLER_ID + standby paths); missing-images defect (2025-10-21) |
 | K8s Endpoints deprecation | https://kubernetes.io/blog/2025/04/24/endpoints-deprecation/ | "will probably never completely go away"; deprecated in v1.33 |
 | KEP-4974 | https://github.com/kubernetes/enhancements/issues/4974 | deprecates the Endpoints *controller* and conformance requirement, not the API type |
+| Patroni Kubernetes DCS | https://github.com/patroni/patroni/blob/master/patroni/dcs/kubernetes.py | state written to object `metadata.annotations` (`_patch_or_create`, a `V1ConfigMap` with no `data`); `leader_path` is `<scope>-leader` under ConfigMaps, `<scope>` under Endpoints; `-failover` is written only by `set_failover_value`, `-sync` only by the sync-state write |
+| Operator master Service selector | https://github.com/zalando/postgres-operator/blob/v2.0.3/pkg/cluster/k8sres.go | `generateService`: the master Service gets a selector when `kubernetes_use_configmaps` is on, so the `<cluster>` Endpoints is controller-managed after the switch |
 
 ## Issues / PRs (state-sensitive — re-check on freshen)
 
@@ -51,6 +53,7 @@ inferred from release notes alone.
 | #2955 / #2961 | https://github.com/zalando/postgres-operator/pull/2955 | ConfigMap-switch prerequisites landing in v1.15.x (`compareServices`; configmap RBAC) | merged |
 | #2893 | https://github.com/zalando/postgres-operator/pull/2893 | operator CPU limit removed | merged |
 | #3177 / #3193 | https://github.com/zalando/postgres-operator/pull/3193 | v2.0.3: pgbouncer `auth_type` from `md5` to `$CONNECTION_POOLER_AUTH_TYPE` = `password_encryption` (`passwordEncryptionFromSpec`, scram fallback); md5-only pooler clients must pin `password_encryption: md5`. Operator restart needed for a manifest `password_encryption` change: `docs/migrate.md` + `docs/user.md` at v2.0.3; code reads it once in `cluster.New` | merged (2026-09-01 / 2026-09-30), both in v2.0.3 |
+| #3200 | https://github.com/zalando/postgres-operator/issues/3200 | post-switch confusion on v2.0.3: `<cluster>` Endpoints still present with the primary IP, ConfigMaps "not populated" — both expected (see the two rows above) | **open**, unanswered |
 | #3004 / #3102 / #3117 | https://github.com/zalando/postgres-operator/pull/3102 | CRDs generated from Go structs (cause of the ~7× CRD size growth and #3159) | merged |
 
 ## Volatile facts to re-verify on every freshen
@@ -64,8 +67,6 @@ inferred from release notes alone.
   in the next tagged Spilo).
 - Default Spilo image per release line (`spilo-17:4.0-p2` in v1.14.0,
   `spilo-17:4.0-p3` in v1.15.1, `spilo-18:4.1-p2` in v2.0.x).
-- Whether the v1.15.0-notes vs v2-`migrate.md` discrepancy on ConfigMap count
-  (two vs three) has been reconciled upstream.
 
 ## Related
 

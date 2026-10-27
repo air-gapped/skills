@@ -50,16 +50,21 @@ Global, not per-cluster — simpler than it first looks:
 2. Wait until all clusters are healthy, then set
    `kubernetes_use_configmaps: true`. This replaces the primary pod of every
    cluster — **downtime for as long as the pods reschedule and start**.
-3. Confirm each cluster now has ConfigMaps named after it. Then revert step 1
-   and scale back out.
+3. Confirm each cluster now has ConfigMaps named after it. Patroni writes its
+   state into their `metadata.annotations`; empty `data` is normal. Check the
+   lease with `kubectl get cm <cluster>-leader -o jsonpath='{.metadata.annotations}'`.
+   Then revert step 1 and scale back out.
 4. Delete the orphaned Endpoints. They share the ConfigMaps' names and
-   Kubernetes garbage collection will not remove them.
+   Kubernetes garbage collection will not remove them. The `<cluster>`
+   Endpoints with the primary's IP is not one of them. Under ConfigMaps the
+   master Service has a selector, so Kubernetes maintains that object.
 
-**Two documented discrepancies — verify empirically on the first cluster
-rather than trusting either source.** The v1.15.0 release notes say the switch
-creates `<cluster>-config` and `<cluster>-failover`; v2 `migrate.md` says three
-ConfigMaps, adding `-leader`. The v1.15.0 notes also say leftover Endpoints
-"do not cause any harm if you leave them", which is softer than `migrate.md`'s
+**`<cluster>-leader` must exist; the other names can vary.** The v1.15.0
+release notes name only `<cluster>-config` and `<cluster>-failover`. v2
+`migrate.md` adds `-leader`, and that one is essential: under ConfigMaps
+Patroni moves the leader lease from the `<cluster>` Endpoints to
+`<cluster>-leader`. The v1.15.0 notes also say leftover Endpoints "do not
+cause any harm if you leave them". That is softer than `migrate.md`'s
 instruction to delete them.
 
 ## Two lower-downtime paths that `docs/migrate.md` omits
