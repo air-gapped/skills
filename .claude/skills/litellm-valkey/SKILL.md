@@ -21,7 +21,7 @@ The coordination Redis (rate limits, spend counters, pod locks — NOT the respo
 1. **`general_settings.coordination_redis`** in config.yaml — the only clean way to point coordination at its own Redis. First-class since **v1.93.0** (PR #32661, 2026-07-11). **Documented nowhere** as of 2026-07-30.
 2. **A `coordination_redis` block persisted in the DB by the Admin UI** — applied after the config file, so it **silently outranks** it. GitOps drift hazard.
 3. **Borrowing the response-cache client** — iff `litellm_settings.cache: true` and the cache backend is plain Redis (`RedisCache`/`RedisClusterCache`). A semantic/disk/s3 cache is not borrowable.
-4. **`REDIS_*` env fallback** — but steps 3 and 4 live inside `_init_cache`, which only runs on the `cache: true` config branch. **`REDIS_HOST` alone, with no `cache: true` and no `coordination_redis` block, coordinates nothing** — every limit is per-pod while `docs/proxy/prod.md` claims env Redis "shares rate limit counters across instances".
+4. **`REDIS_*` env fallback** — **≥v1.101.0**: applies with or without `cache: true`, but only if the target answers a 2s ping at boot; unreachable or malformed → warning `cross-pod coordination stays in-memory`, and that pod stays per-pod until restarted. **<v1.101.0**: steps 3 and 4 live inside `_init_cache`, which only runs on the `cache: true` branch — **`REDIS_HOST` alone, with no `cache: true` and no `coordination_redis` block, coordinates nothing**. Prefer the explicit block on any version: it is the opt-in that fails loudly.
 
 Two more traps in the same area:
 
@@ -111,7 +111,7 @@ Helm chart wiring (`redis.sentinel.enabled` renders the coordination block from 
 
 ## Non-negotiables before trusting multi-pod enforcement
 
-- **Prove coordination is wired**: `GET /coordination_redis/settings` must name a source. Env vars alone without `cache: true` or a `coordination_redis` block = per-pod everything.
+- **Prove coordination is wired**: `GET /coordination_redis/settings` must name a source. On <v1.101.0, env vars alone without `cache: true` or a `coordination_redis` block = per-pod everything.
 - **≥ v1.93.0** for Sentinel on the core path and for independent coordination config at all. On v1.93.0 specifically, check #34614 (redis-py 5.3.1 `ssl_check_hostname`) before rolling out.
 - **`fail_closed_budget_enforcement: true`** if budget overrun costs real money — the default fails open, and rate limits *always* fail open (no closed mode exists).
 - **Alert on the degradation log strings** (`references/silent-degradation.md` has the exact list) — they are the only signal that the fleet has stopped coordinating.
