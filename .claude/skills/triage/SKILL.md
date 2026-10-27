@@ -481,8 +481,10 @@ instructions plus the single finding under review. The same applies to the
 ranking subagents in 4a.
 
 **Put all verifier Agent calls in a single assistant message** so they run
-concurrently. Do not set `run_in_background`; you need the final text, not
-an async handle. If `len(candidates) * N` exceeds ~40, shard into
+concurrently. Never set `run_in_background: true`; you need each verdict.
+Interactive sessions background subagents by default anyway (fork mode
+on): expect `async_launched` there and use the recovery below. If
+`len(candidates) * N` exceeds ~40, shard into
 sequential batches of ~40, but keep each batch a single message.
 
 **Prompt size at scale — fallback path only.** When the `triage-verifier`
@@ -499,12 +501,14 @@ of `--votes` (a file-level sweep is expensive and doesn't benefit from
 voting).
 
 **If any Agent call returns `status: "async_launched"` instead of the
-verifier's text**, the runtime backgrounded it (some runtimes do this
-automatically for large parallel batches). Pick one recovery and use it for
-the whole batch:
+verifier's text**, the runtime backgrounded it (the default for subagents
+spawned from an interactive main conversation). Pick one recovery and use
+it for the whole batch:
   - If completion notifications arrive in your conversation: parse each
     verifier's VERDICT block from its notification `result` as it lands.
-    Do not end your turn until every vote is accounted for.
+    Notifications arrive in later turns, so ending a turn to wait is fine;
+    hold the phase — no tally, checkpoint or next phase — until every
+    vote's result has arrived.
   - If notifications do not arrive: do not poll transcript files. Re-spawn
     the missing verifiers in a fresh Agent batch (smaller shard size, e.g.
     10) and use the synchronous results.

@@ -89,6 +89,12 @@ s7 dedup stage and s4 finding schema.
   agent. A fork "inherits the entire conversation so far". Omission does not
   fork — the "never fork" rule rests on the fork case, and omission costs the
   verifier/ranker definition.
+- Note (Phase 3b async recovery): "With nothing configured, a subagent that
+  Claude spawns from your main conversation starts in the background"; its
+  "results reach Claude as a completion notification in a later turn"
+  (sub-agents, "Run subagents in foreground or background"). Background
+  subagents keep `Read`, `Grep`, `Glob` ("Available tools"), so the read-only
+  verifier/ranker tool sets survive.
 
 ---
 
