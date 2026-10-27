@@ -20,7 +20,7 @@ dgx-h800-performance       # DGX H800 China SKU
 dgx-b200-performance       # DGX B200, 8× B200 SXM6
 dgx-b300-performance       # DGX B300, 8× B300 SXM6 (DGX bin = 1400W TGP)
 
-# Plus crashdump variants for each, e.g. dgx-h100-crashdump
+# Plus -crashdump variants for each except H800, e.g. dgx-h100-crashdump
 ```
 
 ### Composition
