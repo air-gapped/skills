@@ -28,10 +28,13 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
 | v1.19.9 | 2026-08-19 | AES256K key type support. |
 | v1.19.10 | 2026-08-20 | CVE floor for the 1.19 line. `muteHealthWarning`. rook mgr module disable fix. |
 | v1.19.11 | 2026-09-02 | ceph-csi 3.16.3 (AES256K). Chart values diff from v1.19.6: only `image.tag` and `csi.cephcsi.tag`. CRD delta: cephx `keyType`, `allowedCiphers`, `muteHealthWarning`. |
+| v1.19.12 | 2026-10-14 | RGW waits for every OSD to reach the target Ceph version before rolling (rook#18367). |
 | v1.20.0 | 2026-06-02 | K8s 1.31–1.36. **CSI settings removed from Rook**; `ceph-csi-drivers` chart required; chart order rook-ceph → ceph-csi-drivers → rook-ceph-cluster. Unused CRUSH rules deleted after mgr start (`ROOK_DELETE_UNUSED_CRUSH_RULES`). Experimental `CephObjectStoreAccount` (only works on Ceph main images), two-node floating mon. Encrypted host OSDs auto-expand on disk resize. |
 | v1.20.5 | 2026-08-19 | AES256K key type support. |
 | v1.20.6 | 2026-08-20 | CVE floor for the 1.20 line. Disable-rook-mgr-module recommendation. |
 | v1.20.7 | 2026-09-02 | ceph-csi 3.17.1 (AES256K). Mgr module unset properly when disabled. Toolbox restart note in the CVE guide. |
+| v1.20.8 | 2026-09-29 | K8s up to 1.37. Same RGW gate as v1.19.12. CephX doc quick-fix image corrected to `v20.2.4-20260818`. |
+| v1.20.9 | 2026-10-14 | With `network.connections.encryption.enabled`, mon connections are also forced to `secure` (`ms_mon_*_mode`); a client forcing `crc` to a mon is refused. |
 | v1.21.0 | 2026-10-06 | K8s 1.32–1.37. **msgr2 required by default** (kernel clients 5.11+, else `network.connections.requireMsgr2: false`; existing mounts stay on msgr1 until remounted). Helm OCI chart tags drop the `v` prefix (`1.21.0`). New NFS installs must create the `.nfs` CephBlockPool. Rook sets no CSI images: `rook-csi-operator-image-set-configmap` is empty, so custom CSI images must be re-added there. Toolbox reloads keyring/`ceph.conf` after rotation. Umbrella supported once 21.2.0 ships. |
 | v1.21.1 | 2026-10-26 | Docs: delete the chart's `ceph-block` StorageClass before upgrading `rook-ceph-cluster` to v1.21 (new immutable CSI secret parameters; PVs unaffected). With no legacy clients, sets `auth_allow_insecure_global_id_reclaim=false` instead of muting the warning. |
 

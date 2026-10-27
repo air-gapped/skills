@@ -42,7 +42,7 @@ relying on it for a newer release.
 |---|---|---|---|
 | v1.18.x | 1.29–1.34 | Reef 18.2, Squid 19.2 | Last line that runs Reef. ceph-csi-operator becomes the default CSI config path. Key rotation experimental. |
 | v1.19.x | 1.30–1.35 | Squid 19.2.0+, Tentacle | **Reef dropped** (min Ceph 19.2.0). AES256K from **v1.19.9**; CVE floor **v1.19.10**. v1.19.11 ships ceph-csi 3.16.3 (AES256K backport). |
-| v1.20.x | 1.31–1.36 | Squid 19.2.0+, Tentacle 20.2.1+ | **Rook no longer deploys CSI** — ceph-csi-operator + new `ceph-csi-drivers` chart required. AES256K from v1.20.5; CVE floor **v1.20.6**. v1.20.7 ships ceph-csi 3.17.1. |
+| v1.20.x | 1.31–1.37 (1.36 before v1.20.8) | Squid 19.2.0+, Tentacle 20.2.1+ | **Rook no longer deploys CSI** — ceph-csi-operator + new `ceph-csi-drivers` chart required. AES256K from v1.20.5; CVE floor **v1.20.6**. v1.20.7 ships ceph-csi 3.17.1. |
 | v1.21.x | 1.32–1.37 | Squid 19.2.0+, Tentacle 20.2.1+, Umbrella 21.2.0+ | **msgr2 required by default**: kernel clients need 5.11+, else set `network.connections.requireMsgr2: false` before the hop. Rook pins no CSI images. Toolbox reloads its keyring after rotation. |
 
 Ceph lines: Reef 18.2.x is EOL (last 18.2.8, 2026-03-20). Squid 19.2.x
