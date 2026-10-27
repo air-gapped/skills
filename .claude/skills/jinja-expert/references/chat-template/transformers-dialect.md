@@ -176,11 +176,11 @@ compiled_template.render(
 
 And `PreTrainedTokenizerBase.apply_chat_template` injects before calling:
 
-- `**self.special_tokens_map` — one variable per special token type:
-  `bos_token`, `eos_token`, `unk_token`, `sep_token`, `pad_token`,
-  `cls_token`, `mask_token`, `additional_special_tokens`.
-- `date_string = strftime_now("%d %B %Y")` as a pre-computed fallback for
-  templates that use it directly rather than calling `strftime_now`.
+- `**self.special_tokens_map` — one variable per *named* special token
+  that is set: `bos_token`, `eos_token`, `unk_token`, `sep_token`,
+  `pad_token`, `cls_token`, `mask_token`. On transformers v5 the extra
+  tokens (`additional_special_tokens` / `extra_special_tokens`) are NOT in
+  the map — hard-code them in the template or guard with `is defined`.
 - Anything else the caller passed as `chat_template_kwargs`.
 
 ### The full list of variables a chat template can expect
@@ -195,8 +195,8 @@ And `PreTrainedTokenizerBase.apply_chat_template` injects before calling:
 | `eos_token` | `str` | e.g. `</s>`, `<|eot_id|>` |
 | `pad_token` | `str` | Often equal to `eos_token` (problematic) |
 | `unk_token` | `str` | Rare in modern templates |
-| `additional_special_tokens` | `list[str]` | Extra special tokens |
-| `date_string` | `str` | Pre-formatted date |
+| `additional_special_tokens` | `list[str]` | **Not injected on v5** — guard with `is defined` |
+| `date_string` | `str` | **Not injected** by transformers — only if the caller passes it as a kwarg |
 | `enable_thinking` | `bool` | Reasoning models (Qwen3-Thinking) |
 | ... | | Anything else the caller passed |
 
@@ -384,8 +384,10 @@ internalize:
    Don't silently emit nothing.
 5. **Non-ASCII in tool arguments**: `tojson` handles it because
    `ensure_ascii=False` is the default. Override only when necessary.
-6. **Time**: `strftime_now(fmt)` is the injected path; `date_string` is
-   pre-computed for convenience.
+6. **Time**: `strftime_now(fmt)` is the only injected path. A template
+   that reads `date_string` must default it:
+   `{%- if not date_string is defined %}{%- set date_string = strftime_now("%d %b %Y") %}{%- endif %}`
+   (the Llama 3.1+/4 pattern).
 7. **Across Python Jinja, minja, minijinja**: parity is not guaranteed.
    For llama.cpp or HF TGI targets, test against the real engine.
 

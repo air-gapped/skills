@@ -94,8 +94,9 @@ and sglang both delegate to `tokenizer.apply_chat_template`, so the
 sandbox is the whole surface. `.append` / `.pop` / `.update` raise
 `SecurityError`; `ext.do` / `ext.i18n` / `ext.debug` are NOT loaded.
 Variables in scope: `messages`, `tools`, `documents`,
-`add_generation_prompt`, all `special_tokens_map` entries, `date_string`,
-plus caller `chat_template_kwargs`.
+`add_generation_prompt`, all `special_tokens_map` entries, plus caller
+`chat_template_kwargs`. `date_string` is NOT injected — a template that
+uses it must default it (`strftime_now(...)` fallback).
 
 Full env config, sandbox rules, and canonical skeleton →
 `references/chat-template/transformers-dialect.md` (env) and

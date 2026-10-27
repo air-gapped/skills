@@ -48,7 +48,7 @@
     {
       "id": 8,
       "question": "Should Ansible when: conditions be wrapped in {{ }} delimiters?",
-      "skill_answer": "No \u2014 when: takes a bare expression; same for failed_when/changed_when/until"
+      "skill_answer": "No — when: takes a bare expression; same for failed_when/changed_when/until"
     },
     {
       "id": 9,
@@ -73,7 +73,7 @@
     {
       "id": 13,
       "question": "Which variables are in scope inside a HuggingFace chat template?",
-      "skill_answer": "messages, tools, documents, add_generation_prompt, special_tokens_map entries, date_string, chat_template_kwargs"
+      "skill_answer": "messages, tools, documents, add_generation_prompt, special_tokens_map entries, chat_template_kwargs (date_string is not injected)"
     }
   ]
 }
