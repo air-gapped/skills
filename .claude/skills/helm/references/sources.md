@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-10-05
+Freshened: 2026-10-27 — every row probed. Helm v4.3.1 / v3.22.1; the null-default leak re-measured on five binaries is subchart-scoped, and two of the three CRD exemplars never templated their CRDs.
 
 **Methodology note for the null-coalescing rows:** their release attributions are confirmable only from each release's own notes, **not** from git ancestry. This project backports, so a fix reaches an older patch release as a *different commit*; comparing the pull request's main-branch merge commit against that tag reports "diverged" even though the fix is in it. Measured here: #31644's merge commit is not an ancestor of v4.1.3, yet v4.1.3's notes credit #31644 — while v4.2.0, which does contain that commit, never mentions it.
 
@@ -22,7 +22,7 @@ not guessable: `norwoodj/helm-docs` tags `v1.14.2`, `dadav/helm-schema` tags
 
 | Source | URL | Last verified | Notes |
 |--------|-----|---------------|-------|
-| Helm releases | https://github.com/helm/helm/releases · https://helm.sh/blog/helm-v3-end-of-life | 2026-10-27 | Latest stable **v4.3.1 (2026-10-15)** (notes: CRD establishment wait under HookOnlyStrategy #32672, golangci-lint bump; nothing on values merging). 4.2 ends at v4.2.4, 4.1 at v4.1.4. **Helm 3 still patched**: **v3.22.1 (2026-10-15)**, Go-vulnerability dependency bumps + k8s.io updates. v4.3.1 notes schedule 4.3.2 and 3.22.2 for 2026-11-11 and 4.4.0 for 2027-01-13, "no further Helm 3 minor releases". Helm 3 EOL blog (2026-06-02): bug fixes and the final feature release on September 9th, 2026 (v3.22.0, published 2026-09-10 00:08 UTC); security fixes end February 10th, 2027. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
+| Helm releases | https://github.com/helm/helm/releases · https://helm.sh/blog/helm-v3-end-of-life | 2026-10-27 | Latest stable **v4.3.1 (2026-10-15)** (notes: CRD establishment wait under HookOnlyStrategy #32672, golangci-lint bump; nothing on values merging). 4.2 ends at v4.2.4, 4.1 at v4.1.4. **Helm 3 still patched**: **v3.22.1 (2026-10-15)**, Go-vulnerability dependency bumps + k8s.io updates. v4.3.1 notes: "no further Helm 3 minor releases"; Helm 3 patches ship alongside Helm 4 patches. Helm 3 EOL blog (2026-06-02): bug fixes and the final feature release on September 9th, 2026 (v3.22.0, published 2026-09-10 00:08 UTC); security fixes end February 10th, 2027. Helm 4.0.0 GA Nov 12 2025 at KubeCon. |
 | Helm docs | https://helm.sh/docs/overview/ | 2026-10-27 | Chart API v2 current. "Charts v3 is in early development and available for experimentation": `HELM_EXPERIMENTAL_CHART_V3=1` + `helm create --chart-api-version=v3`; "Use for testing and feedback only." Helm 4 defaults to server-side apply on new installs. |
 | helm-unittest | https://github.com/helm-unittest/helm-unittest/releases | 2026-10-27 | Latest **v1.2.1** (2026-10-03): v1.2.0 (2026-10-01) "Full helm 4 support"; v1.2.1 fixes the install script on Helm >= 4.3.0 with OCI plugin installation. README: Helm 4 git install needs `--verify=false`; OCI install supported from plugin 1.1.0. |
 | helmfile | https://github.com/helmfile/helmfile/releases | 2026-10-27 | Latest **v1.8.2 (2026-10-16)**; v1.8.0 2026-09-13. Declarative multi-release management; supports Helm 3+4. |
