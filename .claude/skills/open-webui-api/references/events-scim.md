@@ -52,14 +52,14 @@ Base URL `/api/v1/scim/v2`, auth `Authorization: Bearer $SCIM_TOKEN` — **outsi
 | Endpoint | Notes |
 |---|---|
 | `GET /ServiceProviderConfig`, `/ResourceTypes`, `/Schemas` | discovery, unauthenticated |
-| `GET /Users?filter=...` | eq/ne/co/sw/ew/pr operators, incl. externalId; case-sensitivity is non-compliant (#17964/#18039) |
+| `GET /Users?filter=...` | eq/ne/co/sw/ew/pr operators, incl. externalId; case-sensitivity is non-compliant (open-webui/open-webui#17964 / open-webui/open-webui#18039) |
 | `POST|GET|PUT|PATCH /Users(/{id})` | create/read/replace/patch |
 | `DELETE /Users/{id}` | **hard-deletes** the account, its chats and group memberships — irreversible; v0.12.2+ answers 403 for admins. To deactivate, `PATCH` `active: false` (role → pending) |
 | same set for `/Groups` | group membership sync |
 
 Semantics that surprise IdP admins:
 - `active: true` ⇄ role `user`; `active: false` ⇄ role `pending`. SCIM **never demotes an existing admin** (guard in scim.py) — admin role changes stay manual.
-- Since 0.6.37, API-key endpoint restrictions also cover SCIM paths (#19168) — irrelevant for the SCIM token itself, but a restricted `sk-` key cannot probe SCIM endpoints.
+- Since 0.6.37, API-key endpoint restrictions also cover SCIM paths (open-webui/open-webui#19168) — irrelevant for the SCIM token itself, but a restricted `sk-` key cannot probe SCIM endpoints.
 - No soft-delete on deprovision: configure the IdP to **disable** (PATCH `active: false`) on unassign, not delete — a DELETE destroys the account and its chats.
 - ⚠️ **SCIM scope = every account with an OAuth or SCIM link (v0.11.1+); password-only local accounts are invisible.** Below v0.11.1 `GET /Users` listed *every* account. OAuth-signup accounts are still in scope, so an IdP that prunes "users present in Open WebUI but not in the directory" deletes them — on < v0.12.2 including the **primary admin**. Before pointing an IdP at a populated instance, confirm the sync is additive-only, or that every OAuth-linked account exists in the directory.
 

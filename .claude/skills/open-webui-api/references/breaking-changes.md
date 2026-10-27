@@ -14,7 +14,7 @@ The API is officially "experimental" (docs, verbatim: "this is an experimental s
 | 0.6.35 | 2025-11-06 | `GET /api/v1/models/` → `/api/v1/models/list` (collision with OpenAI-compat alias) |
 | 0.6.37 | 2025-11-24 | **`ENABLE_API_KEY` → `ENABLE_API_KEYS`, default flipped to OFF, no fallback for the old name**; key creation permission-gated; restriction vars renamed (those DO fall back); SCIM covered by key restrictions |
 | 0.6.39 | 2025-11-25 | Docling envs consolidated into `DOCLING_PARAMS` (declared breaking) |
-| 0.6.41 | 2025-12-02 | API keys → dedicated table (migration failures #19797); signin rate limiter added |
+| 0.6.41 | 2025-12-02 | API keys → dedicated table (migration failures open-webui/open-webui#19797); signin rate limiter added |
 | 0.6.42 | 2025-12-21 | legacy pre-KB document/tag collections removed |
 | 0.8.0 | 2026-02-12 | analytics + skills routers |
 | 0.8.6 | 2026-03-01 | terminals router |
@@ -22,9 +22,9 @@ The API is officially "experimental" (docs, verbatim: "this is an experimental s
 | 0.9.2 | 2026-04-24 | `CUSTOM_API_KEY_HEADER` added |
 | 0.9.5 | 2026-05-09 | unauthenticated `GET /api/v1/retrieval/` removed |
 | 0.9.6 | 2026-06-01 | key allowlist matched against routed path (another tightening) |
-| 0.10.0 | 2026-06-29 | **`access_control` → `access_grants` (inverted defaults); config storage → flat dot-keys; filter `outlet()` runs on direct API calls by default (#25650)** — API response bodies change; new 403s from permission enforcement on api-key view/delete, speech, image-edit; `ENABLE_RAG_LOCAL_WEB_FETCH`→`ENABLE_LOCAL_WEB_FETCH` (alias kept) |
+| 0.10.0 | 2026-06-29 | **`access_control` → `access_grants` (inverted defaults); config storage → flat dot-keys; filter `outlet()` runs on direct API calls by default (open-webui/open-webui#25650)** — API response bodies change; new 403s from permission enforcement on api-key view/delete, speech, image-edit; `ENABLE_RAG_LOCAL_WEB_FETCH`→`ENABLE_LOCAL_WEB_FETCH` (alias kept) |
 | 0.11.0 | 2026-07-27 | **two new permission keys (`sharing.open_chats`, `access_grants.allow_groups`) that a hard-coded permissions POST silently revokes** (below); `X-Process-Time` header format changed; LDAP server-config gained 3 fields that an old-shaped PUT resets; `notifications` router added; `POST /api/v1/tasks/active/chats` removed; new `ENABLE_PLUGINS` kill switch makes function/tool lists return `200 []` |
-| 0.11.4 | 2026-09-21 | Workspace model `id` must match `^\S+$` — whitespace/tabs refused on create, update and import (`ModelForm`/`ModelAccessGrantsForm`, `models/models.py`); an already-stored whitespace id keeps answering but can't be re-saved until renamed. `GET /images/config/url/verify` **removed**; image-connection tests now `POST /images/verify` with `{engine,url,key}` in the body, not the saved config (`routers/images.py`, commit `64bbdf7a`). A failure mid-stream on `/api/chat/completions` now closes with `data: {"error":{"message":"Chat completion stream failed"}}` + `data: [DONE]` instead of leaving the client hanging on an unfinished stream (`utils/middleware.py`, commit `c0fb36c9`). A tool call streamed with a JSON `null` function name is normalized to `""` and fails immediately as an unknown tool, instead of being persisted and resent to the endpoint on the next turn where a `null` name is invalid (#29690). |
+| 0.11.4 | 2026-09-21 | Workspace model `id` must match `^\S+$` — whitespace/tabs refused on create, update and import (`ModelForm`/`ModelAccessGrantsForm`, `models/models.py`); an already-stored whitespace id keeps answering but can't be re-saved until renamed. `GET /images/config/url/verify` **removed**; image-connection tests now `POST /images/verify` with `{engine,url,key}` in the body, not the saved config (`routers/images.py`, commit `64bbdf7a`). A failure mid-stream on `/api/chat/completions` now closes with `data: {"error":{"message":"Chat completion stream failed"}}` + `data: [DONE]` instead of leaving the client hanging on an unfinished stream (`utils/middleware.py`, commit `c0fb36c9`). A tool call streamed with a JSON `null` function name is normalized to `""` and fails immediately as an unknown tool, instead of being persisted and resent to the endpoint on the next turn where a `null` name is invalid (open-webui/open-webui#29690). |
 | 0.12.0 | 2026-10-10 | **Session JWTs bound to a per-account `session_stamp`** — password change and `POST /users/{id}/sessions/revoke` invalidate every JWT without Redis; out-of-band minted tokens must carry the stamp. **`ENABLE_MFA`**: signin returns a TOTP challenge, `/auths/add` stops returning a token, `/auths/mfa/*` router added. Rolling upgrades unsupported (schema changes, also 0.12.1). |
 | 0.12.4 | 2026-10-25 | **Resource `update` endpoints ignore `access_grants`** — grants change only via `…/access/update` (models, knowledge, prompts, tools, skills, notes, folders, channels, calendars, shared chats); a disallowed audience there is a 403, no longer silently dropped. A ≤0.12.3 script that shares through `update` 200s and changes nothing. |
 
@@ -63,11 +63,11 @@ Mapping: `null` → `[{user, *, read}]`; `{}` → `[]`; each `read.group_ids[i]`
 |---|---|---|
 | `GET /models/list` | `params` → `{}` (incl. the system prompt) | `not write_access`, i.e. not owner, no `write` grant, and not (admin ∧ `BYPASS_ADMIN_ACCESS_CONTROL`) — `models.py:197-200` |
 | `GET /tools/id/{id}` | `content` (the tool source) | no write access — `tools.py:463` |
-| `/api/models`, `/models/list`, `/models/id/{id}` | `meta.knowledge[].data.content` | always; a `field_validator` strips it **and `Models.get_*` rewrites `model.meta` in the DB** — not reversible by downgrading (#27287) |
+| `/api/models`, `/models/list`, `/models/id/{id}` | `meta.knowledge[].data.content` | always; a `field_validator` strips it **and `Models.get_*` rewrites `model.meta` in the DB** — not reversible by downgrading (open-webui/open-webui#27287) |
 
 This is the dangerous shape for GitOps: a read-only service account exports, gets `params: {}`, and a later `import`/`sync` writes the emptied catalog back. Export with an admin token, and diff before syncing. `GET /models/export` is *not* stripped (`models.py:333`) — prefer it over `/models/list` for backups.
 
-**Token accounting inverted.** `usage.prompt_tokens` / `completion_tokens` were cumulative across all model calls in a turn; they now report the **last call only**, while `input_tokens`/`output_tokens`/`total_tokens` stay cumulative (`utils/response.py`, #27031). A 6-round tool loop bills as round 6 — silent undercount for any metering script.
+**Token accounting inverted.** `usage.prompt_tokens` / `completion_tokens` were cumulative across all model calls in a turn; they now report the **last call only**, while `input_tokens`/`output_tokens`/`total_tokens` stay cumulative (`utils/response.py`, open-webui/open-webui#27031). A 6-round tool loop bills as round 6 — silent undercount for any metering script.
 
 **`updated_at` no longer moves on background writes.** `Chats.update_chat_by_id` gained `touch: bool = True`, and ~14 call sites pass `touch=False` (title generation, tags, sources, status, compaction, variables, note-chats). A chat can change materially without its timestamp moving — breaks `updated_at`-based incremental sync.
 
@@ -81,20 +81,20 @@ This is the dangerous shape for GitOps: a read-only service account exports, get
 
 ## Recurring upgrade-failure themes (GitHub, for triage matching)
 
-- API keys break after upgrade: #20673 (`ENABLE_API_KEYS=true` "doesn't work" — check permission gate too), #20942 (keys → 500), the 0.6.37 rename+default-flip itself
-- Migration failures on upgrade: #19797 (missing user.api_key), #21843/#21851 (0.7→0.8), #24253 (Alembic multiple heads)
-- Postgres-specific: #21467 (groups 500 on GROUP BY); `utils/db/download` 400s by design
-- SCIM: #17964/#18039 (filter case-sensitivity), #21280 (externalId, fixed 0.8.1), #24501 (deactivate-on-deprovision request, closed with no fix — DELETE still hard-deletes)
-- Streaming behind buffering proxies (IIS/ARR): #24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
+- API keys break after upgrade: open-webui/open-webui#20673 (`ENABLE_API_KEYS=true` "doesn't work" — check permission gate too), open-webui/open-webui#20942 (keys → 500), the 0.6.37 rename+default-flip itself
+- Migration failures on upgrade: open-webui/open-webui#19797 (missing user.api_key), open-webui/open-webui#21843 / open-webui/open-webui#21851 (0.7→0.8), open-webui/open-webui#24253 (Alembic multiple heads)
+- Postgres-specific: open-webui/open-webui#21467 (groups 500 on GROUP BY); `utils/db/download` 400s by design
+- SCIM: open-webui/open-webui#17964 / open-webui/open-webui#18039 (filter case-sensitivity), open-webui/open-webui#21280 (externalId, fixed 0.8.1), open-webui/open-webui#24501 (deactivate-on-deprovision request, closed with no fix — DELETE still hard-deletes)
+- Streaming behind buffering proxies (IIS/ARR): open-webui/open-webui#24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
 
 ## 0.11.0 issues — triage status (re-checked 2026-10-27)
 
 All closed; match a symptom to the version that fixed it before reporting.
 
-- **#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. Scoped to directory-sourced accounts in v0.11.1; admin deletes refused in v0.12.2. See `events-scim.md`.
-- **#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT`) — fixed by PR #27675 (merged 2026-08-24, v0.11.1). Still 502 on ≥ v0.11.1 = upstream connectivity, not this bug.
-- **#27607 — "Open Sharing" cannot be enabled** — the `sharing.open_chats` model gap; fixed in v0.11.1 (tracked on as #27609).
-- **#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation) — v0.11.1+ rejects non-path-safe ids at create (PR #27660); ids stored earlier still need DB surgery.
-- **#27618 — writing to an older message makes it the branch tip and truncates visible history** (`POST /chats/{id}/messages/{message_id}`) — write side fixed after 0.11.0; the repair PR for chats already cut off was not merged, so those stay truncated.
-- Also closed: **#27641** agentic knowledge search with user-info header forwarding · **#27622** idle timer polling · **#27602** Tavily `fetch_url` `api_base_url` · **#27610** torch import with all-remote engines (slim image drops torch in v0.11.4) · **#27651** `runAsNonRoot: true` (k8s).
-- Closed but useful for triage: **#27645** docker restart loop on 10.2→11.0 was an empty `WEBUI_SECRET_KEY=` in the shipped compose file, **not** the migrations; **#27581** connections with no access grants locked admins out when `BYPASS_ADMIN_ACCESS_CONTROL=false`.
+- **open-webui/open-webui#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. Scoped to directory-sourced accounts in v0.11.1; admin deletes refused in v0.12.2. See `events-scim.md`.
+- **open-webui/open-webui#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT`) — fixed by PR open-webui/open-webui#27675 (merged 2026-08-24, v0.11.1). Still 502 on ≥ v0.11.1 = upstream connectivity, not this bug.
+- **open-webui/open-webui#27607 — "Open Sharing" cannot be enabled** — the `sharing.open_chats` model gap; fixed in v0.11.1 (tracked on as open-webui/open-webui#27609).
+- **open-webui/open-webui#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation) — v0.11.1+ rejects non-path-safe ids at create (PR open-webui/open-webui#27660); ids stored earlier still need DB surgery.
+- **open-webui/open-webui#27618 — writing to an older message makes it the branch tip and truncates visible history** (`POST /chats/{id}/messages/{message_id}`) — write side fixed after 0.11.0; the repair PR for chats already cut off was not merged, so those stay truncated.
+- Also closed: **open-webui/open-webui#27641** agentic knowledge search with user-info header forwarding · **open-webui/open-webui#27622** idle timer polling · **open-webui/open-webui#27602** Tavily `fetch_url` `api_base_url` · **open-webui/open-webui#27610** torch import with all-remote engines (slim image drops torch in v0.11.4) · **open-webui/open-webui#27651** `runAsNonRoot: true` (k8s).
+- Closed but useful for triage: **open-webui/open-webui#27645** docker restart loop on 10.2→11.0 was an empty `WEBUI_SECRET_KEY=` in the shipped compose file, **not** the migrations; **open-webui/open-webui#27581** connections with no access grants locked admins out when `BYPASS_ADMIN_ACCESS_CONTROL=false`.

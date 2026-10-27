@@ -19,7 +19,7 @@ A ≤0.9.x export (nested blob) cannot be imported into 0.10.x — no translatio
 - `ENABLE_PERSISTENT_CONFIG=false` inverts it: env always wins, API config writes only mutate in-memory state (lost on restart).
 - Exception: `oauth.*` keys are env-driven unless `ENABLE_OAUTH_PERSISTENT_CONFIG=true`.
 - Not ConfigVars at all (env-only, restart to change): `WEBUI_SECRET_KEY`, `ENABLE_SCIM`/`SCIM_TOKEN`, `ENABLE_PASSWORD_AUTH`, `AUDIT_LOG_*`, `ENABLE_ADMIN_EXPORT`, `ENABLE_ADMIN_CHAT_ACCESS`, `CUSTOM_API_KEY_HEADER`, DB/Redis URLs.
-- Known 0.10.0-refactor regressions (rule these out when a config write appears not to apply): #27061 (web-loader reads frozen env; closed "addressed in dev" with no release named — still suspect on 0.11.0), #26761 (boolean DB values ignored), #24743 (connections lost after restart), #24346 (stale Redis overwrites imports).
+- Known 0.10.0-refactor regressions (rule these out when a config write appears not to apply): open-webui/open-webui#27061 (web-loader reads frozen env; closed "addressed in dev" with no release named — still suspect on 0.11.0), open-webui/open-webui#26761 (boolean DB values ignored), open-webui/open-webui#24743 (connections lost after restart), open-webui/open-webui#24346 (stale Redis overwrites imports).
 
 Operational rule: manage runtime config via API (`configs/import` in CI), reserve env for bootstrap + the env-only list.
 
@@ -52,7 +52,7 @@ Per-connection config fields: `model_ids` (allowlist; empty = all), `prefix_id` 
 
 Admin can read keys back via `GET /openai/config` — useful for debugging the upstream directly.
 
-Tool servers (OpenAPI + MCP): `GET|POST /api/v1/configs/tool_servers` — entries `{url, path, type:'openapi'|'mcp', auth_type, headers, key, config, info}`; validate with `/api/v1/configs/tool_servers/verify` before saving (a dead server can hang the UI and crash-loop workers — #22543, #24330).
+Tool servers (OpenAPI + MCP): `GET|POST /api/v1/configs/tool_servers` — entries `{url, path, type:'openapi'|'mcp', auth_type, headers, key, config, info}`; validate with `/api/v1/configs/tool_servers/verify` before saving (a dead server can hang the UI and crash-loop workers — open-webui/open-webui#22543, open-webui/open-webui#24330).
 
 ### Forwarding user identity upstream (per-user attribution)
 
@@ -77,7 +77,7 @@ general_settings:
       litellm_user_role: customer   # customer = same end_user field as user_header_name; first present header wins
 ```
 
-Both paths converge on the same `end_user_id` (`auth_utils.py:get_end_user_id_from_request_body` checks customer mappings first, then falls back to `user_header_name`), so spend logs / Customers look identical after switching. Use `litellm_user_role: customer`, NOT `internal_user` — the latter writes `user_api_key_dict.user_id` (the internal-user column) instead of `end_user`. Historical caveat: LiteLLM #12893/#14667 reported the mappings path broken with OWUI on older versions (source-verified working on post-v1.92.1 main; see the traefik-hardening skill's ledger) — if `end_user` stays empty on an older running version, fall back to `user_header_name`.
+Both paths converge on the same `end_user_id` (`auth_utils.py:get_end_user_id_from_request_body` checks customer mappings first, then falls back to `user_header_name`), so spend logs / Customers look identical after switching. Use `litellm_user_role: customer`, NOT `internal_user` — the latter writes `user_api_key_dict.user_id` (the internal-user column) instead of `end_user`. Historical caveat: LiteLLM BerriAI/litellm#12893 / BerriAI/litellm#14667 reported the mappings path broken with OWUI on older versions (source-verified working on post-v1.92.1 main; see the traefik-hardening skill's ledger) — if `end_user` stays empty on an older running version, fall back to `user_header_name`.
 
 Spend tracking and per-end-user budgets are then a property of the **gateway** (LiteLLM), not OWUI — OWUI's only job is emitting the header.
 
@@ -102,7 +102,7 @@ With `api_type: "responses"` on the connection, Open WebUI converts chat request
 - vLLM/engine-level knobs (`chat_template_kwargs`, …) survive Open WebUI but are typically **dropped by the upstream's Responses route** (verified: LiteLLM `/v1/responses`). Use the OpenAI-standard Responses params instead — `reasoning: {"effort": ...}` reaches the engine and enables thinking.
 - `convert_responses_result()` rebuilds non-streaming answers from `message`/`output_text` items only — **reasoning items are silently discarded for non-streaming API callers**. Streaming callers (and the UI) receive the raw event stream (`response.reasoning_text.delta`, …). Always test reasoning with `stream: true`.
 - Usage accounting still proves thinking server-side: `output_tokens_details.reasoning_tokens > 0`.
-- **v0.11.4 fixes two Responses-conversion bugs (both `routers/openai.py`).** Before, a Chat-Completions tool with no explicit `strict` key defaulted to Responses' own `strict: true` instead of Chat-Completions' `false`, so the model filled every optional argument and search/filter tools got values meant to be omitted (#30046, `openai.py:1417-1424` — `converted_tool['strict'] = func.get('strict', False)`). And a forced `tool_choice` in Chat-Completions shape was forwarded unconverted (providers rejected it) and a **non-streaming** reply carrying a function call flattened to empty text with `finish_reason: "stop"`; both now convert (#30095, `openai.py:1428-1466` — forced choice becomes `{"type":"function","name":...}`, `function_call` output items become `tool_calls` with `finish_reason: "tool_calls"`).
+- **v0.11.4 fixes two Responses-conversion bugs (both `routers/openai.py`).** Before, a Chat-Completions tool with no explicit `strict` key defaulted to Responses' own `strict: true` instead of Chat-Completions' `false`, so the model filled every optional argument and search/filter tools got values meant to be omitted (open-webui/open-webui#30046, `openai.py:1417-1424` — `converted_tool['strict'] = func.get('strict', False)`). And a forced `tool_choice` in Chat-Completions shape was forwarded unconverted (providers rejected it) and a **non-streaming** reply carrying a function call flattened to empty text with `finish_reason: "stop"`; both now convert (open-webui/open-webui#30095, `openai.py:1428-1466` — forced choice becomes `{"type":"function","name":...}`, `function_call` output items become `tool_calls` with `finish_reason: "tool_calls"`).
 
 ## Defaults, ordering, task models
 
