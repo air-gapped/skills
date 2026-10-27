@@ -1,6 +1,6 @@
 ---
 name: responses-api
-description: Reference for the OpenAI Responses API (/v1/responses), OpenResponses open standard, and Codex CLI. Covers the request/response schema, previous_response_id, Conversations API, server-side compaction, WebSocket transport, hosted Shell tool, Skills, tool_search, MCP connectors, prompt caching, phase field, 53 typed streaming events, 10-backend support matrix (vLLM, llama.cpp, mistral.rs, Ollama, LiteLLM, SGLang, Llama Stack, TensorRT-LLM, Bifrost, Lemonade), and Chat Completions translation with 17 gotchas.
+description: Reference for the OpenAI Responses API (/v1/responses), OpenResponses open standard, and Codex CLI. Covers the request/response schema, previous_response_id, Conversations API, server-side compaction, WebSocket transport, hosted Shell tool, Skills, tool_search, MCP connectors, prompt caching, phase field, 59 typed streaming events, 10-backend support matrix (vLLM, llama.cpp, mistral.rs, Ollama, LiteLLM, SGLang, Llama Stack, TensorRT-LLM, Bifrost, Lemonade), and Chat Completions translation with 17 gotchas.
 when_to_use: Triggers on responses endpoint, output items, InputItem, OutputItem, conversations endpoint, /v1/responses/compact, compaction output item, phase field, tool_search, hosted shell, reasoning.encrypted_content, Codex CLI client_metadata, previous_response_id, conversation field, OpenResponses spec, prompt_cache_key, or migrating off the Assistants API. Also on "implementing Responses API", "proxying OpenAI Responses", "debugging streaming event order", "translating Chat Completions to Responses", or reviewing per-backend Responses quirks.
 argument-hint: "[topic: spec, streaming, translation, backends, adoption]"
 ---
@@ -33,7 +33,7 @@ Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Co
 | Tool calls | `message.tool_calls[].function` | Separate `function_call` output items |
 | Tool results | `{"role":"tool","tool_call_id":"..."}` message | `{"type":"function_call_output","call_id":"..."}` input item |
 | State | Client manages full history | Server via `previous_response_id` OR `conversation` (Conversations API) |
-| Streaming | Single delta event, data-only SSE | 53 typed events (HTTP SSE or WebSocket since 2026-02-23) |
+| Streaming | Single delta event, data-only SSE | 59 typed events (HTTP SSE or WebSocket since 2026-02-23) |
 | Built-in tools | None | web_search, file_search, code_interpreter, computer (GA 2026-03-05), MCP, image_gen, **shell** (2026-02-10), **tool_search** (2026-03-05) |
 | Skills | N/A | Attach via `tools[].environment.skills[]` inside hosted Shell |
 | Reasoning | `reasoning_effort` top-level | `reasoning: {effort: "none".."xhigh" ("max" on GPT-5.6+), generate_summary}` |
@@ -62,7 +62,7 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
 
 - **Spec**: `references/spec.md` — full request/response schema, Conversations
   API, Prompt Caching, Transport Modes, Breaking Changes 2026, OpenResponses spec
-- **Streaming**: `references/streaming-events.md` — all 53 SSE event types,
+- **Streaming**: `references/streaming-events.md` — all 59 SSE event types,
   WebSocket transport, resumable streaming, OpenResponses vs OpenAI event
   naming, per-backend quirks
 - **Translation**: `references/translation-mapping.md` — Chat Completions <->

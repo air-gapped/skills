@@ -1,8 +1,7 @@
 # Responses API Streaming Events
 
-Source: openai-python SDK `ResponseStreamEvent` union (53 named types as of
-2026-07-19), community docs, LiteLLM implementation, OpenAI API reference
-through 2026-07-19.
+Source: openai-python SDK `ResponseStreamEvent` union (59 named types at
+v3.39.0), community docs, LiteLLM implementation, OpenAI API reference.
 
 ## Contents
 - [Wire Format](#wire-format) — SSE protocol with `event:` + `data:` fields
@@ -162,6 +161,20 @@ bridge path but the Azure passthrough remains broken. Stale-closed
 | `response.custom_tool_call_input.delta` | `delta` |
 | `response.custom_tool_call_input.done` | `input` |
 
+### Shell Call (5)
+| Event | Key fields |
+|-------|-----------|
+| `response.shell_call_command.added` | `command`, `command_index`, `output_index` |
+| `response.shell_call_command.delta` | `delta`, `command_index` |
+| `response.shell_call_command.done` | `command`, `command_index` |
+| `response.shell_call_output_content.delta` | `delta: {stdout?, stderr?}`, `command_index`, `item_id` |
+| `response.shell_call_output_content.done` | `output[]: {stdout, stderr, outcome: exit{exit_code} \| timeout}` |
+
+### Compaction (1)
+| Event | Key fields |
+|-------|-----------|
+| `response.compaction.compacting` | `item_id`, `output_index` — progress signal only, carries no summary content |
+
 ### Audio (4)
 | Event | Key fields |
 |-------|-----------|
@@ -207,13 +220,13 @@ response.completed -> [DONE]
 ## New Output Item Types (2026)
 
 The following output item types were added in 2026-02 and 2026-03. They flow
-through the existing `response.output_item.{added,done}` envelope — no new
-dedicated stream event names were introduced:
+through the existing `response.output_item.{added,done}` envelope; `shell_call`
+and `compaction` also have the dedicated events listed under Event Categories:
 
 | Output item type | Added | Surfaces as |
 |------------------|-------|-------------|
-| `compaction` | 2026-02-10 | Single encrypted item via `output_item.added`/`done` when `context_management.compact_threshold` crossed. Drop prior items when chaining stateless. |
-| `shell_call` + `shell_call_output` | 2026-02-10 | Hosted Shell tool invocation pair. No dedicated delta events — args arrive via `function_call_arguments.*` style flow. |
+| `compaction` | 2026-02-10 | Single encrypted item via `output_item.added`/`done` when `context_management.compact_threshold` crossed; `response.compaction.compacting` may arrive in between. Drop prior items when chaining stateless. |
+| `shell_call` + `shell_call_output` | 2026-02-10 | Hosted Shell tool invocation pair. Commands and stdout/stderr stream through the `response.shell_call_command.*` / `response.shell_call_output_content.*` events, keyed by `command_index`. |
 | `tool_search_call` + `tool_search_output` | 2026-03-05 | Tool search (gpt-5.4+). Resolves deferred function tools. |
 | `output_video` | 2026-03-12 | Sora video output. |
 | `mcp_approval_request` + `mcp_approval_response` | ongoing | Surfaces when `require_approval` is non-"never". Client replies with `mcp_approval_response` input item. |
@@ -255,9 +268,9 @@ The server resumes from the sequence after the given number. Persist
 ## OpenResponses vs OpenAI events
 
 OpenResponses open spec is deliberately minimal — 25 named event types vs
-OpenAI's 53 (count from the 2026-01-15 spec; the 2026-04-24 release added
-WebSocket transport and the `phase` field but the ~28-event gap remains
-tool/MCP/audio/compaction/shell/tool_search — OpenAI-proprietary).
+OpenAI's 59 (OpenResponses count from the 2026-01-15 spec; the 2026-04-24
+release added WebSocket transport and the `phase` field but the ~34-event gap
+remains tool/MCP/audio/compaction/shell/tool_search — OpenAI-proprietary).
 
 **Named semantic collision — reasoning events:**
 
@@ -301,7 +314,7 @@ item/event types through untouched (e.g., `openai:web_search_call`,
 | `data: {"choices":[{"delta":{"content":"Hi"}}]}` | `event: response.output_text.delta\ndata: {"delta":"Hi",...}` |
 | `data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"..."}}]}}]}` | `event: response.function_call_arguments.delta\ndata: {"delta":"...",...}` |
 | No event field | `event:` field on every SSE message |
-| 1 effective event type | 53 distinct typed events |
+| 1 effective event type | 59 distinct typed events |
 | No lifecycle events | created, in_progress, completed/failed/incomplete |
 | Usage in final chunk (opt-in via stream_options) | Usage always in response.completed |
 | `data: [DONE]` | `data: [DONE]` (same) |

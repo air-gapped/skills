@@ -13,7 +13,7 @@
     {
       "id": 1,
       "question": "How many typed streaming events does the OpenAI Responses API define?",
-      "skill_answer": "53 typed events"
+      "skill_answer": "59 typed events"
     },
     {
       "id": 2,
