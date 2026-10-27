@@ -54,12 +54,13 @@ The SigV4 fix breaks two things:
    20.2.4 yet — until one, `ceph config set client.rgw rgw_sigv4_insecure true`
    (runtime, no restart). Any other unsigned `x-amz-*` header: AWS rejects
    it too — fix the client, no workaround.
-2. **RGW multisite forwarding** (non-master zone → master, e.g. bucket
-   create): `403 AccessDenied` even with every cluster patched
-   (tracker 79698). `rgw_sigv4_insecure` alone does **not** fix it. Set both
-   `rgw_sigv4_insecure: "true"` and `rgw_s3_client_max_sig_ver: "2"` in every
-   zone **before** upgrading. Under Rook, put them in the CephObjectStore
-   `gateway` config or `rook-config-override`.
+2. **Multisite.** Pre-fix zones sign forwarded requests improperly: set
+   `rgw_sigv4_insecure: "true"` in every zone **before** upgrading. If
+   forwarded requests (non-master → master, e.g. bucket create) still get
+   `403 AccessDenied`, also set `rgw_s3_client_max_sig_ver: "2"` — Squid
+   19.2.6 breaks forwarding even between all-19.2.6 zones (tracker 79698 →
+   74579); fixed in 19.2.7, and in Tentacle since 20.2.2. Under Rook, put
+   them in the CephObjectStore `gateway.rgwConfig` or `rook-config-override`.
 
 Both workarounds re-open CVE-2026-54330: scope them to the affected
 clients/zones and revert (`"false"` / `"-1"`) once everything runs a fixed
@@ -143,7 +144,7 @@ pin the SDK/tool to a version before the change.
 | Users and keys | `CephObjectStoreUser` (`spec.keys` to supply keys) | Stable; since v1.17 undeclared extra keys are purged |
 | RGW accounts / IAM | `CephObjectStoreAccount`, `accountRef` on users | **Experimental — only works with `quay.ceph.io/ceph-ci/ceph:main`**, no released Ceph |
 | Notifications | `CephBucketTopic` + `CephBucketNotification` | Kafka SASL via `mechanism` + secret refs; topics are owned by their creating user |
-| Multisite | `CephObjectRealm` / `ZoneGroup` / `Zone` | Set the SigV4 workaround above before 19.2.6 / 20.2.4 |
+| Multisite | `CephObjectRealm` / `ZoneGroup` / `Zone` | Set the multisite SigV4 workaround above before upgrading to 19.2.6+ / 20.2.4+ |
 
 ## References
 
