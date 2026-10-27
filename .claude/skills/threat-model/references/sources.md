@@ -53,6 +53,21 @@ frameworks or upstream harness change.
   buffer; NVD states DoS. Published 2026-01-20.
 - Probe: NVD API `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<id>`.
 
+## Visa vulnerability agentic harness (interview §Q2 baseline + STRIDE-by-kind)
+
+- URL: https://github.com/visa/visa-vulnerability-agentic-harness
+- Probe: local clone, `git grep -n "BASELINES\|STRIDE_BY_KIND" -- vvaharness`;
+  `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`.
+- 2026-10-27: v1.5.1 (2026-10-22), not archived; LICENSE is Apache-2.0
+  (GitHub's detector reports "Other" because of the Visa copyright header).
+- Location: through v1.4.0 `vvaharness/pipeline/stages/s2_threatmodel.py`
+  `_BASELINES` / `_STRIDE_BY_KIND`; from v1.5.0 (2026-10-09)
+  `vvaharness/rules/repo_kinds.py` `BASELINES` / `STRIDE_BY_KIND`.
+- Omission rule: through v1.2.0 the s2 prompt said a baseline item with no
+  surface is omitted silently; from v1.3.0 (2026-09-04) "A disposition is
+  REQUIRED for EVERY item; silent omission is a contract violation" — either a
+  threat (low likelihood allowed) or an `open_questions` entry `<ID>: <reason>`.
+
 ## defending-code reference harness (provenance)
 
 - URL: https://github.com/anthropics/defending-code-reference-harness
