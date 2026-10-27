@@ -7,9 +7,6 @@ Gaps carried from the 2026-07-22 research pass (report:
   State-2 debris specimen, so it exercises the debris path; a kind/k3d cluster
   with rancher-logging installed would exercise Strategy A proper). The runbook
   rests on primary-artifact analysis + the maintainer blog, not a 2026 field run.
-- **Exact deployment/DaemonSet names in runbook step 1/4** were written from chart
-  templates (`rancher-logging` deploy, `<release>-rke2-journald-aggregator` DS) —
-  confirm against a real install on first use; note drift here.
 - **Escaping character table** (shared with logging-operator backlog): open
   #2254/#2255 diffs before asserting which characters change in rendered config.
 - **SUSE response watch**: if SUSE ships an advisory/backport for CVE-2026-54680,
