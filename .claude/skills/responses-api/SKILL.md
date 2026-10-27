@@ -21,7 +21,7 @@ question: which surface does this backend actually serve?
 
 Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Continue.dev, Cline, Zed, Roo-Code, Vercel AI SDK 5+) now default to Responses. 10 backends serve `/v1/responses` — **Llama Stack is the only non-OpenAI backend that implements `/v1/responses/compact`**; the LiteLLM gateway exposes the route too (PR #18697, since 2026-01-06) but as pure passthrough — it only works when the upstream provider supports compaction. Full adoption timeline and per-client status in `references/adoption.md`.
 
-**Last refreshed**: 2026-07-31.
+**Last refreshed**: 2026-10-27.
 
 ## Key Differences from Chat Completions
 
@@ -79,7 +79,7 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
 
 ### Adding Responses API support to a provider
 1. Check the backend support matrix in `references/backend-implementations.md`
-   — the matrix covers 10 backends as of 2026-07-31.
+   — the matrix covers 10 backends as of 2026-10-27.
 2. If the backend serves `/v1/responses` natively, a proxy can pass it
    through opaquely.
 3. If the backend only serves Chat Completions, translation is needed — see

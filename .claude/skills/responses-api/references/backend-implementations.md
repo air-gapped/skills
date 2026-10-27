@@ -5,7 +5,7 @@ pattern internally: convert Responses API input to Chat Completions, run
 inference, convert output back. vLLM and Llama Stack have the deepest
 native handling.
 
-**Last refreshed**: 2026-07-31 (provenance: `references/sources.md`).
+**Last refreshed**: 2026-10-27 (provenance: `references/sources.md`).
 
 ## Contents
 - [Support Matrix](#support-matrix) — feature × backend table

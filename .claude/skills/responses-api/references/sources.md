@@ -1,6 +1,6 @@
 # Sources — responses-api skill
 
-Freshened: 2026-09-22 — every row probed; the `phase` and `prompt_cache_breakpoint` fields and all three tracked issue states reproduce. Engine versions below have advanced as this file predicts — that is expected, not drift.
+Freshened: 2026-10-27 — every row probed (the openai.com post via browser); the streaming-event union, prompt-cache controls and Prompts deprecation moved; tracked issue states unchanged, SGLang #38690 now released.
 
 **Three cited repositories were transferred or renamed** since the last pass. Every old URL still redirects, so none of them would ever have failed a liveness check.
 
@@ -42,12 +42,12 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 (curl/WebFetch) — re-verify via a real browser session.
 `developers.openai.com` docs ARE WebFetch-reachable.
 
-## Tracked issue/PR status (as of 2026-07-31)
+## Tracked issue/PR status (as of 2026-10-27)
 
 | Item | Status |
 |------|--------|
 | vLLM #39584 (parallel tool-call crash) | closed 2026-06-19 (refactor PRs #46030/#47185); fix live-verified on v0.25.1, 2026-07-19 |
-| vLLM #23218 (sequence_number -1) | fixed — live-verified proper numbering on v0.25.1, 2026-07-19 |
+| vLLM #23218 (sequence_number -1) | fixed — live-verified proper numbering on v0.25.1, 2026-07-19 (issue itself closed `NOT_PLANNED` 2026-05-11; the evidence is the live run) |
 | vLLM #38132 (truncation auto 400) | **CLOSED `NOT_PLANNED` 2026-08-11** — an inactivity closure, not a fix; it already no longer reproduced on v0.25.1 (live test 2026-07-19) |
 | vLLM #39624 (DELETE endpoint) | **CLOSED `NOT_PLANNED` 2026-08-14** — inactivity closure, so the endpoint is still absent; absence openapi-confirmed on v0.25.1 and router-confirmed at v0.32.0 (2026-10-27: GET + POST `/cancel` only) |
 | vLLM #36435 (tool XML leakage) | OPEN (state: reopened; re-probed 2026-09-15). **The upstream repro uses a stock parser** (`--tool-call-parser qwen3_coder`), and the maintainers attribute it to a parser-agnostic `if reasoning_parser: ... elif tool_parser:` branch in `_process_simple_streaming_events` — so it is not custom-parser-specific. Filed against 0.17.0rc1.dev; no comment confirms or denies it on v0.25+. Local run 2026-07-19 did not reproduce it, but used a custom Rust parser. Stale-bot notice 2026-08-05; last human comment 2026-05-04 |

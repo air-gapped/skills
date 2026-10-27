@@ -1,6 +1,6 @@
 # Responses API Adoption
 
-**Last refreshed**: 2026-07-31 (provenance: `references/sources.md`).
+**Last refreshed**: 2026-10-27 (provenance: `references/sources.md`).
 
 ## Contents
 - [Timeline](#timeline) — March 2025 launch through July 2026
