@@ -172,7 +172,7 @@ keep serving stale data. [UG]
 
 ## 7. Direction of travel
 
-Mimir 3.1.2's docs say classic *"is set to be deprecated in a future release"* and label ingest storage
+Mimir's docs (3.1 and 3.2) say classic *"is set to be deprecated in a future release"* and label ingest storage
 "(preferred)". [UG] But: **no removal version is announced**, classic is absent from the chart's
 deprecated-features list, and by the chart's own policy (removal in the third major release after deprecation)
 that clock has not started. [UG]

@@ -53,7 +53,7 @@ render against upstream's golden CI fixture, and a Go probe compiled against Mim
 | Unified-proxy migration (nginx → gateway) | https://grafana.com/docs/helm-charts/mimir-distributed/v5.8.x/migration-guides/migrate-to-unified-proxy-deployment/ | The full nginx→gateway key mapping. **Only the `v5.8.x` path resolves** (200) — `latest` 404s; `v5.6.x` now 301s to archive.grafana.com and back until curl's 50-redirect cap (was a 502; the browser shows an error page too). **Archive this** | 2026-10-27 | v5.8.x |
 | Migrate to ingest storage | https://grafana.com/docs/mimir/latest/set-up/migrate/migrate-ingest-storage/ | The two-cluster blue/green procedure and the doubled-cost warning | 2026-09-15 | latest |
 | About Mimir architecture | https://grafana.com/docs/mimir/latest/get-started/about-grafana-mimir-architecture/ | The two supported architectures table, "Ingest storage (preferred)" / "Classic" | 2026-09-15 | latest |
-| About classic architecture | https://grafana.com/docs/mimir/latest/get-started/about-grafana-mimir-architecture/about-classic-architecture/ | The "set to be deprecated in a future release" statement — **no removal version named** | 2026-09-15 | mimir-3.1.2 |
+| About classic architecture | https://grafana.com/docs/mimir/latest/get-started/about-grafana-mimir-architecture/about-classic-architecture/ | The "set to be deprecated in a future release" statement — **no removal version named**; same sentence on the 3.2 docs | 2026-10-27 | latest (3.2) |
 | Run production environment with Helm | https://grafana.com/docs/helm-charts/mimir-distributed/latest/run-production-environment-with-helm/ | Names `classic-architecture` a supported preset; also the external-Kafka path that shares `kafka.enabled: false` | 2026-09-15 | latest |
 | Configure Kafka backend | https://grafana.com/docs/mimir/latest/configure/configure-kafka-backend/ | Supported backends, `message.max.bytes`, partition rule | 2026-09-15 | latest |
 | Perform a rolling update | https://grafana.com/docs/mimir/latest/manage/run-production-environment/perform-a-rolling-update/ | "one ingester at a time", or one whole zone with zone-aware replication | 2026-09-15 | latest |
@@ -67,10 +67,10 @@ render against upstream's golden CI fixture, and a Go probe compiled against Mim
 
 | Source | URL | What it supports | Last verified | Pinned |
 |---|---|---|---|---|
-| grafana/rollout-operator | https://github.com/grafana/rollout-operator | Sequencing, `rollout-group`/`OnDelete` requirement, webhook behaviour, `rollout-paused` availability (v0.36.0+) | 2026-09-15 | v0.24.0 → v0.38.0 across the ladder |
+| grafana/rollout-operator | https://github.com/grafana/rollout-operator | Sequencing, `rollout-group`/`OnDelete` requirement, webhook behaviour, `rollout-paused` availability (v0.36.0+). Upstream latest is v0.41.1 (2026-10-21, `isLatest`); no stable chart bundles anything past v0.38.1 | 2026-10-27 | v0.24.0 → v0.38.0 across the ladder; v0.38.1 at 6.2.x |
 | rollout-operator runbooks | https://github.com/grafana/rollout-operator/blob/main/docs/runbooks.md | Warning about restarting the operator pod (ZPDB race) | 2026-09-15 | main |
 | Helm CRD best practice | https://helm.sh/docs/chart_best_practices/custom_resource_definitions/ | "No support at this time for upgrading or deleting CRDs using Helm" | 2026-09-15 | — |
-| Helm `pkg/kube/ready.go` | https://github.com/helm/helm/blob/main/pkg/kube/ready.go | `statefulSetReady()` short-circuits non-RollingUpdate STS — why `--wait` is not a gate | 2026-09-15 | v3.16.3 |
+| Helm `pkg/kube/ready.go` | https://github.com/helm/helm/blob/main/pkg/kube/ready.go | `statefulSetReady()` short-circuits non-RollingUpdate STS — why `--wait` is not a gate. Same early return at v3.22.1 (latest v3) and on `main` (v4.3.1) | 2026-10-27 | v3.22.1; main |
 | kubectl `objectrestarter.go` | https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/objectrestarter.go | No `OnDelete` guard — disproves the "rollout restart errors" folklore | 2026-09-15 | — |
 
 ## Issues and discussions — cited as evidence of absence
