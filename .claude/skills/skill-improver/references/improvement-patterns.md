@@ -430,7 +430,7 @@ across sections. Not duplication (Pattern 6.1): scattering splits one meaning ac
 - Background knowledge skill missing `user-invocable: false`
 - Script-heavy skill missing `allowed-tools: Bash(python *)`
 - Computationally light skill that could use `effort: low`
-- Complex reasoning skill that could use `effort: xhigh` (Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5) or `effort: max` (those plus Mythos Preview, Opus 4.6, Sonnet 4.6) — but frontmatter `effort` applies to EVERY invocation of the skill, cheap modes included, so prefer pinning effort on the specific subagent call when only one stage is expensive
+- Complex reasoning skill that could use `effort: xhigh` (Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5.5, Opus 5, Opus 4.8/4.7, Sonnet 5.5, Sonnet 5, Haiku 5.5) or `effort: max` (those plus Mythos Preview, Opus 4.6, Sonnet 4.6) — but frontmatter `effort` applies to EVERY invocation of the skill, cheap modes included, so prefer pinning effort on the specific subagent call when only one stage is expensive
 - Skill that would benefit from isolation missing `context: fork` (pair with `agent: Explore` or `agent: Plan` for specialized subagent behavior; since v2.1.218 a forked skill runs in the background under the narrower background-subagent tool set — set `background: false` to block the turn and keep the full set)
 - Windows-targeted skill using `` !`command` `` blocks but missing `shell: powershell`
 

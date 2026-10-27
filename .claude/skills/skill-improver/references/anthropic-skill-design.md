@@ -46,7 +46,7 @@ A skill is a **folder**, not a markdown file. The file system is context enginee
 
 | Field | Description |
 |-------|-------------|
-| `effort` | `low`, `medium`, `high`, `xhigh`, or `max`. `xhigh` on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5, Opus 4.8/4.7, Sonnet 5; `max` on those plus Mythos Preview, Opus 4.6, Sonnet 4.6. **Fable 5.1, Opus 5, Opus 4.8, and Sonnet 5 default to `high`** — start at `xhigh` for coding and agentic work, `max` only where evals show headroom. Fable 5.1, Mythos 5.1 and Opus 5 accept a per-message effort change (beta) that keeps the prompt cache; on every other model a changed effort restarts the cache. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
+| `effort` | `low`, `medium`, `high`, `xhigh`, or `max`. `xhigh` on Fable 5.1, Mythos 5.1, Fable 5, Mythos 5, Opus 5.5, Opus 5, Opus 4.8/4.7, Sonnet 5.5, Sonnet 5, Haiku 5.5; `max` on those plus Mythos Preview, Opus 4.6, Sonnet 4.6. **Every effort-capable model defaults to `high` except Opus 5.5 and Haiku 5.5, which default to `medium`** — an omitted `effort` runs one level lower on Opus 5.5 than on Opus 5; Sonnet 5.5's levels are recalibrated, so re-sweep rather than carry a Sonnet 5 level over. Fable 5.1, Mythos 5.1, Opus 5.5, Opus 5, Sonnet 5.5 and Haiku 5.5 accept a per-message effort change (beta) that keeps the prompt cache; on every other model a changed effort restarts the cache. On Opus 5, `xhigh`/`max` reject `thinking: disabled` with a 400. Inherits from session if omitted. |
 | `paths` | Glob patterns (comma-separated string or YAML list) limiting activation to matching files being worked on. |
 | `context` | `fork` runs in an isolated subagent context. Only for task-oriented skills with explicit instructions. |
 | `agent` | Subagent type when `context: fork`. Built-in: `Explore`, `Plan`, `general-purpose`, or custom from `.claude/agents/`. Default `general-purpose`. |
@@ -258,7 +258,10 @@ Current Claude Code facts that affect skill authoring and runs:
 | v2.1.257 | Fable 5.1 (`claude-fable-5-1`) is the default Fable: 1M context, $10/$50 per Mtok, **$0.25/Mtok cache reads**, default effort `high`, all five effort levels; Opus 5 is the default for most workloads. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` applies one model to **every** subagent, ignoring agent-definition and per-spawn overrides (see `blind-validation.md` §Model selection). |
 | v2.1.269 | `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) raises the Workflow tool's per-run concurrent-agent limit; the 20-subagent cap is unchanged. |
 | v2.1.271 | Medium dynamic-workflow size guideline is 10 agents (`workflowSizeGuideline`); Pro plans default to **small**. |
+| v2.1.280 | Opus 5.5 (`claude-opus-5-5`) is the default Opus: 1M context, $4/$20 per Mtok, cache reads 0.05x, default effort `medium`. |
 | v2.1.283 | `/doctor prompt-audit [path]` audits CLAUDE.md, skills, agents and commands — or the one path given — for instructions written for older models, missing files or commands, and contradictions; report only, edits on request. Use it on a skill directory instead of the v2.1.221 `claude-api` form. |
+| v2.1.284 | Sonnet 5.5 (`claude-sonnet-5-5`) is the default Sonnet: $2/$10 per Mtok, cache reads 0.05x, default effort `high`. The `sonnet` alias moves with it — see `blind-validation.md` §Model selection. |
+| v2.1.293 | Haiku 5.5 (`claude-haiku-5-5`) is the default Haiku: $0.10/$0.50 per Mtok for prompts up to 100K tokens, 5x above; default effort `medium`. |
 
 ### Key Settings
 
