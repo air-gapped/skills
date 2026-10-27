@@ -44,7 +44,7 @@ Missing `X-Scope-OrgID` on Mimir → 401/403 mentioning "org id". Recipes: [refe
 
 ## Grafana MCP
 
-Its tools describe themselves. What they don't say — dead metrics without a time window, the histogram helper collapsing dimensions, `run_panel_query` failing on v2 dashboards, v2 JSONPaths and bracket quoting — is in [references/agent-workflow.md §3a](references/agent-workflow.md#3a-grafanamcp-grafana--official-grafana-mcp-server). Read it before the first MCP call.
+Its tools describe themselves. What they don't say — dead metrics without a time window, the histogram helper collapsing dimensions, server versions below v2.1.1 that break or silently rewrite v2 dashboards, v2 JSONPaths and bracket quoting — is in [references/agent-workflow.md §3a](references/agent-workflow.md#3a-grafanamcp-grafana--official-grafana-mcp-server). Read it before the first MCP call.
 
 ## Reference map
 

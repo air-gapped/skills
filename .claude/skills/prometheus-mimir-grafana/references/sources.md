@@ -44,4 +44,5 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 34 | Prometheus — feature flags | https://prometheus.io/docs/prometheus/latest/feature_flags/ | 2026-09-15 | latest |
 | 35 | Grafana — Dashboard JSON model (Classic / V1 / V2 schemas) | https://grafana.com/docs/grafana/latest/visualizations/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-10-04 | latest |
 | 36 | mcp-grafana v2.0.0 release (tool renames, SSE header change) | https://github.com/grafana/mcp-grafana/releases/tag/v2.0.0 | 2026-10-04 | v2.0.0 |
-| 37 | mcp-grafana #1286 — `run_panel_query` fails on schema-v2 dashboards | https://github.com/grafana/mcp-grafana/issues/1286 | 2026-10-04 | open |
+| 37 | mcp-grafana #1286 — `run_panel_query` fails on schema-v2 dashboards | https://github.com/grafana/mcp-grafana/issues/1286 | 2026-10-27 | closed by PR #1287 (merged 2026-10-05), shipped in v2.0.1 |
+| 38 | mcp-grafana v2.0.1 / v2.1.0 / v2.1.1 releases — v2 dashboard read/write fixes (#1275, #1287, #1357, #1369) | https://github.com/grafana/mcp-grafana/releases/tag/v2.1.1 | 2026-10-27 | v2.1.1 |
