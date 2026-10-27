@@ -220,7 +220,7 @@ chart field splits, S3 credential purge) are in `references/upgrade-path.md`.
 | OSDs with `encryptedDevice: true`: daemon key rotation can leave them in `Init:CrashLoopBackOff` with `Unable to retrieve dmcrypt secret` — ceph-volume's tmpfs remount discards the refreshed lockbox keyring; pod/operator restarts do not fix it (reporter fixed the lockbox LVM tag by hand). Open; rotate a single encrypted OSD's node first | rook#18282 |
 | 19.2.6 → Tentacle below 20.2.4 drops AES256K (20.2.0–20.2.3 predate it): go 19.2.6 → 20.2.4+ only | ceph-users 2026-09-03 |
 | After 19.2.6 → 20.2.4, re-check `ceph config get mon auth_allowed_ciphers`: a cephadm upgrade reset `aes256k` to `aes, aes256k` | tracker 80295 |
-| RGW SigV4 fix (19.2.6 / 20.2.4) rejects presigned PUTs with an unsigned Content-Type (restic, PHP clients); workaround `rgw_sigv4_insecure=true` until 19.2.7 / 20.2.5 | tracker 79674 |
+| RGW SigV4 fix (19.2.6 / 20.2.4) rejects presigned PUTs with an unsigned Content-Type (restic, PHP clients). Squid: go to 19.2.7 (fixed). Tentacle: `rgw_sigv4_insecure=true` until a release after 20.2.4 ships the merged backport | tracker 79674 |
 | Squid→Tentacle: Rook rolls RGW/MDS before all OSDs are upgraded, breaking S3 multipart during the window | rook#18367 |
 | RGW multisite on 19.2.6/20.2.4: SigV4 hardening rejects RGW's own inter-zone forwarding; set `rgw_sigv4_insecure=true` (and `rgw_s3_client_max_sig_ver=2`) **before** upgrading | tracker 79698; Rook ceph-upgrade.md |
 | Fresh mon quorum never forms on kernel 7.0 cold bootstrap (existing quorums unaffected) — collides with the 7.0 AES256K kernel requirement | rook#18370, tracker 80470 |
