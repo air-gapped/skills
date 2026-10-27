@@ -1,16 +1,16 @@
 # Sources — postgres-operator-cloudnative-pg-migration
 
-Freshened: 2026-09-22 — every row probed. CNPG 1.30.0 and Zalando v2.0.2 are both still latest; the barman-cloud plugin moved to v0.15.0 / chart 0.8.0, which sources.md had recorded but three reference files had not picked up.
+Freshened: 2026-10-27 — every row probed, no exceptions. The primary isolation check had been misread from the docs since authoring (it fences on any one unreachable peer); CNPG 1.30.1, plugin v0.15.1, Zalando v2.0.3 and the in-tree Barman removal moving to 1.32.0 are recorded.
 
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
-row and rewrites the stamp below; rows it could not reach carry an inline
+row and rewrites the stamp above; rows it could not reach carry an inline
 exception note instead.
 
-**Freshened: 2026-09-15** (exceptions: 1 row, noted inline)
-
-Full pass. URL liveness swept in bulk; issue and PR states batched per repo
-through the GitHub API; release lists for CNPG, Zalando and
-plugin-barman-cloud enumerated **unfiltered**; local-clone rows checked
+Pass history: 2026-09-22 and 2026-09-15 restamped after full probes. The
+2026-08-25 pass, described here, was a full pass. URL liveness swept in
+bulk; issue and PR states batched per repo through the GitHub API;
+release lists for CNPG, Zalando and plugin-barman-cloud enumerated
+**unfiltered**; local-clone rows checked
 against `cloudnative-pg/cloudnative-pg` at the pinned
 commit and against `origin/main`. Four drifts found and applied: Zalando
 release state (and a Spilo major that was wrong when written), Crunchy #3601
@@ -79,5 +79,5 @@ authoritative.
 - Zalando release state (**v2.0.3 latest, 2026-10-02**; v2.0.2 2026-08-20; Spilo-18 4.1-p2 still the default; PG 14–18). No regression reports in issues opened since v2.0.3 (sweep 2026-10-27).
 - CNPG latest minors + K8s window; PG major support floor: **1.30.1 / 1.29.3** (both 2026-09-23, 12 weeks after the 2026-06-29 train against a prior 5–8); 1.28.4 was the last 1.28; no 1.31 tag or rc at 2026-10-27.
 - **Enumerate release lists unfiltered.** A `test()` pattern built from expected versions hid an entire release line during the 2026-08-25 probe; list everything, then narrow by reading.
-- CNCF incubation outcome (cncf/toc#1961 — still open at 2026-08-25; cncf.io still lists the project at **Sandbox** maturity, so the application has not landed).
-- Open-bug states listed above (esp. #3788, #8902, #652, HA set).
+- CNCF incubation outcome (cncf/toc#1961 — still open at 2026-10-27; cncf.io still lists the project at **Sandbox** maturity, so the application has not landed).
+- Open-bug states listed above (esp. #8902, #652, and the HA set including stale-closed #10430/#10287). #3788 is closed: check whether the running minor carries PR #11337 (1.31+).
