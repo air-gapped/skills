@@ -1,6 +1,8 @@
 # Sources — Skill Design & Agent Skills Ecosystem
 
-Freshened: 2026-09-22 — every row probed; all 41 URLs 200. One version attribution corrected — `/skill-doctor` landed in v2.1.261, not v2.1.271 — and SkillEvaluator now has a real v0.3.0 release shipping what this file still listed as unreleased.
+Freshened: 2026-10-27 — every row probed; every cited URL 200 (the only 404 is the `example/pgtools` placeholder). Claude Code v2.1.272 → v2.1.311: Opus 5.5 (v2.1.280), Sonnet 5.5 (v2.1.284) and Haiku 5.5 (v2.1.293) became the alias defaults — priced in `model-rates.json`, added to the effort and version tables, and the blind-scorer's `sonnet` pin now resolves to Sonnet 5.5; `/doctor prompt-audit <path>` (v2.1.283) replaces the `claude-api` route for auditing one skill. SkillEvaluator is at v0.6.0. A probe's "no 8,000-char listing fallback" absence claim was wrong — the env-vars page states it — so that text stands.
+
+Prior pass 2026-09-22 — every row probed; all 41 URLs 200. One version attribution corrected — `/skill-doctor` landed in v2.1.261, not v2.1.271 — and SkillEvaluator now has a real v0.3.0 release shipping what this file still listed as unreleased.
 
 **Freshened: 2026-09-15** — every row probed. All ~45 URLs resolve; every arXiv citation re-opened and its title, version pin and attributed finding confirmed on the page (SkillOpt still v2, SkillLens still v1, Bennett still v4 — no newer versions); all four X posts re-fetched unexpanded and their quoted text re-confirmed, including the two the file deliberately records as *misattributed* and *unverified-but-not-refuted*, both of which still hold.
 
