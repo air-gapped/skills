@@ -3,9 +3,7 @@
 Freshened: 2026-09-22 — every row probed against local clones. The Visa harness advanced two releases, but the diff is a pure refactor to typed scoring dataclasses: the four gate names, the weights and both thresholds are unchanged in substance.
 
 One row per external reference this skill depends on. `skill-improver freshen`
-probes each URL, classifies staleness, and re-stamps `Last verified:`.
-
-**Freshened: 2026-09-15 — every URL probed and every cited repo checked for archival.** All resolve; none is archived. One URL moved: OWASP's risk-rating methodology now serves from `community.owasp.org`, not `owasp.org/www-community/` — it still returns 200 at the old address, so only the effective URL shows it.
+probes every row and writes the single `Freshened:` header stamp above.
 
 Re-run `/skill-improver freshen patch` quarterly or when the upstream harness's
 patch ladder changes.
@@ -24,7 +22,13 @@ patch ladder changes.
   (the vuln pipeline) never writes `INCIDENTS.json`. Upstream's own patch skill
   carries the same exception since anthropics/defending-code-reference-harness#23
   (2026-07-16). Checked at `d3bea6b` on 2026-10-27.
-- Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16). **The patch ladder itself is unchanged** — `docs/patching.md` still describes the build→reproduce→regress→re-attack tiers, with the regress tier (T2) skipped on targets lacking a `test_command` (only `canary` sets one among the four bundled targets). Four patch-relevant paths moved in the window — `.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`, `harness/prompts/patch_prompt.py` — but as docs/prompt refinement, not a change to the verification tiers this skill delegates to.
+- Status: active, not archived, no GitHub releases or tags. Last push
+  2026-08-06 (anthropics/defending-code-reference-harness#44, Bedrock launch
+  preflights) — nothing after it. The ladder in `docs/patching.md` and
+  `harness/patch_grade.py` is T0 build → T1 PoC stops → T2 tests (skipped
+  without a `test_command`) → re-attack; `vuln-pipeline patch <results_dir>
+  --model M [--bug N]` writes `reports/bug_NN/{patch.diff,patch_result.json}`
+  with `verdict.passed`.
 
 ### Delta worth knowing (2026-06-15 → 2026-07-21)
 
@@ -38,9 +42,8 @@ patch ladder changes.
   that traffic identifiably. Documented in the harness's `docs/security.md` and
   `docs/pipeline.md#usage-marker`.
 - **New detection & response track** (2026-07-16): `dnr-pipeline`, a `dnrcanary`
-  target, and accompanying skills. Out of scope for this skill's patch ladder,
-  but it means the harness is no longer only a scan→triage→patch pipeline —
-  worth knowing before pointing someone at it.
+  target, and accompanying skills. Its run dirs share the `run_*/result.json`
+  exec-mode marker — hence the Phase 0b stop rule (row above).
 - **Bedrock guardrail** (2026-07-06): auth now warns on bare Bedrock model IDs
   missing an inference-profile prefix.
 - Docs pass (2026-07-16) folded per-skill `Status` sections into prose and
@@ -92,5 +95,4 @@ patch ladder changes.
 
 ## Markers
 
-- `<!-- ignore-freshen -->` on a row excludes it from `freshen` probes.
 - `Pinned: <ref>` under a row tells freshen not to advance past that ref.
