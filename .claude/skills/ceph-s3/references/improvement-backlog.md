@@ -6,8 +6,8 @@
   checksums.** (carried 2026-10-03) Not established; only CRC64NVME
   (Tentacle-only) is sourced. Blocked on: a primary source (tracker or
   release note) naming the release, or a test against a Squid RGW with a
-  current AWS SDK. Re-checked 2026-10-03: Squid backports 70736 and 71682
-  still New.
+  current AWS SDK. Re-checked 2026-10-27: Squid backports 70736 and 71682
+  still New; the 19.2.7 notes carry no checksum entry.
 
 ## Resolved this pass (2026-10-03)
 
