@@ -52,9 +52,9 @@ pipeline: the **logging-operator** skill.
   CRD/secret values into fluent.conf unescaped — a newline in a Flow/Output field
   or referenced Secret injects arbitrary fluentd directives (`<match **>
   @type exec` ⇒ RCE in the aggregator). 4.10.0 is affected; the fix exists only on
-  the 6.x line; **no SUSE fix exists as of 2026-07-22** (verified: SUSE CVE page
-  404, NVD reserved, Rancher advisories silent, no ob-team-charts logging commits
-  post-CVE) and none CAN ship as a chart respin.
+  the 6.x line; **no SUSE fix exists as of 2026-10-27** (SUSE's CVE page lists
+  only its `govulncheck-vulndb` entry, Rancher advisories silent, no ob-team-charts
+  logging commits post-CVE) and none CAN ship as a chart respin.
 - **Who can trigger it**: the chart aggregates a `logging-admin` ClusterRole
   (verbs `*` on flows/outputs) into the k8s `admin` role ⇒ **any Rancher
   project-owner**. Blast radius: the aggregator holds every output credential and

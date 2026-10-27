@@ -1,11 +1,11 @@
 # Security detail — CVE-2026-54680 and the precise exposure statement
 
-For convincing stakeholders with facts, not FUD. All claims verified 2026-07-22.
+For convincing stakeholders with facts, not FUD. All claims verified 2026-10-27.
 
 ## The vulnerability
 
-**CVE-2026-54680 / GHSA-mjqf-28ph-426h** (published 2026-06-08, repo-scoped
-advisory; NVD still RESERVED). CVSS **9.9 Critical**. Operator ≤6.5.2 writes
+**CVE-2026-54680 / GHSA-mjqf-28ph-426h** (GHSA published 2026-06-08; NVD
+published 2026-07-29). CVSS **9.9 Critical**. Operator ≤6.5.2 writes
 CRD- and Secret-provided string values into the rendered `fluent.conf`
 **unescaped**; a value containing a newline terminates its directive and injects
 arbitrary fluentd configuration — e.g. a `<match **>` block with `@type exec` —
@@ -20,9 +20,10 @@ in 6.7.0 (#2255). **Deploy 6.7.0, not 6.6.0.**
   vulnerable renderer. The 4.x line is EOL upstream; no backport exists.
 - The `-rancher.N` fork (rancher/ob-team-charts) is **chart-level only** — a fix
   cannot ship as a chart respin; it requires a new operator line.
-- No-fix status verified four ways (2026-07-22): suse.com/security/cve page 404s
-  for the ID · NVD RESERVED · Rancher Security Advisories page lists nothing for
-  logging/fluentd · zero logging commits in ob-team-charts since the advisory.
+- No-fix status re-verified 2026-10-27: SUSE's CVE page lists only its
+  `govulncheck-vulndb` tracking entry, no rancher-logging/logging-operator
+  package · Rancher Security Advisories page lists nothing for logging/fluentd ·
+  zero logging commits in ob-team-charts since the advisory.
   This is verified "affected, unfixed" — not "not affected".
 
 ## Who can trigger it (Rancher RBAC, from the shipped chart)
