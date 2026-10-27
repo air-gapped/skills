@@ -104,8 +104,9 @@ KEDA's metrics apiserver.
    kubectl logs -n keda deploy/keda-operator-metrics-apiserver --tail=100
    ```
    Through 2.21.0, `Ready` does not cover its gRPC link to `keda-operator:9666`
-   (readiness check added after 2.21.0, #8226): a replica that lost it stays in
-   the APIService and fails every request. Look for gRPC connection errors.
+   (readiness check added after 2.21.0, kedacore/keda#8226): a replica that
+   lost it stays in the APIService and fails every request. Look for gRPC
+   connection errors.
 
 3. **Metric exposed?**
    ```bash
@@ -176,9 +177,10 @@ no API to pin a specific pod as "in use".
   QPS (`--kube-api-qps=50 --kube-api-burst=75`).
 - **OOM**. Operator default limits are 1GiB; raise to 2-4Gi for large
   clusters (100+ ScaledObjects).
-- **OpenTelemetry metrics enabled** (seen on 2.21.0, unfixed — #8282): racy OTel
-  metric buffers crash the operator about daily with a nil deref in an OTel
-  callback or `fatal error: runtime: name offset base pointer out of range`.
+- **OpenTelemetry metrics enabled** (seen on 2.21.0, unfixed —
+  kedacore/keda#8282): racy OTel metric buffers crash the operator about daily
+  with a nil deref in an OTel callback or
+  `fatal error: runtime: name offset base pointer out of range`.
   Set `opentelemetry.operator.enabled=false`; Prometheus metrics are unaffected.
 
 ### Metrics apiserver intermittently unresponsive

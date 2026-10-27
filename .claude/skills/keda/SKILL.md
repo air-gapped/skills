@@ -254,18 +254,19 @@ group, following the Kubernetes 0.35 dependency bump. If you run KEDA with
 custom or restricted RBAC, grant the operator `create` and `patch` on
 `events.k8s.io/events` **before upgrading**, or event recording fails. The
 bundled manifests and Helm chart already carry it. Note v2.20.2 then had to
-**restore** the core `""` API group as well (#7922), because client-go's legacy
-event broadcaster still needs it — so a hand-rolled Role wants both.
+**restore** the core `""` API group as well (kedacore/keda#7922), because
+client-go's legacy event broadcaster still needs it — so a hand-rolled Role
+wants both.
 
 **2. Four deprecated scaler fields were removed in v2.20.0**, and a manifest
 still using them breaks:
 
 | Scaler | Removed | Use instead |
 |---|---|---|
-| GCP PubSub | `subscriptionSize` | `mode` + `value` (#7720) |
-| Huawei Cloudeye | `minMetricValue` | `activationTargetMetricValue` (#7436) |
-| InfluxDB | `authToken` in `triggerMetadata` | `authToken` via `resolvedEnv` or `authParams` (#7722) |
-| IBM MQ | the `tls` setting | removed outright (#6094) |
+| GCP PubSub | `subscriptionSize` | `mode` + `value` (kedacore/keda#7720) |
+| Huawei Cloudeye | `minMetricValue` | `activationTargetMetricValue` (kedacore/keda#7436) |
+| InfluxDB | `authToken` in `triggerMetadata` | `authToken` via `resolvedEnv` or `authParams` (kedacore/keda#7722) |
+| IBM MQ | the `tls` setting | removed outright (kedacore/keda#6094) |
 
 **Security:** GHSA-6w3m-4hhp-775q (medium, 2026-06-01) is a connection-string
 parameter injection in the **PostgreSQL scaler**, affecting **≤ 2.19.x** and
@@ -278,17 +279,19 @@ minors: v2.21 covers **1.34–1.36**, v2.20 covers 1.33–1.35, v2.19 covers
 
 ### Open defects worth knowing before you rely on a feature
 
-- **Finalizers could wedge a namespace teardown** on ≤ 2.20.1 (#7950): bulk
-  deletes left ScaledObjects in `Terminating`. Not reproduced on 2.20.2, no fix
-  PR named. If it recurs, a manual `kubectl patch` removing the finalizer
-  clears it.
+- **Finalizers could wedge a namespace teardown** on ≤ 2.20.1
+  (kedacore/keda#7950): bulk deletes left ScaledObjects in `Terminating`. Not
+  reproduced on 2.20.2, no fix PR named. If it recurs, a manual `kubectl patch`
+  removing the finalizer clears it.
 - **CloudEventSource can deadlock the operator** with two or more sources
-  registered (#8039), while still passing its liveness probe. Unfixed through
-  2.21.0: the stale bot closed the issue, the fix PR (#8040) is unmerged.
-- **A busy workload can be scaled to zero** on 2.20.0–2.21.0 (#8298, open): a
-  scalers cache closed mid-poll (e.g. `useCachedMetrics: true` on `metrics-api`)
-  reads as inactive, so with `minReplicaCount: 0` a metrics outage longer than
-  `cooldownPeriod` ends at 0 replicas. Suspect this before retuning cooldown.
+  registered (kedacore/keda#8039), while still passing its liveness probe.
+  Unfixed through 2.21.0: the stale bot closed the issue, the fix PR
+  (kedacore/keda#8040) is unmerged.
+- **A busy workload can be scaled to zero** on 2.20.0–2.21.0
+  (kedacore/keda#8298, open): a scalers cache closed mid-poll (e.g.
+  `useCachedMetrics: true` on `metrics-api`) reads as inactive, so with
+  `minReplicaCount: 0` a metrics outage longer than `cooldownPeriod` ends at 0
+  replicas. Suspect this before retuning cooldown.
 
 ## Gotchas that bite in production
 

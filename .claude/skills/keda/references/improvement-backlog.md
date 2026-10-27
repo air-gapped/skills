@@ -45,7 +45,7 @@ measurement nobody can run.
   v2.20.0 moved event recording to the **`events.k8s.io`** API group, so a
   custom or restricted RBAC role needs `create`/`patch` there **before** the
   upgrade or events stop being recorded. v2.20.2 then had to restore the core
-  `""` group as well (#7922) because client-go's legacy broadcaster still uses
+  `""` group as well (kedacore/keda#7922) because client-go's legacy broadcaster still uses
   it — a hand-rolled Role wants both, which is not obvious from either release
   note alone.
 - **Four deprecated scaler fields were removed in v2.20.0**, so an existing
@@ -61,9 +61,9 @@ measurement nobody can run.
 - **Three open defects recorded**, the first of which is the one most likely to
   be mistaken for a target-side fault: `TriggerAuthentication` resolves auth
   params once at scaler build time and never re-reads them, so a **rotated
-  Secret produces silent 401s** until the ScaledObject is recreated (#7906).
-  Also stuck finalizers wedging namespace teardown (#7950) and a
-  CloudEventSource deadlock that keeps passing its liveness probe (#8039).
+  Secret produces silent 401s** until the ScaledObject is recreated (kedacore/keda#7906).
+  Also stuck finalizers wedging namespace teardown (kedacore/keda#7950) and a
+  CloudEventSource deadlock that keeps passing its liveness probe (kedacore/keda#8039).
 
 ## Resolved — 2026-07-21 (freshen)
 
@@ -72,12 +72,12 @@ measurement nobody can run.
   Source: https://github.com/kedacore/keda/releases/tag/v2.20.1
 - **2.20 `events.k8s.io` upgrade trap** added to `operations.md` Upgrades —
   restricted RBAC needs `create`/`patch` on `events.k8s.io/events` before the
-  upgrade or event recording breaks (PR #7781).
+  upgrade or event recording breaks (PR kedacore/keda#7781).
 - **2.20 CRD validation markers** noted in the CRD-changes bullet — previously
   accepted ScaledObjects (e.g. names > 63 chars) can now fail admission.
 - **`scalingModifiers` fallback** — the "does not fire correctly" caveat in
   `patterns.md` now names 2.20's `fallback.behavior: scalingModifiers` plus the
-  `??` metric-chaining formula. Source: kedacore/keda PR #7790 (merged 2026-05-29).
+  `??` metric-chaining formula. Source: kedacore/keda PR kedacore/keda#7790 (merged 2026-05-29).
 - **HTTP Add-on v0.14.0 → v0.15.0** — HTTP/2 + gRPC (`appProtocol:
   kubernetes.io/h2c`, `KEDA_HTTP_FORCE_HTTP2` removed) and
   `coldStart.placeholder` documented in `patterns.md`; the stale "README says
