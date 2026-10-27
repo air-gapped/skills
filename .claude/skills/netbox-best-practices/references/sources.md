@@ -1,8 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed; NetBox 4.7.1 and the social-auth pins reproduce. The chart line moved past the gap this file recorded: 8.3.78 (2026-09-16) is the first chart pinning 4.7.1, so the staging advice no longer has to stop at a 4.7.0 chart.
-
-**A real dependency break landed in 4.7.0** that this file did not capture: `social-auth-core` was unpinned from `4.8.7` to `5.1.0` (a major), alongside `social-auth-app-django` to v6.0. Re-verified at both tags. The OIDC behaviour cited here is byte-identical between 4.8.7 and 5.1.0, so the guidance holds — but anyone pinning the old version is now off the shipped set.
+Freshened: 2026-10-27 — every row probed against v4.7.3 / chart 8.3.97 tags and the live docs.
 
 Dated index of every external source backing this skill's claims.
 
