@@ -1,6 +1,6 @@
 # Source citations — sgl-model-gateway
 
-Freshened: 2026-09-22 — every row probed against origin/main. Version pins, Docker tags and the policy list are unchanged; three line anchors moved, and the `smg-project/smg` repo is active again after being recorded as dormant since 2026-05-07.
+Freshened: 2026-10-27 — every row probed against origin/main and the published v0.3.2 image `--help`; the image has no mesh flags, vLLM HTTP discovery now registers a model name, and #37554 closed without a fix.
 
 Dated index of every external claim in this skill. The `Last verified` column tracks when the source was last cross-checked against upstream. `freshen` mode (per `skill-improver`) reads and stamps these dates. Manual updates from improve-mode runs are also valid as long as the citation was actually re-verified, not just date-bumped.
 
