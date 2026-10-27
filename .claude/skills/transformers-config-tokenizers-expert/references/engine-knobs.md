@@ -19,19 +19,17 @@ release-to-release but symbol names are stable.
 Flow:
 
 ```
-CLI --default-chat-template-kwargs  (vllm/entrypoints/openai/cli_args.py:109-128)
+CLI --default-chat-template-kwargs  (vllm/entrypoints/common/cli_args.py:104)
   ↓
 OpenAIServingChat.__init__          (chat_completion/serving.py:102-177)
   stores self.default_chat_template_kwargs
   ↓
 create_chat_completion              (chat_completion/serving.py:281)
-  calls _prepare_extra_chat_template_kwargs(
-    request.chat_template_kwargs,
-    self.default_chat_template_kwargs,
-  )
+  calls request.build_chat_params(...)
+          .with_defaults(self.default_chat_template_kwargs)
   ↓
-_prepare_extra_chat_template_kwargs (engine/serving.py:426-433)
-  return default_kwargs | request_kwargs   # dict-union, REQUEST WINS
+ChatParams.with_defaults            (vllm/renderers/params.py:117)
+  merge_kwargs(default_kwargs, request_kwargs)   # REQUEST WINS
   ↓
 renderer.preprocess_chat
   ↓
@@ -129,13 +127,14 @@ or gateway layer — not in sglang.
 
 ## `trust_request_chat_template` (vLLM only)
 
-CLI field at `vllm/entrypoints/openai/cli_args.py:118-120`. Default
+CLI field at `vllm/entrypoints/common/cli_args.py:95`. Default
 `False`.
 
-Enforced via `vllm/entrypoints/chat_utils.py` (the flag moved there in the
-entrypoint-hierarchy refactor #47498; it was
-`openai/engine/serving.py:415-425` pre-mid-2026): a 4xx error if the flag
-is False AND the request carries `chat_template` or `chat_template_kwargs`.
+Enforced by `validate_chat_template` in `vllm/renderers/online_renderer.py`
+(config dataclass `ChatTemplateConfig` in
+`vllm/renderers/chat_utils/chat_template.py`): a 4xx error if the flag is
+False AND the request carries `chat_template` or
+`chat_template_kwargs["chat_template"]`.
 
 Set to `True` only in deployments where every caller is already
 trusted (e.g. behind an auth-gated gateway).
@@ -520,10 +519,10 @@ second call sees the mutation.
 ## Primary sources
 
 **vLLM:**
-- `vllm/entrypoints/openai/cli_args.py:109-128, 334-337`
+- `vllm/entrypoints/common/cli_args.py:95, 104, 421`
 - `vllm/entrypoints/openai/chat_completion/serving.py:102-177, 281`
 - `vllm/entrypoints/openai/chat_completion/protocol.py:208, 212, 279-284, 516`
-- `vllm/entrypoints/openai/engine/serving.py:415-425, 426-433`
+- `vllm/renderers/online_renderer.py` (`validate_chat_template`), `vllm/renderers/chat_utils/chat_template.py`
 - `vllm/renderers/hf.py:334-347, 352-377, 379-424`
 - `vllm/entrypoints/serve/render/serving.py:372-383`
 - `vllm/tool_parsers/abstract_tool_parser.py:80-106`

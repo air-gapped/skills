@@ -217,9 +217,10 @@ Short form:
 - **sglang `chat_template_kwargs`**: literal dict update at
   `serving_chat.py:524-527`. **No allowlist.** Any key reaches
   `apply_chat_template`. Closer to pre-27622 vLLM.
-- **vLLM `trust_request_chat_template`**: default `False`. Rejects
-  per-request `chat_template` or `chat_template_kwargs` unless set
-  True. Enforced at `engine/serving.py:415-425`.
+- **vLLM `trust_request_chat_template`**: default `False`. Rejects a
+  per-request `chat_template` (top-level or as a `chat_template_kwargs`
+  key) unless set True; other kwargs pass. Enforced by `validate_chat_template` in
+  `vllm/renderers/online_renderer.py`.
 - **sglang no equivalent**: request kwargs always accepted; only
   three sites hardcode overrides to `skip_special_tokens=False`
   (gpt-oss/gemma4 models, `request.tools` present, mistral
