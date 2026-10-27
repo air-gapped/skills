@@ -207,7 +207,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://github.com/harvester/harvester/wiki
 - Secondary URL: https://github.com/harvester/harvester/releases
 - Probe: WebFetch the per-version compatibility wiki page; filter to community columns.
-- Last verified: 2026-10-04 — **v1.9.0 (2026-09-16) is `isLatest`**, no 1.9.1 yet; #11356 / #11615 (the 1.9.0 do-not-upgrade warnings) still OPEN. Per line: v1.8.2 (2026-08-06), v1.7.3 (2026-08-07 — one day newer than 1.8.2 but a lower line; sorting by date picks the wrong answer).
+- Last verified: 2026-10-27 — **v1.9.0 (2026-09-16) still the only 1.9 GA**; v1.9.1 at `v1.9.1-rc4` (2026-10-21); #11356 / #11615 (the 1.9.0 do-not-upgrade warnings) still OPEN. SUSE per-line pages `harvester-v1-6-x` / `-v1-7-x` / `-v1-9-x` re-read: Node Driver RKE2 1.31–1.33 / 1.32–1.34 / 1.34–1.36; 1.9 CSI ≥ v0.1.31. Per line: v1.8.2 (2026-08-06), v1.7.3 (2026-08-07 — one day newer than 1.8.2 but a lower line; sorting by date picks the wrong answer).
 
 ## Cilium
 
