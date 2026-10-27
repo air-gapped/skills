@@ -152,6 +152,12 @@ set `.spec.smartShutdownTimeout: 0` on async clusters to cut that to a
 fast shutdown. Patroni is conversely *less* available during plain
 API-server outages (non-failsafe demotes; CNPG keeps serving).
 
+1.31 (merged as #11357, unreleased) moves the fence onto the lease: the
+primary stops PostgreSQL 10–13 s after its last renewal if any peer is
+unreachable **or names a different target primary**, closing the
+replaced-primary case. Plan on the 1.30 behaviour until the running
+minor is ≥1.31.
+
 Prescription: production clusters = 3 instances +
 `synchronous: {method: any, number: 1, dataDurability: required,
 failoverQuorum: true}` → durability-equivalent to Spilo
