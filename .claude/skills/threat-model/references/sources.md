@@ -40,6 +40,17 @@ frameworks or upstream harness change.
   exist only as `type: unreviewed` global records with no package mapping
   (`vulnerabilities: []`), so no GitHub query by repo or package finds them.
 
+## Worked-example CVEs (schema.md example table, bootstrap.md Stage 2)
+
+- CVE-2026-29022 — https://nvd.nist.gov/vuln/detail/CVE-2026-29022 — dr_libs
+  `dr_wav.h` ≤ 0.14.4, heap buffer overflow in
+  `drwav__read_smpl_to_metadata_obj()` via crafted WAV (CWE-122/787), fixed in
+  commit 8a7258c. Published 2026-03-03.
+- CVE-2025-14369 — https://nvd.nist.gov/vuln/detail/CVE-2025-14369 — dr_libs
+  `dr_flac`, integer overflow from trusting `totalPCMFrameCount` before sizing a
+  buffer; NVD states DoS. Published 2026-01-20.
+- Probe: NVD API `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<id>`.
+
 ## defending-code reference harness (provenance)
 
 - URL: https://github.com/anthropics/defending-code-reference-harness

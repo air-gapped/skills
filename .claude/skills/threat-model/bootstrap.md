@@ -181,7 +181,7 @@ enforces.
 **Vuln working table.** Concatenate rows from History miner + Advisory
 fetcher + Vuln-file parser. Dedupe by `id`. For each row, decide which section 3
 entry point it traversed; read the relevant source to confirm (e.g.,
-"CVE-2026-29022 is in `drwav__read_smpl`, reached via the WAV file-parsing
+"CVE-2026-29022 is in `drwav__read_smpl_to_metadata_obj`, reached via the WAV file-parsing
 entry point"). If a vuln's entry point isn't in section 3, the Surface mapper missed
 one; add it now. Hold this table in your working notes; it does **not** go
 into `THREAT_MODEL.md` verbatim. It becomes the `evidence` column in Stage 3.
