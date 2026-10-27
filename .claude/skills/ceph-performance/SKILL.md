@@ -27,8 +27,9 @@ argument-hint: "[mclock|memory|pg|network|ec|client|bench] (optional focus area)
 
 # ceph-performance
 
-Defaults read from `src/common/options/*.yaml.in` at v19.2.6 and v20.2.4,
-docs.ceph.com (tentacle pages) and Rook docs at v1.20.7, on **2026-09-23**.
+Defaults below hold at Ceph v19.2.7 and v20.2.4
+(`src/common/options/*.yaml.in`) and Rook v1.21.1; sources in
+`references/sources.md`.
 Measure before and after every change; `ceph config show osd.N <opt>` is
 the value actually in force.
 
