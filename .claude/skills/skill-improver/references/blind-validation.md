@@ -58,9 +58,11 @@ fallback; update it in the same commit as any agent-definition change.
 
 ## Model selection
 
-**Model: pinned to Sonnet 5 in the agent definition** (`model: sonnet` in
-`.claude/agents/blind-scorer.md` frontmatter). **Omit `model` in the spawn
-call.** The pin lives in one place, so same-run consistency holds by
+**Model: pinned to the `sonnet` alias in the agent definition** (`model: sonnet`
+in `.claude/agents/blind-scorer.md` frontmatter) — Sonnet 5.5 on the Anthropic
+API since Claude Code v2.1.284; other providers and
+`ANTHROPIC_DEFAULT_SONNET_MODEL` can resolve it to an older Sonnet. **Omit
+`model` in the spawn call.** The pin lives in one place, so same-run consistency holds by
 construction. Exception: `batch-workflow.js` `legacyBlindPrompt()` runs without
 the agent definition, states the pin explicitly, and must change with it.
 
@@ -70,7 +72,10 @@ the agent definition, states the pin explicitly, and must change with it.
   same-run consistency survives, the Sonnet pin does not, and totals are not
   comparable with any other run. Check `scripts/run-cost.py` (reports the model
   each scorer ran on) before quoting a score.
-- A new frontier release does not move the pin. Only the re-measurement signal
+- A Sonnet release moves the alias and with it the scorer (Sonnet 5 → 5.5 on
+  2026-09-28): compare a total with an earlier run's only when `run-cost.py`
+  shows both scorers on the same model id. The measurements above are Sonnet 5.
+- A release of another family does not move the pin. Only the re-measurement signal
   does: if blind scores start disagreeing with judgement in ways Opus did not,
   re-measure with the harness in `evals/scorer-sweep.2026-08-20.json`; do not
   quietly switch back.

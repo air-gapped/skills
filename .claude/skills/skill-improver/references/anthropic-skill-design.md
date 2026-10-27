@@ -243,7 +243,7 @@ Current Claude Code facts that affect skill authoring and runs:
 | v2.1.212 | `/fork` copies the conversation to a background session; the old in-session fork is `/subtask`. |
 | v2.1.217 | Default **20** concurrent subagents (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`); nested spawning off by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; nested depth 3 since v2.1.219). `--max-budget-usd` halts running background subagents. |
 | v2.1.218 | `background` frontmatter field. |
-| v2.1.219 | Opus 5 (`claude-opus-5`) is the default Opus; blind-validation pin is Opus 5 (see `blind-validation.md` §Model selection). Dynamic workflows default to a medium size guideline, settable via `workflowSizeGuideline`. |
+| v2.1.219 | Opus 5 (`claude-opus-5`) is the default Opus. Dynamic workflows default to a medium size guideline, settable via `workflowSizeGuideline`. |
 | v2.1.221 | `claude-api` skill `prompt-audit` subcommand audits prompts and tool descriptions for "patterns written for older models" — same target as the model-version-compensation cap (§Boris Alignment Check); run it as a free hypothesis source before a compensation-cap iteration. `claude plugin validate` warns on names Claude Desktop would reject. |
 | v2.1.224 | No per-session subagent spawn cap (the 200 cap was removed). Live bounds: the 20-concurrent cap and the workflow size guideline. |
 | v2.1.228 | Skills synced from claude.ai cannot shadow local commands or MCP prompts; their bodies do not run `!` commands or expand `@` files locally. |
