@@ -18,7 +18,8 @@ command for each step.
   ConnectX firmware. `mlnx_tune` should be on PATH.
 - CUDA toolkit (12.4+ for Hopper, 12.8+ for Blackwell, 13.0+ for production
   vLLM 0.20+).
-- NCCL (2.20+ for `NCCL_NVLS_ENABLE=1` default on, NVLink-Sharp).
+- NCCL (2.17+ for NVLink SHARP / NVLS, on by default; set `NCCL_NVLS_ENABLE=1`
+  on 2.27–2.28 — see `recommended-tunings.md` §G.1).
 - HPCX stack if doing multi-node IB.
 - SLURM or Kubernetes cluster registration.
 - Time sync: chronyd or systemd-timesyncd. Drift > 10ms across nodes

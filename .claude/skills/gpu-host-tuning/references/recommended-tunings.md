@@ -394,7 +394,9 @@ spec. The audit captures whatever's in the running vllm process.
 
 ```bash
 NCCL_P2P_LEVEL=NVL                # force NVLink-only P2P
-NCCL_NVLS_ENABLE=1                # NVLink-Sharp on Hopper (default 1 since NCCL 2.20)
+NCCL_NVLS_ENABLE=1                # NVLink SHARP, Hopper+ NVSwitch; on by default since NCCL 2.17 (value 2 from 2.18).
+                                  # Explicit 1 avoids 2.27–2.28's default-2 silent fallback, which can hang
+                                  # when NVLS allocation fails on only some ranks (2.29 reverted it)
 NCCL_MIN_NCHANNELS=4              # baseline for full NVLink mesh utilization
 NCCL_DEBUG=WARN                   # change to INFO once for first run, then back
 NCCL_SOCKET_IFNAME=^docker,lo     # avoid bridges
