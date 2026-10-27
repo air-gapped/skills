@@ -19,7 +19,7 @@ A ≤0.9.x export (nested blob) cannot be imported into 0.10.x — no translatio
 - `ENABLE_PERSISTENT_CONFIG=false` inverts it: env always wins, API config writes only mutate in-memory state (lost on restart).
 - Exception: `oauth.*` keys are env-driven unless `ENABLE_OAUTH_PERSISTENT_CONFIG=true`.
 - Not ConfigVars at all (env-only, restart to change): `WEBUI_SECRET_KEY`, `ENABLE_SCIM`/`SCIM_TOKEN`, `ENABLE_PASSWORD_AUTH`, `AUDIT_LOG_*`, `ENABLE_ADMIN_EXPORT`, `ENABLE_ADMIN_CHAT_ACCESS`, `CUSTOM_API_KEY_HEADER`, DB/Redis URLs.
-- Known 0.10.0-refactor regressions (rule these out when a config write appears not to apply): #27061 (web-loader reads frozen env, OPEN), #26761 (boolean DB values ignored), #24743 (connections lost after restart), #24346 (stale Redis overwrites imports).
+- Known 0.10.0-refactor regressions (rule these out when a config write appears not to apply): #27061 (web-loader reads frozen env; closed "addressed in dev" with no release named — still suspect on 0.11.0), #26761 (boolean DB values ignored), #24743 (connections lost after restart), #24346 (stale Redis overwrites imports).
 
 Operational rule: manage runtime config via API (`configs/import` in CI), reserve env for bootstrap + the env-only list.
 

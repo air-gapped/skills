@@ -51,7 +51,7 @@ Mapping: `null` → `[{user, *, read}]`; `{}` → `[]`; each `read.group_ids[i]`
 
 **Permissions — read-modify-write, never POST a literal.** 0.11.0 adds `sharing.open_chats` (default false) and `access_grants.allow_groups` (default true) to the default-permissions dict (`config.py:1950,1955`). `has_permission` **denies on any missing path segment** (`utils/access_control/__init__.py:87-89`), so a script that POSTs a hard-coded 0.10-shaped body to `/api/v1/users/default/permissions` silently revokes group-based access grants for every non-admin. Always `GET`, mutate the returned dict, then `POST` it back.
 
-**`sharing.open_chats` cannot survive an API save (upstream bug, verified live on 0.11.0).** `config.py:1950` defines the key and `routers/chats.py:2041` enforces it, but the server-side `SharingPermissions` model has no `open_chats` field (`routers/users.py:191-205`). Every `POST /api/v1/users/default/permissions` — including saves from the admin UI — drops the key, after which open chat sharing reads as denied. A live `GET` returns a `sharing` block with no `open_chats` at all. There is no API-side workaround; the value has to be restored in config storage directly.
+**`sharing.open_chats` cannot survive an API save on 0.11.0 only (upstream bug, verified live; fixed in v0.11.1 — upgrade rather than work around).** `config.py:1950` defines the key and `routers/chats.py:2041` enforces it, but the server-side `SharingPermissions` model has no `open_chats` field (`routers/users.py:191-205`). Every `POST /api/v1/users/default/permissions` — including saves from the admin UI — drops the key, after which open chat sharing reads as denied. A live `GET` returns a `sharing` block with no `open_chats` at all. There is no API-side workaround; the value has to be restored in config storage directly.
 
 **`X-Process-Time` is now fractional seconds** — was `str(int(elapsed))` (nearly always `"0"`), now `f'{elapsed:.6f}'` (`utils/asgi_middleware.py:174-177`). `int(resp.headers['X-Process-Time'])` raises `ValueError`.
 
@@ -87,12 +87,14 @@ This is the dangerous shape for GitOps: a read-only service account exports, get
 - SCIM: #17964/#18039 (filter case-sensitivity), #21280 (externalId, fixed 0.8.1), #24501 (deactivate-on-deprovision request, closed with no fix — DELETE still hard-deletes)
 - Streaming behind buffering proxies (IIS/ARR): #24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
 
-## Open issues on 0.11.0 (checked 2026-07-29 — re-probe on freshen)
+## 0.11.0 issues — triage status (re-checked 2026-10-27)
+
+All closed; match a symptom to the version that fixed it before reporting.
 
 - **#27662 — SCIM deletes non-SCIM users**; a reporter's primary admin was pruned by their IdP. Scoped to directory-sourced accounts in v0.11.1; admin deletes refused in v0.12.2. See `events-scim.md`.
-- **#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT` at `main.py:1839`). *Did not reproduce* on a 0.11.0 instance probed 2026-07-29 — the request reached the upstream and failed on upstream connectivity instead, so treat this as conditional, not universal.
-- **#27607 — "Open Sharing" cannot be enabled from the admin panel** — the `sharing.open_chats` model gap documented above; independently confirmed live.
-- **#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation). DB surgery only. Sanitise ids on create.
-- **#27618 — writing to an older message makes it the branch tip and truncates visible history** — tied to the new `current_message_id` column; affects `POST /chats/{id}/messages/{message_id}`.
-- **#27641** agentic knowledge search fails when user-info header forwarding is on · **#27622** timer polling scans the chat table every second while idle · **#27602** Tavily `fetch_url` missing `api_base_url` · **#27610** torch imported even with all-remote engines (~340 MB RSS) · **#27651** `runAsNonRoot: true` breaks on 0.11.0 (k8s).
+- **#27595 — `/api/v1/messages` 502** (`AttributeError: ... AIOHTTP_CLIENT_TIMEOUT`) — fixed by PR #27675 (merged 2026-08-24, v0.11.1). Still 502 on ≥ v0.11.1 = upstream connectivity, not this bug.
+- **#27607 — "Open Sharing" cannot be enabled** — the `sharing.open_chats` model gap; fixed in v0.11.1 (tracked on as #27609).
+- **#27655 — skill ids containing `/` are permanently unreachable** (405; UNIQUE on `skill.name` blocks recreation) — v0.11.1+ rejects non-path-safe ids at create (PR #27660); ids stored earlier still need DB surgery.
+- **#27618 — writing to an older message makes it the branch tip and truncates visible history** (`POST /chats/{id}/messages/{message_id}`) — write side fixed after 0.11.0; the repair PR for chats already cut off was not merged, so those stay truncated.
+- Also closed: **#27641** agentic knowledge search with user-info header forwarding · **#27622** idle timer polling · **#27602** Tavily `fetch_url` `api_base_url` · **#27610** torch import with all-remote engines (slim image drops torch in v0.11.4) · **#27651** `runAsNonRoot: true` (k8s).
 - Closed but useful for triage: **#27645** docker restart loop on 10.2→11.0 was an empty `WEBUI_SECRET_KEY=` in the shipped compose file, **not** the migrations; **#27581** connections with no access grants locked admins out when `BYPASS_ADMIN_ACCESS_CONTROL=false`.

@@ -80,7 +80,7 @@ Neither router appears elsewhere in this map; a config-backup or secret-audit sc
 
 - `GET|POST /audio/config(/update)` [admin] (`audio.py:279,287`) — all TTS+STT settings **including engine API keys**; the update path reloads the faster-whisper model in-process (synchronous load on the pod).
 - `GET|POST /images/config(/update)` [admin] (`images.py:271,276`) — image-generation config **including `AUTOMATIC1111_API_AUTH` and ComfyUI base URLs/keys**; validates size/steps (400 on bad `IMAGE_SIZE`), calls `set_image_model()`, emits `EVENTS.CONFIG_UPDATED`.
-- `GET /images/config/url/verify` [admin] (`images.py:332`) — reachability preflight before saving a broken image backend.
+- `POST /images/verify` [admin] `{engine, url, key}` — reachability preflight before saving a broken image backend (v0.11.4+; the older `GET /images/config/url/verify` tested the *saved* config and is gone).
 
 ### functions / tools / pipelines
 - functions [all admin — arbitrary server-side Python]: `/functions/create` `{id,name,content,meta}`, `/id/{id}/toggle`, `/toggle/global`, `/sync`, valves
