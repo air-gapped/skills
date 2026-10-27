@@ -18,7 +18,7 @@ dated and **version-specific** — re-vet on major version changes. Basis:
 | ClamAV | 2026-07 | possible-with-mirror | official mirror tool `cvdupdate`; warns >7 days, fail-open | research |
 | osv-scanner | 2026-07 | possible-with-mirror | public `all.zip` feeds + `--offline`; no documented staleness warning (silent-stale risk) | research |
 | Elastic stack | 2026-07 | possible-with-mirror | exemplary air-gap docs w/ feature-degradation table; but lockstep-pinned EPR image, EMS/GeoIP default-on callbacks, kill switches with documented breakage (kibana#30202/#152389) | research |
-| GitLab self-managed | 2026-07 | possible-with-mirror | Offline Cloud License (approval-gated, ~30-day grace); Duo default-on→`cloud.gitlab.com` when licensed but Duo Self-Hosted path exists; mandatory version stops multiply gap crossings; gravatar on by default (+#26008 setting-ignored reports) | research |
+| GitLab self-managed | 2026-07 | possible-with-mirror | Offline Cloud License (approval-gated, ~30-day grace); Duo default-on→`cloud.gitlab.com` when licensed but Duo Self-Hosted path exists; mandatory version stops multiply gap crossings; gravatar on by default (+gitlab-foss#26008, gitlab#353490 setting-ignored reports) | research |
 | Mattermost | 2026-07 | possible-with-mirror | dedicated air-gap doc (disable link previews); Agents plugin off-by-default w/ BYO-LLM | research |
 | GitHub CLI (gh) | 2026-07 | possible-with-mirror | telemetry on by default since v2.91.0 (2026-04-22); honors DO_NOT_TRACK | research |
 | Semgrep | 2026-07 | possible-with-mirror | local rules run offline; registry `p/...` rulesets never cached + send project URL (#3147) — sustainment = vendor a semgrep-rules clone | research |
