@@ -210,10 +210,10 @@ Verified against the tarballs; trust the artifact over the changelog. [RFC]
 
 | Upstream CHANGELOG says | Actually |
 |---|---|
-| querier `max_concurrent` lowered to 8 at 6.1.0 | **Still 16** in 6.0.6 *and* 6.1.0 — the change sits in `main / unreleased` |
 | GEM gateway Service port 8080 removed at 6.0.0 | `gateway.service.legacyPort: 8080` still present in both |
 | "Upgrade to Helm v4" | **CI-only** — `Chart.yaml` is `apiVersion: v2`; Helm 3 installs 6.1.0 fine |
 | rollout-operator "0.38.x" at 6.1.0 | dependency is chart **0.50.0** (appVersion v0.38.0); the CHANGELOG cites four versions for one release |
+| "rollout-operator chart 0.38.1" at 6.2.0 | chart **0.50.1** = appVersion **v0.38.1**; only the appVersion moved — no CRD step |
 
 Corollary: use **one Helm binary version across all hops**. Helm 3 and 4 render PDB apiVersions,
 `internalTrafficPolicy`, and PSP objects differently, so mixing them fills `helm template` diffs with
