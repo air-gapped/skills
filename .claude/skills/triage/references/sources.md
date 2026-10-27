@@ -37,6 +37,13 @@ s7 dedup stage and s4 finding schema.
   ingest (`SKILL.md` §Phase 1a) and its `TRIAGE.json`/`TRIAGE.md` writers
   (`SKILL.md` §Phase 6b–6c).
 
+  **Canary fixture.** `fixtures/canary-findings.json` cites upstream
+  `targets/canary/entry.c` (unchanged since the 2026-05-20 initial release):
+  memcpy L27 / malloc(8) L24 in `parse_alpha`, memcpy L40 in `parse_bravo`,
+  `buf[4096]` L71, `fread` L72, `if (!f)` guard L70. Upstream's own copy of
+  the fixture carries line numbers that do not match the file; ours were
+  re-anchored 2026-10-27.
+
   Three triage paths moved upstream — `.claude/skills/triage/README.md`,
   `.claude/skills/triage/SKILL.md`, `docs/triage.md`. **Unlike the
   `threat-model` sibling, the upstream `SKILL.md` is among them**, so it was

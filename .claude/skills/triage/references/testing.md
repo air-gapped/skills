@@ -11,7 +11,7 @@ that harness and point `--repo` at it:
 
 Expected: f001 and f003 confirmed; f002 duplicate of f001; f004 dropped
 (`misread_code`: it's a read buffer, not a randomness source); f005 dropped
-(`already_handled`: there is a null check at line 68). Without the source
+(`already_handled`: there is a null check at line 70). Without the source
 tree the verifiers cannot read the cited code, so they return
 `needs_manual_test` — the fixture then documents the ingest/dedup shape rather
 than exercising verification. Its findings carry no `source_ref`/`sink_ref`

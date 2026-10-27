@@ -3,7 +3,7 @@
     {
       "id": "f001",
       "file": "targets/canary/entry.c",
-      "line": 25,
+      "line": 27,
       "category": "heap-buffer-overflow",
       "severity": "HIGH",
       "title": "Unbounded memcpy into fixed 8-byte heap buffer in parse_alpha",
@@ -12,7 +12,7 @@
     {
       "id": "f002",
       "file": "targets/canary/entry.c",
-      "line": 22,
+      "line": 24,
       "category": "heap-buffer-overflow",
       "severity": "HIGH",
       "title": "malloc(8) too small for input in parse_alpha",
@@ -21,7 +21,7 @@
     {
       "id": "f003",
       "file": "targets/canary/entry.c",
-      "line": 38,
+      "line": 40,
       "category": "stack-buffer-overflow",
       "severity": "HIGH",
       "title": "Unbounded memcpy into fixed stack buffer in parse_bravo",
@@ -30,7 +30,7 @@
     {
       "id": "f004",
       "file": "targets/canary/entry.c",
-      "line": 68,
+      "line": 71,
       "category": "weak-randomness",
       "severity": "MEDIUM",
       "title": "fread buffer used as randomness source",
@@ -39,11 +39,11 @@
     {
       "id": "f005",
       "file": "targets/canary/entry.c",
-      "line": 68,
+      "line": 72,
       "category": "null-pointer-dereference",
       "severity": "LOW",
       "title": "Possible null deref if fopen fails",
-      "description": "Claims fread(buf, ...) derefs null f. There is an explicit `if (!f) return 1;` guard on the preceding line."
+      "description": "Claims fread(buf, ...) derefs null f. There is an explicit `if (!f) { perror(\"fopen\"); return 1; }` guard at line 70."
     }
   ]
 }
