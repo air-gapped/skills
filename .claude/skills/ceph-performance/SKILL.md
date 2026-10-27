@@ -120,7 +120,14 @@ Do not recommend it for production.
   production. CephFS uses the kernel client by default, ceph-fuse on request.
 - librbd cache settings (`rbd_cache` true, `rbd_cache_policy`
   `writearound`, `rbd_readahead_max_bytes` 512 KiB) apply to librbd and
-  rbd-nbd only — they do nothing for krbd PVCs.
+  rbd-nbd only — they do nothing for krbd PVCs. The same holds for librbd
+  `rbd_qos_*` limits.
+- Per-PVC IOPS/bandwidth caps on krbd (noisy neighbour): Rook ≥ 1.21,
+  Kubernetes ≥ 1.34, cgroup v2, kernel ≥ 5.8. Create a
+  `VolumeAttributesClass` with `maxReadIops`/`maxWriteIops`/`maxReadBps`/
+  `maxWriteBps` and set it as the PVC's `volumeAttributesClassName`. The
+  StorageClass needs the `controller-modify-secret-*` and
+  `node-publish-secret-*` parameters; recreate it if they are missing.
 
 ## Benchmarking
 

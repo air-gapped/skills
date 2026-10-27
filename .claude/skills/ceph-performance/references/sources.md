@@ -19,6 +19,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 | Fast EC benchmark | https://ceph.io/en/news/blog/2025/tentacle-fastec-performance-updates/ | 2026-09-23 | 2025-11-20; 2–3× small reads, ≥2× small writes vs Squid, single-node test. |
 | Crimson status | https://docs.ceph.com/en/tentacle/dev/crimson/crimson/ | 2026-09-23 | "tech preview stage and is not suitable for production use". |
 | ceph-csi rbd-nbd | https://github.com/ceph/ceph-csi/blob/devel/docs/design/proposals/rbd-nbd.md | 2026-09-23 | krbd default; rbd-nbd Alpha, not for production. |
+| Rook RBD QoS | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Block-Storage-RBD/rbd-qos.md | 2026-10-27 | New in Rook v1.21.0 (release notes, 2026-10-06). krbd via cgroup v2 `io.max`; K8s ≥ v1.34, kernel ≥ 5.8; VAC params maxReadIops/maxWriteIops/maxReadBps/maxWriteBps; StorageClass needs controller-modify + node-publish secrets (immutable — recreate). `rbd_qos_iops_limit` is a librbd option (`services: rbd`, rbd.yaml.in v20.2.4). |
 | ceph-csi CephFS mounter | https://github.com/ceph/ceph-csi/blob/devel/internal/cephfs/mounter/volumemounter.go | 2026-09-23 | Kernel mounter first; fuse after. |
 | Tentacle EC crash | https://github.com/ceph/ceph.io/issues/1009 | 2026-09-23 | 20.2.0, allow_ec_optimizations on an ec_overwrites pool. |
 | ceph-users Tentacle RGW latency | https://lists.ceph.io/hyperkitty/list/ceph-users@ceph.io/ | 2026-09-23 | "Performance issue after tentacle upgrade", 2026-07-09. |
