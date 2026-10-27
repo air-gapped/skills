@@ -62,9 +62,12 @@ stages:
   - build
   - deploy
 
-variables:
-  # Enable parallel builds
-  MAKEFLAGS: "-j$(nproc)"
+# Parallel builds: set MAKEFLAGS in a script, never under `variables:`. GitLab
+# does no command substitution there, and make expands the literal `$(nproc)`
+# as an empty make variable, so `-j$(nproc)` becomes unlimited `-j`.
+default:
+  before_script:
+    - export MAKEFLAGS="-j$(nproc)"
 
 test:
   stage: test
