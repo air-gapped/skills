@@ -15,7 +15,7 @@ compatibility aliases exist for `<5.0` readers.
 | v5.0.0rc0 | 2025-12-01 | First v5 RC (extra_special_tokens list serialization lands) |
 | v5.0.0 | 2026-01-26 | GA; weekly minor cadence begins |
 | v5.5.4 | 2026-04-13 | Last v5.5.x patch |
-| v5.9.0 | 2026-05-20 | Current stable (weekly minors continued: 5.6 2026-05-01, 5.7 2026-05-07, 5.8 2026-05-14). No breaking tokenizer/chat-template API change through 5.9. |
+| v5.21.0 | 2026-10-26 | Latest (GitHub tag `v5.21`). No breaking tokenizer/chat-template API change from 5.9 through 5.21. |
 
 Tags 4.58, 4.59, 4.60 **do not exist** — v5 replaced them. Gate on
 `parse(transformers.__version__) >= Version("5.0")` before using any
