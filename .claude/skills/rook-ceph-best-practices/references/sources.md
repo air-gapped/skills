@@ -4,10 +4,10 @@ Freshened: 2026-09-23 — every row probed at creation. Rook releases enumerated
 
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
-| Rook releases | https://github.com/rook/rook/releases | 2026-09-23 | v1.16.0 (2024-12-17) … v1.19.11 / v1.20.7 (2026-09-02). Dates from `gh api repos/rook/rook/releases`. |
+| Rook releases | https://github.com/rook/rook/releases | 2026-10-27 | v1.16.0 (2024-12-17) … v1.19.12 / v1.20.9 (2026-10-14), v1.21.0 (2026-10-06), v1.21.1 (2026-10-26). Dates from `gh api repos/rook/rook/releases`. |
 | Rook CephX key rotation doc | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Advanced/cephx-key-rotation.md | 2026-09-23 | Identical at v1.19.11. Key categories, six health codes, CSI migration/revert, `allowedCiphers` recovery, FIPS 7.2, quick-fix patch with the `v1.20.4-20260818` image typo. |
 | Rook Ceph upgrade doc | https://github.com/rook/rook/blob/v1.20.7/Documentation/Upgrade/ceph-upgrade.md | 2026-09-23 | Supported Ceph (19.2.0+, 20.2.1+), 20.2.0 not recommended, HEALTH_ERR refusal at update request, disable rook mgr module, tag forms. |
-| Rook upgrade doc | https://github.com/rook/rook/blob/v1.20.7/Documentation/Upgrade/rook-upgrade.md | 2026-09-23 | v1.19.5+ floor before v1.20; chart order rook-ceph → ceph-csi-drivers → rook-ceph-cluster. |
+| Rook upgrade doc | https://github.com/rook/rook/blob/v1.21.1/Documentation/Upgrade/rook-upgrade.md | 2026-10-27 | v1.20 → v1.21 from any v1.20 patch; breaking: OCI chart tags without `v`, msgr2 required (kernel 5.11, `requireMsgr2: false`), K8s 1.32 min; delete `ceph-block` StorageClass before the `rook-ceph-cluster` upgrade. Unchanged: v1.19.5+ floor before v1.20, chart order rook-ceph → ceph-csi-drivers → rook-ceph-cluster. v1.21.x K8s 1.32–1.37 (Prerequisites doc); Umbrella in `supportedVersions` (`pkg/operator/ceph/version/version.go`). |
 | rook-ceph-cluster chart values | https://github.com/rook/rook/blob/v1.20.7/deploy/charts/rook-ceph-cluster/values.yaml | 2026-09-23 | `mgr.modules: [{name: rook, enabled: false}]` default at v1.19.11 and v1.20.7. |
 | Rook CVE advisory | https://github.com/rook/rook/issues/18203 | 2026-09-23 | Open. Multi-hop path; floors raised to v1.19.10 / v1.20.6 in a maintainer comment. |
 | Rotation outage / stale toolbox | https://github.com/rook/rook/issues/18240 | 2026-09-23 | Open. Floating `:v20` + IfNotPresent → `Malformed input`; OSD key stuck at generation 1; maintainer: no workarounds, no restarts, collect operator log. |

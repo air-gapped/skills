@@ -43,6 +43,7 @@ relying on it for a newer release.
 | v1.18.x | 1.29–1.34 | Reef 18.2, Squid 19.2 | Last line that runs Reef. ceph-csi-operator becomes the default CSI config path. Key rotation experimental. |
 | v1.19.x | 1.30–1.35 | Squid 19.2.0+, Tentacle | **Reef dropped** (min Ceph 19.2.0). AES256K from **v1.19.9**; CVE floor **v1.19.10**. v1.19.11 ships ceph-csi 3.16.3 (AES256K backport). |
 | v1.20.x | 1.31–1.36 | Squid 19.2.0+, Tentacle 20.2.1+ | **Rook no longer deploys CSI** — ceph-csi-operator + new `ceph-csi-drivers` chart required. AES256K from v1.20.5; CVE floor **v1.20.6**. v1.20.7 ships ceph-csi 3.17.1. |
+| v1.21.x | 1.32–1.37 | Squid 19.2.0+, Tentacle 20.2.1+, Umbrella 21.2.0+ | **msgr2 required by default**: kernel clients need 5.11+, else set `network.connections.requireMsgr2: false` before the hop. Rook pins no CSI images. Toolbox reloads its keyring after rotation. |
 
 Ceph lines: Reef 18.2.x is EOL (last 18.2.8, 2026-03-20). Squid 19.2.x
 latest 19.2.6. Tentacle 20.2.x latest 20.2.4. Do not run **20.2.0** (data
@@ -59,7 +60,8 @@ release; a `v19.3.0`-style tag is a development tag, never deploy it.
 4. **Toolbox image**, by hand. Nothing manages it.
 
 A Rook minor hop must start from a supported patch: v1.19 → v1.20 requires
-**v1.19.5+** first. Clusters below v1.18 heading for the CVE fix take the
+**v1.19.5+** first; v1.20 → v1.21 accepts any v1.20 patch (checklist in
+`references/upgrade-path.md`). Clusters below v1.18 heading for the CVE fix take the
 path in `references/upgrade-path.md` — do not jump straight to Ceph 19.2.6.
 
 ### Gates between hops
@@ -229,6 +231,6 @@ chart field splits, S3 credential purge) are in `references/upgrade-path.md`.
   migration and revert, `allowedCiphers` recovery, CephClient / RBD-mirror /
   external-cluster keys. Read before any rotation beyond the daemon keys.
 - `references/upgrade-path.md` — release-by-release breaking changes
-  v1.16–v1.20 and the multi-hop CVE path from older Rook.
+  v1.16–v1.21 and the multi-hop CVE path from older Rook.
 - `references/sources.md` — every source with its verification stamp.
 - Sibling skills: `ceph-troubleshooting`, `ceph-performance`, `ceph-s3`.

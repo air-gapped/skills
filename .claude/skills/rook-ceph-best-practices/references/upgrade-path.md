@@ -1,6 +1,6 @@
 # Rook upgrade path and release-by-release breaking changes
 
-Enumerated unfiltered from `gh release list --repo rook/rook` on 2026-09-23.
+Enumerated unfiltered from `gh release list --repo rook/rook` (date in `sources.md`).
 Read the notes of every crossed hop, not only the target.
 
 ## Multi-hop path to the CVE-2025-30156 fix (from rook#18203)
@@ -32,6 +32,8 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
 | v1.20.5 | 2026-08-19 | AES256K key type support. |
 | v1.20.6 | 2026-08-20 | CVE floor for the 1.20 line. Disable-rook-mgr-module recommendation. |
 | v1.20.7 | 2026-09-02 | ceph-csi 3.17.1 (AES256K). Mgr module unset properly when disabled. Toolbox restart note in the CVE guide. |
+| v1.21.0 | 2026-10-06 | K8s 1.32–1.37. **msgr2 required by default** (kernel clients 5.11+, else `network.connections.requireMsgr2: false`; existing mounts stay on msgr1 until remounted). Helm OCI chart tags drop the `v` prefix (`1.21.0`). New NFS installs must create the `.nfs` CephBlockPool. Rook sets no CSI images: `rook-csi-operator-image-set-configmap` is empty, so custom CSI images must be re-added there. Toolbox reloads keyring/`ceph.conf` after rotation. Umbrella supported once 21.2.0 ships. |
+| v1.21.1 | 2026-10-26 | Docs: delete the chart's `ceph-block` StorageClass before upgrading `rook-ceph-cluster` to v1.21 (new immutable CSI secret parameters; PVs unaffected). With no legacy clients, sets `auth_allow_insecure_global_id_reclaim=false` instead of muting the warning. |
 
 ## v1.19 → v1.20 checklist
 
@@ -45,6 +47,16 @@ them to v1.19.10 / v1.20.6. Use the higher floor.
 4. Verify `kubectl -n <ns> get deploy | grep ctrlplugin` shows ready
    replicas and the pinned cephcsi image tag (ceph-csi-operator#605).
 5. Mount a test PVC before declaring done.
+
+## v1.20 → v1.21 checklist
+
+1. Every node kernel 5.11+, or set `network.connections.requireMsgr2: false`
+   (chart: under `cephClusterSpec`) before the hop.
+2. Kubernetes 1.32+. Point OCI chart references at the un-prefixed tag.
+3. Copy custom CSI images into `rook-csi-operator-image-set-configmap`.
+4. Helm: `kubectl delete storageclass ceph-block`, then upgrade
+   `rook-ceph` → `ceph-csi-drivers` → `rook-ceph-cluster`.
+5. `kubectl -n <ns> get operatorconfig,driver`, then mount a test PVC.
 
 ## Ceph image tags
 
