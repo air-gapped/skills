@@ -55,8 +55,8 @@ assuming community. Settle doubt with the community chart index — a version ab
   **no separate "Prime patch cadence" offset** — the apparent Apr/Aug/Dec pattern is just the
   `.0`→`.1` stabilization gap (SUSE counts the support clock from the stabilized ~`.1` GA, ~1 month
   after the GitHub `.0`).
-- **Support window ≈ 18 months** = ~12 months full support + ~6 months limited (critical-security
-  only), for 2.9 onward.
+- **Support window ≈ 18 months** from the stabilized GA = ~6 months maintenance (GA→EOM) + ~12
+  months limited (EOM→EOL: critical-security fixes on request only), for 2.9 onward.
 
 **EOL dates (suse.com/lifecycle + endoflife.date agree):**
 
