@@ -338,7 +338,10 @@ OpenAI messages may carry `reasoning` or `reasoning_content` fields:
 ```
 
 Support both names — OpenAI's API uses `reasoning`, some clients use
-`reasoning_content`.
+`reasoning_content`. transformers ≥ 5.21 copies whichever of
+`reasoning_content` / `thinking` / `reasoning` is set into both
+`reasoning_content` and `thinking` before rendering, so `reasoning_content`
+is the field to read first; keep the fallback for older transformers.
 
 **Common design choice**: strip prior-turn reasoning to bound context-window
 cost. OpenAI's Responses API preserves it for chain-of-thought continuation.

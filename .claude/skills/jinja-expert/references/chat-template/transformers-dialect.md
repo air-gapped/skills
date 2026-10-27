@@ -221,9 +221,11 @@ And `PreTrainedTokenizerBase.apply_chat_template` injects before calling:
     # Optional, present on role=tool messages:
     "tool_call_id": str,
     "name": str,
-    # Optional, reasoning-model extensions:
+    # Optional, reasoning-model extensions (transformers >= 5.21 fills
+    # reasoning_content AND thinking from whichever of the three is set):
     "reasoning": str,
     "reasoning_content": str,
+    "thinking": str,
 }
 ```
 
