@@ -155,7 +155,7 @@ and use a dataset larger than the OSD caches.
 
 | Report | Source |
 |---|---|
-| 18.2.4 → 20.2.1 on hybrid HDD + NVMe-DB clusters: RGW PUT latency 3–4×, DB-device IOPS near zero; unresolved | ceph-users 2026-07-09 |
+| 18.2.4 → 20.2.1, RGW on 2-zone multisite, hybrid HDD + NVMe-DB, 9 clusters: PUT latency 3–4×, GET and HEAD worse (HEAD ~5×). 20.2.3 does not fix it; re-indexing or re-creating the bucket restores latency for about a week. Unresolved. Unconfirmed on-list suspect: the GET/HEAD replication-status check reading the bucket bilog — test with `ceph tell osd.N compact` on the index-pool OSDs and watch `radosgw-admin bilog list --bucket=<b>` grow | ceph-users, 2026-07-09 to 2026-09-24 |
 
 ## References
 
