@@ -66,7 +66,7 @@ curl -s -H "Authorization: Bearer $K" $B/health/readiness | jq '{status, litellm
 
 Then remember three structural facts about the surface:
 
-1. **Lazy loading**: 33 feature families (`guardrails`, `policies`, `vector_store*`, `mcp_management`, `scim`, `tag`, `access_groups`, …) register routes on first matching request. Import failure = **permanent 404 until restart** (logged as a warning only). `POST /lazy/warm/{name}` force-loads (undocumented, hidden from schema).
+1. **Lazy loading**: 33 feature families at the pin, 37 at v1.106.5 (`guardrails`, `policies`, `vector_store*`, `mcp_management`, `scim`, `access_groups`, …; `/tag/*` is eager) register routes on first matching request. Import failure = **permanent 404 until restart** (logged as a warning only). `POST /lazy/warm/{name}` force-loads (undocumented, hidden from schema).
 2. **Enterprise gating is inconsistent**: enterprise-only routers that aren't installed **404** (not 402): `/audit`, `/project/*`, `/user/available_users`, `/email/event_settings*`. Premium-gated *features* inside OSS endpoints raise the "LiteLLM Enterprise" error — see the 403 trap below. `DISABLE_ADMIN_ENDPOINTS` blocks only 51 of ~315 admin paths (`/organization/*`, `/customer/*`, `/budget/*`, `/config/*`, `/guardrails/*` etc. all stay reachable) and returns **500**, not 403.
 3. **No master key set = the entire management API is open**: any request is treated as `INTERNAL_USER` and `common_checks` is skipped entirely (`user_api_key_auth.py:1406-1417`, `:2160-2165`). No doc page states this.
 
@@ -78,7 +78,7 @@ Then remember three structural facts about the surface:
 | `allowed_routes` on a key | **ALL routes** — `None`, non-list, and `[]` all pass (`route_checks.py:99-104`); no deny-all exists | scope to named route groups (any `LiteLLMRoutes` enum name is accepted, e.g. `["management_routes"]`) — and it's **prefix-matched**: `"/key"` grants `/key/delete` |
 | `access_group_ids` + empty `models` | access groups are **additive grants, not allow-lists** → key can call **everything** (open #34296) | set `models: ["no-default-models"]` alongside the groups |
 | `team_member_permissions: []` | baseline permissions still union in (`/key/info`, `/key/health`) — `[]` ≠ deny | there is no full-deny; baseline is the floor |
-| `mcp_servers` empty | all servers | `["no-mcp-servers"]` (documented, `docs/mcp_control.md:100`) |
+| `mcp_servers` empty | all servers | `["no-mcp-servers"]` (documented, `docs/mcp_control.md:107`) |
 
 Also: `litellm.default_key_generate_params` silently replaces `None`/`[]`/`{}` request values on `/key/generate` — on a proxy with defaults configured, `"models": []` yields the default list, not all-models. Same request, different proxy, different meaning.
 

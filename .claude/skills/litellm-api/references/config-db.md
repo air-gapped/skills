@@ -9,7 +9,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29).
 ## Precedence when ON
 
 - DB rows for `general_settings`, `router_settings`, `litellm_settings`, `environment_variables` are **deep-merged over** the YAML; **DB wins**, except DB `None` and DB `[]` are treated as "no value" (`proxy_server.py:6005-6018`, `:6055-6062`). Editing YAML + restart does not change a UI-written key. (`docs/proxy/configs.md:126-128` documents this correctly as of 2026-07-30 — one of the few good pages.)
-- Only the 14 keys in `LITELLM_SETTINGS_SAFE_DB_OVERRIDES` (`constants.py:1519-1536`) are pushed onto the live `litellm` module; other DB `litellm_settings` land in the config dict but not the runtime attribute (`proxy_server.py:6045-6048`) — a DB write can "succeed" and change nothing observable.
+- Only the keys in `LITELLM_SETTINGS_SAFE_DB_OVERRIDES` (`constants.py:1519-1536`; 12 at the pin, 24 at v1.106.5 — read the list at your tag) are pushed onto the live `litellm` module; other DB `litellm_settings` land in the config dict but not the runtime attribute (`proxy_server.py:6045-6048`) — a DB write can "succeed" and change nothing observable.
 - `general_settings.supported_db_objects` filters which object types load from DB at all (`proxy_server.py:6108-6135`) — an easy way to make `/model/new` writes appear to vanish on restart.
 - DB-sourced remote module loads (`s3://…`) are scrubbed from the overlay (`proxy_server.py:6027-6031`) — a value that works in YAML silently doesn't from DB.
 - DB-backed `router_settings` JSON strings are skipped on reload (#31836 closed unfixed); DB router rebuild drops `cache_responses` (#32106 closed unfixed).

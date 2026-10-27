@@ -38,7 +38,7 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29). Authoritative sources: `lit
 
 ## `team_member_permissions` accepted values
 
-The enum is `KeyManagementRoutes` (`_types.py:231-261`) — **18 values**; `docs/proxy/access_control.md:227-240` lists 10. Undocumented-but-valid: `/key/bulk_update`, `/team/key/bulk_update`, `/key/{key_id}/reset_spend`, `/key/aliases`, `/team/daily/activity`, `/spend/logs`, `/spend/logs/v2`, and the pseudo-route `"/key/access_group_assignment"` — not an HTTP route but a field-level opt-in letting non-admin members set `access_group_ids` on keys (`_types.py:249-252`, default-deny).
+The enum is `KeyManagementRoutes` (`_types.py:231-261`) — **18 values** at the pin; v1.106.5 adds `/auto_router/manage` and `/team/daily/activity/aggregated` (20); `docs/proxy/access_control.md:227-240` lists 10. Undocumented-but-valid: `/key/bulk_update`, `/team/key/bulk_update`, `/key/{key_id}/reset_spend`, `/key/aliases`, `/team/daily/activity`, `/spend/logs`, `/spend/logs/v2`, and the pseudo-route `"/key/access_group_assignment"` — not an HTTP route but a field-level opt-in letting non-admin members set `access_group_ids` on keys (`_types.py:249-252`, default-deny).
 
 ## Enterprise vs OSS gating — three different failure shapes
 

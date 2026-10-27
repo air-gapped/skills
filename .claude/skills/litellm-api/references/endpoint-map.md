@@ -36,9 +36,9 @@ Every `/global/spend/*` + `/global/activity/*`, every `/config/*`, every `/invit
 
 Additional spec distortions: `DOCS_FILTERED=True` + premium license reduces the whole spec to inference routes (`proxy_server.py:1357-1393`); lazy features get fake `GET <prefix>` placeholders unless a snapshot file exists (`_lazy_features.py:409-430`); `operationId`s are machine-rewritten and unstable across versions; Swagger UI can be off entirely (`NO_DOCS`).
 
-## Lazy loading (33 families)
+## Lazy loading (33 families at the pin, 37 at v1.106.5)
 
-`litellm/proxy/_lazy_features.py` (`LAZY_FEATURES`, `:54-256`): guardrails, policies, policy_engine, vector_store_management (implemented **twice** — OSS + enterprise dirs), tools, search_tools, mcp_management, config_overrides, scim, cloudzero, vantage, prompts, jwt_mappings, compliance, access_groups, tag, …
+`litellm/proxy/_lazy_features.py` (`LAZY_FEATURES`, `:54-256`): guardrails, policies, policy_engine, vector_store_management (implemented **twice** — OSS + enterprise dirs), tools, search_tools, mcp_management, config_overrides, scim, cloudzero, vantage, prompts, jwt_mappings, compliance, access_groups, … (v1.106.5 adds model_insights, llm_passthrough, claude_code_gateway, decisions). `/tag/*` is **not** lazy — it is mounted at startup.
 
 - Routes register on the **first request matching a string prefix**; prefix matching is `SERVER_ROOT_PATH`-sensitive (`:301-302`) — a root-path mismatch means the whole family 404s forever.
 - **Import failure = permanent 404 until restart**, logged as a warning only (`:336-344`).

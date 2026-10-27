@@ -11,7 +11,7 @@ if (len(filtered_models) == 0 and len(models) == 0) or "*" in filtered_models:
     all_model_access = True
 ```
 
-`GenerateRequestBase.models` defaults to `[]` (`_types.py:1036`) — so **both omitting `models` and sending `models: []` grant access to every model** at the key level. BerriAI's own `litellm-skills` templates (`add-key/SKILL.md:47`, `update-key/SKILL.md:49`) emit `"models": [<models_or_empty>]` — following them produces unrestricted keys.
+`GenerateRequestBase.models` defaults to `[]` (`_types.py:1036`) — so **both omitting `models` and sending `models: []` grant access to every model** at the key level. BerriAI's own `litellm-skills` templates (`add-key/SKILL.md:47`, `add-team/SKILL.md:45`, `add-user/SKILL.md:45`) emit `"models": [<models_or_empty>]` — following them produces unrestricted keys.
 
 One proxy-level modifier: `litellm.default_key_generate_params` fills `models` (and `max_budget`, `team_id`, `tpm_limit`, …) when the request sends `None`/`[]`/`{}` (`key_management_endpoints.py:790-805`) — on such a proxy, `[]` means "the default list", elsewhere it means "everything".
 
