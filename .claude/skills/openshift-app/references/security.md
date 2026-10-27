@@ -120,7 +120,8 @@ Three verification methods:
 3. BYO-PKI with X.509 certificates (GA in 4.21)
 
 **RHTAS** (Red Hat Trusted Artifact Signer): deploys on-prem Sigstore stack
-(Fulcio, Rekor, TSA, TUF) via operator. Supports OCP 4.15-4.19.
+(Fulcio, Rekor, TSA, TUF) via operator. Current: RHTAS 1.5 (GA 2026-10-06),
+OCP 4.19-4.22; on OCP 4.18 use RHTAS 1.4 (4.18-4.22).
 
 ### SBOM and Attestation
 
