@@ -1,23 +1,23 @@
 # Sources — gitlab-best-practices
 
-Freshened: 2026-09-22 — every row probed; all 26 URLs 200. The chart line moved to 10.4.0 / v19.4.0 and issue #477791 slipped a milestone to 19.5. The required-stop cadence and the chart-major = app-major − 9 offset both still hold.
+Freshened: 2026-10-27 (exceptions: 1 row, noted inline) — every URL 200; chart 10.5.1 / v19.5.1; 19.x now accepts PG 18, zero-downtime upgrades cover Cloud Native Hybrid, and Raft is closed as won't-do.
 
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
-row and rewrites the stamp below; rows it could not reach carry an inline
+row and rewrites the stamp above; rows it could not reach carry an inline
 exception note instead.
 
-**Freshened: 2026-08-29**
+**Authored 2026-08-29.**
 
 Chart and app versions enumerated unfiltered from the Helm repo index; the
 required-stop list read from its machine-readable source; deployment-level
-claims checked in hands-on upgrade tests and against the unpacked chart at 10.3.1 (the chart has since moved to 10.3.2; the unpacked-chart facts below were not re-diffed against it). Claims tagged **[A]** in
+claims checked in hands-on upgrade tests and against the unpacked chart at 10.3.1 (not re-diffed against later charts). Claims tagged **[A]** in
 the reference files were reported by a source but not independently
 re-verified.
 
 ## Table of contents
 - [Primary sources — verified directly](#primary-sources-verified-directly)
 - [Agent-sourced — fetched but not independently re-verified (**[A]**)](#agent-sourced-fetched-but-not-independently-re-verified-a)
-- [Issue states — probed via `glab api` 2026-08-29](#issue-states-probed-via-glab-api-2026-08-29)
+- [Issue states — probed via `glab api`](#issue-states-probed-via-glab-api)
 - [Volatile facts to re-verify on every freshen](#volatile-facts-to-re-verify-on-every-freshen)
 - [Method notes that changed an answer](#method-notes-that-changed-an-answer)
 - [Claims that did not survive checking](#claims-that-did-not-survive-checking)
@@ -35,7 +35,7 @@ re-verified.
 | Chart 10.0 release notes | https://docs.gitlab.com/charts/releases/10_0/ | bundled PostgreSQL / Redis / MinIO removed; external deps become required. "Upgrade to 10.3": bundled Envoy Gateway 1.8.3 → 1.9.x, apply its CRDs **plus the Gateway API 1.6 CRDs** (chart `Chart.yaml` pins `envoy-gateway` 1.9.0 at `v10.3.0`, 1.9.2 at master). "Upgrade to 10.4.0": KAS advertised as `grpcs://` under Gateway API or the NGINX provider; KAS gRPC Ingress rendered by default under NGINX; opt-outs `global.appConfig.gitlab_kas.externalUrl`, `global.kas.ingress.grpc.enabled` |
 | PostgreSQL extensions | https://docs.gitlab.com/administration/postgresql/extensions/ | defers to requirements.md — the page itself carries no table (a null result worth recording) |
 | Registry S3 driver | `registry/storage/driver/s3-aws/s3.go` @ `v4.40.2-gitlab` | legacy `s3` name registered onto the v2 factory — `s3_v2` is not a breaking change |
-| Hands-on upgrade tests | multi-hop upgrades across a chart major | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal |
+| Hands-on upgrade tests | multi-hop upgrades across a chart major | default flips, render behaviour, verification sequence, Sidekiq HPA measurements, restore rehearsal. **Exception — historical campaign evidence, not re-probeable online;** its chart-side facts were spot-checked against chart source instead (Sidekiq HPA 350m vs 900m request and `GITLAB_SIDEKIQ_MAX_REPLICAS` still at master) |
 | Unpacked chart | `helm pull gitlab/gitlab --version 10.3.1 --untar` | per-component PDBs and replica defaults; the `praefect` and `ai-gateway` subcharts; optional-subchart image sources |
 | Gitaly on Kubernetes | `doc/administration/gitaly/kubernetes.md` @ master | GA at 18.11 standalone-only; the "single point of failure by design" quote; the SPoF mitigation set |
 | Praefect index | `doc/administration/gitaly/praefect/_index.md` @ master | Gitaly Cluster on Kubernetes **beta**, introduced 19.1; snapshot backups unsupported for Cluster |
@@ -85,7 +85,7 @@ re-verified.
 | Charts issues | `gitlab-org/charts/gitlab` #1444, #3813, #3021, #4918, #6152 |
 | Runner issues | `gitlab-org/gitlab-runner` #4509, #37448 |
 
-## Issue states — probed via `glab api` 2026-08-29
+## Issue states — probed via `glab api`
 
 State drifts independently of the claim. Re-probe this table on every freshen;
 the claims resting on these issues are cited in the reference files above.
