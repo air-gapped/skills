@@ -4,39 +4,24 @@ Freshened: 2026-09-22 — every row probed against Open WebUI v0.11.4 (2026-09-2
 
 Authoritative references underlying this skill. Read these when this skill is wrong.
 
-> **Version note (re-probed 2026-09-15).** Upstream open-webui is now at
-> **v0.11.3** (2026-08-31), three patches past v0.11.0. Line numbers below are
-> re-resolved against the v0.11.3 tag: `generate_openai_batch_embeddings`
-> 677→845 (0.10.2)→862 (0.11.0)→**882**, `get_embedding_function`
-> 905→1073 (0.10.2)→1090 (0.11.0)→**1098** (its `asyncio.gather` fan-out at
-> **1163**), and the four RAG config keys moved again to **1013 / 1019 / 1027 /
-> 1042**. Every default and behaviour re-confirmed unchanged — only positions
-> moved, which is the third consecutive release to do so.
-> Historically at v0.11.0: `generate_openai_batch_embeddings` 862,
-> `get_embedding_function` 1090, `ExternalReranker` class
-> at **13** with `predict` at **26** (the previously-cited 14/27 were off by one
-> and pointed at `__init__`). Re-resolve by symbol name, never by remembered
-> line number — `config.py` was restructured wholesale (not appended to) between
-> 0.9.x and 0.10.2, moving keys by ~2000 lines.
->
-> **Behaviour re-verified unchanged on 0.11.0:** embed URL auto-append
-> (`f'{url}/embeddings'`), payload `{input, model}`, parse
-> `data['data'][i]['embedding']`; rerank exact-URL (no append), Cohere body
-> `{model, query, documents, top_n}` where `top_n` is always `len(documents)`,
-> parse `data['results']` → `relevance_score`, and the silent `return None`
-> fallback on both non-2xx and missing-`results`. Env defaults unchanged:
-> `RAG_EMBEDDING_BATCH_SIZE` 1 (legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE`
-> still honoured, `config.py:1001-1002`), `RAG_EMBEDDING_CONCURRENT_REQUESTS` 0.
-> 0.11.0's retrieval churn (+462/−248) is almost entirely in `retrieval/web/`.
-> One adjacent change matters: `Knowledges.get_file_metadatas_by_id` became a
-> column-only SELECT excluding `File.data` (`models/knowledge.py:684-694`).
->
+> **Version note.** Line numbers below are resolved at open-webui **v0.12.4**
+> (2026-10-25). They have moved on every release since 0.9.x — re-resolve by
+> symbol name, never by remembered line number. Behaviour re-read at v0.12.4 and
+> unchanged: embed URL auto-append (`f'{url}/embeddings'`), payload
+> `{input, model}`, parse `data['data'][i]['embedding']`; rerank exact-URL,
+> Cohere body `{model, query, documents, top_n=len(documents)}`, parse
+> `data['results']` → `relevance_score`, `return None` on non-2xx and on missing
+> `results`. Env defaults unchanged: `RAG_EMBEDDING_BATCH_SIZE` 1 (legacy alias
+> `RAG_EMBEDDING_OPENAI_BATCH_SIZE`), `RAG_EMBEDDING_CONCURRENT_REQUESTS` 0,
+> reranker keys empty strings. `PersistentConfig` no longer exists (absent at
+> v0.11.4 and v0.12.4); persisted settings are the `DEFAULT_CONFIG` dict, seeded
+> into the DB by `Config.seed_defaults` (insert-if-missing).
 
 | Topic | Reference | Last verified | Pinned |
 |---|---|---|---|
-| Open WebUI embed code | `backend/open_webui/retrieval/utils.py` (`generate_openai_batch_embeddings` line 845; async fan-out in `get_embedding_function` line 1073, `asyncio.gather` line 1138) | 2026-09-15 | re-resolved at open-webui **v0.10.2**; file now 1738 lines |
-| Open WebUI rerank code | `backend/open_webui/retrieval/models/external.py` (`ExternalReranker` line 13, `predict` line 26, `requests.post` line 49) | 2026-09-15 | open-webui **v0.10.2**; file barely changed (69 lines) — still synchronous `requests.post`, not httpx |
-| Open WebUI RAG config keys | `backend/open_webui/config.py` (RAG_EMBEDDING_BATCH_SIZE line 994, RAG_EMBEDDING_CONCURRENT_REQUESTS line 1000, RAG_RERANKING_ENGINE line 1008, RAG_EXTERNAL_RERANKER_URL line 1023) | 2026-09-15 | open-webui **v0.10.2**. Defaults unchanged: CONCURRENT_REQUESTS still `0`, RERANKING_ENGINE and EXTERNAL_RERANKER_URL still empty strings |
+| Open WebUI embed code | `backend/open_webui/retrieval/utils.py` (`generate_openai_batch_embeddings` line 891, async `agenerate_openai_batch_embeddings` line 921; `get_embedding_function` line 1107, semaphore line 1164, `asyncio.gather` line 1173; mode-A prepend in `generate_embeddings` line 1212) | 2026-10-27 | open-webui **v0.12.4**; file 1882 lines |
+| Open WebUI rerank code | `backend/open_webui/retrieval/models/external.py` (`ExternalReranker` line 13, `predict` line 26, `requests.post` line 49) | 2026-10-27 | open-webui **v0.12.4**; 69 lines, still synchronous `requests.post` |
+| Open WebUI RAG config keys | `backend/open_webui/config.py` (RAG_EMBEDDING_BATCH_SIZE line 1026, RAG_EMBEDDING_CONCURRENT_REQUESTS line 1032, prefix trio lines 1034-1038, RAG_RERANKING_ENGINE line 1040, RAG_EXTERNAL_RERANKER_URL line 1055; `DEFAULT_CONFIG` line 2917) | 2026-10-27 | open-webui **v0.12.4**. Defaults unchanged |
 | LiteLLM HF embedding handler | `litellm/llms/huggingface/embedding/transformation.py` (`HuggingFaceEmbeddingConfig` line 38) | 2026-08-18 (paths confirmed on litellm default branch `litellm_internal_staging`, local clone) | litellm commit 934ecdca78 |
 | LiteLLM HF rerank handler | `litellm/llms/huggingface/rerank/transformation.py` | 2026-08-18 (paths confirmed on litellm default branch `litellm_internal_staging`, local clone) | litellm commit 934ecdca78 |
 | LiteLLM `encoding_format` fix | https://github.com/BerriAI/litellm/pull/25395 — `fix(embedding): omit null encoding_format for openai requests`, MERGED 2026-04-12 | 2026-09-15 | PR 25395 |
@@ -48,7 +33,7 @@ Authoritative references underlying this skill. Read these when this skill is wr
 | TEI CLI defaults | `router/src/main.rs` (`max_concurrent_requests` default 512 line 60; `max_client_batch_size` default 32 line 82) | 2026-09-15 | re-resolved at tag **v1.9.3**: both still on lines 60 and 82, exactly as claimed |
 | TEI Blackwell image tags (`100-1.9`, `120-1.9`, `121-1.9`) | https://github.com/huggingface/text-embeddings-inference#docker-images — README image-tag table | 2026-08-18 | TEI README @ main — not re-probed 2026-07-21 |
 | BGE-Reranker-v2-m3 trained max_length=1024 | https://huggingface.co/BAAI/bge-reranker-v2-m3/discussions/9 — maintainer Shitao: "max length of this model is 8192, ... we fine-tune this model with a max length of 1024, so we recommend to set max_length=1024" | 2026-08-18 | discussion 9 (HF, not re-probed this pass) |
-| Slim image cuts local embedding/reranking models | https://github.com/open-webui/open-webui/commit/cb942bb94c8dc7941336088fb3392e2398ff56c1 — `Dockerfile`, `backend/requirements-slim.txt`, `backend/open_webui/routers/retrieval.py` (`USE_SLIM` guards at lines 155, 192, 540, 966, 1650) | 2026-09-24 | v0.11.4 |
+| Slim image cuts local embedding/reranking models | https://github.com/open-webui/open-webui/commit/cb942bb94c8dc7941336088fb3392e2398ff56c1 — `Dockerfile`, `backend/requirements-slim.txt`, `backend/open_webui/routers/retrieval.py` (`USE_SLIM` guards at v0.12.4 lines 153, 190, 511, 939, 1289) | 2026-10-27 | first release v0.11.4 |
 | pgvector multi-KB recall + connection-leak fix | https://github.com/open-webui/open-webui/pull/30142 — `retrieval/vector/dbs/pgvector.py`, adds `PGVECTOR_ITERATIVE_SCAN` (`config.py:744-746`) | 2026-09-24 | v0.11.4 |
 | pgvector index-built-too-early fix | https://github.com/open-webui/open-webui/pull/30143 — `retrieval/vector/dbs/pgvector.py` `_index_is_ready`/min_training_rows deferral | 2026-09-24 | v0.11.4 |
 | Knowledge folder deletion leaves stale index/blobs | https://github.com/open-webui/open-webui/commit/17dbc6f001aeea25ae1df528cb79bb272eca4a77 — `models/knowledge.py`, `routers/knowledge.py` | 2026-09-24 | v0.11.4 |

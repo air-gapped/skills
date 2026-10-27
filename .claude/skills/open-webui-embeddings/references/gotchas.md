@@ -122,7 +122,7 @@ args:
 
 ## 7. `RAG_EXTERNAL_RERANKER_URL` is exact-URL, not auto-append
 
-The embed URL auto-appends `/embeddings` (`utils.py:698`). The rerank URL does NOT (`external.py:50`: `requests.post(f'{self.url}', ...)`). Mirror the embed convention and the request 404s.
+The embed URL auto-appends `/embeddings` (`retrieval/utils.py:942`, v0.12.4). The rerank URL does NOT (`retrieval/models/external.py:50`: `requests.post(f'{self.url}', ...)`). Mirror the embed convention and the request 404s.
 
 ```
 RAG_OPENAI_API_BASE_URL=http://litellm:4000/v1            # → POSTs to /v1/embeddings

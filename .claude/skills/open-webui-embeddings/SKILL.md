@@ -15,7 +15,7 @@ Target: operators choosing and wiring open-weights embedding and reranker models
 - **Open WebUI's side is backend-agnostic.** `RAG_EMBEDDING_ENGINE=openai`, the `/v1/embeddings` payload, prefix handling, batching and concurrency are identical whether you serve with TEI, vLLM, OpenRouter, or OpenAI itself. That layer is this file plus `references/prefix-models.md`.
 - **The serving layer differs per backend** and lives in `references/backends.md` (+ the TEI-specific cliffs in `references/gotchas.md` §2-§6, §9).
 
-Verified against **v0.11.0** source (2026-07-29), re-checked through **v0.11.4**. The embed and rerank wire calls (`generate_openai_batch_embeddings`, `ExternalReranker.predict`) still send and parse the exact payloads below at v0.11.4 — only logging format and an internal header helper changed. v0.11.1–v0.11.4 instead shipped real retrieval-correctness fixes, a mandatory-external-embedding "slim" image, and new ingestion env vars — see §Slim image, the environment variable tables, and §Do not pin at exactly v0.11.0. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
+Verified against **v0.11.0** source, re-checked through **v0.12.4**. The embed and rerank wire calls (`agenerate_openai_batch_embeddings`, `ExternalReranker.predict`) still send and parse the exact payloads below at v0.12.4. v0.11.1–v0.11.4 shipped real retrieval-correctness fixes, a mandatory-external-embedding "slim" image, and new ingestion env vars — see §Slim image, the environment variable tables, and §Do not pin at exactly v0.11.0. One adjacent 0.11.0 change does affect ingestion verification: see §Verifying ingestion below.
 
 ## Start here
 
@@ -66,9 +66,9 @@ The `slim` container variant (`USE_SLIM_DOCKER=true`) ships with no local embedd
 
 | Slim requirement | What happens if unmet | Evidence |
 |---|---|---|
-| `RAG_EMBEDDING_ENGINE` must be `openai`, `ollama`, or `azure_openai` | Saving embedding settings 400s: `Slim requires an external embedding engine (openai, ollama, azure_openai).` | `backend/open_webui/routers/retrieval.py:540` |
-| No local reranker is ever loaded | Falls back to cosine scoring (Open WebUI's normal no-reranker behavior) unless `RAG_RERANKING_ENGINE=external` is set | `backend/open_webui/routers/retrieval.py:192-193` |
-| `VECTOR_DB` defaults to `pgvector`, not `chroma`; knowledge search works only through pgvector | Any other `VECTOR_DB` still starts — the failure arrives on the first search, not at boot. Test a search after deploying | `backend/open_webui/config.py:503,508` |
+| `RAG_EMBEDDING_ENGINE` must be `openai`, `ollama`, or `azure_openai` | Saving embedding settings 400s: `Slim requires an external embedding engine (openai, ollama, azure_openai).` | `backend/open_webui/routers/retrieval.py:511` |
+| No local reranker is ever loaded | Falls back to cosine scoring (Open WebUI's normal no-reranker behavior) unless `RAG_RERANKING_ENGINE=external` is set | `backend/open_webui/routers/retrieval.py:190-191` |
+| `VECTOR_DB` defaults to `pgvector`, not `chroma`; knowledge search works only through pgvector | Any other `VECTOR_DB` still starts — the failure arrives on the first search, not at boot. Test a search after deploying | `backend/open_webui/config.py:509,514` |
 | File storage must be local, not S3/GCS/Azure | Configuring a bucket backend fails at startup on slim | slim-image commit `cb942bb9` |
 
 Once the external embedder/reranker is wired, every rule elsewhere in this skill applies unchanged: prefixes (`references/prefix-models.md`), the strict Cohere rerank shape (§Wire shapes below), and the weak-reranker warning above.
@@ -77,7 +77,7 @@ Once the external embedder/reranker is wired, every rule elsewhere in this skill
 
 ### Embed — Open WebUI code path
 
-`backend/open_webui/retrieval/utils.py:862` (`generate_openai_batch_embeddings`, v0.11.0):
+`backend/open_webui/retrieval/utils.py:921` (`agenerate_openai_batch_embeddings`, the async path RAG calls; sync twin `generate_openai_batch_embeddings` at `:891` sends the same body; v0.12.4):
 
 ```http
 POST {RAG_OPENAI_API_BASE_URL}/embeddings        ← URL is auto-appended
@@ -89,11 +89,11 @@ Content-Type: application/json
 
 Response parsed as `data["data"][i]["embedding"]` (OpenAI shape).
 
-Async fan-out (`get_embedding_function` at `utils.py:1090`, batching + `asyncio.gather` at `utils.py:1139-1156`, v0.11.0): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather`, wrapped in an `asyncio.Semaphore` only when `RAG_EMBEDDING_CONCURRENT_REQUESTS` is non-zero (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**.
+Async fan-out (`get_embedding_function` at `utils.py:1107`, batching + `asyncio.gather` at `utils.py:1157-1173`, v0.12.4): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather`, wrapped in an `asyncio.Semaphore` only when `RAG_EMBEDDING_CONCURRENT_REQUESTS` is non-zero (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**.
 
 ### Rerank — Open WebUI code path
 
-`backend/open_webui/retrieval/models/external.py:13` (`ExternalReranker`, `predict` at line 26; v0.11.0, unchanged since 0.10.2):
+`backend/open_webui/retrieval/models/external.py:13` (`ExternalReranker`, `predict` at line 26; unchanged from v0.10.2 through v0.12.4):
 
 ```http
 POST {RAG_EXTERNAL_RERANKER_URL}                 ← URL is exact, NOT appended
@@ -116,10 +116,10 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_OPENAI_API_BASE_URL` | embed | Open WebUI appends `/embeddings`. `http://litellm:4000/v1`, `http://tei:8080/v1`, `http://vllm:8000/v1`, or `https://openrouter.ai/api/v1`. |
 | `RAG_OPENAI_API_KEY` | embed | Bearer token. TEI ignores it; LiteLLM and OpenRouter enforce it. |
 | `RAG_EMBEDDING_MODEL` | embed | Sent in payload as `model`. Must match the backend's served name exactly — LiteLLM `model_name`, vLLM `--served-model-name`, or the OpenRouter model id. Case-sensitive. |
-| `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1` — **one round-trip per chunk**, usually the single biggest ingestion bottleneck. `32` is a safe default. Legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE` still honoured (`config.py:1001-1002`). |
+| `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1` — **one round-trip per chunk**, usually the single biggest ingestion bottleneck. `32` is a safe default. Legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE` still honoured (`config.py:1026-1027`). |
 | `RAG_EMBEDDING_CONCURRENT_REQUESTS` | embed | Concurrency cap. Default `0` = unlimited (`asyncio.gather` without semaphore). Set to 4-8 so a large upload doesn't burst the backend into 429s. |
 | `RAG_EMBEDDING_PREFIX_FIELD_NAME` | embed | **A mode switch, not a value — leave UNSET for `RAG_EMBEDDING_ENGINE=openai`.** Unset = prefix is string-prepended to the text (what vLLM/LiteLLM/TEI need); set = prefix is sent as a separate JSON field, which only Ollama's native API understands. Setting it empty (`""`, or a k8s `name:` with no `value:`) silently disables prefixes. See `references/prefix-models.md`. |
-| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | The query and document label strings. Unused for BGE-M3 (symmetric); **required** for every other mainstream embedder — e5, EmbeddingGemma, Qwen3-Embedding are all asymmetric. Exact per-model strings in `references/prefix-models.md`. Plain `os.getenv` (`config.py:1009-1013`), not PersistentConfig: env-only, invisible in the admin UI, restart to apply. |
+| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | The query and document label strings. Unused for BGE-M3 (symmetric); **required** for every other mainstream embedder — e5, EmbeddingGemma, Qwen3-Embedding are all asymmetric. Exact per-model strings in `references/prefix-models.md`. Plain `os.getenv` (`config.py:1034-1038`), absent from the persisted `DEFAULT_CONFIG` registry: env-only, invisible in the admin UI, restart to apply. |
 | `RAG_RERANKING_ENGINE` | rerank | Set to `external` for Cohere-shape endpoints. |
 | `RAG_EXTERNAL_RERANKER_URL` | rerank | **Full URL including path** (no auto-append). `http://litellm:4000/v1/rerank` or `https://openrouter.ai/api/v1/rerank`. |
 | `RAG_EXTERNAL_RERANKER_API_KEY` | rerank | Bearer token. |
@@ -130,10 +130,10 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 
 | Variable | Since | Notes |
 |---|---|---|
-| `RAG_SOURCE_METADATA_KEYS` | v0.11.4 | Comma-separated allowlist of per-chunk metadata keys forwarded to the model alongside retrieved text. Empty (default) means no custom metadata reaches the model even if it was attached at upload. `backend/open_webui/env.py:375`, applied in `retrieval/utils.py:1367`. |
-| `RAG_METADATA_MAX_VALUE_CHARS` | v0.11.1 | Caps any single stored chunk-metadata value; oversized values are dropped. Default: `RAG_FILE_MAX_SIZE` (MB) converted to characters; no cap only when both are unset. `backend/open_webui/env.py:844-846`. |
-| `ENABLE_KNOWLEDGE_FILE_RETENTION` | v0.11.1 | `false` by default. When `true`, removing a file from a knowledge base (or emptying one) keeps the stored file and its vector-search data instead of deleting them. `backend/open_webui/config.py:985`. |
-| `PGVECTOR_ITERATIVE_SCAN` | v0.11.4 | pgvector only: `relaxed_order` (default), `strict_order`, or `off`. Needs pgvector ≥0.8, silently ignored below that. Fixes multi-knowledge-base recall on a shared pgvector store — see next section. `backend/open_webui/config.py:744-746`. |
+| `RAG_SOURCE_METADATA_KEYS` | v0.11.4 | Comma-separated allowlist of per-chunk metadata keys forwarded to the model alongside retrieved text. Empty (default) means no custom metadata reaches the model even if it was attached at upload. `backend/open_webui/env.py:375`, applied in `retrieval/utils.py:1375`. |
+| `RAG_METADATA_MAX_VALUE_CHARS` | v0.11.1 | Caps any single stored chunk-metadata value; oversized values are dropped. Default: `RAG_FILE_MAX_SIZE` (MB) converted to characters; no cap only when both are unset. `backend/open_webui/env.py:852-856`. |
+| `ENABLE_KNOWLEDGE_FILE_RETENTION` | v0.11.1 | `false` by default. When `true`, removing a file from a knowledge base (or emptying one) keeps the stored file and its vector-search data instead of deleting them. `backend/open_webui/config.py:992`. |
+| `PGVECTOR_ITERATIVE_SCAN` | v0.11.4 | pgvector only: `relaxed_order` (default), `strict_order`, or `off`. Needs pgvector ≥0.8, silently ignored below that. Fixes multi-knowledge-base recall on a shared pgvector store — see next section. `backend/open_webui/config.py:751-753`. |
 
 ## Do not pin at exactly v0.11.0 — RAG was silently broken there
 
@@ -203,7 +203,7 @@ kept citing pages from a folder no longer visible in the UI. Fixed in
 **Two document-loader correctness fixes, also v0.11.4:** a Docling
 conversion that fails or is skipped inside an HTTP 200 response now fails
 the upload with Docling's own error, instead of being accepted and indexing
-a placeholder in its place (`retrieval/loaders/main.py:296-301`, PR #30107);
+a placeholder in its place (`retrieval/loaders/main.py:295-302`, PR #30107);
 and extracted text is no longer partially rewritten by `ftfy`'s "auto"
 HTML-unescape mode, which only unescaped entities up to the first literal
 `<` and left the rest of the document untouched — `unescape_html=False` is
@@ -233,7 +233,7 @@ PR #29736).
 
 ## Verifying ingestion (changed in 0.11.0)
 
-The obvious way to confirm a knowledge base actually extracted text — list its files and look at the content — **stopped working in 0.11.0**. `Knowledges.get_file_metadatas_by_id` became a column-only `SELECT File.id, File.hash, File.meta, File.created_at, File.updated_at` (`models/knowledge.py:684-694`), deliberately excluding `File.data`, which is where the extracted text lives. Its own docstring says so.
+The obvious way to confirm a knowledge base actually extracted text — list its files and look at the content — **stopped working in 0.11.0**. `Knowledges.get_file_metadatas_by_id` became a column-only `SELECT File.id, File.hash, File.meta, File.created_at, File.updated_at` (`models/knowledge.py:674-685` at v0.12.4), deliberately excluding `File.data`, which is where the extracted text lives. Its own docstring says so.
 
 Consequence: `GET /api/v1/knowledge/{id}` and the KB detail view now return file entries with **no extracted content**, so an empty-looking listing no longer distinguishes "extraction failed" from "extraction succeeded, field not selected". To verify extraction actually produced text, fetch the individual file (`GET /api/v1/files/{id}`) rather than reading the collection listing. Knowledge list items gained a `file_count` in exchange.
 

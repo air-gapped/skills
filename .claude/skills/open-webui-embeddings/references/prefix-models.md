@@ -119,7 +119,7 @@ RAG_EMBEDDING_PREFIX_FIELD_NAME ← NOT a value. A mode switch.
 | **unset** | A — glue | Prefix is string-prepended to the text |
 | any string | B — sidecar field | Text untouched; prefix sent as a separate JSON field under that name |
 
-`retrieval/utils.py:1192-1196` (v0.11.0) — mode A:
+`retrieval/utils.py:1212-1216` (`generate_embeddings`, v0.12.4) — mode A:
 
 ```python
 if prefix is not None and RAG_EMBEDDING_PREFIX_FIELD_NAME is None:
@@ -129,7 +129,7 @@ if prefix is not None and RAG_EMBEDDING_PREFIX_FIELD_NAME is None:
         text = f'{prefix}{text}'
 ```
 
-`retrieval/utils.py:871-873` (`generate_openai_batch_embeddings`) — mode B:
+`retrieval/utils.py:900-902` (`generate_openai_batch_embeddings`) — mode B:
 
 ```python
 json_data = {'input': texts, 'model': model}
@@ -138,7 +138,7 @@ if isinstance(RAG_EMBEDDING_PREFIX_FIELD_NAME, str) and isinstance(prefix, str):
 ```
 
 The same mode-B block is repeated in the ollama, azure_openai, and sync/async
-variants (`utils.py:905, 943, 985, 1024, 1060`).
+variants (`utils.py:931, 966, 1008, 1047, 1080`).
 
 **Mode B exists for Ollama**, whose native embed API accepts a sibling field.
 `/v1/embeddings` — vLLM, LiteLLM, TEI, OpenAI — has no such field. With
@@ -213,7 +213,7 @@ no error anywhere.
 **1. `RAG_EMBEDDING_PREFIX_FIELD_NAME: ""` is the worst possible value.** In
 Kubernetes, a bare `- name: RAG_EMBEDDING_PREFIX_FIELD_NAME` with no `value:` also
 yields an empty string. `os.getenv(..., None)` then returns `""` — a `str`, not
-`None` — so `utils.py:1192` skips the prepend *and* `utils.py:872` fires, injecting
+`None` — so `utils.py:1212` skips the prepend *and* `utils.py:901` fires, injecting
 a JSON key with an empty name. Prefixes silently vanish. **Omit the variable
 entirely; never set it empty.** (`RAG_EMBEDDING_CONTENT_PREFIX: ""` is harmless by
 contrast — an empty prepend is a no-op. The two variables do not behave alike.)
@@ -231,13 +231,14 @@ characters `\` and `n` to the model. If templating through Helm, check the
 rendered manifest, not the values file.
 
 **4. Set both sides or neither.** Query prefix is applied at search time
-(`utils.py:739`, `retrieval.py:2777`, `retrieval/external.py:107,156,233`,
-`tools/builtin.py:3245`); content prefix at ingestion (`retrieval.py:1799`,
-`knowledge.py:77`, `memories.py:152,213,414,512`). A half-configured pair labels
+(`retrieval/utils.py:324,436,752`, `routers/retrieval.py:2793`,
+`retrieval/external.py:108,157,235`, `tools/builtin.py:3499`, `routers/memories.py:343`);
+content prefix at ingestion (`routers/retrieval.py:1529`, `routers/knowledge.py:101`,
+`routers/memories.py:147,203,266,573`) — all v0.12.4. A half-configured pair labels
 queries and documents inconsistently — worse than labelling neither. The exception
 is the query-only models, where the document side is *specified* as empty.
 
-**5. These are plain `os.getenv`, not PersistentConfig** (`config.py:1009-1013`).
+**5. These are plain `os.getenv`, absent from the persisted `DEFAULT_CONFIG` registry** (`config.py:1034-1038`, v0.12.4).
 They do not appear in the admin UI, cannot be set through the REST API, and take
 effect only on pod restart. Env is the only lever — unlike most other RAG settings.
 
@@ -292,5 +293,5 @@ Cross-encoder rerankers (`Qwen3-Reranker-*`, `bge-reranker-v2-m3`) take the
 | Nemotron vLLM support is unregistered + version-bounded | `Ministral3Model` absent from vLLM main's `registry.py`; model card validates `vllm serve` on v0.20.0–v0.24.0 and `/v2/embed` on v0.25.0 (vLLM is at v0.29.0 as of 2026-09-15, four minors past the newest version the card validates); [vLLM #48621](https://github.com/vllm-project/vllm/issues/48621) YaRN bug still OPEN | 2026-08-05 |
 | e5-instruct `Instruct: {task}\nQuery: ` | `intfloat/multilingual-e5-large-instruct` → `README.md` (`get_detailed_instruct`) | 2026-08-05 |
 | BGE-M3 needs no instructions | `BAAI/bge-m3` → `README.md`; no `prompts` in its ST config | 2026-08-05 |
-| Mode A / mode B dispatch | open-webui v0.11.0 `retrieval/utils.py:871-873, 1192-1196` | 2026-08-05 |
-| Prefix vars are not PersistentConfig | open-webui v0.11.0 `config.py:1009-1013` | 2026-08-05 |
+| Mode A / mode B dispatch | open-webui v0.12.4 `retrieval/utils.py:900-902, 1212-1216` | 2026-10-27 |
+| Prefix vars are not in `DEFAULT_CONFIG` | open-webui v0.12.4 `config.py:1034-1038`; `DEFAULT_CONFIG` at `config.py:2917` has no prefix key | 2026-10-27 |
