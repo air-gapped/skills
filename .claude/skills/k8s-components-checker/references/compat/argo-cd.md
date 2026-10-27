@@ -6,7 +6,7 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 3.0
 - **Last sifted:** 2026-09-15
-- **Last release-verified (gh):** 2026-09-15 — every stable tag of 3.2–3.5 enumerated.
+- **Last release-verified (gh):** 2026-10-27 — releases and security advisories of 3.3–3.6 enumerated.
 - **2026-09-15 RETRACTION of the 2026-05-30 "operator correction".** That note claimed the 3.2
   line ended at **v3.2.6**, that it never received the CVE-2026-42880 backport, and that
   `v3.2.10` / `v3.2.12` **do not exist**. All three are false. The 3.2 line runs to **v3.2.12**
@@ -22,19 +22,29 @@
   ("final release of the 3.2 release series … upgrade to a supported version (v3.3, v3.4, or
   v3.5)"). Minors land ~every 3 months, so **3.3 EOLs when 3.6 GAs, expected ~2026-11** — plan
   a 3.3 landing as temporary.
+- **2026-10-07 advisory floor: v3.5.4 / v3.4.10 / v3.3.15.** Eight advisories, four critical —
+  two Kustomize command-execution paths in the repo-server (remote ref, Helm config home), a
+  Jsonnet import file read, and PreDelete/PostDelete hooks bypassing AppProject restrictions.
+  3.2 and older get no patch. Surveyed versions below the floor of their line verdict ✗.
 
 Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.0 / v3.1 rows pulled from `release-3.0` / `release-3.1` historical docs. **Both v3.0 and v3.1 are EOL upstream** (v3.0 EOL 2026-02-02 at v3.0.23; v3.1 EOL 2026-05-06 at v3.1.16) — encountering either is an automatic ✗ blocker, but the rows are kept for migration-path planning. See companion skill `argo-cd-apps` for application-authoring detail; this file is k8s-compat only.
 
-## 3.5 (GA 2026-08-04, latest: v3.5.3, 2026-09-14 — current minor)
+## 3.6 (RC only — v3.6.0-rc4, 2026-10-22)
 
-- **k8s floor:** not re-derived on this pass — the `stable` tested-versions matrix was not re-read.
-  Treat the 3.4 row as a lower bound and re-derive before issuing a 3.5 verdict.
+- Not GA. Its GA puts 3.3 out of support (EOL rule in the header).
+- **k8s floor:** 1.34 – 1.37 (`release-3.6` tested-versions matrix) — a 3.6 bump drops k8s 1.33.
+
+## 3.5 (GA 2026-08-04, latest: v3.5.6, 2026-10-20 — current minor)
+
+- **Security floor:** v3.5.4 (2026-10-07 advisories — header).
+- **k8s floor:** 1.33 – 1.36 (`release-3.5` tested-versions matrix).
 - **Both ServerSideDiff Secret-leak CVEs are below this line entirely** (floors 3.4.2 / 3.3.10 /
   3.2.12), so any 3.5.x is clear of them.
 - Its GA date is what put 3.2 out of support — see the EOL rule in the header.
 
-## 3.4 (latest: v3.4.9, 2026-09-14)
+## 3.4 (latest: v3.4.12, 2026-10-20)
 
+- **Security floor:** v3.4.10 (2026-10-07 advisories — header).
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**
   - Resource tracking is **annotation-based by default** (carried over from v3.0; cluster bumps moving from v2.x or v3.0 mid-rollout will re-track resources — operators must run the `argocd admin app generate-spec --resource-tracking-method annotation` migration before flipping).
@@ -50,13 +60,14 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - **ServerSideDiff Secret leak — the 3.4 floor is v3.4.2, NOT the line's first release.**
     CVE-2026-42880 (critical) was patched before this line shipped, but its fix was incomplete
     and **CVE-2026-45737 lists v3.4.1 as affected**; v3.4.2 (2026-05-12) carries the real fix.
-    **There is no `v3.4.0` tag** — the line starts at v3.4.1, so "≥ 3.4.0" is not a usable
-    floor. Per-line floors: **3.4.2 / 3.3.10 / 3.2.12**. The second CVE needs no
+    **There is no v3.4.0 release** (the tag exists, no release was published) — the line starts
+    at v3.4.1, so "≥ 3.4.0" is not a usable floor. Per-line floors: **3.4.2 / 3.3.10 / 3.2.12**. The second CVE needs no
     `IncludeMutationWebhook=true` annotation — it fires on `argocd app diff
     --server-side-diff` — so stripping the annotation does not substitute for the patch.
 
-## 3.3 (latest: v3.3.14, 2026-08-12 — EOL when 3.6 GAs, expected ~2026-11)
+## 3.3 (latest: v3.3.18, 2026-10-22 — EOL when 3.6 GAs, expected ~2026-11)
 
+- **Security floor:** v3.3.15 (2026-10-07 advisories — header).
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**
   - **3.3.0 + 3.3.1 are broken — skip them.** Forced `kubectl-client-side-apply` → SSA field-manager migration regressed many real apps. Workaround was `ClientSideApplyMigration=false` syncOption. **Fixed in 3.3.2** (2026-02-22). Any survey finding a cluster on 3.3.0 / 3.3.1 must verdict ✗ blocker until bumped to ≥ 3.3.2.
