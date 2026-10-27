@@ -52,10 +52,11 @@ it will not run on every codebase out of the box.
   start outside gVisor unless explicitly overridden.
 
 For most non-C/C++ stacks (web/API, IaC, Python services, infra), the static
-group here plus your own test/CI sandbox is the pragmatic path; the blog post's
-own framing is "you don't necessarily need to run PoCs in a sandbox — frontier
-models are good at finding vulnerabilities from source alone; budget the saved
-time for verification instead."
+group here plus your own test/CI sandbox is the pragmatic path. The write-up
+says: "You don't necessarily need to run PoCs in a sandbox. Frontier models are
+good at finding vulnerabilities from just analyzing source code." Its stated
+trade-off: without a running target no finding is proven by a PoC, "so budget
+more time for verification."
 
 ## Running it (from a clone)
 
