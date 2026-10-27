@@ -1,6 +1,6 @@
 # Autoresearch Ecosystem & Prior Art
 
-*Last updated: 2026-08-20. Full research reports with methodology, findings, and
+*Last updated: 2026-10-27. Full research reports with methodology, findings, and
 source assessments live in `results/` — `autoresearch-evolution-research-2026-04-06.md`
 and `autoresearch-landscape-research-2026-08-20.md`. That directory is a local
 archive and is gitignored, so it is empty in a fresh checkout.*
@@ -146,14 +146,14 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
 - [stanford-oval/storm](https://github.com/stanford-oval/storm) — STORM/Co-STORM v1.1.0.
   Multi-perspective research. Our Mode 2 is based on this pattern. **Note the
   pin is stable because the project is quiet, not because it is actively
-  maintained at that version**: v1.1.0 dates from 2025-01-23 (~19 months) and
-  the repo's last push was 2025-09-30 (~11 months) as of 2026-08-20. The
+  maintained at that version**: v1.1.0 dates from 2025-01-23 (~21 months) and
+  the repo's last push was 2025-09-30 (~13 months) as of 2026-10-27. The
   *pattern* is what Mode 2 borrows and that doesn't rot; treat the codebase as
   reference rather than a dependency to track.
 - [dzhng/deep-research](https://github.com/dzhng/deep-research) — Minimal recursive
   depth+breadth implementation in <500 lines.
 - **Actively-maintained alternatives to a dormant STORM**, if the codebase rather
-  than the pattern is what's wanted (all verified 2026-08-20):
+  than the pattern is what's wanted (all verified 2026-10-27):
   [assafelovic/gpt-researcher](https://github.com/assafelovic/gpt-researcher)
   (parallelized plan-and-solve: static planner decomposes, concurrent retrieval
   agents execute; **v3.7.0** 2026-09-26) and
@@ -331,7 +331,7 @@ evidence about the loop's design, not as dependencies.
   16 GPUs, 910 experiments, $300. Agent autonomously developed two-tier H100/H200 strategy.
 - [Shopify Liquid PR #2056](https://github.com/Shopify/liquid/pull/2056) — 93 commits,
   53% faster parse+render, 61% fewer allocations from autoresearch. **Still open,
-  not merged** (verified 2026-08-20) — the measured win is real; upstream
+  not merged** (verified 2026-10-27) — the measured win is real; upstream
   acceptance is a separate question and this row is not evidence of it.
 - [PJ Hoberman: 60 Experiments](https://blog.pjhoberman.com/autoresearch-60-experiments-production-search) —
   Production search optimization. Mapped the ceiling. Co-optimization pitfalls.
