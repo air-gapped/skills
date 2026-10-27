@@ -61,6 +61,9 @@ security-review tooling changes.
   `vvaharness/pipeline/stages/s5/` package: the test-path regex is now
   `EXCLUDE_PATH_RE` and the credential text pattern `SECRET_TEXT_RX`, both in
   `s5/rules.py`, applied by `s5/gates.py`. The regex is unchanged at v1.5.1.
+  `s5/gates.py` `reject()` also refuses a finding whose line is outside
+  1..len(file) (new in v1.5.0; absent from v1.4.0) — the source of the
+  Step 3a `hallucinated_line` gate.
   The "model ignores the prompt rule ~10%" justification for a mechanical
   gate is in the `s5_prefilter.py` docstring through v1.4.0 and was dropped
   in the split. The Step 2 call-graph context block's "starting point, not

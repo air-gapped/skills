@@ -213,11 +213,13 @@ mechanically assigned confidence and reason, and skip Step 3b.
 
 For each finding, in order:
 
-1. **Hallucinated path.** Resolve `file` under `<target-dir>` (as-given,
+1. **Hallucinated location.** Resolve `file` under `<target-dir>` (as-given,
    then with common prefixes stripped). If it does not exist on disk:
    set `confidence: 0.05`, `prefilter: "hallucinated_path"`,
    `confidence_reason: "prefilter: cited file not found under target"`.
-   Skip 3b for it.
+   If the file exists but `line` is below 1 or past its last line, set the
+   same confidence with `prefilter: "hallucinated_line"`,
+   `confidence_reason: "prefilter: cited line outside file"`. Skip 3b for it.
 2. **Test/fixture path.** Match the resolved path (case-insensitive)
    against the pattern below. The `(?-i:…)` group keeps the Java/C# suffixes
    case-sensitive, so `Attest.java` or `Latest.java` is not a test file:
