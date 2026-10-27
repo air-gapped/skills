@@ -405,8 +405,8 @@ runs all six in one shot.
   interplay, production hardening** → `references/patterns.md`.
 - **Detailed troubleshooting trees, scripted debugging, known CVEs** →
   `references/troubleshooting.md`.
-- **External sources behind the content (repos, release, CVE, docs) with last-verified dates** →
-  `references/sources.md`.
+- **External sources behind the content (repos, release, CVE, docs, defects)**
+  → `references/sources.md`.
 
 ## Authoring checklist
 
