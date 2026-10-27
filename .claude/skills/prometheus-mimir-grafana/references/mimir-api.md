@@ -110,10 +110,11 @@ POST accepts `Content-Type: application/yaml`, returns `202 Accepted`. Ruler adm
 GET    /api/v1/alerts                             # tenant's AM config (YAML)
 POST   /api/v1/alerts                             # set config
 DELETE /api/v1/alerts                             # remove config
-GET    /alertmanager                              # UI
+GET    /alertmanager/api/v2/{alerts,silences,status}  # live alerts/silences (UI removed in 3.2)
 GET    /multitenant_alertmanager/{status,configs,ring}
 POST   /multitenant_alertmanager/delete_tenant_config
 ```
+Firing alerts are not at `/api/v1/alerts` (that is config). `/alertmanager/api/v1/...` returns 410 (upstream v1 API removed) — use `/alertmanager/api/v2/...`, or `/prometheus/api/v1/alerts` for ruler alerts.
 
 ## 7. Component admin endpoints
 
