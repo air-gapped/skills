@@ -1,6 +1,6 @@
 # sources.md — URL index for freshen
 
-Freshened: 2026-10-04 — every row probed (component rows, the 2026-09-24 grounding list, issue/PR/advisory states); every URL 200 except the expected absences (`kontainer-driver-metadata` `release-v2.16`, Cilium `v1.21` docs — no such releases yet). `compat.py sync --check` drift applied and `sync` re-run to zero drift.
+Freshened: 2026-10-27 — every row probed (component rows, the 2026-09-24 grounding list, issue/PR/advisory states, endoflife.date, the ECK matrix CSV); every URL 200 except the expected absences (`kontainer-driver-metadata` `release-v2.16`, Cilium `v1.21` docs — no such releases yet). `compat.py sync --check` drift (GitLab chart patches) applied and `sync` re-run to zero drift.
 
 One row per component. Each row carries the canonical source URL freshen
 probes, optional pin notes, and the `Last verified:` stamp.
@@ -192,7 +192,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-10-04 — **v1.37.1 / v1.36.5 / v1.35.9 / v1.34.12 (all 2026-09-30)**, v1.37.1 `isLatest`; the 1.34–1.36 patches move bundled Cilium 1.19.6 → 1.20.2 (rke2 PRs #11269 and siblings, "Update Cilium chart to 1.20.200"). v1.37.0+rke2r1 GA 2026-09-14; community ceilings per line in `compat/generated.json`. v1.31.14+rke2r2 and v1.32.13+rke2r2 are Prime-only (body: "is a Prime-only release").
+- Last verified: 2026-10-27 — community per line **v1.37.1 / v1.36.5 / v1.35.9 / v1.34.12 (all 2026-09-30)**, v1.37.1 `isLatest`; the 1.34–1.36 patches move bundled Cilium 1.19.6 → 1.20.2 (rke2 PR #11269, merged, and siblings). v1.37.0+rke2r1 GA 2026-09-14. Prime-only bodies ("is a Prime-only release"): v1.31.14+rke2r2, v1.32.13+rke2r2, v1.33.13+rke2r3 (2026-10-02); community ceilings per line in `compat/generated.json`.
 
 ## Rancher
 
@@ -313,7 +313,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-10-04 — v2.0.3 (2026-10-02, `isLatest`); notes + PRs #3177/#3193 read, `passwordEncryptionFromSpec` (`pkg/cluster/types.go@v2.0.3`) defaults the pooler to scram-sha-256. README support table at v2.0.3: K8s `1.27+`, PG 14→18.
+- Last verified: 2026-10-27 — v2.0.3 (2026-10-02, `isLatest`) still newest; PRs #3177/#3193 merged, `passwordEncryptionFromSpec` (`pkg/cluster/types.go@v2.0.3`) defaults the pooler to scram-sha-256. README support table at v2.0.3: K8s `1.27+`, PG 14→18.
 
 ## Grafana Mimir (chart_metadata)
 
