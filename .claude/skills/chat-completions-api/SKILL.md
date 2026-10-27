@@ -40,8 +40,8 @@ provenance in `references/sources.md`).
   reasoning break agentic loops. `references/cloud-compat.md`.
 - **Silent-drop vs hard-400 split**: Ollama silently drops `tool_choice`
   (forced tool calls no-op!) and `max_completion_tokens` (unbounded
-  generation); Groq and xAI-reasoning hard-400 on specific params; LiteLLM
-  raises UnsupportedParamsError as HTTP **500**. Identify the target's
+  generation); Groq, xAI-reasoning and LiteLLM (`UnsupportedParamsError`,
+  HTTP 400 `invalid_request_error`) hard-400 on specific params. Identify the target's
   failure mode before debugging.
 - **finish_reason is not a closed enum**: `abort` (vLLM, SGLang),
   `repetition`, `canceled`/`generated_image` (mistral.rs); llama.cpp
@@ -126,7 +126,7 @@ the messages-api skill, CC↔Responses mapping in the responses-api skill.
    `hosted_vllm/<model>` = tool schemas silently edited (strict +
    additionalProperties stripped). Pick deliberately.
 2. Set `drop_params: true` (or per-model `additional_drop_params`) —
-   otherwise unsupported params surface as HTTP 500 UnsupportedParamsError.
+   otherwise unsupported params surface as HTTP 400 UnsupportedParamsError.
 3. Statelessness makes any replica valid — no affinity needed.
 
 ### Debugging a CC streaming issue

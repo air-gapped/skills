@@ -22,8 +22,9 @@ Everything funnels through `get_optional_params()` (litellm/utils.py:3760).
 - **Param filtering cascade**: params differing from OpenAI defaults are
   checked against `get_supported_openai_params(model, provider)`; unsupported
   ones are dropped silently iff `drop_params` (global or per-request), else
-  raise `UnsupportedParamsError` — **as HTTP 500, not 400**
-  (utils.py:3861-3864). Escape hatches: `additional_drop_params` (strip
+  raise `UnsupportedParamsError` — HTTP **400** `invalid_request_error`
+  (the raise sites pass `status_code=500`, but the exception class forces
+  400). Escape hatches: `additional_drop_params` (strip
   named/nested params pre-mapping), `allowed_openai_params` (force-pass a
   param the config says is unsupported). `user`, `stream`, `stream_options`,
   `max_retries`, `n==1` always exempt.
@@ -134,7 +135,7 @@ directly:
 | CC inbound | yes (core product) | yes (2 doors) | **no** (Messages/Responses only) |
 | Silent param drops | unsupported params under `drop_params`; `additional_drop_params` | OpenAI-only params for non-OpenAI upstreams; `user`>64ch; top_p when temperature set (Anthropic path) | n/a inbound |
 | Param rewrites | `max_tokens`→`max_completion_tokens` (o-series/gpt-5); response_format→tool trick; user→metadata | `max_tokens`→`max_completion_tokens` at ingress; floor 16; Anthropic max_tokens synthesized | stop_sequences↔stop; max_tokens name per model |
-| Errors on unsupported | **500** UnsupportedParamsError (not 400) unless drop_params | mostly silent filtering | n/a |
+| Errors on unsupported | **400** UnsupportedParamsError unless drop_params | mostly silent filtering | n/a |
 | Tool-call ids | fabricated `call_*` for id-less providers | passed through | fabricates `toolu_*` |
 | Streaming | full re-chunking + finish_reason normalization | raw passthrough openai→openai, else normalized | synthesizes Anthropic events, fake signature_delta |
 | Usage | always computed (hidden if not requested) | forwarded + backfill | chars/4 count_tokens; cache fields lost |

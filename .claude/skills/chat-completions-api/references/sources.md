@@ -28,7 +28,7 @@ the listed commit on 2026-07-19.
 | mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-09-15 | v0.9.0 | 0ae0476 |
 | Llama Stack / OGX | https://github.com/llamastack/llama-stack | 2026-09-15 | v1.2.1 | f05b98f |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-09-15 | v11.0.0 | b09a0e9 |
-| LiteLLM | https://github.com/BerriAI/litellm | 2026-09-15 | v1.92.0 (live) / main | b83c60b |
+| LiteLLM | https://github.com/BerriAI/litellm | 2026-10-27 | v1.92.0 (live) / main; latest v1.106.4. `UnsupportedParamsError.__init__` sets `self.status_code = 400` at b83c60b, v1.92.0 and v1.106.4 (`litellm/exceptions.py`); a v1.106.4 proxy answered an `ollama/` model + `logit_bias` with HTTP 400 `invalid_request_error` (2026-10-27) | b83c60b |
 | Bifrost | https://github.com/maximhq/bifrost | 2026-09-15 | — | 7a1543e85 |
 | Superagent Gateway | https://github.com/superagent-ai/gateway | 2026-09-15 | — | d182a5b |
 | opencode + pinned AI SDK tarballs | https://github.com/sst/opencode | 2026-09-15 | v1.18.3; @ai-sdk/openai@3.0.84, openai-compatible@2.0.41 | 127bdb307 (v1.18.3 tag) |

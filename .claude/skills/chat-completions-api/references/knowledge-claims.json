@@ -23,7 +23,7 @@
     {
       "id": 3,
       "question": "What HTTP status code does LiteLLM return for an UnsupportedParamsError?",
-      "skill_answer": "HTTP 500"
+      "skill_answer": "HTTP 400"
     },
     {
       "id": 4,
