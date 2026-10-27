@@ -142,8 +142,8 @@ Machine-read by `compat.py sync` (drift = `sync --check`; no per-row stamp — t
 Grounding for the 2026-09-24 compat/*.md sifts:
 
 **mimir**
-- https://github.com/grafana/mimir/releases/tag/mimir-3.2.1 — Go-CVE patch for Mimir 3.2.x, not yet chart-packaged (§ 6.2.0)
-- https://github.com/grafana/mimir/releases/tag/mimir-3.1.6 — Go/x-crypto/grpc CVE patch for Mimir 3.1.x, not yet chart-packaged (§ 6.1.0)
+- https://github.com/grafana/mimir/releases/tag/mimir-3.2.1 — Go-CVE patch for Mimir 3.2.x; packaged by chart 6.2.1, superseded by 3.2.3 in chart 6.2.2 (§ 6.2.0)
+- https://github.com/grafana/mimir/releases/tag/mimir-3.1.6 — Go/x-crypto/grpc CVE patch for Mimir 3.1.x; superseded by 3.1.8 in chart 6.1.1 (§ 6.1.0)
 **gitlab**
 - https://gitlab.com/gitlab-org/charts/gitlab/-/raw/v10.4.1/doc/installation/cloud/_index.md — k8s support table with minimum GitLab per k8s minor (path moved from cloud/index.md, which 404s)
 - https://gitlab.com/gitlab-org/charts/gitlab/-/raw/master/CHANGELOG.md — chart patch contents
@@ -319,7 +319,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 
 - URL: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/Chart.yaml
 - Probe: `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml` at each chart-release tag; extract `kubeVersion:` constraint and `appVersion:`.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — `Chart.yaml` path still resolves and the probe method still works. Last tagged stable chart is `mimir-distributed-6.2.0` (`kubeVersion: ^1.32.0-0`); HEAD carries a 6.3.0-weekly dev tag.
+- Last verified: 2026-10-27 — newest stable charts `mimir-distributed-6.2.2` (appVersion 3.2.3) and `6.1.1` (appVersion 3.1.8), both 2026-10-26; `kubeVersion: ^1.32.0-0` at both tags (`Chart.yaml` read via the contents API). Newest app releases: mimir-3.2.3 (`isLatest`, 2026-10-22), 3.1.8, 3.0.9. `6.3.0-weekly.*` tags are dev builds — not a stable line.
 
 ## NVIDIA GPU Operator
 
