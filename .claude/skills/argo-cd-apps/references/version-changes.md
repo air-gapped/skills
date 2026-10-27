@@ -526,6 +526,19 @@ credentials configured.
 
 ---
 
+## v3.6 (RC — rc1 2026-09-16, rc4 2026-10-22) — SSA implies Server-Side Diff
+
+**Not GA.** From `docs/operator-manual/upgrading/3.5-3.6.md` at tag v3.6.0-rc4;
+re-read at the GA tag. Bundles Helm 4.3.1, Kustomize 5.8.3.
+
+- **`ServerSideApply=true` now switches the app to Server-Side Diff**; Structured-Merge Diff is removed. Validating webhooks join the diff (a rejection shows as a diff error) and apiserver dry-run load rises. Keep the old diff per app with `argocd.argoproj.io/compare-options: ServerSideDiff=false`.
+- **`argocd app diff --local --server-side-generate`** now sends `*.tpl` and `Chart.lock` by default. Any `--local-include` **replaces** the default set — re-list `*.yaml`, `*.yml`, `*.json` with it. Kustomize generator inputs (`*.env`) always need it.
+- **Progressive Sync** refreshes every owned Application and waits for all to reconcile before stepping — expect slower steps on large ApplicationSets.
+- **Deletion health** lists pending finalizers; custom Lua health checks may return `deletionMessage`. Health-change events gain a `(Caused by <res>)` suffix — fix parsers.
+- GitOps Promoter `PromotionStrategy` / `ChangeTransferPolicy` report `Healthy` (not `Progressing`) mid-promotion; new built-in health for CNPG `Database`.
+
+---
+
 ## Cross-cutting maturity table (May 2026, post-3.3 / pre-3.4-GA)
 
 Authoritative source: `docs/operator-manual/feature-maturity.md` plus

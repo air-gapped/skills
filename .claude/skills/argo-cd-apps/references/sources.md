@@ -108,6 +108,7 @@ stamp.
 | Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-09-15 | v3.4.5 |
 | Upgrading 3.4 → 3.5 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/ | Breaking changes in v3.5 (GA). Helm 4.2.x + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap. Re-read at tag v3.5.6 on 2026-10-27: same sections as rc2; its Breaking heading still says Helm `4.2.0`, its "Helm Upgraded" section says `4.2.1` (the bundled version) | 2026-10-27 | v3.5.6 |
+| Upgrading 3.5 → 3.6 | https://argo-cd.readthedocs.io/en/latest/operator-manual/upgrading/3.5-3.6/ | v3.6 changes (RC). Read at tag v3.6.0-rc4 on 2026-10-27: SSA implies Server-Side Diff and Structured-Merge Diff removed; `--local-include` default adds `*.tpl` / `Chart.lock` and an explicit list replaces it; Progressive Sync refresh-and-wait; deletion health + `deletionMessage`; health events `(Caused by …)`; Promoter health; CNPG `Database` health. Bundled Helm 4.3.1 / Kustomize 5.8.3 per `hack/tool-versions.sh` at rc4. Blog RC post "Argo CD v3.6 Less Memory, Faster UI, Better Rollout Visibility" (2026-09-16) | 2026-10-27 | v3.6.0-rc4 |
 
 ## GitHub
 

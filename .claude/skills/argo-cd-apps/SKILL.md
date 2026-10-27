@@ -385,7 +385,9 @@ Default policy for a typical workload:
 
 For the full `syncOptions` table, sync waves, hooks, health checks, and the
 diff strategy reference (Server-Side Diff is **Stable since v3.2** but **not
-default**), see `references/sync.md`.
+default**), see `references/sync.md`. **From v3.6 (RC), `ServerSideApply=true`
+turns Server-Side Diff on** for that app; opt out with
+`compare-options: ServerSideDiff=false` — `references/version-changes.md` § v3.6.
 
 ## CLI quick reference for app authors
 
@@ -452,7 +454,7 @@ Full table including `tracking-id`, `sync-statuses`, finalizer variants:
 | `references/repo-layout.md` | Designing or restructuring a GitOps repo: config-repo separation, directory-per-env vs branch-per-env, app-of-apps vs ApplicationSet, tool choice + umbrella-chart anti-pattern, Source Hydrator, OCI sources, private repos + OpenSSH 8.9 ssh-rsa gotcha |
 | `references/projects-rbac.md` | Multi-tenancy, security, or supply-chain: every `AppProject` field, app/appset-in-any-namespace (Stable v3.4), sync impersonation (Beta v3.4), GPG signature verification, secrets hygiene (ESO/SealedSecrets/SOPS/CSI), trusted vs untrusted repos |
 | `references/troubleshooting.md` | Anything broken: OutOfSync drivers (HPA, webhooks, field-manager wars, etc.), SyncFailed/hook leaks, ComparisonError, stuck deletion, ApplicationSet generation issues, auto-sync looping, performance, "deleted from git but still there" checklist |
-| `references/version-changes.md` | Upgrading 3.x→3.y or auditing old manifests: per-minor highlights v3.0→v3.5, breaking changes, maturity table, CVEs, 22 "things to drop now" patterns |
+| `references/version-changes.md` | Upgrading 3.x→3.y or auditing old manifests: per-minor highlights v3.0→v3.5 plus v3.6 RC, breaking changes, maturity table, CVEs, 22 "things to drop now" patterns |
 | `references/sources.md` | Verifying citation freshness: dated index of every URL/repo/spec used to build this skill |
 
 ## Adjacent skills
