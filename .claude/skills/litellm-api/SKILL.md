@@ -130,7 +130,7 @@ With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_sett
 
 ### Scripts
 
-- **`${CLAUDE_SKILL_DIR}/scripts/litellm-key-audit.sh <base-url> <admin-key>`** — lists keys whose effective model access is "everything" (empty `models` without team inheritance, or access-groups-with-empty-models — the pattern #34296 makes dangerous). Fields verified against `LiteLLM_VerificationToken` in schema.prisma; execution-tested against a mock `/key/list`.
+- **`${CLAUDE_SKILL_DIR}/scripts/litellm-key-audit.sh <base-url> <admin-key>`** — lists keys whose effective model access is "everything" (empty `models` without team inheritance, `all-team-models` without a team, or access-groups-with-empty-models — the pattern #34296 makes dangerous). Exit 0 = nothing flagged, 2 = keys flagged, 1 = error (auth failure, non-JSON, or tokens without objects) — gate on the code, not on the output. Test without a proxy: `${CLAUDE_SKILL_DIR}/scripts/test-litellm-key-audit.sh` (planted positives + error-shaped responses).
 
 ## Gotchas that cost hours
 
