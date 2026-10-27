@@ -403,7 +403,11 @@ internalize:
    Use `{%-` / `-%}` aggressively anyway — they override env settings
    and give explicit control when emitting tokenized delimiters.
 4. **Unknown roles or malformed messages**: call `raise_exception(...)`.
-   Don't silently emit nothing.
+   Don't silently emit nothing. `apply_chat_template(...,
+   sanitize_control_tokens=True)` (transformers ≥ 5.20) encodes control
+   tokens found in messages/tools/documents as text, but only whole tokens:
+   a template that builds one from input (`'<|' + message.role + '|>'`)
+   must still whitelist the role.
 5. **Non-ASCII in tool arguments**: `tojson` handles it because
    `ensure_ascii=False` is the default. Override only when necessary.
 6. **Time**: `strftime_now(fmt)` is the only injected path. A template
