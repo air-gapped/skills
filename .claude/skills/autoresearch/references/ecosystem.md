@@ -184,8 +184,10 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   [LearningCircuit/local-deep-research](https://github.com/LearningCircuit/local-deep-research)
   (local-first, 10+ search backends including arXiv/PubMed).
 - [Deep Researcher Reflect Evolve](https://arxiv.org/abs/2601.20843) — Sequential
-  refinement with Global Research Context. Beat Claude Researcher, Perplexity, and Grok.
-  Key finding: sequential > parallel in 95.6% of configurations.
+  refinement with Global Research Context; 46.21 on DeepResearch Bench, above Claude
+  Researcher, Perplexity Research and Grok Deeper Search on its leaderboard. The
+  sequential-beats-parallel figure it quotes (95.6% of configurations) comes from a
+  cited reasoning-scaling paper, not from a deep-research comparison of its own.
 
 ### Verification as a separate stage (2026 evidence behind Mode 2's Audit step)
 
