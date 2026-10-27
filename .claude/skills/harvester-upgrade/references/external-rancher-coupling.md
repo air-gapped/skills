@@ -78,8 +78,8 @@ gates that can block the campaign live in the **`rancher-upgrade`** skill — ci
   (one-way rollback), Fleet → Helm v4, Google OAuth broken in 2.14.0 (use 2.14.1+). Reason in itself to stop a
   controlled campaign at the 1.7/Rancher-2.13 rung unless 1.8/2.14 is specifically needed.
 - **mgmt-cluster k8s window** per Rancher minor (`compat/rancher.md`): 2.13 = k8s 1.32–1.34; 2.14 = 1.33–1.35
-  (drops 1.32). Reaching only 2.13 likely needs no mgmt-cluster k8s bump; **only 2.14 forces the mgmt cluster
-  off 1.32**.
+  (drops 1.32); 2.15 = 1.34–1.36 (drops 1.33). Reaching only 2.13 likely needs no mgmt-cluster k8s bump; **2.14
+  forces the mgmt cluster off 1.32, and 2.15 (for Harvester 1.9) off 1.33** — move k8s before the Rancher bump.
 - **Back up the Rancher mgmt cluster's RKE2 etcd before each Rancher step** (the real rollback floor).
 
 ## Scope — self-managed guest RKE2 clusters are OUT of Rancher's provisioning path
