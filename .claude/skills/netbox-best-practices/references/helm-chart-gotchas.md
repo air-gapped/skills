@@ -412,6 +412,22 @@ demote, missing claim) — three asserts, no Django needed. Guard the function
 with `if backend.name != "oidc": return` so a later second backend cannot
 inherit the mapping by accident.
 
+### 9.4 extraConfig type trap: YAML in, Python literals never
+
+Values pass YAML → helm render → YAML → Python. Pasting a Python literal as a
+string does not evaluate — `SOCIAL_AUTH_BACKEND_ATTRS: '{"keycloak": ("Name",
+"login")}'` arrives as a *string* where a dict is expected and crashes the pod
+[source: netbox-community/netbox-chart#945, closed 2026-01]. Express it as plain YAML; a
+two-element list unpacks the same as the tuple NetBox expects
+[source: netbox/netbox/authentication/__init__.py:56,65 @v4.7.3]:
+
+```yaml
+extraConfig:
+  - values:
+      SOCIAL_AUTH_BACKEND_ATTRS:
+        oidc: ["Our SSO", "login"]   # [display name, MDI icon or URL]
+```
+
 ### 9.5 Verify from outside, without logging in
 
 On NetBox ≥4.7 the login start is POST-only (social-auth-app-django 6): a GET
@@ -453,20 +469,3 @@ Land the version hop as one values revision and the SSO switch as the next
 snapshot. The hop's diff must be labels + image tag only; the SSO diff must be
 the auth ConfigMap keys plus the mounts and nothing else. A single combined
 roll cannot tell a migration failure from a pipeline failure.
-
-
-### 9.4 extraConfig type trap: YAML in, Python literals never
-
-Values pass YAML → helm render → YAML → Python. Pasting a Python literal as a
-string does not evaluate — `SOCIAL_AUTH_BACKEND_ATTRS: '{"keycloak": ("Name",
-"login")}'` arrives as a *string* where a dict is expected and crashes the pod
-[source: netbox-community/netbox-chart#945, closed 2026-01]. Express it as plain YAML; a
-two-element list unpacks the same as the tuple NetBox expects
-[source: netbox/netbox/authentication/__init__.py:56,65 @v4.7.3]:
-
-```yaml
-extraConfig:
-  - values:
-      SOCIAL_AUTH_BACKEND_ATTRS:
-        oidc: ["Our SSO", "login"]   # [display name, MDI icon or URL]
-```
