@@ -30,8 +30,8 @@ archive and is gitignored, so it is empty in a fresh checkout.*
 - [Karpathy, "notes from claude coding" (X, 2026-01-26)](https://x.com/karpathy/status/2015883857489522876) —
   Primary source for the skill's thesis. The *Leverage* note: give success criteria
   and loop, write the naive-correct version first then optimize while preserving
-  correctness, shift imperative → declarative. Same post the 160K-star
-  [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)
+  correctness, shift imperative → declarative. Same post the
+  [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)
   CLAUDE.md derives from (its Simplicity-First / Goal-Driven principles mirror this
   skill's Simplicity Criterion and optimize loop).
 
@@ -170,7 +170,7 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
   no longer a comparable deep-research report generator.
 - **STORM has a successor by lineage, not a replacement:**
   [stanford-oval/DataSTORM](https://github.com/stanford-oval/DataSTORM) (created
-  2026-08-06, pushed 2026-08-19, and essentially unadopted at 1 star — new, not
+  2026-08-06, pushed 2026-08-19, and essentially unadopted with single-digit stars — new, not
   established) is built on STORM's `knowledge_storm/` codebase by
   the same lab, and is the implementation for arXiv:2604.06474. It reframes deep
   research over **structured databases** — tree search where each node poses a
@@ -271,7 +271,7 @@ comparison does not.
 
 ## Eval-Driven Development
 
-- [Anthropic: Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) —
+- [Anthropic: Agent Evals](https://www.anthropic.com/research/demystifying-evals-for-ai-agents) —
   Capability evals vs regression evals. Start with 20-50 tasks from real failures.
 - [DSPy](https://dspy.ai/) — Programmatic prompt optimization. **GEPA** (reflective
   prompt evolution) is now the optimizer DSPy leads with; MIPROv2 (Bayesian
