@@ -55,7 +55,7 @@ changed" report.
 | Goal | Do |
 |---|---|
 | Faster recovery, accept client latency | `ceph config set osd osd_mclock_profile high_recovery_ops` (revert to `balanced` afterwards) |
-| Use the classic knobs anyway | `ceph config set osd osd_mclock_override_recovery_settings true`, then set `osd_max_backfills` / `osd_recovery_max_active` |
+| Use the classic knobs anyway | `ceph config set osd osd_mclock_override_recovery_settings true`, then set `osd_max_backfills` / `osd_recovery_max_active`. The flag exists from 17.2.6; on 17.2.0–17.2.5 the knobs cannot be changed under mClock — use the profile. |
 | Check what is really in force | `ceph config show osd.N osd_max_backfills` (not `ceph config get`) |
 
 Default profile: `balanced` from 17.2.7 on (17.2.0–17.2.6 shipped
