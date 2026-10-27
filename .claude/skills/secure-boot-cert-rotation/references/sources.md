@@ -112,7 +112,8 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   ovmf-202308, 2011-only) — the artifact-level proof. The image path moves with the base (`sles/15.7/` → `sles/16.0/`).
 - Harvester wiki Base-Operating-System (Harvester→SL Micro mapping); `github.com/harvester/harvester/issues/7343`
   (host ISO SBAT bug, install SB-off workaround); SUSE support matrix (1.5.x EOM 2025-12-30 / EOL 2026-12-30);
-  suse.com/c/uefi-secure-boot-details/ (SUSE shim chain).
+  SUSE shim chain — suse.com/c/uefi-secure-boot-details/ now 404s; archived copy
+  web.archive.org/web/20251112072220/https://www.suse.com/c/uefi-secure-boot-details/.
 - KubeVirt source (pinned tags) — `pkg/storage/backend-storage/backend-storage.go` (`persistent-state-for`
   PVC prefix, `HasPersistentEFI`), `PathForNVram` (`pkg/util/util.go` from v1.8.0; `pkg/virt-controller/services/rendervolumes.go`
   through v1.7.x — checked at v1.5.2/v1.7.0/v1.8.0/main 2026-10-27), `staging/.../v1/schema.go` (EFI
@@ -131,6 +132,6 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 - KubeVirt — kubevirt.io/user-guide/compute/persistent_tpm_and_uefi_state/: persistence is opt-in, and
   snapshot-restore-into-the-same-VM is the **only** documented restore. No reset-to-template path is
   documented — do not invent one (PVC deletion is not supported guidance).
-- Dell — Lifecycle Controller firmware-rollback docs, and KB 000115696 (corrupt/interrupted BIOS flash
-  recovery — a *different* path from key rollback). Whether a BIOS rollback reverts key databases is
+- Dell — Lifecycle Controller firmware-rollback docs. KB 000115696 (corrupt/interrupted BIOS flash recovery)
+  is withdrawn ("not currently available", 2026-10-27); no replacement cited. Whether a BIOS rollback reverts key databases is
   **undocumented**; the skill says so rather than guessing.

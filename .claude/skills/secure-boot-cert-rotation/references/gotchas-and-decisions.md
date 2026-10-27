@@ -79,8 +79,8 @@ removing `PK`/`KEK`/`db`/`Setup` entries can corrupt the store.
 
 **Dell:** roll back keys with the `ResetKeys` action types, not a BIOS downgrade. Whether a **BIOS rollback
 reverts enrolled key databases is undocumented — do not rely on it**; rollback addresses a defective BIOS
-*update*, not an operator-made key change. (A corrupt/interrupted BIOS *flash* is a different, documented
-Dell recovery path.)
+*update*, not an operator-made key change. (A corrupt/interrupted BIOS *flash* is a different problem —
+BIOS recovery, not key rollback.)
 
 **VMs:** ephemeral NVRAM needs no recovery procedure — a cold stop/start re-templates it, which is simply the
 default behavior. For **persistent** NVRAM there is a real gap: **no KubeVirt/Harvester-documented way to reset
