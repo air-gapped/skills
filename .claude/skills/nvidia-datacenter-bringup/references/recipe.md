@@ -226,13 +226,13 @@ If any of these fail, see [[troubleshooting]] for symptom → cause → fix.
 
 Skill scope ends with the host healthy. For gpu-operator helm values for pre-installed driver mode and known issues including B300 #2231, see [[gpu-operator]].
 
-Quick install (pre-installed driver mode, gpu-operator 26.3.x):
+Quick install (pre-installed driver mode, gpu-operator 26.7.x):
 
 ```bash
 helm install --wait gpu-operator \
   -n gpu-operator --create-namespace \
   nvidia/gpu-operator \
-  --version=v26.3.3 \
+  --version=v26.7.2 \
   --set driver.enabled=false \
   --set toolkit.enabled=false
 ```

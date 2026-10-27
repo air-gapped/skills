@@ -59,13 +59,13 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes | 2026-08-18 | **v26.7.0 is now latest** (2026-08-21), superseding v26.3.3 (2026-06-25); 26.3.2 (2026-05-29) in between |
+| https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/release-notes.html | Operator release notes | 2026-08-18 | **v26.7.2 is latest** (2026-10-14); v26.7.1 2026-09-23, v26.7.0 2026-08-21. Air-gap image tags in [[gpu-operator]] read from `deployments/gpu-operator/values.yaml` at tag v26.7.2 (local clone, 2026-10-27) |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html | Driver branch + GPU compat matrix | 2026-08-18 | — |
 | https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/install-gpu-operator.html | Pre-installed driver mode helm flags | 2026-08-18 | — |
 | https://github.com/NVIDIA/gpu-operator | Upstream source: validator code, helm values.yaml | 2026-08-18 | — |
 | https://github.com/NVIDIA/gpu-operator/issues/2231 | B300 PCI 0x3182 validator name table | 2026-08-18 | CLOSED 2026-07-27. The v26.7.0 release notes attribute PR #2625 to it, but that PR only maps `0x318210DE` to the B300X-269C vGPU profile. The validator warning comes from go-nvlib `pkg/nvpci/nvpci.go` (`pciDB.GetDeviceName`) against `vendor/github.com/NVIDIA/go-nvlib/pkg/pciids/default_pci.ids` (dated 2025-07-11, go-nvlib v0.12.0), which has no `3182` entry at v26.3.3, v26.7.2 or `main` (checked 2026-10-27) — the warning persists |
 | https://github.com/NVIDIA/gpu-operator/issues/1595 | CLOSED 2025-11-17: FM broken in 570.158.01 | 2026-08-18 | fixed in 570.172.08 |
-| https://github.com/NVIDIA/gpu-operator/issues/2463 | CONFIG_MEMORY_HOTPLUG hostPath mount | 2026-07-21 | **now CLOSED 2026-07-07** (was open at last pass) — recheck any workaround the skill still recommends for it |
+| https://github.com/NVIDIA/gpu-operator/issues/2463 | CONFIG_MEMORY_HOTPLUG hostPath mount | 2026-07-21 | CLOSED 2026-07-07 by PR #2517 ("Update Memory Hotplug hostvolume to /sys/devices/system", merge `92aceef9`): not in v26.3.3, in v26.7.0+ (`gh api compare`); listed in the 26.7.0 release notes. The skill recommends no workaround |
 | https://github.com/NVIDIA/gpu-operator/issues/286 | CLOSED: original cudaErrorSystemNotReady → FM diagnosis | 2026-08-18 | — |
 | https://github.com/NVIDIA/gpu-operator/issues/1043 | CLOSED: cuda-validator stuck → install FM | 2026-08-18 | — |
 | https://forums.developer.nvidia.com/t/nvidia-fabricmanager-fail-with-ib-umad-module/353369 | Canonical reference for install-order pitfall | 2026-08-18 | — |

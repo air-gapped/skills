@@ -4,11 +4,14 @@ The skill's scope ends at the host being healthy. This file documents what gpu-o
 
 ## Versions in scope
 
-- **v25.10.1** (Dec 2025) — first version with HGX B300 + GB300 NVL72 support. Default driver 580.95.05. (User's currently-deployed version.)
+- **v25.10.1** (Dec 2025) — first version with HGX B300 + GB300 NVL72 support. Default driver 580.95.05.
 - **v26.3.0** (Mar 2026) — adds NRI plugin, dynamic MIG configmaps, NVIDIADriver CRD. Default driver 580.126.20.
 - **v26.3.1** (Apr 2026) — adds `hostNetwork` for ClusterPolicy/NVIDIADriver operands. Same default driver.
 - **v26.3.2** (2026-05-29) — Kubernetes 1.36 support, NRI plugin on CRI-O v1.34+, DCGM-exporter pod metadata (`enablePodLabels`, `enablePodUID`) + custom DaemonSet annotations, driver-upgrade label staleness fix. Same default driver.
-- **v26.3.3** (2026-06-25) — **latest.** Device Plugin + GFD to v0.19.3, and a fix for a **v26.3.2 regression** that unconditionally enabled `MOFED_ENABLED` / `GDS_ENABLED`, injecting unintended network interfaces and disrupting RDMA workloads. On an RDMA chassis, skip 26.3.2 and go straight to 26.3.3. Default driver still 580.126.20.
+- **v26.3.3** (2026-06-25) — last 26.3.x. Device Plugin + GFD to v0.19.3, and a fix for a **v26.3.2 regression** that unconditionally enabled `MOFED_ENABLED` / `GDS_ENABLED`, injecting unintended network interfaces and disrupting RDMA workloads. On an RDMA chassis, skip 26.3.2 and go straight to 26.3.3. Default driver still 580.126.20.
+- **v26.7.0** (2026-08-21) — **default driver moves to 595.91.07** (R595 Production Branch); Container Toolkit 1.20.0, Device Plugin v0.20.0, DCGM 4.6.0. Fixes the driver pod failing on kernels without `CONFIG_MEMORY_HOTPLUG` (#2463) and host-driver validation not finding `nvidia-smi` behind an absolute `/usr/bin` symlink. Pre-installed mode ignores the default driver — the host's branch is what runs.
+- **v26.7.1** (2026-09-23) — adds driver 615.71.09 support; Toolkit 1.20.1, Device Plugin + GFD v0.20.1, DCGM 4.6.1.
+- **v26.7.2** (2026-10-14) — **latest.** DRA driver v0.5.1 and OpenShift/MPS fixes. Its one new known issue (driver pods blocking a DOCA-OFED update) applies only when both the GPU driver and DOCA-OFED run as operator-managed containers — not to the host-installed stack this skill builds.
 
 ## Pre-installed driver mode
 
@@ -20,7 +23,7 @@ Helm install command:
 helm install --wait gpu-operator \
   -n gpu-operator --create-namespace \
   nvidia/gpu-operator \
-  --version=v26.3.3 \
+  --version=v26.7.2 \
   --set driver.enabled=false \
   --set toolkit.enabled=false
 ```
@@ -181,20 +184,20 @@ Affects only operator-managed driver mode. Pre-installing the driver and putting
 
 ## Air-gap operator install
 
-Mirror these images for v26.3.3 pre-installed mode:
+Mirror these images for v26.7.2 pre-installed mode (tags from the chart's `values.yaml` at that tag — re-read it for any other version):
 
 ```
-nvcr.io/nvidia/gpu-operator:v26.3.3
-nvcr.io/nvidia/k8s-device-plugin:v0.19.0
-nvcr.io/nvidia/cloud-native/k8s-driver-manager:v0.10.0    # only needed for operator-managed driver mode
-nvcr.io/nvidia/cloud-native/gpu-feature-discovery:v0.19.0
-nvcr.io/nvidia/cloud-native/dcgm-exporter:4.5.2-1
-nvcr.io/nvidia/cloud-native/k8s-mig-manager:v0.14.0       # only if using MIG
-nvcr.io/nvidia/cloud-native/nvidia-fs:<tag>               # only if using GDS
-nvcr.io/nvidia/cloud-native/k8s-cc-manager:v0.4.0         # only if using Confidential Containers
+nvcr.io/nvidia/gpu-operator:v26.7.2                       # operator + validator
+nvcr.io/nvidia/k8s-device-plugin:v0.20.1                  # device plugin AND gpu-feature-discovery (same image)
+nvcr.io/nvidia/k8s/dcgm-exporter:4.6.1-4.8.4-distroless
+nvcr.io/nvidia/cloud-native/k8s-driver-manager:v0.12.1    # only needed for operator-managed driver mode
+nvcr.io/nvidia/cloud-native/dcgm:4.6.1-1-ubuntu24.04      # only if dcgm.enabled=true (default false)
+nvcr.io/nvidia/cloud-native/k8s-mig-manager:v0.15.1       # only if using MIG
+nvcr.io/nvidia/cloud-native/nvidia-fs:2.29.4              # only if using GDS
+nvcr.io/nvidia/cloud-native/k8s-cc-manager:v0.4.4         # only if using Confidential Containers
 ```
 
-Plus an NFD image. Use `skopeo sync` or a Harbor pull-through cache. Then in helm values:
+Plus the NFD image (subchart `node-feature-discovery` 0.19.0). Use `skopeo sync` or a Harbor pull-through cache. Then in helm values:
 
 ```yaml
 operator:
@@ -211,11 +214,11 @@ toolkit:
 devicePlugin:
   repository: registry.internal.lan/nvcr.io/nvidia
 gfd:
-  repository: registry.internal.lan/nvcr.io/nvidia/cloud-native
+  repository: registry.internal.lan/nvcr.io/nvidia
 dcgm:
   repository: registry.internal.lan/nvcr.io/nvidia/cloud-native
 dcgmExporter:
-  repository: registry.internal.lan/nvcr.io/nvidia/cloud-native
+  repository: registry.internal.lan/nvcr.io/nvidia/k8s
 validator:
   repository: registry.internal.lan/nvcr.io/nvidia
 ```
@@ -228,4 +231,4 @@ validator:
 - Upstream source: https://github.com/NVIDIA/gpu-operator
 - Issue #2231 (B300 PCI 0x3182): https://github.com/NVIDIA/gpu-operator/issues/2231
 - Issue #1595 (FM 570.158.01): https://github.com/NVIDIA/gpu-operator/issues/1595
-- Issue #2463 (CONFIG_MEMORY_HOTPLUG hostPath): https://github.com/NVIDIA/gpu-operator/issues/2463 — CLOSED 2026-07-07
+- Issue #2463 (CONFIG_MEMORY_HOTPLUG hostPath): https://github.com/NVIDIA/gpu-operator/issues/2463 — fixed in v26.7.0
