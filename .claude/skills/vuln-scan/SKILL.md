@@ -401,10 +401,11 @@ menu, DO-NOT-REPORT exclusions, per-finding confidence pass, and
 test-path exclusion regex, the committed-credential exception to it, and
 the gate-before-the-expensive-stage ordering — is adapted (Apache-2.0) from
 [`visa/visa-vulnerability-agentic-harness`](https://github.com/visa/visa-vulnerability-agentic-harness)'s
-s5 prefilter stage. From the same harness: the `source_ref`/`sink_ref`
-evidence fields carry the semantics of its s4 finding schema, per-focus-area
-threat tagging mirrors the `threat_id` its s3 stage stamps on every chunk,
-and the six `--focus` specialist lenses — with the cite-or-drop gate that
-is the transferable part of each — follow its `SPECIALIST_HINTS` set.
+s5 stage (`vvaharness/pipeline/stages/s5/`). From the same harness: the
+`source_ref`/`sink_ref` evidence fields carry the semantics of its s4 finding
+schema, per-focus-area threat tagging mirrors the threat id its s3 stage
+attaches to each unit of work, and the six `--focus` specialist lenses —
+with the cite-or-drop gate that is the transferable part of each — follow
+its per-family lens skills (`vvaharness/skills/<lens>/`).
 See `HARNESS.md` for the execution-verified pipeline this static skill
 complements.

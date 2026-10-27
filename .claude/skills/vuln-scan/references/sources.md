@@ -57,14 +57,20 @@ security-review tooling changes.
 - URL: https://github.com/visa/visa-vulnerability-agentic-harness
 - Probe: `gh repo view visa/visa-vulnerability-agentic-harness --json pushedAt,isArchived`
 - Note: the Step 3a deterministic pre-filter is adapted (Apache-2.0) from this
-  repo's `vvaharness/pipeline/stages/s5_prefilter.py` — the test-path
-  exclusion regex (`_EXCLUDE_PATH_RE`), the committed-credential exception
-  (`_SECRET_TEXT_RX` rationale), and the gate-before-expensive-stages
-  ordering (its docstring's measured "model ignores the prompt rule ~10%"
-  is the justification for a mechanical gate). The Step 2 call-graph
-  context block, with its "graph is a starting point, validate edges
-  yourself" stance, follows the same repo's s6 context injection.
-- Last verified: 2026-08-16  (read from a local clone at the current commit)
+  repo's s5 stage. v1.5.0 (2026-10-09) split `s5_prefilter.py` into the
+  `vvaharness/pipeline/stages/s5/` package: the test-path regex is now
+  `EXCLUDE_PATH_RE` and the credential text pattern `SECRET_TEXT_RX`, both in
+  `s5/rules.py`, applied by `s5/gates.py`. The regex is unchanged at v1.5.1.
+  The "model ignores the prompt rule ~10%" justification for a mechanical
+  gate is in the `s5_prefilter.py` docstring through v1.4.0 and was dropped
+  in the split. The Step 2 call-graph context block's "starting point, not
+  evidence" stance matches `s6/prompts.py` at v1.5.1 ("A missing graph edge
+  is NOT by itself a refutation"). Lenses: `SPECIALIST_HINTS`
+  (`vvaharness/lang/hints.py`) through v1.4.0, replaced in v1.5.0 by 17
+  per-family `vvaharness/skills/<lens>/SKILL.md` files that include the six
+  this skill reserves. s3 at v1.5.1 builds one investigation unit per threat
+  id (`threat_unit_id`); through v1.4.0 each chunk cited a `threat_id`.
+  Checked 2026-10-27 in a local clone at v1.5.1 (`0e6f00d`).
 
 ## "Using LLMs to secure source code" (methodology write-up)
 
