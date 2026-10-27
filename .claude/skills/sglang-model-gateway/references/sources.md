@@ -16,6 +16,8 @@ Dated index of every external claim in this skill. The `Last verified` column tr
 | https://github.com/sgl-project/sglang/pull/13120 | First-class vLLM gRPC backend (`RuntimeType::Vllm`). PD with vLLM not supported per limitation matrix. | 2026-08-18 | merged 2025-11-12 |
 | https://github.com/sgl-project/sglang/issues/20184 | Service discovery only watches one port per pod. | 2026-09-15 | **Closed 2026-05-10 BY THE STALE BOT, not by a fix** — see the stale-bot warning below. Limitation stands. |
 | https://github.com/sgl-project/sglang/issues/17623 | Operator repro: cache_aware ≈ k8s round-robin with abundant KV memory. | 2026-09-15 | **Closed 2026-04-14 by the stale bot.** Cited as an operator measurement, so closure does not weaken it. |
+| https://github.com/sgl-project/sglang/issues/37554 | Worker registered as `model_id: "unknown"` under IGW is never routed to; restart or `DELETE /workers` clears it. | 2026-10-27 | **Closed 2026-10-20 NOT_PLANNED by the reporter** ("our production router has moved to the standalone SMG"), together with draft fix PR #37555. No fix landed; the reporter's 2026-09-02 comment gives the two mitigations. |
+| https://github.com/sgl-project/sglang/issues/39400 | Unauthenticated `PUT /route` on the PD bootstrap service. | 2026-10-27 | Open. |
 
 ## Tokenizer crate (separate repo)
 

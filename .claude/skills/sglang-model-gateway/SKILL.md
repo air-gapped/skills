@@ -198,10 +198,9 @@ kubectl -n <ns> logs deploy/sgl-model-gateway | grep -i 'discover\|registered' |
 
 If `/workers` returns fewer entries than there are worker Pods, the RBAC verbs or the `--selector`/`--service-discovery-namespace` pair is wrong — the gateway starts healthy either way, so an unvalidated rollout looks identical to a working one.
 
-## Two open gateway defects worth knowing (checked 2026-09-14/15)
+## Two unfixed gateway defects
 
-Neither is fixed at time of writing; both are the kind that look like an
-infrastructure fault rather than a gateway bug.
+Both look like an infrastructure fault rather than a gateway bug.
 
 - **Unauthenticated `PUT /route` on the PD-disaggregation bootstrap service**
   ([#39400](https://github.com/sgl-project/sglang/issues/39400), OPEN, filed
@@ -215,10 +214,11 @@ infrastructure fault rather than a gateway bug.
   mitigation.
 - **A worker whose metadata discovery failed registers permanently as
   `model_id: "unknown"`**
-  ([#37554](https://github.com/sgl-project/sglang/issues/37554), OPEN, filed
-  2026-09-02). Reported from production: a large share of a fleet silently
-  stopped being routed to after a rollout, and **a router restart was the only
-  recovery** — the bad registration never self-heals. The symptom is capacity
+  ([#37554](https://github.com/sgl-project/sglang/issues/37554) — closed
+  not-planned with no fix; the bug stands). Hits service discovery, which turns
+  on IGW: a worker probed before its engine answers is never routed to, and
+  the bad registration never self-heals. Clear it with a gateway restart, or
+  `DELETE /workers/<id>` and let discovery re-add it. The symptom is capacity
   that exists and passes health checks but receives no traffic, which reads as a
   load-balancer or autoscaling problem rather than a discovery one. Check the
   gateway's registered `model_id` values after any rollout, not just worker
