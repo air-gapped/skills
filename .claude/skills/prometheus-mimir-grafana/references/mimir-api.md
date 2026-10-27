@@ -24,7 +24,7 @@ Horizontally-scalable, multi-tenant, long-term storage for Prometheus metrics wi
 Mimir 3.0 (current line: 3.2.x; 3.1.x still gets patches) also changed two defaults an agent will feel:
 
 - **Mimir Query Engine (MQE) is the default engine.** The switch happened in two steps, which matters when bisecting a read-path regression: **queriers defaulted to MQE in 2.17** (`[CHANGE] Querier: Use Mimir Query Engine (MQE) by default`, #11501), **query-frontends in 3.0** (#12361). So a cluster on 2.17–2.x is *already* running MQE in queriers. Opt out per tier: `-querier.query-engine=prometheus` / `-query-frontend.query-engine=prometheus`. Both tiers also carry `-enable-query-engine-fallback` (default `true`), so MQE silently defers to the Prometheus engine on unsupported features — and **there is no counter for that fallback**, so you cannot alert on it. Documented MQE-vs-Prometheus divergences: `topk`/`bottomk` tie-breaking, some missing annotations, absent duplicate-series errors, and early abort of binary-operator evaluation.
-- **Ingest storage architecture** (Kafka between write and read paths) is available and separates read/write scaling. Classic architecture is still supported in 3.x, so don't assume a 3.x cluster is on it.
+- **Ingest storage architecture** (Kafka between write and read paths) is available and separates read/write scaling. Classic architecture is still supported in 3.x, so don't assume a 3.x cluster is on it — on 3.2+ `GET /api/v1/status/buildinfo` reports `data.features.ingest_storage` (`"true"`/`"false"`).
 
 ## 2. Multi-tenancy
 
