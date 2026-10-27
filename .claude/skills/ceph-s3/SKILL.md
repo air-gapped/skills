@@ -117,10 +117,10 @@ pin the SDK/tool to a version before the change.
   it now.
 - Deleted objects' tail data waits `rgw_gc_obj_min_wait` (2 h) before GC;
   pool usage drops late by design. `radosgw-admin gc list --include-all`.
-- Never `radosgw-admin bucket rm --bypass-gc` on buckets that received
-  S3 CopyObject copies on affected releases: tracker 73348 (silent data
-  corruption of shared tail objects; fixed in the dev tree, affected
-  19.2.2 per the tracker).
+- Never `radosgw-admin bucket rm --bypass-gc` on a bucket whose objects
+  were server-side copied (CopyObject) on releases before 19.2.4 / 20.2.1
+  (Reef 18.2.8): silent corruption of the shared tail objects (tracker
+  73348).
 
 ## Tentacle S3 behaviour changes
 

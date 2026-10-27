@@ -102,7 +102,7 @@
       "id": 8,
       "name": "bypass-gc-copyobject",
       "prompt": "Need to delete a huge bucket fast on our Squid RGW. Planning radosgw-admin bucket rm --bucket=big --purge-objects --bypass-gc. Many objects in other buckets were created by server-side copy from this one. Any risk?",
-      "expected_output": "Tracker 73348: bypass-gc with server-side copies corrupts shared tail objects; avoid bypass-gc.",
+      "expected_output": "Tracker 73348: bypass-gc with server-side copies corrupts shared tail objects on Squid before 19.2.4; check the version, avoid bypass-gc there.",
       "files": [],
       "assertions": [
         "Warns that --bypass-gc can corrupt/delete data of objects created by server-side CopyObject that share tail objects",

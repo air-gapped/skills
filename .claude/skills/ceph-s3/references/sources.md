@@ -16,7 +16,7 @@ Freshened: 2026-09-23 — every row probed at creation.
 | Rook multisite doc | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-multisite.md | 2026-10-27 | Warning in v1.21.0+ (absent through v1.20.9): set `rgw_sigv4_insecure: "true"` + `rgw_s3_client_max_sig_ver: "2"` in `gateway.rgwConfig`, revert to `"false"` / `"-1"`. Names 19.2.6 and 20.2.4; the Ceph tracker scopes the forwarding break to Squid. |
 | CRC64NVME | https://tracker.ceph.com/issues/70040 | 2026-09-23 | Fixed via ceph/ceph#61878 in Tentacle 20.2.0. |
 | CRC64NVME Squid backport | https://tracker.ceph.com/issues/70736 | 2026-09-23 | Status New — not shipped. |
-| bypass-gc corruption | https://tracker.ceph.com/issues/73348 | 2026-09-23 | Server-side copy + `--bypass-gc`; affected 17.2.6, 17.2.8, 19.2.2 per tracker. |
+| bypass-gc corruption | https://tracker.ceph.com/issues/73348 | 2026-10-27 | Resolved (pr#65772). Backports Released In: squid 73598 v19.2.4, tentacle 73596 v20.2.1, reef 73597 v18.2.8. Reported on 17.2.6, 17.2.8, 19.2.2. |
 | Multisite sync status | https://github.com/ceph/ceph/blob/v20.2.4/doc/radosgw/multisite.rst | 2026-10-03 | §Checking the Sync Status (behind vs recovery shards); §Changing the Metadata Master Zone (wait for metadata sync before promoting, else changes lost); `sync error list` in `doc/man/8/radosgw-admin.rst`. |
 | Dynamic resharding doc | https://docs.ceph.com/en/squid/radosgw/dynamicresharding/ | 2026-09-23 | "Cleanup of stale instances should not be done in a multisite deployment." |
 | Resharding without pausing | https://ceph.io/en/news/blog/2026/rgw-improved-resharding/ | 2026-09-23 | Tentacle two-phase reshard. |
