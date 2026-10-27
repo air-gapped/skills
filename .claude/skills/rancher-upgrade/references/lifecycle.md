@@ -62,7 +62,7 @@ assuming community. Settle doubt with the community chart index — a version ab
 
 | Minor | Community GA (.0) | EOL |
 |-------|-------------------|-----|
-| 2.11 | 2025-03-31 | **2026-10-24** |
+| 2.11 | 2025-03-31 | **2026-10-24** (passed) |
 | 2.12 | 2025-07-31 | **2027-02-28** |
 | 2.13 | 2025-11-25 | **2027-06-17** |
 | 2.14 | 2026-03-26 | **2027-10-10** |
@@ -111,18 +111,11 @@ the plan that a hop to the next minor follows its GA (cadence above) instead of 
 current minor as terminal (House Rule #4). Re-run the ceiling probe before writing any plan — the
 current-minor row above is the fastest-moving fact in this skill.
 
-⚠ **2.11 goes EOL 2026-10-24 — and community 2.11 is already frozen.**
-**Compute the runway from the date at plan time.** 2.11 is this skill's upgrade *floor*, so an operator arriving
-on 2.11 has a short runway: they are starting a one-minor-at-a-time ladder
-(2.11→2.12→2.13→2.14→2.15) from a version that leaves support before that ladder is
-likely to finish. **Sharper than the EOL date alone:** the community ceiling
-v2.11.3 shipped **2025-06-25** — over a year ago. Every 2.11 patch since is
-Prime-only, so a community operator on 2.11 has been receiving *no fixes at all*
-well ahead of the formal EOL, and the nominal "supported until October" reads
-far better than the reality. Treat 2.11 as urgent, not merely dated. Factor it
-into look-ahead targeting (House Rule #4: pick the version covering the *next*
-hop) — and note **2.10 is already EOL (2026-06-19)**, so anyone below the floor
-is unsupported today.
+⛔ **2.11 is past EOL (2026-10-24), and community 2.11 has had no fix since v2.11.3 (2025-06-25).**
+2.11 is this skill's upgrade *floor*: an operator arriving on it starts the one-minor-at-a-time
+ladder (2.11→2.12→2.13→2.14→2.15) from an unsupported version that sits under every advisory floor
+on the line. Treat it as urgent — chain the hops in as few windows as the gates allow (SKILL.md § 2) and
+target the newest minor (House Rule #4). 2.10 and older (EOL 2026-06-19) are below the floor.
 
 ## Grounding (House Rule #3) — repo map + anti-confirmation method
 
