@@ -36,7 +36,7 @@ release that breaks the *tooling* before it breaks the deployment.
 Facts here were verified **2026-08-29** against machine-readable upstream
 sources, the unpacked chart, and hands-on upgrade tests. Re-verify anything version-bearing.
 
-**Version anchor (2026-08-29):** latest chart **10.3.1** / app **19.3.1**.
+**Version anchor (2026-10-27):** latest chart **10.5.1** / app **19.5.1**.
 Chart major = app major − 9. Required stops through 19.x: **18.2 · 18.5 ·
 18.8 · 18.11 · 19.2 · 19.5 · 19.8 · 19.11** — enumerate them fresh, never
 from memory.

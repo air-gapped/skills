@@ -43,7 +43,7 @@ Three things operators get wrong about stops:
 | The `.0` of a new major is a stop | There is no `19.0` entry. The path is 18.11 → **19.2**, crossing every 19.0 and 19.1 breaking change in one hop with no intermediate resting point. Satisfy 19.0's prerequisites *before leaving 18.11*. |
 | The required-stop path is the schedule | It is the floor. Out-of-band CVE hops land between stops and must be budgeted for. |
 
-Stops for 18→19: **18.2 → 18.5 → 18.8 → 18.11 → 19.2**, then any later minor.
+Stops for 18→19: **18.2 → 18.5 → 18.8 → 18.11 → 19.2**, then 19.5 · 19.8 · 19.11 within 19.x.
 
 There is an official Support upgrade-path calculator, but it renders
 client-side and cannot be scraped — use the YAML. **[A]**
