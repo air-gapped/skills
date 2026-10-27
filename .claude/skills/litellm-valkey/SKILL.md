@@ -59,7 +59,7 @@ Cluster mode changes semantics, not just topology: the v3 rate limiter's all-or-
 | Response/tool-call cross-talk between users | Open #25447 (multi-replica + cluster, also seen on single Redis). Workaround: `cache_params.supported_call_types: []` | `references/known-issues.md` |
 | Cooldowns randomly "don't exist"; event loop stalls on errors | Sync blocking writes on the cooldown path + `str()` vs `json.dumps` serialization asymmetry | `references/config-reference.md` §sync-async |
 | Two proxies on one Valkey DB corrupt each other | Coordination keys unprefixed: no `namespace:` in the `coordination_redis` block (it forwards one), or env-only coordination (cannot carry one) — `cronjob_lock:*`, spend buffer, `{api_key:…}:requests` collide | `references/coordination-redis.md` §namespacing |
-| Config/key changes take a minute to apply on other pods | No cross-pod invalidation (no pub/sub in the tree); 60s in-memory TTLs | `references/shared-vs-perpod.md` |
+| Config/key changes take a minute to apply on other pods | <v1.96.0: no cross-pod invalidation, 60s in-memory TTLs. Newer: config sync (v1.96.0+) and auth-cache invalidation (v1.97.0+) ride Redis pub/sub on `litellm_proxy.*` channels — a Redis ACL without that channel grant logs `No permissions to access a channel` and falls back to TTL lag | `references/shared-vs-perpod.md` |
 
 ## Per-pod vs shared — the numbers that matter
 

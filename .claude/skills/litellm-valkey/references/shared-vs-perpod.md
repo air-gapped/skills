@@ -18,7 +18,7 @@ Which enforcement is actually fleet-wide, how stale each shared view can be, and
 | Spend → DB buffer | Yes — RPUSH/LPOP lists | **At-most-once**: leader LPOPs then commits; "Data already popped from Redis may be lost" (`db_spend_update_writer.py:899`, `:1067`); drain capped at `MAX_REDIS_BUFFER_DEQUEUE_COUNT=100`/cycle → sustained overproduction grows the list unboundedly |
 | Cron jobs (budget reset, key rotation, session cleanup, prometheus budget metrics, CloudZero/Vantage/FOCUS export) | Yes — `PodLockManager` (SET NX EX + Lua compare-and-delete, `pod_lock_manager.py:153-186`) | Lock TTL `DEFAULT_CRON_JOB_LOCK_TTL_SECONDS=60`; call sites guard on `pod_lock_manager.redis_cache` — **no Redis = every pod runs the job unlocked**, not "job never runs" |
 | Shared health checks | Yes | `release_health_check_lock` is non-atomic GET-then-DEL (`shared_health_check_manager.py:96-98`) — unlike PodLockManager |
-| DB config params | Cached per pod | `litellm_config_cache` 60s both tiers (`utils.py:2842-2848`); `invalidate_config_param` deletes local + Redis but **no pub/sub exists in the tree** — other pods serve stale config up to 60s |
+| DB config params | Cached per pod | `litellm_config_cache` 60s both tiers (`utils.py:2842-2848`); `invalidate_config_param` deletes local + Redis; <v1.96.0 other pods serve stale config up to 60s. v1.96.0+ pushes changes over pub/sub channel `litellm_proxy.config_change` (needs the coordination Redis and an ACL channel grant) |
 | Response cache | Yes (when redis) | **No in-memory tier** — `Cache.cache` is a bare `RedisCache`: every lookup is a Redis GET on the request path |
 
 ## The four staleness constants
@@ -32,7 +32,7 @@ Which enforcement is actually fleet-wide, how stale each shared view can be, and
 
 - **Every DualCache's local tier is `InMemoryCache(max_size_in_memory=200, default_ttl=600)`** (`in_memory_cache.py:29-43`) — 200 entries, not configurable. >200 hot keys (keys × descriptors across tenants) thrash the local tier; correctness survives while Redis is healthy because Redis is authoritative, but the *fallback* paths and the local parallel-slot registry silently lose state under pressure.
 - **TTL is not refreshed on rewrite** (`allow_ttl_override`, `in_memory_cache.py:143-153`): a counter keeps its original expiry regardless of updates — bounds, but does not eliminate, the local over-reject window after the shared window rolls.
-- **`DualCache.async_delete_cache` clears this pod + Redis only** (`dual_cache.py:478-485`); cross-pod invalidation does not exist (no pubsub/subscribe anywhere except GCS logging). Deleted models ghost in other workers (open #27852); customer mutations don't invalidate Redis end-user counters (open #31838/#31839).
+- **`DualCache.async_delete_cache` clears this pod + Redis only** (`dual_cache.py:478-485`); the only cross-pod invalidation is pub/sub for config sync (v1.96.0+) and the virtual-key auth cache (`litellm_proxy.auth_cache_invalidation`, v1.97.0+); everything else waits out its TTL. Deleted models ghost in other workers (open #27852); customer mutations don't invalidate Redis end-user counters (open #31838/#31839).
 
 ## Multi-instance correctness checklist
 
