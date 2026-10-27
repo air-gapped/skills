@@ -145,11 +145,12 @@ watch: `references/pitfalls.md` §HA.
 
 ## Backups, cutover, air-gap
 
-- **Backups**: go plugin-first (in-tree `barmanObjectStore` removal is
-  scheduled for CNPG 1.31 after slipping four times — never hard-code
-  that). ObjectStore CRD wiring, the sidecar image hidden in the release
-  manifest, cert-manager avoidance, dashboards for renamed
-  `barman_cloud_*` metrics, and the frozen-WAL-G-bucket plan:
+- **Backups**: go plugin-first (1.31 is the last CNPG minor with in-tree
+  `barmanObjectStore`; removal is scheduled for 1.32.0 after slipping
+  five times — never hard-code that). ObjectStore CRD wiring, the
+  sidecar image hidden in the release manifest, cert-manager avoidance,
+  dashboards for renamed `barman_cloud_*` metrics, and the
+  frozen-WAL-G-bucket plan:
   `references/backup-chain.md`.
 - **Consumer cutover**: services `<cluster>`/`<cluster>-repl` →
   `<cluster>-rw/-ro/-r`; secrets `<user>.<cluster>.credentials…` →

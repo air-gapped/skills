@@ -70,7 +70,7 @@ authoritative.
 
 ## Volatile facts to re-verify on every freshen
 
-- In-tree barmanObjectStore removal version (currently 1.31.0 — slipped 4×; 1.31 still unreleased as of **2026-08-25**).
+- In-tree barmanObjectStore removal version: **1.32.0**, 1.31 the last minor shipping it (slipped 5×) — announced in docs by PR #11702 (merged 2026-10-21, backported to release-1.30); the 1.30.1 admission warning still says 1.31.0. Upcoming-releases table: 1.31.0 ~Dec 2026, 1.32.0 ~Mar 2027, both marked uncertain.
 - Latest plugin-barman-cloud release and its CNPG module target: **v0.15.1** (2026-09-30, CNPG v1.30.1 modules, barman 3.20.1); chart **0.8.1** / appVersion **v0.15.1** (2026-09-30).
 - Zalando release state (**v2.0.2 latest, 2026-08-20**, re-probed 2026-08-25; Spilo-18 4.1-p2 is the v2 default; PG 14–18).
 - CNPG latest minors + K8s window; PG major support floor (1.30.0/1.29.2/1.28.4, all 2026-06-29 — unchanged at **2026-08-25**, ~8 weeks against a 5–7 week train).

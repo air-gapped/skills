@@ -95,8 +95,9 @@ gates verified 2026-07-24.
     `ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES` (off by default,
     "breaks immutability"). Minors live ~6 months; skipping minors on
     upgrade is discouraged.
-16. **In-tree barmanObjectStore removal at 1.31** (slipped 4×, don't
-    hard-code) + backup metrics rename with the plugin (#8902): old
+16. **In-tree barmanObjectStore removal at 1.32.0** (1.31 is the last
+    minor shipping it; slipped 5×, don't hard-code) + backup metrics
+    rename with the plugin (#8902): old
     `cnpg_collector_last_*_backup_timestamp` go silently stale. Alert
     on new-metric absence.
 17. **`nodeMaintenanceWindow` is a false friend** — PVC-reuse control

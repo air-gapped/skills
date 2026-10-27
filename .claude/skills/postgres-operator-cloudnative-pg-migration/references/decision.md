@@ -104,12 +104,13 @@ normal, not a slowdown signal; re-check before quoting a cadence.
    (instance-manager binary replacement; in-place update exists but is
    off by default and "breaks immutability"). Zalando asked ~1/yr.
 3. **Plugin transition in flight.** In-tree Barman backup deprecated
-   since 1.26; removal slipped 1.28→1.29→1.30→1.31. The plugin is
-   pre-1.0 and already caused a silent backup-metrics regression
-   (#8902). Conservative teams may prefer landing after 1.31 ships —
-   **note that condition is still unmet as of 2026-08-25: latest is
-   1.30.0 and 1.31 is unreleased**, so "wait for 1.31" is currently a
-   wait of unknown length, not a scheduled one.
+   since 1.26; removal slipped 1.28→1.29→1.30→1.31→1.32 (1.31 is now
+   the last minor shipping it). The plugin is pre-1.0 and already
+   caused a silent backup-metrics regression (#8902). Conservative
+   teams may prefer landing after the removal release ships — that is
+   1.32.0, which the upcoming-releases table puts at ~Mar 2027 with
+   1.31 at ~Dec 2026, both marked uncertain. "Wait for removal" is
+   therefore a wait of months, not a scheduled date.
 4. **Feature losses.** Teams API / OAuth credential automation,
    credential rotation, operator UI, preparedDatabases automation,
    arbitrary sidecars, logical-backup cron, upgrade maintenance windows.

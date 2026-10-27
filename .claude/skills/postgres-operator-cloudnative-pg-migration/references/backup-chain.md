@@ -6,10 +6,12 @@ Contents: [The WAL-G wall](#the-wal-g-wall-recap--plan) · [Plugin install](#plu
 
 Version anchor: plugin-barman-cloud v0.15.1 (pre-1.0, ~monthly cadence,
 no breaking changes since v0.13.0), CNPG 1.30.1. In-tree
-`barmanObjectStore` is deprecated since 1.26; removal is scheduled for
-**1.31.0** after slipping four times (1.28→1.29→1.30→1.31) — treat the
-removal version as volatile, but build new clusters plugin-first
-regardless.
+`barmanObjectStore` is deprecated since 1.26; 1.31 is the last minor
+that ships it and removal is scheduled for **1.32.0** after slipping five
+times (1.28→1.29→1.30→1.31→1.32). The admission warning in 1.30.1 and
+earlier still names 1.31.0 — the docs are right, the warning is stale.
+Treat the removal version as volatile, but build new clusters
+plugin-first regardless.
 
 ## The WAL-G wall (recap + plan)
 
