@@ -7,7 +7,7 @@ claimed somewhere but contradicted or unsupported when checked.
 ## Table of contents
 - [The one-paragraph answer](#the-one-paragraph-answer)
 - [Gitaly — the ladder and the gap](#gitaly-the-ladder-and-the-gap)
-- [The zero-downtime contradiction — the load-bearing one](#the-zero-downtime-contradiction-the-load-bearing-one)
+- [Zero-downtime upgrades on the chart](#zero-downtime-upgrades-on-the-chart)
 - [Per-component HA in the chart](#per-component-ha-in-the-chart)
 - [Where GitLab says Kubernetes starts](#where-gitlab-says-kubernetes-starts)
 - [Deployment shape — chart vs Operator](#deployment-shape-chart-vs-operator)
@@ -103,28 +103,20 @@ blessed and has since changed our recommendation"*. Any design resting on
 GitLab guidance older than ~2024 must be re-checked against the current
 reference architectures before it is trusted.
 
-## The zero-downtime contradiction — the load-bearing one
+## Zero-downtime upgrades on the chart
 
-Two GitLab-maintained documents make **opposite claims** about the same
-deployment method. Nothing found reconciles them.
+**Supported for Cloud Native Hybrid from GitLab 18.9**, through the chart's own
+`doc/installation/upgrade.md` § "Upgrade with zero downtime". The reference
+architectures page agrees. Copies of that page saying *"Cloud Native Hybrid is
+not supported"* are outdated — do not plan from them.
 
-| Source | Claim |
-|---|---|
-| `doc/administration/reference_architectures/_index.md` | *"Zero-downtime upgrades are available for standard environments with HA (Cloud Native Hybrid is not supported)"* |
-| `charts/gitlab` → `doc/installation/upgrade.md` | ships a full **"Upgrade with zero downtime"** section for the plain Helm chart, with concrete required settings |
-
-The reference-architectures claim cites work item `gitlab-org/cloud-native#52`
-as its justification. That item is **closed**, and it concerns the **GitLab
-Operator** — a different deployment method from the plain chart. The citation is
-stale and does not support the sentence resting on it.
-
-**Act on the chart's own doc**, which is specific and maintained. Its stated
-requirements:
+Its stated requirements:
 
 - Multiple replicas configured for **webservice and sidekiq**.
 - **One minor release at a time** — skipping one means *"database modifications
   might be run in the wrong sequence and leave the database schema in a broken
-  state."*
+  state."* A hop between required stops (18.2 → 18.5) is therefore not a
+  zero-downtime hop; budget downtime for it.
 - Explicit rollout settings, which are **not chart defaults**:
   `RollingUpdate`, `maxSurge: 10%`, `maxUnavailable: 0`, and tuned
   `terminationGracePeriodSeconds` for webservice, sidekiq, gitlab-shell and
@@ -132,26 +124,24 @@ requirements:
 - *"Gitaly on Kubernetes supports zero-downtime upgrades through client
   retries."*
 
+**Run its sequence exactly:** pause the webservice and sidekiq Deployments →
+`helm upgrade` with `SKIP_POST_DEPLOYMENT_MIGRATIONS=true` → wait for the
+migrations Job → resume sidekiq, then webservice → a second `helm upgrade`
+without the flag for post-deployment migrations. Do not skip the pause.
+
 **The trap:** applying those rollout settings for the first time itself triggers
 a disruptive rolling restart. Land them in **their own release**, ahead of the
 upgrade they are meant to protect — not in the same change.
 
-### Do not promise zero downtime on Kubernetes
+### Supported is not disruption-free
 
-Follow the chart procedure, but budget a brief disruption. It is not a
-guarantee, and the gap is stated by GitLab's own delivery organisation in
-`gitaly#6934` (open, 2025-09-29), under "Self-Managed Charts":
-
-> "Current status: **No documented or publicly supported approach to ZDU in
-> Cloud Hybrid.**"
-
-Three mechanics from that issue constrain what is achievable:
+Budget a brief disruption anyway:
 
 | Mechanic | Consequence |
 |---|---|
-| `tableflip`, the in-place restart that delivered ZDU on Omnibus, is being **removed** — *"does not work to any extent with immutable infrastructure... This includes containerised deployments like Kubernetes"* | ZDU for Gitaly on Kubernetes rests on **client retries**, not process survival |
-| No backward/forward gRPC compatibility guarantee between Rails and Gitaly | a single Helm release cannot order them safely; **open** |
-| Pod restart latency vs in-place VM swap | **open** |
+| Standalone Gitaly is a SPoF; its pod rotation *"causes service disruption"* | Git operations ride on **client retries** across the Gitaly restart, not on process survival |
+| Rails ↔ Gitaly have no cross-version gRPC guarantee; Gitaly must be upgraded first | confirm the Gitaly StatefulSet has rolled before resuming webservice and sidekiq. Independent rollout is still **open** upstream (`gitaly#6934`) |
+| Reference architectures: *"there may still be brief moments of downtime when the HA mechanisms take effect"* | stated by GitLab for every zero-downtime method |
 
 Verify against the actual workload, never against the word "zero".
 

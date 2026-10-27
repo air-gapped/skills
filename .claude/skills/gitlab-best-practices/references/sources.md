@@ -39,15 +39,15 @@ re-verified.
 | Unpacked chart | `helm pull gitlab/gitlab --version 10.3.1 --untar` | per-component PDBs and replica defaults; the `praefect` and `ai-gateway` subcharts; optional-subchart image sources |
 | Gitaly on Kubernetes | `doc/administration/gitaly/kubernetes.md` @ master | GA at 18.11 standalone-only; the "single point of failure by design" quote; the SPoF mitigation set |
 | Praefect index | `doc/administration/gitaly/praefect/_index.md` @ master | Gitaly Cluster on Kubernetes **beta**, introduced 19.1; snapshot backups unsupported for Cluster |
-| Reference architectures | `doc/administration/reference_architectures/_index.md` @ master | Cloud Native Hybrid scope; 2,000-user floor; the zero-downtime "not supported" claim and its stale citation |
+| Reference architectures | `doc/administration/reference_architectures/_index.md` @ master | Cloud Native Hybrid scope; 2,000-user floor; zero-downtime upgrades *"In GitLab 18.9 and later, also for Cloud Native Hybrid environments"* — changed by MR !255834 (merged 2026-09-18), which removed the earlier "Cloud Native Hybrid is not supported" sentence and its cloud-native#52 citation |
 | Zero-downtime (Omnibus) | `doc/update/zero_downtime.md` @ master | scoped to the Linux package only |
-| **Chart upgrade doc** | `charts/gitlab` → `doc/installation/upgrade.md` @ master | the chart's **own** zero-downtime procedure and required rollout settings — contradicts the reference architectures |
+| **Chart upgrade doc** | `charts/gitlab` → `doc/installation/upgrade.md` @ master | the chart's **own** zero-downtime procedure: requirements, rollout settings, the pause → upgrade (`SKIP_POST_DEPLOYMENT_MIGRATIONS=true`) → resume sidekiq → resume webservice → post-migration upgrade sequence. The 18.9 release notes (https://docs.gitlab.com/releases/18/gitlab-18-9-released/, "Zero Downtime Upgrades now supported for Cloud Native Hybrid deployments") link to this section |
 | Chart source @ master | `gitlab-org/charts/gitlab` (shallow clone) | per-component PDB templates and replica defaults; `edition: ee` default |
 | Epic 8903 | https://gitlab.com/groups/gitlab-org/-/work_items/8903 | Raft goals: remove Praefect, remove Postgres. **Now CLOSED** (activity 2026-09-15), where the last recorded status update here was 2024-06-18. **Closed is not shipped** — this file's own method rule — so read the closing note before narrating the Raft architecture as delivered or as abandoned; neither reading is established yet |
 | Epic 20405 | https://gitlab.com/groups/gitlab-org/-/work_items/20405 | "Make Gitaly Cluster a first-class solution"; open Praefect bugs; public weekly "No progress" notes at ~5 h/week |
 | Epic 6127 | https://gitlab.com/groups/gitlab-org/-/epics/6127 | "Gitaly should run well in Kubernetes"; customer notes incl. a paused evaluation over Praefect-on-VMs |
-| cloud-native#52 | https://gitlab.com/groups/gitlab-org/cloud-native/-/work_items/52 | **closed**, and about the Operator — the stale citation the reference-architectures claim rests on. **URL corrected 2026-09-15:** `cloud-native` is a **group**, so the work item needs the `/groups/` prefix; the project-form URL previously cited here **403s**. Do not file that 403 under this skill's bot-block convention — it was a wrong path shape, not a refused fetcher, and GitLab's own reference-architectures page cites the group form |
-| **gitaly#6934** | https://gitlab.com/gitlab-org/gitaly/-/issues/6934 | **open** (2025-09-29, 60 notes read in full). GitLab's own "No documented or publicly supported approach to ZDU in Cloud Hybrid"; `tableflip` removal and its Kubernetes incompatibility; unsolved Rails↔Gitaly rollout ordering; the sequencing argument |
+| cloud-native#52 | https://gitlab.com/groups/gitlab-org/cloud-native/-/work_items/52 | **closed** 2024-11-13, and about the Operator — the citation the reference architectures used for "not supported" until MR !255834 removed both. **URL corrected 2026-09-15:** `cloud-native` is a **group**, so the work item needs the `/groups/` prefix; the project-form URL previously cited here **403s**. Do not file that 403 under this skill's bot-block convention — it was a wrong path shape, not a refused fetcher, and GitLab's own reference-architectures page cites the group form |
+| **gitaly#6934** | https://gitlab.com/gitlab-org/gitaly/-/issues/6934 | **open**, retitled "Enable independent Gitaly deployments without Rails rollout order dependency" (last activity 2026-07-01). Gitaly must be upgraded before Rails (2025-11-13 summary note); `tableflip` removal and its Kubernetes incompatibility; the sequencing argument. Its 2025 "No documented or publicly supported approach to ZDU in Cloud Hybrid" status predates the 18.9 support announcement |
 | gitaly#4616 | https://gitlab.com/gitlab-org/gitaly/-/issues/4616 | **closed** decision record — **"Final decision: NO-GO"** on retiring Praefect's PostgreSQL ahead of Raft |
 | gitaly#4436 | https://gitlab.com/gitlab-org/gitaly/-/issues/4436 | **closed** (2022) — the four Raft goals, unchanged in epic 8903 four years later |
 | Epic 6127 note trail | https://gitlab.com/groups/gitlab-org/-/epics/6127 | 150+ notes read end to end: the 2023 "unsupported vs document the risks" argument; the 2023→2026 customer-commitment trail with tiers and seat counts; the reversed-recommendation quote; the FY26Q4 GA target that slipped |
@@ -95,7 +95,7 @@ the claims resting on these issues are cited in the reference files above.
 | `gitlab#477791` | **open**, milestone 19.4 | backup-cli docs link; `missed:` 17.7 → 19.3 |
 | `charts#4918` | **open** | mirror chart images to an external registry |
 | `charts#5151` | **open** | best practice for very large backups |
-| `gitaly#6934` | **open** | ZDU on Cloud Hybrid; rollout ordering; tableflip removal |
+| `gitaly#6934` | **open** | independent Gitaly rollout without Rails ordering; tableflip removal |
 | `gitlab#388094` | closed 2023-09-18 | **closed on a triage ping, not by a fix** — see below |
 | `gitlab#595725` | closed, milestone 19.0 | backports reached 18.9/18.10/18.11 — milestone ≠ fixed-in |
 | `gitlab#597558` | closed, milestone 19.1 | the dropped-index pre-flight |
@@ -143,8 +143,9 @@ housekeeping closes and fix closes look identical in the state field.
 - **Gitaly Cluster (Praefect) on Kubernetes leaving beta.** Check epic 20405's
   status notes and whether `praefect/_index.md` still says beta. This is the
   single fact that would change the HA answer.
-- **Whether the zero-downtime contradiction is reconciled** — reference
-  architectures vs the chart's own `doc/installation/upgrade.md`.
+- **The chart's zero-downtime procedure** in `doc/installation/upgrade.md` —
+  the reference architectures and the chart doc agree since 2026-09-18; re-read
+  the sequence and rollout settings each pass.
 - **The Duo tier table and add-on names.** GitLab has renamed and re-tiered
   these repeatedly; Non-Agentic Chat left Duo Core on 2026-05-21. Never answer
   a licensing question from memory.
