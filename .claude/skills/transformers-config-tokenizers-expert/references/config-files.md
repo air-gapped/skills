@@ -283,6 +283,22 @@ Canonical example: GLM-5.1's `generation_config.json` lists
 `<|user|>` and `<|observation|>` — turn primers that vLLM and sglang
 stop on but transformers-based renderers miss.
 
+**Fine-tune signature (Trainer, transformers 4.56.0–5.17.x).**
+`Trainer.train()` ran `align_special_tokens`, which collapsed a list
+`config.json` `eos_token_id` to the tokenizer's single id and prepended
+that id to the `generation_config.json` list even when already present;
+`save_pretrained` kept both.
+Recognise it as `config.json` `eos_token_id: A` while
+`generation_config.json` holds `[A, A, B, C]`.
+
+- Not an author decision and not engine divergence: vLLM, sglang and
+  `generate()` still get `{A, B, C}` from `generation_config.json`.
+- Only a reader of `config.json` alone sees one stop id. Repair: copy the
+  base model's `config.json` `eos_token_id` list back and drop the
+  duplicate from `generation_config.json`.
+- 5.18.0 (#49082) keeps a declared list. Re-saving a damaged fine-tune on
+  ≥ 5.18.0 does not restore the dropped ids; alignment only adds.
+
 ### `tokenizer.json` vs `tokenizer_config.json` added_tokens drift {#v5-consolidation}
 
 - **v5 canonical**: `tokenizer.json["added_tokens"]` is truth; 
