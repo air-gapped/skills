@@ -111,7 +111,7 @@ spec:
 - **`advanced.horizontalPodAutoscalerConfig.name`** — rename the managed HPA;
   otherwise `keda-hpa-<scaledobject>`.
 - **`advanced.horizontalPodAutoscalerConfig.behavior`** — standard
-  [HPAv2 behavior](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior).
+  [HPAv2 behavior](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/#configurable-scaling-behavior).
   Align stabilization windows to multiples of the 15s HPA sync period.
 - **`advanced.scalingModifiers`** (KEDA 2.13+) — combine multiple triggers into
   a single composite metric via an expr-lang formula. Requires `name` on
