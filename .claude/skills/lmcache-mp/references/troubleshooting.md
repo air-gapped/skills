@@ -48,7 +48,7 @@ MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLL
 
 ## Version compatibility matrix
 
-Current stable pair: **vLLM v0.32.0 + LMCache v0.5.6**. Every row below also needs lmcache **0.5.6+** on both server and vLLM side for MP mode (security floor, CVE-2026-105192); the 0.4.x entries are compatibility minimums only.
+Current stable pair: **vLLM v0.32.0 + LMCache v0.5.6**. Every row below also needs lmcache **0.5.6+** on both server and vLLM side for MP mode (security floor, CVE-2026-105192); the older entries are compatibility minimums only.
 
 | vLLM version | Required lmcache | Notes |
 |---|---|---|
