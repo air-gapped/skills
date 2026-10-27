@@ -1,19 +1,15 @@
 # Sources — postgres-operator-best-practices
 
-Freshened: 2026-09-22 — every row probed; all 26 URLs 200. v2.0.2 is still the unfiltered latest — no v2.0.3 or v2.1.x — and the readyz regression, the scram password-rewrite loop and the `workers >= cluster count` mitigation are all freshly reconfirmed in #3163's live thread, which remains open and undocumented upstream.
+Freshened: 2026-10-27 — every row probed; all URLs 200. v2.0.3 (2026-10-02) is now the unfiltered latest and the path target; #3163 is still open with no reply since 2026-08-13, so the readyz and `workers >= cluster count` traps remain undocumented upstream, and Spilo still has no tag past 4.1-p2.
 
 Per-URL index backing this skill's factual claims. Freshen Mode probes every
-row and rewrites the stamp below; rows it could not reach carry an inline
+row and rewrites the stamp above; rows it could not reach carry an inline
 exception note instead.
 
-**Freshened: 2026-09-15**
-
-Re-probed end to end with no drift: every URL, every cited issue and PR state, and each of the volatile facts below. `v2.0.2` is still the newest release (list enumerated unfiltered), the `/readyz` regression is still open and still undocumented upstream, and Spilo still has no tag past the one this release pins — so the claim that the md5 drop is still ahead of us remains forward-looking rather than wrong. Release containment for each fix was re-established with `git tag --contains`, never from a merge date.
-
-Upstream read at tag **v2.0.3** (v2.0.2 -> v2.0.3 diffed file by file); release list enumerated unfiltered via
-`gh api`; issue tracker swept the same day; claims about a running deployment
-checked with `kubectl` against a live RKE2 cluster on v1.14.0. Nothing here is
-inferred from release notes alone.
+Upstream read at tag **v2.0.3** (v2.0.2 -> v2.0.3 diffed file by file);
+release list enumerated unfiltered via `gh api`; issue tracker swept in the
+same pass; claims about a running deployment checked with `kubectl` against a
+live cluster. Nothing here is inferred from release notes alone.
 
 ## Primary sources (repos, official docs, release artifacts)
 
