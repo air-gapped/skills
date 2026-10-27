@@ -70,7 +70,12 @@ image:
 The alternative (`repository: …@sha256:…` with an empty tag) does **not** work — `default` treats `""` as empty
 and appends AppVersion, producing `…@sha256:…:3.1.2`.
 
-**The mirror must serve quay.io as well as docker.io** — minio and `mc` come from quay.io. [RFC]
+**Bundled minio: the MinIO images can no longer be pulled publicly.** [UG] Through 6.1.0 / 6.2.0 the minio
+subchart defaults to `quay.io/minio/minio` and `quay.io/minio/mc`, which now refuse anonymous pulls. 6.1.1 and
+6.2.1+ override both to `pgsty/silo:RELEASE.2026-09-03T13-18-01Z` (Docker Hub; one image serves server and
+`mc`). On an earlier hop, keep the copy already in the mirror, or set `minio.image` and `minio.mcImage` to the
+silo image — the same override on the same minio subchart (5.4.0 on every hop). [RFC] An external object store
+skips all of this.
 
 ## 3. Per-hop image sets
 
@@ -82,6 +87,7 @@ hand-editing; the 6.1.0 prefix change makes a naive diff read as "4 removed, 4 a
 | **5.8.0** | `grafana/mimir:2.17.0` · `grafana/rollout-operator:v0.28.0` · `nginxinc/nginx-unprivileged:1.28-alpine` · `memcached:1.6.38-alpine` · `prom/memcached-exporter:v0.15.3` · minio + mc unchanged |
 | **6.0.6** | **+ `apache/kafka-native:4.1.0`** (only if adopting ingest storage) · `grafana/mimir:3.0.4` · `rollout-operator:v0.32.0` · nginx `1.29-alpine` · `memcached:1.6.39-alpine` |
 | **6.1.0** | `docker.io/`-prefixed: `grafana/mimir:3.1.2` · `rollout-operator:v0.38.0` · `apache/kafka-native:4.1.0` · `nginx-unprivileged:1.29-alpine`; **memcached and memcached-exporter stay unprefixed** |
+| **6.1.1 / 6.2.1+** | as the `.0` with the new `grafana/mimir` tag · **`pgsty/silo:RELEASE.2026-09-03T13-18-01Z` replaces both quay.io MinIO images** (bundled minio only) |
 
 Not needed, explicitly: no `grafana/mimir-continuous-test` (a module of the main image), no `alpine/kubectl`
 (the provisioner is GEM-only and removed), no ZooKeeper. [RFC]
