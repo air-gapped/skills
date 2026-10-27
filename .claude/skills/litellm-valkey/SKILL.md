@@ -58,7 +58,7 @@ Cluster mode changes semantics, not just topology: the v3 rate limiter's all-or-
 | Redis `connected_clients` grows; `No connection available` | Async client + pool rebuilt every 600s (LLM-client cache TTL), old pool never disconnected; sync client per RedisCache mostly unused | `references/config-reference.md` §connection-churn |
 | Response/tool-call cross-talk between users | Open #25447 (multi-replica + cluster, also seen on single Redis). Workaround: `cache_params.supported_call_types: []` | `references/known-issues.md` |
 | Cooldowns randomly "don't exist"; event loop stalls on errors | Sync blocking writes on the cooldown path + `str()` vs `json.dumps` serialization asymmetry | `references/config-reference.md` §sync-async |
-| Two proxies on one Valkey DB corrupt each other | `coordination_redis` has **no namespace field** — `cronjob_lock:*`, spend buffer, `{api_key:…}:requests` collide | `references/coordination-redis.md` §namespacing |
+| Two proxies on one Valkey DB corrupt each other | Coordination keys unprefixed: no `namespace:` in the `coordination_redis` block (it forwards one), or env-only coordination (cannot carry one) — `cronjob_lock:*`, spend buffer, `{api_key:…}:requests` collide | `references/coordination-redis.md` §namespacing |
 | Config/key changes take a minute to apply on other pods | No cross-pod invalidation (no pub/sub in the tree); 60s in-memory TTLs | `references/shared-vs-perpod.md` |
 
 ## Per-pod vs shared — the numbers that matter
@@ -116,5 +116,5 @@ Helm chart wiring (`redis.sentinel.enabled` renders the coordination block from 
 - **≥ v1.93.0** for Sentinel on the core path and for independent coordination config at all. On v1.93.0 specifically, check #34614 (redis-py 5.3.1 `ssl_check_hostname`) before rolling out.
 - **`fail_closed_budget_enforcement: true`** if budget overrun costs real money — the default fails open. Rate limits fail open too; on ≥v1.105.0 set `fail_closed_rate_limit_enforcement: true` to get 503s on Redis errors (no effect when no Redis is wired — prove wiring first). Older images have no closed mode for rate limits.
 - **Alert on the degradation log strings** (`references/silent-degradation.md` has the exact list) — they are the only signal that the fleet has stopped coordinating.
-- **One Redis logical DB per LiteLLM deployment** — coordination keys are unprefixed; sharing a DB across deployments collides locks and counters.
+- **One Redis logical DB per LiteLLM deployment**, or a distinct `namespace:` in each `coordination_redis` block (≥v1.100.0 for the delimiter fix) — env-only coordination is always unprefixed; shared unprefixed keys collide locks and counters.
 - Load-test the actual limit: run > limit RPM across all pods and confirm 429s at ~1× (not ~N×) the configured value. This is the only end-to-end proof.

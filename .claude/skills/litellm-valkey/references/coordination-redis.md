@@ -54,9 +54,9 @@ The chart is marked community-maintained in its README; validate rendered config
 
 ## Namespacing — two deployments, one Valkey
 
-`cache_params.namespace` sets `self.cache.namespace` (`caching.py:281-283`) and `check_and_fix_namespace` prefixes every key on that client (`redis_cache.py:354-363`) — **including** rate-limit and lock keys *when the client is borrowed*. But `CoordinationRedisParams` has no namespace field, so a dedicated coordination Redis writes **unprefixed** keys: `cronjob_lock:*`, `litellm_spend_update_buffer`, `{api_key:…}:requests`. Two LiteLLM deployments pointed at one Valkey DB will interleave locks and counters. Use separate logical DBs (or separate instances) per deployment.
+`cache_params.namespace` sets `self.cache.namespace` (`caching.py:281-283`) and `check_and_fix_namespace` prefixes every key on that client (`redis_cache.py:354-363`) — **including** rate-limit and lock keys *when the client is borrowed*. `CoordinationRedisParams` declares no `namespace` field but allows extra keys and forwards them to `RedisCache`, so `namespace: <name>` in the block prefixes coordination keys too. Without it — and always for env-only coordination, which cannot carry one — keys are **unprefixed**: `cronjob_lock:*`, `litellm_spend_update_buffer`, `{api_key:…}:requests`. Two LiteLLM deployments pointed at one Valkey DB then interleave locks and counters. Give each deployment its own namespace, logical DB, or instance.
 
-Also: `check_and_fix_namespace` uses `key.startswith(self.namespace)` (`redis_cache.py:360`), so a key that legitimately begins with the namespace string silently escapes prefixing.
+Before v1.100.0, `check_and_fix_namespace` used `key.startswith(self.namespace)`, so a key that begins with the namespace string (e.g. `litellm_spend_update_buffer` under namespace `litellm`) escaped prefixing — and an ACL scoped to `~<namespace>:*` denies it. v1.100.0+ requires the `:` delimiter.
 
 ## Migrating a pre-v1.93 borrowed-cache deployment to `coordination_redis`
 
