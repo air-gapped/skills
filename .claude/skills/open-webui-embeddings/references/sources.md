@@ -31,8 +31,6 @@ Authoritative references underlying this skill. Read these when this skill is wr
 > One adjacent change matters: `Knowledges.get_file_metadatas_by_id` became a
 > column-only SELECT excluding `File.data` (`models/knowledge.py:684-694`).
 >
-> **NOT re-probed this pass:** LiteLLM PRs 25395/25698, issue 25388, and the TEI
-> v1.9.3 CLI-default line numbers all still carry their 2026-07-21 states.
 
 | Topic | Reference | Last verified | Pinned |
 |---|---|---|---|
@@ -44,6 +42,8 @@ Authoritative references underlying this skill. Read these when this skill is wr
 | LiteLLM `encoding_format` fix | https://github.com/BerriAI/litellm/pull/25395 — `fix(embedding): omit null encoding_format for openai requests`, MERGED 2026-04-12 | 2026-09-15 | PR 25395 |
 | LiteLLM `encoding_format` revert | https://github.com/BerriAI/litellm/pull/25698 — `Revert "fix(embedding): omit null encoding_format..."`, MERGED 2026-04-14 (2 days after the fix) | 2026-09-15 | **revert still stands** |
 | LiteLLM `encoding_format` issue | https://github.com/BerriAI/litellm/issues/25388 — `[Bug] LiteLLM sends encoding_format: None causing Gitee AI and SiliconFlow API errors`, CLOSED 2026-04-14 | 2026-09-15 | issue 25388 |
+| LiteLLM `encoding_format` default → float | https://github.com/BerriAI/litellm/pull/26976 — `feat(embedding): default OpenAI-path encoding_format to float`, MERGED 2026-05-01 (merge `0b87bdff`). Ancestry: in v1.85.0 and v1.94.0, absent from v1.84.0/v1.84.1. Resolution order request/`litellm_params` → `LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT` → `float` | 2026-10-27 | first release v1.85.0 |
+| LiteLLM `encoding_format` omitted when unset | https://github.com/BerriAI/litellm/pull/38774 — `fix(embeddings): omit encoding_format when the client omits it on OpenAI-compatible calls`, MERGED 2026-09-01 (merge `6661e915`); in v1.101.0, absent from v1.100.0. Code at v1.106.4: `litellm/main.py` pops `encoding_format` when the resolved value is None/`"none"` | 2026-10-27 | first release v1.101.0 |
 | TEI HTTP routes (`/v1/embeddings`, `/rerank`, `/embed`) | `router/src/http/server.rs` (lines 1109, 287, 566) | 2026-09-15 | TEI **still v1.9.3** (2026-03-23) — no release in ~4 months |
 | TEI CLI defaults | `router/src/main.rs` (`max_concurrent_requests` default 512 line 60; `max_client_batch_size` default 32 line 82) | 2026-09-15 | re-resolved at tag **v1.9.3**: both still on lines 60 and 82, exactly as claimed |
 | TEI Blackwell image tags (`100-1.9`, `120-1.9`, `121-1.9`) | https://github.com/huggingface/text-embeddings-inference#docker-images — README image-tag table | 2026-08-18 | TEI README @ main — not re-probed 2026-07-21 |
@@ -72,16 +72,10 @@ fastest-moving claims in the skill — MTEB shipped releases daily around
 2026-08-05, and the multilingual top-10 turned over substantially in the preceding
 year. Anything sourced to a leaderboard should be treated as stale after ~3 months.
 
-**The `encoding_format: None` gotcha is still live (checked 2026-09-15).** The
-revert (25698) has not been re-reverted and no general fix has merged, so the
-per-model `encoding_format` pin this skill recommends remains necessary, not
-merely defensive.
-
-**Do not watch #24277 — it is dead.** The stale bot closed it 2026-08-10
-(`closed_by: github-actions[bot]`, label `stale`, `merged: false`). It was
-never merged, so its closure is not the signal this file said to wait for, and
-the pin must not be dropped on the strength of it. There is no known
-replacement PR to watch; re-derive one on the next pass rather than inheriting
-a dead tell.
+**The `encoding_format: None` gotcha is fixed upstream from LiteLLM v1.85.0** (PR 26976),
+and from v1.101.0 the field is omitted entirely (PR 38774). PR 24277 was stale-closed
+unmerged on 2026-08-10 and is not the fix; issue 25388 was closed by the reverted
+25395 and is not evidence of a fix either. The per-model pin stays in the skill as a
+harmless workaround for releases below v1.85.0.
 
 Run `/skill-improver freshen open-webui-embeddings` to re-probe these refs and bump `Last verified:` dates.

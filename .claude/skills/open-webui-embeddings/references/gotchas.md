@@ -2,16 +2,22 @@
 
 Each gotcha is independent — load this file when the triage table in SKILL.md points here for a specific symptom.
 
-## 1. LiteLLM injects `encoding_format: null` → TEI 400
+## 1. LiteLLM < v1.85.0 injects `encoding_format: null` → TEI 400
 
 ```
 HTTP 400: "Failed to parse the request body as JSON:
 encoding_format: expected value at line 1 column 57"
 ```
 
-LiteLLM's openai driver serialises `encoding_format=None` as JSON `null` whenever the caller (Open WebUI) does not set the field. TEI's strict JSON parser rejects null on enum fields.
+LiteLLM releases before v1.85.0 serialise `encoding_format=None` as JSON `null` on the openai driver whenever the caller (Open WebUI) does not set the field. TEI's strict JSON parser rejects null on enum fields.
 
-**Fix:** pin `encoding_format: float` in the model's `litellm_params`:
+| LiteLLM | Unset `encoding_format` goes out as |
+|---|---|
+| < v1.85.0 | `null` — TEI 400s |
+| v1.85.0 – v1.100.x | `"float"` (or `LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT`) |
+| ≥ v1.101.0 | omitted from the request |
+
+**Fix:** upgrade — the LiteLLM security floor (v1.94.0, `litellm-api` §"Security floor") is already past the fix. On a release you cannot upgrade yet, pin `encoding_format: float` in the model's `litellm_params`; the pin is harmless on every version:
 
 ```yaml
 - model_name: BAAI/bge-m3
@@ -22,9 +28,7 @@ LiteLLM's openai driver serialises `encoding_format=None` as JSON `null` wheneve
     encoding_format: float       # ← stops LiteLLM from sending null
 ```
 
-**History:** LiteLLM PR #25395 fixed this on 2026-04-12 by omitting null `encoding_format` from upstream requests; PR #25698 reverted it 2 days later — forcing `"float"` for everyone broke other providers. Issue #25388 reads "closed" but the bug behaves identically in the latest LiteLLM. The per-model pin is durable, version-independent. **Still true as of 2026-07-21:** the revert stands, nothing has re-landed, and the general fix attempt — PR #24277, `fix(openai): filter None values from embedding optional_params` — is still open. Track #24277 to know when the pin can be dropped.
-
-**Also affects:** GiteeAI, SiliconFlow, any provider with strict JSON validation on OpenAI fields.
+**Also affects** (below v1.85.0): GiteeAI, SiliconFlow, any provider with strict JSON validation on OpenAI fields.
 
 ## 2. LiteLLM HF driver task_type misdetection → TEI 422
 

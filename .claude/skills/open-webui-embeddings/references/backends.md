@@ -139,11 +139,11 @@ model_list:
       model: openai/BAAI/bge-m3             # openai driver, NOT huggingface
       api_base: http://tei:8080/v1
       api_key: dummy
-      encoding_format: float                # stops LiteLLM sending null
+      encoding_format: float                # stops LiteLLM < v1.85.0 sending null
 ```
 
-Two recurring traps, both in `gotchas.md`: LiteLLM serialises an unset
-`encoding_format` as JSON `null`, which strict parsers reject (§1); and its
+Two recurring traps, both in `gotchas.md`: LiteLLM before v1.85.0 serialises an
+unset `encoding_format` as JSON `null`, which strict parsers reject (§1); and its
 HuggingFace *embedding* driver misdetects `task_type` against a TEI endpoint and
 sends a wrapped payload TEI rejects with 422 (§2). Use the `openai` driver for
 embed and the `huggingface` driver only for rerank.

@@ -214,7 +214,7 @@ PR #29736).
 
 | Symptom | First check | Where |
 |---|---|---|
-| Embed returns 400 with `encoding_format: expected value` | Add `encoding_format: float` to the LiteLLM litellm_params | `references/gotchas.md` §1 |
+| Embed returns 400 with `encoding_format: expected value` | LiteLLM < v1.85.0 sends `null` — upgrade, or pin `encoding_format: float` in litellm_params | `references/gotchas.md` §1 |
 | Embed returns 422 with `inputs: data did not match...` | Switch to openai driver — HF driver's task_type detection failed | `references/gotchas.md` §2 |
 | Rerank returns 422 with `batch size N > maximum allowed batch size M` | Bump TEI `--max-client-batch-size` | `references/gotchas.md` §3 |
 | Rerank returns 404 on `POST /v1` | Open WebUI rerank URL needs full path including `/v1/rerank` | `references/gotchas.md` §7 |

@@ -6,7 +6,7 @@ Load this file for sizing decisions and post-deployment health checks.
 
 For any TEI-backed model under LiteLLM, run a numerical-identity check before declaring it production-ready: same input through TEI direct, through LiteLLM, and (if available) through a second engine should produce numerically identical embeddings within fp16 noise floor (~1e-5). Mismatches indicate:
 
-- LiteLLM injecting hidden parameters (the `encoding_format: null` trap manifests as a **400**, not a numerical drift, but other params can silently change pooling)
+- LiteLLM injecting hidden parameters (the pre-v1.85.0 `encoding_format: null` trap manifests as a **400**, not a numerical drift, but other params can silently change pooling)
 - Different chat-template / pre-tokenization on the embed side (some models normalise inputs differently)
 - Different `dtype` (fp16 vs bf16 vs fp32) in the underlying model
 
