@@ -71,7 +71,7 @@ For **cluster-wide** discovery (gateway in one namespace, workers in others), us
 | `--service-discovery` | `false` | Master switch. |
 | `--selector key=value` | empty | Repeatable. AND-combined. |
 | `--service-discovery-port` | `80` | The port the gateway probes on each Pod IP. **Must match the worker's container port** — set this explicitly to your worker's port (e.g. `30000` for SGLang, `8000` for vLLM). |
-| `--service-discovery-namespace` | `default` | Namespace to watch. Single namespace per gateway. |
+| `--service-discovery-namespace` | unset = all namespaces | Unset watches cluster-wide and needs a ClusterRole; set it to use a namespaced Role. |
 | `--prefill-selector`, `--decode-selector` | empty | PD mode only. |
 | `--bootstrap-port-annotation` | `sglang.ai/bootstrap-port` | Pod annotation read for PD bootstrap port. |
 
@@ -373,7 +373,7 @@ For high-throughput deployments (>5k req/s), bump to 2 vCPUs and 4 GiB. The gate
 ## Image and tag selection
 
 ```yaml
-image: lmsysorg/sgl-model-gateway:v0.3.1   # pin a specific gateway tag
+image: lmsysorg/sgl-model-gateway:v0.3.2   # pin a specific gateway tag
 ```
 
 Don't use `:latest`. The image is the canonical artifact for the renamed crate; it tracks `gateway-vX.Y.Z` release tags.

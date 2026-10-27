@@ -3,7 +3,7 @@
 Grouped by category. Defaults sourced from `sgl-model-gateway/src/main.rs` and `src/config/types.rs` on `main` (April 2026, gateway v0.3.x). For canonical answers, run:
 
 ```bash
-docker run --rm lmsysorg/sgl-model-gateway:v0.3.1 --help
+docker run --rm lmsysorg/sgl-model-gateway:v0.3.2 --help
 ```
 
 If `--help` and this document disagree, trust `--help`.
@@ -30,7 +30,7 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 |---|---|---|
 | `--host` | `0.0.0.0` | Bind address. |
 | `--port` | `30000` | HTTP/gRPC port. |
-| `--prometheus-host` | `127.0.0.1` | Metrics bind. Set to `0.0.0.0` for K8s. |
+| `--prometheus-host` | `0.0.0.0` | Metrics bind. |
 | `--prometheus-port` | `29000` | Metrics port. |
 
 ## Worker registration
@@ -41,13 +41,13 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 | `--service-discovery` | `false` | Enable K8s pod-watch discovery. |
 | `--selector key=value` | empty | Repeatable. AND semantics. |
 | `--service-discovery-port` | `80` | Port to probe on each pod IP. Set this to your worker's container port. |
-| `--service-discovery-namespace` | `default` | Single namespace per gateway. |
+| `--service-discovery-namespace` | unset = all namespaces | Unset watches cluster-wide and needs a ClusterRole; set it for a namespaced Role. |
 
 ## Routing policy
 
 | Flag | Default | Notes |
 |---|---|---|
-| `--policy` | `cache_aware` | One of: `random`, `round_robin`, `power_of_two`, `cache_aware`, `prefix_hash`, `manual`. Plus `consistent_hashing` and `bucket` available via the policy factory at runtime (not in CLI value_parser). See `src/policies/factory.rs:77-91`. |
+| `--policy` | `cache_aware` | One of: `random`, `round_robin`, `power_of_two`, `cache_aware`, `prefix_hash`, `manual`. Plus `consistent_hashing` and `bucket`: accepted by the image's Python launcher, factory-only on the Rust binary. See `src/policies/factory.rs:77-91`. |
 | `--cache-threshold` | `0.3` | Min match rate to count as cache hit (0.0-1.0). |
 | `--balance-abs-threshold` | `64` | Load-balance absolute threshold for cache_aware fall-through. |
 
@@ -81,19 +81,18 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 | `--disable-circuit-breaker` | `false` | Disable entirely. |
 | `--health-failure-threshold` | `3` | Mark unhealthy after N. |
 | `--health-success-threshold` | `2` | Mark healthy after N. |
-| `--health-timeout-secs` | `5` | Per-probe timeout. |
+| `--health-check-timeout-secs` | `5` | Per-probe timeout. |
 | `--health-check-interval-secs` | `60` | Active probe interval. |
-| `--health-endpoint` | `/health` | Probe path. |
+| `--health-check-endpoint` | `/health` | Probe path. |
 | `--disable-health-check` | `false` | Disable active probing. |
 
 ## Concurrency / rate-limiting
 
 | Flag | Default | Notes |
 |---|---|---|
-| `--max-concurrent-requests` | varies | Cap concurrent in-flight requests. |
-| `--queue-size` | varies | Bound the request queue. |
-| `--rate-limit-tokens-per-second` | unlimited | Token-bucket rate limit. |
-| `--rate-limit-burst-size` | varies | Burst allowance. |
+| `--max-concurrent-requests` | `-1` (unlimited) | Cap concurrent in-flight requests. |
+| `--queue-size` | `100` | Bound the request queue. |
+| `--rate-limit-tokens-per-second` | `--max-concurrent-requests` | Token-bucket refill rate. |
 
 ## Security
 
@@ -104,7 +103,7 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 | `--tls-key-path PATH` | empty | Server key. |
 | `--client-cert-path PATH` | empty | mTLS — client cert for upstream calls. |
 | `--client-key-path PATH` | empty | mTLS — client key. |
-| `--ca-cert-path PATH` | empty | mTLS — trust roots for upstream. |
+| `--ca-cert-paths PATH [...]` | empty | mTLS — trust roots for upstream. |
 
 ## Tokenization
 
@@ -124,7 +123,6 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 | `--log-level` | `info` | `debug`, `info`, `warn`, `error`. |
 | `--enable-trace` | `false` | OTel tracing. |
 | `--otlp-traces-endpoint` | empty | OTLP endpoint, e.g. `localhost:4317`. |
-| `--enable-metrics` | implicit | Prometheus exporter. |
 
 ## Parsers
 
@@ -137,7 +135,7 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 
 | Flag | Default | Notes |
 |---|---|---|
-| `--history-backend` | `none` | One of: `memory`, `none`, `oracle`, `postgres`, `redis`. |
+| `--history-backend` | `memory` | One of: `memory`, `none`, `oracle`, `postgres`, `redis`. |
 | (env) `POSTGRES_DB_URL` | — | For `postgres`. |
 | (env) `ATP_DSN` | — | For `oracle`. |
 | (env) `REDIS_URL` | — | For `redis`. |
@@ -146,8 +144,7 @@ No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native
 
 | Flag | Default | Notes |
 |---|---|---|
-| `--mcp-config PATH` | empty | YAML config of MCP servers. |
-| `--enable-mcp-tools` | `false` | Surface MCP tools to clients. |
+| `--mcp-config-path PATH` | empty | YAML config of MCP servers. |
 
 ## Multi-model gateway (IGW)
 
@@ -218,7 +215,7 @@ sgl-model-gateway \
   --tls-key-path /etc/tls/server.key \
   --client-cert-path /etc/tls/client.crt \
   --client-key-path /etc/tls/client.key \
-  --ca-cert-path /etc/tls/ca.crt
+  --ca-cert-paths /etc/tls/ca.crt
 ```
 
 ## Python launcher equivalence

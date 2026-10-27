@@ -198,9 +198,9 @@ For the parser × model matrix, see the `vllm-reasoning-parsers` skill.
 
 **Symptom:** Gateway logs `tls handshake error: unknown CA` when connecting to upstream workers.
 
-**Diagnosis:** `--ca-cert-path` not set, or set to a CA that doesn't sign the worker certs.
+**Diagnosis:** `--ca-cert-paths` not set, or set to a CA that doesn't sign the worker certs.
 
-**Fix:** Mount the CA bundle and pass `--ca-cert-path /etc/tls/ca.crt`. For Istio mesh, use SPIRE/cert-manager-issued certs and align the trust roots between gateway and workers.
+**Fix:** Mount the CA bundle and pass `--ca-cert-paths /etc/tls/ca.crt`. For Istio mesh, use SPIRE/cert-manager-issued certs and align the trust roots between gateway and workers.
 
 ## 19. Init container pulls tokenizer files from S3 for cache_aware (which never reads them)
 

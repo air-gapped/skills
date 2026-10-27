@@ -1,6 +1,6 @@
 # `smg_*` Prometheus surface
 
-The gateway exposes 40+ Prometheus metrics under the `smg_*` prefix on `--prometheus-host:--prometheus-port` (default `127.0.0.1:29000` — set host to `0.0.0.0` for K8s). Metric prefix was renamed Dec 2025 from `sgl_router_*`.
+The gateway exposes 40+ Prometheus metrics under the `smg_*` prefix on `--prometheus-host:--prometheus-port` (default `0.0.0.0:29000`). Metric prefix was renamed Dec 2025 from `sgl_router_*`.
 
 ## What's actually shipped
 
