@@ -184,10 +184,8 @@ in Kubernetes using Helm Charts, while select components remain on virtual
 machines or use cloud provider services (PostgreSQL, Redis, Object Storage)"* —
 and the smallest published tier is **2,000 users / 40 RPS**.
 
-**[A]** The frequently-quoted sentence *"Running stateful components in
-Kubernetes, such as Postgres and Redis, is not supported"* is GitLab's standing
-position, corroborated across pages but not re-grepped from raw source this
-pass.
+The reference architectures state it outright: *"Running stateful components in
+Kubernetes, such as Postgres and Redis, is not supported"*.
 
 Below 2,000 users GitLab recommends the Linux package, not Kubernetes. Chart
 10.0 then **removes bundled PostgreSQL, Redis and MinIO entirely** — so the
