@@ -15,7 +15,7 @@ separate reference implementation this group was extracted from:
 > **`anthropics/defending-code-reference-harness`**
 > https://github.com/anthropics/defending-code-reference-harness
 > (Apache-2.0). Accompanying write-up:
-> https://claude.com/blog/using-llms-to-secure-source-code
+> https://claude.com/resources/articles/using-llms-to-secure-source-code
 
 ## What it is
 

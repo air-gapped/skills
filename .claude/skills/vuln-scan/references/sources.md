@@ -77,9 +77,14 @@ security-review tooling changes.
 
 ## "Using LLMs to secure source code" (methodology write-up)
 
-- URL: https://claude.com/blog/using-llms-to-secure-source-code
-- Probe: `WebFetch` — expect HTTP 200; the find-and-fix loop framing comes from here.
-- Last verified: 2026-07-21  (HTTP 200)
+- URL: https://claude.com/resources/articles/using-llms-to-secure-source-code
+- Probe: bare `curl -sS -L -w '%{url_effective}'` — expect HTTP 200 at this
+  URL; the find-and-fix loop framing comes from here. The old
+  `claude.com/blog/using-llms-to-secure-source-code` address redirects here
+  (seen 2026-10-27).
+- The article lays out six steps (threat model, sandbox, discovery,
+  verification, triage, patching). "Seven stages" and "reference, not a
+  product" are the harness README's words, not the article's.
 
 ---
 
