@@ -64,7 +64,7 @@ Self-hosted Jira usually presents an **internal-CA or self-signed cert**. mcp-at
 
 - **Preferred — trust the CA** (keeps TLS verification on):
   - *uvx / host install:* put the internal CA in the OS trust store (`update-ca-certificates` on Linux), or point at a bundle with `REQUESTS_CA_BUNDLE=/path/ca.pem` / `SSL_CERT_FILE=/path/ca.pem`.
-  - *Docker:* mount the CA in and refresh the bundle — `-v /etc/pki/internal-ca.crt:/usr/local/share/ca-certificates/internal-ca.crt:ro` (Alpine image: the cert dir is `/usr/local/share/ca-certificates/`; the bundled `python:3.13-alpine` won't have the internal CA otherwise).
+  - *Docker:* mount the CA file **and** point `SSL_CERT_FILE` at it — `-v /etc/pki/internal-ca.crt:/certs/internal-ca.crt:ro -e SSL_CERT_FILE=/certs/internal-ca.crt` (`REQUESTS_CA_BUNDLE` also works). A mount into `/usr/local/share/ca-certificates/` alone still fails verification: the image runs as non-root `app` and nothing runs `update-ca-certificates`.
   - mTLS: `JIRA_CLIENT_CERT=/path/cert.pem` + `JIRA_CLIENT_KEY=/path/key.pem`.
 - **Escape hatch — skip verification** (only when trusting the CA isn't practical):
   - `JIRA_SSL_VERIFY=false` (and `CONFLUENCE_SSL_VERIFY=false`). Disables cert checking for that service. Acceptable on a trusted internal network; flag it as a deliberate downgrade.
@@ -87,7 +87,7 @@ claude mcp add mcp-atlassian \
   -e JIRA_URL=https://jira.internal.company.com \
   -e JIRA_PERSONAL_TOKEN=<pat> \
   -- docker run -i --rm -e JIRA_URL -e JIRA_PERSONAL_TOKEN \
-       -v /etc/pki/internal-ca.crt:/usr/local/share/ca-certificates/internal-ca.crt:ro \
+       -v /etc/pki/internal-ca.crt:/certs/internal-ca.crt:ro -e SSL_CERT_FILE=/certs/internal-ca.crt \
        harbor.internal/mirror/mcp-atlassian@sha256:<digest>
 ```
 

@@ -23,7 +23,7 @@ Symptom → cause → fix. Most failures are auth, TLS, field, or rate-limit. Th
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| **SSL verification failed** | Internal-CA / self-signed cert not trusted (esp. inside the container) | Mount the CA (`-v …:/usr/local/share/ca-certificates/…:ro`) or `JIRA_SSL_VERIFY=false` / `CONFLUENCE_SSL_VERIFY=false`; `MCP_ATLASSIAN_USE_SYSTEM_TRUSTSTORE=false` to use certifi. See `references/air-gapped.md` |
+| **SSL verification failed** | Internal-CA / self-signed cert not trusted (esp. inside the container) | Mount the CA file and set `SSL_CERT_FILE` to its in-container path (a mount into `/usr/local/share/ca-certificates/` alone is not trusted), or `JIRA_SSL_VERIFY=false` / `CONFLUENCE_SSL_VERIFY=false`; `MCP_ATLASSIAN_USE_SYSTEM_TRUSTSTORE=false` to use certifi. See `references/air-gapped.md` |
 | **mTLS required** | Instance demands client cert | `JIRA_CLIENT_CERT=/path/cert.pem` + `JIRA_CLIENT_KEY=/path/key.pem` |
 | **Connection timeout** | Slow/unreachable instance, or proxy needed | Raise `JIRA_TIMEOUT=120`; set `HTTPS_PROXY=…` if a proxy is required |
 | **Copilot: "Retrieved 0 tools"** | Old version / protocol mismatch | Use `mcp-atlassian >= 0.16.0` |

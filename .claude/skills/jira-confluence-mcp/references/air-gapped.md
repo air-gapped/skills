@@ -38,7 +38,7 @@ claude mcp add mcp-atlassian \
   -e JIRA_URL=https://jira.internal.company.com \
   -e JIRA_PERSONAL_TOKEN=<pat> \
   -- docker run -i --rm -e JIRA_URL -e JIRA_PERSONAL_TOKEN \
-       -v /etc/pki/internal-ca.crt:/usr/local/share/ca-certificates/internal-ca.crt:ro \
+       -v /etc/pki/internal-ca.crt:/certs/internal-ca.crt:ro -e SSL_CERT_FILE=/certs/internal-ca.crt \
        harbor.internal/mirror/mcp-atlassian@sha256:<digest>
 ```
 
@@ -78,13 +78,13 @@ For a host install without containers: git mirror (or just the wheel) **+** an i
 
 A self-contained image still does **not** trust *your* internal CA — it ships only the stock Alpine bundle. So an internal Jira behind a private-CA cert fails TLS until you fix trust. Two options:
 
-- **Mount the CA (preferred — keeps verification on).** The image is `python:3.13-alpine`; mount your CA into the cert dir:
+- **Mount the CA file and point `SSL_CERT_FILE` at it (preferred — keeps verification on):**
   ```bash
   docker run -i --rm \
-    -v /etc/pki/internal-ca.crt:/usr/local/share/ca-certificates/internal-ca.crt:ro \
+    -v /etc/pki/internal-ca.crt:/certs/internal-ca.crt:ro -e SSL_CERT_FILE=/certs/internal-ca.crt \
     ... harbor.internal/mirror/mcp-atlassian@sha256:<digest>
   ```
-  `truststore` reads the OS store, so a cert in the container's CA dir is honoured. (If a step requires it, `update-ca-certificates` rebuilds the bundle; the mount alone is usually enough for `truststore`.) Alternatively point at a bundle file: `-e REQUESTS_CA_BUNDLE=/path/ca.pem` or `-e SSL_CERT_FILE=/path/ca.pem`.
+  `-e REQUESTS_CA_BUNDLE=/certs/internal-ca.crt` works too. **A mount into `/usr/local/share/ca-certificates/` alone fails verification:** `truststore` reads OpenSSL's defaults (`/etc/ssl/cert.pem`, `/etc/ssl/certs`), which only `update-ca-certificates` regenerates, and the image runs as non-root user `app`, so nothing runs it. To bake the CA in instead, build a derived image: `FROM <mirror>@sha256:<digest>`, `USER root`, `COPY internal-ca.crt /usr/local/share/ca-certificates/`, `RUN update-ca-certificates`, `USER app`.
 - **Disable verification (escape hatch).** `-e JIRA_SSL_VERIFY=false` (`CONFLUENCE_SSL_VERIFY=false`). Acceptable on a trusted internal network; record it as a deliberate downgrade. `MCP_ATLASSIAN_USE_SYSTEM_TRUSTSTORE=false` falls back to the bundled certifi CA instead of the OS store.
 
 ## Runtime is genuinely offline-friendly — on Data Center
