@@ -1,6 +1,6 @@
 # Hardening — scope the tools deliberately
 
-The server exposes **70+ tools, most write-capable** (72 as measured at v0.21.1; v0.22.0 and v0.23.0 each added a batch — treat 72 as a floor and read the live list, which is authoritative) (create/update/delete/transition issues, edit pages, etc.). Default-on for everything is rarely what you want for an agent. Three layered controls, plus the v0.22 default change.
+The server registers **98 tools at v0.23.1, 40 of them tagged write** (create/update/delete/transition issues, edit pages, etc.) — the live list is authoritative. Default-on for everything is rarely what you want for an agent. Three layered controls, plus the announced-but-unshipped default change.
 
 ## 1. Read-only mode (the blunt, safe default)
 
@@ -11,7 +11,7 @@ Disables **all write operations regardless of `ENABLED_TOOLS`/`TOOLSETS`**. Use 
 
 ## 2. Toolsets (group-level)
 
-`TOOLSETS` enables whole groups. `TOOLSETS=default` = the 6 core toolsets; add extras comma-separated; `TOOLSETS=all` = all **24** toolsets. Counted from the toolset dicts in `src/mcp_atlassian/utils/toolsets.py` at tag **v0.23.1**: **16 Jira + 8 Confluence**. Tool totals drift between sources at the same tag — that file's docstring says 95, the generated `docs/tools-reference.mdx` says 96, and `main` says 98 — so treat any single number as approximate and the toolset names as authoritative.
+`TOOLSETS` enables whole groups. `TOOLSETS=default` = the 6 core toolsets; add extras comma-separated; `TOOLSETS=all` = all **24** toolsets. Counted from the toolset dicts in `src/mcp_atlassian/utils/toolsets.py` at tag **v0.23.1**: **16 Jira + 8 Confluence**. That file's docstring says "95 tools"; the `@…_mcp.tool` registrations at the same tag number 98 (63 Jira + 35 Confluence). Trust the toolset names and the live list over any docstring count. A 25th `legacy` toolset exists on `main` and in the hosted docs only — not in any release; `TOOLSETS=legacy` on v0.23.1 is an unknown name (see fail-closed below).
 
 ```bash
 TOOLSETS=default,jira_agile,jira_attachments     # core + two extras
@@ -51,11 +51,7 @@ When **both** `TOOLSETS` and `ENABLED_TOOLS` are set they **intersect** — a to
 
 `JIRA_PROJECTS_FILTER=PROJ,DEV` and `CONFLUENCE_SPACES_FILTER=DEV,DOC` restrict which projects/spaces the tools touch — orthogonal to tool filtering, and worth setting so an agent can't wander the whole instance.
 
-## The v0.22.0 default change — **SHIPPED 2026-07-10**
-
-**This is no longer a forecast.** v0.22.0 released 2026-07-10 (v0.22.1 the next
-day, v0.23.0 on 2026-07-18). If the server has been upgraded past v0.21.x, the
-flip has already happened.
+## The announced v0.22.0 default change — never shipped
 
 **The flip was announced and never shipped.** Upstream has emitted "In v0.22.0, the default will change to 6 core toolsets only. Set `TOOLSETS=all` explicitly to preserve current behavior" since before v0.22.0, and at **v0.23.1** — two minors later — the code still reads:
 

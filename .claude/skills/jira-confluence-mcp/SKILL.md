@@ -11,7 +11,7 @@ when_to_use: |-
 
 Scope: getting **[sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)** — the MCP server that gives an agent Jira/Confluence tools — *connected, hardened, and debugged*, including **air-gapped**. This is the **setup/ops layer**: the knowledge that is invisible at tool-call time.
 
-**Hard boundary — what this skill does NOT do.** Once the server is connected, it **self-documents its full tool set at runtime** (72 at v0.21.1; v0.22.0/v0.23.0 added more — the live list is the count) (names, params, schemas) over the MCP protocol — so *using* the tools (`jira_search`, `jira_create_issue`, `jira_transition_issue`, …) needs no skill; just call them. For exhaustive tool/JQL/CQL docs, the project publishes an LLM-readable **`https://mcp-atlassian.soomiles.com/llms-full.txt`** — fetch it on demand instead of duplicating it here. Sibling skills: **`jira-cli`** (the `jira` CLI as an alternative execution path) and **`jira-best-practices`** (how to use Jira *well* — hierarchy, lean config). This skill is only the install/auth/hardening/air-gap/troubleshooting that those don't cover and the live MCP can't surface.
+**Hard boundary — what this skill does NOT do.** Once the server is connected, it **self-documents its full tool set at runtime** (98 at v0.23.1 — the live list is the count) (names, params, schemas) over the MCP protocol — so *using* the tools (`jira_search`, `jira_create_issue`, `jira_transition_issue`, …) needs no skill; just call them. For exhaustive tool/JQL/CQL docs, the project publishes an LLM-readable **`https://mcp-atlassian.soomiles.com/llms-full.txt`** — fetch it on demand instead of duplicating it here. Sibling skills: **`jira-cli`** (the `jira` CLI as an alternative execution path) and **`jira-best-practices`** (how to use Jira *well* — hierarchy, lean config). This skill is only the install/auth/hardening/air-gap/troubleshooting that those don't cover and the live MCP can't surface.
 
 **Self-hosted Data Center is the default here.** Where Cloud differs, it's flagged.
 
@@ -95,7 +95,7 @@ Critical nuance: **mirror the *prebuilt* image** (no PyPI). *Building* the image
 
 ## Hardening (do this by default)
 
-The server exposes **72 write-capable tools**; scope it deliberately.
+The server exposes 98 tools at v0.23.1, **40 of them write tools**; scope it deliberately.
 
 - **`READ_ONLY_MODE=true`** — disables *all* write tools regardless of other settings. Use for read/report-only agents.
 - **`TOOLSETS`** — group-level control (16 Jira + 8 Confluence toolsets). `TOOLSETS=default` ≈ 23 core tools; add extras like `default,jira_agile`. **`ENABLED_TOOLS`** allow-lists individual tools; the two **intersect**.
