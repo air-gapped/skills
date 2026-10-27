@@ -232,6 +232,58 @@ Dispatch order:
    lookup.
 4. If none match: raise `ValueError("Unrecognized tokenizer")`.
 
+**Hub-class override (v5), checked before step 1 when there is no
+`auto_map`:**
+
+- A repo id matching a glob in `MODEL_IDS_TO_TOKENIZERS_BACKEND` loads
+  `TokenizersBackend`, which uses `tokenizer.json` as shipped.
+- When `config.json["model_type"]` is in
+  `MODELS_WITH_INCORRECT_HUB_TOKENIZER_CLASS` and its registered class
+  differs from the declared `tokenizer_class`, the registered class wins.
+
+Both lists grow in point releases, so the same snapshot can load a different
+class after a transformers upgrade. Read the lists at the installed tag, or
+print `type(AutoTokenizer.from_pretrained(path)).__name__`. vLLM keeps its own
+set, `_MODEL_TYPES_WITH_INCORRECT_TOKENIZER_CLASS` in
+`vllm/tokenizers/registry.py`, which forces `TokenizersBackend` for its
+model types; every other model type goes through `AutoTokenizer`.
+
+### Qwen3.6 / Qwen3.8 pre-tokenizer {#qwen-hub-class}
+
+These repos declare `"tokenizer_class": "Qwen2Tokenizer"`, and their
+`tokenizer.json` pre-tokenizer regex adds `\p{M}`. `Qwen2Tokenizer.__init__`
+replaces the shipped regex with its hardcoded `PRETOKENIZE_REGEX`, which has
+no `\p{M}`. Text with combining marks then tokenizes differently: Arabic
+harakat, Thai and Devanagari use 50–75 % more tokens. Latin text is
+unaffected.
+
+| transformers | Class for `model_type` `qwen3_5`, `qwen3_5_moe`, `qwen3_5_moe_text`, `qwen4_exp` | IDs vs shipped `tokenizer.json` |
+|---|---|---|
+| 5.0.0–5.17.x | `Qwen2Tokenizer` | **wrong** |
+| ≥ 5.18.0 (#49116) | `Qwen3_5Tokenizer`, whose hardcoded regex has `\p{M}` | correct |
+
+Act on it:
+
+- **vLLM inherits it.** vLLM tokenizes these model types through
+  `AutoTokenizer`. vLLM v0.31.0 caps `transformers < 5.18.0`, so it cannot
+  load the right class. For v0.32.0, pin `transformers` at 5.18.0 or later,
+  inside its `< 5.20.0` cap.
+- **Derivatives carry it in the file.** A quantized or fine-tuned derivative
+  that was re-saved on 5.0.0–5.17.x has the regex without `\p{M}` written into
+  its `tokenizer.json`. On ≥ 5.18.0, `AutoTokenizer` hides this. Anything that
+  reads `tokenizer.json` directly still gets wrong IDs, for example
+  `tokenizers.Tokenizer.from_file` or `TokenizersBackend`. For these model
+  types, the `Split` pattern in `tokenizer.json["pre_tokenizer"]` must
+  contain `\p{M}`. If it does not, copy `tokenizer.json` from the base repo.
+- **Other model types are still exposed.** `Qwen2Tokenizer` still overrides the
+  regex at v5.21.0, and the two follow-up PRs (#49114, #49341) are open. A
+  checkpoint of any other model type that loads `Qwen2Tokenizer` and ships a
+  different regex still gets wrong IDs.
+- **Check:** `AutoTokenizer.from_pretrained(p).encode(s, add_special_tokens=False)`
+  must equal `tokenizers.Tokenizer.from_file(f"{p}/tokenizer.json").encode(s, add_special_tokens=False).ids`.
+  Use an Arabic text with harakat and a Thai text as `s`. Some vocabularies
+  give the same IDs for Devanagari even when the regex is wrong.
+
 ---
 
 ## Version-alias table {#version-aliases}

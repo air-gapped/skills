@@ -70,6 +70,7 @@ Use this table first. Deep dives live in `references/`.
 | Engine stops on token X, template emits token Y | Config drift | `config-files.md#eos-drift` + `engine-knobs.md#stop-token-merge` |
 | `AutoTokenizer.from_pretrained` wants `trust_remote_code=True` | Class selection | `tokenizer-classes.md#tiktoken-path` |
 | `KeyError: 'TokenizersBackend'` on import | Version gate | `tokenizer-classes.md#version-aliases` |
+| `AutoTokenizer` IDs differ from `tokenizer.json` on Arabic/Thai text (Qwen3.6/3.8) | Hub-class override | `tokenizer-classes.md#qwen-hub-class` |
 | `AttributeError: 'list' object has no attribute 'keys'` on `extra_special_tokens` | Cross-version serialization | `precedence-rules.md#extra-special-tokens-shape` |
 | `all_special_ids` misses DeepSeek `<｜place▁holder…｜>` tokens | Discovery precedence | `precedence-rules.md#backend-fallback` |
 | `added_tokens_decoder` absent from `tokenizer_config.json` | v5 consolidation | `config-files.md#v5-consolidation` |
