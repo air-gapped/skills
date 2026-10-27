@@ -260,7 +260,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/goharbor/harbor/releases
 - Probe: WebFetch docs index for release notes pages; `gh release list --repo goharbor/harbor`.
 - Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm. Authoritative k8s floor = chart `.github/workflows/integration.yaml` at the chart tag (README only states generic "1.20+").
-- Last verified: 2026-10-27 — v2.15.4 (2026-10-09), v2.14.6 (2026-10-23), v2.13.6 (2026-10-06); 2026-10-06 security batch (GHSA-w5fq-xrhj-j7g2 et al.) read; `v2.16.0-rc1` pre-release. Chart k8s matrix not re-read this pass. Earlier: v2.15.2 (2026-07-02). **Absence claim re-tested and still true:** harbor-helm v1.19.2 `integration.yaml` lists k8s v1.34.0/v1.33.4/v1.32.8 — still no v1.35. Note goharbor.io/docs/ redirects to /docs/2.15.0/, so the cited URL is not the final one.
+- Last verified: 2026-10-27 — v2.15.4 (2026-10-09), v2.14.6 (2026-10-23, `isLatest`), v2.13.6 (2026-10-06); `v2.16.0-rc1` pre-release. v2.15.4 (PRs #24082 / #24086) and v2.14.6 (#24129 / #24132) re-allow private-network webhooks and legacy-signer pulls by default; harbor-helm v1.19.4 (2026-10-16, app v2.15.4) notes say skip chart 1.19.3 / v2.15.3. **Absence claim re-tested at harbor-helm v1.19.4:** `integration.yaml` lists k8s v1.34.0 / v1.33.4 / v1.32.8 — still no v1.35. goharbor.io/docs/ redirects to /docs/2.15.0/.
 
 ## Traefik
 
