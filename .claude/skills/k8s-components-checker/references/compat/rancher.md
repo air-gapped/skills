@@ -13,7 +13,7 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 | Minor | Final EOL | Note |
 |---|---|---|
-| 2.11 | **2026-10-24** | Live migration-source minor until that date — do not retire it early. |
+| 2.11 | **2026-10-24** | **Past EOL.** A cluster still on 2.11 is a drift-review `✗` — plan the hop to 2.12+. Keep the 2.11 floor: it stays tracked as a migration source. |
 | 2.12 | 2027-02-28 | was estimated ~Jan 2027 |
 | 2.13 | 2027-06-17 | was estimated ~May 2027 |
 | 2.14 | 2027-10-10 | was estimated ~Sep 2027 |
