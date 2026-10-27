@@ -1,12 +1,9 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed; all 71 URLs 200 and all 13 cited vLLM paths resolve at v0.30.0. The runtime floor is unchanged, but vLLM's CI test-pin moved to transformers 5.16.1, so the "same number for two independent reasons" note no longer holds literally.
+Freshened: 2026-10-27 — every row probed; all 71 URLs resolve after repointing two vLLM files that moved, and vLLM v0.32.0's transformers floor now clears the three tokenizer-path fixes.
 
-Dated index of every external reference this skill cites. `Last verified:`
-stamps track when the ref was last checked against live content.
-`freshen` mode re-probes these and updates the stamp.
-
-**Freshened: 2026-09-15 — every row probed; all ~45 URLs resolve and every issue/PR state reproduces.** Three version rows were behind and are corrected inline (transformers v5.17.0, tokenizers v0.23.2, vLLM v0.29.0). The claim that matters survived re-checking against the releases this file had missed: **no breaking tokenizer or chat-template change** in v5.15.1–v5.17.0, and **still no tokenizers v0.24**.
+Dated index of every external reference this skill cites. The header stamp
+is authoritative; per-row `Last verified` dates are legacy.
 
 The stale-bot trap this file documents was reproduced on a second issue (#41870, closed `COMPLETED` by `github-actions[bot]` with no fix), confirming it is general transformers bot behaviour rather than a one-off — treat `COMPLETED` in that repo as no evidence of a fix without checking the closer.
 
