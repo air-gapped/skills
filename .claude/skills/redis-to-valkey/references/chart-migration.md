@@ -11,18 +11,21 @@ release recency and Sentinel support before committing a new deployment.
 | **CloudPirates valkey** | ✅ `architecture: replication` + `sentinel.enabled`; plus `externalReplica` mode (replicate from an external Redis/Valkey — cutover helper, source ≤ 7.2 rule still applies) and `sentinel.masterProxy` (HAProxy sidecar publishing a stable master endpoint — the escape hatch for the 26379-only trap below) | `docker.io/valkey/valkey` | chart 0.25.5 / appVersion 9.1.0; multi-maintainer + Renovate; cosign-signed; values.schema + tests + CHANGELOG | extra `common` library chart pulled via OCI — must also be mirrored for offline `helm dependency build` |
 | **valkey-io/valkey-helm** (official) | ❌ in every release through 0.12.0: standalone + replication only, **no automatic failover**. Merged on main for 1.0, unreleased: Sentinel (own StatefulSet, `sentinel.masterSet` default `mymaster`, sentinel password always required, preStop pauses writes and fails over) and an HAProxy master front-end; 1.0 also renames keys (`valkeyConfig`→`extraConfig`, one `persistence` block) — recheck releases | `docker.io/valkey/valkey`, `global.imageRegistry` | LF umbrella, 3+ named maintainers, very active; values.schema | clean |
 | valkey-io/valkey-operator (official) | ❌ "Cluster mode only (no standalone or sentinel)", self-declared not production-ready | — | early development at v0.5.0, still v1alpha1 | — |
-| Bitnami valkey | ✅ | 5 Bitnami-built images, dead-ended for free users | frozen (~Oct 2025, a major behind); maintained continuation is paid BSI | worst case |
+| Bitnami valkey | ✅ | 5 Bitnami-built images, all `:latest`-only for free users — no pinnable tag | the published index still ships new chart versions, but the public GitHub source is frozen; pinned images are paid BSI | worst case |
 | OpsTree redis-operator | ✅ (Redis) | OpsTree images | active, but Valkey support roadmap-only | — |
 
 Selection heuristic: need Sentinel HA today → groundhog2k or CloudPirates
 (groundhog2k = fastest tracking, single maintainer; CloudPirates = better
 governance, one extra artifact). Watch the official chart — once a 1.x
 release ships Sentinel, a first-party chart likely outlives both. Never
-adopt the frozen Bitnami valkey chart for new work.
+adopt the Bitnami valkey chart for new work.
 
 ## Values translation: Bitnami `redis` chart → groundhog2k `valkey`
 
-Verified against groundhog2k valkey 2.3.x and Bitnami redis 19.x–23.x.
+Verified against groundhog2k valkey 2.3.x and Bitnami redis 19.x–23.x. Bitnami
+redis charts above 23.x exist only on the published index, with no public
+source: diff `helm show values` of the deployed version against this table
+before translating.
 
 | Bitnami redis | groundhog2k valkey | Trap |
 |---|---|---|

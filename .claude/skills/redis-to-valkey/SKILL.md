@@ -155,7 +155,7 @@ Sentinel-capable charts, as of 2026-08-26:
 | **groundhog2k/valkey** | Production-ready. `haMode`, upstream images, tracks Valkey within days — **bus factor 1** |
 | **CloudPirates valkey** | Production-ready. Adds `externalReplica` (cutover helper) and `sentinel.masterProxy` (HAProxy front-end giving non-Sentinel-aware clients a stable master endpoint); costs one extra OCI library chart to mirror |
 | valkey-io (official) | **No Sentinel in any release yet** — replication without automatic failover. Sentinel + HAProxy are merged for the breaking 1.0 (sentinel password always required, master set `mymaster`); once 1.0 is released, a first-party chart likely wins long-term |
-| Bitnami valkey · valkey-operator | Do not adopt. Frozen with dead-ended images · cluster-mode-only and self-declared not production-ready |
+| Bitnami valkey · valkey-operator | Do not adopt. Every free image is `:latest`-only (version pins are paid) · cluster-mode-only and self-declared not production-ready |
 
 Bitnami-redis values do NOT translate 1:1. The traps that break clients or
 lose data are: auth as config-file fragments instead of a bare
