@@ -123,8 +123,9 @@ regulated material.
 Free models, current pricing, and the full config block are in
 `model-selection.md` §"Hosted option: OpenRouter". Two cautions repeated here
 because they cost real time: the models API **misreports rerank pricing as zero**
-for all six models, and the rerank **response** shape is undocumented — verify it
-returns `{"results":[{"index":N,"relevance_score":F}]}` before trusting it.
+for every rerank model, and a rerank **response** that is not
+`{"results":[{"index":N,"relevance_score":F}]}` fails silently — the documented
+shape matches, but curl it once after wiring.
 
 ## LiteLLM
 
