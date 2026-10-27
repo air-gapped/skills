@@ -68,9 +68,9 @@ echo "(have a long chat stream running during this window)"
 echo
 
 # MONITOR every command in real-time. Count PUBLISH ops on Socket.IO channels.
-# Socket.IO via python-socketio AsyncRedisManager publishes to channels prefixed
-# with "flask-socketio" by default. Open WebUI may also use other prefixes;
-# the broad regex catches both.
+# python-socketio's AsyncRedisManager publishes on channel "socketio"; with
+# WEBSOCKET_REDIS_ROOM_CHANNELS (Open WebUI v0.12.0+ default) room emits go to
+# "socketio#/#<room>". Every PUBLISH is counted, whatever the channel.
 TMPFILE="$(mktemp)"
 trap 'rm -f "$TMPFILE"' EXIT
 

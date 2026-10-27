@@ -52,6 +52,7 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 | WS stable for hours, then mass disconnect after firewall idle | No TCP keepalive on Redis pool — set `REDIS_SOCKET_KEEPALIVE=True`, `REDIS_HEALTH_CHECK_INTERVAL=60` (added 0.9.0+) | `references/configuration.md` §Robustness |
 | Migration races on rolling restart | Multiple pods running migrations simultaneously — set `ENABLE_DB_MIGRATIONS=false` on all but one | `references/configuration.md` §Migrations |
 | Pods crash/500 mid-rollout on a version upgrade | **Rolling updates across a schema change are unsupported** — old and new pods cannot share a schema. Take the deployment down and replace all pods at once | this file, §Version upgrades |
+| No live chat updates after enabling Valkey ACLs on 0.12.x; log shows `Redis denied publishing` / `Redis denied subscribing` | `WEBSOCKET_REDIS_ROOM_CHANNELS` (v0.12.0+ default) needs `+publish +subscribe +unsubscribe +ping` and channels `&socketio &socketio#*` | `references/configuration.md` §WebSocket-specific |
 | Helm chart bundled Redis loses state on restart | Bundled Redis is a no-PVC Deployment; unsuitable for production | `references/helm-chart.md` §Bundled-redis |
 | Pods fail to start on 0.11.0 with a non-root securityContext | #27651 — `runAsNonRoot: true` broke on 0.11.0; **fixed in v0.11.1** | this file, §Version upgrades |
 | Idle cluster showed constant DB load on 0.11.0 | #27622 — chat-timer polling scanned the chat table every second while idle; **fixed in v0.11.1** (PR #27663) | this file, §Version upgrades |

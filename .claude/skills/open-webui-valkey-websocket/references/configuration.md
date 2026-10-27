@@ -35,6 +35,7 @@ These default to the `REDIS_*` versions if unset, but separating them is documen
 | `WEBSOCKET_MANAGER` | `''` | Set to `redis` to use `socketio.AsyncRedisManager`. **Required for multi-pod.** |
 | `WEBSOCKET_REDIS_URL` | falls back to `REDIS_URL` | Recommended: same Valkey, different DB number (`/1`). Isolates Socket.IO pub/sub from app state. |
 | `WEBSOCKET_REDIS_CLUSTER` | falls back to `REDIS_CLUSTER` | |
+| `WEBSOCKET_REDIS_ROOM_CHANNELS` | `True` | Added v0.12.0. Publishes each room's events on its own channel (`socketio#/#<room>`), and each pod subscribes only to rooms with a local member, so it skips work for chats it does not serve. **A restricted Valkey ACL user needs** `+publish +subscribe +unsubscribe +ping` and channels `&socketio &socketio#*` (v0.12.0–v0.12.2 also needed `+psubscribe`); a denial is logged as `Redis denied publishing` / `Redis denied subscribing`. Set `False` on **every** pod and restart the whole fleet to restore single-channel delivery. |
 | `WEBSOCKET_REDIS_OPTIONS` | unset | Arbitrary JSON of `redis-py` kwargs. Auto-includes `socket_connect_timeout` if set. |
 | `WEBSOCKET_REDIS_LOCK_TIMEOUT` | `60` | Seconds. Used for SET-NX cleanup locks (`socket/utils.py:31`). |
 | `WEBSOCKET_SENTINEL_HOSTS` | `''` | Independent Sentinel set for WS Valkey. Reuse `REDIS_SENTINEL_HOSTS` unless explicit isolation is desired. |
@@ -172,7 +173,7 @@ When `WEBSOCKET_MANAGER=redis`, the keys present (with prefix `open-webui:`):
 | `open-webui:models` | Distributed `MODELS` dict (model registry) | ~1 KB per model. Since v0.11.4 each worker caches this hash and only refetches when its signature key changes (`CachedRedisDict`, PR #28176); the signature no longer flaps on Ollama's `expires_at` countdown (commit `649c012e`), so a stable model list means near-zero repeat traffic. |
 | `open-webui:session_pool:<sid>` | Authenticated user data per Socket.IO session, **excluding** profile images | ~1 KB per active session. Reaped at 120s without heartbeat. Since v0.11.1 the "still signed in" write happens at most once a minute per person (PR #28177), not on every request — an open idle tab used to cost two write transactions a minute on its own. |
 | `open-webui:usage_pool` | Per-model active session counts | Reaped at 3s. Cheap. |
-| Socket.IO pub/sub channels (`flask-socketio`-prefixed) | Cross-pod event fan-out | Each emit carries only a delta from v0.11.1 on — see §Streaming and `issue-23733.md`. |
+| Socket.IO pub/sub channels `socketio` and, with room channels (v0.12.0+ default), `socketio#/#<room>` | Cross-pod event fan-out | Each emit carries only a delta from v0.11.1 on — see §Streaming and `issue-23733.md`. |
 | `open-webui:tasks:*` | Task tracking. `:commands` is a pubsub channel. | Small. RedisCluster `publish()` broken (#19840) — use Sentinel. Since v0.11.4, `REDIS_TASK_TTL` (default 300s) expires an entry if its owning worker stops renewing it. |
 | `open-webui:tasks:response_streams` | Resume snapshot of a reply still streaming, keyed by task id | Added v0.11.1. Per-field TTL from `REDIS_RESPONSE_STREAM_TTL` (default 3600s). Lets a reopened chat resume an in-flight reply instead of showing blank. |
 | `open-webui:ydoc:documents:<id>:updates` | Yjs CRDT state for collaborative notes | Only when notes are open. Compaction at 500 entries. |
