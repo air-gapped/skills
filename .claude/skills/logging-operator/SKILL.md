@@ -81,7 +81,8 @@ Output / ClusterOutput (destination + buffer)
 5. **Multiple Logging resources + a Flow without `loggingRef`** = the classic
    silent no-logs (empty loggingRef is processed by ALL Loggings — or none you
    expected).
-6. **One dead Output stalls the whole shared fluentd** (#2013): all destinations
+6. **One dead Output stalls the whole shared fluentd** (#2013 — closed without a
+   fix; still live): all destinations
    stop, not just the broken one. `configCheck.strategy: StartWithTimeout` only
    validates at apply time. Real mitigation: per-tenant aggregators (LoggingRoute).
 7. **`storage.total_limit_size` is NOT backpressure** — it silently discards oldest

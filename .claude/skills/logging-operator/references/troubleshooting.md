@@ -62,7 +62,7 @@ wrong namespace, Flow missing entirely = not compiled in, see step 1).
 | Flow silently ignored, multiple Loggings exist | loggingRef missing/mismatched |
 | ClusterFlow/ClusterOutput ignored | created outside controlNamespace (they're namespaced!) |
 
-## 6. The shared-aggregator SPOF (#2013)
+## 6. The shared-aggregator SPOF (#2013 — closed without a fix; still live)
 
 One Output with an unreachable endpoint can stall the ENTIRE fluentd — all other
 destinations stop receiving. Known fluent-plugin-elasticsearch behavior class.

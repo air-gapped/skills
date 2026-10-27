@@ -36,7 +36,7 @@ skill was authored.
 |---|---|---|---|
 | #890 | https://github.com/kube-logging/logging-operator/issues/890 | JSON-parsing doc pain (verbatim), Loki label extraction | 2026-09-15 |
 | #1784 / #1007 / #1353 | …/issues/1784 etc. | CRI message-vs-log confusion class | 2026-09-15 |
-| #2013 | …/issues/2013 | one dead Output stalls all; StartWithTimeout limits | 2026-09-15 |
+| #2013 | …/issues/2013 | one dead Output stalls all; StartWithTimeout limits | 2026-10-27 — CLOSED 2026-01-05 with "Closing as upstream ticket was also closed" (rancher/rancher#50982, "Add timeout to config check in `rancher-logging`" — i.e. the StartWithTimeout knob, which only checks at apply time); no fix PR or release; maintainer's answer in-thread is per-tenant aggregators. Treat as live. |
 | #2131 | …/issues/2131 | mem-buf overlimit intermittent loss; filesystem-buffer tuning | 2026-09-15 |
 | #1490 / #1023 | …/issues/1490, 1023 | detectExceptions + configcheck broken multi-worker (open) | 2026-09-15 |
 | #674 / #661 | …/issues/674, 661 | Loki ordering, uneven forward LB across replicas | 2026-09-15 |
