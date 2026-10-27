@@ -2,8 +2,8 @@
 
 **Grounded via `gh` + ranchermanager docs + docs.rke2.io: 2026-05-30; BRO versions + restore-quirk
 issue states re-verified 2026-07-25 (#844 still OPEN, last activity 2026-06-22; #916 CLOSED with a
-maintainer-confirmed remedy, not a stale-bot close).** The cert-manager windows and Helm floor were
-**not** re-derived this pass — re-ground them at use time (House Rule #3). The mgmt-cluster k8s window per Rancher minor is **not** restated here
+maintainer-confirmed remedy, not a stale-bot close); Helm floor re-read from the 2.13–2.15 GA notes
+2026-10-27.** The cert-manager windows were **not** re-derived — re-ground them at use time (House Rule #3). The mgmt-cluster k8s window per Rancher minor is **not** restated here
 — cite `k8s-components-checker/references/compat/rancher.md`.
 
 **Contents:** [Pre-flight: Rancher-proxied kubeconfig](#pre-flight-is-the-kubeconfig-rancher-proxied-resolve-before-any-step--field-validated-2026-05-30)
@@ -61,7 +61,8 @@ edition-aware — see `lifecycle.md` § Latest patch per minor and § Grounding.
   2.13 (1.32–1.34) → 1.19–1.20**. Re-confirm against the target minor's release-notes prerequisites
   at use time.
 - **Helm client floor.** **≥ 3.18 from Rancher 2.12 onward** (verbatim docs; tied to k8s 1.33
-  support); 2.13/2.14 inherit it. 2.11 ≈ 3.17 (3.18 recommended). `helm version --short`.
+  support); the 2.13, 2.14 and 2.15 GA notes restate the same floor. 2.11 ≈ 3.17 (3.18
+  recommended). `helm version --short`.
 - **API aggregation layer** enabled on the mgmt cluster (rancher/rancher#50400) — RKE2/K3s enable it
   by default; only non-RKE2/K3s mgmt clusters need to verify.
 - **RKE1 EOL sweep (bites going INTO 2.12).** RKE1 reached EOL 2025-07-31; Rancher **2.12.0+ ships a
