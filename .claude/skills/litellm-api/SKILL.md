@@ -78,7 +78,7 @@ Then remember three structural facts about the surface:
 | `allowed_routes` on a key | **ALL routes** — `None`, non-list, and `[]` all pass (`route_checks.py:99-104`); no deny-all exists | scope to named route groups (any `LiteLLMRoutes` enum name is accepted, e.g. `["management_routes"]`) — and it's **prefix-matched**: `"/key"` grants `/key/delete` |
 | `access_group_ids` + empty `models` | access groups are **additive grants, not allow-lists** → key can call **everything** (open #34296) | set `models: ["no-default-models"]` alongside the groups |
 | `team_member_permissions: []` | baseline permissions still union in (`/key/info`, `/key/health`) — `[]` ≠ deny | there is no full-deny; baseline is the floor |
-| `mcp_servers` empty | all servers | `["no-mcp-servers"]` (documented, `docs/mcp_control.md:107`) |
+| `mcp_servers` empty | **the team's servers** (key inherits; `require_key_mcp_access_defined: true` makes it none). No team/org list: a non-admin key gets only `allow_all_keys` servers; a proxy-admin key gets every server | `["no-mcp-servers"]` — also overrides team inheritance and access-group grants (`docs/mcp_control.md:107`) |
 
 Also: `litellm.default_key_generate_params` silently replaces `None`/`[]`/`{}` request values on `/key/generate` — on a proxy with defaults configured, `"models": []` yields the default list, not all-models. Same request, different proxy, different meaning.
 
