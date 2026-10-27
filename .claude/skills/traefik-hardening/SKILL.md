@@ -85,7 +85,7 @@ routing, so they never reach the access log — only `DEBUG` logs show them.
 | Middleware | Buys | Key gotcha |
 |---|---|---|
 | `InFlightReq` | per-identity **concurrency** cap (streaming = 1 slot for its duration) | no Redis backend → per-pod; accurate only single-leader |
-| `RateLimit` | per-identity **request rate** (± Redis in v3.4+) | **default `period` is 1s** — omit it and "30" means 30/sec. Redis backing is open-source: `pkg/middlewares/ratelimiter/redis_limiter.go` exists at v3.4.0 and not at v3.3.0 (checked 2026-09-15). Do **not** confuse it with Traefik Hub's separate commercial "Distributed RateLimit" middleware |
+| `RateLimit` | per-identity **request rate** (± Redis in v3.4+) | **default `period` is 1s** — omit it and "30" means 30/sec. Redis backing is open-source: `pkg/middlewares/ratelimiter/redis_limiter.go` exists at v3.4.0 and not at v3.3.0 (checked 2026-10-27). Do **not** confuse it with Traefik Hub's separate commercial "Distributed RateLimit" middleware |
 | `IPAllowList` (v3; was `IPWhiteList` in v2) | perimeter CIDR gate | blunt behind shared NAT; set `ipStrategy.depth` if behind another proxy |
 | `Buffering` | request-body size cap (413) | **never** set `maxResponseBodyBytes` on a streaming/SSE path |
 | `ForwardAuth` | delegate an allow/deny to a sidecar | one real round-trip **per request**, no caching; `maxBodySize` unbounded by default in v3 |

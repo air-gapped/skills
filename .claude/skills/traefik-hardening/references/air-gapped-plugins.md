@@ -42,7 +42,7 @@ experimental:
 - `unsafe`/`syscall` excluded by default (they run inside Traefik's trust boundary).
 - Practical implication: anything beyond header-mangling is more robust as a **precompiled WASM** module (TinyGo, outside Traefik) — but that requires Traefik 3.x.
 
-## Catalog maturity census (as of 2026-07; re-verify before adopting)
+## Catalog maturity census (as of 2026-10; re-verify before adopting)
 
 No editorial "verified" tier exists — any repo with a valid `.traefik.yml` auto-indexes. All plugin middlewares work identically via file provider **and** the Kubernetes `Middleware` CRD's `plugin:` stanza.
 
