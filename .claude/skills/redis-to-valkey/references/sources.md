@@ -1,8 +1,6 @@
 # Sources — redis-to-valkey
 
-Freshened: 2026-09-22 — every row probed; all 32 URLs 200 and every cited issue state reproduces. Valkey 9.2.0-rc1 appeared (2026-09-16, pre-release only, RDB_VERSION 81) and three chart pins moved; `redis_version` is still frozen at 7.2.4 even at the rc.
-
-**Six version pins moved and not one qualitative claim did.** The upstream release lines, three charts, the operator and the exporter are all a release or two on; meanwhile every *behavioural* claim re-verified exactly as written — the official chart still has no Sentinel (both PRs still open), the operator README still says not production-ready, the sync tool's maintainers still decline the feature, and the bundled-chart lockdown thread still has no comment since 2025-09-16. Version pins are the cheap half of this file; the claims they support did not rot.
+Freshened: 2026-10-27 — every row probed (36), no exceptions; the two inline exceptions of 2026-08-26 are resolved by new rows.
 
 Dated index of the primary sources backing this skill's factual claims. One
 stamp asserts every row below was re-probed on that date, except rows carrying
