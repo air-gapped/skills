@@ -200,7 +200,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Probe: `gh release list --repo rancher/rancher --limit 30`
 - EOL source: https://endoflife.date/api/v1/products/rancher/ — per-minor `eolFrom`; read 2026-10-27: 2.11 → 2026-10-24 (`isEol: true`), 2.12 → 2027-02-28, 2.13 → 2027-06-17, 2.14 → 2027-10-10, 2.15 → 2028-02-27.
 - Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — floor -> 2.11; **community ceiling v2.11.3 re-confirmed** by reading every v2.11.x body up to v2.11.17 — .4 through .17 each self-declare "Prime version release"; only v2.11.3 says "Community and Prime". Overall latest line is v2.15.1, unrelated to this floor.
+- Last verified: 2026-10-27 — edition discriminator re-run over every stable 2.11–2.15 tag: community ceilings unchanged at v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3 / **v2.15.2** (`isLatest`, 2026-09-23). v2.11.4–.8 self-declare "Prime version release", v2.11.9–.17 are Prime-docs redirects, v2.11.18 / v2.12.14 / v2.13.10 / v2.14.6 still have empty bodies. Hazards: #57078 OPEN (milestone v2.17.0), #57196 / #57240 OPEN, #57506 closed 2026-10-12 with the fix verified on `v2.15-head`, milestone v2.15.3 (unreleased).
 
 ## Harvester
 

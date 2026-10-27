@@ -23,7 +23,7 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 **Community vs Prime — how the per-minor ceilings below are derived (do NOT trust `sort -V | tail -1`).** `rancher/rancher` GitHub releases carry **both** editions and the `prerelease` flag does not separate them. Discriminator = release-notes first line: a patch is **Prime-only iff its body redirects to "Please refer to our Prime Documentation …"**; community patches either say "This is a Community version release" or carry inline notes (`# Release vX.Y.Z`) — so test for the Prime marker and treat its **absence** as community (a positive "community version release" grep misses the older inline-notes format). **Pattern — and it is exact, so the ceiling is derivable without re-testing every tag:** a minor gets community patches only while it is the newest minor. The first patch published on or after the next minor's GA is Prime, and every patch after it stays Prime. Confirmed on all 50 stable tags of 2.11–2.15 (2026-09-15): `v2.11.4` flipped on 2.12.0's GA date, `v2.12.4` one day before 2.13.0's, `v2.13.4` on 2.14.0's, `v2.14.4` on 2.15.0's. **A community ceiling therefore moves only when a new minor GAs** — re-derive then, not on every sift. Full derivation protocol: `references/version-verification.md` § Edition discrimination.
 
-> **The first-line test under-detects on EVERY line — always confirm against the self-declaration.** Rancher uses **two** Prime markers, and the cheap first-line check (`head -1 | grep -i 'prime documentation'`) only catches one. v2.11.9+ use the *redirect* format ("Please refer to our Prime Documentation …") and are caught. But **v2.11.4 – v2.11.8 ship inline `# Release vX.Y.Z` notes** (so their first line looks community) **yet self-declare "This is a Prime version release"** in the description paragraph — the first-line test wrongly passes them as community. Defense: also grep the body for the self-declaration line (`grep -oiE 'This is a (Community|Prime) version release'`) and treat **"Prime version release"** as Prime-only. Observed 2.11 mapping (2026-06-02): v2.11.0 "Community", v2.11.1/v2.11.2 inline-only (community-era, pre-self-declaration format), **v2.11.3 "Community and Prime"** (last community patch), v2.11.4–v2.11.8 "Prime version release", v2.11.9–v2.11.14 Prime-docs redirect. **Community ceiling = v2.11.3** — `sort -V | tail -1` (v2.11.14) and even the first-line discriminator alone (v2.11.8) both overshoot.
+> **The first-line test under-detects on EVERY line — always confirm against the self-declaration.** Rancher uses **two** Prime markers, and the cheap first-line check (`head -1 | grep -i 'prime documentation'`) only catches one. v2.11.9+ use the *redirect* format ("Please refer to our Prime Documentation …") and are caught. But **v2.11.4 – v2.11.8 ship inline `# Release vX.Y.Z` notes** (so their first line looks community) **yet self-declare "This is a Prime version release"** in the description paragraph — the first-line test wrongly passes them as community. Defense: also grep the body for the self-declaration line (`grep -oiE 'This is a (Community|Prime) version release'`) and treat **"Prime version release"** as Prime-only. Observed 2.11 mapping (2026-10-27): v2.11.0 "Community", v2.11.1–v2.11.2 "Community and Prime", **v2.11.3 "Community and Prime"** (last community patch), v2.11.4–v2.11.8 "Prime version release", v2.11.9–v2.11.17 Prime-docs redirect, v2.11.18 empty body (unclassified). **Community ceiling = v2.11.3** — `sort -V | tail -1` (v2.11.14) and even the first-line discriminator alone (v2.11.8) both overshoot.
 >
 > **`v2.12.4` is the same trap and was scored wrong here until 2026-09-15**: inline `# Release v2.12.4` notes, but the body reads "This is a **Prime** version release". Anything scoped to "the 2.11 line" will miss it. Classify every tag in one pass instead:
 >
@@ -82,11 +82,11 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   namespace/write permissions reports "not ready" until granted), and CVE-2026-93539 (Fleet Git
   webhook accepted unauthenticated polling-interval changes when no webhook secret was set) — the
   three Fleet CVEs are again on the separate `rancher/fleet` advisory feed.
-- **Open hazards on the 2.15 line (re-verified 2026-09-24):**
+- **Open hazards on the 2.15 line (re-verified 2026-10-27):**
   - **#57078 — upgrade to 2.15.1 left downstream clusters stuck `Provisioning`** with "Failed to
     get token secret … crt-token-system not found". Reporter rolled back to 2.14.2 and restored a
     pre-upgrade backup; after re-upgrading, most clusters still needed their registration command
-    re-run by hand. **Still OPEN** (last updated 2026-09-22) — v2.15.2's notes don't mention it.
+    re-run by hand. **Still OPEN**, milestoned v2.17.0 — v2.15.2's notes don't mention it.
     The single most plan-changing item here for a fleet with many long-lived downstream clusters.
   - **#57050 — ClusterRole/GlobalRole reconciliation loop — FIXED in v2.15.2.** Was milestoned
     v2.15.2 with "the fix is in no shipped release" as of the prior sift; the issue closed
@@ -94,11 +94,12 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
     operations for `inheritedFleetWorkspacePermissions`. 2.15.1-only installs still hit it.
   - **#57196 — downstream cluster stuck `Unavailable`** after a multi-hop upgrade despite a working
     agent tunnel; the Ready/Connected condition stops tracking session state after
-    `cattle-credentials` is regenerated during upgrade. **Still OPEN** (last updated 2026-09-18).
+    `cattle-credentials` is regenerated during upgrade. **Still OPEN** (backlog milestone).
   - **#57240 — `CATTLE_SYSTEM_DEFAULT_REGISTRY` ignored** on the 2.15.1 single-node Docker install,
-    CoreDNS falling back to `docker.io`. Air-gap relevant. **Still OPEN** (last updated 2026-09-11).
-  - **#57506 (new, v2.15.2 known issue) — cluster deletion gets stuck when s3 etcd snapshots
-    exist.** Workaround: delete the leftover `etcdsnapshots.rke.cattle.io` objects for that cluster
+    CoreDNS falling back to `docker.io`. Air-gap relevant. **Still OPEN** (no milestone).
+  - **#57506 (v2.15.2 known issue) — cluster deletion gets stuck when s3 etcd snapshots
+    exist.** Closed with the fix verified on `v2.15-head` (milestone v2.15.3); no released 2.15
+    build carries it yet, so v2.15.2 is still affected. Workaround: delete the leftover `etcdsnapshots.rke.cattle.io` objects for that cluster
     in the local cluster.
 - **Release notes run thinner than the tracker on this line.** Several `status/release-blocker`
   regressions fixed between 2.15.0 and 2.15.1 — the local principal-search break that made
