@@ -107,8 +107,11 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Add a `when_to_use` field (Dim 1).** Description is 836 chars, so 700 of
+  the 1536-char listing budget is unused; symptom triggers ("draft a fix for",
+  "remediate") would lift recall. **Blocked on:** a `trigger`-mode run
+  (`probe-trigger.py` baseline and after) — a description change without
+  trigger numbers is unverified, and freshen produces none.
 
 ## Decided — do not re-propose
 
@@ -128,14 +131,14 @@ measurement nobody can run.
   extraction is precedent — but this skill's phases load every run
   regardless of input mode, so the token win mostly evaporates and a
   skipped Read on a patch-generation workflow is a real risk. No extraction
-  without a with/without measurement first. The Design-notes/Guard-rails
-  consolidation above remains a separate, still-open question.)
+  without a with/without measurement first.)
+- **Design notes are not folded into Guard rails** (decided 2026-10-27).
+  Guard rails hold the rules checked before acting; Design notes carry the
+  downstream contract no rule restates (`verified` is the verification class,
+  output shape matches the harness). The only overlap is reviewer isolation,
+  repeated on purpose as a safety property. SKILL.md stays over the 500-line
+  soft cap (611 lines after the 2026-10-27 freshen).
 
-## Unblocked — actionable
-
-- **Add a `when_to_use` field (Dim 1).** 665/1536 chars of budget unused;
-  symptom triggers ("draft a fix for", "remediate") would lift recall. Defer
-  to a `trigger`-mode pass.
 ## Resolved — 2026-07-05 (improve, operator feedback)
 
 Applied FEEDBACK-impact-on-asset.md §4 in 2 kept iterations (self 80→82;
