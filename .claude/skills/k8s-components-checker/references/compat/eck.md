@@ -9,7 +9,7 @@
 - **Last sifted:** 2026-10-12 (breaking changes 3.4/3.5, upgrade path from 2.x, restart pacing)
 - **CORRECTION — the probe method was broken and the inferences it produced were wrong.** This file recorded that `support/matrix` "does NOT cover ECK — verified empty", and so fell back to probing per-minor guide pages and *inferring* windows from which ones 404. Both halves failed. The matrix does cover ECK (above). And the 404 rule no longer discriminates: probed today, **2.14, 3.1, 3.3, 3.4 and 3.5 all 404 while 2.16 and 3.0 still serve** — it is not an old-vs-new split, so a 404 carries no information at all.
 - **Four inferred values were wrong**, now replaced with published ones: 3.2.x k8s **1.30–1.34** (was inferred 1.29–1.34) and OpenShift **4.15–4.20** (was 4.14–4.19); 3.4.x k8s **1.31–1.36** (was 1.31–1.35) and OpenShift **4.16–4.22** (was 4.16–4.20). The 3.0.0 release date was also wrong: **2025-04-15**, not 2025-04-22. Unlike a stale number, a wrong inference never ages into correctness — it had to be read off the source to be caught.
-- **Published matrix, CSV dated 2026-08-04** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
+- **Published matrix, CSV read 2026-10-27** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
 
   | ECK line | Released | Kubernetes | OpenShift |
   |---|---|---|---|
@@ -19,7 +19,7 @@
   | 3.2.x | 2025-10-23 | **1.30–1.34** | **4.15–4.20** |
   | 3.3.x | 2026-02-03 | 1.31–1.35 | 4.16–4.20 |
   | 3.4.x | 2026-05-05 | **1.31–1.36** | **4.16–4.22** |
-  | 3.5.x | 2026-07-28 | 1.31–1.36 | 4.16–4.22 |
+  | 3.5.x | 2026-07-28 | **1.32–1.36** | 4.16–4.22 |
 - **Last release-verified:** 2026-09-24 — 3.5.0 confirmed via `gh api repos/elastic/cloud-on-k8s/releases/tags/v3.5.0` (published 2026-08-04, matches `generated.json`); ranges and breaking-change signal now sifted into `## 3.5.0` below.
 
 Notes on sources:
@@ -31,7 +31,7 @@ Notes on sources:
 
 ## 3.5.0 — 2026-08-04
 
-- **k8s floor:** 1.31 – 1.36 (same as 3.4.x — no window change; confirmed both on the matrix CSV row and the docs page's "3.4+" k8s tab, which now also covers 3.5)
+- **k8s floor:** 1.32 – 1.36 — 3.5 drops k8s 1.31 (matrix CSV; the v3.5.0 e2e kind matrix tests 1.32–1.36). The docs page's "3.4+" tab still reads 1.31–1.36 and `compat.py` reads that tab, so `check --with eck=3.5` passes k8s 1.31: override it — ECK 3.5 on 1.31 is `⚠ needs bump` (k8s first).
 - **OpenShift floor:** 4.16 – 4.22 (same as 3.4.x)
 - **Helm floor:** 3.2.0+
 - **Elastic Stack range:** same as 3.3.0+ (current docs page's "3.3+" Stack tab covers 3.3/3.4/3.5 identically):
