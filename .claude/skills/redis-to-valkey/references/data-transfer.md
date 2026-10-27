@@ -30,7 +30,9 @@ Target Valkey major matters too: Valkey 9 writes RDB v80 — once data lands
 on 9.x there is no path back to Redis or Valkey 8 (archive the last Redis
 RDB as the rollback artifact). Choosing Valkey 8.1.x as an intermediate
 target keeps snapshots at v11 (Redis-7.2-compatible) if a rollback window
-matters more than 9.x features.
+matters more than 9.x features. A physical method into the 9.1 line needs
+**9.1.3+**: 9.1.0–9.1.2 reject or misparse Redis-written listpack entries of
+exactly 16383 / 2097151 / 268435455 bytes (pitfall 1).
 
 ## Physical: REPLICAOF live cutover (source ≤ 7.2.x only)
 

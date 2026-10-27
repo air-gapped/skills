@@ -13,6 +13,10 @@ gates verified 2026-08-26.
    tags 8.1.9 and 9.0.5 by compare. On 8.x/9.0.x the hazard is live; on
    9.1.0+ the replica keeps its data and the sync merely fails. Never point a
    Valkey that holds data at a >7.2 source on any version.
+   **Even a ≤7.2 source fails into 9.1.0–9.1.2** (valkey-io/valkey#4818):
+   those builds misread the listpack backlen width Redis writes for entries
+   of exactly 16383 / 2097151 / 268435455 bytes (a 16378-byte stream value),
+   so RDB load is rejected or misparsed and full sync loops. Use 9.1.3+.
 2. **AOF masks RDB import on first boot**: with `appendonly yes` at first
    start, a copied-in dump.rdb is silently ignored (empty AOF wins). Boot
    with AOF off, verify data, then re-enable (AOF rewrites from the loaded

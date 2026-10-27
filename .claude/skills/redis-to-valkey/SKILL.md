@@ -74,10 +74,15 @@ Consequences:
    compare). Never point a Valkey holding data at a source "to see if
    replication works" regardless: on 9.1.0+ the replica survives, but the
    replication attempt still fails.
-3. **Valkey 9 is a one-way door.** Its v80 snapshots load on nothing else —
+3. **On the 9.1 line, physical transfers need 9.1.3+.** 9.1.0–9.1.2 misread
+   a listpack length field as written by Redis and Valkey ≤ 9.0: any entry of
+   exactly 16383, 2097151 or 268435455 encoded bytes (a 16378-byte stream
+   value suffices) makes the RDB load fail or misparse, and a full sync abort
+   and restart forever (valkey-io/valkey#4818). Logical replay is unaffected.
+4. **Valkey 9 is a one-way door.** Its v80 snapshots load on nothing else —
    not Redis, not Valkey 8. The final pre-cutover Redis RDB is the only
    rollback artifact; archive it before decommissioning.
-4. The wall is about **persistence formats, not the wire protocol**. Any
+5. The wall is about **persistence formats, not the wire protocol**. Any
    client speaking RESP to Redis 7.2 works against Valkey — which is exactly
    why logical replay (next section) is version-agnostic.
 
