@@ -26,26 +26,25 @@ content was confirmed at skill authoring; freshen mode flags these as
 
 ## NVIDIA BaseOS package repos
 
-Discovered + verified 2026-05-05 while extracting per-package settings.
 Apt/dnf repos are public. Directory listings 404; specific Release /
-Packages.gz / repomd.xml / individual `.deb` / `.rpm` files all
-return 200. Decoded in `nvidia-dgx-config-decoder.md`.
+Packages.gz / repomd.xml / individual `.deb` / `.rpm` files all return 200.
+Decoded in `nvidia-dgx-config-decoder.md`.
 
-Re-probed 2026-07-21: every row below still resolves and every count still
-holds. **Count `Packages.gz` entries with `sort -u`.** The index carries one
-stanza per *version*, not per package, so a raw `grep -c '^Package:'` inflates
-the number — noble `dgx` returns 33 stanzas for the same 8 metapackages
-(`dgx-repo` alone appears 11 times). The `dgx`-component counts below are
-unique package names. **Re-measured 2026-09-15: these counts have dropped sharply across every component — jammy `common` 106->88 stanzas, jammy `dgx` 35->8, noble `dgx` 33->12 stanzas. NVIDIA pruned the repos; the numbers below are historical.** Previously, jammy `common` was quoted as 106 stanzas / 99 unique. A
-future freshen that "corrects" 8 → 33 has miscounted, not found drift.
+**Count `Packages.gz` entries with `sort -u`.** The index carries one stanza
+per *version*, not per package, so a raw `grep -c '^Package:'` inflates the
+number. Counts below are unique package names, stanzas in brackets. NVIDIA
+pruned jammy between 2026-07-21 and 2026-09-15 (`common` 99 → 86 unique,
+`dgx` 35 → 8, noble `dgx` 8 → 3); earlier counts are not drift to restore.
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release | Ubuntu 22.04 BaseOS apt index | 2026-09-15 | jammy 2026-04-03 | 5 components: common (106 pkgs), dgx (35), dcs, egx, preview, c2 |
-| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/common/binary-amd64/Packages.gz | Ubuntu 22.04 `common` package list | 2026-09-15 | — | **Now 88 stanzas / 86 unique — NVIDIA pruned this component.** Recounted by `gunzip | awk` on the live file. Historically 106 stanzas / 99 unique settings packages (`nv-*`, `nvidia-*`) |
-| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/dgx/binary-amd64/Packages.gz | Ubuntu 22.04 `dgx` package list | 2026-09-15 | — | **Now 8 stanzas / 8 unique metapackages — a ~77% prune.** Remaining: dgx-kvm-guest-utils, dgx-repo, dgx-server-grub, dgxstation-a100/a800-ota-update-meta, dgxstation-desktop, dgxstation-grub, dgxstation-ota-update-meta. Any playbook selecting from the old set will now fail to resolve. Historically 35 metapackages, all unique (a100/a800/dgx1/dgx2/station only — no h100+ here) |
-| https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/dgx/binary-amd64/Packages.gz | Ubuntu 24.04 `dgx` package list | 2026-09-15 | — | **Now 3 unique / 12 stanzas** (dgx-a100-ota-update-meta, dgx-kvm-guest-utils, dgx-repo-keys) — same pruning as jammy. Historically 8 unique metapackages, 33 stanzas (thin — Hopper+ metapackages STILL gated as of 2026-07; noble `Release` dated 2026-03-19, components common/dgx/egx/preview) |
-| https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml | RHEL 10 BaseOS dnf index | 2026-09-15 | EL 10 | 19 RPMs incl. `nv-common-apis-25.10-1.el.noarch.rpm`; repomd `revision` still 1762989347 (2025-11-12) — unchanged since authoring |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release | Ubuntu 22.04 BaseOS apt index | 2026-10-27 | jammy 2026-07-24 | `Date: Fri, 24 Jul 2026`; components common dcs dgx egx preview c2 |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/common/binary-amd64/Packages.gz | Ubuntu 22.04 `common` package list | 2026-10-27 | — | 86 unique (88). Absent: `nvidia-acs-disable`, `nvidia-relaxed-ordering-gpu`, `nvidia-relaxed-ordering-nvme`, `nv-common-apis` — the decoder's bulk recipe no longer lists them |
+| https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/dgx/binary-amd64/Packages.gz | Ubuntu 22.04 `dgx` package list | 2026-10-27 | — | 8 unique (8): dgx-kvm-guest-utils, dgx-repo, dgx-server-grub, dgxstation-a100/a800-ota-update-meta, dgxstation-desktop, dgxstation-grub, dgxstation-ota-update-meta |
+| https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/Release | Ubuntu 24.04 BaseOS apt index | 2026-10-27 | noble 2026-08-27 | `Date: Thu, 27 Aug 2026`; components common dgx egx preview |
+| https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/common/binary-amd64/Packages.gz | Ubuntu 24.04 `common` package list | 2026-10-27 | — | 63 unique (65); carries `nvidia-acs-disable`; no `nvidia-relaxed-ordering-*`, no `nv-common-apis` |
+| https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/dgx/binary-amd64/Packages.gz | Ubuntu 24.04 `dgx` package list | 2026-10-27 | — | 3 unique (12): dgx-a100-ota-update-meta, dgx-kvm-guest-utils, dgx-repo-keys |
+| https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml | RHEL 10 BaseOS dnf index | 2026-10-27 | EL 10 | repomd `revision` 1762989347 (2025-11-12, unchanged since authoring); primary is `*-primary.xml.zst` (`zstd -dc`, not gunzip); 19 RPMs incl. `nv-common-apis-25.10-1.el.noarch.rpm` (only public source of it) and `nvidia-acs-disable-25.08-1.el.noarch.rpm` |
 
 ## Distro / OS docs
 

@@ -39,14 +39,14 @@ key, every systemd unit override, every helper script's actual flag.
 
 ## Public repo URLs
 
-All probed live on 2026-05-05. The host blocks directory listings (404)
+All probed live on 2026-10-27. The host blocks directory listings (404)
 but specific metadata files (Release / repomd.xml / Packages.gz /
 primary.xml.zst) and individual `.deb` / `.rpm` files return 200.
 
 | Repo | URL | Component | Notable contents |
 |------|-----|-----------|------------------|
-| Ubuntu jammy (22.04) | `https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/` | `common`, `dgx`, `dcs`, `egx`, `preview`, `c2` | 106 settings packages in `common`; 35 metapackages in `dgx` (a100/a800/dgx1/dgx2/station only — no h100+) |
-| Ubuntu noble (24.04) | `https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/` | `dgx` | 8 metapackages, no detail-level packages yet (May 2026) |
+| Ubuntu jammy (22.04) | `https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/` | `common`, `dgx`, `dcs`, `egx`, `preview`, `c2` | 86 settings packages in `common` (no `nvidia-acs-disable`, `nvidia-relaxed-ordering-*` or `nv-common-apis`); 8 packages in `dgx` (Station / KVM-guest / GRUB / repo only — no server-platform metapackage) |
+| Ubuntu noble (24.04) | `https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/` | `common`, `dgx`, `egx`, `preview` | 63 settings packages in `common` (incl. `nvidia-acs-disable`, `nvidia-disable-init-on-alloc`, `nvidia-disable-numa-balancing`); 3 packages in `dgx` |
 | EL10 (RHEL 10) | `https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/` | (single channel) | 19 RPMs including `nv-common-apis-25.10-1.el.noarch.rpm` (carries `nvidia-platform-configs.json` and `plat_funcs.bash`) |
 
 Index files used:
@@ -608,9 +608,9 @@ anything else maps to `other`.
 
 ## What's NOT in the public repo (gated)
 
-After dumping the full package list across Ubuntu jammy (106 packages in
-`common`, 35 in `dgx`), Ubuntu noble (8), and EL10 (19), these items
-referenced in the DGX docs are **absent**:
+After dumping the full package list across Ubuntu jammy (86 packages in
+`common`, 8 in `dgx`), Ubuntu noble (63 in `common`, 3 in `dgx`), and EL10
+(19), these items referenced in the DGX docs are **absent**:
 
 | Missing artifact | Where docs say it lives | Reality |
 |------------------|------------------------|---------|
@@ -618,7 +618,8 @@ referenced in the DGX docs are **absent**:
 | `nvidia-base/tuned.conf` | `nvidia-tuned-profiles` | Same. |
 | `dgx-base/tuned.conf` | `nvidia-tuned-profiles` | Same. |
 | Per-platform performance variants (`nvidia-x86-64-performance`, `nvidia-no-mitigations`, `nvidia-acs-disable`, `nvidia-crashdump-core`) | DGX EL10 user guide | TuneD profile of these names is gated. The acs-disable RPM is the binary-action equivalent (not a TuneD profile). |
-| `dgx-h200-system-configurations` etc. (the metapackages that pull in per-platform settings) for Hopper/Blackwell | Should mirror `dgx-a100-system-configurations` | Only A100/A800/dgx1/dgx2/station versions exist publicly (jammy). Hopper+ metapackages are DGX-internal only. |
+| `dgx-h200-system-configurations` etc. (the metapackages that pull in per-platform settings) for Hopper/Blackwell | Should mirror `dgx-a100-system-configurations` | No server-platform metapackage is public any more, A100 included — jammy `dgx` keeps only Station/KVM/GRUB/repo packages. Install the individual settings packages instead. |
+| `nvidia-relaxed-ordering-gpu`, `nvidia-relaxed-ordering-nvme` | jammy `common` (earlier) | In no public repo now. Apply their decoded settings (§Modprobe options, §Helper scripts) by hand. |
 
 For non-DGX hosts: the right path is to install the individual settings
 packages from the public `common` component (jammy) — they cover most of
@@ -658,18 +659,19 @@ curl -s "$URL_BASE/dists/jammy/common/binary-amd64/Packages.gz" | gunzip > Packa
 for pkg in nv-iommu-pt nv-mitigations-off nv-hugepage nv-cpu-governor \
            nv-limits nv-persistence-mode nv-ast-modeset nv-pci-dbg \
            nv-update-disable nv-smartd-disable nv-enable-nvme-hot-plug \
-           nvidia-acs-disable nvidia-pci-bridge-power nvidia-pci-no-realloc \
+           nvidia-pci-bridge-power nvidia-pci-no-realloc \
            nvidia-deadline-scheduler nvidia-kernel-defaults \
-           nvidia-relaxed-ordering-gpu nvidia-relaxed-ordering-nvme \
            nvidia-fs-loader nvidia-peermem-loader nvidia-drm-options \
            nvidia-mlnx-config nvidia-ipmisol nvidia-icmp \
            nvidia-conf-cachefilesd nvidia-chardev-links \
-           nv-docker-options nv-docker-gpus nvidia-esm-hook-epilogue \
-           nv-common-apis ; do
+           nv-docker-options nv-docker-gpus nvidia-esm-hook-epilogue ; do
     fn=$(awk -v p="$pkg" '/^Package: /{cp=$2} cp==p && /^Filename: /{print $2; exit}' Packages)
-    [ -n "$fn" ] && curl -sLO "$URL_BASE/$fn"
+    if [ -n "$fn" ]; then curl -sLO "$URL_BASE/$fn"; else echo "MISSING: $pkg" >&2; fi
 done
 ```
+
+Not in jammy `common`: take `nvidia-acs-disable` from noble `common` or
+EL10, and `nv-common-apis` from EL10 only (extract with `rpm2cpio`, below).
 
 ### Extract a `.deb` without `dpkg-deb` (Fedora/Arch/macOS):
 ```bash
@@ -712,12 +714,6 @@ that package first if its detection logic is needed).
 
 ---
 
-## Sources verified 2026-05-05
+## Sources
 
-- `https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/Release` (HTTP 200, 5 components: common dcs dgx egx preview c2)
-- `https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/common/binary-amd64/Packages.gz` (HTTP 200, 106 packages)
-- `https://repo.download.nvidia.com/baseos/ubuntu/jammy/x86_64/dists/jammy/dgx/binary-amd64/Packages.gz` (HTTP 200, 35 packages)
-- `https://repo.download.nvidia.com/baseos/ubuntu/noble/x86_64/dists/noble/dgx/binary-amd64/Packages.gz` (HTTP 200, 8 packages)
-- `https://repo.download.nvidia.com/baseos/el/10/x86_64/dgx/repodata/repomd.xml` (HTTP 200, 19 RPMs)
-- `nv-common-apis-25.10-1.el.noarch.rpm` extracted; ships
-  `/etc/nvidia-platform.d/nvidia-platform-configs.json` with 22 platform entries.
+Repo URLs, current package counts and check dates: `sources.md` §NVIDIA BaseOS package repos.
