@@ -5,7 +5,7 @@ The aggregator runs AxoSyslog (`ghcr.io/axoflow/axosyslog`, 4.28.0 at operator
 remains the collector (TCP via its `syslogng_output`). Field names verified from
 `syslogng_output_types.go` at 6.7.0 (set unchanged since 6.1.0).
 
-## The 18 SyslogNGOutput plugin fields (exact key spellings)
+## The 17 SyslogNGOutput plugin fields (exact key spellings)
 
 `loggly` · `syslog` · `file` · `mqtt` · `redis` · `mongodb` · `sumologic-http` ·
 `sumologic-syslog` · `http` · `elasticsearch` (renders driver `elasticsearch-http`)
@@ -98,7 +98,7 @@ spec:
   disk buffers unprocessed; draining is a manual process.
 - Official guidance recommends syslog-ng for high message volume (multithreaded)
   and many-flows/complex-routing — but the ecosystem (drain, HPA docs, most
-  community usage, 31 vs 18 outputs) is fluentd-first. Default to fluentd unless
+  community usage, 31 vs 17 outputs) is fluentd-first. Default to fluentd unless
   message rate, content-based matching, or OTLP demands syslog-ng.
 - syslog-ng metric names in the built-in PrometheusRules were wrong until 6.2.2.
 - Rendered config lands in Secret `<logging>-syslogng-app`, key `syslog-ng.conf`;

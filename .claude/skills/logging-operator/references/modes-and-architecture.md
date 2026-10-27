@@ -8,7 +8,7 @@
 | Collector→aggregator | fluentd `forward` protocol | TCP (fluentbit `syslogng_output`) |
 | Aggregator | fluentd StatefulSet (`ghcr.io/kube-logging/logging-operator/fluentd:<ver>-full`) | AxoSyslog StatefulSet (`ghcr.io/axoflow/axosyslog`) |
 | Routing CRs | Flow/ClusterFlow/Output/ClusterOutput | SyslogNGFlow/…/SyslogNGOutput |
-| Outputs | 31 | 18 (incl. OTLP — fluentd has none) |
+| Outputs | 31 | 17 (incl. OTLP — fluentd has none) |
 | Scale-in | volume drainer (automated) | manual buffer drain |
 | Maturity | ecosystem default | performant but operationally thinner |
 

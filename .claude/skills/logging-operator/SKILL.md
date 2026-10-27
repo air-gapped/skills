@@ -136,7 +136,7 @@ or the parser sees nothing useful. Delivery latency ≈ `timekey + timekey_wait`
 | JSON/CRI parsing, multiline, source selection, k8s events, host logs, external syslog ingestion, per-destination recipes | `references/recipes.md` |
 | Full CRD inventory, scopes, match semantics, Logging spec keys, decoupled pattern, LoggingRoute multi-tenancy | `references/cr-model.md` |
 | All 31 fluentd outputs + buffer tuning + image variants | `references/outputs-fluentd.md` |
-| All 18 syslog-ng outputs + SyslogNGFlow matching + worked chains | `references/outputs-syslogng.md` |
+| All 17 syslog-ng outputs + SyslogNGFlow matching + worked chains | `references/outputs-syslogng.md` |
 | fluentd vs syslog-ng decision, Telemetry Controller / AxoSyslog status, project health, alternatives | `references/modes-and-architecture.md` |
 | Buffers/backpressure, scaling + volume drainer, HPA, resources, TLS, non-root, monitoring/alerts | `references/production-hardening.md` |
 | Release timeline, breaking changes per boundary, CRD upgrade mechanics, air-gap install | `references/upgrades.md` |

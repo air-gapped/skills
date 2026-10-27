@@ -251,7 +251,7 @@ Each message becomes one stdout JSON line:
 
 ## Destinations
 
-Full per-plugin specs: `outputs-fluentd.md` (31 types) / `outputs-syslogng.md` (18).
+Full per-plugin specs: `outputs-fluentd.md` (31 types) / `outputs-syslogng.md` (17).
 For testing a chain end-to-end without a real destination:
 
 ```yaml
