@@ -209,7 +209,7 @@ When a peer leaves, call `agent.invalidate_local_metadata()` (no IP/port) to evi
 | `NIXL_TCPSTORE_ENDPOINT` | c10d TCPStore `host:port` (v1.5.0+) | unset | Central store without ETCD; mutually exclusive with `NIXL_ETCD_ENDPOINTS` |
 | `NIXL_TCPSTORE_TIMEOUT_MS` / `NIXL_TCPSTORE_OP_TIMEOUT_MS` | Bring-up wait for connect and unpublished peers / per-operation bound | `30000` / `5000` | Raise the first for slow bring-up |
 | `NIXL_TELEMETRY_ENABLE` | Master telemetry switch | `false` | `y/yes/on/true/enable/1` (case-insensitive) |
-| `NIXL_TELEMETRY_EXPORTER` | Exporter plugin name | unset | `prometheus` for beta exporter; empty + `NIXL_TELEMETRY_DIR` set → cyclic buffer |
+| `NIXL_TELEMETRY_EXPORTER` | Exporter plugin name | unset | `prometheus` (one port per process), `prometheus_mp` (all ranks on one port, v1.5.0+, needs `NIXL_TELEMETRY_MULTIPROC_DIR`), `doca`; empty + `NIXL_TELEMETRY_DIR` set → cyclic buffer |
 | `NIXL_TELEMETRY_DIR` | Cyclic-buffer output directory | unset | Required for cyclic-buffer mode |
 | `NIXL_TELEMETRY_BUFFER_SIZE` | Events in cyclic buffer | `4096` | Bump if events drop |
 | `NIXL_TELEMETRY_RUN_INTERVAL` | Flush interval ms | `100` | Cyclic buffer only |

@@ -424,6 +424,29 @@ where the metrics port is not already behind a network policy.
 **libcurl is not vendored.** Unlike liburing for POSIX, it is not fetched automatically —
 install `libcurl4-openssl-dev` / `libcurl-devel` before building, or the build fails.
 
+**One port per process.** From v1.5.0 (#1898) a second rank that cannot bind the port logs a
+warning and runs with no telemetry sink, so a multi-rank run exposes only one rank. Use
+`prometheus_mp` for all ranks.
+
+### Multi-process Prometheus exporter (`prometheus_mp`, v1.5.0+, experimental)
+
+All ranks behind one scrape port; one rank wins an `flock` election and serves, the rest write.
+
+```bash
+export NIXL_TELEMETRY_EXPORTER=prometheus_mp
+export NIXL_TELEMETRY_MULTIPROC_DIR=/var/run/nixl-telemetry   # REQUIRED; same local dir (not NFS) for every rank, e.g. a pod emptyDir
+```
+
+A missing `NIXL_TELEMETRY_MULTIPROC_DIR` or more than 32 `NIXL_TELEMETRY_HISTOGRAM_BUCKETS_US`
+bounds makes the `nixlAgent` constructor throw. Give every rank the same
+`NIXL_TELEMETRY_PROMETHEUS_PORT`/`_LOCAL`, or each serves every rank and Prometheus sees duplicate series.
+
+**Metric selection and histograms (v1.5.0+, `prometheus`/`prometheus_mp`/DOCA).**
+`NIXL_TELEMETRY_ENABLED_METRICS` is a comma-separated glob allowlist of base event names
+(e.g. `agent_xfer_time,agent_err_*`); dropped metrics cost nothing on the hot path. Transfer
+times also export as histograms `agent_xfer_time_us` / `agent_xfer_post_time_us`; set bounds with
+`NIXL_TELEMETRY_HISTOGRAM_BUCKETS_US`.
+
 ### DOCA Telemetry exporter (dynamic)
 
 A third exporter, alongside the cyclic buffer and Prometheus. Exports via DOCA Telemetry
