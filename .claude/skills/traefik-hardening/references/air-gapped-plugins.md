@@ -52,7 +52,7 @@ No editorial "verified" tier exists — any repo with a valid `.traefik.yml` aut
 | `PascalMinder/geoblock` / `nscuro/traefik-plugin-geoblock` | country allow/deny (offline IP2Location data — air-gap friendly) | active; but for pure intranet-CIDR use, built-in `IPAllowList` is the right tool, no plugin |
 | `traefik-plugins/traefik-jwt-plugin` (and "JWT Headers" variants) | decode JWT claim → header (enables per-user keying) | usable; the composition piece for `identity-keying.md` |
 | `jcchavezs/coraza-http-wasm-traefik` | WASM WAF (OWASP CRS body/path inspection) | usable via localPlugins; maintainers disclaim production-grade perf; native Coraza is Hub-only |
-| bot-UA blocklist plugins (e.g. `holysoles/bot-wrangler`) | block known AI/scraper UAs | cheap defense-in-depth; same spoofability caveat as any UA check |
+| bot-UA blocklist plugins (e.g. `holysoles/bot-wrangler-traefik-plugin`) | block known AI/scraper UAs | cheap defense-in-depth; same spoofability caveat as any UA check. bot-wrangler defaults to `botAction: LOG` (set `BLOCK`) and pulls its list from a public CDN (`robotsSourceUrl`) — air-gapped, serve the list over internal HTTP with a correct `Content-Type` |
 | JA3/JA4 fingerprint plugin | — | **does not exist** — platform gap, not a maintenance gap |
 
 ## Known air-gap trap (catalog mode only)
