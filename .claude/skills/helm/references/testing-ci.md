@@ -330,8 +330,14 @@ helm diff upgrade myrelease ./mychart --suppress-secrets
 helm diff upgrade myrelease ./mychart --three-way-merge
 ```
 
-**Helm 4 note**: Requires `--verify=false` during plugin install (no GPG
-provenance yet).
+**Helm 4 install**: releases ship GPG `.prov` files (v3.15.8+). Import the key
+and install the release tarball; a git-repo URL cannot be verified and needs
+`--verify=false`.
+
+```bash
+curl -sL https://github.com/databus23.gpg | gpg --import
+helm plugin install https://github.com/databus23/helm-diff/releases/latest/download/helm-diff-linux-amd64.tgz
+```
 
 ---
 
