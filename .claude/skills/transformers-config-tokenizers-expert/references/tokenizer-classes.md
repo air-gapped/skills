@@ -275,8 +275,8 @@ v5.0.0rc1+:
 ```
 
 Functional decoding unchanged. Code that introspected
-`decoder.__class__` or walked `decoder.decoders` **broke**. PR #43104
-is open as of 2026-04 — documents the change, no functional reversal.
+`decoder.__class__` or walked `decoder.decoders` **broke**. No reversal
+and no upstream doc of the change: the doc PR #43104 was closed unmerged.
 
 **Preflight rule:** do not assume a flat decoder shape. Use
 `isinstance(tokenizer.backend_tokenizer.decoder, tokenizers.decoders.Sequence)`
