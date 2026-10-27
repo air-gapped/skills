@@ -28,9 +28,11 @@
 # Requires: valkey-cli (or redis-cli — the binary is symlinked).
 #
 # Exit codes:
-#   0 — sample completed successfully
-#   1 — valkey-cli not found
+#   0 — sample completed and PUBLISH ops were seen
+#   1 — usage error, or valkey-cli not found
 #   2 — connection to Valkey failed
+#   3 — MONITOR refused (Sentinel port, or ACL user without +monitor)
+#   4 — no PUBLISH seen: inconclusive (no active stream, or wrong host)
 
 set -euo pipefail
 
@@ -72,13 +74,28 @@ echo
 # WEBSOCKET_REDIS_ROOM_CHANNELS (Open WebUI v0.12.0+ default) room emits go to
 # "socketio#/#<room>". Every PUBLISH is counted, whatever the channel.
 TMPFILE="$(mktemp)"
-trap 'rm -f "$TMPFILE"' EXIT
+RAWFILE="$(mktemp)"
+trap 'rm -f "$TMPFILE" "$RAWFILE"' EXIT
 
-timeout "$DURATION" "$CLI" -h "$HOST" -p "$PORT" MONITOR 2>/dev/null \
-    | grep -E '"PUBLISH"' \
-    > "$TMPFILE" || true
+timeout "$DURATION" "$CLI" -h "$HOST" -p "$PORT" MONITOR > "$RAWFILE" 2>&1 || true
+
+# MONITOR answers "OK" before streaming. Anything else is a refusal that would
+# otherwise read as zero PUBLISH ops, i.e. a false "tuned" verdict.
+FIRST="$(head -n 1 "$RAWFILE" | tr -d '\r')"
+if [[ "$FIRST" != "OK" ]]; then
+    echo "ERROR: MONITOR refused on $HOST:$PORT: ${FIRST:-no output}" >&2
+    echo "       Point at the Valkey master (not a Sentinel port) with a user allowed +monitor." >&2
+    exit 3
+fi
+
+grep -iE '"publish"' "$RAWFILE" > "$TMPFILE" || true
 
 TOTAL=$(wc -l < "$TMPFILE")
+if [[ "$TOTAL" -eq 0 ]]; then
+    echo "No PUBLISH ops in ${DURATION}s — inconclusive: no stream was active, or this is not"
+    echo "the master WEBSOCKET_REDIS_URL points at. Re-run during a long chat stream."
+    exit 4
+fi
 PER_SEC=$(awk -v t="$TOTAL" -v d="$DURATION" 'BEGIN { printf "%.1f", t/d }')
 
 echo "Total PUBLISH ops:        $TOTAL"
@@ -93,7 +110,6 @@ echo
 # These thresholds match the empirical table in references/issue-23733.md.
 if [[ "$TOTAL" -lt 60 ]]; then
     echo "Estimate: CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE looks tuned (~10 or higher)."
-    echo "          (or no active streams during sample)"
 elif [[ "$TOTAL" -lt 300 ]]; then
     echo "Estimate: CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE looks moderate (~5)."
 elif [[ "$TOTAL" -lt 1000 ]]; then
@@ -107,5 +123,5 @@ echo "Top channels by frequency:"
 awk '{
   # MONITOR format: <ts> [<db> <addr>] "<cmd>" "<arg1>" ...
   # We want arg1 (the channel) on lines where cmd is PUBLISH.
-  for (i=1;i<=NF;i++) if ($i == "\"PUBLISH\"") { print $(i+1); next }
+  for (i=1;i<=NF;i++) if (toupper($i) == "\"PUBLISH\"") { print $(i+1); next }
 }' "$TMPFILE" | sort | uniq -c | sort -rn | head -5

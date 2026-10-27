@@ -248,7 +248,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 ### Scripts
 
-- **`scripts/check-amplification.sh <valkey-host:port> [duration-seconds]`** — Sample Valkey `MONITOR` for the given duration, count Socket.IO `PUBLISH` ops, and estimate whether `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` is set to a sane value. Run during an active long-response chat stream to verify the #23733 mitigation is in effect.
+- **`scripts/check-amplification.sh <valkey-host:port> [duration-seconds]`** — Sample Valkey `MONITOR` for the given duration, count Socket.IO `PUBLISH` ops, and estimate whether `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` is set to a sane value. Run during an active long-response chat stream to verify the #23733 mitigation is in effect. Exit 3 = MONITOR refused (Sentinel port or no `+monitor`), exit 4 = no PUBLISH seen (inconclusive) — neither is a pass. `scripts/test-check-amplification.sh` re-checks those exits offline after any edit.
 
 ## Non-negotiables before re-enabling multi-pod + WS
 
