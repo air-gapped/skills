@@ -38,7 +38,7 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 28 | pab1it0/prometheus-mcp-server — community MCP server | https://github.com/pab1it0/prometheus-mcp-server | 2026-09-15 | — |
 | 29 | cortex-tenant — label → X-Scope-OrgID proxy | https://github.com/blind-oracle/cortex-tenant | 2026-09-15 | — |
 | 30 | Grafana Alloy — `mimir.rules.kubernetes` component | https://grafana.com/docs/alloy/latest/reference/components/mimir/mimir.rules.kubernetes/ | 2026-09-15 | latest |
-| 31 | Grafana — What's new in v13.0 (`/api` → `/apis` deprecation) | https://grafana.com/docs/grafana/latest/whatsnew/whats-new-in-v13-0/ | 2026-09-15 | v13 |
+| 31 | Grafana — What's new in v13.0 (`/api` → `/apis` deprecation; the v13.2 page says nothing about removing `/api`, latest release v13.2.4 2026-10-13) | https://grafana.com/docs/grafana/latest/whatsnew/whats-new-in-v13/whats-new-in-v13-0/ | 2026-10-27 | v13 |
 | 32 | Prometheus — Remote-Write 2.0 spec (EXPERIMENTAL) | https://prometheus.io/docs/specs/prw/remote_write_spec_2_0/ | 2026-09-15 | 2.0-experimental |
 | 33 | Grafana Mimir 3.0 release notes (3.0-specific citation; latest is mimir-3.2.3, 2026-10-22, with mimir-3.1.8 patched the same day) | https://github.com/grafana/mimir/releases/tag/mimir-3.0.0 | 2026-10-27 | 3.0 |
 | 34 | Prometheus — feature flags (`promql-duration-expr` no longer listed: a no-op since 3.14.0, #19033; Mimir enables duration expressions unconditionally since 2.17.0, #11344. `native-histograms` is a no-op since 3.9.0, #17528 — native histograms stable since 3.8.0 but scraped only with `scrape_native_histograms`, default `false` in configuration.md) | https://prometheus.io/docs/prometheus/latest/feature_flags/ | 2026-10-27 | latest |
