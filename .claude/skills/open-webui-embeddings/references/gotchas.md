@@ -84,19 +84,19 @@ To relax the reranker batch budget for throughput, raise `--max-concurrent-reque
 
 ## 5. TEI Docker image arch matching
 
-Generic `text-embeddings-inference:cuda-1.9.x` is `text-embeddings-router-80` — compiled for SM 8.0 (Ampere). On non-native compute capabilities, Candle's FlashBert JIT-compiles kernels at runtime, which can hang silently for >10 minutes (eventually liveness-killed).
+The generic `text-embeddings-inference:cuda-1.9` image picks a binary by compute capability: 7.5, 9.0, 10.0 and 12.0 get native builds, but **every 8.x GPU (8.6, 8.9) runs the SM 8.0 build**, where Candle's FlashBert JIT-compiles kernels at runtime and can hang silently for >10 minutes (eventually liveness-killed). Any other capability (6.1, 12.1) exits at start with `cuda compute cap N is not supported`. Use the arch-specific tag:
 
 | GPU family | Compute capability | TEI image tag |
 |---|---|---|
 | Pascal (1050 Ti, 1080 Ti) | 6.1 | none — build from source with `CUDA_COMPUTE_CAP=61` |
-| Turing (T4, 2080 Ti, 16xx) | 7.5 | `turing-1.9.x` |
-| Ampere datacenter (A100) | 8.0 | `cuda-1.9.x` (default) |
-| Ampere consumer (A10, RTX 30xx) | 8.6 | `86-1.9.x` |
-| Ada Lovelace (RTX 40xx) | 8.9 | `89-1.9.x` |
-| Hopper (H100/H200) | 9.0 | `hopper-1.9.x` |
-| Blackwell datacenter (B200, GB200) | 10.0 | `100-1.9.x` (experimental) |
-| Blackwell consumer (RTX 50xx, RTX PRO 6000) | 12.0 | `120-1.9.x` (experimental) |
-| Blackwell GB10 (DGX Spark) | 12.1 | `121-1.9.x` (experimental, multi-arch) |
+| Turing (T4, 2080 Ti, 16xx) | 7.5 | `turing-1.9` (experimental; FlashAttention off by default) |
+| Ampere datacenter (A100, A30) | 8.0 | `1.9` |
+| Ampere 8.6 (A10, A40, RTX 30xx) | 8.6 | `86-1.9` |
+| Ada Lovelace (RTX 40xx) | 8.9 | `89-1.9` |
+| Hopper (H100/H200) | 9.0 | `hopper-1.9` |
+| Blackwell datacenter (B200, GB200) | 10.0 | `100-1.9` (experimental) |
+| Blackwell consumer (RTX 50xx, RTX PRO 6000) | 12.0 | `120-1.9` (experimental) |
+| Blackwell GB10 (DGX Spark) | 12.1 | `121-1.9` (experimental, multi-arch) |
 
 If the image tag does not match the GPU, expect either silent hang at warmup OR much slower throughput from FlashAttention disabled. FlashBert requires compute capability ≥ 7.5 — Pascal cannot use it at all and falls back to slower kernels.
 
