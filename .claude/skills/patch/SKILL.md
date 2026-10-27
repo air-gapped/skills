@@ -127,6 +127,10 @@ Inspect the findings path:
   `reports/manifest.jsonl` OR `found_bugs.jsonl` OR `run_*/result.json`
   (pipeline output). The findings have PoC bytes + ASAN traces + reproduction
   commands; the pipeline's verification ladder applies.
+- **Stop** when that directory also holds an `INCIDENTS.json` anywhere under
+  it: it is a detection & response run, which writes `run_*/result.json` too.
+  `vuln-pipeline patch` cannot patch it and this skill does not ingest
+  incidents — say so; never delegate it.
 - **static mode** otherwise: `TRIAGE.json`, `VULN-FINDINGS.json`, generic
   finding JSON, or markdown. No PoC; the oracle is a fresh-context reviewer.
 

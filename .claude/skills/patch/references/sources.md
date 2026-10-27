@@ -18,6 +18,12 @@ patch ladder changes.
   self-contained; execution-verified mode delegates to the harness's
   `vuln-pipeline patch` build→reproduce→regress→re-attack ladder. See
   `../vuln-scan/HARNESS.md` for setup/run.
+- D&R layout (Phase 0b stop rule): `dnr_harness/cli.py` writes
+  `results/<target>/<ts>/run_NNN/{result.json,INCIDENTS.json}`, so the
+  `run_*/result.json` exec-mode marker also matches D&R runs; `harness/`
+  (the vuln pipeline) never writes `INCIDENTS.json`. Upstream's own patch skill
+  carries the same exception since anthropics/defending-code-reference-harness#23
+  (2026-07-16). Checked at `d3bea6b` on 2026-10-27.
 - Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16). **The patch ladder itself is unchanged** — `docs/patching.md` still describes the build→reproduce→regress→re-attack tiers, with the regress tier (T2) skipped on targets lacking a `test_command` (only `canary` sets one among the four bundled targets). Four patch-relevant paths moved in the window — `.claude/skills/patch/{README,SKILL}.md`, `docs/patching.md`, `harness/prompts/patch_prompt.py` — but as docs/prompt refinement, not a change to the verification tiers this skill delegates to.
 
 ### Delta worth knowing (2026-06-15 → 2026-07-21)
