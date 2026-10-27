@@ -239,10 +239,10 @@ This is the host-side ceiling that LMCache CPU-tier writes share with all
 
 ## Sources
 
-- Dell PowerEdge XE9680 Technical Guide (E90S, Sept 2025):
+- Dell PowerEdge XE9680 Technical Guide (E90S, Rev. A09, July 2025):
   https://www.delltechnologies.com/asset/en-ca/products/servers/technical-support/poweredge-xe9680-technical-guide.pdf
-- Dell PowerEdge BIOS Performance and Workload Tuning Guide for 16G:
-  https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/
+- Dell PowerEdge BIOS Performance and Workload Tuning Guide for 16G — Intel section:
+  https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/detailed-settings-for-intel-bios-profile/
 - Dell PowerEdge XE9680 Installation and Service Manual:
   https://www.dell.com/support/manuals/en-us/poweredge-xe9680/xe9680_ism_pub/
 - StorageReview — Dell PowerEdge XE9680: The Ultimate AI Powerhouse:

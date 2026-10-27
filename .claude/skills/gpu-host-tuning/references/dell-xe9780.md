@@ -332,12 +332,10 @@ When the same operator manages both chassis families, expect deltas on:
 
 ## Sources
 
-- Dell PowerEdge XE9780 Technical Guide (E125S, March 2026):
+- Dell PowerEdge XE9780 Technical Guide (E125S, Rev. A03, August 2026):
   https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9780-technical-guide.pdf
 - Dell PowerEdge XE AI Spec Sheet (XE9680 / XE9780 / XE9785 / XE9712 cross-comparison):
   https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf
-- Dell PowerEdge BIOS Performance and Workload Tuning Guide for 16G:
-  https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/
 - Dell PowerEdge BIOS Performance and Workload Tuning Guide for 16G — Intel section:
   https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/detailed-settings-for-intel-bios-profile/
 - 16G PowerEdge Platform BIOS Characterization for HPC with Intel Sapphire Rapids

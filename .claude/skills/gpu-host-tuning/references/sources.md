@@ -63,12 +63,12 @@ pruned jammy between 2026-07-21 and 2026-09-15 (`common` 99 → 86 unique,
 
 | URL | Topic | Last verified | Pinned | Notes |
 |-----|-------|---------------|--------|-------|
-| https://www.delltechnologies.com/asset/en-ca/products/servers/technical-support/poweredge-xe9680-technical-guide.pdf | XE9680 Technical Guide | 2026-08-18 | E90S, 2025-09 | PDF, 5+ MB |
-| https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9780-technical-guide.pdf | XE9780 Technical Guide | 2026-08-18 | E125S, 2026-03 | PDF accessible |
+| https://www.delltechnologies.com/asset/en-ca/products/servers/technical-support/poweredge-xe9680-technical-guide.pdf | XE9680 Technical Guide | 2026-10-27 | E90S, Rev. A09, July 2025 | PDF, 68 pages; file re-issued 2026-09-07 with the same revision |
+| https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe9780-technical-guide.pdf | XE9780 Technical Guide | 2026-10-27 | E125S, Rev. A03, August 2026 | PDF, 58 pages; height/depth, 163.2 kg and the B300/B200 GPU options match `dell-xe9780.md` |
 | https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf | XE AI spec sheet (XE9680/XE9780/XE9785/XE9712 cross-comparison) | 2026-08-18 | — | PDF |
 | https://www.dell.com/support/manuals/en-us/poweredge-xe9680/xe9680_ism_pub/ | XE9680 Installation and Service Manual | 2026-08-18 (403 to curl — bot-blocked, verify in browser) | — | live |
 | https://www.dell.com/en-us/shop/ipovw/poweredge-xe9780l | XE9780L product page (liquid variant) | 2026-08-18 | — | live; notes iF Design 2026 award |
-| https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/ | 16G BIOS Performance & Workload Tuning Guide | 2026-08-18 | 16G | URL valid; WebFetch returns 403 (anti-bot) |
+| https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/ | 16G BIOS Performance & Workload Tuning Guide | 2026-10-27 (gone: browser lands on the Info Hub home page, twice) | 16G | No longer cited in the skill; the guide's subpages still load — cite the Intel-section row below |
 | https://infohub.delltechnologies.com/en-us/l/poweredge-bios-performance-and-workload-tuning-guide-for-16g/detailed-settings-for-intel-bios-profile/ | 16G BIOS Tuning — Intel detailed settings | 2026-08-18 | 16G | URL valid; WebFetch 403 |
 | https://infohub.delltechnologies.com/en-us/p/16g-poweredge-platform-bios-characterization-for-hpc-with-intel-sapphire-rapids/ | 16G HPC BIOS characterization (Sapphire Rapids; methodology applies to Granite Rapids) | 2026-08-18 | SPR baseline | URL valid; WebFetch 403 |
 
