@@ -47,8 +47,8 @@
     },
     {
       "id": 8,
-      "question": "What is the default mesh port and peer-discovery annotation for `--enable-mesh`?",
-      "skill_answer": "Port 39527; annotation `sglang.ai/ha-port`"
+      "question": "How are peers wired for `--enable-mesh`, and on which default port?",
+      "skill_answer": "Port 39527; static `--mesh-peer-urls IP:port` only (no `--router-selector` flag), and only in the Rust binary built from source, not the published image's Python launcher"
     },
     {
       "id": 9,

@@ -73,9 +73,7 @@ For **cluster-wide** discovery (gateway in one namespace, workers in others), us
 | `--service-discovery-port` | `80` | The port the gateway probes on each Pod IP. **Must match the worker's container port** — set this explicitly to your worker's port (e.g. `30000` for SGLang, `8000` for vLLM). |
 | `--service-discovery-namespace` | `default` | Namespace to watch. Single namespace per gateway. |
 | `--prefill-selector`, `--decode-selector` | empty | PD mode only. |
-| `--router-selector` | empty | Multi-gateway mesh mode. |
 | `--bootstrap-port-annotation` | `sglang.ai/bootstrap-port` | Pod annotation read for PD bootstrap port. |
-| `--router-mesh-port-annotation` | `sglang.ai/ha-port` | Pod annotation read for mesh port. |
 
 ## Multi-port-per-pod limitation
 
@@ -277,14 +275,9 @@ Important: the "10-20% cache reduction" warning in upstream docs **predates this
 --mesh-peer-urls IP1:port [IP2:port ...]       # static peer list — see gotchas below
 ```
 
-For K8s-native peer auto-discovery (preferred), use:
+**Mesh flags exist only in the Rust binary built from source** (`cargo build --release --bin sgl-model-gateway` in `sgl-model-gateway/`). The published `lmsysorg/sgl-model-gateway` image runs the Python launcher (`python3 -m sglang_router.launch_router`; its `smg`/`amg` are Python CLIs too), which has no `--enable-mesh` or `--mesh-*` flag — passing one fails argument parsing. Check before planning HA: `docker run --rm <image> --help | grep -c mesh` (0 on `:v0.3.2`).
 
-```
---router-selector key=value                    # selects sibling gateway pods, AND-combined
---router-mesh-port-annotation sglang.ai/ha-port  # default
-```
-
-When `--router-selector` is set, the gateway watches sibling pods matching the label set, reads their pod IP from the kube API, and reads the mesh port from each pod's `sglang.ai/ha-port` annotation (`src/service_discovery.rs:160-193`). This avoids the static-list maintenance entirely.
+**No CLI path enables K8s-native peer discovery.** The code can watch sibling gateway pods by label and read the mesh port from their `sglang.ai/ha-port` annotation, but the binary hard-codes that selector to empty and has no `--router-selector` or `--router-mesh-port-annotation` flag; the Python launcher has neither. Wire peers with `--mesh-peer-urls` (recipe below).
 
 #### Gotcha — `--mesh-peer-urls` parsing
 
@@ -301,112 +294,11 @@ Two non-obvious facts:
 1. **Only `first()` is used as the bootstrap peer.** Once connected, gossip discovers the rest of the mesh — but if the first URL doesn't parse, `init_peer = None` and the replica starts isolated. Subsequent URLs in the list are silently ignored at startup.
 2. **`SocketAddr` parsing requires literal `IP:port` form.** No `grpc://` scheme, no DNS hostnames, no headless-Service stable DNS like `gateway-0.gw-headless.sglang.svc:39527`. All of these silently fail to parse → no bootstrap → isolated replica.
 
-So `--mesh-peer-urls` is really for bare-metal or non-K8s setups where you have stable IPs to pin. On K8s, use `--router-selector`.
+On K8s, resolve a peer's pod IP first (an init container reading a headless Service) and pass that IP.
 
-#### Recipe A — K8s-native pod-annotation discovery (preferred)
+#### Recipe — static `--mesh-peer-urls`
 
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata: {name: sglang-gateway, namespace: sglang}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata: {name: sglang-gateway, namespace: sglang}
-rules:
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata: {name: sglang-gateway, namespace: sglang}
-subjects: [{kind: ServiceAccount, name: sglang-gateway, namespace: sglang}]
-roleRef:
-  kind: Role
-  name: sglang-gateway
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: gateway
-  namespace: sglang
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: sglang-gateway
-      role: gateway
-      model_id: llama-3-8b
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: sglang-gateway
-        role: gateway                     # ← used by --router-selector
-        model_id: llama-3-8b
-      annotations:
-        sglang.ai/ha-port: "39527"        # ← read by --router-mesh-port-annotation
-    spec:
-      serviceAccountName: sglang-gateway
-      containers:
-        - name: gateway
-          image: lmsysorg/sgl-model-gateway:v0.3.1
-          ports:
-            - {containerPort: 8080,  name: http}
-            - {containerPort: 29000, name: metrics}
-            - {containerPort: 39527, name: mesh}
-          env:
-            - name: POD_NAME
-              valueFrom: {fieldRef: {fieldPath: metadata.name}}
-          args:
-            - --host=0.0.0.0
-            - --port=8080
-            - --policy=cache_aware
-            # Worker discovery
-            - --service-discovery
-            - --selector=model_id=llama-3-8b
-            - --service-discovery-namespace=sglang
-            - --service-discovery-port=30000
-            # Mesh
-            - --enable-mesh
-            - --mesh-host=0.0.0.0
-            - --mesh-port=39527
-            - --mesh-server-name=$(POD_NAME)        # stable per-pod identity
-            # Sibling-gateway pod discovery via the kube API
-            - --router-selector=role=gateway
-            - --router-selector=model_id=llama-3-8b
-            - --router-mesh-port-annotation=sglang.ai/ha-port
-          readinessProbe:
-            httpGet: {path: /health, port: http}
-            initialDelaySeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gateway
-  namespace: sglang
-spec:
-  type: ClusterIP
-  selector:
-    app.kubernetes.io/name: sglang-gateway
-    model_id: llama-3-8b
-  ports:
-    - {name: http,    port: 8080,  targetPort: http}
-    - {name: metrics, port: 29000, targetPort: metrics}
-```
-
-Notes:
-
-- A regular Deployment is fine — no StatefulSet needed, no headless Service for the gateway. Pod IPs come from the kube watch result and shift across restarts; the mesh re-converges.
-- `--mesh-server-name=$(POD_NAME)` gives each replica a stable identity. Without it, each restart picks a new random `Mesh_xxxx` name → rate-limit hash-ring positions shuffle on every restart, which causes a brief rebalance burst.
-- `--router-selector` is repeatable and AND-combined, same as `--selector`. Scope it to your model so a multi-model cluster doesn't form one giant mesh.
-- The mesh port can be the same on every pod since each pod has its own IP. The annotation value is a stringified port number.
-- RBAC: only `pods get/list/watch` is required. Same Role used by worker discovery — `--router-selector` re-uses it.
-
-#### Recipe B — static `--mesh-peer-urls` for bare-metal / fixed IPs
-
-If you're not on K8s, or you have a stable IP plan (e.g. cluster-local fixed IPs assigned by your CNI):
+Set `--mesh-server-name` per pod (e.g. `$(POD_NAME)` from the downward API): a random `Mesh_xxxx` name per restart reshuffles rate-limit hash-ring positions.
 
 ```bash
 # Pod 0 (10.42.1.10)
@@ -443,7 +335,6 @@ What does **not** work:
 --mesh-peer-urls gateway-0:39527
 ```
 
-If you really want a StatefulSet + headless Service shape with `--mesh-peer-urls`, you need an `initContainer` that resolves the DNS names to pod IPs and writes them to a config file the gateway reads. That's strictly more code than just using `--router-selector`.
 
 #### What this still doesn't give you
 

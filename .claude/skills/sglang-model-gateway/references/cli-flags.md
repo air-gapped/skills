@@ -10,13 +10,17 @@ If `--help` and this document disagree, trust `--help`.
 
 ## HA / mesh sync (gateway-replica state sharing)
 
+Rust binary built from source only — the published image's Python launcher has none of these.
+
 | Flag | Default | Notes |
 |---|---|---|
 | `--enable-mesh` | `false` | Enable CRDT-based gRPC sync of worker registry + policy registry (radix tree, etc.) across gateway replicas. Eliminates the multi-replica 10-20% cache-hit penalty. |
-| `--mesh-peer-urls URL [URL ...]` | empty | Static peer list, e.g. `grpc://gateway-0:39527 grpc://gateway-1:39527`. |
+| `--mesh-peer-urls IP:PORT [...]` | empty | Literal `IP:port` only; only the first entry is used as bootstrap peer. |
 | `--mesh-port` | `39527` | Port the gateway listens on for mesh sync. Numeric port for K8s probes if you also probe gRPC here. |
-| `--router-mesh-port-annotation` | `sglang.ai/mesh-port` | Pod annotation key the gateway reads when peer-discovering through K8s. |
-| `--router-selector key=value` | empty | K8s label selector for peer gateway pods (mesh discovery). |
+| `--mesh-host` | `0.0.0.0` | Mesh listener bind address. |
+| `--mesh-server-name` | random `Mesh_xxxx` | Set per pod for a stable identity. |
+
+No `--router-selector` / `--router-mesh-port-annotation` flag exists; K8s-native peer discovery is not reachable from the CLI.
 
 `MeshSyncManager` lives in `src/server.rs:744-981`. Uses the `crdts = "7.3"` crate for eventual-consistency sync.
 
@@ -59,7 +63,6 @@ If `--help` and this document disagree, trust `--help`.
 | `--prefill-selector key=value` | empty | K8s SD for prefill. |
 | `--decode-selector key=value` | empty | K8s SD for decode. |
 | `--bootstrap-port-annotation` | `sglang.ai/bootstrap-port` | Pod annotation key. |
-| `--router-mesh-port-annotation` | `sglang.ai/ha-port` | Pod annotation key. |
 
 ## Reliability
 
@@ -224,13 +227,7 @@ sgl-model-gateway \
 python3 -m sglang_router.launch_router --worker-urls http://worker:8000 --policy cache_aware
 ```
 
-is identical to
-
-```bash
-sgl-model-gateway --worker-urls http://worker:8000 --policy cache_aware
-```
-
-The Python launcher invokes the Rust binary under the hood. The Python module name `sglang_router` was **not renamed** in the Dec 2025 refactor — only the Rust crate, directory, and Docker image were.
+is the published image's entrypoint. It runs the Rust router through Python bindings, not the `sgl-model-gateway` binary, and its flag set differs: no mesh flags, and `--policy` also accepts `bucket` and `consistent_hashing`. Trust `--help` of the entrypoint you deploy. The Python module name `sglang_router` was **not renamed** in the Dec 2025 refactor — only the Rust crate, directory, and Docker image were.
 
 ## Env vars
 
