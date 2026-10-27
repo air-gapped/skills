@@ -46,7 +46,7 @@ Promoted to supported in 26.6 (`spec.update.strategy: Auto`). The mechanism:
 
 **Major upgrades** (25.x → 26.x): generally not wire-compatible. Plan for downtime.
 
-Set `spec.update.strategy: Explicit` and bump `spec.update.revision` if you want to manually gate updates: the operator only acts when the revision changes.
+`spec.update.strategy: Explicit` does not gate updates: every CR change is applied at once. It only picks the method — `spec.update.revision` unchanged → rolling, changed → recreate — and runs no compatibility check, so a change with an unchanged revision rolls even when that is unsupported.
 
 ---
 

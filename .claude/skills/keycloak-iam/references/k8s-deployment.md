@@ -128,7 +128,7 @@ New in 26.6 (now supported). Strategies:
 |---------------------------|-----------------------------------------------------------------------------------------------------------|
 | `Recreate`                | Operator shuts down all pods, then starts the new ones. Default for non-zero-downtime upgrades.           |
 | `Auto`                    | Operator picks: rolling update if it detects a compatible image change, recreate otherwise.               |
-| `Explicit`                | You bump `spec.update.revision` to signal "I've verified this is a rolling-update-compatible change."     |
+| `Explicit`                | You decide via `spec.update.revision`: unchanged → rolling update, changed → recreate. No compatibility check runs. |
 
 `Auto` runs a small probe to detect whether the new image's protocol/serialization formats are wire-compatible with the running ones. The version passes only for the same version or a newer patch in the same major.minor (26.6.0 → 26.6.1); across minor (26.5.x → 26.6.x) and major versions it always fails, so `Auto` recreates.
 
