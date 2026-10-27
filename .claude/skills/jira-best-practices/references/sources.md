@@ -1,40 +1,22 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed; 125 of 126 URLs resolve, the rest being the already-documented bot-blocks. The DC EOL dates reproduce on atlassian.com; SKILL.md's patch figures had fallen behind sources.md's own already-corrected row.
+Freshened: 2026-10-27 — every row probed; DC patch levels, 10.3 end-of-support proximity, four dead citations and jira-cli's name-only transitions corrected.
 
 **Contents:** Execution layer · Hierarchy · Work modeling / decomposition · Lean configuration · Workflows, automation, reporting · Non-software · Platform state (2026-08 pass) · Multilingual & discovery · Dread / critique
 
 External claims in this skill, with source, tier, and what they support. Every
-Tier-A hard fact was re-verified on 2026-08-19 with **no drift**: DC 11.3.10
-(2026-08-07) latest, LTS 11.3→Dec 2027 and 10.3→Dec 2026, the DC sunset trio
-(2026-03-30 / 2028-03-30 / 2029-03-28), the 800/1,200 custom-field guardrail,
-and Automation-for-Jira free-and-native since JSW DC 9.0.
-
-**Every source cell is a full, resolvable URL** as of this pass — 126 unique
-URLs, 120 returning 200 on a single bulk sweep. This replaced the previous
-shorthand style (elided paths like `community.atlassian.com/.../Designing Jira
-Fields in 2026`, brace sets like `JRASERVER-{39215,39009}`, and Atlassian slugs
-missing their trailing numeric ID and `.html`), which could not be probed and so
-left most rows pinned to the 2026-06-07 research date across three passes. To
-re-verify the whole file now:
+source cell is a full, resolvable URL. To re-verify the whole file:
 
 ```bash
 grep -oE 'https://[^ )|+]+' references/sources.md | sed -E 's/[.,]+$//' | sort -u \
-  | xargs -P 8 -I{} curl -s -o /dev/null -L -m 25 \
-      -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36' \
-      -w '%{http_code} {}\n'
+  | xargs -P 8 -I{} curl -s -o /dev/null -L -m 25 -w '%{http_code} {}\n'
 ```
 
-**Standing exceptions — 3 rows that bot-block automated fetches** (live in a
-browser, not gone): `medium.com/@ss-tech/...`, `www.pmi.org/learning/library/...`,
-`www.smartinsights.com/guides/...`. A 403 on these is expected.
-`bigpicture.one` also rate-limits (429) under a parallel sweep.
-
-**Two references died and were replaced this pass:** `success.atlassian.com` no
-longer resolves at all — the whole domain is gone, not just the page — so the
-custom-field-governance citation now points at the equivalent `atlassian.com/blog`
-article; and a paused Vercel deployment was dropped from the Linear-vs-Jira row,
-which retains two live siblings.
+**Hosts that 403 bare curl but load in a browser** (verify there, not gone):
+`www.pmi.org`, `www.smartinsights.com`, `medium.com`, `tldrsec.com`,
+`age-of-product.com`, `www.apwide.com`, `www.scrum.org`. Read Jira issue rows
+through the public REST endpoint
+`jira.atlassian.com/rest/api/2/issue/<KEY>?fields=status,resolution,updated`.
 
 Re-verify before relying on dated facts (DC versions, EOL dates, Cloud-vs-DC
 feature splits) — these move.
