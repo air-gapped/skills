@@ -7,9 +7,9 @@ applicable in a single iteration. Do not re-propose without new evidence.
 
 - **GPT-5.6 Programmatic Tool Calling / multi-agent orchestration depth**
   (Dim 5, narrowed 2026-07-31) — the tool type (`programmatic_tool_calling`)
-  and beta status are now in spec.md, but the API reference documents only
-  the type discriminator; invocation semantics, output item shapes, and the
-  orchestration beta's params are still undocumented upstream. **Absent
+  beta status and per-tool `allowed_callers` opt-in are now in spec.md, but
+  output item shapes and the orchestration beta's params are still
+  undocumented upstream (openai-python v3.39.0, 2026-10-27). **Absent
   thing:** the upstream schema itself. Re-probe the API reference next
   freshen; expand only from official schema, not blogs.
 

@@ -13,7 +13,7 @@ Freshen mode reads and stamps `Last verified:` / `Pinned:` here.
 
 | Ref | URL | Last verified | Pinned |
 |-----|-----|---------------|--------|
-| OpenAI API changelog | https://developers.openai.com/api/docs/changelog | 2026-07-31 | — |
+| OpenAI API changelog | https://developers.openai.com/api/docs/changelog | 2026-10-27 | read through 2026-10-26 (GPT-6.1 Terra); no new Responses breaking changes or stream event types since 2026-09-15 |
 | OpenAI Responses API reference | https://developers.openai.com/api/reference/resources/responses | 2026-09-15 | path moved; old URL redirects |
 | OpenAI deprecations (Assistants shutdown 2026-08-26; reusable prompts deprecated 2026-06-03, `v1/prompts` shutdown 2026-11-30) + [prompt-object migration guide](https://developers.openai.com/api/docs/guides/prompting/migrate-from-prompt-object) | https://developers.openai.com/api/docs/deprecations | 2026-10-27 | the Assistants migration guide's samples still pass `prompt.id` |
 | OpenAI prompt-caching guide (GPT-5.6+ `prompt_cache_options.ttl` `"30m"`/`"12h"`, per-block `prompt_cache_breakpoint`; `prompt_cache_retention` for earlier models; 12h added 2026-10-20 per changelog) | https://developers.openai.com/api/docs/guides/prompt-caching | 2026-10-27 | openai-python v3.39.0 still types `ttl` as `"30m"` only and marks `prompt_cache_retention` deprecated — the guide is ahead of the SDK |

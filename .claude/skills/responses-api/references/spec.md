@@ -61,7 +61,7 @@ WebSocket transport (launched 2026-02-23): `wss://api.openai.com/v1/responses`.
 | `include` | `string[]?` | null | Extra data: `["reasoning.encrypted_content", "file_search_call.results", "web_search_call.results"]` |
 | `metadata` | `object?` | {} | Up to 16 key-value pairs |
 | `user` | `string?` | null | End-user ID |
-| `service_tier` | `string?` | null | "auto"/"default"/"flex"/"priority" |
+| `service_tier` | `string?` | null | "auto"/"default"/"flex"/"scale"/"priority"/"fast"/"ultrafast". `fast` is echoed back as `priority`; `ultrafast` is access-controlled and model-gated. The response echoes the tier actually used, which may differ from the request |
 | `background` | `boolean` | false | Run asynchronously; retained ~10 min; NOT ZDR-compatible; poll via `GET /v1/responses/{id}` |
 | `max_tool_calls` | `integer?` | null | Cap agentic loop iterations |
 | `context_management` | `object[]?` | null | Server-side compaction: `[{type: "compaction", compact_threshold: <int>}]`. Min threshold 1000. Emits `compaction` output item when triggered |
@@ -274,8 +274,10 @@ large function sets to keep context small.
 
 The model writes code that invokes registered function tools
 programmatically instead of emitting one `function_call` item per
-invocation. API reference documents only the type discriminator so far;
-multi-agent orchestration shipped in beta the same day.
+invocation. Function, MCP and code_interpreter tools opt in per tool with
+`allowed_callers: ["direct", "programmatic"]`; a proxy must pass the field
+through. Output item shapes are not yet in the schema; multi-agent
+orchestration shipped in beta the same day.
 
 ### mcp (remote or OpenAI-hosted connector)
 ```json
