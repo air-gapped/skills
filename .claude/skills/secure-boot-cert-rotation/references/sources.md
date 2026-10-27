@@ -111,7 +111,8 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   (host ISO SBAT bug, install SB-off workaround); SUSE support matrix (1.5.x EOM 2025-12-30 / EOL 2026-12-30);
   suse.com/c/uefi-secure-boot-details/ (SUSE shim chain).
 - KubeVirt source (pinned tags) — `pkg/storage/backend-storage/backend-storage.go` (`persistent-state-for`
-  PVC prefix, `HasPersistentEFI`), `pkg/util/util.go` (`PathForNVram`), `staging/.../v1/schema.go` (EFI
+  PVC prefix, `HasPersistentEFI`), `PathForNVram` (`pkg/util/util.go` from v1.8.0; `pkg/virt-controller/services/rendervolumes.go`
+  through v1.7.x — checked at v1.5.2/v1.7.0/v1.8.0/main 2026-10-27), `staging/.../v1/schema.go` (EFI
   SecureBoot "defaults true" / Persistent "defaults false"); KubeVirt docs persistent_tpm_and_uefi_state.
   harvester-ui-extension `index.js` (UI defaults secureBoot/efiPersistent = false).
 - virt-fw-vars man page (`--microsoft-kek {none,2011,2023,all}`, `--microsoft-db`).
