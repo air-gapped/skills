@@ -54,13 +54,14 @@ invested delivery paths are axoflow/axosyslog-charts and the commercial platform
 Inside the operator, treat syslog-ng mode (SyslogNGConfig + SyslogNG* CRs) as the
 supported syslog-ng path, the AxoSyslog CRD as an expert escape hatch.
 
-## Project health (verified 2026-07-22)
+## Project health (verified 2026-10-27)
 
 CNCF Sandbox since 2023-09; maintainers employed by Axoflow (commercial support
-vendor); ~6–10-week release cadence through 6.7.0 (2026-06-16); repo active daily.
+vendor); ~5–8-week release cadence through 6.9.0 (2026-09-17); commits arrive in bursts, weeks apart.
 Support precedent: previous minor supported ~3 months after a new major (5.4 until
-2025-10-06, ~12 weeks after 6.0.0). **4.x is de facto EOL** — last patches Dec 2024. Axoflow states
-logging-operator "is not being replaced" by TC.
+2025-10-06, ~12 weeks after 6.0.0). **4.x is de facto EOL** — last patches Dec 2024. Axoflow positions
+TC as extending logging-operator "to the edge": it replaces node agents (Fluent Bit, Vector,
+Promtail) where no aggregation is needed, not the operator's aggregator tier.
 
 ## When something else fits better (honest comparison)
 
