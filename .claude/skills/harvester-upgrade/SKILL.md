@@ -50,19 +50,17 @@ explicitly defers Harvester host→guest coordination here). Respect the boundar
    upstream). Intermediate **patches** within a jump *may* be skipped — land on each
    minor's latest patch. **Never hand-edit embedded RKE2** — it is locked to the Harvester version.
 
-   **Two advisories set a patch floor per minor, so "latest patch" is not just hygiene.**
-   Checked 2026-09-15; `first_patched_version` is null on both, so these are derived
-   from the affected ranges:
+   **Two advisories cover every rung below 1.8 — no 1.5/1.6/1.7 patch escapes them.**
+   Checked 2026-10-27 (`gh api repos/harvester/harvester/security-advisories`; re-run per campaign):
 
-   | Advisory | Severity | Affected | Why it matters on a ladder |
+   | Advisory | Severity | Affected → patched | Action on the ladder |
    |---|---|---|---|
-   | **CVE-2025-62877** / GHSA-6g8q-hp2j-gvwv | **CRITICAL** | `1.5.0 – 1.5.2`, `1.6.0 – 1.6.1` | The interactive installer **exposes the OS default SSH login password**. Any node built by an affected installer stays exposed after the upgrade — rotate, do not just upgrade. |
-   | **CVE-2025-71261** / GHSA-pgh9-mpwc-8jjf | HIGH | `< 1.8`, `<= 1.7.1`, `<= 1.6.1`, `<= 1.5.2` | Registration client is MITM- and DoS-able. Note the shape: a floor **per minor**, not one version. |
+   | **CVE-2025-62877** / GHSA-6g8q-hp2j-gvwv | **CRITICAL** | installer `1.5.0 – 1.5.2`, `1.6.0 – 1.6.1` → no patch on those lines | The interactive installer **exposes the OS default SSH login password**. A node built by an affected installer stays exposed after any upgrade — rotate the password on every such node, including nodes added mid-campaign. |
+   | **CVE-2025-71261** / GHSA-pgh9-mpwc-8jjf | HIGH | `< 1.8.0` → **1.8.0** (the advisory's extra `<= 1.7.1`/`<= 1.6.1`/`<= 1.5.2` entries do not make 1.7.2+ fixed — it names 1.8.0+ only) | Registration client skips TLS verification (MITM/DoS). Until on ≥ 1.8.0, let only cluster admins modify the `cluster-registration-url` setting. |
 
-   The obvious patch-skipping example — `1.5.2 → 1.6.1` — lands on a release inside
-   **both** ranges. Aim each hop at that minor's latest patch and check it against the
-   two ranges above, rather than at whatever patch was current when a runbook was
-   written. Latest stables at this check (2026-10-27): **1.8.2** (2026-08-06), **1.7.3** (2026-08-07);
+   Aim each hop at the minor's latest patch for its bug fixes, but treat the 1.5–1.7 rungs as
+   transit: advisory exposure ends only at 1.8.0. Latest stables at this check (2026-10-27):
+   **1.8.2** (2026-08-06), **1.7.3** (2026-08-07);
    **1.9.0** (2026-09-16) is GA but upstream advises against upgrading to it until 1.9.1 ships
    (`references/per-hop-runbook.md` § Hop 1.8.x → 1.9.x).
 2. **External Rancher leads every hop.** When Harvester is imported into an external Rancher, each hop is a
