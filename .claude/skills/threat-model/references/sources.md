@@ -28,7 +28,17 @@ frameworks or upstream harness change.
 - Probe: `gh api /repos/{owner}/{repo}/security-advisories` (used by the Stage-1 swarm).
 - Note: the bootstrap mode's Advisory fetcher relies on this endpoint when the
   target has a GitHub remote and `gh` is on PATH.
-- Last verified: 2026-07-21  (docs page HTTP 200; endpoint shape unchanged)
+- Global advisories: https://docs.github.com/en/rest/security-advisories/global-advisories
+  — `GET /advisories`, `affects` = "only return advisories that affect any of
+  package or package@version"; `ecosystem` enum (from the 422 error, 2026-10-27):
+  rubygems, npm, pip, maven, nuget, composer, go, rust, erlang, actions, pub,
+  other, swift. Default `type` is `reviewed`.
+- Why the fetcher queries both (2026-10-27): `pallets/jinja` repo advisories = 5;
+  global `ecosystem=pip affects=jinja2` = 10, five of them with
+  `repository_advisory_url: null` (e.g. CVE-2020-28493, CVE-2019-10906).
+  `mackron/dr_libs` repo advisories = 0 while CVE-2026-29022 and CVE-2025-14369
+  exist only as `type: unreviewed` global records with no package mapping
+  (`vulnerabilities: []`), so no GitHub query by repo or package finds them.
 
 ## defending-code reference harness (provenance)
 
