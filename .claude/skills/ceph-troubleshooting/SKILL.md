@@ -142,6 +142,13 @@ Rook `Documentation/Troubleshooting/disaster-recovery.md`.
 5. Confirm `ceph auth ls` has no `osd.<ID>` left — a leftover auth entity
    shows up later as an insecure-key HEALTH_ERR after the AES256K rotation.
 
+Failed disk on a host-based OSD, Rook 1.21+: instead of the steps above,
+`kubectl -n rook-ceph annotate deployment rook-ceph-osd-<ID> osd.rook.io/replace=yes-really-replace-osd-<ID>`
+keeps the ID and CRUSH position. Pull the disk only once the deployment carries
+`osd.rook.io/replace-ready-for-swap` (earlier, the new disk gets a new ID);
+without the discovery daemon, restart the operator after the swap. Not for
+PVC-based OSDs or `osdsPerDevice` > 1.
+
 `osd`/`osd-prepare` pods stuck in `lvs` (D state; the node then needs a hard
 reset) on a node that maps `/dev/rbd*` whose OSDs are down: LVM scans the RBD
 devices. Rook 1.20.9 / 1.21.0 filter them in raw-mode activation only;
