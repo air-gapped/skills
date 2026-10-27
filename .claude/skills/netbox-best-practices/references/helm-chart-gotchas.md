@@ -63,10 +63,17 @@ tasksDatabase:
 
 ## 3. Secrets the chart generates (and the offline-render trap)
 
-With `superuser.password`, `superuser.apiToken`, `secretKey`, and
-`apiTokenPeppers` left empty, the chart generates them and **preserves them
-across upgrades via helm `lookup`** [source: templates/_helpers.tpl — comment
-reads "Existing secret value (preserved across upgrades via lookup)"].
+With `superuser.password`, `secretKey`, and `apiTokenPeppers` left empty, the
+chart generates them and **preserves them across upgrades via helm `lookup`**
+[source: templates/_helpers.tpl — comment reads "Existing secret value
+(preserved across upgrades via lookup)"].
+
+`superuser.apiToken` is the exception: left empty it is a fresh `uuidv4` on
+every render, real upgrades included, and the worker's `checksum/secret`
+hashes that Secret — so every `helm upgrade` rolls the worker, even a no-op.
+Pin `superuser.apiToken` to any fixed UUID (4.5+ never seeds it, §4) or set
+`superuser.existingSecret`. [source: templates/secret.yaml,
+templates/worker/deployment.yaml @netbox-8.3.97]
 
 Consequences:
 
@@ -226,8 +233,9 @@ pull-once.
   rendered-template diff (offline) → `kubectl diff` (live). The template
   layer is the only one that catches chart-side default flips on keys
   never set in the values file.
-- Remember §3: secret churn in offline template diffs is expected; the same
-  keys are stable across REAL upgrades.
+- Remember §3: secret churn in offline template diffs is expected; the
+  lookup-preserved keys are stable across REAL upgrades, `api_token` only once
+  `superuser.apiToken` is pinned.
 - DB snapshot before `helm upgrade` (see §1 — migrations are one-way).
 
 ## 8. Media storage: the RWO-PVC-with-a-worker trap → use S3
