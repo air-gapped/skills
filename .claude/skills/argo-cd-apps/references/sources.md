@@ -1,6 +1,6 @@
 # Sources — Argo CD application authoring
 
-Freshened: 2026-09-22 — every row probed; all 172 URLs 200 and the four cited open issues are genuinely open, not stale-bot closes. v3.5 GA'd 2026-08-04 and v3.5.3 is latest — version-changes.md's currency note still described v3.5 as an RC, contradicting SKILL.md's own already-current figures.
+Freshened: 2026-10-27 — every row probed; eight 2026-10-07 advisories raised the security floor to v3.5.4 / v3.4.10 / v3.3.15, and v3.6 is in RC.
 
 Dated index of authoritative URLs and the local clone the skill cites. Freshen
 Mode reads this file, probes each row, and stamps `Last verified` (and
@@ -13,7 +13,7 @@ Each row has `Source`, `URL`, `What it contains`, `Last verified` (YYYY-MM-DD),
 `Pinned` (version, git ref, or commit SHA — optional). Rows the author wants
 freshen to skip get `<!-- ignore-freshen -->` at the end.
 
-## Most recent freshen pass: 2026-09-15
+## Prior freshen pass: 2026-09-15
 
 - **v3.5 GA'd**: latest stable **v3.5.3** (2026-09-14; v3.5.0 GA 2026-08-04, then v3.5.1
   2026-08-12 and v3.5.2 2026-08-27); maintenance **v3.4.9** (2026-09-14) and
@@ -83,7 +83,7 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Full Argo CD source + docs/ tree (user-guide, operator-manual, applicationset/) — primary source for every cited file path in references/. Cited paths are relative to repo root (e.g. `docs/user-guide/best_practices.md`); access via local clone or `gh api repos/argoproj/argo-cd/contents/<path>`. | 2026-08-18 | main @ 4d02fc2f5 (2026-05-05) |
+| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Full Argo CD source + docs/ tree (user-guide, operator-manual, applicationset/) — primary source for every cited file path in references/. Cited paths are relative to repo root (e.g. `docs/user-guide/best_practices.md`); access via local clone or `gh api repos/argoproj/argo-cd/contents/<path>`. | 2026-10-27 | default branch is `master` (@ 106fee9bc, 2026-10-27); claims read at tags v3.5.6 / v3.6.0-rc4 |
 
 ## Official documentation
 
@@ -96,17 +96,17 @@ stamp.
 | Best practices | https://argo-cd.readthedocs.io/en/stable/user-guide/best_practices/ | Argo's own 5-reason config-vs-source repo split, immutable-revision rule, replicas/HPA pattern | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Sync options | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/ | Every `syncPolicy.syncOptions` value | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Sync waves | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | Wave annotation, phase ordering | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
-| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | All 7 hook types, all 3 delete policies | 2026-09-15 | v3.5.3 — **URL repointed: the old `resource_hooks/` page still returns 200 but its whole body is now "This page has moved". The content merged into the sync-waves page**, which this table already cites separately. A status check alone would have called this row healthy. |
+| Resource hooks | https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/ | All 7 hook types, all 3 delete policies | 2026-10-27 | v3.5.3 — **URL repointed: the old `resource_hooks/` page still returns 200 but its whole body is now "This page has moved". The content merged into the sync-waves page**, which this table already cites separately. A status check alone would have called this row healthy. |
 | Cluster bootstrapping | https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/ | App-of-apps pattern; line 7 explicitly recommends ApplicationSets first | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | ApplicationSet generators | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Git/ | Git generator (and siblings: List, Cluster, Matrix, Merge, SCMProvider, PullRequest, ClusterDecisionResource, Plugin) | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Progressive Sync | https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Progressive-Syncs/ | RollingSync strategy, formal Beta in v3.3 | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
-| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator/ | DRY/HYDRATED source flow — **Beta, not Alpha, and only on the v3.5 line.** Promoted by PR #28229 (merged 2026-06-11); `compare <tag>...08e959d` is `behind` for v3.5.0 and v3.5.3 but `diverged` for v3.4.9 and v3.3.14, so the promotion was never backported. "Alpha as of v3.4" was wrong twice over — wrong level, and v3.4 never carried it at all. | 2026-09-15 | v3.5.3 |
+| Source Hydrator | https://argo-cd.readthedocs.io/en/stable/user-guide/source-hydrator/ | DRY/HYDRATED source flow — **Beta, not Alpha, and only on the v3.5 line.** Promoted by PR #28229 (merged 2026-06-11); `compare <tag>...08e959d` is `behind` for v3.5.0 and v3.5.3 but `diverged` for v3.4.9 and v3.3.14, so the promotion was never backported. "Alpha as of v3.4" was wrong twice over — wrong level, and v3.4 never carried it at all. | 2026-10-27 | v3.5.6 (feature-maturity.md at tag: Beta) |
 | AppProject specification | https://argo-cd.readthedocs.io/en/stable/operator-manual/project-specification/ | AppProject field-level reference | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Sync impersonation | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-sync-using-impersonation/ | `destinationServiceAccounts` — Beta in v3.4 | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Application in any namespace | https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace/ | Tenant-namespace Applications | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Feature maturity | https://argo-cd.readthedocs.io/en/stable/operator-manual/feature-maturity/ | Alpha / Beta / Stable status per feature | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
 | Upgrading 3.2 → 3.3 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.2-3.3/ | Breaking changes in v3.3 | 2026-10-27 | stable (moving alias; v3.5.6 on 2026-10-27) |
-| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-09-15 | v3.4.5 |
+| Upgrading 3.3 → 3.4 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.3-3.4/ | Breaking changes in v3.4 (now GA). Confirmed 2026-07-21 at tag v3.4.5: **does not mention impersonation** | 2026-10-27 | v3.4.5 |
 | Upgrading 3.4 → 3.5 | https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/ | Breaking changes in v3.5 (GA). Helm 4.2.x + plain-HTTP OCI, React 19 UI extensions, `EventList` gRPC type, impersonation on all server operations, SSH known_hosts from ConfigMap. Re-read at tag v3.5.6 on 2026-10-27: same sections as rc2; its Breaking heading still says Helm `4.2.0`, its "Helm Upgraded" section says `4.2.1` (the bundled version) | 2026-10-27 | v3.5.6 |
 | Upgrading 3.5 → 3.6 | https://argo-cd.readthedocs.io/en/latest/operator-manual/upgrading/3.5-3.6/ | v3.6 changes (RC). Read at tag v3.6.0-rc4 on 2026-10-27: SSA implies Server-Side Diff and Structured-Merge Diff removed; `--local-include` default adds `*.tpl` / `Chart.lock` and an explicit list replaces it; Progressive Sync refresh-and-wait; deletion health + `deletionMessage`; health events `(Caused by …)`; Promoter health; CNPG `Database` health. Bundled Helm 4.3.1 / Kustomize 5.8.3 per `hack/tool-versions.sh` at rc4. Blog RC post "Argo CD v3.6 Less Memory, Faster UI, Better Rollout Visibility" (2026-09-16) | 2026-10-27 | v3.6.0-rc4 |
 
@@ -114,7 +114,7 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo | 2026-08-18 | main @ 4d02fc2f5 |
+| argoproj/argo-cd | https://github.com/argoproj/argo-cd | Source repo (not archived; pushed 2026-10-27) | 2026-10-27 | master |
 | Releases | https://github.com/argoproj/argo-cd/releases | Canonical changelog (the in-repo `CHANGELOG.md` is stale, last entry v2.4.8 from 2022). Read 2026-10-27 via unfiltered `gh release list --limit 40`: **v3.5.6** (2026-10-20, isLatest), **v3.4.12** (2026-10-20), **v3.3.18** (2026-10-22); v3.6.0-rc1 2026-09-16, rc2 10-06, rc3 10-15, **rc4 10-22**. No 3.2/3.1 release since v3.2.12 (2026-05-13) / v3.1.16 (2026-05-05). A `v3.4.0` git tag exists (f082e49f6, 2026-05-05) with no Release object; v3.4.1's notes call itself the first 3.4 release. v3.5.6 bundles Helm 4.2.1 / Kustomize 5.8.1 (`hack/tool-versions.sh` at tag) | 2026-10-27 | v3.5.6 |
 | Security advisories | https://github.com/argoproj/argo-cd/security/advisories | CVE-2026-42880 Secret leak patched v3.3.9/v3.2.11 (GHSA-3v3m-wc6v-x4x3, 2026-05-01); CVE-2026-45737 medium SSD Secret extraction (GHSA-rg3g-4rw9-gqrp, 2026-05-13); CVE-2026-45738 high stored XSS dev→admin (GHSA-h98r-wv3h-fr38, 2026-05-13); CVE-2025-55190; CVE-2024-31990. **2026-10-07 batch (8 advisories, read 2026-10-27):** GHSA-fmxq-cgp8-87wp / CVE-2026-77459, GHSA-9v9p-x54c-58gc / CVE-2026-113708, GHSA-fw5c-w8rc-j7fx / CVE-2026-113709, GHSA-m3vr-7329-44ww / CVE-2026-113672 (all critical); GHSA-j6cw-g6p4-7hch / CVE-2026-55797 and GHSA-4439-h7jw-5cjj / CVE-2025-61560 (high); GHSA-w996-f2wq-x9c6 and GHSA-g3ff-q88g-chrj (medium, no CVE). All eight: v3 affected `<3.3.15`, `3.4.0–<3.4.10`, `3.5.0–<3.5.4`, `=3.6.0-rc1`; patched 3.3.15 / 3.4.10 / 3.5.4 / 3.6.0-rc2; v2 ranges list no patched version, and the advisory text says 2.x and 3.0–3.2 are out of support. Containment workarounds taken from each advisory's Workarounds section | 2026-10-27 | — |
 | gitops-engine | https://github.com/argoproj/argo-cd/tree/master/gitops-engine | Sync engine library, now living in the argo-cd repo under `gitops-engine/` (tags `gitops-engine/v3.6.0-rc*`); the standalone `argoproj/gitops-engine` repo is **archived** (last push 2026-05-12). `gitops-engine/pkg/sync/sync_tasks.go` (276 lines at v3.5.6) carries the canonical kind-ordering for sync waves — the path references/sync.md cites resolves in an argo-cd clone. Old gitops-engine PR links in version-changes.md still resolve on the archived repo | 2026-10-27 | v3.5.6 |
