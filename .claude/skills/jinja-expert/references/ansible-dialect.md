@@ -233,8 +233,11 @@ literal `{{ msg.role }}` for the inner Jinja to see.
 ## 7. The `when:` and conditional trap
 
 `when:` takes a Jinja *expression*, not a Jinja *template*. Writing `{{ ...
-}}` inside `when:` causes ansible-lint to warn and produces wrong behavior
-in edge cases (the wrapped value coerces to a truthy string).
+}}` inside `when:` causes ansible-lint to warn. On ansible-core ≥ 2.19 a
+conditional wholly wrapped in `{{ }}` still runs with a deprecation warning
+(`ALLOW_EMBEDDED_TEMPLATES`, default on, to be turned off), and delimiters
+*inside* an expression are an error: `that: 1 + {{ value }} == 2` →
+`Template delimiters are not supported in expressions`.
 
 ```yaml
 # WRONG — ansible-lint: no-jinja-when
@@ -261,6 +264,16 @@ Wrapping it in `{{ }}` renders the expression to a string (e.g. `"True"`)
 and then evaluates that string as a new expression — which happens to work
 for simple booleans but fails subtly for `None`, empty strings, numbers,
 and anything with quoting.
+
+**ansible-core ≥ 2.19: a conditional must produce a boolean.** A truthy
+non-bool is an error: `when: inventory_hostname` → `Conditional result was
+'localhost' of type 'str' ... Conditionals must have a boolean result`.
+Write an explicit predicate — `x | bool` for `"yes"`/`"true"` strings,
+`x | length > 0`, `x is truthy`, `x is defined`. Watch precedence:
+`a is contains "local" ~ "host"` concatenates *after* the test and yields a
+string; parenthesise. `ALLOW_BROKEN_CONDITIONALS=true` downgrades the error
+to a deprecation warning — a migration crutch only (it stops having any
+effect in 2.23).
 
 ---
 

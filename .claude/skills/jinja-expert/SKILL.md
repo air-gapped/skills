@@ -137,7 +137,9 @@ Four rules carry most of the distance:
 
 1. **`when:` takes a bare expression, not a Jinja template.** `when: "{{ foo
    }}"` is always wrong; write `when: foo`. Same for `failed_when:`,
-   `changed_when:`, `until:`.
+   `changed_when:`, `until:`. On ansible-core ≥ 2.19 the result must be a
+   real boolean — `when: some_string` errors; write `some_string | bool` or
+   `some_string | length > 0`.
 2. **`!unsafe` is all-or-nothing.** It disables templating for the whole
    value — *including lookups*. For mixed literal + templated content, use
    `{% raw %}...{% endraw %}`.
