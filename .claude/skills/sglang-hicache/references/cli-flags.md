@@ -13,8 +13,10 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 
 | Flag | Type | Default | Effect |
 |---|---|---|---|
-| `--hicache-ratio` | float | `2.0` | L2 size = `ratio × L1 size`. **Must be > 1** (host pool must exceed device pool) |
+| `--hicache-ratio` | float | unset → `2.0` (`cache` mode), `1.2` (`buffer_only`) | L2 size = `ratio × L1 size`. **Must be > 1** in `cache` mode (host pool must exceed device pool) |
 | `--hicache-size` | int | `0` | L2 size in **GB per rank**. When > 0, overrides `--hicache-ratio`. **NOT total** — `--hicache-size 30 --tp 8` allocates 240 GB total |
+| `--hicache-host-memory-fraction` | float | `0.8` | v0.5.21+. Only when neither ratio nor size is passed: shrinks the default ratio until all ranks' host pools fit this fraction of host/cgroup memory (after a 10 GiB reserve). **An explicit `--hicache-ratio` or `--hicache-size` turns auto-sizing off** |
+| `--hicache-host-memory-mode` | enum | `cache` | v0.5.19+. `buffer_only` = L2 is a staging buffer, not a cache tier; requires a storage backend, rewrites `write_back` to `write_through` (INFO log), rejected on PD decode |
 
 ## Write / IO / layout
 
@@ -22,7 +24,7 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 |---|---|---|---|
 | `--hicache-write-policy` | enum | `write_through` | `write_through`, `write_through_selective`, `write_back` |
 | `--hicache-io-backend` | enum | `kernel` | `direct`, `kernel`, `kernel_ascend` |
-| `--hicache-mem-layout` | enum | `layer_first` | `layer_first`, `page_first`, `page_first_direct`, `page_first_kv_split`, `page_head` |
+| `--hicache-mem-layout` | enum | `page_first` (`layer_first` before v0.5.14) | `layer_first`, `page_first`, `page_first_direct`, `page_first_kv_split`, `page_head` |
 
 `page_head` was added in v0.5.6 for heterogeneous TP. `page_first_kv_split` separates K and V tiles for backends that prefer split storage. `page_first_direct` is the only layout that enables zero-copy with `direct` IO.
 
@@ -31,7 +33,7 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 | Flag | Type | Default | Effect |
 |---|---|---|---|
 | `--hicache-storage-backend` | enum | `None` | `file`, `sim`, `mooncake`, `npu_memcache`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm`, `tensorcast` (v0.5.21+), `seaweedfs` (v0.5.22+). Omit to skip L3. |
-| `--hicache-storage-prefetch-policy` | enum | `best_effort` | `best_effort`, `wait_complete`, `timeout`. Production: `timeout` |
+| `--hicache-storage-prefetch-policy` | enum | `timeout` | `best_effort`, `wait_complete`, `timeout`. Production: `timeout` |
 | `--hicache-storage-backend-extra-config` | str | `None` | JSON inline OR `@/path/to/file.{json,yaml,toml}` |
 
 `extra_config` keys parsed by `HiRadixCache._parse_storage_backend_extra_config()`:
