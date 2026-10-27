@@ -245,6 +245,12 @@ Nothing in a values delta predicts it.
 the values file carried forward byte-identical. 9.11.12 → 10.2.5 is one chart
 minor too. **Budget review time from the diff, not from the version number.**
 
+**Render-only changes continue past the wall.** Under Gateway API or the NGINX
+provider, chart 10.4.0 advertises KAS as `grpcs://` (was `wss://`), and under
+NGINX renders a new KAS gRPC Ingress — only the render layers (`stock-diff`,
+`template-diff`) show them; no values diff does. Opt out with `global.appConfig.gitlab_kas.externalUrl`
+/ `global.kas.ingress.grpc.enabled: false`.
+
 ## Diffs that look like damage and are not
 
 Neither is a defect.
