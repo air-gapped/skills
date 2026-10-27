@@ -146,9 +146,11 @@ Four rules carry most of the distance:
 2. **`!unsafe` is all-or-nothing.** It disables templating for the whole
    value — *including lookups*. For mixed literal + templated content, use
    `{% raw %}...{% endraw %}`.
-3. **Recursive templating amplifies errors.** A variable whose value is
-   itself Jinja-looking renders again. An undefined reference in
-   round-two produces an error message that mentions neither round.
+3. **Nested templating amplifies errors.** A variable whose value is
+   itself Jinja-looking renders when referenced, and an undefined name
+   inside it fails at the outer use. On ansible-core ≥ 2.19 only trusted
+   strings (playbooks, roles, vars files, inventory) render — `{{ }}` in a
+   registered module result stays literal, silently.
 4. **`| default(omit)` removes a task parameter entirely.** The idiomatic
    way to make a parameter conditional without duplicating task
    definitions.

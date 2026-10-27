@@ -42,9 +42,9 @@ Ansible wraps Jinja2 with:
   `AnsibleUndefinedVariable`, not the silent-empty behavior of stock Jinja's
   default `Undefined`. `| default(x)` suppresses it. `| default(omit)`
   *removes* the parameter from the task call entirely.
-- **Recursive templating** — if a variable's value is itself a template,
-  Ansible renders it again (and again) until the result is stable or a
-  recursion cap trips. This is the single largest source of surprise.
+- **Nested templating, gated by trust** — a variable whose value is itself
+  a template renders when referenced, but only if the string came from a
+  trusted source (§5). This is the single largest source of surprise.
 - **Lazy templating** — variables aren't rendered at definition time; they're
   rendered when a task actually reads them. Change one `set_fact` earlier in
   the play and a downstream template sees the new value.
@@ -160,6 +160,22 @@ with `ansible-playbook --check --diff` first.
 Ansible re-templates variables lazily. If a variable's value contains
 Jinja-looking syntax, Ansible will try to render that too. Usually benign;
 occasionally catastrophic.
+
+**ansible-core ≥ 2.19 renders a nested template only if its string is
+trusted.** Trusted: strings from playbooks, roles, vars files and most
+built-in inventory plugins. Untrusted: module results (registered vars)
+and anything a plugin did not mark. Consequences:
+
+- `{{ }}` inside a registered result or other untrusted value is returned
+  as-is, silently. To see where that happens, run with
+  `_ANSIBLE_TEMPLAR_UNTRUSTED_TEMPLATE_BEHAVIOR=warning` (or `error`;
+  experimental).
+- A template's *output* is never rendered again: a string assembled at
+  runtime to look like `{{ name }}` stays that literal text. For indirect
+  variable access use `lookup('vars', name)`.
+- Before 2.19 every string was trusted unless wrapped as unsafe (`!unsafe`,
+  or automatically for module results), so a string built at runtime
+  could be rendered a second time.
 
 ```yaml
 user_motd: "Welcome {{ user }}! Today is {{ ansible_date_time.date }}."
