@@ -131,9 +131,9 @@ pin the SDK/tool to a version before the change.
 - Tenant-level IAM APIs (CreateRole, PutRolePolicy, PutUserPolicy) and
   STS Lite / `GetSessionToken` are deprecated in favour of RGW accounts.
 - New EC pools default to ISA-L — relevant for EC data pools.
-- Squid → Tentacle under Rook: RGW rolls before the OSDs finish, breaking
-  multipart uploads in the window (rook#18367) — see
-  rook-ceph-best-practices.
+- Squid → Tentacle under Rook before v1.20.8 / v1.19.12: RGW rolls before
+  the OSDs finish, breaking multipart uploads in the window (rook#18367) —
+  upgrade Rook first; see rook-ceph-best-practices.
 
 ## Rook object CRDs
 

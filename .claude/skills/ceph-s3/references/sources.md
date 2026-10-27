@@ -25,4 +25,4 @@ Freshened: 2026-09-23 — every row probed at creation.
 | Rook COSI | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Object-Storage-RGW/cosi.md | 2026-09-23 | Experimental. |
 | Rook notifications | https://github.com/rook/rook/blob/v1.20.7/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-notifications.md | 2026-09-23 | Kafka `mechanism`, secret refs. |
 | Rook v1.17.0 notes | https://github.com/rook/rook/releases/tag/v1.17.0 | 2026-09-23 | Undeclared CephObjectStoreUser S3 credentials purged. |
-| Rook Squid→Tentacle RGW early roll | https://github.com/rook/rook/issues/18367 | 2026-09-23 | Closed. |
+| Rook Squid→Tentacle RGW early roll | https://github.com/rook/rook/issues/18367 | 2026-10-27 | Closed by rook/rook#18369 "object: wait for the osd upgrade before reconciling" (merged 2026-09-10); in v1.20.8 and v1.19.12 release notes; v1.21.0 contains the merge commit. |
