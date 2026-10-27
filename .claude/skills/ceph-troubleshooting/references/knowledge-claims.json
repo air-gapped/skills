@@ -130,13 +130,13 @@
     },
     {
       "id": 24,
-      "question": "Which Rook issue tracks new HA mon quorums failing to form on Linux 7.0 nodes?",
-      "skill_answer": "rook#18370 (Ceph tracker 80470)"
+      "question": "A new Rook mon quorum never forms because kubelet kills healthy mons on probe timeouts. What container setting causes the ceph CLI to hang?",
+      "skill_answer": "An unbounded open-files (nofile) limit; cap it, e.g. Docker default-ulimits 1048576"
     },
     {
       "id": 25,
-      "question": "Which sysctl values are suggested for kube-proxy IPVS mode when a new Rook mon quorum won't form on Linux 7.0?",
-      "skill_answer": "nf_conntrack_tcp_be_liberal=1 and net.ipv4.vs.conn_reuse_mode=0"
+      "question": "Which command inside a mon container checks for the open-files limit that hangs the ceph CLI?",
+      "skill_answer": "ulimit -n"
     },
     {
       "id": 26,

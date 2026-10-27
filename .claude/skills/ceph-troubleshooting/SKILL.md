@@ -119,11 +119,11 @@ least request ÷ 0.8 in the CephCluster; verify with
    quorum: on 20.2.4 an operator did that during the AES256K rollout and OSDs
    crashed in `PGLog::merge_log` with 278 unfound objects (ceph-users
    2026-09-11).
-3. A **new** HA mon quorum that never forms on Linux 7.0 nodes (existing
-   quorums unaffected): rook#18370 / tracker 80470. With kube-proxy in IPVS
-   mode, check `net.netfilter.nf_conntrack_tcp_be_liberal=1` and
-   `net.ipv4.vs.conn_reuse_mode=0`; fixing those alone did not resolve every
-   report.
+3. A **new** mon quorum that never forms because kubelet kills healthy mons on
+   probe timeouts, and operator `ceph` calls hang: run `ulimit -n` in a mon
+   container. An unbounded open-files limit (e.g. Docker 27 on Ubuntu 26.04,
+   2147483584) makes every `ceph` CLI start hang for minutes; cap the
+   container runtime's nofile (Docker `default-ulimits`, 1048576).
 
 Other disaster procedures (CRDs stuck in Deleting, adopting a cluster into a
 new Kubernetes cluster, rebuilding after the Rook namespace was deleted):
