@@ -46,7 +46,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 ## Controlled flow / upgrade controller
 - Harvester source `pkg/controller/master/upgrade/{upgrade_controller,secret_controller,job_controller,
   node_controller,common}.go` (node order delegated to RKE2 with concurrency=1; one-at-a-time interlock;
-  per-node state machine; pause-map annotation; `upgrade_controller.go:741-748` (was cited as `601-608`, wrong even at the grounding commit — find by symbol) = drain `Enabled/Force/
+  per-node state machine; pause-map annotation; `upgrade_controller.go` `*DrainOptions` block (`rke2DrainNodes = true`; lines 619-624 @ v1.5.2, 580-585 @ v1.6.1, 742-749 @ v1.8.2/v1.9.0 — find by symbol) = drain `Enabled/Force/
   IgnoreDaemonSets/DeleteEmptyDirData`, **no `disableEviction` → eviction-based, PDBs honored**;
   `job_controller.go sendRestoreVMJob`+`util.IsRestoreVM` = `restoreVM` is a post-host restart job, **not** a
   gate), `pkg/util/virtualmachineinstance/virtualmachineinstance.go GetAllNonLiveMigratableVMINames` (NodeSelector

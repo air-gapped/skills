@@ -80,7 +80,7 @@ job logs handy.
 
 ## 6. Native best-effort gate via PDB + VMI readinessProbe (1.5/1.6)
 On 1.5/1.6 there is no pause feature, but the host drain **does** use the Kubernetes **Eviction API and honors
-PodDisruptionBudgets** (verified: `upgrade_controller.go:601-608` sets drain `Enabled=true`, `Force=true` —
+PodDisruptionBudgets** (verified: the `*DrainOptions` block in `upgrade_controller.go` sets `Enabled`/`Force` to `rke2DrainNodes = true` —
 which only deletes *bare* pods — and does **not** set `disableEviction`; it also waits on KubeVirt evacuation
 PDBs). So a PDB is a real native lever. Make it gate on etcd health:
 
