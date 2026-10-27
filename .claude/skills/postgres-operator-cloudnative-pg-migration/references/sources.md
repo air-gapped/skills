@@ -52,7 +52,7 @@ authoritative.
 | CNPG #10807 / PR #10627 | https://github.com/cloudnative-pg/cloudnative-pg/issues/10807 | primary lease design intent (gate not fence) | 2026-07-24 | merged 1.30 |
 | CNPG #8902 | https://github.com/cloudnative-pg/cloudnative-pg/issues/8902 | backup-metrics rename regression after plugin migration | 2026-07-29 | closed 2025-10-27 — NOT fixed: maintainer confirms rename is intentional, punted to plugin#473 (docs, also closed). The metrics warning in backup-chain.md stays valid |
 | plugin #652 | https://github.com/cloudnative-pg/plugin-barman-cloud/issues/652 | first backup unrestorable on idle DBs | 2026-07-29 | open |
-| CNPG #3788 | https://github.com/cloudnative-pg/cloudnative-pg/issues/3788 | managed.roles no password generation | 2026-07-29 | open |
+| CNPG #3788 / PR #11337 | https://github.com/cloudnative-pg/cloudnative-pg/pull/11337 | no password generation for extra roles through 1.30; `DatabaseRole` `password` stanza (generate, optional rotation) on main for 1.31; field lives in `DatabaseRoleSpec` only, so `managed.roles` stays without it | 2026-10-27 | #3788 closed 2026-10-23 by PR #11337 (merged to main, "do not backport"; not in v1.30.1) |
 | CNPG disc #3723 | https://github.com/cloudnative-pg/cloudnative-pg/discussions/3723 | import fails on Spilo extension deps | 2026-07-24 | — |
 | HA bugs #10430 #10287 #11202 #10547 #11110 | github.com/cloudnative-pg/cloudnative-pg/issues/… | open HA-adjacent bugs listed in pitfalls | 2026-07-29 | all open |
 | PR #11148 | https://github.com/cloudnative-pg/cloudnative-pg/pull/11148 | multi-instance-no-sync warning is 1.31 material ("do not backport") | 2026-07-24 | merged, unreleased |

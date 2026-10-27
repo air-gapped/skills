@@ -117,9 +117,10 @@ field map in `references/manifest-map.md` (every acid.zalan.do field →
 CNPG equivalent or explicit gap, with minimum CNPG versions). The gaps
 that most often force design decisions: `preparedDatabases` role trios
 (reconstruct via `managed.roles` + `inRoles` + `postInitApplicationSQLRefs`),
-password auto-generation for extra users (CNPG requires pre-created
-basic-auth Secrets — #3788), arbitrary `sidecars`/`initContainers` (CNPG-I
-plugins only), `enableLogicalBackup` pg_dump cron (hand-build), and
+password auto-generation for extra users (through 1.30 CNPG requires
+pre-created basic-auth Secrets; 1.31 adds it for `DatabaseRole` only),
+arbitrary `sidecars`/`initContainers` (CNPG-I plugins only),
+`enableLogicalBackup` pg_dump cron (hand-build), and
 `maintenanceWindows` (`nodeMaintenanceWindow` is a false friend — it
 controls PVC reuse, not upgrade timing). Strip CNPG's ~60 operator-owned
 parameters from any copied `postgresql.parameters` map.
