@@ -49,12 +49,12 @@ A `RedisClusterCache` is built iff `startup_nodes` is present (config `cache_par
 - **Version probe fails**: `redis_client.info()` raises on a cluster client (per-node), swallowed (`redis_cache.py:249`) → `redis_version="Unknown"` → `DEFAULT_REDIS_MAJOR_VERSION=7` assumed → on Redis ≤6 clusters, `async_lpop(count=…)` uses the native `LPOP key count` form that doesn't exist there. (The parse function's docstring `redis_cache.py:373` name-checks the float `7.0` that **AWS ElastiCache Valkey** returns — Valkey has already bitten this code once, fixed via #16207.)
 - `REDIS_CLUSTER_HEALTH_CHECK_INTERVAL` is a hardcoded 25 (`constants.py:347-350`, not env-read); cluster connections get `health_check_interval=25` + `socket_keepalive=True` forced (`_redis.py:603-604`).
 
-### Cluster issue catalog (state at 2026-07-30)
+### Cluster issue catalog (states re-checked 2026-10-27; stale-closed = no fix, treat as open)
 
-- **#25447 OPEN "Critical"** — response/tool-call cross-talk between users on multi-replica + cluster (Claude Code workloads); independently reproduced on plain single Redis. Workaround: `cache_params.supported_call_types: []` (disables response caching, keeps coordination). Possibly related #35023 (cross-request CJK stream contamination, closed 07-29).
-- #30065 OPEN — CROSSSLOT on Azure Redis Enterprise (hash-tag grouping only applied for OSS cluster protocol).
-- #28379 OPEN — GCP IAM auth broken with cluster (`redis_connect_func` ignored by cluster bootstrap).
-- #31206 OPEN — `REDIS_CLUSTER_NODES` breaks proxy shutdown; #27982 OPEN — usage UI/request logs break with Redis cache enabled.
+- **#25447 stale-closed 08-13, unfixed, "Critical"** — response/tool-call cross-talk between users on multi-replica + cluster (Claude Code workloads); independently reproduced on plain single Redis. Workaround: `cache_params.supported_call_types: []` (disables response caching, keeps coordination). Possibly related #35023 (cross-request CJK stream contamination, closed 07-29).
+- #30065 stale-closed — CROSSSLOT on Azure Redis Enterprise (hash-tag grouping only applied for OSS cluster protocol).
+- #28379 stale-closed — GCP IAM auth broken with cluster (`redis_connect_func` ignored by cluster bootstrap).
+- #31206 stale-closed — `REDIS_CLUSTER_NODES` breaks proxy shutdown; #27982 stale-closed — usage UI/request logs break with Redis cache enabled.
 - Closed lineage (fix versions matter on old images): #25049 EVALSHA slot fallback (2026-07-16), #27919 cluster drops socket-timeout kwargs, #22748 `REDIS_CLUSTER_NODES` ignored in router path, #8878 MOVED errors, #15066 multi-primary rate limiting.
 
 ## Valkey specifics

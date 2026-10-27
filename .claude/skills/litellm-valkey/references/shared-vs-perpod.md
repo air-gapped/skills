@@ -13,7 +13,7 @@ Which enforcement is actually fleet-wide, how stale each shared view can be, and
 | Router cooldowns | Yes — DualCache | Reads throttled to 10s (below); **writes are sync/blocking** on the async path (`cooldown_cache.py:89-93` ← `router.py:7097`, `:7356`); sync-write `str()` serialization can make entries unreadable (see `config-reference.md` §sync-async) |
 | usage-based-routing-v2 tpm/rpm | Eventually | Local increment immediate; Redis flush every `DEFAULT_REDIS_SYNC_INTERVAL=1`s (`base_routing_strategy.py:88-101`); reads up to 10s stale → N pods can overshoot by ~N×1s of traffic |
 | Provider/tag budget routing | Eventually | Same 1s queue; queue **dropped** on Redis error (`budget_limiter.py:543-545`) |
-| Deployment-level TPM | **No** (open #27736) | RPM batch-syncs to Redis (#9357); TPM never did → effective ceiling `tpm × N_pods` |
+| Deployment-level TPM | **No** (#27736, stale-closed unfixed) | RPM batch-syncs to Redis (#9357); TPM never did → effective ceiling `tpm × N_pods` |
 | Virtual-key auth cache | **No** unless `litellm_settings.enable_redis_auth_cache: true` (`caching.md:26-55`) | 60s per-pod TTL (`proxy_server.py:1396-1397`); key revocation/team deletion lags per pod |
 | Spend → DB buffer | Yes — RPUSH/LPOP lists | **At-most-once**: leader LPOPs then commits; "Data already popped from Redis may be lost" (`db_spend_update_writer.py:899`, `:1067`); drain capped at `MAX_REDIS_BUFFER_DEQUEUE_COUNT=100`/cycle → sustained overproduction grows the list unboundedly |
 | Cron jobs (budget reset, key rotation, session cleanup, prometheus budget metrics, CloudZero/Vantage/FOCUS export) | Yes — `PodLockManager` (SET NX EX + Lua compare-and-delete, `pod_lock_manager.py:153-186`) | Lock TTL `DEFAULT_CRON_JOB_LOCK_TTL_SECONDS=60`; call sites guard on `pod_lock_manager.redis_cache` — **no Redis = every pod runs the job unlocked**, not "job never runs" |
@@ -32,12 +32,12 @@ Which enforcement is actually fleet-wide, how stale each shared view can be, and
 
 - **Every DualCache's local tier is `InMemoryCache(max_size_in_memory=200, default_ttl=600)`** (`in_memory_cache.py:29-43`) — 200 entries, not configurable. >200 hot keys (keys × descriptors across tenants) thrash the local tier; correctness survives while Redis is healthy because Redis is authoritative, but the *fallback* paths and the local parallel-slot registry silently lose state under pressure.
 - **TTL is not refreshed on rewrite** (`allow_ttl_override`, `in_memory_cache.py:143-153`): a counter keeps its original expiry regardless of updates — bounds, but does not eliminate, the local over-reject window after the shared window rolls.
-- **`DualCache.async_delete_cache` clears this pod + Redis only** (`dual_cache.py:478-485`); the only cross-pod invalidation is pub/sub for config sync (v1.96.0+) and the virtual-key auth cache (`litellm_proxy.auth_cache_invalidation`, v1.97.0+); everything else waits out its TTL. Deleted models ghost in other workers (open #27852); customer mutations don't invalidate Redis end-user counters (open #31838/#31839).
+- **`DualCache.async_delete_cache` clears this pod + Redis only** (`dual_cache.py:478-485`); the only cross-pod invalidation is pub/sub for config sync (v1.96.0+) and the virtual-key auth cache (`litellm_proxy.auth_cache_invalidation`, v1.97.0+); everything else waits out its TTL. Deleted models ghost in other workers (#27852, stale-closed unfixed); customer mutations don't invalidate Redis end-user counters (open #31838/#31839).
 
 ## Multi-instance correctness checklist
 
 1. `GET /coordination_redis/settings` → `source` non-null on every pod.
 2. `enable_redis_auth_cache: true` if key revocation must propagate in less than 60s/pod.
 3. `fail_closed_budget_enforcement: true` if budget overruns cost real money.
-4. Accept that deployment-level TPM (#27736) and a few budget scopes (`model_max_budget` per-pod reads, #33325/#33330) are per-pod on current versions — size limits with `× N_pods` headroom in mind or enforce at key/team level, which is shared.
+4. Accept that deployment-level TPM (#27736) and soft budgets (#33330) are per-pod — `model_max_budget` reads are shared only from v1.101.0 (#33325) — size limits with `× N_pods` headroom in mind or enforce at key/team level, which is shared.
 5. End-to-end 429 canary after every failover (see `silent-degradation.md`).

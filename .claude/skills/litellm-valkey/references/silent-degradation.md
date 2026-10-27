@@ -20,11 +20,11 @@ Line numbers @ `4d543245` (v1.95.0-dev, 2026-07-29).
 Two structural amplifiers:
 
 1. **The shared circuit breaker.** `RedisCircuitBreaker` (`redis_cache.py:99-190`): after `REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD=5` consecutive failures it raises *without a network call* for `REDIS_CIRCUIT_BREAKER_RECOVERY_TIMEOUT=60`s, and that raise is caught by every fallback above. When the coordination client is the borrowed response-cache client (the common pre-v1.93 topology and the default whenever `cache: true` supplies the client), **five failing cache writes fast-fail rate limiting and spend tracking for a minute** — cache health is coupled to enforcement health. Knobs: `REDIS_CIRCUIT_BREAKER_{ENABLED,FAILURE_THRESHOLD,RECOVERY_TIMEOUT}`. A dedicated `coordination_redis` block decouples the clients (v1.93.0+).
-2. **Swallowed errors starve the breaker where it would help.** Open #34299: `RedisCache.async_set_cache` swallows exceptions itself, so its failures never count toward the breaker — the breaker trips on read paths while write paths degrade invisibly.
+2. **Swallowed errors starve the breaker where it would help.** #34299 (fixed by PR #35273, merged 2026-07-30; older images only): `RedisCache.async_set_cache` swallows exceptions itself, so its failures never count toward the breaker — the breaker trips on read paths while write paths degrade invisibly.
 
 ## Environment-shaped triggers
 
-- **SCRIPT-blocking Redis proxies** (Codis, Twemproxy, some managed proxies): the v3 limiter is Lua/EVALSHA-based; blocked scripts → every check takes the `:775-782` fallback → fleet limit becomes `limit × pods`. Open #32232 (fix PR #32230 pending at sweep time).
+- **SCRIPT-blocking Redis proxies** (Codis, Twemproxy, some managed proxies): the v3 limiter is Lua/EVALSHA-based; blocked scripts → every check takes the `:775-782` fallback → fleet limit becomes `limit × pods`. #32232 was stale-closed unfixed; fix PR #32230 never merged.
 - **Redis restarts / failovers**: EVALSHA `NOSCRIPT` after script-cache flush was mishandled on cluster until #25049 (closed 2026-07-16).
 - **redis-py 5.3.1 pin regression** (open #34614, v1.93.0): `TypeError: ... unexpected keyword argument 'ssl_check_hostname'` on client construction kills cache *and* budget counters at startup; reproduces against Valkey.
 - **Clean-miss fallback**: a Redis read that returns nothing falls back to stale per-pod spend → end-user budget bypass (open #34238).

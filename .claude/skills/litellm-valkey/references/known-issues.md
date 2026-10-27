@@ -1,6 +1,6 @@
 # Known-issue catalog — Redis/Valkey-relevant, BerriAI/litellm
 
-Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast (~1,566 open issues; a stale bot closes real bugs — "closed" ≠ "fixed" without a linked PR). Several threads carry LLM-generated spam comments (notably user IgorGanapolsky) — do not mistake those for maintainer acknowledgment. Maintainers acknowledge the area: #30484 "LiteLLM Stability Sprint Roadmap" (OPEN, 2026-06-15) lists "Spend Tracking and Budgets" and "P0: Virtual key spend limits are not being enforced".
+Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast (~1,566 open issues; a stale bot closes real bugs — "closed" ≠ "fixed" without a linked PR). **stale-closed** = closed NOT_PLANNED by the stale bot with no fix: treat as open. States re-checked 2026-10-27. Several threads carry LLM-generated spam comments (notably user IgorGanapolsky) — do not mistake those for maintainer acknowledgment. Maintainers acknowledge the area: #30484 "LiteLLM Stability Sprint Roadmap" (OPEN, 2026-06-15) lists "Spend Tracking and Budgets" and "P0: Virtual key spend limits are not being enforced".
 
 ## Rate limiting (v3 parallel_request_limiter) — multi-instance accuracy
 
@@ -8,13 +8,13 @@ Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast
 |---|---|---|
 | #34534 | OPEN (07-24) | Every MCP tool call permanently leaks a `max_parallel_requests` slot; key wedges into 100% 429s; only restart (or 3600s TTL) clears |
 | #34140 | OPEN (07-21) | v3 double-counts team per-model descriptors → effective RPM/TPM is **half** configured; confirmed on main |
-| #27736 | OPEN (05-12) | Deployment-level TPM per-pod (RPM batch-syncs since #9357, TPM doesn't) → ceiling `tpm × N` |
-| #24677 | OPEN (03→07) | TPM fires ~30% below configured, 2–5 min cooldown; recurrence of "fixed" #18953 |
-| #32232 | OPEN (07-06) | SCRIPT-blocking proxies (Codis/Twemproxy) → silent per-pod fallback; fix PR #32230 pending |
-| #27748 | OPEN | `x-ratelimit-*` headers dropped on streaming responses |
-| #27900 | OPEN | `global_max_parallel_requests` not enforced |
-| #28991 / #35197 | OPEN | Internal `_litellm_*` reservation fields leak to upstream providers (chat + /v1/responses); recurring (#30544, #28146 closed earlier) |
-| #34728 / #32865 | OPEN | /v1/responses token accounting: reserves 1 token / massively over-estimates base64 images |
+| #27736 | stale-closed 08-19 | Deployment-level TPM per-pod (RPM batch-syncs since #9357, TPM doesn't) → ceiling `tpm × N` |
+| #24677 | FIXED v1.103.0 (PR #41838) | TPM fires ~30% below configured, 2–5 min cooldown; recurrence of "fixed" #18953 |
+| #32232 | stale-closed 10-12 | SCRIPT-blocking proxies (Codis/Twemproxy) → silent per-pod fallback; fix PR #32230 never merged |
+| #27748 | stale-closed 08-19 | `x-ratelimit-*` headers dropped on streaming responses |
+| #27900 | stale-closed 08-21 | `global_max_parallel_requests` not enforced |
+| #28991 / #35197 | #28991 stale-closed; #35197 FIXED v1.96.0 (PR #35207) | Internal `_litellm_*` reservation fields leak to upstream providers (chat + /v1/responses); recurring (#30544, #28146 closed earlier) |
+| #34728 / #32865 | #34728 OPEN; #32865 stale-closed | /v1/responses token accounting: reserves 1 token / massively over-estimates base64 images |
 | #27738 | closed 06-10 | Embedding/TextCompletion/Responses never counted toward TPM — fix version matters |
 | #14820 | closed | v3 requests failed outright when Redis down (now: silent fallback instead) |
 
@@ -22,15 +22,15 @@ Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast
 
 | Issue | State | Impact |
 |---|---|---|
-| #30460 | OPEN (06-15) | Redis spend counters inflate over time (multi-pod + ElastiCache timeouts; Redis=50 vs DB=14) → false BudgetExceededError; flush fixes for hours |
+| #30460 | stale-closed 09-21 | Redis spend counters inflate over time (multi-pod + ElastiCache timeouts; Redis=50 vs DB=14) → false BudgetExceededError; flush fixes for hours |
 | #26233 | OPEN (04-22) | Any key in `cache_params` suppresses `REDIS_*` env for the usage cache → silent in-memory spend tracking |
 | #34238 | OPEN (07-23) | End-user budget bypass via stale per-pod fallback after Redis clean miss |
 | #26239 | OPEN (04-22) | Team-key spend also increments personal user spend (maintainer: intentional, default changed ~1.94) |
 | #26672 | OPEN | Key/user max_budget not enforced on fresh v1.82.3 deploys (regression from v1.81.0) |
 | #27735 | OPEN | BudgetExceededError on stale spend while `/key/info` shows under-budget |
-| #33321/33323/33325/33330 | OPEN (07-15) | Family: admission at exact limit; `max_budget_limiter` fails open on lookup errors; `model_max_budget` reads pod-local spend; soft budgets use stale spend |
-| #32614, #34732, #34733 | OPEN | Races: budget sync overwrites memory with stale Redis; concurrent window resets bypass caps |
-| #33872 | OPEN (07-18) | Redis spend buffer loses dequeued transactions on DB commit failure (silent loss) |
+| #33321/33323/33325/33330 | #33321, #33330 OPEN; #33323 closed 09-27; #33325 FIXED v1.101.0 | Family: team/end-user/tag budgets admit at exact limit (per-model now rejects); spend-lookup errors reject only under `fail_closed_budget_enforcement` (limiter hook removed); `model_max_budget` read pod-local spend (PRs #37736, #39375); soft budgets use stale spend |
+| #32614, #34732, #34733 | #32614 FIXED v1.104.0 (PR #43125); others OPEN | Races: budget sync overwrites memory with stale Redis; concurrent window resets bypass caps |
+| #33872 | FIXED v1.98.0 (PR #33881) | Redis spend buffer loses dequeued transactions on DB commit failure (silent loss) |
 | #33923 | closed 07-23 | `fail_closed_budget_enforcement` didn't reject failed atomic reservations — flag is only trustworthy after this fix |
 
 ## Connections / TLS / config parsing
@@ -45,7 +45,7 @@ Issue sweep 2026-07-30. States are as of that date; LiteLLM's tracker moves fast
 
 ## Caching correctness (affects coordination only when client is shared)
 
-#31610 OPEN semantic cache broken; #28778 OPEN tool-return content lost with semantic cache; #32318 OPEN cache debug logs never emitted; #29955 OPEN no per-team cache scoping (cross-tenant reuse); #32068 OPEN reasoning_content lost on streaming cache hit; #27852 OPEN deleted models ghost in other workers (no cross-pod invalidation); #34681 OPEN DualCache evicts fresh Redis batch-throttle entries. Closed with fix versions: #29414 cache key embedded full payload (huge keys/timeouts), #25962 semantic-cache init failure crashed proxy (now degrades, 07-25), #18641 caching persisted despite `cache_responses: false`.
+#31610 OPEN semantic cache broken; #28778 stale-closed tool-return content lost with semantic cache; #32318 stale-closed cache debug logs never emitted; #29955 stale-closed no per-team cache scoping (cross-tenant reuse); #32068 stale-closed reasoning_content lost on streaming cache hit; #27852 stale-closed deleted models ghost in other workers (no cross-pod invalidation); #34681 OPEN DualCache evicts fresh Redis batch-throttle entries. Closed with fix versions: #29414 cache key embedded full payload (huge keys/timeouts), #25962 semantic-cache init failure crashed proxy (now degrades, 07-25), #18641 caching persisted despite `cache_responses: false`.
 
 ## Cluster / Sentinel
 
