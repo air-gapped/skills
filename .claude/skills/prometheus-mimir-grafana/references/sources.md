@@ -40,7 +40,7 @@ Per-URL index of upstream documentation this skill sources from. Freshen mode st
 | 30 | Grafana Alloy — `mimir.rules.kubernetes` component | https://grafana.com/docs/alloy/latest/reference/components/mimir/mimir.rules.kubernetes/ | 2026-09-15 | latest |
 | 31 | Grafana — What's new in v13.0 (`/api` → `/apis` deprecation) | https://grafana.com/docs/grafana/latest/whatsnew/whats-new-in-v13-0/ | 2026-09-15 | v13 |
 | 32 | Prometheus — Remote-Write 2.0 spec (EXPERIMENTAL) | https://prometheus.io/docs/specs/prw/remote_write_spec_2_0/ | 2026-09-15 | 2.0-experimental |
-| 33 | Grafana Mimir 3.0 release notes | https://github.com/grafana/mimir/releases/tag/mimir-3.0.0 | 2026-09-15 | 3.0 |
+| 33 | Grafana Mimir 3.0 release notes (3.0-specific citation; latest is mimir-3.2.3, 2026-10-22, with mimir-3.1.8 patched the same day) | https://github.com/grafana/mimir/releases/tag/mimir-3.0.0 | 2026-10-27 | 3.0 |
 | 34 | Prometheus — feature flags (`promql-duration-expr` no longer listed: a no-op since 3.14.0, #19033; Mimir enables duration expressions unconditionally since 2.17.0, #11344. `native-histograms` is a no-op since 3.9.0, #17528 — native histograms stable since 3.8.0 but scraped only with `scrape_native_histograms`, default `false` in configuration.md) | https://prometheus.io/docs/prometheus/latest/feature_flags/ | 2026-10-27 | latest |
 | 35 | Grafana — Dashboard JSON model (Classic / V1 / V2 schemas) | https://grafana.com/docs/grafana/latest/visualizations/dashboards/build-dashboards/view-dashboard-json-model/ | 2026-10-04 | latest |
 | 36 | mcp-grafana v2.0.0 release (tool renames, SSE header change) | https://github.com/grafana/mcp-grafana/releases/tag/v2.0.0 | 2026-10-04 | v2.0.0 |
