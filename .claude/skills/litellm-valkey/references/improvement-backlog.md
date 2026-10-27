@@ -4,7 +4,7 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 
 ## Open
 
-- **Run `scripts/litellm-redis-preflight.sh` against a real LiteLLM ≥v1.93.0 proxy** — Dim 7. Now execution-tested against a faithful mock server (happy path exit 0, `source: null` exit 2, response shapes mirrored from `coordination_redis_endpoints.py:269-283`), but never against a live proxy. Requires a running deployment with an admin key — author environment.
+(none)
 
 ## Decided — do not re-propose
 

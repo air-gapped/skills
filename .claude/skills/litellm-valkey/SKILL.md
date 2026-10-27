@@ -108,7 +108,7 @@ Helm chart wiring (`redis.sentinel.enabled` renders the coordination block from 
 
 ### Scripts
 
-- **`${CLAUDE_SKILL_DIR}/scripts/litellm-redis-preflight.sh <base-url> <admin-key>`** — asks the proxy which coordination source won (`/coordination_redis/settings`), pings it (`/settings/test`), pings the response cache (`/cache/ping`), and prints the per-pod-enforcement warning if no source is active. Execution-tested against a mock proxy (source-present → exit 0, `source: null` → exit 2).
+- **`${CLAUDE_SKILL_DIR}/scripts/litellm-redis-preflight.sh <base-url> <admin-key>`** — asks the proxy which coordination source won (`/coordination_redis/settings`), pings it (`/settings/test`), pings the response cache (`/cache/ping`), and prints the per-pod-enforcement warning if no source is active. Exit 0 coordinating (`source=environment`: ping untestable — confirm the boot log), 2 per-pod, 3 ping failed or unhealthy.
 
 ## Non-negotiables before trusting multi-pod enforcement
 

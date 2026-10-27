@@ -4,12 +4,13 @@
 # Usage: litellm-redis-preflight.sh <base-url> <admin-key>
 #   e.g. litellm-redis-preflight.sh http://localhost:4000 sk-master-...
 #
-# Checks (admin key required; endpoints are undocumented but stable since v1.93.0):
+# Checks (admin key required; endpoints stable since v1.93.0):
 #   1. GET  /coordination_redis/settings       -> which of the 4 sources won (null = PER-POD MODE)
 #   2. POST /coordination_redis/settings/test  -> live ping through the real client-build path
 #   3. GET  /cache/ping                        -> response cache health (independent of coordination)
 #
-# Exit codes: 0 = coordinating and healthy, 1 = usage error, 2 = per-pod mode, 3 = unhealthy.
+# Exit codes: 0 = coordinating and healthy (source=environment: ping untestable, check boot logs),
+#             1 = usage error, 2 = per-pod mode, 3 = unhealthy or ping failed.
 
 set -euo pipefail
 
@@ -75,8 +76,14 @@ if [ "$STATUS" = "200" ]; then
   printf '%s' "$BODY" | jq .
   health="$(printf '%s' "$BODY" | jq -r '.status // empty')"
   [ "$health" = "healthy" ] || { echo "   *** coordination Redis UNHEALTHY ***"; exit 3; }
+  ping="ping healthy"
+elif [ "$source_val" = "environment" ] && [ "$STATUS" = "400" ]; then
+  echo "   HTTP 400 (expected for source=environment): $(printf '%s' "$BODY" | head -c 300)"
+  ping="ping NOT tested — confirm via the pod boot logs above"
 else
   echo "   HTTP ${STATUS}: $(printf '%s' "$BODY" | head -c 300)"
+  echo "   *** coordination ping FAILED — treat as per-pod until it returns 200 healthy ***"
+  exit 3
 fi
 
 echo
@@ -89,6 +96,6 @@ else
 fi
 
 echo
-echo "Preflight passed: coordination source='${source_val}', ping healthy."
+echo "Preflight passed: coordination source='${source_val}', ${ping}."
 echo "Remember: this proves wiring, not enforcement. Run the 429 canary (drive one key past its"
 echo "RPM limit across ALL pods; onset must be ~1x the limit, not ~Nx) after failovers/upgrades."
