@@ -258,6 +258,7 @@ Current Claude Code facts that affect skill authoring and runs:
 | v2.1.257 | Fable 5.1 (`claude-fable-5-1`) is the default Fable: 1M context, $10/$50 per Mtok, **$0.25/Mtok cache reads**, default effort `high`, all five effort levels; Opus 5 is the default for most workloads. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` applies one model to **every** subagent, ignoring agent-definition and per-spawn overrides (see `blind-validation.md` §Model selection). |
 | v2.1.269 | `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` (1–256) raises the Workflow tool's per-run concurrent-agent limit; the 20-subagent cap is unchanged. |
 | v2.1.271 | Medium dynamic-workflow size guideline is 10 agents (`workflowSizeGuideline`); Pro plans default to **small**. |
+| v2.1.283 | `/doctor prompt-audit [path]` audits CLAUDE.md, skills, agents and commands — or the one path given — for instructions written for older models, missing files or commands, and contradictions; report only, edits on request. Use it on a skill directory instead of the v2.1.221 `claude-api` form. |
 
 ### Key Settings
 

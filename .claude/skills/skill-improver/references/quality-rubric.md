@@ -329,7 +329,7 @@ Compensation-language probe (kept outside the table — a `\|` pasted from a tab
 rg -in 'claude (tends to|sometimes|often)|always remind|model (frequently|tends)|compensate for' SKILL.md references/
 ```
 
-Also run the `prompt-audit` subcommand of the bundled `claude-api` skill (Claude Code v2.1.221+); it audits prompts and tool descriptions for patterns written for older models and supplies hypotheses for this cap.
+Also run `/doctor prompt-audit <skill-dir>` (Claude Code v2.1.283+): it audits that one skill for instructions written for older models, references to files or commands that do not exist, and contradicting files, and reports proposed edits without applying them — hypotheses for this cap.
 
 ### Procedural steps — advisory signal, NO cap
 
