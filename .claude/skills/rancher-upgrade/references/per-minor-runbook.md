@@ -161,7 +161,8 @@ is the **etcd-snapshot-then-CAPI-v1beta2 migration at 2.14**; stop and confirm t
    - → 2.13: back up the OIDC AuthConfig (#53995); air-gap — pre-stage CAPI controller images (#52816).
    - → 2.14: re-enable Turtles if it was disabled (else v2prov breaks); target **2.14.1+** if Google
      OAuth or Fleet drift correction is in use; set Ingress timeout annotations explicitly (#53272);
-     set `features.use-caapf.enabled: true` first if CAAPF was in use.
+     set `features.use-caapf.enabled: true` first if CAAPF was in use; move CAPRKE2 `v1alpha1`
+     manifests to `v1beta1` (`capi-turtles-fleet.md`).
 
 **UPGRADE**
 8. Upgrade the **management Rancher chart FIRST** (air-gap variant + `--set` flags from

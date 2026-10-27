@@ -44,8 +44,11 @@ release-v2.14 branch** is the hard confirmation embedded CAPI is gone at 2.14.
 - **One-way rollback hazard:** v1beta2 is a one-way contract — restoring a 2.13 backup after 2.14
   fails because v1beta2 CRs block dropping the v1beta2 CRD version. RKE2 etcd snapshot is the
   reliable rollback (see `prereqs-and-ordering.md`).
-- **CAPRKE2 `v1alpha1` deprecated** (cluster-api-provider-rke2#797, CLOSED — "lack of usage in last
-  2 years"); removal minor not yet committed. **CAAPF (Cluster API Addon Provider Fleet) disabled by
+- **CAPRKE2 `v1alpha1` is gone at 2.14.** Turtles v0.25 (2.13) installs CAPRKE2 v0.21, which still
+  serves it; Turtles v0.26 (2.14) installs v0.24, which does not. Before the 2.13→2.14 hop, rewrite
+  any `bootstrap.cluster.x-k8s.io/v1alpha1` or `controlplane.cluster.x-k8s.io/v1alpha1` RKE2
+  manifests (GitOps sources included) to `v1beta1`, and check that `status.storedVersions` on the
+  four `rke2*` CRDs does not list `v1alpha1`. **CAAPF (Cluster API Addon Provider Fleet) disabled by
   default at 2.14.1** (turtles#2176) — where CAPI clusters were provisioned via CAAPF, set
   `features.use-caapf.enabled: true` before upgrading; standard (non-CAAPF) Fleet is unaffected.
 
