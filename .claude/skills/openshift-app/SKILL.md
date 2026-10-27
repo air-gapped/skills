@@ -124,10 +124,9 @@ before and after rather than assuming parity.
   `redhat-developer/web-terminal-operator` CHANGELOG, because the Red Hat docs
   page is a client-rendered shell with no version text in its HTML for any
   OCP version.
-- Helm 3 EOL: **no published date could be confirmed**. Helm's version-skew and
-  release-policy pages state only that the most recent minor gets fixes, with no
-  Helm 3 sunset date, and Helm 3 is still shipping patches (**v3.21.4 on
-  2026-08-14**) alongside the 4.x line. Treat "Helm 3 is dead" as unsupported.
+- **Helm 3 is security-fix only.** v3.22 (2026-09-10) was its final feature
+  release; security patches end **2027-02-10**, and no Helm 3 release of any
+  kind follows. Migrate charts and pipelines to Helm 4 before that date.
 - **Recommendation**: on Argo CD 3.4.x you are on Helm 3 and fine. Moving to
   3.5.x is the Helm 4 migration — do it deliberately, with a render diff, not as
   a side effect of taking the latest tag.
