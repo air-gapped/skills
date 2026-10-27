@@ -215,10 +215,24 @@ Workloads that:
 
 No Kubernetes API removals.
 
-### OCP 4.19
+### OCP 4.19 (K8s 1.32)
 
-OCP 4.19 has API removals (specific list not yet enumerated in public docs at
-time of research). Check Red Hat article 6955985 before upgrading.
+- `flowcontrol.apiserver.k8s.io/v1beta3` removed for FlowSchema and
+  PriorityLevelConfiguration (PriorityLevelConfiguration has notable field
+  changes). Migrate to `v1`.
+- Every 4.18 → 4.19 upgrade requires manual administrator acknowledgment
+  (gate added in 4.18.13).
+
+### OCP 4.20
+
+- `admissionregistration.k8s.io/v1beta1`, which 4.17-4.19 inadvertently served
+  again, is removed. Move every manifest and client on that group-version to
+  `v1`. Details: Red Hat KCS 7130599 (subscriber-only).
+
+### OCP 4.21+
+
+No Kubernetes API removals (Red Hat KCS 6955985 lists each release's removals;
+check it before every minor upgrade).
 
 ### Service Serving Certificates
 
