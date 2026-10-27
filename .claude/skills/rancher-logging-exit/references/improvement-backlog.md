@@ -14,9 +14,6 @@ Gaps carried from the 2026-07-22 research pass (report:
   #2254/#2255 diffs before asserting which characters change in rendered config.
 - **SUSE response watch**: if SUSE ships an advisory/backport for CVE-2026-54680,
   the urgency section must be rewritten same-day (see sources.md watch-list).
-- **Image-override field spellings** in airgap-prep.md values skeleton
-  (configReloaderImage, bufferVolumeImage, drain images) were taken from the CRD;
-  validate the exact paths against a rendered 6.7.0 install once.
 - No 2026 community war stories for this exact migration surfaced — collect the
   first real execution's findings (timings, surprises) into a dated log here.
 

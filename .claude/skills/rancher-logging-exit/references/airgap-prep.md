@@ -63,13 +63,16 @@ restored YAML):
   scaling: {drain: {image: {repository: <registry>/.../fluentd-drain-watch, tag: 6.7.0},
                     pauseImage: {repository: <registry>/pause, tag: "3.9"}}}
   bufferVolumeImage: {repository: <registry>/.../node-exporter, tag: 6.7.0}
+  volumeModImage: {repository: <registry>/library/busybox, tag: latest}  # if volumeMountChmod: true
 # FluentbitAgent.spec:
   image: {repository: <registry>/fluent/fluent-bit, tag: 5.0.5}
+  bufferVolumeImage: {repository: <registry>/.../node-exporter, tag: 6.7.0}    # if bufferVolumeMetrics set
+  configHotReload: {image: {repository: <registry>/.../config-reloader, tag: 6.7.0}}  # if configHotReload set
 ```
 
-Verify exact field paths against the 6.7.0 CRD/docs when authoring — image
-override spellings differ per component (`image`, `configReloaderImage`,
-`bufferVolumeImage`).
+Copy these spellings; they are irregular per component (`volumeModImage`, and
+the fluent-bit reloader nests under `configHotReload`). Any field left unset
+pulls its upstream default registry.
 
 ## 4. Pre-flight connectivity sanity
 
