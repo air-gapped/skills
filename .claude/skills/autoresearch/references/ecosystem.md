@@ -133,7 +133,9 @@ Descendants whose contribution is a specific loop mechanism rather than a port.
 ## Claude Code Specific
 
 - [drivelineresearch/autoresearch-claude-code](https://github.com/drivelineresearch/autoresearch-claude-code) —
-  Pure Claude Code skill port. Baseball biomechanics R² 0.44→0.78 in 22 experiments.
+  Pure Claude Code skill port. Its README now withdraws the headline R² 0.44→0.78
+  (22 experiments): feature selection saw held-out data and CV changed mid-search.
+  Cite it as an overfitting example, not as a measured gain.
 - [armgabrielyan/autoloop](https://github.com/armgabrielyan/autoloop) — Agent-agnostic.
   Explicit phases, bounded experiments, path-scoped git.
 - [frankbria/ralph-claude-code](https://github.com/frankbria/ralph-claude-code) — Wrapper
