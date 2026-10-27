@@ -5,12 +5,12 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
-- **Last sifted:** 2026-09-15
-- **Last release-verified:** 2026-09-15
+- **Last sifted:** 2026-10-27
+- **Last release-verified:** 2026-10-27
 
 > ## Verdict shortcut — only ONE line is supported, and everything else is inside an unpatched CRITICAL
 >
-> **Floor: `v3.7.13`** (2026-09-04). Any Traefik at or below **v3.7.12** — which includes *every*
+> **Floor: `v3.7.16`** (2026-10-20). Any Traefik at or below **v3.7.15** — which includes *every*
 > release of 3.0 through 3.6 — is inside a **critical authentication bypass**, and on every line
 > except 3.7 there is no patch and never will be.
 >
@@ -29,13 +29,20 @@
 > affected range is `>= v3.0.0, <= v3.7.10` plus `<= v2.11.54`. The 3.6 line's final release is
 > **v3.6.25** (2026-07-31), which sits inside that range. **No 3.6.x will ever be patched for it.**
 > Then CVE-2026-88007 (**critical**, HTTP/3 backend NTLM connection reuse, published 2026-09-07)
-> raised the 3.x ceiling to `<= v3.7.12`, so the floor moved again to **v3.7.13**.
+> raised the 3.x ceiling to `<= v3.7.12`, so the floor moved again to **v3.7.13**. Then October
+> moved it three more times: v3.7.14 (2026-10-06, 8 advisories incl. GHSA-qm9f-w54v-q2qh,
+> GHSA-53qr-784g-cj35), v3.7.15 (2026-10-15, GHSA-p8wx-ph99-xgcr, GHSA-ww7c-q3mv-xx22) and
+> **v3.7.16** (2026-10-20, GHSA-hrpp-p4fc-wwf8 — high, ForwardAuth shares the auth-server
+> connection pool and leaks NTLM/Negotiate-bound identity across clients; affected
+> `>= v3.0.0, <= v3.7.15` and `<= v2.11.59`). 3.6 is inside every one of these ranges, unpatched.
 >
-> **2.11 is no longer an escape hatch.** Its security window closed **2026-09-07**, three days
-> after its final release **v2.11.57** (2026-09-04). That release does clear both criticals, so a
-> 2.11.57 deployment is not *currently* exposed — but the next advisory against it has no patch.
+> **2.11 is not a landing point.** Upstream's table still reads "Ends Sept 07, 2026", yet Traefik
+> kept shipping 2.11 security patches after that date: v2.11.58 (2026-10-06), v2.11.59 (2026-10-15),
+> **v2.11.60** (2026-10-20, GHSA-hrpp-p4fc-wwf8). A 2.11 deployment is not currently exposed only
+> at **v2.11.60**; the patches are discretionary past the stated end, so plan the v2→v3 move rather
+> than relying on them. Ingress-NGINX-provider advisories (3.7-only feature) never apply to 2.11.
 >
-> **So a survey has exactly one answer: move to `v3.7.13`+.** There is no supported landing point
+> **So a survey has exactly one answer: move to `v3.7.16`+** (stopgap for a 2.11 fleet mid-migration: `v2.11.60`). There is no supported landing point
 > on any other line, and "upgrade to the latest patch of the minor you are on" is wrong here for
 > every minor but 3.7.
 >
@@ -89,7 +96,7 @@ sighting as `✗ blocker` and route operators to v2-to-v3 migration. v3 is
 backward-compatible with v2 router syntax (`core.defaultRuleSyntax: v2`), so the
 upgrade is mostly install-config + CRD-group flip.
 
-## 3.7.0  (2026-05-05, latest patch **v3.7.13** 2026-09-04 — **the only supported line**; 3.7.1 carried the CVE-2026-44774 fix)
+## 3.7.0  (2026-05-05, latest patch **v3.7.16** 2026-10-20 — **the only supported line**; 3.7.1 carried the CVE-2026-44774 fix)
 
 - **k8s floor:** no hard floor stated; tested against currently-supported k8s minors (~1.30+ as of release date). `client-go` upstream supports current-3.
 - **Breaking:** none for routing config. Ingress NGINX provider RBAC now needs `configmaps: [list, watch]` for the `nginx.ingress.kubernetes.io/custom-headers` annotation — pods will start but the feature silently fails without it. ForwardAuth `trustForwardHeader` deprecation (introduced 3.6.14) escalates — explicit `true`/`false` required to avoid warning logs.
@@ -97,6 +104,7 @@ upgrade is mostly install-config + CRD-group flip.
 - **Upgrade ordering:** apply Gateway API v1.5.1 CRDs **before** rolling Traefik to 3.7, otherwise Gateway provider rejects routes. Apply updated Traefik CRDs before. Update Ingress NGINX provider RBAC concurrently with the rollout.
 - **Deprecations:** none new beyond 3.6.14's `trustForwardHeader`. `experimental.kubernetesIngressNGINX` flag still deprecated (removed-experimental in 3.6.2).
 - **Notable:** Wildcard `Host(*.example.com)` / `HostSNI` matchers (v3 rule syntax only — v2-compat mode does not get these). TLSOptions can attach to wildcard hosts now; `HostRegexp` still unsupported for TLSOptions. Knative provider supports v1.20.0.
+- **Patch-level behaviour changes (migration guide `v3.md` at v3.7.16):** **v3.7.14** — Ingress-NGINX provider keeps dots in generated router/service/TLS-option names (`default-my.ingress-rule-0-path-0`), and TLSRoute router name hashes change; dashboards/alerts keyed on old names break. Gateway API routes matching equally well: only the precedence route gets a router. OTel duration histograms follow `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION`. Gateway API module bumped to v1.6.2. **v3.7.15** — every `CONNECT` request rejected with 501 regardless of HTTP version (use a TCP router to tunnel); Gateway API HTTPRoute backends with no `appProtocol` now use plain HTTP even on port 443 / `https*` port names — set `appProtocol: https` or a `BackendTLSPolicy` to keep TLS. Gateway API module v1.6.3.
 
 ## 3.6.0  (2025-11-07 — final release **v3.6.25** 2026-07-31; security support ended **2026-08-16**, so it is permanently inside the 2026-08-21 `digestAuth` critical)
 
@@ -165,7 +173,7 @@ upgrade is mostly install-config + CRD-group flip.
 - **Deprecations:** v2 rule syntax (`defaultRuleSyntax`/`ruleSyntax`) deprecated from day one of v3 (removal slated next major); TCP `terminationDelay` at LoadBalancer level.
 - **Notable:** this is the only v3 minor where the api-group flip and rule-syntax break land — every higher 3.x section assumes the `traefik.io` group is already in place.
 
-## 2.11  (2024-02-12, final release **v2.11.57** 2026-09-04 — active support ended 2025-04-29, **security support ended 2026-09-07**; now EOL)
+## 2.11  (2024-02-12, latest patch **v2.11.60** 2026-10-20 — active support ended 2025-04-29, security support stated to end 2026-09-07 but patches continued past it)
 
 > **Corrected 2026-09-15.** This section previously read "latest patch v2.11.46 … security ENDED
 > 2026-02-01". Both were wrong: the line kept receiving security releases for another seven
@@ -173,7 +181,7 @@ upgrade is mostly install-config + CRD-group flip.
 > The practical consequence of the old text was to tell a 2.11 operator that no patch existed
 > when eleven more shipped — including the ones clearing both 2026 criticals.
 
-- **Status:** the **last v2 minor** and the **migration SOURCE** for the v2→v3 jump. Out of community support entirely as of 2026-02-01. **Flag any 2.x sighting as `✗ blocker`** and route operators to §3.0 (v2→v3 migration). No further patches beyond v2.11.46.
+- **Status:** the **last v2 minor** and the **migration SOURCE** for the v2→v3 jump. Active support ended 2025-04-29. **Flag any 2.x sighting as `✗ blocker`** and route operators to §3.0 (v2→v3 migration). Security patches continue past the stated end (latest v2.11.60); v2.11.59 rejects `CONNECT` on every HTTP version, same as v3.7.15.
 - **k8s floor:** no hard floor stated; the v2.11 patch line was kept building against a current `client-go` (`v0.32.3` at v2.11.46), so it runs on modern k8s — but this does NOT extend its support: EOL is calendar-based, not k8s-based.
 - **CRD group / syntax (why migration is mandatory):** 2.11 CRDs are on the legacy **`traefik.containo.us/v1alpha1`** API group and use **v2 rule syntax** (`Headers`/`HeadersRegexp`, regexp `PathPrefix`, `{id}` path placeholders, `HostHeader`, `IPWhiteList`). All of these change at 3.0 — see §3.0 for the exact flips. The v2.11 CRD bundle is `https://raw.githubusercontent.com/traefik/traefik/v2.11/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml`.
 - **Gateway API:** v2.11 vendors `sigs.k8s.io/gateway-api v0.4.0` — far behind the v1.x line every v3 minor requires; the Gateway provider was experimental-only in v2.

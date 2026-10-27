@@ -267,7 +267,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://github.com/traefik/traefik/releases
 - Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
 - Note: extract k8s API minimums from the "Kubernetes" section of release notes. **Traefik publishes no separate k8s support matrix — absence claim re-tested 2026-09-15 against the kubernetes-crd provider page, which carries no explicit "Kubernetes N.N" statement, and it holds.** (Two sibling "upstream publishes no matrix" claims in this registry turned out false the same day, so this one was checked rather than inherited.) v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — v3.7.13 and v2.11.57 (both 2026-09-04). Same 3.7/2.11 lines — no new v2->v3 breaking hop.
+- Last verified: 2026-10-27 — v3.7.16 and v2.11.60 (both 2026-10-20); floor re-derived from `gh api repos/traefik/traefik/security-advisories` (GHSA-hrpp-p4fc-wwf8 patched only in v3.7.16 / v2.11.60). `deprecation/releases.md` at master still says 2.11 security "Ends Sept 07, 2026" while 2.11 patches continued.
 
 ## Rook (operator)
 
