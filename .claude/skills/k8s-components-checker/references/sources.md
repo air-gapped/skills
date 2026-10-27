@@ -298,7 +298,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat)
 - Probe: WebFetch docs sections covering k8s compat and Helm chart minimums.
 - Note: operator runs the EE binary as CE; ignore EE-only features in the sift.
-- Last verified: 2026-10-27 — chart `doc/installation/cloud/_index.md` at v10.5.1 read (1.35–1.37, 1.37 needs GitLab ≥ 19.5); `doc/install/requirements.md` at master: 19.x PostgreSQL 17.x–18.x (changed 2026-10-01, commit `4dc318dd`). Not gh-groundable; read via gitlab.com raw/API.
+- Last verified: 2026-10-27 — newest chart v10.5.2 = GitLab 19.5.2 (`version_mappings.md`); chart `doc/installation/cloud/_index.md` at v10.5.2 unchanged (1.35–1.37, 1.37 needs GitLab ≥ 19.5); CHANGELOG 10.5.2 / 10.4.4 / 10.3.8 = bundled cert-manager v1.21.3 (+ gitlab-runner 0.94.x on 10.5.2), 9.11.15 "No changes". Bundled cert-manager per newest tag from `Chart.yaml` `dependencies:` (GitLab files API): 9.11.15 / 10.0.10 / 10.1.9 v1.20.2, 10.2.9 v1.21.0, 10.3.8+ v1.21.3. `doc/install/requirements.md` at master: 19.x PostgreSQL 17.x–18.x (changed 2026-10-01, commit `4dc318dd`). No 19.5.2 patch-release post found (the about.gitlab.com URL redirects to the docs index) — security content of 19.5.2 not recorded. Not gh-groundable; read via gitlab.com raw/API.
 
 ## ECK
 

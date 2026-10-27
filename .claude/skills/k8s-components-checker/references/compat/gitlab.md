@@ -13,7 +13,7 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 8.11      # chart minors: current (10.x) + prior 2 (9.x, 8.x)
 - **Last sifted:** 2026-10-27 — chart ceiling now **v10.5.1 / app v19.5.1** (2026-10-20); cloud-install matrix at v10.5.1 unchanged (1.37 needs GitLab ≥ 19.5, now released); PostgreSQL window for 19.x corrected to 17.x–18.x; CHANGELOG 10.4.2–10.5.1 read. Previous: 2026-09-24 — chart ceiling v10.4.1/app v19.4.1; chart doc lists k8s 1.35–1.37 supported, but 1.37 needs GitLab ≥ 19.5 (unreleased), so chart 10.4 / GitLab 19.4 is usable on 1.35–1.36 (1.34 deprecated, 1.33 unsupported); no breaking/CRD/ordering changes found in 10.3.3–10.4.1.
-- **Last release-verified:** 2026-10-27 — newest per line **`v10.5.1`**, `v10.4.3`, `v10.3.7`, `v10.2.9`, `v10.1.9`, `v10.0.10`, `v9.11.14` (all 2026-10-20, `compat.py sync`); chart `10.5.1` → app `19.5.1`. Previous (2026-09-24): chart tags enumerated via
+- **Last release-verified:** 2026-10-27 — newest per line **`v10.5.2`**, `v10.4.4`, `v10.3.8`, `v10.2.9`, `v10.1.9`, `v10.0.10`, `v9.11.15` (`compat.py sync`); chart `10.5.2` → app `19.5.2`. Previous (2026-09-24): chart tags enumerated via
   `generated.json` (compat.py sync 2026-09-24, sourced from the GitLab API —
   `gh` does not apply here): newest per line are **`v10.4.1`** (2026-09-22),
   **`v10.3.4`** (2026-09-24), **`v10.2.7`** (2026-09-22). All inside the
@@ -69,7 +69,7 @@ sifted here.
   - Container Registry to v4.40.0-gitlab. Registry metadata DB migration must have completed in 17.x — if skipped, the 19.x registry refuses to start. Verify before bumping.
   - Cert-manager **Gateway API enabled by default** (the chart's bundled cert-manager values now target Gateway API resources, not Ingress).
   - Gitaly Cluster (the new Raft-based replacement for Praefect) is the supported path; legacy Praefect is on borrowed time. Not removed in 19.0 but plan the migration.
-  - **Chart 10.5.0 (2026-10-15):** KAS advertises `grpcs` to agents by default; toolbox backup CronJob defaults to `batch/v1` and HPAs to `autoscaling/v2`; Envoy Gateway v1.9.2, gateway-crds-helm v1.9.1, container-registry v4.42.0-gitlab. 10.5.1 / 10.4.3 / 10.3.7 (2026-10-20) carry no chart changes (app patch releases only).
+  - **Chart 10.5.0 (2026-10-15):** KAS advertises `grpcs` to agents by default; toolbox backup CronJob defaults to `batch/v1` and HPAs to `autoscaling/v2`; Envoy Gateway v1.9.2, gateway-crds-helm v1.9.1, container-registry v4.42.0-gitlab. 10.5.1 / 10.4.3 / 10.3.7 (2026-10-20) carry no chart changes; 10.5.2 / 10.4.4 / 10.3.8 (2026-10-27) only bump the bundled cert-manager to v1.21.3 (10.5.2 also gitlab-runner 0.94.1).
   - Envoy Gateway is the chart-native ingress now. The skill's verdict treats this as a separate ingress axis — flag it if Cilium Gateway API or another gateway is already in the cluster (conflict on `GatewayClass` and Listener ports).
 
 ## 9.x  (GitLab 18.x)
@@ -123,6 +123,7 @@ sifted here.
 - **Registry metadata DB migration status** — completed before 19.x.
 - **Ingress posture** — NGINX still serving in 10.x = stop. Gateway API + Envoy Gateway is the only supported path on 10.x.
 - **Sidekiq concurrency cap** — chart 9.9+ sets `GITLAB_SIDEKIQ_MAX_REPLICAS` by default; unset or `0` on non-KEDA deployments.
+- **Bundled cert-manager** (`installCertmanager: true`) — newest charts 9.11.15, 10.0.10 and 10.1.9 still pin cert-manager v1.20.2, below its 1.20.3 security floor (CVE-2026-62290, `compat/cert-manager.md` § 1.20.0); 10.2.9 pins v1.21.0, 10.3.8+ v1.21.3. On ≤ 10.1 → `⚠ needs bump`: chart ≥ 10.2, or run cert-manager outside the chart.
 - **Background migrations drained** — pre any minor jump.
 - **Backup taken** — chart docs phrase as MUST.
 
