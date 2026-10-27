@@ -314,10 +314,10 @@ See `assets/examples/` for fuller examples (with HA tuning, `KeycloakRealmImport
 
 - **`hostname-strict=false` "fixes" my login** → No, it papers over a proxy/headers misconfig. Set `--proxy-headers` correctly instead.
 - **"Why is my custom theme not appearing?"** → The theme must be baked into a custom image and `kc.sh build` re-run; dropping a theme jar into a stock image at runtime no longer works. Themes are packaged into the optimized server jar.
-- **"Operator pod logs are flooded with warnings"** → On 26.6.0 exactly, that's `#47872`, fixed in 26.6.1. Upgrade to the latest 26.6.x.
+- **"Operator pod logs are flooded with warnings"** → On 26.6.0 exactly, that's keycloak/keycloak#47872, fixed in 26.6.1. Upgrade to the minimum safe release (§Version map), not to a later 26.6.x.
 - **"Realm import keeps failing on existing realm"** → `KeycloakRealmImport` is *create-or-replace*; it won't merge. Use `kcadm.sh` for incremental edits, or accept the realm-as-config GitOps trade-off.
-- **"My JS admin client is broken on 26.6.0"** → 26.6.0 shipped a broken `@keycloak/keycloak-admin-client` package, fixed in 26.6.1. Use the latest 26.6.x.
-- **JGroups ERROR "closing inbound before receiving peer's close_notify" while a pod shuts down** (TCP + mTLS, 26.7.x–26.8.x, typically during a rolling update) → benign: the cluster still forms and maintainers report no production impact (#53482, open). Don't roll back over it; check the cluster view and `/health/ready` instead.
+- **"My JS admin client is broken on 26.6.0"** → 26.6.0 shipped a broken `@keycloak/keycloak-admin-client` package, fixed in 26.6.1. Upgrade to the minimum safe release (§Version map).
+- **JGroups ERROR "closing inbound before receiving peer's close_notify" while a pod shuts down** (TCP + mTLS, 26.7.x–26.8.1, typically during a rolling update) → benign: the cluster still forms and maintainers found no production impact (keycloak/keycloak#53482). Releases that carry keycloak/keycloak#54025 (merged to `main` after 26.8.1) suppress the message. Don't roll back over it; check the cluster view and `/health/ready` instead.
 - **"Liquibase changelock stuck"** → A previous migration crashed mid-flight. `DELETE FROM DATABASECHANGELOGLOCK WHERE ID=1` (after confirming no other instance is migrating). See `observability.md` §troubleshooting for the safe procedure.
 - **"I'm getting `KC_*` substitution surprises with `$` in passwords"** → Use the new `KCRAW_*` prefix (26.6+) instead of `KC_*` for any value that contains `$`.
 

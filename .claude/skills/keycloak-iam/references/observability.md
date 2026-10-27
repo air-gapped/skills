@@ -166,7 +166,7 @@ The official benchmark harness lives at `https://github.com/keycloak/keycloak-be
 
 **Symptom**: Operator emitting many warning lines, no functional impact.
 
-**Fix**: Issue `#47872` in 26.6.0; **upgrade to 26.6.1**.
+**Fix**: keycloak/keycloak#47872, fixed in 26.6.1. Upgrade to the minimum safe release in SKILL.md §Version map, not just to 26.6.1.
 
 ### "@keycloak/keycloak-admin-client fails to install" on 26.6.0
 
