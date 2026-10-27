@@ -30,7 +30,7 @@ All defaults from `python/sglang/srt/server_args.py`. **The normalisation moved:
 
 | Flag | Type | Default | Effect |
 |---|---|---|---|
-| `--hicache-storage-backend` | enum | `None` | `file`, `mooncake`, `hf3fs`, `nixl`, `aibrix`, `eic`, `simm`, `dynamic`. Omit to skip L3. |
+| `--hicache-storage-backend` | enum | `None` | `file`, `sim`, `mooncake`, `npu_memcache`, `hf3fs`, `nixl`, `aibrix`, `dynamic`, `eic`, `simm`, `mori`, `shm`, `tensorcast` (v0.5.21+), `seaweedfs` (v0.5.22+). Omit to skip L3. |
 | `--hicache-storage-prefetch-policy` | enum | `best_effort` | `best_effort`, `wait_complete`, `timeout`. Production: `timeout` |
 | `--hicache-storage-backend-extra-config` | str | `None` | JSON inline OR `@/path/to/file.{json,yaml,toml}` |
 

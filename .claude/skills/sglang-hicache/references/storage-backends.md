@@ -16,6 +16,8 @@ Pick exactly one (omit `--hicache-storage-backend` for L1+L2 only). Backend fact
 | `lmcache` | replaces hicache, doesn't extend it | depends on LMCache (still broken on hybrid per LMCache #3106) | n/a | `pip install lmcache` |
 | `file` | DEV / CI ONLY | yes (any model) | any | none |
 
+Also accepted, no recipe in this skill: `sim`, `mori` (the AMD UMBP store, module `storage/umbp/`), `shm`, `npu_memcache` (Ascend; needs `page_first*` like Mooncake), `tensorcast` (v0.5.21+), `seaweedfs` (v0.5.22+). Before wiring one, read the module that `backend_factory.py` registers for it at the deployed tag.
+
 ## `mooncake`
 
 Best-supported L3 backend in 2026. Only one with shipped hybrid-Mamba support (PR [#21259](https://github.com/sgl-project/sglang/pull/21259) in v0.5.10).

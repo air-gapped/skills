@@ -26,7 +26,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | `mem_cache/hiradix_cache.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/hiradix_cache.py | 2026-08-18 | `HiRadixCache` class |
 | `mem_cache/hi_mamba_radix_cache.py` (**removed on main** by #33468 "Remove the HiMambaRadixTree that is no longer in use" — still present through v0.5.17, so released-version guidance stands; re-gate when the next minor ships) | https://github.com/sgl-project/sglang/blob/v0.5.17/python/sglang/srt/mem_cache/hi_mamba_radix_cache.py | 2026-08-18 | `HiMambaRadixCache` for hybrid SSM models |
 | `managers/cache_controller.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/managers/cache_controller.py | 2026-08-18 | `HiCacheController` with two CUDA streams + two daemon threads |
-| `mem_cache/storage/backend_factory.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/storage/backend_factory.py | 2026-08-18 | `StorageBackendFactory` — backend selection logic |
+| `mem_cache/storage/backend_factory.py` | https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/mem_cache/storage/backend_factory.py | 2026-10-27 | `StorageBackendFactory` — backend selection logic. At v0.5.22 registers 14 names (choices in `arg_groups/fields/memory.py`); `tensorcast` added by #27265 (v0.5.21), `seaweedfs` by #42399 (v0.5.22); `mori` maps to `storage/umbp/umbp_store.UMBPStore` |
 
 ## Open bugs (release-blocker tier)
 
