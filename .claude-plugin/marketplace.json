@@ -737,7 +737,7 @@
       "name": "jira-confluence-mcp",
       "source": "./",
       "description": "Install, configure, secure, and troubleshoot the mcp-atlassian MCP server (sooperset/mcp-atlassian) that connects an agent to Jira/Confluence",
-      "version": "0.20260922.11",
+      "version": "0.20261027.12",
       "author": {
         "name": "Jörgen"
       },

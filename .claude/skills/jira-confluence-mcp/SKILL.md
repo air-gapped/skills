@@ -77,10 +77,11 @@ The container-CA step is the **most common air-gap surprise** — a self-contain
 **A full git mirror of the repo is NOT enough** — the dependency wheels live on PyPI, not in git. If the environment can **serve container images**, the clean path is to **mirror the prebuilt image by digest** (it bakes Python + all deps in — no PyPI, no git needed at install or run):
 
 ```bash
-# 1. resolve + mirror the prebuilt image, pinned by digest (supply-chain hygiene)
+# 1. resolve + mirror the prebuilt image, pinned by digest (supply-chain hygiene).
+#    Image tags carry NO "v" (git tag v0.23.1 → image 0.23.1); ":v0.23.1" is "manifest unknown".
 skopeo copy --all \
-  docker://ghcr.io/sooperset/mcp-atlassian:v0.23.1 \
-  docker://harbor.internal/mirror/mcp-atlassian:v0.23.1
+  docker://ghcr.io/sooperset/mcp-atlassian:0.23.1 \
+  docker://harbor.internal/mirror/mcp-atlassian:0.23.1
 # 2. connect (stdio needs -i); mount the internal CA so TLS verifies
 claude mcp add mcp-atlassian \
   -e JIRA_URL=https://jira.internal.company.com \

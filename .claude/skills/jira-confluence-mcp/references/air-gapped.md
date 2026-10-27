@@ -21,15 +21,17 @@ What the git mirror *does* give you (when it carries **tags**): correct source +
 The published image is **self-contained**: its Dockerfile bakes the full `.venv` (Python 3.13 + every wheel) into a `python:3.13-alpine` final stage. So once the image is in your registry, **nothing touches PyPI, ghcr, or git at install or run time.** This is the only path that needs neither a PyPI mirror nor the git mirror.
 
 ```bash
-# 1. Resolve a real digest for the release you want (don't pin :latest)
-skopeo inspect docker://ghcr.io/sooperset/mcp-atlassian:v0.23.0 | jq -r '.Digest'
+# 1. Resolve a real digest for the release you want (don't pin :latest).
+#    Image tags drop the git tag's "v": release v0.23.1 is image tag 0.23.1
+#    (also 0.23 and latest); ":v0.23.1" fails with "manifest unknown".
+skopeo inspect docker://ghcr.io/sooperset/mcp-atlassian:0.23.1 | jq -r '.Digest'
 
 # 2. Copy into your registry. --all preserves the multi-arch manifest;
 #    drop it / use --override-arch to copy a single platform if the gap is one arch.
 skopeo copy --all \
   docker://ghcr.io/sooperset/mcp-atlassian@sha256:<digest> \
   docker://harbor.internal/mirror/mcp-atlassian@sha256:<digest>
-# (also tag it for humans: skopeo copy ...:v0.23.0 ...:v0.23.0)
+# (also tag it for humans: skopeo copy ...:0.23.1 ...:0.23.1)
 
 # 3. Connect to Claude Code. stdio MCP server → `docker run -i` is mandatory.
 claude mcp add mcp-atlassian \
