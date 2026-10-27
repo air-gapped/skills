@@ -3,7 +3,7 @@ name: rancher-logging-exit
 description: >-
   Migrate off the Rancher-bundled `rancher-logging` chart (cattle-logging-system,
   rancher/mirrored-kube-logging-* images) to the upstream kube-logging
-  logging-operator ≥6.7.0 — air-gap-first. Rancher 2.11 through 2.15-dev all
+  logging-operator ≥6.7.0 — air-gap-first. Rancher 2.11 through 2.16-dev all
   bundle a frozen operator 4.10.0 that is inside the affected range of
   CVE-2026-54680 (CVSS 9.9 config-injection RCE, no SUSE fix) — so the exit is
   security-urgent. Covers the maintainer-endorsed helm-release-secret strategy
@@ -37,12 +37,12 @@ pipeline: the **logging-operator** skill.
 
 ## Why migrate (the honest urgency statement)
 
-- **Frozen**: every Rancher minor 2.11 → 2.14 (and 2.15-dev) ships the same
+- **Frozen**: every Rancher minor 2.11 → 2.15 (and the 2.16 branches) ships the same
   upstream base **operator 4.10.0** (Oct 2024) — only `-rancher.N` chart respins.
   The `-rancher.N` fork is **chart-level only** (rancher/ob-team-charts); the
   operator image is a stock upstream mirror. "Wait for Rancher" has been dead for
   20+ months of releases.
-  **Re-confirmed 2026-09-15**: the newest chart in `rancher/charts` is
+  **Re-confirmed 2026-10-27**: the newest chart in `rancher/charts` is
   **`110.0.0+up4.10.0-rancher.24`**. A whole chart major has landed since this
   skill was written and the upstream base in the version string is *still*
   `up4.10.0`. The chart major number moving while the `up` component does not is
