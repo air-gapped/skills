@@ -1,14 +1,14 @@
-# Argo CD v3.0 → v3.4: Version-change reference for App authors
+# Argo CD v3.0 → v3.5: Version-change reference for App authors
 
-## Currency note (verified 2026-07-21)
+## Currency note
 
-- **Latest stable:** **v3.4.5** (2026-07-09). v3.4 reached GA in early May 2026
-  (v3.4.0 on 2026-05-06); v3.4.4 landed 2026-06-18.
-- **Maintenance lines:** v3.3.x (latest **v3.3.12**, 2026-06-18), v3.2.x
-  (v3.2.12, 2026-05-13), v3.1.x (v3.1.16, 2026-05-05).
-- **v3.5 is in release-candidate:** **v3.5.0-rc1** (2026-06-16),
-  **v3.5.0-rc2** (2026-07-01). Not GA. See the v3.5 section below — it carries
-  a Helm v4 breaking change that needs planning before the hop, not after.
+- **Latest stable:** **v3.5.6** (2026-10-20); v3.5.0 GA'd 2026-08-04.
+- **Supported lines:** v3.4.x (latest **v3.4.12**, 2026-10-20; first release
+  v3.4.1, 2026-05-06), v3.3.x (latest **v3.3.18**, 2026-10-22). **v3.2.x and
+  older are out of support** — last v3.2.12 (2026-05-13), v3.1.16 (2026-05-05);
+  they received no fix for the 2026-10-07 advisories.
+- **v3.6 is in release-candidate:** v3.6.0-rc1 (2026-09-16) through
+  **v3.6.0-rc4** (2026-10-22). Not GA.
 - **Enumerate the release list; don't read `releases/latest`.** GitHub marks
   latest by recency, so a patch on an older line can outrank a newer minor.
   Use `gh release list -R argoproj/argo-cd --limit 25` and reason per line.
@@ -16,11 +16,12 @@
   Canonical changelog is the GitHub release-note set. Use
   `gh release view <tag> --repo argoproj/argo-cd` and the per-version
   `docs/operator-manual/upgrading/<from>-<to>.md` files.
-- Local clone at `~/projects/github.com/argoproj/argo-cd/` (last commit
-  `4d02fc2f5` on 2026-05-05, branch `main`, `VERSION=3.5.0`) is freshest;
-  see "Note on conflicting sources" at the bottom.
-- Release timing: v3.0.0 (2025-05-06), v3.1.0 (mid-summer 2025),
-  v3.2.0 (2025-11-04), v3.3.0 (2026-02-02), v3.4.0-rc1 (2026-03-16).
+- In a local clone, read docs at the tag you target
+  (`git show v3.5.6:docs/...`), not at the default branch `master` — it already
+  carries the next minor. See "Note on conflicting sources" at the bottom.
+- Release timing: v3.0.0 (2025-05-06), v3.1.0 (2025-08-13),
+  v3.2.0 (2025-11-04), v3.3.0 (2026-02-02), v3.4.1 (2026-05-06),
+  v3.5.0 (2026-08-04), v3.6.0-rc1 (2026-09-16).
 
 For the standard list of "things that bite app authors", see SKILL.md
 § Critical gotchas — this file does not duplicate it.
@@ -354,7 +355,7 @@ migration is non-trivial.
 
 ---
 
-## v3.4 (GA — v3.4.0 2026-05-06, latest v3.4.3 2026-05-28) — defaults sharpening + impersonation extension
+## v3.4 (GA — first release v3.4.1 2026-05-06, latest v3.4.12 2026-10-20) — defaults sharpening + impersonation extension
 
 Read `docs/operator-manual/upgrading/3.3-3.4.md` and `3.4-3.5.md`.
 
@@ -441,13 +442,11 @@ Read `docs/operator-manual/upgrading/3.3-3.4.md` and `3.4-3.5.md`.
 
 ---
 
-## v3.5 (RC as of 2026-07-21 — rc1 2026-06-16, rc2 2026-07-01) — Helm v4, React 19
+## v3.5 (GA — v3.5.0 2026-08-04, latest v3.5.6 2026-10-20) — Helm v4, React 19
 
-**Not GA.** Sourced from `docs/operator-manual/upgrading/3.4-3.5.md` read at tag
-**v3.5.0-rc2** — a real release artifact, not `main`. Content can still change
-before GA; re-read the doc at the GA tag.
+Sourced from `docs/operator-manual/upgrading/3.4-3.5.md`.
 
-### Breaking: Helm upgraded to 4.2.0 — plain-HTTP OCI registries need explicit flags
+### Breaking: Helm upgraded to 4.2.x (4.2.1 bundled) — plain-HTTP OCI registries need explicit flags
 
 The single change most likely to break an existing install, and it bites
 on-prem / air-gapped setups hardest because those are where plain-HTTP OCI

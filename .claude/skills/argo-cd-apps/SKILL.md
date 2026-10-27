@@ -2,7 +2,7 @@
 name: argo-cd-apps
 description: >-
   Author and maintain Argo CD `Application` and `ApplicationSet` manifests as a
-  GitOps consumer (publisher), targeting Argo CD v3.4 / v3.5 (Sept 2026). Covers
+  GitOps consumer (publisher), targeting Argo CD v3.4 / v3.5, v3.6 in RC (Oct 2026). Covers
   source types (Helm, Kustomize, OCI, multi-source, plugin), sync policies +
   options + waves + hooks, ApplicationSet generators (List, Cluster, Git, Matrix,
   Merge, SCMProvider, PullRequest, Plugin, ClusterDecisionResource), Progressive
@@ -24,10 +24,11 @@ when_to_use: >-
 # Argo CD application authoring
 
 For developers and platform teams who **publish** Argo CD `Application` and
-`ApplicationSet` manifests in git. **v3.5 shipped** (v3.5.0 on 2026-08-04;
-latest **v3.5.3**, 2026-09-14) and the v3.4 line continues in parallel (latest
-**v3.4.9**, also 2026-09-14). Note there is no `v3.4.0` tag — that line's first
-stable release is **v3.4.1**, as its own notes say.
+`ApplicationSet` manifests in git. **v3.5 is current** (v3.5.0 on 2026-08-04;
+latest **v3.5.6**, 2026-10-20); v3.4 (latest **v3.4.12**, 2026-10-20) and v3.3
+(latest **v3.3.18**, 2026-10-22) continue in parallel, and **v3.6 is in RC**
+(v3.6.0-rc4, 2026-10-22). A `v3.4.0` tag exists but no release was published
+from it — that line's first release is **v3.4.1**, as its own notes say.
 
 **Security floor: v3.5.4 / v3.4.10 / v3.3.15** (v3.6.0-rc2 on the RC line).
 Eight advisories published 2026-10-07, four critical, cover every 3.x below it.
@@ -44,7 +45,7 @@ the floor, the paths an app author can reach:
 The three repo-server paths also accept uploads via `argocd app diff --local
 --server-side-generate`, which needs only `applications, get`.
 
-**Before upgrading to 3.5, read these three.** All verified 2026-09-15:
+**Before upgrading to 3.5, read these three.** All still apply on v3.5.6:
 
 - **A Secret data-loss regression is open.** `RespectIgnoreDifferences=true`
   plus a key-level `ignoreDifferences` rule on a Secret that renders
@@ -451,7 +452,7 @@ Full table including `tracking-id`, `sync-statuses`, finalizer variants:
 | `references/repo-layout.md` | Designing or restructuring a GitOps repo: config-repo separation, directory-per-env vs branch-per-env, app-of-apps vs ApplicationSet, tool choice + umbrella-chart anti-pattern, Source Hydrator, OCI sources, private repos + OpenSSH 8.9 ssh-rsa gotcha |
 | `references/projects-rbac.md` | Multi-tenancy, security, or supply-chain: every `AppProject` field, app/appset-in-any-namespace (Stable v3.4), sync impersonation (Beta v3.4), GPG signature verification, secrets hygiene (ESO/SealedSecrets/SOPS/CSI), trusted vs untrusted repos |
 | `references/troubleshooting.md` | Anything broken: OutOfSync drivers (HPA, webhooks, field-manager wars, etc.), SyncFailed/hook leaks, ComparisonError, stuck deletion, ApplicationSet generation issues, auto-sync looping, performance, "deleted from git but still there" checklist |
-| `references/version-changes.md` | Upgrading 3.x→3.y or auditing old manifests: per-minor highlights v3.0→v3.4, breaking changes, maturity table, CVEs, 22 "things to drop now" patterns |
+| `references/version-changes.md` | Upgrading 3.x→3.y or auditing old manifests: per-minor highlights v3.0→v3.5, breaking changes, maturity table, CVEs, 22 "things to drop now" patterns |
 | `references/sources.md` | Verifying citation freshness: dated index of every URL/repo/spec used to build this skill |
 
 ## Adjacent skills
