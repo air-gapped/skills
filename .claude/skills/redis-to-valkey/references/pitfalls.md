@@ -142,7 +142,7 @@ gates verified 2026-08-26.
     - **Bitnami in sentinel mode → `replica.dnsConfig`.** The `-node`
       StatefulSet renders from the `replica` block, not a sentinel block.
     - **groundhog2k valkey has no `dnsConfig`/`dnsPolicy` value at all**
-      (through 2.3.3; only `dnsFailureWait`). Use a Helm post-renderer. A live
+      (through 2.3.4; only `dnsFailureWait`). Use a Helm post-renderer. A live
       `kubectl patch` does survive ordinary upgrades via Helm's three-way
       merge, but is silently lost on `--force`, a reinstall or a fresh
       air-gapped install, and never appears in `helm get manifest`.
