@@ -185,7 +185,8 @@ rules:
 - apiGroups: [olm.operatorframework.io]
   resources: [clusterextensions/finalizers]
   verbs: [update]
-- apiGroups: [package-operator.run]
+# Only with the experimental Boxcutter runtime (ClusterObjectSet revisions)
+- apiGroups: [olm.operatorframework.io]
   resources: [clusterobjectsets, clusterobjectsets/finalizers]
   verbs: ["*"]
 # Operator's own CRDs
