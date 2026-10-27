@@ -16,11 +16,18 @@
 
 ### Current Versions
 
-| OCP Version | Pipelines Version | Key Features |
-|-------------|------------------|--------------|
-| 4.21 | 1.21 | Event-driven pruner GA, Tekton cache GA, per-TaskRun timeout overrides |
-| 4.20 | 1.20 | readOnlyRootFilesystem default, `chain` command deprecated |
-| 4.18 | 1.17 | Community ClusterTasks removed, use Tekton Resolvers |
+| Pipelines | GA | Supported OCP | Key Features |
+|-----------|----|---------------|--------------|
+| **1.24** | 2026-09-17 | 4.14, 4.16, 4.18-4.22 | |
+| **1.23** | 2026-07-17 | 4.14, 4.16, 4.18-4.22 | |
+| 1.22 | 2026-04-27 | 4.16, 4.18-4.22 | First minor supporting OCP 4.21 and 4.22 |
+| 1.21 | 2026-01-22 | 4.14, 4.16-4.20 | Event-driven pruner GA, Tekton cache GA, per-TaskRun timeout overrides |
+| 1.20 | 2025-09-25 | 4.16-4.20 | readOnlyRootFilesystem default, `chain` command deprecated |
+| 1.17 | 2024-12-12 | 4.15-4.18 | Community ClusterTasks removed, use Tekton Resolvers |
+
+Each Pipelines minor gets five to six months of support; on OCP 4.18+ only 1.23
+and 1.24 are still maintained. Pick a minor whose range includes your OCP minor,
+and check the Red Hat Product Life Cycles page before pinning an operator channel.
 
 ### ClusterTasks Removed (Pipelines 1.17)
 
@@ -168,11 +175,15 @@ Push manifests: `oras push registry.internal/myapp:v1 .`
 
 ### Current Versions
 
-| Builds Version | OCP Version | Key Feature |
-|---------------|-------------|-------------|
-| 1.7 | 4.21 | BuildConfig-to-Shipwright migration guide |
-| 1.6 | 4.20 | Cloud Native Buildpacks GA |
-| 1.0 | 4.14 | Initial GA (April 2024) |
+| Builds | GA | Supported OCP | Key Feature |
+|--------|----|---------------|-------------|
+| **1.9** | 2026-08-19 | 4.18-4.22 | |
+| **1.8** | 2026-05-18 | 4.17-4.21 | |
+| 1.7 | 2026-02-10 | 4.16-4.21 | BuildConfig-to-Shipwright migration guide |
+| 1.6 | 2025-10-10 | 4.16-4.19 | Cloud Native Buildpacks GA |
+| 1.0 | 2023-12-04 | 4.12-4.15 | Initial GA |
+
+Only 1.9 supports OCP 4.22.
 
 ### Supported Build Strategies
 
