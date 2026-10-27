@@ -113,7 +113,11 @@ WebSearch, WebFetch, and Agent are pre-approved because Mode 2 fans out research
 agents and would otherwise prompt on every one. Bash is pre-approved for `git *`
 only, so the verifier still runs but asks the first time; the Step 2 baseline run
 is where that approval lands, while the user is still present rather than mid-loop
-while they are away. Pre-approving a *specific* verifier (`Bash(pytest *)`,
+while they are away. The grant covers only the turn that invoked the skill: any
+user message clears it — a reply to a Step 1 question, the Mode 3 Phase 2
+confirmation. After such a reply, invoke the skill again before entering the
+loop, which re-applies the grant; otherwise every commit and edit prompts while
+nobody is there to answer. Pre-approving a *specific* verifier (`Bash(pytest *)`,
 `Bash(npm run bench)`) is a reasonable thing to add for a repeat target. Blanket
 `Bash` is not — it would let every later iteration run anything unattended, and
 the loop's whole premise is that it mutates code while nobody is watching.
