@@ -92,9 +92,12 @@ dcgmi diag --run 3 --fail-early
 In a container:
 
 ```bash
-apptainer pull docker://nvidia/dcgm:4.5.2-1-ubuntu22.04
-apptainer exec --nv dcgm_4.5.2-1-ubuntu22.04.sif /usr/bin/dcgmi diag --run 3 --fail-early
+apptainer pull docker://nvidia/dcgm:4.7.0-ubuntu24.04
+apptainer exec --nv dcgm_4.7.0-ubuntu24.04.sif /usr/bin/dcgmi diag --run 3 --fail-early
 ```
+
+`-ubuntu22.04` / `-ubi9` image tags stop at 4.5.2-1; newer DCGM images are
+`-ubuntu24.04` / `-ubi10` only.
 
 ---
 
