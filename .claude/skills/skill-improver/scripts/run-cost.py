@@ -137,7 +137,8 @@ class Rates:
 
         inp, out = rate["input"] / 1e6, rate["output"] / 1e6
         # A model row may override the global cache-read multiplier (Fable 5.1
-        # and Mythos 5.1 bill cache hits at 0.025x, every other model at 0.1x).
+        # and Mythos 5.1 bill cache hits at 0.025x, Opus 5.5 and Sonnet 5.5 at
+        # 0.05x, every other model at 0.1x). Fast-mode rows carry their own.
         cache_read = rate.get("cache_read", self.mult["cache_read"])
 
         # Cache writes are billed at different rates by TTL. The nested
