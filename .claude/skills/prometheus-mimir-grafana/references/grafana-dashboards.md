@@ -287,7 +287,7 @@ When a dashboard is provisioned, `POST /api/dashboards/db` returns an error for 
 - `dashboard.id: null` + `dashboard.uid` unset → create new.
 - `dashboard.version` mismatch → HTTP 412 (another writer changed it).
 - `overwrite: true` bypasses the version check — use sparingly; it's how provisioned dashboards get clobbered by mistake.
-- `folderUid` puts it in a folder (not `folderId`; that was removed in Grafana 11).
+- `folderUid` puts it in a folder (not `folderId` — deprecated, still accepted).
 - `message` feeds dashboard version history.
 
 ### Fetch — `GET /api/dashboards/uid/{uid}`
