@@ -51,10 +51,11 @@ Only choose this if policy requires building from source you control. The repo `
 ```dockerfile
 FROM ghcr.io/astral-sh/uv:python3.13-alpine AS uv   # ← base image #1 (registry)
 RUN uv lock
-RUN uv sync --frozen --no-install-project --no-dev    # ← pulls dep wheels (PyPI)
+RUN uv sync --frozen --extra wpad --no-install-project --no-dev --no-editable  # ← dep wheels (PyPI)
 COPY . /app
-RUN uv sync --frozen --no-dev --no-editable           # ← installs project (PyPI)
+RUN uv sync --frozen --extra wpad --no-dev --no-editable                      # ← project (PyPI)
 FROM python:3.13-alpine                               # ← base image #2 (registry)
+USER app                                              # (non-root; created by adduser)
 COPY --from=uv /app/.venv /app/.venv
 ENTRYPOINT ["mcp-atlassian"]
 ```
@@ -62,7 +63,7 @@ ENTRYPOINT ["mcp-atlassian"]
 So Path B needs, all inside the gap:
 1. The git mirror (source + tags).
 2. **Both base images mirrored** to your registry: `ghcr.io/astral-sh/uv:python3.13-alpine` and `python:3.13-alpine`.
-3. **A PyPI index** the build can reach for the two `uv sync` steps — point uv at it with `UV_INDEX_URL` / `UV_DEFAULT_INDEX` (or a pre-populated `--mount=type=cache,target=/root/.cache/uv`).
+3. **A PyPI index** the build can reach for the two `uv sync` steps — point uv at it with `UV_INDEX_URL` / `UV_DEFAULT_INDEX` (or a pre-populated `--mount=type=cache,target=/root/.cache/uv`). The build installs the **`wpad` extra** (`pypac`, for PAC/WPAD proxy discovery), so seed the index with `uv export --frozen --no-dev --extra wpad` — a seed without it fails the build on `pypac`.
 
 Build with the base images rewritten to your registry and `UV_INDEX_URL` set, then push the result. More moving parts than Path A for the same outcome — prefer A unless build-from-source is mandated.
 
@@ -70,7 +71,7 @@ Build with the base images rewritten to your registry and `UV_INDEX_URL` set, th
 
 For a host install without containers: git mirror (or just the wheel) **+** an internal PyPI index **+** Python ≥3.10 **+** uv/pip inside the gap.
 
-- Generate the exact wheel set to seed the index from the lockfile: `uv export --frozen --no-dev --format requirements-txt > requirements.lock`, then mirror those wheels.
+- Generate the exact wheel set to seed the index from the lockfile: `uv export --frozen --no-dev --format requirements-txt > requirements.lock` (add `--extra wpad` if hosts find their proxy via PAC/WPAD), then mirror those wheels.
 - Install offline against the internal index: `UV_INDEX_URL=https://pypi.internal/simple uvx mcp-atlassian` (or `pip install --index-url …`).
 - Or pre-seed the uv cache on a connected box and transfer it, then run with `UV_OFFLINE=1`. Avoid bare `uvx` at *launch* if it would re-check PyPI each start — a cached/offline cache or the image avoids that.
 
