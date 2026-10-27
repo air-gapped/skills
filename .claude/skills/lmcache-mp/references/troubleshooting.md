@@ -24,11 +24,11 @@
 
 **Avoidance**: Make sure the external `lmcache` package import succeeds (run `scripts/verify-bundling.sh` against your image). Don't deploy a pinned vLLM that needs args the bundled lmcache doesn't have.
 
-### LMCache #2845 — hybrid model tracker (resolved in practice, still open on paper)
+### LMCache #2845 — hybrid model tracker (resolved in practice by the docs)
 
-**State**: open, but stale relative to reality. **Affects**: nothing on lmcache 0.5.x.
+**State**: closed by the stale bot, no fix or maintainer answer — the closure is not evidence. **Affects**: nothing on lmcache 0.5.x.
 
-MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLLM's `SupportsHMA`, and upstream publishes per-model recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6 (GDN), DeepSeek-V4-Flash, GLM 5.1/5.2 and MiniMax-M3 (`docs/source/mp/hybrid_models.rst`). A 2026-07-10 comment on #2845 asks whether the tracker should be closed given the docs; no maintainer answer yet. vLLM #38261 (HybridOffloadPlanner) is still open and no longer on the critical path.
+MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLLM's `SupportsHMA`, and upstream publishes per-model recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6 (GDN), DeepSeek-V4-Flash, GLM 5.1/5.2 and MiniMax-M3 (`docs/source/mp/hybrid_models.rst`). vLLM #38261 (HybridOffloadPlanner) is still open and no longer on the critical path.
 
 **Avoidance**: none needed on 0.5.x — follow the recipe page for the model, and get the unified block size `N` from vLLM's own startup log rather than assuming one. On lmcache ≤ 0.4.x the old restriction stands: use vLLM native offload (`vllm-caching`), which has supported hybrids since vLLM v0.21.0.
 
@@ -42,7 +42,7 @@ MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLL
 
 ### LMCache #2502 — LocalDiskBackend benchmark crashes vLLM
 
-**State**: open. Affects: in-process V1 with disk tier.
+**State**: closed by the stale bot with no fix — treat as open. Affects: in-process V1 with disk tier.
 
 **Avoidance**: Skip the disk tier on production paths. In MP mode, use `nixl_store_dynamic` or `fs` adapter instead.
 

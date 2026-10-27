@@ -161,7 +161,7 @@ Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode al
 
 **Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream documents the flag as transparent to correctness. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its default are confirmed in `lmcache/v1/multiprocess/config.py:48`.
 
-Still open upstream: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (the original hybrid tracker) has not been closed even though the docs now claim support — a 2026-07-10 comment asks exactly that. [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner) is also still open. Neither blocks the documented path; treat #2845 as a bookkeeping lag, and verify the specific model against its recipe page before production.
+[LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (the original hybrid tracker) was closed by the stale bot with no fix or maintainer answer, so its state says nothing either way; [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner) is still open. Neither blocks the documented path: the recipe pages are the authority, and verify the specific model against its recipe before production.
 
 Note the in-process `LMCacheConnectorV1` did **not** get this — it does not declare `SupportsHMA` at vLLM v0.25.1, so hybrids remain broken there (#3106). That distinction is the main reason to choose MP mode for a hybrid model.
 
@@ -267,7 +267,7 @@ Ranked by likelihood:
 - vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py`
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
 - LMCache K8s Operator: [operator-v0.5.5 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.5) (CRD-based DaemonSet+Service+ConfigMap reconciler)
-- Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (open), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
+- Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (stale-closed, no fix), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
 - cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (autoclosed 2026-08-17 for inactivity, **not fixed** — fix PR #40041 still open)
 
 See `references/sources.md` for verification dates and the inspection ritual.
