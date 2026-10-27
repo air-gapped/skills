@@ -9,11 +9,11 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | LMSYS HiCache blog (2025-09-10) | https://www.lmsys.org/blog/2025-09-10-sglang-hicache/ | 2026-08-18 | Architecture overview + headline performance numbers (Novita TTFT –56%, Ant Group TTFT –84%, "up to 6×/80%" uncited) |
-| SGLang HiCache user doc | https://docs.sglang.io/advanced_features/hicache.html | 2026-08-18 | User-facing entry-point. Mirrored in the local repo at `docs/advanced_features/hicache.rst` |
-| SGLang HiCache design doc | https://docs.sglang.io/advanced_features/hicache_design.html | 2026-08-18 | Class architecture, write/read paths, eviction. Local: `docs/advanced_features/hicache_design.md` |
-| SGLang HiCache best-practices | https://docs.sglang.io/advanced_features/hicache_best_practices.html | 2026-08-18 | Recommended flag combos. Local: `docs/advanced_features/hicache_best_practices.md` |
-| SGLang HiCache runtime attach/detach | https://docs.sglang.io/advanced_features/hicache_storage_runtime_attach_detach.html | 2026-08-18 | HTTP admin API for L3 swap without engine restart. Local: `docs/advanced_features/hicache_storage_runtime_attach_detach.md` |
-| SGLang server-arguments doc | https://docs.sglang.io/advanced_features/server_arguments.html | 2026-08-18 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
+| SGLang HiCache user doc | https://docs.sglang.io/docs/advanced_features/hicache | 2026-10-27 | User-facing entry-point (old `/advanced_features/*.html` URLs 200-redirect here). In-repo at v0.5.22: `docs/docs/advanced_features/hicache.mdx` |
+| SGLang HiCache design doc | https://docs.sglang.io/docs/advanced_features/hicache_design | 2026-10-27 | Class architecture, write/read paths, eviction. In-repo: `docs/docs/advanced_features/hicache_design.mdx` |
+| SGLang HiCache best-practices | https://docs.sglang.io/docs/advanced_features/hicache_best_practices | 2026-10-27 | Recommended flag combos. In-repo: `docs/docs/advanced_features/hicache_best_practices.mdx` |
+| SGLang HiCache runtime attach/detach | https://docs.sglang.io/docs/advanced_features/hicache_storage_runtime_attach_detach | 2026-10-27 | HTTP admin API for L3 swap without engine restart. In-repo: `docs/docs/advanced_features/hicache_storage_runtime_attach_detach.mdx` |
+| SGLang server-arguments doc | https://docs.sglang.io/docs/advanced_features/server_arguments | 2026-10-27 | Canonical flag list. Trust `python -m sglang.launch_server --help` over the doc when they disagree |
 
 ## Repository (source of truth for flags)
 
@@ -33,7 +33,9 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | #22607 PP + HiCache consistency meta | https://github.com/sgl-project/sglang/issues/22607 | 2026-09-15 | **CLOSED COMPLETED 2026-08-25 by PR #27010**, merge `829138a3`, first tag **v0.5.19** (ancestry checked in-clone). PR #22878 was closed unmerged and is not the fix. Below v0.5.19 the workaround stands: pp_size = 1 |
-| #30760 HiCache prefetch all_reduce deadlock, TP=4 no PP | https://github.com/sgl-project/sglang/issues/30760 | 2026-07-21 | **NEW, OPEN** (2026-07-10). Split out of #22607 as the TP-only case. Mismatched all_reduce call count across ranks. No published workaround — undermines the assumption that TP-only deploys dodge the #22607 family |
+| #30760 HiCache prefetch all_reduce deadlock, TP=4 no PP | https://github.com/sgl-project/sglang/issues/30760 | 2026-10-27 | **OPEN** (filed 2026-07-10); candidate fix PR #33029 still open, unmerged, at v0.5.22. Split out of #22607 as the TP-only case. Mismatched all_reduce call count across ranks. No published workaround — undermines the assumption that TP-only deploys dodge the #22607 family |
+| #39147 HiCacheFile unrestorable prefix on hybrid pools | https://github.com/sgl-project/sglang/issues/39147 | 2026-10-27 | OPEN, no fix PR linked. File backend only |
+| #39444 write_through + Mooncake partial prefix persistence | https://github.com/sgl-project/sglang/issues/39444 | 2026-10-27 | OPEN, no fix PR linked |
 | #19212 write_back crashes under load | https://github.com/sgl-project/sglang/issues/19212 | 2026-07-21 | **CLOSED COMPLETED 2026-05-24.** Reporter confirmed PRs #22592 (merged 2026-04-16) + #23696 (merged 2026-05-01) fix it. write_through remains the default |
 | #23659 SWA HiRadixCache rejection | https://github.com/sgl-project/sglang/issues/23659 | 2026-05-29 | **CLOSED 2026-05-08**. Resolved by PR #23391 (merged 2026-05-06), shipped in v0.5.11 |
 | #23429 Mamba+write_back host-pool crash | https://github.com/sgl-project/sglang/issues/23429 | 2026-07-21 | **CLOSED COMPLETED 2026-04-25** |
@@ -65,7 +67,7 @@ Each row records the authoritative source for a claim in this skill. Freshen mod
 |---|---|---|---|
 | Mooncake × SGLang HiCache integration | https://kvcache-ai.github.io/Mooncake/getting_started/examples/sglang-integration/hicache-integration-v1.html | 2026-08-18 | Mooncake-side config recipe |
 | Mooncake × SGLang HiCache benchmark | https://kvcache-ai.github.io/Mooncake/performance/sglang/sglang-hicache-benchmark-results-v1.html | 2026-08-18 | 8× H800 + Qwen3-235B + 8× mlx5; 2× A10 + Qwen3-14B + 2× 100Gbps eRDMA |
-| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/_602767 | 2026-08-18 | **GONE** — soft-404s to `alibabacloud.com/notfound` (HTTP 200 masking a dead page). Cross-referenced Novita Qwen3-Coder-480B numbers; find another source before citing them |
+| Alibaba Tair × SGLang HiCache blog | https://www.alibabacloud.com/blog/alibaba-cloud-tair-partners-with-sglang-to-build-hicache-constructing-a-new-cache-paradigm-for-agentic-inference_602767 | 2026-10-27 | Live at the full slug (the bare `/blog/_602767` form soft-404s). Carries the Novita production result on GPU + host + DeepSeek 3FS: hit rate 40% → 80%, TTFT −56%, QPS doubled. Does not name the model — Qwen3-Coder-480B comes from the LMSYS blog |
 | Strata: Hierarchical Context Caching paper | https://arxiv.org/html/2508.18572v1 | 2026-08-18 | arXiv 2508.18572. Academic background — not normative for production decisions |
 
 ## 2026-07-21 freshen pass
