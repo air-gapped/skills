@@ -144,9 +144,9 @@ diffs clean**. Confirm which one the template actually reads.
 **A prerequisite in release notes is written for the DEFAULT configuration.**
 The most reusable finding of a four-hop campaign.
 
-Chart 10.3.0 ships a manual step Helm cannot do: apply the Envoy Gateway and
-Gateway API 1.9.0 CRDs *before* upgrading, or the upgrade "fails on the GitLab
-Shell TCPRoute". That reads as mandatory for everyone. It is not — the named
+Chart 10.3 ships a manual step Helm cannot do: apply the Envoy Gateway 1.9.x
+CRDs **and** the Gateway API 1.6 CRDs *before* upgrading, or the upgrade "fails
+on the GitLab Shell TCPRoute". That reads as mandatory for everyone. It is not — the named
 failure is on a **Gateway API object**, and with `global.gatewayApi.enabled:
 false` the chart renders none, so there is nothing for the API server to
 reject. Verified by upgrading with **zero** Gateway API CRDs installed
