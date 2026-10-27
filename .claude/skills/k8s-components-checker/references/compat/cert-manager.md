@@ -5,8 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-09-24 — matrix unchanged (1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / OpenShift 4.19–4.21, EOL triggers unchanged). Patch ceilings moved to **1.21.2** (2026-09-11), **1.20.4** (2026-09-16), **1.19.6** (2026-06-25), **1.18.6** (2026-02-24). Upcoming: **1.22 ~Nov 2026** (EOL: release of 1.24; k8s window TBD).
-- **Last release-verified:** 2026-09-24
+- **Last sifted:** 2026-10-27 — 1.21 ceiling **v1.21.3** (2026-10-23): base images drop the compromised eMudhra "emSign ECC Root CA - G3" root, Go 1.26.10 (crypto/x509 CVE), golang.org/x/net v0.60.0; also fixes an ACME ARI renewal loop and stops the controller copying a private key from a Secret the Certificate does not own. Treat v1.21.3 as the 1.21 security floor; matrix unchanged. Previous: 2026-09-24 — matrix unchanged (1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / OpenShift 4.19–4.21, EOL triggers unchanged). Patch ceilings moved to **1.21.2** (2026-09-11), **1.20.4** (2026-09-16), **1.19.6** (2026-06-25), **1.18.6** (2026-02-24). Upcoming: **1.22 ~Nov 2026** (EOL: release of 1.24; k8s window TBD).
+- **Last release-verified:** 2026-10-27
 - Policy verbatim: *"All cert-manager releases are supported at least until the release of a second subsequent version"*, and *"Only the last patch release of each branch is supported."* — the patch ceilings above are the actionable figure, not the minor.
 
 Support policy: each release is supported until two subsequent minors ship, so

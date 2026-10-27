@@ -230,7 +230,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://cert-manager.io/docs/releases/
 - Secondary URL: https://github.com/cert-manager/cert-manager/releases
 - Probe: WebFetch releases page; `gh release list --repo cert-manager/cert-manager`.
-- Last verified: 2026-10-04 — v1.21.2 (2026-09-11, `isLatest`); v1.20.4 (2026-09-16) is newer by date on the older line.
+- Last verified: 2026-10-27 — v1.21.3 (2026-10-23, `isLatest`, eMudhra root removed + Go 1.26.10); no new 1.20 patch (sync shows 1.20 unchanged).
 
 ## Kyverno
 
