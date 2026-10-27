@@ -99,7 +99,7 @@ The crux: **ephemeral NVRAM is re-templated from the virt-launcher firmware on e
 ### In-guest append (Linux guest — durable only on persistent NVRAM)
 ```bash
 mokutil --sb-state                                   # confirm enabled
-curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/amd64/DBUpdate3P2023.bin
+curl -fLO https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PostSignedObjects/Optional/DB/DBUpdate3P2023.bin
 sudo chattr -i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f
 sudo efi-updatevar -a -f DBUpdate3P2023.bin db
 sudo chattr +i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f

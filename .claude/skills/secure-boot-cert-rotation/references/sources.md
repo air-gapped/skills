@@ -81,7 +81,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   configurations where the 2023 db update is confirmed safe. Check hardware against it before any force-push.
 
 ## The signed payloads
-- microsoft/secureboot_objects (GitHub) — **path corrected 2026-09-15: there is no `amd64/` level under `Optional/DB`** (the only `amd64` dir in the repo is under `PostSignedObjects/DBX/`, a different artifact). This was wrong from when it was written, not drift — the three filenames were always correct, the directory never existed. PostSignedObjects/Optional/DB/{DBUpdate3P2023, DBUpdate2024,
+- microsoft/secureboot_objects (GitHub) — **no `amd64/` level under `Optional/DB` since PR #448 (merged 2026-09-01)**, which moved `Optional/DB/amd64/*.bin` up one level and deleted the `arm`/`arm64`/`x86` copies (drift, not an authoring error — older clones still show the per-arch dirs). Raw URLs re-checked 2026-10-27: no-prefix path 200, `amd64/` path 404, in every file of this skill. PostSignedObjects/Optional/DB/{DBUpdate3P2023, DBUpdate2024,
   DBUpdateOROM2023}.bin (EFI_VARIABLE_AUTHENTICATION_2, signed by the 2011 KEK); PostSignedObjects/KEK/ is
   per-OEM (no generic 2023 KEK payload); PreSignedObjects/KEK/Certificates/microsoft corporation kek 2k ca
   2023.der (raw cert only).
