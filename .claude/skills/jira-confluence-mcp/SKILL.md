@@ -24,7 +24,7 @@ Claude's base instinct is the Cloud pattern — and it **fails on Data Center**.
 | **Data Center / Server** | `JIRA_URL` + **`JIRA_PERSONAL_TOKEN`** (a Personal Access Token). *No username.* |
 | Cloud | `JIRA_URL` + `JIRA_USERNAME` (email) + `JIRA_API_TOKEN` |
 
-DC PATs: created at profile → **Personal Access Tokens**; **max 10 per user**; set an expiry. Full auth matrix (OAuth 2.0, BYOT, multi-cloud) + the complete env-var catalog: **`references/auth-config.md`**.
+DC PATs: created at profile → **Personal Access Tokens**; **max 10 per user by default, expired tokens included** — revoke stale ones to free a slot; set an expiry. Full auth matrix (OAuth 2.0, BYOT, multi-cloud) + the complete env-var catalog: **`references/auth-config.md`**.
 
 ## Enable Jira, Confluence, or both (the #1 setup miss)
 

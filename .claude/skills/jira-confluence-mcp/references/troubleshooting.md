@@ -15,7 +15,7 @@ Symptom → cause → fix. Most failures are auth, TLS, field, or rate-limit. Th
 | Symptom | Cause | Fix |
 |---|---|---|
 | **401 — Cloud** | Wrong/expired API token, or `JIRA_USERNAME` isn't the email | Use an API token (not the account password); confirm username = email; test `curl -u "you@co:token" https://co.atlassian.net/rest/api/2/myself` |
-| **401 — PAT (DC)** | Invalid/expired PAT or missing perms; over the 10-PAT cap | New PAT with sufficient perms; test `curl -H "Authorization: Bearer <pat>" https://jira.internal/rest/api/2/myself` |
+| **401 — PAT (DC)** | Invalid/expired PAT or missing perms; can't create a new one because the 10-PAT cap counts expired tokens | Revoke expired PATs, then a new PAT with sufficient perms; test `curl -H "Authorization: Bearer <pat>" https://jira.internal/rest/api/2/myself` |
 | **403 Forbidden** | Account lacks permission for the op; **or `READ_ONLY_MODE=true` is blocking a write** | Check project perms / admin rights for admin-only fields; if it's a write, confirm `READ_ONLY_MODE` isn't set |
 | **OAuth token expired** | Access token expired, refresh failed | Re-run `mcp-atlassian --oauth-setup`; ensure `offline_access` scope; confirm the OAuth app is still active |
 

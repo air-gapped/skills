@@ -22,7 +22,7 @@ JIRA_API_TOKEN=<token>
 ```
 
 ### Data Center — PAT (the default for this skill)
-Profile (avatar) → **Personal Access Tokens** → Create token, set expiry. **Max 10 PATs per user.**
+Profile (avatar) → **Personal Access Tokens** → Create token, set expiry. **Max 10 PATs per user by default, counting expired ones** — revoke stale tokens to free a slot. Admins change the cap with the system property `atlassian.pats.max.tokens.per.user` (expiry ceiling: `atlassian.pats.max.tokens.expiry.days`, default 365).
 ```bash
 JIRA_URL=https://jira.internal.company.com
 JIRA_PERSONAL_TOKEN=<pat>
