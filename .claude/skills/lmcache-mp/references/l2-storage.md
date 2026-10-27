@@ -228,6 +228,8 @@ L2 eviction is **per-adapter**. Add an `"eviction"` sub-object to the adapter's 
 }'
 ```
 
+`eviction_policy` (L1 flag and L2 adapter JSON alike) accepts `LRU`, `ARC` (0.5.6+), `IsolatedLRU` or `noop`.
+
 L2 eviction support per adapter type:
 
 | Adapter | L2 eviction |

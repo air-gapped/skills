@@ -229,7 +229,9 @@ LMCache `--l1-size-gb` is the **total** L1 size for that LMCache server, not per
 
 ### 6. Eviction tuning matters under steady load
 
-Defaults (`--eviction-policy LRU --eviction-trigger-watermark 0.8 --eviction-ratio 0.2`) are fine for bursty traffic. Under sustained pressure, frequent eviction cycles can stutter cache hits. Lower the watermark (0.7) or raise the ratio (0.3) if logs show eviction every few seconds.
+`--eviction-policy` has no default; the server refuses to start without it. The pressure defaults (`--eviction-trigger-watermark 0.8 --eviction-ratio 0.2`) are fine for bursty traffic. Under sustained pressure, frequent eviction cycles can stutter cache hits. Lower the watermark (0.7) or raise the ratio (0.3) if logs show eviction every few seconds.
+
+On lmcache 0.5.6+, choose `--eviction-policy ARC` when reused prefixes (system prompts, shared RAG documents, agent/tool prefixes) share L1 with a stream of one-time prefixes or batch scans: LRU flushes the hot set, while ARC keeps it. ARC ignores `cache_salt`, so use `IsolatedLRU` where per-tenant quotas are needed. Each L2 adapter can choose it separately (`"eviction":{"eviction_policy":"ARC"}`).
 
 ### 7. CUDA IPC requirements
 
