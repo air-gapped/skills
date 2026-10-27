@@ -310,9 +310,11 @@ plausible threat, or are other STRIDE categories live too? (A file parser with
 an RCE threat probably also has a DoS threat.)
 
 Then check the table against the **repo-kind baseline** in `interview.md`
-§Q2 — the same union-of-kinds list, used the same way: a baseline class with
-a matching surface here and no row covering it is a gap to fill; a class with
-no such surface is dropped silently. Past-vuln clustering is biased toward
+§Q2 — the same union-of-kinds list: a baseline class with a matching surface
+here and no row covering it is a gap to fill; a class with no such surface
+gets a section 5 line naming the class and the absent surface ("SSRF: no
+outbound request is built from input"), never a section 4 row, so every
+class has a recorded disposition. Past-vuln clustering is biased toward
 what has already been found, and the baseline is the cheapest correction for
 that bias — but only while it stays a recall aid. A row emitted because a
 checklist named it, with no surface behind it, is noise in every future read
