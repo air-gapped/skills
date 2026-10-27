@@ -48,10 +48,10 @@ harvester/harvester` + the per-release virt-launcher image at use time — versi
 ## Layer 1 — the Dell host firmware (only if the host runs Secure Boot ON)
 
 Harvester *can* boot SB-on (the SLE Micro shim is Microsoft-UEFI-CA-signed → SUSE keys for grub/kernel), but
-1.5.x is commonly installed **SB-off** because of bug **harvester#7343** — the 1.5.x ISO's stale shim fails the
+1.5.x is commonly installed **SB-off** because of bug **harvester/harvester#7343** — the 1.5.x ISO's stale shim fails the
 SBAT self-check (`Security Policy Violation` / `SBAT self-check failed`) when booting on a Secure-Boot host;
 the documented workaround is install with SB off, optionally re-enable after. **Now fixed and shipped in
-v1.8.0 GA** (PR `harvester-installer#1217`; the issue's close is a genuine QA verification on
+v1.8.0 GA** (PR `harvester/harvester-installer#1217`; the issue's close is a genuine QA verification on
 `v1.8.0-dev-20260118`, not a stale-bot close) — so **1.5.x/1.6.x/1.7.x installers remain affected** and still
 need the SB-off workaround. Check: iDRAC/BIOS Secure Boot setting, or `mokutil --sb-state` on the node.
 **ON** → iDRAC BIOS update + reboot (`dell-poweredge.md`). **OFF** → host firmware certs are irrelevant to the

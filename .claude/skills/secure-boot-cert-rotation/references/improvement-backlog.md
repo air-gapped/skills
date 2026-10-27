@@ -86,7 +86,7 @@ Freshen (evidence-driven):
   a per-distro status table; Red Hat shipped dual-signed 2026-06-10, Ubuntu shipped no shim at all.
 - **Stock Ubuntu fwupd cleared the 2.0.8 floor** — 2.0.20 is in both LTS `-updates` pockets, so the
   "too old, install the snap" advice was retired and the coverage-vs-version confusion untangled.
-- **Harvester GA is 1.8.2**; issue #7343 confirmed fixed in 1.8.0 GA (close checked against freshen rule 3.0 —
+- **Harvester GA is 1.8.2**; issue harvester/harvester#7343 confirmed fixed in 1.8.0 GA (close checked against freshen rule 3.0 —
   genuine QA verification, not a stale-bot close).
 - **Event ID citation corrected** — "media is write protected" was not Microsoft's wording for 1795, and
   neither ID lives on the known-issues page; repointed to the DB/DBX update events article.

@@ -149,7 +149,7 @@ cutting gotchas, ordering, and the do-nothing risk timeline: `references/gotchas
   staging trick (`/boot/efi`, no USB/virtual-media), the fwupd-snap fallback + Ubuntu pocket reality, the
   patch-vs-reinstall decision.
 - `references/harvester-vms.md` — the two layers (Dell host vs guest OVMF), guest OVMF ships in `virt-launcher`
-  (floor **v1.6.0**, per-line table, the artifact-proof method), host Secure Boot + bug #7343, the
+  (floor **v1.6.0**, per-line table, the artifact-proof method), host Secure Boot + bug harvester/harvester#7343, the
   ephemeral-vs-persistent NVRAM triage with exact `kubectl` commands, `virt-fw-vars` injection.
 - `references/gotchas-and-decisions.md` — order of operations (PK→KEK→db), HP/Fujitsu standalone-db block,
   NVRAM exhaustion, BitLocker/PCR7 reseal, **the backup + recovery ladder for an enrollment that went wrong**,
