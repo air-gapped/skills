@@ -277,7 +277,9 @@ comparison does not.
   prompt evolution) is now the optimizer DSPy leads with; MIPROv2 (Bayesian
   surrogate over a TPE) is still shipped but no longer the headline. The
   surrogate-search idea is what this skill points at for pure parameter sweeps
-  — the flagship label moved, the mechanism did not.
+  — the flagship label moved, the mechanism did not. GEPA needs a metric that
+  returns per-example textual feedback; with a bare scalar metric, as in Mode 1,
+  DSPy's selection guide says MIPROv2 or COPRO may do better on the same budget.
 
 ## Benchmarks for the Loop Itself
 

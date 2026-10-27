@@ -333,7 +333,7 @@ Limits and grant semantics SKILL.md acts on (Mode 1 Step 3 permissions, Mode 2 f
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
 | Anthropic: Agent Evals | https://www.anthropic.com/research/demystifying-evals-for-ai-agents | Capability vs regression evals (pub. 2026-01-09). Moved from `/engineering/`, which now redirects | 2026-10-27 | 2026-01-09 |
-| DSPy | https://dspy.ai/ | Programmatic prompt optimization. **GEPA is now the lead optimizer**; MIPROv2 demoted to secondary | 2026-09-15 | — |
+| DSPy | https://dspy.ai/ | Programmatic prompt optimization. GEPA has the Getting Started and in-depth pages; MIPROv2 still ships. Root redirects to `/current/`; selection guide at `/current/diving-deeper/choosing-an-optimizer/` | 2026-10-27 | — |
 
 ## Curated Lists
 
