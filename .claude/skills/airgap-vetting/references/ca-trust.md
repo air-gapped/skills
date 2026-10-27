@@ -9,7 +9,7 @@ your CA" for a replacement-semantics variable.
 
 | Ecosystem | Inject via | Failure mode to grep for |
 |-----------|-----------|--------------------------|
-| Python | `REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`; `truststore` pkg for OS trust; pip ≥24.2 adds the OS store on Python ≥3.10 only (≤3.9: certifi only) | `certifi.where()` w/o env override; **aiohttp ignores `REQUESTS_CA_BUNDLE`** — it reads only `SSL_CERT_FILE`/`SSL_CERT_DIR`, so a requests-style CA setup misses its calls; `verify=False` |
+| Python | `REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`; `truststore` pkg for OS trust; pip ≥24.2 adds the OS store on Python ≥3.10 only (≤3.9: certifi only) | `certifi.where()` w/o env override; **aiohttp ignores `REQUESTS_CA_BUNDLE`** — it reads only `SSL_CERT_FILE`/`SSL_CERT_DIR`, so a requests-style CA setup misses its calls; **Python ≥3.13 default context is `VERIFY_X509_STRICT`** — a private CA without `keyUsage` or a leaf without AKI fails ("CA cert does not include key usage extension") although the CA is trusted; `verify=False` |
 | Node | `NODE_EXTRA_CA_CERTS` (appends); npm `cafile`; Yarn Berry `httpsCaFilePath` | **Electron <30 ignores `NODE_EXTRA_CA_CERTS`** (electron#41590; fixed in Electron 30, PR #41689); **undici/fetch() ignored it on Node 18** (undici#2200); `rejectUnauthorized:false` |
 | Go | native system store; `SSL_CERT_FILE`/`SSL_CERT_DIR` | **`FROM scratch`/distroless with no ca-certificates** → `x509: unknown authority`; `InsecureSkipVerify: true` |
 | Java | JKS/PKCS12 truststore; `-Djavax.net.ssl.trustStore`; `keytool -import` | replaces cacerts entirely; per-app `SSLContext` bypass; empty `X509TrustManager` |

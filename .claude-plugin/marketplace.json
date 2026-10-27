@@ -653,7 +653,7 @@
       "name": "airgap-vetting",
       "source": "./",
       "description": "Vet an open-source product for air-gap readiness BEFORE adoption",
-      "version": "0.20261027.11",
+      "version": "0.20261027.12",
       "author": {
         "name": "Jörgen"
       },
