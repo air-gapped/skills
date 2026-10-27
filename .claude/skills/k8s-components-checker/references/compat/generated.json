@@ -316,15 +316,15 @@
     },
     "6.1": {
      "date": null,
-     "latest": "6.1.0"
+     "latest": "6.1.1"
     },
     "6.2": {
      "date": null,
-     "latest": "6.2.0"
+     "latest": "6.2.2"
     }
    },
    "upcoming": {
-    "6.3": "6.3.0-weekly.413"
+    "6.3": "6.3.0-weekly.418"
    }
   },
   "nvidia-gpu-operator": {
