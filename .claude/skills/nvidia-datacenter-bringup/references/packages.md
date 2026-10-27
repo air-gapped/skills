@@ -33,13 +33,13 @@ Ubuntu 24.04 CUDA repo's `Packages` index today:
 | `nvidia-driver-<b>`, `nvidia-driver-<b>-open`, `nvidia-open-<b>`, `cuda-drivers-<b>`, `nvlink5-<b>` | **580** | unsuffixed `nvidia-driver` / `nvidia-driver-open` / `nvidia-open` / `nvlink5` |
 | `nvidia-fabricmanager-<b>`, `cuda-drivers-fabricmanager-<b>`, `libnvidia-nscq-<b>`, `libnvsdm-<b>`, `nvidia-imex-<b>` | **575** | unsuffixed `nvidia-fabricmanager`, `libnvidia-nscq`, … |
 
-Branches **590, 595 and 610** are published — `nvidia-driver`, `nvidia-open`,
-`nvlink5` and `nvidia-fabricmanager` all reach `615.71.09-2ubuntu1` — but only
+Branches **590, 595, 610 and 615** are published — `nvidia-driver`, `nvidia-open`,
+`nvlink5` and `nvidia-fabricmanager` all reach `615.71.10-1ubuntu1` — but only
 through the **unsuffixed** package names, with the branch encoded in the
 *version*. There is no `nvidia-open-610`.
 
 **So `apt install nvidia-open-<branch>` is not a general recipe above 580.**
-Pinning above 580 goes through `nvidia-driver-pinning-<branch>` (590/595/610 all
+Pinning above 580 goes through `nvidia-driver-pinning-<branch>` (590/595/610/615 all
 present) or `nvidia-driver-pinning-<version>`, then installing the *unsuffixed*
 meta. The 580-based recipes in [[recipe]] and [[hopper-recipe]] remain valid
 because 580 is the last branch on the suffixed scheme — that is luck, not design,
@@ -55,15 +55,15 @@ or never existed is not resolvable from the index alone — what is certain is w
 | Package | Type | Variants | What it is |
 |---|---|---|---|
 | `cuda-keyring` | repo bootstrap | `1.1-1_all` | Installs `/usr/share/keyrings/cuda-archive-keyring.gpg` + `/etc/apt/sources.list.d/cuda-*.list` |
-| `nvidia-driver-pinning-<branch>` | apt pin file | 570, 575, 580, 590, 595, **610** | Installs an apt-preferences file at priority 1000; allows downgrades |
+| `nvidia-driver-pinning-<branch>` | apt pin file | 570, 575, 580, 590, 595, 610, **615** | Installs an apt-preferences file at priority 1000; allows downgrades |
 | `nvidia-driver-pinning-<version>` | apt pin file | 580.126.20, 580.159.03, 590.48.01, 595.71.05, ... | Patch-level pin |
 | `nvidia-open` | meta (open, latest) | bare | `Depends: nvidia-driver-open`; conflicts with `cuda-drivers` + `nvidia-driver` |
 | `nvidia-open-<branch>` | meta (open, branch-pinned) | 560, 565, 570, 575, 580 | `Depends: nvidia-driver-<branch>-open \| nvidia-driver-<branch>-server-open` |
 | `cuda-drivers` | meta (proprietary, latest) | bare | UNSUITABLE for Blackwell |
 | `cuda-drivers-<branch>` | meta (proprietary, branch) | various | UNSUITABLE for Blackwell |
 | `nvlink5` | meta (latest) | bare | Pulls fabric stack — verify on a real B300 |
-| `nvlink5-<branch>` | meta (branch-pinned) | 570, 575, 580 (no 590/595 yet) | Pulls FM + NVLSM + libnvsdm + libibumad3 + infiniband-diags coherent to branch |
-| `nvlsm` | binary | floating (calver `2025.10.14-1`) | NVLink Subnet Manager. `Depends: build-essential, libgcc1, libc6, libstdc++6, libibumad3` |
+| `nvlink5-<branch>` | meta (branch-pinned) | 570, 575, 580 only — newer branches use unsuffixed `nvlink5` | Pulls FM + NVLSM + libnvsdm + libibumad3 + infiniband-diags coherent to branch |
+| `nvlsm` | binary | floating (calver `2025.12.211-1`) | NVLink Subnet Manager. `Depends: build-essential, libgcc1, libc6, libstdc++6, libibumad3` |
 | `libnvsdm` | shared lib | bare + 560/565/570/575 | NVSDM library for telemetry from QM switches |
 | `libnvsdm-dev` | dev headers | one | API header + lib |
 | `nvidia-fabricmanager-<branch>` | binary | 550–**575 only** | FM service. `Depends: nvidia-kernel-common-<branch>-server`. **No 580/590/595 suffixed build exists** — see the branch-suffix cliff below |
@@ -113,11 +113,11 @@ sudo apt install --autoremove --purge nvidia-open nvidia-driver-open
 
 ## `nvlink5-<branch>` dependency tree (apt-cache-verified)
 
-Live `apt-cache show nvlink5-580` output (2026-05-21, CUDA repo Ubuntu 24.04 amd64) gives the exact dependency set:
+`apt-cache show nvlink5-580` for the newest build in the CUDA repo (Ubuntu 24.04 amd64) gives the exact dependency set:
 
 ```
 Package: nvlink5-580
-Version: 580.159.04-1
+Version: 580.196.07-1
 Provides: nvlink5-branch
 Depends: libnvidia-nscq (>= 580),
          libnvsdm (>= 580),
@@ -125,11 +125,11 @@ Depends: libnvidia-nscq (>= 580),
          nvidia-imex (>= 580),
          nvidia-dkms-580-open | nvidia-kernel-open-dkms (>= 580),
          libnvidia-compute-580 | nvidia-driver-cuda (>= 580),
-         collectx-bringup (>= 1.22.1),
+         collectx-bringup (>= 1.26.0),
          mft (>= 4.35.0.159),
          mft-oem (>= 4.35.0.159),
          mft-autocomplete (>= 4.35.0.159),
-         nvlsm (>= 2025.10.12)
+         nvlsm (>= 2025.12.211)
 ```
 
 Components installed by `nvlink5-580`:
@@ -149,13 +149,13 @@ What `nvlink5-580` does **NOT** install:
 
 ## NVLSM versioning quirk
 
-`nvlsm` is a **single floating package** (calver, e.g. `2025.10.12-1`), not branch-versioned. The apt-cache description literally says:
+`nvlsm` is a **single floating package** (calver, e.g. `2025.12.211-1`), not branch-versioned. The apt-cache description literally says:
 
 > SM is an InfiniBand compliant Subnet Manager (SM).
 
 (Yes, just "SM" — terse.) It depends on `libibumad3` plus build-essential / libc / libgcc / libstdc++. **No dependency on a specific NVIDIA driver branch.**
 
-**Consequence: NVLSM↔driver coherence is not enforced anywhere.** `nvlink5-<branch>` declares `nvlsm (>= 2025.10.12)` — a floor, not a pin — so `apt upgrade` will pull a newer calver `nvlsm` alongside a pinned 580-branch driver and neither apt nor the meta will object. This is the opposite of the FM↔driver relationship, which *is* enforced and aborts with "kernel driver stack version not compatible" on mismatch (see [[troubleshooting]]).
+**Consequence: NVLSM↔driver coherence is not enforced anywhere.** `nvlink5-<branch>` declares `nvlsm (>= 2025.12.211)` — a floor, not a pin — so `apt upgrade` will pull a newer calver `nvlsm` alongside a pinned 580-branch driver and neither apt nor the meta will object. This is the opposite of the FM↔driver relationship, which *is* enforced and aborts with "kernel driver stack version not compatible" on mismatch (see [[troubleshooting]]).
 
 NVIDIA publishes no NVLSM↔driver compatibility matrix, so treat a drifted pair as unverified rather than broken, and confirm on the box after any upgrade that moved `nvlsm`:
 
