@@ -167,7 +167,11 @@ API surface in the cluster permanently.
 was deprecated for `orbit` with removal planned for 19.5 — itself the next
 required stop. Sites are forced through stops, so that is where removals are
 aimed. After finishing a campaign, grep the new stock values for `Deprecated`
-and note anything whose removal milestone equals the next stop.
+and note anything whose removal milestone equals the next stop. **A planned
+removal milestone is a target, not an event:** chart 10.5.1 (GitLab 19.5.1)
+still accepts `knowledgeGraph` with the same "planned for removal in 19.5"
+comment. Migrate the key anyway, and re-grep at every hop rather than assuming
+the removal happened.
 
 **The chart enforces its own sequencing.** The upgrade-check hook carries
 `MIN_VERSION` / `CHART_MIN_VERSION` (19.2 / 10.2 at chart 10.3.1) and refuses a

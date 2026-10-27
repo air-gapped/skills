@@ -130,7 +130,10 @@ housekeeping closes and fix closes look identical in the state field.
   measured missing one of five.
 - **NGINX Ingress removal at GitLab 20.0**, and whether Gateway API becomes
   unavoidable before then.
-- **`global.appConfig.knowledgeGraph` → `orbit`**, removal planned for 19.5.
+- **`global.appConfig.knowledgeGraph` → `orbit`**, removal planned for 19.5 —
+  yet `values.yaml` at chart tag `v10.5.1` (app v19.5.1) and at master still
+  carries the key, and `NOTES.txt` still prints the "planned for removal in
+  GitLab 19.5" notice (checked 2026-10-27). Re-check at the next chart minor.
 - Issue states for every number above — several are open and may be fixed,
   documented, or closed as stale.
 - **Gitaly Cluster (Praefect) on Kubernetes leaving beta.** Check epic 20405's
