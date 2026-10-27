@@ -469,11 +469,13 @@ default 3) with `subagent_type: "triage-verifier"` (plugin installs:
 Read the agent definition file above and spawn `general-purpose` verifiers
 with its body pasted above the per-spawn tail.
 
-**Always set `subagent_type`; never fork.** Omitting `subagent_type` forks
-the orchestrator, and a fork inherits the full conversation context: every
-other finding's description, the scanner's prose, and any prior verifier
-results. That defeats verifier independence and re-introduces the
-inherited-framing failure mode this phase exists to prevent. Each verifier
+**Always set `subagent_type`; never fork.** An omitted type falls back to
+`general-purpose`, losing the verifier definition's prompt and read-only
+tools. A fork (`subagent_type: "fork"`) inherits the full conversation
+context: every other finding's description, the scanner's prose, and any
+prior verifier results. That defeats verifier independence and
+re-introduces the inherited-framing failure mode this phase exists to
+prevent. Each verifier
 must start with a fresh, empty context and receive only the verifier
 instructions plus the single finding under review. The same applies to the
 ranking subagents in 4a.

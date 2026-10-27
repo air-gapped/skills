@@ -79,6 +79,17 @@ s7 dedup stage and s4 finding schema.
   validate edges yourself" stance (`_callgraph_context_for_finding`).
 - Last verified: 2026-08-16  (read from a local clone at the current commit)
 
+## Claude Code subagent docs (Phase 3b / 4a spawn rules)
+
+- URLs: https://code.claude.com/docs/en/sub-agents ("Fork the current
+  conversation"); https://code.claude.com/docs/en/errors ("subagent_type is
+  required")
+- Note: an Agent call that omits `subagent_type` falls back to
+  `general-purpose`; it errors only when the session has no general-purpose
+  agent. A fork "inherits the entire conversation so far". Omission does not
+  fork — the "never fork" rule rests on the fork case, and omission costs the
+  verifier/ranker definition.
+
 ---
 
 ## Markers
