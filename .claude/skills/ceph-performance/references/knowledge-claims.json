@@ -130,7 +130,7 @@
     },
     {
       "id": 24,
-      "question": "In which Ceph release did enabling allow_ec_optimizations on an ec_overwrites pool crash-loop OSDs at interval_set.h:365?",
+      "question": "In which Ceph release did enabling allow_ec_optimizations on a pool with a non-4K-aligned chunk size crash-loop OSDs at interval_set.h:365?",
       "skill_answer": "20.2.0"
     },
     {

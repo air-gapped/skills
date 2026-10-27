@@ -31,13 +31,13 @@
       "id": 2,
       "name": "fast-ec-existing-pool",
       "prompt": "We just upgraded to Tentacle 20.2.4. Our big RBD data pool is EC 4+2 with ec_overwrites, created on Reef with default settings. I read Tentacle has 'fast EC'. Should I just flip it on for the existing pool? Any gotchas?",
-      "expected_output": "allow_ec_optimizations is irreversible; stripe_unit fixed at creation, old 4K default gains less, recommend 16K; consider creating a new pool; 20.2.0 crash-loop report; test first.",
+      "expected_output": "allow_ec_optimizations is irreversible; stripe_unit fixed at creation, old 4K default gains less, recommend 16K; consider creating a new pool; check 4K-aligned chunk size (20.2.0 crash-loop, blocked from 20.2.1); test first.",
       "files": [],
       "assertions": [
         "Names the pool flag allow_ec_optimizations",
         "States that enabling it is irreversible for the pool",
         "Explains stripe_unit is fixed at pool creation and that the old 4K default benefits less than 16K (so a new pool may be better)",
-        "Recommends testing first / mentions the 20.2.0 OSD crash-loop report when enabling it on a pool with ec_overwrites"
+        "Recommends testing first / checks that the chunk size (stripe_width / k) is 4K-aligned, citing the 20.2.0 OSD crash-loop that 20.2.1+ blocks"
       ]
     },
     {

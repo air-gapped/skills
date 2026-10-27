@@ -106,8 +106,11 @@ it needs the OSD redeployed.
 - `stripe_unit` is fixed at pool creation: 16 KiB for general workloads,
   up to 256 KiB for read-heavy; the old 4 KiB default gains less. Create a
   new pool rather than flipping the flag on an old 4 KiB one.
-- Do not enable it on 20.2.0: turning it on for a pool that already had
-  `ec_overwrites` crash-looped OSDs (`interval_set.h:365`).
+- Enable it only where `(stripe_width / k) % 4096 == 0` (read both from
+  `ceph osd pool ls detail` and the EC profile). On 20.2.0 a non-4 KiB-
+  aligned chunk size crash-loops every OSD serving the pool
+  (`interval_set.h:365`) with no way back; 20.2.1+ refuses the flag on
+  such pools. Upgrade to ≥ 20.2.1 first.
 - Replicated size 3 still outperforms EC; EC wins on cost per byte.
 
 ## Crimson / SeaStore
