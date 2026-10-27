@@ -128,7 +128,7 @@ before quoting a cadence.
 |---|---|
 | Crunchy PGO | Active, Apache-2.0 code — but production images gated behind Crunchy's Developer Program terms; documented pull-revocation incident (#3601, **still open** as of 2026-08-25, filed 2023-03-08). Supply-chain risk for community users, and unresolved rather than historical. |
 | StackGres | Active, feature-rich, AGPL, ~1.4k stars — viable but small community. |
-| Percona PG Operator | v3.0 (May 2026), fully-open images, optional paid support — cleanest commercial-backed alternative, smaller ecosystem than CNPG. |
+| Percona PG Operator | v3.1 (Sep 2026; v3 line since May 2026), fully-open images, optional paid support — cleanest commercial-backed alternative, smaller ecosystem than CNPG. |
 | EDB Postgres for Kubernetes | Commercial CNPG with longer support windows — escape hatch if the 6-month community window is the only blocker. |
 | Stay on Zalando + wait | Legitimate — v2 (2026-07) reset the release clock and covers PG14–18. The momentum gap still widens; revisit at each k8s-components-checker survey. |
 

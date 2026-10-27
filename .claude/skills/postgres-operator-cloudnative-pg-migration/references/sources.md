@@ -68,6 +68,7 @@ authoritative.
 | Wilsher migration writeup | https://shawnwilsher.com/2026/01/migrating-from-zalados-postgres-operator-to-cloudnativepg/ | clone-cluster import pattern, extension + search_path traps, 1.15.0 trigger | 2026-07-24 |
 | Bartolini 2025 year-in-review | https://www.gabrielebartolini.it/articles/2025/12/cloudnativepg-in-2025-cncf-sandbox-postgresql-18-and-a-new-era-for-extensions/ | CNPG metrics, extension_control_path (insider, factual) | 2026-07-24 |
 | EDB survey blog | https://www.enterprisedb.com/blog/cloudnativepg-the-most-popular-postgres-operator-in-2023 | 2023 share numbers (vendor-published; no neutral 2025/26 survey exists) | 2026-07-24 |
+| Percona PG Operator releases | https://github.com/percona/percona-postgresql-operator/releases | decision.md alternatives row: v3.0.0 2026-05-22, v3.1.0 2026-09-09 (isLatest at 2026-10-27) | 2026-10-27 |
 | GitHub star counts | `gh api repos/<o>/<r> --jq .stargazers_count` | decision.md CNPG-vs-Zalando stars (9,490 / 5,265 on 2026-10-27; 9,029 / 5,208 at authoring) | 2026-10-27 |
 | Crunchy glibc blog | https://www.crunchydata.com/blog/glibc-collations-and-data-corruption | collation-corruption mechanics | 2026-07-24 |
 
