@@ -214,7 +214,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - URL: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
 - Secondary URL: https://github.com/cilium/cilium/releases
 - Probe: WebFetch docs page for the matrix; `gh release list --repo cilium/cilium` for per-version notes.
-- Last verified: 2026-10-04 — v1.20.2 (2026-09-16, `isLatest`); v1.21 still pre-release (v1.21.0-pre.3), its docs path 404s.
+- Last verified: 2026-10-27 — v1.20.4 / v1.19.10 / v1.18.16 (2026-10-23, CVE-2026-111943 security release; v1.20.4 `isLatest`); v1.21 still pre-release (v1.21.0-pre.3). Matrix windows unchanged at the new tags (`compat.py sync`).
 
 ## Tetragon
 

@@ -5,8 +5,10 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-09-24 — added `## 1.20.0` (was header-note-only since GA). Latest patch per line re-enumerated: **1.20.2**, **1.19.8**, **1.18.14** (all 2026-09-16), **1.17.18** (2026-07-16, unchanged). The 1.20.1→1.20.2, 1.19.7→1.19.8, 1.18.13→1.18.14 hops are bugfix/CI-only — no compat-verdict change. `v1.21.0-pre.2` (2026-09-09) remains pre-release only, not GA.
-- **Last release-verified:** 2026-09-24
+- **Last sifted:** 2026-10-27 — latest patch per line **1.20.4**, **1.19.10**, **1.18.16** (all 2026-10-23, out-of-band security release); 1.17 got neither October release (still 1.17.18). `v1.21.0-pre.3` (2026-10-02) is the newest pre-release, no 1.21 GA.
+- **Security floor:** **1.20.4 / 1.19.10 / 1.18.16** — CVE-2026-111943 (golang/go#82345): rebuilt on Go 1.26.10 so the compromised eMudhra intermediate CAs are no longer trusted, plus all dependencies to latest patch. The 2026-10-15 patches (1.20.3 / 1.19.9 / 1.18.15) were dependency `[security]` bumps only (golang.org/x/net v0.60.0, OTel exporters). No compat-verdict change; any line below the floor gets `⚠ needs bump` to that line's floor patch.
+- **Previous sift:** 2026-09-24 — added `## 1.20.0` (was header-note-only since GA). Latest patch per line re-enumerated: **1.20.2**, **1.19.8**, **1.18.14** (all 2026-09-16), **1.17.18** (2026-07-16, unchanged). The 1.20.1→1.20.2, 1.19.7→1.19.8, 1.18.13→1.18.14 hops are bugfix/CI-only — no compat-verdict change. `v1.21.0-pre.2` (2026-09-09) remains pre-release only, not GA.
+- **Last release-verified:** 2026-10-27
 - **k8s windows (re-read 2026-09-24 off the per-minor pages, all unchanged):** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — in-scope set is **1.20/1.19/1.18**; 1.17 is out-of-window but kept below (equals `min_tracked_version`).
 
 CRD schema versions per minor, unchanged since the 2026-09-15 sift (no bump in the 2026-09-16 patches): 1.17.x → 1.30.8, 1.18.x → **1.31.12**, 1.19.x → **1.32.7**, 1.20.x → **1.33.11**. **Cite the per-minor URL, not `/en/stable/`** — the `stable` alias follows whichever minor is current. CNP/CCNP API stays `cilium.io/v2` across all four minors.
