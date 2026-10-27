@@ -16,7 +16,7 @@
     {
       "id": 1,
       "question": "What Kubernetes version range does Rook v1.20.x support?",
-      "skill_answer": "1.31\u20131.36"
+      "skill_answer": "1.31\u20131.37 (1.36 before v1.20.8)"
     },
     {
       "id": 2,
@@ -145,7 +145,7 @@
     },
     {
       "id": 27,
-      "question": "What RGW settings must be set before upgrading an RGW multisite deployment to Ceph 19.2.6/20.2.4?",
+      "question": "What RGW settings must be set before upgrading an RGW multisite deployment to Ceph 19.2.6?",
       "skill_answer": "rgw_sigv4_insecure=true and rgw_s3_client_max_sig_ver=2"
     },
     {
