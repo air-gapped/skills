@@ -43,7 +43,7 @@ Match by `__name__`:
 ```
 Forbidden metric names: `bool`, `on`, `ignoring`, `group_left`, `group_right`. Quote via `__name__`.
 
-Range vector: `metric[5m]` — left-open, right-closed. Durations are literals unless `--enable-feature=promql-duration-expr` is on, which allows arithmetic in range/offset (`metric[2m*3]`). Experimental on both Prometheus and Mimir 3.x — assume it is OFF and write literal durations.
+Range vector: `metric[5m]` — left-open, right-closed. Duration arithmetic in range/offset (`metric[2m*3]`; parenthesise offsets: `offset (1h / 2)`) is on by default from Prometheus 3.14 and always on in Mimir 2.17+; older Prometheus needs `--enable-feature=promql-duration-expr`. Server version unknown → write literal durations.
 
 ## 3. Modifiers
 
