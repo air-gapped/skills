@@ -298,7 +298,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat)
 - Probe: WebFetch docs sections covering k8s compat and Helm chart minimums.
 - Note: operator runs the EE binary as CE; ignore EE-only features in the sift.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — both doc URLs 200 direct, no redirect. Correctly not gh-groundable; this row states no version to falsify.
+- Last verified: 2026-10-27 — chart `doc/installation/cloud/_index.md` at v10.5.1 read (1.35–1.37, 1.37 needs GitLab ≥ 19.5); `doc/install/requirements.md` at master: 19.x PostgreSQL 17.x–18.x (changed 2026-10-01, commit `4dc318dd`). Not gh-groundable; read via gitlab.com raw/API.
 
 ## ECK
 
