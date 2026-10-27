@@ -69,7 +69,7 @@ GET /api/v1/models/model/profile/image?id=<model_id>
 GET /api/v1/users/{user_id}/profile/image
 ```
 
-`backend/open_webui/routers/models.py:458-525`. Logic:
+`backend/open_webui/routers/models.py::get_model_profile_image`. Logic:
 
 - `Models.get_model_meta_by_id(id)` returns `(meta, updated_at)`.
 - If `profile_image_url` starts with:
@@ -82,7 +82,7 @@ ETag handling means the browser revalidates per-model only when the icon changes
 
 ## Are images sent over WebSocket?
 
-**No.** `socket/main.py:357-365` explicitly excludes `profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, and `gender` from what gets stored in `SESSION_POOL`. So the WS Redis hash never contains base64 images.
+**No.** `socket/main.py::connect` explicitly excludes `profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, and `gender` from what gets stored in `SESSION_POOL`. So the WS Redis hash never contains base64 images.
 
 This was added in the 0.6.37 cycle and means the WS Redis state is small (~1KB per active session) regardless of custom-icon size.
 

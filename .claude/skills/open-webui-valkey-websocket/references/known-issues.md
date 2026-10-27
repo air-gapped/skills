@@ -49,7 +49,7 @@ Both fixed 2026-09-14, shipped v0.11.4. **#29977**: the sign-in rate limiter did
 
 ### #22734 — RedisDict.set() race condition
 
-Closed (fix in 0.8.x dev, then 0.9.0). `RedisDict.set()` did pipelined `DELETE + HSET` (non-atomic). Concurrent reader saw empty hash → "Model not found" intermittents at scale. Fix: HSET first, HDEL only stale keys (no DELETE-then-HSET window). `socket/utils.py:84-100`.
+Closed (fix in 0.8.x dev, then 0.9.0). `RedisDict.set()` did pipelined `DELETE + HSET` (non-atomic). Concurrent reader saw empty hash → "Model not found" intermittents at scale. Fix: HSET first, HDEL only stale keys (no DELETE-then-HSET window). `socket/utils.py::RedisDict.set`.
 
 Comment in fixed code: *"We never DELETE the whole hash — this eliminates the race window where concurrent readers would see an empty models dict."*
 

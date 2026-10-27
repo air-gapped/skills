@@ -1,6 +1,6 @@
 # Configuration reference — multi-pod env vars and Valkey config
 
-Defaults and source locations are based on `backend/open_webui/env.py` and `backend/open_webui/config.py` at v0.9.5 (2026-05-10). Versions noted are when each variable was added or its semantics last changed.
+Defaults and source locations are based on `backend/open_webui/env.py` and `backend/open_webui/config.py`; anchors are symbols, last resolved at v0.12.4. Versions noted are when each variable was added or its semantics last changed.
 
 ## Streaming (#23733 mitigation)
 
@@ -11,7 +11,7 @@ Defaults and source locations are based on `backend/open_webui/env.py` and `back
 | `REDIS_RESPONSE_STREAM_TTL` | `3600` (seconds) | Added v0.11.1. TTL on the Redis-held resume snapshot of a reply still in progress — the key's `EX` from v0.12.3 (`{prefix}:tasks:response_streams:<task_id>`), a per-field `HEXPIRE` on the shared hash before that. Reopening a chat mid-stream after a refresh resumes from this snapshot instead of showing blank; without Redis the snapshot lives in worker memory only, so a killed worker loses it regardless of this var. |
 | `ENABLE_CHAT_RESPONSE_STREAM_INPLACE_APPEND` | `False` | Added v0.11.4. Assembles streamed replies with CPython's in-place string append instead of the default path. Off while rolled out gradually — verify on staging before enabling. |
 
-## Core Valkey/Redis (`env.py` lines 442–500)
+## Core Valkey/Redis (`env.py`)
 
 | Var | Default | Notes |
 |---|---|---|
@@ -26,7 +26,7 @@ Defaults and source locations are based on `backend/open_webui/env.py` and `back
 | `REDIS_SOCKET_KEEPALIVE` | `False` | TCP `SO_KEEPALIVE`. Detects half-closed sockets after silent firewall/LB resets or NIC flaps. **Set to `True`.** Added 2026-04-12 (#23571). |
 | `REDIS_HEALTH_CHECK_INTERVAL` | unset | Seconds between idle-conn pings. Must be shorter than the Valkey `timeout` setting and any firewall/LB idle timeout on the path. **Set to `60`.** Added 2026-04-12 (#23573). |
 
-## WebSocket-specific Valkey (`env.py` lines 744–809)
+## WebSocket-specific Valkey (`env.py`)
 
 These default to the `REDIS_*` versions if unset, but separating them is documented best practice (different DB number, easier to size, easier to monitor).
 
@@ -37,7 +37,7 @@ These default to the `REDIS_*` versions if unset, but separating them is documen
 | `WEBSOCKET_REDIS_CLUSTER` | falls back to `REDIS_CLUSTER` | |
 | `WEBSOCKET_REDIS_ROOM_CHANNELS` | `True` | Added v0.12.0. Publishes each room's events on its own channel (`socketio#/#<room>`), and each pod subscribes only to rooms with a local member, so it skips work for chats it does not serve. **A restricted Valkey ACL user needs** `+publish +subscribe +unsubscribe +ping` and channels `&socketio &socketio#*` (v0.12.0–v0.12.2 also needed `+psubscribe`); a denial is logged as `Redis denied publishing` / `Redis denied subscribing`. Set `False` on **every** pod and restart the whole fleet to restore single-channel delivery. |
 | `WEBSOCKET_REDIS_OPTIONS` | unset | Arbitrary JSON of `redis-py` kwargs. Auto-includes `socket_connect_timeout` if set. Sentinel credentials set here override those from the URL. On v0.12.3, `retry_on_timeout` here made new connections hang after a Redis reconnect until restart — fixed v0.12.4. |
-| `WEBSOCKET_REDIS_LOCK_TIMEOUT` | `60` | Seconds. Used for SET-NX cleanup locks (`socket/utils.py:31`). |
+| `WEBSOCKET_REDIS_LOCK_TIMEOUT` | `60` | Seconds. Used for SET-NX cleanup locks (`socket/utils.py::RedisLock`). |
 | `WEBSOCKET_SENTINEL_HOSTS` | `''` | Independent Sentinel set for WS Valkey. Reuse `REDIS_SENTINEL_HOSTS` unless explicit isolation is desired. |
 | `WEBSOCKET_SENTINEL_PORT` | `26379` | |
 | `WEBSOCKET_SERVER_LOGGING` | `False` | Socket.IO server logger. Useful for diagnosing #23733 emit rate. |
@@ -179,7 +179,7 @@ When `WEBSOCKET_MANAGER=redis`, the keys present (with prefix `open-webui:`):
 | `open-webui:ydoc:documents:<id>:updates` | Yjs CRDT state for collaborative notes | Only when notes are open. Compaction at 500 entries. |
 | `open-webui:ratelimit:*` | Sign-in rate limit buckets | Falls back to in-memory if Valkey unreachable. |
 
-Profile images are explicitly excluded from `SESSION_POOL` since 0.6.37 (`socket/main.py:357-365` excludes `profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, `gender`). Session state is small.
+Profile images are explicitly excluded from `SESSION_POOL` since 0.6.37 (`socket/main.py::connect` excludes `profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, `gender`). Session state is small.
 
 Total working-set estimate for 1000 users: <500 MB even at peak. Sizing constraint is usually CPU under #23733 fan-out, not memory.
 
