@@ -154,23 +154,25 @@ that line starts at v3.4.1, which its own release notes state.
 
 ## Open
 
-### 1. Inline canonical YAML in SKILL.md — relocate to references (carried 2026-05-29)
+None.
 
-- **Blocked on:** a paid blind A/B run nobody has authorised. NOT on effort.
-- **Dim 2** (Progressive Disclosure) / **Dim 6** (Simplicity). `SKILL.md`
-  § Canonical Application and § Canonical ApplicationSet — ~98 body lines that
-  load on every trigger.
-- **The blocker is the measurement, not the edit.** The move is three edits
-  across two files (`references/application.md:5` says the example is "not
-  repeated here", so it must be moved and that pointer rewritten) — mechanical,
-  and by itself no reason to defer. What is absent is evidence: the author
-  *deliberately* chose fast reach, putting the highest-traffic authoring surface
-  at the top of the body. Overriding a deliberate choice needs the blind A/B
-  comparator, which costs money and is optional work under skill-improver's
-  "state the spend before a fan-out" rule.
-- **To unblock:** price a 3-comparator A/B (baseline vs lean variant), get a
-  yes, run it. `REGRESSED` or `NO CHANGE` closes this permanently.
-- Estimated lift if kept: Dim 2 8→9, Dim 6 7→8; SKILL.md ~350 → ~250 lines.
+## Decided
+
+### Inline canonical YAML stays in SKILL.md (decided 2026-10-27)
+
+- Was Open item 1 (carried since 2026-05-29): relocate § Canonical Application
+  and § Canonical ApplicationSet (~98 lines) to `references/`, blocked on an
+  unauthorised paid blind A/B run.
+- **Decision: keep them inline; do not relocate.** The quick decision guide
+  routes the most common task ("write a new Application from scratch") straight
+  to § Canonical Application, so the examples are the body's highest-traffic
+  content, and the author placed them there deliberately. The projected gain
+  was a rubric point on Dim 2/6, not a behaviour fix; skill-improver's
+  "preserve the author's domain knowledge" rule settles that without a paid
+  comparator run.
+- Reopen only with a measured regression attributable to body length (e.g. a
+  trigger or outcome run showing the body crowds out the references).
+
 ## Resolved this pass (2026-05-29 freshen + improve)
 
 - **CVE-2026-42880 patched-version matrix was WRONG** — claimed patched `v3.3.8 / v3.2.10 / v3.1.15`; actual is `v3.3.9 / v3.2.11` per GHSA-3v3m-wc6v-x4x3 (advisory 2026-05-01), and v3.3.8 predates the advisory. Corrected in `SKILL.md` gotcha #1, `references/projects-rbac.md` §8, `references/version-changes.md` CVE-callouts. Security-critical: the old text would have left an operator on an unpatched build (iter 1).
