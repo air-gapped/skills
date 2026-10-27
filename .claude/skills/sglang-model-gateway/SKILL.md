@@ -38,18 +38,9 @@ The project was **renamed in Dec 2025**:
 | Docker image | `lmsysorg/sglang-router:*` | `lmsysorg/sgl-model-gateway:*` (current `:v0.3.2`) |
 | Prometheus metric prefix | `sgl_router_*` | `smg_*` |
 | Release tag prefix | `router-vX.Y.Z` | `gateway-vX.Y.Z` |
-
-**Release cadence, measured 2026-07-21.** Newest `gateway-*` git tag is
-`gateway-v0.3.1` (2026-01-09) — over six months old. Newest published image is
-`v0.3.2` / `latest`, both last built **2026-05-27**; Docker Hub carries only four
-tags total. Meanwhile `sgl-model-gateway/` on `main` is still active, with
-commits through **2026-07-03** (PD-router cancel-paired-decode, DP-aware PD
-dispatch #26245, a PD cache-aware routing fix, a cargo-workspace restructure).
-The gap matters operationally: recent work is **not consumable from a published
-artifact**. Anyone who needs those fixes builds from source, and anyone running
-`:v0.3.2` is pinned to a 2026-05-27 snapshot no matter how busy the repo looks.
-Re-measure before assuming either direction — see `references/sources.md`.
 | Python launcher module | `sglang_router` | `sglang_router` (**not renamed**) |
+
+**Published artifacts lag `main`.** The newest image, `:v0.3.2` / `latest`, was built 2026-05-27 and the newest `gateway-*` git tag is `gateway-v0.3.1`; `sgl-model-gateway/` on `main` keeps landing PD-router and policy fixes and new flags that no image carries. Running `:v0.3.2` means a 2026-05-27 snapshot; a fix or flag seen on `main` needs a source build. The image's `smg`/`amg` are Python CLIs; the Rust `sgl-model-gateway`/`smg`/`amg` binaries come only from a source build. A standalone fork, `smg-project/smg`, ships its own v1.x releases with diverging flags and tokenizer crate — check `--help` of whatever is deployed.
 
 The Python entry point `python3 -m sglang_router.launch_router` still works. CLI flags are unchanged across the rename. **Dashboards on `sgl_router_*` go silently empty after upgrading** — fix the metric prefix in Grafana dashboards and Prometheus alerts.
 
