@@ -13,7 +13,7 @@
     {
       "id": 1,
       "question": "What is the end-of-life date for Helm 3 security fixes?",
-      "skill_answer": "November 11, 2026 (bug fixes end July 8, 2026)"
+      "skill_answer": "February 10, 2027 (v3.22.0, 2026-09-10, was the last minor and last bug-fix release; 3.22.x security patches continue until then)"
     },
     {
       "id": 2,
@@ -53,7 +53,7 @@
     {
       "id": 9,
       "question": "When did Dependabot add Helm support, and what does it cover?",
-      "skill_answer": "April 2025; only Chart.yaml dependency versions"
+      "skill_answer": "April 2025; Chart.yaml dependencies, Chart.lock, and image tags in values files"
     }
   ]
 }
