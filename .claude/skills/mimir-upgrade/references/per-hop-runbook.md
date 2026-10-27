@@ -11,6 +11,7 @@ version numbers do not — get those from `k8s-components-checker` → `referenc
 5. [Hop 3 — 6.0.6 → 6.1.0](#5-hop-3--606--610)
 6. [Removed-key quick table](#6-removed-key-quick-table)
 7. [CHANGELOG claims that are wrong](#7-changelog-claims-that-are-wrong)
+8. [Hop 4 — 6.1.x → 6.2.x](#8-hop-4--61x--62x)
 
 ## 1. The silent-vs-loud asymmetry
 
@@ -217,3 +218,22 @@ Verified against the tarballs; trust the artifact over the changelog. [RFC]
 Corollary: use **one Helm binary version across all hops**. Helm 3 and 4 render PDB apiVersions,
 `internalTrafficPolicy`, and PSP objects differently, so mixing them fills `helm template` diffs with
 phantom changes. [RFC]
+
+## 8. Hop 4 — 6.1.x → 6.2.x
+
+Past the worked ladder: app 3.1 → 3.2. `kubeVersion` unchanged and no rollout-operator CRD change (bundled
+v0.38.0 → v0.38.1). Come from 3.1 — the 3.2 querier↔store-gateway gRPC change requires it. [UG]
+
+1. **Read-path defaults move.** [UG] `querier.max_concurrent` 16 → 8 (chart and app; pin it if query capacity
+   was sized on 16); ingester request hedging is off (`-querier.minimize-ingester-requests-hedging-delay=3s`
+   restores it); MQE remote execution and subset-selector elimination are on. Re-baseline query latency.
+2. **Purge 3.2 removals (crashloop):** `-querier.mimir-query-engine.enable-projection-pushdown`,
+   `-querier.mimir-query-engine.enable-prune-toggles`,
+   `-query-frontend.enable-multiple-node-remote-execution-requests`. A `-query-frontend.log-query-request-headers`
+   list naming `Authorization`, `Cookie` or `X-Api-Key` also fails startup. [UG]
+3. **Alertmanager** no longer serves its per-tenant UI or `/-/healthy`, `/-/ready`, `/-/reload` under the
+   alertmanager prefix — repoint any external probe or reload hook that used them. [UG]
+4. **`ruler.memBallastSizeBytes`** (new; `0` disables) is the escape hatch §5 item 3 lacked. Keep it below any
+   `GOMEMLIMIT` set on the ruler, or GC thrashes permanently. [UG]
+5. **KEDA-autoscaled installs:** the `kedaAutoscaling.fallback` ScaledObject template bug is fixed (#15793) —
+   re-render the ScaledObjects and diff. [UG]
