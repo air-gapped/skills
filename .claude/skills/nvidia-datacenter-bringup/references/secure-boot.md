@@ -196,8 +196,6 @@ Usually fixed by installing `linux-headers-$(uname -r)` and re-running `dkms aut
 
 ## References
 
-- Ubuntu Wiki — UEFI/SecureBoot: https://wiki.ubuntu.com/UEFI/SecureBoot
-- Ubuntu Wiki — UEFI/SecureBoot/DKMS: https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS
 - Ubuntu Security docs — Secure Boot: https://documentation.ubuntu.com/security/security-features/platform-protections/secure-boot/
 - Debian Wiki — SecureBoot (lockdown=integrity behaviour): https://wiki.debian.org/SecureBoot
 - NVIDIA DOCA Host Install + DKMS Management: https://docs.nvidia.com/doca/sdk/doca-host-installation-and-dkms-management-guide/

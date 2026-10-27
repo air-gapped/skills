@@ -76,8 +76,8 @@ Dated index of authoritative URLs the skill draws on. `Last verified:` reflects 
 
 | URL | Purpose | Last verified | Pinned |
 |---|---|---|---|
-| https://wiki.ubuntu.com/UEFI/SecureBoot **[404 as of 2026-09-22 — Ubuntu wiki migrated MoinMoin→MediaWiki; page does not exist, no redirect. Use documentation.ubuntu.com/security/.../secure-boot/ instead]** | Boot chain, shim + Canonical CA model | 2026-08-18 | — |
-| https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS **[404 as of 2026-09-22 — Ubuntu wiki migrated MoinMoin→MediaWiki; page does not exist, no redirect. Use documentation.ubuntu.com/security/.../secure-boot/ instead]** | `update-secureboot-policy`, MOK enrollment | 2026-08-18 | — |
+| https://wiki.ubuntu.com/UEFI/SecureBoot **[2026-10-27: 200 again, but a one-line MediaWiki stub that points to the Ubuntu security docs — no content; dropped from [[secure-boot]]]** | (formerly) boot chain, shim + Canonical CA model | 2026-08-18 | — |
+| https://wiki.ubuntu.com/UEFI/SecureBoot/DKMS **[2026-10-27: 404 to curl; the browser shows an empty "no text in this page" placeholder — dropped from [[secure-boot]]]** | (formerly) `update-secureboot-policy`, MOK enrollment | 2026-08-18 | — |
 | https://documentation.ubuntu.com/security/security-features/platform-protections/secure-boot/ | Canonical security-team SB docs | 2026-08-18 | — |
 | https://wiki.debian.org/SecureBoot | lockdown=integrity behaviours, `modinfo` verification | 2026-08-18 | — |
 | https://packages.ubuntu.com/noble/shim-signed | shim-signed 1.58+15.8-0ubuntu1 metadata | 2026-08-18 | 24.04 noble |
