@@ -2,7 +2,7 @@
 
 ## The ladder (no minor skipping)
 
-Authoritative: Harvester docs `upgrade/index.md` (**was `upgrade/automatic.md`, which now 404s — the page was merged into its section index**) (supported-paths table + component table + the k8s
+Authoritative: Harvester docs `docs.harvesterhci.io/v1.9/upgrade/index` (source file `upgrade/automatic.md`; unversioned docs URLs 404 — use `/latest/` or a `/v1.N/` path) (supported-paths table + component table + the k8s
 version-skew note). The only supported paths are one minor at a time:
 
 ```
@@ -50,8 +50,8 @@ as the target. Never plan a hop against an RC or a `prime-v…` build tag.
 same bits** — not a separate, paywalled artifact set. Evidence (verify the real artifact, never infer):
 
 - Every patch ISO downloads publicly: `curl -I releases.rancher.com/harvester/<tag>/harvester-<tag>-amd64.iso`
-  → **HTTP 200**, multi-GB, for v1.5.2 / v1.6.1 / v1.7.1 / v1.8.0. Re-verified 2026-07-21 on the
-  current patches: **v1.8.2 → 200**, **v1.7.3 → 200**.
+  → **HTTP 200**, multi-GB, for v1.5.2 / v1.6.1 / v1.7.1 / v1.8.0. Re-verified 2026-10-27 on the
+  current patches: **v1.9.0**, **v1.8.2**, **v1.7.3**, **v1.6.1 → 200**.
 - All are real GA releases (`gh release ... --json isPrerelease` → `prerelease=false`).
 - Zero Prime-gating language in patch release notes. The only edition-ish line is v1.5.2's advisory: *"Only
   SUSE Virtualization customers affected by issues listed in the Bug Fixes section must install this patch"* —
@@ -61,7 +61,7 @@ same bits** — not a separate, paywalled artifact set. Evidence (verify the rea
   canonical community hop.
 
 → A community operator **can and should run the latest patch of each minor**. The path is **not `.0`-only**:
-`1.5.x → 1.6.1 → 1.7.1`, not `1.5.0 → 1.6.0 → 1.7.0`.
+`1.5.x → 1.6.1 → 1.7.3`, not `1.5.0 → 1.6.0 → 1.7.0`.
 
 > **Note for maintainers:** `k8s-components-checker/references/compat/harvester.md` historically claimed
 > "`x.y.0`=community, `x.y.[1..z]`=Prime (paid)". That *mechanism* is wrong (its rough EOL dates may be fine).
