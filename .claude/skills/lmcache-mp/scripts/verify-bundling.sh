@@ -83,14 +83,23 @@ for label, mod in [("lmcache", "lmcache"), ("nixl", "nixl"), ("mooncake", "moonc
 
 print()
 print("--- LMCache MP adapter classes (used by LMCacheMPConnector) ---")
-try:
-    from lmcache.integration.vllm.vllm_multi_process_adapter import (
-        LMCacheMPSchedulerAdapter, LMCacheMPWorkerAdapter, LoadStoreOp,
-    )
-    print("LMCacheMPSchedulerAdapter, LMCacheMPWorkerAdapter, LoadStoreOp: OK")
-except Exception as e:
-    print(f"MP adapter classes FAIL  {type(e).__name__}: {e}")
-    exit_code = 1
+# lmcache 0.5.6+: the first import pulls in the mooncake transfer channel,
+# which dlopens libcuda.so.1 -- absent in this GPU-less container -- and a
+# second import succeeds. Retry once on that error so it is not a false FAIL.
+for attempt in (1, 2):
+    try:
+        from lmcache.integration.vllm.vllm_multi_process_adapter import (
+            LMCacheMPSchedulerAdapter, LMCacheMPWorkerAdapter, LoadStoreOp,
+        )
+        note = "" if attempt == 1 else "  (retried: first import needs libcuda.so.1, absent without GPUs)"
+        print(f"LMCacheMPSchedulerAdapter, LMCacheMPWorkerAdapter, LoadStoreOp: OK{note}")
+        break
+    except Exception as e:
+        if attempt == 1 and "libcuda" in str(e):
+            continue
+        print(f"MP adapter classes FAIL  {type(e).__name__}: {e}")
+        exit_code = 1
+        break
 try:
     from lmcache.integration.vllm.vllm_multi_process_adapter import ParallelStrategy  # noqa: F401
     print("ParallelStrategy (vLLM main needs this): OK")
