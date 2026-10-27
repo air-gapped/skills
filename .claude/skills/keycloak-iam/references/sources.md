@@ -10,8 +10,8 @@ Authoritative external references the skill points at. `freshen` mode probes the
 |-----|---------|---------------|--------|
 | https://www.keycloak.org/server/all-config | Full CLI option index | 2026-10-05 | — |
 | https://www.keycloak.org/server/configuration | Configuration concept overview, build vs runtime | 2026-10-05 | — |
-| https://www.keycloak.org/server/configuration-metrics | Metrics surface | 2026-10-05 | — |
-| https://www.keycloak.org/server/health | Health endpoints + probe semantics | 2026-10-05 | — |
+| https://www.keycloak.org/observability/configuration-metrics | Metrics surface (moved from /server/configuration-metrics, which is now a meta-refresh stub) | 2026-10-27 | — |
+| https://www.keycloak.org/observability/health | Health endpoints + probe semantics (moved from /server/health, now a meta-refresh stub) | 2026-10-27 | — |
 | https://www.keycloak.org/observability/tracing | OTLP tracing options (moved from /server/configuration-tracing; /server/tracing also resolves) | 2026-10-05 | — |
 | https://www.keycloak.org/server/logging | Structured logging, JSON output, redaction | 2026-10-05 | — |
 | https://www.keycloak.org/server/importExport | `kc.sh export`/`import` modes | 2026-10-05 | — |
