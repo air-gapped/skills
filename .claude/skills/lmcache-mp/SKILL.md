@@ -124,6 +124,7 @@ Example manifests live in the LMCache repo at `examples/multi_process/`:
 Architecture details that bite if missed:
 
 - **`hostNetwork: true` on the DaemonSet** — vLLM pods discover the LMCache server via the node's `status.hostIP`. Without `hostNetwork`, the server's listening port isn't reachable from sibling pods.
+- **The ZMQ transport has no authentication on any version — never bind `--host 0.0.0.0`.** Bind the node IP (`--host $(HOST_IP)` from `status.hostIP`) and block the port from off-node sources at the host firewall; NetworkPolicy usually ignores `hostNetwork` pods. Binding `--host 127.0.0.1` works only if the vLLM pods also run `hostNetwork: true` — a pod's own loopback is not the node's, and upstream's localhost example (v0.5.7rc) omits this, so its vLLM pods cannot connect.
 - **Both containers mount `/dev/shm` from the host** — required for CUDA IPC.
 - **GPUs are NOT requested in the DaemonSet** — the LMCache server doesn't run inference. The NVIDIA container runtime gives it just enough GPU access for IPC-based transfers. Requesting GPUs there would steal them from vLLM pods.
 - **Multiple vLLM pods on the same node automatically share** the same LMCache DaemonSet instance — that's the whole point.
