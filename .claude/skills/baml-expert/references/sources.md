@@ -42,7 +42,7 @@ published 2026-08-31; no breaking-change notes in the release body — 0.226.0/0
 - `baml_options={"client": "..."}` shorthand — **0.216.0+** (0.216.0 released 2025-12-31; verified against repo changelog).
 - `baml-cli test` auto-loads `.env` — **0.214.0+** (SKILL.md gotchas).
 - `Collector` API — **0.79.0+**.
-- Canary/recent-release features (lambdas, `?.`/`??`, `ns_*`, `baml run`) — shipped in **0.221.0** (2026-04-14); see `references/canary-features.md`.
+- **The changelog is shared by both lines.** The 0.221.0 entries for lambdas (#3302), `?.`/`??` (#3267), `ns_*` (#3292), `void` returns (#3346), test/testset expressions (#3317), stack traces (#3339) and `baml grep`/`describe` (#3347), and 0.225.0's intersection bounds (#4291), touch only `baml_language/` (BAML v1). The v0 engine at tag 0.226.2 has no `??`/`?.` in its grammar, reserves `void`, and its CLI enum has no grep/describe/run. Of that 0.221.0 list only Bedrock token caching (#3334, `engine/`) is v0.
 - Literal types `"a" | "b"` — **0.61.0+**.
 - `ctx.output_format(render_null_as="omit")` — **0.223.0+** (PR #3822, merged 2026-06-23).
 - Type aliases `type X = ...` — **0.71.0+**.

@@ -327,6 +327,5 @@ Load these references only when the task involves them:
 - `references/streaming.md` — partial-type mechanics, `@stream.*` attribute truth table, cancellation patterns, FastAPI/async server integration.
 - `references/testing.md` — multimodal test inputs, TypeBuilder in tests, template string args, glob/exclude, CI integration, `--require-human-eval`.
 - `references/python-integration.md` — ClientRegistry, TypeBuilder, Collector, error class hierarchy, LLM-fixup pattern, cancellation.
-- `references/cli.md` — `baml-cli init/generate/test/serve/dev/fmt/grep/describe/optimize/run` with all flags.
-- `references/canary-features.md` — shipped-in-0.221.0 features the public docs still omit (lambdas, `?.`/`??`, `ns_*` namespaces, void returns, `baml grep`/`describe`, `baml run` VM, BEPs). Load when the project pins `baml-py>=0.221`.
+- `references/cli.md` — `baml-cli init/generate/check/test/serve/dev/fmt/optimize` with all flags.
 - `references/sources.md` — dated index of official docs, spec URLs, PR references (for freshen audits).

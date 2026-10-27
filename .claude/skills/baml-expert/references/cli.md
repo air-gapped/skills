@@ -7,7 +7,7 @@
 - [`baml-cli serve`](#baml-cli-serve) — HTTP endpoints for functions
 - [`baml-cli dev`](#baml-cli-dev) — watch + regenerate
 - [`baml-cli fmt`](#baml-cli-fmt) — beta formatter
-- [Canary / newer features](#canary--newer-features) — `optimize`, `grep`, `describe`, `run`
+- [`baml-cli check` / `optimize`](#baml-cli-check--optimize) — compile check, prompt optimization
 - [Exit code conventions](#exit-code-conventions-summary)
 - [Debug env vars](#debug-env-vars) — BAML_LOG, BOUNDARY_API_KEY, BAML_PASSWORD
 
@@ -97,13 +97,12 @@ baml-cli fmt [file.baml ...]                 # defaults to all .baml in baml_src
 
 May not handle every syntax yet — watch diffs the first time.
 
-## Canary / newer features
+## `baml-cli check` / `optimize`
 
-Only relevant if on a recent release or the BAML canary branch:
+- **`baml-cli check [--from PATH] [--no-version-check]`** — compile `baml_src/` and report errors and warnings without generating. Use it as the fast syntax gate.
+- **`baml-cli optimize`** — GEPA prompt optimization with a visualizer (0.215.0+).
 
-- **`baml-cli optimize`** — prompt optimization visualizer (0.215.0+).
-- **`baml grep`** / **`baml describe`** — agent-oriented semantic search over BAML sources (0.221.0+, PR #3347).
-- **`baml run`** — standalone `.baml` execution via the new `baml_language` VM (recent canary commits).
+`baml-cli` 0.226.x has no `grep`, `describe` or `run` subcommand. Those belong to the BAML v1 `baml` toolchain (SKILL.md §"First: BAML v0 or BAML v1?").
 
 ## Exit code conventions summary
 
