@@ -46,8 +46,10 @@ relying on it for a newer release.
 | v1.21.x | 1.32–1.37 | Squid 19.2.0+, Tentacle 20.2.1+, Umbrella 21.2.0+ | **msgr2 required by default**: kernel clients need 5.11+, else set `network.connections.requireMsgr2: false` before the hop. Rook pins no CSI images. Toolbox reloads its keyring after rotation. |
 
 Ceph lines: Reef 18.2.x is EOL (last 18.2.8, 2026-03-20). Squid 19.2.x
-latest 19.2.6. Tentacle 20.2.x latest 20.2.4. Do not run **20.2.0** (data
-corruption with CSI read affinity, rook#16839) or **18.2.5/18.2.6**
+latest 19.2.7, estimated EOL **2026-10-31** — plan the Tentacle hop.
+Tentacle 20.2.x latest 20.2.4. Umbrella has no stable release (no 21.2.0).
+Do not run **20.2.0** (data corruption with CSI read affinity,
+rook#16839) or **18.2.5/18.2.6**
 (BlueStore corruption regression, fixed 18.2.7). `x.2.z` is a stable
 release; a `v19.3.0`-style tag is a development tag, never deploy it.
 

@@ -19,10 +19,11 @@ Freshened: 2026-09-23 — every row probed at creation. Rook releases enumerated
 | 20.2.0 read-affinity corruption | https://github.com/rook/rook/issues/16839 | 2026-09-23 | Closed. |
 | ceph-csi-operator image fallback | https://github.com/ceph/ceph-csi-operator/issues/605 | 2026-09-23 | Closed. `imageSet.name` not set by `ceph-csi-drivers` chart. |
 | Ceph 19.2.6 / 20.2.4 combo release | https://ceph.io/en/news/blog/2026/v20-2-4-v19-2-6-combo-released/ | 2026-09-23 | 2026-08-19. CVE-2025-30156, CVE-2026-39944, CVE-2026-50152, CVE-2026-54330; AES256K; six health codes; multisite `rgw_sigv4_insecure`. |
-| Ceph releases index | https://docs.ceph.com/en/latest/releases/ | 2026-09-23 | Reef EOL (18.2.8, 2026-03-20); Squid, Tentacle active. No Umbrella release. |
+| Ceph releases index | https://docs.ceph.com/en/latest/releases/ | 2026-10-27 | Reef EOL (18.2.8, 2026-03-20). Squid latest 19.2.7, EOL estimated 2026-10-31. Tentacle latest 20.2.4, EOL estimated 2027-06-01. No Umbrella release. |
+| Ceph 19.2.7 release | https://ceph.io/en/news/blog/2026/v19-2-7-squid-released/ | 2026-10-27 | 2026-10-12. Presigned PUT Content-Type fix (tracker 79674); AWS v4 signer always signs `x-amz-content-sha256` (multisite forwarding, tracker 74579). No AES256K/cipher change. |
 | Ceph 18.2.7 hotfix | https://ceph.io/en/news/blog/2025/v18-2-7-reef-released/ | 2026-09-23 | 18.2.5/18.2.6 BlueStore regression. |
 | Ceph auth config reference | https://docs.ceph.com/en/latest/rados/configuration/auth-config-ref/ | 2026-09-23 | `auth_allowed_ciphers`, `auth_preferred_cipher`, `ceph auth rotate --key-type`. |
-| Ceph tags (Umbrella) | https://github.com/ceph/ceph/tags | 2026-09-23 | v21.1.1 → v21.3.0 dev tags, no v21.2.0. |
+| Ceph tags (Umbrella) | https://github.com/ceph/ceph/tags | 2026-10-27 | v21.0.0 … v21.1.2, v21.3.0 dev tags, no v21.2.0. v19.2.7 / v20.2.4 are the newest stable tags. |
 | Linux libceph AES256K | https://github.com/torvalds/linux/blob/master/net/ceph/crypto.c | 2026-09-23 | `CEPH_CRYPTO_AES256KRB5`; commit "libceph: add support for CEPH_CRYPTO_AES256KRB5" (2025-12-22), Linux 7.0. |
 | ceph-users: rotation lockout / mon rebuild | https://lists.ceph.io/hyperkitty/list/ceph-users@ceph.io/ | 2026-09-23 | Threads 2026-08-27 (rotating-key warning persists), 2026-09-11 (mon `--mkfs` → PGLog crash, 278 unfound), 2026-09-14 (1500-OSD mon slow ops on 19.2.6). |
 | Tracker 80295 | https://tracker.ceph.com/issues/80295 | 2026-09-23 | "Upgrade 19.2.6 to 20.2.4 changes auth_allowed_ciphers config" (Orchestrator). |

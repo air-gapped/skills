@@ -159,5 +159,5 @@ import the new keys, then remount PVCs by node drain as above.
 ## Known gaps
 
 - NFS-Ganesha per-export keys cannot be rotated; Ceph has no mechanism.
-- Ceph Umbrella (v21) is not released as of 2026-09-23: tags go v21.1.1 →
-  v21.3.0 with no v21.2.0. Rook docs name 21.2.0 as the planned AES256K floor.
+- Ceph Umbrella (v21) has no stable release: tags go v21.1.2 → v21.3.0
+  with no v21.2.0. Rook docs name 21.2.0 as the planned AES256K floor.
