@@ -25,7 +25,7 @@ the listed commit on 2026-07-19.
 | vLLM | https://github.com/vllm-project/vllm | 2026-09-15 | v0.25.1 (live-tested) / main | 9243e0124e |
 | SGLang | https://github.com/sgl-project/sglang | 2026-09-15 | v0.5.15.post1 | 99f5a6f46b |
 | llama.cpp | https://github.com/ggml-org/llama.cpp | 2026-09-15 | b10068 | 571d0d5 |
-| Ollama | https://github.com/ollama/ollama | 2026-09-15 | v0.32.1 | 573386c |
+| Ollama | https://github.com/ollama/ollama | 2026-10-27 | v0.32.1; re-read at v0.40.11 (latest): `tool_choice`/`max_completion_tokens` still absent from `ChatCompletionRequest`; cached tokens via `ToUsage` since 855f4bf9 (ollama/ollama#17943, first in v0.34.0); `timings` on the usage chunk since v0.35.0 | 573386c |
 | mistral.rs | https://github.com/EricLBuehler/mistral.rs | 2026-09-15 | v0.9.0 | 0ae0476 |
 | Llama Stack / OGX | https://github.com/llamastack/llama-stack | 2026-09-15 | v1.2.1 | f05b98f |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-09-15 | v11.0.0 | b09a0e9 |

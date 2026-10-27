@@ -66,7 +66,8 @@ provenance in `references/sources.md`).
   stream; loose parsers finalize args the moment they parse as JSON.
 - **Cached-token reporting is flag-gated**: vLLM
   `--enable-prompt-tokens-details`, SGLang `--enable-cache-report`;
-  llama.cpp reports always; Ollama never. OpenAI CC now has explicit
+  llama.cpp reports always; Ollama (v0.34.0+) only when the runner supplies
+  a cache count. OpenAI CC now has explicit
   caching (`prompt_cache_options` + per-block breakpoints,
   `cache_write_tokens` billed 1.25×): `references/spec.md`.
 - **`data: [DONE]` is not universal** — Llama Stack/OGX never sends it; AI

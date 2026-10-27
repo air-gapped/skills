@@ -26,7 +26,7 @@ the three protocols (contrast messages-api / responses-api skills).
 | seed | honored, always | **no-op without `--enable-deterministic-inference`** | honored | honored | ignored | forwarded | forwarded |
 | json_object semantics | true any-JSON grammar | `{"type":"object"}` schema (no top-level arrays) | empty-schema constraint (+nonstandard inline `schema`) | native `format:"json"` | `{"type":"object"}` schema | provider's | backend's |
 | json_schema `strict` | ignored (always fully enforced) | ignored (always enforced) | ignored (always enforced) | ignored | not parsed | forwarded | forwarded |
-| cached_tokens in usage | `--enable-prompt-tokens-details` | `--enable-cache-report` | **always** (`prompt_tokens_details.cached_tokens`) | never | never | provider's | backend's |
+| cached_tokens in usage | `--enable-prompt-tokens-details` | `--enable-cache-report` | **always** (`prompt_tokens_details.cached_tokens`) | v0.34.0+, when the runner reports a cache count (key omitted otherwise); never before | never | provider's | backend's |
 | stream usage chunk | `include_usage` (+`continuous_usage_stats`) | `include_usage` (server-flippable default) | `include_usage` (default false) | `include_usage` | **always on final chunk** (stream_options ignored) | forwarded; **force-injected when telemetry on** | backend's |
 | `data: [DONE]` | yes | yes | yes | yes | yes | **never** | backend's (llama-server: yes) |
 | system_fingerprint | config hash, terminal chunk only | never (field absent) | build string (`b6xxx-sha`) | constant `"fp_ollama"` | constant `"local"` | provider's | backend's |
@@ -181,10 +181,12 @@ field schema (server-schema.cpp) evaluated for every completion-type request.
   split into two same-timestamp chunks (logprobs kept on the reasoning one);
   `toolCallSent` flag forces final finish_reason `tool_calls` even on
   length-stop. `/v1/completions` + include_usage: every chunk carries a
-  ZERO-usage object (not null), real usage in the final chunk.
+  ZERO-usage object (not null), real usage in the final chunk. v0.35.0+: the
+  include_usage chunk also carries a vendor `timings` object
+  (llama.cpp-style `prompt_n`, `predicted_per_second`, …).
 - ids are `chatcmpl-<rand 0-999>` — 3-digit random, collision-prone;
-  `system_fingerprint` constant `"fp_ollama"`; no cached-token reporting at
-  all despite internal prompt caching.
+  `system_fingerprint` constant `"fp_ollama"`; `prompt_tokens_details.cached_tokens`
+  since v0.34.0, present only when the runner reports a cache count.
 - Multimodal: **http(s) image URLs rejected 400** (base64 data URIs only);
   content parts become SEPARATE native messages (not merged).
 - Structured outputs: `json_object`→`format:"json"`, `json_schema`→ raw
