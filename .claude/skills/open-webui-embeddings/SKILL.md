@@ -110,6 +110,8 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 
 ## Open WebUI environment variables
 
+**Every variable below except the prefix trio seeds the database on first boot only.** After that the stored value wins and an env change does nothing — on an existing install, change it in Admin Settings > Documents or through the REST API (`open-webui-api`), or set `ENABLE_PERSISTENT_CONFIG=false` to make env authoritative (UI edits then stop surviving restarts).
+
 | Variable | Mode | Notes |
 |---|---|---|
 | `RAG_EMBEDDING_ENGINE` | embed | Set to `openai`. Works for OpenAI, LiteLLM, TEI direct, vLLM direct — anything OpenAI-compat. |
