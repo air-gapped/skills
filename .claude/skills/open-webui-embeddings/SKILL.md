@@ -106,6 +106,8 @@ Content-Type: application/json
 
 Response parsed: `data["results"]` sorted by `index`, extracts `relevance_score`. Cohere shape, strict.
 
+With `ENABLE_FORWARD_USER_INFO_HEADERS=true`, rerank calls from chat knowledge search, the built-in knowledge tool and the collection-query API carry the user headers only from v0.12.0; earlier they went out anonymous while the same search's embed calls did not. A reranker that authenticates or rate-limits per user needs v0.12.0+.
+
 Failure handling: `requests.post()` exception or non-2xx → `predict()` returns `None` → retrieval silently downgrades to **un-reranked hybrid order**. No user-visible error in Open WebUI. **Always alert on rerank-side 4xx in TEI/LiteLLM logs.**
 
 ## Open WebUI environment variables
