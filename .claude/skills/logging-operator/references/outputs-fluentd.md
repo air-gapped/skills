@@ -137,4 +137,5 @@ geoip · grep (regexp/exclude/and/or) · kube_events_timestamp · parser (see
 recipes.md) · prometheus (metrics from records) · record_modifier ·
 record_transformer · stdout (debug tap) · tag_normaliser (retag
 `${namespace_name}.${pod_name}.${container_name}`) · throttle (rate-limit per key)
-· useragent. Removed in 5.0: sumologic filter, `enhance_k8s`.
+· useragent · raw (6.8+; rejected unless `Logging.spec.enableRawFluentdFilter`, a
+security hole — production-hardening.md). Removed in 5.0: sumologic filter, `enhance_k8s`.

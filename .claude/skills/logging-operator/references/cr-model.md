@@ -81,6 +81,8 @@ spec:
   defaultFlow: {...}                 # catch-all for unmatched logs
   globalFilters: [...]               # filters applied to every Flow
   skipInvalidResources: true         # skip broken Flows instead of failing all
+  enableRawFluentdFilter: false      # 6.8+; true = any Flow author can inject
+                                     # fluentd config (RCE) — production-hardening.md
   configCheck: {strategy: DryRun|StartWithTimeout, timeoutSeconds: 10}
   enableDockerParserCompatibilityForCRI: true   # 4.9+; THE containerd JSON fix
   fluentBitAgentNamespace: collectors           # 6.1+

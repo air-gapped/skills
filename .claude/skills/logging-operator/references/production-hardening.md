@@ -95,6 +95,13 @@ can't stay under the `timekey + timekey_wait` flush window.
     value needs no escape and quoting is what would create the exposure.
   - Newlines in a **directive or key** are not escaped at all — `validateFluentToken`
     rejects them outright, so that path fails loudly rather than rendering.
+- **`Logging.spec.enableRawFluentdFilter`** (6.8+, default `false`) lets every Flow /
+  ClusterFlow author in that Logging inject raw fluentd filter config — arbitrary code
+  in the shared aggregator, the CVE-2026-54680 impact by design. Leave it `false`
+  unless every Flow author is trusted. Setting it back to `false` does not remove
+  raw config already rendered: delete the Flow, rotate the aggregator's output
+  credentials, restart it. While it is `false`, a Flow using `raw` reports
+  `raw filter is disabled` in `status.problems`.
 - Fluentd runs non-root since 5.3: UID 100 / GID 101 / fsGroup 101, seccomp
   RuntimeDefault. Pre-5.3 root-owned buffer PVCs break on upgrade
   (`Permission denied @ dir_s_mkdir`) — chown 100:101 (#1908).
