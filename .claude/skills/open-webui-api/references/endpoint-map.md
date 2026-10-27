@@ -49,6 +49,7 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - `GET|POST /auths/admin/config` [admin] — ENABLE_SIGNUP, DEFAULT_USER_ROLE, JWT_EXPIRES_IN, ENABLE_API_KEYS, API_KEYS_ALLOWED_ENDPOINTS, feature toggles; invalid values silently dropped
 - `GET|POST /auths/admin/config/ldap` + `/ldap/server`; `GET|POST /auths/admin/config/oauth` [admin]
 - `POST|GET|DELETE /auths/api_key` [current] — self-service key (gated: ENABLE_API_KEYS + permission)
+- v0.12.0+: `/auths/mfa/{status,challenge,enroll/start,enroll/confirm,verify,replace,recovery/codes,recover}` — TOTP enrolment and sign-in completion; the account-scoped ones need a human session JWT (`get_human_user` → API keys 403). `POST /users/{id}/sessions/revoke` [admin] — invalidates every JWT of the user, not its API key; refused (403) on the primary admin unless self.
 
 ### configs
 - `GET /configs/export` [admin] — flat dot-keyed dump of ALL config; `POST /configs/import` `{config:{...}}` — partial upsert

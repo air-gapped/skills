@@ -14,13 +14,16 @@ The common hardened deployment — `ENABLE_LOGIN_FORM=False` + OIDC signup, with
 # k8s; for docker swap the exec prefix. Mint a short-lived admin JWT.
 kubectl -n <ns> exec <pod> -c open-webui -- sh -c \
   'export WEBUI_SECRET_KEY=$(cat /app/backend/.webui_secret_key) && python -c "
+import asyncio
 from datetime import timedelta
+from open_webui.models.auths import Auths
 from open_webui.utils.auth import create_token
-print(create_token({\"id\": \"<admin-user-id>\"}, timedelta(hours=8)))
+a = asyncio.run(Auths.get_auth_by_id(\"<admin-user-id>\"))
+print(create_token({\"id\": \"<admin-user-id>\", \"typ\": \"session\", \"session_stamp\": a.session_stamp}, timedelta(hours=8)))
 "'
 ```
 
-Find `<admin-user-id>` the same way (`Users.get_users()` is async — wrap in `asyncio.run`). `create_token` (`utils/auth.py:222-233`) needs only `{"id": ...}`; it adds `jti`/`iat` itself, and an `expires_delta` sets `exp`. Prefer a short expiry over the `4w` default for a token you are pasting into a shell.
+Find `<admin-user-id>` the same way (`Users.get_users()` is async — wrap in `asyncio.run`). `create_token` adds `jti`/`iat` itself, and an `expires_delta` sets `exp`. **v0.12.0+ rejects a token whose `session_stamp` differs from the account's current one** — a `{"id"}`-only token fails for any account created on 0.12+ or whose stamp was rotated (password change, sessions/revoke), and a rotation later kills the minted token too. Below 0.12.0 `{"id": ...}` alone is enough. With `ENABLE_MFA` on, add `"mfa_verified": true` — accepted only if the account has an enrolled authenticator. Prefer a short expiry over the `4w` default for a token you are pasting into a shell.
 
 Verify before use — a wrong-role or expired token fails as HTML, not 401:
 
