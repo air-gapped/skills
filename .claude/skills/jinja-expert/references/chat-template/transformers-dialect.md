@@ -19,7 +19,7 @@ disagrees with that source code, trust the source code.
 4. Variables injected at render time
 5. Sandbox semantics
 6. vLLM and sglang delegation paths
-7. Divergent implementations (minja, minijinja)
+7. Divergent implementations (llama.cpp, minja, minijinja)
 8. Practical implications
 
 ---
@@ -331,16 +331,26 @@ or restarting the engine.
 
 ---
 
-## 7. Divergent implementations (minja, minijinja)
+## 7. Divergent implementations (llama.cpp, minja, minijinja)
 
 These are **not** in the Python serving path for transformers, vLLM, or
-sglang — but they ARE in the C++ serving path for llama.cpp, and some
+sglang — but they ARE in C++ serving paths (llama.cpp and its embedders), and some
 HuggingFace inference stacks (e.g., TGI) have used minijinja historically.
 Know the divergences exist:
 
+### llama.cpp's own engine (`common/jinja/`)
+
+- Replaced minja in llama.cpp in January 2026; a separate C++
+  implementation modelled on huggingface.js's Jinja, not on minja.
+- Marks strings that come from the request (`is_input`), so special tokens
+  inside user content are not emitted as control tokens.
+- Its divergences are its own: test the template on the llama.cpp build you
+  ship (`tests/test-chat-template.cpp` is the harness); minja results no
+  longer predict it.
+
 ### minja (Google, C++, header-only)
 
-- Used by: llama.cpp, GPT4All, Docker Model Runner.
+- Used by: llama.cpp builds before January 2026, and tools that vendor it.
 - Written specifically to render HF chat templates from C++.
 - Frequent source of cross-engine divergence — the template is valid
   Python Jinja2, minja implements slightly different semantics, and the
@@ -398,7 +408,7 @@ internalize:
    that reads `date_string` must default it:
    `{%- if not date_string is defined %}{%- set date_string = strftime_now("%d %b %Y") %}{%- endif %}`
    (the Llama 3.1+/4 pattern).
-7. **Across Python Jinja, minja, minijinja**: parity is not guaranteed.
+7. **Across Python Jinja, llama.cpp, minja, minijinja**: parity is not guaranteed.
    For llama.cpp or HF TGI targets, test against the real engine.
 
 ---
