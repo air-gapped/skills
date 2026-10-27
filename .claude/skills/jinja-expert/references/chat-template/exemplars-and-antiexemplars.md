@@ -115,7 +115,7 @@ The most Jinja-intensive project in the Python ecosystem.
 
 - `homeassistant/helpers/template.py` — async-safe template rendering,
   unique in the Python ecosystem.
-- Docs at <https://www.home-assistant.io/docs/configuration/templating/> —
+- Docs at <https://www.home-assistant.io/docs/templating/> —
   the most readable user-facing Jinja documentation any project ships.
 
 ### saltstack/salt
