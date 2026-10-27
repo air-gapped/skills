@@ -91,7 +91,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
 - Harvester docs `upgrade/{automatic,troubleshooting,v1-5-x-to-v1-6-x,v1-6-x-to-v1-7-x,v1-7-x-to-v1-8-x}.md` +
   `release-notes/v1.5.0–v1.8.0.md` (per-hop known issues), `upgrade-helpers/pre-check/v1.x/check.sh` (enforced
   gates), `vm/backup-restore.md` (DR primitives).
-- GitHub issues (re-check status via `gh`): #10099, #10188, #10425, #10447, #10471, #10513, #10532, #2316,
+- GitHub issues (re-check status via `gh`): #10099, #10188, #10425, #10447, #10471, #10513, #10532 (fixed by PR #10543, backported to v1.8.1 via #10537 — QA verified v1.7.1 → v1.8.1-dev), #2316,
   #2323, #6418, #6849, #7366, #7650, #8949, #8950, #9033, #9260, #9367, #9644, #9738, #9815, #9845, #10349.
 
 ## Full research provenance

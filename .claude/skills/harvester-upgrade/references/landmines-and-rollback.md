@@ -44,7 +44,7 @@ instance-manager PDB (harvester#7366, #8977, longhorn#11605).
 | 1.6→1.7 | Intel NIC rename | host net loss | pin `ifname=NAME:MAC` in grub | #9815 |
 | 1.6→1.7 | Fleet pending-upgrade | stuck system service | `helm rollback fleet` | #9738 |
 | 1.7→1.8 | virt-handler annotations | no VM migration | delete un-annotated pod | #10447 |
-| 1.7→1.8 | RWX storage-net race | stuck Post-draining | re-patch setting + share-mgr | #10532 |
+| 1.7→1.8 | RWX storage-net race (1.8.0 target only) | stuck Post-draining | target 1.8.1+; on 1.8.0 re-patch setting + share-mgr | #10532 |
 | 1.7→1.8 | CP node won't rejoin | upgrade wedged | no clean fix (open) | #10513 |
 | 1.7→1.8 | guest RKE2 1.35 CNI | guest provisioning stuck | RKE2 ≥1.35.4 / Rancher 2.14.1 | #10188 |
 | 1.8→1.9 | QEMU-10 migration regression | VMs shut down, not migrated | hold for 1.9.1; else common `cpuModel` + pre-shutdown `cores*threads>1` VMs | #11356, #11615 |

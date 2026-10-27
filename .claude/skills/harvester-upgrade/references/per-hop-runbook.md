@@ -53,8 +53,9 @@ minor jump. Ground exact patch numbers / fix versions via `gh` at run time (Hous
   unpause-one → verify guest etcd → next. (Mind harvester#10099.)
 - **"KubeVirt is not ready" / virt-handler missing annotations** blocks all VM migration → delete the
   un-annotated virt-handler pod. (v1-7-x-to-v1-8-x.md; harvester#10447, OPEN)
-- **Stuck Post-draining when Longhorn storage-network-for-RWX is enabled** (`nfs://None/...`). Multi-step patch
-  to restore the setting + restart share-manager. (harvester#10532, OPEN)
+- **Stuck Post-draining when Longhorn storage-network-for-RWX is enabled** (`nfs://None/...`) — **fixed in
+  1.8.1; target 1.8.1+**. Only on a 1.8.0 target: multi-step patch to restore the setting + restart
+  share-manager. (harvester#10532)
 - **CP node fails to rejoin, upgrade wedged at "Images preloaded"** (kubelet bearer-token / SA-UID mismatch;
   longhorn driver not found) — open, no clean fix; worst case for a self-managed-CP host. (harvester#10513, OPEN)
 - **Guest RKE2 1.35 stuck (Calico grabs the VIP)** — fixed in **RKE2 1.35.4 / Rancher 2.14.1**; or set Calico
