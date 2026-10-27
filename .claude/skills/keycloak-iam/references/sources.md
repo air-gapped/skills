@@ -26,8 +26,7 @@ Authoritative external references the skill points at. `freshen` mode probes the
 |-----|---------|---------------|--------|
 | https://www.keycloak.org/operator/installation | OLM and non-OLM install paths | 2026-10-05 | — |
 | https://www.keycloak.org/operator/basic-deployment | Minimal `Keycloak` CR | 2026-10-05 | — |
-| https://www.keycloak.org/operator/advanced-configuration | Full CR field reference (additionalOptions, podTemplate, scheduling) | 2026-10-05 | — |
-| https://www.keycloak.org/operator/advanced-configuration | CR field-by-field reference — the standalone /operator/keycloak-cr page is gone (404, absent from sitemap); field reference now lives in advanced-configuration | 2026-10-05 | — |
+| https://www.keycloak.org/operator/advanced-configuration | Full CR field reference (additionalOptions, podTemplate, scheduling); the standalone /operator/keycloak-cr page is gone (404) | 2026-10-05 | — |
 | https://www.keycloak.org/operator/realm-import | `KeycloakRealmImport` CR (page renamed from /operator/realm) | 2026-10-05 | — |
 | https://www.keycloak.org/operator/rolling-updates | Zero-downtime patch update strategy (26.6+) | 2026-10-05 | — |
 | https://www.keycloak.org/high-availability/introduction | HA topology guide (single + multi-cluster; landing moved from /high-availability/) | 2026-10-05 | — |
@@ -49,7 +48,7 @@ Authoritative external references the skill points at. `freshen` mode probes the
 |-----|---------|---------------|--------|
 | https://github.com/keycloak/keycloak/releases/tag/26.8.1 | Keycloak 26.8.1 release + upgrading notes (`docs/documentation/upgrading/topics/changes/changes-26_8_1.adoc` at tag 26.8.1). Latest (`isLatest`), 2026-10-13. 22 distinct CVE ids in the body (incl. CVE-2026-94000 `manage-users` → `realm-admin` via group, CVE-2026-97846 token exchange skips mTLS binding, CVE-2026-96446 PAR single-use bypass, CVE-2026-107121 SMTP STARTTLS downgrade). No 26.7.6 tag or release, so 26.8.1 is the floor. quay.io tag 26.8.1 present. | 2026-10-27 | 26.8.1 |
 | https://github.com/keycloak/keycloak/releases/tag/26.8.0 | Keycloak 26.8.0 release + upgrading notes — (`docs/documentation/upgrading/topics/changes/changes-26_8_0.adoc` at tag 26.8.0). 2026-10-01. 7 CVEs (CVE-2026-12388 IdP-mapper admin-role escalation, CVE-2026-14781, CVE-2026-19608, CVE-2026-4633 + 3 dependency). Quarkus 3.33 → 3.40. | 2026-10-05 | |
-| https://github.com/keycloak/keycloak/releases/tag/26.7.5 | Keycloak 26.7.5 release. 2026-09-30, 15 CVEs (incl. CVE-2026-89298 client secret via Client Registration GET to `view-clients`, CVE-2026-93999). 26.7.4 (2026-09-16): 6 CVEs incl. CVE-2026-17526; advisory GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997 (high) `>= 26.7.0, < 26.7.4`. Git tags 26.6.5–26.6.7 (to 2026-09-07) exist with no GitHub Release and no quay.io image (quay tag API, 2026-10-05). | 2026-10-05 | |
+| https://github.com/keycloak/keycloak/releases/tag/26.7.5 | Keycloak 26.7.5 release. 2026-09-30, 15 CVEs (incl. CVE-2026-89298 client secret via Client Registration GET to `view-clients`, CVE-2026-93999). 26.7.4 (2026-09-16): 6 CVEs incl. CVE-2026-17526; advisory GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997 (high) `>= 26.7.0, < 26.7.4`. Git tags 26.6.5–26.6.7 (to 2026-09-07) exist with no GitHub Release and no quay.io image (quay tag API, 2026-10-27). | 2026-10-05 | |
 | https://github.com/keycloak/keycloak | Upstream source — option mappers, operator code, themes | 2026-10-05 | — |
 | https://github.com/keycloak/keycloak/releases/tag/26.7.0 | 26.7.0 (2026-07-09), first 26.7 release. Line ran to 26.7.5 (2026-09-30); every patch a security batch. Superseded by 26.8.0 (2026-10-01). | 2026-10-05 | 26.7.0 |
 | https://github.com/keycloak/keycloak/releases/tag/26.6.4 | 26.6.4 (2026-06-26) — last community 26.6 release (git tags 26.6.5–26.6.7 exist without a Release or quay image); 8 CVEs incl. security fix for CVE-2026-9099 (group-admin → realm-admin escalation, HIGH) | 2026-10-05 | 26.6.4 |
@@ -57,7 +56,8 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/keycloak/keycloak/releases/tag/26.6.2 | 26.6.2 release notes (2026-05-19) — security-fix batch | 2026-10-05 | 26.6.2 |
 | https://github.com/keycloak/keycloak/releases/tag/26.6.1 | 26.6.1 release notes (2026-04-15) | 2026-10-05 | 26.6.1 |
 | https://github.com/keycloak/keycloak/releases/tag/26.6.0 | 26.6.0 release notes (highlights: Workflows, JWT-Authz-Grant, zero-downtime updates) | 2026-10-05 | 26.6.0 |
-| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list (probe before quoting any CVE ID). 2026-10-05: one advisory since 2026-09-15 — GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997 (high) `>= 26.7.0, < 26.7.4`; the 26.7.5, 26.8.0 and 26.8.1 CVEs are still not in the feed (2026-10-27), read the release notes | 2026-10-05 | — | 
+| https://github.com/keycloak/keycloak/security/advisories | Security advisories — canonical CVE list (probe before quoting any CVE ID). 2026-10-27: nothing published after 2026-09-16 (GHSA-xpwp-2pcm-8xq3 / CVE-2026-90997, high, `>= 26.7.0, < 26.7.4`); the 26.7.5, 26.8.0 and 26.8.1 CVEs are not in the feed, read the release notes | 2026-10-05 | — |
+| https://github.com/keycloak/keycloak-benchmark | Gatling-based load harness (not archived) | 2026-10-05 | — |
 
 **Advisory-feed caveat, observed 2026-07-21.** Eight advisories carry
 `published_at: 2026-06-26`, but only one of them (CVE-2026-9099) is credited in
@@ -65,7 +65,9 @@ the 26.6.4 release notes published the same day. The feed's
 `first_patched_version` is **empty on every one of them**, so the feed alone
 cannot tell you which release closes a given CVE. Cross-read the release notes
 of each candidate version — do not infer a fix version from the disclosure date.
-| https://github.com/keycloak/keycloak-benchmark | Gatling-based load harness | 2026-10-05 | — |
+The ranges can be stale too: the global advisory for CVE-2026-9793
+(GHSA-p3v8-fm5p-v84h) lists `<= 26.6.4` with no patched version, while the
+26.7.1 release notes credit the fix (checked 2026-10-27).
 
 ## Specs referenced
 
