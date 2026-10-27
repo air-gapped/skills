@@ -41,8 +41,9 @@ of the next minor, one minor at a time.** No minor skipping (2.11→2.12→2.13�
 Intra-minor patch jumps are fine and expected (land on the community ceiling *before* stepping).
 
 ⛔ **"Latest patch" ≠ newest tag.** For every minor except the current one, the newest tag is a
-**Prime-only** patch the community cannot install — grounded 2026-07-25, the community ceilings are
-**2.11.3 / 2.12.3 / 2.13.3 / 2.14.3**, while the newest tags are 2.11.15 / 2.12.11 / 2.13.7 / 2.14.3.
+**non-community** patch the community cannot install — the community ceilings are
+**2.11.3 / 2.12.3 / 2.13.3 / 2.14.3 / 2.15.2**, while the newest tags are 2.11.18 / 2.12.14 /
+2.13.10 / 2.14.6 / 2.15.2.
 Deriving a rung with `sort -V | tail -1` produces an uninstallable target. Derive each ceiling
 edition-aware — see `lifecycle.md` § Latest patch per minor and § Grounding.
 

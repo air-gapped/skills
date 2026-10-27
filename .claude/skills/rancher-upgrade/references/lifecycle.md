@@ -1,7 +1,7 @@
 # lifecycle.md — community release model, EOL, and version grounding
 
-**Grounded via `gh` + endoflife.date + suse.com/lifecycle: 2026-05-30.** Ceiling at sift:
-Rancher community `v2.14.3` (2026-06-29, re-verified 2026-07-25). Re-ground at use time (House Rule #3) — releases move.
+**Grounded via `gh` + endoflife.date + suse.com/lifecycle: 2026-05-30; ceiling table re-derived
+2026-10-27.** Current community ceiling: `v2.15.2` (2026-09-23). Re-ground at use time (House Rule #3) — releases move.
 
 **Contents:** [Community vs Prime](#community-vs-prime--the-only-reliable-discriminator) ·
 [Cadence & lifecycle / EOL](#cadence--lifecycle) · **[Latest patch per minor — the community ceiling
@@ -83,40 +83,33 @@ because SUSE counts from the stabilized ~`.1` GA. A minor with no published date
 
 ⚠ **The single most dangerous version mistake in this skill's domain.** The ladder rule says "land on
 the latest patch of the current minor before stepping". For every minor except the current one, the
-newest *tag* is a **Prime-only** patch a community operator cannot install. Grounded 2026-07-25:
+newest *tag* is a non-community patch (Prime-only, or an empty-body tag) a community operator
+cannot install:
 
 | Minor | Newest tag (`sort -V \| tail -1`) | **Community ceiling** | Community ceiling released |
 |---|---|---|---|
-| 2.11 | v2.11.15 | **v2.11.3** | 2025-06-25 |
-| 2.12 | v2.12.11 | **v2.12.3** | 2025-10-22 |
-| 2.13 | v2.13.7 | **v2.13.3** | 2026-02-25 |
-| 2.14 *(current)* | v2.14.3 | **v2.14.3** ✓ | 2026-06-29 |
+| 2.11 | v2.11.18 | **v2.11.3** | 2025-06-25 |
+| 2.12 | v2.12.14 | **v2.12.3** | 2025-10-22 |
+| 2.13 | v2.13.10 | **v2.13.3** | 2026-02-25 |
+| 2.14 | v2.14.6 | **v2.14.3** | 2026-06-29 |
+| 2.15 *(current)* | v2.15.2 | **v2.15.2** ✓ | 2026-09-23 |
 
 Every non-current line stops at **`.3`** — that is the cutover: once the next minor GAs, the previous
 line's subsequent patches flip to Prime. Only the current minor is fully community.
 
 Confirmed by two independent sources: the release-notes edition markers, **and** the community Helm
 chart index itself — `releases.rancher.com/server-charts/{latest,stable}/index.yaml` offer exactly
-2.11.3 / 2.12.3 / 2.13.3 / 2.14.3 and nothing higher per line. The chart index is the decisive test,
-because it is what `helm upgrade` actually pulls. This skill's own field reports corroborate it: the
-two validated hops on record are **2.12.3 → 2.13.3** and **2.13.3 → 2.14.2**
-(`per-minor-runbook.md`), i.e. the operator was already on the community rungs.
+2.11.3 / 2.12.3 / 2.13.3 / 2.14.3 / 2.15.2 and nothing higher per line. The chart index is the
+decisive test, because it is what `helm upgrade` actually pulls.
 
 **Use these as the ladder targets. Always re-derive — see Grounding.**
 
-⚠ **v2.15 is at RC and its release plumbing is already live (grounded 2026-07-25).** The prior pass
-(2026-07-21) recorded 2.15 as *alpha*; it moved that same day. Observed now: `v2.15.0-rc1`
-(2026-07-21) through `v2.15.0-rc3` (2026-07-24), plus **`release-v2.15` branches in both
-`rancher/kontainer-driver-metadata` and `rancher/charts`**, and a live
-`releases.rancher.com/kontainer-driver-metadata/release-v2.15/data.json` serving 200. On the
-Mar/Jul/Nov cadence, 2.15 GA is **due now** — but it is still a prerelease, so:
-
-- **Do NOT plan a hop onto 2.15**; `releases/latest` remains v2.14.3 and no community classifier
-  sentence exists for an RC. 2.14 is the correct target today.
-- **Do factor it into look-ahead (House Rule #4).** A fleet landing on 2.14 should expect a 2.15 hop
-  shortly after GA — say so in the plan rather than presenting 2.14 as a terminal state.
-- **Re-run the ceiling probe before writing any plan.** This line is the fastest-moving fact in the
-  skill; between GA and this stamp the correct target changes.
+⚠ **A pre-GA next minor is look-ahead only, never a target.** Its `release-v2.X` branches in
+`rancher/charts` and KDM, a live KDM `data.json` and `-rc` tags all appear weeks before GA, and no
+RC carries a community classifier sentence. Plan onto the current minor's community ceiling; say in
+the plan that a hop to the next minor follows its GA (cadence above) instead of presenting the
+current minor as terminal (House Rule #4). Re-run the ceiling probe before writing any plan — the
+current-minor row above is the fastest-moving fact in this skill.
 
 ⚠ **2.11 goes EOL 2026-10-24 — and community 2.11 is already frozen.**
 **Compute the runway from the date at plan time.** 2.11 is this skill's upgrade *floor*, so an operator arriving
