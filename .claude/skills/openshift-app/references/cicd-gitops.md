@@ -111,6 +111,8 @@ GitHub (App/Webhook), GitLab, Bitbucket Cloud/Data Center, Forgejo.
 
 | GitOps Version | ArgoCD Version | Key Features |
 |----------------|---------------|--------------|
+| 1.22 (Sep 2026) | 3.5 | **Helm 4.2.4** (Helm 3 before this), multi-source Applications from the UI, GitOps Promoter TP |
+| 1.21 (Jun 2026) | 3.4 | Helm 3.19.4, Image Updater GA |
 | 1.20 (Mar 2026) | 3.3 | Agent destination routing GA, NetworkPolicy auto-create, PreDelete hooks |
 | 1.19 | 3.1 | Argo CD Agent GA, Image Updater TP, OCI source support |
 | 1.18 | 3.1 | OCI registry as application source |
@@ -234,7 +236,7 @@ scan results (fail on high/critical CVEs).
 
 ### Argo CD Image Updater
 
-Tech Preview in GitOps 1.19. Automated container image updates in GitOps repos.
+Tech Preview in GitOps 1.19 and 1.20, GA from 1.21. Automated container image updates in GitOps repos.
 
 ---
 

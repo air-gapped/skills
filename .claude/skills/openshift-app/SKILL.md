@@ -99,37 +99,29 @@ range assignment lands on the pod spec at admission, not in the manifest.
 PSA runs **in parallel** with SCCs. A pod must pass both. OpenShift auto-labels
 namespaces with PSA levels matching the most privileged SCC available.
 
-### 3. Helm 4 with Argo CD: it landed in 3.5, and the bump is not free (2026-09-15)
+### 3. Helm 4 with Argo CD: 3.5+ and OpenShift GitOps 1.22+ render with Helm 4
 
-**Argo CD now bundles Helm 4.** PR #28076 ("feat: Migrate from Helm 3 to Helm 4")
-merged 2026-06-09 and first shipped in **v3.5.0** (2026-08-04). The pin, read
-from `hack/tool-versions.sh` at each tag:
-
-| Argo CD line | Helm pinned | Note |
+| Argo CD line | Bundled Helm | OpenShift GitOps |
 |---|---|---|
-| **3.5.x** (v3.5.3, 2026-09-14 — current latest) | `helm4_version=4.2.1` | Helm 4 |
-| **3.4.x** (v3.4.9, 2026-09-14 — parallel maintenance) | `helm3_version=3.19.4` | still Helm 3 |
+| 3.6 (release candidates only) | 4.3.1 | -- |
+| **3.5.x** | Helm 4 (4.2.1 upstream) | **1.22** (Argo CD 3.5.3, Helm 4.2.4) |
+| 3.4.x | 3.19.4 | 1.21 (Argo CD 3.4.3) |
+| 3.3.x | 3.19.4 | 1.20 (Argo CD 3.3.2) |
 
-So "Argo CD only supports Helm 3" is no longer true, and the old "through v3.3"
-framing understated it: 3.4.x stayed on Helm 3 too, and only 3.5.x jumped.
+**Upgrading Argo CD 3.4 → 3.5 (GitOps 1.21 → 1.22) can change your rendered
+manifests with no chart or values change.** Helm 4 altered null/nil value
+coalescing, so explicit `null` fields can start appearing (argoproj/argo-cd#29068,
+open, no fix) — diff a render before and after rather than assuming parity.
 
-**Upgrading 3.4 → 3.5 can change your rendered manifests with no chart or values
-change.** Helm 4 altered null/nil value coalescing, so explicit `null` fields can
-start appearing. Tracked in **argoproj/argo-cd#29068, still OPEN** — diff a render
-before and after rather than assuming parity.
-
-- **OpenShift itself is still on Helm 3.** The web terminal bundles **v3.20.2**
-  for the 4.22 line (Web Terminal Operator 1.17, 2026-06-24, which also bumped
-  `oc` to v4.22.1); 4.19-4.21 bundled v3.17.1. Sourced from the
-  `redhat-developer/web-terminal-operator` CHANGELOG, because the Red Hat docs
-  page is a client-rendered shell with no version text in its HTML for any
-  OCP version.
+- **The web terminal is still on Helm 3**: v3.20.2 for the 4.22 line, v3.17.1
+  for 4.19-4.21 (Web Terminal Operator CHANGELOG; the Red Hat docs page carries
+  no version text).
 - **Helm 3 is security-fix only.** v3.22 (2026-09-10) was its final feature
   release; security patches end **2027-02-10**, and no Helm 3 release of any
   kind follows. Migrate charts and pipelines to Helm 4 before that date.
-- **Recommendation**: on Argo CD 3.4.x you are on Helm 3 and fine. Moving to
-  3.5.x is the Helm 4 migration — do it deliberately, with a render diff, not as
-  a side effect of taking the latest tag.
+- **Recommendation**: GitOps 1.21 / Argo CD 3.4.x renders with Helm 3. Moving
+  to GitOps 1.22 / Argo CD 3.5 is the Helm 4 migration — do it deliberately,
+  with a render diff, not as a side effect of an operator update.
 
 ### 4. DeploymentConfig Is Deprecated (OCP 4.14)
 
@@ -217,7 +209,7 @@ See `references/container-images.md` for full details.
 
 | Format | When to Use | Limitations |
 |--------|------------|-------------|
-| **Helm** | Distribute to other teams/customers; values-driven config; OperatorHub Helm operators | Helm 3 only on OCP today; chart-verifier for certification |
+| **Helm** | Distribute to other teams/customers; values-driven config; OperatorHub Helm operators | Web terminal ships Helm 3, GitOps 1.22+ renders with Helm 4 -- test charts on both; chart-verifier for certification |
 | **Kustomize** | Same-team env overlays (dev/staging/prod); GitOps prerequisite | No templating logic; `oc apply -k` does NOT support `--enable-helm` |
 | **Helm + Kustomize** | Dominant hybrid: Helm for packaging, Kustomize for env patches | Requires `--enable-helm` flag (only works in `kustomize build` or ArgoCD) |
 | **Operator (Go)** | Stateful apps needing Day-2 ops (backup/restore/scaling); L3-L5 maturity | Complex to develop; Operator SDK CLI deprecation announced at OCP 4.16, **4.18 was the last OpenShift to ship it** — on 4.19+ install it yourself from upstream, which continues |

@@ -62,7 +62,8 @@ External references underpinning this skill's OpenShift-specific claims. Re-veri
 | Source | URL | Last verified | Notes |
 |---|---|---|---|
 | OpenShift Pipelines (Tekton) | https://docs.redhat.com/en/documentation/red_hat_openshift_pipelines | 2026-05-28 | Tekton-based CI on OpenShift. |
-| OpenShift GitOps (Argo CD) | https://docs.redhat.com/en/documentation/red_hat_openshift_gitops | 2026-05-28 | Argo CD distribution; GitOps version-to-Argo-CD mapping. Verify Helm support skew during freshen. |
+| OpenShift GitOps (Argo CD) | https://docs.redhat.com/en/documentation/red_hat_openshift_gitops | 2026-10-27 | Operator 1.22 current (1.22.0 2026-09-30, 1.22.2 2026-10-15). Compatibility matrix, `openshift/openshift-docs` branch `gitops-docs-1.22`, `modules/go-compatibility-and-support-matrix.adoc`: **1.22.0 = Argo CD 3.5.3 + Helm 4.2.4**, Image Updater 1.3.0 GA, GitOps Promoter 0.35.0 TP; 1.21.0 = Argo CD 3.4.3 + Helm 3.19.4, Image Updater 1.2.1 GA; 1.20.0 = Argo CD 3.3.2 + Helm 3.19.4, Image Updater 1.1.2 TP. Release notes `modules/gitops-release-notes-1-22-0.adoc`. The GitHub operator release feed lags (v1.20.0) — use the docs branch. |
+| Argo CD releases + Helm pin | https://github.com/argoproj/argo-cd/releases | 2026-10-27 | Per line: 3.5.6 (2026-10-20, isLatest), 3.4.12 (2026-10-20), 3.3.18 (2026-10-22); 3.6 has RCs only (v3.6.0-rc4, 2026-10-22). `hack/tool-versions.sh`: v3.5.6 `helm4_version=4.2.1`; v3.6.0-rc4 `HELM_VERSION=4.3.1`; v3.4.12 and v3.3.18 `helm3_version=3.19.4`. Helm 4 migration: PR #28076, merged 2026-06-09, first in v3.5.0 (2026-08-04). argoproj/argo-cd#29068 (Helm 4 null-coalescing render change, docs request) still OPEN, no linked fix. |
 | Shipwright | https://shipwright.io/ | 2026-05-28 | Cluster-side container builds (Buildah/Kaniko/BuildKit strategies). |
 
 ## Supply chain

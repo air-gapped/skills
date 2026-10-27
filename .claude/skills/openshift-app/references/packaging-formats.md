@@ -17,10 +17,10 @@
 ### Version Status (2026)
 
 - **Helm 4.0.0** released November 12, 2025 (Server-Side Apply default)
-- **OpenShift 4.19-4.21 ships Helm 3** (web terminal bundles v3.17.1); **4.22 bundles v3.20.2** (Web Terminal Operator 1.17, 2026-06-24, same entry that bumped `oc` to v4.22.1) — OpenShift itself has not moved to Helm 4
-- **Argo CD moved to Helm 4 in v3.5.0** (2026-08-04, PR #28076 merged 2026-06-09). `hack/tool-versions.sh` pins `helm4_version=4.2.1` at v3.5.3 and `helm3_version=3.19.4` at v3.4.9, so the 3.4.x maintenance line is still Helm 3. Upgrading 3.4 → 3.5 can change rendered manifests through Helm 4's null-coalescing change with no chart edit (argo-cd#29068, OPEN) — diff a render across the bump
+- **The web terminal ships Helm 3**: v3.17.1 on 4.19-4.21, v3.20.2 on 4.22 (Web Terminal Operator 1.17)
+- **Argo CD 3.5+ renders with Helm 4** (upstream pins 4.2.1 on 3.5.x, 4.3.1 on the 3.6 RCs; 3.3.x and 3.4.x pin 3.19.4). **OpenShift GitOps 1.22 ships Argo CD 3.5.3 with Helm 4.2.4**; GitOps 1.21 and 1.20 ship Helm 3.19.4. Upgrading Argo CD 3.4 → 3.5 can change rendered manifests through Helm 4's null-coalescing change with no chart edit (argo-cd#29068, open) — diff a render across the bump
 - **Helm 3 EOL**: v3.22 (2026-09-10) was the final feature release; security patches only until **2027-02-10**, then no further Helm 3 releases. Migrate charts and pipelines to Helm 4 before that date
-- **Helm 3 is still the right default for OpenShift work**, but that is now a statement about OpenShift's own tooling, not about Argo CD — check which Argo CD line you run before assuming Helm 3 renders your charts
+- **Test charts under both Helm 3 and Helm 4**: the web terminal and `oc`-side tooling render with Helm 3, GitOps 1.22+ with Helm 4
 
 ### OpenShift Detection
 
