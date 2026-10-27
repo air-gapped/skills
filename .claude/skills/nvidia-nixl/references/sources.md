@@ -46,15 +46,15 @@ Load-bearing external references cited in this skill, with verification dates. P
 | Dynamo TRT-LLM kv-cache-transfer doc | https://github.com/ai-dynamo/dynamo/blob/main/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/tensorrt-llm/reference-guide.md | 2026-05-28 | Live on main (2026-10-27). Its "KV Cache Transfer" section lists three methods: NIXL+UCX (default), NIXL+Libfabric, UCX directly — no Mooncake. The old `docs.nvidia.com/.../kv-cache-transfer.html` is 404; the interim `docs/backends/trtllm/trtllm-kv-cache-transfer.md` path no longer exists. |
 | vLLM NixlConnector usage guide | https://docs.vllm.ai/en/stable/features/nixl_connector_usage/ | 2026-08-18 | Verified. `--kv-transfer-config` syntax, `kv_role`, `kv_buffer_device`, `kv_connector_extra_config.backends`. |
 | vLLM disagg prefill (experimental) | https://docs.vllm.ai/en/latest/features/disagg_prefill/ | 2026-08-18 | Verified. Cross-references NixlConnector, Mooncake, LMCache. |
-| vLLM nixl module API doc | https://docs.vllm.ai/en/latest/api/vllm/distributed/kv_transfer/kv_connector/v1/nixl_connector/ | 2026-08-18 | GONE — now 302-redirects to the generic `/en/latest/api/` index; docs.vllm.ai reorganized its API-reference paths. Find the current NixlConnector page from that index before citing. |
+| vLLM nixl module API doc | https://docs.vllm.ai/en/latest/api/vllm/distributed/kv_transfer/kv_connector/v1/nixl/ | 2026-08-18 | Moved: the old `.../v1/nixl_connector/` path redirects to the `/api/` index; this page (200) documents `NixlConnector`, `NixlConnectorMetadata`, `NixlConnectorScheduler`. |
 | vLLM `requirements/kv_connectors.txt` | https://github.com/vllm-project/vllm/blob/main/requirements/kv_connectors.txt | 2026-07-21 | Exact pins, read per tag from a local clone: **v0.32.0 (2026-10-18) `nixl == 1.5.0`**; v0.31.0 and v0.30.0 `nixl == 1.4.1`; v0.28.0/v0.29.0 `1.3.2`; v0.27.0/v0.27.1 `1.3.1`. v0.30.0–v0.32.0 carry `lmcache >= 0.3.9`, `mooncake-transfer-engine >= 0.3.12`, `cupy-cuda13x != 14.1.0`. On main: `nixl == 1.5.1`, `lmcache >= 0.5.6`. Cross-referenced from `vllm-caching` skill. |
 | vLLM issue #27055 (LIBFABRIC + NIXL 0.6.1) | https://github.com/vllm-project/vllm/issues/27055 | 2026-08-18 | CLOSED (COMPLETED) — reporter confirmed "Verified the fix" after the NIXL libfabric thread-safety work. Resolved. |
-| vLLM PR #18293 (CPU buffer in NixlConnector) | https://github.com/vllm-project/vllm/pull/18293 | 2026-08-18 | By juncgu. Adds CPU-side `kv_buffer_device` support. |
+| vLLM PR #18293 (CPU buffer in NixlConnector) | https://github.com/vllm-project/vllm/pull/18293 | 2026-08-18 | MERGED 2025-07-24, "[P/D] Support CPU Transfer in NixlConnector" (juncgu). Adds CPU-side `kv_buffer_device` support. |
 | Spheron NIXL deep-dive blog | https://www.spheron.network/blog/nvidia-nixl-disaggregated-inference-guide/ | 2026-08-18 | External blog. Useful as one-page intro for new users. |
-| WEKA + Dynamo + NIXL blog | https://www.weka.io/blog/ai-ml/weka-accelerates-ai-inference-with-nvidia-dynamo-and-nvidia-nixl/ | 2026-08-18 | Storage vendor integration pattern. |
+| WEKA + Dynamo + NIXL blog | https://www.weka.io/article/weka-accelerates-ai-inference-with-nvidia-dynamo-and-nvidia-nixl | 2026-08-18 | Storage vendor integration pattern. Old `/blog/ai-ml/...` URL redirects here. |
 | UCCL KV-transfer deep-dive | https://uccl-project.github.io/posts/kv-transfer-engine/ | 2026-08-18 | UCCL team's blog on KV transfer engines. |
-| BARD AI NIXL blog | https://bardai.ai/2026/03/10/enhancing-distributed-inference-performance-with-the-nvidia-inference-transfer-library/ | 2026-08-18 | Third-party overview. Exception: site's TLS certificate expired at the 2026-08-18 probe (loads only with cert validation off) — unreliable to cite until fixed. |
-| Cross-reference: `vllm-caching` skill | local: `~/.claude/skills/vllm-caching/` | 2026-08-18 | Hands-on-verified NIXL recipes for vLLM disagg-prefill on consumer hardware (UCX_TLS, downward API, headless Service, the six P2P env vars, NIXL_ERR_REMOTE_DISCONNECT race). NIXL skill refers to it for vLLM-side connector glue. |
+| BARD AI NIXL blog | https://bardai.ai/2026/03/10/enhancing-distributed-inference-performance-with-the-nvidia-inference-transfer-library/ | 2026-08-18 | Third-party overview. **Exception:** TLS certificate still expired at the 2026-10-27 probe (curl exit 60, site root too) — not a UA block; unreliable to cite until fixed. |
+| Cross-reference: `vllm-caching` skill | sibling skill: `.claude/skills/vllm-caching/` (`references/connectors.md` § "NixlConnector — disaggregated prefill") | 2026-08-18 | Hands-on-verified NIXL recipes for vLLM disagg-prefill on consumer hardware (UCX_TLS, downward API, headless Service, the six P2P env vars, NIXL_ERR_REMOTE_DISCONNECT race). NIXL skill refers to it for vLLM-side connector glue. |
 
 ## Notes on probe budget
 
@@ -64,6 +64,7 @@ Probes used (2026-05-28 freshen): `gh release list` + `gh api releases/latest` (
 
 ## Drift watch list
 
+- NIXL 1.6.0 (`release/1.6.0` cut, unreleased): `gds_mt` folds into `cuda_gds` (#1856 — `GDS` gains `mode=mt`, `GDS_MT` stays as an alias) and a `redis` backend lands (#1791). On release, update the plugin matrix and `deployment.md` ROCm table.
 - Mooncake transfer engine refactor in progress — Mooncake plugin README explicitly notes this. Re-probe per minor NIXL release.
 - NIXL-EP elastic mode is new (v1.0.0–v1.0.1); expect API churn through 1.x.
 - Prometheus telemetry exporter is beta — expect interface changes; pin exact NIXL version when wiring into ops dashboards. The event schema already lost `category` in v1.3.0 (#1649) and timestamps in v1.0.0 (#1522).
