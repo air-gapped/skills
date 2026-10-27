@@ -36,7 +36,7 @@ running systems.
    failures / inability to install updates" once the boot-stack update chain stalls. New installs/PXE on such
    firmware also fail. Distros mitigate by shipping **dual-signed** shim (2011 **and** 2023) until cutover.
 
-   **Where the cutover actually stands (verified 2026-08-18):**
+   **Where the cutover actually stands (verified 2026-10-27):**
 
    | Distro | Shim status | Evidence |
    |---|---|---|

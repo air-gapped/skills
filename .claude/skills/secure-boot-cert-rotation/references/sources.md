@@ -1,6 +1,6 @@
 # Sources (primary / high-credibility)
 
-Freshened: 2026-09-22 — every row probed. The `amd64/` path segment that sources.md had already flagged as wrong was still live in the curl commands in linux-bare-metal.md — those 404, the no-prefix path returns 200. Harvester also GA'd v1.9.0 (2026-09-16), with no Secure Boot or OVMF change in it.
+Freshened: 2026-10-27 (exceptions: 5 rows, noted inline) — every other row probed. Windows Production PCA 2011 expired 2026-10-19 with no reported failures, the dbx freeze is partial (both KEK trees parsed), Harvester 1.9.0's SLES 16.0 guest OVMF still carries the 2023 certs.
 
 Grounded 2026-06-01; re-probed 2026-08-18 (first freshen, ~8 weeks after the June expiries). Re-verify volatile
 leaf numbers (Dell BIOS minimums, Ubuntu fwupd pockets, Harvester release dates / virt-launcher OVMF) against
@@ -23,27 +23,27 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 |---|---|---|
 | `PreSignedObjects/*/Certificates/*.der` (cert bytes) | 2026-10-27 | `openssl x509 -enddate` on Microsoft's published certs: KEK CA 2011 2026-06-24, UEFI CA 2011 2026-06-27, Windows Production PCA 2011 2026-10-19 18:51:42 GMT; KEK 2K CA 2023 2038-03-02, Microsoft UEFI CA 2023 2038-06-13, Option ROM UEFI CA 2023 2038-10-26, **Windows UEFI CA 2023 2035-06-13** |
 | Microsoft cert-rotation topic `7ff40d33…` | 2026-10-27 | all three expiry dates unchanged; page last edited 2026-05-18. **PCA 2011 expiry has passed (2026-10-19):** no Microsoft or LWN post-expiry statement yet; no boot failure reported anywhere searched. Pre-expiry, Microsoft (quoted by Windows Latest, 2026-10-17): a PC without the new certs "will still start and operate normally" — windowslatest.com/2026/10/17/windows-11s-last-secure-boot-deadline-hits-monday-microsoft-reveals-what-happens-to-your-pc/; KB 5079373 (`c83b6afd…`) says the same. |
-| Microsoft IT-pro guidance `e2b43f9f…` | 2026-09-15 | db→KEK deployment order unchanged |
-| Microsoft known issues `5813673d…` | 2026-09-15 | Hyper-V 1795 resolved; Azure Trusted Launch 1795 still open |
-| Microsoft DB/DBX update events `37e47cf8…` | 2026-09-15 | **the** source for event IDs 1795/1796 (not the known-issues page) |
-| Microsoft registry-key article `a7be69c9…` | 2026-09-15 | still opt-in (`MicrosoftUpdateManagedOptIn`); not mandatory |
+| Microsoft IT-pro guidance `e2b43f9f…` | 2026-10-27 | db→KEK deployment order unchanged (change log tops out 2026-05-05) |
+| Microsoft known issues `5813673d…` | 2026-10-27 | Hyper-V 1795 resolved; Azure Trusted Launch 1795 still open (last updated 2026-07-14) |
+| Microsoft DB/DBX update events `37e47cf8…` | 2026-10-27 | **the** source for event IDs 1795/1796 (not the known-issues page) |
+| Microsoft registry-key article `a7be69c9…` | 2026-10-27 | `MicrosoftUpdateManagedOptIn` still opt-in; separately `HighConfidenceOptOut` defaults to opt-in, so High-Confidence-bucket devices get the 2023 update via the monthly cumulative update unless opted out. Nothing mandatory |
 | HP advisory `ish_14914515-14914500-16` (BitLocker loop after April 2026 BIOS) | 2026-10-27 | support.hp.com/us-en/document/ish_14914515-14914500-16, effective 2026-05-11: BIOS updates released early April 2026 on commercial notebooks/desktops/workstations; fix = enable "all four certificate settings", optionally disable Option ROM UEFI CA 2023 / UEFI CA 2023 / Enable MS UEFI CA Key if no third-party loaders. The "v01.04.05 Rev A" version string appears only in secondary reports, not on HP's page. |
-| LWN 1079808 — post-expiry retrospective | 2026-09-15 | expiry passed cleanly; forced updates damaged some machines |
+| LWN 1079808 — post-expiry retrospective | 2026-10-27 | expiry passed cleanly; forced updates damaged some machines |
 | Dell KB 000402373 (PowerEdge BIOS minimums) | 2026-10-27 | Bot-blocks curl; read in the browser. "Last Modified: 23 Jun 2026, Version: 11". Every minimum in `dell-poweredge.md` matches (second independent browser read; first 2026-09-15), plus R7425/R7415/R6415 1.23.0, R6625/R7625/R6615/R7615 1.15.3, C6615 1.10.3, XR4510c/XR4520c 1.21.1. Scope: "Physical servers, including 14th, 15th, and 16th generations" — 17G not mentioned. Steps: per-generation script packages, "Reboot the server when prompted", BIOS update, Windows updates — no second reboot. Generation labels follow Dell's model numbering (Rx4x/Rx4xx = 14G, Rx5x/Rx5xx = 15G, Rx6x/Rx6xx = 16G). |
-| Dell KB 000390990 (Transition FAQ) | 2026-09-15 | EoSL cutoff confirmed: EoSL before 2026-01-01 = no BIOS remediation |
-| Red Hat 2026-02-04 RHEL guidance + article 7128933 | 2026-09-15 | dual-signed shim shipped 2026-06-10 (8/9/10, x86_64) |
-| AlmaLinux Secure Boot 2023 wiki | 2026-09-15 | aarch64 shim is **2023-only** signed (states same for RHEL) |
-| Ubuntu Discourse 82652 + archive `shim-signed` pool | 2026-09-15 | no new shim; certs delivered via fwupd instead |
-| fwupd releases (`uefi-db`/`uefi-kek`) | 2026-09-15 | floor still ≥ 2.0.8; latest 2.1.7; snap ≥ 2.1.6 for KEK |
-| Ubuntu fwupd pockets (Launchpad / Snap) | 2026-09-15 | **2.0.20 now in jammy/noble `-updates`** — floor cleared by apt |
+| Dell KB 000390990 (Transition FAQ) | 2026-10-27 | Version 4 (2026-05-24). EoSL cutoff confirmed: EoSL before 2026-01-01 = no BIOS remediation; Expert Key Mode warning present. KB 000362511 live (Version 3) |
+| Red Hat 2026-02-04 RHEL guidance + article 7128933 | 2026-10-27 | dual-signed shim shipped 2026-06-10 (8/9/10, x86_64); 7128933 now "Updated 2026-09-22", no 2023-only x86_64 shim announced |
+| AlmaLinux Secure Boot 2023 wiki | 2026-10-27 | aarch64 shim is **2023-only** signed (states same for RHEL) |
+| Ubuntu Discourse 82652 + archive `shim-signed` pool | 2026-10-27 | no new shim (pool newest still `1.59+15.8-0ubuntu2`, 2024-10-02); certs delivered via fwupd instead; LP#2156479/2156480 Fix Released |
+| fwupd releases (`uefi-db`/`uefi-kek`) | 2026-10-27 | floor still ≥ 2.0.8 (2.0.8 notes: "two new plugins that can update the UEFI Signature Database and KEK"); latest 2.1.9 (2026-10-23); snap ≥ 2.1.6 for KEK (2.1.6 notes: "Fix installing KEK updates when using snapd") |
+| Ubuntu fwupd pockets (Launchpad / Snap) | 2026-10-27 | 2.0.20 in jammy/noble `-updates` (published 2026-07-09); resolute-updates `2.1.1-1ubuntu3.1`; snap stable 2.1.7 (query header is `Snap-Device-Series: 16`) |
 | Harvester releases (`gh release list harvester/harvester`) | 2026-10-27 | v1.9.0 latest GA (2026-09-16; v1.9.1 at rc4); 1.7.3 still newest 1.7.x. **v1.9.0 moved virt-launcher to `sles/16.0/virt-launcher:1.8.4-9.1` = `qemu-ovmf-x86_64-202502-160000.6.1`**; every `-ms` varstore in it parsed for cert CNs — KEK 2K CA 2023 + UEFI CA 2023 + Windows UEFI CA 2023 present. v1.6.0 floor unchanged |
-| harvester/harvester#7343 (installer SBAT) | 2026-09-15 | fixed in v1.8.0 GA; close is a real QA verification, not stale-bot |
-| `microsoft/secureboot_objects` payloads | 2026-09-15 | three DB payloads unchanged; KEK still per-OEM; **release now v1.7.0 (2026-09-03)**, up from v1.6.5 — its changelog reads "New DBX hashes and new pk-signed keks" |
+| harvester/harvester#7343 (installer SBAT) | 2026-10-27 | fixed in v1.8.0 GA; close is a real QA verification, not stale-bot |
+| `microsoft/secureboot_objects` payloads | 2026-10-27 | **release v1.7.1 (2026-10-20)**; three DB payloads still 2011-KEK-signed (re-parsed). Earlier note: | three DB payloads unchanged; KEK still per-OEM; **release now v1.7.0 (2026-09-03)**, up from v1.6.5 — its changelog reads "New DBX hashes and new pk-signed keks" |
 | `secureboot_objects` DBX payload signer | 2026-10-27 | **Partial freeze, both trees parsed.** microsoft/secureboot_objects#448 (2026-09-01) split dbx into `PostSignedObjects/SignedByKEK2023/` (consolidated `dbx_<arch>.efiauth2` + `dbx_SVN.efiauth2`; signer cert chains to `Microsoft Corporation KEK 2K CA 2023`) and `SignedByKEK2011/*_Legacy/` (the microsoft/secureboot_objects#448 hashes as per-hash files + `dbx_SVN_bootmgfw_v12.efiauth2` from microsoft/secureboot_objects#479, 2026-10-20; signer chains to `Microsoft Corporation KEK CA 2011`). microsoft/secureboot_objects#469 / release v1.7.1 notes: the KEK-2011 SVN file "has bootmgr v11 SVN", the KEK-2023 `dbx_SVN.efiauth2` "has all the latest SVN values (bootmgr v11, cdboot v3, wdsmgfw v3)". microsoft/secureboot_objects#468 (2026-09-09) restored the old `DBX/<arch>/DBXUpdate.bin` paths; `DBX/README.md`: "will be deleted in 2027". The June 2026 2011-signed push (commit `a728996`, bootmgfw SVN v9, CVE-2026-45654) is in that legacy path. |
-| SUSE-RU-2026:1157-1 (node-OS OVMF backport) | 2026-09-15 | still current; separate path, NOT the guest fix |
-| SUSE-SU-2026:0741 (shim 16.1) | 2026-09-15 | 2026-06-16, SLES 15 SP6; advisory does not say "dual-signed" |
-| KubeVirt persistent TPM/UEFI state docs | 2026-09-15 | no documented varstore reset-to-template path exists |
-| `virt-firmware` (virt-fw-vars) | 2026-09-15 | PyPI **26.9 (2026-09-06)**, up from 26.8.1; `--microsoft-kek {none,2011,2023,all}` and `-db` flags unchanged |
+| SUSE-RU-2026:1157-1 (node-OS OVMF backport) | 2026-10-27 | released 2026-03-31; separate path, NOT the guest fix |
+| SUSE-SU-2026:0741 (shim 16.1) | 2026-10-27 | 2026-06-16, SLES 15 SP6; advisory does not say "dual-signed" |
+| KubeVirt persistent TPM/UEFI state docs | 2026-10-27 | no documented varstore reset-to-template path exists |
+| `virt-firmware` (virt-fw-vars) | 2026-10-27 | PyPI **26.10 (2026-10-13)**; `--microsoft-kek {none,2011,2023,all}` and `-db` flags unchanged |
 
 ## The mechanism (dates, cert map, firmware-ignores-expiry)
 - Microsoft — "Windows Secure Boot certificate expiration and CA updates" (support.microsoft.com topic
@@ -58,7 +58,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   certificate-changes-2026-guidance-rhel-environments: keeps-booting-after-2026, reinstall-doesn't-fix-firmware,
   NVRAM independence, HP/Fujitsu block, mokutil audit, edk2-ovmf package versions.
 - fwupd/LVFS — fwupd.github.io/libfwupdplugin/uefi-db.html; plugins/uefi-db,uefi-kek,uefi-sbat READMEs; HSI
-  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware. The "signed by the old KEK…
+  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware *(exception 2026-10-27: 403 to curl and WebFetch, browser not reached)*. The "signed by the old KEK…
   now it can apply on many more systems" quote in `mechanism.md` is hughsie in fwupd/fwupd#9056 (2025-07-24), not LWN.
 - LWN — lwn.net/Articles/1029767/: maintainer commentary (Jones, Hoffmann, Hughes), EDK2 `NO_CHECK_TIME`,
   success rates, FUD-vs-reality framing.
@@ -93,9 +93,9 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   versions, prerequisites, mandated reboot sequence); KB 000362511 (impact); KB 000390990 (Secure Boot
   Transition FAQ — per-CA dates, EoSL cutoff, Expert-Key-Mode warning).
 - Dell iDRAC-Redfish-Scripting `SecureBootResetKeysREDFISH.py` (ResetKeys endpoint, Custom-policy prereq,
-  staged-job + reboot semantics, allowable values); RACADM `bioscert` guide; `dellemc.openmanage.idrac_secure_boot`
+  staged-job + reboot semantics, allowable values); RACADM `bioscert` guide *(exception 2026-10-27: row has no URL and web search was down — not probed)*; `dellemc.openmanage.idrac_secure_boot`
   Ansible module. (Companion skill: `ansible-idrac-9-10` for the dellemc.openmanage auth lifecycle.)
-- Broadcom/VMware KB 423893 (PK-before-KEK dependency). HPE iLO / Lenovo XCC — same firmware-update + Windows-
+- Broadcom/VMware KB 423893 (PK-before-KEK dependency). HPE iLO / Lenovo XCC *(exception 2026-10-27: no URL, search down — not probed)* — same firmware-update + Windows-
   Update split (OEM comparison).
 
 ## Ubuntu / Linux
@@ -120,7 +120,7 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   SecureBoot "defaults true" / Persistent "defaults false"); KubeVirt docs persistent_tpm_and_uefi_state.
   harvester-ui-extension `index.js` (UI defaults secureBoot/efiPersistent = false).
 - virt-fw-vars man page (`--microsoft-kek {none,2011,2023,all}`, `--microsoft-db`).
-- SUSE node-OS OVMF backport (separate path, NOT the guest fix) — OBS `SUSE:SLE-15-SP5:Update/ovmf/*`;
+- SUSE node-OS OVMF backport (separate path, NOT the guest fix) — OBS `SUSE:SLE-15-SP5:Update/ovmf/*` *(exception 2026-10-27: 403 to curl and WebFetch; the advisory below was read)*;
   advisory SUSE-RU-2026:1157-1 (SLE Micro 5.5, `qemu-ovmf-x86_64-202208-150500.6.15.1`, bsc#1257019).
 
 ## Recovery / rollback (the backup-and-back-out path)
@@ -132,6 +132,6 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 - KubeVirt — kubevirt.io/user-guide/compute/persistent_tpm_and_uefi_state/: persistence is opt-in, and
   snapshot-restore-into-the-same-VM is the **only** documented restore. No reset-to-template path is
   documented — do not invent one (PVC deletion is not supported guidance).
-- Dell — Lifecycle Controller firmware-rollback docs. KB 000115696 (corrupt/interrupted BIOS flash recovery)
+- Dell — Lifecycle Controller firmware-rollback docs *(exception 2026-10-27: no URL, search down — not probed)*. KB 000115696 (corrupt/interrupted BIOS flash recovery)
   is withdrawn ("not currently available", 2026-10-27); no replacement cited. Whether a BIOS rollback reverts key databases is
   **undocumented**; the skill says so rather than guessing.
