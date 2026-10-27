@@ -22,7 +22,7 @@ Defaults and source locations are based on `backend/open_webui/env.py` and `back
 | `REDIS_SENTINEL_PORT` | `26379` | |
 | `REDIS_SENTINEL_MAX_RETRY_COUNT` | `2` | Retries on `ConnectionError` / `ReadOnlyError` during failover. |
 | `REDIS_RECONNECT_DELAY` | unset | Float ms between Sentinel failover retries. |
-| `REDIS_SOCKET_CONNECT_TIMEOUT` | unset | Float seconds. Without this, Sentinel failover can hang the app indefinitely. **Set to `5`.** Added 0.6.42 (#19799), broadened to non-sentinel in 0.9.0 (#23572). |
+| `REDIS_SOCKET_CONNECT_TIMEOUT` | unset | Float seconds. Without this, Sentinel failover can hang the app indefinitely. **Set to `5`.** Broadened to non-sentinel clients in 0.9.0 (#23572). |
 | `REDIS_SOCKET_KEEPALIVE` | `False` | TCP `SO_KEEPALIVE`. Detects half-closed sockets after silent firewall/LB resets or NIC flaps. **Set to `True`.** Added 2026-04-12 (#23571). |
 | `REDIS_HEALTH_CHECK_INTERVAL` | unset | Seconds between idle-conn pings. Must be shorter than the Valkey `timeout` setting and any firewall/LB idle timeout on the path. **Set to `60`.** Added 2026-04-12 (#23573). |
 

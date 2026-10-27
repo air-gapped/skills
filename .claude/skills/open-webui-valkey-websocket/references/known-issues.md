@@ -1,6 +1,6 @@
 # Known issues, fixes shipped, and what to watch
 
-Status as of 2026-07-29 (stable was 0.11.0 then; the line is at **0.11.4** as of 2026-09-24; issue states re-probed — #19840, #15162 still open, #23733 closed won't-fix but its underlying amplification is fixed anyway from v0.11.1, see below. The 0.9.6→0.11.0 changelogs were NOT load-tested for scaling regressions, but the 0.11.0 release notes were read: see SKILL.md §Version upgrades. #27622 idle timer polling and #27651 runAsNonRoot, both open on 0.11.0, are **fixed in v0.11.1**). Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Issue states re-probed 2026-10-27 against v0.12.4: #23733 closed won't-fix but its amplification is fixed from v0.11.1; #15162 fixed in v0.11.4; #19840 fixed from v0.11.2; #23650 closed unmerged; #27622 and #27651 fixed in v0.11.1. Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
@@ -8,13 +8,11 @@ Status as of 2026-07-29 (stable was 0.11.0 then; the line is at **0.11.4** as of
 
 Opened 2026-04-14, **closed NOT_PLANNED 2026-08-11** — won't-fix on GitHub, no PR linked to the issue. But v0.11.1's "Streaming rebuilt from the ground up" (commit `a1579a01f`) independently replaced the full-message-per-emit path in `utils/middleware.py` with per-token delta events — verified by diffing v0.11.0 against v0.11.4. The O(N²) amplification this section describes applies only to **<v0.11.1**. Full story, evidence, and PR history in `references/issue-23733.md`. `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10` remains the right setting — it now bounds emit frequency rather than amplification.
 
-### #15162 — direct-connection chat with `workers > 1`
+### #15162 — direct-connection chat with `workers > 1` — **FIXED in v0.11.4**
 
-Opened 2025-06-20. With either `UVICORN_WORKERS > 1` or multi-pod and `WEBSOCKET_MANAGER=redis`, the WebSocket connection and the `/api/v1/completions` request can land on different worker instances. The receiving worker has no in-memory state for the WS session, so the request hangs forever waiting for a response that goes to the other worker.
+With `UVICORN_WORKERS > 1` or multi-pod and `WEBSOCKET_MANAGER=redis`, the WebSocket connection and the direct-connection completion request could land on different workers; the reply went to a worker with no listener and the chat hung. Commit `0180efec` (v0.11.4) relays the events over the `open-webui:direct_completion` Redis channel; the issue closed COMPLETED 2026-09-22 with "Fixed in v0.11.4". The earlier PRs #22402, #24099 and #24100 closed **without merge** — no release before v0.11.4 carries a fix.
 
-PR #22402 (merged Mar 2026) added Redis pub/sub fan-out for direct-connection channel events. PR #24099/#24100 (Apr/May 2026) fixed task generation for direct-connection chats. **Issue still open** — pattern keeps appearing in new endpoints.
-
-Mitigation: keep `UVICORN_WORKERS=1` and stay on ≥0.9.3 to pick up #22402.
+Mitigation below v0.11.4: keep `UVICORN_WORKERS=1` and avoid direct connections on multi-pod.
 
 ### #19840 — RedisCluster `publish()` AttributeError on `/api/tasks/stop/{id}` — **FIXED, from v0.11.2**
 
@@ -39,9 +37,9 @@ still stands as history for anyone on 0.9.0/0.9.1.
 
 Opened 2026-04. 39 comments. Includes a `KeyError` in socketio's `enter_room` (bidict) on connect — Socket.IO state corruption on connect path. `Classic298`'s diagnosis pivoted the thread to NFS-backed SQLite I/O ("MUST use Postgres for multi-replica"), but the underlying Socket.IO breakage on 0.9.0/0.9.1 is real and a separate concern.
 
-### #23650 — PR open: evict Socket.IO room subscriptions when access revoked
+### #23650 — PR closed unmerged: evict Socket.IO room subscriptions when access revoked
 
-Opened 2026-04-12. Stale Socket.IO rooms persist across pod restarts and access revocations. Not yet merged.
+Opened 2026-04-12, closed without merge 2026-09-22. A user whose access to a channel or note is revoked keeps receiving its live updates until they disconnect. No merged fix is recorded.
 
 ## Fixed issues — what shipped, when
 
@@ -57,7 +55,7 @@ Comment in fixed code: *"We never DELETE the whole hash — this eliminates the 
 
 ### #21410 — Memory leak in SESSION_POOL, USAGE_POOL, YdocManager
 
-Closed. `RedisDict` had no TTL/eviction; `USAGE_POOL` not cleaned on disconnect; `YdocManager._updates` grew unboundedly. Both Redis RAM and Python RAM grew without bound until restart. Addressed by PR #16693 ("Session TTL management, periodic cleanup", 2026-02-16) and the v0.9 socket refactor.
+Closed. `RedisDict` had no TTL/eviction; `USAGE_POOL` not cleaned on disconnect; `YdocManager._updates` grew unboundedly. Both Redis RAM and Python RAM grew without bound until restart. Addressed by the v0.9 socket refactor (PR #16693, an earlier TTL attempt, closed unmerged).
 
 ### #18073 — Redis ReadOnlyError after upgrade to 0.6.32 (Oct 2025)
 
@@ -107,9 +105,9 @@ Closed Oct 2025.
 
 Closed Feb 2025. Original split-brain config-refresh bug.
 
-### #16074 — Active user count inflated, never goes down
+### Inflated active user count, never goes down (fixed 0.6.41)
 
-Closed (in 0.6.41). Counter moved from socket-based USER_POOL to DB-backed heartbeat. *"Resolving long-standing issues where Redis deployments displayed inflated user counts due to stale sessions never being cleaned up on disconnect."* Commit `70948f880`.
+Fixed in 0.6.41. Counter moved from socket-based USER_POOL to DB-backed heartbeat. *"Resolving long-standing issues where Redis deployments displayed inflated user counts due to stale sessions never being cleaned up on disconnect."* Commit `70948f880`.
 
 ## The April 2026 batch — what came in 0.9.0–0.9.4
 
@@ -127,7 +125,6 @@ This is the burst of multi-pod robustness work that, combined with the icon fixe
 | #23649 | 2026-04-12 | Apply `REDIS_KEY_PREFIX` to `tool_servers` and `terminal_servers` cache keys. |
 | #23709 | 2026-04-14 | **Replace BaseHTTPMiddleware with pure ASGI implementations.** Major perf fix — removes serialization bottleneck under concurrency. |
 | #23829 | 2026-04-17 | Fix `chat:outlet` update overwritten by stale write-back (race in event ordering). |
-| #23896 | 2026-05-07 | Cross-worker tool + function cache invalidation via Redis. Plugins now invalidate consistently across pods. |
 | #24015 | 2026-04-24 | `perf: redirect default model profile image to canonical static URL`. Browser caches one asset. |
 | #24412 | 2026-05-09 | Arena model profile images. |
 | #24420 | 2026-05-09 | `profile_image_url` validation — replace brittle allowlist with safe-scheme validation. |
@@ -159,7 +156,7 @@ Plus the Nov–Dec 2025 work:
 | Sentinel ReadOnlyError | Fixed Oct 2025. |
 | Sentinel auth password | Fixed Nov 2025. |
 | Sentinel coroutine-not-awaited (0.9.1) | Fixed in 0.9.4 (#23987 closed 2026-05-08). Upgrade required for Sentinel users on 0.9.1–0.9.3. |
-| Direct-connection chat with `workers > 1` | Partial fix Mar 2026; **don't use multiple workers per pod**. |
+| Direct-connection chat with `workers > 1` | Fixed in v0.11.4 (#15162). |
 | Socket.IO frame amplification (#23733) | GitHub issue closed won't-fix 2026-08-11, but the amplification itself is **fixed in v0.11.1** (streaming rebuild emits deltas, not full messages). Still applies on <v0.11.1. Keep `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10` regardless. |
 | Helm chart bundled Redis is no-PVC | Disable, use external Valkey. |
 | Helm chart no HPA/PDB/probes | Add yourself. |
