@@ -40,7 +40,7 @@ Codex CLI dropped Chat Completions in Feb 2026; most major clients (OpenCode, Co
 | Context mgmt | None | `context_management.compact_threshold` + `compaction` output item, or `POST /v1/responses/compact` |
 | Reasoning persistence | Discarded between turns | Kept server-side; pass via `previous_response_id` or `include: ["reasoning.encrypted_content"]` |
 | Finish | `finish_reason` string | `response.status` + per-item `status` |
-| Prompt caching | `prompt_cache_key` (same) | `prompt_cache_key` + `prompt_cache_retention: "in_memory"/"24h"` |
+| Prompt caching | `prompt_cache_key` (same) | `prompt_cache_key` + `prompt_cache_retention` (pre-5.6) or `prompt_cache_options.ttl: "30m"/"12h"` (GPT-5.6+) |
 | Resume dropped stream | No | `GET /v1/responses/{id}?stream=true&starting_after=<seq>` |
 
 ## Critical Gotchas

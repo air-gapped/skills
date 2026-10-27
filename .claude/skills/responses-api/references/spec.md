@@ -11,7 +11,7 @@ Source: OpenAI OpenAPI spec, OpenResponses spec (release 2026-04-24), Azure Foun
 - [Tool Definitions](#tool-definitions) — function (flat), shell, tool_search, computer, web_search, file_search, code_interpreter, mcp
 - [Conversation State](#conversation-state) — previous_response_id, Conversations API, client-side, compaction
 - [Conversations API](#conversations-api) — /v1/conversations endpoint
-- [Prompt Caching](#prompt-caching) — prompt_cache_key, prompt_cache_retention
+- [Prompt Caching](#prompt-caching) — prompt_cache_key, prompt_cache_retention, prompt_cache_options
 - [Transport Modes](#transport-modes) — HTTP SSE vs WebSocket
 - [Breaking Changes 2026](#breaking-changes-2026) — field renames and required-field flips
 - [OpenResponses Specification](#openresponses-specification) — open standard differences
@@ -66,10 +66,10 @@ WebSocket transport (launched 2026-02-23): `wss://api.openai.com/v1/responses`.
 | `max_tool_calls` | `integer?` | null | Cap agentic loop iterations |
 | `context_management` | `object[]?` | null | Server-side compaction: `[{type: "compaction", compact_threshold: <int>}]`. Min threshold 1000. Emits `compaction` output item when triggered |
 | `prompt_cache_key` | `string?` | null | Routing stickiness for prefix cache. Combines with prefix hash |
-| `prompt_cache_retention` | `string?` | "24h" (non-ZDR) | `"in_memory"` (5-60 min) or `"24h"`. **Default flipped to `"24h"` for non-ZDR orgs 2026-05-29** (was `"in_memory"`); ZDR orgs stay `"in_memory"`. 24h is pricing-neutral but ZDR-ineligible |
+| `prompt_cache_retention` | `string?` | "24h" (non-ZDR) | **Pre-GPT-5.6 models only** (SDK marks it deprecated). `"in_memory"` (5-60 min) or `"24h"`; gpt-5.5/5.5-pro accept `"24h"` only. **Default flipped to `"24h"` for non-ZDR orgs 2026-05-29** (was `"in_memory"`); ZDR orgs stay `"in_memory"`. 24h is pricing-neutral but ZDR-ineligible |
 | `client_metadata` | `object?` | null | Free-form metadata; Codex CLI populates `installation_id`, `session_source` here |
 | `moderation` | `object?` | null | Input/output moderation assessment (added 2026-06-04, also on Chat Completions) |
-| `prompt_cache_breakpoint` | `object?` | null | Explicit prompt-caching control: `{mode: "explicit"}` (GPT-5.6, 2026-07-09) |
+| `prompt_cache_options` | `object?` | null | GPT-5.6+ cache control: `{mode: "implicit"/"explicit", ttl: "30m"/"12h", prewarm, comparison_response_id}`. `ttl` is a minimum lifetime; writes cost 1.25× input at `"30m"`, 2.5× at `"12h"` (Responses only). Explicit breakpoints go on content blocks as `prompt_cache_breakpoint: {mode: "explicit", ttl?}` — max 4 writes per request. Unsupported `ttl` → 400 |
 
 ## Input Item Types (discriminated by `type`)
 
@@ -372,11 +372,14 @@ next turn, so caching can't help.
 
 Fields:
 - `prompt_cache_key: string` — routing stickiness. Combines with prefix hash.
-- `prompt_cache_retention: "in_memory" | "24h"` — default `"24h"` for non-ZDR
-  orgs since 2026-05-29 (previously `"in_memory"`). Pricing-neutral but 24h is
-  ZDR-ineligible.
-- `prompt_cache_breakpoint: {mode: "explicit"}` — explicit cache-boundary
-  control (GPT-5.6, 2026-07-09).
+- **Pre-GPT-5.6 models:** `prompt_cache_retention: "in_memory" | "24h"` —
+  default `"24h"` for non-ZDR orgs since 2026-05-29 (previously `"in_memory"`);
+  gpt-5.5 accepts `"24h"` only. Pricing-neutral but 24h is ZDR-ineligible.
+- **GPT-5.6 and later:** `prompt_cache_options.ttl: "30m"` (default, 1.25×
+  input write rate) or `"12h"` (Responses only, 2.5×). `prompt_cache_retention`
+  does not control these models. `mode: "explicit"` drops the implicit
+  breakpoint; place `prompt_cache_breakpoint: {mode: "explicit", ttl?}` on
+  content blocks (up to 4 written per request, last 80 matched).
 
 Reporting:
 - `usage.input_tokens_details.cached_tokens` — hit count.
