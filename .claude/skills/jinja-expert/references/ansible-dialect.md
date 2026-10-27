@@ -54,9 +54,8 @@ Ansible wraps Jinja2 with:
 - **Conditional eval** — `when:`, `failed_when:`, `changed_when:`, `until:`
   evaluate as Jinja expressions *without* the usual `{{ ... }}` wrappers.
   Writing `when: "{{ foo }}"` is almost always wrong (see §7).
-- **Native-types mode** — opt-in flag (since Ansible 2.7, off by default as
-  of 2.10) that makes renders return Python objects rather than strings
-  (§4).
+- **Native types** — renders return Python objects rather than strings. The
+  only mode since ansible-core 2.19; an opt-in flag before that (§4).
 - **Custom filters/tests/lookups** — dropped into `filter_plugins/`,
   `test_plugins/`, `lookup_plugins/` adjacent to the playbook, in a role, or
   inside a collection (§10).
@@ -123,42 +122,36 @@ populate facts on it explicitly.
 
 ## 4. Native types (`jinja2_native`)
 
-Stock Jinja always returns a string. Ansible can opt into native Python types
-by setting `ANSIBLE_JINJA2_NATIVE=1` (env), `jinja2_native = True` in
-`ansible.cfg`, or `DEFAULT_JINJA2_NATIVE`. Off by default as of 2.10;
-stabilized since 2.7.
+**ansible-core ≥ 2.19: native mode is always on.** `jinja2_native`
+(`ANSIBLE_JINJA2_NATIVE`, `DEFAULT_JINJA2_NATIVE`) is deprecated and has no
+effect (removal slated for 2.23). The old final pass that ran
+`ast.literal_eval` over string results is gone too, so a string never turns
+into a list/int/bool behind your back. Check the version first:
+`ansible --version`.
 
 ```yaml
-# Without jinja2_native
 - debug: var=foo
   vars:
     foo: "{{ [1, 2, 3] }}"
-# => foo: "[1, 2, 3]"     (a STRING)
-
-# With jinja2_native
-# => foo: [1, 2, 3]        (a LIST)
+# >= 2.19: foo: [1, 2, 3]   (a LIST, type preserved)
+# <  2.19: rendered as the string "[1, 2, 3]", then literal_eval'd back
+#          into a list; ANY string that looked like a literal got this
 ```
 
-**When to enable:** expressions must yield real Python dicts/lists
-without `| from_yaml` / `| from_json` wrappers. Common in 2026 codebases
-that pass structured data between tasks.
+**Porting a playbook to ≥ 2.19** — the breaks are templates that relied on
+string coercion:
 
-**When to avoid:** legacy playbooks that depend on the string coercion. A
-template that writes `"{{ some_list }}"` into a config file and expects the
-Python `repr` output will break silently — native mode returns the list
-*object*, not a rendered string. YAML serialization then turns it back into
-a different shape.
+- A string filter applied to a list: `['test1', 'test2'] | replace('test',
+  'prod')` now yields the string `"['prod1', 'prod2']"`; use
+  `map('replace', 'test', 'prod')` to keep a list.
+- A string that only *looked* like a list/dict/number: it stays a string.
+  Convert explicitly with `| from_json`, `| from_yaml`, `| int`, `| bool`.
+- A bare `range(...)` result errors (`Type 'range' is unsupported for
+  variable storage`); write `range(0, 2) | list`, including in `loop:`.
 
-**Test before flipping the flag in a mature codebase.** Even simple
-expressions can change type:
-
-- `"{{ 3 }}"` — string `"3"` without, int `3` with.
-- `"{{ true }}"` — string `"True"` without, bool `True` with.
-- `"{{ '42' | int }}"` — always int (explicit filter).
-
-Since the rollout is all-or-nothing per Ansible config, staging this through
-one playbook first and checking `ansible-playbook --check --diff` output is
-the safe path.
+On **< 2.19** native mode is opt-in (`jinja2_native = True`, off by
+default). Stage a flag flip — or an upgrade to 2.19+ — through one playbook
+with `ansible-playbook --check --diff` first.
 
 ---
 
@@ -483,8 +476,8 @@ of defense.
     msg: "user={{ user }}, type={{ user | type_debug }}, empty={{ user | length == 0 }}"
 ```
 
-`type_debug` is invaluable in native-types-enabled playbooks. Prints the
-actual Python type at render time.
+`type_debug` prints the actual Python type at render time — the first
+check when a value is a string where a list/int/bool was expected.
 
 **`-vvv`** — three-verbose shows rendered task arguments. The fourth v adds
 connection-plugin noise, rarely worth it.
@@ -524,8 +517,8 @@ work. Use the `debug` module instead.
    raises if `other` hasn't been fact-gathered. Always `gather_facts: true`
    or use `delegate_facts`.
 6. **Integer-looking strings.** `some_var: "0123"` is a string `"0123"` in
-   YAML (leading zero) but renders as `"0123"`. Chain `| int` or use
-   `jinja2_native` mode to get the numeric value.
+   YAML (leading zero) but renders as `"0123"`. Chain `| int` to get
+   the numeric value.
 7. **Boolean-looking strings.** `"yes"`, `"no"`, `"on"`, `"off"` parse as
    bools in YAML but not in rendered templates. Use `| bool` to recover
    the YAML-style coercion after a string passes through Jinja.
