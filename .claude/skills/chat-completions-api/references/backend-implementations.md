@@ -194,7 +194,7 @@ field schema (server-schema.cpp) evaluated for every completion-type request.
   silently ignored. No strict-tools grammar.
 - Server tools: uniquely EXECUTES `web_search` server-side (see
   messages-api skill; applies on its Anthropic surface).
-- Legacy: `prompt` string-only (issue #5259); `suffix` = FIM (Modelfile
+- Legacy: `prompt` string-only (ollama/ollama#5259, open); `suffix` = FIM (Modelfile
   suffix template — Ollama's whole FIM story); logprobs accepted in request,
   never in response.
 - Errors: full OpenAI envelope, `param`/`code` always null.
