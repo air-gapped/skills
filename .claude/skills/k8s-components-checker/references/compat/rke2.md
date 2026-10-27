@@ -120,6 +120,8 @@ invalid capacity 0 on image filesystem` (kubelet startup before cAdvisor populat
 
 ## 1.33 (latest patch v1.33.13+rke2r2, 2026-08-04)
 
+- **Community ceiling stays `v1.33.13+rke2r2`.** `v1.33.13+rke2r3` (2026-10-02) self-declares "a Prime-only release" in its body — it is `generated.json` `top_tag`, not a community patch. 1.33 is past upstream k8s EOL (2026-06-28); further fixes on this line are Prime-only.
+
 - **k8s floor:** 1.33.
 - **Breaking:**
   - **etcd minor jump 3.5 → 3.6, *within* the 1.33 line.** The 3.6 bump does not
