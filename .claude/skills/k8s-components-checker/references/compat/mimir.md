@@ -5,16 +5,19 @@
 - **Truth source type:** `chart_metadata`
 - **Axis type:** `single`
 - **min_tracked_version:** 5.7
-- **Last sifted:** 2026-09-24 (checked mimir-3.2.1/3.1.6 app CVE patches against chart tags; not yet packaged — no new chart release)
-- **Last release-verified:** 2026-09-24
+- **Last sifted:** 2026-10-27 (6.1.1 / 6.2.1 / 6.2.2 Chart.yaml, values.yaml and CHANGELOG read at their tags)
+- **Last release-verified:** 2026-10-27
 
-In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.0` (appVersion 3.2.0), `6.1.0` (2026-07-16, appVersion 3.1.2), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
+In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.2` (2026-10-26, appVersion 3.2.3), `6.1.1` (2026-10-26, appVersion 3.1.8), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
 **Chart → Mimir-app mapping (load-bearing):**
 
 | Chart | `kubeVersion:` | `appVersion:` (Mimir) |
 |---|---|---|
+| 6.2.2 | `^1.32.0-0` | 3.2.3 |
+| 6.2.1 | `^1.32.0-0` | 3.2.1 |
 | 6.2.0 | `^1.32.0-0` | 3.2.0 |
+| 6.1.1 | `^1.32.0-0` | 3.1.8 |
 | 6.1.0 | `^1.32.0-0` | 3.1.2 |
 | 6.0.6 | `^1.29.0-0` | 3.0.4 |
 | 5.8.0 | `^1.20.0-0` | 2.17.0 |
@@ -44,12 +47,15 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   previously applied only to Deployments (#15950).
 - Bugfix relevant to autoscaled installs: `ScaledObject` templates were broken
   when using `kedaAutoscaling.fallback` (#15793).
-- **Unpatched Go CVEs at this appVersion:** `mimir-3.2.1` (app release,
-  2026-09-10) bumps Go to 1.26 to fix 7 CVEs (GO-2026-5972, -5026, -5942,
-  -6089, -6091, -6088, -6218) — chart 6.2.0 still ships appVersion 3.2.0. No
-  chart release packages 3.2.1 as of this sift (newest chart tag remains
-  `mimir-distributed-6.2.0`, 2026-08-20; `6.3.0-weekly.*` pre-releases are not
-  a tracked line). Recheck at next freshen.
+- **Security floor: chart 6.2.2 (app 3.2.3, 2026-10-26).** 6.2.0 ships app 3.2.0,
+  which carries 7 Go CVEs fixed in app 3.2.1 (GO-2026-5972, -5026, -5942, -6089,
+  -6091, -6088, -6218); 6.2.1 (2026-10-06) packages 3.2.1, 6.2.2 packages the
+  3.2.3 security release. With a pinned `image.tag`, bump the pin in the same
+  change or the chart patch fixes nothing. `6.3.0-weekly.*` pre-releases are not
+  a tracked line.
+- **6.2.1 swaps the bundled MinIO image to `pgsty/silo`** (MinIO community images
+  left the public registries, #16766) — the mirror needs docker.io `pgsty/silo`,
+  not quay.io `minio/minio`.
 
 ## 6.1.0
 
@@ -59,7 +65,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - **`kafka.extraEnv` removed** — use `kafka.env`, which merges by name against the chart's defaults (same pattern as `ingester.env`). A values file still setting `extraEnv` silently loses those vars.
   - **Default registry for the mimir image is now `docker.io`**, and **the image tag now defaults to `Chart.AppVersion`** instead of being carried in values. Both change what an image-list generator emits — **regenerate air-gap image lists from scratch, do not diff them.** Air-gapped fleets should **add an explicit `image.tag` pin**: from 6.1.0 on, a chart patch bump silently bumps the image tag to a value written nowhere in your values file. There is **no `image.digest` key** — the only digest form the chart can express is `tag: "3.1.2@sha256:<digest>"`.
   - **No global registry override exists** (`global:` has no `image*` key; upstream request grafana/mimir#5449 still open). Every image family needs its own key, and the shapes differ: Mimir/memcached/memcached-exporter fold the registry into `repository` (no `registry` key at all), while gateway-nginx / kafka / rollout-operator / grafana-agent-operator take a separate `registry`. `image.pullSecrets` is a list of **strings** but the subcharts' `imagePullSecrets` are lists of **maps**, and `kafka.image.pullSecrets` is honoured by the template yet absent from `values.yaml`.
-  - Mirror must serve **quay.io as well as docker.io** — minio and `mc` come from quay.io.
+  - Mirror must serve **quay.io as well as docker.io** on 6.1.0 — minio and `mc` come from quay.io, and quay.io now refuses anonymous pulls of them. **6.1.1 replaces them with `pgsty/silo`** (docker.io).
   - rollout-operator subchart **0.37.1 → 0.50.0 (appVersion v0.38.0)** — read the tarball's `Chart.yaml`, not the CHANGELOG, which cites 0.37.1/0.38.0/0.38.1/0.48.0 inconsistently for this one release. **Required action:** v0.38.0's fixed-delay partition-aware PDB eviction needs an **updated CRD** plus a role letting the operator patch pods. From chart 0.48.0 the CRDs live in a bundled `crds` subchart (`charts/rollout-operator/charts/crds/crds/`) — still Helm `crds/` semantics, so **`helm upgrade` will NOT apply them**. `kubectl apply` both from the tarball first.
   - ~~Chart tooling moved to Helm v4~~ — **not a consumer requirement.** The CHANGELOG's "Upgrade to Helm v4" (#13661) touches only `.github/workflows/*`, the build image, `Makefile` and `operations/helm/scripts/build.sh`. `Chart.yaml` is still `apiVersion: v2` and **Helm 3 installs 6.1.0 fine.** Caveat: Helm 3 vs 4 *do* render differently (PDB apiVersion, `internalTrafficPolicy`, PSP objects), so use the **same Helm binary across all hops** or `helm template` diffs will show phantom changes.
 - **Default-value shifts to expect (not breaks, but they resize pods):**
@@ -68,11 +74,11 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - **Ruler gains a hardcoded 1 GiB memory ballast** — `ruler-dep.yaml` sets `-mem-ballast-size-bytes=1073741824` with **no values escape hatch**. Raise `ruler.resources.limits.memory` by ≥1 GiB *before* the hop or the ruler OOMKills.
   - All four memcached StatefulSets get `minReadySeconds: 60` — memcached rollouts become substantially slower; budget the maintenance window.
   - Zone-downscale guards: `ingester.zoneAwareReplication.minTimeBetweenZonesDownscale: 12h`, `store_gateway…: 30m`. These block rapid successive zone operations.
-  - **NOT in 6.1.0:** querier `max_concurrent` stays **16** (verified byte-identical in the 6.0.6 and 6.1.0 embedded config). The lowering to 8 is in the chart CHANGELOG's `main / unreleased` section — do not budget for it on this ladder.
+  - **NOT in 6.1.x:** querier `max_concurrent` stays **16** (verified byte-identical in the 6.0.6 and 6.1.0 embedded config). The lowering to 8 shipped in **6.2.0** (#15984) — budget querier replicas for it at the 6.2 hop.
 - **Ingest storage:** still the chart default in 6.1 — the config template ships `ingest_storage.enabled: true`. Kafka remains a required dependency of the default topology.
 - **CRD migrations:** N/A.
 - **Upgrade ordering:** rollout-operator drives ingester/store-gateway restarts. See § Rollout mechanics.
-- **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server. **Unpatched Go/crypto/grpc CVEs at this appVersion:** `mimir-3.1.6` (app release, 2026-09-10) fixes Go 1.26.7 CVEs plus `golang.org/x/crypto` (GO-2026-6354, GO-2026-6355) and `google.golang.org/grpc` (CVE-2026-84304, CVE-2026-84445) — chart 6.1.0 ships appVersion 3.1.2, three patches behind. No chart release packages 3.1.6.
+- **Notable:** the `kubeVersionOverride` gotcha bites harder here — `^1.32.0-0` will trip any operator workstation whose kubectl predates 1.32, even against a 1.32+ server. **Unpatched Go/crypto/grpc CVEs at this appVersion:** `mimir-3.1.6` (app release, 2026-09-10) fixes Go 1.26.7 CVEs plus `golang.org/x/crypto` (GO-2026-6354, GO-2026-6355) and `google.golang.org/grpc` (CVE-2026-84304, CVE-2026-84445) — chart 6.1.0 ships appVersion 3.1.2. **Security floor on this line: chart 6.1.1 (app 3.1.8, 2026-10-26).**
 
 ## 6.0.6
 
