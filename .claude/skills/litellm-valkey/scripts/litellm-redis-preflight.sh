@@ -61,7 +61,10 @@ fi
 case "$source_val" in
   coordination_redis) echo "   source=coordination_redis (explicit block — check it isn't a DB/UI copy shadowing the config file)";;
   cache_backend)      echo "   source=cache_backend (borrowed response-cache client — cache failures couple into rate limiting via the shared circuit breaker)";;
-  environment)        echo "   source=environment (REDIS_* env fallback)";;
+  environment)        echo "   source=environment (REDIS_* env fallback) — PREDICTED from env vars, not observed."
+                      echo "   Per-pod anyway on <v1.101.0 without cache: true, or if the 2s boot ping failed:"
+                      echo "   grep every pod's boot log for 'using a standalone Redis built from REDIS_*'."
+                      echo "   Step 2 returns HTTP 400 for this source (no saved block to test).";;
   *)                  echo "   source=${source_val}";;
 esac
 

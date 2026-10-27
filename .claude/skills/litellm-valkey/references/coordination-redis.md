@@ -33,7 +33,7 @@ Mirrored by `_coordination_redis_source()` (`management_endpoints/coordination_r
 
 ## Verification endpoints (undocumented, admin-only)
 
-- `GET /coordination_redis/settings` — returns the live (credential-redacted) config **and `source`**: `"coordination_redis"` (explicit block, file or DB), `"cache_backend"` (borrowed), `"environment"`, or null (per-pod mode). `coordination_redis_endpoints.py:288-296`.
+- `GET /coordination_redis/settings` — returns the live (credential-redacted) config **and `source`**: `"coordination_redis"` (explicit block, file or DB), `"cache_backend"` (borrowed), `"environment"`, or null (per-pod mode). `coordination_redis_endpoints.py:288-296`. `_coordination_redis_source()` evaluates config/env, never the live `redis_usage_cache`: `"environment"` is reported even when the env client was never built (<v1.101.0 without `cache: true`) or failed its boot ping, and a DB-saved block shows before the restart that applies it.
 - `POST /coordination_redis/settings` — persists a block to the DB (this is how the UI shadows the config file).
 - `POST /coordination_redis/settings/test` — builds a throwaway client from submitted params (redacted credential fields fall back to saved values) and pings it. `coordination_redis_endpoints.py:390-433`.
 - `GET /cache/ping` — response cache **only**, and only when `litellm.cache.type == "redis"` (`caching_routes.py:80`). Blind to a dedicated coordination Redis. Same for `/cache/flushall` — which, when the client is borrowed, wipes rate-limit counters, spend counters, spend buffer lists, and cron locks along with the cache (`caching_routes.py:235-236` → `redis_client.flushall()`).
