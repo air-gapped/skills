@@ -271,22 +271,33 @@ the engine might still render differently. Reasons:
 - The engine has a different template loaded (version skew vs the
   snapshot under audit).
 - The engine applies message-level preprocessing (list-content coercion,
-  tool-args reformatting, BOS prepending) before rendering.
+  tool-args reformatting, BOS prepending) before rendering. vLLM also
+  rewrites `developer` messages to `system` (and merges system messages)
+  when the template has no `developer` branch.
 
 ### The probe
 
-vLLM exposes `/v1/chat/completions/render` (CPU-only endpoint). Ask the
-engine what prompt *it* would render for a given `ChatRequest`:
+vLLM exposes `/v1/chat/completions/render` (no generation). Ask the
+engine what prompt *it* would build for a given chat request. On vLLM
+≥ 0.30 `vllm serve` answers 403 here unless started with
+`--enable-scale-out`; `vllm launch render` (GPU-less) and
+`vllm serve --tokens-only` always serve it.
+
+The response carries `token_ids`, not prompt text — compare tokens:
 
 ```python
 resp = httpx.post(
     f"{endpoint}/v1/chat/completions/render",
     json={"model": model, "messages": messages, "tools": tools, ...},
 )
-engine_rendered = resp.json()["prompt"]
+engine_ids = resp.json()["token_ids"]
+offline_ids = tok.apply_chat_template(messages, tools=tools,
+    add_generation_prompt=True, tokenize=True, return_dict=False)
+engine_rendered = tok.decode(engine_ids, skip_special_tokens=False)
 ```
 
-Diff `engine_rendered` against the offline render byte-for-byte.
+`engine_ids == offline_ids` is the parity check; diff `engine_rendered`
+against the offline string only to locate a mismatch.
 
 If they diverge, investigate which side is correct — usually the engine
 has newer or preprocessed behavior (message-level coercion, tool-args
@@ -301,7 +312,7 @@ Older vLLM / sglang don't have `/render`. Fall back to `/tokenize` +
 
 ```python
 tokens = httpx.post(f"{endpoint}/tokenize", json={"messages": messages}).json()["tokens"]
-text = httpx.post(f"{endpoint}/detokenize", json={"tokens": tokens}).json()["text"]
+text = httpx.post(f"{endpoint}/detokenize", json={"tokens": tokens}).json()["prompt"]
 ```
 
 Less clean (a round-trip through tokens), but works on almost every

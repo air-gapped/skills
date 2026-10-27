@@ -295,10 +295,11 @@ Catches `jinja2.TemplateError` explicitly.
 
 ### `/v1/chat/completions/render` (vLLM)
 
-A CPU-only endpoint that renders the prompt but doesn't generate. Added
-in vLLM PR #34551. Returns the exact prompt string the engine would send
-to the model plus the token IDs. Useful because it answers the question
-"what is the engine actually rendering?" without burning a GPU inference.
+Renders the prompt but doesn't generate, and returns the `token_ids` the
+engine would send to the model (no prompt text — decode them). Answers
+"what is the engine actually rendering?" without a GPU inference. On vLLM
+≥ 0.30 `vllm serve` returns 403 for it unless launched with
+`--enable-scale-out`; `vllm launch render` serves it with no GPU.
 
 Audit tooling (including engine-render probes and CI drift checks) can
 use this to compare a snapshot template's byte output against what the
