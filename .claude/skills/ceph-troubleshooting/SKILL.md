@@ -28,10 +28,9 @@ argument-hint: "[recovery|pg|osd|mon|csi] (optional focus area)"
 
 # ceph-troubleshooting
 
-Defaults below were read from `src/common/options/*.yaml.in` at v18.2.8,
-v19.2.6 and v20.2.4 on **2026-09-23**; procedures from docs.ceph.com and
-Rook docs at v1.20.7. On a live cluster, `ceph config show osd.N <opt>` beats
-any default written here.
+Defaults below are from `src/common/options/*.yaml.in` at v18.2.8, v19.2.7
+and v20.2.4; procedures from docs.ceph.com and Rook docs at v1.21.1. On a
+live cluster, `ceph config show osd.N <opt>` beats any default written here.
 
 ## First moves
 
