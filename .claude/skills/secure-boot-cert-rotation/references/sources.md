@@ -58,7 +58,9 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   certificate-changes-2026-guidance-rhel-environments: keeps-booting-after-2026, reinstall-doesn't-fix-firmware,
   NVRAM independence, HP/Fujitsu block, mokutil audit, edk2-ovmf package versions.
 - fwupd/LVFS — fwupd.github.io/libfwupdplugin/uefi-db.html; plugins/uefi-db,uefi-kek,uefi-sbat READMEs; HSI
-  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware *(exception 2026-10-27: 403 to curl and WebFetch, browser not reached)*. The "signed by the old KEK…
+  `org.fwupd.hsi.Uefi.Db`; release 2.0.8 (added uefi-db/uefi-kek plugins); LVFS com.microsoft.db-uefi-3p.firmware (fwupd.org/lvfs/devices/com.microsoft.db-uefi-3p.firmware — 403 to curl, read in the
+  browser 2026-10-27: "Microsoft Secure Boot Signature Database", "updates the 3rd Party UEFI Signature Database",
+  only version "2023", 2025-06-20). The "signed by the old KEK…
   now it can apply on many more systems" quote in `mechanism.md` is hughsie in fwupd/fwupd#9056 (2025-07-24), not LWN.
 - LWN — lwn.net/Articles/1029767/: maintainer commentary (Jones, Hoffmann, Hughes), EDK2 `NO_CHECK_TIME`,
   success rates, FUD-vs-reality framing.
@@ -93,10 +95,17 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   versions, prerequisites, mandated reboot sequence); KB 000362511 (impact); KB 000390990 (Secure Boot
   Transition FAQ — per-CA dates, EoSL cutoff, Expert-Key-Mode warning).
 - Dell iDRAC-Redfish-Scripting `SecureBootResetKeysREDFISH.py` (ResetKeys endpoint, Custom-policy prereq,
-  staged-job + reboot semantics, allowable values); RACADM `bioscert` guide *(exception 2026-10-27: row has no URL and web search was down — not probed)*; `dellemc.openmanage.idrac_secure_boot`
+  staged-job + reboot semantics, allowable values); RACADM `bioscert` guide (dell.com/support/manuals/en-us/idrac9-lifecycle-controller-v6.x-series/idrac9_6.xx_racadm_pub/bioscert
+  — `bioscert view --all`; `bioscert import -t <keyType> -k <KeySubType> -f <file>`, `-t` 0 PK / 1 KEK / 2 DB / 3 DBX,
+  `-k` 0 certificate / 1-3 SHA-256/384/512 hash); `dellemc.openmanage.idrac_secure_boot`
   Ansible module. (Companion skill: `ansible-idrac-9-10` for the dellemc.openmanage auth lifecycle.)
-- Broadcom/VMware KB 423893 (PK-before-KEK dependency). HPE iLO / Lenovo XCC *(exception 2026-10-27: no URL, search down — not probed)* — same firmware-update + Windows-
-  Update split (OEM comparison).
+- Broadcom/VMware KB 423893 (PK-before-KEK dependency). HPE / Lenovo (OEM comparison) — the BIOS update
+  only stages the 2023 certs in the default key set; activation is a reset to defaults. HPE advisory a00156355en_us
+  (support.hpe.com/hpesc/public/docDisplay?docId=a00156355en_us, rev 5, 2026-07-02): '"Reset All Keys to Platform
+  Defaults" is required to activate these digital certificates after the minimum BIOS version ... is installed'.
+  Lenovo Press LP2441 (lenovopress.lenovo.com/lp2441): after the firmware update "CA 2023 certificates are included
+  in dbDefault ... may not automatically be present in the active Secure Boot key list, db"; activate with Restore
+  Factory Keys. Neither page attributes delivery to iLO or XCC.
 
 ## Ubuntu / Linux
 - Launchpad `launchpad.net/ubuntu/+source/fwupd` and packages.ubuntu.com (per-series/pocket fwupd versions);
@@ -120,7 +129,9 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
   SecureBoot "defaults true" / Persistent "defaults false"); KubeVirt docs persistent_tpm_and_uefi_state.
   harvester-ui-extension `index.js` (UI defaults secureBoot/efiPersistent = false).
 - virt-fw-vars man page (`--microsoft-kek {none,2011,2023,all}`, `--microsoft-db`).
-- SUSE node-OS OVMF backport (separate path, NOT the guest fix) — OBS `SUSE:SLE-15-SP5:Update/ovmf/*` *(exception 2026-10-27: 403 to curl and WebFetch; the advisory below was read)*;
+- SUSE node-OS OVMF backport (separate path, NOT the guest fix) — OBS `SUSE:SLE-15-SP5:Update/ovmf/*` (build.opensuse.org/package/show/SUSE:SLE-15-SP5:Update/ovmf — 403 to curl,
+  read in the browser 2026-10-27: package present, edk2-stable202208 source, revision 5 linked to ovmf.43309 ~March 2026;
+  the 2023-cert backport itself is evidenced by the advisory changelog, not page 1 of the OBS file list);
   advisory SUSE-RU-2026:1157-1 (SLE Micro 5.5, `qemu-ovmf-x86_64-202208-150500.6.15.1`, bsc#1257019).
 
 ## Recovery / rollback (the backup-and-back-out path)
@@ -132,6 +143,8 @@ Per-source verification dates (run `freshen secure-boot-cert-rotation` to re-pro
 - KubeVirt — kubevirt.io/user-guide/compute/persistent_tpm_and_uefi_state/: persistence is opt-in, and
   snapshot-restore-into-the-same-VM is the **only** documented restore. No reset-to-template path is
   documented — do not invent one (PVC deletion is not supported guidance).
-- Dell — Lifecycle Controller firmware-rollback docs *(exception 2026-10-27: no URL, search down — not probed)*. KB 000115696 (corrupt/interrupted BIOS flash recovery)
+- Dell — firmware rollback: KB 000491465 (dell.com/support/kbdoc/en-us/000491465, modified 2026-09-17): "The iDRAC
+  retains two firmware version images for devices that support rollback feature (BIOS, ...)"; KB 000213056 covers the
+  GUI rollback. Neither mentions Secure Boot keys. KB 000115696 (corrupt/interrupted BIOS flash recovery)
   is withdrawn ("not currently available", 2026-10-27); no replacement cited. Whether a BIOS rollback reverts key databases is
   **undocumented**; the skill says so rather than guessing.

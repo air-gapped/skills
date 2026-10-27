@@ -10,6 +10,10 @@ For Dell hardware, prefer the iDRAC path (`dell-poweredge.md`) — it also deliv
 OS-side append below for non-Dell bare metal, or to enroll the `db` cert from the OS without an
 iDRAC BIOS flash/reboot.
 
+**HPE / Lenovo servers:** the minimum BIOS only stages the 2023 certs in the *default* key set. Activate them with
+"Reset All Keys to Platform Defaults" (HPE) / "Restore Factory Keys" (Lenovo) — this replaces any custom keys,
+so back them up first.
+
 ## Audit (read-only)
 
 ```bash

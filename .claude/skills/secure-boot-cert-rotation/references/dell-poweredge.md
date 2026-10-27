@@ -53,7 +53,8 @@ per-generation (14G/15G/16G) script packages and requires a reboot when prompted
    first — this is destructive to any custom Secure Boot config.** Allowable `ResetKeysType`:
    `ResetAllKeysToDefault`, `DeleteAllKeys`, `DeletePK`, `ResetPK`, `ResetKEK`, `ResetDB`, `ResetDBX`.
 5. **Manual enroll on an out-of-scope / old BIOS** (no 2023 DUP available): import the 2023 certs in Custom
-   mode — `racadm ... bioscert import -t <type> -k <keycat> -f <path>\db.der`, or Redfish POST to the specific
+   mode — `racadm ... bioscert import -t 2 -k 0 -f <path>\db.der` (`-t` 0 PK / 1 KEK / 2 db / 3 dbx;
+   `-k 0` = certificate), or Redfish POST to the specific
    `SecureBootDatabases/<db|KEK>/Certificates` collection.
 6. **Fleet automation** — the `dellemc.openmanage.idrac_secure_boot` Ansible module wraps all of this
    (`import_certificates`, `reset_keys` with the same 7 enum values, `restart`/`restart_type`). Note: "Secure
