@@ -285,6 +285,10 @@ minors: v2.21 covers **1.34–1.36**, v2.20 covers 1.33–1.35, v2.19 covers
 - **CloudEventSource can deadlock the operator** with two or more sources
   registered (#8039), while still passing its liveness probe. Unfixed through
   2.21.0: the stale bot closed the issue, the fix PR (#8040) is unmerged.
+- **A busy workload can be scaled to zero** on 2.20.0–2.21.0 (#8298, open): a
+  scalers cache closed mid-poll (e.g. `useCachedMetrics: true` on `metrics-api`)
+  reads as inactive, so with `minReplicaCount: 0` a metrics outage longer than
+  `cooldownPeriod` ends at 0 replicas. Suspect this before retuning cooldown.
 
 ## Gotchas that bite in production
 
