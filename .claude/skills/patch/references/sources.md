@@ -1,6 +1,6 @@
 # sources.md — external references for `patch` (freshen index)
 
-Freshened: 2026-09-22 — every row probed against local clones. The Visa harness advanced two releases, but the diff is a pure refactor to typed scoring dataclasses: the four gate names, the weights and both thresholds are unchanged in substance.
+Freshened: 2026-10-27 — every row probed (gh, local clones at `d3bea6b` / `0e6f00d`, live Claude Code docs); the harness's D&R run dirs and Claude Code's background-by-default subagents changed SKILL.md.
 
 One row per external reference this skill depends on. `skill-improver freshen`
 probes every row and writes the single `Freshened:` header stamp above.
