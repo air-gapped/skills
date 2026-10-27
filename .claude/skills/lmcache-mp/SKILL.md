@@ -233,6 +233,10 @@ Defaults (`--eviction-policy LRU --eviction-trigger-watermark 0.8 --eviction-rat
 
 `--ipc host` (Docker) or mounting `/dev/shm` from the host (K8s) is mandatory. Without it, CUDA IPC shared-memory transfers between vLLM and LMCache pods fail silently or at startup with cryptic errors. The DaemonSet + Deployment example YAMLs show the right `volumes`/`volumeMounts` pattern.
 
+### 8. Only prompt chunks are stored (lmcache 0.5.6+)
+
+On 0.5.6+ the connector stores chunks only up to the request's prompt length: `lmcache.mp.save_decode_cache` (vLLM-side `kv_connector_extra_config`) defaults to `false`. Size L1 on unique prompt-prefix tokens; output length does not consume it. Set `"lmcache.mp.save_decode_cache": true` only when a resumable or streaming request feeds its own generated tokens back as a growing prompt. The in-process connector's `save_decode_cache` YAML/env setting does not apply to MP. On ≤ 0.5.5 every complete chunk of generated tokens was stored too, so a fixed-prompt workload keeps writing new chunks after warm-up: size L1 for prompt + output there.
+
 ## Validating that MP is helping
 
 The validation method is the same as for native CPU offload — `vllm bench serve --dataset-name prefix_repetition`, then diff `vllm:external_prefix_cache_*` Prometheus counters before and after. See `vllm-caching` for the methodology and right-sizing math (`unique_prefix_budget_tokens ≈ l1_size_gib × 1024 × 1024 / kv_bytes_per_token`).
