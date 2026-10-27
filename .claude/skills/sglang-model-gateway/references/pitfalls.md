@@ -2,13 +2,13 @@
 
 Beyond the top-10 in SKILL.md. Each entry: symptom → diagnosis → fix.
 
-## 1. HTTP service discovery silently registers vLLM workers without metadata
+## 1. HTTP service discovery registers vLLM workers with only a model name
 
-**Symptom:** `--service-discovery --selector app=vllm` enabled. Gateway logs show "discovered 3 workers" but `/v1/models` returns empty or stale, and routing fails with "no healthy workers".
+**Symptom:** `--service-discovery --selector app=vllm` enabled. Workers register and route, but `prefix_hash`, `/v1/tokenize` or gRPC fail for lack of a tokenizer, and `/workers` shows no TP size or tokenizer path.
 
-**Diagnosis:** Service discovery probes `/server_info` + `/model_info` to enrich worker metadata (model name, max-context, tokenizer info). vLLM 404s both. Gateway either marks the workers unhealthy outright, or registers them with empty metadata that causes routing to fail.
+**Diagnosis:** Service discovery probes `/server_info` + `/model_info` (model path, tokenizer path, TP/DP size). vLLM 404s both, so the gateway falls back to `/v1/models` and registers the worker with `model_id` = the first model `id` and no other labels.
 
-**Fix:** Use `--worker-urls http://vllm-svc:8000` instead, optionally with a sidecar reconciler watching Endpoints. Or wait for vLLM gRPC fork support (PR #13120).
+**Fix:** Pass `--tokenizer-path` explicitly when a tokenizer is needed. If `model_id` must differ from vLLM's `--served-model-name`, register with `POST /workers` and an explicit `model_id`.
 
 ## 2. Service discovery picks up workers from other models
 

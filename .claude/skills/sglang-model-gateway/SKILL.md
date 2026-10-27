@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
   SGLang Model Gateway (`sgl-model-gateway`, formerly `sgl-router`) — Rust router fronting vLLM and SGLang inference workers on Kubernetes. Covers first-class vLLM gRPC backend plus HTTP transparent-proxy for vanilla vLLM, the policy set (six `--policy` values, `cache_aware` default), tokenizer-format dispatch (`tokenizer.json` HF-fast vs `tiktoken.model` BPE — including when neither is required because `cache_aware` is text-based), air-gapped recipe (gateway ignores `HF_ENDPOINT`, mount tokenizer files on PVC only when actually needed), K8s manifests with `model_id` labels and per-model RBAC, three HA mitigations (single + PDB, `sessionAffinity: ClientIP`, `--enable-mesh` CRDT sync), and a pitfall catalog covering the Dec 2025 `sgl-router` → `sgl-model-gateway` rename and over-engineered tokenizer init-container traps.
 when_to_use: |-
-  Trigger on "sgl-model-gateway", "sgl-router", "sglang router", "smg", "amg", "model gateway", "inference gateway", "load balance vllm replicas", "fan out same model", "kubernetes vllm router", "cache-aware routing", "prefix_hash policy", "PD disaggregation router", "--worker-urls", "--service-discovery", "--enable-mesh", "smg_* metrics", "--tokenizer-path", "tokenizer.json vs tiktoken.model", "Kimi K2", "K2.6", "DeepSeek tiktoken". Also: vLLM HTTP discovery registers empty labels, gRPC requires HF tokenizer (no tiktoken), gRPC probes need numeric ports, `sgl_router_*` → `smg_*` metric rename Dec 2025, over-engineered tokenizer init containers for cache_aware-only deployments.
+  Trigger on "sgl-model-gateway", "sgl-router", "sglang router", "smg", "amg", "model gateway", "inference gateway", "load balance vllm replicas", "fan out same model", "kubernetes vllm router", "cache-aware routing", "prefix_hash policy", "PD disaggregation router", "--worker-urls", "--service-discovery", "--enable-mesh", "smg_* metrics", "--tokenizer-path", "tokenizer.json vs tiktoken.model", "Kimi K2", "K2.6", "DeepSeek tiktoken". Also: vLLM HTTP discovery registers only a model name, gRPC requires HF tokenizer (no tiktoken), gRPC probes need numeric ports, `sgl_router_*` → `smg_*` metric rename Dec 2025, over-engineered tokenizer init containers for cache_aware-only deployments.
 ---
 
 # SGLang Model Gateway — sgl-model-gateway
@@ -78,9 +78,9 @@ Requires a vLLM build with the gRPC server (PR `sgl-project/sglang#13120` refere
 
 ### Path B — HTTP via `--worker-urls` or service discovery (the realistic vanilla-vLLM path)
 
-Vanilla vLLM speaks OpenAI-compatible HTTP and exposes `/v1/chat/completions`, `/v1/completions`, `/v1/models`, `/health`, `/metrics`. It **does not** expose `/server_info` or `/model_info` — the metadata-enrichment endpoints SGLang workers use. The gateway's HTTP service-discovery probe **falls through gracefully**: when both `/server_info` and `/model_info` return 404, the discovery loop returns `Ok((labels=empty, None))` and **the worker is still registered** (source: `discover_metadata.rs:237-298` — `unwrap_or_else(|e| { warn!(...); (HashMap::new(), None) })`).
+Vanilla vLLM speaks OpenAI-compatible HTTP and exposes `/v1/chat/completions`, `/v1/completions`, `/v1/models`, `/health`, `/metrics`. It **does not** expose `/server_info` or `/model_info` — the metadata-enrichment endpoints SGLang workers use. The gateway's HTTP service-discovery probe **falls through gracefully**: when both `/server_info` and `/model_info` return 404 it reads `/v1/models` and takes the first model `id` as the worker's `model_id`, and **the worker is registered** (`discover_metadata.rs`, `get_model_name_from_v1_models`; in the published `:v0.3.2` image).
 
-So **both** `--worker-urls` and `--service-discovery --selector model_id=...` work for vLLM HTTP workers — service discovery just registers them with empty discovered labels (no model name, no max-context auto-pulled from the worker). For Kubernetes, prefer service discovery so worker autoscaling adds/removes Pods without gateway restarts:
+So **both** `--worker-urls` and `--service-discovery --selector model_id=...` work for vLLM HTTP workers — service discovery registers them with the model name from `/v1/models` and no other discovered labels (no tokenizer path, TP size or max-context). For Kubernetes, prefer service discovery so worker autoscaling adds/removes Pods without gateway restarts:
 
 ```bash
 sgl-model-gateway \
@@ -180,7 +180,7 @@ The pattern that works is **one Deployment+Service+RBAC per model**, keyed by a 
 
 - Worker Deployment: `model_id=<name>`, port 30000 (SGLang) or 8000 (vLLM), `httpGet /health` probes, hostPath/PVC for `/models`.
 - Worker Service: `clusterIP: ClusterIP` (or headless), selects on `model_id`.
-- Gateway Deployment: 1 replica (or N for HA, accepting the 10-20% cache-hit penalty), `lmsysorg/sgl-model-gateway:v0.3.2`, args include `--service-discovery --selector model_id=<name> --service-discovery-namespace <ns> --service-discovery-port 30000` for SGLang workers (HTTP discovery works) **OR** `--worker-urls http://worker-svc:30000` for vLLM HTTP workers (discovery does not work).
+- Gateway Deployment: 1 replica (or N for HA, accepting the 10-20% cache-hit penalty), `lmsysorg/sgl-model-gateway:v0.3.2`, args include `--service-discovery --selector model_id=<name> --service-discovery-namespace <ns> --service-discovery-port <30000 SGLang | 8000 vLLM>` (HTTP discovery works for both) **OR** static `--worker-urls http://worker-svc:<port>`.
 - Gateway ServiceAccount + Role + RoleBinding: `pods, endpoints, services` with verbs `get, list, watch`.
 - Gateway Service: routes 8080 (HTTP) and 29000 (Prometheus).
 - ServiceMonitor with relabelings to surface `model_id`, `pod`, `node` labels.
@@ -226,7 +226,7 @@ Both look like an infrastructure fault rather than a gateway bug.
 
 ## Critical pitfalls
 
-1. **HTTP service discovery registers vLLM workers with empty metadata, not rich metadata.** Discovery probes `/server_info` + `/model_info`, which vLLM 404s. The gateway falls through gracefully (`discover_metadata.rs:237-298` returns `Ok((empty_labels, None))`) and **the worker is still registered** — routing works, but worker-side label enrichment is missing. For `prefix_hash`, `/v1/tokenize`, or gRPC mode, pass `--tokenizer-path` explicitly since the gateway can't fetch it from the worker. Static `--worker-urls` is also fine — pick whichever fits the autoscaling story.
+1. **HTTP service discovery registers vLLM workers with only a model name.** Discovery probes `/server_info` + `/model_info`, which vLLM 404s, then falls back to `/v1/models` for the `model_id` — routing works, but tokenizer path and the other worker labels are missing. For `prefix_hash`, `/v1/tokenize`, or gRPC mode, pass `--tokenizer-path` explicitly since the gateway can't fetch it from the worker. Static `--worker-urls` is also fine — pick whichever fits the autoscaling story.
 
 2. **PD-disaggregation does not support vLLM workers.** Per PR #13120 limitation matrix. Don't mix vLLM into prefill/decode pools.
 

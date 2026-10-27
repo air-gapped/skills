@@ -16,7 +16,7 @@ vLLM mounts FastAPI sub-routers from `vllm/entrypoints/openai/api_server.py:182`
 | `/load` | GET | Workload signal | Returns `{"server_load": ...}` only when `--enable-server-load-tracking` was passed at boot. Off by default. |
 | `/version` | GET | Sanity check | `{"version": "<vllm version>"}`. |
 | `/metrics` | GET | Prometheus scrape (vLLM-side metrics, not gateway-side) | See `vllm-observability` skill. |
-| `/server_info` | GET | **Gateway HTTP discovery probe** | **Gated behind `VLLM_SERVER_DEV_MODE=1`** (`instrumentator/__init__.py:26`). Production deployments will 404 this — meaning the gateway's HTTP service-discovery code path **fails** for vLLM. |
+| `/server_info` | GET | **Gateway HTTP discovery probe** | **Gated behind `VLLM_SERVER_DEV_MODE=1`** (`instrumentator/__init__.py:26`). Production deployments will 404 this; gateway HTTP discovery then falls back to `/v1/models` and registers the worker with only its model name. |
 | `/reset_prefix_cache` | POST | Cache-bust on model-version rollout | Useful from the gateway via a webhook. |
 | `/start_profile`, `/stop_profile`, `/sleep`, `/wake_up`, `/is_sleeping` | POST | — | Gateway doesn't use these. |
 

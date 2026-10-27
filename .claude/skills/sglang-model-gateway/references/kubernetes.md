@@ -34,7 +34,7 @@ The gateway uses `kube` + `k8s-openapi` to **`watch` Pods directly** — *not* E
 Implications:
 
 - Selecting a Pod via `--selector model_id=foo` works regardless of whether the Pod is in any Service. Endpoints state and Service state are not consulted.
-- The probe **must** succeed for the Pod to register as a worker. SGLang workers expose `/server_info`; vLLM workers don't (use `--worker-urls` for vLLM).
+- A failed metadata probe does not block registration. SGLang workers answer `/server_info`; vLLM workers 404 it and register with `model_id` from `/v1/models`.
 - AND semantics: `--selector app=worker --selector model_id=foo` requires *both* labels.
 
 ## Required RBAC
