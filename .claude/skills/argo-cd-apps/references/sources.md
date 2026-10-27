@@ -129,9 +129,9 @@ stamp.
 
 | Source | What it contains | Last verified |
 |--------|------------------|---------------|
-| `helm` skill | Helm chart authoring (Helm 4 SSA, OCI digest, helpers) — this skill assumes Helm authoring competence | 2026-08-18 |
-| `kubefwd` skill | Bulk Kubernetes service port-forwarding for Argo CD UI/API access | 2026-08-18 |
-| `gh-cli` skill | GitHub CLI for fetching argo-cd releases, security advisories, PRs (canonical changelog source) | 2026-08-18 |
+| `helm` skill | Helm chart authoring (Helm 4 SSA, OCI digest, helpers) — this skill assumes Helm authoring competence. Ships in this marketplace (`.claude/skills/helm`) | 2026-10-27 |
+| `kubefwd` | Bulk Kubernetes service port-forwarding for Argo CD UI/API access. **Not a skill in this marketplace** (checked 2026-10-27) — SKILL.md names the CLI and says "if installed" | 2026-10-27 |
+| `gh` / `gh-cli` | GitHub CLI for fetching argo-cd releases, security advisories, PRs (canonical changelog source). **No `gh-cli` skill in this marketplace** (checked 2026-10-27) — SKILL.md names the CLI and says "if installed" | 2026-10-27 |
 
 ## Search queries for future research
 

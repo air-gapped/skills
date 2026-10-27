@@ -461,8 +461,9 @@ Full table including `tracking-id`, `sync-statuses`, finalizer variants:
 
 - **`helm`** for chart authoring questions (Helm 4 SSA, OCI digest install,
   values, helpers). This skill assumes Helm chart authoring competence.
-- **`kubefwd`** for accessing Argo CD UI / repo-server services from a
+- **`kubefwd`** (the CLI, or a `kubefwd` skill if installed — this marketplace
+  does not ship one) for reaching Argo CD UI / repo-server services from a
   laptop without one-port-at-a-time `kubectl port-forward`.
-- **`gh-cli`** for fetching release notes, PRs, security advisories from the
-  argo-cd repo (canonical changelog — `CHANGELOG.md` in the repo is stale
-  back to 2022).
+- **`gh`** (or a `gh-cli` skill if installed — not shipped here) for release
+  notes, PRs and security advisories from the argo-cd repo (canonical
+  changelog — `CHANGELOG.md` in the repo is stale back to 2022).
