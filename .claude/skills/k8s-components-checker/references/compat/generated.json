@@ -460,12 +460,16 @@
      "latest": "v1.18.11"
     },
     "1.19": {
-     "date": "2026-09-02",
-     "latest": "v1.19.11"
+     "date": "2026-10-14",
+     "latest": "v1.19.12"
     },
     "1.20": {
-     "date": "2026-09-29",
-     "latest": "v1.20.8"
+     "date": "2026-10-14",
+     "latest": "v1.20.9"
+    },
+    "1.21": {
+     "date": "2026-10-26",
+     "latest": "v1.21.1"
     }
    }
   },
@@ -915,14 +919,21 @@
       "1.30",
       "1.35"
      ],
-     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.19.11"
+     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.19.12"
     },
     "1.20": {
      "k8s": [
       "1.31",
       "1.37"
      ],
-     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.20.8"
+     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.20.9"
+    },
+    "1.21": {
+     "k8s": [
+      "1.32",
+      "1.37"
+     ],
+     "source": "rook/rook/Documentation/Getting-Started/Prerequisites/prerequisites.md@v1.21.1"
     }
    }
   },
