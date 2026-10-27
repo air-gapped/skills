@@ -53,15 +53,17 @@ Still open after this pass: the version floor stays at 0.9.5 because **0.9.6→0
 
 ## Open
 
-0. **0.9.6→0.11.0 never load-tested for scaling regressions** (carried, now
-   more urgent). The 2026-07-29 freshen read the 0.11.0 release notes and
-   verified config/source, but did not run the 100+ concurrent-stream test
-   the skill itself prescribes. Until that happens the ≥0.9.5 floor is a
-   statement about what was *tested*, not about what is broken. Needs a
-   staging cluster, so it cannot be closed from source alone.
+(none)
 
 ## Decided — do not re-propose
 
+- **Version floor is the security floor, not the last load-tested release**
+   (decided 2026-10-27). The ≥0.9.5 floor existed because 0.9.6+ had not been
+   load-tested, but it sat below the published security floor (v0.12.4) and
+   below the v0.12.1 Sentinel fixes. A floor that recommends a vulnerable
+   release is worse than an untested one; the staging load test the skill
+   prescribes is the operator's step on whatever target they pick, not a
+   blocker on the skill's floor.
 - SKILL.md "verify on the deployment's target version" handwave for the
    lagging admin endpoints (Dim 4) — lacks a concrete `curl` recipe.
    **Why not applied:** auth-token handling is environment-specific

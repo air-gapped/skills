@@ -15,7 +15,7 @@ Defaults and source locations are based on `backend/open_webui/env.py` and `back
 
 | Var | Default | Notes |
 |---|---|---|
-| `REDIS_URL` | `''` (off) | E.g. `redis://valkey-master:6379/0`. Empty disables Valkey/Redis entirely. |
+| `REDIS_URL` | `''` (off) | E.g. `redis://:<password>@valkey-master:6379/0`. Empty disables Valkey/Redis entirely. **With `REDIS_SENTINEL_HOSTS` set, the host part is the Sentinel master name** (default `mymaster` when empty), and the URL's credentials authenticate to the master and, from v0.12.1, to the Sentinels. Before v0.12.1 the master name was lowercased and Sentinel auth was not sent — both fail with `No master found`. |
 | `REDIS_KEY_PREFIX` | `open-webui` | Prefix all keys. Use the **same** prefix across replicas of one deployment, **different** prefixes when multiple deployments share one Valkey instance. Operators get this backwards. |
 | `REDIS_CLUSTER` | `False` | Use `redis.cluster.RedisCluster.from_url(...)`. **Avoid** — `RedisCluster.publish()` doesn't exist (#19840), breaks `tasks/stop` and other pub/sub paths. |
 | `REDIS_SENTINEL_HOSTS` | `''` | Comma-separated hostnames of Sentinels. |
@@ -36,7 +36,7 @@ These default to the `REDIS_*` versions if unset, but separating them is documen
 | `WEBSOCKET_REDIS_URL` | falls back to `REDIS_URL` | Recommended: same Valkey, different DB number (`/1`). Isolates Socket.IO pub/sub from app state. |
 | `WEBSOCKET_REDIS_CLUSTER` | falls back to `REDIS_CLUSTER` | |
 | `WEBSOCKET_REDIS_ROOM_CHANNELS` | `True` | Added v0.12.0. Publishes each room's events on its own channel (`socketio#/#<room>`), and each pod subscribes only to rooms with a local member, so it skips work for chats it does not serve. **A restricted Valkey ACL user needs** `+publish +subscribe +unsubscribe +ping` and channels `&socketio &socketio#*` (v0.12.0–v0.12.2 also needed `+psubscribe`); a denial is logged as `Redis denied publishing` / `Redis denied subscribing`. Set `False` on **every** pod and restart the whole fleet to restore single-channel delivery. |
-| `WEBSOCKET_REDIS_OPTIONS` | unset | Arbitrary JSON of `redis-py` kwargs. Auto-includes `socket_connect_timeout` if set. |
+| `WEBSOCKET_REDIS_OPTIONS` | unset | Arbitrary JSON of `redis-py` kwargs. Auto-includes `socket_connect_timeout` if set. Sentinel credentials set here override those from the URL. On v0.12.3, `retry_on_timeout` here made new connections hang after a Redis reconnect until restart — fixed v0.12.4. |
 | `WEBSOCKET_REDIS_LOCK_TIMEOUT` | `60` | Seconds. Used for SET-NX cleanup locks (`socket/utils.py:31`). |
 | `WEBSOCKET_SENTINEL_HOSTS` | `''` | Independent Sentinel set for WS Valkey. Reuse `REDIS_SENTINEL_HOSTS` unless explicit isolation is desired. |
 | `WEBSOCKET_SENTINEL_PORT` | `26379` | |

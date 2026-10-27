@@ -53,6 +53,8 @@ This is the single highest-leverage knob for multi-pod health. Set it before re-
 | Migration races on rolling restart | Multiple pods running migrations simultaneously — set `ENABLE_DB_MIGRATIONS=false` on all but one | `references/configuration.md` §Migrations |
 | Pods crash/500 mid-rollout on a version upgrade | **Rolling updates across a schema change are unsupported** — old and new pods cannot share a schema. Take the deployment down and replace all pods at once | this file, §Version upgrades |
 | No live chat updates after enabling Valkey ACLs on 0.12.x; log shows `Redis denied publishing` / `Redis denied subscribing` | `WEBSOCKET_REDIS_ROOM_CHANNELS` (v0.12.0+ default) needs `+publish +subscribe +unsubscribe +ping` and channels `&socketio &socketio#*` | `references/configuration.md` §WebSocket-specific |
+| Every Redis call fails with `No master found` under Sentinel | Pre-v0.12.1: a master name with capitals in `REDIS_URL` was lowercased, and the URL's credentials were not sent to password-protected Sentinels. Upgrade (≥v0.12.1) | `references/configuration.md` §Core |
+| New browser connections hang after a Valkey blip, until the pod restarts | v0.12.3 regression with `retry_on_timeout` in `WEBSOCKET_REDIS_OPTIONS`; fixed in v0.12.4 | `references/configuration.md` §WebSocket-specific |
 | Helm chart bundled Redis loses state on restart | Bundled Redis is a no-PVC Deployment; unsuitable for production | `references/helm-chart.md` §Bundled-redis |
 | Pods fail to start on 0.11.0 with a non-root securityContext | #27651 — `runAsNonRoot: true` broke on 0.11.0; **fixed in v0.11.1** | this file, §Version upgrades |
 | Idle cluster showed constant DB load on 0.11.0 | #27622 — chat-timer polling scanned the chat table every second while idle; **fixed in v0.11.1** (PR #27663) | this file, §Version upgrades |
@@ -72,7 +74,7 @@ VECTOR_DB=pgvector
 PGVECTOR_DB_URL=postgresql://owui:***@postgres:5432/openwebui
 
 # --- Valkey + Sentinel (general state and Socket.IO pub/sub) ---
-REDIS_URL=redis://valkey-master:6379/0
+REDIS_URL=redis://:<password>@valkey-master:6379/0   # with *_SENTINEL_HOSTS set, the host part is the Sentinel MASTER NAME
 REDIS_SENTINEL_HOSTS=valkey-sentinel-0,valkey-sentinel-1,valkey-sentinel-2
 REDIS_SENTINEL_PORT=26379
 REDIS_KEY_PREFIX=open-webui                  # same across replicas of THIS deployment
@@ -83,7 +85,7 @@ REDIS_SOCKET_CONNECT_TIMEOUT=5
 # --- WebSocket via Socket.IO + Valkey ---
 ENABLE_WEBSOCKET_SUPPORT=true
 WEBSOCKET_MANAGER=redis
-WEBSOCKET_REDIS_URL=redis://valkey-master:6379/1   # /1 separates WS pub/sub from app state
+WEBSOCKET_REDIS_URL=redis://:<password>@valkey-master:6379/1   # /1 separates WS pub/sub from app state
 WEBSOCKET_SENTINEL_HOSTS=valkey-sentinel-0,valkey-sentinel-1,valkey-sentinel-2
 WEBSOCKET_SENTINEL_PORT=26379
 WEBSOCKET_REDIS_LOCK_TIMEOUT=60
@@ -252,7 +254,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥0.9.5.** Earlier versions are missing the April-2026 robustness batch (RedisDict race, ASGI middleware, stale Socket.IO session cleanup, Redis keepalive, profile-image cleanup) shipped through 0.9.4. Current stable is **v0.11.4** (2026-09-24 pass); the floor stays at 0.9.5 because 0.9.6→0.11.0 have not been load-tested for scaling regressions — treat them as un-vetted here, not as recommended. If you do move past 0.9.5, read §Version upgrades first: the rollout procedure changes at 0.11.0, and the two regressions that rode along with it (#27622 idle timer polling, #27651 `runAsNonRoot`) are both **fixed in v0.11.1**.
+- **≥v0.12.4.** It is the security floor (§Security floor), it carries the v0.12.1 Sentinel fixes (case-sensitive master names, password-protected Sentinels), and it fixes the v0.12.3 websocket-reconnect hang. Read §Version upgrades before the hop: 0.11.0, 0.11.1, 0.12.0 and 0.12.1 all forbid rolling updates. Load-test the target on staging (below) before production; release notes are not a scaling test.
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.
