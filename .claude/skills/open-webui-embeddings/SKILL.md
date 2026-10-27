@@ -224,6 +224,7 @@ PR #29736).
 | Retrieval quality dropped after an embedding-model swap, no errors anywhere | Asymmetric model needs query/document prefixes, or `PREFIX_FIELD_NAME` is set and eating them | `references/prefix-models.md` |
 | TEI pod hangs at "Starting FlashBert model" | Wrong arch image — match GPU compute capability | `references/gotchas.md` §5 |
 | TEI returns 429 during knowledge-base upload | Open WebUI concurrency too high; cap `RAG_EMBEDDING_CONCURRENT_REQUESTS` | `references/gotchas.md` §6 |
+| Memory reindex (admin Reindex button, user reset, or after an embedding-model change) fails with 429s | Before v0.12.2 memory reindex sent one request per memory at once, ignoring the concurrency cap and batch size — upgrade | fixed v0.12.2 |
 | Reranker quality degraded since recent config change | `--max-batch-tokens` past trained ceiling lets long inputs through | `references/gotchas.md` §4 |
 | `vector_db` directory growing fast | ChromaDB is fine to ~1 GB; past that switch to pgvector halfvec | `references/gotchas.md` §8 |
 | Answers got worse after *adding* a reranker | Weak rerankers score below the no-rerank baseline — check the model, not the wiring | `references/model-selection.md` §Rerankers |
