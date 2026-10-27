@@ -126,17 +126,13 @@ Plugin behaviour on a ROCm host:
 | GDS, GDS_MT, GPUNETIO | auto-skip; their cuFile / DOCA deps are absent |
 | LIBFABRIC | disabled on ROCm pending a header refactor |
 
-**Do not trust the shipped README on `nixlbench` here.** The `README.md`
-frozen into the **v1.4.1** tag still lists under "Known gaps": *"`nixlbench`
-needs CUDA-driver-API → HIP translation work before it builds on ROCm. Use
-`examples/cpp/nixl_etcd_example` for transfer validation in the meantime."*
-That is stale by three releases. v1.3.0's own release notes say ROCm support
-was added **"including `nixlbench`"** and list #1647 ("[nixlbench] AMD
-ROCm/HIP build support", merged 2026-06-05) — one day after #1642, which is
-why the README bullet was written and then never revised. It was corrected on
-`main` in 2026-08-27, a commit that is **not** an ancestor of v1.4.1. Treat
-the release notes and #1647 as authoritative: `nixlbench` builds on ROCm, and
-the etcd-example workaround is unnecessary.
+`nixlbench` builds on ROCm (#1647); ignore the "Known gaps" bullet saying it
+does not in READMEs at tags up to v1.4.1.
+
+**No ROCm wheel on PyPI.** `pip install nixl` installs only the CUDA variants
+(v1.5.0 known issue, #2191). Build the wheel with `-Dwheel_variant=rocm` and
+install it next to the `nixl` meta-package, which discovers an installed
+`nixl_rocm` from v1.5.0.
 
 There is still no NVSHMEM-equivalent backend; a rocSHMEM analog is listed as a
 future candidate, not a shipped plugin.
